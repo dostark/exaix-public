@@ -1,0 +1,321 @@
+/**
+ * Tests for Provider Registry Pattern (Issue #10: Tight Coupling Between Services)
+ *
+ * TDD Implementation: Write tests first, then implement the registry pattern
+ * to decouple ProviderFactory from concrete provider implementations.
+ *
+ * Success Criteria:
+ * 1. IProviderFactory interface defines contract for provider creation
+ * 2. ProviderRegistry can register and retrieve provider factories
+ * 3. Concrete factory implementations create correct provider instances
+ * 4. Registry-based creation works for all provider types
+ * 5. Backward compatibility maintained with legacy direct instantiation
+ * 6. Error handling for missing/unregistered providers
+ * 7. Performance overhead minimal (<1% of provider creation time)
+ */
+
+import { assertEquals, assertExists, assertThrows } from "jsr:@std/assert@^1.0.0";
+import {
+  IProviderFactory,
+  ProviderRegistry,
+  MockProviderFactory,
+  OllamaProviderFactory,
+  LlamaProviderFactory,
+  AnthropicProviderFactory,
+  OpenAIProviderFactory,
+  GoogleProviderFactory,
+} from "../../src/ai/provider_registry.ts";
+import { IModelProvider } from "../../src/ai/providers.ts";
+import { ResolvedProviderOptions } from "../../src/ai/provider_factory.ts";
+
+// ============================================================================
+// Test Fixtures
+// ============================================================================
+
+class MockTestProvider implements IModelProvider {
+  constructor(private options: { id: string; model: string }) {}
+
+  get id(): string {
+    return this.options.id;
+  }
+
+  get model(): string {
+    return this.options.model;
+  }
+
+  async generate(): Promise<string> {
+    return `mock response from ${this.id}`;
+  }
+
+  async *generateStream(): AsyncGenerator<string> {
+    yield `mock stream from ${this.id}`;
+  }
+}
+
+class FailingProviderFactory implements IProviderFactory {
+  create(_options: ResolvedProviderOptions): IModelProvider {
+    throw new Error("Factory intentionally fails");
+  }
+
+  getSupportedProviders(): string[] {
+    return ["mock"]; // Use valid provider type for testing
+  }
+}
+
+// ============================================================================
+// Provider Registry Tests
+// ============================================================================
+
+Deno.test("ProviderRegistry: starts empty", () => {
+  // Clear registry for test isolation
+  // Note: In real implementation, we'd need a way to reset registry
+  // For now, we'll test the interface contract
+
+  const factory = new MockProviderFactory();
+  assertEquals(factory.getSupportedProviders(), ["mock"]);
+});
+
+Deno.test("ProviderRegistry: can register and retrieve factories", () => {
+  const registry = ProviderRegistry;
+  const factory = new MockProviderFactory();
+
+  // Register factory
+  registry.register("test-mock", factory);
+
+  // Retrieve factory
+  const retrieved = registry.getFactory("test-mock");
+  assertExists(retrieved);
+  assertEquals(retrieved.getSupportedProviders(), ["mock"]);
+});
+
+Deno.test("ProviderRegistry: returns undefined for unregistered providers", () => {
+  const registry = ProviderRegistry;
+
+  const retrieved = registry.getFactory("non-existent");
+  assertEquals(retrieved, undefined);
+});
+
+Deno.test("ProviderRegistry: getSupportedProviders returns all registered types", () => {
+  const registry = ProviderRegistry;
+
+  // Register multiple factories
+  registry.register("mock1", new MockProviderFactory());
+  registry.register("mock2", new MockProviderFactory());
+
+  const supported = registry.getSupportedProviders();
+  assertEquals(supported.length >= 2, true); // At least our test registrations
+  assertEquals(supported.includes("mock1"), true);
+  assertEquals(supported.includes("mock2"), true);
+});
+
+Deno.test("ProviderRegistry: factory creates correct provider instance", () => {
+  const registry = ProviderRegistry;
+  const factory = new MockProviderFactory();
+
+  registry.register("test-factory", factory);
+
+  const options: ResolvedProviderOptions = {
+    provider: "mock",
+    model: "test-model",
+    timeoutMs: 30000,
+  };
+
+  const provider = factory.create(options);
+  assertExists(provider);
+  assertEquals(provider.id, "mock-test-model");
+  // Note: IModelProvider interface doesn't expose model directly,
+  // but concrete implementations may include it in the ID
+});
+
+Deno.test("ProviderRegistry: handles factory creation errors", () => {
+  const registry = ProviderRegistry;
+  const failingFactory = new FailingProviderFactory();
+
+  registry.register("failing", failingFactory);
+
+  const options: ResolvedProviderOptions = {
+    provider: "mock", // Use valid provider type
+    model: "test-model",
+    timeoutMs: 30000,
+  };
+
+  assertThrows(
+    () => failingFactory.create(options),
+    Error,
+    "Factory intentionally fails"
+  );
+});
+
+// ============================================================================
+// Integration Tests with ProviderFactory
+// ============================================================================
+,,,
+Deno.test("ProviderFactory: uses registry when available (TBD - implement after registry)", async () => {
+  // This test will be implemented after the registry is integrated into ProviderFactory
+  // For now, it documents the expected behavior
+
+  // const config = createTestConfig({ provider: "mock" });
+  // const provider = ProviderFactory.create(config);
+  // assertEquals(provider.id.startsWith("mock-"), true);
+
+  console.log("Registry integration test - to be implemented after ProviderFactory refactoring");
+});
+
+Deno.test("ProviderFactory: maintains backward compatibility (TBD - implement after registry)", async () => {
+  // This test will verify that existing ProviderFactory.create() calls still work
+  // even when using registry internally
+
+  // const config = createTestConfig({ provider: "ollama" });
+  // const provider = ProviderFactory.create(config);
+  // assertExists(provider);
+
+  console.log("Backward compatibility test - to be implemented after ProviderFactory refactoring");
+});
+
+// ============================================================================
+// Concrete Factory Tests
+// ============================================================================
+
+Deno.test("MockProviderFactory: creates MockLLMProvider instances", () => {
+  const factory = new MockProviderFactory();
+
+  const options: ResolvedProviderOptions = {
+    provider: "mock",
+    model: "test-model",
+    timeoutMs: 30000,
+    mockStrategy: "recorded",
+  };
+
+
+
+
+
+
+  const provider = factory.create(options);
+  assertExists(provider);
+  assertEquals(provider.id, "mock-recorded-test-model");
+});
+
+Deno.test("OllamaProviderFactory: creates OllamaProvider instances", () => {
+  const factory = new OllamaProviderFactory();
+
+  const options: ResolvedProviderOptions = {
+    provider: "ollama",
+    model: "llama3.2",
+
+
+
+ timeoutMs: 30000,
+    baseUrl: "http://localhost:11434",
+  };
+
+  const provider = factory.create(options);
+  assertExists(provider);
+  assertEquals(provider.id, "ollama-llama3.2");
+});
+
+Deno.test("LlamaProviderFactory: creates LlamaProvider instances", () => {
+  const factory = new LlamaProviderFactory();
+
+  const options: ResolvedProviderOptions = {
+    provider: "ollama", // Llama uses ollama routing
+    model: "codellama:7b",
+    timeoutMs: 30000,
+    baseUrl: "http://localhost:11434",
+  };
+
+  const provider = factory.create(options);
+  assertExists(provider);
+  // LlamaProvider doesn't expose model in ID, just check it exists
+});
+
+Deno.test("AnthropicProviderFactory: requires API key", () => {
+  const factory = new AnthropicProviderFactory();
+
+  const options: ResolvedProviderOptions = {
+    provider: "anthropic",
+    model: "claude-3-sonnet",
+    timeoutMs: 30000,
+  };
+
+  // Should fail without API key
+  assertThrows(
+    () => factory.create(options),
+    Error,
+    "Anthropic provider requires ANTHROPIC_API_KEY"
+  );
+});
+
+Deno.test("AnthropicProviderFactory: creates provider with API key", () => {
+  const factory = new AnthropicProviderFactory();
+
+  // Set API key for test
+  Deno.env.set("ANTHROPIC_API_KEY", "test-key");
+
+  try {
+    const options: ResolvedProviderOptions = {
+      provider: "anthropic",
+      model: "claude-3-sonnet",
+      timeoutMs: 30000,
+    };
+
+    const provider = factory.create(options);
+    assertExists(provider);
+    assertEquals(provider.id, "anthropic-claude-3-sonnet");
+  } finally {
+    Deno.env.delete("ANTHROPIC_API_KEY");
+  }
+});
+
+Deno.test("OpenAIProviderFactory: requires API key", () => {
+  const factory = new OpenAIProviderFactory();
+
+  const options: ResolvedProviderOptions = {
+    provider: "openai",
+    model: "gpt-4",
+    timeoutMs: 30000,
+  };
+
+  assertThrows(
+    () => factory.create(options),
+    Error,
+    "OpenAI provider requires OPENAI_API_KEY"
+  );
+});
+
+Deno.test("GoogleProviderFactory: requires API key", () => {
+  const factory = new GoogleProviderFactory();
+
+  const options: ResolvedProviderOptions = {
+    provider: "google",
+    model: "gemini-pro",
+    timeoutMs: 30000,
+  };
+
+  assertThrows(
+    () => factory.create(options),
+    Error,
+    "Google provider requires GOOGLE_API_KEY"
+  );
+});
+
+Deno.test("ProviderRegistry: lookup performance is acceptable", () => {
+  const registry = ProviderRegistry;
+  const factory = new MockProviderFactory();
+
+  registry.register("perf-test", factory);
+
+  const start = performance.now();
+
+  // Perform multiple lookups
+  for (let i = 0; i < 1000; i++) {
+    const retrieved = registry.getFactory("perf-test");
+    assertExists(retrieved);
+  }
+
+  const end = performance.now();
+  const avgTime = (end - start) / 1000; // Average time per lookup
+
+  // Should be well under 1ms per lookup
+  assertEquals(avgTime < 1, true, `Average lookup time: ${avgTime}ms`);
+});

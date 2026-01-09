@@ -15,6 +15,14 @@ import { LlamaProvider } from "./providers/llama_provider.ts";
 import { AnthropicProvider } from "./providers/anthropic_provider.ts";
 import { OpenAIProvider } from "./providers/openai_provider.ts";
 import { GoogleProvider } from "./providers/google_provider.ts";
+import {
+  AnthropicProviderFactory,
+  GoogleProviderFactory,
+  MockProviderFactory,
+  OllamaProviderFactory,
+  OpenAIProviderFactory,
+  ProviderRegistry,
+} from "./provider_registry.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -260,6 +268,24 @@ export class ProviderFactory {
    * Create the appropriate provider based on resolved options.
    */
   private static createProvider(options: ResolvedProviderOptions): IModelProvider {
+    // Ensure registry is initialized
+    initializeRegistry();
+
+    // Try registry first for modern providers
+    const factory = ProviderRegistry.getFactory(options.provider);
+    if (factory) {
+      return factory.create(options);
+    }
+
+    // Fall back to legacy direct instantiation for backward compatibility
+    return this.createProviderLegacy(options);
+  }
+
+  /**
+   * Legacy provider creation for backward compatibility
+   * TODO: Deprecate this method once all providers are migrated to registry
+   */
+  private static createProviderLegacy(options: ResolvedProviderOptions): IModelProvider {
     // Llama/Ollama model routing
     if (/^(codellama:|llama[0-9.]*:)/.test(options.model)) {
       return new LlamaProvider({ model: options.model, endpoint: options.baseUrl });
@@ -410,6 +436,26 @@ export class ProviderFactory {
     }
   }
 }
+
+// ============================================================================
+// Registry Initialization
+// ============================================================================
+
+/**
+ * Initialize default provider factories in registry (lazy initialization)
+ */
+function initializeRegistry(): void {
+  // Only initialize if not already done
+  if (ProviderRegistry.getSupportedProviders().length === 0) {
+    ProviderRegistry.register("mock", new MockProviderFactory());
+    ProviderRegistry.register("ollama", new OllamaProviderFactory());
+    ProviderRegistry.register("anthropic", new AnthropicProviderFactory());
+    ProviderRegistry.register("openai", new OpenAIProviderFactory());
+    ProviderRegistry.register("google", new GoogleProviderFactory());
+  }
+}
+
+// Note: LlamaProvider is handled specially in createProviderLegacy due to model-based routing
 
 // Helper for tests: get provider by model name
 /**
