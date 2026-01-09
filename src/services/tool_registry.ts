@@ -65,18 +65,182 @@ export interface ToolRegistryConfig {
 // Command Whitelist
 // ============================================================================
 
+// ============================================================================
+// Command Whitelist with Safety Classification
+// ============================================================================
+
+// Combined whitelist for backward compatibility
 const ALLOWED_COMMANDS = new Set([
+  // Safe commands
   "echo",
-  "cat",
-  "ls",
+  "printf",
   "pwd",
-  "git",
-  "deno",
-  "node",
-  "npm",
-  "which",
   "whoami",
+  "id",
+  "date",
+  "uptime",
+  "which",
+  "type",
+  "command",
+  "hash",
+  "alias",
+  // Validated commands
+  "ls",
+  "cat",
+  "head",
+  "tail",
+  "wc",
+  "file",
+  "stat",
+  "basename",
+  "dirname",
+  "grep",
+  "cut",
+  "tr",
+  "sort",
+  "uniq",
+  "rev",
+  "fold",
+  "fmt",
+  "git",
+  "npm",
+  "node",
+  "deno",
 ]);
+
+// ============================================================================
+// Argument Validation Functions
+// ============================================================================
+
+/**
+ * Validate command arguments for security and safety
+ */
+function validateCommandArguments(command: string, args: string[]): { valid: boolean; reason?: string } {
+  // Reject dangerous argument patterns
+  const dangerousPatterns = [
+    /[\$`]/, // Shell metacharacters
+    /\|/, // Pipes
+    /;/, // Command separators
+    /&&/, // Logical AND
+    /\|\|/, // Logical OR
+    />/, // Output redirection
+    /<</, // Input redirection
+    /2>/, // Error redirection
+  ];
+
+  for (const arg of args) {
+    for (const pattern of dangerousPatterns) {
+      if (pattern.test(arg)) {
+        return {
+          valid: false,
+          reason: `Argument contains dangerous pattern: ${pattern.source}`,
+        };
+      }
+    }
+  }
+
+  // Command-specific validations
+  switch (command) {
+    case "git":
+      return validateGitArguments(args);
+    case "npm":
+    case "node":
+    case "deno":
+      return validateRuntimeArguments(command, args);
+    case "ls":
+      return validateLsArguments(args);
+    case "grep":
+      return validateGrepArguments(args);
+    default:
+      // For safe commands, basic validation is sufficient
+      return { valid: true };
+  }
+}
+
+/**
+ * Validate git command arguments
+ */
+function validateGitArguments(args: string[]): { valid: boolean; reason?: string } {
+  const dangerousGitOptions = [
+    "--exec-path",
+    "--git-dir",
+    "--work-tree",
+    "--namespace",
+    "--config",
+    "--config-env",
+    "--exec",
+    "--html-path",
+  ];
+
+  for (const arg of args) {
+    if (dangerousGitOptions.some((option) => arg.startsWith(option))) {
+      return {
+        valid: false,
+        reason: `Dangerous git option not allowed: ${arg}`,
+      };
+    }
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Validate runtime command arguments (npm, node, deno)
+ */
+function validateRuntimeArguments(runtime: string, args: string[]): { valid: boolean; reason?: string } {
+  // Only allow specific safe subcommands
+  const safeSubcommands = ["--version", "--help", "version", "info"];
+
+  if (args.length === 0) return { valid: true }; // Allow bare command
+
+  const firstArg = args[0];
+  if (!safeSubcommands.includes(firstArg)) {
+    return {
+      valid: false,
+      reason: `${runtime} subcommand not allowed: ${firstArg}`,
+    };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Validate ls command arguments
+ */
+function validateLsArguments(args: string[]): { valid: boolean; reason?: string } {
+  // Allow safe ls options only
+  const allowedLsOptions = ["-l", "-a", "-h", "-1", "--color=never"];
+
+  for (const arg of args) {
+    if (arg.startsWith("-") && !allowedLsOptions.includes(arg)) {
+      return {
+        valid: false,
+        reason: `Unsafe ls option not allowed: ${arg}`,
+      };
+    }
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Validate grep command arguments
+ */
+function validateGrepArguments(args: string[]): { valid: boolean; reason?: string } {
+  // Allow safe grep options only
+  const allowedGrepOptions = ["-i", "-v", "-n", "-c", "-l", "-r", "-E", "-F"];
+
+  for (const arg of args) {
+    if (arg.startsWith("-") && !allowedGrepOptions.some((opt) => arg.startsWith(opt))) {
+      return {
+        valid: false,
+        reason: `Unsafe grep option not allowed: ${arg}`,
+      };
+    }
+  }
+
+  return { valid: true };
+}
 
 // ============================================================================
 // ToolRegistry Implementation
@@ -444,13 +608,22 @@ export class ToolRegistry {
   /**
    * Run command tool implementation
    */
-  private async runCommand(command: string, args: string[]): Promise<ToolResult> {
+  public async runCommand(command: string, args: string[]): Promise<ToolResult> {
     try {
       // Check if command is whitelisted
       if (!ALLOWED_COMMANDS.has(command)) {
         return {
           success: false,
           error: `Command '${command}' is not allowed. Allowed commands: ${Array.from(ALLOWED_COMMANDS).join(", ")}`,
+        };
+      }
+
+      // Validate command arguments for security
+      const validation = validateCommandArguments(command, args);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: `Command arguments not allowed: ${validation.reason}`,
         };
       }
 
