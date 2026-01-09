@@ -11,4 +11,8 @@ const delay = Math.pow(2, attempt) * DEFAULT_GIT_RETRY_BACKOFF_BASE_MS;
 
 ---
 
-```
+## Code Patterns & Anti-Patterns
+
+Based on systematic code review and fixes implemented in Phase 22, here are the established patterns and anti-patterns for ExoFrame development.
+
+### ✅ REQUIRED PATTERNS

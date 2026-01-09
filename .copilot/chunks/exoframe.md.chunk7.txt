@@ -1,0 +1,23 @@
+#### 1. Non-Blocking Async Operations
+**Pattern**: Always use non-blocking alternatives to synchronous operations
+```typescript
+// ✅ GOOD: Non-blocking delay
+private delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ❌ BAD: Blocking synchronous delay
+await new Promise(resolve => setTimeout(resolve, ms)); // Blocks event loop
+```
+
+#### 2. Timeout Protection for External Operations
+**Pattern**: All subprocess, network, and external operations must have configurable timeouts
+```typescript
+// ✅ GOOD: Timeout-protected subprocess
+const cmd = new Deno.Command("git", {
+  args,
+  stdout: "piped",
+  stderr: "piped",
+  signal: AbortSignal.timeout(DEFAULT_GIT_COMMAND_TIMEOUT_MS)
+});
+```

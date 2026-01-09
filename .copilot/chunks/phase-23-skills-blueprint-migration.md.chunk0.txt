@@ -1,0 +1,11 @@
+# Phase 23: Skills Blueprint Migration
+
+**Created:** 2026-01-09
+**Status:** 📋 **PLANNED**
+**Priority:** Medium
+**Estimated Duration:** 4-6 hours
+**Parent Phase:** [Phase 22: Architecture & Quality](./phase-22-architecture-and-quality-improvement.md)
+
+---
+
+## Progress Summary

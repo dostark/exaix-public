@@ -1,0 +1,13 @@
+| Milestone | Status | Description |
+|-----------|--------|-------------|
+| Analysis | ❌ Not Started | Audit current skill usage and references |
+| Design | ❌ Not Started | Define new Blueprints/Skills structure |
+| Migration | ❌ Not Started | Move core skills to Blueprints/Skills |
+| Reference Updates | ❌ Not Started | Update all skill references in agents/flows |
+| Validation | ❌ Not Started | Verify all references work correctly |
+| Documentation | ❌ Not Started | Update docs and READMEs |
+| Testing | ❌ Not Started | Run full test suite |
+
+---
+
+## Executive Summary
