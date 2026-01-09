@@ -96,11 +96,6 @@ export class ProviderFactory {
    * @param config - ExoFrame configuration
    * @returns An IModelProvider instance
    */
-  /**
-   * Create an LLM provider based on environment and configuration.
-   * @param config ExoFrame configuration
-   * @returns An IModelProvider instance
-   */
   static create(config: Config): IModelProvider {
     const options = this.resolveOptions(config);
     return this.createProvider(options);
@@ -113,12 +108,6 @@ export class ProviderFactory {
    * @param name - Name of the model configuration (e.g., "default", "fast")
    * @returns An IModelProvider instance
    */
-  /**
-   * Create an LLM provider by name from the models configuration.
-   * @param config ExoFrame configuration
-   * @param name Name of the model configuration (e.g., "default", "fast")
-   * @returns An IModelProvider instance
-   */
   static createByName(config: Config, name: string): IModelProvider {
     const options = this.resolveOptionsByName(config, name);
     return this.createProvider(options);
@@ -128,11 +117,6 @@ export class ProviderFactory {
    * Get information about what provider would be created
    *
    * @param config - ExoFrame configuration
-   * @returns Provider information for logging
-   */
-  /**
-   * Get information about what provider would be created.
-   * @param config ExoFrame configuration
    * @returns Provider information for logging
    */
   static getProviderInfo(config: Config): ProviderInfo {
@@ -151,12 +135,6 @@ export class ProviderFactory {
    *
    * @param config - ExoFrame configuration
    * @param name - Name of the model configuration
-   * @returns Provider information for logging
-   */
-  /**
-   * Get information about what provider would be created by name.
-   * @param config ExoFrame configuration
-   * @param name Name of the model configuration
    * @returns Provider information for logging
    */
   static getProviderInfoByName(config: Config, name: string): ProviderInfo {
@@ -239,9 +217,6 @@ export class ProviderFactory {
   /**
    * Resolve provider options by name
    */
-  /**
-   * Resolve provider options by name.
-   */
   private static resolveOptionsByName(config: Config, name: string): ResolvedProviderOptions {
     const modelConfig = config.models?.[name] ?? config.models?.["default"] ?? config.ai;
     return this.resolveOptions(config, modelConfig);
@@ -249,9 +224,6 @@ export class ProviderFactory {
 
   /**
    * Determine the source of configuration
-   */
-  /**
-   * Determine the source of configuration.
    */
   private static determineSource(): "env" | "config" | "default" {
     if (this.safeEnvGet("EXO_LLM_PROVIDER")) {
@@ -263,9 +235,6 @@ export class ProviderFactory {
 
   /**
    * Create the appropriate provider based on resolved options
-   */
-  /**
-   * Create the appropriate provider based on resolved options.
    */
   private static createProvider(options: ResolvedProviderOptions): IModelProvider {
     // Ensure registry is initialized
@@ -315,9 +284,6 @@ export class ProviderFactory {
   /**
    * Create a MockLLMProvider
    */
-  /**
-   * Create a MockLLMProvider.
-   */
   private static createMockProvider(options: ResolvedProviderOptions): MockLLMProvider {
     const strategy = options.mockStrategy ?? "recorded";
 
@@ -330,9 +296,6 @@ export class ProviderFactory {
   /**
    * Create an OllamaProvider
    */
-  /**
-   * Create an OllamaProvider.
-   */
   private static createOllamaProvider(options: ResolvedProviderOptions): OllamaProvider {
     return new OllamaProvider({
       id: this.generateProviderId(options),
@@ -344,9 +307,6 @@ export class ProviderFactory {
 
   /**
    * Create an Anthropic provider
-   */
-  /**
-   * Create an Anthropic provider.
    */
   private static createAnthropicProvider(options: ResolvedProviderOptions): IModelProvider {
     const apiKey = this.safeEnvGet("ANTHROPIC_API_KEY");
@@ -364,9 +324,6 @@ export class ProviderFactory {
   /**
    * Create an OpenAI provider (stub - throws if no API key)
    */
-  /**
-   * Create an OpenAI provider (throws if no API key).
-   */
   private static createOpenAIProvider(options: ResolvedProviderOptions): IModelProvider {
     const apiKey = this.safeEnvGet("OPENAI_API_KEY");
     if (!apiKey) {
@@ -383,9 +340,6 @@ export class ProviderFactory {
 
   /**
    * Generate a unique provider ID
-   */
-  /**
-   * Generate a unique provider ID.
    */
   private static generateProviderId(options: ResolvedProviderOptions): string {
     switch (options.provider) {
@@ -406,9 +360,6 @@ export class ProviderFactory {
 
   /**
    * Create a Google provider
-   */
-  /**
-   * Create a Google provider.
    */
   private static createGoogleProvider(options: ResolvedProviderOptions): IModelProvider {
     const apiKey = this.safeEnvGet("GOOGLE_API_KEY");
@@ -458,9 +409,6 @@ function initializeRegistry(): void {
 // Note: LlamaProvider is handled specially in createProviderLegacy due to model-based routing
 
 // Helper for tests: get provider by model name
-/**
- * Helper for tests: get provider by model name.
- */
 export function getProviderForModel(model: string) {
   // Minimal mock config for test
   const config = {

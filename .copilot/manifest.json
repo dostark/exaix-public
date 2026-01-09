@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-09T20:24:08.362Z",
+  "generated_at": "2026-01-09T20:54:01.940Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -379,7 +379,8 @@
         ".copilot/chunks/exoframe.md.chunk3.txt",
         ".copilot/chunks/exoframe.md.chunk4.txt",
         ".copilot/chunks/exoframe.md.chunk5.txt",
-        ".copilot/chunks/exoframe.md.chunk6.txt"
+        ".copilot/chunks/exoframe.md.chunk6.txt",
+        ".copilot/chunks/exoframe.md.chunk7.txt"
       ]
     },
     {
@@ -406,6 +407,30 @@
         ".copilot/chunks/phase-22-architecture-and-quality-improvement.md.chunk5.txt",
         ".copilot/chunks/phase-22-architecture-and-quality-improvement.md.chunk6.txt",
         ".copilot/chunks/phase-22-architecture-and-quality-improvement.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-23-skills-blueprint-migration.md",
+      "agent": "copilot",
+      "scope": "architecture",
+      "title": "Skills Blueprint Migration - Moving Core Skills to Blueprints",
+      "short_summary": "",
+      "version": 1,
+      "topics": [
+        "architecture",
+        "organization",
+        "blueprints",
+        "skills"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk0.txt",
+        ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk1.txt",
+        ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk2.txt",
+        ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk3.txt",
+        ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk4.txt",
+        ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk5.txt",
+        ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk6.txt",
+        ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk7.txt"
       ]
     },
     {

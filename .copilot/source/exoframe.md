@@ -100,4 +100,215 @@ const delay = Math.pow(2, attempt) * DEFAULT_GIT_RETRY_BACKOFF_BASE_MS;
 
 ---
 
+## Code Patterns & Anti-Patterns
+
+Based on systematic code review and fixes implemented in Phase 22, here are the established patterns and anti-patterns for ExoFrame development.
+
+### ✅ REQUIRED PATTERNS
+
+#### 1. Non-Blocking Async Operations
+**Pattern**: Always use non-blocking alternatives to synchronous operations
+```typescript
+// ✅ GOOD: Non-blocking delay
+private delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// ❌ BAD: Blocking synchronous delay
+await new Promise(resolve => setTimeout(resolve, ms)); // Blocks event loop
+```
+
+#### 2. Timeout Protection for External Operations
+**Pattern**: All subprocess, network, and external operations must have configurable timeouts
+```typescript
+// ✅ GOOD: Timeout-protected subprocess
+const cmd = new Deno.Command("git", {
+  args,
+  stdout: "piped",
+  stderr: "piped",
+  signal: AbortSignal.timeout(DEFAULT_GIT_COMMAND_TIMEOUT_MS)
+});
+```
+
+#### 3. Secure Path Validation
+**Pattern**: All file paths must be validated against canonical real paths to prevent traversal attacks
+```typescript
+// ✅ GOOD: Secure path resolution
+import { PathSecurity } from "../utils/path_security.ts";
+const securePath = await PathSecurity.resolveAndValidate(path, allowedRoots);
+```
+
+#### 4. Proper Synchronization for Concurrent Operations
+**Pattern**: Use file locking or queuing to prevent race conditions in concurrent file operations
+```typescript
+// ✅ GOOD: File locking for concurrent access
+await this.withFileLock(filePath, async () => {
+  // Safe concurrent file operations
+});
+```
+
+#### 5. Registry Pattern for Service Decoupling
+**Pattern**: Use registry patterns to decouple factory classes from concrete implementations
+```typescript
+// ✅ GOOD: Registry-based provider creation
+const provider = await ProviderRegistry.create(options);
+```
+
+#### 6. Single JSDoc Block Per Method
+**Pattern**: Each method should have exactly one JSDoc block with complete documentation
+```typescript
+// ✅ GOOD: Single comprehensive JSDoc
+/**
+ * Create an LLM provider based on environment and configuration.
+ * @param config ExoFrame configuration object
+ * @returns Configured IModelProvider instance
+ * @throws {ProviderFactoryError} Missing required API key
+ */
+static create(config: Config): IModelProvider
+```
+
+#### 7. Error Boundaries and Isolation
+**Pattern**: Isolate failures to prevent cascading corruption of execution contexts
+```typescript
+// ✅ GOOD: Error boundary isolation
+try {
+  await this.executeStep(stepId);
+} catch (error) {
+  stepResults.set(stepId, createFailedStepResult(error));
+  // Continue with other steps
+}
+```
+
+#### 8. Classified Error Handling
+**Pattern**: Classify errors into specific types with appropriate HTTP/JSON-RPC codes
+```typescript
+// ✅ GOOD: Classified error responses
+if (error instanceof ValidationError) {
+  return { code: -32602, message: "Invalid params", data: error.details };
+}
+```
+
+#### 9. File Locking for Concurrent Access
+**Pattern**: Use exclusive file locks for read-modify-write operations on shared files
+```typescript
+// ✅ GOOD: Atomic file operations with locking
+await this.withFileLock(`${filePath}.lock`, async () => {
+  const content = await Deno.readTextFile(filePath);
+  const updated = modifyContent(content);
+  await Deno.writeTextFile(filePath, updated);
+});
+```
+
+### ❌ PROHIBITED ANTI-PATTERNS
+
+#### 1. Blocking Synchronous Operations
+**Anti-pattern**: Never use synchronous delays, file operations, or blocking calls in async contexts
+```typescript
+// ❌ BAD: Blocking operations
+setTimeout(() => {}, 1000); // Blocks event loop
+Deno.readTextFileSync(path); // Synchronous file I/O
+```
+
+#### 2. Missing Timeout Protection
+**Anti-pattern**: Never execute external commands without timeout protection
+```typescript
+// ❌ BAD: No timeout protection
+const cmd = new Deno.Command("git", { args: ["status"] });
+await cmd.output(); // Can hang indefinitely
+```
+
+#### 3. Path Traversal Vulnerabilities
+**Anti-pattern**: Never use unvalidated paths or string concatenation for file operations
+```typescript
+// ❌ BAD: Path traversal vulnerable
+const fullPath = `${baseDir}/${userInput}`; // Allows ../../../etc/passwd
+await Deno.readTextFile(fullPath);
+```
+
+#### 4. Race Conditions in File Operations
+**Anti-pattern**: Never perform concurrent read-modify-write operations without synchronization
+```typescript
+// ❌ BAD: Race condition prone
+const content = await Deno.readTextFile(file);
+const updated = modify(content);
+await Deno.writeTextFile(file, updated); // Can conflict with concurrent operations
+```
+
+#### 5. Tight Coupling Between Services
+**Anti-pattern**: Never directly instantiate concrete classes in factory methods
+```typescript
+// ❌ BAD: Tight coupling
+export class ProviderFactory {
+  static create(): IProvider {
+    return new OpenAIProvider(); // Direct instantiation
+  }
+}
+```
+
+#### 6. Duplicate JSDoc Blocks
+**Anti-pattern**: Never have multiple JSDoc comment blocks for the same method
+```typescript
+// ❌ BAD: Duplicate JSDoc
+/**
+ * Method description
+ */
+/**
+ * Method description.
+ */
+static method() {}
+```
+
+#### 7. Missing Error Isolation
+**Anti-pattern**: Never allow single failures to corrupt entire execution contexts
+```typescript
+// ❌ BAD: No error isolation
+const results = await Promise.all(steps.map(step => execute(step)));
+// One failure can corrupt the entire results array
+```
+
+#### 8. Generic Error Handling
+**Anti-pattern**: Never catch all errors generically without proper classification
+```typescript
+// ❌ BAD: Generic error handling
+try {
+  await operation();
+} catch (error) {
+  throw new Error("Operation failed"); // Loses error context
+}
+```
+
+#### 9. File Operations Without Locking
+**Anti-pattern**: Never perform read-modify-write on shared files without exclusive locks
+```typescript
+// ❌ BAD: Unlocked file operations
+const data = JSON.parse(await Deno.readTextFile("shared.json"));
+data.counter++;
+await Deno.writeTextFile("shared.json", JSON.stringify(data));
+// Can cause data corruption with concurrent access
+```
+
+### Implementation Verification
+
+**All code changes must be verified against these patterns:**
+- ✅ Passes all unit tests with comprehensive coverage
+- ✅ No blocking operations in async contexts
+- ✅ All external operations have timeout protection
+- ✅ All file paths are securely validated
+- ✅ Concurrent operations are properly synchronized
+- ✅ Error handling follows classification patterns
+- ✅ No duplicate documentation blocks
+- ✅ File operations use appropriate locking mechanisms
+
+**Pre-commit Checklist:**
+- [ ] No synchronous operations in async methods
+- [ ] All external commands have timeout protection
+- [ ] File paths validated against canonical real paths
+- [ ] Concurrent file operations use exclusive locks
+- [ ] Error handling provides classified responses
+- [ ] JSDoc is single block per method with complete documentation
+- [ ] Constants used instead of magic numbers
+- [ ] All tests pass with >90% coverage
+
+---
+
 ```
