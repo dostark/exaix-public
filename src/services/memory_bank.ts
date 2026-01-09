@@ -80,6 +80,68 @@ export class MemoryBankService {
     ensureDirSync(this.indexDir);
   }
 
+  /**
+   * Execute an operation with file-based locking to prevent concurrent access
+   *
+   * @param lockPath - Path to the lock file
+   * @param operation - Async operation to execute while holding the lock
+   * @param timeoutMs - Maximum time to wait for lock acquisition (default: 5000ms)
+   * @param maxRetries - Maximum number of retry attempts (default: 3)
+   */
+  private async withFileLock<T>(
+    lockPath: string,
+    operation: () => Promise<T>,
+    timeoutMs: number = 5000,
+    maxRetries: number = 3,
+  ): Promise<T> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        // Try to acquire lock with exclusive access
+        const lockFile = await Deno.open(lockPath, {
+          createNew: true,
+          write: true,
+        });
+
+        try {
+          // Execute the operation while holding the lock
+          const result = await operation();
+          return result;
+        } finally {
+          // Always close and remove the lock file
+          try {
+            lockFile.close();
+            await Deno.remove(lockPath);
+          } catch {
+            // Ignore cleanup errors
+          }
+        }
+      } catch (error) {
+        lastError = error as Error;
+
+        // If it's not a "file exists" error, rethrow immediately
+        if (!(error instanceof Deno.errors.AlreadyExists)) {
+          throw error;
+        }
+
+        // If this was the last attempt, throw the timeout error
+        if (attempt === maxRetries) {
+          throw new Error(
+            `Failed to acquire file lock after ${maxRetries + 1} attempts: ${lastError.message}`,
+          );
+        }
+
+        // Wait with exponential backoff before retrying
+        const delay = Math.min(timeoutMs * Math.pow(2, attempt), 30000); // Cap at 30 seconds
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    // This should never be reached, but TypeScript requires it
+    throw lastError || new Error("Unexpected error in file locking");
+  }
+
   // ===== Project Memory Operations =====
 
   /**
@@ -176,21 +238,26 @@ export class MemoryBankService {
     portal: string,
     updates: Partial<Omit<ProjectMemory, "portal">>,
   ): Promise<void> {
-    const existing = await this.getProjectMemory(portal);
-    if (!existing) {
-      throw new Error(`Project memory not found for portal: ${portal}`);
-    }
+    const projectDir = join(this.projectsDir, portal);
+    const lockPath = join(projectDir, "update.lock");
 
-    const updated: ProjectMemory = {
-      portal,
-      overview: updates.overview ?? existing.overview,
-      patterns: updates.patterns ?? existing.patterns,
-      decisions: updates.decisions ?? existing.decisions,
-      references: updates.references ?? existing.references,
-    };
+    await this.withFileLock(lockPath, async () => {
+      const existing = await this.getProjectMemory(portal);
+      if (!existing) {
+        throw new Error(`Project memory not found for portal: ${portal}`);
+      }
 
-    // Rewrite all files
-    await this.createProjectMemory(updated);
+      const updated: ProjectMemory = {
+        portal,
+        overview: updates.overview ?? existing.overview,
+        patterns: updates.patterns ?? existing.patterns,
+        decisions: updates.decisions ?? existing.decisions,
+        references: updates.references ?? existing.references,
+      };
+
+      // Rewrite all files
+      await this.createProjectMemory(updated);
+    });
 
     // Log update
     this.logActivity({
@@ -207,13 +274,18 @@ export class MemoryBankService {
    * @param pattern - Pattern to add
    */
   async addPattern(portal: string, pattern: Pattern): Promise<void> {
-    const existing = await this.getProjectMemory(portal);
-    if (!existing) {
-      throw new Error(`Project memory not found for portal: ${portal}`);
-    }
+    const projectDir = join(this.projectsDir, portal);
+    const lockPath = join(projectDir, "patterns.lock");
 
-    existing.patterns.push(pattern);
-    await this.updateProjectMemory(portal, { patterns: existing.patterns });
+    await this.withFileLock(lockPath, async () => {
+      const existing = await this.getProjectMemory(portal);
+      if (!existing) {
+        throw new Error(`Project memory not found for portal: ${portal}`);
+      }
+
+      existing.patterns.push(pattern);
+      await this.updateProjectMemory(portal, { patterns: existing.patterns });
+    });
 
     // Log pattern addition
     this.logActivity({
@@ -233,13 +305,18 @@ export class MemoryBankService {
    * @param decision - Decision to add
    */
   async addDecision(portal: string, decision: Decision): Promise<void> {
-    const existing = await this.getProjectMemory(portal);
-    if (!existing) {
-      throw new Error(`Project memory not found for portal: ${portal}`);
-    }
+    const projectDir = join(this.projectsDir, portal);
+    const lockPath = join(projectDir, "decisions.lock");
 
-    existing.decisions.push(decision);
-    await this.updateProjectMemory(portal, { decisions: existing.decisions });
+    await this.withFileLock(lockPath, async () => {
+      const existing = await this.getProjectMemory(portal);
+      if (!existing) {
+        throw new Error(`Project memory not found for portal: ${portal}`);
+      }
+
+      existing.decisions.push(decision);
+      await this.updateProjectMemory(portal, { decisions: existing.decisions });
+    });
 
     // Log decision addition
     this.logActivity({
@@ -446,42 +523,55 @@ export class MemoryBankService {
     // Validate learning schema
     LearningSchema.parse(learning);
 
-    let globalMem = await this.getGlobalMemory();
-    if (!globalMem) {
-      await this.initGlobalMemory();
-      globalMem = await this.getGlobalMemory();
-    }
+    // Ensure global directory exists before locking
+    await ensureDir(this.globalDir);
 
-    if (!globalMem) {
-      throw new Error("Failed to initialize global memory");
-    }
+    const lockPath = join(this.globalDir, "learnings.lock");
 
-    // Add learning
-    globalMem.learnings.push(learning);
+    await this.withFileLock(lockPath, async () => {
+      let globalMem = await this.getGlobalMemory();
+      if (!globalMem) {
+        await this.initGlobalMemory();
+        globalMem = await this.getGlobalMemory();
+      }
 
-    // Update statistics
-    globalMem.statistics.total_learnings = globalMem.learnings.length;
-    globalMem.statistics.by_category[learning.category] = (globalMem.statistics.by_category[learning.category] || 0) +
-      1;
+      if (!globalMem) {
+        throw new Error("Failed to initialize global memory");
+      }
 
-    if (learning.project) {
-      globalMem.statistics.by_project[learning.project] = (globalMem.statistics.by_project[learning.project] || 0) + 1;
-    }
+      // Check for duplicate ID
+      if (globalMem.learnings.some((l) => l.id === learning.id)) {
+        throw new Error(`Learning with ID '${learning.id}' already exists`);
+      }
 
-    globalMem.statistics.last_activity = new Date().toISOString();
-    globalMem.updated_at = new Date().toISOString();
+      // Add learning
+      globalMem.learnings.push(learning);
 
-    // Write updated JSON
-    await Deno.writeTextFile(
-      join(this.globalDir, "learnings.json"),
-      JSON.stringify(globalMem, null, 2),
-    );
+      // Update statistics
+      globalMem.statistics.total_learnings = globalMem.learnings.length;
+      globalMem.statistics.by_category[learning.category] = (globalMem.statistics.by_category[learning.category] || 0) +
+        1;
 
-    // Append to markdown file
-    const mdContent = this.formatLearningMarkdown(learning);
-    const mdPath = join(this.globalDir, "learnings.md");
-    const existingContent = await this.readMarkdownFile(mdPath);
-    await this.writeMarkdownFile(mdPath, existingContent + "\n" + mdContent);
+      if (learning.project) {
+        globalMem.statistics.by_project[learning.project] = (globalMem.statistics.by_project[learning.project] || 0) +
+          1;
+      }
+
+      globalMem.statistics.last_activity = new Date().toISOString();
+      globalMem.updated_at = new Date().toISOString();
+
+      // Write updated JSON
+      await Deno.writeTextFile(
+        join(this.globalDir, "learnings.json"),
+        JSON.stringify(globalMem, null, 2),
+      );
+
+      // Append to markdown file
+      const mdContent = this.formatLearningMarkdown(learning);
+      const mdPath = join(this.globalDir, "learnings.md");
+      const existingContent = await this.readMarkdownFile(mdPath);
+      await this.writeMarkdownFile(mdPath, existingContent + "\n" + mdContent);
+    });
 
     this.logActivity({
       event_type: "memory.global.learning.added",

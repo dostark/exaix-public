@@ -942,49 +942,173 @@ private async runGitCommand(
 
 #### Problem Statement
 
-Memory bank uses synchronous file operations and doesn't handle concurrent access properly.
+Memory bank uses synchronous file operations and doesn't handle concurrent access properly. Multiple operations can read/write the same files simultaneously, leading to race conditions and data corruption. The current implementation lacks file locking mechanisms to prevent concurrent access to shared memory files.
+
+#### Current Problematic Code
+
+**File**: `src/services/memory_bank.ts` (Lines 1220-1240)
+
+```typescript
+private async readMarkdownFile(path: string): Promise<string> {
+  if (!await exists(path)) {
+    return "";
+  }
+  return await Deno.readTextFile(path);
+}
+
+private async writeMarkdownFile(path: string, content: string): Promise<void> {
+  await ensureFile(path);
+  await Deno.writeTextFile(path, content);
+}
+```
+
+**Issues Identified**:
+1. **No Concurrency Control**: Multiple operations can read/write the same files simultaneously
+2. **Race Conditions**: Concurrent updates to `learnings.md`, `patterns.md`, etc. can cause data loss
+3. **File Corruption Risk**: Partial writes during concurrent operations
+4. **No Atomic Operations**: Complex updates (read-modify-write) are not atomic
+5. **Performance Impact**: No caching or batching of file operations
+
+#### Impact Analysis
+
+**Data Integrity Risk**:
+- Race conditions during concurrent memory updates
+- Potential data loss when multiple operations modify the same files
+- Inconsistent state when operations are interrupted mid-write
+
+**Performance Impact**:
+- Excessive file I/O for simple operations
+- No caching of frequently accessed memory data
+- Sequential processing instead of batched operations
+
+**Scalability Issues**:
+- File-based storage doesn't scale with concurrent users
+- No connection pooling or optimization for multiple operations
+- Memory usage grows linearly with number of projects
 
 #### Proposed Solution
+
+**Step 1: Implement File Locking Mechanism**
 
 **File**: `src/services/memory_bank.ts` (ADD)
 
 ```typescript
-// Add file locking mechanism
-private async withFileLock<T>(filePath: string, operation: () => Promise<T>): Promise<T> {
+// File locking mechanism for concurrent access control
+private async withFileLock<T>(
+  filePath: string,
+  operation: () => Promise<T>,
+  options?: { timeoutMs?: number; maxRetries?: number }
+): Promise<T> {
   const lockFile = `${filePath}.lock`;
+  const timeoutMs = options?.timeoutMs || 5000; // 5 second default timeout
+  const maxRetries = options?.maxRetries || 10;
+  const retryDelayMs = 100;
 
-  // Simple file-based locking (can be improved with proper locking)
-  let lockAcquired = false;
   let attempts = 0;
-  const maxAttempts = 10;
+  const startTime = Date.now();
 
-  while (attempts < maxAttempts && !lockAcquired) {
+  while (attempts < maxRetries && (Date.now() - startTime) < timeoutMs) {
     try {
-      await Deno.writeTextFile(lockFile, `${Date.now()}`);
-      lockAcquired = true;
-    } catch {
-      attempts++;
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Try to create lock file exclusively
+      await Deno.writeTextFile(lockFile, `${Date.now()}:${crypto.randomUUID()}`, {
+        createNew: true // Fail if file already exists
+      });
+
+      try {
+        // Execute operation with lock held
+        const result = await operation();
+        return result;
+      } finally {
+        // Always cleanup lock file
+        try {
+          await Deno.remove(lockFile);
+        } catch {
+          // Ignore cleanup errors - lock will be cleaned up by timeout
+        }
+      }
+    } catch (error) {
+      if (error instanceof Deno.errors.AlreadyExists) {
+        // Lock file exists, wait and retry
+        attempts++;
+        if (attempts < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, retryDelayMs));
+          continue;
+        }
+      }
+      throw error;
     }
   }
 
-  if (!lockAcquired) {
-    throw new Error(`Could not acquire lock for ${filePath}`);
-  }
-
-  try {
-    return await operation();
-  } finally {
-    try {
-      await Deno.remove(lockFile);
-    } catch {
-      // Ignore cleanup errors
-    }
-  }
+  throw new Error(`Could not acquire file lock for ${filePath} after ${attempts} attempts`);
 }
 ```
 
----
+**Step 2: Add Concurrent Operation Protection**
+
+**File**: `src/services/memory_bank.ts` (MODIFY)
+
+#### Implementation Plan
+
+**Phase 1: Core Infrastructure (2 hours)**
+- [ ] Implement `withFileLock()` method with proper error handling
+- [ ] Add lock file cleanup on process exit
+- [ ] Test basic locking functionality
+
+**Phase 2: Protect Critical Operations (3 hours)**
+- [ ] Add locking to `createProjectMemory()` and `updateProjectMemory()`
+- [ ] Add locking to `addGlobalLearning()` and `promoteLearning()`
+- [ ] Add locking to `createExecutionRecord()`
+- [ ] Add locking to `rebuildIndices()` operations
+
+**Phase 3: Testing & Validation (1 hour)**
+- [ ] Write comprehensive concurrency tests
+- [ ] Test lock timeout behavior
+- [ ] Verify data integrity under concurrent load
+- [ ] Performance testing with multiple concurrent operations
+
+#### Success Criteria
+
+- ✅ **File Locking**: All critical file operations are protected by exclusive locks
+- ✅ **Race Condition Prevention**: Concurrent operations on the same files are serialized
+- ✅ **Data Integrity**: No data corruption during concurrent memory updates
+- ✅ **Timeout Protection**: Lock acquisition attempts timeout after 5 seconds
+- ✅ **Deadlock Prevention**: Lock files include timestamps for cleanup
+- ✅ **Error Recovery**: Failed operations don't leave stale lock files
+- ✅ **Performance**: Lock overhead <10% for single operations, <50% for contended operations
+- ✅ **Backward Compatibility**: Existing API unchanged, locking is transparent
+- ✅ **Monitoring**: Lock acquisition failures are logged for debugging
+- ✅ **Cleanup**: Lock files are properly cleaned up on success/failure
+
+#### Verification Commands
+
+```bash
+# Test concurrent memory operations
+deno run -A scripts/test_memory_concurrency.ts
+# Should handle 10+ concurrent operations without data corruption
+
+# Test lock timeout behavior
+deno run -A scripts/test_lock_timeout.ts
+# Should timeout after 5 seconds when locks are held
+
+# Verify data integrity
+deno run -A scripts/test_memory_integrity.ts
+# Should maintain consistent state across concurrent operations
+
+# Monitor lock file cleanup
+ls -la Memory/**/*.lock
+# Should show no stale lock files after operations complete
+```
+
+#### Dependencies
+
+- Requires `src/utils/file_locking.ts` utility module for advanced locking features
+- May need configuration updates for lock timeout values
+
+#### Rollback Plan
+
+- Feature flag to disable file locking if performance issues arise
+- Gradual rollout with monitoring for lock contention
+- Ability to disable locking for read-only operations
 
 ### Issue #10: Tight Coupling Between Services
 
