@@ -35,7 +35,7 @@ import { generatePrompt, getPrompts } from "./prompts.ts";
 interface MCPServerOptions {
   config: Config;
   db: DatabaseService;
-  transport: "stdio";
+  transport: "stdio" | "sse";
 }
 
 interface JSONRPCRequest {
@@ -68,7 +68,7 @@ interface InitializeParams {
 export class MCPServer {
   private config: Config;
   private db: DatabaseService;
-  private transport: "stdio";
+  private transport: "stdio" | "sse";
   private running = false;
   private serverName: string;
   private serverVersion: string;
@@ -596,5 +596,144 @@ export class MCPServer {
         },
       };
     }
+  }
+
+  /**
+   * Returns comprehensive security headers for HTTP responses
+   * Implements Content Security Policy and other security measures
+   */
+  private getSecurityHeaders(): Record<string, string> {
+    return {
+      // Prevent XSS attacks with Content Security Policy
+      "Content-Security-Policy": "default-src 'none'; " +
+        "script-src 'self'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "img-src 'self' data:; " +
+        "connect-src 'self'; " +
+        "frame-ancestors 'none';",
+
+      // Prevent clickjacking attacks
+      "X-Frame-Options": "DENY",
+
+      // Prevent MIME sniffing attacks
+      "X-Content-Type-Options": "nosniff",
+
+      // Enable XSS filtering in browsers
+      "X-XSS-Protection": "1; mode=block",
+
+      // Enforce HTTPS with HTTP Strict Transport Security
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+
+      // Control referrer information
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+
+      // Restrict browser permissions/features
+      "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+    };
+  }
+
+  /**
+   * Adds security headers to an HTTP Response object
+   * Used for HTTP/SSE transport responses
+   */
+  private addSecurityHeaders(response: Response): Response {
+    const headers = new Headers(response.headers);
+
+    // Add all security headers
+    const securityHeaders = this.getSecurityHeaders();
+    for (const [key, value] of Object.entries(securityHeaders)) {
+      headers.set(key, value);
+    }
+
+    // Return new response with security headers
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
+
+  /**
+   * Handles HTTP requests for MCP over HTTP transport
+   * Applies security headers to all responses
+   */
+  async handleHTTPRequest(request: Request): Promise<Response> {
+    try {
+      // Only allow POST requests for JSON-RPC
+      if (request.method !== "POST") {
+        const response = new Response("Method not allowed", { status: 405 });
+        return this.addSecurityHeaders(response);
+      }
+
+      // Parse JSON-RPC request
+      const jsonRpcRequest: JSONRPCRequest = await request.json();
+
+      // Process the request
+      const result = await this.handleRequest(jsonRpcRequest);
+
+      // Return JSON response with security headers
+      const response = new Response(JSON.stringify(result), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      return this.addSecurityHeaders(response);
+    } catch (_error) {
+      // Return error response with security headers
+      const errorResponse = {
+        jsonrpc: "2.0",
+        id: null,
+        error: {
+          code: -32700,
+          message: "Parse error",
+        },
+      };
+
+      const response = new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      return this.addSecurityHeaders(response);
+    }
+  }
+
+  /**
+   * Starts HTTP server for MCP over HTTP/SSE transport
+   * Only available when transport is configured as "sse"
+   */
+  async startHTTPServer(port: number = 3000): Promise<void> {
+    if (this.transport !== "sse") {
+      throw new Error("HTTP server only available for SSE transport");
+    }
+
+    if (this.running) {
+      throw new Error("MCP Server is already running");
+    }
+
+    this.running = true;
+
+    // Log server start
+    this.db.logActivity(
+      "mcp.server",
+      "mcp.http_server.started",
+      null,
+      {
+        transport: this.transport,
+        port,
+        server_name: this.serverName,
+        server_version: this.serverVersion,
+      },
+    );
+
+    // Import Deno.serve dynamically to avoid issues in stdio mode
+    const { serve } = await import("jsr:@std/server@^1.0.0");
+
+    console.log(`🚀 MCP HTTP Server starting on port ${port}`);
+
+    await serve((request: Request) => this.handleHTTPRequest(request), {
+      port,
+      hostname: "localhost",
+    });
   }
 }

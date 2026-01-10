@@ -7,24 +7,30 @@
 
 import type {
   AgentWhitelistResult,
+  PermissionAction,
   PermissionCheckResult,
+  PermissionConditions,
   PortalOperation,
   PortalPermissions,
   PortalSecurityConfig,
+  RBACPermissionCheckResult,
   SecurityMode,
 } from "../schemas/portal_permissions.ts";
+import { AuditLogger } from "./audit_logger.ts";
 
 /**
  * Service for validating portal permissions
  */
 export class PortalPermissionsService {
   private portals: Map<string, PortalPermissions>;
+  private auditLogger?: AuditLogger;
 
-  constructor(portals: PortalPermissions[]) {
+  constructor(portals: PortalPermissions[], auditLogger?: AuditLogger) {
     this.portals = new Map();
     for (const portal of portals) {
       this.portals.set(portal.alias, portal);
     }
+    this.auditLogger = auditLogger;
   }
 
   /**
@@ -170,5 +176,277 @@ export class PortalPermissionsService {
    */
   listPortalAliases(): string[] {
     return Array.from(this.portals.keys());
+  }
+
+  /**
+   * Enhanced RBAC permission check with resource/action/condition model
+   */
+  checkPermission(
+    portalAlias: string,
+    agentId: string,
+    action: PermissionAction,
+    resource: string,
+    context?: { timestamp?: Date; ip?: string },
+  ): RBACPermissionCheckResult {
+    const portal = this.portals.get(portalAlias);
+
+    if (!portal) {
+      const result = {
+        allowed: false,
+        reason: `Portal '${portalAlias}' not found`,
+        portal: portalAlias,
+        agent_id: agentId,
+        action,
+        resource,
+      };
+      this.logPermissionCheck(result, context);
+      return result;
+    }
+
+    // If enhanced permissions are defined, use RBAC model
+    if (portal.permissions && portal.permissions.length > 0) {
+      const result = this.checkRBACPermissions(portal, agentId, action, resource, context);
+      this.logPermissionCheck(result, context);
+      return result;
+    }
+
+    // Fall back to legacy permission model for backward compatibility
+    const result = this.checkLegacyPermissions(portal, agentId, action, resource);
+    this.logPermissionCheck(result, context);
+    return result;
+  }
+
+  /**
+   * Log permission check results for audit purposes
+   */
+  private async logPermissionCheck(
+    result: RBACPermissionCheckResult,
+    context?: { timestamp?: Date; ip?: string },
+  ): Promise<void> {
+    if (!this.auditLogger) return;
+
+    const severity = result.allowed ? "low" : "high";
+    const metadata: Record<string, unknown> = {
+      reason: result.reason,
+      conditions: result.conditions,
+    };
+
+    if (context?.ip) metadata.ip = context.ip;
+    if (context?.timestamp) metadata.timestamp = context.timestamp.toISOString();
+
+    await this.auditLogger.logSecurityEvent({
+      type: "permission",
+      action: "portal_access_check",
+      actor: result.agent_id,
+      resource: `${result.portal}:${result.resource}`,
+      result: result.allowed ? "success" : "denied",
+      metadata,
+      severity,
+    });
+  }
+
+  /**
+   * Check permissions using enhanced RBAC model
+   */
+  private checkRBACPermissions(
+    portal: PortalPermissions,
+    agentId: string,
+    action: PermissionAction,
+    resource: string,
+    context?: { timestamp?: Date; ip?: string },
+  ): RBACPermissionCheckResult {
+    const permissions = portal.permissions!;
+
+    for (const perm of permissions) {
+      if (!this.matchesResource(perm.resource, resource)) continue;
+      if (!this.matchesAction(perm.action, action)) continue;
+
+      // Check conditions if present
+      if (
+        perm.conditions && (perm.conditions.timeWindow || perm.conditions.ipWhitelist || perm.conditions.maxOperations)
+      ) {
+        const conditionCheck = this.checkConditions(perm.conditions!, context);
+        if (!conditionCheck.allowed) {
+          return {
+            allowed: false,
+            reason: conditionCheck.reason,
+            portal: portal.alias,
+            agent_id: agentId,
+            action,
+            resource,
+            conditions: perm.conditions,
+          };
+        }
+      }
+
+      // Permission granted
+      return {
+        allowed: true,
+        portal: portal.alias,
+        agent_id: agentId,
+        action,
+        resource,
+        conditions: perm.conditions,
+      };
+    }
+
+    // No matching permission found
+    return {
+      allowed: false,
+      reason: "No matching permission found",
+      portal: portal.alias,
+      agent_id: agentId,
+      action,
+      resource,
+    };
+  }
+
+  /**
+   * Check permissions using legacy model (for backward compatibility)
+   */
+  private checkLegacyPermissions(
+    portal: PortalPermissions,
+    agentId: string,
+    action: PermissionAction,
+    resource: string,
+  ): RBACPermissionCheckResult {
+    // Convert legacy model to RBAC for consistent interface
+
+    // Check agent whitelist
+    const agentsAllowed = portal.agents_allowed || ["*"];
+    if (!agentsAllowed.includes("*") && !agentsAllowed.includes(agentId)) {
+      return {
+        allowed: false,
+        reason: `Agent '${agentId}' is not allowed to access portal '${portal.alias}'`,
+        portal: portal.alias,
+        agent_id: agentId,
+        action,
+        resource,
+      };
+    }
+
+    // Check operation permissions (map to actions)
+    const operations = portal.operations || ["read", "write", "git"];
+    const actionToOperation: Record<PermissionAction, PortalOperation | null> = {
+      read: "read",
+      write: "write",
+      execute: null, // No direct mapping
+      delete: null, // No direct mapping
+    };
+
+    const requiredOperation = actionToOperation[action];
+    if (requiredOperation && !operations.includes(requiredOperation)) {
+      return {
+        allowed: false,
+        reason: `Action '${action}' is not permitted on portal '${portal.alias}'`,
+        portal: portal.alias,
+        agent_id: agentId,
+        action,
+        resource,
+      };
+    }
+
+    // Special handling for execute/delete actions
+    if (action === "execute" && !operations.includes("git")) {
+      return {
+        allowed: false,
+        reason: `Execute action requires git operation permission`,
+        portal: portal.alias,
+        agent_id: agentId,
+        action,
+        resource,
+      };
+    }
+
+    if (action === "delete" && !operations.includes("write")) {
+      return {
+        allowed: false,
+        reason: `Delete action requires write operation permission`,
+        portal: portal.alias,
+        agent_id: agentId,
+        action,
+        resource,
+      };
+    }
+
+    return {
+      allowed: true,
+      portal: portal.alias,
+      agent_id: agentId,
+      action,
+      resource,
+    };
+  }
+
+  /**
+   * Check if resource pattern matches the requested resource
+   */
+  private matchesResource(pattern: string, resource: string): boolean {
+    // Simple glob-style matching
+    // Convert glob pattern to regex
+    const regexPattern = pattern
+      .replace(/\*/g, ".*") // * matches any characters
+      .replace(/\?/g, ".") // ? matches single character
+      .replace(/\//g, "\\/"); // Escape forward slashes
+
+    const regex = new RegExp(`^${regexPattern}$`);
+    return regex.test(resource);
+  }
+
+  /**
+   * Check if permission action matches requested action
+   */
+  private matchesAction(
+    permissionAction: PermissionAction | PermissionAction[],
+    requestedAction: PermissionAction,
+  ): boolean {
+    if (Array.isArray(permissionAction)) {
+      return permissionAction.includes(requestedAction);
+    }
+    return permissionAction === requestedAction;
+  }
+
+  /**
+   * Check permission conditions
+   */
+  private checkConditions(
+    conditions: NonNullable<PermissionConditions>,
+    context?: { timestamp?: Date; ip?: string },
+  ): { allowed: boolean; reason?: string } {
+    if (!context) {
+      // If no context provided but conditions exist, deny access
+      return { allowed: false, reason: "Context required for conditional permissions" };
+    }
+
+    // Check time window
+    if (conditions.timeWindow) {
+      const now = context.timestamp || new Date();
+      const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+
+      const start = conditions.timeWindow.start;
+      const end = conditions.timeWindow.end;
+
+      if (currentTime < start || currentTime > end) {
+        return { allowed: false, reason: `Access denied outside time window ${start}-${end}` };
+      }
+    }
+
+    // Check IP whitelist
+    if (conditions.ipWhitelist && conditions.ipWhitelist.length > 0) {
+      const clientIP = context.ip;
+      if (!clientIP) {
+        return { allowed: false, reason: "IP address required for IP-restricted permissions" };
+      }
+
+      // Simple IP matching (could be enhanced with CIDR support)
+      if (!conditions.ipWhitelist.includes(clientIP)) {
+        return { allowed: false, reason: `IP ${clientIP} not in whitelist` };
+      }
+    }
+
+    // Note: maxOperations would need additional state tracking
+    // For now, we don't enforce it in this basic implementation
+
+    return { allowed: true };
   }
 }

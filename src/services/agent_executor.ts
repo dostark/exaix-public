@@ -150,7 +150,7 @@ export class AgentExecutor {
       // Handle Zod validation errors
       if (error instanceof z.ZodError) {
         throw new SafeError(
-          "Blueprint file contains invalid YAML syntax",
+          "Blueprint contains invalid configuration",
           "INVALID_BLUEPRINT_SCHEMA",
           error,
           this.logger,
@@ -625,18 +625,32 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
 
           if (lsResult.code === 0) {
             // Tracked file - restore with timeout
-            await SafeSubprocess.run("git", ["restore", "--source=HEAD", "--", file], {
+            const restoreResult = await SafeSubprocess.run("git", ["restore", "--source=HEAD", "--", file], {
               cwd: portalPath,
               timeoutMs: DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
             });
-            results.successful.push(file);
+            if (restoreResult.code === 0) {
+              results.successful.push(file);
+            } else {
+              results.failed.push({
+                file,
+                error: `git restore failed: ${restoreResult.stderr.trim() || "unknown error"}`,
+              });
+            }
           } else {
             // Untracked file - delete with timeout
-            await SafeSubprocess.run("git", ["clean", "-f", file], {
+            const cleanResult = await SafeSubprocess.run("git", ["clean", "-f", file], {
               cwd: portalPath,
               timeoutMs: DEFAULT_GIT_CLEAN_TIMEOUT_MS,
             });
-            results.successful.push(file);
+            if (cleanResult.code === 0) {
+              results.successful.push(file);
+            } else {
+              results.failed.push({
+                file,
+                error: `git clean failed: ${cleanResult.stderr.trim() || "unknown error"}`,
+              });
+            }
           }
         } catch (error) {
           results.failed.push({

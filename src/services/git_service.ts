@@ -14,6 +14,7 @@ import {
   DEFAULT_GIT_RETRY_BACKOFF_BASE_MS,
   DEFAULT_GIT_TRACE_ID_SHORT_LENGTH,
 } from "../config/constants.ts";
+import { SecureRandom } from "../utils/secure_random.ts";
 
 // ============================================================================
 // Types
@@ -249,7 +250,7 @@ export class GitService {
             }
           } else {
             // For retries, append random suffix
-            const suffix = Math.random().toString(36).substring(2, DEFAULT_GIT_BRANCH_SUFFIX_LENGTH + 2);
+            const suffix = SecureRandom.getRandomString(DEFAULT_GIT_BRANCH_SUFFIX_LENGTH);
             branchName = `${baseName}-${suffix}`;
           }
 

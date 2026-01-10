@@ -28,13 +28,16 @@ function createTestPortal(overrides: Partial<PortalPermissions> = {}): PortalPer
   };
 }
 
+function createTestService(portals: PortalPermissions[] = [createTestPortal()]): PortalPermissionsService {
+  return new PortalPermissionsService(portals, undefined);
+}
+
 // ============================================================================
 // Agent Whitelist Tests
 // ============================================================================
 
 Deno.test("PortalPermissions: allows whitelisted agent", () => {
-  const portal = createTestPortal();
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService();
 
   const result = service.checkAgentAllowed("TestPortal", "agent-1");
 
@@ -44,8 +47,7 @@ Deno.test("PortalPermissions: allows whitelisted agent", () => {
 });
 
 Deno.test("PortalPermissions: rejects non-whitelisted agent", () => {
-  const portal = createTestPortal();
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService();
 
   const result = service.checkAgentAllowed("TestPortal", "unauthorized-agent");
 
@@ -58,7 +60,7 @@ Deno.test("PortalPermissions: allows all agents with wildcard", () => {
   const portal = createTestPortal({
     agents_allowed: ["*"],
   });
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const result = service.checkAgentAllowed("TestPortal", "any-agent");
 
@@ -67,7 +69,7 @@ Deno.test("PortalPermissions: allows all agents with wildcard", () => {
 
 Deno.test("PortalPermissions: rejects unknown portal", () => {
   const portal = createTestPortal();
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const result = service.checkAgentAllowed("UnknownPortal", "agent-1");
 
@@ -83,7 +85,7 @@ Deno.test("PortalPermissions: allows permitted read operation", () => {
   const portal = createTestPortal({
     operations: ["read", "write"],
   });
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const result = service.checkOperationAllowed("TestPortal", "agent-1", "read");
 
@@ -95,7 +97,7 @@ Deno.test("PortalPermissions: allows permitted write operation", () => {
   const portal = createTestPortal({
     operations: ["read", "write"],
   });
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const result = service.checkOperationAllowed("TestPortal", "agent-1", "write");
 
@@ -107,7 +109,7 @@ Deno.test("PortalPermissions: allows permitted git operation", () => {
   const portal = createTestPortal({
     operations: ["read", "git"],
   });
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const result = service.checkOperationAllowed("TestPortal", "agent-1", "git");
 
@@ -119,7 +121,7 @@ Deno.test("PortalPermissions: rejects unpermitted operation", () => {
   const portal = createTestPortal({
     operations: ["read"], // No write or git
   });
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const result = service.checkOperationAllowed("TestPortal", "agent-1", "write");
 
@@ -129,7 +131,7 @@ Deno.test("PortalPermissions: rejects unpermitted operation", () => {
 
 Deno.test("PortalPermissions: rejects operation for non-whitelisted agent", () => {
   const portal = createTestPortal();
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const result = service.checkOperationAllowed("TestPortal", "unauthorized-agent", "read");
 
@@ -149,7 +151,7 @@ Deno.test("PortalPermissions: returns sandboxed security mode", () => {
       log_all_actions: true,
     },
   });
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const mode = service.getSecurityMode("TestPortal");
 
@@ -164,7 +166,7 @@ Deno.test("PortalPermissions: returns hybrid security mode", () => {
       log_all_actions: true,
     },
   });
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const mode = service.getSecurityMode("TestPortal");
 
@@ -175,7 +177,7 @@ Deno.test("PortalPermissions: defaults to sandboxed if no security config", () =
   const portal = createTestPortal({
     security: undefined,
   });
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const mode = service.getSecurityMode("TestPortal");
 
@@ -197,7 +199,7 @@ Deno.test("PortalPermissions: handles multiple portals independently", () => {
     agents_allowed: ["agent-2"],
     operations: ["read", "write"],
   });
-  const service = new PortalPermissionsService([portal1, portal2]);
+  const service = createTestService([portal1, portal2]);
 
   // Agent-1 allowed on Portal1, not Portal2
   const result1 = service.checkAgentAllowed("Portal1", "agent-1");
@@ -223,7 +225,7 @@ Deno.test("PortalPermissions: validates operations per portal", () => {
     alias: "Portal2",
     operations: ["read", "write", "git"],
   });
-  const service = new PortalPermissionsService([portal1, portal2]);
+  const service = createTestService([portal1, portal2]);
 
   // Portal1: only read allowed
   const read1 = service.checkOperationAllowed("Portal1", "agent-1", "read");
@@ -255,7 +257,7 @@ Deno.test("PortalPermissions: returns audit configuration", () => {
       log_all_actions: false,
     },
   });
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const config = service.getSecurityConfig("TestPortal");
 
@@ -269,7 +271,7 @@ Deno.test("PortalPermissions: returns default audit config if not specified", ()
   const portal = createTestPortal({
     security: undefined,
   });
-  const service = new PortalPermissionsService([portal]);
+  const service = createTestService([portal]);
 
   const config = service.getSecurityConfig("TestPortal");
 
@@ -277,4 +279,275 @@ Deno.test("PortalPermissions: returns default audit config if not specified", ()
   assertEquals(config?.mode, "sandboxed");
   assertEquals(config?.audit_enabled, true);
   assertEquals(config?.log_all_actions, true);
+});
+
+// ============================================================================
+// Enhanced RBAC Permission Tests
+// ============================================================================
+
+Deno.test("PortalPermissions: RBAC allows matching permission", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/*",
+      action: ["read", "write"],
+      conditions: {},
+    }],
+  });
+  const service = createTestService([portal]);
+
+  const result = service.checkPermission("TestPortal", "agent1", "read", "/portal/project");
+
+  assertEquals(result.allowed, true);
+  assertEquals(result.action, "read");
+  assertEquals(result.resource, "/portal/project");
+});
+
+Deno.test("PortalPermissions: RBAC denies non-matching resource", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/allowed",
+      action: ["read"],
+    }],
+  });
+  const service = createTestService([portal]);
+
+  const result = service.checkPermission("TestPortal", "agent1", "read", "/portal/forbidden");
+
+  assertEquals(result.allowed, false);
+  assertEquals(result.reason, "No matching permission found");
+});
+
+Deno.test("PortalPermissions: RBAC denies non-matching action", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/*",
+      action: ["read"], // No write permission
+    }],
+  });
+  const service = createTestService([portal]);
+
+  const result = service.checkPermission("TestPortal", "agent1", "write", "/portal/project");
+
+  assertEquals(result.allowed, false);
+  assertEquals(result.reason, "No matching permission found");
+});
+
+Deno.test("PortalPermissions: RBAC enforces time windows", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/*",
+      action: ["write"],
+      conditions: {
+        timeWindow: {
+          start: "09:00",
+          end: "17:00",
+        },
+      },
+    }],
+  });
+  const service = createTestService([portal]);
+
+  // Test outside window (current time assumed to be outside 09:00-17:00)
+  const context = { timestamp: new Date("2024-01-01T20:00:00Z"), ip: "1.2.3.4" };
+  const result = service.checkPermission("TestPortal", "agent1", "write", "/portal/project", context);
+
+  assertEquals(result.allowed, false);
+  assertEquals(result.reason?.includes("time window"), true);
+});
+
+Deno.test("PortalPermissions: RBAC enforces IP whitelist", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/*",
+      action: ["read"],
+      conditions: {
+        ipWhitelist: ["192.168.1.0/24"],
+      },
+    }],
+  });
+  const service = createTestService([portal]);
+
+  const context = { timestamp: new Date(), ip: "10.0.0.1" };
+  const result = service.checkPermission("TestPortal", "agent1", "read", "/portal/project", context);
+
+  assertEquals(result.allowed, false);
+  assertEquals(result.reason?.includes("not in whitelist"), true);
+});
+
+Deno.test("PortalPermissions: RBAC allows within IP whitelist", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/*",
+      action: ["read"],
+      conditions: {
+        ipWhitelist: ["192.168.1.100"],
+      },
+    }],
+  });
+  const service = createTestService([portal]);
+
+  const context = { timestamp: new Date(), ip: "192.168.1.100" };
+  const result = service.checkPermission("TestPortal", "agent1", "read", "/portal/project", context);
+
+  assertEquals(result.allowed, true);
+});
+
+Deno.test("PortalPermissions: RBAC allows within time window", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/*",
+      action: ["write"],
+      conditions: {
+        timeWindow: {
+          start: "00:00",
+          end: "23:59", // Always allowed
+        },
+      },
+    }],
+  });
+  const service = createTestService([portal]);
+
+  const context = { timestamp: new Date(), ip: "1.2.3.4" };
+  const result = service.checkPermission("TestPortal", "agent1", "write", "/portal/project", context);
+
+  assertEquals(result.allowed, true);
+});
+
+Deno.test("PortalPermissions: RBAC supports single action permissions", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/*",
+      action: "read", // Single action, not array
+      conditions: {},
+    }],
+  });
+  const service = createTestService([portal]);
+
+  const readResult = service.checkPermission("TestPortal", "agent1", "read", "/portal/project");
+  assertEquals(readResult.allowed, true);
+
+  const writeResult = service.checkPermission("TestPortal", "agent1", "write", "/portal/project");
+  assertEquals(writeResult.allowed, false);
+});
+
+Deno.test("PortalPermissions: RBAC supports wildcard resources", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/*",
+      action: ["read", "write"],
+    }],
+  });
+  const service = createTestService([portal]);
+
+  const result1 = service.checkPermission("TestPortal", "agent1", "read", "/portal/project1");
+  assertEquals(result1.allowed, true);
+
+  const result2 = service.checkPermission("TestPortal", "agent1", "write", "/portal/project2");
+  assertEquals(result2.allowed, true);
+
+  const result3 = service.checkPermission("TestPortal", "agent1", "read", "/other/resource");
+  assertEquals(result3.allowed, false);
+});
+
+Deno.test("PortalPermissions: RBAC supports exact resource matches", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/specific",
+      action: ["read"],
+    }],
+  });
+  const service = createTestService([portal]);
+
+  const result1 = service.checkPermission("TestPortal", "agent1", "read", "/portal/specific");
+  assertEquals(result1.allowed, true);
+
+  const result2 = service.checkPermission("TestPortal", "agent1", "read", "/portal/other");
+  assertEquals(result2.allowed, false);
+});
+
+Deno.test("PortalPermissions: RBAC denies unknown portal", () => {
+  const portal = createTestPortal({
+    permissions: [{
+      resource: "/portal/*",
+      action: ["read"],
+    }],
+  });
+  const service = createTestService([portal]);
+
+  const result = service.checkPermission("UnknownPortal", "agent1", "read", "/portal/project");
+
+  assertEquals(result.allowed, false);
+  assertEquals(result.reason?.includes("not found"), true);
+});
+
+Deno.test("PortalPermissions: RBAC falls back to legacy permissions when no RBAC defined", () => {
+  const portal = createTestPortal({
+    // No permissions array - should use legacy model
+    agents_allowed: ["agent1"],
+    operations: ["read"],
+  });
+  const service = createTestService([portal]);
+
+  const result1 = service.checkPermission("TestPortal", "agent1", "read", "/portal/project");
+  assertEquals(result1.allowed, true);
+
+  const result2 = service.checkPermission("TestPortal", "agent2", "read", "/portal/project");
+  assertEquals(result2.allowed, false);
+
+  const result3 = service.checkPermission("TestPortal", "agent1", "write", "/portal/project");
+  assertEquals(result3.allowed, false); // write not in operations
+});
+
+Deno.test("PortalPermissions: RBAC maps execute action to git operation", () => {
+  const portal = createTestPortal({
+    // Legacy model
+    agents_allowed: ["agent1"],
+    operations: ["git"],
+  });
+  const service = createTestService([portal]);
+
+  const result = service.checkPermission("TestPortal", "agent1", "execute", "/portal/project");
+
+  assertEquals(result.allowed, true);
+});
+
+Deno.test("PortalPermissions: RBAC maps delete action to write operation", () => {
+  const portal = createTestPortal({
+    // Legacy model
+    agents_allowed: ["agent1"],
+    operations: ["write"],
+  });
+  const service = createTestService([portal]);
+
+  const result = service.checkPermission("TestPortal", "agent1", "delete", "/portal/project");
+
+  assertEquals(result.allowed, true);
+});
+
+Deno.test("PortalPermissions: RBAC denies execute without git permission", () => {
+  const portal = createTestPortal({
+    // Legacy model
+    agents_allowed: ["agent1"],
+    operations: ["read", "write"], // No git
+  });
+  const service = createTestService([portal]);
+
+  const result = service.checkPermission("TestPortal", "agent1", "execute", "/portal/project");
+
+  assertEquals(result.allowed, false);
+  assertEquals(result.reason?.includes("git operation"), true);
+});
+
+Deno.test("PortalPermissions: RBAC denies delete without write permission", () => {
+  const portal = createTestPortal({
+    // Legacy model
+    agents_allowed: ["agent1"],
+    operations: ["read"], // No write
+  });
+  const service = createTestService([portal]);
+
+  const result = service.checkPermission("TestPortal", "agent1", "delete", "/portal/project");
+
+  assertEquals(result.allowed, false);
+  assertEquals(result.reason?.includes("write operation"), true);
 });

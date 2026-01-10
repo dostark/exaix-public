@@ -25,6 +25,44 @@ export const PortalOperationSchema = z.enum(["read", "write", "git"]);
 export type PortalOperation = z.infer<typeof PortalOperationSchema>;
 
 // ============================================================================
+// Enhanced Permission Model
+// ============================================================================
+
+/**
+ * Permission action types
+ */
+export const PermissionActionSchema = z.enum(["read", "write", "execute", "delete"]);
+export type PermissionAction = z.infer<typeof PermissionActionSchema>;
+
+/**
+ * Permission conditions for fine-grained access control
+ */
+export const PermissionConditionsSchema = z.object({
+  timeWindow: z.object({
+    start: z.string(), // HH:MM format (e.g., "09:00")
+    end: z.string(), // HH:MM format (e.g., "17:00")
+  }).optional(),
+  ipWhitelist: z.array(z.string()).optional(), // CIDR notation supported
+  maxOperations: z.number().positive().optional(),
+}).optional();
+
+export type PermissionConditions = z.infer<typeof PermissionConditionsSchema>;
+
+/**
+ * Enhanced permission with resource/action/condition model
+ */
+export const PermissionSchema = z.object({
+  resource: z.string(), // Resource pattern (e.g., "/portal/*", "/portal/project")
+  action: z.union([
+    PermissionActionSchema,
+    z.array(PermissionActionSchema),
+  ]), // Single action or array of actions
+  conditions: PermissionConditionsSchema,
+});
+
+export type Permission = z.infer<typeof PermissionSchema>;
+
+// ============================================================================
 // Portal Security Configuration
 // ============================================================================
 
@@ -47,9 +85,12 @@ export const PortalPermissionsSchema = z.object({
   target_path: z.string(),
   created: z.string().optional(),
 
-  // Permission controls
+  // Legacy permission controls (for backward compatibility)
   agents_allowed: z.array(z.string()).default(["*"]), // "*" = all agents
   operations: z.array(PortalOperationSchema).default(["read", "write", "git"]),
+
+  // Enhanced RBAC permissions
+  permissions: z.array(PermissionSchema).optional(),
 
   // Security settings
   security: PortalSecurityConfigSchema.optional(),
@@ -70,6 +111,23 @@ export interface PermissionCheckResult {
   portal: string;
   agent_id: string;
   operation: PortalOperation;
+}
+
+/**
+ * Result of enhanced RBAC permission check
+ */
+export interface RBACPermissionCheckResult {
+  allowed: boolean;
+  reason?: string;
+  portal: string;
+  agent_id: string;
+  action: PermissionAction;
+  resource: string;
+  conditions?: {
+    timeWindow?: { start: string; end: string };
+    ipWhitelist?: string[];
+    maxOperations?: number;
+  };
 }
 
 /**
