@@ -15,6 +15,7 @@ import { LlamaProvider } from "./providers/llama_provider.ts";
 import { AnthropicProvider } from "./providers/anthropic_provider.ts";
 import { OpenAIProvider } from "./providers/openai_provider.ts";
 import { GoogleProvider } from "./providers/google_provider.ts";
+import { SecureCredentialStore } from "../utils/credential_security.ts";
 import {
   AnthropicProviderFactory,
   GoogleProviderFactory,
@@ -96,9 +97,9 @@ export class ProviderFactory {
    * @param config - ExoFrame configuration
    * @returns An IModelProvider instance
    */
-  static create(config: Config): IModelProvider {
+  static async create(config: Config): Promise<IModelProvider> {
     const options = this.resolveOptions(config);
-    return this.createProvider(options);
+    return await this.createProvider(options);
   }
 
   /**
@@ -108,9 +109,9 @@ export class ProviderFactory {
    * @param name - Name of the model configuration (e.g., "default", "fast")
    * @returns An IModelProvider instance
    */
-  static createByName(config: Config, name: string): IModelProvider {
+  static async createByName(config: Config, name: string): Promise<IModelProvider> {
     const options = this.resolveOptionsByName(config, name);
-    return this.createProvider(options);
+    return await this.createProvider(options);
   }
 
   /**
@@ -236,25 +237,25 @@ export class ProviderFactory {
   /**
    * Create the appropriate provider based on resolved options
    */
-  private static createProvider(options: ResolvedProviderOptions): IModelProvider {
+  private static async createProvider(options: ResolvedProviderOptions): Promise<IModelProvider> {
     // Ensure registry is initialized
     initializeRegistry();
 
     // Try registry first for modern providers
     const factory = ProviderRegistry.getFactory(options.provider);
     if (factory) {
-      return factory.create(options);
+      return await factory.create(options);
     }
 
     // Fall back to legacy direct instantiation for backward compatibility
-    return this.createProviderLegacy(options);
+    return await this.createProviderLegacy(options);
   }
 
   /**
    * Legacy provider creation for backward compatibility
    * TODO: Deprecate this method once all providers are migrated to registry
    */
-  private static createProviderLegacy(options: ResolvedProviderOptions): IModelProvider {
+  private static async createProviderLegacy(options: ResolvedProviderOptions): Promise<IModelProvider> {
     // Llama/Ollama model routing
     if (/^(codellama:|llama[0-9.]*:)/.test(options.model)) {
       return new LlamaProvider({ model: options.model, endpoint: options.baseUrl });
@@ -267,12 +268,12 @@ export class ProviderFactory {
         return this.createOllamaProvider(options);
 
       case "anthropic":
-        return this.createAnthropicProvider(options);
+        return await this.createAnthropicProvider(options);
 
       case "openai":
-        return this.createOpenAIProvider(options);
+        return await this.createOpenAIProvider(options);
       case "google":
-        return this.createGoogleProvider(options);
+        return await this.createGoogleProvider(options);
 
       default:
         // This shouldn't happen due to Zod validation, but just in case
@@ -308,10 +309,10 @@ export class ProviderFactory {
   /**
    * Create an Anthropic provider
    */
-  private static createAnthropicProvider(options: ResolvedProviderOptions): IModelProvider {
-    const apiKey = this.safeEnvGet("ANTHROPIC_API_KEY");
+  private static async createAnthropicProvider(options: ResolvedProviderOptions): Promise<IModelProvider> {
+    const apiKey = await SecureCredentialStore.get("ANTHROPIC_API_KEY");
     if (!apiKey) {
-      throw new ProviderFactoryError("Anthropic provider requires ANTHROPIC_API_KEY");
+      throw new ProviderFactoryError("Authentication failed");
     }
 
     return new AnthropicProvider({
@@ -324,10 +325,10 @@ export class ProviderFactory {
   /**
    * Create an OpenAI provider (stub - throws if no API key)
    */
-  private static createOpenAIProvider(options: ResolvedProviderOptions): IModelProvider {
-    const apiKey = this.safeEnvGet("OPENAI_API_KEY");
+  private static async createOpenAIProvider(options: ResolvedProviderOptions): Promise<IModelProvider> {
+    const apiKey = await SecureCredentialStore.get("OPENAI_API_KEY");
     if (!apiKey) {
-      throw new ProviderFactoryError("OpenAI provider requires OPENAI_API_KEY");
+      throw new ProviderFactoryError("Authentication failed");
     }
 
     return new OpenAIProvider({
@@ -361,10 +362,10 @@ export class ProviderFactory {
   /**
    * Create a Google provider
    */
-  private static createGoogleProvider(options: ResolvedProviderOptions): IModelProvider {
-    const apiKey = this.safeEnvGet("GOOGLE_API_KEY");
+  private static async createGoogleProvider(options: ResolvedProviderOptions): Promise<IModelProvider> {
+    const apiKey = await SecureCredentialStore.get("GOOGLE_API_KEY");
     if (!apiKey) {
-      throw new ProviderFactoryError("Google provider requires GOOGLE_API_KEY");
+      throw new ProviderFactoryError("Authentication failed");
     }
 
     return new GoogleProvider({
@@ -409,10 +410,10 @@ function initializeRegistry(): void {
 // Note: LlamaProvider is handled specially in createProviderLegacy due to model-based routing
 
 // Helper for tests: get provider by model name
-export function getProviderForModel(model: string) {
+export async function getProviderForModel(model: string) {
   // Minimal mock config for test
   const config = {
     ai: { provider: "ollama", model },
   } as any;
-  return ProviderFactory.create(config);
+  return await ProviderFactory.create(config);
 }

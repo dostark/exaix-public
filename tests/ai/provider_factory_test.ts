@@ -16,8 +16,9 @@
  * 10. EXO_LLM_TIMEOUT_MS correctly sets timeout
  */
 
-import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
 import { getProviderForModel, ProviderFactory, ProviderFactoryError } from "../../src/ai/provider_factory.ts";
+import { SecureCredentialStore } from "../../src/utils/credential_security.ts";
 
 import { AiConfig, AiConfigSchema } from "../../src/config/ai_config.ts";
 import { Config } from "../../src/config/schema.ts";
@@ -179,17 +180,17 @@ Deno.test("AiConfigSchema: validates timeout_ms range", () => {
 // Default Provider Tests
 // ============================================================================
 
-Deno.test("ProviderFactory: defaults to MockLLMProvider when no config", () => {
+Deno.test("ProviderFactory: defaults to MockLLMProvider when no config", async () => {
   const config = createTestConfig();
-  const provider = ProviderFactory.create(config);
+  const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
   assertEquals(provider.id.startsWith("mock"), true, `Expected mock provider, got: ${provider.id}`);
 });
 
-Deno.test("ProviderFactory: defaults to MockLLMProvider when ai section missing", () => {
+Deno.test("ProviderFactory: defaults to MockLLMProvider when ai section missing", async () => {
   const config = createTestConfig(undefined);
-  const provider = ProviderFactory.create(config);
+  const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
   assertEquals(provider.id.startsWith("mock"), true);
@@ -201,9 +202,9 @@ Deno.test("ProviderFactory: defaults to MockLLMProvider when ai section missing"
 
 Deno.test(
   "ProviderFactory: EXO_LLM_PROVIDER=mock creates MockLLMProvider",
-  withEnvVars({ EXO_LLM_PROVIDER: "mock" }, () => {
+  withEnvVars({ EXO_LLM_PROVIDER: "mock" }, async () => {
     const config = createTestConfig();
-    const provider = ProviderFactory.create(config);
+    const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
     assertEquals(provider.id.startsWith("mock"), true);
@@ -212,9 +213,9 @@ Deno.test(
 
 Deno.test(
   "ProviderFactory: EXO_LLM_PROVIDER=ollama creates OllamaProvider",
-  withEnvVars({ EXO_LLM_PROVIDER: "ollama" }, () => {
+  withEnvVars({ EXO_LLM_PROVIDER: "ollama" }, async () => {
     const config = createTestConfig();
-    const provider = ProviderFactory.create(config);
+    const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
     assertStringIncludes(provider.id, "ollama");
@@ -223,9 +224,9 @@ Deno.test(
 
 Deno.test(
   "ProviderFactory: EXO_LLM_MODEL overrides config model",
-  withEnvVars({ EXO_LLM_PROVIDER: "ollama", EXO_LLM_MODEL: "codellama" }, () => {
+  withEnvVars({ EXO_LLM_PROVIDER: "ollama", EXO_LLM_MODEL: "codellama" }, async () => {
     const config = createTestConfig({ provider: "ollama", model: "llama3.2" });
-    const provider = ProviderFactory.create(config);
+    const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
     assertStringIncludes(provider.id, "codellama");
@@ -234,9 +235,9 @@ Deno.test(
 
 Deno.test(
   "ProviderFactory: env var overrides config",
-  withEnvVars({ EXO_LLM_PROVIDER: "mock" }, () => {
+  withEnvVars({ EXO_LLM_PROVIDER: "mock" }, async () => {
     const config = createTestConfig({ provider: "ollama", model: "llama3.2" });
-    const provider = ProviderFactory.create(config);
+    const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
     assertEquals(provider.id.startsWith("mock"), true, "Environment should override config");
@@ -247,18 +248,18 @@ Deno.test(
 // Config File Tests
 // ============================================================================
 
-Deno.test("ProviderFactory: config ai.provider=ollama creates OllamaProvider", () => {
+Deno.test("ProviderFactory: config ai.provider=ollama creates OllamaProvider", async () => {
   const config = createTestConfig({ provider: "ollama", model: "llama3.2" });
-  const provider = ProviderFactory.create(config);
+  const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
   assertStringIncludes(provider.id, "ollama");
   assertStringIncludes(provider.id, "llama3.2");
 });
 
-Deno.test("ProviderFactory: config ai.provider=mock creates MockLLMProvider", () => {
+Deno.test("ProviderFactory: config ai.provider=mock creates MockLLMProvider", async () => {
   const config = createTestConfig({ provider: "mock" });
-  const provider = ProviderFactory.create(config);
+  const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
   assertEquals(provider.id.startsWith("mock"), true);
@@ -270,32 +271,32 @@ Deno.test("ProviderFactory: config ai.provider=mock creates MockLLMProvider", ()
 
 Deno.test(
   "ProviderFactory: anthropic requires ANTHROPIC_API_KEY",
-  withEnvVars({ EXO_LLM_PROVIDER: "anthropic" }, () => {
-    // Ensure API key is not set
-    Deno.env.delete("ANTHROPIC_API_KEY");
+  withEnvVars({ EXO_LLM_PROVIDER: "anthropic" }, async () => {
+    // Ensure API key is not in secure store
+    SecureCredentialStore.clear("ANTHROPIC_API_KEY");
 
     const config = createTestConfig();
 
-    assertThrows(
-      () => ProviderFactory.create(config),
+    await assertRejects(
+      async () => await ProviderFactory.create(config),
       ProviderFactoryError,
-      "ANTHROPIC_API_KEY",
+      "Authentication failed",
     );
   }),
 );
 
 Deno.test(
   "ProviderFactory: openai requires OPENAI_API_KEY",
-  withEnvVars({ EXO_LLM_PROVIDER: "openai" }, () => {
-    // Ensure API key is not set
-    Deno.env.delete("OPENAI_API_KEY");
+  withEnvVars({ EXO_LLM_PROVIDER: "openai" }, async () => {
+    // Ensure API key is not in secure store
+    SecureCredentialStore.clear("OPENAI_API_KEY");
 
     const config = createTestConfig();
 
-    assertThrows(
-      () => ProviderFactory.create(config),
+    await assertRejects(
+      async () => await ProviderFactory.create(config),
       ProviderFactoryError,
-      "OPENAI_API_KEY",
+      "Authentication failed",
     );
   }),
 );
@@ -306,7 +307,7 @@ Deno.test(
 
 Deno.test(
   "ProviderFactory: unknown provider falls back to mock with warning",
-  withEnvVars({ EXO_LLM_PROVIDER: "unknown-provider-xyz" }, () => {
+  withEnvVars({ EXO_LLM_PROVIDER: "unknown-provider-xyz" }, async () => {
     const config = createTestConfig();
 
     // Capture console.warn output
@@ -317,7 +318,7 @@ Deno.test(
     };
 
     try {
-      const provider = ProviderFactory.create(config);
+      const provider = await ProviderFactory.create(config);
 
       assertExists(provider);
       assertEquals(provider.id.startsWith("mock"), true, "Should fall back to mock");
@@ -340,9 +341,9 @@ Deno.test(
   withEnvVars({
     EXO_LLM_PROVIDER: "ollama",
     EXO_LLM_BASE_URL: "http://custom-host:8080",
-  }, () => {
+  }, async () => {
     const config = createTestConfig();
-    const provider = ProviderFactory.create(config);
+    const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
     // Provider should be created (we can't easily test internal baseUrl)
@@ -355,9 +356,9 @@ Deno.test(
   withEnvVars({
     EXO_LLM_PROVIDER: "ollama",
     EXO_LLM_TIMEOUT_MS: "60000",
-  }, () => {
+  }, async () => {
     const config = createTestConfig();
-    const provider = ProviderFactory.create(config);
+    const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
     // Provider should be created (we can't easily test internal timeout)
@@ -369,14 +370,14 @@ Deno.test(
 // MockLLMProvider Strategy Tests
 // ============================================================================
 
-Deno.test("ProviderFactory: mock strategy from config", () => {
+Deno.test("ProviderFactory: mock strategy from config", async () => {
   const config = createTestConfig({
     provider: "mock",
     mock: {
       strategy: "scripted",
     },
   });
-  const provider = ProviderFactory.create(config);
+  const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
   assertEquals(provider.id.startsWith("mock"), true);
@@ -389,7 +390,7 @@ Deno.test("ProviderFactory: mock strategy from config", () => {
 Deno.test("ProviderFactory: created provider implements IModelProvider", async () => {
   // Use scripted strategy for testing (doesn't require recorded fixtures)
   const config = createTestConfig({ provider: "mock", mock: { strategy: "scripted" } });
-  const provider = ProviderFactory.create(config);
+  const provider = await ProviderFactory.create(config);
 
   // Should have id property
   assertExists(provider.id);
@@ -406,7 +407,7 @@ Deno.test("ProviderFactory: created provider implements IModelProvider", async (
 Deno.test("ProviderFactory: provider can be used for plan generation", async () => {
   // Use scripted strategy for testing (doesn't require recorded fixtures)
   const config = createTestConfig({ provider: "mock", mock: { strategy: "scripted" } });
-  const provider = ProviderFactory.create(config);
+  const provider = await ProviderFactory.create(config);
 
   const response = await provider.generate("Implement a feature for user authentication");
   assertExists(response);
@@ -428,12 +429,12 @@ Deno.test("ProviderFactory: getProviderInfo returns provider details", () => {
 
 Deno.test(
   "ProviderFactory: getProviderInfo respects env vars",
-  withEnvVars({ EXO_LLM_PROVIDER: "mock", EXO_LLM_MODEL: "test-model" }, () => {
+  withEnvVars({ EXO_LLM_PROVIDER: "ollama" }, () => {
     const config = createTestConfig({ provider: "ollama", model: "llama3.2" });
     const info = ProviderFactory.getProviderInfo(config);
 
-    assertEquals(info.type, "mock");
-    assertEquals(info.model, "test-model");
+    assertEquals(info.type, "ollama");
+    assertEquals(info.model, "llama3.2");
   }),
 );
 
@@ -445,16 +446,21 @@ Deno.test(
   "ProviderFactory: anthropic with API key returns placeholder MockLLMProvider",
   withEnvVars({
     EXO_LLM_PROVIDER: "anthropic",
-    ANTHROPIC_API_KEY: "test-key",
     EXO_LLM_MODEL: "claude-3-sonnet",
-  }, () => {
+  }, async () => {
+    // Initialize secure store with test key
+    await SecureCredentialStore.set("ANTHROPIC_API_KEY", "test-key");
+
     const config = createTestConfig();
-    const provider = ProviderFactory.create(config);
+    const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
     assertStringIncludes(provider.id, "anthropic-claude-3-sonnet");
     // Should be a MockLLMProvider placeholder
     assertEquals(provider.id.startsWith("anthropic"), true);
+
+    // Clean up
+    SecureCredentialStore.clear("ANTHROPIC_API_KEY");
   }),
 );
 
@@ -466,16 +472,21 @@ Deno.test(
   "ProviderFactory: openai with API key returns placeholder MockLLMProvider",
   withEnvVars({
     EXO_LLM_PROVIDER: "openai",
-    OPENAI_API_KEY: "test-key",
     EXO_LLM_MODEL: "gpt-4",
-  }, () => {
+  }, async () => {
+    // Initialize secure store with test key
+    await SecureCredentialStore.set("OPENAI_API_KEY", "test-key");
+
     const config = createTestConfig();
-    const provider = ProviderFactory.create(config);
+    const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
     assertStringIncludes(provider.id, "openai-gpt-4");
     // Should be a MockLLMProvider placeholder
     assertEquals(provider.id.startsWith("openai"), true);
+
+    // Clean up
+    SecureCredentialStore.clear("OPENAI_API_KEY");
   }),
 );
 
@@ -483,25 +494,25 @@ Deno.test(
 // Llama Model Routing Tests
 // ============================================================================
 
-Deno.test("ProviderFactory: llama model prefix routes to LlamaProvider", () => {
+Deno.test("ProviderFactory: llama model prefix routes to LlamaProvider", async () => {
   const config = createTestConfig({
     provider: "ollama",
     model: "codellama:13b",
   });
-  const provider = ProviderFactory.create(config);
+  const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
   // Should route to LlamaProvider despite ollama config
   assertStringIncludes(provider.id, "codellama");
 });
 
-Deno.test("ProviderFactory: llama model prefix routes to LlamaProvider from env", () => {
+Deno.test("ProviderFactory: llama model prefix routes to LlamaProvider from env", async () => {
   const config = createTestConfig();
   // Set env to use codellama model
   Deno.env.set("EXO_LLM_MODEL", "llama3.2:8b");
 
   try {
-    const provider = ProviderFactory.create(config);
+    const provider = await ProviderFactory.create(config);
     assertExists(provider);
     assertStringIncludes(provider.id, "llama3.2");
   } finally {
@@ -538,15 +549,15 @@ Deno.test("ProviderFactory: unknown provider generates unknown ID", () => {
 // getProviderForModel Helper Tests
 // ============================================================================
 
-Deno.test("getProviderForModel: creates provider for model", () => {
-  const provider = getProviderForModel("codellama:13b");
+Deno.test("getProviderForModel: creates provider for model", async () => {
+  const provider = await getProviderForModel("codellama:13b");
 
   assertExists(provider);
   assertStringIncludes(provider.id, "codellama");
 });
 
-Deno.test("getProviderForModel: handles regular ollama models", () => {
-  const provider = getProviderForModel("llama3.2");
+Deno.test("getProviderForModel: handles regular ollama models", async () => {
+  const provider = await getProviderForModel("llama3.2");
 
   assertExists(provider);
   assertStringIncludes(provider.id, "llama3.2");
@@ -556,7 +567,7 @@ Deno.test("getProviderForModel: handles regular ollama models", () => {
 // Named Model Tests
 // ============================================================================
 
-Deno.test("ProviderFactory: createByName creates correct named provider", () => {
+Deno.test("ProviderFactory: createByName creates correct named provider", async () => {
   const config = createTestConfig();
   // Override models for testing
   config.models = {
@@ -564,20 +575,20 @@ Deno.test("ProviderFactory: createByName creates correct named provider", () => 
     fast: { provider: "mock", model: "fast-mock", timeout_ms: 15000 },
   };
 
-  const fastProvider = ProviderFactory.createByName(config, "fast");
+  const fastProvider = await ProviderFactory.createByName(config, "fast");
   assertStringIncludes(fastProvider.id, "fast-mock");
 
-  const defaultProvider = ProviderFactory.createByName(config, "default");
+  const defaultProvider = await ProviderFactory.createByName(config, "default");
   assertStringIncludes(defaultProvider.id, "default-mock");
 });
 
-Deno.test("ProviderFactory: createByName falls back to default for unknown name", () => {
+Deno.test("ProviderFactory: createByName falls back to default for unknown name", async () => {
   const config = createTestConfig();
   config.models = {
     default: { provider: "mock", model: "default-mock", timeout_ms: 30000 },
   };
 
-  const unknownProvider = ProviderFactory.createByName(config, "unknown");
+  const unknownProvider = await ProviderFactory.createByName(config, "unknown");
   assertStringIncludes(unknownProvider.id, "default-mock");
 });
 

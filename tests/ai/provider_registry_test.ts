@@ -2,7 +2,7 @@
  * Tests for Provider Registry Pattern (Issue #10: Tight Coupling Between Services)
  */
 
-import { assertEquals, assertExists, assertThrows } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertRejects } from "jsr:@std/assert@^1.0.0";
 import { AnthropicProviderFactory, MockProviderFactory, ProviderRegistry } from "../../src/ai/provider_registry.ts";
 import { ResolvedProviderOptions } from "../../src/ai/provider_factory.ts";
 import { ProviderFactory } from "../../src/ai/provider_factory.ts";
@@ -29,7 +29,7 @@ Deno.test("ProviderRegistry: returns undefined for unregistered providers", () =
   assertEquals(retrieved, undefined);
 });
 
-Deno.test("MockProviderFactory: creates providers", () => {
+Deno.test("MockProviderFactory: creates providers", async () => {
   const factory = new MockProviderFactory();
   const options: ResolvedProviderOptions = {
     provider: "mock",
@@ -38,12 +38,12 @@ Deno.test("MockProviderFactory: creates providers", () => {
     mockStrategy: "recorded",
   };
 
-  const provider = factory.create(options);
+  const provider = await factory.create(options);
   assertExists(provider);
   assertEquals(provider.id, "mock-recorded-test-model");
 });
 
-Deno.test("AnthropicProviderFactory: requires API key", () => {
+Deno.test("AnthropicProviderFactory: requires API key", async () => {
   // Ensure API key is not set
   Deno.env.delete("ANTHROPIC_API_KEY");
 
@@ -54,10 +54,10 @@ Deno.test("AnthropicProviderFactory: requires API key", () => {
     timeoutMs: 30000,
   };
 
-  assertThrows(
-    () => factory.create(options),
+  await assertRejects(
+    async () => await factory.create(options),
     Error,
-    "Anthropic provider requires ANTHROPIC_API_KEY",
+    "Authentication failed",
   );
 });
 
@@ -66,7 +66,7 @@ Deno.test("AnthropicProviderFactory: exists and has correct interface", () => {
   assertEquals(factory.getSupportedProviders(), ["anthropic"]);
 });
 
-Deno.test("ProviderFactory: uses registry for mock provider", () => {
+Deno.test("ProviderFactory: uses registry for mock provider", async () => {
   const config = {
     system: {
       root: "/tmp/test",
@@ -85,12 +85,12 @@ Deno.test("ProviderFactory: uses registry for mock provider", () => {
     },
   } as Config;
 
-  const provider = ProviderFactory.create(config);
+  const provider = await ProviderFactory.create(config);
   assertExists(provider);
   assertEquals(provider.id, "mock-recorded-test-model");
 });
 
-Deno.test("ProviderFactory: maintains backward compatibility for ollama", () => {
+Deno.test("ProviderFactory: maintains backward compatibility for ollama", async () => {
   const config = {
     system: {
       root: "/tmp/test",
@@ -109,7 +109,7 @@ Deno.test("ProviderFactory: maintains backward compatibility for ollama", () => 
     },
   } as Config;
 
-  const provider = ProviderFactory.create(config);
+  const provider = await ProviderFactory.create(config);
   assertExists(provider);
   assertEquals(provider.id, "ollama-llama3.2");
 });

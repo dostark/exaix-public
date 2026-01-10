@@ -20,8 +20,9 @@ import { ResolvedProviderOptions } from "./provider_factory.ts";
 import { MockLLMProvider } from "./providers/mock_llm_provider.ts";
 import { OllamaProvider } from "./providers.ts";
 import { LlamaProvider } from "./providers/llama_provider.ts";
-import { AnthropicProvider } from "./providers/anthropic_provider.ts";
+import { SecureCredentialStore } from "../utils/credential_security.ts";
 import { OpenAIProvider } from "./providers/openai_provider.ts";
+import { AnthropicProvider } from "./providers/anthropic_provider.ts";
 import { GoogleProvider } from "./providers/google_provider.ts";
 import { ProviderFactoryError } from "./provider_factory.ts";
 // ============================================================================
@@ -38,7 +39,7 @@ export interface IProviderFactory {
    * @param options Resolved provider configuration options
    * @returns A configured provider instance
    */
-  create(options: ResolvedProviderOptions): IModelProvider;
+  create(options: ResolvedProviderOptions): Promise<IModelProvider>;
 
   /**
    * Get the list of provider types this factory supports.
@@ -102,10 +103,10 @@ export class ProviderRegistry {
  * Factory for creating MockLLMProvider instances.
  */
 export class MockProviderFactory implements IProviderFactory {
-  create(options: ResolvedProviderOptions): IModelProvider {
+  async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
     const strategy = options.mockStrategy ?? "recorded";
 
-    return new MockLLMProvider(strategy, {
+    return await new MockLLMProvider(strategy, {
       id: `mock-${strategy}-${options.model}`,
       fixtureDir: options.mockFixturesDir,
     });
@@ -120,8 +121,8 @@ export class MockProviderFactory implements IProviderFactory {
  * Factory for creating OllamaProvider instances.
  */
 export class OllamaProviderFactory implements IProviderFactory {
-  create(options: ResolvedProviderOptions): IModelProvider {
-    return new OllamaProvider({
+  async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
+    return await new OllamaProvider({
       id: `ollama-${options.model}`,
       model: options.model,
       baseUrl: options.baseUrl,
@@ -138,8 +139,8 @@ export class OllamaProviderFactory implements IProviderFactory {
  * Factory for creating LlamaProvider instances.
  */
 export class LlamaProviderFactory implements IProviderFactory {
-  create(options: ResolvedProviderOptions): IModelProvider {
-    return new LlamaProvider({
+  async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
+    return await new LlamaProvider({
       model: options.model,
       endpoint: options.baseUrl,
     });
@@ -154,10 +155,10 @@ export class LlamaProviderFactory implements IProviderFactory {
  * Factory for creating AnthropicProvider instances.
  */
 export class AnthropicProviderFactory implements IProviderFactory {
-  create(options: ResolvedProviderOptions): IModelProvider {
-    const apiKey = this.safeEnvGet("ANTHROPIC_API_KEY");
+  async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
+    const apiKey = await SecureCredentialStore.get("ANTHROPIC_API_KEY");
     if (!apiKey) {
-      throw new ProviderFactoryError("Anthropic provider requires ANTHROPIC_API_KEY");
+      throw new ProviderFactoryError("Authentication failed");
     }
 
     return new AnthropicProvider({
@@ -170,24 +171,16 @@ export class AnthropicProviderFactory implements IProviderFactory {
   getSupportedProviders(): string[] {
     return ["anthropic"];
   }
-
-  private safeEnvGet(key: string): string | undefined {
-    try {
-      return Deno.env.get(key);
-    } catch {
-      return undefined;
-    }
-  }
 }
 
 /**
  * Factory for creating OpenAIProvider instances.
  */
 export class OpenAIProviderFactory implements IProviderFactory {
-  create(options: ResolvedProviderOptions): IModelProvider {
-    const apiKey = this.safeEnvGet("OPENAI_API_KEY");
+  async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
+    const apiKey = await SecureCredentialStore.get("OPENAI_API_KEY");
     if (!apiKey) {
-      throw new ProviderFactoryError("OpenAI provider requires OPENAI_API_KEY");
+      throw new ProviderFactoryError("Authentication failed");
     }
 
     return new OpenAIProvider({
@@ -201,24 +194,16 @@ export class OpenAIProviderFactory implements IProviderFactory {
   getSupportedProviders(): string[] {
     return ["openai"];
   }
-
-  private safeEnvGet(key: string): string | undefined {
-    try {
-      return Deno.env.get(key);
-    } catch {
-      return undefined;
-    }
-  }
 }
 
 /**
  * Factory for creating GoogleProvider instances.
  */
 export class GoogleProviderFactory implements IProviderFactory {
-  create(options: ResolvedProviderOptions): IModelProvider {
-    const apiKey = this.safeEnvGet("GOOGLE_API_KEY");
+  async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
+    const apiKey = await SecureCredentialStore.get("GOOGLE_API_KEY");
     if (!apiKey) {
-      throw new ProviderFactoryError("Google provider requires GOOGLE_API_KEY");
+      throw new ProviderFactoryError("Authentication failed");
     }
 
     return new GoogleProvider({
@@ -230,13 +215,5 @@ export class GoogleProviderFactory implements IProviderFactory {
 
   getSupportedProviders(): string[] {
     return ["google"];
-  }
-
-  private safeEnvGet(key: string): string | undefined {
-    try {
-      return Deno.env.get(key);
-    } catch {
-      return undefined;
-    }
   }
 }
