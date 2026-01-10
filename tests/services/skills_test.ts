@@ -53,7 +53,7 @@ Deno.test("SkillsService: createSkill creates and indexes skill", async () => {
         task_types: ["testing"],
       },
       instructions: "Test instructions here",
-    }, "learned");
+    });
 
     assertExists(skill.id);
     assertEquals(skill.skill_id, "test-skill");
@@ -61,7 +61,7 @@ Deno.test("SkillsService: createSkill creates and indexes skill", async () => {
     assertEquals(skill.usage_count, 0);
 
     // Verify file was created
-    const skillPath = join(getMemorySkillsDir(config.system.root), "learned", "test-skill.skill.md");
+    const skillPath = join(getMemorySkillsDir(config.system.root), "test-skill.skill.md");
     assertEquals(await exists(skillPath), true);
   } finally {
     await cleanup();
@@ -88,7 +88,7 @@ Deno.test("SkillsService: getSkill retrieves created skill", async () => {
         keywords: ["get", "test"],
       },
       instructions: "Get test instructions",
-    }, "learned");
+    });
 
     const skill = await service.getSkill("get-test-skill");
     assertExists(skill);
@@ -131,7 +131,7 @@ Deno.test("SkillsService: listSkills returns all active skills", async () => {
       source: "user",
       triggers: { keywords: ["one"] },
       instructions: "Instructions 1",
-    }, "learned");
+    });
 
     await service.createSkill({
       skill_id: "list-skill-2",
@@ -143,7 +143,7 @@ Deno.test("SkillsService: listSkills returns all active skills", async () => {
       source: "user",
       triggers: { keywords: ["two"] },
       instructions: "Instructions 2",
-    }, "learned");
+    });
 
     const allSkills = await service.listSkills();
     const activeSkills = await service.listSkills({ status: "active" });
@@ -180,7 +180,7 @@ Deno.test("SkillsService: updateSkill modifies skill", async () => {
       source: "user",
       triggers: { keywords: ["update"] },
       instructions: "Original instructions",
-    }, "learned");
+    });
 
     const updated = await service.updateSkill("update-test", {
       name: "Updated Name",
@@ -215,7 +215,7 @@ Deno.test("SkillsService: activateSkill changes draft to active", async () => {
       source: "user",
       triggers: { keywords: ["activate"] },
       instructions: "Activation test",
-    }, "learned");
+    });
 
     const result = await service.activateSkill("activate-test");
     assertEquals(result, true);
@@ -244,7 +244,7 @@ Deno.test("SkillsService: deprecateSkill marks skill as deprecated", async () =>
       source: "user",
       triggers: { keywords: ["deprecate"] },
       instructions: "Deprecation test",
-    }, "learned");
+    });
 
     const result = await service.deprecateSkill("deprecate-test");
     assertEquals(result, true);
@@ -277,7 +277,7 @@ Deno.test("SkillsService: matchSkills returns skills matching keywords", async (
         keywords: ["implement", "feature", "create"],
       },
       instructions: "Keyword matching test",
-    }, "learned");
+    });
 
     const matches = await service.matchSkills({
       keywords: ["implement", "new", "feature"],
@@ -311,7 +311,7 @@ Deno.test("SkillsService: matchSkills returns skills matching task types", async
         task_types: ["bugfix", "security"],
       },
       instructions: "Task type matching test",
-    }, "learned");
+    });
 
     const matches = await service.matchSkills({
       taskType: "bugfix",
@@ -344,7 +344,7 @@ Deno.test("SkillsService: matchSkills returns skills matching file patterns", as
         file_patterns: ["*.ts", "src/**/*.js"],
       },
       instructions: "File pattern matching test",
-    }, "learned");
+    });
 
     const matches = await service.matchSkills({
       filePaths: ["test.ts", "other.py"],
@@ -377,7 +377,7 @@ Deno.test("SkillsService: matchSkills excludes non-active skills", async () => {
         keywords: ["draft", "exclusive", "unique-keyword-xyz"],
       },
       instructions: "Should not match",
-    }, "learned");
+    });
 
     const matches = await service.matchSkills({
       keywords: ["draft", "exclusive", "unique-keyword-xyz"],
@@ -409,7 +409,7 @@ Deno.test("SkillsService: matchSkills extracts keywords from request text", asyn
         keywords: ["authentication", "login"],
       },
       instructions: "Text extraction test",
-    }, "learned");
+    });
 
     const matches = await service.matchSkills({
       requestText: "Please implement authentication for the login page",
@@ -443,7 +443,7 @@ Deno.test("SkillsService: matchSkills respects maxSkillsPerRequest limit", async
           keywords: ["limitspecial", "testspecial"],
         },
         instructions: `Limit test ${i}`,
-      }, "learned");
+      });
     }
 
     const matches = await service.matchSkills({
@@ -481,7 +481,7 @@ Deno.test("SkillsService: buildSkillContext generates markdown context", async (
         { name: "Quality", weight: 50 },
         { name: "Speed", weight: 50 },
       ],
-    }, "learned");
+    });
 
     const context = await service.buildSkillContext(["context-test"]);
 
@@ -525,7 +525,7 @@ Deno.test("SkillsService: buildSkillContext combines multiple skills", async () 
       source: "user",
       triggers: { keywords: ["multi"] },
       instructions: "Instructions for skill 1",
-    }, "learned");
+    });
 
     await service.createSkill({
       skill_id: "multi-2",
@@ -537,7 +537,7 @@ Deno.test("SkillsService: buildSkillContext combines multiple skills", async () 
       source: "user",
       triggers: { keywords: ["multi"] },
       instructions: "Instructions for skill 2",
-    }, "learned");
+    });
 
     const context = await service.buildSkillContext(["multi-1", "multi-2"]);
 
@@ -600,7 +600,7 @@ Deno.test("SkillsService: rebuildIndex scans all skill directories", async () =>
       source: "learned",
       triggers: { keywords: ["index"] },
       instructions: "Index test",
-    }, "learned");
+    });
 
     // Rebuild index
     await service.rebuildIndex();

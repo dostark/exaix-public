@@ -550,7 +550,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
 
           if (lsResult.code === 0) {
             // Tracked file - restore with timeout
-            await SafeSubprocess.run("git", ["checkout", "HEAD", "--", file], {
+            await SafeSubprocess.run("git", ["restore", "--source=HEAD", "--", file], {
               cwd: portalPath,
               timeoutMs: DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
             });

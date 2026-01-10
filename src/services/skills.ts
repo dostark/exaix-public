@@ -84,7 +84,7 @@ export class SkillsService {
     private db: DatabaseService,
     skillsConfig?: Partial<SkillsConfig>,
   ) {
-    this.blueprintsSkillsDir = join(config.system.root, "Blueprints", "Skills");
+    this.blueprintsSkillsDir = join(config.system.root, config.paths.memory, "Skills");
     this.indexPath = join(this.blueprintsSkillsDir, "index.json");
     this.skillsConfig = { ...DEFAULT_CONFIG, ...skillsConfig };
   }
@@ -94,6 +94,9 @@ export class SkillsService {
    */
   async initialize(): Promise<void> {
     await ensureDir(this.blueprintsSkillsDir);
+    await ensureDir(join(this.blueprintsSkillsDir, "core"));
+    await ensureDir(join(this.blueprintsSkillsDir, "learned"));
+    await ensureDir(join(this.blueprintsSkillsDir, "project"));
 
     // Initialize index if missing
     if (!(await exists(this.indexPath))) {

@@ -73,6 +73,13 @@ export function createMockConfig(root: string, overrides: Partial<Config> = {}):
       branch_prefix_pattern: DEFAULTS.DEFAULT_GIT_BRANCH_PREFIX_PATTERN,
       allowed_prefixes: DEFAULTS.DEFAULT_GIT_ALLOWED_PREFIXES,
     },
+    rate_limiting: overrides.rate_limiting || {
+      enabled: true,
+      max_calls_per_minute: 60,
+      max_tokens_per_hour: 100000,
+      max_cost_per_day: 50,
+      cost_per_1k_tokens: 0.03,
+    },
   };
 }
 

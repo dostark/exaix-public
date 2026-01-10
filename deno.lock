@@ -1052,10 +1052,12 @@
       "jsr:@cliffy/command@^1.0.0-rc.8",
       "jsr:@cliffy/table@^1.0.0-rc.8",
       "jsr:@db/sqlite@0.11",
+      "jsr:@std/assert@1",
       "jsr:@std/crypto@0.221",
       "jsr:@std/encoding@0.221",
       "jsr:@std/fs@0.221",
       "jsr:@std/path@0.221",
+      "jsr:@std/testing@1",
       "jsr:@std/toml@0.221",
       "jsr:@std/yaml@1"
     ]

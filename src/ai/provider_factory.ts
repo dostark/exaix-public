@@ -24,6 +24,7 @@ import {
   OpenAIProviderFactory,
   ProviderRegistry,
 } from "./provider_registry.ts";
+import { RateLimitedProvider } from "./rate_limited_provider.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -99,7 +100,19 @@ export class ProviderFactory {
    */
   static async create(config: Config): Promise<IModelProvider> {
     const options = this.resolveOptions(config);
-    return await this.createProvider(options);
+    const provider = await this.createProvider(options);
+
+    // Apply rate limiting if enabled
+    if (config.rate_limiting?.enabled) {
+      return new RateLimitedProvider(provider, {
+        maxCallsPerMinute: config.rate_limiting.max_calls_per_minute,
+        maxTokensPerHour: config.rate_limiting.max_tokens_per_hour,
+        maxCostPerDay: config.rate_limiting.max_cost_per_day,
+        costPer1kTokens: config.rate_limiting.cost_per_1k_tokens,
+      });
+    }
+
+    return provider;
   }
 
   /**
@@ -111,7 +124,19 @@ export class ProviderFactory {
    */
   static async createByName(config: Config, name: string): Promise<IModelProvider> {
     const options = this.resolveOptionsByName(config, name);
-    return await this.createProvider(options);
+    const provider = await this.createProvider(options);
+
+    // Apply rate limiting if enabled
+    if (config.rate_limiting?.enabled) {
+      return new RateLimitedProvider(provider, {
+        maxCallsPerMinute: config.rate_limiting.max_calls_per_minute,
+        maxTokensPerHour: config.rate_limiting.max_tokens_per_hour,
+        maxCostPerDay: config.rate_limiting.max_cost_per_day,
+        costPer1kTokens: config.rate_limiting.cost_per_1k_tokens,
+      });
+    }
+
+    return provider;
   }
 
   /**

@@ -18,6 +18,7 @@
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
 import { getProviderForModel, ProviderFactory, ProviderFactoryError } from "../../src/ai/provider_factory.ts";
+import { RateLimitError } from "../../src/ai/rate_limited_provider.ts";
 import { SecureCredentialStore } from "../../src/utils/credential_security.ts";
 
 import { AiConfig, AiConfigSchema } from "../../src/config/ai_config.ts";
@@ -84,6 +85,13 @@ function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       max_tokens_default: 4096,
     },
     mcp_defaults: { agent_id: "system" },
+    rate_limiting: {
+      enabled: true,
+      max_calls_per_minute: 60,
+      max_tokens_per_hour: 100000,
+      max_cost_per_day: 50,
+      cost_per_1k_tokens: 0.03,
+    },
     git: {
       branch_prefix_pattern: "^(feat|fix|docs|chore|refactor|test)/",
       allowed_prefixes: ["feat", "fix", "docs", "chore", "refactor", "test"],
@@ -182,6 +190,7 @@ Deno.test("AiConfigSchema: validates timeout_ms range", () => {
 
 Deno.test("ProviderFactory: defaults to MockLLMProvider when no config", async () => {
   const config = createTestConfig();
+  config.rate_limiting.enabled = false; // Disable rate limiting for this test
   const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
@@ -190,6 +199,7 @@ Deno.test("ProviderFactory: defaults to MockLLMProvider when no config", async (
 
 Deno.test("ProviderFactory: defaults to MockLLMProvider when ai section missing", async () => {
   const config = createTestConfig(undefined);
+  config.rate_limiting.enabled = false; // Disable rate limiting for this test
   const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
@@ -204,6 +214,7 @@ Deno.test(
   "ProviderFactory: EXO_LLM_PROVIDER=mock creates MockLLMProvider",
   withEnvVars({ EXO_LLM_PROVIDER: "mock" }, async () => {
     const config = createTestConfig();
+    config.rate_limiting.enabled = false; // Disable rate limiting for this test
     const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
@@ -237,6 +248,7 @@ Deno.test(
   "ProviderFactory: env var overrides config",
   withEnvVars({ EXO_LLM_PROVIDER: "mock" }, async () => {
     const config = createTestConfig({ provider: "ollama", model: "llama3.2" });
+    config.rate_limiting.enabled = false; // Disable rate limiting for this test
     const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
@@ -259,6 +271,7 @@ Deno.test("ProviderFactory: config ai.provider=ollama creates OllamaProvider", a
 
 Deno.test("ProviderFactory: config ai.provider=mock creates MockLLMProvider", async () => {
   const config = createTestConfig({ provider: "mock" });
+  config.rate_limiting.enabled = false; // Disable rate limiting for this test
   const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
@@ -318,6 +331,7 @@ Deno.test(
     };
 
     try {
+      config.rate_limiting.enabled = false; // Disable rate limiting for this test
       const provider = await ProviderFactory.create(config);
 
       assertExists(provider);
@@ -377,6 +391,7 @@ Deno.test("ProviderFactory: mock strategy from config", async () => {
       strategy: "scripted",
     },
   });
+  config.rate_limiting.enabled = false; // Disable rate limiting for this test
   const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
@@ -452,6 +467,7 @@ Deno.test(
     await SecureCredentialStore.set("ANTHROPIC_API_KEY", "test-key");
 
     const config = createTestConfig();
+    config.rate_limiting.enabled = false; // Disable rate limiting for this test
     const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
@@ -478,6 +494,7 @@ Deno.test(
     await SecureCredentialStore.set("OPENAI_API_KEY", "test-key");
 
     const config = createTestConfig();
+    config.rate_limiting.enabled = false; // Disable rate limiting for this test
     const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
@@ -590,6 +607,56 @@ Deno.test("ProviderFactory: createByName falls back to default for unknown name"
 
   const unknownProvider = await ProviderFactory.createByName(config, "unknown");
   assertStringIncludes(unknownProvider.id, "default-mock");
+});
+
+Deno.test("ProviderFactory: applies rate limiting when enabled", async () => {
+  const config = createTestConfig({
+    provider: "mock",
+    model: "test-model",
+  });
+
+  // Enable rate limiting with low limits for testing
+  config.rate_limiting = {
+    enabled: true,
+    max_calls_per_minute: 1,
+    max_tokens_per_hour: 1000,
+    max_cost_per_day: 1,
+    cost_per_1k_tokens: 0.1,
+  };
+
+  const provider = await ProviderFactory.create(config);
+
+  // Should be wrapped with RateLimitedProvider
+  assertStringIncludes(provider.id, "rate-limited");
+
+  // Second call should be blocked by rate limit
+  await provider.generate("test");
+  await assertRejects(
+    () => provider.generate("test"),
+    RateLimitError,
+    "calls per minute",
+  );
+});
+
+Deno.test("ProviderFactory: skips rate limiting when disabled", async () => {
+  const config = createTestConfig({
+    provider: "mock",
+    model: "test-model",
+  });
+
+  // Disable rate limiting
+  config.rate_limiting = {
+    enabled: false,
+    max_calls_per_minute: 1,
+    max_tokens_per_hour: 1000,
+    max_cost_per_day: 1,
+    cost_per_1k_tokens: 0.1,
+  };
+
+  const provider = await ProviderFactory.create(config);
+
+  // Should not be wrapped with RateLimitedProvider
+  assertStringIncludes(provider.id, "mock");
 });
 
 Deno.test("ProviderFactory: getProviderInfoByName returns named provider details", () => {

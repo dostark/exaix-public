@@ -1563,7 +1563,6 @@ export class MemoryCommands {
             tags: [],
           },
         },
-        location,
       );
 
       switch (format) {

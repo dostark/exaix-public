@@ -202,6 +202,7 @@ export class MockLLMProvider implements IModelProvider {
       throw new MockLLMError(this.errorMessage);
     }
 
+    const timestamp = new Date();
     let response: string;
     switch (this.strategy) {
       case "recorded":
@@ -225,7 +226,7 @@ export class MockLLMProvider implements IModelProvider {
       prompt,
       options,
       response,
-      timestamp: new Date(),
+      timestamp,
     });
     this._totalTokens.input += this.tokensPerResponse.input;
     this._totalTokens.output += this.tokensPerResponse.output;

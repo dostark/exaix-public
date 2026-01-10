@@ -129,6 +129,20 @@ export const ConfigSchema = z.object({
   }).optional().default({
     agent_id: DEFAULTS.DEFAULT_MCP_AGENT_ID,
   }),
+  /** Rate limiting configuration for cost exhaustion attack prevention */
+  rate_limiting: z.object({
+    enabled: z.boolean().default(true),
+    max_calls_per_minute: z.number().min(1).max(1000).default(60),
+    max_tokens_per_hour: z.number().min(1000).max(1000000).default(100000),
+    max_cost_per_day: z.number().min(0.01).max(1000).default(50),
+    cost_per_1k_tokens: z.number().min(0.001).max(1).default(0.03),
+  }).optional().default({
+    enabled: true,
+    max_calls_per_minute: 60,
+    max_tokens_per_hour: 100000,
+    max_cost_per_day: 50,
+    cost_per_1k_tokens: 0.03,
+  }),
   /** Git operations configuration */
   git: z.object({
     branch_prefix_pattern: z.string().default(DEFAULTS.DEFAULT_GIT_BRANCH_PREFIX_PATTERN),

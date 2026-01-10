@@ -252,7 +252,7 @@ export class RequestProcessor {
         if (frontmatter.model) {
           try {
             const overrideProvider = ProviderFactory.createByName(this.config, frontmatter.model);
-            currentRunner = new AgentRunner(overrideProvider, { db: this.db });
+            currentRunner = new AgentRunner(await overrideProvider, { db: this.db });
             traceLogger.info("request.model_override", frontmatter.model, {
               trace_id: traceId,
             });

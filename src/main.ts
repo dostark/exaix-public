@@ -71,7 +71,7 @@ if (import.meta.main) {
     // Initialize Request Processor
     const requestProcessor = new RequestProcessor(
       config,
-      llmProvider,
+      await llmProvider,
       dbService,
       {
         workspacePath: join(config.system.root, config.paths.workspace),
@@ -238,7 +238,7 @@ if (import.meta.main) {
             }
           }
 
-          const planExecutor = new PlanExecutor(config, currentProvider, dbService);
+          const planExecutor = new PlanExecutor(config, await currentProvider, dbService);
 
           const changesetId = await planExecutor.execute(event.path, {
             trace_id: frontmatter.trace_id as string,

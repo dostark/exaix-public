@@ -1751,6 +1751,19 @@ Deno.test({
       });
       await gitInit.output();
 
+      // Configure git user
+      const gitConfigName = new Deno.Command("git", {
+        args: ["config", "user.name", "Test User"],
+        cwd: testPortalPath,
+      });
+      await gitConfigName.output();
+
+      const gitConfigEmail = new Deno.Command("git", {
+        args: ["config", "user.email", "test@example.com"],
+        cwd: testPortalPath,
+      });
+      await gitConfigEmail.output();
+
       // Create and commit test files
       const files = ["safe1.txt", "safe2.txt", "safe3.txt"];
       for (const file of files) {
@@ -1761,14 +1774,20 @@ Deno.test({
           args: ["add", file],
           cwd: testPortalPath,
         });
-        await gitAdd.output();
+        const addResult = await gitAdd.output();
+        if (addResult.code !== 0) {
+          throw new Error(`Git add failed for ${file}: ${new TextDecoder().decode(addResult.stderr)}`);
+        }
       }
 
       const gitCommit = new Deno.Command("git", {
         args: ["commit", "-m", "initial commit"],
         cwd: testPortalPath,
       });
-      await gitCommit.output();
+      const commitResult = await gitCommit.output();
+      if (commitResult.code !== 0) {
+        throw new Error(`Git commit failed: ${new TextDecoder().decode(commitResult.stderr)}`);
+      }
 
       // Modify files to create changes
       for (const file of files) {
