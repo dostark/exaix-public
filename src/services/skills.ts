@@ -74,10 +74,6 @@ export interface SkillMatchRequest {
  * - Learning-to-skill derivation
  */
 export class SkillsService {
-  private skillsDir: string;
-  private coreDir: string;
-  private projectDir: string;
-  private learnedDir: string;
   private blueprintsSkillsDir: string;
   private indexPath: string;
   private skillsConfig: SkillsConfig;
@@ -88,12 +84,8 @@ export class SkillsService {
     private db: DatabaseService,
     skillsConfig?: Partial<SkillsConfig>,
   ) {
-    this.skillsDir = join(config.system.root, "Memory", "Skills");
-    this.coreDir = join(this.skillsDir, "core");
-    this.projectDir = join(this.skillsDir, "project");
-    this.learnedDir = join(this.skillsDir, "learned");
     this.blueprintsSkillsDir = join(config.system.root, "Blueprints", "Skills");
-    this.indexPath = join(this.skillsDir, "index.json");
+    this.indexPath = join(this.blueprintsSkillsDir, "index.json");
     this.skillsConfig = { ...DEFAULT_CONFIG, ...skillsConfig };
   }
 
@@ -101,10 +93,6 @@ export class SkillsService {
    * Initialize skills directory structure
    */
   async initialize(): Promise<void> {
-    await ensureDir(this.skillsDir);
-    await ensureDir(this.coreDir);
-    await ensureDir(this.projectDir);
-    await ensureDir(this.learnedDir);
     await ensureDir(this.blueprintsSkillsDir);
 
     // Initialize index if missing
@@ -167,7 +155,6 @@ export class SkillsService {
    */
   async createSkill(
     skill: Omit<Skill, "id" | "created_at" | "usage_count">,
-    location: "core" | "project" | "learned" | "blueprints" = "learned",
   ): Promise<Skill> {
     const fullSkill: Skill = {
       ...skill,
@@ -182,26 +169,8 @@ export class SkillsService {
       throw new Error(`Invalid skill: ${result.error.message}`);
     }
 
-    // Determine directory
-    let dir: string;
-    switch (location) {
-      case "core":
-        dir = this.coreDir;
-        break;
-      case "project":
-        dir = this.projectDir;
-        break;
-      case "blueprints":
-        dir = this.blueprintsSkillsDir;
-        break;
-      case "learned":
-      default:
-        dir = this.learnedDir;
-        break;
-    }
-
     // Write skill file
-    const skillPath = join(dir, `${fullSkill.skill_id}.skill.md`);
+    const skillPath = join(this.blueprintsSkillsDir, `${fullSkill.skill_id}.skill.md`);
     await this.writeSkillToFile(fullSkill, skillPath);
 
     // Update index
@@ -211,7 +180,7 @@ export class SkillsService {
       event_type: "skill.created",
       target: fullSkill.skill_id,
       metadata: {
-        location,
+        location: "blueprints",
         scope: fullSkill.scope,
         source: fullSkill.source,
       },
@@ -676,7 +645,6 @@ export class SkillsService {
         derived_from: learningIds,
         status: "draft", // Always starts as draft
       },
-      "learned",
     );
 
     this.logActivity({
@@ -776,46 +744,26 @@ export class SkillsService {
    */
   async rebuildIndex(): Promise<void> {
     const index: SkillIndex = this.createEmptyIndex();
-    // Scan lower priority locations first, then higher priority (blueprints last)
-    const dirs = [this.coreDir, this.projectDir, this.learnedDir, this.blueprintsSkillsDir];
 
-    for (const dir of dirs) {
-      if (!(await exists(dir))) continue;
-
-      for await (const entry of Deno.readDir(dir)) {
+    // Scan blueprints skills directory
+    if (await exists(this.blueprintsSkillsDir)) {
+      for await (const entry of Deno.readDir(this.blueprintsSkillsDir)) {
         if (entry.isFile && entry.name.endsWith(".skill.md")) {
-          const skillPath = join(dir, entry.name);
+          const skillPath = join(this.blueprintsSkillsDir, entry.name);
           const skill = await this.loadSkillFromFile(skillPath);
 
           if (skill) {
-            // Check if we already have this skill (from lower priority location)
-            const existingIndex = index.skills.findIndex((s) => s.skill_id === skill.skill_id);
-            if (existingIndex >= 0) {
-              // Replace with higher priority version
-              index.skills[existingIndex] = {
-                skill_id: skill.skill_id,
-                name: skill.name,
-                version: skill.version,
-                status: skill.status,
-                scope: skill.scope,
-                project: skill.project,
-                path: skillPath,
-                triggers: skill.triggers,
-              };
-            } else {
-              // Add new skill
-              const indexEntry: SkillIndexEntry = {
-                skill_id: skill.skill_id,
-                name: skill.name,
-                version: skill.version,
-                status: skill.status,
-                scope: skill.scope,
-                project: skill.project,
-                path: skillPath,
-                triggers: skill.triggers,
-              };
-              index.skills.push(indexEntry);
-            }
+            const indexEntry: SkillIndexEntry = {
+              skill_id: skill.skill_id,
+              name: skill.name,
+              version: skill.version,
+              status: skill.status,
+              scope: skill.scope,
+              project: skill.project,
+              path: skillPath,
+              triggers: skill.triggers,
+            };
+            index.skills.push(indexEntry);
           }
         }
       }
@@ -837,19 +785,15 @@ export class SkillsService {
    * Scans lower priority locations first, then higher priority (blueprints last)
    */
   private async findSkillOnFilesystem(skillId: string): Promise<Skill | null> {
-    const dirs = [this.coreDir, this.projectDir, this.learnedDir, this.blueprintsSkillsDir];
+    if (!(await exists(this.blueprintsSkillsDir))) return null;
 
-    for (const dir of dirs) {
-      if (!(await exists(dir))) continue;
+    for await (const entry of Deno.readDir(this.blueprintsSkillsDir)) {
+      if (entry.isFile && entry.name.endsWith(".skill.md")) {
+        const skillPath = join(this.blueprintsSkillsDir, entry.name);
+        const skill = await this.loadSkillFromFile(skillPath);
 
-      for await (const entry of Deno.readDir(dir)) {
-        if (entry.isFile && entry.name.endsWith(".skill.md")) {
-          const skillPath = join(dir, entry.name);
-          const skill = await this.loadSkillFromFile(skillPath);
-
-          if (skill && skill.skill_id === skillId) {
-            return skill;
-          }
+        if (skill && skill.skill_id === skillId) {
+          return skill;
         }
       }
     }

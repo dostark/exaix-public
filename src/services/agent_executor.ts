@@ -380,6 +380,79 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
   }
 
   /**
+   * Validate file path for security - prevents path traversal and injection attacks
+   * Returns the validated path or null if invalid
+   */
+  private validateFilePath(filePath: string, portalPath: string): string | null {
+    // Reject null, undefined, or empty paths
+    if (!filePath || filePath.trim() === "") {
+      return null;
+    }
+
+    // Reject absolute paths
+    if (filePath.startsWith("/") || filePath.startsWith("\\") || /^[a-zA-Z]:/.test(filePath)) {
+      return null;
+    }
+
+    // Reject path traversal attempts
+    if (filePath.includes("..") || filePath.includes("../") || filePath.includes("..\\")) {
+      return null;
+    }
+
+    // Reject shell injection characters
+    const injectionChars = [";", "&", "|", "`", "$", "(", ")", "<", ">", '"', "'", "\n", "\r"];
+    if (injectionChars.some((char) => filePath.includes(char))) {
+      return null;
+    }
+
+    // Reject hidden files/directories (starting with .)
+    if (filePath.startsWith(".") || filePath.includes("/.") || filePath.includes("\\.")) {
+      return null;
+    }
+
+    // Normalize path separators to forward slashes for consistency
+    const normalizedPath = filePath.replace(/\\/g, "/");
+
+    // Reject paths with consecutive slashes or other suspicious patterns
+    if (normalizedPath.includes("//") || normalizedPath.includes("\0")) {
+      return null;
+    }
+
+    // Construct full path and verify it stays within portal directory
+    const fullPath = join(portalPath, normalizedPath);
+
+    try {
+      const resolvedPath = Deno.realPathSync(portalPath);
+      const resolvedFullPath = Deno.realPathSync(fullPath);
+
+      // Ensure the resolved path is within the portal directory
+      if (!resolvedFullPath.startsWith(resolvedPath + "/") && resolvedFullPath !== resolvedPath) {
+        return null;
+      }
+    } catch (_error) {
+      // If file doesn't exist, we still validate the path structure
+      // Check that the normalized path doesn't contain path traversal
+      const pathParts = normalizedPath.split("/");
+      for (const part of pathParts) {
+        if (part === ".." || part.startsWith(".")) {
+          return null;
+        }
+      }
+
+      // Verify the constructed path would be within portal directory
+      const resolvedPath = Deno.realPathSync(portalPath);
+      const absoluteFullPath = join(resolvedPath, normalizedPath);
+
+      // Ensure no path traversal by checking the absolute path
+      if (!absoluteFullPath.startsWith(resolvedPath + "/") && absoluteFullPath !== resolvedPath) {
+        return null;
+      }
+    }
+
+    return normalizedPath;
+  }
+
+  /**
    * Revert unauthorized changes in hybrid mode
    * Uses git checkout to discard unauthorized modifications
    */
@@ -391,6 +464,24 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
 
     if (unauthorizedFiles.length === 0) return;
 
+    // Filter and validate file paths for security
+    const validatedFiles = unauthorizedFiles
+      .map((file) => this.validateFilePath(file, portalPath))
+      .filter((file): file is string => file !== null);
+
+    if (validatedFiles.length === 0) {
+      // Log that all files were filtered out as potentially malicious
+      this.logger.log({
+        action: "security.file_validation_filtered_all",
+        target: portalPath,
+        payload: {
+          original_count: unauthorizedFiles.length,
+          reason: "All files contained potentially malicious paths",
+        },
+      });
+      return;
+    }
+
     const results = {
       successful: [] as string[],
       failed: [] as Array<{ file: string; error: string }>,
@@ -398,7 +489,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
 
     // Process files concurrently with concurrency limit
     const concurrencyLimit = DEFAULT_GIT_REVERT_CONCURRENCY_LIMIT; // Configurable
-    const chunks = this.chunkArray(unauthorizedFiles, concurrencyLimit);
+    const chunks = this.chunkArray(validatedFiles, concurrencyLimit);
 
     for (const chunk of chunks) {
       const promises = chunk.map(async (file) => {
