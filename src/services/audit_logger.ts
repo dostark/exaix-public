@@ -122,6 +122,7 @@ export class AuditLogger {
    * This is a placeholder - in production this would integrate with
    * alerting systems, email, Slack, etc.
    */
+  // deno-lint-ignore require-await
   async sendSecurityAlert(auditEntry: Record<string, unknown>): Promise<void> {
     // Placeholder implementation
     console.error("[SECURITY ALERT]", JSON.stringify(auditEntry, null, 2));

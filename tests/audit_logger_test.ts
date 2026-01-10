@@ -3,17 +3,10 @@
  * Implements security audit logging for critical operations
  */
 
-import { assertEquals, assertExists, assertFalse, assertNotEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertFalse, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
 import { assertSpyCalls, spy } from "jsr:@std/testing@^1.0.0/mock";
 import { initTestDbService } from "./helpers/db.ts";
 import { AuditLogger } from "../src/services/audit_logger.ts";
-
-// Simple assert function for conditions
-function assert(condition: boolean, message?: string): void {
-  if (!condition) {
-    throw new Error(message || "Assertion failed");
-  }
-}
 
 Deno.test("AuditLogger: logs security events to database", async () => {
   const { db, cleanup } = await initTestDbService();
