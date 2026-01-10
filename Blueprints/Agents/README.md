@@ -24,7 +24,7 @@ default_skills: ["code-review", "error-handling"]  # NEW
 
 **Available Core Skills:** `code-review`, `security-first`, `tdd-methodology`, `error-handling`, `documentation-driven`, `typescript-patterns`, `commit-message`, `exoframe-conventions`
 
-See `Memory/Skills/` for skill definitions.
+See `Blueprints/Skills/` for skill definitions.
 
 ## Usage Guide
 

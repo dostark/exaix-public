@@ -78,6 +78,7 @@ export class SkillsService {
   private coreDir: string;
   private projectDir: string;
   private learnedDir: string;
+  private blueprintsSkillsDir: string;
   private indexPath: string;
   private skillsConfig: SkillsConfig;
   private indexCache: SkillIndex | null = null;
@@ -91,6 +92,7 @@ export class SkillsService {
     this.coreDir = join(this.skillsDir, "core");
     this.projectDir = join(this.skillsDir, "project");
     this.learnedDir = join(this.skillsDir, "learned");
+    this.blueprintsSkillsDir = join(config.system.root, "Blueprints", "Skills");
     this.indexPath = join(this.skillsDir, "index.json");
     this.skillsConfig = { ...DEFAULT_CONFIG, ...skillsConfig };
   }
@@ -103,6 +105,7 @@ export class SkillsService {
     await ensureDir(this.coreDir);
     await ensureDir(this.projectDir);
     await ensureDir(this.learnedDir);
+    await ensureDir(this.blueprintsSkillsDir);
 
     // Initialize index if missing
     if (!(await exists(this.indexPath))) {
@@ -124,11 +127,13 @@ export class SkillsService {
     const index = await this.loadIndex();
     const entry = index.skills.find((s) => s.skill_id === skillId);
 
-    if (!entry) {
-      return null;
+    if (entry) {
+      return this.loadSkillFromFile(entry.path);
     }
 
-    return this.loadSkillFromFile(entry.path);
+    // Fallback: scan filesystem directly for backward compatibility
+    const skill = await this.findSkillOnFilesystem(skillId);
+    return skill;
   }
 
   /**
@@ -162,7 +167,7 @@ export class SkillsService {
    */
   async createSkill(
     skill: Omit<Skill, "id" | "created_at" | "usage_count">,
-    location: "core" | "project" | "learned" = "learned",
+    location: "core" | "project" | "learned" | "blueprints" = "learned",
   ): Promise<Skill> {
     const fullSkill: Skill = {
       ...skill,
@@ -185,6 +190,9 @@ export class SkillsService {
         break;
       case "project":
         dir = this.projectDir;
+        break;
+      case "blueprints":
+        dir = this.blueprintsSkillsDir;
         break;
       case "learned":
       default:
@@ -768,7 +776,8 @@ export class SkillsService {
    */
   async rebuildIndex(): Promise<void> {
     const index: SkillIndex = this.createEmptyIndex();
-    const dirs = [this.coreDir, this.projectDir, this.learnedDir];
+    // Scan lower priority locations first, then higher priority (blueprints last)
+    const dirs = [this.coreDir, this.projectDir, this.learnedDir, this.blueprintsSkillsDir];
 
     for (const dir of dirs) {
       if (!(await exists(dir))) continue;
@@ -779,17 +788,34 @@ export class SkillsService {
           const skill = await this.loadSkillFromFile(skillPath);
 
           if (skill) {
-            const indexEntry: SkillIndexEntry = {
-              skill_id: skill.skill_id,
-              name: skill.name,
-              version: skill.version,
-              status: skill.status,
-              scope: skill.scope,
-              project: skill.project,
-              path: skillPath,
-              triggers: skill.triggers,
-            };
-            index.skills.push(indexEntry);
+            // Check if we already have this skill (from lower priority location)
+            const existingIndex = index.skills.findIndex((s) => s.skill_id === skill.skill_id);
+            if (existingIndex >= 0) {
+              // Replace with higher priority version
+              index.skills[existingIndex] = {
+                skill_id: skill.skill_id,
+                name: skill.name,
+                version: skill.version,
+                status: skill.status,
+                scope: skill.scope,
+                project: skill.project,
+                path: skillPath,
+                triggers: skill.triggers,
+              };
+            } else {
+              // Add new skill
+              const indexEntry: SkillIndexEntry = {
+                skill_id: skill.skill_id,
+                name: skill.name,
+                version: skill.version,
+                status: skill.status,
+                scope: skill.scope,
+                project: skill.project,
+                path: skillPath,
+                triggers: skill.triggers,
+              };
+              index.skills.push(indexEntry);
+            }
           }
         }
       }
@@ -804,6 +830,31 @@ export class SkillsService {
         skill_count: index.skills.length,
       },
     });
+  }
+
+  /**
+   * Find skill on filesystem (fallback for backward compatibility)
+   * Scans lower priority locations first, then higher priority (blueprints last)
+   */
+  private async findSkillOnFilesystem(skillId: string): Promise<Skill | null> {
+    const dirs = [this.coreDir, this.projectDir, this.learnedDir, this.blueprintsSkillsDir];
+
+    for (const dir of dirs) {
+      if (!(await exists(dir))) continue;
+
+      for await (const entry of Deno.readDir(dir)) {
+        if (entry.isFile && entry.name.endsWith(".skill.md")) {
+          const skillPath = join(dir, entry.name);
+          const skill = await this.loadSkillFromFile(skillPath);
+
+          if (skill && skill.skill_id === skillId) {
+            return skill;
+          }
+        }
+      }
+    }
+
+    return null;
   }
 
   // ===== File Operations =====

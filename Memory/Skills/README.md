@@ -1,6 +1,6 @@
 # Skills Directory
 
-This directory contains **Skills** - procedural memory for ExoFrame agents.
+This directory contains **learned and project-specific skills** - procedural memory for ExoFrame agents.
 
 ## What are Skills?
 
@@ -11,16 +11,21 @@ Skills are reusable instruction modules that encode domain expertise, procedures
 ```
 Memory/Skills/
 ├── index.json          # Skill registry with triggers for fast lookup
-├── core/               # Built-in skills (shipped with ExoFrame)
-│   ├── tdd-methodology.skill.md
-│   ├── security-first.skill.md
-│   └── ...
 ├── project/            # Project-specific skills
 │   └── {portal}/       # Organized by portal
 │       └── *.skill.md
 └── learned/            # Skills derived from learnings
     └── *.skill.md
 ```
+
+## Skill Locations
+
+- **Blueprints/Skills/**: Predefined skill blueprints (templates)
+- **Memory/Skills/**: Learned and adapted skills from actual usage
+
+## Migration Note
+
+Core skills have been moved from `Memory/Skills/core/` to `Blueprints/Skills/` to properly separate predefined blueprints from learned memory.
 
 ## Skill File Format
 
