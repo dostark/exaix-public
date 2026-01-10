@@ -7,6 +7,7 @@
 
 import { join } from "@std/path";
 import { parse as parseYaml } from "@std/yaml";
+import { z } from "zod";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import type { EventLogger } from "./event_logger.ts";
@@ -45,6 +46,17 @@ export class AgentExecutionError extends Error {
 }
 
 /**
+ * Zod schema for blueprint frontmatter validation
+ * Prevents YAML deserialization attacks by using strict validation
+ */
+const BlueprintSchema = z.object({
+  name: z.string().regex(/^[a-zA-Z0-9_-]+$/).max(50).optional(),
+  model: z.string().max(100),
+  provider: z.enum(["openai", "anthropic", "google", "ollama", "mock"]),
+  capabilities: z.array(z.string().max(50)).max(20).default([]),
+}).strict(); // No extra fields allowed
+
+/**
  * Agent blueprint loaded from file
  */
 export interface Blueprint {
@@ -69,9 +81,14 @@ export class AgentExecutor {
   ) {}
 
   /**
-   * Load agent blueprint from file
+   * Load agent blueprint from file with security validation
    */
   async loadBlueprint(agentName: string): Promise<Blueprint> {
+    // 1. Validate agent name format
+    if (!/^[a-zA-Z0-9_-]+$/.test(agentName)) {
+      throw new Error("Invalid agent name format");
+    }
+
     const blueprintPath = join(
       this.config.paths.blueprints,
       "Agents",
@@ -81,35 +98,66 @@ export class AgentExecutor {
     try {
       const content = await Deno.readTextFile(blueprintPath);
 
-      // Extract YAML frontmatter
+      // 2. Extract YAML frontmatter
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
       if (!frontmatterMatch) {
-        throw new Error(`No frontmatter found in blueprint: ${agentName}`);
+        throw new Error("No frontmatter found in blueprint");
       }
 
-      const frontmatter = parseYaml(frontmatterMatch[1]) as Record<
-        string,
-        unknown
-      >;
+      // 3. Parse YAML with FAILSAFE_SCHEMA (no code execution)
+      const rawFrontmatter = parseYaml(frontmatterMatch[1], {
+        schema: "failsafe",
+      }) as Record<string, unknown>;
 
-      // Extract system prompt (everything after frontmatter)
+      // 4. Validate with strict schema
+      const validatedFrontmatter = BlueprintSchema.parse(rawFrontmatter);
+
+      // 5. Extract and sanitize system prompt
       const systemPrompt = content
         .slice(frontmatterMatch[0].length)
         .trim();
 
+      const sanitizedPrompt = this.sanitizePrompt(systemPrompt);
+
+      // 6. Return validated blueprint
       return {
-        name: agentName,
-        model: frontmatter.model as string,
-        provider: frontmatter.provider as string,
-        capabilities: (frontmatter.capabilities || []) as string[],
-        systemPrompt,
+        name: validatedFrontmatter.name || agentName,
+        model: validatedFrontmatter.model,
+        provider: validatedFrontmatter.provider,
+        capabilities: validatedFrontmatter.capabilities,
+        systemPrompt: sanitizedPrompt,
       };
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) {
-        throw new Error(`Blueprint not found: ${agentName}`);
+        throw new Error("Blueprint not found");
+      }
+      // Handle Zod validation errors
+      if (error instanceof z.ZodError) {
+        throw new Error(`Invalid blueprint format: ${error.message}`);
+      }
+      // Handle YAML parsing errors
+      if (error instanceof Error && error.message.includes("YAML")) {
+        throw new Error("YAML parsing failed");
       }
       throw error;
     }
+  }
+
+  /**
+   * Sanitize system prompt to prevent XSS and injection attacks
+   */
+  private sanitizePrompt(prompt: string): string {
+    return prompt
+      // Remove potential script tags
+      .replace(/<script[^>]*>.*?<\/script>/gis, "[REMOVED SCRIPT]")
+      // Remove javascript: URLs
+      .replace(/javascript:/gi, "[REMOVED JAVASCRIPT]")
+      // Remove potential injection patterns
+      .replace(/<iframe[^>]*>.*?<\/iframe>/gis, "[REMOVED IFRAME]")
+      .replace(/<object[^>]*>.*?<\/object>/gis, "[REMOVED OBJECT]")
+      .replace(/<embed[^>]*>.*?<\/embed>/gis, "[REMOVED EMBED]")
+      // Limit length to prevent resource exhaustion
+      .slice(0, 50000);
   }
 
   /**
