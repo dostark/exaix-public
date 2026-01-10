@@ -12,6 +12,7 @@ export interface LlamaProviderOptions {
   config?: Config;
   maxAttempts?: number;
   backoffBaseMs?: number;
+  timeoutMs?: number;
 }
 
 /**
@@ -23,6 +24,7 @@ export class LlamaProvider implements IModelProvider {
   readonly endpoint: string;
   private readonly maxAttempts: number;
   private readonly backoffBaseMs: number;
+  private readonly timeoutMs: number;
 
   /**
    * @param options.model Model name (must start with codellama: or llamaX:)
@@ -53,6 +55,11 @@ export class LlamaProvider implements IModelProvider {
       options.config?.ai_retry?.ollama?.backoff_base_ms ||
       Number(Deno.env.get("EXO_OLLAMA_RETRY_BACKOFF_MS")) ||
       DEFAULTS.DEFAULT_OLLAMA_RETRY_BACKOFF_MS;
+
+    // Read timeout from options, config, or default
+    this.timeoutMs = options.timeoutMs ||
+      options.config?.ai_timeout?.ollama ||
+      DEFAULTS.DEFAULT_OLLAMA_TIMEOUT_MS;
   }
 
   /**
@@ -72,9 +79,9 @@ export class LlamaProvider implements IModelProvider {
       body: JSON.stringify(body),
     }, {
       id: this.id,
-      maxAttempts: Number(Deno.env.get("EXO_OLLAMA_RETRY_MAX") ?? "3"),
-      backoffBaseMs: Number(Deno.env.get("EXO_OLLAMA_RETRY_BACKOFF_MS") ?? "1000"),
-      timeoutMs: undefined,
+      maxAttempts: this.maxAttempts,
+      backoffBaseMs: this.backoffBaseMs,
+      timeoutMs: this.timeoutMs,
     });
 
     if (!data || typeof data.response !== "string") {

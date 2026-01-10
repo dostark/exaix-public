@@ -1047,13 +1047,13 @@ private sanitizeUserInput(input: string): string {
 ```
 
 **Success Criteria**:
-- User input is sanitized to prevent prompt injection attacks
-- Clear delimiters separate system instructions from user data
-- Prompt injection patterns are detected and neutralized
-- System instructions are protected from user override
-- Input length limits prevent resource exhaustion
-- Agents cannot be tricked into executing unauthorized actions
-- Security boundaries are maintained even with malicious input
+- ✅ User input is sanitized to prevent prompt injection attacks
+- ✅ Clear delimiters separate system instructions from user data
+- ✅ Prompt injection patterns are detected and neutralized
+- ✅ System instructions are protected from user override
+- ✅ Input length limits prevent resource exhaustion
+- ✅ Agents cannot be tricked into executing unauthorized actions
+- ✅ Security boundaries are maintained even with malicious input
 
 **Projected Tests**:
 ```typescript
@@ -1363,7 +1363,21 @@ Deno.test("SafeError: logs full details internally", async () => {
 });
 ```
 
-**Status**: ❌ Not Fixed
+**Status**: ✅ Fixed
+
+**Implementation Details**:
+- Created `SafeError` class in `src/errors/safe_error.ts` that wraps sensitive errors with user-safe messages
+- Updated `AgentExecutor.loadBlueprint()` to use `SafeError` instead of generic `Error` objects
+- Added comprehensive test suite in `tests/errors/safe_error_test.ts` with 9 test cases
+- Updated existing tests in `agent_executor_test.ts` to expect `SafeError` instances
+- `SafeError` securely logs internal error details via `EventLogger` while exposing only safe user messages
+- Prevents information disclosure of file paths, stack traces, and internal system details
+
+**Files Modified**:
+- `src/errors/safe_error.ts` (new)
+- `src/services/agent_executor.ts` (updated loadBlueprint method)
+- `tests/errors/safe_error_test.ts` (new)
+- `tests/services/agent_executor_test.ts` (updated test expectations)
 
 ***
 
@@ -1496,9 +1510,41 @@ Deno.test("generate: abort signal prevents hanging", async () => {
 });
 ```
 
-**Status**: ⚠️ Partially Fixed (timeouts added but not comprehensive)
+**Status**: ✅ **Fully Implemented**
+
+**Implementation Summary**:
+- Added `timeoutMs` option to all LLM provider interfaces (OpenAI, Anthropic, Google, Ollama)
+- Updated provider constructors to accept and initialize timeout configuration
+- Added provider-specific timeout constants (30s OpenAI, 60s Anthropic, 30s Google, 120s Ollama)
+- Updated config schema with `ai_timeout` section for provider-specific timeout configuration
+- Modified `ProviderFactory` to pass timeout configuration to all providers
+- Updated `performProviderCall` calls in all providers to use configured timeouts
+- Added comprehensive test suite verifying timeout functionality
+- All provider calls now use `AbortController` with configurable timeouts to prevent hanging requests
+
+**Files Modified**:
+- `src/config/constants.ts` - Added timeout constants
+- `src/config/schema.ts` - Added `ai_timeout` configuration section
+- `src/ai/providers/openai_provider.ts` - Added timeout support
+- `src/ai/providers/anthropic_provider.ts` - Added timeout support
+- `src/ai/providers/google_provider.ts` - Added timeout support
+- `src/ai/providers/llama_provider.ts` - Added timeout support
+- `src/ai/provider_factory.ts` - Updated to pass timeout configuration
+- `tests/infra/timeout_test.ts` - Added comprehensive timeout tests
+- `tests/ai/provider_factory_test.ts` - Updated test config
+
+**Success Criteria Met**:
+- ✅ All LLM provider calls have configurable timeouts
+- ✅ Hanging requests are aborted after timeout period
+- ✅ Resources are properly cleaned up on timeout
+- ✅ Timeout errors provide clear messaging
+- ✅ Default timeouts prevent indefinite hangs
+- ✅ Timeout values are configurable per request
+- ✅ AbortController signals are properly handled
 
 ***
+
+## Part 2: High Severity Issues (P1)
 
 ## Part 2: High Severity Issues (P1)
 

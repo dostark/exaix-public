@@ -18,6 +18,7 @@ export interface AnthropicProviderOptions {
   baseUrl?: string;
   apiVersion?: string;
   config?: Config;
+  timeoutMs?: number;
 }
 
 /**
@@ -32,6 +33,7 @@ export class AnthropicProvider implements IModelProvider {
   private readonly logger?: EventLogger;
   private readonly retryDelayMs: number;
   private readonly maxRetries: number;
+  private readonly timeoutMs: number;
 
   /**
    * @param options.apiKey Anthropic API key
@@ -73,6 +75,11 @@ export class AnthropicProvider implements IModelProvider {
     this.maxRetries = options.maxRetries ||
       options.config?.ai_retry?.anthropic?.max_attempts ||
       DEFAULTS.DEFAULT_ANTHROPIC_RETRY_MAX_ATTEMPTS;
+
+    // Read timeout from options, config, or default
+    this.timeoutMs = options.timeoutMs ||
+      options.config?.ai_timeout?.anthropic ||
+      DEFAULTS.DEFAULT_ANTHROPIC_TIMEOUT_MS;
   }
 
   /**
@@ -108,7 +115,7 @@ export class AnthropicProvider implements IModelProvider {
       id: this.id,
       maxAttempts: this.maxRetries,
       backoffBaseMs: this.retryDelayMs,
-      timeoutMs: undefined,
+      timeoutMs: this.timeoutMs,
       logger: this.logger,
       tokenMapper: tokenMapperAnthropic(this.model),
       extractor: extractAnthropicContent,

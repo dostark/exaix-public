@@ -49,6 +49,12 @@ export const DEFAULT_ANTHROPIC_RETRY_BACKOFF_MS = 2000;
 export const DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS = 3;
 export const DEFAULT_OPENAI_RETRY_BACKOFF_MS = 1000;
 
+// Provider-specific timeout defaults
+export const DEFAULT_OPENAI_TIMEOUT_MS = 30000;
+export const DEFAULT_ANTHROPIC_TIMEOUT_MS = 60000;
+export const DEFAULT_GOOGLE_TIMEOUT_MS = 30000;
+export const DEFAULT_OLLAMA_TIMEOUT_MS = 120000;
+
 // ============================================================================
 // Anthropic-Specific Defaults
 // ============================================================================

@@ -220,7 +220,19 @@ export class ProviderFactory {
 
     // Resolve base url and timeout (env > merged > defaults)
     const baseUrl = envBaseUrl ?? merged.base_url;
-    const timeoutMs = envTimeout ? parseInt(envTimeout, 10) : (merged.timeout_ms ?? DEFAULTS.DEFAULT_AI_TIMEOUT_MS);
+
+    // Resolve timeout with provider-specific fallback from ai_timeout config
+    let timeoutMs = DEFAULTS.DEFAULT_AI_TIMEOUT_MS;
+    if (envTimeout) {
+      timeoutMs = parseInt(envTimeout, 10);
+    } else if (merged.timeout_ms) {
+      timeoutMs = merged.timeout_ms;
+    } else if (config.ai_timeout && providerType !== "mock") {
+      const providerTimeout = config.ai_timeout[providerType as keyof typeof config.ai_timeout];
+      if (providerTimeout) {
+        timeoutMs = providerTimeout;
+      }
+    }
 
     // Mock-specific
     const mockStrategy = merged.mock?.strategy ?? baseAi?.mock?.strategy ?? "recorded";
@@ -344,6 +356,7 @@ export class ProviderFactory {
       apiKey,
       model: options.model,
       id: this.generateProviderId(options),
+      timeoutMs: options.timeoutMs,
     });
   }
 
@@ -361,6 +374,7 @@ export class ProviderFactory {
       model: options.model,
       baseUrl: options.baseUrl,
       id: this.generateProviderId(options),
+      timeoutMs: options.timeoutMs,
     });
   }
 
@@ -397,6 +411,7 @@ export class ProviderFactory {
       apiKey,
       model: options.model,
       id: this.generateProviderId(options),
+      timeoutMs: options.timeoutMs,
     });
   }
 

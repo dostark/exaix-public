@@ -80,6 +80,13 @@ export function createMockConfig(root: string, overrides: Partial<Config> = {}):
       max_cost_per_day: 50,
       cost_per_1k_tokens: 0.03,
     },
+    ai_timeout: overrides.ai_timeout || {
+      default_ms: DEFAULTS.DEFAULT_AI_TIMEOUT_MS,
+      ollama: DEFAULTS.DEFAULT_OLLAMA_TIMEOUT_MS,
+      anthropic: DEFAULTS.DEFAULT_ANTHROPIC_TIMEOUT_MS,
+      openai: DEFAULTS.DEFAULT_OPENAI_TIMEOUT_MS,
+      google: DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS,
+    },
   };
 }
 

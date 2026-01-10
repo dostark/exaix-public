@@ -16,6 +16,7 @@ import {
 } from "jsr:@std/assert@1";
 import { join } from "jsr:@std/path@1";
 import { AgentExecutor, Blueprint } from "../../src/services/agent_executor.ts";
+import { SafeError } from "../../src/errors/safe_error.ts";
 import { Config } from "../../src/config/schema.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
@@ -233,7 +234,7 @@ Deno.test({
         async () => {
           await executor.loadBlueprint("nonexistent-agent");
         },
-        Error,
+        SafeError,
         "Blueprint not found",
       );
     } finally {
@@ -2169,8 +2170,8 @@ Test prompt`;
       // Should reject with safe error
       await assertRejects(
         () => executor.loadBlueprint("malicious"),
-        Error,
-        "Cannot resolve unknown tag",
+        SafeError,
+        "Blueprint file contains invalid YAML syntax",
       );
     } finally {
       await cleanup();
@@ -2204,8 +2205,8 @@ Test prompt`;
       // Should reject due to invalid provider
       await assertRejects(
         () => executor.loadBlueprint("invalid"),
-        Error,
-        "Invalid blueprint",
+        SafeError,
+        "Blueprint contains invalid configuration",
       );
     } finally {
       await cleanup();
@@ -2334,8 +2335,8 @@ Deno.test({
 
       await assertRejects(
         () => executor.loadBlueprint("no-frontmatter"),
-        Error,
-        "No frontmatter found",
+        SafeError,
+        "Blueprint file is not properly formatted",
       );
     } finally {
       await cleanup();

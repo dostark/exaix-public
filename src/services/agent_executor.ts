@@ -14,6 +14,7 @@ import type { EventLogger } from "./event_logger.ts";
 import type { PathResolver } from "./path_resolver.ts";
 import type { PortalPermissionsService } from "./portal_permissions.ts";
 import type { IModelProvider } from "../ai/providers.ts";
+import { SafeError } from "../errors/safe_error.ts";
 import {
   DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
   DEFAULT_GIT_CLEAN_TIMEOUT_MS,
@@ -86,7 +87,12 @@ export class AgentExecutor {
   async loadBlueprint(agentName: string): Promise<Blueprint> {
     // 1. Validate agent name format
     if (!/^[a-zA-Z0-9_-]+$/.test(agentName)) {
-      throw new Error("Invalid agent name format");
+      throw new SafeError(
+        "Invalid agent name format",
+        "INVALID_AGENT_NAME",
+        undefined,
+        this.logger,
+      );
     }
 
     const blueprintPath = join(
@@ -101,7 +107,12 @@ export class AgentExecutor {
       // 2. Extract YAML frontmatter
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
       if (!frontmatterMatch) {
-        throw new Error("No frontmatter found in blueprint");
+        throw new SafeError(
+          "Blueprint file is not properly formatted",
+          "INVALID_BLUEPRINT_FORMAT",
+          undefined,
+          this.logger,
+        );
       }
 
       // 3. Parse YAML with FAILSAFE_SCHEMA (no code execution)
@@ -129,17 +140,51 @@ export class AgentExecutor {
       };
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) {
-        throw new Error("Blueprint not found");
+        throw new SafeError(
+          "Blueprint not found",
+          "BLUEPRINT_NOT_FOUND",
+          error,
+          this.logger,
+        );
       }
       // Handle Zod validation errors
       if (error instanceof z.ZodError) {
-        throw new Error(`Invalid blueprint format: ${error.message}`);
+        throw new SafeError(
+          "Blueprint file contains invalid YAML syntax",
+          "INVALID_BLUEPRINT_SCHEMA",
+          error,
+          this.logger,
+        );
       }
       // Handle YAML parsing errors
-      if (error instanceof Error && error.message.includes("YAML")) {
-        throw new Error("YAML parsing failed");
+      if (error instanceof Error && (error.message.includes("YAML") || error.message.includes("tag"))) {
+        throw new SafeError(
+          "Blueprint file contains invalid YAML syntax",
+          "YAML_PARSE_ERROR",
+          error,
+          this.logger,
+        );
       }
-      throw error;
+      // Handle file permission errors
+      if (error instanceof Deno.errors.PermissionDenied) {
+        throw new SafeError(
+          "Access denied to blueprint file",
+          "BLUEPRINT_ACCESS_DENIED",
+          error,
+          this.logger,
+        );
+      }
+      // Re-throw SafeError instances as-is
+      if (error instanceof SafeError) {
+        throw error;
+      }
+      // Wrap any other unexpected errors
+      throw new SafeError(
+        "Failed to load blueprint",
+        "BLUEPRINT_LOAD_ERROR",
+        error as Error,
+        this.logger,
+      );
     }
   }
 

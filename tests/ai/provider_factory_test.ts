@@ -97,6 +97,13 @@ function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       allowed_prefixes: ["feat", "fix", "docs", "chore", "refactor", "test"],
     },
     ai: parsedAi,
+    ai_timeout: {
+      default_ms: 30000,
+      openai: 30000,
+      anthropic: 60000,
+      google: 30000,
+      ollama: 120000,
+    },
     models: {
       default: { provider: "openai", model: "gpt-5.2-pro", timeout_ms: 30000 },
       fast: { provider: "openai", model: "gpt-5.2-pro-mini", timeout_ms: 15000 },

@@ -17,6 +17,7 @@ export interface GoogleProviderOptions {
   maxRetries?: number;
   baseUrl?: string;
   config?: Config;
+  timeoutMs?: number;
 }
 
 /**
@@ -30,6 +31,7 @@ export class GoogleProvider implements IModelProvider {
   private readonly logger?: EventLogger;
   private readonly retryDelayMs: number;
   private readonly maxRetries: number;
+  private readonly timeoutMs: number;
 
   /**
    * @param options.apiKey Google API key
@@ -60,6 +62,11 @@ export class GoogleProvider implements IModelProvider {
     this.maxRetries = options.maxRetries ||
       options.config?.ai_retry?.max_attempts ||
       DEFAULTS.DEFAULT_AI_RETRY_MAX_ATTEMPTS;
+
+    // Read timeout from options, config, or default
+    this.timeoutMs = options.timeoutMs ||
+      options.config?.ai_timeout?.google ||
+      DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS;
   }
 
   /**
@@ -98,7 +105,7 @@ export class GoogleProvider implements IModelProvider {
       id: this.id,
       maxAttempts: this.maxRetries,
       backoffBaseMs: this.retryDelayMs,
-      timeoutMs: undefined,
+      timeoutMs: this.timeoutMs,
       logger: this.logger,
       tokenMapper: tokenMapperGoogle(this.model),
       extractor: extractGoogleContent,

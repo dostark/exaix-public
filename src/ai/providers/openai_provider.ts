@@ -17,6 +17,7 @@ export interface OpenAIProviderOptions {
   maxRetries?: number;
   baseUrl?: string;
   config?: Config;
+  timeoutMs?: number;
 }
 
 /**
@@ -30,6 +31,7 @@ export class OpenAIProvider implements IModelProvider {
   private readonly logger?: EventLogger;
   private readonly retryDelayMs: number;
   private readonly maxRetries: number;
+  private readonly timeoutMs: number;
 
   /**
    * @param options.apiKey OpenAI API key
@@ -60,6 +62,10 @@ export class OpenAIProvider implements IModelProvider {
     this.maxRetries = options.maxRetries ||
       options.config?.ai_retry?.openai?.max_attempts ||
       DEFAULTS.DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS;
+
+    this.timeoutMs = options.timeoutMs ||
+      options.config?.ai_timeout?.openai ||
+      DEFAULTS.DEFAULT_OPENAI_TIMEOUT_MS;
   }
 
   /**
@@ -94,7 +100,7 @@ export class OpenAIProvider implements IModelProvider {
       id: this.id,
       maxAttempts: this.maxRetries,
       backoffBaseMs: this.retryDelayMs,
-      timeoutMs: undefined,
+      timeoutMs: this.timeoutMs,
       logger: this.logger,
       tokenMapper: tokenMapperOpenAI(this.model),
       extractor: (d: any) => d.choices?.[0]?.message?.content ?? "",

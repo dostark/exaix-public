@@ -106,6 +106,20 @@ export const ConfigSchema = z.object({
     backoff_base_ms: DEFAULTS.DEFAULT_AI_RETRY_BACKOFF_BASE_MS,
     timeout_per_request_ms: DEFAULTS.DEFAULT_AI_RETRY_TIMEOUT_PER_REQUEST_MS,
   }),
+  /** AI timeout configuration */
+  ai_timeout: z.object({
+    default_ms: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_AI_TIMEOUT_MS),
+    ollama: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_OLLAMA_TIMEOUT_MS),
+    anthropic: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_ANTHROPIC_TIMEOUT_MS),
+    openai: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_OPENAI_TIMEOUT_MS),
+    google: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS),
+  }).optional().default({
+    default_ms: DEFAULTS.DEFAULT_AI_TIMEOUT_MS,
+    ollama: DEFAULTS.DEFAULT_OLLAMA_TIMEOUT_MS,
+    anthropic: DEFAULTS.DEFAULT_ANTHROPIC_TIMEOUT_MS,
+    openai: DEFAULTS.DEFAULT_OPENAI_TIMEOUT_MS,
+    google: DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS,
+  }),
   /** Anthropic-specific configuration */
   ai_anthropic: z.object({
     api_version: z.string().default(DEFAULTS.DEFAULT_ANTHROPIC_API_VERSION),
