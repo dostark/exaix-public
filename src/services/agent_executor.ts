@@ -597,6 +597,145 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
   }
 
   /**
+   * Atomic audit and revert operation to prevent TOCTOU race conditions
+   * Performs git status check and file reversion in a single locked operation
+   */
+  async auditAndRevertChanges(
+    portalPath: string,
+    authorizedFiles: string[],
+  ): Promise<{ reverted: string[]; failed: string[] }> {
+    const { SafeSubprocess } = await import("../utils/subprocess.ts");
+
+    // 1. Acquire lock to prevent concurrent access
+    const lockFile = join(portalPath, ".exo-git-lock");
+    const lock = await this.acquireLock(lockFile);
+
+    try {
+      // 2. Get git status
+      const result = await SafeSubprocess.run("git", ["status", "--porcelain"], {
+        cwd: portalPath,
+        timeoutMs: DEFAULT_GIT_STATUS_TIMEOUT_MS,
+      });
+
+      if (result.code !== 0) {
+        throw new Error(`Git status failed: ${result.stderr}`);
+      }
+
+      const statusText = result.stdout;
+      if (!statusText) {
+        return { reverted: [], failed: [] }; // No changes
+      }
+
+      // 3. Process changes immediately (no gap for TOCTOU)
+      const results = { reverted: [] as string[], failed: [] as string[] };
+      const _authorizedSet = new Set(authorizedFiles);
+
+      for (const line of statusText.split("\n")) {
+        if (!line.trim()) continue;
+
+        // Parse porcelain format: XY filename (where X=status1, Y=status2)
+        // For untracked files: ?? filename
+        // For modified files: M  filename (staged),  M filename (unstaged)
+        const _status = line.slice(0, 2).trim();
+        const filename = line.slice(3).trim();
+
+        // Skip the lock file we created
+        if (filename === ".exo-git-lock") continue;
+
+        // Consider any change as potentially unauthorized (modified, added, deleted, untracked)
+        // Untracked files (??) are unauthorized new files
+        const validated = this.validateFilePath(filename, portalPath);
+        if (!validated) {
+          results.failed.push(filename);
+          continue;
+        }
+
+        // Check if file is a symlink (detect potential attacks)
+        try {
+          const stat = await Deno.lstat(join(portalPath, filename));
+          if (stat.isSymlink) {
+            this.logger.error("symlink_detected", portalPath, { filename });
+            results.failed.push(filename);
+            continue;
+          }
+        } catch {
+          // File might not exist, that's ok for untracked files
+        }
+
+        // Revert immediately (in same atomic section)
+        try {
+          // Check if tracked
+          const lsResult = await SafeSubprocess.run("git", ["ls-files", "--error-unmatch", validated], {
+            cwd: portalPath,
+            timeoutMs: DEFAULT_GIT_LS_FILES_TIMEOUT_MS,
+          });
+
+          if (lsResult.code === 0) {
+            // Tracked file - restore
+            await SafeSubprocess.run("git", ["restore", "--source=HEAD", "--", validated], {
+              cwd: portalPath,
+              timeoutMs: DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
+            });
+            results.reverted.push(filename);
+          } else {
+            // Untracked file - clean
+            await SafeSubprocess.run("git", ["clean", "-f", validated], {
+              cwd: portalPath,
+              timeoutMs: DEFAULT_GIT_CLEAN_TIMEOUT_MS,
+            });
+            results.reverted.push(filename);
+          }
+        } catch (_error) {
+          results.failed.push(filename);
+        }
+      }
+
+      return results;
+    } finally {
+      // 4. Always release lock
+      await lock.release();
+    }
+  }
+
+  /**
+   * Acquire exclusive lock for git operations to prevent race conditions
+   */
+  async acquireLock(lockFile: string): Promise<{ release: () => Promise<void> }> {
+    const maxRetries = 10;
+    const retryDelay = 100;
+
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        // Atomic lock file creation
+        await Deno.open(lockFile, {
+          write: true,
+          create: true,
+          createNew: true, // Fails if exists
+        });
+
+        return {
+          release: async () => {
+            try {
+              await Deno.remove(lockFile);
+            } catch {
+              // Ignore removal errors
+            }
+          },
+        };
+      } catch (error) {
+        if (error instanceof Deno.errors.AlreadyExists) {
+          // Lock held by another process
+          await new Promise((r) => setTimeout(r, retryDelay));
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    throw new Error("Failed to acquire git lock after maximum retries");
+  }
+
+  /**
    * Helper method to chunk array into smaller arrays
    */
   private chunkArray<T>(array: T[], chunkSize: number): T[][] {

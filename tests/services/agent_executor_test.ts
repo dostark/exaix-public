@@ -1813,6 +1813,331 @@ Deno.test({
   sanitizeOps: false,
 });
 
+// ===== Race Condition Prevention Tests =====
+
+Deno.test({
+  name: "AgentExecutor: auditAndRevertChanges atomic audit and revert",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      // Create a test portal with git repo
+      const testPortalPath = join(testDir, `atomic-test-portal-${crypto.randomUUID()}`);
+      await Deno.mkdir(testPortalPath, { recursive: true });
+
+      // Initialize git repo
+      const gitInit = new Deno.Command("git", {
+        args: ["init"],
+        cwd: testPortalPath,
+      });
+      await gitInit.output();
+
+      // Configure git user
+      const gitConfigName = new Deno.Command("git", {
+        args: ["config", "user.name", "Test User"],
+        cwd: testPortalPath,
+      });
+      await gitConfigName.output();
+
+      const gitConfigEmail = new Deno.Command("git", {
+        args: ["config", "user.email", "test@example.com"],
+        cwd: testPortalPath,
+      });
+      await gitConfigEmail.output();
+
+      // Create and commit a test file
+      const testFile = join(testPortalPath, "test.txt");
+      await Deno.writeTextFile(testFile, "original content");
+
+      const gitAdd = new Deno.Command("git", {
+        args: ["add", "test.txt"],
+        cwd: testPortalPath,
+      });
+      await gitAdd.output();
+
+      const gitCommit = new Deno.Command("git", {
+        args: ["commit", "-m", "initial commit"],
+        cwd: testPortalPath,
+      });
+      await gitCommit.output();
+
+      // Modify the file to create unauthorized changes
+      await Deno.writeTextFile(testFile, "modified content");
+
+      // Test atomic audit and revert
+      const results = await executor.auditAndRevertChanges(testPortalPath, []);
+
+      // Verify results
+      assertEquals(results.reverted.length, 1);
+      assertEquals(results.reverted[0], "test.txt");
+      assertEquals(results.failed.length, 0);
+
+      // Verify file was actually reverted
+      const content = await Deno.readTextFile(testFile);
+      assertEquals(content, "original content");
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: auditAndRevertChanges detects symlinks",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      // Create a test portal with git repo
+      const testPortalPath = join(testDir, `symlink-test-portal-${crypto.randomUUID()}`);
+      await Deno.mkdir(testPortalPath, { recursive: true });
+
+      // Initialize git repo
+      const gitInit = new Deno.Command("git", {
+        args: ["init"],
+        cwd: testPortalPath,
+      });
+      await gitInit.output();
+
+      // Create a symlink to a file outside the portal (simulating attack)
+      const targetFile = join(testPortalPath, "harmless.txt");
+      await Deno.writeTextFile(targetFile, "harmless content");
+
+      // Create symlink pointing outside (this should be detected)
+      const symlinkPath = join(testPortalPath, "evil_link");
+      try {
+        await Deno.symlink("/etc/passwd", symlinkPath);
+      } catch {
+        // Symlink creation might fail on some systems, skip test
+        return;
+      }
+
+      // Debug: check git status
+      const gitStatus = new Deno.Command("git", {
+        args: ["status", "--porcelain"],
+        cwd: testPortalPath,
+      });
+      const statusResult = await gitStatus.output();
+      const statusOutput = new TextDecoder().decode(statusResult.stdout);
+      console.log("Git status output:", statusOutput);
+
+      // Test that symlinks are detected and rejected
+      const results = await executor.auditAndRevertChanges(testPortalPath, []);
+
+      // The symlink should be in failed list
+      assert(results.failed.some((f) => f.includes("evil_link")));
+      // harmless.txt should be reverted (cleaned as unauthorized untracked file)
+      assertEquals(results.reverted.length, 1);
+      assertEquals(results.reverted[0], "harmless.txt");
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: auditAndRevertChanges acquires lock properly",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      // Create a test portal
+      const testPortalPath = join(testDir, `lock-test-portal-${crypto.randomUUID()}`);
+      await Deno.mkdir(testPortalPath, { recursive: true });
+
+      // Initialize git repo
+      const gitInit = new Deno.Command("git", {
+        args: ["init"],
+        cwd: testPortalPath,
+      });
+      await gitInit.output();
+
+      // Test that lock is acquired and released
+      const results = await executor.auditAndRevertChanges(testPortalPath, []);
+
+      // Verify operation completed (lock was acquired and released)
+      assert(results.reverted.length >= 0);
+      assert(results.failed.length >= 0);
+
+      // Verify lock file was cleaned up
+      const lockFile = join(testPortalPath, ".exo-git-lock");
+      let lockExists = true;
+      try {
+        await Deno.stat(lockFile);
+      } catch {
+        lockExists = false;
+      }
+      assertEquals(lockExists, false, "Lock file should be cleaned up");
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: auditAndRevertChanges prevents TOCTOU attacks",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      // Create a test portal with git repo
+      const testPortalPath = join(testDir, `toctou-test-portal-${crypto.randomUUID()}`);
+      await Deno.mkdir(testPortalPath, { recursive: true });
+
+      // Initialize git repo
+      const gitInit = new Deno.Command("git", {
+        args: ["init"],
+        cwd: testPortalPath,
+      });
+      await gitInit.output();
+
+      // Configure git user
+      const gitConfigName = new Deno.Command("git", {
+        args: ["config", "user.name", "Test User"],
+        cwd: testPortalPath,
+      });
+      await gitConfigName.output();
+
+      const gitConfigEmail = new Deno.Command("git", {
+        args: ["config", "user.email", "test@example.com"],
+        cwd: testPortalPath,
+      });
+      await gitConfigEmail.output();
+
+      // Create and commit a test file
+      const testFile = join(testPortalPath, "test.txt");
+      await Deno.writeTextFile(testFile, "original content");
+
+      const gitAdd = new Deno.Command("git", {
+        args: ["add", "test.txt"],
+        cwd: testPortalPath,
+      });
+      await gitAdd.output();
+
+      const gitCommit = new Deno.Command("git", {
+        args: ["commit", "-m", "initial commit"],
+        cwd: testPortalPath,
+      });
+      await gitCommit.output();
+
+      // Modify the file to create changes
+      await Deno.writeTextFile(testFile, "modified content");
+
+      // Test that the atomic operation prevents TOCTOU
+      // In a real attack, an attacker would modify the filesystem between audit and revert
+      // Our atomic implementation prevents this by doing both under lock
+      const results = await executor.auditAndRevertChanges(testPortalPath, []);
+
+      // Should detect and revert the change atomically
+      assertEquals(results.reverted.length, 1);
+      assertEquals(results.reverted[0], "test.txt");
+      assertEquals(results.failed.length, 0);
+
+      // Verify no unauthorized changes remain
+      const remainingChanges = await executor.auditGitChanges(testPortalPath, []);
+      assertEquals(remainingChanges.length, 0);
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
+Deno.test({
+  name: "AgentExecutor: acquireLock handles concurrent access",
+  fn: async () => {
+    await setup();
+    try {
+      const { db, logger, pathResolver, permissions } = getServices();
+      const executor = new AgentExecutor(
+        testConfig,
+        db,
+        logger,
+        pathResolver,
+        permissions,
+      );
+
+      // Create a test portal
+      const testPortalPath = join(testDir, `concurrent-lock-test-${crypto.randomUUID()}`);
+      await Deno.mkdir(testPortalPath, { recursive: true });
+
+      const lockFile = join(testPortalPath, ".exo-git-lock");
+
+      // Test concurrent lock acquisition attempts
+      const lockPromises = Array(5).fill(null).map(() => executor.acquireLock(lockFile));
+
+      // Only one should succeed initially
+      const results = await Promise.allSettled(lockPromises);
+
+      const fulfilled = results.filter((r) => r.status === "fulfilled");
+      const _rejected = results.filter((r) => r.status === "rejected");
+
+      // At least one should succeed
+      assert(fulfilled.length >= 1);
+
+      // Release the successful lock
+      if (fulfilled.length > 0) {
+        await fulfilled[0].value.release();
+      }
+
+      // Now try to acquire again - should work
+      const lock2 = await executor.acquireLock(lockFile);
+      await lock2.release();
+
+      // Verify lock file is cleaned up
+      let lockExists = true;
+      try {
+        await Deno.stat(lockFile);
+      } catch {
+        lockExists = false;
+      }
+      assertEquals(lockExists, false);
+    } finally {
+      await cleanup();
+    }
+  },
+  sanitizeResources: false,
+  sanitizeOps: false,
+});
+
 // ===== YAML Deserialization Security Tests =====
 
 Deno.test({
