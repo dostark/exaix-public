@@ -27,7 +27,7 @@ Deno.test("EventLogger: should write event to Activity Journal", async () => {
     const logger = new EventLogger({ db, prefix: "[Test]" });
     const traceId = crypto.randomUUID();
 
-    logger.log({
+    await logger.log({
       action: "test.event",
       target: "/path/to/file",
       payload: { key: "value" },
@@ -58,7 +58,7 @@ Deno.test("EventLogger: should print formatted message to console", async () => 
   try {
     const logger = new EventLogger({ db, prefix: "[Test]" });
 
-    logger.info("config.loaded", "exo.config.toml", { checksum: "abc123" });
+    await logger.info("config.loaded", "exo.config.toml", { checksum: "abc123" });
 
     // Restore console.log
     console.log = originalLog;
@@ -81,7 +81,7 @@ Deno.test("EventLogger: should include payload values in console output", async 
   try {
     const logger = new EventLogger({ db, prefix: "[Test]" });
 
-    logger.info("daemon.started", "main", {
+    await logger.info("daemon.started", "main", {
       provider: "ollama",
       model: "codellama:13b",
     });
@@ -117,10 +117,10 @@ Deno.test("EventLogger: should respect minLevel configuration", async () => {
     // Set minLevel to warn - should suppress info and debug
     const logger = new EventLogger({ db, minLevel: "warn" });
 
-    logger.debug("debug.message", "target", {});
-    logger.info("info.message", "target", {});
-    logger.warn("warn.message", "target", {});
-    logger.error("error.message", "target", {});
+    await logger.debug("debug.message", "target", {});
+    await logger.info("info.message", "target", {});
+    await logger.warn("warn.message", "target", {});
+    await logger.error("error.message", "target", {});
 
     console.log = originalLog;
     console.warn = originalWarn;
@@ -154,10 +154,10 @@ Deno.test("EventLogger: should use appropriate icons for each level", async () =
   try {
     const logger = new EventLogger({ db, minLevel: "debug" });
 
-    logger.info("test.info", "target", {});
-    logger.warn("test.warn", "target", {});
-    logger.error("test.error", "target", {});
-    logger.debug("test.debug", "target", {});
+    await logger.info("test.info", "target", {});
+    await logger.warn("test.warn", "target", {});
+    await logger.error("test.error", "target", {});
+    await logger.debug("test.debug", "target", {});
 
     console.log = originalLog;
     console.warn = originalWarn;
@@ -260,7 +260,7 @@ Deno.test("EventLogger: should cache user identity after first resolution", asyn
 // Error Handling Tests
 // ============================================================================
 
-Deno.test("EventLogger: should fallback to console-only when DB unavailable", () => {
+Deno.test("EventLogger: should fallback to console-only when DB unavailable", async () => {
   const logs: string[] = [];
   const originalLog = console.log;
   console.log = (...args: unknown[]) => logs.push(args.join(" "));
@@ -269,7 +269,7 @@ Deno.test("EventLogger: should fallback to console-only when DB unavailable", ()
     // Create logger without DB
     const logger = new EventLogger({ prefix: "[NoDb]" });
 
-    logger.info("test.event", "target", { value: 123 });
+    await logger.info("test.event", "target", { value: 123 });
 
     console.log = originalLog;
 
@@ -298,7 +298,7 @@ Deno.test("EventLogger: should not throw when DB write fails", async () => {
     console.warn = (...args: unknown[]) => logs.push(args.join(" "));
 
     try {
-      logger.info("test.after_close", "target", {});
+      await logger.info("test.after_close", "target", {});
     } finally {
       console.log = originalLog;
       console.warn = originalWarn;
@@ -324,7 +324,7 @@ Deno.test("EventLogger: should format timestamps consistently", async () => {
   try {
     const logger = new EventLogger({ db, showTimestamp: true });
 
-    logger.info("test.event", "target", {});
+    await logger.info("test.event", "target", {});
 
     console.log = originalLog;
 
@@ -347,7 +347,7 @@ Deno.test("EventLogger: should indent multi-line payloads", async () => {
   try {
     const logger = new EventLogger({ db });
 
-    logger.info("test.event", "target", {
+    await logger.info("test.event", "target", {
       key1: "value1",
       key2: "value2",
       key3: "value3",
@@ -378,7 +378,7 @@ Deno.test("EventLogger: should allow custom icons in log events", async () => {
   try {
     const logger = new EventLogger({ db });
 
-    logger.log({
+    await logger.log({
       action: "config.loaded",
       target: "exo.config.toml",
       payload: {},
@@ -421,10 +421,10 @@ Deno.test("EventLogger: full integration with database and console", async () =>
     });
 
     // Log multiple events
-    serviceLogger.info("daemon.starting", "main", { mode: "development" });
-    serviceLogger.info("config.loaded", "exo.config.toml", { checksum: "abc123" });
-    serviceLogger.warn("context.truncated", "loader", { files_skipped: 3 });
-    serviceLogger.error("provider.failed", "anthropic", { error: "rate_limited" });
+    await serviceLogger.info("daemon.starting", "main", { mode: "development" });
+    await serviceLogger.info("config.loaded", "exo.config.toml", { checksum: "abc123" });
+    await serviceLogger.warn("context.truncated", "loader", { files_skipped: 3 });
+    await serviceLogger.error("provider.failed", "anthropic", { error: "rate_limited" });
 
     await db.waitForFlush();
 

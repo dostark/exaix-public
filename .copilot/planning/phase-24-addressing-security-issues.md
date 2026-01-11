@@ -2453,6 +2453,47 @@ Deno.test("Service layer: no direct database imports", () => {
 });
 ```
 
+**Status**: ✅ **Fully Implemented**
+
+**Implementation Summary**:
+- Created `ActivityRepository` interface and `DatabaseActivityRepository` implementation in `src/repositories/activity_repository.ts`
+- Implemented repository pattern to abstract database access for activity/event logging and querying
+- Updated `EventLogger` to use `ActivityRepository` instead of direct `DatabaseService` access
+- Added method overloading to `EventLogger.log()` to support existing usage patterns
+- Made all `EventLogger` methods async to support repository operations
+- Created comprehensive test suite in `tests/repositories/activity_repository_test.ts` with 10 passing tests
+- Updated existing `EventLogger` tests and integration tests to work with async methods
+- Repository provides clean abstraction layer between business logic and data access
+- Services can now be tested with mock repositories without database dependencies
+- Database schema changes won't affect service logic through repository mapping layer
+
+**Files Modified**:
+- `src/repositories/activity_repository.ts` (new) - Repository interface and implementation
+- `src/services/event_logger.ts` - Updated to use ActivityRepository with method overloading
+- `tests/repositories/activity_repository_test.ts` (new) - Comprehensive test suite
+- `tests/event_logger_test.ts` - Updated for async methods
+- `tests/integration/15_plan_execution_mcp_test.ts` - Updated for async methods
+- `src/services/request_router.ts` - Updated eventLogger calls to be awaited
+- `src/flows/flow_runner.ts` - Updated eventLogger calls to be awaited
+
+**Key Features Implemented**:
+- Repository pattern with `ActivityRepository` interface
+- `DatabaseActivityRepository` implementation with proper data mapping
+- Activity logging and querying abstraction
+- JSON payload parsing with error handling for malformed data
+- Null value handling in database records
+- Async operation support with proper flushing
+- Method overloading in EventLogger for backward compatibility
+- Comprehensive test coverage including mocking and integration tests
+
+**Success Criteria Met**:
+- ✅ Services use repository interfaces instead of direct database access
+- ✅ Database operations are abstracted through repository pattern
+- ✅ Business logic is separated from data access logic
+- ✅ Repository implementations are testable in isolation
+- ✅ Database schema changes don't affect service logic
+- ✅ Multiple data sources can be supported through different repository implementations
+
 ***
 
 ### 14. Missing Circuit Breaker for External Services
@@ -2748,9 +2789,6 @@ export class DatabaseConnectionPool {
 }
 ```
 
-Here's the regenerated Part 4 with detailed quality analysis:
-
-```markdown
 ## Part 4: Code Quality & Maintainability Issues (P2-P3)
 
 ### ⚠️ 16. Missing Comprehensive Input Validation

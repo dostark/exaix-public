@@ -263,7 +263,7 @@ export function testProviderOptionsMapping<
 /**
  * Test token usage reporting via EventLogger.
  */
-export function testProviderTokenUsage<T extends { generate: (prompt: string) => Promise<string> }>(
+export function testProviderTokenUsage<T extends { generate: (prompt: string) => Promise<string>; id: string }>(
   name: string,
   createProvider: (options?: Record<string, unknown>) => T,
   responseConfig: ProviderResponseConfig,
@@ -271,7 +271,7 @@ export function testProviderTokenUsage<T extends { generate: (prompt: string) =>
   Deno.test(`${name} - token usage reporting`, async () => {
     const { EventLogger } = await import("../../../src/services/event_logger.ts");
     const logger = new EventLogger({ prefix: "[Test]" });
-    const logSpy = spy(logger, "log");
+    const debugSpy = spy(logger, "debug");
 
     const provider = createProvider({ apiKey: "test-key", logger });
     const mockResponse = responseConfig.createFullResponse("Hello", 10, 20);
@@ -280,10 +280,11 @@ export function testProviderTokenUsage<T extends { generate: (prompt: string) =>
 
     try {
       await provider.generate("Hi");
-      const call = logSpy.calls[0];
-      assertEquals(call.args[0].action, "llm.usage");
-      assertEquals(call.args[0].payload?.prompt_tokens, 10);
-      assertEquals(call.args[0].payload?.completion_tokens, 20);
+      const call = debugSpy.calls[0];
+      assertEquals(call.args[0], "llm.usage");
+      assertEquals(call.args[1], provider.id);
+      assertEquals(call.args[2]?.prompt_tokens, 10);
+      assertEquals(call.args[2]?.completion_tokens, 20);
     } finally {
       fetchStub.restore();
     }

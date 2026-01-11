@@ -116,7 +116,7 @@ export class FlowRunner {
     const startedAt = new Date();
 
     // Log flow validation start
-    this.eventLogger.log("flow.validating", {
+    await this.eventLogger.log("flow.validating", {
       flowId: flow.id,
       stepCount: flow.steps.length,
       traceId: request.traceId,
@@ -125,7 +125,7 @@ export class FlowRunner {
 
     // Validate flow has steps
     if (flow.steps.length === 0) {
-      this.eventLogger.log("flow.validation.failed", {
+      await this.eventLogger.log("flow.validation.failed", {
         flowId: flow.id,
         error: "Flow must have at least one step",
         traceId: request.traceId,
@@ -135,7 +135,7 @@ export class FlowRunner {
     }
 
     // Log flow validation success
-    this.eventLogger.log("flow.validated", {
+    await this.eventLogger.log("flow.validated", {
       flowId: flow.id,
       stepCount: flow.steps.length,
       maxParallelism: flow.settings?.maxParallelism ?? 3,
@@ -145,7 +145,7 @@ export class FlowRunner {
     });
 
     // Log flow start
-    this.eventLogger.log("flow.started", {
+    await this.eventLogger.log("flow.started", {
       flowRunId,
       flowId: flow.id,
       stepCount: flow.steps.length,
@@ -159,7 +159,7 @@ export class FlowRunner {
 
     try {
       // Resolve dependency graph
-      this.eventLogger.log("flow.dependencies.resolving", {
+      await this.eventLogger.log("flow.dependencies.resolving", {
         flowRunId,
         flowId: flow.id,
         traceId: request.traceId,
@@ -169,7 +169,7 @@ export class FlowRunner {
       const resolver = new DependencyResolver(flow.steps);
       const waves = resolver.groupIntoWaves();
 
-      this.eventLogger.log("flow.dependencies.resolved", {
+      await this.eventLogger.log("flow.dependencies.resolved", {
         flowRunId,
         flowId: flow.id,
         waveCount: waves.length,
@@ -187,7 +187,7 @@ export class FlowRunner {
         const waveNumber = waveIndex + 1;
 
         // Log wave start
-        this.eventLogger.log("flow.wave.started", {
+        await this.eventLogger.log("flow.wave.started", {
           flowRunId,
           waveNumber,
           waveSize: wave.length,
@@ -247,7 +247,7 @@ export class FlowRunner {
             }
           } catch (processingError) {
             // Protect aggregation code from throwing and corrupting results
-            this.eventLogger.log("flow.step.processing_error", {
+            await this.eventLogger.log("flow.step.processing_error", {
               flowRunId,
               stepId,
               error: processingError instanceof Error ? processingError.message : String(processingError),
@@ -263,7 +263,7 @@ export class FlowRunner {
         }
 
         // Log wave completion
-        this.eventLogger.log("flow.wave.completed", {
+        await this.eventLogger.log("flow.wave.completed", {
           flowRunId,
           waveNumber,
           waveSize: wave.length,
@@ -276,7 +276,7 @@ export class FlowRunner {
 
         // Log any wave-level errors
         if (waveErrors.length > 0) {
-          this.eventLogger.log("flow.wave.errors", {
+          await this.eventLogger.log("flow.wave.errors", {
             flowRunId,
             waveNumber,
             errorCount: waveErrors.length,
@@ -306,7 +306,7 @@ export class FlowRunner {
       }
 
       // Aggregate output
-      this.eventLogger.log("flow.output.aggregating", {
+      await this.eventLogger.log("flow.output.aggregating", {
         flowRunId,
         flowId: flow.id,
         outputFrom: flow.output?.from,
@@ -318,7 +318,7 @@ export class FlowRunner {
 
       const output = this.aggregateOutput(flow, stepResults);
 
-      this.eventLogger.log("flow.output.aggregated", {
+      await this.eventLogger.log("flow.output.aggregated", {
         flowRunId,
         flowId: flow.id,
         outputLength: output.length,
@@ -335,7 +335,7 @@ export class FlowRunner {
       const failedSteps = stepResults.size - successfulSteps;
 
       // Log flow completion
-      this.eventLogger.log("flow.completed", {
+      await this.eventLogger.log("flow.completed", {
         flowRunId,
         flowId: flow.id,
         success,
@@ -366,7 +366,7 @@ export class FlowRunner {
       const failedSteps = stepResults.size - successfulSteps;
 
       // Log flow failure
-      this.eventLogger.log("flow.failed", {
+      await this.eventLogger.log("flow.failed", {
         flowRunId,
         flowId: flow.id,
         error: error instanceof Error ? error.message : String(error),
@@ -405,7 +405,7 @@ export class FlowRunner {
         flow,
       );
 
-      this.eventLogger.log("flow.step.condition.evaluated", {
+      await this.eventLogger.log("flow.step.condition.evaluated", {
         flowRunId,
         stepId,
         condition: step.condition,
@@ -419,7 +419,7 @@ export class FlowRunner {
         const completedAt = new Date();
         const duration = completedAt.getTime() - startedAt.getTime();
 
-        this.eventLogger.log("flow.step.skipped", {
+        await this.eventLogger.log("flow.step.skipped", {
           flowRunId,
           stepId,
           condition: step.condition,
@@ -441,7 +441,7 @@ export class FlowRunner {
     }
 
     // Log step queued (ready for execution)
-    this.eventLogger.log("flow.step.queued", {
+    await this.eventLogger.log("flow.step.queued", {
       flowRunId,
       stepId,
       agent: step.agent,
@@ -452,7 +452,7 @@ export class FlowRunner {
     });
 
     // Log step start
-    this.eventLogger.log("flow.step.started", {
+    await this.eventLogger.log("flow.step.started", {
       flowRunId,
       stepId,
       agent: step.agent,
@@ -463,10 +463,10 @@ export class FlowRunner {
 
     try {
       // Prepare step input
-      const stepRequest = this.prepareStepRequest(flowRunId, step, flow, request, stepResults);
+      const stepRequest = await this.prepareStepRequest(flowRunId, step, flow, request, stepResults);
 
       // Log input preparation
-      this.eventLogger.log("flow.step.input.prepared", {
+      await this.eventLogger.log("flow.step.input.prepared", {
         flowRunId,
         stepId,
         inputSource: step.input.source,
@@ -483,7 +483,7 @@ export class FlowRunner {
       const duration = completedAt.getTime() - startedAt.getTime();
 
       // Log step completion with detailed results
-      this.eventLogger.log("flow.step.completed", {
+      await this.eventLogger.log("flow.step.completed", {
         flowRunId,
         stepId,
         agent: step.agent,
@@ -508,7 +508,7 @@ export class FlowRunner {
       const duration = completedAt.getTime() - startedAt.getTime();
 
       // Log step failure with detailed error information
-      this.eventLogger.log("flow.step.failed", {
+      await this.eventLogger.log("flow.step.failed", {
         flowRunId,
         stepId,
         agent: step.agent,
@@ -533,13 +533,13 @@ export class FlowRunner {
   /**
    * Prepare the request for a step execution
    */
-  private prepareStepRequest(
+  private async prepareStepRequest(
     flowRunId: string,
     step: FlowStep,
     flow: Flow,
     originalRequest: { userPrompt: string; traceId?: string; requestId?: string },
     stepResults: Map<string, StepResult>,
-  ): FlowStepRequest {
+  ): Promise<FlowStepRequest> {
     let inputData: string;
 
     // Collect input data based on source
@@ -593,7 +593,7 @@ export class FlowRunner {
       );
 
       // Log transform application
-      this.eventLogger.log("flow.step.transform.applied", {
+      await this.eventLogger.log("flow.step.transform.applied", {
         flowRunId,
         stepId: step.id,
         transformName: typeof step.input.transform === "string" ? step.input.transform : "custom",
@@ -752,7 +752,7 @@ export class FlowRunner {
     } catch (error) {
       // Log unexpected error and return a safe failure StepResult
       try {
-        this.eventLogger.log("flow.step.unexpected_error", {
+        await this.eventLogger.log("flow.step.unexpected_error", {
           flowRunId,
           stepId,
           error: error instanceof Error ? error.message : String(error),

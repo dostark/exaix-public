@@ -29,7 +29,7 @@ if (import.meta.main) {
       defaultActor: "system",
     });
 
-    logger.log({
+    await logger.log({
       action: "daemon.starting",
       target: "exoframe",
       payload: {
@@ -40,20 +40,20 @@ if (import.meta.main) {
       icon: "🚀",
     });
 
-    logger.info("config.loaded", "exo.config.toml", {
+    await logger.info("config.loaded", "exo.config.toml", {
       checksum: checksum.slice(0, 8),
       root: config.system.root,
       log_level: config.system.log_level,
     });
 
-    logger.info("database.connected", "journal.db", { mode: "WAL" });
+    await logger.info("database.connected", "journal.db", { mode: "WAL" });
 
     // Initialize LLM Provider
     const defaultModelName = config.agents.default_model;
     const providerInfo = ProviderFactory.getProviderInfoByName(config, defaultModelName);
     const llmProvider = ProviderFactory.createByName(config, defaultModelName);
 
-    logger.info("llm.provider.initialized", providerInfo.id, {
+    await logger.info("llm.provider.initialized", providerInfo.id, {
       type: providerInfo.type,
       model: providerInfo.model,
       source: providerInfo.source,
@@ -81,7 +81,7 @@ if (import.meta.main) {
       },
     );
 
-    logger.info("request_processor.initialized", "RequestProcessor", {
+    await logger.info("request_processor.initialized", "RequestProcessor", {
       requestsDir: requestsPath,
       blueprints: join(config.system.root, config.paths.blueprints, "Agents"),
     });
@@ -91,7 +91,7 @@ if (import.meta.main) {
 
     // Start file watcher for new requests (Workspace/Requests)
     const requestWatcher = new FileWatcher(config, async (event) => {
-      watcherLogger.info("file.detected", event.path, {
+      await watcherLogger.info("file.detected", event.path, {
         size: event.content.length,
       });
 
@@ -269,8 +269,8 @@ if (import.meta.main) {
     );
 
     // Handle graceful shutdown
-    const shutdown = () => {
-      logger.log({
+    const shutdown = async () => {
+      await logger.log({
         action: "daemon.stopping",
         target: "exoframe",
         payload: { reason: "signal" },
@@ -286,7 +286,7 @@ if (import.meta.main) {
     Deno.addSignalListener("SIGINT", shutdown);
     Deno.addSignalListener("SIGTERM", shutdown);
 
-    logger.log({
+    await logger.log({
       action: "daemon.started",
       target: "exoframe",
       payload: {

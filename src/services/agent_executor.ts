@@ -487,14 +487,14 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
       return unauthorizedChanges;
     } catch (error) {
       if (error instanceof SubprocessTimeoutError) {
-        this.logger.error("git.audit.timeout", portalPath, {
+        await this.logger.error("git.audit.timeout", portalPath, {
           error: error.message,
           timeout_ms: DEFAULT_GIT_STATUS_TIMEOUT_MS,
         });
         throw new AgentExecutionError(`Git audit timed out for portal: ${portalPath}`);
       }
 
-      this.logger.error("git.audit.failed", portalPath, {
+      await this.logger.error("git.audit.failed", portalPath, {
         error: error instanceof Error ? error.message : String(error),
         stderr: error instanceof Error && "stderr" in error ? (error as any).stderr : undefined,
       });
@@ -594,7 +594,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
 
     if (validatedFiles.length === 0) {
       // Log that all files were filtered out as potentially malicious
-      this.logger.log({
+      await this.logger.log({
         action: "security.file_validation_filtered_all",
         target: portalPath,
         payload: {
@@ -665,7 +665,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
     }
 
     // Log results
-    this.logger.info("git.revert.completed", portalPath, {
+    await this.logger.info("git.revert.completed", portalPath, {
       total_files: unauthorizedFiles.length,
       successful: results.successful.length,
       failed: results.failed.length,
@@ -677,7 +677,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
       const errorMsg = `Failed to revert ${results.failed.length} unauthorized files: ${
         results.failed.map((f) => f.file).join(", ")
       }`;
-      this.logger.error("git.revert.partial_failure", portalPath, {
+      await this.logger.error("git.revert.partial_failure", portalPath, {
         failed_count: results.failed.length,
         failed_files: results.failed,
       });
@@ -743,7 +743,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
         try {
           const stat = await Deno.lstat(join(portalPath, filename));
           if (stat.isSymlink) {
-            this.logger.error("symlink_detected", portalPath, { filename });
+            await this.logger.error("symlink_detected", portalPath, { filename });
             results.failed.push(filename);
             continue;
           }

@@ -32,11 +32,11 @@ export class DaemonCommands extends BaseCommand {
     const status = await this.status();
 
     if (status.running) {
-      this.logger.info("daemon.already_running", "daemon", { pid: status.pid });
+      await this.logger.info("daemon.already_running", "daemon", { pid: status.pid });
       return;
     }
 
-    this.logger.info("daemon.starting", "daemon");
+    await this.logger.info("daemon.starting", "daemon");
 
     const workspaceRoot = this.config.system.root;
     const logFile = join(workspaceRoot, this.config.paths.runtime, "daemon.log");
@@ -106,11 +106,11 @@ export class DaemonCommands extends BaseCommand {
     const status = await this.status();
 
     if (!status.running) {
-      this.logger.info("daemon.not_running", "daemon");
+      await this.logger.info("daemon.not_running", "daemon");
       return;
     }
 
-    this.logger.info("daemon.stopping", "daemon", { pid: status.pid });
+    await this.logger.info("daemon.stopping", "daemon", { pid: status.pid });
 
     try {
       // Send SIGTERM
@@ -134,7 +134,7 @@ export class DaemonCommands extends BaseCommand {
       }
 
       // Force kill if still running
-      this.logger.warn("daemon.force_stopping", "daemon", { pid: status.pid });
+      await this.logger.warn("daemon.force_stopping", "daemon", { pid: status.pid });
       const forceKillCmd = new Deno.Command("kill", {
         args: ["-KILL", status.pid!.toString()],
         stdout: "piped",
@@ -157,7 +157,7 @@ export class DaemonCommands extends BaseCommand {
    * Restart the ExoFrame daemon
    */
   async restart(): Promise<void> {
-    this.logger.info("daemon.restarting", "daemon");
+    await this.logger.info("daemon.restarting", "daemon");
     const beforeStatus = await this.status();
     await this.stop();
     // Brief pause to ensure port/resources are released
@@ -236,7 +236,7 @@ export class DaemonCommands extends BaseCommand {
     const logFile = join(this.config.system.root, this.config.paths.runtime, "daemon.log");
 
     if (!await exists(logFile)) {
-      this.logger.info("daemon.no_logs", logFile, { hint: "Daemon may not have been started yet" });
+      await this.logger.info("daemon.no_logs", logFile, { hint: "Daemon may not have been started yet" });
       return;
     }
 

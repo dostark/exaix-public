@@ -25,7 +25,7 @@ export class ChangesetRegistry {
   /**
    * Register a new changeset created by an agent
    */
-  register(input: RegisterChangesetInput): string {
+  async register(input: RegisterChangesetInput): Promise<string> {
     // Validate input
     const validated = RegisterChangesetSchema.parse(input);
 
@@ -56,7 +56,7 @@ export class ChangesetRegistry {
     );
 
     // Log to Activity Journal
-    this.logger.info("changeset.created", validated.branch, {
+    await this.logger.info("changeset.created", validated.branch, {
       changeset_id: id,
       trace_id: validated.trace_id,
       portal: validated.portal,
@@ -134,12 +134,12 @@ export class ChangesetRegistry {
   /**
    * Update changeset status
    */
-  updateStatus(
+  async updateStatus(
     id: string,
     status: ChangesetStatus,
     user?: string,
     reason?: string,
-  ): void {
+  ): Promise<void> {
     // Get existing changeset
     const changeset = this.get(id);
     if (!changeset) {
@@ -156,7 +156,7 @@ export class ChangesetRegistry {
       params.push(timestamp, user || null, id);
 
       // Log approval
-      this.logger.info("changeset.approved", changeset.branch, {
+      await this.logger.info("changeset.approved", changeset.branch, {
         changeset_id: id,
         trace_id: changeset.trace_id,
         portal: changeset.portal,
@@ -169,7 +169,7 @@ export class ChangesetRegistry {
       params.push(timestamp, user || null, reason || null, id);
 
       // Log rejection
-      this.logger.info("changeset.rejected", changeset.branch, {
+      await this.logger.info("changeset.rejected", changeset.branch, {
         changeset_id: id,
         trace_id: changeset.trace_id,
         portal: changeset.portal,

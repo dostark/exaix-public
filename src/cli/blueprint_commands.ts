@@ -451,7 +451,7 @@ ${systemPrompt}
 
     // Log activity
     const logger = await this.getActionLogger();
-    logger.info("blueprint.created", agentId, {
+    await logger.info("blueprint.created", agentId, {
       model,
       template: options.template,
       via: "cli",
@@ -636,7 +636,7 @@ ${systemPrompt}
 
     // Log activity
     const logger = await this.getActionLogger();
-    logger.info("blueprint.edited", agentId, {
+    await logger.info("blueprint.edited", agentId, {
       via: "cli",
       editor,
       valid: validation.valid,
@@ -660,7 +660,7 @@ ${systemPrompt}
 
     // Log activity
     const logger = await this.getActionLogger();
-    logger.info("blueprint.removed", agentId, {
+    await logger.info("blueprint.removed", agentId, {
       via: "cli",
       forced: options.force || false,
     });

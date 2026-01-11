@@ -59,7 +59,7 @@ export class RequestRouter {
 
     // Check for conflicting fields
     if (flowId && agentId) {
-      this.eventLogger.log({
+      await this.eventLogger.log({
         action: "request.routing.error",
         target: requestId,
         payload: {
@@ -93,7 +93,7 @@ export class RequestRouter {
     const { traceId, requestId } = request;
 
     // Log routing decision
-    this.eventLogger.log({
+    await this.eventLogger.log({
       action: "request.routing.flow",
       target: requestId,
       payload: { flowId },
@@ -103,7 +103,7 @@ export class RequestRouter {
     // Validate flow
     const validation = await this.flowValidator.validateFlow(flowId);
     if (!validation.valid) {
-      this.eventLogger.log({
+      await this.eventLogger.log({
         action: "request.flow.validation.failed",
         target: flowId,
         payload: { error: validation.error },
@@ -113,7 +113,7 @@ export class RequestRouter {
     }
 
     // Log successful validation
-    this.eventLogger.log({
+    await this.eventLogger.log({
       action: "request.flow.validated",
       target: flowId,
       payload: {},
@@ -141,7 +141,7 @@ export class RequestRouter {
     const { traceId, requestId, body } = request;
 
     // Log routing decision
-    this.eventLogger.log({
+    await this.eventLogger.log({
       action: "request.routing.agent",
       target: requestId,
       payload: { agentId },
@@ -176,7 +176,7 @@ export class RequestRouter {
     const { traceId, requestId } = request;
 
     // Log routing decision
-    this.eventLogger.log({
+    await this.eventLogger.log({
       action: "request.routing.default",
       target: requestId,
       payload: { defaultAgentId: this.defaultAgentId },

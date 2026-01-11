@@ -46,7 +46,7 @@ export async function handleProviderResponse(
     try {
       const tokens = tokenMapper(data);
       if (tokens) {
-        logger.debug("llm.usage", id, tokens);
+        await logger.debug("llm.usage", id, tokens);
       }
     } catch {
       // never fail the provider call because token logging failed

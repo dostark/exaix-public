@@ -7,6 +7,20 @@ import { assertEquals, assertExists, assertFalse, assertStringIncludes } from "j
 import { assertSpyCalls, spy } from "jsr:@std/testing@^1.0.0/mock";
 import { initTestDbService } from "./helpers/db.ts";
 import { AuditLogger } from "../src/services/audit_logger.ts";
+import { join } from "@std/path";
+
+/**
+ * Clean up audit folder created during tests
+ */
+async function cleanupAuditFolder(): Promise<void> {
+  try {
+    const auditDir = join(".", "audit");
+    await Deno.remove(auditDir, { recursive: true });
+  } catch (error) {
+    // Ignore if audit folder doesn't exist or can't be removed
+    console.warn("[Test Cleanup] Failed to remove audit folder:", error);
+  }
+}
 
 Deno.test("AuditLogger: logs security events to database", async () => {
   const { db, cleanup } = await initTestDbService();
@@ -29,6 +43,7 @@ Deno.test("AuditLogger: logs security events to database", async () => {
     assertEquals(true, true);
   } finally {
     await cleanup();
+    await cleanupAuditFolder();
   }
 });
 
@@ -62,6 +77,7 @@ Deno.test("AuditLogger: writes to tamper-evident audit file", async () => {
     assertExists(lastEntry.session_id);
   } finally {
     await cleanup();
+    await cleanupAuditFolder();
   }
 });
 
@@ -90,6 +106,7 @@ Deno.test("AuditLogger: sends alerts for critical events", async () => {
     assertEquals(alertCall.args[0].action, "api_key_exposed");
   } finally {
     await cleanup();
+    await cleanupAuditFolder();
   }
 });
 
@@ -125,5 +142,6 @@ Deno.test("AuditLogger: masks sensitive data in logs", async () => {
     assertEquals(lastEntry.metadata.model, "claude-3-sonnet-20240229");
   } finally {
     await cleanup();
+    await cleanupAuditFolder();
   }
 });

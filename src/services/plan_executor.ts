@@ -58,7 +58,7 @@ export class PlanExecutor {
     const requestId = context.request_id;
     const agentId = context.agent;
 
-    this.logger.info("plan.execution_started", planPath, {
+    await this.logger.info("plan.execution_started", planPath, {
       trace_id: traceId,
       request_id: requestId,
       step_count: context.steps.length,
@@ -107,7 +107,7 @@ export class PlanExecutor {
           traceId,
         });
 
-        this.logger.info("plan.execution_completed", planPath, {
+        await this.logger.info("plan.execution_completed", planPath, {
           trace_id: traceId,
           commit_sha: sha,
         });
@@ -115,7 +115,7 @@ export class PlanExecutor {
         return sha;
       } catch (error) {
         if (error instanceof Error && error.message.includes("nothing to commit")) {
-          this.logger.info("plan.execution_completed", planPath, {
+          await this.logger.info("plan.execution_completed", planPath, {
             trace_id: traceId,
             status: "completed",
             last_commit: lastCommitSha,
@@ -125,7 +125,7 @@ export class PlanExecutor {
         throw error;
       }
     } catch (error) {
-      this.logger.error("plan.execution_failed", planPath, {
+      await this.logger.error("plan.execution_failed", planPath, {
         error: error instanceof Error ? error.message : String(error),
         trace_id: traceId,
       });
@@ -142,7 +142,7 @@ export class PlanExecutor {
     toolRegistry: ToolRegistry,
     git: GitService,
   ): Promise<string | null> {
-    this.logger.info("step.started", `Step ${step.number}`, {
+    await this.logger.info("step.started", `Step ${step.number}`, {
       title: step.title,
       trace_id: context.trace_id,
     });
@@ -160,7 +160,7 @@ export class PlanExecutor {
     const actions = this.parseActions(response);
 
     if (actions.length === 0) {
-      this.logger.warn("step.no_actions", `Step ${step.number}`, {
+      await this.logger.warn("step.no_actions", `Step ${step.number}`, {
         trace_id: context.trace_id,
         response_preview: response.slice(0, 100),
       });
@@ -170,7 +170,7 @@ export class PlanExecutor {
     // Execute actions
     for (const action of actions) {
       try {
-        this.logger.debug("action.executing", action.tool, {
+        await this.logger.debug("action.executing", action.tool, {
           params: action.params,
           trace_id: context.trace_id,
         });
@@ -181,12 +181,12 @@ export class PlanExecutor {
           throw new Error(result.error || "Tool execution failed");
         }
 
-        this.logger.debug("action.completed", action.tool, {
+        await this.logger.debug("action.completed", action.tool, {
           result_preview: JSON.stringify(result).slice(0, 100),
           trace_id: context.trace_id,
         });
       } catch (error) {
-        this.logger.error("action.failed", action.tool, {
+        await this.logger.error("action.failed", action.tool, {
           error: error instanceof Error ? error.message : String(error),
           trace_id: context.trace_id,
         });
@@ -202,14 +202,14 @@ export class PlanExecutor {
         traceId: context.trace_id,
       });
 
-      this.logger.info("step.completed", `Step ${step.number}`, {
+      await this.logger.info("step.completed", `Step ${step.number}`, {
         trace_id: context.trace_id,
       });
 
       return sha;
     } catch {
       // Ignore "nothing to commit" between steps
-      this.logger.info("step.completed_no_changes", `Step ${step.number}`, {
+      await this.logger.info("step.completed_no_changes", `Step ${step.number}`, {
         trace_id: context.trace_id,
       });
       return null;

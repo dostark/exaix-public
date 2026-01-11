@@ -61,7 +61,7 @@ export class FileWatcher {
       });
       this.fsWatcher = watcher;
 
-      this.logger.log({
+      await this.logger.log({
         action: "watcher.started",
         target: this.watchPath,
         payload: {
@@ -86,7 +86,7 @@ export class FileWatcher {
             }
 
             // Log file event detected
-            this.logger.debug(`watcher.event_${event.kind}`, path, {
+            await this.logger.debug(`watcher.event_${event.kind}`, path, {
               event_kind: event.kind,
             });
 
@@ -96,7 +96,7 @@ export class FileWatcher {
       }
     } catch (error) {
       // Log watcher error
-      this.logger.error("watcher.error", this.watchPath, {
+      await this.logger.error("watcher.error", this.watchPath, {
         error_type: error instanceof Error ? error.constructor.name : "Unknown",
         error_message: error instanceof Error ? error.message : String(error),
       });
@@ -113,7 +113,7 @@ export class FileWatcher {
   /**
    * Stop watching
    */
-  stop() {
+  async stop() {
     if (this.abortController) {
       this.abortController.abort();
       this.abortController = null;
@@ -134,7 +134,7 @@ export class FileWatcher {
     this.processingFiles.clear();
 
     // Log watcher stopped
-    this.logger.log({
+    await this.logger.log({
       action: "watcher.stopped",
       target: this.watchPath,
       payload: {},
@@ -167,7 +167,7 @@ export class FileWatcher {
   private async processFileQueued(path: string) {
     // Prevent concurrent processing of the same file
     if (this.processingFiles.has(path)) {
-      this.logger.debug("watcher.file_already_processing", path, {
+      await this.logger.debug("watcher.file_already_processing", path, {
         skipped: true,
       });
       return;
@@ -197,7 +197,7 @@ export class FileWatcher {
       }
 
       // Log file ready
-      this.logger.info("watcher.file_ready", path, {
+      await this.logger.info("watcher.file_ready", path, {
         content_length: content.length,
         stability_check_used: this.stabilityCheck,
       });
@@ -206,7 +206,7 @@ export class FileWatcher {
       await this.onFileReady({ path, content });
     } catch (error) {
       // Log file processing error
-      this.logger.warn("watcher.file_error", path, {
+      await this.logger.warn("watcher.file_error", path, {
         error_type: error instanceof Error ? error.constructor.name : "Unknown",
         error_message: error instanceof Error ? error.message : String(error),
       });
@@ -239,7 +239,7 @@ export class FileWatcher {
           // Validate it's not empty
           if (content.trim().length > 0) {
             // Log successful stability check
-            this.logger.debug("watcher.file_stable", path, {
+            await this.logger.debug("watcher.file_stable", path, {
               attempts: attempt + 1,
               final_size: stat2.size,
             });
@@ -269,7 +269,7 @@ export class FileWatcher {
     }
 
     // Log file never stabilized
-    this.logger.warn("watcher.file_unstable", path, {
+    await this.logger.warn("watcher.file_unstable", path, {
       max_attempts: maxAttempts,
     });
 

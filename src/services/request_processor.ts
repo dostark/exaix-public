@@ -317,7 +317,7 @@ export class RequestProcessor {
   private async parseRequestFile(filePath: string): Promise<ParsedRequestFile | null> {
     // Check file exists
     if (!await exists(filePath)) {
-      this.logger.error("file.not_found", filePath, {});
+      await this.logger.error("file.not_found", filePath, {});
       return null;
     }
 
@@ -327,7 +327,7 @@ export class RequestProcessor {
       // Extract YAML frontmatter between --- delimiters
       const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
       if (!yamlMatch) {
-        this.logger.error("frontmatter.invalid", filePath, {
+        await this.logger.error("frontmatter.invalid", filePath, {
           error: "Missing or malformed --- delimiters",
         });
         return null;
@@ -341,7 +341,7 @@ export class RequestProcessor {
 
       // Validate required fields
       if (!frontmatter.trace_id) {
-        this.logger.error("frontmatter.missing_trace_id", filePath, {});
+        await this.logger.error("frontmatter.missing_trace_id", filePath, {});
         return null;
       }
 
@@ -351,7 +351,7 @@ export class RequestProcessor {
         rawContent: content,
       };
     } catch (error) {
-      this.logger.error("file.parse_failed", filePath, {
+      await this.logger.error("file.parse_failed", filePath, {
         error: error instanceof Error ? error.message : String(error),
       });
       return null;
@@ -371,7 +371,7 @@ export class RequestProcessor {
       }
       return loader.toLegacyBlueprint(loaded);
     } catch (error) {
-      this.logger.error("blueprint.load_failed", agentId, {
+      await this.logger.error("blueprint.load_failed", agentId, {
         error: error instanceof Error ? error.message : String(error),
       });
       return null;
@@ -395,7 +395,7 @@ export class RequestProcessor {
 
       await Deno.writeTextFile(filePath, updatedContent);
     } catch (error) {
-      this.logger.error("request.status_update_failed", filePath, {
+      await this.logger.error("request.status_update_failed", filePath, {
         new_status: newStatus,
         error: error instanceof Error ? error.message : String(error),
       });

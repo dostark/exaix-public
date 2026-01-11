@@ -16,6 +16,7 @@
  */
 
 import type { DatabaseService } from "./db.ts";
+import type { ActivityRepository } from "../repositories/activity_repository.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -69,7 +70,10 @@ export interface LogEvent {
  * Configuration for EventLogger
  */
 export interface EventLoggerConfig {
-  /** DatabaseService instance (optional - allows console-only mode) */
+  /** ActivityRepository instance (optional - allows console-only mode) */
+  activityRepo?: ActivityRepository;
+
+  /** DatabaseService instance (optional - allows console-only mode) - DEPRECATED: use activityRepo */
   db?: DatabaseService;
 
   /** Prefix for console messages (e.g., "[ExoFrame]") */
@@ -127,7 +131,8 @@ let cachedUserIdentity: string | null = null;
  * ```
  */
 export class EventLogger {
-  private readonly db?: DatabaseService;
+  private readonly activityRepo?: ActivityRepository;
+  private readonly db?: DatabaseService; // DEPRECATED
   private readonly prefix: string;
   private readonly minLevel: LogLevel;
   private readonly showTimestamp: boolean;
@@ -135,7 +140,8 @@ export class EventLogger {
   private readonly defaults: Partial<LogEvent>;
 
   constructor(config: EventLoggerConfig, defaults: Partial<LogEvent> = {}) {
-    this.db = config.db;
+    this.activityRepo = config.activityRepo;
+    this.db = config.db; // DEPRECATED
     this.prefix = config.prefix ?? "";
     this.minLevel = config.minLevel ?? "info";
     this.showTimestamp = config.showTimestamp ?? false;
@@ -146,7 +152,34 @@ export class EventLogger {
   /**
    * Log an event to both console and Activity Journal
    */
-  log(event: LogEvent): void {
+  async log(event: LogEvent): Promise<void>;
+  async log(
+    action: string,
+    targetOrPayload: string | Record<string, unknown>,
+    payload?: Record<string, unknown>,
+  ): Promise<void>;
+  async log(
+    eventOrAction: LogEvent | string,
+    targetOrPayload?: string | Record<string, unknown>,
+    payload?: Record<string, unknown>,
+  ): Promise<void> {
+    let event: LogEvent;
+
+    if (typeof eventOrAction === "string") {
+      // Overloaded call: log(action, targetOrPayload, payload?)
+      const action = eventOrAction;
+      if (typeof targetOrPayload === "string") {
+        // log(action, target, payload?)
+        event = { action, target: targetOrPayload, payload };
+      } else {
+        // log(action, payload) - target defaults to empty string
+        event = { action, target: "", payload: targetOrPayload };
+      }
+    } else {
+      // Standard call: log(event)
+      event = eventOrAction;
+    }
+
     const level = event.level ?? "info";
 
     // Check if this level should be logged
@@ -166,55 +199,55 @@ export class EventLogger {
     this.logToConsole(mergedEvent, level);
 
     // Log to Activity Journal
-    this.logToDatabase(mergedEvent);
+    await this.logToDatabase(mergedEvent);
   }
 
   /**
    * Log an info-level event
    */
-  info(
+  async info(
     action: string,
     target: string,
     payload?: Record<string, unknown>,
     traceId?: string,
-  ): void {
-    this.log({ action, target, payload, level: "info", traceId });
+  ): Promise<void> {
+    await this.log({ action, target, payload, level: "info", traceId });
   }
 
   /**
    * Log a warning-level event
    */
-  warn(
+  async warn(
     action: string,
     target: string,
     payload?: Record<string, unknown>,
     traceId?: string,
-  ): void {
-    this.log({ action, target, payload, level: "warn", traceId });
+  ): Promise<void> {
+    await this.log({ action, target, payload, level: "warn", traceId });
   }
 
   /**
    * Log an error-level event
    */
-  error(
+  async error(
     action: string,
     target: string,
     payload?: Record<string, unknown>,
     traceId?: string,
-  ): void {
-    this.log({ action, target, payload, level: "error", traceId });
+  ): Promise<void> {
+    await this.log({ action, target, payload, level: "error", traceId });
   }
 
   /**
    * Log a debug-level event
    */
-  debug(
+  async debug(
     action: string,
     target: string,
     payload?: Record<string, unknown>,
     traceId?: string,
-  ): void {
-    this.log({ action, target, payload, level: "debug", traceId });
+  ): Promise<void> {
+    await this.log({ action, target, payload, level: "debug", traceId });
   }
 
   /**
@@ -329,23 +362,37 @@ export class EventLogger {
   /**
    * Log event to Activity Journal database
    */
-  private logToDatabase(event: LogEvent): void {
-    if (!this.db) {
-      return; // Console-only mode
-    }
-
-    try {
-      this.db.logActivity(
-        event.actor ?? this.defaultActor,
-        event.action,
-        event.target,
-        event.payload ?? {},
-        event.traceId,
-        event.agentId ?? null,
-      );
-    } catch (error) {
-      // Database write failed - log warning but don't crash
-      console.warn(`[EventLogger] Failed to write to Activity Journal:`, error);
+  private async logToDatabase(event: LogEvent): Promise<void> {
+    // Prefer ActivityRepository over direct DatabaseService
+    if (this.activityRepo) {
+      try {
+        await this.activityRepo.logActivity({
+          actor: event.actor ?? this.defaultActor,
+          actionType: event.action,
+          target: event.target,
+          payload: event.payload ?? {},
+          traceId: event.traceId,
+          agentId: event.agentId ?? null,
+        });
+      } catch (error) {
+        // Database write failed - log warning but don't crash
+        console.warn(`[EventLogger] Failed to write to Activity Journal via repository:`, error);
+      }
+    } else if (this.db) {
+      // Fallback to deprecated direct database access
+      try {
+        this.db.logActivity(
+          event.actor ?? this.defaultActor,
+          event.action,
+          event.target,
+          event.payload ?? {},
+          event.traceId,
+          event.agentId ?? null,
+        );
+      } catch (error) {
+        // Database write failed - log warning but don't crash
+        console.warn(`[EventLogger] Failed to write to Activity Journal:`, error);
+      }
     }
   }
 

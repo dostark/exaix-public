@@ -292,7 +292,7 @@ this is not valid yaml: [unclosed bracket
 
     // Event logger would log plan.invalid_frontmatter event
     const eventLogger = new EventLogger({ db: dbService });
-    eventLogger.error(
+    await eventLogger.error(
       "plan.invalid_frontmatter",
       "invalid_plan.md",
       { error: "Invalid YAML syntax" },
@@ -500,7 +500,7 @@ portal: TestPortal
     const frontmatter1 = parseYaml(yamlMatch1[1]) as Record<string, unknown>;
 
     if (!frontmatter1.trace_id) {
-      eventLogger.error("plan.missing_trace_id", "plan_missing_trace.md", {
+      await eventLogger.error("plan.missing_trace_id", "plan_missing_trace.md", {
         request_id: frontmatter1.request_id,
       });
     }
@@ -538,7 +538,7 @@ portal: TestPortal
 This step has no title
 `;
     await Deno.writeTextFile(join(activePath, "plan_empty_titles.md"), planEmptyTitles);
-    eventLogger.error("plan.validation_error", "plan_empty_titles.md", {
+    await eventLogger.error("plan.validation_error", "plan_empty_titles.md", {
       reason: "Step titles cannot be empty",
     });
 
@@ -570,7 +570,7 @@ Deno.test("Integration Test 15.8: MCP Server Security", async () => {
     const isPathTraversal = pathTraversalAttempt.includes("../");
 
     if (isPathTraversal) {
-      eventLogger.error("mcp.path_traversal_blocked", pathTraversalAttempt, {
+      await eventLogger.error("mcp.path_traversal_blocked", pathTraversalAttempt, {
         reason: "Path traversal detected in file path",
       });
     }
@@ -578,13 +578,13 @@ Deno.test("Integration Test 15.8: MCP Server Security", async () => {
     assert(isPathTraversal, "Should detect path traversal attempt");
 
     // Test 2: Invalid tool parameters
-    eventLogger.error("mcp.invalid_tool_params", "read_file", {
+    await eventLogger.error("mcp.invalid_tool_params", "read_file", {
       error: "Missing required parameter: file_path",
       tool: "read_file",
     });
 
     // Test 3: Unauthorized portal access
-    eventLogger.error("mcp.unauthorized_portal", "SecretPortal", {
+    await eventLogger.error("mcp.unauthorized_portal", "SecretPortal", {
       reason: "Portal not in allowed list",
       requested_portal: "SecretPortal",
     });
@@ -613,27 +613,27 @@ Deno.test("Integration Test 15.9: Agent Orchestration Errors", async () => {
     const traceId = crypto.randomUUID();
 
     // Test 1: Blueprint not found
-    eventLogger.error("agent.blueprint_not_found", "non-existent-agent", {
+    await eventLogger.error("agent.blueprint_not_found", "non-existent-agent", {
       trace_id: traceId,
       blueprint_name: "non-existent-agent",
       search_path: "Blueprints/Agents/",
     });
 
     // Test 2: Invalid blueprint format
-    eventLogger.error("agent.blueprint_parse_error", "invalid-blueprint.toml", {
+    await eventLogger.error("agent.blueprint_parse_error", "invalid-blueprint.toml", {
       trace_id: traceId,
       error: "TOML syntax error at line 5",
     });
 
     // Test 3: Agent timeout
-    eventLogger.error("agent.timeout", "slow-agent", {
+    await eventLogger.error("agent.timeout", "slow-agent", {
       trace_id: traceId,
       timeout_seconds: 300,
       elapsed_seconds: 305,
     });
 
     // Test 4: Malformed JSON response
-    eventLogger.error("agent.malformed_response", "buggy-agent", {
+    await eventLogger.error("agent.malformed_response", "buggy-agent", {
       trace_id: traceId,
       error: "Expected JSON object, got invalid format",
     });
