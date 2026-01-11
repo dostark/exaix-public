@@ -5,7 +5,6 @@
 import { assert, assertEquals, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
 import { MCPServer } from "../../src/mcp/server.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import { createMockConfig } from "../helpers/config.ts";
 
 Deno.test("MCPServer: includes comprehensive security headers", async () => {
   const { db, config, cleanup } = await initTestDbService();
