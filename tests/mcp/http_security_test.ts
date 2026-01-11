@@ -5,6 +5,21 @@
 import { assert, assertEquals, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
 import { MCPServer } from "../../src/mcp/server.ts";
 import { initTestDbService } from "../helpers/db.ts";
+import { join } from "@std/path";
+
+/**
+ * Clean up audit folder created during tests
+ */
+async function cleanupAuditFolder(config: any): Promise<void> {
+  try {
+    const runtimeDir = config?.paths?.runtime || ".";
+    const auditDir = join(runtimeDir, "audit");
+    await Deno.remove(auditDir, { recursive: true });
+  } catch (error) {
+    // Ignore if audit folder doesn't exist or can't be removed
+    console.warn("[Test Cleanup] Failed to remove audit folder:", error);
+  }
+}
 
 Deno.test("MCPServer: includes comprehensive security headers", async () => {
   const { db, config, cleanup } = await initTestDbService();
@@ -42,6 +57,7 @@ Deno.test("MCPServer: includes comprehensive security headers", async () => {
     assertStringIncludes(headers["Permissions-Policy"], "geolocation=()");
   } finally {
     await cleanup();
+    await cleanupAuditFolder(config);
   }
 });
 
@@ -74,6 +90,7 @@ Deno.test("MCPServer: applies security headers to HTTP responses", async () => {
     // Note: Can't easily test body content in this mock setup
   } finally {
     await cleanup();
+    await cleanupAuditFolder(config);
   }
 });
 
@@ -97,6 +114,7 @@ Deno.test("MCPServer: CSP prevents inline script execution", async () => {
     assert(!csp.includes("script-src *"));
   } finally {
     await cleanup();
+    await cleanupAuditFolder(config);
   }
 });
 
@@ -123,6 +141,7 @@ Deno.test("MCPServer: HSTS enforces HTTPS", async () => {
     assert(maxAge >= 31536000); // 1 year in seconds
   } finally {
     await cleanup();
+    await cleanupAuditFolder(config);
   }
 });
 
@@ -151,6 +170,7 @@ Deno.test("MCPServer: headers prevent common attacks", async () => {
     assertEquals(headers["Referrer-Policy"], "strict-origin-when-cross-origin");
   } finally {
     await cleanup();
+    await cleanupAuditFolder(config);
   }
 });
 
@@ -170,6 +190,7 @@ Deno.test("MCPServer: supports SSE transport configuration", async () => {
     assertEquals((server as any).transport, "sse");
   } finally {
     await cleanup();
+    await cleanupAuditFolder(config);
   }
 });
 
@@ -212,6 +233,7 @@ Deno.test("MCPServer: handles HTTP POST requests", async () => {
     assertEquals(response.status, 200);
   } finally {
     await cleanup();
+    await cleanupAuditFolder(config);
   }
 });
 
@@ -238,6 +260,7 @@ Deno.test("MCPServer: rejects non-POST HTTP requests", async () => {
     assert(response.headers.get("Content-Security-Policy") !== null);
   } finally {
     await cleanup();
+    await cleanupAuditFolder(config);
   }
 });
 
@@ -270,6 +293,7 @@ Deno.test("MCPServer: handles malformed JSON in HTTP requests", async () => {
     assertStringIncludes(responseBody.error.message, "Parse error");
   } finally {
     await cleanup();
+    await cleanupAuditFolder(config);
   }
 });
 
@@ -292,5 +316,6 @@ Deno.test("MCPServer: HTTP server only starts with SSE transport", async () => {
     );
   } finally {
     await cleanup();
+    await cleanupAuditFolder(config);
   }
 });
