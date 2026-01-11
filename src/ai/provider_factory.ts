@@ -16,6 +16,7 @@ import { AnthropicProvider } from "./providers/anthropic_provider.ts";
 import { OpenAIProvider } from "./providers/openai_provider.ts";
 import { GoogleProvider } from "./providers/google_provider.ts";
 import { SecureCredentialStore } from "../utils/credential_security.ts";
+import { InputValidator } from "../schemas/input_validation.ts";
 import {
   AnthropicProviderFactory,
   GoogleProviderFactory,
@@ -182,8 +183,10 @@ export class ProviderFactory {
    */
   private static resolveOptions(
     config: Config,
-    modelConfig?: Record<string, any> | Partial<AiConfig>,
+    rawModelConfig?: unknown,
   ): ResolvedProviderOptions {
+    // ✓ Validate model config to prevent type confusion attacks
+    const modelConfig = rawModelConfig ? InputValidator.validateModelConfig(rawModelConfig) : undefined;
     const envProvider = this.safeEnvGet("EXO_LLM_PROVIDER");
     const envModel = this.safeEnvGet("EXO_LLM_MODEL");
     const envBaseUrl = this.safeEnvGet("EXO_LLM_BASE_URL");

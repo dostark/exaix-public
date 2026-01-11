@@ -31,6 +31,7 @@ import {
   type ExecutionContext,
   type SecurityMode,
 } from "../schemas/agent_executor.ts";
+import { InputValidator } from "../schemas/input_validation.ts";
 
 /**
  * Agent execution error class
@@ -84,16 +85,9 @@ export class AgentExecutor {
   /**
    * Load agent blueprint from file with security validation
    */
-  async loadBlueprint(agentName: string): Promise<Blueprint> {
-    // 1. Validate agent name format
-    if (!/^[a-zA-Z0-9_-]+$/.test(agentName)) {
-      throw new SafeError(
-        "Invalid agent name format",
-        "INVALID_AGENT_NAME",
-        undefined,
-        this.logger,
-      );
-    }
+  async loadBlueprint(rawAgentName: unknown): Promise<Blueprint> {
+    // ✓ Validate agent name to prevent path traversal
+    const agentName = InputValidator.validateBlueprintName(rawAgentName);
 
     const blueprintPath = join(
       this.config.paths.blueprints,
@@ -209,9 +203,13 @@ export class AgentExecutor {
    * Execute a plan step using agent via MCP
    */
   async executeStep(
-    context: ExecutionContext,
-    options: AgentExecutionOptions,
+    rawContext: unknown,
+    rawOptions: unknown,
   ): Promise<ChangesetResult> {
+    // ✓ Validate inputs first to prevent injection attacks
+    const context = InputValidator.validateExecutionContext(rawContext);
+    const options = InputValidator.validateAgentExecutionOptions(rawOptions);
+
     const startTime = Date.now();
 
     // Validate portal exists

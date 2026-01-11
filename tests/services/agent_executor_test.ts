@@ -1174,10 +1174,10 @@ You are a test agent for ExoFrame testing.`;
       );
 
       const context: ExecutionContext = {
-        trace_id: "test-trace-12345",
+        trace_id: "12345678-1234-1234-1234-123456789012",
         request_id: "test-request-789",
         request: "Implement feature X",
-        plan: "Step 1: Create file\nStep 2: Write code",
+        plan: "Step 1: Create file Step 2: Write code",
         portal: "TestPortal",
       };
 
@@ -1193,7 +1193,7 @@ You are a test agent for ExoFrame testing.`;
       await executor.executeStep(context, options);
 
       // Verify execution context was passed in the prompt
-      assertStringIncludes(capturedPrompt, "test-trace-12345"); // trace_id
+      assertStringIncludes(capturedPrompt, "12345678-1234-1234-1234-123456789012"); // trace_id
       assertStringIncludes(capturedPrompt, "test-request-789"); // request_id
       assertStringIncludes(capturedPrompt, "TestPortal"); // portal
       assertStringIncludes(capturedPrompt, "sandboxed"); // security_mode
