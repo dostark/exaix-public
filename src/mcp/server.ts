@@ -12,6 +12,7 @@ import {
 } from "./tools.ts";
 import { discoverAllResources, parsePortalURI } from "./resources.ts";
 import { generatePrompt, getPrompts } from "./prompts.ts";
+import { logInfo } from "../services/structured_logger.ts";
 
 /**
  * MCP Server Implementation
@@ -726,14 +727,15 @@ export class MCPServer {
       },
     );
 
-    // Import Deno.serve dynamically to avoid issues in stdio mode
-    const { serve } = await import("jsr:@std/server@^1.0.0");
-
-    console.log(`🚀 MCP HTTP Server starting on port ${port}`);
-
-    await serve((request: Request) => this.handleHTTPRequest(request), {
+    logInfo("MCP HTTP Server starting", {
+      audit_event: true,
+      event_type: "server_startup",
+      server_type: "mcp-http",
       port,
-      hostname: "localhost",
+      protocol: "http",
+      service: "mcp-server",
     });
+
+    await Deno.serve({ port, hostname: "localhost" }, (request: Request) => this.handleHTTPRequest(request));
   }
 }

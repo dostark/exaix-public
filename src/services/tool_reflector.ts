@@ -15,6 +15,7 @@ import type { IModelProvider } from "../ai/providers.ts";
 import type { DatabaseService } from "./db.ts";
 import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
+import { logDebug } from "./structured_logger.ts";
 
 // ============================================================================
 // Reflection Schema
@@ -205,8 +206,17 @@ export class ToolReflector {
       this.updateMetrics(lastReflection);
 
       if (this.config.verbose) {
-        console.log(
-          `[ToolReflector] ${toolCall.name}: success=${lastReflection.success}, confidence=${lastReflection.confidence}, retry=${lastReflection.retry_suggested}`,
+        logDebug(
+          `Tool reflection: ${toolCall.name} - success=${lastReflection.success}, confidence=${lastReflection.confidence}, retry=${lastReflection.retry_suggested}`,
+          {
+            tool_name: toolCall.name,
+            success: lastReflection.success,
+            confidence: lastReflection.confidence,
+            retry_suggested: lastReflection.retry_suggested,
+            retry_count: retryCount,
+            service: "tool-reflector",
+            trace_id: traceId,
+          },
         );
       }
 

@@ -22,6 +22,7 @@ import {
   type ParsedRequest,
 } from "./agent_runner.ts";
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
+import { logDebug } from "./structured_logger.ts";
 
 // ============================================================================
 // Critique Schema
@@ -421,7 +422,14 @@ export class ReflexiveAgent {
     traceId?: string,
   ): void {
     if (this.config.verbose) {
-      console.log(`[${actor}] ${actionType}:`, payload);
+      logDebug(`Reflexive agent activity: [${actor}] ${actionType}`, {
+        actor,
+        action_type: actionType,
+        target,
+        payload,
+        trace_id: traceId,
+        agent_type: "reflexive-agent",
+      });
     }
 
     if (this.db) {

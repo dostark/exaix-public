@@ -15,6 +15,7 @@ import { assertEquals, assertExists, assertThrows } from "jsr:@std/assert@^1.0.0
 import { ConfigService } from "../src/config/service.ts";
 import { ConfigSchema } from "../src/config/schema.ts";
 import { join } from "@std/path";
+import { initializeGlobalLogger, resetGlobalLogger } from "../src/services/structured_logger.ts";
 
 Deno.test("ConfigSchema accepts valid minimal config", () => {
   const validConfig = {
@@ -105,6 +106,15 @@ Deno.test("ConfigService loads config successfully", () => {
 // ============================================================================
 
 Deno.test("ConfigService handles missing config file", async (t) => {
+  // Initialize global logger for tests
+  initializeGlobalLogger({
+    minLevel: "info",
+    outputs: [],
+    enablePerformanceTracking: false,
+    serviceName: "test",
+    version: "1.0.0",
+  });
+
   await t.step("should create default config when file not found", () => {
     const tempPath = join(Deno.cwd(), "test-missing-config.toml");
 
@@ -167,6 +177,9 @@ Deno.test("ConfigService handles missing config file", async (t) => {
       // Ignore
     }
   });
+
+  // Reset global logger after test
+  resetGlobalLogger();
 });
 
 Deno.test("ConfigService handles invalid TOML syntax", () => {

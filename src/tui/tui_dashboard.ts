@@ -16,6 +16,7 @@ import process from "node:process";
 import { PortalManagerView } from "./portal_manager_view.ts";
 import { PlanReviewerView } from "./plan_reviewer_view.ts";
 import { MonitorView } from "./monitor_view.ts";
+import { StructuredLogViewer } from "./structured_log_viewer.ts";
 import { DaemonControlView } from "./daemon_control_view.ts";
 import { AgentStatusView } from "./agent_status_view.ts";
 import { RequestManagerView } from "./request_manager_view.ts";
@@ -31,6 +32,8 @@ import {
   MockPortalService,
   MockRequestService,
   MockSkillsService,
+  MockStructuredLogger,
+  MockStructuredLoggerService,
 } from "./tui_dashboard_mocks.ts";
 import { colorize, getTheme, type TuiTheme } from "./utils/colors.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
@@ -63,6 +66,7 @@ export const DASHBOARD_ICONS = {
     PortalManagerView: "🌀",
     PlanReviewerView: "📋",
     MonitorView: "📊",
+    StructuredLogViewer: "🔍",
     DaemonControlView: "⚙️",
     AgentStatusView: "🤖",
     RequestManagerView: "📥",
@@ -233,6 +237,7 @@ export interface TuiDashboard {
   renderViewIndicator(): string;
   renderGlobalHelp(): string[];
   renderNotifications(): Promise<string[]>;
+  destroy(): void;
 
   // Pane management
   splitPane(direction: "vertical" | "horizontal"): Promise<void>;
@@ -509,6 +514,8 @@ export async function launchTuiDashboard(
   const portalService = new MockPortalService();
   const planService = new MockPlanService();
   const logService = new MockLogService();
+  const structuredLogger = new MockStructuredLogger();
+  const structuredLoggerService = new MockStructuredLoggerService();
   const daemonService = new MockDaemonService();
   const agentService = new MockAgentService();
   const requestService = new MockRequestService();
@@ -518,6 +525,12 @@ export async function launchTuiDashboard(
     Object.assign(new PortalManagerView(portalService), { name: "PortalManagerView" }),
     Object.assign(new PlanReviewerView(planService), { name: "PlanReviewerView" }),
     Object.assign(new MonitorView(logService), { name: "MonitorView" }),
+    Object.assign(
+      new StructuredLogViewer(structuredLoggerService, structuredLogger as any, { testMode: options.testMode }),
+      {
+        name: "StructuredLogViewer",
+      },
+    ),
     Object.assign(new DaemonControlView(daemonService), { name: "DaemonControlView" }),
     Object.assign(new AgentStatusView(agentService), { name: "AgentStatusView" }),
     Object.assign(new RequestManagerView(requestService), { name: "RequestManagerView" }),
@@ -919,6 +932,16 @@ export async function launchTuiDashboard(
         this.activePaneId = "main";
         await this.clearNotifications();
         await this.notify("Layout reset to default", "info");
+      },
+      destroy() {
+        // Clean up all views to prevent interval leaks in tests
+        for (const view of views) {
+          if (typeof view.dispose === "function") {
+            view.dispose();
+          } else if (typeof view.destroy === "function") {
+            view.destroy();
+          }
+        }
       },
     } as TuiDashboard;
   }

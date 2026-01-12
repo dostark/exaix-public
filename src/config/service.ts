@@ -3,6 +3,7 @@ import { isAbsolute, join } from "@std/path";
 import { crypto } from "@std/crypto";
 import { encodeHex } from "@std/encoding/hex";
 import { Config, ConfigSchema } from "./schema.ts";
+import { logInfo } from "../services/structured_logger.ts";
 
 export class ConfigService {
   private config: Config;
@@ -67,7 +68,12 @@ debounce_ms = 200
 stability_check = true
 `;
     Deno.writeTextFileSync(this.configPath, defaultConfig.trim());
-    console.log(`✅ Created default configuration at ${this.configPath}`);
+    logInfo("Created default configuration file", {
+      audit_event: true,
+      event_type: "config_created",
+      config_path: this.configPath,
+      service: "config-service",
+    });
   }
 
   private computeChecksum(content: string): string {

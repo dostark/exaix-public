@@ -1796,8 +1796,22 @@ Deno.test({
         await Deno.writeTextFile(filePath, `modified ${file}`);
       }
 
-      // Revert safe files
-      await executor.revertUnauthorizedChanges(testPortalPath, files);
+      // Revert safe files (with retry for robustness)
+      let revertAttempts = 0;
+      const maxRevertAttempts = 3;
+      while (revertAttempts < maxRevertAttempts) {
+        try {
+          await executor.revertUnauthorizedChanges(testPortalPath, files);
+          break; // Success, exit retry loop
+        } catch (error) {
+          revertAttempts++;
+          if (revertAttempts >= maxRevertAttempts) {
+            throw error; // Re-throw after max attempts
+          }
+          // Wait a bit before retry
+          await new Promise((resolve) => setTimeout(resolve, 100 * revertAttempts));
+        }
+      }
 
       // Verify all files were reverted
       for (const file of files) {

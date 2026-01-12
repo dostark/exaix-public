@@ -633,3 +633,51 @@ export class MockSkillsService {
     });
   }
 }
+
+/**
+ * MockStructuredLogger
+ * Mock implementation of StructuredLogger for TDD and dashboard wiring tests.
+ */
+export class MockStructuredLogger {
+  private context: any = {};
+  private config: any = { minLevel: "debug", outputs: [], enablePerformanceTracking: false };
+
+  setContext() {}
+  child() {
+    return this;
+  }
+  debug() {}
+  info() {}
+  warn() {}
+  error() {}
+  fatal() {}
+  private log() {}
+  private shouldLog() {
+    return true;
+  }
+  async time<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+    return fn();
+  }
+}
+
+/**
+ * MockStructuredLoggerService
+ * Mock implementation of StructuredLoggerService for TDD and dashboard wiring tests.
+ */
+export class MockStructuredLoggerService {
+  async getStructuredLogs() {
+    return Promise.resolve([]);
+  }
+  subscribeToLogs(callback: (entry: any) => void) {
+    return () => {}; // Return unsubscribe function
+  }
+  async getLogsByCorrelationId() {
+    return Promise.resolve([]);
+  }
+  async getLogsByTraceId() {
+    return Promise.resolve([]);
+  }
+  async getLogsByAgentId() {
+    return Promise.resolve([]);
+  }
+}

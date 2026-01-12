@@ -16,6 +16,7 @@ import type { IModelProvider } from "../ai/providers.ts";
 import type { DatabaseService } from "./db.ts";
 import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
+import { logDebug } from "./structured_logger.ts";
 
 // ============================================================================
 // Confidence Schema
@@ -223,9 +224,12 @@ export class ConfidenceScorer {
     this.updateMetrics(confidence, flaggedForReview);
 
     if (this.config.verbose) {
-      console.log(
-        `[ConfidenceScorer] Score: ${confidence.score}, Level: ${confidence.level}, Flagged: ${flaggedForReview}`,
-      );
+      logDebug(`Confidence score: ${confidence.score}, Level: ${confidence.level}, Flagged: ${flaggedForReview}`, {
+        confidence_score: confidence.score,
+        confidence_level: confidence.level,
+        flagged_for_review: flaggedForReview,
+        service: "confidence_scorer",
+      });
     }
 
     if (this.config.db && flaggedForReview) {

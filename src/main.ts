@@ -4,6 +4,13 @@ import { DatabaseService } from "./services/db.ts";
 import { ProviderFactory } from "./ai/provider_factory.ts";
 import { RequestProcessor } from "./services/request_processor.ts";
 import { EventLogger } from "./services/event_logger.ts";
+import {
+  ConsoleOutput,
+  FileOutput,
+  initializeGlobalLogger,
+  logInfo,
+  type LogOutput,
+} from "./services/structured_logger.ts";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 
@@ -29,6 +36,25 @@ if (import.meta.main) {
       defaultActor: "system",
     });
 
+    // Initialize StructuredLogger for audit and performance tracking
+    const logsDir = join(config.system.root, "logs");
+    await ensureDir(logsDir);
+
+    const structuredOutputs: LogOutput[] = [new FileOutput(join(logsDir, "exoframe-structured.log"))];
+
+    // Add console output for debug level to help with development
+    if (config.system.log_level === "debug") {
+      structuredOutputs.unshift(new ConsoleOutput());
+    }
+
+    initializeGlobalLogger({
+      minLevel: config.system.log_level as "debug" | "info" | "warn" | "error" | "fatal",
+      outputs: structuredOutputs,
+      enablePerformanceTracking: true,
+      serviceName: "exoframe-daemon",
+      version: config.system.version,
+    });
+
     await logger.log({
       action: "daemon.starting",
       target: "exoframe",
@@ -38,6 +64,17 @@ if (import.meta.main) {
         log_level: config.system.log_level,
       },
       icon: "🚀",
+    });
+
+    // Log daemon startup as audit event
+    logInfo("ExoFrame daemon starting", {
+      audit_event: true,
+      event_type: "daemon_startup",
+      config_checksum: checksum.slice(0, 8),
+      root: config.system.root,
+      log_level: config.system.log_level,
+      service: "exoframe-daemon",
+      version: config.system.version,
     });
 
     await logger.info("config.loaded", "exo.config.toml", {

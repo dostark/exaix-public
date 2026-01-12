@@ -18,6 +18,7 @@ Deno.test("TUI dashboard handles empty portal list and error state", async () =>
     errorCaught = true;
   }
   if (!errorCaught) throw new Error("Error state not handled");
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard rapid navigation and focus wraparound", async () => {
@@ -33,6 +34,7 @@ Deno.test("TUI dashboard rapid navigation and focus wraparound", async () => {
     await dashboard.handleKey("shift+tab");
   }
   assertEquals(dashboard.activePaneId, "main"); // Should wrap around
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard notification edge cases", async () => {
@@ -47,6 +49,7 @@ Deno.test("TUI dashboard notification edge cases", async () => {
   notified = false;
   await dashboard.notify(null as unknown as string);
   if (!notified) throw new Error("Notification with null not handled");
+  dashboard.destroy();
 });
 Deno.test("TUI dashboard supports theming, accessibility, and keybinding customization", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
@@ -58,6 +61,7 @@ Deno.test("TUI dashboard supports theming, accessibility, and keybinding customi
   if (!focusables.includes("portal-list")) throw new Error("Accessibility elements missing");
   // Keybinding customization: check keybindings
   assertEquals(dashboard.keybindings.splitVertical, "v");
+  dashboard.destroy();
 });
 Deno.test("TUI dashboard supports real-time updates and notifications", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
@@ -96,6 +100,7 @@ Deno.test("TUI dashboard supports real-time updates and notifications", async ()
   if (updated.length !== 2) {
     throw new Error("Real-time update failed");
   }
+  dashboard.destroy();
 });
 // tests/tui/tui_dashboard_test.ts
 // TDD: End-to-end tests for TUI dashboard integration
@@ -123,6 +128,7 @@ Deno.test("TUI dashboard handles keyboard navigation and focus", async () => {
   // Shift+Tab cycles focus backward
   await dashboard.handleKey("shift+tab");
   assertEquals(dashboard.activePaneId, dashboard.panes[1].id);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard renders portal list, details, actions, and status bar", async () => {
@@ -159,6 +165,7 @@ Deno.test("TUI dashboard renders portal list, details, actions, and status bar",
   if (!status.includes("PortalManager") && !status.includes("Active")) {
     throw new Error("Status bar rendering failed: " + status);
   }
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard split view functionality", async () => {
@@ -187,6 +194,7 @@ Deno.test("TUI dashboard split view functionality", async () => {
   const originalWidth = dashboard.panes[0].width;
   dashboard.resizePane(dashboard.panes[0].id, 10, 0);
   assertEquals(dashboard.panes[0].width, originalWidth + 10);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard pane focus and switching", async () => {
@@ -198,6 +206,7 @@ Deno.test("TUI dashboard pane focus and switching", async () => {
   assertEquals(dashboard.activePaneId, secondPaneId);
   assertEquals(dashboard.panes[1].focused, true);
   assertEquals(dashboard.panes[0].focused, false);
+  dashboard.destroy();
 });
 Deno.test("TUI dashboard layout save and restore", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
@@ -258,6 +267,7 @@ Deno.test("TUI dashboard layout save and restore", async () => {
   await dashboard.restoreLayout();
   assertEquals(dashboard.panes.length, originalPanes);
   assertEquals(dashboard.activePaneId, originalActive);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard reset to default", async () => {
@@ -273,6 +283,7 @@ Deno.test("TUI dashboard reset to default", async () => {
   assertEquals(dashboard.panes.length, 1);
   assertEquals(dashboard.activePaneId, "main");
   assertEquals(dashboard.panes[0].view.name, "PortalManagerView");
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard comprehensive keyboard actions test", async () => {
@@ -374,6 +385,7 @@ Deno.test("TUI dashboard comprehensive keyboard actions test", async () => {
   // Test invalid key (should be ignored, no crash)
   await dashboard.handleKey("invalid");
   assertEquals(dashboard.panes.length, 1); // Should remain unchanged
+  dashboard.destroy();
 });
 
 Deno.test({
@@ -402,6 +414,7 @@ Deno.test("TUI dashboard state initialization", async () => {
   assertEquals(dashboard.state.isLoading, false);
   const notifs = await dashboard.notificationService.getNotifications();
   assertEquals(notifs.length, 0);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard help overlay toggle", async () => {
@@ -425,6 +438,7 @@ Deno.test("TUI dashboard help overlay toggle", async () => {
   // Hide with escape
   await dashboard.handleKey("escape");
   assertEquals(dashboard.state.showHelp, false);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard notification toggle", async () => {
@@ -440,6 +454,7 @@ Deno.test("TUI dashboard notification toggle", async () => {
   // Toggle off
   await dashboard.handleKey("n");
   assertEquals(dashboard.state.showNotifications, false);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard notification system", async () => {
@@ -460,6 +475,7 @@ Deno.test("TUI dashboard notification system", async () => {
   await dashboard.notify("Test error notification", "error");
   notifs = await dashboard.notificationService.getNotifications();
   assertEquals(notifs.length, 4);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard notification dismissal", async () => {
@@ -482,6 +498,7 @@ Deno.test("TUI dashboard notification dismissal", async () => {
   await dashboard.clearNotifications();
   notifs = await dashboard.notificationService.getNotifications();
   assertEquals(notifs.length, 0);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard view indicator rendering", async () => {
@@ -494,6 +511,7 @@ Deno.test("TUI dashboard view indicator rendering", async () => {
 
   // Should contain pane focus indicator
   assertEquals(indicator.includes("●") || indicator.includes("1:"), true);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard global help rendering", async () => {
@@ -506,6 +524,7 @@ Deno.test("TUI dashboard global help rendering", async () => {
   // Should contain help title and sections
   const helpText = helpLines.join("\n");
   assertEquals(helpText.includes("Help") || helpText.includes("Navigation"), true);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard notification panel rendering", async () => {
@@ -519,6 +538,7 @@ Deno.test("TUI dashboard notification panel rendering", async () => {
   await dashboard.notify("Test notification", "info");
   notifLines = await dashboard.renderNotifications();
   assertEquals(notifLines.length > 0, true);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard status bar with notifications badge", async () => {
@@ -532,6 +552,7 @@ Deno.test("TUI dashboard status bar with notifications badge", async () => {
   await dashboard.notify("Test notification");
   statusBar = await dashboard.renderStatusBar();
   assertEquals(statusBar.includes("🔔") || statusBar.includes("1"), true);
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard direct pane navigation with number keys", async () => {
@@ -555,6 +576,7 @@ Deno.test("TUI dashboard direct pane navigation with number keys", async () => {
   // Invalid pane number (beyond available panes)
   await dashboard.handleKey("7");
   assertEquals(dashboard.activePaneId, dashboard.panes[2].id); // Should stay on pane 3
+  dashboard.destroy();
 });
 
 Deno.test("TUI dashboard pane maximize/restore", async () => {

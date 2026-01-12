@@ -1,0 +1,393 @@
+/**
+ * Log Renderer Utilities - Enhanced log visualization for TUI
+ *
+ * Part of Phase 13.6: StructuredLogger TUI Integration
+ *
+ * This module provides utilities for rendering logs with colors, formatting,
+ * and rich context display in the terminal.
+ */
+
+import { colorize, type TuiTheme } from "./utils/colors.ts";
+import type { LogEntry, LogLevel } from "../services/structured_logger.ts";
+
+/**
+ * Log rendering options
+ */
+export interface LogRenderOptions {
+  /** Whether to show timestamps */
+  showTimestamp: boolean;
+  /** Whether to show context badges */
+  showContext: boolean;
+  /** Whether to show performance metrics */
+  showPerformance: boolean;
+  /** Whether to use colors */
+  useColors: boolean;
+  /** Maximum message length */
+  maxMessageLength: number;
+  /** Whether to truncate long messages */
+  truncateMessages: boolean;
+  /** Theme for coloring */
+  theme: TuiTheme;
+}
+
+/**
+ * Default rendering options
+ */
+export const DEFAULT_LOG_RENDER_OPTIONS: LogRenderOptions = {
+  showTimestamp: true,
+  showContext: true,
+  showPerformance: true,
+  useColors: true,
+  maxMessageLength: 100,
+  truncateMessages: true,
+  theme: {
+    primary: "\x1b[36m", // cyan
+    secondary: "\x1b[34m", // blue
+    accent: "\x1b[35m", // magenta
+    border: "\x1b[90m", // bright black
+    borderActive: "\x1b[36m", // cyan
+    text: "",
+    textDim: "\x1b[2m", // dim
+    textBold: "\x1b[1m", // bold
+    success: "\x1b[32m", // green
+    warning: "\x1b[33m", // yellow
+    error: "\x1b[31m", // red
+    info: "\x1b[34m", // blue
+    treeExpanded: "\x1b[36m", // cyan
+    treeCollapsed: "\x1b[90m", // bright black
+    treeLeaf: "\x1b[90m", // bright black
+    treeSelected: "\x1b[7m\x1b[36m", // inverse + cyan
+    h1: "\x1b[1m\x1b[36m", // bold + cyan
+    h2: "\x1b[1m\x1b[34m", // bold + blue
+    h3: "\x1b[1m\x1b[35m", // bold + magenta
+    code: "\x1b[33m", // yellow
+    codeBlock: "\x1b[2m\x1b[33m", // dim + yellow
+    categoryPattern: "\x1b[34m", // blue
+    categoryDecision: "\x1b[32m", // green
+    categoryTroubleshooting: "\x1b[31m", // red
+    categoryInsight: "\x1b[35m", // magenta
+    confidenceHigh: "\x1b[32m", // green
+    confidenceMedium: "\x1b[33m", // yellow
+    confidenceLow: "\x1b[31m", // red
+    statusActive: "\x1b[36m", // cyan
+    statusPending: "\x1b[33m", // yellow
+    statusCompleted: "\x1b[32m", // green
+    statusFailed: "\x1b[31m", // red
+    reset: "\x1b[0m",
+  },
+};
+
+/**
+ * Render a single log entry as a formatted string
+ */
+export function renderLogEntry(entry: LogEntry, options: Partial<LogRenderOptions> = {}): string {
+  const opts = { ...DEFAULT_LOG_RENDER_OPTIONS, ...options };
+  const parts: string[] = [];
+
+  // Timestamp
+  if (opts.showTimestamp) {
+    const timestamp = new Date(entry.timestamp).toLocaleTimeString();
+    parts.push(colorize(timestamp, opts.theme.textDim, opts.theme.reset));
+  }
+
+  // Level with color and icon
+  const levelInfo = getLevelInfo(entry.level);
+  const levelStr = `${levelInfo.icon} ${entry.level.toUpperCase().padEnd(5)}`;
+  parts.push(colorize(levelStr, levelInfo.color, opts.theme.reset));
+
+  // Context badges
+  if (opts.showContext) {
+    const contextBadges = renderContextBadges(entry, opts);
+    if (contextBadges) {
+      parts.push(contextBadges);
+    }
+  }
+
+  // Message
+  let message = entry.message;
+  if (opts.truncateMessages && message.length > opts.maxMessageLength) {
+    message = message.substring(0, opts.maxMessageLength - 3) + "...";
+  }
+  parts.push(message);
+
+  // Performance metrics
+  if (opts.showPerformance && entry.performance) {
+    const perfStr = renderPerformanceMetrics(entry.performance, opts);
+    if (perfStr) {
+      parts.push(colorize(perfStr, opts.theme.secondary, opts.theme.reset));
+    }
+  }
+
+  return parts.join(" ");
+}
+
+/**
+ * Render context badges for a log entry
+ */
+export function renderContextBadges(entry: LogEntry, options: LogRenderOptions): string {
+  const badges: string[] = [];
+
+  if (entry.context.trace_id) {
+    badges.push(colorize(`trace:${entry.context.trace_id.slice(0, 8)}`, options.theme.primary, options.theme.reset));
+  }
+
+  if (entry.context.correlation_id) {
+    badges.push(
+      colorize(
+        `
+      corr:${entry.context.correlation_id.slice(0, 8)}`,
+        options.theme.secondary,
+        options.theme.reset,
+      ),
+    );
+  }
+
+  if (entry.context.agent_id) {
+    badges.push(colorize(`agent:${entry.context.agent_id}`, options.theme.success, options.theme.reset));
+  }
+
+  if (entry.context.operation) {
+    badges.push(colorize(`op:${entry.context.operation}`, options.theme.warning, options.theme.reset));
+  }
+
+  if (entry.context.user_id) {
+    badges.push(colorize(`user:${entry.context.user_id}`, options.theme.error, options.theme.reset));
+  }
+
+  return badges.length > 0 ? `[${badges.join(" ")}]` : "";
+}
+
+/**
+ * Render performance metrics
+ */
+export function renderPerformanceMetrics(performance: LogEntry["performance"], _options: LogRenderOptions): string {
+  if (!performance) return "";
+
+  const metrics: string[] = [];
+
+  if (performance.duration_ms !== undefined) {
+    metrics.push(`${performance.duration_ms}ms`);
+  }
+
+  if (performance.memory_mb !== undefined) {
+    metrics.push(`${performance.memory_mb}MB`);
+  }
+
+  if (performance.cpu_percent !== undefined) {
+    metrics.push(`${performance.cpu_percent}%`);
+  }
+
+  return metrics.length > 0 ? `(${metrics.join(", ")})` : "";
+}
+
+/**
+ * Render detailed log entry (multi-line)
+ */
+export function renderDetailedLogEntry(entry: LogEntry, options: Partial<LogRenderOptions> = {}): string[] {
+  const opts = { ...DEFAULT_LOG_RENDER_OPTIONS, ...options };
+  const lines: string[] = [];
+
+  // Header line
+  lines.push(renderLogEntry(entry, opts));
+
+  // Separator
+  lines.push(colorize("─".repeat(80), opts.theme.border, opts.theme.reset));
+
+  // Context details()()
+  if (Object.keys(entry.context).some((key) => entry.context[key as keyof typeof entry.context])) {
+    lines.push(colorize("Context:", opts.theme.h2, opts.theme.reset));
+    for (const [key, value] of Object.entries(entry.context)) {
+      if (value) {
+        lines.push(`  ${key}: ${value}`);
+      }
+    }
+    lines.push("");
+  }
+
+  // Metadata
+  if (entry.metadata && Object.keys(entry.metadata).length > 0) {
+    lines.push(colorize("Metadata:", opts.theme.h2, opts.theme.reset));
+    lines.push(JSON.stringify(entry.metadata, null, 2));
+    lines.push("");
+  }
+
+  // Performance
+  if (entry.performance) {
+    lines.push(colorize("Performance:", opts.theme.h2, opts.theme.reset));
+    lines.push(JSON.stringify(entry.performance, null, 2));
+    lines.push("");
+  }
+
+  // Error details
+  if (entry.error) {
+    lines.push(colorize("Error:", opts.theme.error, opts.theme.reset));
+    lines.push(`  Name: ${entry.error.name}`);
+    lines.push(`  Message: ${entry.error.message}`);
+    if (entry.error.code) {
+      lines.push(`  Code: ${entry.error.code}`);
+    }
+    if (entry.error.stack) {
+      lines.push(colorize("  Stack:", opts.theme.textDim, opts.theme.reset));
+      const stackLines = entry.error.stack.split("\n");
+      for (const line of stackLines) {
+        lines.push(`    ${line}`);
+      }
+    }
+    lines.push("");
+  }
+
+  return lines;
+}
+
+/**
+ * Render log summary statistics
+ */
+export function renderLogSummary(entries: LogEntry[], options: Partial<LogRenderOptions> = {}): string[] {
+  const opts = { ...DEFAULT_LOG_RENDER_OPTIONS, ...options };
+  const lines: string[] = [];
+
+  lines.push(colorize("Log Summary", opts.theme.h1, opts.theme.reset));
+  lines.push(colorize("─".repeat(50), opts.theme.border, opts.theme.reset));
+
+  // Basic stats
+  const totalEntries = entries.length;
+  const levelCounts = entries.reduce((acc, entry) => {
+    acc[entry.level] = (acc[entry.level] || 0) + 1;
+    return acc;
+  }, {} as Record<LogLevel, number>);
+
+  lines.push(`Total Entries: ${totalEntries}`);
+
+  for (const level of ["fatal", "error", "warn", "info", "debug"] as LogLevel[]) {
+    const count = levelCounts[level] || 0;
+    if (count > 0) {
+      const levelInfo = getLevelInfo(level);
+      const percentage = ((count / totalEntries) * 100).toFixed(1);
+      lines.push(colorize(`  ${level}: ${count} (${percentage}%)`, levelInfo.color, opts.theme.reset));
+    }
+  }
+
+  // Time range
+  if (entries.length > 0) {
+    const timestamps = entries.map((e) => new Date(e.timestamp));
+    const start = new Date(Math.min(...timestamps.map((t) => t.getTime())));
+    const end = new Date(Math.max(...timestamps.map((t) => t.getTime())));
+    const duration = end.getTime() - start.getTime();
+
+    lines.push("");
+    lines.push("Time Range:");
+    lines.push(`  Start: ${start.toLocaleString()}`);
+    lines.push(`  End: ${end.toLocaleString()}`);
+    lines.push(`  Duration: ${formatDuration(duration)}`);
+  }
+
+  // Context summary
+  const contextStats = analyzeContext(entries);
+  if (contextStats.correlationIds > 0 || contextStats.traceIds > 0 || contextStats.agentIds > 0) {
+    lines.push("");
+    lines.push("Context Summary:");
+    if (contextStats.correlationIds > 0) {
+      lines.push(`  Correlations: ${contextStats.correlationIds}`);
+    }
+    if (contextStats.traceIds > 0) {
+      lines.push(`  Traces: ${contextStats.traceIds}`);
+    }
+    if (contextStats.agentIds > 0) {
+      lines.push(`  Agents: ${contextStats.agentIds}`);
+    }
+  }
+
+  return lines;
+}
+
+/**
+ * Get level-specific display information
+ */
+function getLevelInfo(level: LogLevel): { icon: string; color: string } {
+  switch (level) {
+    case "fatal":
+      return { icon: "💥", color: "magenta" };
+    case "error":
+      return { icon: "❌", color: "red" };
+    case "warn":
+      return { icon: "⚠️", color: "yellow" };
+    case "info":
+      return { icon: "ℹ️", color: "blue" };
+    case "debug":
+      return { icon: "🔍", color: "gray" };
+    default:
+      return { icon: "📋", color: "white" };
+  }
+}
+
+/**
+ * Format duration in human-readable format
+ */
+function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
+  if (ms < 3600000) return `${(ms / 60000).toFixed(1)}m`;
+  return `${(ms / 3600000).toFixed(1)}h`;
+}
+
+/**
+ * Analyze context statistics
+ */
+function analyzeContext(entries: LogEntry[]): {
+  correlationIds: number;
+  traceIds: number;
+  agentIds: number;
+} {
+  const correlationIds = new Set(entries.map((e) => e.context.correlation_id).filter(Boolean));
+  const traceIds = new Set(entries.map((e) => e.context.trace_id).filter(Boolean));
+  const agentIds = new Set(entries.map((e) => e.context.agent_id).filter(Boolean));
+
+  return {
+    correlationIds: correlationIds.size,
+    traceIds: traceIds.size,
+    agentIds: agentIds.size,
+  };
+}
+
+/**
+ * Create a colorized log level indicator
+ */
+export function createLogLevelIndicator(level: LogLevel, theme: TuiTheme): string {
+  const levelInfo = getLevelInfo(level);
+  return colorize(levelInfo.icon, levelInfo.color, theme.reset);
+}
+
+/**
+ * Render log correlation visualization
+ */
+export function renderCorrelationVisualization(
+  correlationId: string,
+  entries: LogEntry[],
+  options: Partial<LogRenderOptions> = {},
+): string[] {
+  const opts = { ...DEFAULT_LOG_RENDER_OPTIONS, ...options };
+  const lines: string[] = [];
+
+  lines.push(colorize(`Correlation: ${correlationId}`, opts.theme.h1, opts.theme.reset));
+  lines.push(colorize("═".repeat(80), opts.theme.border, opts.theme.reset));
+
+  // Sort by timestamp
+  const sortedEntries = entries.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+  for (const entry of sortedEntries) {
+    const time = new Date(entry.timestamp).toLocaleTimeString();
+    const levelIndicator = createLogLevelIndicator(entry.level, opts.theme);
+    const operation = entry.context.operation || "unknown";
+
+    let line = `${time} ${levelIndicator} ${operation}: ${entry.message}`;
+
+    // Highlight errors
+    if (entry.level === "error" || entry.level === "fatal") {
+      line = colorize(line, opts.theme.error, opts.theme.reset);
+    }
+
+    lines.push(line);
+  }
+
+  return lines;
+}
