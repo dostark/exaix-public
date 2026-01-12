@@ -7,10 +7,12 @@ import { EventLogger } from "./services/event_logger.ts";
 import {
   ConsoleOutput,
   FileOutput,
+  getGlobalLogger,
   initializeGlobalLogger,
   logInfo,
   type LogOutput,
 } from "./services/structured_logger.ts";
+import { GracefulShutdown } from "./services/graceful_shutdown.ts";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 
@@ -54,6 +56,9 @@ if (import.meta.main) {
       serviceName: "exoframe-daemon",
       version: config.system.version,
     });
+
+    // Initialize GracefulShutdown service
+    const gracefulShutdown = new GracefulShutdown(getGlobalLogger());
 
     await logger.log({
       action: "daemon.starting",
@@ -305,23 +310,26 @@ if (import.meta.main) {
       activePath, // Custom watch path
     );
 
-    // Handle graceful shutdown
-    const shutdown = async () => {
-      await logger.log({
-        action: "daemon.stopping",
-        target: "exoframe",
-        payload: { reason: "signal" },
-        icon: "🛑",
-      });
-
+    // Register cleanup tasks for graceful shutdown
+    gracefulShutdown.registerCleanup("stop_request_watcher", async () => {
       requestWatcher.stop();
-      planWatcher.stop();
-      dbService.close();
-      Deno.exit(0);
-    };
+      await logger.info("shutdown.watchers_stopped", "request and plan watchers", {});
+    });
 
-    Deno.addSignalListener("SIGINT", shutdown);
-    Deno.addSignalListener("SIGTERM", shutdown);
+    gracefulShutdown.registerCleanup("stop_plan_watcher", async () => {
+      planWatcher.stop();
+    });
+
+    gracefulShutdown.registerCleanup("close_database", async () => {
+      dbService.close();
+      await logger.info("shutdown.database_closed", "journal.db", {});
+    });
+
+    // Register signal handlers
+    gracefulShutdown.registerSignalHandlers();
+
+    // Register error handlers
+    gracefulShutdown.registerErrorHandlers();
 
     await logger.log({
       action: "daemon.started",

@@ -1471,152 +1471,80 @@ async function main() {
 main();
 ```
 
-**Complete Solution**:
+**Success Criteria**:
+
+- ✅ SIGINT and SIGTERM signals trigger graceful shutdown
+- ✅ Cleanup tasks execute in reverse registration order (LIFO)
+- ✅ Database connections are properly closed
+- ✅ File watchers are stopped cleanly
+- ✅ Timeout handling prevents hanging cleanup tasks
+- ✅ Multiple shutdown attempts are prevented
+- ✅ Shutdown progress is logged with structured logging
+- ✅ Unhandled errors trigger graceful shutdown
+- ✅ Resources are cleaned up even when cleanup tasks fail
+
+**Status**: ✅ **Fully Implemented**
+
+**Implementation Summary**:
+
+- Created `GracefulShutdown` service in `src/services/graceful_shutdown.ts` with signal handling and cleanup task management
+- Implemented LIFO execution order for cleanup tasks with configurable timeouts (30s default)
+- Added prevention of multiple shutdown attempts to avoid resource conflicts
+- Integrated with main application in `src/main.ts` registering cleanup tasks for file watchers and database
+- Registered signal handlers for SIGINT/SIGTERM and error handlers for unhandled exceptions
+- Comprehensive error handling and logging using structured logger
+- All cleanup tasks execute with proper timeout handling using AbortController
+
+**Test Description** (`tests/services/graceful_shutdown_test.ts`):
 
 ```typescript
-export class GracefulShutdown {
-  private shuttingDown = false;
-  private shutdownPromise: Promise<void> | null = null;
-  private cleanupTasks: Array<{
-    name: string;
-    handler: () => Promise<void>;
-    timeout: number;
-  } = [];
+// 7 comprehensive test cases covering all functionality:
 
-  constructor(private logger: StructuredLogger) {
-    // Register signal handlers
-    Deno.addSignalListener("SIGTERM", () => this.handleSignal("SIGTERM"));
-    Deno.addSignalListener("SIGINT", () => this.handleSignal("SIGINT"));
+Deno.test("GracefulShutdown: initializes with logger", async () => {
+  // Verifies proper initialization with StructuredLogger
+});
 
-    // Handle uncaught errors
-    globalThis.addEventListener("unhandledrejection", (event) => {
-      this.logger.fatal("Unhandled promise rejection", event.reason);
-      this.shutdown(1);
-    });
+Deno.test("GracefulShutdown: registers cleanup tasks", async () => {
+  // Tests cleanup task registration and storage
+});
 
-    globalThis.addEventListener("error", (event) => {
-      this.logger.fatal("Uncaught error", event.error);
-      this.shutdown(1);
-    });
-  }
+Deno.test("GracefulShutdown: runs cleanup tasks in reverse order (LIFO)", async () => {
+  // Verifies LIFO execution order with 8ms timeout simulation
+});
 
-  registerCleanup(
-    name: string,
-    handler: () => Promise<void>,
-    timeout: number = 30000
-  ): void {
-    this.cleanupTasks.push({ name, handler, timeout });
-  }
+Deno.test("GracefulShutdown: handles cleanup task failures", async () => {
+  // Tests error handling when cleanup tasks throw exceptions
+});
 
-  private handleSignal(signal: string): void {
-    this.logger.info(`Received ${signal}, initiating graceful shutdown`);
-    this.shutdown(0);
-  }
+Deno.test("GracefulShutdown: prevents multiple shutdown attempts", async () => {
+  // Ensures only first shutdown call executes, subsequent calls ignored
+});
 
-  async shutdown(exitCode: number): Promise<void> {
-    // Prevent multiple shutdown attempts
-    if (this.shuttingDown) {
-      this.logger.warn("Shutdown already in progress");
-      return;
-    }
+Deno.test("GracefulShutdown: uses default timeout when not specified", async () => {
+  // Verifies 30-second default timeout for cleanup tasks
+});
 
-    this.shuttingDown = true;
-    this.logger.info("Starting graceful shutdown", {
-      cleanup_tasks: this.cleanupTasks.length,
-    });
-
-    const errors: Array<{ task: string; error: Error }> = [];
-
-    // Run cleanup tasks in reverse order (LIFO)
-    for (const task of this.cleanupTasks.reverse()) {
-      this.logger.info(`Running cleanup: ${task.name}`);
-
-      try {
-        await Promise.race([
-          task.handler(),
-          this.timeout(task.timeout, task.name),
-        ]);
-
-        this.logger.info(`Cleanup completed: ${task.name}`);
-      } catch (error) {
-        this.logger.error(
-          `Cleanup failed: ${task.name}`,
-          error as Error
-        );
-        errors.push({
-          task: task.name,
-          error: error as Error,
-        });
-      }
-    }
-
-    if (errors.length > 0) {
-      this.logger.error("Shutdown completed with errors", undefined, {
-        failed_tasks: errors.map(e => e.task),
-      });
-      Deno.exit(1);
-    } else {
-      this.logger.info("Graceful shutdown completed successfully");
-      Deno.exit(exitCode);
-    }
-  }
-
-  private async timeout(ms: number, taskName: string): Promise<never> {
-    await new Promise((resolve) => setTimeout(resolve, ms));
-    throw new Error(`Cleanup task '${taskName}' timed out after ${ms}ms`);
-  }
-}
-
-// Usage in main.ts
-async function main() {
-  const logger = createLogger();
-  const shutdown = new GracefulShutdown(logger);
-
-  logger.info("Starting ExoFrame...");
-
-  // Initialize services
-  const config = await loadConfig();
-  const db = await DatabaseService.create(config);
-  const provider = ProviderFactory.create(config);
-  const server = await startServer(config, db, provider);
-
-  // Register cleanup handlers (LIFO order)
-  shutdown.registerCleanup("server", async () => {
-    logger.info("Stopping HTTP server...");
-    await server.close();
-  }, 10000);
-
-  shutdown.registerCleanup("provider", async () => {
-    logger.info("Closing LLM provider connections...");
-    await provider.close?.();
-  }, 5000);
-
-  shutdown.registerCleanup("database", async () => {
-    logger.info("Closing database connections...");
-    await db.close();
-  }, 15000);
-
-  shutdown.registerCleanup("flush_logs", async () => {
-    logger.info("Flushing log buffers...");
-    await logger.flush();
-  }, 3000);
-
-  logger.info("ExoFrame started successfully", {
-    version: config.system.version,
-    environment: Deno.env.get("ENV"),
-  });
-
-  // Keep process alive
-  await new Promise(() => {}); // Never resolves
-}
-
-main().catch((error) => {
-  console.error("Fatal startup error:", error);
-  Deno.exit(1);
+Deno.test("GracefulShutdown: logs shutdown progress", async () => {
+  // Tests structured logging of shutdown events and progress
 });
 ```
 
-**Status**: ❌ Not Implemented
+**Files Modified**:
+
+- `src/services/graceful_shutdown.ts` (new) - Core graceful shutdown implementation
+- `src/main.ts` - Integration with application startup and cleanup task registration
+- `tests/services/graceful_shutdown_test.ts` (new) - Comprehensive test suite
+
+**Key Features Implemented**:
+
+- **Signal Handling**: Responds to SIGINT (Ctrl+C) and SIGTERM signals
+- **Resource Cleanup**: Ensures file watchers and database connections are properly closed
+- **Timeout Protection**: 30-second default timeout per cleanup task
+- **Error Resilience**: Continues cleanup even if individual tasks fail
+- **Proper Logging**: Uses structured logging for all shutdown events
+- **LIFO Execution**: Cleanup tasks run in reverse registration order
+- **Multiple Shutdown Prevention**: Guards against concurrent shutdown attempts
+- **Unhandled Error Handling**: Catches and handles unhandled exceptions gracefully
 
 ---
 
