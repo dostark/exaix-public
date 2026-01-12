@@ -29,7 +29,9 @@ Deno.test("GracefulShutdown: registers cleanup tasks", () => {
 
   const shutdown = new GracefulShutdown(mockLogger);
 
-  const mockHandler = spy(async () => {});
+  const mockHandler = spy(async () => {
+    await Promise.resolve();
+  });
   shutdown.registerCleanup("test-task", mockHandler, 5000);
 
   assertEquals(shutdown["cleanupTasks"].length, 1);
@@ -51,13 +53,16 @@ Deno.test("GracefulShutdown: runs cleanup tasks in reverse order (LIFO)", async 
   const callOrder: string[] = [];
   const task1 = spy(async () => {
     callOrder.push("task1");
+    await Promise.resolve();
   });
 
   const task2 = spy(async () => {
     callOrder.push("task2");
+    await Promise.resolve();
   });
   const task3 = spy(async () => {
     callOrder.push("task3");
+    await Promise.resolve();
   });
 
   shutdown.registerCleanup("task1", task1);
@@ -80,6 +85,7 @@ Deno.test("GracefulShutdown: handles cleanup task failures", async () => {
   const shutdown = new GracefulShutdown(mockLogger);
 
   const failingTask = spy(async () => {
+    await Promise.resolve();
     throw new Error("Task failed");
   });
 
@@ -100,7 +106,9 @@ Deno.test("GracefulShutdown: prevents multiple shutdown attempts", async () => {
 
   const shutdown = new GracefulShutdown(mockLogger);
 
-  const task = spy(async () => {});
+  const task = spy(async () => {
+    await Promise.resolve();
+  });
   shutdown.registerCleanup("task", task);
 
   // Start two shutdowns concurrently
@@ -122,7 +130,9 @@ Deno.test("GracefulShutdown: uses default timeout when not specified", () => {
 
   const shutdown = new GracefulShutdown(mockLogger);
 
-  const task = spy(async () => {});
+  const task = spy(async () => {
+    await Promise.resolve();
+  });
   shutdown.registerCleanup("task", task); // No timeout specified
 
   assertEquals(shutdown["cleanupTasks"][0].timeout, 30000); // Default 30s
@@ -139,7 +149,9 @@ Deno.test("GracefulShutdown: logs shutdown progress", async () => {
 
   const shutdown = new GracefulShutdown(mockLogger);
 
-  const task = spy(async () => {});
+  const task = spy(async () => {
+    await Promise.resolve();
+  });
   shutdown.registerCleanup("test-task", task);
 
   await shutdown.shutdown(0, false);
