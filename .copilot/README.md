@@ -269,8 +269,7 @@ Examples
 
 These files are **not** runtime Blueprints/agents (see `Blueprints/Agents/`). They are development-focused guidance to be used by IDE agents and automation helpers.
 
-EOF
-
+```bash
 deno run --allow-read --allow-write scripts/build_agents_index.ts
 deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock
 deno run --allow-read scripts/validate_agents_docs.ts
@@ -287,4 +286,3 @@ Examples
 ## Notes
 
 These files are **not** runtime Blueprints/agents (see `Blueprints/Agents/`). They are development-focused guidance to be used by IDE agents and automation helpers.
-```

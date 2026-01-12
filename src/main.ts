@@ -312,7 +312,7 @@ if (import.meta.main) {
 
     // Register cleanup tasks for graceful shutdown
     gracefulShutdown.registerCleanup("stop_request_watcher", async () => {
-      requestWatcher.stop();
+      await requestWatcher.stop();
       await logger.info("shutdown.watchers_stopped", "request and plan watchers", {});
     });
 

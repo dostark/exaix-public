@@ -49,14 +49,14 @@ Deno.test("GracefulShutdown: runs cleanup tasks in reverse order (LIFO)", async 
   const shutdown = new GracefulShutdown(mockLogger);
 
   const callOrder: string[] = [];
-  const task1 = spy(() => {
+  const task1 = spy(async () => {
     callOrder.push("task1");
   });
 
-  const task2 = spy(() => {
+  const task2 = spy(async () => {
     callOrder.push("task2");
   });
-  const task3 = spy(() => {
+  const task3 = spy(async () => {
     callOrder.push("task3");
   });
 
@@ -79,7 +79,7 @@ Deno.test("GracefulShutdown: handles cleanup task failures", async () => {
 
   const shutdown = new GracefulShutdown(mockLogger);
 
-  const failingTask = spy(() => {
+  const failingTask = spy(async () => {
     throw new Error("Task failed");
   });
 
