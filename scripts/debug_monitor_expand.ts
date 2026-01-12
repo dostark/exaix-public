@@ -1,5 +1,4 @@
-import { createMonitorViewWithLogs, sampleLogEntry } from "../tests/tui/helpers.ts";
-import { MonitorView } from "../src/tui/monitor_view.ts";
+import { createMonitorViewWithLogs } from "../tests/tui/helpers.ts";
 
 const { monitorView } = createMonitorViewWithLogs([
   {
@@ -44,5 +43,5 @@ async function run() {
 
 run().catch((e) => {
   console.error(e);
-  process.exit(1);
+  Deno.exit(1);
 });
