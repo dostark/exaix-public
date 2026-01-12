@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-06T15:35:14.138Z",
+  "generated_at": "2026-01-12T19:41:10.517Z",
   "index": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -96,8 +96,45 @@
       "embeddingFile": ".copilot/embeddings/exoframe.md.json"
     },
     {
+      "path": ".copilot/planning/phase-21-magic-numbers-centralization.md",
+      "embeddingFile": ".copilot/embeddings/phase-21-magic-numbers-centralization.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-24-addressing-security-issues.md",
+      "embeddingFile": ".copilot/embeddings/phase-24-addressing-security-issues.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-05-obsidian-setup.md",
+      "embeddingFile": ".copilot/embeddings/phase-05-obsidian-setup.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-08-third-party-llm-provider.md",
+      "embeddingFile": ".copilot/embeddings/phase-08-third-party-llm-provider.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-22-architecture-and-quality-improvement.md",
+      "title": "Extended Code Review - Additional Architecture & Quality Issues (v2)",
+      "embeddingFile": ".copilot/embeddings/phase-22-architecture-and-quality-improvement.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-07-flow-orchestration.md",
+      "embeddingFile": ".copilot/embeddings/phase-07-flow-orchestration.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-02-events-and-state.md",
+      "embeddingFile": ".copilot/embeddings/phase-02-events-and-state.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-20-folder-restructuring-followup.md",
+      "embeddingFile": ".copilot/embeddings/phase-20-folder-restructuring-followup.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-19-folder-restructuring.md",
       "embeddingFile": ".copilot/embeddings/phase-19-folder-restructuring.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-25-mcp-server.md",
+      "embeddingFile": ".copilot/embeddings/phase-25-mcp-server.md.json"
     },
     {
       "path": ".copilot/planning/phase-15-flow-orchestration-improvements.md",
@@ -108,16 +145,40 @@
       "embeddingFile": ".copilot/embeddings/phase-13-tui-enhancement.md.json"
     },
     {
+      "path": ".copilot/planning/phase-10-polishing.md",
+      "embeddingFile": ".copilot/embeddings/phase-10-polishing.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-11-testing-quality-assurance.md",
+      "embeddingFile": ".copilot/embeddings/phase-11-testing-quality-assurance.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-18-blueprint-modernization.md",
       "embeddingFile": ".copilot/embeddings/phase-18-blueprint-modernization.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-06-plan-execution-via-mcp.md",
+      "embeddingFile": ".copilot/embeddings/phase-06-plan-execution-via-mcp.md.json"
     },
     {
       "path": ".copilot/planning/phase-12.5-memory-bank-enhanced.md",
       "embeddingFile": ".copilot/embeddings/phase-12.5-memory-bank-enhanced.md.json"
     },
     {
+      "path": ".copilot/planning/phase-04-tools-and-git.md",
+      "embeddingFile": ".copilot/embeddings/phase-04-tools-and-git.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-14-code-deduplication.md",
       "embeddingFile": ".copilot/embeddings/phase-14-code-deduplication.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-09-ux-improvement.md",
+      "embeddingFile": ".copilot/embeddings/phase-09-ux-improvement.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-03-intelligence-and-agency.md",
+      "embeddingFile": ".copilot/embeddings/phase-03-intelligence-and-agency.md.json"
     },
     {
       "path": ".copilot/planning/phase-16-agent-orchestration-improvements.md",
@@ -128,8 +189,13 @@
       "embeddingFile": ".copilot/embeddings/phase-12-obsidian-retirement.md.json"
     },
     {
-      "path": ".copilot/planning/step-19.2b-tui-integration.md",
-      "embeddingFile": ".copilot/embeddings/step-19.2b-tui-integration.md.json"
+      "path": ".copilot/planning/phase-23-skills-blueprint-migration.md",
+      "title": "Skills Blueprint Migration - Moving Core Skills to Blueprints",
+      "embeddingFile": ".copilot/embeddings/phase-23-skills-blueprint-migration.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-01-runtime-and-storage.md",
+      "embeddingFile": ".copilot/embeddings/phase-01-runtime-and-storage.md.json"
     },
     {
       "path": ".copilot/planning/phase-17-skills-architecture.md",

@@ -317,7 +317,7 @@ if (import.meta.main) {
     });
 
     gracefulShutdown.registerCleanup("stop_plan_watcher", async () => {
-      planWatcher.stop();
+      await planWatcher.stop();
     });
 
     gracefulShutdown.registerCleanup("close_database", async () => {

@@ -1,6 +1,5 @@
-Schema
-------
 Each `.md` file should include YAML frontmatter with at least the following keys:
+
 - `agent` (string) — e.g., `copilot`, `openai`
 - `scope` (string) — e.g., `dev`, `ci`, `docs`
 - `title` (string)
@@ -8,11 +7,17 @@ Each `.md` file should include YAML frontmatter with at least the following keys
 - `version` (string)
 - `topics` (array of strings) — optional tags
 
-Maintenance
------------
+## Maintenance
+
 - Use `scripts/validate_agents_docs.ts` to validate frontmatter and safety rules.
 - Update the manifest with `scripts/build_agents_index.ts` if new docs are added.
 
-Regenerating manifest & chunks
-------------------------------
+## Regenerating manifest & chunks
+
 If you add or update files under `.copilot/`, regenerate the manifest and pre-chunk artifacts with:
+
+```bash
+deno run --allow-read --allow-write scripts/build_agents_index.ts
+```
+
+To verify the manifest is fresh (useful for CI):
