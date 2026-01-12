@@ -655,7 +655,7 @@ export class MockStructuredLogger {
   private shouldLog() {
     return true;
   }
-  async time<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+  time<T>(_operation: string, fn: () => Promise<T>): Promise<T> {
     return fn();
   }
 }
@@ -665,19 +665,19 @@ export class MockStructuredLogger {
  * Mock implementation of StructuredLoggerService for TDD and dashboard wiring tests.
  */
 export class MockStructuredLoggerService {
-  async getStructuredLogs() {
+  getStructuredLogs() {
     return Promise.resolve([]);
   }
-  subscribeToLogs(callback: (entry: any) => void) {
+  subscribeToLogs(_callback: (entry: any) => void) {
     return () => {}; // Return unsubscribe function
   }
-  async getLogsByCorrelationId() {
+  getLogsByCorrelationId() {
     return Promise.resolve([]);
   }
-  async getLogsByTraceId() {
+  getLogsByTraceId() {
     return Promise.resolve([]);
   }
-  async getLogsByAgentId() {
+  getLogsByAgentId() {
     return Promise.resolve([]);
   }
 }
