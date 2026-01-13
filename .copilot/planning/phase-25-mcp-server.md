@@ -1,11 +1,10 @@
-
-## Phase 13: Model Context Protocol (MCP) Server
+# Phase 13: Model Context Protocol (MCP) Server
 
 **Duration:** 1-2 weeks\
 **Prerequisites:** Phases 1–12 (All core features complete, Obsidian retired)\
 **Goal:** Add Model Context Protocol (MCP) server interface for programmatic ExoFrame interaction
 
-### Overview
+## Overview
 
 Implement an MCP server that exposes ExoFrame operations as standardized tools, enabling external AI assistants (Claude Desktop, Cline, IDE agents) to interact with ExoFrame programmatically while preserving the file-based core architecture.
 

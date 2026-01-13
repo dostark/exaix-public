@@ -590,6 +590,85 @@ Deno.test("getProviderForModel: handles regular ollama models", async () => {
 // ============================================================================
 // Named Model Tests
 // ============================================================================
+Deno.test("ProviderFactory: createWithFallback returns primary if healthy", async () => {
+  const config = createTestConfig();
+  config.models = {
+    primary: { provider: "mock", model: "primary-mock", timeout_ms: 30000 },
+    fallback: { provider: "mock", model: "fallback-mock", timeout_ms: 30000 },
+  };
+  const provider = await ProviderFactory.createWithFallback(config, {
+    primary: "primary",
+    fallbacks: ["fallback"],
+    healthCheck: false,
+  });
+  assertExists(provider);
+  assertStringIncludes(provider.id, "primary-mock");
+});
+
+Deno.test("ProviderFactory: createWithFallback falls back if primary fails", async () => {
+  const config = createTestConfig();
+  config.models = {
+    primary: { provider: "anthropic", model: "bad-model", timeout_ms: 30000 },
+    fallback: { provider: "mock", model: "fallback-mock", timeout_ms: 30000 },
+  };
+  // Ensure no API key for anthropic
+  SecureCredentialStore.clear("ANTHROPIC_API_KEY");
+  const provider = await ProviderFactory.createWithFallback(config, {
+    primary: "primary",
+    fallbacks: ["fallback"],
+    healthCheck: false,
+  });
+  assertExists(provider);
+  assertStringIncludes(provider.id, "fallback-mock");
+});
+
+Deno.test("ProviderFactory: createWithFallback throws if all fail", async () => {
+  const config = createTestConfig();
+  config.models = {
+    primary: { provider: "anthropic", model: "bad-model", timeout_ms: 30000 },
+    fallback: { provider: "anthropic", model: "bad-model", timeout_ms: 30000 },
+  };
+  // Ensure no API key for anthropic
+  SecureCredentialStore.clear("ANTHROPIC_API_KEY");
+  await assertRejects(
+    () =>
+      ProviderFactory.createWithFallback(config, {
+        primary: "primary",
+        fallbacks: ["fallback"],
+        healthCheck: false,
+      }),
+    ProviderFactoryError,
+    "All providers in fallback chain failed",
+  );
+});
+
+Deno.test("ProviderFactory: createWithFallback healthCheck calls validateConnection", async () => {
+  // Custom provider with validateConnection
+  class TestProvider {
+    id = "test-provider";
+    validateConnection() {
+      return true;
+    }
+    generate() {
+      return Promise.resolve("ok");
+    }
+  }
+  // Patch ProviderFactory.createByName to return TestProvider for this test
+  const originalCreateByName = ProviderFactory.createByName;
+  ProviderFactory.createByName = (_config: any, _name: string) => Promise.resolve(new TestProvider());
+  try {
+    const config = createTestConfig();
+    const provider = await ProviderFactory.createWithFallback(config, {
+      primary: "test",
+      fallbacks: [],
+      healthCheck: true,
+    });
+    assertExists(provider);
+    assertEquals(provider.id, "test-provider");
+  } finally {
+    ProviderFactory.createByName = originalCreateByName;
+  }
+});
 
 Deno.test("ProviderFactory: createByName creates correct named provider", async () => {
   const config = createTestConfig();

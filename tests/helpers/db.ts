@@ -117,6 +117,22 @@ export const NOTIFICATIONS_TABLE_SQL = `
 `;
 
 /**
+ * SQL for provider_costs table (from migration 004)
+ */
+export const PROVIDER_COSTS_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS provider_costs (
+    id TEXT PRIMARY KEY,
+    provider TEXT NOT NULL,
+    requests INTEGER NOT NULL DEFAULT 0,
+    tokens INTEGER NOT NULL DEFAULT 0,
+    estimated_cost_usd REAL NOT NULL DEFAULT 0.0,
+    timestamp DATETIME DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_provider_costs_provider ON provider_costs(provider);
+  CREATE INDEX IF NOT EXISTS idx_provider_costs_timestamp ON provider_costs(timestamp);
+`;
+
+/**
  * Initialize full database schema for integration tests
  */
 export function initFullSchema(db: DatabaseService): void {
@@ -124,6 +140,7 @@ export function initFullSchema(db: DatabaseService): void {
   db.instance.exec(ACTIVITY_JOURNAL_TABLE_SQL);
   db.instance.exec(CHANGESETS_TABLE_SQL);
   db.instance.exec(NOTIFICATIONS_TABLE_SQL);
+  db.instance.exec(PROVIDER_COSTS_TABLE_SQL);
 }
 
 /**

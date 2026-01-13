@@ -10,6 +10,14 @@
  */
 
 import { IModelProvider } from "./providers.ts";
+import { CostTracker } from "../services/cost_tracker.ts";
+import {
+  RATE_LIMIT_WINDOW_DAY_MS,
+  RATE_LIMIT_WINDOW_HOUR_MS,
+  RATE_LIMIT_WINDOW_MINUTE_MS,
+  TOKEN_ESTIMATION_CHARS_PER_TOKEN,
+  TOKEN_ESTIMATION_MAX_TOKENS,
+} from "../config/constants.ts";
 
 /**
  * Error thrown when rate limits are exceeded
@@ -33,6 +41,8 @@ export interface RateLimitConfig {
   maxCostPerDay: number;
   /** Cost per 1,000 tokens in USD */
   costPer1kTokens: number;
+  /** Optional cost tracker for persistent cost tracking */
+  costTracker?: CostTracker;
 }
 
 /**
@@ -77,6 +87,15 @@ export class RateLimitedProvider implements IModelProvider {
       );
     }
 
+    // Check persistent budget if cost tracker is available
+    if (this.limits.costTracker) {
+      const providerName = this.extractProviderName(this.inner.id);
+      const withinBudget = await this.limits.costTracker.isWithinBudget(providerName, this.limits.maxCostPerDay);
+      if (!withinBudget) {
+        throw new RateLimitError(`Persistent cost budget exceeded for ${providerName}`);
+      }
+    }
+
     // Track before call (pessimistic)
     this.callsThisMinute++;
     this.tokensThisHour += estimatedTokens;
@@ -84,6 +103,13 @@ export class RateLimitedProvider implements IModelProvider {
 
     try {
       const result = await this.inner.generate(prompt, options);
+
+      // Track in persistent storage if cost tracker is available
+      if (this.limits.costTracker) {
+        const providerName = this.extractProviderName(this.inner.id);
+        await this.limits.costTracker.trackRequest(providerName, estimatedTokens);
+      }
+
       return result;
     } catch (error) {
       // Rollback tracking on error
@@ -101,19 +127,19 @@ export class RateLimitedProvider implements IModelProvider {
     const now = Date.now();
 
     // Reset per-minute counter
-    if (now - this.windowStart > 60_000) {
+    if (now - this.windowStart > RATE_LIMIT_WINDOW_MINUTE_MS) {
       this.callsThisMinute = 0;
       this.windowStart = now;
     }
 
     // Reset hourly counter
-    if (now - this.hourStart > 3_600_000) {
+    if (now - this.hourStart > RATE_LIMIT_WINDOW_HOUR_MS) {
       this.tokensThisHour = 0;
       this.hourStart = now;
     }
 
     // Reset daily counter
-    if (now - this.dayStart > 86_400_000) {
+    if (now - this.dayStart > RATE_LIMIT_WINDOW_DAY_MS) {
       this.costThisDay = 0;
       this.dayStart = now;
     }
@@ -127,6 +153,15 @@ export class RateLimitedProvider implements IModelProvider {
   private estimateTokens(prompt: string, _options?: { max_tokens?: number }): number {
     // For rate limiting, only count input tokens (prompt), not output tokens
     // This prevents over-estimation that would block legitimate requests
-    return Math.min(Math.ceil(prompt.length / 4), 2000);
+    return Math.min(Math.ceil(prompt.length / TOKEN_ESTIMATION_CHARS_PER_TOKEN), TOKEN_ESTIMATION_MAX_TOKENS);
+  }
+  /**
+   * Extract provider name from provider ID for cost tracking
+   * Examples: "anthropic-claude-3-sonnet" -> "anthropic", "openai-gpt-4" -> "openai"
+   */
+  private extractProviderName(providerId: string): string {
+    // Provider IDs follow pattern: "provider-model" or "rate-limited-provider-model"
+    const parts = providerId.replace(/^rate-limited-/, "").split("-");
+    return parts[0];
   }
 }

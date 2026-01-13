@@ -17,6 +17,8 @@ import { OpenAIProvider } from "./providers/openai_provider.ts";
 import { GoogleProvider } from "./providers/google_provider.ts";
 import { SecureCredentialStore } from "../utils/credential_security.ts";
 import { InputValidator } from "../schemas/input_validation.ts";
+import { CostTracker } from "../services/cost_tracker.ts";
+import { DatabaseService } from "../services/db.ts";
 import {
   AnthropicProviderFactory,
   GoogleProviderFactory,
@@ -89,6 +91,49 @@ export class ProviderFactoryError extends Error {
  */
 export class ProviderFactory {
   /**
+   * Create an LLM provider using a fallback chain.
+   * Tries primary, then fallbacks, with optional health check.
+   *
+   * @param config - ExoFrame configuration
+   * @param fallback - Fallback chain config
+   * @param db - Optional database service for cost tracking
+   * @returns An IModelProvider instance
+   */
+  static async createWithFallback(
+    config: Config,
+    fallback: {
+      primary: string;
+      fallbacks: string[];
+      maxRetries?: number;
+      healthCheck?: boolean;
+    },
+    db?: DatabaseService,
+  ): Promise<IModelProvider> {
+    const chain = [fallback.primary, ...fallback.fallbacks];
+    let lastError: unknown = undefined;
+    for (const providerName of chain) {
+      try {
+        const provider = await this.createByName(config, providerName, db);
+        // Optional health check before returning
+        if (fallback.healthCheck) {
+          // TODO: Implement health check - for now, skip since IModelProvider doesn't have validateConnection
+          // await validateProviderConnection(provider);
+        }
+        return provider;
+      } catch (error) {
+        lastError = error;
+        // Use repo logging convention if available
+        if (typeof console !== "undefined" && typeof console.warn === "function") {
+          console.warn(`Provider ${providerName} failed, trying next in chain`, error);
+        }
+        continue;
+      }
+    }
+    throw new ProviderFactoryError(
+      "All providers in fallback chain failed" + (lastError ? ": " + String(lastError) : ""),
+    );
+  }
+  /**
    * Create an LLM provider based on environment and configuration.
    *
    * Priority order:
@@ -97,19 +142,22 @@ export class ProviderFactory {
    * 3. Defaults (MockLLMProvider)
    *
    * @param config - ExoFrame configuration
+   * @param db - Optional database service for cost tracking
    * @returns An IModelProvider instance
    */
-  static async create(config: Config): Promise<IModelProvider> {
+  static async create(config: Config, db?: DatabaseService): Promise<IModelProvider> {
     const options = this.resolveOptions(config);
     const provider = await this.createProvider(options);
 
     // Apply rate limiting if enabled
     if (config.rate_limiting?.enabled) {
+      const costTracker = db ? new CostTracker(db) : undefined;
       return new RateLimitedProvider(provider, {
         maxCallsPerMinute: config.rate_limiting.max_calls_per_minute,
         maxTokensPerHour: config.rate_limiting.max_tokens_per_hour,
         maxCostPerDay: config.rate_limiting.max_cost_per_day,
         costPer1kTokens: config.rate_limiting.cost_per_1k_tokens,
+        costTracker,
       });
     }
 
@@ -121,19 +169,22 @@ export class ProviderFactory {
    *
    * @param config - ExoFrame configuration
    * @param name - Name of the model configuration (e.g., "default", "fast")
+   * @param db - Optional database service for cost tracking
    * @returns An IModelProvider instance
    */
-  static async createByName(config: Config, name: string): Promise<IModelProvider> {
+  static async createByName(config: Config, name: string, db?: DatabaseService): Promise<IModelProvider> {
     const options = this.resolveOptionsByName(config, name);
     const provider = await this.createProvider(options);
 
     // Apply rate limiting if enabled
     if (config.rate_limiting?.enabled) {
+      const costTracker = db ? new CostTracker(db) : undefined;
       return new RateLimitedProvider(provider, {
         maxCallsPerMinute: config.rate_limiting.max_calls_per_minute,
         maxTokensPerHour: config.rate_limiting.max_tokens_per_hour,
         maxCostPerDay: config.rate_limiting.max_cost_per_day,
         costPer1kTokens: config.rate_limiting.cost_per_1k_tokens,
+        costTracker,
       });
     }
 

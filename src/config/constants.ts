@@ -78,6 +78,36 @@ export const DEFAULT_GIT_BRANCH_PREFIX_PATTERN = "^(feat|fix|docs|chore|refactor
 export const DEFAULT_GIT_ALLOWED_PREFIXES = ["feat", "fix", "docs", "chore", "refactor", "test"];
 
 // ============================================================================
+// Rate Limiting Defaults
+// ============================================================================
+export const DEFAULT_RATE_LIMIT_ENABLED = true;
+export const DEFAULT_RATE_LIMIT_MAX_CALLS_PER_MINUTE = 60;
+export const DEFAULT_RATE_LIMIT_MAX_TOKENS_PER_HOUR = 100000;
+export const DEFAULT_RATE_LIMIT_MAX_COST_PER_DAY = 50;
+export const DEFAULT_RATE_LIMIT_COST_PER_1K_TOKENS = 0.03;
+
+// Rate limiting time windows (in milliseconds)
+export const RATE_LIMIT_WINDOW_MINUTE_MS = 60_000; // 1 minute
+export const RATE_LIMIT_WINDOW_HOUR_MS = 3_600_000; // 1 hour
+export const RATE_LIMIT_WINDOW_DAY_MS = 86_400_000; // 1 day
+
+// Token estimation constants
+export const TOKEN_ESTIMATION_CHARS_PER_TOKEN = 4;
+export const TOKEN_ESTIMATION_MAX_TOKENS = 2000;
+
+// ============================================================================
+// Cost Tracking Defaults
+// ============================================================================
+// Cost Tracking Constants
+// ============================================================================
+export const TOKENS_PER_COST_UNIT = 1000; // Cost rates are per 1K tokens
+export const COST_RATE_OPENAI = 0.01; // $0.01 per 1K tokens
+export const COST_RATE_ANTHROPIC = 0.015; // $0.015 per 1K tokens
+export const COST_RATE_GOOGLE = 0; // Free tier
+export const COST_RATE_OLLAMA = 0; // Local free
+export const COST_RATE_MOCK = 0; // Mock free
+
+// ============================================================================
 // Subprocess/Git Operation Defaults
 // ============================================================================
 export const DEFAULT_SUBPROCESS_TIMEOUT_MS = 30000;
