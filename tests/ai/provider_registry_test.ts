@@ -29,6 +29,160 @@ Deno.test("ProviderRegistry: returns undefined for unregistered providers", () =
   assertEquals(retrieved, undefined);
 });
 
+// ============================================================================
+// Enhanced Metadata Tests
+// ============================================================================
+
+Deno.test("ProviderRegistry: can register providers with metadata", () => {
+  ProviderRegistry.clear();
+
+  const metadata = {
+    name: "test-provider",
+    description: "Test provider for unit tests",
+    capabilities: ["chat", "streaming"],
+    costTier: "FREE" as const,
+    pricingTier: "local" as const,
+    strengths: ["testing", "deterministic"],
+  };
+
+  ProviderRegistry.registerWithMetadata("test-provider", new MockProviderFactory(), metadata);
+
+  const retrieved = ProviderRegistry.getProviderMetadata("test-provider");
+  assertExists(retrieved);
+  assertEquals(retrieved.name, "test-provider");
+  assertEquals(retrieved.costTier, "FREE");
+  assertEquals(retrieved.pricingTier, "local");
+});
+
+Deno.test("ProviderRegistry: getProvidersByCostTier returns providers filtered by cost tier", () => {
+  ProviderRegistry.clear();
+
+  // Register providers with different cost tiers
+  ProviderRegistry.registerWithMetadata("free-provider", new MockProviderFactory(), {
+    name: "free-provider",
+    description: "Free provider",
+    capabilities: ["chat"],
+    costTier: "FREE",
+    pricingTier: "local",
+    strengths: ["free"],
+  });
+
+  ProviderRegistry.registerWithMetadata("paid-provider", new MockProviderFactory(), {
+    name: "paid-provider",
+    description: "Paid provider",
+    capabilities: ["chat"],
+    costTier: "PAID",
+    pricingTier: "high",
+    strengths: ["premium"],
+  });
+
+  ProviderRegistry.registerWithMetadata("freemium-provider", new MockProviderFactory(), {
+    name: "freemium-provider",
+    description: "Freemium provider",
+    capabilities: ["chat"],
+    costTier: "FREEMIUM",
+    pricingTier: "free",
+    strengths: ["balanced"],
+  });
+
+  const freeProviders = ProviderRegistry.getProvidersByCostTier("FREE");
+  const paidProviders = ProviderRegistry.getProvidersByCostTier("PAID");
+  const freemiumProviders = ProviderRegistry.getProvidersByCostTier("FREEMIUM");
+
+  assertEquals(freeProviders, ["free-provider"]);
+  assertEquals(paidProviders, ["paid-provider"]);
+  assertEquals(freemiumProviders, ["freemium-provider"]);
+});
+
+Deno.test("ProviderRegistry: getProvidersForTask returns providers sorted by cost priority", () => {
+  ProviderRegistry.clear();
+
+  // Register providers with different pricing tiers
+  ProviderRegistry.registerWithMetadata("local-provider", new MockProviderFactory(), {
+    name: "local-provider",
+    description: "Local provider",
+    capabilities: ["chat"],
+    costTier: "FREE",
+    pricingTier: "local",
+    strengths: ["code-generation"],
+  });
+
+  ProviderRegistry.registerWithMetadata("free-provider", new MockProviderFactory(), {
+    name: "free-provider",
+    description: "Free provider",
+    capabilities: ["chat"],
+    costTier: "FREEMIUM",
+    pricingTier: "free",
+    strengths: ["code-generation"],
+  });
+
+  ProviderRegistry.registerWithMetadata("paid-provider", new MockProviderFactory(), {
+    name: "paid-provider",
+    description: "Paid provider",
+    capabilities: ["chat"],
+    costTier: "PAID",
+    pricingTier: "high",
+    strengths: ["code-generation"],
+  });
+
+  const codeGenProviders = ProviderRegistry.getProvidersForTask("code-generation");
+
+  // Should be sorted: local (cheapest) -> free -> high (most expensive)
+  assertEquals(codeGenProviders, ["local-provider", "free-provider", "paid-provider"]);
+});
+
+Deno.test("ProviderRegistry: getProviderMetadata returns undefined for unregistered provider", () => {
+  ProviderRegistry.clear();
+  const metadata = ProviderRegistry.getProviderMetadata("non-existent");
+  assertEquals(metadata, undefined);
+});
+
+Deno.test("ProviderRegistry: metadata includes free quota information", () => {
+  ProviderRegistry.clear();
+
+  const metadata = {
+    name: "quota-provider",
+    description: "Provider with quota",
+    capabilities: ["chat"],
+    costTier: "FREEMIUM" as const,
+    pricingTier: "free" as const,
+    strengths: ["general"],
+    freeQuota: {
+      requestsPerDay: 1500,
+      tokensPerMonth: 1000000,
+    },
+  };
+
+  ProviderRegistry.registerWithMetadata("quota-provider", new MockProviderFactory(), metadata);
+
+  const retrieved = ProviderRegistry.getProviderMetadata("quota-provider");
+  assertExists(retrieved);
+  assertExists(retrieved.freeQuota);
+  assertEquals(retrieved.freeQuota?.requestsPerDay, 1500);
+  assertEquals(retrieved.freeQuota?.tokensPerMonth, 1000000);
+});
+
+// ============================================================================
+// Basic Registry Tests
+// ============================================================================
+
+Deno.test("ProviderRegistry: can register and retrieve factories", () => {
+  ProviderRegistry.clear();
+  const factory = new MockProviderFactory();
+
+  ProviderRegistry.register("test-mock", factory);
+  const retrieved = ProviderRegistry.getFactory("test-mock");
+
+  assertExists(retrieved);
+  assertEquals(retrieved.getSupportedProviders(), ["mock"]);
+});
+
+Deno.test("ProviderRegistry: returns undefined for unregistered providers", () => {
+  ProviderRegistry.clear();
+  const retrieved = ProviderRegistry.getFactory("non-existent");
+  assertEquals(retrieved, undefined);
+});
+
 Deno.test("MockProviderFactory: creates providers", async () => {
   const factory = new MockProviderFactory();
   const options: ResolvedProviderOptions = {

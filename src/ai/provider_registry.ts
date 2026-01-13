@@ -29,6 +29,10 @@ import { ProviderFactoryError } from "./provider_factory.ts";
 // Interfaces
 // ============================================================================
 
+// ============================================================================
+// Interfaces
+// ============================================================================
+
 /**
  * Interface that all provider factories must implement.
  * Defines the contract for creating provider instances.
@@ -49,6 +53,31 @@ export interface IProviderFactory {
   getSupportedProviders(): string[];
 }
 
+/**
+ * Metadata describing a provider's capabilities and characteristics.
+ * Used for intelligent provider selection and cost optimization.
+ */
+export interface ProviderMetadata {
+  /** Unique provider name */
+  name: string;
+  /** Human-readable description */
+  description: string;
+  /** Supported capabilities (e.g., "chat", "streaming", "vision") */
+  capabilities: string[];
+  /** Cost tier classification */
+  costTier: "FREE" | "FREEMIUM" | "PAID";
+  /** Optional free tier quota limits */
+  freeQuota?: {
+    requestsPerDay?: number;
+    requestsPerMinute?: number;
+    tokensPerMonth?: number;
+  };
+  /** Pricing tier for cost-based sorting */
+  pricingTier: "local" | "free" | "low" | "medium" | "high";
+  /** Task types this provider excels at */
+  strengths: string[];
+}
+
 // ============================================================================
 // Provider Registry
 // ============================================================================
@@ -59,6 +88,7 @@ export interface IProviderFactory {
  */
 export class ProviderRegistry {
   private static factories = new Map<string, IProviderFactory>();
+  private static metadata = new Map<string, ProviderMetadata>();
 
   /**
    * Register a factory for a specific provider type.
@@ -67,6 +97,21 @@ export class ProviderRegistry {
    */
   static register(providerType: string, factory: IProviderFactory): void {
     this.factories.set(providerType, factory);
+  }
+
+  /**
+   * Register a provider with its factory and metadata.
+   * @param providerType The provider type identifier
+   * @param factory The factory instance
+   * @param metadata Provider capabilities and characteristics
+   */
+  static registerWithMetadata(
+    providerType: string,
+    factory: IProviderFactory,
+    metadata: ProviderMetadata,
+  ): void {
+    this.factories.set(providerType, factory);
+    this.metadata.set(providerType, metadata);
   }
 
   /**
@@ -79,6 +124,15 @@ export class ProviderRegistry {
   }
 
   /**
+   * Get metadata for a specific provider.
+   * @param providerType The provider type to look up
+   * @returns Provider metadata, or undefined if not registered
+   */
+  static getProviderMetadata(providerType: string): ProviderMetadata | undefined {
+    return this.metadata.get(providerType);
+  }
+
+  /**
    * Get all registered provider types.
    * @returns Array of all registered provider type strings
    */
@@ -87,11 +141,62 @@ export class ProviderRegistry {
   }
 
   /**
-   * Clear all registered factories.
+   * Get providers filtered by cost tier.
+   * @param costTier The cost tier to filter by
+   * @returns Array of provider names matching the cost tier
+   */
+  static getProvidersByCostTier(costTier: "FREE" | "FREEMIUM" | "PAID"): string[] {
+    return Array.from(this.metadata.entries())
+      .filter(([, metadata]) => metadata.costTier === costTier)
+      .map(([providerType]) => providerType);
+  }
+
+  /**
+   * Get providers suitable for a specific task type, sorted by cost priority.
+   * @param taskType The task type to find providers for
+   * @returns Array of provider names sorted from cheapest to most expensive
+   */
+  static getProvidersForTask(taskType: string): string[] {
+    return Array.from(this.metadata.entries())
+      .filter(([, metadata]) => metadata.strengths.includes(taskType))
+      .sort(([, a], [, b]) => this.costPriority(a.pricingTier) - this.costPriority(b.pricingTier))
+      .map(([providerType]) => providerType);
+  }
+
+  /**
+   * Convert pricing tier to numeric priority for sorting (lower = cheaper).
+   * @param pricingTier The pricing tier
+   * @returns Numeric priority value
+   */
+  private static costPriority(pricingTier: string): number {
+    const priorities: Record<string, number> = {
+      "local": 0,
+      "free": 1,
+      "low": 2,
+      "medium": 3,
+      "high": 4,
+    };
+    return priorities[pricingTier] ?? 999;
+  }
+
+  /**
+   * Get all registered providers with their metadata.
+   * @returns Array of provider info objects with factory and metadata
+   */
+  static getAllProviders(): Array<{ factory: IProviderFactory; metadata: ProviderMetadata }> {
+    return Array.from(this.metadata.entries()).map(([providerType, metadata]) => ({
+      factory: this.factories.get(providerType)!,
+      metadata,
+    }));
+  }
+
+  /**
+   * Clear all registered factories and metadata.
    * Primarily used for testing to ensure test isolation.
    */
   static clear(): void {
     this.factories.clear();
+    this.metadata.clear();
   }
 }
 

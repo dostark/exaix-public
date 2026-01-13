@@ -136,6 +136,25 @@ export class HealthCheckService {
       checks: results,
     };
   }
+
+  /**
+   * Check the health of a specific provider by name.
+   * @param providerName The name of the provider to check
+   * @returns True if the provider is healthy, false otherwise
+   */
+  async checkProvider(providerName: string): Promise<boolean> {
+    const check = this.checks.get(providerName);
+    if (!check) {
+      return false; // Provider not registered for health checks
+    }
+
+    try {
+      const result = await check.check();
+      return result.status === "pass";
+    } catch {
+      return false;
+    }
+  }
 }
 
 /**
