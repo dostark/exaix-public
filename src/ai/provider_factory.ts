@@ -19,6 +19,7 @@ import { SecureCredentialStore } from "../utils/credential_security.ts";
 import { InputValidator } from "../schemas/input_validation.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
 import { DatabaseService } from "../services/db.ts";
+import { createAPIRetryPolicy, RetryPolicy } from "../services/retry_policy.ts";
 import {
   AnthropicProviderFactory,
   GoogleProviderFactory,
@@ -92,7 +93,7 @@ export class ProviderFactoryError extends Error {
 export class ProviderFactory {
   /**
    * Create an LLM provider using a fallback chain.
-   * Tries primary, then fallbacks, with optional health check.
+   * Tries primary, then fallbacks, with optional health check and retry logic.
    *
    * @param config - ExoFrame configuration
    * @param fallback - Fallback chain config
@@ -111,24 +112,41 @@ export class ProviderFactory {
   ): Promise<IModelProvider> {
     const chain = [fallback.primary, ...fallback.fallbacks];
     let lastError: unknown = undefined;
+
     for (const providerName of chain) {
       try {
-        const provider = await this.createByName(config, providerName, db);
+        // Create retry policy for this provider attempt
+        const retryPolicy = fallback.maxRetries !== undefined
+          ? new RetryPolicy({ maxRetries: fallback.maxRetries })
+          : createAPIRetryPolicy();
+
+        // Use retry policy to create the provider
+        const retryResult = await retryPolicy.execute(async () => {
+          return await this.createByName(config, providerName, db);
+        });
+
+        if (!retryResult.success) {
+          throw retryResult.error || new Error("Provider creation failed after retries");
+        }
+
+        const provider = retryResult.value!; // We know it's defined since success is true
+
         // Optional health check before returning
         if (fallback.healthCheck) {
-          // TODO: Implement health check - for now, skip since IModelProvider doesn't have validateConnection
-          // await validateProviderConnection(provider);
+          await validateProviderConnection(provider);
         }
+
         return provider;
       } catch (error) {
         lastError = error;
         // Use repo logging convention if available
         if (typeof console !== "undefined" && typeof console.warn === "function") {
-          console.warn(`Provider ${providerName} failed, trying next in chain`, error);
+          console.warn(`Provider ${providerName} failed after retries, trying next in chain`, error);
         }
         continue;
       }
     }
+
     throw new ProviderFactoryError(
       "All providers in fallback chain failed" + (lastError ? ": " + String(lastError) : ""),
     );
@@ -501,7 +519,47 @@ function initializeRegistry(): void {
   }
 }
 
-// Note: LlamaProvider is handled specially in createProviderLegacy due to model-based routing
+// ============================================================================
+// Provider Validation and Health Checks
+// ============================================================================
+
+/**
+ * Validate that a provider connection is working by making a lightweight test request.
+ * This is used for health checks in fallback chains.
+ *
+ * @param provider - The provider to validate
+ * @returns Promise that resolves if connection is healthy, rejects if not
+ */
+export async function validateProviderConnection(provider: IModelProvider): Promise<void> {
+  try {
+    // Use a minimal test prompt that should work with any provider
+    const testPrompt = "Hello";
+    const testOptions = { max_tokens: 1, temperature: 0 };
+
+    // Create a timeout promise with proper cleanup
+    let timeoutId: number | undefined;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("Health check timeout")), 5000);
+    });
+
+    try {
+      // Race the health check against the timeout
+      await Promise.race([
+        provider.generate(testPrompt, testOptions),
+        timeoutPromise,
+      ]);
+    } finally {
+      // Always clear the timeout to prevent leaks
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+      }
+    }
+  } catch (error) {
+    throw new ProviderFactoryError(
+      `Provider ${provider.id} health check failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
 
 // Helper for tests: get provider by model name
 export async function getProviderForModel(model: string) {

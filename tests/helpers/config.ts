@@ -87,6 +87,14 @@ export function createMockConfig(root: string, overrides: Partial<Config> = {}):
       openai: DEFAULTS.DEFAULT_OPENAI_TIMEOUT_MS,
       google: DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS,
     },
+    provider_strategy: overrides.provider_strategy || {
+      prefer_free: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_PREFER_FREE,
+      allow_local: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_ALLOW_LOCAL,
+      max_daily_cost_usd: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_MAX_DAILY_COST_USD,
+      health_check_enabled: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_HEALTH_CHECK_ENABLED,
+      fallback_enabled: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_FALLBACK_ENABLED,
+    },
+    providers: overrides.providers || {},
   };
 }
 

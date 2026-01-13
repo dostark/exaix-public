@@ -165,6 +165,31 @@ export const ConfigSchema = z.object({
     branch_prefix_pattern: DEFAULTS.DEFAULT_GIT_BRANCH_PREFIX_PATTERN,
     allowed_prefixes: DEFAULTS.DEFAULT_GIT_ALLOWED_PREFIXES,
   }),
+  /** Provider strategy configuration for intelligent provider selection */
+  provider_strategy: z.object({
+    prefer_free: z.boolean().default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_PREFER_FREE),
+    allow_local: z.boolean().default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_ALLOW_LOCAL),
+    max_daily_cost_usd: z.number().min(0).max(1000).default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_MAX_DAILY_COST_USD),
+    health_check_enabled: z.boolean().default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_HEALTH_CHECK_ENABLED),
+    fallback_enabled: z.boolean().default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_FALLBACK_ENABLED),
+    fallback_chains: z.record(z.array(z.string())).optional(),
+    budgets: z.record(z.number().min(0)).optional(),
+    task_routing: z.record(z.array(z.string())).optional(),
+  }).optional().default({
+    prefer_free: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_PREFER_FREE,
+    allow_local: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_ALLOW_LOCAL,
+    max_daily_cost_usd: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_MAX_DAILY_COST_USD,
+    health_check_enabled: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_HEALTH_CHECK_ENABLED,
+    fallback_enabled: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_FALLBACK_ENABLED,
+  }),
+  /** Provider-specific configuration overrides */
+  providers: z.record(z.object({
+    cost_tier: z.enum(["free", "freemium", "paid", "local"]).optional(),
+    free_quota_requests_per_day: z.number().min(0).optional(),
+    base_url: z.string().optional(),
+    timeout_ms: z.number().min(1000).max(300000).optional(),
+    rate_limit_rpm: z.number().min(1).max(1000).optional(),
+  })).optional().default({}),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

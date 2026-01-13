@@ -109,6 +109,14 @@ function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       fast: { provider: "openai", model: "gpt-5.2-pro-mini", timeout_ms: 15000 },
       local: { provider: "ollama", model: "llama3.2", timeout_ms: 60000 },
     },
+    provider_strategy: {
+      prefer_free: true,
+      allow_local: true,
+      max_daily_cost_usd: 5.00,
+      health_check_enabled: true,
+      fallback_enabled: true,
+    },
+    providers: {},
   };
 }
 

@@ -108,6 +108,15 @@ export const COST_RATE_OLLAMA = 0; // Local free
 export const COST_RATE_MOCK = 0; // Mock free
 
 // ============================================================================
+// Provider Strategy Defaults
+// ============================================================================
+export const DEFAULT_PROVIDER_STRATEGY_PREFER_FREE = true;
+export const DEFAULT_PROVIDER_STRATEGY_ALLOW_LOCAL = true;
+export const DEFAULT_PROVIDER_STRATEGY_MAX_DAILY_COST_USD = 5.00;
+export const DEFAULT_PROVIDER_STRATEGY_HEALTH_CHECK_ENABLED = true;
+export const DEFAULT_PROVIDER_STRATEGY_FALLBACK_ENABLED = true;
+
+// ============================================================================
 // Subprocess/Git Operation Defaults
 // ============================================================================
 export const DEFAULT_SUBPROCESS_TIMEOUT_MS = 30000;

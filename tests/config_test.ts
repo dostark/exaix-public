@@ -683,3 +683,256 @@ runtime = "./Runtime"`,
     }
   }
 });
+
+// Provider Strategy Configuration Tests (Improvement 5: Enhanced Configuration Schema)
+
+Deno.test("ConfigSchema accepts provider_strategy section", () => {
+  const config = {
+    system: { version: "1.0.0" },
+    paths: {
+      workspace: "Workspace",
+      runtime: ".exo",
+      memory: "Memory",
+      portals: "Portals",
+      blueprints: "Blueprints",
+    },
+    provider_strategy: {
+      prefer_free: true,
+      allow_local: true,
+      max_daily_cost_usd: 5.00,
+      health_check_enabled: true,
+      fallback_enabled: true,
+    },
+  };
+
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, true);
+  if (result.success) {
+    assertEquals(result.data.provider_strategy?.prefer_free, true);
+    assertEquals(result.data.provider_strategy?.allow_local, true);
+    assertEquals(result.data.provider_strategy?.max_daily_cost_usd, 5.00);
+    assertEquals(result.data.provider_strategy?.health_check_enabled, true);
+    assertEquals(result.data.provider_strategy?.fallback_enabled, true);
+  }
+});
+
+Deno.test("ConfigSchema accepts provider_strategy.fallback_chains", () => {
+  const config = {
+    system: { version: "1.0.0" },
+    paths: {
+      workspace: "Workspace",
+      runtime: ".exo",
+      memory: "Memory",
+      portals: "Portals",
+      blueprints: "Blueprints",
+    },
+    provider_strategy: {
+      fallback_chains: {
+        free: ["google", "ollama", "mock"],
+        paid: ["anthropic", "openai"],
+        local: ["ollama"],
+      },
+    },
+  };
+
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, true);
+  if (result.success) {
+    assertEquals(result.data.provider_strategy?.fallback_chains?.free, ["google", "ollama", "mock"]);
+    assertEquals(result.data.provider_strategy?.fallback_chains?.paid, ["anthropic", "openai"]);
+    assertEquals(result.data.provider_strategy?.fallback_chains?.local, ["ollama"]);
+  }
+});
+
+Deno.test("ConfigSchema accepts provider_strategy.budgets", () => {
+  const config = {
+    system: { version: "1.0.0" },
+    paths: {
+      workspace: "Workspace",
+      runtime: ".exo",
+      memory: "Memory",
+      portals: "Portals",
+      blueprints: "Blueprints",
+    },
+    provider_strategy: {
+      budgets: {
+        anthropic_daily_usd: 3.00,
+        openai_daily_usd: 2.00,
+      },
+    },
+  };
+
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, true);
+  if (result.success) {
+    assertEquals(result.data.provider_strategy?.budgets?.anthropic_daily_usd, 3.00);
+    assertEquals(result.data.provider_strategy?.budgets?.openai_daily_usd, 2.00);
+  }
+});
+
+Deno.test("ConfigSchema accepts provider_strategy.task_routing", () => {
+  const config = {
+    system: { version: "1.0.0" },
+    paths: {
+      workspace: "Workspace",
+      runtime: ".exo",
+      memory: "Memory",
+      portals: "Portals",
+      blueprints: "Blueprints",
+    },
+    provider_strategy: {
+      task_routing: {
+        simple: ["ollama", "google"],
+        medium: ["google", "anthropic"],
+        complex: ["anthropic", "openai"],
+        code_generation: ["anthropic", "openai"],
+      },
+    },
+  };
+
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, true);
+  if (result.success) {
+    assertEquals(result.data.provider_strategy?.task_routing?.simple, ["ollama", "google"]);
+    assertEquals(result.data.provider_strategy?.task_routing?.medium, ["google", "anthropic"]);
+    assertEquals(result.data.provider_strategy?.task_routing?.complex, ["anthropic", "openai"]);
+    assertEquals(result.data.provider_strategy?.task_routing?.code_generation, ["anthropic", "openai"]);
+  }
+});
+
+Deno.test("ConfigSchema accepts providers.* overrides", () => {
+  const config = {
+    system: { version: "1.0.0" },
+    paths: {
+      workspace: "Workspace",
+      runtime: ".exo",
+      memory: "Memory",
+      portals: "Portals",
+      blueprints: "Blueprints",
+    },
+    providers: {
+      google: {
+        cost_tier: "freemium",
+        free_quota_requests_per_day: 1500,
+        timeout_ms: 30000,
+      },
+      ollama: {
+        cost_tier: "free",
+        base_url: "http://localhost:11434",
+        timeout_ms: 60000,
+      },
+      anthropic: {
+        cost_tier: "paid",
+        timeout_ms: 30000,
+        rate_limit_rpm: 50,
+      },
+    },
+  };
+
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, true);
+  if (result.success) {
+    assertEquals(result.data.providers?.google?.cost_tier, "freemium");
+    assertEquals(result.data.providers?.google?.free_quota_requests_per_day, 1500);
+    assertEquals(result.data.providers?.ollama?.cost_tier, "free");
+    assertEquals(result.data.providers?.ollama?.base_url, "http://localhost:11434");
+    assertEquals(result.data.providers?.anthropic?.cost_tier, "paid");
+    assertEquals(result.data.providers?.anthropic?.rate_limit_rpm, 50);
+  }
+});
+
+Deno.test("ConfigSchema provides defaults for provider_strategy", () => {
+  const config = {
+    system: { version: "1.0.0" },
+    paths: {
+      workspace: "Workspace",
+      runtime: ".exo",
+      memory: "Memory",
+      portals: "Portals",
+      blueprints: "Blueprints",
+    },
+  };
+
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, true);
+  if (result.success) {
+    // Check that defaults are applied
+    assertEquals(result.data.provider_strategy?.prefer_free, true);
+    assertEquals(result.data.provider_strategy?.allow_local, true);
+    assertEquals(result.data.provider_strategy?.max_daily_cost_usd, 5.00);
+    assertEquals(result.data.provider_strategy?.health_check_enabled, true);
+    assertEquals(result.data.provider_strategy?.fallback_enabled, true);
+  }
+});
+
+Deno.test("ConfigSchema validates provider names in fallback_chains", () => {
+  const config = {
+    system: { version: "1.0.0" },
+    paths: {
+      workspace: "Workspace",
+      runtime: ".exo",
+      memory: "Memory",
+      portals: "Portals",
+      blueprints: "Blueprints",
+    },
+    provider_strategy: {
+      fallback_chains: {
+        free: ["invalid_provider", "google"],
+      },
+    },
+  };
+
+  // This should still pass since we don't validate provider names in schema
+  // Validation happens at runtime when providers are resolved
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, true);
+});
+
+Deno.test("ConfigSchema rejects invalid cost_tier values", () => {
+  const config = {
+    system: { version: "1.0.0" },
+    paths: {
+      workspace: "Workspace",
+      runtime: ".exo",
+      memory: "Memory",
+      portals: "Portals",
+      blueprints: "Blueprints",
+    },
+    providers: {
+      google: {
+        cost_tier: "invalid_tier",
+      },
+    },
+  };
+
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, false);
+});
+
+Deno.test("ConfigSchema accepts valid cost_tier values", () => {
+  const config = {
+    system: { version: "1.0.0" },
+    paths: {
+      workspace: "Workspace",
+      runtime: ".exo",
+      memory: "Memory",
+      portals: "Portals",
+      blueprints: "Blueprints",
+    },
+    providers: {
+      google: {
+        cost_tier: "free",
+      },
+      anthropic: {
+        cost_tier: "paid",
+      },
+    },
+  };
+
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, true);
+  if (result.success) {
+    assertEquals(result.data.providers?.google?.cost_tier, "free");
+    assertEquals(result.data.providers?.anthropic?.cost_tier, "paid");
+  }
+});
