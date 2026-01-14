@@ -54,7 +54,6 @@ Always respond with:
       // Create RequestProcessor using real provider
       const processor = new RequestProcessor(
         env.config,
-        provider,
         env.db,
         {
           workspacePath: getWorkspaceDir(`${env.tempDir}`),
@@ -62,6 +61,7 @@ Always respond with:
           blueprintsPath: `${env.tempDir}/Blueprints/Agents`,
           includeReasoning: true,
         },
+        provider, // Test provider override
       );
 
       // End-to-end: create request and process

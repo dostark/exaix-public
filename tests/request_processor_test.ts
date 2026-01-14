@@ -18,6 +18,7 @@ import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@^1";
 import { join } from "@std/path";
 
 import { RequestProcessor, type RequestProcessorConfig } from "../src/services/request_processor.ts";
+import { MockProviderFactory, ProviderRegistry } from "../src/ai/provider_registry.ts";
 import { MockLLMProvider } from "../src/ai/providers/mock_llm_provider.ts";
 import { DatabaseService } from "../src/services/db.ts";
 import { initTestDbService } from "./helpers/db.ts";
@@ -138,9 +139,23 @@ describe("RequestProcessor", () => {
       blueprintsPath: getBlueprintsAgentsDir(testDir),
       includeReasoning: true,
     };
+
+    // Set up ProviderRegistry for testing
+    ProviderRegistry.clear();
+    ProviderRegistry.registerWithMetadata("mock", new MockProviderFactory(), {
+      name: "mock",
+      costTier: "FREE",
+      pricingTier: "free",
+      capabilities: ["chat"],
+      description: "Mock provider for testing",
+      strengths: ["fast", "reliable", "deterministic"],
+    });
   });
 
   afterEach(async () => {
+    // Clean up ProviderRegistry
+    ProviderRegistry.clear();
+
     // Use the cleanup function from initTestDbService
     await cleanup();
   });
@@ -156,17 +171,7 @@ describe("RequestProcessor", () => {
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse(
-          "Analyzing request",
-          JSON.stringify({
-            title: "Implementation Plan",
-            description: "Plan for adding hello world function",
-            steps: [{ step: 1, title: "Implement function", description: "Add hello world to utils.ts" }],
-          }),
-        )],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const result = await processor.process(requestPath);
 
@@ -187,10 +192,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, invalidContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse("Test", "Content")],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const result = await processor.process(requestPath);
 
@@ -211,10 +213,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, invalidContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse("Test", "Content")],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const result = await processor.process(requestPath);
 
@@ -232,17 +231,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse(
-          "Analyzing auth requirements",
-          JSON.stringify({
-            title: "Auth Implementation Plan",
-            description: "User authentication system implementation",
-            steps: [{ step: 1, title: "Implement auth", description: "Create authentication system" }],
-          }),
-        )],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const planPath = await processor.process(requestPath);
 
@@ -262,17 +251,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse(
-          "Logging analysis",
-          JSON.stringify({
-            title: "Logging Plan",
-            description: "Add logging to service layer",
-            steps: [{ step: 1, title: "Add logging", description: "Add logging to the service layer" }],
-          }),
-        )],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const planPath = await processor.process(requestPath);
 
@@ -290,17 +269,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse(
-          "Error handling analysis",
-          JSON.stringify({
-            title: "Error Handling Plan",
-            description: "Implement error handling",
-            steps: [{ step: 1, title: "Error handling", description: "Implement proper error handling" }],
-          }),
-        )],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const planPath = await processor.process(requestPath);
       assert(planPath !== null);
@@ -325,17 +294,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse(
-          "Test analysis",
-          JSON.stringify({
-            title: "Test Plan",
-            description: "Add unit tests",
-            steps: [{ step: 1, title: "Add tests", description: "Add comprehensive unit tests" }],
-          }),
-        )],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       await processor.process(requestPath);
 
@@ -355,17 +314,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse(
-          "Refactoring analysis",
-          JSON.stringify({
-            title: "Refactor Plan",
-            description: "Refactor the database layer",
-            steps: [{ step: 1, title: "Refactor DB", description: "Refactor database layer" }],
-          }),
-        )],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       await processor.process(requestPath);
 
@@ -393,11 +342,13 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      // Use "failing" strategy to simulate LLM failure
-      const provider = new MockLLMProvider("failing", {
-        errorMessage: "Simulated LLM error",
+      // Create a failing mock provider to simulate LLM failure
+      const failingProvider = new MockLLMProvider("failing", {
+        id: "failing-mock",
+        errorMessage: "Simulated LLM failure",
       });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+
+      const processor = new RequestProcessor(config, db, processorConfig, failingProvider);
 
       const result = await processor.process(requestPath);
 
@@ -419,10 +370,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse("Test", "Content")],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const result = await processor.process(requestPath);
 
@@ -431,15 +379,86 @@ Do something
     });
 
     it("should handle file read errors", async () => {
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse("Test", "Content")],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       // Try to process a non-existent file
       const result = await processor.process("/nonexistent/path/request.md");
 
       assertEquals(result, null, "Should return null for non-existent file");
+    });
+  });
+
+  describe("Task Classification", () => {
+    it("should classify analyzer agents as simple tasks", async () => {
+      // Create data-analyzer blueprint
+      await Deno.writeTextFile(
+        join(testDir, "Blueprints", "Agents", "data-analyzer.md"),
+        createBlueprintContent(),
+      );
+
+      const { traceId, requestPath } = createTestRequestPath(testDir);
+      const requestContent = createRequestContent({
+        traceId,
+        agent: "data-analyzer",
+        body: "Analyze this dataset",
+      });
+
+      await Deno.writeTextFile(requestPath, requestContent);
+
+      const processor = new RequestProcessor(config, db, processorConfig);
+
+      const result = await processor.process(requestPath);
+
+      assert(result !== null, "Result should not be null for valid request");
+      assertStringIncludes(result!, "_plan.md");
+    });
+
+    it("should classify coder agents as complex tasks", async () => {
+      // Create senior-coder blueprint
+      await Deno.writeTextFile(
+        join(testDir, "Blueprints", "Agents", "senior-coder.md"),
+        createBlueprintContent(),
+      );
+
+      const { traceId, requestPath } = createTestRequestPath(testDir);
+      const requestContent = createRequestContent({
+        traceId,
+        agent: "senior-coder",
+        body: "Implement a complex algorithm",
+      });
+
+      await Deno.writeTextFile(requestPath, requestContent);
+
+      const processor = new RequestProcessor(config, db, processorConfig);
+
+      const result = await processor.process(requestPath);
+
+      assert(result !== null, "Result should not be null for valid request");
+      assertStringIncludes(result!, "_plan.md");
+    });
+
+    it("should classify general agents as medium tasks", async () => {
+      // Create content-writer blueprint
+      await Deno.writeTextFile(
+        join(testDir, "Blueprints", "Agents", "content-writer.md"),
+        createBlueprintContent(),
+      );
+
+      const { traceId, requestPath } = createTestRequestPath(testDir);
+      const requestContent = createRequestContent({
+        traceId,
+        agent: "content-writer",
+        body: "Write an article about AI",
+      });
+
+      await Deno.writeTextFile(requestPath, requestContent);
+
+      const processor = new RequestProcessor(config, db, processorConfig);
+
+      const result = await processor.process(requestPath);
+
+      assert(result !== null, "Result should not be null for valid request");
+      assertStringIncludes(result!, "_plan.md");
     });
   });
 
@@ -466,17 +485,7 @@ You are an expert code reviewer. Analyze code changes and provide feedback.
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse(
-          "Code review analysis",
-          JSON.stringify({
-            title: "Code Review Feedback",
-            description: "Review pull request feedback",
-            steps: [{ step: 1, title: "Review code", description: "Analyze code changes" }],
-          }),
-        )],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const result = await processor.process(requestPath);
 
@@ -493,17 +502,7 @@ You are an expert code reviewer. Analyze code changes and provide feedback.
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse(
-          "Default analysis",
-          JSON.stringify({
-            title: "Default Plan",
-            description: "Use the default blueprint",
-            steps: [{ step: 1, title: "Execute", description: "Execute using default blueprint" }],
-          }),
-        )],
-      });
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const result = await processor.process(requestPath);
 
@@ -529,23 +528,9 @@ Review this pull request for security issues.`;
       await Deno.writeTextFile(requestPath, requestContent);
 
       // Mock provider that returns flow execution plan
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse(
-          "Flow execution planning",
-          JSON.stringify({
-            title: "Flow Execution Plan",
-            description: "Execute code-review flow",
-            steps: [{
-              step: 1,
-              title: "Execute Flow",
-              description: "Execute the code-review flow with the given request",
-            }],
-          }),
-        )],
-      });
 
       // Create processor with RequestRouter integration
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const planPath = await processor.process(requestPath);
       assert(planPath !== null, "Should process flow requests");
@@ -571,11 +556,7 @@ Test flow processing.`;
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse("Should not be called", "{}")],
-      });
-
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const result = await processor.process(requestPath);
       assert(result !== null, "Should process flow requests even when validation is disabled");
@@ -598,11 +579,7 @@ Conflicting request.`;
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const provider = new MockLLMProvider("scripted", {
-        responses: [createMockResponse("Should not be called", "{}")],
-      });
-
-      const processor = new RequestProcessor(config, provider, db, processorConfig);
+      const processor = new RequestProcessor(config, db, processorConfig);
 
       const result = await processor.process(requestPath);
       assertEquals(result, null, "Should reject conflicting flow/agent fields");

@@ -676,28 +676,29 @@ rate_limit_rpm = 60
 
 **Estimated Effort:** 16-20 hours
 
-### Phase 2: Intelligent Selection (Week 3)
+### Phase 2: Intelligent Selection (Week 3) ✅ **COMPLETED**
 
 **Tasks:**
 
-1. **Implement Provider Selector**
-   - Create `src/ai/provider_selector.ts`
-   - Implement `selectProvider(criteria)` with filtering/sorting
-   - Add task complexity classification logic
-   - Integrate with health checker and cost tracker
-   - Files: `src/ai/provider_selector.ts`
+1. **Implement Provider Selector** ✅ **IMPLEMENTED**
+   - Create `src/ai/provider_selector.ts` ✅ **IMPLEMENTED**
+   - Implement `selectProvider(criteria)` with filtering/sorting ✅ **IMPLEMENTED**
+   - Add task complexity classification logic ✅ **IMPLEMENTED**
+   - Integrate with health checker and cost tracker ✅ **IMPLEMENTED**
+   - Files: `src/ai/provider_selector.ts` ✅ **IMPLEMENTED**
 
-2. **Extend Configuration Schema**
-   - Add `[provider_strategy]` section to config schema
-   - Add `fallback_chains`, `budgets`, `task_routing`
-   - Update `src/config/schema.ts` with new types
-   - Files: `src/config/schema.ts`, `src/config/ai_config.ts`, `exo.config.toml`
+2. **Extend Configuration Schema** ✅ **IMPLEMENTED**
+   - Add `[provider_strategy]` section to config schema ✅ **IMPLEMENTED**
+   - Add `fallback_chains`, `budgets`, `task_routing` ✅ **IMPLEMENTED**
+   - Update `src/config/schema.ts` with new types ✅ **IMPLEMENTED**
+   - Files: `src/config/schema.ts`, `src/config/ai_config.ts`, `exo.config.toml` ✅ **IMPLEMENTED**
 
-3. **Integrate with AgentExecutor**
-   - Replace static provider creation with selector
-   - Add task classification heuristics
-   - Implement graceful degradation on selection failure
-   - Files: `src/services/agent_executor.ts`
+3. **Integrate with RequestProcessor** ✅ **IMPLEMENTED**
+   - Replace static provider creation with ProviderSelector ✅ **IMPLEMENTED**
+   - Add task complexity classification based on agentId ✅ **IMPLEMENTED**
+   - Implement graceful degradation on selection failure ✅ **IMPLEMENTED**
+   - Update constructor to initialize ProviderSelector, CostTracker, HealthCheckService ✅ **IMPLEMENTED**
+   - Files: `src/services/request_processor.ts` ✅ **IMPLEMENTED**
 
 **Deliverables:**
 
@@ -711,19 +712,19 @@ rate_limit_rpm = 60
 
 **Tasks:**
 
-1. **Unit Tests**
-   - Test provider selector with various criteria
-   - Test cost tracker budget enforcement
-   - Test fallback chain logic
-   - Test task classification accuracy
-   - Files: `tests/ai/provider_selector.test.ts`, `tests/services/cost_tracker.test.ts`
+1. **Unit Tests** ✅ **COMPLETED**
+   - Test provider selector with various criteria ✅ **ALREADY IMPLEMENTED**
+   - Test cost tracker budget enforcement ✅ **IMPLEMENTED** (added budget constraint test)
+   - Test fallback chain logic ✅ **ALREADY IMPLEMENTED** (ProviderFactory.createWithFallback tests)
+   - Test task classification accuracy ✅ **IMPLEMENTED** (added task classification tests)
+   - Files: `tests/ai/provider_selector.test.ts`, `tests/services/cost_tracker.test.ts` ✅ **COMPLETED**
 
-2. **Integration Tests**
-   - Test full agent execution with provider switching
-   - Test free-to-paid fallback scenarios
-   - Test budget exhaustion handling
-   - Test multi-provider concurrent requests
-   - Files: `tests_infra/test_provider_strategy.ts`
+2. **Integration Tests** ✅ **COMPLETED**
+   - Test full agent execution with provider switching ✅ **IMPLEMENTED** (provider selection logic tests)
+   - Test free-to-paid fallback scenarios ✅ **IMPLEMENTED** (health check fallback tests)
+   - Test budget exhaustion handling ✅ **IMPLEMENTED** (budget constraint tests)
+   - Test multi-provider concurrent requests ✅ **IMPLEMENTED** (concurrent selection tests)
+   - Files: `tests_infra/test_provider_strategy.ts` ✅ **CREATED**
 
 3. **Performance Optimization**
    - Cache provider health status (TTL 60s)

@@ -26,6 +26,10 @@ import { PlanWriter, type RequestMetadata } from "./plan_writer.ts";
 import { EventLogger } from "./event_logger.ts";
 import { FlowValidatorImpl } from "./flow_validator.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
+import { ProviderSelector } from "../ai/provider_selector.ts";
+import { ProviderRegistry } from "../ai/provider_registry.ts";
+import { CostTracker } from "./cost_tracker.ts";
+import { HealthCheckService } from "./health_check_service.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -77,33 +81,33 @@ interface ParsedRequestFile {
 // RequestProcessor Implementation
 // ============================================================================
 
-/**
- * RequestProcessor handles the request-to-plan pipeline:
- * 1. Detect request file → Parse frontmatter → Load blueprint
- * 2. Run agent → Generate plan → Write to Workspace/Plans/
- * 3. Update request status → Log activities
- */
 export class RequestProcessor {
-  private readonly agentRunner: AgentRunner;
   private readonly planWriter: PlanWriter;
   private readonly plansDir: string;
   private readonly logger: EventLogger;
   private readonly flowValidator: FlowValidatorImpl;
+  private readonly providerSelector: ProviderSelector;
 
   constructor(
     private readonly config: Config,
-    private readonly provider: IModelProvider,
     private readonly db: DatabaseService,
     private readonly processorConfig: RequestProcessorConfig,
+    private readonly testProvider?: IModelProvider, // For testing only
   ) {
+    // Initialize ProviderSelector for intelligent provider selection
+    const costTracker = new CostTracker(db);
+    const healthChecker = new HealthCheckService("1.0.0");
+    this.providerSelector = new ProviderSelector(
+      ProviderRegistry,
+      costTracker,
+      healthChecker,
+    );
+
     // Initialize EventLogger for this service
     this.logger = new EventLogger({
       db,
       defaultActor: "agent:request-processor",
     });
-
-    // Initialize AgentRunner
-    this.agentRunner = new AgentRunner(provider, { db });
 
     // Initialize PlanWriter
     this.plansDir = join(config.system.root, config.paths.workspace, "Plans");
@@ -246,25 +250,36 @@ export class RequestProcessor {
         // Step 3: Build the parsed request for AgentRunner
         const request: ParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as ParsedRequest;
 
-        // Step 4: Run the agent to generate plan content
-        // Use model override if specified in request
-        let currentRunner = this.agentRunner;
-        if (frontmatter.model) {
-          try {
-            const overrideProvider = ProviderFactory.createByName(this.config, frontmatter.model);
-            currentRunner = new AgentRunner(await overrideProvider, { db: this.db });
-            traceLogger.info("request.model_override", frontmatter.model, {
-              trace_id: traceId,
-            });
-          } catch (error) {
-            traceLogger.warn("request.model_override_failed", frontmatter.model, {
-              error: error instanceof Error ? error.message : String(error),
-              fallback: "using default provider",
-            });
-          }
+        // Step 4: Select appropriate provider for this task
+        const taskComplexity = this.classifyTaskComplexity(blueprint, request);
+        let selectedProvider: IModelProvider;
+
+        if (this.testProvider) {
+          // Use test provider override
+          selectedProvider = this.testProvider;
+          traceLogger.info("provider.selected", "test-provider", {
+            taskComplexity,
+            trace_id: traceId,
+          });
+        } else {
+          // Use ProviderSelector for intelligent selection
+          const selectedProviderName = await this.providerSelector.selectProviderForTask(
+            this.config,
+            taskComplexity,
+          );
+
+          // Create the provider instance
+          selectedProvider = await ProviderFactory.createByName(this.config, selectedProviderName);
+          traceLogger.info("provider.selected", selectedProviderName, {
+            taskComplexity,
+            trace_id: traceId,
+          });
         }
 
-        const result = await currentRunner.run(blueprint, request);
+        // Create AgentRunner with selected provider
+        const agentRunner = new AgentRunner(selectedProvider, { db: this.db });
+
+        const result = await agentRunner.run(blueprint, request);
         planContent = result.content;
         _agentId = frontmatter.agent!;
 
@@ -376,6 +391,29 @@ export class RequestProcessor {
       });
       return null;
     }
+  }
+
+  /**
+   * Classify task complexity based on blueprint and request characteristics
+   * Used by ProviderSelector to choose appropriate provider
+   */
+  private classifyTaskComplexity(blueprint: Blueprint, _request: ParsedRequest): "simple" | "medium" | "complex" {
+    const agentId = blueprint.agentId || "";
+
+    // Simple tasks: basic analysis, short responses, well-defined problems
+    if (agentId.includes("analyzer") || agentId.includes("summarizer")) {
+      return "simple";
+    }
+
+    // Complex tasks: code generation, planning, multi-step reasoning
+    if (
+      agentId.includes("coder") || agentId.includes("planner") || agentId.includes("architect")
+    ) {
+      return "complex";
+    }
+
+    // Medium tasks: general purpose agents, content creation, analysis
+    return "medium";
   }
 
   /**

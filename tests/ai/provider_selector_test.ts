@@ -4,9 +4,11 @@
 
 import { assertEquals, assertRejects } from "jsr:@std/assert@^1.0.0";
 import { MockProviderFactory, ProviderRegistry } from "../../src/ai/provider_registry.ts";
+import { ProviderSelector } from "../../src/ai/provider_selector.ts";
 import { CostTracker } from "../../src/services/cost_tracker.ts";
 import { HealthCheckService } from "../../src/services/health_check_service.ts";
 import { initTestDbService } from "../helpers/db.ts";
+import { Config } from "../../src/config/schema.ts";
 
 // ============================================================================
 // Provider Selector Tests
@@ -307,6 +309,162 @@ Deno.test("ProviderSelector: excludes unhealthy providers", async () => {
     });
 
     assertEquals(provider, "healthy-provider");
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("ProviderSelector: uses configuration for task routing", async () => {
+  const { db, cleanup } = await initTestDbService();
+  try {
+    ProviderRegistry.clear();
+
+    // Register providers with different capabilities
+    ProviderRegistry.registerWithMetadata("simple-provider", new MockProviderFactory(), {
+      name: "simple-provider",
+      description: "Simple provider",
+      capabilities: ["chat"],
+      costTier: "FREE",
+      pricingTier: "local",
+      strengths: ["general"],
+    });
+
+    ProviderRegistry.registerWithMetadata("complex-provider", new MockProviderFactory(), {
+      name: "complex-provider",
+      description: "Complex provider",
+      capabilities: ["chat"],
+      costTier: "PAID",
+      pricingTier: "high",
+      strengths: ["reasoning"],
+    });
+
+    const costTracker = new CostTracker(db);
+    const healthService = new HealthCheckService("1.0.0");
+
+    // Mock health checks
+    healthService.registerCheck({
+      name: "simple-provider",
+      critical: false,
+      check: async () => await ({ status: "pass" }),
+    });
+    healthService.registerCheck({
+      name: "complex-provider",
+      critical: false,
+      check: async () => await ({ status: "pass" }),
+    });
+
+    const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
+
+    // Create config with task routing
+    const config: Config = {
+      system: { version: "1.0.0", root: "/tmp", log_level: "info" },
+      paths: {
+        workspace: "Workspace",
+        runtime: ".exo",
+        memory: "Memory",
+        portals: "Portals",
+        blueprints: "Blueprints",
+      },
+      database: {
+        batch_flush_ms: 100,
+        batch_max_size: 100,
+        sqlite: { journal_mode: "WAL", foreign_keys: true, busy_timeout_ms: 5000 },
+      },
+      watcher: { debounce_ms: 200, stability_check: true },
+      agents: { default_model: "default", timeout_sec: 60, max_iterations: 10 },
+      portals: [],
+      ai_endpoints: {},
+      ai_retry: { max_attempts: 3, backoff_base_ms: 1000, timeout_per_request_ms: 30000 },
+      ai_timeout: { default_ms: 30000, ollama: 60000, anthropic: 60000, openai: 30000, google: 30000 },
+      ai_anthropic: {
+        api_version: "2023-06-01",
+        default_model: "claude-3-5-sonnet-20241022",
+        max_tokens_default: 4096,
+      },
+      mcp: { enabled: true, transport: "stdio", server_name: "exoframe", version: "1.0.0" },
+      mcp_defaults: { agent_id: "system" },
+      rate_limiting: {
+        enabled: true,
+        max_calls_per_minute: 60,
+        max_tokens_per_hour: 100000,
+        max_cost_per_day: 50,
+        cost_per_1k_tokens: 0.03,
+      },
+      git: {
+        branch_prefix_pattern: "^(feat|fix|docs|chore|refactor|test)/",
+        allowed_prefixes: ["feat", "fix", "docs", "chore", "refactor", "test"],
+      },
+      models: {
+        default: { provider: "mock", model: "mock-model", timeout_ms: 30000 },
+        fast: { provider: "mock", model: "mock-fast", timeout_ms: 15000 },
+        local: { provider: "ollama", model: "llama3.2", timeout_ms: 60000 },
+      },
+      provider_strategy: {
+        prefer_free: false,
+        allow_local: true,
+        max_daily_cost_usd: 10.00,
+        health_check_enabled: true,
+        fallback_enabled: true,
+        task_routing: {
+          simple: ["simple-provider"],
+          complex: ["complex-provider"],
+        },
+      },
+      providers: {},
+    };
+
+    const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
+
+    // Test simple task routing
+    const simpleProvider = await selector.selectProviderForTask(config, "simple");
+    assertEquals(simpleProvider, "simple-provider");
+
+    // Test complex task routing
+    const complexProvider = await selector.selectProviderForTask(config, "complex");
+    assertEquals(complexProvider, "complex-provider");
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("ProviderSelector: enforces budget constraints", async () => {
+  const { db, cleanup } = await initTestDbService();
+  try {
+    const costTracker = new CostTracker(db);
+    const healthService = new HealthCheckService("1.0.0");
+
+    // Track enough usage to exceed budget
+    await costTracker.trackRequest("openai", 50000); // $0.50 at $0.01/1K
+
+    ProviderRegistry.clear();
+    ProviderRegistry.registerWithMetadata("openai", new MockProviderFactory(), {
+      name: "openai",
+      costTier: "PAID",
+      pricingTier: "high",
+      capabilities: ["chat"],
+      description: "Premium provider",
+      strengths: ["quality", "speed"],
+    });
+    ProviderRegistry.registerWithMetadata("free-provider", new MockProviderFactory(), {
+      name: "free-provider",
+      costTier: "FREE",
+      pricingTier: "free",
+      capabilities: ["chat"],
+      description: "Free provider",
+      strengths: ["cost-effective"],
+    });
+
+    const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
+
+    // Should select free provider when premium exceeds budget
+    const provider = await selector.selectProvider({
+      maxCostUsd: 0.25, // Budget of $0.25
+      requiredCapabilities: ["chat"],
+    });
+
+    assertEquals(provider, "free-provider");
+
+    await db.close();
   } finally {
     await cleanup();
   }

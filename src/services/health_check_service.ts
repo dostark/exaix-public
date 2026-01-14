@@ -145,7 +145,7 @@ export class HealthCheckService {
   async checkProvider(providerName: string): Promise<boolean> {
     const check = this.checks.get(providerName);
     if (!check) {
-      return false; // Provider not registered for health checks
+      return true; // Provider not registered for health checks - assume healthy
     }
 
     try {

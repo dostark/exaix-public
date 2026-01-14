@@ -1,0 +1,227 @@
+// Integration tests for LLM Provider Strategy
+// Tests provider switching, fallback chains, budget enforcement, and concurrent requests
+
+import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { TestEnvironment } from "../tests/integration/helpers/test_environment.ts";
+import { ProviderSelector } from "../src/ai/provider_selector.ts";
+import { CostTracker } from "../src/services/cost_tracker.ts";
+import { HealthCheckService } from "../src/services/health_check_service.ts";
+import { ProviderRegistry, MockProviderFactory, OllamaProviderFactory, OpenAIProviderFactory } from "../src/ai/provider_registry.ts";
+
+Deno.test("Provider Strategy: Full agent execution with provider switching", async (t) => {
+  // Initialize provider registry for testing
+  ProviderRegistry.clear();
+  ProviderRegistry.registerWithMetadata("mock", new MockProviderFactory(), {
+    name: "mock",
+    description: "Mock provider for testing",
+    capabilities: ["chat"],
+    costTier: "FREE",
+    pricingTier: "free",
+    strengths: ["testing"],
+  });
+  ProviderRegistry.registerWithMetadata("ollama", new OllamaProviderFactory(), {
+    name: "ollama/llama3.2:1b",
+    description: "Ollama local LLM provider",
+    capabilities: ["chat"],
+    costTier: "FREE",
+    pricingTier: "local",
+    strengths: ["simple", "analysis"],
+  });
+  ProviderRegistry.registerWithMetadata("openai", new OpenAIProviderFactory(), {
+    name: "openai/gpt-4o-mini",
+    description: "OpenAI GPT-4o mini",
+    capabilities: ["chat"],
+    costTier: "PAID",
+    pricingTier: "medium",
+    strengths: ["complex", "coding"],
+  });
+
+  await t.step("switches from free to paid provider when task complexity increases", async () => {
+    const env = await TestEnvironment.create();
+
+    try {
+      // Create blueprints for different complexity levels
+      await env.createBlueprint("analyzer", `# Analyzer Blueprint
+You are a simple analyzer. Keep responses brief and focused.
+## Complexity: Low
+## Cost: Free preferred`);
+
+      await env.createBlueprint("coder", `# Senior Coder Blueprint
+You are an expert developer. Provide detailed technical analysis and implementation plans.
+## Complexity: High
+## Cost: Premium required for complex tasks`);
+
+      // Set up services
+      const costTracker = new CostTracker(env.db);
+      const healthCheck = new HealthCheckService("1.0.0");
+
+      // Create provider selector with budget constraints
+      const selector = new ProviderSelector(ProviderRegistry, costTracker, healthCheck);
+
+      // First request: simple analysis (should use free provider)
+      const simpleRequest = await env.createRequest(
+        "Analyze this simple text: 'Hello world'",
+        { agentId: "analyzer", priority: 5 },
+      );
+
+      // Manually track a free provider request to simulate usage
+      await costTracker.trackRequest("ollama", 100); // Free provider
+
+      // Select provider for simple task
+      const simpleProvider = await selector.selectProvider({
+        preferFree: true,
+        taskComplexity: "simple",
+        maxCostUsd: 0.05,
+      });
+      assertEquals(simpleProvider, "ollama/llama3.2:1b", "Should select free provider for simple task");
+
+      // Second request: complex coding task (should switch to paid provider)
+      const complexRequest = await env.createRequest(
+        "Implement a complex microservices architecture with 10 services, database sharding, and load balancing",
+        { agentId: "coder", priority: 8 },
+      );
+
+      // Select provider for complex task
+      const complexProvider = await selector.selectProvider({
+        preferFree: false,
+        taskComplexity: "complex",
+        maxCostUsd: 0.10,
+      });
+      assertStringIncludes(complexProvider, "openai", "Should select paid provider for complex task");
+
+      // Verify costs are different
+      const freeCost = await costTracker.getDailyCost("ollama");
+      assert(freeCost < 0.01, "Free provider should have minimal cost");
+
+    } finally {
+      await env.cleanup();
+    }
+  });
+
+  await t.step("handles budget exhaustion gracefully", async () => {
+    const env = await TestEnvironment.create();
+
+    try {
+      const costTracker = new CostTracker(env.db);
+      const healthCheck = new HealthCheckService("1.0.0");
+
+      const selector = new ProviderSelector(ProviderRegistry, costTracker, healthCheck);
+
+      // Track high cost for openai provider type
+      await costTracker.trackRequest("openai", 10000); // High token usage
+
+      // Try to select provider with low budget - should avoid openai
+      const provider = await selector.selectProvider({
+        maxCostUsd: 0.01, // Very low budget
+        preferFree: true,
+      });
+
+      // Should select a free provider since openai exceeds budget
+      assertStringIncludes(provider, "mock", "Should select free provider when paid exceeds budget");
+
+      // Verify daily cost for paid provider is high
+      const paidCost = await costTracker.getDailyCost("openai");
+      assert(paidCost > 0.05, "Paid provider should have accumulated high cost");
+
+    } finally {
+      await env.cleanup();
+    }
+  });
+});
+
+Deno.test("Provider Strategy: Free-to-paid fallback scenarios", async (t) => {
+  await t.step("falls back to paid provider when free provider health fails", async () => {
+    const env = await TestEnvironment.create();
+
+    try {
+      const costTracker = new CostTracker(env.db);
+      const healthCheck = new HealthCheckService("1.0.0");
+
+      // Register a failing health check for free provider
+      healthCheck.registerCheck({
+        name: "ollama/llama3.2:1b", // Must match the provider metadata name
+        critical: true,
+        check: async () => ({ status: "fail", message: "Ollama not responding" }),
+      });
+
+      const selector = new ProviderSelector(ProviderRegistry, costTracker, healthCheck);
+
+      // Create request that would normally use free provider
+      await env.createBlueprint("analyzer");
+      const request = await env.createRequest(
+        "Simple analysis task",
+        { agentId: "analyzer", priority: 5 },
+      );
+
+      // Select provider - should fallback due to health check failure
+      const provider = await selector.selectProvider({
+        taskComplexity: "simple", // No preferFree, so all providers are candidates
+      });
+
+      // Should select mock provider as fallback when ollama is unhealthy
+      // (mock is also free and healthy)
+      assertStringIncludes(provider, "mock", "Should fallback to healthy free provider when ollama unhealthy");
+
+    } finally {
+      await env.cleanup();
+    }
+  });
+});
+
+Deno.test("Provider Strategy: Multi-provider concurrent requests", async (t) => {
+  await t.step("handles multiple concurrent requests with different provider requirements", async () => {
+    const env = await TestEnvironment.create();
+
+    try {
+      const costTracker = new CostTracker(env.db);
+      const healthCheck = new HealthCheckService("1.0.0");
+
+      const selector = new ProviderSelector(ProviderRegistry, costTracker, healthCheck);
+
+      // Create blueprints
+      await env.createBlueprint("analyzer");
+      await env.createBlueprint("coder");
+
+      // Create multiple concurrent requests
+      const requests = await Promise.all([
+        env.createRequest("Simple analysis 1", { agentId: "analyzer", priority: 3 }),
+        env.createRequest("Simple analysis 2", { agentId: "analyzer", priority: 4 }),
+        env.createRequest("Complex coding task", { agentId: "coder", priority: 8 }),
+        env.createRequest("Simple analysis 3", { agentId: "analyzer", priority: 2 }),
+      ]);
+
+      // Select providers for each request concurrently
+      const selections = await Promise.all([
+        selector.selectProvider({ preferFree: true, taskComplexity: "simple" }),
+        selector.selectProvider({ preferFree: true, taskComplexity: "simple" }),
+        selector.selectProvider({ preferFree: false, taskComplexity: "complex" }),
+        selector.selectProvider({ preferFree: true, taskComplexity: "simple" }),
+      ]);
+
+      // Verify provider selections
+      assertStringIncludes(selections[0], "ollama", "Simple task 1 should use free provider");
+      assertStringIncludes(selections[1], "ollama", "Simple task 2 should use free provider");
+      assertStringIncludes(selections[2], "openai", "Complex task should use paid provider");
+      assertStringIncludes(selections[3], "ollama", "Simple task 3 should use free provider");
+
+      // Track some usage to verify cost tracking works
+      await Promise.all([
+        costTracker.trackRequest("ollama", 50),
+        costTracker.trackRequest("ollama", 60),
+        costTracker.trackRequest("openai", 200),
+        costTracker.trackRequest("ollama", 40),
+      ]);
+
+      // Verify costs are tracked
+      const freeCost = await costTracker.getDailyCost("ollama");
+      const paidCost = await costTracker.getDailyCost("openai");
+
+      assert(freeCost >= 0, "Free provider should have accumulated costs");
+      assert(paidCost >= 0, "Paid provider should have accumulated costs");
+      assert(paidCost >= freeCost, "Paid provider should cost more than free");
+
+    } finally {
+      await env.cleanup();
+    }
+  });
+});

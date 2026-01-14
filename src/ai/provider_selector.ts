@@ -12,6 +12,7 @@
 import { ProviderRegistry } from "./provider_registry.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
 import { HealthCheckService } from "../services/health_check_service.ts";
+import { Config } from "../config/schema.ts";
 
 /**
  * Criteria for selecting a provider
@@ -84,6 +85,48 @@ export class ProviderSelector {
     }
 
     return candidates[0].metadata.name;
+  }
+
+  /**
+   * Select provider for a specific task using configuration-driven strategy.
+   * @param config Configuration with provider strategy
+   * @param taskType Task type (simple, complex, etc.)
+   * @returns The name of the selected provider
+   * @throws Error if no suitable provider is found
+   */
+  async selectProviderForTask(config: Config, taskType: string): Promise<string> {
+    const strategy = config.provider_strategy;
+
+    // Check if task routing is configured for this task type
+    if (strategy.task_routing && strategy.task_routing[taskType]) {
+      const routedProviders = strategy.task_routing[taskType];
+
+      // Find the first healthy provider from the routing list
+      for (const providerName of routedProviders) {
+        const metadata = this.registry.getProviderMetadata(providerName);
+        if (metadata) {
+          const isHealthy = await this.healthChecker.checkProvider(providerName);
+          if (isHealthy) {
+            return providerName;
+          }
+        }
+      }
+    }
+
+    // Fall back to criteria-based selection using config defaults
+    const criteria: SelectionCriteria = {
+      preferFree: strategy.prefer_free,
+      maxCostUsd: strategy.max_daily_cost_usd,
+      allowLocal: strategy.allow_local,
+      requiredCapabilities: ["chat"], // Default capability requirement
+    };
+
+    // Map task type to complexity if it's a known type
+    if (taskType === "simple" || taskType === "complex") {
+      criteria.taskComplexity = taskType as "simple" | "complex";
+    }
+
+    return this.selectProvider(criteria);
   }
 
   /**

@@ -519,7 +519,6 @@ Always respond with valid JSON containing a plan with actionable steps.`;
 
     const processor = new RequestProcessor(
       this.config,
-      provider,
       this.db,
       {
         workspacePath: join(this.tempDir, "Workspace"),
@@ -528,6 +527,7 @@ Always respond with valid JSON containing a plan with actionable steps.`;
           join(this.tempDir, "Blueprints", "Agents"),
         includeReasoning: options?.includeReasoning ?? true,
       },
+      provider, // Test provider override
     );
 
     return { provider, processor };
