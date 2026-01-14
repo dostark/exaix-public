@@ -258,4 +258,3 @@ interface SelectionCriteria {
 - `selectProvider(criteria)` - Select based on criteria
 - `selectProviderForTask(config, taskType)` - Config-driven selection
 - `getSelectionMetrics()` - Get performance metrics</content>
-  <parameter name="filePath">/home/dkasymov/git/ExoFrame/docs/Provider_Strategy_Guide.md

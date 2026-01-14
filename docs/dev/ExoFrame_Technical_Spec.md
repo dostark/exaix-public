@@ -432,7 +432,7 @@ The `HumanActionTracker` service provides a safe, validated interface for human 
 
 ### 5.2. User Interface Options
 
-**Option 1: CLI Commands (Primary)**
+### Option 1: CLI Commands (Primary)
 
 ```bash
 # Approve a plan
@@ -448,13 +448,13 @@ exoctl plan revise implement-auth --comment "Add error handling" --comment "Incl
 exoctl plan list --status=review
 ```
 
-**Option 2: TUI Dashboard Integration**
+### Option 2: TUI Dashboard Integration
 
 - ExoFrame TUI dashboard provides interactive plan review with real-time updates
 - Commands available via keyboard shortcuts: "Approve Plan", "Reject Plan", etc.
 - Dashboard communicates with daemon via direct file operations
 
-**Option 3: Plan File Direct Edit**
+### Option 3: Plan File Direct Edit
 
 - Plans include clickable action metadata in frontmatter
 - TUI dashboard renders these as interactive buttons
@@ -1135,7 +1135,6 @@ Create REST API routes.
 
 **MCP Components:**
 
-```
 ┌─────────────────────────────────────────────┐
 │         ExoFrame MCP Server                 │
 ├─────────────────────────────────────────────┤
@@ -1148,7 +1147,6 @@ Create REST API routes.
 ├─────────────────────────────────────────────┤
 │ Transport:  stdio or SSE (HTTP)             │
 └─────────────────────────────────────────────┘
-```
 
 **MCP Tools:**
 
@@ -1399,11 +1397,9 @@ with quality improvements, reliability, and context awareness.
 
 #### 7.3.2 Orchestration Pipeline
 
-```
 Request → Session Memory → Agent Runner → Reflexive Agent → Output Validator → Response
              ↓                  ↓               ↓                 ↓
          Memory Bank      Tool Reflector   Self-Critique      Retry Policy
-```
 
 1. **Session Memory**: Injects relevant context from past interactions
    (learnings, patterns, executions)
@@ -1487,7 +1483,7 @@ Confidence scores (0-100) help determine output reliability:
 | 30-49  | Low       | Human verification required |
 | 0-29   | Very Low  | Consider alternate approach |
 
-## Low-confidence outputs (below `confidence_threshold`) are flagged in logs andmay trigger human review workflows.
+## Low-confidence outputs (below `confidence_threshold`) are flagged in logs andmay trigger human review workflows
 
 ## 8. Security & Trust
 
@@ -1731,5 +1727,3 @@ export class ExoFrameMCPServer {
 **Implementation Status:** Planned for Phase 10 (see Implementation Plan)
 
 ---
-
-_End of Technical Specification_
