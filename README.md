@@ -46,6 +46,64 @@ Operator features
 - Least-privilege execution — Deno's permission model reduces blast radius for agent actions.
 - Local-first operation — optional integrations to cloud LLMs, but data remains local by default.
 
+## AI/LLM Configuration
+
+ExoFrame supports multiple LLM providers with intelligent selection based on cost, performance, and task requirements.
+
+### Quick Setup
+
+Create `exo.config.toml` in your workspace:
+
+```toml
+[ai]
+provider = "ollama"  # or "anthropic", "openai", "google"
+model = "llama3.2"
+
+[provider_strategy]
+prefer_free = true
+allow_local = true
+max_daily_cost_usd = 5.00
+```
+
+### Multi-Provider Setup
+
+Configure multiple providers with automatic fallback:
+
+```toml
+[models.default]
+provider = "anthropic"
+model = "claude-opus-4.5"
+
+[models.fast]
+provider = "openai"
+model = "gpt-4o-mini"
+
+[models.local]
+provider = "ollama"
+model = "llama3.2"
+
+[provider_strategy]
+prefer_free = true
+allow_local = true
+max_daily_cost_usd = 10.00
+
+[provider_strategy.task_routing]
+simple = ["ollama", "google-gemini-flash"]
+complex = ["anthropic-claude-opus", "openai-gpt-5-pro"]
+```
+
+### Environment Variables
+
+Set API keys for cloud providers:
+
+```bash
+export ANTHROPIC_API_KEY="your-anthropic-key"
+export OPENAI_API_KEY="your-openai-key"
+export GOOGLE_API_KEY="your-google-key"
+```
+
+See the [Provider Strategy Guide](./docs/Provider_Strategy_Guide.md) for advanced configuration options.
+
 Testing & contributing
 
 - Follow test helpers in `tests/` (use `createCliTestContext()` and `initTestDbService()` for deterministic tests).

@@ -113,7 +113,6 @@ if (import.meta.main) {
     // Initialize Request Processor
     const requestProcessor = new RequestProcessor(
       config,
-      await llmProvider,
       dbService,
       {
         workspacePath: join(config.system.root, config.paths.workspace),
@@ -121,6 +120,7 @@ if (import.meta.main) {
         blueprintsPath: join(config.system.root, config.paths.blueprints, "Agents"),
         includeReasoning: true,
       },
+      await llmProvider,
     );
 
     await logger.info("request_processor.initialized", "RequestProcessor", {

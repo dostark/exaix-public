@@ -140,6 +140,33 @@ provider = "ollama"
 model = "llama3.2"
 ```
 
+**Intelligent Provider Strategy (exo.config.toml):**
+
+ExoFrame supports intelligent, configuration-driven provider selection based on cost, performance, health, and task requirements. See the [Provider Strategy Guide](../Provider_Strategy_Guide.md) for detailed configuration options.
+
+```toml
+[provider_strategy]
+# Prefer free providers when available
+prefer_free = true
+# Allow local providers (Ollama)
+allow_local = true
+# Maximum daily cost in USD
+max_daily_cost_usd = 5.00
+# Enable health checks before selection
+health_check_enabled = true
+# Enable fallback chains
+fallback_enabled = true
+
+[provider_strategy.task_routing]
+# Route tasks to appropriate providers
+simple = ["ollama", "google-gemini-flash"]
+complex = ["anthropic-claude-opus", "openai-gpt-5-pro"]
+
+[provider_strategy.fallback_chains]
+# Define fallback sequences
+production = ["anthropic-claude-opus", "openai-gpt-5-pro", "ollama"]
+```
+
 **Environment Variables:**
 
 | Variable            | Provider           |
@@ -155,6 +182,63 @@ model = "llama3.2"
 | Anthropic | claude-3-5-sonnet-20241022 | claude-opus-4.5 | $3 → $5-7.50 (+67-150%) | $15 → $25-37.50 (+67-150%) | 1.7-2.5x     |
 | OpenAI    | gpt-4o                     | gpt-5.2 (chat)  | $2.50 → $1.75 (-30%)    | $10 → $14 (+40%)           | ~0.9x        |
 | Google    | gemini-2.0-flash           | gemini-3-flash  | $0.30 → $0.50 (+67%)    | $2.50 → $3 (+20%)          | 1.3-1.7x     |
+
+### 2.0.3 Provider Configuration Examples
+
+#### Cost-Optimized Setup
+
+```toml
+[provider_strategy]
+prefer_free = true
+allow_local = true
+max_daily_cost_usd = 2.00
+
+[provider_strategy.task_routing]
+simple = ["ollama", "google-gemini-flash"]
+complex = ["google-gemini-pro", "openai-gpt-4o-mini"]
+```
+
+#### Performance-First Setup
+
+```toml
+[provider_strategy]
+prefer_free = false
+allow_local = false
+max_daily_cost_usd = 20.00
+
+[provider_strategy.task_routing]
+simple = ["openai-gpt-4o-mini", "google-gemini-flash"]
+complex = ["anthropic-claude-opus", "openai-gpt-5-pro"]
+```
+
+#### Hybrid Local-Cloud Setup
+
+```toml
+[provider_strategy]
+prefer_free = true
+allow_local = true
+max_daily_cost_usd = 10.00
+
+[provider_strategy.fallback_chains]
+default = ["ollama", "google-gemini-flash", "anthropic-claude-sonnet"]
+```
+
+#### Enterprise Setup
+
+```toml
+[provider_strategy]
+prefer_free = false
+max_daily_cost_usd = 50.00
+
+[provider_strategy.budgets]
+anthropic = 30.00
+openai = 20.00
+
+[provider_strategy.task_routing]
+code_review = ["anthropic-claude-opus"]
+planning = ["openai-gpt-5-pro"]
+execution = ["anthropic-claude-sonnet"]
+```
 
 ---
 
