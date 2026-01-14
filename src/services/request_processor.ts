@@ -95,8 +95,8 @@ export class RequestProcessor {
     private readonly testProvider?: IModelProvider, // For testing only
   ) {
     // Initialize ProviderSelector for intelligent provider selection
-    const costTracker = new CostTracker(db);
-    const healthChecker = new HealthCheckService("1.0.0");
+    const costTracker = new CostTracker(db, config);
+    const healthChecker = new HealthCheckService("1.0.0", config);
     this.providerSelector = new ProviderSelector(
       ProviderRegistry,
       costTracker,

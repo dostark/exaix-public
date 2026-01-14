@@ -35,6 +35,8 @@ export interface SelectionCriteria {
  * based on cost, capabilities, health, and task requirements.
  */
 export class ProviderSelector {
+  private selectionMetrics = new Map<string, { count: number; totalTime: number; avgTime: number }>();
+
   constructor(
     private registry: typeof ProviderRegistry,
     private costTracker: CostTracker,
@@ -48,43 +50,56 @@ export class ProviderSelector {
    * @throws Error if no suitable provider is found
    */
   async selectProvider(criteria: SelectionCriteria): Promise<string> {
-    let candidates = this.registry.getAllProviders();
+    const startTime = performance.now();
 
-    // Filter by capabilities
-    if (criteria.requiredCapabilities) {
-      candidates = candidates.filter((p) =>
-        criteria.requiredCapabilities!.every((cap) => p.metadata.capabilities.includes(cap))
-      );
-    }
+    try {
+      let candidates = this.registry.getAllProviders();
 
-    // Filter by cost preference
-    if (criteria.preferFree) {
-      const freeProviders = candidates.filter((p) =>
-        p.metadata.costTier === "FREE" || p.metadata.costTier === "FREEMIUM"
-      );
-      if (freeProviders.length > 0) {
-        candidates = freeProviders;
+      // Early filtering by capabilities (fastest check)
+      if (criteria.requiredCapabilities) {
+        candidates = candidates.filter((p) =>
+          criteria.requiredCapabilities!.every((cap) => p.metadata.capabilities.includes(cap))
+        );
       }
+
+      // Filter by cost preference (fast check)
+      if (criteria.preferFree) {
+        const freeProviders = candidates.filter((p) =>
+          p.metadata.costTier === "FREE" || p.metadata.costTier === "FREEMIUM"
+        );
+        if (freeProviders.length > 0) {
+          candidates = freeProviders;
+        }
+      }
+
+      // Filter by budget (requires async DB call - do this after cheaper filters)
+      if (criteria.maxCostUsd) {
+        candidates = await this.filterByBudget(candidates, criteria.maxCostUsd);
+      }
+
+      // Filter by health (cached, but still async)
+      candidates = await this.filterByHealth(candidates);
+
+      // Sort by task complexity match (final optimization)
+      if (criteria.taskComplexity) {
+        candidates = this.sortByTaskMatch(candidates, criteria.taskComplexity);
+      }
+
+      if (candidates.length === 0) {
+        throw new Error("No suitable provider found for criteria");
+      }
+
+      const selectedProvider = candidates[0].metadata.name;
+
+      // Record metrics
+      this.recordSelectionMetrics("selectProvider", performance.now() - startTime);
+
+      return selectedProvider;
+    } catch (error) {
+      // Record failed selection metrics
+      this.recordSelectionMetrics("selectProvider", performance.now() - startTime);
+      throw error;
     }
-
-    // Filter by budget
-    if (criteria.maxCostUsd) {
-      candidates = await this.filterByBudget(candidates, criteria.maxCostUsd);
-    }
-
-    // Filter by health
-    candidates = await this.filterByHealth(candidates);
-
-    // Sort by task complexity match
-    if (criteria.taskComplexity) {
-      candidates = this.sortByTaskMatch(candidates, criteria.taskComplexity);
-    }
-
-    if (candidates.length === 0) {
-      throw new Error("No suitable provider found for criteria");
-    }
-
-    return candidates[0].metadata.name;
   }
 
   /**
@@ -181,5 +196,39 @@ export class ProviderSelector {
       const bIndex = preferred.indexOf(b.metadata.pricingTier);
       return (aIndex === -1 ? 999 : aIndex) - (bIndex === -1 ? 999 : bIndex);
     });
+  }
+
+  /**
+   * Record selection performance metrics.
+   */
+  private recordSelectionMetrics(operation: string, durationMs: number): void {
+    const key = operation;
+    const existing = this.selectionMetrics.get(key);
+
+    if (existing) {
+      existing.count++;
+      existing.totalTime += durationMs;
+      existing.avgTime = existing.totalTime / existing.count;
+    } else {
+      this.selectionMetrics.set(key, {
+        count: 1,
+        totalTime: durationMs,
+        avgTime: durationMs,
+      });
+    }
+  }
+
+  /**
+   * Get selection performance metrics.
+   */
+  getSelectionMetrics(): Record<string, { count: number; totalTime: number; avgTime: number }> {
+    return Object.fromEntries(this.selectionMetrics);
+  }
+
+  /**
+   * Reset selection metrics (useful for testing).
+   */
+  resetMetrics(): void {
+    this.selectionMetrics.clear();
   }
 }

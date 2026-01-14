@@ -95,6 +95,16 @@ export function createMockConfig(root: string, overrides: Partial<Config> = {}):
       fallback_enabled: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_FALLBACK_ENABLED,
     },
     providers: overrides.providers || {},
+    cost_tracking: overrides.cost_tracking || {
+      batch_delay_ms: DEFAULTS.DEFAULT_COST_TRACKING_BATCH_DELAY_MS,
+      max_batch_size: DEFAULTS.DEFAULT_COST_TRACKING_MAX_BATCH_SIZE,
+    },
+    health: overrides.health || {
+      check_timeout_ms: DEFAULTS.DEFAULT_HEALTH_CHECK_TIMEOUT_MS,
+      cache_ttl_ms: DEFAULTS.DEFAULT_HEALTH_CACHE_TTL_MS,
+      memory_warn_percent: DEFAULTS.DEFAULT_MEMORY_WARN_PERCENT,
+      memory_critical_percent: DEFAULTS.DEFAULT_MEMORY_CRITICAL_PERCENT,
+    },
   };
 }
 

@@ -169,7 +169,7 @@ export class ProviderFactory {
 
     // Apply rate limiting if enabled
     if (config.rate_limiting?.enabled) {
-      const costTracker = db ? new CostTracker(db) : undefined;
+      const costTracker = db ? new CostTracker(db, config) : undefined;
       return new RateLimitedProvider(provider, {
         maxCallsPerMinute: config.rate_limiting.max_calls_per_minute,
         maxTokensPerHour: config.rate_limiting.max_tokens_per_hour,
@@ -196,7 +196,7 @@ export class ProviderFactory {
 
     // Apply rate limiting if enabled
     if (config.rate_limiting?.enabled) {
-      const costTracker = db ? new CostTracker(db) : undefined;
+      const costTracker = db ? new CostTracker(db, config) : undefined;
       return new RateLimitedProvider(provider, {
         maxCallsPerMinute: config.rate_limiting.max_calls_per_minute,
         maxTokensPerHour: config.rate_limiting.max_tokens_per_hour,

@@ -190,6 +190,26 @@ export const ConfigSchema = z.object({
     timeout_ms: z.number().min(1000).max(300000).optional(),
     rate_limit_rpm: z.number().min(1).max(1000).optional(),
   })).optional().default({}),
+  /** Cost tracking configuration */
+  cost_tracking: z.object({
+    batch_delay_ms: z.number().min(100).max(60000).default(DEFAULTS.DEFAULT_COST_TRACKING_BATCH_DELAY_MS),
+    max_batch_size: z.number().min(1).max(1000).default(DEFAULTS.DEFAULT_COST_TRACKING_MAX_BATCH_SIZE),
+  }).optional().default({
+    batch_delay_ms: DEFAULTS.DEFAULT_COST_TRACKING_BATCH_DELAY_MS,
+    max_batch_size: DEFAULTS.DEFAULT_COST_TRACKING_MAX_BATCH_SIZE,
+  }),
+  /** Health check configuration */
+  health: z.object({
+    check_timeout_ms: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_HEALTH_CHECK_TIMEOUT_MS),
+    cache_ttl_ms: z.number().min(1000).max(3600000).default(DEFAULTS.DEFAULT_HEALTH_CACHE_TTL_MS),
+    memory_warn_percent: z.number().min(1).max(99).default(DEFAULTS.DEFAULT_MEMORY_WARN_PERCENT),
+    memory_critical_percent: z.number().min(1).max(99).default(DEFAULTS.DEFAULT_MEMORY_CRITICAL_PERCENT),
+  }).optional().default({
+    check_timeout_ms: DEFAULTS.DEFAULT_HEALTH_CHECK_TIMEOUT_MS,
+    cache_ttl_ms: DEFAULTS.DEFAULT_HEALTH_CACHE_TTL_MS,
+    memory_warn_percent: DEFAULTS.DEFAULT_MEMORY_WARN_PERCENT,
+    memory_critical_percent: DEFAULTS.DEFAULT_MEMORY_CRITICAL_PERCENT,
+  }),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

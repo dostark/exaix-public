@@ -9,6 +9,12 @@
 import type { DatabaseService } from "./db.ts";
 import type { IModelProvider } from "../ai/providers.ts";
 import type { Config } from "../config/schema.ts";
+import {
+  DEFAULT_HEALTH_CACHE_TTL_MS,
+  DEFAULT_HEALTH_CHECK_TIMEOUT_MS,
+  DEFAULT_MEMORY_CRITICAL_PERCENT,
+  DEFAULT_MEMORY_WARN_PERCENT,
+} from "../config/constants.ts";
 
 /**
  * Interface for individual health check implementations
@@ -53,14 +59,38 @@ export interface HealthStatus {
 }
 
 /**
+ * Cached health check result with expiration
+ */
+interface CachedHealthResult {
+  result: HealthCheckResult;
+  expiresAt: number; // Timestamp when cache expires
+}
+
+/**
  * Main health check service that orchestrates all health checks
  */
 export class HealthCheckService {
   private checks = new Map<string, HealthCheck>();
   private startTime = Date.now();
-  private checkTimeout = 30000; // 30 seconds default timeout
+  private healthCache = new Map<string, CachedHealthResult>();
 
-  constructor(private version: string) {}
+  constructor(private version: string, private config?: Config) {}
+
+  public get checkTimeoutMs(): number {
+    return this.config?.health?.check_timeout_ms ?? DEFAULT_HEALTH_CHECK_TIMEOUT_MS;
+  }
+
+  public get cacheTtlMs(): number {
+    return this.config?.health?.cache_ttl_ms ?? DEFAULT_HEALTH_CACHE_TTL_MS;
+  }
+
+  public get memoryWarnPercent(): number {
+    return this.config?.health?.memory_warn_percent ?? DEFAULT_MEMORY_WARN_PERCENT;
+  }
+
+  public get memoryCriticalPercent(): number {
+    return this.config?.health?.memory_critical_percent ?? DEFAULT_MEMORY_CRITICAL_PERCENT;
+  }
 
   /**
    * Register a health check
@@ -84,12 +114,12 @@ export class HealthCheckService {
 
         try {
           // Add timeout to each check using AbortSignal.timeout
-          const timeoutSignal = AbortSignal.timeout(this.checkTimeout);
+          const timeoutSignal = AbortSignal.timeout(this.checkTimeoutMs);
           const result = await Promise.race([
             check.check(),
             new Promise<never>((_, reject) => {
               timeoutSignal.addEventListener("abort", () => {
-                reject(new Error(`Health check '${name}' timed out after ${this.checkTimeout}ms`));
+                reject(new Error(`Health check '${name}' timed out after ${this.checkTimeoutMs}ms`));
               });
             }),
           ]);
@@ -138,11 +168,19 @@ export class HealthCheckService {
   }
 
   /**
-   * Check the health of a specific provider by name.
+   * Check the health of a specific provider by name with caching.
    * @param providerName The name of the provider to check
    * @returns True if the provider is healthy, false otherwise
    */
   async checkProvider(providerName: string): Promise<boolean> {
+    const now = Date.now();
+    const cached = this.healthCache.get(providerName);
+
+    // Return cached result if still valid
+    if (cached && cached.expiresAt > now) {
+      return cached.result.status === "pass";
+    }
+
     const check = this.checks.get(providerName);
     if (!check) {
       return true; // Provider not registered for health checks - assume healthy
@@ -150,8 +188,26 @@ export class HealthCheckService {
 
     try {
       const result = await check.check();
+
+      // Cache the result
+      this.healthCache.set(providerName, {
+        result,
+        expiresAt: now + this.cacheTtlMs,
+      });
+
       return result.status === "pass";
-    } catch {
+    } catch (error) {
+      // Cache failed result too to avoid repeated failures
+      const failedResult: HealthCheckResult = {
+        status: "fail",
+        message: error instanceof Error ? error.message : String(error),
+      };
+
+      this.healthCache.set(providerName, {
+        result: failedResult,
+        expiresAt: now + this.cacheTtlMs,
+      });
+
       return false;
     }
   }
@@ -409,20 +465,20 @@ export function initializeHealthChecks(
   provider: IModelProvider,
   config: Config,
 ): HealthCheckService {
-  const health = new HealthCheckService("1.0.0");
+  const health = new HealthCheckService("1.0.0", config);
 
   health.registerCheck(new DatabaseHealthCheck(db));
   health.registerCheck(new LLMProviderHealthCheck(provider));
   health.registerCheck(
     new DiskSpaceHealthCheck(config.system.root, {
-      warn: 80,
-      critical: 95,
+      warn: health.memoryWarnPercent,
+      critical: health.memoryCriticalPercent,
     }),
   );
   health.registerCheck(
     new MemoryHealthCheck({
-      warn: 80,
-      critical: 95,
+      warn: health.memoryWarnPercent,
+      critical: health.memoryCriticalPercent,
     }),
   );
 

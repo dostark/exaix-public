@@ -34,13 +34,6 @@ import {
 // Test Utilities
 // ============================================================================
 
-/**
- * Create a mock response with thought and content tags
- */
-function createMockResponse(thought: string, content: string): string {
-  return `<thought>${thought}</thought>\n<content>${content}</content>`;
-}
-
 function createTestRequestPath(tempDir: string): { traceId: string; requestPath: string } {
   const traceId = crypto.randomUUID();
   const requestPath = join(getWorkspaceRequestsDir(tempDir), `request-${traceId.slice(0, 8)}.md`);

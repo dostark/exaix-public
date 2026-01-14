@@ -1,4 +1,5 @@
 import { assertEquals, assertExists } from "@std/assert";
+import { createMockConfig } from "../helpers/config.ts";
 import {
   DatabaseHealthCheck,
   DiskSpaceHealthCheck,
@@ -86,7 +87,9 @@ Deno.test("HealthCheckService: returns unhealthy status when critical check fail
 });
 
 Deno.test("HealthCheckService: handles check timeouts", async () => {
-  const service = new HealthCheckService("1.0.0");
+  const config = createMockConfig("/tmp");
+  config.health.check_timeout_ms = 50; // Short timeout for test
+  const service = new HealthCheckService("1.0.0", config);
   let timeoutId: number | undefined;
 
   const slowCheck: HealthCheck = {
@@ -99,8 +102,6 @@ Deno.test("HealthCheckService: handles check timeouts", async () => {
   };
 
   service.registerCheck(slowCheck);
-  // Override timeout for this test
-  (service as any).checkTimeout = 50;
 
   const status = await service.checkHealth();
 

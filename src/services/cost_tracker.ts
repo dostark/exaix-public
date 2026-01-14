@@ -1,10 +1,13 @@
 import { DatabaseService } from "./db.ts";
+import type { Config } from "../config/schema.ts";
 import {
   COST_RATE_ANTHROPIC,
   COST_RATE_GOOGLE,
   COST_RATE_MOCK,
   COST_RATE_OLLAMA,
   COST_RATE_OPENAI,
+  DEFAULT_COST_TRACKING_BATCH_DELAY_MS,
+  DEFAULT_COST_TRACKING_MAX_BATCH_SIZE,
   TOKENS_PER_COST_UNIT,
 } from "../config/constants.ts";
 
@@ -34,10 +37,22 @@ export class CostTracker {
     "mock": COST_RATE_MOCK, // Mock free
   };
 
-  constructor(private db: DatabaseService) {}
+  private pendingRecords: Omit<ProviderCostRecord, "id">[] = [];
+  private batchTimeout: number | null = null;
+
+  constructor(private db: DatabaseService, private config?: Config) {}
+
+  private get batchDelayMs(): number {
+    return this.config?.cost_tracking?.batch_delay_ms ?? DEFAULT_COST_TRACKING_BATCH_DELAY_MS;
+  }
+
+  private get maxBatchSize(): number {
+    return this.config?.cost_tracking?.max_batch_size ?? DEFAULT_COST_TRACKING_MAX_BATCH_SIZE;
+  }
 
   /**
    * Track a provider request with token usage.
+   * Uses batching for improved performance.
    * @param provider - Provider name (e.g., "openai", "anthropic")
    * @param tokens - Number of tokens used in the request
    */
@@ -51,7 +66,23 @@ export class CostTracker {
       timestamp: new Date(),
     };
 
-    await this.insertCostRecord(record);
+    // Add to pending batch
+    this.pendingRecords.push(record);
+
+    // Flush immediately if batch is full
+    if (this.pendingRecords.length >= this.maxBatchSize) {
+      await this.flushBatch();
+      return;
+    }
+
+    // Schedule batch flush if not already scheduled
+    if (this.batchTimeout === null) {
+      this.batchTimeout = setTimeout(() => {
+        this.flushBatch().catch((error) => {
+          console.error("Failed to flush cost tracking batch:", error);
+        });
+      }, this.batchDelayMs);
+    }
   }
 
   /**
@@ -139,22 +170,58 @@ export class CostTracker {
   }
 
   /**
-   * Insert a cost record into the database.
+   * Insert multiple cost records into the database in batch.
    */
-  private async insertCostRecord(record: Omit<ProviderCostRecord, "id">): Promise<void> {
-    const id = crypto.randomUUID();
+  private async insertCostRecordsBatch(records: Omit<ProviderCostRecord, "id">[]): Promise<void> {
+    if (records.length === 0) {
+      return;
+    }
+
+    // Use batch insert for better performance
+    const placeholders = records.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
     const query = `
       INSERT INTO provider_costs (id, provider, requests, tokens, estimated_cost_usd, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES ${placeholders}
     `;
 
-    await this.db.instance.prepare(query).run(
-      id,
-      record.provider,
-      record.requests,
-      record.tokens,
-      record.estimatedCostUsd,
-      record.timestamp.toISOString(),
-    );
+    const params: any[] = [];
+    for (const record of records) {
+      params.push(
+        crypto.randomUUID(),
+        record.provider,
+        record.requests,
+        record.tokens,
+        record.estimatedCostUsd,
+        record.timestamp.toISOString(),
+      );
+    }
+
+    await this.db.instance.prepare(query).run(...params);
+  }
+
+  /**
+   * Flush pending cost records to database in batch.
+   */
+  private async flushBatch(): Promise<void> {
+    if (this.pendingRecords.length === 0) {
+      return;
+    }
+
+    const records = [...this.pendingRecords];
+    this.pendingRecords = [];
+    this.batchTimeout = null;
+
+    await this.insertCostRecordsBatch(records);
+  }
+
+  /**
+   * Force flush any pending records (useful for shutdown).
+   */
+  async flush(): Promise<void> {
+    if (this.batchTimeout !== null) {
+      clearTimeout(this.batchTimeout);
+      this.batchTimeout = null;
+    }
+    await this.flushBatch();
   }
 }

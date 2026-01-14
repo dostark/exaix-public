@@ -117,6 +117,16 @@ function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       fallback_enabled: true,
     },
     providers: {},
+    cost_tracking: {
+      batch_delay_ms: 5000,
+      max_batch_size: 50,
+    },
+    health: {
+      check_timeout_ms: 30000,
+      cache_ttl_ms: 60000,
+      memory_warn_percent: 80,
+      memory_critical_percent: 95,
+    },
   };
 }
 

@@ -123,6 +123,7 @@ Deno.test("ProviderSelector: respects budget constraints", async () => {
 
     // Set up high cost for expensive provider
     await costTracker.trackRequest("expensive-provider", 100000); // ~$1
+    await costTracker.flush(); // Ensure the cost is written immediately for the test
 
     // Mock health checks
     healthService.registerCheck({
@@ -411,6 +412,16 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
         },
       },
       providers: {},
+      cost_tracking: {
+        batch_delay_ms: 5000,
+        max_batch_size: 50,
+      },
+      health: {
+        check_timeout_ms: 30000,
+        cache_ttl_ms: 60000,
+        memory_warn_percent: 80,
+        memory_critical_percent: 95,
+      },
     };
 
     const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
@@ -435,6 +446,7 @@ Deno.test("ProviderSelector: enforces budget constraints", async () => {
 
     // Track enough usage to exceed budget
     await costTracker.trackRequest("openai", 50000); // $0.50 at $0.01/1K
+    await costTracker.flush(); // Ensure the cost is written immediately for the test
 
     ProviderRegistry.clear();
     ProviderRegistry.registerWithMetadata("openai", new MockProviderFactory(), {

@@ -186,6 +186,28 @@ branch_prefix_pattern = "^(feat|fix|docs|chore|refactor|test)/"
 allowed_prefixes = ["feat", "fix", "docs", "chore", "refactor", "test"]
 
 # ---------------------------------------------------------------------------
+# Cost tracking configuration
+# ---------------------------------------------------------------------------
+[cost_tracking]
+# Batch delay in milliseconds for cost tracking writes
+batch_delay_ms = 5000
+# Maximum batch size before immediate flush
+max_batch_size = 50
+
+# ---------------------------------------------------------------------------
+# Health check configuration
+# ---------------------------------------------------------------------------
+[health]
+# Default timeout for health checks in milliseconds
+check_timeout_ms = 30000
+# TTL for health check result caching in milliseconds
+cache_ttl_ms = 60000
+# Memory usage warning threshold (percentage)
+memory_warn_percent = 80
+# Memory usage critical threshold (percentage)
+memory_critical_percent = 95
+
+# ---------------------------------------------------------------------------
 # Notes
 # - Copy this file to the repository root as `exo.config.toml` or pass a path
 #   to the CLI with `--config` when starting the daemon.

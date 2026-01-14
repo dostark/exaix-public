@@ -107,6 +107,18 @@ export const COST_RATE_GOOGLE = 0; // Free tier
 export const COST_RATE_OLLAMA = 0; // Local free
 export const COST_RATE_MOCK = 0; // Mock free
 
+// Cost tracking batching defaults
+export const DEFAULT_COST_TRACKING_BATCH_DELAY_MS = 5000; // 5 seconds batch delay
+export const DEFAULT_COST_TRACKING_MAX_BATCH_SIZE = 50; // Maximum records per batch
+
+// ============================================================================
+// Health Check Defaults
+// ============================================================================
+export const DEFAULT_HEALTH_CHECK_TIMEOUT_MS = 30000; // 30 seconds default timeout
+export const DEFAULT_HEALTH_CACHE_TTL_MS = 60000; // 60 seconds TTL for health cache
+export const DEFAULT_MEMORY_WARN_PERCENT = 80; // Memory usage warning threshold (%)
+export const DEFAULT_MEMORY_CRITICAL_PERCENT = 95; // Memory usage critical threshold (%)
+
 // ============================================================================
 // Provider Strategy Defaults
 // ============================================================================
