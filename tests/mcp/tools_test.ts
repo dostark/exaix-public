@@ -137,7 +137,7 @@ Deno.test("read_file: read_file appears in tools/list", async () => {
 
     assertExists(response.result);
     const result = response.result as { tools: Array<{ name: string; description: string }> };
-    assertEquals(result.tools.length, 6);
+    assertEquals(result.tools.length, 10);
     const toolNames = result.tools.map((t) => t.name);
     assert(toolNames.includes(McpToolName.READ_FILE));
     assert(toolNames.includes(McpToolName.WRITE_FILE));
@@ -145,6 +145,10 @@ Deno.test("read_file: read_file appears in tools/list", async () => {
     assert(toolNames.includes("git_create_branch"));
     assert(toolNames.includes("git_commit"));
     assert(toolNames.includes("git_status"));
+    assert(toolNames.includes("exoframe_create_request"));
+    assert(toolNames.includes("exoframe_list_plans"));
+    assert(toolNames.includes("exoframe_approve_plan"));
+    assert(toolNames.includes("exoframe_query_journal"));
     const readTool = result.tools.find((t) => t.name === McpToolName.READ_FILE)!;
     assertStringIncludes(readTool.description, "Read");
   } finally {

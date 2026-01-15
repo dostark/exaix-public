@@ -10,6 +10,7 @@ import {
   ToolHandler,
   WriteFileTool,
 } from "./tools.ts";
+import { ApprovePlanTool, CreateRequestTool, ListPlansTool, QueryJournalTool } from "./domain_tools.ts";
 import { discoverAllResources, parsePortalURI } from "./resources.ts";
 import { generatePrompt, getPrompts } from "./prompts.ts";
 import { logInfo } from "../services/structured_logger.ts";
@@ -92,6 +93,10 @@ export class MCPServer {
     this.registerTool(new GitCreateBranchTool(this.config, this.db));
     this.registerTool(new GitCommitTool(this.config, this.db));
     this.registerTool(new GitStatusTool(this.config, this.db));
+    this.registerTool(new CreateRequestTool(this.config, this.db));
+    this.registerTool(new ListPlansTool(this.config, this.db));
+    this.registerTool(new ApprovePlanTool(this.config, this.db));
+    this.registerTool(new QueryJournalTool(this.config, this.db));
   }
 
   /**

@@ -61,6 +61,29 @@ export const GitStatusToolArgsSchema = z.object({
   agent_id: z.string().min(1, "Agent ID required").default("system"),
 });
 
+export const CreateRequestToolArgsSchema = z.object({
+  description: z.string().min(1, "Description required"),
+  agent: z.string().default("default"),
+  context: z.array(z.string()).optional(),
+  agent_id: z.string().min(1, "Agent ID required").default("system"),
+});
+
+export const ListPlansToolArgsSchema = z.object({
+  status: z.enum(["pending", "approved", "rejected"]).optional(),
+  agent_id: z.string().min(1, "Agent ID required").default("system"),
+});
+
+export const ApprovePlanToolArgsSchema = z.object({
+  plan_id: z.string().min(1, "Plan ID required"),
+  agent_id: z.string().min(1, "Agent ID required").default("system"),
+});
+
+export const QueryJournalToolArgsSchema = z.object({
+  trace_id: z.string().optional(),
+  limit: z.number().int().positive().default(50),
+  agent_id: z.string().min(1, "Agent ID required").default("system"),
+});
+
 // Union type for all tool arguments
 export type MCPToolArgs =
   | z.infer<typeof ReadFileToolArgsSchema>
@@ -68,7 +91,11 @@ export type MCPToolArgs =
   | z.infer<typeof ListDirectoryToolArgsSchema>
   | z.infer<typeof GitCreateBranchToolArgsSchema>
   | z.infer<typeof GitCommitToolArgsSchema>
-  | z.infer<typeof GitStatusToolArgsSchema>;
+  | z.infer<typeof GitStatusToolArgsSchema>
+  | z.infer<typeof CreateRequestToolArgsSchema>
+  | z.infer<typeof ListPlansToolArgsSchema>
+  | z.infer<typeof ApprovePlanToolArgsSchema>
+  | z.infer<typeof QueryJournalToolArgsSchema>;
 
 // ============================================================================
 // MCP Response Schemas

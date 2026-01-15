@@ -1,0 +1,265 @@
+import type { Config } from "../config/schema.ts";
+import type { DatabaseService } from "../services/db.ts";
+import {
+  ApprovePlanToolArgsSchema,
+  CreateRequestToolArgsSchema,
+  ListPlansToolArgsSchema,
+  type MCPToolResponse,
+  QueryJournalToolArgsSchema,
+} from "../schemas/mcp.ts";
+import { ToolHandler } from "./tools.ts";
+import { RequestCommands } from "../cli/request_commands.ts";
+import { PlanCommands } from "../cli/plan_commands.ts";
+import { PlanStatus } from "../enums.ts";
+
+/**
+ * Domain-specific MCP Tools
+ *
+ * Exposes core ExoFrame functionality (requests, plans, journal) to AI agents.
+ */
+
+/**
+ * Tool for creating new ExoFrame requests
+ */
+export class CreateRequestTool extends ToolHandler {
+  async execute(args: unknown): Promise<MCPToolResponse> {
+    const validatedArgs = CreateRequestToolArgsSchema.parse(args);
+    const { description, agent, context, agent_id } = validatedArgs; // context is currently not supported in RequestCommands.create options directly in CLI but let's check
+
+    try {
+      const requestCmd = new RequestCommands({ config: this.config, db: this.db });
+
+      // Note: context support might need to be added to RequestCommands or handled here if important.
+      // CLI create() takes options: agent, priority, portal, model. Context files are usually passed in creating context cards or implicit.
+      // For now we map basic fields.
+
+      const result = await requestCmd.create(
+        description,
+        { agent },
+        "cli", // marking source as CLI (or should we add 'mcp' source? 'cli' is safe for now)
+      );
+
+      this.logToolExecution("create_request", "system", {
+        description,
+        agent,
+        agent_id,
+        request_id: result.filename.replace(".md", ""),
+        trace_id: result.trace_id,
+        success: true,
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text:
+              `Request created successfully.\nID: ${result.filename}\nTrace ID: ${result.trace_id}\nPath: ${result.path}`,
+          },
+        ],
+      };
+    } catch (error) {
+      this.formatError("create_request", "system", error, { description, agent_id });
+    }
+  }
+
+  getToolDefinition() {
+    return {
+      name: "exoframe_create_request",
+      description: "Create a new generic request for ExoFrame",
+      inputSchema: {
+        type: "object",
+        properties: {
+          description: {
+            type: "string",
+            description: "Detailed description of the request",
+          },
+          agent: {
+            type: "string",
+            description: "Agent to assign (default: default)",
+          },
+          // context: { ... } - Context not fully supported in create() yet, removing to avoid confusion or we can keep for future
+          agent_id: {
+            type: "string",
+            description: "Agent identifier for permission checks",
+          },
+        },
+        required: ["description", "agent_id"],
+      },
+    };
+  }
+}
+
+/**
+ * Tool for listing pending plans
+ */
+export class ListPlansTool extends ToolHandler {
+  async execute(args: unknown): Promise<MCPToolResponse> {
+    const validatedArgs = ListPlansToolArgsSchema.parse(args);
+    const { status, agent_id } = validatedArgs;
+    const filterStatus = status || PlanStatus.PENDING; // Match enum or default
+
+    try {
+      const planCmd = new PlanCommands({ config: this.config, db: this.db });
+
+      const plans = await planCmd.list(filterStatus);
+
+      this.logToolExecution("list_plans", "system", {
+        status: filterStatus,
+        agent_id,
+        count: plans.length,
+        success: true,
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(plans, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.formatError("list_plans", "system", error, { status, agent_id });
+    }
+  }
+
+  getToolDefinition() {
+    return {
+      name: "exoframe_list_plans",
+      description: "List plans matching a status (default: pending)",
+      inputSchema: {
+        type: "object",
+        properties: {
+          status: {
+            type: "string",
+            enum: ["pending", "approved", "rejected", "review"], // align with enum values? mostly 'pending' or 'review'
+            description: "Status to filter by",
+          },
+          agent_id: {
+            type: "string",
+            description: "Agent identifier for permission checks",
+          },
+        },
+        required: ["agent_id"],
+      },
+    };
+  }
+}
+
+/**
+ * Tool for approving a plan
+ */
+export class ApprovePlanTool extends ToolHandler {
+  async execute(args: unknown): Promise<MCPToolResponse> {
+    const validatedArgs = ApprovePlanToolArgsSchema.parse(args);
+    const { plan_id, agent_id } = validatedArgs;
+
+    try {
+      const planCmd = new PlanCommands({ config: this.config, db: this.db });
+
+      // We don't check existence separately as approve() handles it (or throws)
+      await planCmd.approve(plan_id);
+
+      this.logToolExecution("approve_plan", "system", {
+        plan_id,
+        agent_id,
+        success: true,
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Plan ${plan_id} approved successfully. Execution will proceed.`,
+          },
+        ],
+      };
+    } catch (error) {
+      this.formatError("approve_plan", "system", error, { plan_id, agent_id });
+    }
+  }
+
+  getToolDefinition() {
+    return {
+      name: "exoframe_approve_plan",
+      description: "Approve a pending plan for execution",
+      inputSchema: {
+        type: "object",
+        properties: {
+          plan_id: {
+            type: "string",
+            description: "ID of the plan to approve",
+          },
+          agent_id: {
+            type: "string",
+            description: "Agent identifier for permission checks",
+          },
+        },
+        required: ["plan_id", "agent_id"],
+      },
+    };
+  }
+}
+
+/**
+ * Tool for querying the Activity Journal
+ */
+export class QueryJournalTool extends ToolHandler {
+  async execute(args: unknown): Promise<MCPToolResponse> {
+    const validatedArgs = QueryJournalToolArgsSchema.parse(args);
+    const { trace_id, limit, agent_id } = validatedArgs;
+
+    try {
+      let activities;
+      if (trace_id) {
+        activities = await this.db.getActivitiesByTrace(trace_id);
+      } else {
+        activities = await this.db.getRecentActivity(limit);
+      }
+
+      this.logToolExecution("query_journal", "system", {
+        trace_id,
+        limit,
+        agent_id,
+        count: activities.length,
+        success: true,
+      });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(activities, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      this.formatError("query_journal", "system", error, { trace_id, limit, agent_id });
+    }
+  }
+
+  getToolDefinition() {
+    return {
+      name: "exoframe_query_journal",
+      description: "Query the Activity Journal for events",
+      inputSchema: {
+        type: "object",
+        properties: {
+          trace_id: {
+            type: "string",
+            description: "Filter by specific trace ID",
+          },
+          limit: {
+            type: "number",
+            description: "Max records to return (default: 50)",
+          },
+          agent_id: {
+            type: "string",
+            description: "Agent identifier for permission checks",
+          },
+        },
+        required: ["agent_id"],
+      },
+    };
+  }
+}

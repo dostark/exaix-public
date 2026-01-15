@@ -71,8 +71,8 @@ Deno.test("MCP Server: handles tools/list request", async () => {
     assertExists(result.tools);
     assertEquals(Array.isArray(result.tools), true);
 
-    // Phase 4: Should have 6 tools
-    assertEquals(result.tools.length, 6);
+    // Phase 4 + Phase 25: Should have 10 tools
+    assertEquals(result.tools.length, 10);
     const toolNames = result.tools.map((t: { name: string }) => t.name);
     assert(toolNames.includes(McpToolName.READ_FILE));
     assert(toolNames.includes(McpToolName.WRITE_FILE));
@@ -80,6 +80,10 @@ Deno.test("MCP Server: handles tools/list request", async () => {
     assert(toolNames.includes("git_create_branch"));
     assert(toolNames.includes("git_commit"));
     assert(toolNames.includes("git_status"));
+    assert(toolNames.includes("exoframe_create_request"));
+    assert(toolNames.includes("exoframe_list_plans"));
+    assert(toolNames.includes("exoframe_approve_plan"));
+    assert(toolNames.includes("exoframe_query_journal"));
   } finally {
     await ctx.cleanup();
   }

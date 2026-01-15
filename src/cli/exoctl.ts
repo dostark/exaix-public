@@ -29,6 +29,7 @@ import { DashboardCommands } from "./dashboard_commands.ts";
 import { MemoryCommands } from "./memory_commands.ts";
 import { RequestPriority } from "../enums.ts";
 import { CLI_DEFAULTS, PRIORITY_ICONS } from "./cli.config.ts";
+import { MCPServer } from "../mcp/server.ts";
 
 // Allow tests to run the CLI entrypoint without initializing heavy services
 let IN_TEST_MODE = false;
@@ -1412,6 +1413,53 @@ export const __test_command = new Command()
       .action(async () => {
         await dashboardCommands.show();
       }),
+  )
+  .command(
+    "mcp",
+    new Command()
+      .description("Model Context Protocol server")
+      .command(
+        "start",
+        new Command()
+          .description("Start MCP server (stdio transport)")
+          .option("--sse", "Use SSE/HTTP transport (default: stdio)")
+          .option("--port <port:number>", "Port for SSE transport", { default: 3000 })
+          .action(async (options) => {
+            const transport = options.sse ? "sse" : "stdio";
+            const server = new MCPServer({
+              config,
+              db,
+              transport,
+            });
+
+            if (transport === "sse") {
+              await server.startHTTPServer(options.port);
+            } else {
+              server.start();
+              // Stdio loop for JSON-RPC 2.0
+              const decoder = new TextDecoder();
+              const encoder = new TextEncoder();
+
+              for await (const chunk of Deno.stdin.readable) {
+                const text = decoder.decode(chunk);
+                const lines = text.split("\n").filter((line) => line.trim() !== "");
+
+                for (const line of lines) {
+                  try {
+                    const request = JSON.parse(line);
+                    const response = await server.handleRequest(request);
+                    if (response) {
+                      const responseStr = JSON.stringify(response) + "\n";
+                      await Deno.stdout.write(encoder.encode(responseStr));
+                    }
+                  } catch (error) {
+                    console.error("Failed to process request:", error);
+                  }
+                }
+              }
+            }
+          }),
+      ),
   );
 
 // Helper function for printing request results
