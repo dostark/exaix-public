@@ -1,12 +1,14 @@
 // Integration tests for LLM Provider Strategy
 // Tests provider switching, fallback chains, budget enforcement, and concurrent requests
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertStringIncludes } from "@std/assert";
+import { EvaluationVerdict } from "../src/enums.ts";
 import { TestEnvironment } from "../tests/integration/helpers/test_environment.ts";
 import { ProviderSelector } from "../src/ai/provider_selector.ts";
 import { CostTracker } from "../src/services/cost_tracker.ts";
 import { HealthCheckService } from "../src/services/health_check_service.ts";
 import { ProviderRegistry, MockProviderFactory, OllamaProviderFactory, OpenAIProviderFactory } from "../src/ai/provider_registry.ts";
+import { PricingTier, TaskComplexity, ProviderCostTier } from "../src/enums.ts";
 
 Deno.test("Provider Strategy: Full agent execution with provider switching", async (t) => {
   // Initialize provider registry for testing
@@ -15,24 +17,24 @@ Deno.test("Provider Strategy: Full agent execution with provider switching", asy
     name: "mock",
     description: "Mock provider for testing",
     capabilities: ["chat"],
-    costTier: "FREE",
-    pricingTier: "free",
+    costTier: ProviderCostTier.FREE,
+    pricingTier: PricingTier.FREE,
     strengths: ["testing"],
   });
   ProviderRegistry.registerWithMetadata("ollama", new OllamaProviderFactory(), {
     name: "ollama/llama3.2:1b",
     description: "Ollama local LLM provider",
     capabilities: ["chat"],
-    costTier: "FREE",
-    pricingTier: "local",
+    costTier: ProviderCostTier.FREE,
+    pricingTier: PricingTier.LOCAL,
     strengths: ["simple", "analysis"],
   });
   ProviderRegistry.registerWithMetadata("openai", new OpenAIProviderFactory(), {
     name: "openai/gpt-4o-mini",
     description: "OpenAI GPT-4o mini",
     capabilities: ["chat"],
-    costTier: "PAID",
-    pricingTier: "medium",
+    costTier: ProviderCostTier.PAID,
+    pricingTier: PricingTier.LOW,
     strengths: ["complex", "coding"],
   });
 
@@ -59,7 +61,7 @@ You are an expert developer. Provide detailed technical analysis and implementat
       const selector = new ProviderSelector(ProviderRegistry, costTracker, healthCheck);
 
       // First request: simple analysis (should use free provider)
-      const simpleRequest = await env.createRequest(
+      const _simpleRequest = await env.createRequest(
         "Analyze this simple text: 'Hello world'",
         { agentId: "analyzer", priority: 5 },
       );
@@ -70,13 +72,13 @@ You are an expert developer. Provide detailed technical analysis and implementat
       // Select provider for simple task
       const simpleProvider = await selector.selectProvider({
         preferFree: true,
-        taskComplexity: "simple",
+        taskComplexity: TaskComplexity.SIMPLE,
         maxCostUsd: 0.05,
       });
       assertEquals(simpleProvider, "ollama/llama3.2:1b", "Should select free provider for simple task");
 
       // Second request: complex coding task (should switch to paid provider)
-      const complexRequest = await env.createRequest(
+      const _complexRequest = await env.createRequest(
         "Implement a complex microservices architecture with 10 services, database sharding, and load balancing",
         { agentId: "coder", priority: 8 },
       );
@@ -84,7 +86,7 @@ You are an expert developer. Provide detailed technical analysis and implementat
       // Select provider for complex task
       const complexProvider = await selector.selectProvider({
         preferFree: false,
-        taskComplexity: "complex",
+        taskComplexity: TaskComplexity.COMPLEX,
         maxCostUsd: 0.10,
       });
       assertStringIncludes(complexProvider, "openai", "Should select paid provider for complex task");
@@ -141,21 +143,21 @@ Deno.test("Provider Strategy: Free-to-paid fallback scenarios", async (t) => {
       healthCheck.registerCheck({
         name: "ollama/llama3.2:1b", // Must match the provider metadata name
         critical: true,
-        check: async () => ({ status: "fail", message: "Ollama not responding" }),
+        check: async () => await ({ status: EvaluationVerdict.FAIL, message: "Ollama not responding" }),
       });
 
       const selector = new ProviderSelector(ProviderRegistry, costTracker, healthCheck);
 
       // Create request that would normally use free provider
       await env.createBlueprint("analyzer");
-      const request = await env.createRequest(
+      const _request = await env.createRequest(
         "Simple analysis task",
         { agentId: "analyzer", priority: 5 },
       );
 
       // Select provider - should fallback due to health check failure
       const provider = await selector.selectProvider({
-        taskComplexity: "simple", // No preferFree, so all providers are candidates
+        taskComplexity: TaskComplexity.SIMPLE, // No preferFree, so all providers are candidates
       });
 
       // Should select mock provider as fallback when ollama is unhealthy
@@ -183,7 +185,7 @@ Deno.test("Provider Strategy: Multi-provider concurrent requests", async (t) => 
       await env.createBlueprint("coder");
 
       // Create multiple concurrent requests
-      const requests = await Promise.all([
+      const _requests = await Promise.all([
         env.createRequest("Simple analysis 1", { agentId: "analyzer", priority: 3 }),
         env.createRequest("Simple analysis 2", { agentId: "analyzer", priority: 4 }),
         env.createRequest("Complex coding task", { agentId: "coder", priority: 8 }),
@@ -192,10 +194,10 @@ Deno.test("Provider Strategy: Multi-provider concurrent requests", async (t) => 
 
       // Select providers for each request concurrently
       const selections = await Promise.all([
-        selector.selectProvider({ preferFree: true, taskComplexity: "simple" }),
-        selector.selectProvider({ preferFree: true, taskComplexity: "simple" }),
-        selector.selectProvider({ preferFree: false, taskComplexity: "complex" }),
-        selector.selectProvider({ preferFree: true, taskComplexity: "simple" }),
+        selector.selectProvider({ preferFree: true, taskComplexity: TaskComplexity.SIMPLE }),
+        selector.selectProvider({ preferFree: true, taskComplexity: TaskComplexity.SIMPLE }),
+        selector.selectProvider({ preferFree: false, taskComplexity: TaskComplexity.COMPLEX }),
+        selector.selectProvider({ preferFree: true, taskComplexity: TaskComplexity.SIMPLE }),
       ]);
 
       // Verify provider selections

@@ -80,6 +80,7 @@
     "include": ["tests/"]
   },
   "compilerOptions": {
+    "lib": ["deno.window", "deno.ns", "deno.unstable"],
     "strict": true,
     "checkJs": false
   }

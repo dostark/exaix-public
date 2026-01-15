@@ -2,6 +2,9 @@
 # ExoFrame Configuration File
 # ===========================================================================
 #
+# IMPORTANT: This is the ONLY file users should edit to customize ExoFrame behavior.
+# NEVER modify src/config/constants.ts directly - those are internal defaults.
+#
 # All timing values (timeouts, delays, intervals) are in milliseconds (ms)
 # unless otherwise specified.
 #
@@ -186,7 +189,84 @@ branch_prefix_pattern = "^(feat|fix|docs|chore|refactor|test)/"
 allowed_prefixes = ["feat", "fix", "docs", "chore", "refactor", "test"]
 
 # ---------------------------------------------------------------------------
-# Cost tracking configuration
+# Rate limiting configuration
+# ---------------------------------------------------------------------------
+[rate_limiting]
+# Enable rate limiting for AI provider calls
+enabled = true
+# Maximum API calls per minute across all providers
+max_calls_per_minute = 60
+# Maximum tokens per hour across all providers
+max_tokens_per_hour = 100000
+# Maximum cost per day in USD across all providers
+max_cost_per_day = 50.00
+# Cost per 1K tokens (used for rate limiting calculations)
+cost_per_1k_tokens = 0.03
+
+# ---------------------------------------------------------------------------
+# Provider strategy configuration
+# ---------------------------------------------------------------------------
+[provider_strategy]
+# Prefer free/local providers over paid ones when available
+prefer_free = true
+# Allow local providers (Ollama) in selection
+allow_local = true
+# Maximum daily cost budget in USD
+max_daily_cost_usd = 5.00
+# Enable health checks before provider selection
+health_check_enabled = true
+# Enable automatic fallback to alternative providers on failure
+fallback_enabled = true
+
+# ---------------------------------------------------------------------------
+# Mock provider configuration (for testing/development)
+# ---------------------------------------------------------------------------
+[mock]
+# Delay in milliseconds for mock responses
+delay_ms = 500
+# Default input tokens for mock responses
+input_tokens = 100
+# Default output tokens for mock responses
+output_tokens = 50
+
+# ---------------------------------------------------------------------------
+# UI and display configuration
+# ---------------------------------------------------------------------------
+[ui]
+# Maximum length for prompt previews in logs/debugging
+prompt_preview_length = 50
+# Extended preview length for detailed debugging
+prompt_preview_extended = 100
+
+# ---------------------------------------------------------------------------
+# Git operations configuration
+# ---------------------------------------------------------------------------
+[git.operations]
+# Timeout for git status operations (ms)
+status_timeout_ms = 10000
+# Timeout for git checkout operations (ms)
+checkout_timeout_ms = 10000
+# Timeout for git clean operations (ms)
+clean_timeout_ms = 5000
+# Timeout for git log operations (ms)
+log_timeout_ms = 5000
+# Timeout for git diff operations (ms)
+diff_timeout_ms = 10000
+# Timeout for general git commands (ms)
+command_timeout_ms = 30000
+# Maximum retries for git operations
+max_retries = 3
+# Base backoff delay for git retries (ms)
+retry_backoff_base_ms = 100
+# Maximum retries for branch name collisions
+branch_name_collision_max_retries = 5
+# Length of trace ID suffix for branches
+trace_id_short_length = 8
+# Length of random suffix for branches
+branch_suffix_length = 6
+
+# ---------------------------------------------------------------------------
+# Cost tracking configuration (extended)
 # ---------------------------------------------------------------------------
 [cost_tracking]
 # Batch delay in milliseconds for cost tracking writes
@@ -194,18 +274,25 @@ batch_delay_ms = 5000
 # Maximum batch size before immediate flush
 max_batch_size = 50
 
-# ---------------------------------------------------------------------------
-# Health check configuration
-# ---------------------------------------------------------------------------
-[health]
-# Default timeout for health checks in milliseconds
-check_timeout_ms = 30000
-# TTL for health check result caching in milliseconds
-cache_ttl_ms = 60000
-# Memory usage warning threshold (percentage)
-memory_warn_percent = 80
-# Memory usage critical threshold (percentage)
-memory_critical_percent = 95
+# Cost rates per 1K tokens (override defaults for your pricing)
+[cost_tracking.rates]
+openai = 0.01      # $0.01 per 1K tokens
+anthropic = 0.015  # $0.015 per 1K tokens
+google = 0.0       # Free tier
+ollama = 0.0       # Local free
+mock = 0.0         # Mock free
+
+[provider_strategy]
+prefer_free = true
+allow_local = true
+health_check_enabled = true
+fallback_enabled = true
+
+[provider_strategy.fallback_chains]
+balanced = ["openai", "anthropic", "google"]
+fast = ["google", "openai"]
+local_first = ["local", "default"]
+
 
 # ---------------------------------------------------------------------------
 # Notes
@@ -214,4 +301,7 @@ memory_critical_percent = 95
 # - The `paths.runtime` directory is where runtime artifacts live (DB, logs).
 # - Portals should point at real git repositories to enable blueprint/changeset
 #   operations across projects.
+# - DO NOT edit src/config/constants.ts directly - all user configuration
+#   should be done through this exo.config.toml file.
 # ---------------------------------------------------------------------------
+

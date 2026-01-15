@@ -1136,16 +1136,16 @@ Create REST API routes.
 **MCP Components:**
 
 ┌─────────────────────────────────────────────┐
-│         ExoFrame MCP Server                 │
+│ ExoFrame MCP Server │
 ├─────────────────────────────────────────────┤
-│ Tools:      6 tools (read_file, write_file, │
-│             list_directory, git_*)          │
+│ Tools: 6 tools (read_file, write_file, │
+│ list_directory, git_*) │
 ├─────────────────────────────────────────────┤
-│ Resources:  portal://PortalName/path URIs   │
+│ Resources: portal://PortalName/path URIs │
 ├─────────────────────────────────────────────┤
-│ Prompts:    execute_plan, create_changeset  │
+│ Prompts: execute_plan, create_changeset │
 ├─────────────────────────────────────────────┤
-│ Transport:  stdio or SSE (HTTP)             │
+│ Transport: stdio or SSE (HTTP) │
 └─────────────────────────────────────────────┘
 
 **MCP Tools:**
@@ -1398,8 +1398,8 @@ with quality improvements, reliability, and context awareness.
 #### 7.3.2 Orchestration Pipeline
 
 Request → Session Memory → Agent Runner → Reflexive Agent → Output Validator → Response
-             ↓                  ↓               ↓                 ↓
-         Memory Bank      Tool Reflector   Self-Critique      Retry Policy
+↓ ↓ ↓ ↓
+Memory Bank Tool Reflector Self-Critique Retry Policy
 
 1. **Session Memory**: Injects relevant context from past interactions
    (learnings, patterns, executions)
