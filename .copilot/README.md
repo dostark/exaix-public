@@ -283,6 +283,19 @@ Examples
 
 - Example prompt: "Suggest 3 unit test cases for PlanWriter that use `initTestDbService()` and include expected assertions."
 
+## Configuration & Coding Standards
+
+To ensure maintainability and configurability, follow these strict rules:
+
+1.  **No Magic Values:** Never hardcode numbers or strings (timeouts, limits, model names) in code.
+2.  **Configuration:**
+    *   **User-Facing:** Add to `exo.config.sample.toml` and `src/config/schema.ts`.
+    *   **Internal:** Use `src/constants.ts`.
+    *   **CLI/TUI:** Use `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
+3.  **Enums:** ALWAYS use TypeScript enums from `src/enums.ts` instead of string literals.
+4.  **Reference:** See `CONTRIBUTING.md` and `docs/dev/Migration_Guide_Phase27.md`.
+
 ## Notes
 
 These files are **not** runtime Blueprints/agents (see `Blueprints/Agents/`). They are development-focused guidance to be used by IDE agents and automation helpers.
+

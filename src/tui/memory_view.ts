@@ -35,6 +35,7 @@ import {
   PromoteDialog,
 } from "./dialogs/memory_dialogs.ts";
 import { renderCategoryBadge, renderConfidence, renderMarkdown, renderSpinner } from "./utils/markdown_renderer.ts";
+import { MEMORY_STALE_MS } from "./tui.config.ts";
 
 // ===== Types =====
 
@@ -276,7 +277,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
    * Refresh data if stale (>30 seconds)
    */
   async refreshIfStale(): Promise<void> {
-    const staleMs = 30000; // 30 seconds
+    const staleMs = MEMORY_STALE_MS; // 30 seconds
     if (Date.now() - this.state.lastRefresh > staleMs) {
       await this.refresh();
     }

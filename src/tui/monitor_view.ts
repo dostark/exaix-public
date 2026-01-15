@@ -90,63 +90,10 @@ export interface MonitorViewState {
 
 // ===== Icons and Visual Constants =====
 
-export const LOG_ICONS: Record<string, string> = {
-  "request_created": "📝",
-  "request.created": "📝",
-  "plan_approved": "✅",
-  "plan.approved": "✅",
-  "plan.rejected": "❌",
-  "execution_started": "🚀",
-  "execution.started": "🚀",
-  "execution_completed": "✓",
-  "execution.completed": "✓",
-  "execution_failed": "💥",
-  "execution.failed": "💥",
-  "error": "⚠️",
-  "default": "📋",
-};
+// ===== Icons and Visual Constants =====
+import { LOG_COLORS, LOG_ICONS, MONITOR_AUTO_REFRESH_INTERVAL_MS, MONITOR_KEY_BINDINGS } from "./tui.config.ts";
 
-export const LOG_COLORS: Record<string, string> = {
-  "request_created": "green",
-  "request.created": "green",
-  "plan_approved": "blue",
-  "plan.approved": "blue",
-  "plan.rejected": "red",
-  "execution_started": "yellow",
-  "execution.started": "yellow",
-  "execution_completed": "green",
-  "execution.completed": "green",
-  "execution_failed": "red",
-  "execution.failed": "red",
-  "error": "red",
-  "default": "white",
-};
-
-// ===== Key Bindings =====
-
-export const MONITOR_KEY_BINDINGS: KeyBinding[] = [
-  { key: "up", action: "navigate-up", description: "Move up", category: "Navigation" },
-  { key: "down", action: "navigate-down", description: "Move down", category: "Navigation" },
-  { key: "home", action: "navigate-home", description: "Go to first", category: "Navigation" },
-  { key: "end", action: "navigate-end", description: "Go to last", category: "Navigation" },
-  { key: "left", action: "collapse", description: "Collapse group", category: "Navigation" },
-  { key: "right", action: "expand", description: "Expand group", category: "Navigation" },
-  { key: "enter", action: "view-details", description: "View log details", category: "Actions" },
-  { key: "space", action: "toggle-pause", description: "Toggle pause", category: "Actions" },
-  { key: "b", action: "bookmark", description: "Bookmark entry", category: "Actions" },
-  { key: "e", action: "export", description: "Export logs", category: "Actions" },
-  { key: "s", action: "search", description: "Search logs", category: "Actions" },
-  { key: "f", action: "filter-agent", description: "Filter by agent", category: "Actions" },
-  { key: "t", action: "filter-time", description: "Filter by time", category: "Actions" },
-  { key: "g", action: "toggle-grouping", description: "Toggle grouping", category: "View" },
-  { key: "R", action: "refresh", description: "Force refresh", category: "View" },
-  { key: "a", action: "auto-refresh", description: "Toggle auto-refresh", category: "View" },
-  { key: "c", action: "collapse-all", description: "Collapse all", category: "View" },
-  { key: "E", action: "expand-all", description: "Expand all", category: "View" },
-  { key: "?", action: "help", description: "Toggle help", category: "Help" },
-  { key: "q", action: "quit", description: "Close/Back", category: "Help" },
-  { key: "escape", action: "cancel", description: "Close dialog/view", category: "Help" },
-];
+export { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS };
 
 // ===== Monitor View Class =====
 
@@ -660,7 +607,7 @@ export class MonitorTuiSession extends TuiSessionBase {
       if (!this.isPaused()) {
         this.doRefresh();
       }
-    }, 5000) as unknown as number;
+    }, MONITOR_AUTO_REFRESH_INTERVAL_MS) as unknown as number;
   }
 
   override stopAutoRefresh(): void {

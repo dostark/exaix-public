@@ -32,6 +32,7 @@ import type {
   Skill,
   SkillMatch,
 } from "../schemas/memory_bank.ts";
+import { MEMORY_COMMAND_DEFAULTS } from "./cli.config.ts";
 
 export type OutputFormat = "table" | "json" | "md";
 
@@ -207,8 +208,8 @@ export class MemoryCommands {
       useEmbeddings?: boolean;
     },
   ): Promise<string> {
-    const format = options?.format || "table";
-    const limit = options?.limit || 20;
+    const format = options?.format || MEMORY_COMMAND_DEFAULTS.FORMAT;
+    const limit = options?.limit || MEMORY_COMMAND_DEFAULTS.LIMIT;
 
     let results: MemorySearchResult[];
 
@@ -267,9 +268,9 @@ export class MemoryCommands {
     ];
 
     for (const result of results) {
-      const type = result.type.padEnd(10);
-      const portal = (result.portal || "-").padEnd(15);
-      const title = result.title.substring(0, 30);
+      const type = result.type.padEnd(MEMORY_COMMAND_DEFAULTS.PROJECT_PADDING);
+      const portal = (result.portal || "-").padEnd(MEMORY_COMMAND_DEFAULTS.PORTAL_PADDING);
+      const title = result.title.substring(0, MEMORY_COMMAND_DEFAULTS.TITLE_LENGTH);
       lines.push(`${type} │ ${portal} │ ${title}`);
     }
 
@@ -359,9 +360,9 @@ export class MemoryCommands {
     ];
 
     for (const project of projects) {
-      const name = project.name.padEnd(20);
-      const patterns = String(project.patterns).padStart(8);
-      const decisions = String(project.decisions).padStart(9);
+      const name = project.name.padEnd(MEMORY_COMMAND_DEFAULTS.PROJECT_NAME_PADDING);
+      const patterns = String(project.patterns).padStart(MEMORY_COMMAND_DEFAULTS.PATTERNS_PADDING);
+      const decisions = String(project.decisions).padStart(MEMORY_COMMAND_DEFAULTS.DECISIONS_PADDING);
       lines.push(`${name} │${patterns} │${decisions}`);
     }
 
@@ -531,8 +532,8 @@ export class MemoryCommands {
       format?: OutputFormat;
     },
   ): Promise<string> {
-    const format = options?.format || "table";
-    const limit = options?.limit || 20;
+    const format = options?.format || MEMORY_COMMAND_DEFAULTS.FORMAT;
+    const limit = options?.limit || MEMORY_COMMAND_DEFAULTS.LIMIT;
 
     const executions = await this.memoryBank.getExecutionHistory(
       options?.portal,
@@ -564,10 +565,10 @@ export class MemoryCommands {
     ];
 
     for (const exec of executions) {
-      const traceId = exec.trace_id.substring(0, 8) + "..";
-      const status = exec.status.padEnd(9);
-      const portal = exec.portal.padEnd(15);
-      const started = exec.started_at.substring(0, 19);
+      const traceId = exec.trace_id.substring(0, MEMORY_COMMAND_DEFAULTS.TRACE_ID_LENGTH) + "..";
+      const status = exec.status.padEnd(MEMORY_COMMAND_DEFAULTS.STATUS_PADDING);
+      const portal = exec.portal.padEnd(MEMORY_COMMAND_DEFAULTS.PORTAL_PADDING);
+      const started = exec.started_at.substring(0, MEMORY_COMMAND_DEFAULTS.TIMESTAMP_LENGTH);
       lines.push(`${traceId} │ ${status} │ ${portal} │ ${started}`);
     }
 

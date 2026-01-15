@@ -28,6 +28,7 @@ import { FlowCommands } from "./flow_commands.ts";
 import { DashboardCommands } from "./dashboard_commands.ts";
 import { MemoryCommands } from "./memory_commands.ts";
 import { RequestPriority } from "../enums.ts";
+import { CLI_DEFAULTS, PRIORITY_ICONS } from "./cli.config.ts";
 
 // Allow tests to run the CLI entrypoint without initializing heavy services
 let IN_TEST_MODE = false;
@@ -255,8 +256,10 @@ export const __test_command = new Command()
     new Command()
       .description("Create requests for ExoFrame agents (PRIMARY INTERFACE)")
       .arguments("[description:string]")
-      .option("-a, --agent <agent:string>", "Target agent blueprint", { default: "default" })
-      .option("-p, --priority <priority:string>", "Priority: low, normal, high, critical", { default: "normal" })
+      .option("-a, --agent <agent:string>", "Target agent blueprint", { default: CLI_DEFAULTS.AGENT })
+      .option("-p, --priority <priority:string>", "Priority: low, normal, high, critical", {
+        default: CLI_DEFAULTS.PRIORITY,
+      })
       .option("--portal <portal:string>", "Portal alias for context")
       .option("-m, --model <model:string>", "Named model configuration")
       .option("-f, --file <file:string>", "Read description from file")
@@ -321,7 +324,7 @@ export const __test_command = new Command()
                 }
                 display.info("request.list", "requests", { count: requests.length });
                 for (const req of requests) {
-                  const priorityIcon = { critical: "🔴", high: "🟠", normal: "🟢", low: "⚪" }[req.priority] || "🟢";
+                  const priorityIcon = PRIORITY_ICONS[req.priority] || PRIORITY_ICONS.default;
                   display.info(`${priorityIcon} ${req.trace_id.slice(0, 8)}`, req.trace_id, {
                     status: req.status,
                     agent: req.agent,
@@ -719,7 +722,7 @@ export const __test_command = new Command()
         "logs",
         new Command()
           .description("Show daemon logs")
-          .option("-n, --lines <lines:number>", "Number of lines to show", { default: 50 })
+          .option("-n, --lines <lines:number>", "Number of lines to show", { default: CLI_DEFAULTS.LOG_LINES })
           .option("-f, --follow", "Follow log output")
           .action(async (options) => {
             try {

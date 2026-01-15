@@ -6,6 +6,7 @@
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "./base.ts";
+import { CLI_DEFAULTS } from "./cli.config.ts";
 
 export interface DaemonStatus {
   running: boolean;
@@ -269,7 +270,7 @@ export class DaemonCommands extends BaseCommand {
     timeoutMs: number,
   ): Promise<boolean> {
     const startTime = Date.now();
-    const checkInterval = 50; // Check every 50ms
+    const checkInterval = CLI_DEFAULTS.DAEMON_CHECK_INTERVAL_MS; // Check every 50ms
 
     while (Date.now() - startTime < timeoutMs) {
       const isRunning = await this.isProcessRunning(pid);
