@@ -1,9 +1,14 @@
 // Helper to temporarily set environment variables for a test and restore them after
-export function withEnv(env: Record<string, string>, fn: () => Promise<void> | void) {
+export function withEnv(env: Record<string, string | null>, fn: () => Promise<void> | void) {
   const old: Record<string, string | undefined> = {};
   for (const k of Object.keys(env)) {
     old[k] = Deno.env.get(k);
-    Deno.env.set(k, env[k]);
+    const val = env[k];
+    if (val === null) {
+      Deno.env.delete(k);
+    } else {
+      Deno.env.set(k, val);
+    }
   }
   try {
     const res = fn();

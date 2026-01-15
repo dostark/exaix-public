@@ -42,7 +42,7 @@ Deno.test("Phase 3: isTestMode() returns false when EXO_TEST_MODE=false", async 
 });
 
 Deno.test("Phase 3: isCIMode() returns false when neither CI nor EXO_CI_MODE set", async () => {
-  await withEnv({}, () => {
+  await withEnv({ CI: null, EXO_CI_MODE: null }, () => {
     assertEquals(isCIMode(), false);
   });
 });
