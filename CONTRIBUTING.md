@@ -56,10 +56,37 @@ grep -rEn --include='*.ts' '"(ollama|anthropic|openai|pending|active|timeout)"' 
 
 If you are updating legacy code, refer to `docs/dev/Migration_Guide_Phase27.md` for detailed instructions on replacing hardcoded values with the new configuration system.
 
-## 4. Pull Request Checklist
+## 4. AI Agent Development Workflow
 
+### 4.1 Mandatory Pre-Task Steps
+
+**If you are an AI agent (Claude, Copilot, etc.), you MUST:**
+
+1. **Read [`CLAUDE.md`](CLAUDE.md)** for project orientation and quick reference
+2. **Consult [`.copilot/cross-reference.md`](.copilot/cross-reference.md)** for task-specific guidance
+3. **Read relevant `.copilot/` documentation** before implementation:
+   - `.copilot/source/exoframe.md` — Source code patterns
+   - `.copilot/tests/testing.md` — Test patterns and helpers
+   - `.copilot/docs/documentation.md` — Documentation guidelines
+   - `.copilot/planning/*.md` — Phase planning documents
+4. **Cite consulted documents** in your implementation plan
+
+**Example citation:**
+> "I consulted `.copilot/tests/testing.md` for test helpers and `.copilot/source/exoframe.md` for service architecture patterns."
+
+### 4.2 Agent Documentation Index
+
+All available agent documentation is indexed in `.copilot/manifest.json`. Use the quick reference tables in `CLAUDE.md` to find relevant docs for your task.
+
+**Failure to consult `.copilot/` documentation is considered a project standards violation.**
+
+## 5. Pull Request Checklist
+
+- [ ] **(AI Agents)** Consulted relevant `.copilot/` documentation and cited in implementation plan.
 - [ ] No new magic numbers or strings introduced.
 - [ ] New configuration options added to `exo.config.sample.toml`.
 - [ ] Zod schema updated in `src/config/schema.ts`.
 - [ ] Tests added for new configuration options.
 - [ ] Documentation updated if behavior changes.
+- [ ] All tests pass (`deno task test`).
+- [ ] Code formatted (`deno task fmt`).

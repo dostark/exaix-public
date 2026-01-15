@@ -1,6 +1,26 @@
-# CLAUDE.md — ExoFrame AI Assistant Guidelines
+# 🤖 CLAUDE.md — REQUIRED READING FOR ALL AI AGENTS
 
-> **Purpose:** Provide AI assistants with immediate context about ExoFrame's structure, conventions, and where to find detailed guidance.
+> **⚠️ CRITICAL:** This document and `.copilot/` are **MANDATORY** context for all code tasks.
+>
+> **Violation of these guidelines will result in rejected or incorrect implementations.**
+
+---
+
+## ⚠️ START HERE — Mandatory Pre-Task Checklist
+
+**Before beginning ANY code modification task, you MUST:**
+
+- [ ] Read this `CLAUDE.md` file completely
+- [ ] Check `.copilot/cross-reference.md` for task-specific guidance
+- [ ] Read at least one relevant `.copilot/` document matching your task type
+- [ ] **Acknowledge** which `.copilot/` docs guided your approach in your implementation plan
+
+**Example acknowledgment format:**
+> "I consulted `.copilot/tests/testing.md` for test patterns and `.copilot/source/exoframe.md` for service architecture before implementing this feature."
+
+**Failure to consult `.copilot/` documentation is considered a violation of project standards.**
+
+---
 
 ## Quick Reference
 
@@ -163,18 +183,24 @@ After adding/changing files in `.copilot/`:
 deno run --allow-read --allow-write scripts/build_agents_index.ts
 ```
 
-## Do's and Don'ts
+## Mandatory Requirements & Violations
 
-### ✅ Do
-- Follow TDD (tests first, always)
-- Consult `.copilot/cross-reference.md` to find relevant docs
-- Use established test helpers (`initTestDbService`, etc.)
-- Keep Problems tab clean (fix TS errors before completing)
-- Run `deno task test` before committing
+### ⚠️ MANDATORY Requirements
+These are **REQUIRED** for all code tasks:
 
-### ❌ Don't
-- Skip writing tests
-- Proceed without checking relevant agent docs
-- Use raw SQL table creation in tests (use helpers)
-- Ignore pre-commit hook failures
-- Guess at patterns — check `.copilot/` docs first
+- **MUST** follow TDD (tests first, always)
+- **MUST** consult `.copilot/cross-reference.md` to find relevant docs before implementation
+- **MUST** read matching `.copilot/` docs and cite them in your plan
+- **MUST** use established test helpers (`initTestDbService`, `createCliTestContext`, etc.)
+- **MUST** keep Problems tab clean (fix TS errors before completing)
+- **MUST** run `deno task test` before committing
+
+### 🚫 Violations (Will Result in Rejection)
+These actions are **PROHIBITED**:
+
+- ❌ **Skipping tests** — All code must have tests
+- ❌ **Proceeding without consulting `.copilot/` docs** — This is a standards violation
+- ❌ **Using raw SQL table creation** — Use test helpers
+- ❌ **Ignoring pre-commit hook failures** — All checks must pass
+- ❌ **Guessing at patterns** — Always check `.copilot/` docs first
+- ❌ **Introducing magic numbers/strings** — See `CONTRIBUTING.md`

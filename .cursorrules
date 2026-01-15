@@ -1,0 +1,93 @@
+# ExoFrame — Cursor IDE Agent Rules
+
+## ⚠️ MANDATORY Pre-Task Requirements
+
+**Before ANY code modification, you MUST:**
+
+1. **Read `CLAUDE.md`** completely for project orientation
+2. **Consult `.copilot/cross-reference.md`** for task-specific guidance
+3. **Read matching `.copilot/` documentation:**
+   - Writing tests? → `.copilot/tests/testing.md`
+   - Adding features? → `.copilot/source/exoframe.md`
+   - Refactoring? → `.copilot/source/exoframe.md`
+   - Documentation? → `.copilot/docs/documentation.md`
+   - Planning? → `.copilot/planning/*.md`
+4. **Cite consulted docs** in your implementation plan or explanation
+
+## 🚫 Project Violations
+
+These actions will result in rejected code:
+
+- ❌ **Skipping `.copilot/` documentation consultation** — MANDATORY for all tasks
+- ❌ **Introducing magic numbers or strings** — See `CONTRIBUTING.md`
+- ❌ **Skipping tests** — TDD is required
+- ❌ **Proceeding without tests passing** — `deno task test` must succeed
+- ❌ **Guessing at patterns** — Always verify against `.copilot/` docs
+
+## Key Project Constraints
+
+### No Magic Values
+- **User-facing config:** Add to `exo.config.sample.toml` + `src/config/schema.ts`
+- **Internal constants:** Add to `src/constants.ts`
+- **CLI/TUI defaults:** Add to `src/cli/cli.config.ts` or `src/tui/tui.config.ts`
+- **Enums:** Use `src/enums.ts` for all fixed string sets
+
+### TDD Workflow (MANDATORY)
+1. Write failing tests first
+2. Implement minimal code to pass
+3. Refactor with tests green
+4. Verify coverage maintained
+
+### Test Helpers
+```typescript
+// Database tests
+const { db, tempDir, cleanup } = await initTestDbService();
+
+// CLI tests
+const ctx = await createCliTestContext();
+
+// Full integration
+const env = await TestEnvironment.create();
+```
+
+### Service Architecture
+- Constructor-based DI (pass `config`, `db`, `provider`)
+- Keep side effects out of constructors
+- Always use `PathResolver` for path validation
+- Log all side-effects via `EventLogger`
+
+## Acknowledgment Format
+
+When implementing, acknowledge which `.copilot/` docs you consulted:
+
+> "I consulted `.copilot/tests/testing.md` for test patterns and `.copilot/source/exoframe.md` for service architecture before implementing this feature."
+
+## Quick Reference
+
+| Task | Required Reading |
+|------|------------------|
+| Writing tests | `.copilot/tests/testing.md` |
+| Adding features | `.copilot/source/exoframe.md` + `.copilot/tests/testing.md` |
+| Refactoring | `.copilot/source/exoframe.md` |
+| Documentation | `.copilot/docs/documentation.md` |
+| Planning | `.copilot/planning/*.md` |
+
+## Runtime & Tooling
+
+- **Runtime:** Deno (strict TypeScript)
+- **Config:** `deno.json`
+- **Pre-commit:** Auto-runs `fmt:check`, `lint`, `check:docs`
+
+## Common Commands
+
+```bash
+deno task test              # Run all tests (REQUIRED before commit)
+deno task test:cov          # Run with coverage
+deno task fmt               # Format code
+deno task lint              # Lint code
+deno task check:docs        # Verify .copilot/manifest.json is fresh
+```
+
+---
+
+**Reminder:** Failing to consult `.copilot/` documentation is a project standards violation.
