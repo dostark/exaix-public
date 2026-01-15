@@ -11,8 +11,10 @@
  * - Test 7: Tracks user identity in approval/rejection actions
  */
 
-import { assertEquals, assertExists, assertRejects } from "jsr:@std/assert@^1.0.0";
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
+import { assertEquals, assertExists, assertRejects } from "@std/assert";
+import { DaemonStatus } from "../../src/enums.ts";
+
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { PlanCommands } from "../../src/cli/plan_commands.ts";
 import { DatabaseService } from "../../src/services/db.ts";
@@ -49,7 +51,7 @@ describe("PlanCommands", () => {
     rejectedDir = getWorkspaceRejectedDir(tempDir);
 
     // Initialize PlanCommands
-    planCommands = new PlanCommands({ config, db }, tempDir);
+    planCommands = new PlanCommands({ config, db });
   });
 
   afterEach(async () => {
@@ -437,7 +439,7 @@ status: needs_revision
       const plans = await planCommands.list();
       assertEquals(plans.length, 1);
       assertEquals(plans[0].id, "plan-malformed");
-      assertEquals(plans[0].status, "unknown");
+      assertEquals(plans[0].status, DaemonStatus.UNKNOWN);
     });
   });
 
@@ -492,7 +494,7 @@ Just some content.
       const result = await planCommands.show(planId);
 
       assertEquals(result.id, planId);
-      assertEquals(result.status, "unknown");
+      assertEquals(result.status, DaemonStatus.UNKNOWN);
       assertEquals(result.content.includes("# Plan without frontmatter"), true);
     });
   });

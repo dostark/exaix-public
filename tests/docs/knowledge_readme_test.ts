@@ -9,8 +9,9 @@
  * - Test 5: Documents directory purposes and usage
  */
 
-import { assert, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
-import { join } from "jsr:@std/path@^1.0.0";
+import { assert, assertStringIncludes } from "@std/assert";
+import { MemoryScope, MemorySource } from "../../src/enums.ts";
+import { join } from "@std/path";
 
 async function readMemoryBanksDoc(): Promise<string> {
   const docPath = join(Deno.cwd(), "docs", "Memory_Banks.md");
@@ -67,8 +68,8 @@ Deno.test("Memory Banks documentation documents directory purposes", async () =>
   const lower = doc.toLowerCase();
 
   // Should explain what each directory is for
-  const hasProjects = lower.includes("project");
-  const hasExecution = lower.includes("execution");
+  const hasProjects = lower.includes(MemoryScope.PROJECT);
+  const hasExecution = lower.includes(MemorySource.EXECUTION);
 
   assert(hasProjects && hasExecution, "Documentation should document directory purposes");
 });

@@ -12,7 +12,11 @@
  * - Test 7: Plan can be approved after revision (normal flow continues)
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
+import { MemorySource } from "../../src/enums.ts";
+
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 
@@ -65,7 +69,7 @@ Deno.test("Integration: Plan Revision - Request to Revised Plan", async (t) => {
         status: "review",
         actions: [
           {
-            tool: "write_file",
+            tool: McpToolName.WRITE_FILE,
             params: {
               path: "src/file_reader.ts",
               content: "export function readFile(path: string): string { return Deno.readTextFileSync(path); }",
@@ -106,7 +110,7 @@ Deno.test("Integration: Plan Revision - Request to Revised Plan", async (t) => {
 
       // Original plan content should still be present
       assertStringIncludes(content, "## Actions");
-      assertStringIncludes(content, "write_file");
+      assertStringIncludes(content, McpToolName.WRITE_FILE);
     });
 
     // ========================================================================
@@ -164,7 +168,7 @@ Deno.test("Integration: Plan Revision - Request to Revised Plan", async (t) => {
     await t.step("Test 6: Revision requests logged to Activity Journal", async () => {
       // Log revision activity
       env.db.logActivity(
-        "user",
+        MemorySource.USER,
         "plan.revision_requested",
         planPath,
         {
@@ -224,8 +228,8 @@ Deno.test("Integration: Plan Revision - Revision preserves plan structure", asyn
     const planPath = await env.createPlan(traceId, "structure-test", {
       status: "review",
       actions: [
-        { tool: "write_file", params: { path: "a.ts", content: "// file a" } },
-        { tool: "write_file", params: { path: "b.ts", content: "// file b" } },
+        { tool: McpToolName.WRITE_FILE, params: { path: "a.ts", content: "// file a" } },
+        { tool: McpToolName.WRITE_FILE, params: { path: "b.ts", content: "// file b" } },
       ],
     });
 

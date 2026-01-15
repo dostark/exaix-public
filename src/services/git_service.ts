@@ -162,10 +162,12 @@ export class GitService {
    * Create initial commit for new repository
    */
   private async createInitialCommit(): Promise<void> {
-    // Create .gitignore
+    const workspaceDir = this.config.paths.workspace;
+    const runtimeDir = this.config.paths.runtime;
+
     await Deno.writeTextFile(
       `${this.repoPath}/.gitignore`,
-      "Workspace/\n.exo/journal.db\n.exo/journal.db-*\n.exo/daemon.*\ndeno.lock\n",
+      `${workspaceDir}/\n${runtimeDir}/journal.db\n${runtimeDir}/journal.db-*\n${runtimeDir}/daemon.*\ndeno.lock\n`,
     );
 
     // Stage .gitignore

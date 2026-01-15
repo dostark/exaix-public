@@ -6,11 +6,13 @@
  */
 
 import { join } from "@std/path";
+import { FlowStepType, McpToolName, MemoryOperation, PortalOperation } from "../../../src/enums.ts";
 import { ensureDir, exists } from "@std/fs";
 import { DatabaseService } from "../../../src/services/db.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import type { Config } from "../../../src/config/schema.ts";
 import { MockLLMProvider } from "../../../src/ai/providers/mock_llm_provider.ts";
+import { MockStrategy } from "../../../src/enums.ts";
 import { RequestProcessor } from "../../../src/services/request_processor.ts";
 import { ExecutionLoop } from "../../../src/services/execution_loop.ts";
 import {
@@ -75,19 +77,19 @@ export class TestEnvironment {
     await ensureDir(getPortalsDir(tempDir));
     // Initialize git if requested
     if (options.initGit !== false) {
-      await new Deno.Command("git", {
+      await new Deno.Command(PortalOperation.GIT, {
         args: ["init", "-b", "main"],
         cwd: tempDir,
         stdout: "null",
         stderr: "null",
       }).output();
 
-      await new Deno.Command("git", {
+      await new Deno.Command(PortalOperation.GIT, {
         args: ["config", "user.email", "test@exoframe.dev"],
         cwd: tempDir,
       }).output();
 
-      await new Deno.Command("git", {
+      await new Deno.Command(PortalOperation.GIT, {
         args: ["config", "user.name", "ExoFrame Test"],
         cwd: tempDir,
       }).output();
@@ -98,11 +100,11 @@ export class TestEnvironment {
         "Workspace/\n.exo/journal.db*\n.exo/daemon.*\ndeno.lock\n",
       );
       await Deno.writeTextFile(join(tempDir, ".gitkeep"), "");
-      await new Deno.Command("git", {
-        args: ["add", "."],
+      await new Deno.Command(PortalOperation.GIT, {
+        args: [MemoryOperation.ADD, "."],
         cwd: tempDir,
       }).output();
-      await new Deno.Command("git", {
+      await new Deno.Command(PortalOperation.GIT, {
         args: ["commit", "-m", "Initial commit"],
         cwd: tempDir,
       }).output();
@@ -170,7 +172,7 @@ export class TestEnvironment {
     await ensureDir(getWorkspacePlansDir(this.tempDir));
 
     const actions = options.actions ?? [
-      { tool: "write_file", params: { path: "test.txt", content: "Hello World" } },
+      { tool: McpToolName.WRITE_FILE, params: { path: "test.txt", content: "Hello World" } },
     ];
 
     const frontmatter = [
@@ -400,8 +402,8 @@ This plan will accomplish the requested task.
    * List git branches with ExoFrame naming convention
    */
   async getGitBranches(): Promise<string[]> {
-    const cmd = new Deno.Command("git", {
-      args: ["branch", "-a"],
+    const cmd = new Deno.Command(PortalOperation.GIT, {
+      args: [FlowStepType.BRANCH, "-a"],
       cwd: this.tempDir,
       stdout: "piped",
     });
@@ -503,7 +505,7 @@ Always respond with valid JSON containing a plan with actionable steps.`;
    * Create a RequestProcessor with MockLLMProvider
    */
   createRequestProcessor(options?: {
-    providerMode?: "recorded" | "scripted" | "pattern" | "failing" | "slow";
+    providerMode?: MockStrategy;
     recordings?: any[];
     includeReasoning?: boolean;
     requestsDir?: string;
@@ -513,7 +515,7 @@ Always respond with valid JSON containing a plan with actionable steps.`;
     processor: RequestProcessor;
   } {
     const provider = new MockLLMProvider(
-      options?.providerMode ?? "recorded",
+      options?.providerMode ?? MockStrategy.RECORDED,
       { recordings: options?.recordings ?? [] },
     );
 
@@ -537,7 +539,7 @@ Always respond with valid JSON containing a plan with actionable steps.`;
    * Create a mock LLM provider with optional recordings
    */
   createMockProvider(
-    mode: "recorded" | "scripted" | "pattern" | "failing" | "slow" = "recorded",
+    mode: MockStrategy = MockStrategy.RECORDED,
     recordings: any[] = [],
   ): MockLLMProvider {
     return new MockLLMProvider(mode, { recordings });

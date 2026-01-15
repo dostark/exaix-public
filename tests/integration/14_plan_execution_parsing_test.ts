@@ -1,5 +1,7 @@
-import { assertEquals, assertExists } from "jsr:@std/assert@1";
-import { join } from "jsr:@std/path@1";
+import { assertEquals, assertExists } from "@std/assert";
+import { MemoryStatus } from "../../src/enums.ts";
+
+import { join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { getWorkspaceActiveDir } from "../helpers/paths_helper.ts";
 
@@ -104,7 +106,7 @@ Protect routes with authentication checks.
       assertEquals(typeof frontmatter.trace_id, "string");
       assertEquals(typeof frontmatter.request_id, "string");
       assertEquals(frontmatter.agent, "mock-agent");
-      assertEquals(frontmatter.status, "approved");
+      assertEquals(frontmatter.status, MemoryStatus.APPROVED);
 
       // Extract body
       const bodyMatch = content.match(/^---\n[\s\S]*?\n---\n\n([\s\S]*)$/);
@@ -257,7 +259,7 @@ Initial setup
       assertEquals(frontmatter.trace_id, traceId);
       assertEquals(frontmatter.request_id, requestId);
       assertEquals(frontmatter.agent, "mock-agent");
-      assertEquals(frontmatter.status, "approved");
+      assertEquals(frontmatter.status, MemoryStatus.APPROVED);
       assertEquals(frontmatter.priority, "high");
       // YAML parser converts ISO strings to Date objects
       assertEquals(frontmatter.created_at instanceof Date, true);

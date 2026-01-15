@@ -17,16 +17,11 @@
 
 import type { DatabaseService } from "./db.ts";
 import { dirname, join } from "@std/path";
+import { SecurityEventResult, SecurityEventType, SecuritySeverity } from "../enums.ts";
 
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
-
-export type SecurityEventType = "auth" | "permission" | "file_access" | "api_call" | "config_change";
-
-export type SecurityEventResult = "success" | "denied" | "error";
-
-export type SecuritySeverity = "low" | "medium" | "high" | "critical";
 
 /**
  * Structured security audit event

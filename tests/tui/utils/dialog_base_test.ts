@@ -4,7 +4,8 @@
  * Part of Phase 13.1: Shared TUI Infrastructure
  */
 
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertStringIncludes } from "@std/assert";
+import { SkillStatus } from "../../../src/enums.ts";
 import {
   BOX,
   ConfirmDialog,
@@ -102,7 +103,7 @@ Deno.test("ConfirmDialog: creates with options", () => {
   });
 
   assertEquals(dialog.isActive(), true);
-  assertEquals(dialog.getState(), "active");
+  assertEquals(dialog.getState(), SkillStatus.ACTIVE);
 });
 
 Deno.test("ConfirmDialog: getFocusableElements returns buttons", () => {

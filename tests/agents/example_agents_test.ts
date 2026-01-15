@@ -2,7 +2,7 @@
  * Tests for ExoFrame Agent Examples (Step 6.10)
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists } from "@std/assert";
 import { exists } from "@std/fs";
 import { join } from "@std/path";
 import { getDefaultPaths } from "../../src/config/paths.ts";

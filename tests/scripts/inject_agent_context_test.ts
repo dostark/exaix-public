@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { inject } from "../../scripts/inject_agent_context.ts";
 

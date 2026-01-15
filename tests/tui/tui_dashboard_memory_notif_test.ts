@@ -1,7 +1,8 @@
-import { assertEquals } from "https://deno.land/std@0.204.0/assert/assert_equals.ts";
+import { assertEquals } from "@std/assert";
 import { launchTuiDashboard } from "../../src/tui/tui_dashboard.ts";
 import { NotificationService } from "../../src/services/notification.ts";
 import { initTestDbService } from "../helpers/db.ts";
+import { MemoryOperation, MemoryScope, MemoryStatus } from "../../src/enums.ts";
 
 Deno.test("TUI Dashboard + Memory: handles memory update notifications", async () => {
   const { db, config, cleanup } = await initTestDbService();
@@ -19,21 +20,21 @@ Deno.test("TUI Dashboard + Memory: handles memory update notifications", async (
       id: "prop-1",
       created_at: new Date().toISOString(),
       agent: "test-agent",
-      operation: "add",
-      target_scope: "project",
+      operation: MemoryOperation.ADD,
+      target_scope: MemoryScope.PROJECT,
       learning: { title: "Learning 1" } as any,
       reason: "Testing 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
     });
     await notificationService.notifyMemoryUpdate({
       id: "prop-2",
       created_at: new Date().toISOString(),
       agent: "test-agent",
-      operation: "add",
-      target_scope: "project",
+      operation: MemoryOperation.ADD,
+      target_scope: MemoryScope.PROJECT,
       learning: { title: "Learning 2" } as any,
       reason: "Testing 2",
-      status: "pending",
+      status: MemoryStatus.PENDING,
     });
 
     // 2. Toggle memory notification mode
@@ -62,13 +63,13 @@ Deno.test("TUI Dashboard + Memory: handles memory update notifications", async (
     await dashboard.handleKey("a");
     // In test mode it just notifies
     const allNotifs = await notificationService.getNotifications();
-    const hasApprovalNotif = allNotifs.some((n) => n.message.includes("approved") && n.type === "success");
+    const hasApprovalNotif = allNotifs.some((n) => n.message.includes(MemoryStatus.APPROVED) && n.type === "success");
     assertEquals(hasApprovalNotif, true);
 
     // 6. Test Rejection (placeholder in test mode)
     await dashboard.handleKey("r");
     const allNotifsAfter = await notificationService.getNotifications();
-    const hasRejNotif = allNotifsAfter.some((n) => n.message.includes("rejected") && n.type === "error");
+    const hasRejNotif = allNotifsAfter.some((n) => n.message.includes(MemoryStatus.REJECTED) && n.type === "error");
     assertEquals(hasRejNotif, true);
 
     // 7. Toggle off

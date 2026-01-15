@@ -6,7 +6,17 @@
  * Tests full TUI workflows and integration between components.
  */
 
-import { assertEquals, assertExists, assertGreater, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertGreater, assertStringIncludes } from "@std/assert";
+import {
+  ExecutionStatus,
+  LearningCategory,
+  MemoryOperation,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+} from "../../src/enums.ts";
+
+import { ConfidenceLevel } from "../../src/enums.ts";
 import type {
   ExecutionMemory,
   GlobalMemory,
@@ -35,9 +45,9 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
   constructor() {
     // Create initial proposals
     this.proposals = [
-      createMockProposal("prop-1", "Error Handling Pattern", "pattern"),
-      createMockProposal("prop-2", "API Rate Limiting", "decision"),
-      createMockProposal("prop-3", "Database Troubleshooting", "troubleshooting"),
+      createMockProposal("prop-1", "Error Handling Pattern", LearningCategory.PATTERN),
+      createMockProposal("prop-2", "API Rate Limiting", LearningCategory.DECISION),
+      createMockProposal("prop-3", "Database Troubleshooting", LearningCategory.TROUBLESHOOTING),
     ];
   }
 
@@ -84,7 +94,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
           name: "Global Pattern 1",
           description: "A cross-project pattern",
           examples: ["Example 1"],
-          tags: ["global"],
+          tags: [MemoryScope.GLOBAL],
           applies_to: ["all"],
         },
       ],
@@ -94,7 +104,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
           description: "What to avoid",
           reason: "Causes performance issues",
           alternative: "Use caching instead",
-          tags: ["anti-pattern"],
+          tags: [LearningCategory.ANTI_PATTERN],
         },
       ],
       learnings: [
@@ -102,13 +112,13 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
           id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
           title: "Global Learning 1",
           description: "Important global insight",
-          category: "insight",
-          confidence: "high",
-          tags: ["global"],
-          source: "user",
-          scope: "global",
+          category: LearningCategory.INSIGHT,
+          confidence: ConfidenceLevel.HIGH,
+          tags: [MemoryScope.GLOBAL],
+          source: MemorySource.USER,
+          scope: MemoryScope.GLOBAL,
           created_at: new Date().toISOString(),
-          status: "approved",
+          status: MemoryStatus.APPROVED,
         },
       ],
       statistics: {
@@ -126,7 +136,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
       trace_id: traceId,
       request_id: "req-123",
       agent: "senior-coder",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       started_at: "2026-01-04T10:00:00Z",
       completed_at: "2026-01-04T10:05:00Z",
       summary: "Successfully implemented feature",
@@ -148,7 +158,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
         trace_id: "trace-001",
         request_id: "req-001",
         agent: "senior-coder",
-        status: "completed",
+        status: ExecutionStatus.COMPLETED,
         started_at: "2026-01-04T10:00:00Z",
         summary: "Task 1 completed",
         context_files: [],
@@ -160,7 +170,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
         trace_id: "trace-002",
         request_id: "req-002",
         agent: "code-reviewer",
-        status: "failed",
+        status: ExecutionStatus.FAILED,
         started_at: "2026-01-04T11:00:00Z",
         summary: "Task 2 failed",
         error_message: "Timeout error",
@@ -177,7 +187,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
       {
         id: "result-1",
         title: "Error Handling Pattern",
-        type: "pattern",
+        type: LearningCategory.PATTERN,
         portal: "my-app",
         summary: "Found in my-app patterns",
         relevance_score: 0.95,
@@ -187,7 +197,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
         id: "result-2",
         title: "Logging Best Practices",
         type: "learning",
-        portal: "global",
+        portal: MemoryScope.GLOBAL,
         summary: "Global learning",
         relevance_score: 0.82,
         tags: ["logging"],
@@ -222,27 +232,27 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
 function createMockProposal(
   id: string,
   title: string,
-  category: "pattern" | "decision" | "troubleshooting",
+  category: LearningCategory.PATTERN | LearningCategory.DECISION | LearningCategory.TROUBLESHOOTING,
 ): MemoryUpdateProposal {
   return {
     id,
     agent: "test-agent",
-    operation: "add",
+    operation: MemoryOperation.ADD,
     reason: `Extracted from execution for ${title}`,
     learning: {
       id: `f47ac10b-58cc-4372-a567-0e02b2c3d${id.slice(-3)}`,
       title,
       description: `Description for ${title}`,
       category,
-      confidence: "high",
+      confidence: ConfidenceLevel.HIGH,
       tags: [category, "test"],
-      source: "agent",
-      scope: "project",
+      source: MemorySource.AGENT,
+      scope: MemoryScope.PROJECT,
       created_at: new Date().toISOString(),
     },
-    target_scope: "project",
+    target_scope: MemoryScope.PROJECT,
     target_project: "my-app",
-    status: "pending",
+    status: MemoryStatus.PENDING,
     created_at: new Date().toISOString(),
   };
 }
@@ -398,7 +408,7 @@ Deno.test("TUI Integration: keyboard accessibility - full navigation", async () 
 
   // Test all scope shortcuts
   await session.handleKey("g");
-  assertEquals(session.getState().activeScope, "global");
+  assertEquals(session.getState().activeScope, MemoryScope.GLOBAL);
 
   await session.handleKey("p");
   assertEquals(session.getState().activeScope, "projects");
@@ -407,7 +417,7 @@ Deno.test("TUI Integration: keyboard accessibility - full navigation", async () 
   assertEquals(session.getState().activeScope, "executions");
 
   await session.handleKey("n");
-  assertEquals(session.getState().activeScope, "pending");
+  assertEquals(session.getState().activeScope, MemoryStatus.PENDING);
 
   // Test help
   await session.handleKey("?");
@@ -530,25 +540,25 @@ Deno.test("renderProgressBar: shows correct percentage", () => {
 });
 
 Deno.test("renderConfidence: shows correct icons", () => {
-  const high = renderConfidence("high", false);
+  const high = renderConfidence(ConfidenceLevel.HIGH, false);
   assertStringIncludes(high, "●●●");
   assertStringIncludes(high, "high");
 
-  const medium = renderConfidence("medium", false);
+  const medium = renderConfidence(ConfidenceLevel.MEDIUM, false);
   assertStringIncludes(medium, "●●○");
 
-  const low = renderConfidence("low", false);
+  const low = renderConfidence(ConfidenceLevel.LOW, false);
   assertStringIncludes(low, "●○○");
 });
 
 Deno.test("renderCategoryBadge: formats categories", () => {
-  const pattern = renderCategoryBadge("pattern", false);
+  const pattern = renderCategoryBadge(LearningCategory.PATTERN, false);
   assertEquals(pattern, "[pattern]");
 
-  const decision = renderCategoryBadge("decision", false);
+  const decision = renderCategoryBadge(LearningCategory.DECISION, false);
   assertEquals(decision, "[decision]");
 
-  const coloredPattern = renderCategoryBadge("pattern", true);
+  const coloredPattern = renderCategoryBadge(LearningCategory.PATTERN, true);
   assertStringIncludes(coloredPattern, "[pattern]");
   assertStringIncludes(coloredPattern, "\x1b["); // Has color
 });

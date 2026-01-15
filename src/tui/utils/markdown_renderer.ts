@@ -7,6 +7,8 @@
  * Supports: headers, bold, italic, code blocks, lists, links.
  */
 
+import { ConfidenceLevel } from "../../enums.ts";
+
 // ===== ANSI Styles =====
 
 export const MarkdownStyles = {
@@ -219,14 +221,14 @@ export function renderProgressBar(
  * Render confidence level with styling
  */
 export function renderConfidence(
-  confidence: "high" | "medium" | "low",
+  confidence: ConfidenceLevel,
   useColors: boolean = true,
 ): string {
   const styles = useColors ? MarkdownStyles : emptyStyles();
   const icons: Record<string, string> = {
-    high: "●●●",
-    medium: "●●○",
-    low: "●○○",
+    [ConfidenceLevel.HIGH]: "●●●",
+    [ConfidenceLevel.MEDIUM]: "●●○",
+    [ConfidenceLevel.LOW]: "●○○",
   };
   const colors: Record<string, string> = {
     high: "\x1b[32m", // Green

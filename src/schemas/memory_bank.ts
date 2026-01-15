@@ -16,6 +16,18 @@
  */
 
 import { z } from "zod";
+import {
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryOperation,
+  MemoryReferenceType,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+  ReviewSource,
+  SkillStatus,
+} from "../enums.ts";
 
 // ===== Project Memory Schemas =====
 
@@ -35,7 +47,7 @@ export const DecisionSchema = z.object({
 });
 
 export const ReferenceSchema = z.object({
-  type: z.enum(["file", "api", "doc", "url"]).describe("Type of reference"),
+  type: z.nativeEnum(MemoryReferenceType).describe("Type of reference"),
   path: z.string().describe("Path or URL to the reference"),
   description: z.string().describe("What this reference is about"),
 });
@@ -66,8 +78,7 @@ export const ExecutionMemorySchema = z.object({
   request_id: z.string().describe("Request ID that triggered this execution"),
   started_at: z.string().describe("ISO timestamp when execution started"),
   completed_at: z.string().optional().describe("ISO timestamp when execution completed (if finished)"),
-  status: z.enum(["running", "completed", "failed"]).describe("Current execution status"),
-
+  status: z.nativeEnum(ExecutionStatus).describe("Current execution status"),
   portal: z.string().describe("Portal this execution ran against"),
   agent: z.string().describe("Agent that performed the execution"),
   summary: z.string().describe("Human-readable summary of what was done"),
@@ -90,7 +101,7 @@ export type ExecutionMemory = z.infer<typeof ExecutionMemorySchema>;
  * Learning reference - links to supporting evidence
  */
 export const LearningReferenceSchema = z.object({
-  type: z.enum(["file", "execution", "url", "doc"]),
+  type: z.nativeEnum(MemoryReferenceType),
   path: z.string(),
 });
 
@@ -103,30 +114,24 @@ export const LearningReferenceSchema = z.object({
 export const LearningSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime(),
-  source: z.enum(["execution", "user", "agent"]).describe("Who/what created this learning"),
+  source: z.nativeEnum(MemorySource).describe("Who/what created this learning"),
   source_id: z.string().optional().describe("trace_id or user session if applicable"),
 
-  scope: z.enum(["global", "project"]).describe("Whether this applies globally or to a specific project"),
+  scope: z.nativeEnum(MemoryScope).describe("Whether this applies globally or to a specific project"),
   project: z.string().optional().describe("Portal name if project-scoped"),
 
   title: z.string().max(100).describe("Short title for the learning"),
   description: z.string().max(2000).describe("Detailed description of the learning"),
 
-  category: z.enum([
-    "pattern", // Code pattern learned
-    "anti-pattern", // What to avoid
-    "decision", // Architectural choice
-    "insight", // General observation
-    "troubleshooting", // Problem + solution
-  ]).describe("Type of learning"),
+  category: z.nativeEnum(LearningCategory).describe("Type of learning"),
 
   tags: z.array(z.string()).max(10).describe("Searchable tags"),
 
-  confidence: z.enum(["low", "medium", "high"]).describe("Confidence level in this learning"),
+  confidence: z.nativeEnum(ConfidenceLevel).describe("Confidence level in this learning"),
 
   references: z.array(LearningReferenceSchema).optional().describe("Supporting evidence"),
 
-  status: z.enum(["pending", "approved", "rejected", "archived"]).describe("Approval status"),
+  status: z.nativeEnum(MemoryStatus).describe("Approval status"),
   approved_at: z.string().datetime().optional(),
   archived_at: z.string().datetime().optional(),
 });
@@ -199,26 +204,20 @@ export type GlobalMemory = z.infer<typeof GlobalMemorySchema>;
 export const ProposalLearningSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime(),
-  source: z.enum(["execution", "user", "agent"]),
+  source: z.nativeEnum(MemorySource),
   source_id: z.string().optional(),
 
-  scope: z.enum(["global", "project"]),
+  scope: z.nativeEnum(MemoryScope),
   project: z.string().optional(),
 
   title: z.string().max(100),
   description: z.string().max(2000),
 
-  category: z.enum([
-    "pattern",
-    "anti-pattern",
-    "decision",
-    "insight",
-    "troubleshooting",
-  ]),
+  category: z.nativeEnum(LearningCategory),
 
   tags: z.array(z.string()).max(10).optional().default([]),
 
-  confidence: z.enum(["low", "medium", "high"]),
+  confidence: z.nativeEnum(ConfidenceLevel),
 
   references: z.array(LearningReferenceSchema).optional(),
 });
@@ -233,9 +232,9 @@ export const MemoryUpdateProposalSchema = z.object({
   id: z.string().uuid(),
   created_at: z.string().datetime(),
 
-  operation: z.enum(["add", "update", "promote", "demote", "archive"])
+  operation: z.nativeEnum(MemoryOperation)
     .describe("Type of memory operation"),
-  target_scope: z.enum(["global", "project"])
+  target_scope: z.nativeEnum(MemoryScope)
     .describe("Where the learning should be stored"),
   target_project: z.string().optional()
     .describe("Portal name if target_scope is 'project'"),
@@ -246,10 +245,10 @@ export const MemoryUpdateProposalSchema = z.object({
   agent: z.string().describe("Agent that proposed the update"),
   execution_id: z.string().optional().describe("Related execution trace_id"),
 
-  status: z.enum(["pending", "approved", "rejected"])
+  status: z.nativeEnum(MemoryStatus)
     .describe("Current proposal status"),
   reviewed_at: z.string().datetime().optional(),
-  reviewed_by: z.enum(["user", "auto"]).optional(),
+  reviewed_by: z.nativeEnum(ReviewSource).optional(),
 });
 
 export type ProposalLearning = z.infer<typeof ProposalLearningSchema>;
@@ -303,13 +302,13 @@ export const SkillSchema = z.object({
   // === Memory Bank Standard Fields ===
   id: z.string().uuid(),
   created_at: z.string().datetime(),
-  source: z.enum(["user", "agent", "learned"]).describe("Origin of the skill"),
+  source: z.nativeEnum(MemorySource).describe("Origin of the skill"),
   source_id: z.string().optional().describe("Learning IDs if derived"),
 
-  scope: z.enum(["global", "project"]).describe("Applicability scope"),
+  scope: z.nativeEnum(MemoryScope).describe("Applicability scope"),
   project: z.string().optional().describe("Portal name if project-scoped"),
 
-  status: z.enum(["draft", "active", "deprecated"]).describe("Skill lifecycle status"),
+  status: z.nativeEnum(SkillStatus).describe("Skill lifecycle status"),
 
   // === Skill Identity ===
   skill_id: z.string().regex(/^[a-z0-9-]+$/).describe("Unique skill identifier (kebab-case)"),
@@ -363,8 +362,8 @@ export const SkillIndexEntrySchema = z.object({
   skill_id: z.string(),
   name: z.string(),
   version: z.string(),
-  status: z.enum(["draft", "active", "deprecated"]),
-  scope: z.enum(["global", "project"]),
+  status: z.nativeEnum(SkillStatus),
+  scope: z.nativeEnum(MemoryScope),
   project: z.string().optional(),
   triggers: SkillTriggersSchema,
   path: z.string().describe("Relative path to skill file"),

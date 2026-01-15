@@ -4,7 +4,11 @@
  * Phase 17: Skills Architecture
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@1";
+import { assertEquals, assertExists } from "@std/assert";
+import { EvaluationCategory } from "../../src/enums.ts";
+
+import { MemoryOperation, MemoryScope, MemorySource, SkillStatus } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { SkillsService } from "../../src/services/skills.ts";
@@ -22,9 +26,9 @@ Deno.test("SkillsService: initialize creates directory structure", async () => {
 
     const skillsDir = getMemorySkillsDir(config.system.root);
     assertEquals(await exists(skillsDir), true);
-    assertEquals(await exists(join(skillsDir, "core")), true);
-    assertEquals(await exists(join(skillsDir, "learned")), true);
-    assertEquals(await exists(join(skillsDir, "project")), true);
+    assertEquals(await exists(join(skillsDir, MemorySource.CORE)), true);
+    assertEquals(await exists(join(skillsDir, MemorySource.LEARNED)), true);
+    assertEquals(await exists(join(skillsDir, MemoryScope.PROJECT)), true);
     assertEquals(await exists(join(skillsDir, "index.json")), true);
   } finally {
     await cleanup();
@@ -45,9 +49,9 @@ Deno.test("SkillsService: createSkill creates and indexes skill", async () => {
       name: "Test Skill",
       version: "1.0.0",
       description: "A test skill",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: {
         keywords: ["test", "example"],
         task_types: ["testing"],
@@ -81,9 +85,9 @@ Deno.test("SkillsService: getSkill retrieves created skill", async () => {
       name: "Get Test Skill",
       version: "1.0.0",
       description: "Test get operation",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: {
         keywords: ["get", "test"],
       },
@@ -126,9 +130,9 @@ Deno.test("SkillsService: listSkills returns all active skills", async () => {
       name: "List Skill 1",
       version: "1.0.0",
       description: "First skill",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: { keywords: ["one"] },
       instructions: "Instructions 1",
     });
@@ -138,16 +142,16 @@ Deno.test("SkillsService: listSkills returns all active skills", async () => {
       name: "List Skill 2",
       version: "1.0.0",
       description: "Second skill",
-      scope: "global",
-      status: "draft",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.DRAFT,
+      source: MemorySource.USER,
       triggers: { keywords: ["two"] },
       instructions: "Instructions 2",
     });
 
     const allSkills = await service.listSkills();
-    const activeSkills = await service.listSkills({ status: "active" });
-    const draftSkills = await service.listSkills({ status: "draft" });
+    const activeSkills = await service.listSkills({ status: SkillStatus.ACTIVE });
+    const draftSkills = await service.listSkills({ status: SkillStatus.DRAFT });
 
     // Should have at least the skills we created
     const listSkills = allSkills.filter((s) => s.skill_id.startsWith("list-skill"));
@@ -175,10 +179,10 @@ Deno.test("SkillsService: updateSkill modifies skill", async () => {
       name: "Update Test",
       version: "1.0.0",
       description: "Before update",
-      scope: "global",
-      status: "draft",
-      source: "user",
-      triggers: { keywords: ["update"] },
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.DRAFT,
+      source: MemorySource.USER,
+      triggers: { keywords: [MemoryOperation.UPDATE] },
       instructions: "Original instructions",
     });
 
@@ -210,9 +214,9 @@ Deno.test("SkillsService: activateSkill changes draft to active", async () => {
       name: "Activate Test",
       version: "1.0.0",
       description: "To be activated",
-      scope: "global",
-      status: "draft",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.DRAFT,
+      source: MemorySource.USER,
       triggers: { keywords: ["activate"] },
       instructions: "Activation test",
     });
@@ -221,7 +225,7 @@ Deno.test("SkillsService: activateSkill changes draft to active", async () => {
     assertEquals(result, true);
 
     const skill = await service.getSkill("activate-test");
-    assertEquals(skill?.status, "active");
+    assertEquals(skill?.status, SkillStatus.ACTIVE);
   } finally {
     await cleanup();
   }
@@ -239,9 +243,9 @@ Deno.test("SkillsService: deprecateSkill marks skill as deprecated", async () =>
       name: "Deprecate Test",
       version: "1.0.0",
       description: "To be deprecated",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: { keywords: ["deprecate"] },
       instructions: "Deprecation test",
     });
@@ -250,7 +254,7 @@ Deno.test("SkillsService: deprecateSkill marks skill as deprecated", async () =>
     assertEquals(result, true);
 
     const skill = await service.getSkill("deprecate-test");
-    assertEquals(skill?.status, "deprecated");
+    assertEquals(skill?.status, SkillStatus.DEPRECATED);
   } finally {
     await cleanup();
   }
@@ -270,9 +274,9 @@ Deno.test("SkillsService: matchSkills returns skills matching keywords", async (
       name: "Keyword Match",
       version: "1.0.0",
       description: "Matches keywords",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: {
         keywords: ["implement", "feature", "create"],
       },
@@ -304,11 +308,11 @@ Deno.test("SkillsService: matchSkills returns skills matching task types", async
       name: "Task Type Match",
       version: "1.0.0",
       description: "Matches task types",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: {
-        task_types: ["bugfix", "security"],
+        task_types: ["bugfix", EvaluationCategory.SECURITY],
       },
       instructions: "Task type matching test",
     });
@@ -337,9 +341,9 @@ Deno.test("SkillsService: matchSkills returns skills matching file patterns", as
       name: "File Pattern Match",
       version: "1.0.0",
       description: "Matches file patterns",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: {
         file_patterns: ["*.ts", "src/**/*.js"],
       },
@@ -370,17 +374,17 @@ Deno.test("SkillsService: matchSkills excludes non-active skills", async () => {
       name: "Draft Skill",
       version: "1.0.0",
       description: "A draft skill",
-      scope: "global",
-      status: "draft",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.DRAFT,
+      source: MemorySource.USER,
       triggers: {
-        keywords: ["draft", "exclusive", "unique-keyword-xyz"],
+        keywords: [SkillStatus.DRAFT, "exclusive", "unique-keyword-xyz"],
       },
       instructions: "Should not match",
     });
 
     const matches = await service.matchSkills({
-      keywords: ["draft", "exclusive", "unique-keyword-xyz"],
+      keywords: [SkillStatus.DRAFT, "exclusive", "unique-keyword-xyz"],
     });
 
     const matched = matches.find((m) => m.skillId === "draft-skill");
@@ -402,9 +406,9 @@ Deno.test("SkillsService: matchSkills extracts keywords from request text", asyn
       name: "Text Extract",
       version: "1.0.0",
       description: "Test keyword extraction",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: {
         keywords: ["authentication", "login"],
       },
@@ -436,9 +440,9 @@ Deno.test("SkillsService: matchSkills respects maxSkillsPerRequest limit", async
         name: `Limit Test ${i}`,
         version: "1.0.0",
         description: "Limit test",
-        scope: "global",
-        status: "active",
-        source: "user",
+        scope: MemoryScope.GLOBAL,
+        status: SkillStatus.ACTIVE,
+        source: MemorySource.USER,
         triggers: {
           keywords: ["limitspecial", "testspecial"],
         },
@@ -471,9 +475,9 @@ Deno.test("SkillsService: buildSkillContext generates markdown context", async (
       name: "Context Test Skill",
       version: "1.0.0",
       description: "For context building",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: { keywords: ["context"] },
       instructions: "Do the context thing step by step",
       constraints: ["Must follow rule 1", "Must follow rule 2"],
@@ -520,9 +524,9 @@ Deno.test("SkillsService: buildSkillContext combines multiple skills", async () 
       name: "Multi Skill 1",
       version: "1.0.0",
       description: "First skill",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: { keywords: ["multi"] },
       instructions: "Instructions for skill 1",
     });
@@ -532,9 +536,9 @@ Deno.test("SkillsService: buildSkillContext combines multiple skills", async () 
       name: "Multi Skill 2",
       version: "1.0.0",
       description: "Second skill",
-      scope: "global",
-      status: "active",
-      source: "user",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.USER,
       triggers: { keywords: ["multi"] },
       instructions: "Instructions for skill 2",
     });
@@ -566,15 +570,15 @@ Deno.test("SkillsService: deriveSkillFromLearnings creates skill with derived_fr
       name: "Derived Skill",
       version: "1.0.0",
       description: "Derived from learnings",
-      scope: "global",
-      status: "draft",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.DRAFT,
       triggers: { keywords: ["derived"] },
       instructions: "Derived instructions",
     });
 
-    assertEquals(skill.source, "learned");
+    assertEquals(skill.source, MemorySource.LEARNED);
     assertEquals(skill.derived_from, learningIds);
-    assertEquals(skill.status, "draft"); // Always starts as draft
+    assertEquals(skill.status, SkillStatus.DRAFT); // Always starts as draft
   } finally {
     await cleanup();
   }
@@ -595,9 +599,9 @@ Deno.test("SkillsService: rebuildIndex scans all skill directories", async () =>
       name: "Learned Index Test",
       version: "1.0.0",
       description: "In learned dir",
-      scope: "global",
-      status: "active",
-      source: "learned",
+      scope: MemoryScope.GLOBAL,
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.LEARNED,
       triggers: { keywords: ["index"] },
       instructions: "Index test",
     });

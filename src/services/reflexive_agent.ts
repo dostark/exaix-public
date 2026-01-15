@@ -12,6 +12,7 @@
  */
 
 import { z } from "zod";
+import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../enums.ts";
 import type { IModelProvider } from "../ai/providers.ts";
 import type { DatabaseService } from "./db.ts";
 import {
@@ -32,12 +33,12 @@ import { logDebug } from "./structured_logger.ts";
  * Schema for critique output from self-evaluation
  */
 export const CritiqueSchema = z.object({
-  quality: z.enum(["excellent", "good", "acceptable", "needs_improvement", "poor"]),
+  quality: z.nativeEnum(CritiqueQuality),
   confidence: z.number().min(0).max(100),
   passed: z.boolean(),
   issues: z.array(z.object({
-    type: z.enum(["accuracy", "completeness", "clarity", "relevance", "format", "logic", "other"]),
-    severity: z.enum(["critical", "major", "minor", "suggestion"]),
+    type: z.nativeEnum(CritiqueIssueType),
+    severity: z.nativeEnum(CritiqueSeverity),
     description: z.string(),
     suggestion: z.string().optional(),
   })).default([]),
@@ -179,11 +180,11 @@ export class ReflexiveAgent {
     earlyExitCount: 0,
     earlyExitRate: 0,
     qualityDistribution: {
-      excellent: 0,
-      good: 0,
-      acceptable: 0,
-      needs_improvement: 0,
-      poor: 0,
+      [CritiqueQuality.EXCELLENT]: 0,
+      [CritiqueQuality.GOOD]: 0,
+      [CritiqueQuality.ACCEPTABLE]: 0,
+      [CritiqueQuality.NEEDS_IMPROVEMENT]: 0,
+      [CritiqueQuality.POOR]: 0,
     },
     issueTypeDistribution: {},
   };
@@ -191,7 +192,7 @@ export class ReflexiveAgent {
   constructor(modelProvider: IModelProvider, config: ReflexiveAgentConfig = {}) {
     const {
       maxIterations = 3,
-      minQuality = "acceptable",
+      minQuality = CritiqueQuality.ACCEPTABLE,
       confidenceThreshold = 70,
       critiquePromptTemplate = DEFAULT_CRITIQUE_PROMPT,
       refinementPromptTemplate = DEFAULT_REFINEMENT_PROMPT,
@@ -320,7 +321,7 @@ export class ReflexiveAgent {
     }
 
     return {
-      quality: "acceptable",
+      quality: CritiqueQuality.ACCEPTABLE,
       confidence: 50,
       passed: true,
       issues: [],
@@ -335,8 +336,8 @@ export class ReflexiveAgent {
     critique: Critique,
   ): Promise<AgentExecutionResult> {
     const issuesFormatted = critique.issues
-      .map((issue) =>
-        `- [${issue.severity.toUpperCase()}] ${issue.type}: ${issue.description}${
+      .map((issue: any) =>
+        `- [${String(issue.severity).toUpperCase()}] ${issue.type}: ${issue.description}${
           issue.suggestion ? ` -> ${issue.suggestion}` : ""
         }`
       )
@@ -363,7 +364,7 @@ export class ReflexiveAgent {
 
   private shouldAccept(critique: Critique): boolean {
     // Critical issues should always trigger refinement, regardless of confidence/quality
-    const hasCriticalIssues = critique.issues.some((issue) => issue.severity === "critical");
+    const hasCriticalIssues = critique.issues.some((issue) => issue.severity === CritiqueSeverity.CRITICAL);
     if (hasCriticalIssues) {
       return false;
     }
@@ -374,7 +375,13 @@ export class ReflexiveAgent {
     }
 
     // Check quality level
-    const qualityOrder: Critique["quality"][] = ["excellent", "good", "acceptable", "needs_improvement", "poor"];
+    const qualityOrder: CritiqueQuality[] = [
+      CritiqueQuality.EXCELLENT,
+      CritiqueQuality.GOOD,
+      CritiqueQuality.ACCEPTABLE,
+      CritiqueQuality.NEEDS_IMPROVEMENT,
+      CritiqueQuality.POOR,
+    ];
     const currentQualityIndex = qualityOrder.indexOf(critique.quality);
     const minQualityIndex = qualityOrder.indexOf(this.config.minQuality);
 
@@ -397,11 +404,11 @@ export class ReflexiveAgent {
       earlyExitCount: 0,
       earlyExitRate: 0,
       qualityDistribution: {
-        excellent: 0,
-        good: 0,
-        acceptable: 0,
-        needs_improvement: 0,
-        poor: 0,
+        [CritiqueQuality.EXCELLENT]: 0,
+        [CritiqueQuality.GOOD]: 0,
+        [CritiqueQuality.ACCEPTABLE]: 0,
+        [CritiqueQuality.NEEDS_IMPROVEMENT]: 0,
+        [CritiqueQuality.POOR]: 0,
       },
       issueTypeDistribution: {},
     };
@@ -455,7 +462,7 @@ export function createCodeReviewReflexiveAgent(
 ): ReflexiveAgent {
   return new ReflexiveAgent(modelProvider, {
     maxIterations: 2,
-    minQuality: "good",
+    minQuality: CritiqueQuality.GOOD,
     confidenceThreshold: 80,
     ...config,
   });
@@ -467,7 +474,7 @@ export function createHighQualityReflexiveAgent(
 ): ReflexiveAgent {
   return new ReflexiveAgent(modelProvider, {
     maxIterations: 5,
-    minQuality: "excellent",
+    minQuality: CritiqueQuality.EXCELLENT,
     confidenceThreshold: 90,
     ...config,
   });

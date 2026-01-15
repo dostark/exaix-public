@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assertEquals } from "@std/assert";
 import { OpenAIProvider } from "../../src/ai/providers/openai_provider.ts";
 import { openaiResponseConfig, registerProviderTests, spyFetch } from "./helpers/provider_test_helper.ts";
 

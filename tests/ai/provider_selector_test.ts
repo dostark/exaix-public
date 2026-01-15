@@ -2,13 +2,18 @@
  * Tests for Provider Selector - Intelligent Provider Selection Strategy
  */
 
-import { assertEquals, assertRejects } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertRejects } from "@std/assert";
+import { EvaluationCategory, MCPTransport, ProviderCostTier } from "../../src/enums.ts";
+
+import { EvaluationVerdict } from "../../src/enums.ts";
+
 import { MockProviderFactory, ProviderRegistry } from "../../src/ai/provider_registry.ts";
 import { ProviderSelector } from "../../src/ai/provider_selector.ts";
 import { CostTracker } from "../../src/services/cost_tracker.ts";
 import { HealthCheckService } from "../../src/services/health_check_service.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { Config } from "../../src/config/schema.ts";
+import { LogLevel, PricingTier, SqliteJournalMode, TaskComplexity } from "../../src/enums.ts";
 
 // ============================================================================
 // Provider Selector Tests
@@ -24,8 +29,8 @@ Deno.test("ProviderSelector: selects optimal provider based on criteria", async 
       name: "free-provider",
       description: "Free provider",
       capabilities: ["chat"],
-      costTier: "FREE",
-      pricingTier: "local",
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.LOCAL,
       strengths: ["general"],
     });
 
@@ -33,8 +38,8 @@ Deno.test("ProviderSelector: selects optimal provider based on criteria", async 
       name: "paid-provider",
       description: "Paid provider",
       capabilities: ["chat"],
-      costTier: "PAID",
-      pricingTier: "high",
+      costTier: ProviderCostTier.PAID,
+      pricingTier: PricingTier.HIGH,
       strengths: ["complex"],
     });
 
@@ -45,12 +50,12 @@ Deno.test("ProviderSelector: selects optimal provider based on criteria", async 
     healthService.registerCheck({
       name: "free-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "paid-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
 
     // Import and create selector (will implement this)
@@ -104,8 +109,8 @@ Deno.test("ProviderSelector: respects budget constraints", async () => {
       name: "cheap-provider",
       description: "Cheap provider",
       capabilities: ["chat"],
-      costTier: "PAID",
-      pricingTier: "low",
+      costTier: ProviderCostTier.PAID,
+      pricingTier: PricingTier.LOW,
       strengths: ["general"],
     });
 
@@ -113,8 +118,8 @@ Deno.test("ProviderSelector: respects budget constraints", async () => {
       name: "expensive-provider",
       description: "Expensive provider",
       capabilities: ["chat"],
-      costTier: "PAID",
-      pricingTier: "high",
+      costTier: ProviderCostTier.PAID,
+      pricingTier: PricingTier.HIGH,
       strengths: ["general"],
     });
 
@@ -129,12 +134,12 @@ Deno.test("ProviderSelector: respects budget constraints", async () => {
     healthService.registerCheck({
       name: "cheap-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "expensive-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
 
     const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
@@ -161,8 +166,8 @@ Deno.test("ProviderSelector: routes tasks by complexity", async () => {
       name: "local-provider",
       description: "Local provider",
       capabilities: ["chat"],
-      costTier: "FREE",
-      pricingTier: "local",
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.LOCAL,
       strengths: ["simple"],
     });
 
@@ -170,8 +175,8 @@ Deno.test("ProviderSelector: routes tasks by complexity", async () => {
       name: "premium-provider",
       description: "Premium provider",
       capabilities: ["chat"],
-      costTier: "PAID",
-      pricingTier: "high",
+      costTier: ProviderCostTier.PAID,
+      pricingTier: PricingTier.HIGH,
       strengths: ["complex"],
     });
 
@@ -182,12 +187,12 @@ Deno.test("ProviderSelector: routes tasks by complexity", async () => {
     healthService.registerCheck({
       name: "local-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "premium-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
 
     const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
@@ -195,14 +200,14 @@ Deno.test("ProviderSelector: routes tasks by complexity", async () => {
 
     // Simple task should prefer local provider
     const simpleProvider = await selector.selectProvider({
-      taskComplexity: "simple",
+      taskComplexity: TaskComplexity.SIMPLE,
       requiredCapabilities: ["chat"],
     });
     assertEquals(simpleProvider, "local-provider");
 
     // Complex task should prefer premium provider
     const complexProvider = await selector.selectProvider({
-      taskComplexity: "complex",
+      taskComplexity: TaskComplexity.COMPLEX,
       requiredCapabilities: ["chat"],
     });
     assertEquals(complexProvider, "premium-provider");
@@ -221,8 +226,8 @@ Deno.test("ProviderSelector: filters by required capabilities", async () => {
       name: "chat-provider",
       description: "Chat provider",
       capabilities: ["chat"],
-      costTier: "FREE",
-      pricingTier: "local",
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.LOCAL,
       strengths: ["general"],
     });
 
@@ -230,8 +235,8 @@ Deno.test("ProviderSelector: filters by required capabilities", async () => {
       name: "vision-provider",
       description: "Vision provider",
       capabilities: ["chat", "vision"],
-      costTier: "PAID",
-      pricingTier: "high",
+      costTier: ProviderCostTier.PAID,
+      pricingTier: PricingTier.HIGH,
       strengths: ["general"],
     });
 
@@ -242,12 +247,12 @@ Deno.test("ProviderSelector: filters by required capabilities", async () => {
     healthService.registerCheck({
       name: "chat-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "vision-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
 
     const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
@@ -273,8 +278,8 @@ Deno.test("ProviderSelector: excludes unhealthy providers", async () => {
       name: "healthy-provider",
       description: "Healthy provider",
       capabilities: ["chat"],
-      costTier: "FREE",
-      pricingTier: "local",
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.LOCAL,
       strengths: ["general"],
     });
 
@@ -282,8 +287,8 @@ Deno.test("ProviderSelector: excludes unhealthy providers", async () => {
       name: "unhealthy-provider",
       description: "Unhealthy provider",
       capabilities: ["chat"],
-      costTier: "PAID",
-      pricingTier: "high",
+      costTier: ProviderCostTier.PAID,
+      pricingTier: PricingTier.HIGH,
       strengths: ["general"],
     });
 
@@ -294,12 +299,12 @@ Deno.test("ProviderSelector: excludes unhealthy providers", async () => {
     healthService.registerCheck({
       name: "healthy-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "unhealthy-provider",
       critical: false,
-      check: async () => await ({ status: "fail" }),
+      check: async () => await ({ status: EvaluationVerdict.FAIL }),
     });
 
     const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
@@ -325,8 +330,8 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
       name: "simple-provider",
       description: "Simple provider",
       capabilities: ["chat"],
-      costTier: "FREE",
-      pricingTier: "local",
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.LOCAL,
       strengths: ["general"],
     });
 
@@ -334,8 +339,8 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
       name: "complex-provider",
       description: "Complex provider",
       capabilities: ["chat"],
-      costTier: "PAID",
-      pricingTier: "high",
+      costTier: ProviderCostTier.PAID,
+      pricingTier: PricingTier.HIGH,
       strengths: ["reasoning"],
     });
 
@@ -346,43 +351,57 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
     healthService.registerCheck({
       name: "simple-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "complex-provider",
       critical: false,
-      check: async () => await ({ status: "pass" }),
+      check: async () => await ({ status: EvaluationVerdict.PASS }),
     });
 
     const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
 
     // Create config with task routing
     const config: Config = {
-      system: { version: "1.0.0", root: "/tmp", log_level: "info" },
+      system: { version: "1.0.0", root: "/tmp", log_level: LogLevel.INFO },
       paths: {
         workspace: "Workspace",
         runtime: ".exo",
         memory: "Memory",
         portals: "Portals",
         blueprints: "Blueprints",
+        active: "Active",
+        archive: "Archive",
+        plans: "Plans",
+        requests: "Requests",
+        rejected: "Rejected",
+        agents: "Agents",
+        flows: "Flows",
+        memoryExecution: "Memory/Execution",
+        memoryGlobal: "Memory/Global",
+        memoryIndex: "Memory/Index",
+        memoryPending: "Memory/Pending",
+        memoryProjects: "Memory/Projects",
+        memorySkills: "Memory/Skills",
+        memoryTasks: "Memory/Tasks",
       },
       database: {
         batch_flush_ms: 100,
         batch_max_size: 100,
-        sqlite: { journal_mode: "WAL", foreign_keys: true, busy_timeout_ms: 5000 },
+        sqlite: { journal_mode: SqliteJournalMode.WAL, foreign_keys: true, busy_timeout_ms: 5000 },
       },
       watcher: { debounce_ms: 200, stability_check: true },
       agents: { default_model: "default", timeout_sec: 60, max_iterations: 10 },
       portals: [],
       ai_endpoints: {},
       ai_retry: { max_attempts: 3, backoff_base_ms: 1000, timeout_per_request_ms: 30000 },
-      ai_timeout: { default_ms: 30000, ollama: 60000, anthropic: 60000, openai: 30000, google: 30000 },
+      ai_timeout: { default_ms: 30000, providers: { ollama: 60000, anthropic: 60000, openai: 30000, google: 30000 } },
       ai_anthropic: {
         api_version: "2023-06-01",
         default_model: "claude-3-5-sonnet-20241022",
         max_tokens_default: 4096,
       },
-      mcp: { enabled: true, transport: "stdio", server_name: "exoframe", version: "1.0.0" },
+      mcp: { enabled: true, transport: MCPTransport.STDIO, server_name: "exoframe", version: "1.0.0" },
       mcp_defaults: { agent_id: "system" },
       rate_limiting: {
         enabled: true,
@@ -394,6 +413,20 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
       git: {
         branch_prefix_pattern: "^(feat|fix|docs|chore|refactor|test)/",
         allowed_prefixes: ["feat", "fix", "docs", "chore", "refactor", "test"],
+        operations: {
+          status_timeout_ms: 10000,
+          ls_files_timeout_ms: 5000,
+          checkout_timeout_ms: 10000,
+          clean_timeout_ms: 5000,
+          log_timeout_ms: 5000,
+          diff_timeout_ms: 10000,
+          command_timeout_ms: 30000,
+          max_retries: 3,
+          retry_backoff_base_ms: 100,
+          branch_name_collision_max_retries: 5,
+          trace_id_short_length: 8,
+          branch_suffix_length: 6,
+        },
       },
       models: {
         default: { provider: "mock", model: "mock-model", timeout_ms: 30000 },
@@ -410,11 +443,28 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
           simple: ["simple-provider"],
           complex: ["complex-provider"],
         },
+        fallback_chains: {},
       },
       providers: {},
       cost_tracking: {
         batch_delay_ms: 5000,
         max_batch_size: 50,
+        rates: {
+          openai: 0.01,
+          anthropic: 0.015,
+          google: 0,
+          ollama: 0,
+          mock: 0,
+        },
+      },
+      mock: {
+        delay_ms: 500,
+        input_tokens: 100,
+        output_tokens: 50,
+      },
+      ui: {
+        prompt_preview_length: 50,
+        prompt_preview_extended: 100,
       },
       health: {
         check_timeout_ms: 30000,
@@ -451,16 +501,16 @@ Deno.test("ProviderSelector: enforces budget constraints", async () => {
     ProviderRegistry.clear();
     ProviderRegistry.registerWithMetadata("openai", new MockProviderFactory(), {
       name: "openai",
-      costTier: "PAID",
-      pricingTier: "high",
+      costTier: ProviderCostTier.PAID,
+      pricingTier: PricingTier.HIGH,
       capabilities: ["chat"],
       description: "Premium provider",
-      strengths: ["quality", "speed"],
+      strengths: [EvaluationCategory.QUALITY, "speed"],
     });
     ProviderRegistry.registerWithMetadata("free-provider", new MockProviderFactory(), {
       name: "free-provider",
-      costTier: "FREE",
-      pricingTier: "free",
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.FREE,
       capabilities: ["chat"],
       description: "Free provider",
       strengths: ["cost-effective"],

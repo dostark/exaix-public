@@ -6,7 +6,9 @@
  * and logs detection events to the Activity Journal.
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { MemoryStatus } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { TestEnvironment } from "./helpers/test_environment.ts";
@@ -67,7 +69,7 @@ A working hello world function with tests.
     // Step 5: Verify plan content is correct
     const content = await Deno.readTextFile(planPath);
     assertStringIncludes(content, traceId);
-    assertStringIncludes(content, "approved");
+    assertStringIncludes(content, MemoryStatus.APPROVED);
     assertStringIncludes(content, "Implement a hello world function");
 
     // Step 6: Verify frontmatter can be parsed
@@ -79,7 +81,7 @@ A working hello world function with tests.
 
     assertEquals(frontmatter.trace_id, traceId);
     assertEquals(frontmatter.request_id, requestId);
-    assertEquals(frontmatter.status, "approved");
+    assertEquals(frontmatter.status, MemoryStatus.APPROVED);
 
     console.log("✅ Integration test passed: Plan detection successful");
   } finally {

@@ -11,7 +11,9 @@
  * - memory pending approve-all: Approve all pending
  */
 
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertStringIncludes } from "@std/assert";
+import { ExecutionStatus, FlowOutputFormat, MemoryStatus } from "../../src/enums.ts";
+
 import { MemoryCommands } from "../../src/cli/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
@@ -71,7 +73,7 @@ function createTestExecution(portal: string, traceId: string): ExecutionMemory {
     request_id: `req-${traceId.substring(0, 8)}`,
     started_at: "2026-01-04T10:00:00Z",
     completed_at: "2026-01-04T10:30:00Z",
-    status: "completed",
+    status: ExecutionStatus.COMPLETED,
     portal,
     agent: "senior-coder",
     summary: "Implemented repository pattern for database access with proper error handling.",
@@ -151,7 +153,7 @@ Deno.test("MemoryCommands: pendingList --format json outputs valid JSON", async 
       await extractor.createProposal(learnings[0], execution, "senior-coder");
     }
 
-    const result = await commands.pendingList("json");
+    const result = await commands.pendingList(FlowOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(Array.isArray(parsed), true);
@@ -186,7 +188,7 @@ Deno.test("MemoryCommands: pendingShow displays proposal details", async () => {
     const result = await commands.pendingShow(proposalId, "table");
 
     assertStringIncludes(result, proposalId.substring(0, 8));
-    assertStringIncludes(result, "pending");
+    assertStringIncludes(result, MemoryStatus.PENDING);
   } finally {
     await cleanup();
   }
@@ -224,11 +226,11 @@ Deno.test("MemoryCommands: pendingShow --format json outputs valid JSON", async 
 
     const proposalId = await extractor.createProposal(learnings[0], execution, "senior-coder");
 
-    const result = await commands.pendingShow(proposalId, "json");
+    const result = await commands.pendingShow(proposalId, FlowOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(parsed.id, proposalId);
-    assertEquals(parsed.status, "pending");
+    assertEquals(parsed.status, MemoryStatus.PENDING);
   } finally {
     await cleanup();
   }
@@ -259,7 +261,7 @@ Deno.test("MemoryCommands: pendingApprove merges learning", async () => {
 
     const result = await commands.pendingApprove(proposalId);
 
-    assertStringIncludes(result, "approved");
+    assertStringIncludes(result, MemoryStatus.APPROVED);
 
     // Verify learning was added
     const project = await memoryBank.getProjectMemory("test-app");
@@ -306,7 +308,7 @@ Deno.test("MemoryCommands: pendingReject archives proposal", async () => {
 
     const result = await commands.pendingReject(proposalId, "Not relevant");
 
-    assertStringIncludes(result, "rejected");
+    assertStringIncludes(result, MemoryStatus.REJECTED);
   } finally {
     await cleanup();
   }
@@ -347,7 +349,7 @@ Deno.test("MemoryCommands: pendingApproveAll processes all", async () => {
 
     const result = await commands.pendingApproveAll();
 
-    assertStringIncludes(result.toLowerCase(), "approved");
+    assertStringIncludes(result.toLowerCase(), MemoryStatus.APPROVED);
 
     // Verify no pending remain
     const pending = await extractor.listPending();

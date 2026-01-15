@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "@std/assert";
+
 import { FlowLoader } from "../../src/flows/flow_loader.ts";
 import { FlowSchema } from "../../src/schemas/flow.ts";
 
@@ -304,7 +305,7 @@ export default defineFlow({
   id: "flow-two",
   name: "Flow Two",
   description: "Second flow",
-  steps: [{ id: "s2", name: "Step 2", agent: "agent2", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
+  steps: [{ id: "s2", name: "Step 2", agent: "agent2", dependsOn: [], input: { source: FlowInputSource.REQUEST, transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
   output: { from: "s2" },
 });
 `;

@@ -5,14 +5,19 @@
  * Success Criteria:
  * - Test 1: Plan can be rejected with a reason from /Workspace/Plans
  * - Test 2: Rejected plan is moved to /Workspace/Rejected directory
- * - Test 3: Rejected plan status is updated to "rejected"
+ * - Test 3: Rejected plan status is updated to MemoryStatus.REJECTED
  * - Test 4: Rejection reason is appended to plan content
  * - Test 5: Original request remains in /Workspace/Requests (not modified)
  * - Test 6: Rejection is logged to Activity Journal with trace_id
  * - Test 7: Rejected plan preserves original trace_id for correlation
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+
+import { McpToolName } from "../../src/enums.ts";
+
+import { MemorySource } from "../../src/enums.ts";
+
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ensureDir } from "@std/fs";
@@ -45,7 +50,7 @@ Deno.test("Integration: Plan Rejection - Request to Archive", async (t) => {
         status: "review",
         actions: [
           {
-            tool: "write_file",
+            tool: McpToolName.WRITE_FILE,
             params: {
               path: "src/reader.ts",
               content: "function readFile(path, callback) { /* callback style */ }",
@@ -140,7 +145,7 @@ Deno.test("Integration: Plan Rejection - Request to Archive", async (t) => {
     await t.step("Test 6: Rejection logged to Activity Journal", async () => {
       // Log the rejection activity
       env.db.logActivity(
-        "user",
+        MemorySource.USER,
         "plan.rejected",
         rejectedPath,
         {

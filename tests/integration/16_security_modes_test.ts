@@ -5,7 +5,15 @@
  * Validates permission checks, audit detection, and access control.
  */
 
-import { assert, assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
+import { SecurityMode } from "../../src/enums.ts";
+
+import { PortalOperation } from "../../src/enums.ts";
+
+import { MemoryOperation } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { EventLogger } from "../../src/services/event_logger.ts";
@@ -40,7 +48,7 @@ async function createTestPortal(basePath: string, portalName: string) {
   );
 
   // Initialize git repo
-  const gitInit = new Deno.Command("git", {
+  const gitInit = new Deno.Command(PortalOperation.GIT, {
     args: ["init"],
     cwd: portalPath,
     stdout: "null",
@@ -49,14 +57,14 @@ async function createTestPortal(basePath: string, portalName: string) {
   await gitInit.output();
 
   // Configure git
-  await new Deno.Command("git", {
+  await new Deno.Command(PortalOperation.GIT, {
     args: ["config", "user.email", "test@example.com"],
     cwd: portalPath,
     stdout: "null",
     stderr: "null",
   }).output();
 
-  await new Deno.Command("git", {
+  await new Deno.Command(PortalOperation.GIT, {
     args: ["config", "user.name", "Test User"],
     cwd: portalPath,
     stdout: "null",
@@ -64,14 +72,14 @@ async function createTestPortal(basePath: string, portalName: string) {
   }).output();
 
   // Initial commit
-  await new Deno.Command("git", {
-    args: ["add", "."],
+  await new Deno.Command(PortalOperation.GIT, {
+    args: [MemoryOperation.ADD, "."],
     cwd: portalPath,
     stdout: "null",
     stderr: "null",
   }).output();
 
-  await new Deno.Command("git", {
+  await new Deno.Command(PortalOperation.GIT, {
     args: ["commit", "-m", "Initial commit"],
     cwd: portalPath,
     stdout: "null",
@@ -90,7 +98,7 @@ Deno.test("Integration Test 16.1: Sandboxed Mode - File Access Blocked", async (
     const eventLogger = new EventLogger({ db: dbService });
 
     // Simulate sandboxed mode execution
-    const securityMode = "sandboxed";
+    const securityMode = SecurityMode.SANDBOXED;
     const traceId = crypto.randomUUID();
 
     // Attempt 1: Direct file read (should be blocked)
@@ -98,7 +106,7 @@ Deno.test("Integration Test 16.1: Sandboxed Mode - File Access Blocked", async (
     eventLogger.error("security.file_access_blocked", readAttempt, {
       trace_id: traceId,
       security_mode: securityMode,
-      operation: "read",
+      operation: PortalOperation.READ,
       reason: "Direct file access not allowed in sandboxed mode",
     }, traceId);
 
@@ -107,7 +115,7 @@ Deno.test("Integration Test 16.1: Sandboxed Mode - File Access Blocked", async (
     eventLogger.error("security.file_access_blocked", writeAttempt, {
       trace_id: traceId,
       security_mode: securityMode,
-      operation: "write",
+      operation: PortalOperation.WRITE,
       reason: "Direct file writes not allowed in sandboxed mode",
     }, traceId);
 
@@ -131,12 +139,12 @@ Deno.test("Integration Test 16.1: Sandboxed Mode - File Access Blocked", async (
     // Verify event types
     const blockedReads = securityEvents.filter((e: any) => {
       const payload = JSON.parse(e.payload);
-      return e.action_type === "security.file_access_blocked" && payload.operation === "read";
+      return e.action_type === "security.file_access_blocked" && payload.operation === PortalOperation.READ;
     });
 
     const blockedWrites = securityEvents.filter((e: any) => {
       const payload = JSON.parse(e.payload);
-      return e.action_type === "security.file_access_blocked" && payload.operation === "write";
+      return e.action_type === "security.file_access_blocked" && payload.operation === PortalOperation.WRITE;
     });
 
     const traversalBlocks = securityEvents.filter((e: any) => e.action_type === "security.path_traversal_blocked");
@@ -160,12 +168,12 @@ Deno.test("Integration Test 16.2: Hybrid Mode - Audit Detection", async () => {
     const portalPath = await createTestPortal(testDir, "AuditPortal");
     const eventLogger = new EventLogger({ db: dbService });
 
-    const securityMode = "hybrid";
+    const securityMode = SecurityMode.HYBRID;
     const traceId = crypto.randomUUID();
 
     // Record initial git state
     const getGitStatus = async () => {
-      const cmd = new Deno.Command("git", {
+      const cmd = new Deno.Command(PortalOperation.GIT, {
         args: ["status", "--porcelain"],
         cwd: portalPath,
         stdout: "piped",
@@ -288,11 +296,11 @@ Deno.test("Integration Test 16.4: Permission Validation - Operation Not Allowed"
     // Simulate portal with restricted operations
     const portalConfig = {
       name: "ReadOnlyPortal",
-      allowed_operations: ["read_file", "list_directory"], // No write operations
+      allowed_operations: [McpToolName.READ_FILE, McpToolName.LIST_DIRECTORY], // No write operations
     };
 
     // Attempt restricted operation
-    const restrictedOperation = "delete_file";
+    const restrictedOperation = McpToolName.WRITE_FILE;
 
     if (!portalConfig.allowed_operations.includes(restrictedOperation)) {
       eventLogger.error("permission.operation_not_allowed", restrictedOperation, {
@@ -377,7 +385,7 @@ Deno.test("Integration Test 16.6: Hybrid Mode - Read Access Allowed", async () =
     const portalPath = await createTestPortal(testDir, "HybridPortal");
     const eventLogger = new EventLogger({ db: dbService });
 
-    const securityMode = "hybrid";
+    const securityMode = SecurityMode.HYBRID;
     const traceId = crypto.randomUUID();
 
     // In hybrid mode, reads should be allowed
@@ -390,7 +398,7 @@ Deno.test("Integration Test 16.6: Hybrid Mode - Read Access Allowed", async () =
     eventLogger.info("security.read_access_allowed", readFile, {
       trace_id: traceId,
       security_mode: securityMode,
-      operation: "read",
+      operation: PortalOperation.READ,
       bytes_read: content.length,
     }, traceId);
 
@@ -398,7 +406,7 @@ Deno.test("Integration Test 16.6: Hybrid Mode - Read Access Allowed", async () =
     eventLogger.info("security.write_via_mcp", "src/new_feature.ts", {
       trace_id: traceId,
       security_mode: securityMode,
-      operation: "write",
+      operation: PortalOperation.WRITE,
       note: "All writes must go through MCP tools even in hybrid mode",
     }, traceId);
 

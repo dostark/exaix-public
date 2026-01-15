@@ -11,10 +11,10 @@ import {
   type Changeset,
   type ChangesetFilters,
   ChangesetSchema,
-  type ChangesetStatus,
   type RegisterChangesetInput,
   RegisterChangesetSchema,
 } from "../schemas/changeset.ts";
+import { ChangesetStatus } from "../enums.ts";
 
 export class ChangesetRegistry {
   constructor(
@@ -32,7 +32,7 @@ export class ChangesetRegistry {
     // Generate UUID for changeset
     const id = crypto.randomUUID();
     const created = new Date().toISOString();
-    const status = "pending";
+    const status = ChangesetStatus.PENDING;
 
     // Insert into database
     const sql = `
@@ -151,7 +151,7 @@ export class ChangesetRegistry {
     let sql = `UPDATE changesets SET status = ?`;
     const params: Array<string | number | null> = [status];
 
-    if (status === "approved") {
+    if (status === ChangesetStatus.APPROVED) {
       sql = `UPDATE changesets SET status = ?, approved_at = ?, approved_by = ? WHERE id = ?`;
       params.push(timestamp, user || null, id);
 
@@ -164,7 +164,7 @@ export class ChangesetRegistry {
         approved_by: user,
         approved_at: timestamp,
       }, changeset.trace_id);
-    } else if (status === "rejected") {
+    } else if (status === ChangesetStatus.REJECTED) {
       sql = `UPDATE changesets SET status = ?, rejected_at = ?, rejected_by = ?, rejection_reason = ? WHERE id = ?`;
       params.push(timestamp, user || null, reason || null, id);
 
@@ -197,7 +197,7 @@ export class ChangesetRegistry {
    * Get pending changesets for a portal
    */
   getPendingForPortal(portal: string): Changeset[] {
-    return this.list({ portal, status: "pending" });
+    return this.list({ portal, status: ChangesetStatus.PENDING });
   }
 
   /**

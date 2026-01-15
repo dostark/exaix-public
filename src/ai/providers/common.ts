@@ -1,4 +1,35 @@
-import { ConnectionError, ModelProviderError, TimeoutError } from "../providers.ts";
+/**
+ * Base error class for model provider errors.
+ */
+export class ModelProviderError extends Error {
+  constructor(message: string, public readonly provider: string) {
+    super(message);
+    this.name = "ModelProviderError";
+    Object.setPrototypeOf(this, ModelProviderError.prototype);
+  }
+}
+
+/**
+ * Error thrown when connection to the model provider fails.
+ */
+export class ConnectionError extends ModelProviderError {
+  constructor(provider: string, message: string) {
+    super(`Connection failed for provider '${provider}': ${message}`, provider);
+    this.name = "ConnectionError";
+    Object.setPrototypeOf(this, ConnectionError.prototype);
+  }
+}
+
+/**
+ * Error thrown when a request times out.
+ */
+export class TimeoutError extends ModelProviderError {
+  constructor(provider: string, timeoutMs: number) {
+    super(`Request timed out after ${timeoutMs}ms for provider '${provider}'`, provider);
+    this.name = "TimeoutError";
+    Object.setPrototypeOf(this, TimeoutError.prototype);
+  }
+}
 
 /**
  * Authentication error for model providers.

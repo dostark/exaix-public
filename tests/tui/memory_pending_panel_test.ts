@@ -11,7 +11,14 @@
  * - Integration with MemoryViewTuiSession
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@1";
+import { ConfidenceLevel } from "../../src/enums.ts";
+import { EvaluationCategory } from "../../src/enums.ts";
+
+import { MemoryReferenceType } from "../../src/enums.ts";
+
+import { LearningCategory, MemoryOperation, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+
+import { assertEquals, assertExists } from "@std/assert";
 import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
 import { renderPendingPanel, renderStatsPanel } from "../../src/tui/memory_panels/index.ts";
@@ -24,64 +31,64 @@ function createMockProposals(): MemoryUpdateProposal[] {
     {
       id: "proposal-1",
       agent: "test-agent",
-      operation: "add",
+      operation: MemoryOperation.ADD,
       learning: {
         id: "learning-1",
         title: "Error Handling Pattern",
-        category: "pattern",
+        category: LearningCategory.PATTERN,
         description: "Use try-catch for all async functions",
-        confidence: "high",
+        confidence: ConfidenceLevel.HIGH,
         tags: ["error-handling"],
-        source: "agent",
-        scope: "project",
+        source: MemorySource.AGENT,
+        scope: MemoryScope.PROJECT,
         created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
       },
-      target_scope: "project",
+      target_scope: MemoryScope.PROJECT,
       target_project: "my-app",
       reason: "Extracted from execution",
       created_at: new Date(Date.now() - 3600000).toISOString(),
-      status: "pending",
+      status: MemoryStatus.PENDING,
     },
     {
       id: "proposal-2",
       agent: "test-agent",
-      operation: "add",
+      operation: MemoryOperation.ADD,
       learning: {
         id: "learning-2",
         title: "API Rate Limiting",
-        category: "decision",
+        category: LearningCategory.DECISION,
         description: "Implement rate limiting for all API endpoints",
-        confidence: "medium",
-        tags: ["api", "security"],
-        source: "agent",
-        scope: "global",
+        confidence: ConfidenceLevel.MEDIUM,
+        tags: [MemoryReferenceType.API, EvaluationCategory.SECURITY],
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
         created_at: new Date(Date.now() - 18000000).toISOString(), // 5 hours ago
       },
-      target_scope: "global",
+      target_scope: MemoryScope.GLOBAL,
       reason: "Common pattern across projects",
       created_at: new Date(Date.now() - 18000000).toISOString(),
-      status: "pending",
+      status: MemoryStatus.PENDING,
     },
     {
       id: "proposal-3",
       agent: "test-agent",
-      operation: "add",
+      operation: MemoryOperation.ADD,
       learning: {
         id: "learning-3",
         title: "Database Connection Issue",
-        category: "troubleshooting",
+        category: LearningCategory.TROUBLESHOOTING,
         description: "Connection timeout solutions",
-        confidence: "high",
+        confidence: ConfidenceLevel.HIGH,
         tags: ["database"],
-        source: "execution",
-        scope: "project",
+        source: MemorySource.EXECUTION,
+        scope: MemoryScope.PROJECT,
         created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
       },
-      target_scope: "project",
+      target_scope: MemoryScope.PROJECT,
       target_project: "api-service",
       reason: "Documented troubleshooting steps",
       created_at: new Date(Date.now() - 86400000).toISOString(),
-      status: "pending",
+      status: MemoryStatus.PENDING,
     },
   ];
 }
@@ -217,22 +224,22 @@ Deno.test("renderPendingPanel: limits display to 10 items", () => {
     proposals.push({
       id: `proposal-${i}`,
       agent: "test-agent",
-      operation: "add",
+      operation: MemoryOperation.ADD,
       learning: {
         id: `learning-${i}`,
         title: `Learning ${i}`,
-        category: "pattern",
+        category: LearningCategory.PATTERN,
         description: "Test",
-        confidence: "high",
+        confidence: ConfidenceLevel.HIGH,
         tags: [],
-        source: "agent",
-        scope: "global",
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
         created_at: new Date().toISOString(),
       },
-      target_scope: "global",
+      target_scope: MemoryScope.GLOBAL,
       reason: "Test",
       created_at: new Date().toISOString(),
-      status: "pending",
+      status: MemoryStatus.PENDING,
     });
   }
 
@@ -289,7 +296,7 @@ Deno.test("MemoryViewTuiSession: 'n' jumps to pending scope", async () => {
 
   await session.handleKey("n");
 
-  assertEquals(session.getActiveScope(), "pending");
+  assertEquals(session.getActiveScope(), MemoryStatus.PENDING);
 });
 
 Deno.test("MemoryViewTuiSession: pending badge shows count", async () => {

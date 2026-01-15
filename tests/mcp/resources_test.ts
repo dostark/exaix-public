@@ -2,7 +2,7 @@
  * MCP Resources Tests
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { createMockConfig } from "../helpers/config.ts";

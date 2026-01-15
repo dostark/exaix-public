@@ -12,7 +12,7 @@
  */
 
 // Imports removed to fix linting in empty file
-// import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+// import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
 // import { IModelProvider } from "../../src/ai/providers.ts";
 // import { ... } from ...
 

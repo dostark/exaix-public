@@ -2,7 +2,7 @@
  * Tests for SecureRandom utility - cryptographically secure random number generation
  */
 
-import { assert, assertEquals, assertFalse, assertMatch, assertNotEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertFalse, assertMatch, assertNotEquals } from "@std/assert";
 import { SecureRandom } from "../../src/utils/secure_random.ts";
 
 Deno.test("SecureRandom: generates cryptographically secure bytes", () => {

@@ -1,4 +1,4 @@
-import { assert } from "jsr:@std/assert@^1.0.0";
+import { assert } from "@std/assert";
 
 Deno.test("Agent docs: testing.md documents CI pitfalls", async () => {
   const md = await Deno.readTextFile(".copilot/tests/testing.md");

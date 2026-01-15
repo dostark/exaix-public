@@ -1,4 +1,7 @@
-import { assert, assertEquals, assertExists, assertRejects } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertRejects } from "@std/assert";
+
+import { MemoryOperation } from "../src/enums.ts";
+
 import { join } from "@std/path";
 import { type PlanContext, PlanExecutor } from "../src/services/plan_executor.ts";
 import { MockProvider } from "../src/ai/providers.ts";
@@ -303,7 +306,7 @@ Deno.test("PlanExecutor: handles step with no changes", async () => {
 
     // Create a file to read and commit it so repo is clean
     await Deno.writeTextFile(join(tempDir, "read.txt"), "content");
-    await _helper.runGit(["add", "."]);
+    await _helper.runGit([MemoryOperation.ADD, "."]);
     await _helper.runGit(["commit", "-m", "Initial commit"]);
     const mockResponse = `
 \`\`\`toml

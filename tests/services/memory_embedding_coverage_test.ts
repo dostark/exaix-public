@@ -11,8 +11,10 @@
  * - Vector length mismatch throws error
  */
 import { ensureDir } from "@std/fs";
-import { assert } from "jsr:@std/assert@^1.0.0";
-import { assertAlmostEquals, assertEquals, assertExists, assertGreaterOrEqual } from "jsr:@std/assert@^1.0.0";
+import { LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+
+import { assert } from "@std/assert";
+import { assertAlmostEquals, assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import {
@@ -22,6 +24,7 @@ import {
 } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { Learning } from "../../src/schemas/memory_bank.ts";
+import { ConfidenceLevel } from "../../src/enums.ts";
 import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Fixture =====
@@ -29,14 +32,14 @@ import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 const testLearning: Learning = {
   id: "ffffffff-1111-4000-8000-000000000001",
   created_at: new Date().toISOString(),
-  source: "agent",
-  scope: "global",
+  source: MemorySource.AGENT,
+  scope: MemoryScope.GLOBAL,
   title: "Coverage test learning",
   description: "This is a test learning for coverage testing of embedding service",
-  category: "pattern",
+  category: LearningCategory.PATTERN,
   tags: ["coverage", "test"],
-  confidence: "high",
-  status: "approved",
+  confidence: ConfidenceLevel.HIGH,
+  status: MemoryStatus.APPROVED,
 };
 
 // ===== cosineSimilarity Edge Cases =====

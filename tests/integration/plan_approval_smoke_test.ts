@@ -1,4 +1,6 @@
-import { assert } from "jsr:@std/assert@^1.0.0";
+import { assert } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ExecutionLoop } from "../../src/services/execution_loop.ts";
 
@@ -13,14 +15,14 @@ Deno.test("Smoke: Plan approval concurrency", async () => {
     const p1 = await env.createPlan(r1.traceId, "smoke-a", {
       status: "review",
       actions: [
-        { tool: "write_file", params: { path: "smoke-a-output.txt", content: "A" } },
+        { tool: McpToolName.WRITE_FILE, params: { path: "smoke-a-output.txt", content: "A" } },
       ],
     });
 
     const p2 = await env.createPlan(r2.traceId, "smoke-b", {
       status: "review",
       actions: [
-        { tool: "write_file", params: { path: "smoke-b-output.txt", content: "B" } },
+        { tool: McpToolName.WRITE_FILE, params: { path: "smoke-b-output.txt", content: "B" } },
       ],
     });
 

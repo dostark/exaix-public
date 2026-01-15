@@ -15,7 +15,7 @@
  * - Test 10: All operations logged to Activity Journal with correct action types
  */
 
-import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { TestEnvironment } from "./helpers/test_environment.ts";

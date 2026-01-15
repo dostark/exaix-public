@@ -12,7 +12,9 @@
  * - memory demote: Demote global learning to project
  */
 
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { ConfidenceLevel } from "../../src/enums.ts";
+import { FlowOutputFormat, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import { assertEquals, assertStringIncludes } from "@std/assert";
 import { MemoryCommands } from "../../src/cli/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { initTestDbService } from "../helpers/db.ts";
@@ -91,7 +93,7 @@ Deno.test("MemoryCommands: globalShow --format json outputs valid JSON", async (
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalShow("json");
+    const result = await commands.globalShow(FlowOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(parsed.version, "1.0.0");
@@ -139,21 +141,21 @@ Deno.test("MemoryCommands: globalListLearnings displays learnings", async () => 
     const learning: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Test Learning Title",
       description: "Test learning description",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["test-tag"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     };
     await memoryBank.addGlobalLearning(learning);
 
     const result = await commands.globalListLearnings("table");
 
     assertStringIncludes(result, "Test Learning Title");
-    assertStringIncludes(result, "pattern");
+    assertStringIncludes(result, LearningCategory.PATTERN);
   } finally {
     await cleanup();
   }
@@ -167,18 +169,18 @@ Deno.test("MemoryCommands: globalListLearnings --format json outputs valid JSON"
     const learning: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440001",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "JSON Test Learning",
       description: "Test for JSON output",
-      category: "insight",
+      category: LearningCategory.INSIGHT,
       tags: [],
-      confidence: "medium",
-      status: "approved",
+      confidence: ConfidenceLevel.MEDIUM,
+      status: MemoryStatus.APPROVED,
     };
     await memoryBank.addGlobalLearning(learning);
 
-    const result = await commands.globalListLearnings("json");
+    const result = await commands.globalListLearnings(FlowOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(Array.isArray(parsed), true);
@@ -201,28 +203,28 @@ Deno.test("MemoryCommands: globalStats displays statistics", async () => {
       {
         id: "550e8400-e29b-41d4-a716-446655440010",
         created_at: "2026-01-04T12:00:00Z",
-        source: "user",
-        scope: "global",
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
         project: "app-a",
         title: "Learning 1",
         description: "First",
-        category: "pattern",
+        category: LearningCategory.PATTERN,
         tags: [],
-        confidence: "high",
-        status: "approved",
+        confidence: ConfidenceLevel.HIGH,
+        status: MemoryStatus.APPROVED,
       },
       {
         id: "550e8400-e29b-41d4-a716-446655440011",
         created_at: "2026-01-04T12:00:00Z",
-        source: "user",
-        scope: "global",
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
         project: "app-b",
         title: "Learning 2",
         description: "Second",
-        category: "insight",
+        category: LearningCategory.INSIGHT,
         tags: [],
-        confidence: "medium",
-        status: "approved",
+        confidence: ConfidenceLevel.MEDIUM,
+        status: MemoryStatus.APPROVED,
       },
     ];
 
@@ -245,7 +247,7 @@ Deno.test("MemoryCommands: globalStats --format json outputs valid JSON", async 
   try {
     await memoryBank.initGlobalMemory();
 
-    const result = await commands.globalStats("json");
+    const result = await commands.globalStats(FlowOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(typeof parsed.total_learnings, "number");
@@ -281,13 +283,13 @@ Deno.test("MemoryCommands: promote moves learning to global", async () => {
 
     // Promote the pattern
     const result = await commands.promote("source-app", {
-      type: "pattern",
+      type: LearningCategory.PATTERN,
       name: "Repository Pattern",
       title: "Repository Pattern (Global)",
       description: "Use repositories for all database access",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["architecture"],
-      confidence: "high",
+      confidence: ConfidenceLevel.HIGH,
     });
 
     assertStringIncludes(result, "promoted");
@@ -307,13 +309,13 @@ Deno.test("MemoryCommands: promote non-existent project returns error", async ()
     await memoryBank.initGlobalMemory();
 
     const result = await commands.promote("non-existent", {
-      type: "pattern",
+      type: LearningCategory.PATTERN,
       name: "Test",
       title: "Test",
       description: "Test",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: [],
-      confidence: "medium",
+      confidence: ConfidenceLevel.MEDIUM,
     });
 
     assertStringIncludes(result, "Error:");
@@ -343,14 +345,14 @@ Deno.test("MemoryCommands: demote moves learning to project", async () => {
     const learning: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440099",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Learning to Demote",
       description: "This will be demoted",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["demote-test"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     };
     await memoryBank.addGlobalLearning(learning);
 
@@ -400,14 +402,14 @@ Deno.test("MemoryCommands: demote to non-existent project returns error", async 
     const learning: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440098",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Test",
       description: "Test",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: [],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     };
     await memoryBank.addGlobalLearning(learning);
 

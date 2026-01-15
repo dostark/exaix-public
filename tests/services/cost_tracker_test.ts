@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals } from "@std/assert";
 import { CostTracker } from "../../src/services/cost_tracker.ts";
 import { initTestDbService } from "../helpers/db.ts";
 

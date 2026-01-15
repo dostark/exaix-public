@@ -1,4 +1,4 @@
-import { assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertStringIncludes } from "@std/assert";
 import { GoogleProvider } from "../../src/ai/providers/google_provider.ts";
 import { googleResponseConfig, registerProviderTests, spyFetch } from "./helpers/provider_test_helper.ts";
 

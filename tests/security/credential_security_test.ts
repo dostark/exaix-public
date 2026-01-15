@@ -13,7 +13,7 @@
  * 7. No keys appear in logs or debug output
  */
 
-import { assertEquals, assertExists, assertNotEquals } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
 import { SecureCredentialStore } from "../../src/utils/credential_security.ts";
 
 // ============================================================================

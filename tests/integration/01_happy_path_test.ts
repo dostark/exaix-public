@@ -12,7 +12,8 @@
  * - Test 7: All operations are logged to Activity Journal with trace_id correlation
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { ExecutionStatus, McpToolName, MemorySource, PortalOperation } from "../../src/enums.ts";
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ExecutionLoop } from "../../src/services/execution_loop.ts";
@@ -73,7 +74,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
         status: "review",
         actions: [
           {
-            tool: "write_file",
+            tool: McpToolName.WRITE_FILE,
             params: {
               path: "src/hello.ts",
               content: 'export function hello(): string { return "Hello World"; }',
@@ -91,7 +92,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
       assertStringIncludes(content, `trace_id: "${traceId}"`);
       assertStringIncludes(content, 'request_id: "implement-hello"');
       assertStringIncludes(content, "status: review");
-      assertStringIncludes(content, "write_file");
+      assertStringIncludes(content, McpToolName.WRITE_FILE);
     });
 
     // ========================================================================
@@ -141,7 +142,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
 
     await t.step("Test 5: Commit message includes trace_id footer", async () => {
       // Get commit log
-      const cmd = new Deno.Command("git", {
+      const cmd = new Deno.Command(PortalOperation.GIT, {
         args: ["log", "--oneline", "-n", "5", "--all"],
         cwd: env.tempDir,
         stdout: "piped",
@@ -151,7 +152,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
       const log = new TextDecoder().decode(stdout);
 
       // Check for ExoTrace footer in commits
-      const fullLogCmd = new Deno.Command("git", {
+      const fullLogCmd = new Deno.Command(PortalOperation.GIT, {
         args: ["log", "-n", "5", "--all"],
         cwd: env.tempDir,
         stdout: "piped",
@@ -186,7 +187,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
         traceId,
         requestId: "implement-hello",
         agentId: "senior-coder",
-        status: "completed",
+        status: ExecutionStatus.COMPLETED,
         branch: `feat/implement-hello-${traceId.substring(0, 8)}`,
         completedAt: new Date(),
         contextFiles: [requestPath],
@@ -202,7 +203,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
       // Verify report structure
       assertStringIncludes(reportContent, traceId);
       assertStringIncludes(reportContent, "implement-hello");
-      assertStringIncludes(reportContent, "completed");
+      assertStringIncludes(reportContent, ExecutionStatus.COMPLETED);
     });
 
     // ========================================================================
@@ -229,7 +230,7 @@ Deno.test("Integration: Happy Path - Request to Report", async (t) => {
 
       // Should have execution-related activities
       const hasExecutionActivity = actionTypes.some((t) =>
-        t.includes("execution") || t.includes("git") || t.includes("report")
+        t.includes(MemorySource.EXECUTION) || t.includes(PortalOperation.GIT) || t.includes("report")
       );
 
       assert(

@@ -1,7 +1,9 @@
 // Integration test for free LLM providers (manual/ignored)
 // This test is ignored by default to avoid calling external endpoints in CI.
 
-import { assert, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertExists, assertStringIncludes } from "@std/assert";
+import { EvaluationCategory } from "../../src/enums.ts";
+
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ModelFactory } from "../../src/ai/providers.ts";
 import { RequestProcessor } from "../../src/services/request_processor.ts";
@@ -49,7 +51,7 @@ Always respond with:
 
       // Create a real provider using ModelFactory
       const model = getTestModel();
-      const provider = ModelFactory.create(model, { apiKey, baseUrl: "https://api.openai.com" });
+      const provider = await ModelFactory.create(model, { apiKey, baseUrl: "https://api.openai.com" });
 
       // Create RequestProcessor using real provider
       const processor = new RequestProcessor(
@@ -67,7 +69,7 @@ Always respond with:
       // End-to-end: create request and process
       const requestResult = await env.createRequest(
         "Implement user authentication with JWT tokens",
-        { agentId: "senior-coder", priority: 7, tags: ["feature", "security"] },
+        { agentId: "senior-coder", priority: 7, tags: ["feature", EvaluationCategory.SECURITY] },
       );
 
       const planPath = await processor.process(requestResult.filePath);

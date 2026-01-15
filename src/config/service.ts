@@ -25,11 +25,11 @@ export class ConfigService {
       const result = ConfigSchema.safeParse(rawConfig);
 
       if (!result.success) {
-        console.error("❌ Invalid configuration in exo.config.toml:");
+        let errorMessage = "❌ Invalid configuration in exo.config.toml:\n";
         for (const issue of result.error.issues) {
-          console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
+          errorMessage += `  - ${issue.path.join(".")}: ${issue.message}\n`;
         }
-        Deno.exit(1);
+        throw new Error(errorMessage);
       }
 
       return result.data;
@@ -62,6 +62,20 @@ blueprints = "./Blueprints"
 runtime = "./.exo"
 workspace = "./Workspace"
 portals = "./Portals"
+active = "./Workspace/Active"
+archive = "./Workspace/Archive"
+plans = "./Workspace/Plans"
+requests = "./Workspace/Requests"
+rejected = "./Workspace/Rejected"
+agents = "./Blueprints/Agents"
+flows = "./Blueprints/Flows"
+memoryProjects = "./Memory/Projects"
+memoryExecution = "./Memory/Execution"
+memoryIndex = "./Memory/Index"
+memorySkills = "./Memory/Skills"
+memoryPending = "./Memory/Pending"
+memoryTasks = "./Memory/Tasks"
+memoryGlobal = "./Memory/Global"
 
 [watcher]
 debounce_ms = 200

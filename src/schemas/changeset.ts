@@ -6,17 +6,12 @@
  */
 
 import { z } from "zod";
+import { ChangesetStatus } from "../enums.ts";
 
 /**
  * Changeset status values
  */
-export const ChangesetStatusSchema = z.enum([
-  "pending", // Created by agent, awaiting review
-  "approved", // Approved and merged to main
-  "rejected", // Rejected, branch deleted
-]);
-
-export type ChangesetStatus = z.infer<typeof ChangesetStatusSchema>;
+export const ChangesetStatusSchema = z.nativeEnum(ChangesetStatus);
 
 /**
  * Changeset schema with all fields

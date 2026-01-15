@@ -15,7 +15,9 @@
  * - Rebuild index with embeddings
  */
 
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { ConfidenceLevel } from "../../src/enums.ts";
+import { ExecutionStatus, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import { assertEquals, assertStringIncludes } from "@std/assert";
 import { MemoryCommands } from "../../src/cli/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
@@ -96,15 +98,15 @@ async function createTestProjectWithLearnings(
       {
         id: "aaaaaaaa-aaaa-4000-8000-000000000001",
         created_at: new Date().toISOString(),
-        source: "agent",
-        scope: "project",
+        source: MemorySource.AGENT,
+        scope: MemoryScope.PROJECT,
         project: portal,
         title: "Error handling improves reliability",
         description: "Adding proper error handling reduced bugs by 50%",
-        category: "insight",
+        category: LearningCategory.INSIGHT,
         tags: ["error-handling"],
-        confidence: "high",
-        status: "approved",
+        confidence: ConfidenceLevel.HIGH,
+        status: MemoryStatus.APPROVED,
       },
     ],
   } as ProjectMemory);
@@ -121,14 +123,14 @@ Deno.test("MemoryCommands: search with useEmbeddings option", async () => {
     const learning: Learning = {
       id: "bbbbbbbb-bbbb-4000-8000-000000000001",
       created_at: new Date().toISOString(),
-      source: "agent",
-      scope: "global",
+      source: MemorySource.AGENT,
+      scope: MemoryScope.GLOBAL,
       title: "Error handling best practices",
       description: "Use try-catch with proper logging for errors",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["error-handling"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     };
     await embedding.embedLearning(learning);
 
@@ -149,7 +151,7 @@ Deno.test("MemoryCommands: search with tags option", async () => {
   try {
     await createTestProjectWithLearnings(memoryBank, "TagProject");
 
-    const result = await commands.search("pattern", {
+    const result = await commands.search(LearningCategory.PATTERN, {
       tags: ["typescript"],
       format: "table",
     });
@@ -220,7 +222,7 @@ Deno.test("MemoryCommands: execution list --format md outputs markdown", async (
       request_id: "req-123",
       started_at: new Date().toISOString(),
       completed_at: new Date().toISOString(),
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "MdExecProject",
       agent: "test-agent",
       summary: "Test execution",
@@ -316,14 +318,14 @@ Deno.test("MemoryCommands: globalListLearnings --format md outputs markdown", as
     await memoryBank.addGlobalLearning({
       id: "dddddddd-dddd-4000-8000-000000000001",
       created_at: new Date().toISOString(),
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Test global learning",
       description: "A test learning description",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["test"],
-      confidence: "medium",
-      status: "approved",
+      confidence: ConfidenceLevel.MEDIUM,
+      status: MemoryStatus.APPROVED,
     });
 
     const result = await commands.globalListLearnings("md");
@@ -368,13 +370,13 @@ Deno.test("MemoryCommands: promote returns error for non-existent project", asyn
     await memoryBank.initGlobalMemory();
 
     const result = await commands.promote("NonExistentPortal", {
-      type: "pattern",
+      type: LearningCategory.PATTERN,
       name: "test",
       title: "Test Pattern",
       description: "Test description",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["test"],
-      confidence: "medium",
+      confidence: ConfidenceLevel.MEDIUM,
     });
 
     assertStringIncludes(result, "Error");
@@ -432,14 +434,14 @@ Deno.test("MemoryCommands: rebuildIndex with embeddings option", async () => {
     await memoryBank.addGlobalLearning({
       id: "eeeeeeee-eeee-4000-8000-000000000001",
       created_at: new Date().toISOString(),
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Embedding test learning",
       description: "This learning will be embedded during index rebuild",
-      category: "insight",
+      category: LearningCategory.INSIGHT,
       tags: ["test"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     });
 
     const result = await commands.rebuildIndex({ includeEmbeddings: true });
@@ -462,7 +464,7 @@ Deno.test("MemoryCommands: execution show with error message", async () => {
       request_id: "req-error",
       started_at: new Date().toISOString(),
       completed_at: new Date().toISOString(),
-      status: "failed",
+      status: ExecutionStatus.FAILED,
       portal: "ErrorProject",
       agent: "test-agent",
       summary: "Failed execution",
@@ -494,7 +496,7 @@ Deno.test("MemoryCommands: execution show with changes and lessons learned", asy
       request_id: "req-full",
       started_at: new Date().toISOString(),
       completed_at: new Date().toISOString(),
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "FullProject",
       agent: "test-agent",
       summary: "Full execution with changes",
@@ -530,7 +532,7 @@ Deno.test("MemoryCommands: execution show --format md with full data", async () 
       request_id: "req-md",
       started_at: new Date().toISOString(),
       completed_at: new Date().toISOString(),
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "MdFullProject",
       agent: "test-agent",
       summary: "Full markdown test",
@@ -569,14 +571,14 @@ Deno.test("MemoryCommands: globalListLearnings table format with learnings", asy
       await memoryBank.addGlobalLearning({
         id: `33333333-3333-4000-8000-00000000000${i}`,
         created_at: new Date().toISOString(),
-        source: "agent",
-        scope: "global",
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
         title: `Learning ${i}`,
         description: `Description for learning ${i}`,
-        category: "pattern",
+        category: LearningCategory.PATTERN,
         tags: ["test"],
-        confidence: "high",
-        status: "approved",
+        confidence: ConfidenceLevel.HIGH,
+        status: MemoryStatus.APPROVED,
       });
     }
 
@@ -604,27 +606,27 @@ Deno.test("MemoryCommands: globalStats with learnings by category and project", 
     await memoryBank.addGlobalLearning({
       id: "44444444-4444-4000-8000-000000000001",
       created_at: new Date().toISOString(),
-      source: "agent",
-      scope: "global",
+      source: MemorySource.AGENT,
+      scope: MemoryScope.GLOBAL,
       title: "Pattern Learning",
       description: "A pattern",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: [],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     });
 
     await memoryBank.addGlobalLearning({
       id: "44444444-4444-4000-8000-000000000002",
       created_at: new Date().toISOString(),
-      source: "agent",
-      scope: "global",
+      source: MemorySource.AGENT,
+      scope: MemoryScope.GLOBAL,
       title: "Insight Learning",
       description: "An insight",
-      category: "insight",
+      category: LearningCategory.INSIGHT,
       tags: [],
-      confidence: "medium",
-      status: "approved",
+      confidence: ConfidenceLevel.MEDIUM,
+      status: MemoryStatus.APPROVED,
     });
 
     const result = await commands.globalStats("table");

@@ -1,7 +1,7 @@
 /**
  * Test timeout functionality for LLM providers
  */
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assertEquals } from "@std/assert";
 import { OpenAIProvider } from "../../src/ai/providers/openai_provider.ts";
 import { AnthropicProvider } from "../../src/ai/providers/anthropic_provider.ts";
 import { GoogleProvider } from "../../src/ai/providers/google_provider.ts";

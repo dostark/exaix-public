@@ -13,7 +13,9 @@
  * - Activity logging tracks the full workflow
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { EvaluationCategory } from "../../src/enums.ts";
+
 import { TestEnvironment } from "./helpers/test_environment.ts";
 
 Deno.test("Integration: RequestProcessor with MockLLMProvider", async (t) => {
@@ -46,7 +48,7 @@ Always respond with:
     await t.step("End-to-end: Request file to plan generation", async () => {
       const requestResult = await env.createRequest(
         "Implement user authentication with JWT tokens",
-        { agentId: "senior-coder", priority: 7, tags: ["feature", "security"] },
+        { agentId: "senior-coder", priority: 7, tags: ["feature", EvaluationCategory.SECURITY] },
       );
 
       requestPath = requestResult.filePath;

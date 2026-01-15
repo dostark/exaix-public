@@ -1,6 +1,6 @@
-import { assertEquals, assertExists } from "jsr:@std/assert@1";
-import { join } from "jsr:@std/path@1";
-import { ensureDir } from "jsr:@std/fs@1";
+import { assertEquals, assertExists } from "@std/assert";
+import { join } from "@std/path";
+import { ensureDir } from "@std/fs";
 import { getWorkspaceActiveDir } from "./helpers/paths_helper.ts";
 
 Deno.test("Plan Executor - Parsing", async (t) => {

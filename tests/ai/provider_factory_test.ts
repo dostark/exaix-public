@@ -16,10 +16,13 @@
  * 10. EXO_LLM_TIMEOUT_MS correctly sets timeout
  */
 
-import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
+import { DaemonStatus, MCPTransport } from "../../src/enums.ts";
 import { getProviderForModel, ProviderFactory, ProviderFactoryError } from "../../src/ai/provider_factory.ts";
+import { LogLevel, ProviderType, SqliteJournalMode } from "../../src/enums.ts";
 import { RateLimitError } from "../../src/ai/rate_limited_provider.ts";
 import { SecureCredentialStore } from "../../src/utils/credential_security.ts";
+import { MockStrategy } from "../../src/enums.ts";
 
 import { AiConfig, AiConfigSchema } from "../../src/config/ai_config.ts";
 import { Config } from "../../src/config/schema.ts";
@@ -40,7 +43,7 @@ function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
   return {
     system: {
       root: "/tmp/exoframe-test",
-      log_level: "info" as const,
+      log_level: LogLevel.INFO,
     },
     paths: {
       portals: "Portals",
@@ -48,12 +51,26 @@ function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       memory: "Memory",
       runtime: ".exo",
       blueprints: "Blueprints",
+      active: "Active",
+      archive: "Archive",
+      plans: "Plans",
+      requests: "Requests",
+      rejected: "Rejected",
+      agents: "Agents",
+      flows: "Flows",
+      memoryExecution: "Memory/Execution",
+      memoryGlobal: "Memory/Global",
+      memoryIndex: "Memory/Index",
+      memoryPending: "Memory/Pending",
+      memoryProjects: "Memory/Projects",
+      memorySkills: "Memory/Skills",
+      memoryTasks: "Memory/Tasks",
     },
     database: {
       batch_flush_ms: 100,
       batch_max_size: 50,
       sqlite: {
-        journal_mode: "WAL",
+        journal_mode: SqliteJournalMode.WAL,
         foreign_keys: true,
         busy_timeout_ms: 5000,
       },
@@ -67,7 +84,7 @@ function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
     portals: [],
     mcp: {
       enabled: true,
-      transport: "stdio" as const,
+      transport: MCPTransport.STDIO,
       server_name: "exoframe",
       version: "1.0.0",
     },
@@ -95,19 +112,35 @@ function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
     git: {
       branch_prefix_pattern: "^(feat|fix|docs|chore|refactor|test)/",
       allowed_prefixes: ["feat", "fix", "docs", "chore", "refactor", "test"],
+      operations: {
+        status_timeout_ms: 10000,
+        ls_files_timeout_ms: 5000,
+        checkout_timeout_ms: 10000,
+        clean_timeout_ms: 5000,
+        log_timeout_ms: 5000,
+        diff_timeout_ms: 10000,
+        command_timeout_ms: 30000,
+        max_retries: 3,
+        retry_backoff_base_ms: 100,
+        branch_name_collision_max_retries: 5,
+        trace_id_short_length: 8,
+        branch_suffix_length: 6,
+      },
     },
     ai: parsedAi,
     ai_timeout: {
       default_ms: 30000,
-      openai: 30000,
-      anthropic: 60000,
-      google: 30000,
-      ollama: 120000,
+      providers: {
+        openai: 30000,
+        anthropic: 60000,
+        google: 30000,
+        ollama: 120000,
+      },
     },
     models: {
-      default: { provider: "openai", model: "gpt-5.2-pro", timeout_ms: 30000 },
-      fast: { provider: "openai", model: "gpt-5.2-pro-mini", timeout_ms: 15000 },
-      local: { provider: "ollama", model: "llama3.2", timeout_ms: 60000 },
+      default: { provider: ProviderType.OPENAI, model: "gpt-5.2-pro", timeout_ms: 30000 },
+      fast: { provider: ProviderType.OPENAI, model: "gpt-5.2-pro-mini", timeout_ms: 15000 },
+      local: { provider: ProviderType.OLLAMA, model: "llama3.2", timeout_ms: 60000 },
     },
     provider_strategy: {
       prefer_free: true,
@@ -115,11 +148,28 @@ function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       max_daily_cost_usd: 5.00,
       health_check_enabled: true,
       fallback_enabled: true,
+      fallback_chains: {},
     },
     providers: {},
     cost_tracking: {
       batch_delay_ms: 5000,
       max_batch_size: 50,
+      rates: {
+        openai: 0.01,
+        anthropic: 0.015,
+        google: 0,
+        ollama: 0,
+        mock: 0,
+      },
+    },
+    mock: {
+      delay_ms: 500,
+      input_tokens: 100,
+      output_tokens: 50,
+    },
+    ui: {
+      prompt_preview_length: 50,
+      prompt_preview_extended: 100,
     },
     health: {
       check_timeout_ms: 30000,
@@ -159,7 +209,7 @@ function withEnvVars(
 
 Deno.test("AiConfigSchema: accepts valid config", () => {
   const validConfig = {
-    provider: "mock",
+    provider: ProviderType.MOCK,
     model: "llama3.2",
     base_url: "http://localhost:11434",
     timeout_ms: 30000,
@@ -173,7 +223,7 @@ Deno.test("AiConfigSchema: accepts valid config", () => {
 
 Deno.test("AiConfigSchema: accepts minimal config", () => {
   const minimalConfig = {
-    provider: "ollama",
+    provider: ProviderType.OLLAMA,
   };
 
   const result = AiConfigSchema.safeParse(minimalConfig);
@@ -182,11 +232,11 @@ Deno.test("AiConfigSchema: accepts minimal config", () => {
 
 Deno.test("AiConfigSchema: provides defaults", () => {
   const minimalConfig = {
-    provider: "mock",
+    provider: ProviderType.MOCK,
   };
 
   const result = AiConfigSchema.parse(minimalConfig);
-  assertEquals(result.provider, "mock");
+  assertEquals(result.provider, ProviderType.MOCK);
   assertEquals(result.timeout_ms, 30000); // default
 });
 
@@ -195,13 +245,14 @@ Deno.test("AiConfigSchema: validates provider enum", () => {
     provider: "invalid-provider",
   };
 
+  // Schema now allows any provider name - validation happens at runtime
   const result = AiConfigSchema.safeParse(invalidConfig);
-  assertEquals(result.success, false);
+  assertEquals(result.success, true);
 });
 
 Deno.test("AiConfigSchema: validates timeout_ms range", () => {
   const invalidConfig = {
-    provider: "mock",
+    provider: ProviderType.MOCK,
     timeout_ms: -100,
   };
 
@@ -261,7 +312,7 @@ Deno.test(
 Deno.test(
   "ProviderFactory: EXO_LLM_MODEL overrides config model",
   withEnvVars({ EXO_LLM_PROVIDER: "ollama", EXO_LLM_MODEL: "codellama" }, async () => {
-    const config = createTestConfig({ provider: "ollama", model: "llama3.2" });
+    const config = createTestConfig({ provider: ProviderType.OLLAMA, model: "llama3.2" });
     const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
@@ -272,7 +323,7 @@ Deno.test(
 Deno.test(
   "ProviderFactory: env var overrides config",
   withEnvVars({ EXO_LLM_PROVIDER: "mock" }, async () => {
-    const config = createTestConfig({ provider: "ollama", model: "llama3.2" });
+    const config = createTestConfig({ provider: ProviderType.OLLAMA, model: "llama3.2" });
     config.rate_limiting.enabled = false; // Disable rate limiting for this test
     const provider = await ProviderFactory.create(config);
 
@@ -286,7 +337,7 @@ Deno.test(
 // ============================================================================
 
 Deno.test("ProviderFactory: config ai.provider=ollama creates OllamaProvider", async () => {
-  const config = createTestConfig({ provider: "ollama", model: "llama3.2" });
+  const config = createTestConfig({ provider: ProviderType.OLLAMA, model: "llama3.2" });
   const provider = await ProviderFactory.create(config);
 
   assertExists(provider);
@@ -295,7 +346,7 @@ Deno.test("ProviderFactory: config ai.provider=ollama creates OllamaProvider", a
 });
 
 Deno.test("ProviderFactory: config ai.provider=mock creates MockLLMProvider", async () => {
-  const config = createTestConfig({ provider: "mock" });
+  const config = createTestConfig({ provider: ProviderType.MOCK });
   config.rate_limiting.enabled = false; // Disable rate limiting for this test
   const provider = await ProviderFactory.create(config);
 
@@ -411,9 +462,9 @@ Deno.test(
 
 Deno.test("ProviderFactory: mock strategy from config", async () => {
   const config = createTestConfig({
-    provider: "mock",
+    provider: ProviderType.MOCK,
     mock: {
-      strategy: "scripted",
+      strategy: MockStrategy.SCRIPTED,
     },
   });
   config.rate_limiting.enabled = false; // Disable rate limiting for this test
@@ -429,7 +480,7 @@ Deno.test("ProviderFactory: mock strategy from config", async () => {
 
 Deno.test("ProviderFactory: created provider implements IModelProvider", async () => {
   // Use scripted strategy for testing (doesn't require recorded fixtures)
-  const config = createTestConfig({ provider: "mock", mock: { strategy: "scripted" } });
+  const config = createTestConfig({ provider: "mock", mock: { strategy: MockStrategy.SCRIPTED } });
   const provider = await ProviderFactory.create(config);
 
   // Should have id property
@@ -446,7 +497,7 @@ Deno.test("ProviderFactory: created provider implements IModelProvider", async (
 
 Deno.test("ProviderFactory: provider can be used for plan generation", async () => {
   // Use scripted strategy for testing (doesn't require recorded fixtures)
-  const config = createTestConfig({ provider: "mock", mock: { strategy: "scripted" } });
+  const config = createTestConfig({ provider: "mock", mock: { strategy: MockStrategy.SCRIPTED } });
   const provider = await ProviderFactory.create(config);
 
   const response = await provider.generate("Implement a feature for user authentication");
@@ -459,7 +510,7 @@ Deno.test("ProviderFactory: provider can be used for plan generation", async () 
 // ============================================================================
 
 Deno.test("ProviderFactory: getProviderInfo returns provider details", () => {
-  const config = createTestConfig({ provider: "ollama", model: "llama3.2" });
+  const config = createTestConfig({ provider: ProviderType.OLLAMA, model: "llama3.2" });
   const info = ProviderFactory.getProviderInfo(config);
 
   assertEquals(info.type, "ollama");
@@ -470,7 +521,7 @@ Deno.test("ProviderFactory: getProviderInfo returns provider details", () => {
 Deno.test(
   "ProviderFactory: getProviderInfo respects env vars",
   withEnvVars({ EXO_LLM_PROVIDER: "ollama" }, () => {
-    const config = createTestConfig({ provider: "ollama", model: "llama3.2" });
+    const config = createTestConfig({ provider: ProviderType.OLLAMA, model: "llama3.2" });
     const info = ProviderFactory.getProviderInfo(config);
 
     assertEquals(info.type, "ollama");
@@ -538,7 +589,7 @@ Deno.test(
 
 Deno.test("ProviderFactory: llama model prefix routes to LlamaProvider", async () => {
   const config = createTestConfig({
-    provider: "ollama",
+    provider: ProviderType.OLLAMA,
     model: "codellama:13b",
   });
   const provider = await ProviderFactory.create(config);
@@ -574,14 +625,14 @@ Deno.test("ProviderFactory: unknown provider generates unknown ID", () => {
   // Mock the resolveOptions to return unknown provider
   const originalResolveOptions = ProviderFactory["resolveOptions"];
   ProviderFactory["resolveOptions"] = () => ({
-    provider: "unknown" as any,
+    provider: DaemonStatus.UNKNOWN as any,
     model: "test-model",
     timeoutMs: 30000,
   });
 
   try {
     const info = ProviderFactory.getProviderInfo(config);
-    assertEquals(info.id, "unknown-unknown");
+    assertEquals(info.id, "unknown-test-model");
   } finally {
     ProviderFactory["resolveOptions"] = originalResolveOptions;
   }
@@ -611,8 +662,8 @@ Deno.test("getProviderForModel: handles regular ollama models", async () => {
 Deno.test("ProviderFactory: createWithFallback returns primary if healthy", async () => {
   const config = createTestConfig();
   config.models = {
-    primary: { provider: "mock", model: "primary-mock", timeout_ms: 30000 },
-    fallback: { provider: "mock", model: "fallback-mock", timeout_ms: 30000 },
+    primary: { provider: ProviderType.MOCK, model: "primary-mock", timeout_ms: 30000 },
+    fallback: { provider: ProviderType.MOCK, model: "fallback-mock", timeout_ms: 30000 },
   };
   const provider = await ProviderFactory.createWithFallback(config, {
     primary: "primary",
@@ -626,8 +677,8 @@ Deno.test("ProviderFactory: createWithFallback returns primary if healthy", asyn
 Deno.test("ProviderFactory: createWithFallback falls back if primary fails", async () => {
   const config = createTestConfig();
   config.models = {
-    primary: { provider: "anthropic", model: "bad-model", timeout_ms: 30000 },
-    fallback: { provider: "mock", model: "fallback-mock", timeout_ms: 30000 },
+    primary: { provider: ProviderType.ANTHROPIC, model: "bad-model", timeout_ms: 30000 },
+    fallback: { provider: ProviderType.MOCK, model: "fallback-mock", timeout_ms: 30000 },
   };
   // Ensure no API key for anthropic
   SecureCredentialStore.clear("ANTHROPIC_API_KEY");
@@ -643,8 +694,8 @@ Deno.test("ProviderFactory: createWithFallback falls back if primary fails", asy
 Deno.test("ProviderFactory: createWithFallback throws if all fail", async () => {
   const config = createTestConfig();
   config.models = {
-    primary: { provider: "anthropic", model: "bad-model", timeout_ms: 30000 },
-    fallback: { provider: "anthropic", model: "bad-model", timeout_ms: 30000 },
+    primary: { provider: ProviderType.ANTHROPIC, model: "bad-model", timeout_ms: 30000 },
+    fallback: { provider: ProviderType.ANTHROPIC, model: "bad-model", timeout_ms: 30000 },
   };
   // Ensure no API key for anthropic
   SecureCredentialStore.clear("ANTHROPIC_API_KEY");
@@ -692,8 +743,8 @@ Deno.test("ProviderFactory: createByName creates correct named provider", async 
   const config = createTestConfig();
   // Override models for testing
   config.models = {
-    default: { provider: "mock", model: "default-mock", timeout_ms: 30000 },
-    fast: { provider: "mock", model: "fast-mock", timeout_ms: 15000 },
+    default: { provider: ProviderType.MOCK, model: "default-mock", timeout_ms: 30000 },
+    fast: { provider: ProviderType.MOCK, model: "fast-mock", timeout_ms: 15000 },
   };
 
   const fastProvider = await ProviderFactory.createByName(config, "fast");
@@ -706,10 +757,10 @@ Deno.test("ProviderFactory: createByName creates correct named provider", async 
 Deno.test("ProviderFactory: createByName falls back to default for unknown name", async () => {
   const config = createTestConfig();
   config.models = {
-    default: { provider: "mock", model: "default-mock", timeout_ms: 30000 },
+    default: { provider: ProviderType.MOCK, model: "default-mock", timeout_ms: 30000 },
   };
 
-  const unknownProvider = await ProviderFactory.createByName(config, "unknown");
+  const unknownProvider = await ProviderFactory.createByName(config, DaemonStatus.UNKNOWN);
   assertStringIncludes(unknownProvider.id, "default-mock");
 });
 

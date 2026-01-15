@@ -4,7 +4,7 @@
  * Part of Phase 13.1: Shared TUI Infrastructure
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists } from "@std/assert";
 import {
   collapseAll,
   countVisibleNodes,

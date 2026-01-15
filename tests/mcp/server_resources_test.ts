@@ -2,7 +2,9 @@
  * MCP Server Resources Tests
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { MCPTransport } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { createMockConfig } from "../helpers/config.ts";
@@ -32,7 +34,7 @@ async function createTestServer(portals: Array<{ alias: string; files: Record<st
   }
 
   const config = createMockConfig(tempDir, { portals: portalConfigs });
-  const server = new MCPServer({ config, db, transport: "stdio" });
+  const server = new MCPServer({ config, db, transport: MCPTransport.STDIO });
   await server.start();
 
   return { server, db, tempDir, cleanup };
@@ -131,7 +133,7 @@ Deno.test("MCP Server: handles resources/read request", async () => {
 Deno.test("MCP Server: resources/read rejects invalid URI", async () => {
   const { db, tempDir, cleanup } = await initTestDbService();
   const config = createMockConfig(tempDir);
-  const server = new MCPServer({ config, db, transport: "stdio" });
+  const server = new MCPServer({ config, db, transport: MCPTransport.STDIO });
   await server.start();
 
   try {

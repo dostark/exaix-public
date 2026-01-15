@@ -308,7 +308,7 @@ export class BlueprintCommands extends BaseCommand {
    * Get absolute path to Blueprints/Agents directory
    */
   private getBlueprintsDir(): string {
-    return join(this.config.system.root, this.config.paths.blueprints, "Agents");
+    return join(this.config.system.root, this.config.paths.blueprints, this.config.paths.agents);
   }
 
   /**

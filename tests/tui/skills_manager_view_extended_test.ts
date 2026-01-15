@@ -4,7 +4,11 @@
  * Additional tests to improve coverage for skills_manager_view.ts
  */
 
-import { assertEquals, assertExists, assertNotEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertNotEquals, assertStringIncludes } from "@std/assert";
+import { EvaluationCategory } from "../../src/enums.ts";
+
+import { MemoryOperation } from "../../src/enums.ts";
+
 import {
   createSkillsManagerView,
   MinimalSkillsServiceMock,
@@ -15,6 +19,7 @@ import {
   SOURCE_ICONS,
   STATUS_ICONS,
 } from "../../src/tui/skills_manager_view.ts";
+import { MemoryScope, MemorySource, SkillStatus } from "../../src/enums.ts";
 
 // ===== Test Data =====
 
@@ -24,8 +29,8 @@ function createTestSkills(): SkillSummary[] {
       id: "tdd-methodology",
       name: "TDD Methodology",
       version: "1.0.0",
-      status: "active",
-      source: "core",
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.CORE,
       description: "Test-Driven Development methodology",
       triggers: {
         keywords: ["tdd", "test-first"],
@@ -38,33 +43,33 @@ function createTestSkills(): SkillSummary[] {
       id: "security-first",
       name: "Security First",
       version: "1.0.0",
-      status: "active",
-      source: "core",
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.CORE,
       description: "Security-focused development",
       triggers: {
-        keywords: ["security", "auth"],
+        keywords: [EvaluationCategory.SECURITY, "auth"],
       },
     },
     {
       id: "project-conventions",
       name: "Project Conventions",
       version: "1.0.0",
-      status: "active",
-      source: "project",
+      status: SkillStatus.ACTIVE,
+      source: MemoryScope.PROJECT,
     },
     {
       id: "learned-pattern",
       name: "Learned Pattern",
       version: "1.0.0",
-      status: "draft",
-      source: "learned",
+      status: SkillStatus.DRAFT,
+      source: MemorySource.LEARNED,
     },
     {
       id: "deprecated-skill",
       name: "Deprecated Skill",
       version: "0.5.0",
-      status: "deprecated",
-      source: "project",
+      status: SkillStatus.DEPRECATED,
+      source: MemoryScope.PROJECT,
     },
   ];
 }
@@ -97,7 +102,7 @@ Deno.test("SkillsManagerView: SKILLS_KEY_BINDINGS has required keys", () => {
   const actions = SKILLS_KEY_BINDINGS.map((b) => b.action);
   assertEquals(actions.includes("navigate"), true);
   assertEquals(actions.includes("view-detail"), true);
-  assertEquals(actions.includes("delete"), true);
+  assertEquals(actions.includes(MemoryOperation.DELETE), true);
   assertEquals(actions.includes("search"), true);
   assertEquals(actions.includes("help"), true);
   assertEquals(actions.includes("back"), true);
@@ -126,8 +131,8 @@ Deno.test("SkillsManagerView: getCachedSkills returns copy of skills", async () 
     id: "extra",
     name: "Extra",
     version: "1.0.0",
-    status: "active",
-    source: "core",
+    status: SkillStatus.ACTIVE,
+    source: MemorySource.CORE,
   });
   assertNotEquals(view.getCachedSkills().length, cached.length);
 });
@@ -183,13 +188,13 @@ Deno.test("MinimalSkillsServiceMock: listSkills filters by source", async () => 
   const skills = createTestSkills();
   const mock = new MinimalSkillsServiceMock(skills);
 
-  const coreSkills = await mock.listSkills({ source: "core" });
+  const coreSkills = await mock.listSkills({ source: MemorySource.CORE });
   assertEquals(coreSkills.length, 2); // tdd-methodology and security-first
 
-  const projectSkills = await mock.listSkills({ source: "project" });
+  const projectSkills = await mock.listSkills({ source: MemoryScope.PROJECT });
   assertEquals(projectSkills.length, 2); // project-conventions and deprecated-skill
 
-  const learnedSkills = await mock.listSkills({ source: "learned" });
+  const learnedSkills = await mock.listSkills({ source: MemorySource.LEARNED });
   assertEquals(learnedSkills.length, 1); // learned-pattern
 });
 
@@ -197,13 +202,13 @@ Deno.test("MinimalSkillsServiceMock: listSkills filters by status", async () => 
   const skills = createTestSkills();
   const mock = new MinimalSkillsServiceMock(skills);
 
-  const activeSkills = await mock.listSkills({ status: "active" });
+  const activeSkills = await mock.listSkills({ status: SkillStatus.ACTIVE });
   assertEquals(activeSkills.length, 3);
 
-  const draftSkills = await mock.listSkills({ status: "draft" });
+  const draftSkills = await mock.listSkills({ status: SkillStatus.DRAFT });
   assertEquals(draftSkills.length, 1);
 
-  const deprecatedSkills = await mock.listSkills({ status: "deprecated" });
+  const deprecatedSkills = await mock.listSkills({ status: SkillStatus.DEPRECATED });
   assertEquals(deprecatedSkills.length, 1);
 });
 
@@ -211,7 +216,7 @@ Deno.test("MinimalSkillsServiceMock: listSkills filters by both source and statu
   const skills = createTestSkills();
   const mock = new MinimalSkillsServiceMock(skills);
 
-  const result = await mock.listSkills({ source: "core", status: "active" });
+  const result = await mock.listSkills({ source: MemorySource.CORE, status: SkillStatus.ACTIVE });
   assertEquals(result.length, 2);
 });
 
@@ -370,7 +375,7 @@ Deno.test("SkillsManagerTuiSession: delete skill dialog for non-core skill", asy
 
   const state = session.getState();
   // Find a non-core skill
-  if (state.selectedSkillId?.includes("project") || state.selectedSkillId?.includes("learned")) {
+  if (state.selectedSkillId?.includes(MemoryScope.PROJECT) || state.selectedSkillId?.includes(MemorySource.LEARNED)) {
     await session.handleInput("d");
     // Dialog should open if we're on a project/learned skill
     // If not, we're on a core skill which is blocked
@@ -722,8 +727,8 @@ Deno.test("SkillsManagerTuiSession: detail view shows instructions (truncated)",
       id: "long-instructions",
       name: "Long Instructions",
       version: "1.0.0",
-      status: "active",
-      source: "project",
+      status: SkillStatus.ACTIVE,
+      source: MemoryScope.PROJECT,
       description: "Skill with long instructions",
       instructions: Array.from({ length: 20 }, (_, i) => `Line ${i + 1}`).join("\n"),
     },

@@ -12,14 +12,9 @@
  * - Test 8: Creates Workspace/Requests directory if missing
  */
 
-import {
-  assertEquals,
-  assertExists,
-  assertNotEquals,
-  assertRejects,
-  assertStringIncludes,
-} from "jsr:@std/assert@^1.0.0";
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
+import { assertEquals, assertExists, assertNotEquals, assertRejects, assertStringIncludes } from "@std/assert";
+import { CritiqueSeverity, MemoryReferenceType, MemoryStatus } from "../../src/enums.ts";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { RequestCommands } from "../../src/cli/request_commands.ts";
@@ -47,7 +42,7 @@ describe("RequestCommands", () => {
     requestsDir = getWorkspaceRequestsDir(tempDir);
 
     // Initialize RequestCommands
-    requestCommands = new RequestCommands({ config, db }, tempDir);
+    requestCommands = new RequestCommands({ config, db });
   });
 
   afterEach(async () => {
@@ -61,7 +56,7 @@ describe("RequestCommands", () => {
       // Verify result structure
       assertExists(result.trace_id);
       assertEquals(result.trace_id.length, 36); // UUID format
-      assertEquals(result.status, "pending");
+      assertEquals(result.status, MemoryStatus.PENDING);
       assertEquals(result.priority, "normal");
       assertEquals(result.agent, "default");
 
@@ -76,8 +71,8 @@ describe("RequestCommands", () => {
     });
 
     it("should accept custom priority", async () => {
-      const result = await requestCommands.create("Fix critical bug", { priority: "critical" });
-      assertEquals(result.priority, "critical");
+      const result = await requestCommands.create("Fix critical bug", { priority: CritiqueSeverity.CRITICAL });
+      assertEquals(result.priority, CritiqueSeverity.CRITICAL);
 
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "priority: critical");
@@ -199,7 +194,7 @@ describe("RequestCommands", () => {
 
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "Implement feature from file");
-      assertEquals(result.source, "file");
+      assertEquals(result.source, MemoryReferenceType.FILE);
       assertStringIncludes(content, "source: file");
     });
 
@@ -268,7 +263,7 @@ describe("RequestCommands", () => {
       const updated = content.replace("status: pending", "status: processing");
       await Deno.writeTextFile(result2.path, updated);
 
-      const pending = await requestCommands.list("pending");
+      const pending = await requestCommands.list(MemoryStatus.PENDING);
       assertEquals(pending.length, 1);
 
       const processing = await requestCommands.list("processing");
@@ -293,7 +288,7 @@ describe("RequestCommands", () => {
       assertEquals(requests.length, 1);
       assertEquals(requests[0].priority, "high");
       assertEquals(requests[0].agent, "architect");
-      assertEquals(requests[0].status, "pending");
+      assertEquals(requests[0].status, MemoryStatus.PENDING);
     });
   });
 
@@ -353,7 +348,7 @@ describe("RequestCommands", () => {
   });
 
   describe("priority validation", () => {
-    const validPriorities = ["low", "normal", "high", "critical"];
+    const validPriorities = ["low", "normal", "high", CritiqueSeverity.CRITICAL];
 
     for (const priority of validPriorities) {
       it(`should accept valid priority: ${priority}`, async () => {
@@ -413,8 +408,7 @@ Minimal content for show
       // Create a fresh RequestCommands with non-existent directory
       const emptyDir = join(tempDir, "empty_workspace");
       const emptyCommands = new RequestCommands(
-        { config: createMockConfig(tempDir), db },
-        emptyDir,
+        { config: createMockConfig(emptyDir), db },
       );
 
       const requests = await emptyCommands.list();
@@ -483,8 +477,7 @@ Minimal content for show
       // Create a fresh RequestCommands with non-existent directory
       const emptyDir = join(tempDir, "nonexistent_workspace");
       const emptyCommands = new RequestCommands(
-        { config: createMockConfig(tempDir), db },
-        emptyDir,
+        { config: createMockConfig(emptyDir), db },
       );
 
       await assertRejects(
@@ -541,7 +534,7 @@ Minimal content for show
 
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "A".repeat(100)); // Just check some content exists
-      assertEquals(result.status, "pending");
+      assertEquals(result.status, MemoryStatus.PENDING);
     });
 
     it("should handle unicode in description", async () => {
@@ -558,8 +551,7 @@ Minimal content for show
       const freshDir = join(tempDir, "fresh_workspace");
       await ensureDir(join(freshDir, ".exo")); // Need runtime dir for db
       const freshCommands = new RequestCommands(
-        { config: createMockConfig(tempDir), db },
-        freshDir,
+        { config: createMockConfig(freshDir), db },
       );
 
       // This should create the directory automatically

@@ -8,6 +8,7 @@
  */
 
 import { z } from "zod";
+import { EvaluationCategory } from "../enums.ts";
 
 /**
  * Schema for an evaluation criterion
@@ -22,14 +23,7 @@ export const EvaluationCriterionSchema = z.object({
   /** Whether this criterion must pass for overall pass */
   required: z.boolean().default(false),
   /** Category for grouping criteria */
-  category: z.enum([
-    "quality",
-    "correctness",
-    "completeness",
-    "security",
-    "style",
-    "performance",
-  ]).optional(),
+  category: z.nativeEnum(EvaluationCategory),
 });
 
 export type EvaluationCriterion = z.infer<typeof EvaluationCriterionSchema>;
@@ -87,7 +81,7 @@ export const CRITERIA = {
       "Code is syntactically correct and would compile/run without errors. Check for syntax errors, type mismatches, and logical correctness.",
     weight: 2.0,
     required: true,
-    category: "correctness" as const,
+    category: EvaluationCategory.CORRECTNESS,
   },
 
   CODE_COMPLETENESS: {
@@ -96,7 +90,7 @@ export const CRITERIA = {
       "All requirements from the prompt are addressed. Implementation covers all requested functionality without missing features.",
     weight: 1.5,
     required: true,
-    category: "completeness" as const,
+    category: EvaluationCategory.COMPLETENESS,
   },
 
   HAS_TESTS: {
@@ -105,7 +99,7 @@ export const CRITERIA = {
       "Implementation includes appropriate test coverage. Tests cover main functionality, edge cases, and error scenarios.",
     weight: 1.0,
     required: false,
-    category: "quality" as const,
+    category: EvaluationCategory.QUALITY,
   },
 
   FOLLOWS_CONVENTIONS: {
@@ -114,7 +108,7 @@ export const CRITERIA = {
       "Code follows project style and naming conventions. Consistent formatting, meaningful variable names, and idiomatic patterns.",
     weight: 0.8,
     required: false,
-    category: "style" as const,
+    category: EvaluationCategory.STYLE,
   },
 
   NO_SECURITY_ISSUES: {
@@ -123,7 +117,7 @@ export const CRITERIA = {
       "No obvious security vulnerabilities. Checks for injection risks, exposed secrets, insecure patterns, and unsafe operations.",
     weight: 2.0,
     required: true,
-    category: "security" as const,
+    category: EvaluationCategory.SECURITY,
   },
 
   ERROR_HANDLING: {
@@ -132,7 +126,7 @@ export const CRITERIA = {
       "Proper error handling is implemented. Errors are caught, logged appropriately, and meaningful messages are provided.",
     weight: 1.0,
     required: false,
-    category: "quality" as const,
+    category: EvaluationCategory.QUALITY,
   },
 
   // Content Quality Criteria
@@ -142,7 +136,7 @@ export const CRITERIA = {
       "Output is clear, well-organized, and understandable. Logical structure, good formatting, and easy to follow.",
     weight: 1.0,
     required: false,
-    category: "quality" as const,
+    category: EvaluationCategory.QUALITY,
   },
 
   ACCURACY: {
@@ -150,7 +144,7 @@ export const CRITERIA = {
     description: "Information provided is factually correct and accurate. No hallucinations or incorrect statements.",
     weight: 2.0,
     required: true,
-    category: "correctness" as const,
+    category: EvaluationCategory.CORRECTNESS,
   },
 
   RELEVANCE: {
@@ -159,7 +153,7 @@ export const CRITERIA = {
       "Response is relevant to the original request. Directly addresses the question without unnecessary tangents.",
     weight: 1.2,
     required: false,
-    category: "completeness" as const,
+    category: EvaluationCategory.COMPLETENESS,
   },
 
   CONCISENESS: {
@@ -168,7 +162,7 @@ export const CRITERIA = {
       "Response is appropriately concise without unnecessary verbosity. Information is presented efficiently.",
     weight: 0.5,
     required: false,
-    category: "style" as const,
+    category: EvaluationCategory.STYLE,
   },
 
   // Technical Documentation Criteria
@@ -178,7 +172,7 @@ export const CRITERIA = {
       "Documentation is clear, comprehensive, and follows best practices. Includes examples where appropriate.",
     weight: 1.0,
     required: false,
-    category: "quality" as const,
+    category: EvaluationCategory.QUALITY,
   },
 
   API_CONSISTENCY: {
@@ -186,7 +180,7 @@ export const CRITERIA = {
     description: "API design is consistent with existing patterns. Follows established conventions and naming schemes.",
     weight: 0.8,
     required: false,
-    category: "style" as const,
+    category: EvaluationCategory.STYLE,
   },
 
   // Performance Criteria
@@ -196,7 +190,7 @@ export const CRITERIA = {
       "Implementation considers performance implications. Avoids obvious inefficiencies and uses appropriate algorithms.",
     weight: 0.7,
     required: false,
-    category: "performance" as const,
+    category: EvaluationCategory.PERFORMANCE,
   },
 
   SCALABILITY: {
@@ -204,7 +198,7 @@ export const CRITERIA = {
     description: "Solution can scale appropriately. Handles edge cases like empty inputs and large datasets.",
     weight: 0.5,
     required: false,
-    category: "performance" as const,
+    category: EvaluationCategory.PERFORMANCE,
   },
 } as const;
 
@@ -336,6 +330,7 @@ export function createCriterion(
   return EvaluationCriterionSchema.parse({
     name,
     description,
+    category: EvaluationCategory.QUALITY,
     ...options,
   });
 }
@@ -349,7 +344,7 @@ export function buildEvaluationPrompt(
   context?: string,
 ): string {
   const criteriaList = criteria
-    .map((c, i) =>
+    .map((c, i: number) =>
       `${i + 1}. **${c.name}** (weight: ${c.weight}${c.required ? ", REQUIRED" : ""})\n   ${c.description}`
     )
     .join("\n\n");

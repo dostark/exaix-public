@@ -25,16 +25,14 @@
  * - createSlowMock(delayMs?): Slow mock with configurable delay.
  */
 
+import { MockStrategy } from "../../enums.ts";
+
 import { IModelProvider, ModelOptions } from "../providers.ts";
+import { MOCK_DELAY_MS, MOCK_INPUT_TOKENS, MOCK_OUTPUT_TOKENS } from "../../config/constants.ts";
 
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
-
-/**
- * Available mock strategies
- */
-export type MockStrategy = "recorded" | "scripted" | "pattern" | "failing" | "slow";
 
 /**
  * Recorded response from a real LLM call
@@ -157,8 +155,8 @@ export class MockLLMProvider implements IModelProvider {
     this.recordings = options.recordings ?? [];
     this.patterns = options.patterns ?? [];
     this.errorMessage = options.errorMessage ?? "MockLLMProvider error (failing strategy)";
-    this.delayMs = options.delayMs ?? 500; // Default 500ms delay for slow strategy
-    this.tokensPerResponse = options.tokensPerResponse ?? { input: 100, output: 50 };
+    this.delayMs = options.delayMs ?? MOCK_DELAY_MS; // Default 500ms delay for slow strategy
+    this.tokensPerResponse = options.tokensPerResponse ?? { input: MOCK_INPUT_TOKENS, output: MOCK_OUTPUT_TOKENS };
 
     // Load recordings from fixture directory if specified
     if (options.fixtureDir) {
@@ -168,7 +166,7 @@ export class MockLLMProvider implements IModelProvider {
     // For recorded strategy without recordings, add default patterns as fallback
     // Only if patterns were not explicitly provided (even if empty)
     if (
-      strategy === "recorded" &&
+      strategy === MockStrategy.RECORDED &&
       this.recordings.length === 0 &&
       this.patterns.length === 0 &&
       !("patterns" in options)
@@ -205,16 +203,16 @@ export class MockLLMProvider implements IModelProvider {
     const timestamp = new Date();
     let response: string;
     switch (this.strategy) {
-      case "recorded":
+      case MockStrategy.RECORDED:
         response = await this.generateRecorded(prompt);
         break;
-      case "scripted":
+      case MockStrategy.SCRIPTED:
         response = await this.generateScripted();
         break;
-      case "pattern":
+      case MockStrategy.PATTERN:
         response = await this.generatePattern(prompt);
         break;
-      case "slow":
+      case MockStrategy.SLOW:
         response = await this.generateSlow();
         break;
       default:
@@ -594,7 +592,7 @@ I will create a plan to address this request.
  * Pattern-based mock for plan/bugfix/execution flows.
  */
 export function createPlanGeneratorMock(): MockLLMProvider {
-  return new MockLLMProvider("pattern", {
+  return new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       {
         pattern: /implement|add|create/i,
@@ -720,7 +718,7 @@ ${
  * @param errorMessage Optional custom error message
  */
 export function createFailingMock(errorMessage?: string): MockLLMProvider {
-  return new MockLLMProvider("failing", {
+  return new MockLLMProvider(MockStrategy.FAILING, {
     errorMessage: errorMessage ?? "Simulated API failure",
   });
 }
@@ -730,7 +728,7 @@ export function createFailingMock(errorMessage?: string): MockLLMProvider {
  * @param delayMs Delay in milliseconds (default: 5000)
  */
 export function createSlowMock(delayMs: number = 5000): MockLLMProvider {
-  return new MockLLMProvider("slow", {
+  return new MockLLMProvider(MockStrategy.SLOW, {
     delayMs,
     responses: ["Delayed response"],
   });

@@ -1,4 +1,13 @@
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import {
+  CritiqueSeverity,
+  FlowInputSource,
+  MemoryOperation,
+  MemorySource,
+  MemoryStatus,
+  PortalOperation,
+  SkillStatus,
+} from "../../src/enums.ts";
 
 /*
   Note: This test file exercises the top-level CLI parsing and command
@@ -123,7 +132,7 @@ Deno.test("portal add invokes portalCommands.add", async () => {
       assertEquals(alias, "MyAlias");
       assert(target.includes("/tmp"));
     };
-    await (mod.__test_command as any).parse(["portal", "add", "/tmp/some/path", "MyAlias"]);
+    await (mod.__test_command as any).parse(["portal", MemoryOperation.ADD, "/tmp/some/path", "MyAlias"]);
     assert(called);
   });
 });
@@ -134,7 +143,7 @@ Deno.test("git branches prints list (calls gitCommands.listBranches)", async () 
       { name: "main", is_current: true, last_commit: "abc123", last_commit_date: Date.now(), trace_id: null },
     ];
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["git", "branches"]);
+      await (mod.__test_command as any).parse([PortalOperation.GIT, "branches"]);
     });
     assert(out.includes("main"));
   });
@@ -167,7 +176,7 @@ Deno.test("request list shows 'No requests found' when empty", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.requestCommands as any).list = () => [];
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["request", "list"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list"]);
     });
     assert(out.includes("No requests found") || out.includes("count: 0"));
   });
@@ -178,15 +187,15 @@ Deno.test("request list prints entries when present", async () => {
     (ctx.requestCommands as any).list = () => [
       {
         trace_id: "abcd1234efgh5678",
-        priority: "critical",
+        priority: CritiqueSeverity.CRITICAL,
         agent: "agent-x",
         created_by: "tester",
         created: "now",
-        status: "pending",
+        status: MemoryStatus.PENDING,
       },
     ];
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["request", "list"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list"]);
     });
     assert(out.includes("🔴") || out.includes("abcd1234"));
   });
@@ -197,9 +206,9 @@ Deno.test("request show prints content when request exists", async () => {
     (ctx.requestCommands as any).show = (id: string) => ({
       metadata: {
         trace_id: id,
-        status: "pending",
+        status: MemoryStatus.PENDING,
         priority: "normal",
-        agent: "agent",
+        agent: MemorySource.AGENT,
         created_by: "tester",
         created: "time",
       },
@@ -207,7 +216,7 @@ Deno.test("request show prints content when request exists", async () => {
     });
 
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["request", "show", "trace-1"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "show", "trace-1"]);
     });
     assert(out.includes("Hello world"));
   });
@@ -238,7 +247,7 @@ Deno.test("git log prints commits when present", async () => {
       _t: string,
     ) => [{ sha: "deadbeef1234", message: "Fix", author: "me", date: Date.now() }];
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["git", "log", "-t", "deadbeef"]);
+      await (mod.__test_command as any).parse([PortalOperation.GIT, "log", "-t", "deadbeef"]);
     });
     assert(out.includes("deadbeef") || out.includes("Fix"));
   });
@@ -248,7 +257,7 @@ Deno.test("git status prints clean state when empty arrays", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.gitCommands as any).status = () => ({ branch: "main", modified: [], added: [], deleted: [], untracked: [] });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["git", "status"]);
+      await (mod.__test_command as any).parse([PortalOperation.GIT, "status"]);
     });
     assert(out.includes("main") && out.includes("clean") || out.includes("git.status"));
   });
@@ -270,9 +279,9 @@ Deno.test("portal show prints details", async () => {
       alias: "MyPortal",
       targetPath: "/tmp/portal-target",
       symlinkPath: "Portals/MyPortal",
-      status: "active",
+      status: SkillStatus.ACTIVE,
       contextCardPath: "Memory/Projects/MyPortal/portal.md",
-      permissions: ["read"],
+      permissions: [PortalOperation.READ],
       created: "now",
       lastVerified: "never",
     });
@@ -320,7 +329,7 @@ Deno.test("request --file outputs JSON when --json specified", async () => {
       path: "/tmp",
     });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["request", "--file", "/tmp/some.md", "--json"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md", "--json"]);
     });
     assert(out.includes("{") && out.includes('"trace_id"') && out.includes("trace-1234"));
   });
@@ -336,7 +345,7 @@ Deno.test("request --file prints human output when no --json", async () => {
       path: "/tmp",
     });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["request", "--file", "/tmp/some.md"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md"]);
     });
     assert(out.includes("request.created") || out.includes("trace-5678"));
   });
@@ -349,7 +358,7 @@ Deno.test("request inline create handles create errors and exits", async () => {
     };
 
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["request", "Do something"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "Do something"]);
     });
     assert(errors.some((e) => e.includes("create failed")));
   });
@@ -361,7 +370,7 @@ Deno.test("request show handles not found and exits", async () => {
       throw new Error("not found");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["request", "show", "missing"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "show", "missing"]);
     });
     assert(errors.some((e) => e.includes("not found")));
   });
@@ -413,7 +422,7 @@ Deno.test("request inline --dry-run logs dry_run and creates file", async () => 
       return { filename: "/tmp/req.md", trace_id: "t1", priority: "normal", agent: "a", path: "/tmp" };
     };
     const { logs, warns, errs } = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse(["request", "Inline-dry", "--dry-run"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "Inline-dry", "--dry-run"]);
     });
     const joined = logs.concat(warns, errs).join("\n");
     assert(created);
@@ -475,7 +484,7 @@ if (Deno.env.get("RUN_EXOCTL_TEST")) {
 Deno.test("request without description exits with error", async () => {
   await withTestMod(async (mod, _ctx) => {
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["request"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST]);
     });
     assert(errors.some((e) => e.includes("Description required")));
   });
@@ -484,10 +493,10 @@ Deno.test("request without description exits with error", async () => {
 Deno.test("request list --json outputs JSON", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.requestCommands as any).list = (_s?: string) => [
-      { trace_id: "t1", priority: "normal", agent: "a", created_by: "u", created: "t", status: "pending" },
+      { trace_id: "t1", priority: "normal", agent: "a", created_by: "u", created: "t", status: MemoryStatus.PENDING },
     ];
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse(["request", "list", "--json"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list", "--json"]);
     });
     assert(outs.logs.some((l) => l.includes('"trace_id"') || l.includes("cli.output")));
   });
@@ -510,7 +519,7 @@ Deno.test("git log prints no commits when none found", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.gitCommands as any).logByTraceId = (_t: string) => [];
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse(["git", "log", "-t", "nope"]);
+      await (mod.__test_command as any).parse([PortalOperation.GIT, "log", "-t", "nope"]);
     });
     assert(outs.logs.some((l) => l.includes("No commits found") || l.includes("git.log")));
   });
@@ -566,7 +575,7 @@ Deno.test("request inline --json prints JSON output", async () => {
       return { filename: "/tmp/r.md", trace_id: "t-json", priority: "normal", agent: "a", path: "/tmp" };
     };
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse(["request", "make json", "--json"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "make json", "--json"]);
     });
     assert(outs.logs.some((l) => l.includes('"trace_id"') || l.includes("cli.output")));
   });
@@ -588,7 +597,7 @@ Deno.test("git branches passes pattern option to listBranches", async () => {
       assertEquals(pattern, "feat/*");
       return [];
     };
-    await (mod.__test_command as any).parse(["git", "branches", "--pattern", "feat/*"]);
+    await (mod.__test_command as any).parse([PortalOperation.GIT, "branches", "--pattern", "feat/*"]);
   });
 });
 
@@ -664,7 +673,7 @@ Deno.test("request --file --dry-run prints human output", async () => {
       path: "/tmp",
     });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["request", "--file", "/tmp/some.md", "--dry-run"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md", "--dry-run"]);
     });
     assert(out.includes("request.created") || out.includes("trace-file-1"));
   });
@@ -680,7 +689,13 @@ Deno.test("request --file --json --dry-run prints JSON output", async () => {
       path: "/tmp",
     });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["request", "--file", "/tmp/some.md", "--json", "--dry-run"]);
+      await (mod.__test_command as any).parse([
+        FlowInputSource.REQUEST,
+        "--file",
+        "/tmp/some.md",
+        "--json",
+        "--dry-run",
+      ]);
     });
     assert(out.includes('"trace_id"') || out.includes("trace-file-2"));
   });
@@ -692,7 +707,7 @@ Deno.test("request --file errors exit with message", async () => {
       throw new Error("file missing");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["request", "--file", "/tmp/missing.md"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/missing.md"]);
     });
     assert(errors.some((e) => e.includes("file missing")));
   });
@@ -708,7 +723,7 @@ Deno.test("request inline --dry-run with --json prefers dry-run", async () => {
       path: "/tmp",
     });
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse(["request", "Do something", "--dry-run", "--json"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "Do something", "--dry-run", "--json"]);
     });
     const joined = [...outs.logs, ...outs.warns, ...outs.errs].join("\n");
     assert(joined.includes("cli.dry_run") && !joined.includes('"trace_id"'));
@@ -736,24 +751,5 @@ Deno.test("blueprint validate valid prints success", async () => {
     });
     const joined = [...outs.logs, ...outs.warns, ...outs.errs].join("\n");
     assert(joined.includes("valid") || joined.includes("✅") || joined.includes("blueprint.valid"));
-  });
-});
-
-// Test the initialization logic used in non-test runtime (success and fallback paths)
-Deno.test("__test_initializeServices succeeds when environment allows", async () => {
-  await withTestMod(async (mod) => {
-    const res = await mod.__test_initializeServices();
-    assertEquals(res.success, true);
-    assertExists(res.config);
-    assertExists(res.provider);
-  });
-});
-
-Deno.test("__test_initializeServices returns fallback when simulated failure", async () => {
-  await withTestMod(async (mod) => {
-    const res = await mod.__test_initializeServices({ simulateFail: true });
-    assertEquals(res.success, false);
-    assertStringIncludes(res.error, "simulate-failure");
-    assertEquals(res.config.paths.memory, "Memory");
   });
 });

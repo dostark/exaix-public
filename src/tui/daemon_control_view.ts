@@ -14,6 +14,7 @@ import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
+import { DaemonStatus } from "../enums.ts";
 
 // ===== Service Interfaces =====
 
@@ -36,7 +37,7 @@ export interface DaemonService {
  */
 export interface DaemonViewState {
   /** Current daemon status */
-  status: "running" | "stopped" | "error" | "unknown";
+  status: DaemonStatus;
   /** Whether help is visible */
   showHelp: boolean;
   /** Whether logs view is shown */
@@ -60,17 +61,17 @@ export interface DaemonViewState {
 // ===== Icons and Visual Constants =====
 
 export const DAEMON_STATUS_ICONS: Record<string, string> = {
-  running: "🟢",
-  stopped: "🔴",
-  error: "⚠️",
-  unknown: "❓",
+  [DaemonStatus.RUNNING]: "🟢",
+  [DaemonStatus.STOPPED]: "🔴",
+  [DaemonStatus.ERROR]: "⚠️",
+  [DaemonStatus.UNKNOWN]: "❓",
 };
 
 export const DAEMON_STATUS_COLORS: Record<string, string> = {
-  running: "green",
-  stopped: "red",
-  error: "yellow",
-  unknown: "gray",
+  [DaemonStatus.RUNNING]: "green",
+  [DaemonStatus.STOPPED]: "red",
+  [DaemonStatus.ERROR]: "yellow",
+  [DaemonStatus.UNKNOWN]: "gray",
 };
 
 export const LOG_LEVEL_COLORS: Record<string, string> = {
@@ -186,18 +187,18 @@ export class DaemonControlView {
  * Minimal DaemonService mock for TUI session tests
  */
 export class MinimalDaemonServiceMock implements DaemonService {
-  private status = "stopped";
+  private status = DaemonStatus.STOPPED;
   private logs: string[] = [];
   private errors: string[] = [];
 
   start(): Promise<void> {
-    this.status = "running";
+    this.status = DaemonStatus.RUNNING;
     this.logs.push(`[${new Date().toISOString()}] Daemon started`);
     return Promise.resolve();
   }
 
   stop(): Promise<void> {
-    this.status = "stopped";
+    this.status = DaemonStatus.STOPPED;
     this.logs.push(`[${new Date().toISOString()}] Daemon stopped`);
     return Promise.resolve();
   }
@@ -219,7 +220,7 @@ export class MinimalDaemonServiceMock implements DaemonService {
     return Promise.resolve([...this.errors]);
   }
 
-  setStatus(status: string): void {
+  setStatus(status: DaemonStatus): void {
     this.status = status;
   }
 
@@ -248,7 +249,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     this.daemonView = daemonView;
     this.localSpinnerState = createSpinnerState();
     this.state = {
-      status: "unknown",
+      status: DaemonStatus.UNKNOWN,
       showHelp: false,
       showLogs: false,
       showConfig: false,
@@ -281,7 +282,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     return "Daemon Control";
   }
 
-  getDaemonStatus(): "running" | "stopped" | "error" | "unknown" {
+  getDaemonStatus(): DaemonStatus {
     return this.state.status;
   }
 
@@ -350,30 +351,30 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       this.setStatus(`Refresh failed: ${msg}`, "error");
-      this.state.status = "error";
+      this.state.status = DaemonStatus.ERROR;
     } finally {
       this.localSpinnerState = stopSpinner(this.localSpinnerState);
     }
   }
 
-  private parseStatus(rawStatus: string): "running" | "stopped" | "error" | "unknown" {
+  private parseStatus(rawStatus: string): DaemonStatus {
     const lower = rawStatus.toLowerCase();
     if (lower.includes("running") || lower.includes("active") || lower.includes("started")) {
-      return "running";
+      return DaemonStatus.RUNNING;
     }
     if (lower.includes("stopped") || lower.includes("inactive") || lower.includes("not running")) {
-      return "stopped";
+      return DaemonStatus.STOPPED;
     }
     if (lower.includes("error") || lower.includes("failed") || lower.includes("crash")) {
-      return "error";
+      return DaemonStatus.ERROR;
     }
-    return "unknown";
+    return DaemonStatus.UNKNOWN;
   }
 
   // ===== Daemon Actions =====
 
   showStartConfirm(): void {
-    if (this.state.status === "running") {
+    if (this.state.status === DaemonStatus.RUNNING) {
       this.setStatus("Daemon is already running", "warning");
       return;
     }
@@ -386,7 +387,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
   }
 
   showStopConfirm(): void {
-    if (this.state.status !== "running") {
+    if (this.state.status !== DaemonStatus.RUNNING) {
       this.setStatus("Daemon is not running", "warning");
       return;
     }

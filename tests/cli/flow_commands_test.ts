@@ -1,15 +1,21 @@
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
+import { assertEquals, assertStringIncludes } from "@std/assert";
+
 import { FlowCommands } from "../../src/cli/flow_commands.ts";
 import { FlowLoader } from "../../src/flows/flow_loader.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
 import { join } from "@std/path";
-import { copySync } from "jsr:@std/fs@1";
+import { copySync } from "@std/fs";
 
 // Two separate minimal CLIContext mocks to avoid test root collisions
 const mockContext = {
   config: {
     system: { root: "/tmp/test-flow-commands" },
-    paths: { memory: "Memory", system: "System", blueprints: "Blueprints" },
+    paths: {
+      memory: "Memory",
+      system: "System",
+      blueprints: "Blueprints",
+      flows: "Blueprints/Flows",
+    },
   },
   db: undefined,
   provider: undefined,
@@ -18,7 +24,12 @@ const mockContext = {
 const mockContext2 = {
   config: {
     system: { root: "/tmp/test-flow-commands-2" },
-    paths: { memory: "Memory", system: "System", blueprints: "Blueprints" },
+    paths: {
+      memory: "Memory",
+      system: "System",
+      blueprints: "Blueprints",
+      flows: "Blueprints/Flows",
+    },
   },
   db: undefined,
   provider: undefined,
@@ -48,6 +59,7 @@ Deno.test("FlowCommands: listFlows outputs table for valid flows", async () => {
   try {
     // Copy define_flow.ts and schemas to memory dir
     copySync("src/flows/define_flow.ts", `${flowDir}/define_flow.ts`);
+    copySync("src/enums.ts", join(mockContext.config.system.root, mockContext.config.paths.blueprints, "enums.ts"));
     copySync(
       "src/schemas",
       join(mockContext.config.system.root, mockContext.config.paths.blueprints, "schemas"),
@@ -85,6 +97,7 @@ Deno.test("FlowCommands: listFlows outputs JSON when requested", async () => {
   try {
     // copy schema helpers so define_flow can be used by flow modules
     copySync("src/flows/define_flow.ts", `${flowDir}/define_flow.ts`);
+    copySync("src/enums.ts", join(mockContext2.config.system.root, mockContext2.config.paths.blueprints, "enums.ts"));
     copySync("src/schemas", join(mockContext2.config.system.root, mockContext2.config.paths.blueprints, "schemas"));
 
     const flowModule = `
@@ -119,6 +132,7 @@ Deno.test("FlowCommands: validateFlow returns valid for correct flow", async () 
   try {
     // Copy define_flow.ts and schemas to memory dir
     copySync("src/flows/define_flow.ts", `${flowDir}/define_flow.ts`);
+    copySync("src/enums.ts", join(mockContext.config.system.root, mockContext.config.paths.blueprints, "enums.ts"));
     copySync(
       "src/schemas",
       join(mockContext.config.system.root, mockContext.config.paths.blueprints, "schemas"),
@@ -148,6 +162,7 @@ Deno.test("FlowCommands: showFlow outputs JSON when requested (id check)", async
   await Deno.mkdir(flowDir, { recursive: true });
   try {
     copySync("src/flows/define_flow.ts", `${flowDir}/define_flow.ts`);
+    copySync("src/enums.ts", join(mockContext.config.system.root, mockContext.config.paths.blueprints, "enums.ts"));
     copySync(
       "src/schemas",
       join(mockContext.config.system.root, mockContext.config.paths.blueprints, "schemas"),
@@ -183,6 +198,7 @@ Deno.test("FlowCommands: showFlow prints JSON when requested (id & name)", async
   await Deno.mkdir(flowDir, { recursive: true });
   try {
     copySync("src/flows/define_flow.ts", `${flowDir}/define_flow.ts`);
+    copySync("src/enums.ts", join(mockContext2.config.system.root, mockContext2.config.paths.blueprints, "enums.ts"));
     copySync("src/schemas", join(mockContext2.config.system.root, mockContext2.config.paths.blueprints, "schemas"));
 
     const flowModule = `
@@ -216,6 +232,7 @@ Deno.test("FlowCommands: showFlow renders full view (non-JSON)", async () => {
   await Deno.mkdir(flowDir, { recursive: true });
   try {
     copySync("src/flows/define_flow.ts", `${flowDir}/define_flow.ts`);
+    copySync("src/enums.ts", join(mockContext2.config.system.root, mockContext2.config.paths.blueprints, "enums.ts"));
     copySync("src/schemas", join(mockContext2.config.system.root, mockContext2.config.paths.blueprints, "schemas"));
 
     const flowModule = `

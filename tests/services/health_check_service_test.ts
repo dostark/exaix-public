@@ -1,4 +1,7 @@
 import { assertEquals, assertExists } from "@std/assert";
+
+import { ExecutionStatus } from "../../src/enums.ts";
+
 import { createMockConfig } from "../helpers/config.ts";
 import {
   DatabaseHealthCheck,
@@ -10,6 +13,7 @@ import {
   MemoryHealthCheck,
 } from "../../src/services/health_check_service.ts";
 import { MockLLMProvider } from "../../src/ai/providers/mock_llm_provider.ts";
+import { MockStrategy } from "../../src/enums.ts";
 import { initTestDbService } from "../helpers/db.ts";
 
 /**
@@ -178,14 +182,14 @@ Deno.test("DatabaseHealthCheck: fails when database query fails", async () => {
     assertEquals(result.status, "fail");
     assertExists(result.message);
     // Just check that there's an error message
-    assertEquals(result.message?.length > 0, true);
+    assertEquals((result.message?.length ?? 0) > 0, true);
   } finally {
     await cleanup();
   }
 });
 
 Deno.test("LLMProviderHealthCheck: passes when provider responds successfully", async () => {
-  const mockProvider = new MockLLMProvider("scripted", {
+  const mockProvider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["OK"],
   });
   const check = new LLMProviderHealthCheck(mockProvider);
@@ -198,7 +202,7 @@ Deno.test("LLMProviderHealthCheck: passes when provider responds successfully", 
 });
 
 Deno.test("LLMProviderHealthCheck: fails when provider throws error", async () => {
-  const mockProvider = new MockLLMProvider("failing", {
+  const mockProvider = new MockLLMProvider(MockStrategy.FAILING, {
     errorMessage: "Provider unavailable",
   });
   const check = new LLMProviderHealthCheck(mockProvider);
@@ -211,7 +215,7 @@ Deno.test("LLMProviderHealthCheck: fails when provider throws error", async () =
 });
 
 Deno.test("LLMProviderHealthCheck: handles timeout gracefully", async () => {
-  const mockProvider = new MockLLMProvider("slow", {
+  const mockProvider = new MockLLMProvider(MockStrategy.SLOW, {
     delayMs: 2000,
   });
   const check = new LLMProviderHealthCheck(mockProvider);
@@ -261,7 +265,7 @@ Deno.test("DiskSpaceHealthCheck: fails when disk access fails", async () => {
 
   assertEquals(result.status, "fail");
   assertExists(result.message);
-  assertEquals(result.message?.includes("failed"), true);
+  assertEquals(result.message?.includes(ExecutionStatus.FAILED), true);
 });
 
 Deno.test("MemoryHealthCheck: passes when memory usage is normal", async () => {
@@ -296,7 +300,7 @@ Deno.test("MemoryHealthCheck: fails when memory usage is critical", async () => 
 Deno.test("initializeHealthChecks: initializes all health checks", async () => {
   const { db, config, cleanup } = await initTestDbService();
   try {
-    const mockProvider = new MockLLMProvider("pattern", {
+    const mockProvider = new MockLLMProvider(MockStrategy.PATTERN, {
       responses: ["OK"],
     });
 
@@ -318,7 +322,7 @@ Deno.test("initializeHealthChecks: initializes all health checks", async () => {
 Deno.test("initializeHealthChecks: configures checks with appropriate criticality", async () => {
   const { db, config, cleanup } = await initTestDbService();
   try {
-    const mockProvider = new MockLLMProvider("pattern", {
+    const mockProvider = new MockLLMProvider(MockStrategy.PATTERN, {
       responses: ["OK"],
     });
 
@@ -365,7 +369,7 @@ Deno.test("HTTP Endpoint Integration: handles HTTP status code mapping", async (
   healthyService.registerCheck({
     name: "test",
     critical: false,
-    check: () => Promise.resolve({ status: "pass" }),
+    check: () => Promise.resolve({ status: "pass" as const }),
   });
 
   const healthyStatus = await healthyService.checkHealth();
@@ -376,7 +380,7 @@ Deno.test("HTTP Endpoint Integration: handles HTTP status code mapping", async (
   degradedService.registerCheck({
     name: "test",
     critical: false,
-    check: () => Promise.resolve({ status: "fail" }),
+    check: () => Promise.resolve({ status: "fail" as const }),
   });
 
   const degradedStatus = await degradedService.checkHealth();
@@ -387,7 +391,7 @@ Deno.test("HTTP Endpoint Integration: handles HTTP status code mapping", async (
   unhealthyService.registerCheck({
     name: "test",
     critical: true,
-    check: () => Promise.resolve({ status: "fail" }),
+    check: () => Promise.resolve({ status: "fail" as const }),
   });
 
   const unhealthyStatus = await unhealthyService.checkHealth();

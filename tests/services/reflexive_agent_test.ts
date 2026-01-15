@@ -4,7 +4,9 @@
  * Tests for Phase 16.4: Reflexion Pattern Implementation
  */
 
-import { assert, assertEquals, assertExists, assertGreater } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";
+import { CritiqueQuality, CritiqueSeverity } from "../../src/enums.ts";
+
 import type { IModelProvider } from "../../src/ai/providers.ts";
 import {
   createCodeReviewReflexiveAgent,
@@ -55,13 +57,13 @@ function makeCritiqueJSON(options: {
 
 Deno.test("[CritiqueSchema] validates correct critique", () => {
   const validCritique = {
-    quality: "good",
+    quality: CritiqueQuality.GOOD,
     confidence: 85,
     passed: true,
     issues: [
       {
         type: "clarity",
-        severity: "minor",
+        severity: CritiqueSeverity.MINOR,
         description: "Could be clearer",
         suggestion: "Add more examples",
       },
@@ -89,7 +91,7 @@ Deno.test("[CritiqueSchema] rejects invalid quality", () => {
 
 Deno.test("[CritiqueSchema] rejects confidence out of range", () => {
   const invalid = {
-    quality: "good",
+    quality: CritiqueQuality.GOOD,
     confidence: 150, // Out of range
     passed: true,
     issues: [],
@@ -109,7 +111,7 @@ Deno.test("[ReflexiveAgent] accepts excellent response on first iteration", asyn
     // Initial response
     makeXMLResponse("Thinking", "This is a great response"),
     // Critique (excellent, should accept)
-    makeCritiqueJSON({ quality: "excellent", confidence: 95, passed: true }),
+    makeCritiqueJSON({ quality: CritiqueQuality.EXCELLENT, confidence: 95, passed: true }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses));
@@ -122,7 +124,7 @@ Deno.test("[ReflexiveAgent] accepts excellent response on first iteration", asyn
   assertEquals(result.totalIterations, 1);
   assert(result.earlyExit);
   assertEquals(result.final.content, "This is a great response");
-  assertEquals(result.finalCritique?.quality, "excellent");
+  assertEquals(result.finalCritique?.quality, CritiqueQuality.EXCELLENT);
 });
 
 Deno.test("[ReflexiveAgent] refines response when quality is poor", async () => {
@@ -131,15 +133,15 @@ Deno.test("[ReflexiveAgent] refines response when quality is poor", async () => 
     makeXMLResponse("First attempt", "Initial poor response"),
     // First critique (poor, needs improvement)
     makeCritiqueJSON({
-      quality: "poor",
+      quality: CritiqueQuality.POOR,
       confidence: 30,
       passed: false,
-      issues: [{ type: "accuracy", severity: "critical", description: "Inaccurate" }],
+      issues: [{ type: "accuracy", severity: CritiqueSeverity.CRITICAL, description: "Inaccurate" }],
     }),
     // Refined response
     makeXMLResponse("Second attempt", "Improved response"),
     // Second critique (good, should accept)
-    makeCritiqueJSON({ quality: "good", confidence: 85, passed: true }),
+    makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses), {
@@ -160,17 +162,17 @@ Deno.test("[ReflexiveAgent] stops at maxIterations", async () => {
   const mockResponses = [
     // All iterations produce poor quality that never passes
     makeXMLResponse("Attempt 1", "Response 1"),
-    makeCritiqueJSON({ quality: "poor", confidence: 20, passed: false }),
+    makeCritiqueJSON({ quality: CritiqueQuality.POOR, confidence: 20, passed: false }),
     makeXMLResponse("Attempt 2", "Response 2"),
-    makeCritiqueJSON({ quality: "poor", confidence: 25, passed: false }),
+    makeCritiqueJSON({ quality: CritiqueQuality.POOR, confidence: 25, passed: false }),
     makeXMLResponse("Attempt 3", "Response 3"),
-    makeCritiqueJSON({ quality: "poor", confidence: 30, passed: false }),
+    makeCritiqueJSON({ quality: CritiqueQuality.POOR, confidence: 30, passed: false }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses), {
     maxIterations: 3,
     confidenceThreshold: 90,
-    minQuality: "excellent",
+    minQuality: CritiqueQuality.EXCELLENT,
   });
 
   const result = await agent.run(
@@ -185,9 +187,9 @@ Deno.test("[ReflexiveAgent] stops at maxIterations", async () => {
 Deno.test("[ReflexiveAgent] tracks iterations correctly", async () => {
   const mockResponses = [
     makeXMLResponse("First", "Content 1"),
-    makeCritiqueJSON({ quality: "needs_improvement", confidence: 50, passed: false }),
+    makeCritiqueJSON({ quality: CritiqueQuality.NEEDS_IMPROVEMENT, confidence: 50, passed: false }),
     makeXMLResponse("Second", "Content 2"),
-    makeCritiqueJSON({ quality: "good", confidence: 80, passed: true }),
+    makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 80, passed: true }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses), {
@@ -214,7 +216,7 @@ Deno.test("[ReflexiveAgent] accepts based on confidence threshold", async () => 
   const mockResponses = [
     makeXMLResponse("Test", "Response"),
     makeCritiqueJSON({
-      quality: "acceptable",
+      quality: CritiqueQuality.ACCEPTABLE,
       confidence: 75, // Above default threshold of 70
       passed: true,
     }),
@@ -237,14 +239,14 @@ Deno.test("[ReflexiveAgent] accepts based on quality level", async () => {
   const mockResponses = [
     makeXMLResponse("Test", "Response"),
     makeCritiqueJSON({
-      quality: "good", // Above minQuality of "acceptable"
+      quality: CritiqueQuality.GOOD, // Above minQuality of "acceptable"
       confidence: 60, // Below threshold, but quality passes
       passed: true,
     }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses), {
-    minQuality: "acceptable",
+    minQuality: CritiqueQuality.ACCEPTABLE,
     confidenceThreshold: 90,
   });
 
@@ -260,13 +262,13 @@ Deno.test("[ReflexiveAgent] rejects with critical issues", async () => {
   const mockResponses = [
     makeXMLResponse("Test", "Bad response"),
     makeCritiqueJSON({
-      quality: "acceptable",
+      quality: CritiqueQuality.ACCEPTABLE,
       confidence: 75,
       passed: false, // Not passed due to critical issue
-      issues: [{ type: "accuracy", severity: "critical", description: "Wrong info" }],
+      issues: [{ type: "accuracy", severity: CritiqueSeverity.CRITICAL, description: "Wrong info" }],
     }),
     makeXMLResponse("Fixed", "Fixed response"),
-    makeCritiqueJSON({ quality: "good", confidence: 85, passed: true }),
+    makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses), {
@@ -288,7 +290,7 @@ Deno.test("[ReflexiveAgent] rejects with critical issues", async () => {
 Deno.test("[ReflexiveAgent] tracks metrics correctly", async () => {
   const mockResponses = [
     makeXMLResponse("Test", "Response"),
-    makeCritiqueJSON({ quality: "good", confidence: 85, passed: true }),
+    makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses));
@@ -314,7 +316,7 @@ Deno.test("[ReflexiveAgent] accumulates metrics across executions", async () => 
       if (callCount % 2 === 1) {
         return Promise.resolve(makeXMLResponse("Test", "Response"));
       } else {
-        return Promise.resolve(makeCritiqueJSON({ quality: "good", confidence: 85, passed: true }));
+        return Promise.resolve(makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }));
       }
     },
   };
@@ -339,7 +341,7 @@ Deno.test("[ReflexiveAgent] accumulates metrics across executions", async () => 
 Deno.test("[ReflexiveAgent] resets metrics", async () => {
   const mockResponses = [
     makeXMLResponse("Test", "Response"),
-    makeCritiqueJSON({ quality: "good", confidence: 85, passed: true }),
+    makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses));
@@ -369,7 +371,7 @@ Deno.test("[createReflexiveAgent] creates agent with defaults", () => {
 Deno.test("[createCodeReviewReflexiveAgent] creates code review optimized agent", async () => {
   const mockResponses = [
     makeXMLResponse("Review", "Code looks good"),
-    makeCritiqueJSON({ quality: "good", confidence: 80, passed: true }),
+    makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 80, passed: true }),
   ];
 
   const agent = createCodeReviewReflexiveAgent(createMockProvider(mockResponses));
@@ -416,9 +418,9 @@ Deno.test("[ReflexiveAgent] handles critique parse failure gracefully", async ()
 Deno.test("[ReflexiveAgent] calculates average confidence", async () => {
   const mockResponses = [
     makeXMLResponse("First", "Response 1"),
-    makeCritiqueJSON({ quality: "needs_improvement", confidence: 60, passed: false }),
+    makeCritiqueJSON({ quality: CritiqueQuality.NEEDS_IMPROVEMENT, confidence: 60, passed: false }),
     makeXMLResponse("Second", "Response 2"),
-    makeCritiqueJSON({ quality: "good", confidence: 80, passed: true }),
+    makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 80, passed: true }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses));
@@ -435,7 +437,7 @@ Deno.test("[ReflexiveAgent] calculates average confidence", async () => {
 Deno.test("[ReflexiveAgent] tracks total duration", async () => {
   const mockResponses = [
     makeXMLResponse("Test", "Response"),
-    makeCritiqueJSON({ quality: "excellent", confidence: 95, passed: true }),
+    makeCritiqueJSON({ quality: CritiqueQuality.EXCELLENT, confidence: 95, passed: true }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses));
@@ -452,16 +454,16 @@ Deno.test("[ReflexiveAgent] tracks issue type distribution", async () => {
   const mockResponses = [
     makeXMLResponse("Test", "Response"),
     makeCritiqueJSON({
-      quality: "needs_improvement",
+      quality: CritiqueQuality.NEEDS_IMPROVEMENT,
       confidence: 50,
       passed: false,
       issues: [
-        { type: "accuracy", severity: "major", description: "Wrong" },
-        { type: "clarity", severity: "minor", description: "Unclear" },
+        { type: "accuracy", severity: CritiqueSeverity.MAJOR, description: "Wrong" },
+        { type: "clarity", severity: CritiqueSeverity.MINOR, description: "Unclear" },
       ],
     }),
     makeXMLResponse("Fixed", "Better response"),
-    makeCritiqueJSON({ quality: "good", confidence: 85, passed: true }),
+    makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }),
   ];
 
   const agent = createReflexiveAgent(createMockProvider(mockResponses));

@@ -4,7 +4,9 @@
  * Tests that MCP tools respect portal permissions and operation restrictions.
  */
 
-import { assertExists, assertRejects } from "jsr:@std/assert@^1.0.0";
+import { assertExists, assertRejects } from "@std/assert";
+import { PortalOperation } from "../../src/enums.ts";
+
 import { GitStatusTool, ReadFileTool, WriteFileTool } from "../../src/mcp/tools.ts";
 import { PortalPermissionsService } from "../../src/services/portal_permissions.ts";
 import { initToolPermissionTest } from "./helpers/test_setup.ts";
@@ -15,7 +17,7 @@ import { initToolPermissionTest } from "./helpers/test_setup.ts";
 
 Deno.test("MCP Tools: read_file requires read permission", async () => {
   const ctx = await initToolPermissionTest({
-    operations: ["read"],
+    operations: [PortalOperation.READ],
     fileContent: { "test.txt": "content" },
   });
   try {
@@ -36,7 +38,7 @@ Deno.test("MCP Tools: read_file requires read permission", async () => {
 
 Deno.test("MCP Tools: read_file rejects when read permission denied", async () => {
   const ctx = await initToolPermissionTest({
-    operations: ["write"], // No read permission
+    operations: [PortalOperation.WRITE], // No read permission
     fileContent: { "test.txt": "content" },
   });
   try {
@@ -65,7 +67,7 @@ Deno.test("MCP Tools: read_file rejects when read permission denied", async () =
 
 Deno.test("MCP Tools: write_file requires write permission", async () => {
   const ctx = await initToolPermissionTest({
-    operations: ["read", "write"],
+    operations: [PortalOperation.READ, PortalOperation.WRITE],
   });
   try {
     const permissions = new PortalPermissionsService([ctx.permissions]);
@@ -86,7 +88,7 @@ Deno.test("MCP Tools: write_file requires write permission", async () => {
 
 Deno.test("MCP Tools: write_file rejects when write permission denied", async () => {
   const ctx = await initToolPermissionTest({
-    operations: ["read"], // No write permission
+    operations: [PortalOperation.READ], // No write permission
   });
   try {
     const permissions = new PortalPermissionsService([ctx.permissions]);
@@ -115,7 +117,7 @@ Deno.test("MCP Tools: write_file rejects when write permission denied", async ()
 
 Deno.test("MCP Tools: git_status requires git permission", async () => {
   const ctx = await initToolPermissionTest({
-    operations: ["read", "git"],
+    operations: [PortalOperation.READ, PortalOperation.GIT],
     initGit: true,
   });
   try {
@@ -135,7 +137,7 @@ Deno.test("MCP Tools: git_status requires git permission", async () => {
 
 Deno.test("MCP Tools: git_status rejects when git permission denied", async () => {
   const ctx = await initToolPermissionTest({
-    operations: ["read", "write"], // No git permission
+    operations: [PortalOperation.READ, PortalOperation.WRITE], // No git permission
   });
   try {
     const permissions = new PortalPermissionsService([ctx.permissions]);
@@ -163,7 +165,7 @@ Deno.test("MCP Tools: git_status rejects when git permission denied", async () =
 Deno.test("MCP Tools: rejects non-whitelisted agent", async () => {
   const ctx = await initToolPermissionTest({
     agentId: "allowed-agent",
-    operations: ["read", "write", "git"],
+    operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
     fileContent: { "test.txt": "content" },
   });
   try {
@@ -189,7 +191,7 @@ Deno.test("MCP Tools: rejects non-whitelisted agent", async () => {
 Deno.test("MCP Tools: allows wildcard agent access", async () => {
   const ctx = await initToolPermissionTest({
     agentId: "*",
-    operations: ["read", "write", "git"],
+    operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
     fileContent: { "test.txt": "content" },
   });
   try {

@@ -1,5 +1,7 @@
 // Edge-case and end-to-end tests for TUI dashboard
 import { launchTuiDashboard, type TuiDashboard } from "../../src/tui/tui_dashboard.ts";
+import { SkillStatus } from "../../src/enums.ts";
+
 import { assertEquals } from "https://deno.land/std@0.204.0/assert/assert_equals.ts";
 Deno.test("TUI dashboard handles empty portal list and error state", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
@@ -77,7 +79,7 @@ Deno.test("TUI dashboard supports real-time updates and notifications", async ()
       targetPath: "/a",
       symlinkPath: "/s/a",
       contextCardPath: "/c/a",
-      status: "active",
+      status: SkillStatus.ACTIVE,
       permissions: "rw",
     },
   ];
@@ -93,7 +95,7 @@ Deno.test("TUI dashboard supports real-time updates and notifications", async ()
     targetPath: "/b",
     symlinkPath: "/s/b",
     contextCardPath: "/c/b",
-    status: "active",
+    status: SkillStatus.ACTIVE,
     permissions: "rw",
   });
   const updated = await dashboard.portalManager.service.listPortals();
@@ -141,7 +143,7 @@ Deno.test("TUI dashboard renders portal list, details, actions, and status bar",
         targetPath: "/a",
         symlinkPath: "/s/a",
         contextCardPath: "/c/a",
-        status: "active",
+        status: SkillStatus.ACTIVE,
         permissions: "rw",
       },
       {

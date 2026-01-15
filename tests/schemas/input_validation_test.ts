@@ -7,6 +7,8 @@
  */
 
 import { assertEquals, assertThrows } from "@std/assert";
+import { SecurityMode } from "../../src/enums.ts";
+
 import {
   AgentExecutionOptionsSchema,
   AgentIdSchema,
@@ -223,7 +225,7 @@ Deno.test("Input Validation - AgentExecutionOptionsSchema", async (t) => {
     const validOptions = {
       agent_id: "test-agent",
       portal: "default",
-      security_mode: "sandboxed" as const,
+      security_mode: SecurityMode.SANDBOXED,
       timeout_ms: 300000,
       max_tool_calls: 100,
       audit_enabled: true,
@@ -237,7 +239,7 @@ Deno.test("Input Validation - AgentExecutionOptionsSchema", async (t) => {
       portal: "default",
     };
     const parsed = AgentExecutionOptionsSchema.parse(minimalOptions);
-    assertEquals(parsed.security_mode, "sandboxed");
+    assertEquals(parsed.security_mode, SecurityMode.SANDBOXED);
     assertEquals(parsed.timeout_ms, 300000);
     assertEquals(parsed.max_tool_calls, 100);
     assertEquals(parsed.audit_enabled, true);
@@ -271,12 +273,12 @@ Deno.test("Input Validation - InputValidator utility", async (t) => {
     const validOptions = {
       agent_id: "test-agent",
       portal: "default",
-      security_mode: "sandboxed" as const,
+      security_mode: SecurityMode.SANDBOXED,
       timeout_ms: 300000,
     };
 
     const result = InputValidator.validateAgentExecutionOptions(validOptions);
-    assertEquals(result.security_mode, "sandboxed");
+    assertEquals(result.security_mode, SecurityMode.SANDBOXED);
     assertEquals(result.timeout_ms, 300000);
   });
 

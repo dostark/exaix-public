@@ -6,12 +6,12 @@
  */
 
 import { z } from "zod";
+import { AgentExecutionErrorType, SecurityMode } from "../enums.ts";
 
 /**
  * Security mode for agent execution
  */
-export const SecurityModeSchema = z.enum(["sandboxed", "hybrid"]);
-export type SecurityMode = z.infer<typeof SecurityModeSchema>;
+export const SecurityModeSchema = z.nativeEnum(SecurityMode);
 
 /**
  * Execution context passed to agent via MCP
@@ -74,20 +74,7 @@ export type ChangesetResult = z.infer<typeof ChangesetResultSchema>;
 /**
  * Agent execution error types
  */
-export const AgentExecutionErrorTypeSchema = z.enum([
-  "timeout",
-  "blueprint_not_found",
-  "portal_not_found",
-  "permission_denied",
-  "mcp_connection_failed",
-  "tool_error",
-  "git_error",
-  "security_violation",
-  "agent_error",
-]);
-export type AgentExecutionErrorType = z.infer<
-  typeof AgentExecutionErrorTypeSchema
->;
+export const AgentExecutionErrorTypeSchema = z.nativeEnum(AgentExecutionErrorType);
 
 /**
  * Agent execution error details

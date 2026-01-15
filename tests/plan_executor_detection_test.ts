@@ -11,8 +11,10 @@
  * - Logs detection events to Activity Journal
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { MemoryStatus } from "../src/enums.ts";
+
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { initTestDbService } from "./helpers/db.ts";
@@ -164,7 +166,7 @@ created_at: "2025-12-03T10:00:00.000Z"
       assertEquals(frontmatter.trace_id, "550e8400-e29b-41d4-a716-446655440000");
       assertEquals(frontmatter.request_id, "request-550e8400");
       assertEquals(frontmatter.agent_id, "senior-coder");
-      assertEquals(frontmatter.status, "approved");
+      assertEquals(frontmatter.status, MemoryStatus.APPROVED);
     });
 
     it("should extract plan body after frontmatter", async () => {

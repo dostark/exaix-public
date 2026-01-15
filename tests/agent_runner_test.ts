@@ -10,7 +10,7 @@
  * - Test 5: Handles empty blueprints or requests gracefully
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MockProvider } from "../src/ai/providers.ts";
 import { AgentRunner } from "../src/services/agent_runner.ts";
 import type { Blueprint, ParsedRequest } from "../src/services/agent_runner.ts";

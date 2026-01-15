@@ -54,28 +54,28 @@ export interface RequestViewState {
 
 // --- Phase 13.6: Visual constants ---
 export const PRIORITY_ICONS: Record<string, string> = {
-  critical: "🔴",
-  high: "🟠",
-  normal: "⚪",
-  low: "🔵",
+  [RequestPriority.CRITICAL]: "🔴",
+  [RequestPriority.HIGH]: "🟠",
+  [RequestPriority.NORMAL]: "⚪",
+  [RequestPriority.LOW]: "🔵",
 };
 
 export const STATUS_ICONS: Record<string, string> = {
-  pending: "⏳",
-  planned: "📋",
-  in_progress: "🔄",
-  completed: "✅",
-  cancelled: "❌",
-  failed: "💥",
+  [RequestStatus.PENDING]: "⏳",
+  [RequestStatus.PLANNED]: "📋",
+  [RequestStatus.IN_PROGRESS]: "🔄",
+  [RequestStatus.COMPLETED]: "✅",
+  [RequestStatus.CANCELLED]: "❌",
+  [RequestStatus.FAILED]: "💥",
 };
 
 export const STATUS_COLORS: Record<string, string> = {
-  pending: "yellow",
-  planned: "cyan",
-  in_progress: "blue",
-  completed: "green",
-  cancelled: "dim",
-  failed: "red",
+  [RequestStatus.PENDING]: "yellow",
+  [RequestStatus.PLANNED]: "cyan",
+  [RequestStatus.IN_PROGRESS]: "blue",
+  [RequestStatus.COMPLETED]: "green",
+  [RequestStatus.CANCELLED]: "dim",
+  [RequestStatus.FAILED]: "red",
 };
 
 // --- Phase 13.6: Key bindings ---
@@ -98,6 +98,7 @@ export const REQUEST_KEY_BINDINGS: KeyBinding[] = [
 
 // --- Imports for Phase 13.6 ---
 import { TuiSessionBase } from "./tui_common.ts";
+import { RequestPriority, RequestStatus } from "../enums.ts";
 import {
   collapseAll,
   createGroupNode,
@@ -639,7 +640,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
     try {
       this.startLoading("Creating request...");
-      const newRequest = await this.service.createRequest(description, { priority: "normal" });
+      const newRequest = await this.service.createRequest(description, { priority: RequestPriority.NORMAL });
       this.requests.push(newRequest);
       this.buildTree();
       this.setStatus(`Created request: ${newRequest.trace_id.slice(0, 8)}`, "success");
@@ -659,12 +660,12 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
     try {
       this.startLoading("Cancelling request...");
-      await this.service.updateRequestStatus(requestId, "cancelled");
+      await this.service.updateRequestStatus(requestId, RequestStatus.CANCELLED);
 
       // Update local state
       const request = this.requests.find((r) => r.trace_id === requestId);
       if (request) {
-        request.status = "cancelled";
+        request.status = RequestStatus.CANCELLED;
       }
       this.buildTree();
       this.setStatus(`Cancelled request: ${requestId.slice(0, 8)}`, "success");

@@ -12,6 +12,7 @@ import { GitService } from "./git_service.ts";
 import { ToolRegistry } from "./tool_registry.ts";
 import { MemoryBankService } from "./memory_bank.ts";
 import { MissionReporter } from "./mission_reporter.ts";
+import { ExecutionStatus, PlanStatus } from "../enums.ts";
 
 // ============================================================================
 // Types
@@ -35,7 +36,7 @@ interface PlanFrontmatter {
   agent_id?: string;
   priority?: number;
   timeout?: string;
-  status: "pending" | "active" | "completed" | "failed";
+  status: PlanStatus;
   created_at: string;
   updated_at?: string;
 }
@@ -206,7 +207,7 @@ export class ExecutionLoop {
         // Read frontmatter to check status
         try {
           const frontmatter = await this.parsePlan(planPath);
-          if (frontmatter.status === "pending") {
+          if (frontmatter.status === PlanStatus.PENDING) {
             return planPath;
           }
         } catch {
@@ -445,8 +446,8 @@ export class ExecutionLoop {
     // Read plan, update frontmatter status (YAML format)
     const content = await Deno.readTextFile(planPath);
     const updatedContent = content.replace(
-      /status: active/,
-      "status: error",
+      new RegExp(`status: ${PlanStatus.ACTIVE}`),
+      `status: ${PlanStatus.ERROR}`,
     );
 
     await Deno.writeTextFile(requestPath, updatedContent);
@@ -526,7 +527,7 @@ export class ExecutionLoop {
         traceId,
         requestId,
         agentId: this.agentId,
-        status: "completed" as const,
+        status: ExecutionStatus.COMPLETED,
         branch: `feat/${requestId}-${traceId.substring(0, 8)}`,
         completedAt: new Date(),
         contextFiles: [], // TODO: Extract from plan execution context
@@ -565,7 +566,7 @@ export class ExecutionLoop {
         traceId,
         requestId,
         agentId: this.agentId,
-        status: "failed" as const,
+        status: ExecutionStatus.FAILED,
         branch: `feat/${requestId}-${traceId.substring(0, 8)}`,
         completedAt: new Date(),
         contextFiles: [], // TODO: Extract from plan execution context

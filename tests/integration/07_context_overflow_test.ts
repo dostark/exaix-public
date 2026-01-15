@@ -12,7 +12,9 @@
  * - Test 7: No memory errors or crashes from large input
  */
 
-import { assert, assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ContextLoader } from "../../src/services/context_loader.ts";
@@ -96,7 +98,7 @@ Deno.test("Integration: Context Overflow - Large file references", async (t) => 
         status: "review",
         actions: [
           {
-            tool: "write_file",
+            tool: McpToolName.WRITE_FILE,
             params: { path: "src/refactored.ts", content: "// Refactored" },
           },
         ],

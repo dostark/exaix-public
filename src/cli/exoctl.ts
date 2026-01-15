@@ -72,11 +72,25 @@ if (!IN_TEST_MODE) {
     config = {
       system: { root: Deno.cwd() },
       paths: {
-        memory: "Memory",
-        runtime: ".exo",
-        blueprints: "Blueprints",
-        portals: "Portals",
         workspace: "Workspace",
+        runtime: ".exo",
+        memory: "Memory",
+        portals: "Portals",
+        blueprints: "Blueprints",
+        flows: "Blueprints/Flows",
+        requests: "Requests",
+        plans: "Plans",
+        active: "Active",
+        archive: "Archive",
+        rejected: "Rejected",
+        agents: "Agents",
+        memoryProjects: "Memory/Projects",
+        memoryExecution: "Memory/Execution",
+        memoryIndex: "Memory/Index",
+        memorySkills: "Memory/Skills",
+        memoryPending: "Memory/Pending",
+        memoryTasks: "Memory/Tasks",
+        memoryGlobal: "Memory/Global",
       },
       agents: { default_model: "mock:test" },
     } as any;
@@ -96,6 +110,20 @@ if (!IN_TEST_MODE) {
       memory: "Memory",
       portals: "Portals",
       blueprints: "Blueprints",
+      flows: "Blueprints/Flows",
+      requests: "Requests",
+      plans: "Plans",
+      active: "Active",
+      archive: "Archive",
+      rejected: "Rejected",
+      agents: "Agents",
+      memoryProjects: "Memory/Projects",
+      memoryExecution: "Memory/Execution",
+      memoryIndex: "Memory/Index",
+      memorySkills: "Memory/Skills",
+      memoryPending: "Memory/Pending",
+      memoryTasks: "Memory/Tasks",
+      memoryGlobal: "Memory/Global",
     },
     agents: { default_model: "mock:test" },
   };
@@ -105,8 +133,8 @@ if (!IN_TEST_MODE) {
   display = new EventLogger({});
   context = { config, db, provider };
 }
-const requestCommands = new RequestCommands(context, config.system.root);
-const planCommands = new PlanCommands(context, config.system.root);
+const requestCommands = new RequestCommands(context);
+const planCommands = new PlanCommands(context);
 const changesetCommands = new ChangesetCommands(context, gitService);
 const gitCommands = new GitCommands(context);
 const daemonCommands = new DaemonCommands(context);
@@ -180,11 +208,25 @@ export async function __test_initializeServices(opts?: { simulateFail?: boolean;
     const cfg = {
       system: { root: Deno.cwd() },
       paths: {
+        workspace: "Workspace",
         runtime: ".exo",
         memory: "Memory",
         portals: "Portals",
         blueprints: "Blueprints",
-        workspace: "Workspace",
+        flows: "Blueprints/Flows",
+        requests: "Requests",
+        plans: "Plans",
+        active: "Active",
+        archive: "Archive",
+        rejected: "Rejected",
+        agents: "Agents",
+        memoryProjects: "Memory/Projects",
+        memoryExecution: "Memory/Execution",
+        memoryIndex: "Memory/Index",
+        memorySkills: "Memory/Skills",
+        memoryPending: "Memory/Pending",
+        memoryTasks: "Memory/Tasks",
+        memoryGlobal: "Memory/Global",
       },
       agents: { default_model: "mock:test" },
     } as any;

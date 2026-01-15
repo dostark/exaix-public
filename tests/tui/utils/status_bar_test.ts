@@ -4,7 +4,8 @@
  * Coverage tests for src/tui/utils/status_bar.ts
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists } from "@std/assert";
+import { ExecutionStatus, MemoryStatus, SkillStatus } from "../../../src/enums.ts";
 import {
   addStatusLine,
   clearStatusMessage,
@@ -191,11 +192,13 @@ Deno.test("createCountItem: creates count item", () => {
 
 Deno.test("createStatusItem: creates status items for all states", () => {
   const theme = getTheme(true);
-  const statuses: Array<"active" | "pending" | "completed" | "failed"> = [
-    "active",
-    "pending",
-    "completed",
-    "failed",
+  const statuses: Array<
+    SkillStatus.ACTIVE | MemoryStatus.PENDING | ExecutionStatus.COMPLETED | ExecutionStatus.FAILED
+  > = [
+    SkillStatus.ACTIVE,
+    MemoryStatus.PENDING,
+    ExecutionStatus.COMPLETED,
+    ExecutionStatus.FAILED,
   ];
 
   for (const status of statuses) {
@@ -208,14 +211,14 @@ Deno.test("createStatusItem: creates status items for all states", () => {
 
 Deno.test("createStatusItem: accepts custom label", () => {
   const theme = getTheme(true);
-  const item = createStatusItem("active", "Running", theme);
+  const item = createStatusItem(SkillStatus.ACTIVE, "Running", theme);
   assertEquals(item.text, "Running");
   assertEquals(item.icon, "●");
 });
 
 Deno.test("createStatusItem: works without theme", () => {
-  const item = createStatusItem("completed");
-  assertEquals(item.text, "completed");
+  const item = createStatusItem(ExecutionStatus.COMPLETED);
+  assertEquals(item.text, ExecutionStatus.COMPLETED);
   assertEquals(item.icon, "✓");
   assertEquals(item.color, "");
 });

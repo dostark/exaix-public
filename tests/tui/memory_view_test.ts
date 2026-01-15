@@ -12,7 +12,9 @@
  * - Pending proposals handling
  */
 
-import { assertEquals, assertExists, assertNotEquals } from "jsr:@std/assert@1";
+import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
+import { MemoryScope, MemoryStatus } from "../../src/enums.ts";
+
 import { MemoryView, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
 import { MockMemoryService } from "../../src/tui/tui_dashboard_mocks.ts";
@@ -157,8 +159,8 @@ Deno.test("MemoryViewTuiSession: 'g' jumps to global scope", async () => {
   await session.initialize();
 
   await session.handleKey("g");
-  assertEquals(session.getActiveScope(), "global");
-  assertEquals(session.getSelectedNodeId(), "global");
+  assertEquals(session.getActiveScope(), MemoryScope.GLOBAL);
+  assertEquals(session.getSelectedNodeId(), MemoryScope.GLOBAL);
 });
 
 Deno.test("MemoryViewTuiSession: 'p' jumps to projects scope", async () => {
@@ -185,7 +187,7 @@ Deno.test("MemoryViewTuiSession: 'n' jumps to pending scope", async () => {
   await session.initialize();
 
   await session.handleKey("n");
-  assertEquals(session.getActiveScope(), "pending");
+  assertEquals(session.getActiveScope(), MemoryStatus.PENDING);
 });
 
 // ===== Search Tests =====
@@ -373,9 +375,9 @@ Deno.test("MemoryViewTuiSession: findNodeById returns correct node", async () =>
   const session = createTestSession();
   await session.initialize();
 
-  const node = session.findNodeById("global");
+  const node = session.findNodeById(MemoryScope.GLOBAL);
   assertExists(node);
-  assertEquals(node.id, "global");
+  assertEquals(node.id, MemoryScope.GLOBAL);
   assertEquals(node.type, "scope");
 });
 

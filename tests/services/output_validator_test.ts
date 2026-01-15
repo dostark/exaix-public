@@ -4,7 +4,11 @@
  * Tests for Phase 16.2: Structured Output Validation
  */
 
-import { assert, assertEquals, assertExists, assertFalse } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertExists, assertFalse } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
+import { CritiqueSeverity, EvaluationVerdict } from "../../src/enums.ts";
+
 import { z } from "zod";
 import { createOutputValidator, createPlanValidator, OutputValidator } from "../../src/services/output_validator.ts";
 
@@ -196,7 +200,7 @@ Deno.test("[OutputValidator] validates evaluation schema", () => {
 
   const validEvaluation = JSON.stringify({
     score: 8,
-    verdict: "pass",
+    verdict: EvaluationVerdict.PASS,
     reasoning: "Good implementation with minor issues",
     suggestions: ["Add more tests", "Improve error handling"],
   });
@@ -205,7 +209,7 @@ Deno.test("[OutputValidator] validates evaluation schema", () => {
 
   assert(result.success);
   assertEquals(result.value?.score, 8);
-  assertEquals(result.value?.verdict, "pass");
+  assertEquals(result.value?.verdict, EvaluationVerdict.PASS);
 });
 
 Deno.test("[OutputValidator] validates analysis schema", () => {
@@ -269,7 +273,7 @@ Deno.test("[OutputValidator] validates toolCall schema", () => {
   const validator = new OutputValidator();
 
   const validToolCall = JSON.stringify({
-    tool: "read_file",
+    tool: McpToolName.READ_FILE,
     arguments: { path: "/src/main.ts" },
     reasoning: "Need to read the file to understand the code",
   });
@@ -277,7 +281,7 @@ Deno.test("[OutputValidator] validates toolCall schema", () => {
   const result = validator.validateWithSchema(validToolCall, "toolCall");
 
   assert(result.success);
-  assertEquals(result.value?.tool, "read_file");
+  assertEquals(result.value?.tool, McpToolName.READ_FILE);
 });
 
 // ============================================================================
@@ -477,7 +481,7 @@ Deno.test("[OutputSchemas] evaluation schema rejects score out of range", () => 
 
   const invalid = JSON.stringify({
     score: 15, // Out of range (0-10)
-    verdict: "pass",
+    verdict: EvaluationVerdict.PASS,
     reasoning: "test",
   });
 
@@ -489,7 +493,7 @@ Deno.test("[OutputSchemas] evaluation schema rejects score out of range", () => 
 Deno.test("[OutputSchemas] analysis schema validates finding types", () => {
   const validator = new OutputValidator();
 
-  const validTypes = ["issue", "suggestion", "note", "warning", "error"];
+  const validTypes = ["issue", CritiqueSeverity.SUGGESTION, "note", "warning", "error"];
 
   for (const type of validTypes) {
     const analysis = JSON.stringify({

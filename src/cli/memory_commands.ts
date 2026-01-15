@@ -12,13 +12,14 @@
  * Part of Phase 12.9: Agent Memory Updates
  */
 
-import { join } from "@std/path";
 import { exists } from "@std/fs";
+import { join } from "@std/path";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "../services/db.ts";
 import { MemoryBankService } from "../services/memory_bank.ts";
 import { MemoryExtractorService } from "../services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../services/memory_embedding.ts";
+import { MemoryScope, MemorySource, SkillStatus } from "../enums.ts";
 import { type SkillMatchRequest, SkillsService } from "../services/skills.ts";
 import type {
   ExecutionMemory,
@@ -66,7 +67,7 @@ export class MemoryCommands {
     this.extractor = new MemoryExtractorService(context.config, context.db, this.memoryBank);
     this.embedding = new MemoryEmbeddingService(context.config);
     this.skills = new SkillsService(context.config, context.db);
-    this.memoryRoot = join(context.config.system.root, "Memory");
+    this.memoryRoot = context.config.paths.memory;
   }
 
   // ===== Memory List Command =====
@@ -100,7 +101,7 @@ export class MemoryCommands {
     let lastActivity: string | null = null;
 
     // List projects
-    const projectsDir = join(this.memoryRoot, "Projects");
+    const projectsDir = join(this.config.system.root, this.config.paths.memoryProjects);
     if (await exists(projectsDir)) {
       for await (const entry of Deno.readDir(projectsDir)) {
         if (entry.isDirectory) {
@@ -110,7 +111,7 @@ export class MemoryCommands {
     }
 
     // Count executions and find last activity
-    const executionDir = join(this.memoryRoot, "Execution");
+    const executionDir = join(this.config.system.root, this.config.paths.memoryExecution);
     if (await exists(executionDir)) {
       const executionList = await this.memoryBank.getExecutionHistory(undefined, 1);
       executions = await this.countExecutions();
@@ -131,7 +132,7 @@ export class MemoryCommands {
    */
   private async countExecutions(): Promise<number> {
     let count = 0;
-    const executionDir = join(this.memoryRoot, "Execution");
+    const executionDir = join(this.config.system.root, this.config.paths.memoryExecution);
     if (await exists(executionDir)) {
       for await (const entry of Deno.readDir(executionDir)) {
         if (entry.isDirectory) {
@@ -313,7 +314,7 @@ export class MemoryCommands {
   async projectList(format: OutputFormat = "table"): Promise<string> {
     const projects: { name: string; patterns: number; decisions: number }[] = [];
 
-    const projectsDir = join(this.memoryRoot, "Projects");
+    const projectsDir = join(this.config.system.root, this.config.paths.memoryProjects);
     if (await exists(projectsDir)) {
       for await (const entry of Deno.readDir(projectsDir)) {
         if (entry.isDirectory) {
@@ -1491,9 +1492,9 @@ export class MemoryCommands {
           skill_id: skillId,
           name: options.name,
           version: "1.0.0",
-          status: "draft",
+          status: SkillStatus.DRAFT,
           description: options.description || `Skill derived from ${options.learningIds.length} learnings`,
-          scope: "project",
+          scope: MemoryScope.PROJECT,
           triggers: {
             keywords: [],
             task_types: [],
@@ -1552,9 +1553,9 @@ export class MemoryCommands {
           name,
           version: "1.0.0",
           description: options.description || `${name} skill`,
-          source: location === "learned" ? "learned" : "user",
-          scope: "project",
-          status: "draft",
+          source: location === "learned" ? MemorySource.LEARNED : MemorySource.USER,
+          scope: MemoryScope.PROJECT,
+          status: SkillStatus.DRAFT,
           instructions: options.instructions || "No instructions provided.",
           triggers: {
             keywords: options.triggersKeywords || [],

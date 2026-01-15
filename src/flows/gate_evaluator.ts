@@ -16,6 +16,7 @@ import {
   getCriteriaByNames,
 } from "./evaluation_criteria.ts";
 import { StepResult } from "./flow_runner.ts";
+import { FlowGateOnFail } from "../enums.ts";
 
 /**
  * Gate configuration schema
@@ -28,7 +29,7 @@ export const GateConfigSchema = z.object({
   /** Score threshold for passing (0.0 - 1.0) */
   threshold: z.number().min(0).max(1).default(0.8),
   /** Action to take on gate failure */
-  onFail: z.enum(["retry", "halt", "continue-with-warning"]).default("halt"),
+  onFail: z.nativeEnum(FlowGateOnFail).default(FlowGateOnFail.HALT),
   /** Maximum retry attempts if onFail is "retry" */
   maxRetries: z.number().int().min(1).default(3),
 });

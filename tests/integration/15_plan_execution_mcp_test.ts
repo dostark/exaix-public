@@ -5,7 +5,8 @@
  * Covers Steps 6.1-6.5 integration with both sandboxed and hybrid security modes.
  */
 
-import { assert, assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists } from "@std/assert";
+import { ChangesetStatus, McpToolName, MemoryOperation, PortalOperation, SecurityMode } from "../../src/enums.ts";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { EventLogger } from "../../src/services/event_logger.ts";
@@ -30,7 +31,7 @@ async function createTestPortal(basePath: string) {
   await ensureDir(join(portalPath, "src"));
 
   // Initialize git repo
-  const gitInit = new Deno.Command("git", {
+  const gitInit = new Deno.Command(PortalOperation.GIT, {
     args: ["init"],
     cwd: portalPath,
     stdout: "null",
@@ -39,7 +40,7 @@ async function createTestPortal(basePath: string) {
   await gitInit.output();
 
   // Configure git
-  const gitConfig1 = new Deno.Command("git", {
+  const gitConfig1 = new Deno.Command(PortalOperation.GIT, {
     args: ["config", "user.email", "test@example.com"],
     cwd: portalPath,
     stdout: "null",
@@ -47,7 +48,7 @@ async function createTestPortal(basePath: string) {
   });
   await gitConfig1.output();
 
-  const gitConfig2 = new Deno.Command("git", {
+  const gitConfig2 = new Deno.Command(PortalOperation.GIT, {
     args: ["config", "user.name", "Test User"],
     cwd: portalPath,
     stdout: "null",
@@ -61,15 +62,15 @@ async function createTestPortal(basePath: string) {
     "# Test Portal\n",
   );
 
-  const gitAdd = new Deno.Command("git", {
-    args: ["add", "."],
+  const gitAdd = new Deno.Command(PortalOperation.GIT, {
+    args: [MemoryOperation.ADD, "."],
     cwd: portalPath,
     stdout: "null",
     stderr: "null",
   });
   await gitAdd.output();
 
-  const gitCommit = new Deno.Command("git", {
+  const gitCommit = new Deno.Command(PortalOperation.GIT, {
     args: ["commit", "-m", "Initial commit"],
     cwd: portalPath,
     stdout: "null",
@@ -127,7 +128,7 @@ Create a simple hello world function in src/utils.ts
 
     const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
     assertEquals(frontmatter.trace_id, traceId);
-    assertEquals(frontmatter.status, "approved");
+    assertEquals(frontmatter.status, ChangesetStatus.APPROVED);
     assertEquals(frontmatter.agent, "mock-agent");
     assertEquals(frontmatter.portal, "TestPortal");
 
@@ -154,7 +155,7 @@ Create a simple hello world function in src/utils.ts
     assert(changeset !== null, "Changeset should not be null");
     assertEquals(changeset!.trace_id, traceId);
     assertEquals(changeset!.portal, "TestPortal");
-    assertEquals(changeset!.status, "pending");
+    assertEquals(changeset!.status, ChangesetStatus.PENDING);
     assertEquals(changeset!.created_by, "mock-agent");
     assertEquals(changeset!.files_changed, 1);
 
@@ -220,7 +221,7 @@ Modify README.md with additional content
     assertExists(yamlMatch);
 
     const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
-    assertEquals(frontmatter.security_mode, "hybrid");
+    assertEquals(frontmatter.security_mode, SecurityMode.HYBRID);
 
     // In hybrid mode, agent would have read access to portal
     // Verify portal files are readable
@@ -245,7 +246,7 @@ Modify README.md with additional content
     assertExists(changesetId);
 
     const changeset = await changesetRegistry.get(changesetId);
-    assertEquals(changeset?.status, "pending");
+    assertEquals(changeset?.status, ChangesetStatus.PENDING);
 
     console.log("✅ Happy Path (Hybrid Mode) - All checks passed");
   } finally {
@@ -335,19 +336,19 @@ Deno.test("Integration Test 15.4: Changeset Lifecycle - Approval", async () => {
 
     // Verify initial status
     let changeset = await changesetRegistry.get(changesetId);
-    assertEquals(changeset?.status, "pending");
+    assertEquals(changeset?.status, ChangesetStatus.PENDING);
     assertEquals(changeset?.approved_at, null);
 
     // Approve changeset
     await changesetRegistry.updateStatus(
       changesetId,
-      "approved",
+      ChangesetStatus.APPROVED,
       "admin@example.com",
     );
 
     // Verify updated status
     changeset = await changesetRegistry.get(changesetId);
-    assertEquals(changeset?.status, "approved");
+    assertEquals(changeset?.status, ChangesetStatus.APPROVED);
     assertEquals(changeset?.approved_by, "admin@example.com");
     assertExists(changeset?.approved_at);
 
@@ -389,14 +390,14 @@ Deno.test("Integration Test 15.5: Changeset Lifecycle - Rejection", async () => 
     // Reject changeset
     await changesetRegistry.updateStatus(
       changesetId,
-      "rejected",
+      ChangesetStatus.REJECTED,
       "reviewer@example.com",
       "Does not meet coding standards",
     );
 
     // Verify rejection
     const changeset = await changesetRegistry.get(changesetId);
-    assertEquals(changeset?.status, "rejected");
+    assertEquals(changeset?.status, ChangesetStatus.REJECTED);
     assertEquals(changeset?.rejected_by, "reviewer@example.com");
     assertEquals(changeset?.rejection_reason, "Does not meet coding standards");
     assertExists(changeset?.rejected_at);
@@ -448,13 +449,13 @@ Deno.test("Integration Test 15.6: Changeset Filtering", async () => {
     });
 
     // Approve one
-    await changesetRegistry.updateStatus(changeset2Id, "approved", "admin");
+    await changesetRegistry.updateStatus(changeset2Id, ChangesetStatus.APPROVED, "admin");
 
     // Filter by status
-    const pendingChangesets = await changesetRegistry.list({ status: "pending" });
+    const pendingChangesets = await changesetRegistry.list({ status: ChangesetStatus.PENDING });
     assertEquals(pendingChangesets.length, 1);
 
-    const approvedChangesets = await changesetRegistry.list({ status: "approved" });
+    const approvedChangesets = await changesetRegistry.list({ status: ChangesetStatus.APPROVED });
     assertEquals(approvedChangesets.length, 1);
 
     // Filter by portal
@@ -578,9 +579,9 @@ Deno.test("Integration Test 15.8: MCP Server Security", async () => {
     assert(isPathTraversal, "Should detect path traversal attempt");
 
     // Test 2: Invalid tool parameters
-    await eventLogger.error("mcp.invalid_tool_params", "read_file", {
+    await eventLogger.error("mcp.invalid_tool_params", McpToolName.READ_FILE, {
       error: "Missing required parameter: file_path",
-      tool: "read_file",
+      tool: McpToolName.READ_FILE,
     });
 
     // Test 3: Unauthorized portal access
@@ -695,7 +696,7 @@ Deno.test("Integration Test 15.10: Changeset Query Methods", async () => {
     });
 
     // Approve one changeset
-    await changesetRegistry.updateStatus(cs2, "approved", "admin@example.com");
+    await changesetRegistry.updateStatus(cs2, ChangesetStatus.APPROVED, "admin@example.com");
 
     // Test: Get changesets by trace_id
     const byTrace = await changesetRegistry.list({ trace_id: trace1 });
@@ -704,13 +705,13 @@ Deno.test("Integration Test 15.10: Changeset Query Methods", async () => {
     // Test: Get pending changesets for portal
     const pendingForPortalA = await changesetRegistry.list({
       portal: "PortalA",
-      status: "pending",
+      status: ChangesetStatus.PENDING,
     });
     assertEquals(pendingForPortalA.length, 1, "Should find 1 pending changeset for PortalA");
 
     // Test: Count by status
-    const allPending = await changesetRegistry.list({ status: "pending" });
-    const allApproved = await changesetRegistry.list({ status: "approved" });
+    const allPending = await changesetRegistry.list({ status: ChangesetStatus.PENDING });
+    const allApproved = await changesetRegistry.list({ status: ChangesetStatus.APPROVED });
     assertEquals(allPending.length, 2, "Should have 2 pending changesets");
     assertEquals(allApproved.length, 1, "Should have 1 approved changeset");
 

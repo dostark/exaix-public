@@ -8,13 +8,16 @@
  * Phase 12.10: Tag-Based Search & Simple RAG
  */
 
-import { assertEquals, assertExists, assertGreaterOrEqual } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
+import { LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { Learning, ProjectMemory } from "../../src/schemas/memory_bank.ts";
+import { ConfidenceLevel } from "../../src/enums.ts";
 import { getMemoryGlobalDir, getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Setup Helpers =====
@@ -62,26 +65,26 @@ async function setupTestData(
     {
       id: "cccccccc-3333-4000-8000-000000000001",
       created_at: new Date().toISOString(),
-      source: "agent",
-      scope: "global",
+      source: MemorySource.AGENT,
+      scope: MemoryScope.GLOBAL,
       title: "Code review checklist",
       description: "Always check for proper error handling and edge cases",
-      category: "insight",
+      category: LearningCategory.INSIGHT,
       tags: ["code-review", "best-practices"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     },
     {
       id: "cccccccc-3333-4000-8000-000000000002",
       created_at: new Date().toISOString(),
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Documentation standards",
       description: "Use JSDoc for all public functions and classes",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["documentation", "typescript"],
-      confidence: "medium",
-      status: "approved",
+      confidence: ConfidenceLevel.MEDIUM,
+      status: MemoryStatus.APPROVED,
     },
   ];
 

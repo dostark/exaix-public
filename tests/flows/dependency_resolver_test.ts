@@ -1,4 +1,6 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert@1";
+import { assertEquals, assertThrows } from "@std/assert";
+import { FlowInputSource } from "../../src/enums.ts";
+
 import { DependencyResolver, FlowValidationError } from "../../src/flows/dependency_resolver.ts";
 import { FlowStep, FlowStepInput } from "../../src/schemas/flow.ts";
 
@@ -16,7 +18,7 @@ Deno.test("DependencyResolver: handles single step with no dependencies", () => 
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -33,7 +35,7 @@ Deno.test("DependencyResolver: handles linear chain", () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -41,7 +43,7 @@ Deno.test("DependencyResolver: handles linear chain", () => {
       name: "Step 2",
       agent: "agent2",
       dependsOn: ["step1"],
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -49,7 +51,7 @@ Deno.test("DependencyResolver: handles linear chain", () => {
       name: "Step 3",
       agent: "agent3",
       dependsOn: ["step2"],
-      input: { source: "step", stepId: "step2", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step2", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -66,7 +68,7 @@ Deno.test("DependencyResolver: handles parallel steps", () => {
       name: "Start",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -74,7 +76,7 @@ Deno.test("DependencyResolver: handles parallel steps", () => {
       name: "Parallel 1",
       agent: "agent2",
       dependsOn: ["start"],
-      input: { source: "step", stepId: "start", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -82,7 +84,7 @@ Deno.test("DependencyResolver: handles parallel steps", () => {
       name: "Parallel 2",
       agent: "agent3",
       dependsOn: ["start"],
-      input: { source: "step", stepId: "start", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -90,7 +92,7 @@ Deno.test("DependencyResolver: handles parallel steps", () => {
       name: "End",
       agent: "agent4",
       dependsOn: ["parallel1", "parallel2"],
-      input: { source: "aggregate", transform: "combine" },
+      input: { source: FlowInputSource.AGGREGATE, transform: "combine" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -118,7 +120,7 @@ Deno.test("DependencyResolver: detects self-referencing cycle", () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: ["step1"], // Self-reference
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -138,7 +140,7 @@ Deno.test("DependencyResolver: detects simple cycle", () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: ["step2"],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -146,7 +148,7 @@ Deno.test("DependencyResolver: detects simple cycle", () => {
       name: "Step 2",
       agent: "agent2",
       dependsOn: ["step1"],
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -166,7 +168,7 @@ Deno.test("DependencyResolver: detects complex cycle", () => {
       name: "A",
       agent: "agent1",
       dependsOn: ["c"],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -174,7 +176,7 @@ Deno.test("DependencyResolver: detects complex cycle", () => {
       name: "B",
       agent: "agent2",
       dependsOn: ["a"],
-      input: { source: "step", stepId: "a", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "a", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -182,7 +184,7 @@ Deno.test("DependencyResolver: detects complex cycle", () => {
       name: "C",
       agent: "agent3",
       dependsOn: ["b"],
-      input: { source: "step", stepId: "b", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "b", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -202,7 +204,7 @@ Deno.test("DependencyResolver: handles diamond pattern", () => {
       name: "Start",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -210,7 +212,7 @@ Deno.test("DependencyResolver: handles diamond pattern", () => {
       name: "Branch 1",
       agent: "agent2",
       dependsOn: ["start"],
-      input: { source: "step", stepId: "start", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -218,7 +220,7 @@ Deno.test("DependencyResolver: handles diamond pattern", () => {
       name: "Branch 2",
       agent: "agent3",
       dependsOn: ["start"],
-      input: { source: "step", stepId: "start", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -226,7 +228,7 @@ Deno.test("DependencyResolver: handles diamond pattern", () => {
       name: "Merge",
       agent: "agent4",
       dependsOn: ["branch1", "branch2"],
-      input: { source: "aggregate", transform: "combine" },
+      input: { source: FlowInputSource.AGGREGATE, transform: "combine" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -251,7 +253,7 @@ Deno.test("DependencyResolver: throws error for invalid dependency", () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: ["nonexistent"],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -270,7 +272,7 @@ Deno.test("DependencyResolver: handles all parallel steps", () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -278,7 +280,7 @@ Deno.test("DependencyResolver: handles all parallel steps", () => {
       name: "Step 2",
       agent: "agent2",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -286,7 +288,7 @@ Deno.test("DependencyResolver: handles all parallel steps", () => {
       name: "Step 3",
       agent: "agent3",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];

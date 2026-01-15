@@ -11,7 +11,8 @@
  * - Activity Journal integration
  */
 
-import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
+import { DaemonStatus, EvaluationCategory, MemoryReferenceType } from "../../src/enums.ts";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
@@ -23,6 +24,7 @@ import {
   LearningSchema,
   type ProjectMemory,
 } from "../../src/schemas/memory_bank.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 
 // ===== Learning Schema Tests =====
@@ -31,15 +33,15 @@ Deno.test("LearningSchema: validates minimal learning", () => {
   const learning = {
     id: "550e8400-e29b-41d4-a716-446655440000",
     created_at: "2026-01-04T12:00:00Z",
-    source: "execution",
-    scope: "project",
+    source: MemorySource.EXECUTION,
+    scope: MemoryScope.PROJECT,
     project: "my-app",
     title: "Error handling pattern",
     description: "Always use try-catch with typed errors in async functions",
-    category: "pattern",
+    category: LearningCategory.PATTERN,
     tags: ["error-handling", "typescript"],
-    confidence: "high",
-    status: "approved",
+    confidence: ConfidenceLevel.HIGH,
+    status: MemoryStatus.APPROVED,
   };
 
   const result = LearningSchema.safeParse(learning);
@@ -50,14 +52,14 @@ Deno.test("LearningSchema: validates global learning without project", () => {
   const learning = {
     id: "550e8400-e29b-41d4-a716-446655440001",
     created_at: "2026-01-04T12:00:00Z",
-    source: "user",
-    scope: "global",
+    source: MemorySource.USER,
+    scope: MemoryScope.GLOBAL,
     title: "Always run tests before commit",
     description: "Ensure all tests pass before committing to avoid CI failures",
-    category: "insight",
+    category: LearningCategory.INSIGHT,
     tags: ["testing", "workflow"],
-    confidence: "high",
-    status: "approved",
+    confidence: ConfidenceLevel.HIGH,
+    status: MemoryStatus.APPROVED,
   };
 
   const result = LearningSchema.safeParse(learning);
@@ -68,20 +70,20 @@ Deno.test("LearningSchema: validates pending status with references", () => {
   const learning = {
     id: "550e8400-e29b-41d4-a716-446655440002",
     created_at: "2026-01-04T12:00:00Z",
-    source: "agent",
+    source: MemorySource.AGENT,
     source_id: "trace-123",
-    scope: "project",
+    scope: MemoryScope.PROJECT,
     project: "my-app",
     title: "Avoid N+1 queries",
     description: "Use joins or batch loading to avoid N+1 query problems",
-    category: "anti-pattern",
-    tags: ["database", "performance"],
-    confidence: "medium",
+    category: LearningCategory.ANTI_PATTERN,
+    tags: ["database", EvaluationCategory.PERFORMANCE],
+    confidence: ConfidenceLevel.MEDIUM,
     references: [
-      { type: "file", path: "src/services/user.ts" },
-      { type: "execution", path: "trace-123" },
+      { type: MemoryReferenceType.FILE, path: "src/services/user.ts" },
+      { type: MemorySource.EXECUTION, path: "trace-123" },
     ],
-    status: "pending",
+    status: MemoryStatus.PENDING,
   };
 
   const result = LearningSchema.safeParse(learning);
@@ -92,14 +94,14 @@ Deno.test("LearningSchema: rejects invalid category", () => {
   const learning = {
     id: "550e8400-e29b-41d4-a716-446655440003",
     created_at: "2026-01-04T12:00:00Z",
-    source: "user",
-    scope: "global",
+    source: MemorySource.USER,
+    scope: MemoryScope.GLOBAL,
     title: "Test",
     description: "Test description",
     category: "invalid-category", // Invalid
     tags: [],
-    confidence: "high",
-    status: "approved",
+    confidence: ConfidenceLevel.HIGH,
+    status: MemoryStatus.APPROVED,
   };
 
   const result = LearningSchema.safeParse(learning);
@@ -110,14 +112,14 @@ Deno.test("LearningSchema: rejects invalid status", () => {
   const learning = {
     id: "550e8400-e29b-41d4-a716-446655440004",
     created_at: "2026-01-04T12:00:00Z",
-    source: "user",
-    scope: "global",
+    source: MemorySource.USER,
+    scope: MemoryScope.GLOBAL,
     title: "Test",
     description: "Test description",
-    category: "pattern",
+    category: LearningCategory.PATTERN,
     tags: [],
-    confidence: "high",
-    status: "unknown", // Invalid
+    confidence: ConfidenceLevel.HIGH,
+    status: DaemonStatus.UNKNOWN, // Invalid
   };
 
   const result = LearningSchema.safeParse(learning);
@@ -153,14 +155,14 @@ Deno.test("GlobalMemorySchema: validates populated global memory", () => {
       {
         id: "550e8400-e29b-41d4-a716-446655440000",
         created_at: "2026-01-04T12:00:00Z",
-        source: "user",
-        scope: "global",
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
         title: "Global pattern",
         description: "A global pattern description",
-        category: "pattern",
-        tags: ["global"],
-        confidence: "high",
-        status: "approved",
+        category: LearningCategory.PATTERN,
+        tags: [MemoryScope.GLOBAL],
+        confidence: ConfidenceLevel.HIGH,
+        status: MemoryStatus.APPROVED,
       },
     ],
     patterns: [
@@ -254,14 +256,14 @@ Deno.test("MemoryBankService: addGlobalLearning creates learning entry", async (
     const learning: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Always validate input",
       description: "Validate all user input at API boundaries",
-      category: "pattern",
-      tags: ["security", "validation"],
-      confidence: "high",
-      status: "approved",
+      category: LearningCategory.PATTERN,
+      tags: [EvaluationCategory.SECURITY, "validation"],
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     };
 
     await service.addGlobalLearning(learning);
@@ -271,7 +273,7 @@ Deno.test("MemoryBankService: addGlobalLearning creates learning entry", async (
     assertEquals(globalMem.learnings.length, 1);
     assertEquals(globalMem.learnings[0].title, "Always validate input");
     assertEquals(globalMem.statistics.total_learnings, 1);
-    assertEquals(globalMem.statistics.by_category["pattern"], 1);
+    assertEquals(globalMem.statistics.by_category[LearningCategory.PATTERN], 1);
   } finally {
     await cleanup();
   }
@@ -287,14 +289,14 @@ Deno.test("MemoryBankService: addGlobalLearning updates markdown file", async ()
     const learning: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Input Validation Pattern",
       description: "Always validate user input at API boundaries",
-      category: "pattern",
-      tags: ["security"],
-      confidence: "high",
-      status: "approved",
+      category: LearningCategory.PATTERN,
+      tags: [EvaluationCategory.SECURITY],
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     };
 
     await service.addGlobalLearning(learning);
@@ -318,14 +320,14 @@ Deno.test("MemoryBankService: addGlobalLearning logs to Activity Journal", async
     const learning: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Test learning",
       description: "Test description",
-      category: "insight",
+      category: LearningCategory.INSIGHT,
       tags: [],
-      confidence: "medium",
-      status: "approved",
+      confidence: ConfidenceLevel.MEDIUM,
+      status: MemoryStatus.APPROVED,
     };
 
     await service.addGlobalLearning(learning);
@@ -338,7 +340,7 @@ Deno.test("MemoryBankService: addGlobalLearning logs to Activity Journal", async
       "SELECT action_type, target FROM activity WHERE action_type = 'memory.global.learning.added'",
     ).all() as Array<{ action_type: string; target: string }>;
     assertEquals(activities.length, 1);
-    assertEquals(activities[0].target, "global");
+    assertEquals(activities[0].target, MemoryScope.GLOBAL);
   } finally {
     await cleanup();
   }
@@ -372,13 +374,13 @@ Deno.test("MemoryBankService: promoteLearning moves from project to global", asy
 
     // Promote the pattern as a learning
     const learningId = await service.promoteLearning("my-app", {
-      type: "pattern",
+      type: LearningCategory.PATTERN,
       name: "Repository Pattern",
       title: "Repository Pattern (Promoted)",
       description: "All database access through repositories - promoted from my-app",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["architecture", "database"],
-      confidence: "high",
+      confidence: ConfidenceLevel.HIGH,
     });
 
     assertExists(learningId);
@@ -419,13 +421,13 @@ Deno.test("MemoryBankService: promoteLearning logs to Activity Journal", async (
     await service.initGlobalMemory();
 
     await service.promoteLearning("my-app", {
-      type: "decision",
+      type: LearningCategory.DECISION,
       name: "Use TypeScript",
       title: "TypeScript for all projects",
       description: "Use TypeScript for better type safety",
-      category: "decision",
+      category: LearningCategory.DECISION,
       tags: ["language"],
-      confidence: "high",
+      confidence: ConfidenceLevel.HIGH,
     });
 
     // Wait for batch flush
@@ -436,7 +438,7 @@ Deno.test("MemoryBankService: promoteLearning logs to Activity Journal", async (
     ).all() as Array<{ action_type: string; target: string; payload: string }>;
     assertEquals(activities.length, 1);
     assertEquals(activities[0].target, "my-app");
-    assertStringIncludes(activities[0].payload, "global");
+    assertStringIncludes(activities[0].payload, MemoryScope.GLOBAL);
   } finally {
     await cleanup();
   }
@@ -452,13 +454,13 @@ Deno.test("MemoryBankService: promoteLearning from non-existent project throws",
     await assertRejects(
       async () => {
         await service.promoteLearning("non-existent", {
-          type: "pattern",
+          type: LearningCategory.PATTERN,
           name: "Test",
           title: "Test",
           description: "Test",
-          category: "pattern",
+          category: LearningCategory.PATTERN,
           tags: [],
-          confidence: "medium",
+          confidence: ConfidenceLevel.MEDIUM,
         });
       },
       Error,
@@ -492,14 +494,14 @@ Deno.test("MemoryBankService: demoteLearning moves from global to project", asyn
     const learning: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Test Pattern",
       description: "A pattern to demote",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["test"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     };
     await service.addGlobalLearning(learning);
 
@@ -541,26 +543,26 @@ Deno.test("MemoryBankService: demoteLearning removes from global index", async (
     const learning1: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440001",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Learning 1",
       description: "First learning",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: [],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     };
     const learning2: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440002",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Learning 2",
       description: "Second learning",
-      category: "insight",
+      category: LearningCategory.INSIGHT,
       tags: [],
-      confidence: "medium",
-      status: "approved",
+      confidence: ConfidenceLevel.MEDIUM,
+      status: MemoryStatus.APPROVED,
     };
     await service.addGlobalLearning(learning1);
     await service.addGlobalLearning(learning2);
@@ -617,14 +619,14 @@ Deno.test("MemoryBankService: demoteLearning to non-existent project throws", as
     const learning: Learning = {
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Test",
       description: "Test",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: [],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     };
     await service.addGlobalLearning(learning);
 
@@ -654,41 +656,41 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
       {
         id: "550e8400-e29b-41d4-a716-446655440001",
         created_at: "2026-01-04T12:00:00Z",
-        source: "user",
-        scope: "global",
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
         project: "app-a",
         title: "Pattern 1",
         description: "Desc 1",
-        category: "pattern",
+        category: LearningCategory.PATTERN,
         tags: [],
-        confidence: "high",
-        status: "approved",
+        confidence: ConfidenceLevel.HIGH,
+        status: MemoryStatus.APPROVED,
       },
       {
         id: "550e8400-e29b-41d4-a716-446655440002",
         created_at: "2026-01-04T12:00:00Z",
-        source: "user",
-        scope: "global",
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
         project: "app-a",
         title: "Pattern 2",
         description: "Desc 2",
-        category: "pattern",
+        category: LearningCategory.PATTERN,
         tags: [],
-        confidence: "medium",
-        status: "approved",
+        confidence: ConfidenceLevel.MEDIUM,
+        status: MemoryStatus.APPROVED,
       },
       {
         id: "550e8400-e29b-41d4-a716-446655440003",
         created_at: "2026-01-04T12:00:00Z",
-        source: "agent",
-        scope: "global",
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
         project: "app-b",
         title: "Insight 1",
         description: "Desc 3",
-        category: "insight",
+        category: LearningCategory.INSIGHT,
         tags: [],
-        confidence: "low",
-        status: "approved",
+        confidence: ConfidenceLevel.LOW,
+        status: MemoryStatus.APPROVED,
       },
     ];
 
@@ -699,8 +701,8 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
     const globalMem = await service.getGlobalMemory();
     assertExists(globalMem);
     assertEquals(globalMem.statistics.total_learnings, 3);
-    assertEquals(globalMem.statistics.by_category["pattern"], 2);
-    assertEquals(globalMem.statistics.by_category["insight"], 1);
+    assertEquals(globalMem.statistics.by_category[LearningCategory.PATTERN], 2);
+    assertEquals(globalMem.statistics.by_category[LearningCategory.INSIGHT], 1);
     assertEquals(globalMem.statistics.by_project["app-a"], 2);
     assertEquals(globalMem.statistics.by_project["app-b"], 1);
   } finally {

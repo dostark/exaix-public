@@ -6,6 +6,7 @@ import {
   MockPortalService,
   MockRequestService,
 } from "../../src/tui/tui_dashboard_mocks.ts";
+import { MemoryStatus } from "../../src/enums.ts";
 
 Deno.test("MockPortalService: returns portals", async () => {
   const service = new MockPortalService();
@@ -85,8 +86,8 @@ Deno.test("MockRequestService: all methods", async () => {
   const service = new MockRequestService();
   const all = await service.listRequests();
   if (!Array.isArray(all)) throw new Error("listRequests failed");
-  const pending = await service.listRequests("pending");
-  if (!Array.isArray(pending) || pending.some((r) => r.status !== "pending")) {
+  const pending = await service.listRequests(MemoryStatus.PENDING);
+  if (!Array.isArray(pending) || pending.some((r) => r.status !== MemoryStatus.PENDING)) {
     throw new Error("listRequests status filter failed");
   }
   const content = await service.getRequestContent("test-id");

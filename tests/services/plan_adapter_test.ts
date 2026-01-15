@@ -12,8 +12,10 @@
  * - PlanValidationError includes error details
  */
 
-import { describe, it } from "jsr:@std/testing@^1.0.0/bdd";
-import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "jsr:@std/assert@^1";
+import { describe, it } from "@std/testing/bdd";
+import { McpToolName } from "../../src/enums.ts";
+
+import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "@std/assert";
 
 // Import adapter (will create this)
 import { PlanAdapter, PlanValidationError } from "../../src/services/plan_adapter.ts";
@@ -32,7 +34,7 @@ describe("PlanAdapter", () => {
             step: 1,
             title: "Create User Schema",
             description: "Create database schema for users",
-            tools: ["write_file", "run_command"],
+            tools: [McpToolName.WRITE_FILE, McpToolName.RUN_COMMAND],
             successCriteria: ["Migration file created", "Schema valid"],
             dependencies: [],
             rollback: "Drop users table",
@@ -41,7 +43,7 @@ describe("PlanAdapter", () => {
             step: 2,
             title: "Password Hashing",
             description: "Implement password hashing utilities",
-            tools: ["write_file"],
+            tools: [McpToolName.WRITE_FILE],
             dependencies: [1],
           },
         ],
@@ -217,7 +219,7 @@ describe("PlanAdapter", () => {
             step: 1,
             title: "Create Schema",
             description: "Create user database schema",
-            tools: ["write_file", "run_command"],
+            tools: [McpToolName.WRITE_FILE, McpToolName.RUN_COMMAND],
             successCriteria: ["Schema created", "Migration runs"],
             dependencies: [],
             rollback: "Drop table",
@@ -226,7 +228,7 @@ describe("PlanAdapter", () => {
             step: 2,
             title: "Add Middleware",
             description: "Create auth middleware",
-            tools: ["write_file"],
+            tools: [McpToolName.WRITE_FILE],
             dependencies: [1],
             successCriteria: ["Middleware works"],
           },
@@ -340,7 +342,13 @@ describe("PlanAdapter", () => {
             step: 1,
             title: "Step",
             description: "Desc",
-            tools: ["read_file", "write_file", "run_command", "list_directory", "search_files"],
+            tools: [
+              McpToolName.READ_FILE,
+              McpToolName.WRITE_FILE,
+              McpToolName.RUN_COMMAND,
+              McpToolName.LIST_DIRECTORY,
+              McpToolName.SEARCH_FILES,
+            ],
           },
         ],
       };

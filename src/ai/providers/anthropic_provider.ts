@@ -69,16 +69,16 @@ export class AnthropicProvider implements IModelProvider {
 
     // Read retry settings from config or use defaults
     this.retryDelayMs = options.retryDelayMs ||
-      options.config?.ai_retry?.anthropic?.backoff_base_ms ||
+      options.config?.ai_retry?.providers?.anthropic?.backoff_base_ms ||
       DEFAULTS.DEFAULT_ANTHROPIC_RETRY_BACKOFF_MS;
 
     this.maxRetries = options.maxRetries ||
-      options.config?.ai_retry?.anthropic?.max_attempts ||
+      options.config?.ai_retry?.providers?.anthropic?.max_attempts ||
       DEFAULTS.DEFAULT_ANTHROPIC_RETRY_MAX_ATTEMPTS;
 
     // Read timeout from options, config, or default
     this.timeoutMs = options.timeoutMs ||
-      options.config?.ai_timeout?.anthropic ||
+      options.config?.ai_timeout?.providers?.anthropic ||
       DEFAULTS.DEFAULT_ANTHROPIC_TIMEOUT_MS;
   }
 

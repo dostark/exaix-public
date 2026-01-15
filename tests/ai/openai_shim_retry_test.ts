@@ -1,4 +1,4 @@
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists } from "@std/assert";
 import { ModelFactory } from "../../src/ai/providers.ts";
 import { getTestModel } from "./helpers/test_model.ts";
 import { isCi } from "../helpers/env.ts";
@@ -10,7 +10,7 @@ function isCiGuardActive(): boolean {
 Deno.test("OpenAIShim retries on 429 and returns content", async () => {
   // Arrange: Use ModelFactory to create the shim instance
   const model = getTestModel();
-  const provider = ModelFactory.create(model, { apiKey: "test-key", baseUrl: "https://api.test" });
+  const provider = await ModelFactory.create(model, { apiKey: "test-key", baseUrl: "https://api.test" });
 
   if (isCiGuardActive()) {
     // In CI without opt-in, ModelFactory intentionally returns a mock provider.
@@ -57,7 +57,7 @@ Deno.test({ name: "OpenAIShim: sanity check against real LLM (manual)", ignore: 
   }
 
   const model = getTestModel();
-  const provider = ModelFactory.create(model, { apiKey, baseUrl: "https://api.openai.com" });
+  const provider = await ModelFactory.create(model, { apiKey, baseUrl: "https://api.openai.com" });
 
   try {
     const res = await provider.generate("Sanity check: are you available? Reply with 'ok'.");

@@ -14,6 +14,7 @@
 // --- Adapter: PlanCommands as PlanService ---
 import type { PlanCommands } from "../cli/plan_commands.ts";
 import { TuiSessionBase } from "./tui_common.ts";
+import { PlanStatus } from "../enums.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "./utils/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
@@ -42,7 +43,7 @@ export type Plan = {
   created_at?: string;
 };
 
-export type PlanStatus = "pending" | "approved" | "rejected" | "unknown";
+export type PlanStatusType = PlanStatus | "unknown";
 
 // ===== Plan View State =====
 
@@ -95,10 +96,16 @@ function createPlanViewState(): PlanViewState {
 
 // ===== Plan Status Icons =====
 
-const PLAN_ICONS = {
-  pending: "🔶",
-  approved: "✅",
-  rejected: "❌",
+const PLAN_ICONS: Record<string, string> = {
+  [PlanStatus.REVIEW]: "🔶",
+  [PlanStatus.APPROVED]: "✅",
+  [PlanStatus.REJECTED]: "❌",
+  [PlanStatus.ACTIVE]: "⚙️",
+  [PlanStatus.COMPLETED]: "🏁",
+  [PlanStatus.FAILED]: "💥",
+  [PlanStatus.ERROR]: "⚠️",
+  [PlanStatus.NEEDS_REVISION]: "✍️",
+  [PlanStatus.PENDING]: "⏳",
   unknown: "❓",
   folder: "📁",
 } as const;
@@ -141,7 +148,7 @@ export interface PlanService {
 export class PlanCommandsServiceAdapter implements PlanService {
   constructor(private readonly cmd: PlanCommands) {}
   async listPending() {
-    const rows = await this.cmd.list("pending");
+    const rows = await this.cmd.list(PlanStatus.REVIEW);
     return rows.map((r: any) => ({
       id: r.id,
       title: (r as any).title ?? r.id,
@@ -241,7 +248,7 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     const unknown: TreeNode<Plan>[] = [];
 
     for (const plan of plans) {
-      const status = (plan.status || "unknown") as PlanStatus;
+      const status = (plan.status || "unknown") as PlanStatusType;
       const node = createNode<Plan>(
         plan.id,
         plan.title || plan.id,
@@ -254,13 +261,13 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
       );
 
       switch (status) {
-        case "pending":
+        case PlanStatus.REVIEW:
           pending.push(node);
           break;
-        case "approved":
+        case PlanStatus.APPROVED:
           approved.push(node);
           break;
-        case "rejected":
+        case PlanStatus.REJECTED:
           rejected.push(node);
           break;
         default:
@@ -273,7 +280,7 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     if (pending.length > 0) {
       this.state.planTree.push(
         createGroupNode("pending-group", `Pending (${pending.length})`, "group", pending, {
-          icon: PLAN_ICONS.pending,
+          icon: PLAN_ICONS[PlanStatus.REVIEW],
           badge: pending.length,
         }),
       );
@@ -282,7 +289,7 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     if (approved.length > 0) {
       this.state.planTree.push(
         createGroupNode("approved-group", `Approved (${approved.length})`, "group", approved, {
-          icon: PLAN_ICONS.approved,
+          icon: PLAN_ICONS[PlanStatus.APPROVED],
           badge: approved.length,
         }),
       );
@@ -291,7 +298,7 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     if (rejected.length > 0) {
       this.state.planTree.push(
         createGroupNode("rejected-group", `Rejected (${rejected.length})`, "group", rejected, {
-          icon: PLAN_ICONS.rejected,
+          icon: PLAN_ICONS[PlanStatus.REJECTED],
           badge: rejected.length,
         }),
       );

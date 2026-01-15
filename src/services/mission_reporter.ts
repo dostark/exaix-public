@@ -4,6 +4,7 @@ import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import { MemoryBankService } from "./memory_bank.ts";
 import type { ExecutionMemory } from "../schemas/memory_bank.ts";
+import { ExecutionStatus } from "../enums.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -22,8 +23,8 @@ export interface TraceData {
   /** Agent that executed the task */
   agentId: string;
 
-  /** Execution status: "completed" or "failed" */
-  status: "completed" | "failed";
+  /** Execution status */
+  status: ExecutionStatus;
 
   /** Git branch where changes were made */
   branch: string;
@@ -141,7 +142,7 @@ export class MissionReporter {
           files_deleted: gitStats.filesDeleted,
         },
         lessons_learned: lessonsLearned,
-        error_message: traceData.status === "failed" ? "Execution failed" : undefined,
+        error_message: traceData.status === ExecutionStatus.FAILED ? "Execution failed" : undefined,
       };
 
       // Create execution record using Memory Bank service

@@ -13,6 +13,7 @@
 
 import { z, ZodError, ZodType, ZodTypeDef } from "zod";
 import { Plan, PlanSchema, PlanStepSchema } from "../schemas/plan_schema.ts";
+import { AnalysisFindingSeverity, AnalysisFindingType } from "../enums.ts";
 
 // ============================================================================
 // Output Type Registry
@@ -55,8 +56,8 @@ export const OutputSchemas = {
   analysis: z.object({
     summary: z.string().min(1),
     findings: z.array(z.object({
-      type: z.enum(["issue", "suggestion", "note", "warning", "error"]),
-      severity: z.enum(["low", "medium", "high", "critical"]).optional(),
+      type: z.nativeEnum(AnalysisFindingType),
+      severity: z.nativeEnum(AnalysisFindingSeverity).optional(),
       message: z.string(),
       location: z.string().optional(),
       fix: z.string().optional(),

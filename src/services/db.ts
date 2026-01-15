@@ -200,14 +200,14 @@ export class DatabaseService {
             `INSERT INTO activity (id, trace_id, actor, agent_id, action_type, target, payload, timestamp)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-              entry.activityId,
-              entry.traceId,
-              entry.actor,
-              entry.agentId,
-              entry.actionType,
-              entry.target,
-              entry.payload,
-              entry.timestamp,
+              entry.activityId ?? null,
+              entry.traceId ?? null,
+              entry.actor ?? null,
+              entry.agentId ?? null,
+              entry.actionType ?? null,
+              entry.target ?? null,
+              entry.payload ?? null,
+              entry.timestamp ?? null,
             ],
           );
         }

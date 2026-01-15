@@ -5,6 +5,7 @@
  */
 
 import { z } from "zod";
+import { PermissionAction, PortalOperation, SecurityMode } from "../enums.ts";
 
 // ============================================================================
 // Security Modes
@@ -15,14 +16,12 @@ import { z } from "zod";
  * - sandboxed: No file system access, all operations via MCP tools
  * - hybrid: Read-only portal access, writes via MCP tools with audit
  */
-export const SecurityModeSchema = z.enum(["sandboxed", "hybrid"]);
-export type SecurityMode = z.infer<typeof SecurityModeSchema>;
+export const SecurityModeSchema = z.nativeEnum(SecurityMode);
 
 /**
  * Operations that can be permitted on a portal
  */
-export const PortalOperationSchema = z.enum(["read", "write", "git"]);
-export type PortalOperation = z.infer<typeof PortalOperationSchema>;
+export const PortalOperationSchema = z.nativeEnum(PortalOperation);
 
 // ============================================================================
 // Enhanced Permission Model
@@ -31,8 +30,7 @@ export type PortalOperation = z.infer<typeof PortalOperationSchema>;
 /**
  * Permission action types
  */
-export const PermissionActionSchema = z.enum(["read", "write", "execute", "delete"]);
-export type PermissionAction = z.infer<typeof PermissionActionSchema>;
+export const PermissionActionSchema = z.nativeEnum(PermissionAction);
 
 /**
  * Permission conditions for fine-grained access control
@@ -70,7 +68,7 @@ export type Permission = z.infer<typeof PermissionSchema>;
  * Security settings for a portal
  */
 export const PortalSecurityConfigSchema = z.object({
-  mode: SecurityModeSchema.default("sandboxed"),
+  mode: SecurityModeSchema.default(SecurityMode.SANDBOXED),
   audit_enabled: z.boolean().default(true),
   log_all_actions: z.boolean().default(true),
 });
@@ -87,7 +85,11 @@ export const PortalPermissionsSchema = z.object({
 
   // Legacy permission controls (for backward compatibility)
   agents_allowed: z.array(z.string()).default(["*"]), // "*" = all agents
-  operations: z.array(PortalOperationSchema).default(["read", "write", "git"]),
+  operations: z.array(PortalOperationSchema).default([
+    PortalOperation.READ,
+    PortalOperation.WRITE,
+    PortalOperation.GIT,
+  ]),
 
   // Enhanced RBAC permissions
   permissions: z.array(PermissionSchema).optional(),

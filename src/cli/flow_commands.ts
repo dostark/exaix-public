@@ -11,13 +11,13 @@
  */
 
 import { Table } from "@cliffy/table";
+import { join } from "@std/path";
 import { FlowLoader } from "../flows/flow_loader.ts";
 import { FlowValidatorImpl } from "../services/flow_validator.ts";
 import { EventLogger } from "../services/event_logger.ts";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/providers.ts";
-import { join } from "@std/path";
 
 interface CLIContext {
   config: Config;
@@ -31,10 +31,11 @@ export class FlowCommands {
   private eventLogger: EventLogger;
 
   constructor(private context: CLIContext) {
-    this.flowLoader = new FlowLoader(join(context.config.system.root, context.config.paths.blueprints, "Flows"));
+    const flowsDir = join(context.config.system.root, context.config.paths.flows);
+    this.flowLoader = new FlowLoader(flowsDir);
     this.flowValidator = new FlowValidatorImpl(
       this.flowLoader,
-      join(context.config.system.root, context.config.paths.blueprints, "Flows"),
+      flowsDir,
     );
     this.eventLogger = new EventLogger({
       db: context.db,

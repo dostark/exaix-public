@@ -6,8 +6,9 @@
  */
 
 import { join } from "@std/path";
+import { MCPTransport, PortalOperation } from "../../../src/enums.ts";
 import { ensureDir } from "@std/fs";
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists } from "@std/assert";
 import { MCPServer } from "../../../src/mcp/server.ts";
 import type { PortalPermissions } from "../../../src/schemas/portal_permissions.ts";
 import { initTestDbService } from "../../helpers/db.ts";
@@ -60,21 +61,21 @@ export async function initMCPTest(
 
   // Initialize git repository if requested
   if (initGit) {
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["init"],
       cwd: portalPath,
       stdout: "null",
       stderr: "null",
     }).output();
 
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["config", "user.name", "Test User"],
       cwd: portalPath,
       stdout: "null",
       stderr: "null",
     }).output();
 
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["config", "user.email", "test@example.com"],
       cwd: portalPath,
       stdout: "null",
@@ -108,7 +109,7 @@ export async function initMCPTest(
     portals: [portalConfig],
   });
 
-  const server = new MCPServer({ config, db, transport: "stdio" });
+  const server = new MCPServer({ config, db, transport: MCPTransport.STDIO });
   await server.start();
 
   const cleanup = async () => {
@@ -130,7 +131,7 @@ export async function initMCPTestWithoutPortal(): Promise<
   const { db, cleanup: dbCleanup } = await initTestDbService();
 
   const config = createMockConfig(tempDir);
-  const server = new MCPServer({ config, db, transport: "stdio" });
+  const server = new MCPServer({ config, db, transport: MCPTransport.STDIO });
   await server.start();
 
   const cleanup = async () => {
@@ -146,7 +147,7 @@ export async function initMCPTestWithoutPortal(): Promise<
  * Create MCP tool call request
  *
  * @example
- * const request = createToolCallRequest("read_file", {
+ * const request = createToolCallRequest(McpToolName.READ_FILE, {
  *   portal: "TestPortal",
  *   path: "test.txt"
  * });
@@ -261,7 +262,7 @@ export async function createGitPortal(
   await ensureDir(portalPath);
 
   // Initialize git repo
-  await new Deno.Command("git", {
+  await new Deno.Command(PortalOperation.GIT, {
     args: ["init"],
     cwd: portalPath,
     stdout: "null",
@@ -269,14 +270,14 @@ export async function createGitPortal(
   }).output();
 
   // Configure git
-  await new Deno.Command("git", {
+  await new Deno.Command(PortalOperation.GIT, {
     args: ["config", "user.email", "test@example.com"],
     cwd: portalPath,
     stdout: "null",
     stderr: "null",
   }).output();
 
-  await new Deno.Command("git", {
+  await new Deno.Command(PortalOperation.GIT, {
     args: ["config", "user.name", "Test User"],
     cwd: portalPath,
     stdout: "null",
@@ -292,7 +293,7 @@ export async function createGitPortal(
  *
  * @example
  * const ctx = await initToolPermissionTest({
- *   operations: ["read"],
+ *   operations: [ PortalOperation.READ],
  *   agentId: "test-agent"
  * });
  * const tool = new ReadFileTool(ctx.config, ctx.db, ctx.permissions);
@@ -308,7 +309,7 @@ export interface ToolPermissionTestContext {
 
 export interface ToolPermissionOptions {
   portalAlias?: string;
-  operations?: ("read" | "write" | "git")[];
+  operations?: PortalOperation[];
   agentId?: string;
   fileContent?: Record<string, string>;
   initGit?: boolean;
@@ -319,7 +320,7 @@ export async function initToolPermissionTest(
 ): Promise<ToolPermissionTestContext> {
   const {
     portalAlias = "TestPortal",
-    operations = ["read"],
+    operations = [PortalOperation.READ],
     agentId = "test-agent",
     fileContent = {},
     initGit = false,
@@ -378,7 +379,7 @@ export async function initSimpleMCPServer() {
   const { db, cleanup: dbCleanup } = await initTestDbService();
 
   const config = createMockConfig(tempDir);
-  const server = new MCPServer({ config, db, transport: "stdio" });
+  const server = new MCPServer({ config, db, transport: MCPTransport.STDIO });
   await server.start();
 
   return {

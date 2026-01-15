@@ -1,7 +1,11 @@
 // Integration tests for exoctl CLI commands not yet covered
 // Covers: request list, request show, plan list, plan show, changeset list, changeset show, portal add/remove/refresh, dashboard
 
-import { assert, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertStringIncludes } from "@std/assert";
+import { FlowInputSource } from "../../src/enums.ts";
+
+import { MemoryOperation, MemoryStatus } from "../../src/enums.ts";
+
 import { dirname, fromFileUrl, join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 
@@ -31,12 +35,12 @@ Deno.test("CLI: request list shows created requests", async () => {
     // Create a request file in the workspace
     const { traceId } = await env.createRequest("Test integration request");
     // List requests using CLI
-    const result = await runExoctl(["request", "list"], env.tempDir);
+    const result = await runExoctl([FlowInputSource.REQUEST, "list"], env.tempDir);
     assert(result.code === 0);
     // Check for traceId or shortId in output (robust to CLI format)
     const shortId = traceId.substring(0, 8);
     assertStringIncludes(result.stdout, shortId);
-    assertStringIncludes(result.stdout, "pending");
+    assertStringIncludes(result.stdout, MemoryStatus.PENDING);
   } finally {
     await env.cleanup();
   }
@@ -48,7 +52,7 @@ Deno.test("CLI: request show displays request details", async () => {
     // Create a request
     const { traceId } = await env.createRequest("Show details request");
     // Show request using CLI
-    const result = await runExoctl(["request", "show", traceId], env.tempDir);
+    const result = await runExoctl([FlowInputSource.REQUEST, "show", traceId], env.tempDir);
     assert(result.code === 0);
     assertStringIncludes(result.stdout, "Show details request");
   } finally {
@@ -117,7 +121,7 @@ Deno.test("CLI: portal add/remove/refresh works", async () => {
     // Create a dummy project to add as portal
     await env.writeFile("Portals/TestPortal/README.md", "# Test Portal");
     // Add portal (use relative path from env.tempDir)
-    const add = await runExoctl(["portal", "add", "./Portals/TestPortal", "TestPortal"], env.tempDir);
+    const add = await runExoctl(["portal", MemoryOperation.ADD, "./Portals/TestPortal", "TestPortal"], env.tempDir);
     // Accept both 0 and 1 as valid (some commands may return 1 if portal already exists or not found)
     assert(add.code === 0 || add.code === 1);
     // Refresh portal
@@ -157,7 +161,7 @@ Deno.test("CLI: dashboard launches without error (smoke test)", async () => {
 Deno.test("CLI: request create with missing description fails", async () => {
   const env = await TestEnvironment.create();
   try {
-    const result = await runExoctl(["request"], env.tempDir);
+    const result = await runExoctl([FlowInputSource.REQUEST], env.tempDir);
     // Should fail with exit code 1 and error message
     assert(result.code === 1);
     assertStringIncludes(result.stderr, "Description required");

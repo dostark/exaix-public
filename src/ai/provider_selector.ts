@@ -13,6 +13,7 @@ import { ProviderRegistry } from "./provider_registry.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
 import { HealthCheckService } from "../services/health_check_service.ts";
 import { Config } from "../config/schema.ts";
+import { PricingTier, ProviderCostTier, TaskComplexity } from "../enums.ts";
 
 /**
  * Criteria for selecting a provider
@@ -23,7 +24,7 @@ export interface SelectionCriteria {
   /** Maximum daily cost in USD */
   maxCostUsd?: number;
   /** Task complexity level */
-  taskComplexity?: "simple" | "medium" | "complex";
+  taskComplexity?: TaskComplexity;
   /** Required provider capabilities */
   requiredCapabilities?: string[];
   /** Allow local providers */
@@ -64,8 +65,8 @@ export class ProviderSelector {
 
       // Filter by cost preference (fast check)
       if (criteria.preferFree) {
-        const freeProviders = candidates.filter((p) =>
-          p.metadata.costTier === "FREE" || p.metadata.costTier === "FREEMIUM"
+        const freeProviders = candidates.filter((p: any) =>
+          p.metadata.costTier === ProviderCostTier.FREE || p.metadata.costTier === ProviderCostTier.FREEMIUM
         );
         if (freeProviders.length > 0) {
           candidates = freeProviders;
@@ -137,8 +138,8 @@ export class ProviderSelector {
     };
 
     // Map task type to complexity if it's a known type
-    if (taskType === "simple" || taskType === "complex") {
-      criteria.taskComplexity = taskType as "simple" | "complex";
+    if (taskType === TaskComplexity.SIMPLE || taskType === TaskComplexity.COMPLEX) {
+      criteria.taskComplexity = taskType as TaskComplexity;
     }
 
     return this.selectProvider(criteria);
@@ -182,12 +183,12 @@ export class ProviderSelector {
    */
   private sortByTaskMatch(
     providers: Array<{ factory: any; metadata: any }>,
-    complexity: "simple" | "medium" | "complex",
+    complexity: TaskComplexity,
   ): Array<{ factory: any; metadata: any }> {
     const tierPreference = {
-      "simple": ["local", "free", "low"],
-      "medium": ["low", "medium", "free"],
-      "complex": ["high", "medium", "low"],
+      [TaskComplexity.SIMPLE]: [PricingTier.LOCAL, PricingTier.FREE, PricingTier.LOW],
+      [TaskComplexity.MEDIUM]: [PricingTier.LOW, PricingTier.MEDIUM, PricingTier.FREE],
+      [TaskComplexity.COMPLEX]: [PricingTier.HIGH, PricingTier.MEDIUM, PricingTier.LOW],
     };
 
     const preferred = tierPreference[complexity];

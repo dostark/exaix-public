@@ -11,8 +11,10 @@
  * - Test 6: Counts files changed in changeset listings
  */
 
-import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
+import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
+import { FlowStepType, MemoryOperation, MemoryStatus, PortalOperation } from "../../src/enums.ts";
+
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ChangesetCommands } from "../../src/cli/changeset_commands.ts";
 import { DatabaseService } from "../../src/services/db.ts";
@@ -43,7 +45,7 @@ describe("ChangesetCommands", () => {
 
     // Create initial commit on main
     await Deno.writeTextFile(join(tempDir, "README.md"), "# Test Project\n");
-    await runGitCommand(tempDir, ["add", "README.md"]);
+    await runGitCommand(tempDir, [MemoryOperation.ADD, "README.md"]);
     await runGitCommand(tempDir, ["commit", "-m", "Initial commit"]);
 
     gitService = new GitService({ config, db });
@@ -93,11 +95,11 @@ describe("ChangesetCommands", () => {
       await db.waitForFlush();
 
       // Filter for approved
-      const approved = await changesetCommands.list("approved");
+      const approved = await changesetCommands.list(MemoryStatus.APPROVED);
       assertEquals(approved.length, 1);
 
       // Filter for pending
-      const pending = await changesetCommands.list("pending");
+      const pending = await changesetCommands.list(MemoryStatus.PENDING);
       assertEquals(pending.length, 0);
     });
 
@@ -243,7 +245,7 @@ describe("ChangesetCommands", () => {
       await changesetCommands.reject("request-014", "Not needed");
 
       // Verify branch was deleted
-      const branches = await runGitCommand(tempDir, ["branch", "--list", "feat/*"]);
+      const branches = await runGitCommand(tempDir, [FlowStepType.BRANCH, "--list", "feat/*"]);
       assertEquals(branches.includes("feat/request-014-def-012-abc"), false);
     });
 
@@ -286,7 +288,7 @@ describe("ChangesetCommands", () => {
 // Helper functions
 
 async function runGitCommand(cwd: string, args: string[]): Promise<string> {
-  const cmd = new Deno.Command("git", {
+  const cmd = new Deno.Command(PortalOperation.GIT, {
     args: ["-C", cwd, ...args],
     stdout: "piped",
     stderr: "piped",
@@ -316,7 +318,7 @@ async function createFeatureBranch(
   for (let i = 0; i < fileCount; i++) {
     const fileName = `feature-${i + 1}.txt`;
     await Deno.writeTextFile(join(repoDir, fileName), `feature content ${i + 1}\n`);
-    await runGitCommand(repoDir, ["add", fileName]);
+    await runGitCommand(repoDir, [MemoryOperation.ADD, fileName]);
   }
 
   // Commit
@@ -353,7 +355,7 @@ describe("ChangesetCommands - Edge Cases", () => {
 
     // Create initial commit on main
     await Deno.writeTextFile(join(tempDir, "README.md"), "# Test Project\n");
-    await runGitCommand(tempDir, ["add", "README.md"]);
+    await runGitCommand(tempDir, [MemoryOperation.ADD, "README.md"]);
     await runGitCommand(tempDir, ["commit", "-m", "Initial commit"]);
 
     gitService = new GitService({ config, db });

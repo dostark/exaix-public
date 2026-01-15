@@ -4,6 +4,17 @@
  * All methods return static or empty values and are safe for use in isolated tests.
  */
 import { PortalService } from "./portal_manager_view.ts";
+import {
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryOperation,
+  MemoryReferenceType,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+  SkillStatus,
+} from "../enums.ts";
 
 export class MockPortalService implements PortalService {
   /** Returns an empty list of portals. */
@@ -309,7 +320,7 @@ export class MockMemoryService {
       ],
       references: [
         {
-          type: "file" as const,
+          type: MemoryReferenceType.FILE,
           path: "src/index.ts",
           description: "Main entry point",
         },
@@ -326,26 +337,26 @@ export class MockMemoryService {
         {
           id: "global-1",
           created_at: new Date().toISOString(),
-          source: "user" as const,
-          scope: "global" as const,
+          source: MemorySource.USER,
+          scope: MemoryScope.GLOBAL,
           title: "Cross-project coding standards",
           description: "Apply consistent formatting across all projects",
-          category: "pattern" as const,
-          confidence: "high" as const,
+          category: LearningCategory.PATTERN,
+          confidence: ConfidenceLevel.HIGH,
           tags: ["standards"],
-          status: "approved" as const,
+          status: MemoryStatus.APPROVED,
         },
         {
           id: "global-2",
           created_at: new Date().toISOString(),
-          source: "execution" as const,
-          scope: "global" as const,
+          source: MemorySource.EXECUTION,
+          scope: MemoryScope.GLOBAL,
           title: "Testing best practices",
           description: "Write tests for critical paths first",
-          category: "insight" as const,
-          confidence: "medium" as const,
+          category: LearningCategory.INSIGHT,
+          confidence: ConfidenceLevel.MEDIUM,
           tags: ["testing"],
-          status: "approved" as const,
+          status: MemoryStatus.APPROVED,
         },
       ],
       patterns: [
@@ -385,7 +396,7 @@ export class MockMemoryService {
     return Promise.resolve({
       trace_id: traceId,
       request_id: "req-001",
-      status: "completed" as const,
+      status: ExecutionStatus.COMPLETED,
       agent: "CodeAgent",
       portal: "test-project",
       started_at: new Date(Date.now() - 3600000).toISOString(),
@@ -408,7 +419,7 @@ export class MockMemoryService {
       {
         trace_id: "exec-001-abcd-1234-5678-abcd1234",
         request_id: "req-001",
-        status: "completed" as const,
+        status: ExecutionStatus.COMPLETED,
         agent: "CodeAgent",
         portal: "test-project",
         started_at: new Date(Date.now() - 3600000).toISOString(),
@@ -421,7 +432,7 @@ export class MockMemoryService {
       {
         trace_id: "exec-002-efgh-5678-1234-efgh5678",
         request_id: "req-002",
-        status: "running" as const,
+        status: ExecutionStatus.RUNNING,
         agent: "TestAgent",
         portal: "demo-app",
         started_at: new Date().toISOString(),
@@ -460,23 +471,23 @@ export class MockMemoryService {
       {
         id: "proposal-1",
         created_at: new Date().toISOString(),
-        operation: "add" as const,
-        target_scope: "global" as const,
+        operation: MemoryOperation.ADD,
+        target_scope: MemoryScope.GLOBAL,
         learning: {
           id: "learning-prop-1",
           created_at: new Date().toISOString(),
-          source: "execution" as const,
-          scope: "global" as const,
+          source: MemorySource.EXECUTION,
+          scope: MemoryScope.GLOBAL,
           title: "New error handling pattern",
           description: "Use Result type for error handling",
-          category: "pattern" as const,
-          confidence: "medium" as const,
+          category: LearningCategory.PATTERN,
+          confidence: ConfidenceLevel.MEDIUM,
           tags: ["error-handling"],
         },
         reason: "Extracted from recent execution",
         agent: "CodeAgent",
         execution_id: "exec-001",
-        status: "pending" as const,
+        status: MemoryStatus.PENDING,
       },
     ]);
   }
@@ -513,8 +524,8 @@ export class MockSkillsService {
         id: "tdd-methodology",
         name: "TDD Methodology",
         version: "1.0.0",
-        status: "active" as const,
-        source: "core" as const,
+        status: SkillStatus.ACTIVE,
+        source: MemorySource.USER,
         description: "Test-Driven Development methodology for writing reliable code",
         triggers: {
           keywords: ["tdd", "test-first", "testing"],
@@ -527,8 +538,8 @@ export class MockSkillsService {
         id: "security-first",
         name: "Security First",
         version: "1.0.0",
-        status: "active" as const,
-        source: "core" as const,
+        status: SkillStatus.ACTIVE,
+        source: MemorySource.USER,
         description: "Security-focused development practices",
         triggers: {
           keywords: ["security", "auth", "password", "token"],
@@ -541,8 +552,8 @@ export class MockSkillsService {
         id: "code-review",
         name: "Code Review",
         version: "1.0.0",
-        status: "active" as const,
-        source: "core" as const,
+        status: SkillStatus.ACTIVE,
+        source: MemorySource.USER,
         description: "Best practices for code review",
         triggers: {
           keywords: ["review", "pr", "pull request"],
@@ -555,8 +566,8 @@ export class MockSkillsService {
         id: "typescript-patterns",
         name: "TypeScript Patterns",
         version: "1.0.0",
-        status: "active" as const,
-        source: "core" as const,
+        status: SkillStatus.ACTIVE,
+        source: MemorySource.USER,
         description: "TypeScript best practices and patterns",
         triggers: {
           keywords: ["typescript", "ts"],
@@ -569,8 +580,8 @@ export class MockSkillsService {
         id: "documentation-driven",
         name: "Documentation Driven",
         version: "1.0.0",
-        status: "active" as const,
-        source: "core" as const,
+        status: SkillStatus.ACTIVE,
+        source: MemorySource.USER,
         description: "Documentation-first approach to development",
         triggers: {
           keywords: ["docs", "documentation", "readme"],
@@ -583,8 +594,8 @@ export class MockSkillsService {
         id: "project-conventions",
         name: "Project Conventions",
         version: "1.0.0",
-        status: "active" as const,
-        source: "project" as const,
+        status: SkillStatus.ACTIVE,
+        source: MemorySource.USER,
         description: "Project-specific coding conventions",
         triggers: {
           keywords: ["conventions", "standards"],
@@ -596,8 +607,8 @@ export class MockSkillsService {
         id: "api-design-learned",
         name: "API Design (Learned)",
         version: "1.0.0",
-        status: "draft" as const,
-        source: "learned" as const,
+        status: SkillStatus.DRAFT,
+        source: MemorySource.LEARNED,
         description: "Learned patterns for API design from past executions",
         triggers: {
           keywords: ["api", "endpoint", "rest"],
@@ -626,7 +637,7 @@ export class MockSkillsService {
   deleteSkill(skillId: string) {
     // Only allow deleting non-core skills
     return this.getSkill(skillId).then((skill) => {
-      if (skill && skill.source !== "core") {
+      if (skill && skill.source !== MemorySource.USER) {
         return true;
       }
       return false;

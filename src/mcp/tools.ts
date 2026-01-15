@@ -3,7 +3,7 @@ import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "../services/db.ts";
 import { type MCPToolResponse, ReadFileToolArgsSchema } from "../schemas/mcp.ts";
 import { PortalPermissionsService } from "../services/portal_permissions.ts";
-import type { PortalOperation } from "../schemas/portal_permissions.ts";
+import { PortalOperation } from "../enums.ts";
 
 /**
  * MCP Tool Handlers
@@ -183,7 +183,7 @@ export class ReadFileTool extends ToolHandler {
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, "read");
+      this.validatePermission(portal, agent_id, PortalOperation.READ);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -280,7 +280,7 @@ export class WriteFileTool extends ToolHandler {
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, "write");
+      this.validatePermission(portal, agent_id, PortalOperation.WRITE);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -377,7 +377,7 @@ export class ListDirectoryTool extends ToolHandler {
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, "read");
+      this.validatePermission(portal, agent_id, PortalOperation.READ);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -481,7 +481,7 @@ export class GitCreateBranchTool extends ToolHandler {
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, "git");
+      this.validatePermission(portal, agent_id, PortalOperation.GIT);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -564,7 +564,7 @@ export class GitCommitTool extends ToolHandler {
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, "git");
+      this.validatePermission(portal, agent_id, PortalOperation.GIT);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);
@@ -670,7 +670,7 @@ export class GitStatusTool extends ToolHandler {
 
     try {
       // All tools make permission checking for portal operations
-      this.validatePermission(portal, agent_id, "git");
+      this.validatePermission(portal, agent_id, PortalOperation.GIT);
 
       // Validate portal exists
       const portalPath = this.validatePortalExists(portal);

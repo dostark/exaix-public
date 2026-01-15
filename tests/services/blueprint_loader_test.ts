@@ -5,8 +5,10 @@
  * Phase 16.1 implementation.
  */
 
-import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@1";
-import { join } from "jsr:@std/path@1";
+import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
+import { join } from "@std/path";
 import {
   BlueprintLoader,
   BlueprintLoadError,
@@ -65,7 +67,7 @@ You are a code reviewer. Review code for quality and best practices.
     assertEquals(blueprint.agentId, "code-reviewer");
     assertEquals(blueprint.name, "Code Reviewer Agent");
     assertEquals(blueprint.model, "anthropic:claude-sonnet-4-20250514");
-    assertEquals(blueprint.capabilities, ["read_file", "write_file"]);
+    assertEquals(blueprint.capabilities, [McpToolName.READ_FILE, McpToolName.WRITE_FILE]);
     assertEquals(blueprint.version, "1.0.0");
     assertStringIncludes(blueprint.systemPrompt, "You are a code reviewer");
     assertEquals(blueprint.frontmatter.reflexive, false);

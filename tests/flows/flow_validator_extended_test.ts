@@ -2,7 +2,8 @@
  * Extended tests for FlowValidatorImpl to improve code coverage
  * These tests cover additional edge cases and branches not covered by the main tests
  */
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertStringIncludes } from "@std/assert";
+import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
 import type { Flow, FlowStep } from "../../src/schemas/flow.ts";
 
@@ -54,9 +55,9 @@ function createStep(id: string, agent: string, dependsOn: string[] = []): FlowSt
     id,
     name: `Step ${id}`,
     agent,
-    type: "agent",
+    type: FlowStepType.AGENT,
     dependsOn,
-    input: { source: "request", transform: "passthrough" },
+    input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
     retry: { maxAttempts: 1, backoffMs: 1000 },
   };
 }
@@ -67,7 +68,7 @@ function createStep(id: string, agent: string, dependsOn: string[] = []): FlowSt
 function createFlow(
   id: string,
   steps: FlowStep[],
-  output?: { from: string; format: "markdown" | "json" | "concat" },
+  output?: { from: string; format: FlowOutputFormat },
 ): Flow {
   const flow: Flow = {
     id,
@@ -75,7 +76,7 @@ function createFlow(
     description: `Description for ${id}`,
     version: "1.0.0",
     steps,
-    output: output ?? { from: "default", format: "markdown" },
+    output: output ?? { from: "default", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
   return flow;
@@ -124,7 +125,7 @@ Deno.test("FlowValidatorImpl: fails for flow with missing output.from", async ()
   // Flow with output.format but missing output.from
   const flow = createFlow("missing-from", [createStep("s1", "agent1")]);
   // @ts-ignore - Force missing from for testing
-  flow.output = { from: undefined, format: "markdown" };
+  flow.output = { from: undefined, format: FlowOutputFormat.MARKDOWN };
   loader.setFlow("missing-from", flow);
 
   const result = await validator.validateFlow("missing-from");
@@ -274,7 +275,7 @@ Deno.test("FlowValidatorImpl: validates flow with multiple valid steps", async (
     createStep("s1", "agent1"),
     createStep("s2", "agent2", ["s1"]),
     createStep("s3", "agent3", ["s2"]),
-  ], { from: "s3", format: "markdown" });
+  ], { from: "s3", format: FlowOutputFormat.MARKDOWN });
   loader.setFlow("multi-step", flow);
 
   const result = await validator.validateFlow("multi-step");
@@ -330,7 +331,7 @@ Deno.test("FlowValidatorImpl: validates flow with output.from referencing last s
   const flow = createFlow("output-last", [
     createStep("s1", "agent1"),
     createStep("s2", "agent2", ["s1"]),
-  ], { from: "s2", format: "json" });
+  ], { from: "s2", format: FlowOutputFormat.JSON });
   loader.setFlow("output-last", flow);
 
   const result = await validator.validateFlow("output-last");
@@ -345,7 +346,7 @@ Deno.test("FlowValidatorImpl: validates flow with output.from referencing first 
   const flow = createFlow("output-first", [
     createStep("s1", "agent1"),
     createStep("s2", "agent2", ["s1"]),
-  ], { from: "s1", format: "markdown" });
+  ], { from: "s1", format: FlowOutputFormat.MARKDOWN });
   loader.setFlow("output-first", flow);
 
   const result = await validator.validateFlow("output-first");

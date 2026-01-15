@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FlowConsensusMethod, FlowGateOnFail, FlowInputSource, FlowOutputFormat, FlowStepType } from "../enums.ts";
 
 // Gate evaluation configuration schema
 export const GateEvaluateSchema = z.object({
@@ -9,7 +10,7 @@ export const GateEvaluateSchema = z.object({
   /** Score threshold for passing (0.0 - 1.0) */
   threshold: z.number().min(0).max(1).default(0.8),
   /** Action on failure */
-  onFail: z.enum(["retry", "halt", "continue-with-warning"]).default("halt"),
+  onFail: z.nativeEnum(FlowGateOnFail).default(FlowGateOnFail.HALT),
   /** Max retries if onFail is "retry" */
   maxRetries: z.number().int().min(1).default(3),
 });
@@ -35,7 +36,7 @@ export const BranchConditionSchema = z.object({
 // Consensus configuration schema
 export const ConsensusConfigSchema = z.object({
   /** Consensus method */
-  method: z.enum(["majority", "weighted", "unanimous", "judge"]).default("judge"),
+  method: z.nativeEnum(FlowConsensusMethod).default(FlowConsensusMethod.JUDGE),
   /** Judge agent for "judge" method */
   judge: z.string().optional(),
   /** Weights for "weighted" method */
@@ -47,12 +48,12 @@ export const FlowStepSchema = z.object({
   id: z.string().min(1, "Step ID cannot be empty"),
   name: z.string().min(1, "Step name cannot be empty"),
   /** Step type: standard agent step, gate, branch, or consensus. Defaults to "agent" */
-  type: z.enum(["agent", "gate", "branch", "consensus"]).optional().default("agent"),
+  type: z.nativeEnum(FlowStepType).optional().default(FlowStepType.AGENT),
   /** Agent reference (required for agent type, optional for others) */
   agent: z.string().min(1, "Agent reference cannot be empty"),
   dependsOn: z.array(z.string()).default([]),
   input: z.object({
-    source: z.enum(["request", "step", "aggregate", "feedback"]).default("request"),
+    source: z.nativeEnum(FlowInputSource).default(FlowInputSource.REQUEST),
     stepId: z.string().optional(),
     from: z.array(z.string()).optional(), // For aggregate source
     transform: z.union([z.string(), z.function()]).default("passthrough"),
@@ -89,7 +90,7 @@ export const FlowSchema = z.object({
   steps: z.array(FlowStepSchema).min(1, "Flow must have at least one step"),
   output: z.object({
     from: z.union([z.string(), z.array(z.string())]),
-    format: z.enum(["markdown", "json", "concat"]).default("markdown"),
+    format: z.nativeEnum(FlowOutputFormat).default(FlowOutputFormat.MARKDOWN),
   }),
   settings: z.object({
     maxParallelism: z.number().int().min(1).default(3),

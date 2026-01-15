@@ -1,4 +1,8 @@
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assertEquals } from "@std/assert";
+import { MemoryReferenceType } from "../../src/enums.ts";
+
+import { ExecutionStatus } from "../../src/enums.ts";
+
 import {
   type ExecutionMemory,
   ExecutionMemorySchema,
@@ -29,12 +33,12 @@ Deno.test("ProjectMemorySchema: validates valid project memory", () => {
     ],
     references: [
       {
-        type: "file",
+        type: MemoryReferenceType.FILE,
         path: "src/database/schema.sql",
         description: "Database schema definition",
       },
       {
-        type: "doc",
+        type: MemoryReferenceType.DOC,
         path: "docs/architecture.md",
         description: "System architecture overview",
       },
@@ -121,7 +125,7 @@ Deno.test("ExecutionMemorySchema: validates valid execution memory", () => {
     request_id: "REQ-123",
     started_at: "2026-01-03T10:00:00Z",
     completed_at: "2026-01-03T10:15:00Z",
-    status: "completed",
+    status: ExecutionStatus.COMPLETED,
     portal: "my-project",
     agent: "senior-coder",
     summary: "Added authentication middleware to Express app",
@@ -142,7 +146,7 @@ Deno.test("ExecutionMemorySchema: validates valid execution memory", () => {
   assertEquals(result.success, true);
   if (result.success) {
     assertEquals(result.data.trace_id, "550e8400-e29b-41d4-a716-446655440000");
-    assertEquals(result.data.status, "completed");
+    assertEquals(result.data.status, ExecutionStatus.COMPLETED);
     assertEquals(result.data.changes.files_created.length, 1);
     assertEquals(result.data.lessons_learned?.length, 2);
   }
@@ -153,7 +157,7 @@ Deno.test("ExecutionMemorySchema: validates UUID format for trace_id", () => {
     trace_id: "not-a-uuid",
     request_id: "REQ-123",
     started_at: "2026-01-03T10:00:00Z",
-    status: "completed",
+    status: ExecutionStatus.COMPLETED,
     portal: "my-project",
     agent: "senior-coder",
     summary: "Test summary",
@@ -198,7 +202,7 @@ Deno.test("ExecutionMemorySchema: allows optional fields (completed_at, lessons_
     request_id: "REQ-123",
     started_at: "2026-01-03T10:00:00Z",
     // No completed_at (still running)
-    status: "running",
+    status: ExecutionStatus.RUNNING,
     portal: "my-project",
     agent: "senior-coder",
     summary: "In progress",
@@ -222,7 +226,7 @@ Deno.test("ExecutionMemorySchema: validates failed execution with error message"
     request_id: "REQ-124",
     started_at: "2026-01-03T10:00:00Z",
     completed_at: "2026-01-03T10:01:00Z",
-    status: "failed",
+    status: ExecutionStatus.FAILED,
     portal: "my-project",
     agent: "senior-coder",
     summary: "Failed to add feature due to permission error",
@@ -239,7 +243,7 @@ Deno.test("ExecutionMemorySchema: validates failed execution with error message"
   const result = ExecutionMemorySchema.safeParse(failedExecution);
   assertEquals(result.success, true);
   if (result.success) {
-    assertEquals(result.data.status, "failed");
+    assertEquals(result.data.status, ExecutionStatus.FAILED);
     assertEquals(result.data.error_message, "PermissionDenied: Cannot write to protected directory");
   }
 });
@@ -249,7 +253,7 @@ Deno.test("ExecutionMemorySchema: requires changes object with all file arrays",
     trace_id: "550e8400-e29b-41d4-a716-446655440000",
     request_id: "REQ-123",
     started_at: "2026-01-03T10:00:00Z",
-    status: "completed",
+    status: ExecutionStatus.COMPLETED,
     portal: "my-project",
     agent: "senior-coder",
     summary: "Test summary",

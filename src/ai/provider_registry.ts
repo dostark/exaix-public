@@ -25,6 +25,8 @@ import { OpenAIProvider } from "./providers/openai_provider.ts";
 import { AnthropicProvider } from "./providers/anthropic_provider.ts";
 import { GoogleProvider } from "./providers/google_provider.ts";
 import { ProviderFactoryError } from "./provider_factory.ts";
+import { PricingTier, PriorityLevel, ProviderCostTier } from "../enums.ts";
+import * as DEFAULTS from "../config/constants.ts";
 // ============================================================================
 // Interfaces
 // ============================================================================
@@ -44,13 +46,6 @@ export interface IProviderFactory {
    * @returns A configured provider instance
    */
   create(options: ResolvedProviderOptions): Promise<IModelProvider>;
-
-  /**
-   * Get the list of provider types this factory supports.
-   * Used for registry queries and validation.
-   * @returns Array of supported provider type strings
-   */
-  getSupportedProviders(): string[];
 }
 
 /**
@@ -65,7 +60,7 @@ export interface ProviderMetadata {
   /** Supported capabilities (e.g., "chat", "streaming", "vision") */
   capabilities: string[];
   /** Cost tier classification */
-  costTier: "FREE" | "FREEMIUM" | "PAID";
+  costTier: ProviderCostTier;
   /** Optional free tier quota limits */
   freeQuota?: {
     requestsPerDay?: number;
@@ -73,7 +68,7 @@ export interface ProviderMetadata {
     tokensPerMonth?: number;
   };
   /** Pricing tier for cost-based sorting */
-  pricingTier: "local" | "free" | "low" | "medium" | "high";
+  pricingTier: PricingTier;
   /** Task types this provider excels at */
   strengths: string[];
 }
@@ -145,7 +140,7 @@ export class ProviderRegistry {
    * @param costTier The cost tier to filter by
    * @returns Array of provider names matching the cost tier
    */
-  static getProvidersByCostTier(costTier: "FREE" | "FREEMIUM" | "PAID"): string[] {
+  static getProvidersByCostTier(costTier: ProviderCostTier): string[] {
     return Array.from(this.metadata.entries())
       .filter(([, metadata]) => metadata.costTier === costTier)
       .map(([providerType]) => providerType);
@@ -168,15 +163,21 @@ export class ProviderRegistry {
    * @param pricingTier The pricing tier
    * @returns Numeric priority value
    */
-  private static costPriority(pricingTier: string): number {
-    const priorities: Record<string, number> = {
-      "local": 0,
-      "free": 1,
-      "low": 2,
-      "medium": 3,
-      "high": 4,
-    };
-    return priorities[pricingTier] ?? 999;
+  private static costPriority(pricingTier: PricingTier): number {
+    switch (pricingTier) {
+      case PricingTier.LOCAL:
+        return PriorityLevel.LOCAL;
+      case PricingTier.FREE:
+        return 1; // Not in enum, but keep for now
+      case PricingTier.LOW:
+        return PriorityLevel.LOW;
+      case PricingTier.MEDIUM:
+        return PriorityLevel.MEDIUM;
+      case PricingTier.HIGH:
+        return PriorityLevel.HIGH;
+      default:
+        return PriorityLevel.DEFAULT;
+    }
   }
 
   /**
@@ -209,16 +210,13 @@ export class ProviderRegistry {
  */
 export class MockProviderFactory implements IProviderFactory {
   async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
-    const strategy = options.mockStrategy ?? "recorded";
+    const strategy = options.mockStrategy ?? DEFAULTS.DEFAULT_MOCK_STRATEGY;
 
     return await new MockLLMProvider(strategy, {
-      id: `mock-${strategy}-${options.model}`,
+      id: options.id ?? `mock-${strategy}-${options.model}`,
       fixtureDir: options.mockFixturesDir,
+      responses: (options as any).responses,
     });
-  }
-
-  getSupportedProviders(): string[] {
-    return ["mock"];
   }
 }
 
@@ -228,15 +226,11 @@ export class MockProviderFactory implements IProviderFactory {
 export class OllamaProviderFactory implements IProviderFactory {
   async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
     return await new OllamaProvider({
-      id: `ollama-${options.model}`,
+      id: options.id ?? `ollama-${options.model}`,
       model: options.model,
       baseUrl: options.baseUrl,
       timeoutMs: options.timeoutMs,
     });
-  }
-
-  getSupportedProviders(): string[] {
-    return ["ollama"];
   }
 }
 
@@ -249,10 +243,6 @@ export class LlamaProviderFactory implements IProviderFactory {
       model: options.model,
       endpoint: options.baseUrl,
     });
-  }
-
-  getSupportedProviders(): string[] {
-    return ["llama"];
   }
 }
 
@@ -271,10 +261,6 @@ export class AnthropicProviderFactory implements IProviderFactory {
       model: options.model,
       id: `anthropic-${options.model}`,
     });
-  }
-
-  getSupportedProviders(): string[] {
-    return ["anthropic"];
   }
 }
 
@@ -295,10 +281,6 @@ export class OpenAIProviderFactory implements IProviderFactory {
       id: `openai-${options.model}`,
     });
   }
-
-  getSupportedProviders(): string[] {
-    return ["openai"];
-  }
 }
 
 /**
@@ -316,9 +298,5 @@ export class GoogleProviderFactory implements IProviderFactory {
       model: options.model,
       id: `google-${options.model}`,
     });
-  }
-
-  getSupportedProviders(): string[] {
-    return ["google"];
   }
 }

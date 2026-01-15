@@ -12,7 +12,15 @@
  * - Test 7: System returns to healthy state after recovery
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { FlowStepType } from "../../src/enums.ts";
+
+import { McpToolName } from "../../src/enums.ts";
+
+import { PortalOperation } from "../../src/enums.ts";
+
+import { MemoryOperation } from "../../src/enums.ts";
+
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ExecutionLoop } from "../../src/services/execution_loop.ts";
@@ -86,9 +94,9 @@ Deno.test("Integration: System Recovery - Recover from crash mid-execution", asy
       const planPath = await env.createPlan(traceId, "crash-test", {
         status: "executing", // Already in executing state
         actions: [
-          { tool: "write_file", params: { path: "step1.txt", content: "step1" } },
-          { tool: "write_file", params: { path: "step2.txt", content: "step2" } },
-          { tool: "write_file", params: { path: "step3.txt", content: "step3" } },
+          { tool: McpToolName.WRITE_FILE, params: { path: "step1.txt", content: "step1" } },
+          { tool: McpToolName.WRITE_FILE, params: { path: "step2.txt", content: "step2" } },
+          { tool: McpToolName.WRITE_FILE, params: { path: "step3.txt", content: "step3" } },
         ],
       });
 
@@ -178,8 +186,8 @@ Deno.test("Integration: System Recovery - Recover from crash mid-execution", asy
     await t.step("Test 3: Git working directory state is restored", async () => {
       // Simulate dirty git state from crash
       await env.writeFile("uncommitted-change.txt", "dirty state");
-      await new Deno.Command("git", {
-        args: ["add", "uncommitted-change.txt"],
+      await new Deno.Command(PortalOperation.GIT, {
+        args: [MemoryOperation.ADD, "uncommitted-change.txt"],
         cwd: env.tempDir,
       }).output();
 
@@ -192,8 +200,8 @@ Deno.test("Integration: System Recovery - Recover from crash mid-execution", asy
       await recovery.restoreGitState();
 
       // Should be on main branch
-      const branchCmd = new Deno.Command("git", {
-        args: ["branch", "--show-current"],
+      const branchCmd = new Deno.Command(PortalOperation.GIT, {
+        args: [FlowStepType.BRANCH, "--show-current"],
         cwd: env.tempDir,
         stdout: "piped",
       });
@@ -298,7 +306,7 @@ Deno.test("Integration: System Recovery - Recover from crash mid-execution", asy
       const planPath = await env.createPlan(newTraceId, "healthy-test", {
         status: "review",
         actions: [
-          { tool: "write_file", params: { path: "healthy.txt", content: "ok" } },
+          { tool: McpToolName.WRITE_FILE, params: { path: "healthy.txt", content: "ok" } },
         ],
       });
 
@@ -333,7 +341,7 @@ Deno.test("Integration: System Recovery - Multiple orphaned plans", async () => 
       const { traceId } = await env.createRequest(`Orphan task ${i + 1}`);
       const planPath = await env.createPlan(traceId, `orphan-${i}`, {
         status: "executing",
-        actions: [{ tool: "write_file", params: { path: `orphan-${i}.txt`, content: "x" } }],
+        actions: [{ tool: McpToolName.WRITE_FILE, params: { path: `orphan-${i}.txt`, content: "x" } }],
       });
       const activePath = await env.approvePlan(planPath);
       orphans.push({ traceId, activePath });
@@ -410,7 +418,7 @@ Deno.test("Integration: System Recovery - Concurrent recovery attempts", async (
     const { traceId } = await env.createRequest("Concurrent recovery test");
     const planPath = await env.createPlan(traceId, "concurrent-recovery", {
       status: "executing",
-      actions: [{ tool: "write_file", params: { path: "concurrent.txt", content: "x" } }],
+      actions: [{ tool: McpToolName.WRITE_FILE, params: { path: "concurrent.txt", content: "x" } }],
     });
     const activePath = await env.approvePlan(planPath);
 
@@ -489,11 +497,11 @@ Deno.test("Integration: System Recovery - Preserve user changes", async () => {
   try {
     // User made changes during "downtime"
     await env.writeFile("user-file.txt", "User created this manually");
-    await new Deno.Command("git", {
-      args: ["add", "user-file.txt"],
+    await new Deno.Command(PortalOperation.GIT, {
+      args: [MemoryOperation.ADD, "user-file.txt"],
       cwd: env.tempDir,
     }).output();
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["commit", "-m", "User commit"],
       cwd: env.tempDir,
     }).output();
@@ -511,7 +519,7 @@ Deno.test("Integration: System Recovery - Preserve user changes", async () => {
     assertEquals(content, "User created this manually", "User changes preserved");
 
     // User commit should be in history
-    const logCmd = new Deno.Command("git", {
+    const logCmd = new Deno.Command(PortalOperation.GIT, {
       args: ["log", "--oneline", "-n", "5"],
       cwd: env.tempDir,
       stdout: "piped",

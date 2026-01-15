@@ -24,6 +24,15 @@ import type {
   ProposalLearning,
 } from "../schemas/memory_bank.ts";
 import { MemoryUpdateProposalSchema } from "../schemas/memory_bank.ts";
+import {
+  ConfidenceLevel,
+  LearningCategory,
+  MemoryOperation,
+  MemoryReferenceType,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+} from "../enums.ts";
 
 /**
  * Memory Extractor Service
@@ -38,7 +47,7 @@ export class MemoryExtractorService {
     private db: DatabaseService,
     private memoryBank: MemoryBankService,
   ) {
-    this.pendingDir = join(config.system.root, "Memory", "Pending");
+    this.pendingDir = join(config.system.root, config.paths.memoryPending);
   }
 
   // ===== Extraction Operations =====
@@ -126,17 +135,17 @@ export class MemoryExtractorService {
     return {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: "execution",
+      source: MemorySource.EXECUTION,
       source_id: execution.trace_id,
-      scope: "project",
+      scope: MemoryScope.PROJECT,
       project: execution.portal,
       title: this.extractTitle(lesson),
       description: lesson,
       category,
       tags: this.extractTags(lesson, execution),
-      confidence: "medium",
+      confidence: ConfidenceLevel.MEDIUM,
       references: [
-        { type: "execution", path: execution.trace_id },
+        { type: MemoryReferenceType.EXECUTION, path: execution.trace_id },
       ],
     };
   }
@@ -148,18 +157,18 @@ export class MemoryExtractorService {
     const lower = lesson.toLowerCase();
 
     if (lower.includes("avoid") || lower.includes("don't") || lower.includes("never")) {
-      return "anti-pattern";
+      return LearningCategory.ANTI_PATTERN;
     }
     if (lower.includes("pattern") || lower.includes("approach") || lower.includes("structure")) {
-      return "pattern";
+      return LearningCategory.PATTERN;
     }
     if (lower.includes("decided") || lower.includes("choice") || lower.includes("chose")) {
-      return "decision";
+      return LearningCategory.DECISION;
     }
     if (lower.includes("error") || lower.includes("fix") || lower.includes("debug")) {
-      return "troubleshooting";
+      return LearningCategory.TROUBLESHOOTING;
     }
-    return "insight";
+    return LearningCategory.INSIGHT;
   }
 
   /**
@@ -182,7 +191,7 @@ export class MemoryExtractorService {
     const lower = content.toLowerCase();
 
     // Language/framework tags
-    if (lower.includes("typescript") || execution.context_files.some((f) => f.endsWith(".ts"))) {
+    if (lower.includes("typescript") || execution.context_files.some((f: string) => f.endsWith(".ts"))) {
       tags.push("typescript");
     }
     if (lower.includes("async") || lower.includes("await")) {
@@ -226,17 +235,17 @@ export class MemoryExtractorService {
         learnings.push({
           id: crypto.randomUUID(),
           created_at: new Date().toISOString(),
-          source: "execution",
+          source: MemorySource.EXECUTION,
           source_id: execution.trace_id,
-          scope: "project",
+          scope: MemoryScope.PROJECT,
           project: execution.portal,
           title: `${indicator.pattern} Implementation`,
           description: `Learned ${indicator.pattern.toLowerCase()} from execution: ${execution.summary}`,
-          category: "pattern",
+          category: LearningCategory.PATTERN,
           tags: this.extractTags(execution.summary, execution),
-          confidence: "medium",
+          confidence: ConfidenceLevel.MEDIUM,
           references: [
-            { type: "execution", path: execution.trace_id },
+            { type: MemoryReferenceType.EXECUTION, path: execution.trace_id },
           ],
         });
       }
@@ -259,19 +268,19 @@ export class MemoryExtractorService {
     return {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: "execution",
+      source: MemorySource.EXECUTION,
       source_id: execution.trace_id,
-      scope: "project",
+      scope: MemoryScope.PROJECT,
       project: execution.portal,
       title,
       description: `Error encountered: ${execution.error_message}\n\nContext: ${execution.summary}${
         execution.lessons_learned?.length ? "\n\nResolution: " + execution.lessons_learned.join("; ") : ""
       }`,
-      category: "troubleshooting",
+      category: LearningCategory.TROUBLESHOOTING,
       tags: ["error", ...this.extractTags(execution.error_message, execution)],
-      confidence: "medium",
+      confidence: ConfidenceLevel.MEDIUM,
       references: [
-        { type: "execution", path: execution.trace_id },
+        { type: MemoryReferenceType.EXECUTION, path: execution.trace_id },
       ],
     };
   }
@@ -295,14 +304,14 @@ export class MemoryExtractorService {
     const proposal: MemoryUpdateProposal = {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      operation: "add",
+      operation: MemoryOperation.ADD,
       target_scope: learning.scope,
       target_project: learning.project,
       learning,
       reason: `Extracted from execution ${execution.trace_id}`,
       agent,
       execution_id: execution.trace_id,
-      status: "pending",
+      status: MemoryStatus.PENDING,
     };
 
     // Validate proposal
@@ -344,7 +353,7 @@ export class MemoryExtractorService {
         try {
           const content = await Deno.readTextFile(join(this.pendingDir, entry.name));
           const proposal = MemoryUpdateProposalSchema.parse(JSON.parse(content));
-          if (proposal.status === "pending") {
+          if (proposal.status === MemoryStatus.PENDING) {
             proposals.push(proposal);
           }
         } catch {
@@ -394,19 +403,19 @@ export class MemoryExtractorService {
     // Convert proposal learning to full Learning
     const learning: Learning = {
       ...proposal.learning,
-      status: "approved",
+      status: MemoryStatus.APPROVED,
       approved_at: new Date().toISOString(),
     };
 
     // Add to appropriate scope
-    if (proposal.target_scope === "global") {
+    if (proposal.target_scope === MemoryScope.GLOBAL) {
       await this.memoryBank.addGlobalLearning(learning);
     } else if (proposal.target_project) {
       // Add as pattern to project
       const pattern: Pattern = {
         name: learning.title,
         description: learning.description,
-        examples: learning.references?.filter((r) => r.type === "file").map((r) => r.path) || [],
+        examples: learning.references?.filter((r) => r.type === MemoryReferenceType.FILE).map((r) => r.path) || [],
         tags: learning.tags,
       };
       await this.memoryBank.addPattern(proposal.target_project, pattern);

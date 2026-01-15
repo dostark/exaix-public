@@ -11,8 +11,11 @@
  * - slow: Add artificial delay (for timeout tests)
  */
 
-import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
+import { McpToolName } from "../src/enums.ts";
+
 import { IModelProvider } from "../src/ai/providers.ts";
+import { MockStrategy } from "../src/enums.ts";
 
 import {
   MockLLMError,
@@ -26,7 +29,7 @@ import {
 // ============================================================================
 
 Deno.test("MockLLMProvider implements IModelProvider interface", () => {
-  const provider = new MockLLMProvider("scripted");
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED);
 
   // Verify interface compliance
   assertExists(provider.id);
@@ -36,12 +39,12 @@ Deno.test("MockLLMProvider implements IModelProvider interface", () => {
 });
 
 Deno.test("MockLLMProvider has correct default id", () => {
-  const provider = new MockLLMProvider("scripted");
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED);
   assertEquals(provider.id, "mock-llm-provider");
 });
 
 Deno.test("MockLLMProvider accepts custom id", () => {
-  const provider = new MockLLMProvider("scripted", { id: "custom-mock" });
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, { id: "custom-mock" });
   assertEquals(provider.id, "custom-mock");
 });
 
@@ -50,7 +53,7 @@ Deno.test("MockLLMProvider accepts custom id", () => {
 // ============================================================================
 
 Deno.test("Scripted: returns responses in order", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["First response", "Second response", "Third response"],
   });
 
@@ -60,7 +63,7 @@ Deno.test("Scripted: returns responses in order", async () => {
 });
 
 Deno.test("Scripted: cycles back to first response when exhausted", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["A", "B"],
   });
 
@@ -71,7 +74,7 @@ Deno.test("Scripted: cycles back to first response when exhausted", async () => 
 });
 
 Deno.test("Scripted: uses default response when no responses configured", async () => {
-  const provider = new MockLLMProvider("scripted");
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED);
 
   const result = await provider.generate("test");
   assertExists(result);
@@ -79,7 +82,7 @@ Deno.test("Scripted: uses default response when no responses configured", async 
 });
 
 Deno.test("Scripted: tracks call count", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["response"],
   });
 
@@ -91,7 +94,7 @@ Deno.test("Scripted: tracks call count", async () => {
 });
 
 Deno.test("Scripted: stores call history", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["response"],
   });
 
@@ -119,7 +122,7 @@ Deno.test("Recorded: returns response matching prompt hash", async () => {
     },
   ];
 
-  const provider = new MockLLMProvider("recorded", { recordings });
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, { recordings });
 
   // The provider should hash "You are a senior..." and find a match
   const result = await provider.generate("You are a senior...");
@@ -129,7 +132,7 @@ Deno.test("Recorded: returns response matching prompt hash", async () => {
 Deno.test("Recorded: throws error when no matching recording found", async () => {
   // To test error throwing, we need to explicitly prevent fallback patterns
   // by providing an empty patterns array
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
     patterns: [], // Explicitly set empty patterns to prevent auto-initialization
   });
@@ -143,7 +146,7 @@ Deno.test("Recorded: throws error when no matching recording found", async () =>
 });
 
 Deno.test("Recorded: can load recordings from fixture directory", () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     fixtureDir: "./tests/fixtures/llm_responses",
   });
 
@@ -152,7 +155,7 @@ Deno.test("Recorded: can load recordings from fixture directory", () => {
 });
 
 Deno.test("Recorded: hash function is deterministic", () => {
-  const provider = new MockLLMProvider("recorded");
+  const provider = new MockLLMProvider(MockStrategy.RECORDED);
 
   const hash1 = provider.hashPrompt("test prompt");
   const hash2 = provider.hashPrompt("test prompt");
@@ -178,7 +181,7 @@ Deno.test("Pattern: matches prompt and returns configured response", async () =>
     },
   ];
 
-  const provider = new MockLLMProvider("pattern", { patterns });
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, { patterns });
 
   const result1 = await provider.generate("Please implement user authentication");
   assertStringIncludes(result1, "Authentication");
@@ -193,7 +196,7 @@ Deno.test("Pattern: uses first matching pattern", async () => {
     { pattern: /test/, response: "Second match" },
   ];
 
-  const provider = new MockLLMProvider("pattern", { patterns });
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, { patterns });
   const result = await provider.generate("test");
 
   assertEquals(result, "First match");
@@ -204,7 +207,7 @@ Deno.test("Pattern: throws error when no pattern matches", async () => {
     { pattern: /specific/, response: "response" },
   ];
 
-  const provider = new MockLLMProvider("pattern", { patterns });
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, { patterns });
 
   await assertRejects(
     async () => await provider.generate("no match here"),
@@ -221,7 +224,7 @@ Deno.test("Pattern: supports dynamic response generation", async () => {
     },
   ];
 
-  const provider = new MockLLMProvider("pattern", { patterns });
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, { patterns });
   const result = await provider.generate("Add hello function to utils.ts");
 
   assertStringIncludes(result, "Add hello Function");
@@ -232,7 +235,7 @@ Deno.test("Pattern: supports dynamic response generation", async () => {
 // ============================================================================
 
 Deno.test("Failing: throws MockLLMError on every call", async () => {
-  const provider = new MockLLMProvider("failing");
+  const provider = new MockLLMProvider(MockStrategy.FAILING);
 
   await assertRejects(
     async () => await provider.generate("any prompt"),
@@ -241,7 +244,7 @@ Deno.test("Failing: throws MockLLMError on every call", async () => {
 });
 
 Deno.test("Failing: uses custom error message", async () => {
-  const provider = new MockLLMProvider("failing", {
+  const provider = new MockLLMProvider(MockStrategy.FAILING, {
     errorMessage: "API rate limit exceeded",
   });
 
@@ -253,7 +256,7 @@ Deno.test("Failing: uses custom error message", async () => {
 });
 
 Deno.test("Failing: still tracks call count", async () => {
-  const provider = new MockLLMProvider("failing");
+  const provider = new MockLLMProvider(MockStrategy.FAILING);
 
   try {
     await provider.generate("1");
@@ -271,7 +274,7 @@ Deno.test("Failing: still tracks call count", async () => {
 // ============================================================================
 
 Deno.test("Slow: adds configured delay before response", async () => {
-  const provider = new MockLLMProvider("slow", {
+  const provider = new MockLLMProvider(MockStrategy.SLOW, {
     delayMs: 100,
     responses: ["delayed response"],
   });
@@ -285,7 +288,7 @@ Deno.test("Slow: adds configured delay before response", async () => {
 });
 
 Deno.test("Slow: uses default delay when not specified", async () => {
-  const provider = new MockLLMProvider("slow", {
+  const provider = new MockLLMProvider(MockStrategy.SLOW, {
     responses: ["response"],
   });
 
@@ -298,7 +301,7 @@ Deno.test("Slow: uses default delay when not specified", async () => {
 });
 
 Deno.test({ name: "Slow: can be used for timeout testing", sanitizeOps: false, sanitizeResources: false }, async () => {
-  const provider = new MockLLMProvider("slow", {
+  const provider = new MockLLMProvider(MockStrategy.SLOW, {
     delayMs: 5000, // 5 seconds
     responses: ["never reached"],
   });
@@ -336,7 +339,7 @@ Deno.test({ name: "Slow: can be used for timeout testing", sanitizeOps: false, s
 // ============================================================================
 
 Deno.test("MockLLMProvider tracks token usage", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["Short response"],
     tokensPerResponse: { input: 100, output: 50 },
   });
@@ -348,7 +351,7 @@ Deno.test("MockLLMProvider tracks token usage", async () => {
 });
 
 Deno.test("MockLLMProvider accumulates tokens across calls", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["response"],
     tokensPerResponse: { input: 100, output: 50 },
   });
@@ -366,7 +369,7 @@ Deno.test("MockLLMProvider accumulates tokens across calls", async () => {
 // ============================================================================
 
 Deno.test("MockLLMProvider reset() clears all state", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["A", "B"],
   });
 
@@ -385,7 +388,7 @@ Deno.test("MockLLMProvider reset() clears all state", async () => {
 });
 
 Deno.test("MockLLMProvider getLastCall returns most recent call", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["response"],
   });
 
@@ -398,7 +401,7 @@ Deno.test("MockLLMProvider getLastCall returns most recent call", async () => {
 });
 
 Deno.test("MockLLMProvider getLastCall returns undefined when no calls made", () => {
-  const provider = new MockLLMProvider("scripted");
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED);
   assertEquals(provider.getLastCall(), undefined);
 });
 
@@ -407,7 +410,7 @@ Deno.test("MockLLMProvider getLastCall returns undefined when no calls made", ()
 // ============================================================================
 
 Deno.test("MockLLMProvider can simulate plan generation", async () => {
-  const provider = new MockLLMProvider("pattern", {
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       {
         pattern: /.*/,
@@ -445,7 +448,7 @@ Deno.test("MockLLMProvider can be used as IModelProvider", async () => {
     return await provider.generate("test prompt");
   }
 
-  const mockProvider = new MockLLMProvider("scripted", {
+  const mockProvider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["mock response"],
   });
 
@@ -454,7 +457,7 @@ Deno.test("MockLLMProvider can be used as IModelProvider", async () => {
 });
 
 Deno.test("MockLLMProvider supports ModelOptions parameter", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["response"],
   });
 
@@ -484,7 +487,7 @@ Deno.test("Recorded: falls back to patterns when no recording found", async () =
     },
   ];
 
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [], // No recordings
     patterns, // But patterns are provided
   });
@@ -513,7 +516,7 @@ Deno.test("Recorded: prefers exact recording over pattern fallback", async () =>
     },
   ];
 
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings,
     patterns,
   });
@@ -527,7 +530,7 @@ Deno.test("Recorded: prefers exact recording over pattern fallback", async () =>
 });
 
 Deno.test("Recorded: auto-initializes default patterns when empty", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [], // No recordings provided
   });
 
@@ -543,7 +546,7 @@ Deno.test("Recorded: auto-initializes default patterns when empty", async () => 
 // ============================================================================
 
 Deno.test("Default patterns: handles 'implement' requests", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [], // Triggers default patterns
   });
 
@@ -558,7 +561,7 @@ Deno.test("Default patterns: handles 'implement' requests", async () => {
 });
 
 Deno.test("Default patterns: handles 'add' requests", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -570,7 +573,7 @@ Deno.test("Default patterns: handles 'add' requests", async () => {
 });
 
 Deno.test("Default patterns: handles 'create' requests", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -578,12 +581,12 @@ Deno.test("Default patterns: handles 'create' requests", async () => {
 
   assertStringIncludes(result, '"title"');
   assertStringIncludes(result, '"step": 1');
-  assertStringIncludes(result, "write_file");
+  assertStringIncludes(result, McpToolName.WRITE_FILE);
   assertStringIncludes(result, "Test");
 });
 
 Deno.test("Default patterns: handles 'fix' requests", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -598,7 +601,7 @@ Deno.test("Default patterns: handles 'fix' requests", async () => {
 });
 
 Deno.test("Default patterns: handles 'bug' requests", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -610,7 +613,7 @@ Deno.test("Default patterns: handles 'bug' requests", async () => {
 });
 
 Deno.test("Default patterns: handles 'error' requests", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -621,7 +624,7 @@ Deno.test("Default patterns: handles 'error' requests", async () => {
 });
 
 Deno.test("Default patterns: handles 'issue' requests", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -632,7 +635,7 @@ Deno.test("Default patterns: handles 'issue' requests", async () => {
 });
 
 Deno.test("Default patterns: handles generic requests with catch-all", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -651,7 +654,7 @@ Deno.test("Default patterns: handles generic requests with catch-all", async () 
 // ============================================================================
 
 Deno.test("Default patterns: responses include required <thought> tags", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -669,7 +672,7 @@ Deno.test("Default patterns: responses include required <thought> tags", async (
 });
 
 Deno.test("Default patterns: responses include required <content> tags", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -687,7 +690,7 @@ Deno.test("Default patterns: responses include required <content> tags", async (
 });
 
 Deno.test("Default patterns: implementation plans mention tests", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -697,7 +700,7 @@ Deno.test("Default patterns: implementation plans mention tests", async () => {
 });
 
 Deno.test("Default patterns: bug fix plans mention regression testing", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -711,7 +714,7 @@ Deno.test("Default patterns: bug fix plans mention regression testing", async ()
 // ============================================================================
 
 Deno.test("Mock provider generates valid plans for RequestProcessor", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [], // Uses default patterns
   });
 
@@ -735,7 +738,7 @@ Create a detailed plan with clear steps.`;
 });
 
 Deno.test("Mock provider handles multiple sequential plan generations", async () => {
-  const provider = new MockLLMProvider("recorded", {
+  const provider = new MockLLMProvider(MockStrategy.RECORDED, {
     recordings: [],
   });
 
@@ -798,7 +801,7 @@ Deno.test("createSlowMock helper creates delayed provider", async () => {
 // ============================================================================
 
 Deno.test("Scripted: handles single response correctly", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["Only response"],
   });
 
@@ -808,7 +811,7 @@ Deno.test("Scripted: handles single response correctly", async () => {
 });
 
 Deno.test("Scripted: reset clears response index", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["A", "B", "C"],
   });
 
@@ -822,7 +825,7 @@ Deno.test("Scripted: reset clears response index", async () => {
 });
 
 Deno.test("Scripted: works with empty prompt strings", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["Response"],
   });
 
@@ -832,7 +835,7 @@ Deno.test("Scripted: works with empty prompt strings", async () => {
 });
 
 Deno.test("Scripted: works with very long prompts", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["Response"],
   });
 
@@ -844,7 +847,7 @@ Deno.test("Scripted: works with very long prompts", async () => {
 });
 
 Deno.test("Scripted: preserves response order across multiple cycles", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["First", "Second"],
   });
 
@@ -862,7 +865,7 @@ Deno.test("Scripted: preserves response order across multiple cycles", async () 
 });
 
 Deno.test("Scripted: response with special characters and unicode", async () => {
-  const provider = new MockLLMProvider("scripted", {
+  const provider = new MockLLMProvider(MockStrategy.SCRIPTED, {
     responses: ["Hello 世界", "Emoji 🎉🚀", "Special <>&\"'"],
   });
 
@@ -876,7 +879,7 @@ Deno.test("Scripted: response with special characters and unicode", async () => 
 // ============================================================================
 
 Deno.test("Pattern: matches case-insensitive patterns", async () => {
-  const provider = new MockLLMProvider("pattern", {
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       { pattern: /implement/i, response: "Implementation" },
     ],
@@ -888,7 +891,7 @@ Deno.test("Pattern: matches case-insensitive patterns", async () => {
 });
 
 Deno.test("Pattern: dynamic response with multiple capture groups", async () => {
-  const provider = new MockLLMProvider("pattern", {
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       {
         pattern: /add (\w+) to (\w+)/i,
@@ -908,7 +911,7 @@ Deno.test("Pattern: dynamic response with multiple capture groups", async () => 
 });
 
 Deno.test("Pattern: handles complex regex patterns", async () => {
-  const provider = new MockLLMProvider("pattern", {
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       { pattern: /^fix\s+bug\s+#(\d+)$/i, response: (m) => `Fixing bug ${m[1]}` },
       { pattern: /version\s+(v?\d+\.\d+\.\d+)/i, response: (m) => `Version ${m[1]}` },
@@ -921,7 +924,7 @@ Deno.test("Pattern: handles complex regex patterns", async () => {
 });
 
 Deno.test("Pattern: respects pattern priority order", async () => {
-  const provider = new MockLLMProvider("pattern", {
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       { pattern: /implement/i, response: "First: Implement" },
       { pattern: /implement authentication/i, response: "Second: Auth" },
@@ -937,7 +940,7 @@ Deno.test("Pattern: respects pattern priority order", async () => {
 });
 
 Deno.test("Pattern: dynamic response can access provider state", async () => {
-  const provider: MockLLMProvider = new MockLLMProvider("pattern", {
+  const provider: MockLLMProvider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       {
         pattern: /.*/,
@@ -955,7 +958,7 @@ Deno.test("Pattern: dynamic response can access provider state", async () => {
 });
 
 Deno.test("Pattern: empty patterns array throws error", async () => {
-  const provider = new MockLLMProvider("pattern", {
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [],
   });
 
@@ -967,7 +970,7 @@ Deno.test("Pattern: empty patterns array throws error", async () => {
 });
 
 Deno.test("Pattern: multiline prompt matching", async () => {
-  const provider = new MockLLMProvider("pattern", {
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       {
         pattern: /implement[\s\S]*authentication/i,
@@ -984,7 +987,7 @@ with OAuth2`;
 });
 
 Deno.test("Pattern: tracks calls even when pattern doesn't match", async () => {
-  const provider = new MockLLMProvider("pattern", {
+  const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [{ pattern: /never-matches/i, response: "Won't happen" }],
   });
 
@@ -1004,7 +1007,7 @@ Deno.test("Pattern: tracks calls even when pattern doesn't match", async () => {
 // ============================================================================
 
 Deno.test("Failing: throws error with default message", async () => {
-  const provider = new MockLLMProvider("failing");
+  const provider = new MockLLMProvider(MockStrategy.FAILING);
 
   await assertRejects(
     async () => await provider.generate("test"),
@@ -1014,7 +1017,7 @@ Deno.test("Failing: throws error with default message", async () => {
 });
 
 Deno.test("Failing: error contains MockLLMError name", async () => {
-  const provider = new MockLLMProvider("failing");
+  const provider = new MockLLMProvider(MockStrategy.FAILING);
 
   try {
     await provider.generate("test");
@@ -1026,15 +1029,15 @@ Deno.test("Failing: error contains MockLLMError name", async () => {
 });
 
 Deno.test("Failing: can simulate different error types", async () => {
-  const rateLimitProvider = new MockLLMProvider("failing", {
+  const rateLimitProvider = new MockLLMProvider(MockStrategy.FAILING, {
     errorMessage: "Rate limit exceeded (429)",
   });
 
-  const timeoutProvider = new MockLLMProvider("failing", {
+  const timeoutProvider = new MockLLMProvider(MockStrategy.FAILING, {
     errorMessage: "Request timeout (408)",
   });
 
-  const authProvider = new MockLLMProvider("failing", {
+  const authProvider = new MockLLMProvider(MockStrategy.FAILING, {
     errorMessage: "Invalid API key (401)",
   });
 
@@ -1058,7 +1061,7 @@ Deno.test("Failing: can simulate different error types", async () => {
 });
 
 Deno.test("Failing: increments call count on each failure", async () => {
-  const provider = new MockLLMProvider("failing");
+  const provider = new MockLLMProvider(MockStrategy.FAILING);
 
   for (let i = 1; i <= 5; i++) {
     try {
@@ -1071,7 +1074,7 @@ Deno.test("Failing: increments call count on each failure", async () => {
 });
 
 Deno.test("Failing: records [ERROR] in call history", async () => {
-  const provider = new MockLLMProvider("failing");
+  const provider = new MockLLMProvider(MockStrategy.FAILING);
 
   try {
     await provider.generate("test prompt");
@@ -1085,7 +1088,7 @@ Deno.test("Failing: records [ERROR] in call history", async () => {
 });
 
 Deno.test("Failing: reset clears error history", async () => {
-  const provider = new MockLLMProvider("failing");
+  const provider = new MockLLMProvider(MockStrategy.FAILING);
 
   try {
     await provider.generate("1");
@@ -1103,7 +1106,7 @@ Deno.test("Failing: reset clears error history", async () => {
 });
 
 Deno.test("Failing: consistent error across multiple calls", async () => {
-  const provider = new MockLLMProvider("failing", {
+  const provider = new MockLLMProvider(MockStrategy.FAILING, {
     errorMessage: "Consistent error message",
   });
 
@@ -1117,7 +1120,7 @@ Deno.test("Failing: consistent error across multiple calls", async () => {
 });
 
 Deno.test("Failing: works with ModelOptions parameter", async () => {
-  const provider = new MockLLMProvider("failing");
+  const provider = new MockLLMProvider(MockStrategy.FAILING);
 
   await assertRejects(
     async () => await provider.generate("test", { temperature: 0.7 }),
@@ -1135,7 +1138,7 @@ Deno.test("Slow: delay is accurate", async () => {
   const delays = [100, 200, 500];
 
   for (const delayMs of delays) {
-    const provider = new MockLLMProvider("slow", {
+    const provider = new MockLLMProvider(MockStrategy.SLOW, {
       delayMs,
       responses: ["Response"],
     });
@@ -1153,7 +1156,7 @@ Deno.test("Slow: delay is accurate", async () => {
 });
 
 Deno.test("Slow: cycles through responses after delay", async () => {
-  const provider = new MockLLMProvider("slow", {
+  const provider = new MockLLMProvider(MockStrategy.SLOW, {
     delayMs: 50,
     responses: ["First", "Second", "Third"],
   });
@@ -1165,7 +1168,7 @@ Deno.test("Slow: cycles through responses after delay", async () => {
 });
 
 Deno.test("Slow: tracks timing in call history", async () => {
-  const provider = new MockLLMProvider("slow", {
+  const provider = new MockLLMProvider(MockStrategy.SLOW, {
     delayMs: 100,
     responses: ["Response"],
   });
@@ -1181,7 +1184,7 @@ Deno.test("Slow: tracks timing in call history", async () => {
 });
 
 Deno.test("Slow: can simulate very slow responses", async () => {
-  const provider = new MockLLMProvider("slow", {
+  const provider = new MockLLMProvider(MockStrategy.SLOW, {
     delayMs: 1000,
     responses: ["Slow response"],
   });
@@ -1195,7 +1198,7 @@ Deno.test("Slow: can simulate very slow responses", async () => {
 });
 
 Deno.test("Slow: reset clears response index but keeps delay", async () => {
-  const provider = new MockLLMProvider("slow", {
+  const provider = new MockLLMProvider(MockStrategy.SLOW, {
     delayMs: 50,
     responses: ["A", "B", "C"],
   });
@@ -1215,7 +1218,7 @@ Deno.test("Slow: reset clears response index but keeps delay", async () => {
 });
 
 Deno.test("Slow: works with single response", async () => {
-  const provider = new MockLLMProvider("slow", {
+  const provider = new MockLLMProvider(MockStrategy.SLOW, {
     delayMs: 50,
     responses: ["Only response"],
   });
@@ -1226,7 +1229,7 @@ Deno.test("Slow: works with single response", async () => {
 });
 
 Deno.test("Slow: multiple concurrent calls each wait full delay", async () => {
-  const provider = new MockLLMProvider("slow", {
+  const provider = new MockLLMProvider(MockStrategy.SLOW, {
     delayMs: 100,
     responses: ["Response"],
   });
@@ -1252,7 +1255,7 @@ Deno.test("Slow: multiple concurrent calls each wait full delay", async () => {
 });
 
 Deno.test("Slow: tracks tokens even with delay", async () => {
-  const provider = new MockLLMProvider("slow", {
+  const provider = new MockLLMProvider(MockStrategy.SLOW, {
     delayMs: 50,
     responses: ["Response"],
     tokensPerResponse: { input: 100, output: 50 },

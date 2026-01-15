@@ -2,7 +2,19 @@
  * Extended tests for MemoryView to improve code coverage
  * These tests cover additional branches not covered by the main tests
  */
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { MemoryReferenceType } from "../../src/enums.ts";
+
+import {
+  ExecutionStatus,
+  LearningCategory,
+  MemoryOperation,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+} from "../../src/enums.ts";
+
+import { ConfidenceLevel } from "../../src/enums.ts";
 import type {
   ExecutionMemory,
   GlobalMemory,
@@ -102,21 +114,21 @@ class ExtendedMockMemoryService implements MemoryServiceInterface {
 function createMockProposal(id: string, title: string): MemoryUpdateProposal {
   return {
     id,
-    operation: "add",
-    target_scope: "project",
+    operation: MemoryOperation.ADD,
+    target_scope: MemoryScope.PROJECT,
     target_project: "TestPortal",
     reason: "Test reason",
     agent: "test-agent",
-    status: "pending",
+    status: MemoryStatus.PENDING,
     created_at: new Date().toISOString(),
     learning: {
       id: `learning-${id}`,
       title,
       description: "Test learning description",
-      category: "pattern",
-      confidence: "high",
-      source: "agent",
-      scope: "project",
+      category: LearningCategory.PATTERN,
+      confidence: ConfidenceLevel.HIGH,
+      source: MemorySource.AGENT,
+      scope: MemoryScope.PROJECT,
       project: "TestPortal",
       created_at: new Date().toISOString(),
       tags: ["test", "coverage"],
@@ -124,14 +136,17 @@ function createMockProposal(id: string, title: string): MemoryUpdateProposal {
   };
 }
 
-function createMockExecution(traceId: string, status: "running" | "completed" | "failed"): ExecutionMemory {
+function createMockExecution(
+  traceId: string,
+  status: ExecutionStatus.RUNNING | ExecutionStatus.COMPLETED | ExecutionStatus.FAILED,
+): ExecutionMemory {
   return {
     trace_id: traceId,
     request_id: `request-${traceId}`,
     agent: "test-agent",
     portal: "TestPortal",
     started_at: new Date().toISOString(),
-    completed_at: status === "running" ? undefined : new Date().toISOString(),
+    completed_at: status === ExecutionStatus.RUNNING ? undefined : new Date().toISOString(),
     status,
     summary: "Test execution summary with some text",
     changes: {
@@ -158,7 +173,7 @@ function createMockProjectMemory(portal: string): ProjectMemory {
       { decision: "Decision 2", rationale: "Rationale 2", date: new Date().toISOString().split("T")[0] },
     ],
     references: [
-      { type: "file", path: "src/test.ts", description: "Test file" },
+      { type: MemoryReferenceType.FILE, path: "src/test.ts", description: "Test file" },
     ],
   };
 }
@@ -190,25 +205,25 @@ function createMockGlobalMemory(): GlobalMemory {
         id: "global-learning-1",
         title: "Global Learning 1",
         description: "Description",
-        category: "pattern",
-        confidence: "high",
-        source: "user",
-        scope: "global",
+        category: LearningCategory.PATTERN,
+        confidence: ConfidenceLevel.HIGH,
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
         created_at: new Date().toISOString(),
         tags: ["tag1"],
-        status: "approved",
+        status: MemoryStatus.APPROVED,
       },
       {
         id: "global-learning-2",
         title: "Global Learning 2",
         description: "Description",
-        category: "insight",
-        confidence: "medium",
-        source: "agent",
-        scope: "global",
+        category: LearningCategory.INSIGHT,
+        confidence: ConfidenceLevel.MEDIUM,
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
         created_at: new Date().toISOString(),
         tags: ["tag2"],
-        status: "approved",
+        status: MemoryStatus.APPROVED,
       },
     ],
     statistics: {
@@ -326,7 +341,7 @@ Deno.test("MemoryViewTuiSession: renders projects scope detail", async () => {
 
 Deno.test("MemoryViewTuiSession: renders executions scope detail", async () => {
   const service = new ExtendedMockMemoryService();
-  service.setExecutions([createMockExecution("trace-1", "completed")]);
+  service.setExecutions([createMockExecution("trace-1", ExecutionStatus.COMPLETED)]);
   service.setProjects([]);
   service.setPending([]);
 
@@ -392,7 +407,7 @@ Deno.test("MemoryViewTuiSession: renders project detail without memory", async (
 
 Deno.test("MemoryViewTuiSession: renders execution detail with all fields", async () => {
   const service = new ExtendedMockMemoryService();
-  const exec = createMockExecution("trace-full", "completed");
+  const exec = createMockExecution("trace-full", ExecutionStatus.COMPLETED);
   service.setExecutions([exec]);
   service.setProjects([]);
   service.setPending([]);
@@ -410,7 +425,7 @@ Deno.test("MemoryViewTuiSession: renders execution detail with all fields", asyn
 
 Deno.test("MemoryViewTuiSession: renders execution detail for running status", async () => {
   const service = new ExtendedMockMemoryService();
-  const exec = createMockExecution("trace-running", "running");
+  const exec = createMockExecution("trace-running", ExecutionStatus.RUNNING);
   exec.completed_at = undefined;
   exec.changes = {
     files_created: [],
@@ -435,7 +450,7 @@ Deno.test("MemoryViewTuiSession: renders execution detail for running status", a
 
 Deno.test("MemoryViewTuiSession: renders execution detail for failed status", async () => {
   const service = new ExtendedMockMemoryService();
-  const exec = createMockExecution("trace-failed", "failed");
+  const exec = createMockExecution("trace-failed", ExecutionStatus.FAILED);
   exec.error_message = "Something went wrong";
   service.setExecutions([exec]);
   service.setProjects([]);
@@ -550,8 +565,8 @@ Deno.test("MemoryViewTuiSession: search with empty query reloads tree", async ()
 Deno.test("MemoryViewTuiSession: search with query executes search", async () => {
   const service = new ExtendedMockMemoryService();
   service.setSearchResults([
-    { type: "pattern", id: "p1", title: "Result 1", summary: "Summary 1" },
-    { type: "decision", id: "d1", title: "Result 2", summary: "Summary 2" },
+    { type: LearningCategory.PATTERN, id: "p1", title: "Result 1", summary: "Summary 1" },
+    { type: LearningCategory.DECISION, id: "d1", title: "Result 2", summary: "Summary 2" },
   ]);
   service.setPending([]);
   service.setProjects([]);
@@ -875,14 +890,14 @@ Deno.test("MemoryViewTuiSession: multiple scope navigation cycles", async () => 
   const service = new ExtendedMockMemoryService();
   service.setProjects(["TestPortal"]);
   service.setGlobalMemory(createMockGlobalMemory());
-  service.setExecutions([createMockExecution("trace-1", "completed")]);
+  service.setExecutions([createMockExecution("trace-1", ExecutionStatus.COMPLETED)]);
   service.setPending([createMockProposal("p1", "Proposal")]);
 
   const session = createSessionWithService(service);
   await session.initialize();
 
   await session.handleKey("g");
-  assertEquals(session.getActiveScope(), "global");
+  assertEquals(session.getActiveScope(), MemoryScope.GLOBAL);
 
   await session.handleKey("p");
   assertEquals(session.getActiveScope(), "projects");
@@ -891,7 +906,7 @@ Deno.test("MemoryViewTuiSession: multiple scope navigation cycles", async () => 
   assertEquals(session.getActiveScope(), "executions");
 
   await session.handleKey("n");
-  assertEquals(session.getActiveScope(), "pending");
+  assertEquals(session.getActiveScope(), MemoryStatus.PENDING);
 });
 
 Deno.test("MemoryViewTuiSession: getState returns full state", async () => {

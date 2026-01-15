@@ -8,6 +8,7 @@
  */
 
 import { z } from "zod";
+import { McpToolName } from "../enums.ts";
 
 // ============================================================================
 // Plan Step Schema
@@ -27,9 +28,7 @@ export const PlanStepSchema = z.object({
   description: z.string().min(1),
 
   /** Optional: Tools required for this step */
-  tools: z.array(
-    z.enum(["read_file", "write_file", "run_command", "list_directory", "search_files"]),
-  ).optional(),
+  tools: z.array(z.nativeEnum(McpToolName)).optional(),
 
   /** Optional: Success criteria to validate step completion */
   successCriteria: z.array(z.string()).optional(),

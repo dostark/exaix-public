@@ -3,7 +3,8 @@
  * Phase 15.1: Condition Evaluation
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@1";
+import { assertEquals, assertExists } from "@std/assert";
+import { FlowInputSource, FlowOutputFormat, FlowStepType, MemoryStatus } from "../../src/enums.ts";
 import { ConditionContext, ConditionEvaluator } from "../../src/flows/condition_evaluator.ts";
 import { Flow, FlowStep } from "../../src/schemas/flow.ts";
 import { StepResult } from "../../src/flows/flow_runner.ts";
@@ -37,10 +38,10 @@ const createContext = (
 const createMockStep = (overrides: Partial<FlowStep> = {}): FlowStep => ({
   id: "test-step",
   name: "Test Step",
-  type: "agent",
+  type: FlowStepType.AGENT,
   agent: "test-agent",
   dependsOn: [],
-  input: { source: "request", transform: "passthrough" },
+  input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
   retry: { maxAttempts: 1, backoffMs: 1000 },
   ...overrides,
 });
@@ -61,7 +62,7 @@ const mockFlow: Flow = {
   description: "Test flow for conditions",
   version: "1.0.0",
   steps: [],
-  output: { from: "final", format: "markdown" },
+  output: { from: "final", format: FlowOutputFormat.MARKDOWN },
   settings: { maxParallelism: 3, failFast: true },
 };
 
@@ -111,7 +112,7 @@ Deno.test("ConditionEvaluator: accesses results object", () => {
 Deno.test("ConditionEvaluator: accesses result content", () => {
   const evaluator = new ConditionEvaluator();
   const context = createContext({
-    "analyze": { success: true, content: "approved" },
+    "analyze": { success: true, content: MemoryStatus.APPROVED },
   });
 
   assertEquals(
@@ -302,7 +303,7 @@ Deno.test("ConditionEvaluator.evaluateStepCondition: evaluates condition with st
     id: "step-2",
     dependsOn: ["step-1"],
     condition: "results['step-1'].success === true",
-    input: { source: "step", stepId: "step-1", transform: "passthrough" },
+    input: { source: FlowInputSource.STEP, stepId: "step-1", transform: "passthrough" },
   });
 
   const stepResults = new Map<string, StepResult>();
@@ -323,7 +324,7 @@ Deno.test("ConditionEvaluator.evaluateStepCondition: returns false when conditio
     id: "conditional-step",
     dependsOn: ["check"],
     condition: "results['check'].data?.passed === true",
-    input: { source: "step", stepId: "check", transform: "passthrough" },
+    input: { source: FlowInputSource.STEP, stepId: "check", transform: "passthrough" },
   });
 
   const stepResults = new Map<string, StepResult>();

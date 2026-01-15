@@ -4,8 +4,9 @@
  * Tests for Phase 16.7: Confidence Scoring Implementation
  */
 
-import { assert, assertEquals, assertExists, assertGreater, assertLess } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertExists, assertGreater, assertLess } from "@std/assert";
 import type { IModelProvider } from "../../src/ai/providers.ts";
+import { ConfidenceAssessmentLevel } from "../../src/enums.ts";
 import {
   ConfidenceSchema,
   createConfidenceScorer,
@@ -31,13 +32,13 @@ function createMockProvider(responses: string[]): IModelProvider {
 
 function makeConfidenceJSON(options: {
   score?: number;
-  level?: string;
+  level?: ConfidenceAssessmentLevel;
   reasoning?: string;
   requires_review?: boolean;
 }): string {
   return JSON.stringify({
     score: options.score ?? 75,
-    level: options.level ?? "high",
+    level: options.level ?? ConfidenceAssessmentLevel.HIGH,
     reasoning: options.reasoning ?? "Test reasoning",
     factors: [],
     uncertainty_areas: [],
@@ -112,7 +113,7 @@ Deno.test("[ConfidenceSchema] rejects negative score", () => {
 
 Deno.test("[ConfidenceScorer] assess extracts high confidence", async () => {
   const mockResponses = [
-    makeConfidenceJSON({ score: 90, level: "very_high", requires_review: false }),
+    makeConfidenceJSON({ score: 90, level: ConfidenceAssessmentLevel.VERY_HIGH, requires_review: false }),
   ];
 
   const scorer = createConfidenceScorer(createMockProvider(mockResponses));
@@ -125,7 +126,7 @@ Deno.test("[ConfidenceScorer] assess extracts high confidence", async () => {
 
 Deno.test("[ConfidenceScorer] assess flags low confidence", async () => {
   const mockResponses = [
-    makeConfidenceJSON({ score: 30, level: "low", requires_review: true }),
+    makeConfidenceJSON({ score: 30, level: ConfidenceAssessmentLevel.LOW, requires_review: true }),
   ];
 
   const scorer = createConfidenceScorer(createMockProvider(mockResponses));
@@ -137,7 +138,7 @@ Deno.test("[ConfidenceScorer] assess flags low confidence", async () => {
 
 Deno.test("[ConfidenceScorer] assess flags when below threshold", async () => {
   const mockResponses = [
-    makeConfidenceJSON({ score: 40, level: "low", requires_review: false }),
+    makeConfidenceJSON({ score: 40, level: ConfidenceAssessmentLevel.LOW, requires_review: false }),
   ];
 
   const scorer = createConfidenceScorer(createMockProvider(mockResponses), {
@@ -210,7 +211,7 @@ Deno.test("[ConfidenceScorer] aggregate calculates average correctly", () => {
       agentId: "agent1",
       confidence: {
         score: 80,
-        level: "high" as const,
+        level: ConfidenceAssessmentLevel.HIGH,
         reasoning: "",
         factors: [],
         uncertainty_areas: [],
@@ -221,7 +222,7 @@ Deno.test("[ConfidenceScorer] aggregate calculates average correctly", () => {
       agentId: "agent2",
       confidence: {
         score: 60,
-        level: "medium" as const,
+        level: ConfidenceAssessmentLevel.MEDIUM,
         reasoning: "",
         factors: [],
         uncertainty_areas: [],
@@ -245,7 +246,7 @@ Deno.test("[ConfidenceScorer] aggregate calculates weighted average", () => {
       agentId: "agent1",
       confidence: {
         score: 100,
-        level: "very_high" as const,
+        level: ConfidenceAssessmentLevel.VERY_HIGH,
         reasoning: "",
         factors: [],
         uncertainty_areas: [],
@@ -257,7 +258,7 @@ Deno.test("[ConfidenceScorer] aggregate calculates weighted average", () => {
       agentId: "agent2",
       confidence: {
         score: 50,
-        level: "medium" as const,
+        level: ConfidenceAssessmentLevel.MEDIUM,
         reasoning: "",
         factors: [],
         uncertainty_areas: [],
@@ -290,7 +291,7 @@ Deno.test("[ConfidenceScorer] aggregate tracks flaggedForReview", () => {
       agentId: "agent1",
       confidence: {
         score: 90,
-        level: "very_high" as const,
+        level: ConfidenceAssessmentLevel.VERY_HIGH,
         reasoning: "",
         factors: [],
         uncertainty_areas: [],
@@ -301,7 +302,7 @@ Deno.test("[ConfidenceScorer] aggregate tracks flaggedForReview", () => {
       agentId: "agent2",
       confidence: {
         score: 20,
-        level: "very_low" as const,
+        level: ConfidenceAssessmentLevel.VERY_LOW,
         reasoning: "",
         factors: [],
         uncertainty_areas: [],
@@ -321,9 +322,9 @@ Deno.test("[ConfidenceScorer] aggregate tracks flaggedForReview", () => {
 
 Deno.test("[ConfidenceScorer] tracks metrics correctly", async () => {
   const mockResponses = [
-    makeConfidenceJSON({ score: 80, level: "high" }),
-    makeConfidenceJSON({ score: 40, level: "low", requires_review: true }),
-    makeConfidenceJSON({ score: 60, level: "medium" }),
+    makeConfidenceJSON({ score: 80, level: ConfidenceAssessmentLevel.HIGH }),
+    makeConfidenceJSON({ score: 40, level: ConfidenceAssessmentLevel.LOW, requires_review: true }),
+    makeConfidenceJSON({ score: 60, level: ConfidenceAssessmentLevel.MEDIUM }),
   ];
 
   const provider = createMockProvider(mockResponses);
@@ -364,7 +365,7 @@ Deno.test("[createConfidenceScorer] creates scorer with defaults", () => {
 
 Deno.test("[createStrictConfidenceScorer] creates strict scorer", async () => {
   const mockResponses = [
-    makeConfidenceJSON({ score: 65, level: "medium", requires_review: false }),
+    makeConfidenceJSON({ score: 65, level: ConfidenceAssessmentLevel.MEDIUM, requires_review: false }),
   ];
 
   const scorer = createStrictConfidenceScorer(createMockProvider(mockResponses));
@@ -376,7 +377,7 @@ Deno.test("[createStrictConfidenceScorer] creates strict scorer", async () => {
 
 Deno.test("[createLenientConfidenceScorer] creates lenient scorer", async () => {
   const mockResponses = [
-    makeConfidenceJSON({ score: 35, level: "low", requires_review: false }),
+    makeConfidenceJSON({ score: 35, level: ConfidenceAssessmentLevel.MEDIUM, requires_review: false }),
   ];
 
   const scorer = createLenientConfidenceScorer(createMockProvider(mockResponses));
@@ -396,8 +397,8 @@ Deno.test("[ConfidenceScorer] handles boundary scores", () => {
   const veryHigh = scorer.assessQuick("Definitely certainly absolutely always true. " + "x".repeat(100));
   const veryLow = scorer.assessQuick("?");
 
-  assert(veryHigh.level === "very_high" || veryHigh.level === "high");
-  assert(veryLow.level === "very_low" || veryLow.level === "low");
+  assert(veryHigh.level === ConfidenceAssessmentLevel.VERY_HIGH || veryHigh.level === ConfidenceAssessmentLevel.HIGH);
+  assert(veryLow.level === ConfidenceAssessmentLevel.VERY_LOW || veryLow.level === ConfidenceAssessmentLevel.LOW);
 });
 
 Deno.test("[ConfidenceScorer] score to level mapping is correct", () => {

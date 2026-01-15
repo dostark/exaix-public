@@ -2,6 +2,7 @@ import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { FrontmatterParser } from "../parsers/markdown.ts";
 import { BaseCommand, type CommandContext } from "./base.ts";
+import { PlanStatus } from "../enums.ts";
 
 export interface PlanMetadata {
   id: string;
@@ -55,14 +56,16 @@ export class PlanCommands extends BaseCommand {
 
   constructor(
     context: CommandContext,
-    workspaceRoot: string,
   ) {
     super(context);
     const config = context.config;
-    this.workspacePlansDir = join(workspaceRoot, config.paths.workspace, "Plans");
-    this.workspaceActiveDir = join(workspaceRoot, config.paths.workspace, "Active");
-    this.workspaceRejectedDir = join(workspaceRoot, config.paths.workspace, "Rejected");
-    this.workspaceArchiveDir = join(workspaceRoot, config.paths.workspace, "Archive");
+    const root = config.system.root;
+    const workspace = config.paths.workspace;
+    // Resolve paths relative to system root and workspace
+    this.workspacePlansDir = join(root, workspace, config.paths.plans);
+    this.workspaceActiveDir = join(root, workspace, config.paths.active);
+    this.workspaceRejectedDir = join(root, workspace, config.paths.rejected);
+    this.workspaceArchiveDir = join(root, workspace, config.paths.archive);
     this.parser = new FrontmatterParser();
   }
 
@@ -78,7 +81,7 @@ export class PlanCommands extends BaseCommand {
     const { frontmatter, body } = await this.loadPlan(sourcePath);
 
     // Validate status
-    if (frontmatter.status !== "review") {
+    if (frontmatter.status !== PlanStatus.REVIEW) {
       throw new Error(
         `Only plans with status='review' can be approved. Current status: ${frontmatter.status}`,
       );
@@ -99,7 +102,7 @@ export class PlanCommands extends BaseCommand {
     // Update frontmatter
     const updatedFrontmatter = {
       ...frontmatter,
-      status: "approved",
+      status: PlanStatus.APPROVED,
       approved_by: actor,
       approved_at: now,
     };
@@ -141,7 +144,7 @@ export class PlanCommands extends BaseCommand {
     // Update frontmatter
     const updatedFrontmatter = {
       ...frontmatter,
-      status: "rejected",
+      status: PlanStatus.REJECTED,
       rejected_by: actor,
       rejected_at: now,
       rejection_reason: reason,
@@ -184,7 +187,7 @@ export class PlanCommands extends BaseCommand {
     // Update frontmatter
     const updatedFrontmatter = {
       ...frontmatter,
-      status: "needs_revision",
+      status: PlanStatus.NEEDS_REVISION,
       reviewed_by: actor,
       reviewed_at: now,
     };

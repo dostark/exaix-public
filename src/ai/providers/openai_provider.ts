@@ -56,15 +56,15 @@ export class OpenAIProvider implements IModelProvider {
 
     // Read retry settings from config or use defaults
     this.retryDelayMs = options.retryDelayMs ||
-      options.config?.ai_retry?.openai?.backoff_base_ms ||
+      options.config?.ai_retry?.providers?.openai?.backoff_base_ms ||
       DEFAULTS.DEFAULT_OPENAI_RETRY_BACKOFF_MS;
 
     this.maxRetries = options.maxRetries ||
-      options.config?.ai_retry?.openai?.max_attempts ||
+      options.config?.ai_retry?.providers?.openai?.max_attempts ||
       DEFAULTS.DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS;
 
     this.timeoutMs = options.timeoutMs ||
-      options.config?.ai_timeout?.openai ||
+      options.config?.ai_timeout?.providers?.openai ||
       DEFAULTS.DEFAULT_OPENAI_TIMEOUT_MS;
   }
 

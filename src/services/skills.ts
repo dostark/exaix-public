@@ -15,6 +15,7 @@ import { ensureDir, exists } from "@std/fs";
 import { parse as parseYaml, stringify as stringifyYaml } from "@std/yaml";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
+import { MemoryScope, MemorySource, SkillStatus } from "../enums.ts";
 import {
   type Skill,
   type SkillIndex,
@@ -84,7 +85,7 @@ export class SkillsService {
     private db: DatabaseService,
     skillsConfig?: Partial<SkillsConfig>,
   ) {
-    this.blueprintsSkillsDir = join(config.system.root, config.paths.memory, "Skills");
+    this.blueprintsSkillsDir = join(config.system.root, config.paths.memorySkills);
     this.indexPath = join(this.blueprintsSkillsDir, "index.json");
     this.skillsConfig = { ...DEFAULT_CONFIG, ...skillsConfig };
   }
@@ -131,7 +132,7 @@ export class SkillsService {
    * List all skills with optional filtering
    */
   async listSkills(filter?: {
-    status?: "active" | "draft" | "deprecated";
+    status?: SkillStatus;
     scope?: "global" | "project";
     source?: "core" | "project" | "user" | "learned";
   }): Promise<Skill[]> {
@@ -243,7 +244,7 @@ export class SkillsService {
    * Activate a draft skill
    */
   async activateSkill(skillId: string): Promise<boolean> {
-    const result = await this.updateSkill(skillId, { status: "active" });
+    const result = await this.updateSkill(skillId, { status: SkillStatus.ACTIVE });
     return result !== null;
   }
 
@@ -251,7 +252,7 @@ export class SkillsService {
    * Deprecate an active skill
    */
   async deprecateSkill(skillId: string): Promise<boolean> {
-    const result = await this.updateSkill(skillId, { status: "deprecated" });
+    const result = await this.updateSkill(skillId, { status: SkillStatus.DEPRECATED });
     return result !== null;
   }
 
@@ -261,7 +262,7 @@ export class SkillsService {
    * Match skills based on request context
    */
   async matchSkills(request: SkillMatchRequest): Promise<SkillMatch[]> {
-    const skills = await this.listSkills({ status: "active" });
+    const skills = await this.listSkills({ status: SkillStatus.ACTIVE });
     const matches: SkillMatch[] = [];
 
     // Extract keywords from request text if provided
@@ -644,9 +645,9 @@ export class SkillsService {
     const skill = await this.createSkill(
       {
         ...skillDraft,
-        source: "learned",
+        source: MemorySource.LEARNED,
         derived_from: learningIds,
-        status: "draft", // Always starts as draft
+        status: SkillStatus.DRAFT, // Always starts as draft
       },
     );
 
@@ -839,7 +840,7 @@ export class SkillsService {
       // Map source values (core/project maps to user for schema compatibility)
       let source = frontmatter.source as string;
       if (source === "core" || source === "project") {
-        source = "user";
+        source = MemorySource.USER;
       }
 
       // Build skill object
@@ -849,10 +850,10 @@ export class SkillsService {
         name: frontmatter.name as string,
         version: frontmatter.version as string,
         description: frontmatter.description as string,
-        scope: frontmatter.scope as "global" | "project",
+        scope: frontmatter.scope as MemoryScope,
         project: frontmatter.project as string | undefined,
-        status: frontmatter.status as "active" | "draft" | "deprecated",
-        source: source as "user" | "agent" | "learned",
+        status: frontmatter.status as SkillStatus,
+        source: source as MemorySource,
         source_id: frontmatter.source_id as string | undefined,
         triggers: frontmatter.triggers as SkillTriggers,
         instructions: body,

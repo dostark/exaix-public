@@ -18,6 +18,9 @@ import {
   LOG_LEVEL_ICONS,
   MinimalAgentServiceMock,
 } from "../../src/tui/agent_status_view.ts";
+import { CritiqueSeverity } from "../../src/enums.ts";
+
+import { SkillStatus } from "../../src/enums.ts";
 
 // ===== Mock AgentService for testing =====
 
@@ -27,7 +30,7 @@ class MockAgentService implements AgentService {
       id: "agent1",
       name: "Agent 1",
       model: "gpt-4",
-      status: "active",
+      status: SkillStatus.ACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: ["code", "chat"],
       defaultSkills: [],
@@ -165,7 +168,7 @@ Deno.test("AgentViewState: interface has all required properties", () => {
 // ===== Phase 13.7: Icon Tests =====
 
 Deno.test("AGENT_STATUS_ICONS: has all status types", () => {
-  const requiredKeys = ["active", "inactive", "error"];
+  const requiredKeys = [SkillStatus.ACTIVE, "inactive", "error"];
   for (const key of requiredKeys) {
     if (!AGENT_STATUS_ICONS[key]) {
       throw new Error(`Missing status icon for: ${key}`);
@@ -174,7 +177,7 @@ Deno.test("AGENT_STATUS_ICONS: has all status types", () => {
 });
 
 Deno.test("AGENT_HEALTH_ICONS: has all health types", () => {
-  const requiredKeys = ["healthy", "warning", "critical"];
+  const requiredKeys = ["healthy", "warning", CritiqueSeverity.CRITICAL];
   for (const key of requiredKeys) {
     if (!AGENT_HEALTH_ICONS[key]) {
       throw new Error(`Missing health icon for: ${key}`);
@@ -192,7 +195,7 @@ Deno.test("LOG_LEVEL_ICONS: has all log levels", () => {
 });
 
 Deno.test("AGENT_STATUS_COLORS: has all status types", () => {
-  const requiredKeys = ["active", "inactive", "error", "healthy", "warning", "critical"];
+  const requiredKeys = [SkillStatus.ACTIVE, "inactive", "error", "healthy", "warning", CritiqueSeverity.CRITICAL];
   for (const key of requiredKeys) {
     if (!AGENT_STATUS_COLORS[key]) {
       throw new Error(`Missing color for: ${key}`);
@@ -561,7 +564,7 @@ Deno.test("AgentStatusTuiSession: setAgents", async () => {
       id: "new1",
       name: "New Agent",
       model: "claude",
-      status: "active",
+      status: SkillStatus.ACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: ["code"],
       defaultSkills: [],
@@ -717,7 +720,7 @@ Deno.test("MinimalAgentServiceMock: works correctly", async () => {
       id: "test1",
       name: "Test",
       model: "test-model",
-      status: "active",
+      status: SkillStatus.ACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: [],
       defaultSkills: [],

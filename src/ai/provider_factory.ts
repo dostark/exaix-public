@@ -6,16 +6,16 @@
  * 2. Config file [ai] section (medium priority)
  * 3. Defaults (lowest priority) - MockLLMProvider for safety
  */
+// @ts-ignore: Deno is a global in the Deno runtime
+declare const Deno: any;
+
 import * as DEFAULTS from "../config/constants.ts";
-import { IModelProvider, OllamaProvider } from "./providers.ts";
-import { MockLLMProvider, MockStrategy } from "./providers/mock_llm_provider.ts";
+import { IModelProvider } from "./providers.ts";
+import { MockStrategy } from "../enums.ts";
 import { Config } from "../config/schema.ts";
-import { AiConfig, DEFAULT_MODELS, ProviderType } from "../config/ai_config.ts";
+import { AiConfig, getDefaultModels } from "../config/ai_config.ts";
+import { ProviderType } from "../enums.ts";
 import { LlamaProvider } from "./providers/llama_provider.ts";
-import { AnthropicProvider } from "./providers/anthropic_provider.ts";
-import { OpenAIProvider } from "./providers/openai_provider.ts";
-import { GoogleProvider } from "./providers/google_provider.ts";
-import { SecureCredentialStore } from "../utils/credential_security.ts";
 import { InputValidator } from "../schemas/input_validation.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
 import { DatabaseService } from "../services/db.ts";
@@ -26,9 +26,11 @@ import {
   MockProviderFactory,
   OllamaProviderFactory,
   OpenAIProviderFactory,
+  ProviderMetadata,
   ProviderRegistry,
 } from "./provider_registry.ts";
 import { RateLimitedProvider } from "./rate_limited_provider.ts";
+import { PricingTier } from "../enums.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -52,6 +54,8 @@ export interface ResolvedProviderOptions {
   mockStrategy?: MockStrategy;
   /** Mock fixtures directory */
   mockFixturesDir?: string;
+  /** Custom provider ID */
+  id?: string;
 }
 
 /**
@@ -151,6 +155,39 @@ export class ProviderFactory {
       "All providers in fallback chain failed" + (lastError ? ": " + String(lastError) : ""),
     );
   }
+
+  /**
+   * Create an LLM provider by looking up a named fallback chain in configuration.
+   *
+   * @param config - ExoFrame configuration
+   * @param chainName - Name of the fallback chain to use (e.g., "balanced", "fast")
+   * @param db - Optional database service for cost tracking
+   * @returns An IModelProvider instance
+   */
+  static async createByChainName(
+    config: Config,
+    chainName: string,
+    db?: DatabaseService,
+  ): Promise<IModelProvider> {
+    const chain = config.provider_strategy?.fallback_chains?.[chainName];
+
+    if (!chain || chain.length === 0) {
+      throw new ProviderFactoryError(`Fallback chain '${chainName}' not found in configuration`);
+    }
+
+    const primary = chain[0];
+    const fallbacks = chain.slice(1);
+
+    // AI retry config for fallback attempts
+    const maxRetries = config.ai_retry?.max_attempts;
+
+    return await this.createWithFallback(config, {
+      primary,
+      fallbacks,
+      maxRetries,
+      healthCheck: config.provider_strategy?.health_check_enabled,
+    }, db);
+  }
   /**
    * Create an LLM provider based on environment and configuration.
    *
@@ -191,6 +228,11 @@ export class ProviderFactory {
    * @returns An IModelProvider instance
    */
   static async createByName(config: Config, name: string, db?: DatabaseService): Promise<IModelProvider> {
+    // Check if name refers to a fallback chain
+    if (config.provider_strategy?.fallback_enabled && config.provider_strategy?.fallback_chains?.[name]) {
+      return await this.createByChainName(config, name, db);
+    }
+
     const options = this.resolveOptionsByName(config, name);
     const provider = await this.createProvider(options);
 
@@ -263,7 +305,7 @@ export class ProviderFactory {
 
     // Base ai config from global config or sensible defaults
     const baseAi: AiConfig = (config.ai as AiConfig) ?? {
-      provider: "mock",
+      provider: ProviderType.MOCK,
       timeout_ms: DEFAULTS.DEFAULT_AI_TIMEOUT_MS,
     };
 
@@ -274,21 +316,34 @@ export class ProviderFactory {
     };
 
     // Resolve provider type (env > modelConfig > global)
-    let providerType: ProviderType = "mock";
+    let providerType: ProviderType = ProviderType.MOCK;
     if (envProvider) {
       const normalized = envProvider.toLowerCase().trim();
-      if (["mock", "ollama", "anthropic", "openai", "google"].includes(normalized)) {
+      // Initialize registry if needed
+      if (ProviderRegistry.getSupportedProviders().length === 0) {
+        initializeRegistry();
+      }
+      if (ProviderRegistry.getSupportedProviders().includes(normalized)) {
         providerType = normalized as ProviderType;
       } else {
         console.warn(`Unknown provider '${envProvider}' from EXO_LLM_PROVIDER, falling back to mock`);
-        providerType = "mock";
+        providerType = ProviderType.MOCK;
       }
     } else if (merged.provider) {
-      providerType = merged.provider as ProviderType;
+      // Initialize registry if needed for validation
+      if (ProviderRegistry.getSupportedProviders().length === 0) {
+        initializeRegistry();
+      }
+      if (ProviderRegistry.getSupportedProviders().includes(merged.provider)) {
+        providerType = merged.provider as ProviderType;
+      } else {
+        console.warn(`Unknown provider '${merged.provider}' from config, falling back to mock`);
+        providerType = ProviderType.MOCK;
+      }
     }
 
     // Resolve model (env > merged.model > default per provider)
-    const model = envModel ?? (merged.model ?? DEFAULT_MODELS[providerType]);
+    const model = envModel ?? (merged.model ?? getDefaultModels()[providerType]);
 
     // Resolve base url and timeout (env > merged > defaults)
     const baseUrl = envBaseUrl ?? merged.base_url;
@@ -300,14 +355,14 @@ export class ProviderFactory {
     } else if (merged.timeout_ms) {
       timeoutMs = merged.timeout_ms;
     } else if (config.ai_timeout && providerType !== "mock") {
-      const providerTimeout = config.ai_timeout[providerType as keyof typeof config.ai_timeout];
+      const providerTimeout = config.ai_timeout.providers?.[providerType];
       if (providerTimeout) {
         timeoutMs = providerTimeout;
       }
     }
 
     // Mock-specific
-    const mockStrategy = merged.mock?.strategy ?? baseAi?.mock?.strategy ?? "recorded";
+    const mockStrategy = merged.mock?.strategy ?? baseAi?.mock?.strategy ?? DEFAULTS.DEFAULT_MOCK_STRATEGY;
     const mockFixturesDir = merged.mock?.fixtures_dir ?? baseAi?.mock?.fixtures_dir;
 
     return {
@@ -365,126 +420,32 @@ export class ProviderFactory {
    * TODO: Deprecate this method once all providers are migrated to registry
    */
   private static async createProviderLegacy(options: ResolvedProviderOptions): Promise<IModelProvider> {
-    // Llama/Ollama model routing
-    if (/^(codellama:|llama[0-9.]*:)/.test(options.model)) {
-      return new LlamaProvider({ model: options.model, endpoint: options.baseUrl });
-    }
-    switch (options.provider) {
-      case "mock":
-        return this.createMockProvider(options);
-
-      case "ollama":
-        return this.createOllamaProvider(options);
-
-      case "anthropic":
-        return await this.createAnthropicProvider(options);
-
-      case "openai":
-        return await this.createOpenAIProvider(options);
-      case "google":
-        return await this.createGoogleProvider(options);
-
-      default:
-        // This shouldn't happen due to Zod validation, but just in case
-        console.warn(`Unknown provider '${options.provider}', falling back to mock`);
-        return this.createMockProvider(options);
-    }
-  }
-
-  /**
-   * Create a MockLLMProvider
-   */
-  private static createMockProvider(options: ResolvedProviderOptions): MockLLMProvider {
-    const strategy = options.mockStrategy ?? "recorded";
-
-    return new MockLLMProvider(strategy, {
-      id: this.generateProviderId(options),
-      fixtureDir: options.mockFixturesDir,
-    });
-  }
-
-  /**
-   * Create an OllamaProvider
-   */
-  private static createOllamaProvider(options: ResolvedProviderOptions): OllamaProvider {
-    return new OllamaProvider({
-      id: this.generateProviderId(options),
-      model: options.model,
-      baseUrl: options.baseUrl,
-      timeoutMs: options.timeoutMs,
-    });
-  }
-
-  /**
-   * Create an Anthropic provider
-   */
-  private static async createAnthropicProvider(options: ResolvedProviderOptions): Promise<IModelProvider> {
-    const apiKey = await SecureCredentialStore.get("ANTHROPIC_API_KEY");
-    if (!apiKey) {
-      throw new ProviderFactoryError("Authentication failed");
+    // Llama/Ollama model routing (special case for llama models)
+    if (DEFAULTS.MODEL_ROUTING_LLAMA_PATTERN.test(options.model)) {
+      return await new LlamaProvider({ model: options.model, endpoint: options.baseUrl });
     }
 
-    return new AnthropicProvider({
-      apiKey,
-      model: options.model,
-      id: this.generateProviderId(options),
-      timeoutMs: options.timeoutMs,
-    });
-  }
-
-  /**
-   * Create an OpenAI provider (stub - throws if no API key)
-   */
-  private static async createOpenAIProvider(options: ResolvedProviderOptions): Promise<IModelProvider> {
-    const apiKey = await SecureCredentialStore.get("OPENAI_API_KEY");
-    if (!apiKey) {
-      throw new ProviderFactoryError("Authentication failed");
-    }
-
-    return new OpenAIProvider({
-      apiKey,
-      model: options.model,
-      baseUrl: options.baseUrl,
-      id: this.generateProviderId(options),
-      timeoutMs: options.timeoutMs,
-    });
+    // For any other provider, this fallback should not be reached since all providers
+    // are now registered in the registry. If we reach here, it's an error.
+    throw new ProviderFactoryError(
+      `Provider '${options.provider}' is not registered in the provider registry. ` +
+        `Available providers: ${ProviderRegistry.getSupportedProviders().join(", ")}`,
+    );
   }
 
   /**
    * Generate a unique provider ID
    */
   private static generateProviderId(options: ResolvedProviderOptions): string {
-    switch (options.provider) {
-      case "mock":
-        return `mock-${options.mockStrategy ?? "recorded"}-${options.model}`;
-      case "ollama":
-        return `ollama-${options.model}`;
-      case "anthropic":
-        return `anthropic-${options.model}`;
-      case "openai":
-        return `openai-${options.model}`;
-      case "google":
-        return `google-${options.model}`;
-      default:
-        return `unknown-${options.provider}`;
-    }
-  }
-
-  /**
-   * Create a Google provider
-   */
-  private static async createGoogleProvider(options: ResolvedProviderOptions): Promise<IModelProvider> {
-    const apiKey = await SecureCredentialStore.get("GOOGLE_API_KEY");
-    if (!apiKey) {
-      throw new ProviderFactoryError("Authentication failed");
+    // Special case for mock provider which includes strategy
+    if (options.provider === DEFAULTS.PROVIDER_MOCK) {
+      return `${DEFAULTS.PROVIDER_ID_MOCK_PREFIX}${
+        options.mockStrategy ?? DEFAULTS.PROVIDER_ID_MOCK_DEFAULT_STRATEGY
+      }-${options.model}`;
     }
 
-    return new GoogleProvider({
-      apiKey,
-      model: options.model,
-      id: this.generateProviderId(options),
-      timeoutMs: options.timeoutMs,
-    });
+    // Default pattern for all other providers
+    return `${options.provider}-${options.model}`;
   }
 
   /**
@@ -506,16 +467,77 @@ export class ProviderFactory {
 // ============================================================================
 
 /**
- * Initialize default provider factories in registry (lazy initialization)
+ * Initialize default provider factories in registry with metadata (lazy initialization)
  */
-function initializeRegistry(): void {
+export function initializeRegistry(): void {
   // Only initialize if not already done
   if (ProviderRegistry.getSupportedProviders().length === 0) {
-    ProviderRegistry.register("mock", new MockProviderFactory());
-    ProviderRegistry.register("ollama", new OllamaProviderFactory());
-    ProviderRegistry.register("anthropic", new AnthropicProviderFactory());
-    ProviderRegistry.register("openai", new OpenAIProviderFactory());
-    ProviderRegistry.register("google", new GoogleProviderFactory());
+    // Mock provider - for testing and development
+    const mockMetadata: ProviderMetadata = {
+      name: DEFAULTS.PROVIDER_MOCK,
+      description: DEFAULTS.PROVIDER_MOCK_DESCRIPTION,
+      capabilities: DEFAULTS.PROVIDER_MOCK_CAPABILITIES,
+      costTier: DEFAULTS.PROVIDER_COST_TIER_FREE,
+      pricingTier: PricingTier.FREE,
+      strengths: DEFAULTS.PROVIDER_MOCK_STRENGTHS,
+    };
+    ProviderRegistry.registerWithMetadata(DEFAULTS.PROVIDER_MOCK, new MockProviderFactory(), mockMetadata);
+
+    // Ollama provider - local open-source models
+    const ollamaMetadata: ProviderMetadata = {
+      name: DEFAULTS.PROVIDER_OLLAMA,
+      description: DEFAULTS.PROVIDER_OLLAMA_DESCRIPTION,
+      capabilities: DEFAULTS.PROVIDER_OLLAMA_CAPABILITIES,
+      costTier: DEFAULTS.PROVIDER_COST_TIER_FREE,
+      pricingTier: PricingTier.LOCAL,
+      strengths: DEFAULTS.PROVIDER_OLLAMA_STRENGTHS,
+    };
+    ProviderRegistry.registerWithMetadata(DEFAULTS.PROVIDER_OLLAMA, new OllamaProviderFactory(), ollamaMetadata);
+
+    // Anthropic provider - Claude models
+    const anthropicMetadata: ProviderMetadata = {
+      name: DEFAULTS.PROVIDER_ANTHROPIC,
+      description: DEFAULTS.PROVIDER_ANTHROPIC_DESCRIPTION,
+      capabilities: DEFAULTS.PROVIDER_ANTHROPIC_CAPABILITIES,
+      costTier: DEFAULTS.PROVIDER_COST_TIER_PAID,
+      pricingTier: PricingTier.HIGH,
+      strengths: DEFAULTS.PROVIDER_ANTHROPIC_STRENGTHS,
+    };
+    ProviderRegistry.registerWithMetadata(
+      DEFAULTS.PROVIDER_ANTHROPIC,
+      new AnthropicProviderFactory(),
+      anthropicMetadata,
+    );
+
+    // OpenAI provider - GPT models
+    const openaiMetadata: ProviderMetadata = {
+      name: DEFAULTS.PROVIDER_OPENAI,
+      description: DEFAULTS.PROVIDER_OPENAI_DESCRIPTION,
+      capabilities: DEFAULTS.PROVIDER_OPENAI_CAPABILITIES,
+      costTier: DEFAULTS.PROVIDER_COST_TIER_PAID,
+      pricingTier: PricingTier.MEDIUM,
+      strengths: DEFAULTS.PROVIDER_OPENAI_STRENGTHS,
+    };
+    ProviderRegistry.registerWithMetadata(
+      DEFAULTS.PROVIDER_OPENAI,
+      new OpenAIProviderFactory(),
+      openaiMetadata,
+    );
+
+    // Google provider - Gemini models
+    const googleMetadata: ProviderMetadata = {
+      name: DEFAULTS.PROVIDER_GOOGLE,
+      description: DEFAULTS.PROVIDER_GOOGLE_DESCRIPTION,
+      capabilities: DEFAULTS.PROVIDER_GOOGLE_CAPABILITIES,
+      costTier: DEFAULTS.PROVIDER_COST_TIER_FREEMIUM,
+      pricingTier: PricingTier.LOW,
+      strengths: DEFAULTS.PROVIDER_GOOGLE_STRENGTHS,
+    };
+    ProviderRegistry.registerWithMetadata(
+      DEFAULTS.PROVIDER_GOOGLE,
+      new GoogleProviderFactory(),
+      googleMetadata,
+    );
   }
 }
 
@@ -533,13 +555,19 @@ function initializeRegistry(): void {
 export async function validateProviderConnection(provider: IModelProvider): Promise<void> {
   try {
     // Use a minimal test prompt that should work with any provider
-    const testPrompt = "Hello";
-    const testOptions = { max_tokens: 1, temperature: 0 };
+    const testPrompt = DEFAULTS.PROVIDER_HEALTH_CHECK_TEST_PROMPT;
+    const testOptions = {
+      max_tokens: DEFAULTS.PROVIDER_HEALTH_CHECK_MAX_TOKENS,
+      temperature: DEFAULTS.PROVIDER_HEALTH_CHECK_TEMPERATURE,
+    };
 
     // Create a timeout promise with proper cleanup
     let timeoutId: number | undefined;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error("Health check timeout")), 5000);
+      timeoutId = setTimeout(
+        () => reject(new Error("Health check timeout")),
+        DEFAULTS.PROVIDER_HEALTH_CHECK_TIMEOUT_MS,
+      );
     });
 
     try {

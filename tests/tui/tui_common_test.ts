@@ -4,7 +4,7 @@
  * Part of Phase 13.2: Enhanced TuiSessionBase
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists } from "@std/assert";
 import {
   calculateScrollOffset,
   clampScrollOffset,

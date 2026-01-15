@@ -11,10 +11,10 @@
  * - Test 7: Handles special characters in portal names
  */
 
-import { assertEquals, assertExists, assertRejects } from "jsr:@std/assert@^1.0.0";
-import { join } from "@std/path";
+import { assertEquals, assertExists, assertRejects } from "@std/assert";
+import { ExecutionStatus, SkillStatus } from "../../src/enums.ts";
+import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import { dirname } from "@std/path";
 import { PortalCommands } from "../../src/cli/portal_commands.ts";
 import {
   createTestPortal,
@@ -121,9 +121,9 @@ Deno.test("PortalCommands: lists all portals with status", async () => {
     portals.sort((a, b) => a.alias.localeCompare(b.alias));
 
     assertEquals(portals[0].alias, "Portal1");
-    assertEquals(portals[0].status, "active");
+    assertEquals(portals[0].status, SkillStatus.ACTIVE);
     assertEquals(portals[1].alias, "Portal2");
-    assertEquals(portals[1].status, "active");
+    assertEquals(portals[1].status, SkillStatus.ACTIVE);
   } finally {
     await env1.cleanup();
     await env2.cleanup();
@@ -156,7 +156,7 @@ Deno.test("PortalCommands: shows portal details", async () => {
 
     assertExists(details);
     assertEquals(details.alias, "ShowPortal");
-    assertEquals(details.status, "active");
+    assertEquals(details.status, SkillStatus.ACTIVE);
     assertEquals(details.targetPath, targetDir);
     assertExists(details.symlinkPath);
     assertExists(details.contextCardPath);
@@ -230,7 +230,7 @@ Deno.test("PortalCommands: verifies all portals", async () => {
     assertEquals(portal1.status, "ok");
 
     assertExists(portal2);
-    assertEquals(portal2.status, "failed");
+    assertEquals(portal2.status, ExecutionStatus.FAILED);
     assertExists(portal2.issues);
     assertEquals(portal2.issues!.length > 0, true);
   } finally {
@@ -408,7 +408,7 @@ Deno.test("PortalCommands: verify detects missing symlink", async () => {
     const results = await commands.verify("NoSymlink");
 
     assertEquals(results.length, 1);
-    assertEquals(results[0].status, "failed");
+    assertEquals(results[0].status, ExecutionStatus.FAILED);
     assertExists(results[0].issues);
     assertEquals(results[0].issues!.some((i) => i.includes("Symlink")), true);
   } finally {
@@ -427,7 +427,7 @@ Deno.test("PortalCommands: verify detects missing context card", async () => {
     const results = await commands.verify("NoCardVerify");
 
     assertEquals(results.length, 1);
-    assertEquals(results[0].status, "failed");
+    assertEquals(results[0].status, ExecutionStatus.FAILED);
     assertExists(results[0].issues);
     assertEquals(results[0].issues!.some((i) => i.includes("Context card")), true);
   } finally {
@@ -533,7 +533,7 @@ Deno.test("PortalCommands: verify detects config mismatch", async () => {
     // Verify should detect mismatch
     const results = await helper.verifyPortal("MismatchTest");
     assertEquals(results.length, 1);
-    assertEquals(results[0].status, "failed");
+    assertEquals(results[0].status, ExecutionStatus.FAILED);
     assertExists(results[0].issues);
     assertEquals(
       results[0].issues!.some((i) => i.includes("Config mismatch")),
@@ -559,7 +559,7 @@ Deno.test("PortalCommands: verify detects missing config entry", async () => {
     // Verify should detect missing config
     const results = await helper.verifyPortal("Orphaned");
     assertEquals(results.length, 1);
-    assertEquals(results[0].status, "failed");
+    assertEquals(results[0].status, ExecutionStatus.FAILED);
     assertExists(results[0].issues);
     assertEquals(
       results[0].issues!.some((i) => i.includes("not found in configuration")),

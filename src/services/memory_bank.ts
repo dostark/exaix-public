@@ -16,6 +16,7 @@ import { join } from "@std/path";
 import { ensureDir, ensureDirSync, ensureFile, exists } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
+import { MemoryReferenceType, MemoryScope, MemorySource, MemoryStatus } from "../enums.ts";
 import type {
   ActivitySummary,
   Decision,
@@ -59,12 +60,12 @@ export class MemoryBankService {
     private config: Config,
     private db: DatabaseService,
   ) {
-    this.memoryRoot = join(config.system.root, "Memory");
-    this.projectsDir = join(this.memoryRoot, "Projects");
-    this.executionDir = join(this.memoryRoot, "Execution");
-    this.tasksDir = join(this.memoryRoot, "Tasks");
-    this.indexDir = join(this.memoryRoot, "Index");
-    this.globalDir = join(this.memoryRoot, "Global");
+    this.memoryRoot = join(config.system.root, config.paths.memory);
+    this.projectsDir = join(config.system.root, config.paths.memoryProjects);
+    this.executionDir = join(config.system.root, config.paths.memoryExecution);
+    this.tasksDir = join(config.system.root, config.paths.memoryTasks);
+    this.indexDir = join(config.system.root, config.paths.memoryIndex);
+    this.globalDir = join(config.system.root, config.paths.memoryGlobal);
 
     // Ensure directory structure exists
     this.initializeDirectories();
@@ -540,7 +541,7 @@ export class MemoryBankService {
       }
 
       // Check for duplicate ID
-      if (globalMem.learnings.some((l) => l.id === learning.id)) {
+      if (globalMem.learnings.some((l: Learning) => l.id === learning.id)) {
         throw new Error(`Learning with ID '${learning.id}' already exists`);
       }
 
@@ -623,15 +624,15 @@ export class MemoryBankService {
     const learning: Learning = {
       id: learningId,
       created_at: now,
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       project: portal,
       title: promotion.title,
       description: promotion.description,
       category: promotion.category,
       tags: promotion.tags,
       confidence: promotion.confidence,
-      status: "approved",
+      status: MemoryStatus.APPROVED,
       approved_at: now,
     };
 
@@ -665,7 +666,7 @@ export class MemoryBankService {
     }
 
     // Find the learning
-    const learningIndex = globalMem.learnings.findIndex((l) => l.id === learningId);
+    const learningIndex = globalMem.learnings.findIndex((l: Learning) => l.id === learningId);
     if (learningIndex === -1) {
       throw new Error(`Learning not found: ${learningId}`);
     }
@@ -1455,7 +1456,7 @@ export class MemoryBankService {
       if (match) {
         references.push({
           path: match[2],
-          type: "url",
+          type: MemoryReferenceType.URL,
           description: match[3] || match[1],
         });
       }

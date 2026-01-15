@@ -1,7 +1,8 @@
-import { assertEquals } from "https://deno.land/std@0.204.0/assert/assert_equals.ts";
+import { assertEquals } from "@std/assert";
 import { launchTuiDashboard } from "../../src/tui/tui_dashboard.ts";
 import { NotificationService } from "../../src/services/notification.ts";
 import { initTestDbService } from "../helpers/db.ts";
+import { MemoryOperation, MemoryScope, MemoryStatus } from "../../src/enums.ts";
 
 Deno.test("TUI Dashboard + SQLite: handles notification service integration", async () => {
   const { db, config, cleanup } = await initTestDbService();
@@ -25,11 +26,11 @@ Deno.test("TUI Dashboard + SQLite: handles notification service integration", as
       id: "prop-1",
       created_at: new Date().toISOString(),
       agent: "test-agent",
-      operation: "add",
-      target_scope: "project",
+      operation: MemoryOperation.ADD,
+      target_scope: MemoryScope.PROJECT,
       learning: { title: "Test Learning" } as any,
       reason: "Testing",
-      status: "pending",
+      status: MemoryStatus.PENDING,
     });
 
     const notifLines = await dashboard.renderNotifications();

@@ -13,8 +13,16 @@ import {
   assertRejects,
   assertStringIncludes,
   assertThrows,
-} from "jsr:@std/assert@1";
-import { join } from "jsr:@std/path@1";
+} from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
+import { SecurityMode } from "../../src/enums.ts";
+
+import { PortalOperation } from "../../src/enums.ts";
+
+import { MemoryOperation, MemoryStatus } from "../../src/enums.ts";
+
+import { join } from "@std/path";
 import { AgentExecutor, Blueprint } from "../../src/services/agent_executor.ts";
 import { SafeError } from "../../src/errors/safe_error.ts";
 import { Config } from "../../src/config/schema.ts";
@@ -48,19 +56,19 @@ async function setup() {
   await Deno.mkdir(runtimeDir, { recursive: true });
 
   // Initialize git in portal
-  const initGit = new Deno.Command("git", {
+  const initGit = new Deno.Command(PortalOperation.GIT, {
     args: ["init"],
     cwd: portalDir,
   });
   await initGit.output();
 
-  const configGitUser = new Deno.Command("git", {
+  const configGitUser = new Deno.Command(PortalOperation.GIT, {
     args: ["config", "user.name", "Test User"],
     cwd: portalDir,
   });
   await configGitUser.output();
 
-  const configGitEmail = new Deno.Command("git", {
+  const configGitEmail = new Deno.Command(PortalOperation.GIT, {
     args: ["config", "user.email", "test@exoframe.local"],
     cwd: portalDir,
   });
@@ -68,13 +76,13 @@ async function setup() {
 
   // Create initial commit
   await Deno.writeTextFile(join(portalDir, "README.md"), "# Test Portal\n");
-  const addReadme = new Deno.Command("git", {
-    args: ["add", "README.md"],
+  const addReadme = new Deno.Command(PortalOperation.GIT, {
+    args: [MemoryOperation.ADD, "README.md"],
     cwd: portalDir,
   });
   await addReadme.output();
 
-  const initialCommit = new Deno.Command("git", {
+  const initialCommit = new Deno.Command(PortalOperation.GIT, {
     args: ["commit", "-m", "Initial commit"],
     cwd: portalDir,
   });
@@ -127,9 +135,9 @@ function getServices() {
       alias: "TestPortal",
       target_path: portalDir,
       agents_allowed: ["test-agent", "ollama-agent"],
-      operations: ["read", "write", "git"],
+      operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
       security: {
-        mode: "sandboxed",
+        mode: SecurityMode.SANDBOXED,
         audit_enabled: true,
         log_all_actions: true,
       },
@@ -270,7 +278,7 @@ Deno.test({
       const options: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "NonexistentPortal",
-        security_mode: "sandboxed",
+        security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 300000,
         max_tool_calls: 100,
         audit_enabled: true,
@@ -316,7 +324,7 @@ Deno.test({
       const options: AgentExecutionOptions = {
         agent_id: "unauthorized-agent", // Not in agents_allowed
         portal: "TestPortal",
-        security_mode: "sandboxed",
+        security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 300000,
         max_tool_calls: 100,
         audit_enabled: true,
@@ -351,10 +359,7 @@ Deno.test({
         permissions,
       );
 
-      const permissions_flags = executor.buildSubprocessPermissions(
-        "sandboxed",
-        portalDir,
-      );
+      const permissions_flags = executor.buildSubprocessPermissions(SecurityMode.SANDBOXED, portalDir);
 
       assertStringIncludes(permissions_flags.join(" "), "--allow-read=NONE");
       assertStringIncludes(permissions_flags.join(" "), "--allow-write=NONE");
@@ -380,10 +385,7 @@ Deno.test({
         permissions,
       );
 
-      const permissions_flags = executor.buildSubprocessPermissions(
-        "hybrid",
-        portalDir,
-      );
+      const permissions_flags = executor.buildSubprocessPermissions(SecurityMode.HYBRID, portalDir);
 
       assertStringIncludes(
         permissions_flags.join(" "),
@@ -444,11 +446,11 @@ Deno.test({
       // Create a tracked file and commit it
       const trackedFile = join(portalDir, "tracked.txt");
       await Deno.writeTextFile(trackedFile, "Original content");
-      await new Deno.Command("git", {
-        args: ["add", "tracked.txt"],
+      await new Deno.Command(PortalOperation.GIT, {
+        args: [MemoryOperation.ADD, "tracked.txt"],
         cwd: portalDir,
       }).output();
-      await new Deno.Command("git", {
+      await new Deno.Command(PortalOperation.GIT, {
         args: ["commit", "-m", "Add tracked file"],
         cwd: portalDir,
       }).output();
@@ -541,13 +543,13 @@ Deno.test({
       const authorizedFile = join(portalDir, "authorized.txt");
       await Deno.writeTextFile(authorizedFile, "Authorized change");
 
-      const addFile = new Deno.Command("git", {
-        args: ["add", "authorized.txt"],
+      const addFile = new Deno.Command(PortalOperation.GIT, {
+        args: [MemoryOperation.ADD, "authorized.txt"],
         cwd: portalDir,
       });
       await addFile.output();
 
-      const commitFile = new Deno.Command("git", {
+      const commitFile = new Deno.Command(PortalOperation.GIT, {
         args: ["commit", "-m", "Authorized change via MCP"],
         cwd: portalDir,
       });
@@ -713,14 +715,14 @@ Deno.test({
       const options: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "TestPortal",
-        security_mode: "sandboxed",
+        security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 300000,
         max_tool_calls: 10,
         audit_enabled: true,
       };
 
       // Simulate 11 tool calls
-      const toolCalls = Array(11).fill("read_file");
+      const toolCalls = Array(11).fill(McpToolName.READ_FILE);
 
       const exceededLimit = executor.checkToolCallLimit(
         toolCalls.length,
@@ -820,7 +822,7 @@ Deno.test({
       );
 
       // Get latest commit SHA from test repo
-      const logProcess = new Deno.Command("git", {
+      const logProcess = new Deno.Command(PortalOperation.GIT, {
         args: ["log", "-1", "--format=%H"],
         cwd: portalDir,
       });
@@ -889,7 +891,7 @@ Deno.test({
       const options: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "TestPortal",
-        security_mode: "sandboxed",
+        security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 30000, // 30 seconds
         max_tool_calls: 100,
         audit_enabled: true,
@@ -921,7 +923,7 @@ Deno.test({
       const optionsWithAudit: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "TestPortal",
-        security_mode: "hybrid",
+        security_mode: SecurityMode.HYBRID,
         timeout_ms: 300000,
         max_tool_calls: 100,
         audit_enabled: true,
@@ -930,7 +932,7 @@ Deno.test({
       const optionsWithoutAudit: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "TestPortal",
-        security_mode: "hybrid",
+        security_mode: SecurityMode.HYBRID,
         timeout_ms: 300000,
         max_tool_calls: 100,
         audit_enabled: false,
@@ -1009,7 +1011,7 @@ You are a test agent for ExoFrame testing.`;
       const options: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "TestPortal",
-        security_mode: "sandboxed",
+        security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 5000,
         max_tool_calls: 50,
         audit_enabled: true,
@@ -1092,7 +1094,7 @@ You are a test agent.`;
       const options: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "TestPortal",
-        security_mode: "sandboxed",
+        security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 5000,
         max_tool_calls: 50,
         audit_enabled: true,
@@ -1184,7 +1186,7 @@ You are a test agent for ExoFrame testing.`;
       const options: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "TestPortal",
-        security_mode: "sandboxed",
+        security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 5000,
         max_tool_calls: 50,
         audit_enabled: true,
@@ -1196,7 +1198,7 @@ You are a test agent for ExoFrame testing.`;
       assertStringIncludes(capturedPrompt, "12345678-1234-1234-1234-123456789012"); // trace_id
       assertStringIncludes(capturedPrompt, "test-request-789"); // request_id
       assertStringIncludes(capturedPrompt, "TestPortal"); // portal
-      assertStringIncludes(capturedPrompt, "sandboxed"); // security_mode
+      assertStringIncludes(capturedPrompt, SecurityMode.SANDBOXED); // security_mode
       assertStringIncludes(capturedPrompt, "Implement feature X"); // request
       assertStringIncludes(capturedPrompt, "Step 1: Create file"); // plan
       assertStringIncludes(capturedPrompt, "You are a test agent for ExoFrame testing"); // system prompt
@@ -1266,7 +1268,7 @@ Test agent for completion handling.`;
       const options: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "TestPortal",
-        security_mode: "sandboxed",
+        security_mode: SecurityMode.SANDBOXED,
         timeout_ms: 5000,
         max_tool_calls: 50,
         audit_enabled: true,
@@ -1390,7 +1392,7 @@ You are a test agent using Ollama provider.`;
         const options: AgentExecutionOptions = {
           agent_id: "ollama-agent",
           portal: "TestPortal",
-          security_mode: "sandboxed",
+          security_mode: SecurityMode.SANDBOXED,
           timeout_ms: 5000,
           max_tool_calls: 50,
           audit_enabled: true,
@@ -1485,7 +1487,7 @@ Test agent for error handling.`;
         const options: AgentExecutionOptions = {
           agent_id: "ollama-agent",
           portal: "TestPortal",
-          security_mode: "sandboxed",
+          security_mode: SecurityMode.SANDBOXED,
           timeout_ms: 5000,
           max_tool_calls: 50,
           audit_enabled: true,
@@ -1680,7 +1682,7 @@ Deno.test({
       await Deno.mkdir(testPortalPath, { recursive: true });
 
       // Initialize git repo
-      const gitInit = new Deno.Command("git", {
+      const gitInit = new Deno.Command(PortalOperation.GIT, {
         args: ["init"],
         cwd: testPortalPath,
       });
@@ -1690,13 +1692,13 @@ Deno.test({
       const testFile = join(testPortalPath, "test.txt");
       await Deno.writeTextFile(testFile, "test content");
 
-      const gitAdd = new Deno.Command("git", {
-        args: ["add", "test.txt"],
+      const gitAdd = new Deno.Command(PortalOperation.GIT, {
+        args: [MemoryOperation.ADD, "test.txt"],
         cwd: testPortalPath,
       });
       await gitAdd.output();
 
-      const gitCommit = new Deno.Command("git", {
+      const gitCommit = new Deno.Command(PortalOperation.GIT, {
         args: ["commit", "-m", "initial commit"],
         cwd: testPortalPath,
       });
@@ -1746,20 +1748,20 @@ Deno.test({
       await Deno.mkdir(testPortalPath, { recursive: true });
 
       // Initialize git repo
-      const gitInit = new Deno.Command("git", {
+      const gitInit = new Deno.Command(PortalOperation.GIT, {
         args: ["init"],
         cwd: testPortalPath,
       });
       await gitInit.output();
 
       // Configure git user
-      const gitConfigName = new Deno.Command("git", {
+      const gitConfigName = new Deno.Command(PortalOperation.GIT, {
         args: ["config", "user.name", "Test User"],
         cwd: testPortalPath,
       });
       await gitConfigName.output();
 
-      const gitConfigEmail = new Deno.Command("git", {
+      const gitConfigEmail = new Deno.Command(PortalOperation.GIT, {
         args: ["config", "user.email", "test@example.com"],
         cwd: testPortalPath,
       });
@@ -1771,8 +1773,8 @@ Deno.test({
         const filePath = join(testPortalPath, file);
         await Deno.writeTextFile(filePath, `content of ${file}`);
 
-        const gitAdd = new Deno.Command("git", {
-          args: ["add", file],
+        const gitAdd = new Deno.Command(PortalOperation.GIT, {
+          args: [MemoryOperation.ADD, file],
           cwd: testPortalPath,
         });
         const addResult = await gitAdd.output();
@@ -1781,7 +1783,7 @@ Deno.test({
         }
       }
 
-      const gitCommit = new Deno.Command("git", {
+      const gitCommit = new Deno.Command(PortalOperation.GIT, {
         args: ["commit", "-m", "initial commit"],
         cwd: testPortalPath,
       });
@@ -1849,20 +1851,20 @@ Deno.test({
       await Deno.mkdir(testPortalPath, { recursive: true });
 
       // Initialize git repo
-      const gitInit = new Deno.Command("git", {
+      const gitInit = new Deno.Command(PortalOperation.GIT, {
         args: ["init"],
         cwd: testPortalPath,
       });
       await gitInit.output();
 
       // Configure git user
-      const gitConfigName = new Deno.Command("git", {
+      const gitConfigName = new Deno.Command(PortalOperation.GIT, {
         args: ["config", "user.name", "Test User"],
         cwd: testPortalPath,
       });
       await gitConfigName.output();
 
-      const gitConfigEmail = new Deno.Command("git", {
+      const gitConfigEmail = new Deno.Command(PortalOperation.GIT, {
         args: ["config", "user.email", "test@example.com"],
         cwd: testPortalPath,
       });
@@ -1872,13 +1874,13 @@ Deno.test({
       const testFile = join(testPortalPath, "test.txt");
       await Deno.writeTextFile(testFile, "original content");
 
-      const gitAdd = new Deno.Command("git", {
-        args: ["add", "test.txt"],
+      const gitAdd = new Deno.Command(PortalOperation.GIT, {
+        args: [MemoryOperation.ADD, "test.txt"],
         cwd: testPortalPath,
       });
       await gitAdd.output();
 
-      const gitCommit = new Deno.Command("git", {
+      const gitCommit = new Deno.Command(PortalOperation.GIT, {
         args: ["commit", "-m", "initial commit"],
         cwd: testPortalPath,
       });
@@ -1925,7 +1927,7 @@ Deno.test({
       await Deno.mkdir(testPortalPath, { recursive: true });
 
       // Initialize git repo
-      const gitInit = new Deno.Command("git", {
+      const gitInit = new Deno.Command(PortalOperation.GIT, {
         args: ["init"],
         cwd: testPortalPath,
       });
@@ -1945,7 +1947,7 @@ Deno.test({
       }
 
       // Debug: check git status
-      const gitStatus = new Deno.Command("git", {
+      const gitStatus = new Deno.Command(PortalOperation.GIT, {
         args: ["status", "--porcelain"],
         cwd: testPortalPath,
       });
@@ -1988,7 +1990,7 @@ Deno.test({
       await Deno.mkdir(testPortalPath, { recursive: true });
 
       // Initialize git repo
-      const gitInit = new Deno.Command("git", {
+      const gitInit = new Deno.Command(PortalOperation.GIT, {
         args: ["init"],
         cwd: testPortalPath,
       });
@@ -2037,20 +2039,20 @@ Deno.test({
       await Deno.mkdir(testPortalPath, { recursive: true });
 
       // Initialize git repo
-      const gitInit = new Deno.Command("git", {
+      const gitInit = new Deno.Command(PortalOperation.GIT, {
         args: ["init"],
         cwd: testPortalPath,
       });
       await gitInit.output();
 
       // Configure git user
-      const gitConfigName = new Deno.Command("git", {
+      const gitConfigName = new Deno.Command(PortalOperation.GIT, {
         args: ["config", "user.name", "Test User"],
         cwd: testPortalPath,
       });
       await gitConfigName.output();
 
-      const gitConfigEmail = new Deno.Command("git", {
+      const gitConfigEmail = new Deno.Command(PortalOperation.GIT, {
         args: ["config", "user.email", "test@example.com"],
         cwd: testPortalPath,
       });
@@ -2060,13 +2062,13 @@ Deno.test({
       const testFile = join(testPortalPath, "test.txt");
       await Deno.writeTextFile(testFile, "original content");
 
-      const gitAdd = new Deno.Command("git", {
-        args: ["add", "test.txt"],
+      const gitAdd = new Deno.Command(PortalOperation.GIT, {
+        args: [MemoryOperation.ADD, "test.txt"],
         cwd: testPortalPath,
       });
       await gitAdd.output();
 
-      const gitCommit = new Deno.Command("git", {
+      const gitCommit = new Deno.Command(PortalOperation.GIT, {
         args: ["commit", "-m", "initial commit"],
         cwd: testPortalPath,
       });
@@ -2123,7 +2125,7 @@ Deno.test({
       const results = await Promise.allSettled(lockPromises);
 
       const fulfilled = results.filter((r) => r.status === "fulfilled");
-      const _rejected = results.filter((r) => r.status === "rejected");
+      const _rejected = results.filter((r) => r.status === MemoryStatus.REJECTED);
 
       // At least one should succeed
       assert(fulfilled.length >= 1);
@@ -2444,7 +2446,7 @@ Deno.test({
         name: "test-agent",
         model: "gpt-4",
         provider: "openai",
-        capabilities: ["read", "write"],
+        capabilities: [PortalOperation.READ, PortalOperation.WRITE],
         systemPrompt: "You are a helpful assistant.",
       };
 
@@ -2459,7 +2461,7 @@ Deno.test({
       const options: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "/test/portal",
-        security_mode: "hybrid",
+        security_mode: SecurityMode.HYBRID,
         timeout_ms: 300000,
         max_tool_calls: 100,
         audit_enabled: true,
@@ -2498,7 +2500,7 @@ Deno.test({
         name: "test-agent",
         model: "gpt-4",
         provider: "openai",
-        capabilities: ["read", "write"],
+        capabilities: [PortalOperation.READ, PortalOperation.WRITE],
         systemPrompt: "You are a helpful assistant.",
       };
 
@@ -2513,7 +2515,7 @@ Deno.test({
       const options: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "/test/portal",
-        security_mode: "hybrid",
+        security_mode: SecurityMode.HYBRID,
         timeout_ms: 300000,
         max_tool_calls: 100,
         audit_enabled: true,
@@ -2552,7 +2554,7 @@ Deno.test({
         name: "test-agent",
         model: "gpt-4",
         provider: "openai",
-        capabilities: ["read", "write"],
+        capabilities: [PortalOperation.READ, PortalOperation.WRITE],
         systemPrompt: "You are a helpful assistant.",
       };
 
@@ -2573,7 +2575,7 @@ DROP TABLE sensitive_data;
       const options: AgentExecutionOptions = {
         agent_id: "test-agent",
         portal: "/test/portal",
-        security_mode: "hybrid",
+        security_mode: SecurityMode.HYBRID,
         timeout_ms: 300000,
         max_tool_calls: 100,
         audit_enabled: true,

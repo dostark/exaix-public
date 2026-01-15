@@ -5,6 +5,7 @@
 
 import { BaseCommand, type CommandContext } from "./base.ts";
 import type { GitService } from "../services/git_service.ts";
+import { ChangesetStatus } from "../enums.ts";
 
 export interface ChangesetMetadata {
   branch: string;
@@ -102,10 +103,10 @@ export class ChangesetCommands extends BaseCommand {
       // Check if branch has been merged or rejected via activity log
       const activities = await this.db.getActivitiesByTrace(trace_id);
       const status = activities.some((a: { action_type: string }) => a.action_type === "changeset.approved")
-        ? "approved"
+        ? ChangesetStatus.APPROVED
         : activities.some((a: { action_type: string }) => a.action_type === "changeset.rejected")
-        ? "rejected"
-        : "pending";
+        ? ChangesetStatus.REJECTED
+        : ChangesetStatus.PENDING;
 
       if (statusFilter && status !== statusFilter) continue;
 

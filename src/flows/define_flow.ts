@@ -1,4 +1,5 @@
 import { Flow, FlowSchema } from "../schemas/flow.ts";
+import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../enums.ts";
 
 /**
  * Helper to construct a Flow with sensible defaults and schema validation.
@@ -14,7 +15,7 @@ export function defineFlow(config: {
     agent: string;
     dependsOn?: string[];
     input?: {
-      source?: "request" | "step" | "aggregate";
+      source?: "request" | "step" | "aggregate" | "feedback";
       stepId?: string;
       from?: string[];
       transform?: string;
@@ -54,11 +55,11 @@ export function defineFlow(config: {
     steps: config.steps.map((step) => ({
       id: step.id,
       name: step.name,
-      type: "agent" as const, // Default step type
+      type: FlowStepType.AGENT, // Default step type
       agent: step.agent,
       dependsOn: step.dependsOn ?? [],
       input: {
-        source: step.input?.source ?? "request",
+        source: (step.input?.source as FlowInputSource) ?? FlowInputSource.REQUEST,
         stepId: step.input?.stepId,
         from: step.input?.from,
         transform: step.input?.transform ?? "passthrough",
@@ -71,7 +72,10 @@ export function defineFlow(config: {
         backoffMs: step.retry?.backoffMs ?? 1000,
       },
     })),
-    output: { from: config.output.from, format: config.output.format ?? "markdown" },
+    output: {
+      from: config.output.from,
+      format: (config.output.format as FlowOutputFormat) ?? FlowOutputFormat.MARKDOWN,
+    },
     settings: {
       maxParallelism: config.settings?.maxParallelism ?? 3,
       failFast: config.settings?.failFast ?? true,

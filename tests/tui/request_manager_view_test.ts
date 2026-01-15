@@ -1,4 +1,6 @@
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
+import { ExecutionStatus, MemorySource, MemoryStatus } from "../../src/enums.ts";
+
 import {
   MinimalRequestServiceMock,
   RequestManagerView,
@@ -18,7 +20,7 @@ Deno.test("RequestManagerView - renders request list correctly", async () => {
       trace_id: "12345678-abcd-1234-5678-123456789abc",
       filename: "request-12345678.md",
       title: "Request 12345678",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -65,7 +67,7 @@ Deno.test("RequestManagerView - lists requests via service", async () => {
     trace_id: "test-123",
     filename: "request-test.md",
     title: "Test Request",
-    status: "pending",
+    status: MemoryStatus.PENDING,
     priority: "normal",
     agent: "default",
     created: "2025-12-23T10:00:00Z",
@@ -83,7 +85,7 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
       trace_id: "test-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -93,17 +95,17 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
       trace_id: "test-2",
       filename: "request-2.md",
       title: "Request 2",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T11:00:00Z",
       created_by: "test@example.com",
     },
   ]);
-  const pendingRequests = await view.listRequests("pending");
+  const pendingRequests = await view.listRequests(MemoryStatus.PENDING);
 
   assertEquals(pendingRequests.length, 1);
-  assertEquals(pendingRequests[0].status, "pending");
+  assertEquals(pendingRequests[0].status, MemoryStatus.PENDING);
 });
 
 Deno.test("RequestManagerView - creates new request", async () => {
@@ -111,7 +113,7 @@ Deno.test("RequestManagerView - creates new request", async () => {
   const newRequest = await view.createRequest("Test request", { priority: "high", agent: "test-agent" });
 
   assert(newRequest.trace_id);
-  assertEquals(newRequest.status, "pending");
+  assertEquals(newRequest.status, MemoryStatus.PENDING);
   assertEquals(newRequest.priority, "high");
   assertEquals(newRequest.agent, "test-agent");
 });
@@ -122,7 +124,7 @@ Deno.test("RequestManagerView - gets request content", async () => {
       trace_id: "test-123",
       filename: "request-test.md",
       title: "Test Request",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -140,14 +142,14 @@ Deno.test("RequestManagerView - updates request status", async () => {
       trace_id: "test-123",
       filename: "request-test.md",
       title: "Test Request",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
       created_by: "test@example.com",
     },
   ]);
-  const success = await view.updateRequestStatus("test-123", "completed");
+  const success = await view.updateRequestStatus("test-123", ExecutionStatus.COMPLETED);
 
   assertEquals(success, true);
 });
@@ -160,7 +162,7 @@ Deno.test("RequestManagerTuiSession - keyboard navigation", async () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -171,7 +173,7 @@ Deno.test("RequestManagerTuiSession - keyboard navigation", async () => {
       trace_id: "req-2",
       filename: "request-2.md",
       title: "Request 2",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T11:00:00Z",
@@ -211,7 +213,7 @@ Deno.test("RequestManagerTuiSession - keyboard actions show dialogs", async () =
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -255,7 +257,7 @@ Deno.test("RequestManagerTuiSession - create request via dialog", async () => {
       trace_id: "new-req",
       filename: "request-new.md",
       title: "New Request",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: new Date().toISOString(),
@@ -337,7 +339,7 @@ Deno.test("RequestManagerTuiSession - get selected request", () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -348,7 +350,7 @@ Deno.test("RequestManagerTuiSession - get selected request", () => {
       trace_id: "req-2",
       filename: "request-2.md",
       title: "Request 2",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T11:00:00Z",
@@ -402,7 +404,7 @@ Deno.test("Phase 13.6: Tree grouping by status", () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -413,7 +415,7 @@ Deno.test("Phase 13.6: Tree grouping by status", () => {
       trace_id: "req-2",
       filename: "request-2.md",
       title: "Request 2",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       priority: "high",
       agent: "other",
       created: "2025-12-23T11:00:00Z",
@@ -440,7 +442,7 @@ Deno.test("Phase 13.6: Tree grouping by status", () => {
 
   // Toggle to agent grouping
   tui.toggleGrouping();
-  assertEquals(tui.getState().groupBy, "agent");
+  assertEquals(tui.getState().groupBy, MemorySource.AGENT);
 
   // Toggle back to none
   tui.toggleGrouping();
@@ -454,7 +456,7 @@ Deno.test("Phase 13.6: Search functionality", () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Bug fix",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "developer",
       created: "2025-12-23T10:00:00Z",
@@ -465,7 +467,7 @@ Deno.test("Phase 13.6: Search functionality", () => {
       trace_id: "req-2",
       filename: "request-2.md",
       title: "Feature request",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       priority: "high",
       agent: "designer",
       created: "2025-12-23T11:00:00Z",
@@ -497,7 +499,7 @@ Deno.test("Phase 13.6: Filter by status", () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -508,7 +510,7 @@ Deno.test("Phase 13.6: Filter by status", () => {
       trace_id: "req-2",
       filename: "request-2.md",
       title: "Request 2",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       priority: "high",
       agent: "other",
       created: "2025-12-23T11:00:00Z",
@@ -520,11 +522,11 @@ Deno.test("Phase 13.6: Filter by status", () => {
   const tui = view.createTuiSession(requests);
 
   // Filter by status
-  tui.getState().filterStatus = "pending";
+  tui.getState().filterStatus = MemoryStatus.PENDING;
   tui.buildTree();
 
   assertEquals(tui.getFilteredRequests().length, 1);
-  assertEquals(tui.getFilteredRequests()[0].status, "pending");
+  assertEquals(tui.getFilteredRequests()[0].status, MemoryStatus.PENDING);
 });
 
 Deno.test("Phase 13.6: Filter by agent", () => {
@@ -534,7 +536,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "developer",
       created: "2025-12-23T10:00:00Z",
@@ -545,7 +547,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
       trace_id: "req-2",
       filename: "request-2.md",
       title: "Request 2",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       priority: "high",
       agent: "designer",
       created: "2025-12-23T11:00:00Z",
@@ -583,7 +585,7 @@ Deno.test("Phase 13.6: Render methods return strings", () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -642,7 +644,7 @@ Deno.test("Phase 13.6: Cancel confirm dialog", async () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -669,7 +671,7 @@ Deno.test("Phase 13.6: Priority dialog", async () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -696,7 +698,7 @@ Deno.test("Phase 13.6: Tree navigation with groups", async () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -707,7 +709,7 @@ Deno.test("Phase 13.6: Tree navigation with groups", async () => {
       trace_id: "req-2",
       filename: "request-2.md",
       title: "Request 2",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       priority: "high",
       agent: "other",
       created: "2025-12-23T11:00:00Z",
@@ -753,7 +755,7 @@ Deno.test("Phase 13.6: setRequests updates tree", () => {
       trace_id: "new-req",
       filename: "request-new.md",
       title: "New Request",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T12:00:00Z",
@@ -773,7 +775,7 @@ Deno.test("Phase 13.6: Collapse and expand all", async () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -784,7 +786,7 @@ Deno.test("Phase 13.6: Collapse and expand all", async () => {
       trace_id: "req-2",
       filename: "request-2.md",
       title: "Request 2",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       priority: "high",
       agent: "other",
       created: "2025-12-23T11:00:00Z",

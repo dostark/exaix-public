@@ -1,4 +1,5 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert@1";
+import { assertEquals, assertThrows } from "@std/assert";
+import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
 import { defineFlow } from "../../src/flows/define_flow.ts";
 import { FlowSchema } from "../../src/schemas/flow.ts";
 
@@ -15,7 +16,7 @@ Deno.test("defineFlow: creates valid flow definition with minimal required field
         agent: "test-agent",
         dependsOn: [],
         input: {
-          source: "request" as const,
+          source: FlowInputSource.REQUEST,
           transform: "passthrough",
         },
         retry: {
@@ -37,7 +38,7 @@ Deno.test("defineFlow: creates valid flow definition with minimal required field
   assertEquals(flow.steps.length, 1);
   assertEquals(flow.steps[0].id, "step1");
   assertEquals(flow.output.from, "step1");
-  assertEquals(flow.output.format, "markdown"); // default value
+  assertEquals(flow.output.format, FlowOutputFormat.MARKDOWN); // default value
   assertEquals(flow.settings.maxParallelism, 3); // default value
   assertEquals(flow.settings.failFast, true); // default value
 
@@ -59,7 +60,7 @@ Deno.test("defineFlow: creates complex flow with dependencies and custom setting
         agent: "setup-agent",
         dependsOn: [],
         input: {
-          source: "request",
+          source: FlowInputSource.REQUEST,
           transform: "passthrough",
         },
         retry: {
@@ -73,7 +74,7 @@ Deno.test("defineFlow: creates complex flow with dependencies and custom setting
         agent: "analyzer-agent",
         dependsOn: ["setup"],
         input: {
-          source: "step",
+          source: FlowInputSource.STEP,
           stepId: "setup",
           transform: "extract-code",
         },
@@ -89,7 +90,7 @@ Deno.test("defineFlow: creates complex flow with dependencies and custom setting
         agent: "reviewer-agent",
         dependsOn: ["analyze"],
         input: {
-          source: "request",
+          source: FlowInputSource.REQUEST,
           transform: "passthrough",
         },
         condition: "result.status === 'success'",
@@ -101,7 +102,7 @@ Deno.test("defineFlow: creates complex flow with dependencies and custom setting
     ],
     output: {
       from: ["analyze", "review"],
-      format: "json",
+      format: FlowOutputFormat.JSON,
     },
     settings: {
       maxParallelism: 2,
@@ -115,12 +116,12 @@ Deno.test("defineFlow: creates complex flow with dependencies and custom setting
   assertEquals(flow.version, "2.1.0");
   assertEquals(flow.steps.length, 3);
   assertEquals(flow.steps[1].dependsOn, ["setup"]);
-  assertEquals(flow.steps[1].input.source, "step");
+  assertEquals(flow.steps[1].input.source, FlowInputSource.STEP);
   assertEquals(flow.steps[1].input.stepId, "setup");
   assertEquals(flow.steps[1].timeout, 60000);
   assertEquals(flow.steps[1].retry.maxAttempts, 3);
   assertEquals(flow.output.from, ["analyze", "review"]);
-  assertEquals(flow.output.format, "json");
+  assertEquals(flow.output.format, FlowOutputFormat.JSON);
   assertEquals(flow.settings.maxParallelism, 2);
   assertEquals(flow.settings.failFast, false);
   assertEquals(flow.settings.timeout, 300000);
@@ -157,7 +158,7 @@ Deno.test("defineFlow: applies default values correctly", () => {
         agent: "agent1",
         dependsOn: [],
         input: {
-          source: "request",
+          source: FlowInputSource.REQUEST,
           transform: "passthrough",
         },
         retry: {
@@ -173,11 +174,11 @@ Deno.test("defineFlow: applies default values correctly", () => {
 
   // Check all default values are applied
   assertEquals(flow.version, "1.0.0");
-  assertEquals(flow.output.format, "markdown");
+  assertEquals(flow.output.format, FlowOutputFormat.MARKDOWN);
   assertEquals(flow.settings.maxParallelism, 3);
   assertEquals(flow.settings.failFast, true);
   assertEquals(flow.steps[0].dependsOn, []);
-  assertEquals(flow.steps[0].input.source, "request");
+  assertEquals(flow.steps[0].input.source, FlowInputSource.REQUEST);
   assertEquals(flow.steps[0].input.transform, "passthrough");
   assertEquals(flow.steps[0].retry.maxAttempts, 1);
   assertEquals(flow.steps[0].retry.backoffMs, 1000);
@@ -197,7 +198,7 @@ Deno.test("defineFlow: allows valid dependency references", () => {
         agent: "agent1",
         dependsOn: ["nonexistent"], // This is valid at defineFlow level
         input: {
-          source: "request",
+          source: FlowInputSource.REQUEST,
           transform: "passthrough",
         },
         retry: {
@@ -225,7 +226,7 @@ Deno.test("defineFlow: throws error for empty flow ID", () => {
             name: "Step 1",
             agent: "agent1",
             dependsOn: [],
-            input: { source: "request", transform: "passthrough" },
+            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
@@ -249,7 +250,7 @@ Deno.test("defineFlow: throws error for empty flow name", () => {
             name: "Step 1",
             agent: "agent1",
             dependsOn: [],
-            input: { source: "request", transform: "passthrough" },
+            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
@@ -273,7 +274,7 @@ Deno.test("defineFlow: throws error for empty flow description", () => {
             name: "Step 1",
             agent: "agent1",
             dependsOn: [],
-            input: { source: "request", transform: "passthrough" },
+            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
@@ -312,7 +313,7 @@ Deno.test("defineFlow: throws error for empty step ID", () => {
             name: "Step 1",
             agent: "agent1",
             dependsOn: [],
-            input: { source: "request", transform: "passthrough" },
+            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
@@ -336,7 +337,7 @@ Deno.test("defineFlow: throws error for empty step name", () => {
             name: "",
             agent: "agent1",
             dependsOn: [],
-            input: { source: "request", transform: "passthrough" },
+            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
@@ -360,7 +361,7 @@ Deno.test("defineFlow: throws error for empty agent reference", () => {
             name: "Step 1",
             agent: "",
             dependsOn: [],
-            input: { source: "request", transform: "passthrough" },
+            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
@@ -384,7 +385,7 @@ Deno.test("defineFlow: throws error for invalid maxParallelism", () => {
             name: "Step 1",
             agent: "agent1",
             dependsOn: [],
-            input: { source: "request", transform: "passthrough" },
+            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
@@ -409,7 +410,7 @@ Deno.test("defineFlow: throws error for invalid retry maxAttempts", () => {
             name: "Step 1",
             agent: "agent1",
             dependsOn: [],
-            input: { source: "request", transform: "passthrough" },
+            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
             retry: { maxAttempts: 0, backoffMs: 1000 },
           },
         ],
@@ -442,14 +443,14 @@ Deno.test("defineFlow: applies all default values when optional fields are omitt
 
   // Verify all default values are applied
   assertEquals(flow.version, "1.0.0");
-  assertEquals(flow.output.format, "markdown");
+  assertEquals(flow.output.format, FlowOutputFormat.MARKDOWN);
   assertEquals(flow.settings.maxParallelism, 3);
   assertEquals(flow.settings.failFast, true);
   assertEquals(flow.settings.timeout, undefined);
 
   // Verify step defaults
   assertEquals(flow.steps[0].dependsOn, []);
-  assertEquals(flow.steps[0].input.source, "request");
+  assertEquals(flow.steps[0].input.source, FlowInputSource.REQUEST);
   assertEquals(flow.steps[0].input.transform, "passthrough");
   assertEquals(flow.steps[0].retry.maxAttempts, 1);
   assertEquals(flow.steps[0].retry.backoffMs, 1000);

@@ -1,5 +1,9 @@
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
+import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
+
+import { MemorySource } from "../../src/enums.ts";
+
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { type FlowReportConfig, FlowReporter } from "../../src/services/flow_reporter.ts";
@@ -63,7 +67,7 @@ describe("FlowReporter", () => {
             agent: "test-agent",
             dependsOn: [],
             input: {
-              source: "request",
+              source: FlowInputSource.REQUEST,
               transform: "passthrough",
             },
             retry: {
@@ -77,7 +81,7 @@ describe("FlowReporter", () => {
             agent: "test-agent",
             dependsOn: ["step1"],
             input: {
-              source: "request",
+              source: FlowInputSource.REQUEST,
               transform: "passthrough",
             },
             retry: {
@@ -88,7 +92,7 @@ describe("FlowReporter", () => {
         ],
         output: {
           from: "step2",
-          format: "markdown",
+          format: FlowOutputFormat.MARKDOWN,
         },
         settings: {
           maxParallelism: 3,
@@ -178,7 +182,7 @@ describe("FlowReporter", () => {
             agent: "test-agent",
             dependsOn: [],
             input: {
-              source: "request",
+              source: FlowInputSource.REQUEST,
               transform: "passthrough",
             },
             retry: {
@@ -189,7 +193,7 @@ describe("FlowReporter", () => {
         ],
         output: {
           from: "step1",
-          format: "markdown",
+          format: FlowOutputFormat.MARKDOWN,
         },
         settings: {
           maxParallelism: 3,
@@ -242,10 +246,10 @@ describe("FlowReporter", () => {
         steps: [{
           id: "step1",
           name: "Step 1",
-          agent: "agent",
+          agent: MemorySource.AGENT,
           dependsOn: [],
           input: {
-            source: "request",
+            source: FlowInputSource.REQUEST,
             transform: "passthrough",
           },
           retry: {
@@ -255,7 +259,7 @@ describe("FlowReporter", () => {
         }],
         output: {
           from: "step1",
-          format: "markdown",
+          format: FlowOutputFormat.MARKDOWN,
         },
         settings: {
           maxParallelism: 3,

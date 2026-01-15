@@ -82,10 +82,14 @@ export class RequestCommands extends BaseCommand {
 
   constructor(
     context: CommandContext,
-    workspaceRoot: string,
   ) {
     super(context);
-    this.workspaceRequestsDir = join(workspaceRoot, "Workspace", "Requests");
+    // Resolve paths relative to system root
+    this.workspaceRequestsDir = join(
+      context.config.system.root,
+      context.config.paths.workspace,
+      context.config.paths.requests,
+    );
   }
 
   /**

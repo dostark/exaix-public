@@ -8,10 +8,18 @@
  * - clearNotification handles non-existent proposal
  */
 
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assertEquals } from "@std/assert";
 import { initTestDbService } from "../helpers/db.ts";
 import { NotificationService } from "../../src/services/notification.ts";
 import type { MemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
+import {
+  ConfidenceLevel,
+  LearningCategory,
+  MemoryOperation,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+} from "../../src/enums.ts";
 
 /**
  * Creates test environment for notification tests
@@ -39,25 +47,25 @@ function createTestProposal(overrides?: Partial<MemoryUpdateProposal>): MemoryUp
   return {
     id: "550e8400-e29b-41d4-a716-446655440000",
     created_at: "2026-01-04T12:00:00Z",
-    operation: "add",
-    target_scope: "project",
+    operation: MemoryOperation.ADD,
+    target_scope: MemoryScope.PROJECT,
     target_project: "my-app",
     learning: {
       id: "550e8400-e29b-41d4-a716-446655440001",
       created_at: "2026-01-04T12:00:00Z",
-      source: "execution",
-      scope: "project",
+      source: MemorySource.EXECUTION,
+      scope: MemoryScope.PROJECT,
       project: "my-app",
       title: "Test Pattern",
       description: "A test pattern for notifications",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["test"],
-      confidence: "medium",
+      confidence: ConfidenceLevel.MEDIUM,
     },
     reason: "Extracted from execution",
     agent: "senior-coder",
     execution_id: "trace-123",
-    status: "pending",
+    status: MemoryStatus.PENDING,
     ...overrides,
   };
 }
@@ -264,7 +272,7 @@ Deno.test("NotificationService: notifyMemoryUpdate with global scope proposal", 
     // Create a global scope proposal (no target_project)
     const globalProposal = createTestProposal({
       id: "global-1",
-      target_scope: "global",
+      target_scope: MemoryScope.GLOBAL,
       target_project: undefined,
     });
 

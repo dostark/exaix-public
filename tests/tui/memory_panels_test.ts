@@ -4,7 +4,19 @@
  * Coverage tests for src/tui/memory_panels/index.ts
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists } from "@std/assert";
+import { MemoryReferenceType } from "../../src/enums.ts";
+
+import {
+  ExecutionStatus,
+  LearningCategory,
+  MemoryOperation,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+} from "../../src/enums.ts";
+
+import { ConfidenceLevel } from "../../src/enums.ts";
 import {
   MemoryColors,
   type PanelRenderOptions,
@@ -55,7 +67,7 @@ function createExecutionMemory(overrides: Partial<ExecutionMemory> = {}): Execut
     trace_id: crypto.randomUUID(),
     request_id: "req-123",
     started_at: new Date().toISOString(),
-    status: "completed",
+    status: ExecutionStatus.COMPLETED,
     portal: "test-portal",
     agent: "test-agent",
     summary: "Test execution summary",
@@ -74,14 +86,14 @@ function createLearning(overrides: Partial<Learning> = {}): Learning {
   return {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
-    source: "execution",
-    scope: "project",
+    source: MemorySource.EXECUTION,
+    scope: MemoryScope.PROJECT,
     title: "Test Learning",
     description: "A test learning description",
-    category: "pattern",
+    category: LearningCategory.PATTERN,
     tags: ["test"],
-    confidence: "high",
-    status: "pending",
+    confidence: ConfidenceLevel.HIGH,
+    status: MemoryStatus.PENDING,
     ...overrides,
   };
 }
@@ -169,8 +181,8 @@ Deno.test("renderProjectPanel: renders with decisions", () => {
 Deno.test("renderProjectPanel: renders with references", () => {
   const memory = createProjectMemory({
     references: [
-      { type: "file", path: "/src/main.ts", description: "Main entry point" },
-      { type: "url", path: "https://deno.land", description: "Deno docs" },
+      { type: MemoryReferenceType.FILE, path: "/src/main.ts", description: "Main entry point" },
+      { type: MemoryReferenceType.URL, path: "https://deno.land", description: "Deno docs" },
     ],
   });
   const result = renderProjectPanel(memory, "test-portal", defaultOptions);
@@ -242,7 +254,7 @@ Deno.test("renderGlobalPanel: renders with anti-patterns", () => {
 
 Deno.test("renderGlobalPanel: renders with learnings", () => {
   const memory = createGlobalMemory({
-    learnings: [createLearning({ scope: "global" })],
+    learnings: [createLearning({ scope: MemoryScope.GLOBAL })],
   });
   const result = renderGlobalPanel(memory, defaultOptions);
   assertEquals(result.length > 0, true);
@@ -270,7 +282,7 @@ Deno.test("renderExecutionPanel: renders null memory", () => {
 
 Deno.test("renderExecutionPanel: renders completed execution", () => {
   const memory = createExecutionMemory({
-    status: "completed",
+    status: ExecutionStatus.COMPLETED,
     completed_at: new Date().toISOString(),
   });
   const result = renderExecutionPanel(memory, defaultOptions);
@@ -280,7 +292,7 @@ Deno.test("renderExecutionPanel: renders completed execution", () => {
 
 Deno.test("renderExecutionPanel: renders running execution", () => {
   const memory = createExecutionMemory({
-    status: "running",
+    status: ExecutionStatus.RUNNING,
   });
   const result = renderExecutionPanel(memory, defaultOptions);
   assertEquals(result.length > 0, true);
@@ -288,7 +300,7 @@ Deno.test("renderExecutionPanel: renders running execution", () => {
 
 Deno.test("renderExecutionPanel: renders failed execution", () => {
   const memory = createExecutionMemory({
-    status: "failed",
+    status: ExecutionStatus.FAILED,
     error_message: "Something went wrong",
   });
   const result = renderExecutionPanel(memory, defaultOptions);
@@ -339,9 +351,9 @@ Deno.test("renderExecutionListPanel: renders single execution", () => {
 
 Deno.test("renderExecutionListPanel: renders multiple executions", () => {
   const executions = [
-    createExecutionMemory({ status: "completed", portal: "portal1" }),
-    createExecutionMemory({ status: "failed", portal: "portal2" }),
-    createExecutionMemory({ status: "running", portal: "portal3" }),
+    createExecutionMemory({ status: ExecutionStatus.COMPLETED, portal: "portal1" }),
+    createExecutionMemory({ status: ExecutionStatus.FAILED, portal: "portal2" }),
+    createExecutionMemory({ status: ExecutionStatus.RUNNING, portal: "portal3" }),
   ];
   const result = renderExecutionListPanel(executions, 0, defaultOptions);
   assertEquals(result.length > 0, true);
@@ -374,7 +386,7 @@ Deno.test("renderSearchPanel: renders empty results", () => {
 
 Deno.test("renderSearchPanel: renders single result", () => {
   const results: MemorySearchResult[] = [{
-    type: "pattern",
+    type: LearningCategory.PATTERN,
     title: "Test Pattern",
     summary: "A test pattern result",
     relevance_score: 0.95,
@@ -385,11 +397,11 @@ Deno.test("renderSearchPanel: renders single result", () => {
 
 Deno.test("renderSearchPanel: renders multiple result types", () => {
   const results: MemorySearchResult[] = [
-    { type: "pattern", title: "Pattern", summary: "Pattern summary" },
-    { type: "decision", title: "Decision", summary: "Decision summary" },
-    { type: "execution", title: "Execution", summary: "Execution summary", trace_id: "trace-1" },
+    { type: LearningCategory.PATTERN, title: "Pattern", summary: "Pattern summary" },
+    { type: LearningCategory.DECISION, title: "Decision", summary: "Decision summary" },
+    { type: MemorySource.EXECUTION, title: "Execution", summary: "Execution summary", trace_id: "trace-1" },
     { type: "learning", title: "Learning", summary: "Learning summary", id: "learn-1" },
-    { type: "project", title: "Project", summary: "Project summary", portal: "portal1" },
+    { type: MemoryScope.PROJECT, title: "Project", summary: "Project summary", portal: "portal1" },
   ];
   const result = renderSearchPanel("query", results, 0, defaultOptions);
   assertEquals(result.length > 0, true);
@@ -397,9 +409,9 @@ Deno.test("renderSearchPanel: renders multiple result types", () => {
 
 Deno.test("renderSearchPanel: handles selection", () => {
   const results: MemorySearchResult[] = [
-    { type: "pattern", title: "Result 1", summary: "Summary 1" },
-    { type: "pattern", title: "Result 2", summary: "Summary 2" },
-    { type: "pattern", title: "Result 3", summary: "Summary 3" },
+    { type: LearningCategory.PATTERN, title: "Result 1", summary: "Summary 1" },
+    { type: LearningCategory.PATTERN, title: "Result 2", summary: "Summary 2" },
+    { type: LearningCategory.PATTERN, title: "Result 3", summary: "Summary 3" },
   ];
   const result0 = renderSearchPanel("query", results, 0, defaultOptions);
   const result2 = renderSearchPanel("query", results, 2, defaultOptions);
@@ -409,7 +421,7 @@ Deno.test("renderSearchPanel: handles selection", () => {
 
 Deno.test("renderSearchPanel: handles many results", () => {
   const results: MemorySearchResult[] = Array(30).fill(0).map((_, i) => ({
-    type: "pattern" as const,
+    type: LearningCategory.PATTERN,
     title: `Result ${i}`,
     summary: `Summary for result ${i}`,
     relevance_score: 1 - (i / 100),
@@ -440,24 +452,24 @@ Deno.test("renderPendingPanel: renders single proposal", () => {
   const proposals: MemoryUpdateProposal[] = [{
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
-    operation: "add",
-    target_scope: "project",
+    operation: MemoryOperation.ADD,
+    target_scope: MemoryScope.PROJECT,
     target_project: "test-portal",
     learning: {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: "execution",
-      scope: "project",
+      source: MemorySource.EXECUTION,
+      scope: MemoryScope.PROJECT,
       project: "test-portal",
       title: "Test Learning",
       description: "A proposed learning",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["test"],
-      confidence: "high",
+      confidence: ConfidenceLevel.HIGH,
     },
     reason: "Good pattern to remember",
     agent: "test-agent",
-    status: "pending",
+    status: MemoryStatus.PENDING,
   }];
   const result = renderPendingPanel(proposals, 0, defaultOptions);
   assertEquals(result.length > 0, true);
@@ -467,22 +479,28 @@ Deno.test("renderPendingPanel: renders multiple proposals", () => {
   const createProposal = (i: number): MemoryUpdateProposal => ({
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
-    operation: ["add", "update", "promote"][i % 3] as "add" | "update" | "promote",
-    target_scope: i % 2 === 0 ? "project" : "global",
+    operation: [MemoryOperation.ADD, MemoryOperation.UPDATE, MemoryOperation.PROMOTE][i % 3] as
+      | MemoryOperation.ADD
+      | MemoryOperation.UPDATE
+      | MemoryOperation.PROMOTE,
+    target_scope: i % 2 === 0 ? MemoryScope.PROJECT : MemoryScope.GLOBAL,
     learning: {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: "execution",
-      scope: i % 2 === 0 ? "project" : "global",
+      source: MemorySource.EXECUTION,
+      scope: i % 2 === 0 ? MemoryScope.PROJECT : MemoryScope.GLOBAL,
       title: `Learning ${i}`,
       description: `Description ${i}`,
-      category: ["pattern", "decision", "insight"][i % 3] as "pattern" | "decision" | "insight",
+      category: [LearningCategory.PATTERN, LearningCategory.DECISION, LearningCategory.INSIGHT][i % 3] as
+        | LearningCategory.PATTERN
+        | LearningCategory.DECISION
+        | LearningCategory.INSIGHT,
       tags: [],
-      confidence: ["low", "medium", "high"][i % 3] as "low" | "medium" | "high",
+      confidence: [ConfidenceLevel.LOW, ConfidenceLevel.MEDIUM, ConfidenceLevel.HIGH][i % 3],
     },
     reason: `Reason ${i}`,
-    agent: "agent",
-    status: "pending",
+    agent: MemorySource.AGENT,
+    status: MemoryStatus.PENDING,
   });
 
   const proposals = Array(5).fill(0).map((_, i) => createProposal(i));
@@ -494,22 +512,22 @@ Deno.test("renderPendingPanel: handles selection", () => {
   const proposals: MemoryUpdateProposal[] = Array(3).fill(0).map((_, i) => ({
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
-    operation: "add" as const,
-    target_scope: "project" as const,
+    operation: MemoryOperation.ADD,
+    target_scope: MemoryScope.PROJECT,
     learning: {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: "execution" as const,
-      scope: "project" as const,
+      source: MemorySource.EXECUTION,
+      scope: MemoryScope.PROJECT,
       title: `Proposal ${i}`,
       description: `Desc ${i}`,
-      category: "pattern" as const,
+      category: LearningCategory.PATTERN,
       tags: [],
-      confidence: "medium" as const,
+      confidence: ConfidenceLevel.MEDIUM,
     },
     reason: "Reason",
-    agent: "agent",
-    status: "pending" as const,
+    agent: MemorySource.AGENT,
+    status: MemoryStatus.PENDING,
   }));
 
   const result0 = renderPendingPanel(proposals, 0, defaultOptions);

@@ -3,7 +3,9 @@
  * Phase 15.2: Quality Gate Steps
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@1";
+import { assertEquals, assertExists } from "@std/assert";
+import { FlowGateOnFail } from "../../src/enums.ts";
+
 import { GateConfig, GateEvaluator, MockJudgeInvoker } from "../../src/flows/gate_evaluator.ts";
 import { EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
 
@@ -17,7 +19,7 @@ Deno.test("GateEvaluator: passes gate when score above threshold", async () => {
     agent: "judge-agent",
     criteria: ["CODE_CORRECTNESS"],
     threshold: 0.8,
-    onFail: "halt",
+    onFail: FlowGateOnFail.HALT,
     maxRetries: 3,
   };
 
@@ -39,7 +41,7 @@ Deno.test("GateEvaluator: fails gate when score below threshold", async () => {
     agent: "judge-agent",
     criteria: ["CODE_CORRECTNESS"],
     threshold: 0.8,
-    onFail: "halt",
+    onFail: FlowGateOnFail.HALT,
     maxRetries: 3,
   };
 
@@ -59,7 +61,7 @@ Deno.test("GateEvaluator: returns retry action when configured", async () => {
     agent: "judge-agent",
     criteria: ["CODE_CORRECTNESS"],
     threshold: 0.8,
-    onFail: "retry",
+    onFail: FlowGateOnFail.RETRY,
     maxRetries: 3,
   };
 
@@ -67,7 +69,7 @@ Deno.test("GateEvaluator: returns retry action when configured", async () => {
   const result = await evaluator.evaluate(config, "Content", undefined, 0);
 
   assertEquals(result.passed, false);
-  assertEquals(result.action, "retry");
+  assertEquals(result.action, FlowGateOnFail.RETRY);
   assertEquals(result.attempts, 1);
 });
 
@@ -81,7 +83,7 @@ Deno.test("GateEvaluator: halts after max retries exceeded", async () => {
     agent: "judge-agent",
     criteria: ["CODE_CORRECTNESS"],
     threshold: 0.8,
-    onFail: "retry",
+    onFail: FlowGateOnFail.RETRY,
     maxRetries: 3,
   };
 
@@ -103,7 +105,7 @@ Deno.test("GateEvaluator: continues with warning when configured", async () => {
     agent: "judge-agent",
     criteria: ["CODE_CORRECTNESS"],
     threshold: 0.8,
-    onFail: "continue-with-warning",
+    onFail: FlowGateOnFail.CONTINUE_WITH_WARNING,
     maxRetries: 1,
   };
 
@@ -143,7 +145,7 @@ Deno.test("GateEvaluator: uses specific mock result", async () => {
     agent: "judge-agent",
     criteria: ["CODE_CORRECTNESS"],
     threshold: 0.8,
-    onFail: "halt",
+    onFail: FlowGateOnFail.HALT,
     maxRetries: 1,
   };
 
@@ -164,7 +166,7 @@ Deno.test("GateEvaluator: handles edge case scores", async () => {
     agent: "judge-agent",
     criteria: ["CODE_CORRECTNESS"],
     threshold: 0.8, // Exactly matches score
-    onFail: "halt",
+    onFail: FlowGateOnFail.HALT,
     maxRetries: 1,
   };
 
@@ -184,7 +186,7 @@ Deno.test("GateEvaluator: tracks evaluation duration", async () => {
     agent: "judge-agent",
     criteria: ["CODE_CORRECTNESS"],
     threshold: 0.8,
-    onFail: "halt",
+    onFail: FlowGateOnFail.HALT,
     maxRetries: 1,
   };
 

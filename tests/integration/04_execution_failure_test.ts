@@ -12,7 +12,17 @@
  * - Test 7: Original request is not affected by execution failure
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { FlowStepType } from "../../src/enums.ts";
+
+import { McpToolName } from "../../src/enums.ts";
+
+import { PortalOperation } from "../../src/enums.ts";
+
+import { EvaluationVerdict } from "../../src/enums.ts";
+
+import { ExecutionStatus, MemorySource } from "../../src/enums.ts";
+
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 
@@ -38,7 +48,7 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
         status: "review",
         actions: [
           {
-            tool: "read_file",
+            tool: McpToolName.READ_FILE,
             params: {
               path: "/non/existent/path/that/does/not/exist.txt",
             },
@@ -76,8 +86,8 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
     // ========================================================================
     await t.step("Test 2: Git changes are rolled back on failure", async () => {
       // Get current branch
-      const branchCmd = new Deno.Command("git", {
-        args: ["branch", "--show-current"],
+      const branchCmd = new Deno.Command(PortalOperation.GIT, {
+        args: [FlowStepType.BRANCH, "--show-current"],
         cwd: env.tempDir,
         stdout: "piped",
       });
@@ -102,9 +112,9 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
       const activities = env.getActivityLog(traceId);
 
       const failureActivities = activities.filter((a) =>
-        a.action_type.includes("fail") ||
+        a.action_type.includes(EvaluationVerdict.FAIL) ||
         a.action_type.includes("error") ||
-        a.action_type.includes("execution")
+        a.action_type.includes(MemorySource.EXECUTION)
       );
 
       // Should have failure-related activities
@@ -138,7 +148,7 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
       if (inActive) {
         const content = await env.readFile("Workspace/Active/failing-task_plan.md");
         // May have status: failed or failure section
-        const hasFailureIndicator = content.includes("failed") ||
+        const hasFailureIndicator = content.includes(ExecutionStatus.FAILED) ||
           content.includes("error") ||
           content.includes("Execution Failed") ||
           content.includes("Intentionally fail");
@@ -158,7 +168,7 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
       const { traceId: newTraceId } = await env.createRequest("New task after failure");
       const newPlanPath = await env.createPlan(newTraceId, "new-task", {
         status: "review",
-        actions: [{ tool: "write_file", params: { path: "ok.txt", content: "ok" } }],
+        actions: [{ tool: McpToolName.WRITE_FILE, params: { path: "ok.txt", content: "ok" } }],
       });
       const newActivePath = await env.approvePlan(newPlanPath);
 
@@ -185,8 +195,8 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
 
       // Check for execution-related activities
       const _hasExecutionActivity = activities.some((a) =>
-        a.action_type.includes("execution") ||
-        a.action_type.includes("git")
+        a.action_type.includes(MemorySource.EXECUTION) ||
+        a.action_type.includes(PortalOperation.GIT)
       );
 
       // All activities should have trace_id (already filtered)
@@ -264,7 +274,7 @@ Deno.test("Integration: Execution Failure - Partial execution rollback", async (
       status: "review",
       actions: [
         {
-          tool: "write_file",
+          tool: McpToolName.WRITE_FILE,
           params: { path: "success.txt", content: "This will succeed" },
         },
       ],
@@ -284,7 +294,7 @@ Deno.test("Integration: Execution Failure - Partial execution rollback", async (
 
     // Git state after failure - execution loop may leave us on feature branch or main
     // The key is that we don't crash and the result indicates failure
-    const currentBranchCmd = new Deno.Command("git", {
+    const currentBranchCmd = new Deno.Command(PortalOperation.GIT, {
       args: ["rev-parse", "--abbrev-ref", "HEAD"],
       cwd: env.tempDir,
       stdout: "piped",
@@ -312,7 +322,7 @@ Deno.test("Integration: Execution Failure - Recovery allows retry", async () => 
     let planPath = await env.createPlan(traceId, "retry-task", {
       status: "review",
       actions: [
-        { tool: "write_file", params: { path: "test.txt", content: "test" } },
+        { tool: McpToolName.WRITE_FILE, params: { path: "test.txt", content: "test" } },
       ],
     });
 
@@ -331,7 +341,7 @@ Deno.test("Integration: Execution Failure - Recovery allows retry", async () => 
     planPath = await env.createPlan(traceId, "retry-task-fixed", {
       status: "review",
       actions: [
-        { tool: "write_file", params: { path: "works.txt", content: "Fixed!" } },
+        { tool: McpToolName.WRITE_FILE, params: { path: "works.txt", content: "Fixed!" } },
       ],
     });
 

@@ -19,9 +19,7 @@ export class ContextCardGenerator {
   }
 
   async generate(info: PortalInfo): Promise<void> {
-    const { system } = this.config;
-    // Put portal documentation in Memory/Projects (replaces legacy portal storage)
-    const portalsDir = join(system.root, "Memory", "Projects");
+    const portalsDir = join(this.config.system.root, this.config.paths.memoryProjects);
 
     // Ensure directory exists
     await Deno.mkdir(portalsDir, { recursive: true });

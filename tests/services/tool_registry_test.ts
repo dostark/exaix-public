@@ -1,4 +1,10 @@
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
+import { PortalOperation } from "../../src/enums.ts";
+
+import { LearningCategory } from "../../src/enums.ts";
+
 import { ToolRegistry, type ToolRegistryConfig } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";
 import { DatabaseService } from "../../src/services/db.ts";
@@ -6,11 +12,39 @@ import { DatabaseService } from "../../src/services/db.ts";
 // Mock dependencies
 const mockConfig = ConfigSchema.parse({
   system: { root: "/tmp/test", log_level: "info" },
-  paths: {},
+  paths: {
+    workspace: "Workspace",
+    runtime: ".exo",
+    memory: "Memory",
+    blueprints: "Blueprints",
+    portals: "Portals",
+    active: "Active",
+    archive: "Archive",
+    plans: "Plans",
+    requests: "Requests",
+    rejected: "Rejected",
+    agents: "Agents",
+    flows: "Flows",
+    memoryProjects: "Memory/Projects",
+    memoryExecution: "Memory/Execution",
+    memoryIndex: "Memory/Index",
+    memorySkills: "Memory/Skills",
+    memoryPending: "Memory/Pending",
+    memoryTasks: "Memory/Tasks",
+    memoryGlobal: "Memory/Global",
+  },
   database: {},
   watcher: {},
   agents: {},
-  models: {},
+  models: {
+    default: {
+      provider: "mock",
+      model: "mock-model",
+    },
+  },
+  provider_strategy: {
+    fallback_chains: {},
+  },
   portals: [],
   mcp: {},
 });
@@ -28,7 +62,7 @@ Deno.test("ToolRegistry: should allow safe commands", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
     command: "echo",
     args: ["hello", "world"],
   });
@@ -47,7 +81,7 @@ Deno.test("ToolRegistry: should allow validated commands with safe arguments", a
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
     command: "ls",
     args: ["/tmp"],
   });
@@ -66,7 +100,7 @@ Deno.test("ToolRegistry: should reject unknown commands", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
     command: "rm",
     args: ["-rf", "/"],
   });
@@ -83,7 +117,7 @@ Deno.test("ToolRegistry: should block shell metacharacters", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
     command: "echo",
     args: ["hello; rm -rf /"],
   });
@@ -98,7 +132,7 @@ Deno.test("ToolRegistry: should block output redirection", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
     command: "echo",
     args: ["test", ">", "/tmp/file"],
   });
@@ -113,8 +147,8 @@ Deno.test("ToolRegistry: should block dangerous git options", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
-    command: "git",
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
+    command: PortalOperation.GIT,
     args: ["--exec-path", "/tmp"],
   });
   assert(!result.success);
@@ -128,8 +162,8 @@ Deno.test("ToolRegistry: should allow safe git operations", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
-    command: "git",
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
+    command: PortalOperation.GIT,
     args: ["status", "--porcelain"],
   });
   // Result depends on actual git repo state, but should not be blocked
@@ -143,7 +177,7 @@ Deno.test("ToolRegistry: should block unsafe ls options", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
     command: "ls",
     args: ["--color=always", "-R"],
   });
@@ -158,9 +192,9 @@ Deno.test("ToolRegistry: should allow safe grep options", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
     command: "grep",
-    args: ["-i", "pattern", "file.txt"],
+    args: ["-i", LearningCategory.PATTERN, "file.txt"],
   });
   // Should not be blocked by validation (actual execution may fail)
   assert(typeof result.success === "boolean");
@@ -173,9 +207,9 @@ Deno.test("ToolRegistry: should block unsafe grep options", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
     command: "grep",
-    args: ["--include=*.log", "pattern"],
+    args: ["--include=*.log", LearningCategory.PATTERN],
   });
   assert(!result.success);
   assert(result.error?.includes("Unsafe grep option"));
@@ -190,7 +224,7 @@ Deno.test("ToolRegistry: should allow safe npm subcommands", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
     command: "npm",
     args: ["--version"],
   });
@@ -209,7 +243,7 @@ Deno.test("ToolRegistry: should block dangerous npm subcommands", async () => {
   };
   const registry = new ToolRegistry(config);
 
-  const result = await registry.execute("run_command", {
+  const result = await registry.execute(McpToolName.RUN_COMMAND, {
     command: "npm",
     args: ["install", "malicious-package"],
   });

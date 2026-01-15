@@ -1,6 +1,7 @@
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { z } from "zod";
+import { ArchiveStatus } from "../enums.ts";
 
 export const ArchiveEntrySchema = z.object({
   trace_id: z.string().uuid(),
@@ -8,7 +9,7 @@ export const ArchiveEntrySchema = z.object({
   agent_id: z.string(),
   archived_at: z.string().datetime(),
   completed_at: z.string().datetime(),
-  status: z.enum(["completed", "failed", "cancelled"]),
+  status: z.nativeEnum(ArchiveStatus),
   step_count: z.number(),
   duration_ms: z.number(),
   portal: z.string().optional(),
@@ -21,8 +22,8 @@ export class ArchiveService {
   private archiveRoot: string;
   private indexPath: string;
 
-  constructor(workspaceRoot: string) {
-    this.archiveRoot = join(workspaceRoot, "Workspace", "Archive");
+  constructor(archiveRoot: string) {
+    this.archiveRoot = archiveRoot;
     this.indexPath = join(this.archiveRoot, "index.json");
   }
 

@@ -23,6 +23,7 @@ import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.
 import { buildParsedRequest } from "./request_common.ts";
 import { BlueprintLoader } from "./blueprint_loader.ts";
 import { PlanWriter, type RequestMetadata } from "./plan_writer.ts";
+import { RequestStatus, TaskComplexity } from "../enums.ts";
 import { EventLogger } from "./event_logger.ts";
 import { FlowValidatorImpl } from "./flow_validator.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
@@ -58,7 +59,7 @@ export interface RequestProcessorConfig {
 interface RequestFrontmatter {
   trace_id: string;
   created: string;
-  status: string;
+  status: RequestStatus;
   priority: string;
   agent?: string;
   flow?: string;
@@ -157,7 +158,9 @@ export class RequestProcessor {
     });
 
     // Prevent re-processing of already planned/completed requests
-    if (["planned", "approved", "completed", "failed"].includes(frontmatter.status)) {
+    if (
+      [RequestStatus.PLANNED, "approved", RequestStatus.COMPLETED, RequestStatus.FAILED].includes(frontmatter.status)
+    ) {
       traceLogger.info("request.skipped", filePath, {
         reason: `Request already has status '${frontmatter.status}'`,
       });
@@ -169,7 +172,7 @@ export class RequestProcessor {
       traceLogger.error("request.invalid", filePath, {
         error: "Request cannot specify both 'flow' and 'agent' fields",
       });
-      await this.updateRequestStatus(filePath, parsed.rawContent, "failed");
+      await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
       return null;
     }
 
@@ -177,7 +180,7 @@ export class RequestProcessor {
       traceLogger.error("request.invalid", filePath, {
         error: "Request must specify either 'flow' or 'agent' field",
       });
-      await this.updateRequestStatus(filePath, parsed.rawContent, "failed");
+      await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
       return null;
     }
 
@@ -193,7 +196,7 @@ export class RequestProcessor {
             traceLogger.error("flow.validation.failed", frontmatter.flow!, {
               error: validation.error,
             });
-            await this.updateRequestStatus(filePath, parsed.rawContent, "failed");
+            await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
             return null;
           }
         } // Skip validation if flowValidator is not available (test environment)
@@ -239,7 +242,7 @@ export class RequestProcessor {
           traceLogger.error("blueprint.not_found", frontmatter.agent!, {
             request: filePath,
           });
-          await this.updateRequestStatus(filePath, parsed.rawContent, "failed");
+          await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
           traceLogger.error("request.failed", filePath, {
             error: `Blueprint not found: ${frontmatter.agent}`,
           });
@@ -301,7 +304,7 @@ export class RequestProcessor {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      await this.updateRequestStatus(filePath, parsed.rawContent, "failed");
+      await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
 
       return null;
     }
@@ -320,7 +323,7 @@ export class RequestProcessor {
     extra?: Record<string, unknown>,
   ): Promise<string> {
     const planResult = await this.planWriter.writePlan(result, metadata);
-    await this.updateRequestStatus(filePath, rawContent, "planned");
+    await this.updateRequestStatus(filePath, rawContent, RequestStatus.PLANNED);
     const logObj: Record<string, unknown> = { plan_path: planResult.planPath, ...(extra ?? {}) };
     traceLogger.info("request.planned", filePath, logObj);
     return planResult.planPath;
@@ -397,23 +400,23 @@ export class RequestProcessor {
    * Classify task complexity based on blueprint and request characteristics
    * Used by ProviderSelector to choose appropriate provider
    */
-  private classifyTaskComplexity(blueprint: Blueprint, _request: ParsedRequest): "simple" | "medium" | "complex" {
+  private classifyTaskComplexity(blueprint: Blueprint, _request: ParsedRequest): TaskComplexity {
     const agentId = blueprint.agentId || "";
 
     // Simple tasks: basic analysis, short responses, well-defined problems
     if (agentId.includes("analyzer") || agentId.includes("summarizer")) {
-      return "simple";
+      return TaskComplexity.SIMPLE;
     }
 
     // Complex tasks: code generation, planning, multi-step reasoning
     if (
       agentId.includes("coder") || agentId.includes("planner") || agentId.includes("architect")
     ) {
-      return "complex";
+      return TaskComplexity.COMPLEX;
     }
 
     // Medium tasks: general purpose agents, content creation, analysis
-    return "medium";
+    return TaskComplexity.MEDIUM;
   }
 
   /**
@@ -428,7 +431,7 @@ export class RequestProcessor {
       // Replace the status field in the YAML frontmatter
       const updatedContent = originalContent.replace(
         /^(status:\s*).+$/m,
-        `$1${newStatus}`,
+        `$1${newStatus as string}`,
       );
 
       await Deno.writeTextFile(filePath, updatedContent);

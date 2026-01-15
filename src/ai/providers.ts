@@ -3,6 +3,28 @@
  * Implements Step 3.1 of the ExoFrame Implementation Plan.
  */
 
+// @ts-ignore: Deno is a global in the Deno runtime
+declare const Deno: any;
+
+import { ProviderRegistry } from "./provider_registry.ts";
+import { ResolvedProviderOptions } from "./provider_factory.ts";
+import {
+  DEFAULT_OLLAMA_BASE_URL,
+  DEFAULT_OLLAMA_MODEL,
+  DEFAULT_OLLAMA_RETRY_BACKOFF_MS,
+  DEFAULT_OLLAMA_RETRY_MAX_ATTEMPTS,
+  DEFAULT_OLLAMA_TIMEOUT_MS,
+  DEFAULT_OPENAI_BASE_URL,
+  DEFAULT_OPENAI_MODEL,
+  DEFAULT_OPENAI_RETRY_BACKOFF_MS,
+  DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS,
+  DEFAULT_OPENAI_TIMEOUT_MS,
+  MOCK_DELAY_MS,
+} from "../config/constants.ts";
+
+// Import error classes from common
+import { ConnectionError, ModelProviderError, TimeoutError } from "./providers/common.ts";
+
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
@@ -35,43 +57,6 @@ export interface IModelProvider {
 }
 
 // ============================================================================
-// Custom Error Types
-// ============================================================================
-
-/**
- * Base error class for model provider errors.
- */
-export class ModelProviderError extends Error {
-  constructor(message: string, public readonly provider: string) {
-    super(message);
-    this.name = "ModelProviderError";
-    Object.setPrototypeOf(this, ModelProviderError.prototype);
-  }
-}
-
-/**
- * Error thrown when connection to the model provider fails.
- */
-export class ConnectionError extends ModelProviderError {
-  constructor(provider: string, message: string) {
-    super(`Connection failed for provider '${provider}': ${message}`, provider);
-    this.name = "ConnectionError";
-    Object.setPrototypeOf(this, ConnectionError.prototype);
-  }
-}
-
-/**
- * Error thrown when a request times out.
- */
-export class TimeoutError extends ModelProviderError {
-  constructor(provider: string, timeoutMs: number) {
-    super(`Request timed out after ${timeoutMs}ms for provider '${provider}'`, provider);
-    this.name = "TimeoutError";
-    Object.setPrototypeOf(this, TimeoutError.prototype);
-  }
-}
-
-// ============================================================================
 // Mock Provider (for testing)
 // ============================================================================
 
@@ -91,7 +76,7 @@ export class MockProvider implements IModelProvider {
 
   async generate(_prompt: string, _options?: ModelOptions): Promise<string> {
     // Simulate async behavior
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
     return this.response;
   }
 }
@@ -118,9 +103,9 @@ export class OllamaProvider implements IModelProvider {
       id?: string;
     } = {},
   ) {
-    this.baseUrl = options.baseUrl ?? "http://localhost:11434";
-    this.defaultModel = options.model ?? "llama3.2";
-    this.timeoutMs = options.timeoutMs ?? 30000; // 30 second default timeout
+    this.baseUrl = options.baseUrl ?? DEFAULT_OLLAMA_BASE_URL;
+    this.defaultModel = options.model ?? DEFAULT_OLLAMA_MODEL;
+    this.timeoutMs = options.timeoutMs ?? DEFAULT_OLLAMA_TIMEOUT_MS;
     this.id = options.id ?? `ollama-${this.defaultModel}`;
   }
 
@@ -149,8 +134,10 @@ export class OllamaProvider implements IModelProvider {
         },
         {
           id: this.id,
-          maxAttempts: Number(safeGetEnv("EXO_OLLAMA_RETRY_MAX") ?? "3"),
-          backoffBaseMs: Number(safeGetEnv("EXO_OLLAMA_RETRY_BACKOFF_MS") ?? "1000"),
+          maxAttempts: Number(safeGetEnv("EXO_OLLAMA_RETRY_MAX") ?? DEFAULT_OLLAMA_RETRY_MAX_ATTEMPTS.toString()),
+          backoffBaseMs: Number(
+            safeGetEnv("EXO_OLLAMA_RETRY_BACKOFF_MS") ?? DEFAULT_OLLAMA_RETRY_BACKOFF_MS.toString(),
+          ),
           timeoutMs: this.timeoutMs,
         },
       );
@@ -215,8 +202,8 @@ class OpenAIShim implements IModelProvider {
 
   constructor(options: { apiKey?: string; model?: string; baseUrl?: string; id?: string }) {
     this.apiKey = options.apiKey ?? "";
-    this.model = options.model ?? "gpt-4.1";
-    this.baseUrl = options.baseUrl ?? "https://api.openai.com";
+    this.model = options.model ?? DEFAULT_OPENAI_MODEL;
+    this.baseUrl = options.baseUrl ?? DEFAULT_OPENAI_BASE_URL;
     this.id = options.id ?? `openai-${this.model}`;
   }
 
@@ -224,9 +211,11 @@ class OpenAIShim implements IModelProvider {
     const url = `${this.baseUrl}/v1/chat/completions`;
 
     // Make retry parameters configurable via env for manual runs; defaults longer to reduce 429 frequency
-    const maxAttempts = Number(safeGetEnv("EXO_OPENAI_RETRY_MAX") ?? "6");
-    const backoffBaseMs = Number(safeGetEnv("EXO_OPENAI_RETRY_BACKOFF_MS") ?? "2000");
-    const timeoutMs = Number(safeGetEnv("EXO_OPENAI_TIMEOUT_MS") ?? "30000");
+    const maxAttempts = Number(safeGetEnv("EXO_OPENAI_RETRY_MAX") ?? DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS.toString());
+    const backoffBaseMs = Number(
+      safeGetEnv("EXO_OPENAI_RETRY_BACKOFF_MS") ?? DEFAULT_OPENAI_RETRY_BACKOFF_MS.toString(),
+    );
+    const timeoutMs = Number(safeGetEnv("EXO_OPENAI_TIMEOUT_MS") ?? DEFAULT_OPENAI_TIMEOUT_MS.toString());
 
     // Import helpers dynamically to avoid module initialization cycles
     const { fetchJsonWithRetries, extractOpenAIContent, tokenMapperOpenAI } = await import(
@@ -270,46 +259,44 @@ export class ModelFactory {
    * @param config Provider-specific configuration
    * @returns An instance implementing IModelProvider
    */
-  static create(
+  static async create(
     providerType: string,
     config?: Record<string, unknown>,
-  ): IModelProvider {
+  ): Promise<IModelProvider> {
     const normalizedType = providerType.toLowerCase().trim();
 
-    switch (normalizedType) {
-      case "mock":
-        return new MockProvider(
-          (config?.response as string) ?? "Mock response",
-          (config?.id as string) ?? "mock-provider",
-        );
-
-      case "ollama":
-        return new OllamaProvider({
-          baseUrl: config?.baseUrl as string | undefined,
-          model: config?.model as string | undefined,
-          timeoutMs: config?.timeoutMs as number | undefined,
-          id: config?.id as string | undefined,
-        });
-
-      // Convenience aliases for cost-friendly/open/free models that use OpenAI-compatible endpoints
-      case "gpt-4.1":
-      case "gpt-4o":
-      case "gpt-5-mini":
-        // In CI, prevent accidental calls to paid endpoints unless explicitly opted-in
-        if (safeGetEnv("CI") && safeGetEnv("EXO_ENABLE_PAID_LLM") !== "1") {
-          return new MockProvider("CI-protected mock", (config?.id as string) ?? "mock-provider");
-        }
-
-        return new OpenAIShim({
-          apiKey: config?.apiKey as string ?? "",
-          model: normalizedType,
-          baseUrl: config?.baseUrl as string | undefined,
-          id: (config?.id as string) ?? `openai-${normalizedType}`,
-        });
+    // Initialize registry if needed
+    if (ProviderRegistry.getSupportedProviders().length === 0) {
+      // Import here to avoid circular dependency
+      const { initializeRegistry } = await import("./provider_factory.ts");
+      initializeRegistry();
     }
 
-    // Accept arbitrary OpenAI-style model ids that start with 'gpt-'
+    // Check if this is a registered provider type
+    if (ProviderRegistry.getSupportedProviders().includes(normalizedType)) {
+      // Use registry-based factory creation
+      const factory = ProviderRegistry.getFactory(normalizedType);
+      if (factory) {
+        const options: ResolvedProviderOptions = {
+          provider: normalizedType as any,
+          model: (config?.model as string) ?? "default-model",
+          baseUrl: config?.baseUrl as string,
+          timeoutMs: (config?.timeoutMs as number) ?? 30000,
+          apiKey: config?.apiKey as string,
+          id: config?.id as string ?? (normalizedType === "mock" ? "mock-provider" : undefined),
+          mockStrategy:
+            (config?.mockStrategy ?? config?.strategy ?? (config?.response ? "scripted" : undefined)) as any,
+          mockFixturesDir: config?.mockFixturesDir as string,
+          // Support 'response' for backward compatibility with tests
+          responses: config?.response ? [config.response as string] : undefined,
+        } as any;
+        return await factory.create(options);
+      }
+    }
+
+    // Handle convenience aliases for OpenAI-compatible models
     if (normalizedType.startsWith("gpt-")) {
+      // In CI, prevent accidental calls to paid endpoints unless explicitly opted-in
       if (safeGetEnv("CI") && safeGetEnv("EXO_ENABLE_PAID_LLM") !== "1") {
         return new MockProvider("CI-protected mock", (config?.id as string) ?? "mock-provider");
       }
@@ -325,7 +312,12 @@ export class ModelFactory {
 
     // If we reach here, the provider type is unknown
     throw new Error(
-      `Unknown provider type: '${providerType}'. Supported types: mock, ollama, or any gpt-* model id`,
+      `Unknown provider type: '${providerType}'. Supported types: ${
+        ProviderRegistry.getSupportedProviders().join(", ")
+      }`,
     );
   }
 }
+
+// Re-export error classes from common.ts for backward compatibility
+export { ConnectionError, ModelProviderError, TimeoutError } from "./providers/common.ts";

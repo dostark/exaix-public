@@ -1,4 +1,5 @@
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals } from "@std/assert";
+import { FlowStepType, MemoryOperation, PortalOperation } from "../../src/enums.ts";
 import { join } from "@std/path";
 import { GitService } from "../../src/services/git_service.ts";
 import { createMockConfig } from "./config.ts";
@@ -48,7 +49,7 @@ export class GitTestHelper {
    * Run a git command and return stdout
    */
   async runGit(args: string[]): Promise<string> {
-    const cmd = new Deno.Command("git", {
+    const cmd = new Deno.Command(PortalOperation.GIT, {
       args,
       cwd: this.repoPath,
       stdout: "piped",
@@ -88,7 +89,7 @@ export class GitTestHelper {
    * Assert that a branch exists
    */
   async assertBranchExists(branchName: string): Promise<void> {
-    const output = await this.runGit(["branch", "--list", branchName]);
+    const output = await this.runGit([FlowStepType.BRANCH, "--list", branchName]);
     assert(
       output.includes(branchName),
       `Expected branch '${branchName}' to exist, but it doesn't`,
@@ -99,7 +100,7 @@ export class GitTestHelper {
    * Get the current branch name
    */
   async getCurrentBranch(): Promise<string> {
-    return await this.runGit(["branch", "--show-current"]);
+    return await this.runGit([FlowStepType.BRANCH, "--show-current"]);
   }
 
   /**
@@ -120,7 +121,7 @@ export class GitTestHelper {
    * List all branches
    */
   async listBranches(): Promise<string[]> {
-    const output = await this.runGit(["branch", "--format=%(refname:short)"]);
+    const output = await this.runGit([FlowStepType.BRANCH, "--format=%(refname:short)"]);
     return output.split("\n").filter((b) => b.trim().length > 0);
   }
 
@@ -136,7 +137,7 @@ export class GitTestHelper {
    * Stage all changes
    */
   async stageAll(): Promise<void> {
-    await this.runGit(["add", "."]);
+    await this.runGit([MemoryOperation.ADD, "."]);
   }
 
   /**

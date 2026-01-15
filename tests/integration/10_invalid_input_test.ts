@@ -18,7 +18,7 @@ import {
   assertExists,
   assertRejects as _assertRejects,
   assertStringIncludes,
-} from "jsr:@std/assert@^1.0.0";
+} from "@std/assert";
 import { join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { FrontmatterParser } from "../../src/parsers/markdown.ts";

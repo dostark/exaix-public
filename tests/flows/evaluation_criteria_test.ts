@@ -3,7 +3,7 @@
  * Phase 15.3: Built-in Criteria Library
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@1";
+import { assertEquals, assertExists } from "@std/assert";
 import {
   buildEvaluationPrompt,
   calculateWeightedScore,
@@ -16,6 +16,7 @@ import {
   EvaluationCriterionSchema,
   getCriteriaByNames,
 } from "../../src/flows/evaluation_criteria.ts";
+import { EvaluationCategory } from "../../src/enums.ts";
 
 // ============================================================
 // CRITERIA Constants Tests
@@ -145,8 +146,20 @@ Deno.test("calculateWeightedScore: calculates simple average", () => {
 
   // Assuming both have weight 1.0
   const criteria: EvaluationCriterion[] = [
-    { name: "code_correctness", description: "Test", weight: 1.0, required: false },
-    { name: "code_completeness", description: "Test", weight: 1.0, required: false },
+    {
+      name: "code_correctness",
+      description: "Test",
+      weight: 1.0,
+      required: false,
+      category: EvaluationCategory.CORRECTNESS,
+    },
+    {
+      name: "code_completeness",
+      description: "Test",
+      weight: 1.0,
+      required: false,
+      category: EvaluationCategory.COMPLETENESS,
+    },
   ];
 
   const score = calculateWeightedScore(criteriaResults, criteria);
@@ -172,8 +185,20 @@ Deno.test("calculateWeightedScore: applies weights correctly", () => {
   };
 
   const criteria: EvaluationCriterion[] = [
-    { name: "code_correctness", description: "Test", weight: 0.8, required: false },
-    { name: "code_completeness", description: "Test", weight: 0.2, required: false },
+    {
+      name: "code_correctness",
+      description: "Test",
+      weight: 0.8,
+      required: false,
+      category: EvaluationCategory.CORRECTNESS,
+    },
+    {
+      name: "code_completeness",
+      description: "Test",
+      weight: 0.2,
+      required: false,
+      category: EvaluationCategory.COMPLETENESS,
+    },
   ];
 
   const score = calculateWeightedScore(criteriaResults, criteria);
@@ -194,8 +219,20 @@ Deno.test("calculateWeightedScore: handles missing results", () => {
   };
 
   const criteria: EvaluationCriterion[] = [
-    { name: "code_correctness", description: "Test", weight: 1.0, required: false },
-    { name: "code_completeness", description: "Test", weight: 1.0, required: false },
+    {
+      name: "code_correctness",
+      description: "Test",
+      weight: 1.0,
+      required: false,
+      category: EvaluationCategory.CORRECTNESS,
+    },
+    {
+      name: "code_completeness",
+      description: "Test",
+      weight: 1.0,
+      required: false,
+      category: EvaluationCategory.COMPLETENESS,
+    },
   ];
 
   const score = calculateWeightedScore(criteriaResults, criteria);
@@ -222,8 +259,20 @@ Deno.test("checkRequiredCriteria: passes when all required met", () => {
   };
 
   const criteria: EvaluationCriterion[] = [
-    { name: "code_correctness", description: "Test", weight: 1.0, required: true },
-    { name: "code_completeness", description: "Test", weight: 1.0, required: false },
+    {
+      name: "code_correctness",
+      description: "Test",
+      weight: 1.0,
+      required: true,
+      category: EvaluationCategory.CORRECTNESS,
+    },
+    {
+      name: "code_completeness",
+      description: "Test",
+      weight: 1.0,
+      required: false,
+      category: EvaluationCategory.COMPLETENESS,
+    },
   ];
 
   const passed = checkRequiredCriteria(criteriaResults, criteria, 0.7);
@@ -243,8 +292,20 @@ Deno.test("checkRequiredCriteria: fails when required criterion below threshold"
   };
 
   const criteria: EvaluationCriterion[] = [
-    { name: "code_correctness", description: "Test", weight: 1.0, required: true },
-    { name: "code_completeness", description: "Test", weight: 1.0, required: false },
+    {
+      name: "code_correctness",
+      description: "Test",
+      weight: 1.0,
+      required: true,
+      category: EvaluationCategory.CORRECTNESS,
+    },
+    {
+      name: "code_completeness",
+      description: "Test",
+      weight: 1.0,
+      required: false,
+      category: EvaluationCategory.COMPLETENESS,
+    },
   ];
 
   const passed = checkRequiredCriteria(criteriaResults, criteria, 0.7);
@@ -257,7 +318,13 @@ Deno.test("checkRequiredCriteria: passes when no required criteria", () => {
   };
 
   const criteria: EvaluationCriterion[] = [
-    { name: "code_correctness", description: "Test", weight: 1.0, required: false },
+    {
+      name: "code_correctness",
+      description: "Test",
+      weight: 1.0,
+      required: false,
+      category: EvaluationCategory.CORRECTNESS,
+    },
   ];
 
   const passed = checkRequiredCriteria(criteriaResults, criteria, 0.7);
@@ -270,7 +337,13 @@ Deno.test("checkRequiredCriteria: uses custom threshold", () => {
   };
 
   const criteria: EvaluationCriterion[] = [
-    { name: "code_correctness", description: "Test", weight: 1.0, required: true },
+    {
+      name: "code_correctness",
+      description: "Test",
+      weight: 1.0,
+      required: true,
+      category: EvaluationCategory.CORRECTNESS,
+    },
   ];
 
   // With 0.9 threshold, 0.85 should fail
@@ -356,8 +429,20 @@ Deno.test("buildEvaluationPrompt: omits context section when not provided", () =
 
 Deno.test("buildEvaluationPrompt: marks required criteria", () => {
   const criteria: EvaluationCriterion[] = [
-    { name: "MUST_PASS", description: "Required check", weight: 1.0, required: true },
-    { name: "OPTIONAL", description: "Optional check", weight: 0.5, required: false },
+    {
+      name: "MUST_PASS",
+      description: "Required check",
+      weight: 1.0,
+      required: true,
+      category: EvaluationCategory.CORRECTNESS,
+    },
+    {
+      name: "OPTIONAL",
+      description: "Optional check",
+      weight: 0.5,
+      required: false,
+      category: EvaluationCategory.CORRECTNESS,
+    },
   ];
   const prompt = buildEvaluationPrompt("Content", criteria);
 
@@ -366,8 +451,20 @@ Deno.test("buildEvaluationPrompt: marks required criteria", () => {
 
 Deno.test("buildEvaluationPrompt: shows weights", () => {
   const criteria: EvaluationCriterion[] = [
-    { name: "HIGH_WEIGHT", description: "Important", weight: 0.9, required: false },
-    { name: "LOW_WEIGHT", description: "Less important", weight: 0.3, required: false },
+    {
+      name: "HIGH_WEIGHT",
+      description: "Important",
+      weight: 0.9,
+      required: false,
+      category: EvaluationCategory.CORRECTNESS,
+    },
+    {
+      name: "LOW_WEIGHT",
+      description: "Less important",
+      weight: 0.3,
+      required: false,
+      category: EvaluationCategory.CORRECTNESS,
+    },
   ];
   const prompt = buildEvaluationPrompt("Content", criteria);
 
@@ -394,6 +491,7 @@ Deno.test("EvaluationCriterionSchema: validates correct criterion", () => {
     description: "A test criterion",
     weight: 0.8,
     required: true,
+    category: EvaluationCategory.QUALITY,
     guidelines: ["Guideline 1"],
   });
 
@@ -422,6 +520,7 @@ Deno.test("EvaluationCriterionSchema: applies default weight", () => {
   const result = EvaluationCriterionSchema.parse({
     name: "DEFAULT_WEIGHT",
     description: "Should get default weight",
+    category: EvaluationCategory.QUALITY,
   });
 
   assertEquals(result.weight, 1.0);

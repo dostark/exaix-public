@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals } from "@std/assert";
 import { launchTuiDashboard, tryDisableRawMode, tryEnableRawMode } from "../../src/tui/tui_dashboard.ts";
 
 Deno.test("tryEnableRawMode enables raw mode when supported", () => {

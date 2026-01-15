@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MockStrategy, ProviderType, SecurityMode } from "../enums.ts";
 
 /**
  * Blueprint name validation - prevents path traversal and injection
@@ -8,12 +9,13 @@ export const BlueprintNameSchema = z.string()
   .max(100, "Blueprint name too long (max 100 chars)")
   .regex(/^[a-zA-Z0-9_-]+$/, "Blueprint name can only contain letters, numbers, hyphens, and underscores")
   .refine(
-    (val) => !/\.\./.test(val),
+    (val: string) => !/\.\./.test(val),
     "Path traversal not allowed",
   )
   .refine(
-    (val) =>
-      !/[<>:"|?*]/.test(val) && !val.split("").some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127),
+    (val: string) =>
+      !/[<>:"|?*]/.test(val) &&
+      !val.split("").some((char: string) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127),
     "Special characters and control characters not allowed",
   );
 
@@ -33,7 +35,7 @@ export const AgentIdSchema = z.string()
   .max(50, "Agent ID too long (max 50 chars)")
   .regex(/^[a-zA-Z0-9_-]+$/, "Agent ID can only contain letters, numbers, hyphens, and underscores")
   .refine(
-    (val) => !/\.\./.test(val),
+    (val: string) => !/\.\./.test(val),
     "Path traversal not allowed",
   );
 
@@ -50,16 +52,16 @@ export const UserRequestSchema = z.string()
   .min(1, "Request cannot be empty")
   .max(10000, "Request too long (max 10KB)")
   .refine(
-    (val) => !/<script[^>]*>.*?<\/script>/gis.test(val),
+    (val: string) => !/<script[^>]*>.*?<\/script>/gis.test(val),
     "Script tags not allowed",
   )
   .refine(
-    (val) => !/<iframe[^>]*>.*?<\/iframe>/gis.test(val),
+    (val: string) => !/<iframe[^>]*>.*?<\/iframe>/gis.test(val),
     "Iframe tags not allowed",
   )
-  .refine((val) => !/<img[^>]*>/gis.test(val), "Image tags not allowed")
+  .refine((val: string) => !/<img[^>]*>/gis.test(val), "Image tags not allowed")
   .refine(
-    (val) => !val.split("").some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127),
+    (val: string) => !val.split("").some((char: string) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127),
     "Control characters not allowed",
   );
 
@@ -70,31 +72,42 @@ export const PlanSchema = z.string()
   .min(1, "Plan cannot be empty")
   .max(50000, "Plan too long (max 50KB)")
   .refine(
-    (val) => !/<script[^>]*>.*?<\/script>/gis.test(val),
+    (val: string) => !/<script[^>]*>.*?<\/script>/gis.test(val),
     "Script tags not allowed",
   )
   .refine(
-    (val) => !val.split("").some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127),
+    (val: string) => !val.split("").some((char: string) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127),
     "Control characters not allowed",
   );
 
 /**
  * Security mode validation
  */
-export const SecurityModeSchema = z.enum(["sandboxed", "hybrid"]);
+export const SecurityModeSchema = z.nativeEnum(SecurityMode);
 
 /**
  * Model configuration validation - prevents prototype pollution
  */
 export const ModelConfigSchema = z.object({
-  provider: z.enum(["openai", "anthropic", "google", "ollama", "mock"]),
+  provider: z.string().refine(
+    (val: string) => {
+      // Basic validation: must be a known provider or a GPT-style model
+      const normalized = val.toLowerCase().trim();
+      return Object.values(ProviderType).includes(normalized as any) ||
+        normalized.startsWith("gpt-") ||
+        normalized.startsWith("llama");
+    },
+    {
+      message: "Provider must be a valid supported provider type",
+    },
+  ),
   model: z.string().min(1).max(100),
   temperature: z.number().min(0).max(2).optional(),
   max_tokens: z.number().int().min(1).max(100000).optional(),
   base_url: z.string().url().optional(),
   timeout_ms: z.number().int().min(1000).max(300000).optional(),
   mock: z.object({
-    strategy: z.enum(["recorded", "scripted", "pattern", "failing", "slow"]),
+    strategy: z.nativeEnum(MockStrategy),
     fixtures_dir: z.string().optional(),
     error_message: z.string().optional(),
     delay_ms: z.number().int().positive().optional(),
@@ -122,7 +135,7 @@ export const ExecutionContextSchema = z.object({
 export const AgentExecutionOptionsSchema = z.object({
   agent_id: BlueprintNameSchema,
   portal: PortalNameSchema,
-  security_mode: z.enum(["sandboxed", "hybrid"]).default("sandboxed"),
+  security_mode: z.nativeEnum(SecurityMode).default(SecurityMode.SANDBOXED),
   timeout_ms: z.number().int().positive().default(300000), // 5 minutes
   max_tool_calls: z.number().int().positive().default(100),
   audit_enabled: z.boolean().default(true),

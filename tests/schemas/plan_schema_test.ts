@@ -12,8 +12,10 @@
  * - PlanStepSchema validates tools enum
  */
 
-import { describe, it } from "jsr:@std/testing@^1.0.0/bdd";
-import { assertEquals, assertExists } from "jsr:@std/assert@^1";
+import { describe, it } from "@std/testing/bdd";
+import { McpToolName } from "../../src/enums.ts";
+
+import { assertEquals, assertExists } from "@std/assert";
 import { ZodError } from "zod";
 
 // Import schemas (will create these)
@@ -26,7 +28,7 @@ describe("PlanStepSchema", () => {
         step: 1,
         title: "Create User Database Schema",
         description: "Create migration file for users table with columns: id, email, password_hash, created_at",
-        tools: ["write_file", "run_command"],
+        tools: [McpToolName.WRITE_FILE, McpToolName.RUN_COMMAND],
         successCriteria: [
           "Migration file created in db/migrations/",
           "Schema includes unique constraint on email",
@@ -110,7 +112,7 @@ describe("PlanStepSchema", () => {
         step: 1,
         title: "Invalid Tools",
         description: "Tools must be from valid enum",
-        tools: ["invalid_tool", "write_file"],
+        tools: ["invalid_tool", McpToolName.WRITE_FILE],
       };
 
       const result = PlanStepSchema.safeParse(stepData);
@@ -153,7 +155,13 @@ describe("PlanStepSchema", () => {
 
   describe("Tools Enum Validation", () => {
     it("should accept all valid tool values", () => {
-      const validTools = ["read_file", "write_file", "run_command", "list_directory", "search_files"];
+      const validTools = [
+        McpToolName.READ_FILE,
+        McpToolName.WRITE_FILE,
+        McpToolName.RUN_COMMAND,
+        McpToolName.LIST_DIRECTORY,
+        McpToolName.SEARCH_FILES,
+      ];
 
       const stepData = {
         step: 1,
@@ -182,14 +190,14 @@ describe("PlanSchema", () => {
             step: 1,
             title: "Create User Database Schema",
             description: "Create migration file for users table",
-            tools: ["write_file", "run_command"],
+            tools: [McpToolName.WRITE_FILE, McpToolName.RUN_COMMAND],
             successCriteria: ["Migration file created"],
           },
           {
             step: 2,
             title: "Implement Password Hashing",
             description: "Create utility functions for password hashing",
-            tools: ["write_file"],
+            tools: [McpToolName.WRITE_FILE],
             dependencies: [1],
           },
         ],

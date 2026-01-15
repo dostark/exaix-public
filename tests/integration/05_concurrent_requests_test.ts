@@ -12,7 +12,9 @@
  * - Test 7: Resource contention handled gracefully (no deadlocks)
  */
 
-import { assert, assertEquals, assertExists, assertNotEquals as _assertNotEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertNotEquals as _assertNotEquals } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ExecutionLoop } from "../../src/services/execution_loop.ts";
@@ -64,7 +66,7 @@ Deno.test("Integration: Concurrent Requests - Multiple requests in parallel", as
             status: "review",
             actions: [
               {
-                tool: "write_file",
+                tool: McpToolName.WRITE_FILE,
                 params: {
                   path: `output-${String.fromCharCode(97 + i)}.txt`,
                   content: `Content from task ${String.fromCharCode(65 + i)}`,
@@ -207,7 +209,7 @@ Deno.test("Integration: Concurrent Requests - Multiple requests in parallel", as
       const planPath = await env.createPlan(traceId, "post-test", {
         status: "review",
         actions: [
-          { tool: "write_file", params: { path: "final.txt", content: "ok" } },
+          { tool: McpToolName.WRITE_FILE, params: { path: "final.txt", content: "ok" } },
         ],
       });
 
@@ -250,7 +252,7 @@ Deno.test("Integration: Concurrent Requests - Queue ordering", async () => {
         status: "review",
         actions: [
           {
-            tool: "write_file",
+            tool: McpToolName.WRITE_FILE,
             params: {
               path: `order-${i}.txt`,
               content: `Created by task ${i + 1}`,
@@ -287,7 +289,7 @@ Deno.test("Integration: Concurrent Requests - Shared resource access", async () 
     const plan1 = await env.createPlan(req1.traceId, "reader", {
       status: "review",
       actions: [
-        { tool: "read_file", params: { path: "shared-config.json" } },
+        { tool: McpToolName.READ_FILE, params: { path: "shared-config.json" } },
       ],
     });
 
@@ -295,7 +297,7 @@ Deno.test("Integration: Concurrent Requests - Shared resource access", async () 
       status: "review",
       actions: [
         {
-          tool: "write_file",
+          tool: McpToolName.WRITE_FILE,
           params: {
             path: "shared-config.json",
             content: JSON.stringify({ value: 1, updatedBy: req2.traceId }),
@@ -353,7 +355,7 @@ Deno.test("Integration: Concurrent Requests - Race condition protection", async 
           status: "review",
           actions: [
             {
-              tool: "write_file",
+              tool: McpToolName.WRITE_FILE,
               params: {
                 path: "race-output.txt",
                 content: `Winner is ${req.traceId}`,

@@ -11,8 +11,9 @@
  * - Test 6: diff generates unified diff between refs/commits
  */
 
-import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
+import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
+import { MemoryOperation, PortalOperation } from "../../src/enums.ts";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { GitCommands } from "../../src/cli/git_commands.ts";
 import { DatabaseService } from "../../src/services/db.ts";
@@ -39,11 +40,11 @@ describe("GitCommands", () => {
 
     // Create initial commit on main
     await Deno.writeTextFile(join(tempDir, "README.md"), "# Test Project\n");
-    await runGitCommand(tempDir, ["add", "README.md"]);
+    await runGitCommand(tempDir, [MemoryOperation.ADD, "README.md"]);
     // System dir already exists from createCliTestContext; add a .gitkeep to it
     await Deno.mkdir(join(tempDir, "System"), { recursive: true });
     await Deno.writeTextFile(join(tempDir, "System", ".gitkeep"), "");
-    await runGitCommand(tempDir, ["add", "System"]);
+    await runGitCommand(tempDir, [MemoryOperation.ADD, "System"]);
     await runGitCommand(tempDir, ["commit", "-m", "Initial commit"]);
 
     gitCommands = new GitCommands({ config, db });
@@ -74,14 +75,14 @@ describe("GitCommands", () => {
       // Create branches with commits at different times
       await runGitCommand(tempDir, ["checkout", "-b", "old-branch"]);
       await Deno.writeTextFile(join(tempDir, "old.txt"), "old content\n");
-      await runGitCommand(tempDir, ["add", "old.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "old.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "Old commit"]);
 
       await runGitCommand(tempDir, ["checkout", "main"]);
       await delay(100);
 
       await Deno.writeTextFile(join(tempDir, "new.txt"), "new content\n");
-      await runGitCommand(tempDir, ["add", "new.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "new.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "New commit"]);
 
       const branches = await gitCommands.listBranches();
@@ -93,7 +94,7 @@ describe("GitCommands", () => {
     it("should extract trace_id from commit messages", async () => {
       const traceId = "abc-123-def-456";
       await Deno.writeTextFile(join(tempDir, "feature.txt"), "feature content\n");
-      await runGitCommand(tempDir, ["add", "feature.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "feature.txt"]);
       await runGitCommand(tempDir, [
         "commit",
         "-m",
@@ -164,7 +165,7 @@ describe("GitCommands", () => {
       // Create multiple commits
       for (let i = 1; i <= 3; i++) {
         await Deno.writeTextFile(join(tempDir, `file-${i}.txt`), `content ${i}\n`);
-        await runGitCommand(tempDir, ["add", `file-${i}.txt`]);
+        await runGitCommand(tempDir, [MemoryOperation.ADD, `file-${i}.txt`]);
         await runGitCommand(tempDir, ["commit", "-m", `Commit ${i}`]);
       }
 
@@ -183,7 +184,7 @@ describe("GitCommands", () => {
       // For now, just verify commits are returned
       const traceId = "def-456-abc-789";
       await Deno.writeTextFile(join(tempDir, "traced.txt"), "traced content\n");
-      await runGitCommand(tempDir, ["add", "traced.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "traced.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "Traced commit", "-m", `Trace-Id: ${traceId}`]);
 
       const result = await gitCommands.showBranch("main");
@@ -199,7 +200,7 @@ describe("GitCommands", () => {
       // Create 15 commits
       for (let i = 1; i <= 15; i++) {
         await Deno.writeTextFile(join(tempDir, `many-${i}.txt`), `content ${i}\n`);
-        await runGitCommand(tempDir, ["add", `many-${i}.txt`]);
+        await runGitCommand(tempDir, [MemoryOperation.ADD, `many-${i}.txt`]);
         await runGitCommand(tempDir, ["commit", "-m", `Commit ${i}`]);
       }
 
@@ -219,7 +220,7 @@ describe("GitCommands", () => {
 
     it("should categorize modified files", async () => {
       await Deno.writeTextFile(join(tempDir, "README.md"), "# Modified content\n");
-      await runGitCommand(tempDir, ["add", "README.md"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "README.md"]);
 
       const status = await gitCommands.status();
 
@@ -238,7 +239,7 @@ describe("GitCommands", () => {
 
     it("should categorize added files", async () => {
       await Deno.writeTextFile(join(tempDir, "added.txt"), "new file\n");
-      await runGitCommand(tempDir, ["add", "added.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "added.txt"]);
 
       const status = await gitCommands.status();
 
@@ -248,10 +249,10 @@ describe("GitCommands", () => {
 
     it("should categorize deleted files", async () => {
       await Deno.writeTextFile(join(tempDir, "to-delete.txt"), "content\n");
-      await runGitCommand(tempDir, ["add", "to-delete.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "to-delete.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "Add file to delete"]);
       await Deno.remove(join(tempDir, "to-delete.txt"));
-      await runGitCommand(tempDir, ["add", "to-delete.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "to-delete.txt"]);
 
       const status = await gitCommands.status();
 
@@ -282,7 +283,7 @@ describe("GitCommands", () => {
       // Create multiple commits with same trace_id
       for (let i = 1; i <= 3; i++) {
         await Deno.writeTextFile(join(tempDir, `trace-${i}.txt`), `content ${i}\n`);
-        await runGitCommand(tempDir, ["add", `trace-${i}.txt`]);
+        await runGitCommand(tempDir, [MemoryOperation.ADD, `trace-${i}.txt`]);
         await runGitCommand(tempDir, [
           "commit",
           "-m",
@@ -301,7 +302,7 @@ describe("GitCommands", () => {
 
       // Commit on main
       await Deno.writeTextFile(join(tempDir, "main-file.txt"), "main content\n");
-      await runGitCommand(tempDir, ["add", "main-file.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "main-file.txt"]);
       await runGitCommand(tempDir, [
         "commit",
         "-m",
@@ -311,7 +312,7 @@ describe("GitCommands", () => {
       // Commit on feature branch
       await runGitCommand(tempDir, ["checkout", "-b", "feature"]);
       await Deno.writeTextFile(join(tempDir, "feature-file.txt"), "feature content\n");
-      await runGitCommand(tempDir, ["add", "feature-file.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "feature-file.txt"]);
       await runGitCommand(tempDir, [
         "commit",
         "-m",
@@ -334,7 +335,7 @@ describe("GitCommands", () => {
     it("should include commit metadata", async () => {
       const traceId = "abc-555-def-666";
       await Deno.writeTextFile(join(tempDir, "meta.txt"), "content\n");
-      await runGitCommand(tempDir, ["add", "meta.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "meta.txt"]);
       await runGitCommand(tempDir, [
         "commit",
         "-m",
@@ -355,11 +356,11 @@ describe("GitCommands", () => {
   describe("diff", () => {
     it("should generate unified diff for commit", async () => {
       await Deno.writeTextFile(join(tempDir, "diff-test.txt"), "original content\n");
-      await runGitCommand(tempDir, ["add", "diff-test.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "diff-test.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "Add diff test file"]);
 
       await Deno.writeTextFile(join(tempDir, "diff-test.txt"), "modified content\n");
-      await runGitCommand(tempDir, ["add", "diff-test.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "diff-test.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "Modify diff test file"]);
 
       const commitSha = await runGitCommand(tempDir, ["rev-parse", "HEAD"]);
@@ -374,13 +375,13 @@ describe("GitCommands", () => {
     it("should compare two refs", async () => {
       // Create first commit
       await Deno.writeTextFile(join(tempDir, "compare.txt"), "version 1\n");
-      await runGitCommand(tempDir, ["add", "compare.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "compare.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "Version 1"]);
       const ref1 = (await runGitCommand(tempDir, ["rev-parse", "HEAD"])).trim();
 
       // Create second commit
       await Deno.writeTextFile(join(tempDir, "compare.txt"), "version 2\n");
-      await runGitCommand(tempDir, ["add", "compare.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "compare.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "Version 2"]);
       const ref2 = (await runGitCommand(tempDir, ["rev-parse", "HEAD"])).trim();
 
@@ -394,7 +395,7 @@ describe("GitCommands", () => {
       // Create feature branch with changes
       await runGitCommand(tempDir, ["checkout", "-b", "feature"]);
       await Deno.writeTextFile(join(tempDir, "feature.txt"), "feature content\n");
-      await runGitCommand(tempDir, ["add", "feature.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "feature.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "Add feature"]);
 
       const diff = await gitCommands.diff("feature", "main");
@@ -413,11 +414,11 @@ describe("GitCommands", () => {
 
     it("should produce unified diff format", async () => {
       await Deno.writeTextFile(join(tempDir, "format-test.txt"), "line 1\nline 2\nline 3\n");
-      await runGitCommand(tempDir, ["add", "format-test.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "format-test.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "Initial version"]);
 
       await Deno.writeTextFile(join(tempDir, "format-test.txt"), "line 1\nmodified line 2\nline 3\n");
-      await runGitCommand(tempDir, ["add", "format-test.txt"]);
+      await runGitCommand(tempDir, [MemoryOperation.ADD, "format-test.txt"]);
       await runGitCommand(tempDir, ["commit", "-m", "Modified version"]);
 
       const commitSha = await runGitCommand(tempDir, ["rev-parse", "HEAD"]);
@@ -434,7 +435,7 @@ describe("GitCommands", () => {
 // Helper functions
 
 async function runGitCommand(cwd: string, args: string[]): Promise<string> {
-  const cmd = new Deno.Command("git", {
+  const cmd = new Deno.Command(PortalOperation.GIT, {
     args: ["-C", cwd, ...args],
     stdout: "piped",
     stderr: "piped",

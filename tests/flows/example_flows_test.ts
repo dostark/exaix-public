@@ -3,13 +3,15 @@
  * Tests for comprehensive example flows demonstrating FlowRunner capabilities
  */
 
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
+import { EvaluationCategory, FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
+import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { FlowSchema } from "../../src/schemas/flow.ts";
 import { defineFlow } from "../../src/flows/define_flow.ts";
 import { type AgentExecutor, type FlowEventLogger, FlowRunner } from "../../src/flows/flow_runner.ts";
 import { MockLLMProvider } from "../../src/ai/providers/mock_llm_provider.ts";
+import { MockStrategy } from "../../src/enums.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { Config } from "../../src/config/schema.ts";
 import type { FlowStepRequest } from "../../src/flows/flow_runner.ts";
@@ -35,7 +37,7 @@ describe("Example Flows - Step 7.9", {
     cleanup = dbResult.cleanup;
 
     // Create mock LLM provider for testing
-    _mockProvider = new MockLLMProvider("scripted", {
+    _mockProvider = new MockLLMProvider(MockStrategy.SCRIPTED, {
       responses: [
         "Code analysis complete. Found 3 potential issues.",
         "Security review passed. No vulnerabilities detected.",
@@ -93,23 +95,23 @@ describe("Example Flows - Step 7.9", {
             name: "Code Linting",
             agent: "code-quality-agent",
             dependsOn: [],
-            input: { source: "request", transform: "extract_code" },
+            input: { source: FlowInputSource.REQUEST, transform: "extract_code" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
-            id: "security",
+            id: EvaluationCategory.SECURITY,
             name: "Security Analysis",
             agent: "security-agent",
             dependsOn: ["lint"],
-            input: { source: "step", stepId: "lint", transform: "passthrough" },
+            input: { source: FlowInputSource.STEP, stepId: "lint", transform: "passthrough" },
             retry: { maxAttempts: 2, backoffMs: 2000 },
           },
           {
             id: "review",
             name: "Peer Review",
             agent: "senior-developer",
-            dependsOn: ["security"],
-            input: { source: "request", transform: "combine_with_analysis" },
+            dependsOn: [EvaluationCategory.SECURITY],
+            input: { source: FlowInputSource.REQUEST, transform: "combine_with_analysis" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -117,11 +119,15 @@ describe("Example Flows - Step 7.9", {
             name: "Review Summary",
             agent: "technical-writer",
             dependsOn: ["review"],
-            input: { source: "aggregate", from: ["lint", "security", "review"], transform: "aggregate_feedback" },
+            input: {
+              source: FlowInputSource.AGGREGATE,
+              from: ["lint", EvaluationCategory.SECURITY, "review"],
+              transform: "aggregate_feedback",
+            },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
-        output: { from: "summary", format: "markdown" },
+        output: { from: "summary", format: FlowOutputFormat.MARKDOWN },
         settings: { maxParallelism: 2, failFast: false },
       });
 
@@ -150,7 +156,7 @@ describe("Example Flows - Step 7.9", {
             name: "Requirements Analysis",
             agent: "product-manager",
             dependsOn: [],
-            input: { source: "request", transform: "passthrough" },
+            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -158,7 +164,7 @@ describe("Example Flows - Step 7.9", {
             name: "Architecture Design",
             agent: "software-architect",
             dependsOn: ["analyze-requirements"],
-            input: { source: "step", stepId: "analyze-requirements", transform: "passthrough" },
+            input: { source: FlowInputSource.STEP, stepId: "analyze-requirements", transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -166,7 +172,7 @@ describe("Example Flows - Step 7.9", {
             name: "Feature Implementation",
             agent: "senior-developer",
             dependsOn: ["design-architecture"],
-            input: { source: "step", stepId: "design-architecture", transform: "passthrough" },
+            input: { source: FlowInputSource.STEP, stepId: "design-architecture", transform: "passthrough" },
             retry: { maxAttempts: 2, backoffMs: 2000 },
           },
           {
@@ -174,7 +180,7 @@ describe("Example Flows - Step 7.9", {
             name: "Test Implementation",
             agent: "qa-engineer",
             dependsOn: ["implement-feature"],
-            input: { source: "step", stepId: "implement-feature", transform: "passthrough" },
+            input: { source: FlowInputSource.STEP, stepId: "implement-feature", transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -182,11 +188,11 @@ describe("Example Flows - Step 7.9", {
             name: "Documentation",
             agent: "technical-writer",
             dependsOn: ["implement-feature"],
-            input: { source: "step", stepId: "implement-feature", transform: "passthrough" },
+            input: { source: FlowInputSource.STEP, stepId: "implement-feature", transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
-        output: { from: "create-documentation", format: "markdown" },
+        output: { from: "create-documentation", format: FlowOutputFormat.MARKDOWN },
         settings: { maxParallelism: 3, failFast: true },
       });
 
@@ -208,7 +214,7 @@ describe("Example Flows - Step 7.9", {
             name: "Research Perspective 1",
             agent: "research-analyst",
             dependsOn: [],
-            input: { source: "request", transform: "split_topic" },
+            input: { source: FlowInputSource.REQUEST, transform: "split_topic" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -216,7 +222,7 @@ describe("Example Flows - Step 7.9", {
             name: "Research Perspective 2",
             agent: "research-analyst",
             dependsOn: [],
-            input: { source: "request", transform: "split_topic" },
+            input: { source: FlowInputSource.REQUEST, transform: "split_topic" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -224,7 +230,7 @@ describe("Example Flows - Step 7.9", {
             name: "Research Perspective 3",
             agent: "research-analyst",
             dependsOn: [],
-            input: { source: "request", transform: "split_topic" },
+            input: { source: FlowInputSource.REQUEST, transform: "split_topic" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -233,14 +239,14 @@ describe("Example Flows - Step 7.9", {
             agent: "research-synthesizer",
             dependsOn: ["researcher-1", "researcher-2", "researcher-3"],
             input: {
-              source: "aggregate",
+              source: FlowInputSource.AGGREGATE,
               from: ["researcher-1", "researcher-2", "researcher-3"],
               transform: "aggregate_research",
             },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
-        output: { from: "synthesis", format: "markdown" },
+        output: { from: "synthesis", format: FlowOutputFormat.MARKDOWN },
         settings: { maxParallelism: 4, failFast: false },
       });
 
@@ -262,7 +268,7 @@ describe("Example Flows - Step 7.9", {
             name: "API Analysis",
             agent: "api-analyst",
             dependsOn: [],
-            input: { source: "request", transform: "extract_api_code" },
+            input: { source: FlowInputSource.REQUEST, transform: "extract_api_code" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -270,7 +276,7 @@ describe("Example Flows - Step 7.9", {
             name: "Usage Examples",
             agent: "code-examples-generator",
             dependsOn: ["analyze-api"],
-            input: { source: "step", stepId: "analyze-api", transform: "passthrough" },
+            input: { source: FlowInputSource.STEP, stepId: "analyze-api", transform: "passthrough" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -279,14 +285,14 @@ describe("Example Flows - Step 7.9", {
             agent: "technical-writer",
             dependsOn: ["analyze-api", "generate-examples"],
             input: {
-              source: "aggregate",
+              source: FlowInputSource.AGGREGATE,
               from: ["analyze-api", "generate-examples"],
               transform: "combine_analysis_examples",
             },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
-        output: { from: "write-documentation", format: "markdown" },
+        output: { from: "write-documentation", format: FlowOutputFormat.MARKDOWN },
         settings: { maxParallelism: 2, failFast: true },
       });
 
@@ -308,7 +314,7 @@ describe("Example Flows - Step 7.9", {
             name: "Static Security Analysis",
             agent: "security-analyst",
             dependsOn: [],
-            input: { source: "request", transform: "extract_code_security" },
+            input: { source: FlowInputSource.REQUEST, transform: "extract_code_security" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -316,7 +322,7 @@ describe("Example Flows - Step 7.9", {
             name: "Dependency Vulnerability Check",
             agent: "dependency-analyst",
             dependsOn: [],
-            input: { source: "request", transform: "extract_dependencies" },
+            input: { source: FlowInputSource.REQUEST, transform: "extract_dependencies" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -324,7 +330,7 @@ describe("Example Flows - Step 7.9", {
             name: "Security Configuration Review",
             agent: "config-security-analyst",
             dependsOn: [],
-            input: { source: "request", transform: "extract_config" },
+            input: { source: FlowInputSource.REQUEST, transform: "extract_config" },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
           {
@@ -335,14 +341,14 @@ describe("Example Flows - Step 7.9", {
             agent: "security-assessor",
             dependsOn: ["static-analysis", "dependency-check", "configuration-review"],
             input: {
-              source: "aggregate",
+              source: FlowInputSource.AGGREGATE,
               from: ["static-analysis", "dependency-check", "configuration-review"],
               transform: "aggregate_security_findings",
             },
             retry: { maxAttempts: 1, backoffMs: 1000 },
           },
         ],
-        output: { from: "risk-assessment", format: "markdown" },
+        output: { from: "risk-assessment", format: FlowOutputFormat.MARKDOWN },
         settings: { maxParallelism: 4, failFast: false },
       });
 

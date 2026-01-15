@@ -8,12 +8,20 @@
  * - Activity Journal integration
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { Decision, ExecutionMemory, Learning, Pattern, ProjectMemory } from "../../src/schemas/memory_bank.ts";
+import {
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+} from "../../src/enums.ts";
 import { getMemoryExecutionDir, getMemoryIndexDir, getMemoryProjectsDir } from "../helpers/paths_helper.ts";
 // Helper function to generate valid UUIDs for testing
 function generateTestUUID(): string {
@@ -215,7 +223,7 @@ Deno.test("MemoryBankService: createExecutionRecord creates directory structure"
       request_id: "REQ-123",
       started_at: "2026-01-03T10:00:00Z",
       completed_at: "2026-01-03T10:15:00Z",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "my-app",
       agent: "senior-coder",
       summary: "Added authentication middleware",
@@ -241,7 +249,7 @@ Deno.test("MemoryBankService: createExecutionRecord creates directory structure"
     const contextContent = await Deno.readTextFile(join(execDir, "context.json"));
     const contextData = JSON.parse(contextContent);
     assertEquals(contextData.trace_id, traceId);
-    assertEquals(contextData.status, "completed");
+    assertEquals(contextData.status, ExecutionStatus.COMPLETED);
     assertEquals(contextData.lessons_learned.length, 1);
   } finally {
     await cleanup();
@@ -259,7 +267,7 @@ Deno.test("MemoryBankService: getExecutionByTraceId retrieves execution", async 
       trace_id: traceId,
       request_id: "REQ-124",
       started_at: "2026-01-03T11:00:00Z",
-      status: "running",
+      status: ExecutionStatus.RUNNING,
       portal: "my-app",
       agent: "senior-coder",
       summary: "In progress",
@@ -278,7 +286,7 @@ Deno.test("MemoryBankService: getExecutionByTraceId retrieves execution", async 
     const retrieved = await service.getExecutionByTraceId(traceId);
     assertExists(retrieved);
     assertEquals(retrieved.trace_id, traceId);
-    assertEquals(retrieved.status, "running");
+    assertEquals(retrieved.status, ExecutionStatus.RUNNING);
     assertEquals(retrieved.completed_at, undefined);
   } finally {
     await cleanup();
@@ -297,7 +305,7 @@ Deno.test("MemoryBankService: getExecutionHistory returns all executions", async
       request_id: "REQ-1",
       started_at: "2026-01-03T09:00:00Z",
       completed_at: "2026-01-03T09:10:00Z",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "app-1",
       agent: "senior-coder",
       summary: "First execution",
@@ -311,7 +319,7 @@ Deno.test("MemoryBankService: getExecutionHistory returns all executions", async
       request_id: "REQ-2",
       started_at: "2026-01-03T10:00:00Z",
       completed_at: "2026-01-03T10:10:00Z",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "app-2",
       agent: "senior-coder",
       summary: "Second execution",
@@ -346,7 +354,7 @@ Deno.test("MemoryBankService: getExecutionHistory filters by portal", async () =
       trace_id: "550e8400-e29b-41d4-a716-446655440020",
       request_id: "REQ-1",
       started_at: "2026-01-03T09:00:00Z",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "app-1",
       agent: "senior-coder",
       summary: "App 1 execution",
@@ -359,7 +367,7 @@ Deno.test("MemoryBankService: getExecutionHistory filters by portal", async () =
       trace_id: "550e8400-e29b-41d4-a716-446655440021",
       request_id: "REQ-2",
       started_at: "2026-01-03T10:00:00Z",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "app-2",
       agent: "senior-coder",
       summary: "App 2 execution",
@@ -389,7 +397,7 @@ Deno.test("MemoryBankService: getExecutionHistory respects limit", async () => {
         trace_id: `550e8400-e29b-41d4-a716-44665544003${i}`,
         request_id: `REQ-${i}`,
         started_at: `2026-01-03T0${i}:00:00Z`,
-        status: "completed",
+        status: ExecutionStatus.COMPLETED,
         portal: "my-app",
         agent: "senior-coder",
         summary: `Execution ${i}`,
@@ -419,7 +427,7 @@ Deno.test("MemoryBankService: createExecutionRecord handles failed execution wit
       request_id: "REQ-FAIL",
       started_at: "2026-01-03T10:00:00Z",
       completed_at: "2026-01-03T10:01:00Z",
-      status: "failed",
+      status: ExecutionStatus.FAILED,
       portal: "my-app",
       agent: "senior-coder",
       summary: "Failed to add feature",
@@ -433,7 +441,7 @@ Deno.test("MemoryBankService: createExecutionRecord handles failed execution wit
 
     const retrieved = await service.getExecutionByTraceId(traceId);
     assertExists(retrieved);
-    assertEquals(retrieved.status, "failed");
+    assertEquals(retrieved.status, ExecutionStatus.FAILED);
     assertEquals(retrieved.error_message, "PermissionDenied: Cannot write to protected directory");
   } finally {
     await cleanup();
@@ -462,7 +470,7 @@ Deno.test("MemoryBankService: searchMemory finds matching content", async () => 
       trace_id: "550e8400-e29b-41d4-a716-446655440050",
       request_id: "REQ-AUTH",
       started_at: "2026-01-03T10:00:00Z",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "auth-app",
       agent: "senior-coder",
       summary: "Implemented JWT authentication middleware",
@@ -556,7 +564,7 @@ Deno.test("MemoryBankService: createExecutionRecord logs to Activity Journal", a
       trace_id: traceId,
       request_id: "REQ-TEST",
       started_at: "2026-01-03T10:00:00Z",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "test-app",
       agent: "senior-coder",
       summary: "Test execution",
@@ -600,7 +608,7 @@ Deno.test("MemoryBankService: rebuildIndices generates index files", async () =>
       trace_id: "550e8400-e29b-41d4-a716-446655440070",
       request_id: "REQ-1",
       started_at: "2026-01-03T10:00:00Z",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "app-1",
       agent: "senior-coder",
       summary: "Test",
@@ -640,7 +648,7 @@ Deno.test("MemoryBankService: getRecentActivity combines execution history", asy
       request_id: "REQ-1",
       started_at: "2026-01-03T10:00:00Z",
       completed_at: "2026-01-03T10:10:00Z",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "my-app",
       agent: "senior-coder",
       summary: "Added feature",
@@ -652,7 +660,7 @@ Deno.test("MemoryBankService: getRecentActivity combines execution history", asy
     // Get recent activity
     const activity = await service.getRecentActivity(10);
     assertEquals(activity.length >= 1, true);
-    assertEquals(activity[0].type, "execution");
+    assertEquals(activity[0].type, MemorySource.EXECUTION);
     assertEquals(activity[0].portal, "my-app");
   } finally {
     await cleanup();
@@ -701,7 +709,7 @@ Deno.test("MemoryBankService: concurrent project memory updates maintain data in
     assertEquals(finalMem.patterns.length, 4); // 1 initial + 3 concurrent
 
     // Verify no duplicate patterns
-    const patternNames = finalMem.patterns.map((p) => p.name);
+    const patternNames = finalMem.patterns.map((p: any) => p.name);
     const uniqueNames = new Set(patternNames);
     assertEquals(uniqueNames.size, patternNames.length);
   } finally {
@@ -720,14 +728,14 @@ Deno.test("MemoryBankService: file locking serializes global learning updates", 
       const learning: Learning = {
         id: generateTestUUID(),
         created_at: new Date().toISOString(),
-        source: "agent",
-        scope: "global",
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
         title: `Sequential Learning ${i}`,
         description: `Learning added sequentially ${i}`,
-        category: "insight",
+        category: LearningCategory.INSIGHT,
         tags: [`sequential-${i}`],
-        confidence: "high",
-        status: "approved",
+        confidence: ConfidenceLevel.HIGH,
+        status: MemoryStatus.APPROVED,
         approved_at: new Date().toISOString(),
       };
       await service.addGlobalLearning(learning);
@@ -756,14 +764,14 @@ Deno.test("MemoryBankService: lock timeout prevents indefinite blocking", async 
     await service.addGlobalLearning({
       id: generateTestUUID(),
       created_at: new Date().toISOString(),
-      source: "agent",
-      scope: "global",
+      source: MemorySource.AGENT,
+      scope: MemoryScope.GLOBAL,
       title: "First Learning",
       description: "Testing lock acquisition",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["test"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
       approved_at: new Date().toISOString(),
     });
 
@@ -771,14 +779,14 @@ Deno.test("MemoryBankService: lock timeout prevents indefinite blocking", async 
     await service.addGlobalLearning({
       id: generateTestUUID(),
       created_at: new Date().toISOString(),
-      source: "agent",
-      scope: "global",
+      source: MemorySource.AGENT,
+      scope: MemoryScope.GLOBAL,
       title: "Second Learning",
       description: "Testing lock release",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["test"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
       approved_at: new Date().toISOString(),
     });
 
@@ -801,14 +809,14 @@ Deno.test("MemoryBankService: lock files are cleaned up on success", async () =>
     await service.addGlobalLearning({
       id: generateTestUUID(),
       created_at: new Date().toISOString(),
-      source: "agent",
-      scope: "global",
+      source: MemorySource.AGENT,
+      scope: MemoryScope.GLOBAL,
       title: "Cleanup Test",
       description: "Testing lock file cleanup",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["cleanup"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
       approved_at: new Date().toISOString(),
     });
 
@@ -834,14 +842,14 @@ Deno.test("MemoryBankService: lock files are cleaned up on failure", async () =>
       await service.addGlobalLearning({
         id: duplicateId,
         created_at: new Date().toISOString(),
-        source: "agent",
-        scope: "global",
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
         title: "Duplicate Test",
         description: "First instance",
-        category: "pattern",
+        category: LearningCategory.PATTERN,
         tags: ["duplicate"],
-        confidence: "high",
-        status: "approved",
+        confidence: ConfidenceLevel.HIGH,
+        status: MemoryStatus.APPROVED,
         approved_at: new Date().toISOString(),
       });
 
@@ -849,14 +857,14 @@ Deno.test("MemoryBankService: lock files are cleaned up on failure", async () =>
       await service.addGlobalLearning({
         id: duplicateId, // Same ID
         created_at: new Date().toISOString(),
-        source: "agent",
-        scope: "global",
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
         title: "Duplicate Test",
         description: "Second instance - should fail",
-        category: "pattern",
+        category: LearningCategory.PATTERN,
         tags: ["duplicate"],
-        confidence: "high",
-        status: "approved",
+        confidence: ConfidenceLevel.HIGH,
+        status: MemoryStatus.APPROVED,
         approved_at: new Date().toISOString(),
       });
     } catch {

@@ -19,7 +19,8 @@
  * - Test 13: --format md produces markdown output
  */
 
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertStringIncludes } from "@std/assert";
+import { ExecutionStatus, FlowOutputFormat, MemoryReferenceType } from "../../src/enums.ts";
 import { join } from "@std/path";
 import { MemoryCommands } from "../../src/cli/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
@@ -84,7 +85,7 @@ async function createTestProject(memoryBank: MemoryBankService, portal: string) 
     ],
     references: [
       {
-        type: "file",
+        type: MemoryReferenceType.FILE,
         path: "src/main.ts",
         description: "Main entry point",
       },
@@ -101,7 +102,7 @@ async function createTestExecution(memoryBank: MemoryBankService, traceId: strin
     request_id: "req-" + traceId.substring(0, 8),
     started_at: new Date().toISOString(),
     completed_at: new Date().toISOString(),
-    status: "completed",
+    status: ExecutionStatus.COMPLETED,
     portal,
     agent: "test-agent",
     summary: "Test execution for " + portal,
@@ -150,7 +151,7 @@ Deno.test("MemoryCommands: list --format json outputs valid JSON", async () => {
   try {
     await createTestProject(memoryBank, "JsonProject");
 
-    const result = await commands.list("json");
+    const result = await commands.list(FlowOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(Array.isArray(parsed.projects), true);
@@ -223,7 +224,7 @@ Deno.test("MemoryCommands: search --format json outputs valid JSON", async () =>
   try {
     await createTestProject(memoryBank, "JsonSearchProject");
 
-    const result = await commands.search("Pattern", { format: "json" });
+    const result = await commands.search("Pattern", { format: FlowOutputFormat.JSON });
     const parsed = JSON.parse(result);
 
     assertEquals(Array.isArray(parsed), true);
@@ -295,7 +296,7 @@ Deno.test("MemoryCommands: project show --format json outputs valid JSON", async
   try {
     await createTestProject(memoryBank, "JsonShowProject");
 
-    const result = await commands.projectShow("JsonShowProject", "json");
+    const result = await commands.projectShow("JsonShowProject", FlowOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(parsed.portal, "JsonShowProject");
@@ -316,7 +317,7 @@ Deno.test("MemoryCommands: execution list returns history", async () => {
 
     assertStringIncludes(result, "Execution History");
     assertStringIncludes(result, "11111111");
-    assertStringIncludes(result, "completed");
+    assertStringIncludes(result, ExecutionStatus.COMPLETED);
   } finally {
     await cleanup();
   }
@@ -373,7 +374,7 @@ Deno.test("MemoryCommands: execution show displays details", async () => {
 
     assertStringIncludes(result, traceId);
     assertStringIncludes(result, "ShowExecProject");
-    assertStringIncludes(result, "completed");
+    assertStringIncludes(result, ExecutionStatus.COMPLETED);
     assertStringIncludes(result, "test-agent");
   } finally {
     await cleanup();
@@ -398,11 +399,11 @@ Deno.test("MemoryCommands: execution show --format json outputs valid JSON", asy
     const traceId = "88888888-8888-8888-8888-888888888888";
     await createTestExecution(memoryBank, traceId, "JsonExecProject");
 
-    const result = await commands.executionShow(traceId, "json");
+    const result = await commands.executionShow(traceId, FlowOutputFormat.JSON);
     const parsed = JSON.parse(result);
 
     assertEquals(parsed.trace_id, traceId);
-    assertEquals(parsed.status, "completed");
+    assertEquals(parsed.status, ExecutionStatus.COMPLETED);
   } finally {
     await cleanup();
   }

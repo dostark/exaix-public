@@ -1,4 +1,6 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertThrows } from "@std/assert";
+import { RequestStatus } from "../src/enums.ts";
+
 import { RequestSchema } from "../src/schemas/request.ts";
 import { FrontmatterParser } from "../src/parsers/markdown.ts";
 import { initTestDbService } from "./helpers/db.ts";
@@ -20,7 +22,7 @@ Deno.test("RequestSchema: valid frontmatter object passes validation", () => {
   const validRequest = {
     trace_id: "550e8400-e29b-41d4-a716-446655440000",
     agent_id: "coder-agent",
-    status: "pending",
+    status: RequestStatus.PENDING,
     priority: 8,
     tags: ["feature", "ui"],
   };
@@ -29,7 +31,7 @@ Deno.test("RequestSchema: valid frontmatter object passes validation", () => {
 
   assertEquals(result.trace_id, "550e8400-e29b-41d4-a716-446655440000");
   assertEquals(result.agent_id, "coder-agent");
-  assertEquals(result.status, "pending");
+  assertEquals(result.status, RequestStatus.PENDING);
   assertEquals(result.priority, 8);
   assertEquals(result.tags, ["feature", "ui"]);
 });
@@ -38,7 +40,7 @@ Deno.test("RequestSchema: applies default values", () => {
   const minimalRequest = {
     trace_id: "550e8400-e29b-41d4-a716-446655440000",
     agent_id: "coder-agent",
-    status: "pending",
+    status: RequestStatus.PENDING,
   };
 
   const result = RequestSchema.parse(minimalRequest);
@@ -50,7 +52,7 @@ Deno.test("RequestSchema: applies default values", () => {
 Deno.test("RequestSchema: rejects missing required field (trace_id)", () => {
   const invalidRequest = {
     agent_id: "coder-agent",
-    status: "pending",
+    status: RequestStatus.PENDING,
   };
 
   const error = assertThrows(
@@ -73,7 +75,7 @@ Deno.test("RequestSchema: rejects invalid enum value", () => {
   ) as Error;
 
   // Should list valid options
-  assertEquals(error.message.includes("pending"), true);
+  assertEquals(error.message.includes(RequestStatus.PENDING), true);
   assertEquals(error.message.includes("in_progress"), true);
 });
 
@@ -81,7 +83,7 @@ Deno.test("RequestSchema: strips unknown fields", () => {
   const requestWithExtra = {
     trace_id: "550e8400-e29b-41d4-a716-446655440000",
     agent_id: "coder-agent",
-    status: "pending",
+    status: RequestStatus.PENDING,
     unknown_field: "should be stripped",
     another_extra: 123,
   };
@@ -115,7 +117,7 @@ Create a modern login page with:
 
   assertEquals(result.request.trace_id, "550e8400-e29b-41d4-a716-446655440000");
   assertEquals(result.request.agent_id, "coder-agent");
-  assertEquals(result.request.status, "pending");
+  assertEquals(result.request.status, RequestStatus.PENDING);
   assertEquals(result.request.priority, 8);
   assertEquals(result.request.tags, ["feature", "ui"]);
   assertEquals(result.body.includes("Implement Login Page"), true);

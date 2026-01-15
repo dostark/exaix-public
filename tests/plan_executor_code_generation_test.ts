@@ -3,8 +3,9 @@
  * Tests for LLM response parsing and FileChange extraction
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@1";
-import { join } from "jsr:@std/path@1";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { MemoryOperation } from "../src/enums.ts";
+import { join } from "@std/path";
 
 Deno.test("Plan Executor - Code Generation", async (t) => {
   await t.step("LLM Response Parsing", async (t) => {
@@ -22,7 +23,7 @@ export function authenticate(token: string): boolean {
 ### tests/auth_test.ts (create)
 \`\`\`typescript
 import { authenticate } from "../src/auth.ts";
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 
 Deno.test("authenticate - valid token", () => {
   assertEquals(authenticate("valid-token"), true);
@@ -60,7 +61,7 @@ export const config = { auth: true };
       assertEquals(fileMatches.length, 3);
       assertEquals(fileMatches[0][2], "create");
       assertEquals(fileMatches[1][2], "modify");
-      assertEquals(fileMatches[2][2], "delete");
+      assertEquals(fileMatches[2][2], MemoryOperation.DELETE);
     });
 
     await t.step("should handle LLM response with no file changes", () => {
@@ -162,13 +163,13 @@ The existing implementation already handles this case.
     });
 
     await t.step("should create FileChange object for delete operation", () => {
-      const fileChange: { path: string; operation: "delete"; content?: string } = {
+      const fileChange: { path: string; operation: MemoryOperation.DELETE; content?: string } = {
         path: "src/old_file.ts",
-        operation: "delete" as const,
+        operation: MemoryOperation.DELETE,
       };
 
       assertEquals(fileChange.path, "src/old_file.ts");
-      assertEquals(fileChange.operation, "delete");
+      assertEquals(fileChange.operation, MemoryOperation.DELETE);
       assertEquals(fileChange.content, undefined);
     });
 
@@ -176,13 +177,13 @@ The existing implementation already handles this case.
       const fileChanges = [
         { path: "src/auth.ts", operation: "create" as const, content: "..." },
         { path: "src/config.ts", operation: "modify" as const, content: "..." },
-        { path: "src/old.ts", operation: "delete" as const },
+        { path: "src/old.ts", operation: MemoryOperation.DELETE },
       ];
 
       assertEquals(fileChanges.length, 3);
       assertEquals(fileChanges[0].operation, "create");
       assertEquals(fileChanges[1].operation, "modify");
-      assertEquals(fileChanges[2].operation, "delete");
+      assertEquals(fileChanges[2].operation, MemoryOperation.DELETE);
     });
   });
 

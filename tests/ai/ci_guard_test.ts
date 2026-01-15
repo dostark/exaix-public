@@ -1,7 +1,7 @@
-import { assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertStringIncludes } from "@std/assert";
 import { ModelFactory } from "../../src/ai/providers.ts";
 
-Deno.test("ModelFactory falls back to mock provider in CI unless EXO_ENABLE_PAID_LLM=1", () => {
+Deno.test("ModelFactory falls back to mock provider in CI unless EXO_ENABLE_PAID_LLM=1", async () => {
   // If env access is not permitted in this test environment, skip this test
   try {
     const originalCI = Deno.env.get("CI");
@@ -12,7 +12,7 @@ Deno.test("ModelFactory falls back to mock provider in CI unless EXO_ENABLE_PAID
       Deno.env.delete("EXO_ENABLE_PAID_LLM");
 
       const model = Deno.env.get("EXO_TEST_LLM_MODEL") ?? "gpt-5-mini";
-      const p = ModelFactory.create(model, { apiKey: "fake" });
+      const p = await ModelFactory.create(model, { apiKey: "fake" });
       // In CI without opt-in, ModelFactory should protect against paid calls and return mock provider
       assertStringIncludes(p.id, "mock-provider");
     } finally {

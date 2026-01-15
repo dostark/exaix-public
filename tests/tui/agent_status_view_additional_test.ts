@@ -1,4 +1,6 @@
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
+import { assertEquals, assertStringIncludes } from "@std/assert";
+import { CritiqueSeverity } from "../../src/enums.ts";
+
 import {
   AgentHealth,
   AgentLogEntry,
@@ -40,7 +42,7 @@ class DetailedAgentService implements AgentService {
     ]);
   }
   getAgentHealth(_agentId: string): Promise<AgentHealth> {
-    return Promise.resolve({ status: "critical", issues: ["OOM", "Crash loop"], uptime: 3600 * 5 });
+    return Promise.resolve({ status: CritiqueSeverity.CRITICAL, issues: ["OOM", "Crash loop"], uptime: 3600 * 5 });
   }
 }
 

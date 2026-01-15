@@ -9,8 +9,8 @@
  * 4. Backward compatibility maintained for metadata handling
  */
 
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
-import { assert, assertStringIncludes } from "jsr:@std/assert@^1";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
+import { assert, assertStringIncludes } from "@std/assert";
 
 import { PlanWriter } from "../src/services/plan_writer.ts";
 import type { PlanWriterConfig, RequestMetadata } from "../src/services/plan_writer.ts";

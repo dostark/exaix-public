@@ -1,4 +1,4 @@
-import { dirname, join, resolve } from "jsr:@std/path@1";
+import { dirname, join, resolve } from "@std/path";
 import { Flow } from "../schemas/flow.ts";
 
 /**

@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 import { EvaluationCriterion, getCriteriaByNames } from "./evaluation_criteria.ts";
+import { FlowGateOnFail } from "../enums.ts";
 import { GateEvaluator, GateResult } from "./gate_evaluator.ts";
 
 /**
@@ -124,7 +125,7 @@ export class FeedbackLoop {
           agent: config.evaluator,
           criteria: config.criteria,
           threshold: config.targetScore,
-          onFail: "continue-with-warning",
+          onFail: FlowGateOnFail.CONTINUE_WITH_WARNING,
           maxRetries: 1,
         },
         currentContent,

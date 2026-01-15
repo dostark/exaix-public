@@ -2,7 +2,9 @@
  * MCP Server Prompts Tests
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { MemorySource } from "../../src/enums.ts";
+
 import { initSimpleMCPServer } from "./helpers/test_setup.ts";
 
 // ============================================================================
@@ -88,7 +90,7 @@ Deno.test("MCP Server: handles prompts/get for execute_plan", async () => {
     assertStringIncludes(result.description, "test-plan-123");
     assertStringIncludes(result.description, "MyApp");
     assertEquals(result.messages.length, 1);
-    assertEquals(result.messages[0].role, "user");
+    assertEquals(result.messages[0].role, MemorySource.USER);
     assertStringIncludes(result.messages[0].content.text, "test-plan-123");
     assertStringIncludes(result.messages[0].content.text, "MyApp");
   } finally {

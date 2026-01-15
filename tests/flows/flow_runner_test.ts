@@ -1,4 +1,5 @@
-import { assert, assertEquals, assertRejects } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertRejects } from "@std/assert";
+import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
 import { FlowExecutionError, FlowRunner } from "../../src/flows/flow_runner.ts";
 import { Flow, FlowInput, FlowStepInput } from "../../src/schemas/flow.ts";
 import { AgentExecutionResult } from "../../src/services/agent_runner.ts";
@@ -50,7 +51,7 @@ Deno.test("FlowRunner: executes simple sequential flow", async () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -58,7 +59,7 @@ Deno.test("FlowRunner: executes simple sequential flow", async () => {
       name: "Step 2",
       agent: "agent2",
       dependsOn: ["step1"],
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -69,7 +70,7 @@ Deno.test("FlowRunner: executes simple sequential flow", async () => {
     description: "A test flow",
     version: "1.0.0",
     steps,
-    output: { from: "step2", format: "markdown" },
+    output: { from: "step2", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -124,7 +125,7 @@ Deno.test("FlowRunner: executes parallel steps in same wave", async () => {
       name: "Start",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -132,7 +133,7 @@ Deno.test("FlowRunner: executes parallel steps in same wave", async () => {
       name: "Parallel 1",
       agent: "agent2",
       dependsOn: ["start"],
-      input: { source: "step", stepId: "start", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -140,7 +141,7 @@ Deno.test("FlowRunner: executes parallel steps in same wave", async () => {
       name: "Parallel 2",
       agent: "agent3",
       dependsOn: ["start"],
-      input: { source: "step", stepId: "start", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -151,7 +152,7 @@ Deno.test("FlowRunner: executes parallel steps in same wave", async () => {
     description: "A flow with parallel steps",
     version: "1.0.0",
     steps,
-    output: { from: ["parallel1", "parallel2"], format: "concat" },
+    output: { from: ["parallel1", "parallel2"], format: FlowOutputFormat.CONCAT },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -179,7 +180,7 @@ Deno.test("FlowRunner: handles failFast behavior", async () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -187,7 +188,7 @@ Deno.test("FlowRunner: handles failFast behavior", async () => {
       name: "Step 2",
       agent: "failing-agent",
       dependsOn: ["step1"],
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -195,7 +196,7 @@ Deno.test("FlowRunner: handles failFast behavior", async () => {
       name: "Step 3",
       agent: "agent3",
       dependsOn: ["step2"],
-      input: { source: "step", stepId: "step2", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step2", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -206,7 +207,7 @@ Deno.test("FlowRunner: handles failFast behavior", async () => {
     description: "A flow that fails fast",
     version: "1.0.0",
     steps,
-    output: { from: "step3", format: "markdown" },
+    output: { from: "step3", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -236,7 +237,7 @@ Deno.test("FlowRunner: continues execution when failFast is false", async () => 
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -244,7 +245,7 @@ Deno.test("FlowRunner: continues execution when failFast is false", async () => 
       name: "Step 2",
       agent: "failing-agent",
       dependsOn: ["step1"],
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -255,7 +256,7 @@ Deno.test("FlowRunner: continues execution when failFast is false", async () => 
     description: "A flow that continues on failure",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: false },
   };
 
@@ -283,7 +284,7 @@ Deno.test("FlowRunner: respects maxParallelism setting", async () => {
       name: "Start",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -291,7 +292,7 @@ Deno.test("FlowRunner: respects maxParallelism setting", async () => {
       name: "Parallel 1",
       agent: "agent2",
       dependsOn: ["start"],
-      input: { source: "step", stepId: "start", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -299,7 +300,7 @@ Deno.test("FlowRunner: respects maxParallelism setting", async () => {
       name: "Parallel 2",
       agent: "agent3",
       dependsOn: ["start"],
-      input: { source: "step", stepId: "start", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -307,7 +308,7 @@ Deno.test("FlowRunner: respects maxParallelism setting", async () => {
       name: "Parallel 3",
       agent: "agent4",
       dependsOn: ["start"],
-      input: { source: "step", stepId: "start", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -315,7 +316,7 @@ Deno.test("FlowRunner: respects maxParallelism setting", async () => {
       name: "Parallel 4",
       agent: "agent5",
       dependsOn: ["start"],
-      input: { source: "step", stepId: "start", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -326,7 +327,7 @@ Deno.test("FlowRunner: respects maxParallelism setting", async () => {
     description: "A flow that limits parallelism",
     version: "1.0.0",
     steps,
-    output: { from: "p1", format: "markdown" },
+    output: { from: "p1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 2, failFast: true },
   };
 
@@ -355,7 +356,7 @@ Deno.test("FlowRunner: generates unique flowRunId", async () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -366,7 +367,7 @@ Deno.test("FlowRunner: generates unique flowRunId", async () => {
     description: "A flow for testing unique IDs",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -394,7 +395,7 @@ Deno.test("FlowRunner: aggregates output from multiple steps", async () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -402,7 +403,7 @@ Deno.test("FlowRunner: aggregates output from multiple steps", async () => {
       name: "Step 2",
       agent: "agent2",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -413,7 +414,7 @@ Deno.test("FlowRunner: aggregates output from multiple steps", async () => {
     description: "A flow that aggregates outputs",
     version: "1.0.0",
     steps,
-    output: { from: ["step1", "step2"], format: "json" },
+    output: { from: ["step1", "step2"], format: FlowOutputFormat.JSON },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -438,7 +439,7 @@ Deno.test("FlowRunner: handles empty flow", async () => {
     description: "A flow with no steps",
     version: "1.0.0",
     steps: [],
-    output: { from: [], format: "markdown" },
+    output: { from: [], format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -463,7 +464,7 @@ Deno.test("FlowRunner: handles step with invalid input source", async () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "step" as any, transform: "passthrough" }, // Missing stepId
+      input: { source: FlowInputSource.STEP as any, transform: "passthrough" }, // Missing stepId
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -474,7 +475,7 @@ Deno.test("FlowRunner: handles step with invalid input source", async () => {
     description: "A flow with invalid step input",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: false }, // Don't fail fast so we can check step error
   };
 
@@ -500,7 +501,7 @@ Deno.test("FlowRunner: handles step depending on failed step", async () => {
       name: "Step 1",
       agent: "failing-agent",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -508,7 +509,7 @@ Deno.test("FlowRunner: handles step depending on failed step", async () => {
       name: "Step 2",
       agent: "agent2",
       dependsOn: ["step1"],
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -519,7 +520,7 @@ Deno.test("FlowRunner: handles step depending on failed step", async () => {
     description: "A flow where step depends on failed step",
     version: "1.0.0",
     steps,
-    output: { from: "step2", format: "markdown" },
+    output: { from: "step2", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: false }, // Don't fail fast to test dependency handling
   };
 
@@ -546,7 +547,7 @@ Deno.test("FlowRunner: handles circular dependencies", async () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: ["step2"], // Circular dependency
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -554,7 +555,7 @@ Deno.test("FlowRunner: handles circular dependencies", async () => {
       name: "Step 2",
       agent: "agent2",
       dependsOn: ["step1"], // Circular dependency
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -565,7 +566,7 @@ Deno.test("FlowRunner: handles circular dependencies", async () => {
     description: "A flow with circular dependencies",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -595,7 +596,7 @@ Deno.test("FlowRunner: handles agent execution throwing non-Error", async () => 
       name: "Step 1",
       agent: "throwing-agent",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -606,7 +607,7 @@ Deno.test("FlowRunner: handles agent execution throwing non-Error", async () => 
     description: "A flow with agent that throws non-Error",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: false },
   };
 
@@ -638,7 +639,7 @@ Deno.test("FlowRunner: handles output aggregation with failed steps", async () =
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -646,7 +647,7 @@ Deno.test("FlowRunner: handles output aggregation with failed steps", async () =
       name: "Step 2",
       agent: "failing-agent",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -657,7 +658,7 @@ Deno.test("FlowRunner: handles output aggregation with failed steps", async () =
     description: "A flow with mixed success/failure for output aggregation",
     version: "1.0.0",
     steps,
-    output: { from: ["step1", "step2"], format: "concat" },
+    output: { from: ["step1", "step2"], format: FlowOutputFormat.CONCAT },
     settings: { maxParallelism: 3, failFast: false },
   };
 
@@ -682,7 +683,7 @@ Deno.test("FlowRunner: handles output aggregation with all failed steps", async 
       name: "Step 1",
       agent: "failing-agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -690,7 +691,7 @@ Deno.test("FlowRunner: handles output aggregation with all failed steps", async 
       name: "Step 2",
       agent: "failing-agent2",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -701,7 +702,7 @@ Deno.test("FlowRunner: handles output aggregation with all failed steps", async 
     description: "A flow where all steps fail",
     version: "1.0.0",
     steps,
-    output: { from: ["step1", "step2"], format: "json" },
+    output: { from: ["step1", "step2"], format: FlowOutputFormat.JSON },
     settings: { maxParallelism: 3, failFast: false },
   };
 
@@ -722,7 +723,7 @@ Deno.test("FlowRunner: applies mergeAsContext transform", async () => {
       name: "Step 1",
       agent: "test-agent",
       dependsOn: [],
-      input: { source: "request", transform: "mergeAsContext", transformArgs: ["Input 1", "Input 2"] },
+      input: { source: FlowInputSource.REQUEST, transform: "mergeAsContext", transformArgs: ["Input 1", "Input 2"] },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -733,7 +734,7 @@ Deno.test("FlowRunner: applies mergeAsContext transform", async () => {
     description: "Test flow",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -764,10 +765,10 @@ Deno.test("FlowRunner: applies extractSection transform", async () => {
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "extractSection", transformArgs: "Requirements" },
+        input: { source: FlowInputSource.REQUEST, transform: "extractSection", transformArgs: "Requirements" },
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -798,10 +799,10 @@ Deno.test("FlowRunner: applies appendToRequest transform", async () => {
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "appendToRequest" },
+        input: { source: FlowInputSource.REQUEST, transform: "appendToRequest" },
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -830,10 +831,10 @@ Deno.test("FlowRunner: applies jsonExtract transform", async () => {
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "jsonExtract", transformArgs: "user.name" },
+        input: { source: FlowInputSource.REQUEST, transform: "jsonExtract", transformArgs: "user.name" },
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -864,10 +865,14 @@ Deno.test("FlowRunner: applies templateFill transform", async () => {
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "templateFill", transformArgs: { name: "Alice", task: "coding" } },
+        input: {
+          source: FlowInputSource.REQUEST,
+          transform: "templateFill",
+          transformArgs: { name: "Alice", task: "coding" },
+        },
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -900,10 +905,10 @@ Deno.test("FlowRunner: applies custom transform function", async () => {
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: customTransform as any },
+        input: { source: FlowInputSource.REQUEST, transform: customTransform as any },
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -932,10 +937,10 @@ Deno.test("FlowRunner: handles unknown transform", async () => {
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "unknownTransform" as any },
+        input: { source: FlowInputSource.REQUEST, transform: "unknownTransform" as any },
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -972,10 +977,10 @@ Deno.test("FlowRunner: handles transform function throwing error", async () => {
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: failingTransform as any },
+        input: { source: FlowInputSource.REQUEST, transform: failingTransform as any },
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -1008,10 +1013,10 @@ Deno.test("FlowRunner: handles invalid transform args for extractSection", async
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "extractSection" }, // Missing transformArgs
+        input: { source: FlowInputSource.REQUEST, transform: "extractSection" }, // Missing transformArgs
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -1044,10 +1049,10 @@ Deno.test("FlowRunner: handles invalid transform args for jsonExtract", async ()
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "jsonExtract" }, // Missing transformArgs
+        input: { source: FlowInputSource.REQUEST, transform: "jsonExtract" }, // Missing transformArgs
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -1080,10 +1085,10 @@ Deno.test("FlowRunner: handles invalid transform args for templateFill", async (
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "templateFill", transformArgs: "not-an-object" },
+        input: { source: FlowInputSource.REQUEST, transform: "templateFill", transformArgs: "not-an-object" },
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -1114,10 +1119,10 @@ Deno.test("FlowRunner: handles agent execution throwing error in Promise.allSett
         agent: "throwing-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "passthrough" },
+        input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       },
     ],
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: false },
   };
 
@@ -1144,7 +1149,7 @@ Deno.test("FlowRunner: handles aggregate output with concat format", async () =>
         agent: "test-agent1",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "passthrough" },
+        input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       },
       {
         id: "step2",
@@ -1152,10 +1157,10 @@ Deno.test("FlowRunner: handles aggregate output with concat format", async () =>
         agent: "test-agent2",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: "request", transform: "passthrough" },
+        input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       },
     ],
-    output: { from: ["step1", "step2"], format: "concat" },
+    output: { from: ["step1", "step2"], format: FlowOutputFormat.CONCAT },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -1180,7 +1185,7 @@ Deno.test("FlowRunner: executes step when condition evaluates to true", async ()
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -1189,7 +1194,7 @@ Deno.test("FlowRunner: executes step when condition evaluates to true", async ()
       agent: "agent2",
       dependsOn: ["step1"],
       condition: "results['step1'].success === true",
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -1200,7 +1205,7 @@ Deno.test("FlowRunner: executes step when condition evaluates to true", async ()
     description: "Flow with conditions",
     version: "1.0.0",
     steps,
-    output: { from: "step2", format: "markdown" },
+    output: { from: "step2", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -1233,7 +1238,7 @@ Deno.test("FlowRunner: skips step when condition evaluates to false", async () =
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -1242,7 +1247,7 @@ Deno.test("FlowRunner: skips step when condition evaluates to false", async () =
       agent: "agent2",
       dependsOn: ["step1"],
       condition: "results['step1'].success === false", // Will be false since step1 succeeds
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -1250,7 +1255,7 @@ Deno.test("FlowRunner: skips step when condition evaluates to false", async () =
       name: "Step 3",
       agent: "agent3",
       dependsOn: ["step1"],
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -1261,7 +1266,7 @@ Deno.test("FlowRunner: skips step when condition evaluates to false", async () =
     description: "Flow with skipped step",
     version: "1.0.0",
     steps,
-    output: { from: "step3", format: "markdown" },
+    output: { from: "step3", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -1296,7 +1301,7 @@ Deno.test("FlowRunner: handles complex conditions with multiple results", async 
       name: "Analyze",
       agent: "analyzer",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -1304,7 +1309,7 @@ Deno.test("FlowRunner: handles complex conditions with multiple results", async 
       name: "Review",
       agent: "reviewer",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -1313,7 +1318,7 @@ Deno.test("FlowRunner: handles complex conditions with multiple results", async 
       agent: "finalizer",
       dependsOn: ["analyze", "review"],
       condition: "results['analyze'].success && results['review'].success",
-      input: { source: "aggregate", from: ["analyze", "review"], transform: "mergeAsContext" },
+      input: { source: FlowInputSource.AGGREGATE, from: ["analyze", "review"], transform: "mergeAsContext" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -1324,7 +1329,7 @@ Deno.test("FlowRunner: handles complex conditions with multiple results", async 
     description: "Flow with complex conditions",
     version: "1.0.0",
     steps,
-    output: { from: "final", format: "markdown" },
+    output: { from: "final", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: false },
   };
 
@@ -1351,7 +1356,7 @@ Deno.test("FlowRunner: handles condition syntax errors gracefully", async () => 
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
     {
@@ -1360,7 +1365,7 @@ Deno.test("FlowRunner: handles condition syntax errors gracefully", async () => 
       agent: "agent2",
       dependsOn: ["step1"],
       condition: "invalid {{{ syntax", // Invalid JS
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -1371,7 +1376,7 @@ Deno.test("FlowRunner: handles condition syntax errors gracefully", async () => 
     description: "Flow with invalid condition",
     version: "1.0.0",
     steps,
-    output: { from: "step2", format: "markdown" },
+    output: { from: "step2", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -1416,7 +1421,7 @@ Deno.test("FlowRunner: passes step-level skills to agent executor", async () => 
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       skills: ["code-review", "testing"],
     },
   ];
@@ -1427,7 +1432,7 @@ Deno.test("FlowRunner: passes step-level skills to agent executor", async () => 
     description: "Flow with step skills",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 
@@ -1449,7 +1454,7 @@ Deno.test("FlowRunner: passes flow-level defaultSkills when step has no skills",
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       // No step-level skills
     },
   ];
@@ -1460,7 +1465,7 @@ Deno.test("FlowRunner: passes flow-level defaultSkills when step has no skills",
     description: "Flow with default skills",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
     defaultSkills: ["architecture", "documentation"],
   };
@@ -1483,7 +1488,7 @@ Deno.test("FlowRunner: step-level skills override flow-level defaults", async ()
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       skills: ["specific-skill"], // Step-level override
     },
   ];
@@ -1494,7 +1499,7 @@ Deno.test("FlowRunner: step-level skills override flow-level defaults", async ()
     description: "Flow with both default and step skills",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
     defaultSkills: ["default-skill"], // Should be overridden
   };
@@ -1517,7 +1522,7 @@ Deno.test("FlowRunner: multi-step flow with mixed skills", async () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       // Uses flow defaults
     },
     {
@@ -1525,7 +1530,7 @@ Deno.test("FlowRunner: multi-step flow with mixed skills", async () => {
       name: "Step 2",
       agent: "agent2",
       dependsOn: ["step1"],
-      input: { source: "step", stepId: "step1", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
       skills: ["custom-skill"], // Override
     },
     {
@@ -1533,7 +1538,7 @@ Deno.test("FlowRunner: multi-step flow with mixed skills", async () => {
       name: "Step 3",
       agent: "agent3",
       dependsOn: ["step2"],
-      input: { source: "step", stepId: "step2", transform: "passthrough" },
+      input: { source: FlowInputSource.STEP, stepId: "step2", transform: "passthrough" },
       // Uses flow defaults
     },
   ];
@@ -1544,7 +1549,7 @@ Deno.test("FlowRunner: multi-step flow with mixed skills", async () => {
     description: "Multi-step flow with mixed skills",
     version: "1.0.0",
     steps,
-    output: { from: "step3", format: "markdown" },
+    output: { from: "step3", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
     defaultSkills: ["flow-default"],
   };
@@ -1575,7 +1580,7 @@ Deno.test("FlowRunner: flow without any skills passes undefined", async () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
     },
   ];
 
@@ -1585,7 +1590,7 @@ Deno.test("FlowRunner: flow without any skills passes undefined", async () => {
     description: "Flow without skills",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
     // No defaultSkills
   };
@@ -1608,7 +1613,7 @@ Deno.test("FlowRunner: logs hasSkills in input.prepared event", async () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: "request", transform: "passthrough" },
+      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
       skills: ["test-skill"],
     },
   ];
@@ -1619,7 +1624,7 @@ Deno.test("FlowRunner: logs hasSkills in input.prepared event", async () => {
     description: "Flow for logging test",
     version: "1.0.0",
     steps,
-    output: { from: "step1", format: "markdown" },
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
     settings: { maxParallelism: 3, failFast: true },
   };
 

@@ -1,4 +1,6 @@
-import { assert, assertEquals, assertExists, assertRejects } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertRejects } from "@std/assert";
+import { FlowStepType } from "../src/enums.ts";
+
 import { join } from "@std/path";
 import {
   GitCorruptionError,
@@ -194,7 +196,7 @@ Deno.test("GitService: handles git command failures", async () => {
         await git.checkoutBranch("nonexistent-branch");
       },
       Error,
-      "branch",
+      FlowStepType.BRANCH,
     );
   } finally {
     await cleanup();

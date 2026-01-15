@@ -3,32 +3,55 @@ import { AiConfigSchema } from "./ai_config.ts";
 import { MCPConfigSchema } from "../schemas/mcp.ts";
 import * as DEFAULTS from "./constants.ts";
 import { ProviderTypeSchema } from "./ai_config.ts";
+import { LogLevel, ProviderCostTier, SqliteJournalMode } from "../enums.ts";
 
 export const ConfigSchema = z.object({
   system: z.object({
     root: z.string().default(Deno.cwd()),
-    log_level: z.enum(["debug", "info", "warn", "error"]).default("info"),
+    log_level: z.nativeEnum(LogLevel).default(LogLevel.INFO),
     version: z.string().optional(),
   }),
   paths: z.object({
-    workspace: z.string().default("Workspace"),
-    runtime: z.string().default(".exo"),
-    memory: z.string().default("Memory"),
-    portals: z.string().default("Portals"),
-    blueprints: z.string().default("Blueprints"),
+    workspace: z.string().default(DEFAULTS.DEFAULT_WORKSPACE_PATH),
+    runtime: z.string().default(DEFAULTS.DEFAULT_RUNTIME_PATH),
+    memory: z.string().default(DEFAULTS.DEFAULT_MEMORY_PATH),
+    portals: z.string().default(DEFAULTS.DEFAULT_PORTALS_PATH),
+    blueprints: z.string().default(DEFAULTS.DEFAULT_BLUEPRINTS_PATH),
+    active: z.string().default(DEFAULTS.DEFAULT_ACTIVE_PATH),
+    archive: z.string().default(DEFAULTS.DEFAULT_ARCHIVE_PATH),
+    plans: z.string().default(DEFAULTS.DEFAULT_PLANS_PATH),
+    requests: z.string().default(DEFAULTS.DEFAULT_REQUESTS_PATH),
+    rejected: z.string().default(DEFAULTS.DEFAULT_REJECTED_PATH),
+    agents: z.string().default(DEFAULTS.DEFAULT_AGENTS_PATH),
+    flows: z.string().default(DEFAULTS.DEFAULT_FLOWS_PATH),
+    memoryProjects: z.string().default(DEFAULTS.DEFAULT_PROJECTS_MEMORY_PATH),
+    memoryExecution: z.string().default(DEFAULTS.DEFAULT_EXECUTION_MEMORY_PATH),
+    memoryIndex: z.string().default(DEFAULTS.DEFAULT_INDEX_MEMORY_PATH),
+    memorySkills: z.string().default(DEFAULTS.DEFAULT_SKILLS_MEMORY_PATH),
+    memoryPending: z.string().default(DEFAULTS.DEFAULT_PENDING_MEMORY_PATH),
+    memoryTasks: z.string().default(DEFAULTS.DEFAULT_TASKS_MEMORY_PATH),
+    memoryGlobal: z.string().default(DEFAULTS.DEFAULT_GLOBAL_MEMORY_PATH),
   }),
   database: z.object({
-    batch_flush_ms: z.number().min(10).max(10000).default(DEFAULTS.DEFAULT_DATABASE_BATCH_FLUSH_MS),
-    batch_max_size: z.number().min(1).max(1000).default(DEFAULTS.DEFAULT_DATABASE_BATCH_MAX_SIZE),
+    batch_flush_ms: z.number()
+      .min(DEFAULTS.DATABASE_BATCH_FLUSH_MS_MIN)
+      .max(DEFAULTS.DATABASE_BATCH_FLUSH_MS_MAX)
+      .default(DEFAULTS.DEFAULT_DATABASE_BATCH_FLUSH_MS),
+    batch_max_size: z.number()
+      .min(DEFAULTS.DATABASE_BATCH_MAX_SIZE_MIN)
+      .max(DEFAULTS.DATABASE_BATCH_MAX_SIZE_MAX)
+      .default(DEFAULTS.DEFAULT_DATABASE_BATCH_MAX_SIZE),
     path: z.string().optional(),
     sqlite: z.object({
-      journal_mode: z.enum(["DELETE", "TRUNCATE", "PERSIST", "MEMORY", "WAL", "OFF"]).default(
-        DEFAULTS.DEFAULT_DATABASE_JOURNAL_MODE as "WAL",
-      ),
+      journal_mode: z.nativeEnum(SqliteJournalMode)
+        .default(DEFAULTS.DEFAULT_DATABASE_JOURNAL_MODE as SqliteJournalMode),
       foreign_keys: z.boolean().default(DEFAULTS.DEFAULT_DATABASE_FOREIGN_KEYS),
-      busy_timeout_ms: z.number().min(0).max(30000).default(DEFAULTS.DEFAULT_DATABASE_BUSY_TIMEOUT_MS),
+      busy_timeout_ms: z.number()
+        .min(DEFAULTS.DATABASE_BUSY_TIMEOUT_MS_MIN)
+        .max(DEFAULTS.DATABASE_BUSY_TIMEOUT_MS_MAX)
+        .default(DEFAULTS.DEFAULT_DATABASE_BUSY_TIMEOUT_MS),
     }).default({
-      journal_mode: DEFAULTS.DEFAULT_DATABASE_JOURNAL_MODE as "WAL",
+      journal_mode: DEFAULTS.DEFAULT_DATABASE_JOURNAL_MODE as SqliteJournalMode.WAL,
       foreign_keys: DEFAULTS.DEFAULT_DATABASE_FOREIGN_KEYS,
       busy_timeout_ms: DEFAULTS.DEFAULT_DATABASE_BUSY_TIMEOUT_MS,
     }),
@@ -36,13 +59,16 @@ export const ConfigSchema = z.object({
     batch_flush_ms: DEFAULTS.DEFAULT_DATABASE_BATCH_FLUSH_MS,
     batch_max_size: DEFAULTS.DEFAULT_DATABASE_BATCH_MAX_SIZE,
     sqlite: {
-      journal_mode: DEFAULTS.DEFAULT_DATABASE_JOURNAL_MODE as "WAL",
+      journal_mode: DEFAULTS.DEFAULT_DATABASE_JOURNAL_MODE as SqliteJournalMode.WAL,
       foreign_keys: DEFAULTS.DEFAULT_DATABASE_FOREIGN_KEYS,
       busy_timeout_ms: DEFAULTS.DEFAULT_DATABASE_BUSY_TIMEOUT_MS,
     },
   }),
   watcher: z.object({
-    debounce_ms: z.number().min(50).max(5000).default(DEFAULTS.DEFAULT_WATCHER_DEBOUNCE_MS),
+    debounce_ms: z.number()
+      .min(DEFAULTS.WATCHER_DEBOUNCE_MS_MIN)
+      .max(DEFAULTS.WATCHER_DEBOUNCE_MS_MAX)
+      .default(DEFAULTS.DEFAULT_WATCHER_DEBOUNCE_MS),
     stability_check: z.boolean().default(DEFAULTS.DEFAULT_WATCHER_STABILITY_CHECK),
   }).default({
     debounce_ms: DEFAULTS.DEFAULT_WATCHER_DEBOUNCE_MS,
@@ -50,8 +76,14 @@ export const ConfigSchema = z.object({
   }),
   agents: z.object({
     default_model: z.string().default(DEFAULTS.DEFAULT_AGENT_MODEL),
-    timeout_sec: z.number().min(1).max(300).default(DEFAULTS.DEFAULT_AGENT_TIMEOUT_SEC),
-    max_iterations: z.number().min(1).max(100).default(DEFAULTS.DEFAULT_AGENT_MAX_ITERATIONS),
+    timeout_sec: z.number()
+      .min(DEFAULTS.AGENT_TIMEOUT_SEC_MIN)
+      .max(DEFAULTS.AGENT_TIMEOUT_SEC_MAX)
+      .default(DEFAULTS.DEFAULT_AGENT_TIMEOUT_SEC),
+    max_iterations: z.number()
+      .min(DEFAULTS.AGENT_MAX_ITERATIONS_MIN)
+      .max(DEFAULTS.AGENT_MAX_ITERATIONS_MAX)
+      .default(DEFAULTS.DEFAULT_AGENT_MAX_ITERATIONS),
   }).default({
     default_model: DEFAULTS.DEFAULT_AGENT_MODEL,
     timeout_sec: DEFAULTS.DEFAULT_AGENT_TIMEOUT_SEC,
@@ -70,37 +102,55 @@ export const ConfigSchema = z.object({
     model: z.string(),
     timeout_ms: z.number().positive().optional(),
     max_tokens: z.number().positive().optional(),
-    temperature: z.number().min(0).max(2).optional(),
+    temperature: z.number()
+      .min(DEFAULTS.AI_TEMPERATURE_MIN)
+      .max(DEFAULTS.AI_TEMPERATURE_MAX)
+      .optional(),
     base_url: z.string().optional(),
   })).default({
-    default: { provider: "mock", model: "mock-model", timeout_ms: DEFAULTS.DEFAULT_MODEL_TIMEOUT_MS },
-    fast: { provider: "mock", model: "mock-fast", timeout_ms: DEFAULTS.DEFAULT_FAST_MODEL_TIMEOUT_MS },
-    local: { provider: "ollama", model: "llama3.2", timeout_ms: DEFAULTS.DEFAULT_LOCAL_MODEL_TIMEOUT_MS },
+    default: {
+      provider: DEFAULTS.PROVIDER_MOCK,
+      model: DEFAULTS.DEFAULT_MOCK_MODEL,
+      timeout_ms: DEFAULTS.DEFAULT_MODEL_TIMEOUT_MS,
+    },
+    fast: {
+      provider: DEFAULTS.PROVIDER_MOCK,
+      model: DEFAULTS.DEFAULT_FAST_MODEL_NAME,
+      timeout_ms: DEFAULTS.DEFAULT_FAST_MODEL_TIMEOUT_MS,
+    },
+    local: {
+      provider: DEFAULTS.PROVIDER_OLLAMA,
+      model: DEFAULTS.DEFAULT_LOCAL_MODEL_NAME,
+      timeout_ms: DEFAULTS.DEFAULT_LOCAL_MODEL_TIMEOUT_MS,
+    },
   }),
   /** AI provider endpoints configuration */
-  ai_endpoints: z.object({
-    ollama: z.string().optional(),
-    anthropic: z.string().optional(),
-    openai: z.string().optional(),
-    google: z.string().optional(),
-  }).optional().default({}),
+  ai_endpoints: z.record(z.string(), z.string()).optional().default({}),
   /** AI retry configuration */
   ai_retry: z.object({
-    max_attempts: z.number().min(1).max(10).default(DEFAULTS.DEFAULT_AI_RETRY_MAX_ATTEMPTS),
-    backoff_base_ms: z.number().min(100).max(10000).default(DEFAULTS.DEFAULT_AI_RETRY_BACKOFF_BASE_MS),
-    timeout_per_request_ms: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_AI_RETRY_TIMEOUT_PER_REQUEST_MS),
-    ollama: z.object({
-      max_attempts: z.number().min(1).max(10).default(DEFAULTS.DEFAULT_OLLAMA_RETRY_MAX_ATTEMPTS),
-      backoff_base_ms: z.number().min(100).max(10000).default(DEFAULTS.DEFAULT_OLLAMA_RETRY_BACKOFF_MS),
-    }).optional(),
-    anthropic: z.object({
-      max_attempts: z.number().min(1).max(10).default(DEFAULTS.DEFAULT_ANTHROPIC_RETRY_MAX_ATTEMPTS),
-      backoff_base_ms: z.number().min(100).max(10000).default(DEFAULTS.DEFAULT_ANTHROPIC_RETRY_BACKOFF_MS),
-    }).optional(),
-    openai: z.object({
-      max_attempts: z.number().min(1).max(10).default(DEFAULTS.DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS),
-      backoff_base_ms: z.number().min(100).max(10000).default(DEFAULTS.DEFAULT_OPENAI_RETRY_BACKOFF_MS),
-    }).optional(),
+    max_attempts: z.number()
+      .min(DEFAULTS.AI_RETRY_MAX_ATTEMPTS_MIN)
+      .max(DEFAULTS.AI_RETRY_MAX_ATTEMPTS_MAX)
+      .default(DEFAULTS.DEFAULT_AI_RETRY_MAX_ATTEMPTS),
+    backoff_base_ms: z.number()
+      .min(DEFAULTS.AI_RETRY_BACKOFF_BASE_MS_MIN)
+      .max(DEFAULTS.AI_RETRY_BACKOFF_BASE_MS_MAX)
+      .default(DEFAULTS.DEFAULT_AI_RETRY_BACKOFF_BASE_MS),
+    timeout_per_request_ms: z.number()
+      .min(DEFAULTS.AI_RETRY_TIMEOUT_PER_REQUEST_MS_MIN)
+      .max(DEFAULTS.AI_RETRY_TIMEOUT_PER_REQUEST_MS_MAX)
+      .default(DEFAULTS.DEFAULT_AI_RETRY_TIMEOUT_PER_REQUEST_MS),
+    providers: z.record(
+      z.string(),
+      z.object({
+        max_attempts: z.number()
+          .min(DEFAULTS.AI_RETRY_MAX_ATTEMPTS_MIN)
+          .max(DEFAULTS.AI_RETRY_MAX_ATTEMPTS_MAX),
+        backoff_base_ms: z.number()
+          .min(DEFAULTS.AI_RETRY_BACKOFF_BASE_MS_MIN)
+          .max(DEFAULTS.AI_RETRY_BACKOFF_BASE_MS_MAX),
+      }),
+    ).optional(),
   }).optional().default({
     max_attempts: DEFAULTS.DEFAULT_AI_RETRY_MAX_ATTEMPTS,
     backoff_base_ms: DEFAULTS.DEFAULT_AI_RETRY_BACKOFF_BASE_MS,
@@ -108,17 +158,18 @@ export const ConfigSchema = z.object({
   }),
   /** AI timeout configuration */
   ai_timeout: z.object({
-    default_ms: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_AI_TIMEOUT_MS),
-    ollama: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_OLLAMA_TIMEOUT_MS),
-    anthropic: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_ANTHROPIC_TIMEOUT_MS),
-    openai: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_OPENAI_TIMEOUT_MS),
-    google: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS),
+    default_ms: z.number()
+      .min(DEFAULTS.AI_TIMEOUT_MS_MIN)
+      .max(DEFAULTS.AI_TIMEOUT_MS_MAX)
+      .default(DEFAULTS.DEFAULT_AI_TIMEOUT_MS),
+    providers: z.record(
+      z.string(),
+      z.number()
+        .min(DEFAULTS.AI_TIMEOUT_MS_MIN)
+        .max(DEFAULTS.AI_TIMEOUT_MS_MAX),
+    ).optional(),
   }).optional().default({
     default_ms: DEFAULTS.DEFAULT_AI_TIMEOUT_MS,
-    ollama: DEFAULTS.DEFAULT_OLLAMA_TIMEOUT_MS,
-    anthropic: DEFAULTS.DEFAULT_ANTHROPIC_TIMEOUT_MS,
-    openai: DEFAULTS.DEFAULT_OPENAI_TIMEOUT_MS,
-    google: DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS,
   }),
   /** Anthropic-specific configuration */
   ai_anthropic: z.object({
@@ -133,7 +184,7 @@ export const ConfigSchema = z.object({
   /** MCP (Model Context Protocol) server configuration */
   mcp: MCPConfigSchema.optional().default({
     enabled: DEFAULTS.DEFAULT_MCP_ENABLED,
-    transport: DEFAULTS.DEFAULT_MCP_TRANSPORT as "stdio",
+    transport: DEFAULTS.DEFAULT_MCP_TRANSPORT,
     server_name: DEFAULTS.DEFAULT_MCP_SERVER_NAME,
     version: DEFAULTS.DEFAULT_MCP_VERSION,
   }),
@@ -145,35 +196,128 @@ export const ConfigSchema = z.object({
   }),
   /** Rate limiting configuration for cost exhaustion attack prevention */
   rate_limiting: z.object({
-    enabled: z.boolean().default(true),
-    max_calls_per_minute: z.number().min(1).max(1000).default(60),
-    max_tokens_per_hour: z.number().min(1000).max(1000000).default(100000),
-    max_cost_per_day: z.number().min(0.01).max(1000).default(50),
-    cost_per_1k_tokens: z.number().min(0.001).max(1).default(0.03),
+    enabled: z.boolean().default(DEFAULTS.DEFAULT_RATE_LIMIT_ENABLED),
+    max_calls_per_minute: z.number()
+      .min(DEFAULTS.RATE_LIMIT_MAX_CALLS_PER_MINUTE_MIN)
+      .max(DEFAULTS.RATE_LIMIT_MAX_CALLS_PER_MINUTE_MAX)
+      .default(DEFAULTS.DEFAULT_RATE_LIMIT_MAX_CALLS_PER_MINUTE),
+    max_tokens_per_hour: z.number()
+      .min(DEFAULTS.RATE_LIMIT_MAX_TOKENS_PER_HOUR_MIN)
+      .max(DEFAULTS.RATE_LIMIT_MAX_TOKENS_PER_HOUR_MAX)
+      .default(DEFAULTS.DEFAULT_RATE_LIMIT_MAX_TOKENS_PER_HOUR),
+    max_cost_per_day: z.number()
+      .min(DEFAULTS.RATE_LIMIT_MAX_COST_PER_DAY_MIN)
+      .max(DEFAULTS.RATE_LIMIT_MAX_COST_PER_DAY_MAX)
+      .default(DEFAULTS.DEFAULT_RATE_LIMIT_MAX_COST_PER_DAY),
+    cost_per_1k_tokens: z.number()
+      .min(DEFAULTS.RATE_LIMIT_COST_PER_1K_TOKENS_MIN)
+      .max(DEFAULTS.RATE_LIMIT_COST_PER_1K_TOKENS_MAX)
+      .default(DEFAULTS.DEFAULT_RATE_LIMIT_COST_PER_1K_TOKENS),
   }).optional().default({
-    enabled: true,
-    max_calls_per_minute: 60,
-    max_tokens_per_hour: 100000,
-    max_cost_per_day: 50,
-    cost_per_1k_tokens: 0.03,
+    enabled: DEFAULTS.DEFAULT_RATE_LIMIT_ENABLED,
+    max_calls_per_minute: DEFAULTS.DEFAULT_RATE_LIMIT_MAX_CALLS_PER_MINUTE,
+    max_tokens_per_hour: DEFAULTS.DEFAULT_RATE_LIMIT_MAX_TOKENS_PER_HOUR,
+    max_cost_per_day: DEFAULTS.DEFAULT_RATE_LIMIT_MAX_COST_PER_DAY,
+    cost_per_1k_tokens: DEFAULTS.DEFAULT_RATE_LIMIT_COST_PER_1K_TOKENS,
   }),
   /** Git operations configuration */
   git: z.object({
     branch_prefix_pattern: z.string().default(DEFAULTS.DEFAULT_GIT_BRANCH_PREFIX_PATTERN),
     allowed_prefixes: z.array(z.string()).default(DEFAULTS.DEFAULT_GIT_ALLOWED_PREFIXES),
+    operations: z.object({
+      status_timeout_ms: z.number()
+        .min(DEFAULTS.GIT_TIMEOUT_MS_MIN)
+        .max(DEFAULTS.GIT_TIMEOUT_MS_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_STATUS_TIMEOUT_MS),
+      ls_files_timeout_ms: z.number()
+        .min(DEFAULTS.GIT_TIMEOUT_MS_MIN)
+        .max(DEFAULTS.GIT_TIMEOUT_MS_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_LS_FILES_TIMEOUT_MS),
+      checkout_timeout_ms: z.number()
+        .min(DEFAULTS.GIT_TIMEOUT_MS_MIN)
+        .max(DEFAULTS.GIT_TIMEOUT_MS_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_CHECKOUT_TIMEOUT_MS),
+      clean_timeout_ms: z.number()
+        .min(DEFAULTS.GIT_TIMEOUT_MS_MIN)
+        .max(DEFAULTS.GIT_TIMEOUT_MS_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_CLEAN_TIMEOUT_MS),
+      log_timeout_ms: z.number()
+        .min(DEFAULTS.GIT_TIMEOUT_MS_MIN)
+        .max(DEFAULTS.GIT_TIMEOUT_MS_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_LOG_TIMEOUT_MS),
+      diff_timeout_ms: z.number()
+        .min(DEFAULTS.GIT_TIMEOUT_MS_MIN)
+        .max(DEFAULTS.GIT_TIMEOUT_MS_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_DIFF_TIMEOUT_MS),
+      command_timeout_ms: z.number()
+        .min(DEFAULTS.GIT_TIMEOUT_MS_MIN)
+        .max(DEFAULTS.GIT_TIMEOUT_MS_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_COMMAND_TIMEOUT_MS),
+      max_retries: z.number()
+        .min(DEFAULTS.GIT_MAX_RETRIES_MIN)
+        .max(DEFAULTS.GIT_MAX_RETRIES_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_MAX_RETRIES),
+      retry_backoff_base_ms: z.number()
+        .min(DEFAULTS.GIT_RETRY_BACKOFF_BASE_MS_MIN)
+        .max(DEFAULTS.GIT_RETRY_BACKOFF_BASE_MS_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_RETRY_BACKOFF_BASE_MS),
+      branch_name_collision_max_retries: z.number()
+        .min(DEFAULTS.GIT_BRANCH_NAME_COLLISION_MAX_RETRIES_MIN)
+        .max(DEFAULTS.GIT_BRANCH_NAME_COLLISION_MAX_RETRIES_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_BRANCH_NAME_COLLISION_MAX_RETRIES),
+      trace_id_short_length: z.number()
+        .min(DEFAULTS.GIT_TRACE_ID_SHORT_LENGTH_MIN)
+        .max(DEFAULTS.GIT_TRACE_ID_SHORT_LENGTH_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_TRACE_ID_SHORT_LENGTH),
+      branch_suffix_length: z.number()
+        .min(DEFAULTS.GIT_BRANCH_SUFFIX_LENGTH_MIN)
+        .max(DEFAULTS.GIT_BRANCH_SUFFIX_LENGTH_MAX)
+        .default(DEFAULTS.DEFAULT_GIT_BRANCH_SUFFIX_LENGTH),
+    }).optional().default({
+      status_timeout_ms: DEFAULTS.DEFAULT_GIT_STATUS_TIMEOUT_MS,
+      ls_files_timeout_ms: DEFAULTS.DEFAULT_GIT_LS_FILES_TIMEOUT_MS,
+      checkout_timeout_ms: DEFAULTS.DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
+      clean_timeout_ms: DEFAULTS.DEFAULT_GIT_CLEAN_TIMEOUT_MS,
+      log_timeout_ms: DEFAULTS.DEFAULT_GIT_LOG_TIMEOUT_MS,
+      diff_timeout_ms: DEFAULTS.DEFAULT_GIT_DIFF_TIMEOUT_MS,
+      command_timeout_ms: DEFAULTS.DEFAULT_GIT_COMMAND_TIMEOUT_MS,
+      max_retries: DEFAULTS.DEFAULT_GIT_MAX_RETRIES,
+      retry_backoff_base_ms: DEFAULTS.DEFAULT_GIT_RETRY_BACKOFF_BASE_MS,
+      branch_name_collision_max_retries: DEFAULTS.DEFAULT_GIT_BRANCH_NAME_COLLISION_MAX_RETRIES,
+      trace_id_short_length: DEFAULTS.DEFAULT_GIT_TRACE_ID_SHORT_LENGTH,
+      branch_suffix_length: DEFAULTS.DEFAULT_GIT_BRANCH_SUFFIX_LENGTH,
+    }),
   }).optional().default({
     branch_prefix_pattern: DEFAULTS.DEFAULT_GIT_BRANCH_PREFIX_PATTERN,
     allowed_prefixes: DEFAULTS.DEFAULT_GIT_ALLOWED_PREFIXES,
+    operations: {
+      status_timeout_ms: DEFAULTS.DEFAULT_GIT_STATUS_TIMEOUT_MS,
+      ls_files_timeout_ms: DEFAULTS.DEFAULT_GIT_LS_FILES_TIMEOUT_MS,
+      checkout_timeout_ms: DEFAULTS.DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
+      clean_timeout_ms: DEFAULTS.DEFAULT_GIT_CLEAN_TIMEOUT_MS,
+      log_timeout_ms: DEFAULTS.DEFAULT_GIT_LOG_TIMEOUT_MS,
+      diff_timeout_ms: DEFAULTS.DEFAULT_GIT_DIFF_TIMEOUT_MS,
+      command_timeout_ms: DEFAULTS.DEFAULT_GIT_COMMAND_TIMEOUT_MS,
+      max_retries: DEFAULTS.DEFAULT_GIT_MAX_RETRIES,
+      retry_backoff_base_ms: DEFAULTS.DEFAULT_GIT_RETRY_BACKOFF_BASE_MS,
+      branch_name_collision_max_retries: DEFAULTS.DEFAULT_GIT_BRANCH_NAME_COLLISION_MAX_RETRIES,
+      trace_id_short_length: DEFAULTS.DEFAULT_GIT_TRACE_ID_SHORT_LENGTH,
+      branch_suffix_length: DEFAULTS.DEFAULT_GIT_BRANCH_SUFFIX_LENGTH,
+    },
   }),
   /** Provider strategy configuration for intelligent provider selection */
   provider_strategy: z.object({
     prefer_free: z.boolean().default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_PREFER_FREE),
     allow_local: z.boolean().default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_ALLOW_LOCAL),
-    max_daily_cost_usd: z.number().min(0).max(1000).default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_MAX_DAILY_COST_USD),
+    max_daily_cost_usd: z.number()
+      .min(DEFAULTS.PROVIDER_STRATEGY_MAX_DAILY_COST_USD_MIN)
+      .max(DEFAULTS.PROVIDER_STRATEGY_MAX_DAILY_COST_USD_MAX)
+      .default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_MAX_DAILY_COST_USD),
     health_check_enabled: z.boolean().default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_HEALTH_CHECK_ENABLED),
     fallback_enabled: z.boolean().default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_FALLBACK_ENABLED),
-    fallback_chains: z.record(z.array(z.string())).optional(),
-    budgets: z.record(z.number().min(0)).optional(),
+    fallback_chains: z.record(z.array(z.string()))
+      .default(DEFAULTS.DEFAULT_PROVIDER_STRATEGY_FALLBACK_CHAINS),
+    budgets: z.record(z.number().min(DEFAULTS.PROVIDER_STRATEGY_BUDGETS_MIN)).optional(),
     task_routing: z.record(z.array(z.string())).optional(),
   }).optional().default({
     prefer_free: DEFAULTS.DEFAULT_PROVIDER_STRATEGY_PREFER_FREE,
@@ -184,32 +328,149 @@ export const ConfigSchema = z.object({
   }),
   /** Provider-specific configuration overrides */
   providers: z.record(z.object({
-    cost_tier: z.enum(["free", "freemium", "paid", "local"]).optional(),
-    free_quota_requests_per_day: z.number().min(0).optional(),
+    cost_tier: z.nativeEnum(ProviderCostTier).optional(),
+    free_quota_requests_per_day: z.number()
+      .min(DEFAULTS.PROVIDER_FREE_QUOTA_REQUESTS_PER_DAY_MIN)
+      .optional(),
     base_url: z.string().optional(),
-    timeout_ms: z.number().min(1000).max(300000).optional(),
-    rate_limit_rpm: z.number().min(1).max(1000).optional(),
+    timeout_ms: z.number()
+      .min(DEFAULTS.PROVIDER_TIMEOUT_MS_MIN)
+      .max(DEFAULTS.PROVIDER_TIMEOUT_MS_MAX)
+      .optional(),
+    rate_limit_rpm: z.number()
+      .min(DEFAULTS.PROVIDER_RATE_LIMIT_RPM_MIN)
+      .max(DEFAULTS.PROVIDER_RATE_LIMIT_RPM_MAX)
+      .optional(),
   })).optional().default({}),
+  /** Mock provider configuration */
+  mock: z.object({
+    delay_ms: z.number()
+      .min(DEFAULTS.MOCK_DELAY_MS_MIN)
+      .max(DEFAULTS.MOCK_DELAY_MS_MAX)
+      .default(DEFAULTS.MOCK_DELAY_MS),
+    input_tokens: z.number()
+      .min(DEFAULTS.MOCK_INPUT_TOKENS_MIN)
+      .max(DEFAULTS.MOCK_INPUT_TOKENS_MAX)
+      .default(DEFAULTS.MOCK_INPUT_TOKENS),
+    output_tokens: z.number()
+      .min(DEFAULTS.MOCK_OUTPUT_TOKENS_MIN)
+      .max(DEFAULTS.MOCK_OUTPUT_TOKENS_MAX)
+      .default(DEFAULTS.MOCK_OUTPUT_TOKENS),
+  }).optional().default({
+    delay_ms: DEFAULTS.MOCK_DELAY_MS,
+    input_tokens: DEFAULTS.MOCK_INPUT_TOKENS,
+    output_tokens: DEFAULTS.MOCK_OUTPUT_TOKENS,
+  }),
+  /** UI/Preview configuration */
+  ui: z.object({
+    prompt_preview_length: z.number()
+      .min(DEFAULTS.PROMPT_PREVIEW_LENGTH_MIN)
+      .max(DEFAULTS.PROMPT_PREVIEW_LENGTH_MAX)
+      .default(DEFAULTS.PROMPT_PREVIEW_LENGTH),
+    prompt_preview_extended: z.number()
+      .min(DEFAULTS.PROMPT_PREVIEW_EXTENDED_MIN)
+      .max(DEFAULTS.PROMPT_PREVIEW_EXTENDED_MAX)
+      .default(DEFAULTS.PROMPT_PREVIEW_EXTENDED),
+  }).optional().default({
+    prompt_preview_length: DEFAULTS.PROMPT_PREVIEW_LENGTH,
+    prompt_preview_extended: DEFAULTS.PROMPT_PREVIEW_EXTENDED,
+  }),
   /** Cost tracking configuration */
   cost_tracking: z.object({
-    batch_delay_ms: z.number().min(100).max(60000).default(DEFAULTS.DEFAULT_COST_TRACKING_BATCH_DELAY_MS),
-    max_batch_size: z.number().min(1).max(1000).default(DEFAULTS.DEFAULT_COST_TRACKING_MAX_BATCH_SIZE),
+    batch_delay_ms: z.number()
+      .min(DEFAULTS.COST_TRACKING_BATCH_DELAY_MS_MIN)
+      .max(DEFAULTS.COST_TRACKING_BATCH_DELAY_MS_MAX)
+      .default(DEFAULTS.DEFAULT_COST_TRACKING_BATCH_DELAY_MS),
+    max_batch_size: z.number()
+      .min(DEFAULTS.COST_TRACKING_MAX_BATCH_SIZE_MIN)
+      .max(DEFAULTS.COST_TRACKING_MAX_BATCH_SIZE_MAX)
+      .default(DEFAULTS.DEFAULT_COST_TRACKING_MAX_BATCH_SIZE),
+    rates: z.record(
+      z.string(),
+      z.number()
+        .min(DEFAULTS.COST_TRACKING_RATES_MIN)
+        .max(DEFAULTS.COST_TRACKING_RATES_MAX),
+    ).optional().default({
+      [DEFAULTS.PROVIDER_OPENAI]: DEFAULTS.COST_RATE_OPENAI,
+      [DEFAULTS.PROVIDER_ANTHROPIC]: DEFAULTS.COST_RATE_ANTHROPIC,
+      [DEFAULTS.PROVIDER_GOOGLE]: DEFAULTS.COST_RATE_GOOGLE,
+      [DEFAULTS.PROVIDER_OLLAMA]: DEFAULTS.COST_RATE_OLLAMA,
+      [DEFAULTS.PROVIDER_MOCK]: DEFAULTS.COST_RATE_MOCK,
+    }),
   }).optional().default({
     batch_delay_ms: DEFAULTS.DEFAULT_COST_TRACKING_BATCH_DELAY_MS,
     max_batch_size: DEFAULTS.DEFAULT_COST_TRACKING_MAX_BATCH_SIZE,
+    rates: {
+      [DEFAULTS.PROVIDER_OPENAI]: DEFAULTS.COST_RATE_OPENAI,
+      [DEFAULTS.PROVIDER_ANTHROPIC]: DEFAULTS.COST_RATE_ANTHROPIC,
+      [DEFAULTS.PROVIDER_GOOGLE]: DEFAULTS.COST_RATE_GOOGLE,
+      [DEFAULTS.PROVIDER_OLLAMA]: DEFAULTS.COST_RATE_OLLAMA,
+      [DEFAULTS.PROVIDER_MOCK]: DEFAULTS.COST_RATE_MOCK,
+    },
   }),
   /** Health check configuration */
   health: z.object({
-    check_timeout_ms: z.number().min(1000).max(300000).default(DEFAULTS.DEFAULT_HEALTH_CHECK_TIMEOUT_MS),
-    cache_ttl_ms: z.number().min(1000).max(3600000).default(DEFAULTS.DEFAULT_HEALTH_CACHE_TTL_MS),
-    memory_warn_percent: z.number().min(1).max(99).default(DEFAULTS.DEFAULT_MEMORY_WARN_PERCENT),
-    memory_critical_percent: z.number().min(1).max(99).default(DEFAULTS.DEFAULT_MEMORY_CRITICAL_PERCENT),
+    check_timeout_ms: z.number()
+      .min(DEFAULTS.HEALTH_CHECK_TIMEOUT_MS_MIN)
+      .max(DEFAULTS.HEALTH_CHECK_TIMEOUT_MS_MAX)
+      .default(DEFAULTS.DEFAULT_HEALTH_CHECK_TIMEOUT_MS),
+    cache_ttl_ms: z.number()
+      .min(DEFAULTS.HEALTH_CACHE_TTL_MS_MIN)
+      .max(DEFAULTS.HEALTH_CACHE_TTL_MS_MAX)
+      .default(DEFAULTS.DEFAULT_HEALTH_CACHE_TTL_MS),
+    memory_warn_percent: z.number()
+      .min(DEFAULTS.HEALTH_MEMORY_WARN_PERCENT_MIN)
+      .max(DEFAULTS.HEALTH_MEMORY_WARN_PERCENT_MAX)
+      .default(DEFAULTS.DEFAULT_MEMORY_WARN_PERCENT),
+    memory_critical_percent: z.number()
+      .min(DEFAULTS.HEALTH_MEMORY_CRITICAL_PERCENT_MIN)
+      .max(DEFAULTS.HEALTH_MEMORY_CRITICAL_PERCENT_MAX)
+      .default(DEFAULTS.DEFAULT_MEMORY_CRITICAL_PERCENT),
   }).optional().default({
     check_timeout_ms: DEFAULTS.DEFAULT_HEALTH_CHECK_TIMEOUT_MS,
     cache_ttl_ms: DEFAULTS.DEFAULT_HEALTH_CACHE_TTL_MS,
     memory_warn_percent: DEFAULTS.DEFAULT_MEMORY_WARN_PERCENT,
     memory_critical_percent: DEFAULTS.DEFAULT_MEMORY_CRITICAL_PERCENT,
   }),
+}).superRefine((data: any, ctx: z.RefinementCtx) => {
+  // Validate that default_model exists in models keys or is a fallback chain
+  const modelKeys = Object.keys(data.models || {});
+  const fallbackChainKeys = Object.keys(data.provider_strategy?.fallback_chains || {});
+  const providerTypes = [
+    DEFAULTS.PROVIDER_OLLAMA,
+    DEFAULTS.PROVIDER_ANTHROPIC,
+    DEFAULTS.PROVIDER_OPENAI,
+    DEFAULTS.PROVIDER_GOOGLE,
+    DEFAULTS.PROVIDER_MOCK,
+  ];
+  const allAvailable = [...modelKeys, ...fallbackChainKeys, ...providerTypes, "default"];
+
+  if (data.agents?.default_model && !allAvailable.includes(data.agents.default_model)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        `default_model '${data.agents.default_model}' not found in [models] or [provider_strategy.fallback_chains]`,
+      path: ["agents", "default_model"],
+    });
+  }
+
+  // Validate fallback chains point to valid models or fallback chains
+  if (data.provider_strategy?.fallback_chains) {
+    for (
+      const [chainName, chain] of Object.entries(data.provider_strategy.fallback_chains as Record<string, string[]>)
+    ) {
+      chain.forEach((target: string, index: number) => {
+        // A target in a fallback chain can be another model or a global provider name (though models are preferred)
+        if (!allAvailable.includes(target)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Fallback chain '${chainName}' contains unknown target '${target}' at index ${index}`,
+            path: ["provider_strategy", "fallback_chains", chainName, index],
+          });
+        }
+      });
+    }
+  }
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

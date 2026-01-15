@@ -65,7 +65,7 @@ export class GoogleProvider implements IModelProvider {
 
     // Read timeout from options, config, or default
     this.timeoutMs = options.timeoutMs ||
-      options.config?.ai_timeout?.google ||
+      options.config?.ai_timeout?.providers?.google ||
       DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS;
   }
 

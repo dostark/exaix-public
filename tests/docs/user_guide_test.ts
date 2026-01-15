@@ -10,7 +10,8 @@
  * - Test 6: Documents file watcher behavior
  */
 
-import { assert, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertStringIncludes } from "@std/assert";
+import { FlowInputSource } from "../../src/enums.ts";
 import { readUserGuide } from "./helpers.ts";
 
 // ============================================================================
@@ -128,7 +129,7 @@ Deno.test("User Guide documents request commands", async () => {
   const guide = await readUserGuide();
   const lower = guide.toLowerCase();
 
-  const hasRequest = lower.includes("request") &&
+  const hasRequest = lower.includes(FlowInputSource.REQUEST) &&
     (lower.includes("exoctl") || lower.includes("command"));
 
   assert(hasRequest, "User Guide should document request commands");

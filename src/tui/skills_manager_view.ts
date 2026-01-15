@@ -11,6 +11,7 @@
  * - Keyboard shortcuts
  */
 
+import { MemorySource, SkillStatus } from "../enums.ts";
 import { TuiSessionBase } from "./tui_common.ts";
 import type { TreeNode } from "./utils/tree_view.ts";
 import {
@@ -40,8 +41,8 @@ export interface SkillSummary {
   id: string;
   name: string;
   version: string;
-  status: "active" | "draft" | "deprecated";
-  source: "core" | "project" | "learned";
+  status: SkillStatus;
+  source: MemorySource | "core" | "project";
   description?: string;
   triggers?: {
     keywords?: string[];
@@ -70,8 +71,8 @@ export interface SkillsViewState {
   detailContent: string;
   activeDialog: ConfirmDialog | InputDialog | null;
   searchQuery: string;
-  filterSource: "all" | "core" | "project" | "learned";
-  filterStatus: "all" | "active" | "draft" | "deprecated";
+  filterSource: "all" | MemorySource | "core" | "project";
+  filterStatus: "all" | SkillStatus;
   groupBy: "source" | "status" | "none";
 }
 
@@ -274,10 +275,10 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
   private async loadSkills(): Promise<void> {
     const filter: { source?: string; status?: string } = {};
     if (this.state.filterSource !== "all") {
-      filter.source = this.state.filterSource;
+      filter.source = this.state.filterSource as string;
     }
     if (this.state.filterStatus !== "all") {
-      filter.status = this.state.filterStatus;
+      filter.status = this.state.filterStatus as string;
     }
     this.skills = await this.skillsView.getSkillsList(filter);
   }
@@ -553,8 +554,8 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
 
   private handleFilterSourceResult(value: string): void {
     const normalized = value.toLowerCase().trim();
-    if (["all", "core", "project", "learned"].includes(normalized)) {
-      this.state.filterSource = normalized as "all" | "core" | "project" | "learned";
+    if (normalized === "all" || normalized === "core" || normalized === "project" || normalized === "learned") {
+      this.state.filterSource = normalized as any;
       this.loadSkills().then(() => {
         this.buildTree();
         this.setStatus(`Filter: source=${normalized}`, "info");
@@ -566,8 +567,8 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
 
   private handleFilterStatusResult(value: string): void {
     const normalized = value.toLowerCase().trim();
-    if (["all", "active", "draft", "deprecated"].includes(normalized)) {
-      this.state.filterStatus = normalized as "all" | "active" | "draft" | "deprecated";
+    if (normalized === "all" || normalized === "active" || normalized === "draft" || normalized === "deprecated") {
+      this.state.filterStatus = normalized as any;
       this.loadSkills().then(() => {
         this.buildTree();
         this.setStatus(`Filter: status=${normalized}`, "info");

@@ -4,6 +4,7 @@
  */
 
 import { z } from "zod";
+import { MCPTransport } from "../enums.ts";
 
 // ============================================================================
 // MCP Configuration Schema
@@ -11,7 +12,7 @@ import { z } from "zod";
 
 export const MCPConfigSchema = z.object({
   enabled: z.boolean().default(true),
-  transport: z.enum(["stdio", "sse"]).default("stdio"),
+  transport: z.nativeEnum(MCPTransport).default(MCPTransport.STDIO),
   server_name: z.string().default("exoframe"),
   version: z.string().default("1.0.0"),
 });

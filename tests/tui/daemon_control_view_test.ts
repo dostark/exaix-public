@@ -5,6 +5,8 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
+import { DaemonStatus } from "../../src/enums.ts";
+
 import {
   CLIDaemonService,
   DAEMON_KEY_BINDINGS,
@@ -19,20 +21,20 @@ import {
 // ===== Mock CLI Daemon Service for testing (no real process spawn) =====
 
 class MockCLIDaemonService implements DaemonService {
-  state = "stopped";
+  state = DaemonStatus.STOPPED;
   logs: string[] = [];
   errors: string[] = [];
 
   start() {
-    this.state = "running";
+    this.state = DaemonStatus.RUNNING;
     return Promise.resolve();
   }
   stop() {
-    this.state = "stopped";
+    this.state = DaemonStatus.STOPPED;
     return Promise.resolve();
   }
   restart() {
-    this.state = "running";
+    this.state = DaemonStatus.RUNNING;
     return Promise.resolve();
   }
   getStatus() {
@@ -50,10 +52,10 @@ class MockCLIDaemonService implements DaemonService {
 
 Deno.test("DaemonControlView: shows daemon status and logs", async () => {
   const service = new MockCLIDaemonService();
-  service.state = "running";
+  service.state = DaemonStatus.RUNNING;
   service.logs = ["Started", "No errors"];
   const view = new DaemonControlView(service);
-  assertEquals(await view.getStatus(), "running");
+  assertEquals(await view.getStatus(), DaemonStatus.RUNNING);
   assertEquals((await view.getLogs()).length, 2);
 });
 
@@ -61,11 +63,11 @@ Deno.test("DaemonControlView: can start, stop, and restart daemon", async () => 
   const service = new MockCLIDaemonService();
   const view = new DaemonControlView(service);
   await view.start();
-  assertEquals(await service.getStatus(), "running");
+  assertEquals(await service.getStatus(), DaemonStatus.RUNNING);
   await view.stop();
-  assertEquals(await service.getStatus(), "stopped");
+  assertEquals(await service.getStatus(), DaemonStatus.STOPPED);
   await view.restart();
-  assertEquals(await service.getStatus(), "running");
+  assertEquals(await service.getStatus(), DaemonStatus.RUNNING);
 });
 
 Deno.test("DaemonControlView: displays errors and handles error state", async () => {
@@ -82,7 +84,7 @@ Deno.test("DaemonControlView: handles rapid state changes and recovers", async (
   await view.start();
   await view.stop();
   await view.start();
-  assertEquals(await service.getStatus(), "running");
+  assertEquals(await service.getStatus(), DaemonStatus.RUNNING);
 });
 
 Deno.test("CLIDaemonService: start, stop, restart, getStatus, getLogs, getErrors", async () => {
@@ -105,7 +107,7 @@ Deno.test("CLIDaemonService: start, stop, restart, getStatus, getLogs, getErrors
 Deno.test("DaemonViewState: interface has all required properties", () => {
   // TypeScript compile-time check via usage
   const state: DaemonViewState = {
-    status: "unknown",
+    status: DaemonStatus.UNKNOWN,
     showHelp: false,
     showLogs: false,
     showConfig: false,
@@ -116,13 +118,13 @@ Deno.test("DaemonViewState: interface has all required properties", () => {
     autoRefresh: false,
     autoRefreshInterval: 5000,
   };
-  assertEquals(state.status, "unknown");
+  assertEquals(state.status, DaemonStatus.UNKNOWN);
 });
 
 // ===== Phase 13.8: Icon Tests =====
 
 Deno.test("DAEMON_STATUS_ICONS: has all status types", () => {
-  const requiredKeys = ["running", "stopped", "error", "unknown"];
+  const requiredKeys = [DaemonStatus.RUNNING, DaemonStatus.STOPPED, "error", DaemonStatus.UNKNOWN];
   for (const key of requiredKeys) {
     if (!DAEMON_STATUS_ICONS[key]) {
       throw new Error(`Missing status icon for: ${key}`);
@@ -131,7 +133,7 @@ Deno.test("DAEMON_STATUS_ICONS: has all status types", () => {
 });
 
 Deno.test("DAEMON_STATUS_COLORS: has all status types", () => {
-  const requiredKeys = ["running", "stopped", "error", "unknown"];
+  const requiredKeys = [DaemonStatus.RUNNING, DaemonStatus.STOPPED, "error", DaemonStatus.UNKNOWN];
   for (const key of requiredKeys) {
     if (!DAEMON_STATUS_COLORS[key]) {
       throw new Error(`Missing color for: ${key}`);
@@ -171,13 +173,13 @@ Deno.test("DAEMON_KEY_BINDINGS: each has key, action, description, category", ()
 
 Deno.test("DaemonControlTuiSession: initializes correctly", async () => {
   const service = new MinimalDaemonServiceMock();
-  service.setStatus("running");
+  service.setStatus(DaemonStatus.RUNNING);
   const view = new DaemonControlView(service);
   const session = view.createTuiSession(false);
 
   await session.initialize();
 
-  assertEquals(session.getDaemonStatus(), "running");
+  assertEquals(session.getDaemonStatus(), DaemonStatus.RUNNING);
 });
 
 Deno.test("DaemonControlTuiSession: help screen toggle", async () => {
@@ -212,7 +214,7 @@ Deno.test("DaemonControlTuiSession: getHelpSections returns sections", () => {
 
 Deno.test("DaemonControlTuiSession: renderStatusPanel returns lines", async () => {
   const service = new MinimalDaemonServiceMock();
-  service.setStatus("running");
+  service.setStatus(DaemonStatus.RUNNING);
   const view = new DaemonControlView(service);
   const session = view.createTuiSession(false);
   await session.initialize();
@@ -306,7 +308,7 @@ Deno.test("DaemonControlTuiSession: auto-refresh toggle", async () => {
 
 Deno.test("DaemonControlTuiSession: confirm dialogs for start", async () => {
   const service = new MinimalDaemonServiceMock();
-  service.setStatus("stopped");
+  service.setStatus(DaemonStatus.STOPPED);
   const view = new DaemonControlView(service);
   const session = view.createTuiSession(false);
   await session.initialize();
@@ -317,7 +319,7 @@ Deno.test("DaemonControlTuiSession: confirm dialogs for start", async () => {
 
 Deno.test("DaemonControlTuiSession: confirm dialogs for stop", async () => {
   const service = new MinimalDaemonServiceMock();
-  service.setStatus("running");
+  service.setStatus(DaemonStatus.RUNNING);
   const view = new DaemonControlView(service);
   const session = view.createTuiSession(false);
   await session.initialize();
@@ -406,13 +408,13 @@ Deno.test("DaemonControlTuiSession: getKeyBindings", () => {
 Deno.test("MinimalDaemonServiceMock: works correctly", async () => {
   const mock = new MinimalDaemonServiceMock();
 
-  assertEquals(await mock.getStatus(), "stopped");
+  assertEquals(await mock.getStatus(), DaemonStatus.STOPPED);
 
   await mock.start();
-  assertEquals(await mock.getStatus(), "running");
+  assertEquals(await mock.getStatus(), DaemonStatus.RUNNING);
 
   await mock.stop();
-  assertEquals(await mock.getStatus(), "stopped");
+  assertEquals(await mock.getStatus(), DaemonStatus.STOPPED);
 
   const logs = await mock.getLogs();
   assert(Array.isArray(logs));

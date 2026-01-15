@@ -10,6 +10,7 @@
 
 import type { DatabaseService } from "./db.ts";
 import { PlanAdapter, PlanValidationError } from "./plan_adapter.ts";
+import { PlanStatus } from "../enums.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -216,7 +217,7 @@ export class PlanWriter {
       "---",
       `trace_id: "${metadata.traceId}"`,
       `request_id: "${metadata.requestId}"`,
-      `status: review`,
+      `status: ${PlanStatus.REVIEW}`,
       `created_at: ${metadata.createdAt.toISOString()}`,
     ];
 

@@ -7,16 +7,21 @@
 
 import type {
   AgentWhitelistResult,
-  PermissionAction,
   PermissionCheckResult,
   PermissionConditions,
-  PortalOperation,
   PortalPermissions,
   PortalSecurityConfig,
   RBACPermissionCheckResult,
-  SecurityMode,
 } from "../schemas/portal_permissions.ts";
 import { AuditLogger } from "./audit_logger.ts";
+import {
+  PermissionAction,
+  PortalOperation,
+  SecurityEventResult,
+  SecurityEventType,
+  SecurityMode,
+  SecuritySeverity,
+} from "../enums.ts";
 
 /**
  * Service for validating portal permissions
@@ -100,7 +105,7 @@ export class PortalPermissionsService {
     const portal = this.portals.get(portalAlias)!;
 
     // Check if operation is permitted
-    const operations = portal.operations || ["read", "write", "git"];
+    const operations = portal.operations || [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT];
     if (!operations.includes(operation)) {
       return {
         allowed: false,
@@ -125,7 +130,7 @@ export class PortalPermissionsService {
   getSecurityMode(portalAlias: string): SecurityMode {
     const portal = this.portals.get(portalAlias);
     if (!portal || !portal.security) {
-      return "sandboxed"; // Default to most secure mode
+      return SecurityMode.SANDBOXED; // Default to most secure mode
     }
 
     return portal.security.mode;
@@ -142,7 +147,7 @@ export class PortalPermissionsService {
 
     // Return security config or default
     return portal.security || {
-      mode: "sandboxed",
+      mode: SecurityMode.SANDBOXED,
       audit_enabled: true,
       log_all_actions: true,
     };
@@ -225,7 +230,7 @@ export class PortalPermissionsService {
   ): Promise<void> {
     if (!this.auditLogger) return;
 
-    const severity = result.allowed ? "low" : "high";
+    const severity = result.allowed ? SecuritySeverity.LOW : SecuritySeverity.HIGH;
     const metadata: Record<string, unknown> = {
       reason: result.reason,
       conditions: result.conditions,
@@ -235,11 +240,11 @@ export class PortalPermissionsService {
     if (context?.timestamp) metadata.timestamp = context.timestamp.toISOString();
 
     await this.auditLogger.logSecurityEvent({
-      type: "permission",
+      type: SecurityEventType.PERMISSION,
       action: "portal_access_check",
       actor: result.agent_id,
       resource: `${result.portal}:${result.resource}`,
-      result: result.allowed ? "success" : "denied",
+      result: result.allowed ? SecurityEventResult.SUCCESS : SecurityEventResult.DENIED,
       metadata,
       severity,
     });
@@ -326,12 +331,12 @@ export class PortalPermissionsService {
     }
 
     // Check operation permissions (map to actions)
-    const operations = portal.operations || ["read", "write", "git"];
+    const operations = portal.operations || [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT];
     const actionToOperation: Record<PermissionAction, PortalOperation | null> = {
-      read: "read",
-      write: "write",
-      execute: null, // No direct mapping
-      delete: null, // No direct mapping
+      [PermissionAction.READ]: PortalOperation.READ,
+      [PermissionAction.WRITE]: PortalOperation.WRITE,
+      [PermissionAction.EXECUTE]: null, // No direct mapping
+      [PermissionAction.DELETE]: null, // No direct mapping
     };
 
     const requiredOperation = actionToOperation[action];
@@ -347,7 +352,7 @@ export class PortalPermissionsService {
     }
 
     // Special handling for execute/delete actions
-    if (action === "execute" && !operations.includes("git")) {
+    if (action === PermissionAction.EXECUTE && !operations.includes(PortalOperation.GIT)) {
       return {
         allowed: false,
         reason: `Execute action requires git operation permission`,
@@ -358,7 +363,7 @@ export class PortalPermissionsService {
       };
     }
 
-    if (action === "delete" && !operations.includes("write")) {
+    if (action === PermissionAction.DELETE && !operations.includes(PortalOperation.WRITE)) {
       return {
         allowed: false,
         reason: `Delete action requires write operation permission`,
@@ -400,10 +405,24 @@ export class PortalPermissionsService {
     permissionAction: PermissionAction | PermissionAction[],
     requestedAction: PermissionAction,
   ): boolean {
-    if (Array.isArray(permissionAction)) {
-      return permissionAction.includes(requestedAction);
+    const actions = Array.isArray(permissionAction) ? permissionAction : [permissionAction];
+
+    if (actions.includes(requestedAction)) {
+      return true;
     }
-    return permissionAction === requestedAction;
+
+    // Handle implied permissions
+    if (requestedAction === PermissionAction.READ) {
+      // WRITE and EXECUTE both imply READ access
+      return actions.includes(PermissionAction.WRITE) || actions.includes(PermissionAction.EXECUTE);
+    }
+
+    if (requestedAction === PermissionAction.WRITE) {
+      // DELETE implies WRITE access
+      return actions.includes(PermissionAction.DELETE);
+    }
+
+    return false;
   }
 
   /**

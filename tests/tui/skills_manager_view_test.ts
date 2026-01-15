@@ -6,7 +6,8 @@
  * Tests for the SkillsManagerView TUI component.
  */
 
-import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals, assertStringIncludes } from "@std/assert";
+import { EvaluationCategory, ExecutionStatus, MemoryScope, MemorySource, SkillStatus } from "../../src/enums.ts";
 import { MinimalSkillsServiceMock, SkillsManagerView, type SkillSummary } from "../../src/tui/skills_manager_view.ts";
 
 // ===== Test Data =====
@@ -16,8 +17,8 @@ const TEST_SKILLS: SkillSummary[] = [
     id: "tdd-methodology",
     name: "TDD Methodology",
     version: "1.0.0",
-    status: "active",
-    source: "core",
+    status: SkillStatus.ACTIVE,
+    source: MemorySource.CORE,
     description: "Test-Driven Development methodology",
     triggers: {
       keywords: ["tdd", "test-first"],
@@ -29,26 +30,26 @@ const TEST_SKILLS: SkillSummary[] = [
     id: "security-first",
     name: "Security First",
     version: "1.0.0",
-    status: "active",
-    source: "core",
+    status: SkillStatus.ACTIVE,
+    source: MemorySource.CORE,
     description: "Security-focused development",
     triggers: {
-      keywords: ["security", "auth"],
+      keywords: [EvaluationCategory.SECURITY, "auth"],
     },
   },
   {
     id: "project-conventions",
     name: "Project Conventions",
     version: "1.0.0",
-    status: "active",
-    source: "project",
+    status: SkillStatus.ACTIVE,
+    source: MemoryScope.PROJECT,
   },
   {
     id: "learned-pattern",
     name: "Learned Pattern",
     version: "1.0.0",
-    status: "draft",
-    source: "learned",
+    status: SkillStatus.DRAFT,
+    source: MemorySource.LEARNED,
   },
 ];
 
@@ -183,7 +184,7 @@ Deno.test("AgentStatusView: displays defaultSkills in detail", async () => {
       id: "agent-1",
       name: "CodeReviewer",
       model: "gpt-4",
-      status: "active" as const,
+      status: SkillStatus.ACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: ["code-review"],
       defaultSkills: ["tdd-methodology", "typescript-patterns"],
@@ -219,7 +220,7 @@ Deno.test("RequestManagerView: shows skills in request detail", async () => {
       trace_id: "test-123",
       filename: "request-test.md",
       title: "Test Request",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       priority: "normal",
       agent: "code-reviewer",
       created: new Date().toISOString(),

@@ -5,7 +5,7 @@
  * Phase 16.3 implementation.
  */
 
-import { assert, assertEquals, assertExists, assertGreater, assertLess } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertExists, assertGreater, assertLess } from "@std/assert";
 import {
   createAPIRetryPolicy,
   createLLMRetryPolicy,

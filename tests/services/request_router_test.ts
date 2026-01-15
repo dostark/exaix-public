@@ -1,4 +1,6 @@
-import { assertEquals, assertRejects } from "jsr:@std/assert@1";
+import { assertEquals, assertRejects } from "@std/assert";
+import { MemorySource } from "../../src/enums.ts";
+
 import { RoutingError } from "../../src/services/request_router.ts";
 
 import { createRouterTestContext, sampleRouterRequest } from "./helpers.ts";
@@ -28,7 +30,7 @@ Deno.test("RequestRouter: routes agent requests to AgentRunner", async () => {
 
   const result = await router.route(request);
 
-  assertEquals(result.type, "agent");
+  assertEquals(result.type, MemorySource.AGENT);
   assertEquals(result.agentId, "senior-coder");
   assertEquals(mockAgentRunner.executedAgents.length, 1);
   assertEquals(mockAgentRunner.executedAgents[0].blueprint.agentId, "senior-coder");
@@ -42,7 +44,7 @@ Deno.test("RequestRouter: routes requests without flow/agent to default agent", 
 
   const result = await router.route(request);
 
-  assertEquals(result.type, "agent");
+  assertEquals(result.type, MemorySource.AGENT);
   assertEquals(result.agentId, "default-agent");
   assertEquals(mockAgentRunner.executedAgents.length, 1);
   assertEquals(mockAgentRunner.executedAgents[0].blueprint.agentId, "default-agent");

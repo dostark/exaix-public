@@ -13,7 +13,7 @@
  * - Format: timestamps, indented multi-line payloads
  */
 
-import { assertEquals, assertExists, assertMatch, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertMatch, assertStringIncludes } from "@std/assert";
 import { initTestDbService } from "./helpers/db.ts";
 import { EventLogger } from "../src/services/event_logger.ts";
 

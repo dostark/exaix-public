@@ -1,4 +1,6 @@
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import {
   assertMCPContentIncludes,
@@ -30,7 +32,7 @@ Deno.test("read_file: successfully reads file from portal", async () => {
   });
 
   try {
-    const request = createToolCallRequest("read_file", {
+    const request = createToolCallRequest(McpToolName.READ_FILE, {
       portal: "TestPortal",
       path: "test.txt",
     });
@@ -52,7 +54,7 @@ Deno.test("read_file: logs invocation to Activity Journal", async () => {
   });
 
   try {
-    const request = createToolCallRequest("read_file", {
+    const request = createToolCallRequest(McpToolName.READ_FILE, {
       portal: "TestPortal",
       path: "log-test.txt",
     });
@@ -81,7 +83,7 @@ Deno.test("read_file: rejects non-existent portal", async () => {
   const ctx = await initMCPTestWithoutPortal();
 
   try {
-    const request = createToolCallRequest("read_file", {
+    const request = createToolCallRequest(McpToolName.READ_FILE, {
       portal: "NonExistentPortal",
       path: "test.txt",
     });
@@ -97,7 +99,7 @@ Deno.test("read_file: rejects non-existent file", async () => {
   const ctx = await initMCPTest();
 
   try {
-    const request = createToolCallRequest("read_file", {
+    const request = createToolCallRequest(McpToolName.READ_FILE, {
       portal: "TestPortal",
       path: "nonexistent.txt",
     });
@@ -115,7 +117,7 @@ Deno.test("read_file: prevents path traversal attack", async () => {
     // Create a file outside portal that attacker wants to read
     await Deno.writeTextFile(join(ctx.tempDir, "secret.txt"), "SECRET DATA");
 
-    const request = createToolCallRequest("read_file", {
+    const request = createToolCallRequest(McpToolName.READ_FILE, {
       portal: "TestPortal",
       path: "../secret.txt",
     });
@@ -137,13 +139,13 @@ Deno.test("read_file: read_file appears in tools/list", async () => {
     const result = response.result as { tools: Array<{ name: string; description: string }> };
     assertEquals(result.tools.length, 6);
     const toolNames = result.tools.map((t) => t.name);
-    assert(toolNames.includes("read_file"));
-    assert(toolNames.includes("write_file"));
-    assert(toolNames.includes("list_directory"));
+    assert(toolNames.includes(McpToolName.READ_FILE));
+    assert(toolNames.includes(McpToolName.WRITE_FILE));
+    assert(toolNames.includes(McpToolName.LIST_DIRECTORY));
     assert(toolNames.includes("git_create_branch"));
     assert(toolNames.includes("git_commit"));
     assert(toolNames.includes("git_status"));
-    const readTool = result.tools.find((t) => t.name === "read_file")!;
+    const readTool = result.tools.find((t) => t.name === McpToolName.READ_FILE)!;
     assertStringIncludes(readTool.description, "Read");
   } finally {
     await ctx.cleanup();
@@ -158,7 +160,7 @@ Deno.test("read_file: rejects invalid arguments schema", async () => {
       id: 1,
       method: "tools/call",
       params: {
-        name: "read_file",
+        name: McpToolName.READ_FILE,
         arguments: {
           // Missing 'path' field
           portal: "TestPortal",
@@ -179,7 +181,7 @@ Deno.test("read_file: rejects invalid arguments schema", async () => {
 Deno.test("write_file: successfully writes file to portal", async () => {
   const ctx = await initMCPTest();
   try {
-    const request = createToolCallRequest("write_file", {
+    const request = createToolCallRequest(McpToolName.WRITE_FILE, {
       portal: "TestPortal",
       path: "output.txt",
       content: "Hello from write_file!",
@@ -200,7 +202,7 @@ Deno.test("write_file: successfully writes file to portal", async () => {
 Deno.test("write_file: creates parent directories if needed", async () => {
   const ctx = await initMCPTest();
   try {
-    const request = createToolCallRequest("write_file", {
+    const request = createToolCallRequest(McpToolName.WRITE_FILE, {
       portal: "TestPortal",
       path: "deeply/nested/file.txt",
       content: "Nested content",
@@ -221,7 +223,7 @@ Deno.test("write_file: overwrites existing file", async () => {
     fileContent: { "existing.txt": "Old content" },
   });
   try {
-    const request = createToolCallRequest("write_file", {
+    const request = createToolCallRequest(McpToolName.WRITE_FILE, {
       portal: "TestPortal",
       path: "existing.txt",
       content: "New content",
@@ -240,7 +242,7 @@ Deno.test("write_file: overwrites existing file", async () => {
 Deno.test("write_file: rejects non-existent portal", async () => {
   const ctx = await initMCPTestWithoutPortal();
   try {
-    const request = createToolCallRequest("write_file", {
+    const request = createToolCallRequest(McpToolName.WRITE_FILE, {
       portal: "NonExistent",
       path: "test.txt",
       content: "content",
@@ -256,7 +258,7 @@ Deno.test("write_file: rejects non-existent portal", async () => {
 Deno.test("write_file: prevents path traversal", async () => {
   const ctx = await initMCPTest();
   try {
-    const request = createToolCallRequest("write_file", {
+    const request = createToolCallRequest(McpToolName.WRITE_FILE, {
       portal: "TestPortal",
       path: "../escape.txt",
       content: "malicious",
@@ -272,7 +274,7 @@ Deno.test("write_file: prevents path traversal", async () => {
 Deno.test("write_file: logs invocation to Activity Journal", async () => {
   const ctx = await initMCPTest();
   try {
-    const request = createToolCallRequest("write_file", {
+    const request = createToolCallRequest(McpToolName.WRITE_FILE, {
       portal: "TestPortal",
       path: "logged.txt",
       content: "content",
@@ -309,7 +311,7 @@ Deno.test("list_directory: lists files in portal root", async () => {
     },
   });
   try {
-    const request = createToolCallRequest("list_directory", {
+    const request = createToolCallRequest(McpToolName.LIST_DIRECTORY, {
       portal: "TestPortal",
     });
 
@@ -333,7 +335,7 @@ Deno.test("list_directory: lists files in subdirectory", async () => {
     },
   });
   try {
-    const request = createToolCallRequest("list_directory", {
+    const request = createToolCallRequest(McpToolName.LIST_DIRECTORY, {
       portal: "TestPortal",
       path: "subdir",
     });
@@ -351,7 +353,7 @@ Deno.test("list_directory: lists files in subdirectory", async () => {
 Deno.test("list_directory: handles empty directory", async () => {
   const ctx = await initMCPTest(); // Empty portal
   try {
-    const request = createToolCallRequest("list_directory", {
+    const request = createToolCallRequest(McpToolName.LIST_DIRECTORY, {
       portal: "TestPortal",
     });
 
@@ -368,7 +370,7 @@ Deno.test("list_directory: handles empty directory", async () => {
 Deno.test("list_directory: rejects non-existent portal", async () => {
   const ctx = await initMCPTestWithoutPortal();
   try {
-    const request = createToolCallRequest("list_directory", {
+    const request = createToolCallRequest(McpToolName.LIST_DIRECTORY, {
       portal: "NonExistent",
     });
 
@@ -382,7 +384,7 @@ Deno.test("list_directory: rejects non-existent portal", async () => {
 Deno.test("list_directory: prevents path traversal", async () => {
   const ctx = await initMCPTest();
   try {
-    const request = createToolCallRequest("list_directory", {
+    const request = createToolCallRequest(McpToolName.LIST_DIRECTORY, {
       portal: "TestPortal",
       path: "../",
     });

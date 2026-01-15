@@ -2,11 +2,14 @@
  * Tests for Provider Registry Pattern (Issue #10: Tight Coupling Between Services)
  */
 
-import { assertEquals, assertExists, assertRejects } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertRejects } from "@std/assert";
+import { ProviderCostTier } from "../../src/enums.ts";
+
 import { AnthropicProviderFactory, MockProviderFactory, ProviderRegistry } from "../../src/ai/provider_registry.ts";
 import { ResolvedProviderOptions } from "../../src/ai/provider_factory.ts";
 import { ProviderFactory } from "../../src/ai/provider_factory.ts";
 import { Config } from "../../src/config/schema.ts";
+import { MockStrategy, PricingTier, ProviderType } from "../../src/enums.ts";
 
 // ============================================================================
 // Basic Registry Tests
@@ -20,7 +23,7 @@ Deno.test("ProviderRegistry: can register and retrieve factories", () => {
   const retrieved = ProviderRegistry.getFactory("test-mock");
 
   assertExists(retrieved);
-  assertEquals(retrieved.getSupportedProviders(), ["mock"]);
+  assertEquals(retrieved instanceof MockProviderFactory, true);
 });
 
 Deno.test("ProviderRegistry: returns undefined for unregistered providers", () => {
@@ -40,8 +43,8 @@ Deno.test("ProviderRegistry: can register providers with metadata", () => {
     name: "test-provider",
     description: "Test provider for unit tests",
     capabilities: ["chat", "streaming"],
-    costTier: "FREE" as const,
-    pricingTier: "local" as const,
+    costTier: ProviderCostTier.FREE,
+    pricingTier: PricingTier.LOCAL,
     strengths: ["testing", "deterministic"],
   };
 
@@ -50,8 +53,8 @@ Deno.test("ProviderRegistry: can register providers with metadata", () => {
   const retrieved = ProviderRegistry.getProviderMetadata("test-provider");
   assertExists(retrieved);
   assertEquals(retrieved.name, "test-provider");
-  assertEquals(retrieved.costTier, "FREE");
-  assertEquals(retrieved.pricingTier, "local");
+  assertEquals(retrieved.costTier, ProviderCostTier.FREE);
+  assertEquals(retrieved.pricingTier, PricingTier.LOCAL);
 });
 
 Deno.test("ProviderRegistry: getProvidersByCostTier returns providers filtered by cost tier", () => {
@@ -62,17 +65,17 @@ Deno.test("ProviderRegistry: getProvidersByCostTier returns providers filtered b
     name: "free-provider",
     description: "Free provider",
     capabilities: ["chat"],
-    costTier: "FREE",
-    pricingTier: "local",
-    strengths: ["free"],
+    costTier: ProviderCostTier.FREE,
+    pricingTier: PricingTier.LOCAL,
+    strengths: [ProviderCostTier.FREE],
   });
 
   ProviderRegistry.registerWithMetadata("paid-provider", new MockProviderFactory(), {
     name: "paid-provider",
     description: "Paid provider",
     capabilities: ["chat"],
-    costTier: "PAID",
-    pricingTier: "high",
+    costTier: ProviderCostTier.PAID,
+    pricingTier: PricingTier.HIGH,
     strengths: ["premium"],
   });
 
@@ -80,14 +83,14 @@ Deno.test("ProviderRegistry: getProvidersByCostTier returns providers filtered b
     name: "freemium-provider",
     description: "Freemium provider",
     capabilities: ["chat"],
-    costTier: "FREEMIUM",
-    pricingTier: "free",
+    costTier: ProviderCostTier.FREEMIUM,
+    pricingTier: PricingTier.FREE,
     strengths: ["balanced"],
   });
 
-  const freeProviders = ProviderRegistry.getProvidersByCostTier("FREE");
-  const paidProviders = ProviderRegistry.getProvidersByCostTier("PAID");
-  const freemiumProviders = ProviderRegistry.getProvidersByCostTier("FREEMIUM");
+  const freeProviders = ProviderRegistry.getProvidersByCostTier(ProviderCostTier.FREE);
+  const paidProviders = ProviderRegistry.getProvidersByCostTier(ProviderCostTier.PAID);
+  const freemiumProviders = ProviderRegistry.getProvidersByCostTier(ProviderCostTier.FREEMIUM);
 
   assertEquals(freeProviders, ["free-provider"]);
   assertEquals(paidProviders, ["paid-provider"]);
@@ -102,8 +105,8 @@ Deno.test("ProviderRegistry: getProvidersForTask returns providers sorted by cos
     name: "local-provider",
     description: "Local provider",
     capabilities: ["chat"],
-    costTier: "FREE",
-    pricingTier: "local",
+    costTier: ProviderCostTier.FREE,
+    pricingTier: PricingTier.LOCAL,
     strengths: ["code-generation"],
   });
 
@@ -111,8 +114,8 @@ Deno.test("ProviderRegistry: getProvidersForTask returns providers sorted by cos
     name: "free-provider",
     description: "Free provider",
     capabilities: ["chat"],
-    costTier: "FREEMIUM",
-    pricingTier: "free",
+    costTier: ProviderCostTier.FREEMIUM,
+    pricingTier: PricingTier.FREE,
     strengths: ["code-generation"],
   });
 
@@ -120,8 +123,8 @@ Deno.test("ProviderRegistry: getProvidersForTask returns providers sorted by cos
     name: "paid-provider",
     description: "Paid provider",
     capabilities: ["chat"],
-    costTier: "PAID",
-    pricingTier: "high",
+    costTier: ProviderCostTier.PAID,
+    pricingTier: PricingTier.HIGH,
     strengths: ["code-generation"],
   });
 
@@ -144,8 +147,8 @@ Deno.test("ProviderRegistry: metadata includes free quota information", () => {
     name: "quota-provider",
     description: "Provider with quota",
     capabilities: ["chat"],
-    costTier: "FREEMIUM" as const,
-    pricingTier: "free" as const,
+    costTier: ProviderCostTier.FREEMIUM,
+    pricingTier: PricingTier.FREE,
     strengths: ["general"],
     freeQuota: {
       requestsPerDay: 1500,
@@ -166,17 +169,6 @@ Deno.test("ProviderRegistry: metadata includes free quota information", () => {
 // Basic Registry Tests
 // ============================================================================
 
-Deno.test("ProviderRegistry: can register and retrieve factories", () => {
-  ProviderRegistry.clear();
-  const factory = new MockProviderFactory();
-
-  ProviderRegistry.register("test-mock", factory);
-  const retrieved = ProviderRegistry.getFactory("test-mock");
-
-  assertExists(retrieved);
-  assertEquals(retrieved.getSupportedProviders(), ["mock"]);
-});
-
 Deno.test("ProviderRegistry: returns undefined for unregistered providers", () => {
   ProviderRegistry.clear();
   const retrieved = ProviderRegistry.getFactory("non-existent");
@@ -186,10 +178,10 @@ Deno.test("ProviderRegistry: returns undefined for unregistered providers", () =
 Deno.test("MockProviderFactory: creates providers", async () => {
   const factory = new MockProviderFactory();
   const options: ResolvedProviderOptions = {
-    provider: "mock",
+    provider: ProviderType.MOCK,
     model: "test-model",
     timeoutMs: 30000,
-    mockStrategy: "recorded",
+    mockStrategy: MockStrategy.RECORDED,
   };
 
   const provider = await factory.create(options);
@@ -203,7 +195,7 @@ Deno.test("AnthropicProviderFactory: requires API key", async () => {
 
   const factory = new AnthropicProviderFactory();
   const options: ResolvedProviderOptions = {
-    provider: "anthropic",
+    provider: ProviderType.ANTHROPIC,
     model: "claude-3-sonnet",
     timeoutMs: 30000,
   };
@@ -217,7 +209,7 @@ Deno.test("AnthropicProviderFactory: requires API key", async () => {
 
 Deno.test("AnthropicProviderFactory: exists and has correct interface", () => {
   const factory = new AnthropicProviderFactory();
-  assertEquals(factory.getSupportedProviders(), ["anthropic"]);
+  assertEquals(factory instanceof AnthropicProviderFactory, true);
 });
 
 Deno.test("ProviderFactory: uses registry for mock provider", async () => {

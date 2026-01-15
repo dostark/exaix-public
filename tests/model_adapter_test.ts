@@ -11,7 +11,7 @@
  * - Test 6: TimeoutError thrown on request timeout
  */
 
-import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
 import {
   ConnectionError,
   IModelProvider,
@@ -158,8 +158,8 @@ Deno.test("OllamaProvider accepts custom baseUrl", async () => {
 // Test 3: ModelFactory returns correct provider based on config
 // ============================================================================
 
-Deno.test("ModelFactory creates MockProvider for 'mock' type", () => {
-  const provider = ModelFactory.create("mock", { response: "Test" });
+Deno.test("ModelFactory creates MockProvider for 'mock' type", async () => {
+  const provider = await ModelFactory.create("mock", { response: "Test" });
 
   assertExists(provider);
   assertEquals(provider.id, "mock-provider");
@@ -168,34 +168,34 @@ Deno.test("ModelFactory creates MockProvider for 'mock' type", () => {
   assertExists(provider.id);
 });
 
-Deno.test("ModelFactory creates OllamaProvider for 'ollama' type", () => {
-  const provider = ModelFactory.create("ollama", { model: "llama3.2" });
+Deno.test("ModelFactory creates OllamaProvider for 'ollama' type", async () => {
+  const provider = await ModelFactory.create("ollama", { model: "llama3.2" });
 
   assertExists(provider);
   assertStringIncludes(provider.id, "ollama");
   assertExists(provider.generate);
 });
 
-Deno.test("ModelFactory is case-insensitive", () => {
-  const provider1 = ModelFactory.create("MOCK");
-  const provider2 = ModelFactory.create("Mock");
-  const provider3 = ModelFactory.create("mock");
+Deno.test("ModelFactory is case-insensitive", async () => {
+  const provider1 = await ModelFactory.create("MOCK");
+  const provider2 = await ModelFactory.create("Mock");
+  const provider3 = await ModelFactory.create("mock");
 
   assertExists(provider1);
   assertExists(provider2);
   assertExists(provider3);
 });
 
-Deno.test("ModelFactory handles whitespace in provider type", () => {
-  const provider = ModelFactory.create("  ollama  ");
+Deno.test("ModelFactory handles whitespace in provider type", async () => {
+  const provider = await ModelFactory.create("  ollama  ");
 
   assertExists(provider);
   assertStringIncludes(provider.id, "ollama");
 });
 
-Deno.test("ModelFactory throws error for unknown provider type", () => {
+Deno.test("ModelFactory throws error for unknown provider type", async () => {
   try {
-    ModelFactory.create("unknown-provider");
+    await ModelFactory.create("unknown-provider");
     throw new Error("Should have thrown an error");
   } catch (error) {
     assertExists(error);
@@ -206,7 +206,7 @@ Deno.test("ModelFactory throws error for unknown provider type", () => {
 
 Deno.test("ModelFactory passes config to providers", async () => {
   const customResponse = "Custom mock response";
-  const provider = ModelFactory.create("mock", {
+  const provider = await ModelFactory.create("mock", {
     response: customResponse,
     id: "custom-id",
   }) as MockProvider;

@@ -3,7 +3,7 @@ export function sampleRequest(overrides: Record<string, any> = {}) {
     trace_id: overrides.trace_id ?? `req-${Math.floor(Math.random() * 1e6)}`,
     filename: overrides.filename ?? "request.md",
     title: overrides.title ?? "Request",
-    status: overrides.status ?? "pending",
+    status: overrides.status ?? MemoryStatus.PENDING,
     priority: overrides.priority ?? "normal",
     agent: overrides.agent ?? "default",
     created: overrides.created ?? new Date().toISOString(),
@@ -38,7 +38,7 @@ export function createMockRequestService(initial: Array<Record<string, any>> = [
         trace_id: `test-${Date.now()}`,
         filename: `request-test.md`,
         title: `Request test`,
-        status: "pending",
+        status: MemoryStatus.PENDING,
         priority: options?.priority || "normal",
         agent: options?.agent || "default",
         portal: options?.portal,
@@ -67,6 +67,8 @@ export function createMockRequestService(initial: Array<Record<string, any>> = [
 // Additional TUI helpers
 // -------------------------
 import { RequestManagerView } from "../../src/tui/request_manager_view.ts";
+import { MemorySource, MemoryStatus, SkillStatus } from "../../src/enums.ts";
+
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { MonitorView } from "../../src/tui/monitor_view.ts";
 import { MinimalPlanServiceMock, PlanReviewerTuiSession } from "../../src/tui/plan_reviewer_view.ts";
@@ -94,7 +96,7 @@ export function sampleLogEntry(overrides: Record<string, unknown> = {}) {
   return {
     id,
     trace_id: overrides.trace_id ?? `trace-${id}`,
-    actor: overrides.actor ?? "agent",
+    actor: overrides.actor ?? MemorySource.AGENT,
     agent_id: overrides.agent_id ?? "default",
     action_type: overrides.action_type ?? "request_created",
     target: overrides.target ?? "Workspace/Requests/test.md",
@@ -130,7 +132,7 @@ export function createTwoActionLogs() {
 export function samplePortal(overrides: Record<string, any> = {}) {
   return {
     alias: overrides.alias ?? `Portal-${Math.floor(Math.random() * 1e6)}`,
-    status: overrides.status ?? "active",
+    status: overrides.status ?? SkillStatus.ACTIVE,
     targetPath: overrides.targetPath ?? "/Portals/Main",
     symlinkPath: overrides.symlinkPath ?? "",
     contextCardPath: overrides.contextCardPath ?? "",

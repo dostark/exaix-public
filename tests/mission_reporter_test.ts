@@ -11,9 +11,14 @@
  * - Test 4: Handles errors gracefully
  */
 
-import { assert, assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists } from "@std/assert";
+import { PortalOperation } from "../src/enums.ts";
+
+import { MemoryOperation } from "../src/enums.ts";
+
 import { join } from "@std/path";
 import { MissionReporter, type ReportConfig, type TraceData } from "../src/services/mission_reporter.ts";
+import { ExecutionStatus } from "../src/enums.ts";
 import { MemoryBankService } from "../src/services/memory_bank.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import { initTestDbService } from "./helpers/db.ts";
@@ -31,7 +36,7 @@ function createTestTraceData(overrides: Partial<TraceData> = {}): TraceData {
     traceId: overrides.traceId ?? "550e8400-e29b-41d4-a716-446655440000",
     requestId: overrides.requestId ?? "implement-auth",
     agentId: overrides.agentId ?? "senior-coder",
-    status: overrides.status ?? "completed",
+    status: overrides.status ?? ExecutionStatus.COMPLETED,
     branch: overrides.branch ?? "feat/implement-auth-550e8400",
     completedAt: overrides.completedAt ?? new Date(),
     contextFiles: overrides.contextFiles ?? [
@@ -54,7 +59,7 @@ async function setupTestGitRepo(tempDir: string): Promise<void> {
 
   // Create initial commit
   await Deno.writeTextFile(join(tempDir, "README.md"), "# Test Project\n");
-  await runGitCommand(tempDir, ["add", "."]);
+  await runGitCommand(tempDir, [MemoryOperation.ADD, "."]);
   await runGitCommand(tempDir, ["commit", "-m", "Initial commit"]);
 }
 
@@ -62,7 +67,7 @@ async function setupTestGitRepo(tempDir: string): Promise<void> {
  * Helper to run git commands
  */
 async function runGitCommand(cwd: string, args: string[]): Promise<string> {
-  const cmd = new Deno.Command("git", {
+  const cmd = new Deno.Command(PortalOperation.GIT, {
     args,
     cwd,
     stdout: "piped",
@@ -178,7 +183,7 @@ Deno.test("MissionReporter: handles failed execution status", async () => {
     const memoryBank = new MemoryBankService(config, db);
     const reporter = new MissionReporter(config, reportConfig, memoryBank, db);
     const traceData = createTestTraceData({
-      status: "failed",
+      status: ExecutionStatus.FAILED,
       summary: "Failed to implement authentication due to dependency issues.",
     });
 
@@ -190,7 +195,7 @@ Deno.test("MissionReporter: handles failed execution status", async () => {
     // Read the execution memory to verify status
     const executionMemory = await memoryBank.getExecutionByTraceId(traceData.traceId);
     assertExists(executionMemory);
-    assertEquals(executionMemory.status, "failed");
+    assertEquals(executionMemory.status, ExecutionStatus.FAILED);
     assertExists(executionMemory.error_message);
   } finally {
     await cleanup();

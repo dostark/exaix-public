@@ -12,7 +12,7 @@
  * To run: deno test tests/integration/17_ollama_json_plan_test.ts --allow-all --no-check
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { OllamaProvider } from "../../src/ai/providers.ts";
 import { AgentRunner } from "../../src/services/agent_runner.ts";

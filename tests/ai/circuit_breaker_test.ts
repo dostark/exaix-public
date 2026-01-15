@@ -5,7 +5,8 @@
  * during external service outages.
  */
 
-import { assertEquals, assertRejects } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertRejects } from "@std/assert";
+import { EvaluationVerdict } from "../../src/enums.ts";
 import { CircuitBreaker, CircuitBreakerProvider } from "../../src/ai/circuit_breaker.ts";
 
 // ============================================================================
@@ -31,8 +32,8 @@ Deno.test("CircuitBreaker: opens after failure threshold", async () => {
   });
 
   // Two failures should open the circuit
-  await assertRejects(() => breaker.execute(() => Promise.reject(new Error("fail"))));
-  await assertRejects(() => breaker.execute(() => Promise.reject(new Error("fail"))));
+  await assertRejects(() => breaker.execute(() => Promise.reject(new Error(EvaluationVerdict.FAIL))));
+  await assertRejects(() => breaker.execute(() => Promise.reject(new Error(EvaluationVerdict.FAIL))));
 
   // Third call should be rejected immediately
   await assertRejects(
@@ -50,7 +51,7 @@ Deno.test("CircuitBreaker: transitions to half-open after timeout", async () => 
   });
 
   // Fail once to open circuit
-  await assertRejects(() => breaker.execute(() => Promise.reject(new Error("fail"))));
+  await assertRejects(() => breaker.execute(() => Promise.reject(new Error(EvaluationVerdict.FAIL))));
 
   // Wait for reset timeout
   await new Promise((r) => setTimeout(r, 60));
@@ -69,7 +70,7 @@ Deno.test("CircuitBreaker: requires multiple successes in half-open state", asyn
   });
 
   // Fail once to open circuit
-  await assertRejects(() => breaker.execute(() => Promise.reject(new Error("fail"))));
+  await assertRejects(() => breaker.execute(() => Promise.reject(new Error(EvaluationVerdict.FAIL))));
 
   // Wait for reset timeout
   await new Promise((r) => setTimeout(r, 60));
@@ -93,7 +94,7 @@ Deno.test("CircuitBreaker: failure in half-open state reopens circuit", async ()
   });
 
   // Fail once to open circuit
-  await assertRejects(() => breaker.execute(() => Promise.reject(new Error("fail"))));
+  await assertRejects(() => breaker.execute(() => Promise.reject(new Error(EvaluationVerdict.FAIL))));
 
   // Wait for reset timeout
   await new Promise((r) => setTimeout(r, 60));
@@ -115,7 +116,7 @@ Deno.test("CircuitBreaker: success in closed state resets failure count", async 
   });
 
   // One failure
-  await assertRejects(() => breaker.execute(() => Promise.reject(new Error("fail"))));
+  await assertRejects(() => breaker.execute(() => Promise.reject(new Error(EvaluationVerdict.FAIL))));
   assertEquals((breaker as any).failureCount, 1);
 
   // Success should reset failure count

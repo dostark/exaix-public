@@ -5,8 +5,9 @@
  * Implements repository pattern to abstract database access for activities/events.
  */
 
-import { assertEquals } from "jsr:@std/assert@^1.0.0";
-import { assertSpyCalls, spy } from "jsr:@std/testing@^1.0.0/mock";
+import { assertEquals } from "@std/assert";
+import { MemorySource } from "../../src/enums.ts";
+import { assertSpyCalls, spy } from "@std/testing/mock";
 import { DatabaseActivityRepository } from "../../src/repositories/activity_repository.ts";
 import type { ActivityRepository } from "../../src/repositories/activity_repository.ts";
 import type { DatabaseService } from "../../src/services/db.ts";
@@ -147,7 +148,7 @@ Deno.test("DatabaseActivityRepository: retrieves recent activities", async () =>
     {
       id: "1",
       trace_id: "trace1",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: null,
       action_type: "user.action",
       target: "file.txt",
@@ -173,7 +174,7 @@ Deno.test("DatabaseActivityRepository: retrieves recent activities", async () =>
   assertSpyCalls(getRecentActivitySpy, 1);
   assertEquals(capturedLimit, 10);
   assertEquals(activities.length, 1);
-  assertEquals(activities[0].actor, "user");
+  assertEquals(activities[0].actor, MemorySource.USER);
 });
 
 Deno.test("DatabaseActivityRepository: maps database records to domain objects", async () => {

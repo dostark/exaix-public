@@ -11,7 +11,9 @@
  * Phase 12.10: Tag-Based Search & Simple RAG
  */
 
-import { assertAlmostEquals, assertEquals, assertExists, assertGreaterOrEqual } from "jsr:@std/assert@^1.0.0";
+import { assertAlmostEquals, assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
+import { EvaluationCategory } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import {
@@ -21,6 +23,7 @@ import {
 } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { Learning } from "../../src/schemas/memory_bank.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
 import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Fixtures =====
@@ -28,40 +31,40 @@ import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 const testLearning: Learning = {
   id: "bbbbbbbb-2222-4000-8000-000000000001",
   created_at: new Date().toISOString(),
-  source: "agent",
-  scope: "global",
+  source: MemorySource.AGENT,
+  scope: MemoryScope.GLOBAL,
   title: "Test learning for embedding",
   description: "This is a test learning about error handling best practices in TypeScript",
-  category: "pattern",
+  category: LearningCategory.PATTERN,
   tags: ["error-handling", "typescript"],
-  confidence: "high",
-  status: "approved",
+  confidence: ConfidenceLevel.HIGH,
+  status: MemoryStatus.APPROVED,
 };
 
 const anotherTestLearning: Learning = {
   id: "bbbbbbbb-2222-4000-8000-000000000002",
   created_at: new Date().toISOString(),
-  source: "user",
-  scope: "global",
+  source: MemorySource.USER,
+  scope: MemoryScope.GLOBAL,
   title: "Another learning about errors",
   description: "Error propagation should use Result types for better error handling",
-  category: "pattern",
+  category: LearningCategory.PATTERN,
   tags: ["error-handling", "functional"],
-  confidence: "medium",
-  status: "approved",
+  confidence: ConfidenceLevel.MEDIUM,
+  status: MemoryStatus.APPROVED,
 };
 
 const unrelatedLearning: Learning = {
   id: "bbbbbbbb-2222-4000-8000-000000000003",
   created_at: new Date().toISOString(),
-  source: "execution",
-  scope: "global",
+  source: MemorySource.EXECUTION,
+  scope: MemoryScope.GLOBAL,
   title: "Database optimization tips",
   description: "Use indexes on frequently queried columns for better performance",
-  category: "insight",
-  tags: ["database", "performance"],
-  confidence: "high",
-  status: "approved",
+  category: LearningCategory.INSIGHT,
+  tags: ["database", EvaluationCategory.PERFORMANCE],
+  confidence: ConfidenceLevel.HIGH,
+  status: MemoryStatus.APPROVED,
 };
 
 // ===== cosineSimilarity Tests =====

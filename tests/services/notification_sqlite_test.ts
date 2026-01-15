@@ -12,10 +12,13 @@
  * - Handles concurrent inserts
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists } from "@std/assert";
+import { LearningCategory, MemoryOperation, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+
 import { initTestDbService } from "../helpers/db.ts";
 import { NotificationService } from "../../src/services/notification.ts";
 import type { MemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
+import { ConfidenceLevel } from "../../src/enums.ts";
 
 /**
  * Creates test environment for SQLite notification tests
@@ -44,25 +47,25 @@ function createTestProposal(id?: string): MemoryUpdateProposal {
   return {
     id: id || crypto.randomUUID(),
     created_at: new Date().toISOString(),
-    operation: "add",
-    target_scope: "project",
+    operation: MemoryOperation.ADD,
+    target_scope: MemoryScope.PROJECT,
     target_project: "my-app",
     learning: {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: "execution",
-      scope: "project",
+      source: MemorySource.EXECUTION,
+      scope: MemoryScope.PROJECT,
       project: "my-app",
       title: "Test Pattern",
       description: "A test pattern for notifications",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["test"],
-      confidence: "medium",
+      confidence: ConfidenceLevel.MEDIUM,
     },
     reason: "Extracted from execution",
     agent: "senior-coder",
     execution_id: "trace-123",
-    status: "pending",
+    status: MemoryStatus.PENDING,
   };
 }
 

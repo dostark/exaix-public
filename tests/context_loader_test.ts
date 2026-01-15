@@ -10,8 +10,8 @@
  * - Test 5: Truncation strategies produce different results
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { ContextLoader } from "../src/services/context_loader.ts";
 import type { ContextConfig, ContextLoadResult } from "../src/services/context_loader.ts";
 import { initTestDbService } from "./helpers/db.ts";

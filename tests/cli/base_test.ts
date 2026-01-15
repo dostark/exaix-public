@@ -12,8 +12,10 @@
  * - Test 7: truncate handles strings correctly with ellipsis
  */
 
-import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "jsr:@std/assert@^1.0.0";
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
+import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "@std/assert";
+import { MemoryStatus } from "../../src/enums.ts";
+
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { BaseCommand, type CommandContext } from "../../src/cli/base.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
@@ -173,7 +175,7 @@ Body`;
 
       const result = testCommand.testExtractFrontmatter(markdown);
       assertEquals(result.trace_id, "550e8400-e29b-41d4-a716-446655440000");
-      assertEquals(result.status, "pending");
+      assertEquals(result.status, MemoryStatus.PENDING);
     });
   });
 
@@ -264,7 +266,7 @@ Paragraph 1
 Paragraph 2`;
 
       const updated = testCommand.testUpdateFrontmatter(content, {
-        status: "approved",
+        status: MemoryStatus.APPROVED,
       });
 
       assertStringIncludes(updated, "# Heading");

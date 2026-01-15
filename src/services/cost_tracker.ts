@@ -29,13 +29,21 @@ export interface ProviderCostRecord {
  * Provides budget enforcement and cost analytics.
  */
 export class CostTracker {
-  private static readonly COST_RATES: Record<string, number> = {
-    "openai": COST_RATE_OPENAI, // $0.01 per 1K tokens (approximate)
-    "anthropic": COST_RATE_ANTHROPIC, // $0.015 per 1K tokens (approximate)
-    "google": COST_RATE_GOOGLE, // Free tier
-    "ollama": COST_RATE_OLLAMA, // Local free
-    "mock": COST_RATE_MOCK, // Mock free
-  };
+  private static getCostRates(config?: Config): Record<string, number> {
+    // Use configured rates if available, otherwise fall back to defaults
+    const configuredRates = config?.cost_tracking?.rates ?? {};
+    const defaultRates: Record<string, number> = {
+      "openai": COST_RATE_OPENAI,
+      "anthropic": COST_RATE_ANTHROPIC,
+      "google": COST_RATE_GOOGLE,
+      "ollama": COST_RATE_OLLAMA,
+      "mock": COST_RATE_MOCK,
+    };
+
+    // For now, just return the default rates since registry initialization is complex
+    // TODO: Initialize registry properly for dynamic provider discovery
+    return { ...defaultRates, ...configuredRates };
+  }
 
   private pendingRecords: Omit<ProviderCostRecord, "id">[] = [];
   private batchTimeout: number | null = null;
@@ -165,7 +173,8 @@ export class CostTracker {
    * @returns Estimated cost in USD
    */
   private estimateCost(provider: string, tokens: number): number {
-    const rate = CostTracker.COST_RATES[provider] ?? 0;
+    const rates = CostTracker.getCostRates();
+    const rate = rates[provider] ?? 0;
     return rate * (tokens / TOKENS_PER_COST_UNIT); // Cost per 1K tokens
   }
 

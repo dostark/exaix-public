@@ -29,8 +29,8 @@ import {
   type ChangesetResult,
   ChangesetResultSchema,
   type ExecutionContext,
-  type SecurityMode,
 } from "../schemas/agent_executor.ts";
+import { SecurityMode } from "../enums.ts";
 import { InputValidator } from "../schemas/input_validation.ts";
 
 /**
@@ -54,7 +54,16 @@ export class AgentExecutionError extends Error {
 const BlueprintSchema = z.object({
   name: z.string().regex(/^[a-zA-Z0-9_-]+$/).max(50).optional(),
   model: z.string().max(100),
-  provider: z.enum(["openai", "anthropic", "google", "ollama", "mock"]),
+  provider: z.string().refine(
+    (val) => {
+      // For schema validation, allow any non-empty string
+      // Runtime validation will check against registered providers when the provider is created
+      return val.length > 0;
+    },
+    {
+      message: "Provider must be a non-empty string",
+    },
+  ),
   capabilities: z.array(z.string().max(50)).max(20).default([]),
 }).strict(); // No extra fields allowed
 
@@ -422,11 +431,11 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
   ): string[] {
     const flags: string[] = [];
 
-    if (mode === "sandboxed") {
+    if (mode === SecurityMode.SANDBOXED) {
       // No file system access
       flags.push("--allow-read=NONE");
       flags.push("--allow-write=NONE");
-    } else if (mode === "hybrid") {
+    } else if (mode === SecurityMode.HYBRID) {
       // Read-only access to portal
       flags.push(`--allow-read=${portalPath}`);
       flags.push("--allow-write=NONE");

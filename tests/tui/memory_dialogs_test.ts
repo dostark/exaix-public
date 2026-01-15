@@ -12,7 +12,17 @@
  * - Keyboard shortcut handling
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@1";
+import { ConfidenceLevel } from "../../src/enums.ts";
+import {
+  LearningCategory,
+  MemoryOperation,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+  SkillStatus,
+} from "../../src/enums.ts";
+
+import { assertEquals, assertExists } from "@std/assert";
 import {
   AddLearningDialog,
   BulkApproveDialog,
@@ -28,23 +38,23 @@ function createMockProposal(): MemoryUpdateProposal {
   return {
     id: "test-proposal-1",
     agent: "test-agent",
-    operation: "add",
+    operation: MemoryOperation.ADD,
     learning: {
       id: "learning-1",
       title: "Error Handling Pattern",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       description: "All async functions should use try-catch with typed errors.",
-      confidence: "high",
+      confidence: ConfidenceLevel.HIGH,
       tags: ["error-handling", "typescript"],
-      source: "agent",
-      scope: "project",
+      source: MemorySource.AGENT,
+      scope: MemoryScope.PROJECT,
       created_at: new Date().toISOString(),
     },
-    target_scope: "project",
+    target_scope: MemoryScope.PROJECT,
     target_project: "my-app",
     reason: "Extracted from execution trace-abc123",
     created_at: new Date().toISOString(),
-    status: "pending",
+    status: MemoryStatus.PENDING,
   };
 }
 
@@ -58,7 +68,7 @@ Deno.test("ConfirmApproveDialog: renders correctly", () => {
   assertExists(rendered);
   assertEquals(rendered.includes("Approve Proposal"), true);
   assertEquals(rendered.includes("Error Handling Pattern"), true);
-  assertEquals(rendered.includes("project"), true);
+  assertEquals(rendered.includes(MemoryScope.PROJECT), true);
 });
 
 Deno.test("ConfirmApproveDialog: starts active", () => {
@@ -66,7 +76,7 @@ Deno.test("ConfirmApproveDialog: starts active", () => {
   const dialog = new ConfirmApproveDialog(proposal);
 
   assertEquals(dialog.isActive(), true);
-  assertEquals(dialog.getState(), "active");
+  assertEquals(dialog.getState(), SkillStatus.ACTIVE);
 });
 
 Deno.test("ConfirmApproveDialog: left/right switches focus", () => {
@@ -240,7 +250,7 @@ Deno.test("AddLearningDialog: renders correctly", () => {
 Deno.test("AddLearningDialog: uses default portal when provided", () => {
   const dialog = new AddLearningDialog("my-project");
 
-  assertEquals(dialog.getScope(), "project");
+  assertEquals(dialog.getScope(), MemoryScope.PROJECT);
 });
 
 Deno.test("AddLearningDialog: validates required fields", () => {
@@ -261,13 +271,13 @@ Deno.test("AddLearningDialog: form fields can be edited", () => {
   const dialog = new AddLearningDialog();
 
   dialog.setTitle("Test Title");
-  dialog.setCategory("decision");
+  dialog.setCategory(LearningCategory.DECISION);
   dialog.setContent("Test content");
-  dialog.setScope("global");
+  dialog.setScope(MemoryScope.GLOBAL);
 
   assertEquals(dialog.getTitle(), "Test Title");
-  assertEquals(dialog.getCategory(), "decision");
-  assertEquals(dialog.getScope(), "global");
+  assertEquals(dialog.getCategory(), LearningCategory.DECISION);
+  assertEquals(dialog.getScope(), MemoryScope.GLOBAL);
 });
 
 Deno.test("AddLearningDialog: escape cancels", () => {

@@ -4,7 +4,8 @@
  * Part of Phase 13.1: Shared TUI Infrastructure
  */
 
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertStringIncludes } from "@std/assert";
+import { EvaluationVerdict } from "../../../src/enums.ts";
 import {
   ANSI,
   bold,
@@ -130,7 +131,7 @@ Deno.test("warning: applies yellow color", () => {
 });
 
 Deno.test("error: applies red color", () => {
-  const result = error("fail", true);
+  const result = error(EvaluationVerdict.FAIL, true);
   assertStringIncludes(result, ANSI.red);
 });
 

@@ -12,6 +12,8 @@
  */
 
 import { assertEquals, assertThrows } from "https://deno.land/std@0.203.0/assert/mod.ts";
+import { DaemonStatus } from "../../src/enums.ts";
+
 import {
   createLayoutManager,
   LAYOUT_PRESETS,
@@ -87,7 +89,7 @@ Deno.test("LayoutManager: getPresetById returns correct preset", () => {
 
 Deno.test("LayoutManager: getPresetById returns undefined for unknown", () => {
   const manager = createLayoutManager();
-  const unknown = manager.getPresetById("unknown");
+  const unknown = manager.getPresetById(DaemonStatus.UNKNOWN);
   assertEquals(unknown, undefined);
 });
 
@@ -156,7 +158,7 @@ Deno.test("LayoutManager: applyPreset - quad creates four panes", () => {
 Deno.test("LayoutManager: applyPreset throws for unknown preset", () => {
   const manager = createLayoutManager();
   assertThrows(
-    () => manager.applyPreset("unknown", []),
+    () => manager.applyPreset(DaemonStatus.UNKNOWN, []),
     Error,
     "Unknown layout preset",
   );
@@ -308,7 +310,7 @@ Deno.test("LayoutManager: closePane throws for unknown pane", () => {
   ];
 
   assertThrows(
-    () => manager.closePane(panes, "unknown"),
+    () => manager.closePane(panes, DaemonStatus.UNKNOWN),
     Error,
     "Pane not found",
   );
@@ -336,7 +338,7 @@ Deno.test("LayoutManager: swapPanes throws for unknown pane", () => {
   ];
 
   assertThrows(
-    () => manager.swapPanes(panes, "left", "unknown"),
+    () => manager.swapPanes(panes, "left", DaemonStatus.UNKNOWN),
     Error,
     "not found",
   );
@@ -453,7 +455,7 @@ Deno.test("LayoutManager: loadNamedLayout loads saved layout", () => {
 
 Deno.test("LayoutManager: loadNamedLayout returns undefined for unknown", () => {
   const manager = createLayoutManager();
-  const loaded = manager.loadNamedLayout("unknown");
+  const loaded = manager.loadNamedLayout(DaemonStatus.UNKNOWN);
   assertEquals(loaded, undefined);
 });
 

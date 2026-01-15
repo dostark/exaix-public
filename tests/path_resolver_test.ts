@@ -1,4 +1,6 @@
-import { assertEquals, assertExists, assertRejects } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertRejects } from "@std/assert";
+import { MemoryReferenceType } from "../src/enums.ts";
+
 import { join } from "@std/path";
 import { PathResolver } from "../src/services/path_resolver.ts";
 import { createMockConfig } from "./helpers/config.ts";
@@ -67,7 +69,7 @@ Deno.test("[security] PathResolver: throws on accessing file outside allowed roo
     const secretFile = join(tempDir, "secret.txt");
     await Deno.writeTextFile(secretFile, "secret");
     const symlink = join(blueprintsDir, "link_to_secret");
-    await Deno.symlink(secretFile, symlink, { type: "file" });
+    await Deno.symlink(secretFile, symlink, { type: MemoryReferenceType.FILE });
 
     // Deno.symlink requires allow-write/read, assuming test env has it
     // If symlinks are not supported on the OS, this test might need adjustment

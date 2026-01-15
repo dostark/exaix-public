@@ -2,7 +2,12 @@
  * Extended tests for ExecutionLoop to improve code coverage
  * These tests target specific branches and edge cases not covered by main tests
  */
-import { assert, assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists } from "@std/assert";
+
+import { PortalOperation } from "../src/enums.ts";
+
+import { MemoryOperation } from "../src/enums.ts";
+
 import { join } from "@std/path";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";
 import { createMockConfig } from "./helpers/config.ts";
@@ -50,7 +55,7 @@ status: pending
 # Execute Next Test Plan
 
 \`\`\`toml
-tool = "read_file"
+tool = McpToolName.READ_FILE
 description = "Read test file"
 
 [params]
@@ -81,7 +86,7 @@ Deno.test("ExecutionLoop.executeNext: skips non-pending plans", async () => {
     const plansDir = getWorkspacePlansDir(tempDir);
     await Deno.mkdir(plansDir, { recursive: true });
 
-    // Create plan with "active" status (not "pending")
+    // Create plan with SkillStatus.ACTIVE status (not MemoryStatus.PENDING)
     const planContent = `---
 trace_id: "test-skip-active"
 request_id: skip-test
@@ -300,7 +305,7 @@ status: active
 # Plan that Produces Null Result
 
 \`\`\`toml
-tool = "read_file"
+tool = McpToolName.READ_FILE
 description = "Read non-existent file"
 
 [params]
@@ -482,15 +487,15 @@ Deno.test("ExecutionLoop: handles nothing to commit gracefully", async () => {
     await Deno.writeTextFile(testFile, "existing content");
 
     // Git add and commit
-    const addCmd = new Deno.Command("git", {
-      args: ["add", "."],
+    const addCmd = new Deno.Command(PortalOperation.GIT, {
+      args: [MemoryOperation.ADD, "."],
       cwd: tempDir,
       stdout: "piped",
       stderr: "piped",
     });
     await addCmd.output();
 
-    const commitCmd = new Deno.Command("git", {
+    const commitCmd = new Deno.Command(PortalOperation.GIT, {
       args: ["commit", "-m", "Initial commit"],
       cwd: tempDir,
       stdout: "piped",
@@ -508,7 +513,7 @@ status: active
 # No Changes Plan
 
 \`\`\`toml
-tool = "read_file"
+tool = McpToolName.READ_FILE
 description = "Just read existing file"
 
 [params]

@@ -1,4 +1,5 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert@1";
+import { assertEquals, assertThrows } from "@std/assert";
+import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";
 import { z, ZodError } from "zod";
 import { FlowSchema, FlowStepSchema } from "../../src/schemas/flow.ts";
 
@@ -10,7 +11,7 @@ Deno.test("FlowStepSchema: validates valid step definition", () => {
     agent: "senior-coder",
     dependsOn: ["setup"],
     input: {
-      source: "request" as const,
+      source: FlowInputSource.REQUEST,
       transform: "passthrough",
     },
     timeout: 30000,
@@ -25,7 +26,7 @@ Deno.test("FlowStepSchema: validates valid step definition", () => {
   assertEquals(result.name, "Analyze Codebase");
   assertEquals(result.agent, "senior-coder");
   assertEquals(result.dependsOn, ["setup"]);
-  assertEquals(result.input.source, "request");
+  assertEquals(result.input.source, FlowInputSource.REQUEST);
   assertEquals(result.timeout, 30000);
   assertEquals(result.retry.maxAttempts, 2);
 });
@@ -57,7 +58,7 @@ Deno.test("FlowStepSchema: requires id, name, and agent fields", () => {
 });
 
 Deno.test("FlowStepSchema: validates input source enum values", () => {
-  const validSources = ["request", "step", "aggregate"];
+  const validSources = [FlowInputSource.REQUEST, FlowInputSource.STEP, FlowInputSource.AGGREGATE];
 
   for (const source of validSources) {
     const step = {
@@ -91,7 +92,7 @@ Deno.test("FlowStepSchema: applies default values for optional fields", () => {
 
   const result = FlowStepSchema.parse(minimalStep);
   assertEquals(result.dependsOn, []);
-  assertEquals(result.input.source, "request");
+  assertEquals(result.input.source, FlowInputSource.REQUEST);
   assertEquals(result.input.transform, "passthrough");
   assertEquals(result.retry.maxAttempts, 1);
   assertEquals(result.retry.backoffMs, 1000);
@@ -208,7 +209,7 @@ Deno.test("FlowSchema: validates complete flow definition", () => {
     ],
     output: {
       from: ["review"],
-      format: "markdown",
+      format: FlowOutputFormat.MARKDOWN,
     },
     settings: {
       maxParallelism: 2,
@@ -251,7 +252,7 @@ Deno.test("FlowSchema: validates steps array", () => {
     ],
     output: {
       from: ["step1"],
-      format: "markdown",
+      format: FlowOutputFormat.MARKDOWN,
     },
   };
 
@@ -266,7 +267,7 @@ Deno.test("FlowSchema: validates steps array", () => {
         name: "Test",
         description: "Test",
         steps: [],
-        output: { from: [], format: "markdown" },
+        output: { from: [], format: FlowOutputFormat.MARKDOWN },
       }),
     ZodError,
   );
@@ -279,14 +280,14 @@ Deno.test("FlowSchema: validates steps array", () => {
         name: "Test",
         description: "Test",
         steps: "invalid",
-        output: { from: [], format: "markdown" },
+        output: { from: [], format: FlowOutputFormat.MARKDOWN },
       }),
     ZodError,
   );
 });
 
 Deno.test("FlowSchema: validates output configuration", () => {
-  const validOutputs = ["markdown", "json", "concat"];
+  const validOutputs = [FlowOutputFormat.MARKDOWN, FlowOutputFormat.JSON, FlowOutputFormat.CONCAT];
 
   for (const format of validOutputs) {
     const flow = {
@@ -333,7 +334,7 @@ Deno.test("FlowSchema: applies default values for optional fields", () => {
     ],
     output: {
       from: ["step1"],
-      format: "markdown",
+      format: FlowOutputFormat.MARKDOWN,
     },
   };
 
@@ -350,7 +351,7 @@ Deno.test("FlowSchema: validates settings configuration", () => {
     name: "Test",
     description: "Test",
     steps: [{ id: "step1", name: "Step 1", agent: "agent1" }],
-    output: { from: ["step1"], format: "markdown" },
+    output: { from: ["step1"], format: FlowOutputFormat.MARKDOWN },
     settings: {
       maxParallelism: 5,
       failFast: false,
@@ -389,11 +390,11 @@ Deno.test("Flow schemas: can be imported and used by other modules", () => {
   const testStep: FlowStep = {
     id: "test-step",
     name: "Test Step",
-    type: "agent",
+    type: FlowStepType.AGENT,
     agent: "test-agent",
     dependsOn: [],
     input: {
-      source: "request",
+      source: FlowInputSource.REQUEST,
       transform: "passthrough",
     },
     retry: {
@@ -410,7 +411,7 @@ Deno.test("Flow schemas: can be imported and used by other modules", () => {
     steps: [testStep],
     output: {
       from: ["test-step"],
-      format: "markdown",
+      format: FlowOutputFormat.MARKDOWN,
     },
     settings: {
       maxParallelism: 3,

@@ -13,8 +13,8 @@
  * - Cost tracking is accurate and prevents financial loss
  */
 
-import { assertEquals, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
-import { Spy, spy } from "jsr:@std/testing@^1.0.0/mock";
+import { assertEquals, assertRejects, assertStringIncludes } from "@std/assert";
+import { Spy, spy } from "@std/testing/mock";
 import { RateLimitedProvider, RateLimitError } from "../../src/ai/rate_limited_provider.ts";
 import { IModelProvider } from "../../src/ai/providers.ts";
 

@@ -8,7 +8,9 @@
  * - All private methods generate correct content sections
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
 import {
   type AgentExecutionResult,
   PlanWriter,
@@ -77,7 +79,7 @@ Deno.test("PlanWriter: writePlan creates plan file with correct structure", asyn
           step: 1,
           title: "Create Component",
           description: "Create the main component",
-          tools: ["write_file"],
+          tools: [McpToolName.WRITE_FILE],
           successCriteria: ["Component created"],
         },
       ],

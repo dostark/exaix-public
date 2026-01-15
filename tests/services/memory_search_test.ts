@@ -11,11 +11,14 @@
  * Phase 12.10: Tag-Based Search & Simple RAG
  */
 
-import { assertEquals, assertExists, assertGreaterOrEqual } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
+import { EvaluationCategory } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { Learning, ProjectMemory } from "../../src/schemas/memory_bank.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Setup Helpers =====
@@ -80,40 +83,40 @@ async function setupTestLearnings(
     {
       id: "aaaaaaaa-1111-4000-8000-000000000001",
       created_at: new Date().toISOString(),
-      source: "agent",
-      scope: "global",
+      source: MemorySource.AGENT,
+      scope: MemoryScope.GLOBAL,
       title: "Error handling best practice",
       description: "Always wrap async operations in try-catch for proper error propagation",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["error-handling", "typescript", "async"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     },
     {
       id: "aaaaaaaa-1111-4000-8000-000000000002",
       created_at: new Date().toISOString(),
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Avoid callback hell",
       description: "Use async/await instead of nested callbacks for better readability",
-      category: "anti-pattern",
+      category: LearningCategory.ANTI_PATTERN,
       tags: ["async", "code-quality", "typescript"],
-      confidence: "high",
-      status: "approved",
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     },
     {
       id: "aaaaaaaa-1111-4000-8000-000000000003",
       created_at: new Date().toISOString(),
-      source: "execution",
+      source: MemorySource.EXECUTION,
       source_id: "trace-123",
-      scope: "project",
+      scope: MemoryScope.PROJECT,
       project: "search-test-project",
       title: "Database connection pooling",
       description: "Use connection pooling to avoid exhausting database connections",
-      category: "insight",
-      tags: ["database", "performance"],
-      confidence: "medium",
-      status: "approved",
+      category: LearningCategory.INSIGHT,
+      tags: ["database", EvaluationCategory.PERFORMANCE],
+      confidence: ConfidenceLevel.MEDIUM,
+      status: MemoryStatus.APPROVED,
     },
   ];
 
@@ -211,7 +214,7 @@ Deno.test("MemoryBankService: searchByKeyword finds text matches in titles", asy
     await setupTestLearnings(service, config.system.root);
 
     // Search by keyword in title
-    const results = await service.searchByKeyword("pattern");
+    const results = await service.searchByKeyword(LearningCategory.PATTERN);
 
     // Should find patterns with "Pattern" in the name
     assertGreaterOrEqual(results.length, 3);
@@ -289,7 +292,7 @@ Deno.test("MemoryBankService: combined search uses tiered approach (tags first)"
     // Combined search with tags and keyword
     const results = await service.searchMemoryAdvanced({
       tags: ["typescript"],
-      keyword: "pattern",
+      keyword: LearningCategory.PATTERN,
     });
 
     // Tag matches should have higher relevance than keyword-only matches

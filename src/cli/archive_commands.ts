@@ -4,9 +4,9 @@ import { ArchiveService } from "../services/archive_service.ts";
 export class ArchiveCommands extends BaseCommand {
   private archiveService: ArchiveService;
 
-  constructor(context: CommandContext, workspaceRoot: string) {
+  constructor(context: CommandContext) {
     super(context);
-    this.archiveService = new ArchiveService(workspaceRoot);
+    this.archiveService = new ArchiveService(this.config.paths.archive);
   }
 
   async list(): Promise<void> {

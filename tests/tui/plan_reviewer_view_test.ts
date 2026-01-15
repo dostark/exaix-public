@@ -1,4 +1,6 @@
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals } from "@std/assert";
+import { MemoryStatus, PlanStatus } from "../../src/enums.ts";
+
 import {
   DbLikePlanServiceAdapter,
   MinimalPlanServiceMock,
@@ -36,10 +38,22 @@ async function setupWorkspace(planId: string, frontmatter: Record<string, string
 
 Deno.test("lists pending plans via PlanCommands", async () => {
   const planId = "p1";
-  const root = await setupWorkspace(planId, { status: "pending", title: "Add login" }, "# Plan Body\n");
+  const root = await setupWorkspace(planId, { status: PlanStatus.REVIEW, title: "Add login" }, "# Plan Body\n");
   const db = new MockDB();
-  const context: any = { config: { paths: { workspace: "Workspace" } }, db };
-  const cmd = new PlanCommands(context, root);
+  const context: any = {
+    config: {
+      system: { root: root },
+      paths: {
+        workspace: "Workspace",
+        plans: "Plans",
+        active: "Active",
+        rejected: "Rejected",
+        archive: "Archive",
+      },
+    },
+    db,
+  };
+  const cmd = new PlanCommands(context);
   const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
   const pending = await view.listPending();
   assertEquals(pending.length, 1);
@@ -50,10 +64,22 @@ Deno.test("lists pending plans via PlanCommands", async () => {
 Deno.test("returns plan content as diff via PlanCommands", async () => {
   const planId = "p2";
   const body = "- old\n+ new\n";
-  const root = await setupWorkspace(planId, { status: "pending", title: "Change README" }, body);
+  const root = await setupWorkspace(planId, { status: PlanStatus.REVIEW, title: "Change README" }, body);
   const db = new MockDB();
-  const context: any = { config: { paths: { workspace: "Workspace" } }, db };
-  const cmd = new PlanCommands(context, root);
+  const context: any = {
+    config: {
+      system: { root: root },
+      paths: {
+        workspace: "Workspace",
+        plans: "Plans",
+        active: "Active",
+        rejected: "Rejected",
+        archive: "Archive",
+      },
+    },
+    db,
+  };
+  const cmd = new PlanCommands(context);
   const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
   const diff = await view.getDiff(planId);
   assertEquals(diff.includes("+ new"), true);
@@ -64,8 +90,20 @@ Deno.test("approve moves plan and logs activity via PlanCommands", async () => {
   const planId = "p3";
   const root = await setupWorkspace(planId, { status: "review", title: "Refactor" }, "# Body\n");
   const db = new MockDB();
-  const context: any = { config: { paths: { workspace: "Workspace" } }, db };
-  const cmd = new PlanCommands(context, root);
+  const context: any = {
+    config: {
+      system: { root: root },
+      paths: {
+        workspace: "Workspace",
+        plans: "Plans",
+        active: "Active",
+        rejected: "Rejected",
+        archive: "Archive",
+      },
+    },
+    db,
+  };
+  const cmd = new PlanCommands(context);
   const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
   const ok = await view.approve(planId, "reviewer-1");
   assert(ok);
@@ -100,10 +138,22 @@ Deno.test("DB-like path logs reviewer and reason", async () => {
 
 Deno.test("reject moves plan to Workspace/Rejected and logs reason via PlanCommands", async () => {
   const planId = "p4";
-  const root = await setupWorkspace(planId, { status: "pending", title: "WIP" }, "# Body\n");
+  const root = await setupWorkspace(planId, { status: PlanStatus.REVIEW, title: "WIP" }, "# Body\n");
   const db = new MockDB();
-  const context: any = { config: { paths: { workspace: "Workspace" } }, db };
-  const cmd = new PlanCommands(context, root);
+  const context: any = {
+    config: {
+      system: { root: root },
+      paths: {
+        workspace: "Workspace",
+        plans: "Plans",
+        active: "Active",
+        rejected: "Rejected",
+        archive: "Archive",
+      },
+    },
+    db,
+  };
+  const cmd = new PlanCommands(context);
   const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
   const ok = await view.reject(planId, "reviewer-2", "needs changes");
   assert(ok);
@@ -119,10 +169,22 @@ Deno.test("reject moves plan to Workspace/Rejected and logs reason via PlanComma
 Deno.test("handles very large plan content via PlanCommands", async () => {
   const planId = "p5";
   const large = "a".repeat(100_000);
-  const root = await setupWorkspace(planId, { status: "pending", title: "Big change" }, large);
+  const root = await setupWorkspace(planId, { status: PlanStatus.REVIEW, title: "Big change" }, large);
   const db = new MockDB();
-  const context: any = { config: { paths: { workspace: "Workspace" } }, db };
-  const cmd = new PlanCommands(context, root);
+  const context: any = {
+    config: {
+      system: { root: root },
+      paths: {
+        workspace: "Workspace",
+        plans: "Plans",
+        active: "Active",
+        rejected: "Rejected",
+        archive: "Archive",
+      },
+    },
+    db,
+  };
+  const cmd = new PlanCommands(context);
   const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
   const diff = await view.getDiff(planId);
   assertEquals(diff.length, large.length);
@@ -185,8 +247,8 @@ Deno.test("PlanReviewerView: reject throws if reason missing", async () => {
 Deno.test("PlanReviewerView: renderPlanList and renderDiff", () => {
   const view = new PlanReviewerView(new MinimalPlanServiceMock());
   const plans = [
-    { id: "p1", title: "T1", status: "pending" },
-    { id: "p2", title: "T2", status: "approved" },
+    { id: "p1", title: "T1", status: MemoryStatus.PENDING },
+    { id: "p2", title: "T2", status: MemoryStatus.APPROVED },
   ];
   const list = view.renderPlanList(plans);
   assert(list.includes("p1 T1 [pending]"));
@@ -402,10 +464,10 @@ Deno.test("PlanReviewerTuiSession keyboard actions - invalid keys ignored", asyn
 
 Deno.test("Phase 13.4: Plan tree is built with status groups", () => {
   const plans = [
-    { id: "p1", title: "Plan 1", status: "pending" },
-    { id: "p2", title: "Plan 2", status: "approved" },
-    { id: "p3", title: "Plan 3", status: "rejected" },
-    { id: "p4", title: "Plan 4", status: "pending" },
+    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+    { id: "p2", title: "Plan 2", status: PlanStatus.APPROVED },
+    { id: "p3", title: "Plan 3", status: PlanStatus.REJECTED },
+    { id: "p4", title: "Plan 4", status: PlanStatus.REVIEW },
   ];
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
@@ -430,8 +492,8 @@ Deno.test("Phase 13.4: Plan tree is built with status groups", () => {
 
 Deno.test("Phase 13.4: Plan tree rendering", () => {
   const plans = [
-    { id: "p1", title: "Plan 1", status: "pending" },
-    { id: "p2", title: "Plan 2", status: "approved" },
+    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+    { id: "p2", title: "Plan 2", status: PlanStatus.APPROVED },
   ];
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
@@ -548,9 +610,9 @@ Deno.test("Phase 13.4: Diff rendering", async () => {
 
 Deno.test("Phase 13.4: Expand/Collapse all", async () => {
   const plans = [
-    { id: "p1", title: "Plan 1", status: "pending" },
-    { id: "p2", title: "Plan 2", status: "approved" },
-    { id: "p3", title: "Plan 3", status: "rejected" },
+    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+    { id: "p2", title: "Plan 2", status: PlanStatus.APPROVED },
+    { id: "p3", title: "Plan 3", status: PlanStatus.REJECTED },
   ];
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
@@ -569,9 +631,9 @@ Deno.test("Phase 13.4: Expand/Collapse all", async () => {
 
 Deno.test("Phase 13.4: Approve all pending", async () => {
   const plans = [
-    { id: "p1", title: "Plan 1", status: "pending" },
-    { id: "p2", title: "Plan 2", status: "pending" },
-    { id: "p3", title: "Plan 3", status: "approved" },
+    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+    { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
+    { id: "p3", title: "Plan 3", status: PlanStatus.APPROVED },
   ];
   const approved: string[] = [];
   const mockService = new MinimalPlanServiceMock();
@@ -593,14 +655,14 @@ Deno.test("Phase 13.4: Approve all pending", async () => {
 });
 
 Deno.test("Phase 13.4: Refresh view with R key", async () => {
-  const plans = [{ id: "p1", title: "Plan 1", status: "pending" }];
+  const plans = [{ id: "p1", title: "Plan 1", status: PlanStatus.REVIEW }];
   let listCalled = false;
   const mockService = new MinimalPlanServiceMock();
   mockService.listPending = () => {
     listCalled = true;
     return Promise.resolve([
-      { id: "p1", title: "Plan 1", status: "pending" },
-      { id: "p2", title: "Plan 2", status: "pending" },
+      { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+      { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
     ]);
   };
 
@@ -686,15 +748,15 @@ Deno.test("Phase 13.4: Get active dialog when none", () => {
 });
 
 Deno.test("Phase 13.4: Update plans rebuilds tree", () => {
-  const plans = [{ id: "p1", title: "Plan 1", status: "pending" }];
+  const plans = [{ id: "p1", title: "Plan 1", status: PlanStatus.REVIEW }];
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
   assertEquals(session.getPlanTree().length, 1, "Should have 1 group initially");
 
   // Update with more plans
   session.updatePlans([
-    { id: "p1", title: "Plan 1", status: "pending" },
-    { id: "p2", title: "Plan 2", status: "approved" },
+    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+    { id: "p2", title: "Plan 2", status: PlanStatus.APPROVED },
   ]);
 
   const newTree = session.getPlanTree();
@@ -712,8 +774,8 @@ Deno.test("Phase 13.4: Focusable elements", () => {
 
 Deno.test("Phase 13.4: Left arrow collapses expanded group", async () => {
   const plans = [
-    { id: "p1", title: "Plan 1", status: "pending" },
-    { id: "p2", title: "Plan 2", status: "pending" },
+    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+    { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
   ];
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 

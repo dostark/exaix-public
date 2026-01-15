@@ -43,7 +43,8 @@ export class PortalCommands {
     this.config = context.config;
     this.db = context.db;
     this.configService = context.configService;
-    this.portalsDir = join(this.config.system.root, "Portals");
+    // Resolve paths relative to system root
+    this.portalsDir = join(this.config.system.root, this.config.paths.portals);
     this.contextCardGenerator = new ContextCardGenerator(this.config, this.db);
   }
 
@@ -142,8 +143,7 @@ export class PortalCommands {
         const symlinkPath = join(this.portalsDir, entry.name);
         const contextCardPath = join(
           this.config.system.root,
-          "Memory",
-          "Projects",
+          this.config.paths.memoryProjects,
           entry.name,
           "portal.md",
         );
@@ -190,8 +190,7 @@ export class PortalCommands {
     const symlinkPath = join(this.portalsDir, alias);
     const contextCardPath = join(
       this.config.system.root,
-      this.config.paths.memory,
-      "Projects",
+      this.config.paths.memoryProjects,
       alias,
       "portal.md",
     );
@@ -246,8 +245,7 @@ export class PortalCommands {
     const symlinkPath = join(this.portalsDir, alias);
     const contextCardPath = join(
       this.config.system.root,
-      "Memory",
-      "Projects",
+      this.config.paths.memoryProjects,
       alias,
       "portal.md",
     );
@@ -271,8 +269,7 @@ export class PortalCommands {
     if (!options?.keepCard) {
       const archivedDir = join(
         this.config.system.root,
-        "Memory",
-        "Projects",
+        this.config.paths.memoryProjects,
         "_archived",
       );
       await Deno.mkdir(archivedDir, { recursive: true });
@@ -310,8 +307,7 @@ export class PortalCommands {
       const symlinkPath = join(this.portalsDir, portalAlias);
       const contextCardPath = join(
         this.config.system.root,
-        "Memory",
-        "Projects",
+        this.config.paths.memoryProjects,
         portalAlias,
         "portal.md",
       );

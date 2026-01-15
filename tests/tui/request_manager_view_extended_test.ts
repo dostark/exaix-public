@@ -4,7 +4,11 @@
  * Additional tests to improve coverage for request_manager_view.ts
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { CritiqueSeverity } from "../../src/enums.ts";
+
+import { ExecutionStatus, MemoryOperation, MemorySource, MemoryStatus } from "../../src/enums.ts";
+
 import {
   LegacyRequestManagerTuiSession,
   MinimalRequestServiceMock,
@@ -25,7 +29,7 @@ function createTestRequests(): Request[] {
       trace_id: "req-001",
       filename: "request-001.md",
       title: "Test Request 1",
-      status: "pending",
+      status: MemoryStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-01-01T10:00:00Z",
@@ -36,7 +40,7 @@ function createTestRequests(): Request[] {
       trace_id: "req-002",
       filename: "request-002.md",
       title: "Test Request 2",
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       priority: "high",
       agent: "code-reviewer",
       created: "2025-01-01T11:00:00Z",
@@ -54,7 +58,7 @@ function createTestRequests(): Request[] {
       filename: "request-003.md",
       title: "Test Request 3",
       status: "in_progress",
-      priority: "critical",
+      priority: CritiqueSeverity.CRITICAL,
       agent: "architect",
       created: "2025-01-01T12:00:00Z",
       created_by: "admin@example.com",
@@ -75,7 +79,7 @@ function createTestRequests(): Request[] {
       trace_id: "req-005",
       filename: "request-005.md",
       title: "Failed Request",
-      status: "failed",
+      status: ExecutionStatus.FAILED,
       priority: "high",
       agent: "researcher",
       created: "2025-01-01T14:00:00Z",
@@ -100,7 +104,7 @@ Deno.test("RequestManagerView: REQUEST_KEY_BINDINGS is comprehensive", () => {
   const actions = REQUEST_KEY_BINDINGS.map((b) => b.action);
   assertEquals(actions.includes("navigate"), true);
   assertEquals(actions.includes("create"), true);
-  assertEquals(actions.includes("delete"), true);
+  assertEquals(actions.includes(MemoryOperation.DELETE), true);
   assertEquals(actions.includes("help"), true);
 });
 
@@ -218,7 +222,7 @@ Deno.test("RequestManagerTuiSession: toggleGrouping cycles through modes", () =>
   assertEquals(session.getState().groupBy, "priority");
 
   session.toggleGrouping();
-  assertEquals(session.getState().groupBy, "agent");
+  assertEquals(session.getState().groupBy, MemorySource.AGENT);
 
   session.toggleGrouping();
   assertEquals(session.getState().groupBy, "none");
@@ -365,7 +369,7 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
     trace_id: "req-empty",
     filename: "request-empty.md",
     title: "Request with empty skills",
-    status: "pending",
+    status: MemoryStatus.PENDING,
     priority: "normal",
     agent: "default",
     created: "2025-01-01T10:00:00Z",
@@ -398,7 +402,7 @@ Deno.test("RequestManagerTuiSession: filter by status and agent", () => {
 
   // Test filtering by status
   const state = session.getState();
-  state.filterStatus = "pending";
+  state.filterStatus = MemoryStatus.PENDING;
   session.buildTree();
   assertEquals(session.getFilteredRequests().length, 1);
 
@@ -496,7 +500,7 @@ Deno.test("RequestManagerTuiSession: render shows current filters", () => {
 
   const state = session.getState();
   state.searchQuery = "test";
-  state.filterStatus = "pending";
+  state.filterStatus = MemoryStatus.PENDING;
   state.filterAgent = "default";
 
   const output = session.render();
@@ -781,7 +785,7 @@ Deno.test("LegacyRequestManagerTuiSession: handleKey actions", async () => {
         trace_id: "new-req",
         filename: "request-new.md",
         title: "New Request",
-        status: "pending",
+        status: MemoryStatus.PENDING,
         priority: "normal",
         agent: "default",
         created: new Date().toISOString(),
@@ -892,7 +896,7 @@ Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", asy
       Promise.resolve({
         trace_id: "test-id",
         filename: "test.md",
-        status: "pending",
+        status: MemoryStatus.PENDING,
         priority: "normal",
         agent: "default",
         portal: undefined,
@@ -907,6 +911,6 @@ Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", asy
   const adapter = new RequestCommandsServiceAdapter(mockCmd);
 
   // This should log a warning but return true
-  const result = await adapter.updateRequestStatus("test-id", "completed");
+  const result = await adapter.updateRequestStatus("test-id", ExecutionStatus.COMPLETED);
   assertEquals(result, true);
 });

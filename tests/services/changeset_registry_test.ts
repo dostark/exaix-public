@@ -4,8 +4,10 @@
  * Covers registration, retrieval, listing, status updates, and Activity Journal logging.
  */
 
-import { assertEquals, assertExists, assertRejects } from "jsr:@std/assert@^1.0.0";
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
+import { assertEquals, assertExists, assertRejects } from "@std/assert";
+import { ChangesetStatus, MemorySource } from "../../src/enums.ts";
+
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { ChangesetRegistry } from "../../src/services/changeset_registry.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { initTestDbService } from "../helpers/db.ts";
@@ -70,7 +72,7 @@ describe("ChangesetRegistry", () => {
     const changeset = await registry.get(id);
 
     assertExists(changeset);
-    assertEquals(changeset.status, "pending");
+    assertEquals(changeset.status, ChangesetStatus.PENDING);
     assertEquals(changeset.files_changed, 0);
     assertEquals(changeset.commit_sha, null); // SQLite returns null for NULL values
   });
@@ -102,7 +104,7 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/test",
       description: "Test",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 0,
     };
 
@@ -199,7 +201,7 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/trace-1",
       description: "Trace 1",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
@@ -208,7 +210,7 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/trace-2",
       description: "Trace 2",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
@@ -226,7 +228,7 @@ describe("ChangesetRegistry", () => {
       portal: "Portal1",
       branch: "feat/portal-1",
       description: "Portal 1",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
@@ -235,7 +237,7 @@ describe("ChangesetRegistry", () => {
       portal: "Portal2",
       branch: "feat/portal-2",
       description: "Portal 2",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
@@ -253,7 +255,7 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/status-pending",
       description: "Pending",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
@@ -262,14 +264,14 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/status-approved",
       description: "Approved",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
-    await registry.updateStatus(id2, "approved", "test-user");
+    await registry.updateStatus(id2, ChangesetStatus.APPROVED, "test-user");
 
-    const pending = await registry.list({ status: "pending" });
-    const approved = await registry.list({ status: "approved" });
+    const pending = await registry.list({ status: ChangesetStatus.PENDING });
+    const approved = await registry.list({ status: ChangesetStatus.APPROVED });
 
     assertEquals(pending.length, 1);
     assertEquals(pending[0].id, id1);
@@ -319,12 +321,12 @@ describe("ChangesetRegistry", () => {
     };
 
     const id = await registry.register(input);
-    await registry.updateStatus(id, "approved", "test-user");
+    await registry.updateStatus(id, ChangesetStatus.APPROVED, "test-user");
 
     const changeset = await registry.get(id);
 
     assertExists(changeset);
-    assertEquals(changeset.status, "approved");
+    assertEquals(changeset.status, ChangesetStatus.APPROVED);
     assertEquals(changeset.approved_by, "test-user");
     assertExists(changeset.approved_at);
   });
@@ -340,12 +342,12 @@ describe("ChangesetRegistry", () => {
     };
 
     const id = await registry.register(input);
-    await registry.updateStatus(id, "rejected", "test-user", "Not meeting requirements");
+    await registry.updateStatus(id, ChangesetStatus.REJECTED, "test-user", "Not meeting requirements");
 
     const changeset = await registry.get(id);
 
     assertExists(changeset);
-    assertEquals(changeset.status, "rejected");
+    assertEquals(changeset.status, ChangesetStatus.REJECTED);
     assertEquals(changeset.rejected_by, "test-user");
     assertEquals(changeset.rejection_reason, "Not meeting requirements");
     assertExists(changeset.rejected_at);
@@ -363,7 +365,7 @@ describe("ChangesetRegistry", () => {
     };
 
     const id = await registry.register(input);
-    await registry.updateStatus(id, "approved", "test-user");
+    await registry.updateStatus(id, ChangesetStatus.APPROVED, "test-user");
     await db.waitForFlush();
 
     const activities = db.getActivitiesByTrace(trace_id);
@@ -385,7 +387,7 @@ describe("ChangesetRegistry", () => {
     };
 
     const id = await registry.register(input);
-    await registry.updateStatus(id, "rejected", "test-user", "Invalid approach");
+    await registry.updateStatus(id, ChangesetStatus.REJECTED, "test-user", "Invalid approach");
     await db.waitForFlush();
 
     const activities = db.getActivitiesByTrace(trace_id);
@@ -397,7 +399,7 @@ describe("ChangesetRegistry", () => {
 
   it("should throw error when updating non-existent changeset", async () => {
     await assertRejects(
-      async () => await registry.updateStatus(crypto.randomUUID(), "approved"),
+      async () => await registry.updateStatus(crypto.randomUUID(), ChangesetStatus.APPROVED),
       Error,
       "Changeset not found",
     );
@@ -415,7 +417,7 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/trace-1",
       description: "Test 1",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
@@ -424,7 +426,7 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/trace-2",
       description: "Test 2",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 2,
     });
 
@@ -441,7 +443,7 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/pending-1",
       description: "Pending 1",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
@@ -450,11 +452,11 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/pending-2",
       description: "Pending 2",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
-    await registry.updateStatus(id2, "approved", "user");
+    await registry.updateStatus(id2, ChangesetStatus.APPROVED, MemorySource.USER);
 
     const pending = await registry.getPendingForPortal("TestPortal");
 
@@ -470,7 +472,7 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/count-1",
       description: "Count 1",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
@@ -479,14 +481,14 @@ describe("ChangesetRegistry", () => {
       portal: "TestPortal",
       branch: "feat/count-2",
       description: "Count 2",
-      created_by: "agent",
+      created_by: MemorySource.AGENT,
       files_changed: 1,
     });
 
-    await registry.updateStatus(id1, "approved", "user");
+    await registry.updateStatus(id1, ChangesetStatus.APPROVED, MemorySource.USER);
 
-    const pendingCount = await registry.countByStatus("pending");
-    const approvedCount = await registry.countByStatus("approved");
+    const pendingCount = await registry.countByStatus(ChangesetStatus.PENDING);
+    const approvedCount = await registry.countByStatus(ChangesetStatus.APPROVED);
 
     assertEquals(pendingCount, 1);
     assertEquals(approvedCount, 1);

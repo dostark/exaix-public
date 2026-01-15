@@ -1,4 +1,8 @@
-import { assert, assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists } from "@std/assert";
+import { DaemonStatus } from "../../src/enums.ts";
+
+import { MemorySource } from "../../src/enums.ts";
+
 import { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS, MonitorView } from "../../src/tui/monitor_view.ts";
 import type { LogEntry } from "../../src/tui/monitor_view.ts";
 import { DatabaseService } from "../../src/services/db.ts";
@@ -31,7 +35,7 @@ Deno.test("MonitorView - getAnsiColorCode covers all cases", () => {
   assertEquals(monitorView["getAnsiColorCode"]("yellow"), 33);
   assertEquals(monitorView["getAnsiColorCode"]("blue"), 34);
   assertEquals(monitorView["getAnsiColorCode"]("white"), 37);
-  assertEquals(monitorView["getAnsiColorCode"]("unknown"), 37);
+  assertEquals(monitorView["getAnsiColorCode"](DaemonStatus.UNKNOWN), 37);
 });
 
 Deno.test("MonitorView - renderLogs outputs ANSI and handles empty", () => {
@@ -39,7 +43,7 @@ Deno.test("MonitorView - renderLogs outputs ANSI and handles empty", () => {
     {
       id: "1",
       trace_id: "t1",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: "a1",
       action_type: "error",
       target: "target.md",
@@ -49,7 +53,7 @@ Deno.test("MonitorView - renderLogs outputs ANSI and handles empty", () => {
     {
       id: "2",
       trace_id: "t2",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: "a2",
       action_type: "unknown_type",
       target: "target2.md",
@@ -77,7 +81,7 @@ Deno.test("MonitorView - should display real-time log streaming", async () => {
   // Test that it can retrieve logs
   const logs = await monitorView.getLogs();
   assertEquals(logs.length, 1);
-  assertEquals(logs[0].actor, "agent");
+  assertEquals(logs[0].actor, MemorySource.AGENT);
   assertEquals(logs[0].action_type, "request_created");
 });
 
@@ -136,7 +140,7 @@ Deno.test("MonitorView - does not fetch when paused", () => {
       {
         id: "1",
         trace_id: "trace-1",
-        actor: "agent",
+        actor: MemorySource.AGENT,
         agent_id: "dev",
         action_type: "plan.approved",
         target: "Workspace/Plans/test.md",
@@ -170,7 +174,7 @@ Deno.test("MonitorView - should export logs to file", () => {
     {
       id: "1",
       trace_id: "trace-1",
-      actor: "agent",
+      actor: MemorySource.AGENT,
       agent_id: "researcher",
       action_type: "request_created",
       target: "Workspace/Requests/test.md",
@@ -190,7 +194,7 @@ Deno.test("MonitorView - should handle large log volumes without crashing", asyn
   const largeLogs = Array.from({ length: 1000 }, (_, i) => ({
     id: `${i + 1}`,
     trace_id: `trace-${i + 1}`,
-    actor: "agent",
+    actor: MemorySource.AGENT,
     agent_id: i % 2 === 0 ? "researcher" : "architect",
     action_type: i % 3 === 0 ? "request_created" : "plan_approved",
     target: `Workspace/Requests/test${i}.md`,
@@ -233,7 +237,7 @@ Deno.test("MonitorView - should filter logs by time window", () => {
     {
       id: "1",
       trace_id: "trace-1",
-      actor: "agent",
+      actor: MemorySource.AGENT,
       agent_id: "researcher",
       action_type: "request_created",
       target: "Workspace/Requests/test.md",
@@ -243,7 +247,7 @@ Deno.test("MonitorView - should filter logs by time window", () => {
     {
       id: "2",
       trace_id: "trace-2",
-      actor: "agent",
+      actor: MemorySource.AGENT,
       agent_id: "architect",
       action_type: "plan_approved",
       target: "Workspace/Plans/test.md",
@@ -290,7 +294,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - toggle grouping", async () => {
   assertEquals(session.getGroupBy(), "none");
 
   await session.handleKey("g");
-  assertEquals(session.getGroupBy(), "agent");
+  assertEquals(session.getGroupBy(), MemorySource.AGENT);
 
   await session.handleKey("g");
   assertEquals(session.getGroupBy(), "action");
@@ -326,7 +330,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - bookmarking", async () => {
     {
       id: "1",
       trace_id: "t1",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: "a1",
       action_type: "request_created",
       target: "target.md",
@@ -351,7 +355,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - navigation", async () => {
     {
       id: "1",
       trace_id: "t1",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: "a1",
       action_type: "request_created",
       target: "target.md",
@@ -361,7 +365,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - navigation", async () => {
     {
       id: "2",
       trace_id: "t2",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: "a2",
       action_type: "plan.approved",
       target: "target2.md",
@@ -386,7 +390,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - expand/collapse all", async () => {
     {
       id: "1",
       trace_id: "t1",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: "a1",
       action_type: "request_created",
       target: "target.md",
@@ -396,7 +400,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - expand/collapse all", async () => {
     {
       id: "2",
       trace_id: "t2",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: "a2",
       action_type: "plan.approved",
       target: "target2.md",
@@ -425,7 +429,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - detail view", async () => {
     {
       id: "1",
       trace_id: "t1",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: "a1",
       action_type: "request_created",
       target: "target.md",
@@ -452,7 +456,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - render methods", () => {
     {
       id: "1",
       trace_id: "t1",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: "a1",
       action_type: "request_created",
       target: "target.md",
@@ -497,7 +501,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - export logs", () => {
     {
       id: "1",
       trace_id: "t1",
-      actor: "user",
+      actor: MemorySource.USER,
       agent_id: "a1",
       action_type: "request_created",
       target: "target.md",

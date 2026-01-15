@@ -3,8 +3,10 @@
  * Phase 15.3: LLM-as-a-Judge Pattern
  */
 
-import { assertEquals, assertExists } from "jsr:@std/assert@1";
+import { assertEquals, assertExists } from "@std/assert";
+
 import { CRITERIA, EvaluationResult as _EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
+import { EvaluationCategory } from "../../src/enums.ts";
 import { JudgeInvoker } from "../../src/flows/gate_evaluator.ts";
 import { createJudgeEvaluator, JudgeEvaluator } from "../../src/flows/judge_evaluator.ts";
 
@@ -81,7 +83,13 @@ Deno.test("JudgeEvaluator: handles JSON in code block", async () => {
   const evaluator = new JudgeEvaluator(mockRunner);
 
   // CRITERIA.ACCURACY doesn't exist, use a real one
-  const criterion = { name: "accuracy", description: "Test", weight: 1.0, required: false };
+  const criterion = {
+    name: "accuracy",
+    description: "Test",
+    weight: 1.0,
+    required: false,
+    category: EvaluationCategory.CORRECTNESS,
+  };
 
   const responseWithCodeBlock = `Here's my evaluation:
 
@@ -174,7 +182,13 @@ Deno.test("JudgeEvaluator: falls back to heuristic parsing for non-JSON", async 
   const mockRunner = new MockAgentRunner();
   const evaluator = new JudgeEvaluator(mockRunner);
 
-  const accuracy = { name: "accuracy", description: "Test", weight: 1.0, required: false };
+  const accuracy = {
+    name: "accuracy",
+    description: "Test",
+    weight: 1.0,
+    required: false,
+    category: EvaluationCategory.CORRECTNESS,
+  };
 
   const textResponse = `Based on my evaluation:
 Overall Score: 0.82

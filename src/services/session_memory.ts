@@ -19,6 +19,7 @@ import { z } from "zod";
 import type { MemoryBankService } from "./memory_bank.ts";
 import type { MemoryEmbeddingService } from "./memory_embedding.ts";
 import type { Learning, MemorySearchResult } from "../schemas/memory_bank.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../enums.ts";
 
 // ===== Configuration Schema =====
 
@@ -77,7 +78,7 @@ export const InsightSchema = z.object({
   description: z.string().max(2000),
   category: z.enum(["pattern", "anti-pattern", "decision", "insight", "troubleshooting"]),
   tags: z.array(z.string()).max(10),
-  confidence: z.enum(["low", "medium", "high"]),
+  confidence: z.nativeEnum(ConfidenceLevel),
   portal: z.string().optional().describe("Project scope, if any"),
 });
 
@@ -266,15 +267,15 @@ export class SessionMemoryService {
       const learning: Learning = {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
-        source: "agent",
-        scope: insight.portal ? "project" : "global",
+        source: MemorySource.AGENT,
+        scope: insight.portal ? MemoryScope.PROJECT : MemoryScope.GLOBAL,
         project: insight.portal,
         title: insight.title,
         description: insight.description,
-        category: insight.category,
+        category: insight.category as LearningCategory,
         tags: insight.tags,
         confidence: insight.confidence,
-        status: "pending", // Start as pending for review
+        status: MemoryStatus.PENDING, // Start as pending for review
       };
 
       // Save to memory bank

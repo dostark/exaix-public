@@ -5,7 +5,7 @@
  * @module
  */
 
-import { assertEquals, assertRejects } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertRejects } from "@std/assert";
 import { Spy, spy, Stub, stub } from "https://deno.land/std@0.203.0/testing/mock.ts";
 import { ModelProviderError } from "../../../src/ai/providers.ts";
 

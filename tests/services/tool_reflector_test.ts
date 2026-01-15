@@ -4,7 +4,11 @@
  * Tests for Phase 16.5: Tool Result Reflection Implementation
  */
 
-import { assert, assertEquals, assertExists, assertGreater } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
+import { CritiqueSeverity } from "../../src/enums.ts";
+
 import type { IModelProvider } from "../../src/ai/providers.ts";
 import {
   createFastToolReflector,
@@ -65,7 +69,7 @@ function createMockToolResult(success: boolean, output: unknown = "result", erro
 function createMockToolCall(overrides?: Partial<ToolCall>): ToolCall {
   return {
     id: "tool-1",
-    name: "read_file",
+    name: McpToolName.READ_FILE,
     parameters: { path: "/test/file.txt" },
     purpose: "Read file contents",
     ...overrides,
@@ -82,7 +86,7 @@ Deno.test("[ToolReflectionSchema] validates correct reflection", () => {
     confidence: 90,
     achieved_purpose: true,
     issues: [
-      { type: "incomplete", description: "Missing data", severity: "minor" },
+      { type: "incomplete", description: "Missing data", severity: CritiqueSeverity.MINOR },
     ],
     retry_suggested: false,
     insights: ["File exists", "Content valid"],
@@ -97,7 +101,7 @@ Deno.test("[ToolReflectionSchema] rejects invalid issue type", () => {
     success: true,
     confidence: 90,
     achieved_purpose: true,
-    issues: [{ type: "unknown_type", description: "Test", severity: "major" }],
+    issues: [{ type: "unknown_type", description: "Test", severity: CritiqueSeverity.MAJOR }],
     retry_suggested: false,
   };
 
@@ -246,9 +250,9 @@ Deno.test("[ToolReflector] executes independent calls in parallel", async () => 
   });
 
   const toolCalls: ToolCall[] = [
-    { id: "1", name: "read_file", parameters: { path: "a.txt" }, purpose: "Read A" },
-    { id: "2", name: "read_file", parameters: { path: "b.txt" }, purpose: "Read B" },
-    { id: "3", name: "read_file", parameters: { path: "c.txt" }, purpose: "Read C" },
+    { id: "1", name: McpToolName.READ_FILE, parameters: { path: "a.txt" }, purpose: "Read A" },
+    { id: "2", name: McpToolName.READ_FILE, parameters: { path: "b.txt" }, purpose: "Read B" },
+    { id: "3", name: McpToolName.READ_FILE, parameters: { path: "c.txt" }, purpose: "Read C" },
   ];
 
   const executor = (call: ToolCall) => {
@@ -275,9 +279,9 @@ Deno.test("[ToolReflector] respects dependencies in parallel execution", async (
   const executionOrder: string[] = [];
 
   const toolCalls: ToolCall[] = [
-    { id: "1", name: "read_file", parameters: {}, purpose: "First" },
+    { id: "1", name: McpToolName.READ_FILE, parameters: {}, purpose: "First" },
     { id: "2", name: "process", parameters: {}, purpose: "Second", dependencies: ["1"] },
-    { id: "3", name: "write_file", parameters: {}, purpose: "Third", dependencies: ["2"] },
+    { id: "3", name: McpToolName.WRITE_FILE, parameters: {}, purpose: "Third", dependencies: ["2"] },
   ];
 
   const executor = (call: ToolCall) => {
@@ -306,8 +310,8 @@ Deno.test("[ToolReflector] executes sequentially when parallel disabled", async 
   });
 
   const toolCalls: ToolCall[] = [
-    { id: "1", name: "read_file", parameters: {}, purpose: "First" },
-    { id: "2", name: "read_file", parameters: {}, purpose: "Second" },
+    { id: "1", name: McpToolName.READ_FILE, parameters: {}, purpose: "First" },
+    { id: "2", name: McpToolName.READ_FILE, parameters: {}, purpose: "Second" },
   ];
 
   const executor = (call: ToolCall) => {
@@ -379,12 +383,12 @@ Deno.test("[ToolReflector] tracks tool distribution", async () => {
     return Promise.resolve(createMockToolResult(true, "result"));
   };
 
-  await reflector.executeWithReflection(createMockToolCall({ name: "read_file" }), executor);
-  await reflector.executeWithReflection(createMockToolCall({ name: "read_file" }), executor);
+  await reflector.executeWithReflection(createMockToolCall({ name: McpToolName.READ_FILE }), executor);
+  await reflector.executeWithReflection(createMockToolCall({ name: McpToolName.READ_FILE }), executor);
 
   const metrics = reflector.getMetrics();
 
-  assertEquals(metrics.toolDistribution["read_file"], 2);
+  assertEquals(metrics.toolDistribution[McpToolName.READ_FILE], 2);
 });
 
 Deno.test("[ToolReflector] resets metrics", async () => {
@@ -483,7 +487,7 @@ Deno.test("[ToolReflector] handles tool error", async () => {
     makeReflectionJSON({
       success: false,
       confidence: 20,
-      issues: [{ type: "error", description: "Failed", severity: "critical" }],
+      issues: [{ type: "error", description: "Failed", severity: CritiqueSeverity.CRITICAL }],
     }),
   ];
 
@@ -505,7 +509,7 @@ Deno.test("[ToolReflector] rejects on critical issues", async () => {
       success: true,
       confidence: 90,
       achieved_purpose: true,
-      issues: [{ type: "error", description: "Critical error", severity: "critical" }],
+      issues: [{ type: "error", description: "Critical error", severity: CritiqueSeverity.CRITICAL }],
       retry_suggested: false,
     }),
   ];

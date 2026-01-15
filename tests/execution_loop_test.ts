@@ -1,4 +1,5 @@
-import { assert, assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists } from "@std/assert";
+import { FlowStepType, MemoryOperation, MemorySource, PortalOperation } from "../src/enums.ts";
 import { join } from "@std/path";
 import { getDefaultPaths } from "../src/config/paths.ts";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";
@@ -173,8 +174,8 @@ agent_id: test-agent
     assertEquals(result.success, true);
 
     // Check that git branch was created
-    const gitCmd = new Deno.Command("git", {
-      args: ["branch", "--list", "feat/git-commit-test-*"],
+    const gitCmd = new Deno.Command(PortalOperation.GIT, {
+      args: [FlowStepType.BRANCH, "--list", "feat/git-commit-test-*"],
       cwd: tempDir,
       stdout: "piped",
     });
@@ -183,7 +184,7 @@ agent_id: test-agent
     assert(branches.includes("feat/git-commit-test"), "Git branch should be created");
 
     // Check that commit includes trace_id
-    const logCmd = new Deno.Command("git", {
+    const logCmd = new Deno.Command(PortalOperation.GIT, {
       args: ["log", "--oneline", "-1"],
       cwd: tempDir,
       stdout: "piped",
@@ -191,7 +192,7 @@ agent_id: test-agent
     const { stdout: logOutput } = await logCmd.output();
     const _commitLog = new TextDecoder().decode(logOutput);
 
-    const detailCmd = new Deno.Command("git", {
+    const detailCmd = new Deno.Command(PortalOperation.GIT, {
       args: ["log", "-1", "--pretty=format:%B"],
       cwd: tempDir,
       stdout: "piped",
@@ -381,7 +382,7 @@ agent_id: test-agent
     await loop.processTask(planPath);
 
     // Wait for batched logs to flush
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await db.waitForFlush();
 
     const activities = db.getActivitiesByTrace("test-trace-logging");
 
@@ -402,7 +403,7 @@ agent_id: test-agent
     );
 
     // Verify agent_id is set
-    const agentActions = activities.filter((a: any) => a.actor === "agent");
+    const agentActions = activities.filter((a: any) => a.actor === MemorySource.AGENT);
     agentActions.forEach((action: any) => {
       assertEquals(action.agent_id, "test-agent", "Agent actions should have agent_id");
     });
@@ -509,7 +510,7 @@ agent_id: test-agent
     assertEquals(result.success, false, "Execution should fail due to 'Intentionally fail' marker");
 
     // Git working tree should be clean (changes rolled back)
-    const statusCmd = new Deno.Command("git", {
+    const statusCmd = new Deno.Command(PortalOperation.GIT, {
       args: ["status", "--porcelain"],
       cwd: tempDir,
       stdout: "piped",
@@ -576,7 +577,7 @@ This plan has two actions in TOML format.
     assertEquals(result.success, true);
 
     // Verify actions were logged
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await db.waitForFlush();
     const activities = db.getActivitiesByTrace("test-trace-toml");
 
     const actionStarted = activities.filter((a: any) => a.action_type === "execution.action_started");
@@ -622,7 +623,7 @@ This plan has one action in TOML format.
 
     assertEquals(result.success, true);
 
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await db.waitForFlush();
     const activities = db.getActivitiesByTrace("test-trace-multi");
 
     const actionStarted = activities.filter((a: any) => a.action_type === "execution.action_started");
@@ -716,7 +717,7 @@ Only the middle block should be parsed.
 
     assertEquals(result.success, true, "Should succeed despite malformed blocks");
 
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await db.waitForFlush();
     const activities = db.getActivitiesByTrace("test-trace-malformed");
 
     const actionStarted = activities.filter((a: any) => a.action_type === "execution.action_started");
@@ -773,7 +774,7 @@ Only the middle block with 'tool' field should be treated as an action.
 
     assertEquals(result.success, true);
 
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await db.waitForFlush();
     const activities = db.getActivitiesByTrace("test-trace-notool");
 
     const actionStarted = activities.filter((a: any) => a.action_type === "execution.action_started");
@@ -795,23 +796,23 @@ Deno.test("ExecutionLoop: handles commit with no changes gracefully", async () =
 
     // Create initial commit so git is initialized
     await Deno.writeTextFile(join(tempDir, "README.md"), "init");
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["init"],
       cwd: tempDir,
     }).output();
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["config", "user.name", "Test"],
       cwd: tempDir,
     }).output();
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["config", "user.email", "test@test.com"],
       cwd: tempDir,
     }).output();
-    await new Deno.Command("git", {
-      args: ["add", "."],
+    await new Deno.Command(PortalOperation.GIT, {
+      args: [MemoryOperation.ADD, "."],
       cwd: tempDir,
     }).output();
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["commit", "-m", "Initial"],
       cwd: tempDir,
     }).output();
@@ -835,11 +836,11 @@ This plan has no action blocks, and the test-execution.txt file will be identica
     // Pre-create the test-execution.txt file that the loop would create
     const testFile = join(tempDir, "test-execution.txt");
     await Deno.writeTextFile(testFile, "existing content");
-    await new Deno.Command("git", {
-      args: ["add", "."],
+    await new Deno.Command(PortalOperation.GIT, {
+      args: [MemoryOperation.ADD, "."],
       cwd: tempDir,
     }).output();
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["commit", "-m", "Add test file"],
       cwd: tempDir,
     }).output();
@@ -1062,10 +1063,10 @@ path = "test-read.txt"
 
     assertEquals(result.success, true);
 
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    const activities = db.getActivitiesByTrace("test-trace-summary");
-    const completedLog = activities.find((a: any) => a.action_type === "execution.action_completed");
-    assertExists(completedLog, "Action completion with summary should be logged");
+    await db.waitForFlush();
+    const activities = db.getActivitiesByActionType("execution.action_completed");
+    const log = activities.find((a: any) => JSON.parse(a.payload).result_summary?.includes("success"));
+    assertExists(log, "Action completion with summary should be logged");
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });
@@ -1131,24 +1132,24 @@ Deno.test("ExecutionLoop: handles git rollback on failure", async () => {
     const systemActiveDir = getWorkspaceActiveDir(tempDir);
 
     // Initialize git
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["init"],
       cwd: tempDir,
     }).output();
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["config", "user.name", "Test"],
       cwd: tempDir,
     }).output();
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["config", "user.email", "test@test.com"],
       cwd: tempDir,
     }).output();
     await Deno.writeTextFile(join(tempDir, "initial.txt"), "initial");
-    await new Deno.Command("git", {
-      args: ["add", "."],
+    await new Deno.Command(PortalOperation.GIT, {
+      args: [MemoryOperation.ADD, "."],
       cwd: tempDir,
     }).output();
-    await new Deno.Command("git", {
+    await new Deno.Command(PortalOperation.GIT, {
       args: ["commit", "-m", "Initial"],
       cwd: tempDir,
     }).output();
@@ -1175,7 +1176,7 @@ path traversal: ../../etc/passwd
 
     // Git should be rolled back (implementation does git reset --hard HEAD)
     // Verify no staged changes remain
-    const statusCmd = new Deno.Command("git", {
+    const statusCmd = new Deno.Command(PortalOperation.GIT, {
       args: ["status", "--porcelain"],
       cwd: tempDir,
       stdout: "piped",

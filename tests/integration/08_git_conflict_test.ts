@@ -12,7 +12,13 @@
  * - Test 7: Report indicates conflict occurred
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
+import { PortalOperation } from "../../src/enums.ts";
+
+import { MemoryOperation, MemorySource } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { GitService as _GitService } from "../../src/services/git_service.ts";
@@ -36,7 +42,7 @@ export function greet(name: string): string {
       await env.writeFile(sharedFile, initialContent);
 
       // Commit to main
-      await runGit(env.tempDir, ["add", sharedFile]);
+      await runGit(env.tempDir, [MemoryOperation.ADD, sharedFile]);
       await runGit(env.tempDir, ["commit", "-m", "Add shared file"]);
 
       const exists = await env.fileExists(sharedFile);
@@ -57,7 +63,7 @@ export function greet(name: string): string {
         status: "review",
         actions: [
           {
-            tool: "write_file",
+            tool: McpToolName.WRITE_FILE,
             params: {
               path: sharedFile,
               content: `// Shared file - Updated by agent
@@ -98,7 +104,7 @@ export function greet(name: string): string {
 `;
       await env.writeFile(sharedFile, humanContent);
 
-      await runGit(env.tempDir, ["add", sharedFile]);
+      await runGit(env.tempDir, [MemoryOperation.ADD, sharedFile]);
       await runGit(env.tempDir, ["commit", "-m", "Human update to greet"]);
 
       // Verify human change is on main
@@ -152,8 +158,8 @@ export function greet(name: string): string {
       // Should have git-related activities
       const _hasGitActivity = activities.some(
         (a) =>
-          a.action_type.includes("git") ||
-          a.action_type.includes("execution"),
+          a.action_type.includes(PortalOperation.GIT) ||
+          a.action_type.includes(MemorySource.EXECUTION),
       );
 
       assert(activities.length >= 0, "Should have logged activities");
@@ -193,7 +199,7 @@ export function greet(name: string): string {
 }
 `;
           await env.writeFile(sharedFile, agentContent);
-          await runGit(env.tempDir, ["add", sharedFile]);
+          await runGit(env.tempDir, [MemoryOperation.ADD, sharedFile]);
           await runGit(env.tempDir, ["commit", "-m", "Resolve conflict manually"]);
         });
 
@@ -230,7 +236,7 @@ Deno.test("Integration: Git Conflict - Multiple files in conflict", async () => 
     // Create multiple files
     await env.writeFile("src/file1.ts", "export const a = 1;");
     await env.writeFile("src/file2.ts", "export const b = 2;");
-    await runGit(env.tempDir, ["add", "."]);
+    await runGit(env.tempDir, [MemoryOperation.ADD, "."]);
     await runGit(env.tempDir, ["commit", "-m", "Initial files"]);
 
     const { traceId } = await env.createRequest("Modify both files");
@@ -239,8 +245,8 @@ Deno.test("Integration: Git Conflict - Multiple files in conflict", async () => 
     const planPath = await env.createPlan(traceId, "modify-both", {
       status: "review",
       actions: [
-        { tool: "write_file", params: { path: "src/file1.ts", content: "export const a = 10;" } },
-        { tool: "write_file", params: { path: "src/file2.ts", content: "export const b = 20;" } },
+        { tool: McpToolName.WRITE_FILE, params: { path: "src/file1.ts", content: "export const a = 10;" } },
+        { tool: McpToolName.WRITE_FILE, params: { path: "src/file2.ts", content: "export const b = 20;" } },
       ],
     });
 
@@ -261,12 +267,12 @@ Deno.test("Integration: Git Conflict - Deleted file conflict", async () => {
   try {
     // Create file
     await env.writeFile("src/to_delete.ts", "export const x = 1;");
-    await runGit(env.tempDir, ["add", "."]);
+    await runGit(env.tempDir, [MemoryOperation.ADD, "."]);
     await runGit(env.tempDir, ["commit", "-m", "Add file"]);
 
     // Human deletes on main
     await Deno.remove(join(env.tempDir, "src/to_delete.ts"));
-    await runGit(env.tempDir, ["add", "."]);
+    await runGit(env.tempDir, [MemoryOperation.ADD, "."]);
     await runGit(env.tempDir, ["commit", "-m", "Delete file"]);
 
     const { traceId } = await env.createRequest("Modify to_delete.ts");
@@ -276,7 +282,7 @@ Deno.test("Integration: Git Conflict - Deleted file conflict", async () => {
       status: "review",
       actions: [
         {
-          tool: "write_file",
+          tool: McpToolName.WRITE_FILE,
           params: { path: "src/to_delete.ts", content: "export const x = 2;" },
         },
       ],
@@ -298,7 +304,7 @@ Deno.test("Integration: Git Conflict - Deleted file conflict", async () => {
  * Run git command and return result
  */
 async function runGit(cwd: string, args: string[]): Promise<void> {
-  const cmd = new Deno.Command("git", {
+  const cmd = new Deno.Command(PortalOperation.GIT, {
     args,
     cwd,
     stdout: "null",
@@ -311,7 +317,7 @@ async function runGitWithResult(
   cwd: string,
   args: string[],
 ): Promise<{ success: boolean; stdout: string; stderr: string }> {
-  const cmd = new Deno.Command("git", {
+  const cmd = new Deno.Command(PortalOperation.GIT, {
     args,
     cwd,
     stdout: "piped",

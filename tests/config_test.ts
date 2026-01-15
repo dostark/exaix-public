@@ -11,7 +11,9 @@
  * - Test 7: ConfigService validates provider configuration
  */
 
-import { assertEquals, assertExists, assertThrows } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertThrows } from "@std/assert";
+import { ProviderCostTier } from "../src/enums.ts";
+
 import { ConfigService } from "../src/config/service.ts";
 import { ConfigSchema } from "../src/config/schema.ts";
 import { join } from "@std/path";
@@ -219,26 +221,13 @@ log_level = "info"
     );
 
     try {
-      // Mock Deno.exit to prevent actual exit
-      const originalExit = Deno.exit;
-      let exitCalled = false;
-      let exitCode = 0;
-
-      (Deno.exit as any) = (code: number) => {
-        exitCalled = true;
-        exitCode = code;
-        throw new Error(`Exit called with code ${code}`);
-      };
-
-      try {
-        assertThrows(() => {
+      assertThrows(
+        () => {
           new ConfigService("test-missing-fields.toml");
-        });
-        assertEquals(exitCalled, true);
-        assertEquals(exitCode, 1);
-      } finally {
-        Deno.exit = originalExit;
-      }
+        },
+        Error,
+        "Invalid configuration",
+      );
     } finally {
       try {
         Deno.removeSync(tempPath);
@@ -267,22 +256,13 @@ runtime = "./Runtime"
     );
 
     try {
-      const originalExit = Deno.exit;
-      let exitCalled = false;
-
-      (Deno.exit as any) = (code: number) => {
-        exitCalled = true;
-        throw new Error(`Exit called with code ${code}`);
-      };
-
-      try {
-        assertThrows(() => {
+      assertThrows(
+        () => {
           new ConfigService("test-invalid-types.toml");
-        });
-        assertEquals(exitCalled, true);
-      } finally {
-        Deno.exit = originalExit;
-      }
+        },
+        Error,
+        "Invalid configuration",
+      );
     } finally {
       try {
         Deno.removeSync(tempPath);
@@ -312,22 +292,13 @@ timeout_sec = -5
     );
 
     try {
-      const originalExit = Deno.exit;
-      let exitCalled = false;
-
-      (Deno.exit as any) = (code: number) => {
-        exitCalled = true;
-        throw new Error(`Exit called with code ${code}`);
-      };
-
-      try {
-        assertThrows(() => {
+      assertThrows(
+        () => {
           new ConfigService("test-invalid-timeout.toml");
-        });
-        assertEquals(exitCalled, true);
-      } finally {
-        Deno.exit = originalExit;
-      }
+        },
+        Error,
+        "Invalid configuration",
+      );
     } finally {
       try {
         Deno.removeSync(tempPath);
@@ -812,17 +783,17 @@ Deno.test("ConfigSchema accepts providers.* overrides", () => {
     },
     providers: {
       google: {
-        cost_tier: "freemium",
+        cost_tier: ProviderCostTier.FREEMIUM,
         free_quota_requests_per_day: 1500,
         timeout_ms: 30000,
       },
       ollama: {
-        cost_tier: "free",
+        cost_tier: ProviderCostTier.FREE,
         base_url: "http://localhost:11434",
         timeout_ms: 60000,
       },
       anthropic: {
-        cost_tier: "paid",
+        cost_tier: ProviderCostTier.PAID,
         timeout_ms: 30000,
         rate_limit_rpm: 50,
       },
@@ -832,11 +803,11 @@ Deno.test("ConfigSchema accepts providers.* overrides", () => {
   const result = ConfigSchema.safeParse(config);
   assertEquals(result.success, true);
   if (result.success) {
-    assertEquals(result.data.providers?.google?.cost_tier, "freemium");
+    assertEquals(result.data.providers?.google?.cost_tier, ProviderCostTier.FREEMIUM);
     assertEquals(result.data.providers?.google?.free_quota_requests_per_day, 1500);
-    assertEquals(result.data.providers?.ollama?.cost_tier, "free");
+    assertEquals(result.data.providers?.ollama?.cost_tier, ProviderCostTier.FREE);
     assertEquals(result.data.providers?.ollama?.base_url, "http://localhost:11434");
-    assertEquals(result.data.providers?.anthropic?.cost_tier, "paid");
+    assertEquals(result.data.providers?.anthropic?.cost_tier, ProviderCostTier.PAID);
     assertEquals(result.data.providers?.anthropic?.rate_limit_rpm, 50);
   }
 });
@@ -865,7 +836,7 @@ Deno.test("ConfigSchema provides defaults for provider_strategy", () => {
   }
 });
 
-Deno.test("ConfigSchema validates provider names in fallback_chains", () => {
+Deno.test("ConfigSchema rejects unknown provider names in fallback_chains", () => {
   const config = {
     system: { version: "1.0.0" },
     paths: {
@@ -882,10 +853,8 @@ Deno.test("ConfigSchema validates provider names in fallback_chains", () => {
     },
   };
 
-  // This should still pass since we don't validate provider names in schema
-  // Validation happens at runtime when providers are resolved
   const result = ConfigSchema.safeParse(config);
-  assertEquals(result.success, true);
+  assertEquals(result.success, false);
 });
 
 Deno.test("ConfigSchema rejects invalid cost_tier values", () => {
@@ -921,10 +890,10 @@ Deno.test("ConfigSchema accepts valid cost_tier values", () => {
     },
     providers: {
       google: {
-        cost_tier: "free",
+        cost_tier: ProviderCostTier.FREE,
       },
       anthropic: {
-        cost_tier: "paid",
+        cost_tier: ProviderCostTier.PAID,
       },
     },
   };
@@ -932,7 +901,7 @@ Deno.test("ConfigSchema accepts valid cost_tier values", () => {
   const result = ConfigSchema.safeParse(config);
   assertEquals(result.success, true);
   if (result.success) {
-    assertEquals(result.data.providers?.google?.cost_tier, "free");
-    assertEquals(result.data.providers?.anthropic?.cost_tier, "paid");
+    assertEquals(result.data.providers?.google?.cost_tier, ProviderCostTier.FREE);
+    assertEquals(result.data.providers?.anthropic?.cost_tier, ProviderCostTier.PAID);
   }
 });

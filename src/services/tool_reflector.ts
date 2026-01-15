@@ -16,6 +16,7 @@ import type { DatabaseService } from "./db.ts";
 import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
+import { ToolReflectionIssueType, ToolReflectionSeverity } from "../enums.ts";
 
 // ============================================================================
 // Reflection Schema
@@ -29,9 +30,9 @@ export const ToolReflectionSchema = z.object({
   confidence: z.number().min(0).max(100),
   achieved_purpose: z.boolean(),
   issues: z.array(z.object({
-    type: z.enum(["error", "incomplete", "unexpected", "timeout", "permission", "format", "other"]),
+    type: z.nativeEnum(ToolReflectionIssueType),
     description: z.string(),
-    severity: z.enum(["critical", "major", "minor"]),
+    severity: z.nativeEnum(ToolReflectionSeverity),
   })).default([]),
   retry_suggested: z.boolean(),
   retry_reason: z.string().optional(),
@@ -325,7 +326,6 @@ export class ToolReflector {
     const llmResult = await this.agentRunner.run(blueprint, request);
 
     const validationResult = this.outputValidator.validate(llmResult.content, ToolReflectionSchema);
-
     if (validationResult.success && validationResult.value) {
       return validationResult.value;
     }
@@ -341,7 +341,7 @@ export class ToolReflector {
     if (!reflection.achieved_purpose) return false;
     if (reflection.confidence < this.config.reflectionThreshold) return false;
 
-    const hasCriticalIssues = reflection.issues.some((i) => i.severity === "critical");
+    const hasCriticalIssues = reflection.issues.some((i) => i.severity === ToolReflectionSeverity.CRITICAL);
     if (hasCriticalIssues) return false;
 
     return true;
@@ -400,7 +400,13 @@ export class ToolReflector {
       success: result.success,
       confidence: result.success ? 60 : 20,
       achieved_purpose: result.success,
-      issues: result.error ? [{ type: "error", description: result.error, severity: "major" as const }] : [],
+      issues: result.error
+        ? [{
+          type: ToolReflectionIssueType.ERROR,
+          description: result.error,
+          severity: ToolReflectionSeverity.MAJOR,
+        }]
+        : [],
       retry_suggested: !result.success,
       insights: [],
     };

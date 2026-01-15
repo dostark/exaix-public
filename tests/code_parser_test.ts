@@ -3,7 +3,9 @@
  * Tests parseCodeGeneration() with actual LLM response formats
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@1";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { MemoryOperation } from "../src/enums.ts";
+
 import {
   countOperations,
   extractFilePaths,
@@ -60,7 +62,7 @@ export const config = { auth: true };
     assertEquals(result.changes.length, 3);
     assertEquals(result.changes[0].operation, "create");
     assertEquals(result.changes[1].operation, "modify");
-    assertEquals(result.changes[2].operation, "delete");
+    assertEquals(result.changes[2].operation, MemoryOperation.DELETE);
   });
 
   await t.step("should handle delete operations without code blocks", () => {
@@ -73,7 +75,7 @@ This file is no longer needed.
     const result = parseCodeGeneration(llmResponse, portalRoot);
 
     assertEquals(result.changes.length, 1);
-    assertEquals(result.changes[0].operation, "delete");
+    assertEquals(result.changes[0].operation, MemoryOperation.DELETE);
     assertEquals(result.changes[0].content, undefined);
   });
 
@@ -262,7 +264,7 @@ Deno.test("Code Parser - extractFilePaths()", async (t) => {
     const changes: FileChange[] = [
       { path: "src/auth.ts", operation: "create", content: "..." },
       { path: "tests/auth_test.ts", operation: "create", content: "..." },
-      { path: "src/old.ts", operation: "delete" },
+      { path: "src/old.ts", operation: MemoryOperation.DELETE },
     ];
 
     const paths = extractFilePaths({ changes, invalidPaths: [], errors: [] });
@@ -286,7 +288,7 @@ Deno.test("Code Parser - countOperations()", async (t) => {
       { path: "src/a.ts", operation: "create", content: "..." },
       { path: "src/b.ts", operation: "create", content: "..." },
       { path: "src/c.ts", operation: "modify", content: "..." },
-      { path: "src/d.ts", operation: "delete" },
+      { path: "src/d.ts", operation: MemoryOperation.DELETE },
     ];
 
     const counts = countOperations(changes);

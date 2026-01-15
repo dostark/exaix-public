@@ -12,7 +12,9 @@
  * - Test 7: Portal configuration changes are respected
  */
 
-import { assert, assertEquals, assertExists, assertRejects as _assertRejects } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertExists, assertRejects as _assertRejects } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
 import { join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ContextLoader } from "../../src/services/context_loader.ts";
@@ -194,7 +196,7 @@ export function main() {
         status: "review",
         actions: [
           {
-            tool: "write_file",
+            tool: McpToolName.WRITE_FILE,
             params: {
               path: "Portals/project-alpha/src/new_file.ts",
               content: "export const x = 1;",

@@ -8,9 +8,9 @@
  * 3. Refactor while keeping tests green
  */
 
-import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@1";
-import { exists } from "jsr:@std/fs@1";
-import { join } from "jsr:@std/path@1";
+import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
+import { exists } from "@std/fs";
+import { join } from "@std/path";
 import { BlueprintCommands } from "../../src/cli/blueprint_commands.ts";
 import type { CommandContext } from "../../src/cli/base.ts";
 import { TestEnvironment } from "../integration/helpers/test_environment.ts";
@@ -43,25 +43,26 @@ async function teardownTest() {
 Deno.test("[blueprint] create - generates valid blueprint file", async () => {
   await setupTest();
   try {
-    const result = await commands.create("test-agent", {
+    const agentId = `test-agent-${Date.now()}`;
+    const result = await commands.create(agentId, {
       name: "Test Agent",
       model: "ollama:codellama:13b",
     });
 
     // Verify result structure
     assertExists(result);
-    assertEquals(result.agent_id, "test-agent");
+    assertEquals(result.agent_id, agentId);
     assertEquals(result.name, "Test Agent");
     assertEquals(result.model, "ollama:codellama:13b");
 
     // Verify file exists
-    const blueprintPath = join(testEnv.config.system.root, testEnv.config.paths.blueprints, "Agents", "test-agent.md");
+    const blueprintPath = join(testEnv.config.system.root, testEnv.config.paths.blueprints, "Agents", `${agentId}.md`);
     assertEquals(await exists(blueprintPath), true);
 
     // Verify file content
     const content = await Deno.readTextFile(blueprintPath);
     assertStringIncludes(content, "+++");
-    assertStringIncludes(content, 'agent_id = "test-agent"');
+    assertStringIncludes(content, `agent_id = "${agentId}"`);
     assertStringIncludes(content, 'name = "Test Agent"');
     assertStringIncludes(content, 'model = "ollama:codellama:13b"');
   } finally {

@@ -13,8 +13,10 @@
  * 8. Handles LLM errors gracefully
  */
 
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
-import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@^1";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
+import { MemoryStatus } from "../src/enums.ts";
+
+import { assert, assertEquals, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 
 import { RequestProcessor, type RequestProcessorConfig } from "../src/services/request_processor.ts";
@@ -23,6 +25,7 @@ import { MockLLMProvider } from "../src/ai/providers/mock_llm_provider.ts";
 import { DatabaseService } from "../src/services/db.ts";
 import { initTestDbService } from "./helpers/db.ts";
 import type { Config } from "../src/config/schema.ts";
+import { MockStrategy, PricingTier, ProviderCostTier } from "../src/enums.ts";
 import {
   getBlueprintsAgentsDir,
   getWorkspaceDir,
@@ -53,7 +56,7 @@ function createRequestContent(opts: {
   const fields = [
     `trace_id: "${opts.traceId}"`,
     `created: "${new Date().toISOString()}"`,
-    `status: ${opts.status || "pending"}`,
+    `status: ${opts.status || MemoryStatus.PENDING}`,
     `priority: ${opts.priority || "normal"}`,
     opts.flow ? null : `agent: ${opts.agent || "default"}`, // Only include agent if no flow
     opts.flow ? `flow: ${opts.flow}` : null,
@@ -137,8 +140,8 @@ describe("RequestProcessor", () => {
     ProviderRegistry.clear();
     ProviderRegistry.registerWithMetadata("mock", new MockProviderFactory(), {
       name: "mock",
-      costTier: "FREE",
-      pricingTier: "free",
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.FREE,
       capabilities: ["chat"],
       description: "Mock provider for testing",
       strengths: ["fast", "reliable", "deterministic"],
@@ -195,7 +198,7 @@ Do something
     it("should return null for request missing trace_id", async () => {
       const requestPath = join(getWorkspaceRequestsDir(testDir), "missing-trace.md");
       const invalidContent = `+++
-status = "pending"
+status = MemoryStatus.PENDING
 agent = "default"
 +++
 
@@ -281,7 +284,7 @@ Do something
       const { traceId, requestPath } = createTestRequestPath(testDir);
       const requestContent = createRequestContent({
         traceId,
-        status: "pending",
+        status: MemoryStatus.PENDING,
         body: "Add unit tests",
       });
 
@@ -336,7 +339,7 @@ Do something
       await Deno.writeTextFile(requestPath, requestContent);
 
       // Create a failing mock provider to simulate LLM failure
-      const failingProvider = new MockLLMProvider("failing", {
+      const failingProvider = new MockLLMProvider(MockStrategy.FAILING, {
         id: "failing-mock",
         errorMessage: "Simulated LLM failure",
       });

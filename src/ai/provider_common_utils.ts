@@ -1,6 +1,8 @@
 import { EventLogger } from "../services/event_logger.ts";
 import { AuthenticationError, RateLimitError } from "./providers/common.ts";
 import { ConnectionError, ModelProviderError } from "./providers.ts";
+import { DEFAULT_AI_RETRY_BACKOFF_BASE_MS, DEFAULT_AI_RETRY_MAX_ATTEMPTS } from "../config/constants.ts";
+import { HTTP_FORBIDDEN, HTTP_TOO_MANY_REQUESTS, HTTP_UNAUTHORIZED } from "../constants.ts";
 
 export type TokenMap = {
   prompt_tokens?: number;
@@ -27,10 +29,10 @@ export async function handleProviderResponse(
     } catch {
       // ignore JSON parse errors and fallback to statusText
     }
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === HTTP_UNAUTHORIZED || response.status === HTTP_FORBIDDEN) {
       throw new AuthenticationError(id, message);
     }
-    if (response.status === 429) {
+    if (response.status === HTTP_TOO_MANY_REQUESTS) {
       throw new RateLimitError(id, message);
     }
     if (response.status >= 500) {
@@ -120,8 +122,8 @@ export async function fetchJsonWithRetries(
   fetchOptions: RequestInit,
   {
     id,
-    maxAttempts = 3,
-    backoffBaseMs = 1000,
+    maxAttempts = DEFAULT_AI_RETRY_MAX_ATTEMPTS,
+    backoffBaseMs = DEFAULT_AI_RETRY_BACKOFF_BASE_MS,
     timeoutMs,
     logger,
     tokenMapper,
@@ -169,8 +171,8 @@ export async function performProviderCall(
   fetchOptions: RequestInit,
   {
     id,
-    maxAttempts = 3,
-    backoffBaseMs = 1000,
+    maxAttempts = DEFAULT_AI_RETRY_MAX_ATTEMPTS,
+    backoffBaseMs = DEFAULT_AI_RETRY_BACKOFF_BASE_MS,
     timeoutMs,
     logger,
     tokenMapper,

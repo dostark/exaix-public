@@ -1,4 +1,4 @@
-import { assertEquals, assertExists } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists } from "@std/assert";
 import { join } from "@std/path";
 import { ContextCardGenerator } from "../src/services/context_card_generator.ts";
 import { createMockConfig } from "./helpers/config.ts";

@@ -12,8 +12,8 @@
  * - Test 7: Handles edge cases (already running, not running, stale PID)
  */
 
-import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
-import { afterEach, beforeEach, describe, it } from "jsr:@std/testing@^1.0.0/bdd";
+import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { DaemonCommands } from "../../src/cli/daemon_commands.ts";

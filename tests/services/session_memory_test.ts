@@ -4,7 +4,7 @@
  * Phase 16.6: Session Memory Integration
  */
 
-import { assertEquals, assertExists, assertGreater, assertLess, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertGreater, assertLess, assertStringIncludes } from "@std/assert";
 import {
   createDisabledSessionMemoryService,
   createSessionMemoryService,
@@ -14,6 +14,14 @@ import {
 import type { MemoryBankService } from "../../src/services/memory_bank.ts";
 import type { EmbeddingSearchResult, MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import type { ExecutionMemory, Learning, MemorySearchResult } from "../../src/schemas/memory_bank.ts";
+import {
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+} from "../../src/enums.ts";
 
 // ===== Mock Services =====
 
@@ -87,7 +95,7 @@ const sampleEmbeddingResults: EmbeddingSearchResult[] = [
 
 const sampleSearchResults: MemorySearchResult[] = [
   {
-    type: "pattern",
+    type: LearningCategory.PATTERN,
     portal: "test-portal",
     title: "Dependency Injection Pattern",
     summary: "Inject dependencies through constructor for testability",
@@ -95,7 +103,7 @@ const sampleSearchResults: MemorySearchResult[] = [
     tags: ["architecture", "testing"],
   },
   {
-    type: "decision",
+    type: LearningCategory.DECISION,
     portal: "test-portal",
     title: "Decision: Use Deno Runtime",
     summary: "Chose Deno for built-in TypeScript support and modern APIs",
@@ -103,7 +111,7 @@ const sampleSearchResults: MemorySearchResult[] = [
     tags: ["runtime", "typescript"],
   },
   {
-    type: "execution",
+    type: MemorySource.EXECUTION,
     portal: "test-portal",
     title: "Execution: abc12345",
     summary: "Implemented user authentication module",
@@ -119,7 +127,7 @@ const sampleExecutions: ExecutionMemory[] = [
     request_id: "req-1",
     started_at: new Date().toISOString(),
     completed_at: new Date().toISOString(),
-    status: "completed",
+    status: ExecutionStatus.COMPLETED,
     portal: "test-portal",
     agent: "test-agent",
     summary: "Implemented feature X with comprehensive tests",
@@ -132,7 +140,7 @@ const sampleExecutions: ExecutionMemory[] = [
     request_id: "req-2",
     started_at: new Date().toISOString(),
     completed_at: new Date().toISOString(),
-    status: "completed",
+    status: ExecutionStatus.COMPLETED,
     portal: "other-portal",
     agent: "test-agent",
     summary: "Fixed bug in authentication flow",
@@ -216,7 +224,9 @@ Deno.test("SessionMemoryService - lookupMemories combines embedding and keyword 
   assertGreater(memories.length, 0);
 
   // Check that we have learning type from embeddings
-  const hasLearning = memories.some((m) => m.type === "learning");
+  const hasLearning = memories.some((m) =>
+    m.type === "learning" || m.type === LearningCategory.PATTERN || m.type === LearningCategory.INSIGHT
+  );
   assertEquals(hasLearning, true);
 });
 
@@ -262,7 +272,7 @@ Deno.test("SessionMemoryService - lookupMemories filters by type config", async 
   const memories = await service.lookupMemories("test");
 
   // Should not have execution type
-  const hasExecution = memories.some((m) => m.type === "execution");
+  const hasExecution = memories.some((m) => m.type === MemorySource.EXECUTION);
   assertEquals(hasExecution, false);
 });
 
@@ -334,9 +344,9 @@ Deno.test("SessionMemoryService - saveInsight creates learning entry", async () 
   const insight: Insight = {
     title: "Test Insight",
     description: "This is a test insight about patterns",
-    category: "pattern",
-    tags: ["test", "pattern"],
-    confidence: "high",
+    category: LearningCategory.PATTERN,
+    tags: ["test", LearningCategory.PATTERN],
+    confidence: ConfidenceLevel.HIGH,
   };
 
   const result = await service.saveInsight(insight);
@@ -348,8 +358,8 @@ Deno.test("SessionMemoryService - saveInsight creates learning entry", async () 
   // Check that learning was saved
   assertEquals(savedLearnings.length, 1);
   assertEquals(savedLearnings[0].title, "Test Insight");
-  assertEquals(savedLearnings[0].status, "pending");
-  assertEquals(savedLearnings[0].source, "agent");
+  assertEquals(savedLearnings[0].status, MemoryStatus.PENDING);
+  assertEquals(savedLearnings[0].source, MemorySource.AGENT);
 });
 
 Deno.test("SessionMemoryService - saveInsight with portal creates project-scoped learning", async () => {
@@ -362,16 +372,16 @@ Deno.test("SessionMemoryService - saveInsight with portal creates project-scoped
   const insight: Insight = {
     title: "Project-specific Pattern",
     description: "This pattern applies only to this project",
-    category: "pattern",
+    category: LearningCategory.PATTERN,
     tags: ["project-specific"],
-    confidence: "medium",
+    confidence: ConfidenceLevel.MEDIUM,
     portal: "my-project",
   };
 
   const result = await service.saveInsight(insight);
 
   assertEquals(result.success, true);
-  assertEquals(savedLearnings[0].scope, "project");
+  assertEquals(savedLearnings[0].scope, MemoryScope.PROJECT);
   assertEquals(savedLearnings[0].project, "my-project");
 });
 
@@ -388,9 +398,9 @@ Deno.test("SessionMemoryService - saveInsight handles errors gracefully", async 
   const insight: Insight = {
     title: "Test",
     description: "Test",
-    category: "insight",
+    category: LearningCategory.INSIGHT,
     tags: [],
-    confidence: "low",
+    confidence: ConfidenceLevel.LOW,
   };
 
   const result = await service.saveInsight(insight);
@@ -410,16 +420,16 @@ Deno.test("SessionMemoryService - saveInsights saves multiple", async () => {
     {
       title: "Insight 1",
       description: "First insight",
-      category: "pattern",
+      category: LearningCategory.PATTERN,
       tags: ["tag1"],
-      confidence: "high",
+      confidence: ConfidenceLevel.HIGH,
     },
     {
       title: "Insight 2",
       description: "Second insight",
-      category: "decision",
+      category: LearningCategory.DECISION,
       tags: ["tag2"],
-      confidence: "medium",
+      confidence: ConfidenceLevel.MEDIUM,
     },
   ];
 
@@ -490,7 +500,7 @@ Deno.test("SessionMemoryService - getRecentExecutions returns formatted memories
   const memories = await service.getRecentExecutions();
 
   assertEquals(memories.length, 2);
-  assertEquals(memories[0].type, "execution");
+  assertEquals(memories[0].type, MemorySource.EXECUTION);
   assertStringIncludes(memories[0].title, "Execution:");
   assertEquals(memories[0].relevance, 1.0); // Recent executions are always relevant
 });
@@ -552,7 +562,7 @@ Deno.test("SessionMemoryService - extracts key terms from query", async () => {
   // Should include meaningful terms
   assertEquals(terms.includes("implement"), true);
   assertEquals(terms.includes("repository"), true);
-  assertEquals(terms.includes("pattern"), true);
+  assertEquals(terms.includes(LearningCategory.PATTERN), true);
   assertEquals(terms.includes("database"), true);
   assertEquals(terms.includes("operations"), true);
 });

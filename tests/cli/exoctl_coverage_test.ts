@@ -7,7 +7,18 @@
  * - Edge cases in command parsing
  */
 
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals } from "@std/assert";
+import {
+  CritiqueSeverity,
+  FlowInputSource,
+  FlowOutputFormat,
+  MemoryOperation,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+  PortalOperation,
+  SkillStatus,
+} from "../../src/enums.ts";
 
 // Reusable helpers
 async function withTestMod<T>(fn: (mod: any, ctx: any) => Promise<T> | T) {
@@ -183,7 +194,7 @@ Deno.test("git branches error exits with message", async () => {
       throw new Error("git error");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["git", "branches"]);
+      await (mod.__test_command as any).parse([PortalOperation.GIT, "branches"]);
     });
     assert(errors.some((e) => e.includes("git error")));
   });
@@ -195,7 +206,7 @@ Deno.test("git status error exits with message", async () => {
       throw new Error("status failed");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["git", "status"]);
+      await (mod.__test_command as any).parse([PortalOperation.GIT, "status"]);
     });
     assert(errors.some((e) => e.includes("status failed")));
   });
@@ -207,7 +218,7 @@ Deno.test("git log error exits with message", async () => {
       throw new Error("log failed");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["git", "log", "-t", "trace-1"]);
+      await (mod.__test_command as any).parse([PortalOperation.GIT, "log", "-t", "trace-1"]);
     });
     assert(errors.some((e) => e.includes("log failed")));
   });
@@ -283,7 +294,7 @@ Deno.test("portal add error exits with message", async () => {
       throw new Error("add failed");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["portal", "add", "/tmp/path", "alias"]);
+      await (mod.__test_command as any).parse(["portal", MemoryOperation.ADD, "/tmp/path", "alias"]);
     });
     assert(errors.some((e) => e.includes("add failed")));
   });
@@ -431,11 +442,11 @@ Deno.test("blueprint rm alias calls remove", async () => {
 Deno.test("request list passes status filter", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.requestCommands as any).list = (status?: string) => {
-      assertEquals(status, "pending");
+      assertEquals(status, MemoryStatus.PENDING);
       return [];
     };
     await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["request", "list", "-s", "pending"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list", "-s", MemoryStatus.PENDING]);
     });
   });
 });
@@ -446,7 +457,7 @@ Deno.test("request list error exits with message", async () => {
       throw new Error("list failed");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["request", "list"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list"]);
     });
     assert(errors.some((e) => e.includes("list failed")));
   });
@@ -457,11 +468,11 @@ Deno.test("request list error exits with message", async () => {
 Deno.test("changeset list passes status filter", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.changesetCommands as any).list = (status?: string) => {
-      assertEquals(status, "pending");
+      assertEquals(status, MemoryStatus.PENDING);
       return [];
     };
     await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["changeset", "list", "-s", "pending"]);
+      await (mod.__test_command as any).parse(["changeset", "list", "-s", MemoryStatus.PENDING]);
     });
   });
 });
@@ -485,7 +496,7 @@ Deno.test("portal list prints entries when present", async () => {
         alias: "MyPortal",
         symlinkPath: "Portals/MyPortal",
         targetPath: "/tmp/target",
-        status: "active",
+        status: SkillStatus.ACTIVE,
         contextCardPath: "Memory/Projects/MyPortal/portal.md",
       },
       {
@@ -515,7 +526,7 @@ Deno.test("git status prints changes when present", async () => {
       untracked: ["temp.ts"],
     });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["git", "status"]);
+      await (mod.__test_command as any).parse([PortalOperation.GIT, "status"]);
     });
     assert(out.includes("feat/changes") || out.includes("git.status"));
   });
@@ -542,11 +553,11 @@ Deno.test("memory default action shows list", async () => {
 Deno.test("memory list with format option", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.memoryCommands as any).list = (format?: string) => {
-      assertEquals(format, "json");
+      assertEquals(format, FlowOutputFormat.JSON);
       return '{"data": []}';
     };
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["memory", "list", "--format", "json"]);
+      await (mod.__test_command as any).parse(["memory", "list", "--format", FlowOutputFormat.JSON]);
     });
     assert(out.includes('{"data": []}'));
   });
@@ -594,7 +605,7 @@ Deno.test("memory project default action lists projects", async () => {
       return "Projects list";
     };
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["memory", "project"]);
+      await (mod.__test_command as any).parse(["memory", MemoryScope.PROJECT]);
     });
     assert(called);
     assert(out.includes("Projects list"));
@@ -609,7 +620,7 @@ Deno.test("memory execution default action lists executions", async () => {
       return "Executions list";
     };
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["memory", "execution"]);
+      await (mod.__test_command as any).parse(["memory", MemorySource.EXECUTION]);
     });
     assert(called);
     assert(out.includes("Executions list"));
@@ -624,7 +635,7 @@ Deno.test("memory pending default action lists pending", async () => {
       return "Pending proposals";
     };
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["memory", "pending"]);
+      await (mod.__test_command as any).parse(["memory", MemoryStatus.PENDING]);
     });
     assert(called);
     assert(out.includes("Pending proposals"));
@@ -639,7 +650,7 @@ Deno.test("memory pending approve-all calls pendingApproveAll", async () => {
       return "All approved";
     };
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["memory", "pending", "approve-all"]);
+      await (mod.__test_command as any).parse(["memory", MemoryStatus.PENDING, "approve-all"]);
     });
     assert(called);
     assert(out.includes("All approved"));
@@ -733,7 +744,7 @@ Deno.test("request create with all options", async () => {
     };
     await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([
-        "request",
+        FlowInputSource.REQUEST,
         "Do task",
         "-a",
         "custom-agent",
@@ -771,12 +782,19 @@ Deno.test("plan list shows needs_revision icon", async () => {
 Deno.test("request list shows different priority icons", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.requestCommands as any).list = () => [
-      { trace_id: "t1", priority: "critical", agent: "a", created_by: "u", created: "t", status: "pending" },
-      { trace_id: "t2", priority: "high", agent: "a", created_by: "u", created: "t", status: "pending" },
-      { trace_id: "t3", priority: "low", agent: "a", created_by: "u", created: "t", status: "pending" },
+      {
+        trace_id: "t1",
+        priority: CritiqueSeverity.CRITICAL,
+        agent: "a",
+        created_by: "u",
+        created: "t",
+        status: MemoryStatus.PENDING,
+      },
+      { trace_id: "t2", priority: "high", agent: "a", created_by: "u", created: "t", status: MemoryStatus.PENDING },
+      { trace_id: "t3", priority: "low", agent: "a", created_by: "u", created: "t", status: MemoryStatus.PENDING },
     ];
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["request", "list"]);
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list"]);
     });
     // Should show different icons for different priorities
     assert(out.includes("🔴") || out.includes("🟠") || out.includes("⚪") || out.includes("count: 3"));

@@ -6,11 +6,17 @@
  * - Promote workflow: project → global
  * - Search workflow: tag + keyword + embedding
  * - CLI workflow: complete command sequence
- *
  * Phase 12.11: Integration & Documentation
  */
 
-import { assertEquals, assertExists, assertGreaterOrEqual, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { ConfidenceLevel } from "../../src/enums.ts";
+import { EvaluationCategory } from "../../src/enums.ts";
+
+import { FlowOutputFormat } from "../../src/enums.ts";
+
+import { ExecutionStatus, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+
+import { assertEquals, assertExists, assertGreaterOrEqual, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
@@ -46,7 +52,7 @@ Deno.test("Integration: full workflow - execution → extract → approve → se
       request_id: "REQ-INT-001",
       started_at: new Date().toISOString(),
       completed_at: new Date().toISOString(),
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "integration-test-portal",
       agent: "test-agent",
       summary: "Implemented error handling middleware with proper async/await patterns",
@@ -77,7 +83,7 @@ Deno.test("Integration: full workflow - execution → extract → approve → se
     await extractor.approvePending(proposalId);
 
     // Step 7: Verify learning was merged as pattern to project (scope: project)
-    // When scope is "project", approval adds as pattern, not global learning
+    // When scope is MemoryScope.PROJECT, approval adds as pattern, not global learning
     const updatedProjectMem = await memoryBank.getProjectMemory("integration-test-portal");
     assertExists(updatedProjectMem);
     assertGreaterOrEqual(updatedProjectMem.patterns.length, 1);
@@ -112,7 +118,7 @@ Deno.test("Integration: execution failure extracts troubleshooting learning", as
       request_id: "REQ-FAIL-001",
       started_at: new Date().toISOString(),
       completed_at: new Date().toISOString(),
-      status: "failed",
+      status: ExecutionStatus.FAILED,
       portal: "failure-test-portal",
       agent: "test-agent",
       summary: "Failed to parse configuration file",
@@ -134,7 +140,7 @@ Deno.test("Integration: execution failure extracts troubleshooting learning", as
     assertGreaterOrEqual(learnings.length, 1);
     const learning = learnings[0];
     assertEquals(learning.category, "troubleshooting");
-    assertStringIncludes(learning.description.toLowerCase(), "json");
+    assertStringIncludes(learning.description.toLowerCase(), FlowOutputFormat.JSON);
   } finally {
     await cleanup();
   }
@@ -166,14 +172,14 @@ Deno.test("Integration: promote workflow - project → global", async () => {
     const learning: Learning = {
       id: "ffffffff-6666-4000-8000-000000000001",
       created_at: new Date().toISOString(),
-      source: "user",
-      scope: "global",
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Singleton Pattern Best Practice",
       description: "Use lazy initialization for singletons to avoid startup overhead",
-      category: "pattern",
-      tags: ["singleton", "design-pattern", "performance"],
-      confidence: "high",
-      status: "approved",
+      category: LearningCategory.PATTERN,
+      tags: ["singleton", "design-pattern", EvaluationCategory.PERFORMANCE],
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
     };
 
     await memoryBank.addGlobalLearning(learning);
@@ -205,7 +211,7 @@ Deno.test("Integration: search workflow - tag + keyword + embedding combined", a
           name: "Connection Pooling",
           description: "Reuse database connections for better performance",
           examples: ["src/db/pool.ts"],
-          tags: ["database", "performance", "optimization"],
+          tags: ["database", EvaluationCategory.PERFORMANCE, "optimization"],
         },
         {
           name: "Query Builder",
@@ -219,7 +225,7 @@ Deno.test("Integration: search workflow - tag + keyword + embedding combined", a
           date: "2026-01-04",
           decision: "Use connection pooling",
           rationale: "Reduce connection overhead",
-          tags: ["database", "performance"],
+          tags: ["database", EvaluationCategory.PERFORMANCE],
         },
       ],
       references: [],
@@ -230,26 +236,26 @@ Deno.test("Integration: search workflow - tag + keyword + embedding combined", a
       {
         id: "11111111-aaaa-4000-8000-000000000001",
         created_at: new Date().toISOString(),
-        source: "agent",
-        scope: "global",
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
         title: "Database indexing strategy",
         description: "Create indexes on frequently queried columns for optimal database performance",
-        category: "insight",
-        tags: ["database", "performance", "indexing"],
-        confidence: "high",
-        status: "approved",
+        category: LearningCategory.INSIGHT,
+        tags: ["database", EvaluationCategory.PERFORMANCE, "indexing"],
+        confidence: ConfidenceLevel.HIGH,
+        status: MemoryStatus.APPROVED,
       },
       {
         id: "11111111-aaaa-4000-8000-000000000002",
         created_at: new Date().toISOString(),
-        source: "user",
-        scope: "global",
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
         title: "Error logging best practice",
         description: "Always log errors with stack traces and context for debugging",
-        category: "pattern",
+        category: LearningCategory.PATTERN,
         tags: ["error-handling", "logging", "debugging"],
-        confidence: "high",
-        status: "approved",
+        confidence: ConfidenceLevel.HIGH,
+        status: MemoryStatus.APPROVED,
       },
     ];
 
@@ -271,13 +277,13 @@ Deno.test("Integration: search workflow - tag + keyword + embedding combined", a
     assertGreaterOrEqual(tagResults.length, 2);
 
     // Test keyword search
-    const keywordResults = await memoryBank.searchByKeyword("performance");
+    const keywordResults = await memoryBank.searchByKeyword(EvaluationCategory.PERFORMANCE);
     assertGreaterOrEqual(keywordResults.length, 2);
 
     // Test combined search
     const combinedResults = await memoryBank.searchMemoryAdvanced({
       tags: ["database"],
-      keyword: "performance",
+      keyword: EvaluationCategory.PERFORMANCE,
     });
     assertGreaterOrEqual(combinedResults.length, 1);
 
@@ -362,7 +368,7 @@ Deno.test("Integration: CLI pending workflow - list → approve → verify", asy
       request_id: "REQ-CLI-001",
       started_at: new Date().toISOString(),
       completed_at: new Date().toISOString(),
-      status: "completed",
+      status: ExecutionStatus.COMPLETED,
       portal: "pending-cli-portal",
       agent: "test-agent",
       summary: "Added validation middleware",
@@ -384,7 +390,7 @@ Deno.test("Integration: CLI pending workflow - list → approve → verify", asy
 
     // List pending via CLI
     const pendingList = await commands.pendingList("table");
-    assertStringIncludes(pendingList, "pending");
+    assertStringIncludes(pendingList, MemoryStatus.PENDING);
 
     // Get the proposal ID
     const pending = await extractor.listPending();
@@ -393,7 +399,7 @@ Deno.test("Integration: CLI pending workflow - list → approve → verify", asy
 
     // Approve via CLI
     const approveResult = await commands.pendingApprove(proposalId);
-    assertStringIncludes(approveResult, "approved");
+    assertStringIncludes(approveResult, MemoryStatus.APPROVED);
 
     // Verify no more pending
     const emptyPending = await extractor.listPending();
@@ -425,14 +431,14 @@ Deno.test("Integration: performance - search completes under 100ms", async () =>
         date: `2026-01-0${(i % 9) + 1}`,
         decision: `Decision ${i}`,
         rationale: `Rationale for decision ${i}`,
-        tags: ["decision", `tag${i % 3}`],
+        tags: [LearningCategory.DECISION, `tag${i % 3}`],
       })),
       references: [],
     });
 
     // Measure search time
     const startTime = performance.now();
-    await memoryBank.searchMemory("pattern");
+    await memoryBank.searchMemory(LearningCategory.PATTERN);
     const searchTime = performance.now() - startTime;
 
     // Search should complete in under 100ms
@@ -452,14 +458,14 @@ Deno.test("Integration: performance - embedding search completes under 500ms", a
     const learnings: Learning[] = Array.from({ length: 20 }, (_, i) => ({
       id: `33333333-cccc-4000-8000-00000000000${i.toString().padStart(2, "0")}`,
       created_at: new Date().toISOString(),
-      source: "agent" as const,
-      scope: "global" as const,
+      source: MemorySource.AGENT,
+      scope: MemoryScope.GLOBAL,
       title: `Learning ${i}`,
       description: `Description for learning ${i} with some searchable content`,
-      category: "insight" as const,
+      category: LearningCategory.INSIGHT,
       tags: [`tag${i % 5}`],
-      confidence: "medium" as const,
-      status: "approved" as const,
+      confidence: ConfidenceLevel.MEDIUM,
+      status: MemoryStatus.APPROVED,
     }));
 
     for (const learning of learnings) {

@@ -17,6 +17,7 @@ import type { DatabaseService } from "./db.ts";
 import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
+import { ConfidenceAssessmentLevel, FactorImpact } from "../enums.ts";
 
 // ============================================================================
 // Confidence Schema
@@ -27,11 +28,11 @@ import { logDebug } from "./structured_logger.ts";
  */
 export const ConfidenceSchema = z.object({
   score: z.number().min(0).max(100),
-  level: z.enum(["very_high", "high", "medium", "low", "very_low"]),
+  level: z.nativeEnum(ConfidenceAssessmentLevel),
   reasoning: z.string(),
   factors: z.array(z.object({
     name: z.string(),
-    impact: z.enum(["positive", "negative", "neutral"]),
+    impact: z.nativeEnum(FactorImpact),
     weight: z.number().min(0).max(1),
     description: z.string(),
   })).default([]),
@@ -67,7 +68,7 @@ export interface AggregatedConfidence {
   min: number;
   max: number;
   weighted: number;
-  level: ConfidenceAssessment["level"];
+  level: ConfidenceAssessmentLevel;
   sources: Array<{
     agentId: string;
     score: number;
@@ -81,7 +82,7 @@ export interface ConfidenceMetrics {
   averageScore: number;
   flaggedCount: number;
   flaggedRate: number;
-  levelDistribution: Record<ConfidenceAssessment["level"], number>;
+  levelDistribution: Record<ConfidenceAssessmentLevel, number>;
 }
 
 // ============================================================================
@@ -154,11 +155,11 @@ export class ConfidenceScorer {
     flaggedCount: 0,
     flaggedRate: 0,
     levelDistribution: {
-      very_high: 0,
-      high: 0,
-      medium: 0,
-      low: 0,
-      very_low: 0,
+      [ConfidenceAssessmentLevel.VERY_HIGH]: 0,
+      [ConfidenceAssessmentLevel.HIGH]: 0,
+      [ConfidenceAssessmentLevel.MEDIUM]: 0,
+      [ConfidenceAssessmentLevel.LOW]: 0,
+      [ConfidenceAssessmentLevel.VERY_LOW]: 0,
     },
   };
 
@@ -318,7 +319,7 @@ export class ConfidenceScorer {
         min: 0,
         max: 0,
         weighted: 0,
-        level: "very_low",
+        level: ConfidenceAssessmentLevel.VERY_LOW,
         sources: [],
         anyFlaggedForReview: false,
       };
@@ -375,11 +376,11 @@ export class ConfidenceScorer {
       flaggedCount: 0,
       flaggedRate: 0,
       levelDistribution: {
-        very_high: 0,
-        high: 0,
-        medium: 0,
-        low: 0,
-        very_low: 0,
+        [ConfidenceAssessmentLevel.VERY_HIGH]: 0,
+        [ConfidenceAssessmentLevel.HIGH]: 0,
+        [ConfidenceAssessmentLevel.MEDIUM]: 0,
+        [ConfidenceAssessmentLevel.LOW]: 0,
+        [ConfidenceAssessmentLevel.VERY_LOW]: 0,
       },
     };
     this.scoreSum = 0;
@@ -399,18 +400,18 @@ export class ConfidenceScorer {
     return false;
   }
 
-  private scoreToLevel(score: number): ConfidenceAssessment["level"] {
-    if (score >= 90) return "very_high";
-    if (score >= this.config.highConfidenceThreshold) return "high";
-    if (score >= this.config.lowConfidenceThreshold) return "medium";
-    if (score >= this.config.veryLowThreshold) return "low";
-    return "very_low";
+  private scoreToLevel(score: number): ConfidenceAssessmentLevel {
+    if (score >= 90) return ConfidenceAssessmentLevel.VERY_HIGH;
+    if (score >= this.config.highConfidenceThreshold) return ConfidenceAssessmentLevel.HIGH;
+    if (score >= this.config.lowConfidenceThreshold) return ConfidenceAssessmentLevel.MEDIUM;
+    if (score >= this.config.veryLowThreshold) return ConfidenceAssessmentLevel.LOW;
+    return ConfidenceAssessmentLevel.VERY_LOW;
   }
 
   private createDefaultAssessment(): ConfidenceAssessment {
     return {
       score: 50,
-      level: "medium",
+      level: ConfidenceAssessmentLevel.MEDIUM,
       reasoning: "Unable to parse confidence assessment, defaulting to medium",
       factors: [],
       uncertainty_areas: [],

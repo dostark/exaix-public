@@ -2,7 +2,11 @@
  * MCP Prompts Tests
  */
 
-import { assertEquals, assertExists, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { McpToolName } from "../../src/enums.ts";
+
+import { MemorySource } from "../../src/enums.ts";
+
 import { createMockConfig } from "../helpers/config.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import {
@@ -54,13 +58,13 @@ Deno.test("generateExecutePlanPrompt: generates prompt with plan details", async
     assertStringIncludes(result.description, "test-plan-123");
     assertStringIncludes(result.description, "MyApp");
     assertEquals(result.messages.length, 1);
-    assertEquals(result.messages[0].role, "user");
+    assertEquals(result.messages[0].role, MemorySource.USER);
 
     const text = result.messages[0].content.text;
     assertStringIncludes(text, "test-plan-123");
     assertStringIncludes(text, "MyApp");
-    assertStringIncludes(text, "read_file");
-    assertStringIncludes(text, "write_file");
+    assertStringIncludes(text, McpToolName.READ_FILE);
+    assertStringIncludes(text, McpToolName.WRITE_FILE);
   } finally {
     await cleanup();
   }
@@ -72,9 +76,9 @@ Deno.test("generateExecutePlanPrompt: includes tool usage guidance", async () =>
     const result = generateExecutePlanPrompt({ plan_id: "plan-456", portal: "TestPortal" }, db);
     const text = result.messages[0].content.text;
 
-    assertStringIncludes(text, "read_file");
-    assertStringIncludes(text, "write_file");
-    assertStringIncludes(text, "list_directory");
+    assertStringIncludes(text, McpToolName.READ_FILE);
+    assertStringIncludes(text, McpToolName.WRITE_FILE);
+    assertStringIncludes(text, McpToolName.LIST_DIRECTORY);
     assertStringIncludes(text, "git_status");
     assertStringIncludes(text, "git_create_branch");
     assertStringIncludes(text, "git_commit");
@@ -118,7 +122,7 @@ Deno.test("generateCreateChangesetPrompt: generates prompt with changeset detail
     assertExists(result.description);
     assertStringIncludes(result.description, "Add user authentication");
     assertEquals(result.messages.length, 1);
-    assertEquals(result.messages[0].role, "user");
+    assertEquals(result.messages[0].role, MemorySource.USER);
 
     const text = result.messages[0].content.text;
     assertStringIncludes(text, "MyApp");
