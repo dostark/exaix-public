@@ -11,7 +11,7 @@
  * - Test 7: ConfigService validates provider configuration
  */
 
-import { assertEquals, assertExists, assertThrows } from "@std/assert";
+import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "@std/assert";
 import { ProviderCostTier } from "../src/enums.ts";
 
 import { ConfigService } from "../src/config/service.ts";
@@ -953,5 +953,49 @@ Deno.test("ConfigSchema accepts valid cost_tier values", () => {
   if (result.success) {
     assertEquals(result.data.providers?.google?.cost_tier, ProviderCostTier.FREE);
     assertEquals(result.data.providers?.anthropic?.cost_tier, ProviderCostTier.PAID);
+  }
+});
+
+Deno.test("ConfigSchema validation: rejects invalid default_model", () => {
+  // Config with default_model pointing to nothing
+  const config = {
+    system: { version: "1.0.0", log_level: "info" },
+    paths: { memory: "M", blueprints: "B", runtime: "R" },
+    agents: { default_model: "non_existent_model" },
+    models: {
+      my_model: { provider: "mock", model: "m" },
+    },
+  };
+
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, false);
+  if (!result.success) {
+    // Zod error path
+    const error = result.error.errors.find((e) => e.path.includes("default_model"));
+    assertExists(error);
+    assertStringIncludes(error.message, "not found");
+  }
+});
+
+Deno.test("ConfigSchema validation: rejects invalid fallback_chain target (with message check)", () => {
+  const config = {
+    system: { version: "1.0.0", log_level: "info" },
+    paths: { memory: "M", blueprints: "B", runtime: "R" },
+    provider_strategy: {
+      fallback_chains: {
+        broken_chain: ["missing_target"],
+      },
+    },
+    models: {
+      my_model: { provider: "mock", model: "m" },
+    },
+  };
+
+  const result = ConfigSchema.safeParse(config);
+  assertEquals(result.success, false);
+  if (!result.success) {
+    const error = result.error.errors.find((e) => e.path.includes("fallback_chains"));
+    assertExists(error);
+    assertStringIncludes(error.message, "unknown target");
   }
 });

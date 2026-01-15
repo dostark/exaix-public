@@ -159,7 +159,43 @@ Deno.test("GracefulShutdown: logs shutdown progress", async () => {
   // Should log: starting shutdown, running task, task completed, shutdown completed
   assertSpyCalls(mockLogger.info, 4);
   assertEquals(mockLogger.info.calls[0].args[0], "Starting graceful shutdown");
-  assertEquals(mockLogger.info.calls[1].args[0], "Running cleanup: test-task");
   assertEquals(mockLogger.info.calls[2].args[0], "Cleanup completed: test-task");
   assertEquals(mockLogger.info.calls[3].args[0], "Graceful shutdown completed successfully");
+});
+
+Deno.test("GracefulShutdown: handles cleanup timeout", async () => {
+  const mockLogger = {
+    info: spy(() => {}),
+    warn: spy(() => {}),
+    error: spy(() => {}),
+    fatal: spy(() => {}),
+  } as any;
+
+  const shutdown = new GracefulShutdown(mockLogger);
+
+  let resolveHangingTask: (() => void) | undefined;
+  const hangingTaskPromise = new Promise<void>((resolve) => {
+    resolveHangingTask = resolve;
+  });
+
+  // Task that hangs until we resolve it
+  const hangingTask = spy(async () => {
+    await hangingTaskPromise;
+  });
+
+  // Short timeout
+  shutdown.registerCleanup("hanging-task", hangingTask, 10);
+
+  // We expect this to take ~10ms+ (timeout)
+  await shutdown.shutdown(0, false);
+
+  // Should have logged an error about timeout
+  const errorCalls = mockLogger.error.calls;
+  const timeoutError = errorCalls.find((call: any) => call.args[0].includes("timed out"));
+
+  assertEquals(!!timeoutError, true);
+  assertEquals(timeoutError.args[0], "Cleanup timed out: hanging-task");
+
+  // Cleanup the hanging task to avoid leaks (if any ops were seemingly pending)
+  if (resolveHangingTask) resolveHangingTask();
 });

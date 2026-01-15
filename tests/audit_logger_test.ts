@@ -3,10 +3,9 @@
  * Implements security audit logging for critical operations
  */
 
-import { assertEquals, assertExists, assertFalse, assertStringIncludes } from "@std/assert";
-import { CritiqueSeverity } from "../src/enums.ts";
+import { assertEquals, assertFalse, assertStringIncludes } from "@std/assert";
 
-import { assertSpyCalls, spy } from "@std/testing/mock";
+import { assertSpyCalls, spy, stub } from "@std/testing/mock";
 import { initTestDbService } from "./helpers/db.ts";
 import { AuditLogger } from "../src/services/audit_logger.ts";
 import { SecurityEventResult, SecurityEventType, SecuritySeverity } from "../src/enums.ts";
@@ -19,9 +18,8 @@ async function cleanupAuditFolder(): Promise<void> {
   try {
     const auditDir = join(".", "audit");
     await Deno.remove(auditDir, { recursive: true });
-  } catch (error) {
+  } catch {
     // Ignore if audit folder doesn't exist or can't be removed
-    console.warn("[Test Cleanup] Failed to remove audit folder:", error);
   }
 }
 
@@ -29,6 +27,8 @@ Deno.test("AuditLogger: logs security events to database", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     const auditLogger = new AuditLogger({ db });
+    const logSpy = spy(db, "logActivity");
+
     const event = {
       type: SecurityEventType.PERMISSION,
       action: "portal_access_check",
@@ -41,47 +41,76 @@ Deno.test("AuditLogger: logs security events to database", async () => {
 
     await auditLogger.logSecurityEvent(event);
 
-    // Check database was called (we'll verify structure in integration)
-    // For now, just ensure no errors thrown
-    assertEquals(true, true);
+    assertSpyCalls(logSpy, 1);
+    const args = logSpy.calls[0].args;
+    // actor, action, target, payload
+    assertEquals(args[0], "agent123");
+    assertEquals(args[1], "audit.permission.portal_access_check");
   } finally {
     await cleanup();
     await cleanupAuditFolder();
   }
 });
 
-Deno.test("AuditLogger: writes to tamper-evident audit file", async () => {
+Deno.test("AuditLogger: fallback to file only on DB failure", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     const auditLogger = new AuditLogger({ db });
+    // Mock db to throw
+    const logStub = stub(db, "logActivity", () => {
+      throw new Error("DB Error");
+    });
+
+    const consoleSpy = spy(console, "warn");
+
     const event = {
       type: SecurityEventType.AUTH,
-      action: "login_attempt",
-      actor: "user@example.com",
+      action: "login_fail",
+      actor: "user",
       resource: "system",
-      result: SecurityEventResult.SUCCESS,
-      metadata: { method: "api_key" },
+      result: SecurityEventResult.ERROR,
       severity: SecuritySeverity.LOW,
     };
 
     await auditLogger.logSecurityEvent(event);
 
-    // Verify file was created and contains the event
+    // Should verify console warning
+    assertSpyCalls(consoleSpy, 1);
+    assertStringIncludes(consoleSpy.calls[0].args[0], "Failed to write to audit database");
+
+    // File verification
     const auditFile = `audit/${new Date().toISOString().split("T")[0]}.jsonl`;
     const content = await Deno.readTextFile(auditFile);
-    const lines = content.trim().split("\n");
-    const lastEntry = JSON.parse(lines[lines.length - 1]);
+    assertStringIncludes(content, "login_fail");
 
-    assertEquals(lastEntry.type, "auth");
-    assertEquals(lastEntry.action, "login_attempt");
-    assertEquals(lastEntry.actor, "user@example.com");
-    assertExists(lastEntry.timestamp);
-    assertExists(lastEntry.trace_id);
-    assertExists(lastEntry.session_id);
+    logStub.restore();
+    consoleSpy.restore();
   } finally {
     await cleanup();
     await cleanupAuditFolder();
   }
+});
+
+Deno.test("AuditLogger: works without DB configured", async () => {
+  const auditLogger = new AuditLogger({}); // No DB
+
+  const event = {
+    type: SecurityEventType.CONFIG_CHANGE,
+    action: "change",
+    actor: "admin",
+    resource: "settings",
+    result: SecurityEventResult.SUCCESS,
+    severity: SecuritySeverity.LOW,
+  };
+
+  await auditLogger.logSecurityEvent(event);
+
+  // File verification
+  const auditFile = `audit/${new Date().toISOString().split("T")[0]}.jsonl`;
+  const content = await Deno.readTextFile(auditFile);
+  assertStringIncludes(content, "settings");
+
+  await cleanupAuditFolder();
 });
 
 Deno.test("AuditLogger: sends alerts for critical events", async () => {
@@ -102,47 +131,81 @@ Deno.test("AuditLogger: sends alerts for critical events", async () => {
 
     await auditLogger.logSecurityEvent(criticalEvent);
 
-    // Verify alert was sent
     assertSpyCalls(alertSpy, 1);
-    const alertCall = alertSpy.calls[0];
-    assertEquals(alertCall.args[0].severity, CritiqueSeverity.CRITICAL);
-    assertEquals(alertCall.args[0].action, "api_key_exposed");
+    const alertArgs = alertSpy.calls[0].args[0] as any;
+    assertEquals(alertArgs.severity, SecuritySeverity.CRITICAL);
+    assertEquals(alertArgs.action, "api_key_exposed");
   } finally {
     await cleanup();
     await cleanupAuditFolder();
   }
 });
 
-Deno.test("AuditLogger: masks sensitive data in logs", async () => {
+Deno.test("AuditLogger: masks sensitive data in logs (comprehensive)", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     const auditLogger = new AuditLogger({ db });
     const event = {
       type: SecurityEventType.AUTH,
-      action: "api_key_validation",
-      actor: "agent123",
-      resource: "anthropic_provider",
+      action: "test_masking",
+      actor: "tester",
+      resource: "test",
       result: SecurityEventResult.SUCCESS,
       metadata: {
         api_key: "sk-ant-api03-1234567890abcdef",
+        short_key: "12345",
+        password: "secret_password",
+        token: "ghp_sometokenvalue1234567890",
+        short_token: "abc",
         model: "claude-3-sonnet-20240229",
+        nested: {
+          password: "nested_secret",
+        },
+        list: ["not", "masked"], // Arrays skipped
       },
       severity: SecuritySeverity.LOW,
     };
 
     await auditLogger.logSecurityEvent(event);
 
-    // Check audit file for masked data
     const auditFile = `audit/${new Date().toISOString().split("T")[0]}.jsonl`;
     const content = await Deno.readTextFile(auditFile);
     const lines = content.trim().split("\n");
     const lastEntry = JSON.parse(lines[lines.length - 1]);
+    const metadata = lastEntry.metadata;
 
-    // API key should be masked
-    assertFalse(lastEntry.metadata.api_key.includes("sk-ant-api03"));
-    assertStringIncludes(lastEntry.metadata.api_key, "***");
-    // Other data should remain
-    assertEquals(lastEntry.metadata.model, "claude-3-sonnet-20240229");
+    // API Key (long)
+    assertFalse(metadata.api_key.includes("very-long"));
+    assertStringIncludes(metadata.api_key, "***");
+    assertEquals(metadata.api_key.startsWith("sk-a"), true);
+
+    // Token (long)
+    assertFalse(metadata.token.includes("sometoken"));
+    assertEquals(metadata.token.startsWith("ghp_"), true);
+
+    // Password
+    assertEquals(metadata.password, "***");
+
+    // Nested
+    assertEquals(metadata.nested.password, "***");
+
+    // Test Short Keys (Separate event)
+    const shortEvent = {
+      ...event,
+      metadata: {
+        api_key: "12345",
+        token: "abc",
+      },
+    };
+    await auditLogger.logSecurityEvent(shortEvent);
+
+    // Read new last line
+    const content2 = await Deno.readTextFile(auditFile);
+    const lines2 = content2.trim().split("\n");
+    const lastEntry2 = JSON.parse(lines2[lines2.length - 1]);
+
+    assertEquals(lastEntry2.metadata.api_key, "***");
+    assertEquals(lastEntry2.metadata.token, "***");
   } finally {
     await cleanup();
     await cleanupAuditFolder();

@@ -1,4 +1,5 @@
-import { assertEquals, assertExists } from "@std/assert";
+import { assertEquals, assertExists, assertRejects } from "@std/assert";
+import { stub } from "@std/testing/mock";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { ApprovePlanTool, CreateRequestTool, ListPlansTool, QueryJournalTool } from "../../src/mcp/domain_tools.ts";
@@ -172,6 +173,83 @@ To be approved
     assertEquals(Array.isArray(activities), true);
     // Might contain logs from previous steps too
     assertEquals(activities.length > 0, true);
+  });
+
+  await t.step("ListPlansTool uses default status", async () => {
+    const tool = new ListPlansTool(config, db);
+    // No status provided -> should be PENDING
+    const result = await tool.execute({
+      agent_id: "user-1",
+    });
+
+    // Check internal log or result
+    // Should be successful
+    const plans = JSON.parse(result.content[0].text);
+    assertEquals(Array.isArray(plans), true);
+  });
+
+  await t.step("QueryJournalTool with trace_id", async () => {
+    const tool = new QueryJournalTool(config, db);
+    // Generate a known trace_id via logActivity
+    const traceId = "special-trace-123";
+    await db.logActivity("actor", "action", "target", {}, traceId);
+
+    // Wait for flush (config batch_flush_ms = 100)
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    const result = await tool.execute({
+      agent_id: "user-1",
+      trace_id: traceId, // This filters by trace_id
+    });
+
+    const activities = JSON.parse(result.content[0].text);
+    assertEquals(Array.isArray(activities), true);
+    // Should find the one we just logged
+    const found = activities.find((a: any) => a.trace_id === traceId);
+    assertExists(found);
+  });
+
+  await t.step("Tools handle errors gracefully (catch block)", async () => {
+    // Stub db method to throw, forcing an error in tool execution
+    const stubMethod = stub(
+      db,
+      "getActivitiesByTrace",
+      () => {
+        throw new Error("Database Failure");
+      },
+    );
+
+    const tool = new QueryJournalTool(config, db);
+
+    try {
+      await assertRejects(
+        async () => {
+          await tool.execute({
+            agent_id: "user-1",
+            trace_id: "any",
+          });
+        },
+        Error,
+        "Database Failure",
+      );
+    } finally {
+      stubMethod.restore();
+    }
+  });
+
+  await t.step("Tools expose valid definitions", () => {
+    const tools = [
+      new CreateRequestTool(config, db),
+      new ListPlansTool(config, db),
+      new ApprovePlanTool(config, db),
+      new QueryJournalTool(config, db),
+    ];
+
+    for (const tool of tools) {
+      const def = tool.getToolDefinition();
+      assertExists(def.name);
+      assertExists(def.inputSchema);
+    }
   });
 
   // Cleanup

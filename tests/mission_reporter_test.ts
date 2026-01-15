@@ -267,3 +267,64 @@ Deno.test("MissionReporter: works without database service", async () => {
     await Deno.remove(tempDir, { recursive: true });
   }
 });
+
+Deno.test("MissionReporter: handles generation errors gracefully", async () => {
+  const { db, tempDir, cleanup } = await initTestDbService();
+
+  try {
+    await Deno.mkdir(getMemoryExecutionDir(tempDir), { recursive: true });
+
+    // Config and setup
+    const config = createMockConfig(tempDir);
+    const reportConfig: ReportConfig = {
+      reportsDirectory: getMemoryExecutionDir(tempDir),
+    };
+
+    // Create a mock MemoryBankService that throws
+    const mockMemoryBank = new MemoryBankService(config, db);
+    mockMemoryBank.createExecutionRecord = () => Promise.reject(new Error("Storage failure"));
+
+    const reporter = new MissionReporter(config, reportConfig, mockMemoryBank, db);
+    const traceData = createTestTraceData();
+
+    const result = await reporter.generate(traceData);
+
+    // Verify error handling
+    assert(!result.success);
+    assert(result.error?.includes("Storage failure"));
+    assertExists(result.traceId);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("MissionReporter: handles git stats failure gracefully", async () => {
+  const { db, tempDir, cleanup } = await initTestDbService();
+
+  try {
+    await Deno.mkdir(getMemoryExecutionDir(tempDir), { recursive: true });
+    // Note: We DO NOT setup git repo here, so git commands should fail
+
+    const config = createMockConfig(tempDir);
+    const reportConfig: ReportConfig = {
+      reportsDirectory: getMemoryExecutionDir(tempDir),
+    };
+
+    const memoryBank = new MemoryBankService(config, db);
+    const reporter = new MissionReporter(config, reportConfig, memoryBank, db);
+    const traceData = createTestTraceData({
+      branch: "non-existent-branch",
+    });
+
+    const result = await reporter.generate(traceData);
+
+    // Should succeed even if git stats fail
+    assert(result.success);
+    assertExists(result.gitStats);
+    // Should have empty stats
+    assertEquals(result.gitStats?.totalFilesChanged, 0);
+    assertEquals(result.gitStats?.insertions, 0);
+  } finally {
+    await cleanup();
+  }
+});

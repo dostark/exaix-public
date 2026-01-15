@@ -424,3 +424,59 @@ Deno.test("DatabaseService: handles rapid concurrent logging", async () => {
     await cleanup();
   }
 });
+
+import { assert } from "@std/assert";
+
+Deno.test("DatabaseService: handles transaction rollback on error", async () => {
+  const { db, cleanup } = await initTestDbService();
+  try {
+    const traceId = crypto.randomUUID();
+    const originalExec = db.instance.exec.bind(db.instance);
+    let callCount = 0;
+
+    (db.instance as any).exec = (sql: string, ...args: any[]) => {
+      if (typeof sql === "string" && sql.includes("INSERT INTO activity") && callCount === 0) {
+        callCount++;
+        throw new Error("Simulated insertion error");
+      }
+      return originalExec(sql, ...args);
+    };
+
+    db.logActivity(MemorySource.USER, "test.fail", "target", {}, traceId);
+    await db.waitForFlush();
+
+    const activities = db.getActivitiesByTrace(traceId);
+    assertEquals(activities.length, 0);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("DatabaseService: retries on database locked", async () => {
+  const { db, cleanup } = await initTestDbService();
+  try {
+    const traceId = crypto.randomUUID();
+    const originalExec = db.instance.exec.bind(db.instance);
+    let attempts = 0;
+
+    (db.instance as any).exec = (sql: string, ...args: any[]) => {
+      if (typeof sql === "string" && (sql.includes("COMMIT") || sql.includes("INSERT")) && attempts < 2) {
+        attempts++;
+        throw new Error("database is locked");
+      }
+      return originalExec(sql, ...args);
+    };
+
+    db.logActivity(MemorySource.USER, "test.retry", "target", {}, traceId);
+
+    // Wait for retries
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await db.waitForFlush();
+
+    const activities = db.getActivitiesByTrace(traceId);
+    assertEquals(activities.length, 1);
+    assert(attempts > 0);
+  } finally {
+    await cleanup();
+  }
+});

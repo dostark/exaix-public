@@ -57,6 +57,12 @@ export class SafeSubprocess {
 
       clearTimeout(timeoutId);
 
+      if (combinedSignal.aborted) {
+        throw new SubprocessTimeoutError(
+          `Command timed out after ${timeoutMs}ms or was aborted: ${command} ${args.join(" ")}`,
+        );
+      }
+
       const stdout = new TextDecoder().decode(result.stdout);
       const stderr = new TextDecoder().decode(result.stderr);
 
