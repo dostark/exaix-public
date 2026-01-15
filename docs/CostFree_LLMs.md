@@ -24,33 +24,30 @@ You can override selection with environment variables or by passing options dire
 
 ## Environment Variables
 
-- `EXO_ENABLE_PAID_LLM=1` — **explicit opt-in** to allow contacting real, potentially paid LLM endpoints. Only set this when you intentionally want to run live calls (e.g., local manual test).
-- `EXO_OPENAI_API_KEY` — API key used by the `OpenAIShim` when contacting OpenAI-compatible endpoints.
+- `EXO_TEST_ENABLE_PAID_LLM=1` — **explicit opt-in** to allow contacting real, potentially paid LLM endpoints. Only set this when you intentionally want to run live calls (e.g., local manual test).
+- `EXO_TEST_OPENAI_API_KEY` — API key used by the `OpenAIShim` when contacting OpenAI-compatible endpoints.
 
 **Retry & Test-model configuration**
 
-- `EXO_OPENAI_RETRY_MAX` — _(optional)_ Maximum retry attempts used by `OpenAIShim` when encountering retryable errors (e.g., HTTP 429, 503, or transient network errors). **Default:** `6`.
-- `EXO_OPENAI_RETRY_BACKOFF_MS` — _(optional)_ Base backoff delay in milliseconds used by `OpenAIShim` for exponential backoff between retries. **Default:** `2000` (ms). Subsequent retries multiply this delay.
+- **Retry Settings**: Retry settings are now configured via `exo.config.toml` (see `[ai.retry.openai]`), not environment variables.
 - `EXO_TEST_LLM_MODEL` — _(optional)_ Default model used when running live LLM tests. **Default:** `gpt-5-mini`. You can also set this to any OpenAI-style model id that your key can access (e.g., `gpt-3.5-turbo`, `gpt-4o`, or `gpt-4.1`).
 
 Notes:
 
-- CI systems should _not_ set `EXO_ENABLE_PAID_LLM`. When `CI` is set and `EXO_ENABLE_PAID_LLM !== '1'`, the `ModelFactory` will return a `MockProvider` for cost-friendly aliases.
-- The retry env vars above are respected by `OpenAIShim`. Other providers (Anthropic, Google, Ollama) use their internal retry defaults (typically 5 retries and 2000ms base delay) and are not currently configurable via these OpenAI-specific env vars.
+- CI systems should _not_ set `EXO_TEST_ENABLE_PAID_LLM`. When `CI` is set and `EXO_TEST_ENABLE_PAID_LLM !== '1'`, the `ModelFactory` will return a `MockProvider` for cost-friendly aliases.
+- The retry settings in `exo.config.toml` are respected by all providers.
 
 **Example: run manual tests with overrides**
 
 ```bash
-export EXO_ENABLE_PAID_LLM=1
-export EXO_OPENAI_API_KEY="sk-..."
+export EXO_TEST_ENABLE_PAID_LLM=1
+export EXO_TEST_OPENAI_API_KEY="sk-..."
 export EXO_TEST_LLM_MODEL="gpt-5-mini"
-export EXO_OPENAI_RETRY_MAX=6
-export EXO_OPENAI_RETRY_BACKOFF_MS=2000
 
 den o test tests/integration/19_llm_free_provider_test.ts --allow-env --allow-net --allow-read
 ```
 
-Be cautious when setting `EXO_ENABLE_PAID_LLM` in CI: only enable it for trusted, protected runs and ensure secrets are stored safely.
+Be cautious when setting `EXO_TEST_ENABLE_PAID_LLM` in CI: only enable it for trusted, protected runs and ensure secrets are stored safely.
 
 ## Running the Manual Integration Test
 
@@ -59,8 +56,8 @@ The integration test is intentionally ignored by default and performs safety che
 1. Export the env vars locally (only when you intend to run live):
 
 ```bash
-export EXO_ENABLE_PAID_LLM=1
-export EXO_OPENAI_API_KEY="sk-..."
+export EXO_TEST_ENABLE_PAID_LLM=1
+export EXO_TEST_OPENAI_API_KEY="sk-..."
 ```
 
 2. Run the single test directly (it will still be ignored by default; you can remove `ignore: true` or run specific file):
@@ -69,7 +66,7 @@ export EXO_OPENAI_API_KEY="sk-..."
 deno test tests/integration/llm_free_provider_test.ts --allow-env --allow-net --allow-read
 ```
 
-3. If `EXO_ENABLE_PAID_LLM` is not set to `1`, or the API key is missing, the test will log a message and skip.
+3. If `EXO_TEST_ENABLE_PAID_LLM` is not set to `1`, or the API key is missing, the test will log a message and skip.
 
 ## Backwards Compatibility
 
@@ -78,8 +75,8 @@ deno test tests/integration/llm_free_provider_test.ts --allow-env --allow-net --
 
 ## Safety & CI
 
-- CI systems should not set `EXO_ENABLE_PAID_LLM` (default behavior keeps tests mock-based and cost-free).
-- If you need to run paid-model tests in CI intentionally, ensure you store encryption secrets and set `EXO_ENABLE_PAID_LLM=1` and the appropriate keys **only on a trusted branch or protected job**.
+- CI systems should not set `EXO_TEST_ENABLE_PAID_LLM` (default behavior keeps tests mock-based and cost-free).
+- If you need to run paid-model tests in CI intentionally, ensure you store encryption secrets and set `EXO_TEST_ENABLE_PAID_LLM=1` and the appropriate keys **only on a trusted branch or protected job**.
 
 ## Contact
 
