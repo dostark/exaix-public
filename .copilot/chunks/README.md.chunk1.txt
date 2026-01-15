@@ -1,3 +1,10 @@
+- **`docs/`**: Source of truth for **human** users (Architecture, User Guide).
+- **`.copilot/`**: Source of truth for **agents** (Context, Prompts, Schemas).
+  - Agents should read `.copilot/` for coding instructions.
+  - Agents may read `docs/` for high-level context but must not modify it unless explicitly asked.
+
+## Schema
+
 Each `.md` file should include YAML frontmatter with at least the following keys:
 
 - `agent` (string) — e.g., `copilot`, `openai`
@@ -8,16 +15,3 @@ Each `.md` file should include YAML frontmatter with at least the following keys
 - `topics` (array of strings) — optional tags
 
 ## Maintenance
-
-- Use `scripts/validate_agents_docs.ts` to validate frontmatter and safety rules.
-- Update the manifest with `scripts/build_agents_index.ts` if new docs are added.
-
-## Regenerating manifest & chunks
-
-If you add or update files under `.copilot/`, regenerate the manifest and pre-chunk artifacts with:
-
-```bash
-deno run --allow-read --allow-write scripts/build_agents_index.ts
-```
-
-To verify the manifest is fresh (useful for CI):

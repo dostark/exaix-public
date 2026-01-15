@@ -64,6 +64,11 @@ graph TB
         ConfScore[Confidence Scorer]
         SessMem[Session Memory]
         ToolRefl[Tool Reflector]
+        CostTrack[Cost Tracker]
+        HealthSvc[Health Check Svc]
+        ShutDown[Graceful Shutdown]
+        InputVal[Input Validator]
+        DBPool[DB Conn Pool]
     end
 
     subgraph Storage["💾 Storage"]
@@ -77,6 +82,8 @@ graph TB
     end
 
     subgraph AI["🤖 AI Providers"]
+        Selector[Provider Selector]
+        Breaker[Circuit Breaker]
         Factory[Provider Factory]
         Ollama[Ollama<br/>Local]
         Claude[Claude API<br/>Anthropic]
@@ -115,6 +122,8 @@ graph TB
     %% Core daemon flow
     Main --> ConfigSvc
     Main --> DBSvc
+    Main --> ShutDown
+    Main --> HealthSvc
     Main --> Factory
     Main --> ReqWatch
     Main --> PlanWatch
@@ -123,6 +132,7 @@ graph TB
     Main --> PlanExec
     ReqWatch --> Requests
     PlanWatch --> System
+    ReqProc --> InputVal
     ReqProc --> ReqRouter
     ReqRouter --> AgentRun
     ReqRouter --> FlowRun
@@ -145,14 +155,18 @@ graph TB
     EventLog --> DB
     GitSvc --> FS
     PathRes --> FS
+    DBSvc --> DBPool
 
     %% AI Provider routing
+    AgentRun --> Selector
+    Selector --> CostTrack
+    Selector --> Breaker
+    Breaker --> Factory
     Factory --> Ollama
     Factory --> Claude
     Factory --> GPT
     Factory --> Gemini
     Factory --> Mock
-    AgentRun --> Factory
 
     %% Agent Orchestration (Phase 16)
     AgentRun --> OutputVal
@@ -504,14 +518,16 @@ graph TB
 
 ### MCP Server Implementation Notes
 
-The MCP server lives under `src/mcp/` and is a JSON-RPC 2.0 server over stdio.
+The MCP server lives under `src/mcp/` and supports both **stdio** (JSON-RPC 2.0) and **HTTP/SSE** transports.
 
 - `src/mcp/server.ts`
   - Routes: `initialize`, `tools/list`, `tools/call`, `resources/list`, `resources/read`, `prompts/list`, `prompts/get`.
+  - **Security:** Implements comprehensive CSP and Security Headers for HTTP transport.
   - Logs lifecycle events (e.g., `mcp.server.started`) to the Activity Journal.
-- `src/mcp/tools.ts`
+- `src/mcp/tools.ts` & `src/mcp/domain_tools.ts`
+  - **Foundation Tools:** `read_file`, `write_file`, `list_directory`, `git_*`
+  - **Domain Tools:** `exoframe_create_request`, `exoframe_list_plans`, `exoframe_approve_plan`, `exoframe_query_journal`
   - Validates tool input using `src/schemas/mcp.ts` and enforces portal access via `PortalPermissionsService`.
-  - Applies path safety checks (no traversal/absolute paths; resolved path must remain within the portal root).
 - `src/mcp/resources.ts`
   - Implements `portal://<PortalAlias>/<path>` resource discovery and reading.
 
@@ -798,6 +814,7 @@ graph TB
     end
 
     subgraph Providers["LLM Providers"]
+        Configured[Configured Providers]
         Ollama[OllamaProvider<br/>localhost:11434]
         Claude[ClaudeProvider<br/>api.anthropic.com]
         GPT[OpenAIProvider<br/>api.openai.com]

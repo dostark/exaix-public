@@ -2039,4 +2039,147 @@ If relevant memories aren't being injected:
 
 ---
 
+## 5. Configuration
+
+ExoFrame is designed to be fully configurable without modifying source code. The primary configuration file is `exo.config.toml` (located in your workspace root).
+
+### 5.1 The "No Magic Values" Policy
+
+We enforce a strict "No Magic Values" policy. This means all timeouts, limits, model names, and provider settings are defined in your configuration file, not hardcoded in the application.
+
+- **Defaults:** A `exo.config.sample.toml` is provided with sensible defaults.
+- **Customization:** Copy `exo.config.sample.toml` to `exo.config.toml` to override any setting.
+
+### 5.2 Key Configuration Areas
+
+```toml
+[agents]
+default_model = "claude-3-5-sonnet-20241022"
+max_tokens = 8192
+
+[system]
+watcher_timeout_sec = 60
+debounce_ms = 200
+
+[mcp]
+server_name = "exoframe-mcp"
+version = "1.0.0"
+enable_stdio = true
+enable_sse = false
+```
+
+## 6. Model Context Protocol (MCP) Server
+
+ExoFrame includes a built-in MCP server, allowing generic AI clients (like Claude Desktop or IDE extensions) to interact with your workspace using standardized tools.
+
+### 6.1 Starting the Server
+
+The standard way to run the MCP server is via the `exoctl` CLI:
+
+```bash
+# Start in stdio mode (default, for local clients)
+exoctl mcp start
+
+# Start with detailed logging
+exoctl mcp start --log-level debug
+```
+
+### 6.2 Available Tools
+
+When connected, AI agents have access to high-level domain tools:
+
+- **`exoframe_create_request`**: Create a new request in your workspace.
+- **`exoframe_list_plans`**: List pending plans.
+- **`exoframe_approve_plan`**: Approve a plan for execution.
+- **`exoframe_query_journal`**: Search the Activity Journal for past events.
+- **FileSystem & Git**: Standard tools (`read_file`, `write_file`, `git_status`, etc.) are also available, scoped to your workspace.
+
+### 6.3 Client Integration
+
+**Claude Desktop:**
+Add the following to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "exoframe": {
+      "command": "exoctl",
+      "args": ["mcp", "start"],
+      "env": {
+        "EXOFRAME_ROOT": "/path/to/your/workspace"
+      }
+    }
+  }
+}
+```
+
+See `templates/mcp/` for more client configuration examples.
+
+## 7. Security
+
+ExoFrame is built with a "Safety First" architecture, focusing on local execution and explicit permissions.
+
+### 7.1 Key Security Features
+
+- **Sandboxing:** File system access is strictly scoped to your Workspace and configured Portals. Path traversal attempts are blocked.
+- **API Keys:** Keys are loaded from environment variables (`ANTHROPIC_API_KEY`, etc.) and never stored in the database or logs.
+- **Human-in-the-Loop:** Critical actions (plan approval, file writes via generic agents) require explicit human confirmation unless configured otherwise.
+- **Git Safety:** Automated commits are signed with detailed trace IDs.
+
+### 7.2 Best Practices
+
+1. **Review Plans:** Always inspect the diffs in the TUI (`exoctl plan show`) before approving.
+2. **Audit Logs:** Use `exoctl journal` to audit agent activity.
+3. **Keep Keys Private:** Never commit your `.env` or `exo.config.toml` if it contains secrets (though it shouldn't).
+
+---
+
+## 8. Daemon Management & Monitoring
+
+ExoFrame can run as a background daemon to serve the MCP API, run scheduled tasks, and monitor workspace health.
+
+### 8.1 Daemon Control
+
+Use the `exoctl daemon` command to manage the background service:
+
+```bash
+# Start the daemon
+exoctl daemon start
+
+# Check status (PID, uptime, version)
+exoctl daemon status
+
+# View live logs
+exoctl daemon logs -f
+
+# Stop the daemon (sends SIGTERM for graceful shutdown)
+exoctl daemon stop
+```
+
+> [!TIP]
+> **Graceful Shutdown:** The daemon handles shutdown signals to ensure critical operations (like database writes or git commits) complete before exiting.
+
+### 8.2 Health Checks
+
+The daemon exposes health endpoints and performs self-monitoring. checking:
+
+- **Database Connectivity**: Verifies SQLite WAL mode and query response.
+- **Disk Space**: Monitoring `warn` and `critical` thresholds.
+- **Memory Usage**: Tracks heap usage to prevent OOM errors.
+
+```bash
+# Perform an ad-hoc health check
+exoctl health check
+```
+
+## 9. Cost Tracking (Beta)
+
+ExoFrame tracks token usage and estimates costs for supported providers.
+
+- **Budgeting**: Set `max_daily_cost_usd` in `exo.config.toml` to cap spending.
+- **Rates**: Define custom rates in `[cost_tracking.rates]` if needed.
+- **Reporting**: Usage is verified against the budget before every agent execution.
+
+---
+
 _End of User Guide_

@@ -414,6 +414,14 @@ exoctl memory execution 550e8400-e29b-41d4-a716-446655440000
 
 **Understanding Project Patterns:**
 
+## 1. Core Philosophy
+
+> [!NOTE]
+> **Concurrency & Safety:**
+> Access to Memory Banks is protected by a file-locking mechanism (`.lock` files). This ensures that concurrent agents or CLI processes do not corrupt memory files during write operations. The system automatically handles retries and backoff.
+
+Memory Banks act as the "Long-Term Memory" for the project.
+
 ```bash
 # What patterns has the agent learned for this project?
 exoctl memory project my-app

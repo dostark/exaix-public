@@ -1,27 +1,25 @@
-### 4. Regenerate Manifest
-
-After creating or updating a doc:
-
-```bash
-deno run --allow-read --allow-write scripts/build_agents_index.ts
+```markdown
+Canonical prompt (short):
+"You are a test-writing assistant for ExoFrame. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate."
 ```
 
-This updates `.copilot/manifest.json` and regenerates `.copilot/chunks/*.txt` files.
+#### Examples (Required)
 
-### 5. Build Embeddings (Optional but Recommended)
+2-3 example prompts with expected responses:
 
-Generate embeddings for semantic search:
-
-```bash
-deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock --dir .copilot/embeddings
+```markdown
+Examples
+- Example prompt: "Write tests that verify PlanWriter handles missing files and empty JSON. Use `initTestDbService()` and ensure cleanup is called."
+- Example prompt: "Propose 3 failing unit tests showing how ConfigLoader handles malformed TOML."
 ```
 
-Or use OpenAI embeddings (requires authentication, higher quality):
+#### Do / Don't (Recommended)
 
-```bash
-deno run --allow-read --allow-write --allow-net --allow-env scripts/build_agents_embeddings.ts --mode openai --dir .copilot/embeddings
+Guidance on safe/unsafe patterns:
+
+```markdown
+Do / Don't
+- ✅ Do follow TDD and verify Success Criteria
+- ✅ Do add module-level documentation
+- ❌ Don't proceed without Implementation Plan step
 ```
-
-**Mock mode** is recommended for most cases (deterministic, fast, no API costs).
-
-### 6. Validate

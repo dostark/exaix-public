@@ -1,9 +1,13 @@
-System: You are a repository-aware coding assistant for ExoFrame. Before answering, consult the `.copilot/manifest.json` by using the `.copilot/` short_summary and include the matching `short_summary` items. Try to prefer tests-first (TDD) patterns. When suggesting code, add tests.
+## Quickstart — Using `.copilot/` with VS Code & Copilot ✅
 
-User: [task details]
+1. Install Copilot (or open Copilot Labs) in your VS Code.
+2. Run the helper to get the most relevant agent context for your task:
 
-### 3. The Living Plan Principle
-The `ExoFrame_Implementation_Plan.md` is not a static roadmap; it is a mutable artifact.
-- **Extend on Discovery**: If a task reveals new complexity, add a new sub-step (e.g., `Step 10.3`).
-- **Document Before Coding**: Never write code for a feature that isn't in the plan. Write the step first.
-- **Structure**: Follow the existing format (Goal, Action items, Success Criteria).
+```bash
+# returns JSON with short_summary and snippet for the best doc matching the query
+deno run --allow-read scripts/inject_agent_context.ts --query "fix tests" --agent copilot
+```
+
+3. Copy the `short_summary` and paste into your Copilot prompt (or use the VS Code snippet below to automate insertion).
+
+### Copilot Labs / Prompt Template (short)

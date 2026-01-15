@@ -1,5 +1,10 @@
 # Phase 27: ExoFrame Magic Number & Magic Word Externalization for True Configurability
 
+> [!NOTE]
+> **Status: Integrated**
+> This planning document has been implemented and its features are now part of the core codebase.
+> See `docs/ExoFrame_User_Guide.md` for current usage.
+
 ## Executive Summary
 
 This phase aims to make ExoFrame fully user-configurable by externalizing all hardcoded magic numbers, magic words, and lists from the source code. The goal is to move all user-facing configuration (timeouts, limits, model names, provider lists, etc.) into TOML configuration files (primarily `exo.config.toml` and `exo.config.sample.toml`), and all internal constants into dedicated `constants.ts` modules. For CLI/TUI-specific constants, separate config files will be considered. This will empower users to adapt ExoFrame to their needs without modifying source code, improving maintainability, portability, and user experience.

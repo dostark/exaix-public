@@ -1,33 +1,27 @@
-Run validation to check schema compliance and safety:
+### 4. Regenerate Manifest
+
+After creating or updating a doc:
 
 ```bash
-deno run --allow-read scripts/validate_agents_docs.ts
+deno run --allow-read --allow-write scripts/build_agents_index.ts
 ```
 
-This checks for:
+This updates `.copilot/manifest.json` and regenerates `.copilot/chunks/*.txt` files.
 
-- Required frontmatter fields
-- Canonical prompt section
-- Examples section
-- Sensitive data patterns (fails if detected)
-- YAML syntax
+### 5. Build Embeddings (Optional but Recommended)
 
-### 7. Test Retrieval
-
-Verify your doc is discoverable:
+Generate embeddings for semantic search:
 
 ```bash
-deno run --allow-read scripts/inject_agent_context.ts --query "your test query" --agent claude
+deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock --dir .copilot/embeddings
 ```
 
-This should return JSON with your doc if the query matches.
+Or use OpenAI embeddings (requires authentication, higher quality):
 
-### Template File
+```bash
+deno run --allow-read --allow-write --allow-net --allow-env scripts/build_agents_embeddings.ts --mode openai --dir .copilot/embeddings
+```
 
-Copy an existing doc as a starting point:
+**Mock mode** is recommended for most cases (deterministic, fast, no API costs).
 
-- For provider-specific: `.copilot/providers/claude.md`
-- For testing guidance: `.copilot/tests/testing.md`
-- For source patterns: `.copilot/source/exoframe.md`
-
-### Common Mistakes to Avoid
+### 6. Validate

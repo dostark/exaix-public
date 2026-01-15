@@ -1,25 +1,25 @@
-```markdown
-Canonical prompt (short):
-"You are a test-writing assistant for ExoFrame. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate."
-```
+- **`agent`**: Target agent type (`claude`, `copilot`, `openai`, `google`, `general`)
+- **`scope`**: Context scope (`dev`, `ci`, `docs`, `test`)
+- **`title`**: Human-readable title
+- **`short_summary`**: Concise summary for quick injection (≤200 characters recommended)
+- **`version`**: Semantic version (start with `"0.1"`)
+- **`topics`**: Array of searchable keywords (helps with semantic retrieval)
 
-#### Examples (Required)
+### 3. Include Required Sections
 
-2-3 example prompts with expected responses:
+Structure your document with these sections:
 
-```markdown
-Examples
-- Example prompt: "Write tests that verify PlanWriter handles missing files and empty JSON. Use `initTestDbService()` and ensure cleanup is called."
-- Example prompt: "Propose 3 failing unit tests showing how ConfigLoader handles malformed TOML."
-```
+#### Key Points (Required)
 
-#### Do / Don't (Recommended)
-
-Guidance on safe/unsafe patterns:
+Bullet list of 3-5 critical takeaways:
 
 ```markdown
-Do / Don't
-- ✅ Do follow TDD and verify Success Criteria
-- ✅ Do add module-level documentation
-- ❌ Don't proceed without Implementation Plan step
+Key points
+- Use `initTestDbService()` for database tests
+- Follow TDD workflow: tests first, implementation second
+- Clean up resources in finally blocks
 ```
+
+#### Canonical Prompt (Required)
+
+Example system prompt showing ideal usage:

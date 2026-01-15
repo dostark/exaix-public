@@ -1,4 +1,8 @@
-# Phase 21: Actionable Items for Folder Structure Restructuring
+# Phase 20: Folder Restructuring Follow-up
+
+> [!NOTE]
+> **Status: Integrated**
+> This planning document has been implemented and its features are now part of the core codebase.
 
 **Created:** 2026-01-08
 **Status:** 📋 Planning

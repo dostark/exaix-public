@@ -11,4 +11,4 @@ This directory contains short, machine-discoverable instruction documents intend
 - `.copilot/providers/` — provider-specific adaptation notes and prompt templates
 - `.copilot/chunks/` — (auto-generated) pre-chunked text files for quick retrieval
 
-## Schema
+## Relationship with `docs/`

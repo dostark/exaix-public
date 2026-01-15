@@ -1,4 +1,9 @@
-# Phase 26: LLM Provider Flexibility & Multi-Model Support Strategy
+# Phase 26: LLM Provider Flexibility & Multi-Model Support
+> [!NOTE]
+> **Status: Integrated**
+> This planning document has been implemented and its features are now part of the core codebase.
+> See `docs/ExoFrame_User_Guide.md` for current usage.
+ Strategy
 
 ## Executive Summary
 

@@ -1,12 +1,17 @@
-- The Refinement Loop: request refinement of Implementation Plan steps before implementing; ensure success criteria are measurable.
-- Documentation Cleanup: remove planning artifacts from code; keep history in git and planning docs.
+Key points
+- Coordinate docs changes with the Implementation Plan and TDD test cases
+- Keep version numbers in sync across key docs when required
+- Maintain the Terminology Reference and cross-references
 
-### Test-Driven Documentation
+Canonical prompt (short):
+"You are a documentation assistant for ExoFrame. Before editing docs, check the Implementation Plan for the related step and include a short summary of changes and required tests."
 
-All documentation changes MUST be coordinated with implementation: verify refined Implementation Plan step exists and add TDD test cases when defining new behavior.
+Examples
+- Example prompt: "Update the Testing Strategy doc to include the 'validate-agent-docs' CI workflow. Suggested change snippet: [..]."
 
-### Implementation Plan Structure
+Examples section
+- Example prompt: "Draft a short 'How-to' section for adding a new agent doc in `.copilot/` following the schema and validation rules."
 
-Each step MUST include dependencies, rollback, action, justification, TDD test cases, and measurable Success Criteria. Use step status markers (COMPLETED, IN PROGRESS, BLOCKED) to track progress.
+## Full migration: Documentation guidelines (extended)
 
-### Version Synchronization
+### Core Documentation Patterns

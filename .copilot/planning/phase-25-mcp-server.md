@@ -1,4 +1,9 @@
-# Phase 25: MCP Server Completion
+# Phase 25: MCP Server Implementation Plan Review
+
+> [!NOTE]
+> **Status: Integrated**
+> This planning document has been implemented and its features are now part of the core codebase.
+> See `docs/ExoFrame_User_Guide.md` for current usage.
 
 **Goal:** Implement high-level ExoFrame domain tools (Create Request, List Plans, Approve, Query Journal) for the MCP server.
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-15T13:52:50.960Z",
+  "generated_at": "2026-01-15T14:51:25.372Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -19,7 +19,8 @@
         ".copilot/chunks/documentation.md.chunk2.txt",
         ".copilot/chunks/documentation.md.chunk3.txt",
         ".copilot/chunks/documentation.md.chunk4.txt",
-        ".copilot/chunks/documentation.md.chunk5.txt"
+        ".copilot/chunks/documentation.md.chunk5.txt",
+        ".copilot/chunks/documentation.md.chunk6.txt"
       ]
     },
     {

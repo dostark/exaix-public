@@ -1,15 +1,17 @@
 # ExoFrame Documentation Development Guidelines (migrated)
 
-## Quickstart — Using `.copilot/` with VS Code & Copilot ✅
+## 1. Directory Structure & Role
 
-1. Install Copilot (or open Copilot Labs) in your VS Code.
-2. Run the helper to get the most relevant agent context for your task:
+*   **`docs/`**: **Source of Truth for Humans**.
+    *   Contains User Guides, Architecture Docs, API References, and Security Policies.
+    *   Target Audience: Users and Developers.
 
-```bash
-# returns JSON with short_summary and snippet for the best doc matching the query
-deno run --allow-read scripts/inject_agent_context.ts --query "fix tests" --agent copilot
-```
+*   **`.copilot/`**: **Source of Truth for Agents**.
+    *   Contains Context, Prompts, Workflows, and structured data (manifests, schemas).
+    *   Target Audience: AI Agents (Coding Assistants).
 
-3. Copy the `short_summary` and paste into your Copilot prompt (or use the VS Code snippet below to automate insertion).
-
-### Copilot Labs / Prompt Template (short)
+> [!IMPORTANT]
+> **Agent Strategy:**
+> *   Agents should read `.copilot/` for specific coding patterns, prompts, and workflows.
+> *   Agents should read `docs/` for high-level architectural understanding.
+> *   If a conflict exists between `docs/` (human intent) and source code, follow `docs/` but verify with the user.

@@ -19,6 +19,13 @@ This directory contains short, machine-discoverable instruction documents intend
 - `.copilot/providers/` — provider-specific adaptation notes and prompt templates
 - `.copilot/chunks/` — (auto-generated) pre-chunked text files for quick retrieval
 
+## Relationship with `docs/`
+
+- **`docs/`**: Source of truth for **human** users (Architecture, User Guide).
+- **`.copilot/`**: Source of truth for **agents** (Context, Prompts, Schemas).
+  - Agents should read `.copilot/` for coding instructions.
+  - Agents may read `docs/` for high-level context but must not modify it unless explicitly asked.
+
 ## Schema
 
 Each `.md` file should include YAML frontmatter with at least the following keys:
@@ -294,6 +301,15 @@ To ensure maintainability and configurability, follow these strict rules:
     *   **CLI/TUI:** Use `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
 3.  **Enums:** ALWAYS use TypeScript enums from `src/enums.ts` instead of string literals.
 4.  **Reference:** See `CONTRIBUTING.md` and `docs/dev/Migration_Guide_Phase27.md`.
+
+## Architectural Awareness
+
+Agents must use the following core services for reliability and security:
+
+- **Resilience:** Wrap external API calls in `CircuitBreaker`. Use `GracefulShutdown` for cleanup.
+- **Security:** Sanitize all inputs with `InputValidator`. Use `SafeError` for public error messages.
+- **Monitoring:** Respect `CostTracker` limits. Register checks via `HealthCheckService`.
+- **Async:** Use `DatabaseConnectionPool` for all DB operations.
 
 ## Notes
 

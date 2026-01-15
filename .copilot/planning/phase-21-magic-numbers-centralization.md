@@ -3,6 +3,11 @@ Based on the commit `a5f3190` - "config: centralize magic numbers and make runti
 ```markdown
 # Phase 2.1: Configuration Refactoring - Magic Numbers Centralization
 
+> [!NOTE]
+> **Status: Integrated**
+> This planning document has been implemented and its features are now part of the core codebase.
+> See `docs/ExoFrame_User_Guide.md` for current configuration info.
+
 ## Document Information
 - **Date**: January 9, 2026
 - **Status**: ✅ Completed

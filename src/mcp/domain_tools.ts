@@ -1,5 +1,3 @@
-import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
 import {
   ApprovePlanToolArgsSchema,
   CreateRequestToolArgsSchema,
@@ -24,7 +22,7 @@ import { PlanStatus } from "../enums.ts";
 export class CreateRequestTool extends ToolHandler {
   async execute(args: unknown): Promise<MCPToolResponse> {
     const validatedArgs = CreateRequestToolArgsSchema.parse(args);
-    const { description, agent, context, agent_id } = validatedArgs; // context is currently not supported in RequestCommands.create options directly in CLI but let's check
+    const { description, agent, agent_id } = validatedArgs; // context is currently not supported in RequestCommands.create options directly in CLI but let's check
 
     try {
       const requestCmd = new RequestCommands({ config: this.config, db: this.db });
