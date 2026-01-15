@@ -22,15 +22,15 @@ import {
 
 // Reusable helpers
 async function withTestMod<T>(fn: (mod: any, ctx: any) => Promise<T> | T) {
-  const origEnv = Deno.env.get("EXOCTL_TEST_MODE");
-  Deno.env.set("EXOCTL_TEST_MODE", "1");
+  const origEnv = Deno.env.get("EXO_TEST_CLI_MODE");
+  Deno.env.set("EXO_TEST_CLI_MODE", "1");
   try {
     const mod = await import("../../src/cli/exoctl.ts");
     const ctx = mod.__test_getContext();
     return await fn(mod, ctx);
   } finally {
-    if (origEnv === undefined) Deno.env.delete("EXOCTL_TEST_MODE");
-    else Deno.env.set("EXOCTL_TEST_MODE", origEnv);
+    if (origEnv === undefined) Deno.env.delete("EXO_TEST_CLI_MODE");
+    else Deno.env.set("EXO_TEST_CLI_MODE", origEnv);
   }
 }
 
