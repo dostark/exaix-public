@@ -119,3 +119,41 @@ function safeEnvGet(key: string): string | undefined {
     return undefined;
   }
 }
+
+/**
+ * Helper to check if a value represents a truthy boolean
+ *
+ * @param value - String value to check
+ * @returns True if value represents a truthy boolean
+ */
+function isTruthyValue(value: string | undefined): boolean {
+  if (!value) return false;
+  const normalized = value.toLowerCase().trim();
+  return normalized !== "0" && normalized !== "false" && normalized !== "no" && normalized !== "off";
+}
+
+/**
+ * Check if code is running in test mode
+ *
+ * @returns True if EXO_TEST_MODE is set to a truthy value
+ */
+export function isTestMode(): boolean {
+  return isTruthyValue(safeEnvGet("EXO_TEST_MODE"));
+}
+
+/**
+ * Check if code is running in CI mode
+ * Checks both EXO_CI_MODE (preferred) and CI (standard) environment variables
+ *
+ * @returns True if EXO_CI_MODE or CI is set to a truthy value
+ */
+export function isCIMode(): boolean {
+  // Prefer EXO_CI_MODE if set (more explicit)
+  const exoCiMode = safeEnvGet("EXO_CI_MODE");
+  if (exoCiMode !== undefined) {
+    return isTruthyValue(exoCiMode);
+  }
+
+  // Fall back to standard CI env var
+  return isTruthyValue(safeEnvGet("CI"));
+}

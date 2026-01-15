@@ -34,7 +34,7 @@ import { MCPServer } from "../mcp/server.ts";
 // Allow tests to run the CLI entrypoint without initializing heavy services
 let IN_TEST_MODE = false;
 try {
-  IN_TEST_MODE = Deno.env.get("EXOCTL_TEST_MODE") === "1";
+  IN_TEST_MODE = Deno.env.get("EXO_TEST_CLI_MODE") === "1";
 } catch (_err) {
   // Deno will throw NotCapable if env access isn't allowed; treat as not in test mode
   IN_TEST_MODE = false;
