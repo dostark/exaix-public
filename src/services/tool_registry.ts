@@ -9,6 +9,7 @@ import { expandGlob } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import { PathResolver } from "./path_resolver.ts";
+import { ActivityActor, LogLevel } from "../enums.ts";
 
 // ============================================================================
 // Types
@@ -257,7 +258,7 @@ export class ToolRegistry {
   constructor(options?: ToolRegistryConfig) {
     // Use ConfigSchema to parse and apply all defaults automatically
     this.config = options?.config || ConfigSchema.parse({
-      system: { root: Deno.cwd(), log_level: "info" },
+      system: { root: Deno.cwd(), log_level: LogLevel.INFO },
       paths: {}, // Will use schema defaults
       database: {}, // Will use schema defaults
       watcher: {}, // Will use schema defaults
@@ -550,7 +551,7 @@ export class ToolRegistry {
       if (error instanceof PathTraversalError) {
         // Log security event
         this.db?.logActivity(
-          "tool_registry",
+          ActivityActor.SYSTEM,
           "security.path_traversal_attempted",
           path,
           {
@@ -569,7 +570,7 @@ export class ToolRegistry {
       if (error instanceof PathAccessError) {
         // Log access violation
         this.db?.logActivity(
-          "tool_registry",
+          ActivityActor.SYSTEM,
           "security.path_access_denied",
           path,
           {
@@ -588,7 +589,7 @@ export class ToolRegistry {
 
       // Log generic path resolution errors
       this.db?.logActivity(
-        "tool_registry",
+        ActivityActor.SYSTEM,
         "path.resolution_error",
         path,
         {
@@ -668,7 +669,7 @@ export class ToolRegistry {
 
     try {
       this.db.logActivity(
-        "agent",
+        ActivityActor.AGENT,
         actionType,
         payload.params?.path || payload.params?.command || null,
         payload,

@@ -27,6 +27,7 @@ import { BlueprintCommands } from "./blueprint_commands.ts";
 import { FlowCommands } from "./flow_commands.ts";
 import { DashboardCommands } from "./dashboard_commands.ts";
 import { MemoryCommands } from "./memory_commands.ts";
+import { RequestPriority } from "../enums.ts";
 
 // Allow tests to run the CLI entrypoint without initializing heavy services
 let IN_TEST_MODE = false;
@@ -267,7 +268,7 @@ export const __test_command = new Command()
           if (options.file) {
             const result = await requestCommands.createFromFile(options.file, {
               agent: options.agent,
-              priority: options.priority as "low" | "normal" | "high" | "critical",
+              priority: options.priority as RequestPriority,
               portal: options.portal,
               model: options.model,
             });
@@ -286,7 +287,7 @@ export const __test_command = new Command()
           // Create request
           const result = await requestCommands.create(description, {
             agent: options.agent,
-            priority: options.priority as "low" | "normal" | "high" | "critical",
+            priority: options.priority as RequestPriority,
             portal: options.portal,
             model: options.model,
           });

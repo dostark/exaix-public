@@ -15,6 +15,7 @@ import type { IModelProvider } from "../ai/providers.ts";
 import { ToolRegistry } from "./tool_registry.ts";
 import { GitService } from "./git_service.ts";
 import { EventLogger } from "./event_logger.ts";
+import { ExecutionStatus } from "../enums.ts";
 
 export interface PlanStep {
   number: number;
@@ -117,7 +118,7 @@ export class PlanExecutor {
         if (error instanceof Error && error.message.includes("nothing to commit")) {
           await this.logger.info("plan.execution_completed", planPath, {
             trace_id: traceId,
-            status: "completed",
+            status: ExecutionStatus.COMPLETED,
             last_commit: lastCommitSha,
           });
           return lastCommitSha;

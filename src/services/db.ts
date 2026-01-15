@@ -36,11 +36,10 @@ export class DatabaseService {
   constructor(config: Config) {
     const dbPath = join(config.system.root, config.paths.runtime, "journal.db");
     this.db = new Database(dbPath);
-    // Enable WAL mode for concurrency
-    this.db.exec("PRAGMA journal_mode = WAL;");
-    this.db.exec("PRAGMA foreign_keys = ON;");
-    // Set busy timeout to 5000ms to handle concurrency
-    this.db.exec("PRAGMA busy_timeout = 5000;");
+    // Enable configured SQLite features
+    this.db.exec(`PRAGMA journal_mode = ${config.database.sqlite.journal_mode};`);
+    this.db.exec(`PRAGMA foreign_keys = ${config.database.sqlite.foreign_keys ? "ON" : "OFF"};`);
+    this.db.exec(`PRAGMA busy_timeout = ${config.database.sqlite.busy_timeout_ms};`);
 
     // Load batch configuration
     this.FLUSH_INTERVAL_MS = config.database.batch_flush_ms;

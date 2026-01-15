@@ -13,7 +13,14 @@
  */
 
 import { ConfidenceLevel } from "../../src/enums.ts";
-import { FlowOutputFormat, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import {
+  FlowOutputFormat,
+  LearningCategory,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+  MemoryType,
+} from "../../src/enums.ts";
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { MemoryCommands } from "../../src/cli/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
@@ -283,7 +290,7 @@ Deno.test("MemoryCommands: promote moves learning to global", async () => {
 
     // Promote the pattern
     const result = await commands.promote("source-app", {
-      type: LearningCategory.PATTERN,
+      type: MemoryType.PATTERN,
       name: "Repository Pattern",
       title: "Repository Pattern (Global)",
       description: "Use repositories for all database access",
@@ -309,7 +316,7 @@ Deno.test("MemoryCommands: promote non-existent project returns error", async ()
     await memoryBank.initGlobalMemory();
 
     const result = await commands.promote("non-existent", {
-      type: LearningCategory.PATTERN,
+      type: MemoryType.PATTERN,
       name: "Test",
       title: "Test",
       description: "Test",

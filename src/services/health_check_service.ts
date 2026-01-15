@@ -15,6 +15,7 @@ import {
   DEFAULT_MEMORY_CRITICAL_PERCENT,
   DEFAULT_MEMORY_WARN_PERCENT,
 } from "../config/constants.ts";
+import { HealthCheckVerdict, HealthStatus } from "../enums.ts";
 
 /**
  * Interface for individual health check implementations
@@ -33,7 +34,7 @@ export interface HealthCheck {
  */
 export interface HealthCheckResult {
   /** Status of the check: pass, warn, or fail */
-  status: "pass" | "warn" | "fail";
+  status: HealthCheckVerdict;
   /** Optional human-readable message */
   message?: string;
   /** Optional metadata about the check (response times, metrics, etc.) */
@@ -43,11 +44,11 @@ export interface HealthCheckResult {
 }
 
 /**
- * Overall health status of the service
+ * Overall health report of the service
  */
-export interface HealthStatus {
+export interface HealthReport {
   /** Overall status: healthy, degraded, or unhealthy */
-  status: "healthy" | "degraded" | "unhealthy";
+  status: HealthStatus;
   /** ISO timestamp when the check was performed */
   timestamp: string;
   /** Service version */
@@ -102,7 +103,7 @@ export class HealthCheckService {
   /**
    * Perform all registered health checks and return overall status
    */
-  async checkHealth(): Promise<HealthStatus> {
+  async checkHealth(): Promise<HealthReport> {
     const results: Record<string, HealthCheckResult> = {};
     let hasFailure = false;
     let hasWarning = false;
@@ -130,19 +131,19 @@ export class HealthCheckService {
             duration_ms: Math.round(duration),
           };
 
-          if (result.status === "fail") {
+          if (result.status === HealthCheckVerdict.FAIL) {
             if (check.critical) {
               hasFailure = true;
             } else {
               hasWarning = true;
             }
-          } else if (result.status === "warn") {
+          } else if (result.status === HealthCheckVerdict.WARN) {
             hasWarning = true;
           }
         } catch (error) {
           const duration = performance.now() - start;
           results[name] = {
-            status: "fail",
+            status: HealthCheckVerdict.FAIL,
             message: error instanceof Error ? error.message : String(error),
             duration_ms: Math.round(duration),
           };
@@ -159,7 +160,7 @@ export class HealthCheckService {
     await Promise.allSettled(checkPromises);
 
     return {
-      status: hasFailure ? "unhealthy" : hasWarning ? "degraded" : "healthy",
+      status: hasFailure ? HealthStatus.UNHEALTHY : hasWarning ? HealthStatus.DEGRADED : HealthStatus.HEALTHY,
       timestamp: new Date().toISOString(),
       version: this.version,
       uptime_seconds: Math.floor((Date.now() - this.startTime) / 1000),
@@ -178,7 +179,7 @@ export class HealthCheckService {
 
     // Return cached result if still valid
     if (cached && cached.expiresAt > now) {
-      return cached.result.status === "pass";
+      return cached.result.status === HealthCheckVerdict.PASS;
     }
 
     const check = this.checks.get(providerName);
@@ -195,11 +196,11 @@ export class HealthCheckService {
         expiresAt: now + this.cacheTtlMs,
       });
 
-      return result.status === "pass";
+      return result.status === HealthCheckVerdict.PASS;
     } catch (error) {
       // Cache failed result too to avoid repeated failures
       const failedResult: HealthCheckResult = {
-        status: "fail",
+        status: HealthCheckVerdict.FAIL,
         message: error instanceof Error ? error.message : String(error),
       };
 
@@ -233,7 +234,7 @@ export class DatabaseHealthCheck implements HealthCheck {
 
       if (result.health_check === 1) {
         return await Promise.resolve({
-          status: "pass",
+          status: HealthCheckVerdict.PASS,
           metadata: {
             response_time_ms: Math.round(duration),
           },
@@ -241,7 +242,7 @@ export class DatabaseHealthCheck implements HealthCheck {
         });
       } else {
         return await Promise.resolve({
-          status: "fail",
+          status: HealthCheckVerdict.FAIL,
           message: "Database returned unexpected result",
           duration_ms: Math.round(duration),
         });
@@ -249,7 +250,7 @@ export class DatabaseHealthCheck implements HealthCheck {
     } catch (error) {
       const duration = performance.now() - start;
       return await Promise.resolve({
-        status: "fail",
+        status: HealthCheckVerdict.FAIL,
         message: `Database health check failed: ${error instanceof Error ? error.message : String(error)}`,
         duration_ms: Math.round(duration),
       });
@@ -278,7 +279,7 @@ export class LLMProviderHealthCheck implements HealthCheck {
       const duration = performance.now() - start;
 
       return {
-        status: "pass",
+        status: HealthCheckVerdict.PASS,
         metadata: {
           response_time_ms: Math.round(duration),
         },
@@ -287,7 +288,7 @@ export class LLMProviderHealthCheck implements HealthCheck {
     } catch (error) {
       const duration = performance.now() - start;
       return {
-        status: "fail",
+        status: HealthCheckVerdict.FAIL,
         message: `LLM provider health check failed: ${error instanceof Error ? error.message : String(error)}`,
         duration_ms: Math.round(duration),
       };
@@ -345,7 +346,7 @@ export class DiskSpaceHealthCheck implements HealthCheck {
 
       if (usePercent >= this.thresholds.critical) {
         return {
-          status: "fail",
+          status: HealthCheckVerdict.FAIL,
           message: `Disk space critically low: ${usePercent}% used`,
           metadata: {
             path: this.path,
@@ -357,7 +358,7 @@ export class DiskSpaceHealthCheck implements HealthCheck {
         };
       } else if (usePercent >= this.thresholds.warn) {
         return {
-          status: "warn",
+          status: HealthCheckVerdict.WARN,
           message: `Disk space low: ${usePercent}% used`,
           metadata: {
             path: this.path,
@@ -369,7 +370,7 @@ export class DiskSpaceHealthCheck implements HealthCheck {
         };
       } else {
         return {
-          status: "pass",
+          status: HealthCheckVerdict.PASS,
           metadata: {
             path: this.path,
             used_percent: usePercent,
@@ -382,7 +383,7 @@ export class DiskSpaceHealthCheck implements HealthCheck {
     } catch (error) {
       const duration = performance.now() - start;
       return {
-        status: "fail",
+        status: HealthCheckVerdict.FAIL,
         message: `Disk space check failed: ${error instanceof Error ? error.message : String(error)}`,
         duration_ms: Math.round(duration),
       };
@@ -415,7 +416,7 @@ export class MemoryHealthCheck implements HealthCheck {
 
       if (usedPercent >= this.thresholds.critical) {
         return Promise.resolve({
-          status: "fail",
+          status: HealthCheckVerdict.FAIL,
           message: `Memory usage critically high: ${usedPercent.toFixed(1)}% used`,
           metadata: {
             used_mb: Math.round(usedMB),
@@ -426,7 +427,7 @@ export class MemoryHealthCheck implements HealthCheck {
         });
       } else if (usedPercent >= this.thresholds.warn) {
         return Promise.resolve({
-          status: "warn",
+          status: HealthCheckVerdict.WARN,
           message: `Memory usage high: ${usedPercent.toFixed(1)}% used`,
           metadata: {
             used_mb: Math.round(usedMB),
@@ -437,7 +438,7 @@ export class MemoryHealthCheck implements HealthCheck {
         });
       } else {
         return await Promise.resolve({
-          status: "pass",
+          status: HealthCheckVerdict.PASS,
           metadata: {
             used_mb: Math.round(usedMB),
             total_mb: Math.round(totalMB),
@@ -449,7 +450,7 @@ export class MemoryHealthCheck implements HealthCheck {
     } catch (error) {
       const duration = performance.now() - start;
       return await Promise.resolve({
-        status: "fail",
+        status: HealthCheckVerdict.FAIL,
         message: `Memory check failed: ${error instanceof Error ? error.message : String(error)}`,
         duration_ms: Math.round(duration),
       });
@@ -497,9 +498,9 @@ export async function handleHealthCheck(
 
     // Return appropriate HTTP status code based on health status
     let httpStatus = 200;
-    if (status.status === "unhealthy") {
+    if (status.status === HealthStatus.UNHEALTHY) {
       httpStatus = 503; // Service Unavailable
-    } else if (status.status === "degraded") {
+    } else if (status.status === HealthStatus.DEGRADED) {
       httpStatus = 200; // Still OK but with warnings
     }
 
@@ -513,7 +514,7 @@ export async function handleHealthCheck(
   } catch (error) {
     // If health check itself fails, return service unavailable
     const errorResponse = {
-      status: "unhealthy",
+      status: HealthStatus.UNHEALTHY,
       timestamp: new Date().toISOString(),
       version: "1.0.0",
       uptime_seconds: 0,

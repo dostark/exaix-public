@@ -5,7 +5,7 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { EvaluationCategory, MCPTransport, ProviderCostTier } from "../../src/enums.ts";
 
-import { EvaluationVerdict } from "../../src/enums.ts";
+import { HealthCheckVerdict } from "../../src/enums.ts";
 
 import { MockProviderFactory, ProviderRegistry } from "../../src/ai/provider_registry.ts";
 import { ProviderSelector } from "../../src/ai/provider_selector.ts";
@@ -50,12 +50,12 @@ Deno.test("ProviderSelector: selects optimal provider based on criteria", async 
     healthService.registerCheck({
       name: "free-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "paid-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
     // Import and create selector (will implement this)
@@ -134,12 +134,12 @@ Deno.test("ProviderSelector: respects budget constraints", async () => {
     healthService.registerCheck({
       name: "cheap-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "expensive-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
     const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
@@ -187,12 +187,12 @@ Deno.test("ProviderSelector: routes tasks by complexity", async () => {
     healthService.registerCheck({
       name: "local-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "premium-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
     const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
@@ -247,12 +247,12 @@ Deno.test("ProviderSelector: filters by required capabilities", async () => {
     healthService.registerCheck({
       name: "chat-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "vision-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
     const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
@@ -299,12 +299,12 @@ Deno.test("ProviderSelector: excludes unhealthy providers", async () => {
     healthService.registerCheck({
       name: "healthy-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "unhealthy-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.FAIL }),
+      check: async () => await ({ status: HealthCheckVerdict.FAIL }),
     });
 
     const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
@@ -351,12 +351,12 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
     healthService.registerCheck({
       name: "simple-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
     healthService.registerCheck({
       name: "complex-provider",
       critical: false,
-      check: async () => await ({ status: EvaluationVerdict.PASS }),
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
     const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");

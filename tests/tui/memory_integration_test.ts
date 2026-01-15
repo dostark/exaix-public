@@ -14,6 +14,7 @@ import {
   MemoryScope,
   MemorySource,
   MemoryStatus,
+  MemoryType,
 } from "../../src/enums.ts";
 
 import { ConfidenceLevel } from "../../src/enums.ts";
@@ -187,7 +188,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
       {
         id: "result-1",
         title: "Error Handling Pattern",
-        type: LearningCategory.PATTERN,
+        type: MemoryType.PATTERN,
         portal: "my-app",
         summary: "Found in my-app patterns",
         relevance_score: 0.95,
@@ -196,7 +197,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
       {
         id: "result-2",
         title: "Logging Best Practices",
-        type: "learning",
+        type: MemoryType.LEARNING,
         portal: MemoryScope.GLOBAL,
         summary: "Global learning",
         relevance_score: 0.82,

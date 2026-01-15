@@ -17,12 +17,13 @@
 
 import type { DatabaseService } from "./db.ts";
 import type { ActivityRepository } from "../repositories/activity_repository.ts";
+import { LogLevel } from "../enums.ts";
 
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
 
-export type LogLevel = "info" | "warn" | "error" | "debug";
+// export type LogLevel = "info" | "warn" | "error" | "debug"; // Moved to enums.ts
 
 /**
  * Actor types:
@@ -98,18 +99,18 @@ export interface EventLoggerConfig {
 
 /** Log level priority for filtering */
 const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
+  [LogLevel.DEBUG]: 0,
+  [LogLevel.INFO]: 1,
+  [LogLevel.WARN]: 2,
+  [LogLevel.ERROR]: 3,
 };
 
 /** Default icons for each log level */
 const DEFAULT_ICONS: Record<LogLevel, string> = {
-  info: "✅",
-  warn: "⚠️",
-  error: "❌",
-  debug: "🔍",
+  [LogLevel.INFO]: "✅",
+  [LogLevel.WARN]: "⚠️",
+  [LogLevel.ERROR]: "❌",
+  [LogLevel.DEBUG]: "🔍",
 };
 
 /** Cached user identity to avoid repeated git calls */
@@ -143,7 +144,7 @@ export class EventLogger {
     this.activityRepo = config.activityRepo;
     this.db = config.db; // DEPRECATED
     this.prefix = config.prefix ?? "";
-    this.minLevel = config.minLevel ?? "info";
+    this.minLevel = config.minLevel ?? LogLevel.INFO;
     this.showTimestamp = config.showTimestamp ?? false;
     this.defaultActor = config.defaultActor ?? "system";
     this.defaults = defaults;
@@ -180,7 +181,7 @@ export class EventLogger {
       event = eventOrAction;
     }
 
-    const level = event.level ?? "info";
+    const level = event.level ?? LogLevel.INFO;
 
     // Check if this level should be logged
     if (LOG_LEVEL_PRIORITY[level] < LOG_LEVEL_PRIORITY[this.minLevel]) {
@@ -211,7 +212,7 @@ export class EventLogger {
     payload?: Record<string, unknown>,
     traceId?: string,
   ): Promise<void> {
-    await this.log({ action, target, payload, level: "info", traceId });
+    await this.log({ action, target, payload, level: LogLevel.INFO, traceId });
   }
 
   /**
@@ -223,7 +224,7 @@ export class EventLogger {
     payload?: Record<string, unknown>,
     traceId?: string,
   ): Promise<void> {
-    await this.log({ action, target, payload, level: "warn", traceId });
+    await this.log({ action, target, payload, level: LogLevel.WARN, traceId });
   }
 
   /**
@@ -235,7 +236,7 @@ export class EventLogger {
     payload?: Record<string, unknown>,
     traceId?: string,
   ): Promise<void> {
-    await this.log({ action, target, payload, level: "error", traceId });
+    await this.log({ action, target, payload, level: LogLevel.ERROR, traceId });
   }
 
   /**
@@ -247,7 +248,7 @@ export class EventLogger {
     payload?: Record<string, unknown>,
     traceId?: string,
   ): Promise<void> {
-    await this.log({ action, target, payload, level: "debug", traceId });
+    await this.log({ action, target, payload, level: LogLevel.DEBUG, traceId });
   }
 
   /**
@@ -346,7 +347,7 @@ export class EventLogger {
     const mainLine = `${timestamp}${icon} ${event.action}: ${event.target}`;
 
     // Select appropriate console method
-    const consoleFn = level === "error" ? console.error : level === "warn" ? console.warn : console.log;
+    const consoleFn = level === LogLevel.ERROR ? console.error : level === LogLevel.WARN ? console.warn : console.log;
 
     consoleFn(prefix + mainLine);
 

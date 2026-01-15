@@ -12,6 +12,7 @@ import {
   MemoryScope,
   MemorySource,
   MemoryStatus,
+  MemoryType,
 } from "../../src/enums.ts";
 
 import { ConfidenceLevel } from "../../src/enums.ts";
@@ -565,8 +566,8 @@ Deno.test("MemoryViewTuiSession: search with empty query reloads tree", async ()
 Deno.test("MemoryViewTuiSession: search with query executes search", async () => {
   const service = new ExtendedMockMemoryService();
   service.setSearchResults([
-    { type: LearningCategory.PATTERN, id: "p1", title: "Result 1", summary: "Summary 1" },
-    { type: LearningCategory.DECISION, id: "d1", title: "Result 2", summary: "Summary 2" },
+    { type: MemoryType.PATTERN, id: "p1", title: "Result 1", summary: "Summary 1" },
+    { type: MemoryType.DECISION, id: "d1", title: "Result 2", summary: "Summary 2" },
   ]);
   service.setPending([]);
   service.setProjects([]);

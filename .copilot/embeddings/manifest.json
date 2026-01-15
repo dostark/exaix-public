@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-12T19:41:10.517Z",
+  "generated_at": "2026-01-15T11:47:27.799Z",
   "index": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -145,12 +145,20 @@
       "embeddingFile": ".copilot/embeddings/phase-13-tui-enhancement.md.json"
     },
     {
+      "path": ".copilot/planning/phase-26-llm-provider-flexibility.md",
+      "embeddingFile": ".copilot/embeddings/phase-26-llm-provider-flexibility.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-10-polishing.md",
       "embeddingFile": ".copilot/embeddings/phase-10-polishing.md.json"
     },
     {
       "path": ".copilot/planning/phase-11-testing-quality-assurance.md",
       "embeddingFile": ".copilot/embeddings/phase-11-testing-quality-assurance.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-27-magic-number-and-word-externaliztion.md",
+      "embeddingFile": ".copilot/embeddings/phase-27-magic-number-and-word-externaliztion.md.json"
     },
     {
       "path": ".copilot/planning/phase-18-blueprint-modernization.md",

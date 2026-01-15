@@ -16,7 +16,7 @@ import { join } from "@std/path";
 import { ensureDir, ensureDirSync, ensureFile, exists } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
-import { MemoryReferenceType, MemoryScope, MemorySource, MemoryStatus } from "../enums.ts";
+import { ActivityType, MemoryReferenceType, MemoryScope, MemorySource, MemoryStatus, MemoryType } from "../enums.ts";
 import type {
   ActivitySummary,
   Decision,
@@ -596,7 +596,7 @@ export class MemoryBankService {
   async promoteLearning(
     portal: string,
     promotion: {
-      type: "pattern" | "decision";
+      type: MemoryType.PATTERN | MemoryType.DECISION;
       name: string;
       title: string;
       description: string;
@@ -801,7 +801,7 @@ export class MemoryBankService {
           // Check overview
           if (projectMem.overview.toLowerCase().includes(queryLower)) {
             results.push({
-              type: "project",
+              type: MemoryType.PROJECT,
               portal: entry.name,
               title: `${entry.name} Overview`,
               summary: projectMem.overview.substring(0, 200),
@@ -816,7 +816,7 @@ export class MemoryBankService {
               pattern.description.toLowerCase().includes(queryLower)
             ) {
               results.push({
-                type: "pattern",
+                type: MemoryType.PATTERN,
                 portal: entry.name,
                 title: pattern.name,
                 summary: pattern.description,
@@ -829,7 +829,7 @@ export class MemoryBankService {
           for (const decision of projectMem.decisions) {
             if (decision.decision.toLowerCase().includes(queryLower)) {
               results.push({
-                type: "decision",
+                type: MemoryType.DECISION,
                 portal: entry.name,
                 title: `Decision: ${decision.date}`,
                 summary: decision.decision.substring(0, 200),
@@ -846,7 +846,7 @@ export class MemoryBankService {
     for (const execution of executions) {
       if (execution.summary.toLowerCase().includes(queryLower)) {
         results.push({
-          type: "execution",
+          type: MemoryType.EXECUTION,
           portal: execution.portal,
           title: `Execution: ${execution.trace_id.slice(0, 8)}`,
           summary: execution.summary,
@@ -890,7 +890,7 @@ export class MemoryBankService {
             const patternTags = (pattern.tags || []).map((t) => t.toLowerCase());
             if (normalizedTags.every((t) => patternTags.includes(t))) {
               results.push({
-                type: "pattern",
+                type: MemoryType.PATTERN,
                 portal: entry.name,
                 title: pattern.name,
                 summary: pattern.description,
@@ -905,7 +905,7 @@ export class MemoryBankService {
             const decisionTags = (decision.tags || []).map((t) => t.toLowerCase());
             if (normalizedTags.every((t) => decisionTags.includes(t))) {
               results.push({
-                type: "decision",
+                type: MemoryType.DECISION,
                 portal: entry.name,
                 title: `Decision: ${decision.date}`,
                 summary: decision.decision,
@@ -921,12 +921,12 @@ export class MemoryBankService {
     // Search global learnings
     const learnings = await this.loadLearningsFromFile();
     for (const learning of learnings) {
-      if (learning.status !== "approved") continue;
+      if (learning.status !== MemoryStatus.APPROVED) continue;
 
       const learningTags = (learning.tags || []).map((t) => t.toLowerCase());
       if (normalizedTags.every((t) => learningTags.includes(t))) {
         results.push({
-          type: "learning",
+          type: MemoryType.LEARNING,
           title: learning.title,
           summary: learning.description,
           relevance_score: 0.95,
@@ -983,7 +983,7 @@ export class MemoryBankService {
             const descFreq = calculateFrequency(pattern.description);
             if (titleFreq > 0 || descFreq > 0) {
               results.push({
-                type: "pattern",
+                type: MemoryType.PATTERN,
                 portal: entry.name,
                 title: pattern.name,
                 summary: pattern.description,
@@ -999,7 +999,7 @@ export class MemoryBankService {
             const descFreq = calculateFrequency(decision.rationale);
             if (titleFreq > 0 || descFreq > 0) {
               results.push({
-                type: "decision",
+                type: MemoryType.DECISION,
                 portal: entry.name,
                 title: `Decision: ${decision.date}`,
                 summary: decision.decision,
@@ -1013,7 +1013,7 @@ export class MemoryBankService {
           const overviewFreq = calculateFrequency(projectMem.overview);
           if (overviewFreq > 0) {
             results.push({
-              type: "project",
+              type: MemoryType.PROJECT,
               portal: entry.name,
               title: `${entry.name} Overview`,
               summary: projectMem.overview.substring(0, 200),
@@ -1027,13 +1027,13 @@ export class MemoryBankService {
     // Search global learnings
     const learnings = await this.loadLearningsFromFile();
     for (const learning of learnings) {
-      if (learning.status !== "approved") continue;
+      if (learning.status !== MemoryStatus.APPROVED) continue;
 
       const titleFreq = calculateFrequency(learning.title);
       const descFreq = calculateFrequency(learning.description);
       if (titleFreq > 0 || descFreq > 0) {
         results.push({
-          type: "learning",
+          type: MemoryType.LEARNING,
           title: learning.title,
           summary: learning.description,
           relevance_score: calculateRelevance(titleFreq, descFreq),
@@ -1153,7 +1153,7 @@ export class MemoryBankService {
     const executions = await this.getExecutionHistory(undefined, limit);
 
     return executions.map((exec) => ({
-      type: "execution",
+      type: ActivityType.EXECUTION,
       timestamp: exec.started_at,
       portal: exec.portal,
       summary: exec.summary,
@@ -1230,7 +1230,7 @@ export class MemoryBankService {
     // Index global learnings tags
     const learnings = await this.loadLearningsFromFile();
     for (const learning of learnings) {
-      if (learning.status !== "approved") continue;
+      if (learning.status !== MemoryStatus.APPROVED) continue;
       for (const tag of learning.tags || []) {
         if (!tagsIndex[tag]) {
           tagsIndex[tag] = [];
@@ -1290,13 +1290,13 @@ export class MemoryBankService {
     // Embed all approved learnings
     const learnings = await this.loadLearningsFromFile();
     for (const learning of learnings) {
-      if (learning.status === "approved") {
+      if (learning.status === MemoryStatus.APPROVED) {
         await embeddingService.embedLearning(learning);
       }
     }
 
     // Log embedding rebuild
-    const approvedCount = learnings.filter((l) => l.status === "approved").length;
+    const approvedCount = learnings.filter((l) => l.status === MemoryStatus.APPROVED).length;
     this.logActivity({
       event_type: "memory.embeddings.rebuilt",
       target: "system",

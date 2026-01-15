@@ -15,6 +15,7 @@ import {
   DEFAULT_GIT_TRACE_ID_SHORT_LENGTH,
 } from "../config/constants.ts";
 import { SecureRandom } from "../utils/secure_random.ts";
+import { ActivityActor } from "../enums.ts";
 
 // ============================================================================
 // Types
@@ -522,7 +523,7 @@ export class GitService {
 
     try {
       this.db.logActivity(
-        "agent",
+        ActivityActor.AGENT,
         actionType,
         null,
         payload,

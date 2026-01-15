@@ -16,7 +16,14 @@
  */
 
 import { ConfidenceLevel } from "../../src/enums.ts";
-import { ExecutionStatus, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import {
+  ExecutionStatus,
+  LearningCategory,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+  MemoryType,
+} from "../../src/enums.ts";
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { MemoryCommands } from "../../src/cli/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
@@ -370,7 +377,7 @@ Deno.test("MemoryCommands: promote returns error for non-existent project", asyn
     await memoryBank.initGlobalMemory();
 
     const result = await commands.promote("NonExistentPortal", {
-      type: LearningCategory.PATTERN,
+      type: MemoryType.PATTERN,
       name: "test",
       title: "Test Pattern",
       description: "Test description",

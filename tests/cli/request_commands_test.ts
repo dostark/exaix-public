@@ -13,7 +13,13 @@
  */
 
 import { assertEquals, assertExists, assertNotEquals, assertRejects, assertStringIncludes } from "@std/assert";
-import { CritiqueSeverity, MemoryReferenceType, MemoryStatus } from "../../src/enums.ts";
+import {
+  CritiqueSeverity,
+  MemoryReferenceType,
+  MemoryStatus,
+  RequestPriority,
+  RequestStatus,
+} from "../../src/enums.ts";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
@@ -56,7 +62,7 @@ describe("RequestCommands", () => {
       // Verify result structure
       assertExists(result.trace_id);
       assertEquals(result.trace_id.length, 36); // UUID format
-      assertEquals(result.status, MemoryStatus.PENDING);
+      assertEquals(result.status, RequestStatus.PENDING);
       assertEquals(result.priority, "normal");
       assertEquals(result.agent, "default");
 
@@ -71,8 +77,8 @@ describe("RequestCommands", () => {
     });
 
     it("should accept custom priority", async () => {
-      const result = await requestCommands.create("Fix critical bug", { priority: CritiqueSeverity.CRITICAL });
-      assertEquals(result.priority, CritiqueSeverity.CRITICAL);
+      const result = await requestCommands.create("Fix critical bug", { priority: RequestPriority.CRITICAL });
+      assertEquals(result.priority, RequestPriority.CRITICAL);
 
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "priority: critical");
@@ -103,7 +109,7 @@ describe("RequestCommands", () => {
 
     it("should reject invalid priority", async () => {
       await assertRejects(
-        async () => await requestCommands.create("Test", { priority: "invalid" as "low" }),
+        async () => await requestCommands.create("Test", { priority: "invalid" as RequestPriority }),
         Error,
         "Invalid priority",
       );
@@ -223,11 +229,11 @@ describe("RequestCommands", () => {
 
       const result = await requestCommands.createFromFile(inputFile, {
         agent: "custom_agent",
-        priority: "high",
+        priority: RequestPriority.HIGH,
       });
 
       assertEquals(result.agent, "custom_agent");
-      assertEquals(result.priority, "high");
+      assertEquals(result.priority, RequestPriority.HIGH);
     });
 
     it("should trim whitespace from file content", async () => {
@@ -282,11 +288,11 @@ describe("RequestCommands", () => {
     });
 
     it("should include metadata from frontmatter", async () => {
-      await requestCommands.create("Test request", { priority: "high", agent: "architect" });
+      await requestCommands.create("Test request", { priority: RequestPriority.HIGH, agent: "architect" });
 
       const requests = await requestCommands.list();
       assertEquals(requests.length, 1);
-      assertEquals(requests[0].priority, "high");
+      assertEquals(requests[0].priority, RequestPriority.HIGH);
       assertEquals(requests[0].agent, "architect");
       assertEquals(requests[0].status, MemoryStatus.PENDING);
     });
@@ -353,9 +359,9 @@ describe("RequestCommands", () => {
     for (const priority of validPriorities) {
       it(`should accept valid priority: ${priority}`, async () => {
         const result = await requestCommands.create("Test", {
-          priority: priority as "low" | "normal" | "high" | "critical",
+          priority: priority as RequestPriority,
         });
-        assertEquals(result.priority, priority);
+        assertEquals(result.priority, priority as RequestPriority);
       });
     }
   });
@@ -534,7 +540,7 @@ Minimal content for show
 
       const content = await Deno.readTextFile(result.path);
       assertStringIncludes(content, "A".repeat(100)); // Just check some content exists
-      assertEquals(result.status, MemoryStatus.PENDING);
+      assertEquals(result.status, RequestStatus.PENDING);
     });
 
     it("should handle unicode in description", async () => {
@@ -565,7 +571,7 @@ Minimal content for show
 
     it("should log activity with correct payload fields", async () => {
       const result = await requestCommands.create("Test activity payload", {
-        priority: "high",
+        priority: RequestPriority.HIGH,
         agent: "special_agent",
         portal: "TestPortal",
       });

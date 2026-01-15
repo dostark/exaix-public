@@ -1,6 +1,6 @@
 import { assertEquals, assertExists } from "@std/assert";
 
-import { ExecutionStatus } from "../../src/enums.ts";
+import { ExecutionStatus, HealthCheckVerdict, HealthStatus, MockStrategy } from "../../src/enums.ts";
 
 import { createMockConfig } from "../helpers/config.ts";
 import {
@@ -13,7 +13,6 @@ import {
   MemoryHealthCheck,
 } from "../../src/services/health_check_service.ts";
 import { MockLLMProvider } from "../../src/ai/providers/mock_llm_provider.ts";
-import { MockStrategy } from "../../src/enums.ts";
 import { initTestDbService } from "../helpers/db.ts";
 
 /**
@@ -30,7 +29,7 @@ Deno.test("HealthCheckService: registers health checks", () => {
   const mockCheck = {
     name: "test",
     critical: false,
-    check: () => Promise.resolve({ status: "pass" as const }),
+    check: () => Promise.resolve({ status: HealthCheckVerdict.PASS }),
   };
 
   service.registerCheck(mockCheck);
@@ -44,17 +43,17 @@ Deno.test("HealthCheckService: returns healthy status when all checks pass", asy
   const mockCheck = {
     name: "test",
     critical: false,
-    check: () => Promise.resolve({ status: "pass" as const, metadata: { test: "data" } }),
+    check: () => Promise.resolve({ status: HealthCheckVerdict.PASS, metadata: { test: "data" } }),
   };
 
   service.registerCheck(mockCheck);
   const status = await service.checkHealth();
 
-  assertEquals(status.status, "healthy");
+  assertEquals(status.status, HealthStatus.HEALTHY);
   assertEquals(status.version, "1.0.0");
   assertExists(status.timestamp);
   assertEquals(status.uptime_seconds >= 0, true);
-  assertEquals(status.checks.test.status, "pass");
+  assertEquals(status.checks.test.status, HealthCheckVerdict.PASS);
   assertEquals(status.checks.test.metadata?.test, "data");
 });
 
@@ -63,14 +62,14 @@ Deno.test("HealthCheckService: returns degraded status when non-critical check f
   const mockCheck = {
     name: "test",
     critical: false,
-    check: () => Promise.resolve({ status: "fail" as const, message: "Test failure" }),
+    check: () => Promise.resolve({ status: HealthCheckVerdict.FAIL, message: "Test failure" }),
   };
 
   service.registerCheck(mockCheck);
   const status = await service.checkHealth();
 
-  assertEquals(status.status, "degraded");
-  assertEquals(status.checks.test.status, "fail");
+  assertEquals(status.status, HealthStatus.DEGRADED);
+  assertEquals(status.checks.test.status, HealthCheckVerdict.FAIL);
   assertEquals(status.checks.test.message, "Test failure");
 });
 
@@ -79,14 +78,14 @@ Deno.test("HealthCheckService: returns unhealthy status when critical check fail
   const mockCheck = {
     name: "test",
     critical: true,
-    check: () => Promise.resolve({ status: "fail" as const, message: "Critical failure" }),
+    check: () => Promise.resolve({ status: HealthCheckVerdict.FAIL, message: "Critical failure" }),
   };
 
   service.registerCheck(mockCheck);
   const status = await service.checkHealth();
 
-  assertEquals(status.status, "unhealthy");
-  assertEquals(status.checks.test.status, "fail");
+  assertEquals(status.status, HealthStatus.UNHEALTHY);
+  assertEquals(status.checks.test.status, HealthCheckVerdict.FAIL);
   assertEquals(status.checks.test.message, "Critical failure");
 });
 
@@ -101,7 +100,7 @@ Deno.test("HealthCheckService: handles check timeouts", async () => {
     critical: false,
     check: () =>
       new Promise((resolve) => {
-        timeoutId = setTimeout(() => resolve({ status: "pass" as const }), 100);
+        timeoutId = setTimeout(() => resolve({ status: HealthCheckVerdict.PASS }), 100);
       }),
   };
 
@@ -112,7 +111,7 @@ Deno.test("HealthCheckService: handles check timeouts", async () => {
   // Clear any remaining timeout from the test
   if (timeoutId) clearTimeout(timeoutId);
 
-  assertEquals(status.checks.slow.status, "fail");
+  assertEquals(status.checks.slow.status, HealthCheckVerdict.FAIL);
   assertExists(status.checks.slow.message);
   assertEquals(status.checks.slow.message?.includes("timed out"), true);
 });
@@ -128,7 +127,7 @@ Deno.test("HealthCheckService: runs checks in parallel", async () => {
     check: async () => {
       check1Executed = true;
       await new Promise((resolve) => setTimeout(resolve, 10));
-      return { status: "pass" as const };
+      return { status: HealthCheckVerdict.PASS };
     },
   };
 
@@ -138,7 +137,7 @@ Deno.test("HealthCheckService: runs checks in parallel", async () => {
     check: async () => {
       check2Executed = true;
       await new Promise((resolve) => setTimeout(resolve, 10));
-      return { status: "pass" as const };
+      return { status: HealthCheckVerdict.PASS };
     },
   };
 
@@ -161,7 +160,7 @@ Deno.test("DatabaseHealthCheck: passes when database is accessible", async () =>
     const check = new DatabaseHealthCheck(db);
     const result = await check.check();
 
-    assertEquals(result.status, "pass");
+    assertEquals(result.status, HealthCheckVerdict.PASS);
     assertExists(result.metadata);
     assertEquals(typeof result.metadata?.response_time_ms, "number");
     assertEquals(result.duration_ms !== undefined, true);
@@ -179,7 +178,7 @@ Deno.test("DatabaseHealthCheck: fails when database query fails", async () => {
 
     const result = await check.check();
 
-    assertEquals(result.status, "fail");
+    assertEquals(result.status, HealthCheckVerdict.FAIL);
     assertExists(result.message);
     // Just check that there's an error message
     assertEquals((result.message?.length ?? 0) > 0, true);
@@ -209,7 +208,7 @@ Deno.test("LLMProviderHealthCheck: fails when provider throws error", async () =
 
   const result = await check.check();
 
-  assertEquals(result.status, "fail");
+  assertEquals(result.status, HealthCheckVerdict.FAIL);
   assertExists(result.message);
   assertEquals(result.message?.includes("unavailable"), true);
 });
@@ -223,7 +222,10 @@ Deno.test("LLMProviderHealthCheck: handles timeout gracefully", async () => {
   const result = await check.check();
 
   // Should not hang and should return some status
-  assertEquals(["pass", "fail", "warn"].includes(result.status), true);
+  assertEquals(
+    [HealthCheckVerdict.PASS, HealthCheckVerdict.FAIL, HealthCheckVerdict.WARN].includes(result.status),
+    true,
+  );
 });
 
 Deno.test("DiskSpaceHealthCheck: passes when disk space is sufficient", async () => {
@@ -233,7 +235,7 @@ Deno.test("DiskSpaceHealthCheck: passes when disk space is sufficient", async ()
     const result = await check.check();
 
     // With high thresholds, current disk usage should pass
-    assertEquals(result.status, "pass");
+    assertEquals(result.status, HealthCheckVerdict.PASS);
     assertExists(result.metadata);
     assertEquals(typeof result.metadata?.used_percent, "number");
     assertExists(result.metadata?.path);
@@ -250,7 +252,7 @@ Deno.test("DiskSpaceHealthCheck: warns when disk space is low", async () => {
     const result = await check.check();
 
     // With warn threshold at 0%, it should warn (since disk usage is always > 0%)
-    assertEquals(result.status, "warn");
+    assertEquals(result.status, HealthCheckVerdict.WARN);
     assertExists(result.message);
     assertExists(result.metadata);
     assertEquals(typeof result.metadata?.used_percent, "number");
@@ -263,7 +265,7 @@ Deno.test("DiskSpaceHealthCheck: fails when disk access fails", async () => {
   const check = new DiskSpaceHealthCheck("/nonexistent/path/that/does/not/exist", { warn: 80, critical: 95 });
   const result = await check.check();
 
-  assertEquals(result.status, "fail");
+  assertEquals(result.status, HealthCheckVerdict.FAIL);
   assertExists(result.message);
   assertEquals(result.message?.includes(ExecutionStatus.FAILED), true);
 });
@@ -284,7 +286,7 @@ Deno.test("MemoryHealthCheck: warns when memory usage is high", async () => {
   const check = new MemoryHealthCheck({ warn: 0, critical: 99.9 });
   const result = await check.check();
 
-  assertEquals(result.status, "warn");
+  assertEquals(result.status, HealthCheckVerdict.WARN);
   assertExists(result.message);
 });
 
@@ -293,7 +295,7 @@ Deno.test("MemoryHealthCheck: fails when memory usage is critical", async () => 
   const check = new MemoryHealthCheck({ warn: 0, critical: 0 });
   const result = await check.check();
 
-  assertEquals(result.status, "fail");
+  assertEquals(result.status, HealthCheckVerdict.FAIL);
   assertExists(result.message);
 });
 
@@ -346,7 +348,7 @@ Deno.test("HTTP Endpoint Integration: formats health status for HTTP response", 
   const mockCheck = {
     name: "test",
     critical: false,
-    check: () => Promise.resolve({ status: "pass" as const }),
+    check: () => Promise.resolve({ status: HealthCheckVerdict.PASS }),
   };
 
   service.registerCheck(mockCheck);
@@ -358,7 +360,7 @@ Deno.test("HTTP Endpoint Integration: formats health status for HTTP response", 
 
   // Should parse back correctly
   const parsed = JSON.parse(jsonString);
-  assertEquals(parsed.status, "healthy");
+  assertEquals(parsed.status, HealthStatus.HEALTHY);
   assertEquals(parsed.version, "1.0.0");
   assertExists(parsed.timestamp);
 });
@@ -369,31 +371,31 @@ Deno.test("HTTP Endpoint Integration: handles HTTP status code mapping", async (
   healthyService.registerCheck({
     name: "test",
     critical: false,
-    check: () => Promise.resolve({ status: "pass" as const }),
+    check: () => Promise.resolve({ status: HealthCheckVerdict.PASS }),
   });
 
   const healthyStatus = await healthyService.checkHealth();
-  assertEquals(healthyStatus.status, "healthy");
+  assertEquals(healthyStatus.status, HealthStatus.HEALTHY);
 
   // Test degraded status
   const degradedService = new HealthCheckService("1.0.0");
   degradedService.registerCheck({
     name: "test",
     critical: false,
-    check: () => Promise.resolve({ status: "fail" as const }),
+    check: () => Promise.resolve({ status: HealthCheckVerdict.FAIL }),
   });
 
   const degradedStatus = await degradedService.checkHealth();
-  assertEquals(degradedStatus.status, "degraded");
+  assertEquals(degradedStatus.status, HealthStatus.DEGRADED);
 
   // Test unhealthy status
   const unhealthyService = new HealthCheckService("1.0.0");
   unhealthyService.registerCheck({
     name: "test",
     critical: true,
-    check: () => Promise.resolve({ status: "fail" as const }),
+    check: () => Promise.resolve({ status: HealthCheckVerdict.FAIL }),
   });
 
   const unhealthyStatus = await unhealthyService.checkHealth();
-  assertEquals(unhealthyStatus.status, "unhealthy");
+  assertEquals(unhealthyStatus.status, HealthStatus.UNHEALTHY);
 });

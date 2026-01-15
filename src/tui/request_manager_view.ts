@@ -30,7 +30,7 @@ export interface Request {
 
 export interface RequestOptions {
   agent?: string;
-  priority?: "low" | "normal" | "high" | "critical";
+  priority?: RequestPriority;
   portal?: string;
   model?: string;
   skills?: string[]; // Phase 17: Explicit skills override
@@ -146,7 +146,7 @@ export class RequestCommandsServiceAdapter implements RequestService {
   }
 
   async createRequest(description: string, options?: RequestOptions): Promise<Request> {
-    const metadata = await this.cmd.create(description, options);
+    const metadata = await this.cmd.create(description, options as any); // Type compatibility wrapper
     return {
       trace_id: metadata.trace_id,
       filename: metadata.filename,
@@ -1045,7 +1045,9 @@ export class LegacyRequestManagerTuiSession {
     try {
       switch (action) {
         case "create": {
-          const newRequest = await this.service.createRequest("New request from TUI", { priority: "normal" });
+          const newRequest = await this.service.createRequest("New request from TUI", {
+            priority: RequestPriority.NORMAL,
+          });
           this.statusMessage = `Created request: ${newRequest.trace_id.slice(0, 8)}`;
           break;
         }

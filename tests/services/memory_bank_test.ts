@@ -15,6 +15,7 @@ import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { Decision, ExecutionMemory, Learning, Pattern, ProjectMemory } from "../../src/schemas/memory_bank.ts";
 import {
+  ActivityType,
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
@@ -660,7 +661,7 @@ Deno.test("MemoryBankService: getRecentActivity combines execution history", asy
     // Get recent activity
     const activity = await service.getRecentActivity(10);
     assertEquals(activity.length >= 1, true);
-    assertEquals(activity[0].type, MemorySource.EXECUTION);
+    assertEquals(activity[0].type, ActivityType.EXECUTION);
     assertEquals(activity[0].portal, "my-app");
   } finally {
     await cleanup();

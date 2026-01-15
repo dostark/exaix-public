@@ -17,6 +17,7 @@
 
 import { z } from "zod";
 import {
+  ActivityType,
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
@@ -25,6 +26,7 @@ import {
   MemoryScope,
   MemorySource,
   MemoryStatus,
+  MemoryType,
   ReviewSource,
   SkillStatus,
 } from "../enums.ts";
@@ -387,7 +389,7 @@ export type SkillIndex = z.infer<typeof SkillIndexSchema>;
  * Search result from memory bank queries
  */
 export interface MemorySearchResult {
-  type: "project" | "execution" | "pattern" | "decision" | "learning";
+  type: MemoryType;
   portal?: string;
   trace_id?: string;
   title: string;
@@ -413,7 +415,7 @@ export interface AdvancedSearchOptions {
  */
 export interface ActivitySummary {
   timestamp: string;
-  type: "execution" | "task" | "decision";
+  type: ActivityType;
   portal: string;
   summary: string;
   trace_id?: string;

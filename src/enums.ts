@@ -639,3 +639,50 @@ export enum SessionMemoryItemType {
   EXECUTION = "execution",
   INSIGHT = "insight",
 }
+
+/**
+ * Types of search results and entries in memory banks.
+ */
+export enum MemoryType {
+  PROJECT = "project",
+  EXECUTION = "execution",
+  PATTERN = "pattern",
+  DECISION = "decision",
+  LEARNING = "learning",
+}
+
+/**
+ * Types of activity in the system for summaries and journaling.
+ */
+export enum ActivityType {
+  EXECUTION = "execution",
+  TASK = "task",
+  DECISION = "decision",
+}
+
+/**
+ * Valid actors for activity logging.
+ */
+export enum ActivityActor {
+  HUMAN = "human",
+  AGENT = "agent",
+  SYSTEM = "system",
+}
+
+/**
+ * Overall health status of the service or a component.
+ */
+export enum HealthStatus {
+  HEALTHY = "healthy",
+  DEGRADED = "degraded",
+  UNHEALTHY = "unhealthy",
+}
+
+/**
+ * Result status of an individual health check.
+ */
+export enum HealthCheckVerdict {
+  PASS = "pass",
+  WARN = "warn",
+  FAIL = "fail",
+}

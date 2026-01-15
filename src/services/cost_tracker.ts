@@ -10,6 +10,7 @@ import {
   DEFAULT_COST_TRACKING_MAX_BATCH_SIZE,
   TOKENS_PER_COST_UNIT,
 } from "../config/constants.ts";
+import { ProviderType } from "../enums.ts";
 
 /**
  * Cost tracking for LLM provider usage.
@@ -33,11 +34,11 @@ export class CostTracker {
     // Use configured rates if available, otherwise fall back to defaults
     const configuredRates = config?.cost_tracking?.rates ?? {};
     const defaultRates: Record<string, number> = {
-      "openai": COST_RATE_OPENAI,
-      "anthropic": COST_RATE_ANTHROPIC,
-      "google": COST_RATE_GOOGLE,
-      "ollama": COST_RATE_OLLAMA,
-      "mock": COST_RATE_MOCK,
+      [ProviderType.OPENAI]: COST_RATE_OPENAI,
+      [ProviderType.ANTHROPIC]: COST_RATE_ANTHROPIC,
+      [ProviderType.GOOGLE]: COST_RATE_GOOGLE,
+      [ProviderType.OLLAMA]: COST_RATE_OLLAMA,
+      [ProviderType.MOCK]: COST_RATE_MOCK,
     };
 
     // For now, just return the default rates since registry initialization is complex

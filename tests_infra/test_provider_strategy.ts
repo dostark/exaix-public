@@ -2,7 +2,7 @@
 // Tests provider switching, fallback chains, budget enforcement, and concurrent requests
 
 import { assert, assertEquals, assertStringIncludes } from "@std/assert";
-import { EvaluationVerdict } from "../src/enums.ts";
+import { HealthCheckVerdict } from "../src/enums.ts";
 import { TestEnvironment } from "../tests/integration/helpers/test_environment.ts";
 import { ProviderSelector } from "../src/ai/provider_selector.ts";
 import { CostTracker } from "../src/services/cost_tracker.ts";
@@ -143,7 +143,7 @@ Deno.test("Provider Strategy: Free-to-paid fallback scenarios", async (t) => {
       healthCheck.registerCheck({
         name: "ollama/llama3.2:1b", // Must match the provider metadata name
         critical: true,
-        check: async () => await ({ status: EvaluationVerdict.FAIL, message: "Ollama not responding" }),
+        check: async () => await ({ status: HealthCheckVerdict.FAIL, message: "Ollama not responding" }),
       });
 
       const selector = new ProviderSelector(ProviderRegistry, costTracker, healthCheck);

@@ -26,6 +26,7 @@ import type {
 import { MemoryUpdateProposalSchema } from "../schemas/memory_bank.ts";
 import {
   ConfidenceLevel,
+  ExecutionStatus,
   LearningCategory,
   MemoryOperation,
   MemoryReferenceType,
@@ -77,13 +78,13 @@ export class MemoryExtractorService {
     }
 
     // Extract patterns from successful executions
-    if (execution.status === "completed") {
+    if (execution.status === ExecutionStatus.COMPLETED) {
       const patternLearnings = this.extractPatternsFromSummary(execution);
       learnings.push(...patternLearnings);
     }
 
     // Extract troubleshooting from failed executions
-    if (execution.status === "failed" && execution.error_message) {
+    if (execution.status === ExecutionStatus.FAILED && execution.error_message) {
       const troubleshootingLearning = this.extractFromFailure(execution);
       if (troubleshootingLearning) {
         learnings.push(troubleshootingLearning);
@@ -117,7 +118,7 @@ export class MemoryExtractorService {
     const hasMeaningfulSummary = execution.summary.length > 50;
 
     // No error message for failed
-    const hasError = execution.status === "failed" && execution.error_message;
+    const hasError = execution.status === ExecutionStatus.FAILED && execution.error_message;
 
     return !hasChanges && !hasLessons && !hasMeaningfulSummary && !hasError;
   }
@@ -324,7 +325,7 @@ export class MemoryExtractorService {
     // Log to Activity Journal
     this.logActivity({
       event_type: "memory.proposal.created",
-      target: learning.project || "global",
+      target: learning.project || MemoryScope.GLOBAL,
       metadata: {
         proposal_id: proposal.id,
         learning_title: learning.title,
@@ -428,7 +429,7 @@ export class MemoryExtractorService {
     // Log approval
     this.logActivity({
       event_type: "memory.proposal.approved",
-      target: proposal.target_project || "global",
+      target: proposal.target_project || MemoryScope.GLOBAL,
       metadata: {
         proposal_id: proposalId,
         learning_title: proposal.learning.title,
@@ -455,7 +456,7 @@ export class MemoryExtractorService {
     // Log rejection
     this.logActivity({
       event_type: "memory.proposal.rejected",
-      target: proposal.target_project || "global",
+      target: proposal.target_project || MemoryScope.GLOBAL,
       metadata: {
         proposal_id: proposalId,
         learning_title: proposal.learning.title,

@@ -24,7 +24,14 @@ import {
   LearningSchema,
   type ProjectMemory,
 } from "../../src/schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import {
+  ConfidenceLevel,
+  LearningCategory,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+  MemoryType,
+} from "../../src/enums.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 
 // ===== Learning Schema Tests =====
@@ -374,7 +381,7 @@ Deno.test("MemoryBankService: promoteLearning moves from project to global", asy
 
     // Promote the pattern as a learning
     const learningId = await service.promoteLearning("my-app", {
-      type: LearningCategory.PATTERN,
+      type: MemoryType.PATTERN,
       name: "Repository Pattern",
       title: "Repository Pattern (Promoted)",
       description: "All database access through repositories - promoted from my-app",
@@ -421,7 +428,7 @@ Deno.test("MemoryBankService: promoteLearning logs to Activity Journal", async (
     await service.initGlobalMemory();
 
     await service.promoteLearning("my-app", {
-      type: LearningCategory.DECISION,
+      type: MemoryType.DECISION,
       name: "Use TypeScript",
       title: "TypeScript for all projects",
       description: "Use TypeScript for better type safety",
@@ -454,7 +461,7 @@ Deno.test("MemoryBankService: promoteLearning from non-existent project throws",
     await assertRejects(
       async () => {
         await service.promoteLearning("non-existent", {
-          type: LearningCategory.PATTERN,
+          type: MemoryType.PATTERN,
           name: "Test",
           title: "Test",
           description: "Test",

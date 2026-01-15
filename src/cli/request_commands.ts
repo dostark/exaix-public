@@ -8,11 +8,12 @@
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "./base.ts";
+import { RequestPriority, RequestStatus } from "../enums.ts";
 
 /**
  * Valid priority levels for requests
  */
-export type RequestPriority = "low" | "normal" | "high" | "critical";
+// export type RequestPriority = "low" | "normal" | "high" | "critical"; // Moved to enums.ts
 
 /**
  * Options for creating a request
@@ -36,7 +37,7 @@ export interface RequestMetadata {
   trace_id: string;
   filename: string;
   path: string;
-  status: "pending";
+  status: RequestStatus.PENDING;
   priority: RequestPriority;
   agent: string;
   portal?: string;
@@ -71,7 +72,12 @@ export interface RequestShowResult {
   content: string;
 }
 
-const VALID_PRIORITIES: RequestPriority[] = ["low", "normal", "high", "critical"];
+const VALID_PRIORITIES: RequestPriority[] = [
+  RequestPriority.LOW,
+  RequestPriority.NORMAL,
+  RequestPriority.HIGH,
+  RequestPriority.CRITICAL,
+];
 
 /**
  * RequestCommands provides CLI operations for creating and managing requests.
@@ -111,7 +117,7 @@ export class RequestCommands extends BaseCommand {
     }
 
     // Validate priority
-    const priority = options.priority || "normal";
+    const priority = options.priority || RequestPriority.NORMAL;
     if (!VALID_PRIORITIES.includes(priority)) {
       throw new Error(`Invalid priority: ${priority}. Must be one of: ${VALID_PRIORITIES.join(", ")}`);
     }
@@ -134,7 +140,7 @@ export class RequestCommands extends BaseCommand {
     const frontmatterFields: Record<string, string> = {
       trace_id,
       created,
-      status: "pending",
+      status: RequestStatus.PENDING,
       priority,
       agent,
       source,
@@ -178,7 +184,7 @@ export class RequestCommands extends BaseCommand {
       trace_id,
       filename,
       path,
-      status: "pending",
+      status: RequestStatus.PENDING,
       priority,
       agent,
       portal,

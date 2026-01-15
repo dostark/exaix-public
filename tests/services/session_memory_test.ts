@@ -21,6 +21,7 @@ import {
   MemoryScope,
   MemorySource,
   MemoryStatus,
+  MemoryType,
 } from "../../src/enums.ts";
 
 // ===== Mock Services =====
@@ -95,7 +96,7 @@ const sampleEmbeddingResults: EmbeddingSearchResult[] = [
 
 const sampleSearchResults: MemorySearchResult[] = [
   {
-    type: LearningCategory.PATTERN,
+    type: MemoryType.PATTERN,
     portal: "test-portal",
     title: "Dependency Injection Pattern",
     summary: "Inject dependencies through constructor for testability",
@@ -103,7 +104,7 @@ const sampleSearchResults: MemorySearchResult[] = [
     tags: ["architecture", "testing"],
   },
   {
-    type: LearningCategory.DECISION,
+    type: MemoryType.DECISION,
     portal: "test-portal",
     title: "Decision: Use Deno Runtime",
     summary: "Chose Deno for built-in TypeScript support and modern APIs",
@@ -111,7 +112,7 @@ const sampleSearchResults: MemorySearchResult[] = [
     tags: ["runtime", "typescript"],
   },
   {
-    type: MemorySource.EXECUTION,
+    type: MemoryType.EXECUTION,
     portal: "test-portal",
     title: "Execution: abc12345",
     summary: "Implemented user authentication module",
@@ -225,7 +226,7 @@ Deno.test("SessionMemoryService - lookupMemories combines embedding and keyword 
 
   // Check that we have learning type from embeddings
   const hasLearning = memories.some((m) =>
-    m.type === "learning" || m.type === LearningCategory.PATTERN || m.type === LearningCategory.INSIGHT
+    m.type === MemoryType.LEARNING || m.type === MemoryType.PATTERN || m.type === MemoryType.DECISION
   );
   assertEquals(hasLearning, true);
 });
@@ -272,7 +273,7 @@ Deno.test("SessionMemoryService - lookupMemories filters by type config", async 
   const memories = await service.lookupMemories("test");
 
   // Should not have execution type
-  const hasExecution = memories.some((m) => m.type === MemorySource.EXECUTION);
+  const hasExecution = memories.some((m) => m.type === MemoryType.EXECUTION);
   assertEquals(hasExecution, false);
 });
 
@@ -500,7 +501,7 @@ Deno.test("SessionMemoryService - getRecentExecutions returns formatted memories
   const memories = await service.getRecentExecutions();
 
   assertEquals(memories.length, 2);
-  assertEquals(memories[0].type, MemorySource.EXECUTION);
+  assertEquals(memories[0].type, MemoryType.EXECUTION);
   assertStringIncludes(memories[0].title, "Execution:");
   assertEquals(memories[0].relevance, 1.0); // Recent executions are always relevant
 });

@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
-import { ExecutionStatus, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import { ExecutionStatus, MemorySource, MemoryStatus, RequestPriority } from "../../src/enums.ts";
 
 import {
   MinimalRequestServiceMock,
@@ -110,11 +110,11 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
 
 Deno.test("RequestManagerView - creates new request", async () => {
   const { service: _service, view } = createViewWithRequests();
-  const newRequest = await view.createRequest("Test request", { priority: "high", agent: "test-agent" });
+  const newRequest = await view.createRequest("Test request", { priority: RequestPriority.HIGH, agent: "test-agent" });
 
   assert(newRequest.trace_id);
   assertEquals(newRequest.status, MemoryStatus.PENDING);
-  assertEquals(newRequest.priority, "high");
+  assertEquals(newRequest.priority, RequestPriority.HIGH);
   assertEquals(newRequest.agent, "test-agent");
 });
 

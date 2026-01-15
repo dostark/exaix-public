@@ -23,7 +23,7 @@ import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.
 import { buildParsedRequest } from "./request_common.ts";
 import { BlueprintLoader } from "./blueprint_loader.ts";
 import { PlanWriter, type RequestMetadata } from "./plan_writer.ts";
-import { RequestStatus, TaskComplexity } from "../enums.ts";
+import { PlanStatus, RequestStatus, TaskComplexity } from "../enums.ts";
 import { EventLogger } from "./event_logger.ts";
 import { FlowValidatorImpl } from "./flow_validator.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
@@ -159,7 +159,9 @@ export class RequestProcessor {
 
     // Prevent re-processing of already planned/completed requests
     if (
-      [RequestStatus.PLANNED, "approved", RequestStatus.COMPLETED, RequestStatus.FAILED].includes(frontmatter.status)
+      [RequestStatus.PLANNED, PlanStatus.APPROVED, RequestStatus.COMPLETED, RequestStatus.FAILED].includes(
+        frontmatter.status,
+      )
     ) {
       traceLogger.info("request.skipped", filePath, {
         reason: `Request already has status '${frontmatter.status}'`,

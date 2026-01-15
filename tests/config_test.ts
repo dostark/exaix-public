@@ -87,20 +87,70 @@ Deno.test("ConfigSchema applies defaults for missing watcher section", () => {
 });
 
 Deno.test("ConfigService computes checksum", () => {
-  const service = new ConfigService("exo.config.toml");
-  const checksum = service.getChecksum();
+  initializeGlobalLogger({
+    minLevel: "info",
+    outputs: [],
+    enablePerformanceTracking: false,
+    serviceName: "test",
+    version: "1.0.0",
+  });
 
-  assertExists(checksum);
-  assertEquals(checksum.length, 64); // SHA-256 produces 64 hex chars
+  try {
+    // Clean up before test to ensure consistent state
+    try {
+      Deno.removeSync("exo.config.toml");
+    } catch {
+      // Ignore if doesn't exist
+    }
+
+    const service = new ConfigService("exo.config.toml");
+    const checksum = service.getChecksum();
+
+    assertExists(checksum);
+    assertEquals(checksum.length, 64); // SHA-256 produces 64 hex chars
+  } finally {
+    // Clean up after test
+    try {
+      Deno.removeSync("exo.config.toml");
+    } catch {
+      // Ignore
+    }
+    resetGlobalLogger();
+  }
 });
 
 Deno.test("ConfigService loads config successfully", () => {
-  const service = new ConfigService("exo.config.toml");
-  const config = service.get();
+  initializeGlobalLogger({
+    minLevel: "info",
+    outputs: [],
+    enablePerformanceTracking: false,
+    serviceName: "test",
+    version: "1.0.0",
+  });
 
-  assertExists(config.system);
-  assertExists(config.paths);
-  assertEquals(config.system.log_level, "info");
+  try {
+    // Clean up before test
+    try {
+      Deno.removeSync("exo.config.toml");
+    } catch {
+      // Ignore
+    }
+
+    const service = new ConfigService("exo.config.toml");
+    const config = service.get();
+
+    assertExists(config.system);
+    assertExists(config.paths);
+    assertEquals(config.system.log_level, "info");
+  } finally {
+    // Clean up after test
+    try {
+      Deno.removeSync("exo.config.toml");
+    } catch {
+      // Ignore
+    }
+    resetGlobalLogger();
+  }
 });
 
 // ============================================================================

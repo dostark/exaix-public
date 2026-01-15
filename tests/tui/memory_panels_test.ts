@@ -14,6 +14,7 @@ import {
   MemoryScope,
   MemorySource,
   MemoryStatus,
+  MemoryType,
 } from "../../src/enums.ts";
 
 import { ConfidenceLevel } from "../../src/enums.ts";
@@ -386,7 +387,7 @@ Deno.test("renderSearchPanel: renders empty results", () => {
 
 Deno.test("renderSearchPanel: renders single result", () => {
   const results: MemorySearchResult[] = [{
-    type: LearningCategory.PATTERN,
+    type: MemoryType.PATTERN,
     title: "Test Pattern",
     summary: "A test pattern result",
     relevance_score: 0.95,
@@ -397,11 +398,11 @@ Deno.test("renderSearchPanel: renders single result", () => {
 
 Deno.test("renderSearchPanel: renders multiple result types", () => {
   const results: MemorySearchResult[] = [
-    { type: LearningCategory.PATTERN, title: "Pattern", summary: "Pattern summary" },
-    { type: LearningCategory.DECISION, title: "Decision", summary: "Decision summary" },
-    { type: MemorySource.EXECUTION, title: "Execution", summary: "Execution summary", trace_id: "trace-1" },
-    { type: "learning", title: "Learning", summary: "Learning summary", id: "learn-1" },
-    { type: MemoryScope.PROJECT, title: "Project", summary: "Project summary", portal: "portal1" },
+    { type: MemoryType.PATTERN, title: "Pattern", summary: "Pattern summary" },
+    { type: MemoryType.DECISION, title: "Decision", summary: "Decision summary" },
+    { type: MemoryType.EXECUTION, title: "Execution", summary: "Execution summary", trace_id: "trace-1" },
+    { type: MemoryType.LEARNING, title: "Learning", summary: "Learning summary", id: "learn-1" },
+    { type: MemoryType.PROJECT, title: "Project", summary: "Project summary", portal: "portal1" },
   ];
   const result = renderSearchPanel("query", results, 0, defaultOptions);
   assertEquals(result.length > 0, true);
@@ -409,9 +410,9 @@ Deno.test("renderSearchPanel: renders multiple result types", () => {
 
 Deno.test("renderSearchPanel: handles selection", () => {
   const results: MemorySearchResult[] = [
-    { type: LearningCategory.PATTERN, title: "Result 1", summary: "Summary 1" },
-    { type: LearningCategory.PATTERN, title: "Result 2", summary: "Summary 2" },
-    { type: LearningCategory.PATTERN, title: "Result 3", summary: "Summary 3" },
+    { type: MemoryType.PATTERN, title: "Result 1", summary: "Summary 1" },
+    { type: MemoryType.PATTERN, title: "Result 2", summary: "Summary 2" },
+    { type: MemoryType.PATTERN, title: "Result 3", summary: "Summary 3" },
   ];
   const result0 = renderSearchPanel("query", results, 0, defaultOptions);
   const result2 = renderSearchPanel("query", results, 2, defaultOptions);
@@ -421,7 +422,7 @@ Deno.test("renderSearchPanel: handles selection", () => {
 
 Deno.test("renderSearchPanel: handles many results", () => {
   const results: MemorySearchResult[] = Array(30).fill(0).map((_, i) => ({
-    type: LearningCategory.PATTERN,
+    type: MemoryType.PATTERN,
     title: `Result ${i}`,
     summary: `Summary for result ${i}`,
     relevance_score: 1 - (i / 100),
@@ -432,7 +433,7 @@ Deno.test("renderSearchPanel: handles many results", () => {
 
 Deno.test("renderSearchPanel: displays tags", () => {
   const results: MemorySearchResult[] = [{
-    type: "learning",
+    type: MemoryType.LEARNING,
     title: "Tagged Result",
     summary: "Has tags",
     tags: ["tag1", "tag2", "important"],

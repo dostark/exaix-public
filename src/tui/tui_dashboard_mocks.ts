@@ -13,6 +13,8 @@ import {
   MemoryScope,
   MemorySource,
   MemoryStatus,
+  MemoryType,
+  RequestPriority,
   SkillStatus,
 } from "../enums.ts";
 
@@ -144,7 +146,7 @@ export class MockRequestService {
         filename: "request-12345678.md",
         title: "Request 12345678",
         status: "pending",
-        priority: "normal",
+        priority: RequestPriority.NORMAL,
         agent: "default",
         portal: "main",
         model: "gpt-4",
@@ -163,7 +165,7 @@ export class MockRequestService {
         filename: "request-87654321.md",
         title: "Request 87654321",
         status: "planned",
-        priority: "high",
+        priority: RequestPriority.HIGH,
         agent: "code-reviewer",
         portal: undefined,
         model: "claude-3",
@@ -207,7 +209,7 @@ High priority feature request.`);
       filename: `request-${crypto.randomUUID().slice(0, 8)}.md`,
       title: `Request ${crypto.randomUUID().slice(0, 8)}`,
       status: "pending",
-      priority: options?.priority || "normal",
+      priority: options?.priority || RequestPriority.NORMAL,
       agent: options?.agent || "default",
       portal: options?.portal,
       model: options?.model,
@@ -448,7 +450,7 @@ export class MockMemoryService {
   search(query: string, _options?: { portal?: string; limit?: number }) {
     return Promise.resolve([
       {
-        type: "pattern" as const,
+        type: MemoryType.PATTERN,
         portal: "test-project",
         title: `Result matching "${query}"`,
         summary: "Found in project memory",
@@ -456,7 +458,7 @@ export class MockMemoryService {
         tags: ["matching"],
       },
       {
-        type: "learning" as const,
+        type: MemoryType.LEARNING,
         title: `Another result for "${query}"`,
         summary: "Found in global memory",
         relevance_score: 0.75,

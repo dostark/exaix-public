@@ -16,6 +16,7 @@
 import { assertEquals, assertExists, assertMatch, assertStringIncludes } from "@std/assert";
 import { initTestDbService } from "./helpers/db.ts";
 import { EventLogger } from "../src/services/event_logger.ts";
+import { LogLevel } from "../src/enums.ts";
 
 // ============================================================================
 // Basic Logging Tests
@@ -115,7 +116,7 @@ Deno.test("EventLogger: should respect minLevel configuration", async () => {
 
   try {
     // Set minLevel to warn - should suppress info and debug
-    const logger = new EventLogger({ db, minLevel: "warn" });
+    const logger = new EventLogger({ db, minLevel: LogLevel.WARN });
 
     await logger.debug("debug.message", "target", {});
     await logger.info("info.message", "target", {});
@@ -152,7 +153,7 @@ Deno.test("EventLogger: should use appropriate icons for each level", async () =
   console.error = (...args: unknown[]) => logs.push(args.join(" "));
 
   try {
-    const logger = new EventLogger({ db, minLevel: "debug" });
+    const logger = new EventLogger({ db, minLevel: LogLevel.DEBUG });
 
     await logger.info("test.info", "target", {});
     await logger.warn("test.warn", "target", {});
@@ -383,7 +384,7 @@ Deno.test("EventLogger: should allow custom icons in log events", async () => {
       target: "exo.config.toml",
       payload: {},
       icon: "🚀",
-      level: "info",
+      level: LogLevel.INFO,
     });
 
     console.log = originalLog;

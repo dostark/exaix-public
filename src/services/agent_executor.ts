@@ -30,7 +30,7 @@ import {
   ChangesetResultSchema,
   type ExecutionContext,
 } from "../schemas/agent_executor.ts";
-import { SecurityMode } from "../enums.ts";
+import { LogLevel, SecurityMode } from "../enums.ts";
 import { InputValidator } from "../schemas/input_validation.ts";
 
 /**
@@ -955,7 +955,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
       actor: "system",
       traceId: traceId,
       agentId: agentId,
-      level: "error",
+      level: LogLevel.ERROR,
       payload: {
         error_type: error.type,
         error_message: error.message,

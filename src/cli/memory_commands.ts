@@ -19,7 +19,7 @@ import type { DatabaseService } from "../services/db.ts";
 import { MemoryBankService } from "../services/memory_bank.ts";
 import { MemoryExtractorService } from "../services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../services/memory_embedding.ts";
-import { MemoryScope, MemorySource, SkillStatus } from "../enums.ts";
+import { MemoryScope, MemorySource, MemoryType, SkillStatus } from "../enums.ts";
 import { type SkillMatchRequest, SkillsService } from "../services/skills.ts";
 import type {
   ExecutionMemory,
@@ -226,7 +226,7 @@ export class MemoryCommands {
         limit,
       });
       results = embeddingResults.map((r) => ({
-        type: "learning" as const,
+        type: MemoryType.LEARNING,
         title: r.title,
         summary: r.summary,
         relevance_score: r.similarity,
@@ -1032,7 +1032,7 @@ export class MemoryCommands {
   async promote(
     portal: string,
     promotion: {
-      type: "pattern" | "decision";
+      type: MemoryType.PATTERN | MemoryType.DECISION;
       name: string;
       title: string;
       description: string;

@@ -167,8 +167,19 @@ export async function initTestDbService(): Promise<
     config,
     tempDir,
     cleanup: async () => {
-      await db.close();
-      await Deno.remove(tempDir, { recursive: true });
+      try {
+        await db.close();
+      } catch (_e) {
+        // Ignore database close errors during cleanup
+      }
+      try {
+        // Only remove if it's clearly a temporary test directory
+        if (tempDir && tempDir.includes("exo-test-")) {
+          await Deno.remove(tempDir, { recursive: true });
+        }
+      } catch (_e) {
+        // Ignore directory removal errors during cleanup
+      }
     },
   };
 }
