@@ -45,15 +45,13 @@ export class LlamaProvider implements IModelProvider {
 
     this.id = options.id || `llama-${this.model}`;
 
-    // Read retry settings from config or environment or use defaults
+    // Read retry settings from config or use defaults
     this.maxAttempts = options.maxAttempts ||
       options.config?.ai_retry?.providers?.ollama?.max_attempts ||
-      Number(Deno.env.get("EXO_OLLAMA_RETRY_MAX")) ||
       DEFAULTS.DEFAULT_OLLAMA_RETRY_MAX_ATTEMPTS;
 
     this.backoffBaseMs = options.backoffBaseMs ||
       options.config?.ai_retry?.providers?.ollama?.backoff_base_ms ||
-      Number(Deno.env.get("EXO_OLLAMA_RETRY_BACKOFF_MS")) ||
       DEFAULTS.DEFAULT_OLLAMA_RETRY_BACKOFF_MS;
 
     // Read timeout from options, config, or default

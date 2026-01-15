@@ -134,10 +134,8 @@ export class OllamaProvider implements IModelProvider {
         },
         {
           id: this.id,
-          maxAttempts: Number(safeGetEnv("EXO_OLLAMA_RETRY_MAX") ?? DEFAULT_OLLAMA_RETRY_MAX_ATTEMPTS.toString()),
-          backoffBaseMs: Number(
-            safeGetEnv("EXO_OLLAMA_RETRY_BACKOFF_MS") ?? DEFAULT_OLLAMA_RETRY_BACKOFF_MS.toString(),
-          ),
+          maxAttempts: DEFAULT_OLLAMA_RETRY_MAX_ATTEMPTS,
+          backoffBaseMs: DEFAULT_OLLAMA_RETRY_BACKOFF_MS,
           timeoutMs: this.timeoutMs,
         },
       );
@@ -210,12 +208,10 @@ class OpenAIShim implements IModelProvider {
   async generate(prompt: string, _options?: ModelOptions): Promise<string> {
     const url = `${this.baseUrl}/v1/chat/completions`;
 
-    // Make retry parameters configurable via env for manual runs; defaults longer to reduce 429 frequency
-    const maxAttempts = Number(safeGetEnv("EXO_OPENAI_RETRY_MAX") ?? DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS.toString());
-    const backoffBaseMs = Number(
-      safeGetEnv("EXO_OPENAI_RETRY_BACKOFF_MS") ?? DEFAULT_OPENAI_RETRY_BACKOFF_MS.toString(),
-    );
-    const timeoutMs = Number(safeGetEnv("EXO_OPENAI_TIMEOUT_MS") ?? DEFAULT_OPENAI_TIMEOUT_MS.toString());
+    // Use default retry parameters
+    const maxAttempts = DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS;
+    const backoffBaseMs = DEFAULT_OPENAI_RETRY_BACKOFF_MS;
+    const timeoutMs = DEFAULT_OPENAI_TIMEOUT_MS;
 
     // Import helpers dynamically to avoid module initialization cycles
     const { fetchJsonWithRetries, extractOpenAIContent, tokenMapperOpenAI } = await import(
