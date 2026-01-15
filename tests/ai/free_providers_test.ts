@@ -7,7 +7,7 @@ import { isCi } from "../helpers/env.ts";
 function isCiGuardActive(): boolean {
   // In CI, the code intentionally prevents accidental paid calls unless
   // explicitly opted-in.
-  return isCi() && Deno.env.get("EXO_ENABLE_PAID_LLM") !== "1";
+  return isCi() && Deno.env.get("EXO_TEST_ENABLE_PAID_LLM") !== "1";
 }
 
 Deno.test("ModelFactory creates OpenAIProvider for default test model", async () => {

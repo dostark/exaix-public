@@ -4,7 +4,7 @@ import { getTestModel } from "./helpers/test_model.ts";
 import { isCi } from "../helpers/env.ts";
 
 function isCiGuardActive(): boolean {
-  return isCi() && Deno.env.get("EXO_ENABLE_PAID_LLM") !== "1";
+  return isCi() && Deno.env.get("EXO_TEST_ENABLE_PAID_LLM") !== "1";
 }
 
 Deno.test("OpenAIShim retries on 429 and returns content", async () => {
@@ -46,13 +46,13 @@ Deno.test("OpenAIShim retries on 429 and returns content", async () => {
 
 // --------------------------------------------------------------------------
 // Manual sanity test: check actual provider availability (opt-in)
-// This test is ignored unless EXO_ENABLE_PAID_LLM=1 and EXO_OPENAI_API_KEY is set.
+// This test is ignored unless EXO_TEST_ENABLE_PAID_LLM=1 and EXO_TEST_OPENAI_API_KEY is set.
 // --------------------------------------------------------------------------
-const _enabled = Deno.env.get("EXO_ENABLE_PAID_LLM");
+const _enabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM");
 Deno.test({ name: "OpenAIShim: sanity check against real LLM (manual)", ignore: (_enabled !== "1") }, async () => {
-  const apiKey = Deno.env.get("EXO_OPENAI_API_KEY");
+  const apiKey = Deno.env.get("EXO_TEST_OPENAI_API_KEY");
   if (!apiKey) {
-    console.warn("Skipping manual LLM availability test: EXO_OPENAI_API_KEY not set");
+    console.warn("Skipping manual LLM availability test: EXO_TEST_OPENAI_API_KEY not set");
     return;
   }
 
@@ -73,7 +73,7 @@ Deno.test({ name: "OpenAIShim: sanity check against real LLM (manual)", ignore: 
     }
 
     if (msg.includes("401") || msg.toLowerCase().includes("unauthorized")) {
-      console.warn("LLM sanity check: skipped due to unauthorized (401). Check EXO_OPENAI_API_KEY.");
+      console.warn("LLM sanity check: skipped due to unauthorized (401). Check EXO_TEST_OPENAI_API_KEY.");
       return;
     }
 

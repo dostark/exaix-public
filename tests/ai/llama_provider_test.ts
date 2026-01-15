@@ -3,7 +3,7 @@ import { PlanSchema } from "../../src/schemas/plan_schema.ts";
 import { LlamaProvider } from "../../src/ai/providers/llama_provider.ts";
 
 // Check if LlamaProvider tests should run
-const shouldRunLlamaTests = Deno.env.get("EXO_RUN_LLAMA_TESTS") === "true";
+const shouldRunLlamaTests = Deno.env.get("EXO_TEST_ENABLE_LLAMA") === "true";
 
 // Helper function to conditionally run tests
 function llamaTest(name: string, fn: () => void | Promise<void>) {

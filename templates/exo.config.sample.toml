@@ -20,6 +20,31 @@
 # - AI retry backoff_base_ms: 1000 (exponential backoff base delay)
 #
 # ===========================================================================
+# Environment Variable Reference
+# ===========================================================================
+#
+# ExoFrame supports the following environment variables for runtime flexibility.
+# Environment variables take precedence over config file values where applicable.
+#
+# Production Variables (Runtime):
+# ---------------------------------------------------------------------------
+# EXO_LLM_PROVIDER    : Override AI provider (e.g. "ollama", "openai", "mock")
+# EXO_LLM_MODEL       : Override AI model name (e.g. "llama3.2", "gpt-4")
+# EXO_LLM_BASE_URL    : Override provider base URL (e.g. "http://localhost:11434")
+# EXO_LLM_TIMEOUT_MS  : Override AI request timeout (1000 - 300000 ms)
+#
+# Testing Variables (Development/CI):
+# ---------------------------------------------------------------------------
+# EXO_TEST_MODE              : Set to "1" or "true" to enable test mode
+# EXO_TEST_CLI_MODE          : Set to "1" to enable CLI test mode (stubs services)
+# EXO_TEST_ENABLE_PAID_LLM   : Set to "1" to enable paid LLM tests (requires API keys)
+# EXO_TEST_ENABLE_OLLAMA     : Set to "1" to run Ollama integration tests
+# EXO_TEST_ENABLE_LLAMA      : Set to "1" to run Llama provider specific tests
+# EXO_TEST_OPENAI_API_KEY    : API key for OpenAI integration tests
+# EXO_CI_MODE                : Set to "1" to enforce CI behaviors (mock providers, etc.)
+# CI                         : Standard CI flag (fallback if EXO_CI_MODE not set)
+#
+# ===========================================================================
 
 [system]
 # Human-readable config version (optional)
@@ -81,13 +106,13 @@ target_path = "/home/me/projects/my-repo"
 # Supported providers: mock | ollama | anthropic | openai | google
 # ---------------------------------------------------------------------------
 [ai]
-provider = "mock"
+provider = "mock"       # Overridden by EXO_LLM_PROVIDER
 # Provider-specific model name (optional)
-model = "mock-model"
+model = "mock-model"    # Overridden by EXO_LLM_MODEL
 # Base URL for custom provider endpoints (optional)
-base_url = ""
+base_url = ""           # Overridden by EXO_LLM_BASE_URL
 # Request timeout (ms)
-timeout_ms = 30000
+timeout_ms = 30000      # Overridden by EXO_LLM_TIMEOUT_MS
 # Max output tokens (provider-specific)
 max_tokens = 2048
 # Sampling temperature (0.0 - 2.0)
