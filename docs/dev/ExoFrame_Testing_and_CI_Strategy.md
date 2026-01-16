@@ -1,9 +1,12 @@
 # ExoFrame Testing and CI Strategy
 
-- **Version:** 1.7.0
-- **Release Date:** 2025-12-02
+- **Version:** 2.0.0
+- **Release Date:** 2026-01-16
 - **Status:** Planning Document
-- **Reference:** [Implementation Plan](./ExoFrame_Implementation_Plan.md) Phase 10.3
+- **Reference:** [ExoFrame 2.0 Roadmap](./ExoFrame_2.0_Roadmap.md)
+- **Architecture:** [ExoFrame Architecture](./ExoFrame_Architecture.md)
+
+> **Edition Model:** Testing covers all three editions: **Solo** (🟢), **Team** (🔵), and **Enterprise** (🟣). Edition-specific tests are tagged with `[solo]`, `[team]`, `[enterprise]` labels.
 
 ---
 
@@ -44,6 +47,7 @@ ExoFrame follows a **test pyramid** approach:
 2. **Isolated** — Each test creates/destroys its own environment
 3. **Fast** — Full suite completes in under 2 minutes
 4. **CI-first** — All automated tests run on every PR
+5. **Edition-aware** — Tests validate feature gating across Solo/Team/Enterprise
 
 ---
 
@@ -686,13 +690,40 @@ deno run -A scripts/ci.ts build --compile
 
 #### GitHub Actions Workflows
 
-We employ three distinct workflows to balance developer velocity with deployment rigor:
+We employ workflows across **multiple repositories** to support the open-core edition model:
 
-| Workflow             | Trigger             | Scope                   | Purpose                                                                                                      |
-| :------------------- | :------------------ | :---------------------- | :----------------------------------------------------------------------------------------------------------- |
-| **PR Validation**    | `pull_request`      | `check`, `test --quick` | **Fast Feedback**: Matrix builds on Linux, macOS, and Windows to catch platform-specific issues in < 5 mins. |
-| **Merge Validation** | `push` to `main`    | `all`                   | **Full QA**: Comprehensive testing, full integration suite, and coverage enforcement.                        |
-| **Release Pipeline** | `release` (created) | `build`                 | **Distribution**: Generates and validates binaries for all 4 targets.                                        |
+##### Core Repository Workflows (`exoframe-core`)
+
+| Workflow             | Trigger             | Scope                   | Purpose                                                            |
+| :------------------- | :------------------ | :---------------------- | :----------------------------------------------------------------- |
+| **PR Validation**    | `pull_request`      | `check`, `test --quick` | Fast feedback: Matrix builds on Linux, macOS, Windows in < 5 mins. |
+| **Merge Validation** | `push` to `main`    | `all`                   | Full QA: Integration suite, coverage enforcement for Solo edition. |
+| **Release Pipeline** | `release` (created) | `build --edition=solo`  | Distribution: Generates Solo edition binaries (open-source).       |
+
+##### Composition Repository Workflows (`exoframe` - private)
+
+| Workflow             | Trigger          | Scope                        | Purpose                                                          |
+| :------------------- | :--------------- | :--------------------------- | :--------------------------------------------------------------- |
+| **Team Build**       | `push` to `team` | `build --edition=team`       | 🔵 Builds Team edition with core + team submodules.              |
+| **Enterprise Build** | `push` to `main` | `build --edition=enterprise` | 🟣 Builds Enterprise edition with all submodules.                |
+| **Edition Matrix**   | `nightly`        | All three editions           | Validates all editions build correctly with latest dependencies. |
+
+##### Edition-Specific Test Matrix
+
+```yaml
+# CI workflow excerpt
+jobs:
+  test-editions:
+    strategy:
+      matrix:
+        edition: [solo, team, enterprise]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: ${{ matrix.edition != 'solo' }}
+          token: ${{ secrets.SUBMODULE_PAT }}
+      - run: deno task test --edition=${{ matrix.edition }}
+```
 
 #### Quality Gates & Enforcement
 
@@ -702,6 +733,7 @@ The pipeline enforces the following gates strictly:
 - **Documentation Drift**: `check:docs` ensures `.copilot/manifest.json` stays in sync with source code.
 - **Coverage Limits**: The pipeline fails if coverage drops below the defined thresholds (60% Lines / 50% Functions).
 - **Build Integrity**: Binaries are validated for size (>10MB) and basic execution.
+- **Edition Gating**: 🔵 Team/🟣 Enterprise features must fail gracefully in 🟢 Solo builds.
 
 ---
 
@@ -983,36 +1015,58 @@ The template includes:
 
 ---
 
-## 6. v1.0 Test Scope
+## 6. v2.0 Test Scope
 
-### 6.1 In Scope (Must Have)
+### 6.1 Solo Edition Tests 🟢 (Must Have)
 
 | Category                | Items                                                                | Status      |
 | ----------------------- | -------------------------------------------------------------------- | ----------- |
 | **Unit Tests**          | Config, Database, Watcher, Context Loader, Git Service + 12 more     | ✅ Complete |
-| **MCP Unit Tests**      | MCP server (25+ tests), MCP tools (30+ tests)                        | 📋 Planned  |
-| **Integration Tests**   | Scenarios 1-10 (all 10 scenarios implemented)                        | ✅ Complete |
-| **MCP Integration**     | Scenarios 11-13 (MCP execution, security modes)                      | 📋 Planned  |
+| **MCP Client Tests**    | MCP client connection, tool invocation                               | 📋 Planned  |
+| **Integration Tests**   | Scenarios 1-10 (core workflows)                                      | ✅ Complete |
 | **Security Tests**      | Path traversal, Network exfil, Env theft, Shell injection (29 tests) | ✅ Complete |
-| **MCP Security Tests**  | Sandboxed/Hybrid mode enforcement, unauthorized access               | 📋 Planned  |
 | **Documentation Tests** | User Guide sections, CLI coverage                                    | ✅ Complete |
-| **Manual QA**           | All 14 scenarios on Ubuntu (see Manual Test Scenarios doc)           | 🔲 Planned  |
+| **SQLite Journal**      | Activity logging, query performance                                  | ✅ Complete |
+| **Edition Gating**      | Team/Enterprise features fail gracefully                             | 📋 Planned  |
 
-### 5.2 In Scope (Should Have)
+### 6.2 Team Edition Tests 🔵 (Team+ builds)
 
-| Category                   | Items                       | Status     |
-| -------------------------- | --------------------------- | ---------- |
-| **Performance Benchmarks** | Cold start, Watcher latency | 🔲 Planned |
-| **Manual QA**              | macOS, Windows WSL2         | 🔲 Planned |
+| Category               | Items                                           | Status     |
+| ---------------------- | ----------------------------------------------- | ---------- |
+| **MCP Server Tests**   | Server (25+ tests), Tools (30+ tests)           | 📋 Planned |
+| **Web UI Tests**       | Plan approval, rejection via browser            | 🔲 Planned |
+| **PostgreSQL Journal** | Append-only tables, multi-user queries          | 🔲 Planned |
+| **Multi-User Tests**   | Concurrent users, permission isolation          | 🔲 Planned |
+| **MCP Integration**    | Scenarios 11-13 (MCP execution, security modes) | 📋 Planned |
 
-### 5.3 Out of Scope (v1.1+)
+### 6.3 Enterprise Edition Tests 🟣 (Enterprise builds)
 
-| Category          | Items                         | Reason          |
-| ----------------- | ----------------------------- | --------------- |
-| **Flow Tests**    | Multi-agent orchestration     | Phase 7 feature |
-| **Load Testing**  | Concurrent users, high volume | Single-user MVP |
-| **Fuzzing**       | Random input generation       | Nice-to-have    |
-| **Accessibility** | Screen reader, keyboard nav   | No UI in v1.0   |
+| Category                 | Items                                              | Status     |
+| ------------------------ | -------------------------------------------------- | ---------- |
+| **immudb Integration**   | WORM compliance, tamper detection                  | � Planned  |
+| **Compliance Exports**   | HIPAA, SOX, EU AI Act report generation            | 🔲 Planned |
+| **Enterprise Providers** | Azure OpenAI, AWS Bedrock, GCP Vertex connectivity | 🔲 Planned |
+| **SSO/SAML Tests**       | Okta, Azure AD authentication flows                | 🔲 Planned |
+| **Governance Dashboard** | Risk scoring, policy enforcement                   | 🔲 Planned |
+| **Audit Trail**          | Cryptographic verification, chain integrity        | 🔲 Planned |
+
+### 6.4 Cross-Edition Tests
+
+| Category                   | Items                                       | Status     |
+| -------------------------- | ------------------------------------------- | ---------- |
+| **Feature Flag Gating**    | Solo cannot access Team features            | 📋 Planned |
+| **License Validation**     | Invalid/expired license handling            | 🔲 Planned |
+| **Edition Upgrade Path**   | Data migration Solo → Team → Enterprise     | 🔲 Planned |
+| **Performance Benchmarks** | Cold start, Watcher latency per edition     | 🔲 Planned |
+| **Manual QA**              | All platforms (Ubuntu, macOS, Windows WSL2) | 🔲 Planned |
+
+### 6.5 Out of Scope (v2.1+)
+
+| Category          | Items                         | Reason         |
+| ----------------- | ----------------------------- | -------------- |
+| **Load Testing**  | Concurrent users, high volume | Post-MVP       |
+| **Fuzzing**       | Random input generation       | Nice-to-have   |
+| **Accessibility** | Screen reader, keyboard nav   | Web UI Phase 2 |
 
 ---
 

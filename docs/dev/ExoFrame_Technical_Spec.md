@@ -1,17 +1,23 @@
 # Project ExoFrame: Technical Specification & Architecture
 
-- **Version:** 1.11.0
-- **Release Date:** 2026-01-06
+- **Version:** 2.0.0
+- **Release Date:** 2026-01-16
 - **Status:** Engineering Specification
 - **Reference:** [ExoFrame White Paper](./ExoFrame_White_Paper.md)
 - **Architecture:** [ExoFrame Architecture Diagrams](./ExoFrame_Architecture.md)
-- **Philosophy:** Local-First, Type-Safe, Secure-by-Design
+- **Roadmap:** [ExoFrame 2.0 Roadmap](./ExoFrame_2.0_Roadmap.md)
+- **Philosophy:** Local-First, Type-Safe, Secure-by-Design, Governance-First
+
+> **Edition Model:** ExoFrame is available in three editions: **Solo** (🟢 open-source), **Team** (🔵 source-available), and **Enterprise** (🟣 proprietary). Components are marked with edition badges throughout this document.
 
 ---
 
 ## Terminology Reference
 
-- **Activity Journal:** The SQLite database logging all events
+- **Activity Journal:** Edition-tiered audit database logging all events:
+  - 🟢 **Solo:** SQLite (embedded, file-based)
+  - 🔵 **Team:** PostgreSQL (append-only tables, database-enforced immutability)
+  - 🟣 **Enterprise:** PostgreSQL + immudb (WORM-compliant, cryptographically verified)
 - **Portal:** A symlinked directory providing agent access to external projects
 - **Request:** A markdown file in `Workspace/Requests` containing user intent
 - **Plan:** An agent-generated proposal in `Workspace/Plans`
@@ -21,8 +27,12 @@
 - **Lease:** Exclusive lock on a file (stored in `leases` table)
 - **Actor:** Entity performing action (agent name, "system", or "user")
 - **Blueprint:** TOML definition of an agent (model, capabilities, prompt)
-- **Flow:** TypeScript orchestration defining multi-agent workflows (Phase 7 - Flow Orchestration)
+- **Flow:** TypeScript orchestration defining multi-agent workflows
 - **Request Router:** Service that routes requests to appropriate execution engine (agent vs flow)
+- **MCP Client:** 🟢 Connect to external MCP servers (all editions)
+- **MCP Server:** 🔵 Expose ExoFrame as MCP server (Team+ editions)
+- **Web UI:** 🔵 Browser-based approval interface (Team+ editions)
+- **Governance Dashboard:** 🟣 Compliance monitoring and risk scoring (Enterprise)
 
 ---
 
@@ -50,14 +60,17 @@ permission governance across CLI, daemon, and agents.
 
 ## 2. Core Technical Stack
 
-| Component        | Technology       | Justification                                                                        |
-| :--------------- | :--------------- | :----------------------------------------------------------------------------------- |
-| **Runtime**      | **Deno** (v2.0+) | Native TypeScript, Web Standards, and **Permission System**.                         |
-| **Language**     | **TypeScript**   | No transpilation needed. Strict typing via Zod.                                      |
-| **Config**       | **TOML**         | All config & metadata uses TOML. Token-efficient for LLM context.                    |
-| **Journal**      | **SQLite**       | Accessible via `jsr:@db/sqlite` (WASM) or FFI for performance.                       |
-| **Dependencies** | **ES Modules**   | No `node_modules`. Dependencies cached globally or in vendor dir.                    |
-| **Interface**    | **TUI**, **CLI** | TUI dashboard (exoctl dashboard) for real-time cockpit; CLI for Memory Banks access. |
+| Component        | Technology                   | Edition  | Justification                                                     |
+| :--------------- | :--------------------------- | :------- | :---------------------------------------------------------------- |
+| **Runtime**      | **Deno** (v2.0+)             | 🟢 All   | Native TypeScript, Web Standards, and **Permission System**.      |
+| **Language**     | **TypeScript**               | 🟢 All   | No transpilation needed. Strict typing via Zod.                   |
+| **Config**       | **TOML**                     | 🟢 All   | All config & metadata uses TOML. Token-efficient for LLM context. |
+| **Journal**      | **SQLite**                   | 🟢 Solo  | Embedded, file-based audit logging.                               |
+| **Journal**      | **PostgreSQL** (append-only) | 🔵 Team  | Multi-user with database-enforced immutability.                   |
+| **Journal**      | **PostgreSQL + immudb**      | 🟣 Ent   | WORM-compliant, cryptographically verified audit trail.           |
+| **Dependencies** | **ES Modules**               | 🟢 All   | No `node_modules`. Dependencies cached globally or in vendor dir. |
+| **Interface**    | **TUI**, **CLI**             | 🟢 All   | TUI dashboard for real-time cockpit; CLI for operations.          |
+| **Interface**    | **Web UI**                   | 🔵 Team+ | Browser-based plan approval and team collaboration.               |
 
 ## 2.2. TUI Dashboard Architecture (`exoctl dashboard`)
 
@@ -88,10 +101,18 @@ See the [Implementation Plan](./ExoFrame_Implementation_Plan.md#step-95-tui-cock
 
 ### 2.0.1 Supported LLM Providers
 
-ExoFrame uses a provider-agnostic architecture via the `IModelProvider` interface. All providers implement the same
-contract, enabling seamless switching between local and cloud models.
+ExoFrame uses a provider-agnostic architecture via the `IModelProvider` interface. All providers implement the same contract, enabling seamless switching between local and cloud models.
 
-#### Anthropic (Claude)
+#### Provider Availability by Edition
+
+| Provider Category      | Solo 🟢                      | Team 🔵 | Enterprise 🟣                            |
+| ---------------------- | ---------------------------- | ------- | ---------------------------------------- |
+| **Local**              | ✅ Ollama                    | ✅ All  | ✅ All                                   |
+| **Cloud (Basic)**      | ✅ Anthropic, OpenAI, Google | ✅ All  | ✅ All                                   |
+| **Cloud (Enterprise)** | ❌                           | ❌      | ✅ Azure OpenAI, AWS Bedrock, GCP Vertex |
+| **Cost Management**    | Basic logs                   | Budgets | Forecasting, anomaly detection           |
+
+#### Anthropic (Claude) 🟢 All Editions
 
 | Model               | Context Window | Use Case                                                             |
 | ------------------- | -------------- | -------------------------------------------------------------------- |
@@ -99,7 +120,7 @@ contract, enabling seamless switching between local and cloud models.
 | `claude-3.5-sonnet` | 200K           | Previous best-in-class for coding and reasoning                      |
 | `claude-3.5-haiku`  | 200K           | Fast, cost-effective                                                 |
 
-#### OpenAI (GPT)
+#### OpenAI (GPT) 🟢 All Editions
 
 | Model         | Context Window | Use Case                                                             |
 | ------------- | -------------- | -------------------------------------------------------------------- |
@@ -108,7 +129,7 @@ contract, enabling seamless switching between local and cloud models.
 | `gpt-4o-mini` | 128K           | Fast, cost-effective                                                 |
 | `o1`          | 200K           | Advanced reasoning                                                   |
 
-#### Google (Gemini)
+#### Google (Gemini) 🟢 All Editions
 
 | Model              | Context Window | Use Case                                                             |
 | ------------------ | -------------- | -------------------------------------------------------------------- |
@@ -116,13 +137,21 @@ contract, enabling seamless switching between local and cloud models.
 | `gemini-3-flash`   | 1M             | Fastest, lowest cost for codebase ingestion                          |
 | `gemini-2.0-flash` | 1M             | Previous generation balanced model                                   |
 
-#### Ollama (Local)
+#### Ollama (Local) 🟢 All Editions
 
 | Model       | Context Window | Use Case                    |
 | ----------- | -------------- | --------------------------- |
 | `llama3.2`  | Varies         | General purpose local model |
 | `mistral`   | Varies         | Balanced local model        |
 | `codellama` | Varies         | Specialized for coding      |
+
+#### Enterprise Providers 🟣 Enterprise Only
+
+| Provider          | Endpoint                  | Use Case                                     |
+| ----------------- | ------------------------- | -------------------------------------------- |
+| **Azure OpenAI**  | `your-endpoint.azure.com` | Enterprise Azure integration, data residency |
+| **AWS Bedrock**   | `bedrock.amazonaws.com`   | AWS-native, VPC integration                  |
+| **GCP Vertex AI** | `vertex.googleapis.com`   | Google Cloud integration, Gemini access      |
 
 **Provider Selection (exo.config.toml):**
 
@@ -1670,6 +1699,13 @@ current use cases.
 
 **What is MCP?** Model Context Protocol is Anthropic's open standard for connecting AI assistants to external tools and data sources. It enables standardized tool calling and context sharing between AI assistants (Claude Desktop, Cline, IDE agents) and external systems.
 
+#### MCP Edition Availability
+
+| Component      | Edition  | Description                                     |
+| -------------- | -------- | ----------------------------------------------- |
+| **MCP Client** | 🟢 All   | Connect to external MCP servers                 |
+| **MCP Server** | 🔵 Team+ | Expose ExoFrame as MCP server for AI assistants |
+
 **Why MCP Fits ExoFrame:**
 
 Unlike A2A (which targets agent-to-agent coordination), MCP is designed for **assistant-to-tool integration** - precisely ExoFrame's use case:
@@ -1679,10 +1715,10 @@ Unlike A2A (which targets agent-to-agent coordination), MCP is designed for **as
 - **Complementary:** MCP layer sits above file-based core, doesn't replace it
 - **Ecosystem:** Works with Claude Desktop, Cline, Cursor, and other MCP clients
 
-**Planned Architecture (Phase 10):**
+**Architecture (Implemented):**
 
 ```typescript
-// src/mcp/server.ts
+// src/mcp/server.ts (Team+ editions)
 export class ExoFrameMCPServer {
   // Expose ExoFrame operations as MCP tools
   tools = [
@@ -1705,7 +1741,7 @@ export class ExoFrameMCPServer {
 **Integration Example:**
 
 ```json
-// Claude Desktop config
+// Claude Desktop config (requires Team+ edition)
 {
   "mcpServers": {
     "exoframe": {
@@ -1724,6 +1760,9 @@ export class ExoFrameMCPServer {
 - **Auditability:** MCP operations logged to Activity Journal
 - **Simplicity:** Standard protocol, no custom API design
 
-**Implementation Status:** Planned for Phase 10 (see Implementation Plan)
+**Implementation Status:**
+
+- 🟢 **MCP Client:** Implemented in all editions
+- 🔵 **MCP Server:** Implemented in Team+ editions
 
 ---
