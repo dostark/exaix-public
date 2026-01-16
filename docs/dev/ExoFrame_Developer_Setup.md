@@ -1,5 +1,12 @@
 # Bootstrap: Developer Workspace Setup
 
+- **Version:** 2.0.0
+- **Release Date:** 2026-01-16
+- **Status:** Active
+- **Reference:** [ExoFrame 2.0 Roadmap](./ExoFrame_2.0_Roadmap.md)
+
+> **Edition Model:** ExoFrame 2.0 uses a multi-repository architecture. Solo edition uses only `exoframe-core` (public). Team/Enterprise editions require access to private submodules.
+
 Provide step-by-step instructions to bootstrap a local development workspace for ExoFrame. Two platforms are supported
 in this plan: **Ubuntu (pure)** and **Windows with WSL2**. The goal is a reproducible, minimal environment that allows
 contributors to run the daemon, tests and benchmarks locally.
@@ -91,9 +98,21 @@ rm microsoft.gpg
 5. Clone repo and bootstrap
 
 ```bash
-# Clone into ~/ExoFrame (recommended)
-git clone https://github.com/<org>/<repo>.git ~/ExoFrame
+# Solo Edition (open-source) - public repository only
+git clone https://github.com/dostark/exoframe-core.git ~/ExoFrame
 cd ~/ExoFrame
+
+# Team Edition - requires GitHub access token for private submodules
+git clone https://github.com/dostark/exoframe.git ~/ExoFrame
+cd ~/ExoFrame
+git submodule update --init --recursive
+# Note: Requires GITHUB_TOKEN with repo scope for private submodules
+
+# Enterprise Edition - all submodules including enterprise components
+git clone https://github.com/dostark/exoframe.git ~/ExoFrame
+cd ~/ExoFrame
+git submodule update --init --recursive
+# Note: Requires access to exoframe-enterprise private repo
 
 # Install dependencies (Deno caches on first run)
 deno task cache
