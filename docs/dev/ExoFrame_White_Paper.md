@@ -1,346 +1,1625 @@
-# ExoFrame: Auditable Agent Orchestration Platform
+# ExoFrame: The Governance-First AI Agent Operating System
 
-### White Paper - Developer Tool Edition
+**White Paper - Three-Tier Edition**
 
-- **Date:** December 2, 2025
-- **Version:** 1.7.0
-- **Status:** Development Specification
-- **Target Audience:** Solo Developers, Technical Power Users, System Architects
+- **Date:** January 16, 2026
+- **Version:** 2.0.0
+- **Status:** Production Specification
+- **Target Audience:** Developers, DevSecOps Teams, Compliance Officers, System Architects
 
 ---
 
 ## Terminology Reference
 
-- **Activity Journal:** The SQLite database logging all events
-- **Portal:** A symlinked directory providing agent access to external projects
-- **Request:** A markdown file in `/Workspace/Requests` containing user intent
-- **Plan:** An agent-generated proposal in `/Workspace/Plans`
-- **Active Task:** An approved request in `Workspace/Active` being executed
-- **Report:** An agent-generated summary in `Memory/Reports` after completion
-- **Trace ID:** UUID linking request → plan → execution → report
-- **Lease:** Exclusive lock on a file (stored in `leases` table)
-- **Actor:** Entity performing action (agent name, "system", or "user")
-- **Blueprint:** TOML definition of an agent (model, capabilities, prompt)
+- **Activity Journal:** Audit database logging all agent events with full traceability (SQLite/PostgreSQL/Immutable Ledger by edition)
+- **Portal:** Symlinked directory providing agents access to external projects
+- **Request:** Markdown file in `/Workspace/Requests` containing user intent
+- **Plan:** Agent-generated proposal in `/Workspace/Plans` requiring human approval
+- **Active Task:** Approved plan in `Workspace/Active` being executed
+- **Report:** Agent-generated summary in `Memory/Reports` after completion
+- **Trace ID:** UUID linking request → plan → execution → commit → report
+- **Blueprint:** TOML definition of an agent (model, capabilities, system prompt)
+- **MCP:** Model Context Protocol - standard for AI agent tool integration
+- **AI-BOM:** AI Bill of Materials - audit trail of all AI agent actions
+- **WORM Storage:** Write-Once-Read-Many storage for regulatory compliance (Enterprise)
 
 ---
 
-## 1. Executive Summary
+## Executive Summary
 
-Modern AI-enabled IDEs (Cursor, Copilot, Windsurf) excel at **interactive, real-time coding assistance**. ExoFrame does not compete with them for that use case.
+### The AI Governance Crisis of 2026
 
-**ExoFrame is an Auditable Agent Orchestration Platform** — designed for scenarios where you need:
+According to Gartner, **over 40% of agentic AI projects will be canceled by the end of 2027** due to inadequate governance frameworks. As enterprises deploy autonomous AI agents across critical workflows, regulatory bodies are demanding answers to fundamental questions:
 
-1. **Audit Trail & Traceability:** Every agent action is logged with trace IDs linking requests → plans → code changes → commits. Essential for compliance, team accountability, and understanding "why did this change happen?" The **Activity Journal** serves as a permanent, queryable "black box" recorder for AI operations.
+- **What did the AI agent do?**
+- **Why did it make that decision?**
+- **Who approved the action?**
+- **Can we prove compliance?**
 
-2. **Asynchronous Workflows:** Drop a request, go to lunch, come back to a reviewed plan. Unlike chat-based agents that require constant supervision, ExoFrame operates as a background daemon.
+Traditional AI coding assistants (GitHub Copilot, Cursor, Windsurf) excel at real-time developer productivity but provide **no audit trail, no approval gates, and no compliance framework**. They were built for individual productivity, not enterprise governance.
 
-3. **Explicit Human Approval Gates:** Plans must be approved before execution. Code changes must be approved before merging. This **Human-in-the-Loop** governance ensures that agents never act without explicit authorization.
+### ExoFrame: Built for the Governance Era
 
-4. **Multi-Project Context:** **Portals** link multiple codebases simultaneously. Agents can reference your API server while modifying your frontend — something single-workspace IDEs struggle with.
+**ExoFrame is the governance-first AI agent operating system** — purpose-built for teams and organizations that need autonomous AI with accountability, traceability, and control.
 
-5. **Data Sovereignty & Security:** 100% local-first option with Ollama. Leveraging **Deno's process-level sandboxing**, ExoFrame enforces security boundaries that prompt-engineering alone cannot guarantee. Your code never leaves your machine unless you explicitly configure cloud APIs.
+**Core Value Proposition:**
 
-**When to Use ExoFrame vs IDE Agents:**
+1. **Comprehensive Audit Trail** - Every agent action logged with trace IDs linking requests → plans → code changes → commits. The Activity Journal serves as your organization's "AI Bill of Materials."
 
-| Scenario                        | Recommendation |
-| ------------------------------- | -------------- |
-| Quick code fix while coding     | Use IDE agent  |
-| Interactive feature development | Use IDE agent  |
-| Overnight batch processing      | **ExoFrame**   |
-| Compliance/audit requirements   | **ExoFrame**   |
-| Multi-project refactoring       | **ExoFrame**   |
-| Air-gapped environments         | **ExoFrame**   |
+2. **Explicit Approval Gates** - Plans must be approved before execution. Changesets must be reviewed before merging. Agents never act without explicit human authorization.
 
-**The Core Architecture:**
+3. **Regulatory Compliance** - Pre-configured compliance frameworks for EU AI Act, HIPAA, SOX, and ISO 27001 (Enterprise Edition).
 
-- **Daemon-based:** Watches `/Workspace/Requests` for new tasks
-- **File-driven:** "Files as API" — drop markdown, get results
-- **Secure:** Deno's permission system sandboxes all agent operations
-- **Traceable:** SQLite Activity Journal records everything
+4. **MCP-Native Architecture** - Built on the Model Context Protocol standard, ensuring interoperability with the emerging AI agent ecosystem.
 
----
+5. **Multi-Project Orchestration** - Portal system enables agents to work across multiple codebases simultaneously.
 
-## 2. Market Position & Differentiation
+6. **Data Sovereignty** - 100% local-first operation with Ollama support. Your code never leaves your machine unless you explicitly configure cloud APIs.
 
-### What ExoFrame Is NOT
+### Three-Tier Edition Model
 
-ExoFrame is **not** a replacement for IDE-integrated AI assistants. Tools like GitHub Copilot, Cursor, and Windsurf provide excellent real-time, interactive coding assistance. If you need help writing code _right now_, use those tools.
+ExoFrame is available in three editions to serve different organizational needs:
 
-### What ExoFrame IS
+| Edition        | Target Audience                                 | License                      | Key Differentiation                                                 |
+| -------------- | ----------------------------------------------- | ---------------------------- | ------------------------------------------------------------------- |
+| **Solo**       | Individual developers, open source contributors | MIT/Apache 2.0 (Free)        | CLI + TUI, basic MCP client, local-first                            |
+| **Team**       | Small teams, startups, consulting firms         | Source-Available (Paid)      | Web UI for approvals, MCP server mode, multi-user                   |
+| **Enterprise** | Regulated industries, large enterprises         | Proprietary (Custom Pricing) | Full governance dashboard, compliance frameworks, advanced features |
 
-ExoFrame is an **agent orchestration layer** that provides:
-
-| Capability                  | IDE Agents            | ExoFrame                 |
-| --------------------------- | --------------------- | ------------------------ |
-| Real-time code completion   | ✅ Excellent          | ❌ Not a focus           |
-| Interactive chat            | ✅ Native             | ❌ File-based            |
-| Audit trail                 | ❌ None               | ✅ Full trace_id linking |
-| Async background processing | ❌ Requires attention | ✅ Daemon-based          |
-| Multi-project context       | ⚠️ Single workspace   | ✅ Portal system         |
-| Human approval gates        | ⚠️ Implicit           | ✅ Explicit workflow     |
-| Local-only operation        | ⚠️ Cloud default      | ✅ Ollama support        |
-| Compliance/audit ready      | ❌ No logging         | ✅ Activity Journal      |
-
-### The "Agent Infrastructure" Advantage
-
-ExoFrame isn't just a wrapper for LLMs; it is a complete infrastructure for **AI-enabled applications**:
-
-- **Agent Blueprints**: Define diverse personas (Coder, Reviewer, Architect) with specific models and system prompts.
-- **Multi-Agent Flows**: Orchestrate complex workflows where multiple agents collaborate in sequence or parallel.
-- **Tool Registry**: A safe, validated bridge between the LLM and the OS, allowing agents to perform real-world actions (Git, FS, Shell) within strict security boundaries.
-- **Structured Communication**: Uses JSON/TOML for internal agent communication to eliminate the fragility of parsing natural language.
-
-### The "Background Agent" Workflow
+**Quick Comparison:**
 
 ```
-Morning: Drop request → "Implement user authentication for the API"
-         ↓
-Daemon:  Generates plan, waits for approval
-         ↓
-Review:  exoctl plan show auth-impl → looks good
-         ↓
-Approve: exoctl plan approve auth-impl
-         ↓
-Execute: Agent creates branch, writes code, commits with trace_id
-         ↓
-Evening: exoctl changeset show auth-impl → review diff
-         ↓
-Merge:   exoctl changeset approve auth-impl → done
+Solo Edition:        CLI + TUI + Audit Trail + Local AI
+Team Edition:        Solo + Web UI + MCP Server + Collaboration
+Enterprise Edition:  Team + Governance + Compliance + Advanced Analytics
 ```
 
-This workflow is **impossible** with current IDE agents, which require continuous human attention.
+### When to Use ExoFrame
+
+| Scenario                                   | Recommended Tool                |
+| ------------------------------------------ | ------------------------------- |
+| Quick code fix while coding                | Use IDE agent (Cursor, Copilot) |
+| Interactive feature development            | Use IDE agent                   |
+| **Overnight batch processing**             | **ExoFrame**                    |
+| **Compliance/audit requirements**          | **ExoFrame**                    |
+| **Multi-project refactoring**              | **ExoFrame**                    |
+| **Regulated industry development**         | **ExoFrame (Enterprise)**       |
+| **Team collaboration with approval gates** | **ExoFrame (Team/Enterprise)**  |
 
 ---
 
-## 3. Architectural Philosophy & Decisions
+## 1. The Governance Crisis in AI Agent Orchestration
 
-Our technical choices are driven by three non-negotiable principles: **Security, Simplicity, and Portability.**
+### The 40% Failure Rate
 
-### 3.1. Runtime: Deno (The Secure Foundation)
+Gartner's 2026 prediction is stark: **over 40% of agentic AI projects will be canceled** due to inadequate governance. This isn't a technology problem—it's a **trust problem**.
 
-- **Choice:** **Deno**.
-- **Justification:**
-  - **Secure by Default:** Unlike Node.js or Bun, Deno requires explicit permissions (`--allow-read`, `--allow-net`) to
-    access the system.
-  - **Zero Configuration:** TypeScript is supported natively. No build steps, no `package.json` configuration hell.
-  - **Clean Filesystem:** Deno caches dependencies globally, eliminating the massive `node_modules` folder that clutters
-    file-based workflows.
+**Why Projects Fail:**
 
-### 3.2. Storage: Tiered & Separated
+- **No audit trail:** "What did the AI change and why?"
+- **No approval process:** "Who authorized this risky operation?"
+- **No compliance mapping:** "How do we prove HIPAA compliance?"
+- **No cost controls:** "Why did our OpenAI bill spike to $50,000?"
+- **No accountability:** "Which agent made this breaking change?"
 
-We reject the monolithic database approach in favor of a separation of concerns:
+### Regulatory Pressure Intensifying
 
-1. **Activity Journal:** **SQLite (WAL Mode)**.
-   - _Purpose:_ A persistent log of all agent thoughts, actions, and outcomes.
-   - _Scaling:_ Default retention of 90 days (hot).
-2. **User Content:** **The File System**.
-   - _Usage:_ Notes, Source Code.
-   - _Integrity:_ The file system is the source of truth. "Files as API" relies on strict TOML Frontmatter
-     (Zod-validated).
+**2026 marks the enforcement year** for multiple AI governance frameworks:
 
-### 3.3. Configuration: "Everything-as-Code" (EaC)
+- **EU AI Act:** Requires transparency, accountability, and human oversight for high-risk AI systems
+- **NIST AI Risk Management Framework:** Establishes standards for trustworthy AI
+- **ISO/IEC 42001:2023:** International standard for AI management systems
+- **HIPAA (Healthcare):** Demands audit trails for any AI accessing protected health information
+- **SOX (Finance):** Requires controls for AI systems affecting financial reporting
 
-- **The Standard:** Agents and workflows are defined in **TOML** blueprints.
-- **Validation:** Blueprints support a "Dry Run" mode where agent logic is simulated deterministically.
+### The Enterprise Dilemma
 
-### 3.4. Triple Agent Modes (Local, Federated, Hybrid)
+Enterprises face a impossible choice:
 
-ExoFrame treats agent runtimes as first-class configuration:
+- **Option A:** Use IDE coding agents → High productivity, zero governance
+- **Option B:** Build custom governance layer → Expensive, slow, reinventing the wheel
+- **Option C:** Don't use AI agents → Fall behind competitors
 
-1. **Local/Sovereign Agents** — execute entirely on your workstation (Ollama, scripted coders). They consume context
-   directly from disk, so no artificial token ceiling is applied.
-2. **Third-Party/Federated Agents** — delegate to remote APIs (Claude, GPT). These inherit provider-specific token and
-   privacy limits; the Context Loader enforces truncation budgets and injects warnings when context must be reduced.
-3. **Hybrid Agents** — orchestrations where a local agent handles sensitive work and selectively calls a federated
-   helper. Each handoff declares what context may leave the machine, and the Activity Journal records the transfer for
-   audit.
-
-Blueprint authors declare the mode via `runtime_mode` (`local`, `remote`, `hybrid`) plus optional `handoff_policy`,
-letting the engine automatically decide when to enforce token budgets versus streaming full context.
+**ExoFrame is Option D:** Governance built-in from day one.
 
 ---
 
-## 4. Technical Architecture Overview
+## 2. ExoFrame: The Governance-First AI Agent OS
 
-The system operates as a secure daemon on the host machine.
+### Core Philosophy: Trust Through Transparency
 
-### Layer 1: The "Portal" File System
+ExoFrame rejects the false dichotomy between automation and control. Our philosophy:
 
-ExoFrame "mounts", i.e. creates portals to existing folders (Git repos) via **Symbolic Links**.
+> **"Every AI agent action must be traceable, explainable, and reversible."**
 
-- **Security:** Deno's permission system is configured to _only_ allow read/write access to the `/ExoFrame` directory
-  and specific created Portals. Even if an agent is hijacked, the runtime prevents it from accessing your personal
-  documents or system keys.
-- **OS Notes:** Windows users must enable Developer Mode or run elevated to create symlinks; otherwise ExoFrame
-  automatically creates NTFS junctions and logs the deviation. macOS prompts for Full Disk Access on first run;
-  instructions are embedded in `Memory/README.md`.
+This is achieved through four architectural pillars:
 
-### Layer 2: The Engine (The Orchestrator)
+#### 1. The Activity Journal: Your AI Bill of Materials
 
-A state machine that watches input channels and dispatches tasks.
+Every agent action is logged to a tiered database architecture:
 
-- **Input Channel:** The `/Workspace` folder serves as the event bus.
-- **Runtime Adapter:** Abstracts OS operations to ensure compatibility across Linux, Mac, and Windows.
+| Edition        | Database                           | Compliance Level                           |
+| -------------- | ---------------------------------- | ------------------------------------------ |
+| **Solo**       | SQLite (embedded)                  | Basic audit logging                        |
+| **Team**       | PostgreSQL (append-only tables)    | Multi-user with immutability               |
+| **Enterprise** | PostgreSQL + immudb or TimescaleDB | WORM-compliant, cryptographically verified |
 
-### Layer 3: The "Flight Recorder" (Activity Journal)
+**Audit Record Contents:**
 
-- **Event Stream:** Every thought, tool call, and file write is serialized.
-- **Traceability:** Commits made by Agents include a `Trace-ID` footer (`Exo-Trace: <uuid>`) linking code changes to the
-  structured log.
+- **Timestamp** (ISO 8601, immutable, cryptographically signed for Enterprise)
+- **Trace ID** (UUID linking related actions)
+- **Actor** (agent name or "human", authenticated via SSO for Enterprise)
+- **Action Type** (request.created, plan.approved, file.modified, etc.)
+- **Target** (affected file, portal, plan)
+- **Payload** (full context: what changed, why, inputs/outputs)
+- **Cryptographic Hash** (Enterprise: tamper-evident chain verification)
 
----
+**Enterprise Compliance Features:**
 
-## 5. Security & Threat Model
+- **WORM Storage:** Records cannot be modified or deleted (SOX requirement)
+- **7-Year Retention:** Configurable retention policies for regulatory compliance
+- **Cryptographic Verification:** Immutable ledger with hash chains (audit-proof)
+- **Access Control:** RBAC on audit data (auditors vs. developers)
 
-### 5.1 What Deno Provides
+**Result:** Complete audit trail suitable for regulatory compliance, forensic analysis, and debugging.
 
-Deno's permission system enforces **boundaries at the OS level:**
+#### 2. Explicit Approval Gates: Human-in-the-Loop Governance
+
+Agents operate under a **three-phase approval workflow:**
+
+1. **Request Phase:** Human creates request (or request auto-generated from external trigger)
+2. **Plan Phase:** Agent generates plan → **STOPS** → waits for human approval
+3. **Execution Phase:** Agent implements approved plan → creates changeset → **STOPS** → waits for merge approval
+
+**No agent ever modifies code without explicit human authorization.**
+
+#### 3. MCP-Native: Interoperability as a First-Class Citizen
+
+Built on the **Model Context Protocol (MCP)**, the emerging standard for AI agent tool integration:
+
+- **MCP Client (Solo+):** Connect to external MCP servers (Google Drive, GitHub, databases)
+- **MCP Server (Team+):** Expose ExoFrame to external AI assistants (Claude Desktop, Cline, Cursor)
+- **MCP Tools:** Standardized interfaces for `create_request`, `approve_plan`, `query_journal`
+
+**Result:** ExoFrame integrates seamlessly with the emerging AI agent ecosystem.
+
+#### 4. Deno Security Model: Defense in Depth
+
+Leveraging **Deno's OS-level permission system**:
 
 ```bash
 deno run \
-  --allow-read="/ExoFrame,/home/user/Dev" \
-  --allow-write="/ExoFrame,/home/user/Dev" \
+  --allow-read="/ExoFrame,/portals" \
+  --allow-write="/ExoFrame,/portals" \
   --allow-net="api.anthropic.com" \
   src/main.ts
 ```
 
-**If agent code attempts:**
+**Security guarantees:**
 
-- `Deno.readFile("/etc/passwd")` → PermissionDenied
-- `fetch("https://evil.com")` → PermissionDenied
-- `Deno.readFile("../../.ssh/id_rsa")` → PermissionDenied (path canonicalization)
-
-This **reduces attack surface** significantly vs Node.js/Bun where any dependency can access anything.
-
-### 5.2 What Deno Does NOT Provide
-
-**Deno cannot prevent:**
-
-1. **Logic Bugs:** Agent with `--allow-write=/Dev/MyApp` can delete your entire app
-2. **Bad Decisions:** Agent might refactor working code into broken code
-3. **Resource Abuse:** Agent can consume 100% CPU in infinite loop
-4. **Social Engineering:** Malicious blueprint could trick you into approving destructive plans
-
-**Bottom Line:** Deno reduces **accidental** and **dependency-driven** attacks. It does not replace:
-
-- Human review of plans before approval
-- Git-based rollback mechanisms
-- Regular backups
-- Trust in blueprint authors
-
-### 5.3 Threat Model
-
-| Threat                    | Likelihood | Deno Mitigation                      | Operational Control                                         | Linked Test                                     |
-| ------------------------- | ---------- | ------------------------------------ | ----------------------------------------------------------- | ----------------------------------------------- |
-| **Buggy Agent**           | High       | None                                 | Git feature branches + Mission Reporter (Tech Spec §9)      | `tests/integration/happy_path_test.ts`          |
-| **Malicious Dependency**  | Medium     | ✅ Permission system                 | Supply-chain review checklist (Implementation Plan Phase 7) | `tests/security/permission_test.ts`             |
-| **Hijacked API Keys**     | Low        | ✅ OS-level network restrictions     | Keyring storage + `exoctl doctor` credential audit          | `tests/security/secret_scope_test.ts`           |
-| **Path Traversal Attack** | Low        | ✅ Path canonicalization             | Portal allow-lists + Config validation (Tech Spec §6)       | `tests/security_test.ts`                        |
-| **Malicious Blueprint**   | Low        | ⚠️ Partial (can't escape filesystem) | Capability enforcement pipeline (Tech Spec §7.1)            | `tests/blueprints/capability_violation_test.ts` |
-| **Root-Level Attacker**   | Very Low   | ❌ None                              | User must maintain OS patching/EDR                          | n/a                                             |
-
-### 5.4 Best Practices
-
-1. **Review blueprints before first use** (they're just TOML - easy to audit)
-2. **Keep portals scoped** (don't mount `/` or `~`)
-3. **Use API key restrictions** (OpenAI: limit scope, rate limits)
-4. **Regular backups** (stop daemon, tar ExoFrame directory)
-5. **Monitor activity journal** (`deno task cli log tail`)
-6. **Use read-only portals** for sensitive code (future feature)
-7. **Trust but verify:** For every threat listed in §5.3, the Implementation Plan Phase 7 defines an automated
-   regression test; CI must stay green before shipping.
+- Agents **cannot** access `/etc/passwd` or your SSH keys
+- Agents **cannot** make network requests to unapproved domains
+- Agents **cannot** write outside designated portals
+- Path traversal attacks are blocked at runtime
 
 ---
 
-## 6. Concurrency & Conflict Resolution
+## 3. Market Positioning & Differentiation
 
-### 6.1. Lease Protocol (Optimistic Locking)
+### The AI Agent Landscape (2026)
 
-- **Intent:** Before writing, an Agent registers a **Lease** (Target File + TTL) in the DB.
-- **Heartbeat:** Agents must renew leases every 30 seconds during long operations.
+ExoFrame competes in three distinct segments:
 
-### 6.2. Git Atomicity
+#### Segment 1: IDE-Integrated Coding Agents
 
-- **Code:** Resolved via **Git Branches**. Agents work on feature branches; conflicts are resolved via standard Merge
-  Request flows.
+**Players:** GitHub Copilot, Cursor, Windsurf
+**Strength:** Real-time coding assistance, zero friction
+**Weakness:** No audit trail, no approval gates, single-workspace only
+
+| Capability                      | IDE Agents            | ExoFrame                      |
+| ------------------------------- | --------------------- | ----------------------------- |
+| Real-time code completion       | ✅ Excellent          | ❌ Not a focus                |
+| Interactive chat                | ✅ Native             | ❌ File-based                 |
+| **Audit trail**                 | ❌ None               | ✅ Full trace_id linking      |
+| **Async background processing** | ❌ Requires attention | ✅ Daemon-based               |
+| **Multi-project context**       | ⚠️ Limited            | ✅ Portal system              |
+| **Human approval gates**        | ⚠️ Implicit           | ✅ Explicit workflow          |
+| **Compliance-ready**            | ❌ No logging         | ✅ Activity Journal + reports |
+
+**Positioning:** ExoFrame **complements** IDE agents—use both tools for different scenarios.
+
+#### Segment 2: Developer Orchestration Tools
+
+**Players:** LangChain, LlamaIndex, AutoGen
+**Strength:** Flexible agent orchestration, extensive documentation
+**Weakness:** No built-in governance, developers must implement audit trails
+
+**ExoFrame Differentiators:**
+
+- **Governance built-in** vs. "bring your own governance"
+- **Opinionated workflow** (request → plan → approve → execute) vs. flexible but complex
+- **File-based simplicity** vs. code-heavy orchestration
+- **Audit-native** vs. logging as afterthought
+
+**Positioning:** ExoFrame is **more opinionated, compliance-focused, and simpler** for teams needing governance out-of-the-box.
+
+#### Segment 3: Enterprise AI Platforms
+
+**Players:** SuperAGI, FluxForce, enterprise vendor solutions
+**Strength:** Full enterprise features, white-glove support
+**Weakness:** Complex, expensive, long deployment cycles
+
+**ExoFrame Differentiators:**
+
+- **Developer-first** vs. enterprise-heavy
+- **Faster deployment** (days vs. months)
+- **Open core model** (Solo edition free) vs. closed/expensive
+- **MCP-native** (standards-based) vs. proprietary
+
+**Positioning:** ExoFrame is **simpler and faster than enterprise platforms** while providing governance features they lack.
+
+### The ExoFrame Positioning Map
+
+```
+Enterprise Features
+        ↑
+        │     SuperAGI
+        │     FluxForce
+        │
+        │    ┌─────────────┐
+        │    │  ExoFrame   │ ← SWEET SPOT
+        │    │ (Enterprise)│
+        │    └─────────────┘
+        │
+        │  LangChain
+        │  LlamaIndex
+        │
+        │              Cursor
+Low     │              Copilot
+        │              Windsurf
+        └──────────────────────────→
+     Low          Governance/Compliance          High
+```
+
+**Key Insight:** ExoFrame occupies the "governance-conscious SMB" quadrant—teams that need more than IDE agents but less complexity than enterprise platforms.
+
+### Competitive Defensibility
+
+VCs and enterprise customers ask: **"What prevents competitors from copying your features?"**
+
+ExoFrame's competitive moats are **structural, not feature-based**:
+
+#### 1. Cumulative Intelligence Advantage
+
+As organizations use ExoFrame, they accumulate **institutional intelligence** that becomes increasingly valuable:
+
+- **Memory Banks:** Context accumulates over time—past decisions, code patterns, organizational knowledge
+- **Blueprint Library:** Curated agent configurations improve with usage
+- **Context Cards:** Auto-generated portal understanding becomes organizational memory
+
+**Switching Cost:** Migrating away means losing months/years of accumulated context.
+
+#### 2. Compliance Continuity Lock-In
+
+Once an organization establishes ExoFrame as their **audit trail of record**, switching creates regulatory risk:
+
+- **Historical Audit Data:** 7 years of SOX logs can't be easily migrated
+- **Regulatory Continuity:** Auditors expect consistent systems across audit periods
+- **Attestation Risk:** Switching mid-audit-cycle creates compliance gaps
+
+**Switching Cost:** Organizations don't change audit infrastructure casually.
+
+#### 3. Workflow Integration Depth
+
+ExoFrame integrates deeply into development workflows:
+
+- **Git Hooks:** Trace IDs embedded in every commit
+- **File System Watchers:** Request/plan workflows become muscle memory
+- **Approval Processes:** Teams build rituals around plan review
+- **Skills & Flows:** Custom automation compounds over time
+
+**Switching Cost:** Changing ingrained team workflows is expensive and disruptive.
+
+#### 4. Community Blueprint Network Effects
+
+As the user base grows, ExoFrame's value increases:
+
+- **Shared Blueprints:** Community-contributed agent configurations
+- **Verified Templates:** Security-audited blueprints for common tasks
+- **Enterprise Marketplace:** Premium blueprints for specific industries
+- **Integration Ecosystem:** MCP servers, skills, and tools
+
+**Network Effect:** More users → better blueprints → more users.
+
+### Industry Vertical Specialization
+
+While ExoFrame is a horizontal platform, **vertical-specific configurations** add differentiated value:
+
+#### Healthcare & Life Sciences (Enterprise)
+
+| Feature                  | Implementation                                   |
+| ------------------------ | ------------------------------------------------ |
+| HIPAA Compliance Profile | Pre-configured audit policies, PHI detection     |
+| PHI Detection in Code    | AI-powered scan for protected health information |
+| FDA 21 CFR Part 11       | Electronic signature validation support          |
+| Healthcare Blueprints    | HL7/FHIR integration, EHR patterns               |
+
+**Use Case:** Pharmaceutical R&D teams requiring FDA-compliant software development.
+
+#### Financial Services (Enterprise)
+
+| Feature                 | Implementation                                  |
+| ----------------------- | ----------------------------------------------- |
+| SOX Compliance Profile  | 7-year retention, segregation of duties         |
+| PCI-DSS Code Checks     | Payment card data handling verification         |
+| Dual Approval Workflows | Tech lead + compliance officer sign-off         |
+| Trading System Controls | Enhanced change management for critical systems |
+
+**Use Case:** Banks and fintech companies modernizing regulatory-reporting systems.
+
+#### Government & Defense
+
+| Feature                   | Implementation                                 |
+| ------------------------- | ---------------------------------------------- |
+| FedRAMP Deployment Guide  | Cloud security controls documentation          |
+| Air-Gapped Installation   | Fully offline operation support                |
+| Clearance-Aware Workflows | Approval routing by security clearance         |
+| NIST 800-171 Mapping      | Controlled Unclassified Information protection |
+
+**Use Case:** Defense contractors requiring secure, auditable AI agent operations.
+
+### Inference Economics & LLM Cost Management
+
+**The Hidden Cost of AI Agents:** LLM inference can silently drain budgets. ExoFrame provides comprehensive cost controls.
+
+#### Token Optimization Strategies
+
+| Strategy                  | Description                                       | Savings |
+| ------------------------- | ------------------------------------------------- | ------- |
+| **Request Deduplication** | Similar requests share cached plan analysis       | 30-50%  |
+| **Incremental Context**   | Only send changed files, not full codebase        | 40-60%  |
+| **Model Tiering**         | Routine tasks → cheaper models; complex → premium | 25-35%  |
+| **Response Caching**      | Identical queries return cached results           | 20-40%  |
+
+#### Cost Controls by Edition
+
+**Solo Edition:**
+
+- Basic token logging
+- Manual provider selection
+
+**Team Edition:**
+
+- Per-user token budgets (daily/monthly caps)
+- Cost alerts and pause thresholds
+- Provider fallback chains (Claude hits budget → Ollama)
+- Cost attribution per portal
+
+**Enterprise Edition:**
+
+- Department-level budget allocation
+- Cost forecasting with ML predictions
+- Anomaly detection (unusual spending patterns)
+- ROI dashboards (compare agent cost vs. developer time saved)
+- Provider policies by data classification (sensitive = local only)
+
+#### Example: Cost-Aware Provider Routing
+
+```toml
+# Enterprise provider policy
+[providers.routing]
+default = "claude-3.5-sonnet"
+fallback = ["gpt-4-turbo", "ollama/deepseek"]
+
+[providers.policies]
+# PHI-containing portals use local only
+phi_portals = { provider = "ollama/llama3-medical", reason = "HIPAA data locality" }
+
+# Cost optimization for bulk operations
+bulk_refactor = { provider = "gpt-4-turbo", reason = "cost-effective for volume" }
+
+# Premium for critical decisions
+plan_generation = { provider = "claude-3.5-sonnet", reason = "highest accuracy" }
+```
 
 ---
 
-## 7. Target Platforms & Performance
+## 4. Three-Tier Edition Model
 
-ExoFrame is optimized for modern developer workstations (**~€1000** budget).
+### Edition Comparison Matrix
 
-### 7.1 Platform Support Priorities
+| Feature Category            | Solo (Free)                          | Team (Usage-Based)             | Enterprise (AELA)                        |
+| --------------------------- | ------------------------------------ | ------------------------------ | ---------------------------------------- |
+| **Interface**               |                                      |                                |                                          |
+| CLI (`exoctl`)              | ✅ Full                              | ✅ Full                        | ✅ Full                                  |
+| TUI Dashboard               | ✅ 7 views                           | ✅ 7 views                     | ✅ Enhanced 9 views                      |
+| Web UI                      | ❌ No                                | ✅ Plan review, approval, logs | ✅ Full (visual workflows, admin)        |
+| **Database & Audit**        |                                      |                                |                                          |
+| Audit Database              | SQLite (embedded)                    | PostgreSQL (append-only)       | PostgreSQL + immudb (WORM)               |
+| Immutability                | ⚠️ Application-level                 | ✅ Database-enforced           | ✅ Cryptographically verified            |
+| Retention Policies          | ⚠️ Manual                            | ✅ Configurable                | ✅ SOX 7-year, HIPAA 6-year              |
+| **Core Features**           |                                      |                                |                                          |
+| Activity Journal            | ✅ Full audit trail                  | ✅ Full audit trail            | ✅ Enhanced with analytics               |
+| Portal System               | ✅ Unlimited                         | ✅ Unlimited                   | ✅ Unlimited + multi-tenancy             |
+| Agent Blueprints            | ✅ Basic templates                   | ✅ Team library                | ✅ Enterprise templates + marketplace    |
+| Git Integration             | ✅ Trace IDs in commits              | ✅ + team workflows            | ✅ + advanced branch policies            |
+| **MCP Support**             |                                      |                                |                                          |
+| MCP Client                  | ✅ Connect to MCP servers            | ✅ Full                        | ✅ Full                                  |
+| MCP Server                  | ❌ No                                | ✅ Expose ExoFrame APIs        | ✅ + custom tool development             |
+| **LLM Providers**           |                                      |                                |                                          |
+| Basic Providers             | ✅ Ollama, OpenAI, Anthropic, Google | ✅ All                         | ✅ All                                   |
+| Enterprise Providers        | ❌ No                                | ❌ No                          | ✅ Azure OpenAI, AWS Bedrock, GCP Vertex |
+| Provider Routing            | ❌ Manual selection                  | ✅ Cost-based, fallback chains | ✅ + advanced policies                   |
+| Cost Management             | ⚠️ Basic logs                        | ✅ Per-user tracking, budgets  | ✅ Forecasting, anomaly detection        |
+| **Collaboration**           |                                      |                                |                                          |
+| Users                       | ⚠️ Single user                       | ✅ Multi-user (unlimited)      | ✅ Multi-user + RBAC                     |
+| Shared Workspaces           | ❌ No                                | ✅ Team workspaces             | ✅ + department isolation                |
+| Skills Library              | ✅ Personal                          | ✅ Org-wide                    | ✅ + verified marketplace                |
+| **Governance & Compliance** |                                      |                                |                                          |
+| Audit Exports               | ⚠️ CSV only                          | ✅ CSV, JSON                   | ✅ + PDF compliance reports              |
+| Compliance Frameworks       | ❌ None                              | ❌ None                        | ✅ EU AI Act, HIPAA, SOX, ISO 27001      |
+| Governance Dashboard        | ❌ No                                | ❌ No                          | ✅ Risk scoring, policy enforcement      |
+| **Advanced Features**       |                                      |                                |                                          |
+| Memory Banks                | ✅ Basic (file-based)                | ✅ + full-text search          | ✅ + vector search, knowledge graphs     |
+| Analytics                   | ❌ No                                | ✅ Basic (performance, costs)  | ✅ Advanced (predictions, anomalies)     |
+| SSO/SAML                    | ❌ No                                | ❌ No                          | ✅ Enterprise auth                       |
+| Air-Gapped Deployment       | ✅ Possible                          | ✅ Possible                    | ✅ + professional services               |
+| **Support**                 |                                      |                                |                                          |
+| Community Support           | ✅ GitHub, Discord                   | ✅ ✅                          | ✅ ✅                                    |
+| Email Support               | ❌ No                                | ✅ Business hours              | ✅ 24/7                                  |
+| SLA Guarantee               | ❌ No                                | ❌ No                          | ✅ 99.9% uptime                          |
+| Professional Services       | ❌ No                                | ⚠️ Available (paid addon)      | ✅ Included                              |
 
-1. **x64 Linux Workstation** (Ubuntu/Debian) - **Primary Target**.
-   - _Config:_ Deno runs natively. Best performance for filesystem events.
-2. **Mac System** (Apple Silicon) - **Secondary Target**.
-   - _Config:_ Deno optimizes for ARM64.
-3. **x64 Windows with WSL2** - **Tertiary Target**.
+### Recommended Edition by Use Case
 
-### 7.2 Performance Goals
+**Solo Edition - Best For:**
 
-Targets are defined for the reference hardware (**Mac Mini M4, 24 GB RAM**) and mirrored Linux workstation. Benchmark
-automation is in progress; results will be published once the CI harness lands.
+- Individual developers and hobbyists
+- Open source project maintainers
+- Students and researchers
+- Personal productivity automation
+- Learning and experimentation
 
-| Metric               | Goal         | Measurement Plan                                 |
-| -------------------- | ------------ | ------------------------------------------------ |
-| **Cold Start**       | < 80 ms      | `deno bench cold_start_bench.ts`                 |
-| **Watcher Latency**  | < 100 ms     | `deno bench watcher_bench.ts` (10 MB slow write) |
-| **Memory Footprint** | < 150 MB     | Idle daemon telemetry                            |
-| **Plan Throughput**  | ≥ 10 req/min | Scenario A dry run with Mock LLM                 |
+**Team Edition - Best For:**
+
+- Startups (2-10 developers)
+- Consulting firms managing client projects
+- Small agencies with collaborative workflows
+- Teams needing approval workflows
+- Organizations wanting MCP integration
+
+**Enterprise Edition - Best For:**
+
+- Regulated industries (healthcare, finance, pharmaceuticals)
+- Government and defense contractors
+- Large enterprises with compliance requirements
+- Organizations needing SSO/SAML integration
+- Multi-department corporations
+
+### Migration Path
+
+**Solo → Team:**
+
+- Seamless upgrade: existing workspace, blueprints, and audit logs preserved
+- Add team members via invitation
+- Enable web UI access
+- Configure MCP server mode
+
+**Team → Enterprise:**
+
+- Import team workspaces
+- Configure compliance frameworks
+- Set up SSO/SAML
+- Deploy governance dashboard
+- Professional services available for migration assistance
 
 ---
 
-## 8. Conclusion
+## 5. Architecture Overview
 
-ExoFrame rejects the compromise between automation and sovereignty.
+### High-Level System Architecture
 
-By anchoring intelligence in the **Local File System**, utilizing **Transparent Code Blueprints**, and enforcing
-**Runtime Security**, ExoFrame offers a third path:
+ExoFrame operates as a **secure daemon** on the host machine (or shared server for Team/Enterprise).
 
-1. **Sovereignty** over data and models.
-2. **Interoperability** with existing tools.
-3. **Security** via engine-level sandboxing.
+```
+┌─────────────────────────────────────────────────────────┐
+│                    User / Developer                      │
+└───────────┬────────────────────────┬────────────────────┘
+            │                        │
+     ┌──────▼──────┐          ┌──────▼──────┐
+     │  CLI        │          │  Web UI     │
+     │  (exoctl)   │          │ (Team/Ent)  │
+     └──────┬──────┘          └──────┬──────┘
+            │                        │
+            └────────┬───────────────┘
+                     │
+            ┌────────▼─────────┐
+            │   TUI Dashboard  │
+            │   (7-9 views)    │
+            └────────┬─────────┘
+                     │
+       ┌─────────────▼──────────────┐
+       │    ExoFrame Daemon Core     │
+       │  ┌──────────────────────┐  │
+       │  │  Request Processor   │  │
+       │  │  Request Router      │  │
+       │  │  Plan Executor       │  │
+       │  │  Flow Engine         │  │
+       │  └──────────────────────┘  │
+       └─────────────┬───────────────┘
+                     │
+      ┌──────────────┼──────────────┐
+      │              │              │
+┌─────▼────┐  ┌──────▼─────┐  ┌────▼─────┐
+│ Activity │  │   File     │  │ Portal   │
+│ Journal  │  │   System   │  │ System   │
+│ (SQLite) │  │ (Markdown) │  │(Symlinks)│
+└──────────┘  └────────────┘  └──────────┘
+      │
+      │ ┌────────────────────────────┐
+      └─│  MCP Integration Layer     │
+        │  ├─ Client (Solo+)         │
+        │  └─ Server (Team+)         │
+        └────────┬───────────────────┘
+                 │
+      ┌──────────┴──────────┐
+      │                     │
+┌─────▼──────┐    ┌─────────▼────────┐
+│ LLM        │    │ External MCP     │
+│ Providers  │    │ Servers/Clients  │
+│ (Local/API)│    │ (Claude, Cline)  │
+└────────────┘    └──────────────────┘
+```
 
-It transforms the computer from a passive storage device into an active, cognitive partner. **ExoFrame is the
-infrastructure for the next decade of sovereign intellectual work.**
+### Core Architectural Principles
 
-### Future Enhancement: MCP API Integration
+#### 1. File-as-API Philosophy
 
-**Model Context Protocol (MCP)** enables standardized communication between AI assistants and external tools/data sources. A future enhancement would add an MCP server interface to ExoFrame, allowing external AI assistants (Claude Desktop, Cline, etc.) to interact with ExoFrame programmatically.
+Everything is a file—requests, plans, blueprints, reports:
+
+```
+~/ExoFrame/
+├── Workspace/
+│   ├── Requests/         ← Drop .md files here
+│   ├── Plans/            ← Agent-generated plans
+│   └── Active/           ← Approved plans being executed
+├── Blueprints/
+│   ├── Agents/           ← TOML agent definitions
+│   └── Flows/            ← Multi-agent workflows
+├── Memory/
+│   ├── Reports/          ← Execution summaries
+│   ├── Context/          ← Knowledge base
+│   └── Portals/          ← Auto-generated context cards
+├── Portals/              ← Symlinks to external projects
+└── .exo/
+    ├── journal.db        ← Activity Journal (audit trail)
+    └── config.toml       ← Global configuration
+```
 
 **Benefits:**
 
-- **Automation:** External AI assistants can create requests, approve plans, query activity logs
-- **Integration:** Connect ExoFrame with IDE agents, ChatGPT plugins, Claude Desktop apps
-- **Unified Interface:** Standard MCP tools (`exoframe.createRequest`, `exoframe.approvePlan`, `exoframe.queryJournal`)
-- **Preserved Sovereignty:** MCP server runs locally, no cloud dependencies required
+- **Simplicity:** No complex APIs to learn
+- **Inspectability:** Everything is human-readable
+- **Git-friendliness:** Requests and blueprints version-controlled
+- **Automation-ready:** Standard Unix tools work (grep, find, sed)
 
-**Architecture:**
+#### 2. Daemon-Based Asynchronous Execution
 
-- MCP server exposes ExoFrame operations as standardized tools
-- External assistants connect via stdio or SSE transport
-- All operations logged to Activity Journal with trace linking
-- Maintains ExoFrame's file-based core with API convenience layer
+Unlike IDE agents requiring constant attention, ExoFrame runs as background daemon:
 
-This would complement ExoFrame's file-based API, offering both human-friendly CLI and machine-friendly MCP interfaces.
+```
+Morning:  Drop request → "Refactor authentication module"
+          ↓
+Daemon:   Detects new request, generates plan, waits for approval
+          ↓
+Review:   exoctl plan show auth-refactor → Looks good
+          ↓
+Approve:  exoctl plan approve auth-refactor
+          ↓
+Execute:  Agent creates branch, refactors code, commits with trace_id
+          ↓
+Evening:  exoctl changeset show auth-refactor → Review diff
+          ↓
+Merge:    exoctl changeset approve auth-refactor → Done
+```
+
+**Workflow is impossible with IDE agents** (requires continuous human presence).
+
+#### 3. Trace ID Linking: The Audit Chain
+
+Every action is linked via **trace_id** (UUID):
+
+```
+Request (trace_id: 550e8400...)
+  ↓
+Plan (trace_id: 550e8400...)
+  ↓
+Git Commits (footer: [ExoTrace: 550e8400...])
+  ↓
+Changeset (trace_id: 550e8400...)
+  ↓
+Report (trace_id: 550e8400...)
+  ↓
+Activity Journal (all events tagged with 550e8400...)
+```
+
+**Result:** Complete forensic trail. Answer "why did this file change?" with `exoctl journal --trace 550e8400`.
+
+#### 4. Security Through Isolation
+
+**Runtime Security Model:**
+
+ExoFrame leverages **OS-level permission enforcement** for defense-in-depth security. The security guarantees—sandboxing, network restrictions, file system isolation—are the value, regardless of runtime implementation.
+
+**Current Implementation (Deno):**
+
+ExoFrame currently runs on Deno, chosen for its **secure-by-default** permission model:
+
+- Agents run with **explicitly granted permissions** only
+- Portal access limited via `--allow-read` and `--allow-write` flags
+- Network access restricted to approved API domains
+- Path traversal blocked via canonicalization
+
+**Why Deno?**
+
+- Zero-configuration TypeScript support
+- Built-in security primitives (no bolted-on sandboxing)
+- Modern runtime with reduced attack surface
+- Used by Slack, Netlify, Supabase in production
+
+**Enterprise Consideration:** While Deno has smaller market share than Node.js, the security model—not the runtime—is the critical factor. ExoFrame's architecture could theoretically support other runtimes with equivalent security primitives.
+
+**Portal Isolation:**
+
+- Each portal is a **separate symlink** to external project
+- Agents can only access **assigned portal(s)**
+- Cross-portal access blocked at runtime
+- Audit log tracks all portal access
 
 ---
 
-## Appendix A: Benchmarks
+## 6. Regulatory Compliance (Enterprise Edition)
 
-**Purpose:** To ensure claims of "Speed" are reproducible.
+### Pre-Configured Compliance Frameworks
 
-- **Methodology:**
-  - **Cold Start:** `deno bench cold_start_bench.ts`
-  - **Watcher Latency:** `deno bench watcher_bench.ts` with 10 MB incremental writes
-  - **Plan Throughput:** Scenario A dry run with Mock LLM
-  - **CI:** GitHub Actions pipeline runs these on every commit; results exported to `Memory/Reports/benchmarks.md`.
+Enterprise Edition includes **turnkey compliance profiles** for major regulatory frameworks:
 
-**Planned Reporting:** Once automation is live, benchmark summaries will be exported to
-`Memory/Reports/benchmarks.md` with per-commit trends.
+#### EU AI Act Compliance
+
+**Requirements:**
+
+- Transparency and human oversight for high-risk AI systems
+- Documentation of AI decision-making processes
+- Risk assessment and mitigation
+
+**ExoFrame Implementation:**
+
+- ✅ **Transparency:** Activity Journal logs all agent actions with reasoning
+- ✅ **Human Oversight:** Explicit approval gates (plan approval, changeset review)
+- ✅ **Documentation:** Compliance reports auto-generated from Activity Journal
+- ✅ **Risk Assessment:** Governance dashboard flags high-risk operations
+
+**Compliance Export:**
+
+```bash
+exoctl compliance export --framework eu-ai-act \
+  --period "2026-01-01 to 2026-01-31" \
+  --output eu-ai-act-january-2026.pdf
+```
+
+Generates PDF report with:
+
+- All AI agent actions during period
+- Human approval timestamps and approvers
+- Risk classification per action
+- Audit trail integrity verification
+
+#### HIPAA (Healthcare) Compliance
+
+**Requirements:**
+
+- Audit trails for Protected Health Information (PHI) access
+- Access controls and user authentication
+- Encryption of PHI in transit and at rest
+
+**ExoFrame Implementation:**
+
+- ✅ **Audit Trails:** Activity Journal logs every file accessed by agents
+- ✅ **Access Controls:** RBAC ensures only authorized users approve plans
+- ✅ **Encryption:** SQLite database encrypted at rest (Enterprise)
+- ✅ **PHI Flagging:** Portals marked as "contains-phi" trigger enhanced logging
+
+**Compliance Export:**
+
+```bash
+exoctl compliance export --framework hipaa \
+  --portal "patient-records" \
+  --output hipaa-phi-access-q1-2026.pdf
+```
+
+#### SOX (Financial Controls) Compliance
+
+**Requirements:**
+
+- Controls over systems affecting financial reporting
+- Audit trails for code changes
+- Segregation of duties
+
+**ExoFrame Implementation:**
+
+- ✅ **Change Controls:** No code changes without plan approval + changeset review
+- ✅ **Audit Trails:** Git commits linked to trace_id, Activity Journal immutable
+- ✅ **Segregation of Duties:** RBAC separates "developers" from "approvers"
+
+**Compliance Export:**
+
+```bash
+exoctl compliance export --framework sox \
+  --portal "financial-reporting-api" \
+  --output sox-controls-audit-2026.pdf
+```
+
+#### ISO/IEC 27001 (Information Security)
+
+**Requirements:**
+
+- Information security management system
+- Risk assessment and treatment
+- Access control and audit logging
+
+**ExoFrame Implementation:**
+
+- ✅ **Risk Assessment:** Governance dashboard identifies high-risk agent actions
+- ✅ **Access Control:** Deno permissions + Portal isolation + RBAC
+- ✅ **Audit Logging:** Activity Journal with cryptographic timestamps (Enterprise)
+
+### Governance Dashboard (Enterprise)
+
+Real-time compliance monitoring interface:
+
+**Key Metrics:**
+
+- **Agent Actions (30 days):** 1,247 total
+- **Approval Rate:** 94.2% (73 plans approved, 5 rejected)
+- **High-Risk Actions Flagged:** 12 (manual review required)
+- **Average Approval Time:** 4.2 hours
+- **Compliance Status:** ✅ HIPAA Compliant, ✅ SOX Compliant
+
+**Alerts:**
+
+- ⚠️ Agent attempted to access `/etc/passwd` (blocked by Deno, logged for review)
+- ⚠️ Claude API cost exceeded $500/day threshold
+- ⚠️ 3 plans pending approval > 48 hours
 
 ---
 
-_End of White Paper_
+## 7. Use Cases by Edition
+
+### Solo Edition Use Cases
+
+#### UC-S1: Open Source Maintainer Workflow
+
+**Scenario:** You maintain an open source library with 50+ pending issues.
+
+**Workflow:**
+
+```bash
+# Morning: Create batch request
+exoctl request "Fix all deprecated API warnings" \
+  --agent senior-coder \
+  --tags batch-refactor
+
+# Daemon generates plan while you work on other tasks
+
+# Afternoon: Review plan
+exoctl plan show deprecated-api-fix
+exoctl plan approve deprecated-api-fix
+
+# Evening: Review changeset
+exoctl changeset show deprecated-api-fix
+exoctl changeset approve deprecated-api-fix
+
+# Result: 50 files refactored, all changes traced to single request
+```
+
+#### UC-S2: Personal Learning & Experimentation
+
+**Scenario:** Learning new framework by having agent explain and refactor code.
+
+**Workflow:**
+
+- Create request: "Convert this Express.js API to Fastify"
+- Agent generates plan with explanations
+- Review plan to understand architectural differences
+- Execute plan with agent-generated code
+- Study changeset to see actual implementation patterns
+
+**Value:** Learning by doing, with full audit trail for later reference.
+
+### Team Edition Use Cases
+
+#### UC-T1: Startup Product Development
+
+**Scenario:** 5-person startup building SaaS product, needs approval workflow.
+
+**Setup:**
+
+- Team workspace with shared blueprints
+- Web UI for non-technical CEO to approve high-risk changes
+- MCP server exposes ExoFrame to Claude Desktop for rapid prototyping
+
+**Workflow:**
+
+```bash
+# Developer creates request
+exoctl request "Add Stripe payment integration" --agent full-stack-dev
+
+# Agent generates plan, notifies team via Slack integration
+
+# CTO reviews plan in Web UI (approves/rejects with comments)
+
+# Agent executes, creates changeset
+
+# CEO reviews code changes in Web UI before merge
+```
+
+**Value:** Collaboration with governance, non-technical stakeholders can participate.
+
+#### UC-T2: Consulting Firm Client Projects
+
+**Scenario:**Consulting firm managing 10 client projects simultaneously.
+
+**Setup:**
+
+- Separate portal per client
+- Shared skill library (common patterns reused)
+- Cost tracking per client for billing
+
+**Workflow:**
+
+- Morning: Queue 10 requests across clients
+- Daemon processes asynchronously
+- Afternoon: Review all plans in TUI dashboard
+- Evening: Export cost breakdown per client for invoicing
+
+**Value:** Parallel project management, cost transparency, reusable workflows.
+
+### Enterprise Edition Use Cases
+
+#### UC-E1: HIPAA-Compliant Healthcare Development
+
+**Scenario:** Hospital building patient records system, must comply with HIPAA.
+
+**Setup:**
+
+- Portal marked as "contains-phi" (triggers enhanced logging)
+- HIPAA compliance profile enabled
+- RBAC: Developers request, Security Officers approve
+- All API calls to Claude routed through on-premises proxy
+
+**Workflow:**
+
+```bash
+# Developer creates request
+exoctl request "Add patient search by MRN" \
+  --portal patient-records \
+  --tags hipaa-sensitive
+
+# System automatically flags as high-risk (PHI access)
+
+# Agent generates plan
+
+# Security Officer reviews in Governance Dashboard
+# Verifies no PHI leakage, no unauthorized data access
+
+# After approval, agent executes with enhanced logging
+
+# Quarterly: Export HIPAA compliance report for auditors
+exoctl compliance export --framework hipaa \
+  --output q1-2026-hipaa-audit.pdf
+```
+
+**Value:** Automated compliance, auditor-ready reports, peace of mind.
+
+#### UC-E2: Financial Institution SOX Compliance
+
+**Scenario:** Bank maintaining financial reporting systems under SOX requirements.
+
+**Setup:**
+
+- Segregation of duties: Developers create plans, Auditors approve
+- All changes to `financial-reporting-api` portal require dual approval
+- Immutable audit trail with cryptographic timestamps
+- Annual SOX audit preparation
+
+**Workflow:**
+
+- Developer: Creates request to fix calculation bug
+- Agent: Generates plan with test coverage
+- Tech Lead: Reviews technical implementation (first approval)
+- Compliance Officer: Reviews SOX impact (second approval)
+- Agent: Executes only after both approvals
+- System: Generates SOX controls report automatically
+
+**Value:** Bulletproof audit trail, regulatory compliance without manual overhead.
+
+#### UC-E3: Pharmaceutical R&D (21 CFR Part 11)
+
+**Scenario:** Pharma company developing clinical trial management software.
+
+**Setup:**
+
+- FDA 21 CFR Part 11 compliance (electronic records and signatures)
+- Vector search Memory Banks for protocol reuse
+- Air-gapped deployment (no data leaves premises)
+
+**Workflow:**
+
+- Request: "Update adverse event reporting module per new FDA guidance"
+- Memory Banks: Retrieve similar past implementations
+- Agent: Generates plan incorporating institutional knowledge
+- Medical Director: Reviews and e-signs plan approval
+- Agent: Executes with full audit trail
+- System: Generates 21 CFR Part 11 compliance package for FDA submission
+
+**Value:** Institutional knowledge preservation, regulatory compliance, FDA submission-ready documentation.
+
+---
+
+## 8. Security & Threat Model
+
+### Security Principles
+
+ExoFrame implements **defense in depth** with multiple security layers:
+
+1. **OS-Level Permissions** (Deno)
+2. **Portal Isolation** (symlinks + permissions)
+3. **Approval Gates** (human-in-the-loop)
+4. **Audit Logging** (Activity Journal)
+5. **Network Restrictions** (whitelist-based)
+
+### Threat Matrix
+
+| Threat                         | Likelihood | Deno Mitigation          | ExoFrame Control                    | Residual Risk |
+| ------------------------------ | ---------- | ------------------------ | ----------------------------------- | ------------- |
+| **Buggy Agent**                | High       | None                     | Git feature branches + Plan review  | Low           |
+| **Malicious Dependency**       | Medium     | ✅ Permission system     | Supply chain review                 | Very Low      |
+| **Hijacked API Keys**          | Low        | ✅ Network restrictions  | Keyring storage (Enterprise)        | Very Low      |
+| **Path Traversal**             | Low        | ✅ Path canonicalization | Portal allow-lists                  | Very Low      |
+| **Malicious Blueprint**        | Low        | ⚠️ Partial               | Blueprint verification (Enterprise) | Low           |
+| **Credential Leakage in Logs** | Medium     | None                     | Payload sanitization                | Low           |
+| **Compromised MCP Server**     | Low        | ✅ Permission system     | MCP server validation               | Low           |
+
+### What Deno Provides
+
+**Runtime Security:**
+
+```bash
+# Agent code attempts:
+Deno.readFile("/etc/passwd")
+→ PermissionDenied (not in --allow-read list)
+
+fetch("https://evil.com")
+→ PermissionDenied (not in --allow-net list)
+
+Deno.writeFile("../../.ssh/id_rsa")
+→ PermissionDenied (path canonicalized, blocked)
+```
+
+### What Deno Does NOT Provide
+
+**Deno cannot prevent:**
+
+- Logic bugs (agent deletes important file within allowed portal)
+- Bad decisions (agent refactors working code into broken code)
+- Resource abuse (agent consumes 100% CPU in infinite loop)
+- Social engineering (malicious blueprint tricks you into approval)
+
+**Mitigation:** Human review, Git rollback, resource limits, blueprint auditing.
+
+### Best Practices
+
+**For All Editions:**
+
+1. Review blueprints before first use
+2. Keep portals scoped (never mount `/` or `~`)
+3. Use API key restrictions (OpenAI: rate limits, scope limits)
+4. Regular backups (`tar ~/ExoFrame` weekly)
+5. Monitor Activity Journal (`exoctl journal tail`)
+
+**For Team/Enterprise:**
+6. Enable RBAC (separate developers from approvers)
+7. Configure SSO/SAML (Enterprise)
+8. Set up cost alerts (prevent runaway API bills)
+9. Use read-only portals for reference codebases
+10. Enable MCP server validation (whitelist trusted MCP clients)
+
+---
+
+## 9. Deployment & Scaling
+
+### Solo Edition Deployment
+
+**Installation:**
+
+```bash
+# Install Deno (if not already installed)
+curl -fsSL https://deno.land/install.sh | sh
+
+# Clone ExoFrame
+git clone https://github.com/yourorg/exoframe.git
+cd exoframe
+
+# Initialize workspace
+deno task init
+
+# Start daemon
+deno task daemon start
+
+# Verify installation
+exoctl doctor
+```
+
+**Requirements:**
+
+- Deno 2.0+
+- 4GB RAM (8GB recommended)
+- 10GB disk space (varies with project size)
+- Linux, macOS, or WSL2
+
+**Local LLM (Optional):**
+
+```bash
+# Install Ollama for 100% local operation
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Pull model
+ollama pull deepseek-coder:33b
+
+# Configure ExoFrame
+exoctl config set llm.provider ollama
+exoctl config set llm.model deepseek-coder:33b
+```
+
+### Team Edition Deployment
+
+**Shared Server Setup:**
+
+```bash
+# Deploy to shared server (Ubuntu 24.04)
+ssh team@server.example.com
+
+# Install as systemd service
+sudo curl -o /etc/systemd/system/exoframe.service \
+  https://exoframe.io/install/team/exoframe.service
+
+sudo systemctl enable exoframe
+sudo systemctl start exoframe
+
+# Configure web UI
+exoctl config set webui.enabled true
+exoctl config set webui.port 3000
+exoctl config set webui.bind "0.0.0.0"
+
+# Add team members
+exoctl user add alice@example.com --role developer
+exoctl user add bob@example.com --role approver
+```
+
+**Requirements:**
+
+- 16GB RAM (with 5+ concurrent users)
+- 100GB disk space
+- PostgreSQL (optional, for enhanced Activity Journal)
+
+### Enterprise Edition Deployment
+
+**High-Availability Setup:**
+
+```bash
+# Load-balanced deployment with Kubernetes
+kubectl apply -f https://exoframe.io/install/enterprise/k8s-manifests.yaml
+
+# Configure SSO (example: Okta)
+exoctl config set auth.provider okta
+exoctl config set auth.okta.domain "yourcompany.okta.com"
+exoctl config set auth.okta.client_id "xxx"
+exoctl config set auth.okta.client_secret "yyy"
+
+# Enable compliance frameworks
+exoctl compliance enable hipaa
+exoctl compliance enable sox
+exoctl compliance enable iso27001
+
+# Configure air-gapped deployment (no internet)
+exoctl config set llm.provider azure-openai-private
+exoctl config set llm.azure.endpoint "https://your-private-endpoint.azure.com"
+```
+
+**Requirements:**
+
+- 32GB+ RAM (production cluster)
+- 500GB+ disk (audit retention, vector embeddings)
+- PostgreSQL with replication
+- Redis for caching
+- Professional services included for setup
+
+---
+
+## 10. Roadmap & Future Vision
+
+### 2026 Priorities
+
+**Q1 2026 (Current):**
+
+- ✅ Three-tier edition launch
+- ✅ MCP server implementation (Team+)
+- ✅ Governance dashboard (Enterprise)
+- ⏳ Blueprint marketplace (Solo+)
+
+**Q2 2026:**
+
+- Visual workflow builder (Enterprise)
+- Advanced Memory Banks with vector search (Enterprise)
+- Provider strategy optimization (improved cost prediction)
+- Multi-language support (TUI/Web UI internationalization)
+
+**Q3 2026:**
+
+- AI-assisted blueprint generation (describe in natural language → TOML)
+- Workflow analytics with ML insights (Enterprise)
+- Mobile app for plan approval (Team/Enterprise)
+- Kubernetes operator for scalable deployments
+
+**Q4 2026:**
+
+- Agent specialization framework (domain-specific agents)
+- Cross-workspace collaboration (multiple ExoFrame instances)
+- Advanced security: anomaly detection in agent behavior
+- Compliance framework expansion (GDPR, CCPA, more)
+
+### Open Core Philosophy
+
+ExoFrame follows **transparent open-core licensing**. Developers deserve clarity on what's open and what's commercial.
+
+#### What's Open Source (MIT/Apache 2.0)
+
+| Component            | Description                     | Why Open                           |
+| -------------------- | ------------------------------- | ---------------------------------- |
+| **ExoFrame Daemon**  | Core orchestration engine       | Security auditing, community trust |
+| **CLI (`exoctl`)**   | Command-line interface          | Developer tools should be free     |
+| **TUI Dashboard**    | Terminal UI (7 views)           | Core UX, community can extend      |
+| **File Formats**     | Request, plan, blueprint specs  | Interoperability, no lock-in       |
+| **MCP Client**       | Connect to external MCP servers | Standard protocol support          |
+| **SQLite Journal**   | Basic audit trail (Solo)        | Core functionality                 |
+| **Basic Blueprints** | Starter agent templates         | Onboarding, community contribution |
+
+**Commitment:** The daemon core will **always remain open source** for security auditing.
+
+#### What's Commercial (Team/Enterprise)
+
+| Component                      | Edition    | Why Commercial               |
+| ------------------------------ | ---------- | ---------------------------- |
+| **Web UI**                     | Team+      | Significant development cost |
+| **MCP Server Mode**            | Team+      | Enterprise integration value |
+| **PostgreSQL/immudb Backend**  | Team+      | Infrastructure complexity    |
+| **Governance Dashboard**       | Enterprise | Enterprise-specific feature  |
+| **Compliance Frameworks**      | Enterprise | Regulatory expertise value   |
+| **SSO/SAML Integration**       | Enterprise | Enterprise authentication    |
+| **Advanced Analytics**         | Enterprise | ML/data science investment   |
+| **Vector Search Memory Banks** | Enterprise | AI infrastructure cost       |
+
+**Philosophy:** Commercial features fund core development. We don't "open-core bait" — the free tier is genuinely useful, not crippled.
+
+#### Community Contributions
+
+| Type                | Welcome?         | Process                         |
+| ------------------- | ---------------- | ------------------------------- |
+| Bug fixes           | ✅ Yes           | PR to main repo                 |
+| Blueprints & Skills | ✅ Yes           | Community marketplace           |
+| Documentation       | ✅ Yes           | PR to docs repo                 |
+| Feature requests    | ✅ Yes           | GitHub issues + community votes |
+| Core features       | ⚠️ Discuss first | Align with roadmap              |
+
+### Security Certifications Roadmap
+
+Enterprise customers require third-party security validation. Our certification timeline:
+
+| Certification        | Status         | Target Date | Scope                    |
+| -------------------- | -------------- | ----------- | ------------------------ |
+| **SOC 2 Type I**     | ⏳ In Progress | Q2 2026     | Team & Enterprise hosted |
+| **SOC 2 Type II**    | 📋 Planned     | Q4 2026     | Team & Enterprise hosted |
+| **ISO 27001**        | 📋 Planned     | Q1 2027     | Enterprise on-premises   |
+| **FedRAMP Moderate** | 📋 Evaluated   | Q3 2027     | Government customers     |
+| **HIPAA BAA**        | ✅ Available   | Now         | Enterprise healthcare    |
+
+**Current Security Practices:**
+
+- Annual penetration testing (third-party)
+- Continuous vulnerability scanning
+- Bug bounty program (launching Q2 2026)
+- Security-focused code review process
+- Dependency scanning (Dependabot + Snyk)
+
+---
+
+## 11. Getting Started
+
+### Quick Start: Solo Edition
+
+```bash
+# 1. Install ExoFrame
+curl -fsSL https://exoframe.io/install.sh | sh
+
+# 2. Initialize workspace
+exoctl init ~/ExoFrame
+
+# 3. Configure LLM provider
+exoctl config set llm.provider ollama  # Or openai, anthropic, google
+exoctl config set llm.model mistral
+
+# 4. Create your first portal
+exoctl portal add ~/my-project MyProject
+
+# 5. Start daemon
+exoctl daemon start
+
+# 6. Create request
+exoctl request "Add unit tests for user authentication"
+
+# 7. Review plan (in TUI or CLI)
+exoctl dashboard  # Or: exoctl plan list
+
+# 8. Approve and watch execution
+exoctl plan approve <plan-id>
+exoctl journal tail
+
+# 9. Review changeset
+exoctl changeset show <changeset-id>
+
+# 10. Merge changes
+exoctl changeset approve <changeset-id>
+```
+
+**First task complete in ~5 minutes!**
+
+### Quick Start: Team Edition
+
+```bash
+# 1. Deploy to shared server
+ssh team@server.example.com
+curl -fsSL https://exoframe.io/install-team.sh | sh
+
+# 2. Access web UI
+open https://server.example.com:3000
+
+# 3. Add team members (in web UI or CLI)
+exoctl user add alice@example.com --role developer
+
+# 4. Configure MCP server
+exoctl mcp-server enable --port 3001
+
+# 5. Team members connect
+# In Claude Desktop: Add MCP server at https://server.example.com:3001
+```
+
+### Migration Paths
+
+**Solo → Team:**
+
+```bash
+# Export Solo workspace
+exoctl workspace export ~/ExoFrame --output solo-workspace.tar.gz
+
+# On Team server
+exoctl workspace import solo-workspace.tar.gz
+
+# Grant access to team
+exoctl user add alice@example.com --workspace imported-solo
+```
+
+**Team → Enterprise:**
+
+- Contact sales for migration assistance
+- Professional services included
+- Zero-downtime migration available
+
+---
+
+## 12. Value-Aligned Pricing
+
+### Pricing Philosophy
+
+Traditional seat-based pricing is **obsolete for AI agent platforms** in 2026. When AI agents perform work previously done by humans, charging per-user makes no sense. ExoFrame uses **value-aligned pricing** that scales with the work performed, not the number of people watching.
+
+**Our Principles:**
+
+- **Pay for outcomes, not seats** - Charges correlate with value delivered
+- **Cost predictability** - Caps and budgets prevent runaway costs
+- **Free to start** - Solo edition is always free and open source
+- **Enterprise flexibility** - AELA (Agentic Enterprise License Agreements) for unlimited usage
+
+### Pricing Tiers
+
+| Edition        | Model              | Starting Price            | Best For                         |
+| -------------- | ------------------ | ------------------------- | -------------------------------- |
+| **Solo**       | Free               | $0 forever                | Individual developers            |
+| **Team**       | Usage-Based Hybrid | $199/workspace/month base | Small teams, startups            |
+| **Enterprise** | AELA (Flat-Fee)    | $2,499/month              | Regulated industries, large orgs |
+
+---
+
+### Solo Edition - Free Forever
+
+**License:** MIT/Apache 2.0
+**Price:** **$0**
+
+**Includes:**
+
+- Full CLI and TUI
+- SQLite audit journal
+- Unlimited portals and requests
+- Local LLM support (Ollama)
+- Community support (GitHub, Discord)
+
+**Target:** Individual developers, open source contributors, learning and experimentation.
+
+---
+
+### Team Edition - Usage-Based Hybrid
+
+**License:** Source-Available (BSL)
+**Pricing Model:** Base fee + usage charges with predictable cap
+
+| Component                 | Price                                                    |
+| ------------------------- | -------------------------------------------------------- |
+| **Base Platform Fee**     | $199/workspace/month                                     |
+| **Included**              | 500 agent requests, 100 plan executions, unlimited users |
+| **Additional Requests**   | $0.10 per request                                        |
+| **Additional Executions** | $0.50 per approved plan execution                        |
+| **Monthly Cap**           | $499/month max (cost predictability guarantee)           |
+
+**Includes:**
+
+- PostgreSQL audit database (append-only, immutable)
+- Web UI for plan review and approval
+- MCP server mode
+- Multi-user collaboration
+- Cost tracking and budgets per user
+- Email support (business hours)
+
+**Example Costs:**
+
+| Team Size     | Monthly Requests | Plan Executions | Monthly Cost           |
+| ------------- | ---------------- | --------------- | ---------------------- |
+| 3 developers  | 200              | 50              | $199 (base)            |
+| 5 developers  | 600              | 150             | $234 (base + overages) |
+| 10 developers | 1,500            | 400             | $399 (approaching cap) |
+| 15 developers | 3,000            | 800             | $499 (capped)          |
+
+---
+
+### Enterprise Edition - AELA (Agentic Enterprise License Agreement)
+
+**License:** Proprietary
+**Pricing Model:** Flat-fee "all-you-can-eat" with compliance add-ons
+
+| Tier          | Agent Executions | Monthly Price |
+| ------------- | ---------------- | ------------- |
+| **Growth**    | 1,000/month      | $2,499/month  |
+| **Scale**     | 5,000/month      | $4,999/month  |
+| **Unlimited** | Unlimited        | $9,999/month  |
+
+**Compliance Add-Ons:**
+
+| Add-On                    | Monthly Price                   |
+| ------------------------- | ------------------------------- |
+| HIPAA Compliance Module   | +$500/month                     |
+| SOX Compliance Module     | +$500/month                     |
+| EU AI Act Module          | +$500/month                     |
+| ISO 27001 Module          | +$500/month                     |
+| All Compliance Frameworks | +$1,500/month (bundle discount) |
+
+**Includes:**
+
+- PostgreSQL + immudb (WORM-compliant, cryptographically verified)
+- Full Web UI with visual workflow builder
+- Governance dashboard with risk scoring
+- SSO/SAML integration
+- RBAC (role-based access control)
+- 24/7 support with SLA guarantee
+- Professional services hours (onboarding, training)
+
+**Enterprise Pricing Examples:**
+
+| Scenario                            | Tier      | Add-Ons        | Monthly Cost |
+| ----------------------------------- | --------- | -------------- | ------------ |
+| Tech startup (no compliance)        | Growth    | None           | $2,499       |
+| Healthcare app (HIPAA)              | Scale     | HIPAA          | $5,499       |
+| Financial institution (SOX + HIPAA) | Scale     | SOX, HIPAA     | $5,999       |
+| Large enterprise (all frameworks)   | Unlimited | All Compliance | $11,499      |
+
+---
+
+### Non-Profit & Education
+
+| Program                  | Discount                                  |
+| ------------------------ | ----------------------------------------- |
+| Non-Profit Organizations | 50% off Team/Enterprise                   |
+| Educational Institutions | 75% off Team, free Enterprise pilots      |
+| Open Source Projects     | Free Team edition for qualifying projects |
+
+---
+
+### ROI: Why ExoFrame Pays for Itself
+
+**Developer Productivity Gains:**
+
+| Metric                     | Without ExoFrame | With ExoFrame | Annual Savings      |
+| -------------------------- | ---------------- | ------------- | ------------------- |
+| Routine refactoring time   | 20 hrs/week      | 8 hrs/week    | 624 developer hours |
+| Multi-project coordination | 15 hrs/week      | 5 hrs/week    | 520 developer hours |
+| Code review overhead       | 10 hrs/week      | 6 hrs/week    | 208 developer hours |
+
+**At $100/hour fully-loaded developer cost: ~$135,000/year in recovered productivity**
+
+**Compliance Cost Reduction:**
+
+| Metric                  | Manual Process | With ExoFrame | Annual Savings |
+| ----------------------- | -------------- | ------------- | -------------- |
+| Audit trail maintenance | $150,000/year  | $30,000/year  | $120,000       |
+| Audit preparation time  | 3 weeks        | 2 days        | $50,000        |
+| Compliance officer FTE  | 1.0 FTE        | 0.3 FTE       | $100,000       |
+
+**Enterprise ROI: 5-10x return on investment within first year**
+
+---
+
+## Conclusion: The Governance Imperative
+
+### The Choice in 2026
+
+As AI agents become more autonomous and pervasive, organizations face a critical decision:
+
+**Deploy agents without governance** → High productivity today, regulatory crisis tomorrow
+
+**Build custom governance layer** → Expensive, slow, reinventing the wheel
+
+**Use ExoFrame** → Governance built-in, compliance-ready, production-proven
+
+### ExoFrame's Promise
+
+> **"Every AI agent action is traceable, explainable, and reversible."**
+
+This isn't just a slogan—it's an architectural guarantee enforced by:
+
+- **Activity Journal** (immutable audit trail)
+- **Approval Gates** (explicit human authorization)
+- **Deno Security** (OS-level boundaries)
+- **MCP Integration** (standards-based interoperability)
+
+### Why Governance Matters
+
+The 40% project failure rate isn't a technology problem—it's a **trust problem**. Organizations can't afford to deploy AI agents they can't explain, control, or audit.
+
+ExoFrame solves this by making governance **automatic, not optional**.
+
+### Start Today
+
+**Solo Edition:** [Download](https://exoframe.io/download) and be running in 5 minutes
+**Team Edition:** [Start free trial](https://exoframe.io/trial) (no credit card required)
+**Enterprise Edition:** [Contact sales](https://exoframe.io/enterprise) for demo and pricing
+
+### Early Access Program
+
+Join 50+ organizations piloting governance-first AI agent orchestration:
+
+| Industry           | Organization Type          | Use Case                                          |
+| ------------------ | -------------------------- | ------------------------------------------------- |
+| Healthcare         | Regional hospital network  | HIPAA-compliant EHR integration development       |
+| Financial Services | Mid-size credit union      | SOX-auditable core banking modernization          |
+| Technology         | Series B SaaS startup      | Multi-project refactoring with audit requirements |
+| Government         | State agency IT department | Secure, auditable workflow automation             |
+| Consulting         | Technical consulting firm  | Client project isolation and batch processing     |
+
+**Early Access Benefits:**
+
+- 🎯 Priority feature requests
+- 👥 Direct Slack channel with engineering team
+- 📊 Case study co-development (with permission)
+- 💰 Founding customer pricing (locked for 3 years)
+
+**[Apply for Early Access →](https://exoframe.io/early-access)**
+
+---
+
+## Appendix A: Glossary
+
+**Activity Journal:** Tiered audit database logging all agent events—SQLite (Solo), PostgreSQL (Team), PostgreSQL+immudb (Enterprise).
+
+**Agent Blueprint:** TOML configuration file defining an AI agent's model, capabilities, and system prompt.
+
+**AI-BOM (AI Bill of Materials):** Complete audit trail of all AI agent actions, analogous to software bill of materials (SBOM).
+
+**Changeset:** Git branch containing agent-generated code changes, pending human approval before merge.
+
+**MCP (Model Context Protocol):** Standard protocol for AI agent tool integration, developed by Anthropic.
+
+**Plan:** Agent-generated proposal outlining steps to fulfill a request, requiring human approval before execution.
+
+**Portal:** Symlinked directory providing agents access to external projects with isolated permissions.
+
+**Request:** User-created markdown file describing desired outcome, triggering agent plan generation.
+
+**Trace ID:** UUID linking related actions (request → plan → commits → changeset → report) for forensic traceability.
+
+---
+
+## Appendix B: Compliance Framework Mapping (Enterprise)
+
+### EU AI Act
+
+| Requirement     | ExoFrame Implementation             | Evidence Location                                |
+| --------------- | ----------------------------------- | ------------------------------------------------ |
+| Transparency    | Activity Journal logs all decisions | `journal.db`                                     |
+| Human Oversight | Explicit plan & changeset approval  | Approval timestamps in Activity Journal          |
+| Risk Assessment | Governance dashboard risk scoring   | Web UI → Governance → Risk Matrix                |
+| Documentation   | Auto-generated compliance reports   | `exoctl compliance export --framework eu-ai-act` |
+
+### HIPAA
+
+| Requirement    | ExoFrame Implementation            | Evidence Location                    |
+| -------------- | ---------------------------------- | ------------------------------------ |
+| Access Control | RBAC + portal permissions          | `exoctl user list`, portal configs   |
+| Audit Trails   | Activity Journal + PHI access logs | `journal.db` with PHI flags          |
+| Encryption     | SQLite encryption at rest          | Database file encrypted (Enterprise) |
+| Authentication | SSO/SAML integration               | Auth provider logs                   |
+
+### SOX (Sarbanes-Oxley)
+
+| Requirement           | ExoFrame Implementation          | Evidence Location                     |
+| --------------------- | -------------------------------- | ------------------------------------- |
+| Change Controls       | Plan approval + changeset review | Activity Journal approval events      |
+| Segregation of Duties | RBAC (developers ≠ approvers)    | User roles configuration              |
+| Audit Trail Integrity | Immutable Activity Journal       | Cryptographic timestamps (Enterprise) |
+| IT General Controls   | Backup & recovery procedures     | Automated backup logs                 |
+
+---
+
+## Appendix C: API Reference (MCP Endpoints)
+
+### MCP Server Tools (Team/Enterprise)
+
+**`exoframe_create_request`**
+
+- **Description:** Create new request from external AI assistant
+- **Parameters:** `{ "title": string, "description": string, "agent": string, "portal": string }`
+- **Returns:** `{ "request_id": string, "trace_id": string }`
+
+**`exoframe_list_plans`**
+
+- **Description:** List pending plans for review
+- **Parameters:** `{ "status": "review" | "approved" | "rejected" }`
+- **Returns:** Array of plan objects
+
+**`exoframe_approve_plan`**
+
+- **Description:** Approve plan for execution
+- **Parameters:** `{ "plan_id": string, "approver": string }`
+- **Returns:** `{ "success": boolean, "execution_started": boolean }`
+
+**`exoframe_query_journal`**
+
+- **Description:** Query Activity Journal for audit trail
+- **Parameters:** `{ "trace_id": string, "action_type": string, "start_date": ISO8601, "end_date": ISO8601 }`
+- **Returns:** Array of activity events
+
+**`exoframe_get_changeset`**
+
+- **Description:** Retrieve changeset diff for review
+- **Parameters:** `{ "changeset_id": string }`
+- **Returns:** `{ "diff": string, "files_changed": number, "status": string }`
+
+---
+
+_End of White Paper - Version 2.0.0 - January 16, 2026_

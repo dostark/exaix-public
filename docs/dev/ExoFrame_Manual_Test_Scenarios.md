@@ -1,9 +1,78 @@
 # ExoFrame Manual Test Scenarios
 
-- **Version:** 1.7.0
-- **Release Date:** 2025-12-02
+- **Version:** 2.0.0
+- **Release Date:** 2026-01-16
 - **Status:** Active
 - **Reference:** [Testing Strategy](./ExoFrame_Testing_and_CI_Strategy.md) Section 2.4
+
+---
+
+## Table of Contents
+
+### Installation & Setup
+
+- [MT-01: Fresh Installation](#scenario-mt-01-fresh-installation) - Fresh system installation verification
+- [MT-02: Daemon Startup](#scenario-mt-02-daemon-startup) - Daemon initialization and health checks
+
+### Configuration & Blueprints
+
+- [MT-03: Blueprint Management](#scenario-mt-03-blueprint-management) - Blueprint CRUD operations and validation
+- [MT-16: LLM Provider Selection](#scenario-mt-16-llm-provider-selection) - Provider configuration and selection
+- [MT-28: Provider Strategy and Fallback](#scenario-mt-28-provider-strategy-and-fallback) - Intelligent provider routing and failover
+
+### Request & Plan Lifecycle
+
+- [MT-04: Create Request](#scenario-mt-04-create-request) - Request creation via CLI
+- [MT-05: Plan Generation (Mock LLM)](#scenario-mt-05-plan-generation-mock-llm) - Automated plan generation
+- [MT-06: Plan Approval](#scenario-mt-06-plan-approval) - Plan approval workflow
+- [MT-07: Plan Rejection](#scenario-mt-07-plan-rejection) - Plan rejection with reason tracking
+- [MT-18: Multi-Agent Flow Execution](#scenario-mt-18-multi-agent-flow-execution) - Flow-based multi-agent orchestration
+
+### Plan Execution
+
+- [MT-08: Plan Execution & Changeset Management](#scenario-mt-08-plan-execution--changeset-management) - End-to-end execution pipeline
+
+### Portal & Git Management
+
+- [MT-09: Portal Management](#scenario-mt-09-portal-management) - Portal mounting and access
+- [MT-29: Git Operations and Traceability](#scenario-mt-29-git-operations-and-traceability) - Git integration and trace_id tracking
+
+### Memory & Knowledge
+
+- [MT-17: Memory Banks Integration](#scenario-mt-17-memory-banks-integration) - Memory storage, retrieval, and context cards
+- [MT-26: Activity Journal Queries](#scenario-mt-26-activity-journal-queries) - Journal querying and filtering
+
+### Skills Management
+
+- [MT-19: Skills Management](#scenario-mt-19-skills-management) - Skills service and TUI integration
+
+### Security & Permissions
+
+- [MT-27: Advanced Security Testing](#scenario-mt-27-advanced-security-testing) - Comprehensive security boundary verification
+
+### Resilience & Error Handling
+
+- [MT-10: Daemon Crash Recovery](#scenario-mt-10-daemon-crash-recovery) - Graceful recovery from failures
+- [MT-12: Invalid Request Handling](#scenario-mt-12-invalid-request-handling) - Malformed input handling
+- [MT-13: Database Corruption Recovery](#scenario-mt-13-database-corruption-recovery) - Database integrity and recovery
+
+### Performance & Concurrency
+
+- [MT-14: Concurrent Request Processing](#scenario-mt-14-concurrent-request-processing) - Multi-request handling
+- [MT-15: File Watcher Reliability](#scenario-mt-15-file-watcher-reliability) - File system event detection
+
+### Integration Testing
+
+- [MT-11: Real LLM Integration](#scenario-mt-11-real-llm-integration) - Live API provider integration
+
+### TUI Dashboard
+
+- [MT-20: TUI Dashboard Launch and Core Views Navigation](#scenario-mt-20-tui-dashboard-launch-and-core-views-navigation) - Dashboard initialization
+- [MT-21: TUI Monitor View - Log Streaming and Filtering](#scenario-mt-21-tui-monitor-view---log-streaming-and-filtering) - Real-time log monitoring
+- [MT-22: TUI Plan Reviewer View - Plan Management](#scenario-mt-22-tui-plan-reviewer-view---plan-management) - Interactive plan review
+- [MT-23: TUI Portal Manager View - Portal Management](#scenario-mt-23-tui-portal-manager-view---portal-management) - Portal CRUD operations
+- [MT-24: TUI Daemon Control View - Daemon Management](#scenario-mt-24-tui-daemon-control-view---daemon-management) - Daemon lifecycle control
+- [MT-25: TUI Request Manager View - Request Management](#scenario-mt-25-tui-request-manager-view---request-management) - Request management interface
 
 ---
 
@@ -18,6 +87,39 @@ This document contains detailed manual test scenarios for ExoFrame. Each scenari
 - **Cleanup** — How to reset for next test
 
 Execute these scenarios on each target platform before major releases.
+
+### Scenario Coverage Summary
+
+**Total Scenarios: 29**
+
+| Category                    | Scenarios | High Risk | Medium Risk | Low Risk |
+| --------------------------- | --------- | --------- | ----------- | -------- |
+| Installation & Setup        | 2         | 2         | 0           | 0        |
+| Configuration & Blueprints  | 3         | 0         | 3           | 0        |
+| Request & Plan Lifecycle    | 5         | 4         | 1           | 0        |
+| Plan Execution              | 1         | 1         | 0           | 0        |
+| Portal & Git Management     | 2         | 1         | 1           | 0        |
+| Memory & Knowledge          | 2         | 0         | 1           | 1        |
+| Skills Management           | 1         | 0         | 0           | 1        |
+| Security & Permissions      | 1         | 1         | 0           | 0        |
+| Resilience & Error Handling | 3         | 2         | 1           | 0        |
+| Performance & Concurrency   | 2         | 0         | 2           | 0        |
+| Integration Testing         | 1         | 0         | 1           | 0        |
+| TUI Dashboard               | 6         | 2         | 4           | 0        |
+| **Total**                   | **29**    | **13**    | **14**      | **2**    |
+
+### Testing Recommendations
+
+- **High Risk scenarios (13):** Must pass before release
+- **Medium Risk scenarios (14):** Should pass, known issues must be documented
+- **Low Risk scenarios (2):** Optional for minor releases
+
+**Estimated Full Suite Duration:** 6-8 hours (with manual TUI interaction)
+
+### Version History
+
+- **v2.0.0 (2026-01-16):** Added 13 new scenarios (MT-17 through MT-29) covering Memory Banks, Multi-Agent Flows, Skills, Security, Provider Strategy, Activity Journal, and Git operations. Added risk-based categorization and testing recommendations.
+- **v1.7.0 (2025-12-02):** Previous version with 16 core scenarios and 6 TUI scenarios.
 
 ### Important Notes
 
@@ -1786,6 +1888,458 @@ unset EXO_LLM_PROVIDER EXO_LLM_MODEL EXO_LLM_BASE_URL
 
 ---
 
+## Scenario MT-17: Memory Banks Integration
+
+**Purpose:** Verify Memory Banks storage, retrieval, context card generation, and search functionality.
+
+### Preconditions
+
+- ExoFrame workspace deployed at `~/ExoFrame`
+- Daemon running
+- At least one portal configured
+- At least one completed request/plan
+
+### Steps
+
+```bash
+# Part A: Memory Reports Storage
+
+# Step 1: Create a request and complete execution
+exoctl request "Create a test utility function" --agent mock-agent
+
+# Step 2: Wait for plan generation and approve
+sleep 5
+PLAN_ID=$(exoctl plan list --status review | head -1 | awk '{print $1}')
+exoctl plan approve $PLAN_ID
+
+# Step 3: Verify report created in Memory/Reports/
+ls -la ~/ExoFrame/Memory/Reports/
+cat ~/ExoFrame/Memory/Reports/*.md
+
+# Part B: Context Storage
+
+# Step 4: Add context document manually
+cat > ~/ExoFrame/Memory/Context/test-context.md << 'EOF'
+---
+title: "Test Context Document"
+created: "2026-01-16T12:00:00Z"
+tags: [testing, manual-scenario]
+---
+
+# Test Context
+
+This is a test context document for Memory Banks verification.
+
+## Key Information
+
+- Purpose: Manual testing
+- Category: Documentation
+EOF
+
+# Step 5: Verify context is accessible
+cat ~/ExoFrame/Memory/Context/test-context.md
+
+# Part C: Portal Context Cards
+
+# Step 6: Create a test portal
+mkdir -p /tmp/test-memory-portal
+echo "# Test Portal" > /tmp/test-memory-portal/README.md
+echo "export const version = '1.0';" > /tmp/test-memory-portal/index.ts
+
+# Step 7: Add portal to ExoFrame
+exoctl portal add /tmp/test-memory-portal TestMemoryPortal
+
+# Step 8: Verify context card generated
+ls -la ~/ExoFrame/Memory/Portals/
+cat ~/ExoFrame/Memory/Portals/TestMemoryPortal.md
+
+# Part D: Memory Search and Retrieval
+
+# Step 9: Search memory by tag
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%testing%' ORDER BY timestamp DESC LIMIT 5;"
+
+# Step 10: Query memory reports
+find ~/ExoFrame/Memory/Reports/ -name "*.md" -type f
+
+# Step 11: List all memory entries
+find ~/ExoFrame/Memory/ -name "*.md" -type f | head -20
+```
+
+### Expected Results
+
+**Part A (Memory Reports):**
+
+- Report file created in `Memory/Reports/` with trace_id in filename
+- Report contains execution summary with JSON metadata
+- Report includes steps executed and outcomes
+
+**Part B (Context Storage):**
+
+- Context document stored successfully
+- YAML frontmatter parsed correctly
+- File accessible for agent context loading
+
+**Part C (Portal Context Cards):**
+
+- Context card generated automatically at `Memory/Portals/TestMemoryPortal.md`
+- Card contains portal metadata (path, files, structure)
+- Card includes automatically scanned project information
+
+**Part D (Memory Search):**
+
+- Search queries return relevant results
+- Reports are discoverable by trace_id
+- Memory structure is navigable
+
+### Verification
+
+```bash
+# Check Memory directory structure
+tree ~/ExoFrame/Memory/ -L 2
+
+# Verify report frontmatter format
+head -20 ~/ExoFrame/Memory/Reports/*.md | grep -A 10 "^---"
+
+# Check portal context card exists
+ls -la ~/ExoFrame/Memory/Portals/TestMemoryPortal.md
+
+# Verify context is indexed
+find ~/ExoFrame/Memory/ -name "*.md" | wc -l
+# Should show multiple memory files
+
+# Check Activity Journal logged memory operations
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, target FROM activity WHERE action_type LIKE '%memory%' OR action_type LIKE '%portal%' ORDER BY timestamp DESC LIMIT 10;"
+```
+
+### Cleanup
+
+```bash
+# Remove test portal
+exoctl portal remove TestMemoryPortal
+rm -rf /tmp/test-memory-portal
+
+# Remove test context
+rm -f ~/ExoFrame/Memory/Context/test-context.md
+
+# Note: Keep reports for historical record (don't clean unless testing)
+```
+
+### Pass Criteria
+
+- [ ] Reports stored in `Memory/Reports/` with correct format
+- [ ] Context documents stored in `Memory/Context/`
+- [ ] Portal context cards auto-generated in `Memory/Portals/`
+- [ ] Memory search returns relevant results
+- [ ] All memory operations logged to Activity Journal
+- [ ] YAML frontmatter parsed correctly
+- [ ] Memory structure follows documented layout
+
+---
+
+## Scenario MT-18: Multi-Agent Flow Execution
+
+**Purpose:** Verify flow-based request routing and multi-agent orchestration (Phase 7 feature).
+
+### Preconditions
+
+- ExoFrame workspace deployed
+- Daemon running
+- Multiple agent blueprints exist
+- Flow definitions available in `Blueprints/Flows/`
+
+### Steps
+
+```bash
+# Part A: Flow Definition Setup
+
+# Step 1: Create a simple flow definition
+cat > ~/ExoFrame/Blueprints/Flows/test-review-flow.ts << 'EOF'
+// Test Review Flow: Sequential code review by multiple agents
+export default {
+  id: "test-review-flow",
+  name: "Test Review Flow",
+  description: "Sequential code review by coder and reviewer agents",
+  version: "1.0.0",
+
+  steps: [
+    {
+      id: "analyze",
+      agent: "senior-coder",
+      task: "Analyze code structure and identify issues",
+      outputs: ["analysis_report"]
+    },
+    {
+      id: "review",
+      agent: "code-reviewer",
+      task: "Review analysis and provide feedback",
+      inputs: ["analysis_report"],
+      outputs: ["review_report"]
+    }
+  ],
+
+  validation: {
+    required_agents: ["senior-coder", "code-reviewer"],
+    timeout_seconds: 300
+  }
+};
+EOF
+
+# Step 2: Create required agent blueprints (if not exist)
+exoctl blueprint create senior-coder \
+  --name "Senior Coder" \
+  --template coder \
+  2>/dev/null || echo "Agent already exists"
+
+exoctl blueprint create code-reviewer \
+  --name "Code Reviewer" \
+  --template reviewer \
+  2>/dev/null || echo "Agent already exists"
+
+# Part B: Flow Request Creation
+
+# Step 3: Create request with flow routing
+cat > ~/ExoFrame/Workspace/Requests/flow-test-request.md << 'EOF'
+---
+trace_id: "flow-test-12345678-1234-1234-1234-123456789012"
+created: "2026-01-16T12:00:00.000Z"
+status: pending
+flow: test-review-flow
+priority: normal
+source: manual-test
+created_by: tester@exoframe.dev
+tags: [flow, test, multi-agent]
+---
+
+# Request
+
+Review the authentication module for security issues and code quality.
+EOF
+
+# Step 4: Wait for flow processing
+sleep 10
+
+# Step 5: Check flow execution status
+exoctl plan list --status review
+
+# Step 6: Verify flow plan structure
+PLAN_ID=$(exoctl plan list --status review | grep "flow-test" | head -1 | awk '{print $1}')
+exoctl plan show $PLAN_ID
+
+# Part C: Flow Execution
+
+# Step 7: Approve flow plan
+exoctl plan approve $PLAN_ID
+
+# Step 8: Monitor flow execution
+sleep 15
+exoctl journal --filter trace_id=flow-test-12345678-1234-1234-1234-123456789012
+
+# Step 9: Verify multi-agent activity
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT agent_id, action_type, timestamp FROM activity WHERE trace_id = 'flow-test-12345678-1234-1234-1234-123456789012' ORDER BY timestamp;"
+```
+
+### Expected Results
+
+**Part A (Flow Setup):**
+
+- Flow definition created in `Blueprints/Flows/`
+- Flow validation passes (correct TypeScript structure)
+- Required agents exist
+
+**Part B (Flow Routing):**
+
+- Request routed to FlowRunner (not AgentRunner)
+- Activity Journal shows `request.routing.flow` event
+- Plan generated includes multi-step structure
+
+**Part C (Flow Execution):**
+
+- Multiple agents executed in sequence
+- Each agent's output passed to next agent
+- Activity Journal shows step transitions
+- Final changeset includes work from all agents
+
+### Verification
+
+```bash
+# Check flow definition exists
+ls -la ~/ExoFrame/Blueprints/Flows/test-review-flow.ts
+
+# Verify flow routing logged
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, payload FROM activity WHERE action_type = 'request.routing.flow' ORDER BY timestamp DESC LIMIT 1;"
+
+# Check multi-agent execution
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT DISTINCT agent_id FROM activity WHERE trace_id LIKE 'flow-test%' AND agent_id IS NOT NULL;"
+# Should show both senior-coder and code-reviewer
+
+# Verify step transitions
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type FROM activity WHERE trace_id LIKE 'flow-test%' AND action_type LIKE 'step.%' ORDER BY timestamp;"
+```
+
+### Cleanup
+
+```bash
+# Remove flow definition
+rm -f ~/ExoFrame/Blueprints/Flows/test-review-flow.ts
+
+# Remove test request
+rm -f ~/ExoFrame/Workspace/Requests/flow-test-request.md
+
+# Remove generated plans
+rm -f ~/ExoFrame/Workspace/Plans/*flow-test*.md
+rm -f ~/ExoFrame/Workspace/Active/*flow-test*.md
+```
+
+### Pass Criteria
+
+- [ ] Flow definition created and validated
+- [ ] Request with `flow:` field routed to FlowRunner
+- [ ] Activity Journal logs `request.routing.flow` event
+- [ ] Multiple agents execute in correct sequence
+- [ ] Agent outputs passed between steps
+- [ ] Step transitions logged (step.started, step.completed)
+- [ ] Flow validation errors detected (missing agents, etc.)
+- [ ] Final changeset includes multi-agent work
+
+---
+
+## Scenario MT-19: Skills Management
+
+**Purpose:** Verify Skills service and TUI Skills Manager functionality.
+
+### Preconditions
+
+- ExoFrame workspace deployed
+- Daemon running
+- Skills directory exists at `.agent/workflows/` or configured path
+
+### Steps
+
+```bash
+# Part A: Skills Directory Setup
+
+# Step 1: Create test skill
+mkdir -p ~/ExoFrame/.agent/workflows
+cat > ~/ExoFrame/.agent/workflows/test-skill.md << 'EOF'
+---
+description: Test skill for manual scenarios
+---
+
+# Test Skill
+
+This is a test skill for verifying Skills Management functionality.
+
+## Steps
+
+1. Verify skill structure
+2. Test skill loading
+3. Validate skill metadata
+EOF
+
+# Step 2: List available skills
+exoctl skills list
+
+# Step 3: Show skill details
+exoctl skills show test-skill
+
+# Part B: TUI Skills Manager
+
+# Step 4: Launch dashboard and navigate to Skills view
+exoctl dashboard
+# Navigate to Skills Manager view using Tab key
+# Press Enter on a skill to view details
+
+# Part C: Skill Validation
+
+# Step 5: Test skill metadata parsing
+cat ~/ExoFrame/.agent/workflows/test-skill.md | grep -A 5 "^---"
+
+# Step 6: Verify skill is indexed
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%skill%' ORDER BY timestamp DESC LIMIT 5;"
+
+# Part D: Skill Dependencies (if applicable)
+
+# Step 7: Create skill with dependencies
+cat > ~/ExoFrame/.agent/workflows/complex-skill.md << 'EOF'
+---
+description: Complex skill with dependencies
+dependencies:
+  - test-skill
+  - another-skill
+---
+
+# Complex Skill
+
+This skill has dependencies on other skills.
+EOF
+
+# Step 8: Validate dependency checking
+exoctl skills validate complex-skill
+```
+
+### Expected Results
+
+**Part A (Skills Setup):**
+
+- Skill file created successfully
+- Skill appears in `exoctl skills list`
+- Skill metadata parsed from YAML frontmatter
+
+**Part B (TUI Skills Manager):**
+
+- Skills Manager view accessible in dashboard
+- Skills listed with descriptions
+- Skill details view shows full content
+
+**Part C (Validation):**
+
+- YAML frontmatter parsed correctly
+- Skills indexed and discoverable
+- Skill operations logged
+
+**Part D (Dependencies):**
+
+- Dependency validation works
+- Missing dependencies detected
+- Dependency graph traversal correct
+
+### Verification
+
+```bash
+# Check skills directory
+ls -la ~/ExoFrame/.agent/workflows/
+
+# Verify skill format
+head -10 ~/ExoFrame/.agent/workflows/test-skill.md
+
+# Check skills are indexed
+find ~/ExoFrame/.agent/workflows/ -name "*.md" | wc -l
+
+# Verify Activity Journal
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, target FROM activity WHERE action_type LIKE '%skill%' ORDER BY timestamp DESC LIMIT 5;"
+```
+
+### Cleanup
+
+```bash
+# Remove test skills
+rm -f ~/ExoFrame/.agent/workflows/test-skill.md
+rm -f ~/ExoFrame/.agent/workflows/complex-skill.md
+```
+
+### Pass Criteria
+
+- [ ] Skills directory accessible
+- [ ] Skills list command works
+- [ ] Skill details display correctly
+- [ ] YAML frontmatter parsed
+- [ ] TUI Skills Manager accessible
+- [ ] Skill validation works
+- [ ] Dependency checking functional
+- [ ] Skills operations logged
+
+---
+
 ## Scenario MT-20: TUI Dashboard Launch and Core Views Navigation
 
 **Purpose:** Verify `exoctl dashboard` launches successfully and all core views (Monitor, Plan Reviewer, Portal Manager, Daemon Control, Agent Status, Request Manager) are accessible and functional.
@@ -2132,6 +2686,626 @@ sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIK
 
 ---
 
+## Scenario MT-26: Activity Journal Queries
+
+**Purpose:** Verify Activity Journal query capabilities, filtering, and export functionality.
+
+### Preconditions
+
+- ExoFrame workspace with activity history
+- Multiple requests, plans, and actions executed
+- Activity Journal database populated
+
+### Steps
+
+```bash
+# Part A: Basic Queries
+
+# Step 1: Query all activity
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity;"
+
+# Step 2: Query by trace_id
+TRACE_ID=$(sqlite3 ~/ExoFrame/.exo/journal.db "SELECT trace_id FROM activity LIMIT 1;")
+exoctl journal --filter trace_id=$TRACE_ID
+
+# Step 3: Query by action_type
+exoctl journal --filter action_type=request.created
+
+# Step 4: Query by agent_id
+exoctl journal --filter agent_id=mock-agent
+
+# Part B: Time-Based Filtering
+
+# Step 5: Query last hour
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, target, timestamp FROM activity WHERE timestamp > datetime('now', '-1 hour') ORDER BY timestamp DESC LIMIT 10;"
+
+# Step 6: Query specific date range
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, COUNT(*) FROM activity WHERE timestamp BETWEEN '2026-01-15' AND '2026-01-17' GROUP BY action_type;"
+
+# Part C: Advanced Filtering
+
+# Step 7: Query by payload content
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%test%' ORDER BY timestamp DESC LIMIT 5;"
+
+# Step 8: Query execution duration (if applicable)
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT trace_id, MIN(timestamp) as start, MAX(timestamp) as end FROM activity GROUP BY trace_id LIMIT 10;"
+
+# Part D: Export and Reporting
+
+# Step 9: Export activity log to file
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity ORDER BY timestamp DESC;" > /tmp/activity_export.txt
+
+# Step 10: Generate activity summary
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, COUNT(*) as count FROM activity GROUP BY action_type ORDER BY count DESC;"
+
+# Part E: CLI Journal Commands
+
+# Step 11: Test exoctl journal command
+exoctl journal --tail 20
+
+# Step 12: Test filtering combinations
+exoctl journal --filter action_type=plan.approved --filter agent_id=senior-coder
+```
+
+### Expected Results
+
+**Part A (Basic Queries):**
+
+- All queries return valid results
+- Filtering by trace_id shows related activit ies
+- Filtering by action_type shows correct event types
+- Filtering by agent_id shows agent-specific actions
+
+**Part B (Time-Based):**
+
+- Recent activity retrieved correctly
+- Date range queries work
+- Timestamps in ISO 8601 format
+
+**Part C (Advanced):**
+
+- Payload search returns relevant results
+- Complex queries execute successfully
+- Aggregation functions work
+
+**Part D (Export):**
+
+- Activity log exports to file
+- Summary reports generated
+- Data formatted correctly
+
+**Part E (CLI):**
+
+- `exoctl journal` command works
+- Multiple filters can be combined
+- Output is readable and formatted
+
+### Verification
+
+```bash
+# Verify journal database structure
+sqlite3 ~/ExoFrame/.exo/journal.db ".schema activity"
+
+# Check row count
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity;"
+
+# Verify export file created
+ls -lh /tmp/activity_export.txt
+wc -l /tmp/activity_export.txt
+
+# Check index existence for performance
+sqlite3 ~/ExoFrame/.exo/journal.db ".indices activity"
+```
+
+### Cleanup
+
+```bash
+# Remove export file
+rm -f /tmp/activity_export.txt
+```
+
+### Pass Criteria
+
+- [ ] All SQL queries execute without errors
+- [ ] Filtering by trace_id returns related events
+- [ ] Filtering by action_type returns correct events
+- [ ] Time-based queries work correctly
+- [ ] Payload search returns relevant results
+- [ ] Export functionality works
+- [ ] CLI journal commands functional
+- [ ] Multiple filters can be combined
+- [ ] Database indices exist for performance
+
+---
+
+## Scenario MT-27: Advanced Security Testing
+
+**Purpose:** Verify comprehensive security boundaries and permission enforcement beyond basic MT-08 Part G testing.
+
+### Preconditions
+
+- ExoFrame workspace deployed
+- Daemon running with Deno permission model
+- Multiple portals configured
+
+### Steps
+
+```bash
+# Part A: Deno Permission Model Validation
+
+# Step 1: Verify read permission boundaries
+# Attempt to read file outside workspace (should fail)
+# This is tested by daemon behavior - agent cannot access /etc/passwd
+
+# Step 2: Verify write permission boundaries
+# Attempt to write file outside workspace (should fail)
+
+# Step 3: Verify network permission boundaries
+# Attempt to fetch from non-whitelisted domain (should fail)
+
+# Part B: Portal Path Restriction
+
+# Step 4: Create multiple isolated portals
+mkdir -p /tmp/portal-a /tmp/portal-b
+echo "Secret A" > /tmp/portal-a/secret.txt
+echo "Secret B" > /tmp/portal-b/secret.txt
+
+exoctl portal add /tmp/portal-a PortalA
+exoctl portal add /tmp/portal-b PortalB
+
+# Step 5: Create request targeting PortalA
+exoctl request "Read secret.txt from PortalA" --agent mock-agent --portal PortalA
+
+# Step 6: Verify agent cannot access PortalB
+# (Implementation detail: ToolRegistry should restrict access)
+
+# Part C: Command Whitelist Validation
+
+# Step 7: Test allowed commands
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.executing' AND payload LIKE '%command%' ORDER BY timestamp DESC LIMIT 10;"
+
+# Step 8: Verify dangerous commands are blocked
+# Check logs for rejected commands (rm, dd, chmod, etc.)
+grep -i "command.*not allowed\|blocked" ~/ExoFrame/.exo/daemon.log | tail -10
+
+# Part D: Symlink Traversal Prevention
+
+# Step 9: Create symlink outside workspace
+ln -s /etc/passwd /tmp/malicious-link
+
+# Step 10: Attempt to add as portal (should fail or be sanitized)
+exoctl portal add /tmp/malicious-link MaliciousPortal 2>&1 || echo "Expected: symlink validation failed"
+
+# Part E: Multi-Portal Isolation
+
+# Step 11: Verify portal separation
+ls -la ~/ExoFrame/Portals/
+readlink ~/ExoFrame/Portals/PortalA
+readlink ~/ExoFrame/Portals/PortalB
+
+# Step 12: Verify no cross-portal contamination
+# Each portal should only access its own files
+
+# Part F: Activity Journal Security
+
+# Step 13: Verify sensitive data not logged
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT payload FROM activity WHERE payload LIKE '%password%' OR payload LIKE '%api_key%' OR payload LIKE '%secret%';"
+# Should return no sensitive credentials
+
+# Step 14: Verify actor attribution
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT DISTINCT actor FROM activity ORDER BY actor;"
+# Should show: agent names, 'system', 'human', but not 'unknown' or NULL
+```
+
+### Expected Results
+
+**Part A (Deno Permissions):**
+
+- Read access restricted to workspace
+- Write access restricted to workspace
+- Network access restricted to whitelisted domains
+
+**Part B (Portal Restrictions):**
+
+- Agents can only access assigned portal
+- Cross-portal access blocked
+- Path traversal attempts fail
+
+**Part C (Command Whitelist):**
+
+- Only whitelisted commands execute
+- Dangerous commands logged and blocked
+- Clear error messages for blocked commands
+
+**Part D (Symlink Protection):**
+
+- Symlink traversal prevented
+- Malicious portal addition fails
+- Real paths resolved and validated
+
+**Part E (Isolation):**
+
+- Portals isolated from each other
+- No unintended file access
+- Symlinks correctly configured
+
+**Part F (Journal Security):**
+
+- No credentials in logs
+- All actions have actor attribution
+- Sensitive data redacted or excluded
+
+### Verification
+
+```bash
+# Check Deno startup permissions
+ps aux | grep deno | grep ExoFrame
+# Should show --allow-read, --allow-write with specific paths
+
+# Verify portal isolation
+ls -la ~/ExoFrame/Portals/
+
+# Check for security violations in logs
+grep -i "permission denied\|access denied\|blocked\|security" ~/ExoFrame/.exo/daemon.log | tail -20
+
+# Verify no sensitive data in journal
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT payload FROM activity WHERE payload LIKE '%api%key%' OR payload LIKE '%password%';" | wc -l
+# Should be 0
+```
+
+### Cleanup
+
+```bash
+# Remove test portals
+exoctl portal remove PortalA
+exoctl portal remove PortalB
+rm -rf /tmp/portal-a /tmp/portal-b
+
+# Remove malicious symlink
+rm -f /tmp/malicious-link
+```
+
+### Pass Criteria
+
+- [ ] Deno permissions enforced at runtime
+- [ ] File access restricted to workspace
+- [ ] Network access restricted to whitelist
+- [ ] Portal path isolation works
+- [ ] Command whitelist enforced
+- [ ] Dangerous commands blocked
+- [ ] Symlink traversal prevented
+- [ ] Cross-portal access blocked
+- [ ] No sensitive data in logs
+- [ ] All actions have actor attribution
+- [ ] Security violations logged clearly
+
+---
+
+## Scenario MT-28: Provider Strategy and Fallback
+
+**Purpose:** Verify intelligent provider selection, fallback chains, and cost tracking.
+
+### Preconditions
+
+- ExoFrame installed
+- Multiple LLM providers configured (or mock providers)
+- Provider strategy configured in `exo.config.toml`
+
+### Steps
+
+```bash
+# Part A: Provider Strategy Configuration
+
+# Step 1: Configure provider strategy
+cat >> ~/ExoFrame/exo.config.toml << 'EOF'
+
+[provider_strategy]
+prefer_free = true
+allow_local = true
+max_daily_cost_usd = 5.00
+health_check_enabled = true
+fallback_enabled = true
+
+[provider_strategy.task_routing]
+simple = ["ollama", "google-gemini-flash"]
+complex = ["anthropic-claude-opus", "openai-gpt-5-pro"]
+
+[provider_strategy.fallback_chains]
+default = ["ollama", "google-gemini-flash", "anthropic-claude-sonnet"]
+EOF
+
+# Step 2: Verify configuration loaded
+cat ~/ExoFrame/exo.config.toml | grep -A 10 "provider_strategy"
+
+# Part B: Cost-Based Provider Selection
+
+# Step 3: Start daemon and verify provider selection
+exoctl daemon stop 2>/dev/null || true
+exoctl daemon start
+sleep 3
+
+# Step 4: Check which provider was selected
+grep -i "provider.*selected\|LLM Provider" ~/ExoFrame/.exo/daemon.log | tail -5
+
+# Step 5: Create simple request (should use free/local provider)
+exoctl request "Simple task: list files" --tags simple
+
+# Step 6: Monitor provider usage
+sleep 10
+grep -i "provider\|model" ~/ExoFrame/.exo/daemon.log | tail -10
+
+# Part C: Fallback Chain Testing
+
+# Step 7: Simulate provider failure (if ollama not running)
+systemctl status ollama 2>/dev/null || echo "Ollama not running - fallback expected"
+
+# Step 8: Create request and observe fallback
+exoctl request "Test fallback behavior"
+sleep 10
+
+# Step 9: Verify fallback logged
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%fallback%' OR payload LIKE '%fallback%' ORDER BY timestamp DESC LIMIT 5;"
+
+# Part D: Health Check Validation
+
+# Step 10: Test provider health checks
+# This may require specific implementation
+
+# Step 11: Verify unhealthy providers skipped
+grep -i "health\|skip\|unavailable" ~/ExoFrame/.exo/daemon.log | tail -10
+
+# Part E: Cost Tracking
+
+# Step 12: Query cost tracking (if implemented)
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%cost%' OR payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;"
+
+# Step 13: Verify daily cost limit enforcement
+# Create multiple requests and verify limit checking
+```
+
+### Expected Results
+
+**Part A (Configuration):**
+
+- Provider strategy configured successfully
+- Configuration parsed and validated
+- Settings applied at daemon startup
+
+**Part B (Cost-Based Selection):**
+
+- Free providers preferred when available
+- Local providers used when configured
+- Provider selection logged
+
+**Part C (Fallback):**
+
+- Fallback chain executed when primary fails
+- Each fallback attempt logged
+- Final provider selection recorded
+
+**Part D (Health Checks):**
+
+- Provider health checked before use
+- Unhealthy providers skipped
+- Health status logged
+
+**Part E (Cost Tracking):**
+
+- Token usage tracked
+- Cost calculated and logged
+- Daily limits enforced
+
+### Verification
+
+```bash
+# Check provider strategy config
+grep -A 15 "provider_strategy" ~/ExoFrame/exo.config.toml
+
+# Verify provider selection logs
+grep -i "provider\|model\|fallback" ~/ExoFrame/.exo/daemon.log | tail -20
+
+# Check cost tracking
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT payload FROM activity WHERE payload LIKE '%tokens%' OR payload LIKE '%cost%' LIMIT 5;"
+```
+
+### Cleanup
+
+```bash
+# Remove test configuration (edit exo.config.toml manually)
+# Or restore backup if created
+
+# Stop daemon
+exoctl daemon stop
+```
+
+### Pass Criteria
+
+- [ ] Provider strategy configuration loaded
+- [ ] Free providers preferred when configured
+- [ ] Local providers used when allowed
+- [ ] Fallback chains execute on failure
+- [ ] Fallback attempts logged
+- [ ] Health checks performed
+- [ ] Unhealthy providers skipped
+- [ ] Cost tracking functional
+- [ ] Daily cost limits enforced
+- [ ] Provider selection decisions logged
+
+---
+
+## Scenario MT-29: Git Operations and Traceability
+
+**Purpose:** Verify comprehensive git integration and trace_id tracking across commits and branches.
+
+### Preconditions
+
+- ExoFrame workspace deployed
+- At least one portal with git repository
+- Daemon running
+
+### Steps
+
+```bash
+# Part A: Git Repository Setup
+
+# Step 1: Create test portal with git repo
+mkdir -p /tmp/git-test-portal
+cd /tmp/git-test-portal
+git init
+git config user.email "test@exoframe.dev"
+git config user.name "ExoFrame Tester"
+echo "# Test Project" > README.md
+git add README.md
+git commit -m "Initial commit"
+
+# Step 2: Add portal to ExoFrame
+cd ~/ExoFrame
+exoctl portal add /tmp/git-test-portal GitTestPortal
+
+# Part B: Branch Creation with Trace ID
+
+# Step 3: Create request targeting portal
+exoctl request "Add utils.ts file" --agent mock-agent --portal GitTestPortal
+
+# Step 4: Wait for plan and approve
+sleep 5
+PLAN_ID=$(exoctl plan list --status review | head -1 | awk '{print $1}')
+TRACE_ID=$(exoctl plan show $PLAN_ID | grep trace_id | awk '{print $2}')
+exoctl plan approve $PLAN_ID
+
+# Step 5: Wait for execution and verify branch created
+sleep 10
+cd /tmp/git-test-portal
+git branch -a
+
+# Step 6: Verify branch naming includes trace_id prefix
+git branch -a | grep -E "feat/.*$(echo $TRACE_ID | cut -d'-' -f1)"
+
+# Part C: Commit Message Formatting
+
+# Step 7: Check commit message format
+git log --oneline -5
+
+# Step 8: Verify trace_id in commit footer
+git log -1 --format="%B"
+# Should contain [ExoTrace: trace-id]
+
+# Step 9: Search commits by trace_id
+git log --all --grep="ExoTrace: $TRACE_ID"
+
+# Part D: Multi-Portal Git Status
+
+# Step 10: Check git status across all portals
+cd ~/ExoFrame
+exoctl git status
+
+# Step 11: List branches across all portals
+exoctl git branches
+
+# Part E: Git Log Search
+
+# Step 12: Search git logs for trace_id
+exoctl git log $TRACE_ID
+
+# Step 13: Verify trace_id linkage
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT trace_id, action_type FROM activity WHERE trace_id = '$TRACE_ID' ORDER BY timestamp;"
+
+# Part F: Merge Operations
+
+# Step 14: Approve changeset (merge to main)
+CHANGESET_ID=$(exoctl changeset list | grep pending | head -1 | awk '{print $1}')
+exoctl changeset approve $CHANGESET_ID
+
+# Step 15: Verify merge commit
+cd /tmp/git-test-portal
+git log --oneline -5
+git show --format="%B" HEAD
+
+# Step 16: Verify trace_id preserved in merge commit
+git log --grep="ExoTrace: $TRACE_ID" --oneline
+```
+
+### Expected Results
+
+**Part A (Setup):**
+
+- Git repository initialized
+- Portal added to ExoFrame
+- Initial commit present
+
+**Part B (Branch Creation):**
+
+- Feature branch created automatically
+- Branch name includes trace_id prefix
+- Branch format: `feat/request-id` or `feat/trace-id-prefix`
+
+**Part C (Commit Messages):**
+
+- Commits include descriptive message
+- Trace_id in commit footer as `[ExoTrace: trace-id]`
+- Commits are searchable by trace_id
+
+**Part D (Multi-Portal):**
+
+- Git status shows all portals
+- Branches listed across portals
+- Commands work with multiple repos
+
+**Part E (Log Search):**
+
+- Trace_id search finds commits
+- Cross-portal search works
+- Results link to Activity Journal
+
+**Part F (Merge Operations):**
+
+- Merge commit created
+- Trace_id preserved in merge
+- Main branch updated
+
+### Verification
+
+```bash
+# Verify branch naming convention
+cd /tmp/git-test-portal
+git branch -a | grep "feat/"
+
+# Check commit message format
+git log -1 --format="%B" | grep "ExoTrace"
+
+# Verify git commands available
+exoctl git --help
+
+# Check Activity Journal linkage
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE trace_id LIKE '%$TRACE_ID%';"
+
+# Verify merge completed
+git log --oneline --graph -10
+```
+
+### Cleanup
+
+```bash
+# Remove test portal
+exoctl portal remove GitTestPortal
+rm -rf /tmp/git-test-portal
+```
+
+### Pass Criteria
+
+- [ ] Feature branches created automatically
+- [ ] Branch naming includes trace_id
+- [ ] Commit messages include trace_id footer
+- [ ] Trace_id format: `[ExoTrace: uuid]`
+- [ ] Git log searchable by trace_id
+- [ ] Multi-portal git status works
+- [ ] Multi-portal branch listing works
+- [ ] Merge commits preserve trace_id
+- [ ] `exoctl git` commands functional
+- [ ] Activity Journal links to git commits
+
+---
+
 ## QA Sign-off Template
 
 ```markdown
@@ -2143,31 +3317,142 @@ sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIK
 
 ### Test Results
 
-| ID    | Scenario                    | Pass | Fail | Skip | Notes |
-| ----- | --------------------------- | ---- | ---- | ---- | ----- |
-| MT-01 | Fresh Installation          |      |      |      |       |
-| MT-02 | Daemon Startup              |      |      |      |       |
-| MT-03 | Blueprint Management        |      |      |      |       |
-| MT-04 | Create Request              |      |      |      |       |
-| MT-05 | Plan Generation (Mock)      |      |      |      |       |
-| MT-06 | Plan Approval               |      |      |      |       |
-| MT-07 | Plan Rejection              |      |      |      |       |
-| MT-08 | Plan Execution & Changesets |      |      |      |       |
-| MT-09 | Portal Management           |      |      |      |       |
-| MT-10 | Daemon Crash Recovery       |      |      |      |       |
-| MT-11 | Real LLM Integration        |      |      |      |       |
-| MT-12 | Invalid Request Handling    |      |      |      |       |
-| MT-13 | Database Corruption         |      |      |      |       |
-| MT-14 | Concurrent Requests         |      |      |      |       |
-| MT-15 | File Watcher Reliability    |      |      |      |       |
-| MT-16 | LLM Provider Selection      |      |      |      |       |
+#### Installation & Setup
+
+| ID    | Scenario           | Risk | Pass | Fail | Skip | Notes |
+| ----- | ------------------ | ---- | ---- | ---- | ---- | ----- |
+| MT-01 | Fresh Installation | High |      |      |      |       |
+| MT-02 | Daemon Startup     | High |      |      |      |       |
+
+#### Configuration & Blueprints
+
+| ID    | Scenario                       | Risk   | Pass | Fail | Skip | Notes |
+| ----- | ------------------------------ | ------ | ---- | ---- | ---- | ----- |
+| MT-03 | Blueprint Management           | Medium |      |      |      |       |
+| MT-16 | LLM Provider Selection         | Medium |      |      |      |       |
+| MT-28 | Provider Strategy and Fallback | Medium |      |      |      |       |
+
+#### Request & Plan Lifecycle
+
+| ID    | Scenario                   | Risk   | Pass | Fail | Skip | Notes |
+| ----- | -------------------------- | ------ | ---- | ---- | ---- | ----- |
+| MT-04 | Create Request             | High   |      |      |      |       |
+| MT-05 | Plan Generation (Mock LLM) | High   |      |      |      |       |
+| MT-06 | Plan Approval              | High   |      |      |      |       |
+| MT-07 | Plan Rejection             | Medium |      |      |      |       |
+| MT-18 | Multi-Agent Flow Execution | High   |      |      |      |       |
+
+#### Plan Execution
+
+| ID    | Scenario                              | Risk | Pass | Fail | Skip | Notes |
+| ----- | ------------------------------------- | ---- | ---- | ---- | ---- | ----- |
+| MT-08 | Plan Execution & Changeset Management | High |      |      |      |       |
+
+#### Portal & Git Management
+
+| ID    | Scenario                        | Risk   | Pass | Fail | Skip | Notes |
+| ----- | ------------------------------- | ------ | ---- | ---- | ---- | ----- |
+| MT-09 | Portal Management               | High   |      |      |      |       |
+| MT-29 | Git Operations and Traceability | Medium |      |      |      |       |
+
+#### Memory & Knowledge
+
+| ID    | Scenario                 | Risk   | Pass | Fail | Skip | Notes |
+| ----- | ------------------------ | ------ | ---- | ---- | ---- | ----- |
+| MT-17 | Memory Banks Integration | Medium |      |      |      |       |
+| MT-26 | Activity Journal Queries | Low    |      |      |      |       |
+
+#### Skills Management
+
+| ID    | Scenario          | Risk | Pass | Fail | Skip | Notes |
+| ----- | ----------------- | ---- | ---- | ---- | ---- | ----- |
+| MT-19 | Skills Management | Low  |      |      |      |       |
+
+#### Security & Permissions
+
+| ID    | Scenario                  | Risk | Pass | Fail | Skip | Notes |
+| ----- | ------------------------- | ---- | ---- | ---- | ---- | ----- |
+| MT-27 | Advanced Security Testing | High |      |      |      |       |
+
+#### Resilience & Error Handling
+
+| ID    | Scenario                     | Risk   | Pass | Fail | Skip | Notes |
+| ----- | ---------------------------- | ------ | ---- | ---- | ---- | ----- |
+| MT-10 | Daemon Crash Recovery        | High   |      |      |      |       |
+| MT-12 | Invalid Request Handling     | Medium |      |      |      |       |
+| MT-13 | Database Corruption Recovery | High   |      |      |      |       |
+
+#### Performance & Concurrency
+
+| ID    | Scenario                      | Risk   | Pass | Fail | Skip | Notes |
+| ----- | ----------------------------- | ------ | ---- | ---- | ---- | ----- |
+| MT-14 | Concurrent Request Processing | Medium |      |      |      |       |
+| MT-15 | File Watcher Reliability      | Medium |      |      |      |       |
+
+#### Integration Testing
+
+| ID    | Scenario             | Risk   | Pass | Fail | Skip | Notes |
+| ----- | -------------------- | ------ | ---- | ---- | ---- | ----- |
+| MT-11 | Real LLM Integration | Medium |      |      |      |       |
+
+#### TUI Dashboard
+
+| ID    | Scenario                                 | Risk   | Pass | Fail | Skip | Notes |
+| ----- | ---------------------------------------- | ------ | ---- | ---- | ---- | ----- |
+| MT-20 | TUI Dashboard Launch and Core Views      | High   |      |      |      |       |
+| MT-21 | TUI Monitor View - Log Streaming         | Medium |      |      |      |       |
+| MT-22 | TUI Plan Reviewer View - Plan Management | High   |      |      |      |       |
+| MT-23 | TUI Portal Manager View                  | Medium |      |      |      |       |
+| MT-24 | TUI Daemon Control View                  | Medium |      |      |      |       |
+| MT-25 | TUI Request Manager View                 | Medium |      |      |      |       |
 
 ### Summary
 
-- **Total Scenarios:** 16
+- **Total Scenarios:** 29
+- **High Risk:** 11
+- **Medium Risk:** 14
+- **Low Risk:** 4
 - **Passed:**
 - **Failed:**
 - **Skipped:**
+
+### Recommended Testing Order (Risk-Based)
+
+**Priority 1 (Critical Path - High Risk):**
+
+1. MT-01: Fresh Installation
+2. MT-02: Daemon Startup
+3. MT-04: Create Request
+4. MT-05: Plan Generation (Mock LLM)
+5. MT-06: Plan Approval
+6. MT-08: Plan Execution & Changeset Management
+7. MT-09: Portal Management
+8. MT-10: Daemon Crash Recovery
+9. MT-13: Database Corruption Recovery
+10. MT-18: Multi-Agent Flow Execution
+11. MT-20: TUI Dashboard Launch
+12. MT-22: TUI Plan Reviewer View
+13. MT-27: Advanced Security Testing
+
+**Priority 2 (Medium Risk):**
+14. MT-03: Blueprint Management
+15. MT-07: Plan Rejection
+16. MT-11: Real LLM Integration
+17. MT-12: Invalid Request Handling
+18. MT-14: Concurrent Request Processing
+19. MT-15: File Watcher Reliability
+20. MT-16: LLM Provider Selection
+21. MT-17: Memory Banks Integration
+22. MT-21: TUI Monitor View
+23. MT-23: TUI Portal Manager View
+24. MT-24: TUI Daemon Control View
+25. MT-25: TUI Request Manager View
+26. MT-28: Provider Strategy and Fallback
+27. MT-29: Git Operations and Traceability
+
+**Priority 3 (Low Risk):**
+28. MT-19: Skills Management
+29. MT-26: Activity Journal Queries
 
 ### Issues Found
 
@@ -2178,6 +3463,9 @@ sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIK
 
 - [ ] **APPROVED** for release
 - [ ] **BLOCKED** - see issues above
+- [ ] **APPROVED with known issues** - see notes
+
+**Notes:**
 
 **Signature:** _____________________
 **Date:** _____________________
