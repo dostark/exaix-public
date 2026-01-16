@@ -222,7 +222,7 @@ ExoFrame follows a **three-tier edition model** to serve different organizationa
 | **Interface**              | CLI + TUI (7 views)        | + Web UI                     | + Enhanced TUI (9 views)              |
 | **Audit Database**         | SQLite (embedded)          | PostgreSQL (append-only)     | PostgreSQL + immudb (WORM)            |
 | **MCP Support**            | Client only                | + Server mode                | + Custom tool development             |
-| **LLM Providers**          | Ollama, OpenAI, Anthropic, Google | All basic providers    | + Azure OpenAI, AWS Bedrock, GCP Vertex |
+| **LLM Providers**          | Ollama, OpenAI, Anthropic, Google | + OpenRouter               | + Azure OpenAI, AWS Bedrock, GCP Vertex |
 | **Memory Banks**           | Basic (file-based)         | + Full-text search           | + Vector search, knowledge graphs     |
 | **Collaboration**          | Single user                | Multi-user (unlimited)       | + RBAC, department isolation          |
 | **Compliance**             | ❌                         | ❌                           | ✅ EU AI Act, HIPAA, SOX, ISO 27001   |

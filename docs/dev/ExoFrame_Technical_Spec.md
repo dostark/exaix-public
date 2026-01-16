@@ -103,14 +103,13 @@ See the [Implementation Plan](./ExoFrame_Implementation_Plan.md#step-95-tui-cock
 
 ExoFrame uses a provider-agnostic architecture via the `IModelProvider` interface. All providers implement the same contract, enabling seamless switching between local and cloud models.
 
-#### Provider Availability by Edition
-
-| Provider Category      | Solo 🟢                      | Team 🔵 | Enterprise 🟣                            |
-| ---------------------- | ---------------------------- | ------- | ---------------------------------------- |
-| **Local**              | ✅ Ollama                    | ✅ All  | ✅ All                                   |
-| **Cloud (Basic)**      | ✅ Anthropic, OpenAI, Google | ✅ All  | ✅ All                                   |
-| **Cloud (Enterprise)** | ❌                           | ❌      | ✅ Azure OpenAI, AWS Bedrock, GCP Vertex |
-| **Cost Management**    | Basic logs                   | Budgets | Forecasting, anomaly detection           |
+| Provider Category      | Solo 🟢                      | Team 🔵                     | Enterprise 🟣                            |
+| ---------------------- | ---------------------------- | --------------------------- | ---------------------------------------- |
+| **Local**              | ✅ Ollama                    | ✅ All                      | ✅ All                                   |
+| **Cloud (Basic)**      | ✅ Anthropic, OpenAI, Google | ✅ All                      | ✅ All                                   |
+| **Cloud (Team+)**      | ❌                           | ✅ OpenRouter (100+ models) | ✅ OpenRouter                            |
+| **Cloud (Enterprise)** | ❌                           | ❌                          | ✅ Azure OpenAI, AWS Bedrock, GCP Vertex |
+| **Cost Management**    | Basic logs                   | Budgets, unified billing    | Forecasting, anomaly detection           |
 
 #### Anthropic (Claude) 🟢 All Editions
 
@@ -144,6 +143,15 @@ ExoFrame uses a provider-agnostic architecture via the `IModelProvider` interfac
 | `llama3.2`  | Varies         | General purpose local model |
 | `mistral`   | Varies         | Balanced local model        |
 | `codellama` | Varies         | Specialized for coding      |
+
+#### OpenRouter 🔵 Team+ Editions
+
+| Feature         | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| **Endpoint**    | `openrouter.ai/api/v1`                                    |
+| **Models**      | 100+ models (Claude, GPT, Gemini, Llama, Mistral, etc.)   |
+| **Key Benefit** | Single API key, automatic failover, unified billing       |
+| **Use Case**    | Model flexibility, cost optimization, provider redundancy |
 
 #### Enterprise Providers 🟣 Enterprise Only
 

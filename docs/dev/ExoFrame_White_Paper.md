@@ -428,47 +428,48 @@ plan_generation = { provider = "claude-3.5-sonnet", reason = "highest accuracy" 
 
 ### Edition Comparison Matrix
 
-| Feature Category            | Solo (Free)                          | Team (Usage-Based)             | Enterprise (AELA)                        |
-| --------------------------- | ------------------------------------ | ------------------------------ | ---------------------------------------- |
-| **Interface**               |                                      |                                |                                          |
-| CLI (`exoctl`)              | ✅ Full                              | ✅ Full                        | ✅ Full                                  |
-| TUI Dashboard               | ✅ 7 views                           | ✅ 7 views                     | ✅ Enhanced 9 views                      |
-| Web UI                      | ❌ No                                | ✅ Plan review, approval, logs | ✅ Full (visual workflows, admin)        |
-| **Database & Audit**        |                                      |                                |                                          |
-| Audit Database              | SQLite (embedded)                    | PostgreSQL (append-only)       | PostgreSQL + immudb (WORM)               |
-| Immutability                | ⚠️ Application-level                 | ✅ Database-enforced           | ✅ Cryptographically verified            |
-| Retention Policies          | ⚠️ Manual                            | ✅ Configurable                | ✅ SOX 7-year, HIPAA 6-year              |
-| **Core Features**           |                                      |                                |                                          |
-| Activity Journal            | ✅ Full audit trail                  | ✅ Full audit trail            | ✅ Enhanced with analytics               |
-| Portal System               | ✅ Unlimited                         | ✅ Unlimited                   | ✅ Unlimited + multi-tenancy             |
-| Agent Blueprints            | ✅ Basic templates                   | ✅ Team library                | ✅ Enterprise templates + marketplace    |
-| Git Integration             | ✅ Trace IDs in commits              | ✅ + team workflows            | ✅ + advanced branch policies            |
-| **MCP Support**             |                                      |                                |                                          |
-| MCP Client                  | ✅ Connect to MCP servers            | ✅ Full                        | ✅ Full                                  |
-| MCP Server                  | ❌ No                                | ✅ Expose ExoFrame APIs        | ✅ + custom tool development             |
-| **LLM Providers**           |                                      |                                |                                          |
-| Basic Providers             | ✅ Ollama, OpenAI, Anthropic, Google | ✅ All                         | ✅ All                                   |
-| Enterprise Providers        | ❌ No                                | ❌ No                          | ✅ Azure OpenAI, AWS Bedrock, GCP Vertex |
-| Provider Routing            | ❌ Manual selection                  | ✅ Cost-based, fallback chains | ✅ + advanced policies                   |
-| Cost Management             | ⚠️ Basic logs                        | ✅ Per-user tracking, budgets  | ✅ Forecasting, anomaly detection        |
-| **Collaboration**           |                                      |                                |                                          |
-| Users                       | ⚠️ Single user                       | ✅ Multi-user (unlimited)      | ✅ Multi-user + RBAC                     |
-| Shared Workspaces           | ❌ No                                | ✅ Team workspaces             | ✅ + department isolation                |
-| Skills Library              | ✅ Personal                          | ✅ Org-wide                    | ✅ + verified marketplace                |
-| **Governance & Compliance** |                                      |                                |                                          |
-| Audit Exports               | ⚠️ CSV only                          | ✅ CSV, JSON                   | ✅ + PDF compliance reports              |
-| Compliance Frameworks       | ❌ None                              | ❌ None                        | ✅ EU AI Act, HIPAA, SOX, ISO 27001      |
-| Governance Dashboard        | ❌ No                                | ❌ No                          | ✅ Risk scoring, policy enforcement      |
-| **Advanced Features**       |                                      |                                |                                          |
-| Memory Banks                | ✅ Basic (file-based)                | ✅ + full-text search          | ✅ + vector search, knowledge graphs     |
-| Analytics                   | ❌ No                                | ✅ Basic (performance, costs)  | ✅ Advanced (predictions, anomalies)     |
-| SSO/SAML                    | ❌ No                                | ❌ No                          | ✅ Enterprise auth                       |
-| Air-Gapped Deployment       | ✅ Possible                          | ✅ Possible                    | ✅ + professional services               |
-| **Support**                 |                                      |                                |                                          |
-| Community Support           | ✅ GitHub, Discord                   | ✅ ✅                          | ✅ ✅                                    |
-| Email Support               | ❌ No                                | ✅ Business hours              | ✅ 24/7                                  |
-| SLA Guarantee               | ❌ No                                | ❌ No                          | ✅ 99.9% uptime                          |
-| Professional Services       | ❌ No                                | ⚠️ Available (paid addon)      | ✅ Included                              |
+| Feature Category            | Solo (Free)                          | Team (Usage-Based)              | Enterprise (AELA)                        |
+| --------------------------- | ------------------------------------ | ------------------------------- | ---------------------------------------- |
+| **Interface**               |                                      |                                 |                                          |
+| CLI (`exoctl`)              | ✅ Full                              | ✅ Full                         | ✅ Full                                  |
+| TUI Dashboard               | ✅ 7 views                           | ✅ 7 views                      | ✅ Enhanced 9 views                      |
+| Web UI                      | ❌ No                                | ✅ Plan review, approval, logs  | ✅ Full (visual workflows, admin)        |
+| **Database & Audit**        |                                      |                                 |                                          |
+| Audit Database              | SQLite (embedded)                    | PostgreSQL (append-only)        | PostgreSQL + immudb (WORM)               |
+| Immutability                | ⚠️ Application-level                 | ✅ Database-enforced            | ✅ Cryptographically verified            |
+| Retention Policies          | ⚠️ Manual                            | ✅ Configurable                 | ✅ SOX 7-year, HIPAA 6-year              |
+| **Core Features**           |                                      |                                 |                                          |
+| Activity Journal            | ✅ Full audit trail                  | ✅ Full audit trail             | ✅ Enhanced with analytics               |
+| Portal System               | ✅ Unlimited                         | ✅ Unlimited                    | ✅ Unlimited + multi-tenancy             |
+| Agent Blueprints            | ✅ Basic templates                   | ✅ Team library                 | ✅ Enterprise templates + marketplace    |
+| Git Integration             | ✅ Trace IDs in commits              | ✅ + team workflows             | ✅ + advanced branch policies            |
+| **MCP Support**             |                                      |                                 |                                          |
+| MCP Client                  | ✅ Connect to MCP servers            | ✅ Full                         | ✅ Full                                  |
+| MCP Server                  | ❌ No                                | ✅ Expose ExoFrame APIs         | ✅ + custom tool development             |
+| **LLM Providers**           |                                      |                                 |                                          |
+| Basic Providers             | ✅ Ollama, OpenAI, Anthropic, Google | ✅ All                          | ✅ All                                   |
+| OpenRouter                  | ❌ No                                | ✅ 100+ models, unified billing | ✅ Full                                  |
+| Enterprise Providers        | ❌ No                                | ❌ No                           | ✅ Azure OpenAI, AWS Bedrock, GCP Vertex |
+| Provider Routing            | ❌ Manual selection                  | ✅ Cost-based, fallback chains  | ✅ + advanced policies                   |
+| Cost Management             | ⚠️ Basic logs                        | ✅ Per-user tracking, budgets   | ✅ Forecasting, anomaly detection        |
+| **Collaboration**           |                                      |                                 |                                          |
+| Users                       | ⚠️ Single user                       | ✅ Multi-user (unlimited)       | ✅ Multi-user + RBAC                     |
+| Shared Workspaces           | ❌ No                                | ✅ Team workspaces              | ✅ + department isolation                |
+| Skills Library              | ✅ Personal                          | ✅ Org-wide                     | ✅ + verified marketplace                |
+| **Governance & Compliance** |                                      |                                 |                                          |
+| Audit Exports               | ⚠️ CSV only                          | ✅ CSV, JSON                    | ✅ + PDF compliance reports              |
+| Compliance Frameworks       | ❌ None                              | ❌ None                         | ✅ EU AI Act, HIPAA, SOX, ISO 27001      |
+| Governance Dashboard        | ❌ No                                | ❌ No                           | ✅ Risk scoring, policy enforcement      |
+| **Advanced Features**       |                                      |                                 |                                          |
+| Memory Banks                | ✅ Basic (file-based)                | ✅ + full-text search           | ✅ + vector search, knowledge graphs     |
+| Analytics                   | ❌ No                                | ✅ Basic (performance, costs)   | ✅ Advanced (predictions, anomalies)     |
+| SSO/SAML                    | ❌ No                                | ❌ No                           | ✅ Enterprise auth                       |
+| Air-Gapped Deployment       | ✅ Possible                          | ✅ Possible                     | ✅ + professional services               |
+| **Support**                 |                                      |                                 |                                          |
+| Community Support           | ✅ GitHub, Discord                   | ✅ ✅                           | ✅ ✅                                    |
+| Email Support               | ❌ No                                | ✅ Business hours               | ✅ 24/7                                  |
+| SLA Guarantee               | ❌ No                                | ❌ No                           | ✅ 99.9% uptime                          |
+| Professional Services       | ❌ No                                | ⚠️ Available (paid addon)       | ✅ Included                              |
 
 ### Recommended Edition by Use Case
 
