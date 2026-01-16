@@ -1,15 +1,17 @@
 # ExoFrame Architecture
 
-**Version:** 1.12.0\
-**Date:** January 5, 2026
+**Version:** 2.0.0\
+**Date:** January 16, 2026
 
-This document provides a comprehensive architectural overview of ExoFrame components using Mermaid diagrams.
+This document provides a comprehensive architectural overview of ExoFrame components using Mermaid diagrams. ExoFrame is available in **three editions** (Solo, Team, Enterprise) with components differentiated by availability.
+
+> **Edition Legend:** Components marked with 🟢 are available in all editions. Components marked with 🔵 require **Team+** edition. Components marked with 🟣 require **Enterprise** edition.
 
 ---
 
 ## System Architecture Overview
 
-```mermaid
+````mermaid
 graph TB
     subgraph Actors["👥 Actors"]
         User[👤 User/Developer]
@@ -203,6 +205,31 @@ graph TB
 
 ---
 
+## Edition Model Overview
+
+ExoFrame follows a **three-tier edition model** to serve different organizational needs:
+
+| Edition        | Target Audience                         | Key Differentiation                                                   |
+| -------------- | --------------------------------------- | --------------------------------------------------------------------- |
+| **Solo** 🟢    | Individual developers, OSS contributors | CLI + TUI, SQLite audit, MCP client, local-first                      |
+| **Team** 🔵    | Small teams, startups, consulting firms | + Web UI, PostgreSQL, MCP server mode, multi-user collaboration       |
+| **Enterprise** 🟣 | Regulated industries, large enterprises | + Governance dashboard, compliance frameworks, immudb, SSO/SAML       |
+
+### Component Availability by Edition
+
+| Component Category         | Solo 🟢                    | Team 🔵                      | Enterprise 🟣                         |
+| -------------------------- | -------------------------- | ---------------------------- | ------------------------------------- |
+| **Interface**              | CLI + TUI (7 views)        | + Web UI                     | + Enhanced TUI (9 views)              |
+| **Audit Database**         | SQLite (embedded)          | PostgreSQL (append-only)     | PostgreSQL + immudb (WORM)            |
+| **MCP Support**            | Client only                | + Server mode                | + Custom tool development             |
+| **LLM Providers**          | Ollama, OpenAI, Anthropic, Google | All basic providers    | + Azure OpenAI, AWS Bedrock, GCP Vertex |
+| **Memory Banks**           | Basic (file-based)         | + Full-text search           | + Vector search, knowledge graphs     |
+| **Collaboration**          | Single user                | Multi-user (unlimited)       | + RBAC, department isolation          |
+| **Compliance**             | ❌                         | ❌                           | ✅ EU AI Act, HIPAA, SOX, ISO 27001   |
+| **Cost Management**        | Basic logs                 | Per-user budgets, alerts     | Forecasting, anomaly detection        |
+
+---
+
 ## Request Processing Flow
 
 ```mermaid
@@ -269,7 +296,7 @@ sequenceDiagram
     CLI->>P: Update plan status
     CLI->>DB: Log plan.approved
     CLI-->>U: Approved ✓
-```
+````
 
 ---
 
@@ -517,6 +544,8 @@ graph TB
 ```
 
 ### MCP Server Implementation Notes
+
+> **Edition Note:** MCP Client functionality is available in **all editions** 🟢. MCP Server mode is available in **Team+** editions only 🔵.
 
 The MCP server lives under `src/mcp/` and supports both **stdio** (JSON-RPC 2.0) and **HTTP/SSE** transports.
 
@@ -802,6 +831,15 @@ For keyboard shortcuts, see [TUI Keyboard Reference](./TUI_Keyboard_Reference.md
 
 ## AI Provider Architecture
 
+ExoFrame supports multiple LLM providers with **edition-based availability**:
+
+| Provider Category      | Solo 🟢                      | Team 🔵 | Enterprise 🟣                            |
+| ---------------------- | ---------------------------- | ------- | ---------------------------------------- |
+| **Local**              | ✅ Ollama                    | ✅ All  | ✅ All                                   |
+| **Cloud (Basic)**      | ✅ OpenAI, Anthropic, Google | ✅ All  | ✅ All                                   |
+| **Cloud (Enterprise)** | ❌                           | ❌      | ✅ Azure OpenAI, AWS Bedrock, GCP Vertex |
+| **Cost Management**    | Basic logs                   | Budgets | Forecasting, anomaly detection           |
+
 ```mermaid
 graph TB
     subgraph Factory["Provider Factory"]
@@ -813,13 +851,18 @@ graph TB
         Cfg[exo.config.toml<br/>ai.provider<br/>ai.model]
     end
 
-    subgraph Providers["LLM Providers"]
-        Configured[Configured Providers]
+    subgraph BasicProviders["🟢 Basic Providers (All Editions)"]
         Ollama[OllamaProvider<br/>localhost:11434]
         Claude[ClaudeProvider<br/>api.anthropic.com]
         GPT[OpenAIProvider<br/>api.openai.com]
         Gemini[GeminiProvider<br/>generativelanguage.googleapis.com]
         Mock[MockLLMProvider<br/>Testing]
+    end
+
+    subgraph EnterpriseProviders["🟣 Enterprise Providers"]
+        Azure[AzureOpenAI<br/>your-endpoint.azure.com]
+        Bedrock[AWSBedrock<br/>bedrock.amazonaws.com]
+        Vertex[GCPVertex<br/>vertex.googleapis.com]
     end
 
     subgraph Interface["Provider Interface"]
@@ -833,27 +876,43 @@ graph TB
     PF -->|provider=openai| GPT
     PF -->|provider=google| Gemini
     PF -->|provider=mock| Mock
+    PF -->|provider=azure| Azure
+    PF -->|provider=bedrock| Bedrock
+    PF -->|provider=vertex| Vertex
 
     Ollama -.implements.-> Gen
     Claude -.implements.-> Gen
     GPT -.implements.-> Gen
     Gemini -.implements.-> Gen
     Mock -.implements.-> Gen
+    Azure -.implements.-> Gen
+    Bedrock -.implements.-> Gen
+    Vertex -.implements.-> Gen
 
     classDef factory fill:#e1bee7,stroke:#6a1b9a,stroke-width:2px
     classDef config fill:#fff9c4,stroke:#f57f17,stroke-width:2px
     classDef provider fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    classDef enterprise fill:#d1c4e9,stroke:#512da8,stroke-width:2px
     classDef interface fill:#b2dfdb,stroke:#00695c,stroke-width:2px
 
     class PF,Info factory
     class Cfg config
     class Ollama,Claude,GPT,Gemini,Mock provider
+    class Azure,Bedrock,Vertex enterprise
     class Gen interface
 ```
 
 ---
 
 ## Storage & Data Flow
+
+ExoFrame uses a **tiered database architecture** aligned with edition requirements:
+
+| Edition           | Audit Database           | Compliance Level                               |
+| ----------------- | ------------------------ | ---------------------------------------------- |
+| **Solo** 🟢       | SQLite (embedded)        | Basic audit logging                            |
+| **Team** 🔵       | PostgreSQL (append-only) | Multi-user with database-enforced immutability |
+| **Enterprise** 🟣 | PostgreSQL + immudb      | WORM-compliant, cryptographically verified     |
 
 ```mermaid
 graph TB
@@ -865,10 +924,10 @@ graph TB
         Runtime[".exo/<br/>Active & Archive"]
     end
 
-    subgraph Database["SQLite Database"]
-        Journal[("journal.db<br/>Activity Journal")]
-        Activities["activities table"]
-        Schema["Schema migrations"]
+    subgraph Database["Activity Journal (Edition-Tiered)"]
+        Solo[("🟢 SQLite<br/>journal.db")]
+        Team[("🔵 PostgreSQL<br/>append-only")]
+        Enterprise[("🟣 immudb<br/>WORM")]
     end
 
     subgraph Services["Services"]
@@ -884,10 +943,9 @@ graph TB
     Portals -->|Access| AgentRun["Agent Runner"]
     Runtime -->|Store| Archive["Archive Service"]
 
-    Journal --> DB
-    Activities --> Event
-    Schema --> DB
-
+    Solo --> DB
+    Team --> DB
+    Enterprise --> DB
     DB --> Event
     Config --> FileSystem
     Git --> FileSystem
@@ -897,7 +955,7 @@ graph TB
     classDef service fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
 
     class Workspace,Blueprint,Memory,Portals,Runtime storage
-    class Journal,Activities,Schema db
+    class Solo,Team,Enterprise db
     class DB,Event,Config,Git service
 ```
 
@@ -1278,21 +1336,23 @@ graph LR
 - **CLI Layer**: Human interface (exoctl)
 - **Core Layer**: Daemon orchestration (main.ts, watcher)
 - **Service Layer**: Business logic (processors, runners)
-- **Storage Layer**: SQLite + file system
+- **Storage Layer**: Edition-tiered databases + file system
 
-### 3. **Auditability**
+### 3. **Auditability & Governance**
 
-- Every action logged to Activity Journal
+- Every action logged to Activity Journal (tiered by edition)
 - Trace ID links: request → plan → changeset → commit
 - Git commit footers with `Exo-Trace` metadata
-- Immutable event stream for compliance
+- Immutable event stream for compliance (🟣 Enterprise: WORM storage)
+- Explicit approval gates: plans and changesets require human authorization
 
 ### 4. **Multi-Provider Support**
 
 - Local-first: Ollama (no cloud required)
-- Cloud options: Claude, GPT, Gemini
-- Mock provider for testing
+- Cloud options: Claude, GPT, Gemini (🟢 all editions)
+- Enterprise providers: Azure OpenAI, AWS Bedrock, GCP Vertex (🟣 Enterprise)
 - Provider factory pattern for extensibility
+- Cost management with edition-tiered capabilities
 
 ### 5. **Portal System**
 
@@ -1301,44 +1361,55 @@ graph LR
 - Scoped permissions (Deno security model)
 - Multi-project refactoring support
 
+### 6. **Edition-Aware Architecture**
+
+- Core components available in all editions (🟢 Solo)
+- Collaboration features in Team+ (🔵 Team)
+- Governance and compliance features in Enterprise (🟣 Enterprise)
+- Transparent feature tiering with upgrade path
+
 ---
 
 ## Component Responsibilities
 
-| Component               | Responsibility                            | Key Files                           |
-| ----------------------- | ----------------------------------------- | ----------------------------------- |
-| **CLI Layer**           | Human interface for system control        | `src/cli/*.ts`                      |
-| **Daemon**              | Background orchestration engine           | `src/main.ts`                       |
-| **Request Watcher**     | Detect new requests in Workspace/Requests | `src/services/watcher.ts`           |
-| **Plan Watcher**        | Detect approved plans                     | `src/services/watcher.ts`           |
-| **Request Processor**   | Parse requests, generate plans            | `src/services/request_processor.ts` |
-| **Plan Executor**       | Execute approved plans                    | `src/services/plan_executor.ts`     |
-| **Agent Runner**        | Execute agent logic with LLM              | `src/services/agent_runner.ts`      |
-| **Event Logger**        | Write to Activity Journal                 | `src/services/event_logger.ts`      |
-| **Config Service**      | Load and validate exo.config.toml         | `src/config/service.ts`             |
-| **Database Service**    | SQLite journal.db operations              | `src/services/db.ts`                |
-| **Git Service**         | Git operations with trace metadata        | `src/services/git_service.ts`       |
-| **Provider Factory**    | Create LLM provider instances             | `src/ai/provider_factory.ts`        |
-| **Context Loader**      | Load context for agent execution          | `src/services/context_loader.ts`    |
-| **Portal Commands**     | Manage external project access            | `src/cli/portal_commands.ts`        |
-| **Blueprint Commands**  | Manage agent templates                    | `src/cli/blueprint_commands.ts`     |
-| **Dashboard Commands**  | Launch terminal dashboard                 | `src/cli/dashboard_commands.ts`     |
-| **TUI Dashboard**       | Multi-view terminal UI                    | `src/tui/*.ts`                      |
-| **Parsers**             | Parse markdown + frontmatter              | `src/parsers/*.ts`                  |
-| **Schemas**             | Zod validation layer                      | `src/schemas/*.ts`                  |
-| **MCP Server**          | JSON-RPC server for tool execution        | `src/mcp/server.ts`                 |
-| **Blueprint Loader**    | Unified blueprint parsing                 | `src/services/blueprint_loader.ts`  |
-| **Output Validator**    | Schema validation with JSON repair        | `src/services/output_validator.ts`  |
-| **Retry Policy**        | Exponential backoff with jitter           | `src/services/retry_policy.ts`      |
-| **Reflexive Agent**     | Self-critique improvement loop            | `src/services/reflexive_agent.ts`   |
-| **Tool Reflector**      | Tool result evaluation and retry          | `src/services/tool_reflector.ts`    |
-| **Session Memory**      | Memory context injection                  | `src/services/session_memory.ts`    |
-| **Confidence Scorer**   | Output confidence assessment              | `src/services/confidence_scorer.ts` |
-| **Condition Evaluator** | Flow condition expression eval            | `src/flows/condition_evaluator.ts`  |
-| **Gate Evaluator**      | Quality gate checkpoint validation        | `src/flows/gate_evaluator.ts`       |
-| **Judge Evaluator**     | LLM-as-a-Judge assessment                 | `src/flows/judge_evaluator.ts`      |
-| **Feedback Loop**       | Iterative refinement control              | `src/flows/feedback_loop.ts`        |
-| **Evaluation Criteria** | Quality standards validation              | `src/flows/evaluation_criteria.ts`  |
+| Component                | Responsibility                            | Key Files                           | Edition  |
+| ------------------------ | ----------------------------------------- | ----------------------------------- | -------- |
+| **CLI Layer**            | Human interface for system control        | `src/cli/*.ts`                      | 🟢 All   |
+| **Daemon**               | Background orchestration engine           | `src/main.ts`                       | 🟢 All   |
+| **Request Watcher**      | Detect new requests in Workspace/Requests | `src/services/watcher.ts`           | 🟢 All   |
+| **Plan Watcher**         | Detect approved plans                     | `src/services/watcher.ts`           | 🟢 All   |
+| **Request Processor**    | Parse requests, generate plans            | `src/services/request_processor.ts` | 🟢 All   |
+| **Plan Executor**        | Execute approved plans                    | `src/services/plan_executor.ts`     | 🟢 All   |
+| **Agent Runner**         | Execute agent logic with LLM              | `src/services/agent_runner.ts`      | 🟢 All   |
+| **Event Logger**         | Write to Activity Journal                 | `src/services/event_logger.ts`      | 🟢 All   |
+| **Config Service**       | Load and validate exo.config.toml         | `src/config/service.ts`             | 🟢 All   |
+| **Database Service**     | Edition-tiered journal operations         | `src/services/db.ts`                | 🟢 All   |
+| **Git Service**          | Git operations with trace metadata        | `src/services/git_service.ts`       | 🟢 All   |
+| **Provider Factory**     | Create LLM provider instances             | `src/ai/provider_factory.ts`        | 🟢 All   |
+| **Context Loader**       | Load context for agent execution          | `src/services/context_loader.ts`    | 🟢 All   |
+| **Portal Commands**      | Manage external project access            | `src/cli/portal_commands.ts`        | 🟢 All   |
+| **Blueprint Commands**   | Manage agent templates                    | `src/cli/blueprint_commands.ts`     | 🟢 All   |
+| **Dashboard Commands**   | Launch terminal dashboard                 | `src/cli/dashboard_commands.ts`     | 🟢 All   |
+| **TUI Dashboard**        | Multi-view terminal UI (7-9 views)        | `src/tui/*.ts`                      | 🟢 All   |
+| **Web UI**               | Browser-based approval interface          | `src/web/*`                         | 🔵 Team+ |
+| **Parsers**              | Parse markdown + frontmatter              | `src/parsers/*.ts`                  | 🟢 All   |
+| **Schemas**              | Zod validation layer                      | `src/schemas/*.ts`                  | 🟢 All   |
+| **MCP Client**           | Connect to external MCP servers           | `src/mcp/client.ts`                 | 🟢 All   |
+| **MCP Server**           | JSON-RPC server for tool execution        | `src/mcp/server.ts`                 | 🔵 Team+ |
+| **Blueprint Loader**     | Unified blueprint parsing                 | `src/services/blueprint_loader.ts`  | 🟢 All   |
+| **Output Validator**     | Schema validation with JSON repair        | `src/services/output_validator.ts`  | 🟢 All   |
+| **Retry Policy**         | Exponential backoff with jitter           | `src/services/retry_policy.ts`      | 🟢 All   |
+| **Reflexive Agent**      | Self-critique improvement loop            | `src/services/reflexive_agent.ts`   | 🟢 All   |
+| **Tool Reflector**       | Tool result evaluation and retry          | `src/services/tool_reflector.ts`    | 🟢 All   |
+| **Session Memory**       | Memory context injection                  | `src/services/session_memory.ts`    | 🟢 All   |
+| **Confidence Scorer**    | Output confidence assessment              | `src/services/confidence_scorer.ts` | 🟢 All   |
+| **Condition Evaluator**  | Flow condition expression eval            | `src/flows/condition_evaluator.ts`  | 🟢 All   |
+| **Gate Evaluator**       | Quality gate checkpoint validation        | `src/flows/gate_evaluator.ts`       | 🟢 All   |
+| **Judge Evaluator**      | LLM-as-a-Judge assessment                 | `src/flows/judge_evaluator.ts`      | 🟢 All   |
+| **Feedback Loop**        | Iterative refinement control              | `src/flows/feedback_loop.ts`        | 🟢 All   |
+| **Evaluation Criteria**  | Quality standards validation              | `src/flows/evaluation_criteria.ts`  | 🟢 All   |
+| **Governance Dashboard** | Compliance monitoring and risk scoring    | `src/web/governance/*`              | 🟣 Ent   |
+| **Compliance Reporter**  | Regulatory compliance exports             | `src/services/compliance.ts`        | 🟣 Ent   |
 
 ---
 
