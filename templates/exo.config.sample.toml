@@ -180,22 +180,6 @@ timeout_ms = 60000         # Longer timeout for local models
 base_url = "http://localhost:11434/api/generate"
 
 # ---------------------------------------------------------------------------
-# Named model presets (map label -> provider + model)
-# Use these labels in `agents.default_model` or CLI to pick presets.
-# ---------------------------------------------------------------------------
-[models.default]
-provider = "mock"
-model = "mock-model"
-
-[models.fast]
-provider = "mock"
-model = "mock-fast"
-
-[models.local]
-provider = "ollama"
-model = "llama3.2"
-
-# ---------------------------------------------------------------------------
 # MCP (Model Context Protocol) server configuration
 # ---------------------------------------------------------------------------
 [mcp]
@@ -306,12 +290,6 @@ anthropic = 0.015  # $0.015 per 1K tokens
 google = 0.0       # Free tier
 ollama = 0.0       # Local free
 mock = 0.0         # Mock free
-
-[provider_strategy]
-prefer_free = true
-allow_local = true
-health_check_enabled = true
-fallback_enabled = true
 
 [provider_strategy.fallback_chains]
 balanced = ["openai", "anthropic", "google"]
