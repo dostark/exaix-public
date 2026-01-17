@@ -224,51 +224,72 @@ export class PlanCommands extends BaseCommand {
   }
 
   /**
-   * List all plans in Workspace/Plans, optionally filtered by status
+   * List all plans, optionally filtered by status.
+   * Scans multiple directories based on status:
+   * - Workspace/Plans: review, needs_revision, unknown
+   * - Workspace/Active: approved
+   * - Workspace/Rejected: rejected
+   * - All directories when no filter is specified
    */
   async list(statusFilter?: string): Promise<PlanMetadata[]> {
     const plans: PlanMetadata[] = [];
 
-    try {
-      // Ensure directory exists
-      await ensureDir(this.workspacePlansDir);
+    // Determine which directories to scan based on status filter
+    const dirsToScan: string[] = [];
 
-      // Read directory
-      for await (const entry of Deno.readDir(this.workspacePlansDir)) {
-        if (!entry.isFile || !entry.name.endsWith(".md")) {
-          continue;
+    if (!statusFilter) {
+      // No filter: scan all directories
+      dirsToScan.push(this.workspacePlansDir, this.workspaceActiveDir, this.workspaceRejectedDir);
+    } else if (statusFilter === PlanStatus.APPROVED) {
+      dirsToScan.push(this.workspaceActiveDir);
+    } else if (statusFilter === PlanStatus.REJECTED) {
+      dirsToScan.push(this.workspaceRejectedDir);
+    } else {
+      // review, needs_revision, or other statuses are in Plans
+      dirsToScan.push(this.workspacePlansDir);
+    }
+
+    for (const dir of dirsToScan) {
+      try {
+        // Ensure directory exists
+        await ensureDir(dir);
+
+        // Read directory
+        for await (const entry of Deno.readDir(dir)) {
+          if (!entry.isFile || !entry.name.endsWith(".md")) {
+            continue;
+          }
+
+          const planId = entry.name.replace(/\\.md$/, "").replace(/_rejected$/, "");
+          const planPath = join(dir, entry.name);
+
+          try {
+            const content = await Deno.readTextFile(planPath);
+            const { frontmatter } = this.extractFrontmatterWithBody(content);
+
+            const metadata = extractPlanMetadata(planId, frontmatter);
+
+            // Apply filter if specified (for edge cases where file is in wrong dir)
+            if (!statusFilter || metadata.status === statusFilter) {
+              plans.push(metadata);
+            }
+          } catch (error) {
+            // Handle malformed files gracefully
+            console.warn(`Warning: Could not parse plan ${planId}:`, error);
+            if (!statusFilter || statusFilter === "unknown") {
+              plans.push({
+                id: planId,
+                status: "unknown",
+              });
+            }
+          }
         }
-
-        const planId = entry.name.replace(/\.md$/, "");
-        const planPath = join(this.workspacePlansDir, entry.name);
-
-        try {
-          const content = await Deno.readTextFile(planPath);
-          const { frontmatter } = this.extractFrontmatterWithBody(content);
-
-          const metadata = extractPlanMetadata(planId, frontmatter);
-
-          // Apply filter if specified
-          if (!statusFilter || metadata.status === statusFilter) {
-            plans.push(metadata);
-          }
-        } catch (error) {
-          // Handle malformed files gracefully
-          console.warn(`Warning: Could not parse plan ${planId}:`, error);
-          if (!statusFilter || statusFilter === "unknown") {
-            plans.push({
-              id: planId,
-              status: "unknown",
-            });
-          }
+      } catch (error) {
+        // If directory doesn't exist, continue to next
+        if (!(error instanceof Deno.errors.NotFound)) {
+          throw error;
         }
       }
-    } catch (error) {
-      // If directory doesn't exist, return empty array
-      if (error instanceof Deno.errors.NotFound) {
-        return [];
-      }
-      throw error;
     }
 
     // Sort by ID for consistent ordering
