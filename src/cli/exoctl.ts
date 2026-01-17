@@ -247,7 +247,11 @@ export async function __test_initializeServices(opts?: { simulateFail?: boolean;
       success: false,
       error: String(err),
       config: cfg,
-      db: {} as any,
+      // Stub db with no-op methods to prevent EventLogger crashes
+      db: {
+        logActivity: () => {},
+        waitForFlush: async () => {},
+      } as any,
       gitService: {} as any,
       provider: providerLocal,
       display: displayLocal,
