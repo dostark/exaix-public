@@ -87,8 +87,11 @@ export const AiConfigSchema = z.object({
   /** Model name (provider-specific) */
   model: z.string().default(DEFAULT_AI_MODEL),
 
-  /** API endpoint URL (for ollama, custom endpoints) */
-  base_url: z.string().url().optional(),
+  /** API endpoint URL (for ollama, custom endpoints). Empty string means use default. */
+  base_url: z.string().refine(
+    (val) => val === "" || z.string().url().safeParse(val).success,
+    { message: "Invalid url" },
+  ).optional(),
 
   /** Request timeout in milliseconds */
   timeout_ms: z.number().positive().default(DEFAULT_AI_TIMEOUT_MS),
