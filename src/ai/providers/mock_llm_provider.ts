@@ -171,10 +171,9 @@ export class MockLLMProvider implements IModelProvider {
       this.patterns.length === 0 &&
       !("patterns" in options)
     ) {
-      console.warn(
-        "MockLLMProvider: 'recorded' strategy specified but no recordings available. " +
-          "Adding default pattern fallbacks for testing.",
-      );
+      // Silently add default patterns - this provider is initialized before config
+      // is available, so we can't respect log_level settings. The fallback is
+      // expected behavior for development/testing environments.
       this.patterns = this.getDefaultPatterns();
     }
   }

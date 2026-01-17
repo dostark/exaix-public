@@ -41,7 +41,7 @@ fi
 
 # Copy runtime artifacts needed for an installed workspace (configs, tasks)
 rsync -a --exclude='node_modules' --exclude='.git' --exclude='*.log' \
-  "$REPO_ROOT/deno.json" "$REPO_ROOT/import_map.json" "$REPO_ROOT/exo.config.sample.toml" "$DEST/" || true
+  "$REPO_ROOT/deno.json" "$REPO_ROOT/templates/exo.config.sample.toml" "$DEST/" || true
 
 # Copy entire Memory/ folder (preserve subfolders and files)
 if [ -d "$REPO_ROOT/Memory" ]; then
