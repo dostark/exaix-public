@@ -97,7 +97,11 @@ if (!IN_TEST_MODE) {
       },
       agents: { default_model: "mock:test" },
     } as any;
-    db = {} as any;
+    // Stub db with no-op methods to prevent EventLogger crashes
+    db = {
+      logActivity: () => {},
+      waitForFlush: async () => {},
+    } as any;
     gitService = {} as any;
     provider = ProviderFactory.createByName(config, config.agents.default_model);
     display = new EventLogger({});
@@ -130,7 +134,11 @@ if (!IN_TEST_MODE) {
     },
     agents: { default_model: "mock:test" },
   };
-  db = {} as any;
+  // Stub db with no-op methods to prevent EventLogger crashes
+  db = {
+    logActivity: () => {},
+    waitForFlush: async () => {},
+  } as any;
   gitService = {} as any;
   provider = {} as any;
   display = new EventLogger({});
