@@ -18,7 +18,7 @@ This blueprint is used by the test suite with MockLLMProvider to validate the pl
 
 ## Response Format
 
-Always respond with \<thought\> and \<content\> tags containing valid JSON:
+Always respond with <thought> and <content> tags containing valid JSON:
 
 ```json
 {

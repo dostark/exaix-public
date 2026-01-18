@@ -312,24 +312,70 @@ export class BlueprintCommands extends BaseCommand {
   }
 
   /**
-   * Extract TOML frontmatter from blueprint content
+   * Extract frontmatter from blueprint content.
+   * Supports both TOML (+++) and YAML (---) formats for backwards compatibility.
    */
   private extractTomlFrontmatter(content: string): {
     frontmatter: Record<string, unknown> | null;
     body: string;
   } {
-    const match = content.match(/^\+\+\+\n([\s\S]*?)\n\+\+\+\n?([\s\S]*)$/);
-    if (!match) {
-      return { frontmatter: null, body: content };
+    // First try TOML format (+++)
+    const tomlMatch = content.match(/^\+\+\+\n([\s\S]*?)\n\+\+\+\n?([\s\S]*)$/);
+    if (tomlMatch) {
+      try {
+        const frontmatter = parseToml(tomlMatch[1]) as Record<string, unknown>;
+        const body = tomlMatch[2] || "";
+        return { frontmatter, body };
+      } catch {
+        return { frontmatter: null, body: content };
+      }
     }
 
-    try {
-      const frontmatter = parseToml(match[1]) as Record<string, unknown>;
-      const body = match[2] || "";
-      return { frontmatter, body };
-    } catch {
-      return { frontmatter: null, body: content };
+    // Then try YAML format (---) for backwards compatibility
+    const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+    if (yamlMatch) {
+      try {
+        // Parse YAML frontmatter (simple key: value parsing)
+        const yamlContent = yamlMatch[1];
+        const frontmatter: Record<string, unknown> = {};
+
+        for (const line of yamlContent.split("\n")) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#")) continue;
+
+          const colonIndex = trimmed.indexOf(":");
+          if (colonIndex === -1) continue;
+
+          const key = trimmed.slice(0, colonIndex).trim();
+          let value = trimmed.slice(colonIndex + 1).trim();
+
+          // Handle quoted strings
+          if (
+            (value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))
+          ) {
+            value = value.slice(1, -1);
+          } // Handle arrays
+          else if (value.startsWith("[") && value.endsWith("]")) {
+            try {
+              frontmatter[key] = JSON.parse(value.replace(/'/g, '"'));
+              continue;
+            } catch {
+              // Fall through to string parsing
+            }
+          }
+
+          frontmatter[key] = value;
+        }
+
+        const body = yamlMatch[2] || "";
+        return { frontmatter, body };
+      } catch {
+        return { frontmatter: null, body: content };
+      }
     }
+
+    return { frontmatter: null, body: content };
   }
 
   /**

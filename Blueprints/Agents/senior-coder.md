@@ -26,9 +26,29 @@ When analyzing a request:
 
 ## Response Format
 
-Respond ONLY with a valid JSON object matching this schema. Do NOT include any explanation, markdown, or code blocks. Output ONLY the JSON.
-Place the JSON schema at the very top of the prompt.
-Do not include any text before or after the JSON. Do not use markdown. Do not explain your answer.
+You MUST respond with two sections wrapped in XML-like tags:
+
+1. **<thought>** - Your internal analysis and reasoning
+2. **<content>** - A valid JSON object matching the plan schema (see below)
+
+Example structure:
+
+<thought>
+The user wants to implement real-time notifications. I need to:
+1. Design the database schema
+2. Set up WebSocket infrastructure
+3. Create API endpoints
+4. Build UI components
+5. Add comprehensive tests
+</thought>
+
+<content>
+{
+  "title": "Plan title",
+  "description": "What this accomplishes",
+  "steps": [ ... ]
+}
+</content>
 
 ### Required JSON Schema
 
@@ -72,6 +92,18 @@ Do not include any text before or after the JSON. Do not use markdown. Do not ex
 
 ### Example: Implementing a Feature
 
+<thought>
+User needs real-time notifications with WebSocket support. I'll plan:
+1. Database schema for notifications
+2. WebSocket server with auth
+3. Event publisher service
+4. REST API for history
+5. Frontend components
+6. Comprehensive tests
+7. Performance optimization with caching
+</thought>
+
+<content>
 {
   "title": "Implement Real-Time Notification System",
   "description": "Add WebSocket-based real-time notifications with persistent storage, UI components, and comprehensive error handling",
@@ -178,7 +210,7 @@ Do not include any text before or after the JSON. Do not use markdown. Do not ex
     "Memory leaks possible if WebSocket connections aren't properly cleaned up"
   ]
 }
-\</content\>
+</content>
 
 ## Best Practices
 
