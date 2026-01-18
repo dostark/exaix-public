@@ -335,37 +335,77 @@ export class BlueprintCommands extends BaseCommand {
     const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
     if (yamlMatch) {
       try {
-        // Parse YAML frontmatter (simple key: value parsing)
+        // Parse YAML frontmatter (supports both inline and multi-line arrays)
         const yamlContent = yamlMatch[1];
         const frontmatter: Record<string, unknown> = {};
+        const lines = yamlContent.split("\n");
 
-        for (const line of yamlContent.split("\n")) {
+        let currentKey: string | null = null;
+        let currentArray: string[] = [];
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
           const trimmed = line.trim();
+
+          // Skip empty lines and comments
           if (!trimmed || trimmed.startsWith("#")) continue;
 
-          const colonIndex = trimmed.indexOf(":");
+          // Check if this is a list item (starts with -)
+          if (trimmed.startsWith("- ")) {
+            if (currentKey) {
+              currentArray.push(trimmed.slice(2).trim());
+            }
+            continue;
+          }
+
+          // If we were building an array, save it now
+          if (currentKey && currentArray.length > 0) {
+            frontmatter[currentKey] = currentArray;
+            currentKey = null;
+            currentArray = [];
+          }
+
+          // Parse key: value line
+          const colonIndex = line.indexOf(":");
           if (colonIndex === -1) continue;
 
-          const key = trimmed.slice(0, colonIndex).trim();
-          let value = trimmed.slice(colonIndex + 1).trim();
+          const key = line.slice(0, colonIndex).trim();
+          const value = line.slice(colonIndex + 1).trim();
 
           // Handle quoted strings
           if (
             (value.startsWith('"') && value.endsWith('"')) ||
             (value.startsWith("'") && value.endsWith("'"))
           ) {
-            value = value.slice(1, -1);
-          } // Handle arrays
-          else if (value.startsWith("[") && value.endsWith("]")) {
-            try {
-              frontmatter[key] = JSON.parse(value.replace(/'/g, '"'));
-              continue;
-            } catch {
-              // Fall through to string parsing
-            }
+            frontmatter[key] = value.slice(1, -1);
+            continue;
           }
 
+          // Handle inline arrays [item1, item2]
+          if (value.startsWith("[") && value.endsWith("]")) {
+            try {
+              frontmatter[key] = JSON.parse(value.replace(/'/g, '"'));
+            } catch {
+              console.warn(`Failed to parse inline array for key '${key}': ${value}`);
+              frontmatter[key] = [];
+            }
+            continue;
+          }
+
+          // If value is empty, this might be a multi-line array
+          if (!value) {
+            currentKey = key;
+            currentArray = [];
+            continue;
+          }
+
+          // Default: store as string
           frontmatter[key] = value;
+        }
+
+        // Handle any remaining array
+        if (currentKey && currentArray.length > 0) {
+          frontmatter[currentKey] = currentArray;
         }
 
         const body = yamlMatch[2] || "";

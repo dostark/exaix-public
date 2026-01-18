@@ -328,10 +328,10 @@ exoctl blueprint create coder-test \
 exoctl blueprint list
 
 # Step 5: Show blueprint details
-exoctl blueprint show test-agent
+exoctl blueprint show coder-test
 
 # Step 6: Validate blueprint
-exoctl blueprint validate test-agent
+exoctl blueprint validate coder-test
 
 # Step 7: Create blueprint with custom system prompt
 cat > /tmp/custom-prompt.txt << 'EOF'
@@ -1398,68 +1398,260 @@ exoctl request list
 
 ## Scenario MT-11: Real LLM Integration
 
-**Purpose:** Verify ExoFrame works with real LLM API (Anthropic or OpenAI).
+**Purpose:** Verify ExoFrame works with real LLM API providers (Anthropic, OpenAI, Google Gemini) through complete end-to-end workflows including plan generation, execution, and changeset creation.
 
 ### Preconditions
 
-- Valid API key set in environment
+- Valid API key for chosen provider
 - Daemon NOT running (will start with real LLM)
+- Test portal configured
 
-### Steps
+### Part A: Anthropic Claude Testing
 
 ```bash
-# Step 1: Set API key (if not already)
-export ANTHROPIC_API_KEY="sk-ant-..."
-# OR
-export OPENAI_API_KEY="sk-..."
+# Step 1: Set API key
+export ANTHROPIC_API_KEY="sk-ant-api03-..."
 
-# Step 2: Start daemon with real LLM
+# Step 2: Configure ExoFrame to use Anthropic
 cd ~/ExoFrame
-EXO_LLM_PROVIDER=anthropic exoctl daemon start
-# OR
-EXO_LLM_PROVIDER=openai exoctl daemon start
+cat >> exo.config.toml << 'EOF'
 
-# Step 3: Wait for startup
-sleep 5
+[ai]
+provider = "anthropic"
+model = "claude-3-5-sonnet-20241022"  # Or claude-3-opus-20240229
+base_url = ""  # Leave empty for default
 
-# Step 4: Create a test request
-exoctl request "Create a simple TypeScript function that adds two numbers"
+[ai.anthropic]
+api_key_env = "ANTHROPIC_API_KEY"
+EOF
 
-# Step 5: Wait for plan (real LLM takes longer)
+# Step 3: Start daemon
+exoctl daemon start
+
+# Step 4: Verify provider loaded
+grep -i "anthropic\|claude" .exo/daemon.log | head -5
+
+# Step 5: Create test portal
+mkdir -p /tmp/real-llm-test
+cd /tmp/real-llm-test
+git init
+echo "# Test Project" > README.md
+git add . && git commit -m "Initial commit"
+
+# Step 6: Add portal to ExoFrame
+cd ~/ExoFrame
+exoctl portal add /tmp/real-llm-test RealLLMTest
+exoctl daemon restart
+
+# Step 7: Create request with real LLM
+exoctl request "Add a utility function to calculate factorial in src/math.ts" \
+    --agent senior-coder \
+    --portal RealLLMTest
+
+# Step 8: Wait for plan generation (real LLM takes time)
 sleep 30
-exoctl plan list
+exoctl plan list --status review
+
+# Step 9: View generated plan
+PLAN_ID=$(exoctl plan list --status review | head -1 | awk '{print $2}')
+exoctl plan show $PLAN_ID
+
+# Step 10: Approve and execute plan
+exoctl plan approve $PLAN_ID
+
+# Step 11: Wait for execution
+sleep 45
+exoctl changeset list
+
+# Step 12: Verify changeset created
+CHANGESET_ID=$(exoctl changeset list | grep pending | head -1 | awk '{print $2}')
+exoctl changeset show $CHANGESET_ID
+
+# Step 13: Check token usage
+sqlite3 .exo/journal.db "SELECT action_type, payload FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;"
+```
+
+### Part B: OpenAI GPT Testing
+
+```bash
+# Step 1: Set API key
+export OPENAI_API_KEY="sk-proj-..."
+
+# Step 2: Update config for OpenAI
+cat > ~/ExoFrame/exo.config.toml << 'EOF'
+[system]
+root = "./"
+log_level = "info"
+
+[ai]
+provider = "openai"
+model = "gpt-4-turbo"  # Or gpt-4, gpt-4o
+base_url = ""
+
+[ai.openai]
+api_key_env = "OPENAI_API_KEY"
+organization_id = ""  # Optional
+
+[[portals]]
+alias = "RealLLMTest"
+target_path = "/tmp/real-llm-test"
+EOF
+
+# Step 3: Restart daemon with OpenAI
+exoctl daemon restart
+
+# Step 4: Verify provider
+grep -i "openai\|gpt" .exo/daemon.log | head -5
+
+# Step 5: Create request
+exoctl request "Add input validation to the factorial function" \
+    --agent senior-coder \
+    --portal RealLLMTest
+
+# Step 6: Monitor plan generation
+watch -n 5 'exoctl plan list'
+# Wait until plan appears, then Ctrl+C
+
+# Step 7: Review and approve
+PLAN_ID=$(exoctl plan list --status review | head -1 | awk '{print $2}')
+exoctl plan show $PLAN_ID
+exoctl plan approve $PLAN_ID
+
+# Step 8: Wait for execution and verify changeset
+sleep 45
+exoctl changeset list
+
+# Step 9: Compare quality with Anthropic
+# Check daemon log for response characteristics
+tail -100 .exo/daemon.log | grep -A 5 "plan.generated"
+```
+
+### Part C: Google Gemini Testing
+
+```bash
+# Step 1: Set API key
+export GOOGLE_API_KEY="AIza..."
+
+# Step 2: Configure for Gemini
+cat > ~/ExoFrame/exo.config.toml << 'EOF'
+[system]
+root = "./"
+log_level = "info"
+
+[ai]
+provider = "google"
+model = "gemini-1.5-pro"  # Or gemini-1.5-flash
+base_url = ""
+
+[ai.google]
+api_key_env = "GOOGLE_API_KEY"
+
+[[portals]]
+alias = "RealLLMTest"
+target_path = "/tmp/real-llm-test"
+EOF
+
+# Step 3: Restart with Gemini
+exoctl daemon restart
+
+# Step 4: Verify provider
+grep -i "google\|gemini" .exo/daemon.log | head -5
+
+# Step 5: Create request
+exoctl request "Add error handling and tests for factorial function" \
+    --agent senior-coder \
+    --portal RealLLMTest
+
+# Step 6: Full workflow
+sleep 30
+PLAN_ID=$(exoctl plan list --status review | head -1 |awk '{print $2}')
+exoctl plan show $PLAN_ID
+exoctl plan approve $PLAN_ID
+
+sleep 45
+exoctl changeset list
+```
+
+### Part D: Provider Comparison
+
+Create comparison matrix by testing same request with each provider:
+
+```bash
+# Record metrics for each provider
+# - Time to generate plan
+# - Plan quality (steps, detail level)
+# - Execution success rate
+# - Token usage
+# - Cost estimate
+
+# Example query for token comparison
+sqlite3 .exo/journal.db "
+SELECT
+  timestamp,
+  json_extract(payload, '$.provider') as provider,
+  json_extract(payload, '$.tokens.input') as input_tokens,
+  json_extract(payload, '$.tokens.output') as output_tokens
+FROM activity
+WHERE action_type LIKE '%llm%'
+ORDER BY timestamp DESC
+LIMIT 20;
+"
 ```
 
 ### Expected Results
 
-**Step 2:**
+**Part A (Anthropic Claude):**
 
-- Daemon starts with real LLM provider
-- Shows provider name in startup log
+- Daemon starts with Anthropic provider
+- Claude model visible in logs
+- Plan generated with detailed, nuanced steps
+- Execution produces changeset with actual file modifications
+- Token usage logged (typically 2000-5000 tokens per plan)
+- High-quality, context-aware responses
 
-**Step 4:**
+**Part B (OpenAI GPT):**
 
-- Request created successfully
+- Daemon switches to OpenAI provider
+- GPT model visible in logs
+- Plan generated with structured, clear steps
+- Execution successful with changeset
+- Token usage logged (typically 1500-4000 tokens per plan)
+- Direct, action-oriented responses
 
-**Step 5:**
+**Part C (Google Gemini):**
 
-- Plan generated by real LLM
-- Plan contains detailed, coherent steps
-- Tokens used are logged
+- Daemon switches to Gemini provider
+- Gemini model visible in logs
+- Plan generated (may be more concise)
+- Execution successful with changeset
+- Token usage logged (typically 1000-3000 tokens per plan)
+- Fast response times
 
 ### Verification
 
 ```bash
-# Check plan quality
-exoctl plan show <plan-id>
-# Plan should be more detailed than mock responses
+# Check all plans generated
+ls -la Workspace/Plans/
+ls -la Workspace/Active/
 
-# Check daemon logs for token usage
-grep -i "token\|api" ~/ExoFrame/.exo/daemon.log
-# Should show non-zero token counts
+# Verify changesets created
+ls -la Workspace/Changesets/
 
-# Check API calls logged
-grep -i "anthropic\|openai" ~/ExoFrame/.exo/daemon.log
+# Check git branches created
+cd /tmp/real-llm-test
+git branch -a
+
+# Review file changes
+git diff master
+
+# Check cost tracking (if enabled)
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM cost_tracking ORDER BY timestamp DESC LIMIT 10;"
+
+# Compare plan quality
+for plan in Workspace/Plans/*.md; do
+  echo "=== $plan ==="
+  grep -A 3 "step:" "$plan" | head -20
+done
 ```
 
 ### Cleanup
@@ -1468,17 +1660,75 @@ grep -i "anthropic\|openai" ~/ExoFrame/.exo/daemon.log
 # Stop daemon
 exoctl daemon stop
 
+# Remove test portal
+exoctl portal remove RealLLMTest
+rm -rf /tmp/real-llm-test
+
 # Unset API keys
 unset ANTHROPIC_API_KEY
 unset OPENAI_API_KEY
+unset GOOGLE_API_KEY
+
+# Restore mock configuration
+cd ~/ExoFrame
+cp exo.config.sample.toml exo.config.toml
 ```
 
 ### Pass Criteria
 
-- [ ] Real LLM responds successfully
-- [ ] Plan is coherent and detailed
-- [ ] Tokens counted correctly
-- [ ] No API errors
+- [ ] **Anthropic Claude**: Provider loads, plan generated, changeset created
+- [ ] **OpenAI GPT**: Provider loads, plan generated, changeset created
+- [ ] **Google Gemini**: Provider loads, plan generated, changeset created
+- [ ] All three providers produce coherent, actionable plans
+- [ ] Execution steps generate real file changes (not just planning responses)
+- [ ] Changesets contain valid git diffs
+- [ ] Token usage tracked accurately for all providers
+- [ ] No API errors or timeout failures
+- [ ] Cost tracking logs present (if configured)
+
+### Provider Comparison Matrix
+
+| Aspect               | Anthropic Claude    | OpenAI GPT        | Google Gemini     |
+| -------------------- | ------------------- | ----------------- | ----------------- |
+| **Setup Complexity** | Simple              | Simple            | Simple            |
+| **Response Quality** | Very High (nuanced) | High (structured) | Good (concise)    |
+| **Response Speed**   | Moderate (2-5s)     | Fast (1-3s)       | Very Fast (1-2s)  |
+| **Token Usage**      | Higher (detailed)   | Moderate          | Lower (efficient) |
+| **Cost (approx)**    | $$$                 | $$                | $                 |
+| **Context Window**   | 200K tokens         | 128K tokens       | 1M tokens         |
+| **Best For**         | Complex reasoning   | General purpose   | Fast iteration    |
+
+### Troubleshooting
+
+**API Key Issues:**
+
+```bash
+# Verify key is set
+echo $ANTHROPIC_API_KEY | cut -c1-10  # Should show "sk-ant-..."
+
+# Check daemon picked up key
+grep "API key" .exo/daemon.log
+```
+
+**Provider Not Loading:**
+
+```bash
+# Check config syntax
+deno run --allow-read scripts/validate_config.ts exo.config.toml
+
+# Verify provider string exact match
+grep "provider =" exo.config.toml
+```
+
+**No Changeset Created:**
+
+```bash
+# Check execution logs
+grep "step.*" .exo/daemon.log | tail -20
+
+# Verify actions were generated (not just planning)
+grep "<actions>" .exo/daemon.log
+```
 
 ---
 

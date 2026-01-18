@@ -447,8 +447,87 @@ export class MockLLMProvider implements IModelProvider {
    * Updated for Step 6.7: Plans now use JSON format validated by PlanSchema.
    * JSON is output within <content> tags and gets validated/converted to markdown by PlanAdapter.
    */
+  /**
+   * Detect if a prompt is for execution (vs planning)
+   * Execution prompts contain specific markers indicating step execution
+   */
+  private isExecutionPrompt(prompt: string): boolean {
+    return (
+      prompt.includes("executing a plan") ||
+      prompt.includes("autonomous coding agent") ||
+      /Step \d+/i.test(prompt) ||
+      prompt.includes("execute") && prompt.includes("step")
+    );
+  }
+
+  /**
+   * Get default pattern matchers for common request types
+   * Returns different patterns for planning vs execution prompts
+   */
   private getDefaultPatterns(): PatternMatcher[] {
     return [
+      // Execution patterns (checked first) - these generate tool actions
+      {
+        pattern: /executing a plan|autonomous coding agent|Step \d+/i,
+        response: (match) => {
+          const prompt = match[0];
+          // Check what kind of action is being requested
+          const needsFileWrite = /write|create|add|implement|modify|update/i.test(prompt);
+          const needsFileRead = /read|analyze|review|check/i.test(prompt);
+
+          if (needsFileWrite) {
+            return `<thought>
+I will implement this step by creating or modifying the necessary files.
+</thought>
+
+<actions>
+[
+  {
+    "tool": "write_file",
+    "params": {
+      "path": "src/utils.ts",
+      "content": "// Mock implementation\\nexport function helloWorld(): string {\\n  return 'Hello, World!';\\n}\\n"
+    }
+  }
+]
+</actions>`;
+          } else if (needsFileRead) {
+            return `<thought>
+I will read the relevant files to understand the current implementation.
+</thought>
+
+<actions>
+[
+  {
+    "tool": "read_file",
+    "params": {
+      "path": "src/index.ts"
+    }
+  }
+]
+</actions>`;
+          } else {
+            // Generic execution response
+            return `<thought>
+I will execute this step according to the plan.
+</thought>
+
+<actions>
+[
+  {
+    "tool": "write_file",
+    "params": {
+      "path": "src/output.txt",
+      "content": "Step completed successfully"
+    }
+  }
+]
+</actions>`;
+          }
+        },
+      },
+
+      // Planning patterns (for plan generation requests)
       {
         pattern: /implement|add|create/i,
         response: `<thought>
