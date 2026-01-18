@@ -20,7 +20,7 @@ import { ResolvedProviderOptions } from "./provider_factory.ts";
 import { MockLLMProvider } from "./providers/mock_llm_provider.ts";
 import { OllamaProvider } from "./providers.ts";
 import { LlamaProvider } from "./providers/llama_provider.ts";
-import { SecureCredentialStore } from "../utils/credential_security.ts";
+import { getApiKeyWithOptionalPersistence } from "./provider_api_key.ts";
 import { OpenAIProvider } from "./providers/openai_provider.ts";
 import { AnthropicProvider } from "./providers/anthropic_provider.ts";
 import { GoogleProvider } from "./providers/google_provider.ts";
@@ -251,11 +251,12 @@ export class LlamaProviderFactory implements IProviderFactory {
  */
 export class AnthropicProviderFactory implements IProviderFactory {
   async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
-    const apiKey = await SecureCredentialStore.get("ANTHROPIC_API_KEY");
+    const apiKey = await getApiKeyWithOptionalPersistence("ANTHROPIC_API_KEY");
     if (!apiKey) {
-      throw new ProviderFactoryError("Authentication failed");
+      throw new ProviderFactoryError(
+        "Authentication failed: ANTHROPIC_API_KEY not found in environment or credential store",
+      );
     }
-
     return new AnthropicProvider({
       apiKey,
       model: options.model,
@@ -269,11 +270,12 @@ export class AnthropicProviderFactory implements IProviderFactory {
  */
 export class OpenAIProviderFactory implements IProviderFactory {
   async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
-    const apiKey = await SecureCredentialStore.get("OPENAI_API_KEY");
+    const apiKey = await getApiKeyWithOptionalPersistence("OPENAI_API_KEY");
     if (!apiKey) {
-      throw new ProviderFactoryError("Authentication failed");
+      throw new ProviderFactoryError(
+        "Authentication failed: OPENAI_API_KEY not found in environment or credential store",
+      );
     }
-
     return new OpenAIProvider({
       apiKey,
       model: options.model,
@@ -288,11 +290,12 @@ export class OpenAIProviderFactory implements IProviderFactory {
  */
 export class GoogleProviderFactory implements IProviderFactory {
   async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
-    const apiKey = await SecureCredentialStore.get("GOOGLE_API_KEY");
+    const apiKey = await getApiKeyWithOptionalPersistence("GOOGLE_API_KEY");
     if (!apiKey) {
-      throw new ProviderFactoryError("Authentication failed");
+      throw new ProviderFactoryError(
+        "Authentication failed: GOOGLE_API_KEY not found in environment or credential store",
+      );
     }
-
     return new GoogleProvider({
       apiKey,
       model: options.model,
