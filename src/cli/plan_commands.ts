@@ -260,7 +260,7 @@ export class PlanCommands extends BaseCommand {
             continue;
           }
 
-          const planId = entry.name.replace(/\\.md$/, "").replace(/_rejected$/, "");
+          const planId = entry.name.replace(/\.md$/, "").replace(/_rejected$/, "");
           const planPath = join(dir, entry.name);
 
           try {
