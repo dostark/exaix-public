@@ -311,6 +311,56 @@ Agents must use the following core services for reliability and security:
 - **Monitoring:** Respect `CostTracker` limits. Register checks via `HealthCheckService`.
 - **Async:** Use `DatabaseConnectionPool` for all DB operations.
 
+## Regression Testing Requirements
+
+**MANDATORY:** When fixing any bug or issue, agents MUST create regression tests to prevent the bug from recurring.
+
+### Requirements
+
+1. **Every bug fix requires a regression test** — Before or after implementing a fix, create a test that:
+   - Reproduces the original bug condition
+   - Verifies the fix resolves the issue
+   - Guards against future regressions
+
+2. **Test naming convention** — Use `[regression]` prefix in test names:
+   ```typescript
+   Deno.test("[regression] Plan list shows approved plans from Active directory", ...);
+   Deno.test("[regression] EventLogger works with stub db", ...);
+   ```
+
+3. **Test file location** — Place regression tests in:
+   - `tests/<feature>_regression_test.ts` for feature-specific regressions
+   - `tests/integration/<N>_<feature>_integration_test.ts` for integration-level regressions
+
+4. **Document the bug** — Include a comment referencing:
+   - The original error message or behavior
+   - The root cause
+   - The fix applied
+
+### Example Regression Test
+
+```typescript
+/**
+ * Regression test for: "TypeError: this.db.logActivity is not a function"
+ * Root cause: Fallback db object was empty {} without required methods
+ * Fix: Added stub logActivity() and waitForFlush() to fallback db
+ */
+Deno.test("[regression] EventLogger works with stub db", async () => {
+  const stubDb = { logActivity: () => {}, waitForFlush: async () => {} };
+  const logger = new EventLogger({ db: stubDb as any });
+
+  // Should NOT throw "logActivity is not a function"
+  await logger.info("test.action", "target");
+});
+```
+
+### Workflow
+
+1. **Reproduce** — Write a test that fails with the original bug
+2. **Fix** — Implement the code fix
+3. **Verify** — Ensure the regression test now passes
+4. **Commit** — Include both fix and test in the same commit or PR
+
 ## Notes
 
 These files are **not** runtime Blueprints/agents (see `Blueprints/Agents/`). They are development-focused guidance to be used by IDE agents and automation helpers.
