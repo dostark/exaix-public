@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "@std/assert";
+import { assert, assertAlmostEquals, assertEquals } from "@std/assert";
 import { CostTracker } from "../../src/services/cost_tracker.ts";
 import { initTestDbService } from "../helpers/db.ts";
 
@@ -64,7 +64,7 @@ Deno.test("CostTracker: handles different providers", async () => {
     const anthropicCost = await tracker.getDailyCost("anthropic");
 
     assertEquals(openaiCost, 0.001); // $0.001 per 1K
-    assertEquals(anthropicCost, 0.001); // $0.001 per 1K
+    assertEquals(anthropicCost, 0.004); // $0.004 per 1K
 
     await db.close();
   } finally {
@@ -136,11 +136,11 @@ Deno.test("CostTracker: getDailyCost without provider sums all", async () => {
     const tracker = new CostTracker(db);
 
     await tracker.trackRequest("openai", 1000); // $0.001
-    await tracker.trackRequest("anthropic", 1000); // $0.001
+    await tracker.trackRequest("anthropic", 2000); // $0.008
     await tracker.flush(); // Flush batch for immediate write
 
     const totalCost = await tracker.getDailyCost();
-    assertEquals(totalCost, 0.002);
+    assertAlmostEquals(totalCost, 0.009); // 0.001 (openai) + 0.008 (anthropic)
 
     await db.close();
   } finally {
@@ -167,7 +167,7 @@ Deno.test("CostTracker: getCostSummary returns records in date range", async () 
     assertEquals(summary.length, 2);
     assertEquals(summary[0].provider, "anthropic"); // Most recent first
     assertEquals(summary[0].tokens, 2000);
-    assertEquals(summary[0].estimatedCostUsd, 0.002); // 2000 tokens * $0.001
+    assertEquals(summary[0].estimatedCostUsd, 0.008); // 2000 tokens * $0.004
     assertEquals(summary[1].provider, "openai");
     assertEquals(summary[1].tokens, 1000);
     assertEquals(summary[1].estimatedCostUsd, 0.001);
