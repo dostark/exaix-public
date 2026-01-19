@@ -1,7 +1,7 @@
 ---
 agent_id: "senior-coder"
 name: "Senior Software Engineer"
-model: "ollama:codellama:7b-instruct"
+model: "google:gemini-2.0-flash-latest"
 capabilities: ["code_generation", "architecture", "debugging", "testing", "code_review"]
 created: "2025-12-09T13:47:00Z"
 created_by: "exoframe-setup"

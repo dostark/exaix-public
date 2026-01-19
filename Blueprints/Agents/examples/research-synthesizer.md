@@ -1,7 +1,7 @@
 ---
 agent_id: "research-synthesizer"
 name: "Research Synthesizer"
-model: "anthropic:claude-opus-4.5"
+model: "google:gemini-2.0-flash-latest"
 capabilities: ["read_file", "write_file", "list_directory"]
 created: "2025-12-20T22:37:31Z"
 created_by: "system"

@@ -1,7 +1,7 @@
 ---
 agent_id: "{{agent_id}}"
 name: "{{name}} Specialist"
-model: "anthropic:claude-opus-4.5"
+model: "google:gemini-2.0-flash-latest"
 capabilities: ["read_file", "write_file", "list_directory", "run_command"]
 domain: "{{domain}}"
 expertise_level: "expert"
@@ -188,7 +188,7 @@ cp specialist-agent.md.template ../security-specialist.md
 ```yaml
 agent_id: "security-specialist"
 name: "Security Specialist"
-model: "anthropic:claude-opus-4.5"
+model: "google:gemini-2.0-flash-latest"
 capabilities: ["read_file", "grep_search"]
 domain: "security"               # Specialization domain
 expertise_level: "expert"        # expert | senior | standard

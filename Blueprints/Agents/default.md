@@ -1,7 +1,7 @@
 ---
 agent_id: "default"
 name: "Default Agent"
-model: "ollama:codellama:13b"
+model: "google:gemini-2.0-flash-latest"
 capabilities: ["code_generation", "planning", "debugging"]
 created: "2025-12-09T13:47:00Z"
 created_by: "exoframe-setup"

@@ -1,7 +1,7 @@
 ---
 agent_id: "security-auditor"
 name: "Security Auditor"
-model: "anthropic:claude-opus-4.5"
+model: "google:gemini-2.0-flash-latest"
 capabilities: ["read_file", "list_directory", "git_status"]
 created: "2025-12-20T22:37:31Z"
 created_by: "system"

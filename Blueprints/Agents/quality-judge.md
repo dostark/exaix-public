@@ -1,7 +1,7 @@
 ---
 agent_id: "quality-judge"
 name: "Quality Judge"
-model: "anthropic:claude-3-5-sonnet-20241022"
+model: "google:gemini-2.0-flash-latest"
 capabilities: ["evaluation", "quality_assessment", "structured_output", "code_review"]
 created: "2026-01-04T10:00:00Z"
 created_by: "exoframe-system"

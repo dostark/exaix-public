@@ -1,7 +1,7 @@
 ---
 agent_id: "qa-engineer"
 name: "QA Engineer"
-model: "anthropic:claude-sonnet-4"
+model: "google:gemini-2.0-flash-latest"
 capabilities: ["read_file", "list_directory", "run_command"]
 created: "2026-01-05T00:00:00Z"
 created_by: "phase-18-modernization"

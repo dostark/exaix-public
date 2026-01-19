@@ -1,7 +1,7 @@
 ---
 agent_id: "{{agent_id}}"
 name: "{{name}}"
-model: "anthropic:claude-opus-4.5"
+model: "google:gemini-2.0-flash-latest"
 capabilities: ["read_file", "write_file"]
 conversational: true
 max_turns: 20
@@ -183,7 +183,7 @@ When user returns after gap:
 ```yaml
 agent_id: "conversation-id"
 name: "Conversational Agent"
-model: "anthropic:claude-opus-4.5"
+model: "google:gemini-2.0-flash-latest"
 capabilities: ["read_file", "memory_access"]
 conversational: true           # Enable multi-turn mode
 max_turns: 20                  # Max turns before reset

@@ -156,7 +156,7 @@ Unlike **Examples** (which are fully defined personas like "Code Reviewer"), **T
 ```yaml
 agent_id: "unique-id" # Required: Unique identifier
 name: "Display Name" # Required: Human-readable name
-model: "anthropic:claude-opus-4.5" # Required: LLM model
+model: "google:gemini-2.0-flash-latest" # Required: LLM model
 capabilities: ["read_file"] # Required: MCP tools allowed
 version: "1.0.0" # Semantic version
 created: "2025-01-20T..." # ISO timestamp
