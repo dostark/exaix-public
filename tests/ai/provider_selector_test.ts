@@ -495,7 +495,7 @@ Deno.test("ProviderSelector: enforces budget constraints", async () => {
     const healthService = new HealthCheckService("1.0.0");
 
     // Track enough usage to exceed budget
-    await costTracker.trackRequest("openai", 50000); // $0.50 at $0.01/1K
+    await costTracker.trackRequest("openai", 500000); // $0.50 at $0.001/1K
     await costTracker.flush(); // Ensure the cost is written immediately for the test
 
     ProviderRegistry.clear();
