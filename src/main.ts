@@ -40,9 +40,10 @@ if (import.meta.main) {
 
     // Initialize StructuredLogger for audit and performance tracking
     const logsDir = join(config.system.root, "logs");
-    await ensureDir(logsDir);
+    const structuredLogsDir = join(logsDir, "structured");
+    await ensureDir(structuredLogsDir);
 
-    const structuredOutputs: LogOutput[] = [new FileOutput(join(logsDir, "exoframe-structured.log"))];
+    const structuredOutputs: LogOutput[] = [new FileOutput(structuredLogsDir)];
 
     // Add console output for debug level to help with development
     if (config.system.log_level === "debug") {
