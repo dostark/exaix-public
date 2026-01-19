@@ -360,7 +360,7 @@ export const PROVIDER_RATE_LIMIT_RPM_MAX = 1000;
 export const DEFAULT_OLLAMA_ENDPOINT = "http://localhost:11434/api/generate";
 export const DEFAULT_ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
 export const DEFAULT_OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
-export const DEFAULT_GOOGLE_ENDPOINT = "https://generativelanguage.googleapis.com/v1/models";
+export const DEFAULT_GOOGLE_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 
 export const DEFAULT_SUBPROCESS_TIMEOUT_MS = 30000;
 
