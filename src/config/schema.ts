@@ -109,14 +109,14 @@ export const ConfigSchema = z.object({
     base_url: z.string().optional(),
   })).default({
     default: {
-      provider: DEFAULTS.PROVIDER_MOCK,
-      model: DEFAULTS.DEFAULT_MOCK_MODEL,
-      timeout_ms: DEFAULTS.DEFAULT_MODEL_TIMEOUT_MS,
+      provider: DEFAULTS.PROVIDER_GOOGLE,
+      model: DEFAULTS.DEFAULT_GOOGLE_MODEL,
+      timeout_ms: DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS,
     },
     fast: {
-      provider: DEFAULTS.PROVIDER_MOCK,
+      provider: DEFAULTS.PROVIDER_GOOGLE,
       model: DEFAULTS.DEFAULT_FAST_MODEL_NAME,
-      timeout_ms: DEFAULTS.DEFAULT_FAST_MODEL_TIMEOUT_MS,
+      timeout_ms: DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS,
     },
     local: {
       provider: DEFAULTS.PROVIDER_OLLAMA,

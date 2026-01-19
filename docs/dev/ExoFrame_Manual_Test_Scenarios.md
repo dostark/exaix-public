@@ -642,7 +642,7 @@ rm -f ~/ExoFrame/Workspace/Requests/request-*.md
 
 ### Preconditions
 
-- Daemon running with mock LLM (default in dev mode)
+- Daemon running with mock LLM (requires `EXO_LLM_PROVIDER=mock` or config)
 - Request created (MT-04 complete)
 
 **Note:** MockLLMProvider automatically initializes with default pattern fallbacks when no recordings are provided, so it will generate valid plans without requiring pre-recorded responses.
@@ -677,7 +677,7 @@ ls -la ~/ExoFrame/Workspace/Plans/
 **Step 1:**
 
 - Daemon status shows "Running"
-- If not running, start with: `exoctl daemon start`
+- If not running, start with: `EXO_LLM_PROVIDER=mock exoctl daemon start`
 
 **Step 2:**
 
@@ -2013,7 +2013,7 @@ rm ~/ExoFrame/Workspace/Requests/rapid-*.md
 ### Steps
 
 ```bash
-# Step 1: Test default behavior (mock provider)
+# Step 1: Test default behavior (Google provider) - Assumes GOOGLE_API_KEY set
 cd ~/ExoFrame
 exoctl daemon start
 sleep 3
@@ -2070,8 +2070,8 @@ exoctl daemon stop
 
 **Step 2:**
 
-- Shows: `✅ LLM Provider: mock-recorded`
-- Mock provider used by default
+- Shows: `✅ LLM Provider: google-gemini-2.0-flash-latest`
+- Google provider used by default
 
 **Step 4:**
 

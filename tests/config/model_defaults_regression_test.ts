@@ -25,3 +25,11 @@ Deno.test("[regression] verify default google model is gemini-2.0-flash-latest",
   assertEquals(id, "google-gemini-2.0-flash-latest");
   assertEquals(DEFAULTS.DEFAULT_GOOGLE_MODEL, "gemini-2.0-flash-latest");
 });
+
+Deno.test("[regression] verify global default model is gemini-2.0-flash-latest", () => {
+  assertEquals(DEFAULTS.DEFAULT_AI_MODEL, "gemini-2.0-flash-latest");
+});
+
+Deno.test("[regression] verify default fast model is gemini-2.0-flash-latest", () => {
+  assertEquals(DEFAULTS.DEFAULT_FAST_MODEL_NAME, "gemini-2.0-flash-latest");
+});

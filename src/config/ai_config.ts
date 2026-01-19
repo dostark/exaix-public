@@ -82,7 +82,7 @@ export type MockConfig = z.infer<typeof MockConfigSchema>;
  */
 export const AiConfigSchema = z.object({
   /** Provider type: mock, ollama, anthropic, openai */
-  provider: ProviderTypeSchema.default(ProviderType.MOCK),
+  provider: ProviderTypeSchema.default(ProviderType.GOOGLE),
 
   /** Model name (provider-specific) */
   model: z.string().default(DEFAULT_AI_MODEL),
@@ -105,7 +105,7 @@ export const AiConfigSchema = z.object({
   /** Mock-specific configuration */
   mock: MockConfigSchema.optional(),
 }).default({
-  provider: ProviderType.MOCK,
+  provider: ProviderType.GOOGLE,
   timeout_ms: DEFAULT_AI_TIMEOUT_MS,
 });
 
@@ -115,7 +115,7 @@ export type AiConfig = z.infer<typeof AiConfigSchema>;
  * Default AI configuration
  */
 export const DEFAULT_AI_CONFIG: AiConfig = {
-  provider: ProviderType.MOCK,
+  provider: ProviderType.GOOGLE,
   model: DEFAULT_AI_MODEL,
   timeout_ms: DEFAULT_AI_TIMEOUT_MS,
 };

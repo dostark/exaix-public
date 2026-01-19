@@ -118,9 +118,9 @@ target_path = "/home/me/projects/my-repo"
 #   - gemini-1.5-flash-latest (Reliable Debugging)
 # ---------------------------------------------------------------------------
 [ai]
-provider = "mock"       # Overridden by EXO_LLM_PROVIDER
+provider = "google"     # Overridden by EXO_LLM_PROVIDER
 # Provider-specific model name (optional)
-model = "mock-model"    # Overridden by EXO_LLM_MODEL
+model = "gemini-2.0-flash-latest"    # Overridden by EXO_LLM_MODEL
 # Base URL for custom provider endpoints (optional)
 base_url = ""           # Overridden by EXO_LLM_BASE_URL
 # Request timeout (ms)
@@ -174,15 +174,15 @@ max_tokens_default = 4096
 # ---------------------------------------------------------------------------
 
 [models.default]
-provider = "mock"
-model = "mock-model"
+provider = "google"
+model = "gemini-2.0-flash-latest"
 timeout_ms = 30000         # Request timeout for this model preset
 max_tokens = 2048
 temperature = 0.2
 
 [models.fast]
-provider = "openai"
-model = "gpt-5-mini"
+provider = "google"
+model = "gemini-2.0-flash-latest"
 timeout_ms = 15000         # Faster timeout for quick responses
 
 [models.local]
@@ -297,8 +297,8 @@ max_batch_size = 50
 
 # Cost rates per 1K tokens (override defaults for your pricing)
 [cost_tracking.rates]
-openai = 0.01      # $0.01 per 1K tokens
-anthropic = 0.015  # $0.015 per 1K tokens
+openai = 0.001     # $1.00 per 1M tokens (gpt-5-mini)
+anthropic = 0.004  # $4.00 per 1M tokens (claude-3.5-haiku)
 google = 0.0       # Free tier
 ollama = 0.0       # Local free
 mock = 0.0         # Mock free
