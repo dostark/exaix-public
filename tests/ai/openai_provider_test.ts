@@ -6,7 +6,7 @@ import { openaiResponseConfig, registerProviderTests, spyFetch } from "./helpers
 registerProviderTests({
   name: "OpenAIProvider",
   createProvider: (options) => new OpenAIProvider({ apiKey: "test-key", ...options }),
-  defaultId: "openai-gpt-5.2-pro",
+  defaultId: "openai-gpt-5-mini",
   responseConfig: openaiResponseConfig,
   apiKeyHeader: "Authorization",
   apiKeyValue: "Bearer test-key",

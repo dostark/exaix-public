@@ -104,6 +104,18 @@ target_path = "/home/me/projects/my-repo"
 # ---------------------------------------------------------------------------
 # AI / LLM provider configuration
 # Supported providers: mock | ollama | anthropic | openai | google
+#
+# Recommended Models (2026 Tightened List):
+# OpenAI:
+#   - gpt-5-mini (Low-cost/Speed)
+#   - gpt-4o-mini (Multimodal)
+#   - gpt-5 (Premium Reasoning)
+# Anthropic:
+#   - claude-3.5-haiku-latest (Fast Prototyping)
+#   - claude-4-sonnet-latest (Balanced)
+# Google:
+#   - gemini-2.0-flash-latest (Free/Agentic)
+#   - gemini-1.5-flash-latest (Reliable Debugging)
 # ---------------------------------------------------------------------------
 [ai]
 provider = "mock"       # Overridden by EXO_LLM_PROVIDER
@@ -153,7 +165,7 @@ backoff_base_ms = 1000
 [ai.anthropic]
 # Anthropic Claude-specific configuration
 api_version = "2023-06-01"
-default_model = "claude-opus-4.5"
+default_model = "claude-3.5-haiku-latest"
 max_tokens_default = 4096
 
 # ---------------------------------------------------------------------------
@@ -169,8 +181,8 @@ max_tokens = 2048
 temperature = 0.2
 
 [models.fast]
-provider = "mock"
-model = "mock-fast"
+provider = "openai"
+model = "gpt-5-mini"
 timeout_ms = 15000         # Faster timeout for quick responses
 
 [models.local]

@@ -120,8 +120,10 @@ export const DEFAULT_OLLAMA_TIMEOUT_MS = 120000;
 export const DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
 export const DEFAULT_OLLAMA_MODEL = "llama3.2";
 export const DEFAULT_OPENAI_BASE_URL = "https://api.openai.com";
-export const DEFAULT_OPENAI_MODEL = "gpt-4.1";
-export const DEFAULT_GOOGLE_MODEL = "gemini-1.5-pro";
+// Options: gpt-5-mini (default), gpt-4o-mini, gpt-5, o3-mini, gpt-5.2
+export const DEFAULT_OPENAI_MODEL = "gpt-5-mini";
+// Options: gemini-2.0-flash-latest (default), gemini-1.5-flash-latest, gemini-2.0-flash-lite, gemini-3-pro-latest, gemini-1.5-pro-latest
+export const DEFAULT_GOOGLE_MODEL = "gemini-2.0-flash-latest";
 
 // ============================================================================
 // Mock Provider Validation Limits
@@ -142,7 +144,7 @@ export const MOCK_OUTPUT_TOKENS = 200;
 export const DEFAULT_MOCK_MODEL = "mock-model";
 
 // Additional model names for schema defaults
-export const DEFAULT_FAST_MODEL_NAME = "mock-fast";
+export const DEFAULT_FAST_MODEL_NAME = "gpt-5-mini"; // Was mock-fast, now using recommended fast model name as default
 export const DEFAULT_LOCAL_MODEL_NAME = "llama3.2";
 
 // Provider names for schema defaults
@@ -208,7 +210,8 @@ export const PROMPT_PREVIEW_EXTENDED_MAX = 1000;
 export const PROMPT_PREVIEW_LENGTH = 100;
 export const PROMPT_PREVIEW_EXTENDED = 500;
 export const DEFAULT_ANTHROPIC_API_VERSION = "2023-06-01";
-export const DEFAULT_ANTHROPIC_MODEL = "claude-opus-4.5";
+// Options: claude-3.5-haiku-latest (default), claude-4-sonnet-latest, claude-4-haiku, claude-4-opus-latest, claude-4.5-opus
+export const DEFAULT_ANTHROPIC_MODEL = "claude-3.5-haiku-latest";
 export const DEFAULT_ANTHROPIC_MAX_TOKENS = 4096;
 
 // ============================================================================

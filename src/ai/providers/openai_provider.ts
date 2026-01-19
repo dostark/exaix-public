@@ -45,7 +45,7 @@ export class OpenAIProvider implements IModelProvider {
    */
   constructor(options: OpenAIProviderOptions) {
     this.apiKey = options.apiKey;
-    this.model = options.model || "gpt-5.2-pro";
+    this.model = options.model || DEFAULTS.DEFAULT_OPENAI_MODEL;
     this.id = options.id || `openai-${this.model}`;
     this.logger = options.logger;
 

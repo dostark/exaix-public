@@ -45,7 +45,7 @@ export class GoogleProvider implements IModelProvider {
    */
   constructor(options: GoogleProviderOptions) {
     this.apiKey = options.apiKey;
-    this.model = options.model || "gemini-3-pro";
+    this.model = options.model || DEFAULTS.DEFAULT_GOOGLE_MODEL;
     this.id = options.id || `google-${this.model}`;
     this.logger = options.logger;
 

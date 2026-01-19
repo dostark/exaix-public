@@ -360,7 +360,7 @@ Deno.test("ProviderFactory: config ai.provider=mock creates MockLLMProvider", as
 
 Deno.test(
   "ProviderFactory: anthropic requires ANTHROPIC_API_KEY",
-  withEnvVars({ EXO_LLM_PROVIDER: "anthropic" }, async () => {
+  withEnvVars({ EXO_LLM_PROVIDER: "anthropic", ANTHROPIC_API_KEY: "" }, async () => {
     // Ensure API key is not in secure store
     SecureCredentialStore.clear("ANTHROPIC_API_KEY");
 
@@ -376,7 +376,7 @@ Deno.test(
 
 Deno.test(
   "ProviderFactory: openai requires OPENAI_API_KEY",
-  withEnvVars({ EXO_LLM_PROVIDER: "openai" }, async () => {
+  withEnvVars({ EXO_LLM_PROVIDER: "openai", OPENAI_API_KEY: "" }, async () => {
     // Ensure API key is not in secure store
     SecureCredentialStore.clear("OPENAI_API_KEY");
 
@@ -681,14 +681,20 @@ Deno.test("ProviderFactory: createWithFallback falls back if primary fails", asy
     fallback: { provider: ProviderType.MOCK, model: "fallback-mock", timeout_ms: 30000 },
   };
   // Ensure no API key for anthropic
+  Deno.env.set("ANTHROPIC_API_KEY", "");
   SecureCredentialStore.clear("ANTHROPIC_API_KEY");
-  const provider = await ProviderFactory.createWithFallback(config, {
-    primary: "primary",
-    fallbacks: ["fallback"],
-    healthCheck: false,
-  });
-  assertExists(provider);
-  assertStringIncludes(provider.id, "fallback-mock");
+
+  try {
+    const provider = await ProviderFactory.createWithFallback(config, {
+      primary: "primary",
+      fallbacks: ["fallback"],
+      healthCheck: false,
+    });
+    assertExists(provider);
+    assertStringIncludes(provider.id, "fallback-mock");
+  } finally {
+    Deno.env.delete("ANTHROPIC_API_KEY");
+  }
 });
 
 Deno.test("ProviderFactory: createWithFallback throws if all fail", async () => {
@@ -698,17 +704,23 @@ Deno.test("ProviderFactory: createWithFallback throws if all fail", async () => 
     fallback: { provider: ProviderType.ANTHROPIC, model: "bad-model", timeout_ms: 30000 },
   };
   // Ensure no API key for anthropic
+  Deno.env.set("ANTHROPIC_API_KEY", "");
   SecureCredentialStore.clear("ANTHROPIC_API_KEY");
-  await assertRejects(
-    () =>
-      ProviderFactory.createWithFallback(config, {
-        primary: "primary",
-        fallbacks: ["fallback"],
-        healthCheck: false,
-      }),
-    ProviderFactoryError,
-    "All providers in fallback chain failed",
-  );
+
+  try {
+    await assertRejects(
+      () =>
+        ProviderFactory.createWithFallback(config, {
+          primary: "primary",
+          fallbacks: ["fallback"],
+          healthCheck: false,
+        }),
+      ProviderFactoryError,
+      "All providers in fallback chain failed",
+    );
+  } finally {
+    Deno.env.delete("ANTHROPIC_API_KEY");
+  }
 });
 
 Deno.test("ProviderFactory: createWithFallback healthCheck calls validateConnection", async () => {
