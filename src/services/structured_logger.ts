@@ -16,7 +16,8 @@
  * - --allow-read: For reading existing log files (rotation)
  */
 
-import { join } from "@std/path";
+import { dirname, join } from "@std/path";
+import { ensureDir } from "@std/fs";
 
 // ============================================================================
 // Types and Interfaces
@@ -113,6 +114,7 @@ export class ConsoleOutput implements LogOutput {
 export class FileOutput implements LogOutput {
   private currentFilePath: string;
   private currentFileSize = 0;
+  private dirEnsured = false;
 
   constructor(
     private basePath: string,
@@ -140,6 +142,10 @@ export class FileOutput implements LogOutput {
     }
 
     try {
+      if (!this.dirEnsured) {
+        await ensureDir(dirname(this.currentFilePath));
+        this.dirEnsured = true;
+      }
       await Deno.writeTextFile(this.currentFilePath, line, { append: true });
       this.currentFileSize += lineSize;
     } catch (error) {

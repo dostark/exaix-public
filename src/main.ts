@@ -41,7 +41,6 @@ if (import.meta.main) {
     // Initialize StructuredLogger for audit and performance tracking
     const logsDir = join(config.system.root, "logs");
     const structuredLogsDir = join(logsDir, "structured");
-    await ensureDir(structuredLogsDir);
 
     const structuredOutputs: LogOutput[] = [new FileOutput(structuredLogsDir)];
 
