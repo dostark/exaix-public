@@ -298,8 +298,8 @@ export const COST_TRACKING_RATES_MAX = 1;
 // Cost tracking defaults
 export const DEFAULT_COST_TRACKING_BATCH_DELAY_MS = 5000;
 export const DEFAULT_COST_TRACKING_MAX_BATCH_SIZE = 50;
-export const COST_RATE_OPENAI = 0.01;
-export const COST_RATE_ANTHROPIC = 0.015;
+export const COST_RATE_OPENAI = 0.001;
+export const COST_RATE_ANTHROPIC = 0.001;
 export const COST_RATE_GOOGLE = 0.0;
 export const COST_RATE_OLLAMA = 0.0;
 export const COST_RATE_MOCK = 0.0;

@@ -23,8 +23,8 @@ Deno.test("CostTracker: tracks single request", async () => {
     await tracker.flush(); // Flush batch for immediate write
 
     const dailyCost = await tracker.getDailyCost("openai");
-    // 1000 tokens * $0.01 per 1K tokens = $0.01
-    assertEquals(dailyCost, 0.01);
+    // 1000 tokens * $0.001 per 1K tokens = $0.001
+    assertEquals(dailyCost, 0.001);
 
     await db.close();
   } finally {
@@ -42,8 +42,8 @@ Deno.test("CostTracker: accumulates multiple requests", async () => {
     await tracker.flush(); // Flush batch for immediate write
 
     const dailyCost = await tracker.getDailyCost("openai");
-    // (1000 + 2000) tokens * $0.01 per 1K tokens = $0.03
-    assertEquals(dailyCost, 0.03);
+    // (1000 + 2000) tokens * $0.001 per 1K tokens = $0.003
+    assertEquals(dailyCost, 0.003);
 
     await db.close();
   } finally {
@@ -63,8 +63,8 @@ Deno.test("CostTracker: handles different providers", async () => {
     const openaiCost = await tracker.getDailyCost("openai");
     const anthropicCost = await tracker.getDailyCost("anthropic");
 
-    assertEquals(openaiCost, 0.01); // $0.01 per 1K
-    assertEquals(anthropicCost, 0.015); // $0.015 per 1K
+    assertEquals(openaiCost, 0.001); // $0.001 per 1K
+    assertEquals(anthropicCost, 0.001); // $0.001 per 1K
 
     await db.close();
   } finally {
@@ -101,7 +101,7 @@ Deno.test("CostTracker: isWithinBudget returns true when under budget", async ()
   try {
     const tracker = new CostTracker(db);
 
-    await tracker.trackRequest("openai", 500); // $0.005
+    await tracker.trackRequest("openai", 500); // $0.0005
     await tracker.flush(); // Flush batch for immediate write
 
     const withinBudget = await tracker.isWithinBudget("openai", 0.01);
@@ -118,7 +118,7 @@ Deno.test("CostTracker: isWithinBudget returns false when over budget", async ()
   try {
     const tracker = new CostTracker(db);
 
-    await tracker.trackRequest("openai", 1500); // $0.015
+    await tracker.trackRequest("openai", 15000); // $0.015
     await tracker.flush(); // Flush batch for immediate write
 
     const withinBudget = await tracker.isWithinBudget("openai", 0.01);
@@ -135,12 +135,12 @@ Deno.test("CostTracker: getDailyCost without provider sums all", async () => {
   try {
     const tracker = new CostTracker(db);
 
-    await tracker.trackRequest("openai", 1000); // $0.01
-    await tracker.trackRequest("anthropic", 1000); // $0.015
+    await tracker.trackRequest("openai", 1000); // $0.001
+    await tracker.trackRequest("anthropic", 1000); // $0.001
     await tracker.flush(); // Flush batch for immediate write
 
     const totalCost = await tracker.getDailyCost();
-    assertEquals(totalCost, 0.025);
+    assertEquals(totalCost, 0.002);
 
     await db.close();
   } finally {
@@ -167,10 +167,10 @@ Deno.test("CostTracker: getCostSummary returns records in date range", async () 
     assertEquals(summary.length, 2);
     assertEquals(summary[0].provider, "anthropic"); // Most recent first
     assertEquals(summary[0].tokens, 2000);
-    assertEquals(summary[0].estimatedCostUsd, 0.03); // 2000 tokens * $0.015
+    assertEquals(summary[0].estimatedCostUsd, 0.002); // 2000 tokens * $0.001
     assertEquals(summary[1].provider, "openai");
     assertEquals(summary[1].tokens, 1000);
-    assertEquals(summary[1].estimatedCostUsd, 0.01);
+    assertEquals(summary[1].estimatedCostUsd, 0.001);
 
     await db.close();
   } finally {
