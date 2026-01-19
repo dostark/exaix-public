@@ -1694,7 +1694,7 @@ cp exo.config.sample.toml exo.config.toml
 | **Response Quality** | Very High (nuanced) | High (structured) | Good (concise)    |
 | **Response Speed**   | Fast (1-3s)         | Fast (1-3s)       | Very Fast (1-2s)  |
 | **Token Usage**      | Moderate            | Moderate          | Lower (efficient) |
-| **Cost (approx)**    | $                   | $                 | $                 |
+| **Cost (approx)**    | $$ (Output heavy)   | $                 | Free / $          |
 | **Context Window**   | 200K tokens         | 128K tokens       | 1M tokens         |
 | **Best For**         | Complex reasoning   | General purpose   | Fast iteration    |
 
