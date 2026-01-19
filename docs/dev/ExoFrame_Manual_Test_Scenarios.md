@@ -422,7 +422,7 @@ exoctl blueprint remove invalid-test --force
 
 **Step 3:**
 - Blueprint created with coder template defaults
-- Model: `anthropic:claude-sonnet`
+  --model "anthropic:claude-3-5-sonnet-20241022"
 - Capabilities include `code_generation`
 
 **Step 4:**
@@ -1418,7 +1418,7 @@ cat >> exo.config.toml << 'EOF'
 
 [ai]
 provider = "anthropic"
-model = "claude-3-5-sonnet-20241022"  # Or claude-3-opus-20240229
+model = "claude-3.5-haiku-latest"  # Or claude-3-5-sonnet-20241022
 base_url = ""  # Leave empty for default
 
 [ai.anthropic]
@@ -1485,7 +1485,7 @@ log_level = "info"
 
 [ai]
 provider = "openai"
-model = "gpt-4-turbo"  # Or gpt-4, gpt-4o
+model = "gpt-5-mini"  # Or gpt-5
 base_url = ""
 
 [ai.openai]
@@ -1540,7 +1540,7 @@ log_level = "info"
 
 [ai]
 provider = "google"
-model = "gemini-1.5-pro"  # Or gemini-1.5-flash
+model = "gemini-2.0-flash-latest"  # Or gemini-2.0-pro-exp-01-28
 base_url = ""
 
 [ai.google]
@@ -1692,9 +1692,9 @@ cp exo.config.sample.toml exo.config.toml
 | -------------------- | ------------------- | ----------------- | ----------------- |
 | **Setup Complexity** | Simple              | Simple            | Simple            |
 | **Response Quality** | Very High (nuanced) | High (structured) | Good (concise)    |
-| **Response Speed**   | Moderate (2-5s)     | Fast (1-3s)       | Very Fast (1-2s)  |
-| **Token Usage**      | Higher (detailed)   | Moderate          | Lower (efficient) |
-| **Cost (approx)**    | $$$                 | $$                | $                 |
+| **Response Speed**   | Fast (1-3s)         | Fast (1-3s)       | Very Fast (1-2s)  |
+| **Token Usage**      | Moderate            | Moderate          | Lower (efficient) |
+| **Cost (approx)**    | $                   | $                 | $                 |
 | **Context Window**   | 200K tokens         | 128K tokens       | 1M tokens         |
 | **Best For**         | Complex reasoning   | General purpose   | Fast iteration    |
 
@@ -3257,11 +3257,11 @@ health_check_enabled = true
 fallback_enabled = true
 
 [provider_strategy.task_routing]
-simple = ["ollama", "google-gemini-flash"]
-complex = ["anthropic-claude-opus", "openai-gpt-5-pro"]
+simple = ["ollama", "google-gemini-2.0-flash"]
+complex = ["anthropic-claude-3.5-haiku", "openai-gpt-5-mini"]
 
 [provider_strategy.fallback_chains]
-default = ["ollama", "google-gemini-flash", "anthropic-claude-sonnet"]
+default = ["ollama", "google-gemini-2.0-flash", "anthropic-claude-3.5-haiku"]
 EOF
 
 # Step 2: Verify configuration loaded
