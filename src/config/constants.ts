@@ -368,3 +368,12 @@ export const DEFAULT_SUBPROCESS_TIMEOUT_MS = 30000;
 // Logging Defaults
 // ============================================================================
 export const DEFAULT_LOG_LEVEL = LogLevel.INFO;
+export const DEFAULT_LOG_MAX_SIZE_MB = 10;
+export const DEFAULT_LOG_MAX_FILES = 5;
+export const LOG_FILE_PREFIX = "structured-log";
+export const LOG_FILE_EXTENSION = ".jsonl";
+
+// ============================================================================
+// Testing Constants
+// ============================================================================
+export const REGRESSION_TEST_PROMPT = "Hello, reply with 'OK'";

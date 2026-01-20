@@ -18,6 +18,7 @@
 
 import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs";
+import * as DEFAULTS from "../config/constants.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -124,8 +125,8 @@ export class FileOutput implements LogOutput {
       rotationInterval?: "daily" | "hourly";
     } = {},
   ) {
-    // If basePath doesn't end with .jsonl, treat it as a directory
-    if (!basePath.endsWith(".jsonl")) {
+    // If basePath doesn't end with the configured extension, treat it as a directory
+    if (!basePath.endsWith(DEFAULTS.LOG_FILE_EXTENSION)) {
       this.currentFilePath = this.generateFilePath();
     } else {
       this.currentFilePath = basePath;
@@ -155,12 +156,12 @@ export class FileOutput implements LogOutput {
   }
 
   private shouldRotate(newLineSize: number): boolean {
-    const maxSize = (this.options.maxSizeMB ?? 10) * 1024 * 1024;
+    const maxSize = (this.options.maxSizeMB ?? DEFAULTS.DEFAULT_LOG_MAX_SIZE_MB) * 1024 * 1024;
     return this.currentFileSize + newLineSize > maxSize;
   }
 
   private async rotate(): Promise<void> {
-    const maxFiles = this.options.maxFiles ?? 5;
+    const maxFiles = this.options.maxFiles ?? DEFAULTS.DEFAULT_LOG_MAX_FILES;
 
     // Rename current file with timestamp
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
@@ -186,7 +187,10 @@ export class FileOutput implements LogOutput {
       const files: Array<{ name: string; mtime: Date }> = [];
 
       for await (const entry of Deno.readDir(dir)) {
-        if (entry.isFile && entry.name.startsWith("structured-log.") && entry.name.endsWith(".jsonl")) {
+        if (
+          entry.isFile && entry.name.startsWith(`${DEFAULTS.LOG_FILE_PREFIX}.`) &&
+          entry.name.endsWith(DEFAULTS.LOG_FILE_EXTENSION)
+        ) {
           const stat = await Deno.stat(join(dir, entry.name));
           files.push({ name: entry.name, mtime: stat.mtime! });
         }
@@ -210,10 +214,10 @@ export class FileOutput implements LogOutput {
 
     if (this.options.rotationInterval === "hourly") {
       const hourStr = now.getHours().toString().padStart(2, "0");
-      return join(this.basePath, `structured-log-${dateStr}-${hourStr}.jsonl`);
+      return join(this.basePath, `${DEFAULTS.LOG_FILE_PREFIX}-${dateStr}-${hourStr}${DEFAULTS.LOG_FILE_EXTENSION}`);
     }
 
-    return join(this.basePath, `structured-log-${dateStr}.jsonl`);
+    return join(this.basePath, `${DEFAULTS.LOG_FILE_PREFIX}-${dateStr}${DEFAULTS.LOG_FILE_EXTENSION}`);
   }
 }
 

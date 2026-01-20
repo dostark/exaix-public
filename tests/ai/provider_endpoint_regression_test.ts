@@ -3,6 +3,7 @@ import { GoogleProvider } from "../../src/ai/providers/google_provider.ts";
 import { OpenAIProvider } from "../../src/ai/providers/openai_provider.ts";
 import { AnthropicProvider } from "../../src/ai/providers/anthropic_provider.ts";
 import { DEFAULT_ANTHROPIC_MODEL, DEFAULT_GOOGLE_MODEL, DEFAULT_OPENAI_MODEL } from "../../src/config/constants.ts";
+import * as DEFAULTS from "../../src/config/constants.ts";
 
 /**
  * Live Regression Test for Provider Endpoints
@@ -17,7 +18,7 @@ import { DEFAULT_ANTHROPIC_MODEL, DEFAULT_GOOGLE_MODEL, DEFAULT_OPENAI_MODEL } f
  * must be set in the environment.
  */
 
-const TEST_PROMPT = "Hello, reply with 'OK'";
+const TEST_PROMPT = DEFAULTS.REGRESSION_TEST_PROMPT;
 
 Deno.test({
   name: "[regression] GoogleProvider: Verify gemini-2.0-flash-exp works with v1beta",
