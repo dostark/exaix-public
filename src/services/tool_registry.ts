@@ -525,21 +525,21 @@ export class ToolRegistry {
   private async resolvePath(path: string): Promise<string> {
     const { PathSecurity, PathTraversalError, PathAccessError } = await import("../utils/path_security.ts");
 
+    // Use PathResolver for alias paths
+    if (path.startsWith("@")) {
+      return await this.pathResolver.resolve(path);
+    }
+
+    // Define allowed roots
+    const allowedRoots = [
+      join(this.config.system.root, this.config.paths.workspace),
+      join(this.config.system.root, this.config.paths.memory),
+      join(this.config.system.root, this.config.paths.blueprints),
+      this.config.system.root,
+      ...this.config.portals.map((p) => p.target_path),
+    ];
+
     try {
-      // Use PathResolver for alias paths
-      if (path.startsWith("@")) {
-        return await this.pathResolver.resolve(path);
-      }
-
-      // Define allowed roots
-      const allowedRoots = [
-        join(this.config.system.root, this.config.paths.workspace),
-        join(this.config.system.root, this.config.paths.memory),
-        join(this.config.system.root, this.config.paths.blueprints),
-        this.config.system.root,
-        ...this.config.portals.map((p) => p.target_path),
-      ];
-
       // Securely resolve path within allowed roots
       const resolvedPath = await PathSecurity.resolveWithinRoots(
         path,
@@ -585,7 +585,8 @@ export class ToolRegistry {
           this.agentId,
         );
 
-        throw new Error(`Access denied: Path outside allowed directories`);
+        const allowedRootsList = allowedRoots.join(", ");
+        throw new Error(`Access denied: Path outside allowed directories. Allowed roots: ${allowedRootsList}`);
       }
 
       // Log generic path resolution errors

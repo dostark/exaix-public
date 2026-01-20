@@ -280,7 +280,9 @@ if (import.meta.main) {
             }
           }
 
-          const planExecutor = new PlanExecutor(config, await currentProvider, dbService);
+          // Reload config to ensure latest settings (like portals) are used
+          const latestConfig = new ConfigService().get();
+          const planExecutor = new PlanExecutor(latestConfig, await currentProvider, dbService);
 
           const changesetId = await planExecutor.execute(event.path, {
             trace_id: frontmatter.trace_id as string,
