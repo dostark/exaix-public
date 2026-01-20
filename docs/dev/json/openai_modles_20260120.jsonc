@@ -1,3 +1,4 @@
+// curl -X GET https://api.openai.com/v1/models   -H "Authorization: Bearer $OPENAI_API_KEY"
 {
   "object": "list",
   "data": [

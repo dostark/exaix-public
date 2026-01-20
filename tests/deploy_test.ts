@@ -8,7 +8,7 @@ const REPO_ROOT = join(__dirname, "..");
 async function runDeploy(target: string) {
   const scriptPath = join(REPO_ROOT, "scripts", "deploy_workspace.sh");
   const cmd = new Deno.Command("bash", {
-    args: [scriptPath, target],
+    args: [scriptPath, "--no-run", target],
     cwd: REPO_ROOT,
     stdout: "piped",
     stderr: "piped",

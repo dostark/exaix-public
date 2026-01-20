@@ -5,7 +5,7 @@ import { anthropicResponseConfig, registerProviderTests } from "./helpers/provid
 registerProviderTests({
   name: "AnthropicProvider",
   createProvider: (options) => new AnthropicProvider({ apiKey: "test-key", ...options }),
-  defaultId: "anthropic-claude-3.5-haiku-latest",
+  defaultId: "anthropic-claude-haiku-4-5-20251001",
   responseConfig: anthropicResponseConfig,
   apiKeyHeader: "x-api-key",
   apiKeyValue: "test-key",

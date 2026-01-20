@@ -537,6 +537,7 @@ export class ToolRegistry {
         join(this.config.system.root, this.config.paths.memory),
         join(this.config.system.root, this.config.paths.blueprints),
         this.config.system.root,
+        ...this.config.portals.map((p) => p.target_path),
       ];
 
       // Securely resolve path within allowed roots
