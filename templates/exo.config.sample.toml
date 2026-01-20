@@ -115,7 +115,7 @@ target_path = "/home/me/projects/my-repo"
 #   - claude-4-sonnet-latest (Balanced)
 # Google:
 #   - gemini-2.0-flash-exp (Free/Agentic)
-#   - gemini-1.5-flash-latest (Reliable Debugging)
+#   - gemini-2.5-flash (Recommended - Stable 2025 release)
 # ---------------------------------------------------------------------------
 [ai]
 provider = "google"     # Overridden by EXO_LLM_PROVIDER

@@ -569,7 +569,7 @@ export class VertexAIProvider implements IModelProvider {
 const VertexAIConfigSchema = z.object({
   service_account_env: z.string().default("VERTEX_AI_SERVICE_ACCOUNT"),
   region: z.string().default("us-central1"),
-  model: z.string().default("gemini-1.5-flash"),
+  model: z.string().default("gemini-2.5-flash"),
   temperature: z.number().min(0).max(2).optional(),
   max_tokens: z.number().min(1).max(8192).optional(),
   timeout_ms: z.number().min(1000).max(300000).optional(),
@@ -594,7 +594,7 @@ export VERTEX_AI_SERVICE_ACCOUNT='{"type":"service_account","project_id":"my-pro
 [models.vertex]
 provider = "vertex-ai"
 region = "us-central1"  # or "europe-west4", "asia-southeast1"
-model = "gemini-1.5-flash"
+model = "gemini-2.5-flash"
 service_account_env = "VERTEX_AI_SERVICE_ACCOUNT"  # env var name
 temperature = 0.7
 max_tokens = 2048
@@ -606,6 +606,107 @@ max_tokens = 2048
 - [ ] Regional endpoint configuration works correctly
 - [ ] Backward compatibility: existing Google provider configs unaffected
 - [ ] Validation errors provide clear guidance on fixing config issues
+
+#### Step 1.4: Gemini Model Selection Strategy
+
+**Recommended Models (2025-2026):**
+
+Based on [`docs/dev/json/google_models_2026012.json`](../../docs/dev/json/google_models_2026012.json) analysis:
+
+| Tier | Model | Input Limit | Output Limit | Use Case | Special Features |
+|------|-------|-------------|--------------|----------|------------------|
+| **Default (Fast)** | `gemini-2.5-flash` | 1M tokens | 65K tokens | General use, recommended | Thinking mode, batch, cache |
+| **Ultra Fast** | `gemini-2.5-flash-lite` | 1M tokens | 65K tokens | High-volume, cost-sensitive | Lighter, cheaper |
+| **Premium** | `gemini-2.5-pro` | 1M tokens |65K tokens | Complex reasoning | Best quality, thinking mode |
+| **Deep Research** | `deep-research-pro-preview-12-2025` | 131K tokens | 65K tokens | Advanced reasoning tasks | Extended thinking |
+| **Future-Proof** | `gemini-flash-latest` | 1M tokens | 65K tokens | Auto-updates to latest stable | Always current |
+| **Cutting Edge** | `gemini-3-flash-preview` | 1M tokens | 65K tokens | Experimental features | Preview access |
+
+**Model Selection Logic:**
+
+Add to `src/config/constants.ts`:
+```typescript
+// Gemini Model Recommendations (2025-2026)
+export const GEMINI_MODELS = {
+  // Stable releases (recommended)
+  FLASH_2_5: "gemini-2.5-flash",           // Default choice
+  FLASH_LITE_2_5: "gemini-2.5-flash-lite", // Ultra-cheap
+  PRO_2_5: "gemini-2.5-pro",               // Premium quality
+
+  // Auto-updating aliases
+  FLASH_LATEST: "gemini-flash-latest",     // Tracks latest Flash
+  PRO_LATEST: "gemini-pro-latest",         // Tracks latest Pro
+
+  // Preview/Experimental
+  FLASH_3_PREVIEW: "gemini-3-flash-preview",   // Gemini 3 preview
+  PRO_3_PREVIEW: "gemini-3-pro-preview",       // Gemini 3 Pro preview
+
+  // Specialized
+  DEEP_RESEARCH: "deep-research-pro-preview-12-2025", // Research tasks
+  COMPUTER_USE: "gemini-2.5-computer-use-preview-10-2025", // Agentic tasks
+} as const;
+
+export const DEFAULT_VERTEX_AI_MODEL = GEMINI_MODELS.FLASH_2_5;
+```
+
+**Configuration Examples:**
+
+```toml
+# Recommended: Stable 2.5 Flash
+[models.vertex-default]
+provider = "vertex-ai"
+model = "gemini-2.5-flash"     # Stable, fast, 1M context
+region = "us-central1"
+service_account_env = "VERTEX_AI_SERVICE_ACCOUNT"
+
+# Cost-optimized: Flash Lite
+[models.vertex-cheap]
+provider = "vertex-ai"
+model = "gemini-2.5-flash-lite"   # Even cheaper than Flash
+region = "us-central1"
+
+# Premium quality
+[models.vertex-premium]
+provider = "vertex-ai"
+model = "gemini-2.5-pro"       # Best reasoning
+region = "us-central1"
+
+# Future-proof (auto-updates)
+[models.vertex-auto]
+provider = "vertex-ai"
+model = "gemini-flash-latest"  # Always uses latest stable Flash
+region = "us-central1"
+
+# Deep research tasks
+[models.vertex-research]
+provider = "vertex-ai"
+model = "deep-research-pro-preview-12-2025"
+region = "us-central1"
+```
+
+**"Thinking" Mode Support:**
+
+Models with `"thinking": true` in JSON support extended reasoning:
+- ✅ `gemini-2.5-flash`
+- ✅ `gemini-2.5-pro`
+- ✅ `deep-research-*`
+- ✅ `gemini-3-*-preview`
+
+**Implementation Note:**
+```typescript
+// In VertexAIProvider constructor
+if (modelSupportsThinking(options.model)) {
+  // Enable extended reasoning mode
+  this.thinkingEnabled = options.enableThinking ?? true;
+}
+```
+
+**Success Criteria:**
+- [ ] Model constants defined in `src/config/constants.ts`
+- [ ] Configuration examples use 2.5+ models
+- [ ] Thinking mode flag supported for capable models
+- [ ] Future-proof aliases (`*-latest`) documented
+- [ ] Model selection guidance in User Guide
 
 ---
 
@@ -993,7 +1094,7 @@ Vertex AI requires a Google Cloud project with billing enabled and a service acc
    [models.vertex]
    provider = "vertex-ai"
    region = "us-central1"
-   model = "gemini-1.5-flash"
+   model = "gemini-2.5-flash"
    service_account_env = "VERTEX_AI_SERVICE_ACCOUNT"
    ```
 
@@ -1059,7 +1160,7 @@ ExoFrame supports enterprise LLM providers for users with paid subscriptions who
    [models.vertex]
    provider = "vertex-ai"
    region = "us-central1"  # or europe-west4, asia-southeast1
-   model = "gemini-1.5-flash"
+   model = "gemini-2.5-flash"
    temperature = 0.7
    max_tokens = 2048
    ```

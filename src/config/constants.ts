@@ -122,7 +122,7 @@ export const DEFAULT_OLLAMA_MODEL = "llama3.2";
 export const DEFAULT_OPENAI_BASE_URL = "https://api.openai.com";
 // Options: gpt-5-mini (default), gpt-4o-mini, gpt-5, o3-mini, gpt-5.2
 export const DEFAULT_OPENAI_MODEL = "gpt-5-mini";
-// Options: gemini-2.0-flash-exp (default), gemini-1.5-flash-latest, gemini-2.0-flash-lite, gemini-3-pro-latest, gemini-1.5-pro-latest
+// Options: gemini-2.0-flash-exp (default), gemini-2.5-flash, gemini-2.0-flash-lite, gemini-3-pro-latest, gemini-2.5-pro
 export const DEFAULT_GOOGLE_MODEL = "gemini-2.0-flash-exp";
 
 // ============================================================================
