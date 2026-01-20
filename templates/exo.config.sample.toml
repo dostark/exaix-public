@@ -107,12 +107,13 @@ target_path = "/home/me/projects/my-repo"
 #
 # Recommended Models (2026 Tightened List):
 # OpenAI:
-#   - gpt-5-mini (Low-cost/Speed)
-#   - gpt-4o-mini (Multimodal)
+#   - gpt-5-mini (Fast & Low-cost)
 #   - gpt-5 (Premium Reasoning)
+#   - gpt-5-pro (Top Tier)
 # Anthropic:
-#   - claude-3.5-haiku-latest (Fast Prototyping)
-#   - claude-4-sonnet-latest (Balanced)
+#   - claude-haiku-4-5-20251001 (Fast - Oct 2025)
+#   - claude-sonnet-4-5-20250929 (Balanced - Sep 2025)
+#   - claude-opus-4-5-20251101 (Premium - Nov 2025)
 # Google:
 #   - gemini-2.0-flash-exp (Free/Agentic)
 #   - gemini-2.5-flash (Recommended - Stable 2025 release)
@@ -165,7 +166,7 @@ backoff_base_ms = 1000
 [ai.anthropic]
 # Anthropic Claude-specific configuration
 api_version = "2023-06-01"
-default_model = "claude-3.5-haiku-latest"
+default_model = "claude-haiku-4-5-20251001"
 max_tokens_default = 4096
 
 # ---------------------------------------------------------------------------
@@ -298,7 +299,7 @@ max_batch_size = 50
 # Cost rates per 1K tokens (override defaults for your pricing)
 [cost_tracking.rates]
 openai = 0.001     # $1.00 per 1M tokens (gpt-5-mini)
-anthropic = 0.004  # $4.00 per 1M tokens (claude-3.5-haiku)
+anthropic = 0.004  # $4.00 per 1M tokens (claude-haiku-4-5)
 google = 0.0       # Free tier
 ollama = 0.0       # Local free
 mock = 0.0         # Mock free

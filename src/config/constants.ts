@@ -120,7 +120,7 @@ export const DEFAULT_OLLAMA_TIMEOUT_MS = 120000;
 export const DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
 export const DEFAULT_OLLAMA_MODEL = "llama3.2";
 export const DEFAULT_OPENAI_BASE_URL = "https://api.openai.com";
-// Options: gpt-5-mini (default), gpt-4o-mini, gpt-5, o3-mini, gpt-5.2
+// Options: gpt-5-mini (default), gpt-5, gpt-5-pro, gpt-5.2, o4-mini, gpt-5-codex
 export const DEFAULT_OPENAI_MODEL = "gpt-5-mini";
 // Options: gemini-2.0-flash-exp (default), gemini-2.5-flash, gemini-2.0-flash-lite, gemini-3-pro-latest, gemini-2.5-pro
 export const DEFAULT_GOOGLE_MODEL = "gemini-2.0-flash-exp";
@@ -210,8 +210,8 @@ export const PROMPT_PREVIEW_EXTENDED_MAX = 1000;
 export const PROMPT_PREVIEW_LENGTH = 100;
 export const PROMPT_PREVIEW_EXTENDED = 500;
 export const DEFAULT_ANTHROPIC_API_VERSION = "2023-06-01";
-// Options: claude-3.5-haiku-latest (default), claude-4-sonnet-latest, claude-4-haiku, claude-4-opus-latest, claude-4.5-opus
-export const DEFAULT_ANTHROPIC_MODEL = "claude-3.5-haiku-latest";
+// Options: claude-haiku-4-5-20251001 (default), claude-sonnet-4-5-20250929, claude-opus-4-5-20251101
+export const DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 export const DEFAULT_ANTHROPIC_MAX_TOKENS = 4096;
 
 // ============================================================================
@@ -301,7 +301,7 @@ export const DEFAULT_COST_TRACKING_MAX_BATCH_SIZE = 50;
 // Rates per 1K tokens. Based on 2026 output pricing for safety:
 // OpenAI gpt-5-mini: ~$1.00/1M output -> $0.001/1K
 export const COST_RATE_OPENAI = 0.001;
-// Anthropic claude-3.5-haiku: ~$4.00/1M output -> $0.004/1K
+// Anthropic claude-haiku-4-5: ~$4.00/1M output -> $0.004/1K
 export const COST_RATE_ANTHROPIC = 0.004;
 export const COST_RATE_GOOGLE = 0.0;
 export const COST_RATE_OLLAMA = 0.0;
