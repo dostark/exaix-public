@@ -123,7 +123,7 @@ export const DEFAULT_OPENAI_BASE_URL = "https://api.openai.com";
 // Options: gpt-5-mini (default), gpt-5, gpt-5-pro, gpt-5.2, o4-mini, gpt-5-codex
 export const DEFAULT_OPENAI_MODEL = "gpt-5-mini";
 // Options: gemini-2.0-flash-exp (default), gemini-2.5-flash, gemini-2.0-flash-lite, gemini-3-pro-latest, gemini-2.5-pro
-export const DEFAULT_GOOGLE_MODEL = "gemini-2.0-flash-exp";
+export const DEFAULT_GOOGLE_MODEL = "gemini-2.5-flash";
 
 // ============================================================================
 // Mock Provider Validation Limits
@@ -298,12 +298,13 @@ export const COST_TRACKING_RATES_MAX = 1;
 // Cost tracking defaults
 export const DEFAULT_COST_TRACKING_BATCH_DELAY_MS = 5000;
 export const DEFAULT_COST_TRACKING_MAX_BATCH_SIZE = 50;
-// Rates per 1K tokens. Based on 2026 output pricing for safety:
-// OpenAI gpt-5-mini: ~$1.00/1M output -> $0.001/1K
-export const COST_RATE_OPENAI = 0.001;
-// Anthropic claude-haiku-4-5: ~$4.00/1M output -> $0.004/1K
-export const COST_RATE_ANTHROPIC = 0.004;
-export const COST_RATE_GOOGLE = 0.0;
+// Rates per 1K tokens. Based on 2025-2026 output pricing:
+// OpenAI gpt-5-mini: $2.00/1M output → $0.002/1K
+export const COST_RATE_OPENAI = 0.002;
+// Anthropic claude-haiku-4-5: $5.00/1M output → $0.005/1K
+export const COST_RATE_ANTHROPIC = 0.005;
+// Google gemini-2.5-flash (Vertex AI): $2.50/1M output → $0.0025/1K
+export const COST_RATE_GOOGLE = 0.0025;
 export const COST_RATE_OLLAMA = 0.0;
 export const COST_RATE_MOCK = 0.0;
 export const TOKENS_PER_COST_UNIT = 1000;
