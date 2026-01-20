@@ -68,14 +68,19 @@ Constructor-based DI: pass `config`, `db`, and `provider` into services. Keep si
 
 ### Configuration Constants & Magic Numbers
 
-**ALL magic numbers MUST be configurable constants** centralized in `src/config/constants.ts`. Never use hardcoded numeric literals in business logic.
+**ALL magic numbers MUST be configurable constants** centralized appropriately:
+- **Production code:** `src/config/constants.ts`
+- **Test code:** `tests/config/constants.ts` for test-specific constants (test prompts, mock data, test environment variables, etc.)
+
+Never use hardcoded numeric literals in business logic or test code.
 
 **Requirements:**
 - ✅ Extract ALL numeric literals > 1 into named constants
 - ✅ Group related constants by module/feature in `constants.ts`
-- ✅ Use descriptive names with `DEFAULT_` prefix
+- ✅ Use descriptive names with `DEFAULT_` prefix for production, `TEST_` prefix for test constants
 - ✅ Import and use constants instead of literals
 - ✅ Update constants file when adding new configurable values
+- ✅ Keep test-specific constants (test prompts, mock API keys, test messages) in `tests/config/constants.ts`
 
 **Examples:**
 ```typescript
@@ -90,6 +95,12 @@ import { DEFAULT_GIT_COMMAND_TIMEOUT_MS, DEFAULT_GIT_MAX_RETRIES, DEFAULT_GIT_RE
 const timeout = DEFAULT_GIT_COMMAND_TIMEOUT_MS;
 const maxRetries = DEFAULT_GIT_MAX_RETRIES;
 const delay = Math.pow(2, attempt) * DEFAULT_GIT_RETRY_BACKOFF_BASE_MS;
+
+// ✅ GOOD: Test-specific constants
+import * as TEST_CONSTANTS from "./config/constants.ts";
+
+const testPrompt = TEST_CONSTANTS.REGRESSION_TEST_PROMPT;
+const apiKey = Deno.env.get(TEST_CONSTANTS.ENV_GOOGLE_API_KEY);
 ```
 
 **Constants File Structure:**
@@ -97,6 +108,7 @@ const delay = Math.pow(2, attempt) * DEFAULT_GIT_RETRY_BACKOFF_BASE_MS;
 - Include JSDoc comments explaining purpose and units
 - Use consistent naming patterns
 - Keep related constants together
+- Separate test constants from production constants
 
 ---
 

@@ -12,11 +12,18 @@ import { AnthropicProviderFactory, GoogleProviderFactory, OpenAIProviderFactory 
 import { ResolvedProviderOptions } from "../src/ai/provider_factory.ts";
 import { MockStrategy, ProviderType } from "../src/enums.ts";
 import { SecureCredentialStore } from "../src/utils/credential_security.ts";
+import * as TEST_CONSTANTS from "./config/constants.ts";
+
+const TEST_KEY_ANTHROPIC = "sk-ant-test-key";
+const TEST_KEY_OPENAI = "sk-test-key";
+const TEST_KEY_GOOGLE = "test-api-key";
+const PERSIST_ENV_VAR = "EXO_PERSIST_ENV_CREDENTIALS";
+const TEST_MODEL = "test-model";
 
 // Helper to mock resolved options
 const mockOptions: ResolvedProviderOptions = {
   provider: ProviderType.ANTHROPIC,
-  model: "test-model",
+  model: TEST_MODEL,
   timeoutMs: 1000,
   mockStrategy: MockStrategy.RECORDED,
 };
@@ -25,13 +32,13 @@ Deno.test("[regression] AnthropicProviderFactory accepts API key from environmen
   const factory = new AnthropicProviderFactory();
 
   // Set env var
-  Deno.env.set("ANTHROPIC_API_KEY", "sk-ant-test-key");
+  Deno.env.set(TEST_CONSTANTS.ENV_ANTHROPIC_API_KEY, TEST_KEY_ANTHROPIC);
 
   try {
     const provider = await factory.create(mockOptions);
-    assertEquals(provider.id, "anthropic-test-model");
+    assertEquals(provider.id, `anthropic-${TEST_MODEL}`);
   } finally {
-    Deno.env.delete("ANTHROPIC_API_KEY");
+    Deno.env.delete(TEST_CONSTANTS.ENV_ANTHROPIC_API_KEY);
   }
 });
 
@@ -39,37 +46,37 @@ Deno.test("[regression] AnthropicProviderFactory throws specific error when key 
   const factory = new AnthropicProviderFactory();
 
   // Ensure no key
-  Deno.env.delete("ANTHROPIC_API_KEY");
-  await SecureCredentialStore.clear("ANTHROPIC_API_KEY");
+  Deno.env.delete(TEST_CONSTANTS.ENV_ANTHROPIC_API_KEY);
+  await SecureCredentialStore.clear(TEST_CONSTANTS.ENV_ANTHROPIC_API_KEY);
 
   await assertRejects(
     async () => await factory.create(mockOptions),
     Error,
-    "Authentication failed: ANTHROPIC_API_KEY not found",
+    `Authentication failed: ${TEST_CONSTANTS.ENV_ANTHROPIC_API_KEY} not found`,
   );
 });
 
 Deno.test("[regression] OpenAIProviderFactory accepts API key from environment", async () => {
   const factory = new OpenAIProviderFactory();
-  Deno.env.set("OPENAI_API_KEY", "sk-test-key");
+  Deno.env.set(TEST_CONSTANTS.ENV_OPENAI_API_KEY, TEST_KEY_OPENAI);
 
   try {
     const provider = await factory.create({ ...mockOptions, provider: ProviderType.OPENAI });
-    assertEquals(provider.id, "openai-test-model");
+    assertEquals(provider.id, `openai-${TEST_MODEL}`);
   } finally {
-    Deno.env.delete("OPENAI_API_KEY");
+    Deno.env.delete(TEST_CONSTANTS.ENV_OPENAI_API_KEY);
   }
 });
 
 Deno.test("[regression] GoogleProviderFactory accepts API key from environment", async () => {
   const factory = new GoogleProviderFactory();
-  Deno.env.set("GOOGLE_API_KEY", "test-api-key");
+  Deno.env.set(TEST_CONSTANTS.ENV_GOOGLE_API_KEY, TEST_KEY_GOOGLE);
 
   try {
     const provider = await factory.create({ ...mockOptions, provider: ProviderType.GOOGLE });
-    assertEquals(provider.id, "google-test-model");
+    assertEquals(provider.id, `google-${TEST_MODEL}`);
   } finally {
-    Deno.env.delete("GOOGLE_API_KEY");
+    Deno.env.delete(TEST_CONSTANTS.ENV_GOOGLE_API_KEY);
   }
 });
 
@@ -90,7 +97,7 @@ async function testEnvToStoreSync({
   // Persist if opted in
   Deno.env.set(envKey, envValue);
   await SecureCredentialStore.clear(envKey);
-  (globalThis as any).EXO_PERSIST_ENV_CREDENTIALS = true;
+  (globalThis as any)[PERSIST_ENV_VAR] = true;
   try {
     await factory.create(options);
     const stored = await SecureCredentialStore.get(envKey);
@@ -98,13 +105,13 @@ async function testEnvToStoreSync({
   } finally {
     Deno.env.delete(envKey);
     await SecureCredentialStore.clear(envKey);
-    delete (globalThis as any).EXO_PERSIST_ENV_CREDENTIALS;
+    delete (globalThis as any)[PERSIST_ENV_VAR];
   }
 
   // Do NOT persist if not opted in
   Deno.env.set(envKey, envValue);
   await SecureCredentialStore.clear(envKey);
-  (globalThis as any).EXO_PERSIST_ENV_CREDENTIALS = false;
+  (globalThis as any)[PERSIST_ENV_VAR] = false;
   try {
     await factory.create(options);
     const stored = await SecureCredentialStore.get(envKey);
@@ -112,7 +119,7 @@ async function testEnvToStoreSync({
   } finally {
     Deno.env.delete(envKey);
     await SecureCredentialStore.clear(envKey);
-    delete (globalThis as any).EXO_PERSIST_ENV_CREDENTIALS;
+    delete (globalThis as any)[PERSIST_ENV_VAR];
   }
 }
 
@@ -120,22 +127,22 @@ Deno.test("[env→store sync] Anthropic, OpenAI, Google: env key persistence opt
   await testEnvToStoreSync({
     providerName: "Anthropic",
     factory: new AnthropicProviderFactory(),
-    envKey: "ANTHROPIC_API_KEY",
-    envValue: "sk-ant-test-key",
+    envKey: TEST_CONSTANTS.ENV_ANTHROPIC_API_KEY,
+    envValue: TEST_KEY_ANTHROPIC,
     options: mockOptions,
   });
   await testEnvToStoreSync({
     providerName: "OpenAI",
     factory: new OpenAIProviderFactory(),
-    envKey: "OPENAI_API_KEY",
-    envValue: "sk-test-key",
+    envKey: TEST_CONSTANTS.ENV_OPENAI_API_KEY,
+    envValue: TEST_KEY_OPENAI,
     options: { ...mockOptions, provider: ProviderType.OPENAI },
   });
   await testEnvToStoreSync({
     providerName: "Google",
     factory: new GoogleProviderFactory(),
-    envKey: "GOOGLE_API_KEY",
-    envValue: "test-api-key",
+    envKey: TEST_CONSTANTS.ENV_GOOGLE_API_KEY,
+    envValue: TEST_KEY_GOOGLE,
     options: { ...mockOptions, provider: ProviderType.GOOGLE },
   });
 });

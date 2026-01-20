@@ -13,6 +13,30 @@ import { assertEquals, assertExists } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 
+const AGENT_ID_YAML = "yaml-agent";
+const AGENT_NAME_YAML = "YAML Format Agent";
+const AGENT_MODEL_MOCK = "mock:test-model";
+const AGENT_CAP_TESTING = "testing";
+const AGENT_VERSION_V1 = "1.0.0";
+const AGENT_CREATOR_TEST = "test";
+const AGENT_DATE = "2026-01-18T12:00:00Z";
+
+const AGENT_ID_TOML = "toml-agent";
+const AGENT_NAME_TOML = "TOML Format Agent";
+
+const AGENT_ID_SHOW = "show-yaml-test";
+const AGENT_NAME_SHOW = "Show YAML Test";
+const AGENT_MODEL_OLLAMA = "ollama:llama3.2";
+const AGENT_CAP_CODE = "code_generation";
+
+const AGENT_ID_VALIDATE = "validate-yaml-test";
+const AGENT_NAME_VALIDATE = "Validate YAML Test";
+
+const AGENT_ID_MIXED_YAML = "mixed-yaml";
+const AGENT_ID_MIXED_TOML = "mixed-toml";
+
+const AGENT_ID_ARRAY = "array-test";
+
 // Helper to create test workspace structure
 async function createTestBlueprintsDir(baseDir: string): Promise<string> {
   const blueprintsDir = join(baseDir, "Blueprints", "Agents");
@@ -49,13 +73,13 @@ Deno.test("[regression] Blueprint list works with YAML frontmatter (---)", async
 
     // Create blueprint with YAML frontmatter (--- delimiters)
     const yamlBlueprint = `---
-agent_id: "yaml-agent"
-name: "YAML Format Agent"
-model: "mock:test-model"
-capabilities: ["testing"]
-created: "2026-01-18T12:00:00Z"
-created_by: "test"
-version: "1.0.0"
+agent_id: "${AGENT_ID_YAML}"
+name: "${AGENT_NAME_YAML}"
+model: "${AGENT_MODEL_MOCK}"
+capabilities: ["${AGENT_CAP_TESTING}"]
+created: "${AGENT_DATE}"
+created_by: "${AGENT_CREATOR_TEST}"
+version: "${AGENT_VERSION_V1}"
 description: "Agent with YAML frontmatter"
 ---
 
@@ -63,7 +87,7 @@ description: "Agent with YAML frontmatter"
 
 This agent uses YAML frontmatter format.
 `;
-    await Deno.writeTextFile(join(blueprintsDir, "yaml-agent.md"), yamlBlueprint);
+    await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_YAML}.md`), yamlBlueprint);
 
     // Import BlueprintCommands
     const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
@@ -77,8 +101,8 @@ This agent uses YAML frontmatter format.
     // Before the fix, this would return 0 (only looked for +++ delimiters)
     // After the fix, this should return 1 (supports both +++ and --- delimiters)
     assertEquals(blueprints.length, 1, "Should find blueprint with YAML frontmatter");
-    assertEquals(blueprints[0].agent_id, "yaml-agent");
-    assertEquals(blueprints[0].name, "YAML Format Agent");
+    assertEquals(blueprints[0].agent_id, AGENT_ID_YAML);
+    assertEquals(blueprints[0].name, AGENT_NAME_YAML);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -92,13 +116,13 @@ Deno.test("[regression] Blueprint list works with TOML frontmatter (+++)", async
 
     // Create blueprint with TOML frontmatter (+++ delimiters)
     const tomlBlueprint = `+++
-agent_id = "toml-agent"
-name = "TOML Format Agent"
-model = "mock:test-model"
-capabilities = ["testing"]
-created = "2026-01-18T12:00:00Z"
-created_by = "test"
-version = "1.0.0"
+agent_id = "${AGENT_ID_TOML}"
+name = "${AGENT_NAME_TOML}"
+model = "${AGENT_MODEL_MOCK}"
+capabilities = ["${AGENT_CAP_TESTING}"]
+created = "${AGENT_DATE}"
+created_by = "${AGENT_CREATOR_TEST}"
+version = "${AGENT_VERSION_V1}"
 description = "Agent with TOML frontmatter"
 +++
 
@@ -106,7 +130,7 @@ description = "Agent with TOML frontmatter"
 
 This agent uses TOML frontmatter format.
 `;
-    await Deno.writeTextFile(join(blueprintsDir, "toml-agent.md"), tomlBlueprint);
+    await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_TOML}.md`), tomlBlueprint);
 
     // Import BlueprintCommands
     const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
@@ -118,8 +142,8 @@ This agent uses TOML frontmatter format.
     const blueprints = await blueprintCommands.list();
 
     assertEquals(blueprints.length, 1, "Should find blueprint with TOML frontmatter");
-    assertEquals(blueprints[0].agent_id, "toml-agent");
-    assertEquals(blueprints[0].name, "TOML Format Agent");
+    assertEquals(blueprints[0].agent_id, AGENT_ID_TOML);
+    assertEquals(blueprints[0].name, AGENT_NAME_TOML);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -133,13 +157,13 @@ Deno.test("[regression] Blueprint show works with YAML frontmatter", async () =>
 
     // Create blueprint with YAML frontmatter
     const yamlBlueprint = `---
-agent_id: "show-yaml-test"
-name: "Show YAML Test"
-model: "ollama:llama3.2"
-capabilities: ["code_generation"]
-created: "2026-01-18T12:00:00Z"
+agent_id: "${AGENT_ID_SHOW}"
+name: "${AGENT_NAME_SHOW}"
+model: "${AGENT_MODEL_OLLAMA}"
+capabilities: ["${AGENT_CAP_CODE}"]
+created: "${AGENT_DATE}"
 created_by: "tester"
-version: "1.0.0"
+version: "${AGENT_VERSION_V1}"
 description: "Testing show with YAML"
 ---
 
@@ -147,7 +171,7 @@ description: "Testing show with YAML"
 
 System prompt content here.
 `;
-    await Deno.writeTextFile(join(blueprintsDir, "show-yaml-test.md"), yamlBlueprint);
+    await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_SHOW}.md`), yamlBlueprint);
 
     // Import BlueprintCommands
     const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
@@ -157,12 +181,12 @@ System prompt content here.
 
     // Show should work with YAML format
     // Before the fix, this would throw "Invalid blueprint format"
-    const details = await blueprintCommands.show("show-yaml-test");
+    const details = await blueprintCommands.show(AGENT_ID_SHOW);
 
     assertExists(details, "Should return blueprint details");
-    assertEquals(details.agent_id, "show-yaml-test");
-    assertEquals(details.model, "ollama:llama3.2");
-    assertEquals(details.name, "Show YAML Test");
+    assertEquals(details.agent_id, AGENT_ID_SHOW);
+    assertEquals(details.model, AGENT_MODEL_OLLAMA);
+    assertEquals(details.name, AGENT_NAME_SHOW);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -177,13 +201,13 @@ Deno.test("[regression] Blueprint validate works with YAML frontmatter", async (
     // Create valid blueprint with YAML frontmatter
     // Includes required <thought> and <content> tags for validation
     const yamlBlueprint = `---
-agent_id: "validate-yaml-test"
-name: "Validate YAML Test"
-model: "mock:test-model"
-capabilities: ["testing"]
-created: "2026-01-18T12:00:00Z"
+agent_id: "${AGENT_ID_VALIDATE}"
+name: "${AGENT_NAME_VALIDATE}"
+model: "${AGENT_MODEL_MOCK}"
+capabilities: ["${AGENT_CAP_TESTING}"]
+created: "${AGENT_DATE}"
 created_by: "tester"
-version: "1.0.0"
+version: "${AGENT_VERSION_V1}"
 ---
 
 # Validate YAML Test Agent
@@ -192,7 +216,7 @@ You are a test agent. Use <thought> tags for reasoning and <content> tags for re
 
 {{RESPONSE_FORMAT}}
 `;
-    await Deno.writeTextFile(join(blueprintsDir, "validate-yaml-test.md"), yamlBlueprint);
+    await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_VALIDATE}.md`), yamlBlueprint);
 
     // Import BlueprintCommands
     const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
@@ -202,7 +226,7 @@ You are a test agent. Use <thought> tags for reasoning and <content> tags for re
 
     // Validate should work with YAML format
     // Before the fix, this would show "Missing or invalid TOML frontmatter"
-    const result = await blueprintCommands.validate("validate-yaml-test");
+    const result = await blueprintCommands.validate(AGENT_ID_VALIDATE);
 
     assertEquals(result.valid, true, "Blueprint with YAML frontmatter should be valid");
     assertEquals(result.errors.length, 0, "Should have no errors");
@@ -219,27 +243,27 @@ Deno.test("[regression] Blueprint list finds both YAML and TOML formats in same 
 
     // Create YAML blueprint
     const yamlBlueprint = `---
-agent_id: "mixed-yaml"
+agent_id: "${AGENT_ID_MIXED_YAML}"
 name: "Mixed YAML Agent"
 model: "mock:yaml"
-version: "1.0.0"
+version: "${AGENT_VERSION_V1}"
 ---
 
 YAML content.
 `;
-    await Deno.writeTextFile(join(blueprintsDir, "mixed-yaml.md"), yamlBlueprint);
+    await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_MIXED_YAML}.md`), yamlBlueprint);
 
     // Create TOML blueprint
     const tomlBlueprint = `+++
-agent_id = "mixed-toml"
+agent_id = "${AGENT_ID_MIXED_TOML}"
 name = "Mixed TOML Agent"
 model = "mock:toml"
-version = "1.0.0"
+version = "${AGENT_VERSION_V1}"
 +++
 
 TOML content.
 `;
-    await Deno.writeTextFile(join(blueprintsDir, "mixed-toml.md"), tomlBlueprint);
+    await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_MIXED_TOML}.md`), tomlBlueprint);
 
     // Import BlueprintCommands
     const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
@@ -253,7 +277,7 @@ TOML content.
     assertEquals(blueprints.length, 2, "Should find both YAML and TOML blueprints");
 
     const ids = blueprints.map((b) => b.agent_id).sort();
-    assertEquals(ids, ["mixed-toml", "mixed-yaml"]);
+    assertEquals(ids, [AGENT_ID_MIXED_TOML, AGENT_ID_MIXED_YAML]);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -267,17 +291,17 @@ Deno.test("[regression] YAML frontmatter parses arrays correctly", async () => {
 
     // Create blueprint with array in YAML frontmatter
     const yamlBlueprint = `---
-agent_id: "array-test"
+agent_id: "${AGENT_ID_ARRAY}"
 name: "Array Test Agent"
-model: "mock:test"
+model: "${AGENT_MODEL_MOCK}"
 capabilities: ["code_generation", "testing", "debugging"]
 default_skills: ["typescript", "deno"]
-version: "1.0.0"
+version: "${AGENT_VERSION_V1}"
 ---
 
 Array test.
 `;
-    await Deno.writeTextFile(join(blueprintsDir, "array-test.md"), yamlBlueprint);
+    await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_ARRAY}.md`), yamlBlueprint);
 
     // Import BlueprintCommands
     const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
@@ -285,7 +309,7 @@ Array test.
     const config = createTestConfig(tempDir);
     const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
 
-    const details = await blueprintCommands.show("array-test");
+    const details = await blueprintCommands.show(AGENT_ID_ARRAY);
 
     assertExists(details.capabilities, "Should parse capabilities array");
     assertEquals(

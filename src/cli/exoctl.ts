@@ -61,7 +61,7 @@ if (!IN_TEST_MODE) {
     const { DatabaseService } = await import("../services/db.ts");
     db = new DatabaseService(config);
     gitService = new GitService({ config, db });
-    provider = ProviderFactory.createByName(config, config.agents.default_model);
+    provider = await ProviderFactory.createByName(config, config.agents.default_model);
 
     // Display-only logger (no DB writes) for read-only operations
     display = new EventLogger({});
@@ -103,7 +103,7 @@ if (!IN_TEST_MODE) {
       waitForFlush: async () => {},
     } as any;
     gitService = {} as any;
-    provider = ProviderFactory.createByName(config, config.agents.default_model);
+    provider = await ProviderFactory.createByName(config, config.agents.default_model);
     display = new EventLogger({});
     context = { config, db, provider };
   }
@@ -204,7 +204,7 @@ export async function __test_initializeServices(opts?: { simulateFail?: boolean;
       }
     }
     const gitLocal = new GitService({ config: cfg, db: dbLocal });
-    const providerLocal = ProviderFactory.createByName(cfg, cfg.agents.default_model);
+    const providerLocal = await ProviderFactory.createByName(cfg, cfg.agents.default_model);
     const displayLocal = new EventLogger({});
     return {
       success: true,
@@ -241,7 +241,7 @@ export async function __test_initializeServices(opts?: { simulateFail?: boolean;
       },
       agents: { default_model: "mock:test" },
     } as any;
-    const providerLocal = ProviderFactory.createByName(cfg, cfg.agents.default_model);
+    const providerLocal = await ProviderFactory.createByName(cfg, cfg.agents.default_model);
     const displayLocal = new EventLogger({});
     return {
       success: false,

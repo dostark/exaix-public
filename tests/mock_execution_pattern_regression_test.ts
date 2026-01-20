@@ -12,6 +12,14 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 import { MockLLMProvider } from "../src/ai/providers/mock_llm_provider.ts";
 import { MockStrategy } from "../src/enums.ts";
 
+const TAG_THOUGHT = "<thought>";
+const TAG_CONTENT = "<content>";
+const TAG_ACTIONS = "<actions>";
+const KEY_STEPS = '"steps"';
+const KEY_TOOL = '"tool":';
+const KEY_PARAMS = '"params":';
+const TOOL_WRITE_FILE = '"tool": "write_file"';
+
 Deno.test("[regression] MockLLMProvider generates planning response for planning prompts", async () => {
   // Create mock provider with recorded strategy (uses pattern fallback)
   const provider = new MockLLMProvider(MockStrategy.RECORDED, {
@@ -30,13 +38,13 @@ User request: "Add a hello world function to src/utils.ts"
   const response = await provider.generate(planningPrompt);
 
   // Should contain planning response with <content> and plan JSON
-  assertStringIncludes(response, "<thought>");
-  assertStringIncludes(response, "<content>");
+  assertStringIncludes(response, TAG_THOUGHT);
+  assertStringIncludes(response, TAG_CONTENT);
   assertStringIncludes(response, '"title"');
-  assertStringIncludes(response, '"steps"');
+  assertStringIncludes(response, KEY_STEPS);
 
   // Should NOT contain execution actions
-  assertEquals(response.includes("<actions>"), false, "Planning response should not contain <actions>");
+  assertEquals(response.includes(TAG_ACTIONS), false, "Planning response should not contain <actions>");
 });
 
 Deno.test("[regression] MockLLMProvider generates execution response for execution prompts", async () => {
@@ -60,16 +68,16 @@ Execute this step now.
   const response = await provider.generate(executionPrompt);
 
   // Should contain execution response with <actions>
-  assertStringIncludes(response, "<thought>");
-  assertStringIncludes(response, "<actions>");
+  assertStringIncludes(response, TAG_THOUGHT);
+  assertStringIncludes(response, TAG_ACTIONS);
 
   // Should contain tool calls (JSON array)
-  assertStringIncludes(response, '"tool":');
-  assertStringIncludes(response, '"params":');
+  assertStringIncludes(response, KEY_TOOL);
+  assertStringIncludes(response, KEY_PARAMS);
 
   // Should NOT contain planning JSON
-  assertEquals(response.includes('"steps"'), false, "Execution response should not contain plan steps");
-  assertEquals(response.includes("<content>"), false, "Execution response should use <actions> not <content>");
+  assertEquals(response.includes(KEY_STEPS), false, "Execution response should not contain plan steps");
+  assertEquals(response.includes(TAG_CONTENT), false, "Execution response should use <actions> not <content>");
 });
 
 Deno.test("[regression] MockLLMProvider execution pattern generates write_file action for write prompts", async () => {
@@ -88,7 +96,7 @@ Create src/hello.ts with the hello world function.
   const response = await provider.generate(writePrompt);
 
   // Should generate write_file action
-  assertStringIncludes(response, '"tool": "write_file"');
+  assertStringIncludes(response, TOOL_WRITE_FILE);
   assertStringIncludes(response, '"path":');
   assertStringIncludes(response, '"content":');
 });
@@ -110,13 +118,13 @@ Read src/index.ts to understand the structure.
 
   // The key fix: should generate <actions> (not planning <content>)
   // The specific tool doesn't matter as much as generating actions vs planning
-  assertStringIncludes(response, "<actions>");
-  assertStringIncludes(response, '"tool":');
-  assertStringIncludes(response, '"params":');
+  assertStringIncludes(response, TAG_ACTIONS);
+  assertStringIncludes(response, KEY_TOOL);
+  assertStringIncludes(response, KEY_PARAMS);
 
   // Should NOT be a planning response
-  assertEquals(response.includes('"steps"'), false, "Should not contain planning steps");
-  assertEquals(response.includes("<content>"), false, "Should use <actions> not <content>");
+  assertEquals(response.includes(KEY_STEPS), false, "Should not contain planning steps");
+  assertEquals(response.includes(TAG_CONTENT), false, "Should use <actions> not <content>");
 });
 
 Deno.test("[regression] MockLLMProvider pattern recognition handles 'Step N' format", async () => {
@@ -136,11 +144,11 @@ Deno.test("[regression] MockLLMProvider pattern recognition handles 'Step N' for
 
     assertStringIncludes(
       response,
-      "<actions>",
+      TAG_ACTIONS,
       `Prompt "${prompt}" should generate execution response with <actions>`,
     );
     assertEquals(
-      response.includes("<content>"),
+      response.includes(TAG_CONTENT),
       false,
       `Prompt "${prompt}" should not generate planning response with <content>`,
     );
@@ -156,13 +164,13 @@ Deno.test("[regression] MockLLMProvider distinguishes execution from planning ke
   const planningPrompt = "Create a plan to implement the new feature";
   const planningResponse = await provider.generate(planningPrompt);
 
-  assertStringIncludes(planningResponse, "<content>");
-  assertStringIncludes(planningResponse, '"steps"');
+  assertStringIncludes(planningResponse, TAG_CONTENT);
+  assertStringIncludes(planningResponse, KEY_STEPS);
 
   // Same keywords in execution context
   const executionPrompt = "You are an autonomous coding agent executing Step 1: Create the file";
   const executionResponse = await provider.generate(executionPrompt);
 
-  assertStringIncludes(executionResponse, "<actions>");
-  assertEquals(executionResponse.includes('"steps"'), false);
+  assertStringIncludes(executionResponse, TAG_ACTIONS);
+  assertEquals(executionResponse.includes(KEY_STEPS), false);
 });

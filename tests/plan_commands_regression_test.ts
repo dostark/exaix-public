@@ -12,6 +12,14 @@ import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 
+const STATUS_APPROVED = "approved";
+const STATUS_REJECTED = "rejected";
+const STATUS_REVIEW = "review";
+const TEST_AGENT_ID = "test-agent";
+const TEST_CREATED_AT = "2026-01-17T00:00:00.000Z";
+const TEST_PLAN_FILE = "test_plan.md";
+const TEST_PLAN_REJECTED_FILE = "test_plan_rejected.md";
+
 // Helper to create a minimal plan file
 async function createPlanFile(
   dir: string,
@@ -23,8 +31,8 @@ async function createPlanFile(
   const content = `---
 trace_id: "${traceId}"
 status: ${status}
-agent_id: test-agent
-created_at: "2026-01-17T00:00:00.000Z"
+agent_id: ${TEST_AGENT_ID}
+created_at: "${TEST_CREATED_AT}"
 ---
 
 # Test Plan
@@ -64,7 +72,7 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
 
     // Create an approved plan in Active directory
     const traceId = crypto.randomUUID();
-    await createPlanFile(activeDir, "test_plan.md", "approved", traceId);
+    await createPlanFile(activeDir, TEST_PLAN_FILE, STATUS_APPROVED, traceId);
 
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
@@ -90,12 +98,12 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
     const planCommands = new PlanCommands({ config, db: stubDb as any });
 
     // List with status=approved - should find the plan in Active directory
-    const approvedPlans = await planCommands.list("approved");
+    const approvedPlans = await planCommands.list(STATUS_APPROVED);
 
     // Before the fix, this would return 0 plans (only scanned Plans directory)
     // After the fix, this should return 1 plan (scans Active directory for approved)
     assertEquals(approvedPlans.length, 1, "Should find 1 approved plan in Active directory");
-    assertEquals(approvedPlans[0].status, "approved");
+    assertEquals(approvedPlans[0].status, STATUS_APPROVED);
     assertEquals(approvedPlans[0].trace_id, traceId);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
@@ -110,7 +118,7 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
 
     // Create a rejected plan in Rejected directory
     const traceId = crypto.randomUUID();
-    await createPlanFile(rejectedDir, "test_plan_rejected.md", "rejected", traceId);
+    await createPlanFile(rejectedDir, TEST_PLAN_REJECTED_FILE, STATUS_REJECTED, traceId);
 
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
@@ -135,10 +143,10 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
     const planCommands = new PlanCommands({ config, db: stubDb as any });
 
     // List with status=rejected - should find the plan in Rejected directory
-    const rejectedPlans = await planCommands.list("rejected");
+    const rejectedPlans = await planCommands.list(STATUS_REJECTED);
 
     assertEquals(rejectedPlans.length, 1, "Should find 1 rejected plan in Rejected directory");
-    assertEquals(rejectedPlans[0].status, "rejected");
+    assertEquals(rejectedPlans[0].status, STATUS_REJECTED);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -152,7 +160,7 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
 
     // Create a review plan in Plans directory
     const traceId = crypto.randomUUID();
-    await createPlanFile(plansDir, "test_plan.md", "review", traceId);
+    await createPlanFile(plansDir, TEST_PLAN_FILE, STATUS_REVIEW, traceId);
 
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
@@ -176,10 +184,10 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
     const planCommands = new PlanCommands({ config, db: stubDb as any });
 
     // List with status=review - should find the plan in Plans directory
-    const reviewPlans = await planCommands.list("review");
+    const reviewPlans = await planCommands.list(STATUS_REVIEW);
 
     assertEquals(reviewPlans.length, 1, "Should find 1 review plan in Plans directory");
-    assertEquals(reviewPlans[0].status, "review");
+    assertEquals(reviewPlans[0].status, STATUS_REVIEW);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -192,9 +200,9 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
     const { plansDir, activeDir, rejectedDir } = await createTestWorkspace(tempDir);
 
     // Create plans in all directories
-    await createPlanFile(plansDir, "review_plan.md", "review", crypto.randomUUID());
-    await createPlanFile(activeDir, "approved_plan.md", "approved", crypto.randomUUID());
-    await createPlanFile(rejectedDir, "rejected_plan.md", "rejected", crypto.randomUUID());
+    await createPlanFile(plansDir, "review_plan.md", STATUS_REVIEW, crypto.randomUUID());
+    await createPlanFile(activeDir, "approved_plan.md", STATUS_APPROVED, crypto.randomUUID());
+    await createPlanFile(rejectedDir, "rejected_plan.md", STATUS_REJECTED, crypto.randomUUID());
 
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
@@ -223,7 +231,7 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
     assertEquals(allPlans.length, 3, "Should find 3 plans across all directories");
 
     const statuses = allPlans.map((p) => p.status).sort();
-    assertEquals(statuses, ["approved", "rejected", "review"]);
+    assertEquals(statuses, [STATUS_APPROVED, STATUS_REJECTED, STATUS_REVIEW]);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -262,7 +270,7 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
     const allPlans = await planCommands.list();
     assertEquals(allPlans.length, 0);
 
-    const approvedPlans = await planCommands.list("approved");
+    const approvedPlans = await planCommands.list(STATUS_APPROVED);
     assertEquals(approvedPlans.length, 0);
   } finally {
     await Deno.remove(tempDir, { recursive: true });

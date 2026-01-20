@@ -13,6 +13,17 @@
 import { assert, assertEquals, assertExists } from "@std/assert";
 import { EventLogger } from "../src/services/event_logger.ts";
 
+const TEST_ACTION = "test.action";
+const TEST_WARNING = "test.warning";
+const TEST_ERROR = "test.error";
+const TEST_DEBUG = "test.debug";
+const TEST_TARGET = "test-target";
+const CHILD_ACTION = "child.action";
+const CHILD_TARGET = "child-target";
+const TEST_TRACE_ID = "test-trace-123";
+const TEST_USER = "test-user";
+const TEST_CLI_MODE_ENV = "EXO_TEST_CLI_MODE";
+
 // ============================================================================
 // Stub Database Interface Tests
 // ============================================================================
@@ -46,10 +57,10 @@ Deno.test("[regression] EventLogger works with stub db that has logActivity", as
   const logger = new EventLogger({ db: stubDb as any });
 
   // These should NOT throw "this.db.logActivity is not a function"
-  await logger.info("test.action", "test-target", { key: "value" });
-  await logger.warn("test.warning", "test-target");
-  await logger.error("test.error", "test-target");
-  await logger.debug("test.debug", "test-target");
+  await logger.info(TEST_ACTION, TEST_TARGET, { key: "value" });
+  await logger.warn(TEST_WARNING, TEST_TARGET);
+  await logger.error(TEST_ERROR, TEST_TARGET);
+  await logger.debug(TEST_DEBUG, TEST_TARGET);
 
   // If we get here without throwing, the test passes
   assert(true, "EventLogger should work with stub db");
@@ -68,7 +79,7 @@ Deno.test("[regression] EventLogger works with empty db (no methods) - should no
   // These should gracefully handle missing logActivity
   // The error should be caught and logged as a warning, not thrown
   try {
-    await logger.info("test.action", "test-target", { key: "value" });
+    await logger.info(TEST_ACTION, TEST_TARGET, { key: "value" });
     // If db.logActivity is missing, EventLogger will catch the error internally
   } catch (error) {
     // This is NOT expected after the fix - EventLogger should handle missing methods
@@ -85,9 +96,9 @@ Deno.test("[regression] EventLogger works with no db at all (console-only mode)"
   const logger = new EventLogger({});
 
   // Should not throw
-  await logger.info("test.action", "test-target", { key: "value" });
-  await logger.warn("test.warning", "test-target");
-  await logger.error("test.error", "test-target");
+  await logger.info(TEST_ACTION, TEST_TARGET, { key: "value" });
+  await logger.warn(TEST_WARNING, TEST_TARGET);
+  await logger.error(TEST_ERROR, TEST_TARGET);
 
   assert(true, "EventLogger should work without db");
 });
@@ -99,10 +110,10 @@ Deno.test("[regression] EventLogger child loggers work with stub db", async () =
   };
 
   const parentLogger = new EventLogger({ db: stubDb as any });
-  const childLogger = parentLogger.child({ actor: "test-user", traceId: "test-trace-123" });
+  const childLogger = parentLogger.child({ actor: TEST_USER, traceId: TEST_TRACE_ID });
 
   // Child logger should also work without throwing
-  await childLogger.info("child.action", "child-target", { from: "child" });
+  await childLogger.info(CHILD_ACTION, CHILD_TARGET, { from: "child" });
 
   assert(true, "Child logger should work with stub db");
 });
@@ -134,10 +145,10 @@ Deno.test({
 
 Deno.test("[regression] CLI test mode context has stub db with required methods", async () => {
   // Set environment to force test mode
-  const originalEnv = Deno.env.get("EXO_TEST_CLI_MODE");
+  const originalEnv = Deno.env.get(TEST_CLI_MODE_ENV);
 
   try {
-    Deno.env.set("EXO_TEST_CLI_MODE", "1");
+    Deno.env.set(TEST_CLI_MODE_ENV, "1");
 
     // Re-import to get test mode context
     // Note: Due to module caching, this may not re-initialize
@@ -151,9 +162,9 @@ Deno.test("[regression] CLI test mode context has stub db with required methods"
   } finally {
     // Restore environment
     if (originalEnv === undefined) {
-      Deno.env.delete("EXO_TEST_CLI_MODE");
+      Deno.env.delete(TEST_CLI_MODE_ENV);
     } else {
-      Deno.env.set("EXO_TEST_CLI_MODE", originalEnv);
+      Deno.env.set(TEST_CLI_MODE_ENV, originalEnv);
     }
   }
 });

@@ -372,32 +372,3 @@ export const DEFAULT_LOG_MAX_SIZE_MB = 10;
 export const DEFAULT_LOG_MAX_FILES = 5;
 export const LOG_FILE_PREFIX = "structured-log";
 export const LOG_FILE_EXTENSION = ".jsonl";
-
-// ============================================================================
-// Testing Constants
-// ============================================================================
-export const REGRESSION_TEST_PROMPT = "Hello, reply with 'OK'";
-export const TEST_LOG_PREVIEW_LENGTH = 50;
-
-// Environment Keys
-export const ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY";
-export const ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
-export const ENV_ANTHROPIC_API_KEY = "ANTHROPIC_API_KEY";
-
-// Test Names
-export const TEST_NAME_GOOGLE_REGRESSION = "[regression] GoogleProvider: Verify gemini-2.0-flash-exp works with v1beta";
-export const TEST_NAME_OPENAI_REGRESSION = "[regression] OpenAIProvider: Verify default model works";
-export const TEST_NAME_ANTHROPIC_REGRESSION = "[regression] AnthropicProvider: Verify default model works";
-
-// Log and Error Prefixes/Messages
-export const LOG_PREFIX_GOOGLE_RESPONSE = "Google Response:";
-export const LOG_PREFIX_GOOGLE_ERROR = "Google Provider Error:";
-export const LOG_PREFIX_OPENAI_RESPONSE = "OpenAI Response:";
-export const LOG_PREFIX_OPENAI_ERROR = "OpenAI Provider Error:";
-export const LOG_PREFIX_ANTHROPIC_RESPONSE = "Anthropic Response:";
-export const LOG_PREFIX_ANTHROPIC_ERROR = "Anthropic Provider Error (CAUGHT):";
-export const LOG_MSG_ENDPOINT_REACHED = "✅ Endpoint reached (Access/Quota/Auth error confirmed)";
-export const LOG_MSG_ENDPOINT_REACHED_ANHROPIC = "✅ Endpoint reached (Error caught but confirms connectivity)";
-export const ERROR_MSG_HTTP_404 = "404";
-export const ERROR_MSG_NOT_FOUND = "not_found";
-export const LOG_MSG_NOT_FOUND_DETECTED = "❌ 404/Not Found Error Detected!";

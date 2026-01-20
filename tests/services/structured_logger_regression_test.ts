@@ -3,13 +3,17 @@ import { exists } from "@std/fs";
 import { join } from "@std/path";
 import { FileOutput, LogEntry } from "../../src/services/structured_logger.ts";
 
+const TEST_LOG_MESSAGE = "Test log message";
+const TEST_LOG_LEVEL = "info";
+const TEST_DIR_PREFIX = "exoframe_test_logger_";
+
 /**
  * Regression test for: "NotFound: No such file or directory (os error 2): writefile ..."
  * Root cause: FileOutput tried to write to a path where parent processing directory did not exist.
  * Fix: Added ensureDir logic inside FileOutput.write() to automatically create parent directories.
  */
 Deno.test("[regression] FileOutput automatically creates missing parent directories", async () => {
-  const tmpDir = await Deno.makeTempDir({ prefix: "exoframe_test_logger_" });
+  const tmpDir = await Deno.makeTempDir({ prefix: TEST_DIR_PREFIX });
   const deepLogPath = join(tmpDir, "level1", "level2", "test.jsonl");
 
   try {
@@ -19,8 +23,8 @@ Deno.test("[regression] FileOutput automatically creates missing parent director
     const output = new FileOutput(deepLogPath);
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
-      level: "info",
-      message: "Test log message",
+      level: TEST_LOG_LEVEL,
+      message: TEST_LOG_MESSAGE,
       context: {},
     };
 
@@ -32,7 +36,7 @@ Deno.test("[regression] FileOutput automatically creates missing parent director
 
     // Verify content
     const content = await Deno.readTextFile(deepLogPath);
-    assertExists(content.match(/"message":"Test log message"/));
+    assertExists(content.match(new RegExp(`"message":"${TEST_LOG_MESSAGE}"`)));
   } finally {
     // Cleanup
     await Deno.remove(tmpDir, { recursive: true });
