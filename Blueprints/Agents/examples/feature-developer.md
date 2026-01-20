@@ -1,7 +1,7 @@
 ---
 agent_id: "feature-developer"
 name: "Feature Developer"
-model: "google:gemini-2.0-flash-latest"
+model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file", "list_directory", "git_create_branch", "git_commit", "git_status"]
 created: "2025-12-20T22:37:31Z"
 created_by: "system"

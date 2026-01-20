@@ -1,7 +1,7 @@
 ---
 agent_id: "code-reviewer"
 name: "Code Reviewer"
-model: "google:gemini-2.0-flash-latest"
+model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file", "list_directory"]
 created: "2025-12-20T22:37:31Z"
 created_by: "system"

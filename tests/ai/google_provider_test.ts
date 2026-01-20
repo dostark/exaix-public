@@ -6,7 +6,7 @@ import { googleResponseConfig, registerProviderTests, spyFetch } from "./helpers
 registerProviderTests({
   name: "GoogleProvider",
   createProvider: (options) => new GoogleProvider({ apiKey: "test-key", ...options }),
-  defaultId: "google-gemini-2.0-flash-latest",
+  defaultId: "google-gemini-2.0-flash-exp",
   responseConfig: googleResponseConfig,
   apiKeyHeader: "Content-Type",
   apiKeyValue: "application/json",

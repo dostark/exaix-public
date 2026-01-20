@@ -1,7 +1,7 @@
 ---
 agent_id: "code-analyst"
 name: "Code Analyst"
-model: "google:gemini-2.0-flash-latest"
+model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "list_directory", "grep_search"]
 created: "2026-01-05T00:00:00Z"
 created_by: "phase-18-modernization"

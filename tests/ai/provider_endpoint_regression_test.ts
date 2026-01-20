@@ -5,7 +5,7 @@ import { AnthropicProvider } from "../../src/ai/providers/anthropic_provider.ts"
 import { DEFAULT_ANTHROPIC_MODEL, DEFAULT_GOOGLE_MODEL, DEFAULT_OPENAI_MODEL } from "../../src/config/constants.ts";
 
 /**
- * Regression test for: "HTTP 404 models/gemini-2.0-flash-latest is not found for API version v1"
+ * Regression test for: "HTTP 404 models/gemini-2.0-flash-exp is not found for API version v1"
  * Root cause: Default endpoint was set to v1, but gemini-2.0 requires v1beta.
  * Fix: Updated DEFAULT_GOOGLE_ENDPOINT to v1beta.
  *
@@ -53,13 +53,13 @@ Deno.test("[regression] GoogleProvider uses v1beta endpoint for Gemini models", 
   try {
     const provider = new GoogleProvider({
       apiKey: "dummy-key",
-      model: DEFAULT_GOOGLE_MODEL, // gemini-2.0-flash-latest
+      model: DEFAULT_GOOGLE_MODEL, // gemini-2.0-flash-exp
     });
 
     await provider.generate("Test prompt");
 
     assertStringIncludes(lastUrl!, "https://generativelanguage.googleapis.com/v1beta/models");
-    assertStringIncludes(lastUrl!, DEFAULT_GOOGLE_MODEL);
+    assertStringIncludes(lastUrl!, DEFAULT_GOOGLE_MODEL); // Verify it uses the constant (e.g. gemini-2.0-flash-exp)
     assertEquals(lastMethod, "POST");
   } finally {
     globalThis.fetch = originalFetch;

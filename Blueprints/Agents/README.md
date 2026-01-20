@@ -16,7 +16,7 @@ All blueprints support `default_skills` for automatic procedural knowledge injec
 ---
 agent_id: "my-agent"
 name: "My Agent"
-model: "google:gemini-2.0-flash-latest"
+model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file"]
 default_skills: ["code-review", "error-handling"]  # NEW
 ---

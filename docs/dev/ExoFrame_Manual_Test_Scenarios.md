@@ -1540,7 +1540,7 @@ log_level = "info"
 
 [ai]
 provider = "google"
-model = "gemini-2.0-flash-latest"  # Or gemini-2.0-pro-exp-01-28
+model = "gemini-2.0-flash-exp"  # Or gemini-2.0-pro-exp-01-28
 base_url = ""
 
 [ai.google]
@@ -2070,7 +2070,7 @@ exoctl daemon stop
 
 **Step 2:**
 
-- Shows: `✅ LLM Provider: google-gemini-2.0-flash-latest`
+- Shows: `✅ LLM Provider: google-gemini-2.0-flash-exp`
 - Google provider used by default
 
 **Step 4:**

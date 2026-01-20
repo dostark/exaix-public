@@ -77,7 +77,7 @@ export const DEFAULT_AI_RETRY_BACKOFF_BASE_MS = 1000;
 export const DEFAULT_AI_RETRY_TIMEOUT_PER_REQUEST_MS = 30000;
 
 // AI configuration schema defaults
-export const DEFAULT_AI_MODEL = "gemini-2.0-flash-latest";
+export const DEFAULT_AI_MODEL = "gemini-2.0-flash-exp";
 export const DEFAULT_AI_TEMPERATURE_MIN = 0;
 export const DEFAULT_AI_TEMPERATURE_MAX = 2;
 
@@ -122,8 +122,8 @@ export const DEFAULT_OLLAMA_MODEL = "llama3.2";
 export const DEFAULT_OPENAI_BASE_URL = "https://api.openai.com";
 // Options: gpt-5-mini (default), gpt-4o-mini, gpt-5, o3-mini, gpt-5.2
 export const DEFAULT_OPENAI_MODEL = "gpt-5-mini";
-// Options: gemini-2.0-flash-latest (default), gemini-1.5-flash-latest, gemini-2.0-flash-lite, gemini-3-pro-latest, gemini-1.5-pro-latest
-export const DEFAULT_GOOGLE_MODEL = "gemini-2.0-flash-latest";
+// Options: gemini-2.0-flash-exp (default), gemini-1.5-flash-latest, gemini-2.0-flash-lite, gemini-3-pro-latest, gemini-1.5-pro-latest
+export const DEFAULT_GOOGLE_MODEL = "gemini-2.0-flash-exp";
 
 // ============================================================================
 // Mock Provider Validation Limits
@@ -144,7 +144,7 @@ export const MOCK_OUTPUT_TOKENS = 200;
 export const DEFAULT_MOCK_MODEL = "mock-model";
 
 // Additional model names for schema defaults
-export const DEFAULT_FAST_MODEL_NAME = "gemini-2.0-flash-latest"; // Was mock-fast, now using recommended fast model name as default
+export const DEFAULT_FAST_MODEL_NAME = "gemini-2.0-flash-exp"; // Was mock-fast, now using recommended fast model name as default
 export const DEFAULT_LOCAL_MODEL_NAME = "llama3.2";
 
 // Provider names for schema defaults
