@@ -296,11 +296,12 @@ batch_delay_ms = 5000
 # Maximum batch size before immediate flush
 max_batch_size = 50
 
-# Cost rates per 1K tokens (override defaults for your pricing)
+# Cost rates per 1K tokens (based on output pricing for conservative estimates)
+# Prices as of 2025-2026 API releases
 [cost_tracking.rates]
-openai = 0.001     # $1.00 per 1M tokens (gpt-5-mini)
-anthropic = 0.004  # $4.00 per 1M tokens (claude-haiku-4-5)
-google = 0.0       # Free tier
+openai = 0.002     # $2.00 per 1M output tokens (gpt-5-mini)
+anthropic = 0.005  # $5.00 per 1M output tokens (claude-haiku-4-5)
+google = 0.0025    # $2.50 per 1M output tokens (gemini-2.5-flash, Vertex AI)
 ollama = 0.0       # Local free
 mock = 0.0         # Mock free
 
