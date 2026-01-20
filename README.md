@@ -94,13 +94,24 @@ complex = ["anthropic-claude-opus", "openai-gpt-5-pro"]
 
 ### Environment Variables
 
-Set API keys for cloud providers:
+**API Keys** (required for cloud providers):
 
 ```bash
 export ANTHROPIC_API_KEY="your-anthropic-key"
 export OPENAI_API_KEY="your-openai-key"
 export GOOGLE_API_KEY="your-google-key"
 ```
+
+**Runtime Overrides** (optional): ExoFrame supports 4 environment variables for temporary configuration overrides:
+
+```bash
+# Override provider/model for a single command
+EXO_LLM_PROVIDER=ollama EXO_LLM_MODEL=llama3.2 exoctl request "..."
+
+# Available overrides: EXO_LLM_PROVIDER, EXO_LLM_MODEL, EXO_LLM_BASE_URL, EXO_LLM_TIMEOUT_MS
+```
+
+> **Note:** All `EXO_LLM_*` variables are validated via Zod schema. Use `exo.config.toml` for persistent configuration.
 
 See the [Provider Strategy Guide](./docs/Provider_Strategy_Guide.md) for advanced configuration options.
 

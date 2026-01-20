@@ -301,7 +301,13 @@ To ensure maintainability and configurability, follow these strict rules:
     *   **Test-Specific:** Use `tests/config/constants.ts` for constants used exclusively in test files.
     *   **CLI/TUI:** Use `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
 3.  **Enums:** ALWAYS use TypeScript enums from `src/enums.ts` instead of string literals.
-4.  **Reference:** See `CONTRIBUTING.md` and `docs/dev/Migration_Guide_Phase27.md`.
+4.  **Environment Variables** (Phase 28):
+    *   **Production:** Only use `EXO_LLM_*` vars for runtime overrides (`EXO_LLM_PROVIDER`, `EXO_LLM_MODEL`, `EXO_LLM_BASE_URL`, `EXO_LLM_TIMEOUT_MS`)
+    *   **Testing:** Use `EXO_TEST_*` prefix for all test-related vars
+    *   **Validation:** All env vars MUST be validated via Zod schema (see `src/config/env_schema.ts`)
+    *   **Helpers:** Use `getValidatedEnvOverrides()`, `isTestMode()`, `isCIMode()` instead of direct `Deno.env.get()`
+5.  **Reference:** See `CONTRIBUTING.md` and `docs/dev/Migration_Guide_Phase27.md`.
+
 
 
 

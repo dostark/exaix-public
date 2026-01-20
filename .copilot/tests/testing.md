@@ -83,6 +83,45 @@ Use `createCliTestContext()` to centralize DB + tempdir setup for CLI tests. Alw
 
 Use `TestEnvironment.create()` for full integration tests that require workspace layout, DB, and optional git initialization. Prefer small, focused integration tests that exercise end-to-end behavior with deterministic teardown.
 
+### Test Environment Variables (Phase 28)
+
+All test-related environment variables use the `EXO_TEST_*` prefix for clarity and separation from production env vars:
+
+**Standard Test Variables:**
+- `EXO_TEST_MODE` — Indicates test environment (replaces legacy `DENO_TEST`)
+- `EXO_TEST_CLI_MODE` — Indicates CLI test mode (replaces legacy `EXOCTL_TEST_MODE`)
+- `EXO_TEST_ENABLE_PAID_LLM` — Opt-in for paid API tests in CI (0 or 1)
+- `EXO_TEST_ENABLE_OLLAMA` — Enable Ollama integration tests (0 or 1)
+- `EXO_TEST_ENABLE_LLAMA` — Enable Llama provider tests (true or false)
+- `EXO_TEST_LLM_MODEL` — Override model for tests
+- `EXO_TEST_OPENAI_API_KEY` — OpenAI API key for integration tests
+
+**Helper Functions:**
+
+Use the helper functions from `src/config/env_schema.ts` instead of direct env var access:
+
+```typescript
+import { isTestMode, isCIMode } from "../config/env_schema.ts";
+
+// Check if in test environment
+if (isTestMode()) {
+  // Skip timer-based operations in tests
+  console.log("Running in test mode, skipping delays");
+}
+
+// Check if in CI environment
+if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
+  // Skip paid API tests in CI
+  test.ignore = true;
+}
+```
+
+**Best Practices:**
+- ✅ Always use `isTestMode()` instead of checking `DENO_TEST` or `EXO_TEST_MODE` directly
+- ✅ Always use `isCIMode()` instead of checking `CI` or `EXO_CI_MODE` directly
+- ✅ Use `EXO_TEST_*` prefix for any new test-related env vars
+- ❌ Never use legacy env vars (`DENO_TEST`, `EXOCTL_TEST_MODE`) in new code
+
 ### CI (GitHub Actions) — Common Pitfalls
 
 - Treat `CI` as a truthy flag (`CI=true` on GitHub Actions), not strictly `"1"`.

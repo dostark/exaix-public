@@ -206,11 +206,38 @@ production = ["anthropic-claude-opus", "openai-gpt-5-pro", "ollama"]
 
 **Environment Variables:**
 
-| Variable            | Provider           |
-| ------------------- | ------------------ |
-| `ANTHROPIC_API_KEY` | Anthropic (Claude) |
-| `OPENAI_API_KEY`    | OpenAI (GPT)       |
-| `GOOGLE_API_KEY`    | Google (Gemini)    |
+**Provider API Keys (required for cloud providers):**
+
+| Variable            | Provider           | Required When            |
+| ------------------- | ------------------ | ------------------------ |
+| `ANTHROPIC_API_KEY` | Anthropic (Claude) | Using Anthropic provider |
+| `OPENAI_API_KEY`    | OpenAI (GPT)       | Using OpenAI provider    |
+| `GOOGLE_API_KEY`    | Google (Gemini)    | Using Google provider    |
+
+**Runtime Configuration Overrides (Phase 28):**
+
+ExoFrame supports 4 environment variables for runtime configuration overrides via CLI/TUI:
+
+| Variable             | Purpose                    | Validation             | Example                                          |
+| -------------------- | -------------------------- | ---------------------- | ------------------------------------------------ |
+| `EXO_LLM_PROVIDER`   | Override AI provider       | ProviderType enum      | `export EXO_LLM_PROVIDER=ollama`                 |
+| `EXO_LLM_MODEL`      | Override model name        | Non-empty string       | `export EXO_LLM_MODEL=llama3.2`                  |
+| `EXO_LLM_BASE_URL`   | Override provider endpoint | Valid URL              | `export EXO_LLM_BASE_URL=http://localhost:11434` |
+| `EXO_LLM_TIMEOUT_MS` | Override request timeout   | Number (1000-300000ms) | `export EXO_LLM_TIMEOUT_MS=60000`                |
+
+**Validation:** All `EXO_LLM_*` environment variables are validated via Zod schema in `src/config/env_schema.ts`. Invalid values are rejected with clear warnings. See `templates/exo.config.sample.toml` for detailed usage examples.
+
+**Test Environment Variables:**
+
+All test-related environment variables use the `EXO_TEST_*` prefix:
+
+- `EXO_TEST_MODE` - Indicates test environment
+- `EXO_TEST_CLI_MODE` - Indicates CLI test mode
+- `EXO_TEST_ENABLE_PAID_LLM` - Opt-in for paid API tests in CI
+- `EXO_TEST_ENABLE_OLLAMA` - Enable Ollama integration tests
+- `EXO_TEST_ENABLE_LLAMA` - Enable Llama provider tests
+
+Use helper functions `isTestMode()` and `isCIMode()` from `src/config/env_schema.ts` instead of direct env var access.
 
 ### 2.0.2 Provider Cost Comparison
 

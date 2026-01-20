@@ -2052,9 +2052,19 @@ We enforce a strict "No Magic Values" policy. This means all timeouts, limits, m
 
 ### 5.2 Key Configuration Areas
 
+The main configuration areas in `exo.config.toml` are:
+
+- **[system]:** Workspace paths, logging level
+- **[watcher]:** File watching settings (debounce, extensions)
+- **[models]:** AI provider configurations
+- **[agents]:** Agent blueprint settings
+- **[mcp]:** Model Context Protocol client configuration
+
+**Example configuration:**
+
 ```toml
 [agents]
-default_model = "claude-3-5-sonnet-20241022"
+default_model = "claude-opus-4.5"
 max_tokens = 8192
 
 [system]
@@ -2067,6 +2077,82 @@ version = "1.0.0"
 enable_stdio = true
 enable_sse = false
 ```
+
+**Best Practices:**
+
+1. **Never modify `src/config/constants.ts` directly** - All magic values are defined in `exo.config.toml`
+2. **Use `exo.config.sample.toml` as reference** - Contains documented examples for all settings
+3. **Validate after changes** - Run `exoctl daemon restart` to ensure config is valid
+
+### 5.3 Environment Variable Reference
+
+ExoFrame supports environment variables for runtime configuration overrides and API authentication.
+
+#### 5.3.1 Provider API Keys
+
+Cloud providers require API keys set as environment variables:
+
+| Variable            | Provider           | Required When            |
+| ------------------- | ------------------ | ------------------------ |
+| `ANTHROPIC_API_KEY` | Anthropic (Claude) | Using Anthropic provider |
+| `OPENAI_API_KEY`    | OpenAI (GPT)       | Using OpenAI provider    |
+| `GOOGLE_API_KEY`    | Google (Gemini)    | Using Google provider    |
+
+**Setup (permanent):**
+
+```bash
+# Add to ~/.bashrc or ~/.zshrc
+echo 'export ANTHROPIC_API_KEY="your-key-here"' >> ~/.bashrc
+echo 'export OPENAI_API_KEY="your-key-here"' >> ~/.bashrc
+echo 'export GOOGLE_API_KEY="your-key-here"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+#### 5.3.2 Runtime Configuration Overrides
+
+Four environment variables allow runtime override of AI provider configuration:
+
+| Variable             | Purpose                    | Validation        | Example                                          |
+| -------------------- | -------------------------- | ----------------- | ------------------------------------------------ |
+| `EXO_LLM_PROVIDER`   | Override AI provider       | ProviderType enum | `export EXO_LLM_PROVIDER=ollama`                 |
+| `EXO_LLM_MODEL`      | Override model name        | Non-empty string  | `export EXO_LLM_MODEL=llama3.2`                  |
+| `EXO_LLM_BASE_URL`   | Override provider endpoint | Valid URL         | `export EXO_LLM_BASE_URL=http://localhost:11434` |
+| `EXO_LLM_TIMEOUT_MS` | Override request timeout   | 1000-300000ms     | `export EXO_LLM_TIMEOUT_MS=60000`                |
+
+**Usage Example:**
+
+```bash
+# Temporarily use local Ollama for a single request
+EXO_LLM_PROVIDER=ollama EXO_LLM_MODEL=llama3.2 exoctl request "Explain the codebase"
+
+# Set for the current session
+export EXO_LLM_PROVIDER=anthropic
+export EXO_LLM_MODEL=claude-opus-4.5
+exoctl daemon start
+```
+
+**Validation:** All `EXO_LLM_*` variables are validated via Zod schema. Invalid values (e.g., timeout below 1000ms, invalid provider name) are rejected with clear warning messages.
+
+**Best Practice:** Use `exo.config.toml` for persistent configuration. Use environment variables for temporary overrides or testing different providers.
+
+#### 5.3.3 Troubleshooting Environment Variables
+
+**Invalid environment variable warnings:**
+
+If you see warnings like "Invalid EXO_LLM_TIMEOUT_MS: must be ≥ 1000", check:
+
+1. **Value is within valid range** (timeout: 1000-300000ms)
+2. **No typos in variable name** (case-sensitive)
+3. **Provider name is valid** (`mock`, `ollama`, `anthropic`, `openai`, `google`)
+4. **URL is well-formed** (must include protocol: `http://` or `https://`)
+
+**Environment variables not taking effect:**
+
+1. **Restart the daemon** after setting env vars: `exoctl daemon restart`
+2. **Check the daemon logs** to see which values were loaded: `exoctl daemon logs`
+3. **Verify the variable is set** in the daemon's environment: `env | grep EXO_LLM`
+
+For more details, see `templates/exo.config.sample.toml` and [Technical Specification](./dev/ExoFrame_Technical_Spec.md).
 
 ## 6. Model Context Protocol (MCP) Server
 

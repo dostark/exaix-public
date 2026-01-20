@@ -110,6 +110,53 @@ const apiKey = Deno.env.get(TEST_CONSTANTS.ENV_GOOGLE_API_KEY);
 - Keep related constants together
 - Separate test constants from production constants
 
+### Environment Variable Configuration (Phase 28)
+
+**Pattern:** Always validate environment variable inputs via Zod schema
+
+ExoFrame supports only 4 production environment variables for runtime overrides:
+- `EXO_LLM_PROVIDER` - Override AI provider (validated against ProviderType enum)
+- `EXO_LLM_MODEL` - Override model name (must be non-empty)
+- `EXO_LLM_BASE_URL` - Override API endpoint (must be valid URL)
+- `EXO_LLM_TIMEOUT_MS` - Override timeout (1000-300000ms, validated)
+
+**Requirements:**
+- ✅ Use `getValidatedEnvOverrides()` for production env vars
+- ✅ Use `isTestMode()` and `isCIMode()` helpers for test detection
+- ✅ Use `EXO_TEST_*` prefix for all test-related environment variables
+- ✅ Never use direct `Deno.env.get()` for `EXO_LLM_*` vars without validation
+- ✅ All env vars validated via Zod schema in `src/config/env_schema.ts`
+
+**Examples:**
+```typescript
+// ✅ GOOD: Validated env var usage
+import { getValidatedEnvOverrides, isTestMode, isCIMode } from "../config/env_schema.ts";
+
+const envOverrides = getValidatedEnvOverrides();
+const provider = envOverrides.EXO_LLM_PROVIDER ?? config.ai?.provider ?? DEFAULT_PROVIDER;
+const model = envOverrides.EXO_LLM_MODEL ?? config.ai?.model ?? DEFAULT_MODEL;
+
+// Check test mode
+if (isTestMode()) {
+  // Skip timer-based operations in tests
+}
+
+// Check CI mode
+if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
+  // Skip paid API tests in CI
+}
+
+// ❌ BAD: Direct env var access without validation
+const provider = Deno.env.get("EXO_LLM_PROVIDER"); // No validation!
+const timeout = Number(Deno.env.get("EXO_LLM_TIMEOUT_MS")); // Could be invalid!
+```
+
+**Validation Benefits:**
+- Invalid values are rejected with clear warnings
+- Type safety enforced (URLs, numbers, enums)
+- Prevents runtime errors from misconfigured env vars
+- Consistent error handling across codebase
+
 ---
 
 ## Code Patterns & Anti-Patterns

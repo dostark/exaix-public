@@ -1,23 +1,16 @@
-#### 1. Non-Blocking Async Operations
-**Pattern**: Always use non-blocking alternatives to synchronous operations
-```typescript
-// ✅ GOOD: Non-blocking delay
-private delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+**Constants File Structure:**
+- Group constants by module/feature with clear section headers
+- Include JSDoc comments explaining purpose and units
+- Use consistent naming patterns
+- Keep related constants together
+- Separate test constants from production constants
 
-// ❌ BAD: Blocking synchronous delay
-await new Promise(resolve => setTimeout(resolve, ms)); // Blocks event loop
-```
+### Environment Variable Configuration (Phase 28)
 
-#### 2. Timeout Protection for External Operations
-**Pattern**: All subprocess, network, and external operations must have configurable timeouts
-```typescript
-// ✅ GOOD: Timeout-protected subprocess
-const cmd = new Deno.Command("git", {
-  args,
-  stdout: "piped",
-  stderr: "piped",
-  signal: AbortSignal.timeout(DEFAULT_GIT_COMMAND_TIMEOUT_MS)
-});
-```
+**Pattern:** Always validate environment variable inputs via Zod schema
+
+ExoFrame supports only 4 production environment variables for runtime overrides:
+- `EXO_LLM_PROVIDER` - Override AI provider (validated against ProviderType enum)
+- `EXO_LLM_MODEL` - Override model name (must be non-empty)
+- `EXO_LLM_BASE_URL` - Override API endpoint (must be valid URL)
+- `EXO_LLM_TIMEOUT_MS` - Override timeout (1000-300000ms, validated)

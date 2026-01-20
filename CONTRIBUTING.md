@@ -86,6 +86,8 @@ All available agent documentation is indexed in `.copilot/manifest.json`. Use th
 - [ ] No new magic numbers or strings introduced.
 - [ ] New configuration options added to `exo.config.sample.toml`.
 - [ ] Zod schema updated in `src/config/schema.ts`.
+- [ ] **Environment Variables:** If using `EXO_LLM_*` vars, validated via `getValidatedEnvOverrides()` (no direct `Deno.env.get()`).
+- [ ] **Test Variables:** Test-related env vars use `EXO_TEST_*` prefix and helper functions (`isTestMode()`, `isCIMode()`).
 - [ ] Tests added for new configuration options.
 - [ ] Documentation updated if behavior changes.
 - [ ] All tests pass (`deno task test`).
