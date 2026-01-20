@@ -21,68 +21,74 @@ import * as DEFAULTS from "../../src/config/constants.ts";
 const TEST_PROMPT = DEFAULTS.REGRESSION_TEST_PROMPT;
 
 Deno.test({
-  name: "[regression] GoogleProvider: Verify gemini-2.0-flash-exp works with v1beta",
-  ignore: !Deno.env.get("GOOGLE_API_KEY"),
+  name: DEFAULTS.TEST_NAME_GOOGLE_REGRESSION,
+  ignore: !Deno.env.get(DEFAULTS.ENV_GOOGLE_API_KEY),
   fn: async () => {
     const provider = new GoogleProvider({
-      apiKey: Deno.env.get("GOOGLE_API_KEY")!,
+      apiKey: Deno.env.get(DEFAULTS.ENV_GOOGLE_API_KEY)!,
       model: DEFAULT_GOOGLE_MODEL, // gemini-2.0-flash-exp
     });
 
     try {
       const response = await provider.generate(TEST_PROMPT);
       assert(response.length > 0, "Response should not be empty");
-      console.log(`Google Response: ${response.substring(0, 50)}...`);
+      console.log(
+        `${DEFAULTS.LOG_PREFIX_GOOGLE_RESPONSE} ${response.substring(0, DEFAULTS.TEST_LOG_PREVIEW_LENGTH)}...`,
+      );
     } catch (error: any) {
-      console.log(`Google Provider Error: ${error.name} - ${error.message}`);
-      if (error.message.includes("404")) throw error;
-      console.log("✅ Endpoint reached (Access/Quota/Auth error confirmed)");
+      console.log(`${DEFAULTS.LOG_PREFIX_GOOGLE_ERROR} ${error.name} - ${error.message}`);
+      if (error.message.includes(DEFAULTS.ERROR_MSG_HTTP_404)) throw error;
+      console.log(DEFAULTS.LOG_MSG_ENDPOINT_REACHED);
     }
   },
 });
 
 Deno.test({
-  name: "[regression] OpenAIProvider: Verify default model works",
-  ignore: !Deno.env.get("OPENAI_API_KEY"),
+  name: DEFAULTS.TEST_NAME_OPENAI_REGRESSION,
+  ignore: !Deno.env.get(DEFAULTS.ENV_OPENAI_API_KEY),
   fn: async () => {
     const provider = new OpenAIProvider({
-      apiKey: Deno.env.get("OPENAI_API_KEY")!,
+      apiKey: Deno.env.get(DEFAULTS.ENV_OPENAI_API_KEY)!,
       model: DEFAULT_OPENAI_MODEL,
     });
 
     try {
       const response = await provider.generate(TEST_PROMPT);
       assert(response.length > 0, "Response should not be empty");
-      console.log(`OpenAI Response: ${response.substring(0, 50)}...`);
+      console.log(
+        `${DEFAULTS.LOG_PREFIX_OPENAI_RESPONSE} ${response.substring(0, DEFAULTS.TEST_LOG_PREVIEW_LENGTH)}...`,
+      );
     } catch (error: any) {
-      console.log(`OpenAI Provider Error: ${error.name} - ${error.message}`);
-      if (error.message.includes("404")) throw error;
-      console.log("✅ Endpoint reached (Access/Quota/Auth error confirmed)");
+      console.log(`${DEFAULTS.LOG_PREFIX_OPENAI_ERROR} ${error.name} - ${error.message}`);
+      if (error.message.includes(DEFAULTS.ERROR_MSG_HTTP_404)) throw error;
+      console.log(DEFAULTS.LOG_MSG_ENDPOINT_REACHED);
     }
   },
 });
 
 Deno.test({
-  name: "[regression] AnthropicProvider: Verify default model works",
-  ignore: !Deno.env.get("ANTHROPIC_API_KEY"),
+  name: DEFAULTS.TEST_NAME_ANTHROPIC_REGRESSION,
+  ignore: !Deno.env.get(DEFAULTS.ENV_ANTHROPIC_API_KEY),
   fn: async () => {
     const provider = new AnthropicProvider({
-      apiKey: Deno.env.get("ANTHROPIC_API_KEY")!,
+      apiKey: Deno.env.get(DEFAULTS.ENV_ANTHROPIC_API_KEY)!,
       model: DEFAULT_ANTHROPIC_MODEL,
     });
 
     try {
       const response = await provider.generate(TEST_PROMPT);
       assert(response.length > 0, "Response should not be empty");
-      console.log(`Anthropic Response: ${response.substring(0, 50)}...`);
+      console.log(
+        `${DEFAULTS.LOG_PREFIX_ANTHROPIC_RESPONSE} ${response.substring(0, DEFAULTS.TEST_LOG_PREVIEW_LENGTH)}...`,
+      );
     } catch (error: any) {
-      console.log(`Anthropic Provider Error (CAUGHT): ${error.name} - ${error.message}`);
+      console.log(`${DEFAULTS.LOG_PREFIX_ANTHROPIC_ERROR} ${error.name} - ${error.message}`);
       // Anthropic 404 is "not_found_error"
-      if (error.message.includes("404") || error.message.includes("not_found")) {
-        console.error("❌ 404/Not Found Error Detected!");
+      if (error.message.includes(DEFAULTS.ERROR_MSG_HTTP_404) || error.message.includes(DEFAULTS.ERROR_MSG_NOT_FOUND)) {
+        console.error(DEFAULTS.LOG_MSG_NOT_FOUND_DETECTED);
         throw error;
       }
-      console.log("✅ Endpoint reached (Error caught but confirms connectivity)");
+      console.log(DEFAULTS.LOG_MSG_ENDPOINT_REACHED_ANHROPIC);
     }
   },
 });
