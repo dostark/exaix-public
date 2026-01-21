@@ -47,7 +47,12 @@ export class PlanAdapter {
 
     // Step 1: Parse JSON
     try {
-      json = JSON.parse(content.trim());
+      let cleanContent = content.trim();
+      // Remove markdown code blocks if present
+      if (cleanContent.startsWith("```")) {
+        cleanContent = cleanContent.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
+      }
+      json = JSON.parse(cleanContent);
     } catch (error) {
       throw new PlanValidationError(
         "Plan content is not valid JSON",
