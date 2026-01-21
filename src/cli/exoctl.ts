@@ -102,6 +102,7 @@ if (!IN_TEST_MODE) {
     db = {
       logActivity: () => {},
       waitForFlush: async () => {},
+      queryActivity: () => Promise.resolve([]),
     } as any;
     gitService = {} as any;
     provider = await ProviderFactory.createByName(config, config.agents.default_model);
@@ -139,6 +140,7 @@ if (!IN_TEST_MODE) {
   db = {
     logActivity: () => {},
     waitForFlush: async () => {},
+    queryActivity: () => Promise.resolve([]),
   } as any;
   gitService = {} as any;
   provider = {} as any;
@@ -252,6 +254,7 @@ export async function __test_initializeServices(opts?: { simulateFail?: boolean;
       db: {
         logActivity: () => {},
         waitForFlush: async () => {},
+        queryActivity: () => Promise.resolve([]),
       } as any,
       gitService: {} as any,
       provider: providerLocal,
