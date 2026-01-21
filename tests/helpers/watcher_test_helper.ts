@@ -44,7 +44,7 @@ export class WatcherTestHelper {
       },
     });
 
-    this.watcher = new FileWatcher(config, callback, options.db);
+    this.watcher = new FileWatcher(config, callback, { db: options.db });
     return this.watcher;
   }
 

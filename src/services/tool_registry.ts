@@ -4,7 +4,7 @@
  */
 import { ConfigSchema } from "../config/schema.ts";
 
-import { join } from "@std/path";
+import { join, resolve } from "@std/path";
 import { expandGlob } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
@@ -60,14 +60,11 @@ export interface ToolRegistryConfig {
   db?: DatabaseService;
   traceId?: string;
   agentId?: string;
+  baseDir?: string;
 }
 
 // ============================================================================
 // Command Whitelist
-// ============================================================================
-
-// ============================================================================
-// Command Whitelist with Safety Classification
 // ============================================================================
 
 // Combined whitelist for backward compatibility
@@ -254,6 +251,7 @@ export class ToolRegistry {
   private agentId?: string;
   private pathResolver: PathResolver;
   private tools: Map<string, Tool>;
+  private baseDir: string;
 
   constructor(options?: ToolRegistryConfig) {
     // Use ConfigSchema to parse and apply all defaults automatically
@@ -270,6 +268,8 @@ export class ToolRegistry {
     this.db = options?.db;
     this.traceId = options?.traceId ?? "tool-registry";
     this.agentId = options?.agentId ?? "system";
+    // Default baseDir to system root if not provided. Resolve it to ensure absolute path.
+    this.baseDir = options?.baseDir ? resolve(options.baseDir) : resolve(this.config.system.root);
 
     this.pathResolver = new PathResolver(this.config);
     this.tools = new Map();
@@ -530,21 +530,30 @@ export class ToolRegistry {
       return await this.pathResolver.resolve(path);
     }
 
-    // Define allowed roots
+    // Define allowed roots - RESOLVE TO ABSOLUTE PATHS
+    // We must resolve config.system.root to absolute first if receiving relative paths
+    // But typically config.system.root should be correct.
+    // The issue is mixing relative config paths with absolute Portal paths.
+    // We normalize all to absolute here.
+    const systemRootAbsolute = await Deno.realPath(this.config.system.root).catch(() =>
+      resolve(this.config.system.root)
+    );
+
     const allowedRoots = [
-      join(this.config.system.root, this.config.paths.workspace),
-      join(this.config.system.root, this.config.paths.memory),
-      join(this.config.system.root, this.config.paths.blueprints),
-      this.config.system.root,
+      join(systemRootAbsolute, this.config.paths.workspace),
+      join(systemRootAbsolute, this.config.paths.memory),
+      join(systemRootAbsolute, this.config.paths.blueprints),
+      systemRootAbsolute,
       ...this.config.portals.map((p) => p.target_path),
     ];
 
     try {
       // Securely resolve path within allowed roots
+      // Pass this.baseDir as the rootDir for resolution of relative paths
       const resolvedPath = await PathSecurity.resolveWithinRoots(
         path,
         allowedRoots,
-        this.config.system.root,
+        this.baseDir,
       );
 
       return resolvedPath;

@@ -156,6 +156,14 @@ if (import.meta.main) {
       }
     });
 
+    // Initialize ExecutionLoop for robust plan execution (Step 5.12)
+    const { ExecutionLoop } = await import("./services/execution_loop.ts");
+    const executionLoop = new ExecutionLoop({
+      config,
+      db: dbService,
+      agentId: "daemon",
+    });
+
     // Start file watcher for approved plans (Workspace/Active)
     // Detection for Step 5.12: Plan Execution Flow
     const planWatcher = new FileWatcher(
@@ -170,146 +178,50 @@ if (import.meta.main) {
           size: event.content.length,
         });
 
-        // Parse plan file to extract trace_id
-        try {
-          const content = await Deno.readTextFile(event.path);
-          const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
+        // Delegate execution to ExecutionLoop
+        // It handles parsing, validation, execution, reporting, and lifecycle management (success/failure)
+        const result = await executionLoop.processTask(event.path);
 
-          if (!yamlMatch) {
-            watcherLogger.error("plan.invalid_frontmatter", event.path, {
-              error: "No YAML frontmatter found",
-            });
-            return;
-          }
-
-          const { parse: parseYaml } = await import("@std/yaml");
-          const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
-
-          if (!frontmatter.trace_id) {
-            watcherLogger.error("plan.missing_trace_id", event.path, {
-              error: "trace_id field missing in frontmatter",
-            });
-            return;
-          }
-
-          watcherLogger.info("plan.ready_for_execution", event.path, {
-            trace_id: frontmatter.trace_id,
-            request_id: frontmatter.request_id || "unknown",
+        if (result.success) {
+          watcherLogger.info("plan.execution_managed", event.path, {
+            trace_id: result.traceId,
+            status: "completed",
           });
-
-          // Step 5.12.2: Parse plan structure
-          const bodyMatch = content.match(/^---\n[\s\S]*?\n---\n\n([\s\S]*)$/);
-
-          if (!bodyMatch) {
-            watcherLogger.error("plan.parsing_failed", event.path, {
-              error: "No body section found after frontmatter",
-              trace_id: frontmatter.trace_id,
-            });
-            return;
-          }
-
-          const body = bodyMatch[1];
-
-          // Extract steps using regex
-          const stepMatches = [...body.matchAll(
-            /## Step (\d+): ([^\n]+)\n([\s\S]*?)(?=## Step \d+:|$)/g,
-          )];
-
-          if (stepMatches.length === 0) {
-            watcherLogger.error("plan.parsing_failed", event.path, {
-              error: "No steps found in plan body",
-              trace_id: frontmatter.trace_id,
-            });
-            return;
-          }
-
-          // Validate step numbering is sequential
-          const stepNumbers = stepMatches.map((m) => parseInt(m[1]));
-          const isSequential = stepNumbers.every((num, idx) => num === idx + 1);
-
-          if (!isSequential) {
-            watcherLogger.warn("plan.non_sequential_steps", event.path, {
-              trace_id: frontmatter.trace_id,
-              step_numbers: stepNumbers,
-              expected: Array.from({ length: stepNumbers.length }, (_, i) => i + 1),
-            });
-          }
-
-          // Validate all steps have non-empty titles
-          const hasEmptyTitle = stepMatches.some((m) => m[2].trim() === "");
-
-          if (hasEmptyTitle) {
-            watcherLogger.error("plan.parsing_failed", event.path, {
-              error: "One or more steps have empty titles",
-              trace_id: frontmatter.trace_id,
-            });
-            return;
-          }
-
-          // Build parsed plan structure
-          const parsedSteps = stepMatches.map((match) => ({
-            number: parseInt(match[1]),
-            title: match[2].trim(),
-            content: match[3].trim(),
-          }));
-
-          watcherLogger.info("plan.parsed", event.path, {
-            trace_id: frontmatter.trace_id,
-            request_id: frontmatter.request_id,
-            agent: frontmatter.agent || "default",
-            step_count: parsedSteps.length,
-            steps: parsedSteps.map((s) => `${s.number}. ${s.title}`),
-          });
-
-          // Step 5.12.3: Execute plan
-          const { PlanExecutor } = await import("./services/plan_executor.ts");
-
-          // Use model override if specified in plan frontmatter
-          let currentProvider = llmProvider;
-          if (frontmatter.model) {
-            try {
-              currentProvider = ProviderFactory.createByName(config, frontmatter.model as string);
-              watcherLogger.info("plan.model_override", frontmatter.model as string, {
-                trace_id: frontmatter.trace_id,
-              });
-            } catch (error) {
-              watcherLogger.warn("plan.model_override_failed", frontmatter.model as string, {
-                error: error instanceof Error ? error.message : String(error),
-                fallback: "using default provider",
-              });
-            }
-          }
-
-          // Reload config to ensure latest settings (like portals) are used
-          const latestConfig = new ConfigService().get();
-          const planExecutor = new PlanExecutor(latestConfig, await currentProvider, dbService);
-
-          const changesetId = await planExecutor.execute(event.path, {
-            trace_id: frontmatter.trace_id as string,
-            request_id: frontmatter.request_id as string,
-            agent: (frontmatter.agent as string) || "default",
-            frontmatter: frontmatter,
-            steps: parsedSteps,
-          });
-
-          if (changesetId) {
-            watcherLogger.info("plan.executed", event.path, {
-              trace_id: frontmatter.trace_id,
-              changeset_sha: changesetId,
-            });
-          } else {
-            watcherLogger.warn("plan.executed_no_changes", event.path, {
-              trace_id: frontmatter.trace_id,
-            });
-          }
-        } catch (error) {
-          watcherLogger.error("plan.execution_failed", event.path, {
-            error: error instanceof Error ? error.message : String(error),
+        } else {
+          watcherLogger.error("plan.execution_managed_failure", event.path, {
+            trace_id: result.traceId,
+            error: result.error,
           });
         }
       },
-      undefined, // No separate db instance needed, watcherLogger handles it
-      activePath, // Custom watch path
+      { customWatchPath: activePath }, // Custom watch path
+    );
+
+    // Dynamic Config Reloading (Task: Investigate missing portal logs)
+    // Watch for changes to exo.config.toml to reload config and log changes
+    const configWatcher = new FileWatcher(
+      config,
+      async (event) => {
+        if (!event.path.endsWith("exo.config.toml")) {
+          return;
+        }
+
+        const oldChecksum = configService.getChecksum();
+        const newConfig = configService.reload();
+        const newChecksum = configService.getChecksum();
+
+        if (oldChecksum !== newChecksum) {
+          await logger.info("config.updated", "exo.config.toml", {
+            old_checksum: oldChecksum.slice(0, 8),
+            new_checksum: newChecksum.slice(0, 8),
+            portals_count: newConfig.portals?.length || 0,
+          });
+        }
+      },
+      {
+        customWatchPath: config.system.root,
+        extensions: [".toml"],
+      },
     );
 
     // Register cleanup tasks for graceful shutdown
@@ -320,6 +232,10 @@ if (import.meta.main) {
 
     gracefulShutdown.registerCleanup("stop_plan_watcher", async () => {
       await planWatcher.stop();
+    });
+
+    gracefulShutdown.registerCleanup("stop_config_watcher", async () => {
+      await configWatcher.stop();
     });
 
     gracefulShutdown.registerCleanup("close_database", async () => {
@@ -346,8 +262,12 @@ if (import.meta.main) {
       icon: "✅",
     });
 
-    // Start watching both directories (this will run indefinitely)
-    await Promise.all([requestWatcher.start(), planWatcher.start()]);
+    // Start watching directories
+    await Promise.all([
+      requestWatcher.start(),
+      planWatcher.start(),
+      configWatcher.start(),
+    ]);
   } catch (error) {
     console.error("❌ Fatal Error:", error);
     Deno.exit(1);

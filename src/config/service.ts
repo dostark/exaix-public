@@ -104,6 +104,11 @@ stability_check = true
     return this.checksum;
   }
 
+  public reload(): Config {
+    this.config = this.load();
+    return this.config;
+  }
+
   public async addPortal(alias: string, targetPath: string): Promise<void> {
     const created = new Date().toISOString();
 

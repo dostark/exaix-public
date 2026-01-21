@@ -446,7 +446,7 @@ export class ExecutionLoop {
     // Read plan, update frontmatter status (YAML format)
     const content = await Deno.readTextFile(planPath);
     const updatedContent = content.replace(
-      new RegExp(`status: ${PlanStatus.ACTIVE}`),
+      /status: "?(active|approved)"?/,
       `status: ${PlanStatus.ERROR}`,
     );
 

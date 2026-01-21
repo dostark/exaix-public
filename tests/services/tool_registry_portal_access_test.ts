@@ -1,7 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.201.0/testing/asserts.ts";
 import { join } from "https://deno.land/std@0.201.0/path/mod.ts";
-import { ToolRegistry } from "../src/services/tool_registry.ts";
-import { Config } from "../src/config/schema.ts";
+import { ToolRegistry } from "../../src/services/tool_registry.ts";
+import { Config } from "../../src/config/schema.ts";
 
 Deno.test("ToolRegistry should allow access to portal targets", async () => {
   const portalDir = await Deno.makeTempDir({ prefix: "portal-target-" });

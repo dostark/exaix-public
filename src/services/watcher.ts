@@ -13,6 +13,12 @@ export interface FileReadyEvent {
   content: string;
 }
 
+export interface FileWatcherOptions {
+  db?: DatabaseService;
+  customWatchPath?: string;
+  extensions?: string[];
+}
+
 /**
  * FileWatcher - Monitors a directory for file changes with debouncing and stability verification
  *
@@ -30,21 +36,22 @@ export class FileWatcher {
   private abortController: AbortController | null = null;
   private fsWatcher: Deno.FsWatcher | null = null;
   private logger: EventLogger;
+  private extensions: string[];
 
   constructor(
     config: Config,
     onFileReady: (event: FileReadyEvent) => void | Promise<void>,
-    db?: DatabaseService,
-    customWatchPath?: string,
+    options: FileWatcherOptions = {},
   ) {
-    this.watchPath = customWatchPath || join(config.system.root, config.paths.workspace, "Requests");
+    this.watchPath = options.customWatchPath || join(config.system.root, config.paths.workspace, "Requests");
     this.debounceMs = config.watcher.debounce_ms;
     this.stabilityCheck = config.watcher.stability_check;
     this.onFileReady = onFileReady;
+    this.extensions = options.extensions || [".md"];
 
     // Initialize EventLogger
     this.logger = new EventLogger({
-      db,
+      db: options.db,
       defaultActor: "system",
     });
   }
@@ -67,6 +74,7 @@ export class FileWatcher {
         payload: {
           debounce_ms: this.debounceMs,
           stability_check: this.stabilityCheck,
+          extensions: this.extensions,
         },
         icon: "📁",
       });
@@ -79,9 +87,15 @@ export class FileWatcher {
         // Only process create, modify, or rename events (moves)
         if (event.kind === "create" || event.kind === "modify" || event.kind === "rename") {
           for (const path of event.paths) {
-            // Ignore dotfiles and non-markdown files
+            // Ignore dotfiles
             const filename = path.split("/").pop() || "";
-            if (filename.startsWith(".") || !filename.endsWith(".md")) {
+            if (filename.startsWith(".")) {
+              continue;
+            }
+
+            // check extension
+            const hasValidExtension = this.extensions.some((ext) => filename.endsWith(ext));
+            if (!hasValidExtension) {
               continue;
             }
 

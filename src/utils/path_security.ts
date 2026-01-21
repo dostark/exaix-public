@@ -47,18 +47,33 @@ export class PathSecurity {
       realPath = await Deno.realPath(absolutePath);
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) {
-        // For non-existing files, validate the parent directory
-        const parentDir = join(absolutePath, "..");
-        const realParent = await Deno.realPath(parentDir);
+        // Find nearest existing ancestor
+        let currentPath = absolutePath;
+        let existingAncestor: string | null = null;
 
-        // Ensure the target path is still within allowed roots
-        const targetPath = join(realParent, absolutePath.split("/").pop() || "");
+        while (currentPath !== "/" && currentPath !== ".") {
+          const parent = join(currentPath, "..");
+          if (parent === currentPath) break; // Root reached
 
-        if (!this.isWithinRoots(targetPath, allowedRoots)) {
-          throw new PathAccessError(`Path outside allowed roots: ${inputPath}`);
+          try {
+            existingAncestor = await Deno.realPath(parent);
+            break; // Found existing ancestor
+          } catch {
+            currentPath = parent;
+          }
         }
 
-        return absolutePath; // Return unresolved path for file creation
+        if (existingAncestor) {
+          // Validate the existing ancestor is within allowed roots
+          if (!this.isWithinRoots(existingAncestor, allowedRoots)) {
+            throw new PathAccessError(`Path ancestor outside allowed roots: ${inputPath} -> ${existingAncestor}`);
+          }
+          return absolutePath; // Return unresolved path for file creation
+        } else {
+          // No existing ancestor found? Should at least resolve system root or baseDir.
+          // If even root doesn't exist, something is wrong, but likely we failed to resolve.
+          throw new PathAccessError(`Cannot resolve valid ancestor for path: ${inputPath}`);
+        }
       }
       throw error;
     }

@@ -83,12 +83,34 @@ export class PlanExecutor {
         traceId,
       });
 
+      // Determine baseDir for ToolRegistry
+      let baseDir: string | undefined;
+      const portalName = context.frontmatter.portal as string | undefined;
+
+      if (portalName) {
+        const portal = this.config.portals.find((p) => p.alias === portalName);
+        if (portal) {
+          baseDir = portal.target_path;
+          await this.logger.info("plan.portal_context_detected", planPath, {
+            portal: portalName,
+            base_dir: baseDir,
+            trace_id: traceId,
+          });
+        } else {
+          await this.logger.warn("plan.portal_not_found", planPath, {
+            portal: portalName,
+            trace_id: traceId,
+          });
+        }
+      }
+
       // Initialize ToolRegistry
       const toolRegistry = new ToolRegistry({
         config: this.config,
         db: this.db,
         traceId,
         agentId,
+        baseDir,
       });
 
       // Execute each step
