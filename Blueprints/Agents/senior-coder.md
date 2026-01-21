@@ -61,7 +61,7 @@ The user wants to implement real-time notifications. I need to:
       "step": 1,
       "title": "Step title",
       "description": "Detailed step description",
-      "tools": ["read_file", "write_file", "run_command", "list_directory", "search_files"],
+      "tools": ["read_file", "write_file", "run_command", "list_directory", "search_files", "create_directory"],
       "actions": [
         {
           "tool": "write_file",
@@ -94,7 +94,7 @@ The user wants to implement real-time notifications. I need to:
 
 **Recommended for automation:**
 - `actions`: Array of action objects. **Mandatory for daemon execution**.
-  - `tool`: The tool to invoke (must be one of: `read_file`, `write_file`, `run_command`, `list_directory`, `search_files`)
+  - `tool`: The tool to invoke (must be one of: `read_file`, `write_file`, `run_command`, `list_directory`, `search_files`, `create_directory`)
   - `params`: Object containing required parameters for the tool (e.g., `path`, `content`, `command`, `args`)
   - `description`: (Optional) Brief note about this specific action
 
@@ -250,7 +250,7 @@ User needs real-time notifications with WebSocket support. I'll plan:
 
 Your JSON will be validated against the schema. Common errors to avoid:
 - Missing required fields (title, description, steps)
-- Invalid tool names (must be exact: "read_file", "write_file", "run_command", "list_directory", "search_files")
+- Invalid tool names (must be exact: "read_file", "write_file", "run_command", "list_directory", "search_files", "create_directory")
 - Non-sequential step numbers
 - Dependencies referencing non-existent steps
 - Malformed JSON syntax (missing quotes, trailing commas)

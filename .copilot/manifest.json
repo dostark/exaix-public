@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-21T17:14:28.082Z",
+  "generated_at": "2026-01-21T17:34:23.295Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -815,6 +815,17 @@
         ".copilot/chunks/README.md.chunk5.txt",
         ".copilot/chunks/README.md.chunk6.txt",
         ".copilot/chunks/README.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/plan-validation-failure-senior-coder.md",
+      "title": "Plan Validation Failed for Senior Coder Agent",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk0.txt",
+        ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk1.txt",
+        ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk2.txt",
+        ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk3.txt"
       ]
     }
   ]

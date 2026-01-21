@@ -461,6 +461,7 @@ export enum McpToolName {
   RUN_COMMAND = "run_command",
   LIST_DIRECTORY = "list_directory",
   SEARCH_FILES = "search_files",
+  CREATE_DIRECTORY = "create_directory",
 }
 
 /**

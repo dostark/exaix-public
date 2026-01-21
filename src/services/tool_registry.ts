@@ -349,6 +349,21 @@ export class ToolRegistry {
       },
     });
 
+    this.tools.set("create_directory", {
+      name: "create_directory",
+      description: "Create a directory (recursively)",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Path to the directory to create",
+          },
+        },
+        required: ["path"],
+      },
+    });
+
     this.tools.set("run_command", {
       name: "run_command",
       description: "Execute a whitelisted shell command",
@@ -409,6 +424,10 @@ export class ToolRegistry {
         case "run_command":
           result = await this.runCommand(params.command, params.args || []);
           break;
+        case "create_directory":
+          result = await this.createDirectory(params.path);
+          break;
+
         default:
           result = {
             success: false,
@@ -730,5 +749,18 @@ export class ToolRegistry {
       success: false,
       error: error instanceof Error ? error.message : String(error),
     };
+  }
+
+  /**
+   * Create directory tool implementation
+   */
+  private async createDirectory(path: string): Promise<ToolResult> {
+    try {
+      const resolvedPath = await this.resolvePath(path);
+      await Deno.mkdir(resolvedPath, { recursive: true });
+      return this.formatSuccess({ path: resolvedPath });
+    } catch (error) {
+      return this.formatError(error, `Directory: ${path}`);
+    }
   }
 }

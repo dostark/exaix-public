@@ -254,6 +254,29 @@ Deno.test("ToolRegistry: should block dangerous npm subcommands", async () => {
 
 // ===== File Operations Tests =====
 
+Deno.test("ToolRegistry: should create directory", async () => {
+  const tempDir = await Deno.makeTempDir({ prefix: "tool-registry-test-" });
+  try {
+    const config = ConfigSchema.parse({
+      ...mockConfig,
+      system: { ...mockConfig.system, root: tempDir },
+      paths: { ...mockConfig.paths, workspace: "Workspace" },
+    });
+    const registry = new ToolRegistry({ config, db: mockDb });
+
+    // Ensure allowed root exists
+    await Deno.mkdir(join(tempDir, "Workspace"), { recursive: true });
+
+    const testDir = "Workspace/new-dir/nested";
+    const result = await registry.execute("create_directory", { path: testDir });
+
+    assert(result.success);
+    assert((await Deno.stat(join(tempDir, testDir))).isDirectory);
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
 Deno.test("ToolRegistry: should write and read files", async () => {
   const tempDir = await Deno.makeTempDir({ prefix: "tool-registry-test-" });
   try {
