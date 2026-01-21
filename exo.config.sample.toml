@@ -1,0 +1,27 @@
+# ExoFrame Configuration Sample
+# Copy this to exo.config.toml and customize
+
+[system]
+# Root directory for ExoFrame runtime (absolute path recommended)
+# root = "/home/user/ExoFrame"
+log_level = "info" # debug, info, warn, error
+
+[agents]
+# Default model for all agents
+default_model = "google:gemini-2.0-flash-exp"
+# default_model = "anthropic:claude-3-5-sonnet-20241022"
+# default_model = "openai:gpt-4o"
+
+[database]
+batch_flush_ms = 100
+batch_max_size = 50
+
+[database.sqlite]
+journal_mode = "WAL"
+busy_timeout_ms = 5000
+foreign_keys = true
+
+# Define external portals (optional)
+# [[portals]]
+# alias = "MyApp"
+# target_path = "/path/to/my/app"
