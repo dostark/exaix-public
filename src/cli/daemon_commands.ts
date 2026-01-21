@@ -82,13 +82,14 @@ export class DaemonCommands extends BaseCommand {
     // Write PID file
     await Deno.writeTextFile(this.pidFile, pid.toString());
 
-    // Give process a moment to start
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Wait for daemon to fully start (up to 3 seconds with retries)
+    // CI environments may need more time for database initialization
+    const started = await this.waitForProcessState(pid, true, 3000);
 
-    const newStatus = await this.status();
-    if (!newStatus.running) {
+    if (!started) {
       await this.logDaemonActivity("daemon.start_failed", {
-        error: "Daemon failed to start",
+        error: "Daemon failed to start within timeout",
+        pid: pid,
       });
       throw new Error("Daemon failed to start. Check logs for details.");
     }
