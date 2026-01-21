@@ -231,6 +231,7 @@ export class RequestProcessor {
           contextFiles: [],
           contextWarnings: [],
           model: frontmatter.model,
+          portal: frontmatter.portal,
         };
 
         return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger, {
@@ -296,6 +297,7 @@ export class RequestProcessor {
           contextFiles: [],
           contextWarnings: [],
           model: frontmatter.model,
+          portal: frontmatter.portal,
         };
 
         return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger);

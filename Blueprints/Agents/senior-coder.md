@@ -62,6 +62,16 @@ The user wants to implement real-time notifications. I need to:
       "title": "Step title",
       "description": "Detailed step description",
       "tools": ["read_file", "write_file", "run_command", "list_directory", "search_files"],
+      "actions": [
+        {
+          "tool": "write_file",
+          "params": {
+            "path": "path/to/file.ts",
+            "content": "file content"
+          },
+          "description": "Explain what this specific action does"
+        }
+      ],
       "successCriteria": ["Criterion 1", "Criterion 2"],
       "dependencies": [],
       "rollback": "Rollback procedure"
@@ -82,8 +92,14 @@ The user wants to implement real-time notifications. I need to:
   - `title`: Step name (1-200 characters)
   - `description`: What happens in this step
 
+**Recommended for automation:**
+- `actions`: Array of action objects. **Mandatory for daemon execution**.
+  - `tool`: The tool to invoke (must be one of: `read_file`, `write_file`, `run_command`, `list_directory`, `search_files`)
+  - `params`: Object containing required parameters for the tool (e.g., `path`, `content`, `command`, `args`)
+  - `description`: (Optional) Brief note about this specific action
+
 **Optional but recommended:**
-- `tools`: Tools needed for this step
+- `tools`: High-level list of tools used in this step
 - `successCriteria`: How to verify success
 - `dependencies`: Steps that must complete first
 - `rollback`: How to undo if needed
@@ -113,6 +129,15 @@ User needs real-time notifications with WebSocket support. I'll plan:
       "title": "Database Schema Migration",
       "description": "Create notifications table with user_id, type, message, read status, and timestamps. Add indexes for efficient querying.",
       "tools": ["write_file"],
+      "actions": [
+        {
+          "tool": "write_file",
+          "params": {
+            "path": "migrations/001_notifications.sql",
+            "content": "CREATE TABLE notifications (\n  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),\n  user_id UUID NOT NULL,\n  type TEXT NOT NULL,\n  message TEXT NOT NULL,\n  is_read BOOLEAN DEFAULT false,\n  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()\n);\nCREATE INDEX idx_notifications_user_id ON notifications(user_id);"
+          }
+        }
+      ],
       "successCriteria": [
         "Migration file created with proper indexes",
         "Supports notification types: info, warning, error, success",

@@ -1,22 +1,10 @@
-- **`source/`** — Source code development guidance (patterns, architecture, conventions)
-- **`tests/`** — Testing patterns and helpers (TDD, test utilities, security tests)
-- **`docs/`** — Documentation maintenance (Implementation Plan, versioning, cross-references)
-- **`providers/`** — Provider-specific adaptations (Claude, OpenAI, Google, Copilot)
-- **`copilot/`** — Copilot-specific quick references
+Common labels to use:
 
-### 2. Add YAML Frontmatter with Required Fields
+- **Type**: `bug`, `feature`, `refactor`, `performance`, `security`, `docs`
+- **Component**: `daemon`, `cli`, `tui`, `request-processor`, `database`, `ai`, `mcp`
+- **Area**: `testing`, `ci-cd`, `deployment`, `configuration`
+- **Impact**: `breaking-change`, `data-migration`, `api-change`
 
-Every agent doc MUST start with YAML frontmatter:
+## Best Practices
 
-```yaml
----
-agent: claude  # or: copilot, openai, google, general
-scope: dev     # or: ci, docs, test
-title: "Your Title Here"
-short_summary: "One-liner description (1-3 sentences max, <200 chars)"
-version: "0.1"
-topics: ["keyword1", "keyword2", "keyword3"]
----
-```
-
-**Field descriptions:**
+### DO

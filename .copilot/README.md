@@ -18,6 +18,7 @@ This directory contains short, machine-discoverable instruction documents intend
 - `.copilot/copilot/` — Copilot-focused docs and short summaries
 - `.copilot/providers/` — provider-specific adaptation notes and prompt templates
 - `.copilot/chunks/` — (auto-generated) pre-chunked text files for quick retrieval
+- `.copilot/issues/` — structured bug reports and technical issues (see [issues/README.md](issues/README.md))
 
 ## Relationship with `docs/`
 
@@ -369,6 +370,57 @@ Deno.test("[regression] EventLogger works with stub db", async () => {
 2. **Fix** — Implement the code fix
 3. **Verify** — Ensure the regression test now passes
 4. **Commit** — Include both fix and test in the same commit or PR
+
+## Issue Tracking
+
+For detailed bug reports, feature requests, and technical investigations, create structured issue documents in `.copilot/issues/`.
+
+### When to Create an Issue Document
+
+Create an issue in `.copilot/issues/` when you:
+
+- **Discover a bug** during development or testing
+- **Encounter test failures** in CI/CD that need investigation
+- **Identify technical debt** requiring refactoring
+- **Need to document** complex problems with reproduction steps
+- **Want to track** feature requests with detailed technical specifications
+
+### Quick Start
+
+```bash
+# Create a new issue using the template in issues/README.md
+cat > .copilot/issues/component-issue-description.md << 'EOF'
+---
+title: "Brief, descriptive title"
+status: open
+priority: high
+created: 2026-01-21
+labels: [bug, component-name]
+---
+
+# Title
+
+## Problem
+Clear description of what is broken or missing.
+
+## Reproduction Steps
+Step-by-step commands to reproduce the issue.
+
+## Expected vs Observed Behavior
+What should happen vs what actually happens.
+
+See issues/README.md for complete template.
+EOF
+```
+
+### Issue Guidelines
+
+- **Naming**: Use kebab-case: `component-issue-type-description.md`
+- **Status**: `open`, `in-progress`, `blocked`, `resolved`, `wontfix`
+- **Priority**: `critical`, `high`, `medium`, `low`
+- **Labels**: Tag by type, component, and impact
+
+**See [issues/README.md](issues/README.md) for complete guidelines, templates, and best practices.**
 
 ## Notes
 

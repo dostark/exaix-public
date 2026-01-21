@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-21T12:04:23.182Z",
+  "generated_at": "2026-01-21T17:14:28.082Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -766,6 +766,55 @@
         ".copilot/chunks/jscpd-guide.md.chunk5.txt",
         ".copilot/chunks/jscpd-guide.md.chunk6.txt",
         ".copilot/chunks/jscpd-guide.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/request-processing-failure-test-provider.md",
+      "title": "Request Processing Fails with Test Provider and Plan Validation Error",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/request-processing-failure-test-provider.md.chunk0.txt",
+        ".copilot/chunks/request-processing-failure-test-provider.md.chunk1.txt",
+        ".copilot/chunks/request-processing-failure-test-provider.md.chunk2.txt",
+        ".copilot/chunks/request-processing-failure-test-provider.md.chunk3.txt",
+        ".copilot/chunks/request-processing-failure-test-provider.md.chunk4.txt",
+        ".copilot/chunks/request-processing-failure-test-provider.md.chunk5.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/execution-failure-no-changeset.md",
+      "title": "Plan Executed but Changes Not Applied and No Changeset Created",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/execution-failure-no-changeset.md.chunk0.txt",
+        ".copilot/chunks/execution-failure-no-changeset.md.chunk1.txt",
+        ".copilot/chunks/execution-failure-no-changeset.md.chunk2.txt",
+        ".copilot/chunks/execution-failure-no-changeset.md.chunk3.txt",
+        ".copilot/chunks/execution-failure-no-changeset.md.chunk4.txt",
+        ".copilot/chunks/execution-failure-no-changeset.md.chunk5.txt",
+        ".copilot/chunks/execution-failure-no-changeset.md.chunk6.txt",
+        ".copilot/chunks/execution-failure-no-changeset.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/README.md",
+      "title": "Issues Folder Guidelines",
+      "short_summary": "",
+      "version": "1.0",
+      "topics": [
+        "issues",
+        "bug-tracking",
+        "documentation"
+      ],
+      "chunks": [
+        ".copilot/chunks/README.md.chunk0.txt",
+        ".copilot/chunks/README.md.chunk1.txt",
+        ".copilot/chunks/README.md.chunk2.txt",
+        ".copilot/chunks/README.md.chunk3.txt",
+        ".copilot/chunks/README.md.chunk4.txt",
+        ".copilot/chunks/README.md.chunk5.txt",
+        ".copilot/chunks/README.md.chunk6.txt",
+        ".copilot/chunks/README.md.chunk7.txt"
       ]
     }
   ]

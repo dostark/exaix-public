@@ -1,17 +1,39 @@
-- **`docs/`**: Source of truth for **human** users (Architecture, User Guide).
-- **`.copilot/`**: Source of truth for **agents** (Context, Prompts, Schemas).
-  - Agents should read `.copilot/` for coding instructions.
-  - Agents may read `docs/` for high-level context but must not modify it unless explicitly asked.
+```markdown
+---
+title: "Brief, descriptive title"
+status: open | in-progress | blocked | resolved | wontfix
+priority: critical | high | medium | low
+created: YYYY-MM-DD
+updated: YYYY-MM-DD (optional)
+labels: [bug, feature, refactor, performance, security, etc.]
+assignee: username (optional)
+related_issues: [issue-filename.md] (optional)
+---
 
-## Schema
+# Title
 
-Each `.md` file should include YAML frontmatter with at least the following keys:
+## Problem
 
-- `agent` (string) — e.g., `copilot`, `openai`
-- `scope` (string) — e.g., `dev`, `ci`, `docs`
-- `title` (string)
-- `short_summary` (string) — one paragraph, 1–3 lines — used for quick ingestion
-- `version` (string)
-- `topics` (array of strings) — optional tags
+Clear description of the issue. What is broken or missing?
 
-## Maintenance
+## Reproduction Steps
+
+```bash
+# Step-by-step commands to reproduce
+command1
+command2
+```
+
+## Observed Behavior
+
+What actually happens? Include:
+- Error messages
+- Log excerpts
+- Screenshots (if applicable)
+- Journal entries
+
+## Expected Behavior
+
+What should happen instead?
+
+## Environment

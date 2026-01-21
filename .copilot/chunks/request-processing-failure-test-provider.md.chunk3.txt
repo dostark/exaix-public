@@ -1,0 +1,14 @@
+1. System should use the configured Google provider (as shown in daemon startup logs: `llm.provider.initialized agent=system trace=b5de8b7f target=google-gemini-2.0-flash-exp`)
+2. Plan should be generated successfully
+3. Plan should pass validation
+4. Plan should be written to `Workspace/Plans/`
+5. `exoctl plan list` should show the generated plan
+
+## Environment
+
+- **ExoFrame Version**: Latest (deployed from scripts/deploy_workspace.sh)
+- **Agent**: senior-coder (google:gemini-2.0-flash-exp)
+- **Portal**: TestApp (/tmp/test-portal)
+- **Config**: exo.config.toml with default settings + TestApp portal
+
+## Resolution (resolved)

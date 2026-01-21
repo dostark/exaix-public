@@ -10,6 +10,7 @@ import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import { GitService } from "./git_service.ts";
 import { ToolRegistry } from "./tool_registry.ts";
+import { ChangesetRegistry } from "./changeset_registry.ts";
 import { MemoryBankService } from "./memory_bank.ts";
 import { MissionReporter } from "./mission_reporter.ts";
 import { ExecutionStatus, PlanStatus } from "../enums.ts";
@@ -39,6 +40,7 @@ interface PlanFrontmatter {
   status: PlanStatus;
   created_at: string;
   updated_at?: string;
+  portal?: string;
 }
 
 interface PlanAction {
@@ -74,12 +76,17 @@ export class ExecutionLoop {
   private plansDir: string;
   private leases = new Map<string, TaskLease>();
 
-  constructor({ config, db, agentId }: ExecutionLoopConfig) {
+  constructor(
+    { config, db, agentId, changesetRegistry }: ExecutionLoopConfig & { changesetRegistry?: ChangesetRegistry },
+  ) {
     this.config = config;
     this.db = db;
     this.agentId = agentId;
+    this.changesetRegistry = changesetRegistry;
     this.plansDir = join(config.system.root, config.paths.workspace, "Plans");
   }
+
+  private changesetRegistry?: ChangesetRegistry;
 
   /**
    * Core execution logic shared between processTask and executeNext
@@ -104,19 +111,30 @@ export class ExecutionLoop {
         plan_path: planPath,
       });
 
+      // Resolve execution root (portal path or system root)
+      let executionRoot = this.config.system.root;
+      if (frontmatter.portal) {
+        const portal = this.config.portals.find((p) => p.alias === frontmatter.portal);
+        if (portal) {
+          executionRoot = portal.target_path;
+        }
+      }
+
       // Initialize Git service
       const gitService = new GitService({
         config: this.config,
         db: this.db,
         traceId,
         agentId: this.agentId,
+        repoPath: executionRoot,
       });
 
       // Set up Git (branch creation only for processTask)
+      let branchName: string | undefined;
       if (initGitBranch) {
         await gitService.ensureRepository();
         await gitService.ensureIdentity();
-        await gitService.createBranch({ requestId, traceId });
+        branchName = await gitService.createBranch({ requestId, traceId });
       }
 
       // Read and validate plan content
@@ -138,14 +156,25 @@ export class ExecutionLoop {
           throw new Error("Plan contains no executable actions");
         }
         // For testing or empty plans, create a dummy file to ensure we have changes
-        const testFile = join(this.config.system.root, "test-execution.txt");
+        const testFile = join(executionRoot, "test-execution.txt");
         await Deno.writeTextFile(testFile, `Execution by ${this.agentId} at ${new Date().toISOString()}`);
       } else {
-        await this.executePlanActions(actions, traceId, requestId);
+        await this.executePlanActions(actions, traceId, requestId, executionRoot);
       }
 
       // Commit changes
-      await this.commitChanges(gitService, requestId!, traceId!);
+      const commitSha = await this.commitChanges(gitService, requestId!, traceId!);
+
+      // Register changeset
+      if (commitSha) {
+        await this.registerChangeset(
+          requestId,
+          traceId,
+          frontmatter.portal || "unknown",
+          branchName || "unknown",
+          commitSha,
+        );
+      }
 
       // Handle success
       await this.handleSuccess(planPath, traceId, requestId);
@@ -291,12 +320,14 @@ export class ExecutionLoop {
     actions: PlanAction[],
     traceId: string,
     requestId: string,
+    executionRoot: string,
   ): Promise<void> {
     const toolRegistry = new ToolRegistry({
       config: this.config,
       db: this.db,
       traceId,
       agentId: this.agentId,
+      baseDir: executionRoot,
     });
 
     let actionIndex = 0;
@@ -492,9 +523,9 @@ export class ExecutionLoop {
     gitService: GitService,
     requestId: string,
     traceId: string,
-  ): Promise<void> {
+  ): Promise<string | null> {
     try {
-      await gitService.commit({
+      return await gitService.commit({
         message: `Execute plan: ${requestId}`,
         description: `Executed by agent ${this.agentId}`,
         traceId,
@@ -506,9 +537,37 @@ export class ExecutionLoop {
         this.logActivity("execution.no_changes", traceId, {
           request_id: requestId,
         });
+        return null;
       } else {
         throw error;
       }
+    }
+  }
+
+  /**
+   * Register a new changeset after successful execution
+   */
+  private async registerChangeset(
+    requestId: string,
+    traceId: string,
+    portal: string,
+    branch: string,
+    commitSha: string,
+  ): Promise<void> {
+    try {
+      if (this.changesetRegistry) {
+        await this.changesetRegistry.register({
+          trace_id: traceId,
+          portal: portal,
+          branch: branch,
+          description: `Execution for request ${requestId}`,
+          commit_sha: commitSha,
+          files_changed: 1, // Defaulting to 1 for now
+          created_by: this.agentId,
+        });
+      }
+    } catch (error) {
+      console.error("[ExecutionLoop] Failed to register changeset:", error);
     }
   }
 

@@ -118,6 +118,7 @@ See the [Provider Strategy Guide](./docs/Provider_Strategy_Guide.md) for advance
 Testing & contributing
 
 - Follow test helpers in `tests/` (use `createCliTestContext()` and `initTestDbService()` for deterministic tests).
+- **Regression tests are mandatory for every bug fix** (prefix test names with `[regression]`).
 - Run local CI: `deno run -A scripts/ci.ts all` (fmt, lint, tests, coverage, build).
 
 License

@@ -119,6 +119,33 @@ export class PlanAdapter {
         sections.push("");
       }
 
+      if (step.actions && step.actions.length > 0) {
+        step.actions.forEach((action) => {
+          sections.push("```toml");
+          sections.push(`tool = "${action.tool}"`);
+          if (action.description) {
+            sections.push(`description = "${action.description}"`);
+          }
+          sections.push("[params]");
+          for (const [key, value] of Object.entries(action.params)) {
+            if (typeof value === "string") {
+              // Handle multiline strings by using triple quotes if needed,
+              // but for now simple escaping is enough for basic paths/content.
+              // Note: Deno's TOML parser is quite picky.
+              if (value.includes("\n")) {
+                sections.push(`${key} = '''\n${value}\n'''`);
+              } else {
+                sections.push(`${key} = "${value.replace(/"/g, '\\"')}"`);
+              }
+            } else {
+              sections.push(`${key} = ${JSON.stringify(value)}`);
+            }
+          }
+          sections.push("```");
+          sections.push("");
+        });
+      }
+
       if (step.rollback) {
         sections.push(`**Rollback:** ${step.rollback}`);
         sections.push("");

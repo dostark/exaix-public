@@ -26,6 +26,7 @@ export interface GitServiceConfig {
   db?: DatabaseService;
   traceId?: string;
   agentId?: string;
+  repoPath?: string;
 }
 
 export interface BranchOptions {
@@ -107,7 +108,7 @@ export class GitService {
     this.db = options.db;
     this.traceId = options.traceId;
     this.agentId = options.agentId;
-    this.repoPath = options.config.system.root;
+    this.repoPath = options.repoPath || options.config.system.root;
   }
 
   /**

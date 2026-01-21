@@ -3,6 +3,7 @@ import { FileWatcher } from "./services/watcher.ts";
 import { DatabaseService } from "./services/db.ts";
 import { ProviderFactory } from "./ai/provider_factory.ts";
 import { RequestProcessor } from "./services/request_processor.ts";
+import { ChangesetRegistry } from "./services/changeset_registry.ts";
 import { EventLogger } from "./services/event_logger.ts";
 import {
   ConsoleOutput,
@@ -93,7 +94,7 @@ if (import.meta.main) {
     // Initialize LLM Provider
     const defaultModelName = config.agents.default_model;
     const providerInfo = ProviderFactory.getProviderInfoByName(config, defaultModelName);
-    const llmProvider = ProviderFactory.createByName(config, defaultModelName);
+    const _llmProvider = ProviderFactory.createByName(config, defaultModelName);
 
     await logger.info("llm.provider.initialized", providerInfo.id, {
       type: providerInfo.type,
@@ -120,7 +121,7 @@ if (import.meta.main) {
         blueprintsPath: join(config.system.root, config.paths.blueprints, "Agents"),
         includeReasoning: true,
       },
-      await llmProvider,
+      // Note: testProvider parameter removed - provider selection handled by ProviderSelector
     );
 
     await logger.info("request_processor.initialized", "RequestProcessor", {
@@ -156,12 +157,16 @@ if (import.meta.main) {
       }
     });
 
+    // Initialize Changeset Registry
+    const changesetRegistry = new ChangesetRegistry(dbService, logger);
+
     // Initialize ExecutionLoop for robust plan execution (Step 5.12)
     const { ExecutionLoop } = await import("./services/execution_loop.ts");
     const executionLoop = new ExecutionLoop({
       config,
       db: dbService,
       agentId: "daemon",
+      changesetRegistry,
     });
 
     // Start file watcher for approved plans (Workspace/Active)

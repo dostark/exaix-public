@@ -1,27 +1,11 @@
-### 4. Regenerate Manifest
+1. **Discovery**: Create issue document with reproduction steps
+2. **Investigation**: Update with findings and hypotheses
+3. **Implementation**: Reference issue in commit messages
+4. **Testing**: Document verification steps
+5. **Resolution**: Update status and add resolution section
+6. **Knowledge Update**: Extract learnings into `.copilot/embeddings/`
+7. **Archive**: Move to `.copilot/issues/resolved/` (optional)
 
-After creating or updating a doc:
+## Updating Knowledge Base
 
-```bash
-deno run --allow-read --allow-write scripts/build_agents_index.ts
-```
-
-This updates `.copilot/manifest.json` and regenerates `.copilot/chunks/*.txt` files.
-
-### 5. Build Embeddings (Optional but Recommended)
-
-Generate embeddings for semantic search:
-
-```bash
-deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock --dir .copilot/embeddings
-```
-
-Or use OpenAI embeddings (requires authentication, higher quality):
-
-```bash
-deno run --allow-read --allow-write --allow-net --allow-env scripts/build_agents_embeddings.ts --mode openai --dir .copilot/embeddings
-```
-
-**Mock mode** is recommended for most cases (deterministic, fast, no API costs).
-
-### 6. Validate
+When an issue is **resolved**, valuable learnings should be propagated to the project's embeddings (`.copilot/embeddings/`) to improve future context retrieval and prevent recurrence.

@@ -1,14 +1,17 @@
-# .copilot/ — IDE & Dev Agent Instructions
+# Issues Folder Guidelines
 
-## Purpose
+This folder contains structured issue reports for ExoFrame bugs, feature requests, and technical debt. Issues here complement GitHub Issues with detailed technical context and reproduction steps.
 
-This directory contains short, machine-discoverable instruction documents intended to be consumed by development-time agents (e.g., VS Code Copilot, Copilot Labs) and provider integrations (OpenAI, Claude, Google). The content is curated to be concise, provider-agnostic where possible, and easy to inject into prompts using tooling in `scripts/`.
+## When to Create an Issue Here
 
-## Layout
+Create an issue document in `.copilot/issues/` when:
 
-- `.copilot/manifest.json` — auto-generated manifest listing available agent docs (`scripts/build_agents_index.ts`)
-- `.copilot/copilot/` — Copilot-focused docs and short summaries
-- `.copilot/providers/` — provider-specific adaptation notes and prompt templates
-- `.copilot/chunks/` — (auto-generated) pre-chunked text files for quick retrieval
+- **Bug Discovery**: You encounter a bug during development or testing
+- **Test Failures**: CI/CD tests fail and need investigation
+- **Technical Debt**: You identify code that needs refactoring or improvement
+- **Feature Requests**: Detailed technical specifications for new features
+- **Investigation Needed**: Complex problems requiring deep analysis
 
-## Relationship with `docs/`
+## Issue Document Format
+
+Use the following template for all issues:

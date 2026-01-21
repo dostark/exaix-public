@@ -37,6 +37,9 @@ export interface RequestMetadata {
 
   /** Optional: Model override for this request */
   model?: string;
+
+  /** Optional: Portal ID for this request */
+  portal?: string;
 }
 
 /**
@@ -223,6 +226,10 @@ export class PlanWriter {
 
     if (metadata.model) {
       lines.push(`model: "${metadata.model}"`);
+    }
+
+    if (metadata.portal) {
+      lines.push(`portal: "${metadata.portal}"`);
     }
 
     lines.push("---");

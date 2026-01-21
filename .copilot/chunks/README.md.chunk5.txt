@@ -1,25 +1,18 @@
-- **`agent`**: Target agent type (`claude`, `copilot`, `openai`, `google`, `general`)
-- **`scope`**: Context scope (`dev`, `ci`, `docs`, `test`)
-- **`title`**: Human-readable title
-- **`short_summary`**: Concise summary for quick injection (≤200 characters recommended)
-- **`version`**: Semantic version (start with `"0.1"`)
-- **`topics`**: Array of searchable keywords (helps with semantic retrieval)
+✅ Include complete reproduction steps
+✅ Attach relevant log excerpts
+✅ Link to related files with line numbers
+✅ Provide environment details
+✅ Update status as work progresses
+✅ Document resolution when fixed
+✅ **Preserve Initial Information**: When updating an issue (e.g., adding investigation findings or resolution), **NEVER** delete the original problem description or reproduction steps. Always append or insert new sections without removing the initial context.
+✅ Cross-reference related issues
 
-### 3. Include Required Sections
+### DON'T
 
-Structure your document with these sections:
+❌ Create duplicate issues (search first)
+❌ Use vague titles like "fix bug" or "broken"
+❌ Skip reproduction steps
+❌ Leave issues stale without updates
+❌ Mix multiple unrelated problems in one issue
 
-#### Key Points (Required)
-
-Bullet list of 3-5 critical takeaways:
-
-```markdown
-Key points
-- Use `initTestDbService()` for database tests
-- Follow TDD workflow: tests first, implementation second
-- Clean up resources in finally blocks
-```
-
-#### Canonical Prompt (Required)
-
-Example system prompt showing ideal usage:
+## Examples

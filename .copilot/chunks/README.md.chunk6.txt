@@ -1,25 +1,16 @@
-```markdown
-Canonical prompt (short):
-"You are a test-writing assistant for ExoFrame. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate."
-```
+### Good Issue Title
+✅ `request-processing-fails-with-test-provider-selection.md`
 
-#### Examples (Required)
+### Bad Issue Title
+❌ `bug.md`
+❌ `fix-this.md`
+❌ `todo.md`
 
-2-3 example prompts with expected responses:
+### Good Description
+✅ "When submitting a request via `exoctl request`, the daemon incorrectly selects test-provider instead of the configured Google provider, causing plan validation to fail."
 
-```markdown
-Examples
-- Example prompt: "Write tests that verify PlanWriter handles missing files and empty JSON. Use `initTestDbService()` and ensure cleanup is called."
-- Example prompt: "Propose 3 failing unit tests showing how ConfigLoader handles malformed TOML."
-```
+### Bad Description
+❌ "Requests don't work"
+❌ "Something is broken"
 
-#### Do / Don't (Recommended)
-
-Guidance on safe/unsafe patterns:
-
-```markdown
-Do / Don't
-- ✅ Do follow TDD and verify Success Criteria
-- ✅ Do add module-level documentation
-- ❌ Don't proceed without Implementation Plan step
-```
+## Integration with Development Workflow

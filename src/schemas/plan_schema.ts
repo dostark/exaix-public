@@ -15,6 +15,22 @@ import { McpToolName } from "../enums.ts";
 // ============================================================================
 
 /**
+ * Zod schema for individual tool actions within a step
+ */
+export const PlanActionSchema = z.object({
+  /** Tool name to invoke */
+  tool: z.nativeEnum(McpToolName),
+
+  /** Parameters for the tool invocation */
+  params: z.record(z.any()),
+
+  /** Optional: Description of what this specific action does */
+  description: z.string().optional(),
+});
+
+export type PlanAction = z.infer<typeof PlanActionSchema>;
+
+/**
  * Zod schema for individual plan steps
  */
 export const PlanStepSchema = z.object({
@@ -27,7 +43,10 @@ export const PlanStepSchema = z.object({
   /** Detailed description of what this step does */
   description: z.string().min(1),
 
-  /** Optional: Tools required for this step */
+  /** Optional: Ordered list of tool actions to execute for this step */
+  actions: z.array(PlanActionSchema).optional(),
+
+  /** Optional: Tools required for this step (legacy/high-level list) */
   tools: z.array(z.nativeEnum(McpToolName)).optional(),
 
   /** Optional: Success criteria to validate step completion */

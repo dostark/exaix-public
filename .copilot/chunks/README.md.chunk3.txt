@@ -1,13 +1,25 @@
-```bash
-deno run --allow-read --allow-write --unstable scripts/build_agents_embeddings.ts --mode precomputed --dir .copilot/embeddings
-```
+Use descriptive, kebab-case filenames:
 
-See `.copilot/embeddings/example_precomputed_template.json` for a minimal, valid template to create precomputed embedding files.
+- `request-processing-failure-test-provider.md`
+- `daemon-startup-timeout-ci.md`
+- `portal-permissions-not-enforced.md`
+- `memory-leak-file-watcher.md`
 
-## How to Add a New Agent Doc
+**Format**: `<component>-<issue-type>-<brief-description>.md`
 
-Follow this workflow to create a new agent documentation file:
+## Status Workflow
 
-### 1. Create File in Appropriate Subfolder
+1. **open** - Issue created, needs investigation
+2. **in-progress** - Actively being worked on
+3. **blocked** - Waiting on external dependency or decision
+4. **resolved** - Fixed and verified
+5. **wontfix** - Decided not to fix (explain why in document)
 
-Choose the right location based on content:
+## Priority Levels
+
+- **critical** - System broken, data loss, security vulnerability
+- **high** - Core functionality broken, major user impact
+- **medium** - Important but has workaround, affects some users
+- **low** - Minor issue, cosmetic, nice-to-have
+
+## Labels

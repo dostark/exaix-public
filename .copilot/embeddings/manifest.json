@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-15T11:47:27.799Z",
+  "generated_at": "2026-01-21T17:14:28.674Z",
   "index": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -108,6 +108,10 @@
       "embeddingFile": ".copilot/embeddings/phase-05-obsidian-setup.md.json"
     },
     {
+      "path": ".copilot/planning/phase-35-enterprise-provider-support.md",
+      "embeddingFile": ".copilot/embeddings/phase-35-enterprise-provider-support.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-08-third-party-llm-provider.md",
       "embeddingFile": ".copilot/embeddings/phase-08-third-party-llm-provider.md.json"
     },
@@ -165,6 +169,11 @@
       "embeddingFile": ".copilot/embeddings/phase-18-blueprint-modernization.md.json"
     },
     {
+      "path": ".copilot/planning/phase-29-journal-command.md",
+      "title": "Phase 29: Implementation of `exoctl journal` Command",
+      "embeddingFile": ".copilot/embeddings/phase-29-journal-command.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-06-plan-execution-via-mcp.md",
       "embeddingFile": ".copilot/embeddings/phase-06-plan-execution-via-mcp.md.json"
     },
@@ -200,6 +209,10 @@
       "path": ".copilot/planning/phase-23-skills-blueprint-migration.md",
       "title": "Skills Blueprint Migration - Moving Core Skills to Blueprints",
       "embeddingFile": ".copilot/embeddings/phase-23-skills-blueprint-migration.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-28-env-var-cleanup-and-validation.md",
+      "embeddingFile": ".copilot/embeddings/phase-28-env-var-cleanup-and-validation.md.json"
     },
     {
       "path": ".copilot/planning/phase-01-runtime-and-storage.md",
@@ -278,6 +291,25 @@
       "path": ".copilot/tests/jscpd-guide.md",
       "title": "jscpd Code Duplication Detection Guide",
       "embeddingFile": ".copilot/embeddings/jscpd-guide.md.json"
+    },
+    {
+      "path": ".copilot/issues/request-processing-failure-test-provider.md",
+      "title": "Request Processing Fails with Test Provider and Plan Validation Error",
+      "embeddingFile": ".copilot/embeddings/request-processing-failure-test-provider.md.json"
+    },
+    {
+      "path": ".copilot/issues/001_daemon_plan_lifecycle.md",
+      "embeddingFile": ".copilot/embeddings/001_daemon_plan_lifecycle.md.json"
+    },
+    {
+      "path": ".copilot/issues/execution-failure-no-changeset.md",
+      "title": "Plan Executed but Changes Not Applied and No Changeset Created",
+      "embeddingFile": ".copilot/embeddings/execution-failure-no-changeset.md.json"
+    },
+    {
+      "path": ".copilot/issues/README.md",
+      "title": "Issues Folder Guidelines",
+      "embeddingFile": ".copilot/embeddings/README.md.json"
     }
   ]
 }
