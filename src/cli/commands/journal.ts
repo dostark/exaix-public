@@ -6,7 +6,7 @@ import type { ActivityRecord, JournalFilterOptions } from "../../services/db.ts"
 export interface JournalCommandOptions {
   filter?: string[];
   tail?: number;
-  format?: "json" | "table";
+  format?: "json" | "table" | "text";
 }
 
 /**
@@ -71,8 +71,11 @@ export class JournalCommands extends BaseCommand {
     // Format output
     if (options.format === "json") {
       console.log(JSON.stringify(results, null, 2));
-    } else {
+    } else if (options.format === "table") {
       this.renderTable(results);
+    } else {
+      // Default: text format
+      this.renderText(results);
     }
   }
 
@@ -120,5 +123,34 @@ export class JournalCommands extends BaseCommand {
 
   private truncateText(str: string, max: number): string {
     return str.length > max ? str.slice(0, max - 3) + "..." : str;
+  }
+
+  private renderText(activities: ActivityRecord[]) {
+    if (activities.length === 0) {
+      console.log(colors.gray("No activities found."));
+      return;
+    }
+
+    for (const activity of activities) {
+      const timestamp = new Date(activity.timestamp).toLocaleString();
+      const traceId = activity.trace_id.slice(0, 8);
+      const agent = activity.agent_id || activity.actor || "-";
+
+      // Color code action
+      let action = activity.action_type;
+      if (action.includes("error") || action.includes("fail") || action.includes("reject")) {
+        action = colors.red(action);
+      } else if (action.includes("approve") || action.includes("success")) {
+        action = colors.green(action);
+      } else if (action.includes("create") || action.includes("start")) {
+        action = colors.blue(action);
+      }
+
+      console.log(
+        `${colors.gray(timestamp)} ${action} ${colors.dim("agent=")}${agent} ${colors.dim("trace=")}${
+          colors.gray(traceId)
+        } ${colors.dim("target=")}${activity.target || "-"}`,
+      );
+    }
   }
 }

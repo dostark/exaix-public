@@ -1499,7 +1499,7 @@ if (!IN_TEST_MODE) {
       collect: true,
     })
     .option("-n, --tail <n:number>", "Show last N entries", { default: 50 })
-    .option("--format <format:string>", "Output format (json, table)", { default: "table" })
+    .option("--format <format:string>", "Output format (text, table, json)", { default: "text" })
     .action(async (options: any) => {
       const cmd = new JournalCommands(context);
       await cmd.show(options);
