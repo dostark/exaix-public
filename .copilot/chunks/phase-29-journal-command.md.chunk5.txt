@@ -11,14 +11,14 @@
   - [x] JSON formatter
 - [x] **29.4** Final Verification
   - [x] All MT-26 steps passing
-- [ ] **29.5** TUI Upgrade
-  - [ ] MonitorView filtering
-  - [ ] Filter dialogs
-- [ ] **29.6** Service Wiring
-  - [ ] DatabaseService injection
-  - [ ] LogService adapter
-- [ ] **29.7** TUI Verification
-  - [ ] Manual verification
+- [x] **29.5** TUI Upgrade
+  - [x] MonitorView filtering
+  - [x] Filter dialogs
+- [x] **29.6** Service Wiring
+  - [x] DatabaseService injection
+  - [x] LogService adapter
+- [x] **29.7** TUI Verification
+  - [x] Manual verification
 
 ---
 

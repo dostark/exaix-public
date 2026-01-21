@@ -31,10 +31,15 @@ export class JournalCommands extends BaseCommand {
     }
 
     if (options.filter) {
-      for (const filter of options.filter) {
-        const [key, value] = filter.split("=");
+      // Normalize filter to always be an array (Cliffy sometimes returns string for single value)
+      const filters = Array.isArray(options.filter) ? options.filter : [options.filter];
+
+      for (const filter of filters) {
+        // Ensure filter is a string
+        const filterStr = typeof filter === "string" ? filter : String(filter);
+        const [key, value] = filterStr.split("=");
         if (!key || !value) {
-          console.error(colors.red(`Invalid filter format: ${filter}. Use key=value.`));
+          console.error(colors.red(`Invalid filter format: ${filterStr}. Use key=value.`));
           Deno.exit(1);
         }
 

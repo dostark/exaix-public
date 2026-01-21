@@ -1,4 +1,4 @@
 ## Step 29.7: TUI Verification
 
-- [ ] Manual verification via `exoctl dashboard`.
-- [ ] Verify filtering by Agent, Trace ID, and Action Type works in TUI using real data.
+- [x] Manual verification via `exoctl dashboard`.
+- [x] Verify filtering by Agent, Trace ID, and Action Type works in TUI using real data.
