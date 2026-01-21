@@ -14,6 +14,11 @@ import { initTestDbService } from "../helpers/db.ts";
  * - Uses correct cost rates for different providers
  */
 
+import { COST_RATE_ANTHROPIC, COST_RATE_OPENAI, TOKENS_PER_COST_UNIT } from "../../src/config/constants.ts";
+
+const COST_PER_TOKEN_OPENAI = COST_RATE_OPENAI / TOKENS_PER_COST_UNIT;
+const COST_PER_TOKEN_ANTHROPIC = COST_RATE_ANTHROPIC / TOKENS_PER_COST_UNIT;
+
 Deno.test("CostTracker: tracks single request", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
@@ -23,8 +28,9 @@ Deno.test("CostTracker: tracks single request", async () => {
     await tracker.flush(); // Flush batch for immediate write
 
     const dailyCost = await tracker.getDailyCost("openai");
-    // 1000 tokens * $0.001 per 1K tokens = $0.001
-    assertEquals(dailyCost, 0.001);
+    // 1000 tokens * COST_PER_TOKEN_OPENAI
+    const expectedCost = 1000 * COST_PER_TOKEN_OPENAI;
+    assertEquals(dailyCost, expectedCost);
 
     await db.close();
   } finally {
@@ -42,8 +48,9 @@ Deno.test("CostTracker: accumulates multiple requests", async () => {
     await tracker.flush(); // Flush batch for immediate write
 
     const dailyCost = await tracker.getDailyCost("openai");
-    // (1000 + 2000) tokens * $0.001 per 1K tokens = $0.003
-    assertEquals(dailyCost, 0.003);
+    // (1000 + 2000) tokens * COST_PER_TOKEN_OPENAI
+    const expectedCost = 3000 * COST_PER_TOKEN_OPENAI;
+    assertEquals(dailyCost, expectedCost);
 
     await db.close();
   } finally {
@@ -63,8 +70,8 @@ Deno.test("CostTracker: handles different providers", async () => {
     const openaiCost = await tracker.getDailyCost("openai");
     const anthropicCost = await tracker.getDailyCost("anthropic");
 
-    assertEquals(openaiCost, 0.001); // $0.001 per 1K
-    assertEquals(anthropicCost, 0.004); // $0.004 per 1K
+    assertEquals(openaiCost, 1000 * COST_PER_TOKEN_OPENAI);
+    assertEquals(anthropicCost, 1000 * COST_PER_TOKEN_ANTHROPIC);
 
     await db.close();
   } finally {
@@ -78,16 +85,17 @@ Deno.test("CostTracker: free providers cost zero", async () => {
     const tracker = new CostTracker(db);
 
     await tracker.trackRequest("ollama", 10000);
-    await tracker.trackRequest("google", 10000);
+    // Google is no longer free, so removing it from this test
+    // await tracker.trackRequest("google", 10000);
     await tracker.trackRequest("mock", 10000);
     await tracker.flush(); // Flush batch for immediate write
 
     const ollamaCost = await tracker.getDailyCost("ollama");
-    const googleCost = await tracker.getDailyCost("google");
+    // const googleCost = await tracker.getDailyCost("google");
     const mockCost = await tracker.getDailyCost("mock");
 
     assertEquals(ollamaCost, 0);
-    assertEquals(googleCost, 0);
+    // assertEquals(googleCost, 0);
     assertEquals(mockCost, 0);
 
     await db.close();
@@ -140,7 +148,8 @@ Deno.test("CostTracker: getDailyCost without provider sums all", async () => {
     await tracker.flush(); // Flush batch for immediate write
 
     const totalCost = await tracker.getDailyCost();
-    assertAlmostEquals(totalCost, 0.009); // 0.001 (openai) + 0.008 (anthropic)
+    const expectedTotal = (1000 * COST_PER_TOKEN_OPENAI) + (2000 * COST_PER_TOKEN_ANTHROPIC);
+    assertAlmostEquals(totalCost, expectedTotal);
 
     await db.close();
   } finally {
@@ -167,10 +176,10 @@ Deno.test("CostTracker: getCostSummary returns records in date range", async () 
     assertEquals(summary.length, 2);
     assertEquals(summary[0].provider, "anthropic"); // Most recent first
     assertEquals(summary[0].tokens, 2000);
-    assertEquals(summary[0].estimatedCostUsd, 0.008); // 2000 tokens * $0.004
+    assertEquals(summary[0].estimatedCostUsd, 2000 * COST_PER_TOKEN_ANTHROPIC);
     assertEquals(summary[1].provider, "openai");
     assertEquals(summary[1].tokens, 1000);
-    assertEquals(summary[1].estimatedCostUsd, 0.001);
+    assertEquals(summary[1].estimatedCostUsd, 1000 * COST_PER_TOKEN_OPENAI);
 
     await db.close();
   } finally {

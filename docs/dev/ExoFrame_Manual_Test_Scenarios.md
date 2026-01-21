@@ -2948,14 +2948,14 @@ sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIK
 
 ### Steps
 
-```bash
+````bash
 # Part A: Basic Queries
 
 # Step 1: Query all activity
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity;"
+exoctl journal --tail 20
 
 # Step 2: Query by trace_id
-TRACE_ID=$(sqlite3 ~/ExoFrame/.exo/journal.db "SELECT trace_id FROM activity LIMIT 1;")
+TRACE_ID=$(exoctl journal --tail 1 --format json | jq -r '.[0].trace_id')
 exoctl journal --filter trace_id=$TRACE_ID
 
 # Step 3: Query by action_type
@@ -2966,69 +2966,49 @@ exoctl journal --filter agent_id=mock-agent
 
 # Part B: Time-Based Filtering
 
-# Step 5: Query last hour
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, target, timestamp FROM activity WHERE timestamp > datetime('now', '-1 hour') ORDER BY timestamp DESC LIMIT 10;"
+# Step 5: Query last activity since specific time
+# (Assuming 'since' implementation allows string date)
+exoctl journal --filter since=2024-01-01
 
-# Step 6: Query specific date range
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, COUNT(*) FROM activity WHERE timestamp BETWEEN '2026-01-15' AND '2026-01-17' GROUP BY action_type;"
+# Part C: Formatted Output
 
-# Part C: Advanced Filtering
+# Step 6: JSON Output for processing
+exoctl journal --tail 5 --format json | jq '.'
 
-# Step 7: Query by payload content
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%test%' ORDER BY timestamp DESC LIMIT 5;"
+# Step 7: Export to file
+exoctl journal --format json > /tmp/activity_log.json
 
-# Step 8: Query execution duration (if applicable)
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT trace_id, MIN(timestamp) as start, MAX(timestamp) as end FROM activity GROUP BY trace_id LIMIT 10;"
+# Part D: Advanced Debugging (Backup)
 
-# Part D: Export and Reporting
-
-# Step 9: Export activity log to file
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity ORDER BY timestamp DESC;" > /tmp/activity_export.txt
-
-# Step 10: Generate activity summary
+# Step 8: Direct SQL access for complex analysis (Debug only)
 sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, COUNT(*) as count FROM activity GROUP BY action_type ORDER BY count DESC;"
 
-# Part E: CLI Journal Commands
-
-# Step 11: Test exoctl journal command
-exoctl journal --tail 20
-
-# Step 12: Test filtering combinations
-exoctl journal --filter action_type=plan.approved --filter agent_id=senior-coder
+# Step 9: Verify integrity
+sqlite3 ~/ExoFrame/.exo/journal.db "PRAGMA integrity_check;"
 ```
 
 ### Expected Results
 
 **Part A (Basic Queries):**
 
-- All queries return valid results
-- Filtering by trace_id shows related activit ies
-- Filtering by action_type shows correct event types
-- Filtering by agent_id shows agent-specific actions
+- `exoctl journal` returns recent activity table
+- Trace ID filter isolates specific operation
+- Action and Agent filters work as expected
 
 **Part B (Time-Based):**
 
-- Recent activity retrieved correctly
-- Date range queries work
-- Timestamps in ISO 8601 format
+- `since` filter correctly limits results
+- output matches expected timeframe
 
-**Part C (Advanced):**
+**Part C (Formatted Output):**
 
-- Payload search returns relevant results
-- Complex queries execute successfully
-- Aggregation functions work
+- JSON output is valid and parsable by `jq`
+- Export file created successfully
 
-**Part D (Export):**
+**Part D (Advanced Debugging):**
 
-- Activity log exports to file
-- Summary reports generated
-- Data formatted correctly
-
-**Part E (CLI):**
-
-- `exoctl journal` command works
-- Multiple filters can be combined
-- Output is readable and formatted
+- Direct SQL queries return raw data suitable for deep analysis
+- Integrity check passes
 
 ### Verification
 
@@ -3040,8 +3020,8 @@ sqlite3 ~/ExoFrame/.exo/journal.db ".schema activity"
 sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity;"
 
 # Verify export file created
-ls -lh /tmp/activity_export.txt
-wc -l /tmp/activity_export.txt
+ls -lh /tmp/activity_log.json
+wc -l /tmp/activity_log.json
 
 # Check index existence for performance
 sqlite3 ~/ExoFrame/.exo/journal.db ".indices activity"
@@ -3051,20 +3031,17 @@ sqlite3 ~/ExoFrame/.exo/journal.db ".indices activity"
 
 ```bash
 # Remove export file
-rm -f /tmp/activity_export.txt
+rm -f /tmp/activity_log.json
 ```
 
 ### Pass Criteria
 
-- [ ] All SQL queries execute without errors
-- [ ] Filtering by trace_id returns related events
-- [ ] Filtering by action_type returns correct events
-- [ ] Time-based queries work correctly
-- [ ] Payload search returns relevant results
-- [ ] Export functionality works
-- [ ] CLI journal commands functional
-- [ ] Multiple filters can be combined
-- [ ] Database indices exist for performance
+- [ ] All `exoctl journal` commands execute without errors
+- [ ] Filtering by filters behaves as expected
+- [ ] JSON output is valid
+- [ ] Export file is created
+- [ ] Direct SQL queries (backup) function correctly
+- [ ] Database integrity check passes
 
 ---
 
@@ -3724,3 +3701,4 @@ rm -rf /tmp/git-test-portal
 ---
 
 _End of Manual Test Scenarios_
+````

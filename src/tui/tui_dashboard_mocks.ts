@@ -95,7 +95,12 @@ export class MockPlanService {
  */
 export class MockLogService {
   /** Returns an empty list of recent activity logs. */
-  getRecentActivity() {
+  queryActivity(_filter: any) {
+    return Promise.resolve([]);
+  }
+
+  /** Returns an empty list of recent activity logs. */
+  getRecentActivity(_limit?: number) {
     return Promise.resolve([]);
   }
 }

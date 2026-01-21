@@ -77,7 +77,7 @@ export const DEFAULT_AI_RETRY_BACKOFF_BASE_MS = 1000;
 export const DEFAULT_AI_RETRY_TIMEOUT_PER_REQUEST_MS = 30000;
 
 // AI configuration schema defaults
-export const DEFAULT_AI_MODEL = "gemini-2.0-flash-exp";
+export const DEFAULT_AI_MODEL = "gemini-2.5-flash";
 export const DEFAULT_AI_TEMPERATURE_MIN = 0;
 export const DEFAULT_AI_TEMPERATURE_MAX = 2;
 
@@ -144,7 +144,7 @@ export const MOCK_OUTPUT_TOKENS = 200;
 export const DEFAULT_MOCK_MODEL = "mock-model";
 
 // Additional model names for schema defaults
-export const DEFAULT_FAST_MODEL_NAME = "gemini-2.0-flash-exp"; // Was mock-fast, now using recommended fast model name as default
+export const DEFAULT_FAST_MODEL_NAME = "gemini-2.5-flash"; // Was mock-fast, now using recommended fast model name as default
 export const DEFAULT_LOCAL_MODEL_NAME = "llama3.2";
 
 // Provider names for schema defaults

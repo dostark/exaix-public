@@ -31,7 +31,7 @@ import {
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
-import type { ActivityRecord } from "../services/db.ts";
+import type { ActivityRecord, JournalFilterOptions } from "../services/db.ts";
 
 // ===== Service Interfaces =====
 
@@ -39,14 +39,7 @@ import type { ActivityRecord } from "../services/db.ts";
  * Service interface for log access.
  */
 export interface LogService {
-  getRecentActivity(limit: number): Promise<ActivityRecord[]>;
-}
-
-export interface LogFilter {
-  agent?: string;
-  actionType?: string;
-  traceId?: string;
-  timeWindow?: number; // milliseconds
+  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]>;
 }
 
 export interface LogEntry {
@@ -101,7 +94,7 @@ export { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS };
  * View/controller for monitoring logs. Delegates to injected LogService.
  */
 export class MonitorView {
-  private filter: LogFilter = {};
+  private filter: JournalFilterOptions = {};
   private isPaused = false;
   private logs: LogEntry[] = [];
 
@@ -112,7 +105,7 @@ export class MonitorView {
   /** Refresh logs from the service. */
   async refreshLogs(): Promise<void> {
     if (!this.isPaused) {
-      const activities = await this.logService.getRecentActivity(1000);
+      const activities = await this.logService.queryActivity(this.filter);
       this.logs = activities.map((log): LogEntry => ({
         ...log,
         payload: typeof log.payload === "string" ? JSON.parse(log.payload) : log.payload,
@@ -127,28 +120,15 @@ export class MonitorView {
   }
 
   /** Set the filter for logs. */
-  setFilter(filter: LogFilter): void {
-    this.filter = { ...filter };
+  setFilter(filter: JournalFilterOptions): void {
+    this.filter = { ...this.filter, ...filter };
   }
 
-  /** Get filtered logs based on current filter. */
+  /** Get filtered logs (DB filtering is applied on refresh). */
   getFilteredLogs(): LogEntry[] {
-    let filtered = this.logs;
-    if (this.filter.agent) {
-      filtered = filtered.filter((log) => log.agent_id === this.filter.agent);
-    }
-    if (this.filter.actionType) {
-      filtered = filtered.filter((log) => log.action_type === this.filter.actionType);
-    }
-    if (this.filter.traceId) {
-      filtered = filtered.filter((log) => log.trace_id === this.filter.traceId);
-    }
-    if (this.filter.timeWindow) {
-      const now = new Date();
-      const cutoff = new Date(now.getTime() - this.filter.timeWindow);
-      filtered = filtered.filter((log) => new Date(log.timestamp) >= cutoff);
-    }
-    return filtered;
+    // DB handles structural filtering (agent, action, trace)
+    // Client only needs to handle textual search if applied later in TUI session
+    return this.logs;
   }
 
   /** Pause log streaming. */
@@ -238,8 +218,20 @@ export class MinimalLogServiceMock implements LogService {
     this.logs = logs;
   }
 
-  getRecentActivity(_limit: number): Promise<ActivityRecord[]> {
-    return Promise.resolve([...this.logs.map((log) => ({
+  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]> {
+    let filtered = this.logs;
+
+    if (filter.agentId) {
+      filtered = filtered.filter((l) => l.agent_id === filter.agentId);
+    }
+    if (filter.actionType) {
+      filtered = filtered.filter((l) => l.action_type === filter.actionType);
+    }
+    if (filter.traceId) {
+      filtered = filtered.filter((l) => l.trace_id === filter.traceId);
+    }
+
+    return Promise.resolve([...filtered.map((log) => ({
       ...log,
       payload: JSON.stringify(log.payload),
     }))]);
@@ -472,6 +464,8 @@ export class MonitorTuiSession extends TuiSessionBase {
           { key: "s", description: "Search logs" },
           { key: "f", description: "Filter by agent" },
           { key: "t", description: "Filter by time" },
+          { key: "T", description: "Filter by Trace ID" },
+          { key: "A", description: "Filter by Action Type" },
         ],
       },
       {
@@ -665,29 +659,89 @@ export class MonitorTuiSession extends TuiSessionBase {
     });
   }
 
+  showFilterByTraceIdDialog(): void {
+    this.pendingDialogType = "filter-trace";
+    this.state.activeDialog = new InputDialog({
+      title: "Filter by Trace ID",
+      label: "Enter trace ID (empty to clear):",
+      defaultValue: "",
+    });
+  }
+
+  showFilterByActionTypeDialog(): void {
+    const logs = this.monitorView.getFilteredLogs();
+    const actions = [...new Set(logs.map((l) => l.action_type).filter(Boolean))];
+    const actionList = actions.length > 0 ? actions.join(", ") : "(no actions)";
+
+    this.pendingDialogType = "filter-action";
+    this.state.activeDialog = new InputDialog({
+      title: "Filter by Action Type",
+      label: `Available actions: ${actionList}\nEnter action type (empty to clear):`,
+      defaultValue: "",
+    });
+  }
+
   private handleSearchResult(query: string): void {
     this.state.searchQuery = query;
     this.setStatus(`Searching for: ${query}`, "info");
   }
 
   private handleAgentFilterResult(agent: string): void {
-    this.monitorView.setFilter({ agent: agent || undefined });
-    this.buildTree();
-    this.selectFirstLog();
-    this.setStatus(agent ? `Filtered by agent: ${agent}` : "Filter cleared", "info");
+    if (agent) {
+      this.monitorView.setFilter({ agentId: agent });
+      this.setStatus(`Filtered by agent: ${agent}`, "info");
+    } else {
+      this.monitorView.setFilter({ agentId: undefined });
+      this.setStatus("Filter cleared", "info");
+    }
+    this.monitorView.refreshLogs().then(() => {
+      this.buildTree();
+      this.selectFirstLog();
+    });
   }
 
   private handleTimeFilterResult(minutes: string): void {
     if (minutes) {
       const ms = parseInt(minutes, 10) * 60 * 1000;
-      this.monitorView.setFilter({ timeWindow: ms });
+      const since = new Date(Date.now() - ms).toISOString();
+      this.monitorView.setFilter({ since });
       this.setStatus(`Showing logs from last ${minutes} minutes`, "info");
     } else {
-      this.monitorView.setFilter({ timeWindow: undefined });
+      this.monitorView.setFilter({ since: undefined });
       this.setStatus("Time filter cleared", "info");
     }
-    this.buildTree();
-    this.selectFirstLog();
+    this.monitorView.refreshLogs().then(() => {
+      this.buildTree();
+      this.selectFirstLog();
+    });
+  }
+
+  private handleTraceFilterResult(traceId: string): void {
+    if (traceId) {
+      this.monitorView.setFilter({ traceId: traceId });
+      this.setStatus(`Filtered by Trace ID: ${traceId}`, "info");
+    } else {
+      this.monitorView.setFilter({ traceId: undefined });
+      this.setStatus("Trace filter cleared", "info");
+    }
+    this.monitorView.refreshLogs().then(() => {
+      this.buildTree();
+      this.selectFirstLog();
+    });
+  }
+
+  private handleActionFilterResult(actionType: string): void {
+    if (actionType) {
+      this.monitorView.setFilter({ actionType: actionType });
+      this.setStatus(`Filtered by Action: ${actionType}`, "info");
+    } else {
+      this.monitorView.setFilter({ actionType: undefined });
+      this.setStatus("Action filter cleared", "info");
+    }
+    this.monitorView.refreshLogs().then(() => {
+      this.buildTree();
+      this.selectFirstLog();
+    });
   }
 
   // ===== Navigation =====
@@ -743,7 +797,7 @@ export class MonitorTuiSession extends TuiSessionBase {
   // ===== Key Handling =====
 
   // Track what dialog is pending
-  private pendingDialogType: "search" | "filter-agent" | "filter-time" | null = null;
+  private pendingDialogType: "search" | "filter-agent" | "filter-time" | "filter-trace" | "filter-action" | null = null;
 
   handleKey(key: string): Promise<void> {
     // Handle active dialog first
@@ -770,6 +824,12 @@ export class MonitorTuiSession extends TuiSessionBase {
                 break;
               case "filter-time":
                 this.handleTimeFilterResult(result.value);
+                break;
+              case "filter-trace":
+                this.handleTraceFilterResult(result.value);
+                break;
+              case "filter-action":
+                this.handleActionFilterResult(result.value);
                 break;
             }
           }
@@ -841,6 +901,12 @@ export class MonitorTuiSession extends TuiSessionBase {
         break;
       case "t":
         this.showTimeFilterDialog();
+        break;
+      case "T":
+        this.showFilterByTraceIdDialog();
+        break;
+      case "A":
+        this.showFilterByActionTypeDialog();
         break;
       case "g":
         this.toggleGrouping();

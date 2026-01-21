@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-20T15:31:30.883Z",
+  "generated_at": "2026-01-21T12:04:23.182Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -408,6 +408,31 @@
         ".copilot/chunks/phase-22-architecture-and-quality-improvement.md.chunk5.txt",
         ".copilot/chunks/phase-22-architecture-and-quality-improvement.md.chunk6.txt",
         ".copilot/chunks/phase-22-architecture-and-quality-improvement.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-29-journal-command.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 29: Implementation of `exoctl journal` Command",
+      "short_summary": "Comprehensive plan for implementing the `exoctl journal` command to query, filter, and inspect the activity journal.",
+      "version": "0.2",
+      "topics": [
+        "exoctl",
+        "journal",
+        "cli",
+        "audit",
+        "database"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-29-journal-command.md.chunk0.txt",
+        ".copilot/chunks/phase-29-journal-command.md.chunk1.txt",
+        ".copilot/chunks/phase-29-journal-command.md.chunk2.txt",
+        ".copilot/chunks/phase-29-journal-command.md.chunk3.txt",
+        ".copilot/chunks/phase-29-journal-command.md.chunk4.txt",
+        ".copilot/chunks/phase-29-journal-command.md.chunk5.txt",
+        ".copilot/chunks/phase-29-journal-command.md.chunk6.txt",
+        ".copilot/chunks/phase-29-journal-command.md.chunk7.txt"
       ]
     },
     {

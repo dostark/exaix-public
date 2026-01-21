@@ -27,6 +27,7 @@ import { BlueprintCommands } from "./blueprint_commands.ts";
 import { FlowCommands } from "./flow_commands.ts";
 import { DashboardCommands } from "./dashboard_commands.ts";
 import { MemoryCommands } from "./memory_commands.ts";
+import { JournalCommands } from "./commands/journal.ts";
 import { RequestPriority } from "../enums.ts";
 import { CLI_DEFAULTS, PRIORITY_ICONS } from "./cli.config.ts";
 import { MCPServer } from "../mcp/server.ts";
@@ -1492,5 +1493,16 @@ function printRequestResult(result: RequestMetadata, json: boolean, _dryRun: boo
 }
 
 if (!IN_TEST_MODE) {
-  await __test_command.parse(Deno.args);
+  await __test_command
+    .command("journal", "Query the Activity Journal")
+    .option("-f, --filter <filter:string[]>", "Filter by key=value (trace_id, action_type, agent_id)", {
+      collect: true,
+    })
+    .option("-n, --tail <n:number>", "Show last N entries", { default: 50 })
+    .option("--format <format:string>", "Output format (json, table)", { default: "table" })
+    .action(async (options: any) => {
+      const cmd = new JournalCommands(context);
+      await cmd.show(options);
+    })
+    .parse(Deno.args);
 }

@@ -39,6 +39,7 @@ import { colorize, getTheme, type TuiTheme } from "./utils/colors.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import { Table } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
+import type { DatabaseService } from "../services/db.ts";
 
 // Type alias for convenience
 type Theme = TuiTheme;
@@ -508,12 +509,13 @@ export async function launchTuiDashboard(
     testMode?: boolean;
     nonInteractive?: boolean;
     notificationService?: NotificationService;
+    databaseService?: DatabaseService;
   } = {},
 ): Promise<TuiDashboard | undefined> {
   // Minimal idiomatic dashboard object for TDD
   const portalService = new MockPortalService();
   const planService = new MockPlanService();
-  const logService = new MockLogService();
+  const logService = options.databaseService || new MockLogService();
   const structuredLogger = new MockStructuredLogger();
   const structuredLoggerService = new MockStructuredLoggerService();
   const daemonService = new MockDaemonService();

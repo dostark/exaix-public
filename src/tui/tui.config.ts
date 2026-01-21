@@ -60,6 +60,8 @@ export const MONITOR_KEY_BINDINGS: KeyBinding[] = [
   { key: "s", action: "search", description: "Search logs", category: "Actions" },
   { key: "f", action: "filter-agent", description: "Filter by agent", category: "Actions" },
   { key: "t", action: "filter-time", description: "Filter by time", category: "Actions" },
+  { key: "T", action: "filter-trace", description: "Filter by Trace ID", category: "Actions" },
+  { key: "A", action: "filter-action", description: "Filter by Action Type", category: "Actions" },
   { key: "g", action: "toggle-grouping", description: "Toggle grouping", category: "View" },
   { key: "R", action: "refresh", description: "Force refresh", category: "View" },
   { key: "a", action: "auto-refresh", description: "Toggle auto-refresh", category: "View" },

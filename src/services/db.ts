@@ -307,6 +307,58 @@ export class DatabaseService {
 
     return stmt.all(limit) as unknown as ActivityRecord[];
   }
+
+  /**
+   * Query activity journal with flexible filters
+   */
+  async queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]> {
+    // Flush pending logs before querying
+    if (this.flushTimer !== null) {
+      clearTimeout(this.flushTimer);
+      this.flushTimer = null;
+    }
+
+    if (this.logQueue.length > 0) {
+      const batch = this.logQueue.splice(0);
+      await this.executeBatchInsert(batch, "queryActivity");
+    }
+
+    let query = `
+      SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
+      FROM activity
+      WHERE 1=1
+    `;
+    const params: (string | number)[] = [];
+
+    if (filter.traceId) {
+      query += ` AND trace_id = ?`;
+      params.push(filter.traceId);
+    }
+
+    if (filter.actionType) {
+      query += ` AND action_type = ?`;
+      params.push(filter.actionType);
+    }
+
+    if (filter.agentId) {
+      query += ` AND agent_id = ?`;
+      params.push(filter.agentId);
+    }
+
+    if (filter.since) {
+      // TODO: Implement relative time parsing if needed
+      // For now assume ISO date string
+      query += ` AND timestamp > ?`;
+      params.push(filter.since);
+    }
+
+    query += ` ORDER BY timestamp DESC`;
+    query += ` LIMIT ?`;
+    params.push(filter.limit || 50);
+
+    const stmt = this.db.prepare(query);
+    return stmt.all(...params) as unknown as ActivityRecord[];
+  }
 }
 
 interface RetryOptions {
@@ -315,4 +367,15 @@ interface RetryOptions {
   maxDelay?: number;
   backoffFactor?: number;
   jitter?: boolean;
+}
+
+/**
+ * Filter options for querying activity journal
+ */
+export interface JournalFilterOptions {
+  traceId?: string;
+  actionType?: string;
+  agentId?: string;
+  limit?: number;
+  since?: string; // ISO date string
 }

@@ -7,6 +7,8 @@ export class DashboardCommands extends BaseCommand {
   }
 
   async show(): Promise<void> {
-    await launchTuiDashboard();
+    await launchTuiDashboard({
+      databaseService: this.db,
+    });
   }
 }

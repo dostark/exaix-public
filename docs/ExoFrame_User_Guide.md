@@ -1349,9 +1349,11 @@ All human actions via CLI are automatically logged to the Activity Journal:
 Query activity history:
 
 ```bash
-# View activity database directly
-sqlite3 ~/ExoFrame/.exo/journal.db \
-  "SELECT * FROM activity WHERE actor='human' ORDER BY timestamp DESC LIMIT 10;"
+# View recent activity history
+exoctl journal --tail 10
+
+# Filter by trace ID to see event correlation
+exoctl journal --filter trace_id=a1b2...
 ```
 
 ### 4.5 Output Formatting
@@ -2256,6 +2258,43 @@ The daemon exposes health endpoints and performs self-monitoring. checking:
 ```bash
 # Perform an ad-hoc health check
 exoctl health check
+```
+
+### 8.3 Activity Journal
+
+The Activity Journal provides a permanent, searchable audit trail of all agent actions, system events, and errors. It is stored locally in `journal.db` and is essential for debugging and compliance.
+
+**Usage:**
+
+```bash
+exoctl journal [options]
+```
+
+**Options:**
+
+| Option | Alias | Description | Default |
+|String | - | - | - |
+| `--tail <n>` | `-n` | Show the last N entries | 50 |
+| `--filter <key=val>` | `-f` | Filter criteria (see below) | None |
+| `--format <fmt>` | - | Output format (`table` or `json`) | `table` |
+
+**Filter Keys:**
+
+- `trace_id`: Filter by specific operation UUID
+- `agent_id`: Filter by agent name (e.g., `mock-agent`)
+- `action_type`: Filter by event type (e.g., `request.created`, `error`)
+
+**Examples:**
+
+```bash
+# View recent system activity
+exoctl journal
+
+# Investigate a specific request trace
+exoctl journal --filter trace_id=a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
+# Audit all errors in JSON format for external analysis
+exoctl journal --filter action_type=error --format json > errors.json
 ```
 
 ## 9. Cost Tracking (Beta)

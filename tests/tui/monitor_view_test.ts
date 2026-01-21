@@ -85,21 +85,23 @@ Deno.test("MonitorView - should display real-time log streaming", async () => {
   assertEquals(logs[0].action_type, "request_created");
 });
 
-Deno.test("MonitorView - should filter logs by agent", () => {
+Deno.test("MonitorView - should filter logs by agent", async () => {
   const { db: _db, monitorView } = createMonitorViewWithLogs(createTwoAgentLogs());
 
   // Test filtering by agent
-  monitorView.setFilter({ agent: "researcher" });
+  monitorView.setFilter({ agentId: "researcher" });
+  await monitorView.refreshLogs();
   const filteredLogs = monitorView.getFilteredLogs();
   assertEquals(filteredLogs.length, 1);
   assertEquals(filteredLogs[0].agent_id, "researcher");
 });
 
-Deno.test("MonitorView - should filter logs by action type", () => {
+Deno.test("MonitorView - should filter logs by action type", async () => {
   const { db: _db, monitorView } = createMonitorViewWithLogs(createTwoActionLogs());
 
   // Test filtering by action type
   monitorView.setFilter({ actionType: "plan_approved" });
+  await monitorView.refreshLogs();
   const filteredLogs = monitorView.getFilteredLogs();
   assertEquals(filteredLogs.length, 1);
   assertEquals(filteredLogs[0].action_type, "plan_approved");
@@ -209,7 +211,8 @@ Deno.test("MonitorView - should handle large log volumes without crashing", asyn
   assertEquals(logs.length, 1000);
 
   // Filtering should still work
-  monitorView.setFilter({ agent: "researcher" });
+  monitorView.setFilter({ agentId: "researcher" });
+  await monitorView.refreshLogs();
   const filteredLogs = monitorView.getFilteredLogs();
   assert(filteredLogs.length > 0);
   assert(filteredLogs.every((log: LogEntry) => log.agent_id === "researcher"));
@@ -229,7 +232,7 @@ Deno.test("MonitorView - should handle empty logs gracefully", async () => {
   assertEquals(exportData, ""); // Empty export
 });
 
-Deno.test("MonitorView - should filter logs by time window", () => {
+Deno.test("MonitorView - should filter logs by time window", async () => {
   const now = new Date();
   const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
 
@@ -257,7 +260,9 @@ Deno.test("MonitorView - should filter logs by time window", () => {
   ]);
 
   // Filter to last hour
-  monitorView.setFilter({ timeWindow: 60 * 60 * 1000 }); // 1 hour in ms
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  monitorView.setFilter({ since: oneHourAgo }); // 1 hour ago
+  await monitorView.refreshLogs();
   const filteredLogs = monitorView.getFilteredLogs();
   assertEquals(filteredLogs.length, 1);
   assertEquals(filteredLogs[0].id, "1");

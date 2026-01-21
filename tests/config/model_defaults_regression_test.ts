@@ -19,17 +19,17 @@ Deno.test("[regression] verify default anthropic model is claude-3.5-haiku-lates
   assertEquals(DEFAULTS.DEFAULT_ANTHROPIC_MODEL, DEFAULTS.DEFAULT_ANTHROPIC_MODEL);
 });
 
-Deno.test("[regression] verify default google model is gemini-2.0-flash-exp", () => {
+Deno.test("[regression] verify default google model is gemini-2.5-flash", () => {
   const provider = new GoogleProvider({ apiKey: "test-key" });
   const id = provider.id;
   assertEquals(id, `google-${DEFAULTS.DEFAULT_GOOGLE_MODEL}`);
   assertEquals(DEFAULTS.DEFAULT_GOOGLE_MODEL, DEFAULTS.DEFAULT_GOOGLE_MODEL);
 });
 
-Deno.test("[regression] verify global default model is gemini-2.0-flash-exp", () => {
+Deno.test("[regression] verify global default model is gemini-2.5-flash", () => {
   assertEquals(DEFAULTS.DEFAULT_AI_MODEL, DEFAULTS.DEFAULT_GOOGLE_MODEL);
 });
 
-Deno.test("[regression] verify default fast model is gemini-2.0-flash-exp", () => {
+Deno.test("[regression] verify default fast model is gemini-2.5-flash", () => {
   assertEquals(DEFAULTS.DEFAULT_FAST_MODEL_NAME, DEFAULTS.DEFAULT_GOOGLE_MODEL);
 });

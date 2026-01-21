@@ -217,6 +217,23 @@ export function createMockDatabaseService(initialLogs: Array<Record<string, any>
     constructor(logs: Array<any> = []) {
       this.logs = logs;
     }
+    queryActivity(filter: any) {
+      let filtered = this.logs;
+      if (filter.agentId) {
+        filtered = filtered.filter((l) => l.agent_id === filter.agentId);
+      }
+      if (filter.actionType) {
+        filtered = filtered.filter((l) => l.action_type === filter.actionType);
+      }
+      if (filter.traceId) {
+        filtered = filtered.filter((l) => l.trace_id === filter.traceId);
+      }
+      if (filter.since) {
+        filtered = filtered.filter((l) => l.timestamp > filter.since);
+      }
+      return Promise.resolve(filtered);
+    }
+
     getRecentActivity(limit: number = 100) {
       return Promise.resolve(this.logs.slice(-limit).reverse());
     }
