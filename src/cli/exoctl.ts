@@ -107,6 +107,10 @@ if (!IN_TEST_MODE) {
     gitService = {} as any;
     provider = await ProviderFactory.createByName(config, config.agents.default_model);
     display = new EventLogger({});
+    display.warn("cli.config_missing", "system", {
+      message: "Configuration failed to load. Running in degraded mode (read-only/stub).",
+      hint: "Ensure 'exo.config.toml' exists in current directory or root.",
+    });
     context = { config, db, provider };
   }
 } else {
@@ -246,6 +250,10 @@ export async function __test_initializeServices(opts?: { simulateFail?: boolean;
     } as any;
     const providerLocal = await ProviderFactory.createByName(cfg, cfg.agents.default_model);
     const displayLocal = new EventLogger({});
+    displayLocal.warn("cli.config_missing", "system", {
+      message: "Configuration failed to load. Running in degraded mode (read-only/stub).",
+      hint: "Ensure 'exo.config.toml' exists in current directory or root.",
+    });
     return {
       success: false,
       error: String(err),
