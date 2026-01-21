@@ -1,0 +1,22 @@
+import { assert, assertEquals } from "@std/assert";
+import { __test_initializeServices } from "../../src/cli/exoctl.ts";
+
+/**
+ * Regression test for "exoctl journal crash when config missing"
+ * Verifies that the fallback DB stub includes queryActivity method.
+ */
+Deno.test("CLI: should provide safe fallback DB when initialization fails", async () => {
+  // Simulate service initialization failure (e.g. missing config)
+  const result = await __test_initializeServices({ simulateFail: true });
+
+  assert(!result.success, "Should report failure");
+  assert(result.db, "Should return a db stub");
+
+  // Verify queryActivity exists and returns empty array instead of crashing
+  // This was the cause of "TypeError: db.queryActivity is not a function"
+  assert(typeof result.db.queryActivity === "function", "db.queryActivity should be a function");
+
+  const activities = await result.db.queryActivity({});
+  assert(Array.isArray(activities), "Should return an array");
+  assertEquals(activities.length, 0, "Should return empty array");
+});
