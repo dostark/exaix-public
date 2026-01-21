@@ -47,29 +47,39 @@ Deno.test("StructuredLogger - Initialization", async (t) => {
     assert(logger instanceof StructuredLogger);
   });
 
-  await t.step("should initialize with file output", () => {
-    const fileOutput = new FileOutput("/tmp/test.log");
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [fileOutput],
-      enablePerformanceTracking: false,
-    };
+  await t.step("should initialize with file output", async () => {
+    const testLog = "/tmp/test-init.log";
+    try {
+      const fileOutput = new FileOutput(testLog);
+      const config: StructuredLoggerConfig = {
+        minLevel: "info",
+        outputs: [fileOutput],
+        enablePerformanceTracking: false,
+      };
 
-    const logger = new StructuredLogger(config);
-    assert(logger instanceof StructuredLogger);
+      const logger = new StructuredLogger(config);
+      assert(logger instanceof StructuredLogger);
+    } finally {
+      await Deno.remove(testLog).catch(() => {});
+    }
   });
 
-  await t.step("should initialize with multiple outputs", () => {
-    const consoleOutput = new ConsoleOutput();
-    const fileOutput = new FileOutput("/tmp/test.log");
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [consoleOutput, fileOutput],
-      enablePerformanceTracking: false,
-    };
+  await t.step("should initialize with multiple outputs", async () => {
+    const testLog = "/tmp/test-multi.log";
+    try {
+      const consoleOutput = new ConsoleOutput();
+      const fileOutput = new FileOutput(testLog);
+      const config: StructuredLoggerConfig = {
+        minLevel: "info",
+        outputs: [consoleOutput, fileOutput],
+        enablePerformanceTracking: false,
+      };
 
-    const logger = new StructuredLogger(config);
-    assert(logger instanceof StructuredLogger);
+      const logger = new StructuredLogger(config);
+      assert(logger instanceof StructuredLogger);
+    } finally {
+      await Deno.remove(testLog).catch(() => {});
+    }
   });
 });
 
