@@ -1,6 +1,6 @@
 ---
 title: "Plan/Changeset Approval Not Reflected in List Commands"
-status: resolved
+status: open
 priority: high
 created: 2026-01-22
 labels: [bug, plan, changeset, cli, approval, regression]
@@ -49,40 +49,20 @@ When following the manual test scenario for plan approval and changeset approval
 ## Suggested Investigation
 - Check if plan/changeset list commands are filtering out approved/archived items incorrectly.
 
-## Resolution
+## Latest Update (2026-01-22)
+Issue was previously marked as resolved, but manual testing shows the changeset list problem persists. The plan approval works and feature branches are created, but `exoctl changeset list` still returns empty.
 
-### Root Cause Analysis
+### Reproduction from Latest Test
+```
+exoctl changeset list
+✅ changeset.list: changesets
+   count: 0
+   message: No changesets found
 
-**Plan List Issue:**
-- `exoctl plan list --status approved` only scanned `Workspace/Active/` directory
-- Approved plans are moved to `Workspace/Archive/` after successful execution
-- Result: Completed plans were invisible to CLI users
+# But in portal repo:
+git branch
+* feat/request-a300d5a5-a300d5a5
+  master
+```
 
-**Changeset List Issue:**
-- `exoctl changeset list` only scanned git branches in workspace root
-- Changesets are created as `feat/*` branches in portal repositories
-- Result: Portal changesets were invisible to CLI users
-
-### Fixes Applied
-
-**Plan List Fix (`src/cli/plan_commands.ts`):**
-- Modified `list()` method to scan both `Workspace/Active/` and `Workspace/Archive/` for approved status
-- Updated comments to reflect that approved plans can be in either location
-
-**Changeset List Fix (`src/cli/changeset_commands.ts`):**
-- Modified `list()` method to enumerate all portal repositories
-- Added logic to scan `feat/*` branches in each portal's git repository
-- Gracefully handles broken/missing portals
-
-### Testing
-- ✅ All existing unit tests pass
-- ✅ Added regression test for archived plan listing
-- ✅ Integration tests confirm CLI commands work correctly
-- ✅ Manual verification shows approved plans and changesets now appear in lists
-
-### Files Changed
-- `src/cli/plan_commands.ts` - Include Archive directory in approved plan scanning
-- `src/cli/changeset_commands.ts` - Scan portal repositories for changeset branches
-- `tests/cli/plan_commands_test.ts` - Added regression test
-- Verify changeset indexing and plan state transitions after approval.
-- Ensure CLI reflects all relevant states for plans and changesets.
+The changeset listing logic needs to be investigated further.

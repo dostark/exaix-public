@@ -93,7 +93,7 @@ export class ChangesetCommands extends BaseCommand {
       for (const branch of branches) {
         // Extract trace_id from branch name (feat/{request_id}-{trace_id})
         // request_id format: request-NNN, trace_id format: xxx-yyy-zzz
-        const match = branch.match(/^feat\/(request-\d+)-(.+)$/);
+        const match = branch.match(/^feat\/(request-[\w]+)-(.+)$/);
         if (!match) continue;
 
         const [, request_id, trace_id] = match;
