@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-21T17:36:30.341Z",
+  "generated_at": "2026-01-22T09:59:31.839Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -779,21 +779,6 @@
         ".copilot/chunks/request-processing-failure-test-provider.md.chunk3.txt",
         ".copilot/chunks/request-processing-failure-test-provider.md.chunk4.txt",
         ".copilot/chunks/request-processing-failure-test-provider.md.chunk5.txt"
-      ]
-    },
-    {
-      "path": ".copilot/issues/execution-failure-no-changeset.md",
-      "title": "Plan Executed but Changes Not Applied and No Changeset Created",
-      "short_summary": "",
-      "chunks": [
-        ".copilot/chunks/execution-failure-no-changeset.md.chunk0.txt",
-        ".copilot/chunks/execution-failure-no-changeset.md.chunk1.txt",
-        ".copilot/chunks/execution-failure-no-changeset.md.chunk2.txt",
-        ".copilot/chunks/execution-failure-no-changeset.md.chunk3.txt",
-        ".copilot/chunks/execution-failure-no-changeset.md.chunk4.txt",
-        ".copilot/chunks/execution-failure-no-changeset.md.chunk5.txt",
-        ".copilot/chunks/execution-failure-no-changeset.md.chunk6.txt",
-        ".copilot/chunks/execution-failure-no-changeset.md.chunk7.txt"
       ]
     },
     {
