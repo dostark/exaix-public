@@ -1,13 +1,11 @@
 ---
 agent: general
 scope: dev
-title: "Implement Feature Step Template"
+title: "Implement Feature Step Template (#step)"
 short_summary: "Template for implementing individual steps from a feature plan with TDD and validation."
 version: "0.1"
 topics: ["implementation", "tdd", "steps", "validation"]
 ---
-
-# Implement Feature Step Template (#step)
 
 ```text
 Key points

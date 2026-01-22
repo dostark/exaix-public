@@ -1,0 +1,10 @@
+# Plan/Changeset Approval Not Reflected in List Commands
+
+## Problem
+
+When following the manual test scenario for plan approval and changeset approval, the following issues were observed:
+
+- After approving a plan, `exoctl plan list` does not show the approved plan (even with `--status=approved`).
+- After plan approval, a feature branch with the correct changeset is created in the portal repo, but `exoctl changeset list` returns an empty list.
+
+## Reproduction Steps

@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "Regression Test Template"
+title: "Regression Test Template (#regression)"
 short_summary: "Template for adding regression tests to prevent bug recurrence."
 version: "0.1"
 topics: ["regression", "testing", "bug-prevention"]
 ---
 
-# Regression Test Template (#regression)
 
 **Purpose:** Add or update regression tests to prevent recurrence of bugs and failures.
 

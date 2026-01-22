@@ -1,5 +1,3 @@
-# Feature Planning Template (#plan)
-
 ```text
 Key points
 - Break down features into actionable steps with success criteria

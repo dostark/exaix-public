@@ -1,5 +1,3 @@
-# Bug/Test Fix Template (#fix)
-
 ```text
 Key points
 - Identify root cause from bug report or test failure

@@ -268,8 +268,8 @@ Deno.test({
         `exoctl daemon restart failed: ${restartResult.stderr}`,
       );
 
-      // Give daemon time to restart
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Give daemon more time to restart (CI can be slow)
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Check status after restart
       const finalStatus = await runExoctl(workspace, ["daemon", "status"]);

@@ -9,9 +9,11 @@ Then proceed with:
 2. Follow TDD from `source/exoframe.md`
 3. Use test helpers from `tests/testing.md`
 4. Update docs per `documentation.md`
+```
 
 ---
 
 ### Security Audit
 
+```text
 I want to perform a security audit on Portal permission boundaries.

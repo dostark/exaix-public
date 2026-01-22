@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["openai", "debugging", "prompts", "diff-first"]
 ---
 
-# OpenAI Debugging: Reproduce → Diagnose → Fix → Verify
 
 ## Key points
 

@@ -1,5 +1,3 @@
-# OpenAI RAG Context Injection (inspect → inject)
-
 ```text
 
 Key points

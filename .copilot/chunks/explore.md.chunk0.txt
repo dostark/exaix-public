@@ -1,5 +1,3 @@
-# Codebase Exploration Template (#explore)
-
 **Purpose:** Systematically explore the ExoFrame codebase to answer questions or map architecture.
 
 ---

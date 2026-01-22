@@ -1,6 +1,3 @@
-STEP 2: Write tests (inject context about TDD patterns)
-deno run --allow-read scripts/inject_agent_context.ts claude "TDD testing patterns helpers" 4
-
 STEP 3: Implement (inject context about implementation patterns)
 deno run --allow-read scripts/inject_agent_context.ts claude "implementation patterns error handling" 4
 
@@ -13,3 +10,9 @@ Task: Add new LLM provider with comprehensive tests and docs.
 ## Expected Response Pattern
 
 Claude should:
+
+1. Run inspect_embeddings.ts to see available docs
+2. Run inject_agent_context.ts with appropriate limit
+3. Reference specific sections from injected docs in response
+4. Follow patterns from retrieved context
+5. Cite which agent docs were used (e.g., "Per agents/tests/testing.md...")

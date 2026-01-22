@@ -1,0 +1,10 @@
+**Changeset List Fix (`src/cli/changeset_commands.ts`):**
+- Modified `list()` method to enumerate all portal repositories
+- Added logic to scan `feat/*` branches in each portal's git repository
+- Gracefully handles broken/missing portals
+
+### Testing
+- ✅ All existing unit tests pass
+- ✅ Added regression test for archived plan listing
+- ✅ Integration tests confirm CLI commands work correctly
+- ✅ Manual verification shows approved plans and changesets now appear in lists

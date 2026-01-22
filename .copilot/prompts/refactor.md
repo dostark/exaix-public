@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "Refactoring Template"
+title: "Refactoring Template (#refactor)"
 short_summary: "Template for systematic code refactoring maintaining behavior while improving clarity or performance."
 version: "0.1"
 topics: ["refactoring", "code-quality", "maintenance"]
 ---
 
-# Refactoring Template (#refactor)
 
 **Purpose:** Systematically refactor code for clarity, performance, or maintainability.
 

@@ -1,5 +1,3 @@
-# Infrastructure/Config Template (#infra)
-
 **Purpose:** Plan and implement infrastructure or configuration changes for ExoFrame.
 
 ---

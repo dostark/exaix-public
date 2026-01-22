@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: docs
-title: "Documentation Template"
+title: "Documentation Template (#doc)"
 short_summary: "Template for creating or updating documentation with clarity and completeness."
 version: "0.1"
 topics: ["documentation", "writing", "clarity"]
 ---
 
-# Documentation Template (#doc)
 
 **Purpose:** Create or update documentation for ExoFrame codebase, ensuring clarity and completeness.
 

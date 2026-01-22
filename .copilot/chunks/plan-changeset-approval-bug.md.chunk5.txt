@@ -1,0 +1,6 @@
+### Files Changed
+- `src/cli/plan_commands.ts` - Include Archive directory in approved plan scanning
+- `src/cli/changeset_commands.ts` - Scan portal repositories for changeset branches
+- `tests/cli/plan_commands_test.ts` - Added regression test
+- Verify changeset indexing and plan state transitions after approval.
+- Ensure CLI reflects all relevant states for plans and changesets.

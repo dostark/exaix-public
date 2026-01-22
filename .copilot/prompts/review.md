@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "Code Review Template"
+title: "Code Review Template (#review)"
 short_summary: "Template for systematic code review checking correctness, style, and completeness."
 version: "0.1"
 topics: ["code-review", "quality-assurance", "best-practices"]
 ---
 
-# Code Review Template (#review)
 
 **Purpose:** Systematically review code changes for correctness, style, and completeness.
 

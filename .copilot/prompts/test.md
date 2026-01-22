@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "Test Creation Template"
+title: "Test Creation Template (#test)"
 short_summary: "Template for creating robust tests following TDD and regression best practices."
 version: "0.1"
 topics: ["testing", "tdd", "regression", "quality"]
 ---
 
-# Test Creation Template (#test)
 
 **Purpose:** Create robust tests for new or existing code, following TDD and regression best practices.
 

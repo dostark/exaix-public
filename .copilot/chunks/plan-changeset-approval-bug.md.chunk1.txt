@@ -1,0 +1,13 @@
+1. Deploy a fresh ExoFrame workspace and configure a test portal as described in the manual scenario.
+2. Submit a request and approve the generated plan.
+3. Run `exoctl plan list` and `exoctl plan list --status=approved`.
+4. Observe that no plans are listed, even though approval succeeded.
+5. Check the portal repo: the feature branch and changeset are present.
+6. Run `exoctl changeset list`.
+7. Observe that no changesets are listed.
+
+## Expected vs Observed Behavior
+
+**Expected:**
+- Approved plans should be visible in `exoctl plan list` (with or without status filter).
+- Created changesets should be listed by `exoctl changeset list` after plan approval and execution.

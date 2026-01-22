@@ -1,4 +1,4 @@
-```markdown
+```text
 Key points
 - Review changes with `git status` and `git diff` before committing
 - Use conventional commit format: `<type>(<scope>): <summary>`

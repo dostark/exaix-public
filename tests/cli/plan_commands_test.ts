@@ -33,12 +33,13 @@ describe("PlanCommands", () => {
   let inboxPlansDir: string;
   let activeDir: string;
   let rejectedDir: string;
+  let archiveDir: string;
   let cleanup: () => Promise<void>;
 
   beforeEach(async () => {
     // Initialize shared CLI test context
     const result = await createCliTestContext({
-      createDirs: ["Workspace/Plans", "Workspace/Active", "Workspace/Rejected"],
+      createDirs: ["Workspace/Plans", "Workspace/Active", "Workspace/Rejected", "Workspace/Archive"],
     });
     tempDir = result.tempDir;
     db = result.db;
@@ -49,6 +50,7 @@ describe("PlanCommands", () => {
     inboxPlansDir = getWorkspacePlansDir(tempDir);
     activeDir = getWorkspaceActiveDir(tempDir);
     rejectedDir = getWorkspaceRejectedDir(tempDir);
+    archiveDir = getWorkspaceArchiveDir(tempDir);
 
     // Initialize PlanCommands
     planCommands = new PlanCommands({ config, db });
@@ -440,6 +442,52 @@ status: needs_revision
       assertEquals(plans.length, 1);
       assertEquals(plans[0].id, "plan-malformed");
       assertEquals(plans[0].status, DaemonStatus.UNKNOWN);
+    });
+
+    it("[regression] should include archived plans when filtering for approved status", async () => {
+      // Use valid UUIDs for trace_id to match system expectations
+      const archivedTraceId = crypto.randomUUID();
+      const activeTraceId = crypto.randomUUID();
+
+      // Create an approved plan in Archive directory (simulating completed execution)
+      await Deno.writeTextFile(
+        join(archiveDir, "archived-plan-001.md"),
+        `---
+status: approved
+trace_id: "${archivedTraceId}"
+---
+# Archived Approved Plan
+This plan was executed and archived.
+`,
+      );
+
+      // Create an approved plan in Active directory (simulating running execution)
+      await Deno.writeTextFile(
+        join(activeDir, "active-plan-002.md"),
+        `---
+status: approved
+trace_id: "${activeTraceId}"
+---
+# Active Approved Plan
+This plan is currently being executed.
+`,
+      );
+
+      const approvedPlans = await planCommands.list("approved");
+      assertEquals(approvedPlans.length, 2);
+
+      // Should include both archived and active approved plans
+      const archivedPlan = approvedPlans.find((p) => p.id === "archived-plan-001");
+      const activePlan = approvedPlans.find((p) => p.id === "active-plan-002");
+
+      assertExists(archivedPlan, "Should include archived approved plan");
+      assertExists(activePlan, "Should include active approved plan");
+      assertEquals(archivedPlan.status, "approved");
+      assertEquals(activePlan.status, "approved");
+
+      // Verify trace_ids are preserved correctly
+      assertEquals(archivedPlan.trace_id, archivedTraceId);
+      assertEquals(activePlan.trace_id, activeTraceId);
     });
   });
 

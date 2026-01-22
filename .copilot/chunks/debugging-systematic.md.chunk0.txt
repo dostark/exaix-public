@@ -1,5 +1,3 @@
-# Systematic Debugging Prompt
-
 ## Prompt Template
 
 ```markdown

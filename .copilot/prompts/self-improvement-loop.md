@@ -7,8 +7,6 @@ version: "0.1"
 topics: ["self-improvement", "prompt-template", "instruction-adequacy", "maintenance"]
 ---
 
-# Self-improvement loop (prompt template)
-
 ## Key points
 
 - Use this when you suspect the current `agents/` instructions are insufficient for the active task.

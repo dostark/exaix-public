@@ -1,0 +1,15 @@
+**Plan List Issue:**
+- `exoctl plan list --status approved` only scanned `Workspace/Active/` directory
+- Approved plans are moved to `Workspace/Archive/` after successful execution
+- Result: Completed plans were invisible to CLI users
+
+**Changeset List Issue:**
+- `exoctl changeset list` only scanned git branches in workspace root
+- Changesets are created as `feat/*` branches in portal repositories
+- Result: Portal changesets were invisible to CLI users
+
+### Fixes Applied
+
+**Plan List Fix (`src/cli/plan_commands.ts`):**
+- Modified `list()` method to scan both `Workspace/Active/` and `Workspace/Archive/` for approved status
+- Updated comments to reflect that approved plans can be in either location

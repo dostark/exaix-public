@@ -30,6 +30,20 @@ Deno.test("[regression] RequestProcessor uses ProviderSelector when no testProvi
     await Deno.mkdir(requestsDir, { recursive: true });
     await Deno.mkdir(blueprintsPath, { recursive: true });
 
+    // --- Ensure DB schema is initialized (run setup_db.ts) ---
+    const setupScript = join(Deno.cwd(), "scripts", "setup_db.ts");
+    const setupCmd = new Deno.Command("deno", {
+      args: ["run", "--allow-read", "--allow-write", setupScript],
+      cwd: tmpDir,
+      stdout: "piped",
+      stderr: "piped",
+    });
+    const setupRes = await setupCmd.output();
+    if (setupRes.code !== 0) {
+      const err = new TextDecoder().decode(setupRes.stderr);
+      throw new Error(`DB setup failed: ${err}`);
+    }
+
     const db = new DatabaseService(config);
 
     // Create a mock agent blueprint

@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["openai", "rag", "embeddings", "context-injection", "prompts"]
 ---
 
-# OpenAI RAG Context Injection (inspect → inject)
 
 ```text
 

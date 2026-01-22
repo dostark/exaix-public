@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["refactoring", "thinking-protocol", "prompts", "examples"]
 ---
 
-# Refactoring with Thinking Protocol Prompt
 
 ## Prompt Template
 

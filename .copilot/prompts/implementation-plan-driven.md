@@ -7,11 +7,9 @@ version: "0.1"
 topics: ["implementation-plan", "workflow", "prompts", "examples"]
 ---
 
-# Implementation Plan Driven Development Prompt
-
 ## Prompt Template
 
-```
+```text
 I want to work on [feature/fix].
 
 Implementation Plan workflow:
@@ -210,6 +208,7 @@ Feature: Portal security testing
 
 ## Expected Response Pattern
 
+```text
 Claude should:
 1. Open and read Implementation Plan
 2. Navigate to specific Phase and Step
@@ -220,3 +219,4 @@ Claude should:
 7. Update Implementation Plan with [x] marks
 8. Note any deviations or learnings
 9. Reference Implementation Plan step number in commit message
+```

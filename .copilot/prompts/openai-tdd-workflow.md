@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["openai", "tdd", "testing", "prompts", "diff-first"]
 ---
 
-# OpenAI TDD Workflow (tests first)
 
 ```text
 Key points

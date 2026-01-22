@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["prompts", "templates", "agents", "workflows", "best-practices"]
 ---
 
-# ExoFrame Agent Prompt Templates Library
 
 Welcome to the ExoFrame prompt template library for coding agents. This collection enables agents to systematically wrap raw user prompts with advanced, context-rich instructions, ensuring clarity, completeness, and best practices for all coding tasks in the ExoFrame codebase.
 

@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "Feature Planning Template"
+title: "Feature Planning Template (#plan)"
 short_summary: "Template for systematically planning new features with steps, tests, and success criteria."
 version: "0.1"
 topics: ["planning", "features", "tdd", "requirements"]
 ---
 
-# Feature Planning Template (#plan)
 
 ```text
 Key points

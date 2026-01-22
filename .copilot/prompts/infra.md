@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "Infrastructure/Config Template"
+title: "Infrastructure/Config Template (#infra)"
 short_summary: "Template for planning and implementing infrastructure or configuration changes."
 version: "0.1"
 topics: ["infrastructure", "configuration", "deployment", "setup"]
 ---
 
-# Infrastructure/Config Template (#infra)
 
 **Purpose:** Plan and implement infrastructure or configuration changes for ExoFrame.
 

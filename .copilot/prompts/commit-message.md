@@ -8,8 +8,7 @@ topics: ["git", "commit", "documentation", "best-practices"]
 ---
 
 
-
-```markdown
+```text
 Key points
 - Review changes with `git status` and `git diff` before committing
 - Use conventional commit format: `<type>(<scope>): <summary>`
@@ -40,3 +39,4 @@ Expected Response Pattern:
 2. Show complete `git commit -m "..."` with full message
 3. Include summary, detailed body, and footer references
 4. List specific changes and testing verification
+```

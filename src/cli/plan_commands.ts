@@ -227,7 +227,8 @@ export class PlanCommands extends BaseCommand {
    * List all plans, optionally filtered by status.
    * Scans multiple directories based on status:
    * - Workspace/Plans: review, needs_revision, unknown
-   * - Workspace/Active: approved
+   * - Workspace/Active: approved (running)
+   * - Workspace/Archive: approved (completed)
    * - Workspace/Rejected: rejected
    * - All directories when no filter is specified
    */
@@ -239,9 +240,15 @@ export class PlanCommands extends BaseCommand {
 
     if (!statusFilter) {
       // No filter: scan all directories
-      dirsToScan.push(this.workspacePlansDir, this.workspaceActiveDir, this.workspaceRejectedDir);
+      dirsToScan.push(
+        this.workspacePlansDir,
+        this.workspaceActiveDir,
+        this.workspaceRejectedDir,
+        this.workspaceArchiveDir,
+      );
     } else if (statusFilter === PlanStatus.APPROVED) {
-      dirsToScan.push(this.workspaceActiveDir);
+      // Approved plans can be in Active (running) or Archive (completed)
+      dirsToScan.push(this.workspaceActiveDir, this.workspaceArchiveDir);
     } else if (statusFilter === PlanStatus.REJECTED) {
       dirsToScan.push(this.workspaceRejectedDir);
     } else {

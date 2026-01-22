@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "Bug/Test Fix Template"
+title: "Bug/Test Fix Template (#fix)"
 short_summary: "Template for systematically fixing bugs or failing tests with regression coverage."
 version: "0.1"
 topics: ["bug-fix", "testing", "regression", "validation"]
 ---
 
-# Bug/Test Fix Template (#fix)
 
 ```text
 Key points

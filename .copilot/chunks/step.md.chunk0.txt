@@ -1,5 +1,3 @@
-# Implement Feature Step Template (#step)
-
 ```text
 Key points
 - Restate step context from feature plan

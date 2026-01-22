@@ -1,5 +1,3 @@
-# Refactoring Template (#refactor)
-
 **Purpose:** Systematically refactor code for clarity, performance, or maintainability.
 
 ---

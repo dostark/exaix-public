@@ -1,5 +1,3 @@
-# Code Review Template (#review)
-
 **Purpose:** Systematically review code changes for correctness, style, and completeness.
 
 ---

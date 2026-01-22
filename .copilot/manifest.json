@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-22T12:55:51.852Z",
+  "generated_at": "2026-01-22T14:08:51.085Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -52,7 +52,7 @@
       "path": ".copilot/prompts/step.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Implement Feature Step Template",
+      "title": "Implement Feature Step Template (#step)",
       "short_summary": "Template for implementing individual steps from a feature plan with TDD and validation.",
       "version": "0.1",
       "topics": [
@@ -70,7 +70,7 @@
       "path": ".copilot/prompts/lint.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Linting/Formatting Template",
+      "title": "Linting/Formatting Template (#lint)",
       "short_summary": "Template for ensuring code cleanliness and adherence to ExoFrame style guidelines.",
       "version": "0.1",
       "topics": [
@@ -241,8 +241,7 @@
         ".copilot/chunks/rag-context-injection.md.chunk0.txt",
         ".copilot/chunks/rag-context-injection.md.chunk1.txt",
         ".copilot/chunks/rag-context-injection.md.chunk2.txt",
-        ".copilot/chunks/rag-context-injection.md.chunk3.txt",
-        ".copilot/chunks/rag-context-injection.md.chunk4.txt"
+        ".copilot/chunks/rag-context-injection.md.chunk3.txt"
       ]
     },
     {
@@ -286,7 +285,7 @@
       "path": ".copilot/prompts/security.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Security Patch Template",
+      "title": "Security Patch Template (#security)",
       "short_summary": "Template for planning and implementing security fixes with validation and documentation.",
       "version": "0.1",
       "topics": [
@@ -303,7 +302,7 @@
       "path": ".copilot/prompts/test.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Test Creation Template",
+      "title": "Test Creation Template (#test)",
       "short_summary": "Template for creating robust tests following TDD and regression best practices.",
       "version": "0.1",
       "topics": [
@@ -320,7 +319,7 @@
       "path": ".copilot/prompts/infra.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Infrastructure/Config Template",
+      "title": "Infrastructure/Config Template (#infra)",
       "short_summary": "Template for planning and implementing infrastructure or configuration changes.",
       "version": "0.1",
       "topics": [
@@ -355,7 +354,7 @@
       "path": ".copilot/prompts/fix.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Bug/Test Fix Template",
+      "title": "Bug/Test Fix Template (#fix)",
       "short_summary": "Template for systematically fixing bugs or failing tests with regression coverage.",
       "version": "0.1",
       "topics": [
@@ -373,7 +372,7 @@
       "path": ".copilot/prompts/review.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Code Review Template",
+      "title": "Code Review Template (#review)",
       "short_summary": "Template for systematic code review checking correctness, style, and completeness.",
       "version": "0.1",
       "topics": [
@@ -389,7 +388,7 @@
       "path": ".copilot/prompts/plan.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Feature Planning Template",
+      "title": "Feature Planning Template (#plan)",
       "short_summary": "Template for systematically planning new features with steps, tests, and success criteria.",
       "version": "0.1",
       "topics": [
@@ -426,7 +425,7 @@
       "path": ".copilot/prompts/explore.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Codebase Exploration Template",
+      "title": "Codebase Exploration Template (#explore)",
       "short_summary": "Template for systematic exploration of the ExoFrame codebase to answer questions or map architecture.",
       "version": "0.1",
       "topics": [
@@ -443,7 +442,7 @@
       "path": ".copilot/prompts/refactor.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Refactoring Template",
+      "title": "Refactoring Template (#refactor)",
       "short_summary": "Template for systematic code refactoring maintaining behavior while improving clarity or performance.",
       "version": "0.1",
       "topics": [
@@ -459,7 +458,7 @@
       "path": ".copilot/prompts/doc.md",
       "agent": "general",
       "scope": "docs",
-      "title": "Documentation Template",
+      "title": "Documentation Template (#doc)",
       "short_summary": "Template for creating or updating documentation with clarity and completeness.",
       "version": "0.1",
       "topics": [
@@ -520,7 +519,7 @@
       "path": ".copilot/prompts/regression.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Regression Test Template",
+      "title": "Regression Test Template (#regression)",
       "short_summary": "Template for adding regression tests to prevent bug recurrence.",
       "version": "0.1",
       "topics": [
@@ -981,6 +980,19 @@
         ".copilot/chunks/jscpd-guide.md.chunk5.txt",
         ".copilot/chunks/jscpd-guide.md.chunk6.txt",
         ".copilot/chunks/jscpd-guide.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/plan-changeset-approval-bug.md",
+      "title": "Plan/Changeset Approval Not Reflected in List Commands",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk0.txt",
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk1.txt",
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk2.txt",
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk3.txt",
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk4.txt",
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk5.txt"
       ]
     },
     {

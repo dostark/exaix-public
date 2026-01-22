@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "Security Patch Template"
+title: "Security Patch Template (#security)"
 short_summary: "Template for planning and implementing security fixes with validation and documentation."
 version: "0.1"
 topics: ["security", "vulnerability", "patch", "validation"]
 ---
 
-# Security Patch Template (#security)
 
 **Purpose:** Plan and implement security fixes, following best practices for validation and documentation.
 

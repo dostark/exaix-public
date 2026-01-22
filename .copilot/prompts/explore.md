@@ -1,13 +1,11 @@
 ---
 agent: general
 scope: dev
-title: "Codebase Exploration Template"
+title: "Codebase Exploration Template (#explore)"
 short_summary: "Template for systematic exploration of the ExoFrame codebase to answer questions or map architecture."
 version: "0.1"
 topics: ["exploration", "architecture", "discovery", "navigation"]
 ---
-
-# Codebase Exploration Template (#explore)
 
 **Purpose:** Systematically explore the ExoFrame codebase to answer questions or map architecture.
 

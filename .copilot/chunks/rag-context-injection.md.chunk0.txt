@@ -1,5 +1,3 @@
-# RAG Context Injection Prompt
-
 ## Prompt Template
 
 ```text
@@ -24,3 +22,6 @@ Token budget: [simple: 2-3 chunks | medium: 4-6 chunks | complex: 8-10 chunks]
 
 ```text
 Before answering my question, inject relevant context from agents/:
+
+Step 1: Inspect available embeddings
+deno run --allow-read scripts/inspect_embeddings.ts --query "database cleanup patterns" --top 10

@@ -1,0 +1,21 @@
+**Observed:**
+- `exoctl plan list` returns no plans after approval.
+- `exoctl changeset list` returns no changesets, despite the branch and file changes being present in the portal repo.
+
+## Additional Context
+- Plan file is moved to `Workspace/Archive/` after approval.
+- Feature branch is created and changes applied in the portal repo.
+- No errors reported in CLI output during the process.
+
+## Impact
+- Users cannot track approved plans or resulting changesets via CLI, breaking expected workflow and auditability.
+
+## Attachments
+- See detailed CLI session and scenario in `docs/dev/ExoFrame_Manual_Test_Scenarios.md` (lines 830+)
+
+## Suggested Investigation
+- Check if plan/changeset list commands are filtering out approved/archived items incorrectly.
+
+## Resolution
+
+### Root Cause Analysis

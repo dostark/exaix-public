@@ -1,5 +1,3 @@
-# Security Patch Template (#security)
-
 **Purpose:** Plan and implement security fixes, following best practices for validation and documentation.
 
 ---

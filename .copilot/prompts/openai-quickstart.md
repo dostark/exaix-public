@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["openai", "quickstart", "rag", "diff-first", "prompts"]
 ---
 
-# OpenAI Quickstart: Use agents/ first
 
 ## Key points
 

@@ -8,13 +8,12 @@ topics: ["cross-reference", "navigation", "prompts", "workflow"]
 ---
 
 
-# Cross-Reference Navigation Prompt
-
 **Purpose:**
 This document provides a prompt template and usage examples for agents to navigate ExoFrame's cross-reference map when performing development tasks.
 
 ## Prompt Template
 
+```text
 I want to [task type].
 
 First, consult `.copilot/cross-reference.md` for the workflow:
@@ -26,6 +25,7 @@ First, consult `.copilot/cross-reference.md` for the workflow:
 Task type: [write tests / refactor / update docs / fix errors / add feature / debug / security audit / etc.]
 
 Then proceed with the work following guidance from those docs.
+```
 
 ---
 
@@ -33,6 +33,7 @@ Then proceed with the work following guidance from those docs.
 
 ### Add New Feature
 
+```text
 I want to add a new feature: Flow parameter validation.
 
 First, consult `.copilot/cross-reference.md` for the workflow:
@@ -46,11 +47,13 @@ Then proceed with:
 2. Follow TDD from `source/exoframe.md`
 3. Use test helpers from `tests/testing.md`
 4. Update docs per `documentation.md`
+```
 
 ---
 
 ### Security Audit
 
+```text
 I want to perform a security audit on Portal permission boundaries.
 
 First, consult `.copilot/cross-reference.md` for the workflow:
@@ -64,11 +67,13 @@ Then design security tests covering:
 - Symlink escape detection
 - Absolute path restrictions
 - Cross-portal access attempts
+```
 
 ---
 
 ### Fix TypeScript Errors
 
+```text
 I have TypeScript errors in `src/flows/plan_executor.ts`
 
 First, consult `.copilot/cross-reference.md` for the workflow:
@@ -80,11 +85,13 @@ Read the errors, understand the patterns from `source/exoframe.md`, then fix fol
 - Service Pattern if it's a service
 - Proper error handling
 - Type safety throughout
+```
 
 ---
 
 ### Topic Search
 
+```text
 I need help with embeddings and RAG.
 
 Use `.copilot/cross-reference.md` topic search:
@@ -97,6 +104,7 @@ Read `claude-rag.md` sections:
 - Token budget strategies
 
 Then answer my questions about using embeddings.
+```
 
 ---
 

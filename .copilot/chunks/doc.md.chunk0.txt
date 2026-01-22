@@ -1,5 +1,3 @@
-# Documentation Template (#doc)
-
 **Purpose:** Create or update documentation for ExoFrame codebase, ensuring clarity and completeness.
 
 ---

@@ -7,8 +7,6 @@ version: "0.1"
 topics: ["debugging", "troubleshooting", "prompts", "examples"]
 ---
 
-# Systematic Debugging Prompt
-
 ## Prompt Template
 
 ```markdown

@@ -339,14 +339,8 @@ export class MemoryBankService {
    * @param execution - Execution memory data
    */
   async createExecutionRecord(execution: ExecutionMemory): Promise<void> {
-    // Validate schema if possible, but be tolerant to non-UUID trace IDs used in tests
-    try {
-      ExecutionMemorySchema.parse(execution);
-    } catch (e) {
-      // Validation failed (often due to non-UUID trace_id in tests). Continue and write records anyway,
-      // but log a warning to aid debugging.
-      console.warn("ExecutionMemory validation failed; writing execution record anyway:", e);
-    }
+    // Validate schema - fail fast on invalid data
+    ExecutionMemorySchema.parse(execution);
 
     const execDir = join(this.executionDir, execution.trace_id);
     await ensureDir(execDir);

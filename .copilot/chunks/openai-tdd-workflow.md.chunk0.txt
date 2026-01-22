@@ -1,5 +1,3 @@
-# OpenAI TDD Workflow (tests first)
-
 ```text
 Key points
 - Start by proposing failing tests with explicit assertions.
@@ -11,3 +9,6 @@ Canonical prompt (short)
 "You are implementing a change in ExoFrame using TDD. First, inject agents/ context for testing patterns. Then propose 2–4 failing tests with explicit assertions. After that, provide minimal file-scoped diffs to make them pass. End with verification commands. Cite agent doc paths used."
 
 Examples
+
+- Example prompt:
+  "Feature: ConfigLoader should surface malformed TOML errors clearly. Inject agents/ context for 'testing helpers ConfigLoader'. Propose 3 failing tests with explicit assertions, then minimal diffs to pass them."

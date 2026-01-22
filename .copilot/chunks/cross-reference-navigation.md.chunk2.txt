@@ -9,11 +9,13 @@ Then design security tests covering:
 - Symlink escape detection
 - Absolute path restrictions
 - Cross-portal access attempts
+```
 
 ---
 
 ### Fix TypeScript Errors
 
+```text
 I have TypeScript errors in `src/flows/plan_executor.ts`
 
 First, consult `.copilot/cross-reference.md` for the workflow:

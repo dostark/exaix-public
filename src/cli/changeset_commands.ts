@@ -3,6 +3,7 @@
  * Handles approval/rejection of git branches created by agents
  */
 
+import { join } from "@std/path";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import type { GitService } from "../services/git_service.ts";
 import { ChangesetStatus } from "../enums.ts";
@@ -45,79 +46,107 @@ export class ChangesetCommands extends BaseCommand {
    * @returns List of changeset metadata
    */
   async list(statusFilter?: string): Promise<ChangesetMetadata[]> {
-    const workspaceRoot = this.config.system.root;
+    const changesets: ChangesetMetadata[] = [];
+    const portalsDir = join(this.config.system.root, this.config.paths.portals);
 
-    // Get all branches with feat/ prefix (agent branches)
-    const branchesCmd = new Deno.Command("git", {
-      args: ["-C", workspaceRoot, "branch", "--list", "feat/*", "--format=%(refname:short)"],
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    const { stdout, success } = await branchesCmd.output();
-    if (!success) {
-      return [];
+    // Get all portal directories
+    const portalPaths: string[] = [];
+    try {
+      for await (const entry of Deno.readDir(portalsDir)) {
+        if (!entry.isSymlink) continue;
+        const symlinkPath = join(portalsDir, entry.name);
+        try {
+          const targetPath = await Deno.readLink(symlinkPath);
+          // Check if target still exists and is a git repo
+          await Deno.stat(join(targetPath, ".git"));
+          portalPaths.push(targetPath);
+        } catch {
+          // Skip broken portals or non-git repos
+          continue;
+        }
+      }
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) {
+        throw error;
+      }
+      // Portals directory doesn't exist yet - continue with empty list
     }
 
-    const branches = new TextDecoder().decode(stdout).trim().split("\n").filter((b) => b);
-    const changesets: ChangesetMetadata[] = [];
+    // Also check workspace root for changesets (legacy/fallback)
+    portalPaths.push(this.config.system.root);
 
-    for (const branch of branches) {
-      // Extract trace_id from branch name (feat/{request_id}-{trace_id})
-      // request_id format: request-NNN, trace_id format: xxx-yyy-zzz
-      const match = branch.match(/^feat\/(request-\d+)-(.+)$/);
-      if (!match) continue;
+    for (const repoPath of portalPaths) {
+      // Get all branches with feat/ prefix (agent branches)
+      const branchesCmd = new Deno.Command("git", {
+        args: ["-C", repoPath, "branch", "--list", "feat/*", "--format=%(refname:short)"],
+        stdout: "piped",
+        stderr: "piped",
+      });
 
-      const [, request_id, trace_id] = match;
+      const { stdout, success } = await branchesCmd.output();
+      if (!success) {
+        continue; // Skip repos with no feat branches
+      }
 
-      // Get branch creation time and author
-      const logCmd = new Deno.Command("git", {
-        args: [
-          "-C",
-          workspaceRoot,
-          "log",
+      const branches = new TextDecoder().decode(stdout).trim().split("\n").filter((b) => b);
+
+      for (const branch of branches) {
+        // Extract trace_id from branch name (feat/{request_id}-{trace_id})
+        // request_id format: request-NNN, trace_id format: xxx-yyy-zzz
+        const match = branch.match(/^feat\/(request-\d+)-(.+)$/);
+        if (!match) continue;
+
+        const [, request_id, trace_id] = match;
+
+        // Get branch creation time and author
+        const logCmd = new Deno.Command("git", {
+          args: [
+            "-C",
+            repoPath,
+            "log",
+            branch,
+            "--format=%H %aI %ae",
+            "-1",
+          ],
+          stdout: "piped",
+          stderr: "piped",
+        });
+
+        const logResult = await logCmd.output();
+        if (!logResult.success) continue;
+
+        const logLine = new TextDecoder().decode(logResult.stdout).trim();
+        const [, timestamp, agent_id] = logLine.split(" ");
+
+        // Get number of files changed
+        const diffCmd = new Deno.Command("git", {
+          args: ["-C", repoPath, "diff", "--name-only", "main..." + branch],
+          stdout: "piped",
+          stderr: "piped",
+        });
+
+        const diffResult = await diffCmd.output();
+        const files = new TextDecoder().decode(diffResult.stdout).trim().split("\n").filter((f) => f);
+
+        // Check if branch has been merged or rejected via activity log
+        const activities = await this.db.getActivitiesByTrace(trace_id);
+        const status = activities.some((a: { action_type: string }) => a.action_type === "changeset.approved")
+          ? ChangesetStatus.APPROVED
+          : activities.some((a: { action_type: string }) => a.action_type === "changeset.rejected")
+          ? ChangesetStatus.REJECTED
+          : ChangesetStatus.PENDING;
+
+        if (statusFilter && status !== statusFilter) continue;
+
+        changesets.push({
           branch,
-          "--format=%H %aI %ae",
-          "-1",
-        ],
-        stdout: "piped",
-        stderr: "piped",
-      });
-
-      const logResult = await logCmd.output();
-      if (!logResult.success) continue;
-
-      const logLine = new TextDecoder().decode(logResult.stdout).trim();
-      const [, timestamp, agent_id] = logLine.split(" ");
-
-      // Get number of files changed
-      const diffCmd = new Deno.Command("git", {
-        args: ["-C", workspaceRoot, "diff", "--name-only", "main..." + branch],
-        stdout: "piped",
-        stderr: "piped",
-      });
-
-      const diffResult = await diffCmd.output();
-      const files = new TextDecoder().decode(diffResult.stdout).trim().split("\n").filter((f) => f);
-
-      // Check if branch has been merged or rejected via activity log
-      const activities = await this.db.getActivitiesByTrace(trace_id);
-      const status = activities.some((a: { action_type: string }) => a.action_type === "changeset.approved")
-        ? ChangesetStatus.APPROVED
-        : activities.some((a: { action_type: string }) => a.action_type === "changeset.rejected")
-        ? ChangesetStatus.REJECTED
-        : ChangesetStatus.PENDING;
-
-      if (statusFilter && status !== statusFilter) continue;
-
-      changesets.push({
-        branch,
-        trace_id,
-        request_id,
-        files_changed: files.length,
-        created_at: timestamp,
-        agent_id,
-      });
+          trace_id,
+          request_id,
+          files_changed: files.length,
+          created_at: timestamp,
+          agent_id,
+        });
+      }
     }
 
     return changesets.sort((a, b) => {

@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "Linting/Formatting Template"
+title: "Linting/Formatting Template (#lint)"
 short_summary: "Template for ensuring code cleanliness and adherence to ExoFrame style guidelines."
 version: "0.1"
 topics: ["linting", "formatting", "code-quality", "style"]
 ---
 
-# Linting/Formatting Template (#lint)
 
 **Purpose:** Ensure code is clean, consistent, and follows ExoFrame style guidelines.
 

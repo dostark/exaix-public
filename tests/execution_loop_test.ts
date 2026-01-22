@@ -40,12 +40,13 @@ function getTestPaths(root: string) {
 Deno.test("ExecutionLoop: processes approved plan from Workspace/Active", async () => {
   const tempDir = await Deno.makeTempDir({ prefix: "exec-test-process-" });
   const { db, cleanup } = await initTestDbService();
+  const traceId = crypto.randomUUID();
   try {
     await ensureDir(getWorkspaceActiveDir(tempDir));
 
     // Create a simple plan file
     const planContent = `---
-trace_id: "test-trace-001"
+trace_id: "${traceId}"
 request_id: test-request
 status: active
 agent_id: test-agent
@@ -77,7 +78,7 @@ agent_id: test-agent
 
     // Activity should be logged
     await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for batched logs
-    const activities = db.getActivitiesByTrace("test-trace-001");
+    const activities = db.getActivitiesByTrace(traceId);
     const startedLog = activities.find((a: any) => a.action_type === "execution.started");
     assertExists(startedLog, "execution.started should be logged");
   } finally {
@@ -264,6 +265,7 @@ agent_id: test-agent
 Deno.test("ExecutionLoop: generates mission report on success", async () => {
   const tempDir = await Deno.makeTempDir({ prefix: "exec-test-report-" });
   const { db, cleanup } = await initTestDbService();
+  const traceId = crypto.randomUUID();
 
   try {
     const config = createMockConfig(tempDir);
@@ -271,7 +273,7 @@ Deno.test("ExecutionLoop: generates mission report on success", async () => {
     await Deno.mkdir(activeDir, { recursive: true });
 
     const planContent = `---
-trace_id: "test-trace-report"
+trace_id: "${traceId}"
 request_id: report-test
 status: active
 agent_id: test-agent
@@ -292,14 +294,14 @@ agent_id: test-agent
     assertEquals(result.success, true);
 
     // Mission report should be generated
-    const reportsDir = join(getMemoryExecutionDir(tempDir), "test-trace-report");
+    const reportsDir = join(getMemoryExecutionDir(tempDir), traceId);
     const reportPath = join(reportsDir, "summary.md");
     const reportExists = await Deno.stat(reportPath).then(() => true).catch(() => false);
     assert(reportExists, "Mission report should be generated on success");
 
     // Report should contain trace_id
     const reportContent = await Deno.readTextFile(reportPath);
-    assert(reportContent.includes("test-trace-report"), "Report should include trace_id");
+    assert(reportContent.includes(traceId), "Report should include trace_id");
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });

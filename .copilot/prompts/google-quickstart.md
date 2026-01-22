@@ -7,8 +7,6 @@ version: "0.1"
 topics: ["prompts", "gemini", "quickstart", "long-context"]
 ---
 
-# Gemini Quickstart Prompt
-
 ```text
 
 Key points
@@ -16,8 +14,8 @@ Key points
   - Uses **Long-Chain Reasoning** to identify systemic dependencies.
   - Prefers **minimal diffs** for architectural changes.
 
-Canonical prompt (short)
 
+Canonical prompt (short):
 "You are a Gemini 1.5 Pro developer. Saturate on all provided context. Analyze the global impact of [TASK] and propose a minimal, high-integrity implementation plan."
 
 Examples

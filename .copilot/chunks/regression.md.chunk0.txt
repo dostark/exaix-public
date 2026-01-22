@@ -1,5 +1,3 @@
-# Regression Test Template (#regression)
-
 **Purpose:** Add or update regression tests to prevent recurrence of bugs and failures.
 
 ---

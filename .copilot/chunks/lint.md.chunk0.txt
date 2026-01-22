@@ -1,5 +1,3 @@
-# Linting/Formatting Template (#lint)
-
 **Purpose:** Ensure code is clean, consistent, and follows ExoFrame style guidelines.
 
 ---
