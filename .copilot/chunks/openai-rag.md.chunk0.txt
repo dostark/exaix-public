@@ -1,6 +1,7 @@
 # OpenAI RAG Usage Guide
 
 Key points
+
 - Use RAG by default: retrieve .copilot/ context before proposing code changes.
 - Prefer inspect → inject: preview matches, then inject the top chunks.
 - Start small: 2–3 chunks for simple tasks, 4–6 for standard, 8–10 only for complex work.

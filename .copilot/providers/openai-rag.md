@@ -10,6 +10,7 @@ topics: ["rag", "embeddings", "context-injection", "semantic-search", "provider-
 # OpenAI RAG Usage Guide
 
 Key points
+
 - Use RAG by default: retrieve .copilot/ context before proposing code changes.
 - Prefer inspect → inject: preview matches, then inject the top chunks.
 - Start small: 2–3 chunks for simple tasks, 4–6 for standard, 8–10 only for complex work.
@@ -45,6 +46,7 @@ deno run --allow-read scripts/inject_agent_context.ts openai "write tests for Co
 ```
 
 Recommended chunk counts:
+
 - Simple (single-file edit): 2–3 chunks
 - Standard (multi-file feature/refactor): 4–6 chunks
 - Complex (architecture or cross-cutting): 8–10 chunks
@@ -62,13 +64,13 @@ Recommended chunk counts:
 Examples (by level)
 
 - Junior (simple, 2–3 chunks):
-	"Inspect embeddings for 'write a unit test'. Inject 3 chunks. Then answer in the format Files → Plan → Diffs → Verification. Keep it short and cite the doc paths used."
+ "Inspect embeddings for 'write a unit test'. Inject 3 chunks. Then answer in the format Files → Plan → Diffs → Verification. Keep it short and cite the doc paths used."
 
 - Mid-level (standard, 4–6 chunks):
-	"Inspect and inject 6 chunks for 'refactor service to reduce duplication'. Provide two file-scoped diffs and a short test list. Ask clarifying questions if the scope is ambiguous."
+ "Inspect and inject 6 chunks for 'refactor service to reduce duplication'. Provide two file-scoped diffs and a short test list. Ask clarifying questions if the scope is ambiguous."
 
 - Senior (complex, 8–10 chunks):
-	"Inject 10 chunks for 'cross-cutting change across CLI + services'. Produce minimal diffs per file and a verification checklist. If you suspect stale embeddings, stop and request a rebuild before continuing."
+ "Inject 10 chunks for 'cross-cutting change across CLI + services'. Produce minimal diffs per file and a verification checklist. If you suspect stale embeddings, stop and request a rebuild before continuing."
 
 ## Embeddings modes
 

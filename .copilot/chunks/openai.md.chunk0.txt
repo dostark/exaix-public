@@ -1,5 +1,6 @@
 # OpenAI provider adaptation notes
 
+```text
 Key points
 - Default model: gpt-4o (128k). If constrained, use gpt-4o-mini for drafting then verify with gpt-4o.
 - Retrieve context before coding: inject 3-6 chunks from .copilot/ with `inject_agent_context.ts --agent openai`.

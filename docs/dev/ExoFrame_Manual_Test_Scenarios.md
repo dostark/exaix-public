@@ -90,8 +90,6 @@ Execute these scenarios on each target platform before major releases.
 
 ### Scenario Coverage Summary
 
-**Total Scenarios: 29**
-
 | Category                    | Scenarios | High Risk | Medium Risk | Low Risk |
 | --------------------------- | --------- | --------- | ----------- | -------- |
 | Installation & Setup        | 2         | 2         | 0           | 0        |
@@ -341,7 +339,7 @@ You are a test agent.
 
 ## Output Format
 
-```xml
+\```xml
 <thought>
 Test reasoning
 </thought>
@@ -349,8 +347,7 @@ Test reasoning
 <content>
 Test content
 </content>
-````
-
+\```
 EOF
 
 exoctl blueprint create custom-test\
@@ -401,80 +398,96 @@ exoctl request "Test request for manual scenario" --agent mock-agent
 
 # Step 15: Remove blueprints
 
+```bash
 exoctl blueprint remove custom-test --force
 exoctl blueprint remove coder-test --force
 exoctl blueprint remove mock-agent --force
 exoctl blueprint remove test-agent --force
 exoctl blueprint remove invalid-test --force
+```
 
-````
 ### Expected Results
 
 **Step 1:**
+
 - Shows list of blueprints (may be empty)
 - No errors
 
 **Step 2:**
+
 - Blueprint created successfully
 - File created at `~/ExoFrame/Blueprints/Agents/test-agent.md`
 - Success message with path shown
 - Activity logged
 
 **Step 3:**
+
 - Blueprint created with coder template defaults
   --model "anthropic:claude-3-5-sonnet-20241022"
 - Capabilities include `code_generation`
 
 **Step 4:**
+
 - Shows both `test-agent` and `coder-test`
 - Displays model and capabilities for each
 
 **Step 5:**
+
 - Shows full blueprint details
 - Displays: agent_id, name, model, capabilities, created, created_by, version
 - Shows full system prompt content
 
 **Step 6:**
+
 - Validation passes
 - Shows: "Blueprint 'test-agent' is valid"
 - Lists validation checks passed (frontmatter, fields, tags)
 
 **Step 7:**
+
 - Blueprint created with custom system prompt from file
 - File content matches custom-prompt.txt
 
 **Step 8:**
+
 - Validation passes
 - Confirms `<thought>` and `<content>` tags present
 
 **Step 9:**
+
 - Invalid blueprint file created manually
 
 **Step 10:**
+
 - Validation fails
 - Error mentions missing `agent_id` field
 - Lists validation errors clearly
 
 **Step 11:**
+
 - Command fails with error
 - Error message: "'system' is a reserved agent_id"
 - Lists reserved names
 
 **Step 12:**
+
 - Command fails with error
 - Error message: "Blueprint 'test-agent' already exists"
 - Suggests using `exoctl blueprint edit` instead
 
 **Step 13:**
+
 - Opens blueprint in $EDITOR (or displays with cat)
 - Shows full blueprint content
 
 **Step 14:**
+
 - Request created successfully
 - Uses mock-agent blueprint
 - Request file references mock-agent in frontmatter
 
 **Step 15:**
+
 - All blueprints removed successfully
 - Files deleted from Blueprints/Agents/
 - Activity logged for each removal
@@ -2930,9 +2943,6 @@ sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIK
 - [ ] All request actions work as expected
 - [ ] New request creation is successful
 - [ ] No crashes or major UI glitches during request management
-
-```
-```
 
 ---
 

@@ -9,6 +9,7 @@ topics: ["provider-adaptations","prompts","rag","tooling","thinking-protocol"]
 
 # OpenAI provider adaptation notes
 
+```text
 Key points
 - Default model: gpt-4o (128k). If constrained, use gpt-4o-mini for drafting then verify with gpt-4o.
 - Retrieve context before coding: inject 3-6 chunks from .copilot/ with `inject_agent_context.ts --agent openai`.
@@ -46,8 +47,8 @@ Ask-when-ambiguous rule
 
 Self-improvement loop
 - If you discover an instruction gap mid-task (missing examples, missing commands, missing invariants), patch `.copilot/` as part of the work:
-	- Process: `.copilot/process/self-improvement.md`
-	- Template: `.copilot/prompts/self-improvement-loop.md`
+- Process: `.copilot/process/self-improvement.md`
+- Template: `.copilot/prompts/self-improvement-loop.md`
 - Keep the patch minimal and task-scoped; rebuild/validate `.copilot/` artifacts before continuing.
 
 RAG usage for OpenAI
@@ -59,13 +60,13 @@ RAG usage for OpenAI
 Examples (by level)
 
 - Junior (simple, ~500 tokens):
-	"Inject .copilot/ context for 'ConfigLoader TOML errors'. Propose 2 failing unit tests with explicit assertions, then provide a single file-scoped diff to make them pass. Output must follow: Files → Plan → Diffs → Verification. Cite the docs used by path."
+ "Inject .copilot/ context for 'ConfigLoader TOML errors'. Propose 2 failing unit tests with explicit assertions, then provide a single file-scoped diff to make them pass. Output must follow: Files → Plan → Diffs → Verification. Cite the docs used by path."
 
 - Mid-level (standard, ~900 tokens):
-	"Using injected context (include doc paths + chunk ids), produce a refactor plan for plan executor parsing. Provide: Files → Plan → Diffs (2–3 minimal diffs) → Verification. Ask up to 2 clarifying questions if needed."
+ "Using injected context (include doc paths + chunk ids), produce a refactor plan for plan executor parsing. Provide: Files → Plan → Diffs (2–3 minimal diffs) → Verification. Ask up to 2 clarifying questions if needed."
 
 - Senior (complex, ~1500 tokens):
-	"Given injected context (chunks 0–7), draft apply_patch-ready diffs for a multi-file change. Requirements: keep diffs minimal, separate by file, and cite which doc paths informed each decision. Finish with a verification checklist and any risks."
+ "Given injected context (chunks 0–7), draft apply_patch-ready diffs for a multi-file change. Requirements: keep diffs minimal, separate by file, and cite which doc paths informed each decision. Finish with a verification checklist and any risks."
 
 Do / Don't
 - ✅ Do inject .copilot/ context before proposing code.
@@ -83,3 +84,4 @@ Token guidance
 
 Maintenance
 - After updating this doc: rebuild manifest, regenerate chunks/embeddings (mock or openai), then run `validate_agents_docs.ts`.
+```

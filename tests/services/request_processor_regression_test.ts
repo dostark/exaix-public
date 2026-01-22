@@ -27,13 +27,23 @@ Deno.test("[regression] RequestProcessor uses ProviderSelector when no testProvi
     const workspacePath = join(tmpDir, "Workspace");
     const requestsDir = join(workspacePath, "Requests");
     const blueprintsPath = join(tmpDir, "Blueprints", "Agents");
+    const migrationsPath = join(tmpDir, "migrations");
     await Deno.mkdir(requestsDir, { recursive: true });
     await Deno.mkdir(blueprintsPath, { recursive: true });
+    await Deno.mkdir(migrationsPath, { recursive: true });
+
+    // Copy migrations
+    const repoMigrations = join(Deno.cwd(), "migrations");
+    for await (const entry of Deno.readDir(repoMigrations)) {
+      if (entry.isFile && entry.name.endsWith(".sql")) {
+        await Deno.copyFile(join(repoMigrations, entry.name), join(migrationsPath, entry.name));
+      }
+    }
 
     // --- Ensure DB schema is initialized (run setup_db.ts) ---
     const setupScript = join(Deno.cwd(), "scripts", "setup_db.ts");
     const setupCmd = new Deno.Command("deno", {
-      args: ["run", "--allow-read", "--allow-write", setupScript],
+      args: ["run", "--allow-read", "--allow-write", "--allow-env", "--allow-ffi", setupScript],
       cwd: tmpDir,
       stdout: "piped",
       stderr: "piped",

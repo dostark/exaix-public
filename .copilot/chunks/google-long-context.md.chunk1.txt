@@ -3,5 +3,6 @@
 3. **Plan**: Formulate a plan that addresses systemic risks identified during synthesis.
 4. **Verify**: Use citations to specific lines in the provided context to justify the plan.
 
+```text
 Canonical prompt (short):
 "You are a long-context specialist. Analyze all provided files and documentation to find architecture-wide inconsistencies before proposing a fix."

@@ -7,4 +7,4 @@ RAG usage for OpenAI
 Examples (by level)
 
 - Junior (simple, ~500 tokens):
-	"Inject .copilot/ context for 'ConfigLoader TOML errors'. Propose 2 failing unit tests with explicit assertions, then provide a single file-scoped diff to make them pass. Output must follow: Files → Plan → Diffs → Verification. Cite the docs used by path."
+ "Inject .copilot/ context for 'ConfigLoader TOML errors'. Propose 2 failing unit tests with explicit assertions, then provide a single file-scoped diff to make them pass. Output must follow: Files → Plan → Diffs → Verification. Cite the docs used by path."

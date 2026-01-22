@@ -7,12 +7,8 @@ version: "0.1"
 topics: ["openai", "rag", "embeddings", "context-injection", "prompts"]
 ---
 
-
-```text
-
 Key points
-
-- Inspect embeddings first to confirm retrieval quality.
+- Inspect RAG embeddings first to confirm retrieval quality.
 - Inject only the chunks you need (start small).
 - Cite the agent docs used to reinforce the habit.
 
@@ -33,4 +29,3 @@ Do / Don't
 - ✅ Do stop and request rebuild if manifest/chunks/embeddings look stale.
 - ✅ Do keep injected context targeted.
 - ❌ Don’t proceed with stale context.
-```

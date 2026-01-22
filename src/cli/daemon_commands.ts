@@ -59,11 +59,15 @@ export class DaemonCommands extends BaseCommand {
 
     // Start daemon process in background using shell for true detachment
     // This allows the CLI to exit while daemon continues running
+    const exoEnvVars = Object.fromEntries(
+      Object.entries(Deno.env.toObject()).filter(([k]) => k.startsWith("EXO_")),
+    );
     const cmd = new Deno.Command("bash", {
       args: [
         "-c",
         `nohup deno run --allow-all "${mainScript}" > "${logFile}" 2>&1 & echo $!`,
       ],
+      env: exoEnvVars,
       stdout: "piped",
       stderr: "piped",
       stdin: "null",
