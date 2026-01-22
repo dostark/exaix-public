@@ -262,7 +262,9 @@ Deno.test({
       const initialPid = initialPidMatch ? initialPidMatch[1] : null;
 
       // Restart the daemon
-      const restartResult = await runExoctl(workspace, ["daemon", "restart"]);
+      const restartResult = await runExoctl(workspace, ["daemon", "restart"], {
+        EXO_LLM_PROVIDER: "mock",
+      });
       assert(
         restartResult.code === 0,
         `exoctl daemon restart failed: ${restartResult.stderr}`,

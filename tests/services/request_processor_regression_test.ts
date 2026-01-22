@@ -22,6 +22,7 @@ Deno.test("[regression] RequestProcessor uses ProviderSelector when no testProvi
   try {
     const configService = new ConfigService(join(tmpDir, "exo.config.toml"));
     const config = configService.get();
+    config.system.root = tmpDir;
 
     // Setup minimal workspace
     const workspacePath = join(tmpDir, "Workspace");
