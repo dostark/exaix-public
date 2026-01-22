@@ -1,6 +1,9 @@
 # OpenAI RAG Context Injection (inspect → inject)
 
+```text
+
 Key points
+
 - Inspect embeddings first to confirm retrieval quality.
 - Inject only the chunks you need (start small).
 - Cite the agent docs used to reinforce the habit.

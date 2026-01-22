@@ -11,7 +11,7 @@ topics: ["cross-reference", "navigation", "prompts", "workflow"]
 
 ## Prompt Template
 
-```
+```markdown
 I want to [task type].
 
 First, consult .copilot/cross-reference.md for the workflow:
@@ -28,7 +28,8 @@ Then proceed with the work following guidance from those docs.
 ## Example Usage (Add New Feature)
 
 **User:**
-```
+
+```markdown
 I want to add a new feature: Flow parameter validation.
 
 First, consult .copilot/cross-reference.md for the workflow:
@@ -47,7 +48,8 @@ Then proceed with:
 ## Example Usage (Security Audit)
 
 **User:**
-```
+
+```markdown
 I want to perform a security audit on Portal permission boundaries.
 
 First, consult .copilot/cross-reference.md for the workflow:
@@ -66,7 +68,8 @@ Then design security tests covering:
 ## Example Usage (Fix TypeScript Errors)
 
 **User:**
-```
+
+```markdown
 I have TypeScript errors in src/flows/plan_executor.ts
 
 First, consult .copilot/cross-reference.md for the workflow:
@@ -83,7 +86,8 @@ Read the errors, understand the patterns from source/exoframe.md, then fix follo
 ## Example Usage (Topic Search)
 
 **User:**
-```
+
+```markdown
 I need help with embeddings and RAG.
 
 Use .copilot/cross-reference.md topic search:
@@ -100,7 +104,8 @@ Then answer my questions about using embeddings.
 
 ## Expected Response Pattern
 
-Claude should:
+Agent should:
+
 1. Open and read [.copilot/cross-reference.md](../cross-reference.md)
 2. Find the relevant task type or topic
 3. Navigate to Primary Doc(s) listed

@@ -9,6 +9,7 @@ topics: ["openai", "tdd", "testing", "prompts", "diff-first"]
 
 # OpenAI TDD Workflow (tests first)
 
+```text
 Key points
 - Start by proposing failing tests with explicit assertions.
 - Use existing ExoFrame test helpers (retrieve guidance from agents/ first).
@@ -30,3 +31,4 @@ Do / Don't
 - ✅ Do keep diffs minimal and separated by file.
 - ✅ Do include cleanup/teardown patterns from retrieved docs.
 - ❌ Don’t implement before tests.
+```

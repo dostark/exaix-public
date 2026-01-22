@@ -8,3 +8,4 @@ Do / Don't
 - ✅ Do keep diffs minimal and separated by file.
 - ✅ Do include cleanup/teardown patterns from retrieved docs.
 - ❌ Don’t implement before tests.
+```

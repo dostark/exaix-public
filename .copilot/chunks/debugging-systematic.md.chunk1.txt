@@ -5,7 +5,8 @@ Component: [specific file or module]
 ## Example Usage (Test Failure)
 
 **User:**
-```
+
+```markdown
 I have a bug: tests/config_test.ts is failing with "Database connection not cleaned up"
 
 Use systematic debugging approach:

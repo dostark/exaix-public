@@ -2,7 +2,7 @@
 
 ## Prompt Template
 
-```
+```markdown
 I need to refactor [component/pattern] to [goal].
 
 Use your thinking protocol:

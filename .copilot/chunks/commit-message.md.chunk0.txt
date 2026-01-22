@@ -1,23 +1,11 @@
 # Detailed Commit Message Prompt
 
-## Prompt Template
+```markdown
+Key points
+- Review changes with `git status` and `git diff` before committing
+- Use conventional commit format: `<type>(<scope>): <summary>`
+- Reference Implementation Plan steps and issues
+- Wrap body at 72 chars, keep summary ≤72 chars
 
-```
-I've completed work on [feature/fix]. Create a detailed commit message following ExoFrame conventions.
-
-Before creating the commit:
-1. Review what files changed: git status
-2. Review the actual changes: git diff
-3. Check Implementation Plan step if applicable
-
-Then create a commit message with:
-
-FORMAT:
-<type>(<scope>): <short summary>
-
-<detailed body explaining WHAT and WHY>
-
-<footer with references>
-
-TYPES: feat, fix, refactor, test, docs, chore, perf
-SCOPE: component name (agents, flows, portal, mcp, cli, etc.)
+Canonical prompt (short):
+"You've completed [work]. Create a detailed commit message following ExoFrame conventions. Review changes first, then format as `<type>(<scope>): <summary>` with detailed body and references."

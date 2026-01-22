@@ -4,7 +4,8 @@ Show your thinking explicitly in <thinking> tags before each major step.
 ## Expected Response Pattern
 
 Claude should show thinking for each phase:
-```
+
+```markdown
 <thinking>
 ANALYZE phase:
 - Found 12 files calling initTestDbService()

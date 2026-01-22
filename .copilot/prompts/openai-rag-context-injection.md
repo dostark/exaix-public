@@ -9,7 +9,10 @@ topics: ["openai", "rag", "embeddings", "context-injection", "prompts"]
 
 # OpenAI RAG Context Injection (inspect → inject)
 
+```text
+
 Key points
+
 - Inspect embeddings first to confirm retrieval quality.
 - Inject only the chunks you need (start small).
 - Cite the agent docs used to reinforce the habit.
@@ -27,6 +30,8 @@ Examples
   "Query: 'migrate logging to EventLogger'. Inspect (top 8) then inject (6 chunks). Provide a file-by-file diff plan and 2 minimal diffs. Ask clarifying questions if migration scope is unclear."
 
 Do / Don't
+
 - ✅ Do stop and request rebuild if manifest/chunks/embeddings look stale.
 - ✅ Do keep injected context targeted.
 - ❌ Don’t proceed with stale context.
+```

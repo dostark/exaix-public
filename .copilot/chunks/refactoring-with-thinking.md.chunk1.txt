@@ -11,7 +11,8 @@ Show your thinking explicitly in <thinking> tags before each major step.
 ## Example Usage
 
 **User:**
-```
+
+```markdown
 I need to refactor database initialization code to extract a reusable helper.
 
 Use your thinking protocol:

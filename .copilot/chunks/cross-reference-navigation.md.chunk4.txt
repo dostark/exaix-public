@@ -1,4 +1,3 @@
-Claude should:
 1. Open and read [.copilot/cross-reference.md](../cross-reference.md)
 2. Find the relevant task type or topic
 3. Navigate to Primary Doc(s) listed

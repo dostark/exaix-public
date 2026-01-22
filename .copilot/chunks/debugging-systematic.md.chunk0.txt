@@ -2,7 +2,7 @@
 
 ## Prompt Template
 
-```
+```markdown
 I have a bug: [description of issue]
 
 Use systematic debugging approach:

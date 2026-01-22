@@ -1,4 +1,3 @@
-Claude should:
 1. Inject context about the error domain
 2. Create/run reproducing test
 3. Show explicit thinking about root cause

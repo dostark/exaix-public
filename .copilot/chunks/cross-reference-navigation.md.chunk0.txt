@@ -2,7 +2,7 @@
 
 ## Prompt Template
 
-```
+```markdown
 I want to [task type].
 
 First, consult .copilot/cross-reference.md for the workflow:
@@ -19,5 +19,6 @@ Then proceed with the work following guidance from those docs.
 ## Example Usage (Add New Feature)
 
 **User:**
-```
+
+```markdown
 I want to add a new feature: Flow parameter validation.

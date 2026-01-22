@@ -11,7 +11,7 @@ topics: ["rag", "embeddings", "context-injection", "prompts"]
 
 ## Prompt Template
 
-```
+```text
 Before answering my question, inject relevant context from agents/:
 
 Step 1: Inspect available embeddings
@@ -30,7 +30,8 @@ Token budget: [simple: 2-3 chunks | medium: 4-6 chunks | complex: 8-10 chunks]
 ## Example Usage (Simple Task)
 
 **User:**
-```
+
+```text
 Before answering my question, inject relevant context from agents/:
 
 Step 1: Inspect available embeddings
@@ -49,7 +50,8 @@ Token budget: simple task, 2-3 chunks sufficient
 ## Example Usage (Complex Task)
 
 **User:**
-```
+
+```text
 Before answering my question, inject relevant context from agents/:
 
 Step 1: Inspect available embeddings
@@ -68,7 +70,8 @@ Token budget: complex task requiring security patterns + testing patterns + Port
 ## Example Usage (Multi-Step Workflow)
 
 **User:**
-```
+
+```text
 I'm working on a multi-step task. Before each step, inject fresh context:
 
 STEP 1: Design (inject context about architecture patterns)
@@ -89,6 +92,7 @@ Task: Add new LLM provider with comprehensive tests and docs.
 ## Expected Response Pattern
 
 Claude should:
+
 1. Run inspect_embeddings.ts to see available docs
 2. Run inject_agent_context.ts with appropriate limit
 3. Reference specific sections from injected docs in response

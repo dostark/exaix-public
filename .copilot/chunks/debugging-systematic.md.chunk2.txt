@@ -22,7 +22,6 @@ Component: tests/config_test.ts
 ## Example Usage (Runtime Error)
 
 **User:**
-```
-I have a bug: PathResolver crashes with "Permission denied" for valid Portal paths
 
-Use systematic debugging approach:
+```markdown
+I have a bug: PathResolver crashes with "Permission denied" for valid Portal paths

@@ -1,6 +1,7 @@
 # Self-improvement loop (prompt template)
 
-Key points
+## Key points
+
 - Use this when you suspect the current `agents/` instructions are insufficient for the active task.
 - It forces: adequacy verdict → gaps list → minimal doc patch → rebuild/validate → resume.
 - Keep the doc patch tightly scoped to the user’s request.
@@ -11,3 +12,5 @@ Canonical prompt (short)
 ## Template
 
 You are working on ExoFrame.
+
+### Instruction Adequacy Check

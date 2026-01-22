@@ -17,6 +17,7 @@ This directory contains short, machine-discoverable instruction documents intend
 - `.copilot/manifest.json` — auto-generated manifest listing available agent docs (`scripts/build_agents_index.ts`)
 - `.copilot/copilot/` — Copilot-focused docs and short summaries
 - `.copilot/providers/` — provider-specific adaptation notes and prompt templates
+- `.copilot/prompts/` — Comprehensive prompt templates for systematic coding workflows (see [prompts/README.md](prompts/README.md))
 - `.copilot/chunks/` — (auto-generated) pre-chunked text files for quick retrieval
 - `.copilot/issues/` — structured bug reports and technical issues (see [issues/README.md](issues/README.md))
 
@@ -25,6 +26,7 @@ This directory contains short, machine-discoverable instruction documents intend
 - **`docs/`**: Source of truth for **human** users (Architecture, User Guide).
 - **`.copilot/`**: Source of truth for **agents** (Context, Prompts, Schemas).
   - Agents should read `.copilot/` for coding instructions.
+  - Agents should always use prompt templates from `.copilot/prompts/` for systematic workflows.
   - Agents may read `docs/` for high-level context but must not modify it unless explicitly asked.
 
 ## Schema
@@ -295,22 +297,19 @@ Examples
 
 To ensure maintainability and configurability, follow these strict rules:
 
-1.  **No Magic Values:** Never hardcode numbers or strings (timeouts, limits, model names) in code.
-2.  **Configuration:**
-    *   **User-Facing:** Add to `exo.config.sample.toml` and `src/config/schema.ts`.
-    *   **Internal:** Use `src/config/constants.ts`.
-    *   **Test-Specific:** Use `tests/config/constants.ts` for constants used exclusively in test files.
-    *   **CLI/TUI:** Use `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
-3.  **Enums:** ALWAYS use TypeScript enums from `src/enums.ts` instead of string literals.
-4.  **Environment Variables** (Phase 28):
-    *   **Production:** Only use `EXO_LLM_*` vars for runtime overrides (`EXO_LLM_PROVIDER`, `EXO_LLM_MODEL`, `EXO_LLM_BASE_URL`, `EXO_LLM_TIMEOUT_MS`)
-    *   **Testing:** Use `EXO_TEST_*` prefix for all test-related vars
-    *   **Validation:** All env vars MUST be validated via Zod schema (see `src/config/env_schema.ts`)
-    *   **Helpers:** Use `getValidatedEnvOverrides()`, `isTestMode()`, `isCIMode()` instead of direct `Deno.env.get()`
-5.  **Reference:** See `CONTRIBUTING.md` and `docs/dev/Migration_Guide_Phase27.md`.
-
-
-
+1. **No Magic Values:** Never hardcode numbers or strings (timeouts, limits, model names) in code.
+2. **Configuration:**
+    - **User-Facing:** Add to `exo.config.sample.toml` and `src/config/schema.ts`.
+    - **Internal:** Use `src/config/constants.ts`.
+    - **Test-Specific:** Use `tests/config/constants.ts` for constants used exclusively in test files.
+    - **CLI/TUI:** Use `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
+3. **Enums:** ALWAYS use TypeScript enums from `src/enums.ts` instead of string literals.
+4. **Environment Variables** (Phase 28):
+    - **Production:** Only use `EXO_LLM_*` vars for runtime overrides (`EXO_LLM_PROVIDER`, `EXO_LLM_MODEL`, `EXO_LLM_BASE_URL`, `EXO_LLM_TIMEOUT_MS`)
+    - **Testing:** Use `EXO_TEST_*` prefix for all test-related vars
+    - **Validation:** All env vars MUST be validated via Zod schema (see `src/config/env_schema.ts`)
+    - **Helpers:** Use `getValidatedEnvOverrides()`, `isTestMode()`, `isCIMode()` instead of direct `Deno.env.get()`
+5. **Reference:** See `CONTRIBUTING.md` and `docs/dev/Migration_Guide_Phase27.md`.
 
 ## Architectural Awareness
 
@@ -333,6 +332,7 @@ Agents must use the following core services for reliability and security:
    - Guards against future regressions
 
 2. **Test naming convention** — Use `[regression]` prefix in test names:
+
    ```typescript
    Deno.test("[regression] Plan list shows approved plans from Active directory", ...);
    Deno.test("[regression] EventLogger works with stub db", ...);
@@ -421,8 +421,3 @@ EOF
 - **Labels**: Tag by type, component, and impact
 
 **See [issues/README.md](issues/README.md) for complete guidelines, templates, and best practices.**
-
-## Notes
-
-These files are **not** runtime Blueprints/agents (see `Blueprints/Agents/`). They are development-focused guidance to be used by IDE agents and automation helpers.
-

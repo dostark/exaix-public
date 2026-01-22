@@ -14,5 +14,6 @@ Then proceed with:
 ## Example Usage (Security Audit)
 
 **User:**
-```
+
+```markdown
 I want to perform a security audit on Portal permission boundaries.

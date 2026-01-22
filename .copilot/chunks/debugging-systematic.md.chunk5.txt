@@ -21,3 +21,5 @@ Component: src/ai/model_adapter.ts
 ```
 
 ## Expected Response Pattern
+
+Agent should:

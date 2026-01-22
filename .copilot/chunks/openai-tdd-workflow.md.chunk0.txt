@@ -1,5 +1,6 @@
 # OpenAI TDD Workflow (tests first)
 
+```text
 Key points
 - Start by proposing failing tests with explicit assertions.
 - Use existing ExoFrame test helpers (retrieve guidance from agents/ first).

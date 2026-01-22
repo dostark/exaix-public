@@ -1,5 +1,5 @@
 ---
-agent: general
+agent: claude
 scope: dev
 title: Self-improvement loop prompt template
 short_summary: "Copy/paste prompt to detect instruction gaps and patch agents/ docs during execution (then rebuild/validate) before continuing."
@@ -9,7 +9,8 @@ topics: ["self-improvement", "prompt-template", "instruction-adequacy", "mainten
 
 # Self-improvement loop (prompt template)
 
-Key points
+## Key points
+
 - Use this when you suspect the current `agents/` instructions are insufficient for the active task.
 - It forces: adequacy verdict → gaps list → minimal doc patch → rebuild/validate → resume.
 - Keep the doc patch tightly scoped to the user’s request.
@@ -21,14 +22,16 @@ Canonical prompt (short)
 
 You are working on ExoFrame.
 
-1) Instruction Adequacy Check
+### Instruction Adequacy Check
+
 - Task type: (TDD/refactor/debug/docs/etc)
 - Active provider: (Claude/OpenAI/Google)
 - Docs consulted (paths):
 - Verdict: Adequate / Inadequate
 - If inadequate: list 1–5 concrete gaps.
 
-2) Doc Patch Loop (only if inadequate)
+### Doc Patch Loop (only if inadequate)
+
 - Files to update under `agents/`:
 - Minimal changes to make (bullets):
 - Regeneration + validation commands to run:
@@ -38,19 +41,21 @@ You are working on ExoFrame.
   - `deno run --allow-read scripts/validate_agents_docs.ts`
 - Enforcement test to add/update (if applicable):
 
-3) Primary task execution
+### Primary task execution
+
 - Files to touch:
 - Plan (3–6 bullets):
 - Diffs (minimal, file-scoped):
 - Verification:
 
-Do / Don’t
+## Do / Don’t
+
 - ✅ Do ask 1–3 clarifying questions if requirements are ambiguous.
 - ✅ Do keep doc changes minimal and directly tied to the current request.
 - ✅ Do cite which `agents/` docs informed decisions.
 - ❌ Don’t broaden scope into unrelated doc refactors.
 
-Examples
+## Examples
 
 - Example usage
   - “Use this template. My task is: add a new CLI command that writes to Workspace/Active. I’m using OpenAI. Ensure agents/ has sufficient guidance; if not, patch it (minimal) and rebuild/validate before coding.”

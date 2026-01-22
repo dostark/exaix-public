@@ -11,7 +11,7 @@ topics: ["debugging", "troubleshooting", "prompts", "examples"]
 
 ## Prompt Template
 
-```
+```markdown
 I have a bug: [description of issue]
 
 Use systematic debugging approach:
@@ -49,7 +49,8 @@ Component: [specific file or module]
 ## Example Usage (Test Failure)
 
 **User:**
-```
+
+```markdown
 I have a bug: tests/config_test.ts is failing with "Database connection not cleaned up"
 
 Use systematic debugging approach:
@@ -85,7 +86,8 @@ Component: tests/config_test.ts
 ## Example Usage (Runtime Error)
 
 **User:**
-```
+
+```markdown
 I have a bug: PathResolver crashes with "Permission denied" for valid Portal paths
 
 Use systematic debugging approach:
@@ -123,7 +125,8 @@ Component: src/services/PathResolver.ts
 ## Example Usage (TypeScript Error)
 
 **User:**
-```
+
+```markdown
 I have a bug: TypeScript error in src/ai/model_adapter.ts - "Property 'temperature' does not exist"
 
 Use systematic debugging approach:
@@ -160,7 +163,8 @@ Component: src/ai/model_adapter.ts
 
 ## Expected Response Pattern
 
-Claude should:
+Agent should:
+
 1. Inject context about the error domain
 2. Create/run reproducing test
 3. Show explicit thinking about root cause

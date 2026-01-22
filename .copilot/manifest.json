@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-22T09:59:31.839Z",
+  "generated_at": "2026-01-22T11:55:52.367Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -49,6 +49,58 @@
       ]
     },
     {
+      "path": ".copilot/prompts/step.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Implement Feature Step Template",
+      "short_summary": "Template for implementing individual steps from a feature plan with TDD and validation.",
+      "version": "0.1",
+      "topics": [
+        "implementation",
+        "tdd",
+        "steps",
+        "validation"
+      ],
+      "chunks": [
+        ".copilot/chunks/step.md.chunk0.txt",
+        ".copilot/chunks/step.md.chunk1.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/lint.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Linting/Formatting Template",
+      "short_summary": "Template for ensuring code cleanliness and adherence to ExoFrame style guidelines.",
+      "version": "0.1",
+      "topics": [
+        "linting",
+        "formatting",
+        "code-quality",
+        "style"
+      ],
+      "chunks": [
+        ".copilot/chunks/lint.md.chunk0.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/upgrade.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Dependency/Version Upgrade Template",
+      "short_summary": "Template for planning and executing dependency or version upgrades with stability checks.",
+      "version": "0.1",
+      "topics": [
+        "upgrade",
+        "dependencies",
+        "version",
+        "maintenance"
+      ],
+      "chunks": [
+        ".copilot/chunks/upgrade.md.chunk0.txt"
+      ]
+    },
+    {
       "path": ".copilot/prompts/refactoring-with-thinking.md",
       "agent": "claude",
       "scope": "dev",
@@ -70,7 +122,7 @@
     },
     {
       "path": ".copilot/prompts/commit-message.md",
-      "agent": "claude",
+      "agent": "general",
       "scope": "dev",
       "title": "Detailed Commit Message Prompt",
       "short_summary": "Example prompt for creating structured, informative commit messages.",
@@ -84,12 +136,7 @@
       "chunks": [
         ".copilot/chunks/commit-message.md.chunk0.txt",
         ".copilot/chunks/commit-message.md.chunk1.txt",
-        ".copilot/chunks/commit-message.md.chunk2.txt",
-        ".copilot/chunks/commit-message.md.chunk3.txt",
-        ".copilot/chunks/commit-message.md.chunk4.txt",
-        ".copilot/chunks/commit-message.md.chunk5.txt",
-        ".copilot/chunks/commit-message.md.chunk6.txt",
-        ".copilot/chunks/commit-message.md.chunk7.txt"
+        ".copilot/chunks/commit-message.md.chunk2.txt"
       ]
     },
     {
@@ -154,15 +201,16 @@
     },
     {
       "path": ".copilot/prompts/README.md",
-      "agent": "claude",
+      "agent": "general",
       "scope": "dev",
-      "title": "Prompt Examples README",
-      "short_summary": "Guide to using example prompts for maximum agent effectiveness.",
+      "title": "ExoFrame Agent Prompt Templates Library",
+      "short_summary": "Comprehensive library of prompt templates for systematic coding agent workflows in ExoFrame.",
       "version": "0.1",
       "topics": [
         "prompts",
-        "examples",
-        "guide",
+        "templates",
+        "agents",
+        "workflows",
         "best-practices"
       ],
       "chunks": [
@@ -218,7 +266,7 @@
     },
     {
       "path": ".copilot/prompts/tdd-workflow.md",
-      "agent": "claude",
+      "agent": "general",
       "scope": "dev",
       "title": "TDD Workflow Prompt Example",
       "short_summary": "Example prompt for test-driven development following ExoFrame patterns.",
@@ -231,8 +279,58 @@
       ],
       "chunks": [
         ".copilot/chunks/tdd-workflow.md.chunk0.txt",
-        ".copilot/chunks/tdd-workflow.md.chunk1.txt",
-        ".copilot/chunks/tdd-workflow.md.chunk2.txt"
+        ".copilot/chunks/tdd-workflow.md.chunk1.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/security.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Security Patch Template",
+      "short_summary": "Template for planning and implementing security fixes with validation and documentation.",
+      "version": "0.1",
+      "topics": [
+        "security",
+        "vulnerability",
+        "patch",
+        "validation"
+      ],
+      "chunks": [
+        ".copilot/chunks/security.md.chunk0.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/test.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Test Creation Template",
+      "short_summary": "Template for creating robust tests following TDD and regression best practices.",
+      "version": "0.1",
+      "topics": [
+        "testing",
+        "tdd",
+        "regression",
+        "quality"
+      ],
+      "chunks": [
+        ".copilot/chunks/test.md.chunk0.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/infra.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Infrastructure/Config Template",
+      "short_summary": "Template for planning and implementing infrastructure or configuration changes.",
+      "version": "0.1",
+      "topics": [
+        "infrastructure",
+        "configuration",
+        "deployment",
+        "setup"
+      ],
+      "chunks": [
+        ".copilot/chunks/infra.md.chunk0.txt"
       ]
     },
     {
@@ -254,6 +352,58 @@
       ]
     },
     {
+      "path": ".copilot/prompts/fix.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Bug/Test Fix Template",
+      "short_summary": "Template for systematically fixing bugs or failing tests with regression coverage.",
+      "version": "0.1",
+      "topics": [
+        "bug-fix",
+        "testing",
+        "regression",
+        "validation"
+      ],
+      "chunks": [
+        ".copilot/chunks/fix.md.chunk0.txt",
+        ".copilot/chunks/fix.md.chunk1.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/review.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Code Review Template",
+      "short_summary": "Template for systematic code review checking correctness, style, and completeness.",
+      "version": "0.1",
+      "topics": [
+        "code-review",
+        "quality-assurance",
+        "best-practices"
+      ],
+      "chunks": [
+        ".copilot/chunks/review.md.chunk0.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/plan.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Feature Planning Template",
+      "short_summary": "Template for systematically planning new features with steps, tests, and success criteria.",
+      "version": "0.1",
+      "topics": [
+        "planning",
+        "features",
+        "tdd",
+        "requirements"
+      ],
+      "chunks": [
+        ".copilot/chunks/plan.md.chunk0.txt",
+        ".copilot/chunks/plan.md.chunk1.txt"
+      ]
+    },
+    {
       "path": ".copilot/prompts/openai-quickstart.md",
       "agent": "openai",
       "scope": "dev",
@@ -270,6 +420,55 @@
       "chunks": [
         ".copilot/chunks/openai-quickstart.md.chunk0.txt",
         ".copilot/chunks/openai-quickstart.md.chunk1.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/explore.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Codebase Exploration Template",
+      "short_summary": "Template for systematic exploration of the ExoFrame codebase to answer questions or map architecture.",
+      "version": "0.1",
+      "topics": [
+        "exploration",
+        "architecture",
+        "discovery",
+        "navigation"
+      ],
+      "chunks": [
+        ".copilot/chunks/explore.md.chunk0.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/refactor.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Refactoring Template",
+      "short_summary": "Template for systematic code refactoring maintaining behavior while improving clarity or performance.",
+      "version": "0.1",
+      "topics": [
+        "refactoring",
+        "code-quality",
+        "maintenance"
+      ],
+      "chunks": [
+        ".copilot/chunks/refactor.md.chunk0.txt"
+      ]
+    },
+    {
+      "path": ".copilot/prompts/doc.md",
+      "agent": "general",
+      "scope": "docs",
+      "title": "Documentation Template",
+      "short_summary": "Template for creating or updating documentation with clarity and completeness.",
+      "version": "0.1",
+      "topics": [
+        "documentation",
+        "writing",
+        "clarity"
+      ],
+      "chunks": [
+        ".copilot/chunks/doc.md.chunk0.txt"
       ]
     },
     {
@@ -318,6 +517,22 @@
       ]
     },
     {
+      "path": ".copilot/prompts/regression.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Regression Test Template",
+      "short_summary": "Template for adding regression tests to prevent bug recurrence.",
+      "version": "0.1",
+      "topics": [
+        "regression",
+        "testing",
+        "bug-prevention"
+      ],
+      "chunks": [
+        ".copilot/chunks/regression.md.chunk0.txt"
+      ]
+    },
+    {
       "path": ".copilot/prompts/update-building-with-ai-agents.md",
       "agent": "claude",
       "scope": "docs",
@@ -343,7 +558,7 @@
     },
     {
       "path": ".copilot/prompts/self-improvement-loop.md",
-      "agent": "general",
+      "agent": "claude",
       "scope": "dev",
       "title": "Self-improvement loop prompt template",
       "short_summary": "Copy/paste prompt to detect instruction gaps and patch agents/ docs during execution (then rebuild/validate) before continuing.",

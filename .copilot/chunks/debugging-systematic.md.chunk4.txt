@@ -9,7 +9,8 @@ Component: src/services/PathResolver.ts
 ## Example Usage (TypeScript Error)
 
 **User:**
-```
+
+```markdown
 I have a bug: TypeScript error in src/ai/model_adapter.ts - "Property 'temperature' does not exist"
 
 Use systematic debugging approach:

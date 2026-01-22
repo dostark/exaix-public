@@ -51,7 +51,8 @@ Feature: [description]
 ## Example Usage (Existing Step)
 
 **User:**
-```
+
+```text
 I want to work on Flow parameter validation (Phase 8, Step 8.3).
 
 Implementation Plan workflow:
@@ -95,7 +96,8 @@ Feature: Flow parameter validation
 ## Example Usage (Creating New Step)
 
 **User:**
-```
+
+```text
 I want to add a new feature: Export activity logs to JSON.
 
 Implementation Plan workflow:
@@ -149,7 +151,8 @@ Feature: Activity log export
 ## Example Usage (Multi-Step Feature)
 
 **User:**
-```
+
+```text
 I want to add comprehensive security testing for Portal permissions.
 
 Implementation Plan workflow:

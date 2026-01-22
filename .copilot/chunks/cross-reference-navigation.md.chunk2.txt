@@ -14,7 +14,8 @@ Then design security tests covering:
 ## Example Usage (Fix TypeScript Errors)
 
 **User:**
-```
+
+```markdown
 I have TypeScript errors in src/flows/plan_executor.ts
 
 First, consult .copilot/cross-reference.md for the workflow:

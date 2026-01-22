@@ -11,7 +11,7 @@ topics: ["refactoring", "thinking-protocol", "prompts", "examples"]
 
 ## Prompt Template
 
-```
+```markdown
 I need to refactor [component/pattern] to [goal].
 
 Use your thinking protocol:
@@ -40,7 +40,8 @@ Show your thinking explicitly in <thinking> tags before each major step.
 ## Example Usage
 
 **User:**
-```
+
+```markdown
 I need to refactor database initialization code to extract a reusable helper.
 
 Use your thinking protocol:
@@ -69,7 +70,8 @@ Show your thinking explicitly in <thinking> tags before each major step.
 ## Expected Response Pattern
 
 Claude should show thinking for each phase:
-```
+
+```markdown
 <thinking>
 ANALYZE phase:
 - Found 12 files calling initTestDbService()
