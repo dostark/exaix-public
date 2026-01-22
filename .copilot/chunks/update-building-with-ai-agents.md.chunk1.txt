@@ -12,5 +12,6 @@ After writing:
 ## Example Usage
 
 **User:**
-```
+
+```text
 Add new content to docs/Building_with_AI_Agents.md documenting recent work.

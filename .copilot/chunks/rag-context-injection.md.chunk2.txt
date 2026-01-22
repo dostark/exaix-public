@@ -11,7 +11,8 @@ Token budget: complex task requiring security patterns + testing patterns + Port
 ## Example Usage (Multi-Step Workflow)
 
 **User:**
-```
+
+```text
 I'm working on a multi-step task. Before each step, inject fresh context:
 
 STEP 1: Design (inject context about architecture patterns)

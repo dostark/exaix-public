@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "Dependency/Version Upgrade Template"
+title: "Dependency/Version Upgrade Template  (#upgrade)"
 short_summary: "Template for planning and executing dependency or version upgrades with stability checks."
 version: "0.1"
 topics: ["upgrade", "dependencies", "version", "maintenance"]
 ---
 
-# Dependency/Version Upgrade Template (#upgrade)
 
 **Purpose:** Plan and execute upgrades of dependencies or versions, ensuring stability and coverage.
 

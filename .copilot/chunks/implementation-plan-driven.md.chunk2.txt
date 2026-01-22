@@ -24,7 +24,8 @@ Feature: Flow parameter validation
 ## Example Usage (Creating New Step)
 
 **User:**
-```
+
+```text
 I want to add a new feature: Export activity logs to JSON.
 
 Implementation Plan workflow:

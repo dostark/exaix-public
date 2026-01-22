@@ -78,6 +78,7 @@ Deno.test("deploy_workspace.sh --no-run creates deploy files", async () => {
 async function runExoctl(
   workspacePath: string,
   args: string[],
+  env?: Record<string, string>,
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   const exoctlPath = join(workspacePath, "src", "cli", "exoctl.ts");
   const cmd = new Deno.Command("deno", {
@@ -85,6 +86,7 @@ async function runExoctl(
     cwd: workspacePath,
     stdout: "piped",
     stderr: "piped",
+    env: env,
   });
 
   const res = await cmd.output();
@@ -159,8 +161,10 @@ Deno.test({
   async fn() {
     const workspace = await deployTestWorkspace();
     try {
-      // Start the daemon
-      const startResult = await runExoctl(workspace, ["daemon", "start"]);
+      // Start the daemon with mock provider to avoid CI issues
+      const startResult = await runExoctl(workspace, ["daemon", "start"], {
+        EXO_LLM_PROVIDER: "mock",
+      });
       assert(
         startResult.code === 0,
         `exoctl daemon start failed: ${startResult.stderr}`,
@@ -180,6 +184,18 @@ Deno.test({
         statusResult.code === 0,
         `exoctl daemon status failed: ${statusResult.stderr}`,
       );
+
+      // If daemon is not running, check the log file for errors
+      if (!statusResult.stdout.includes("Running")) {
+        try {
+          const logPath = join(workspace, ".exo", "daemon.log");
+          const logContent = await Deno.readTextFile(logPath);
+          console.log("Daemon log content:", logContent);
+        } catch (error) {
+          console.log("Could not read daemon log:", error);
+        }
+      }
+
       assertStringIncludes(
         statusResult.stdout,
         "Running",
@@ -228,8 +244,10 @@ Deno.test({
   async fn() {
     const workspace = await deployTestWorkspace();
     try {
-      // Start the daemon first
-      const startResult = await runExoctl(workspace, ["daemon", "start"]);
+      // Start the daemon first with mock provider
+      const startResult = await runExoctl(workspace, ["daemon", "start"], {
+        EXO_LLM_PROVIDER: "mock",
+      });
       assert(
         startResult.code === 0,
         `Initial start failed: ${startResult.stderr}`,
@@ -291,8 +309,10 @@ Deno.test({
   async fn() {
     const workspace = await deployTestWorkspace();
     try {
-      // Start the daemon
-      const startResult = await runExoctl(workspace, ["daemon", "start"]);
+      // Start the daemon with mock provider
+      const startResult = await runExoctl(workspace, ["daemon", "start"], {
+        EXO_LLM_PROVIDER: "mock",
+      });
       assert(
         startResult.code === 0,
         `Initial start failed: ${startResult.stderr}`,

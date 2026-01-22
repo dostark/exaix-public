@@ -14,7 +14,8 @@ Token budget: simple task, 2-3 chunks sufficient
 ## Example Usage (Complex Task)
 
 **User:**
-```
+
+```text
 Before answering my question, inject relevant context from agents/:
 
 Step 1: Inspect available embeddings

@@ -7,8 +7,6 @@ version: "0.1"
 topics: ["documentation", "meta", "patterns", "field-guide"]
 ---
 
-# Update Building with AI Agents Documentation
-
 ## Prompt Template
 
 ```text
@@ -99,13 +97,13 @@ git log b849adf..HEAD --oneline
 git log b849adf..HEAD --format="%H" | while read hash; do git show --stat $hash; done
 ```
 
-2. **Content analysis**:
+1. **Content analysis**:
    - Review chat history for user's prompts and agent's responses
    - Identify patterns (e.g., "not following agents/ folder instructions")
    - Extract "wake-up call" moments (e.g., being called out for inconsistency)
    - Note technical implementations (prompt templates, RAG guide, git hooks)
 
-3. **Write new Part(s)**:
+2. **Write new Part(s)**:
 
    ```markdown
    ## Part XVII: The Self-Documenting Agent System (January 2026)
@@ -132,12 +130,12 @@ git log b849adf..HEAD --format="%H" | while read hash; do git show --stat $hash;
    [... continues with technical details, examples, before/after, patterns ...]
    ```
 
-4. **Update reference sections**:
+3. **Update reference sections**:
    - Add rows to Essential Patterns table
    - Add new question templates
    - Maintain formatting consistency
 
-5. **Rebuild infrastructure**:
+4. **Rebuild infrastructure**:
 
    ```bash
    deno run --allow-read --allow-write scripts/build_agents_index.ts

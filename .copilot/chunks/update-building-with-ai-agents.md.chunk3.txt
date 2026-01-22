@@ -23,6 +23,7 @@ After writing:
 Claude should:
 
 1. **Research phase**:
-   ```bash
-   # Find last update
-   git log --oneline --all -- docs/Building_with_AI_Agents.md | head -1
+
+```bash
+# Find last update
+git log --oneline --all -- docs/Building_with_AI_Agents.md | head -1

@@ -1,12 +1,10 @@
 ---
 agent: general
 scope: dev
-title: Agents directory README
+title: .copilot/ — IDE & Dev Agent Instructions
 short_summary: "Overview of the .copilot/ directory, schema, and maintenance guidelines."
 version: "0.1"
 ---
-
-# .copilot/ — IDE & Dev Agent Instructions
 
 ## Purpose
 

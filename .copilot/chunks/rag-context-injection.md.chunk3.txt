@@ -11,3 +11,5 @@ Task: Add new LLM provider with comprehensive tests and docs.
 ```
 
 ## Expected Response Pattern
+
+Claude should:

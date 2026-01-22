@@ -1,13 +1,12 @@
 ---
 agent: general
 scope: dev
-title: "TDD Workflow Prompt Example"
+title: "TDD Workflow Prompt Example (#tdd)"
 short_summary: "Example prompt for test-driven development following ExoFrame patterns."
 version: "0.1"
 topics: ["tdd", "testing", "prompts", "examples"]
 ---
 
-# TDD Workflow Prompt Example
 
 ```text
 Key points

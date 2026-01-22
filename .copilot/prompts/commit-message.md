@@ -7,7 +7,7 @@ version: "0.1"
 topics: ["git", "commit", "documentation", "best-practices"]
 ---
 
-# Detailed Commit Message Prompt
+
 
 ```markdown
 Key points

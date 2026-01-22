@@ -1,5 +1,6 @@
 import { Database } from "@db/sqlite";
 import { join } from "@std/path";
+import { ensureDir } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 
 interface LogEntry {
@@ -34,7 +35,12 @@ export class DatabaseService {
   private isClosing = false;
 
   constructor(config: Config) {
-    const dbPath = join(config.system.root, config.paths.runtime, "journal.db");
+    const dbDir = join(config.system.root, config.paths.runtime);
+    const dbPath = join(dbDir, "journal.db");
+
+    // Ensure database directory exists (fixes CI issues with temp directories)
+    ensureDir(dbDir);
+
     this.db = new Database(dbPath);
     // Enable configured SQLite features
     this.db.exec(`PRAGMA journal_mode = ${config.database.sqlite.journal_mode};`);

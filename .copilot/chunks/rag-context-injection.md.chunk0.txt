@@ -2,7 +2,7 @@
 
 ## Prompt Template
 
-```
+```text
 Before answering my question, inject relevant context from agents/:
 
 Step 1: Inspect available embeddings
@@ -21,5 +21,6 @@ Token budget: [simple: 2-3 chunks | medium: 4-6 chunks | complex: 8-10 chunks]
 ## Example Usage (Simple Task)
 
 **User:**
-```
+
+```text
 Before answering my question, inject relevant context from agents/:

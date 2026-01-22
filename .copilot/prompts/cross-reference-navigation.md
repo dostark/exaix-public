@@ -7,14 +7,17 @@ version: "0.1"
 topics: ["cross-reference", "navigation", "prompts", "workflow"]
 ---
 
+
 # Cross-Reference Navigation Prompt
+
+**Purpose:**
+This document provides a prompt template and usage examples for agents to navigate ExoFrame's cross-reference map when performing development tasks.
 
 ## Prompt Template
 
-```markdown
 I want to [task type].
 
-First, consult .copilot/cross-reference.md for the workflow:
+First, consult `.copilot/cross-reference.md` for the workflow:
 1. Find my task type in "Task → Agent Doc Quick Reference"
 2. Read the Primary Doc listed
 3. Check Secondary Docs if needed
@@ -23,39 +26,37 @@ First, consult .copilot/cross-reference.md for the workflow:
 Task type: [write tests / refactor / update docs / fix errors / add feature / debug / security audit / etc.]
 
 Then proceed with the work following guidance from those docs.
-```
 
-## Example Usage (Add New Feature)
+---
 
-**User:**
+## Example Usage
 
-```markdown
+### Add New Feature
+
 I want to add a new feature: Flow parameter validation.
 
-First, consult .copilot/cross-reference.md for the workflow:
+First, consult `.copilot/cross-reference.md` for the workflow:
 1. Task type: "Add new feature"
-2. Primary Docs: .copilot/source/exoframe.md + .copilot/tests/testing.md
-3. Secondary Docs: .copilot/docs/documentation.md
+2. Primary Docs: `.copilot/source/exoframe.md` + `.copilot/tests/testing.md`
+3. Secondary Docs: `.copilot/docs/documentation.md`
 4. Workflow example: "I want to add a new feature"
 
 Then proceed with:
 1. Read Implementation Plan to find/create step
-2. Follow TDD from source/exoframe.md
-3. Use test helpers from tests/testing.md
-4. Update docs per documentation.md
-```
+2. Follow TDD from `source/exoframe.md`
+3. Use test helpers from `tests/testing.md`
+4. Update docs per `documentation.md`
 
-## Example Usage (Security Audit)
+---
 
-**User:**
+### Security Audit
 
-```markdown
 I want to perform a security audit on Portal permission boundaries.
 
-First, consult .copilot/cross-reference.md for the workflow:
+First, consult `.copilot/cross-reference.md` for the workflow:
 1. Task type: "Security audit"
-2. Primary Docs: .copilot/tests/testing.md (#Security Tests)
-3. Secondary Docs: .copilot/source/exoframe.md (#System Constraints)
+2. Primary Docs: `.copilot/tests/testing.md` (#Security Tests)
+3. Secondary Docs: `.copilot/source/exoframe.md` (#System Constraints)
 4. Topics to search: "security", "Portal"
 
 Then design security tests covering:
@@ -63,50 +64,47 @@ Then design security tests covering:
 - Symlink escape detection
 - Absolute path restrictions
 - Cross-portal access attempts
-```
 
-## Example Usage (Fix TypeScript Errors)
+---
 
-**User:**
+### Fix TypeScript Errors
 
-```markdown
-I have TypeScript errors in src/flows/plan_executor.ts
+I have TypeScript errors in `src/flows/plan_executor.ts`
 
-First, consult .copilot/cross-reference.md for the workflow:
+First, consult `.copilot/cross-reference.md` for the workflow:
 1. Task type: "Fix TypeScript errors"
-2. Primary Docs: .copilot/source/exoframe.md
-3. Secondary Docs: .copilot/copilot/exoframe.md
+2. Primary Docs: `.copilot/source/exoframe.md`
+3. Secondary Docs: `.copilot/copilot/exoframe.md`
 
-Read the errors, understand the patterns from source/exoframe.md, then fix following:
+Read the errors, understand the patterns from `source/exoframe.md`, then fix following:
 - Service Pattern if it's a service
 - Proper error handling
 - Type safety throughout
-```
 
-## Example Usage (Topic Search)
+---
 
-**User:**
+### Topic Search
 
-```markdown
 I need help with embeddings and RAG.
 
-Use .copilot/cross-reference.md topic search:
-- Topic: "embeddings" → .copilot/providers/claude-rag.md, .copilot/README.md
-- Topic: "rag" → .copilot/providers/claude-rag.md
+Use `.copilot/cross-reference.md` topic search:
+- Topic: "embeddings" → `.copilot/providers/claude-rag.md`, `.copilot/README.md`
+- Topic: "rag" → `.copilot/providers/claude-rag.md`
 
-Read claude-rag.md sections:
+Read `claude-rag.md` sections:
 - RAG Workflow (4 steps)
-- Tools usage (inspect_embeddings.ts, inject_agent_context.ts)
+- Tools usage (`inspect_embeddings.ts`, `inject_agent_context.ts`)
 - Token budget strategies
 
 Then answer my questions about using embeddings.
-```
+
+---
 
 ## Expected Response Pattern
 
 Agent should:
 
-1. Open and read [.copilot/cross-reference.md](../cross-reference.md)
+1. Open and read [.copilot/cross-reference.md](.copilot/cross-reference.md)
 2. Find the relevant task type or topic
 3. Navigate to Primary Doc(s) listed
 4. Read relevant sections from those docs

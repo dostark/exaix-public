@@ -10,7 +10,8 @@ Feature: [description]
 ## Example Usage (Existing Step)
 
 **User:**
-```
+
+```text
 I want to work on Flow parameter validation (Phase 8, Step 8.3).
 
 Implementation Plan workflow:
