@@ -5,7 +5,7 @@
 
 import { join } from "@std/path";
 import { BaseCommand, type CommandContext } from "./base.ts";
-import type { GitService } from "../services/git_service.ts";
+import { GitService } from "../services/git_service.ts";
 import { ChangesetStatus } from "../enums.ts";
 
 export interface ChangesetMetadata {
@@ -38,6 +38,91 @@ export class ChangesetCommands extends BaseCommand {
   ) {
     super(context);
     this.gitService = gitService;
+  }
+
+  private async getDefaultBranch(repoPath: string): Promise<string> {
+    try {
+      // Try to get the default branch from symbolic-ref
+      const checkCmd = new Deno.Command("git", {
+        args: ["symbolic-ref", "refs/remotes/origin/HEAD"],
+        cwd: repoPath,
+        stdout: "piped",
+        stderr: "piped",
+      });
+      const result = await checkCmd.output();
+      if (result.success) {
+        const ref = new TextDecoder().decode(result.stdout).trim();
+        // Result will be like "refs/remotes/origin/main" or "refs/remotes/origin/master"
+        const branchName = ref.split("/").pop();
+        if (branchName) {
+          return branchName;
+        }
+      }
+    } catch {
+      // If that fails (no remote), continue to fallback
+    }
+
+    // Fallback: try common default branch names
+    const commonDefaults = ["main", "master", "develop", "development"];
+    for (const branch of commonDefaults) {
+      try {
+        const checkCmd = new Deno.Command("git", {
+          args: ["rev-parse", "--verify", branch],
+          cwd: repoPath,
+          stdout: "piped",
+          stderr: "piped",
+        });
+        const result = await checkCmd.output();
+        if (result.success) {
+          return branch;
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    // Ultimate fallback
+    return "main";
+  }
+
+  private async findRepoForBranch(branchName: string): Promise<string> {
+    const portalsDir = join(this.config.system.root, this.config.paths.portals);
+
+    const portalPaths: string[] = [];
+    try {
+      for await (const entry of Deno.readDir(portalsDir)) {
+        if (!entry.isSymlink) continue;
+        const symlinkPath = join(portalsDir, entry.name);
+        try {
+          const targetPath = await Deno.readLink(symlinkPath);
+          await Deno.stat(join(targetPath, ".git"));
+          portalPaths.push(targetPath);
+        } catch {
+          continue;
+        }
+      }
+    } catch (error) {
+      if (!(error instanceof Deno.errors.NotFound)) {
+        throw error;
+      }
+    }
+
+    portalPaths.push(this.config.system.root);
+
+    for (const repoPath of portalPaths) {
+      const checkCmd = new Deno.Command("git", {
+        args: ["rev-parse", "--verify", branchName],
+        cwd: repoPath,
+        stdout: "piped",
+        stderr: "piped",
+      });
+      const result = await checkCmd.output();
+      if (result.success) {
+        return repoPath;
+      }
+    }
+
+    throw new Error(`Branch not found in any repository: ${branchName}`);
   }
 
   /**
@@ -76,9 +161,12 @@ export class ChangesetCommands extends BaseCommand {
     portalPaths.push(this.config.system.root);
 
     for (const repoPath of portalPaths) {
+      const defaultBranch = await this.getDefaultBranch(repoPath);
+
       // Get all branches with feat/ prefix (agent branches)
       const branchesCmd = new Deno.Command("git", {
-        args: ["-C", repoPath, "branch", "--list", "feat/*", "--format=%(refname:short)"],
+        args: ["branch", "--list", "feat/*", "--format=%(refname:short)"],
+        cwd: repoPath,
         stdout: "piped",
         stderr: "piped",
       });
@@ -101,13 +189,12 @@ export class ChangesetCommands extends BaseCommand {
         // Get branch creation time and author
         const logCmd = new Deno.Command("git", {
           args: [
-            "-C",
-            repoPath,
             "log",
             branch,
             "--format=%H %aI %ae",
             "-1",
           ],
+          cwd: repoPath,
           stdout: "piped",
           stderr: "piped",
         });
@@ -120,7 +207,8 @@ export class ChangesetCommands extends BaseCommand {
 
         // Get number of files changed
         const diffCmd = new Deno.Command("git", {
-          args: ["-C", repoPath, "diff", "--name-only", "main..." + branch],
+          args: ["diff", "--name-only", `${defaultBranch}...${branch}`],
+          cwd: repoPath,
           stdout: "piped",
           stderr: "piped",
         });
@@ -163,8 +251,6 @@ export class ChangesetCommands extends BaseCommand {
    * @returns Changeset details
    */
   async show(branchName: string): Promise<ChangesetDetails> {
-    const workspaceRoot = this.config.system.root;
-
     // If not a full branch name, try to find matching branch
     let fullBranch = branchName;
     if (!branchName.startsWith("feat/")) {
@@ -176,9 +262,13 @@ export class ChangesetCommands extends BaseCommand {
       fullBranch = match.branch;
     }
 
+    const repoPath = await this.findRepoForBranch(fullBranch);
+    const defaultBranch = await this.getDefaultBranch(repoPath);
+
     // Verify branch exists
     const checkCmd = new Deno.Command("git", {
-      args: ["-C", workspaceRoot, "rev-parse", "--verify", fullBranch],
+      args: ["rev-parse", "--verify", fullBranch],
+      cwd: repoPath,
       stdout: "piped",
       stderr: "piped",
     });
@@ -191,14 +281,13 @@ export class ChangesetCommands extends BaseCommand {
     // Get commit history
     const logCmd = new Deno.Command("git", {
       args: [
-        "-C",
-        workspaceRoot,
         "log",
         fullBranch,
         "--not",
-        "main",
+        defaultBranch,
         "--format=%H|||%s|||%aI",
       ],
+      cwd: repoPath,
       stdout: "piped",
       stderr: "piped",
     });
@@ -215,7 +304,8 @@ export class ChangesetCommands extends BaseCommand {
 
     // Get diff
     const diffCmd = new Deno.Command("git", {
-      args: ["-C", workspaceRoot, "diff", "main..." + fullBranch],
+      args: ["diff", `${defaultBranch}...${fullBranch}`],
+      cwd: repoPath,
       stdout: "piped",
       stderr: "piped",
     });
@@ -225,7 +315,8 @@ export class ChangesetCommands extends BaseCommand {
 
     // Get files changed count
     const filesCmd = new Deno.Command("git", {
-      args: ["-C", workspaceRoot, "diff", "--name-only", "main..." + fullBranch],
+      args: ["diff", "--name-only", `${defaultBranch}...${fullBranch}`],
+      cwd: repoPath,
       stdout: "piped",
       stderr: "piped",
     });
@@ -235,7 +326,7 @@ export class ChangesetCommands extends BaseCommand {
 
     // Extract metadata from branch name
     // request_id format: request-NNN, trace_id format: xxx-yyy-zzz
-    const match = fullBranch.match(/^feat\/(request-\d+)-(.+)$/);
+    const match = fullBranch.match(/^feat\/(request-[\w]+)-(.+)$/);
     const [, request_id, trace_id] = match || ["", fullBranch, "unknown"];
 
     return {
@@ -255,12 +346,16 @@ export class ChangesetCommands extends BaseCommand {
    * @param branchName Branch name or request_id
    */
   async approve(branchName: string): Promise<void> {
-    const workspaceRoot = this.config.system.root;
     const changeset = await this.show(branchName);
+    const repoPath = await this.findRepoForBranch(changeset.branch);
 
-    // Verify we're on main branch
+    // Get the default branch for this repository
+    const defaultBranch = await this.getDefaultBranch(repoPath);
+
+    // Verify we're on the default branch
     const currentBranchCmd = new Deno.Command("git", {
-      args: ["-C", workspaceRoot, "branch", "--show-current"],
+      args: ["branch", "--show-current"],
+      cwd: repoPath,
       stdout: "piped",
       stderr: "piped",
     });
@@ -268,44 +363,35 @@ export class ChangesetCommands extends BaseCommand {
     const branchResult = await currentBranchCmd.output();
     const currentBranch = new TextDecoder().decode(branchResult.stdout).trim();
 
-    if (currentBranch !== "main") {
+    if (currentBranch !== defaultBranch) {
       throw new Error(
-        `Must be on 'main' branch to approve changesets (currently on '${currentBranch}')\nRun: git checkout main`,
+        `Must be on '${defaultBranch}' branch to approve changesets (currently on '${currentBranch}')\nRun: git checkout ${defaultBranch}`,
       );
     }
 
-    // Merge branch
-    const mergeCmd = new Deno.Command("git", {
-      args: [
-        "-C",
-        workspaceRoot,
-        "merge",
-        "--no-ff",
-        changeset.branch,
-        "-m",
-        `Merge ${changeset.request_id}: ${
-          changeset.commits[0]?.message || "agent changes"
-        }\n\nTrace-Id: ${changeset.trace_id}`,
-      ],
-      stdout: "piped",
-      stderr: "piped",
+    // Create GitService for the portal repository
+    const portalGitService = new GitService({
+      config: this.config,
+      db: this.db,
+      repoPath,
+      traceId: changeset.trace_id,
+      agentId: await this.getUserIdentity(),
     });
 
-    const mergeResult = await mergeCmd.output();
-    if (!mergeResult.success) {
-      const error = new TextDecoder().decode(mergeResult.stderr);
-      throw new Error(`Failed to merge branch: ${error}`);
-    }
+    // Merge branch
+    await portalGitService.runGitCommand([
+      "merge",
+      "--no-ff",
+      changeset.branch,
+      "-m",
+      `Merge ${changeset.request_id}: ${
+        changeset.commits[0]?.message || "agent changes"
+      }\n\nTrace-Id: ${changeset.trace_id}`,
+    ]);
 
     // Get merge commit SHA
-    const shaCmd = new Deno.Command("git", {
-      args: ["-C", workspaceRoot, "rev-parse", "HEAD"],
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    const shaResult = await shaCmd.output();
-    const commitSha = new TextDecoder().decode(shaResult.stdout).trim();
+    const shaResult = await portalGitService.runGitCommand(["rev-parse", "HEAD"]);
+    const commitSha = shaResult.output.trim();
 
     // Log approval with user identity
     const _userIdentity = await this.getUserIdentity();
@@ -332,21 +418,20 @@ export class ChangesetCommands extends BaseCommand {
       );
     }
 
-    const workspaceRoot = this.config.system.root;
     const changeset = await this.show(branchName);
+    const repoPath = await this.findRepoForBranch(changeset.branch);
 
-    // Delete branch
-    const deleteCmd = new Deno.Command("git", {
-      args: ["-C", workspaceRoot, "branch", "-D", changeset.branch],
-      stdout: "piped",
-      stderr: "piped",
+    // Create GitService for the portal repository
+    const portalGitService = new GitService({
+      config: this.config,
+      db: this.db,
+      repoPath,
+      traceId: changeset.trace_id,
+      agentId: await this.getUserIdentity(),
     });
 
-    const deleteResult = await deleteCmd.output();
-    if (!deleteResult.success) {
-      const error = new TextDecoder().decode(deleteResult.stderr);
-      throw new Error(`Failed to delete branch: ${error}`);
-    }
+    // Delete branch
+    await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
 
     // Log rejection with user identity
     const _userIdentity = await this.getUserIdentity();

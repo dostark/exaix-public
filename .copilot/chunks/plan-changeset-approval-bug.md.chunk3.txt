@@ -1,15 +1,17 @@
-**Plan List Issue:**
-- `exoctl plan list --status approved` only scanned `Workspace/Active/` directory
-- Approved plans are moved to `Workspace/Archive/` after successful execution
-- Result: Completed plans were invisible to CLI users
+## Latest Update (2026-01-22)
+Issue was previously marked as resolved, but manual testing shows the changeset list problem persists. The plan approval works and feature branches are created, but `exoctl changeset list` still returns empty.
 
-**Changeset List Issue:**
-- `exoctl changeset list` only scanned git branches in workspace root
-- Changesets are created as `feat/*` branches in portal repositories
-- Result: Portal changesets were invisible to CLI users
+### Reproduction from Latest Test
+```
+exoctl changeset list
+✅ changeset.list: changesets
+   count: 0
+   message: No changesets found
 
-### Fixes Applied
+# But in portal repo:
+git branch
+* feat/request-a300d5a5-a300d5a5
+  master
+```
 
-**Plan List Fix (`src/cli/plan_commands.ts`):**
-- Modified `list()` method to scan both `Workspace/Active/` and `Workspace/Archive/` for approved status
-- Updated comments to reflect that approved plans can be in either location
+The changeset listing logic needs to be investigated further.

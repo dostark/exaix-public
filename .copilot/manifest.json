@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-22T19:23:16.704Z",
+  "generated_at": "2026-01-22T20:02:50.866Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1004,6 +1004,18 @@
         ".copilot/chunks/request-processing-failure-test-provider.md.chunk3.txt",
         ".copilot/chunks/request-processing-failure-test-provider.md.chunk4.txt",
         ".copilot/chunks/request-processing-failure-test-provider.md.chunk5.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/changeset-approve-branch-not-found.md",
+      "title": "Changeset approve fails to find branches in portal repositories",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/changeset-approve-branch-not-found.md.chunk0.txt",
+        ".copilot/chunks/changeset-approve-branch-not-found.md.chunk1.txt",
+        ".copilot/chunks/changeset-approve-branch-not-found.md.chunk2.txt",
+        ".copilot/chunks/changeset-approve-branch-not-found.md.chunk3.txt",
+        ".copilot/chunks/changeset-approve-branch-not-found.md.chunk4.txt"
       ]
     },
     {

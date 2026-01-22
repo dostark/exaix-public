@@ -378,8 +378,36 @@ export class GitService {
   }
 
   /**
-   * Run a git command with timeout protection and error recovery
+   * Get the default branch name (what HEAD points to)
    */
+  async getDefaultBranch(repoPath?: string): Promise<string> {
+    const cwd = repoPath || this.repoPath || Deno.cwd();
+
+    try {
+      // Try to get the default branch from symbolic-ref
+      const result = await this.runGitCommand(["-C", cwd, "symbolic-ref", "refs/remotes/origin/HEAD"]);
+      // Result will be like "refs/remotes/origin/main" or "refs/remotes/origin/master"
+      const ref = result.output.trim();
+      const branchName = ref.split("/").pop();
+      if (branchName) {
+        return branchName;
+      }
+    } catch {
+      // If that fails (no remote), try to get the current branch as fallback
+      try {
+        const result = await this.runGitCommand(["-C", cwd, "branch", "--show-current"]);
+        const currentBranch = result.output.trim();
+        if (currentBranch) {
+          return currentBranch;
+        }
+      } catch {
+        // Last resort: assume "main"
+      }
+    }
+
+    // Default fallback
+    return "main";
+  }
   public async runGitCommand(
     args: string[],
     options: GitCommandOptions = {},

@@ -15,7 +15,3 @@
 
 ## Suggested Investigation
 - Check if plan/changeset list commands are filtering out approved/archived items incorrectly.
-
-## Resolution
-
-### Root Cause Analysis

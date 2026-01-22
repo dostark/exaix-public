@@ -38,12 +38,12 @@ describe("ChangesetCommands", () => {
     config = result.config;
     cleanup = result.cleanup;
 
-    // Initialize git repository
-    await runGitCommand(tempDir, ["init", "-b", "main"]);
+    // Initialize git repository with master branch (like user's repo)
+    await runGitCommand(tempDir, ["init", "-b", "master"]);
     await runGitCommand(tempDir, ["config", "user.email", "test@example.com"]);
     await runGitCommand(tempDir, ["config", "user.name", "Test User"]);
 
-    // Create initial commit on main
+    // Create initial commit on master
     await Deno.writeTextFile(join(tempDir, "README.md"), "# Test Project\n");
     await runGitCommand(tempDir, [MemoryOperation.ADD, "README.md"]);
     await runGitCommand(tempDir, ["commit", "-m", "Initial commit"]);
@@ -185,7 +185,7 @@ describe("ChangesetCommands", () => {
       assertStringIncludes(log, "Merge request-009");
     });
 
-    it("should validate current branch is main", async () => {
+    it("should validate current branch is master", async () => {
       await createFeatureBranch(tempDir, "request-010", "def-890-abc");
 
       // Switch to a different branch
@@ -194,7 +194,7 @@ describe("ChangesetCommands", () => {
       await assertRejects(
         async () => await changesetCommands.approve("request-010"),
         Error,
-        "Must be on 'main' branch",
+        "Must be on 'master' branch",
       );
     });
 
@@ -283,6 +283,56 @@ describe("ChangesetCommands", () => {
       assertStringIncludes(payload.rejection_reason, "Needs redesign");
     });
   });
+
+  /**
+   * Regression test for: "Branch not found" error when approving changesets in portal repositories
+   * Root cause: approve/show/reject methods only searched workspace root, not portal repos
+   * Fix: Added findRepoForBranch() method to search all repositories
+   */
+  it("[regression] approve() should find and merge branches in portal repositories", async () => {
+    // Create a portal repository
+    const portalDir = await Deno.makeTempDir({ prefix: "portal-repo-" });
+    try {
+      // Initialize git repo in portal directory with master branch (like user's repo)
+      await runGitCommand(portalDir, ["init", "-b", "master"]);
+      await runGitCommand(portalDir, ["config", "user.email", "test@example.com"]);
+      await runGitCommand(portalDir, ["config", "user.name", "Test User"]);
+
+      // Create initial commit
+      await Deno.writeTextFile(join(portalDir, "README.md"), "# Portal Project\n");
+      await runGitCommand(portalDir, ["add", "README.md"]);
+      await runGitCommand(portalDir, ["commit", "-m", "Initial commit"]);
+
+      // Create a feature branch in the portal repository
+      await createFeatureBranch(portalDir, "request-a300d5a5", "a300d5a5");
+
+      // Create portal symlink in the workspace
+      const portalsDir = join(tempDir, config.paths.portals);
+      await Deno.mkdir(portalsDir, { recursive: true });
+      const symlinkPath = join(portalsDir, "TestPortal");
+      await Deno.symlink(portalDir, symlinkPath);
+
+      // Verify the changeset appears in the list (should find it in portal)
+      const changesets = await changesetCommands.list();
+      assertEquals(changesets.length, 1);
+      assertEquals(changesets[0].request_id, "request-a300d5a5");
+      assertEquals(changesets[0].branch, "feat/request-a300d5a5-a300d5a5");
+
+      // This should NOT throw "Branch not found" error anymore
+      await changesetCommands.approve("request-a300d5a5");
+
+      // Verify branch was merged in the portal repository
+      const branches = await runGitCommand(portalDir, ["branch", "--list"]);
+      assertStringIncludes(branches, "* master"); // Should be on master
+      assertStringIncludes(branches, "feat/request-a300d5a5-a300d5a5"); // Branch should still exist
+
+      // Verify merge commit exists
+      const log = await runGitCommand(portalDir, ["log", "--oneline", "-3"]);
+      assertStringIncludes(log, "Merge request-a300d5a5");
+    } finally {
+      await Deno.remove(portalDir, { recursive: true }).catch(() => {});
+    }
+  });
 });
 
 // Helper functions
@@ -324,8 +374,8 @@ async function createFeatureBranch(
   // Commit
   await runGitCommand(repoDir, ["commit", "-m", `Add feature for ${requestId}\n\nTrace-Id: ${traceId}`]);
 
-  // Switch back to main
-  await runGitCommand(repoDir, ["checkout", "main"]);
+  // Switch back to master
+  await runGitCommand(repoDir, ["checkout", "master"]);
 }
 
 function delay(ms: number): Promise<void> {
@@ -348,12 +398,12 @@ describe("ChangesetCommands - Edge Cases", () => {
     const config = result.config;
     cleanup = result.cleanup;
 
-    // Initialize git repository
-    await runGitCommand(tempDir, ["init", "-b", "main"]);
+    // Initialize git repository with master branch (like user's repo)
+    await runGitCommand(tempDir, ["init", "-b", "master"]);
     await runGitCommand(tempDir, ["config", "user.email", "test@example.com"]);
     await runGitCommand(tempDir, ["config", "user.name", "Test User"]);
 
-    // Create initial commit on main
+    // Create initial commit on master
     await Deno.writeTextFile(join(tempDir, "README.md"), "# Test Project\n");
     await runGitCommand(tempDir, [MemoryOperation.ADD, "README.md"]);
     await runGitCommand(tempDir, ["commit", "-m", "Initial commit"]);
@@ -369,10 +419,10 @@ describe("ChangesetCommands - Edge Cases", () => {
   it("list() should skip branches with invalid naming format", async () => {
     // Create branches with various invalid formats
     await runGitCommand(tempDir, ["checkout", "-b", "feat/invalid"]);
-    await runGitCommand(tempDir, ["checkout", "main"]);
+    await runGitCommand(tempDir, ["checkout", "master"]);
 
     await runGitCommand(tempDir, ["checkout", "-b", "feature/not-feat"]);
-    await runGitCommand(tempDir, ["checkout", "main"]);
+    await runGitCommand(tempDir, ["checkout", "master"]);
 
     const changesets = await changesetCommands.list();
     assertEquals(changesets.length, 0);
@@ -383,7 +433,7 @@ describe("ChangesetCommands - Edge Cases", () => {
     const branchName = "feat/request-003-empty-branch";
     await runGitCommand(tempDir, ["checkout", "-b", branchName]);
     await runGitCommand(tempDir, ["commit", "--allow-empty", "-m", "Empty commit"]);
-    await runGitCommand(tempDir, ["checkout", "main"]);
+    await runGitCommand(tempDir, ["checkout", "master"]);
 
     const changesets = await changesetCommands.list();
     assertEquals(changesets.length, 1);
@@ -414,7 +464,7 @@ describe("ChangesetCommands - Edge Cases", () => {
     );
   });
 
-  it("approve() should throw error when not on main branch", async () => {
+  it("approve() should throw error when not on master branch", async () => {
     await createFeatureBranch(tempDir, "request-010", "def-890-abc");
 
     // Switch to a different branch
@@ -423,11 +473,11 @@ describe("ChangesetCommands - Edge Cases", () => {
     await assertRejects(
       async () => await changesetCommands.approve("request-010"),
       Error,
-      "main",
+      "master",
     );
 
     // Switch back for cleanup
-    await runGitCommand(tempDir, ["checkout", "main"]);
+    await runGitCommand(tempDir, ["checkout", "master"]);
   });
 
   it("reject() should throw error when rejection reason is empty", async () => {
