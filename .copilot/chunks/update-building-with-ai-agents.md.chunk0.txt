@@ -1,5 +1,3 @@
-# Update Building with AI Agents Documentation
-
 ## Prompt Template
 
 ```text

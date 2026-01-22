@@ -1,19 +1,17 @@
-First, consult .copilot/cross-reference.md for the workflow:
+First, consult `.copilot/cross-reference.md` for the workflow:
 1. Task type: "Add new feature"
-2. Primary Docs: .copilot/source/exoframe.md + .copilot/tests/testing.md
-3. Secondary Docs: .copilot/docs/documentation.md
+2. Primary Docs: `.copilot/source/exoframe.md` + `.copilot/tests/testing.md`
+3. Secondary Docs: `.copilot/docs/documentation.md`
 4. Workflow example: "I want to add a new feature"
 
 Then proceed with:
 1. Read Implementation Plan to find/create step
-2. Follow TDD from source/exoframe.md
-3. Use test helpers from tests/testing.md
-4. Update docs per documentation.md
-```
+2. Follow TDD from `source/exoframe.md`
+3. Use test helpers from `tests/testing.md`
+4. Update docs per `documentation.md`
 
-## Example Usage (Security Audit)
+---
 
-**User:**
+### Security Audit
 
-```markdown
 I want to perform a security audit on Portal permission boundaries.

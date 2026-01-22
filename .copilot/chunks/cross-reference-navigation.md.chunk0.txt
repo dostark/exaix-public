@@ -1,11 +1,13 @@
 # Cross-Reference Navigation Prompt
 
+**Purpose:**
+This document provides a prompt template and usage examples for agents to navigate ExoFrame's cross-reference map when performing development tasks.
+
 ## Prompt Template
 
-```markdown
 I want to [task type].
 
-First, consult .copilot/cross-reference.md for the workflow:
+First, consult `.copilot/cross-reference.md` for the workflow:
 1. Find my task type in "Task → Agent Doc Quick Reference"
 2. Read the Primary Doc listed
 3. Check Secondary Docs if needed
@@ -14,11 +16,11 @@ First, consult .copilot/cross-reference.md for the workflow:
 Task type: [write tests / refactor / update docs / fix errors / add feature / debug / security audit / etc.]
 
 Then proceed with the work following guidance from those docs.
-```
 
-## Example Usage (Add New Feature)
+---
 
-**User:**
+## Example Usage
 
-```markdown
+### Add New Feature
+
 I want to add a new feature: Flow parameter validation.

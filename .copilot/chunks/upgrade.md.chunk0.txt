@@ -1,5 +1,3 @@
-# Dependency/Version Upgrade Template (#upgrade)
-
 **Purpose:** Plan and execute upgrades of dependencies or versions, ensuring stability and coverage.
 
 ---

@@ -1,7 +1,7 @@
-First, consult .copilot/cross-reference.md for the workflow:
+First, consult `.copilot/cross-reference.md` for the workflow:
 1. Task type: "Security audit"
-2. Primary Docs: .copilot/tests/testing.md (#Security Tests)
-3. Secondary Docs: .copilot/source/exoframe.md (#System Constraints)
+2. Primary Docs: `.copilot/tests/testing.md` (#Security Tests)
+3. Secondary Docs: `.copilot/source/exoframe.md` (#System Constraints)
 4. Topics to search: "security", "Portal"
 
 Then design security tests covering:
@@ -9,16 +9,14 @@ Then design security tests covering:
 - Symlink escape detection
 - Absolute path restrictions
 - Cross-portal access attempts
-```
 
-## Example Usage (Fix TypeScript Errors)
+---
 
-**User:**
+### Fix TypeScript Errors
 
-```markdown
-I have TypeScript errors in src/flows/plan_executor.ts
+I have TypeScript errors in `src/flows/plan_executor.ts`
 
-First, consult .copilot/cross-reference.md for the workflow:
+First, consult `.copilot/cross-reference.md` for the workflow:
 1. Task type: "Fix TypeScript errors"
-2. Primary Docs: .copilot/source/exoframe.md
-3. Secondary Docs: .copilot/copilot/exoframe.md
+2. Primary Docs: `.copilot/source/exoframe.md`
+3. Secondary Docs: `.copilot/copilot/exoframe.md`

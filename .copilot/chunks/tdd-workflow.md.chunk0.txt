@@ -1,5 +1,3 @@
-# TDD Workflow Prompt Example
-
 ```text
 Key points
 - Always write failing tests first, then implement minimal code to pass

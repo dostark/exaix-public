@@ -1,5 +1,3 @@
-# Detailed Commit Message Prompt
-
 ```markdown
 Key points
 - Review changes with `git status` and `git diff` before committing

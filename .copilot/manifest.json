@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-22T11:55:52.367Z",
+  "generated_at": "2026-01-22T12:55:51.852Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -87,7 +87,7 @@
       "path": ".copilot/prompts/upgrade.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Dependency/Version Upgrade Template",
+      "title": "Dependency/Version Upgrade Template  (#upgrade)",
       "short_summary": "Template for planning and executing dependency or version upgrades with stability checks.",
       "version": "0.1",
       "topics": [
@@ -268,7 +268,7 @@
       "path": ".copilot/prompts/tdd-workflow.md",
       "agent": "general",
       "scope": "dev",
-      "title": "TDD Workflow Prompt Example",
+      "title": "TDD Workflow Prompt Example (#tdd)",
       "short_summary": "Example prompt for test-driven development following ExoFrame patterns.",
       "version": "0.1",
       "topics": [
@@ -678,7 +678,7 @@
       "path": ".copilot/README.md",
       "agent": "general",
       "scope": "dev",
-      "title": "Agents directory README",
+      "title": ".copilot/ — IDE & Dev Agent Instructions",
       "short_summary": "Overview of the .copilot/ directory, schema, and maintenance guidelines.",
       "version": "0.1",
       "chunks": [
