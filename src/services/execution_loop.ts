@@ -134,6 +134,18 @@ export class ExecutionLoop {
       if (initGitBranch) {
         await gitService.ensureRepository();
         await gitService.ensureIdentity();
+
+        // Ensure we start from master/main to avoid pollution from previous feature branches
+        try {
+          await gitService.checkoutBranch("master");
+        } catch {
+          try {
+            await gitService.checkoutBranch("main");
+          } catch {
+            // If neither exists (empty repo?), ignore
+          }
+        }
+
         branchName = await gitService.createBranch({ requestId, traceId });
       }
 
@@ -439,6 +451,18 @@ export class ExecutionLoop {
     // Generate mission report
     await this.generateMissionReport(traceId, requestId);
 
+    // Update plan status to COMPLETED
+    try {
+      const content = await Deno.readTextFile(planPath);
+      const updatedContent = content.replace(
+        /status: "?(active|approved)"?/,
+        `status: ${PlanStatus.COMPLETED}`,
+      );
+      await Deno.writeTextFile(planPath, updatedContent);
+    } catch (error) {
+      console.error("Failed to update plan status:", error);
+    }
+
     // Archive plan
     const archiveDir = join(this.config.system.root, this.config.paths.workspace, "Archive");
     await Deno.mkdir(archiveDir, { recursive: true });
@@ -493,6 +517,15 @@ export class ExecutionLoop {
         stderr: "piped",
       });
       await gitCmd.output();
+
+      // Return to main branch
+      const checkoutCmd = new Deno.Command("git", {
+        args: ["checkout", "master"], // Try master first
+        cwd: this.config.system.root,
+        stdout: "piped",
+        stderr: "piped",
+      });
+      await checkoutCmd.output();
     } catch {
       // Rollback failure is not critical
     }
@@ -555,6 +588,7 @@ export class ExecutionLoop {
     commitSha: string,
   ): Promise<void> {
     try {
+      console.log(`[ExecutionLoop] Registering changeset for ${requestId} (Branch: ${branch})`);
       if (this.changesetRegistry) {
         await this.changesetRegistry.register({
           trace_id: traceId,
@@ -565,6 +599,9 @@ export class ExecutionLoop {
           files_changed: 1, // Defaulting to 1 for now
           created_by: this.agentId,
         });
+        console.log(`[ExecutionLoop] Changeset registered successfully`);
+      } else {
+        console.error("[ExecutionLoop] changesetRegistry is NOT initialized!");
       }
     } catch (error) {
       console.error("[ExecutionLoop] Failed to register changeset:", error);

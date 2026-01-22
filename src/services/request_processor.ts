@@ -302,10 +302,37 @@ export class RequestProcessor {
 
         return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Handle errors gracefully
+      let errorMessage = error instanceof Error ? error.message : String(error);
+
+      // Check for PlanValidationError and save raw content
+      if (error && typeof error === "object" && (error as any).name === "PlanValidationError") {
+        const validationError = error as any;
+        const rawContent = validationError.details?.rawContent;
+        if (rawContent) {
+          try {
+            // Use configured rejected path or default
+            const rejectedDir = join(
+              this.config.system.root,
+              this.config.paths.workspace,
+              this.config.paths.rejected,
+            );
+            await Deno.mkdir(rejectedDir, { recursive: true });
+
+            const rejectedPath = join(rejectedDir, `${requestId}_failed.md`);
+            await Deno.writeTextFile(rejectedPath, rawContent);
+
+            errorMessage += ` (Saved to ${rejectedPath})`;
+            traceLogger.info("plan.saved_rejected", rejectedPath, { reason: "validation_failed" });
+          } catch (writeErr) {
+            traceLogger.warn("plan.save_rejected_failed", filePath, { error: String(writeErr) });
+          }
+        }
+      }
+
       traceLogger.error("request.failed", filePath, {
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage,
       });
 
       await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);

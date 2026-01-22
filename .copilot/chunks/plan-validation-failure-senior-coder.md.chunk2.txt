@@ -1,0 +1,14 @@
+The daemon logs show:
+```
+1/21/2026, 6:26:02 PM request.failed agent=agent:request-processor trace=c9152997 target=/.../request-c9152997.md
+1/21/2026, 6:26:02 PM plan.validation.failed agent=agent trace=c9152997 target=request-c9152997
+1/21/2026, 6:26:02 PM agent.execution_completed agent=senior-coder trace=c9152997 target=request-c9152997
+```
+
+`exoctl plan list` shows 0 plans.
+
+## Expected Behavior
+
+The plan should be validated successfully and appear in `exoctl plan list` as `suggested` (or `approved` if auto-approve is on, though usually it waits).
+
+## Investigation Needed
