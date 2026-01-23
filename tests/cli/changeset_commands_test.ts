@@ -308,6 +308,24 @@ describe("ChangesetCommands", () => {
       // Clean up worktree directory
       await Deno.remove(worktreePath, { recursive: true }).catch(() => {});
     });
+
+    it("should handle branch checked out in main working tree when rejecting", async () => {
+      await createFeatureBranch(tempDir, "request-018", "def-111-ghi");
+
+      // Switch to the feature branch in the main repository (simulating portal checked out to branch)
+      await runGitCommand(tempDir, ["checkout", "feat/request-018-def-111-ghi"]);
+
+      // Reject should handle the checkout conflict and succeed
+      await changesetCommands.reject("request-018", "Checkout conflict test");
+
+      // Verify we're back on master
+      const currentBranch = await runGitCommand(tempDir, ["branch", "--show-current"]);
+      assertEquals(currentBranch.trim(), "master");
+
+      // Verify branch was deleted
+      const branches = await runGitCommand(tempDir, ["branch", "--list", "feat/*"]);
+      assertEquals(branches.includes("feat/request-018-def-111-ghi"), false);
+    });
   });
 
   /**
