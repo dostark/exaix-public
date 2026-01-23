@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-23T15:09:43.213Z",
+  "generated_at": "2026-01-23T15:28:55.418Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1037,6 +1037,17 @@
         ".copilot/chunks/README.md.chunk5.txt",
         ".copilot/chunks/README.md.chunk6.txt",
         ".copilot/chunks/README.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/plan-show-rejected-plans-not-displayed.md",
+      "title": "Rejected plans not shown in plan show command",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/plan-show-rejected-plans-not-displayed.md.chunk0.txt",
+        ".copilot/chunks/plan-show-rejected-plans-not-displayed.md.chunk1.txt",
+        ".copilot/chunks/plan-show-rejected-plans-not-displayed.md.chunk2.txt",
+        ".copilot/chunks/plan-show-rejected-plans-not-displayed.md.chunk3.txt"
       ]
     },
     {

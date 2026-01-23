@@ -545,6 +545,46 @@ Just some content.
       assertEquals(result.status, DaemonStatus.UNKNOWN);
       assertEquals(result.content.includes("# Plan without frontmatter"), true);
     });
+
+    it("should show rejected plans from Workspace/Rejected directory", async () => {
+      const planId = "test-rejected-plan";
+      const rejectionReason = "Plan is too vague and lacks specific actions";
+      const rejectedAt = "2026-01-23T15:26:47.000Z";
+      const rejectedBy = "test-user@example.com";
+
+      const planContent = `---
+status: rejected
+trace_id: "trace-rejected-001"
+agent_id: agent-456
+created_at: "2025-11-25T10:00:00Z"
+rejected_at: "${rejectedAt}"
+rejected_by: "${rejectedBy}"
+rejection_reason: "${rejectionReason}"
+---
+
+# Rejected Test Plan
+
+This plan was rejected for testing purposes.
+
+## Original Actions
+\`\`\`toml
+- tool: file_write
+  params:
+    path: rejected.txt
+\`\`\`
+`;
+      await Deno.writeTextFile(join(rejectedDir, `${planId}_rejected.md`), planContent);
+
+      const result = await planCommands.show(planId);
+
+      assertEquals(result.id, planId);
+      assertEquals(result.status, "rejected");
+      assertEquals(result.trace_id, "trace-rejected-001");
+      assertEquals(result.rejected_at, rejectedAt);
+      assertEquals(result.rejected_by, rejectedBy);
+      assertEquals(result.rejection_reason, rejectionReason);
+      assertEquals(result.content.includes("# Rejected Test Plan"), true);
+    });
   });
 
   describe("user identity", () => {

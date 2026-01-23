@@ -307,30 +307,44 @@ export class PlanCommands extends BaseCommand {
    * Show details of a specific plan
    */
   async show(planId: string): Promise<PlanDetails> {
-    const planPath = join(this.workspacePlansDir, `${planId}.md`);
+    // Check multiple directories in order of likelihood:
+    // 1. Workspace/Plans (review, needs_revision)
+    // 2. Workspace/Rejected (rejected plans with _rejected suffix)
+    // 3. Workspace/Active (approved/running)
+    // 4. Workspace/Archive (approved/completed)
 
-    if (!await exists(planPath)) {
-      throw new Error(`Plan not found: ${planId}`);
+    const searchPaths = [
+      { path: join(this.workspacePlansDir, `${planId}.md`), suffix: "" },
+      { path: join(this.workspaceRejectedDir, `${planId}_rejected.md`), suffix: "_rejected" },
+      { path: join(this.workspaceActiveDir, `${planId}.md`), suffix: "" },
+      { path: join(this.workspaceArchiveDir, `${planId}.md`), suffix: "" },
+    ];
+
+    for (const { path: planPath, suffix } of searchPaths) {
+      if (await exists(planPath)) {
+        const content = await Deno.readTextFile(planPath);
+
+        try {
+          const { frontmatter, body } = this.extractFrontmatterWithBody(content);
+          const metadata = extractPlanMetadata(planId, frontmatter);
+
+          return {
+            ...metadata,
+            content: body,
+          };
+        } catch {
+          // Handle plans without frontmatter
+          return {
+            id: planId,
+            status: "unknown",
+            content: content,
+          };
+        }
+      }
     }
 
-    const content = await Deno.readTextFile(planPath);
-
-    try {
-      const { frontmatter, body } = this.extractFrontmatterWithBody(content);
-      const metadata = extractPlanMetadata(planId, frontmatter);
-
-      return {
-        ...metadata,
-        content: body,
-      };
-    } catch {
-      // Handle plans without frontmatter
-      return {
-        id: planId,
-        status: "unknown",
-        content: content,
-      };
-    }
+    // Plan not found in any directory
+    throw new Error(`Plan not found: ${planId}`);
   }
 
   /**
