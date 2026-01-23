@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-21T17:14:28.674Z",
+  "generated_at": "2026-01-23T17:41:24.560Z",
   "index": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -14,6 +14,21 @@
       "path": ".copilot/prompts/openai-debugging-systematic.md",
       "title": "OpenAI Debugging: Reproduce → Diagnose → Fix → Verify",
       "embeddingFile": ".copilot/embeddings/openai-debugging-systematic.md.json"
+    },
+    {
+      "path": ".copilot/prompts/step.md",
+      "title": "Implement Feature Step Template (#step)",
+      "embeddingFile": ".copilot/embeddings/step.md.json"
+    },
+    {
+      "path": ".copilot/prompts/lint.md",
+      "title": "Linting/Formatting Template (#lint)",
+      "embeddingFile": ".copilot/embeddings/lint.md.json"
+    },
+    {
+      "path": ".copilot/prompts/upgrade.md",
+      "title": "Dependency/Version Upgrade Template  (#upgrade)",
+      "embeddingFile": ".copilot/embeddings/upgrade.md.json"
     },
     {
       "path": ".copilot/prompts/refactoring-with-thinking.md",
@@ -42,7 +57,7 @@
     },
     {
       "path": ".copilot/prompts/README.md",
-      "title": "Prompt Examples README",
+      "title": "ExoFrame Agent Prompt Templates Library",
       "embeddingFile": ".copilot/embeddings/README.md.json"
     },
     {
@@ -57,8 +72,23 @@
     },
     {
       "path": ".copilot/prompts/tdd-workflow.md",
-      "title": "TDD Workflow Prompt Example",
+      "title": "TDD Workflow Prompt Example (#tdd)",
       "embeddingFile": ".copilot/embeddings/tdd-workflow.md.json"
+    },
+    {
+      "path": ".copilot/prompts/security.md",
+      "title": "Security Patch Template (#security)",
+      "embeddingFile": ".copilot/embeddings/security.md.json"
+    },
+    {
+      "path": ".copilot/prompts/test.md",
+      "title": "Test Creation Template (#test)",
+      "embeddingFile": ".copilot/embeddings/test.md.json"
+    },
+    {
+      "path": ".copilot/prompts/infra.md",
+      "title": "Infrastructure/Config Template (#infra)",
+      "embeddingFile": ".copilot/embeddings/infra.md.json"
     },
     {
       "path": ".copilot/prompts/google-tdd-workflow.md",
@@ -66,9 +96,39 @@
       "embeddingFile": ".copilot/embeddings/google-tdd-workflow.md.json"
     },
     {
+      "path": ".copilot/prompts/fix.md",
+      "title": "Bug/Test Fix Template (#fix)",
+      "embeddingFile": ".copilot/embeddings/fix.md.json"
+    },
+    {
+      "path": ".copilot/prompts/review.md",
+      "title": "Code Review Template (#review)",
+      "embeddingFile": ".copilot/embeddings/review.md.json"
+    },
+    {
+      "path": ".copilot/prompts/plan.md",
+      "title": "Feature Planning Template (#plan)",
+      "embeddingFile": ".copilot/embeddings/plan.md.json"
+    },
+    {
       "path": ".copilot/prompts/openai-quickstart.md",
       "title": "OpenAI Quickstart: Use agents/ first",
       "embeddingFile": ".copilot/embeddings/openai-quickstart.md.json"
+    },
+    {
+      "path": ".copilot/prompts/explore.md",
+      "title": "Codebase Exploration Template (#explore)",
+      "embeddingFile": ".copilot/embeddings/explore.md.json"
+    },
+    {
+      "path": ".copilot/prompts/refactor.md",
+      "title": "Refactoring Template (#refactor)",
+      "embeddingFile": ".copilot/embeddings/refactor.md.json"
+    },
+    {
+      "path": ".copilot/prompts/doc.md",
+      "title": "Documentation Template (#doc)",
+      "embeddingFile": ".copilot/embeddings/doc.md.json"
     },
     {
       "path": ".copilot/prompts/implementation-plan-driven.md",
@@ -79,6 +139,11 @@
       "path": ".copilot/prompts/cross-reference-navigation.md",
       "title": "Cross-Reference Navigation Prompt",
       "embeddingFile": ".copilot/embeddings/cross-reference-navigation.md.json"
+    },
+    {
+      "path": ".copilot/prompts/regression.md",
+      "title": "Regression Test Template (#regression)",
+      "embeddingFile": ".copilot/embeddings/regression.md.json"
     },
     {
       "path": ".copilot/prompts/update-building-with-ai-agents.md",
@@ -224,7 +289,7 @@
     },
     {
       "path": ".copilot/README.md",
-      "title": "Agents directory README",
+      "title": ".copilot/ — IDE & Dev Agent Instructions",
       "embeddingFile": ".copilot/embeddings/README.md.json"
     },
     {
@@ -293,6 +358,11 @@
       "embeddingFile": ".copilot/embeddings/jscpd-guide.md.json"
     },
     {
+      "path": ".copilot/issues/plan-changeset-approval-bug.md",
+      "title": "Plan/Changeset Approval Not Reflected in List Commands",
+      "embeddingFile": ".copilot/embeddings/plan-changeset-approval-bug.md.json"
+    },
+    {
       "path": ".copilot/issues/request-processing-failure-test-provider.md",
       "title": "Request Processing Fails with Test Provider and Plan Validation Error",
       "embeddingFile": ".copilot/embeddings/request-processing-failure-test-provider.md.json"
@@ -303,13 +373,42 @@
     },
     {
       "path": ".copilot/issues/execution-failure-no-changeset.md",
-      "title": "Plan Executed but Changes Not Applied and No Changeset Created",
       "embeddingFile": ".copilot/embeddings/execution-failure-no-changeset.md.json"
+    },
+    {
+      "path": ".copilot/issues/changeset-approve-branch-not-found.md",
+      "title": "Changeset approve fails to find branches in portal repositories",
+      "embeddingFile": ".copilot/embeddings/changeset-approve-branch-not-found.md.json"
     },
     {
       "path": ".copilot/issues/README.md",
       "title": "Issues Folder Guidelines",
       "embeddingFile": ".copilot/embeddings/README.md.json"
+    },
+    {
+      "path": ".copilot/issues/plan-show-rejected-plans-not-displayed.md",
+      "title": "Rejected plans not shown in plan show command",
+      "embeddingFile": ".copilot/embeddings/plan-show-rejected-plans-not-displayed.md.json"
+    },
+    {
+      "path": ".copilot/issues/plan-validation-failure-senior-coder.md",
+      "title": "Plan Validation Failed for Senior Coder Agent",
+      "embeddingFile": ".copilot/embeddings/plan-validation-failure-senior-coder.md.json"
+    },
+    {
+      "path": ".copilot/issues/changeset-reject-worktree-conflict.md",
+      "title": "Cannot reject changeset when branch is used by worktree",
+      "embeddingFile": ".copilot/embeddings/changeset-reject-worktree-conflict.md.json"
+    },
+    {
+      "path": ".copilot/issues/changeset-show-diff-option-not-implemented.md",
+      "title": "changeset show --diff option not implemented",
+      "embeddingFile": ".copilot/embeddings/changeset-show-diff-option-not-implemented.md.json"
+    },
+    {
+      "path": ".copilot/issues/event-journal-token-tracking-missing.md",
+      "title": "Event Journal Missing Token Usage Tracking in Payload",
+      "embeddingFile": ".copilot/embeddings/event-journal-token-tracking-missing.md.json"
     }
   ]
 }

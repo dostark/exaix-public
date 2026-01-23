@@ -1,0 +1,9 @@
+None currently known. Manual cost tracking required via external monitoring.
+
+## Priority Justification
+
+High priority because token usage and cost tracking is a core declared feature of ExoFrame for monitoring and billing purposes. Without this, users cannot track their AI usage costs effectively.
+
+## Resolution
+
+**Root Cause**: Token usage was being extracted from LLM provider responses but logged at `debug` level, which is below the default `info` logging threshold for the activity journal. Additionally, the logged token data did not include cost calculations.

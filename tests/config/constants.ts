@@ -25,3 +25,35 @@ export const LOG_MSG_ENDPOINT_REACHED_ANHROPIC = "✅ Endpoint reached (Error ca
 export const ERROR_MSG_HTTP_404 = "404";
 export const ERROR_MSG_NOT_FOUND = "not_found";
 export const LOG_MSG_NOT_FOUND_DETECTED = "❌ 404/Not Found Error Detected!";
+
+// ============================================================================
+// Token Usage Regression Test Constants
+// ============================================================================
+
+// Test token counts for regression testing
+export const TEST_PROMPT_TOKENS_GOOGLE = 10;
+export const TEST_COMPLETION_TOKENS_GOOGLE = 5;
+export const TEST_TOTAL_TOKENS_GOOGLE = 15;
+
+export const TEST_PROMPT_TOKENS_OPENAI = 20;
+export const TEST_COMPLETION_TOKENS_OPENAI = 10;
+export const TEST_TOTAL_TOKENS_OPENAI = 30;
+
+export const TEST_PROMPT_TOKENS_ANTHROPIC = 25;
+export const TEST_COMPLETION_TOKENS_ANTHROPIC = 15;
+export const TEST_TOTAL_TOKENS_ANTHROPIC = 40;
+
+// Test model names for regression testing
+export const TEST_MODEL_GOOGLE = "gemini-pro";
+export const TEST_MODEL_OPENAI = "gpt-4";
+export const TEST_MODEL_ANTHROPIC = "claude-3";
+
+// Test provider IDs for regression testing
+export const TEST_PROVIDER_ID_GOOGLE = "google-gemini-pro";
+export const TEST_PROVIDER_ID_OPENAI = "openai-gpt-4";
+export const TEST_PROVIDER_ID_ANTHROPIC = "anthropic-claude-3";
+
+// Test provider IDs for error cases
+export const TEST_PROVIDER_ID_GOOGLE_ERROR = "google-test";
+export const TEST_PROVIDER_ID_OPENAI_ERROR = "openai-test";
+export const TEST_PROVIDER_ID_ANTHROPIC_ERROR = "anthropic-test";
