@@ -282,6 +282,32 @@ describe("ChangesetCommands", () => {
 
       assertStringIncludes(payload.rejection_reason, "Needs redesign");
     });
+
+    it("should handle worktree conflicts when rejecting", async () => {
+      await createFeatureBranch(tempDir, "request-017", "abc-901-def");
+
+      // Create a worktree for the branch to simulate a portal using it
+      const worktreePath = join(tempDir, "worktree-portal");
+      await runGitCommand(tempDir, ["worktree", "add", worktreePath, "feat/request-017-abc-901-def"]);
+
+      // Verify worktree exists
+      const worktreeList = await runGitCommand(tempDir, ["worktree", "list", "--porcelain"]);
+      assertStringIncludes(worktreeList, "feat/request-017-abc-901-def");
+
+      // Reject should handle the worktree conflict and succeed
+      await changesetCommands.reject("request-017", "Worktree conflict test");
+
+      // Verify branch was deleted despite worktree
+      const branches = await runGitCommand(tempDir, ["branch", "--list", "feat/*"]);
+      assertEquals(branches.includes("feat/request-017-abc-901-def"), false);
+
+      // Verify worktree was removed
+      const worktreeListAfter = await runGitCommand(tempDir, ["worktree", "list", "--porcelain"]);
+      assertEquals(worktreeListAfter.includes("feat/request-017-abc-901-def"), false);
+
+      // Clean up worktree directory
+      await Deno.remove(worktreePath, { recursive: true }).catch(() => {});
+    });
   });
 
   /**

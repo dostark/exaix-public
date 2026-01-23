@@ -1,0 +1,18 @@
+# Try to reject the changeset
+exoctl changeset reject <request-id> --reason "Implementation issues"
+# Fails with: Failed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/path/to/portal'
+```
+
+## Observed Behavior
+
+- `exoctl changeset reject` fails when the branch is checked out in a worktree
+- Git error: `cannot delete branch 'branch-name' used by worktree at 'path'`
+- No alternative way to reject the changeset
+
+## Expected Behavior
+
+- `exoctl changeset reject` should succeed even when the branch is used by a worktree
+- Either force-remove the worktree before deleting the branch, or provide a clear error message with instructions
+- Changesets should be rejectable regardless of worktree status
+
+## Environment

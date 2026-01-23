@@ -430,8 +430,64 @@ export class ChangesetCommands extends BaseCommand {
       agentId: await this.getUserIdentity(),
     });
 
-    // Delete branch
-    await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
+    // Try to delete branch
+    try {
+      await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
+    } catch (error) {
+      // Check if the error is due to worktree conflict
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("used by worktree")) {
+        // Branch is checked out in a worktree, try to remove the worktree first
+        try {
+          // Find worktrees using this branch
+          const worktreeList = await portalGitService.runGitCommand(["worktree", "list", "--porcelain"]);
+          const worktrees = worktreeList.output.trim().split("\n");
+
+          let worktreePath: string | null = null;
+          for (let i = 0; i < worktrees.length; i++) {
+            const line = worktrees[i];
+            if (line.startsWith("worktree ")) {
+              const path = line.substring("worktree ".length);
+              // Check the next few lines for branch info (skip HEAD line)
+              for (let j = i + 1; j < worktrees.length && j < i + 4; j++) {
+                if (worktrees[j].startsWith("branch ")) {
+                  const branchRef = worktrees[j].substring("branch ".length);
+                  // Extract branch name from refs/heads/branch
+                  const branchName = branchRef.startsWith("refs/heads/")
+                    ? branchRef.substring("refs/heads/".length)
+                    : branchRef.split("/").pop();
+                  if (branchName === changeset.branch) {
+                    worktreePath = path;
+                    break;
+                  }
+                }
+              }
+              if (worktreePath) break;
+            }
+          }
+
+          if (worktreePath) {
+            // Remove the worktree forcefully
+            await portalGitService.runGitCommand(["worktree", "remove", "--force", worktreePath]);
+            // Now try to delete the branch again
+            await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
+          } else {
+            // Couldn't find the worktree, re-throw original error
+            throw new Error(`Failed to delete branch: ${errorMessage}\nCould not locate worktree using this branch.`);
+          }
+        } catch (worktreeError) {
+          const wtErrorMessage = worktreeError instanceof Error ? worktreeError.message : String(worktreeError);
+          throw new Error(
+            `Failed to delete branch: ${errorMessage}\n` +
+              `Attempted to remove worktree but failed: ${wtErrorMessage}\n` +
+              `Try manually removing the worktree first: git worktree remove --force <worktree-path>`,
+          );
+        }
+      } else {
+        // Re-throw non-worktree errors
+        throw error;
+      }
+    }
 
     // Log rejection with user identity
     const _userIdentity = await this.getUserIdentity();

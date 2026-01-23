@@ -1,0 +1,18 @@
+# Cannot reject changeset when branch is used by worktree
+
+## Problem
+
+When attempting to reject a changeset using `exoctl changeset reject <id> --reason "reason"`, the command fails with an error if the branch is currently checked out in a worktree (typically a portal worktree). The error message is:
+
+```
+Failed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/tmp/test-portal'
+```
+
+This prevents users from rejecting changesets that are associated with active portals.
+
+## Reproduction Steps
+
+```bash
+# Create and approve a plan (creates changeset)
+exoctl request "Add feature" --agent senior-coder --portal TestPortal
+exoctl plan approve <plan-id>
