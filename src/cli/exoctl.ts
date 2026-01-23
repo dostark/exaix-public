@@ -535,19 +535,27 @@ export const __test_command = new Command()
         "show <id>",
         new Command()
           .description("Show changeset details including diff")
-          .action(async (_options, ...args: string[]) => {
+          .option("-d, --diff", "Show only the diff for the changeset")
+          .action(async (options, ...args: string[]) => {
             const id = args[0] as unknown as string;
             try {
               const cs = await changesetCommands.show(id);
-              display.info("changeset.show", cs.request_id, {
-                branch: cs.branch,
-                files_changed: cs.files_changed,
-                commits: cs.commits.length,
-              });
-              for (const commit of cs.commits) {
-                display.info("commit", commit.sha.substring(0, 8), { message: commit.message });
+
+              if (options.diff) {
+                // Output only the diff
+                console.log(cs.diff);
+              } else {
+                // Output full details
+                display.info("changeset.show", cs.request_id, {
+                  branch: cs.branch,
+                  files_changed: cs.files_changed,
+                  commits: cs.commits.length,
+                });
+                for (const commit of cs.commits) {
+                  display.info("commit", commit.sha.substring(0, 8), { message: commit.message });
+                }
+                display.info("changeset.diff", id, { diff: cs.diff });
               }
-              display.info("changeset.diff", id, { diff: cs.diff });
             } catch (error) {
               display.error("cli.error", "changeset show", {
                 message: error instanceof Error ? error.message : "Unknown error",

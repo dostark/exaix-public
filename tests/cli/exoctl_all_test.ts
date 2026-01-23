@@ -414,6 +414,26 @@ Deno.test("changeset show prints commits and diff", async () => {
   });
 });
 
+Deno.test("changeset show --diff outputs only diff", async () => {
+  await withTestMod(async (mod, ctx) => {
+    (ctx.changesetCommands as any).show = (_id: string) => ({
+      request_id: "req-1",
+      branch: "feat/x",
+      files_changed: 1,
+      commits: [{ sha: "abcdef123456", message: "Initial" }],
+      diff: "diff --git a/file.txt b/file.txt\n---a\n+++b\n",
+    });
+    const out = await captureConsoleOutput(async () => {
+      await (mod.__test_command as any).parse(["changeset", "show", "cs-1", "--diff"]);
+    });
+
+    // Should output only the diff, no formatted messages
+    assertEquals(out, "diff --git a/file.txt b/file.txt\n---a\n+++b\n\n");
+    assert(!out.includes("changeset.show"));
+    assert(!out.includes("abcdef12"));
+  });
+});
+
 Deno.test("request inline --dry-run logs dry_run and creates file", async () => {
   await withTestMod(async (mod, ctx) => {
     let created = false;

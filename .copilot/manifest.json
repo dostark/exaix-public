@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-22T20:02:50.866Z",
+  "generated_at": "2026-01-23T15:09:43.213Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1050,6 +1050,16 @@
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk3.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk4.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk5.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/changeset-show-diff-option-not-implemented.md",
+      "title": "changeset show --diff option not implemented",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk0.txt",
+        ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk1.txt",
+        ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk2.txt"
       ]
     }
   ]
