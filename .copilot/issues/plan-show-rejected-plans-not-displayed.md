@@ -1,6 +1,6 @@
 ---
 title: "Rejected plans not shown in plan show command"
-status: in-progress
+status: resolved
 priority: medium
 created: 2026-01-23
 updated: 2026-01-23
@@ -84,5 +84,5 @@ Medium priority - affects user experience for reviewing rejected plans, but has 
 
 - **Root Cause**: `show()` method only searched `Workspace/Plans` directory, but rejected plans are stored in `Workspace/Rejected` with `_rejected.md` suffix
 - **Fix**: Updated `show()` method to search multiple directories (Plans, Rejected, Active, Archive) in order of likelihood
-- **Commit**: [pending]
-- **Verified**: [pending]
+- **Commit**: a6692a4
+- **Verified**: Added test case and all existing tests pass
