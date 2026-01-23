@@ -434,57 +434,72 @@ export class ChangesetCommands extends BaseCommand {
     try {
       await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
     } catch (error) {
-      // Check if the error is due to worktree conflict
+      // Check if the error is due to branch being checked out
       const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes("used by worktree")) {
-        // Branch is checked out in a worktree, try to remove the worktree first
+      if (errorMessage.includes("used by worktree") || errorMessage.includes("checked out")) {
+        // Branch is checked out somewhere, try to handle it
         try {
-          // Find worktrees using this branch
-          const worktreeList = await portalGitService.runGitCommand(["worktree", "list", "--porcelain"]);
-          const worktrees = worktreeList.output.trim().split("\n");
+          // Check what branch is currently checked out
+          const currentBranchResult = await portalGitService.runGitCommand(["branch", "--show-current"]);
+          const currentBranch = currentBranchResult.output.trim();
 
-          let worktreePath: string | null = null;
-          for (let i = 0; i < worktrees.length; i++) {
-            const line = worktrees[i];
-            if (line.startsWith("worktree ")) {
-              const path = line.substring("worktree ".length);
-              // Check the next few lines for branch info (skip HEAD line)
-              for (let j = i + 1; j < worktrees.length && j < i + 4; j++) {
-                if (worktrees[j].startsWith("branch ")) {
-                  const branchRef = worktrees[j].substring("branch ".length);
-                  // Extract branch name from refs/heads/branch
-                  const branchName = branchRef.startsWith("refs/heads/")
-                    ? branchRef.substring("refs/heads/".length)
-                    : branchRef.split("/").pop();
-                  if (branchName === changeset.branch) {
-                    worktreePath = path;
-                    break;
+          if (currentBranch === changeset.branch) {
+            // Branch is checked out in the main working tree, switch to master first
+            await portalGitService.runGitCommand(["checkout", "master"]);
+          } else {
+            // Branch might be checked out in a worktree, try to remove worktrees
+            const worktreeList = await portalGitService.runGitCommand(["worktree", "list", "--porcelain"]);
+            const worktrees = worktreeList.output.trim().split("\n");
+
+            let worktreePath: string | null = null;
+            for (let i = 0; i < worktrees.length; i++) {
+              const line = worktrees[i];
+              if (line.startsWith("worktree ")) {
+                const path = line.substring("worktree ".length);
+                // Check the next few lines for branch info (skip HEAD line)
+                for (let j = i + 1; j < worktrees.length && j < i + 4; j++) {
+                  if (worktrees[j].startsWith("branch ")) {
+                    const branchRef = worktrees[j].substring("branch ".length);
+                    // Extract branch name from refs/heads/branch
+                    const branchName = branchRef.startsWith("refs/heads/")
+                      ? branchRef.substring("refs/heads/".length)
+                      : branchRef.split("/").pop();
+                    if (branchName === changeset.branch) {
+                      worktreePath = path;
+                      break;
+                    }
                   }
                 }
+                if (worktreePath) break;
               }
-              if (worktreePath) break;
+            }
+
+            if (worktreePath) {
+              // Check if this is the main working tree (can't be removed)
+              const mainWorktreeResult = await portalGitService.runGitCommand(["worktree", "list", "--porcelain"]);
+              const mainWorktree = mainWorktreeResult.output.trim().split("\n")[0];
+              if (mainWorktree && mainWorktree.includes(worktreePath)) {
+                // This is the main working tree, switch to master instead
+                await portalGitService.runGitCommand(["checkout", "master"]);
+              } else {
+                // Remove the worktree forcefully
+                await portalGitService.runGitCommand(["worktree", "remove", "--force", worktreePath]);
+              }
             }
           }
 
-          if (worktreePath) {
-            // Remove the worktree forcefully
-            await portalGitService.runGitCommand(["worktree", "remove", "--force", worktreePath]);
-            // Now try to delete the branch again
-            await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
-          } else {
-            // Couldn't find the worktree, re-throw original error
-            throw new Error(`Failed to delete branch: ${errorMessage}\nCould not locate worktree using this branch.`);
-          }
+          // Now try to delete the branch again
+          await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
         } catch (worktreeError) {
           const wtErrorMessage = worktreeError instanceof Error ? worktreeError.message : String(worktreeError);
           throw new Error(
             `Failed to delete branch: ${errorMessage}\n` +
-              `Attempted to remove worktree but failed: ${wtErrorMessage}\n` +
-              `Try manually removing the worktree first: git worktree remove --force <worktree-path>`,
+              `Attempted to resolve checkout/worktree conflict but failed: ${wtErrorMessage}\n` +
+              `Try manually checking out a different branch and then deleting: git checkout master && git branch -D ${changeset.branch}`,
           );
         }
       } else {
-        // Re-throw non-worktree errors
+        // Re-throw other errors
         throw error;
       }
     }

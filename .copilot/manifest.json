@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-23T15:30:49.357Z",
+  "generated_at": "2026-01-23T15:44:23.252Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1061,6 +1061,17 @@
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk3.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk4.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk5.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/changeset-reject-worktree-conflict.md",
+      "title": "Cannot reject changeset when branch is used by worktree",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk0.txt",
+        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk1.txt",
+        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk2.txt",
+        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk3.txt"
       ]
     },
     {

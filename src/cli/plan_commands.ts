@@ -314,13 +314,13 @@ export class PlanCommands extends BaseCommand {
     // 4. Workspace/Archive (approved/completed)
 
     const searchPaths = [
-      { path: join(this.workspacePlansDir, `${planId}.md`), suffix: "" },
-      { path: join(this.workspaceRejectedDir, `${planId}_rejected.md`), suffix: "_rejected" },
-      { path: join(this.workspaceActiveDir, `${planId}.md`), suffix: "" },
-      { path: join(this.workspaceArchiveDir, `${planId}.md`), suffix: "" },
+      { path: join(this.workspacePlansDir, `${planId}.md`) },
+      { path: join(this.workspaceRejectedDir, `${planId}_rejected.md`) },
+      { path: join(this.workspaceActiveDir, `${planId}.md`) },
+      { path: join(this.workspaceArchiveDir, `${planId}.md`) },
     ];
 
-    for (const { path: planPath, suffix } of searchPaths) {
+    for (const { path: planPath } of searchPaths) {
       if (await exists(planPath)) {
         const content = await Deno.readTextFile(planPath);
 

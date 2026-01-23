@@ -1,0 +1,16 @@
+1. **Plan Show Logic**: Check the plan show command implementation
+   - ✅ **FOUND**: `src/cli/plan_commands.ts` `show()` method only searches `Workspace/Plans` directory
+   - ❌ **ISSUE**: Rejected plans are moved to `Workspace/Rejected` with `_rejected.md` suffix
+   - ✅ **SOLUTION**: Update `show()` method to search multiple directories like `list()` does
+
+2. **Plan Storage**: Verify how rejected plans are stored
+   - ✅ **CONFIRMED**: Rejected plans moved to `Workspace/Rejected` with `_rejected.md` suffix
+   - ✅ **CONFIRMED**: `list()` method correctly handles this, but `show()` does not
+
+## Related Files
+
+- `src/cli/exoctl.ts` - CLI command definitions
+- `src/cli/plan_commands.ts` - Plan command implementation (FIXED: updated show method)
+- Plan storage/retrieval logic
+
+## Workaround
