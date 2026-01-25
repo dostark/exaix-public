@@ -86,7 +86,9 @@ Deno.test("[regression] Changeset list shows request and plan context", async ()
   const tempDir = await Deno.makeTempDir({ prefix: "exoframe_changeset_test_" });
 
   try {
-    const { workspaceDir, requestsDir, plansDir, activeDir } = await createTestWorkspace(tempDir);
+    const { workspaceDir: _workspaceDir, requestsDir, plansDir, activeDir: _activeDir } = await createTestWorkspace(
+      tempDir,
+    );
 
     // Create test request
     await createRequestFile(requestsDir, TEST_REQUEST_ID, "Test Request Title", TEST_AGENT_ID);
@@ -152,7 +154,7 @@ Deno.test("[regression] Changeset list shows request and plan context", async ()
   }
 });
 
-Deno.test("[regression] Changeset show displays complete context information", async () => {
+Deno.test("[regression] Changeset show displays complete context information", () => {
   // This test verifies that the changeset show command includes all context fields
 
   const mockChangesetDetails = {
@@ -194,4 +196,3 @@ Deno.test("[regression] Changeset show displays complete context information", a
   assertEquals(mockChangesetDetails.diff, "mock diff output");
   assertEquals(mockChangesetDetails.commits.length, 1);
 });
-

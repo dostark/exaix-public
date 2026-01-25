@@ -43,6 +43,73 @@ Each `.md` file should include YAML frontmatter with at least the following keys
 - Use `scripts/validate_agents_docs.ts` to validate frontmatter and safety rules.
 - Update the manifest with `scripts/build_agents_index.ts` if new docs are added.
 
+## Code Quality Standards
+
+**MANDATORY:** For any code changes, agents MUST run code quality checks before committing:
+
+### Formatting (deno fmt)
+
+Always run `deno fmt` on modified files to ensure consistent code formatting:
+
+```bash
+# Format specific files
+deno fmt src/some-file.ts tests/some-test.ts
+
+# Format entire project (recommended)
+deno task fmt
+```
+
+### Linting (deno lint)
+
+Always run `deno lint` to catch potential issues and ensure code quality:
+
+```bash
+# Lint specific files
+deno lint src/some-file.ts tests/some-test.ts
+
+# Lint entire project (recommended)
+deno lint src/ tests/
+```
+
+### Markdown Linting
+
+Always run markdown linting on modified markdown files to ensure consistent formatting and catch issues:
+
+```bash
+# Lint specific markdown files
+deno run --allow-read scripts/markdown_lint.ts docs/some-file.md .copilot/some-file.md
+
+# Lint all markdown files in project (recommended)
+deno run --allow-read scripts/markdown_lint.ts
+```
+
+The markdown linter will automatically fix common issues. For manual fixes, common rules include:
+- Use consistent heading levels and spacing
+- Ensure proper link formatting
+- Maintain consistent code block formatting
+- Use proper table formatting
+- Check for broken links and references
+
+### Pre-commit Validation
+
+The project includes automated pre-commit hooks that run:
+- `deno fmt --check` - Validates formatting
+- `deno lint` - Validates code quality
+- Markdown linting - Validates markdown formatting
+- Manifest freshness checks
+
+**Failure to run these checks will result in commit rejection.**
+
+### Workflow for Code Changes
+
+1. Make code changes
+2. Run `deno task fmt` to format code
+3. Run `deno lint src/ tests/` to check for issues
+4. Run `deno run --allow-read scripts/markdown_lint.ts` for any markdown changes
+5. Fix any formatting or linting errors
+6. Run tests to ensure functionality
+7. Commit changes
+
 ## Regenerating manifest & chunks
 
 If you add or update files under `.copilot/`, regenerate the manifest and pre-chunk artifacts with:
