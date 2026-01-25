@@ -1649,14 +1649,14 @@ class MockDatabaseService {
   }> = [];
 
   constructor(activities: Array<{ traceId: string; actionType: string; payload: any }> = []) {
-    this.activities = activities.map(a => ({
+    this.activities = activities.map((a) => ({
       ...a,
-      payload: JSON.stringify(a.payload)
+      payload: JSON.stringify(a.payload),
     }));
   }
 
-  async queryActivity(filter: { traceId: string; actionType: string }) {
-    return this.activities.filter(a =>
+  queryActivity(filter: { traceId: string; actionType: string }) {
+    return this.activities.filter((a) =>
       a.traceId === filter.traceId &&
       a.actionType === filter.actionType
     );
@@ -1681,7 +1681,7 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
         input_tokens: 100,
         output_tokens: 50,
         cost_usd: 0.0025,
-      }
+      },
     },
     {
       traceId: "test-trace-123",
@@ -1691,7 +1691,7 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
         input_tokens: 200,
         output_tokens: 75,
         cost_usd: 0.0050,
-      }
+      },
     },
     {
       traceId: "test-trace-123",
@@ -1701,7 +1701,7 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
         input_tokens: 150,
         output_tokens: 60,
         cost_usd: 0.0030,
-      }
+      },
     },
   ]);
 

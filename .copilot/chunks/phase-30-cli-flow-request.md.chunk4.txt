@@ -1,21 +1,21 @@
+- [x] Non-existent flow returns "Flow 'invalid-flow' not found"
+- [x] Malformed flow files return appropriate error
+- [x] Valid flows pass validation
+
 **Test Description:** Unit tests cover flow validation scenarios: valid flow, missing flow, malformed flow.
 
 ---
 
-## Step 30.5: Update Activity Logging
+## Step 30.5: Update Activity Logging ✅ COMPLETED
 
 **Action:** Modify activity logging in request creation to include flow information:
+
 1. Add `flow` field to logged payload
 2. Update log message to indicate flow routing
 3. Ensure trace_id linking works for flow requests
 
 **Success Criteria:**
-- [ ] Activity journal shows `flow` field in request.created events
-- [ ] Log messages distinguish between agent and flow requests
-- [ ] Trace ID properly set for flow requests
 
-**Test Description:** Integration test verifies activity journal contains correct flow information after request creation.
-
----
-
-## Step 30.6: Update CLI Help and Documentation
+- [x] Activity journal shows `flow` field in request.created events
+- [x] Log messages distinguish between agent and flow requests
+- [x] Trace ID properly set for flow requests

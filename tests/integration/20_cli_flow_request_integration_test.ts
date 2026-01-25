@@ -28,7 +28,7 @@ Deno.test("Integration: Flow Request Creation and Metadata", async (t) => {
       const result = await env.createFlowRequest("Process user data pipeline", "refactoring", {
         agentId: "mock-agent",
         priority: 5,
-        tags: ["data", "processing"]
+        tags: ["data", "processing"],
       });
 
       traceId = result.traceId;
@@ -46,7 +46,7 @@ Deno.test("Integration: Flow Request Creation and Metadata", async (t) => {
       assertStringIncludes(content, "agent: mock-agent");
       assertStringIncludes(content, "source: test");
       assertStringIncludes(content, "priority: 5");
-      assertStringIncludes(content, "tags: [\"data\", \"processing\"]");
+      assertStringIncludes(content, 'tags: ["data", "processing"]');
       assertStringIncludes(content, "Process user data pipeline");
     });
 
@@ -63,7 +63,7 @@ Deno.test("Integration: Flow Request Creation and Metadata", async (t) => {
           flow: "refactoring",
           agent: "mock-agent",
           priority: 5,
-          description: "Process user data pipeline"
+          description: "Process user data pipeline",
         },
         traceId,
       );
@@ -72,13 +72,11 @@ Deno.test("Integration: Flow Request Creation and Metadata", async (t) => {
 
       const journalEntries = await env.db.queryActivity({
         traceId: traceId,
-        limit: 10
+        limit: 10,
       });
 
       assert(journalEntries.length > 0, "No activity journal entries found");
-      const requestEntry = journalEntries.find((entry) =>
-        entry.action_type === "request_created"
-      );
+      const requestEntry = journalEntries.find((entry) => entry.action_type === "request_created");
       assert(requestEntry, "No request_created entry found");
 
       const payload = JSON.parse(requestEntry.payload);
@@ -86,7 +84,6 @@ Deno.test("Integration: Flow Request Creation and Metadata", async (t) => {
       assertEquals(payload.agent, "mock-agent");
       assertEquals(payload.priority, 5);
     });
-
   } finally {
     await env.cleanup();
   }
@@ -115,7 +112,7 @@ Deno.test("Integration: Flow Request Validation", async (t) => {
     await t.step("Test 5: Flow request with portal metadata", async () => {
       const result = await env.createFlowRequest("Portal flow request", "refactoring", {
         portal: "TestPortal",
-        agentId: "mock-agent"
+        agentId: "mock-agent",
       });
 
       const requestPath = join(env.tempDir, "Workspace", "Requests", `request-${result.traceId.substring(0, 8)}.md`);
@@ -125,7 +122,6 @@ Deno.test("Integration: Flow Request Validation", async (t) => {
       assertStringIncludes(content, 'portal: "TestPortal"');
       assertStringIncludes(content, "agent: mock-agent");
     });
-
   } finally {
     await env.cleanup();
   }

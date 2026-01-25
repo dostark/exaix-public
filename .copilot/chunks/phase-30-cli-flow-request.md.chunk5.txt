@@ -1,22 +1,27 @@
+**Test Description:** Integration test verifies activity journal contains correct flow information after request creation.
+
+---
+
+## Step 30.6: Update CLI Help and Documentation ✅ COMPLETED
+
 **Action:** Improve user experience:
+
 1. Update command description to mention flow support
 2. Add examples showing flow usage
 3. Update any related documentation
 
 **Success Criteria:**
-- [ ] `exoctl request --help` shows flow examples
-- [ ] Command description mentions multi-agent flows
-- [ ] Usage examples include `--flow` option
+
+- [x] `exoctl request --help` shows flow examples
+- [x] Command description mentions multi-agent flows
+- [x] Usage examples include `--flow` option
 
 **Test Description:** Manual verification that help text is clear and examples work.
 
+**Files Modified:**
+
+- `src/cli/exoctl.ts`: Updated command description, enhanced --flow option help text, added usage examples
+
 ---
 
-## Step 30.7: End-to-End Flow Testing
-
-**Action:** Create comprehensive test that verifies the complete flow:
-1. Create request with `--flow` option
-2. Verify file created with correct frontmatter
-3. Verify request appears in `exoctl request list`
-4. Verify request can be shown with `exoctl request show`
-5. Verify activity journal contains flow information
+## Step 30.7: End-to-End Flow Testing ✅ COMPLETED

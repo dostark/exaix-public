@@ -22,6 +22,7 @@ sqlite3 .exo/journal.db "SELECT payload FROM activity WHERE payload LIKE '%googl
 ## Observed Behavior
 
 The query returns payloads like:
+
 ```json
 {"provider":"google-gemini-2.0-flash-exp","model":"gemini-2.0-flash-exp","watching_requests":"Workspace/Requests","watching_plans":"Workspace/Active","status":"active"}
 {"type":"google","model":"gemini-2.0-flash-exp","source":"config","named_model":"default"}
@@ -32,12 +33,14 @@ No token usage counts or cost information is present in any payloads.
 ## Expected Behavior
 
 Payloads should include:
+
 - Input token count
 - Output token count
 - Total cost calculation based on provider pricing
 - Timestamp of usage
 
 Example expected payload:
+
 ```json
 {
   "provider":"google-gemini-2.0-flash-exp",
@@ -89,6 +92,7 @@ High priority because token usage and cost tracking is a core declared feature o
 **Root Cause**: Token usage was being extracted from LLM provider responses but logged at `debug` level, which is below the default `info` logging threshold for the activity journal. Additionally, the logged token data did not include cost calculations.
 
 **Fix**:
+
 1. Changed token usage logging from `logger.debug()` to `logger.info()` in `handleProviderResponse()` to ensure it appears in the activity journal
 2. Extended `TokenMap` type to include `cost_usd` field
 3. Updated all `tokenMapper` functions (`tokenMapperOpenAI`, `tokenMapperGoogle`, `tokenMapperAnthropic`) to calculate and include cost based on provider rates

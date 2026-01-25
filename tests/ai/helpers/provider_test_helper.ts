@@ -271,7 +271,7 @@ export function testProviderTokenUsage<T extends { generate: (prompt: string) =>
   Deno.test(`${name} - token usage reporting`, async () => {
     const { EventLogger } = await import("../../../src/services/event_logger.ts");
     const logger = new EventLogger({ prefix: "[Test]" });
-    const debugSpy = spy(logger, "debug");
+    const infoSpy = spy(logger, "info");
 
     const provider = createProvider({ apiKey: "test-key", logger });
     const mockResponse = responseConfig.createFullResponse("Hello", 10, 20);
@@ -280,7 +280,7 @@ export function testProviderTokenUsage<T extends { generate: (prompt: string) =>
 
     try {
       await provider.generate("Hi");
-      const call = debugSpy.calls[0];
+      const call = infoSpy.calls[0];
       assertEquals(call.args[0], "llm.usage");
       assertEquals(call.args[1], provider.id);
       assertEquals(call.args[2]?.prompt_tokens, 10);

@@ -46,10 +46,10 @@ async function captureConsoleOutput(fn: () => Promise<void> | void, timeoutMs: n
     await Promise.race([
       fn(),
       new Promise<never>((_, reject) => {
-        controller.signal.addEventListener('abort', () => {
+        controller.signal.addEventListener("abort", () => {
           reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
         });
-      })
+      }),
     ]);
   } finally {
     clearTimeout(timeoutId);
@@ -76,10 +76,10 @@ async function captureAllOutputs(fn: () => Promise<void> | void, timeoutMs: numb
     await Promise.race([
       fn(),
       new Promise<never>((_, reject) => {
-        controller.signal.addEventListener('abort', () => {
+        controller.signal.addEventListener("abort", () => {
           reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
         });
-      })
+      }),
     ]);
   } finally {
     clearTimeout(timeoutId);
@@ -106,10 +106,10 @@ async function expectExitWithLogs(fn: () => Promise<void> | void, timeoutMs: num
     await Promise.race([
       fn(),
       new Promise<never>((_, reject) => {
-        controller.signal.addEventListener('abort', () => {
+        controller.signal.addEventListener("abort", () => {
           reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
         });
-      })
+      }),
     ]);
     throw new Error("Expected Deno.exit to be called");
   } catch (e: any) {
@@ -889,7 +889,7 @@ Deno.test("end-to-end flow request workflow", async () => {
     };
 
     // Mock request listing to return our flow request
-    (ctx.requestCommands as any).list = (status?: string) => {
+    (ctx.requestCommands as any).list = (_status?: string) => {
       return [{
         trace_id: "flow-test-123",
         priority: "normal",

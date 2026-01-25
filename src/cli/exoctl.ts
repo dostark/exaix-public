@@ -334,9 +334,12 @@ export const __test_command = new Command()
           Deno.exit(1);
         }
       })
-      .example("Create a request for a specific agent", "exoctl request \"Analyze this code\" --agent code-reviewer")
-      .example("Create a request for a multi-agent flow", "exoctl request \"Build a web app\" --flow web-development")
-      .example("Create a high-priority request", "exoctl request \"Fix critical bug\" --priority critical --agent debugger")
+      .example("Create a request for a specific agent", 'exoctl request "Analyze this code" --agent code-reviewer')
+      .example("Create a request for a multi-agent flow", 'exoctl request "Build a web app" --flow web-development')
+      .example(
+        "Create a high-priority request",
+        'exoctl request "Fix critical bug" --priority critical --agent debugger',
+      )
       .command(
         "list",
         new Command()

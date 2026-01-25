@@ -1,16 +1,18 @@
-**Success Criteria:**
-- [ ] Flow validation checks file exists in `Blueprints/Flows/`
-- [ ] Mutual exclusion prevents `flow` + `agent` combination
-- [ ] Flow field added to YAML frontmatter
-- [ ] Activity logging includes flow information
+1. Accept flow parameter in options
+2. Validate flow exists in `Blueprints/Flows/` directory
+3. Add flow field to YAML frontmatter when specified
+4. Ensure mutual exclusion: cannot specify both `flow` and `agent`
 
-**Test Description:** Integration test creates request with `--flow code-review`, verifies file created with correct frontmatter and flow validation works.
+**Success Criteria:**
+
+- [x] Flow validation checks file exists in `Blueprints/Flows/`
+- [x] Mutual exclusion prevents `flow` + `agent` combination
+- [x] Flow field added to YAML frontmatter
+- [x] Activity logging includes flow information
+- [x] Unit tests verify flow validation, mutual exclusion, and frontmatter generation
 
 ---
 
-## Step 30.3: Add CLI Option
+## Step 30.3: Add CLI Option ✅ COMPLETED
 
 **Action:** Extend the `exoctl request` command definition in `src/cli/exoctl.ts`:
-1. Add `--flow <flow:string>` option
-2. Update help text to mention flow support
-3. Pass flow option to `RequestCommands.create()`

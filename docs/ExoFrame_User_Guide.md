@@ -88,7 +88,7 @@ source ~/.bashrc
 
 Then optionally customize your configuration:
 
-```bash
+````bash
 cd /path/to/target-workspace
 
 # Review and customize config (optional)
@@ -122,13 +122,13 @@ ollama serve &
 
 Select a model based on your hardware capabilities:
 
-| Hardware Profile | Recommended Model | Install Command | Performance |
-| --- | --- | --- | --- |
-| **Minimal** (8GB RAM, CPU) | `llama3.2:1b` | `ollama pull llama3.2:1b` | ⚡ Fast, basic reasoning |
-| **Standard** (16GB RAM, CPU) | `llama3.2:3b` | `ollama pull llama3.2:3b` | ⚖️ Balanced speed/quality |
-| **Developer** (16GB RAM, GPU) | `codellama:7b-instruct` | `ollama pull codellama:7b-instruct` | 💻 Optimized for code |
-| **Power User** (32GB+ RAM, GPU 8GB+) | `codellama:13b` | `ollama pull codellama:13b` | 🚀 Best code quality |
-| **Workstation** (64GB+ RAM, GPU 16GB+) | `codellama:34b` | `ollama pull codellama:34b` | 🏆 Premium quality |
+| Hardware Profile                       | Recommended Model       | Install Command                     | Performance               |
+| -------------------------------------- | ----------------------- | ----------------------------------- | ------------------------- |
+| **Minimal** (8GB RAM, CPU)             | `llama3.2:1b`           | `ollama pull llama3.2:1b`           | ⚡ Fast, basic reasoning  |
+| **Standard** (16GB RAM, CPU)           | `llama3.2:3b`           | `ollama pull llama3.2:3b`           | ⚖️ Balanced speed/quality |
+| **Developer** (16GB RAM, GPU)          | `codellama:7b-instruct` | `ollama pull codellama:7b-instruct` | 💻 Optimized for code     |
+| **Power User** (32GB+ RAM, GPU 8GB+)   | `codellama:13b`         | `ollama pull codellama:13b`         | 🚀 Best code quality      |
+| **Workstation** (64GB+ RAM, GPU 16GB+) | `codellama:34b`         | `ollama pull codellama:34b`         | 🏆 Premium quality        |
 
 **Quick Start:**
 
@@ -163,12 +163,12 @@ EOF
 
 **Troubleshooting:**
 
-| Issue | Solution |
-| --- | --- |
-| "connection refused" | Run `ollama serve` to start the service |
-| Slow inference | Use smaller model or enable GPU support |
-| Out of memory | Switch to smaller model (3b or 1b variant) |
-| GPU not detected (WSL) | Install NVIDIA drivers on Windows host |
+| Issue                  | Solution                                   |
+| ---------------------- | ------------------------------------------ |
+| "connection refused"   | Run `ollama serve` to start the service    |
+| Slow inference         | Use smaller model or enable GPU support    |
+| Out of memory          | Switch to smaller model (3b or 1b variant) |
+| GPU not detected (WSL) | Install NVIDIA drivers on Windows host     |
 
 ### 2.4 Cloud LLM Setup (Anthropic, OpenAI, Google)
 
@@ -212,12 +212,12 @@ model = "llama3.2"
 
 #### 2.4.3 Provider Comparison
 
-| Provider | Best For | Recommended Model | Cost |
-| --- | --- | --- | --- |
-| **Anthropic** | Complex reasoning, large context | `claude-opus-4.5` | $$$ |
-| **OpenAI** | General purpose, speed | `gpt-5.2-pro` | $$ |
-| **Google** | Long context, multimodal | `gemini-3-pro` | $$ |
-| **Ollama** | Privacy, zero cost, offline | `llama3.2` | Free |
+| Provider      | Best For                         | Recommended Model | Cost |
+| ------------- | -------------------------------- | ----------------- | ---- |
+| **Anthropic** | Complex reasoning, large context | `claude-opus-4.5` | $$$  |
+| **OpenAI**    | General purpose, speed           | `gpt-5.2-pro`     | $$   |
+| **Google**    | Long context, multimodal         | `gemini-3-pro`    | $$   |
+| **Ollama**    | Privacy, zero cost, offline      | `llama3.2`        | Free |
 
 ### 2.4 Advanced Deployment Options
 
@@ -236,7 +236,7 @@ cd /home/alice/ExoFrame
 deno task cache
 deno task setup
 deno task start
-````
+```
 
 ## 3. Workspace Overview
 
@@ -600,7 +600,7 @@ exoctl request "Test" --dry-run
 
 # JSON output (for scripting)
 exoctl request "Test" --json
-````
+```
 
 **Options:**
 

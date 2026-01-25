@@ -1,10 +1,17 @@
+**Action:** Create comprehensive test that verifies the complete flow:
+
+1. Create request with `--flow` option
+2. Verify file created with correct frontmatter
+3. Verify request appears in `exoctl request list`
+4. Verify request can be shown with `exoctl request show`
+5. Verify activity journal contains flow information
+
 **Success Criteria:**
-- [ ] All CLI operations work with flow requests
-- [ ] Request routing metadata preserved
-- [ ] No regression in existing functionality
+
+- [x] All CLI operations work with flow requests
+- [x] Request routing metadata preserved
+- [x] No regression in existing functionality
 
 **Test Description:** Full integration test covering create → list → show → journal verification workflow.
 
----
-
-## Implementation Checklist
+**Files Modified:**

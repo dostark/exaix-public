@@ -1,20 +1,22 @@
-## Step 30.1: Extend RequestOptions Interface
+- **Technical Spec:** Section 5.8.2.1 "Flow-Aware Request Processing"
+- **Test Scenarios:** MT-26 "Request Routing Validation"
+- **Existing Code:** `src/cli/request_commands.ts`, `src/cli/exoctl.ts`
+
+---
+
+## Step 30.1: Extend RequestOptions Interface ✅ COMPLETED
 
 **Action:** Add `flow` field to `RequestOptions` interface in `src/cli/request_commands.ts`.
 
 **Success Criteria:**
-- [ ] `RequestOptions` interface includes `flow?: string` field
-- [ ] TypeScript compilation passes without errors
-- [ ] Interface documentation updated
 
-**Test Description:** Unit test verifies interface accepts flow parameter without breaking existing functionality.
+- [x] `RequestOptions` interface includes `flow?: string` field
+- [x] TypeScript compilation passes without errors
+- [x] Interface documentation updated
+- [x] Unit tests verify interface accepts flow parameter without breaking existing functionality
 
 ---
 
-## Step 30.2: Update Request Creation Logic
+## Step 30.2: Update Request Creation Logic ✅ COMPLETED
 
 **Action:** Modify `RequestCommands.create()` method to:
-1. Accept flow parameter in options
-2. Validate flow exists in `Blueprints/Flows/` directory
-3. Add flow field to YAML frontmatter when specified
-4. Ensure mutual exclusion: cannot specify both `flow` and `agent`

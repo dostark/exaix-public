@@ -370,8 +370,7 @@ Help me understand this codebase.
 
 Before routing to FlowRunner, the Request Router validates:
 
-    - **Flow Existence:** Flow blueprint exists in `/Workspace/Blueprints/Flows/`
-
+- **Flow Existence:** Flow blueprint exists in `/Workspace/Blueprints/Flows/`
 - **Schema Validity:** Flow conforms to expected structure
 - **Dependencies:** All referenced agents and transforms exist
 - **No Cycles:** Flow doesn't contain circular dependencies
@@ -599,8 +598,7 @@ graph TB
 
 **Detection Events:**
 
-    - `plan.detected` - Plan file found in Workspace/Active
-
+- `plan.detected` - Plan file found in Workspace/Active
 - `plan.ready_for_execution` - Valid plan parsed, ready for execution
 - `plan.invalid_frontmatter` - YAML parsing failed
 - `plan.missing_trace_id` - Required trace_id field not found
@@ -1054,7 +1052,7 @@ sequenceDiagram
 
 ### CLI Command Tree
 
-```
+```text
 exoctl memory
 ├── list                    # List all memory banks
 ├── search <query>          # Search across memory
@@ -1667,7 +1665,7 @@ Build/validation scripts:
 
 ### Mermaid Live Editor
 
-- https://mermaid.live/
+- `https://mermaid.live/`
 - Copy/paste diagram code for editing
 
 ### Export Options

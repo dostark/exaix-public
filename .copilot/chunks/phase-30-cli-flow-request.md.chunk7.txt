@@ -1,27 +1,7 @@
-- [ ] **30.1** Interface Extension
-  - [ ] Add `flow?: string` to `RequestOptions`
-  - [ ] Update TypeScript types
-- [ ] **30.2** Core Logic Update
-  - [ ] Flow validation logic
-  - [ ] Mutual exclusion check
-  - [ ] Frontmatter generation
-- [ ] **30.3** CLI Integration
-  - [ ] `--flow` option added
-  - [ ] Help text updated
-  - [ ] Parameter passing
-- [ ] **30.4** Validation Enhancement
-  - [ ] Flow existence check
-  - [ ] Basic structure validation
-  - [ ] Error message improvements
-- [ ] **30.5** Logging Updates
-  - [ ] Activity payload includes flow
-  - [ ] Log messages updated
-  - [ ] Trace ID handling
-- [ ] **30.6** Documentation
-  - [ ] Help text improvements
-  - [ ] Usage examples
-  - [ ] Command description
-- [ ] **30.7** Integration Testing
-  - [ ] End-to-end flow test
-  - [ ] Regression testing
-  - [ ] Manual verification
+- `tests/cli/exoctl_coverage_test.ts`: Added comprehensive end-to-end test for flow request workflow
+- `src/cli/exoctl.ts`: Updated printRequestResult, list display, and show display to properly show flow information
+- `src/cli/request_commands.ts`: Updated list() and show() methods to include flow field in returned data
+
+---
+
+## Implementation Checklist

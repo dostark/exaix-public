@@ -2545,22 +2545,22 @@ Agent: [runs full test suite to verify]
 **The Result**:
 
 - Before: 305 tests (with duplicates)
-- After:  278 tests (consolidated, all passing)
+- After: 278 tests (consolidated, all passing)
 
 **The Test Organization Pattern**:
 
 tests/
-├── cli/                    # CLI command tests
-│   ├── daemon_commands_test.ts
-│   ├── portal_commands_test.ts
-│   └── plan_commands_test.ts
-├── helpers/                # Test utilities
-│   ├── config.ts
-│   └── db.ts
-├── services/               # Service unit tests
-│   ├── db_test.ts
-│   └── git_service_test.ts
-└── integration/            # E2E tests
+├── cli/ # CLI command tests
+│ ├── daemon_commands_test.ts
+│ ├── portal_commands_test.ts
+│ └── plan_commands_test.ts
+├── helpers/ # Test utilities
+│ ├── config.ts
+│ └── db.ts
+├── services/ # Service unit tests
+│ ├── db_test.ts
+│ └── git_service_test.ts
+└── integration/ # E2E tests
 
 **The Deduplication Checklist**:
 

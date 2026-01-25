@@ -854,7 +854,7 @@ export class FlowRunner {
           totalInputTokens += inputTokens;
           totalOutputTokens += outputTokens;
           totalCostUsd += costUsd;
-        } catch (parseError) {
+        } catch (_parseError) {
           // Skip malformed token events
           console.warn(`Skipping malformed token event: ${event.payload}`);
         }
