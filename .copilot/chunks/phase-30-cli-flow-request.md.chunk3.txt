@@ -1,0 +1,20 @@
+**Success Criteria:**
+- [ ] `exoctl request --help` shows `--flow` option
+- [ ] Option accepts flow ID string
+- [ ] Flow parameter passed to request creation
+
+**Test Description:** CLI integration test runs `exoctl request --flow code-review "test"` and verifies command succeeds.
+
+---
+
+## Step 30.4: Update Request Validation
+
+**Action:** Enhance validation in `RequestCommands.create()`:
+1. Check flow file exists and is readable
+2. Validate flow has proper structure (optional - basic YAML parsing)
+3. Provide clear error messages for invalid flows
+
+**Success Criteria:**
+- [ ] Non-existent flow returns "Flow 'invalid-flow' not found"
+- [ ] Malformed flow files return appropriate error
+- [ ] Valid flows pass validation

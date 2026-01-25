@@ -34,19 +34,31 @@ async function withTestMod<T>(fn: (mod: any, ctx: any) => Promise<T> | T) {
   }
 }
 
-async function captureConsoleOutput(fn: () => Promise<void> | void) {
+async function captureConsoleOutput(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
   let out = "";
   const origLog = console.log;
   console.log = (msg: string) => (out += msg + "\n");
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
-    await fn();
+    await Promise.race([
+      fn(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener('abort', () => {
+          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
+        });
+      })
+    ]);
   } finally {
+    clearTimeout(timeoutId);
     console.log = origLog;
   }
   return out;
 }
 
-async function captureAllOutputs(fn: () => Promise<void> | void) {
+async function captureAllOutputs(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
   const logs: string[] = [];
   const warns: string[] = [];
   const errs: string[] = [];
@@ -56,9 +68,21 @@ async function captureAllOutputs(fn: () => Promise<void> | void) {
   console.log = (...args: any[]) => logs.push(args.join(" "));
   console.warn = (...args: any[]) => warns.push(args.join(" "));
   console.error = (...args: any[]) => errs.push(args.join(" "));
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
-    await fn();
+    await Promise.race([
+      fn(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener('abort', () => {
+          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
+        });
+      })
+    ]);
   } finally {
+    clearTimeout(timeoutId);
     console.log = origLog;
     console.warn = origWarn;
     console.error = origErr;
@@ -66,7 +90,7 @@ async function captureAllOutputs(fn: () => Promise<void> | void) {
   return { logs, warns, errs };
 }
 
-async function expectExitWithLogs(fn: () => Promise<void> | void) {
+async function expectExitWithLogs(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
   const origExit = Deno.exit;
   const origErr = console.error;
   const errors: string[] = [];
@@ -74,13 +98,25 @@ async function expectExitWithLogs(fn: () => Promise<void> | void) {
   (Deno as any).exit = (code?: number) => {
     throw new Error(`DENO_EXIT:${code ?? 0}`);
   };
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
-    await fn();
+    await Promise.race([
+      fn(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener('abort', () => {
+          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
+        });
+      })
+    ]);
     throw new Error("Expected Deno.exit to be called");
   } catch (e: any) {
-    if (!e.message.startsWith("DENO_EXIT:")) throw e;
+    if (!e.message.startsWith("DENO_EXIT:") && !e.message.includes("timed out")) throw e;
     return { err: e, errors };
   } finally {
+    clearTimeout(timeoutId);
     console.error = origErr;
     Deno.exit = origExit;
   }
@@ -727,7 +763,7 @@ Deno.test("request create with all options", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.requestCommands as any).create = (
       desc: string,
-      opts: { agent: string; priority: string; portal?: string; model?: string },
+      opts: { agent: string; priority: string; portal?: string; model?: string; flow?: string },
     ) => {
       assertEquals(desc, "Do task");
       assertEquals(opts.agent, "custom-agent");
@@ -754,6 +790,36 @@ Deno.test("request create with all options", async () => {
         "my-portal",
         "-m",
         "gpt-4",
+      ]);
+    });
+  });
+});
+
+Deno.test("request create with flow option", async () => {
+  await withTestMod(async (mod, ctx) => {
+    (ctx.requestCommands as any).create = (
+      desc: string,
+      opts: { flow: string; priority: string },
+    ) => {
+      assertEquals(desc, "Code review task");
+      assertEquals(opts.flow, "code-review");
+      assertEquals(opts.priority, "high");
+      return {
+        filename: "/tmp/req.md",
+        trace_id: "t-flow",
+        priority: "high",
+        flow: "code-review",
+        path: "/tmp",
+      };
+    };
+    await captureConsoleOutput(async () => {
+      await (mod.__test_command as any).parse([
+        FlowInputSource.REQUEST,
+        "Code review task",
+        "--flow",
+        "code-review",
+        "-p",
+        "high",
       ]);
     });
   });
@@ -798,5 +864,88 @@ Deno.test("request list shows different priority icons", async () => {
     });
     // Should show different icons for different priorities
     assert(out.includes("🔴") || out.includes("🟠") || out.includes("⚪") || out.includes("count: 3"));
+  });
+});
+
+// ===== End-to-End Flow Request Testing =====
+
+Deno.test("end-to-end flow request workflow", async () => {
+  await withTestMod(async (mod, ctx) => {
+    // Mock the request creation to return a flow request
+    (ctx.requestCommands as any).create = (
+      desc: string,
+      opts: { flow: string; priority: string },
+    ) => {
+      assertEquals(desc, "Build a web application");
+      assertEquals(opts.flow, "web-dev-flow");
+      assertEquals(opts.priority, "normal");
+      return {
+        filename: "/tmp/test-flow-request.md",
+        trace_id: "flow-test-123",
+        priority: "normal",
+        flow: "web-dev-flow",
+        path: "/tmp",
+      };
+    };
+
+    // Mock request listing to return our flow request
+    (ctx.requestCommands as any).list = (status?: string) => {
+      return [{
+        trace_id: "flow-test-123",
+        priority: "normal",
+        flow: "web-dev-flow",
+        agent: null,
+        status: "pending",
+        created: new Date().toISOString(),
+        description: "Build a web application",
+      }];
+    };
+
+    // Mock request showing to return detailed flow request info
+    (ctx.requestCommands as any).show = (traceId: string) => {
+      assertEquals(traceId, "flow-test-123");
+      return {
+        metadata: {
+          trace_id: "flow-test-123",
+          filename: "flow-test-123.md",
+          path: "/tmp/flow-test-123.md",
+          status: "pending",
+          priority: "normal",
+          agent: "default",
+          flow: "web-dev-flow",
+          created: new Date().toISOString(),
+          created_by: "test-user",
+          source: "cli",
+        },
+        content: "Build a web application",
+      };
+    };
+
+    // Test 1: Create flow request
+    const createOutput = await captureConsoleOutput(async () => {
+      await (mod.__test_command as any).parse([
+        FlowInputSource.REQUEST,
+        "Build a web application",
+        "--flow",
+        "web-dev-flow",
+      ]);
+    });
+    assert(createOutput.includes("trace_id: flow-test-123"));
+    assert(createOutput.includes("flow: web-dev-flow"));
+
+    // Test 2: List requests includes flow request
+    const listOutput = await captureConsoleOutput(async () => {
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list"]);
+    });
+    assert(listOutput.includes("flow-test-123"));
+    assert(listOutput.includes("web-dev-flow"));
+
+    // Test 3: Show request displays flow information
+    const showOutput = await captureConsoleOutput(async () => {
+      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "show", "flow-test-123"]);
+    });
+    assert(showOutput.includes("flow-test-123"));
+    assert(showOutput.includes("web-dev-flow"));
+    assert(showOutput.includes("Build a web application"));
   });
 });

@@ -2366,7 +2366,7 @@ Result: Plans now execute automatically, creating traceable changesets
 
 **What Happened**:
 
-```
+```text
 Me: "Implement Flow Orchestration Phase 7.5-7.6: Flow-aware request routing with comprehensive testing"
 Agent: [analyzes implementation plan]
 Agent: [implements FlowValidator service for pre-execution validation]
@@ -2465,7 +2465,7 @@ _Written from the trenches of the ExoFrame project, where the builders were also
 
 **The Request Pattern**:
 
-```
+```text
 You: "Proceed with implementation in TDD manner. Try to achieve 70% in branch coverage."
 Agent: [writes comprehensive test suite]
 Agent: [implements feature]
@@ -2484,7 +2484,7 @@ Agent: "Branch coverage: 84.2%"
 
 **The Coverage Request**:
 
-```
+```text
 You: "Run tests with coverage for src/cli/portal_commands.ts"
 Agent: [runs deno test --coverage]
 Agent: [generates lcov report]
@@ -2500,26 +2500,22 @@ Agent: "Branch coverage: 84.2% (target: 70%)"
 
 **The Coverage Improvement Loop**:
 
-```
 1. Run coverage report
 2. Identify uncovered branches
 3. Add tests for those branches
 4. Verify coverage increased
 5. Repeat until target met
-```
 
 **The Anti-Pattern**:
 
-```
 ❌ "Add tests to improve coverage" (vague)
 ✅ "Add test for the else branch on line 145 where config is undefined"
-```
 
 ### Pattern 13: Test Organization and Deduplication
 
 **The Discovery**:
 
-```
+```text
 You: "Run all tests"
 Agent: [runs tests]
 Agent: "Found 305 tests"
@@ -2537,7 +2533,7 @@ Agent: "Found duplicate tests in tests/daemon_commands_test.ts and
 
 **The Solution**:
 
-```
+```text
 You: "Move unique tests from tests/foo_test.ts to tests/cli/foo_test.ts
      and delete the duplicate file"
 Agent: [identifies unique tests]
@@ -2548,14 +2544,11 @@ Agent: [runs full test suite to verify]
 
 **The Result**:
 
-```
-Before: 305 tests (with duplicates)
-After:  278 tests (consolidated, all passing)
-```
+- Before: 305 tests (with duplicates)
+- After:  278 tests (consolidated, all passing)
 
 **The Test Organization Pattern**:
 
-```
 tests/
 ├── cli/                    # CLI command tests
 │   ├── daemon_commands_test.ts
@@ -2568,7 +2561,6 @@ tests/
 │   ├── db_test.ts
 │   └── git_service_test.ts
 └── integration/            # E2E tests
-```
 
 **The Deduplication Checklist**:
 
@@ -2583,7 +2575,7 @@ tests/
 
 **The Audit Trigger**:
 
-```
+```text
 You: "Verify that every exoctl CLI command call correctly traced in activity log"
 Agent: [creates comprehensive audit report]
 ```
@@ -2610,7 +2602,7 @@ Agent: [creates comprehensive audit report]
 
 **The Fix Pattern**:
 
-```
+```text
 You: "Yes, update daemon commands"
 Agent: [adds logDaemonActivity() helper]
 Agent: [adds daemon.started, daemon.stopped, daemon.restarted events]
@@ -4558,7 +4550,7 @@ Agent: "No - I only explore it when tasks explicitly mention it,
 
 **The Commit Message Pattern**:
 
-```
+```text
 Phase 13.X: [Component] Enhancement
 
 - Add [ViewState] interface
@@ -4575,7 +4567,7 @@ Tests: XXX passing (YYY new)
 
 **Phase 13 Test Trajectory**:
 
-```
+```text
 Day 1: 225 tests (baseline)
        └── 13.1: +53 → 278
        └── 13.2: +27 → 305
@@ -4632,6 +4624,7 @@ The repository underwent an intensive implementation and QA cycle between 2025-1
 - **Why**: Keyboard-driven interfaces are faster for developers (0ms latency, muscle memory).
 - **Implementation**: `src/tui/tui_dashboard.ts` implements a split-pane, tabbed interface using `deno-tui` or `cliffy`.
 - **Key Pattern**: `performAction` wrapper.
+
   ```typescript
   // Wrap every user action to ensure consistent error handling
   protected async performAction(actionName: string, action: () => Promise<void>) {
@@ -4762,7 +4755,7 @@ For a detailed analysis, see: [ExoFrame_LangChain_Comparison.md](./not_actual/Ex
 
 ## Part XI: Security Solutions - Building Safe AI Systems
 
-_"Security isn't a feature—it's the foundation. Without it, AI agents are just sophisticated attack vectors."_
+**"Security isn't a feature—it's the foundation. Without it, AI agents are just sophisticated attack vectors."**
 
 ### The Security Audit Revelation
 

@@ -1,0 +1,16 @@
+**Success Criteria:**
+- [ ] Flow validation checks file exists in `Blueprints/Flows/`
+- [ ] Mutual exclusion prevents `flow` + `agent` combination
+- [ ] Flow field added to YAML frontmatter
+- [ ] Activity logging includes flow information
+
+**Test Description:** Integration test creates request with `--flow code-review`, verifies file created with correct frontmatter and flow validation works.
+
+---
+
+## Step 30.3: Add CLI Option
+
+**Action:** Extend the `exoctl request` command definition in `src/cli/exoctl.ts`:
+1. Add `--flow <flow:string>` option
+2. Update help text to mention flow support
+3. Pass flow option to `RequestCommands.create()`

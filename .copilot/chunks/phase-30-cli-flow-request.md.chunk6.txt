@@ -1,0 +1,10 @@
+**Success Criteria:**
+- [ ] All CLI operations work with flow requests
+- [ ] Request routing metadata preserved
+- [ ] No regression in existing functionality
+
+**Test Description:** Full integration test covering create → list → show → journal verification workflow.
+
+---
+
+## Implementation Checklist

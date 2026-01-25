@@ -23,6 +23,7 @@ export interface RequestOptions {
   priority?: RequestPriority;
   portal?: string;
   model?: string;
+  flow?: string;
 }
 
 /**
@@ -42,6 +43,7 @@ export interface RequestMetadata {
   agent: string;
   portal?: string;
   model?: string;
+  flow?: string;
   created: string;
   created_by: string;
   source: RequestSource;
@@ -59,6 +61,7 @@ export interface RequestEntry {
   agent: string;
   portal?: string;
   model?: string;
+  flow?: string;
   created: string;
   created_by: string;
   source: string;
@@ -122,6 +125,23 @@ export class RequestCommands extends BaseCommand {
       throw new Error(`Invalid priority: ${priority}. Must be one of: ${VALID_PRIORITIES.join(", ")}`);
     }
 
+    // Validate flow and mutual exclusion
+    if (options.flow && options.agent) {
+      throw new Error(
+        "Cannot specify both 'flow' and 'agent'. Use 'flow' for multi-agent workflows or 'agent' for single agent requests.",
+      );
+    }
+
+    // Validate flow exists if specified
+    if (options.flow) {
+      const flowPath = join(this.config.system.root, "Blueprints", "Flows", `${options.flow}.flow.ts`);
+      try {
+        await Deno.stat(flowPath);
+      } catch {
+        throw new Error(`Flow '${options.flow}' not found. Check that the flow file exists in Blueprints/Flows/`);
+      }
+    }
+
     // Set defaults
     const agent = options.agent || "default";
     const portal = options.portal;
@@ -155,6 +175,10 @@ export class RequestCommands extends BaseCommand {
       frontmatterFields.model = options.model;
     }
 
+    if (options.flow) {
+      frontmatterFields.flow = options.flow;
+    }
+
     // Build file content with YAML frontmatter
     const frontmatter = this.serializeFrontmatter(frontmatterFields);
     const content = `${frontmatter}\n\n# Request\n\n${trimmedDescription}\n`;
@@ -173,6 +197,7 @@ export class RequestCommands extends BaseCommand {
       agent,
       portal: portal || null,
       model: options.model || null,
+      flow: options.flow || null,
       source,
       created_by,
       description_length: trimmedDescription.length,
@@ -189,6 +214,7 @@ export class RequestCommands extends BaseCommand {
       agent,
       portal,
       model: options.model,
+      flow: options.flow,
       created,
       created_by,
       source,
@@ -260,6 +286,7 @@ export class RequestCommands extends BaseCommand {
         agent: frontmatter.agent || "default",
         portal: frontmatter.portal,
         model: frontmatter.model,
+        flow: frontmatter.flow,
         created: frontmatter.created || "",
         created_by: frontmatter.created_by || "unknown",
         source: frontmatter.source || "unknown",
@@ -346,6 +373,7 @@ export class RequestCommands extends BaseCommand {
         agent: matchingFrontmatter.agent || "default",
         portal: matchingFrontmatter.portal,
         model: matchingFrontmatter.model,
+        flow: matchingFrontmatter.flow,
         created: matchingFrontmatter.created || "",
         created_by: matchingFrontmatter.created_by || "unknown",
         source: matchingFrontmatter.source || "unknown",

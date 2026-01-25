@@ -279,7 +279,7 @@ export const __test_command = new Command()
   .command(
     "request",
     new Command()
-      .description("Create requests for ExoFrame agents (PRIMARY INTERFACE)")
+      .description("Create requests for ExoFrame agents or multi-agent flows (PRIMARY INTERFACE)")
       .arguments("[description:string]")
       .option("-a, --agent <agent:string>", "Target agent blueprint", { default: CLI_DEFAULTS.AGENT })
       .option("-p, --priority <priority:string>", "Priority: low, normal, high, critical", {
@@ -287,6 +287,7 @@ export const __test_command = new Command()
       })
       .option("--portal <portal:string>", "Portal alias for context")
       .option("-m, --model <model:string>", "Named model configuration")
+      .option("--flow <flow:string>", "Target multi-agent flow (mutually exclusive with --agent)")
       .option("-f, --file <file:string>", "Read description from file")
       .option("--dry-run", "Show what would be created without writing")
       .option("--json", "Output in JSON format")
@@ -295,10 +296,11 @@ export const __test_command = new Command()
           // Handle file input
           if (options.file) {
             const result = await requestCommands.createFromFile(options.file, {
-              agent: options.agent,
+              agent: options.flow ? undefined : options.agent,
               priority: options.priority as RequestPriority,
               portal: options.portal,
               model: options.model,
+              flow: options.flow,
             });
             printRequestResult(result, !!options.json, !!options.dryRun);
             return;
@@ -314,10 +316,11 @@ export const __test_command = new Command()
 
           // Create request
           const result = await requestCommands.create(description, {
-            agent: options.agent,
+            agent: options.flow ? undefined : options.agent,
             priority: options.priority as RequestPriority,
             portal: options.portal,
             model: options.model,
+            flow: options.flow,
           });
 
           if (options.dryRun) {
@@ -331,6 +334,9 @@ export const __test_command = new Command()
           Deno.exit(1);
         }
       })
+      .example("Create a request for a specific agent", "exoctl request \"Analyze this code\" --agent code-reviewer")
+      .example("Create a request for a multi-agent flow", "exoctl request \"Build a web app\" --flow web-development")
+      .example("Create a high-priority request", "exoctl request \"Fix critical bug\" --priority critical --agent debugger")
       .command(
         "list",
         new Command()
@@ -352,7 +358,8 @@ export const __test_command = new Command()
                   const priorityIcon = PRIORITY_ICONS[req.priority] || PRIORITY_ICONS.default;
                   display.info(`${priorityIcon} ${req.trace_id.slice(0, 8)}`, req.trace_id, {
                     status: req.status,
-                    agent: req.agent,
+                    agent: req.flow ? undefined : req.agent,
+                    flow: req.flow,
                     created: `${req.created_by} @ ${req.created}`,
                   });
                 }
@@ -377,7 +384,8 @@ export const __test_command = new Command()
                 trace_id: metadata.trace_id,
                 status: metadata.status,
                 priority: metadata.priority,
-                agent: metadata.agent,
+                agent: metadata.flow ? undefined : metadata.agent,
+                flow: metadata.flow,
                 created: `${metadata.created_by} @ ${metadata.created}`,
               });
               display.info("request.content", id, { content });
@@ -1504,7 +1512,8 @@ function printRequestResult(result: RequestMetadata, json: boolean, _dryRun: boo
     display.info("request.created", result.filename, {
       trace_id: result.trace_id,
       priority: result.priority,
-      agent: result.agent,
+      agent: result.flow ? undefined : result.agent,
+      flow: result.flow,
       path: result.path,
       next: "Daemon will process this automatically",
     });

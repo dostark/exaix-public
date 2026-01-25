@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-23T17:41:24.380Z",
+  "generated_at": "2026-01-25T11:32:24.849Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -596,6 +596,31 @@
         ".copilot/chunks/exoframe.md.chunk5.txt",
         ".copilot/chunks/exoframe.md.chunk6.txt",
         ".copilot/chunks/exoframe.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-30-cli-flow-request.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 30: Add Flow Support to `exoctl request` Command",
+      "short_summary": "Implement `--flow` option for `exoctl request` command to enable creating requests with defined multi-agent flows.",
+      "version": "0.1",
+      "topics": [
+        "exoctl",
+        "request",
+        "flow",
+        "cli",
+        "routing"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-30-cli-flow-request.md.chunk0.txt",
+        ".copilot/chunks/phase-30-cli-flow-request.md.chunk1.txt",
+        ".copilot/chunks/phase-30-cli-flow-request.md.chunk2.txt",
+        ".copilot/chunks/phase-30-cli-flow-request.md.chunk3.txt",
+        ".copilot/chunks/phase-30-cli-flow-request.md.chunk4.txt",
+        ".copilot/chunks/phase-30-cli-flow-request.md.chunk5.txt",
+        ".copilot/chunks/phase-30-cli-flow-request.md.chunk6.txt",
+        ".copilot/chunks/phase-30-cli-flow-request.md.chunk7.txt"
       ]
     },
     {

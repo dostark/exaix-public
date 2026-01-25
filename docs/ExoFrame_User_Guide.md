@@ -98,11 +98,11 @@ nano exo.config.toml
 # Start the daemon
 deno task start
 # or: exoctl daemon start
-```
 
+```bash
 deno task start
-
 ````
+
 ### 2.3 Ollama Setup (Local LLM)
 
 For fully local, air-gapped operation without cloud API dependencies, install Ollama:
@@ -253,7 +253,7 @@ Memory Banks provide structured storage for ExoFrame's execution history, projec
 
 #### Directory Structure
 
-```
+```text
 Memory/
 ├── Global/             # Cross-project learnings
 │   ├── learnings.json  # Global insights and patterns
@@ -389,8 +389,6 @@ exoctl --help
 exoctl daemon status
 ```
 
-exoctl <command>
-
 ### 4.1a Working with the TUI Dashboard
 
 ExoFrame provides a powerful Terminal User Interface (TUI) dashboard for real-time monitoring, plan review, portal management, and daemon control—all from your terminal. The TUI dashboard is the recommended cockpit for day-to-day operations.
@@ -513,11 +511,12 @@ For complete keyboard shortcuts, see [TUI Keyboard Reference](./TUI_Keyboard_Ref
 
 For technical details, see the [Implementation Plan](./ExoFrame_Implementation_Plan.md#step-95-tui-cockpit-implementation-plan).
 
-````
 ### 4.2 Command Groups
 
 #### **Dashboard Command** - Terminal UI Cockpit
+
 **Split View (Multi-Pane) Mode:**
+
 - Press `s` or use the on-screen menu to split the dashboard into two or more panes.
 - Each pane can show a different view (e.g., Monitor + Plans, Plans + Portals).
 - Resize panes with `Ctrl+Arrow` keys. Switch focus with `Tab`.
@@ -538,6 +537,7 @@ exoctl dashboard --help
 ```
 
 **Features:**
+
 - Real-time log streaming and filtering
 - Review and approve/reject plans with diff view
 - Manage portals (add, remove, refresh, view status)
@@ -561,6 +561,7 @@ $ exoctl dashboard
 ```
 
 **Troubleshooting:**
+
 - If the dashboard fails to launch, ensure your terminal supports ANSI escape codes and your workspace is initialized.
 - For accessibility or theming issues, see the dashboard settings panel (press `?` in the TUI).
 
@@ -1851,7 +1852,7 @@ confidence_threshold = 70  # Flag outputs below this score
 
 When flagged, you'll see warnings in the plan output:
 
-```
+```bash
 ⚠️ Low confidence (55%): Agent uncertain about database migration strategy.
    Reasoning: Multiple valid approaches exist; recommend architectural review.
 ```
@@ -1963,7 +1964,7 @@ Agent outputs are validated against JSON schemas with automatic repair.
 
 When validation fails, you'll see detailed errors:
 
-```
+```bash
 ❌ Plan validation failed:
   - steps[2].dependencies: Expected array, got string
   - estimatedDuration: Missing required field
@@ -2307,4 +2308,4 @@ ExoFrame tracks token usage and estimates costs for supported providers.
 
 ---
 
-_End of User Guide_
+### _End of User Guide_

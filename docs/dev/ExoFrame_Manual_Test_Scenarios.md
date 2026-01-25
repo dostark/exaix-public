@@ -36,6 +36,7 @@
 
 - [MT-09: Portal Management](#scenario-mt-09-portal-management) - Portal mounting and access
 - [MT-29: Git Operations and Traceability](#scenario-mt-29-git-operations-and-traceability) - Git integration and trace_id tracking
+- [MT-30: CLI Flow Request Support](#scenario-mt-30-cli-flow-request-support) - CLI flow request creation and execution
 
 ### Memory & Knowledge
 
@@ -104,18 +105,19 @@ Execute these scenarios on each target platform before major releases.
 | Performance & Concurrency   | 2         | 0         | 2           | 0        |
 | Integration Testing         | 1         | 0         | 1           | 0        |
 | TUI Dashboard               | 6         | 2         | 4           | 0        |
-| **Total**                   | **29**    | **13**    | **14**      | **2**    |
+| **Total**                   | **30**    | **13**    | **15**      | **2**    |
 
 ### Testing Recommendations
 
 - **High Risk scenarios (13):** Must pass before release
-- **Medium Risk scenarios (14):** Should pass, known issues must be documented
+- **Medium Risk scenarios (15):** Should pass, known issues must be documented
 - **Low Risk scenarios (2):** Optional for minor releases
 
 **Estimated Full Suite Duration:** 6-8 hours (with manual TUI interaction)
 
 ### Version History
 
+- **v2.1.0 (2026-01-21):** Added MT-30 covering CLI Flow Request Support for Phase 30 implementation.
 - **v2.0.0 (2026-01-16):** Added 13 new scenarios (MT-17 through MT-29) covering Memory Banks, Multi-Agent Flows, Skills, Security, Provider Strategy, Activity Journal, and Git operations. Added risk-based categorization and testing recommendations.
 - **v1.7.0 (2025-12-02):** Previous version with 16 core scenarios and 6 TUI scenarios.
 
@@ -2301,7 +2303,7 @@ rm -f ~/ExoFrame/Memory/Context/test-context.md
 
 ## Scenario MT-18: Multi-Agent Flow Execution
 
-**Purpose:** Verify flow-based request routing and multi-agent orchestration (Phase 7 feature).
+**Purpose:** Verify flow-based request routing, CLI flow support, and multi-agent orchestration (Phase 7 + Phase 30 features).
 
 ### Preconditions
 
@@ -2315,36 +2317,61 @@ rm -f ~/ExoFrame/Memory/Context/test-context.md
 ```bash
 # Part A: Flow Definition Setup
 
-# Step 1: Create a simple flow definition
-cat > ~/ExoFrame/Blueprints/Flows/test-review-flow.ts << 'EOF'
-// Test Review Flow: Sequential code review by multiple agents
-export default {
+# Step 1: Create a test flow using defineFlow() helper
+cat > ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.ts << 'EOF'
+import { defineFlow } from "./define_flow.ts";
+
+export default defineFlow({
   id: "test-review-flow",
   name: "Test Review Flow",
-  description: "Sequential code review by coder and reviewer agents",
+  description: "Sequential code review by multiple agents",
   version: "1.0.0",
-
+  defaultSkills: ["code-review"],
   steps: [
     {
-      id: "analyze",
+      id: "analyze-code",
+      name: "Analyze Codebase",
       agent: "senior-coder",
-      task: "Analyze code structure and identify issues",
-      outputs: ["analysis_report"]
+      dependsOn: [],
+      input: {
+        source: "request",
+        transform: "passthrough",
+      },
+      retry: {
+        maxAttempts: 2,
+        backoffMs: 1000,
+      },
     },
     {
-      id: "review",
+      id: "security-review",
+      name: "Security Analysis",
+      agent: "security-expert",
+      dependsOn: ["analyze-code"],
+      input: {
+        source: "step",
+        stepId: "analyze-code",
+        transform: "extract-security-focus",
+      },
+      timeout: 30000,
+      retry: {
+        maxAttempts: 1,
+        backoffMs: 1000,
+      },
+    },
+    {
+      id: "final-review",
+      name: "Final Code Review",
       agent: "code-reviewer",
-      task: "Review analysis and provide feedback",
-      inputs: ["analysis_report"],
-      outputs: ["review_report"]
+      dependsOn: ["analyze-code", "security-review"],
+      input: {
+        source: "step",
+        stepId: "security-review",
+        transform: "consolidate-reviews",
+      },
+      timeout: 30000,
     }
   ],
-
-  validation: {
-    required_agents: ["senior-coder", "code-reviewer"],
-    timeout_seconds: 300
-  }
-};
+});
 EOF
 
 # Step 2: Create required agent blueprints (if not exist)
@@ -2353,116 +2380,140 @@ exoctl blueprint create senior-coder \
   --template coder \
   2>/dev/null || echo "Agent already exists"
 
+exoctl blueprint create security-expert \
+  --name "Security Expert" \
+  --template security \
+  2>/dev/null || echo "Agent already exists"
+
 exoctl blueprint create code-reviewer \
   --name "Code Reviewer" \
   --template reviewer \
   2>/dev/null || echo "Agent already exists"
 
-# Part B: Flow Request Creation
+# Part B: CLI Flow Request Creation
 
-# Step 3: Create request with flow routing
-cat > ~/ExoFrame/Workspace/Requests/flow-test-request.md << 'EOF'
----
-trace_id: "flow-test-12345678-1234-1234-1234-123456789012"
-created: "2026-01-16T12:00:00.000Z"
-status: pending
-flow: test-review-flow
-priority: normal
-source: manual-test
-created_by: tester@exoframe.dev
-tags: [flow, test, multi-agent]
----
+# Step 3: Create request using CLI --flow option
+exoctl request "Review authentication module for security and code quality" --flow test-review-flow --priority high
 
-# Request
+# Step 4: Verify request was created with flow metadata
+REQUEST_ID=$(exoctl request list | grep "test-review-flow" | head -1 | awk '{print $1}')
+exoctl request show $REQUEST_ID
 
-Review the authentication module for security issues and code quality.
-EOF
+# Step 5: Check activity journal for flow routing
+sleep 2
+exoctl journal --filter action_type=request.created --limit 1
 
-# Step 4: Wait for flow processing
-sleep 10
+# Part C: Flow Execution and Monitoring
 
-# Step 5: Check flow execution status
-exoctl plan list --status review
+# Step 6: Wait for plan generation
+sleep 5
+exoctl plan list --status pending
 
-# Step 6: Verify flow plan structure
-PLAN_ID=$(exoctl plan list --status review | grep "flow-test" | head -1 | awk '{print $1}')
+# Step 7: Find and approve the flow plan
+PLAN_ID=$(exoctl plan list --status pending | grep "test-review-flow" | head -1 | awk '{print $1}')
 exoctl plan show $PLAN_ID
 
-# Part C: Flow Execution
-
-# Step 7: Approve flow plan
+# Step 8: Approve and execute the flow
 exoctl plan approve $PLAN_ID
 
-# Step 8: Monitor flow execution
-sleep 15
-exoctl journal --filter trace_id=flow-test-12345678-1234-1234-1234-123456789012
+# Step 9: Monitor flow execution progress
+sleep 10
+exoctl journal --filter trace_id=$REQUEST_ID --limit 20
 
-# Step 9: Verify multi-agent activity
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT agent_id, action_type, timestamp FROM activity WHERE trace_id = 'flow-test-12345678-1234-1234-1234-123456789012' ORDER BY timestamp;"
+# Step 10: Check for multi-agent execution
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT DISTINCT agent_id FROM activity WHERE trace_id = '$REQUEST_ID' AND agent_id IS NOT NULL;"
+
+# Part D: Error Handling and Validation
+
+# Step 11: Test invalid flow (should fail)
+exoctl request "Test invalid flow" --flow nonexistent-flow 2>&1 || echo "Expected error for invalid flow"
+
+# Step 12: Test flow + agent conflict (should fail)
+exoctl request "Test conflict" --flow test-review-flow --agent senior-coder 2>&1 || echo "Expected error for flow+agent conflict"
 ```
 
 ### Expected Results
 
 **Part A (Flow Setup):**
 
-- Flow definition created in `Blueprints/Flows/`
-- Flow validation passes (correct TypeScript structure)
-- Required agents exist
+- Flow definition created using `defineFlow()` helper
+- Flow validation passes (TypeScript compilation)
+- Required agents exist and are accessible
 
-**Part B (Flow Routing):**
+**Part B (CLI Flow Support):**
 
-- Request routed to FlowRunner (not AgentRunner)
-- Activity Journal shows `request.routing.flow` event
-- Plan generated includes multi-step structure
+- `exoctl request --flow` command succeeds
+- Request created with `flow:` field in frontmatter
+- Activity journal shows `request.created` with flow metadata
+- Request appears in `exoctl request list` with flow indicator
 
 **Part C (Flow Execution):**
 
-- Multiple agents executed in sequence
-- Each agent's output passed to next agent
-- Activity Journal shows step transitions
+- Request automatically routed to FlowRunner
+- Plan generated with multi-step structure
+- Multiple agents execute in dependency order
+- Step transitions logged (step.started, step.completed)
 - Final changeset includes work from all agents
+
+**Part D (Validation):**
+
+- Invalid flow names rejected with clear error
+- Flow + agent combination properly rejected
+- Error messages guide user to correct usage
 
 ### Verification
 
 ```bash
-# Check flow definition exists
-ls -la ~/ExoFrame/Blueprints/Flows/test-review-flow.ts
+# Check flow definition exists and compiles
+ls -la ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.ts
+deno check ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.ts
 
-# Verify flow routing logged
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, payload FROM activity WHERE action_type = 'request.routing.flow' ORDER BY timestamp DESC LIMIT 1;"
+# Verify CLI flow request creation
+exoctl request list | grep test-review-flow
+
+# Check request metadata includes flow
+exoctl request show $REQUEST_ID | grep -A 5 -B 5 "flow:"
+
+# Verify flow routing in activity journal
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, payload FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type = 'request.created' ORDER BY timestamp DESC LIMIT 1;"
 
 # Check multi-agent execution
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT DISTINCT agent_id FROM activity WHERE trace_id LIKE 'flow-test%' AND agent_id IS NOT NULL;"
-# Should show both senior-coder and code-reviewer
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT agent_id, action_type FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type LIKE 'step.%' ORDER BY timestamp;"
 
-# Verify step transitions
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type FROM activity WHERE trace_id LIKE 'flow-test%' AND action_type LIKE 'step.%' ORDER BY timestamp;"
+# Verify step dependencies respected
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT step_id, agent_id, timestamp FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type = 'step.started' ORDER BY timestamp;"
 ```
 
 ### Cleanup
 
 ```bash
 # Remove flow definition
-rm -f ~/ExoFrame/Blueprints/Flows/test-review-flow.ts
+rm -f ~/ExoFrame/Blueprints/Flows/test-review-flow.flow.ts
 
-# Remove test request
-rm -f ~/ExoFrame/Workspace/Requests/flow-test-request.md
+# Remove test requests (find by flow name)
+for req_file in ~/ExoFrame/Workspace/Requests/*; do
+  if grep -q "flow: test-review-flow" "$req_file" 2>/dev/null; then
+    rm -f "$req_file"
+  fi
+done
 
-# Remove generated plans
-rm -f ~/ExoFrame/Workspace/Plans/*flow-test*.md
-rm -f ~/ExoFrame/Workspace/Active/*flow-test*.md
+# Remove generated plans and changesets
+rm -f ~/ExoFrame/Workspace/Plans/*test-review-flow*.md
+rm -f ~/ExoFrame/Workspace/Active/*test-review-flow*.md
+rm -f ~/ExoFrame/Workspace/Changesets/*test-review-flow*.md
 ```
 
 ### Pass Criteria
 
-- [ ] Flow definition created and validated
-- [ ] Request with `flow:` field routed to FlowRunner
-- [ ] Activity Journal logs `request.routing.flow` event
-- [ ] Multiple agents execute in correct sequence
-- [ ] Agent outputs passed between steps
-- [ ] Step transitions logged (step.started, step.completed)
-- [ ] Flow validation errors detected (missing agents, etc.)
-- [ ] Final changeset includes multi-agent work
+- [ ] Flow definition created with `defineFlow()` and TypeScript validation passes
+- [ ] `exoctl request --flow <id>` creates request with flow metadata
+- [ ] Request routing works (FlowRunner vs AgentRunner)
+- [ ] Activity journal logs flow execution events
+- [ ] Multiple agents execute in correct dependency order
+- [ ] Step transitions properly logged with agent assignments
+- [ ] Invalid flow names rejected with helpful error messages
+- [ ] Flow + agent combination properly prevented
+- [ ] Final output consolidates work from all flow agents
 
 ---
 
@@ -3543,6 +3594,164 @@ rm -rf /tmp/git-test-portal
 
 ---
 
+## Scenario MT-30: CLI Flow Request Support
+
+**Purpose:** Verify that flow requests can be created via CLI and properly routed to FlowRunner with correct metadata and activity logging.
+
+### Preconditions
+
+- ExoFrame workspace deployed
+- Daemon running
+- At least one flow defined in `Blueprints/Flows/`
+- Portal configured (optional for flow requests)
+
+### Steps
+
+```bash
+# Part A: Flow Request Creation
+
+# Step 1: List available flows
+exoctl flow list
+
+# Step 2: Create flow request via CLI
+FLOW_REQUEST_ID=$(exoctl request "Process user data pipeline" --flow data-processing-flow --agent mock-agent)
+
+# Step 3: Verify request created with flow metadata
+exoctl request show $FLOW_REQUEST_ID
+
+# Step 4: Check Activity Journal for flow request creation
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, metadata FROM activity WHERE request_id = '$FLOW_REQUEST_ID' ORDER BY timestamp DESC LIMIT 5;"
+
+# Part B: Flow Execution and Routing
+
+# Step 5: Wait for flow execution to start
+sleep 5
+
+# Step 6: Verify flow routed to FlowRunner (not AgentRunner)
+exoctl request show $FLOW_REQUEST_ID | grep -E "(flow|FlowRunner)"
+
+# Step 7: Check flow execution progress
+exoctl flow status $FLOW_REQUEST_ID
+
+# Step 8: Monitor Activity Journal for flow steps
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT timestamp, action_type, metadata FROM activity WHERE request_id = '$FLOW_REQUEST_ID' AND action_type LIKE '%flow%' ORDER BY timestamp;"
+
+# Part C: Flow Validation and Error Handling
+
+# Step 9: Test invalid flow name
+exoctl request "Test invalid flow" --flow nonexistent-flow --agent mock-agent 2>&1 || echo "Expected error for invalid flow"
+
+# Step 10: Test flow without required dependencies
+exoctl request "Test missing deps" --flow complex-workflow --agent mock-agent 2>&1 || echo "Expected error for missing dependencies"
+
+# Step 11: Verify error logged in Activity Journal
+INVALID_REQUEST_ID=$(exoctl request list | grep "Test invalid flow" | head -1 | awk '{print $1}')
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, metadata FROM activity WHERE request_id = '$INVALID_REQUEST_ID' AND action_type = 'error' ORDER BY timestamp DESC LIMIT 1;"
+
+# Part D: Flow with Portal Integration
+
+# Step 12: Create flow request with portal
+PORTAL_FLOW_ID=$(exoctl request "Deploy feature with flow" --flow deployment-flow --portal TestPortal --agent mock-agent)
+
+# Step 13: Verify portal metadata included
+exoctl request show $PORTAL_FLOW_ID | grep portal
+
+# Step 14: Check git operations triggered by flow
+sleep 10
+exoctl git status | grep TestPortal
+
+# Part E: Flow Completion and Results
+
+# Step 15: Wait for flow completion
+sleep 15
+exoctl request show $FLOW_REQUEST_ID | grep -E "(completed|failed)"
+
+# Step 16: Verify final activity log
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE request_id = '$FLOW_REQUEST_ID';"
+
+# Step 17: Check flow execution summary
+exoctl flow summary $FLOW_REQUEST_ID
+```
+
+### Expected Results
+
+**Part A (Creation):**
+
+- Flow list shows available flows
+- Request created successfully with flow metadata
+- Activity Journal shows flow request creation event
+- Request metadata includes flow name and type
+
+**Part B (Execution):**
+
+- Request automatically routed to FlowRunner
+- Flow execution starts within expected timeframe
+- Activity Journal logs flow step progression
+- Flow status shows execution progress
+
+**Part C (Validation):**
+
+- Invalid flow names rejected with clear error
+- Missing dependencies cause validation failure
+- Errors properly logged in Activity Journal
+- Error messages are user-friendly
+
+**Part D (Portal Integration):**
+
+- Portal metadata correctly associated with flow request
+- Git operations triggered when portal specified
+- Flow execution respects portal context
+
+**Part E (Completion):**
+
+- Flow completes successfully or fails gracefully
+- Activity Journal contains complete execution trace
+- Flow summary provides execution overview
+- Results accessible via CLI commands
+
+### Verification
+
+```bash
+# Verify flow request metadata
+exoctl request show $FLOW_REQUEST_ID | jq '.metadata.flow'
+
+# Check routing decision
+sqlite3 ~/ExoFrame/.exo/journal.db "SELECT metadata FROM activity WHERE request_id = '$FLOW_REQUEST_ID' AND action_type = 'request_routed' LIMIT 1;"
+
+# Validate flow execution steps
+exoctl flow status $FLOW_REQUEST_ID
+
+# Verify error handling
+exoctl request list | grep -E "(failed|error)" | wc -l
+
+# Check portal-flow integration
+exoctl git log $PORTAL_FLOW_ID
+```
+
+### Cleanup
+
+```bash
+# Clean up test requests (optional)
+# exoctl request delete $FLOW_REQUEST_ID
+# exoctl request delete $INVALID_REQUEST_ID
+# exoctl request delete $PORTAL_FLOW_ID
+```
+
+### Pass Criteria
+
+- [ ] `exoctl request --flow` creates flow requests
+- [ ] Flow requests routed to FlowRunner automatically
+- [ ] Flow metadata preserved in request
+- [ ] Activity Journal logs flow execution steps
+- [ ] Invalid flows rejected with clear errors
+- [ ] Portal integration works with flows
+- [ ] Flow completion status tracked correctly
+- [ ] CLI flow commands (`list`, `status`, `summary`) functional
+- [ ] Error conditions handled gracefully
+- [ ] Git operations triggered for portal flows
+
+---
+
 ## QA Sign-off Template
 
 ```markdown
@@ -3591,6 +3800,7 @@ rm -rf /tmp/git-test-portal
 | ----- | ------------------------------- | ------ | ---- | ---- | ---- | ----- |
 | MT-09 | Portal Management               | High   |      |      |      |       |
 | MT-29 | Git Operations and Traceability | Medium |      |      |      |       |
+| MT-30 | CLI Flow Request Support        | Medium |      |      |      |       |
 
 #### Memory & Knowledge
 
@@ -3645,10 +3855,10 @@ rm -rf /tmp/git-test-portal
 
 ### Summary
 
-- **Total Scenarios:** 29
-- **High Risk:** 11
-- **Medium Risk:** 14
-- **Low Risk:** 4
+- **Total Scenarios:** 30
+- **High Risk:** 13
+- **Medium Risk:** 15
+- **Low Risk:** 2
 - **Passed:**
 - **Failed:**
 - **Skipped:**
@@ -3686,10 +3896,11 @@ rm -rf /tmp/git-test-portal
 25. MT-25: TUI Request Manager View
 26. MT-28: Provider Strategy and Fallback
 27. MT-29: Git Operations and Traceability
+28. MT-30: CLI Flow Request Support
 
 **Priority 3 (Low Risk):**
-28. MT-19: Skills Management
-29. MT-26: Activity Journal Queries
+29. MT-19: Skills Management
+30. MT-26: Activity Journal Queries
 
 ### Issues Found
 

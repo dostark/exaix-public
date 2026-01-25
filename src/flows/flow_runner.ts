@@ -10,6 +10,7 @@ import {
   passthrough,
   templateFill,
 } from "./transforms.ts";
+import type { DatabaseService } from "../services/db.ts";
 
 /**
  * Error thrown when flow execution fails
@@ -101,6 +102,7 @@ export class FlowRunner {
   constructor(
     private agentExecutor: AgentExecutor,
     private eventLogger: FlowEventLogger,
+    private db?: DatabaseService, // Optional for token aggregation
   ) {
     this.conditionEvaluator = new ConditionEvaluator();
   }
@@ -347,6 +349,11 @@ export class FlowRunner {
         traceId: request.traceId,
         requestId: request.requestId,
       });
+
+      // Aggregate and log token usage summary (post-processing step)
+      if (this.db && request.traceId) {
+        await this.aggregateAndLogTokenUsage(flowRunId, flow.id, request.traceId, request.requestId);
+      }
 
       return {
         flowRunId,
@@ -772,6 +779,114 @@ export class FlowRunner {
         startedAt: new Date(),
         completedAt: new Date(),
       };
+    }
+  }
+
+  /**
+   * Aggregate token usage across all LLM calls in a flow and log summary
+   */
+  private async aggregateAndLogTokenUsage(
+    flowRunId: string,
+    flowId: string,
+    traceId: string,
+    requestId?: string,
+  ): Promise<void> {
+    try {
+      // Query all LLM usage events for this trace
+      const tokenEvents = await this.db!.queryActivity({
+        traceId,
+        actionType: "llm.usage",
+      });
+
+      if (tokenEvents.length === 0) {
+        // No token usage found, log zero summary
+        await this.eventLogger.log("flow.token_summary", {
+          flowRunId,
+          flowId,
+          totalLlmCalls: 0,
+          totalInputTokens: 0,
+          totalOutputTokens: 0,
+          totalTokens: 0,
+          totalCostUsd: 0,
+          providers: {},
+          traceId,
+          requestId,
+        });
+        return;
+      }
+
+      // Aggregate token usage by provider
+      const providerStats: Record<string, {
+        calls: number;
+        inputTokens: number;
+        outputTokens: number;
+        costUsd: number;
+      }> = {};
+
+      let totalInputTokens = 0;
+      let totalOutputTokens = 0;
+      let totalCostUsd = 0;
+
+      for (const event of tokenEvents) {
+        try {
+          const payload = JSON.parse(event.payload);
+          const provider = payload.provider || "unknown";
+          const inputTokens = payload.input_tokens || 0;
+          const outputTokens = payload.output_tokens || 0;
+          const costUsd = payload.cost_usd || 0;
+
+          // Initialize provider stats if not exists
+          if (!providerStats[provider]) {
+            providerStats[provider] = {
+              calls: 0,
+              inputTokens: 0,
+              outputTokens: 0,
+              costUsd: 0,
+            };
+          }
+
+          // Accumulate stats
+          providerStats[provider].calls++;
+          providerStats[provider].inputTokens += inputTokens;
+          providerStats[provider].outputTokens += outputTokens;
+          providerStats[provider].costUsd += costUsd;
+
+          totalInputTokens += inputTokens;
+          totalOutputTokens += outputTokens;
+          totalCostUsd += costUsd;
+        } catch (parseError) {
+          // Skip malformed token events
+          console.warn(`Skipping malformed token event: ${event.payload}`);
+        }
+      }
+
+      // Log aggregated token summary
+      await this.eventLogger.log("flow.token_summary", {
+        flowRunId,
+        flowId,
+        totalLlmCalls: tokenEvents.length,
+        totalInputTokens,
+        totalOutputTokens,
+        totalTokens: totalInputTokens + totalOutputTokens,
+        totalCostUsd: Math.round(totalCostUsd * 10000) / 10000, // Round to 4 decimal places
+        providers: providerStats,
+        traceId,
+        requestId,
+      });
+    } catch (error) {
+      // Log error but don't fail the flow
+      console.warn(`Failed to aggregate token usage for flow ${flowRunId}:`, error);
+      try {
+        await this.eventLogger.log("flow.token_summary.error", {
+          flowRunId,
+          flowId,
+          error: error instanceof Error ? error.message : String(error),
+          traceId,
+          requestId,
+        });
+      } catch {
+        // Swallow logging errors to avoid cascading failures
+      }
     }
   }
 }

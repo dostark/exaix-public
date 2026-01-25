@@ -5,9 +5,9 @@
  * Creates temporary directory with complete ExoFrame workspace structure.
  */
 
-import { join } from "@std/path";
+import { join, dirname, fromFileUrl } from "@std/path";
 import { FlowStepType, McpToolName, MemoryOperation, PortalOperation } from "../../../src/enums.ts";
-import { ensureDir, exists } from "@std/fs";
+import { ensureDir, exists, copySync } from "@std/fs";
 import { DatabaseService } from "../../../src/services/db.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import type { Config } from "../../../src/config/schema.ts";
@@ -75,6 +75,18 @@ export class TestEnvironment {
     await ensureDir(getRuntimeDir(tempDir));
     await ensureDir(getBlueprintsAgentsDir(tempDir));
     await ensureDir(getPortalsDir(tempDir));
+
+    // Copy flows for integration tests that need them
+    const flowsSrcDir = join(dirname(fromFileUrl(import.meta.url)), "..", "..", "..", "Blueprints", "Flows");
+    const flowsDestDir = join(tempDir, "Blueprints", "Flows");
+    await ensureDir(flowsDestDir);
+    try {
+      copySync(flowsSrcDir, flowsDestDir);
+    } catch (error) {
+      // Flows directory might not exist in some test scenarios, ignore
+      console.warn("Could not copy flows directory:", (error as Error).message);
+    }
+
     // Initialize git if requested
     if (options.initGit !== false) {
       await new Deno.Command(PortalOperation.GIT, {
@@ -146,6 +158,47 @@ export class TestEnvironment {
     ].filter(Boolean).join("\n");
 
     const content = `${frontmatter}\n\n# Request\n\n${description}\n`;
+
+    await Deno.writeTextFile(filePath, content);
+
+    return { filePath, traceId };
+  }
+
+  /**
+   * Create a flow request file in /Workspace/Requests
+   */
+  async createFlowRequest(
+    description: string,
+    flowId: string,
+    options: {
+      traceId?: string;
+      agentId?: string;
+      priority?: number;
+      tags?: string[];
+      portal?: string;
+    } = {},
+  ): Promise<{ filePath: string; traceId: string }> {
+    const traceId = options.traceId ?? crypto.randomUUID();
+    const shortId = traceId.substring(0, 8);
+    const fileName = `request-${shortId}.md`;
+    const filePath = join(getWorkspaceRequestsDir(this.tempDir), fileName);
+
+    const frontmatter = [
+      "---",
+      `trace_id: "${traceId}"`,
+      `created: "${new Date().toISOString()}"`,
+      `status: pending`,
+      `priority: ${options.priority ?? 5}`,
+      `flow: ${flowId}`,
+      options.agentId ? `agent: ${options.agentId}` : null,
+      `source: test`,
+      `created_by: test_environment`,
+      options.portal ? `portal: "${options.portal}"` : null,
+      `tags: [${(options.tags ?? []).map((t) => `"${t}"`).join(", ")}]`,
+      "---",
+    ].filter(Boolean).join("\n");
+
+    const content = `${frontmatter}\n\n# Flow Request\n\n${description}\n`;
 
     await Deno.writeTextFile(filePath, content);
 

@@ -1,0 +1,15 @@
+# Phase 30: Add Flow Support to `exoctl request` Command
+
+**Goal:** Extend the `exoctl request` command to support the `--flow` option, enabling users to create requests that will be routed to multi-agent flows instead of single agents. This addresses the gap where flow-aware request processing exists but cannot be triggered from the CLI.
+
+**Status:** 📋 Planned
+**Timebox:** 2-3 days
+**Entry Criteria:** Phase 7 (Flow Orchestration) complete, request command working
+**Exit Criteria:** `exoctl request --flow <flow-id>` creates requests that are properly routed to flows
+
+## References
+- **Technical Spec:** Section 5.8.2.1 "Flow-Aware Request Processing"
+- **Test Scenarios:** MT-26 "Request Routing Validation"
+- **Existing Code:** `src/cli/request_commands.ts`, `src/cli/exoctl.ts`
+
+---

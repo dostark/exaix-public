@@ -38,11 +38,15 @@ describe("RequestCommands", () => {
 
   beforeEach(async () => {
     // Initialize shared CLI test context
-    const result = await createCliTestContext({ createDirs: ["Workspace/Requests"] });
+    const result = await createCliTestContext({ createDirs: ["Workspace/Requests", "Blueprints/Flows"] });
     tempDir = result.tempDir;
     db = result.db;
     cleanup = result.cleanup;
     const config = result.config;
+
+    // Create mock flow file for testing
+    const flowsDir = join(tempDir, "Blueprints", "Flows");
+    await Deno.writeTextFile(join(flowsDir, "code-review.flow.ts"), "mock flow content");
 
     // Derived paths
     requestsDir = getWorkspaceRequestsDir(tempDir);
@@ -187,6 +191,29 @@ describe("RequestCommands", () => {
         async () => await requestCommands.create("   "),
         Error,
         "Description cannot be empty",
+      );
+    });
+
+    it("should accept flow option", async () => {
+      const result = await requestCommands.create("Test flow request", { flow: "code-review" });
+
+      const content = await Deno.readTextFile(result.path);
+      assertStringIncludes(content, "flow: code-review");
+    });
+
+    it("should reject flow and agent combination", async () => {
+      await assertRejects(
+        async () => await requestCommands.create("Test", { flow: "code-review", agent: "writer" }),
+        Error,
+        "Cannot specify both 'flow' and 'agent'",
+      );
+    });
+
+    it("should reject non-existent flow", async () => {
+      await assertRejects(
+        async () => await requestCommands.create("Test", { flow: "non-existent-flow" }),
+        Error,
+        "Flow 'non-existent-flow' not found",
       );
     });
   });

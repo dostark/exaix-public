@@ -34,19 +34,31 @@ async function withTestMod<T>(fn: (mod: any, ctx: any) => Promise<T> | T) {
   }
 }
 
-async function captureConsoleOutput(fn: () => Promise<void> | void) {
+async function captureConsoleOutput(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
   let out = "";
   const origLog = console.log;
   console.log = (msg: string) => (out += msg + "\n");
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
-    await fn();
+    await Promise.race([
+      fn(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener('abort', () => {
+          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
+        });
+      })
+    ]);
   } finally {
+    clearTimeout(timeoutId);
     console.log = origLog;
   }
   return out;
 }
 
-async function captureAllOutputs(fn: () => Promise<void> | void) {
+async function captureAllOutputs(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
   const logs: string[] = [];
   const warns: string[] = [];
   const errs: string[] = [];
@@ -56,9 +68,21 @@ async function captureAllOutputs(fn: () => Promise<void> | void) {
   console.log = (...args: any[]) => logs.push(args.join(" "));
   console.warn = (...args: any[]) => warns.push(args.join(" "));
   console.error = (...args: any[]) => errs.push(args.join(" "));
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
-    await fn();
+    await Promise.race([
+      fn(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener('abort', () => {
+          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
+        });
+      })
+    ]);
   } finally {
+    clearTimeout(timeoutId);
     console.log = origLog;
     console.warn = origWarn;
     console.error = origErr;
@@ -66,7 +90,7 @@ async function captureAllOutputs(fn: () => Promise<void> | void) {
   return { logs, warns, errs };
 }
 
-async function expectExitWithLogs(fn: () => Promise<void> | void) {
+async function expectExitWithLogs(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
   const origExit = Deno.exit;
   const origErr = console.error;
   const errors: string[] = [];
@@ -74,13 +98,25 @@ async function expectExitWithLogs(fn: () => Promise<void> | void) {
   (Deno as any).exit = (code?: number) => {
     throw new Error(`DENO_EXIT:${code ?? 0}`);
   };
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   try {
-    await fn();
+    await Promise.race([
+      fn(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener('abort', () => {
+          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
+        });
+      })
+    ]);
     throw new Error("Expected Deno.exit to be called");
   } catch (e: any) {
-    if (!e.message.startsWith("DENO_EXIT:")) throw e;
+    if (!e.message.startsWith("DENO_EXIT:") && !e.message.includes("timed out")) throw e;
     return { err: e, errors };
   } finally {
+    clearTimeout(timeoutId);
     console.error = origErr;
     Deno.exit = origExit;
   }

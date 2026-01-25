@@ -1639,3 +1639,165 @@ Deno.test("FlowRunner: logs hasSkills in input.prepared event", async () => {
   assert(inputPreparedEvent, "Should log flow.step.input.prepared event");
   assertEquals(inputPreparedEvent.payload.hasSkills, true);
 });
+
+// Mock DatabaseService for testing token aggregation
+class MockDatabaseService {
+  private activities: Array<{
+    traceId: string;
+    actionType: string;
+    payload: string;
+  }> = [];
+
+  constructor(activities: Array<{ traceId: string; actionType: string; payload: any }> = []) {
+    this.activities = activities.map(a => ({
+      ...a,
+      payload: JSON.stringify(a.payload)
+    }));
+  }
+
+  async queryActivity(filter: { traceId: string; actionType: string }) {
+    return this.activities.filter(a =>
+      a.traceId === filter.traceId &&
+      a.actionType === filter.actionType
+    );
+  }
+}
+
+Deno.test("[regression] FlowRunner: aggregates token usage across flow execution", async () => {
+  const mockAgentRunner = new MockAgentRunner({
+    "agent1": "Step 1 result",
+    "agent2": "Step 2 result",
+  });
+
+  const mockLogger = new MockEventLogger();
+
+  // Mock database with token usage events
+  const mockDb = new MockDatabaseService([
+    {
+      traceId: "test-trace-123",
+      actionType: "llm.usage",
+      payload: {
+        provider: "openai",
+        input_tokens: 100,
+        output_tokens: 50,
+        cost_usd: 0.0025,
+      }
+    },
+    {
+      traceId: "test-trace-123",
+      actionType: "llm.usage",
+      payload: {
+        provider: "openai",
+        input_tokens: 200,
+        output_tokens: 75,
+        cost_usd: 0.0050,
+      }
+    },
+    {
+      traceId: "test-trace-123",
+      actionType: "llm.usage",
+      payload: {
+        provider: "anthropic",
+        input_tokens: 150,
+        output_tokens: 60,
+        cost_usd: 0.0030,
+      }
+    },
+  ]);
+
+  const runner = new FlowRunner(mockAgentRunner as any, mockLogger as any, mockDb as any);
+
+  const flow: FlowInput = {
+    id: "test-flow",
+    name: "Test Flow",
+    description: "A test flow for token aggregation",
+    version: "1.0.0",
+    steps: [
+      {
+        id: "step1",
+        name: "Step 1",
+        agent: "agent1",
+        dependsOn: [],
+        input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
+        retry: { maxAttempts: 1, backoffMs: 1000 },
+      },
+      {
+        id: "step2",
+        name: "Step 2",
+        agent: "agent2",
+        dependsOn: ["step1"],
+        input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
+        retry: { maxAttempts: 1, backoffMs: 1000 },
+      },
+    ],
+    output: { from: "step2", format: FlowOutputFormat.MARKDOWN },
+    settings: { maxParallelism: 3, failFast: true },
+  };
+
+  await runner.execute(flow as Flow, { userPrompt: "test request", traceId: "test-trace-123" });
+
+  // Find the token summary event
+  const tokenSummaryEvent = mockLogger.events.find((e) => e.event === "flow.token_summary");
+  assert(tokenSummaryEvent, "Should log flow.token_summary event");
+
+  const summary = tokenSummaryEvent.payload;
+  assertEquals(summary.totalLlmCalls, 3);
+  assertEquals(summary.totalInputTokens, 450);
+  assertEquals(summary.totalOutputTokens, 185);
+  assertEquals(summary.totalTokens, 635);
+  assertEquals(summary.totalCostUsd, 0.0105);
+  assertEquals(summary.providers.openai.calls, 2);
+  assertEquals(summary.providers.openai.inputTokens, 300);
+  assertEquals(summary.providers.openai.outputTokens, 125);
+  assertEquals(summary.providers.openai.costUsd, 0.0075);
+  assertEquals(summary.providers.anthropic.calls, 1);
+  assertEquals(summary.providers.anthropic.inputTokens, 150);
+  assertEquals(summary.providers.anthropic.outputTokens, 60);
+  assertEquals(summary.providers.anthropic.costUsd, 0.0030);
+});
+
+Deno.test("[regression] FlowRunner: handles zero token usage gracefully", async () => {
+  const mockAgentRunner = new MockAgentRunner({
+    "agent1": "Step 1 result",
+  });
+
+  const mockLogger = new MockEventLogger();
+
+  // Mock database with no token usage events
+  const mockDb = new MockDatabaseService([]);
+
+  const runner = new FlowRunner(mockAgentRunner as any, mockLogger as any, mockDb as any);
+
+  const flow: FlowInput = {
+    id: "test-flow",
+    name: "Test Flow",
+    description: "A test flow for zero token usage",
+    version: "1.0.0",
+    steps: [
+      {
+        id: "step1",
+        name: "Step 1",
+        agent: "agent1",
+        dependsOn: [],
+        input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
+        retry: { maxAttempts: 1, backoffMs: 1000 },
+      },
+    ],
+    output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
+    settings: { maxParallelism: 3, failFast: true },
+  };
+
+  await runner.execute(flow as Flow, { userPrompt: "test request", traceId: "test-trace-456" });
+
+  // Find the token summary event
+  const tokenSummaryEvent = mockLogger.events.find((e) => e.event === "flow.token_summary");
+  assert(tokenSummaryEvent, "Should log flow.token_summary event");
+
+  const summary = tokenSummaryEvent.payload;
+  assertEquals(summary.totalLlmCalls, 0);
+  assertEquals(summary.totalInputTokens, 0);
+  assertEquals(summary.totalOutputTokens, 0);
+  assertEquals(summary.totalTokens, 0);
+  assertEquals(summary.totalCostUsd, 0);
+  assertEquals(Object.keys(summary.providers).length, 0);
+});
