@@ -86,6 +86,7 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
         active: "Active",
         rejected: "Rejected",
         archive: "Archive",
+        requests: "Requests",
       },
     } as any;
 
@@ -132,6 +133,7 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
         active: "Active",
         rejected: "Rejected",
         archive: "Archive",
+        requests: "Requests",
       },
     } as any;
 
@@ -173,6 +175,7 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
         active: "Active",
         rejected: "Rejected",
         archive: "Archive",
+        requests: "Requests",
       },
     } as any;
 
@@ -215,6 +218,7 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
         active: "Active",
         rejected: "Rejected",
         archive: "Archive",
+        requests: "Requests",
       },
     } as any;
 
@@ -256,6 +260,7 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
         active: "Active",
         rejected: "Rejected",
         archive: "Archive",
+        requests: "Requests",
       },
     } as any;
 
@@ -272,6 +277,117 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
 
     const approvedPlans = await planCommands.list(STATUS_APPROVED);
     assertEquals(approvedPlans.length, 0);
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+// ============================================================================
+// Regression Test for Plan Request Context
+// ============================================================================
+
+/**
+ * Regression test for: "exoctl plan show/list Missing Request and Agent Context"
+ * Root cause: Plan commands only showed basic plan metadata, missing request information
+ * Fix: Enhanced PlanCommands to load and display request context (agent, portal, priority, etc.)
+ */
+Deno.test("[regression] Plan list and show include request context information", async () => {
+  const tempDir = await Deno.makeTempDir({ prefix: "exo_plan_request_context_" });
+
+  try {
+    const { plansDir } = await createTestWorkspace(tempDir);
+    const requestsDir = join(tempDir, "Workspace", "Requests");
+    await ensureDir(requestsDir);
+
+    // Create a request file
+    const traceId = "test-trace-123";
+    const requestId = `request-${traceId}`;
+    const requestPath = join(requestsDir, `${requestId}.md`);
+    const requestContent = `---
+trace_id: "${traceId}"
+created: "2026-01-25T16:28:01.132Z"
+status: planned
+priority: high
+agent: test-agent
+portal: test-portal
+created_by: test@example.com
+---
+
+# Test Request Title
+
+This is a test request for plan context testing.
+`;
+    await Deno.writeTextFile(requestPath, requestContent);
+
+    // Create a plan file that references the request
+    const planId = `${requestId}_plan`;
+    const planPath = join(plansDir, `${planId}.md`);
+    const planContent = `---
+trace_id: "${traceId}"
+request_id: "${requestId}"
+status: review
+created_at: "2026-01-25T16:28:01.132Z"
+---
+
+# Test Plan
+
+This plan references a request and should show request context.
+`;
+    await Deno.writeTextFile(planPath, planContent);
+
+    // Import PlanCommands and RequestCommands
+    const { PlanCommands } = await import("../src/cli/plan_commands.ts");
+    const { RequestCommands: _RequestCommands } = await import("../src/cli/request_commands.ts");
+
+    // Create minimal config pointing to our test workspace
+    const config = {
+      system: { root: tempDir },
+      paths: {
+        workspace: "Workspace",
+        plans: "Plans",
+        active: "Active",
+        rejected: "Rejected",
+        archive: "Archive",
+        requests: "Requests",
+      },
+    } as any;
+
+    // Create stub db
+    const stubDb = {
+      logActivity: () => {},
+      waitForFlush: async () => {},
+    };
+
+    const planCommands = new PlanCommands({ config, db: stubDb as any });
+
+    // Test plan list includes request context
+    const plans = await planCommands.list();
+    assertEquals(plans.length, 1);
+
+    const plan = plans[0];
+    assertEquals(plan.id, planId);
+    assertEquals(plan.status, "review");
+    assertEquals(plan.request_id, requestId);
+    assertEquals(plan.request_title, "Test Request Title");
+    assertEquals(plan.request_agent, "test-agent");
+    assertEquals(plan.request_portal, "test-portal");
+    assertEquals(plan.request_priority, "high");
+    assertEquals(plan.request_created_by, "test@example.com");
+
+    // Test plan show includes request context
+    const planDetails = await planCommands.show(planId);
+    assertEquals(planDetails.id, planId);
+    assertEquals(planDetails.status, "review");
+    assertEquals(planDetails.request_id, requestId);
+    assertEquals(planDetails.request_title, "Test Request Title");
+    assertEquals(planDetails.request_agent, "test-agent");
+    assertEquals(planDetails.request_portal, "test-portal");
+    assertEquals(planDetails.request_priority, "high");
+    assertEquals(planDetails.request_created_by, "test@example.com");
+    assertEquals(
+      planDetails.content.trim(),
+      "# Test Plan\n\nThis plan references a request and should show request context.",
+    );
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }

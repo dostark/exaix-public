@@ -1,0 +1,5 @@
+1. **Validation exists but is unused:** The `getValidatedEnvOverrides()` function in `src/config/env_schema.ts` correctly validates EXO_LLM_* environment variables but is never called.
+2. **Config loading doesn't apply overrides:** The `ConfigService.load()` method in `src/config/service.ts` only loads from `exo.config.toml` and validates against the schema, but doesn't merge environment overrides.
+3. **Provider selection uses config only:** `ProviderSelector.selectProviderForTask()` uses `config.provider_strategy` but doesn't check for environment overrides.
+
+**Code Locations:**

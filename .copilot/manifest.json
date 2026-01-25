@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-25T14:48:46.341Z",
+  "generated_at": "2026-01-25T17:22:34.515Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1032,6 +1032,20 @@
       ]
     },
     {
+      "path": ".copilot/issues/plan-show-missing-request-context.md",
+      "title": "exoctl plan show/list Missing Request and Agent Context",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk0.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk1.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk2.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk3.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk4.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk5.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk6.txt"
+      ]
+    },
+    {
       "path": ".copilot/issues/changeset-approve-branch-not-found.md",
       "title": "Changeset approve fails to find branches in portal repositories",
       "short_summary": "",
@@ -1073,6 +1087,21 @@
         ".copilot/chunks/plan-show-rejected-plans-not-displayed.md.chunk1.txt",
         ".copilot/chunks/plan-show-rejected-plans-not-displayed.md.chunk2.txt",
         ".copilot/chunks/plan-show-rejected-plans-not-displayed.md.chunk3.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/llm-provider-env-vars-ignored.md",
+      "title": "LLM Provider Environment Variables Ignored in Provider Selection",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk0.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk1.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk2.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk3.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk4.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk5.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk6.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk7.txt"
       ]
     },
     {

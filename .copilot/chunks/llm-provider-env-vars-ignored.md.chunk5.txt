@@ -1,0 +1,8 @@
+- [x] EXO_TEST_MODE not set (confirmed via `env | grep EXO`)
+- [x] Test mode settings commented out in exo.config.toml
+- [x] isTestMode() function exists but not used in provider selection
+- [x] Test mode does not affect this bug
+
+## Fix Implementation
+
+**Changes Made:**

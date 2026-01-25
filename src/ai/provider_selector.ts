@@ -13,6 +13,7 @@ import { ProviderRegistry } from "./provider_registry.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
 import { HealthCheckService } from "../services/health_check_service.ts";
 import { Config } from "../config/schema.ts";
+import { getValidatedEnvOverrides, isCIMode, isTestMode } from "../config/env_schema.ts";
 import { PricingTier, ProviderCostTier, TaskComplexity } from "../enums.ts";
 
 /**
@@ -111,6 +112,43 @@ export class ProviderSelector {
    * @throws Error if no suitable provider is found
    */
   async selectProviderForTask(config: Config, taskType: string): Promise<string> {
+    // Check for environment variable overrides first (highest priority)
+    const envOverrides = getValidatedEnvOverrides();
+    if (envOverrides.EXO_LLM_PROVIDER) {
+      const providerName = envOverrides.EXO_LLM_PROVIDER;
+      const metadata = this.registry.getProviderMetadata(providerName);
+
+      if (metadata) {
+        // Check if this is a paid provider in test/CI environment without opt-in
+        const isPaidProvider = metadata.costTier === ProviderCostTier.PAID ||
+          metadata.costTier === ProviderCostTier.FREEMIUM ||
+          metadata.pricingTier === PricingTier.HIGH ||
+          metadata.pricingTier === PricingTier.MEDIUM ||
+          metadata.pricingTier === PricingTier.LOW;
+        const isTestOrCI = isTestMode() || isCIMode();
+        const paidLLMEnabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM") === "1";
+
+        if (isPaidProvider && isTestOrCI && !paidLLMEnabled) {
+          console.warn(
+            `⚠️  Environment-specified paid provider '${providerName}' blocked in test/CI environment. Set EXO_TEST_ENABLE_PAID_LLM=1 to enable. Falling back to intelligent selection`,
+          );
+        } else {
+          const isHealthy = await this.healthChecker.checkProvider(providerName);
+          if (isHealthy) {
+            return providerName;
+          } else {
+            console.warn(
+              `⚠️  Environment-specified provider '${providerName}' is not healthy, falling back to intelligent selection`,
+            );
+          }
+        }
+      } else {
+        console.warn(
+          `⚠️  Environment-specified provider '${providerName}' is not registered, falling back to intelligent selection`,
+        );
+      }
+    }
+
     const strategy = config.provider_strategy;
 
     // Check if task routing is configured for this task type

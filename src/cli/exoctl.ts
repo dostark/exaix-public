@@ -421,10 +421,28 @@ export const __test_command = new Command()
               display.info("plan.list", "plans", { count: plans.length });
               for (const plan of plans) {
                 const statusIcon = plan.status === "review" ? "🔍" : "⚠️";
-                display.info(`${statusIcon} ${plan.id}`, plan.id, {
+                const displayData: Record<string, unknown> = {
                   status: plan.status,
                   trace: plan.trace_id ? `${plan.trace_id.substring(0, 8)}...` : undefined,
-                });
+                };
+
+                // Add request information if available
+                if (plan.request_title) {
+                  displayData.request = plan.request_title.length > 50
+                    ? `${plan.request_title.substring(0, 47)}...`
+                    : plan.request_title;
+                }
+                if (plan.request_agent) {
+                  displayData.agent = plan.request_agent;
+                }
+                if (plan.request_portal) {
+                  displayData.portal = plan.request_portal;
+                }
+                if (plan.request_priority) {
+                  displayData.priority = plan.request_priority;
+                }
+
+                display.info(`${statusIcon} ${plan.id}`, plan.id, displayData);
               }
             } catch (error) {
               display.error("cli.error", "plan list", {
@@ -442,10 +460,32 @@ export const __test_command = new Command()
             const id = args[0] as unknown as string;
             try {
               const plan = await planCommands.show(id);
-              display.info("plan.show", plan.id, {
+              const displayData: Record<string, unknown> = {
                 status: plan.status,
                 trace: plan.trace_id,
-              });
+              };
+
+              // Add request information if available
+              if (plan.request_id) {
+                displayData.request = plan.request_id;
+              }
+              if (plan.request_title) {
+                displayData.title = plan.request_title;
+              }
+              if (plan.request_agent) {
+                displayData.agent = plan.request_agent;
+              }
+              if (plan.request_portal) {
+                displayData.portal = plan.request_portal;
+              }
+              if (plan.request_priority) {
+                displayData.priority = plan.request_priority;
+              }
+              if (plan.request_created_by) {
+                displayData.created_by = plan.request_created_by;
+              }
+
+              display.info("plan.show", plan.id, displayData);
               display.info("plan.content", id, { content: plan.content });
             } catch (error) {
               display.error("cli.error", "plan show", {

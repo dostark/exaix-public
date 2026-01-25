@@ -3,12 +3,19 @@ import { ensureDir, exists } from "@std/fs";
 import { FrontmatterParser } from "../parsers/markdown.ts";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { PlanStatus } from "../enums.ts";
+import { RequestCommands } from "./request_commands.ts";
 
 export interface PlanMetadata {
   id: string;
   status: string;
   trace_id?: string;
   agent_id?: string;
+  request_id?: string;
+  request_title?: string;
+  request_agent?: string;
+  request_portal?: string;
+  request_priority?: string;
+  request_created_by?: string;
   created_at?: string;
   approved_by?: string;
   approved_at?: string;
@@ -32,6 +39,7 @@ function extractPlanMetadata(planId: string, frontmatter: Record<string, unknown
     status: (frontmatter.status as string) || "unknown",
     trace_id: frontmatter.trace_id as string | undefined,
     agent_id: frontmatter.agent_id as string | undefined,
+    request_id: frontmatter.request_id as string | undefined,
     created_at: frontmatter.created_at as string | undefined,
     approved_by: frontmatter.approved_by as string | undefined,
     approved_at: frontmatter.approved_at as string | undefined,
@@ -53,6 +61,7 @@ export class PlanCommands extends BaseCommand {
   private workspaceRejectedDir: string;
   private workspaceArchiveDir: string;
   private parser: FrontmatterParser;
+  private requestCommands: RequestCommands;
 
   constructor(
     context: CommandContext,
@@ -67,6 +76,57 @@ export class PlanCommands extends BaseCommand {
     this.workspaceRejectedDir = join(root, workspace, config.paths.rejected);
     this.workspaceArchiveDir = join(root, workspace, config.paths.archive);
     this.parser = new FrontmatterParser();
+    this.requestCommands = new RequestCommands(context);
+  }
+
+  /**
+   * Extract plan metadata from parsed frontmatter, including request information
+   */
+  private async extractPlanMetadataWithRequest(
+    planId: string,
+    frontmatter: Record<string, unknown>,
+  ): Promise<PlanMetadata> {
+    const metadata = extractPlanMetadata(planId, frontmatter);
+
+    // If we have a request_id, try to load request information
+    if (metadata.request_id) {
+      try {
+        // Extract trace_id from request_id (format: "request-{trace_id}")
+        let requestIdentifier = metadata.request_id;
+        if (metadata.request_id.startsWith("request-")) {
+          const traceId = metadata.request_id.substring(8); // Remove "request-" prefix
+          requestIdentifier = traceId;
+        }
+
+        const requestResult = await this.requestCommands.show(requestIdentifier);
+        const request = requestResult.metadata;
+
+        // Extract title from content (first header or first non-empty line)
+        const contentLines = requestResult.content.split("\n").map((line) => line.trim()).filter((line) => line);
+        let title = "Untitled Request";
+
+        for (const line of contentLines) {
+          if (line.startsWith("# ")) {
+            title = line.substring(2).trim();
+            break;
+          } else if (!line.startsWith("#") && line) {
+            title = line;
+            break;
+          }
+        }
+
+        metadata.request_title = title;
+        metadata.request_agent = request.agent;
+        metadata.request_portal = request.portal;
+        metadata.request_priority = request.priority;
+        metadata.request_created_by = request.created_by;
+      } catch (error) {
+        // If request can't be loaded, continue without request info
+        console.warn(`Warning: Could not load request info for plan ${planId}:`, error);
+      }
+    }
+
+    return metadata;
   }
 
   /**
@@ -274,7 +334,7 @@ export class PlanCommands extends BaseCommand {
             const content = await Deno.readTextFile(planPath);
             const { frontmatter } = this.extractFrontmatterWithBody(content);
 
-            const metadata = extractPlanMetadata(planId, frontmatter);
+            const metadata = await this.extractPlanMetadataWithRequest(planId, frontmatter);
 
             // Apply filter if specified (for edge cases where file is in wrong dir)
             if (!statusFilter || metadata.status === statusFilter) {
@@ -326,7 +386,7 @@ export class PlanCommands extends BaseCommand {
 
         try {
           const { frontmatter, body } = this.extractFrontmatterWithBody(content);
-          const metadata = extractPlanMetadata(planId, frontmatter);
+          const metadata = await this.extractPlanMetadataWithRequest(planId, frontmatter);
 
           return {
             ...metadata,
