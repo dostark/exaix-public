@@ -510,7 +510,8 @@ grep "Custom Test Agent" ~/ExoFrame/Blueprints/Agents/custom-test.md
 # Expected: Custom prompt content present
 
 # Check Activity Journal logged blueprint operations
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, target FROM activity WHERE action_type LIKE 'blueprint.%' ORDER BY timestamp DESC LIMIT 10;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE 'blueprint.%' ORDER BY timestamp DESC LIMIT 10;"
+exoctl journal --filter action_type=blueprint.% --tail 10
 # Expected: blueprint.created, blueprint.edited, blueprint.removed entries
 
 # Verify blueprints were removed
@@ -1065,6 +1066,7 @@ git branch -a
 # Should show: feat/hello-world-<trace-id-prefix>
 
 # Step 4: Check Activity Journal for execution events
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '<trace-id>' ORDER BY timestamp DESC LIMIT 50;"
 exoctl journal --filter trace_id=<trace-id>
 
 # Expected events:
@@ -1130,6 +1132,7 @@ exoctl request "Read /etc/passwd" --agent senior-coder
 
 # Wait for execution and check logs
 sleep 10
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.failed' ORDER BY timestamp DESC LIMIT 50;"
 exoctl journal --filter action_type=action.failed
 
 # Expected:
@@ -1143,6 +1146,7 @@ exoctl request "Run rm -rf /" --agent senior-coder
 
 # Wait for execution and check logs
 sleep 10
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.failed' ORDER BY timestamp DESC LIMIT 50;"
 exoctl journal --filter action_type=action.failed
 
 # Expected:
@@ -1483,7 +1487,8 @@ CHANGESET_ID=$(exoctl changeset list | grep pending | head -1 | awk '{print $2}'
 exoctl changeset show $CHANGESET_ID
 
 # Step 13: Check token usage
-sqlite3 .exo/journal.db "SELECT action_type, payload FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;"
+exoctl journal --payload %tokens% --tail 5
 ```
 
 ### Part B: OpenAI GPT Testing
@@ -2221,7 +2226,8 @@ cat ~/ExoFrame/Memory/Portals/TestMemoryPortal.md
 # Part D: Memory Search and Retrieval
 
 # Step 9: Search memory by tag
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%testing%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%testing%' ORDER BY timestamp DESC LIMIT 5;"
+exoctl journal --payload %testing% --tail 5
 
 # Step 10: Query memory reports
 find ~/ExoFrame/Memory/Reports/ -name "*.md" -type f
@@ -2273,7 +2279,10 @@ find ~/ExoFrame/Memory/ -name "*.md" | wc -l
 # Should show multiple memory files
 
 # Check Activity Journal logged memory operations
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, target FROM activity WHERE action_type LIKE '%memory%' OR action_type LIKE '%portal%' ORDER BY timestamp DESC LIMIT 10;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%memory%' ORDER BY timestamp DESC LIMIT 10;"
+exoctl journal --filter action_type=%memory% --tail 10
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%portal%' ORDER BY timestamp DESC LIMIT 10;"
+exoctl journal --filter action_type=%portal% --tail 10
 ```
 
 ### Cleanup
@@ -2401,6 +2410,7 @@ exoctl request show $REQUEST_ID
 
 # Step 5: Check activity journal for flow routing
 sleep 2
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'request.created' ORDER BY timestamp DESC LIMIT 1;"
 exoctl journal --filter action_type=request.created --limit 1
 
 # Part C: Flow Execution and Monitoring
@@ -2418,10 +2428,12 @@ exoctl plan approve $PLAN_ID
 
 # Step 9: Monitor flow execution progress
 sleep 10
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' ORDER BY timestamp DESC LIMIT 20;"
 exoctl journal --filter trace_id=$REQUEST_ID --limit 20
 
 # Step 10: Check for multi-agent execution
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT DISTINCT agent_id FROM activity WHERE trace_id = '$REQUEST_ID' AND agent_id IS NOT NULL;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT DISTINCT agent_id FROM activity WHERE trace_id = '$REQUEST_ID' AND agent_id IS NOT NULL;"
+exoctl journal --filter trace_id=$REQUEST_ID --distinct agent_id
 
 # Part D: Error Handling and Validation
 
@@ -2475,13 +2487,16 @@ exoctl request list | grep test-review-flow
 exoctl request show $REQUEST_ID | grep -A 5 -B 5 "flow:"
 
 # Verify flow routing in activity journal
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, payload FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type = 'request.created' ORDER BY timestamp DESC LIMIT 1;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type = 'request.created' ORDER BY timestamp DESC LIMIT 1;"
+exoctl journal --filter trace_id=$REQUEST_ID --filter action_type=request.created --tail 1
 
 # Check multi-agent execution
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT agent_id, action_type FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type LIKE 'step.%' ORDER BY timestamp;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type LIKE 'step.%' ORDER BY timestamp DESC LIMIT 50;"
+exoctl journal --filter trace_id=$REQUEST_ID --filter action_type=step.%
 
 # Verify step dependencies respected
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT step_id, agent_id, timestamp FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type = 'step.started' ORDER BY timestamp;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$REQUEST_ID' AND action_type = 'step.started' ORDER BY timestamp DESC LIMIT 50;"
+exoctl journal --filter trace_id=$REQUEST_ID --filter action_type=step.started
 ```
 
 ### Cleanup
@@ -2569,7 +2584,8 @@ exoctl dashboard
 cat ~/ExoFrame/.agent/workflows/test-skill.md | grep -A 5 "^---"
 
 # Step 6: Verify skill is indexed
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%skill%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%skill%' ORDER BY timestamp DESC LIMIT 5;"
+exoctl journal --filter action_type=%skill% --tail 5
 
 # Part D: Skill Dependencies (if applicable)
 
@@ -2630,7 +2646,8 @@ head -10 ~/ExoFrame/.agent/workflows/test-skill.md
 find ~/ExoFrame/.agent/workflows/ -name "*.md" | wc -l
 
 # Verify Activity Journal
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, target FROM activity WHERE action_type LIKE '%skill%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%skill%' ORDER BY timestamp DESC LIMIT 5;"
+exoctl journal --filter action_type=%skill% --tail 5
 ```
 
 ### Cleanup
@@ -2691,10 +2708,11 @@ exoctl dashboard
 ### Verification
 
 ```bash
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%dashboard%' ORDER BY timestamp DESC LIMIT 5;";
 # Check that all views load without errors
 # Verify view titles and content are displayed correctly
 # Confirm Activity Journal shows dashboard launch event
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, target FROM activity WHERE action_type LIKE '%dashboard%' ORDER BY timestamp DESC LIMIT 5;"
+exoctl journal --filter action_type=%dashboard% --tail 5
 ```
 
 ### Pass Criteria
@@ -2766,7 +2784,8 @@ ls -la ~/ExoFrame/logs_*.txt
 cat ~/ExoFrame/logs_*.txt | head -10
 
 # Verify filter state in Activity Journal
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%filter%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%filter%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --filter action_type=%filter% --tail 5
 ```
 
 ### Pass Criteria
@@ -2829,7 +2848,8 @@ exoctl dashboard
 
 ```bash
 # Check Activity Journal for approval/rejection events
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, target, payload FROM activity WHERE action_type LIKE '%plan%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%plan%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --filter action_type=%plan% --tail 5
 
 # Verify plans moved to correct directories
 ls ~/ExoFrame/Workspace/Plans/  # Should not contain approved/rejected plans
@@ -2889,7 +2909,8 @@ exoctl dashboard
 
 ```bash
 # Verify portal actions in Activity Journal
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%portal%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%portal%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --filter action_type=%portal% --tail 5
 ```
 
 ### Pass Criteria
@@ -2935,7 +2956,8 @@ exoctl dashboard
 
 ```bash
 # Verify daemon actions in Activity Journal
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%daemon%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%daemon%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --filter action_type=%daemon% --tail 5
 ```
 
 ### Pass Criteria
@@ -2986,7 +3008,8 @@ exoctl dashboard
 
 ```bash
 # Verify request actions in Activity Journal
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%request%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%request%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --filter action_type=%request% --tail 5
 ```
 
 ### Pass Criteria
@@ -3013,22 +3036,27 @@ sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIK
 # Part A: Basic Queries
 
 # Step 1: Query all activity
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity ORDER BY timestamp DESC LIMIT 20;";
 exoctl journal --tail 20
 
 # Step 2: Query by trace_id
 TRACE_ID=$(exoctl journal --tail 1 --format json | jq -r '.[0].trace_id')
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$TRACE_ID';";
 exoctl journal --filter trace_id=$TRACE_ID
 
 # Step 3: Query by action_type
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'request.created';";
 exoctl journal --filter action_type=request.created
 
 # Step 4: Query by agent_id
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE agent_id = 'mock-agent';";
 exoctl journal --filter agent_id=mock-agent
 
 # Part B: Time-Based Filtering
 
 # Step 5: Query last activity since specific time
 # (Assuming 'since' implementation allows string date)
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE timestamp >= '2024-01-01';";
 exoctl journal --filter since=2024-01-01
 
 # Part C: Formatted Output
@@ -3037,12 +3065,14 @@ exoctl journal --filter since=2024-01-01
 exoctl journal --tail 5 --format json | jq '.'
 
 # Step 7: Export to file
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity;";
 exoctl journal --format json > /tmp/activity_log.json
 
 # Part D: Advanced Debugging (Backup)
 
 # Step 8: Direct SQL access for complex analysis (Debug only)
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, COUNT(*) as count FROM activity GROUP BY action_type ORDER BY count DESC;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity;";
+exoctl journal --count
 
 # Step 9: Verify integrity
 sqlite3 ~/ExoFrame/.exo/journal.db "PRAGMA integrity_check;"
@@ -3078,7 +3108,7 @@ sqlite3 ~/ExoFrame/.exo/journal.db "PRAGMA integrity_check;"
 sqlite3 ~/ExoFrame/.exo/journal.db ".schema activity"
 
 # Check row count
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity;"
+exoctl journal | wc -l
 
 # Verify export file created
 ls -lh /tmp/activity_log.json
@@ -3150,7 +3180,8 @@ exoctl request "Read secret.txt from PortalA" --agent mock-agent --portal Portal
 # Part C: Command Whitelist Validation
 
 # Step 7: Test allowed commands
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.executing' AND payload LIKE '%command%' ORDER BY timestamp DESC LIMIT 10;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type = 'action.executing' AND payload LIKE '%command%' ORDER BY timestamp DESC LIMIT 10;";
+exoctl journal --filter action_type=action.executing --payload %command% --tail 10
 
 # Step 8: Verify dangerous commands are blocked
 # Check logs for rejected commands (rm, dd, chmod, etc.)
@@ -3177,11 +3208,17 @@ readlink ~/ExoFrame/Portals/PortalB
 # Part F: Activity Journal Security
 
 # Step 13: Verify sensitive data not logged
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT payload FROM activity WHERE payload LIKE '%password%' OR payload LIKE '%api_key%' OR payload LIKE '%secret%';"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%password%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --payload %password% --tail 5
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%api_key%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --payload %api_key% --tail 5
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%secret%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --payload %secret% --tail 5
 # Should return no sensitive credentials
 
 # Step 14: Verify actor attribution
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT DISTINCT actor FROM activity ORDER BY actor;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT DISTINCT actor FROM activity;";
+exoctl journal --distinct actor
 # Should show: agent names, 'system', 'human', but not 'unknown' or NULL
 ```
 
@@ -3237,7 +3274,10 @@ ls -la ~/ExoFrame/Portals/
 grep -i "permission denied\|access denied\|blocked\|security" ~/ExoFrame/.exo/daemon.log | tail -20
 
 # Verify no sensitive data in journal
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT payload FROM activity WHERE payload LIKE '%api%key%' OR payload LIKE '%password%';" | wc -l
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE payload LIKE '%api%key%';";
+exoctl journal --payload %api%key% | wc -l
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE payload LIKE '%password%';";
+exoctl journal --payload %password% | wc -l
 # Should be 0
 ```
 
@@ -3332,7 +3372,10 @@ exoctl request "Test fallback behavior"
 sleep 10
 
 # Step 9: Verify fallback logged
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%fallback%' OR payload LIKE '%fallback%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE action_type LIKE '%fallback%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --filter action_type=%fallback% --tail 5
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%fallback%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --payload %fallback% --tail 5
 
 # Part D: Health Check Validation
 
@@ -3345,7 +3388,10 @@ grep -i "health\|skip\|unavailable" ~/ExoFrame/.exo/daemon.log | tail -10
 # Part E: Cost Tracking
 
 # Step 12: Query cost tracking (if implemented)
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%cost%' OR payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%cost%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --payload %cost% --tail 5
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --payload %tokens% --tail 5
 
 # Step 13: Verify daily cost limit enforcement
 # Create multiple requests and verify limit checking
@@ -3393,7 +3439,10 @@ grep -A 15 "provider_strategy" ~/ExoFrame/exo.config.toml
 grep -i "provider\|model\|fallback" ~/ExoFrame/.exo/daemon.log | tail -20
 
 # Check cost tracking
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT payload FROM activity WHERE payload LIKE '%tokens%' OR payload LIKE '%cost%' LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --payload %tokens% --tail 5
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%cost%' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --payload %cost% --tail 5
 ```
 
 ### Cleanup
@@ -3496,7 +3545,8 @@ exoctl git branches
 exoctl git log $TRACE_ID
 
 # Step 13: Verify trace_id linkage
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT trace_id, action_type FROM activity WHERE trace_id = '$TRACE_ID' ORDER BY timestamp;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$TRACE_ID';";
+exoctl journal --filter trace_id=$TRACE_ID
 
 # Part F: Merge Operations
 
@@ -3565,7 +3615,8 @@ git log -1 --format="%B" | grep "ExoTrace"
 exoctl git --help
 
 # Check Activity Journal linkage
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE trace_id LIKE '%$TRACE_ID%';"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE trace_id LIKE '%$TRACE_ID%';";
+exoctl journal --filter trace_id=%$TRACE_ID% | wc -l
 
 # Verify merge completed
 git log --oneline --graph -10
@@ -3620,7 +3671,8 @@ FLOW_REQUEST_ID=$(exoctl request "Process user data pipeline" --flow data-proces
 exoctl request show $FLOW_REQUEST_ID
 
 # Step 4: Check Activity Journal for flow request creation
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, metadata FROM activity WHERE request_id = '$FLOW_REQUEST_ID' ORDER BY timestamp DESC LIMIT 5;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$FLOW_REQUEST_ID' ORDER BY timestamp DESC LIMIT 5;";
+exoctl journal --filter trace_id=$FLOW_REQUEST_ID --tail 5
 
 # Part B: Flow Execution and Routing
 
@@ -3634,7 +3686,8 @@ exoctl request show $FLOW_REQUEST_ID | grep -E "(flow|FlowRunner)"
 exoctl flow status $FLOW_REQUEST_ID
 
 # Step 8: Monitor Activity Journal for flow steps
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT timestamp, action_type, metadata FROM activity WHERE request_id = '$FLOW_REQUEST_ID' AND action_type LIKE '%flow%' ORDER BY timestamp;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$FLOW_REQUEST_ID' AND action_type LIKE '%flow%';";
+exoctl journal --filter trace_id=$FLOW_REQUEST_ID --filter action_type=%flow%
 
 # Part C: Flow Validation and Error Handling
 
@@ -3646,7 +3699,8 @@ exoctl request "Test missing deps" --flow complex-workflow --agent mock-agent 2>
 
 # Step 11: Verify error logged in Activity Journal
 INVALID_REQUEST_ID=$(exoctl request list | grep "Test invalid flow" | head -1 | awk '{print $1}')
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT action_type, metadata FROM activity WHERE request_id = '$INVALID_REQUEST_ID' AND action_type = 'error' ORDER BY timestamp DESC LIMIT 1;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$INVALID_REQUEST_ID' AND action_type = 'error' ORDER BY timestamp DESC LIMIT 1;";
+exoctl journal --filter trace_id=$INVALID_REQUEST_ID --filter action_type=error --tail 1
 
 # Part D: Flow with Portal Integration
 
@@ -3667,7 +3721,8 @@ sleep 15
 exoctl request show $FLOW_REQUEST_ID | grep -E "(completed|failed)"
 
 # Step 16: Verify final activity log
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE request_id = '$FLOW_REQUEST_ID';"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT COUNT(*) FROM activity WHERE trace_id = '$FLOW_REQUEST_ID';";
+exoctl journal --filter trace_id=$FLOW_REQUEST_ID | wc -l
 
 # Step 17: Check flow execution summary
 exoctl flow summary $FLOW_REQUEST_ID
@@ -3716,7 +3771,8 @@ exoctl flow summary $FLOW_REQUEST_ID
 exoctl request show $FLOW_REQUEST_ID | jq '.metadata.flow'
 
 # Check routing decision
-sqlite3 ~/ExoFrame/.exo/journal.db "SELECT metadata FROM activity WHERE request_id = '$FLOW_REQUEST_ID' AND action_type = 'request_routed' LIMIT 1;"
+# sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE trace_id = '$FLOW_REQUEST_ID' AND action_type = 'request_routed' ORDER BY timestamp DESC LIMIT 1;";
+exoctl journal --filter trace_id=$FLOW_REQUEST_ID --filter action_type=request_routed --tail 1
 
 # Validate flow execution steps
 exoctl flow status $FLOW_REQUEST_ID

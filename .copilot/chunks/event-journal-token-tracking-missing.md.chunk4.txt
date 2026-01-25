@@ -1,4 +1,3 @@
-**Fix**:
 1. Changed token usage logging from `logger.debug()` to `logger.info()` in `handleProviderResponse()` to ensure it appears in the activity journal
 2. Extended `TokenMap` type to include `cost_usd` field
 3. Updated all `tokenMapper` functions (`tokenMapperOpenAI`, `tokenMapperGoogle`, `tokenMapperAnthropic`) to calculate and include cost based on provider rates

@@ -24,6 +24,7 @@ export interface ActivityRecord {
   target: string | null;
   payload: string;
   timestamp: string;
+  count?: number; // For aggregation queries
 }
 
 export class DatabaseService {
@@ -329,33 +330,47 @@ export class DatabaseService {
       await this.executeBatchInsert(batch, "queryActivity");
     }
 
-    let query = `
-      SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
-      FROM activity
-      WHERE 1=1
-    `;
+    // Build SELECT clause
+    let selectClause = `SELECT `;
+    if (filter.distinct) {
+      selectClause += `DISTINCT ${filter.distinct}`;
+    } else if (filter.count) {
+      selectClause += `action_type, COUNT(*) as count`;
+    } else {
+      selectClause += `id, trace_id, actor, agent_id, action_type, target, payload, timestamp`;
+    }
+
+    // Build WHERE clause
+    const whereParts: string[] = [];
     const params: (string | number)[] = [];
 
-    if (filter.traceId) {
-      query += ` AND trace_id = ?`;
-      params.push(filter.traceId);
+    if (filter.orConditions && filter.orConditions.length > 0) {
+      // Handle OR conditions
+      const orParts: string[] = [];
+      for (const orFilter of filter.orConditions) {
+        const orWhere = this.buildWhereClause(orFilter, params);
+        if (orWhere) {
+          orParts.push(`(${orWhere})`);
+        }
+      }
+      if (orParts.length > 0) {
+        whereParts.push(`(${orParts.join(' OR ')})`);
+      }
+    } else {
+      // Handle single condition
+      const where = this.buildWhereClause(filter, params);
+      if (where) {
+        whereParts.push(where);
+      }
     }
 
-    if (filter.actionType) {
-      query += ` AND action_type = ?`;
-      params.push(filter.actionType);
-    }
+    const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
 
-    if (filter.agentId) {
-      query += ` AND agent_id = ?`;
-      params.push(filter.agentId);
-    }
+    let query = `${selectClause} FROM activity ${whereClause}`;
 
-    if (filter.since) {
-      // TODO: Implement relative time parsing if needed
-      // For now assume ISO date string
-      query += ` AND timestamp > ?`;
-      params.push(filter.since);
+    // Add GROUP BY for count queries
+    if (filter.count) {
+      query += ` GROUP BY action_type`;
     }
 
     query += ` ORDER BY timestamp DESC`;
@@ -364,6 +379,51 @@ export class DatabaseService {
 
     const stmt = this.db.prepare(query);
     return stmt.all(...params) as unknown as ActivityRecord[];
+  }
+
+  private buildWhereClause(filter: JournalFilterOptions, params: (string | number)[]): string {
+    const conditions: string[] = [];
+
+    if (filter.traceId) {
+      conditions.push(`trace_id = ?`);
+      params.push(filter.traceId);
+    }
+
+    if (filter.actionType) {
+      if (filter.actionType.includes('%')) {
+        conditions.push(`action_type LIKE ?`);
+      } else {
+        conditions.push(`action_type = ?`);
+      }
+      params.push(filter.actionType);
+    }
+
+    if (filter.agentId) {
+      conditions.push(`agent_id = ?`);
+      params.push(filter.agentId);
+    }
+
+    if (filter.payload) {
+      conditions.push(`payload LIKE ?`);
+      params.push(filter.payload);
+    }
+
+    if (filter.actor) {
+      conditions.push(`actor = ?`);
+      params.push(filter.actor);
+    }
+
+    if (filter.target) {
+      conditions.push(`target = ?`);
+      params.push(filter.target);
+    }
+
+    if (filter.since) {
+      conditions.push(`timestamp > ?`);
+      params.push(filter.since);
+    }
+
+    return conditions.join(' AND ');
   }
 }
 
@@ -384,4 +444,10 @@ export interface JournalFilterOptions {
   agentId?: string;
   limit?: number;
   since?: string; // ISO date string
+  payload?: string; // LIKE pattern
+  actor?: string;
+  target?: string;
+  distinct?: string; // field name for DISTINCT
+  count?: boolean; // if true, return count aggregation
+  orConditions?: JournalFilterOptions[]; // OR conditions
 }

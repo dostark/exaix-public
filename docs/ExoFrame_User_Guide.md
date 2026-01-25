@@ -1,7 +1,7 @@
 # ExoFrame User Guide
 
-- **Version:** 1.8.0
-- **Date:** 2025-12-03
+- **Version:** 0.1.0
+- **Date:** 2026-01-25
 
 ## 1. Introduction
 
@@ -567,7 +567,7 @@ $ exoctl dashboard
 
 See the [Implementation Plan](./ExoFrame_Implementation_Plan.md#step-95-tui-cockpit-implementation-plan) for technical details and roadmap.
 
-ExoFrame CLI is organized into six main command groups:
+ExoFrame CLI is organized into ten main command groups:
 
 #### **Request Commands** - Primary Interface for Creating Requests
 
@@ -582,6 +582,7 @@ exoctl request "Implement user authentication for the API"
 # With options
 exoctl request "Add rate limiting" --agent senior_coder --priority high
 exoctl request "Fix security bug" --priority critical --portal MyProject
+exoctl request "Build a web app" --flow web-development
 
 # From file (for complex/long requests)
 exoctl request --file ~/requirements.md
@@ -606,7 +607,8 @@ exoctl request "Test" --json
 
 | Option          | Short | Description                                   |
 | --------------- | ----- | --------------------------------------------- |
-| `--agent`       | `-a`  | Target agent blueprint (default: `default`)   |
+| `--agent`       | `-a`  | Target agent blueprint (default: `default`, mutually exclusive with --flow)   |
+| `--flow`        |       | Target multi-agent flow (mutually exclusive with --agent) |
 | `--priority`    | `-p`  | Priority: `low`, `normal`, `high`, `critical` |
 | `--portal`      |       | Portal alias for project context              |
 | `--file`        | `-f`  | Read description from file                    |
@@ -1237,6 +1239,108 @@ exoctl daemon logs --lines 100           # Show last 100 lines
 exoctl daemon logs --follow              # Stream logs (like tail -f)
 ```
 
+#### **Skill Commands** - Manage Procedural Skills
+
+Skills are reusable procedural knowledge that agents can learn and apply. They represent patterns, techniques, and best practices that improve agent performance over time.
+
+```bash
+# List all available skills
+exoctl skill list
+
+# Show details of a specific skill
+exoctl skill show <skill-id>
+
+# Match skills for a given request
+exoctl skill match "Implement user authentication"
+
+# Derive a new skill from recent learnings
+exoctl skill derive --name "API Security Patterns"
+
+# Create a new skill manually
+exoctl skill create <name> --description "Skill description"
+```
+
+**Skill Types:**
+
+- **Procedural Skills:** Step-by-step processes (e.g., "Code Review Process")
+- **Pattern Skills:** Reusable patterns (e.g., "Error Handling Patterns")
+- **Domain Skills:** Specialized knowledge (e.g., "React Best Practices")
+- **Tool Skills:** How to use specific tools effectively
+
+**Example workflow:**
+
+```bash
+# Find relevant skills for a task
+$ exoctl skill match "Build a REST API"
+🔍 Matching skills for: "Build a REST API"
+
+API Design Patterns (95% match)
+  Description: Best practices for REST API design
+  Usage: 23 times, Success: 21/23
+
+Authentication Implementation (87% match)
+  Description: Secure authentication patterns
+  Usage: 15 times, Success: 14/15
+
+# Use a skill in a request
+$ exoctl request "Build a REST API for user management" --skill api-design-patterns
+```
+
+#### **MCP Commands** - Model Context Protocol Server
+
+The Model Context Protocol (MCP) allows external AI clients to interact with your ExoFrame workspace using standardized tools.
+
+```bash
+# Start the MCP server
+exoctl mcp start
+
+# Start with debug logging
+exoctl mcp start --log-level debug
+
+# Check MCP server status
+exoctl mcp status
+```
+
+**Available MCP Tools:**
+
+- `exoframe_create_request`: Create new requests in your workspace
+- `exoframe_list_plans`: View pending plans for approval
+- `exoframe_approve_plan`: Approve plans for execution
+- `exoframe_query_journal`: Search the Activity Journal
+- File system tools: `read_file`, `write_file`, `list_dir`, etc. (scoped to workspace)
+
+**Client Integration:**
+
+**Claude Desktop:**
+
+```json
+{
+  "mcpServers": {
+    "exoframe": {
+      "command": "exoctl",
+      "args": ["mcp", "start"],
+      "env": {
+        "EXOFRAME_ROOT": "/path/to/your/workspace"
+      }
+    }
+  }
+}
+```
+
+**Example workflow:**
+
+```bash
+# Start MCP server
+$ exoctl mcp start
+🚀 MCP Server started on stdio
+  Tools: exoframe_create_request, exoframe_list_plans, exoframe_approve_plan, exoframe_query_journal
+  File system access: scoped to workspace
+
+# External client can now use ExoFrame tools
+# Client: "Create a request to refactor the authentication module"
+# ExoFrame: ✓ Request created: request-abc123.md
+```
+
 #### **Memory Banks CLI** - Access Execution History and Project Knowledge
 
 ExoFrame provides comprehensive CLI commands to access your workspace's memory banks.
@@ -1336,6 +1440,20 @@ exoctl daemon logs --follow                # Watch logs
 exoctl git branches                        # List all branches
 exoctl git status                          # Working tree status
 exoctl git log --trace <id>                # Find commits by trace
+
+# Memory and skills
+exoctl memory search "authentication"      # Search execution history
+exoctl skill match "API design"            # Find relevant skills
+exoctl skill list                          # List all skills
+
+# MCP server
+exoctl mcp start                          # Start MCP server for external clients
+exoctl mcp status                          # Check MCP server status
+
+# Activity Journal
+exoctl journal --tail 20                  # View recent activity
+exoctl journal --filter action_type=error # Find errors
+exoctl journal --count                    # Count activities by type
 ```
 
 ### 4.4 Activity Logging
@@ -1353,20 +1471,24 @@ Query activity history:
 # View recent activity history
 exoctl journal --tail 10
 
-# Filter by trace ID to see event correlation
-exoctl journal --filter trace_id=a1b2...
+# Filter by trace ID to see complete request lifecycle
+TRACE_ID=$(exoctl journal --tail 1 --format json | jq -r '.[0].trace_id')
+exoctl journal --filter trace_id=$TRACE_ID
+
+# Audit all errors across the system
+exoctl journal --filter action_type=error
 ```
 
 ### 4.5 Output Formatting
 
-All CLI commands output human-readable text by default. Future versions will support JSON output:
+All CLI commands output human-readable text by default. JSON output is supported for scripting:
 
 ```bash
 # Human-readable (default)
 exoctl plan list
 
-# Machine-readable (planned)
-exoctl plan list --json
+# Machine-readable JSON output
+exoctl plan list --format json
 ```
 
 ### 4.6 File Format Reference
@@ -1506,24 +1628,20 @@ exoctl plan show implement-auth
 # 4. Approve the plan
 exoctl plan approve implement-auth
 
-# Note: Currently, plan approval moves the plan to Workspace/Active/ where it is
-# detected and parsed. Agent-driven execution (Steps 5.12.3-5.12.6) is in
-# development. Agents will have direct portal access and create changesets.
+# 5. Review changesets created by agents
+exoctl changeset list
+exoctl changeset show implement-auth
 
-# 5. (Future) Review changesets created by agents
-# exoctl changeset list
-# exoctl changeset show implement-auth
-
-# 6. (Future) Approve the changeset to merge
-# exoctl changeset approve implement-auth
+# 6. Approve the changeset to merge
+exoctl changeset approve implement-auth
 
 # Current Status:
 # ✅ Request creation automated
 # ✅ Plan generation automated
 # ✅ Plan approval workflow complete
 # ✅ Plan detection and parsing implemented
-# 🚧 Agent-driven execution in development
-# 🚧 Portal-scoped tools for agents in development
+# ✅ Changeset creation and approval available
+# 🚧 Full agent-driven execution in development
 
 # All completed steps logged to Activity Journal with trace_id
 ```
@@ -2042,7 +2160,7 @@ If relevant memories aren't being injected:
 
 ---
 
-## 5. Configuration
+## 7. Configuration
 
 ExoFrame is designed to be fully configurable without modifying source code. The primary configuration file is `exo.config.toml` (located in your workspace root).
 
@@ -2157,11 +2275,11 @@ If you see warnings like "Invalid EXO_LLM_TIMEOUT_MS: must be ≥ 1000", check:
 
 For more details, see `templates/exo.config.sample.toml` and [Technical Specification](./dev/ExoFrame_Technical_Spec.md).
 
-## 6. Model Context Protocol (MCP) Server
+## 8. Model Context Protocol (MCP) Server
 
 ExoFrame includes a built-in MCP server, allowing generic AI clients (like Claude Desktop or IDE extensions) to interact with your workspace using standardized tools.
 
-### 6.1 Starting the Server
+### 8.1 Starting the Server
 
 The standard way to run the MCP server is via the `exoctl` CLI:
 
@@ -2173,7 +2291,7 @@ exoctl mcp start
 exoctl mcp start --log-level debug
 ```
 
-### 6.2 Available Tools
+### 8.2 Available Tools
 
 When connected, AI agents have access to high-level domain tools:
 
@@ -2183,7 +2301,7 @@ When connected, AI agents have access to high-level domain tools:
 - **`exoframe_query_journal`**: Search the Activity Journal for past events.
 - **FileSystem & Git**: Standard tools (`read_file`, `write_file`, `git_status`, etc.) are also available, scoped to your workspace.
 
-### 6.3 Client Integration
+### 8.3 Client Integration
 
 **Claude Desktop:**
 Add the following to your `claude_desktop_config.json`:
@@ -2204,18 +2322,18 @@ Add the following to your `claude_desktop_config.json`:
 
 See `templates/mcp/` for more client configuration examples.
 
-## 7. Security
+## 9. Security
 
 ExoFrame is built with a "Safety First" architecture, focusing on local execution and explicit permissions.
 
-### 7.1 Key Security Features
+### 9.1 Key Security Features
 
 - **Sandboxing:** File system access is strictly scoped to your Workspace and configured Portals. Path traversal attempts are blocked.
 - **API Keys:** Keys are loaded from environment variables (`ANTHROPIC_API_KEY`, etc.) and never stored in the database or logs.
 - **Human-in-the-Loop:** Critical actions (plan approval, file writes via generic agents) require explicit human confirmation unless configured otherwise.
 - **Git Safety:** Automated commits are signed with detailed trace IDs.
 
-### 7.2 Best Practices
+### 9.2 Best Practices
 
 1. **Review Plans:** Always inspect the diffs in the TUI (`exoctl plan show`) before approving.
 2. **Audit Logs:** Use `exoctl journal` to audit agent activity.
@@ -2223,11 +2341,11 @@ ExoFrame is built with a "Safety First" architecture, focusing on local executio
 
 ---
 
-## 8. Daemon Management & Monitoring
+## 10. Daemon Management & Monitoring
 
 ExoFrame can run as a background daemon to serve the MCP API, run scheduled tasks, and monitor workspace health.
 
-### 8.1 Daemon Control
+### 10.1 Daemon Control
 
 Use the `exoctl daemon` command to manage the background service:
 
@@ -2248,7 +2366,7 @@ exoctl daemon stop
 > [!TIP]
 > **Graceful Shutdown:** The daemon handles shutdown signals to ensure critical operations (like database writes or git commits) complete before exiting.
 
-### 8.2 Health Checks
+### 10.2 Health Checks
 
 The daemon exposes health endpoints and performs self-monitoring. checking:
 
@@ -2261,9 +2379,9 @@ The daemon exposes health endpoints and performs self-monitoring. checking:
 exoctl health check
 ```
 
-### 8.3 Activity Journal
+### 10.3 Activity Journal
 
-The Activity Journal provides a permanent, searchable audit trail of all agent actions, system events, and errors. It is stored locally in `journal.db` and is essential for debugging and compliance.
+The Activity Journal provides a permanent, searchable audit trail of all agent actions, system events, and errors. It is stored locally in `journal.db` and is essential for debugging, compliance, and understanding system behavior.
 
 **Usage:**
 
@@ -2271,40 +2389,308 @@ The Activity Journal provides a permanent, searchable audit trail of all agent a
 exoctl journal [options]
 ```
 
-**Options:**
+**Core Options:**
 
-| Option | Alias | Description | Default |
-|String | - | - | - |
-| `--tail <n>` | `-n` | Show the last N entries | 50 |
-| `--filter <key=val>` | `-f` | Filter criteria (see below) | None |
-| `--format <fmt>` | - | Output format (`table` or `json`) | `table` |
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--tail <n>`, `-n <n>` | Show the last N entries | 50 |
+| `--filter <key=value>`, `-f <key=value>` | Filter by criteria (can be used multiple times) | None |
+| `--format <format>` | Output format: `text`, `table`, `json` | `text` |
+| `--distinct <field>` | Return distinct values for specified field | None |
+| `--count` | Return count aggregation by action_type | false |
+| `--payload <pattern>` | Filter by payload LIKE pattern | None |
+| `--actor <actor>` | Filter by actor | None |
+| `--target <target>` | Filter by target | None |
 
 **Filter Keys:**
 
-- `trace_id`: Filter by specific operation UUID
-- `agent_id`: Filter by agent name (e.g., `mock-agent`)
-- `action_type`: Filter by event type (e.g., `request.created`, `error`)
+- `trace_id`: Filter by specific operation UUID (e.g., `trace_id=a1b2c3d4-e5f6-7890-abcd-ef1234567890`)
+- `action_type`: Filter by event type (e.g., `action_type=request.created`, supports wildcards like `action_type=plan.%`)
+- `agent_id`: Filter by agent name (e.g., `agent_id=security-auditor`)
+- `since`: Filter by time (e.g., `since=2024-01-01`, `since=2024-01-01T10:00:00`)
 
-**Examples:**
+#### Basic Usage Examples
 
 ```bash
-# View recent system activity
+# View recent system activity (last 50 entries)
 exoctl journal
 
-# Investigate a specific request trace
-exoctl journal --filter trace_id=a1b2c3d4-e5f6-7890-abcd-ef1234567890
+# Show only the last 10 entries
+exoctl journal --tail 10
 
-# Audit all errors in JSON format for external analysis
-exoctl journal --filter action_type=error --format json > errors.json
+# Output in JSON format for scripting
+exoctl journal --format json
+
+# Display in table format for better readability
+exoctl journal --format table
 ```
 
-## 9. Cost Tracking (Beta)
+#### Filtering by Trace ID
 
-ExoFrame tracks token usage and estimates costs for supported providers.
+```bash
+# Investigate a specific request's complete lifecycle
+exoctl journal --filter trace_id=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 
-- **Budgeting**: Set `max_daily_cost_usd` in `exo.config.toml` to cap spending.
-- **Rates**: Define custom rates in `[cost_tracking.rates]` if needed.
-- **Reporting**: Usage is verified against the budget before every agent execution.
+# Get the trace ID from a recent request and investigate
+TRACE_ID=$(exoctl journal --tail 1 --format json | jq -r '.[0].trace_id')
+exoctl journal --filter trace_id=$TRACE_ID
+```
+
+#### Filtering by Action Type
+
+```bash
+# Show only request creation events
+exoctl journal --filter action_type=request.created
+
+# Show all plan-related events (using wildcard)
+exoctl journal --filter action_type=plan.%
+
+# Show all errors
+exoctl journal --filter action_type=error
+
+# Show blueprint operations
+exoctl journal --filter action_type=blueprint.%
+```
+
+#### Filtering by Agent
+
+```bash
+# Show activity for a specific agent
+exoctl journal --filter agent_id=security-auditor
+
+# Show activity for mock agents (using wildcard)
+exoctl journal --filter agent_id=mock-%
+```
+
+#### Time-Based Filtering
+
+```bash
+# Show activity since a specific date
+exoctl journal --filter since=2024-01-01
+
+# Show activity since a specific datetime
+exoctl journal --filter since=2024-01-01T10:00:00
+
+# Show recent activity (last hour)
+exoctl journal --filter since=$(date -d '1 hour ago' +%Y-%m-%dT%H:%M:%S)
+```
+
+#### Payload Pattern Matching
+
+```bash
+# Search for activities containing specific text in payload
+exoctl journal --payload %security%
+
+# Check for potential credential leaks
+exoctl journal --payload %password%
+exoctl journal --payload %api_key%
+exoctl journal --payload %secret%
+
+# Find token usage information
+exoctl journal --payload %tokens%
+
+# Search for cost-related activities
+exoctl journal --payload %cost%
+```
+
+#### Aggregation and Analysis
+
+```bash
+# Count total activities by action type
+exoctl journal --count
+
+# Get distinct list of all agents that have performed actions
+exoctl journal --distinct agent_id
+
+# Get distinct list of all action types
+exoctl journal --distinct action_type
+
+# Get distinct actors (users who performed actions)
+exoctl journal --distinct actor
+```
+
+#### Advanced Multi-Filter Queries
+
+```bash
+# Combine multiple filters: errors from specific agent since date
+exoctl journal --filter action_type=error --filter agent_id=security-auditor --filter since=2024-01-01
+
+# Find all failed actions for a specific trace
+exoctl journal --filter trace_id=$TRACE_ID --filter action_type=action.failed
+
+# Security audit: check for dangerous commands executed
+exoctl journal --filter action_type=action.executing --payload %rm% --payload %sudo%
+
+# Performance analysis: find slow operations
+exoctl journal --payload %timeout% --payload %error%
+```
+
+#### Real-World Use Cases
+
+**Debugging Failed Requests:**
+
+```bash
+# Find the trace ID of a failed request
+FAILED_TRACE=$(exoctl journal --filter action_type=request.failed --tail 1 --format json | jq -r '.[0].trace_id')
+
+# Investigate the complete failure chain
+exoctl journal --filter trace_id=$FAILED_TRACE
+```
+
+**Security Auditing:**
+
+```bash
+# Check for unauthorized file access attempts
+exoctl journal --payload %permission%denied% --payload %access%denied%
+
+# Audit all portal access
+exoctl journal --filter action_type=portal.% --tail 100
+
+# Check for sensitive data in logs
+exoctl journal --payload %password% --payload %key% --payload %secret% | wc -l
+```
+
+**Performance Monitoring:**
+
+```bash
+# Count requests by agent over time
+exoctl journal --filter action_type=request.created --distinct agent_id
+
+# Find most active time periods
+exoctl journal --count --filter since=$(date -d '7 days ago' +%Y-%m-%d)
+
+# Monitor token usage trends
+exoctl journal --payload %tokens% --tail 100 --format json | jq '.[] | .payload.tokens.total // 0' | paste -sd+ | bc
+```
+
+**Compliance and Reporting:**
+
+```bash
+# Export all activities for a specific month to JSON
+exoctl journal --filter since=2024-01-01 --filter since=2024-02-01 --format json > january_activities.json
+
+# Generate audit report for specific agent
+exoctl journal --filter agent_id=production-agent --format json > production_audit.json
+
+# Count human approvals vs automated actions
+exoctl journal --filter action_type=plan.approved --count
+```
+
+#### Power User: Direct SQL Access
+
+For advanced analysis, you can query the SQLite database directly:
+
+```bash
+# View the database schema
+sqlite3 ~/ExoFrame/.exo/journal.db ".schema activity"
+
+# Complex queries not available via CLI
+sqlite3 ~/ExoFrame/.exo/journal.db "
+  SELECT action_type, COUNT(*) as count,
+         MIN(timestamp) as first_seen,
+         MAX(timestamp) as last_seen
+  FROM activity
+  WHERE timestamp >= '2024-01-01'
+  GROUP BY action_type
+  ORDER BY count DESC;
+"
+
+# Find requests with the most steps
+sqlite3 ~/ExoFrame/.exo/journal.db "
+  SELECT trace_id, COUNT(*) as steps
+  FROM activity
+  WHERE action_type LIKE 'step.%'
+  GROUP BY trace_id
+  ORDER BY steps DESC
+  LIMIT 10;
+"
+```
+
+**Database Maintenance:**
+
+```bash
+# Check database integrity
+sqlite3 ~/ExoFrame/.exo/journal.db "PRAGMA integrity_check;"
+
+# Vacuum database to reclaim space
+sqlite3 ~/ExoFrame/.exo/journal.db "VACUUM;"
+
+# Backup journal before maintenance
+cp ~/ExoFrame/.exo/journal.db ~/backups/journal_$(date +%Y%m%d).db
+```
+
+## 11. Cost Tracking (Beta)
+
+ExoFrame provides comprehensive cost tracking and budget management for AI provider usage. This feature helps you monitor spending, set limits, and optimize your AI usage costs.
+
+### 11.1 How Cost Tracking Works
+
+Cost tracking operates at multiple levels:
+
+1. **Per-Request Tracking**: Each agent execution logs token usage and estimated cost
+2. **Daily Budget Enforcement**: Prevents exceeding your daily spending limit
+3. **Provider-Specific Rates**: Different rates for different models and providers
+4. **Historical Reporting**: Query past usage and costs via Activity Journal
+
+### 11.2 Configuration
+
+Configure cost tracking in your `exo.config.toml`:
+
+```toml
+[cost_tracking]
+enabled = true
+max_daily_cost_usd = 50.0  # Daily spending limit
+
+[cost_tracking.rates]
+# Override default rates if needed
+anthropic_claude_sonnet = 0.000015  # $15 per million tokens
+openai_gpt4 = 0.00003               # $30 per million tokens
+```
+
+### 11.3 Budget Enforcement
+
+Before each agent execution, ExoFrame checks:
+
+1. **Daily Budget**: Current day's spending vs `max_daily_cost_usd`
+2. **Estimated Cost**: Predicted cost for the current request
+3. **Provider Limits**: Any provider-specific restrictions
+
+If a request would exceed your budget, it's rejected with a clear error message.
+
+### 11.4 Monitoring Usage
+
+Query cost information through the Activity Journal:
+
+```bash
+# View recent cost-related activities
+exoctl journal --payload %cost% --tail 10
+
+# Find high-cost operations
+exoctl journal --payload %tokens% --tail 20 --format json | jq '.[] | select(.payload.cost > 1.0)'
+
+# Daily cost summary (requires external processing)
+exoctl journal --filter since=$(date +%Y-%m-%d) --payload %cost% --format json > daily_costs.json
+```
+
+### 11.5 Cost Optimization Tips
+
+- **Use Appropriate Models**: Smaller models for simple tasks, larger models for complex reasoning
+- **Set Realistic Budgets**: Start with conservative limits and adjust based on usage
+- **Monitor Regularly**: Use journal queries to identify expensive operations
+- **Batch Requests**: Combine related tasks to reduce overhead
+- **Cache Results**: Memory banks help avoid redundant work
+
+### 11.6 Supported Providers
+
+Cost tracking supports all major AI providers:
+
+| Provider    | Token Tracking | Cost Estimation | Budget Enforcement |
+|-------------|----------------|-----------------|-------------------|
+| Anthropic   | ✅             | ✅              | ✅                |
+| OpenAI      | ✅             | ✅              | ✅                |
+| Google      | ✅             | ✅              | ✅                |
+| Ollama      | ✅             | ❌ (free)       | ❌                |
+| Mock        | ✅             | ❌              | ❌                |
 
 ---
 

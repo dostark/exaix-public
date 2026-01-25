@@ -7,6 +7,11 @@ export interface JournalCommandOptions {
   filter?: string[];
   tail?: number;
   format?: "json" | "table" | "text";
+  distinct?: string;
+  count?: boolean;
+  payload?: string;
+  actor?: string;
+  target?: string;
 }
 
 /**
@@ -28,6 +33,22 @@ export class JournalCommands extends BaseCommand {
 
     if (options.tail) {
       filterOptions.limit = options.tail;
+    }
+
+    if (options.distinct) {
+      filterOptions.distinct = options.distinct;
+    }
+
+    if (options.count) {
+      filterOptions.count = true;
+    }
+
+    if (options.payload) {
+      filterOptions.payload = options.payload;
+    }
+
+    if (options.actor) {
+      filterOptions.actor = options.actor;
     }
 
     if (options.filter) {
@@ -59,7 +80,7 @@ export class JournalCommands extends BaseCommand {
             break;
           default:
             console.error(
-              colors.yellow(`Unknown filter key: ${key}. Supported: trace_id, action_type, agent_id, since.`),
+              colors.yellow(`Unknown filter key: ${key}. Supported: trace_id, action_type, agent_id, since, payload, actor, target.`),
             );
         }
       }
@@ -72,19 +93,49 @@ export class JournalCommands extends BaseCommand {
     if (options.format === "json") {
       console.log(JSON.stringify(results, null, 2));
     } else if (options.format === "table") {
-      this.renderTable(results);
+      this.renderTable(results, filterOptions);
     } else {
       // Default: text format
-      this.renderText(results);
+      this.renderText(results, filterOptions);
     }
   }
 
-  private renderTable(activities: ActivityRecord[]) {
+  private renderTable(activities: ActivityRecord[], filter: JournalFilterOptions) {
     if (activities.length === 0) {
       console.log(colors.gray("No activities found."));
       return;
     }
 
+    // Handle different query types
+    if (filter.distinct) {
+      // DISTINCT query - show the distinct field values
+      const table = new Table()
+        .header([colors.bold(filter.distinct)])
+        .body(
+          activities.map((a) => [a[filter.distinct as keyof ActivityRecord] || ""])
+        );
+      table.render();
+      return;
+    }
+
+    if (filter.count) {
+      // COUNT query - show action_type and count
+      const table = new Table()
+        .header([
+          colors.bold("Action Type"),
+          colors.bold("Count"),
+        ])
+        .body(
+          activities.map((a) => [
+            a.action_type,
+            String(a.count || 0),
+          ])
+        );
+      table.render();
+      return;
+    }
+
+    // Standard activity records
     const table = new Table()
       .header([
         colors.bold("Timestamp"),
@@ -125,12 +176,31 @@ export class JournalCommands extends BaseCommand {
     return str.length > max ? str.slice(0, max - 3) + "..." : str;
   }
 
-  private renderText(activities: ActivityRecord[]) {
+  private renderText(activities: ActivityRecord[], filter: JournalFilterOptions) {
     if (activities.length === 0) {
       console.log(colors.gray("No activities found."));
       return;
     }
 
+    // Handle different query types
+    if (filter.distinct) {
+      // DISTINCT query - show the distinct field values
+      for (const activity of activities) {
+        const value = activity[filter.distinct as keyof ActivityRecord] || "";
+        console.log(value);
+      }
+      return;
+    }
+
+    if (filter.count) {
+      // COUNT query - show action_type and count
+      for (const activity of activities) {
+        console.log(`${activity.action_type}: ${activity.count || 0}`);
+      }
+      return;
+    }
+
+    // Standard activity records
     for (const activity of activities) {
       const timestamp = new Date(activity.timestamp).toLocaleString();
       const traceId = activity.trace_id.slice(0, 8);

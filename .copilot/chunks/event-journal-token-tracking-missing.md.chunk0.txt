@@ -13,6 +13,7 @@ sqlite3 .exo/journal.db "SELECT payload FROM activity WHERE payload LIKE '%googl
 ## Observed Behavior
 
 The query returns payloads like:
+
 ```json
 {"provider":"google-gemini-2.0-flash-exp","model":"gemini-2.0-flash-exp","watching_requests":"Workspace/Requests","watching_plans":"Workspace/Active","status":"active"}
 {"type":"google","model":"gemini-2.0-flash-exp","source":"config","named_model":"default"}
