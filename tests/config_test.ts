@@ -16,7 +16,6 @@ import { ProviderCostTier } from "../src/enums.ts";
 
 import { ConfigService } from "../src/config/service.ts";
 import { ConfigSchema } from "../src/config/schema.ts";
-import { join } from "@std/path";
 import { initializeGlobalLogger, resetGlobalLogger } from "../src/services/structured_logger.ts";
 
 Deno.test("ConfigSchema accepts valid minimal config", () => {
@@ -86,7 +85,9 @@ Deno.test("ConfigSchema applies defaults for missing watcher section", () => {
   assertEquals(result.watcher.stability_check, true);
 });
 
-Deno.test("ConfigService computes checksum", () => {
+Deno.test("ConfigService computes checksum", async () => {
+  const tempDir = await Deno.makeTempDir({ prefix: "config-checksum-test-" });
+
   initializeGlobalLogger({
     minLevel: "info",
     outputs: [],
@@ -96,14 +97,8 @@ Deno.test("ConfigService computes checksum", () => {
   });
 
   try {
-    // Clean up before test to ensure consistent state
-    try {
-      Deno.removeSync("exo.config.toml");
-    } catch {
-      // Ignore if doesn't exist
-    }
-
-    const service = new ConfigService("exo.config.toml");
+    const configPath = `${tempDir}/exo.config.toml`;
+    const service = new ConfigService(configPath);
     const checksum = service.getChecksum();
 
     assertExists(checksum);
@@ -111,7 +106,7 @@ Deno.test("ConfigService computes checksum", () => {
   } finally {
     // Clean up after test
     try {
-      Deno.removeSync("exo.config.toml");
+      await Deno.remove(tempDir, { recursive: true });
     } catch {
       // Ignore
     }
@@ -119,7 +114,9 @@ Deno.test("ConfigService computes checksum", () => {
   }
 });
 
-Deno.test("ConfigService loads config successfully", () => {
+Deno.test("ConfigService loads config successfully", async () => {
+  const tempDir = await Deno.makeTempDir({ prefix: "config-load-test-" });
+
   initializeGlobalLogger({
     minLevel: "info",
     outputs: [],
@@ -129,14 +126,8 @@ Deno.test("ConfigService loads config successfully", () => {
   });
 
   try {
-    // Clean up before test
-    try {
-      Deno.removeSync("exo.config.toml");
-    } catch {
-      // Ignore
-    }
-
-    const service = new ConfigService("exo.config.toml");
+    const configPath = `${tempDir}/exo.config.toml`;
+    const service = new ConfigService(configPath);
     const config = service.get();
 
     assertExists(config.system);
@@ -145,7 +136,7 @@ Deno.test("ConfigService loads config successfully", () => {
   } finally {
     // Clean up after test
     try {
-      Deno.removeSync("exo.config.toml");
+      await Deno.remove(tempDir, { recursive: true });
     } catch {
       // Ignore
     }
@@ -158,6 +149,8 @@ Deno.test("ConfigService loads config successfully", () => {
 // ============================================================================
 
 Deno.test("ConfigService handles missing config file", async (t) => {
+  const tempDir = await Deno.makeTempDir({ prefix: "config-missing-test-" });
+
   // Initialize global logger for tests
   initializeGlobalLogger({
     minLevel: "info",
@@ -167,90 +160,71 @@ Deno.test("ConfigService handles missing config file", async (t) => {
     version: "1.0.0",
   });
 
-  await t.step("should create default config when file not found", () => {
-    const tempPath = join(Deno.cwd(), "test-missing-config.toml");
+  try {
+    await t.step("should create default config when file not found", () => {
+      const configPath = `${tempDir}/test-missing-config.toml`;
 
-    // Clean up if exists
+      // ConfigService should create default config
+      const service = new ConfigService(configPath);
+      const config = service.get();
+
+      // Verify config has defaults (from the created default file)
+      assertEquals(config.system.log_level, "info");
+      assertEquals(config.paths.memory, "./Memory"); // From file
+      assertEquals(config.paths.blueprints, "./Blueprints"); // From file
+
+      // Verify file was created
+      const fileExists = (() => {
+        try {
+          Deno.statSync(configPath);
+          return true;
+        } catch {
+          return false;
+        }
+      })();
+      assertEquals(fileExists, true);
+    });
+
+    await t.step("should compute checksum for created default config", () => {
+      const configPath = `${tempDir}/test-checksum-config.toml`;
+
+      const service = new ConfigService(configPath);
+      const checksum = service.getChecksum();
+
+      // Checksum should be computed for the created file
+      assertEquals(typeof checksum, "string");
+      assertEquals(checksum.length > 0, true);
+    });
+  } finally {
+    // Clean up temp directory
     try {
-      Deno.removeSync(tempPath);
-    } catch {
-      // Ignore if doesn't exist
-    }
-
-    // ConfigService should create default config
-    const service = new ConfigService("test-missing-config.toml");
-    const config = service.get();
-
-    // Verify config has defaults (from the created default file)
-    assertEquals(config.system.log_level, "info");
-    assertEquals(config.paths.memory, "./Memory"); // From file
-    assertEquals(config.paths.blueprints, "./Blueprints"); // From file
-
-    // Verify file was created
-    const fileExists = (() => {
-      try {
-        Deno.statSync(tempPath);
-        return true;
-      } catch {
-        return false;
-      }
-    })();
-    assertEquals(fileExists, true);
-
-    // Clean up
-    try {
-      Deno.removeSync(tempPath);
+      await Deno.remove(tempDir, { recursive: true });
     } catch {
       // Ignore cleanup errors
     }
-  });
-
-  await t.step("should compute checksum for created default config", () => {
-    const tempPath = join(Deno.cwd(), "test-checksum-config.toml");
-
-    // Clean up if exists
-    try {
-      Deno.removeSync(tempPath);
-    } catch {
-      // Ignore
-    }
-
-    const service = new ConfigService("test-checksum-config.toml");
-    const checksum = service.getChecksum();
-
-    // Checksum should be computed for the created file
-    assertEquals(typeof checksum, "string");
-    assertEquals(checksum.length > 0, true);
-
-    // Clean up
-    try {
-      Deno.removeSync(tempPath);
-    } catch {
-      // Ignore
-    }
-  });
-
-  // Reset global logger after test
-  resetGlobalLogger();
+    resetGlobalLogger();
+  }
 });
 
-Deno.test("ConfigService handles invalid TOML syntax", () => {
-  const tempPath = join(Deno.cwd(), "test-invalid-toml.toml");
-
-  // Create file with invalid TOML
-  Deno.writeTextFileSync(tempPath, "[system\nthis is not valid TOML");
+Deno.test("ConfigService handles invalid TOML syntax", async () => {
+  const tempDir = await Deno.makeTempDir({ prefix: "config-invalid-toml-test-" });
 
   try {
+    const configPath = `${tempDir}/test-invalid-toml.toml`;
+
+    // Create file with invalid TOML
+    await Deno.writeTextFile(configPath, "[system\nthis is not valid TOML");
+
     assertThrows(
       () => {
-        new ConfigService("test-invalid-toml.toml");
+        new ConfigService(configPath);
       },
       Error,
     );
   } finally {
     // Clean up
     try {
-      Deno.removeSync(tempPath);
+      await Deno.remove(tempDir, { recursive: true });
     } catch {
       // Ignore
     }
@@ -258,42 +232,37 @@ Deno.test("ConfigService handles invalid TOML syntax", () => {
 });
 
 Deno.test("ConfigService handles validation errors", async (t) => {
-  await t.step("should exit on missing required fields", () => {
-    const tempPath = join(Deno.cwd(), "test-missing-fields.toml");
+  const tempDir = await Deno.makeTempDir({ prefix: "config-validation-test-" });
 
-    // Create config missing required system.version
-    Deno.writeTextFileSync(
-      tempPath,
-      `
+  try {
+    await t.step("should exit on missing required fields", () => {
+      const configPath = `${tempDir}/test-missing-fields.toml`;
+
+      // Create config missing required system.version
+      Deno.writeTextFileSync(
+        configPath,
+        `
 [system]
 log_level = "info"
-    `.trim(),
-    );
+      `.trim(),
+      );
 
-    try {
       assertThrows(
         () => {
-          new ConfigService("test-missing-fields.toml");
+          new ConfigService(configPath);
         },
         Error,
         "Invalid configuration",
       );
-    } finally {
-      try {
-        Deno.removeSync(tempPath);
-      } catch {
-        // Ignore
-      }
-    }
-  });
+    });
 
-  await t.step("should exit on invalid field types", () => {
-    const tempPath = join(Deno.cwd(), "test-invalid-types.toml");
+    await t.step("should exit on invalid field types", () => {
+      const configPath = `${tempDir}/test-invalid-types.toml`;
 
-    // Create config with invalid log_level
-    Deno.writeTextFileSync(
-      tempPath,
-      `
+      // Create config with invalid log_level
+      Deno.writeTextFileSync(
+        configPath,
+        `
 [system]
 version = "1.0.0"
 log_level = "invalid_level"
@@ -302,32 +271,24 @@ log_level = "invalid_level"
 memory = "./Memory"
 blueprints = "./Blueprints"
 runtime = "./Runtime"
-    `.trim(),
-    );
+      `.trim(),
+      );
 
-    try {
       assertThrows(
         () => {
-          new ConfigService("test-invalid-types.toml");
+          new ConfigService(configPath);
         },
         Error,
         "Invalid configuration",
       );
-    } finally {
-      try {
-        Deno.removeSync(tempPath);
-      } catch {
-        // Ignore
-      }
-    }
-  });
+    });
 
-  await t.step("should exit on invalid timeout value", () => {
-    const tempPath = join(Deno.cwd(), "test-invalid-timeout.toml");
+    await t.step("should exit on invalid timeout value", () => {
+      const configPath = `${tempDir}/test-invalid-timeout.toml`;
 
-    Deno.writeTextFileSync(
-      tempPath,
-      `
+      Deno.writeTextFileSync(
+        configPath,
+        `
 [system]
 log_level = "info"
 
@@ -338,57 +299,59 @@ runtime = "./Runtime"
 
 [agents]
 timeout_sec = -5
-    `.trim(),
-    );
+      `.trim(),
+      );
 
-    try {
       assertThrows(
         () => {
-          new ConfigService("test-invalid-timeout.toml");
+          new ConfigService(configPath);
         },
         Error,
         "Invalid configuration",
       );
-    } finally {
-      try {
-        Deno.removeSync(tempPath);
-      } catch {
-        // Ignore
-      }
+    });
+  } finally {
+    // Clean up
+    try {
+      await Deno.remove(tempDir, { recursive: true });
+    } catch {
+      // Ignore
     }
-  });
+  }
 });
 
 Deno.test("ConfigService handles edge cases", async (t) => {
-  await t.step("should handle empty config file", () => {
-    const tempPath = join(Deno.cwd(), "test-empty-config.toml");
+  await t.step("should handle empty config file", async () => {
+    const tempDir = await Deno.makeTempDir({ prefix: "config-empty-test-" });
+    const configPath = `${tempDir}/test-empty-config.toml`;
 
     // Empty TOML file will throw a parse error
-    Deno.writeTextFileSync(tempPath, "");
+    Deno.writeTextFileSync(configPath, "");
 
     try {
       // Empty file causes TOML parse error, not validation error
       assertThrows(
         () => {
-          new ConfigService("test-empty-config.toml");
+          new ConfigService(configPath);
         },
         Error,
         "Parse error",
       );
     } finally {
       try {
-        Deno.removeSync(tempPath);
+        await Deno.remove(tempDir, { recursive: true });
       } catch {
         // Ignore
       }
     }
   });
 
-  await t.step("should handle config with comments", () => {
-    const tempPath = join(Deno.cwd(), "test-comments-config.toml");
+  await t.step("should handle config with comments", async () => {
+    const tempDir = await Deno.makeTempDir({ prefix: "config-comments-test-" });
+    const configPath = `${tempDir}/test-comments-config.toml`;
 
     Deno.writeTextFileSync(
-      tempPath,
+      configPath,
       `
 # This is a comment
 [system]
@@ -403,25 +366,26 @@ runtime = "./Runtime"
     );
 
     try {
-      const service = new ConfigService("test-comments-config.toml");
+      const service = new ConfigService(configPath);
       const config = service.get();
 
       assertEquals(config.system.version, "1.0.0");
       assertEquals(config.system.log_level, "info");
     } finally {
       try {
-        Deno.removeSync(tempPath);
+        await Deno.remove(tempDir, { recursive: true });
       } catch {
         // Ignore
       }
     }
   });
 
-  await t.step("should handle config with extra unknown fields", () => {
-    const tempPath = join(Deno.cwd(), "test-extra-fields.toml");
+  await t.step("should handle config with extra unknown fields", async () => {
+    const tempDir = await Deno.makeTempDir({ prefix: "config-extra-fields-test-" });
+    const configPath = `${tempDir}/test-extra-fields.toml`;
 
     Deno.writeTextFileSync(
-      tempPath,
+      configPath,
       `
 [system]
 version = "1.0.0"
@@ -439,7 +403,7 @@ foo = "bar"
     );
 
     try {
-      const service = new ConfigService("test-extra-fields.toml");
+      const service = new ConfigService(configPath);
       const config = service.get();
 
       // Should load successfully, extra fields ignored
@@ -447,18 +411,19 @@ foo = "bar"
       assertEquals(config.system.log_level, "info");
     } finally {
       try {
-        Deno.removeSync(tempPath);
+        await Deno.remove(tempDir, { recursive: true });
       } catch {
         // Ignore
       }
     }
   });
 
-  await t.step("should handle config with unicode in paths", () => {
-    const tempPath = join(Deno.cwd(), "test-unicode-config.toml");
+  await t.step("should handle config with unicode in paths", async () => {
+    const tempDir = await Deno.makeTempDir({ prefix: "config-unicode-test-" });
+    const configPath = `${tempDir}/test-unicode-config.toml`;
 
     Deno.writeTextFileSync(
-      tempPath,
+      configPath,
       `
 [system]
 version = "1.0.0"
@@ -472,7 +437,7 @@ runtime = "./系統"
     );
 
     try {
-      const service = new ConfigService("test-unicode-config.toml");
+      const service = new ConfigService(configPath);
       const config = service.get();
 
       assertEquals(config.paths.memory, "./记忆");
@@ -480,14 +445,15 @@ runtime = "./系統"
       assertEquals(config.paths.runtime, "./系統");
     } finally {
       try {
-        Deno.removeSync(tempPath);
+        await Deno.remove(tempDir, { recursive: true });
       } catch {
         // Ignore
       }
     }
   });
 
-  await t.step("should compute consistent checksums", () => {
+  await t.step("should compute consistent checksums", async () => {
+    const tempDir = await Deno.makeTempDir({ prefix: "config-checksum-consistent-test-" });
     const content = `[system]
 log_level = "info"
 
@@ -496,36 +462,36 @@ memory = "./Memory"
 blueprints = "./Blueprints"
 runtime = "./Runtime"`;
 
-    const tempPath1 = join(Deno.cwd(), "test-checksum-1.toml");
-    const tempPath2 = join(Deno.cwd(), "test-checksum-2.toml");
+    const configPath1 = `${tempDir}/test-checksum-1.toml`;
+    const configPath2 = `${tempDir}/test-checksum-2.toml`;
 
     try {
-      Deno.writeTextFileSync(tempPath1, content);
-      Deno.writeTextFileSync(tempPath2, content);
+      Deno.writeTextFileSync(configPath1, content);
+      Deno.writeTextFileSync(configPath2, content);
 
-      const service1 = new ConfigService("test-checksum-1.toml");
-      const service2 = new ConfigService("test-checksum-2.toml");
+      const service1 = new ConfigService(configPath1);
+      const service2 = new ConfigService(configPath2);
 
       // Same content should produce same checksum
       assertEquals(service1.getChecksum(), service2.getChecksum());
       assertEquals(service1.getChecksum().length, 64); // SHA-256 hex
     } finally {
       try {
-        Deno.removeSync(tempPath1);
-        Deno.removeSync(tempPath2);
+        await Deno.remove(tempDir, { recursive: true });
       } catch {
         // Ignore
       }
     }
   });
 
-  await t.step("should compute different checksums for different content", () => {
-    const tempPath1 = join(Deno.cwd(), "test-checksum-diff-1.toml");
-    const tempPath2 = join(Deno.cwd(), "test-checksum-diff-2.toml");
+  await t.step("should compute different checksums for different content", async () => {
+    const tempDir = await Deno.makeTempDir({ prefix: "config-checksum-diff-test-" });
+    const configPath1 = `${tempDir}/test-checksum-diff-1.toml`;
+    const configPath2 = `${tempDir}/test-checksum-diff-2.toml`;
 
     try {
       Deno.writeTextFileSync(
-        tempPath1,
+        configPath1,
         `[system]
 log_level = "info"
 
@@ -536,7 +502,7 @@ runtime = "./Runtime"`,
       );
 
       Deno.writeTextFileSync(
-        tempPath2,
+        configPath2,
         `[system]
 log_level = "debug"
 
@@ -546,8 +512,8 @@ blueprints = "./Blueprints"
 runtime = "./Runtime"`,
       );
 
-      const service1 = new ConfigService("test-checksum-diff-1.toml");
-      const service2 = new ConfigService("test-checksum-diff-2.toml");
+      const service1 = new ConfigService(configPath1);
+      const service2 = new ConfigService(configPath2);
 
       // Different content should produce different checksums
       assertEquals(
@@ -556,8 +522,7 @@ runtime = "./Runtime"`,
       );
     } finally {
       try {
-        Deno.removeSync(tempPath1);
-        Deno.removeSync(tempPath2);
+        await Deno.remove(tempDir, { recursive: true });
       } catch {
         // Ignore
       }
@@ -601,7 +566,7 @@ Deno.test("[security] Env Variable Access: HOME and USER are accessible for iden
   );
 });
 
-Deno.test("[security] Env Variable Security: Verify sensitive env vars are not in config", () => {
+Deno.test("[security] Env Variable Security: Verify sensitive env vars are not in config", async () => {
   // This test ensures the config system doesn't accidentally expose sensitive vars
   // Config should never read API_KEY, AWS_SECRET_ACCESS_KEY, etc.
 
@@ -624,9 +589,10 @@ Deno.test("[security] Env Variable Security: Verify sensitive env vars are not i
 
   try {
     // Create a config and verify it doesn't contain sensitive values
-    const tempPath = join(Deno.cwd(), "test-security-config.toml");
+    const tempDir = await Deno.makeTempDir({ prefix: "config-security-test-" });
+    const configPath = `${tempDir}/test-security-config.toml`;
     Deno.writeTextFileSync(
-      tempPath,
+      configPath,
       `[system]
 log_level = "info"
 
@@ -637,7 +603,7 @@ runtime = "./Runtime"`,
     );
 
     try {
-      const service = new ConfigService("test-security-config.toml");
+      const service = new ConfigService(configPath);
       const config = service.get();
       const configStr = JSON.stringify(config);
 
@@ -650,7 +616,11 @@ runtime = "./Runtime"`,
         );
       }
     } finally {
-      Deno.removeSync(tempPath);
+      try {
+        await Deno.remove(tempDir, { recursive: true });
+      } catch {
+        // Ignore
+      }
     }
   } finally {
     // Clean up sensitive vars
@@ -660,17 +630,19 @@ runtime = "./Runtime"`,
   }
 });
 
-Deno.test("[security] Env Variable Security: Config doesn't expand env vars in paths", () => {
+Deno.test("[security] Env Variable Security: Config doesn't expand env vars in paths", async () => {
   // Ensure path configuration doesn't expand environment variables
   // which could lead to path injection attacks
 
   Deno.env.set("MALICIOUS_PATH", "/etc/passwd");
 
-  const tempPath = join(Deno.cwd(), "test-path-injection.toml");
+  const tempDir = await Deno.makeTempDir({ prefix: "config-path-injection-test-" });
+  const configPath = `${tempDir}/test-path-injection.toml`;
+
   try {
     // Create config with env var reference in path
     Deno.writeTextFileSync(
-      tempPath,
+      configPath,
       `[system]
 log_level = "info"
 
@@ -680,7 +652,7 @@ blueprints = "./Blueprints"
 runtime = "./Runtime"`,
     );
 
-    const service = new ConfigService("test-path-injection.toml");
+    const service = new ConfigService(configPath);
     const config = service.get();
 
     // Path should be literal "$MALICIOUS_PATH", not expanded to /etc/passwd
@@ -698,7 +670,7 @@ runtime = "./Runtime"`,
   } finally {
     Deno.env.delete("MALICIOUS_PATH");
     try {
-      Deno.removeSync(tempPath);
+      await Deno.remove(tempDir, { recursive: true });
     } catch {
       // Ignore
     }

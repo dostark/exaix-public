@@ -13,6 +13,13 @@ export class ConfigService {
   constructor(configPath: string = "exo.config.toml") {
     // Use absolute path if provided, otherwise join with cwd
     this.configPath = isAbsolute(configPath) ? configPath : join(Deno.cwd(), configPath);
+
+    // In test mode, if using default path, use temp directory to avoid polluting root
+    if (this.configPath === join(Deno.cwd(), "exo.config.toml") && Deno.env.get("EXO_TEST_CLI_MODE") === "1") {
+      const tempDir = Deno.makeTempDirSync({ prefix: "config-test-" });
+      this.configPath = join(tempDir, "exo.config.toml");
+    }
+
     this.config = this.load();
   }
 
@@ -48,8 +55,6 @@ export class ConfigService {
     }
   }
 
-  debounce_ms = 200;
-  stability_check = true;
   private createDefaultConfig() {
     const defaultConfig = `
 [system]

@@ -5,6 +5,7 @@ import { ConfigService } from "../src/config/service.ts";
 import { DatabaseService } from "../src/services/db.ts";
 import { PlanExecutor } from "../src/services/plan_executor.ts";
 import { ProviderFactory } from "../src/ai/provider_factory.ts";
+import { initializeGlobalLogger } from "../src/services/structured_logger.ts";
 // import { PlanStatus } from "../src/enums.ts";
 
 /**
@@ -18,11 +19,27 @@ import { ProviderFactory } from "../src/ai/provider_factory.ts";
  */
 Deno.test("Reproduction: Zombie Plan Lifecycle in Manual Execution Mode", async () => {
   // 1. Setup Environment
-  const configService = new ConfigService();
+  const testRoot = await Deno.makeTempDir({ prefix: "exo_test_zombie_" });
+  const configPath = `${testRoot}/exo.config.toml`;
+  console.log("testRoot:", testRoot);
+  console.log("configPath:", configPath);
+  console.log("isAbsolute:", configPath.startsWith("/"));
+
+  initializeGlobalLogger({
+    minLevel: "info",
+    outputs: [],
+    enablePerformanceTracking: false,
+    serviceName: "test",
+    version: "1.0.0",
+  });
+
+  const configService = new ConfigService(configPath);
   const config = configService.get();
 
-  // Use a temporary test root to avoid polluting actual workspace
-  const testRoot = await Deno.makeTempDir({ prefix: "exo_test_zombie_" });
+  console.log("Files in testRoot:", Array.from(Deno.readDirSync(testRoot)));
+  console.log("Files in cwd:", Array.from(Deno.readDirSync(Deno.cwd())).filter((f) => f.name.includes("config")));
+
+  // Use the test root
   const originalRoot = config.system.root;
   config.system.root = testRoot;
 

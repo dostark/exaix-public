@@ -22,7 +22,6 @@ const CHILD_ACTION = "child.action";
 const CHILD_TARGET = "child-target";
 const TEST_TRACE_ID = "test-trace-123";
 const TEST_USER = "test-user";
-const TEST_CLI_MODE_ENV = "EXO_TEST_CLI_MODE";
 
 // ============================================================================
 // Stub Database Interface Tests
@@ -127,29 +126,41 @@ Deno.test({
   // Disable resource sanitizer as ConfigService may load SQLite dynamic library
   sanitizeResources: false,
   async fn() {
-    // Import the test helper from exoctl to verify fallback behavior
-    const { __test_initializeServices } = await import("../src/cli/exoctl.ts");
+    // Set test mode before importing exoctl to prevent top-level service initialization
+    const originalEnv = Deno.env.get("EXO_TEST_CLI_MODE");
+    Deno.env.set("EXO_TEST_CLI_MODE", "1");
 
-    // Simulate service initialization failure
-    const result = await __test_initializeServices({ simulateFail: true });
+    try {
+      // Import the test helper from exoctl to verify fallback behavior
+      const { __test_initializeServices } = await import("../src/cli/exoctl.ts");
 
-    // Should return success: false but with valid stub services
-    assertEquals(result.success, false);
+      // Simulate service initialization failure
+      const result = await __test_initializeServices({ simulateFail: true });
 
-    // The db stub should have the required methods
-    assertExists(result.db, "Fallback db should exist");
-    assertExists(result.db.logActivity, "Fallback db should have logActivity");
-    assertExists(result.db.waitForFlush, "Fallback db should have waitForFlush");
+      // Should return success: false but with valid stub services
+      assertEquals(result.success, false);
+
+      // The db stub should have the required methods
+      assertExists(result.db, "Fallback db should exist");
+      assertExists(result.db.logActivity, "Fallback db should have logActivity");
+      assertExists(result.db.waitForFlush, "Fallback db should have waitForFlush");
+    } finally {
+      // Restore environment
+      if (originalEnv === undefined) {
+        Deno.env.delete("EXO_TEST_CLI_MODE");
+      } else {
+        Deno.env.set("EXO_TEST_CLI_MODE", originalEnv);
+      }
+    }
   },
 });
 
 Deno.test("[regression] CLI test mode context has stub db with required methods", async () => {
   // Set environment to force test mode
-  const originalEnv = Deno.env.get(TEST_CLI_MODE_ENV);
+  const originalEnv = Deno.env.get("EXO_TEST_CLI_MODE");
+  Deno.env.set("EXO_TEST_CLI_MODE", "1");
 
   try {
-    Deno.env.set(TEST_CLI_MODE_ENV, "1");
-
     // Re-import to get test mode context
     // Note: Due to module caching, this may not re-initialize
     // Instead, we verify the test helper directly
@@ -162,9 +173,9 @@ Deno.test("[regression] CLI test mode context has stub db with required methods"
   } finally {
     // Restore environment
     if (originalEnv === undefined) {
-      Deno.env.delete(TEST_CLI_MODE_ENV);
+      Deno.env.delete("EXO_TEST_CLI_MODE");
     } else {
-      Deno.env.set(TEST_CLI_MODE_ENV, originalEnv);
+      Deno.env.set("EXO_TEST_CLI_MODE", originalEnv);
     }
   }
 });
