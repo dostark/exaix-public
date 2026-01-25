@@ -1,0 +1,16 @@
+1. **Enhanced Metadata Loading**: Similar to plan commands, load request and plan metadata from database
+2. **Flow Step Tracking**: Add flow_step field to changeset schema and registration
+3. **Portal Detection**: Extract portal information from branch/repo context
+4. **Status Display**: Show approval/rejection status prominently
+5. **Link Formatting**: Use markdown-style links for request/plan references
+
+## Database Schema Changes
+
+Add to `changesets` table:
+- `request_title` TEXT (derived from request metadata)
+- `plan_id` TEXT (link to plan)
+- `flow_id` TEXT (if created by flow)
+- `flow_step` TEXT (step description)
+- `portal_name` TEXT (explicit portal tracking)
+
+## Files to Modify

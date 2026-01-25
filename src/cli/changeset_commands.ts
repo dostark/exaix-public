@@ -7,6 +7,8 @@ import { join } from "@std/path";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { GitService } from "../services/git_service.ts";
 import { ChangesetStatus } from "../enums.ts";
+import { RequestCommands } from "./request_commands.ts";
+import { PlanCommands } from "./plan_commands.ts";
 
 export interface ChangesetMetadata {
   branch: string;
@@ -15,6 +17,25 @@ export interface ChangesetMetadata {
   files_changed: number;
   created_at: string;
   agent_id: string;
+  // Request context
+  request_title?: string;
+  request_agent?: string;
+  request_portal?: string;
+  request_priority?: string;
+  request_created_by?: string;
+  request_flow?: string;
+  // Plan context
+  plan_id?: string;
+  plan_status?: string;
+  // Portal context
+  portal?: string;
+  // Status context
+  status?: string;
+  approved_at?: string;
+  approved_by?: string;
+  rejected_at?: string;
+  rejected_by?: string;
+  rejection_reason?: string;
 }
 
 export interface ChangesetDetails extends ChangesetMetadata {
@@ -31,6 +52,8 @@ export interface ChangesetDetails extends ChangesetMetadata {
  */
 export class ChangesetCommands extends BaseCommand {
   private gitService: GitService;
+  private requestCommands: RequestCommands;
+  private planCommands: PlanCommands;
 
   constructor(
     context: CommandContext,
@@ -38,6 +61,8 @@ export class ChangesetCommands extends BaseCommand {
   ) {
     super(context);
     this.gitService = gitService;
+    this.requestCommands = new RequestCommands(context);
+    this.planCommands = new PlanCommands(context);
   }
 
   private async getDefaultBranch(repoPath: string): Promise<string> {
@@ -123,6 +148,69 @@ export class ChangesetCommands extends BaseCommand {
     }
 
     throw new Error(`Branch not found in any repository: ${branchName}`);
+  }
+
+  private async extractChangesetMetadataWithContext(
+    basicMetadata: ChangesetMetadata,
+  ): Promise<ChangesetMetadata> {
+    const metadata = { ...basicMetadata };
+
+    // Load request information if we have a request_id
+    if (metadata.request_id) {
+      try {
+        // Extract trace_id from request_id (format: "request-{trace_id}")
+        let requestIdentifier = metadata.request_id;
+        if (metadata.request_id.startsWith("request-")) {
+          const traceId = metadata.request_id.substring(8); // Remove "request-" prefix
+          requestIdentifier = traceId;
+        }
+
+        const requestResult = await this.requestCommands.show(requestIdentifier);
+        const request = requestResult.metadata;
+
+        // Extract title from content (first header or first non-empty line)
+        const contentLines = requestResult.content.split("\n").map((line) => line.trim()).filter((line) => line);
+        let title = "Untitled Request";
+
+        for (const line of contentLines) {
+          if (line.startsWith("# ")) {
+            title = line.substring(2).trim();
+            break;
+          } else if (!line.startsWith("#") && line) {
+            title = line;
+            break;
+          }
+        }
+
+        metadata.request_title = title;
+        metadata.request_agent = request.agent;
+        metadata.request_portal = request.portal;
+        metadata.request_priority = request.priority;
+        metadata.request_created_by = request.created_by;
+        metadata.request_flow = request.flow;
+      } catch (error) {
+        // If request can't be loaded, continue without request info
+        console.warn(`Warning: Could not load request info for changeset ${metadata.request_id}:`, error);
+      }
+    }
+
+    // Try to find associated plan using trace_id
+    if (metadata.trace_id) {
+      try {
+        const plans = await this.planCommands.list();
+        const associatedPlan = plans.find((plan) => plan.trace_id === metadata.trace_id);
+
+        if (associatedPlan) {
+          metadata.plan_id = associatedPlan.id;
+          metadata.plan_status = associatedPlan.status;
+        }
+      } catch (error) {
+        // If plan can't be loaded, continue without plan info
+        console.warn(`Warning: Could not load plan info for changeset ${metadata.request_id}:`, error);
+      }
+    }
+
+    return metadata;
   }
 
   /**
@@ -226,14 +314,19 @@ export class ChangesetCommands extends BaseCommand {
 
         if (statusFilter && status !== statusFilter) continue;
 
-        changesets.push({
+        const basicMetadata = {
           branch,
           trace_id,
           request_id,
           files_changed: files.length,
           created_at: timestamp,
           agent_id,
-        });
+          status: status.toLowerCase(),
+        };
+
+        // Enrich with request and plan context
+        const enrichedMetadata = await this.extractChangesetMetadataWithContext(basicMetadata);
+        changesets.push(enrichedMetadata);
       }
     }
 
@@ -329,13 +422,20 @@ export class ChangesetCommands extends BaseCommand {
     const match = fullBranch.match(/^feat\/(request-[\w]+)-(.+)$/);
     const [, request_id, trace_id] = match || ["", fullBranch, "unknown"];
 
-    return {
+    const basicMetadata = {
       branch: fullBranch,
       trace_id,
       request_id,
       files_changed: files.length,
       created_at: commits[commits.length - 1]?.timestamp || new Date().toISOString(),
       agent_id: commits[0]?.sha.substring(0, 8) || "unknown",
+    };
+
+    // Enrich with request and plan context
+    const enrichedMetadata = await this.extractChangesetMetadataWithContext(basicMetadata);
+
+    return {
+      ...enrichedMetadata,
       diff,
       commits,
     };

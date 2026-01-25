@@ -568,7 +568,17 @@ export const __test_command = new Command()
               }
               display.info("changeset.list", "changesets", { count: changesets.length });
               for (const cs of changesets) {
-                display.info(`📌 ${cs.request_id}`, cs.branch, {
+                const statusEmoji = cs.status === "approved" ? "✅" : cs.status === "rejected" ? "❌" : "📌";
+                const requestTitle = cs.request_title ? `"${cs.request_title}"` : cs.request_id;
+                const planInfo = cs.plan_id ? `plan: ${cs.plan_id} (${cs.plan_status})` : "";
+                const agentInfo = cs.request_agent || cs.agent_id;
+                const portalInfo = cs.request_portal || cs.portal || "workspace";
+
+                display.info(`${statusEmoji} ${cs.request_id}`, cs.branch, {
+                  request: requestTitle,
+                  plan: planInfo || undefined,
+                  agent: agentInfo,
+                  portal: portalInfo,
                   files: cs.files_changed,
                   created: new Date(cs.created_at).toLocaleString(),
                   trace: `${cs.trace_id.substring(0, 8)}...`,
@@ -597,13 +607,43 @@ export const __test_command = new Command()
                 console.log(cs.diff);
               } else {
                 // Output full details
-                display.info("changeset.show", cs.request_id, {
+                const statusEmoji = cs.status === "approved" ? "✅" : cs.status === "rejected" ? "❌" : "📌";
+                const requestTitle = cs.request_title ? `"${cs.request_title}"` : "Untitled Request";
+                const planInfo = cs.plan_id ? `${cs.plan_id} (${cs.plan_status})` : "unknown";
+                const agentInfo = cs.request_agent || cs.agent_id;
+                const portalInfo = cs.request_portal || cs.portal || "workspace";
+
+                display.info(`${statusEmoji} changeset.show`, cs.request_id, {
                   branch: cs.branch,
+                  status: cs.status || "pending",
+                  request: requestTitle,
+                  plan: planInfo,
+                  agent: agentInfo,
+                  portal: portalInfo,
+                  priority: cs.request_priority || "normal",
+                  created_by: cs.request_created_by || "unknown",
                   files_changed: cs.files_changed,
                   commits: cs.commits.length,
+                  trace: cs.trace_id,
                 });
+
+                if (cs.approved_at) {
+                  display.info("approved", new Date(cs.approved_at).toLocaleString(), {
+                    by: cs.approved_by || "unknown",
+                  });
+                } else if (cs.rejected_at) {
+                  display.info("rejected", new Date(cs.rejected_at).toLocaleString(), {
+                    by: cs.rejected_by || "unknown",
+                    reason: cs.rejection_reason || "no reason provided",
+                  });
+                }
+
+                display.info("commits", "", {});
                 for (const commit of cs.commits) {
-                  display.info("commit", commit.sha.substring(0, 8), { message: commit.message });
+                  display.info("commit", commit.sha.substring(0, 8), {
+                    message: commit.message,
+                    timestamp: new Date(commit.timestamp).toLocaleString(),
+                  });
                 }
                 display.info("changeset.diff", id, { diff: cs.diff });
               }

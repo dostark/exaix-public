@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-25T17:22:34.515Z",
+  "generated_at": "2026-01-25T17:27:04.914Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1087,6 +1087,19 @@
         ".copilot/chunks/plan-show-rejected-plans-not-displayed.md.chunk1.txt",
         ".copilot/chunks/plan-show-rejected-plans-not-displayed.md.chunk2.txt",
         ".copilot/chunks/plan-show-rejected-plans-not-displayed.md.chunk3.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/changeset-show-missing-request-context.md",
+      "title": "Enhance changeset commands to show request and plan context",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk0.txt",
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk1.txt",
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk2.txt",
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk3.txt",
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk4.txt",
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk5.txt"
       ]
     },
     {
