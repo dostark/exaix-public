@@ -354,7 +354,7 @@ export class DatabaseService {
         }
       }
       if (orParts.length > 0) {
-        whereParts.push(`(${orParts.join(' OR ')})`);
+        whereParts.push(`(${orParts.join(" OR ")})`);
       }
     } else {
       // Handle single condition
@@ -364,7 +364,7 @@ export class DatabaseService {
       }
     }
 
-    const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(' AND ')}` : '';
+    const whereClause = whereParts.length > 0 ? `WHERE ${whereParts.join(" AND ")}` : "";
 
     let query = `${selectClause} FROM activity ${whereClause}`;
 
@@ -390,7 +390,7 @@ export class DatabaseService {
     }
 
     if (filter.actionType) {
-      if (filter.actionType.includes('%')) {
+      if (filter.actionType.includes("%")) {
         conditions.push(`action_type LIKE ?`);
       } else {
         conditions.push(`action_type = ?`);
@@ -423,7 +423,7 @@ export class DatabaseService {
       params.push(filter.since);
     }
 
-    return conditions.join(' AND ');
+    return conditions.join(" AND ");
   }
 }
 

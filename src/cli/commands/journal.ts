@@ -80,7 +80,9 @@ export class JournalCommands extends BaseCommand {
             break;
           default:
             console.error(
-              colors.yellow(`Unknown filter key: ${key}. Supported: trace_id, action_type, agent_id, since, payload, actor, target.`),
+              colors.yellow(
+                `Unknown filter key: ${key}. Supported: trace_id, action_type, agent_id, since, payload, actor, target.`,
+              ),
             );
         }
       }
@@ -112,7 +114,7 @@ export class JournalCommands extends BaseCommand {
       const table = new Table()
         .header([colors.bold(filter.distinct)])
         .body(
-          activities.map((a) => [a[filter.distinct as keyof ActivityRecord] || ""])
+          activities.map((a) => [a[filter.distinct as keyof ActivityRecord] || ""]),
         );
       table.render();
       return;
@@ -129,7 +131,7 @@ export class JournalCommands extends BaseCommand {
           activities.map((a) => [
             a.action_type,
             String(a.count || 0),
-          ])
+          ]),
         );
       table.render();
       return;

@@ -605,16 +605,16 @@ exoctl request "Test" --json
 
 **Options:**
 
-| Option          | Short | Description                                   |
-| --------------- | ----- | --------------------------------------------- |
-| `--agent`       | `-a`  | Target agent blueprint (default: `default`, mutually exclusive with --flow)   |
-| `--flow`        |       | Target multi-agent flow (mutually exclusive with --agent) |
-| `--priority`    | `-p`  | Priority: `low`, `normal`, `high`, `critical` |
-| `--portal`      |       | Portal alias for project context              |
-| `--file`        | `-f`  | Read description from file                    |
-| `--interactive` | `-i`  | Interactive mode with prompts                 |
-| `--dry-run`     |       | Preview without creating                      |
-| `--json`        |       | Machine-readable output                       |
+| Option          | Short | Description                                                                 |
+| --------------- | ----- | --------------------------------------------------------------------------- |
+| `--agent`       | `-a`  | Target agent blueprint (default: `default`, mutually exclusive with --flow) |
+| `--flow`        |       | Target multi-agent flow (mutually exclusive with --agent)                   |
+| `--priority`    | `-p`  | Priority: `low`, `normal`, `high`, `critical`                               |
+| `--portal`      |       | Portal alias for project context                                            |
+| `--file`        | `-f`  | Read description from file                                                  |
+| `--interactive` | `-i`  | Interactive mode with prompts                                               |
+| `--dry-run`     |       | Preview without creating                                                    |
+| `--json`        |       | Machine-readable output                                                     |
 
 **Example workflow:**
 
@@ -2391,16 +2391,16 @@ exoctl journal [options]
 
 **Core Options:**
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--tail <n>`, `-n <n>` | Show the last N entries | 50 |
-| `--filter <key=value>`, `-f <key=value>` | Filter by criteria (can be used multiple times) | None |
-| `--format <format>` | Output format: `text`, `table`, `json` | `text` |
-| `--distinct <field>` | Return distinct values for specified field | None |
-| `--count` | Return count aggregation by action_type | false |
-| `--payload <pattern>` | Filter by payload LIKE pattern | None |
-| `--actor <actor>` | Filter by actor | None |
-| `--target <target>` | Filter by target | None |
+| Option                                   | Description                                     | Default |
+| ---------------------------------------- | ----------------------------------------------- | ------- |
+| `--tail <n>`, `-n <n>`                   | Show the last N entries                         | 50      |
+| `--filter <key=value>`, `-f <key=value>` | Filter by criteria (can be used multiple times) | None    |
+| `--format <format>`                      | Output format: `text`, `table`, `json`          | `text`  |
+| `--distinct <field>`                     | Return distinct values for specified field      | None    |
+| `--count`                                | Return count aggregation by action_type         | false   |
+| `--payload <pattern>`                    | Filter by payload LIKE pattern                  | None    |
+| `--actor <actor>`                        | Filter by actor                                 | None    |
+| `--target <target>`                      | Filter by target                                | None    |
 
 **Filter Keys:**
 
@@ -2684,13 +2684,13 @@ exoctl journal --filter since=$(date +%Y-%m-%d) --payload %cost% --format json >
 
 Cost tracking supports all major AI providers:
 
-| Provider    | Token Tracking | Cost Estimation | Budget Enforcement |
-|-------------|----------------|-----------------|-------------------|
-| Anthropic   | ✅             | ✅              | ✅                |
-| OpenAI      | ✅             | ✅              | ✅                |
-| Google      | ✅             | ✅              | ✅                |
-| Ollama      | ✅             | ❌ (free)       | ❌                |
-| Mock        | ✅             | ❌              | ❌                |
+| Provider  | Token Tracking | Cost Estimation | Budget Enforcement |
+| --------- | -------------- | --------------- | ------------------ |
+| Anthropic | ✅             | ✅              | ✅                 |
+| OpenAI    | ✅             | ✅              | ✅                 |
+| Google    | ✅             | ✅              | ✅                 |
+| Ollama    | ✅             | ❌ (free)       | ❌                 |
+| Mock      | ✅             | ❌              | ❌                 |
 
 ---
 
