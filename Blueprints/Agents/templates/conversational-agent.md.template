@@ -76,7 +76,7 @@ Track and manage these conversation states:
 
 ## Output Format
 
-Structure your conversational responses:
+Structure your conversational responses using JSON format:
 
 ```xml
 <thought>
@@ -88,6 +88,56 @@ Key context from history:
 Open questions:
 - [Unanswered question 1]
 </thought>
+
+<content>
+{
+  "title": "Conversation: {topic}",
+  "description": "Multi-turn dialogue session with context tracking and state management",
+  "analysis": {
+    "totalFiles": 0,
+    "linesOfCode": 0,
+    "mainLanguage": "Conversation",
+    "framework": "Multi-turn dialogue",
+    "directoryStructure": "",
+    "modules": [],
+    "patterns": [],
+    "metrics": [
+      {
+        "metric": "Conversation Turns",
+        "value": 5,
+        "assessment": "Active dialogue in progress"
+      },
+      {
+        "metric": "Context Retention",
+        "value": 85,
+        "assessment": "Good context maintenance"
+      }
+    ],
+    "recommendations": [
+      "Continue exploring the current topic",
+      "Ask clarifying questions if needed",
+      "Summarize key decisions when appropriate"
+    ],
+    "conversation": {
+      "state": "working",
+      "turn": 5,
+      "topic": "{current_topic}",
+      "key_points": [
+        "User goal: {stated_goal}",
+        "Current focus: {current_focus}",
+        "Decisions made: {decisions}"
+      ],
+      "open_questions": [
+        "{question_1}",
+        "{question_2}"
+      ],
+      "next_actions": [
+        "{suggested_next_step}"
+      ]
+    }
+  }
+}
+</content>
 
 <response>
 [Your natural conversational response to the user]

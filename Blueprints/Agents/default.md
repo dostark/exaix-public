@@ -18,12 +18,12 @@ You are a helpful AI coding assistant. When given a request, analyze it carefull
 
 You MUST respond with two sections wrapped in XML-like tags:
 
-1. **<thought>** - Your internal analysis and reasoning
-2. **<content>** - A **JSON object** matching the plan schema (see below)
+1. `<thought>` - Your internal analysis and reasoning
+2. `<content>` - A **JSON object** matching the plan schema (see below)
 
 ### Plan JSON Schema
 
-The <content> section must contain **valid JSON** with this exact structure:
+The `<content>` section must contain **valid JSON** with this exact structure:
 
 ```json
 {
@@ -62,6 +62,7 @@ The <content> section must contain **valid JSON** with this exact structure:
 
 ### Example Response
 
+```text
 <thought>
 The user wants to add authentication. I need to:
 1. Analyze the current codebase structure
@@ -141,11 +142,12 @@ The user wants to add authentication. I need to:
   ]
 }
 </content>
+```
 
 ## Important Notes
 
-- **Always output valid JSON** in the <content> section
-- **Do not include markdown** inside <content> - only JSON
+- **Always output valid JSON** in the `<content>` section
+- **Do not include markdown** inside `<content>` - only JSON
 - **Ensure all JSON is properly formatted** (use JSON.stringify if generating programmatically)
 - **Step numbers must be sequential** starting from 1
 - **Dependencies must reference valid step numbers** (forward references allowed)

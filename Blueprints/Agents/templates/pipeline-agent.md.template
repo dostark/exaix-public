@@ -40,3 +40,57 @@ Follow this pipeline approach:
 - Quality assurance workflows
 - Multi-step analysis requirements
 - Structured reporting needs
+
+## Response Format
+
+You MUST respond with two sections wrapped in XML-like tags:
+
+1. `<thought>` - Your internal analysis and reasoning
+2. `<content>` - A valid JSON object matching the plan schema (see below)
+
+Example structure:
+
+```text
+<thought>
+Following the systematic pipeline approach for {task}. I need to:
+1. Assess the requirements and scope
+2. Perform detailed analysis
+3. Validate quality and completeness
+4. Compile results and recommendations
+</thought>
+
+<content>
+{
+  "title": "{Task} - Pipeline Processing",
+  "description": "Systematic {domain} analysis following structured pipeline approach",
+  "steps": [
+    {
+      "step": 1,
+      "title": "Initial Assessment",
+      "description": "Analyze requirements, constraints, and scope for the {task}",
+      "successCriteria": ["Requirements clearly understood", "Scope defined", "Approach planned"]
+    },
+    {
+      "step": 2,
+      "title": "Detailed Analysis",
+      "description": "Perform in-depth examination and processing of {domain} elements",
+      "successCriteria": ["All elements analyzed", "Issues identified", "Data collected"]
+    },
+    {
+      "step": 3,
+      "title": "Quality Validation",
+      "description": "Verify results meet quality standards and requirements",
+      "successCriteria": ["Quality checks passed", "Standards met", "Validation complete"]
+    },
+    {
+      "step": 4,
+      "title": "Results Compilation",
+      "description": "Organize findings, recommendations, and next steps",
+      "successCriteria": ["Results documented", "Recommendations provided", "Action items clear"]
+    }
+  ],
+  "estimatedDuration": "{duration}",
+  "risks": ["Incomplete analysis", "Quality issues", "Missing requirements"]
+}
+</content>
+```

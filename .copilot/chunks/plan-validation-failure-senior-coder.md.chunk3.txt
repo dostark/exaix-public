@@ -1,11 +1,9 @@
-1.  **Check Validation Logic**: Verify if `PlanValidator` (or Zod schema) was updated to support the new `actions` field (if that's what is being generated) or if the agent is generating output that violates the existing schema.
-2.  **Inspect Agent Output**: Since it fails validation, the raw plan output might be discarded or in `Rejected/`. Need to see what the agent actually produced.
-3.  **Review `senior-coder.md`**: Ensure the examples and schema instructions match the code expectations.
-
-## Related Files
-
-- `src/services/request_processor.ts`
-- `src/schemas/plan_schema.ts`
-- `Blueprints/Agents/senior-coder.md`
-
 ## Root Cause
+
+The `senior-coder` agent was correctly attempting to create directories but was using a tool name (`create_directory` or similar) that was not defined in the `McpToolName` enum or supported by the `ToolRegistry`. The `PlanSchema` (via Zod) strictly enforces that all tools must be valid enum members, causing the `plan.validation.failed` error.
+
+## Resolution
+
+The `create_directory` tool has been officially added to the system as a first-class supported tool.
+
+Changes made:

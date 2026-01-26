@@ -1,0 +1,17 @@
+- When `EXO_LLM_PROVIDER` is set, that provider should be used
+- When `EXO_LLM_MODEL` is set, that model should be used
+- Provider selection should respect environment overrides before falling back to intelligent selection
+- CLI `--model` flag should force specific provider/model selection
+
+## Environment
+
+- ExoFrame Version: 1.0.0
+- OS: Linux
+- Deno Version: 1.x.x
+- Relevant Config: `prefer_free = false` in exo.config.toml (tested both true and false)
+
+## Root Cause Analysis
+
+**Primary Issue:** Environment variables `EXO_LLM_PROVIDER` and `EXO_LLM_MODEL` are validated but never applied to override configuration.
+
+**Technical Details:**

@@ -29,19 +29,25 @@ See `Blueprints/Skills/` for skill definitions.
 ## Usage Guide
 
 ### Using Active Blueprints
+
 Active blueprints are ready to use:
+
 ```bash
 exoctl request "Task description" --agent senior-coder
 ```
 
 ### Using Examples
+
 Examples in `examples/` are for learning. To use one:
+
 1. Copy it to this directory: `cp examples/code-reviewer.md .`
 2. Run `exoctl blueprint validate code-reviewer` to check it.
 3. Use it: `exoctl request "Review this code" --agent code-reviewer`
 
 ### Using Templates
+
 Templates in `templates/` are for creating new agents:
+
 1. Copy a template: `cp templates/pipeline-agent.md.template my-agent.md`
 2. Edit the file to replace placeholders (e.g., `{{agent_name}}`) with your values.
 3. Add appropriate `default_skills` for the agent's role.
@@ -61,24 +67,24 @@ Each blueprint file contains:
 
 ### Core Agents
 
-| Agent | Model | Skills | Use Case |
-|-------|-------|--------|----------|
-| `default` | `ollama:codellama:13b` | `error-handling` | General-purpose coding |
-| `senior-coder` | `ollama:codellama:7b-instruct` | `typescript-patterns`, `error-handling`, `code-review` | Complex implementations |
-| `quality-judge` | `anthropic:claude-3-5-sonnet` | `code-review` | LLM-as-a-Judge evaluation |
+| Agent           | Model                          | Skills                                                 | Use Case                  |
+| --------------- | ------------------------------ | ------------------------------------------------------ | ------------------------- |
+| `default`       | `ollama:codellama:13b`         | `error-handling`                                       | General-purpose coding    |
+| `senior-coder`  | `ollama:codellama:7b-instruct` | `typescript-patterns`, `error-handling`, `code-review` | Complex implementations   |
+| `quality-judge` | `anthropic:claude-3-5-sonnet`  | `code-review`                                          | LLM-as-a-Judge evaluation |
 
 ### Specialist Agents
 
-| Agent | Skills | Use Case |
-|-------|--------|----------|
-| `security-expert` | `security-first`, `code-review` | Security vulnerability analysis |
-| `performance-engineer` | `code-review` | Performance optimization |
-| `technical-writer` | `documentation-driven` | Documentation generation |
-| `software-architect` | `exoframe-conventions`, `typescript-patterns` | Architecture design |
-| `test-engineer` | `tdd-methodology`, `error-handling` | Test implementation |
-| `product-manager` | - | Requirements analysis |
-| `code-analyst` | `code-review`, `typescript-patterns` | Code structure analysis |
-| `qa-engineer` | `tdd-methodology`, `error-handling` | Integration testing |
+| Agent                  | Skills                                        | Use Case                        |
+| ---------------------- | --------------------------------------------- | ------------------------------- |
+| `security-expert`      | `security-first`, `code-review`               | Security vulnerability analysis |
+| `performance-engineer` | `code-review`                                 | Performance optimization        |
+| `technical-writer`     | `documentation-driven`                        | Documentation generation        |
+| `software-architect`   | `exoframe-conventions`, `typescript-patterns` | Architecture design             |
+| `test-engineer`        | `tdd-methodology`, `error-handling`           | Test implementation             |
+| `product-manager`      | -                                             | Requirements analysis           |
+| `code-analyst`         | `code-review`, `typescript-patterns`          | Code structure analysis         |
+| `qa-engineer`          | `tdd-methodology`, `error-handling`           | Integration testing             |
 
 ## JSON Plan Schema Reference
 
@@ -126,6 +132,7 @@ Agent description and persona...
 ## Response Format
 
 You MUST respond with:
+
 1. <thought> - Your analysis
 2. <content> - Valid JSON matching PlanSchema
 
@@ -135,6 +142,7 @@ You MUST respond with:
 ## Validation
 
 The system will:
+
 1. Extract JSON from `<content>` tags
 2. Validate against PlanSchema (src/schemas/plan_schema.ts)
 3. Convert to markdown for storage (src/services/plan_adapter.ts)
@@ -143,6 +151,7 @@ The system will:
 ## Testing
 
 Test your blueprint with:
+
 ```bash
 exoctl request "Your test request" --agent my-agent
 ```

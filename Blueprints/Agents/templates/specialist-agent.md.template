@@ -73,50 +73,125 @@ Provide actionable recommendations:
 
 ## Output Format
 
-Structure your specialist analysis using these XML tags:
-
 ```xml
 <thought>
 [Your domain-expert reasoning process]
 </thought>
 
-<analysis>
-## Summary
-[Executive summary of findings]
-
-## Findings
-
-### Critical Issues
-[List of critical findings with severity justification]
-
-### High Priority Issues
-[List of high-priority findings]
-
-### Medium/Low Priority Issues
-[List of other findings]
-
-## Recommendations
-
-### Immediate Actions
-1. [Action with specific code/steps]
-2. [Action with specific code/steps]
-
-### Short-term Improvements
-1. [Improvement suggestion]
-
-### Long-term Strategy
-[Strategic recommendations for ongoing improvement]
-
-## References
-- [Relevant documentation links]
-- [Best practice guides]
-</analysis>
-
-<confidence>
-Score: [0-100]
-Reasoning: [Why this confidence level]
-Caveats: [Any assumptions or limitations]
-</confidence>
+<content>
+{
+  "title": "{{domain}} Analysis: {topic}",
+  "description": "Domain-specific expert analysis with actionable recommendations",
+  "analysis": {
+    "totalFiles": 5,
+    "linesOfCode": 0,
+    "mainLanguage": "{{domain}}",
+    "framework": "Domain expertise analysis",
+    "directoryStructure": "{{domain}}/\n├── analysis/\n├── findings/\n└── recommendations/",
+    "modules": [
+      {
+        "name": "analysis",
+        "purpose": "Core domain analysis and evaluation",
+        "exports": [],
+        "dependencies": []
+      },
+      {
+        "name": "findings",
+        "purpose": "Identified issues and opportunities",
+        "exports": [],
+        "dependencies": []
+      }
+    ],
+    "patterns": [
+      {
+        "pattern": "Domain Best Practices",
+        "location": "All recommendations",
+        "usage": "Industry-standard approaches for {{domain}}"
+      },
+      {
+        "pattern": "Severity Assessment",
+        "location": "Issue classification",
+        "usage": "Critical/High/Medium/Low priority based on impact"
+      }
+    ],
+    "metrics": [
+      {
+        "metric": "Issues Found",
+        "value": 8,
+        "assessment": "Comprehensive analysis with prioritized findings"
+      },
+      {
+        "metric": "Compliance Score",
+        "value": 85,
+        "assessment": "Percentage alignment with {{domain}} best practices"
+      }
+    ],
+    "recommendations": [
+      "Apply domain-specific best practices consistently",
+      "Prioritize issues based on business impact and technical risk",
+      "Document findings with clear action items and timelines",
+      "Establish ongoing monitoring for {{domain}} compliance"
+    ],
+    "specialist": {
+      "domain": "{{domain}}",
+      "expertise_level": "expert",
+      "analysis_scope": {
+        "technology_stack": ["primary tech", "frameworks"],
+        "standards": ["industry standards", "best practices"],
+        "compliance": ["regulatory requirements", "internal policies"]
+      },
+      "findings": {
+        "critical": [
+          {
+            "issue": "Critical security vulnerability",
+            "severity": "Critical",
+            "impact": "High business risk",
+            "location": "src/auth.ts:45",
+            "recommendation": "Immediate fix required"
+          }
+        ],
+        "high": [
+          {
+            "issue": "Performance bottleneck",
+            "severity": "High",
+            "impact": "User experience degradation",
+            "location": "src/api.ts:120",
+            "recommendation": "Optimize within next sprint"
+          }
+        ],
+        "medium": [
+          {
+            "issue": "Code quality improvement",
+            "severity": "Medium",
+            "impact": "Maintainability",
+            "location": "src/utils.ts",
+            "recommendation": "Address in refactoring cycle"
+          }
+        ]
+      },
+      "actions": {
+        "immediate": [
+          "Fix critical issues blocking deployment",
+          "Implement security patches"
+        ],
+        "short_term": [
+          "Address high-priority performance issues",
+          "Update documentation"
+        ],
+        "long_term": [
+          "Establish {{domain}} governance framework",
+          "Implement automated compliance checks"
+        ]
+      },
+      "confidence": {
+        "score": 90,
+        "reasoning": "Deep domain expertise with comprehensive analysis",
+        "caveats": ["Assumes current technology stack remains stable"]
+      }
+    }
+  }
+}
+</content>
 ```
 
 ## Specialist Personas

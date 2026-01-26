@@ -33,12 +33,12 @@ import { CLI_DEFAULTS, PRIORITY_ICONS } from "./cli.config.ts";
 import { MCPServer } from "../mcp/server.ts";
 
 // Allow tests to run the CLI entrypoint without initializing heavy services
-let IN_TEST_MODE = false;
-try {
-  IN_TEST_MODE = Deno.env.get("EXO_TEST_CLI_MODE") === "1";
-} catch (_err) {
-  // Deno will throw NotCapable if env access isn't allowed; treat as not in test mode
-  IN_TEST_MODE = false;
+function isTestMode() {
+  try {
+    return Deno.env.get("EXO_TEST_CLI_MODE") === "1";
+  } catch (_err) {
+    return false;
+  }
 }
 
 let config: any;
@@ -49,7 +49,7 @@ let display: any;
 let context: any;
 let configService: any;
 
-if (!IN_TEST_MODE) {
+if (!isTestMode()) {
   // Initialize services (normal runtime). Wrap in try/catch so the CLI
   // can still be executed in restricted environments (e.g. tests that
   // spawn the binary without --allow-read). If we cannot access files
@@ -165,7 +165,7 @@ const memoryCommands = new MemoryCommands({ config, db });
 // Export test helper for unit tests to inspect module-internal context when running in test mode.
 export function __test_getContext() {
   return {
-    IN_TEST_MODE,
+    IN_TEST_MODE: isTestMode(),
     config,
     db,
     gitService,
@@ -187,10 +187,18 @@ export function __test_getContext() {
 
 // Test helper: initialize the heavy services path (same logic used in non-test runtime)
 // Returns an object describing whether initialization succeeded and the constructed services.
-export async function __test_initializeServices(opts?: { simulateFail?: boolean; instantiateDb?: boolean }) {
+export async function __test_initializeServices(
+  opts?: { simulateFail?: boolean; instantiateDb?: boolean; configPath?: string },
+) {
   try {
     if (opts?.simulateFail) throw new Error("simulate-failure");
-    const cfgService = new ConfigService();
+    let configPath = opts?.configPath;
+    if (!configPath && isTestMode()) {
+      // In test mode, use a temp directory to avoid polluting the root
+      const tempDir = await Deno.makeTempDir({ prefix: "exoctl-test-" });
+      configPath = `${tempDir}/exo.config.toml`;
+    }
+    const cfgService = new ConfigService(configPath);
     const cfg = cfgService.get();
 
     // Dynamically import DatabaseService as the runtime code does
@@ -421,10 +429,28 @@ export const __test_command = new Command()
               display.info("plan.list", "plans", { count: plans.length });
               for (const plan of plans) {
                 const statusIcon = plan.status === "review" ? "🔍" : "⚠️";
-                display.info(`${statusIcon} ${plan.id}`, plan.id, {
+                const displayData: Record<string, unknown> = {
                   status: plan.status,
                   trace: plan.trace_id ? `${plan.trace_id.substring(0, 8)}...` : undefined,
-                });
+                };
+
+                // Add request information if available
+                if (plan.request_title) {
+                  displayData.request = plan.request_title.length > 50
+                    ? `${plan.request_title.substring(0, 47)}...`
+                    : plan.request_title;
+                }
+                if (plan.request_agent) {
+                  displayData.agent = plan.request_agent;
+                }
+                if (plan.request_portal) {
+                  displayData.portal = plan.request_portal;
+                }
+                if (plan.request_priority) {
+                  displayData.priority = plan.request_priority;
+                }
+
+                display.info(`${statusIcon} ${plan.id}`, plan.id, displayData);
               }
             } catch (error) {
               display.error("cli.error", "plan list", {
@@ -442,10 +468,32 @@ export const __test_command = new Command()
             const id = args[0] as unknown as string;
             try {
               const plan = await planCommands.show(id);
-              display.info("plan.show", plan.id, {
+              const displayData: Record<string, unknown> = {
                 status: plan.status,
                 trace: plan.trace_id,
-              });
+              };
+
+              // Add request information if available
+              if (plan.request_id) {
+                displayData.request = plan.request_id;
+              }
+              if (plan.request_title) {
+                displayData.title = plan.request_title;
+              }
+              if (plan.request_agent) {
+                displayData.agent = plan.request_agent;
+              }
+              if (plan.request_portal) {
+                displayData.portal = plan.request_portal;
+              }
+              if (plan.request_priority) {
+                displayData.priority = plan.request_priority;
+              }
+              if (plan.request_created_by) {
+                displayData.created_by = plan.request_created_by;
+              }
+
+              display.info("plan.show", plan.id, displayData);
               display.info("plan.content", id, { content: plan.content });
             } catch (error) {
               display.error("cli.error", "plan show", {
@@ -528,7 +576,17 @@ export const __test_command = new Command()
               }
               display.info("changeset.list", "changesets", { count: changesets.length });
               for (const cs of changesets) {
-                display.info(`📌 ${cs.request_id}`, cs.branch, {
+                const statusEmoji = cs.status === "approved" ? "✅" : cs.status === "rejected" ? "❌" : "📌";
+                const requestTitle = cs.request_title ? `"${cs.request_title}"` : cs.request_id;
+                const planInfo = cs.plan_id ? `plan: ${cs.plan_id} (${cs.plan_status})` : "";
+                const agentInfo = cs.request_agent || cs.agent_id;
+                const portalInfo = cs.request_portal || cs.portal || "workspace";
+
+                display.info(`${statusEmoji} ${cs.request_id}`, cs.branch, {
+                  request: requestTitle,
+                  plan: planInfo || undefined,
+                  agent: agentInfo,
+                  portal: portalInfo,
                   files: cs.files_changed,
                   created: new Date(cs.created_at).toLocaleString(),
                   trace: `${cs.trace_id.substring(0, 8)}...`,
@@ -557,13 +615,43 @@ export const __test_command = new Command()
                 console.log(cs.diff);
               } else {
                 // Output full details
-                display.info("changeset.show", cs.request_id, {
+                const statusEmoji = cs.status === "approved" ? "✅" : cs.status === "rejected" ? "❌" : "📌";
+                const requestTitle = cs.request_title ? `"${cs.request_title}"` : "Untitled Request";
+                const planInfo = cs.plan_id ? `${cs.plan_id} (${cs.plan_status})` : "unknown";
+                const agentInfo = cs.request_agent || cs.agent_id;
+                const portalInfo = cs.request_portal || cs.portal || "workspace";
+
+                display.info(`${statusEmoji} changeset.show`, cs.request_id, {
                   branch: cs.branch,
+                  status: cs.status || "pending",
+                  request: requestTitle,
+                  plan: planInfo,
+                  agent: agentInfo,
+                  portal: portalInfo,
+                  priority: cs.request_priority || "normal",
+                  created_by: cs.request_created_by || "unknown",
                   files_changed: cs.files_changed,
                   commits: cs.commits.length,
+                  trace: cs.trace_id,
                 });
+
+                if (cs.approved_at) {
+                  display.info("approved", new Date(cs.approved_at).toLocaleString(), {
+                    by: cs.approved_by || "unknown",
+                  });
+                } else if (cs.rejected_at) {
+                  display.info("rejected", new Date(cs.rejected_at).toLocaleString(), {
+                    by: cs.rejected_by || "unknown",
+                    reason: cs.rejection_reason || "no reason provided",
+                  });
+                }
+
+                display.info("commits", "", {});
                 for (const commit of cs.commits) {
-                  display.info("commit", commit.sha.substring(0, 8), { message: commit.message });
+                  display.info("commit", commit.sha.substring(0, 8), {
+                    message: commit.message,
+                    timestamp: new Date(commit.timestamp).toLocaleString(),
+                  });
                 }
                 display.info("changeset.diff", id, { diff: cs.diff });
               }
@@ -1523,7 +1611,7 @@ function printRequestResult(result: RequestMetadata, json: boolean, _dryRun: boo
   }
 }
 
-if (!IN_TEST_MODE) {
+if (!isTestMode()) {
   await __test_command
     .command("journal", "Query the Activity Journal")
     .option("-f, --filter <filter:string[]>", "Filter by key=value (trace_id, action_type, agent_id, since)", {

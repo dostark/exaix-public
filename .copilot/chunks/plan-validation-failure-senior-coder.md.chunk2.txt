@@ -1,14 +1,13 @@
-The daemon logs show:
-```
-1/21/2026, 6:26:02 PM request.failed agent=agent:request-processor trace=c9152997 target=/.../request-c9152997.md
-1/21/2026, 6:26:02 PM plan.validation.failed agent=agent trace=c9152997 target=request-c9152997
-1/21/2026, 6:26:02 PM agent.execution_completed agent=senior-coder trace=c9152997 target=request-c9152997
-```
-
-`exoctl plan list` shows 0 plans.
-
-## Expected Behavior
-
 The plan should be validated successfully and appear in `exoctl plan list` as `suggested` (or `approved` if auto-approve is on, though usually it waits).
 
 ## Investigation Needed
+
+1. **Check Validation Logic**: Verify if `PlanValidator` (or Zod schema) was updated to support the new `actions` field (if that's what is being generated) or if the agent is generating output that violates the existing schema.
+2. **Inspect Agent Output**: Since it fails validation, the raw plan output might be discarded or in `Rejected/`. Need to see what the agent actually produced.
+3. **Review `senior-coder.md`**: Ensure the examples and schema instructions match the code expectations.
+
+## Related Files
+
+- `src/services/request_processor.ts`
+- `src/schemas/plan_schema.ts`
+- `Blueprints/Agents/senior-coder.md`

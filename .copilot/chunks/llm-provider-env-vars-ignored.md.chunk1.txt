@@ -1,0 +1,15 @@
+# 4. Create a request
+exoctl request "Test request"
+
+# 5. Check journal - provider selected is still "mock"
+exoctl journal --tail 5
+```
+
+## Observed Behavior
+
+- Environment variables `EXO_LLM_PROVIDER` and `EXO_LLM_MODEL` are correctly inherited by the daemon process
+- Provider selection logs show `provider.selected: mock` regardless of environment settings
+- Config file changes (like `prefer_free = false`) are also ignored
+- The `--model` CLI flag is accepted but doesn't override provider selection
+
+## Expected Behavior

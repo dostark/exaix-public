@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-25T14:48:46.341Z",
+  "generated_at": "2026-01-26T12:10:11.416Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -575,6 +575,30 @@
       ]
     },
     {
+      "path": ".copilot/source/agent-thought-standardization.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Agent Thought Section Standardization",
+      "short_summary": "Standardized structure for agent <thought> sections to ensure consistent reasoning patterns across all blueprints.",
+      "version": "0.1",
+      "topics": [
+        "agents",
+        "reasoning",
+        "standardization",
+        "thought-structure"
+      ],
+      "chunks": [
+        ".copilot/chunks/agent-thought-standardization.md.chunk0.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk1.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk2.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk3.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk4.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk5.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk6.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk7.txt"
+      ]
+    },
+    {
       "path": ".copilot/source/exoframe.md",
       "agent": "copilot",
       "scope": "dev",
@@ -596,6 +620,31 @@
         ".copilot/chunks/exoframe.md.chunk5.txt",
         ".copilot/chunks/exoframe.md.chunk6.txt",
         ".copilot/chunks/exoframe.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/source/agent-content-schema.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Agent Content Schema Reference",
+      "short_summary": "Standardized JSON schema for agent <content> responses with Zod validation requirements.",
+      "version": "1.0",
+      "topics": [
+        "agents",
+        "schema",
+        "json",
+        "validation",
+        "blueprints"
+      ],
+      "chunks": [
+        ".copilot/chunks/agent-content-schema.md.chunk0.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk1.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk2.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk3.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk4.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk5.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk6.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk7.txt"
       ]
     },
     {
@@ -696,6 +745,31 @@
         ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk5.txt",
         ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk6.txt",
         ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-31-agent-blueprint-json-migration.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Agent Blueprint JSON Migration",
+      "short_summary": "Migrate all agent blueprints from XML/markdown to JSON format with Zod validation for consistent, machine-readable output.",
+      "version": "0.1",
+      "topics": [
+        "agents",
+        "blueprints",
+        "json",
+        "validation",
+        "migration"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk0.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk1.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk2.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk3.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk4.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk5.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk6.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk7.txt"
       ]
     },
     {
@@ -1015,7 +1089,9 @@
         ".copilot/chunks/plan-changeset-approval-bug.md.chunk0.txt",
         ".copilot/chunks/plan-changeset-approval-bug.md.chunk1.txt",
         ".copilot/chunks/plan-changeset-approval-bug.md.chunk2.txt",
-        ".copilot/chunks/plan-changeset-approval-bug.md.chunk3.txt"
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk3.txt",
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk4.txt",
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk5.txt"
       ]
     },
     {
@@ -1032,6 +1108,20 @@
       ]
     },
     {
+      "path": ".copilot/issues/plan-show-missing-request-context.md",
+      "title": "exoctl plan show/list Missing Request and Agent Context",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk0.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk1.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk2.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk3.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk4.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk5.txt",
+        ".copilot/chunks/plan-show-missing-request-context.md.chunk6.txt"
+      ]
+    },
+    {
       "path": ".copilot/issues/changeset-approve-branch-not-found.md",
       "title": "Changeset approve fails to find branches in portal repositories",
       "short_summary": "",
@@ -1041,6 +1131,30 @@
         ".copilot/chunks/changeset-approve-branch-not-found.md.chunk2.txt",
         ".copilot/chunks/changeset-approve-branch-not-found.md.chunk3.txt",
         ".copilot/chunks/changeset-approve-branch-not-found.md.chunk4.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/plan-step-execution-logic-missing.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Plan step execution logic not implemented",
+      "short_summary": "Approved plans marked complete without executing steps, causing false positive execution results.",
+      "version": "0.1",
+      "topics": [
+        "execution",
+        "plan",
+        "logic",
+        "daemon"
+      ],
+      "chunks": [
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk0.txt",
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk1.txt",
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk2.txt",
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk3.txt",
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk4.txt",
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk5.txt",
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk6.txt",
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk7.txt"
       ]
     },
     {
@@ -1076,6 +1190,55 @@
       ]
     },
     {
+      "path": ".copilot/issues/changeset-show-missing-request-context.md",
+      "title": "Enhance changeset commands to show request and plan context",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk0.txt",
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk1.txt",
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk2.txt",
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk3.txt",
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk4.txt",
+        ".copilot/chunks/changeset-show-missing-request-context.md.chunk5.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/database-changeset-table-missing.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Database changeset table not created during migration",
+      "short_summary": "Changesets table missing from database causing execution failures with 'no such table: changesets' error.",
+      "version": "0.1",
+      "topics": [
+        "database",
+        "migration",
+        "execution",
+        "sqlite"
+      ],
+      "chunks": [
+        ".copilot/chunks/database-changeset-table-missing.md.chunk0.txt",
+        ".copilot/chunks/database-changeset-table-missing.md.chunk1.txt",
+        ".copilot/chunks/database-changeset-table-missing.md.chunk2.txt",
+        ".copilot/chunks/database-changeset-table-missing.md.chunk3.txt",
+        ".copilot/chunks/database-changeset-table-missing.md.chunk4.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/llm-provider-env-vars-ignored.md",
+      "title": "LLM Provider Environment Variables Ignored in Provider Selection",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk0.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk1.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk2.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk3.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk4.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk5.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk6.txt",
+        ".copilot/chunks/llm-provider-env-vars-ignored.md.chunk7.txt"
+      ]
+    },
+    {
       "path": ".copilot/issues/plan-validation-failure-senior-coder.md",
       "title": "Plan Validation Failed for Senior Coder Agent",
       "short_summary": "",
@@ -1084,8 +1247,7 @@
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk1.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk2.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk3.txt",
-        ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk4.txt",
-        ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk5.txt"
+        ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk4.txt"
       ]
     },
     {
@@ -1096,7 +1258,8 @@
         ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk0.txt",
         ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk1.txt",
         ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk2.txt",
-        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk3.txt"
+        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk3.txt",
+        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk4.txt"
       ]
     },
     {
@@ -1107,6 +1270,27 @@
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk0.txt",
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk1.txt",
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk2.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/execution-folder-wrong-location.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Execution folder placed in workspace root instead of Memory/",
+      "short_summary": "Memory bank service creates Execution folders in workspace root instead of Memory/Execution/ directory.",
+      "version": "0.1",
+      "topics": [
+        "memory-bank",
+        "execution",
+        "filesystem",
+        "path"
+      ],
+      "chunks": [
+        ".copilot/chunks/execution-folder-wrong-location.md.chunk0.txt",
+        ".copilot/chunks/execution-folder-wrong-location.md.chunk1.txt",
+        ".copilot/chunks/execution-folder-wrong-location.md.chunk2.txt",
+        ".copilot/chunks/execution-folder-wrong-location.md.chunk3.txt",
+        ".copilot/chunks/execution-folder-wrong-location.md.chunk4.txt"
       ]
     },
     {

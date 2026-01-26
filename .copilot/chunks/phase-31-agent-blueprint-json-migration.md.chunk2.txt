@@ -1,0 +1,33 @@
+```text
+Blueprints/Agents/
+├── *.md (main agents) - ✅ COMPLETED
+├── examples/*.md - ✅ COMPLETED
+└── templates/*.md - ✅ COMPLETED
+```
+
+**Total Files**: ✅ **24 agent blueprints successfully migrated**
+
+### Files to Update
+
+**Main Agents** (12 files) - ✅ **COMPLETED**:
+
+- code-analyst.md ✅
+- mock-agent.md ✅
+- performance-engineer.md ✅
+- product-manager.md ✅
+- qa-engineer.md ✅
+- quality-judge.md ✅
+- security-expert.md ✅
+- software-architect.md ✅
+- technical-writer.md ✅
+- test-engineer.md ✅
+
+**Example Agents** (5 files) - ✅ **COMPLETED**:
+
+- api-documenter.md ✅
+- code-reviewer.md ✅
+- feature-developer.md ✅
+- research-synthesizer.md ✅
+- security-auditor.md ✅
+
+**Template Agents** (7 files) - ✅ **COMPLETED**:

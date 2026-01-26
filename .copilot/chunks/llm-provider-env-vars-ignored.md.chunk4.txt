@@ -1,0 +1,20 @@
+- Environment validation: `src/config/env_schema.ts:40` (function exists but unused)
+- Config loading: `src/config/service.ts:20` (no environment override application)
+- Provider selection: `src/ai/provider_selector.ts:113` (uses config only)
+
+## Investigation Areas
+
+### Environment Variable Handling
+
+- [x] EXO_LLM_* variables are validated correctly
+- [x] Variables are inherited by daemon process
+- [x] getValidatedEnvOverrides() function exists but unused
+- [x] ConfigService needs to apply environment overrides after TOML loading
+
+### Provider Selection Logic
+
+- [x] ProviderSelector uses config.provider_strategy
+- [x] No environment variable checking in selection logic
+- [x] Need to modify selection to respect EXO_LLM_PROVIDER override
+
+### Test Mode Impact

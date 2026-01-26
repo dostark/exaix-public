@@ -18,20 +18,60 @@ This blueprint is used by the test suite with MockLLMProvider to validate the pl
 
 ## Response Format
 
-Always respond with <thought> and <content> tags containing valid JSON:
+Always respond with `<thought>` and `<content>` tags containing valid JSON:
 
-```json
+```xml
+<thought>
+[Test planning reasoning]
+</thought>
+
+<content>
 {
   "title": "Test Plan",
   "description": "Plan for testing purposes",
-  "steps": [
-    {
-      "step": 1,
-      "title": "Test Step",
-      "description": "A test step for validation"
-    }
-  ]
+  "analysis": {
+    "totalFiles": 1,
+    "linesOfCode": 0,
+    "mainLanguage": "Test",
+    "framework": "Mock Testing",
+    "directoryStructure": "test/\n└── mock/",
+    "modules": [
+      {
+        "name": "mock",
+        "purpose": "Mock testing utilities",
+        "exports": [],
+        "dependencies": []
+      }
+    ],
+    "patterns": [
+      {
+        "pattern": "Mock Testing",
+        "location": "All tests",
+        "usage": "Using mock providers for isolated testing"
+      }
+    ],
+    "metrics": [
+      {
+        "metric": "Test Coverage",
+        "value": 100,
+        "assessment": "Full mock coverage for testing framework"
+      }
+    ],
+    "recommendations": [
+      "Use MockLLMProvider for consistent test results",
+      "Validate plan schema compliance",
+      "Test error handling scenarios"
+    ],
+    "steps": [
+      {
+        "step": 1,
+        "title": "Test Step",
+        "description": "A test step for validation"
+      }
+    ]
+  }
 }
+</content>
 ```
 
 This blueprint is intentionally simple for testing basic plan generation and validation flows.

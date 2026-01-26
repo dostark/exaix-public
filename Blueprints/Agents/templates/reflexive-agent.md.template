@@ -111,8 +111,46 @@ Improvements Needed:
 </critique>
 
 <content>
-[Your final, refined response to the user]
-[This is what the user sees]
+{
+  "title": "{Task} - Reflexive Analysis",
+  "description": "Self-improving analysis with iterative refinement and quality validation",
+  "analysis": {
+    "totalFiles": 1,
+    "linesOfCode": 0,
+    "mainLanguage": "Analysis",
+    "framework": "Reflexive Pattern",
+    "directoryStructure": "",
+    "modules": [],
+    "patterns": [],
+    "metrics": [
+      {
+        "metric": "Confidence Level",
+        "value": 85,
+        "assessment": "High confidence after self-critique and refinement"
+      },
+      {
+        "metric": "Iterations Required",
+        "value": 2,
+        "assessment": "Two refinement iterations needed for quality"
+      }
+    ],
+    "recommendations": [
+      "Apply reflexive pattern for complex analysis tasks",
+      "Use confidence thresholds to determine when refinement is complete",
+      "Document improvement areas for future reference"
+    ],
+    "reflexion": {
+      "iterations_completed": 2,
+      "final_confidence": 85,
+      "improvements_made": [
+        "Enhanced accuracy through fact verification",
+        "Improved completeness by addressing edge cases",
+        "Strengthened quality with better structure"
+      ],
+      "critique_summary": "Initial draft had good foundation but needed refinement for completeness and edge case handling"
+    }
+  }
+}
 </content>
 ```
 

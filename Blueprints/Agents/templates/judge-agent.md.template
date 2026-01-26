@@ -99,89 +99,60 @@ Initial impressions:
 - Concerns noted: [list]
 </thought>
 
-<evaluation>
-## Criterion Assessments
-
-### {{criterion_1_name}}
-**Score:** [0-100]
-**Weight:** {{weight_1}}%
-
-Evidence:
-- [Specific observation 1]
-- [Specific observation 2]
-
-Findings:
-- ✅ [Positive finding]
-- ⚠️ [Area for improvement]
-- ❌ [Critical issue]
-
-Justification:
-[Why this score was assigned]
-
----
-
-### {{criterion_2_name}}
-**Score:** [0-100]
-**Weight:** {{weight_2}}%
-
-[Continue for each criterion...]
-
----
-
-## Summary
-
-| Criterion | Score | Weight | Weighted |
-|-----------|-------|--------|----------|
-| {{criterion_1}} | X | {{weight_1}}% | X.X |
-| {{criterion_2}} | X | {{weight_2}}% | X.X |
-| **Overall** | **X** | 100% | **X.X** |
-
-## Blocking Issues
-[List any criteria scoring < 60, these must be fixed]
-
-## Improvement Priority
-
-1. **[High]** Issue description
-   - Location: [specific location]
-   - Impact: [why it matters]
-   - Suggestion: [concrete fix]
-
-2. **[Medium]** Issue description
-   - Location: [specific location]
-   - Impact: [why it matters]
-   - Suggestion: [concrete fix]
-
-3. **[Low]** Issue description
-   - [...]
-</evaluation>
-
-<verdict>
-{
-  "verdict": "PASS|CONDITIONAL|FAIL",
-  "overall_score": [0-100],
-  "criteria_scores": {
-    "{{criterion_1}}": [score],
-    "{{criterion_2}}": [score]
-  },
-  "blocking_issues": [
-    "Issue 1 description",
-    "Issue 2 description"
-  ],
-  "improvements_required": [
-    {
-      "priority": "high|medium|low",
-      "issue": "Brief description",
-      "location": "file:line or section",
-      "suggestion": "How to fix"
-    }
-  ],
-  "ready_for_next_stage": true|false
-}
-</verdict>
-
 <content>
-[Human-readable summary of the evaluation]
-[Key findings and recommendations in prose]
+{
+  "title": "Quality Evaluation: {artifact_name}",
+  "description": "Structured quality assessment against defined criteria with scoring and recommendations",
+  "analysis": {
+    "totalFiles": 1,
+    "linesOfCode": 0,
+    "mainLanguage": "Evaluation",
+    "framework": "LLM-as-a-Judge",
+    "directoryStructure": "",
+    "modules": [],
+    "patterns": [],
+    "metrics": [
+      {
+        "metric": "Overall Quality Score",
+        "value": 85,
+        "assessment": "Good - Meets requirements with minor improvements needed"
+      }
+    ],
+    "recommendations": [
+      "Address high-priority issues before proceeding",
+      "Consider medium-priority improvements in next iteration",
+      "Monitor low-priority items for future maintenance"
+    ],
+    "evaluation": {
+      "evaluation_id": "eval-{timestamp}",
+      "timestamp": "{iso_timestamp}",
+      "overall_score": 85,
+      "verdict": "PASS",
+      "criteria_scores": {
+        "{{criterion_1}}": {
+          "score": 90,
+          "reasoning": "Excellent implementation with proper error handling",
+          "issues": [],
+          "suggestions": ["Minor optimization possible"]
+        },
+        "{{criterion_2}}": {
+          "score": 80,
+          "reasoning": "Good coverage but missing edge case handling",
+          "issues": ["Edge case not covered"],
+          "suggestions": ["Add test for boundary conditions"]
+        }
+      },
+      "critical_issues": [],
+      "summary": "Artifact meets quality standards with room for minor improvements",
+      "confidence": 0.92,
+      "metadata": {
+        "criteria_evaluated": ["{{criterion_1}}", "{{criterion_2}}"],
+        "content_type": "code",
+        "evaluation_time_ms": 1500
+      }
+    }
+  }
+}
 </content>
 ```
 

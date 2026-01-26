@@ -159,9 +159,9 @@ export class PlanWriter {
         metadata.requestId,
         metadata.traceId,
         {
-          step_count: plan.steps.length,
+          step_count: plan.steps?.length ?? 0,
           has_risks: plan.risks !== undefined && plan.risks.length > 0,
-          has_dependencies: plan.steps.some((s) => s.dependencies && s.dependencies.length > 0),
+          has_dependencies: plan.steps?.some((s) => s.dependencies && s.dependencies.length > 0) ?? false,
         },
       );
     } catch (error) {

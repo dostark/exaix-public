@@ -94,7 +94,7 @@ if (import.meta.main) {
     // Initialize LLM Provider
     const defaultModelName = config.agents.default_model;
     const providerInfo = ProviderFactory.getProviderInfoByName(config, defaultModelName);
-    const _llmProvider = ProviderFactory.createByName(config, defaultModelName);
+    const llmProvider = await ProviderFactory.createByName(config, defaultModelName);
 
     await logger.info("llm.provider.initialized", providerInfo.id, {
       type: providerInfo.type,
@@ -166,6 +166,7 @@ if (import.meta.main) {
       config,
       db: dbService,
       agentId: "daemon",
+      llmProvider,
       changesetRegistry,
     });
 

@@ -1,5 +1,3 @@
-# Plan/Changeset Approval Not Reflected in List Commands
-
 ## Problem
 
 When following the manual test scenario for plan approval and changeset approval, the following issues were observed:

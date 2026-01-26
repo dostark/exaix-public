@@ -1,5 +1,3 @@
-# Event Journal Missing Token Usage Tracking in Payload
-
 ## Problem
 
 The event journal's activity table payloads contain provider and model information but lack tracking of token usage (input tokens, output tokens) and associated costs. This violates ExoFrame's declared functionality for cost tracking and monitoring.

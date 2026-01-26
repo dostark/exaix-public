@@ -1,0 +1,27 @@
+## Problem
+
+The `exoctl plan show` and `exoctl plan list` commands provide minimal information about plans, missing crucial context about the original request and the agent/flow that created the plan. Users cannot easily trace plans back to their source or understand which agent generated them.
+
+## Reproduction Steps
+
+```bash
+# Create a request
+exoctl request "Test request"
+
+# Check plan list - missing request and agent info
+exoctl plan list
+
+# Check plan show - missing request and agent info
+exoctl plan show <plan-id>
+```
+
+## Observed Behavior
+
+**Current `exoctl plan list` output:**
+```
+✅ plan.list: plans
+   count: 1
+✅ 🔍 request-f493fe2a_plan: request-f493fe2a_plan
+   status: review
+   trace: f493fe2a...
+```

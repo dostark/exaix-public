@@ -23,6 +23,7 @@ Blueprints/Agents/templates/
 These examples are **reference implementations**. They demonstrate best practices for system prompts, capabilities, and persona definitions.
 
 **To use an example agent:**
+
 1. **Copy it** to the parent directory (`Blueprints/Agents/`).
 2. **Validate it** using `exoctl blueprint validate <filename>`.
 3. **Ensure model availability:** Check that the `model` specified in the frontmatter is available in your environment (e.g., via Ollama).
@@ -31,23 +32,23 @@ These examples are **reference implementations**. They demonstrate best practice
 
 ### Development Agents
 
-| Agent | Purpose | Capabilities |
-|-------|---------|--------------|
-| **code-reviewer** | Code quality, security, and best practices review | `read_file`, `write_file`, `list_directory` |
-| **feature-developer** | Complete feature implementation lifecycle | `read_file`, `write_file`, `list_directory`, `git_*` |
+| Agent                 | Purpose                                           | Capabilities                                         |
+| --------------------- | ------------------------------------------------- | ---------------------------------------------------- |
+| **code-reviewer**     | Code quality, security, and best practices review | `read_file`, `write_file`, `list_directory`          |
+| **feature-developer** | Complete feature implementation lifecycle         | `read_file`, `write_file`, `list_directory`, `git_*` |
 
 ### Content Agents
 
-| Agent | Purpose | Capabilities |
-|-------|---------|--------------|
+| Agent              | Purpose                                      | Capabilities                  |
+| ------------------ | -------------------------------------------- | ----------------------------- |
 | **api-documenter** | API documentation generation and maintenance | `read_file`, `list_directory` |
 
 ### Analysis Agents
 
-| Agent | Purpose | Capabilities |
-|-------|---------|--------------|
-| **security-auditor** | Security vulnerability scanning and assessment | `read_file`, `list_directory`, `git_status` |
-| **research-synthesizer** | Multi-source research analysis and synthesis | `read_file`, `write_file`, `list_directory` |
+| Agent                    | Purpose                                        | Capabilities                                |
+| ------------------------ | ---------------------------------------------- | ------------------------------------------- |
+| **security-auditor**     | Security vulnerability scanning and assessment | `read_file`, `list_directory`, `git_status` |
+| **research-synthesizer** | Multi-source research analysis and synthesis   | `read_file`, `write_file`, `list_directory` |
 
 ## 📋 Agent Blueprint Format
 
@@ -90,11 +91,13 @@ Detailed system prompt for the agent...
 Agents can use the following MCP (Model Context Protocol) tools:
 
 ### File Operations
+
 - `read_file`: Read files from portals
 - `write_file`: Write files to portals
 - `list_directory`: List directory contents
 
 ### Git Operations
+
 - `git_create_branch`: Create feature branches
 - `git_commit`: Commit changes
 - `git_status`: Check git status
@@ -102,6 +105,7 @@ Agents can use the following MCP (Model Context Protocol) tools:
 ## 🔐 Portal Permissions
 
 Agents can only access portals that:
+
 1. List the agent in `agents_allowed` (or use `"*"` for all agents)
 2. Include required operations in the `operations` array
 3. Allow access within portal boundaries (no `../` traversal)

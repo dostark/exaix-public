@@ -67,6 +67,7 @@ export type PlanStep = z.infer<typeof PlanStepSchema>;
 
 /**
  * Zod schema for complete execution plans
+ * Enhanced to support specialized agent outputs (analysis, security, QA, performance)
  */
 export const PlanSchema = z.object({
   /** Plan title/goal (max 300 chars) */
@@ -75,14 +76,177 @@ export const PlanSchema = z.object({
   /** Overall plan description */
   description: z.string().min(1),
 
-  /** Ordered list of execution steps (1-50 steps) */
-  steps: z.array(PlanStepSchema).min(1).max(50),
+  /** Optional: Ordered list of execution steps (1-50 steps) */
+  steps: z.array(PlanStepSchema).min(1).max(50).optional(),
 
   /** Optional: Estimated total duration */
   estimatedDuration: z.string().optional(),
 
   /** Optional: Risk assessment */
   risks: z.array(z.string()).optional(),
+
+  // ============================================================================
+  // Specialized Agent Fields (Optional)
+  // ============================================================================
+
+  /** Optional: Analysis results for code analysis agents */
+  analysis: z.object({
+    /** Total files analyzed */
+    totalFiles: z.number().optional(),
+    /** Lines of code */
+    linesOfCode: z.number().optional(),
+    /** Main programming language */
+    mainLanguage: z.string().optional(),
+    /** Framework or technology stack */
+    framework: z.string().optional(),
+    /** Directory structure overview */
+    directoryStructure: z.string().optional(),
+    /** Module summary */
+    modules: z.array(z.object({
+      name: z.string(),
+      purpose: z.string(),
+      exports: z.array(z.string()),
+      dependencies: z.array(z.string()),
+    })).optional(),
+    /** Key components */
+    components: z.array(z.object({
+      name: z.string(),
+      location: z.string(),
+      purpose: z.string(),
+      api: z.string().optional(),
+      dependencies: z.array(z.string()).optional(),
+      usedBy: z.array(z.string()).optional(),
+    })).optional(),
+    /** Identified patterns */
+    patterns: z.array(z.object({
+      pattern: z.string(),
+      location: z.string(),
+      usage: z.string(),
+    })).optional(),
+    /** Type definitions */
+    types: z.string().optional(),
+    /** Entry points */
+    entryPoints: z.array(z.string()).optional(),
+    /** Complexity metrics */
+    metrics: z.array(z.object({
+      metric: z.string(),
+      value: z.string().or(z.number()),
+      assessment: z.string(),
+    })).optional(),
+    /** Recommendations */
+    recommendations: z.array(z.string()).optional(),
+  }).optional(),
+
+  /** Optional: Security analysis results */
+  security: z.object({
+    /** Executive summary */
+    executiveSummary: z.string().optional(),
+    /** Critical findings */
+    findings: z.array(z.object({
+      title: z.string(),
+      severity: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"]),
+      location: z.string(),
+      description: z.string(),
+      impact: z.string(),
+      remediation: z.string(),
+      codeExample: z.string().optional(),
+    })).optional(),
+    /** Security recommendations */
+    recommendations: z.array(z.string()).optional(),
+    /** Compliance notes */
+    compliance: z.array(z.string()).optional(),
+  }).optional(),
+
+  /** Optional: QA/testing results */
+  qa: z.object({
+    /** Test summary */
+    testSummary: z.array(z.object({
+      category: z.string(),
+      planned: z.number(),
+      executed: z.number(),
+      passed: z.number(),
+      failed: z.number(),
+    })).optional(),
+    /** Test coverage analysis */
+    coverage: z.object({
+      integration: z.array(z.object({
+        scenario: z.string(),
+        setup: z.string(),
+        steps: z.array(z.string()),
+        expectedResult: z.string(),
+        status: z.enum(["PASS", "FAIL"]),
+        notes: z.string().optional(),
+      })).optional(),
+      e2e: z.array(z.object({
+        journey: z.string(),
+        scenario: z.string(),
+        preconditions: z.string(),
+        steps: z.array(z.string()),
+        verificationPoints: z.array(z.string()),
+        status: z.enum(["PASS", "FAIL"]),
+      })).optional(),
+    }).optional(),
+    /** Issues found */
+    issues: z.array(z.object({
+      title: z.string(),
+      severity: z.enum(["Critical", "High", "Medium", "Low"]),
+      component: z.string(),
+      stepsToReproduce: z.array(z.string()),
+      description: z.string().optional(),
+    })).optional(),
+  }).optional(),
+
+  /** Optional: Performance analysis results */
+  performance: z.object({
+    /** Executive summary */
+    executiveSummary: z.string().optional(),
+    /** Performance findings */
+    findings: z.array(z.object({
+      title: z.string(),
+      impact: z.enum(["HIGH", "MEDIUM", "LOW"]),
+      category: z.enum(["Algorithm", "Database", "Memory", "IO", "Concurrency"]),
+      location: z.string(),
+      currentBehavior: z.string(),
+      expectedImprovement: z.string(),
+      recommendation: z.string(),
+      codeExample: z.string().optional(),
+    })).optional(),
+    /** Optimization priorities */
+    priorities: z.array(z.string()).optional(),
+    /** Scalability assessment */
+    scalability: z.object({
+      currentCapacity: z.string(),
+      bottleneckPoints: z.array(z.string()),
+      scalingStrategy: z.string(),
+    }).optional(),
+  }).optional(),
+}).refine((data) => {
+  // Either steps must be present, or at least one specialized field must be present
+  const hasSteps = data.steps !== undefined;
+  const hasSpecialized = data.analysis !== undefined ||
+    data.security !== undefined ||
+    data.qa !== undefined ||
+    data.performance !== undefined;
+  return hasSteps || hasSpecialized;
+}, {
+  message:
+    "Plan must contain either 'steps' for execution plans or at least one specialized field (analysis, security, qa, performance) for analysis reports",
 });
 
 export type Plan = z.infer<typeof PlanSchema>;
+
+// ============================================================================
+// Specialized Types
+// ============================================================================
+
+/** Analysis results for code analysis agents */
+export type PlanAnalysis = z.infer<typeof PlanSchema>["analysis"];
+
+/** Security analysis results */
+export type PlanSecurity = z.infer<typeof PlanSchema>["security"];
+
+/** QA/testing results */
+export type PlanQA = z.infer<typeof PlanSchema>["qa"];
+
+/** Performance analysis results */
+export type PlanPerformance = z.infer<typeof PlanSchema>["performance"];

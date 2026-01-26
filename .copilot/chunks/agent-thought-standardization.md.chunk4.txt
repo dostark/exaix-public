@@ -1,0 +1,16 @@
+1. **Consistency**: All agents follow the same reasoning structure
+2. **Clarity**: Easier to understand agent decision-making process
+3. **Debugging**: Structured format helps identify reasoning flaws
+4. **Automation**: Consistent structure enables better parsing and analysis
+5. **Quality**: Forces comprehensive consideration of all aspects
+
+### Migration Plan
+
+#### Phase 31.5: Thought Section Standardization
+
+1. **Update all agent blueprints** to use the standardized `<thought>` structure
+2. **Update agent-content-schema.md** to reference this standardization
+3. **Create examples** showing before/after for each agent type
+4. **Validate** that all agents produce consistent reasoning patterns
+
+#### Implementation Steps

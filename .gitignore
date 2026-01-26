@@ -56,3 +56,6 @@ Portals/
 # --------------------------------------------
 exoframe
 /.ci-bin/
+
+# Config files
+exo.config.toml

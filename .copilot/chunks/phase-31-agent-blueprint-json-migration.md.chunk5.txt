@@ -1,0 +1,44 @@
+### Response Format Migration
+
+**Before** (XML + Markdown):
+
+```xml
+<thought>
+Analysis and reasoning...
+</thought>
+
+<content>
+## Analysis Report
+
+### Section 1
+- Item 1
+- Item 2
+</content>
+```
+
+**After** (XML + JSON):
+
+```xml
+<thought>
+Analysis and reasoning...
+</thought>
+
+<content>
+{
+  "title": "Analysis Report",
+  "description": "Structured analysis results",
+  "steps": [...],
+  "estimatedDuration": "1 hour",
+  "risks": [...]
+}
+</content>
+```
+
+**See [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete response format templates and migration examples.**
+
+### Zod Validation Integration
+
+Each agent response will be validated against `PlanSchema`:
+
+```typescript
+import { PlanSchema } from "../schemas/plan_schema.ts";

@@ -1,0 +1,23 @@
+1. **Request Context**: Request title, priority, creator, agent/flow that initiated it
+2. **Plan Context**: Link to the plan that generated this changeset, plan status
+3. **Flow Context**: If created by a multi-agent flow, which step of the flow created it
+4. **Portal Context**: Which portal/repository this changeset affects
+5. **Status Context**: Clear indication of approval/rejection status with timestamps
+
+## Proposed Enhancement
+
+### Changeset List Display
+
+```yaml
+📌 request-039de14f_plan: feat/request-039de14f-abc123
+   status: pending
+   request: "Implement user authentication system"
+   plan: request-039de14f_plan (approved)
+   agent: auth-agent
+   portal: my-app-repo
+   files: 5
+   created: 2026-01-25 10:30:00
+   trace: abc123...
+```
+
+### Changeset Show Display

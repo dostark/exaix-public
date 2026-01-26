@@ -1,0 +1,27 @@
+```
+✅ plan.list: plans
+   count: 1
+✅ 🔍 request-f493fe2a_plan: "Comprehensive Review of ExoFrame Test Suite"
+   status: review
+   agent: default
+   portal: original-repo
+   request: request-f493fe2a
+   created: 2026-01-25T16:46:24Z
+   priority: normal
+```
+
+```
+✅ plan.show: request-f493fe2a_plan
+   status: review
+   trace: f493fe2a-2a2e-46e3-af2a-b5e56a162597
+   request: request-f493fe2a ("Comprehensive Review of ExoFrame Test Suite")
+   agent: default
+   portal: original-repo
+   created: 2026-01-25T16:46:24Z
+   priority: normal
+   created_by: dkasymov@gmail.com
+✅ plan.content: request-f493fe2a_plan
+   content: [plan content...]
+```
+
+## Technical Details

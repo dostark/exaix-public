@@ -1,0 +1,13 @@
+- collaborative-agent.md.template ✅
+- conversational-agent.md.template ✅
+- judge-agent.md.template ✅
+- pipeline-agent.md.template ✅
+- reflexive-agent.md.template ✅
+- research-agent.md.template ✅
+- specialist-agent.md.template ✅
+
+## Technical Implementation
+
+### JSON Schema Structure
+
+All agents will use the standardized `PlanSchema` defined in the [Agent Content Schema Reference](.copilot/source/agent-content-schema.md):
