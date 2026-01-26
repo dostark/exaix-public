@@ -2,8 +2,6 @@
 
 High priority - core execution functionality is missing. The system can create and approve plans but cannot execute them, making the entire planning system non-functional.
 
-## Examples
+## Resolution
 
-- Plan marked "completed" immediately after approval without running steps
-- No execution results stored in Memory/Execution/
-- Git branches created with unexpected file additions instead of analysis results
+**Root Cause**: The ExecutionLoop was only designed to execute plans with TOML action blocks, but the current plan generation system creates structured plans with descriptive steps. When no TOML actions were found, ExecutionLoop would create a dummy file and mark the plan as completed without executing the actual steps.

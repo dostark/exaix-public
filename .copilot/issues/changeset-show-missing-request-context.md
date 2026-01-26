@@ -1,12 +1,10 @@
 ---
 title: "Enhance changeset commands to show request and plan context"
-status: open
+status: resolved
 priority: medium
 created: 2026-01-25
 labels: [enhancement, cli, changeset, ux]
 ---
-
-# Enhance changeset commands to show request and plan context
 
 ## Problem
 
@@ -15,6 +13,7 @@ The `exoctl changeset list` and `exoctl changeset show` commands provide minimal
 ## Current State
 
 **Changeset list** currently shows:
+
 - Request ID (e.g., `request-039de14f`)
 - Branch name (e.g., `feat/request-039de14f-abc123`)
 - Files changed count
@@ -23,6 +22,7 @@ The `exoctl changeset list` and `exoctl changeset show` commands provide minimal
 - Agent ID (from git author)
 
 **Changeset show** currently shows:
+
 - Branch details
 - File count and commit information
 - Git diff
@@ -39,7 +39,8 @@ The `exoctl changeset list` and `exoctl changeset show` commands provide minimal
 ## Proposed Enhancement
 
 ### Changeset List Display
-```
+
+```yaml
 📌 request-039de14f_plan: feat/request-039de14f-abc123
    status: pending
    request: "Implement user authentication system"
@@ -52,7 +53,8 @@ The `exoctl changeset list` and `exoctl changeset show` commands provide minimal
 ```
 
 ### Changeset Show Display
-```
+
+```yaml
 ✅ changeset.show: request-039de14f_plan
    status: pending
    trace: abc123-def456-ghi789
@@ -76,10 +78,12 @@ The `exoctl changeset list` and `exoctl changeset show` commands provide minimal
 ```
 
 ### Flow Step Information
+
 For changesets created by flows, include:
-```
-   flow: user-onboarding-flow
-   flow_step: 2/5 (Database Setup)
+
+```text
+flow: user-onboarding-flow
+flow_step: 2/5 (Database Setup)
 ```
 
 ## Implementation Requirements
@@ -93,6 +97,7 @@ For changesets created by flows, include:
 ## Database Schema Changes
 
 Add to `changesets` table:
+
 - `request_title` TEXT (derived from request metadata)
 - `plan_id` TEXT (link to plan)
 - `flow_id` TEXT (if created by flow)

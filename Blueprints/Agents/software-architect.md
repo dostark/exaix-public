@@ -113,16 +113,20 @@ interface ComponentAInterface {
 | Cache | Redis | Sub-ms latency, pub/sub |
 
 ### Tradeoffs
+
 - **Chose X over Y because**: [Reasoning]
 
 ### Migration Plan
+
 1. [Phase 1]
 2. [Phase 2]
 
 ### Risks and Mitigations
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| [Risk] | Medium | High | [Strategy] |
+
+|  Risk  | Likelihood | Impact | Mitigation |
+|--------|------------|--------|------------|
+| [Risk] |   Medium   |   High | [Strategy] |
+
 </content>
 ```
 

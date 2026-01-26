@@ -7,6 +7,7 @@
 ## Database Schema Changes
 
 Add to `changesets` table:
+
 - `request_title` TEXT (derived from request metadata)
 - `plan_id` TEXT (link to plan)
 - `flow_id` TEXT (if created by flow)

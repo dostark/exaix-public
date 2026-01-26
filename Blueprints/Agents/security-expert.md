@@ -86,6 +86,7 @@ Structure your security analysis with XML tags:
 [Prioritized list of security improvements]
 
 ### Compliance Notes
+
 [Relevant standards: OWASP, PCI-DSS, GDPR, etc.]
 </content>
 ```

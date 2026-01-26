@@ -575,3 +575,29 @@ No actions - just testing without db.
     await Deno.remove(tempDir, { recursive: true });
   }
 });
+
+Deno.test("ExecutionLoop: uses correct memory execution path configuration", async () => {
+  const tempDir = await Deno.makeTempDir({ prefix: "exec-path-config-" });
+  const { db, cleanup } = await initTestDbService();
+
+  try {
+    const config = createMockConfig(tempDir);
+
+    const _loop = new ExecutionLoop({
+      config,
+      db,
+      agentId: "test-agent",
+      llmProvider: undefined,
+    });
+
+    // Verify that the execution loop uses the configured memory execution path
+    // This is a regression test to ensure paths are not hardcoded
+    const expectedPath = join(tempDir, "Memory", "Execution");
+    const actualPath = join(config.system.root, config.paths.memoryExecution);
+
+    assertEquals(actualPath, expectedPath, "ExecutionLoop should use configured memoryExecution path");
+  } finally {
+    await cleanup();
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});

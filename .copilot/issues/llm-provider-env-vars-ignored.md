@@ -9,8 +9,6 @@ assignee:
 related_issues: []
 ---
 
-# LLM Provider Environment Variables Ignored in Provider Selection
-
 ## Problem
 
 The ExoFrame daemon ignores `EXO_LLM_PROVIDER` and `EXO_LLM_MODEL` environment variables when selecting which AI provider to use for request processing. Despite these variables being correctly set in the daemon's environment, the provider selection logic always falls back to the mock provider due to preferring "free" providers.

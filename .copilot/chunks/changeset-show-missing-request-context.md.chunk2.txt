@@ -1,5 +1,4 @@
-### Changeset Show Display
-```
+```yaml
 ✅ changeset.show: request-039de14f_plan
    status: pending
    trace: abc123-def456-ghi789
@@ -23,10 +22,12 @@ Diff:
 ```
 
 ### Flow Step Information
+
 For changesets created by flows, include:
-```
-   flow: user-onboarding-flow
-   flow_step: 2/5 (Database Setup)
+
+```text
+flow: user-onboarding-flow
+flow_step: 2/5 (Database Setup)
 ```
 
 ## Implementation Requirements

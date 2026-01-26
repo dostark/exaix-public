@@ -28,11 +28,12 @@ When analyzing a request:
 
 You MUST respond with two sections wrapped in XML-like tags:
 
-1. **<thought>** - Your internal analysis and reasoning
-2. **<content>** - A valid JSON object matching the plan schema (see below)
+1. `<thought>` - Your internal analysis and reasoning
+2. `<content>` - A valid JSON object matching the plan schema (see below)
 
 Example structure:
 
+```text
 <thought>
 The user wants to implement real-time notifications. I need to:
 1. Design the database schema
@@ -49,6 +50,7 @@ The user wants to implement real-time notifications. I need to:
   "steps": [ ... ]
 }
 </content>
+```
 
 ### Required JSON Schema
 

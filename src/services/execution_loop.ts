@@ -666,7 +666,7 @@ export class ExecutionLoop {
   private createMissionReporter(): MissionReporter {
     const memoryBank = new MemoryBankService(this.config, this.db!);
     const reportConfig = {
-      reportsDirectory: join(this.config.system.root, this.config.paths.memory, "Execution"),
+      reportsDirectory: join(this.config.system.root, this.config.paths.memoryExecution),
     };
     return new MissionReporter(this.config, reportConfig, memoryBank, this.db);
   }
@@ -796,7 +796,7 @@ export class ExecutionLoop {
 
       // Also write a human-readable failure.md file for easy access (tests expect this file)
       try {
-        const failureDir = join(this.config.system.root, this.config.paths.memory, "Execution", traceId);
+        const failureDir = join(this.config.system.root, this.config.paths.memoryExecution, traceId);
         await Deno.mkdir(failureDir, { recursive: true });
         const failureContent =
           `# Failure Report\n\n**Trace ID:** ${traceId}\n**Request ID:** ${requestId}\n**Agent:** ${this.agentId}\n**Error:** ${error}\n\n**Summary:** ${traceData.summary}\n**Reasoning:** ${traceData.reasoning}\n\nGenerated at ${

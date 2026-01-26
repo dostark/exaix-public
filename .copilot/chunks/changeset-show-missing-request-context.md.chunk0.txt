@@ -1,5 +1,3 @@
-# Enhance changeset commands to show request and plan context
-
 ## Problem
 
 The `exoctl changeset list` and `exoctl changeset show` commands provide minimal information about changesets, missing crucial context about the original request, plan, and flow step that created the changeset. Users cannot easily trace changesets back to their source or understand the full workflow context.
@@ -7,6 +5,7 @@ The `exoctl changeset list` and `exoctl changeset show` commands provide minimal
 ## Current State
 
 **Changeset list** currently shows:
+
 - Request ID (e.g., `request-039de14f`)
 - Branch name (e.g., `feat/request-039de14f-abc123`)
 - Files changed count
@@ -15,6 +14,7 @@ The `exoctl changeset list` and `exoctl changeset show` commands provide minimal
 - Agent ID (from git author)
 
 **Changeset show** currently shows:
+
 - Branch details
 - File count and commit information
 - Git diff

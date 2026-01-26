@@ -7,7 +7,6 @@ updated: 2026-01-23
 labels: [bug, event-journal, token-usage]
 ---
 
-# Event Journal Missing Token Usage Tracking in Payload
 
 ## Problem
 
