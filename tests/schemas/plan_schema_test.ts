@@ -213,7 +213,7 @@ describe("PlanSchema", () => {
       if (result.success) {
         const plan: Plan = result.data;
         assertEquals(plan.title, "Implement Authentication System");
-        assertEquals(plan.steps.length, 2);
+        assertEquals(plan.steps?.length, 2);
         assertEquals(plan.estimatedDuration, "2-3 hours");
         assertEquals(plan.risks?.length, 2);
       }
@@ -236,7 +236,7 @@ describe("PlanSchema", () => {
       assertEquals(result.success, true);
       if (result.success) {
         assertEquals(result.data.title, "Simple Plan");
-        assertEquals(result.data.steps.length, 1);
+        assertEquals(result.data.steps?.length, 1);
         assertEquals(result.data.estimatedDuration, undefined);
         assertEquals(result.data.risks, undefined);
       }
@@ -286,18 +286,18 @@ describe("PlanSchema", () => {
       }
     });
 
-    it("should reject plan with missing steps", () => {
+    it("should reject plan with neither steps nor specialized fields", () => {
       const planData = {
         title: "Has Title",
-        description: "Has description but no steps",
+        description: "Has description but no steps or specialized fields",
       };
 
       const result = PlanSchema.safeParse(planData);
       assertEquals(result.success, false);
       if (!result.success) {
         const errors = result.error as ZodError;
-        const stepsError = errors.errors.find((e) => e.path.includes("steps"));
-        assertExists(stepsError);
+        // Should have validation errors since neither steps nor specialized fields are present
+        assertExists(errors.errors.length > 0);
       }
     });
 
@@ -361,6 +361,272 @@ describe("PlanSchema", () => {
 
       const result = PlanSchema.safeParse(planData);
       assertEquals(result.success, false);
+    });
+  });
+});
+
+describe("PlanSchema - Specialized Agent Fields", () => {
+  describe("Code Analysis Plans", () => {
+    it("should validate plan with analysis field", () => {
+      const planData = {
+        title: "Codebase Analysis Report",
+        description: "Comprehensive analysis of project structure",
+        analysis: {
+          totalFiles: 42,
+          linesOfCode: 1250,
+          mainLanguage: "TypeScript",
+          framework: "Deno",
+          directoryStructure: "src/\n├── services/\n└── utils/",
+          modules: [
+            {
+              name: "auth.ts",
+              purpose: "Authentication service",
+              exports: ["login", "logout"],
+              dependencies: ["jwt"],
+            },
+          ],
+          patterns: [
+            {
+              pattern: "Repository",
+              location: "src/repos/",
+              usage: "Data access abstraction",
+            },
+          ],
+          metrics: [
+            {
+              metric: "Cyclomatic Complexity (avg)",
+              value: 3.2,
+              assessment: "Good",
+            },
+          ],
+          recommendations: [
+            "Add more unit tests",
+            "Refactor large functions",
+          ],
+        },
+      };
+
+      const result = PlanSchema.safeParse(planData);
+      assertEquals(result.success, true);
+      if (result.success) {
+        assertEquals(result.data.analysis?.totalFiles, 42);
+        assertEquals(result.data.analysis?.mainLanguage, "TypeScript");
+        assertEquals(result.data.analysis?.modules?.length, 1);
+        assertEquals(result.data.analysis?.recommendations?.length, 2);
+      }
+    });
+
+    it("should validate minimal analysis plan", () => {
+      const planData = {
+        title: "Basic Analysis",
+        description: "Simple code analysis",
+        analysis: {},
+      };
+
+      const result = PlanSchema.safeParse(planData);
+      assertEquals(result.success, true);
+    });
+  });
+
+  describe("Security Analysis Plans", () => {
+    it("should validate plan with security field", () => {
+      const planData = {
+        title: "Security Analysis Report",
+        description: "Security assessment and vulnerability analysis",
+        security: {
+          executiveSummary: "Overall security posture is good",
+          findings: [
+            {
+              title: "SQL Injection Vulnerability",
+              severity: "HIGH" as const,
+              location: "src/database.ts:45",
+              description: "User input not properly sanitized",
+              impact: "Potential data breach",
+              remediation: "Use parameterized queries",
+              codeExample: "// Before: unsafe\n// After: safe",
+            },
+          ],
+          recommendations: [
+            "Implement input validation",
+            "Add security headers",
+          ],
+          compliance: [
+            "OWASP Top 10: 8/10",
+            "GDPR compliant",
+          ],
+        },
+      };
+
+      const result = PlanSchema.safeParse(planData);
+      assertEquals(result.success, true);
+      if (result.success) {
+        assertEquals(result.data.security?.findings?.[0].severity, "HIGH");
+        assertEquals(result.data.security?.recommendations?.length, 2);
+      }
+    });
+
+    it("should reject invalid severity level", () => {
+      const planData = {
+        title: "Security Report",
+        description: "Invalid security analysis",
+        security: {
+          findings: [
+            {
+              title: "Test Finding",
+              severity: "INVALID" as any, // Invalid severity
+              location: "test.ts",
+              description: "Test",
+              impact: "Test",
+              remediation: "Test",
+            },
+          ],
+        },
+      };
+
+      const result = PlanSchema.safeParse(planData);
+      assertEquals(result.success, false);
+    });
+  });
+
+  describe("QA/Testing Plans", () => {
+    it("should validate plan with QA field", () => {
+      const planData = {
+        title: "QA Assessment Report",
+        description: "Quality assurance and testing analysis",
+        qa: {
+          testSummary: [
+            {
+              category: "Integration",
+              planned: 15,
+              executed: 15,
+              passed: 13,
+              failed: 2,
+            },
+          ],
+          coverage: {
+            integration: [
+              {
+                scenario: "User registration",
+                setup: "Clean database",
+                steps: ["Navigate", "Fill form", "Submit"],
+                expectedResult: "User created",
+                status: "PASS" as const,
+                notes: "All validations work",
+              },
+            ],
+          },
+          issues: [
+            {
+              title: "Form validation bypass",
+              severity: "High" as const,
+              component: "RegistrationForm",
+              stepsToReproduce: ["Submit empty form"],
+              description: "Client-side validation bypassable",
+            },
+          ],
+        },
+      };
+
+      const result = PlanSchema.safeParse(planData);
+      assertEquals(result.success, true);
+      if (result.success) {
+        assertEquals(result.data.qa?.testSummary?.[0].passed, 13);
+        assertEquals(result.data.qa?.issues?.[0].severity, "High");
+      }
+    });
+  });
+
+  describe("Performance Analysis Plans", () => {
+    it("should validate plan with performance field", () => {
+      const planData = {
+        title: "Performance Analysis Report",
+        description: "Performance optimization assessment",
+        performance: {
+          executiveSummary: "Performance adequate with opportunities",
+          findings: [
+            {
+              title: "N+1 Query Problem",
+              impact: "HIGH" as const,
+              category: "Database" as const,
+              location: "src/userService.ts:78",
+              currentBehavior: "Multiple queries in loop",
+              expectedImprovement: "50% query time reduction",
+              recommendation: "Use batch queries",
+              codeExample: "// Optimize queries",
+            },
+          ],
+          priorities: [
+            "Fix N+1 queries",
+            "Implement caching",
+            "Optimize indexes",
+          ],
+          scalability: {
+            currentCapacity: "100 concurrent users",
+            bottleneckPoints: ["Database connections", "Memory"],
+            scalingStrategy: "Horizontal scaling with load balancer",
+          },
+        },
+      };
+
+      const result = PlanSchema.safeParse(planData);
+      assertEquals(result.success, true);
+      if (result.success) {
+        assertEquals(result.data.performance?.findings?.[0].impact, "HIGH");
+        assertEquals(result.data.performance?.priorities?.length, 3);
+        assertEquals(result.data.performance?.scalability?.currentCapacity, "100 concurrent users");
+      }
+    });
+  });
+
+  describe("Mixed Agent Types", () => {
+    it("should validate plan with both steps and analysis", () => {
+      const planData = {
+        title: "Implementation with Analysis",
+        description: "Plan that includes both execution steps and analysis",
+        steps: [
+          {
+            step: 1,
+            title: "Analyze Codebase",
+            description: "Perform code analysis",
+          },
+        ],
+        analysis: {
+          totalFiles: 25,
+          mainLanguage: "TypeScript",
+        },
+        estimatedDuration: "2 hours",
+        risks: ["Analysis may reveal issues"],
+      };
+
+      const result = PlanSchema.safeParse(planData);
+      assertEquals(result.success, true);
+      if (result.success) {
+        assertEquals(result.data.steps?.length, 1);
+        assertEquals(result.data.analysis?.totalFiles, 25);
+        assertEquals(result.data.estimatedDuration, "2 hours");
+      }
+    });
+
+    it("should validate plan with only specialized fields (no steps)", () => {
+      const planData = {
+        title: "Analysis Only Report",
+        description: "Report that contains only analysis data",
+        security: {
+          executiveSummary: "Security assessment complete",
+          findings: [],
+        },
+        performance: {
+          executiveSummary: "Performance assessment complete",
+        },
+      };
+
+      const result = PlanSchema.safeParse(planData);
+      assertEquals(result.success, true);
+      if (result.success) {
+        assertEquals(result.data.steps, undefined);
+        assertExists(result.data.security);
+        assertExists(result.data.performance);
+      }
     });
   });
 });

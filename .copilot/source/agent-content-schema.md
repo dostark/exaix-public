@@ -55,49 +55,63 @@ The `<content>` section must contain **valid JSON** that conforms to this exact 
 
 **title** (string, 1-300 chars)
 
-- Plan summary/goal
+- Plan summary/goal or report title
 - Should be concise but descriptive
-- Example: "Implement User Authentication System"
+- Example: "Implement User Authentication System" or "Security Analysis Report"
 
 **description** (string, min 1 char)
 
-- What the plan accomplishes
+- What the plan/report accomplishes
 - Should provide context and scope
 - Example: "Add JWT-based authentication with login, registration, and session management"
 
+### Optional Fields (Choose Based on Agent Type)
+
+#### For Execution Plans (steps)
 **steps** (array, 1-50 steps)
 
 - Ordered list of execution steps
 - Each step must have sequential step numbers (1, 2, 3...)
+- Use for agents that create implementation plans
 
-### Step Fields
+#### For Code Analysis (analysis)
+**analysis** (object)
 
-**step** (integer, positive)
+- Use for code analysis and structure examination
+- Includes file counts, module analysis, patterns, metrics
+- Example fields: totalFiles, modules, patterns, metrics, recommendations
 
-- Step number (must be sequential: 1, 2, 3...)
-- Used for ordering and dependency references
+#### For Security Analysis (security)
+**security** (object)
 
-**title** (string, 1-200 chars)
+- Use for security assessments and vulnerability analysis
+- Includes findings with severity levels, remediation steps
+- Example fields: findings, recommendations, compliance
 
-- Step name/summary
-- Should be actionable
-- Example: "Create User Schema", "Implement Password Hashing"
+#### For QA/Testing (qa)
+**qa** (object)
 
-**description** (string, min 1 char)
+- Use for test planning and quality assurance reports
+- Includes test summaries, coverage analysis, issues found
+- Example fields: testSummary, coverage, issues
 
-- What this step does
-- Should be detailed enough for implementation
-- Example: "Create database migration for users table with email, password_hash, and timestamps"
+#### For Performance Analysis (performance)
+**performance** (object)
 
-### Optional Fields
+- Use for performance optimization and scalability analysis
+- Includes performance findings, optimization priorities
+- Example fields: findings, priorities, scalability
 
-**actions** (array of action objects)
+#### Common Optional Fields
+**estimatedDuration** (string)
 
-- **MANDATORY for daemon execution**
-- Defines specific tool invocations
-- Each action specifies tool, parameters, and optional description
+- Time estimate for completion
+- Example: "2-3 hours", "1 week"
 
-**tools** (array of strings)
+**risks** (array of strings)
+
+- Potential issues or challenges
+- Example: ["Database performance impact", "Security vulnerabilities"]
 
 - High-level list of tools needed for this step
 - Valid values: `"read_file"`, `"write_file"`, `"run_command"`, `"list_directory"`, `"search_files"`, `"create_directory"`
@@ -159,16 +173,13 @@ Actions define specific tool invocations within a step:
 - **search_files**: `{"query": "string", "includePattern?": "string"}`
 - **create_directory**: `{"path": "string", "recursive?": "boolean"}`
 
-## Response Format Template
+## Response Format Templates
 
-Use this template in all agent blueprints:
+Choose the appropriate template based on your agent type:
 
-```xml
-<thought>
-[Your analysis and reasoning here]
-</thought>
+### Execution Plan Template (Default)
 
-<content>
+```json
 {
   "title": "Brief plan title",
   "description": "What this plan accomplishes",
@@ -192,7 +203,155 @@ Use this template in all agent blueprints:
   "estimatedDuration": "Time estimate",
   "risks": ["Potential issues"]
 }
-</content>
+```
+
+### Code Analysis Template
+
+```json
+{
+  "title": "Codebase Analysis Report",
+  "description": "Comprehensive analysis of project structure and patterns",
+  "analysis": {
+    "totalFiles": 42,
+    "linesOfCode": 1250,
+    "mainLanguage": "TypeScript",
+    "framework": "Deno",
+    "directoryStructure": "src/\n├── services/\n├── routes/\n└── utils/",
+    "modules": [
+      {
+        "name": "auth.ts",
+        "purpose": "Authentication service",
+        "exports": ["login", "logout"],
+        "dependencies": ["jwt", "users"]
+      }
+    ],
+    "patterns": [
+      {
+        "pattern": "Repository",
+        "location": "src/repos/",
+        "usage": "Data access abstraction"
+      }
+    ],
+    "metrics": [
+      {
+        "metric": "Cyclomatic Complexity (avg)",
+        "value": 3.2,
+        "assessment": "Good"
+      }
+    ],
+    "recommendations": [
+      "Consider adding more unit tests",
+      "Refactor large functions into smaller ones"
+    ]
+  }
+}
+```
+
+### Security Analysis Template
+
+```json
+{
+  "title": "Security Analysis Report",
+  "description": "Security assessment and vulnerability analysis",
+  "security": {
+    "executiveSummary": "Overall security posture is good with minor issues",
+    "findings": [
+      {
+        "title": "SQL Injection Vulnerability",
+        "severity": "HIGH",
+        "location": "src/database.ts:45",
+        "description": "User input not properly sanitized",
+        "impact": "Potential data breach",
+        "remediation": "Use parameterized queries",
+        "codeExample": "// Before: query('SELECT * FROM users WHERE id = ' + userId)\n// After: query('SELECT * FROM users WHERE id = ?', [userId])"
+      }
+    ],
+    "recommendations": [
+      "Implement input validation middleware",
+      "Add security headers",
+      "Regular security audits"
+    ],
+    "compliance": [
+      "OWASP Top 10 compliance: 8/10",
+      "GDPR considerations addressed"
+    ]
+  }
+}
+```
+
+### QA/Testing Template
+
+```json
+{
+  "title": "QA Assessment Report",
+  "description": "Quality assurance and testing strategy analysis",
+  "qa": {
+    "testSummary": [
+      {
+        "category": "Integration",
+        "planned": 15,
+        "executed": 15,
+        "passed": 13,
+        "failed": 2
+      }
+    ],
+    "coverage": {
+      "integration": [
+        {
+          "scenario": "User registration flow",
+          "setup": "Clean database",
+          "steps": ["Navigate to register", "Fill form", "Submit"],
+          "expectedResult": "User created successfully",
+          "status": "PASS",
+          "notes": "All fields validated correctly"
+        }
+      ]
+    },
+    "issues": [
+      {
+        "title": "Form validation bypass",
+        "severity": "High",
+        "component": "RegistrationForm",
+        "stepsToReproduce": ["Submit empty form", "Check if error shown"],
+        "description": "Client-side validation can be bypassed"
+      }
+    ]
+  }
+}
+```
+
+### Performance Analysis Template
+
+```json
+{
+  "title": "Performance Analysis Report",
+  "description": "Performance optimization and scalability assessment",
+  "performance": {
+    "executiveSummary": "Application performance is adequate with optimization opportunities",
+    "findings": [
+      {
+        "title": "N+1 Query Problem",
+        "impact": "HIGH",
+        "category": "Database",
+        "location": "src/userService.ts:78",
+        "currentBehavior": "Multiple individual queries in loop",
+        "expectedImprovement": "50% reduction in query time",
+        "recommendation": "Use batch queries or eager loading",
+        "codeExample": "// Before: for(user of users) { getUserDetails(user.id) }\n// After: getAllUserDetails(userIds)"
+      }
+    ],
+    "priorities": [
+      "Fix N+1 query issues",
+      "Implement caching for frequently accessed data",
+      "Optimize database indexes"
+    ],
+    "scalability": {
+      "currentCapacity": "100 concurrent users",
+      "bottleneckPoints": ["Database connection pool", "Memory usage"],
+      "scalingStrategy": "Horizontal scaling with load balancer"
+    }
+  }
+}
 ```
 
 ## Zod Validation

@@ -25,7 +25,7 @@ Deno.test("repro: Plan validation fails for unsupported tool names", () => {
 
   const plan = adapter.parse(invalidPlanJson);
   // Should verify the plan has the correct action
-  if (!plan.steps[0].actions?.[0]) throw new Error("Missing action");
+  if (!plan.steps?.[0].actions?.[0]) throw new Error("Missing action");
   if (plan.steps[0].actions[0].tool !== "create_directory") throw new Error("Wrong tool");
 });
 

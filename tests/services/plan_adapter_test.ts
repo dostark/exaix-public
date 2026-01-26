@@ -55,12 +55,12 @@ describe("PlanAdapter", () => {
 
       assertEquals(plan.title, "Implement Authentication System");
       assertEquals(plan.description, "Add user authentication with JWT tokens");
-      assertEquals(plan.steps.length, 2);
-      assertEquals(plan.steps[0].step, 1);
-      assertEquals(plan.steps[0].tools?.length, 2);
-      assertEquals(plan.steps[0].successCriteria?.length, 2);
-      assertEquals(plan.steps[0].rollback, "Drop users table");
-      assertEquals(plan.steps[1].dependencies?.length, 1);
+      assertEquals(plan.steps?.length, 2);
+      assertEquals(plan.steps?.[0].step, 1);
+      assertEquals(plan.steps?.[0].tools?.length, 2);
+      assertEquals(plan.steps?.[0].successCriteria?.length, 2);
+      assertEquals(plan.steps?.[0].rollback, "Drop users table");
+      assertEquals(plan.steps?.[1].dependencies?.length, 1);
       assertEquals(plan.estimatedDuration, "2-3 hours");
       assertEquals(plan.risks?.length, 2);
     });
@@ -81,8 +81,8 @@ describe("PlanAdapter", () => {
       const plan: Plan = adapter.parse(jsonContent);
 
       assertEquals(plan.title, "Simple Plan");
-      assertEquals(plan.steps.length, 1);
-      assertEquals(plan.steps[0].tools, undefined);
+      assertEquals(plan.steps?.length, 1);
+      assertEquals(plan.steps?.[0].tools, undefined);
       assertEquals(plan.estimatedDuration, undefined);
     });
   });

@@ -135,7 +135,7 @@ Deno.test({
       plan = adapter.parse(agentResult.content);
       console.log(`✅ JSON validation passed!`);
       console.log(`   Title: ${plan.title}`);
-      console.log(`   Steps: ${plan.steps.length}`);
+      console.log(`   Steps: ${plan.steps?.length ?? 0}`);
       console.log(`   Duration: ${plan.estimatedDuration || "not specified"}`);
     } catch (error) {
       console.error("❌ JSON validation failed:");
