@@ -11,8 +11,3 @@ None currently available - changeset cannot be rejected if branch is in use by w
 Medium priority - affects changeset rejection workflow when portals are involved, but doesn't break core functionality. Users can manually resolve by removing worktrees first, but this is not user-friendly.
 
 ## Resolution (when resolved)
-
-- **Root Cause**: `git branch -D` fails when branch is checked out in worktree
-- **Fix**: Detect worktree usage and handle appropriately (force remove or better error)
-- **Commit**: [pending]
-- **Verified**: [pending]

@@ -4,6 +4,7 @@ import { FrontmatterParser } from "../parsers/markdown.ts";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { PlanStatus } from "../enums.ts";
 import { RequestCommands } from "./request_commands.ts";
+import { isTestMode } from "../config/env_schema.ts";
 
 export interface PlanMetadata {
   id: string;
@@ -122,7 +123,9 @@ export class PlanCommands extends BaseCommand {
         metadata.request_created_by = request.created_by;
       } catch (error) {
         // If request can't be loaded, continue without request info
-        console.warn(`Warning: Could not load request info for plan ${planId}:`, error);
+        if (!isTestMode()) {
+          console.warn(`Warning: Could not load request info for plan ${planId}:`, error);
+        }
       }
     }
 

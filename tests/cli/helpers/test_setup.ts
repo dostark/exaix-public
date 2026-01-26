@@ -112,6 +112,9 @@ export function getPortalCardPath(tempRoot: string, alias: string): string {
  * Delegates to `initTestDbService()` and optionally creates extra directories.
  */
 export async function createCliTestContext(options?: { createDirs?: string[] }) {
+  // Set test mode for CLI operations to suppress warnings
+  Deno.env.set("EXO_TEST_CLI_MODE", "1");
+
   const { db, tempDir, config, cleanup } = await initTestDbService();
 
   // Always create required Workspace and .exo directories for CLI tests

@@ -9,5 +9,8 @@
 ## Expected vs Observed Behavior
 
 **Expected:**
+
 - Approved plans should be visible in `exoctl plan list` (with or without status filter).
 - Created changesets should be listed by `exoctl changeset list` after plan approval and execution.
+
+**Observed:**

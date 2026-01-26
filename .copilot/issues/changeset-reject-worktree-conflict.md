@@ -1,18 +1,17 @@
 ---
 title: "Cannot reject changeset when branch is used by worktree"
-status: open
+status: resolved
 priority: medium
 created: 2026-01-23
+resolved: 2026-01-26
 labels: [bug, cli, changeset, git]
 ---
-
-# Cannot reject changeset when branch is used by worktree
 
 ## Problem
 
 When attempting to reject a changeset using `exoctl changeset reject <id> --reason "reason"`, the command fails with an error if the branch is currently checked out in a worktree (typically a portal worktree). The error message is:
 
-```
+```text
 Failed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/tmp/test-portal'
 ```
 
@@ -81,6 +80,13 @@ Medium priority - affects changeset rejection workflow when portals are involved
 ## Resolution (when resolved)
 
 - **Root Cause**: `git branch -D` fails when branch is checked out in worktree
-- **Fix**: Detect worktree usage and handle appropriately (force remove or better error)
-- **Commit**: [pending]
-- **Verified**: [pending]
+- **Fix**: Enhanced `reject()` method in `src/cli/changeset_commands.ts` to detect worktree conflicts and handle them automatically:
+  - Detects when branch is checked out in main working tree and switches to master first
+  - Finds worktrees using the branch via `git worktree list --porcelain`
+  - Removes worktrees forcefully with `git worktree remove --force` (for non-main worktrees)
+  - Provides clear error messages if automatic resolution fails
+- **Tests**: Added comprehensive tests in `tests/cli/changeset_commands_test.ts`:
+  - `should handle worktree conflicts when rejecting` - verifies worktree removal and branch deletion
+  - `should handle branch checked out in main working tree when rejecting` - verifies checkout handling
+- **Commit**: [5fdb639] fix: correct execution folder location to use Memory/Execution/
+- **Verified**: All tests pass, including new regression tests for worktree conflict handling

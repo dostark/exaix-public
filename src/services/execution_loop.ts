@@ -586,7 +586,7 @@ export class ExecutionLoop {
     }
 
     // Archive plan
-    const archiveDir = join(this.config.system.root, this.config.paths.workspace, "Archive");
+    const archiveDir = join(this.config.system.root, this.config.paths.workspace, this.config.paths.archive);
     await Deno.mkdir(archiveDir, { recursive: true });
 
     const planFileName = planPath.split("/").pop()!;

@@ -9,6 +9,7 @@ import { GitService } from "../services/git_service.ts";
 import { ChangesetStatus } from "../enums.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
+import { isTestMode } from "../config/env_schema.ts";
 
 export interface ChangesetMetadata {
   branch: string;
@@ -190,7 +191,9 @@ export class ChangesetCommands extends BaseCommand {
         metadata.request_flow = request.flow;
       } catch (error) {
         // If request can't be loaded, continue without request info
-        console.warn(`Warning: Could not load request info for changeset ${metadata.request_id}:`, error);
+        if (!isTestMode()) {
+          console.warn(`Warning: Could not load request info for changeset ${metadata.request_id}:`, error);
+        }
       }
     }
 
@@ -243,6 +246,21 @@ export class ChangesetCommands extends BaseCommand {
         throw error;
       }
       // Portals directory doesn't exist yet - continue with empty list
+    }
+
+    // Also scan configured portals (fallback for missing/broken symlinks)
+    for (const portal of this.config.portals || []) {
+      try {
+        // Check if target still exists and is a git repo
+        await Deno.stat(join(portal.target_path, ".git"));
+        // Only add if not already in the list
+        if (!portalPaths.includes(portal.target_path)) {
+          portalPaths.push(portal.target_path);
+        }
+      } catch {
+        // Skip invalid portal paths
+        continue;
+      }
     }
 
     // Also check workspace root for changesets (legacy/fallback)

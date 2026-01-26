@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-26T11:05:31.233Z",
+  "generated_at": "2026-01-26T11:19:48.793Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1015,7 +1015,9 @@
         ".copilot/chunks/plan-changeset-approval-bug.md.chunk0.txt",
         ".copilot/chunks/plan-changeset-approval-bug.md.chunk1.txt",
         ".copilot/chunks/plan-changeset-approval-bug.md.chunk2.txt",
-        ".copilot/chunks/plan-changeset-approval-bug.md.chunk3.txt"
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk3.txt",
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk4.txt",
+        ".copilot/chunks/plan-changeset-approval-bug.md.chunk5.txt"
       ]
     },
     {
@@ -1182,7 +1184,8 @@
         ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk0.txt",
         ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk1.txt",
         ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk2.txt",
-        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk3.txt"
+        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk3.txt",
+        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk4.txt"
       ]
     },
     {

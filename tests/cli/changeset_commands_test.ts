@@ -123,6 +123,50 @@ describe("ChangesetCommands", () => {
       const changesets = await changesetCommands.list();
       assertEquals(changesets[0].files_changed, 2);
     });
+
+    it("should scan config.portals for changesets", async () => {
+      // Create a separate git repo to simulate a portal
+      const portalDir = await Deno.makeTempDir({ prefix: "portal-repo-" });
+      try {
+        // Initialize git repo in portal directory
+        await runGitCommand(portalDir, ["init", "-b", "master"]);
+        await runGitCommand(portalDir, ["config", "user.email", "test@example.com"]);
+        await runGitCommand(portalDir, ["config", "user.name", "Test User"]);
+
+        // Create initial commit
+        await Deno.writeTextFile(join(portalDir, "README.md"), "# Portal Project\n");
+        await runGitCommand(portalDir, ["add", "README.md"]);
+        await runGitCommand(portalDir, ["commit", "-m", "Initial commit"]);
+
+        // Create a feature branch in the portal repo
+        await createFeatureBranch(portalDir, "request-006", "portal-456-ghi");
+
+        // Create a config with the portal defined
+        const portalConfig = {
+          ...config,
+          portals: [{
+            alias: "test-portal",
+            target_path: portalDir,
+            created: new Date().toISOString(),
+          }],
+        };
+
+        // Create changeset commands with the portal config
+        const portalChangesetCommands = new ChangesetCommands(
+          { config: portalConfig, db },
+          new GitService({ config: portalConfig, db }),
+        );
+
+        // Should find the changeset in the portal repo
+        const changesets = await portalChangesetCommands.list();
+        assertEquals(changesets.length, 1);
+        assertEquals(changesets[0].branch, "feat/request-006-portal-456-ghi");
+        assertEquals(changesets[0].request_id, "request-006");
+        assertEquals(changesets[0].trace_id, "portal-456-ghi");
+      } finally {
+        await Deno.remove(portalDir, { recursive: true });
+      }
+    });
   });
 
   describe("show", () => {

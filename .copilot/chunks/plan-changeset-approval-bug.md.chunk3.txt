@@ -1,8 +1,8 @@
-## Latest Update (2026-01-22)
 Issue was previously marked as resolved, but manual testing shows the changeset list problem persists. The plan approval works and feature branches are created, but `exoctl changeset list` still returns empty.
 
 ### Reproduction from Latest Test
-```
+
+```bash
 exoctl changeset list
 ✅ changeset.list: changesets
    count: 0
@@ -15,3 +15,9 @@ git branch
 ```
 
 The changeset listing logic needs to be investigated further.
+
+## Resolution
+
+**Fixed on 2026-01-22**
+
+Root causes identified and resolved:

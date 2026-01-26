@@ -135,10 +135,16 @@ function isTruthyValue(value: string | undefined): boolean {
 /**
  * Check if code is running in test mode
  *
- * @returns True if EXO_TEST_MODE is set to a truthy value
+ * @returns True if EXO_TEST_MODE or EXO_TEST_CLI_MODE is set to a truthy value
  */
 export function isTestMode(): boolean {
-  return isTruthyValue(safeEnvGet("EXO_TEST_MODE"));
+  // Check EXO_TEST_MODE first (general test mode)
+  if (isTruthyValue(safeEnvGet("EXO_TEST_MODE"))) {
+    return true;
+  }
+
+  // Also check EXO_TEST_CLI_MODE (CLI-specific test mode)
+  return safeEnvGet("EXO_TEST_CLI_MODE") === "1";
 }
 
 /**
