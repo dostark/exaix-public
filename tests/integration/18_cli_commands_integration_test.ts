@@ -20,6 +20,7 @@ async function runExoctl(args: string[], cwd: string) {
     cwd,
     stdout: "piped",
     stderr: "piped",
+    env: Deno.env.toObject(), // Pass through all environment variables
   });
   const { code, stdout, stderr } = await command.output();
   const stdoutStr = new TextDecoder().decode(stdout);
@@ -178,7 +179,7 @@ Deno.test("CLI: request create with missing description fails", async () => {
     const result = await runExoctl([FlowInputSource.REQUEST], env.tempDir);
     // Should fail with exit code 1 and error message
     assert(result.code === 1);
-    assertStringIncludes(result.stdout, "Description required");
+    assertStringIncludes(result.stderr, "Description required");
   } finally {
     await env.cleanup();
   }
@@ -190,15 +191,15 @@ Deno.test("CLI: plan approve/reject/revise error handling", async () => {
     // Approve non-existent plan
     let result = await runExoctl(["plan", "approve", "nonexistent"], env.tempDir);
     assert(result.code === 1);
-    assertStringIncludes(result.stdout, "plan approve");
+    assertStringIncludes(result.stderr, "plan approve");
     // Reject non-existent plan
     result = await runExoctl(["plan", "reject", "nonexistent", "-r", "bad plan"], env.tempDir);
     assert(result.code === 1);
-    assertStringIncludes(result.stdout, "plan reject");
+    assertStringIncludes(result.stderr, "plan reject");
     // Revise non-existent plan
     result = await runExoctl(["plan", "revise", "nonexistent", "-c", "needs work"], env.tempDir);
     assert(result.code === 1);
-    assertStringIncludes(result.stdout, "plan revise");
+    assertStringIncludes(result.stderr, "plan revise");
   } finally {
     await env.cleanup();
   }
@@ -210,7 +211,7 @@ Deno.test("CLI: blueprint create/list/show/remove/validate edge cases", async ()
     // Create blueprint with missing required options
     let result = await runExoctl(["blueprint", "create", "test-agent"], env.tempDir);
     assert(result.code === 1);
-    assertStringIncludes(result.stdout, "blueprint create");
+    assertStringIncludes(result.stderr, "blueprint create");
     // List blueprints (should be empty)
     result = await runExoctl(["blueprint", "list"], env.tempDir);
     assert(result.code === 0);
@@ -218,15 +219,15 @@ Deno.test("CLI: blueprint create/list/show/remove/validate edge cases", async ()
     // Show non-existent blueprint
     result = await runExoctl(["blueprint", "show", "notfound"], env.tempDir);
     assert(result.code === 1);
-    assertStringIncludes(result.stdout, "blueprint show");
+    assertStringIncludes(result.stderr, "blueprint show");
     // Remove non-existent blueprint
     result = await runExoctl(["blueprint", "remove", "notfound"], env.tempDir);
     assert(result.code === 1);
-    assertStringIncludes(result.stdout, "blueprint remove");
+    assertStringIncludes(result.stderr, "blueprint remove");
     // Validate non-existent blueprint
     result = await runExoctl(["blueprint", "validate", "notfound"], env.tempDir);
     assert(result.code === 1);
-    assertStringIncludes(result.stdout, "blueprint.invalid");
+    assertStringIncludes(result.stderr, "blueprint.invalid");
   } finally {
     await env.cleanup();
   }

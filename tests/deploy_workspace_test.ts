@@ -87,7 +87,7 @@ async function runExoctl(
     cwd: workspacePath,
     stdout: "piped",
     stderr: "piped",
-    env: env,
+    env: { ...Deno.env.toObject(), ...env }, // Merge current env with provided env
   });
 
   const res = await cmd.output();
