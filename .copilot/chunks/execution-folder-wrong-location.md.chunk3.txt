@@ -5,3 +5,5 @@
 ## Resolution
 
 **Root Cause**: Hardcoded path construction in `src/services/execution_loop.ts` using `join("Execution")` instead of `config.paths.memoryExecution`.
+
+**Fix Applied**:

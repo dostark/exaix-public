@@ -1,0 +1,19 @@
+1. **XML Structure**: Agents wrap responses in `<thought>` and `<content>` tags
+2. **Markdown Content**: The `<content>` section contains human-readable markdown
+3. **No Validation**: No automated validation of response structure
+4. **Inconsistent Schema**: Each agent defines its own output format
+
+### Successful Examples
+
+Two agents have been successfully migrated to JSON format:
+
+- **`senior-coder.md`**: Uses structured JSON plan with steps, actions, and validation
+- **`default.md`**: Uses the same JSON schema with comprehensive field validation
+
+Both agents now use the `PlanSchema` from `src/schemas/plan_schema.ts` for Zod validation.
+
+## Migration Scope
+
+### Target Files
+
+All agent blueprint files in the following locations:

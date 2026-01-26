@@ -1,0 +1,5 @@
+## Technical Implementation
+
+### JSON Schema Structure
+
+All agents will use the standardized `PlanSchema` defined in the [Agent Content Schema Reference](.copilot/source/agent-content-schema.md):

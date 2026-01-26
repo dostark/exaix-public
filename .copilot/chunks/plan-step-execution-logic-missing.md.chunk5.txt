@@ -1,5 +1,3 @@
-## Problem
-
 Approved plans are marked as "completed" but the actual step execution logic is not implemented. Plans show successful completion without actually executing any steps, leading to false positive execution results.
 
 ## Reproduction Steps

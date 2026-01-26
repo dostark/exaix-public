@@ -1,0 +1,33 @@
+<content>
+{
+  "title": "Brief plan title",
+  "description": "What this plan accomplishes",
+  "steps": [
+    {
+      "step": 1,
+      "title": "First step title",
+      "description": "What this step does",
+      "actions": [
+        {
+          "tool": "read_file",
+          "params": { "path": "file.ts" },
+          "description": "Why this action is needed"
+        }
+      ],
+      "successCriteria": ["How to verify success"],
+      "dependencies": [],
+      "rollback": "How to undo if needed"
+    }
+  ],
+  "estimatedDuration": "Time estimate",
+  "risks": ["Potential issues"]
+}
+</content>
+```
+
+## Zod Validation
+
+All JSON responses are validated against `PlanSchema` from `src/schemas/plan_schema.ts`:
+
+```typescript
+import { PlanSchema } from "../schemas/plan_schema.ts";

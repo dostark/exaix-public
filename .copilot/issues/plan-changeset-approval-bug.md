@@ -75,7 +75,7 @@ The changeset listing logic needs to be investigated further.
 
 ## Resolution
 
-**Fixed on 2026-01-22**
+### Fixed on 2026-01-22
 
 Root causes identified and resolved:
 

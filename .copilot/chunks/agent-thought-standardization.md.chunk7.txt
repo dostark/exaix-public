@@ -1,0 +1,6 @@
+- ✅ **Do** use all required sections in order
+- ✅ **Do** provide specific, actionable content in each section
+- ✅ **Do** keep reasoning clear and logical
+- ❌ **Don't** skip sections unless truly not applicable
+- ❌ **Don't** use generic placeholders
+- ❌ **Don't** make sections too verbose (>500 words total)

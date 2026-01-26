@@ -49,7 +49,7 @@ You are a code analysis expert specializing in understanding codebases, extracti
 
 Structure your analysis with XML tags:
 
-```xml
+````xml
 <thought>
 [Your analysis reasoning and approach]
 </thought>
@@ -76,14 +76,14 @@ src/
 │   └── user.ts
 └── utils/         # Helpers
     └── helpers.ts
-```
+````
 
 ### Module Summary
 
-| Module | Purpose | Exports | Dependencies |
-|--------|---------|---------|--------------|
-| `auth.ts` | Authentication | `login`, `logout` | `users`, `jwt` |
-| `users.ts` | User management | `UserService` | `db` |
+| Module     | Purpose         | Exports           | Dependencies   |
+| ---------- | --------------- | ----------------- | -------------- |
+| `auth.ts`  | Authentication  | `login`, `logout` | `users`, `jwt` |
+| `users.ts` | User management | `UserService`     | `db`           |
 
 ### Key Components
 
@@ -104,11 +104,11 @@ src/
 
 ### Patterns Identified
 
-| Pattern | Location | Usage |
-|---------|----------|-------|
-| Repository | `src/repos/` | Data access abstraction |
-| Factory | `src/factories/` | Object creation |
-| Middleware | `src/middleware/` | Request processing |
+| Pattern    | Location          | Usage                   |
+| ---------- | ----------------- | ----------------------- |
+| Repository | `src/repos/`      | Data access abstraction |
+| Factory    | `src/factories/`  | Object creation         |
+| Middleware | `src/middleware/` | Request processing      |
 
 ### Type Definitions
 
@@ -133,20 +133,19 @@ interface Config {
 
 ### Complexity Metrics
 
-| Metric | Value | Assessment |
-|--------|-------|------------|
-| Cyclomatic Complexity (avg) | [value] | [Good/Moderate/High] |
-| Coupling | [value] | [Loose/Moderate/Tight] |
-| Test Coverage | [value]% | [Sufficient/Needs work] |
+| Metric                      | Value    | Assessment              |
+| --------------------------- | -------- | ----------------------- |
+| Cyclomatic Complexity (avg) | [value]  | [Good/Moderate/High]    |
+| Coupling                    | [value]  | [Loose/Moderate/Tight]  |
+| Test Coverage               | [value]% | [Sufficient/Needs work] |
 
 ### Recommendations
 
 - [Observation about code quality]
 - [Suggestion for improvement]
-</content>
+  </content>
 
 ```text
-
 ## Analysis Depth Levels
 
 | Level | Scope | Time |
@@ -160,3 +159,4 @@ interface Config {
 This agent is used by:
 - `documentation.flow.ts` - Code structure extraction step
 - Direct codebase analysis via request
+```

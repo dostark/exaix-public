@@ -1,0 +1,28 @@
+1. Update 12 main agents in `Blueprints/Agents/`
+2. Convert markdown output formats to JSON structures
+3. Test each agent with new format
+4. Update agent documentation
+
+**Migration Pattern**:
+
+- Keep `<thought>` section unchanged
+- Replace markdown `<content>` with JSON `PlanSchema` structure
+- Reference [.copilot/source/agent-content-schema.md](.copilot/source/agent-content-schema.md) for complete schema documentation
+- Update examples and documentation
+
+### Phase 31.3: Example & Template Migration (Week 2-3)
+
+**Goal**: Complete migration of all blueprint files
+
+**Tasks**:
+
+1. Update 5 example agents
+2. Update 7 template agents
+3. Ensure template consistency
+4. Validate all blueprints
+
+### Phase 31.4: Integration Testing (Week 3)
+
+**Goal**: Verify end-to-end functionality
+
+**Tasks**:

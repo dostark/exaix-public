@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-26T11:19:48.793Z",
+  "generated_at": "2026-01-26T12:10:11.416Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -575,6 +575,30 @@
       ]
     },
     {
+      "path": ".copilot/source/agent-thought-standardization.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Agent Thought Section Standardization",
+      "short_summary": "Standardized structure for agent <thought> sections to ensure consistent reasoning patterns across all blueprints.",
+      "version": "0.1",
+      "topics": [
+        "agents",
+        "reasoning",
+        "standardization",
+        "thought-structure"
+      ],
+      "chunks": [
+        ".copilot/chunks/agent-thought-standardization.md.chunk0.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk1.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk2.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk3.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk4.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk5.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk6.txt",
+        ".copilot/chunks/agent-thought-standardization.md.chunk7.txt"
+      ]
+    },
+    {
       "path": ".copilot/source/exoframe.md",
       "agent": "copilot",
       "scope": "dev",
@@ -596,6 +620,31 @@
         ".copilot/chunks/exoframe.md.chunk5.txt",
         ".copilot/chunks/exoframe.md.chunk6.txt",
         ".copilot/chunks/exoframe.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/source/agent-content-schema.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Agent Content Schema Reference",
+      "short_summary": "Standardized JSON schema for agent <content> responses with Zod validation requirements.",
+      "version": "1.0",
+      "topics": [
+        "agents",
+        "schema",
+        "json",
+        "validation",
+        "blueprints"
+      ],
+      "chunks": [
+        ".copilot/chunks/agent-content-schema.md.chunk0.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk1.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk2.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk3.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk4.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk5.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk6.txt",
+        ".copilot/chunks/agent-content-schema.md.chunk7.txt"
       ]
     },
     {
@@ -696,6 +745,31 @@
         ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk5.txt",
         ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk6.txt",
         ".copilot/chunks/phase-23-skills-blueprint-migration.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-31-agent-blueprint-json-migration.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Agent Blueprint JSON Migration",
+      "short_summary": "Migrate all agent blueprints from XML/markdown to JSON format with Zod validation for consistent, machine-readable output.",
+      "version": "0.1",
+      "topics": [
+        "agents",
+        "blueprints",
+        "json",
+        "validation",
+        "migration"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk0.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk1.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk2.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk3.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk4.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk5.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk6.txt",
+        ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk7.txt"
       ]
     },
     {

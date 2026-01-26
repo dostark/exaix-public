@@ -1,0 +1,33 @@
+## Field Requirements
+
+### Required Fields
+
+**title** (string, 1-300 chars)
+
+- Plan summary/goal
+- Should be concise but descriptive
+- Example: "Implement User Authentication System"
+
+**description** (string, min 1 char)
+
+- What the plan accomplishes
+- Should provide context and scope
+- Example: "Add JWT-based authentication with login, registration, and session management"
+
+**steps** (array, 1-50 steps)
+
+- Ordered list of execution steps
+- Each step must have sequential step numbers (1, 2, 3...)
+
+### Step Fields
+
+**step** (integer, positive)
+
+- Step number (must be sequential: 1, 2, 3...)
+- Used for ordering and dependency references
+
+**title** (string, 1-200 chars)
+
+- Step name/summary
+- Should be actionable
+- Example: "Create User Schema", "Implement Password Hashing"

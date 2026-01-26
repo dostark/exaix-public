@@ -1,0 +1,20 @@
+**description** (string, min 1 char)
+
+- What this step does
+- Should be detailed enough for implementation
+- Example: "Create database migration for users table with email, password_hash, and timestamps"
+
+### Optional Fields
+
+**actions** (array of action objects)
+
+- **MANDATORY for daemon execution**
+- Defines specific tool invocations
+- Each action specifies tool, parameters, and optional description
+
+**tools** (array of strings)
+
+- High-level list of tools needed for this step
+- Valid values: `"read_file"`, `"write_file"`, `"run_command"`, `"list_directory"`, `"search_files"`, `"create_directory"`
+
+**successCriteria** (array of strings)
