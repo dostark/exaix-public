@@ -24,10 +24,6 @@ describe("ChangesetRegistry", () => {
     db = testDb.db;
     cleanup = testDb.cleanup;
 
-    // Run changesets migration
-    const migration = await Deno.readTextFile("./migrations/002_changesets.sql");
-    db.instance.exec(migration);
-
     logger = new EventLogger({ db });
     registry = new ChangesetRegistry(db, logger);
   });
