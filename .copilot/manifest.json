@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-25T18:56:51.131Z",
+  "generated_at": "2026-01-26T10:00:26.507Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1058,6 +1058,26 @@
       ]
     },
     {
+      "path": ".copilot/issues/plan-step-execution-logic-missing.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Plan step execution logic not implemented",
+      "short_summary": "Approved plans marked complete without executing steps, causing false positive execution results.",
+      "version": "0.1",
+      "topics": [
+        "execution",
+        "plan",
+        "logic",
+        "daemon"
+      ],
+      "chunks": [
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk0.txt",
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk1.txt",
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk2.txt",
+        ".copilot/chunks/plan-step-execution-logic-missing.md.chunk3.txt"
+      ]
+    },
+    {
       "path": ".copilot/issues/README.md",
       "title": "Issues Folder Guidelines",
       "short_summary": "",
@@ -1100,6 +1120,25 @@
         ".copilot/chunks/changeset-show-missing-request-context.md.chunk3.txt",
         ".copilot/chunks/changeset-show-missing-request-context.md.chunk4.txt",
         ".copilot/chunks/changeset-show-missing-request-context.md.chunk5.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/database-changeset-table-missing.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Database changeset table not created during migration",
+      "short_summary": "Changesets table missing from database causing execution failures with 'no such table: changesets' error.",
+      "version": "0.1",
+      "topics": [
+        "database",
+        "migration",
+        "execution",
+        "sqlite"
+      ],
+      "chunks": [
+        ".copilot/chunks/database-changeset-table-missing.md.chunk0.txt",
+        ".copilot/chunks/database-changeset-table-missing.md.chunk1.txt",
+        ".copilot/chunks/database-changeset-table-missing.md.chunk2.txt"
       ]
     },
     {
@@ -1149,6 +1188,26 @@
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk0.txt",
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk1.txt",
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk2.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/execution-folder-wrong-location.md",
+      "agent": "general",
+      "scope": "dev",
+      "title": "Execution folder placed in workspace root instead of Memory/",
+      "short_summary": "Memory bank service creates Execution folders in workspace root instead of Memory/Execution/ directory.",
+      "version": "0.1",
+      "topics": [
+        "memory-bank",
+        "execution",
+        "filesystem",
+        "path"
+      ],
+      "chunks": [
+        ".copilot/chunks/execution-folder-wrong-location.md.chunk0.txt",
+        ".copilot/chunks/execution-folder-wrong-location.md.chunk1.txt",
+        ".copilot/chunks/execution-folder-wrong-location.md.chunk2.txt",
+        ".copilot/chunks/execution-folder-wrong-location.md.chunk3.txt"
       ]
     },
     {

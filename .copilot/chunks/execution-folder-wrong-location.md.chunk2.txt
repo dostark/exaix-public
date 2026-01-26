@@ -1,0 +1,19 @@
+2. **Execution Creation**: Find where Execution folder is created
+   - Check `MemoryBankService.createExecutionRecord()`
+   - Verify path construction logic
+
+## Related Files
+
+- `src/services/memory_bank.ts` - Memory bank service implementation
+- `src/config/schema.ts` - Configuration schema with memory paths
+- `exo.config.toml` - Configuration file
+
+## Workaround
+
+Manual cleanup: Move Execution folders from workspace root to Memory/Execution/
+
+## Priority Justification
+
+Medium priority - doesn't break functionality but violates architecture and creates filesystem clutter. Affects organization and maintenance of execution data.
+
+## Examples

@@ -1,0 +1,13 @@
+## Problem
+
+Approved plans are marked as "completed" but the actual step execution logic is not implemented. Plans show successful completion without actually executing any steps, leading to false positive execution results.
+
+## Reproduction Steps
+
+```bash
+# Create and approve a plan
+cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
+cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan approve <plan-id>
+
+# Check plan status - shows completed
+cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan list

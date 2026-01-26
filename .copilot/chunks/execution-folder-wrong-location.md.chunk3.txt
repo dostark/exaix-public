@@ -1,0 +1,3 @@
+- Execution folder appears in `/home/user/ExoFrame/Execution/` instead of `Memory/Execution/`
+- Memory bank creates execution records but stores them in wrong location
+- Filesystem clutter in workspace root
