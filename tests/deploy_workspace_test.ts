@@ -80,7 +80,8 @@ async function runExoctl(
   args: string[],
   env?: Record<string, string>,
 ): Promise<{ code: number; stdout: string; stderr: string }> {
-  const exoctlPath = join(workspacePath, "src", "cli", "exoctl.ts");
+  const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..");
+  const exoctlPath = join(repoRoot, "src", "cli", "exoctl.ts");
   const cmd = new Deno.Command("deno", {
     args: ["run", "--allow-all", exoctlPath, ...args],
     cwd: workspacePath,
