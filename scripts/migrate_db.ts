@@ -55,9 +55,16 @@ async function main() {
           db.exec("BEGIN TRANSACTION");
           try {
             db.exec(upSql);
+
+            // Validate migration was applied correctly
+            const validationResult = validateMigration(file, db);
+            if (!validationResult.success) {
+              throw new Error(`Migration validation failed: ${validationResult.error}`);
+            }
+
             db.prepare("INSERT INTO schema_migrations (version) VALUES (?)").run(file);
             db.exec("COMMIT");
-            console.log(`✅ Applied ${file}`);
+            console.log(`✅ Applied and validated ${file}`);
           } catch (err) {
             db.exec("ROLLBACK");
             console.error(`❌ Failed to apply ${file}:`, err);
@@ -112,6 +119,97 @@ function extractSql(content: string, type: "up" | "down"): string {
     }
   }
   return sql;
+}
+
+interface ValidationResult {
+  success: boolean;
+  error?: string;
+}
+
+function validateMigration(migrationFile: string, db: Database): ValidationResult {
+  switch (migrationFile) {
+    case "001_init.sql": {
+      // Check that core tables exist
+      const tables = ["activity", "leases"];
+      for (const table of tables) {
+        const result = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(table);
+        if (!result) {
+          return { success: false, error: `Table '${table}' was not created` };
+        }
+      }
+      return { success: true };
+    }
+
+    case "002_changesets.sql": {
+      // Check that changesets table exists
+      const changesetTable = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='changesets'")
+        .get();
+      if (!changesetTable) {
+        return { success: false, error: "changesets table was not created" };
+      }
+
+      // Check that required indexes exist
+      const indexes = [
+        "idx_changesets_trace_id",
+        "idx_changesets_status",
+        "idx_changesets_portal",
+        "idx_changesets_created_by",
+        "idx_changesets_branch",
+      ];
+      for (const index of indexes) {
+        const indexExists = db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name=?").get(index);
+        if (!indexExists) {
+          return { success: false, error: `Index '${index}' was not created` };
+        }
+      }
+      return { success: true };
+    }
+
+    case "003_notifications.sql": {
+      // Check that notifications table exists
+      const notificationsTable = db.prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='notifications'",
+      ).get();
+      if (!notificationsTable) {
+        return { success: false, error: "notifications table was not created" };
+      }
+      return { success: true };
+    }
+
+    case "004_cost_tracking.sql": {
+      // Check that provider_costs table exists
+      const providerCostsTable = db.prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='provider_costs'",
+      )
+        .get();
+      if (!providerCostsTable) {
+        return { success: false, error: "provider_costs table was not created" };
+      }
+
+      // Check that required indexes exist
+      const costIndexes = [
+        "idx_provider_costs_provider",
+        "idx_provider_costs_timestamp",
+      ];
+      for (const index of costIndexes) {
+        const indexExists = db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name=?").get(index);
+        if (!indexExists) {
+          return { success: false, error: `Index '${index}' was not created` };
+        }
+      }
+      return { success: true };
+    }
+
+    default: {
+      // For unknown migrations, just check database is still accessible
+      try {
+        db.prepare("SELECT 1").get();
+        return { success: true };
+      } catch (err) {
+        return { success: false, error: `Database became inaccessible after migration: ${err}` };
+      }
+    }
+  }
 }
 
 if (import.meta.main) {

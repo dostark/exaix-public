@@ -29,19 +29,25 @@ See `Blueprints/Skills/` for skill definitions.
 ## Usage Guide
 
 ### Using Active Blueprints
+
 Active blueprints are ready to use:
+
 ```bash
 exoctl request "Task description" --agent senior-coder
 ```
 
 ### Using Examples
+
 Examples in `examples/` are for learning. To use one:
+
 1. Copy it to this directory: `cp examples/code-reviewer.md .`
 2. Run `exoctl blueprint validate code-reviewer` to check it.
 3. Use it: `exoctl request "Review this code" --agent code-reviewer`
 
 ### Using Templates
+
 Templates in `templates/` are for creating new agents:
+
 1. Copy a template: `cp templates/pipeline-agent.md.template my-agent.md`
 2. Edit the file to replace placeholders (e.g., `{{agent_name}}`) with your values.
 3. Add appropriate `default_skills` for the agent's role.
@@ -135,6 +141,7 @@ You MUST respond with:
 ## Validation
 
 The system will:
+
 1. Extract JSON from `<content>` tags
 2. Validate against PlanSchema (src/schemas/plan_schema.ts)
 3. Convert to markdown for storage (src/services/plan_adapter.ts)
@@ -143,6 +150,7 @@ The system will:
 ## Testing
 
 Test your blueprint with:
+
 ```bash
 exoctl request "Your test request" --agent my-agent
 ```

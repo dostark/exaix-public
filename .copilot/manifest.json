@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-26T10:00:26.507Z",
+  "generated_at": "2026-01-26T10:18:32.825Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1138,7 +1138,9 @@
       "chunks": [
         ".copilot/chunks/database-changeset-table-missing.md.chunk0.txt",
         ".copilot/chunks/database-changeset-table-missing.md.chunk1.txt",
-        ".copilot/chunks/database-changeset-table-missing.md.chunk2.txt"
+        ".copilot/chunks/database-changeset-table-missing.md.chunk2.txt",
+        ".copilot/chunks/database-changeset-table-missing.md.chunk3.txt",
+        ".copilot/chunks/database-changeset-table-missing.md.chunk4.txt"
       ]
     },
     {
@@ -1165,8 +1167,7 @@
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk1.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk2.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk3.txt",
-        ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk4.txt",
-        ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk5.txt"
+        ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk4.txt"
       ]
     },
     {

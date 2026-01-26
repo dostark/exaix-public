@@ -21,3 +21,5 @@ High priority - blocks plan execution functionality, which is core to the system
 - Database migration runs without errors but changeset table doesn't exist
 - Plan execution fails with "no such table: changesets" error
 - SQLite database file exists but missing critical tables
+
+## Resolution

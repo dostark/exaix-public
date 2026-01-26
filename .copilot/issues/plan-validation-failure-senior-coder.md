@@ -9,8 +9,6 @@ assignee:
 related_issues: []
 ---
 
-# Plan Validation Failed for Senior Coder Agent
-
 ## Problem
 
 After deploying a new workspace and submitting a request to the `senior-coder` agent via `exoctl`, the request processing fails with `plan.validation.failed`. This occurs despite the daemon starting successfully and the agent apparently completing its execution.
@@ -52,7 +50,8 @@ exoctl request "Create folder src/, create file src/utils.ts, add hello world fu
 ## Observed Behavior
 
 The daemon logs show:
-```
+
+```bash
 1/21/2026, 6:26:02 PM request.failed agent=agent:request-processor trace=c9152997 target=/.../request-c9152997.md
 1/21/2026, 6:26:02 PM plan.validation.failed agent=agent trace=c9152997 target=request-c9152997
 1/21/2026, 6:26:02 PM agent.execution_completed agent=senior-coder trace=c9152997 target=request-c9152997
@@ -66,9 +65,9 @@ The plan should be validated successfully and appear in `exoctl plan list` as `s
 
 ## Investigation Needed
 
-1.  **Check Validation Logic**: Verify if `PlanValidator` (or Zod schema) was updated to support the new `actions` field (if that's what is being generated) or if the agent is generating output that violates the existing schema.
-2.  **Inspect Agent Output**: Since it fails validation, the raw plan output might be discarded or in `Rejected/`. Need to see what the agent actually produced.
-3.  **Review `senior-coder.md`**: Ensure the examples and schema instructions match the code expectations.
+1. **Check Validation Logic**: Verify if `PlanValidator` (or Zod schema) was updated to support the new `actions` field (if that's what is being generated) or if the agent is generating output that violates the existing schema.
+2. **Inspect Agent Output**: Since it fails validation, the raw plan output might be discarded or in `Rejected/`. Need to see what the agent actually produced.
+3. **Review `senior-coder.md`**: Ensure the examples and schema instructions match the code expectations.
 
 ## Related Files
 
@@ -85,10 +84,10 @@ The `senior-coder` agent was correctly attempting to create directories but was 
 The `create_directory` tool has been officially added to the system as a first-class supported tool.
 
 Changes made:
-1.  **Added `CREATE_DIRECTORY` to `McpToolName` enum** in `src/enums.ts`.
-2.  **Implemented `createDirectory`** in `src/services/tool_registry.ts` using `Deno.mkdir` with recursive support.
-3.  **Updated `senior-coder` blueprint** to explicitly list `create_directory` as a supported tool, ensuring the agent knows it is available and valid.
-4.  **Added Regression Tests**:
+
+1. **Added `CREATE_DIRECTORY` to `McpToolName` enum** in `src/enums.ts`.
+2. **Implemented `createDirectory`** in `src/services/tool_registry.ts` using `Deno.mkdir` with recursive support.
+3. **Updated `senior-coder` blueprint** to explicitly list `create_directory` as a supported tool, ensuring the agent knows it is available and valid.
+4. **Added Regression Tests**:
     - `tests/plan_validation_repro_test.ts`: Verifies that plans containing `create_directory` now pass validation.
     - `tests/services/tool_registry_test.ts`: Verifies the runtime functionality of the `create_directory` tool.
-

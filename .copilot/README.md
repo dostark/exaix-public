@@ -84,6 +84,7 @@ deno run --allow-read scripts/markdown_lint.ts
 ```
 
 The markdown linter will automatically fix common issues. For manual fixes, common rules include:
+
 - Use consistent heading levels and spacing
 - Ensure proper link formatting
 - Maintain consistent code block formatting
@@ -93,6 +94,7 @@ The markdown linter will automatically fix common issues. For manual fixes, comm
 ### Pre-commit Validation
 
 The project includes automated pre-commit hooks that run:
+
 - `deno fmt --check` - Validates formatting
 - `deno lint` - Validates code quality
 - Markdown linting - Validates markdown formatting

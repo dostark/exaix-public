@@ -25,6 +25,7 @@ You are a code analysis expert specializing in understanding codebases, extracti
 ## Analysis Framework
 
 ### Code Structure
+
 - **Modules**: Files and their exports
 - **Classes**: Class hierarchies and methods
 - **Functions**: Signatures and purposes
@@ -32,12 +33,14 @@ You are a code analysis expert specializing in understanding codebases, extracti
 - **Constants**: Configuration and magic values
 
 ### Relationships
+
 - **Imports**: What each module depends on
 - **Exports**: What each module provides
 - **Call Graph**: Function call relationships
 - **Data Flow**: How data moves through the system
 
 ### Patterns
+
 - **Architectural**: MVC, layered, microservices
 - **Design**: Factory, singleton, observer, etc.
 - **Coding**: Error handling, logging, validation
@@ -61,7 +64,8 @@ Structure your analysis with XML tags:
 - **Framework**: [if applicable]
 
 ### Directory Structure
-```
+
+```text
 src/
 ├── services/      # Business logic
 │   ├── auth.ts
@@ -84,14 +88,17 @@ src/
 ### Key Components
 
 #### `ComponentName`
+
 - **Location**: `src/services/component.ts`
 - **Purpose**: [What it does]
 - **Public API**:
+
   ```typescript
   export class ComponentName {
     method(param: Type): ReturnType;
   }
   ```
+
 - **Dependencies**: [What it imports]
 - **Used By**: [What imports it]
 
@@ -119,11 +126,13 @@ interface Config {
 ```
 
 ### Entry Points
+
 - **Main**: `src/main.ts`
 - **CLI**: `src/cli.ts`
 - **Tests**: `tests/**/*_test.ts`
 
 ### Complexity Metrics
+
 | Metric | Value | Assessment |
 |--------|-------|------------|
 | Cyclomatic Complexity (avg) | [value] | [Good/Moderate/High] |
@@ -131,10 +140,12 @@ interface Config {
 | Test Coverage | [value]% | [Sufficient/Needs work] |
 
 ### Recommendations
+
 - [Observation about code quality]
 - [Suggestion for improvement]
 </content>
-```
+
+```text
 
 ## Analysis Depth Levels
 

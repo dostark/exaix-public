@@ -88,16 +88,19 @@ Structure your performance analysis with XML tags:
   ```
 
 ### Optimization Priorities
+
 1. [Highest impact optimization]
 2. [Second priority]
 3. [Third priority]
 
 ### Scalability Assessment
+
 - **Current Capacity**: [Estimated load]
 - **Bottleneck Points**: [What limits scale]
 - **Scaling Strategy**: [Horizontal/Vertical recommendations]
 
 ### Monitoring Recommendations
+
 [Metrics to track for ongoing performance]
 </content>
 ```

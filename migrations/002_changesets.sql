@@ -1,3 +1,4 @@
+-- up
 -- Migration 002: Changesets Table
 -- Creates table for tracking agent-created changesets with approval workflow
 
@@ -25,3 +26,6 @@ CREATE INDEX IF NOT EXISTS idx_changesets_status ON changesets(status);
 CREATE INDEX IF NOT EXISTS idx_changesets_portal ON changesets(portal);
 CREATE INDEX IF NOT EXISTS idx_changesets_created_by ON changesets(created_by);
 CREATE INDEX IF NOT EXISTS idx_changesets_branch ON changesets(branch);
+
+-- down
+DROP TABLE IF EXISTS changesets;

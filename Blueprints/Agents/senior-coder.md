@@ -85,6 +85,7 @@ The user wants to implement real-time notifications. I need to:
 ### Field Requirements
 
 **Required fields:**
+
 - `title`: Plan summary (1-300 characters)
 - `description`: What the plan accomplishes
 - `steps`: Array of step objects (1-50 steps)
@@ -93,12 +94,14 @@ The user wants to implement real-time notifications. I need to:
   - `description`: What happens in this step
 
 **Recommended for automation:**
+
 - `actions`: Array of action objects. **Mandatory for daemon execution**.
   - `tool`: The tool to invoke (must be one of: `read_file`, `write_file`, `run_command`, `list_directory`, `search_files`, `create_directory`)
   - `params`: Object containing required parameters for the tool (e.g., `path`, `content`, `command`, `args`)
   - `description`: (Optional) Brief note about this specific action
 
 **Optional but recommended:**
+
 - `tools`: High-level list of tools used in this step
 - `successCriteria`: How to verify success
 - `dependencies`: Steps that must complete first

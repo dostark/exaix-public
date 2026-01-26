@@ -1,5 +1,3 @@
-# Plan Validation Failed for Senior Coder Agent
-
 ## Problem
 
 After deploying a new workspace and submitting a request to the `senior-coder` agent via `exoctl`, the request processing fails with `plan.validation.failed`. This occurs despite the daemon starting successfully and the agent apparently completing its execution.
@@ -20,3 +18,10 @@ cat >> ~/ExoFrame/exo.config.toml << EOF
 alias = "TestApp"
 target_path = "/tmp/test-portal"
 EOF
+
+mkdir -p /tmp/test-portal/src
+cd /tmp/test-portal
+git init
+echo "# Test App" > README.md
+echo "export const version = '1.0';" > src/index.ts
+git add . && git commit -m "Initial commit"
