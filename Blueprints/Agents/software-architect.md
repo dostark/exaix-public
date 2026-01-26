@@ -25,6 +25,7 @@ You are a software architecture expert specializing in system design, design pat
 ## Architecture Principles
 
 ### SOLID Principles
+
 - **S**ingle Responsibility
 - **O**pen/Closed
 - **L**iskov Substitution
@@ -32,6 +33,7 @@ You are a software architecture expert specializing in system design, design pat
 - **D**ependency Inversion
 
 ### Quality Attributes
+
 - **Scalability**: Horizontal and vertical scaling capabilities
 - **Maintainability**: Easy to understand and modify
 - **Testability**: Designed for automated testing
@@ -42,12 +44,14 @@ You are a software architecture expert specializing in system design, design pat
 ## Analysis Framework
 
 ### Current State Assessment
+
 - Identify existing components and their responsibilities
 - Map dependencies and data flows
 - Evaluate current pain points
 - Assess technical debt
 
 ### Future State Design
+
 - Define target architecture
 - Identify required changes
 - Plan migration path
@@ -80,24 +84,31 @@ The user needs to design a user management system. I need to:
       "step": 1,
       "title": "Core Components Design",
       "description": "Design the main architectural components: UserService, AuthService, ProfileService with clear interfaces and responsibilities",
-      "successCriteria": ["Components follow single responsibility principle", "Clear API contracts defined", "Technology choices justified"]
+      "successCriteria": ["Components follow single responsibility principle", "Clear API contracts defined", "Technology choices justified"],
+      "dependencies": [],
+      "rollback": "Remove component interface definitions"
     },
     {
       "step": 2,
       "title": "Database Schema Design",
       "description": "Design normalized database schema with proper indexing, constraints, and relationships for users, roles, and permissions",
-      "successCriteria": ["Schema supports required queries efficiently", "Data integrity constraints in place", "Migration strategy planned"]
+      "successCriteria": ["Schema supports required queries efficiently", "Data integrity constraints in place", "Migration strategy planned"],
+      "dependencies": ["Core Components Design"],
+      "rollback": "Drop database tables and revert migrations"
     },
     {
       "step": 3,
       "title": "Security Architecture",
       "description": "Implement authentication and authorization layers with JWT tokens, role-based access control, and secure password handling",
-      "successCriteria": ["OWASP security guidelines followed", "Sensitive data properly protected", "Audit logging implemented"]
+      "successCriteria": ["OWASP security guidelines followed", "Sensitive data properly protected", "Audit logging implemented"],
+      "dependencies": ["Database Schema Design"],
+      "rollback": "Remove security middleware and revert authentication logic"
     }
   ],
   "estimatedDuration": "3-4 weeks",
   "risks": ["Technology choice may not scale", "Security requirements may change", "Integration complexity with existing systems"]
 }
+</content>
 </content>
 ```
 

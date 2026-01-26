@@ -17,6 +17,7 @@
 ### Optional Fields (Choose Based on Agent Type)
 
 #### For Execution Plans (steps)
+
 **steps** (array, 1-50 steps)
 
 - Ordered list of execution steps
@@ -24,4 +25,5 @@
 - Use for agents that create implementation plans
 
 #### For Code Analysis (analysis)
+
 **analysis** (object)

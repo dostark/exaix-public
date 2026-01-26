@@ -68,6 +68,7 @@ The `<content>` section must contain **valid JSON** that conforms to this exact 
 ### Optional Fields (Choose Based on Agent Type)
 
 #### For Execution Plans (steps)
+
 **steps** (array, 1-50 steps)
 
 - Ordered list of execution steps
@@ -75,6 +76,7 @@ The `<content>` section must contain **valid JSON** that conforms to this exact 
 - Use for agents that create implementation plans
 
 #### For Code Analysis (analysis)
+
 **analysis** (object)
 
 - Use for code analysis and structure examination
@@ -82,6 +84,7 @@ The `<content>` section must contain **valid JSON** that conforms to this exact 
 - Example fields: totalFiles, modules, patterns, metrics, recommendations
 
 #### For Security Analysis (security)
+
 **security** (object)
 
 - Use for security assessments and vulnerability analysis
@@ -89,6 +92,7 @@ The `<content>` section must contain **valid JSON** that conforms to this exact 
 - Example fields: findings, recommendations, compliance
 
 #### For QA/Testing (qa)
+
 **qa** (object)
 
 - Use for test planning and quality assurance reports
@@ -96,6 +100,7 @@ The `<content>` section must contain **valid JSON** that conforms to this exact 
 - Example fields: testSummary, coverage, issues
 
 #### For Performance Analysis (performance)
+
 **performance** (object)
 
 - Use for performance optimization and scalability analysis
@@ -103,6 +108,7 @@ The `<content>` section must contain **valid JSON** that conforms to this exact 
 - Example fields: findings, priorities, scalability
 
 #### Common Optional Fields
+
 **estimatedDuration** (string)
 
 - Time estimate for completion

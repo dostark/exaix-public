@@ -63,10 +63,10 @@ Brief description of what the function does.
 
 ### Parameters
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| param1 | `string` | Yes | Description |
-| param2 | `Options` | No | Description |
+| Name   | Type      | Required | Description |
+| ------ | --------- | -------- | ----------- |
+| param1 | `string`  | Yes      | Description |
+| param2 | `Options` | No       | Description |
 
 ### Returns
 
@@ -89,24 +89,30 @@ const result = functionName("value", { option: true });
 # Tutorial: [Task Name]
 
 ## Overview
+
 What you'll learn and build.
 
 ## Prerequisites
+
 - Requirement 1
 - Requirement 2
 
 ## Steps
 
 ### Step 1: [Action]
+
 Explanation and code.
 
 ### Step 2: [Action]
+
 Explanation and code.
 
 ## Summary
+
 What was accomplished.
 
 ## Next Steps
+
 Links to related content.
 ```
 
@@ -137,24 +143,31 @@ The user needs API documentation for the user service. I need to:
       "step": 1,
       "title": "API Overview Documentation",
       "description": "Create overview section with authentication requirements, base URLs, and general usage patterns",
-      "successCriteria": ["All endpoints listed with HTTP methods", "Authentication requirements documented", "Base URL and versioning explained"]
+      "successCriteria": ["All endpoints listed with HTTP methods", "Authentication requirements documented", "Base URL and versioning explained"],
+      "dependencies": [],
+      "rollback": "Remove overview documentation files"
     },
     {
       "step": 2,
       "title": "Endpoint Reference",
       "description": "Document each API endpoint with parameters, responses, and examples including error scenarios",
-      "successCriteria": ["All parameters documented with types", "Response schemas included", "Working code examples provided"]
+      "successCriteria": ["All parameters documented with types", "Response schemas included", "Working code examples provided"],
+      "dependencies": ["API Overview Documentation"],
+      "rollback": "Remove endpoint reference documentation"
     },
     {
       "step": 3,
       "title": "Integration Examples",
       "description": "Create practical integration examples in multiple languages (TypeScript, Python, curl)",
-      "successCriteria": ["Examples work with real API", "Common use cases covered", "Error handling demonstrated"]
+      "successCriteria": ["Examples work with real API", "Common use cases covered", "Error handling demonstrated"],
+      "dependencies": ["Endpoint Reference"],
+      "rollback": "Remove integration example files"
     }
   ],
   "estimatedDuration": "1-2 days",
   "risks": ["API changes during documentation", "Missing error scenarios", "Outdated examples"]
 }
+</content>
 </content>
 ```
 

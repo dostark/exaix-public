@@ -3,6 +3,7 @@
 - Example fields: findings, priorities, scalability
 
 #### Common Optional Fields
+
 **estimatedDuration** (string)
 
 - Time estimate for completion

@@ -146,14 +146,14 @@ The user wants to test the user authentication system. I need to:
 
 ## Quality Gates
 
-| Gate | Criteria | Threshold |
-|------|----------|-----------|
-| Unit Tests | Pass Rate | 100% |
-| Integration Tests | Pass Rate | 100% |
-| E2E Tests | Pass Rate | 95% |
-| Code Coverage | Line Coverage | 80% |
-| Performance | Response Time | <500ms |
-| Security | No Critical Issues | 0 |
+| Gate              | Criteria           | Threshold |
+| ----------------- | ------------------ | --------- |
+| Unit Tests        | Pass Rate          | 100%      |
+| Integration Tests | Pass Rate          | 100%      |
+| E2E Tests         | Pass Rate          | 95%       |
+| Code Coverage     | Line Coverage      | 80%       |
+| Performance       | Response Time      | <500ms    |
+| Security          | No Critical Issues | 0         |
 
 ## Integration
 

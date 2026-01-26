@@ -67,24 +67,24 @@ Each blueprint file contains:
 
 ### Core Agents
 
-| Agent | Model | Skills | Use Case |
-|-------|-------|--------|----------|
-| `default` | `ollama:codellama:13b` | `error-handling` | General-purpose coding |
-| `senior-coder` | `ollama:codellama:7b-instruct` | `typescript-patterns`, `error-handling`, `code-review` | Complex implementations |
-| `quality-judge` | `anthropic:claude-3-5-sonnet` | `code-review` | LLM-as-a-Judge evaluation |
+| Agent           | Model                          | Skills                                                 | Use Case                  |
+| --------------- | ------------------------------ | ------------------------------------------------------ | ------------------------- |
+| `default`       | `ollama:codellama:13b`         | `error-handling`                                       | General-purpose coding    |
+| `senior-coder`  | `ollama:codellama:7b-instruct` | `typescript-patterns`, `error-handling`, `code-review` | Complex implementations   |
+| `quality-judge` | `anthropic:claude-3-5-sonnet`  | `code-review`                                          | LLM-as-a-Judge evaluation |
 
 ### Specialist Agents
 
-| Agent | Skills | Use Case |
-|-------|--------|----------|
-| `security-expert` | `security-first`, `code-review` | Security vulnerability analysis |
-| `performance-engineer` | `code-review` | Performance optimization |
-| `technical-writer` | `documentation-driven` | Documentation generation |
-| `software-architect` | `exoframe-conventions`, `typescript-patterns` | Architecture design |
-| `test-engineer` | `tdd-methodology`, `error-handling` | Test implementation |
-| `product-manager` | - | Requirements analysis |
-| `code-analyst` | `code-review`, `typescript-patterns` | Code structure analysis |
-| `qa-engineer` | `tdd-methodology`, `error-handling` | Integration testing |
+| Agent                  | Skills                                        | Use Case                        |
+| ---------------------- | --------------------------------------------- | ------------------------------- |
+| `security-expert`      | `security-first`, `code-review`               | Security vulnerability analysis |
+| `performance-engineer` | `code-review`                                 | Performance optimization        |
+| `technical-writer`     | `documentation-driven`                        | Documentation generation        |
+| `software-architect`   | `exoframe-conventions`, `typescript-patterns` | Architecture design             |
+| `test-engineer`        | `tdd-methodology`, `error-handling`           | Test implementation             |
+| `product-manager`      | -                                             | Requirements analysis           |
+| `code-analyst`         | `code-review`, `typescript-patterns`          | Code structure analysis         |
+| `qa-engineer`          | `tdd-methodology`, `error-handling`           | Integration testing             |
 
 ## JSON Plan Schema Reference
 
@@ -132,6 +132,7 @@ Agent description and persona...
 ## Response Format
 
 You MUST respond with:
+
 1. <thought> - Your analysis
 2. <content> - Valid JSON matching PlanSchema
 

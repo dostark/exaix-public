@@ -3,6 +3,7 @@
 - Example fields: totalFiles, modules, patterns, metrics, recommendations
 
 #### For Security Analysis (security)
+
 **security** (object)
 
 - Use for security assessments and vulnerability analysis
@@ -10,6 +11,7 @@
 - Example fields: findings, recommendations, compliance
 
 #### For QA/Testing (qa)
+
 **qa** (object)
 
 - Use for test planning and quality assurance reports
@@ -17,4 +19,5 @@
 - Example fields: testSummary, coverage, issues
 
 #### For Performance Analysis (performance)
+
 **performance** (object)

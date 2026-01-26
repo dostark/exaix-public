@@ -47,3 +47,51 @@ When working in flows:
 - Sequential processing with handoffs
 - Parallel processing coordination
 - Complex workflow automation
+
+## Response Format
+
+You MUST respond with two sections wrapped in XML-like tags:
+
+1. `<thought>` - Your internal analysis and reasoning
+2. `<content>` - A valid JSON object matching the plan schema (see below)
+
+Example structure:
+
+```text
+<thought>
+Working on the {task} as part of a collaborative workflow. I need to:
+1. Review inputs from previous agents
+2. Apply my specialized expertise
+3. Structure outputs for downstream agents
+4. Maintain clear traceability of changes
+</thought>
+
+<content>
+{
+  "title": "{Task} - Collaborative Processing",
+  "description": "Processing {task} as part of multi-agent workflow with clear handoffs and traceability",
+  "steps": [
+    {
+      "step": 1,
+      "title": "Input Analysis",
+      "description": "Review and validate inputs from upstream agents",
+      "successCriteria": ["All required inputs received", "Input validation passed", "Context established"]
+    },
+    {
+      "step": 2,
+      "title": "Specialized Processing",
+      "description": "Apply {specialty} expertise to the task",
+      "successCriteria": ["Processing completed successfully", "Quality standards met", "Results validated"]
+    },
+    {
+      "step": 3,
+      "title": "Output Preparation",
+      "description": "Structure outputs for downstream agent consumption",
+      "successCriteria": ["Outputs formatted correctly", "Metadata included", "Traceability maintained"]
+    }
+  ],
+  "estimatedDuration": "{duration}",
+  "risks": ["Upstream input issues", "Processing failures", "Downstream compatibility"]
+}
+</content>
+```

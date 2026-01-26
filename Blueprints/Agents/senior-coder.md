@@ -46,9 +46,105 @@ The user wants to implement real-time notifications. I need to:
 
 <content>
 {
-  "title": "Plan title",
-  "description": "What this accomplishes",
-  "steps": [ ... ]
+  "title": "Real-time Notifications Implementation",
+  "description": "Complete implementation plan for real-time notifications system",
+  "steps": [
+    {
+      "step": 1,
+      "title": "Database Schema Design",
+      "description": "Design notifications table with proper indexing and relationships",
+      "tools": ["write_file"],
+      "actions": [
+        {
+          "tool": "write_file",
+          "params": {
+            "path": "migrations/001_create_notifications.sql",
+            "content": "CREATE TABLE notifications (id SERIAL PRIMARY KEY, user_id INT, message TEXT, read BOOLEAN DEFAULT false, created_at TIMESTAMP);"
+          },
+          "description": "Create database migration for notifications table"
+        }
+      ],
+      "successCriteria": ["Schema supports required queries efficiently", "Proper foreign key relationships", "Indexes on frequently queried columns"],
+      "dependencies": [],
+      "rollback": "DROP TABLE notifications;"
+    },
+    {
+      "step": 2,
+      "title": "WebSocket Infrastructure Setup",
+      "description": "Implement WebSocket server with connection management and authentication",
+      "tools": ["write_file", "run_command"],
+      "actions": [
+        {
+          "tool": "write_file",
+          "params": {
+            "path": "src/websocket/server.ts",
+            "content": "import { WebSocketServer } from 'ws';\n\nconst wss = new WebSocketServer({ port: 8080 });"
+          },
+          "description": "Create WebSocket server implementation"
+        }
+      ],
+      "successCriteria": ["WebSocket connections established", "Authentication middleware integrated", "Connection cleanup on disconnect"],
+      "dependencies": ["Database schema"],
+      "rollback": "Stop WebSocket server and close all connections"
+    },
+    {
+      "step": 3,
+      "title": "API Endpoints Creation",
+      "description": "Create REST API endpoints for notification management",
+      "tools": ["write_file"],
+      "actions": [
+        {
+          "tool": "write_file",
+          "params": {
+            "path": "src/routes/notifications.ts",
+            "content": "app.get('/notifications', getUserNotifications);\napp.post('/notifications/:id/read', markAsRead);"
+          },
+          "description": "Implement notification API endpoints"
+        }
+      ],
+      "successCriteria": ["All CRUD operations implemented", "Proper error handling", "API documentation updated"],
+      "dependencies": ["Database schema"],
+      "rollback": "Remove notification routes from router"
+    },
+    {
+      "step": 4,
+      "title": "UI Components Development",
+      "description": "Build React components for notification display and interaction",
+      "tools": ["write_file"],
+      "actions": [
+        {
+          "tool": "write_file",
+          "params": {
+            "path": "src/components/NotificationBell.tsx",
+            "content": "export const NotificationBell = () => {\n  // Notification bell component\n};"
+          },
+          "description": "Create notification UI components"
+        }
+      ],
+      "successCriteria": ["Components render correctly", "Real-time updates work", "Accessibility requirements met"],
+      "dependencies": ["WebSocket infrastructure"],
+      "rollback": "Remove notification components from UI"
+    },
+    {
+      "step": 5,
+      "title": "Comprehensive Testing",
+      "description": "Implement unit, integration, and E2E tests for the notification system",
+      "tools": ["write_file", "run_command"],
+      "actions": [
+        {
+          "tool": "run_command",
+          "params": {
+            "command": "npm test",
+            "explanation": "Run test suite to validate implementation"
+          },
+          "description": "Execute comprehensive test suite"
+        }
+      ],
+      "successCriteria": ["All tests pass", "Code coverage > 80%", "Performance benchmarks met"],
+      "dependencies": ["All implementation steps"],
+      "rollback": "No rollback needed for tests"
+    }
+  ]
 }
 </content>
 ```

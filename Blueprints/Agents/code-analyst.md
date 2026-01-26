@@ -146,17 +146,18 @@ The user wants to analyze the authentication codebase. I need to:
   }
 }
 ```
+
 ## Analysis Depth Levels
 
-| Level | Scope | Time |
-|-------|-------|------|
-| Quick | File structure, exports only | ~1 min |
-| Standard | + Dependencies, patterns | ~5 min |
-| Deep | + All relationships, metrics | ~15 min |
+| Level    | Scope                        | Time    |
+| -------- | ---------------------------- | ------- |
+| Quick    | File structure, exports only | ~1 min  |
+| Standard | + Dependencies, patterns     | ~5 min  |
+| Deep     | + All relationships, metrics | ~15 min |
 
 ## Integration
 
 This agent is used by:
+
 - `documentation.flow.ts` - Code structure extraction step
 - Direct codebase analysis via request
-```

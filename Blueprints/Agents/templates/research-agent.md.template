@@ -107,32 +107,102 @@ Source Evaluation:
 - Source 2: [reliability assessment]
 </thought>
 
-<research>
-## Findings
-
-### [Topic 1]
-[Synthesized findings with inline citations]
-
-According to the project documentation [1], the system uses...
-This is consistent with the implementation in [2], which shows...
-However, there is a discrepancy noted in [3].
-
-### [Topic 2]
-[Continue with other findings]
-
-## Gaps & Uncertainties
-- [Information that couldn't be found]
-- [Conflicting sources requiring clarification]
-
-## References
-[1] docs/Architecture.md - System Design section
-[2] src/core/engine.ts:120 - implementation comment
-[3] tests/engine_test.ts:45 - test assertion
-</research>
-
 <content>
-[Executive summary for user - the key findings and recommendations]
-[This is what the user sees as the final answer]
+{
+  "title": "Research Analysis: {topic}",
+  "description": "Systematic research and synthesis with source evaluation and citations",
+  "analysis": {
+    "totalFiles": 5,
+    "linesOfCode": 0,
+    "mainLanguage": "Research",
+    "framework": "Multi-source synthesis",
+    "directoryStructure": "research/\n├── local-sources/\n├── external-docs/\n└── citations/",
+    "modules": [
+      {
+        "name": "local-sources",
+        "purpose": "Primary research from codebase and documentation",
+        "exports": [],
+        "dependencies": []
+      },
+      {
+        "name": "external-docs",
+        "purpose": "Supporting information from external sources",
+        "exports": [],
+        "dependencies": []
+      }
+    ],
+    "patterns": [
+      {
+        "pattern": "Citation Management",
+        "location": "All findings",
+        "usage": "Every claim supported by numbered references"
+      },
+      {
+        "pattern": "Source Evaluation",
+        "location": "Research methodology",
+        "usage": "Reliability assessment before inclusion"
+      }
+    ],
+    "metrics": [
+      {
+        "metric": "Sources Evaluated",
+        "value": 8,
+        "assessment": "Comprehensive coverage with multiple source types"
+      },
+      {
+        "metric": "Citation Density",
+        "value": 12,
+        "assessment": "High citation density ensures traceability"
+      }
+    ],
+    "recommendations": [
+      "Use systematic research methodology for complex topics",
+      "Always evaluate source reliability before inclusion",
+      "Provide clear citations for all claims and findings",
+      "Document gaps and uncertainties explicitly"
+    ],
+    "research": {
+      "query_analysis": {
+        "key_concepts": ["authentication", "JWT", "session management"],
+        "scope": "depth",
+        "required_sources": ["codebase", "documentation", "tests"]
+      },
+      "source_evaluation": [
+        {
+          "source": "src/services/auth.ts",
+          "reliability": "High",
+          "assessment": "Primary implementation source"
+        },
+        {
+          "source": "docs/Security.md",
+          "reliability": "High",
+          "assessment": "Official design documentation"
+        }
+      ],
+      "findings": [
+        {
+          "topic": "Authentication Flow",
+          "content": "System uses JWT-based authentication with 24h token expiry",
+          "citations": ["src/services/auth.ts", "exo.config.toml"]
+        },
+        {
+          "topic": "Session Management",
+          "content": "Sessions stored in Redis with configurable TTL",
+          "citations": ["src/services/session.ts", "exo.config.toml"]
+        }
+      ],
+      "gaps": [
+        "Refresh token mechanism not implemented",
+        "Rate limiting on auth endpoints not documented"
+      ],
+      "references": [
+        "src/services/auth.ts - AuthService class",
+        "docs/Security.md - Authentication section",
+        "exo.config.toml - auth configuration"
+      ]
+    }
+  }
+}
 </content>
 ```
 

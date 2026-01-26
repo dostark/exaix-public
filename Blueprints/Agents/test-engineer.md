@@ -27,13 +27,13 @@ You are a test engineering expert specializing in test design, implementation, a
 ### Test Pyramid
 
 ```text
-       /\
-      /  \     E2E Tests (few)
-     /────\
-    /      \   Integration Tests (some)
-   /────────\
-  /          \ Unit Tests (many)
- /────────────\
+      /\
+     /  \     E2E Tests (few)
+    /────\
+   /      \   Integration Tests (some)
+  /────────\
+ /          \ Unit Tests (many)
+/────────────\
 ```
 
 ### FIRST Principles

@@ -5,12 +5,12 @@
 
 ### Successful Examples
 
-Two agents have been successfully migrated to JSON format:
+**All agents have been successfully migrated to JSON format**:
 
-- **`senior-coder.md`**: Uses structured JSON plan with steps, actions, and validation
-- **`default.md`**: Uses the same JSON schema with comprehensive field validation
-
-Both agents now use the `PlanSchema` from `src/schemas/plan_schema.ts` for Zod validation.
+- **24/24 agent blueprints** now use structured JSON with PlanSchema validation
+- **Specialized fields** implemented: `analysis`, `security`, `qa`, `performance`, `steps`
+- **Zod validation** ensures consistent, machine-readable output across all agents
+- **Backward compatibility** maintained during transition period
 
 ## Migration Scope
 

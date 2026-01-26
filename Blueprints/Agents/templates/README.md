@@ -169,22 +169,24 @@ default_skills: [] # Skills to apply by default (Phase 17)
 All templates now support the `default_skills` field for automatic skill injection:
 
 ```yaml
-default_skills: ["code-review", "security-first"]  # Applied to all requests
+default_skills: ["code-review", "security-first"] # Applied to all requests
 ```
 
 **Available Core Skills:**
-| Skill ID | Best For |
-|----------|----------|
-| `code-review` | Review agents, quality judges |
-| `security-first` | Security-focused agents |
-| `tdd-methodology` | Test engineers, developers |
-| `error-handling` | All coding agents |
+
+| Skill ID               | Best For                       |
+| ---------------------- | ------------------------------ |
+| `code-review`          | Review agents, quality judges  |
+| `security-first`       | Security-focused agents        |
+| `tdd-methodology`      | Test engineers, developers     |
+| `error-handling`       | All coding agents              |
 | `documentation-driven` | Technical writers, documenters |
-| `typescript-patterns` | TypeScript developers |
-| `commit-message` | Git-aware agents |
-| `exoframe-conventions` | ExoFrame-specific development |
+| `typescript-patterns`  | TypeScript developers          |
+| `commit-message`       | Git-aware agents               |
+| `exoframe-conventions` | ExoFrame-specific development  |
 
 **Skill Resolution Priority:**
+
 1. Request-level `skills` (highest priority)
 2. Trigger-matched skills (automatic)
 3. Blueprint `default_skills` (fallback)
