@@ -8,11 +8,13 @@ import { parse as parseToml } from "@std/toml";
 import { parse as parseYaml } from "@std/yaml";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
+import type { IModelProvider } from "../ai/providers.ts";
 import { GitService } from "./git_service.ts";
 import { ToolRegistry } from "./tool_registry.ts";
 import { ChangesetRegistry } from "./changeset_registry.ts";
 import { MemoryBankService } from "./memory_bank.ts";
 import { MissionReporter } from "./mission_reporter.ts";
+import { PlanExecutor } from "./plan_executor.ts";
 import { ExecutionStatus, PlanStatus } from "../enums.ts";
 
 // ============================================================================
@@ -23,6 +25,8 @@ export interface ExecutionLoopConfig {
   config: Config;
   db?: DatabaseService;
   agentId: string;
+  llmProvider?: IModelProvider;
+  changesetRegistry?: ChangesetRegistry;
 }
 
 export interface ExecutionResult {
@@ -47,6 +51,19 @@ interface PlanAction {
   tool: string;
   params: Record<string, unknown>;
   description?: string;
+}
+
+interface PlanStep {
+  number: number;
+  title: string;
+  content: string;
+}
+
+interface StructuredPlan {
+  trace_id: string;
+  request_id: string;
+  agent: string;
+  steps: PlanStep[];
 }
 
 interface TaskLease {
@@ -77,16 +94,20 @@ export class ExecutionLoop {
   private leases = new Map<string, TaskLease>();
 
   constructor(
-    { config, db, agentId, changesetRegistry }: ExecutionLoopConfig & { changesetRegistry?: ChangesetRegistry },
+    { config, db, agentId, llmProvider, changesetRegistry }: ExecutionLoopConfig & {
+      changesetRegistry?: ChangesetRegistry;
+    },
   ) {
     this.config = config;
     this.db = db;
     this.agentId = agentId;
+    this.llmProvider = llmProvider;
     this.changesetRegistry = changesetRegistry;
     this.plansDir = join(config.system.root, config.paths.workspace, "Plans");
   }
 
   private changesetRegistry?: ChangesetRegistry;
+  private llmProvider?: IModelProvider;
 
   /**
    * Core execution logic shared between processTask and executeNext
@@ -160,18 +181,26 @@ export class ExecutionLoop {
         throw new Error("Simulated execution failure");
       }
 
-      // Parse and execute plan actions
-      const actions = this.parsePlanActions(planContent);
+      // Check if this is a structured plan with steps
+      const structuredPlan = this.parseStructuredPlan(planContent, frontmatter);
 
-      if (actions.length === 0) {
-        if (requireActions) {
-          throw new Error("Plan contains no executable actions");
-        }
-        // For testing or empty plans, create a dummy file to ensure we have changes
-        const testFile = join(executionRoot, "test-execution.txt");
-        await Deno.writeTextFile(testFile, `Execution by ${this.agentId} at ${new Date().toISOString()}`);
+      if (structuredPlan) {
+        // Use PlanExecutor for structured plans
+        await this.executeStructuredPlan(structuredPlan, executionRoot, gitService);
       } else {
-        await this.executePlanActions(actions, traceId, requestId, executionRoot);
+        // Parse and execute plan actions (legacy TOML format)
+        const actions = this.parsePlanActions(planContent);
+
+        if (actions.length === 0) {
+          if (requireActions) {
+            throw new Error("Plan contains no executable actions");
+          }
+          // For testing or empty plans, create a dummy file to ensure we have changes
+          const testFile = join(executionRoot, "test-execution.txt");
+          await Deno.writeTextFile(testFile, `Execution by ${this.agentId} at ${new Date().toISOString()}`);
+        } else {
+          await this.executePlanActions(actions, traceId, requestId, executionRoot);
+        }
       }
 
       // Commit changes
@@ -326,6 +355,61 @@ export class ExecutionLoop {
   }
 
   /**
+   * Detect and parse structured plan with steps
+   * Looks for markdown headers that indicate structured execution steps
+   */
+  private parseStructuredPlan(planContent: string, frontmatter: PlanFrontmatter): StructuredPlan | null {
+    // Look for step headers like "## Step 1: Title" or "## Execution Steps"
+    const stepRegex = /^## Step (\d+): (.+)$/gm;
+    const executionStepsRegex = /^## Execution Steps$/m;
+
+    if (!executionStepsRegex.test(planContent)) {
+      return null; // Not a structured plan
+    }
+
+    const steps: PlanStep[] = [];
+    let match;
+
+    // Reset regex lastIndex
+    stepRegex.lastIndex = 0;
+
+    while ((match = stepRegex.exec(planContent)) !== null) {
+      const stepNumber = parseInt(match[1]);
+      const title = match[2];
+
+      // Extract step content until next step or end
+      const startIndex = match.index + match[0].length;
+      let endIndex = planContent.length;
+
+      // Find next step header
+      const nextMatch = stepRegex.exec(planContent);
+      if (nextMatch) {
+        endIndex = nextMatch.index;
+        stepRegex.lastIndex = nextMatch.index; // Reset for next iteration
+      }
+
+      const content = planContent.substring(startIndex, endIndex).trim();
+
+      steps.push({
+        number: stepNumber,
+        title,
+        content,
+      });
+    }
+
+    if (steps.length === 0) {
+      return null; // No steps found
+    }
+
+    return {
+      trace_id: frontmatter.trace_id,
+      request_id: frontmatter.request_id,
+      agent: frontmatter.agent_id || "unknown",
+      steps,
+    };
+  }
+
+  /**
    * Execute plan actions using ToolRegistry
    */
   private async executePlanActions(
@@ -376,6 +460,44 @@ export class ExecutionLoop {
         throw new Error(`Action ${actionIndex} (${action.tool}) failed: ${errorMessage}`);
       }
     }
+  }
+
+  /**
+   * Execute structured plan using PlanExecutor
+   */
+  private async executeStructuredPlan(
+    plan: StructuredPlan,
+    executionRoot: string,
+    _gitService: GitService,
+  ): Promise<void> {
+    if (!this.llmProvider) {
+      throw new Error("LLM provider required for structured plan execution");
+    }
+    if (!this.db) {
+      throw new Error("Database required for structured plan execution");
+    }
+
+    // Create PlanExecutor
+    const planExecutor = new PlanExecutor(
+      this.config,
+      this.llmProvider,
+      this.db,
+    );
+
+    // Create plan context
+    const context = {
+      trace_id: plan.trace_id,
+      request_id: plan.request_id,
+      agent: plan.agent,
+      frontmatter: {},
+      steps: plan.steps,
+    };
+
+    // Create a dummy plan path (not used by PlanExecutor for structured execution)
+    const dummyPlanPath = join(executionRoot, "plan.md");
+
+    // Execute the plan
+    await planExecutor.execute(dummyPlanPath, context);
   }
 
   /**

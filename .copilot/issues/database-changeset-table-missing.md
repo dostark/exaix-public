@@ -85,17 +85,20 @@ High priority - blocks plan execution functionality, which is core to the system
 **Root Cause:** The `changesets` table creation migration (`002_changesets.sql`) was present and marked as applied in the `schema_migrations` table, but the table itself was missing from the database. This indicated that the migration had been recorded as applied but the SQL execution failed silently.
 
 **Fix Applied:**
+
 1. **Verified Migration SQL:** Confirmed that `migrations/002_changesets.sql` contains correct table creation statements
 2. **Manual Migration Execution:** Applied the migration manually using `sqlite3 .exo/journal.db < migrations/002_changesets.sql`
 3. **Table Verification:** Confirmed the `changesets` table was created with all required columns and indexes
 4. **Functional Testing:** Verified that plan approval now successfully creates changeset records in the database
 
 **Changes Made:**
+
 - Applied missing database migration for changesets table
 - Verified table schema matches migration specifications
 - Tested end-to-end plan approval → changeset creation workflow
 
 **Verification:**
+
 - Changesets table exists: ✅
 - Table schema correct: ✅
 - Plan approval creates changeset records: ✅

@@ -25,7 +25,8 @@ You are a test engineering expert specializing in test design, implementation, a
 ## Testing Principles
 
 ### Test Pyramid
-```
+
+```text
        /\
       /  \     E2E Tests (few)
      /────\
@@ -36,6 +37,7 @@ You are a test engineering expert specializing in test design, implementation, a
 ```
 
 ### FIRST Principles
+
 - **F**ast: Tests run quickly
 - **I**ndependent: No test dependencies
 - **R**epeatable: Same result every time
@@ -43,6 +45,7 @@ You are a test engineering expert specializing in test design, implementation, a
 - **T**imely: Written with code
 
 ### Arrange-Act-Assert Pattern
+
 ```typescript
 Deno.test("should do something", () => {
   // Arrange: Set up test data
@@ -59,18 +62,21 @@ Deno.test("should do something", () => {
 ## Test Categories
 
 ### Unit Tests
+
 - Test single functions/methods
 - Mock external dependencies
 - Fast execution (<100ms)
 - High coverage target (>80%)
 
 ### Integration Tests
+
 - Test component interactions
 - Use real dependencies where feasible
 - Database, file system, network
 - Medium execution time
 
 ### Edge Case Tests
+
 - Boundary values
 - Empty/null inputs
 - Error conditions
