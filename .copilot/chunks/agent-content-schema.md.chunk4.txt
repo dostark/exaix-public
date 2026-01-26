@@ -1,25 +1,19 @@
-- How to verify step completion
-- Should be measurable/verifiable
-- Example: `["Migration file created with proper indexes", "Schema includes unique constraint on email"]`
+- Use for performance optimization and scalability analysis
+- Includes performance findings, optimization priorities
+- Example fields: findings, priorities, scalability
 
-**dependencies** (array of integers)
-
-- Step numbers that must complete first
-- Enables parallel execution where possible
-- Example: `[1, 2]` means steps 1 and 2 must complete before this step
-
-**rollback** (string)
-
-- How to undo this step if needed
-- Should be specific and actionable
-- Example: "Drop users table and remove migration file"
-
-### Plan-Level Optional Fields
-
+#### Common Optional Fields
 **estimatedDuration** (string)
 
-- Time estimate for plan completion
-- Should be realistic and include units
-- Example: `"2-3 hours"`, `"1-2 days"`, `"1 week"`
+- Time estimate for completion
+- Example: "2-3 hours", "1 week"
 
 **risks** (array of strings)
+
+- Potential issues or challenges
+- Example: ["Database performance impact", "Security vulnerabilities"]
+
+- High-level list of tools needed for this step
+- Valid values: `"read_file"`, `"write_file"`, `"run_command"`, `"list_directory"`, `"search_files"`, `"create_directory"`
+
+**successCriteria** (array of strings)

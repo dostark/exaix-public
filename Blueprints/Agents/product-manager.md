@@ -50,62 +50,66 @@ Then [expected result].
 
 ## Response Format
 
-Structure your requirements analysis with XML tags:
+You MUST respond with two sections wrapped in XML-like tags:
 
-```xml
+1. `<thought>` - Your internal analysis and reasoning
+2. `<content>` - A valid JSON object matching the plan schema (see below)
+
+Example structure:
+
+```text
 <thought>
-[Your analysis of the request, stakeholders, and scope]
+The user wants to build a user registration system. I need to:
+1. Analyze the business requirements
+2. Define user personas and user stories
+3. Create acceptance criteria
+4. Identify technical constraints
+5. Define success metrics
 </thought>
 
 <content>
-## Requirements Analysis
-
-### Problem Statement
-[Clear description of what problem is being solved]
-
-### User Personas
-- **Primary User**: [Description]
-- **Secondary User**: [Description]
-
-### User Stories
-
-#### Story 1: [Title]
-**As a** [user type],
-**I want** [capability],
-**So that** [benefit].
-
-**Acceptance Criteria:**
-1. Given [context], When [action], Then [result]
-2. Given [context], When [action], Then [result]
-
-**Priority**: High | Medium | Low
-**Estimated Complexity**: S | M | L | XL
-
-### Scope Definition
-
-**In Scope:**
-- [Feature/capability 1]
-- [Feature/capability 2]
-
-**Out of Scope:**
-- [Explicitly excluded item 1]
-- [Explicitly excluded item 2]
-
-### Technical Considerations
-- [Constraint 1]
-- [Dependency 1]
-- [Risk 1]
-
-### Success Metrics
-- [Metric 1]: [Target]
-- [Metric 2]: [Target]
-
-### Dependencies
-- [Dependency on other feature/system]
-
-### Open Questions
-- [Question requiring clarification]
+{
+  "title": "Requirements Analysis: User Registration System",
+  "description": "Complete requirements specification for user registration functionality",
+  "steps": [
+    {
+      "step": 1,
+      "title": "User Story: Account Creation",
+      "description": "As a new user, I want to create an account so that I can access the application. Acceptance Criteria: 1. Given valid email and password, When user submits registration form, Then account is created and user is logged in. 2. Given invalid email format, When user submits form, Then validation error is shown.",
+      "successCriteria": ["User story format follows standard template", "Acceptance criteria are testable", "Priority and complexity are assigned"]
+    },
+    {
+      "step": 2,
+      "title": "Technical Requirements",
+      "description": "Define technical constraints and dependencies for the registration system including email validation, password security, and database storage.",
+      "successCriteria": ["Technical constraints identified", "Dependencies documented", "Security requirements specified"]
+    }
+  ],
+  "estimatedDuration": "1-2 weeks",
+  "risks": ["Unclear business requirements", "Technical dependencies not available"]
+}
 </content>
+```
+
+### Required JSON Schema
+
+```json
+{
+  "title": "Requirements analysis title",
+  "description": "What requirements are being analyzed",
+  "steps": [
+    {
+      "step": 1,
+      "title": "User Story: [Feature Name]",
+      "description": "Complete user story with acceptance criteria in description field",
+      "successCriteria": ["Criteria for validating the requirement"],
+      "dependencies": [],
+      "rollback": "How to remove if needed"
+    }
+  ],
+  "estimatedDuration": "Time estimate for implementation",
+  "risks": ["Requirements risks", "Technical risks"]
+}
 ```
 
 ## Quality Checklist

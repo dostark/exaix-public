@@ -1,21 +1,25 @@
-- Potential issues or concerns
-- Should include mitigation strategies where possible
-- Example: `["Database migration conflicts", "Third-party API rate limits"]`
+- How to verify step completion
+- Should be measurable/verifiable
+- Example: `["Migration file created with proper indexes", "Schema includes unique constraint on email"]`
 
-## Action Schema
+**dependencies** (array of integers)
 
-Actions define specific tool invocations within a step:
+- Step numbers that must complete first
+- Enables parallel execution where possible
+- Example: `[1, 2]` means steps 1 and 2 must complete before this step
 
-```json
-{
-  "tool": "read_file",
-  "params": {
-    "path": "src/user.ts",
-    "startLine": 1,
-    "endLine": 50
-  },
-  "description": "Read the user model to understand current structure"
-}
-```
+**rollback** (string)
 
-### Supported Tools
+- How to undo this step if needed
+- Should be specific and actionable
+- Example: "Drop users table and remove migration file"
+
+### Plan-Level Optional Fields
+
+**estimatedDuration** (string)
+
+- Time estimate for plan completion
+- Should be realistic and include units
+- Example: `"2-3 hours"`, `"1-2 days"`, `"1 week"`
+
+**risks** (array of strings)

@@ -52,43 +52,82 @@ When reviewing code for security:
 
 ## Response Format
 
-Structure your security analysis with XML tags:
+You MUST respond with two sections wrapped in XML-like tags:
 
-```xml
+1. `<thought>` - Your internal analysis and reasoning
+2. `<content>` - A valid JSON object matching the plan schema (see below)
+
+Example structure:
+
+```text
 <thought>
-[Your security analysis reasoning]
+The user wants to audit the authentication system for security vulnerabilities. I need to:
+1. Check for SQL injection in database queries
+2. Review password hashing implementation
+3. Assess session management security
+4. Look for XSS vulnerabilities in user inputs
 </thought>
 
 <content>
-## Security Analysis Report
-
-### Executive Summary
-[Brief overview of security posture]
-
-### Critical Findings
-[Severity: CRITICAL | HIGH | MEDIUM | LOW | INFO]
-
-#### Finding 1: [Title]
-- **Severity**: CRITICAL
-- **Location**: [File:Line or component]
-- **Description**: [What's wrong]
-- **Impact**: [What could happen if exploited]
-- **Remediation**: [How to fix]
-- **Code Example**:
-  ```typescript
-  // Before (vulnerable)
-  ...
-  // After (secure)
-  ...
-  ```
-
-### Recommendations
-[Prioritized list of security improvements]
-
-### Compliance Notes
-
-[Relevant standards: OWASP, PCI-DSS, GDPR, etc.]
+{
+  "title": "Security Analysis Report",
+  "description": "Security assessment and vulnerability analysis",
+  "security": {
+    "executiveSummary": "Overall security posture is good with minor issues",
+    "findings": [
+      {
+        "title": "SQL Injection Vulnerability",
+        "severity": "HIGH",
+        "location": "src/database.ts:45",
+        "description": "User input not properly sanitized",
+        "impact": "Potential data breach",
+        "remediation": "Use parameterized queries",
+        "codeExample": "// Before: query('SELECT * FROM users WHERE id = ' + userId)\n// After: query('SELECT * FROM users WHERE id = ?', [userId])"
+      }
+    ],
+    "recommendations": [
+      "Implement input validation middleware",
+      "Add security headers",
+      "Regular security audits"
+    ],
+    "compliance": [
+      "OWASP Top 10 compliance: 8/10",
+      "GDPR considerations addressed"
+    ]
+  }
+}
 </content>
+```
+
+### Required JSON Schema
+
+```json
+{
+  "title": "Security analysis report title",
+  "description": "What security assessment was performed",
+  "security": {
+    "executiveSummary": "Overall security assessment summary",
+    "findings": [
+      {
+        "title": "Finding title",
+        "severity": "CRITICAL | HIGH | MEDIUM | LOW | INFO",
+        "location": "file.ts:line or component",
+        "description": "Detailed description of the security issue",
+        "impact": "Potential consequences if exploited",
+        "remediation": "Specific steps to fix the issue",
+        "codeExample": "Before/after code example (optional)"
+      }
+    ],
+    "recommendations": [
+      "General security improvement recommendation",
+      "Another recommendation"
+    ],
+    "compliance": [
+      "OWASP Top 10 compliance: 8/10",
+      "GDPR compliance status"
+    ]
+  }
+}
 ```
 
 ## Severity Definitions

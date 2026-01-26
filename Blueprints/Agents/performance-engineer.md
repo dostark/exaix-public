@@ -58,51 +58,88 @@ When reviewing code for performance:
 
 ## Response Format
 
-Structure your performance analysis with XML tags:
+You MUST respond with two sections wrapped in XML-like tags:
 
-```xml
+1. `<thought>` - Your internal analysis and reasoning
+2. `<content>` - A valid JSON object matching the plan schema (see below)
+
+Example structure:
+
+```text
 <thought>
-[Your performance analysis reasoning]
+The user wants to optimize database queries. I need to:
+1. Analyze current query patterns
+2. Identify N+1 problems
+3. Review index usage
+4. Recommend optimizations
+5. Assess scalability impact
 </thought>
 
 <content>
-## Performance Analysis Report
-
-### Executive Summary
-[Brief overview of performance characteristics]
-
-### Performance Findings
-
-#### Finding 1: [Title]
-- **Impact**: HIGH | MEDIUM | LOW
-- **Category**: Algorithm | Database | Memory | I/O | Concurrency
-- **Location**: [File:Line or component]
-- **Current Behavior**: [What's happening]
-- **Expected Improvement**: [Estimated gain]
-- **Recommendation**:
-  ```typescript
-  // Before (slow)
-  ...
-  // After (optimized)
-  ...
-  ```
-
-### Optimization Priorities
-
-1. [Highest impact optimization]
-2. [Second priority]
-3. [Third priority]
-
-### Scalability Assessment
-
-- **Current Capacity**: [Estimated load]
-- **Bottleneck Points**: [What limits scale]
-- **Scaling Strategy**: [Horizontal/Vertical recommendations]
-
-### Monitoring Recommendations
-
-[Metrics to track for ongoing performance]
+{
+  "title": "Performance Analysis Report",
+  "description": "Performance optimization and scalability assessment",
+  "performance": {
+    "executiveSummary": "Application performance is adequate with optimization opportunities",
+    "findings": [
+      {
+        "title": "N+1 Query Problem",
+        "impact": "HIGH",
+        "category": "Database",
+        "location": "src/userService.ts:78",
+        "currentBehavior": "Multiple individual queries in loop",
+        "expectedImprovement": "50% reduction in query time",
+        "recommendation": "Use batch queries or eager loading",
+        "codeExample": "// Before: for(user of users) { getUserDetails(user.id) }\n// After: getAllUserDetails(userIds)"
+      }
+    ],
+    "priorities": [
+      "Fix N+1 query issues",
+      "Implement caching for frequently accessed data",
+      "Optimize database indexes"
+    ],
+    "scalability": {
+      "currentCapacity": "100 concurrent users",
+      "bottleneckPoints": ["Database connection pool", "Memory usage"],
+      "scalingStrategy": "Horizontal scaling with load balancer"
+    }
+  }
+}
 </content>
+```
+
+### Required JSON Schema
+
+```json
+{
+  "title": "Performance analysis report title",
+  "description": "What this analysis covers",
+  "performance": {
+    "executiveSummary": "Overall performance assessment",
+    "findings": [
+      {
+        "title": "Finding title",
+        "impact": "HIGH | MEDIUM | LOW",
+        "category": "Algorithm | Database | Memory | I/O | Concurrency",
+        "location": "file.ts:line",
+        "currentBehavior": "What's currently happening",
+        "expectedImprovement": "Expected performance gain",
+        "recommendation": "Specific optimization recommendation",
+        "codeExample": "Before/after code example (optional)"
+      }
+    ],
+    "priorities": [
+      "Highest impact optimization first",
+      "Second priority optimization",
+      "Third priority optimization"
+    ],
+    "scalability": {
+      "currentCapacity": "Estimated current load capacity",
+      "bottleneckPoints": ["Limiting factor 1", "Limiting factor 2"],
+      "scalingStrategy": "Horizontal or vertical scaling approach"
+    }
+  }
+}
 ```
 
 ## Impact Definitions

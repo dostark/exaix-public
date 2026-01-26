@@ -4,30 +4,24 @@
 
 **title** (string, 1-300 chars)
 
-- Plan summary/goal
+- Plan summary/goal or report title
 - Should be concise but descriptive
-- Example: "Implement User Authentication System"
+- Example: "Implement User Authentication System" or "Security Analysis Report"
 
 **description** (string, min 1 char)
 
-- What the plan accomplishes
+- What the plan/report accomplishes
 - Should provide context and scope
 - Example: "Add JWT-based authentication with login, registration, and session management"
 
+### Optional Fields (Choose Based on Agent Type)
+
+#### For Execution Plans (steps)
 **steps** (array, 1-50 steps)
 
 - Ordered list of execution steps
 - Each step must have sequential step numbers (1, 2, 3...)
+- Use for agents that create implementation plans
 
-### Step Fields
-
-**step** (integer, positive)
-
-- Step number (must be sequential: 1, 2, 3...)
-- Used for ordering and dependency references
-
-**title** (string, 1-200 chars)
-
-- Step name/summary
-- Should be actionable
-- Example: "Create User Schema", "Implement Password Hashing"
+#### For Code Analysis (analysis)
+**analysis** (object)
