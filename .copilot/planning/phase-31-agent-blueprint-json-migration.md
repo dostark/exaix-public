@@ -1,7 +1,7 @@
 ---
 phase: 31
 title: "Agent Blueprint JSON Migration"
-status: planning
+status: "phase-31.2-complete"
 created: "2026-01-26T00:00:00Z"
 updated: "2026-01-26T00:00:00Z"
 author: "system"
@@ -325,10 +325,10 @@ For non-critical issues:
 
 ### Week 2: Core Migration
 
-- [ ] Migrate 12 main agents
-- [ ] Test each agent individually
-- [ ] Update documentation
-- [ ] Validate JSON output
+- [x] Migrate 12 main agents
+- [x] Test each agent individually
+- [x] Update documentation
+- [x] Validate JSON output
 
 ### Week 3: Completion and Testing
 
