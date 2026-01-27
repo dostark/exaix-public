@@ -1,0 +1,12 @@
+- `src/cli/plan.ts` - Plan CLI commands including reject
+- `src/cli/changeset.ts` - Changeset CLI commands including reject
+- `src/services/plan_service.ts` - Plan business logic
+- `src/services/changeset_service.ts` - Changeset business logic
+
+## Workaround
+
+None currently known. Plan remains in limbo state.
+
+## Priority Justification
+
+High priority - breaks the ability to clean up completed plans, potentially leading to accumulation of stale plan records and confusing UI state.

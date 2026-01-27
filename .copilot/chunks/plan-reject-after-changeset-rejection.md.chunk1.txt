@@ -1,0 +1,19 @@
+- Changeset rejection succeeds and changeset disappears from list
+- Plan remains in `exoctl plan list` with status: completed
+- Plan rejection command fails with "Plan not found: request-08a998d4_plan"
+- Error persists even after multiple attempts
+
+## Expected Behavior
+
+- Plan should be rejectable even after its changeset has been rejected
+- Or plan should be automatically handled/removed when changeset is rejected
+- Rejection should succeed and plan should be removed from list
+
+## Environment
+
+- ExoFrame Version: 1.0.0
+- OS: Linux
+- Deno Version: (unknown)
+- Relevant Config: Default exo.config.toml
+
+## Investigation Needed

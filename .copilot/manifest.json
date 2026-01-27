@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-26T16:16:51.244Z",
+  "generated_at": "2026-01-27T09:58:22.312Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1270,6 +1270,18 @@
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk0.txt",
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk1.txt",
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk2.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/plan-reject-after-changeset-rejection.md",
+      "title": "Cannot reject plan after changeset rejection",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/plan-reject-after-changeset-rejection.md.chunk0.txt",
+        ".copilot/chunks/plan-reject-after-changeset-rejection.md.chunk1.txt",
+        ".copilot/chunks/plan-reject-after-changeset-rejection.md.chunk2.txt",
+        ".copilot/chunks/plan-reject-after-changeset-rejection.md.chunk3.txt",
+        ".copilot/chunks/plan-reject-after-changeset-rejection.md.chunk4.txt"
       ]
     },
     {

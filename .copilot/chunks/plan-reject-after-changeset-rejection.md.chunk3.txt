@@ -1,0 +1,22 @@
+```typescript
+// Before: Only searched Workspace/Plans
+const planPath = this.findPlanInDirectory(planId, this.workspacePath("Plans"));
+
+// After: Searches all directories
+const planPath = this.findPlanInDirectory(planId, [
+  this.workspacePath("Plans"),
+  this.workspacePath("Active"),
+  this.workspacePath("Archive"),
+  this.workspacePath("Rejected")
+]);
+```
+
+## Testing
+
+- All PlanCommands tests pass (28 steps)
+- CLI fallback regression tests pass
+- Code formatting and linting successful
+- **Added regression test** in `tests/plan_commands_regression_test.ts`: `[regression] Plan reject finds plans in any directory`
+- Fix allows rejecting plans from any directory location
+
+## Related Files

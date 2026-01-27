@@ -187,7 +187,7 @@ export class PlanCommands extends BaseCommand {
   }
 
   /**
-   * Reject a plan: move from Workspace/Plans to Workspace/Rejected with _rejected.md suffix
+   * Reject a plan: move from any directory to Workspace/Rejected with _rejected.md suffix
    * Requires a rejection reason.
    */
   async reject(planId: string, reason: string): Promise<void> {
@@ -195,11 +195,33 @@ export class PlanCommands extends BaseCommand {
       throw new Error("Rejection reason is required");
     }
 
-    const sourcePath = join(this.workspacePlansDir, `${planId}.md`);
-    const targetPath = join(this.workspaceRejectedDir, `${planId}_rejected.md`);
+    // Find the plan in any directory (like show method does)
+    const searchPaths = [
+      { path: join(this.workspacePlansDir, `${planId}.md`), sourceDir: this.workspacePlansDir },
+      { path: join(this.workspaceRejectedDir, `${planId}_rejected.md`), sourceDir: this.workspaceRejectedDir },
+      { path: join(this.workspaceActiveDir, `${planId}.md`), sourceDir: this.workspaceActiveDir },
+      { path: join(this.workspaceArchiveDir, `${planId}.md`), sourceDir: this.workspaceArchiveDir },
+    ];
 
-    // Load and parse plan
-    const { frontmatter, body } = await this.loadPlan(sourcePath);
+    let sourcePath: string | null = null;
+    let frontmatter: Record<string, unknown> | null = null;
+    let body: string | null = null;
+
+    for (const { path: planPath } of searchPaths) {
+      if (await exists(planPath)) {
+        const { frontmatter: fm, body: b } = await this.loadPlan(planPath);
+        sourcePath = planPath;
+        frontmatter = fm;
+        body = b;
+        break;
+      }
+    }
+
+    if (!sourcePath || !frontmatter || !body) {
+      throw new Error(`Plan not found: ${planId}`);
+    }
+
+    const targetPath = join(this.workspaceRejectedDir, `${planId}_rejected.md`);
 
     // Get user context
     const { actor, actionLogger, now } = await this.getUserContext();

@@ -283,6 +283,73 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
 });
 
 // ============================================================================
+// Regression Test for Plan Rejection Directory Scanning
+// ============================================================================
+
+/**
+ * Regression test for: "Plan not found" error when rejecting plans after changeset rejection
+ * Root cause: reject() method only searched Workspace/Plans directory, but plans could be in other directories after changeset operations
+ * Fix: Updated reject() to search all directories like show() and list() methods
+ */
+Deno.test("[regression] Plan reject finds plans in any directory", async () => {
+  const tempDir = await Deno.makeTempDir({ prefix: "exo_plan_reject_regression_" });
+
+  try {
+    const { activeDir, rejectedDir } = await createTestWorkspace(tempDir);
+
+    // Create plans in Active and Rejected directories (simulating post-changeset state)
+    const activePlanId = "active_plan_123";
+    const rejectedPlanId = "rejected_plan_456";
+
+    await createPlanFile(activeDir, `${activePlanId}.md`, STATUS_APPROVED, crypto.randomUUID());
+    await createPlanFile(rejectedDir, `${rejectedPlanId}_rejected.md`, STATUS_REJECTED, crypto.randomUUID());
+
+    // Import PlanCommands
+    const { PlanCommands } = await import("../src/cli/plan_commands.ts");
+
+    // Create minimal config
+    const config = {
+      system: { root: tempDir },
+      paths: {
+        workspace: "Workspace",
+        plans: "Plans",
+        active: "Active",
+        rejected: "Rejected",
+        archive: "Archive",
+        requests: "Requests",
+      },
+    } as any;
+
+    // Create stub db with required methods
+    const stubDb = {
+      logActivity: () => {},
+      waitForFlush: async () => {},
+    };
+
+    const planCommands = new PlanCommands({ config, db: stubDb as any });
+
+    // Before the fix: reject() would only search Workspace/Plans directory
+    // After the fix: reject() searches all directories like show() and list()
+
+    // Test rejecting a plan from Active directory - should succeed (not throw "Plan not found")
+    await planCommands.reject(activePlanId, "Test rejection reason");
+
+    // Verify the plan was moved to Rejected directory with _rejected suffix
+    const rejectedPath = join(rejectedDir, `${activePlanId}_rejected.md`);
+    const planExists = await Deno.stat(rejectedPath).then(() => true).catch(() => false);
+    assertEquals(planExists, true, "Plan should be moved to Rejected directory with _rejected suffix after rejection");
+
+    // Test rejecting a plan from Rejected directory - should also succeed (not throw "Plan not found")
+    await planCommands.reject(rejectedPlanId, "Another rejection reason");
+
+    // The main point is that both rejections succeeded without "Plan not found" error
+    // This proves the fix works - reject() can now find plans in any directory
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+// ============================================================================
 // Regression Test for Plan Request Context
 // ============================================================================
 
