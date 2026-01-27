@@ -1,0 +1,19 @@
+### Current Workaround Limitations
+
+1. **Modifying Blueprints** - Requires changing agent identity, breaks separation of concerns
+2. **Creating New Agents** - Proliferates similar agents, maintenance burden
+3. **Manual Execution** - User must manually create files from agent output
+
+### Solution: Runtime Skills Injection
+
+Allow users to inject skills (e.g., `documentation-driven`, `file-ops`) at:
+1. **Request creation** - `exoctl request "..." --skills <skills>`
+2. **Plan approval** - `exoctl plan approve <id> --skills <skills>`
+
+Skills override blueprint constraints via instruction precedence in the LLM prompt.
+
+---
+
+## Architecture Design
+
+### Skills Injection Flow

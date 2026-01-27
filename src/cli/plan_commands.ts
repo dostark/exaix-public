@@ -136,7 +136,7 @@ export class PlanCommands extends BaseCommand {
    * Approve a plan: move from Workspace/Plans to Workspace/Active
    * Only plans with status='review' can be approved.
    */
-  async approve(planId: string): Promise<void> {
+  async approve(planId: string, skills?: string[]): Promise<void> {
     const sourcePath = join(this.workspacePlansDir, `${planId}.md`);
     const targetPath = join(this.workspaceActiveDir, `${planId}.md`);
 
@@ -163,12 +163,17 @@ export class PlanCommands extends BaseCommand {
     const { actor, actionLogger, now } = await this.getUserContext();
 
     // Update frontmatter
-    const updatedFrontmatter = {
+    const updatedFrontmatter: Record<string, unknown> = {
       ...frontmatter,
       status: PlanStatus.APPROVED,
       approved_by: actor,
       approved_at: now,
     };
+
+    // Add skills if provided
+    if (skills && skills.length > 0) {
+      updatedFrontmatter.skills = JSON.stringify(skills);
+    }
 
     // Write updated plan to target
     await ensureDir(this.workspaceActiveDir);

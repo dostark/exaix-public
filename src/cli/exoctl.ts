@@ -310,6 +310,7 @@ export const __test_command = new Command()
       .option("--portal <portal:string>", "Portal alias for context")
       .option("-m, --model <model:string>", "Named model configuration")
       .option("--flow <flow:string>", "Target multi-agent flow (mutually exclusive with --agent)")
+      .option("--skills <skills:string>", "Comma-separated list of skills to inject")
       .option("-f, --file <file:string>", "Read description from file")
       .option("--dry-run", "Show what would be created without writing")
       .option("--json", "Output in JSON format")
@@ -323,6 +324,7 @@ export const __test_command = new Command()
               portal: options.portal,
               model: options.model,
               flow: options.flow,
+              skills: options.skills ? options.skills.split(",").map((s) => s.trim()) : undefined,
             });
             printRequestResult(result, !!options.json, !!options.dryRun);
             return;
@@ -343,6 +345,7 @@ export const __test_command = new Command()
             portal: options.portal,
             model: options.model,
             flow: options.flow,
+            skills: options.skills ? options.skills.split(",").map((s) => s.trim()) : undefined,
           });
 
           if (options.dryRun) {
@@ -521,10 +524,14 @@ export const __test_command = new Command()
         "approve <id>",
         new Command()
           .description("Approve a plan and move it to Workspace/Active")
-          .action(async (_options, ...args: string[]) => {
+          .option("--skills <skills:string>", "Comma-separated list of skills to inject during execution")
+          .action(async (options, ...args: string[]) => {
             const id = args[0] as unknown as string;
             try {
-              await planCommands.approve(id);
+              await planCommands.approve(
+                id,
+                options.skills ? options.skills.split(",").map((s) => s.trim()) : undefined,
+              );
             } catch (error) {
               display.error("cli.error", "plan approve", {
                 message: error instanceof Error ? error.message : "Unknown error",

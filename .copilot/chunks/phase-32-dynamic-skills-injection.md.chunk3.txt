@@ -1,0 +1,12 @@
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Request Creation (CLI)                            │
+├─────────────────────────────────────────────────────────────────────┤
+│  exoctl request "Audit and write report" --skills documentation-driven
+│                           ↓
+│  RequestCommands.create(description, { skills: ["documentation-driven"] })
+│                           ↓
+│  Frontmatter: skills: '["documentation-driven"]'  (JSON string)
+│                           ↓
+│  File: Workspace/Requests/request-{trace-id}.md
+└─────────────────────────────────────────────────────────────────────┘

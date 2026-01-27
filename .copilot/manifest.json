@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-27T16:01:03.565Z",
+  "generated_at": "2026-01-27T17:34:45.158Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -721,6 +721,32 @@
         ".copilot/chunks/phase-29-journal-command.md.chunk5.txt",
         ".copilot/chunks/phase-29-journal-command.md.chunk6.txt",
         ".copilot/chunks/phase-29-journal-command.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-32-dynamic-skills-injection.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 32: Dynamic Skills Injection for Requests and Plans",
+      "short_summary": "Implement `--skills` option for `exoctl request` and `exoctl plan approve` commands to enable runtime skill injection, overriding agent limitations on a per-task basis.",
+      "version": "1.0",
+      "topics": [
+        "skills",
+        "request",
+        "plan",
+        "cli",
+        "agent-runner",
+        "plan-executor"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-32-dynamic-skills-injection.md.chunk0.txt",
+        ".copilot/chunks/phase-32-dynamic-skills-injection.md.chunk1.txt",
+        ".copilot/chunks/phase-32-dynamic-skills-injection.md.chunk2.txt",
+        ".copilot/chunks/phase-32-dynamic-skills-injection.md.chunk3.txt",
+        ".copilot/chunks/phase-32-dynamic-skills-injection.md.chunk4.txt",
+        ".copilot/chunks/phase-32-dynamic-skills-injection.md.chunk5.txt",
+        ".copilot/chunks/phase-32-dynamic-skills-injection.md.chunk6.txt",
+        ".copilot/chunks/phase-32-dynamic-skills-injection.md.chunk7.txt"
       ]
     },
     {

@@ -46,6 +46,7 @@
 ### Skills Management
 
 - [MT-19: Skills Management](#scenario-mt-19-skills-management) - Skills service and TUI integration
+- [MT-31: Dynamic Skills Injection](#scenario-mt-31-dynamic-skills-injection-for-requests-and-plans) - Runtime skills injection for requests and plans
 
 ### Security & Permissions
 
@@ -2668,6 +2669,170 @@ rm -f ~/ExoFrame/.agent/workflows/complex-skill.md
 - [ ] Skill validation works
 - [ ] Dependency checking functional
 - [ ] Skills operations logged
+
+---
+
+## Scenario MT-31: Dynamic Skills Injection for Requests and Plans
+
+**Purpose:** Verify `--skills` flag functionality for both request creation and plan approval, enabling runtime skill injection to override agent limitations.
+
+### Preconditions
+
+- ExoFrame workspace deployed
+- Daemon running
+- At least one agent blueprint exists (e.g., `security-expert`)
+- Skills available in `Memory/Skills/core/` (e.g., `documentation-driven`, `file-ops`)
+
+### Steps
+
+```bash
+# Part A: Request-Level Skills Injection
+
+# Step 1: Create request with skills to override agent limitations
+exoctl request "Perform security audit and write report to audit.md" \
+  --agent security-expert \
+  --skills documentation-driven,file-ops
+
+# Step 2: Verify request frontmatter contains skills
+REQUEST_FILE=$(ls -t ~/ExoFrame/Workspace/Requests/request-*.md | head -1)
+cat "$REQUEST_FILE" | head -20
+
+# Step 3: Check skills are stored as JSON string in frontmatter
+grep "skills:" "$REQUEST_FILE"
+
+# Step 4: List requests to verify skills field populated
+exoctl request list
+
+# Part B: Plan-Level Skills Injection
+
+# Step 5: Create a basic request (without skills)
+exoctl request "Refactor authentication module" --agent code-architect
+
+# Step 6: Wait for plan generation (or generate manually)
+sleep 10
+
+# Step 7: List plans to get plan ID
+exoctl plan list
+
+# Step 8: Approve plan with skills injection
+PLAN_ID=$(exoctl plan list --status review | grep -oP 'plan-[a-f0-9-]+' | head -1)
+exoctl plan approve "$PLAN_ID" --skills testing-best-practices,documentation-driven
+
+# Step 9: Verify plan frontmatter in Workspace/Active contains skills
+cat ~/ExoFrame/Workspace/Active/"$PLAN_ID".md | head -30
+
+# Step 10: Check skills are stored in approved plan
+grep "skills:" ~/ExoFrame/Workspace/Active/"$PLAN_ID".md
+
+# Part C: Skills Validation
+
+# Step 11: Create request with single skill
+exoctl request "Add unit tests" --skills tdd-methodology
+
+# Step 12: Verify single skill stored correctly
+REQUEST_FILE=$(ls -t ~/ExoFrame/Workspace/Requests/request-*.md | head -1)
+grep "skills:" "$REQUEST_FILE"
+
+# Step 13: Create request without skills (backward compatibility)
+exoctl request "Fix bug in utils.ts"
+
+# Step 14: Verify no skills field when not provided
+REQUEST_FILE=$(ls -t ~/ExoFrame/Workspace/Requests/request-*.md | head -1)
+grep "skills:" "$REQUEST_FILE" || echo "No skills field (expected)"
+```
+
+### Expected Results
+
+**Part A (Request-Level Skills):**
+
+- Request created with skills in frontmatter
+- Skills stored as JSON string: `skills: '["documentation-driven","file-ops"]'`
+- Request list shows skills field populated
+- Skills correctly parsed by YAML parser
+
+**Part B (Plan-Level Skills):**
+
+- Plan approved successfully
+- Plan moved to `Workspace/Active`
+- Plan frontmatter contains skills: `skills: '["testing-best-practices","documentation-driven"]'`
+- Skills persisted through approval workflow
+
+**Part C (Validation):**
+
+- Single skill stored as array: `skills: '["tdd-methodology"]'`
+- Requests without `--skills` have no skills field
+- Backward compatibility maintained
+
+### Verification
+
+```bash
+# Verify request frontmatter structure
+REQUEST_FILE=$(ls -t ~/ExoFrame/Workspace/Requests/request-*.md | head -1)
+echo "=== Request Frontmatter ==="
+cat "$REQUEST_FILE" | sed -n '/^---$/,/^---$/p'
+
+# Verify plan frontmatter structure
+PLAN_FILE=$(ls -t ~/ExoFrame/Workspace/Active/plan-*.md | head -1)
+if [ -f "$PLAN_FILE" ]; then
+  echo "=== Plan Frontmatter ==="
+  cat "$PLAN_FILE" | sed -n '/^---$/,/^---$/p'
+fi
+
+# Check activity journal for skill-related events
+exoctl journal --filter "request.created" --tail 5
+
+# Verify TypeScript compilation (no type errors)
+cd ~/ExoFrame
+deno check src/cli/exoctl.ts
+```
+
+### Cleanup
+
+```bash
+# Remove test requests
+rm -f ~/ExoFrame/Workspace/Requests/request-*.md
+
+# Remove test plans
+rm -f ~/ExoFrame/Workspace/Active/plan-*.md
+rm -f ~/ExoFrame/Workspace/Plans/plan-*.md
+```
+
+### Pass Criteria
+
+- [ ] `exoctl request --skills` creates request with skills in frontmatter
+- [ ] Skills stored as JSON string in YAML frontmatter
+- [ ] YAML parser correctly deserializes skills to array
+- [ ] `exoctl plan approve --skills` stores skills in plan frontmatter
+- [ ] Skills persisted through plan approval workflow
+- [ ] Single skill stored as array (not string)
+- [ ] Requests without `--skills` have no skills field (backward compatible)
+- [ ] No TypeScript compilation errors
+- [ ] Activity journal logs skill-related events
+- [ ] Skills correctly injected into agent/plan execution context
+
+### Integration Testing
+
+**End-to-End Workflow:**
+
+```bash
+# 1. Create request with skills
+exoctl request "Security audit with report" \
+  --agent security-expert \
+  --skills documentation-driven
+
+# 2. Wait for plan generation
+sleep 10
+
+# 3. Approve plan with additional skills
+PLAN_ID=$(exoctl plan list --status review | grep -oP 'plan-[a-f0-9-]+' | head -1)
+exoctl plan approve "$PLAN_ID" --skills file-ops,security-first
+
+# 4. Verify execution uses both request and plan skills
+# (Check execution logs for skill context injection)
+tail -50 ~/ExoFrame/.exo/daemon.log | grep -i "skill"
+```
+
+**Expected:** Skills from both request and plan approval are available during execution.
 
 ---
 

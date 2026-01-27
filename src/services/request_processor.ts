@@ -67,6 +67,7 @@ interface RequestFrontmatter {
   created_by: string;
   portal?: string;
   model?: string;
+  skills?: string; // Stored as JSON string in frontmatter
 }
 
 /**

@@ -601,20 +601,24 @@ exoctl request "Test" --dry-run
 
 # JSON output (for scripting)
 exoctl request "Test" --json
+
+# Inject skills to override agent limitations
+exoctl request "Audit and write report" --agent security-expert --skills documentation-driven
 ```
 
 **Options:**
 
-| Option          | Short | Description                                                                 |
-| --------------- | ----- | --------------------------------------------------------------------------- |
-| `--agent`       | `-a`  | Target agent blueprint (default: `default`, mutually exclusive with --flow) |
-| `--flow`        |       | Target multi-agent flow (mutually exclusive with --agent)                   |
-| `--priority`    | `-p`  | Priority: `low`, `normal`, `high`, `critical`                               |
-| `--portal`      |       | Portal alias for project context                                            |
-| `--file`        | `-f`  | Read description from file                                                  |
-| `--interactive` | `-i`  | Interactive mode with prompts                                               |
-| `--dry-run`     |       | Preview without creating                                                    |
-| `--json`        |       | Machine-readable output                                                     |
+| Option          | Short | Description                                                                      |
+| --------------- | ----- | -------------------------------------------------------------------------------- |
+| `--agent`       | `-a`  | Target agent blueprint (default: `default`, mutually exclusive with --flow)      |
+| `--flow`        |       | Target multi-agent flow (mutually exclusive with --agent)                        |
+| `--priority`    | `-p`  | Priority: `low`, `normal`, `high`, `critical`                                    |
+| `--portal`      |       | Portal alias for project context                                                 |
+| `--skills`      |       | Comma-separated list of skills to inject (e.g., `documentation-driven,file-ops`) |
+| `--file`        | `-f`  | Read description from file                                                       |
+| `--interactive` | `-i`  | Interactive mode with prompts                                                    |
+| `--dry-run`     |       | Preview without creating                                                         |
+| `--json`        |       | Machine-readable output                                                          |
 
 **Example workflow:**
 
@@ -673,6 +677,9 @@ exoctl plan show <plan-id>
 
 # Approve a plan (moves to Workspace/Active for detection and parsing)
 exoctl plan approve <plan-id>
+
+# Approve with skills injection for execution
+exoctl plan approve <plan-id> --skills file-ops,testing-best-practices
 
 # Reject a plan with reason
 exoctl plan reject <plan-id> --reason "Approach too risky"

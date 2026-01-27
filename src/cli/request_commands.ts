@@ -24,6 +24,7 @@ export interface RequestOptions {
   portal?: string;
   model?: string;
   flow?: string;
+  skills?: string[];
 }
 
 /**
@@ -44,6 +45,7 @@ export interface RequestMetadata {
   portal?: string;
   model?: string;
   flow?: string;
+  skills?: string[];
   created: string;
   created_by: string;
   source: RequestSource;
@@ -62,6 +64,7 @@ export interface RequestEntry {
   portal?: string;
   model?: string;
   flow?: string;
+  skills?: string[];
   created: string;
   created_by: string;
   source: string;
@@ -179,6 +182,10 @@ export class RequestCommands extends BaseCommand {
       frontmatterFields.flow = options.flow;
     }
 
+    if (options.skills && options.skills.length > 0) {
+      frontmatterFields.skills = JSON.stringify(options.skills);
+    }
+
     // Build file content with YAML frontmatter
     const frontmatter = this.serializeFrontmatter(frontmatterFields);
     const content = `${frontmatter}\n\n# Request\n\n${trimmedDescription}\n`;
@@ -215,6 +222,7 @@ export class RequestCommands extends BaseCommand {
       portal,
       model: options.model,
       flow: options.flow,
+      skills: options.skills,
       created,
       created_by,
       source,
@@ -287,6 +295,7 @@ export class RequestCommands extends BaseCommand {
         portal: frontmatter.portal,
         model: frontmatter.model,
         flow: frontmatter.flow,
+        skills: frontmatter.skills ? JSON.parse(frontmatter.skills) : undefined,
         created: frontmatter.created || "",
         created_by: frontmatter.created_by || "unknown",
         source: frontmatter.source || "unknown",
@@ -374,6 +383,7 @@ export class RequestCommands extends BaseCommand {
         portal: matchingFrontmatter.portal,
         model: matchingFrontmatter.model,
         flow: matchingFrontmatter.flow,
+        skills: matchingFrontmatter.skills ? JSON.parse(matchingFrontmatter.skills) : undefined,
         created: matchingFrontmatter.created || "",
         created_by: matchingFrontmatter.created_by || "unknown",
         source: matchingFrontmatter.source || "unknown",

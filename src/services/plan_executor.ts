@@ -240,6 +240,28 @@ export class PlanExecutor {
   }
 
   /**
+   * Build skills context from plan frontmatter
+   */
+  private buildSkillsContext(frontmatter: Record<string, unknown>): string {
+    const skillsJson = frontmatter.skills as string | undefined;
+    if (!skillsJson) return "";
+
+    try {
+      const skills = JSON.parse(skillsJson) as string[];
+      if (!skills || skills.length === 0) return "";
+
+      return `INJECTED SKILLS:
+The following skills have been explicitly requested for this execution:
+${skills.map((s) => `- ${s}`).join("\n")}
+You should apply the principles and constraints from these skills during execution.
+
+`;
+    } catch {
+      return "";
+    }
+  }
+
+  /**
    * Construct prompt for step execution
    */
   private constructStepPrompt(step: PlanStep, context: PlanContext): string {
@@ -257,6 +279,7 @@ CURRENT TASK:
 Step ${step.number}: ${step.title}
 ${step.content}
 
+${this.buildSkillsContext(context.frontmatter)}
 INSTRUCTIONS:
 1. Analyze the current task.
 2. Determine which tools to use. Available tools:

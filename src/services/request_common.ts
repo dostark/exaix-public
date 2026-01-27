@@ -25,5 +25,6 @@ export function buildParsedRequest(body: string, frontmatter: Record<string, any
     },
     requestId,
     traceId,
+    skills: frontmatter.skills ? JSON.parse(frontmatter.skills) : undefined,
   };
 }
