@@ -12,7 +12,7 @@ import { join } from "@std/path";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import { initTestDbService } from "./helpers/db.ts";
-import { getWorkspaceActiveDir, getWorkspacePlansDir } from "./helpers/paths_helper.ts";
+import { getWorkspaceActiveDir } from "./helpers/paths_helper.ts";
 
 // ===== executeNext tests =====
 
@@ -23,7 +23,7 @@ Deno.test("ExecutionLoop.executeNext: returns success when no plans available", 
   try {
     const config = createMockConfig(tempDir);
     // Create empty Workspace/Plans directory
-    const plansDir = getWorkspacePlansDir(tempDir);
+    const plansDir = getWorkspaceActiveDir(tempDir);
     await Deno.mkdir(plansDir, { recursive: true });
 
     const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
@@ -43,7 +43,7 @@ Deno.test("ExecutionLoop.executeNext: processes pending plan", async () => {
 
   try {
     const config = createMockConfig(tempDir);
-    const plansDir = getWorkspacePlansDir(tempDir);
+    const plansDir = getWorkspaceActiveDir(tempDir);
     await Deno.mkdir(plansDir, { recursive: true });
 
     const planContent = `---
@@ -83,7 +83,7 @@ Deno.test("ExecutionLoop.executeNext: skips non-pending plans", async () => {
 
   try {
     const config = createMockConfig(tempDir);
-    const plansDir = getWorkspacePlansDir(tempDir);
+    const plansDir = getWorkspaceActiveDir(tempDir);
     await Deno.mkdir(plansDir, { recursive: true });
 
     // Create plan with SkillStatus.ACTIVE status (not MemoryStatus.PENDING)
@@ -137,7 +137,7 @@ Deno.test("ExecutionLoop.executeNext: skips plans with invalid frontmatter", asy
 
   try {
     const config = createMockConfig(tempDir);
-    const plansDir = getWorkspacePlansDir(tempDir);
+    const plansDir = getWorkspaceActiveDir(tempDir);
     await Deno.mkdir(plansDir, { recursive: true });
 
     // Create plan with no frontmatter
@@ -442,7 +442,7 @@ Deno.test("ExecutionLoop.executeNext: fails when plan has no actions", async () 
 
   try {
     const config = createMockConfig(tempDir);
-    const plansDir = getWorkspacePlansDir(tempDir);
+    const plansDir = getWorkspaceActiveDir(tempDir);
     await Deno.mkdir(plansDir, { recursive: true });
 
     const planContent = `---
@@ -593,7 +593,7 @@ Deno.test("ExecutionLoop: uses correct memory execution path configuration", asy
     // Verify that the execution loop uses the configured memory execution path
     // This is a regression test to ensure paths are not hardcoded
     const expectedPath = join(tempDir, "Memory", "Execution");
-    const actualPath = join(config.system.root, config.paths.memoryExecution);
+    const actualPath = join(config.system.root, config.paths.memory, config.paths.memoryExecution);
 
     assertEquals(actualPath, expectedPath, "ExecutionLoop should use configured memoryExecution path");
   } finally {

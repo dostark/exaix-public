@@ -103,7 +103,7 @@ export class ExecutionLoop {
     this.agentId = agentId;
     this.llmProvider = llmProvider;
     this.changesetRegistry = changesetRegistry;
-    this.plansDir = join(config.system.root, config.paths.workspace, "Plans");
+    this.plansDir = join(config.system.root, config.paths.workspace, config.paths.active);
   }
 
   private changesetRegistry?: ChangesetRegistry;
@@ -277,7 +277,10 @@ export class ExecutionLoop {
         // Read frontmatter to check status
         try {
           const frontmatter = await this.parsePlan(planPath);
-          if (frontmatter.status === PlanStatus.PENDING) {
+          if (
+            frontmatter.status === PlanStatus.PENDING ||
+            frontmatter.status === PlanStatus.APPROVED
+          ) {
             return planPath;
           }
         } catch {
@@ -796,7 +799,12 @@ export class ExecutionLoop {
 
       // Also write a human-readable failure.md file for easy access (tests expect this file)
       try {
-        const failureDir = join(this.config.system.root, this.config.paths.memoryExecution, traceId);
+        const failureDir = join(
+          this.config.system.root,
+          this.config.paths.memory,
+          this.config.paths.memoryExecution,
+          traceId,
+        );
         await Deno.mkdir(failureDir, { recursive: true });
         const failureContent =
           `# Failure Report\n\n**Trace ID:** ${traceId}\n**Request ID:** ${requestId}\n**Agent:** ${this.agentId}\n**Error:** ${error}\n\n**Summary:** ${traceData.summary}\n**Reasoning:** ${traceData.reasoning}\n\nGenerated at ${

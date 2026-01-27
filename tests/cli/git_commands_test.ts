@@ -268,7 +268,8 @@ describe("GitCommands", () => {
       assertEquals(status.deleted.length, 0);
       // Allow for SQLite WAL/SHM files and other test artifacts in System directory
       const nonDbFiles = status.untracked.filter((f) =>
-        !f.includes("journal.db") && !f.endsWith("-wal") && !f.endsWith("-shm") && !f.endsWith(".log") &&
+        !f.includes("journal.db") && !f.endsWith(".db") && !f.endsWith(".toml") && !f.endsWith("-wal") &&
+        !f.endsWith("-shm") && !f.endsWith(".log") &&
         !f.endsWith(".pid")
       );
       // Accept up to 1 non-db file to avoid flaky test

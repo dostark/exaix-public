@@ -68,7 +68,7 @@ export class MemoryCommands {
     this.extractor = new MemoryExtractorService(context.config, context.db, this.memoryBank);
     this.embedding = new MemoryEmbeddingService(context.config);
     this.skills = new SkillsService(context.config, context.db);
-    this.memoryRoot = context.config.paths.memory;
+    this.memoryRoot = join(context.config.system.root, context.config.paths.memory);
   }
 
   // ===== Memory List Command =====
@@ -102,7 +102,7 @@ export class MemoryCommands {
     let lastActivity: string | null = null;
 
     // List projects
-    const projectsDir = join(this.config.system.root, this.config.paths.memoryProjects);
+    const projectsDir = join(this.config.system.root, this.config.paths.memory, this.config.paths.memoryProjects);
     if (await exists(projectsDir)) {
       for await (const entry of Deno.readDir(projectsDir)) {
         if (entry.isDirectory) {
@@ -112,7 +112,7 @@ export class MemoryCommands {
     }
 
     // Count executions and find last activity
-    const executionDir = join(this.config.system.root, this.config.paths.memoryExecution);
+    const executionDir = join(this.config.system.root, this.config.paths.memory, this.config.paths.memoryExecution);
     if (await exists(executionDir)) {
       const executionList = await this.memoryBank.getExecutionHistory(undefined, 1);
       executions = await this.countExecutions();
@@ -133,7 +133,7 @@ export class MemoryCommands {
    */
   private async countExecutions(): Promise<number> {
     let count = 0;
-    const executionDir = join(this.config.system.root, this.config.paths.memoryExecution);
+    const executionDir = join(this.config.system.root, this.config.paths.memory, this.config.paths.memoryExecution);
     if (await exists(executionDir)) {
       for await (const entry of Deno.readDir(executionDir)) {
         if (entry.isDirectory) {
@@ -315,7 +315,7 @@ export class MemoryCommands {
   async projectList(format: OutputFormat = "table"): Promise<string> {
     const projects: { name: string; patterns: number; decisions: number }[] = [];
 
-    const projectsDir = join(this.config.system.root, this.config.paths.memoryProjects);
+    const projectsDir = join(this.config.system.root, this.config.paths.memory, this.config.paths.memoryProjects);
     if (await exists(projectsDir)) {
       for await (const entry of Deno.readDir(projectsDir)) {
         if (entry.isDirectory) {

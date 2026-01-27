@@ -85,7 +85,7 @@ export class SkillsService {
     private db: DatabaseService,
     skillsConfig?: Partial<SkillsConfig>,
   ) {
-    this.blueprintsSkillsDir = join(config.system.root, config.paths.memorySkills);
+    this.blueprintsSkillsDir = join(config.system.root, config.paths.memory, config.paths.memorySkills);
     this.indexPath = join(this.blueprintsSkillsDir, "index.json");
     this.skillsConfig = { ...DEFAULT_CONFIG, ...skillsConfig };
   }

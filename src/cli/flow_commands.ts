@@ -31,7 +31,7 @@ export class FlowCommands {
   private eventLogger: EventLogger;
 
   constructor(private context: CLIContext) {
-    const flowsDir = join(context.config.system.root, context.config.paths.flows);
+    const flowsDir = join(context.config.system.root, context.config.paths.blueprints, context.config.paths.flows);
     this.flowLoader = new FlowLoader(flowsDir);
     this.flowValidator = new FlowValidatorImpl(
       this.flowLoader,

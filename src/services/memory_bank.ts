@@ -61,11 +61,11 @@ export class MemoryBankService {
     private db: DatabaseService,
   ) {
     this.memoryRoot = join(config.system.root, config.paths.memory);
-    this.projectsDir = join(config.system.root, config.paths.memoryProjects);
-    this.executionDir = join(config.system.root, config.paths.memoryExecution);
-    this.tasksDir = join(config.system.root, config.paths.memoryTasks);
-    this.indexDir = join(config.system.root, config.paths.memoryIndex);
-    this.globalDir = join(config.system.root, config.paths.memoryGlobal);
+    this.projectsDir = join(this.memoryRoot, config.paths.memoryProjects);
+    this.executionDir = join(this.memoryRoot, config.paths.memoryExecution);
+    this.tasksDir = join(this.memoryRoot, config.paths.memoryTasks);
+    this.indexDir = join(this.memoryRoot, config.paths.memoryIndex);
+    this.globalDir = join(this.memoryRoot, config.paths.memoryGlobal);
 
     // Ensure directory structure exists
     this.initializeDirectories();

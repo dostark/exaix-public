@@ -159,7 +159,7 @@ export class MemoryEmbeddingService {
    * @param config - ExoFrame configuration
    */
   constructor(private config: Config) {
-    this.embeddingsDir = join(config.system.root, config.paths.memoryIndex, "embeddings");
+    this.embeddingsDir = join(config.system.root, config.paths.memory, config.paths.memoryIndex, "embeddings");
     this.manifestPath = join(this.embeddingsDir, "manifest.json");
   }
 

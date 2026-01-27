@@ -143,6 +143,7 @@ export class PortalCommands {
         const symlinkPath = join(this.portalsDir, entry.name);
         const contextCardPath = join(
           this.config.system.root,
+          this.config.paths.memory,
           this.config.paths.memoryProjects,
           entry.name,
           "portal.md",
@@ -190,6 +191,7 @@ export class PortalCommands {
     const symlinkPath = join(this.portalsDir, alias);
     const contextCardPath = join(
       this.config.system.root,
+      this.config.paths.memory,
       this.config.paths.memoryProjects,
       alias,
       "portal.md",
@@ -245,6 +247,7 @@ export class PortalCommands {
     const symlinkPath = join(this.portalsDir, alias);
     const contextCardPath = join(
       this.config.system.root,
+      this.config.paths.memory,
       this.config.paths.memoryProjects,
       alias,
       "portal.md",
@@ -269,6 +272,7 @@ export class PortalCommands {
     if (!options?.keepCard) {
       const archivedDir = join(
         this.config.system.root,
+        this.config.paths.memory,
         this.config.paths.memoryProjects,
         "_archived",
       );
@@ -307,6 +311,7 @@ export class PortalCommands {
       const symlinkPath = join(this.portalsDir, portalAlias);
       const contextCardPath = join(
         this.config.system.root,
+        this.config.paths.memory,
         this.config.paths.memoryProjects,
         portalAlias,
         "portal.md",

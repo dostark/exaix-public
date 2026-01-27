@@ -31,13 +31,13 @@ export function createMockConfig(root: string, overrides: Partial<Config> = {}):
       rejected: "Rejected",
       agents: "Agents",
       flows: "Flows",
-      memoryProjects: "Memory/Projects",
-      memoryExecution: "Memory/Execution",
-      memoryIndex: "Memory/Index",
-      memorySkills: "Memory/Skills",
-      memoryPending: "Memory/Pending",
-      memoryTasks: "Memory/Tasks",
-      memoryGlobal: "Memory/Global",
+      memoryProjects: "Projects",
+      memoryExecution: "Execution",
+      memoryIndex: "Index",
+      memorySkills: "Skills",
+      memoryPending: "Pending",
+      memoryTasks: "Tasks",
+      memoryGlobal: "Global",
       ...overrides.paths,
     },
     database: {
@@ -174,6 +174,20 @@ blueprints = "Blueprints"
 runtime = ".exo"
 portals = "Portals"
 workspace = "Workspace"
+active = "Active"
+archive = "Archive"
+plans = "Plans"
+requests = "Requests"
+rejected = "Rejected"
+agents = "Agents"
+flows = "Flows"
+memoryProjects = "Projects"
+memoryExecution = "Execution"
+memoryIndex = "Index"
+memorySkills = "Skills"
+memoryPending = "Pending"
+memoryTasks = "Tasks"
+memoryGlobal = "Global"
 
 [database]
 batch_flush_ms = 100
