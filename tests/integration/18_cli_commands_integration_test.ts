@@ -46,6 +46,37 @@ async function runExoctl(args: string[], cwd: string) {
     console.log(`CLI stdout: ${effectiveStdout.substring(0, 500)}${effectiveStdout.length > 500 ? "..." : ""}`);
   }
 
+  // When running in CI, persist artifacts for post-mortem: stdout, stderr, env, cwd, and metadata.
+  try {
+    const ciActive = Deno.env.get("CI") || Deno.env.get("GITHUB_ACTIONS");
+    if (ciActive) {
+      const artifactsDir = join(cwd, "test-artifacts", "cli");
+      await Deno.mkdir(artifactsDir, { recursive: true });
+      const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const meta = {
+        args,
+        cwd,
+        code,
+        timestamp: new Date().toISOString(),
+      } as Record<string, unknown>;
+
+      await Deno.writeTextFile(join(artifactsDir, `cli-${id}.stdout.txt`), stdoutStr);
+      await Deno.writeTextFile(join(artifactsDir, `cli-${id}.stderr.txt`), stderrStr);
+      await Deno.writeTextFile(join(artifactsDir, `cli-${id}.meta.json`), JSON.stringify(meta, null, 2));
+
+      try {
+        const envDump = JSON.stringify(Deno.env.toObject(), null, 2);
+        await Deno.writeTextFile(join(artifactsDir, `cli-${id}.env.json`), envDump);
+      } catch (_envErr) {
+        // Ignore env write failures (some CI environments restrict env access)
+      }
+
+      console.log(`Wrote CI artifacts to ${artifactsDir} for command cli-${id}`);
+    }
+  } catch (err) {
+    console.warn("Failed to write CI artifacts:", String(err));
+  }
+
   return {
     code,
     stdout: effectiveStdout,
