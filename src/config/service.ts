@@ -11,8 +11,14 @@ export class ConfigService {
   private checksum: string = "";
 
   constructor(configPath: string = "exo.config.toml") {
-    // Use absolute path if provided, otherwise join with cwd
-    this.configPath = isAbsolute(configPath) ? configPath : join(Deno.cwd(), configPath);
+    // Check for explicit config path from environment
+    const envConfigPath = Deno.env.get("EXO_CONFIG_PATH");
+    if (envConfigPath) {
+      this.configPath = envConfigPath;
+    } else {
+      // Use absolute path if provided, otherwise join with cwd
+      this.configPath = isAbsolute(configPath) ? configPath : join(Deno.cwd(), configPath);
+    }
 
     // In test mode, if using default path, use temp directory to avoid polluting root
     if (this.configPath === join(Deno.cwd(), "exo.config.toml") && Deno.env.get("EXO_TEST_CLI_MODE") === "1") {

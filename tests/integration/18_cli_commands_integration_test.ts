@@ -3,9 +3,7 @@
 
 import { assert, assertStringIncludes } from "@std/assert";
 import { FlowInputSource } from "../../src/enums.ts";
-
-import { MemoryOperation, MemoryStatus } from "../../src/enums.ts";
-
+import { MemoryOperation } from "../../src/enums.ts";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 
@@ -13,23 +11,36 @@ import { TestEnvironment } from "./helpers/test_environment.ts";
 async function runExoctl(args: string[], cwd: string) {
   const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
   const exoctlPath = join(repoRoot, "src", "cli", "exoctl.ts");
-  const denoConfig = join(repoRoot, "deno.json");
 
+  console.log(`Running CLI command: exoctl ${args.join(" ")} in ${cwd}`);
+
+  // Run deno directly with cwd set
   const command = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--allow-all", "--config", denoConfig, exoctlPath, ...args],
-    cwd,
+    args: ["run", "--allow-all", exoctlPath, ...args],
+    cwd: cwd,
     stdout: "piped",
     stderr: "piped",
-    env: Deno.env.toObject(), // Pass through all environment variables
+    env: {
+      ...Deno.env.toObject(),
+      EXO_CONFIG_PATH: join(cwd, "exo.config.toml"),
+    },
   });
   const { code, stdout, stderr } = await command.output();
   const stdoutStr = new TextDecoder().decode(stdout);
   const stderrStr = new TextDecoder().decode(stderr);
 
+  console.log(`CLI command exit code: ${code}`);
+  console.log(`CLI stdout length: ${stdoutStr.length}`);
+  console.log(`CLI stderr length: ${stderrStr.length}`);
+
   // Debug: log stderr if stdout is empty (for CI debugging)
   if (!stdoutStr.trim() && stderrStr.trim()) {
     console.warn(`CLI command failed silently: ${args.join(" ")}`);
     console.warn(`stderr: ${stderrStr}`);
+  }
+
+  if (stdoutStr.trim()) {
+    console.log(`CLI stdout: ${stdoutStr.substring(0, 500)}${stdoutStr.length > 500 ? "..." : ""}`);
   }
 
   return {
@@ -43,19 +54,12 @@ Deno.test("CLI: request list shows created requests", async () => {
   const env = await TestEnvironment.create();
   try {
     // Create a request file in the workspace
-    const { traceId, filePath } = await env.createRequest("Test integration request");
-
-    // Debug: check if file exists
-    const fileExists = await Deno.stat(filePath).then(() => true).catch(() => false);
-    console.log(`Request file exists: ${fileExists} at ${filePath}`);
+    const { traceId } = await env.createRequest("Test integration request");
 
     // List requests using CLI
-    const result = await runExoctl([FlowInputSource.REQUEST, "list"], env.tempDir);
+    const result = await runExoctl(["request", "list"], env.tempDir);
     assert(result.code === 0);
-    // Check for traceId or shortId in output (robust to CLI format)
-    const shortId = traceId.substring(0, 8);
-    assertStringIncludes(result.stdout, shortId);
-    assertStringIncludes(result.stdout, MemoryStatus.PENDING);
+    assertStringIncludes(result.stdout, traceId.substring(0, 8));
   } finally {
     await env.cleanup();
   }

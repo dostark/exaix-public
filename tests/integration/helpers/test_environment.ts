@@ -122,6 +122,96 @@ export class TestEnvironment {
       }).output();
     }
 
+    // Write config to file so CLI commands can find it
+    const configPath = join(tempDir, "exo.config.toml");
+    await Deno.writeTextFile(
+      configPath,
+      `
+[system]
+version = "1.0.0"
+log_level = "info"
+root = "${tempDir}"
+
+[paths]
+memory = "./Memory"
+blueprints = "./Blueprints"
+runtime = "./.exo"
+workspace = "./Workspace"
+portals = "./Portals"
+active = "Active"
+archive = "Archive"
+plans = "Plans"
+requests = "Requests"
+rejected = "Rejected"
+agents = "Agents"
+flows = "Flows"
+memoryProjects = "Projects"
+memoryExecution = "Execution"
+memoryIndex = "Index"
+memorySkills = "Skills"
+memoryPending = "Pending"
+memoryTasks = "Tasks"
+memoryGlobal = "Global"
+
+[watcher]
+debounce_ms = 200
+stability_check = true
+
+[database]
+batch_flush_ms = 100
+batch_max_size = 100
+
+[database.sqlite]
+journal_mode = "WAL"
+foreign_keys = true
+busy_timeout_ms = 5000
+
+[agents]
+default_model = "default"
+timeout_sec = 60
+max_iterations = 10
+
+[models.default]
+provider = "mock"
+model = "gpt-5.2-pro"
+timeout_ms = 30000
+
+[mcp]
+enabled = true
+transport = "stdio"
+server_name = "exoframe"
+version = "1.0.0"
+
+[ai_retry]
+max_attempts = 3
+backoff_base_ms = 1000
+timeout_per_request_ms = 30000
+
+[ai_anthropic]
+api_version = "2023-06-01"
+default_model = "claude-3-5-sonnet-20241022"
+max_tokens_default = 4096
+
+[mcp_defaults]
+agent_id = "default"
+
+[git]
+branch_prefix_pattern = "feature/"
+allowed_prefixes = ["feature/", "bugfix/", "hotfix/"]
+
+[git.operations]
+status_timeout_ms = 5000
+ls_files_timeout_ms = 5000
+checkout_timeout_ms = 10000
+clean_timeout_ms = 10000
+log_timeout_ms = 5000
+diff_timeout_ms = 10000
+command_timeout_ms = 30000
+max_retries = 3
+retry_backoff_base_ms = 1000
+`.trim(),
+    );
+
     return new TestEnvironment(tempDir, config, db, cleanup);
   }
 
