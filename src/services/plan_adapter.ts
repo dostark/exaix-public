@@ -135,9 +135,6 @@ export class PlanAdapter {
             sections.push("[params]");
             for (const [key, value] of Object.entries(action.params)) {
               if (typeof value === "string") {
-                // Handle multiline strings by using triple quotes if needed,
-                // but for now simple escaping is enough for basic paths/content.
-                // Note: Deno's TOML parser is quite picky.
                 if (value.includes("\n")) {
                   sections.push(`${key} = '''\n${value}\n'''`);
                 } else {
@@ -157,6 +154,152 @@ export class PlanAdapter {
           sections.push("");
         }
       });
+    }
+
+    // Specialized Section: Analysis
+    if (plan.analysis) {
+      sections.push("## Analysis Results", "");
+      if (plan.analysis.totalFiles) sections.push(`**Total Files:** ${plan.analysis.totalFiles}`);
+      if (plan.analysis.linesOfCode) sections.push(`**Lines of Code:** ${plan.analysis.linesOfCode}`);
+      if (plan.analysis.mainLanguage) sections.push(`**Main Language:** ${plan.analysis.mainLanguage}`);
+      if (plan.analysis.framework) sections.push(`**Framework:** ${plan.analysis.framework}`);
+      if (plan.analysis.types) sections.push(`**Type Definitions:** ${plan.analysis.types}`);
+      sections.push("");
+
+      if (plan.analysis.modules && plan.analysis.modules.length > 0) {
+        sections.push("### Modules", "");
+        plan.analysis.modules.forEach((m) => {
+          sections.push(`- **${m.name}**: ${m.purpose}`);
+          if (m.exports.length > 0) sections.push(`  - *Exports:* ${m.exports.join(", ")}`);
+          if (m.dependencies.length > 0) sections.push(`  - *Dependencies:* ${m.dependencies.join(", ")}`);
+        });
+        sections.push("");
+      }
+
+      if (plan.analysis.components && plan.analysis.components.length > 0) {
+        sections.push("### Key Components", "");
+        plan.analysis.components.forEach((c) => {
+          sections.push(`- **${c.name}** (${c.location}): ${c.purpose}`);
+          if (c.api) sections.push(`  - *API:* ${c.api}`);
+          if (c.dependencies && c.dependencies.length > 0) {
+            sections.push(`  - *Dependencies:* ${c.dependencies.join(", ")}`);
+          }
+        });
+        sections.push("");
+      }
+
+      if (plan.analysis.patterns && plan.analysis.patterns.length > 0) {
+        sections.push("### Patterns Identified", "");
+        plan.analysis.patterns.forEach((p) => {
+          sections.push(`- **${p.pattern}** in \`${p.location}\`: ${p.usage}`);
+        });
+        sections.push("");
+      }
+
+      if (plan.analysis.metrics && plan.analysis.metrics.length > 0) {
+        sections.push("### Metrics", "");
+        plan.analysis.metrics.forEach((m) => {
+          sections.push(`- **${m.metric}**: ${m.value} - *${m.assessment}*`);
+        });
+        sections.push("");
+      }
+
+      if (plan.analysis.recommendations && plan.analysis.recommendations.length > 0) {
+        sections.push("### Recommendations", "");
+        plan.analysis.recommendations.forEach((r) => sections.push(`- ${r}`));
+        sections.push("");
+      }
+    }
+
+    // Specialized Section: Security
+    if (plan.security) {
+      sections.push("## Security Analysis", "");
+      if (plan.security.executiveSummary) {
+        sections.push("### Executive Summary", "", plan.security.executiveSummary, "");
+      }
+
+      if (plan.security.findings && plan.security.findings.length > 0) {
+        sections.push("### Critical Findings", "");
+        plan.security.findings.forEach((f) => {
+          sections.push(`#### ${f.title} [${f.severity}]`);
+          sections.push(`- **Location:** ${f.location}`);
+          sections.push(`- **Impact:** ${f.impact}`);
+          sections.push(`- **Remediation:** ${f.remediation}`);
+          sections.push("");
+          sections.push(f.description);
+          sections.push("");
+          if (f.codeExample) {
+            sections.push("```typescript", f.codeExample, "```", "");
+          }
+        });
+      }
+
+      if (plan.security.recommendations && plan.security.recommendations.length > 0) {
+        sections.push("### Security Recommendations", "");
+        plan.security.recommendations.forEach((r) => sections.push(`- ${r}`));
+        sections.push("");
+      }
+
+      if (plan.security.compliance && plan.security.compliance.length > 0) {
+        sections.push("### Compliance Notes", "");
+        plan.security.compliance.forEach((c) => sections.push(`- ${c}`));
+        sections.push("");
+      }
+    }
+
+    // Specialized Section: QA
+    if (plan.qa) {
+      sections.push("## QA & Testing Results", "");
+      if (plan.qa.testSummary && plan.qa.testSummary.length > 0) {
+        sections.push("| Category | Planned | Executed | Passed | Failed |");
+        sections.push("| --- | --- | --- | --- | --- |");
+        plan.qa.testSummary.forEach((s) => {
+          sections.push(`| ${s.category} | ${s.planned} | ${s.executed} | ${s.passed} | ${s.failed} |`);
+        });
+        sections.push("");
+      }
+
+      if (plan.qa.issues && plan.qa.issues.length > 0) {
+        sections.push("### Issues Found", "");
+        plan.qa.issues.forEach((i) => {
+          sections.push(`#### ${i.title} [${i.severity}]`);
+          sections.push(`- **Component:** ${i.component}`);
+          if (i.description) sections.push(i.description, "");
+          sections.push("**Steps to Reproduce:**");
+          i.stepsToReproduce.forEach((s) => sections.push(`1. ${s}`));
+          sections.push("");
+        });
+      }
+    }
+
+    // Specialized Section: Performance
+    if (plan.performance) {
+      sections.push("## Performance Analysis", "");
+      if (plan.performance.executiveSummary) {
+        sections.push("### Executive Summary", "", plan.performance.executiveSummary, "");
+      }
+
+      if (plan.performance.findings && plan.performance.findings.length > 0) {
+        sections.push("### Performance Findings", "");
+        plan.performance.findings.forEach((f) => {
+          sections.push(`#### ${f.title} [Impact: ${f.impact}]`);
+          sections.push(`- **Category:** ${f.category}`);
+          sections.push(`- **Location:** ${f.location}`);
+          sections.push(`- **Current Behavior:** ${f.currentBehavior}`);
+          sections.push(`- **Expected Improvement:** ${f.expectedImprovement}`);
+          sections.push(`- **Recommendation:** ${f.recommendation}`);
+          sections.push("");
+          if (f.codeExample) {
+            sections.push("```typescript", f.codeExample, "```", "");
+          }
+        });
+      }
+
+      if (plan.performance.priorities && plan.performance.priorities.length > 0) {
+        sections.push("### Optimization Priorities", "");
+        plan.performance.priorities.forEach((p) => sections.push(`- ${p}`));
+        sections.push("");
+      }
     }
 
     return sections.join("\n");
