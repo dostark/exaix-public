@@ -138,5 +138,10 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
     }
   }
 
-  return { db, tempDir, config, cleanup };
+  const cleanupAll = async () => {
+    Deno.env.delete("EXO_TEST_CLI_MODE");
+    await cleanup();
+  };
+
+  return { db, tempDir, config, cleanup: cleanupAll };
 }

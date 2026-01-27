@@ -1625,22 +1625,25 @@ function printRequestResult(result: RequestMetadata, json: boolean, _dryRun: boo
   }
 }
 
+const journalCommand = new Command()
+  .description("Query the Activity Journal")
+  .option("-f, --filter <filter:string[]>", "Filter by key=value (trace_id, action_type, agent_id, since)", {
+    collect: true,
+  })
+  .option("-n, --tail <n:number>", "Show last N entries", { default: 50 })
+  .option("--format <format:string>", "Output format (text, table, json)", { default: "text" })
+  .option("--distinct <field:string>", "Return distinct values for specified field")
+  .option("--count", "Return count aggregation by action_type")
+  .option("--payload <pattern:string>", "Filter by payload LIKE pattern")
+  .option("--actor <actor:string>", "Filter by actor")
+  .option("--target <target:string>", "Filter by target")
+  .action(async (options: any) => {
+    const cmd = new JournalCommands(context);
+    await cmd.show(options);
+  });
+
+__test_command.command("journal", journalCommand);
+
 if (!isTestMode()) {
-  await __test_command
-    .command("journal", "Query the Activity Journal")
-    .option("-f, --filter <filter:string[]>", "Filter by key=value (trace_id, action_type, agent_id, since)", {
-      collect: true,
-    })
-    .option("-n, --tail <n:number>", "Show last N entries", { default: 50 })
-    .option("--format <format:string>", "Output format (text, table, json)", { default: "text" })
-    .option("--distinct <field:string>", "Return distinct values for specified field")
-    .option("--count", "Return count aggregation by action_type")
-    .option("--payload <pattern:string>", "Filter by payload LIKE pattern")
-    .option("--actor <actor:string>", "Filter by actor")
-    .option("--target <target:string>", "Filter by target")
-    .action(async (options: any) => {
-      const cmd = new JournalCommands(context);
-      await cmd.show(options);
-    })
-    .parse(Deno.args);
+  await __test_command.parse(Deno.args);
 }
