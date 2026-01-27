@@ -58,6 +58,20 @@ if (!isTestMode()) {
   try {
     configService = new ConfigService();
     config = configService.get();
+    // CI / debug logging: print resolved config path and env when running in CI or when explicitly requested
+    const ciDebug = Deno.env.get("EXO_CI_DEBUG") === "1" || Deno.env.get("CI") === "1" || Deno.env.get("CI") === "true";
+    if (ciDebug) {
+      try {
+        console.error("CI Debug: cwd=", Deno.cwd());
+        console.error("CI Debug: EXO_CONFIG_PATH=", Deno.env.get("EXO_CONFIG_PATH"));
+        console.error(
+          "CI Debug: resolved config path=",
+          (configService as any).getConfigPath?.() ?? (configService as any).configPath ?? "unknown",
+        );
+      } catch (_e) {
+        // best-effort logging; do not fail startup
+      }
+    }
     // Dynamically import DatabaseService to avoid loading sqlite at import-time
     const { DatabaseService } = await import("../services/db.ts");
     db = new DatabaseService(config);

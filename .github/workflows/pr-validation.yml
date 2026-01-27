@@ -1,4 +1,4 @@
-name: PR Validation
+name: "PR Validation"
 
 on:
   pull_request:
@@ -12,20 +12,20 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      - name: Checkout
+      - name: "Checkout"
         uses: actions/checkout@v4
 
-      - name: Setup Deno
+      - name: "Setup Deno"
         uses: denoland/setup-deno@v1
         with:
           deno-version: v2.x
 
-      - name: Configure git identity (CI)
+      - name: "Configure git identity (CI)"
         run: |
           git config --global user.email "ci@example.com"
           git config --global user.name "CI Bot"
 
-      - name: CI debug: show commit and config (Linux only)
+      - name: "CI debug: show commit and config (Linux only)"
         if: matrix.os == 'ubuntu-latest'
         run: |
           echo "GITHUB_SHA=$GITHUB_SHA"
@@ -38,8 +38,9 @@ jobs:
           else
             echo "exo.config.toml not found in workspace"
           fi
-      - name: Run Checks
+
+      - name: "Run Checks"
         run: deno run -A scripts/ci.ts check
 
-      - name: Run Quick Tests
+      - name: "Run Quick Tests"
         run: deno run -A scripts/ci.ts test --quick

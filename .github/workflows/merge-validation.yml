@@ -8,35 +8,60 @@ jobs:
   validate-and-publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: "Checkout"
         uses: actions/checkout@v4
 
-      - name: Setup Deno
+      - name: "Setup Deno"
         uses: denoland/setup-deno@v1
         with:
           deno-version: v2.x
 
-      - name: Configure git identity (CI)
+      - name: "Configure git identity (CI)"
         run: |
           git config --global user.email "ci@example.com"
           git config --global user.name "CI Bot"
 
-      - name: CI debug: show commit and config
+      - name: "CI debug: show commit and config"
         run: |
-          echo "GITHUB_SHA=$GITHUB_SHA"
-          echo "EXO_CONFIG_PATH=$EXO_CONFIG_PATH"
-          echo "Workspace listing:" && ls -la
-          if [ -f exo.config.toml ]; then
-            echo "--- exo.config.toml ---"
-            sed -n '1,200p' exo.config.toml
-            echo "--- end exo.config.toml ---"
-          else
-            echo "exo.config.toml not found in workspace"
-          fi
+          name: Merge Validation
 
-      - name: Run Full Pipeline
-        run: deno run -A scripts/ci.ts all
+          on:
+            push:
+              branches: [ main ]
 
-      # Placeholder for coverage upload
-      # - name: Upload Coverage
-      #   uses: codecov/codecov-action@v3
+          jobs:
+            validate-and-publish:
+              runs-on: ubuntu-latest
+              steps:
+                - name: "Checkout"
+                  uses: actions/checkout@v4
+
+                - name: "Setup Deno"
+                  uses: denoland/setup-deno@v1
+                  with:
+                    deno-version: v2.x
+
+                - name: "Configure git identity (CI)"
+                  run: |
+                    git config --global user.email "ci@example.com"
+                    git config --global user.name "CI Bot"
+
+                - name: "CI debug: show commit and config"
+                  run: |
+                    echo "GITHUB_SHA=$GITHUB_SHA"
+                    echo "EXO_CONFIG_PATH=$EXO_CONFIG_PATH"
+                    echo "Workspace listing:" && ls -la
+                    if [ -f exo.config.toml ]; then
+                      echo "--- exo.config.toml ---"
+                      sed -n '1,200p' exo.config.toml
+                      echo "--- end exo.config.toml ---"
+                    else
+                      echo "exo.config.toml not found in workspace"
+                    fi
+
+                - name: "Run Full Pipeline"
+                  run: deno run -A scripts/ci.ts all
+
+                # Placeholder for coverage upload
+                # - name: Upload Coverage
+                #   uses: codecov/codecov-action@v3

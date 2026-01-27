@@ -111,6 +111,10 @@ stability_check = true
     return this.config;
   }
 
+  public getConfigPath(): string {
+    return this.configPath;
+  }
+
   public getChecksum(): string {
     return this.checksum;
   }
