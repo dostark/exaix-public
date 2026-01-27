@@ -1,13 +1,13 @@
 import { parse } from "@std/toml";
-import { isAbsolute, join } from "@std/path";
+import { dirname, isAbsolute, join } from "@std/path";
 import { crypto } from "@std/crypto";
 import { encodeHex } from "@std/encoding/hex";
 import { Config, ConfigSchema } from "./schema.ts";
 import { logInfo } from "../services/structured_logger.ts";
 
 export class ConfigService {
+  private readonly configPath: string;
   private config: Config;
-  private configPath: string;
   private checksum: string = "";
 
   constructor(configPath: string = "exo.config.toml") {
@@ -35,6 +35,17 @@ export class ConfigService {
       this.checksum = this.computeChecksum(content);
 
       const rawConfig = parse(content);
+
+      // Ensure system.root is set and resolved relative to the config file if it's relative
+      if (rawConfig.system && typeof rawConfig.system === "object" && !(rawConfig.system as any).root) {
+        (rawConfig.system as any).root = dirname(this.configPath);
+      } else if (
+        rawConfig.system && typeof rawConfig.system === "object" && (rawConfig.system as any).root &&
+        !isAbsolute((rawConfig.system as any).root)
+      ) {
+        (rawConfig.system as any).root = join(dirname(this.configPath), (rawConfig.system as any).root);
+      }
+
       const result = ConfigSchema.safeParse(rawConfig);
 
       if (!result.success) {
@@ -52,10 +63,7 @@ export class ConfigService {
         // Create default config file
         this.createDefaultConfig();
         // Reload the newly created file
-        const content = Deno.readTextFileSync(this.configPath);
-        this.checksum = this.computeChecksum(content);
-        const rawConfig = parse(content);
-        return ConfigSchema.parse(rawConfig);
+        return this.load();
       }
       throw error;
     }
@@ -64,6 +72,7 @@ export class ConfigService {
   private createDefaultConfig() {
     const defaultConfig = `
 [system]
+root = "."
 version = "1.0.0"
 log_level = "info"
 

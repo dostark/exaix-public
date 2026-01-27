@@ -124,7 +124,8 @@ export class TestEnvironment {
 
     // Write config to file so CLI commands can find it
     const configPath = join(tempDir, "exo.config.toml");
-    await Deno.writeTextFile(
+
+    Deno.writeTextFileSync(
       configPath,
       `
 [system]
@@ -212,7 +213,8 @@ retry_backoff_base_ms = 1000
 `.trim(),
     );
 
-    return new TestEnvironment(tempDir, config, db, cleanup);
+    const env = new TestEnvironment(tempDir, config, db, cleanup);
+    return env;
   }
 
   /**

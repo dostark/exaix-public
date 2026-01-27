@@ -3,10 +3,11 @@
  * Manages daemon lifecycle, status, and logging
  */
 
-import { join } from "@std/path";
+import { dirname, fromFileUrl, join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
+import { ConfigService } from "../config/service.ts";
 
 export interface DaemonStatus {
   running: boolean;
@@ -20,31 +21,33 @@ export interface DaemonStatus {
  */
 export class DaemonCommands extends BaseCommand {
   private pidFile: string;
+  private configService?: ConfigService;
 
-  constructor(context: CommandContext) {
+  constructor(context: CommandContext & { configService?: ConfigService }) {
     super(context);
-    this.pidFile = join(this.config.system.root, this.config.paths.runtime, "daemon.pid");
+    const workspaceRoot = this.config.system.root;
+    this.pidFile = join(workspaceRoot, this.config.paths.runtime, "daemon.pid");
+    this.configService = context.configService;
   }
 
   /**
    * Start the ExoFrame daemon
    */
   async start(): Promise<void> {
-    const status = await this.status();
+    const workspaceRoot = this.config.system.root;
+    const logFile = join(workspaceRoot, this.config.paths.runtime, "daemon.log");
 
+    // Find daemon script relative to this command file
+    const currentFile = fromFileUrl(import.meta.url);
+    const mainScript = Deno.env.get("EXO_DAEMON_SCRIPT") || join(dirname(currentFile), "..", "main.ts");
+
+    const status = await this.status();
     if (status.running) {
       await this.logger.info("daemon.already_running", "daemon", { pid: status.pid });
       return;
     }
 
     await this.logger.info("daemon.starting", "daemon");
-
-    const workspaceRoot = this.config.system.root;
-    const logFile = join(workspaceRoot, this.config.paths.runtime, "daemon.log");
-
-    // Get the path to main.ts relative to workspace
-    // In deployed workspace, we need to reference the installed version
-    const mainScript = join(workspaceRoot, "src", "main.ts");
 
     // Check if main.ts exists
     if (!await exists(mainScript)) {
@@ -59,7 +62,14 @@ export class DaemonCommands extends BaseCommand {
 
     // Start daemon process in background using shell for true detachment
     // This allows the CLI to exit while daemon continues running
-    const exoEnvVars = Object.entries(Deno.env.toObject())
+    const env: Record<string, string> = Deno.env.toObject();
+
+    // Explicitly pass config path if available
+    if (this.configService) {
+      env.EXO_CONFIG_PATH = this.configService.getConfigPath();
+    }
+
+    const exoEnvVars = Object.entries(env)
       .filter(([k]) => k.startsWith("EXO_"))
       .map(([k, v]) => `${k}=${v}`)
       .join(" ");
@@ -326,5 +336,13 @@ export class DaemonCommands extends BaseCommand {
       // Log errors but don't fail the operation
       console.error("Failed to log daemon activity:", error);
     }
+  }
+
+  /**
+   * Check if daemon is running
+   */
+  private async isRunning(): Promise<boolean> {
+    const status = await this.status();
+    return status.running;
   }
 }

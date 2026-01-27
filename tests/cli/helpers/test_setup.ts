@@ -3,6 +3,7 @@
  */
 
 import { join } from "@std/path";
+import { ConfigService } from "../../../src/config/service.ts";
 import { PortalCommands } from "../../../src/cli/portal_commands.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
@@ -138,10 +139,13 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
     }
   }
 
+  const configPath = join(tempDir, "exo.config.toml");
+  const configService = new ConfigService(configPath);
+
   const cleanupAll = async () => {
     Deno.env.delete("EXO_TEST_CLI_MODE");
     await cleanup();
   };
 
-  return { db, tempDir, config, cleanup: cleanupAll };
+  return { db, tempDir, config, configService, cleanup: cleanupAll };
 }

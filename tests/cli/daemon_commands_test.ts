@@ -16,10 +16,11 @@ import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
+import { ConfigService } from "../../src/config/service.ts";
+import type { Config } from "../../src/config/schema.ts";
 import { DaemonCommands } from "../../src/cli/daemon_commands.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
-import type { Config } from "../../src/config/schema.ts";
 import { getRuntimeDir } from "../helpers/paths_helper.ts";
 
 describe("DaemonCommands", {
@@ -33,6 +34,7 @@ describe("DaemonCommands", {
   let logFile: string;
   let mainScript: string;
   let config: Config;
+  let configService: ConfigService;
   let testCleanup: () => Promise<void>;
 
   beforeEach(async () => {
@@ -41,6 +43,7 @@ describe("DaemonCommands", {
     tempDir = result.tempDir;
     db = result.db;
     config = result.config;
+    configService = result.configService;
     testCleanup = result.cleanup;
 
     pidFile = join(getRuntimeDir(tempDir), "daemon.pid");
@@ -68,10 +71,14 @@ await new Promise(() => {});
 `,
     );
 
-    daemonCommands = new DaemonCommands({ config, db });
+    // Ensure DaemonCommands uses our mock script
+    Deno.env.set("EXO_DAEMON_SCRIPT", mainScript);
+
+    daemonCommands = new DaemonCommands({ config, db, configService });
   });
 
   afterEach(async () => {
+    Deno.env.delete("EXO_DAEMON_SCRIPT");
     // Clean up any running test daemons
     if (await exists(pidFile)) {
       try {
@@ -581,11 +588,17 @@ describe("DaemonCommands - Edge Cases", () => {
   });
 
   it("start() should throw error when main script not found", async () => {
-    await assertRejects(
-      async () => await daemonCommands.start(),
-      Error,
-      "Daemon script not found",
-    );
+    // Set environment variable to point to non-existent script to trigger error
+    Deno.env.set("EXO_DAEMON_SCRIPT", "/non-existent/main.ts");
+    try {
+      await assertRejects(
+        async () => await daemonCommands.start(),
+        Error,
+        "Daemon script not found",
+      );
+    } finally {
+      Deno.env.delete("EXO_DAEMON_SCRIPT");
+    }
   });
 
   it("start() should return early when daemon already running", async () => {

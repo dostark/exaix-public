@@ -1,6 +1,7 @@
 import { Database } from "@db/sqlite";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createMockConfig } from "./config.ts";
+import { join } from "@std/path";
 import type { Config } from "../../src/config/schema.ts";
 
 /**
@@ -153,6 +154,53 @@ export async function initTestDbService(): Promise<
   const tempDir = await Deno.makeTempDir({ prefix: "exo-test-" });
 
   const config = createMockConfig(tempDir);
+
+  // Write mock config to disk so subprocesses can load it if passed via CLI or env explicitly
+  const configPath = join(tempDir, "exo.config.toml");
+
+  const configContent = `
+[system]
+root = "${tempDir}"
+version = "1.0.0"
+log_level = "info"
+
+[paths]
+memory = "./Memory"
+blueprints = "./Blueprints"
+runtime = "./.exo"
+workspace = "./Workspace"
+portals = "./Portals"
+active = "Active"
+archive = "Archive"
+plans = "Plans"
+requests = "Requests"
+rejected = "Rejected"
+agents = "Agents"
+flows = "Flows"
+memoryProjects = "Projects"
+memoryExecution = "Execution"
+memoryIndex = "Index"
+memorySkills = "Skills"
+memoryPending = "Pending"
+memoryTasks = "Tasks"
+memoryGlobal = "Global"
+
+[database.sqlite]
+journal_mode = "WAL"
+foreign_keys = true
+busy_timeout_ms = 5000
+
+[agents]
+default_model = "default"
+timeout_sec = 60
+max_iterations = 10
+
+[models.default]
+provider = "mock"
+model = "gpt-5.2-pro"
+timeout_ms = 30000
+`.trim();
+  Deno.writeTextFileSync(configPath, configContent);
 
   // Create runtime directory (.exo) for journal.db
   await Deno.mkdir(`${tempDir}/${config.paths.runtime}`, { recursive: true });
