@@ -19,13 +19,21 @@ export interface CircuitBreakerOptions {
 
 export type CircuitState = "closed" | "open" | "half-open";
 
+/** Error thrown when circuit is open and calls are rejected */
+export class CircuitOpenError extends Error {
+  constructor(message = "Circuit breaker is OPEN") {
+    super(message);
+    this.name = "CircuitOpenError";
+  }
+}
+
 /**
  * Circuit breaker implementation for external service resilience
  */
 export class CircuitBreaker {
   private state: CircuitState = "closed";
   private failureCount = 0;
-  private lastFailureTime = 0;
+  private lastFailureTime = 0; // stores monotonic timestamp (performance.now()) when available
   private successCount = 0;
 
   constructor(private options: CircuitBreakerOptions) {}
@@ -35,11 +43,12 @@ export class CircuitBreaker {
    */
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     if (this.state === "open") {
-      if (Date.now() - this.lastFailureTime > this.options.resetTimeout) {
+      const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+      if (now - this.lastFailureTime > this.options.resetTimeout) {
         this.state = "half-open";
         this.successCount = 0;
       } else {
-        throw new Error("Circuit breaker is OPEN");
+        throw new CircuitOpenError();
       }
     }
 
@@ -88,7 +97,7 @@ export class CircuitBreaker {
 
   private onFailure(): void {
     this.failureCount++;
-    this.lastFailureTime = Date.now();
+    this.lastFailureTime = typeof performance !== "undefined" ? performance.now() : Date.now();
 
     if (this.failureCount >= this.options.failureThreshold) {
       this.state = "open";

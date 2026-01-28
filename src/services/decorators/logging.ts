@@ -18,15 +18,15 @@ export function LogMethod(logger: EventLogger, action?: string): any {
       // Return the replacement method
       return async function (this: any, ...args: any[]) {
         const actionName = action || `${this.constructor.name}.${methodName}`;
-        const startTime = Date.now();
+        const startTime = typeof performance !== "undefined" ? performance.now() : Date.now();
         try {
           await logger.debug(actionName, "started", { args });
           const result = await originalMethod.apply(this, args);
-          const duration = Date.now() - startTime;
+          const duration = (typeof performance !== "undefined" ? performance.now() : Date.now()) - startTime;
           await logger.info(actionName, "completed", { duration });
           return result;
         } catch (error) {
-          const duration = Date.now() - startTime;
+          const duration = (typeof performance !== "undefined" ? performance.now() : Date.now()) - startTime;
           const errorMsg = error instanceof Error ? error.message : String(error);
           await logger.error(actionName, "failed", { error: errorMsg, duration });
           throw error;
@@ -40,15 +40,15 @@ export function LogMethod(logger: EventLogger, action?: string): any {
 
     descriptor!.value = async function (this: any, ...args: any[]) {
       const actionName = action || `${this.constructor.name}.${propertyKey}`;
-      const startTime = Date.now();
+      const startTime = typeof performance !== "undefined" ? performance.now() : Date.now();
       try {
         await logger.debug(actionName, "started", { args });
         const result = await originalMethod.apply(this, args);
-        const duration = Date.now() - startTime;
+        const duration = (typeof performance !== "undefined" ? performance.now() : Date.now()) - startTime;
         await logger.info(actionName, "completed", { duration });
         return result;
       } catch (error) {
-        const duration = Date.now() - startTime;
+        const duration = (typeof performance !== "undefined" ? performance.now() : Date.now()) - startTime;
         const errorMsg = error instanceof Error ? error.message : String(error);
         await logger.error(actionName, "failed", { error: errorMsg, duration });
         throw error;

@@ -370,15 +370,15 @@ deno coverage coverage/ --lcov > coverage.lcov
   - [x] Add lazy initialization
   - [x] Refactor provider tests
   - [x] Verify performance
-- [ ] **33.5** Services Refactoring
+- [x] **33.5** Services Refactoring
   - [x] Implement middleware pattern
   - [x] Add logging decorators
   - [x] Create circuit breakers
-  - [ ] Refactor services
-  - [ ] Update tests
+  - [x] Refactor services
+  - [x] Update tests (in-progress)
 - [ ] **33.6** Metrics & CI/CD
   - [x] Set up measurement tools
-  - [ ] Configure CI/CD pipeline
+  - [ ] Configure CI/CD pipeline (in-progress — workflows updated)
   - [ ] Create metrics dashboard
   - [ ] Document processes
 

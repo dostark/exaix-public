@@ -24,7 +24,9 @@ async function runCiScript(args: string[]): Promise<{ code: number; stdout: stri
   } catch (error) {
     // If we don't have run permissions, skip this test
     if (error instanceof Deno.errors.NotCapable) {
-      throw new Error("This test requires --allow-run permission to execute the CI script. Run with: deno test --allow-run tests_infra/script_test.ts");
+      throw new Error(
+        "This test requires --allow-run permission to execute the CI script. Run with: deno test --allow-run tests_infra/script_test.ts",
+      );
     }
     throw error;
   }

@@ -27,6 +27,8 @@ import { logDebug } from "./structured_logger.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { LogMethod } from "./decorators/logging.ts";
 import { EventLogger } from "./event_logger.ts";
+import { MiddlewarePipeline } from "./middleware/pipeline.ts";
+import type { ServiceContext } from "./common/types.ts";
 
 // ============================================================================
 // Critique Schema
@@ -235,82 +237,112 @@ export class ReflexiveAgent {
 
   @LogMethod(new EventLogger({ prefix: "[ReflexiveAgent]" }), "reflexive.run")
   async run(blueprint: Blueprint, request: ParsedRequest): Promise<ReflexiveExecutionResult> {
-    const startTime = performance.now();
-    const iterations: ReflexionIteration[] = [];
-    let currentResponse: AgentExecutionResult | null = null;
-    let finalCritique: Critique | null = null;
-    let earlyExit = false;
+    // Run reflexive loop through middleware pipeline to centralize timing/error handling
+    const pipeline = new MiddlewarePipeline<ServiceContext>();
 
-    this.metrics.totalExecutions++;
+    pipeline.use(async (_ctx, next) => {
+      const start = typeof performance !== "undefined" ? performance.now() : Date.now();
+      _ctx.__startTime = start;
+      await next();
+      const end = typeof performance !== "undefined" ? performance.now() : Date.now();
+      _ctx.__durationMs = end - _ctx.__startTime;
+    });
 
-    for (let i = 1; i <= this.config.maxIterations; i++) {
-      const iterationStart = performance.now();
+    pipeline.use(async (_ctx, next) => {
+      try {
+        await next();
+      } catch (err) {
+        // Instrumentation or special handling could go here
+        throw err;
+      }
+    });
 
-      if (i === 1) {
-        currentResponse = await this.agentBreaker.execute(() => this.agentRunner.run(blueprint, request));
-      } else {
-        currentResponse = await this.refine(blueprint, request, currentResponse!, finalCritique!);
+    const context: ServiceContext = { traceId: request.traceId, agentId: blueprint.agentId };
+
+    let finalResult: ReflexiveExecutionResult;
+
+    await pipeline.execute(context, async () => {
+      const startTime = performance.now();
+      const iterations: ReflexionIteration[] = [];
+      let currentResponse: AgentExecutionResult | null = null;
+      let finalCritique: Critique | null = null;
+      let earlyExit = false;
+
+      this.metrics.totalExecutions++;
+
+      for (let i = 1; i <= this.config.maxIterations; i++) {
+        const iterationStart = performance.now();
+
+        if (i === 1) {
+          currentResponse = await this.agentBreaker.execute(() => this.agentRunner.run(blueprint, request));
+        } else {
+          currentResponse = await this.refine(blueprint, request, currentResponse!, finalCritique!);
+        }
+
+        const critique = await this.critique(request, currentResponse);
+
+        const iterationDuration = performance.now() - iterationStart;
+        iterations.push({
+          iteration: i,
+          response: currentResponse,
+          critique,
+          durationMs: iterationDuration,
+        });
+
+        this.metrics.totalIterations++;
+        this.updateMetrics(critique);
+
+        this.logActivity("reflexive_agent", "reflexion.iteration", null, {
+          iteration: i,
+          quality: critique.quality,
+          confidence: critique.confidence,
+          passed: critique.passed,
+          issueCount: critique.issues.length,
+          durationMs: iterationDuration,
+        }, request.traceId);
+
+        if (this.shouldAccept(critique)) {
+          finalCritique = critique;
+          earlyExit = i < this.config.maxIterations;
+          if (earlyExit) {
+            this.metrics.earlyExitCount++;
+          }
+          break;
+        }
+
+        finalCritique = critique;
       }
 
-      const critique = await this.critique(request, currentResponse);
+      const totalDuration = performance.now() - startTime;
 
-      const iterationDuration = performance.now() - iterationStart;
-      iterations.push({
-        iteration: i,
-        response: currentResponse,
-        critique,
-        durationMs: iterationDuration,
-      });
+      this.metrics.earlyExitRate = this.metrics.earlyExitCount / this.metrics.totalExecutions;
+      this.metrics.averageIterationsPerExecution = this.metrics.totalIterations / this.metrics.totalExecutions;
 
-      this.metrics.totalIterations++;
-      this.updateMetrics(critique);
-
-      this.logActivity("reflexive_agent", "reflexion.iteration", null, {
-        iteration: i,
-        quality: critique.quality,
-        confidence: critique.confidence,
-        passed: critique.passed,
-        issueCount: critique.issues.length,
-        durationMs: iterationDuration,
+      this.logActivity("reflexive_agent", "reflexion.complete", null, {
+        totalIterations: iterations.length,
+        earlyExit,
+        finalQuality: finalCritique?.quality,
+        finalConfidence: finalCritique?.confidence,
+        totalDurationMs: totalDuration,
       }, request.traceId);
 
-      if (this.shouldAccept(critique)) {
-        finalCritique = critique;
-        earlyExit = i < this.config.maxIterations;
-        if (earlyExit) {
-          this.metrics.earlyExitCount++;
-        }
-        break;
-      }
+      const confidences = iterations.map((it) => it.critique?.confidence ?? 0).filter((c) => c > 0);
+      const averageConfidence = confidences.length > 0
+        ? confidences.reduce((a, b) => a + b, 0) / confidences.length
+        : 0;
 
-      finalCritique = critique;
-    }
+      finalResult = {
+        final: currentResponse!,
+        finalCritique,
+        iterations,
+        totalIterations: iterations.length,
+        earlyExit,
+        totalDurationMs: totalDuration,
+        averageConfidence,
+      };
+    });
 
-    const totalDuration = performance.now() - startTime;
-
-    this.metrics.earlyExitRate = this.metrics.earlyExitCount / this.metrics.totalExecutions;
-    this.metrics.averageIterationsPerExecution = this.metrics.totalIterations / this.metrics.totalExecutions;
-
-    this.logActivity("reflexive_agent", "reflexion.complete", null, {
-      totalIterations: iterations.length,
-      earlyExit,
-      finalQuality: finalCritique?.quality,
-      finalConfidence: finalCritique?.confidence,
-      totalDurationMs: totalDuration,
-    }, request.traceId);
-
-    const confidences = iterations.map((it) => it.critique?.confidence ?? 0).filter((c) => c > 0);
-    const averageConfidence = confidences.length > 0 ? confidences.reduce((a, b) => a + b, 0) / confidences.length : 0;
-
-    return {
-      final: currentResponse!,
-      finalCritique,
-      iterations,
-      totalIterations: iterations.length,
-      earlyExit,
-      totalDurationMs: totalDuration,
-      averageConfidence,
-    };
+    return finalResult!;
   }
 
   private async critique(request: ParsedRequest, response: AgentExecutionResult): Promise<Critique> {

@@ -11,6 +11,13 @@ import { HealthCheckVerdict, HealthStatus } from "../enums.ts";
 import { EventLogger } from "./event_logger.ts";
 import { LogMethod } from "./decorators/logging.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
+import { DEFAULT_MCP_VERSION } from "../config/constants.ts";
+
+// Local defaults to avoid magic numbers in this module
+const DEFAULT_CHECK_BREAKER_FAILURE_THRESHOLD = 3;
+const DEFAULT_CHECK_BREAKER_RESET_TIMEOUT_MS = 60_000; // 1 minute
+const DEFAULT_CHECK_BREAKER_HALF_OPEN_SUCCESS_THRESHOLD = 2;
+const MS_PER_SECOND = 1000;
 
 /**
  * Interface for individual health check implementations
@@ -104,9 +111,10 @@ export class HealthCheckService {
     // Create a per-check circuit breaker with reasonable defaults (can be tuned via config)
     const healthCfg = (this.config as any)?.health ?? {};
     const opts = {
-      failureThreshold: healthCfg.failure_threshold ?? 3,
-      resetTimeout: healthCfg.reset_timeout_ms ?? 60_000,
-      halfOpenSuccessThreshold: healthCfg.half_open_success_threshold ?? 2,
+      failureThreshold: healthCfg.failure_threshold ?? DEFAULT_CHECK_BREAKER_FAILURE_THRESHOLD,
+      resetTimeout: healthCfg.reset_timeout_ms ?? DEFAULT_CHECK_BREAKER_RESET_TIMEOUT_MS,
+      halfOpenSuccessThreshold: healthCfg.half_open_success_threshold ??
+        DEFAULT_CHECK_BREAKER_HALF_OPEN_SUCCESS_THRESHOLD,
     };
     this.checkBreakers.set(check.name, new CircuitBreaker(opts));
   }
@@ -185,7 +193,7 @@ export class HealthCheckService {
       status: hasFailure ? HealthStatus.UNHEALTHY : hasWarning ? HealthStatus.DEGRADED : HealthStatus.HEALTHY,
       timestamp: new Date().toISOString(),
       version: this.version,
-      uptime_seconds: Math.floor((Date.now() - this.startTime) / 1000),
+      uptime_seconds: Math.floor((Date.now() - this.startTime) / MS_PER_SECOND),
       checks: results,
     };
   }
@@ -507,7 +515,7 @@ export function initializeHealthChecks(
   provider: IModelProvider,
   config: Config,
 ): HealthCheckService {
-  const health = new HealthCheckService("1.0.0", config);
+  const health = new HealthCheckService(DEFAULT_MCP_VERSION, config);
 
   health.registerCheck(new DatabaseHealthCheck(db));
   health.registerCheck(new LLMProviderHealthCheck(provider));
@@ -545,7 +553,66 @@ export async function handleHealthCheck(
   _req: Request,
   health: HealthCheckService,
 ): Promise<Response> {
-  try {
+  // Build a middleware pipeline to add timing, error handling, and logging
+  const pipelineModule = await import("./middleware/pipeline.ts");
+  const MiddlewarePipeline = pipelineModule
+    .MiddlewarePipeline as typeof import("./middleware/pipeline.ts").MiddlewarePipeline;
+  const pipeline = new MiddlewarePipeline<any>();
+
+  // Error handling middleware: ensure any thrown errors produce a 503 JSON response
+  pipeline.use(async (ctx, next) => {
+    try {
+      await next();
+    } catch (err) {
+      const errorResponse = {
+        status: HealthStatus.UNHEALTHY,
+        timestamp: new Date().toISOString(),
+        version: DEFAULT_MCP_VERSION,
+        uptime_seconds: 0,
+        checks: {},
+        error: err instanceof Error ? err.message : String(err),
+      };
+
+      ctx.res = new Response(JSON.stringify(errorResponse, null, 2), {
+        status: 503,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
+        },
+      });
+    }
+  });
+
+  // Timing/metrics middleware: measure duration and attach X-Response-Time-ms header
+  pipeline.use(async (ctx, next) => {
+    const start = (typeof performance !== "undefined") ? performance.now() : Date.now();
+    await next();
+    const duration = Math.round(((typeof performance !== "undefined") ? performance.now() : Date.now()) - start);
+
+    if (ctx.res instanceof Response) {
+      const headers = new Headers(ctx.res.headers);
+      headers.set("X-Response-Time-ms", String(duration));
+      // preserve cache-control if present
+      ctx.res = new Response(ctx.res.body, { status: ctx.res.status, headers });
+    }
+  });
+
+  // Logging middleware: lightweight console logging for request lifecycle
+  pipeline.use(async (ctx, next) => {
+    try {
+      console.debug("[health] request start", { url: ctx.req.url });
+      await next();
+      console.debug("[health] request end", { status: ctx.res?.status });
+    } catch (e) {
+      console.error("[health] request error", e instanceof Error ? e.message : String(e));
+      throw e;
+    }
+  });
+
+  // Execute pipeline with a handler that performs the actual health check and builds the response
+  const context: any = { req: _req, health, res: undefined };
+
+  await pipeline.execute(context, async () => {
     const status = await health.checkHealth();
 
     // Return appropriate HTTP status code based on health status
@@ -556,30 +623,14 @@ export async function handleHealthCheck(
       httpStatus = 200; // Still OK but with warnings
     }
 
-    return new Response(JSON.stringify(status, null, 2), {
+    context.res = new Response(JSON.stringify(status, null, 2), {
       status: httpStatus,
       headers: {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache",
       },
     });
-  } catch (error) {
-    // If health check itself fails, return service unavailable
-    const errorResponse = {
-      status: HealthStatus.UNHEALTHY,
-      timestamp: new Date().toISOString(),
-      version: "1.0.0",
-      uptime_seconds: 0,
-      checks: {},
-      error: error instanceof Error ? error.message : String(error),
-    };
+  });
 
-    return new Response(JSON.stringify(errorResponse, null, 2), {
-      status: 503,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "no-cache",
-      },
-    });
-  }
+  return context.res as Response;
 }

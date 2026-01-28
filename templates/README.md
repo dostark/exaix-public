@@ -18,22 +18,26 @@ This directory represents a deployed runtime workspace created from the ExoFrame
 ## Quick Start
 
 1. Copy the sample config and edit as needed:
+
 ```bash
 cp exo.config.sample.toml exo.config.toml
 # edit exo.config.toml to customize paths and settings
 ```
 
 2. Start the daemon
+
 ```bash
 exoctl daemon start
 ```
 
 3. Verify status
+
 ```bash
 exoctl daemon status
 ```
 
 4. Create your first request
+
 ```bash
 exoctl request "Add a hello world function"
 ```

@@ -70,22 +70,23 @@ Follow the Conventional Commits specification for consistent, parseable commit h
 
 ## Types
 
-| Type | When to Use | Bumps |
-|------|-------------|-------|
-| `feat` | New feature | MINOR |
-| `fix` | Bug fix | PATCH |
-| `docs` | Documentation only | - |
-| `style` | Code style (formatting, semicolons) | - |
-| `refactor` | Code change that neither fixes nor adds | - |
-| `perf` | Performance improvement | PATCH |
-| `test` | Adding or correcting tests | - |
-| `build` | Build system or dependencies | - |
-| `ci` | CI configuration | - |
-| `chore` | Other changes (e.g., .gitignore) | - |
+| Type       | When to Use                             | Bumps |
+| ---------- | --------------------------------------- | ----- |
+| `feat`     | New feature                             | MINOR |
+| `fix`      | Bug fix                                 | PATCH |
+| `docs`     | Documentation only                      | -     |
+| `style`    | Code style (formatting, semicolons)     | -     |
+| `refactor` | Code change that neither fixes nor adds | -     |
+| `perf`     | Performance improvement                 | PATCH |
+| `test`     | Adding or correcting tests              | -     |
+| `build`    | Build system or dependencies            | -     |
+| `ci`       | CI configuration                        | -     |
+| `chore`    | Other changes (e.g., .gitignore)        | -     |
 
 ## Examples
 
 ### Simple Fix
+
 ```
 fix(auth): prevent race condition in token refresh
 
@@ -96,6 +97,7 @@ Fixes #123
 ```
 
 ### New Feature
+
 ```
 feat(api): add user profile endpoints
 
@@ -107,6 +109,7 @@ Closes #456
 ```
 
 ### Breaking Change
+
 ```
 feat(api)!: change authentication to JWT
 
@@ -117,11 +120,13 @@ Migration guide: docs/migration-v2.md
 ```
 
 ### Documentation
+
 ```
 docs(readme): add installation instructions for Windows
 ```
 
 ### Refactor
+
 ```
 refactor(core): extract validation logic to separate module
 

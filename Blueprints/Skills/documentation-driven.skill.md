@@ -74,22 +74,25 @@ Before writing code, document what you're building:
 # Feature Name
 
 ## Purpose
+
 What problem does this solve? Why is it needed?
 
 ## Usage
 
 ### Basic Example
+
 \`\`\`typescript
 // Show the simplest use case
 const result = await doThing();
 \`\`\`
 
 ### Advanced Example
+
 \`\`\`typescript
 // Show more complex scenarios
 const result = await doThing({
-  option: 'value',
-  callback: (data) => handleData(data),
+option: 'value',
+callback: (data) => handleData(data),
 });
 \`\`\`
 
@@ -100,12 +103,14 @@ const result = await doThing({
 Description of what this function does.
 
 **Parameters:**
+
 - `param1` (string): Description
 - `param2` (number, optional): Description
 
 **Returns:** Description of return value
 
 **Throws:**
+
 - `ErrorType`: When this error occurs
 ```
 
@@ -113,7 +118,7 @@ Description of what this function does.
 
 Define your API contract before implementation:
 
-```typescript
+````typescript
 /**
  * UserService - Manages user accounts and authentication
  *
@@ -139,13 +144,13 @@ export class UserService {
     // Implementation comes after docs
   }
 }
-```
+````
 
 ## 3. JSDoc for Functions
 
 Document all public functions:
 
-```typescript
+````typescript
 /**
  * Calculate the total price including tax and discounts
  *
@@ -170,7 +175,7 @@ export function calculateTotal(
 ): number {
   // Implementation
 }
-```
+````
 
 ## 4. Architecture Documentation
 
@@ -182,6 +187,7 @@ Document system design:
 ## Components
 
 ### Service Layer
+
 - **UserService** - User management and authentication
 - **OrderService** - Order processing and fulfillment
 - **PaymentService** - Payment processing
@@ -190,18 +196,20 @@ Document system design:
 
 \`\`\`
 Request → Router → Controller → Service → Repository → Database
-                              ↓
-                        Domain Events → Event Handlers
+↓
+Domain Events → Event Handlers
 \`\`\`
 
 ## Design Decisions
 
 ### Why PostgreSQL over MongoDB?
+
 - Strong consistency requirements for financial data
 - Complex relational queries for reporting
 - ACID compliance for transactions
 
 ### Why Event Sourcing for Orders?
+
 - Audit trail requirements
 - Easy to reconstruct state at any point
 - Supports complex workflows
@@ -218,13 +226,13 @@ Documentation debt is technical debt:
 
 ## 6. Documentation Types
 
-| Type | Audience | Purpose |
-|------|----------|---------|
-| README | Users | Quick start, overview |
-| API Reference | Developers | Technical details |
-| Tutorials | Learners | Step-by-step guides |
-| Architecture | Team | System design |
-| ADRs | Future devs | Decision rationale |
+| Type          | Audience    | Purpose               |
+| ------------- | ----------- | --------------------- |
+| README        | Users       | Quick start, overview |
+| API Reference | Developers  | Technical details     |
+| Tutorials     | Learners    | Step-by-step guides   |
+| Architecture  | Team        | System design         |
+| ADRs          | Future devs | Decision rationale    |
 
 ## Benefits of Documentation-First
 

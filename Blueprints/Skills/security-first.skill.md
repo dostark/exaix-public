@@ -91,6 +91,7 @@ const { email, password } = request.body;
 ```
 
 **Rules:**
+
 - Validate data type, length, format, and range
 - Use allowlists over denylists
 - Sanitize for the output context (HTML, SQL, etc.)
@@ -101,8 +102,8 @@ const { email, password } = request.body;
 
 ```typescript
 // ✅ Good: Check permissions explicitly
-if (!user.hasPermission('admin:delete')) {
-  throw new ForbiddenError('Insufficient permissions');
+if (!user.hasPermission("admin:delete")) {
+  throw new ForbiddenError("Insufficient permissions");
 }
 
 // ❌ Bad: Security through obscurity
@@ -110,6 +111,7 @@ if (!user.hasPermission('admin:delete')) {
 ```
 
 **Rules:**
+
 - Verify authentication on every protected route
 - Use role-based or attribute-based access control
 - Fail securely (deny by default)
@@ -127,6 +129,7 @@ const apiKey = "sk-1234567890abcdef";
 ```
 
 **Rules:**
+
 - Use environment variables or secret managers
 - Rotate secrets regularly
 - Never commit secrets to version control
@@ -144,6 +147,7 @@ const hash = md5(password);
 ```
 
 **Rules:**
+
 - Use strong encryption for sensitive data at rest
 - Use TLS for data in transit
 - Minimize data collection and retention
@@ -161,6 +165,7 @@ throw new Error(`User ${email} not found in database`);
 ```
 
 **Rules:**
+
 - Log detailed errors server-side
 - Return generic errors to clients
 - Never expose stack traces in production
@@ -168,6 +173,7 @@ throw new Error(`User ${email} not found in database`);
 ## 6. OWASP Top 10 Checklist
 
 Always consider:
+
 - [ ] **Injection** - Parameterized queries, input validation
 - [ ] **Broken Authentication** - Strong passwords, MFA, session management
 - [ ] **Sensitive Data Exposure** - Encryption, proper storage

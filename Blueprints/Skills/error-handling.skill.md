@@ -94,7 +94,7 @@ class ValidationError extends AppError {
 
 class NotFoundError extends AppError {
   constructor(resource: string, id?: string) {
-    super(`${resource}${id ? ` with id ${id}` : ''} not found`, "NOT_FOUND", 404);
+    super(`${resource}${id ? ` with id ${id}` : ""} not found`, "NOT_FOUND", 404);
   }
 }
 
@@ -108,6 +108,7 @@ class AuthorizationError extends AppError {
 ## 2. Try-Catch Patterns
 
 **Do:**
+
 ```typescript
 // ✅ Specific error handling
 try {
@@ -128,6 +129,7 @@ try {
 ```
 
 **Don't:**
+
 ```typescript
 // ❌ Silent error swallowing
 try {
@@ -186,19 +188,19 @@ Handle promise rejections:
 // ✅ Proper async error handling
 async function processItems(items: Item[]) {
   const results = await Promise.allSettled(
-    items.map(item => processItem(item))
+    items.map((item) => processItem(item)),
   );
 
-  const succeeded = results.filter(r => r.status === 'fulfilled');
-  const failed = results.filter(r => r.status === 'rejected');
+  const succeeded = results.filter((r) => r.status === "fulfilled");
+  const failed = results.filter((r) => r.status === "rejected");
 
   if (failed.length > 0) {
     logger.warn(`${failed.length} items failed processing`, {
-      errors: failed.map(f => f.reason),
+      errors: failed.map((f) => f.reason),
     });
   }
 
-  return succeeded.map(s => s.value);
+  return succeeded.map((s) => s.value);
 }
 ```
 
@@ -249,7 +251,7 @@ async function withRetry<T>(
 
       if (attempt < options.maxRetries) {
         const delay = options.backoffMs * Math.pow(2, attempt - 1);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
   }

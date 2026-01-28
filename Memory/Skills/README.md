@@ -62,9 +62,11 @@ quality_criteria:
 Your procedural instructions go here in Markdown format.
 
 ## Step 1
+
 ...
 
 ## Step 2
+
 ...
 ```
 
@@ -89,16 +91,16 @@ exoctl memory skill derive <learning-ids...>
 
 ## Core Skills
 
-| Skill ID | Purpose |
-|----------|---------|
-| `tdd-methodology` | Test-Driven Development workflow |
-| `security-first` | Security-conscious development |
-| `code-review` | Comprehensive code review checklist |
-| `documentation-driven` | Documentation-first approach |
-| `commit-message` | Conventional commit format |
-| `error-handling` | Robust error handling patterns |
-| `typescript-patterns` | TypeScript best practices |
-| `exoframe-conventions` | ExoFrame-specific patterns |
+| Skill ID               | Purpose                             |
+| ---------------------- | ----------------------------------- |
+| `tdd-methodology`      | Test-Driven Development workflow    |
+| `security-first`       | Security-conscious development      |
+| `code-review`          | Comprehensive code review checklist |
+| `documentation-driven` | Documentation-first approach        |
+| `commit-message`       | Conventional commit format          |
+| `error-handling`       | Robust error handling patterns      |
+| `typescript-patterns`  | TypeScript best practices           |
+| `exoframe-conventions` | ExoFrame-specific patterns          |
 
 ## Related Documentation
 

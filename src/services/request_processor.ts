@@ -197,129 +197,169 @@ export class RequestProcessor {
       return null;
     }
 
-    try {
-      let planContent: string;
-      let _agentId: string;
+    // Build middleware pipeline for logging, error handling, and timing
+    const pipelineModule = await import("./middleware/pipeline.ts");
+    const MiddlewarePipeline = pipelineModule
+      .MiddlewarePipeline as typeof import("./middleware/pipeline.ts").MiddlewarePipeline;
+    const pipeline = new MiddlewarePipeline<any>();
 
-      if (hasFlow) {
-        // Handle flow request
-        if (this.flowValidator) {
-          const validation = await this.flowValidator.validateFlow(frontmatter.flow!);
-          if (!validation.valid) {
-            traceLogger.error("flow.validation.failed", frontmatter.flow!, {
-              error: validation.error,
-            });
-            await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
-            return null;
-          }
-        } // Skip validation if flowValidator is not available (test environment)
-
-        // Generate flow execution plan
-        planContent = JSON.stringify({
-          title: `Flow Execution: ${frontmatter.flow}`,
-          description: `Execute the ${frontmatter.flow} flow`,
-          steps: [{
-            step: 1,
-            title: "Execute Flow",
-            description: `Execute the ${frontmatter.flow} flow with the provided request`,
-            flow: frontmatter.flow,
-          }],
-        });
-        _agentId = "flow-executor"; // Special agent ID for flow execution
-
-        // Create mock result for PlanWriter
-        const result = {
-          thought: `Prepared flow ${frontmatter.flow} for execution`,
-          content: planContent,
-          raw: planContent,
-        };
-
-        // Step 5: Write the plan using PlanWriter
-        const metadata: RequestMetadata = {
-          requestId,
-          traceId,
-          createdAt: new Date(frontmatter.created),
-          contextFiles: [],
-          contextWarnings: [],
-          model: frontmatter.model,
-          portal: frontmatter.portal,
-        };
-
-        return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger, {
-          flow: frontmatter.flow,
-        });
-      } else {
-        // Handle agent request (existing logic)
-        const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
-        const loadedBlueprint = await blueprintLoader.load(frontmatter.agent!);
-        if (!loadedBlueprint) {
-          traceLogger.error("blueprint.not_found", frontmatter.agent!, {
-            request: filePath,
+    // Error-logging middleware: log error and rethrow so outer catch can handle domain logic
+    pipeline.use(async (ctx, next) => {
+      try {
+        await next();
+      } catch (err) {
+        try {
+          ctx.traceLogger?.error("request.processing.error", ctx.filePath, {
+            error: err instanceof Error ? err.message : String(err),
           });
-          await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
-          traceLogger.error("request.failed", filePath, {
-            error: `Blueprint not found: ${frontmatter.agent}`,
-          });
-          return null;
+        } catch {
+          // swallow logging errors
         }
-        const blueprint = blueprintLoader.toLegacyBlueprint(loadedBlueprint);
+        throw err;
+      }
+    });
 
-        // Step 3: Build the parsed request for AgentRunner
-        const request: ParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as ParsedRequest;
+    // Timing middleware: measure processing duration and emit a metric log
+    pipeline.use(async (ctx, next) => {
+      const start = (typeof performance !== "undefined") ? performance.now() : Date.now();
+      await next();
+      const duration = Math.round(((typeof performance !== "undefined") ? performance.now() : Date.now()) - start);
+      try {
+        ctx.traceLogger?.info("request.processing.duration", ctx.filePath, { duration_ms: duration });
+      } catch {
+        // ignore
+      }
+    });
 
-        // Step 4: Select appropriate provider for this task
-        const taskComplexity = this.classifyTaskComplexity(blueprint, request);
-        let selectedProvider: IModelProvider;
+    const context: any = { filePath, parsed, frontmatter, body, traceLogger, requestId };
 
-        if (this.testProvider) {
-          // Use test provider override
-          selectedProvider = this.testProvider;
-          traceLogger.info("provider.selected", "test-provider", {
-            taskComplexity,
-            trace_id: traceId,
+    try {
+      const planPath = await pipeline.execute<string | null>(context, async () => {
+        let planContent: string;
+        let _agentId: string;
+
+        if (hasFlow) {
+          // Handle flow request
+          if (this.flowValidator) {
+            const validation = await this.flowValidator.validateFlow(frontmatter.flow!);
+            if (!validation.valid) {
+              traceLogger.error("flow.validation.failed", frontmatter.flow!, {
+                error: validation.error,
+              });
+              await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
+              return null;
+            }
+          } // Skip validation if flowValidator is not available (test environment)
+
+          // Generate flow execution plan
+          planContent = JSON.stringify({
+            title: `Flow Execution: ${frontmatter.flow}`,
+            description: `Execute the ${frontmatter.flow} flow`,
+            steps: [{
+              step: 1,
+              title: "Execute Flow",
+              description: `Execute the ${frontmatter.flow} flow with the provided request`,
+              flow: frontmatter.flow,
+            }],
+          });
+          _agentId = "flow-executor"; // Special agent ID for flow execution
+
+          // Create mock result for PlanWriter
+          const result = {
+            thought: `Prepared flow ${frontmatter.flow} for execution`,
+            content: planContent,
+            raw: planContent,
+          };
+
+          // Step 5: Write the plan using PlanWriter
+          const metadata: RequestMetadata = {
+            requestId,
+            traceId,
+            createdAt: new Date(frontmatter.created),
+            contextFiles: [],
+            contextWarnings: [],
+            model: frontmatter.model,
+            portal: frontmatter.portal,
+          };
+
+          return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger, {
+            flow: frontmatter.flow,
           });
         } else {
-          // Use ProviderSelector for intelligent selection
-          const selectedProviderName = await this.providerSelector.selectProviderForTask(
-            this.config,
-            taskComplexity,
-          );
+          // Handle agent request (existing logic)
+          const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
+          const loadedBlueprint = await blueprintLoader.load(frontmatter.agent!);
+          if (!loadedBlueprint) {
+            traceLogger.error("blueprint.not_found", frontmatter.agent!, {
+              request: filePath,
+            });
+            await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
+            traceLogger.error("request.failed", filePath, {
+              error: `Blueprint not found: ${frontmatter.agent}`,
+            });
+            return null;
+          }
+          const blueprint = blueprintLoader.toLegacyBlueprint(loadedBlueprint);
 
-          // Create the provider instance and wrap with circuit breaker provider
-          const rawProvider = await ProviderFactory.createByName(this.config, selectedProviderName);
-          selectedProvider = new CircuitBreakerProvider(rawProvider, {
-            failureThreshold: 5,
-            resetTimeout: 60_000,
-            halfOpenSuccessThreshold: 2,
-          });
+          // Step 3: Build the parsed request for AgentRunner
+          const request: ParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as ParsedRequest;
 
-          traceLogger.info("provider.selected", selectedProviderName, {
-            taskComplexity,
-            trace_id: traceId,
-            provider_wrapped: selectedProvider.id,
-          });
+          // Step 4: Select appropriate provider for this task
+          const taskComplexity = this.classifyTaskComplexity(blueprint, request);
+          let selectedProvider: IModelProvider;
+
+          if (this.testProvider) {
+            // Use test provider override
+            selectedProvider = this.testProvider;
+            traceLogger.info("provider.selected", "test-provider", {
+              taskComplexity,
+              trace_id: traceId,
+            });
+          } else {
+            // Use ProviderSelector for intelligent selection
+            const selectedProviderName = await this.providerSelector.selectProviderForTask(
+              this.config,
+              taskComplexity,
+            );
+
+            // Create the provider instance and wrap with circuit breaker provider
+            const rawProvider = await ProviderFactory.createByName(this.config, selectedProviderName);
+            selectedProvider = new CircuitBreakerProvider(rawProvider, {
+              failureThreshold: 5,
+              resetTimeout: 60_000,
+              halfOpenSuccessThreshold: 2,
+            });
+
+            traceLogger.info("provider.selected", selectedProviderName, {
+              taskComplexity,
+              trace_id: traceId,
+              provider_wrapped: selectedProvider.id,
+            });
+          }
+
+          // Create AgentRunner with selected provider
+          const agentRunner = new AgentRunner(selectedProvider, { db: this.db });
+
+          const result = await agentRunner.run(blueprint, request);
+          planContent = result.content;
+          _agentId = frontmatter.agent!;
+
+          // Step 5: Write the plan using PlanWriter
+          const metadata: RequestMetadata = {
+            requestId,
+            traceId,
+            createdAt: new Date(frontmatter.created),
+            contextFiles: [],
+            contextWarnings: [],
+            model: frontmatter.model,
+            portal: frontmatter.portal,
+          };
+
+          return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger);
         }
+      });
 
-        // Create AgentRunner with selected provider
-        const agentRunner = new AgentRunner(selectedProvider, { db: this.db });
-
-        const result = await agentRunner.run(blueprint, request);
-        planContent = result.content;
-        _agentId = frontmatter.agent!;
-
-        // Step 5: Write the plan using PlanWriter
-        const metadata: RequestMetadata = {
-          requestId,
-          traceId,
-          createdAt: new Date(frontmatter.created),
-          contextFiles: [],
-          contextWarnings: [],
-          model: frontmatter.model,
-          portal: frontmatter.portal,
-        };
-
-        return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger);
-      }
+      return planPath;
     } catch (error: unknown) {
       // Handle errors gracefully
       let errorMessage = error instanceof Error ? error.message : String(error);

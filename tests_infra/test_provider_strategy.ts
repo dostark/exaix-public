@@ -7,8 +7,13 @@ import { TestEnvironment } from "../tests/integration/helpers/test_environment.t
 import { ProviderSelector } from "../src/ai/provider_selector.ts";
 import { CostTracker } from "../src/services/cost_tracker.ts";
 import { HealthCheckService } from "../src/services/health_check_service.ts";
-import { ProviderRegistry, MockProviderFactory, OllamaProviderFactory, OpenAIProviderFactory } from "../src/ai/provider_registry.ts";
-import { PricingTier, TaskComplexity, ProviderCostTier } from "../src/enums.ts";
+import {
+  MockProviderFactory,
+  OllamaProviderFactory,
+  OpenAIProviderFactory,
+  ProviderRegistry,
+} from "../src/ai/provider_registry.ts";
+import { PricingTier, ProviderCostTier, TaskComplexity } from "../src/enums.ts";
 
 Deno.test("Provider Strategy: Full agent execution with provider switching", async (t) => {
   // Initialize provider registry for testing
@@ -43,15 +48,21 @@ Deno.test("Provider Strategy: Full agent execution with provider switching", asy
 
     try {
       // Create blueprints for different complexity levels
-      await env.createBlueprint("analyzer", `# Analyzer Blueprint
+      await env.createBlueprint(
+        "analyzer",
+        `# Analyzer Blueprint
 You are a simple analyzer. Keep responses brief and focused.
 ## Complexity: Low
-## Cost: Free preferred`);
+## Cost: Free preferred`,
+      );
 
-      await env.createBlueprint("coder", `# Senior Coder Blueprint
+      await env.createBlueprint(
+        "coder",
+        `# Senior Coder Blueprint
 You are an expert developer. Provide detailed technical analysis and implementation plans.
 ## Complexity: High
-## Cost: Premium required for complex tasks`);
+## Cost: Premium required for complex tasks`,
+      );
 
       // Set up services
       const costTracker = new CostTracker(env.db);
@@ -94,7 +105,6 @@ You are an expert developer. Provide detailed technical analysis and implementat
       // Verify costs are different
       const freeCost = await costTracker.getDailyCost("ollama");
       assert(freeCost < 0.01, "Free provider should have minimal cost");
-
     } finally {
       await env.cleanup();
     }
@@ -124,7 +134,6 @@ You are an expert developer. Provide detailed technical analysis and implementat
       // Verify daily cost for paid provider is high
       const paidCost = await costTracker.getDailyCost("openai");
       assert(paidCost > 0.05, "Paid provider should have accumulated high cost");
-
     } finally {
       await env.cleanup();
     }
@@ -163,7 +172,6 @@ Deno.test("Provider Strategy: Free-to-paid fallback scenarios", async (t) => {
       // Should select mock provider as fallback when ollama is unhealthy
       // (mock is also free and healthy)
       assertStringIncludes(provider, "mock", "Should fallback to healthy free provider when ollama unhealthy");
-
     } finally {
       await env.cleanup();
     }
@@ -221,7 +229,6 @@ Deno.test("Provider Strategy: Multi-provider concurrent requests", async (t) => 
       assert(freeCost >= 0, "Free provider should have accumulated costs");
       assert(paidCost >= 0, "Paid provider should have accumulated costs");
       assert(paidCost >= freeCost, "Paid provider should cost more than free");
-
     } finally {
       await env.cleanup();
     }

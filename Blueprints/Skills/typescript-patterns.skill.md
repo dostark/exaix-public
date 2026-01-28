@@ -128,7 +128,7 @@ async function fetchById<T>(
 }
 
 // Usage
-const user = await fetchById<User>('/api/users', '123');
+const user = await fetchById<User>("/api/users", "123");
 ```
 
 ### Constrain Generics When Appropriate
@@ -143,7 +143,7 @@ function findById<T extends HasId>(
   items: T[],
   id: string,
 ): T | undefined {
-  return items.find(item => item.id === id);
+  return items.find((item) => item.id === id);
 }
 ```
 
@@ -160,10 +160,10 @@ interface ApiError {
 
 function isApiError(error: unknown): error is ApiError {
   return (
-    typeof error === 'object' &&
+    typeof error === "object" &&
     error !== null &&
-    'code' in error &&
-    'message' in error
+    "code" in error &&
+    "message" in error
   );
 }
 
@@ -203,10 +203,10 @@ Use built-in utility types:
 type UpdateUser = Partial<User>;
 
 // Pick - select specific properties
-type UserCredentials = Pick<User, 'email' | 'password'>;
+type UserCredentials = Pick<User, "email" | "password">;
 
 // Omit - exclude properties
-type UserWithoutPassword = Omit<User, 'password'>;
+type UserWithoutPassword = Omit<User, "password">;
 
 // Record - object with known keys
 type UserRoles = Record<string, Role>;
@@ -224,12 +224,12 @@ type ImmutableUser = Readonly<User>;
 
 ```typescript
 // ✅ Good: Safe property access
-const email = user?.profile?.email ?? 'default@example.com';
+const email = user?.profile?.email ?? "default@example.com";
 
 // ✅ Good: Explicit null checks
 function processUser(user: User | null) {
   if (!user) {
-    throw new Error('User is required');
+    throw new Error("User is required");
   }
   // TypeScript knows user is User here
   return user.email;
@@ -243,7 +243,7 @@ function processUser(user: User | null) {
 const email = user!.email;
 
 // ✅ Better: Explicit check
-if (!user) throw new Error('User required');
+if (!user) throw new Error("User required");
 const email = user.email;
 ```
 
@@ -253,20 +253,20 @@ Prefer union types over enums:
 
 ```typescript
 // ✅ Preferred: Union type
-type Status = 'pending' | 'active' | 'inactive';
+type Status = "pending" | "active" | "inactive";
 
 // ❌ Avoid: Enum (adds runtime code)
 enum StatusEnum {
-  Pending = 'pending',
-  Active = 'active',
-  Inactive = 'inactive',
+  Pending = "pending",
+  Active = "active",
+  Inactive = "inactive",
 }
 
 // If you need runtime values, use const object
 const STATUS = {
-  Pending: 'pending',
-  Active: 'active',
-  Inactive: 'inactive',
+  Pending: "pending",
+  Active: "active",
+  Inactive: "inactive",
 } as const;
 
 type Status = typeof STATUS[keyof typeof STATUS];
@@ -276,12 +276,12 @@ type Status = typeof STATUS[keyof typeof STATUS];
 
 ```typescript
 // Export types separately
-export type { User, CreateUserInput };
+export type { CreateUserInput, User };
 
 // Export implementation
 export { UserService };
 
 // Re-export from index
-export * from './user.ts';
-export type * from './types.ts';
+export * from "./user.ts";
+export type * from "./types.ts";
 ```

@@ -96,7 +96,13 @@ export default defineFlow({
       dependsOn: ["risk-assessment"],
       input: {
         source: "aggregate",
-        from: ["code-security-scan", "infrastructure-security", "compliance-check", "dependency-analysis", "risk-assessment"],
+        from: [
+          "code-security-scan",
+          "infrastructure-security",
+          "compliance-check",
+          "dependency-analysis",
+          "risk-assessment",
+        ],
         transform: "merge_as_context",
       },
       retry: {

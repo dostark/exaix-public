@@ -8,28 +8,28 @@ Thank you for your interest in contributing to ExoFrame! This guide details the 
 
 ExoFrame enforces a strict policy against "magic numbers" and "magic strings" in the codebase.
 
-*   **Policy:** **NEVER** introduce new hardcoded values (timeouts, limits, model names, providers, pricing, file names, status strings, etc.) directly in service logic or components.
-*   **Externalization:**
-    *   **User-Confgiurable:** Add to `exo.config.sample.toml`, update `src/config/schema.ts`, and provide defaults in `src/config/constants.ts` (via `ai_config.ts`).
-    *   **Internal Constants:** Add to `src/constants.ts` or module-specific `constants.ts` files.
-    *   **CLI/TUI Defaults:** Add to `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
-    *   **Enums:** Use TypeScript enums (`src/enums.ts`) for status, types, and fixed sets of strings.
+- **Policy:** **NEVER** introduce new hardcoded values (timeouts, limits, model names, providers, pricing, file names, status strings, etc.) directly in service logic or components.
+- **Externalization:**
+  - **User-Confgiurable:** Add to `exo.config.sample.toml`, update `src/config/schema.ts`, and provide defaults in `src/config/constants.ts` (via `ai_config.ts`).
+  - **Internal Constants:** Add to `src/constants.ts` or module-specific `constants.ts` files.
+  - **CLI/TUI Defaults:** Add to `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
+  - **Enums:** Use TypeScript enums (`src/enums.ts`) for status, types, and fixed sets of strings.
 
 ### 1.2 Configuration Workflow
 
 To add a new user-facing configuration option:
 
-1.  **Define:** Add the option to `exo.config.sample.toml` with a clear comment and sensible default.
-2.  **Schema:** Update `src/config/schema.ts` to include the new field in the Zod schema.
-3.  **Defaults:** Ensure `src/config/constants.ts` has the default value if it's a fallback constants.
-4.  **Load:** The `ConfigService` (`src/config/ai_config.ts`) automatically loads and validates the config against the schema.
+1. **Define:** Add the option to `exo.config.sample.toml` with a clear comment and sensible default.
+2. **Schema:** Update `src/config/schema.ts` to include the new field in the Zod schema.
+3. **Defaults:** Ensure `src/config/constants.ts` has the default value if it's a fallback constants.
+4. **Load:** The `ConfigService` (`src/config/ai_config.ts`) automatically loads and validates the config against the schema.
 
 ### 1.3 TypeScript Enums
 
 Use `src/enums.ts` for all shared enumerations.
 
-*   **Do:** `status === RequestStatus.PENDING`
-*   **Don't:** `status === "pending"`
+- **Do:** `status === RequestStatus.PENDING`
+- **Don't:** `status === "pending"`
 
 ## 2. Testing
 
@@ -37,8 +37,8 @@ Use `src/enums.ts` for all shared enumerations.
 
 When adding new configuration options:
 
-*   **Unit Tests:** Add tests to `tests/config/config_test.ts` (or equivalent) to verify the option is loaded correctly from TOML.
-*   **Integration Tests:** Verify that changing the config value actually changes system behavior.
+- **Unit Tests:** Add tests to `tests/config/config_test.ts` (or equivalent) to verify the option is loaded correctly from TOML.
+- **Integration Tests:** Verify that changing the config value actually changes system behavior.
 
 ### 2.2 Validation
 
@@ -72,6 +72,7 @@ If you are updating legacy code, refer to `docs/dev/Migration_Guide_Phase27.md` 
 4. **Cite consulted documents** in your implementation plan
 
 **Example citation:**
+
 > "I consulted `.copilot/tests/testing.md` for test helpers and `.copilot/source/exoframe.md` for service architecture patterns."
 
 ### 4.2 Agent Documentation Index

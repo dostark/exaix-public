@@ -38,8 +38,7 @@ import { defineFlow } from "../../../src/flows/define_flow.ts";
 export default defineFlow({
   id: "self-correcting-template",
   name: "Self-Correcting Flow Template",
-  description:
-    "Template for quality-checked flows with LLM-as-a-Judge evaluation",
+  description: "Template for quality-checked flows with LLM-as-a-Judge evaluation",
   version: "1.0.0",
   steps: [
     // Step 1: Initial Generation

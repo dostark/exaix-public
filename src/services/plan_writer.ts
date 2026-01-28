@@ -11,6 +11,8 @@
 import type { DatabaseService } from "./db.ts";
 import { PlanAdapter, PlanValidationError } from "./plan_adapter.ts";
 import { PlanStatus } from "../enums.ts";
+import { MiddlewarePipeline } from "./middleware/pipeline.ts";
+import type { ServiceContext } from "./common/types.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -112,26 +114,56 @@ export class PlanWriter {
     result: AgentExecutionResult,
     metadata: RequestMetadata,
   ): Promise<PlanWriteResult> {
-    // Generate plan content (with JSON validation)
-    const content = await this.formatPlan(result, metadata);
+    // Execute writePlan through middleware pipeline to centralize timing/logging
+    const pipeline = new MiddlewarePipeline<ServiceContext>();
 
-    // Generate filename: request-id_plan.md
-    const filename = this.generateFilename(metadata.requestId);
-    const planPath = `${this.config.plansDirectory}/${filename}`;
+    // Timing middleware
+    pipeline.use(async (_ctx, next) => {
+      const start = typeof performance !== "undefined" ? performance.now() : Date.now();
+      _ctx.__startTime = start;
+      await next();
+      const end = typeof performance !== "undefined" ? performance.now() : Date.now();
+      _ctx.__durationMs = end - _ctx.__startTime;
+    });
 
-    // Write to file
-    await Deno.writeTextFile(planPath, content);
+    // Error handling / logging middleware
+    pipeline.use(async (_ctx, next) => {
+      try {
+        await next();
+      } catch (err) {
+        // Bubble up after optional instrumentation
+        throw err;
+      }
+    });
 
-    const writtenAt = new Date();
+    const context: ServiceContext = { traceId: metadata.traceId, requestId: metadata.requestId };
 
-    // Log to Activity Journal
-    await this.logPlanCreation(planPath, metadata.traceId, metadata);
+    let writeResult: PlanWriteResult;
 
-    return {
-      planPath,
-      content,
-      writtenAt,
-    };
+    await pipeline.execute(context, async () => {
+      // Generate plan content (with JSON validation)
+      const content = await this.formatPlan(result, metadata);
+
+      // Generate filename: request-id_plan.md
+      const filename = this.generateFilename(metadata.requestId);
+      const planPath = `${this.config.plansDirectory}/${filename}`;
+
+      // Write to file
+      await Deno.writeTextFile(planPath, content);
+
+      const writtenAt = new Date();
+
+      // Log to Activity Journal
+      await this.logPlanCreation(planPath, metadata.traceId, metadata);
+
+      writeResult = {
+        planPath,
+        content,
+        writtenAt,
+      };
+    });
+
+    return writeResult!;
   }
 
   /**

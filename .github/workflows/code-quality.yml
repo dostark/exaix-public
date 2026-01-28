@@ -1,11 +1,10 @@
-
 name: Code Quality Gates
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 jobs:
   quality-check:
@@ -22,12 +21,12 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v1.x
+          deno-version: stable
 
       - name: Setup Node.js (for jscpd/complexity-report)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Cache dependencies
         run: deno cache src/main.ts tests/**/*.ts || true

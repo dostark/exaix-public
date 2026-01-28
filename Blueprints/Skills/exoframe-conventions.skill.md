@@ -160,7 +160,7 @@ import { ExampleService } from "../../src/services/example.ts";
 Deno.test("ExampleService", async (t) => {
   // Setup test database
   const db = initTestDbService();
-  const config = { /* test config */ };
+  const config = {/* test config */};
   const service = new ExampleService(config, db);
 
   await t.step("getById returns null for missing ID", async () => {

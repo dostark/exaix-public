@@ -122,7 +122,13 @@ export default defineFlow({
       dependsOn: ["breaking-changes", "risk-assessment", "security-considerations"],
       input: {
         source: "aggregate",
-        from: ["gather-requirements", "impact-analysis", "breaking-changes", "risk-assessment", "security-considerations"],
+        from: [
+          "gather-requirements",
+          "impact-analysis",
+          "breaking-changes",
+          "risk-assessment",
+          "security-considerations",
+        ],
         transform: "mergeAsContext",
       },
       skills: ["exoframe-conventions"],
@@ -156,7 +162,14 @@ export default defineFlow({
       dependsOn: ["create-migration-plan", "testing-strategy"],
       input: {
         source: "aggregate",
-        from: ["gather-requirements", "impact-analysis", "breaking-changes", "risk-assessment", "create-migration-plan", "testing-strategy"],
+        from: [
+          "gather-requirements",
+          "impact-analysis",
+          "breaking-changes",
+          "risk-assessment",
+          "create-migration-plan",
+          "testing-strategy",
+        ],
         transform: "mergeAsContext",
       },
       skills: ["documentation-driven"],

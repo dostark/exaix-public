@@ -1,4 +1,3 @@
-
 import { DatabaseService } from "./src/services/db.ts";
 import { ChangesetRegistry } from "./src/services/changeset_registry.ts";
 import { EventLogger } from "./src/services/event_logger.ts";
@@ -28,7 +27,7 @@ async function main() {
       description: "Test changeset",
       commit_sha: "0000000000000000000000000000000000000000",
       files_changed: 1,
-      created_by: "tester"
+      created_by: "tester",
     });
 
     console.log(`Changeset created with ID: ${id}`);
@@ -36,19 +35,18 @@ async function main() {
     console.log("Listing changesets...");
     const list = registry.list();
     console.log(`Found ${list.length} changesets.`);
-    const found = list.find(c => c.id === id);
+    const found = list.find((c) => c.id === id);
 
     if (found) {
-        console.log("✅ Successfully verified changeset persistence.");
-        console.log(found);
+      console.log("✅ Successfully verified changeset persistence.");
+      console.log(found);
     } else {
-        console.error("❌ Changeset not found in list!");
+      console.error("❌ Changeset not found in list!");
     }
 
     // Cleanup
     registry.delete(id);
     console.log("Cleanup complete.");
-
   } catch (error) {
     console.error("❌ Failed:", error);
   }

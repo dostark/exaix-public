@@ -23,18 +23,25 @@ export class MiddlewarePipeline<T extends ServiceContext> {
   }
 
   /**
-   * Execute the middleware pipeline
+   * Execute the middleware pipeline. Returns the handler's result.
    */
-  async execute(context: T, handler: () => Promise<void>): Promise<void> {
-    const dispatch = async (index: number): Promise<void> => {
+  async execute<R>(context: T, handler: () => Promise<R>): Promise<R> {
+    const dispatch = async (index: number): Promise<R | undefined> => {
       if (index === this.middlewares.length) {
         return await handler();
       }
 
       const middleware = this.middlewares[index];
-      await middleware(context, () => dispatch(index + 1));
+      let innerResult: R | undefined = undefined;
+
+      await middleware(context, async () => {
+        innerResult = await dispatch(index + 1);
+      });
+
+      return innerResult;
     };
 
-    await dispatch(0);
+    const res = await dispatch(0);
+    return (res as R);
   }
 }

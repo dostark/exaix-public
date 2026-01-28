@@ -142,8 +142,20 @@ export class DatabaseService {
    * Execute database operations with retry logic for transient failures
    * @private
    */
+  /**
+   * Execute database operations with retry logic for transient failures.
+   *
+   * The `callback` may be asynchronous and its returned promise will be awaited.
+   * Callers should `await` the result of `retryTransaction` and may return values
+   * from the callback. Example usage:
+   *
+   * await this.retryTransaction(async () => {
+   *   await this.db.exec(...);
+   *   return someValue;
+   * });
+   */
   private async retryTransaction<T>(
-    callback: () => T,
+    callback: () => Promise<T>,
     options: RetryOptions = {},
   ): Promise<T> {
     const {
@@ -158,9 +170,9 @@ export class DatabaseService {
 
     while (attempt <= maxRetries) {
       try {
-        // Execute the callback synchronously within a transaction
+        // Begin transaction, await callback result (supports async callbacks)
         this.db.exec("BEGIN IMMEDIATE TRANSACTION");
-        const result = callback();
+        const result = await callback();
         this.db.exec("COMMIT");
         return result;
       } catch (error) {
@@ -228,6 +240,7 @@ export class DatabaseService {
               ],
             );
           }
+          return Promise.resolve();
         })
       );
     } catch (error) {

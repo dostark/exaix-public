@@ -65,6 +65,7 @@ Follow this systematic approach for thorough code reviews:
 ## 1. Understand the Context
 
 Before reviewing code:
+
 - [ ] Read the PR description and linked issues
 - [ ] Understand the requirements being addressed
 - [ ] Consider the broader system context
@@ -130,6 +131,7 @@ Before reviewing code:
 ## Feedback Guidelines
 
 **Be Specific:**
+
 ```
 // ❌ Vague
 "This could be better"
@@ -139,6 +141,7 @@ Before reviewing code:
 ```
 
 **Be Constructive:**
+
 ```
 // ❌ Critical without solution
 "This is wrong"
@@ -148,6 +151,7 @@ Before reviewing code:
 ```
 
 **Prioritize Issues:**
+
 - 🔴 **Critical** - Must fix (security, data loss, crashes)
 - 🟠 **Major** - Should fix (bugs, significant issues)
 - 🟡 **Minor** - Nice to fix (style, minor improvements)
