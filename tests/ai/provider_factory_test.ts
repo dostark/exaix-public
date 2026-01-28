@@ -27,6 +27,7 @@ import { MockStrategy } from "../../src/enums.ts";
 
 import { AiConfig, AiConfigSchema } from "../../src/config/ai_config.ts";
 import { Config } from "../../src/config/schema.ts";
+import { ExoPathDefaults } from "../../src/config/constants.ts";
 
 // ============================================================================
 // Test Fixtures
@@ -46,27 +47,7 @@ function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       root: "/tmp/exoframe-test",
       log_level: LogLevel.INFO,
     },
-    paths: {
-      portals: "Portals",
-      workspace: "Workspace",
-      memory: "Memory",
-      runtime: ".exo",
-      blueprints: "Blueprints",
-      active: "Active",
-      archive: "Archive",
-      plans: "Plans",
-      requests: "Requests",
-      rejected: "Rejected",
-      agents: "Agents",
-      flows: "Flows",
-      memoryExecution: "Memory/Execution",
-      memoryGlobal: "Memory/Global",
-      memoryIndex: "Memory/Index",
-      memoryPending: "Memory/Pending",
-      memoryProjects: "Memory/Projects",
-      memorySkills: "Memory/Skills",
-      memoryTasks: "Memory/Tasks",
-    },
+    paths: { ...ExoPathDefaults },
     database: {
       batch_flush_ms: 100,
       batch_max_size: 50,

@@ -2,6 +2,7 @@ import { assert, assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { ConfigService } from "../src/config/service.ts";
 import { FileWatcher } from "../src/services/watcher.ts";
+import { ExoPathDefaults } from "../src/config/constants.ts";
 
 /**
  * Test for "Investigate why exoctl portal add not showing in daemon logs"
@@ -19,26 +20,26 @@ version = "1.0.0"
 log_level = "info"
 
 [paths]
-workspace = "Workspace"
-portals = "Portals"
+workspace = "${ExoPathDefaults.workspace}"
+portals = "${ExoPathDefaults.portals}"
 # ... minimal required paths
-runtime = ".exo"
-memory = "Memory"
-blueprints = "Blueprints"
-active = "Workspace/Active"
-requests = "Workspace/Requests"
-archive = "Workspace/Archive"
-plans = "Workspace/Plans"
-rejected = "Workspace/Rejected"
-agents = "Blueprints/Agents"
-flows = "Blueprints/Flows"
-memoryProjects = "Memory/Projects"
-memoryExecution = "Memory/Execution"
-memoryIndex = "Memory/Index"
-memorySkills = "Memory/Skills"
-memoryPending = "Memory/Pending"
-memoryTasks = "Memory/Tasks"
-memoryGlobal = "Memory/Global"
+runtime = "${ExoPathDefaults.runtime}"
+memory = "${ExoPathDefaults.memory}"
+blueprints = "${ExoPathDefaults.blueprints}"
+active = "${ExoPathDefaults.active}"
+requests = "${ExoPathDefaults.requests}"
+archive = "${ExoPathDefaults.archive}"
+plans = "${ExoPathDefaults.plans}"
+rejected = "${ExoPathDefaults.rejected}"
+agents = "${ExoPathDefaults.agents}"
+flows = "${ExoPathDefaults.flows}"
+memoryProjects = "${ExoPathDefaults.memoryProjects}"
+memoryExecution = "${ExoPathDefaults.memoryExecution}"
+memoryIndex = "${ExoPathDefaults.memoryIndex}"
+memorySkills = "${ExoPathDefaults.memorySkills}"
+memoryPending = "${ExoPathDefaults.memoryPending}"
+memoryTasks = "${ExoPathDefaults.memoryTasks}"
+memoryGlobal = "${ExoPathDefaults.memoryGlobal}"
 
 [watcher]
 debounce_ms = 50

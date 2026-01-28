@@ -21,26 +21,10 @@ import { MemoryExtractorService } from "../services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../services/memory_embedding.ts";
 import { MemoryScope, MemorySource, MemoryType, SkillStatus } from "../enums.ts";
 import { type SkillMatchRequest, SkillsService } from "../services/skills.ts";
-import type {
-  ExecutionMemory,
-  GlobalMemory,
-  GlobalMemoryStats,
-  Learning,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  ProjectMemory,
-  Skill,
-  SkillMatch,
-} from "../schemas/memory_bank.ts";
+import type { Learning, MemorySearchResult } from "../schemas/memory_bank.ts";
 import { MEMORY_COMMAND_DEFAULTS } from "./cli.config.ts";
-
-export type OutputFormat = "table" | "json" | "md";
-
-export interface MemoryBankSummary {
-  projects: string[];
-  executions: number;
-  lastActivity: string | null;
-}
+import { MemoryFormatter } from "./formatters/memory_formatter.ts";
+import { MemoryBankSummary, OutputFormat } from "./memory_types.ts";
 
 export interface MemoryCommandsContext {
   config: Config;
@@ -59,6 +43,7 @@ export class MemoryCommands {
   private extractor: MemoryExtractorService;
   private embedding: MemoryEmbeddingService;
   private skills: SkillsService;
+  private formatter: MemoryFormatter;
   private memoryRoot: string;
 
   constructor(context: MemoryCommandsContext) {
@@ -68,6 +53,7 @@ export class MemoryCommands {
     this.extractor = new MemoryExtractorService(context.config, context.db, this.memoryBank);
     this.embedding = new MemoryEmbeddingService(context.config);
     this.skills = new SkillsService(context.config, context.db);
+    this.formatter = new MemoryFormatter();
     this.memoryRoot = join(context.config.system.root, context.config.paths.memory);
   }
 
@@ -86,10 +72,10 @@ export class MemoryCommands {
       case "json":
         return JSON.stringify(summary, null, 2);
       case "md":
-        return this.formatListMarkdown(summary);
+        return this.formatter.formatListMarkdown(summary);
       case "table":
       default:
-        return this.formatListTable(summary);
+        return this.formatter.formatListTable(summary);
     }
   }
 
@@ -142,51 +128,6 @@ export class MemoryCommands {
       }
     }
     return count;
-  }
-
-  private formatListTable(summary: MemoryBankSummary): string {
-    const lines: string[] = [
-      "Memory Banks Summary",
-      "═".repeat(50),
-      "",
-      `Projects:    ${summary.projects.length}`,
-      `Executions:  ${summary.executions}`,
-      `Last Active: ${summary.lastActivity || "Never"}`,
-      "",
-    ];
-
-    if (summary.projects.length > 0) {
-      lines.push("Projects:");
-      lines.push("─".repeat(30));
-      for (const project of summary.projects) {
-        lines.push(`  • ${project}`);
-      }
-    }
-
-    return lines.join("\n");
-  }
-
-  private formatListMarkdown(summary: MemoryBankSummary): string {
-    const lines: string[] = [
-      "# Memory Banks Summary",
-      "",
-      "| Metric | Value |",
-      "|--------|-------|",
-      `| Projects | ${summary.projects.length} |`,
-      `| Executions | ${summary.executions} |`,
-      `| Last Active | ${summary.lastActivity || "Never"} |`,
-      "",
-    ];
-
-    if (summary.projects.length > 0) {
-      lines.push("## Projects");
-      lines.push("");
-      for (const project of summary.projects) {
-        lines.push(`- ${project}`);
-      }
-    }
-
-    return lines.join("\n");
   }
 
   // ===== Memory Search Command =====
@@ -245,63 +186,11 @@ export class MemoryCommands {
       case "json":
         return JSON.stringify(results, null, 2);
       case "md":
-        return this.formatSearchMarkdown(query, results);
+        return this.formatter.formatSearchMarkdown(query, results);
       case "table":
       default:
-        return this.formatSearchTable(query, results);
+        return this.formatter.formatSearchTable(query, results);
     }
-  }
-
-  private formatSearchTable(query: string, results: MemorySearchResult[]): string {
-    if (results.length === 0) {
-      return `No results found for "${query}"`;
-    }
-
-    const lines: string[] = [
-      `Search Results for "${query}"`,
-      "═".repeat(60),
-      "",
-      `Found ${results.length} result(s)`,
-      "",
-      "Type       │ Portal          │ Title",
-      "───────────┼─────────────────┼" + "─".repeat(30),
-    ];
-
-    for (const result of results) {
-      const type = result.type.padEnd(MEMORY_COMMAND_DEFAULTS.PROJECT_PADDING);
-      const portal = (result.portal || "-").padEnd(MEMORY_COMMAND_DEFAULTS.PORTAL_PADDING);
-      const title = result.title.substring(0, MEMORY_COMMAND_DEFAULTS.TITLE_LENGTH);
-      lines.push(`${type} │ ${portal} │ ${title}`);
-    }
-
-    return lines.join("\n");
-  }
-
-  private formatSearchMarkdown(
-    query: string,
-    results: MemorySearchResult[],
-  ): string {
-    if (results.length === 0) {
-      return `# Search Results\n\nNo results found for "${query}"`;
-    }
-
-    const lines: string[] = [
-      `# Search Results for "${query}"`,
-      "",
-      `Found ${results.length} result(s)`,
-      "",
-      "| Type | Portal | Title | Score |",
-      "|------|--------|-------|-------|",
-    ];
-
-    for (const result of results) {
-      const score = (result.relevance_score || 0).toFixed(2);
-      lines.push(
-        `| ${result.type} | ${result.portal || "-"} | ${result.title} | ${score} |`,
-      );
-    }
-
-    return lines.join("\n");
   }
 
   // ===== Project Commands =====
@@ -337,65 +226,11 @@ export class MemoryCommands {
       case "json":
         return JSON.stringify(projects, null, 2);
       case "md":
-        return this.formatProjectListMarkdown(projects);
+        return this.formatter.formatProjectListMarkdown(projects);
       case "table":
       default:
-        return this.formatProjectListTable(projects);
+        return this.formatter.formatProjectListTable(projects);
     }
-  }
-
-  private formatProjectListTable(
-    projects: { name: string; patterns: number; decisions: number }[],
-  ): string {
-    if (projects.length === 0) {
-      return "No project memories found.";
-    }
-
-    const lines: string[] = [
-      "Project Memories",
-      "═".repeat(50),
-      "",
-      "Name                 │ Patterns │ Decisions",
-      "─────────────────────┼──────────┼──────────",
-    ];
-
-    for (const project of projects) {
-      const name = project.name.padEnd(MEMORY_COMMAND_DEFAULTS.PROJECT_NAME_PADDING);
-      const patterns = String(project.patterns).padStart(MEMORY_COMMAND_DEFAULTS.PATTERNS_PADDING);
-      const decisions = String(project.decisions).padStart(MEMORY_COMMAND_DEFAULTS.DECISIONS_PADDING);
-      lines.push(`${name} │${patterns} │${decisions}`);
-    }
-
-    lines.push("");
-    lines.push(`Total: ${projects.length} project(s)`);
-
-    return lines.join("\n");
-  }
-
-  private formatProjectListMarkdown(
-    projects: { name: string; patterns: number; decisions: number }[],
-  ): string {
-    if (projects.length === 0) {
-      return "# Project Memories\n\nNo project memories found.";
-    }
-
-    const lines: string[] = [
-      "# Project Memories",
-      "",
-      "| Project | Patterns | Decisions |",
-      "|---------|----------|-----------|",
-    ];
-
-    for (const project of projects) {
-      lines.push(
-        `| ${project.name} | ${project.patterns} | ${project.decisions} |`,
-      );
-    }
-
-    lines.push("");
-    lines.push(`**Total:** ${projects.length} project(s)`);
-
-    return lines.join("\n");
   }
 
   /**
@@ -416,105 +251,11 @@ export class MemoryCommands {
       case "json":
         return JSON.stringify(projectMem, null, 2);
       case "md":
-        return this.formatProjectShowMarkdown(projectMem);
+        return this.formatter.formatProjectShowMarkdown(projectMem);
       case "table":
       default:
-        return this.formatProjectShowTable(projectMem);
+        return this.formatter.formatProjectShowTable(projectMem);
     }
-  }
-
-  private formatProjectShowTable(project: ProjectMemory): string {
-    const lines: string[] = [
-      `Project Memory: ${project.portal}`,
-      "═".repeat(60),
-      "",
-      "Overview:",
-      "─".repeat(40),
-      project.overview.substring(0, 500),
-      "",
-    ];
-
-    if (project.patterns.length > 0) {
-      lines.push(`Patterns (${project.patterns.length}):`);
-      lines.push("─".repeat(40));
-      for (const pattern of project.patterns) {
-        lines.push(`  • ${pattern.name}`);
-        lines.push(`    ${pattern.description.substring(0, 60)}...`);
-      }
-      lines.push("");
-    }
-
-    if (project.decisions.length > 0) {
-      lines.push(`Decisions (${project.decisions.length}):`);
-      lines.push("─".repeat(40));
-      for (const decision of project.decisions) {
-        lines.push(`  • [${decision.date}] ${decision.decision.substring(0, 50)}...`);
-      }
-      lines.push("");
-    }
-
-    if (project.references.length > 0) {
-      lines.push(`References (${project.references.length}):`);
-      lines.push("─".repeat(40));
-      for (const ref of project.references) {
-        lines.push(`  • [${ref.type}] ${ref.path}`);
-      }
-    }
-
-    return lines.join("\n");
-  }
-
-  private formatProjectShowMarkdown(project: ProjectMemory): string {
-    const lines: string[] = [
-      `# Project Memory: ${project.portal}`,
-      "",
-      "## Overview",
-      "",
-      project.overview,
-      "",
-    ];
-
-    if (project.patterns.length > 0) {
-      lines.push(`## Patterns (${project.patterns.length})`);
-      lines.push("");
-      for (const pattern of project.patterns) {
-        lines.push(`### ${pattern.name}`);
-        lines.push("");
-        lines.push(pattern.description);
-        if (pattern.tags && pattern.tags.length > 0) {
-          lines.push("");
-          lines.push(`**Tags:** ${pattern.tags.join(", ")}`);
-        }
-        lines.push("");
-      }
-    }
-
-    if (project.decisions.length > 0) {
-      lines.push(`## Decisions (${project.decisions.length})`);
-      lines.push("");
-      for (const decision of project.decisions) {
-        lines.push(`### ${decision.date}`);
-        lines.push("");
-        lines.push(`**Decision:** ${decision.decision}`);
-        lines.push("");
-        lines.push(`**Rationale:** ${decision.rationale}`);
-        if (decision.tags && decision.tags.length > 0) {
-          lines.push("");
-          lines.push(`**Tags:** ${decision.tags.join(", ")}`);
-        }
-        lines.push("");
-      }
-    }
-
-    if (project.references.length > 0) {
-      lines.push(`## References (${project.references.length})`);
-      lines.push("");
-      for (const ref of project.references) {
-        lines.push(`- **[${ref.type}]** ${ref.path}: ${ref.description}`);
-      }
-    }
-
-    return lines.join("\n");
   }
 
   // ===== Execution Commands =====
@@ -544,63 +285,11 @@ export class MemoryCommands {
       case "json":
         return JSON.stringify(executions, null, 2);
       case "md":
-        return this.formatExecutionListMarkdown(executions);
+        return this.formatter.formatExecutionListMarkdown(executions);
       case "table":
       default:
-        return this.formatExecutionListTable(executions);
+        return this.formatter.formatExecutionListTable(executions);
     }
-  }
-
-  private formatExecutionListTable(executions: ExecutionMemory[]): string {
-    if (executions.length === 0) {
-      return "No execution history found.";
-    }
-
-    const lines: string[] = [
-      "Execution History",
-      "═".repeat(80),
-      "",
-      "Trace ID   │ Status    │ Portal          │ Started",
-      "───────────┼───────────┼─────────────────┼" + "─".repeat(20),
-    ];
-
-    for (const exec of executions) {
-      const traceId = exec.trace_id.substring(0, MEMORY_COMMAND_DEFAULTS.TRACE_ID_LENGTH) + "..";
-      const status = exec.status.padEnd(MEMORY_COMMAND_DEFAULTS.STATUS_PADDING);
-      const portal = exec.portal.padEnd(MEMORY_COMMAND_DEFAULTS.PORTAL_PADDING);
-      const started = exec.started_at.substring(0, MEMORY_COMMAND_DEFAULTS.TIMESTAMP_LENGTH);
-      lines.push(`${traceId} │ ${status} │ ${portal} │ ${started}`);
-    }
-
-    lines.push("");
-    lines.push(`Showing ${executions.length} execution(s)`);
-
-    return lines.join("\n");
-  }
-
-  private formatExecutionListMarkdown(executions: ExecutionMemory[]): string {
-    if (executions.length === 0) {
-      return "# Execution History\n\nNo execution history found.";
-    }
-
-    const lines: string[] = [
-      "# Execution History",
-      "",
-      "| Trace ID | Status | Portal | Agent | Started |",
-      "|----------|--------|--------|-------|---------|",
-    ];
-
-    for (const exec of executions) {
-      const traceId = exec.trace_id.substring(0, 8);
-      lines.push(
-        `| ${traceId}... | ${exec.status} | ${exec.portal} | ${exec.agent} | ${exec.started_at} |`,
-      );
-    }
-
-    lines.push("");
-    lines.push(`**Showing:** ${executions.length} execution(s)`);
-
-    return lines.join("\n");
   }
 
   /**
@@ -621,99 +310,11 @@ export class MemoryCommands {
       case "json":
         return JSON.stringify(execution, null, 2);
       case "md":
-        return this.formatExecutionShowMarkdown(execution);
+        return this.formatter.formatExecutionShowMarkdown(execution);
       case "table":
       default:
-        return this.formatExecutionShowTable(execution);
+        return this.formatter.formatExecutionShowTable(execution);
     }
-  }
-
-  private formatExecutionShowTable(exec: ExecutionMemory): string {
-    const lines: string[] = [
-      `Execution Details: ${exec.trace_id}`,
-      "═".repeat(70),
-      "",
-      `Trace ID:    ${exec.trace_id}`,
-      `Request ID:  ${exec.request_id}`,
-      `Status:      ${exec.status}`,
-      `Portal:      ${exec.portal}`,
-      `Agent:       ${exec.agent}`,
-      `Started:     ${exec.started_at}`,
-      `Completed:   ${exec.completed_at || "In progress"}`,
-      "",
-      "Summary:",
-      "─".repeat(40),
-      exec.summary,
-      "",
-    ];
-
-    if (exec.context_files && exec.context_files.length > 0) {
-      lines.push(`Context Files (${exec.context_files.length}):`);
-      lines.push("─".repeat(40));
-      for (const file of exec.context_files) {
-        lines.push(`  • ${file}`);
-      }
-      lines.push("");
-    }
-
-    this.appendChangesSummary(lines, exec);
-    this.appendLessonsAndError(lines, exec);
-
-    return lines.join("\n");
-  }
-
-  private formatExecutionShowMarkdown(exec: ExecutionMemory): string {
-    const lines: string[] = [
-      `# Execution: ${exec.trace_id}`,
-      "",
-      "## Details",
-      "",
-      "| Field | Value |",
-      "|-------|-------|",
-      `| Trace ID | \`${exec.trace_id}\` |`,
-      `| Request ID | \`${exec.request_id}\` |`,
-      `| Status | ${exec.status} |`,
-      `| Portal | ${exec.portal} |`,
-      `| Agent | ${exec.agent} |`,
-      `| Started | ${exec.started_at} |`,
-      `| Completed | ${exec.completed_at || "In progress"} |`,
-      "",
-      "## Summary",
-      "",
-      exec.summary,
-      "",
-    ];
-
-    if (exec.context_files && exec.context_files.length > 0) {
-      lines.push("## Context Files");
-      lines.push("");
-      for (const file of exec.context_files) {
-        lines.push(`- \`${file}\``);
-      }
-      lines.push("");
-    }
-
-    // Reuse helper to append change sections in markdown format
-    this.appendChangesMarkdown(lines, exec);
-
-    if (exec.lessons_learned && exec.lessons_learned.length > 0) {
-      lines.push("## Lessons Learned");
-      lines.push("");
-      for (const lesson of exec.lessons_learned) {
-        lines.push(`- ${lesson}`);
-      }
-      lines.push("");
-    }
-
-    if (exec.error_message) {
-      lines.push("## Error");
-      lines.push("");
-      lines.push("```");
-      lines.push(exec.error_message);
-      lines.push("```");
-    }
-
-    return lines.join("\n");
   }
 
   // ===== Global Memory Commands (Phase 12.8) =====
@@ -735,67 +336,11 @@ export class MemoryCommands {
       case "json":
         return JSON.stringify(globalMem, null, 2);
       case "md":
-        return this.formatGlobalShowMarkdown(globalMem);
+        return this.formatter.formatGlobalShowMarkdown(globalMem);
       case "table":
       default:
-        return this.formatGlobalShowTable(globalMem);
+        return this.formatter.formatGlobalShowTable(globalMem);
     }
-  }
-
-  private formatGlobalShowTable(globalMem: GlobalMemory): string {
-    const lines: string[] = [
-      "Global Memory",
-      "═".repeat(60),
-      "",
-      `Version:    ${globalMem.version}`,
-      `Updated:    ${globalMem.updated_at}`,
-      `Learnings:  ${globalMem.learnings.length}`,
-      `Patterns:   ${globalMem.patterns.length}`,
-      `Anti-Patterns: ${globalMem.anti_patterns.length}`,
-      "",
-    ];
-
-    if (globalMem.learnings.length > 0) {
-      lines.push("Recent Learnings (top 5):");
-      lines.push("─".repeat(50));
-      for (const learning of globalMem.learnings.slice(0, 5)) {
-        lines.push(`  • [${learning.category}] ${learning.title}`);
-      }
-      lines.push("");
-    }
-
-    return lines.join("\n");
-  }
-
-  private formatGlobalShowMarkdown(globalMem: GlobalMemory): string {
-    const lines: string[] = [
-      "# Global Memory",
-      "",
-      "| Property | Value |",
-      "|----------|-------|",
-      `| Version | ${globalMem.version} |`,
-      `| Updated | ${globalMem.updated_at} |`,
-      `| Learnings | ${globalMem.learnings.length} |`,
-      `| Patterns | ${globalMem.patterns.length} |`,
-      `| Anti-Patterns | ${globalMem.anti_patterns.length} |`,
-      "",
-      "## Statistics",
-      "",
-      `- **Total Learnings:** ${globalMem.statistics.total_learnings}`,
-      `- **Last Activity:** ${globalMem.statistics.last_activity}`,
-      "",
-    ];
-
-    if (Object.keys(globalMem.statistics.by_category).length > 0) {
-      lines.push("### By Category");
-      lines.push("");
-      for (const [cat, count] of Object.entries(globalMem.statistics.by_category)) {
-        lines.push(`- ${cat}: ${count}`);
-      }
-      lines.push("");
-    }
-
-    return lines.join("\n");
   }
 
   /**
@@ -821,219 +366,10 @@ export class MemoryCommands {
       case "json":
         return JSON.stringify(learnings, null, 2);
       case "md":
-        return this.formatGlobalLearningsMarkdown(learnings);
+        return this.formatter.formatGlobalLearningsMarkdown(learnings);
       case "table":
       default:
-        return this.formatGlobalLearningsTable(learnings);
-    }
-  }
-
-  private formatGlobalLearningsTable(learnings: Learning[]): string {
-    const lines: string[] = [
-      "Global Learnings",
-      "═".repeat(80),
-      "",
-      "ID         │ Category      │ Confidence │ Title",
-      "───────────┼───────────────┼────────────┼" + "─".repeat(40),
-    ];
-
-    for (const l of learnings) {
-      const id = l.id.substring(0, 8) + "..";
-      const category = l.category.padEnd(13);
-      const confidence = l.confidence.padEnd(10);
-      const title = l.title.substring(0, 35);
-      lines.push(`${id} │ ${category} │ ${confidence} │ ${title}`);
-    }
-
-    lines.push("");
-    lines.push(`Total: ${learnings.length} learning(s)`);
-
-    return lines.join("\n");
-  }
-
-  private formatGlobalLearningsMarkdown(learnings: Learning[]): string {
-    const lines: string[] = [
-      "# Global Learnings",
-      "",
-      "| ID | Category | Title | Confidence | Source |",
-      "|----|----------|-------|------------|--------|",
-    ];
-
-    for (const l of learnings) {
-      lines.push(
-        `| ${l.id.substring(0, 8)}... | ${l.category} | ${l.title} | ${l.confidence} | ${l.source} |`,
-      );
-    }
-
-    lines.push("");
-    lines.push(`**Total:** ${learnings.length} learning(s)`);
-
-    return lines.join("\n");
-  }
-
-  /**
-   * Show global memory statistics
-   *
-   * @param format - Output format
-   * @returns Formatted statistics
-   */
-  async globalStats(format: OutputFormat = "table"): Promise<string> {
-    const globalMem = await this.memoryBank.getGlobalMemory();
-
-    if (!globalMem) {
-      return "Global memory not initialized.";
-    }
-
-    const stats = globalMem.statistics;
-
-    switch (format) {
-      case "json":
-        return JSON.stringify(stats, null, 2);
-      case "md":
-        return this.formatGlobalStatsMarkdown(stats);
-      case "table":
-      default:
-        return this.formatGlobalStatsTable(stats);
-    }
-  }
-
-  private formatGlobalStatsTable(stats: GlobalMemoryStats): string {
-    const lines: string[] = [
-      "Global Memory Statistics",
-      "═".repeat(50),
-      "",
-      `Total Learnings: ${stats.total_learnings}`,
-      `Last Activity:   ${stats.last_activity}`,
-      "",
-    ];
-
-    if (Object.keys(stats.by_category).length > 0) {
-      lines.push("By Category:");
-      lines.push("─".repeat(30));
-      for (const [cat, count] of Object.entries(stats.by_category)) {
-        lines.push(`  ${cat.padEnd(20)} ${count}`);
-      }
-      lines.push("");
-    }
-
-    if (Object.keys(stats.by_project).length > 0) {
-      lines.push("By Project:");
-      lines.push("─".repeat(30));
-      for (const [project, count] of Object.entries(stats.by_project)) {
-        lines.push(`  ${project.padEnd(20)} ${count}`);
-      }
-    }
-
-    return lines.join("\n");
-  }
-
-  private formatGlobalStatsMarkdown(stats: GlobalMemoryStats): string {
-    const lines: string[] = [
-      "# Global Memory Statistics",
-      "",
-      "| Metric | Value |",
-      "|--------|-------|",
-      `| Total Learnings | ${stats.total_learnings} |`,
-      `| Last Activity | ${stats.last_activity} |`,
-      "",
-    ];
-
-    if (Object.keys(stats.by_category).length > 0) {
-      lines.push("## By Category");
-      lines.push("");
-      for (const [cat, count] of Object.entries(stats.by_category)) {
-        lines.push(`- **${cat}:** ${count}`);
-      }
-      lines.push("");
-    }
-
-    if (Object.keys(stats.by_project).length > 0) {
-      lines.push("## By Project");
-      lines.push("");
-      for (const [project, count] of Object.entries(stats.by_project)) {
-        lines.push(`- **${project}:** ${count}`);
-      }
-    }
-
-    return lines.join("\n");
-  }
-
-  // Helper: append change summary lines for table output
-  private appendChangesSummary(lines: string[], exec: ExecutionMemory): void {
-    if (!exec.changes) return;
-    const created = exec.changes.files_created?.length || 0;
-    const modified = exec.changes.files_modified?.length || 0;
-    const deleted = exec.changes.files_deleted?.length || 0;
-
-    if (created + modified + deleted > 0) {
-      lines.push("Changes:");
-      lines.push("─".repeat(40));
-      this.appendFileChangeLines(lines, "Created", created, exec.changes.files_created, "+");
-      this.appendFileChangeLines(lines, "Modified", modified, exec.changes.files_modified, "~");
-      this.appendFileChangeLines(lines, "Deleted", deleted, exec.changes.files_deleted, "-");
-      lines.push("");
-    }
-  }
-
-  // Helper: append file change lines for a given type
-  private appendFileChangeLines(
-    lines: string[],
-    label: string,
-    count: number,
-    files: string[] | undefined,
-    symbol: string,
-  ): void {
-    if (count > 0 && files) {
-      lines.push(`  ${label}:  ${count} file(s)`);
-      for (const f of files) {
-        lines.push(`    ${symbol} ${f}`);
-      }
-    }
-  }
-
-  // Helper: append lessons learned and error section
-  private appendLessonsAndError(lines: string[], exec: ExecutionMemory): void {
-    if (exec.lessons_learned && exec.lessons_learned.length > 0) {
-      lines.push("Lessons Learned:");
-      lines.push("─".repeat(40));
-      for (const lesson of exec.lessons_learned) {
-        lines.push(`  • ${lesson}`);
-      }
-      lines.push("");
-    }
-
-    if (exec.error_message) {
-      lines.push("Error:");
-      lines.push("─".repeat(40));
-      lines.push(`  ${exec.error_message}`);
-    }
-  }
-
-  private appendChangesMarkdown(lines: string[], exec: ExecutionMemory): void {
-    if (!exec.changes) return;
-    const created = exec.changes.files_created || [];
-    const modified = exec.changes.files_modified || [];
-    const deleted = exec.changes.files_deleted || [];
-
-    if (created.length + modified.length + deleted.length > 0) {
-      lines.push("## Changes");
-      lines.push("");
-      this.appendMarkdownFileChangeSection(lines, "Created", created);
-      this.appendMarkdownFileChangeSection(lines, "Modified", modified);
-      this.appendMarkdownFileChangeSection(lines, "Deleted", deleted);
-    }
-  }
-
-  // Helper: append markdown file change section
-  private appendMarkdownFileChangeSection(
-    lines: string[],
-    label: string,
-    files: string[],
-  ): void {
-    if (files.length > 0) {
-      lines.push(`### ${label}`);
-      for (const f of files) lines.push(`- \`${f}\``);
-      lines.push("");
+        return this.formatter.formatGlobalLearningsTable(learnings);
     }
   }
 
@@ -1099,57 +435,11 @@ export class MemoryCommands {
       case "json":
         return JSON.stringify(proposals, null, 2);
       case "md":
-        return this.formatPendingListMarkdown(proposals);
+        return this.formatter.formatPendingListMarkdown(proposals);
       case "table":
       default:
-        return this.formatPendingListTable(proposals);
+        return this.formatter.formatPendingListTable(proposals);
     }
-  }
-
-  private formatPendingListTable(proposals: MemoryUpdateProposal[]): string {
-    const lines: string[] = [
-      "Pending Memory Update Proposals",
-      "═".repeat(80),
-      "",
-      "ID".padEnd(38) + "Title".padEnd(30) + "Category".padEnd(15) + "Scope",
-      "─".repeat(80),
-    ];
-
-    for (const proposal of proposals) {
-      const id = proposal.id.substring(0, 36);
-      const title = proposal.learning.title.substring(0, 28).padEnd(30);
-      const category = proposal.learning.category.padEnd(15);
-      const scope = proposal.target_project || "global";
-      lines.push(`${id}  ${title}${category}${scope}`);
-    }
-
-    lines.push("");
-    lines.push(`Total: ${proposals.length} pending proposal(s)`);
-
-    return lines.join("\n");
-  }
-
-  private formatPendingListMarkdown(proposals: MemoryUpdateProposal[]): string {
-    const lines: string[] = [
-      "# Pending Memory Update Proposals",
-      "",
-      "| ID | Title | Category | Scope | Created |",
-      "|----|-------|----------|-------|---------|",
-    ];
-
-    for (const proposal of proposals) {
-      const id = proposal.id.substring(0, 8) + "...";
-      const title = proposal.learning.title.substring(0, 30);
-      const category = proposal.learning.category;
-      const scope = proposal.target_project || "global";
-      const created = proposal.created_at.substring(0, 10);
-      lines.push(`| ${id} | ${title} | ${category} | ${scope} | ${created} |`);
-    }
-
-    lines.push("");
-    lines.push(`**Total:** ${proposals.length} pending proposal(s)`);
-
-    return lines.join("\n");
   }
 
   /**
@@ -1170,79 +460,11 @@ export class MemoryCommands {
       case "json":
         return JSON.stringify(proposal, null, 2);
       case "md":
-        return this.formatPendingShowMarkdown(proposal);
+        return this.formatter.formatPendingShowMarkdown(proposal);
       case "table":
       default:
-        return this.formatPendingShowTable(proposal);
+        return this.formatter.formatPendingShowTable(proposal);
     }
-  }
-
-  private formatPendingShowTable(proposal: MemoryUpdateProposal): string {
-    const lines: string[] = [
-      "Pending Proposal Details",
-      "═".repeat(60),
-      "",
-      `ID:          ${proposal.id}`,
-      `Status:      ${proposal.status}`,
-      `Created:     ${proposal.created_at}`,
-      `Agent:       ${proposal.agent}`,
-      `Execution:   ${proposal.execution_id}`,
-      "",
-      "─".repeat(60),
-      "Learning:",
-      "",
-      `  Title:       ${proposal.learning.title}`,
-      `  Category:    ${proposal.learning.category}`,
-      `  Confidence:  ${proposal.learning.confidence}`,
-      `  Scope:       ${proposal.target_scope}`,
-      `  Project:     ${proposal.target_project || "(global)"}`,
-      "",
-      "  Description:",
-      `  ${proposal.learning.description}`,
-      "",
-      `  Tags: ${proposal.learning.tags.join(", ")}`,
-      "",
-      "─".repeat(60),
-      `Reason: ${proposal.reason}`,
-    ];
-
-    return lines.join("\n");
-  }
-
-  private formatPendingShowMarkdown(proposal: MemoryUpdateProposal): string {
-    const lines: string[] = [
-      "# Pending Proposal",
-      "",
-      "| Field | Value |",
-      "|-------|-------|",
-      `| ID | ${proposal.id} |`,
-      `| Status | ${proposal.status} |`,
-      `| Created | ${proposal.created_at} |`,
-      `| Agent | ${proposal.agent} |`,
-      `| Execution | ${proposal.execution_id} |`,
-      "",
-      "## Learning",
-      "",
-      `**Title:** ${proposal.learning.title}`,
-      "",
-      `**Category:** ${proposal.learning.category}`,
-      "",
-      `**Confidence:** ${proposal.learning.confidence}`,
-      "",
-      `**Scope:** ${proposal.target_scope}${proposal.target_project ? ` (${proposal.target_project})` : ""}`,
-      "",
-      "### Description",
-      "",
-      proposal.learning.description,
-      "",
-      `**Tags:** ${proposal.learning.tags.join(", ")}`,
-      "",
-      "---",
-      "",
-      `**Reason:** ${proposal.reason}`,
-    ];
-
-    return lines.join("\n");
   }
 
   /**
@@ -1372,11 +594,11 @@ export class MemoryCommands {
           );
 
         case "md":
-          return this.formatSkillListMarkdown(skills);
+          return this.formatter.formatSkillListMarkdown(skills);
 
         case "table":
         default:
-          return this.formatSkillListTable(skills);
+          return this.formatter.formatSkillListTable(skills);
       }
     } catch (error) {
       return `Error listing skills: ${(error as Error).message}`;
@@ -1404,11 +626,10 @@ export class MemoryCommands {
           return JSON.stringify(skill, null, 2);
 
         case "md":
-          return this.formatSkillShowMarkdown(skill);
-
+          return this.formatter.formatSkillShowMarkdown(skill);
         case "table":
         default:
-          return this.formatSkillShowTable(skill);
+          return this.formatter.formatSkillShowTable(skill);
       }
     } catch (error) {
       return `Error showing skill: ${(error as Error).message}`;
@@ -1462,11 +683,10 @@ export class MemoryCommands {
           );
 
         case "md":
-          return this.formatSkillMatchMarkdown(limitedMatches);
-
+          return this.formatter.formatSkillMatchMarkdown(limitedMatches);
         case "table":
         default:
-          return this.formatSkillMatchTable(limitedMatches);
+          return this.formatter.formatSkillMatchTable(limitedMatches);
       }
     } catch (error) {
       return `Error matching skills: ${(error as Error).message}`;
@@ -1517,11 +737,10 @@ export class MemoryCommands {
           return JSON.stringify(derivedSkill, null, 2);
 
         case "md":
-          return this.formatSkillShowMarkdown(derivedSkill);
-
+          return this.formatter.formatSkillShowMarkdown(derivedSkill);
         case "table":
         default:
-          return `Derived skill:\n${this.formatSkillShowTable(derivedSkill)}`;
+          return `Derived skill:\n${this.formatter.formatSkillShowTable(derivedSkill)}`;
       }
     } catch (error) {
       return `Error deriving skill: ${(error as Error).message}`;
@@ -1626,163 +845,5 @@ export class MemoryCommands {
         tags: [],
       },
     };
-  }
-
-  // ===== Skills Formatting Helpers =====
-
-  private formatSkillListTable(skills: Skill[]): string {
-    const lines: string[] = [];
-    lines.push("┌──────────────────────┬─────────────────────────┬──────────┬─────────┬────────────┐");
-    lines.push("│ Skill ID             │ Name                    │ Source   │ Version │ Status     │");
-    lines.push("├──────────────────────┼─────────────────────────┼──────────┼─────────┼────────────┤");
-
-    for (const skill of skills) {
-      const id = skill.skill_id.padEnd(20).slice(0, 20);
-      const name = skill.name.padEnd(23).slice(0, 23);
-      const source = skill.source.padEnd(8).slice(0, 8);
-      const version = skill.version.padEnd(7).slice(0, 7);
-      const status = skill.status.padEnd(10).slice(0, 10);
-      lines.push(`│ ${id} │ ${name} │ ${source} │ ${version} │ ${status} │`);
-    }
-
-    lines.push("└──────────────────────┴─────────────────────────┴──────────┴─────────┴────────────┘");
-    lines.push(`\nTotal: ${skills.length} skill(s)`);
-    return lines.join("\n");
-  }
-
-  private formatSkillListMarkdown(skills: Skill[]): string {
-    const lines: string[] = [];
-    lines.push("# Skills\n");
-    lines.push("| Skill ID | Name | Source | Version | Status |");
-    lines.push("|---|---|---|---|---|");
-
-    for (const skill of skills) {
-      lines.push(`| ${skill.skill_id} | ${skill.name} | ${skill.source} | ${skill.version} | ${skill.status} |`);
-    }
-
-    lines.push(`\n**Total:** ${skills.length} skill(s)`);
-    return lines.join("\n");
-  }
-
-  private formatSkillShowTable(skill: Skill): string {
-    const lines: string[] = [];
-    lines.push("┌─────────────────────────────────────────────────────────────┐");
-    lines.push(`│ Skill: ${skill.name.padEnd(51)} │`);
-    lines.push("├─────────────────────────────────────────────────────────────┤");
-    lines.push(`│ Skill ID:   ${skill.skill_id.padEnd(47)} │`);
-    lines.push(`│ Source:     ${skill.source.padEnd(47)} │`);
-    lines.push(`│ Scope:      ${skill.scope.padEnd(47)} │`);
-    lines.push(`│ Version:    ${skill.version.padEnd(47)} │`);
-    lines.push(`│ Status:     ${skill.status.padEnd(47)} │`);
-    lines.push("├─────────────────────────────────────────────────────────────┤");
-    lines.push(`│ Description:                                                │`);
-
-    // Wrap description
-    const descWords = skill.description.split(" ");
-    let descLine = "";
-    for (const word of descWords) {
-      if ((descLine + " " + word).length > 55) {
-        lines.push(`│   ${descLine.padEnd(57)} │`);
-        descLine = word;
-      } else {
-        descLine = descLine ? `${descLine} ${word}` : word;
-      }
-    }
-    if (descLine) {
-      lines.push(`│   ${descLine.padEnd(57)} │`);
-    }
-
-    lines.push("├─────────────────────────────────────────────────────────────┤");
-    lines.push(`│ Triggers:                                                   │`);
-    lines.push(`│   Keywords:   ${(skill.triggers.keywords?.join(", ") || "none").slice(0, 43).padEnd(43)} │`);
-    lines.push(`│   Task Types: ${(skill.triggers.task_types?.join(", ") || "none").slice(0, 43).padEnd(43)} │`);
-    lines.push(`│   Tags:       ${(skill.triggers.tags?.join(", ") || "none").slice(0, 43).padEnd(43)} │`);
-    lines.push("├─────────────────────────────────────────────────────────────┤");
-    lines.push(`│ Instructions:                                               │`);
-
-    // Show first few lines of instructions
-    const instructionLines = skill.instructions.split("\n").slice(0, 5);
-    for (const line of instructionLines) {
-      lines.push(`│   ${line.slice(0, 55).padEnd(57)} │`);
-    }
-    if (skill.instructions.split("\n").length > 5) {
-      lines.push(`│   ... (${skill.instructions.split("\n").length - 5} more lines)`.padEnd(59) + " │");
-    }
-
-    lines.push("└─────────────────────────────────────────────────────────────┘");
-    return lines.join("\n");
-  }
-
-  private formatSkillShowMarkdown(skill: Skill): string {
-    const lines: string[] = [];
-    lines.push(`# ${skill.name}\n`);
-    lines.push(`**Skill ID:** ${skill.skill_id}`);
-    lines.push(`**Source:** ${skill.source}`);
-    lines.push(`**Scope:** ${skill.scope}`);
-    lines.push(`**Version:** ${skill.version}`);
-    lines.push(`**Status:** ${skill.status}\n`);
-    lines.push(`## Description\n`);
-    lines.push(skill.description + "\n");
-    lines.push(`## Triggers\n`);
-    lines.push(`- **Keywords:** ${skill.triggers.keywords?.join(", ") || "none"}`);
-    lines.push(`- **Task Types:** ${skill.triggers.task_types?.join(", ") || "none"}`);
-    lines.push(`- **Tags:** ${skill.triggers.tags?.join(", ") || "none"}\n`);
-    lines.push(`## Instructions\n`);
-    lines.push("```");
-    lines.push(skill.instructions);
-    lines.push("```");
-    return lines.join("\n");
-  }
-
-  private formatSkillMatchTable(matches: SkillMatch[]): string {
-    const lines: string[] = [];
-    lines.push("┌──────────────────────────────────┬────────────┬─────────────────────────────────┐");
-    lines.push("│ Skill ID                         │ Confidence │ Matched Triggers                │");
-    lines.push("├──────────────────────────────────┼────────────┼─────────────────────────────────┤");
-
-    for (const match of matches) {
-      const id = match.skillId.padEnd(32).slice(0, 32);
-      const confidence = (match.confidence.toFixed(2)).padStart(10);
-      const triggerParts: string[] = [];
-      if (match.matchedTriggers.keywords?.length) {
-        triggerParts.push(`kw:${match.matchedTriggers.keywords.join(",")}`);
-      }
-      if (match.matchedTriggers.task_types?.length) {
-        triggerParts.push(`tt:${match.matchedTriggers.task_types.join(",")}`);
-      }
-      if (match.matchedTriggers.tags?.length) {
-        triggerParts.push(`tag:${match.matchedTriggers.tags.join(",")}`);
-      }
-      const triggers = (triggerParts.join(" ") || "none").slice(0, 31).padEnd(31);
-      lines.push(`│ ${id} │ ${confidence} │ ${triggers} │`);
-    }
-
-    lines.push("└──────────────────────────────────┴────────────┴─────────────────────────────────┘");
-    lines.push(`\nMatched: ${matches.length} skill(s)`);
-    return lines.join("\n");
-  }
-
-  private formatSkillMatchMarkdown(matches: SkillMatch[]): string {
-    const lines: string[] = [];
-    lines.push("# Matched Skills\n");
-    lines.push("| Skill ID | Confidence | Matched Triggers |");
-    lines.push("|---|---|---|");
-
-    for (const match of matches) {
-      const triggerParts: string[] = [];
-      if (match.matchedTriggers.keywords?.length) {
-        triggerParts.push(`keywords: ${match.matchedTriggers.keywords.join(", ")}`);
-      }
-      if (match.matchedTriggers.task_types?.length) {
-        triggerParts.push(`task_types: ${match.matchedTriggers.task_types.join(", ")}`);
-      }
-      if (match.matchedTriggers.tags?.length) {
-        triggerParts.push(`tags: ${match.matchedTriggers.tags.join(", ")}`);
-      }
-      lines.push(`| ${match.skillId} | ${match.confidence.toFixed(2)} | ${triggerParts.join("; ") || "none"} |`);
-    }
-
-    lines.push(`\n**Matched:** ${matches.length} skill(s)`);
-    return lines.join("\n");
   }
 }

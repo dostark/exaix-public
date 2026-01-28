@@ -14,6 +14,7 @@ import { HealthCheckService } from "../../src/services/health_check_service.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { Config } from "../../src/config/schema.ts";
 import { LogLevel, PricingTier, SqliteJournalMode, TaskComplexity } from "../../src/enums.ts";
+import { ExoPathDefaults } from "../../src/config/constants.ts";
 
 // ============================================================================
 // Provider Selector Tests
@@ -365,25 +366,7 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
     const config: Config = {
       system: { version: "1.0.0", root: "/tmp", log_level: LogLevel.INFO },
       paths: {
-        workspace: "Workspace",
-        runtime: ".exo",
-        memory: "Memory",
-        portals: "Portals",
-        blueprints: "Blueprints",
-        active: "Active",
-        archive: "Archive",
-        plans: "Plans",
-        requests: "Requests",
-        rejected: "Rejected",
-        agents: "Agents",
-        flows: "Flows",
-        memoryExecution: "Memory/Execution",
-        memoryGlobal: "Memory/Global",
-        memoryIndex: "Memory/Index",
-        memoryPending: "Memory/Pending",
-        memoryProjects: "Memory/Projects",
-        memorySkills: "Memory/Skills",
-        memoryTasks: "Memory/Tasks",
+        ...ExoPathDefaults,
       },
       database: {
         batch_flush_ms: 100,

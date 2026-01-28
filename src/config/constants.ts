@@ -25,6 +25,28 @@ export const DEFAULT_PENDING_MEMORY_PATH = "Pending";
 export const DEFAULT_TASKS_MEMORY_PATH = "Tasks";
 export const DEFAULT_GLOBAL_MEMORY_PATH = "Global";
 
+export const ExoPathDefaults = {
+  workspace: DEFAULT_WORKSPACE_PATH,
+  runtime: DEFAULT_RUNTIME_PATH,
+  memory: DEFAULT_MEMORY_PATH,
+  portals: DEFAULT_PORTALS_PATH,
+  blueprints: DEFAULT_BLUEPRINTS_PATH,
+  flows: `${DEFAULT_BLUEPRINTS_PATH}/${DEFAULT_FLOWS_PATH}`,
+  requests: DEFAULT_REQUESTS_PATH,
+  plans: DEFAULT_PLANS_PATH,
+  active: DEFAULT_ACTIVE_PATH,
+  archive: DEFAULT_ARCHIVE_PATH,
+  rejected: DEFAULT_REJECTED_PATH,
+  agents: DEFAULT_AGENTS_PATH,
+  memoryProjects: `${DEFAULT_MEMORY_PATH}/${DEFAULT_PROJECTS_MEMORY_PATH}`,
+  memoryExecution: `${DEFAULT_MEMORY_PATH}/${DEFAULT_EXECUTION_MEMORY_PATH}`,
+  memoryIndex: `${DEFAULT_MEMORY_PATH}/${DEFAULT_INDEX_MEMORY_PATH}`,
+  memorySkills: `${DEFAULT_MEMORY_PATH}/${DEFAULT_SKILLS_MEMORY_PATH}`,
+  memoryPending: `${DEFAULT_MEMORY_PATH}/${DEFAULT_PENDING_MEMORY_PATH}`,
+  memoryTasks: `${DEFAULT_MEMORY_PATH}/${DEFAULT_TASKS_MEMORY_PATH}`,
+  memoryGlobal: `${DEFAULT_MEMORY_PATH}/${DEFAULT_GLOBAL_MEMORY_PATH}`,
+};
+
 // ============================================================================
 // Database Validation Limits
 // ============================================================================

@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "@std/assert";
 import { MemoryStatus, PlanStatus } from "../../src/enums.ts";
+import { ExoPathDefaults } from "../../src/config/constants.ts";
 
 import {
   DbLikePlanServiceAdapter,
@@ -43,27 +44,7 @@ Deno.test("lists pending plans via PlanCommands", async () => {
   const context: any = {
     config: {
       system: { root: root },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-        agents: "Agents",
-        flows: "Flows",
-        memory: "Memory",
-        portals: "Portals",
-        blueprints: "Blueprints",
-        runtime: "Runtime",
-        memoryProjects: "Memory/Projects",
-        memoryExecution: "Memory/Execution",
-        memoryIndex: "Memory/Index",
-        memorySkills: "Memory/Skills",
-        memoryPending: "Memory/Pending",
-        memoryTasks: "Memory/Tasks",
-        memoryGlobal: "Memory/Global",
-      },
+      paths: { ...ExoPathDefaults },
     },
     db,
   };
@@ -83,27 +64,7 @@ Deno.test("returns plan content as diff via PlanCommands", async () => {
   const context: any = {
     config: {
       system: { root: root },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-        agents: "Agents",
-        flows: "Flows",
-        memory: "Memory",
-        portals: "Portals",
-        blueprints: "Blueprints",
-        runtime: "Runtime",
-        memoryProjects: "Memory/Projects",
-        memoryExecution: "Memory/Execution",
-        memoryIndex: "Memory/Index",
-        memorySkills: "Memory/Skills",
-        memoryPending: "Memory/Pending",
-        memoryTasks: "Memory/Tasks",
-        memoryGlobal: "Memory/Global",
-      },
+      paths: { ...ExoPathDefaults },
     },
     db,
   };
@@ -121,27 +82,7 @@ Deno.test("approve moves plan and logs activity via PlanCommands", async () => {
   const context: any = {
     config: {
       system: { root: root },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-        agents: "Agents",
-        flows: "Flows",
-        memory: "Memory",
-        portals: "Portals",
-        blueprints: "Blueprints",
-        runtime: "Runtime",
-        memoryProjects: "Memory/Projects",
-        memoryExecution: "Memory/Execution",
-        memoryIndex: "Memory/Index",
-        memorySkills: "Memory/Skills",
-        memoryPending: "Memory/Pending",
-        memoryTasks: "Memory/Tasks",
-        memoryGlobal: "Memory/Global",
-      },
+      paths: { ...ExoPathDefaults },
     },
     db,
   };
@@ -185,27 +126,7 @@ Deno.test("reject moves plan to Workspace/Rejected and logs reason via PlanComma
   const context: any = {
     config: {
       system: { root: root },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-        agents: "Agents",
-        flows: "Flows",
-        memory: "Memory",
-        portals: "Portals",
-        blueprints: "Blueprints",
-        runtime: "Runtime",
-        memoryProjects: "Memory/Projects",
-        memoryExecution: "Memory/Execution",
-        memoryIndex: "Memory/Index",
-        memorySkills: "Memory/Skills",
-        memoryPending: "Memory/Pending",
-        memoryTasks: "Memory/Tasks",
-        memoryGlobal: "Memory/Global",
-      },
+      paths: { ...ExoPathDefaults },
     },
     db,
   };
@@ -230,27 +151,7 @@ Deno.test("handles very large plan content via PlanCommands", async () => {
   const context: any = {
     config: {
       system: { root: root },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-        agents: "Agents",
-        flows: "Flows",
-        memory: "Memory",
-        portals: "Portals",
-        blueprints: "Blueprints",
-        runtime: "Runtime",
-        memoryProjects: "Memory/Projects",
-        memoryExecution: "Memory/Execution",
-        memoryIndex: "Memory/Index",
-        memorySkills: "Memory/Skills",
-        memoryPending: "Memory/Pending",
-        memoryTasks: "Memory/Tasks",
-        memoryGlobal: "Memory/Global",
-      },
+      paths: { ...ExoPathDefaults },
     },
     db,
   };

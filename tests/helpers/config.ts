@@ -19,25 +19,7 @@ export function createMockConfig(root: string, overrides: Partial<Config> = {}):
       ...overrides.system,
     },
     paths: {
-      workspace: "Workspace",
-      runtime: ".exo",
-      memory: "Memory",
-      blueprints: "Blueprints",
-      portals: "Portals",
-      active: "Active",
-      archive: "Archive",
-      plans: "Plans",
-      requests: "Requests",
-      rejected: "Rejected",
-      agents: "Agents",
-      flows: "Flows",
-      memoryProjects: "Projects",
-      memoryExecution: "Execution",
-      memoryIndex: "Index",
-      memorySkills: "Skills",
-      memoryPending: "Pending",
-      memoryTasks: "Tasks",
-      memoryGlobal: "Global",
+      ...DEFAULTS.ExoPathDefaults,
       ...overrides.paths,
     },
     database: {
@@ -169,25 +151,25 @@ log_level = "info"
 root = "${root}"
 
 [paths]
-memory = "Memory"
-blueprints = "Blueprints"
-runtime = ".exo"
-portals = "Portals"
-workspace = "Workspace"
-active = "Active"
-archive = "Archive"
-plans = "Plans"
-requests = "Requests"
-rejected = "Rejected"
-agents = "Agents"
-flows = "Flows"
-memoryProjects = "Projects"
-memoryExecution = "Execution"
-memoryIndex = "Index"
-memorySkills = "Skills"
-memoryPending = "Pending"
-memoryTasks = "Tasks"
-memoryGlobal = "Global"
+memory = "${DEFAULTS.ExoPathDefaults.memory}"
+blueprints = "${DEFAULTS.ExoPathDefaults.blueprints}"
+runtime = "${DEFAULTS.ExoPathDefaults.runtime}"
+portals = "${DEFAULTS.ExoPathDefaults.portals}"
+workspace = "${DEFAULTS.ExoPathDefaults.workspace}"
+active = "${DEFAULTS.ExoPathDefaults.active}"
+archive = "${DEFAULTS.ExoPathDefaults.archive}"
+plans = "${DEFAULTS.ExoPathDefaults.plans}"
+requests = "${DEFAULTS.ExoPathDefaults.requests}"
+rejected = "${DEFAULTS.ExoPathDefaults.rejected}"
+agents = "${DEFAULTS.ExoPathDefaults.agents}"
+flows = "${DEFAULTS.ExoPathDefaults.flows}"
+memoryProjects = "${DEFAULTS.ExoPathDefaults.memoryProjects}"
+memoryExecution = "${DEFAULTS.ExoPathDefaults.memoryExecution}"
+memoryIndex = "${DEFAULTS.ExoPathDefaults.memoryIndex}"
+memorySkills = "${DEFAULTS.ExoPathDefaults.memorySkills}"
+memoryPending = "${DEFAULTS.ExoPathDefaults.memoryPending}"
+memoryTasks = "${DEFAULTS.ExoPathDefaults.memoryTasks}"
+memoryGlobal = "${DEFAULTS.ExoPathDefaults.memoryGlobal}"
 
 [database]
 batch_flush_ms = 100

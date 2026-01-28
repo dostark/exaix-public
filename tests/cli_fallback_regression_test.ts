@@ -13,6 +13,7 @@
 import { assert, assertEquals, assertExists } from "@std/assert";
 import { EventLogger } from "../src/services/event_logger.ts";
 import { createStubDb } from "./test_helpers.ts";
+import { ExoPathDefaults } from "../src/config/constants.ts";
 
 const TEST_ACTION = "test.action";
 const TEST_WARNING = "test.warning";
@@ -183,10 +184,7 @@ Deno.test("[regression] BlueprintCommands works with stub db", async () => {
   // Create minimal config
   const config = {
     system: { root: Deno.cwd() },
-    paths: {
-      blueprints: "Blueprints",
-      agents: "Agents",
-    },
+    paths: { ...ExoPathDefaults },
   } as any;
 
   // Create stub db with required methods
@@ -250,27 +248,7 @@ Deno.test("[regression] PlanCommands works with stub db", async () => {
   // Create minimal config with all required paths
   const config = {
     system: { root: Deno.cwd() },
-    paths: {
-      workspace: "Workspace",
-      plans: "Plans",
-      active: "Active",
-      rejected: "Rejected",
-      archive: "Archive",
-      requests: "Requests",
-      agents: "Agents",
-      flows: "Flows",
-      memory: "Memory",
-      portals: "Portals",
-      blueprints: "Blueprints",
-      runtime: "Runtime",
-      memoryProjects: "Memory/Projects",
-      memoryExecution: "Memory/Execution",
-      memoryIndex: "Memory/Index",
-      memorySkills: "Memory/Skills",
-      memoryPending: "Memory/Pending",
-      memoryTasks: "Memory/Tasks",
-      memoryGlobal: "Memory/Global",
-    },
+    paths: { ...ExoPathDefaults },
   } as any;
 
   // Create stub db with required methods

@@ -884,21 +884,33 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
     // Handle detail view
     if (this.state.showDetail) {
-      if (key === "escape" || key === "q") {
-        this.state.showDetail = false;
-      }
-      return true;
+      return this.handleDetailKey(key);
     }
 
     // Handle help
     if (this.state.showHelp) {
-      if (key === "?" || key === "escape" || key === "q") {
-        this.state.showHelp = false;
-      }
-      return true;
+      return this.handleHelpKey(key);
     }
 
     // Main key handling
+    return this.handleMainKey(key);
+  }
+
+  private handleDetailKey(key: string): boolean {
+    if (key === "escape" || key === "q") {
+      this.state.showDetail = false;
+    }
+    return true;
+  }
+
+  private handleHelpKey(key: string): boolean {
+    if (key === "?" || key === "escape" || key === "q") {
+      this.state.showHelp = false;
+    }
+    return true;
+  }
+
+  private async handleMainKey(key: string): Promise<boolean> {
     switch (key) {
       case "up":
         this.navigateTree("up");
@@ -964,6 +976,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       case "E":
         this.state.requestTree = expandAll(this.state.requestTree);
         return true;
+
       case "?":
         this.state.showHelp = true;
         return true;

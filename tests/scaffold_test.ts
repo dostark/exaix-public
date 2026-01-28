@@ -13,6 +13,7 @@
 import { assert, assertStringIncludes } from "https://deno.land/std@0.201.0/testing/asserts.ts";
 import { dirname, fromFileUrl, join } from "https://deno.land/std@0.201.0/path/mod.ts";
 import { exists } from "https://deno.land/std@0.201.0/fs/mod.ts";
+import { ExoPathDefaults } from "../src/config/constants.ts";
 
 const __dirname = dirname(fromFileUrl(import.meta.url));
 const REPO_ROOT = join(__dirname, "..");
@@ -51,15 +52,15 @@ Deno.test("scaffold.sh creates required directory structure", async () => {
 
     // Verify all required directories exist
     const requiredDirs = [
-      ".exo",
-      "Blueprints/Agents",
-      "Blueprints/Flows",
-      "Workspace/Requests",
-      "Workspace/Plans",
-      "Memory/Projects",
-      "Memory/Execution",
-      "Memory/Index",
-      "Portals",
+      ExoPathDefaults.runtime,
+      join(ExoPathDefaults.blueprints, ExoPathDefaults.agents),
+      ExoPathDefaults.flows,
+      join(ExoPathDefaults.workspace, ExoPathDefaults.requests),
+      join(ExoPathDefaults.workspace, ExoPathDefaults.plans),
+      ExoPathDefaults.memoryProjects,
+      ExoPathDefaults.memoryExecution,
+      ExoPathDefaults.memoryIndex,
+      ExoPathDefaults.portals,
       "scripts",
     ];
 
@@ -83,14 +84,14 @@ Deno.test("scaffold.sh creates .gitkeep files", async () => {
 
     // Verify .gitkeep files exist
     const gitkeepPaths = [
-      ".exo/.gitkeep",
-      "Blueprints/Agents/.gitkeep",
-      "Blueprints/Flows/.gitkeep",
-      "Workspace/Requests/.gitkeep",
-      "Workspace/Plans/.gitkeep",
-      "Memory/.gitkeep",
-      "Memory/Index/.gitkeep",
-      "Portals/.gitkeep",
+      join(ExoPathDefaults.runtime, ".gitkeep"),
+      join(ExoPathDefaults.blueprints, ExoPathDefaults.agents, ".gitkeep"),
+      join(ExoPathDefaults.flows, ".gitkeep"),
+      join(ExoPathDefaults.workspace, ExoPathDefaults.requests, ".gitkeep"),
+      join(ExoPathDefaults.workspace, ExoPathDefaults.plans, ".gitkeep"),
+      join(ExoPathDefaults.memory, ".gitkeep"),
+      join(ExoPathDefaults.memoryIndex, ".gitkeep"),
+      join(ExoPathDefaults.portals, ".gitkeep"),
     ];
 
     for (const path of gitkeepPaths) {
@@ -148,7 +149,7 @@ Deno.test("scaffold.sh creates Memory/Projects directory and README placeholder"
     const result = await runScaffold(tmp);
     assert(result.code === 0, `scaffold.sh failed: ${result.stderr}`);
 
-    const projectsPath = join(tmp, "Memory", "Projects");
+    const projectsPath = join(tmp, ExoPathDefaults.memoryProjects);
     assert(
       await exists(projectsPath),
       "Memory/Projects should be created",

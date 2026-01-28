@@ -2,6 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.201.0/testing/asserts.ts";
 import { join } from "https://deno.land/std@0.201.0/path/mod.ts";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { Config } from "../../src/config/schema.ts";
+import { ExoPathDefaults } from "../../src/config/constants.ts";
 
 Deno.test("ToolRegistry should allow access to portal targets", async () => {
   const portalDir = await Deno.makeTempDir({ prefix: "portal-target-" });
@@ -10,13 +11,7 @@ Deno.test("ToolRegistry should allow access to portal targets", async () => {
   try {
     const config: Config = {
       system: { root: workspaceDir, log_level: "info" },
-      paths: {
-        workspace: "Workspace",
-        memory: "Memory",
-        blueprints: "Blueprints",
-        // ... defaults
-        portals: "Portals",
-      },
+      paths: { ...ExoPathDefaults },
       portals: [
         { alias: "TestPortal", target_path: portalDir },
       ],

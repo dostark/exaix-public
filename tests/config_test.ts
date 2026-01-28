@@ -17,6 +17,7 @@ import { ProviderCostTier } from "../src/enums.ts";
 import { ConfigService } from "../src/config/service.ts";
 import { ConfigSchema } from "../src/config/schema.ts";
 import { initializeGlobalLogger, resetGlobalLogger } from "../src/services/structured_logger.ts";
+import { ExoPathDefaults } from "../src/config/constants.ts";
 
 Deno.test("ConfigSchema accepts valid minimal config", () => {
   const validConfig = {
@@ -24,11 +25,7 @@ Deno.test("ConfigSchema accepts valid minimal config", () => {
       version: "1.0.0",
       log_level: "info",
     },
-    paths: {
-      memory: "./Memory",
-      blueprints: "./Blueprints",
-      system: "./System",
-    },
+    paths: { ...ExoPathDefaults },
   };
 
   const result = ConfigSchema.safeParse(validConfig);
@@ -55,11 +52,7 @@ Deno.test("ConfigSchema applies defaults for missing agents section", () => {
       version: "1.0.0",
       log_level: "info",
     },
-    paths: {
-      memory: "./Memory",
-      blueprints: "./Blueprints",
-      system: "./System",
-    },
+    paths: { ...ExoPathDefaults },
   };
 
   const result = ConfigSchema.parse(configWithoutAgents);
@@ -73,11 +66,7 @@ Deno.test("ConfigSchema applies defaults for missing watcher section", () => {
       version: "1.0.0",
       log_level: "info",
     },
-    paths: {
-      memory: "./Memory",
-      blueprints: "./Blueprints",
-      system: "./System",
-    },
+    paths: { ...ExoPathDefaults },
   };
 
   const result = ConfigSchema.parse(configWithoutWatcher);
@@ -170,8 +159,8 @@ Deno.test("ConfigService handles missing config file", async (t) => {
 
       // Verify config has defaults (from the created default file)
       assertEquals(config.system.log_level, "info");
-      assertEquals(config.paths.memory, "./Memory"); // From file
-      assertEquals(config.paths.blueprints, "./Blueprints"); // From file
+      assertEquals(config.paths.memory, ExoPathDefaults.memory); // From file
+      assertEquals(config.paths.blueprints, ExoPathDefaults.blueprints); // From file
 
       // Verify file was created
       const fileExists = (() => {
@@ -712,13 +701,7 @@ Deno.test("ConfigSchema accepts provider_strategy section", () => {
 Deno.test("ConfigSchema accepts provider_strategy.fallback_chains", () => {
   const config = {
     system: { version: "1.0.0" },
-    paths: {
-      workspace: "Workspace",
-      runtime: ".exo",
-      memory: "Memory",
-      portals: "Portals",
-      blueprints: "Blueprints",
-    },
+    paths: { ...ExoPathDefaults },
     provider_strategy: {
       fallback_chains: {
         free: ["google", "ollama", "mock"],
@@ -740,13 +723,7 @@ Deno.test("ConfigSchema accepts provider_strategy.fallback_chains", () => {
 Deno.test("ConfigSchema accepts provider_strategy.budgets", () => {
   const config = {
     system: { version: "1.0.0" },
-    paths: {
-      workspace: "Workspace",
-      runtime: ".exo",
-      memory: "Memory",
-      portals: "Portals",
-      blueprints: "Blueprints",
-    },
+    paths: { ...ExoPathDefaults },
     provider_strategy: {
       budgets: {
         anthropic_daily_usd: 3.00,
@@ -766,13 +743,7 @@ Deno.test("ConfigSchema accepts provider_strategy.budgets", () => {
 Deno.test("ConfigSchema accepts provider_strategy.task_routing", () => {
   const config = {
     system: { version: "1.0.0" },
-    paths: {
-      workspace: "Workspace",
-      runtime: ".exo",
-      memory: "Memory",
-      portals: "Portals",
-      blueprints: "Blueprints",
-    },
+    paths: { ...ExoPathDefaults },
     provider_strategy: {
       task_routing: {
         simple: ["ollama", "google"],
@@ -796,13 +767,7 @@ Deno.test("ConfigSchema accepts provider_strategy.task_routing", () => {
 Deno.test("ConfigSchema accepts providers.* overrides", () => {
   const config = {
     system: { version: "1.0.0" },
-    paths: {
-      workspace: "Workspace",
-      runtime: ".exo",
-      memory: "Memory",
-      portals: "Portals",
-      blueprints: "Blueprints",
-    },
+    paths: { ...ExoPathDefaults },
     providers: {
       google: {
         cost_tier: ProviderCostTier.FREEMIUM,
@@ -837,13 +802,7 @@ Deno.test("ConfigSchema accepts providers.* overrides", () => {
 Deno.test("ConfigSchema provides defaults for provider_strategy", () => {
   const config = {
     system: { version: "1.0.0" },
-    paths: {
-      workspace: "Workspace",
-      runtime: ".exo",
-      memory: "Memory",
-      portals: "Portals",
-      blueprints: "Blueprints",
-    },
+    paths: { ...ExoPathDefaults },
   };
 
   const result = ConfigSchema.safeParse(config);
@@ -861,13 +820,7 @@ Deno.test("ConfigSchema provides defaults for provider_strategy", () => {
 Deno.test("ConfigSchema rejects unknown provider names in fallback_chains", () => {
   const config = {
     system: { version: "1.0.0" },
-    paths: {
-      workspace: "Workspace",
-      runtime: ".exo",
-      memory: "Memory",
-      portals: "Portals",
-      blueprints: "Blueprints",
-    },
+    paths: { ...ExoPathDefaults },
     provider_strategy: {
       fallback_chains: {
         free: ["invalid_provider", "google"],
@@ -882,13 +835,7 @@ Deno.test("ConfigSchema rejects unknown provider names in fallback_chains", () =
 Deno.test("ConfigSchema rejects invalid cost_tier values", () => {
   const config = {
     system: { version: "1.0.0" },
-    paths: {
-      workspace: "Workspace",
-      runtime: ".exo",
-      memory: "Memory",
-      portals: "Portals",
-      blueprints: "Blueprints",
-    },
+    paths: { ...ExoPathDefaults },
     providers: {
       google: {
         cost_tier: "invalid_tier",
@@ -903,13 +850,7 @@ Deno.test("ConfigSchema rejects invalid cost_tier values", () => {
 Deno.test("ConfigSchema accepts valid cost_tier values", () => {
   const config = {
     system: { version: "1.0.0" },
-    paths: {
-      workspace: "Workspace",
-      runtime: ".exo",
-      memory: "Memory",
-      portals: "Portals",
-      blueprints: "Blueprints",
-    },
+    paths: { ...ExoPathDefaults },
     providers: {
       google: {
         cost_tier: ProviderCostTier.FREE,

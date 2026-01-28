@@ -12,6 +12,7 @@ import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
+import { ExoPathDefaults } from "../src/config/constants.ts";
 
 const STATUS_APPROVED = "approved";
 const STATUS_REJECTED = "rejected";
@@ -81,14 +82,7 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
     // Create minimal config pointing to our test workspace
     const config = {
       system: { root: tempDir },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-      },
+      paths: { ...ExoPathDefaults },
     } as any;
 
     // Create stub db
@@ -125,14 +119,7 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
     // Create minimal config
     const config = {
       system: { root: tempDir },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-      },
+      paths: { ...ExoPathDefaults },
     } as any;
 
     const stubDb = {
@@ -190,14 +177,7 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
 
     const config = {
       system: { root: tempDir },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-      },
+      paths: { ...ExoPathDefaults },
     } as any;
 
     const stubDb = {
@@ -256,14 +236,7 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
 
     const config = {
       system: { root: tempDir },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-      },
+      paths: { ...ExoPathDefaults },
     } as any;
 
     const stubDb = {
@@ -321,14 +294,7 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
 
     const config = {
       system: { root: tempDir },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-      },
+      paths: { ...ExoPathDefaults },
     } as any;
 
     const stubDb = {
@@ -400,14 +366,7 @@ Deno.test("[regression] Plan reject finds plans in any directory", async () => {
     // Create minimal config
     const config = {
       system: { root: tempDir },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-      },
+      paths: { ...ExoPathDefaults },
     } as any;
 
     // Create stub db with required methods
@@ -499,14 +458,7 @@ This plan references a request and should show request context.
     // Create minimal config pointing to our test workspace
     const config = {
       system: { root: tempDir },
-      paths: {
-        workspace: "Workspace",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-        requests: "Requests",
-      },
+      paths: { ...ExoPathDefaults },
     } as any;
 
     // Create stub db

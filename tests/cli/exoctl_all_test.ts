@@ -1,4 +1,6 @@
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { join } from "@std/path";
+import { ExoPathDefaults } from "../../src/config/constants.ts";
 import {
   CritiqueSeverity,
   FlowInputSource,
@@ -22,15 +24,15 @@ import {
 
 // Reusable helpers
 async function withTestMod<T>(fn: (mod: any, ctx: any) => Promise<T> | T) {
-  const origEnv = Deno.env.get("EXO_TEST_CLI_MODE");
-  Deno.env.set("EXO_TEST_CLI_MODE", "1");
+  const origEnv = Deno.env.get("EXO_TEST_MODE");
+  Deno.env.set("EXO_TEST_MODE", "1");
   try {
     const mod = await import("../../src/cli/exoctl.ts");
     const ctx = mod.__test_getContext();
     return await fn(mod, ctx);
   } finally {
-    if (origEnv === undefined) Deno.env.delete("EXO_TEST_CLI_MODE");
-    else Deno.env.set("EXO_TEST_CLI_MODE", origEnv);
+    if (origEnv === undefined) Deno.env.delete("EXO_TEST_MODE");
+    else Deno.env.set("EXO_TEST_MODE", origEnv);
   }
 }
 
@@ -123,7 +125,7 @@ async function expectExitWithLogs(fn: () => Promise<void> | void, timeoutMs: num
 }
 
 // ---- Basic module export sanity tests ----
-Deno.test("exoctl exposes test context when EXO_TEST_CLI_MODE=1", async () => {
+Deno.test("exoctl exposes test context when EXO_TEST_MODE=1", async () => {
   await withTestMod((mod, _ctx) => {
     assertExists(mod.__test_getContext);
     const c = mod.__test_getContext();
@@ -314,9 +316,9 @@ Deno.test("portal show prints details", async () => {
     (ctx.portalCommands as any).show = (_alias: string) => ({
       alias: "MyPortal",
       targetPath: "/tmp/portal-target",
-      symlinkPath: "Portals/MyPortal",
+      symlinkPath: join(ExoPathDefaults.portals, "MyPortal"),
       status: SkillStatus.ACTIVE,
-      contextCardPath: "Memory/Projects/MyPortal/portal.md",
+      contextCardPath: join(ExoPathDefaults.memoryProjects, "MyPortal/portal.md"),
       permissions: [PortalOperation.READ],
       created: "now",
       lastVerified: "never",

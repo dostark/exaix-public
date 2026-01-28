@@ -4,6 +4,7 @@ import { crypto } from "@std/crypto";
 import { encodeHex } from "@std/encoding/hex";
 import { Config, ConfigSchema } from "./schema.ts";
 import { logInfo } from "../services/structured_logger.ts";
+import { ExoPathDefaults } from "./constants.ts";
 
 export class ConfigService {
   private readonly configPath: string;
@@ -77,25 +78,25 @@ version = "1.0.0"
 log_level = "info"
 
 [paths]
-memory = "./Memory"
-blueprints = "./Blueprints"
-runtime = "./.exo"
-    workspace = "Workspace"
-    portals = "Portals"
-    active = "Active"
-    archive = "Archive"
-    plans = "Plans"
-    requests = "Requests"
-    rejected = "Rejected"
-    agents = "Agents"
-    flows = "Flows"
-    memoryProjects = "Projects"
-    memoryExecution = "Execution"
-    memoryIndex = "Index"
-    memorySkills = "Skills"
-    memoryPending = "Pending"
-    memoryTasks = "Tasks"
-    memoryGlobal = "Global"
+memory = "${ExoPathDefaults.memory}"
+blueprints = "${ExoPathDefaults.blueprints}"
+runtime = "${ExoPathDefaults.runtime}"
+    workspace = "${ExoPathDefaults.workspace}"
+    portals = "${ExoPathDefaults.portals}"
+    active = "${ExoPathDefaults.active}"
+    archive = "${ExoPathDefaults.archive}"
+    plans = "${ExoPathDefaults.plans}"
+    requests = "${ExoPathDefaults.requests}"
+    rejected = "${ExoPathDefaults.rejected}"
+    agents = "${ExoPathDefaults.agents}"
+    flows = "${ExoPathDefaults.flows}"
+    memoryProjects = "${ExoPathDefaults.memoryProjects}"
+    memoryExecution = "${ExoPathDefaults.memoryExecution}"
+    memoryIndex = "${ExoPathDefaults.memoryIndex}"
+    memorySkills = "${ExoPathDefaults.memorySkills}"
+    memoryPending = "${ExoPathDefaults.memoryPending}"
+    memoryTasks = "${ExoPathDefaults.memoryTasks}"
+    memoryGlobal = "${ExoPathDefaults.memoryGlobal}"
 
 [watcher]
 debounce_ms = 200

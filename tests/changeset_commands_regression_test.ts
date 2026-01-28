@@ -12,6 +12,7 @@ import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
+import { ExoPathDefaults } from "../src/config/constants.ts";
 
 const TEST_REQUEST_ID = "request-test123";
 const TEST_TRACE_ID = "test-trace-123";
@@ -103,14 +104,7 @@ Deno.test("[regression] Changeset list shows request and plan context", async ()
     // Create minimal config pointing to our test workspace
     const config = {
       system: { root: tempDir },
-      paths: {
-        workspace: "Workspace",
-        requests: "Requests",
-        plans: "Plans",
-        active: "Active",
-        rejected: "Rejected",
-        archive: "Archive",
-      },
+      paths: { ...ExoPathDefaults },
     };
 
     // Create mock context with test config

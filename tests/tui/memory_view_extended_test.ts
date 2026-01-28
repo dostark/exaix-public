@@ -243,6 +243,32 @@ function createTestSession(): MemoryViewTuiSession {
   return new MemoryViewTuiSession(mockService as unknown as MemoryServiceInterface);
 }
 
+interface ServiceOptions {
+  projects?: string[];
+  executions?: ExecutionMemory[];
+  pending?: MemoryUpdateProposal[];
+  globalMemory?: GlobalMemory | null;
+  projectMemories?: Record<string, ProjectMemory | null>;
+  searchResults?: MemorySearchResult[];
+}
+
+function createConfiguredService(options: ServiceOptions = {}): ExtendedMockMemoryService {
+  const service = new ExtendedMockMemoryService();
+  service.setProjects(options.projects || []);
+  service.setExecutions(options.executions || []);
+  service.setPending(options.pending || []);
+  service.setGlobalMemory(options.globalMemory ?? null);
+  service.setSearchResults(options.searchResults || []);
+
+  if (options.projectMemories) {
+    for (const [portal, memory] of Object.entries(options.projectMemories)) {
+      service.setProjectMemory(portal, memory);
+    }
+  }
+
+  return service;
+}
+
 function createSessionWithService(service: ExtendedMockMemoryService): MemoryViewTuiSession {
   return new MemoryViewTuiSession(service as unknown as MemoryServiceInterface);
 }
@@ -294,11 +320,10 @@ Deno.test("MemoryViewTuiSession: refreshIfStale calls refresh when stale", async
 });
 
 Deno.test("MemoryViewTuiSession: renders global scope detail with memory", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setGlobalMemory(createMockGlobalMemory());
-  service.setProjects(["TestPortal"]);
-  service.setPending([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    globalMemory: createMockGlobalMemory(),
+    projects: ["TestPortal"],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -310,11 +335,9 @@ Deno.test("MemoryViewTuiSession: renders global scope detail with memory", async
 });
 
 Deno.test("MemoryViewTuiSession: renders global scope detail without memory", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setGlobalMemory(null);
-  service.setProjects([]);
-  service.setPending([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    globalMemory: null,
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -326,10 +349,9 @@ Deno.test("MemoryViewTuiSession: renders global scope detail without memory", as
 });
 
 Deno.test("MemoryViewTuiSession: renders projects scope detail", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setProjects(["Portal1", "Portal2"]);
-  service.setPending([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    projects: ["Portal1", "Portal2"],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -341,10 +363,9 @@ Deno.test("MemoryViewTuiSession: renders projects scope detail", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: renders executions scope detail", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setExecutions([createMockExecution("trace-1", ExecutionStatus.COMPLETED)]);
-  service.setProjects([]);
-  service.setPending([]);
+  const service = createConfiguredService({
+    executions: [createMockExecution("trace-1", ExecutionStatus.COMPLETED)],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -356,10 +377,9 @@ Deno.test("MemoryViewTuiSession: renders executions scope detail", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: renders pending scope detail", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([createMockProposal("prop-1", "Test Proposal")]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    pending: [createMockProposal("prop-1", "Test Proposal")],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -371,11 +391,10 @@ Deno.test("MemoryViewTuiSession: renders pending scope detail", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: renders project detail with memory", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setProjects(["TestPortal"]);
-  service.setProjectMemory("TestPortal", createMockProjectMemory("TestPortal"));
-  service.setPending([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    projects: ["TestPortal"],
+    projectMemories: { "TestPortal": createMockProjectMemory("TestPortal") },
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -389,11 +408,10 @@ Deno.test("MemoryViewTuiSession: renders project detail with memory", async () =
 });
 
 Deno.test("MemoryViewTuiSession: renders project detail without memory", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setProjects(["EmptyPortal"]);
-  service.setProjectMemory("EmptyPortal", null);
-  service.setPending([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    projects: ["EmptyPortal"],
+    projectMemories: { "EmptyPortal": null },
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -407,11 +425,10 @@ Deno.test("MemoryViewTuiSession: renders project detail without memory", async (
 });
 
 Deno.test("MemoryViewTuiSession: renders execution detail with all fields", async () => {
-  const service = new ExtendedMockMemoryService();
   const exec = createMockExecution("trace-full", ExecutionStatus.COMPLETED);
-  service.setExecutions([exec]);
-  service.setProjects([]);
-  service.setPending([]);
+  const service = createConfiguredService({
+    executions: [exec],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -425,7 +442,6 @@ Deno.test("MemoryViewTuiSession: renders execution detail with all fields", asyn
 });
 
 Deno.test("MemoryViewTuiSession: renders execution detail for running status", async () => {
-  const service = new ExtendedMockMemoryService();
   const exec = createMockExecution("trace-running", ExecutionStatus.RUNNING);
   exec.completed_at = undefined;
   exec.changes = {
@@ -434,9 +450,9 @@ Deno.test("MemoryViewTuiSession: renders execution detail for running status", a
     files_deleted: [],
   };
   exec.lessons_learned = undefined;
-  service.setExecutions([exec]);
-  service.setProjects([]);
-  service.setPending([]);
+  const service = createConfiguredService({
+    executions: [exec],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -450,12 +466,11 @@ Deno.test("MemoryViewTuiSession: renders execution detail for running status", a
 });
 
 Deno.test("MemoryViewTuiSession: renders execution detail for failed status", async () => {
-  const service = new ExtendedMockMemoryService();
   const exec = createMockExecution("trace-failed", ExecutionStatus.FAILED);
   exec.error_message = "Something went wrong";
-  service.setExecutions([exec]);
-  service.setProjects([]);
-  service.setPending([]);
+  const service = createConfiguredService({
+    executions: [exec],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -469,10 +484,7 @@ Deno.test("MemoryViewTuiSession: renders execution detail for failed status", as
 });
 
 Deno.test("MemoryViewTuiSession: approveSelectedProposal with no selection", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService();
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -483,10 +495,7 @@ Deno.test("MemoryViewTuiSession: approveSelectedProposal with no selection", asy
 });
 
 Deno.test("MemoryViewTuiSession: rejectSelectedProposal with no selection", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService();
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -497,10 +506,7 @@ Deno.test("MemoryViewTuiSession: rejectSelectedProposal with no selection", asyn
 });
 
 Deno.test("MemoryViewTuiSession: approveAllProposals with no proposals", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService();
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -510,10 +516,9 @@ Deno.test("MemoryViewTuiSession: approveAllProposals with no proposals", async (
 });
 
 Deno.test("MemoryViewTuiSession: approveAllProposals with proposals opens dialog", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([createMockProposal("p1", "Proposal 1"), createMockProposal("p2", "Proposal 2")]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    pending: [createMockProposal("p1", "Proposal 1"), createMockProposal("p2", "Proposal 2")],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -523,10 +528,7 @@ Deno.test("MemoryViewTuiSession: approveAllProposals with proposals opens dialog
 });
 
 Deno.test("MemoryViewTuiSession: openAddLearningDialog opens dialog", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService();
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -536,10 +538,7 @@ Deno.test("MemoryViewTuiSession: openAddLearningDialog opens dialog", async () =
 });
 
 Deno.test("MemoryViewTuiSession: promoteSelectedLearning without learning selected", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService();
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -549,10 +548,7 @@ Deno.test("MemoryViewTuiSession: promoteSelectedLearning without learning select
 });
 
 Deno.test("MemoryViewTuiSession: search with empty query reloads tree", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService();
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -564,14 +560,12 @@ Deno.test("MemoryViewTuiSession: search with empty query reloads tree", async ()
 });
 
 Deno.test("MemoryViewTuiSession: search with query executes search", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setSearchResults([
-    { type: MemoryType.PATTERN, id: "p1", title: "Result 1", summary: "Summary 1" },
-    { type: MemoryType.DECISION, id: "d1", title: "Result 2", summary: "Summary 2" },
-  ]);
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    searchResults: [
+      { type: MemoryType.PATTERN, id: "p1", title: "Result 1", summary: "Summary 1" },
+      { type: MemoryType.DECISION, id: "d1", title: "Result 2", summary: "Summary 2" },
+    ],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -587,11 +581,9 @@ Deno.test("MemoryViewTuiSession: search with query executes search", async () =>
 });
 
 Deno.test("MemoryViewTuiSession: navigation with empty tree does nothing", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setProjects([]);
-  service.setGlobalMemory(null);
-  service.setExecutions([]);
-  service.setPending([]);
+  const service = createConfiguredService({
+    globalMemory: null,
+  });
 
   const session = createSessionWithService(service);
   await session.handleKey("down");
@@ -599,10 +591,9 @@ Deno.test("MemoryViewTuiSession: navigation with empty tree does nothing", async
 });
 
 Deno.test("MemoryViewTuiSession: renderTreePanel returns string", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setProjects(["TestPortal"]);
-  service.setPending([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    projects: ["TestPortal"],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -614,10 +605,7 @@ Deno.test("MemoryViewTuiSession: renderTreePanel returns string", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: renderStatusBar shows search input when active", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService();
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -634,10 +622,9 @@ Deno.test("MemoryViewTuiSession: renderStatusBar shows search input when active"
 });
 
 Deno.test("MemoryViewTuiSession: renderActionButtons shows context-specific actions", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([createMockProposal("p1", "Proposal 1")]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    pending: [createMockProposal("p1", "Proposal 1")],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -649,10 +636,9 @@ Deno.test("MemoryViewTuiSession: renderActionButtons shows context-specific acti
 });
 
 Deno.test("MemoryViewTuiSession: renderDialog returns dialog content when active", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([createMockProposal("p1", "Proposal 1"), createMockProposal("p2", "Proposal 2")]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    pending: [createMockProposal("p1", "Proposal 1"), createMockProposal("p2", "Proposal 2")],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -665,10 +651,9 @@ Deno.test("MemoryViewTuiSession: renderDialog returns dialog content when active
 });
 
 Deno.test("MemoryViewTuiSession: dialog escape cancels", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([createMockProposal("p1", "Proposal 1")]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    pending: [createMockProposal("p1", "Proposal 1")],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -681,10 +666,9 @@ Deno.test("MemoryViewTuiSession: dialog escape cancels", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: handleKey with dialog forwards to dialog", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([createMockProposal("p1", "Proposal 1")]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    pending: [createMockProposal("p1", "Proposal 1")],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -697,10 +681,7 @@ Deno.test("MemoryViewTuiSession: handleKey with dialog forwards to dialog", asyn
 });
 
 Deno.test("MemoryViewTuiSession: ? toggles help", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService();
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -713,10 +694,7 @@ Deno.test("MemoryViewTuiSession: ? toggles help", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: findNodeById returns null for invalid ID", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService();
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -726,10 +704,7 @@ Deno.test("MemoryViewTuiSession: findNodeById returns null for invalid ID", asyn
 });
 
 Deno.test("MemoryViewTuiSession: findNodeById returns null for null ID", async () => {
-  const service = new ExtendedMockMemoryService();
-  service.setPending([]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService();
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -739,11 +714,10 @@ Deno.test("MemoryViewTuiSession: findNodeById returns null for null ID", async (
 });
 
 Deno.test("MemoryViewTuiSession: handles pending proposal detail rendering", async () => {
-  const service = new ExtendedMockMemoryService();
   const proposal = createMockProposal("p1", "Test Proposal");
-  service.setPending([proposal]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    pending: [proposal],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -757,11 +731,10 @@ Deno.test("MemoryViewTuiSession: handles pending proposal detail rendering", asy
 });
 
 Deno.test("MemoryViewTuiSession: approve pending proposal with selection", async () => {
-  const service = new ExtendedMockMemoryService();
   const proposal = createMockProposal("p1", "Test Proposal");
-  service.setPending([proposal]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    pending: [proposal],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -775,11 +748,10 @@ Deno.test("MemoryViewTuiSession: approve pending proposal with selection", async
 });
 
 Deno.test("MemoryViewTuiSession: reject pending proposal with selection", async () => {
-  const service = new ExtendedMockMemoryService();
   const proposal = createMockProposal("p1", "Test Proposal");
-  service.setPending([proposal]);
-  service.setProjects([]);
-  service.setExecutions([]);
+  const service = createConfiguredService({
+    pending: [proposal],
+  });
 
   const session = createSessionWithService(service);
   await session.initialize();
@@ -793,7 +765,7 @@ Deno.test("MemoryViewTuiSession: reject pending proposal with selection", async 
 });
 
 Deno.test("MemoryViewTuiSession: getFocusableElements returns panel list", async () => {
-  const service = new ExtendedMockMemoryService();
+  const service = createConfiguredService();
   service.setPending([]);
   service.setProjects([]);
   service.setExecutions([]);

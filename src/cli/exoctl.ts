@@ -13,10 +13,6 @@
  */
 
 import { Command } from "@cliffy/command";
-import { ConfigService } from "../config/service.ts";
-import { GitService } from "../services/git_service.ts";
-import { EventLogger } from "../services/event_logger.ts";
-import { ProviderFactory } from "../ai/provider_factory.ts";
 import { PlanCommands } from "./plan_commands.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { ChangesetCommands } from "./changeset_commands.ts";
@@ -30,15 +26,12 @@ import { MemoryCommands } from "./memory_commands.ts";
 import { JournalCommands } from "./commands/journal.ts";
 import { RequestPriority } from "../enums.ts";
 import { CLI_DEFAULTS, PRIORITY_ICONS } from "./cli.config.ts";
-import { MCPServer } from "../mcp/server.ts";
+import { McpCommands } from "./commands/mcp.ts";
+import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
 
 // Allow tests to run the CLI entrypoint without initializing heavy services
-function isTestMode() {
-  try {
-    return Deno.env.get("EXO_TEST_CLI_MODE") === "1";
-  } catch (_err) {
-    return false;
-  }
+export function isTestMode() {
+  return isTestModeImport();
 }
 
 let config: any;
@@ -49,122 +42,16 @@ let display: any;
 let context: any;
 let configService: any;
 
-if (!isTestMode()) {
-  // Initialize services (normal runtime). Wrap in try/catch so the CLI
-  // can still be executed in restricted environments (e.g. tests that
-  // spawn the binary without --allow-read). If we cannot access files
-  // (ConfigService throws NotCapable), fall back to a minimal in-memory
-  // config so commands like `--version` can run.
-  try {
-    configService = new ConfigService();
-    config = configService.get();
-    // CI / debug logging: print resolved config path and env when running in CI or when explicitly requested
-    const ciDebug = Deno.env.get("EXO_CI_DEBUG") === "1" || Deno.env.get("CI") === "1" || Deno.env.get("CI") === "true";
-    if (ciDebug) {
-      try {
-        console.error("CI Debug: cwd=", Deno.cwd());
-        console.error("CI Debug: EXO_CONFIG_PATH=", Deno.env.get("EXO_CONFIG_PATH"));
-        console.error(
-          "CI Debug: resolved config path=",
-          (configService as any).getConfigPath?.() ?? (configService as any).configPath ?? "unknown",
-        );
-      } catch (_e) {
-        // best-effort logging; do not fail startup
-      }
-    }
-    // Dynamically import DatabaseService to avoid loading sqlite at import-time
-    const { DatabaseService } = await import("../services/db.ts");
-    db = new DatabaseService(config);
-    gitService = new GitService({ config, db });
-    provider = await ProviderFactory.createByName(config, config.agents.default_model);
-
-    // Display-only logger (no DB writes) for read-only operations
-    display = new EventLogger({});
-
-    // Initialize command handlers
-    context = { config, db, provider };
-  } catch (_err) {
-    // Permission/read errors can occur when running the binary without
-    // file system access (e.g., tests). Fall back to a minimal config
-    // and stub services so lightweight commands (version/help) continue.
-    config = {
-      system: { root: Deno.cwd() },
-      paths: {
-        workspace: "Workspace",
-        runtime: ".exo",
-        memory: "Memory",
-        portals: "Portals",
-        blueprints: "Blueprints",
-        flows: "Blueprints/Flows",
-        requests: "Requests",
-        plans: "Plans",
-        active: "Active",
-        archive: "Archive",
-        rejected: "Rejected",
-        agents: "Agents",
-        memoryProjects: "Memory/Projects",
-        memoryExecution: "Memory/Execution",
-        memoryIndex: "Memory/Index",
-        memorySkills: "Memory/Skills",
-        memoryPending: "Memory/Pending",
-        memoryTasks: "Memory/Tasks",
-        memoryGlobal: "Memory/Global",
-      },
-      agents: { default_model: "mock:test" },
-    } as any;
-    // Stub db with no-op methods to prevent EventLogger crashes
-    db = {
-      logActivity: () => {},
-      waitForFlush: async () => {},
-      queryActivity: () => Promise.resolve([]),
-    } as any;
-    gitService = {} as any;
-    provider = await ProviderFactory.createByName(config, config.agents.default_model);
-    display = new EventLogger({});
-    display.warn("cli.config_missing", "system", {
-      message: "Configuration failed to load. Running in degraded mode (read-only/stub).",
-      hint: "Ensure 'exo.config.toml' exists in current directory or root.",
-    });
-    context = { config, db, provider };
-  }
+const services = await initializeServices();
+if (services.success) {
+  ({ config, db, gitService, provider, display, configService } = services);
+  context = { config, db, provider };
 } else {
-  // Test mode: provide minimal stubs so the top-level CLI can be exercised
-  config = {
-    system: { root: Deno.cwd() },
-    paths: {
-      workspace: "Workspace",
-      runtime: ".exo",
-      memory: "Memory",
-      portals: "Portals",
-      blueprints: "Blueprints",
-      flows: "Blueprints/Flows",
-      requests: "Requests",
-      plans: "Plans",
-      active: "Active",
-      archive: "Archive",
-      rejected: "Rejected",
-      agents: "Agents",
-      memoryProjects: "Memory/Projects",
-      memoryExecution: "Memory/Execution",
-      memoryIndex: "Memory/Index",
-      memorySkills: "Memory/Skills",
-      memoryPending: "Memory/Pending",
-      memoryTasks: "Memory/Tasks",
-      memoryGlobal: "Memory/Global",
-    },
-    agents: { default_model: "mock:test" },
-  };
-  // Stub db with no-op methods to prevent EventLogger crashes
-  db = {
-    logActivity: () => {},
-    waitForFlush: async () => {},
-    queryActivity: () => Promise.resolve([]),
-  } as any;
-  gitService = {} as any;
-  provider = {} as any;
-  display = new EventLogger({});
+  // Fallback context from safe initialization
+  ({ config, db, gitService, provider, display } = services);
   context = { config, db, provider };
 }
+
 const requestCommands = new RequestCommands(context);
 const planCommands = new PlanCommands(context);
 const changesetCommands = new ChangesetCommands(context, gitService);
@@ -201,96 +88,12 @@ export function __test_getContext() {
 
 // Test helper: initialize the heavy services path (same logic used in non-test runtime)
 // Returns an object describing whether initialization succeeded and the constructed services.
-export async function __test_initializeServices(
+// Test helper: initialize the heavy services path (same logic used in non-test runtime)
+// Returns an object describing whether initialization succeeded and the constructed services.
+export function __test_initializeServices(
   opts?: { simulateFail?: boolean; instantiateDb?: boolean; configPath?: string },
 ) {
-  try {
-    if (opts?.simulateFail) throw new Error("simulate-failure");
-    let configPath = opts?.configPath;
-    if (!configPath && isTestMode()) {
-      // In test mode, use a temp directory to avoid polluting the root
-      const tempDir = await Deno.makeTempDir({ prefix: "exoctl-test-" });
-      configPath = `${tempDir}/exo.config.toml`;
-    }
-    const cfgService = new ConfigService(configPath);
-    const cfg = cfgService.get();
-
-    // Dynamically import DatabaseService as the runtime code does
-    // Only import and instantiate DatabaseService if explicitly requested by caller.
-    // Importing the DB module may load native dynamic libraries during module initialization,
-    // which unit tests need to avoid unless they're prepared to close them.
-    let dbLocal: any = {};
-    if (opts?.instantiateDb) {
-      const { DatabaseService } = await import("../services/db.ts");
-      dbLocal = new DatabaseService(cfg);
-      // Close DB if it exposes a close method to avoid leaking dynamic libraries during tests
-      if (typeof (dbLocal as any).close === "function") {
-        try {
-          await (dbLocal as any).close();
-        } catch {
-          // ignore close errors in test helper
-        }
-      }
-    }
-    const gitLocal = new GitService({ config: cfg, db: dbLocal });
-    const providerLocal = await ProviderFactory.createByName(cfg, cfg.agents.default_model);
-    const displayLocal = new EventLogger({});
-    return {
-      success: true,
-      config: cfg,
-      db: dbLocal,
-      gitService: gitLocal,
-      provider: providerLocal,
-      display: displayLocal,
-    };
-  } catch (err) {
-    // Fallback minimal stubs (same as runtime fallback)
-    const cfg = {
-      system: { root: Deno.cwd() },
-      paths: {
-        workspace: "Workspace",
-        runtime: ".exo",
-        memory: "Memory",
-        portals: "Portals",
-        blueprints: "Blueprints",
-        flows: "Blueprints/Flows",
-        requests: "Requests",
-        plans: "Plans",
-        active: "Active",
-        archive: "Archive",
-        rejected: "Rejected",
-        agents: "Agents",
-        memoryProjects: "Memory/Projects",
-        memoryExecution: "Memory/Execution",
-        memoryIndex: "Memory/Index",
-        memorySkills: "Memory/Skills",
-        memoryPending: "Memory/Pending",
-        memoryTasks: "Memory/Tasks",
-        memoryGlobal: "Memory/Global",
-      },
-      agents: { default_model: "mock:test" },
-    } as any;
-    const providerLocal = await ProviderFactory.createByName(cfg, cfg.agents.default_model);
-    const displayLocal = new EventLogger({});
-    displayLocal.warn("cli.config_missing", "system", {
-      message: "Configuration failed to load. Running in degraded mode (read-only/stub).",
-      hint: "Ensure 'exo.config.toml' exists in current directory or root.",
-    });
-    return {
-      success: false,
-      error: String(err),
-      config: cfg,
-      // Stub db with no-op methods to prevent EventLogger crashes
-      db: {
-        logActivity: () => {},
-        waitForFlush: async () => {},
-        queryActivity: () => Promise.resolve([]),
-      } as any,
-      gitService: {} as any,
-      provider: providerLocal,
-      display: displayLocal,
-    };
-  }
+  return initializeServices(opts);
 }
 
 export const __test_command = new Command()
@@ -1577,39 +1380,8 @@ export const __test_command = new Command()
           .option("--sse", "Use SSE/HTTP transport (default: stdio)")
           .option("--port <port:number>", "Port for SSE transport", { default: 3000 })
           .action(async (options) => {
-            const transport = options.sse ? "sse" : "stdio";
-            const server = new MCPServer({
-              config,
-              db,
-              transport,
-            });
-
-            if (transport === "sse") {
-              await server.startHTTPServer(options.port);
-            } else {
-              server.start();
-              // Stdio loop for JSON-RPC 2.0
-              const decoder = new TextDecoder();
-              const encoder = new TextEncoder();
-
-              for await (const chunk of Deno.stdin.readable) {
-                const text = decoder.decode(chunk);
-                const lines = text.split("\n").filter((line) => line.trim() !== "");
-
-                for (const line of lines) {
-                  try {
-                    const request = JSON.parse(line);
-                    const response = await server.handleRequest(request);
-                    if (response) {
-                      const responseStr = JSON.stringify(response) + "\n";
-                      await Deno.stdout.write(encoder.encode(responseStr));
-                    }
-                  } catch (error) {
-                    console.error("Failed to process request:", error);
-                  }
-                }
-              }
-            }
+            const cmd = new McpCommands(context);
+            await cmd.start(options);
           }),
       ),
   );

@@ -7,6 +7,7 @@ import { LearningCategory } from "../../src/enums.ts";
 import { join } from "@std/path";
 
 import { ToolRegistry, type ToolRegistryConfig } from "../../src/services/tool_registry.ts";
+import { ExoPathDefaults } from "../../src/config/constants.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 
@@ -14,25 +15,7 @@ import { DatabaseService } from "../../src/services/db.ts";
 const mockConfig = ConfigSchema.parse({
   system: { root: "/tmp/test", log_level: "info" },
   paths: {
-    workspace: "Workspace",
-    runtime: ".exo",
-    memory: "Memory",
-    blueprints: "Blueprints",
-    portals: "Portals",
-    active: "Active",
-    archive: "Archive",
-    plans: "Plans",
-    requests: "Requests",
-    rejected: "Rejected",
-    agents: "Agents",
-    flows: "Flows",
-    memoryProjects: "Memory/Projects",
-    memoryExecution: "Memory/Execution",
-    memoryIndex: "Memory/Index",
-    memorySkills: "Memory/Skills",
-    memoryPending: "Memory/Pending",
-    memoryTasks: "Memory/Tasks",
-    memoryGlobal: "Memory/Global",
+    ...ExoPathDefaults,
   },
   database: {},
   watcher: {},

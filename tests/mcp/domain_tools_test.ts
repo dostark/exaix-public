@@ -5,6 +5,7 @@ import { ensureDir } from "@std/fs";
 import { ApprovePlanTool, CreateRequestTool, ListPlansTool, QueryJournalTool } from "../../src/mcp/domain_tools.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import type { Config } from "../../src/config/schema.ts";
+import { ExoPathDefaults } from "../../src/config/constants.ts";
 
 // Mock Config
 const createMockConfig = (rootDir: string): Config => ({
@@ -14,25 +15,7 @@ const createMockConfig = (rootDir: string): Config => ({
     version: "1.0.0",
   },
   paths: {
-    workspace: "workspace",
-    requests: "requests",
-    plans: "plans",
-    active: "active",
-    archive: "archive",
-    rejected: "rejected",
-    runtime: "runtime",
-    agents: "agents",
-    flows: "flows",
-    blueprints: "blueprints",
-    portals: "portals",
-    memory: "memory",
-    memoryProjects: "projects",
-    memoryExecution: "execution",
-    memoryIndex: "index",
-    memorySkills: "skills",
-    memoryPending: "pending",
-    memoryTasks: "tasks",
-    memoryGlobal: "global",
+    ...ExoPathDefaults,
   },
   database: {
     batch_flush_ms: 100,

@@ -11,6 +11,7 @@ import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
+import { ExoPathDefaults } from "../src/config/constants.ts";
 
 const AGENT_ID = "multiline-test";
 const CAP_TESTING = "testing";
@@ -54,10 +55,7 @@ This blueprint uses multi-line YAML array format.
 
     const config = {
       system: { root: tempDir },
-      paths: {
-        blueprints: "Blueprints",
-        agents: "Agents",
-      },
+      paths: { ...ExoPathDefaults },
     } as any;
 
     const stubDb = createStubDb();

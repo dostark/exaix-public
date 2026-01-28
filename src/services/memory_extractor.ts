@@ -24,16 +24,8 @@ import type {
   ProposalLearning,
 } from "../schemas/memory_bank.ts";
 import { MemoryUpdateProposalSchema } from "../schemas/memory_bank.ts";
-import {
-  ConfidenceLevel,
-  ExecutionStatus,
-  LearningCategory,
-  MemoryOperation,
-  MemoryReferenceType,
-  MemoryScope,
-  MemorySource,
-  MemoryStatus,
-} from "../enums.ts";
+import { MemoryOperation, MemoryReferenceType, MemoryScope, MemoryStatus } from "../enums.ts";
+import { LearningExtractor } from "./memory/learning_extractor.ts";
 
 /**
  * Memory Extractor Service
@@ -53,6 +45,8 @@ export class MemoryExtractorService {
 
   // ===== Extraction Operations =====
 
+  // ===== Extraction Operations =====
+
   /**
    * Analyze an execution and extract potential learnings
    *
@@ -60,230 +54,7 @@ export class MemoryExtractorService {
    * @returns Array of extracted learnings (without status, ready for proposal)
    */
   analyzeExecution(execution: ExecutionMemory): ProposalLearning[] {
-    const learnings: ProposalLearning[] = [];
-
-    // Skip trivial executions (no changes, no lessons)
-    if (this.isTrivialExecution(execution)) {
-      return learnings;
-    }
-
-    // Extract from lessons_learned field
-    if (execution.lessons_learned && execution.lessons_learned.length > 0) {
-      for (const lesson of execution.lessons_learned) {
-        const learning = this.extractFromLesson(lesson, execution);
-        if (learning) {
-          learnings.push(learning);
-        }
-      }
-    }
-
-    // Extract patterns from successful executions
-    if (execution.status === ExecutionStatus.COMPLETED) {
-      const patternLearnings = this.extractPatternsFromSummary(execution);
-      learnings.push(...patternLearnings);
-    }
-
-    // Extract troubleshooting from failed executions
-    if (execution.status === ExecutionStatus.FAILED && execution.error_message) {
-      const troubleshootingLearning = this.extractFromFailure(execution);
-      if (troubleshootingLearning) {
-        learnings.push(troubleshootingLearning);
-      }
-    }
-
-    // Deduplicate by title
-    const seen = new Set<string>();
-    return learnings.filter((l) => {
-      const key = l.title.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }
-
-  /**
-   * Check if execution is too trivial to extract learnings from
-   */
-  private isTrivialExecution(execution: ExecutionMemory): boolean {
-    // No changes made
-    const changes = execution.changes;
-    const hasChanges = (changes.files_created?.length || 0) +
-        (changes.files_modified?.length || 0) +
-        (changes.files_deleted?.length || 0) > 0;
-
-    // No lessons learned
-    const hasLessons = execution.lessons_learned && execution.lessons_learned.length > 0;
-
-    // Short summary (less than 50 chars usually means trivial)
-    const hasMeaningfulSummary = execution.summary.length > 50;
-
-    // No error message for failed
-    const hasError = execution.status === ExecutionStatus.FAILED && execution.error_message;
-
-    return !hasChanges && !hasLessons && !hasMeaningfulSummary && !hasError;
-  }
-
-  /**
-   * Extract a learning from a lessons_learned entry
-   */
-  private extractFromLesson(lesson: string, execution: ExecutionMemory): ProposalLearning | null {
-    // Skip very short lessons
-    if (lesson.length < 10) return null;
-
-    // Determine category from content
-    const category = this.categorizeLesson(lesson);
-
-    return {
-      id: crypto.randomUUID(),
-      created_at: new Date().toISOString(),
-      source: MemorySource.EXECUTION,
-      source_id: execution.trace_id,
-      scope: MemoryScope.PROJECT,
-      project: execution.portal,
-      title: this.extractTitle(lesson),
-      description: lesson,
-      category,
-      tags: this.extractTags(lesson, execution),
-      confidence: ConfidenceLevel.MEDIUM,
-      references: [
-        { type: MemoryReferenceType.EXECUTION, path: execution.trace_id },
-      ],
-    };
-  }
-
-  /**
-   * Categorize a lesson based on its content
-   */
-  private categorizeLesson(lesson: string): ProposalLearning["category"] {
-    const lower = lesson.toLowerCase();
-
-    if (lower.includes("avoid") || lower.includes("don't") || lower.includes("never")) {
-      return LearningCategory.ANTI_PATTERN;
-    }
-    if (lower.includes("pattern") || lower.includes("approach") || lower.includes("structure")) {
-      return LearningCategory.PATTERN;
-    }
-    if (lower.includes("decided") || lower.includes("choice") || lower.includes("chose")) {
-      return LearningCategory.DECISION;
-    }
-    if (lower.includes("error") || lower.includes("fix") || lower.includes("debug")) {
-      return LearningCategory.TROUBLESHOOTING;
-    }
-    return LearningCategory.INSIGHT;
-  }
-
-  /**
-   * Extract a short title from a lesson
-   */
-  private extractTitle(text: string): string {
-    // Take first sentence or first 100 chars
-    const firstSentence = text.split(/[.!?]/)[0].trim();
-    if (firstSentence.length <= 100) {
-      return firstSentence;
-    }
-    return text.substring(0, 97) + "...";
-  }
-
-  /**
-   * Extract relevant tags from content and execution context
-   */
-  private extractTags(content: string, execution: ExecutionMemory): string[] {
-    const tags: string[] = [];
-    const lower = content.toLowerCase();
-
-    // Language/framework tags
-    if (lower.includes("typescript") || execution.context_files.some((f: string) => f.endsWith(".ts"))) {
-      tags.push("typescript");
-    }
-    if (lower.includes("async") || lower.includes("await")) {
-      tags.push("async");
-    }
-    if (lower.includes("error") || lower.includes("exception")) {
-      tags.push("error-handling");
-    }
-    if (lower.includes("test")) {
-      tags.push("testing");
-    }
-    if (lower.includes("database") || lower.includes("sql")) {
-      tags.push("database");
-    }
-    if (lower.includes("api") || lower.includes("rest") || lower.includes("http")) {
-      tags.push("api");
-    }
-
-    return tags.slice(0, 5); // Max 5 tags
-  }
-
-  /**
-   * Extract pattern learnings from execution summary
-   */
-  private extractPatternsFromSummary(execution: ExecutionMemory): ProposalLearning[] {
-    const learnings: ProposalLearning[] = [];
-    const summary = execution.summary.toLowerCase();
-
-    // Look for common pattern indicators
-    const patternIndicators = [
-      { keyword: "repository pattern", pattern: "Repository Pattern" },
-      { keyword: "factory pattern", pattern: "Factory Pattern" },
-      { keyword: "singleton", pattern: "Singleton Pattern" },
-      { keyword: "dependency injection", pattern: "Dependency Injection" },
-      { keyword: "error handling", pattern: "Error Handling Pattern" },
-      { keyword: "validation", pattern: "Input Validation" },
-    ];
-
-    for (const indicator of patternIndicators) {
-      if (summary.includes(indicator.keyword)) {
-        learnings.push({
-          id: crypto.randomUUID(),
-          created_at: new Date().toISOString(),
-          source: MemorySource.EXECUTION,
-          source_id: execution.trace_id,
-          scope: MemoryScope.PROJECT,
-          project: execution.portal,
-          title: `${indicator.pattern} Implementation`,
-          description: `Learned ${indicator.pattern.toLowerCase()} from execution: ${execution.summary}`,
-          category: LearningCategory.PATTERN,
-          tags: this.extractTags(execution.summary, execution),
-          confidence: ConfidenceLevel.MEDIUM,
-          references: [
-            { type: MemoryReferenceType.EXECUTION, path: execution.trace_id },
-          ],
-        });
-      }
-    }
-
-    return learnings;
-  }
-
-  /**
-
-  /**
-   * Extract troubleshooting learning from failed execution
-   */
-  private extractFromFailure(execution: ExecutionMemory): ProposalLearning | null {
-    if (!execution.error_message) return null;
-
-    // Create troubleshooting entry
-    const title = this.extractTitle(`Troubleshooting: ${execution.error_message}`);
-
-    return {
-      id: crypto.randomUUID(),
-      created_at: new Date().toISOString(),
-      source: MemorySource.EXECUTION,
-      source_id: execution.trace_id,
-      scope: MemoryScope.PROJECT,
-      project: execution.portal,
-      title,
-      description: `Error encountered: ${execution.error_message}\n\nContext: ${execution.summary}${
-        execution.lessons_learned?.length ? "\n\nResolution: " + execution.lessons_learned.join("; ") : ""
-      }`,
-      category: LearningCategory.TROUBLESHOOTING,
-      tags: ["error", ...this.extractTags(execution.error_message, execution)],
-      confidence: ConfidenceLevel.MEDIUM,
-      references: [
-        { type: MemoryReferenceType.EXECUTION, path: execution.trace_id },
-      ],
-    };
+    return LearningExtractor.extract(execution);
   }
   // ===== Proposal Operations =====
 

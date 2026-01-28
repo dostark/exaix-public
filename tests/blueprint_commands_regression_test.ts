@@ -13,6 +13,7 @@ import { assertEquals, assertExists } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
+import { ExoPathDefaults } from "../src/config/constants.ts";
 
 const AGENT_ID_YAML = "yaml-agent";
 const AGENT_NAME_YAML = "YAML Format Agent";
@@ -49,10 +50,7 @@ async function createTestBlueprintsDir(baseDir: string): Promise<string> {
 function createTestConfig(root: string) {
   return {
     system: { root },
-    paths: {
-      blueprints: "Blueprints",
-      agents: "Agents",
-    },
+    paths: { ...ExoPathDefaults },
   } as any;
 }
 

@@ -10,6 +10,7 @@ import { ResolvedProviderOptions } from "../../src/ai/provider_factory.ts";
 import { ProviderFactory } from "../../src/ai/provider_factory.ts";
 import { Config } from "../../src/config/schema.ts";
 import { MockStrategy, PricingTier, ProviderType } from "../../src/enums.ts";
+import { ExoPathDefaults } from "../../src/config/constants.ts";
 
 // ============================================================================
 // Basic Registry Tests
@@ -242,13 +243,7 @@ Deno.test("ProviderFactory: maintains backward compatibility for ollama", async 
       root: "/tmp/test",
       log_level: "info" as const,
     },
-    paths: {
-      portals: "Portals",
-      workspace: "Workspace",
-      memory: "Memory",
-      runtime: ".exo",
-      blueprints: "Blueprints",
-    },
+    paths: { ...ExoPathDefaults },
     ai: {
       provider: "ollama",
       model: "llama3.2",
