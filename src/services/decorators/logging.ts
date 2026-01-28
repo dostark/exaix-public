@@ -1,11 +1,5 @@
 import { EventLogger } from "../event_logger.ts";
-import { LogLevel } from "../../enums.ts";
 
-/**
- * Decorator to log method execution
- * @param logger EventLogger instance
- * @param action Action name (optional, defaults to class.method)
- */
 /**
  * Decorator to log method execution
  * Supports both standard (Stage 3) and experimental decorators

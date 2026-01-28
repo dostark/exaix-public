@@ -3,18 +3,14 @@
  * Maps LLM function calls to safe Deno operations with security validation
  */
 import { ConfigSchema } from "../config/schema.ts";
-
 import { join, resolve } from "@std/path";
 import { expandGlob } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import { PathResolver } from "./path_resolver.ts";
 import { ActivityActor, LogLevel } from "../enums.ts";
-
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import { ServiceContext } from "./common/types.ts";
-import { LogEvent } from "./common/types.ts";
-import { ValidationError } from "./common/errors.ts";
 
 // ============================================================================
 // Types
