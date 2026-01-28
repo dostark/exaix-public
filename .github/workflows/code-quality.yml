@@ -21,7 +21,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: '1.40.5'
+          deno-version: v2.x
 
       - name: Setup Node.js (for jscpd/complexity-report)
         uses: actions/setup-node@v4
