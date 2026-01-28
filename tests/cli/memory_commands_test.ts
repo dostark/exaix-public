@@ -2,125 +2,17 @@
  * Tests for MemoryCommands (CLI Memory Banks Management)
  *
  * Phase 12.5: Core CLI Commands
- *
- * Success Criteria:
- * - Test 1: memory list returns all banks summary
- * - Test 2: memory list --format json outputs valid JSON
- * - Test 3: memory search finds patterns
- * - Test 4: memory search --portal filters correctly
- * - Test 5: memory project list shows all projects
- * - Test 6: memory project show displays details
- * - Test 7: memory project show non-existent returns error
- * - Test 8: memory execution list returns history
- * - Test 9: memory execution list --portal filters
- * - Test 10: memory execution show displays details
- * - Test 11: memory execution show non-existent returns error
- * - Test 12: --format table produces table output
- * - Test 13: --format md produces markdown output
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { ExecutionStatus, FlowOutputFormat, MemoryReferenceType } from "../../src/enums.ts";
-import { join } from "@std/path";
-import { MemoryCommands } from "../../src/cli/memory_commands.ts";
-import { MemoryBankService } from "../../src/services/memory_bank.ts";
-import { initTestDbService } from "../helpers/db.ts";
-import { createMockConfig } from "../helpers/config.ts";
-import { getMemoryExecutionDir, getMemoryIndexDir, getMemoryProjectsDir } from "../helpers/paths_helper.ts";
-
-/**
- * Creates a complete memory test environment
- */
-async function initMemoryTest() {
-  const tempRoot = await Deno.makeTempDir({ prefix: "memory-test-" });
-
-  const { db, cleanup: dbCleanup } = await initTestDbService();
-
-  // Create required directories
-  await Deno.mkdir(join(getMemoryProjectsDir(tempRoot)), { recursive: true });
-  await Deno.mkdir(join(getMemoryExecutionDir(tempRoot)), { recursive: true });
-  await Deno.mkdir(join(getMemoryIndexDir(tempRoot)), { recursive: true });
-
-  const config = createMockConfig(tempRoot);
-  const commands = new MemoryCommands({ config, db });
-  const memoryBank = new MemoryBankService(config, db);
-
-  const cleanup = async () => {
-    await dbCleanup();
-    await Deno.remove(tempRoot, { recursive: true }).catch(() => {});
-  };
-
-  return {
-    tempRoot,
-    config,
-    db,
-    commands,
-    memoryBank,
-    cleanup,
-  };
-}
-
-/**
- * Creates test project memory
- */
-async function createTestProject(memoryBank: MemoryBankService, portal: string) {
-  await memoryBank.createProjectMemory({
-    portal,
-    overview: `Overview for ${portal}`,
-    patterns: [
-      {
-        name: "Test Pattern",
-        description: "A test pattern for unit testing",
-        examples: ["src/test.ts"],
-        tags: ["testing", "typescript"],
-      },
-    ],
-    decisions: [
-      {
-        date: "2026-01-04",
-        decision: "Use TypeScript for all code",
-        rationale: "Type safety and tooling support",
-        tags: ["typescript"],
-      },
-    ],
-    references: [
-      {
-        type: MemoryReferenceType.FILE,
-        path: "src/main.ts",
-        description: "Main entry point",
-      },
-    ],
-  });
-}
-
-/**
- * Creates test execution memory
- */
-async function createTestExecution(memoryBank: MemoryBankService, traceId: string, portal: string) {
-  await memoryBank.createExecutionRecord({
-    trace_id: traceId,
-    request_id: "req-" + traceId.substring(0, 8),
-    started_at: new Date().toISOString(),
-    completed_at: new Date().toISOString(),
-    status: ExecutionStatus.COMPLETED,
-    portal,
-    agent: "test-agent",
-    summary: "Test execution for " + portal,
-    context_files: ["src/main.ts"],
-    context_portals: [portal],
-    changes: {
-      files_created: ["src/new.ts"],
-      files_modified: ["src/main.ts"],
-      files_deleted: [],
-    },
-    lessons_learned: ["Always test first"],
-  });
-}
+import { ExecutionStatus, FlowOutputFormat } from "../../src/enums.ts";
+import { TestEnvironmentFactory } from "../fixtures/test_environment_factory.ts";
+import { createTestExecution, createTestProject } from "../helpers/memory_test_helper.ts";
 
 // ===== Memory List Tests =====
 
 Deno.test("MemoryCommands: list returns summary with no data", async () => {
-  const { commands, cleanup } = await initMemoryTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.list("table");
 
@@ -133,7 +25,7 @@ Deno.test("MemoryCommands: list returns summary with no data", async () => {
 });
 
 Deno.test("MemoryCommands: list returns summary with projects", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestProject(memoryBank, "TestProject");
 
@@ -147,7 +39,7 @@ Deno.test("MemoryCommands: list returns summary with projects", async () => {
 });
 
 Deno.test("MemoryCommands: list --format json outputs valid JSON", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestProject(memoryBank, "JsonProject");
 
@@ -162,7 +54,7 @@ Deno.test("MemoryCommands: list --format json outputs valid JSON", async () => {
 });
 
 Deno.test("MemoryCommands: list --format md outputs markdown", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestProject(memoryBank, "MdProject");
 
@@ -179,7 +71,7 @@ Deno.test("MemoryCommands: list --format md outputs markdown", async () => {
 // ===== Memory Search Tests =====
 
 Deno.test("MemoryCommands: search finds patterns by name", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestProject(memoryBank, "SearchProject");
 
@@ -193,7 +85,7 @@ Deno.test("MemoryCommands: search finds patterns by name", async () => {
 });
 
 Deno.test("MemoryCommands: search returns no results message", async () => {
-  const { commands, cleanup } = await initMemoryTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.search("nonexistent query 12345");
 
@@ -204,7 +96,7 @@ Deno.test("MemoryCommands: search returns no results message", async () => {
 });
 
 Deno.test("MemoryCommands: search --portal filters correctly", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestProject(memoryBank, "ProjectA");
     await createTestProject(memoryBank, "ProjectB");
@@ -220,7 +112,7 @@ Deno.test("MemoryCommands: search --portal filters correctly", async () => {
 });
 
 Deno.test("MemoryCommands: search --format json outputs valid JSON", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestProject(memoryBank, "JsonSearchProject");
 
@@ -236,7 +128,7 @@ Deno.test("MemoryCommands: search --format json outputs valid JSON", async () =>
 // ===== Project Commands Tests =====
 
 Deno.test("MemoryCommands: project list shows all projects", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestProject(memoryBank, "Alpha");
     await createTestProject(memoryBank, "Beta");
@@ -253,7 +145,7 @@ Deno.test("MemoryCommands: project list shows all projects", async () => {
 });
 
 Deno.test("MemoryCommands: project list empty returns message", async () => {
-  const { commands, cleanup } = await initMemoryTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.projectList("table");
 
@@ -264,7 +156,7 @@ Deno.test("MemoryCommands: project list empty returns message", async () => {
 });
 
 Deno.test("MemoryCommands: project show displays details", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestProject(memoryBank, "DetailProject");
 
@@ -280,7 +172,7 @@ Deno.test("MemoryCommands: project show displays details", async () => {
 });
 
 Deno.test("MemoryCommands: project show non-existent returns error", async () => {
-  const { commands, cleanup } = await initMemoryTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.projectShow("NonExistent", "table");
 
@@ -292,7 +184,7 @@ Deno.test("MemoryCommands: project show non-existent returns error", async () =>
 });
 
 Deno.test("MemoryCommands: project show --format json outputs valid JSON", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestProject(memoryBank, "JsonShowProject");
 
@@ -309,7 +201,7 @@ Deno.test("MemoryCommands: project show --format json outputs valid JSON", async
 // ===== Execution Commands Tests =====
 
 Deno.test("MemoryCommands: execution list returns history", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestExecution(memoryBank, "11111111-1111-1111-1111-111111111111", "ExecProject");
 
@@ -324,7 +216,7 @@ Deno.test("MemoryCommands: execution list returns history", async () => {
 });
 
 Deno.test("MemoryCommands: execution list empty returns message", async () => {
-  const { commands, cleanup } = await initMemoryTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.executionList({ format: "table" });
 
@@ -335,7 +227,7 @@ Deno.test("MemoryCommands: execution list empty returns message", async () => {
 });
 
 Deno.test("MemoryCommands: execution list --portal filters correctly", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestExecution(memoryBank, "22222222-2222-2222-2222-222222222222", "FilterProjectA");
     await createTestExecution(memoryBank, "33333333-3333-3333-3333-333333333333", "FilterProjectB");
@@ -350,7 +242,7 @@ Deno.test("MemoryCommands: execution list --portal filters correctly", async () 
 });
 
 Deno.test("MemoryCommands: execution list --limit works", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestExecution(memoryBank, "44444444-4444-4444-4444-444444444444", "LimitProject");
     await createTestExecution(memoryBank, "55555555-5555-5555-5555-555555555555", "LimitProject");
@@ -365,7 +257,7 @@ Deno.test("MemoryCommands: execution list --limit works", async () => {
 });
 
 Deno.test("MemoryCommands: execution show displays details", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const traceId = "77777777-7777-7777-7777-777777777777";
     await createTestExecution(memoryBank, traceId, "ShowExecProject");
@@ -382,7 +274,7 @@ Deno.test("MemoryCommands: execution show displays details", async () => {
 });
 
 Deno.test("MemoryCommands: execution show non-existent returns error", async () => {
-  const { commands, cleanup } = await initMemoryTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.executionShow("nonexistent-trace-id", "table");
 
@@ -394,7 +286,7 @@ Deno.test("MemoryCommands: execution show non-existent returns error", async () 
 });
 
 Deno.test("MemoryCommands: execution show --format json outputs valid JSON", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const traceId = "88888888-8888-8888-8888-888888888888";
     await createTestExecution(memoryBank, traceId, "JsonExecProject");
@@ -410,7 +302,7 @@ Deno.test("MemoryCommands: execution show --format json outputs valid JSON", asy
 });
 
 Deno.test("MemoryCommands: execution show --format md outputs markdown", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const traceId = "99999999-9999-9999-9999-999999999999";
     await createTestExecution(memoryBank, traceId, "MdExecProject");
@@ -428,7 +320,7 @@ Deno.test("MemoryCommands: execution show --format md outputs markdown", async (
 // ===== Rebuild Index Test =====
 
 Deno.test("MemoryCommands: rebuild-index completes successfully", async () => {
-  const { commands, memoryBank, cleanup } = await initMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await createTestProject(memoryBank, "IndexProject");
     await createTestExecution(memoryBank, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "IndexProject");

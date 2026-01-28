@@ -12,24 +12,10 @@
  * - Auto-refresh toggle
  */
 
-import { TuiSessionBase } from "./tui_common.ts";
-import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "./utils/spinner.ts";
-import type { TreeNode } from "./utils/tree_view.ts";
-import {
-  collapseAll,
-  createGroupNode,
-  createNode,
-  expandAll,
-  findNode,
-  getFirstNodeId,
-  getLastNodeId,
-  getNextNodeId,
-  getPrevNodeId,
-  renderTree,
-  toggleNode,
-} from "./utils/tree_view.ts";
+import { BaseTreeView } from "./base/base_tree_view.ts";
+import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
+import { type DialogBase } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import type { ActivityRecord, JournalFilterOptions } from "../services/db.ts";
 
@@ -55,30 +41,15 @@ export interface LogEntry {
 
 // ===== View State =====
 
-/**
- * State interface for Monitor View
- */
-export interface MonitorViewState {
-  /** Currently selected log ID */
-  selectedLogId: string | null;
-  /** Log tree structure */
-  logTree: TreeNode[];
-  /** Whether help is visible */
-  showHelp: boolean;
+export interface MonitorViewExtensions {
   /** Whether detail view is shown */
   showDetail: boolean;
   /** Detail content for expanded log */
   detailContent: string;
-  /** Active dialog */
-  activeDialog: ConfirmDialog | InputDialog | null;
-  /** Current search query */
-  searchQuery: string;
   /** Bookmarked log IDs */
   bookmarkedIds: Set<string>;
   /** Current grouping mode */
   groupBy: "agent" | "action" | "none";
-  /** Whether auto-refresh is enabled */
-  autoRefresh: boolean;
 }
 
 // ===== Icons and Visual Constants =====
@@ -247,34 +218,25 @@ export class MinimalLogServiceMock implements LogService {
 /**
  * Interactive TUI session for Monitor View
  */
-export class MonitorTuiSession extends TuiSessionBase {
+export class MonitorTuiSession extends BaseTreeView<LogEntry> {
   private readonly monitorView: MonitorView;
-  private state: MonitorViewState;
-  private localSpinnerState: SpinnerState;
+  private monitorExtensions: MonitorViewExtensions;
   private autoRefreshTimer: number | null = null;
+  // Track what dialog is pending
+  private pendingDialogType: "search" | "filter-agent" | "filter-time" | "filter-trace" | "filter-action" | null = null;
 
   constructor(monitorView: MonitorView, useColors = true) {
     super(useColors);
     this.monitorView = monitorView;
-    this.localSpinnerState = createSpinnerState();
-    this.state = {
-      selectedLogId: null,
-      logTree: [],
-      showHelp: false,
+    this.monitorExtensions = {
       showDetail: false,
       detailContent: "",
-      activeDialog: null,
-      searchQuery: "",
       bookmarkedIds: new Set(),
       groupBy: "none",
-      autoRefresh: false,
     };
-    // Build tree synchronously for immediate access (e.g., in tests)
+    // Build tree synchronously for immediate access
     this.buildTree();
     this.selectFirstLog();
-    // Do not trigger an immediate asynchronous refresh here to avoid
-    // racing with synchronous test interactions. Real-time refreshes are
-    // handled via `startAutoRefresh` / manual `refresh` calls.
   }
 
   // ===== State Accessors =====
@@ -284,51 +246,31 @@ export class MonitorTuiSession extends TuiSessionBase {
   }
 
   getLogTree(): TreeNode[] {
-    return this.state.logTree;
-  }
-
-  override isHelpVisible(): boolean {
-    return this.state.showHelp;
+    return this.state.tree;
   }
 
   isDetailVisible(): boolean {
-    return this.state.showDetail;
+    return this.monitorExtensions.showDetail;
   }
 
   getDetailContent(): string {
-    return this.state.detailContent;
-  }
-
-  hasActiveDialog(): boolean {
-    return this.state.activeDialog !== null;
-  }
-
-  getActiveDialog(): ConfirmDialog | InputDialog | null {
-    return this.state.activeDialog;
+    return this.monitorExtensions.detailContent;
   }
 
   getSearchQuery(): string {
-    return this.state.searchQuery;
+    return this.state.filterText;
   }
 
   getBookmarkedIds(): Set<string> {
-    return this.state.bookmarkedIds;
+    return this.monitorExtensions.bookmarkedIds;
   }
 
   getGroupBy(): "agent" | "action" | "none" {
-    return this.state.groupBy;
+    return this.monitorExtensions.groupBy;
   }
 
   isAutoRefreshEnabled(): boolean {
-    return this.state.autoRefresh;
-  }
-
-  isLoading(): boolean {
-    return this.localSpinnerState.active;
-  }
-
-  getLoadingMessage(): string {
-    return this.localSpinnerState.message;
+    return this.state.refreshConfig.enabled;
   }
 
   override getKeyBindings(): KeyBinding[] {
@@ -341,17 +283,17 @@ export class MonitorTuiSession extends TuiSessionBase {
 
   // ===== Tree Building =====
 
-  private buildTree(): void {
-    const logs = this.monitorView.getFilteredLogs();
+  protected override buildTree(items: LogEntry[] = []): void {
+    const logs = items.length > 0 ? items : this.monitorView.getFilteredLogs();
 
-    if (this.state.groupBy === "none") {
+    if (this.monitorExtensions.groupBy === "none") {
       // Flat list
-      this.state.logTree = logs.map((log) => {
-        const icon = LOG_ICONS[log.action_type] || LOG_ICONS["default"];
+      this.state.tree = logs.map((log) => {
+        const icon = LOG_ICONS[log.action_type as keyof typeof LOG_ICONS] || LOG_ICONS["default"];
         const label = `${icon} ${this.formatTimestamp(log.timestamp)} ${log.action_type}`;
-        return createNode(log.id, label, "log", { expanded: true });
+        return createNode<LogEntry>(log.id, label, "log", { expanded: true });
       });
-    } else if (this.state.groupBy === "agent") {
+    } else if (this.monitorExtensions.groupBy === "agent") {
       // Group by agent
       const byAgent = new Map<string, LogEntry[]>();
       for (const log of logs) {
@@ -362,15 +304,20 @@ export class MonitorTuiSession extends TuiSessionBase {
         byAgent.get(agent)!.push(log);
       }
 
-      this.state.logTree = Array.from(byAgent.entries()).map(([agent, agentLogs]) => {
+      this.state.tree = Array.from(byAgent.entries()).map(([agent, agentLogs]) => {
         const children = agentLogs.map((log) => {
-          const icon = LOG_ICONS[log.action_type] || LOG_ICONS["default"];
+          const icon = LOG_ICONS[log.action_type as keyof typeof LOG_ICONS] || LOG_ICONS["default"];
           const label = `${icon} ${this.formatTimestamp(log.timestamp)} ${log.action_type}`;
-          return createNode(log.id, label, "log", { expanded: true });
+          return createNode<LogEntry>(log.id, label, "log", { expanded: true });
         });
-        return createGroupNode(`agent-${agent}`, `🤖 ${agent} (${agentLogs.length})`, "agent-group", children);
+        return createGroupNode<LogEntry>(
+          `agent-${agent}`,
+          `🤖 ${agent} (${agentLogs.length})`,
+          "agent-group",
+          children,
+        );
       });
-    } else if (this.state.groupBy === "action") {
+    } else if (this.monitorExtensions.groupBy === "action") {
       // Group by action type
       const byAction = new Map<string, LogEntry[]>();
       for (const log of logs) {
@@ -380,13 +327,13 @@ export class MonitorTuiSession extends TuiSessionBase {
         byAction.get(log.action_type)!.push(log);
       }
 
-      this.state.logTree = Array.from(byAction.entries()).map(([action, actionLogs]) => {
-        const icon = LOG_ICONS[action] || LOG_ICONS["default"];
+      this.state.tree = Array.from(byAction.entries()).map(([action, actionLogs]) => {
+        const icon = LOG_ICONS[action as keyof typeof LOG_ICONS] || LOG_ICONS["default"];
         const children = actionLogs.map((log) => {
           const label = `${this.formatTimestamp(log.timestamp)} [${log.agent_id || "unknown"}]`;
-          return createNode(log.id, label, "log", { expanded: true });
+          return createNode<LogEntry>(log.id, label, "log", { expanded: true });
         });
-        return createGroupNode(
+        return createGroupNode<LogEntry>(
           `action-${action}`,
           `${icon} ${action} (${actionLogs.length})`,
           "action-group",
@@ -402,23 +349,21 @@ export class MonitorTuiSession extends TuiSessionBase {
   }
 
   private selectFirstLog(): void {
-    const firstId = getFirstNodeId(this.state.logTree);
+    const firstId = getFirstNodeId(this.state.tree);
     if (firstId) {
-      this.state.selectedLogId = firstId;
+      this.state.selectedId = firstId;
     }
   }
 
   // ===== Rendering =====
 
   renderLogTree(): string[] {
-    if (this.state.logTree.length === 0) {
+    if (this.state.tree.length === 0) {
       return ["  (No logs available)"];
     }
 
-    return renderTree(this.state.logTree, {
-      useColors: this.useColors,
-      selectedId: this.state.selectedLogId || undefined,
-      indentSize: 2,
+    return this.renderTreeView({
+      selectedId: this.state.selectedId || undefined,
     });
   }
 
@@ -428,8 +373,8 @@ export class MonitorTuiSession extends TuiSessionBase {
     lines.push("║                      LOG DETAILS                              ║");
     lines.push("╠═══════════════════════════════════════════════════════════════╣");
 
-    if (this.state.detailContent) {
-      const contentLines = this.state.detailContent.split("\n");
+    if (this.monitorExtensions.detailContent) {
+      const contentLines = this.monitorExtensions.detailContent.split("\n");
       for (const line of contentLines) {
         lines.push(`║ ${line.padEnd(63)} ║`);
       }
@@ -502,25 +447,27 @@ export class MonitorTuiSession extends TuiSessionBase {
   renderStatusLine(): string {
     const logs = this.monitorView.getFilteredLogs();
     const paused = this.isPaused() ? " [PAUSED]" : "";
-    const autoRefresh = this.state.autoRefresh ? " [AUTO]" : "";
-    const bookmarks = this.state.bookmarkedIds.size > 0 ? ` [${this.state.bookmarkedIds.size} bookmarked]` : "";
-    const grouping = this.state.groupBy !== "none" ? ` [Group: ${this.state.groupBy}]` : "";
+    const autoRefresh = this.state.refreshConfig.enabled ? " [AUTO]" : "";
+    const bookmarks = this.monitorExtensions.bookmarkedIds.size > 0
+      ? ` [${this.monitorExtensions.bookmarkedIds.size} bookmarked]`
+      : "";
+    const grouping = this.monitorExtensions.groupBy !== "none" ? ` [Group: ${this.monitorExtensions.groupBy}]` : "";
     return `${logs.length} logs${paused}${autoRefresh}${bookmarks}${grouping}`;
   }
 
   // ===== Actions =====
 
   showLogDetail(logId: string): void {
-    this.localSpinnerState = startSpinner(this.localSpinnerState, "Loading details...");
+    this.setLoading(true, "Loading details...");
     try {
       const logs = this.monitorView.getFilteredLogs();
       const log = logs.find((l) => l.id === logId);
       if (log) {
-        this.state.detailContent = this.formatLogDetail(log);
-        this.state.showDetail = true;
+        this.monitorExtensions.detailContent = this.formatLogDetail(log);
+        this.monitorExtensions.showDetail = true;
       }
     } finally {
-      this.localSpinnerState = stopSpinner(this.localSpinnerState);
+      this.setLoading(false);
     }
   }
 
@@ -542,56 +489,57 @@ export class MonitorTuiSession extends TuiSessionBase {
   togglePause(): void {
     if (this.monitorView.isStreaming()) {
       this.monitorView.pause();
-      this.setStatus("Log streaming paused", "info");
+      this.statusMessage = "Log streaming paused";
     } else {
       this.monitorView.resume();
       this.buildTree();
-      this.setStatus("Log streaming resumed", "success");
+      this.statusMessage = "Log streaming resumed";
     }
   }
 
   toggleBookmark(): void {
-    if (!this.state.selectedLogId) return;
+    const selectedId = this.state.selectedId;
+    if (!selectedId) return;
 
     // Skip group nodes
-    if (this.state.selectedLogId.startsWith("agent-") || this.state.selectedLogId.startsWith("action-")) {
+    if (selectedId.startsWith("agent-") || selectedId.startsWith("action-")) {
       return;
     }
 
-    if (this.state.bookmarkedIds.has(this.state.selectedLogId)) {
-      this.state.bookmarkedIds.delete(this.state.selectedLogId);
-      this.setStatus("Bookmark removed", "info");
+    if (this.monitorExtensions.bookmarkedIds.has(selectedId)) {
+      this.monitorExtensions.bookmarkedIds.delete(selectedId);
+      this.statusMessage = "Bookmark removed";
     } else {
-      this.state.bookmarkedIds.add(this.state.selectedLogId);
-      this.setStatus("Log bookmarked", "success");
+      this.monitorExtensions.bookmarkedIds.add(selectedId);
+      this.statusMessage = "Log bookmarked";
     }
   }
 
   isBookmarked(logId: string): boolean {
-    return this.state.bookmarkedIds.has(logId);
+    return this.monitorExtensions.bookmarkedIds.has(logId);
   }
 
   toggleGrouping(): void {
-    if (this.state.groupBy === "none") {
-      this.state.groupBy = "agent";
-    } else if (this.state.groupBy === "agent") {
-      this.state.groupBy = "action";
+    if (this.monitorExtensions.groupBy === "none") {
+      this.monitorExtensions.groupBy = "agent";
+    } else if (this.monitorExtensions.groupBy === "agent") {
+      this.monitorExtensions.groupBy = "action";
     } else {
-      this.state.groupBy = "none";
+      this.monitorExtensions.groupBy = "none";
     }
     this.buildTree();
     this.selectFirstLog();
-    this.setStatus(`Grouping: ${this.state.groupBy}`, "info");
+    this.statusMessage = `Grouping: ${this.monitorExtensions.groupBy}`;
   }
 
   toggleAutoRefresh(): void {
-    this.state.autoRefresh = !this.state.autoRefresh;
-    if (this.state.autoRefresh) {
+    this.state.refreshConfig.enabled = !this.state.refreshConfig.enabled;
+    if (this.state.refreshConfig.enabled) {
       this.startAutoRefresh();
-      this.setStatus("Auto-refresh enabled", "success");
+      this.statusMessage = "Auto-refresh enabled";
     } else {
       this.stopAutoRefresh();
-      this.setStatus("Auto-refresh disabled", "info");
+      this.statusMessage = "Auto-refresh disabled";
     }
   }
 
@@ -614,7 +562,7 @@ export class MonitorTuiSession extends TuiSessionBase {
   private doRefresh(): void {
     this.monitorView.refreshLogs();
     this.buildTree();
-    this.setStatus("Logs refreshed", "success");
+    this.statusMessage = "Logs refreshed";
   }
 
   override refresh(): Promise<void> {
@@ -624,16 +572,16 @@ export class MonitorTuiSession extends TuiSessionBase {
 
   exportLogs(): string {
     const exported = this.monitorView.exportLogs();
-    this.setStatus(`Exported ${this.monitorView.getFilteredLogs().length} logs`, "success");
+    this.statusMessage = `Exported ${this.monitorView.getFilteredLogs().length} logs`;
     return exported;
   }
 
   showSearchDialog(): void {
     this.pendingDialogType = "search";
-    this.state.activeDialog = new InputDialog({
+    this.showInputDialog({
       title: "Search Logs",
       label: "Enter search query:",
-      defaultValue: this.state.searchQuery,
+      defaultValue: this.state.filterText,
     });
   }
 
@@ -643,7 +591,7 @@ export class MonitorTuiSession extends TuiSessionBase {
     const agentList = agents.length > 0 ? agents.join(", ") : "(no agents)";
 
     this.pendingDialogType = "filter-agent";
-    this.state.activeDialog = new InputDialog({
+    this.showInputDialog({
       title: "Filter by Agent",
       label: `Available agents: ${agentList}\nEnter agent ID (empty to clear):`,
       defaultValue: "",
@@ -652,7 +600,7 @@ export class MonitorTuiSession extends TuiSessionBase {
 
   showTimeFilterDialog(): void {
     this.pendingDialogType = "filter-time";
-    this.state.activeDialog = new InputDialog({
+    this.showInputDialog({
       title: "Filter by Time",
       label: "Enter time window in minutes (empty to clear):",
       defaultValue: "",
@@ -661,7 +609,7 @@ export class MonitorTuiSession extends TuiSessionBase {
 
   showFilterByTraceIdDialog(): void {
     this.pendingDialogType = "filter-trace";
-    this.state.activeDialog = new InputDialog({
+    this.showInputDialog({
       title: "Filter by Trace ID",
       label: "Enter trace ID (empty to clear):",
       defaultValue: "",
@@ -674,7 +622,7 @@ export class MonitorTuiSession extends TuiSessionBase {
     const actionList = actions.length > 0 ? actions.join(", ") : "(no actions)";
 
     this.pendingDialogType = "filter-action";
-    this.state.activeDialog = new InputDialog({
+    this.showInputDialog({
       title: "Filter by Action Type",
       label: `Available actions: ${actionList}\nEnter action type (empty to clear):`,
       defaultValue: "",
@@ -682,17 +630,17 @@ export class MonitorTuiSession extends TuiSessionBase {
   }
 
   private handleSearchResult(query: string): void {
-    this.state.searchQuery = query;
-    this.setStatus(`Searching for: ${query}`, "info");
+    this.state.filterText = query;
+    this.statusMessage = `Searching for: ${query}`;
   }
 
   private handleAgentFilterResult(agent: string): void {
     if (agent) {
       this.monitorView.setFilter({ agentId: agent });
-      this.setStatus(`Filtered by agent: ${agent}`, "info");
+      this.statusMessage = `Filtered by agent: ${agent}`;
     } else {
       this.monitorView.setFilter({ agentId: undefined });
-      this.setStatus("Filter cleared", "info");
+      this.statusMessage = "Filter cleared";
     }
     this.monitorView.refreshLogs().then(() => {
       this.buildTree();
@@ -705,10 +653,10 @@ export class MonitorTuiSession extends TuiSessionBase {
       const ms = parseInt(minutes, 10) * 60 * 1000;
       const since = new Date(Date.now() - ms).toISOString();
       this.monitorView.setFilter({ since });
-      this.setStatus(`Showing logs from last ${minutes} minutes`, "info");
+      this.statusMessage = `Showing logs from last ${minutes} minutes`;
     } else {
       this.monitorView.setFilter({ since: undefined });
-      this.setStatus("Time filter cleared", "info");
+      this.statusMessage = "Time filter cleared";
     }
     this.monitorView.refreshLogs().then(() => {
       this.buildTree();
@@ -719,10 +667,10 @@ export class MonitorTuiSession extends TuiSessionBase {
   private handleTraceFilterResult(traceId: string): void {
     if (traceId) {
       this.monitorView.setFilter({ traceId: traceId });
-      this.setStatus(`Filtered by Trace ID: ${traceId}`, "info");
+      this.statusMessage = `Filtered by Trace ID: ${traceId}`;
     } else {
       this.monitorView.setFilter({ traceId: undefined });
-      this.setStatus("Trace filter cleared", "info");
+      this.statusMessage = "Trace filter cleared";
     }
     this.monitorView.refreshLogs().then(() => {
       this.buildTree();
@@ -733,10 +681,10 @@ export class MonitorTuiSession extends TuiSessionBase {
   private handleActionFilterResult(actionType: string): void {
     if (actionType) {
       this.monitorView.setFilter({ actionType: actionType });
-      this.setStatus(`Filtered by Action: ${actionType}`, "info");
+      this.statusMessage = `Filtered by Action: ${actionType}`;
     } else {
       this.monitorView.setFilter({ actionType: undefined });
-      this.setStatus("Action filter cleared", "info");
+      this.statusMessage = "Action filter cleared";
     }
     this.monitorView.refreshLogs().then(() => {
       this.buildTree();
@@ -746,195 +694,115 @@ export class MonitorTuiSession extends TuiSessionBase {
 
   // ===== Navigation =====
 
-  private navigateTree(direction: "up" | "down" | "first" | "last"): void {
-    if (!this.state.selectedLogId) {
-      this.selectFirstLog();
+  // ===== Dialog Management =====
+
+  protected override onDialogClosed(dialog: DialogBase): void {
+    const result = dialog.getResult();
+    if (result.type === "cancelled") {
+      this.pendingDialogType = null;
       return;
     }
 
-    let newId: string | null = null;
-    switch (direction) {
-      case "up":
-        newId = getPrevNodeId(this.state.logTree, this.state.selectedLogId);
+    const value = result.value as string;
+    switch (this.pendingDialogType) {
+      case "search":
+        this.handleSearchResult(value);
         break;
-      case "down":
-        newId = getNextNodeId(this.state.logTree, this.state.selectedLogId);
+      case "filter-agent":
+        this.handleAgentFilterResult(value);
         break;
-      case "first":
-        newId = getFirstNodeId(this.state.logTree);
+      case "filter-time":
+        this.handleTimeFilterResult(value);
         break;
-      case "last":
-        newId = getLastNodeId(this.state.logTree);
+      case "filter-trace":
+        this.handleTraceFilterResult(value);
+        break;
+      case "filter-action":
+        this.handleActionFilterResult(value);
         break;
     }
-
-    if (newId) {
-      this.state.selectedLogId = newId;
-    }
+    this.pendingDialogType = null;
   }
 
-  private toggleSelectedNode(): void {
-    if (!this.state.selectedLogId) return;
-    this.state.logTree = toggleNode(this.state.logTree, this.state.selectedLogId);
-  }
+  override async handleKey(key: string): Promise<boolean> {
+    // 1. Handle dialogs (delegated to base)
+    if (this.handleDialogKeys(key)) return true;
 
-  private expandSelectedNode(): void {
-    if (!this.state.selectedLogId) return;
-    const node = findNode(this.state.logTree, this.state.selectedLogId);
-    if (node && node.children.length > 0 && !node.expanded) {
-      this.state.logTree = toggleNode(this.state.logTree, this.state.selectedLogId);
-    }
-  }
-
-  private collapseSelectedNode(): void {
-    if (!this.state.selectedLogId) return;
-    const node = findNode(this.state.logTree, this.state.selectedLogId);
-    if (node && node.children.length > 0 && node.expanded) {
-      this.state.logTree = toggleNode(this.state.logTree, this.state.selectedLogId);
-    }
-  }
-
-  // ===== Key Handling =====
-
-  // Track what dialog is pending
-  private pendingDialogType: "search" | "filter-agent" | "filter-time" | "filter-trace" | "filter-action" | null = null;
-
-  handleKey(key: string): Promise<void> {
-    // Handle active dialog first
-    if (this.state.activeDialog) {
-      this.state.activeDialog.handleKey(key);
-
-      // Check if dialog completed
-      if (!this.state.activeDialog.isActive()) {
-        const dialog = this.state.activeDialog;
-        const dialogType = this.pendingDialogType;
-        this.state.activeDialog = null;
-        this.pendingDialogType = null;
-
-        // Handle dialog result
-        if (dialog instanceof InputDialog && dialog.getState() === "confirmed") {
-          const result = dialog.getResult();
-          if (result.type === "confirmed") {
-            switch (dialogType) {
-              case "search":
-                this.handleSearchResult(result.value);
-                break;
-              case "filter-agent":
-                this.handleAgentFilterResult(result.value);
-                break;
-              case "filter-time":
-                this.handleTimeFilterResult(result.value);
-                break;
-              case "filter-trace":
-                this.handleTraceFilterResult(result.value);
-                break;
-              case "filter-action":
-                this.handleActionFilterResult(result.value);
-                break;
-            }
-          }
-        }
-      }
-      return Promise.resolve();
-    }
-
-    // Handle detail view
-    if (this.state.showDetail) {
+    // 2. Handle detail view
+    if (this.monitorExtensions.showDetail) {
       if (key === "escape" || key === "q") {
-        this.state.showDetail = false;
+        this.monitorExtensions.showDetail = false;
       }
-      return Promise.resolve();
+      return true;
     }
 
-    // Handle help
-    if (this.state.showHelp) {
-      if (key === "?" || key === "escape" || key === "q") {
-        this.state.showHelp = false;
-      }
-      return Promise.resolve();
+    // 3. Handle help screen (delegated to base)
+    if (this.handleHelpKeys(key)) return true;
+
+    // 4. Handle navigation (delegated to base)
+    if (this.handleNavigationKeys(key)) {
+      return true;
     }
 
-    // Main key handling
+    // 5. Handle action keys
     switch (key) {
-      case "up":
-        this.navigateTree("up");
-        break;
-      case "down":
-        this.navigateTree("down");
-        break;
-      case "home":
-        this.navigateTree("first");
-        break;
-      case "end":
-        this.navigateTree("last");
-        break;
-      case "left":
-        this.collapseSelectedNode();
-        break;
-      case "right":
-        this.expandSelectedNode();
-        break;
-      case "enter":
-        if (this.state.selectedLogId) {
-          // If it's a group node, toggle it
-          if (
-            this.state.selectedLogId.startsWith("agent-") ||
-            this.state.selectedLogId.startsWith("action-")
-          ) {
-            this.toggleSelectedNode();
+      case "enter": {
+        const selectedId = this.state.selectedId;
+        if (selectedId) {
+          const selected = this.getSelectedNode();
+          if (selected && selected.type !== "log") {
+            this.toggleCurrentNode();
           } else {
-            this.showLogDetail(this.state.selectedLogId);
+            this.showLogDetail(selectedId);
           }
         }
-        break;
+        return true;
+      }
       case "space":
         this.togglePause();
-        break;
+        return true;
       case "b":
         this.toggleBookmark();
-        break;
+        return true;
       case "s":
         this.showSearchDialog();
-        break;
+        return true;
       case "f":
         this.showFilterByAgentDialog();
-        break;
+        return true;
       case "t":
         this.showTimeFilterDialog();
-        break;
+        return true;
       case "T":
         this.showFilterByTraceIdDialog();
-        break;
+        return true;
       case "A":
         this.showFilterByActionTypeDialog();
-        break;
+        return true;
       case "g":
         this.toggleGrouping();
-        break;
+        return true;
       case "a":
         this.toggleAutoRefresh();
-        break;
+        return true;
       case "R":
-        this.refresh();
-        break;
+        await this.refresh();
+        return true;
       case "e":
         this.exportLogs();
-        break;
-      case "c":
-        this.state.logTree = collapseAll(this.state.logTree);
-        break;
+        return true;
       case "E":
-        this.state.logTree = expandAll(this.state.logTree);
-        break;
+        this.expandAllNodes();
+        return true;
+      case "c":
+        this.collapseAllNodes();
+        return true;
       case "?":
         this.state.showHelp = true;
-        break;
-      case "q":
-      case "escape":
-        // Could emit quit event
-        break;
+        return true;
+      default:
+        return false;
     }
-    return Promise.resolve();
   }
 
   // ===== Lifecycle =====

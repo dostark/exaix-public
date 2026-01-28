@@ -828,14 +828,14 @@ export class AgentStatusTuiSession extends TuiSessionBase {
 
   // ===== Key Handling =====
 
-  handleKey(key: string): Promise<void> {
+  async handleKey(key: string): Promise<boolean> {
     // Handle active dialog first
     if (this.state.activeDialog) {
       this.state.activeDialog.handleKey(key);
       if (!this.state.activeDialog.isActive()) {
         this.closeDialog();
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Handle detail view
@@ -843,7 +843,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
       if (key === "escape" || key === "q") {
         this.hideDetail();
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Handle logs view
@@ -851,7 +851,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
       if (key === "escape" || key === "q") {
         this.hideLogs();
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Handle help view
@@ -859,55 +859,58 @@ export class AgentStatusTuiSession extends TuiSessionBase {
       if (key === "escape" || key === "q" || key === "?") {
         this.state.showHelp = false;
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Main view key handling
     switch (key) {
       case "up":
         this.navigateUp();
-        break;
+        return true;
       case "down":
         this.navigateDown();
-        break;
+        return true;
       case "home":
         this.navigateToFirst();
-        break;
+        return true;
       case "end":
         this.navigateToLast();
-        break;
+        return true;
       case "left":
         this.collapseSelected();
-        break;
+        return true;
       case "right":
         this.expandSelected();
-        break;
+        return true;
       case "enter":
-        return this.showAgentDetail();
+        await this.showAgentDetail();
+        return true;
       case "l":
-        return this.showAgentLogs();
+        await this.showAgentLogs();
+        return true;
       case "s":
         this.showSearchDialog();
-        break;
+        return true;
       case "g":
         this.toggleGrouping();
-        break;
+        return true;
       case "R":
-        return this.refreshAgents();
+        await this.refreshAgents();
+        return true;
       case "a":
         this.toggleAutoRefresh();
-        break;
+        return true;
       case "c":
         this.collapseAllNodes();
-        break;
+        return true;
       case "E":
         this.expandAllNodes();
-        break;
+        return true;
       case "?":
         this.state.showHelp = true;
-        break;
+        return true;
     }
-    return Promise.resolve();
+    return false;
   }
 
   // ===== Rendering =====

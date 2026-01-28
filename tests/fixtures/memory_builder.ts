@@ -1,0 +1,187 @@
+import { ExecutionStatus } from "../../src/enums.ts";
+import type {
+  Changes,
+  Decision,
+  ExecutionMemory,
+  Pattern,
+  ProjectMemory,
+  Reference,
+} from "../../src/schemas/memory_bank.ts";
+
+/**
+ * Builder for ProjectMemory objects to simplify test data creation
+ */
+export class ProjectMemoryBuilder {
+  private memory: ProjectMemory;
+
+  constructor(portal: string = "test-portal") {
+    this.memory = {
+      portal,
+      overview: `Overview for ${portal}`,
+      patterns: [],
+      decisions: [],
+      references: [],
+    };
+  }
+
+  public withOverview(overview: string): this {
+    this.memory.overview = overview;
+    return this;
+  }
+
+  public addPattern(pattern: Partial<Pattern> & { name: string }): this {
+    this.memory.patterns.push({
+      description: "Default description",
+      examples: [],
+      tags: [],
+      ...pattern,
+    });
+    return this;
+  }
+
+  public addDecision(decision: Partial<Decision> & { decision: string; date: string }): this {
+    this.memory.decisions.push({
+      rationale: "Default rationale",
+      tags: [],
+      ...decision,
+    });
+    return this;
+  }
+
+  public addReference(reference: Reference): this {
+    this.memory.references.push(reference);
+    return this;
+  }
+
+  public build(): ProjectMemory {
+    return { ...this.memory };
+  }
+}
+
+/**
+ * Builder for ExecutionMemory objects to simplify test data creation
+ */
+export class ExecutionMemoryBuilder {
+  private memory: ExecutionMemory;
+
+  constructor(portal: string = "test-portal", traceId: string = crypto.randomUUID()) {
+    this.memory = {
+      trace_id: traceId,
+      request_id: `req-${traceId.substring(0, 8)}`,
+      started_at: new Date().toISOString(),
+      completed_at: new Date().toISOString(),
+      status: ExecutionStatus.COMPLETED,
+      portal,
+      agent: "test-agent",
+      summary: `Test execution for ${portal}`,
+      context_files: [],
+      context_portals: [portal],
+      changes: {
+        files_created: [],
+        files_modified: [],
+        files_deleted: [],
+      },
+      lessons_learned: [],
+    };
+  }
+
+  public withRequestId(requestId: string): this {
+    this.memory.request_id = requestId;
+    return this;
+  }
+
+  public withStatus(status: ExecutionStatus): this {
+    this.memory.status = status;
+    return this;
+  }
+
+  public withAgent(agent: string): this {
+    this.memory.agent = agent;
+    return this;
+  }
+
+  public withSummary(summary: string): this {
+    this.memory.summary = summary;
+    return this;
+  }
+
+  public withChanges(changes: Partial<Changes>): this {
+    this.memory.changes = {
+      ...this.memory.changes,
+      ...changes,
+    };
+    return this;
+  }
+
+  public addContextFile(path: string): this {
+    this.memory.context_files.push(path);
+    return this;
+  }
+
+  public addLesson(lesson: string): this {
+    if (!this.memory.lessons_learned) {
+      this.memory.lessons_learned = [];
+    }
+    this.memory.lessons_learned.push(lesson);
+    return this;
+  }
+
+  public build(): ExecutionMemory {
+    // Return a deep copy to prevent mutation issues in tests
+    return JSON.parse(JSON.stringify(this.memory));
+  }
+}
+
+/**
+ * Builder for Learning objects to simplify test data creation
+ */
+export class LearningBuilder {
+  private learning: any; // Using any temporarily to allow partial build up
+
+  constructor() {
+    this.learning = {
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      source: "user", // MemorySource.USER
+      scope: "global", // MemoryScope.GLOBAL
+      title: "Test Learning",
+      description: "Test description",
+      category: "pattern", // LearningCategory.PATTERN
+      tags: [],
+      confidence: "high", // ConfidenceLevel.HIGH
+      status: "approved", // MemoryStatus.APPROVED
+    };
+  }
+
+  public withTitle(title: string): this {
+    this.learning.title = title;
+    return this;
+  }
+
+  public withDescription(description: string): this {
+    this.learning.description = description;
+    return this;
+  }
+
+  public withScope(scope: string, project?: string): this {
+    this.learning.scope = scope;
+    if (project) {
+      this.learning.project = project;
+    }
+    return this;
+  }
+
+  public withCategory(category: string): this {
+    this.learning.category = category;
+    return this;
+  }
+
+  public withTags(tags: string[]): this {
+    this.learning.tags = tags;
+    return this;
+  }
+
+  public build(): any {
+    return JSON.parse(JSON.stringify(this.learning));
+  }
+}

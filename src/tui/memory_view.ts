@@ -427,14 +427,14 @@ export class MemoryViewTuiSession extends TuiSessionBase {
   /**
    * Handle keyboard input
    */
-  async handleKey(key: string): Promise<void> {
+  async handleKey(key: string): Promise<boolean> {
     // Dialog mode handling
     if (this.state.activeDialog && this.state.activeDialog.isActive()) {
       this.state.activeDialog.handleKey(key);
       if (!this.state.activeDialog.isActive()) {
         await this.processDialogResult();
       }
-      return;
+      return true;
     }
 
     // Search mode handling
@@ -443,68 +443,68 @@ export class MemoryViewTuiSession extends TuiSessionBase {
         this.state.searchActive = false;
         this.state.searchQuery = "";
         await this.loadTree();
-        return;
+        return true;
       }
       if (key === "enter") {
         await this.executeSearch();
         this.state.searchActive = false;
-        return;
+        return true;
       }
       if (key === "backspace") {
         this.state.searchQuery = this.state.searchQuery.slice(0, -1);
-        return;
+        return true;
       }
       if (key.length === 1) {
         this.state.searchQuery += key;
-        return;
+        return true;
       }
-      return;
+      return true;
     }
 
     // Shortcut keys
     switch (key) {
       case "g":
         await this.jumpToScope("global");
-        return;
+        return true;
       case "p":
         await this.jumpToScope("projects");
-        return;
+        return true;
       case "e":
         await this.jumpToScope("executions");
-        return;
+        return true;
       case "n":
         await this.jumpToScope("pending");
-        return;
+        return true;
       case "s":
       case "/":
         this.state.searchActive = true;
         this.state.searchQuery = "";
-        return;
+        return true;
       case "?":
         this.state.detailContent = this.renderHelpContent();
-        return;
+        return true;
       case "a":
         await this.approveSelectedProposal();
-        return;
+        return true;
       case "r":
         await this.rejectSelectedProposal();
-        return;
+        return true;
       case "A":
         await this.approveAllProposals();
-        return;
+        return true;
       case "L":
         this.openAddLearningDialog();
-        return;
+        return true;
       case "P":
         this.promoteSelectedLearning();
-        return;
+        return true;
       case "R":
         await this.refresh();
-        return;
+        return true;
     }
 
     // Navigation keys
-    if (this.flatNodes.length === 0) return;
+    if (this.flatNodes.length === 0) return false;
 
     const currentIndex = this.flatNodes.findIndex((n) => n.id === this.state.selectedNodeId);
 
@@ -514,29 +514,30 @@ export class MemoryViewTuiSession extends TuiSessionBase {
           this.state.selectedNodeId = this.flatNodes[currentIndex - 1].id;
           await this.loadDetailForNode(this.flatNodes[currentIndex - 1]);
         }
-        break;
+        return true;
       case "down":
         if (currentIndex < this.flatNodes.length - 1) {
           this.state.selectedNodeId = this.flatNodes[currentIndex + 1].id;
           await this.loadDetailForNode(this.flatNodes[currentIndex + 1]);
         }
-        break;
+        return true;
       case "enter":
       case "right":
         await this.toggleExpand();
-        break;
+        return true;
       case "left":
         await this.collapseOrParent();
-        break;
+        return true;
       case "home":
         this.state.selectedNodeId = this.flatNodes[0].id;
         await this.loadDetailForNode(this.flatNodes[0]);
-        break;
+        return true;
       case "end":
         this.state.selectedNodeId = this.flatNodes[this.flatNodes.length - 1].id;
         await this.loadDetailForNode(this.flatNodes[this.flatNodes.length - 1]);
-        break;
+        return true;
     }
+    return false;
   }
 
   /**

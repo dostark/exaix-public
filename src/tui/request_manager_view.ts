@@ -810,7 +810,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
   // ===== Key Handling =====
 
-  handleKey(key: string): Promise<void> {
+  async handleKey(key: string): Promise<boolean> {
     // Handle active dialog first
     if (this.state.activeDialog) {
       this.state.activeDialog.handleKey(key);
@@ -856,7 +856,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
           });
         }
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Handle detail view
@@ -864,7 +864,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       if (key === "escape" || key === "q") {
         this.state.showDetail = false;
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Handle help
@@ -872,29 +872,29 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       if (key === "?" || key === "escape" || key === "q") {
         this.state.showHelp = false;
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Main key handling
     switch (key) {
       case "up":
         this.navigateTree("up");
-        break;
+        return true;
       case "down":
         this.navigateTree("down");
-        break;
+        return true;
       case "home":
         this.navigateTree("first");
-        break;
+        return true;
       case "end":
         this.navigateTree("last");
-        break;
+        return true;
       case "left":
         this.collapseSelectedNode();
-        break;
+        return true;
       case "right":
         this.expandSelectedNode();
-        break;
+        return true;
       case "enter":
         if (this.state.selectedRequestId) {
           // If it's a group node, toggle it
@@ -902,56 +902,54 @@ export class RequestManagerTuiSession extends TuiSessionBase {
             this.toggleSelectedNode();
           } else {
             // Show detail - fire and forget with error handling
-            this.showRequestDetail(this.state.selectedRequestId).catch((e) => {
-              this.setStatus(`Error: ${e}`, "error");
-            });
+            await this.showRequestDetail(this.state.selectedRequestId);
           }
         }
-        break;
+        return true;
       case "c":
         this.showCreateDialog();
-        break;
+        return true;
       case "d":
         if (this.state.selectedRequestId && !this.isGroupNode(this.state.selectedRequestId)) {
           // Only for actual request IDs, not group IDs
           this.showCancelConfirm(this.state.selectedRequestId);
         }
-        break;
+        return true;
       case "p":
         if (this.state.selectedRequestId && !this.isGroupNode(this.state.selectedRequestId)) {
           this.showPriorityDialog();
         }
-        break;
+        return true;
       case "s":
         this.showSearchDialog();
-        break;
+        return true;
       case "f":
         this.showFilterStatusDialog();
-        break;
+        return true;
       case "a":
         this.showFilterAgentDialog();
-        break;
+        return true;
       case "g":
         this.toggleGrouping();
-        break;
+        return true;
       case "R":
-        this.refresh();
-        break;
+        await this.refresh();
+        return true;
       case "C":
         this.state.requestTree = collapseAll(this.state.requestTree);
-        break;
+        return true;
       case "E":
         this.state.requestTree = expandAll(this.state.requestTree);
-        break;
+        return true;
       case "?":
         this.state.showHelp = true;
-        break;
+        return true;
       case "q":
       case "escape":
         // Could emit quit event
-        break;
+        return true;
     }
-    return Promise.resolve();
+    return false;
   }
 
   // ===== Lifecycle =====

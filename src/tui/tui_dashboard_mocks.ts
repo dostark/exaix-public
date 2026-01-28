@@ -698,4 +698,7 @@ export class MockStructuredLoggerService {
   getLogsByAgentId() {
     return Promise.resolve([]);
   }
+  exportLogs(_filename: string, _entries: any[]) {
+    return Promise.resolve();
+  }
 }

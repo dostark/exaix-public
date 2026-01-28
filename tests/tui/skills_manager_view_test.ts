@@ -75,11 +75,11 @@ Deno.test("SkillsManagerView: navigates with keyboard", async () => {
   await session.initialize();
 
   // Navigate down
-  await session.handleInput("down");
-  const state = session.getState();
+  await session.handleKey("down");
+  const selectedId = session.getSelectedId();
 
   // Should have moved selection
-  assertEquals(state.selectedSkillId !== null, true);
+  assertEquals(selectedId !== null, true);
 });
 
 Deno.test("SkillsManagerView: shows skill detail on select", async () => {
@@ -90,11 +90,11 @@ Deno.test("SkillsManagerView: shows skill detail on select", async () => {
   await session.initialize();
 
   // Navigate to a skill (past the group header)
-  await session.handleInput("down");
-  await session.handleInput("down");
+  await session.handleKey("down");
+  await session.handleKey("down");
 
   // Show detail
-  await session.handleInput("enter");
+  await session.handleKey("enter");
 
   assertEquals(session.isShowingDetail(), true);
   const detail = session.renderDetail();
@@ -109,11 +109,11 @@ Deno.test("SkillsManagerView: opens search dialog", async () => {
   await session.initialize();
 
   // Open search dialog
-  await session.handleInput("/");
+  await session.handleKey("/");
   assertEquals(session.hasActiveDialog(), true);
 
   // Cancel search
-  await session.handleInput("escape");
+  await session.handleKey("escape");
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -124,9 +124,9 @@ Deno.test("SkillsManagerView: groups by source", async () => {
 
   await session.initialize();
 
-  const state = session.getState();
+  const extensions = session.getExtensions();
   // Default grouping is by source
-  assertEquals(state.groupBy, "source");
+  assertEquals(extensions.groupBy, "source");
 
   const rendered = session.render();
   // Should show group headers
@@ -141,17 +141,17 @@ Deno.test("SkillsManagerView: cycles grouping mode", async () => {
   await session.initialize();
 
   // Cycle grouping
-  await session.handleInput("g");
-  let state = session.getState();
-  assertEquals(state.groupBy, "status");
+  await session.handleKey("g");
+  let extensions = session.getExtensions();
+  assertEquals(extensions.groupBy, "status");
 
-  await session.handleInput("g");
-  state = session.getState();
-  assertEquals(state.groupBy, "none");
+  await session.handleKey("g");
+  extensions = session.getExtensions();
+  assertEquals(extensions.groupBy, "none");
 
-  await session.handleInput("g");
-  state = session.getState();
-  assertEquals(state.groupBy, "source");
+  await session.handleKey("g");
+  extensions = session.getExtensions();
+  assertEquals(extensions.groupBy, "source");
 });
 
 Deno.test("SkillsManagerView: shows help screen", async () => {
@@ -162,7 +162,7 @@ Deno.test("SkillsManagerView: shows help screen", async () => {
   await session.initialize();
 
   // Show help
-  await session.handleInput("?");
+  await session.handleKey("?");
   assertEquals(session.isShowingHelp(), true);
 
   const help = session.renderHelp();

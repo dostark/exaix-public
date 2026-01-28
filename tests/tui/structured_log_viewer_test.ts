@@ -52,6 +52,10 @@ class MockLogService implements StructuredLogService {
   getLogsByAgentId(_id: string): Promise<LogEntry[]> {
     return Promise.resolve([]);
   }
+
+  exportLogs(_filename: string, _entries: LogEntry[]): Promise<void> {
+    return Promise.resolve();
+  }
 }
 
 const mockLogger = {} as StructuredLogger;
@@ -61,11 +65,9 @@ Deno.test("StructuredLogViewer: initialization", () => {
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
 
   // Verify initial state
-  // We can't access private state easily, but we can check public methods or side effects
-  // Or casts to any
-  const state = (viewer as any).state;
-  assertEquals(state.logLevelFilter.length, 5);
-  assertEquals(state.groupBy, "correlation");
+  const ext = viewer.getExtensions();
+  assertEquals(ext.logLevelFilter.length, 5);
+  assertEquals(ext.groupBy, "correlation");
 });
 
 Deno.test("StructuredLogViewer: refreshLogs loads entries", async () => {
@@ -85,9 +87,9 @@ Deno.test("StructuredLogViewer: filtering search query", async () => {
 
   viewer.setSearchQuery("error");
 
-  const state = (viewer as any).state;
-  assertEquals(state.filteredEntries.length, 1);
-  assertEquals(state.filteredEntries[0].message, "Test error");
+  const ext = viewer.getExtensions();
+  assertEquals(ext.filteredEntries.length, 1);
+  assertEquals(ext.filteredEntries[0].message, "Test error");
 });
 
 Deno.test("StructuredLogViewer: toggle grouping", () => {
@@ -96,19 +98,19 @@ Deno.test("StructuredLogViewer: toggle grouping", () => {
 
   // Default is correlation
   viewer.toggleGrouping(); // trace
-  assertEquals((viewer as any).state.groupBy, "trace");
+  assertEquals(viewer.getExtensions().groupBy, "trace");
 
   viewer.toggleGrouping(); // agent
-  assertEquals((viewer as any).state.groupBy, "agent");
+  assertEquals(viewer.getExtensions().groupBy, "agent");
 });
 
 Deno.test("StructuredLogViewer: toggle performance metrics", () => {
   const service = new MockLogService();
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
 
-  const initial = (viewer as any).state.showPerformanceMetrics;
+  const initial = viewer.getExtensions().showPerformanceMetrics;
   viewer.togglePerformanceMetrics();
-  assertEquals((viewer as any).state.showPerformanceMetrics, !initial);
+  assertEquals(viewer.getExtensions().showPerformanceMetrics, !initial);
 });
 
 Deno.test("StructuredLogViewer: handleKey navigation", async () => {
@@ -116,12 +118,17 @@ Deno.test("StructuredLogViewer: handleKey navigation", async () => {
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
   await viewer.refreshLogs();
 
-  // Initial index 0
+  // Initial selection is first node
+  const firstId = viewer.getSelectedId();
+  assert(firstId);
+
   await viewer.handleKey("down");
-  assertEquals((viewer as any).selectedIndex, 1);
+  const secondId = viewer.getSelectedId();
+  assert(secondId);
+  assert(firstId !== secondId);
 
   await viewer.handleKey("up");
-  assertEquals((viewer as any).selectedIndex, 0);
+  assertEquals(viewer.getSelectedId(), firstId);
 });
 
 Deno.test("StructuredLogViewer: log detail view", async () => {
@@ -184,16 +191,21 @@ Deno.test("StructuredLogViewer: bookmark toggles state", async () => {
   const service = new MockLogService();
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
   await viewer.refreshLogs();
+
+  // Set grouping to none for easier log selection
+  viewer.getExtensions().groupBy = "none";
+  (viewer as any).buildTree();
+
   const logs = await viewer.getLogs();
   const logId = logs[0].timestamp;
 
-  (viewer as any).state.selectedLogId = logId;
+  (viewer as any).state.selectedId = logId;
   await viewer.handleKey("b");
 
-  assert((viewer as any).state.bookmarkedIds.has(logId));
+  assert(viewer.getExtensions().bookmarkedIds.has(logId));
 
   await viewer.handleKey("b");
-  assert(!(viewer as any).state.bookmarkedIds.has(logId));
+  assert(!viewer.getExtensions().bookmarkedIds.has(logId));
 });
 
 Deno.test("StructuredLogViewer: help toggle", async () => {
@@ -207,7 +219,7 @@ Deno.test("StructuredLogViewer: help toggle", async () => {
   const helpContent = output.join("\n");
   assert(helpContent.includes("Structured Log Viewer Help"));
 
-  await viewer.handleKey("?");
+  await viewer.handleKey("escape"); // escape also closes help
   assert(!(viewer as any).state.showHelp);
 });
 
@@ -223,7 +235,7 @@ Deno.test("StructuredLogViewer: search dialog interaction", async () => {
 
   // Cancel dialog
   await viewer.handleKey("escape");
-  assert((viewer as any).state.activeDialog === null);
+  assert(!(viewer as any).state.activeDialog);
 });
 
 Deno.test("StructuredLogViewer: collapse/expand all", async () => {
@@ -233,43 +245,35 @@ Deno.test("StructuredLogViewer: collapse/expand all", async () => {
 
   // Test collapse all
   await viewer.handleKey("C");
-  let tree = (viewer as any).state.logTree;
-  // Deep check: groups should be collapsed (expanded = false or undefined)
-  // Our mock data has groups.
+  let tree = (viewer as any).state.tree;
+  // Deep check: groups should be collapsed
   const hasCollapsedGroup = tree.some((node: any) => node.type === "group" && node.expanded === false);
-  // Note: collapseAll might return new array
   assert(hasCollapsedGroup, "Should have collapsed groups");
 
   // Test expand all
   await viewer.handleKey("E");
-  tree = (viewer as any).state.logTree; // get fresh ref
+  tree = (viewer as any).state.tree;
   const hasExpandedGroup = tree.some((node: any) => node.type === "group" && node.expanded === true);
   assert(hasExpandedGroup, "Should have expanded groups");
 });
 
 Deno.test("StructuredLogViewer: export logs", async () => {
   const service = new MockLogService();
-  const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
-  await viewer.refreshLogs();
+  let exportCalled = false;
+  let exportFilename = "";
 
-  // Mock Deno.writeTextFile
-  const originalWrite = Deno.writeTextFile;
-  let writeCalled = false;
-  let writePath = "";
-  (Deno as any).writeTextFile = (path: string, _content: string) => {
-    writeCalled = true;
-    writePath = path;
+  service.exportLogs = (filename, _entries) => {
+    exportCalled = true;
+    exportFilename = filename;
     return Promise.resolve();
   };
 
-  try {
-    await viewer.handleKey("e");
-    assert(writeCalled);
-    assert(writePath.startsWith("structured-logs-"));
-    assert(writePath.endsWith(".jsonl"));
-  } finally {
-    (Deno as any).writeTextFile = originalWrite;
-  }
+  const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
+  await viewer.refreshLogs();
+
+  await viewer.handleKey("e");
+  assert(exportCalled, "exportLogs should have been called on the service");
+  assert(exportFilename.startsWith("structured-logs-"));
 });
 
 Deno.test("StructuredLogViewer: rendering status bar", async () => {
@@ -278,10 +282,11 @@ Deno.test("StructuredLogViewer: rendering status bar", async () => {
   await viewer.refreshLogs();
 
   // Enable some flags to check status bar
-  (viewer as any).state.realTimeEnabled = true;
-  (viewer as any).state.autoRefresh = true;
-  (viewer as any).state.showPerformanceMetrics = true;
-  (viewer as any).state.bookmarkedIds.add("123");
+  const ext = viewer.getExtensions();
+  ext.realTimeEnabled = true;
+  ext.autoRefresh = true;
+  ext.showPerformanceMetrics = true;
+  ext.bookmarkedIds.add("123");
 
   const output = await viewer.render(100, 40);
   const statusBar = output[output.length - 1];
@@ -296,8 +301,8 @@ Deno.test("StructuredLogViewer: rendering header", async () => {
   const service = new MockLogService();
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
 
-  (viewer as any).state.searchQuery = "test query";
-  (viewer as any).state.groupBy = "level";
+  (viewer as any).state.filterText = "test query";
+  viewer.getExtensions().groupBy = "level";
 
   const output = await viewer.render(100, 40);
   const header = output[0];
@@ -312,28 +317,29 @@ Deno.test("StructuredLogViewer: correlation and trace mode", async () => {
   await viewer.refreshLogs();
 
   // Test correlation mode filtering
-  (viewer as any).state.selectedLogId = (await viewer.getLogs())[0].timestamp;
+  const logs = await viewer.getLogs();
+  (viewer as any).state.selectedId = logs[0].timestamp;
 
   await (viewer as any).setCorrelationMode("c1");
-  assert((viewer as any).state.correlationMode);
-  assert((viewer as any).state.activeCorrelationId === "c1");
+  assertEquals(viewer.getExtensions().correlationMode, true, "Correlation mode should be enabled");
+  assertEquals(viewer.getExtensions().activeCorrelationId, "c1");
 
-  let logs = await viewer.getLogs();
-  assert(logs.length > 0);
-  assert(logs.every((l) => l.context.correlation_id === "c1"));
+  let filteredLogs = viewer.getExtensions().logEntries;
+  assert(filteredLogs.length > 0);
+  assert(filteredLogs.every((l: LogEntry) => l.context.correlation_id === "c1"));
 
   // Toggle off
   await viewer.handleKey("c");
-  assert(!(viewer as any).state.correlationMode);
+  assertEquals(viewer.getExtensions().correlationMode, false, "Correlation mode should be disabled");
 
   // Test trace mode filtering
   await (viewer as any).setTraceMode("t1");
-  assert((viewer as any).state.activeTraceId === "t1");
-  logs = await viewer.getLogs();
-  assert(logs.every((l) => l.context.trace_id === "t1"));
+  assertEquals(viewer.getExtensions().activeTraceId, "t1");
+  filteredLogs = viewer.getExtensions().logEntries;
+  assert(filteredLogs.every((l: LogEntry) => l.context.trace_id === "t1"));
 });
 
-Deno.test("StructuredLogViewer: real-time updates", () => {
+Deno.test("StructuredLogViewer: real-time updates", async () => {
   const service = new MockLogService();
   let subCallback: ((entry: LogEntry) => void) | undefined;
 
@@ -343,8 +349,9 @@ Deno.test("StructuredLogViewer: real-time updates", () => {
   };
 
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
+  await viewer.refreshLogs(); // Ensure initialized
   viewer.toggleRealTime();
-  assert((viewer as any).state.realTimeEnabled);
+  assertEquals(viewer.getExtensions().realTimeEnabled, true, "Real-time should be enabled");
   assert(subCallback !== undefined, "Should have subscribed");
 
   const newLog: LogEntry = {
@@ -359,8 +366,8 @@ Deno.test("StructuredLogViewer: real-time updates", () => {
     subCallback(newLog);
   }
 
-  const logs = (viewer as any).state.logEntries;
-  assert(logs[0].message === "Real-time log");
+  const ext = viewer.getExtensions();
+  assertEquals(ext.logEntries[0].message, "Real-time log");
 });
 
 Deno.test("StructuredLogViewer: grouping modes coverage", async () => {
@@ -369,24 +376,24 @@ Deno.test("StructuredLogViewer: grouping modes coverage", async () => {
   await viewer.refreshLogs();
 
   // Test all grouping modes
-  (viewer as any).state.groupBy = "trace";
-  (viewer as any).rebuildTree();
-  let tree = (viewer as any).state.logTree;
+  viewer.getExtensions().groupBy = "trace";
+  (viewer as any).buildTree();
+  let tree = (viewer as any).state.tree;
   assert(tree.some((n: any) => n.id === "t1"));
 
-  (viewer as any).state.groupBy = "agent";
-  (viewer as any).rebuildTree();
-  tree = (viewer as any).state.logTree;
+  viewer.getExtensions().groupBy = "agent";
+  (viewer as any).buildTree();
+  tree = (viewer as any).state.tree;
   assert(tree.some((n: any) => n.id === "no-agent")); // Mock logs have no agent_id
 
-  (viewer as any).state.groupBy = "level";
-  (viewer as any).rebuildTree();
-  tree = (viewer as any).state.logTree;
+  viewer.getExtensions().groupBy = "level";
+  (viewer as any).buildTree();
+  tree = (viewer as any).state.tree;
   assert(tree.some((n: any) => n.id === "info"));
 
-  (viewer as any).state.groupBy = "time";
-  (viewer as any).rebuildTree();
-  tree = (viewer as any).state.logTree;
+  viewer.getExtensions().groupBy = "time";
+  (viewer as any).buildTree();
+  tree = (viewer as any).state.tree;
   // Should have date keys
   assert(tree.length > 0);
   assert(tree[0].id.includes("-")); // YYYY-MM-DD
@@ -398,11 +405,12 @@ Deno.test("StructuredLogViewer: navigation edge cases", async () => {
   await viewer.refreshLogs();
 
   // Test home/end
+  const firstId = viewer.getSelectedId();
   await viewer.handleKey("end");
-  assert((viewer as any).selectedIndex > 0);
+  assert(viewer.getSelectedId() !== firstId);
 
   await viewer.handleKey("home");
-  assert((viewer as any).selectedIndex === 0);
+  assertEquals(viewer.getSelectedId(), firstId);
 
   // Test left/right on non-expandable or already in state
   // Force selection of a leaf node
@@ -431,13 +439,14 @@ Deno.test("StructuredLogViewer: dialog key handling", async () => {
 
   // Verify value inside dialog
   const activeDialog = (viewer as any).state.activeDialog;
-  assert(activeDialog.getValue() === "te", `Expected 'te', got '${activeDialog.getValue()}'`);
+  assertEquals(activeDialog.getValue(), "te");
 
   await viewer.handleKey("enter"); // stop editing, moves focus to OK
   await viewer.handleKey("enter"); // confirm
 
-  assert((viewer as any).state.searchQuery === "te");
-  assert((viewer as any).state.activeDialog === null);
+  // After confirm, search query should be updated
+  assertEquals((viewer as any).state.filterText, "te");
+  assert(!(viewer as any).state.activeDialog);
 });
 
 Deno.test("StructuredLogViewer: format log entry coverage", () => {
@@ -484,13 +493,13 @@ Deno.test("StructuredLogViewer: log level filter", async () => {
 
   // Filter to only error
   viewer.setLogLevelFilter(["error"]);
-  let filtered = (viewer as any).state.filteredEntries;
+  let filtered = viewer.getExtensions().filteredEntries;
   assertEquals(filtered.length, 1);
   assertEquals(filtered[0].level, "error");
 
   // Filter to debug (none)
   viewer.setLogLevelFilter(["debug"]);
-  filtered = (viewer as any).state.filteredEntries;
+  filtered = viewer.getExtensions().filteredEntries;
   assertEquals(filtered.length, 0);
 });
 
@@ -500,12 +509,12 @@ Deno.test("StructuredLogViewer: auto refresh toggle", () => {
 
   // Enable
   viewer.toggleAutoRefresh();
-  assert((viewer as any).state.autoRefresh);
+  assert(viewer.getExtensions().autoRefresh);
   assert((viewer as any).refreshInterval !== undefined);
 
   // Disable
   viewer.toggleAutoRefresh();
-  assert(!(viewer as any).state.autoRefresh);
+  assert(!viewer.getExtensions().autoRefresh);
   assert((viewer as any).refreshInterval === undefined);
 });
 
@@ -519,27 +528,28 @@ Deno.test("StructuredLogViewer: correlation/trace key shortcuts", async () => {
   // Select first log (index 0 might be group or log depending on grouping).
   // Default grouping is 'none' in viewer? No, default is probably 'none' if not specified?
   // Let's force 'none' grouping or ensure we select a log.
-  (viewer as any).state.groupBy = "none";
-  (viewer as any).rebuildTree();
+  viewer.getExtensions().groupBy = "none";
+  (viewer as any).buildTree();
 
   // Select first node
-  (viewer as any).selectedIndex = 0;
+  const firstLogId = viewer.getExtensions().logEntries[0].timestamp;
+  (viewer as any).state.selectedId = firstLogId;
 
   // Press 'c' to enable correlation mode for "c1"
   await viewer.handleKey("c");
-  assert((viewer as any).state.correlationMode);
-  assert((viewer as any).state.activeCorrelationId === "c1");
+  assertEquals(viewer.getExtensions().correlationMode, true, "Correlation mode should be enabled via 'c'");
+  assertEquals(viewer.getExtensions().activeCorrelationId, "c1");
 
   // Press 'c' to disable
   await viewer.handleKey("c");
-  assert(!(viewer as any).state.correlationMode);
-  assert((viewer as any).state.activeCorrelationId === null);
+  assertEquals(viewer.getExtensions().correlationMode, false, "Correlation mode should be disabled via 'c'");
+  assertEquals(viewer.getExtensions().activeCorrelationId, null);
 
   // Press 't' to enable trace mode for "t1"
   await viewer.handleKey("t");
-  assert((viewer as any).state.activeTraceId === "t1");
+  assertEquals(viewer.getExtensions().activeTraceId, "t1");
 
   // Press 't' to disable
   await viewer.handleKey("t");
-  assert((viewer as any).state.activeTraceId === null);
+  assertEquals(viewer.getExtensions().activeTraceId, null);
 });

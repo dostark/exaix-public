@@ -2,75 +2,18 @@
  * Tests for MemoryCommands Global Operations (CLI Memory Banks)
  *
  * Phase 12.8: Global Memory CLI Commands
- *
- * Tests CLI commands for:
- * - memory global show: Show global memory
- * - memory global add-learning: Add a global learning
- * - memory global list-learnings: List all global learnings
- * - memory global stats: Show global statistics
- * - memory promote: Promote project learning to global
- * - memory demote: Demote global learning to project
  */
 
-import { ConfidenceLevel } from "../../src/enums.ts";
-import {
-  FlowOutputFormat,
-  LearningCategory,
-  MemoryScope,
-  MemorySource,
-  MemoryStatus,
-  MemoryType,
-} from "../../src/enums.ts";
+import { ConfidenceLevel, FlowOutputFormat, LearningCategory, MemoryScope, MemoryType } from "../../src/enums.ts";
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { MemoryCommands } from "../../src/cli/memory_commands.ts";
-import { MemoryBankService } from "../../src/services/memory_bank.ts";
-import { initTestDbService } from "../helpers/db.ts";
-import { createMockConfig } from "../helpers/config.ts";
-import type { Learning, ProjectMemory } from "../../src/schemas/memory_bank.ts";
-import {
-  getMemoryExecutionDir,
-  getMemoryGlobalDir,
-  getMemoryIndexDir,
-  getMemoryProjectsDir,
-} from "../helpers/paths_helper.ts";
-
-/**
- * Creates a complete memory test environment for global commands
- */
-async function initGlobalMemoryTest() {
-  const tempRoot = await Deno.makeTempDir({ prefix: "memory-global-test-" });
-
-  const { db, cleanup: dbCleanup } = await initTestDbService();
-
-  // Create required directories
-  await Deno.mkdir(getMemoryProjectsDir(tempRoot), { recursive: true });
-  await Deno.mkdir(getMemoryExecutionDir(tempRoot), { recursive: true });
-  await Deno.mkdir(getMemoryIndexDir(tempRoot), { recursive: true });
-  await Deno.mkdir(getMemoryGlobalDir(tempRoot), { recursive: true });
-
-  const config = createMockConfig(tempRoot);
-  const commands = new MemoryCommands({ config, db });
-  const memoryBank = new MemoryBankService(config, db);
-
-  const cleanup = async () => {
-    await dbCleanup();
-    await Deno.remove(tempRoot, { recursive: true }).catch(() => {});
-  };
-
-  return {
-    tempRoot,
-    config,
-    db,
-    commands,
-    memoryBank,
-    cleanup,
-  };
-}
+import { TestEnvironmentFactory } from "../fixtures/test_environment_factory.ts";
+import { LearningBuilder } from "../fixtures/memory_builder.ts";
+import { createTestProject } from "../helpers/memory_test_helper.ts";
 
 // ===== Global Show Tests =====
 
 Deno.test("MemoryCommands: globalShow returns empty for uninitialized", async () => {
-  const { commands, cleanup } = await initGlobalMemoryTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.globalShow("table");
 
@@ -81,7 +24,7 @@ Deno.test("MemoryCommands: globalShow returns empty for uninitialized", async ()
 });
 
 Deno.test("MemoryCommands: globalShow displays initialized memory", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await memoryBank.initGlobalMemory();
 
@@ -96,7 +39,7 @@ Deno.test("MemoryCommands: globalShow displays initialized memory", async () => 
 });
 
 Deno.test("MemoryCommands: globalShow --format json outputs valid JSON", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await memoryBank.initGlobalMemory();
 
@@ -112,7 +55,7 @@ Deno.test("MemoryCommands: globalShow --format json outputs valid JSON", async (
 });
 
 Deno.test("MemoryCommands: globalShow --format md outputs markdown", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await memoryBank.initGlobalMemory();
 
@@ -128,7 +71,7 @@ Deno.test("MemoryCommands: globalShow --format md outputs markdown", async () =>
 // ===== Global List Learnings Tests =====
 
 Deno.test("MemoryCommands: globalListLearnings returns empty message", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await memoryBank.initGlobalMemory();
 
@@ -141,22 +84,20 @@ Deno.test("MemoryCommands: globalListLearnings returns empty message", async () 
 });
 
 Deno.test("MemoryCommands: globalListLearnings displays learnings", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await memoryBank.initGlobalMemory();
 
-    const learning: Learning = {
-      id: "550e8400-e29b-41d4-a716-446655440000",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
-      scope: MemoryScope.GLOBAL,
-      title: "Test Learning Title",
-      description: "Test learning description",
-      category: LearningCategory.PATTERN,
-      tags: ["test-tag"],
-      confidence: ConfidenceLevel.HIGH,
-      status: MemoryStatus.APPROVED,
-    };
+    const learning = new LearningBuilder()
+      .withTitle("Test Learning Title")
+      .withDescription("Test learning description")
+      .withCategory(LearningCategory.PATTERN)
+      .withTags(["test-tag"])
+      .build();
+    // Override defaults from Builder with specific values from original test if needed or rely on Builder's sensible defaults.
+    // Original test used fixed ID "550e8400...". The Builder generates random UUID. This is fine unless ID is asserted.
+    // Original asserts on Title and Category.
+
     await memoryBank.addGlobalLearning(learning);
 
     const result = await commands.globalListLearnings("table");
@@ -169,22 +110,16 @@ Deno.test("MemoryCommands: globalListLearnings displays learnings", async () => 
 });
 
 Deno.test("MemoryCommands: globalListLearnings --format json outputs valid JSON", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await memoryBank.initGlobalMemory();
 
-    const learning: Learning = {
-      id: "550e8400-e29b-41d4-a716-446655440001",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
-      scope: MemoryScope.GLOBAL,
-      title: "JSON Test Learning",
-      description: "Test for JSON output",
-      category: LearningCategory.INSIGHT,
-      tags: [],
-      confidence: ConfidenceLevel.MEDIUM,
-      status: MemoryStatus.APPROVED,
-    };
+    const learning = new LearningBuilder()
+      .withTitle("JSON Test Learning")
+      .withDescription("Test for JSON output")
+      .withCategory(LearningCategory.INSIGHT)
+      .build();
+
     await memoryBank.addGlobalLearning(learning);
 
     const result = await commands.globalListLearnings(FlowOutputFormat.JSON);
@@ -201,43 +136,28 @@ Deno.test("MemoryCommands: globalListLearnings --format json outputs valid JSON"
 // ===== Global Stats Tests =====
 
 Deno.test("MemoryCommands: globalStats displays statistics", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await memoryBank.initGlobalMemory();
 
     // Add some learnings
-    const learnings: Learning[] = [
-      {
-        id: "550e8400-e29b-41d4-a716-446655440010",
-        created_at: "2026-01-04T12:00:00Z",
-        source: MemorySource.USER,
-        scope: MemoryScope.GLOBAL,
-        project: "app-a",
-        title: "Learning 1",
-        description: "First",
-        category: LearningCategory.PATTERN,
-        tags: [],
-        confidence: ConfidenceLevel.HIGH,
-        status: MemoryStatus.APPROVED,
-      },
-      {
-        id: "550e8400-e29b-41d4-a716-446655440011",
-        created_at: "2026-01-04T12:00:00Z",
-        source: MemorySource.USER,
-        scope: MemoryScope.GLOBAL,
-        project: "app-b",
-        title: "Learning 2",
-        description: "Second",
-        category: LearningCategory.INSIGHT,
-        tags: [],
-        confidence: ConfidenceLevel.MEDIUM,
-        status: MemoryStatus.APPROVED,
-      },
-    ];
+    await memoryBank.addGlobalLearning(
+      new LearningBuilder()
+        .withScope(MemoryScope.GLOBAL, "app-a")
+        .withTitle("Learning 1")
+        .withDescription("First")
+        .withCategory(LearningCategory.PATTERN)
+        .build(),
+    );
 
-    for (const l of learnings) {
-      await memoryBank.addGlobalLearning(l);
-    }
+    await memoryBank.addGlobalLearning(
+      new LearningBuilder()
+        .withScope(MemoryScope.GLOBAL, "app-b")
+        .withTitle("Learning 2")
+        .withDescription("Second")
+        .withCategory(LearningCategory.INSIGHT)
+        .build(),
+    );
 
     const result = await commands.globalStats("table");
 
@@ -250,7 +170,7 @@ Deno.test("MemoryCommands: globalStats displays statistics", async () => {
 });
 
 Deno.test("MemoryCommands: globalStats --format json outputs valid JSON", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await memoryBank.initGlobalMemory();
 
@@ -268,24 +188,17 @@ Deno.test("MemoryCommands: globalStats --format json outputs valid JSON", async 
 // ===== Promote Command Tests =====
 
 Deno.test("MemoryCommands: promote moves learning to global", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
-    // Create project with pattern
-    const projectMem: ProjectMemory = {
-      portal: "source-app",
+    // Create project with pattern using helper
+    await createTestProject(memoryBank, "source-app", {
       overview: "Source project",
-      patterns: [
-        {
-          name: "Repository Pattern",
-          description: "Database access via repositories",
-          examples: ["src/repo.ts"],
-          tags: ["architecture"],
-        },
-      ],
-      decisions: [],
-      references: [],
-    };
-    await memoryBank.createProjectMemory(projectMem);
+      patternName: "Repository Pattern",
+    });
+    // The helper adds "Repository Pattern" by default if patternName is passed? No, look at implementation.
+    // implementation: patterns: [{ name: opts.patternName || "Test Pattern", ... }]
+    // So "Repository Pattern" will be created.
+
     await memoryBank.initGlobalMemory();
 
     // Promote the pattern
@@ -311,7 +224,7 @@ Deno.test("MemoryCommands: promote moves learning to global", async () => {
 });
 
 Deno.test("MemoryCommands: promote non-existent project returns error", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await memoryBank.initGlobalMemory();
 
@@ -335,32 +248,19 @@ Deno.test("MemoryCommands: promote non-existent project returns error", async ()
 // ===== Demote Command Tests =====
 
 Deno.test("MemoryCommands: demote moves learning to project", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     // Create target project
-    const projectMem: ProjectMemory = {
-      portal: "target-app",
-      overview: "Target project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
-    await memoryBank.createProjectMemory(projectMem);
+    await createTestProject(memoryBank, "target-app", { overview: "Target project" });
     await memoryBank.initGlobalMemory();
 
     // Add global learning
-    const learning: Learning = {
-      id: "550e8400-e29b-41d4-a716-446655440099",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
-      scope: MemoryScope.GLOBAL,
-      title: "Learning to Demote",
-      description: "This will be demoted",
-      category: LearningCategory.PATTERN,
-      tags: ["demote-test"],
-      confidence: ConfidenceLevel.HIGH,
-      status: MemoryStatus.APPROVED,
-    };
+    const learning = new LearningBuilder()
+      .withTitle("Learning to Demote")
+      .withDescription("This will be demoted")
+      .withTags(["demote-test"])
+      .build();
+
     await memoryBank.addGlobalLearning(learning);
 
     // Demote the learning
@@ -372,25 +272,18 @@ Deno.test("MemoryCommands: demote moves learning to project", async () => {
     const globalMem = await memoryBank.getGlobalMemory();
     assertEquals(globalMem?.learnings.length, 0);
 
-    // Verify added to project
+    // Verify added to project (1 default + 1 demoted)
     const project = await memoryBank.getProjectMemory("target-app");
-    assertEquals(project?.patterns.length, 1);
+    assertEquals(project?.patterns.length, 2);
   } finally {
     await cleanup();
   }
 });
 
 Deno.test("MemoryCommands: demote non-existent learning returns error", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
-    const projectMem: ProjectMemory = {
-      portal: "target-app",
-      overview: "Target",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
-    await memoryBank.createProjectMemory(projectMem);
+    await createTestProject(memoryBank, "target-app", { overview: "Target" });
     await memoryBank.initGlobalMemory();
 
     const result = await commands.demote("non-existent-id", "target-app");
@@ -402,22 +295,11 @@ Deno.test("MemoryCommands: demote non-existent learning returns error", async ()
 });
 
 Deno.test("MemoryCommands: demote to non-existent project returns error", async () => {
-  const { commands, memoryBank, cleanup } = await initGlobalMemoryTest();
+  const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     await memoryBank.initGlobalMemory();
 
-    const learning: Learning = {
-      id: "550e8400-e29b-41d4-a716-446655440098",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
-      scope: MemoryScope.GLOBAL,
-      title: "Test",
-      description: "Test",
-      category: LearningCategory.PATTERN,
-      tags: [],
-      confidence: ConfidenceLevel.HIGH,
-      status: MemoryStatus.APPROVED,
-    };
+    const learning = new LearningBuilder().build();
     await memoryBank.addGlobalLearning(learning);
 
     const result = await commands.demote(learning.id, "non-existent-project");

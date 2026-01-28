@@ -45,6 +45,13 @@ export interface TreeViewState<T> {
 
   /** Scroll offset for list */
   scrollOffset: number;
+
+  /** Refresh configuration */
+  refreshConfig: {
+    enabled: boolean;
+    intervalMs: number;
+    lastRefresh: number;
+  };
 }
 
 /**
@@ -63,5 +70,10 @@ export function createTreeViewState<T>(): TreeViewState<T> {
     spinnerFrame: 0,
     lastRefresh: 0,
     scrollOffset: 0,
+    refreshConfig: {
+      enabled: false,
+      intervalMs: 5000,
+      lastRefresh: 0,
+    },
   };
 }

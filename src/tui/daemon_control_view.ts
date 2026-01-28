@@ -579,14 +579,14 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
   // ===== Key Handling =====
 
-  handleKey(key: string): Promise<void> {
+  async handleKey(key: string): Promise<boolean> {
     // Handle active dialog first
     if (this.state.activeDialog) {
       this.state.activeDialog.handleKey(key);
       if (!this.state.activeDialog.isActive()) {
         this.closeDialog();
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Handle logs view
@@ -594,7 +594,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       if (key === "escape" || key === "q") {
         this.hideLogs();
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Handle config view
@@ -602,7 +602,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       if (key === "escape" || key === "q") {
         this.hideConfig();
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Handle help view
@@ -610,7 +610,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       if (key === "escape" || key === "q" || key === "?") {
         this.state.showHelp = false;
       }
-      return Promise.resolve();
+      return true;
     }
 
     // Main view key handling
@@ -618,30 +618,32 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       case "s":
         this.pendingDialogAction = "start";
         this.showStartConfirm();
-        break;
+        return true;
       case "k":
         this.pendingDialogAction = "stop";
         this.showStopConfirm();
-        break;
+        return true;
       case "r":
         this.pendingDialogAction = "restart";
         this.showRestartConfirm();
-        break;
+        return true;
       case "l":
-        return this.showLogs();
+        await this.showLogs();
+        return true;
       case "c":
         this.showConfig();
-        break;
+        return true;
       case "R":
-        return this.refreshStatus();
+        await this.refreshStatus();
+        return true;
       case "a":
         this.toggleAutoRefresh();
-        break;
+        return true;
       case "?":
         this.state.showHelp = true;
-        break;
+        return true;
     }
-    return Promise.resolve();
+    return false;
   }
 
   // ===== Rendering =====

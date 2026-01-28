@@ -239,14 +239,14 @@ Deno.test("SkillsManagerTuiSession: navigation with 'j' and 'k' keys", async () 
   await session.initialize();
 
   // Navigate down several times with 'j' to ensure we get a selection
-  await session.handleInput("j");
-  await session.handleInput("j");
+  await session.handleKey("j");
+  await session.handleKey("j");
 
   const state1 = session.getState();
   assertExists(state1.selectedSkillId);
 
   // Navigate back with 'k'
-  await session.handleInput("k");
+  await session.handleKey("k");
 
   // Should still have selection
   const state2 = session.getState();
@@ -262,12 +262,12 @@ Deno.test("SkillsManagerTuiSession: navigate to first and last with Home/End", a
   await session.initialize();
 
   // Navigate to last
-  await session.handleInput("end");
+  await session.handleKey("end");
   const lastState = session.getState();
   assertExists(lastState.selectedSkillId);
 
   // Navigate to first
-  await session.handleInput("home");
+  await session.handleKey("home");
   const firstState = session.getState();
   assertExists(firstState.selectedSkillId);
 });
@@ -281,8 +281,8 @@ Deno.test("SkillsManagerTuiSession: toggle expand with left/right", async () => 
   await session.initialize();
 
   // Should toggle expand with left/right on group nodes
-  await session.handleInput("left");
-  await session.handleInput("right");
+  await session.handleKey("left");
+  await session.handleKey("right");
 
   // No exception means success
   const state = session.getState();
@@ -298,10 +298,10 @@ Deno.test("SkillsManagerTuiSession: expand all and collapse all", async () => {
   await session.initialize();
 
   // Collapse all with 'c'
-  await session.handleInput("c");
+  await session.handleKey("c");
 
   // Expand all with 'E'
-  await session.handleInput("E");
+  await session.handleKey("E");
 
   const state = session.getState();
   assertExists(state);
@@ -316,7 +316,7 @@ Deno.test("SkillsManagerTuiSession: refresh reloads skills", async () => {
   await session.initialize();
 
   // Refresh with 'R'
-  await session.handleInput("R");
+  await session.handleKey("R");
 
   const state = session.getState();
   assertExists(state);
@@ -331,14 +331,14 @@ Deno.test("SkillsManagerTuiSession: filter source dialog", async () => {
   await session.initialize();
 
   // Open filter source dialog with 'f'
-  await session.handleInput("f");
+  await session.handleKey("f");
   assertEquals(session.hasActiveDialog(), true);
 
   const dialogLines = session.renderDialog();
   assertEquals(dialogLines.length > 0, true);
 
   // Cancel dialog
-  await session.handleInput("escape");
+  await session.handleKey("escape");
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -351,11 +351,11 @@ Deno.test("SkillsManagerTuiSession: filter status dialog", async () => {
   await session.initialize();
 
   // Open filter status dialog with 's'
-  await session.handleInput("s");
+  await session.handleKey("s");
   assertEquals(session.hasActiveDialog(), true);
 
   // Cancel dialog
-  await session.handleInput("escape");
+  await session.handleKey("escape");
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -370,13 +370,13 @@ Deno.test("SkillsManagerTuiSession: delete skill dialog for non-core skill", asy
   // Navigate to a project skill (non-core)
   // First navigate past group headers to skill nodes
   for (let i = 0; i < 5; i++) {
-    await session.handleInput("down");
+    await session.handleKey("down");
   }
 
   const state = session.getState();
   // Find a non-core skill
   if (state.selectedSkillId?.includes(MemoryScope.PROJECT) || state.selectedSkillId?.includes(MemorySource.LEARNED)) {
-    await session.handleInput("d");
+    await session.handleKey("d");
     // Dialog should open if we're on a project/learned skill
     // If not, we're on a core skill which is blocked
   }
@@ -391,12 +391,12 @@ Deno.test("SkillsManagerTuiSession: delete blocked for core skills", async () =>
   await session.initialize();
 
   // Navigate to first skill (should be a core skill after group header)
-  await session.handleInput("down");
+  await session.handleKey("down");
 
   const state = session.getState();
   if (state.selectedSkillId?.startsWith("skill-tdd") || state.selectedSkillId?.startsWith("skill-security")) {
     // Try to delete a core skill
-    await session.handleInput("d");
+    await session.handleKey("d");
     // Should not open dialog for core skills
     assertEquals(session.hasActiveDialog(), false);
   }
@@ -411,8 +411,8 @@ Deno.test("SkillsManagerTuiSession: show detail for skill node", async () => {
   await session.initialize();
 
   // Navigate to a skill (not group header)
-  await session.handleInput("down");
-  await session.handleInput("enter");
+  await session.handleKey("down");
+  await session.handleKey("enter");
 
   const detail = session.renderDetail();
   if (session.isShowingDetail()) {
@@ -429,8 +429,8 @@ Deno.test("SkillsManagerTuiSession: detail view shows triggers", async () => {
   await session.initialize();
 
   // Navigate to a skill with triggers (first core skill)
-  await session.handleInput("down");
-  await session.handleInput("enter");
+  await session.handleKey("down");
+  await session.handleKey("enter");
 
   if (session.isShowingDetail()) {
     const detail = session.renderDetail();
@@ -450,11 +450,11 @@ Deno.test("SkillsManagerTuiSession: close detail with 'q'", async () => {
   await session.initialize();
 
   // Navigate to a skill and show detail
-  await session.handleInput("down");
-  await session.handleInput("enter");
+  await session.handleKey("down");
+  await session.handleKey("enter");
 
   if (session.isShowingDetail()) {
-    await session.handleInput("q");
+    await session.handleKey("q");
     assertEquals(session.isShowingDetail(), false);
   }
 });
@@ -468,11 +468,11 @@ Deno.test("SkillsManagerTuiSession: help screen toggle with '?'", async () => {
   await session.initialize();
 
   // Show help
-  await session.handleInput("?");
+  await session.handleKey("?");
   assertEquals(session.isShowingHelp(), true);
 
   // Toggle off with '?'
-  await session.handleInput("?");
+  await session.handleKey("?");
   assertEquals(session.isShowingHelp(), false);
 });
 
@@ -485,11 +485,11 @@ Deno.test("SkillsManagerTuiSession: close help with 'q'", async () => {
   await session.initialize();
 
   // Show help
-  await session.handleInput("?");
+  await session.handleKey("?");
   assertEquals(session.isShowingHelp(), true);
 
   // Close with 'q'
-  await session.handleInput("q");
+  await session.handleKey("q");
   assertEquals(session.isShowingHelp(), false);
 });
 
@@ -501,10 +501,10 @@ Deno.test("SkillsManagerTuiSession: close help with escape", async () => {
 
   await session.initialize();
 
-  await session.handleInput("?");
+  await session.handleKey("?");
   assertEquals(session.isShowingHelp(), true);
 
-  await session.handleInput("escape");
+  await session.handleKey("escape");
   assertEquals(session.isShowingHelp(), false);
 });
 
@@ -528,16 +528,16 @@ Deno.test("SkillsManagerTuiSession: render shows filter info when filtering", as
   await session.initialize();
 
   // Open search dialog
-  await session.handleInput("/");
+  await session.handleKey("/");
   assertEquals(session.hasActiveDialog(), true);
 
   // Press enter to start editing, then type, then enter to confirm
-  await session.handleInput("enter");
-  await session.handleInput("t");
-  await session.handleInput("d");
-  await session.handleInput("d");
-  await session.handleInput("enter"); // Exit edit mode
-  await session.handleInput("enter"); // Confirm dialog
+  await session.handleKey("enter");
+  await session.handleKey("t");
+  await session.handleKey("d");
+  await session.handleKey("d");
+  await session.handleKey("enter"); // Exit edit mode
+  await session.handleKey("enter"); // Confirm dialog
 
   // Verify dialog is closed
   assertEquals(session.hasActiveDialog(), false);
@@ -556,7 +556,7 @@ Deno.test("SkillsManagerTuiSession: group by status", async () => {
   await session.initialize();
 
   // Cycle to status grouping
-  await session.handleInput("g");
+  await session.handleKey("g");
   assertEquals(session.getState().groupBy, "status");
 
   const output = session.render();
@@ -572,8 +572,8 @@ Deno.test("SkillsManagerTuiSession: group by none (flat list)", async () => {
   await session.initialize();
 
   // Cycle to none grouping
-  await session.handleInput("g"); // source -> status
-  await session.handleInput("g"); // status -> none
+  await session.handleKey("g"); // source -> status
+  await session.handleKey("g"); // status -> none
 
   assertEquals(session.getState().groupBy, "none");
 });
@@ -587,22 +587,22 @@ Deno.test("SkillsManagerTuiSession: search dialog filters skills", async () => {
   await session.initialize();
 
   // Open search dialog
-  await session.handleInput("/");
+  await session.handleKey("/");
   assertEquals(session.hasActiveDialog(), true);
 
   // Cancel the dialog for now (testing dialog opening)
-  await session.handleInput("escape");
+  await session.handleKey("escape");
   assertEquals(session.hasActiveDialog(), false);
 });
 
-Deno.test("SkillsManagerTuiSession: handleInput returns false for quit", async () => {
+Deno.test("SkillsManagerTuiSession: handleKey returns false for quit", async () => {
   const mockService = new MinimalSkillsServiceMock([]);
   const view = new SkillsManagerView(mockService);
   const session = view.createTuiSession(false);
 
   await session.initialize();
 
-  const result = await session.handleInput("q");
+  const result = await session.handleKey("q");
   assertEquals(result, false);
 });
 
@@ -618,7 +618,7 @@ Deno.test("SkillsManagerTuiSession: navigateDown when no selection selects first
   const state = session.getState();
   if (!state.selectedSkillId) {
     // If no selection, navigateDown should select first
-    await session.handleInput("down");
+    await session.handleKey("down");
     assertExists(session.getState().selectedSkillId);
   }
 });
@@ -652,7 +652,7 @@ Deno.test("SkillsManagerTuiSession: enter on group node toggles expansion", asyn
   // First node should be a group (grouped by source by default)
   const state = session.getState();
   if (state.selectedSkillId?.startsWith("group-")) {
-    await session.handleInput("enter");
+    await session.handleKey("enter");
     // Should toggle the group, not show detail
     assertEquals(session.isShowingDetail(), false);
   }
@@ -667,13 +667,13 @@ Deno.test("SkillsManagerTuiSession: invalid filter source shows error", async ()
   await session.initialize();
 
   // Open filter source dialog
-  await session.handleInput("f");
+  await session.handleKey("f");
 
   // Type invalid source
   for (const char of "invalid") {
-    await session.handleInput(char);
+    await session.handleKey(char);
   }
-  await session.handleInput("enter");
+  await session.handleKey("enter");
 
   // Should set an error status (filter source unchanged)
   const state = session.getState();
@@ -689,13 +689,13 @@ Deno.test("SkillsManagerTuiSession: invalid filter status shows error", async ()
   await session.initialize();
 
   // Open filter status dialog
-  await session.handleInput("s");
+  await session.handleKey("s");
 
   // Type invalid status
   for (const char of "invalid") {
-    await session.handleInput(char);
+    await session.handleKey(char);
   }
-  await session.handleInput("enter");
+  await session.handleKey("enter");
 
   // Should set an error status (filter status unchanged)
   const state = session.getState();
@@ -711,10 +711,10 @@ Deno.test("SkillsManagerTuiSession: return key same as enter", async () => {
   await session.initialize();
 
   // Navigate to a skill
-  await session.handleInput("down");
+  await session.handleKey("down");
 
   // Use 'return' key
-  await session.handleInput("return");
+  await session.handleKey("return");
 
   // Should show detail or toggle group
   const state = session.getState();
@@ -740,12 +740,12 @@ Deno.test("SkillsManagerTuiSession: detail view shows instructions (truncated)",
   await session.initialize();
 
   // Set grouping to none to navigate directly to skill
-  await session.handleInput("g"); // source -> status
-  await session.handleInput("g"); // status -> none
+  await session.handleKey("g"); // source -> status
+  await session.handleKey("g"); // status -> none
 
   // Now navigate and show detail
-  await session.handleInput("down");
-  await session.handleInput("enter");
+  await session.handleKey("down");
+  await session.handleKey("enter");
 
   if (session.isShowingDetail()) {
     const detail = session.renderDetail();

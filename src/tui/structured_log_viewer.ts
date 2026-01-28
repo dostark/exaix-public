@@ -12,13 +12,12 @@
  * - Log level filtering with visual indicators
  */
 
-import { TuiSessionBase } from "./tui_common.ts";
-import { type TreeNode } from "./utils/tree_view.ts";
-import { collapseAll, createGroupNode, createNode, expandAll, renderTree, toggleNode } from "./utils/tree_view.ts";
+import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
+import { DialogBase } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import type { LogEntry, LogLevel, StructuredLogger } from "../services/structured_logger.ts";
+import { BaseTreeView } from "./base/base_tree_view.ts";
 
 // ===== Service Interfaces =====
 
@@ -31,6 +30,7 @@ export interface StructuredLogService {
   getLogsByCorrelationId(correlationId: string): Promise<LogEntry[]>;
   getLogsByTraceId(traceId: string): Promise<LogEntry[]>;
   getLogsByAgentId(agentId: string): Promise<LogEntry[]>;
+  exportLogs(filename: string, entries: LogEntry[]): Promise<void>;
 }
 
 export interface LogQueryOptions {
@@ -47,23 +47,9 @@ export interface LogQueryOptions {
 // ===== View State =====
 
 /**
- * State interface for StructuredLogViewer
+ * View-specific extensions for StructuredLogViewer
  */
-export interface StructuredLogViewerState {
-  /** Currently selected log ID */
-  selectedLogId: string | null;
-  /** Log tree structure */
-  logTree: TreeNode[];
-  /** Whether help is visible */
-  showHelp: boolean;
-  /** Whether detail view is shown */
-  showDetail: boolean;
-  /** Detail content for expanded log */
-  detailContent: string;
-  /** Active dialog */
-  activeDialog: ConfirmDialog | InputDialog | null;
-  /** Current search query */
-  searchQuery: string;
+export interface LogViewExtensions {
   /** Bookmarked log IDs */
   bookmarkedIds: Set<string>;
   /** Current grouping mode */
@@ -86,6 +72,10 @@ export interface StructuredLogViewerState {
   logEntries: LogEntry[];
   /** Filtered log entries */
   filteredEntries: LogEntry[];
+  /** Whether detail view is shown */
+  showDetail: boolean;
+  /** Detail content for expanded log */
+  detailContent: string;
 }
 
 // ===== Icons and Visual Constants =====
@@ -147,45 +137,48 @@ export const STRUCTURED_LOG_VIEWER_KEY_BINDINGS: KeyBinding[] = [
 /**
  * View/controller for structured log monitoring with real-time streaming.
  */
-export class StructuredLogViewer extends TuiSessionBase {
-  private state: StructuredLogViewerState;
+export class StructuredLogViewer extends BaseTreeView<LogEntry> {
+  protected logViewExtensions: LogViewExtensions;
   private logService: StructuredLogService;
   private structuredLogger: StructuredLogger;
   private unsubscribeRealTime?: () => void;
   private refreshInterval?: number;
+  private pendingDialogType: "search" | "filter-level" | "export" | null = null;
 
   constructor(
     logService: StructuredLogService,
     structuredLogger: StructuredLogger,
     options: { testMode?: boolean } = {},
   ) {
-    super();
+    super(options.testMode ? false : true);
+
     this.logService = logService;
     this.structuredLogger = structuredLogger;
-    this.state = this.createInitialState(options.testMode);
+    this.logViewExtensions = this.createInitialExtensions(options.testMode);
 
     // Setup real-time streaming if enabled
-    if (this.state.realTimeEnabled) {
+    if (this.logViewExtensions.realTimeEnabled) {
       this.setupRealTimeStreaming();
     }
 
     // Setup auto-refresh if enabled
-    if (this.state.autoRefresh) {
+    if (this.logViewExtensions.autoRefresh) {
       this.setupAutoRefresh();
     }
 
-    this.refreshLogs();
+    this.initialize();
   }
 
-  private createInitialState(testMode = false): StructuredLogViewerState {
+  async initialize(): Promise<void> {
+    await this.refreshLogs();
+    const firstId = getFirstNodeId(this.state.tree);
+    if (firstId) {
+      this.state.selectedId = firstId;
+    }
+  }
+
+  private createInitialExtensions(testMode = false): LogViewExtensions {
     return {
-      selectedLogId: null,
-      logTree: [],
-      showHelp: false,
-      showDetail: false,
-      detailContent: "",
-      activeDialog: null,
-      searchQuery: "",
       bookmarkedIds: new Set(),
       groupBy: "correlation",
       autoRefresh: testMode ? false : true,
@@ -197,6 +190,8 @@ export class StructuredLogViewer extends TuiSessionBase {
       realTimeEnabled: testMode ? false : true,
       logEntries: [],
       filteredEntries: [],
+      showDetail: false,
+      detailContent: "",
     };
   }
 
@@ -208,7 +203,7 @@ export class StructuredLogViewer extends TuiSessionBase {
 
   private setupAutoRefresh(): void {
     this.refreshInterval = setInterval(() => {
-      if (this.state.autoRefresh) {
+      if (this.logViewExtensions.autoRefresh) {
         this.refreshLogs();
       }
     }, 5000); // 5 second refresh
@@ -216,47 +211,50 @@ export class StructuredLogViewer extends TuiSessionBase {
 
   private handleNewLogEntry(entry: LogEntry): void {
     // Add to entries and update filtered view
-    this.state.logEntries.unshift(entry); // Newest first
+    this.logViewExtensions.logEntries.unshift(entry); // Newest first
     this.applyFilters();
-    this.rebuildTree();
+    this.buildTree();
 
     // Limit entries to prevent memory issues
-    if (this.state.logEntries.length > 1000) {
-      this.state.logEntries = this.state.logEntries.slice(0, 1000);
+    if (this.logViewExtensions.logEntries.length > 1000) {
+      this.logViewExtensions.logEntries = this.logViewExtensions.logEntries.slice(0, 1000);
     }
   }
 
   /** Refresh logs from the service. */
   async refreshLogs(): Promise<void> {
     try {
+      this.setLoading(true, "Refreshing logs...");
       const options: LogQueryOptions = {
-        level: this.state.logLevelFilter,
+        level: this.logViewExtensions.logLevelFilter,
         limit: 500,
-        includePerformance: this.state.showPerformanceMetrics,
+        includePerformance: this.logViewExtensions.showPerformanceMetrics,
       };
 
-      if (this.state.correlationMode && this.state.activeCorrelationId) {
-        options.correlationId = this.state.activeCorrelationId;
+      if (this.logViewExtensions.correlationMode && this.logViewExtensions.activeCorrelationId) {
+        options.correlationId = this.logViewExtensions.activeCorrelationId;
       }
 
-      if (this.state.activeTraceId) {
-        options.traceId = this.state.activeTraceId;
+      if (this.logViewExtensions.activeTraceId) {
+        options.traceId = this.logViewExtensions.activeTraceId;
       }
 
-      this.state.logEntries = await this.logService.getStructuredLogs(options);
+      this.logViewExtensions.logEntries = await this.logService.getStructuredLogs(options);
       this.applyFilters();
-      this.rebuildTree();
+      this.buildTree();
     } catch (error) {
-      console.error("[StructuredLogViewer] Failed to refresh logs:", error);
+      this.setStatus(`Refresh failed: ${error instanceof Error ? error.message : String(error)}`, "error");
+    } finally {
+      this.setLoading(false);
     }
   }
 
   private applyFilters(): void {
-    let filtered = [...this.state.logEntries];
+    let filtered = [...this.logViewExtensions.logEntries];
 
     // Apply search filter
-    if (this.state.searchQuery) {
-      const query = this.state.searchQuery.toLowerCase();
+    if (this.state.filterText) {
+      const query = this.state.filterText.toLowerCase();
       filtered = filtered.filter((entry) =>
         entry.message.toLowerCase().includes(query) ||
         JSON.stringify(entry.context).toLowerCase().includes(query) ||
@@ -265,44 +263,44 @@ export class StructuredLogViewer extends TuiSessionBase {
     }
 
     // Apply log level filter
-    filtered = filtered.filter((entry) => this.state.logLevelFilter.includes(entry.level));
+    filtered = filtered.filter((entry) => this.logViewExtensions.logLevelFilter.includes(entry.level));
 
-    this.state.filteredEntries = filtered;
+    this.logViewExtensions.filteredEntries = filtered;
   }
 
-  private rebuildTree(): void {
-    const nodes: TreeNode[] = [];
+  protected override buildTree(): void {
+    const nodes: TreeNode<LogEntry>[] = [];
 
-    if (this.state.groupBy === "none") {
+    if (this.logViewExtensions.groupBy === "none") {
       // Flat list
-      for (const entry of this.state.filteredEntries) {
-        const node = createNode(
+      for (const entry of this.logViewExtensions.filteredEntries) {
+        const node = createNode<LogEntry>(
           entry.timestamp,
           this.formatLogEntry(entry),
           "log",
-          { expanded: false },
+          { expanded: false, data: entry },
         );
         nodes.push(node);
       }
     } else {
       // Grouped view
-      const groups = this.groupEntries(this.state.filteredEntries, this.state.groupBy);
+      const groups = this.groupEntries(this.logViewExtensions.filteredEntries, this.logViewExtensions.groupBy);
 
       for (const [groupKey, entries] of Object.entries(groups)) {
-        const childNodes: TreeNode[] = [];
+        const childNodes: TreeNode<LogEntry>[] = [];
         for (const entry of entries) {
-          const node = createNode(
+          const node = createNode<LogEntry>(
             entry.timestamp,
             this.formatLogEntry(entry),
             "log",
-            { expanded: false },
+            { expanded: false, data: entry },
           );
           childNodes.push(node);
         }
 
-        const groupNode = createGroupNode(
+        const groupNode = createGroupNode<LogEntry>(
           groupKey,
-          `${this.getGroupIcon(this.state.groupBy)} ${groupKey} (${entries.length})`,
+          `${this.getGroupIcon(this.logViewExtensions.groupBy)} ${groupKey} (${entries.length})`,
           "group",
           childNodes,
           { expanded: true },
@@ -312,7 +310,7 @@ export class StructuredLogViewer extends TuiSessionBase {
       }
     }
 
-    this.state.logTree = nodes;
+    this.state.tree = nodes;
   }
 
   private groupEntries(entries: LogEntry[], groupBy: string): Record<string, LogEntry[]> {
@@ -386,7 +384,7 @@ export class StructuredLogViewer extends TuiSessionBase {
     }
 
     let perfStr = "";
-    if (this.state.showPerformanceMetrics && entry.performance) {
+    if (this.logViewExtensions.showPerformanceMetrics && entry.performance) {
       if (entry.performance.duration_ms) {
         perfStr += ` ${entry.performance.duration_ms}ms`;
       }
@@ -398,61 +396,67 @@ export class StructuredLogViewer extends TuiSessionBase {
     return `${timestamp} ${icon} ${level} ${entry.message}${contextStr}${perfStr}`;
   }
 
-  // ... rest of the implementation will be added in subsequent steps
+  override getViewName(): string {
+    return "Structured Log Viewer";
+  }
+
+  override getKeyBindings(): KeyBinding<string>[] {
+    return STRUCTURED_LOG_VIEWER_KEY_BINDINGS.map((b) => ({ ...b, action: b.action as string }));
+  }
 
   /** Get all current logs. */
   async getLogs(): Promise<LogEntry[]> {
     await this.refreshLogs();
-    return [...this.state.logEntries];
+    return [...this.logViewExtensions.logEntries];
   }
 
   /** Set the filter for logs. */
   setLogLevelFilter(levels: LogLevel[]): void {
-    this.state.logLevelFilter = [...levels];
+    this.logViewExtensions.logLevelFilter = [...levels];
     this.applyFilters();
-    this.rebuildTree();
+    this.buildTree();
   }
 
   /** Toggle correlation mode for a specific correlation ID. */
   async setCorrelationMode(correlationId: string | null): Promise<void> {
-    this.state.correlationMode = correlationId !== null;
-    this.state.activeCorrelationId = correlationId;
+    this.logViewExtensions.correlationMode = correlationId !== null;
+    this.logViewExtensions.activeCorrelationId = correlationId;
 
     if (correlationId) {
-      this.state.logEntries = await this.logService.getLogsByCorrelationId(correlationId);
+      this.logViewExtensions.logEntries = await this.logService.getLogsByCorrelationId(correlationId);
     } else {
       await this.refreshLogs();
     }
 
     this.applyFilters();
-    this.rebuildTree();
+    this.buildTree();
   }
 
   /** Toggle trace mode for a specific trace ID. */
   async setTraceMode(traceId: string | null): Promise<void> {
-    this.state.activeTraceId = traceId;
+    this.logViewExtensions.activeTraceId = traceId;
 
     if (traceId) {
-      this.state.logEntries = await this.logService.getLogsByTraceId(traceId);
+      this.logViewExtensions.logEntries = await this.logService.getLogsByTraceId(traceId);
     } else {
       await this.refreshLogs();
     }
 
     this.applyFilters();
-    this.rebuildTree();
+    this.buildTree();
   }
 
   /** Toggle performance metrics display. */
   togglePerformanceMetrics(): void {
-    this.state.showPerformanceMetrics = !this.state.showPerformanceMetrics;
-    this.rebuildTree();
+    this.logViewExtensions.showPerformanceMetrics = !this.logViewExtensions.showPerformanceMetrics;
+    this.buildTree();
   }
 
   /** Toggle real-time streaming. */
   toggleRealTime(): void {
-    this.state.realTimeEnabled = !this.state.realTimeEnabled;
+    this.logViewExtensions.realTimeEnabled = !this.logViewExtensions.realTimeEnabled;
 
-    if (this.state.realTimeEnabled) {
+    if (this.logViewExtensions.realTimeEnabled) {
       this.setupRealTimeStreaming();
     } else {
       if (this.unsubscribeRealTime) {
@@ -464,9 +468,9 @@ export class StructuredLogViewer extends TuiSessionBase {
 
   /** Toggle auto-refresh. */
   toggleAutoRefresh(): void {
-    this.state.autoRefresh = !this.state.autoRefresh;
+    this.logViewExtensions.autoRefresh = !this.logViewExtensions.autoRefresh;
 
-    if (this.state.autoRefresh) {
+    if (this.logViewExtensions.autoRefresh) {
       this.setupAutoRefresh();
     } else {
       if (this.refreshInterval) {
@@ -478,14 +482,14 @@ export class StructuredLogViewer extends TuiSessionBase {
 
   /** Set search query. */
   setSearchQuery(query: string): void {
-    this.state.searchQuery = query;
+    this.state.filterText = query;
     this.applyFilters();
-    this.rebuildTree();
+    this.buildTree();
   }
 
   /** Toggle grouping mode. */
   toggleGrouping(): void {
-    const modes: Array<StructuredLogViewerState["groupBy"]> = [
+    const modes: Array<LogViewExtensions["groupBy"]> = [
       "correlation",
       "trace",
       "agent",
@@ -493,17 +497,17 @@ export class StructuredLogViewer extends TuiSessionBase {
       "time",
       "none",
     ];
-    const currentIndex = modes.indexOf(this.state.groupBy);
-    this.state.groupBy = modes[(currentIndex + 1) % modes.length];
-    this.rebuildTree();
+    const currentIndex = modes.indexOf(this.logViewExtensions.groupBy);
+    this.logViewExtensions.groupBy = modes[(currentIndex + 1) % modes.length];
+    this.buildTree();
   }
 
   /** Bookmark/unbookmark a log entry. */
   toggleBookmark(logId: string): void {
-    if (this.state.bookmarkedIds.has(logId)) {
-      this.state.bookmarkedIds.delete(logId);
+    if (this.logViewExtensions.bookmarkedIds.has(logId)) {
+      this.logViewExtensions.bookmarkedIds.delete(logId);
     } else {
-      this.state.bookmarkedIds.add(logId);
+      this.logViewExtensions.bookmarkedIds.add(logId);
     }
   }
 
@@ -513,21 +517,16 @@ export class StructuredLogViewer extends TuiSessionBase {
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const filename = `structured-logs-${timestamp}.jsonl`;
 
-      let content = "";
-      for (const entry of this.state.filteredEntries) {
-        content += JSON.stringify(entry) + "\n";
-      }
-
-      await Deno.writeTextFile(filename, content);
-      console.log(`Logs exported to ${filename}`);
+      await this.logService.exportLogs(filename, this.logViewExtensions.filteredEntries);
+      this.setStatus(`Logs exported to ${filename}`, "info");
     } catch (error) {
-      console.error("Failed to export logs:", error);
+      this.setStatus(`Export failed: ${error instanceof Error ? error.message : String(error)}`, "error");
     }
   }
 
   /** Get detailed view content for a log entry. */
   getLogDetail(logId: string): string {
-    const entry = this.state.logEntries.find((e) => e.timestamp === logId);
+    const entry = this.logViewExtensions.logEntries.find((e: LogEntry) => e.timestamp === logId);
     if (!entry) return "Log entry not found";
 
     let detail = `Timestamp: ${entry.timestamp}\n`;
@@ -575,128 +574,87 @@ export class StructuredLogViewer extends TuiSessionBase {
 
   // ===== TUI Session Base Implementation =====
 
-  async handleKey(key: string): Promise<void> {
-    // Handle dialogs first
-    if (this.state.activeDialog) {
-      this.state.activeDialog.handleKey(key);
+  // ===== Dialog Handlers =====
 
-      // Check if dialog completed
-      if (!this.state.activeDialog.isActive()) {
-        const dialog = this.state.activeDialog;
-        this.state.activeDialog = null;
-
-        // Handle dialog result
-        if (dialog instanceof InputDialog && dialog.getState() === "confirmed") {
-          const result = dialog.getResult();
-          if (result.type === "confirmed") {
-            this.setSearchQuery(result.value);
-          }
-        }
-      }
+  protected override onDialogClosed(dialog: DialogBase): void {
+    const result = dialog.getResult();
+    if (result.type !== "confirmed") {
+      this.pendingDialogType = null;
       return;
     }
 
-    // Handle help overlay
-    if (this.state.showHelp) {
-      if (key === "?" || key === "escape") {
-        this.state.showHelp = false;
-      }
-      return;
+    const value = result.value as string;
+    switch (this.pendingDialogType) {
+      case "search":
+        this.setSearchQuery(value);
+        break;
+      case "filter-level":
+        // Handle filter level if implemented
+        break;
+      case "export":
+        // Handle export if implemented via dialog
+        break;
     }
+    this.pendingDialogType = null;
+  }
 
-    // Handle detail view
-    if (this.state.showDetail) {
+  // ===== Input Handling =====
+
+  override async handleKey(key: string): Promise<boolean> {
+    // 1. Handle dialogs (delegated to base)
+    if (this.handleDialogKeys(key)) return true;
+
+    // 2. Handle help overlay (delegated to base)
+    if (this.handleHelpKeys(key)) return true;
+
+    // 3. Handle detail view
+    if (this.logViewExtensions.showDetail) {
       if (key === "escape" || key === "q") {
-        this.state.showDetail = false;
-        this.state.detailContent = "";
+        this.logViewExtensions.showDetail = false;
+        this.logViewExtensions.detailContent = "";
       }
-      return;
+      return true;
     }
 
-    // Main navigation and actions
+    // 5. Main actions
     switch (key) {
-      case "up":
-        this.selectedIndex = Math.max(0, this.selectedIndex - 1);
-        break;
-      case "down":
-        this.selectedIndex = Math.min(this.state.logTree.length - 1, this.selectedIndex + 1);
-        break;
-      case "home":
-        this.selectedIndex = 0;
-        break;
-      case "end":
-        this.selectedIndex = this.state.logTree.length - 1;
-        break;
-      case "left":
-        if (this.selectedIndex >= 0 && this.selectedIndex < this.state.logTree.length) {
-          this.state.logTree = toggleNode(this.state.logTree, this.state.logTree[this.selectedIndex].id);
-        }
-        break;
-      case "right":
-        if (this.selectedIndex >= 0 && this.selectedIndex < this.state.logTree.length) {
-          this.state.logTree = toggleNode(this.state.logTree, this.state.logTree[this.selectedIndex].id);
-        }
-        break;
       case "enter":
-        if (this.selectedIndex >= 0 && this.selectedIndex < this.state.logTree.length) {
-          const node = this.state.logTree[this.selectedIndex];
-          if (
-            node.id && !node.id.startsWith("correlation-") && !node.id.startsWith("trace-") &&
-            !node.id.startsWith("agent-") && !node.id.startsWith("level-")
-          ) {
-            this.state.selectedLogId = node.id;
-            this.state.detailContent = this.getLogDetail(node.id);
-            this.state.showDetail = true;
+        if (this.state.selectedId) {
+          if (this.isGroupNode(this.state.selectedId)) {
+            this.toggleCurrentNode();
           } else {
-            // Toggle group node
-            this.state.logTree = toggleNode(this.state.logTree, node.id);
+            this.logViewExtensions.showDetail = true;
+            this.logViewExtensions.detailContent = this.getLogDetail(this.state.selectedId);
           }
         }
+        break;
+      case "space":
+        this.toggleRealTime();
         break;
       case "b":
-        if (this.state.selectedLogId) {
-          this.toggleBookmark(this.state.selectedLogId);
+        if (this.state.selectedId && !this.isGroupNode(this.state.selectedId)) {
+          this.toggleBookmark(this.state.selectedId);
         }
         break;
       case "e":
         await this.exportLogs();
         break;
       case "s":
-        this.state.activeDialog = new InputDialog({
+        this.showInputDialog({
           title: "Search Logs",
           label: "Enter search query:",
-          defaultValue: this.state.searchQuery,
+          defaultValue: this.state.filterText,
         });
+        this.pendingDialogType = "search";
         break;
       case "f":
         // Toggle log level filter dialog would go here
         break;
       case "c":
-        if (this.state.correlationMode) {
-          await this.setCorrelationMode(null);
-        } else {
-          // Would need to get correlation ID from selected log
-          const selectedNode = this.state.logTree[this.selectedIndex];
-          if (selectedNode && selectedNode.id) {
-            const entry = this.state.logEntries.find((e) => e.timestamp === selectedNode.id);
-            if (entry?.context.correlation_id) {
-              await this.setCorrelationMode(entry.context.correlation_id);
-            }
-          }
-        }
+        await this.handleCorrelationMode();
         break;
       case "t":
-        if (this.state.activeTraceId) {
-          await this.setTraceMode(null);
-        } else {
-          const selectedNode = this.state.logTree[this.selectedIndex];
-          if (selectedNode && selectedNode.id) {
-            const entry = this.state.logEntries.find((e) => e.timestamp === selectedNode.id);
-            if (entry?.context.trace_id) {
-              await this.setTraceMode(entry.context.trace_id);
-            }
-          }
-        }
+        await this.handleTraceMode();
         break;
       case "p":
         this.togglePerformanceMetrics();
@@ -711,39 +669,69 @@ export class StructuredLogViewer extends TuiSessionBase {
         this.toggleAutoRefresh();
         break;
       case "C":
-        this.state.logTree = collapseAll(this.state.logTree);
+        this.collapseAllNodes();
         break;
       case "E":
-        this.state.logTree = expandAll(this.state.logTree);
-        break;
-      case "?":
-        this.state.showHelp = !this.state.showHelp;
-        break;
-      case "q":
-      case "escape":
-        // Exit handled by parent
+        this.expandAllNodes();
         break;
       default:
-        // No action
-        break;
+        // Handle navigation and other default keys
+        if (this.handleNavigationKeys(key)) return true;
+        return super.handleKey(key);
+    }
+    return true;
+  }
+
+  private isGroupNode(id: string): boolean {
+    return id.includes("-") && (
+      id.startsWith("correlation-") ||
+      id.startsWith("trace-") ||
+      id.startsWith("agent-") ||
+      id.startsWith("level-") ||
+      id.startsWith("time-") ||
+      id.startsWith("group-")
+    );
+  }
+
+  private async handleCorrelationMode(): Promise<void> {
+    if (this.logViewExtensions.correlationMode) {
+      await this.setCorrelationMode(null);
+    } else {
+      const selectedNode = this.getSelectedNode();
+      if (selectedNode && selectedNode.data) {
+        const entry = selectedNode.data as LogEntry;
+        if (entry.context.correlation_id) {
+          await this.setCorrelationMode(entry.context.correlation_id);
+        }
+      }
     }
   }
 
-  async render(width: number, height: number): Promise<string[]> {
+  private async handleTraceMode(): Promise<void> {
+    if (this.logViewExtensions.activeTraceId) {
+      await this.setTraceMode(null);
+    } else {
+      const selectedNode = this.getSelectedNode();
+      if (selectedNode && selectedNode.data) {
+        const entry = selectedNode.data as LogEntry;
+        if (entry.context.trace_id) {
+          await this.setTraceMode(entry.context.trace_id);
+        }
+      }
+    }
+  }
+
+  render(width: number, height: number): Promise<string[]> {
     const lines: string[] = [];
 
     // Help overlay
     if (this.state.showHelp) {
-      return await renderHelpScreen({
-        title: "Structured Log Viewer Help",
-        sections: this.getHelpSections(),
-        width: width,
-      });
+      return Promise.resolve(this.renderHelp());
     }
 
     // Detail view
-    if (this.state.showDetail) {
-      const detailLines = this.state.detailContent.split("\n");
+    if (this.logViewExtensions.showDetail) {
+      const detailLines = this.logViewExtensions.detailContent.split("\n");
       const startY = Math.max(0, Math.floor((height - detailLines.length) / 2));
       const startX = Math.max(0, Math.floor((width - 80) / 2));
 
@@ -756,69 +744,85 @@ export class StructuredLogViewer extends TuiSessionBase {
           lines.push("");
         }
       }
-      return lines;
+      return Promise.resolve(lines);
     }
 
     // Main log view
     const header = this.renderHeader();
     lines.push(header);
 
-    const treeLines = renderTree(this.state.logTree, {
-      selectedId: this.state.logTree[this.selectedIndex]?.id,
-    });
+    const treeLines = this.renderTreeView();
     lines.push(...treeLines);
 
     // Status bar
-    const statusBar = this.renderStatusBar(width);
-    lines.push(statusBar);
+    const statusBar = this.renderStatusBar();
+    lines.push(statusBar.padEnd(width));
 
-    return lines;
+    return Promise.resolve(lines);
+  }
+
+  renderHelp(): string[] {
+    return renderHelpScreen({
+      title: "Structured Log Viewer Help",
+      sections: this.getHelpSections(),
+    });
   }
 
   private renderHeader(): string {
     let header = "Structured Log Viewer";
 
-    if (this.state.correlationMode && this.state.activeCorrelationId) {
-      header += ` | Correlation: ${this.state.activeCorrelationId.slice(0, 8)}`;
+    if (this.logViewExtensions.correlationMode && this.logViewExtensions.activeCorrelationId) {
+      header += ` | Correlation: ${this.logViewExtensions.activeCorrelationId.slice(0, 8)}`;
     }
 
-    if (this.state.activeTraceId) {
-      header += ` | Trace: ${this.state.activeTraceId.slice(0, 8)}`;
+    if (this.logViewExtensions.activeTraceId) {
+      header += ` | Trace: ${this.logViewExtensions.activeTraceId.slice(0, 8)}`;
     }
 
-    if (this.state.searchQuery) {
-      header += ` | Search: "${this.state.searchQuery}"`;
+    if (this.state.filterText) {
+      header += ` | Search: "${this.state.filterText}"`;
     }
 
-    header += ` | Group: ${this.state.groupBy}`;
-    header += ` | Levels: ${this.state.logLevelFilter.join(",")}`;
+    header += ` | Group: ${this.logViewExtensions.groupBy}`;
+    header += ` | Levels: ${this.logViewExtensions.logLevelFilter.join(",")}`;
 
     return header;
   }
 
-  private renderStatusBar(width: number): string {
+  override renderStatusBar(): string {
     const statusParts: string[] = [];
 
-    statusParts.push(`${this.state.filteredEntries.length} logs`);
+    statusParts.push(`${this.logViewExtensions.filteredEntries.length} logs`);
 
-    if (this.state.realTimeEnabled) {
+    if (this.logViewExtensions.realTimeEnabled) {
       statusParts.push("LIVE");
     }
 
-    if (this.state.autoRefresh) {
+    if (this.logViewExtensions.autoRefresh) {
       statusParts.push("AUTO");
     }
 
-    if (this.state.showPerformanceMetrics) {
+    if (this.logViewExtensions.showPerformanceMetrics) {
       statusParts.push("PERF");
     }
 
-    if (this.state.bookmarkedIds.size > 0) {
-      statusParts.push(`${this.state.bookmarkedIds.size} bookmarks`);
+    if (this.logViewExtensions.bookmarkedIds.size > 0) {
+      statusParts.push(`${this.logViewExtensions.bookmarkedIds.size} bookmarks`);
     }
 
-    const statusText = statusParts.join(" | ");
-    return statusText.padEnd(width);
+    return statusParts.join(" | ");
+  }
+
+  // ===== Testing Helpers =====
+
+  /** Exposed for testing to access view-specific state */
+  getExtensions(): LogViewExtensions {
+    return this.logViewExtensions;
+  }
+
+  /** Exposed for testing to get selected ID */
+  getSelectedId(): string | null {
+    return this.state.selectedId;
   }
 
   private getHelpSections(): HelpSection[] {
@@ -848,9 +852,10 @@ export class StructuredLogViewer extends TuiSessionBase {
         items: [
           { key: "p", description: "Toggle performance metrics" },
           { key: "g", description: "Change grouping" },
-          { key: "R", description: "Refresh logs" },
+          { key: "R", description: "Force refresh" },
           { key: "a", description: "Toggle auto-refresh" },
-          { key: "C/E", description: "Collapse/Expand all" },
+          { key: "C", description: "Collapse all" },
+          { key: "E", description: "Expand all" },
         ],
       },
       {

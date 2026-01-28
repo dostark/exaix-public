@@ -12,25 +12,11 @@
  */
 
 import { MemorySource, SkillStatus } from "../enums.ts";
-import { TuiSessionBase } from "./tui_common.ts";
-import type { TreeNode } from "./utils/tree_view.ts";
-import {
-  collapseAll,
-  createGroupNode,
-  createNode,
-  expandAll,
-  findNode,
-  getFirstNodeId,
-  getLastNodeId,
-  getNextNodeId,
-  getPrevNodeId,
-  renderTree,
-  toggleNode,
-} from "./utils/tree_view.ts";
-import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
+import { BaseTreeView } from "./base/base_tree_view.ts";
+import { type DialogBase } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
-import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "./utils/spinner.ts";
+import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
+import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 
 // ===== Service Interface =====
 
@@ -63,16 +49,16 @@ export interface SkillsViewService {
 
 // ===== View State =====
 
-export interface SkillsViewState {
-  selectedSkillId: string | null;
-  skillTree: TreeNode<unknown>[];
-  showHelp: boolean;
+export interface SkillsViewExtensions {
+  /** Whether detail view is shown */
   showDetail: boolean;
+  /** Detail content for expanded skill */
   detailContent: string;
-  activeDialog: ConfirmDialog | InputDialog | null;
-  searchQuery: string;
+  /** Filter by memory source */
   filterSource: "all" | MemorySource | "core" | "project";
+  /** Filter by skill status */
   filterStatus: "all" | SkillStatus;
+  /** Current grouping mode */
   groupBy: "source" | "status" | "none";
 }
 
@@ -228,26 +214,19 @@ export class MinimalSkillsServiceMock implements SkillsViewService {
 /**
  * Interactive TUI session for Skills Manager View
  */
-export class SkillsManagerTuiSession extends TuiSessionBase {
+export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
   private readonly skillsView: SkillsManagerView;
-  private state: SkillsViewState;
-  private localSpinnerState: SpinnerState;
+  private skillsViewExtensions: SkillsViewExtensions;
   private skills: SkillSummary[] = [];
   private pendingDeleteSkillId: string | null = null;
-  private pendingDialogType: string | null = null;
+  private pendingDialogType: "search" | "filter-source" | "filter-status" | "delete" | null = null;
 
   constructor(skillsView: SkillsManagerView, useColors = true) {
     super(useColors);
     this.skillsView = skillsView;
-    this.localSpinnerState = createSpinnerState();
-    this.state = {
-      selectedSkillId: null,
-      skillTree: [],
-      showHelp: false,
+    this.skillsViewExtensions = {
       showDetail: false,
       detailContent: "",
-      activeDialog: null,
-      searchQuery: "",
       filterSource: "all",
       filterStatus: "all",
       groupBy: "source",
@@ -257,40 +236,40 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
   // ===== Initialization =====
 
   async initialize(): Promise<void> {
-    this.localSpinnerState = startSpinner(this.localSpinnerState, "Loading skills...");
+    this.setLoading(true, "Loading skills...");
     try {
       await this.loadSkills();
       this.buildTree();
 
       // Select first skill if available
-      const firstId = getFirstNodeId(this.state.skillTree);
+      const firstId = getFirstNodeId(this.state.tree);
       if (firstId && !this.isGroupNode(firstId)) {
-        this.state.selectedSkillId = firstId;
+        this.state.selectedId = firstId;
       }
     } finally {
-      this.localSpinnerState = stopSpinner(this.localSpinnerState);
+      this.setLoading(false);
     }
   }
 
   private async loadSkills(): Promise<void> {
     const filter: { source?: string; status?: string } = {};
-    if (this.state.filterSource !== "all") {
-      filter.source = this.state.filterSource as string;
+    if (this.skillsViewExtensions.filterSource !== "all") {
+      filter.source = this.skillsViewExtensions.filterSource as string;
     }
-    if (this.state.filterStatus !== "all") {
-      filter.status = this.state.filterStatus as string;
+    if (this.skillsViewExtensions.filterStatus !== "all") {
+      filter.status = this.skillsViewExtensions.filterStatus as string;
     }
     this.skills = await this.skillsView.getSkillsList(filter);
   }
 
   // ===== Tree Building =====
 
-  private buildTree(): void {
+  protected override buildTree(): void {
     let filteredSkills = [...this.skills];
 
     // Apply search filter
-    if (this.state.searchQuery) {
-      const query = this.state.searchQuery.toLowerCase();
+    if (this.state.filterText) {
+      const query = this.state.filterText.toLowerCase();
       filteredSkills = filteredSkills.filter(
         (s) =>
           s.id.toLowerCase().includes(query) ||
@@ -300,16 +279,16 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
     }
 
     // Build tree based on grouping
-    if (this.state.groupBy === "none") {
-      this.state.skillTree = filteredSkills.map((s) => this.createSkillNode(s));
-    } else if (this.state.groupBy === "source") {
-      this.state.skillTree = this.buildGroupedTree(filteredSkills, "source");
+    if (this.skillsViewExtensions.groupBy === "none") {
+      this.state.tree = filteredSkills.map((s) => this.createSkillNode(s));
+    } else if (this.skillsViewExtensions.groupBy === "source") {
+      this.state.tree = this.buildGroupedTree(filteredSkills, "source");
     } else {
-      this.state.skillTree = this.buildGroupedTree(filteredSkills, "status");
+      this.state.tree = this.buildGroupedTree(filteredSkills, "status");
     }
   }
 
-  private buildGroupedTree(skills: SkillSummary[], groupBy: "source" | "status"): TreeNode[] {
+  private buildGroupedTree(skills: SkillSummary[], groupBy: "source" | "status"): TreeNode<SkillSummary>[] {
     const groups = new Map<string, SkillSummary[]>();
 
     for (const skill of skills) {
@@ -320,7 +299,7 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
       groups.get(key)!.push(skill);
     }
 
-    const tree: TreeNode[] = [];
+    const tree: TreeNode<SkillSummary>[] = [];
     const order = groupBy === "source" ? ["core", "project", "learned"] : ["active", "draft", "deprecated"];
 
     for (const key of order) {
@@ -329,7 +308,7 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
         const icon = groupBy === "source" ? SOURCE_ICONS[key] : STATUS_ICONS[key];
         const label = `${icon} ${key.charAt(0).toUpperCase() + key.slice(1)} Skills (${groupSkills.length})`;
         tree.push(
-          createGroupNode(
+          createGroupNode<SkillSummary>(
             `group-${key}`,
             label,
             "group",
@@ -343,9 +322,11 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
     return tree;
   }
 
-  private createSkillNode(skill: SkillSummary): TreeNode {
+  private createSkillNode(skill: SkillSummary): TreeNode<SkillSummary> {
     const statusIcon = STATUS_ICONS[skill.status] || "⚪";
-    return createNode(`skill-${skill.id}`, `${SKILL_ICON} ${skill.name} ${statusIcon}`, "skill");
+    return createNode<SkillSummary>(`skill-${skill.id}`, `${SKILL_ICON} ${skill.name} ${statusIcon}`, "skill", {
+      data: skill,
+    });
   }
 
   private isGroupNode(nodeId: string): boolean {
@@ -359,82 +340,23 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
     return null;
   }
 
-  // ===== Navigation =====
-
-  navigateUp(): void {
-    if (this.state.selectedSkillId) {
-      const prevId = getPrevNodeId(this.state.skillTree, this.state.selectedSkillId);
-      if (prevId) {
-        this.state.selectedSkillId = prevId;
-      }
-    }
-  }
-
-  navigateDown(): void {
-    if (this.state.selectedSkillId) {
-      const nextId = getNextNodeId(this.state.skillTree, this.state.selectedSkillId);
-      if (nextId) {
-        this.state.selectedSkillId = nextId;
-      }
-    } else {
-      // No selection, go to first
-      const firstId = getFirstNodeId(this.state.skillTree);
-      if (firstId) {
-        this.state.selectedSkillId = firstId;
-      }
-    }
-  }
-
-  navigateToFirst(): void {
-    const firstId = getFirstNodeId(this.state.skillTree);
-    if (firstId) {
-      this.state.selectedSkillId = firstId;
-    }
-  }
-
-  navigateToLast(): void {
-    const lastId = getLastNodeId(this.state.skillTree);
-    if (lastId) {
-      this.state.selectedSkillId = lastId;
-    }
-  }
-
-  toggleExpand(): void {
-    if (this.state.selectedSkillId) {
-      const node = findNode(this.state.skillTree, this.state.selectedSkillId);
-      if (node && node.children.length > 0) {
-        toggleNode(this.state.skillTree, this.state.selectedSkillId);
-      }
-    }
-  }
-
-  expandAll(): void {
-    expandAll(this.state.skillTree);
-  }
-
-  collapseAll(): void {
-    collapseAll(this.state.skillTree);
-  }
-
-  // ===== Detail View =====
-
   async showDetail(): Promise<void> {
-    if (!this.state.selectedSkillId || this.isGroupNode(this.state.selectedSkillId)) {
+    if (!this.state.selectedId || this.isGroupNode(this.state.selectedId)) {
       return;
     }
 
-    const skillId = this.getSkillIdFromNodeId(this.state.selectedSkillId);
+    const skillId = this.getSkillIdFromNodeId(this.state.selectedId);
     if (!skillId) return;
 
-    this.localSpinnerState = startSpinner(this.localSpinnerState, "Loading skill details...");
+    this.setLoading(true, "Loading skill details...");
     try {
       const skill = await this.skillsView.getSkillDetail(skillId);
       if (skill) {
-        this.state.detailContent = this.formatDetailContent(skill);
-        this.state.showDetail = true;
+        this.skillsViewExtensions.detailContent = this.formatDetailContent(skill);
+        this.skillsViewExtensions.showDetail = true;
       }
     } finally {
-      this.localSpinnerState = stopSpinner(this.localSpinnerState);
+      this.setLoading(false);
     }
   }
 
@@ -482,48 +404,48 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
   }
 
   hideDetail(): void {
-    this.state.showDetail = false;
-    this.state.detailContent = "";
+    this.skillsViewExtensions.showDetail = false;
+    this.skillsViewExtensions.detailContent = "";
   }
 
   // ===== Dialogs =====
 
   showSearchDialog(): void {
-    this.state.activeDialog = new InputDialog({
+    this.showInputDialog({
       title: "Search Skills",
       label: "Enter search term:",
       placeholder: "name, ID, or keyword...",
-      defaultValue: this.state.searchQuery,
+      defaultValue: this.state.filterText,
     });
     this.pendingDialogType = "search";
   }
 
   showFilterSourceDialog(): void {
-    this.state.activeDialog = new InputDialog({
+    this.showInputDialog({
       title: "Filter by Source",
       label: "Source (all, core, project, learned):",
       placeholder: "source...",
-      defaultValue: this.state.filterSource,
+      defaultValue: this.skillsViewExtensions.filterSource,
     });
     this.pendingDialogType = "filter-source";
   }
 
   showFilterStatusDialog(): void {
-    this.state.activeDialog = new InputDialog({
+    this.showInputDialog({
       title: "Filter by Status",
       label: "Status (all, active, draft, deprecated):",
       placeholder: "status...",
-      defaultValue: this.state.filterStatus,
+      defaultValue: this.skillsViewExtensions.filterStatus,
     });
     this.pendingDialogType = "filter-status";
   }
 
   showDeleteConfirm(): void {
-    if (!this.state.selectedSkillId || this.isGroupNode(this.state.selectedSkillId)) {
+    if (!this.state.selectedId || this.isGroupNode(this.state.selectedId)) {
       return;
     }
 
-    const skillId = this.getSkillIdFromNodeId(this.state.selectedSkillId);
+    const skillId = this.getSkillIdFromNodeId(this.state.selectedId);
     if (!skillId) return;
 
     const skill = this.skills.find((s) => s.id === skillId);
@@ -535,19 +457,48 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
       return;
     }
 
-    this.state.activeDialog = new ConfirmDialog({
+    this.showConfirmDialog({
       title: "Delete Skill",
       message: `Are you sure you want to delete skill "${skill.name}"?`,
       confirmText: "Delete",
       cancelText: "Cancel",
     });
     this.pendingDeleteSkillId = skillId;
+    this.pendingDialogType = "delete";
+  }
+
+  // ===== Dialog Handlers =====
+
+  protected override onDialogClosed(dialog: DialogBase): void {
+    const result = dialog.getResult();
+    if (result.type !== "confirmed") {
+      this.pendingDialogType = null;
+      this.pendingDeleteSkillId = null;
+      return;
+    }
+
+    const value = result.value as string;
+    switch (this.pendingDialogType) {
+      case "search":
+        this.handleSearchResult(value);
+        break;
+      case "filter-source":
+        this.handleFilterSourceResult(value);
+        break;
+      case "filter-status":
+        this.handleFilterStatusResult(value);
+        break;
+      case "delete":
+        this.handleDeleteConfirm();
+        break;
+    }
+    this.pendingDialogType = null;
   }
 
   // ===== Dialog Handlers =====
 
   private handleSearchResult(value: string): void {
-    this.state.searchQuery = value;
+    this.state.filterText = value;
     this.buildTree();
     this.setStatus(value ? `Search: "${value}"` : "Search cleared", "info");
   }
@@ -555,7 +506,7 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
   private handleFilterSourceResult(value: string): void {
     const normalized = value.toLowerCase().trim();
     if (normalized === "all" || normalized === "core" || normalized === "project" || normalized === "learned") {
-      this.state.filterSource = normalized as any;
+      this.skillsViewExtensions.filterSource = normalized as any;
       this.loadSkills().then(() => {
         this.buildTree();
         this.setStatus(`Filter: source=${normalized}`, "info");
@@ -568,7 +519,7 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
   private handleFilterStatusResult(value: string): void {
     const normalized = value.toLowerCase().trim();
     if (normalized === "all" || normalized === "active" || normalized === "draft" || normalized === "deprecated") {
-      this.state.filterStatus = normalized as any;
+      this.skillsViewExtensions.filterStatus = normalized as any;
       this.loadSkills().then(() => {
         this.buildTree();
         this.setStatus(`Filter: status=${normalized}`, "info");
@@ -582,7 +533,7 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
     if (!this.pendingDeleteSkillId) return;
 
     try {
-      this.localSpinnerState = startSpinner(this.localSpinnerState, "Deleting skill...");
+      this.setLoading(true, "Deleting skill...");
       const success = await this.skillsView.deleteSkill(this.pendingDeleteSkillId);
       if (success) {
         await this.loadSkills();
@@ -595,7 +546,7 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
       const msg = error instanceof Error ? error.message : String(error);
       this.setStatus(`Delete failed: ${msg}`, "error");
     } finally {
-      this.localSpinnerState = stopSpinner(this.localSpinnerState);
+      this.setLoading(false);
       this.pendingDeleteSkillId = null;
     }
   }
@@ -604,23 +555,33 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
 
   cycleGrouping(): void {
     const modes: Array<"source" | "status" | "none"> = ["source", "status", "none"];
-    const currentIdx = modes.indexOf(this.state.groupBy);
-    this.state.groupBy = modes[(currentIdx + 1) % modes.length];
+    const currentIdx = modes.indexOf(this.skillsViewExtensions.groupBy);
+    this.skillsViewExtensions.groupBy = modes[(currentIdx + 1) % modes.length];
     this.buildTree();
-    this.setStatus(`Grouping: ${this.state.groupBy}`, "info");
+    this.setStatus(`Grouping: ${this.skillsViewExtensions.groupBy}`, "info");
   }
 
   // ===== Refresh =====
 
   override async refresh(): Promise<void> {
-    this.localSpinnerState = startSpinner(this.localSpinnerState, "Refreshing...");
+    this.setLoading(true, "Refreshing...");
     try {
       await this.loadSkills();
       this.buildTree();
       this.setStatus("Refreshed", "success");
     } finally {
-      this.localSpinnerState = stopSpinner(this.localSpinnerState);
+      this.setLoading(false);
     }
+  }
+
+  // ===== Base Implementation =====
+
+  override getKeyBindings(): KeyBinding<string>[] {
+    return SKILLS_KEY_BINDINGS.map((b) => ({ ...b, action: b.action as string }));
+  }
+
+  override getViewName(): string {
+    return "Skills Manager";
   }
 
   // ===== Rendering =====
@@ -635,23 +596,25 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
 
     // Filter info
     const filterInfo = [];
-    if (this.state.filterSource !== "all") filterInfo.push(`source=${this.state.filterSource}`);
-    if (this.state.filterStatus !== "all") filterInfo.push(`status=${this.state.filterStatus}`);
-    if (this.state.searchQuery) filterInfo.push(`search="${this.state.searchQuery}"`);
+    if (this.skillsViewExtensions.filterSource !== "all") {
+      filterInfo.push(`source=${this.skillsViewExtensions.filterSource}`);
+    }
+    if (this.skillsViewExtensions.filterStatus !== "all") {
+      filterInfo.push(`status=${this.skillsViewExtensions.filterStatus}`);
+    }
+    if (this.state.filterText) filterInfo.push(`search="${this.state.filterText}"`);
     if (filterInfo.length > 0) {
       lines.push(`║ Filters: ${filterInfo.join(", ").padEnd(50)}║`);
       lines.push("╠══════════════════════════════════════════════════════════════╣");
     }
 
     // Tree view
-    if (this.state.skillTree.length === 0) {
+    if (this.state.tree.length === 0) {
       lines.push("║                                                              ║");
       lines.push("║   No skills found.                                           ║");
       lines.push("║                                                              ║");
     } else {
-      const treeLines = renderTree(this.state.skillTree, {
-        useColors: this.useColors,
-        selectedId: this.state.selectedSkillId ?? undefined,
+      const treeLines = this.renderTreeView({
         indentSize: 2,
       });
       for (const line of treeLines.slice(0, 15)) {
@@ -662,7 +625,7 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
     lines.push("╠══════════════════════════════════════════════════════════════╣");
 
     // Status bar
-    const statusText = this.statusMessage || "Ready";
+    const statusText = this.renderStatusBar();
     lines.push(`║ ${statusText.padEnd(60)}║`);
 
     // Key hints
@@ -680,80 +643,33 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
   }
 
   renderDetail(): string {
-    return this.state.detailContent;
+    return this.skillsViewExtensions.detailContent;
   }
 
   // ===== Input Handling =====
 
-  async handleInput(key: string): Promise<boolean> {
-    // Handle dialog first
-    if (this.state.activeDialog) {
-      this.state.activeDialog.handleKey(key);
-      if (!this.state.activeDialog.isActive()) {
-        // Dialog completed
-        const result = this.state.activeDialog.getResult();
-        if (result.type === "confirmed") {
-          if (this.state.activeDialog instanceof InputDialog) {
-            const value = result.value as string;
-            switch (this.pendingDialogType) {
-              case "search":
-                this.handleSearchResult(value);
-                break;
-              case "filter-source":
-                this.handleFilterSourceResult(value);
-                break;
-              case "filter-status":
-                this.handleFilterStatusResult(value);
-                break;
-            }
-          } else if (this.state.activeDialog instanceof ConfirmDialog) {
-            await this.handleDeleteConfirm();
-          }
-        }
-        this.state.activeDialog = null;
-        this.pendingDialogType = null;
-      }
-      return true;
-    }
+  override async handleKey(key: string): Promise<boolean> {
+    // 1. Handle dialogs (delegated to base)
+    if (this.handleDialogKeys(key)) return true;
 
-    // Handle help screen
-    if (this.state.showHelp) {
-      if (key === "q" || key === "escape" || key === "?") {
-        this.state.showHelp = false;
-        return true;
-      }
-      return true;
-    }
-
-    // Handle detail view
-    if (this.state.showDetail) {
+    // 2. Handle detail view
+    if (this.skillsViewExtensions.showDetail) {
       if (key === "q" || key === "escape") {
         this.hideDetail();
-        return true;
       }
       return true;
     }
 
-    // Main view input handling
+    // 3. Handle help screen (delegated to base)
+    if (this.handleHelpKeys(key)) return true;
+
+    // 4. Handle navigation (delegated to base)
+    if (this.handleNavigationKeys(key)) {
+      return true;
+    }
+
+    // 5. Handle action keys
     switch (key) {
-      case "up":
-      case "k":
-        this.navigateUp();
-        return true;
-      case "down":
-      case "j":
-        this.navigateDown();
-        return true;
-      case "home":
-        this.navigateToFirst();
-        return true;
-      case "end":
-        this.navigateToLast();
-        return true;
-      case "left":
-      case "right":
-        this.toggleExpand();
-        return true;
       case "return":
       case "enter":
         await this.showDetail();
@@ -776,27 +692,9 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
       case "R":
         await this.refresh();
         return true;
-      case "c":
-        this.collapseAll();
-        return true;
-      case "E":
-        this.expandAll();
-        return true;
-      case "?":
-        this.state.showHelp = true;
-        return true;
-      case "q":
-      case "escape":
-        return false; // Let parent handle exit
+      default:
+        return false;
     }
-
-    return false;
-  }
-
-  // ===== Getters =====
-
-  getState(): SkillsViewState {
-    return { ...this.state };
   }
 
   isShowingHelp(): boolean {
@@ -804,16 +702,32 @@ export class SkillsManagerTuiSession extends TuiSessionBase {
   }
 
   isShowingDetail(): boolean {
-    return this.state.showDetail;
+    return this.skillsViewExtensions.showDetail;
   }
 
-  hasActiveDialog(): boolean {
+  getExtensions(): SkillsViewExtensions {
+    return { ...this.skillsViewExtensions };
+  }
+
+  getSelectedId(): string | null {
+    return this.state.selectedId;
+  }
+
+  getState(): any {
+    return {
+      ...this.state,
+      ...this.skillsViewExtensions,
+      selectedSkillId: this.state.selectedId,
+    };
+  }
+
+  override hasActiveDialog(): boolean {
     return this.state.activeDialog !== null;
   }
 
   renderDialog(): string[] {
     if (this.state.activeDialog) {
-      return this.state.activeDialog.render({ useColors: this.useColors, width: 70, height: 10 });
+      return this.state.activeDialog.render({ useColors: this.state.useColors, width: 70, height: 10 });
     }
     return [];
   }

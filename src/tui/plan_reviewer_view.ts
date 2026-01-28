@@ -9,29 +9,22 @@
  * - Help screen
  * - Bulk operations
  * - Color theming
+ *
+ * Phase 33.1: Refactored to use BaseTreeView
+ * - Removed duplicated navigation code (~50 lines)
+ * - Removed duplicated key handling patterns (~80 lines)
+ * - Removed duplicated state management (~20 lines)
+ * - Total reduction: ~150 lines
  */
 
 // --- Adapter: PlanCommands as PlanService ---
 import type { PlanCommands } from "../cli/plan_commands.ts";
-import { TuiSessionBase } from "./tui_common.ts";
+import { BaseTreeView } from "./base/base_tree_view.ts";
 import { PlanStatus } from "../enums.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "./utils/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
-import { type SpinnerState } from "./utils/spinner.ts";
-import {
-  collapseAll,
-  createGroupNode,
-  createNode,
-  expandAll,
-  flattenTree,
-  getNextNodeId,
-  getPrevNodeId,
-  renderTree,
-  toggleNode,
-  type TreeNode,
-  type TreeRenderOptions,
-} from "./utils/tree_view.ts";
+import { createGroupNode, createNode, flattenTree, type TreeNode, type TreeRenderOptions } from "./utils/tree_view.ts";
 
 // ===== Plan Types =====
 
@@ -45,53 +38,18 @@ export type Plan = {
 
 export type PlanStatusType = PlanStatus | "unknown";
 
-// ===== Plan View State =====
+// ===== Plan View State Extensions =====
 
-export interface PlanViewState {
-  /** Currently selected plan ID */
-  selectedPlanId: string | null;
-  /** Plan tree organized by status */
-  planTree: TreeNode<Plan>[];
-  /** Filter text for searching */
-  filterText: string;
-  /** Whether loading */
-  isLoading: boolean;
-  /** Loading message */
-  loadingMessage: string;
-  /** Show help screen */
-  showHelp: boolean;
+/**
+ * Plan-specific state extensions beyond BaseTreeView
+ * BaseTreeView provides: selectedId, tree, filterText, isLoading, loadingMessage,
+ * showHelp, activeDialog, useColors, spinnerFrame, lastRefresh, scrollOffset
+ */
+export interface PlanViewExtensions {
   /** Show diff view */
   showDiff: boolean;
   /** Current diff content */
   diffContent: string;
-  /** Active dialog */
-  activeDialog: DialogBase | null;
-  /** Use colors */
-  useColors: boolean;
-  /** Spinner frame for animation */
-  spinnerFrame: number;
-  /** Last refresh timestamp */
-  lastRefresh: number;
-  /** Scroll offset for plan list */
-  scrollOffset: number;
-}
-
-function createPlanViewState(): PlanViewState {
-  return {
-    selectedPlanId: null,
-    planTree: [],
-    filterText: "",
-    isLoading: false,
-    loadingMessage: "",
-    showHelp: false,
-    showDiff: false,
-    diffContent: "",
-    activeDialog: null,
-    useColors: true,
-    spinnerFrame: 0,
-    lastRefresh: 0,
-    scrollOffset: 0,
-  };
 }
 
 // ===== Plan Status Icons =====
@@ -217,31 +175,26 @@ export class MinimalPlanServiceMock implements PlanService {
 
 // ===== TUI Session =====
 
-export class PlanReviewerTuiSession extends TuiSessionBase {
+export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
   private plans: Plan[];
   private readonly service: PlanService;
-  private state: PlanViewState;
-  private localSpinnerState: SpinnerState;
+  private planExtensions: PlanViewExtensions;
   private pendingRejectId: string | null = null;
 
   constructor(plans: Plan[], service: PlanService, useColors = true) {
     super(useColors);
     this.plans = plans;
     this.service = service;
-    this.state = createPlanViewState();
-    this.state.useColors = useColors;
-    this.localSpinnerState = {
-      active: false,
-      frame: 0,
-      message: "",
-      startTime: 0,
+    this.planExtensions = {
+      showDiff: false,
+      diffContent: "",
     };
     this.buildTree(plans);
   }
 
   // ===== Tree Building =====
 
-  private buildTree(plans: Plan[]): void {
+  protected buildTree(plans: Plan[]): void {
     const pending: TreeNode<Plan>[] = [];
     const approved: TreeNode<Plan>[] = [];
     const rejected: TreeNode<Plan>[] = [];
@@ -275,10 +228,10 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
       }
     }
 
-    this.state.planTree = [];
+    this.state.tree = [];
 
     if (pending.length > 0) {
-      this.state.planTree.push(
+      this.state.tree.push(
         createGroupNode("pending-group", `Pending (${pending.length})`, "group", pending, {
           icon: PLAN_ICONS[PlanStatus.REVIEW],
           badge: pending.length,
@@ -287,7 +240,7 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     }
 
     if (approved.length > 0) {
-      this.state.planTree.push(
+      this.state.tree.push(
         createGroupNode("approved-group", `Approved (${approved.length})`, "group", approved, {
           icon: PLAN_ICONS[PlanStatus.APPROVED],
           badge: approved.length,
@@ -296,7 +249,7 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     }
 
     if (rejected.length > 0) {
-      this.state.planTree.push(
+      this.state.tree.push(
         createGroupNode("rejected-group", `Rejected (${rejected.length})`, "group", rejected, {
           icon: PLAN_ICONS[PlanStatus.REJECTED],
           badge: rejected.length,
@@ -305,7 +258,7 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     }
 
     if (unknown.length > 0) {
-      this.state.planTree.push(
+      this.state.tree.push(
         createGroupNode("unknown-group", `Unknown (${unknown.length})`, "group", unknown, {
           icon: PLAN_ICONS.unknown,
           badge: unknown.length,
@@ -314,220 +267,162 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     }
 
     // Select first plan if none selected
-    if (!this.state.selectedPlanId && plans.length > 0) {
-      const flat = flattenTree(this.state.planTree);
+    if (!this.state.selectedId && plans.length > 0) {
+      const flat = flattenTree(this.state.tree);
       const firstPlan = flat.find((f) => f.node.type === "plan");
       if (firstPlan) {
-        this.state.selectedPlanId = firstPlan.node.id;
+        this.state.selectedId = firstPlan.node.id;
       }
     }
+    this.syncSelectedIndex();
   }
 
-  // ===== Backwards Compatibility =====
+  // ===== Selection & Sync =====
 
   override setSelectedIndex(idx: number, maxLength?: number): void {
     const len = maxLength ?? this.plans.length;
     super.setSelectedIndex(idx, len);
-    // Sync with ID-based selection
-    if (idx >= 0 && idx < this.plans.length && this.plans[idx]) {
-      this.state.selectedPlanId = this.plans[idx].id;
+
+    // Sync tree selection with plan index
+    if (this.plans[this.selectedIndex]) {
+      this.state.selectedId = this.plans[this.selectedIndex].id;
     }
   }
 
-  // ===== Navigation =====
-
-  private navigateUp(): void {
-    const prevId = getPrevNodeId(this.state.planTree, this.state.selectedPlanId || "");
-    if (prevId) {
-      this.state.selectedPlanId = prevId;
-      this.syncSelectedIndex();
-    }
-  }
-
-  private navigateDown(): void {
-    const nextId = getNextNodeId(this.state.planTree, this.state.selectedPlanId || "");
-    if (nextId) {
-      this.state.selectedPlanId = nextId;
-      this.syncSelectedIndex();
-    }
-  }
-
+  /**
+   * Sync selectedIndex based on current selectedId in the plans list
+   */
   private syncSelectedIndex(): void {
-    if (this.state.selectedPlanId) {
-      const idx = this.plans.findIndex((p) => p.id === this.state.selectedPlanId);
-      if (idx >= 0) {
-        this.selectedIndex = idx;
+    if (!this.state.selectedId) {
+      this.selectedIndex = 0;
+      return;
+    }
+
+    const idx = this.plans.findIndex((p) => p.id === this.state.selectedId);
+    if (idx !== -1) {
+      this.selectedIndex = idx;
+    }
+  }
+
+  // ===== Dialog Result Handling =====
+
+  protected override onDialogClosed(dialog: DialogBase): void {
+    const result = dialog.getResult();
+    if (result.type === "cancelled") return;
+
+    if (dialog instanceof ConfirmDialog && result.value === true) {
+      if (this.pendingRejectId) {
+        this.executeReject(this.pendingRejectId, "Rejected via TUI");
+        this.pendingRejectId = null;
+      } else {
+        this.executeApprove();
+      }
+    } else if (dialog instanceof InputDialog) {
+      if (this.pendingRejectId) {
+        this.executeReject(this.pendingRejectId, (result.value as string) || "Rejected via TUI");
+        this.pendingRejectId = null;
+      } else {
+        // Handle search
+        this.state.filterText = (result.value as string).toLowerCase();
+        this.buildTree(this.plans);
       }
     }
+  }
+
+  private showSearchDialog(): void {
+    this.showInputDialog({
+      title: "Search Plans",
+      label: "Search",
+      placeholder: "Enter search text...",
+      defaultValue: this.state.filterText,
+    });
   }
 
   // ===== Key Handling =====
 
-  async handleKey(key: string): Promise<void> {
-    // Handle dialogs first
-    if (this.state.activeDialog) {
-      this.state.activeDialog.handleKey(key);
-      if (!this.state.activeDialog.isActive()) {
-        const dialog = this.state.activeDialog;
-        this.state.activeDialog = null;
+  override async handleKey(key: string): Promise<boolean> {
+    // 1. Handle dialogs (delegated to base)
+    if (this.handleDialogKeys(key)) return true;
 
-        // Handle dialog result
-        if (dialog instanceof ConfirmDialog && dialog.getState() === "confirmed") {
-          if (this.pendingRejectId) {
-            await this.executeReject(this.pendingRejectId, "Rejected via TUI");
-            this.pendingRejectId = null;
-          } else {
-            await this.executeApprove();
-          }
-        } else if (dialog instanceof InputDialog && dialog.getState() === "confirmed") {
-          const result = dialog.getResult();
-          if (result.type === "confirmed" && this.pendingRejectId) {
-            await this.executeReject(this.pendingRejectId, result.value || "Rejected via TUI");
-            this.pendingRejectId = null;
-          }
-        }
-      }
-      return;
-    }
+    // 2. Handle help screen (delegated to base)
+    if (this.handleHelpKeys(key)) return true;
 
-    // Handle help screen
-    if (this.state.showHelp) {
-      if (key === "?" || key === "escape" || key === "q") {
-        this.state.showHelp = false;
-      }
-      return;
-    }
-
-    // Handle diff view
-    if (this.state.showDiff) {
+    // 3. Handle diff view
+    if (this.planExtensions.showDiff) {
       if (key === "escape" || key === "q" || key === "enter") {
-        this.state.showDiff = false;
-        this.state.diffContent = "";
+        this.planExtensions.showDiff = false;
+        this.planExtensions.diffContent = "";
       }
-      return;
+      return true;
     }
 
-    // Handle search mode
+    // 4. Handle search mode reset
     if (this.state.filterText !== "" && key === "escape") {
       this.state.filterText = "";
       this.buildTree(this.plans);
-      return;
+      return true;
     }
 
-    // Navigation
-    switch (key) {
-      case "up":
-        this.navigateUp();
-        return;
-      case "down":
-        this.navigateDown();
-        return;
-      case "home": {
-        const flat = flattenTree(this.state.planTree);
-        if (flat.length > 0) {
-          this.state.selectedPlanId = flat[0].node.id;
-          this.syncSelectedIndex();
-        }
-        return;
-      }
-      case "end": {
-        const flat = flattenTree(this.state.planTree);
-        if (flat.length > 0) {
-          this.state.selectedPlanId = flat[flat.length - 1].node.id;
-          this.syncSelectedIndex();
-        }
-        return;
-      }
-      case "left": {
-        // Collapse current group
-        const flat = flattenTree(this.state.planTree);
-        const current = flat.find((f) => f.node.id === this.state.selectedPlanId);
-        if (current && current.node.children.length > 0 && current.node.expanded) {
-          this.state.planTree = toggleNode(this.state.planTree, current.node.id);
-        }
-        return;
-      }
-      case "right": {
-        // Expand current group
-        const flat = flattenTree(this.state.planTree);
-        const current = flat.find((f) => f.node.id === this.state.selectedPlanId);
-        if (current && current.node.children.length > 0 && !current.node.expanded) {
-          this.state.planTree = toggleNode(this.state.planTree, current.node.id);
-        }
-        return;
-      }
+    // 5. Handle navigation (delegated to base)
+    if (this.handleNavigationKeys(key)) {
+      this.syncSelectedIndex();
+      return true;
     }
 
-    // Backwards-compatible handling for legacy tests
-    if (this.plans.length === 0) return;
-    if (super.handleNavigationKey(key, this.plans.length)) {
-      return;
-    }
-
-    // Actions
+    // 6. Handle action keys
     switch (key) {
       case "enter": {
-        const selected = this.getSelectedPlan();
+        const selected = this.getSelectedNode();
         if (selected && selected.type === "group") {
-          this.state.planTree = toggleNode(this.state.planTree, selected.id);
-        } else if (selected) {
-          await this.showDiff();
+          this.toggleCurrentNode();
+        } else if (selected && selected.type === "plan") {
+          await this.showDiffAction(selected.data as Plan);
         }
-        break;
+        return true;
       }
       case "a":
         this.showApproveConfirmDialog();
-        break;
+        return true;
       case "r":
         this.showRejectDialog();
-        break;
+        return true;
       case "A":
         await this.approveAllPending();
-        break;
+        return true;
       case "R":
         await this.refreshView();
-        break;
-      case "?":
-        this.state.showHelp = true;
-        break;
-      case "e":
-        this.state.planTree = expandAll(this.state.planTree);
-        break;
-      case "c":
-        this.state.planTree = collapseAll(this.state.planTree);
-        break;
+        return true;
+      case "/":
+        this.showSearchDialog();
+        return true;
+      default:
+        return false;
     }
-
-    this.clampSelection(this.plans.length);
   }
 
   // ===== Actions =====
 
-  private async showDiff(): Promise<void> {
-    const plan = this.plans[this.selectedIndex];
-    if (!plan) return;
-
-    this.state.isLoading = true;
-    this.state.loadingMessage = `Loading diff for ${plan.id}...`;
+  private async showDiffAction(plan: Plan): Promise<void> {
+    this.setLoading(true, `Loading diff for ${plan.id}...`);
 
     try {
       const diff = await this.service.getDiff(plan.id);
-      this.state.diffContent = diff;
-      this.state.showDiff = true;
+      this.planExtensions.diffContent = diff;
+      this.planExtensions.showDiff = true;
       this.statusMessage = "";
     } catch (e) {
       this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
     } finally {
-      this.state.isLoading = false;
-      this.state.loadingMessage = "";
+      this.setLoading(false);
     }
   }
 
   private showApproveConfirmDialog(): void {
-    const plan = this.plans[this.selectedIndex];
-    if (!plan) return;
+    const selected = this.getSelectedNode();
+    if (!selected || selected.type !== "plan") return;
+    const plan = selected.data as Plan;
 
-    this.state.activeDialog = new ConfirmDialog({
+    this.showConfirmDialog({
       title: "Approve Plan",
       message: `Approve plan "${plan.title}"?\nThis action will move the plan to active status.`,
       confirmText: "Approve",
@@ -536,30 +431,30 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
   }
 
   private async executeApprove(): Promise<void> {
-    const plan = this.plans[this.selectedIndex];
-    if (!plan) return;
+    const selected = this.getSelectedNode();
+    if (!selected || selected.type !== "plan") return;
+    const planId = selected.id;
 
-    this.state.isLoading = true;
-    this.state.loadingMessage = `Approving ${plan.id}...`;
+    this.setLoading(true, `Approving ${planId}...`);
 
     try {
-      await this.service.approve(plan.id, "reviewer");
-      this.statusMessage = `Approved ${plan.id}`;
+      await this.service.approve(planId, "reviewer");
+      this.statusMessage = `Approved ${planId}`;
       await this.refreshView();
     } catch (e) {
       this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
     } finally {
-      this.state.isLoading = false;
-      this.state.loadingMessage = "";
+      this.setLoading(false);
     }
   }
 
   private showRejectDialog(): void {
-    const plan = this.plans[this.selectedIndex];
-    if (!plan) return;
+    const selected = this.getSelectedNode();
+    if (!selected || selected.type !== "plan") return;
+    const plan = selected.data as Plan;
 
     this.pendingRejectId = plan.id;
-    this.state.activeDialog = new ConfirmDialog({
+    this.showConfirmDialog({
       title: "Reject Plan",
       message: `Reject plan "${plan.title}"?\nThis action will move the plan to rejected status.`,
       confirmText: "Reject",
@@ -569,8 +464,7 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
   }
 
   private async executeReject(planId: string, reason: string): Promise<void> {
-    this.state.isLoading = true;
-    this.state.loadingMessage = `Rejecting ${planId}...`;
+    this.setLoading(true, `Rejecting ${planId}...`);
 
     try {
       await this.service.reject(planId, "reviewer", reason);
@@ -579,20 +473,18 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     } catch (e) {
       this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
     } finally {
-      this.state.isLoading = false;
-      this.state.loadingMessage = "";
+      this.setLoading(false);
     }
   }
 
   private async approveAllPending(): Promise<void> {
-    const pendingGroup = this.state.planTree.find((n) => n.id === "pending-group");
+    const pendingGroup = this.state.tree.find((n) => n.id === "pending-group");
     if (!pendingGroup || pendingGroup.children.length === 0) {
       this.statusMessage = "No pending plans to approve";
       return;
     }
 
-    this.state.isLoading = true;
-    this.state.loadingMessage = "Approving all pending plans...";
+    this.setLoading(true, "Approving all pending plans...");
     let approved = 0;
 
     try {
@@ -607,14 +499,12 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     } catch (e) {
       this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
     } finally {
-      this.state.isLoading = false;
-      this.state.loadingMessage = "";
+      this.setLoading(false);
     }
   }
 
   private async refreshView(): Promise<void> {
-    this.state.isLoading = true;
-    this.state.loadingMessage = "Refreshing plans...";
+    this.setLoading(true, "Refreshing plans...");
 
     try {
       const newPlans = await this.service.listPending();
@@ -624,70 +514,37 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     } catch (e) {
       this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
     } finally {
-      this.state.isLoading = false;
-      this.state.loadingMessage = "";
+      this.setLoading(false);
     }
   }
 
   // ===== State Accessors =====
 
   getSelectedPlan(): TreeNode<Plan> | null {
-    const flat = flattenTree(this.state.planTree);
-    return flat.find((f) => f.node.id === this.state.selectedPlanId)?.node || null;
+    const flat = flattenTree(this.state.tree);
+    return flat.find((f) => f.node.id === this.state.selectedId)?.node || null;
   }
 
   updatePlans(newPlans: Plan[]): void {
     this.plans = newPlans;
     this.buildTree(newPlans);
-
-    if (this.selectedIndex >= newPlans.length) {
-      this.selectedIndex = Math.max(0, newPlans.length - 1);
-    }
   }
 
   getSelectedPlanDetails(): Plan | undefined {
-    if (this.plans.length === 0) return undefined;
-    return this.plans[this.selectedIndex];
+    const selected = this.getSelectedNode();
+    return selected?.data as Plan | undefined;
   }
 
   getPlanTree(): TreeNode<Plan>[] {
-    return this.state.planTree;
-  }
-
-  isLoading(): boolean {
-    return this.state.isLoading;
-  }
-
-  getLoadingMessage(): string {
-    return this.state.loadingMessage;
-  }
-
-  override isHelpVisible(): boolean {
-    return this.state.showHelp;
+    return this.state.tree;
   }
 
   isDiffVisible(): boolean {
-    return this.state.showDiff;
+    return this.planExtensions.showDiff;
   }
 
   getDiffContent(): string {
-    return this.state.diffContent;
-  }
-
-  getActiveDialog(): DialogBase | null {
-    return this.state.activeDialog;
-  }
-
-  hasActiveDialog(): boolean {
-    return this.state.activeDialog !== null && this.state.activeDialog.isActive();
-  }
-
-  setUseColors(useColors: boolean): void {
-    this.state.useColors = useColors;
-  }
-
-  tickSpinner(): void {
-    this.state.spinnerFrame = (this.state.spinnerFrame + 1) % 10;
+    return this.planExtensions.diffContent;
   }
 
   // ===== Rendering =====
@@ -697,17 +554,9 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     return `[Enter] View diff   [a] Approve   [r] Reject   [A] Approve all   [?] Help`;
   }
 
-  renderStatusBar(): string {
-    if (this.state.isLoading) {
-      return this.state.loadingMessage;
-    }
-    return this.statusMessage ? `Status: ${this.statusMessage}` : "Ready";
-  }
-
   renderPlanTree(options: Partial<TreeRenderOptions> = {}): string[] {
-    return renderTree(this.state.planTree, {
-      useColors: this.state.useColors,
-      selectedId: this.state.selectedPlanId || undefined,
+    return this.renderTreeView({
+      selectedId: this.state.selectedId || undefined,
       ...options,
     });
   }
@@ -752,7 +601,7 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
   }
 
   renderDiff(): string[] {
-    if (!this.state.showDiff) return [];
+    if (!this.planExtensions.showDiff) return [];
 
     const lines: string[] = [];
     lines.push("═".repeat(60));
@@ -761,7 +610,7 @@ export class PlanReviewerTuiSession extends TuiSessionBase {
     lines.push("");
 
     // Render diff with simple syntax highlighting
-    for (const line of this.state.diffContent.split("\n")) {
+    for (const line of this.planExtensions.diffContent.split("\n")) {
       if (line.startsWith("+")) {
         lines.push(`  + ${line.slice(1)}`);
       } else if (line.startsWith("-")) {

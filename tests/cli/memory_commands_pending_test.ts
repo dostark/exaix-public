@@ -2,96 +2,19 @@
  * Tests for MemoryCommands Pending Operations (CLI Memory Banks)
  *
  * Phase 12.9: Agent Memory Updates - CLI Commands
- *
- * Tests CLI commands for:
- * - memory pending list: List all pending proposals
- * - memory pending show <id>: Show proposal details
- * - memory pending approve <id>: Approve a proposal
- * - memory pending reject <id>: Reject a proposal
- * - memory pending approve-all: Approve all pending
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { ExecutionStatus, FlowOutputFormat, MemoryStatus } from "../../src/enums.ts";
+import { FlowOutputFormat, MemoryStatus } from "../../src/enums.ts";
 
-import { MemoryCommands } from "../../src/cli/memory_commands.ts";
-import { MemoryBankService } from "../../src/services/memory_bank.ts";
-import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
-import { initTestDbService } from "../helpers/db.ts";
-import { createMockConfig } from "../helpers/config.ts";
-import type { ExecutionMemory, ProjectMemory } from "../../src/schemas/memory_bank.ts";
-import {
-  getMemoryExecutionDir,
-  getMemoryGlobalDir,
-  getMemoryIndexDir,
-  getMemoryPendingDir,
-  getMemoryProjectsDir,
-} from "../helpers/paths_helper.ts";
-
-/**
- * Creates a complete memory test environment for pending commands
- */
-async function initPendingTest() {
-  const tempRoot = await Deno.makeTempDir({ prefix: "memory-pending-test-" });
-
-  const { db, cleanup: dbCleanup } = await initTestDbService();
-
-  // Create required directories
-  await Deno.mkdir(getMemoryProjectsDir(tempRoot), { recursive: true });
-  await Deno.mkdir(getMemoryExecutionDir(tempRoot), { recursive: true });
-  await Deno.mkdir(getMemoryIndexDir(tempRoot), { recursive: true });
-  await Deno.mkdir(getMemoryGlobalDir(tempRoot), { recursive: true });
-  await Deno.mkdir(getMemoryPendingDir(tempRoot), { recursive: true });
-
-  const config = createMockConfig(tempRoot);
-  const commands = new MemoryCommands({ config, db });
-  const memoryBank = new MemoryBankService(config, db);
-  const extractor = new MemoryExtractorService(config, db, memoryBank);
-
-  const cleanup = async () => {
-    await dbCleanup();
-    await Deno.remove(tempRoot, { recursive: true }).catch(() => {});
-  };
-
-  return {
-    tempRoot,
-    config,
-    db,
-    commands,
-    memoryBank,
-    extractor,
-    cleanup,
-  };
-}
-
-/**
- * Creates a test execution with learnable content
- */
-function createTestExecution(portal: string, traceId: string): ExecutionMemory {
-  return {
-    trace_id: traceId,
-    request_id: `req-${traceId.substring(0, 8)}`,
-    started_at: "2026-01-04T10:00:00Z",
-    completed_at: "2026-01-04T10:30:00Z",
-    status: ExecutionStatus.COMPLETED,
-    portal,
-    agent: "senior-coder",
-    summary: "Implemented repository pattern for database access with proper error handling.",
-    context_files: ["src/services/user.ts"],
-    context_portals: [portal],
-    changes: {
-      files_created: ["src/repos/user_repo.ts"],
-      files_modified: ["src/services/user.ts"],
-      files_deleted: [],
-    },
-    lessons_learned: ["Repository pattern improves testability"],
-  };
-}
+import { TestEnvironmentFactory } from "../fixtures/test_environment_factory.ts";
+import { ExecutionMemoryBuilder } from "../fixtures/memory_builder.ts";
+import { createTestProject } from "../helpers/memory_test_helper.ts";
 
 // ===== Pending List Tests =====
 
 Deno.test("MemoryCommands: pendingList returns empty message", async () => {
-  const { commands, cleanup } = await initPendingTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.pendingList("table");
 
@@ -102,20 +25,25 @@ Deno.test("MemoryCommands: pendingList returns empty message", async () => {
 });
 
 Deno.test("MemoryCommands: pendingList shows proposals", async () => {
-  const { commands, memoryBank, extractor, cleanup } = await initPendingTest();
+  const { commands, memoryBank, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment({
+    withExtractor: true,
+  });
   try {
     // Create a project first
-    const projectMem: ProjectMemory = {
-      portal: "test-app",
-      overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
-    await memoryBank.createProjectMemory(projectMem);
+    await createTestProject(memoryBank, "test-app", { overview: "Test project" });
 
     // Create a pending proposal
-    const execution = createTestExecution("test-app", "550e8400-e29b-41d4-a716-446655440030");
+    const execution = new ExecutionMemoryBuilder("test-app", "550e8400-e29b-41d4-a716-446655440030")
+      .withAgent("senior-coder")
+      .withSummary("Implemented repository pattern for database access with proper error handling.")
+      .addContextFile("src/services/user.ts")
+      .withChanges({
+        files_created: ["src/repos/user_repo.ts"],
+        files_modified: ["src/services/user.ts"],
+      })
+      .addLesson("Repository pattern improves testability")
+      .build();
+
     const learnings = await extractor.analyzeExecution(execution);
 
     if (learnings.length > 0) {
@@ -134,19 +62,17 @@ Deno.test("MemoryCommands: pendingList shows proposals", async () => {
 });
 
 Deno.test("MemoryCommands: pendingList --format json outputs valid JSON", async () => {
-  const { commands, memoryBank, extractor, cleanup } = await initPendingTest();
+  const { commands, memoryBank, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment({
+    withExtractor: true,
+  });
   try {
-    // Create a project and proposal first
-    const projectMem: ProjectMemory = {
-      portal: "test-app",
-      overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
-    await memoryBank.createProjectMemory(projectMem);
+    await createTestProject(memoryBank, "test-app", { overview: "Test project" });
 
-    const execution = createTestExecution("test-app", "550e8400-e29b-41d4-a716-446655440030");
+    const execution = new ExecutionMemoryBuilder("test-app", "550e8400-e29b-41d4-a716-446655440030")
+      .withAgent("senior-coder")
+      .addLesson("Repository pattern improves testability")
+      .build();
+
     const learnings = await extractor.analyzeExecution(execution);
 
     if (learnings.length > 0) {
@@ -165,18 +91,17 @@ Deno.test("MemoryCommands: pendingList --format json outputs valid JSON", async 
 // ===== Pending Show Tests =====
 
 Deno.test("MemoryCommands: pendingShow displays proposal details", async () => {
-  const { commands, memoryBank, extractor, cleanup } = await initPendingTest();
+  const { commands, memoryBank, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment({
+    withExtractor: true,
+  });
   try {
-    const projectMem: ProjectMemory = {
-      portal: "test-app",
-      overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
-    await memoryBank.createProjectMemory(projectMem);
+    await createTestProject(memoryBank, "test-app", { overview: "Test project" });
 
-    const execution = createTestExecution("test-app", "550e8400-e29b-41d4-a716-446655440031");
+    const execution = new ExecutionMemoryBuilder("test-app", "550e8400-e29b-41d4-a716-446655440031")
+      .withAgent("senior-coder")
+      .addLesson("Repository pattern improves testability")
+      .build();
+
     const learnings = await extractor.analyzeExecution(execution);
 
     if (learnings.length === 0) {
@@ -195,7 +120,7 @@ Deno.test("MemoryCommands: pendingShow displays proposal details", async () => {
 });
 
 Deno.test("MemoryCommands: pendingShow non-existent returns error", async () => {
-  const { commands, cleanup } = await initPendingTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.pendingShow("non-existent-id", "table");
 
@@ -206,18 +131,17 @@ Deno.test("MemoryCommands: pendingShow non-existent returns error", async () => 
 });
 
 Deno.test("MemoryCommands: pendingShow --format json outputs valid JSON", async () => {
-  const { commands, memoryBank, extractor, cleanup } = await initPendingTest();
+  const { commands, memoryBank, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment({
+    withExtractor: true,
+  });
   try {
-    const projectMem: ProjectMemory = {
-      portal: "test-app",
-      overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
-    await memoryBank.createProjectMemory(projectMem);
+    await createTestProject(memoryBank, "test-app", { overview: "Test project" });
 
-    const execution = createTestExecution("test-app", "550e8400-e29b-41d4-a716-446655440032");
+    const execution = new ExecutionMemoryBuilder("test-app", "550e8400-e29b-41d4-a716-446655440032")
+      .withAgent("senior-coder")
+      .addLesson("Repository pattern improves testability")
+      .build();
+
     const learnings = await extractor.analyzeExecution(execution);
 
     if (learnings.length === 0) {
@@ -239,18 +163,17 @@ Deno.test("MemoryCommands: pendingShow --format json outputs valid JSON", async 
 // ===== Pending Approve Tests =====
 
 Deno.test("MemoryCommands: pendingApprove merges learning", async () => {
-  const { commands, memoryBank, extractor, cleanup } = await initPendingTest();
+  const { commands, memoryBank, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment({
+    withExtractor: true,
+  });
   try {
-    const projectMem: ProjectMemory = {
-      portal: "test-app",
-      overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
-    await memoryBank.createProjectMemory(projectMem);
+    await createTestProject(memoryBank, "test-app", { overview: "Test project" });
 
-    const execution = createTestExecution("test-app", "550e8400-e29b-41d4-a716-446655440033");
+    const execution = new ExecutionMemoryBuilder("test-app", "550e8400-e29b-41d4-a716-446655440033")
+      .withAgent("senior-coder")
+      .addLesson("Repository pattern improves testability")
+      .build();
+
     const learnings = await extractor.analyzeExecution(execution);
 
     if (learnings.length === 0) {
@@ -273,7 +196,7 @@ Deno.test("MemoryCommands: pendingApprove merges learning", async () => {
 });
 
 Deno.test("MemoryCommands: pendingApprove non-existent returns error", async () => {
-  const { commands, cleanup } = await initPendingTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.pendingApprove("non-existent-id");
 
@@ -286,18 +209,17 @@ Deno.test("MemoryCommands: pendingApprove non-existent returns error", async () 
 // ===== Pending Reject Tests =====
 
 Deno.test("MemoryCommands: pendingReject archives proposal", async () => {
-  const { commands, memoryBank, extractor, cleanup } = await initPendingTest();
+  const { commands, memoryBank, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment({
+    withExtractor: true,
+  });
   try {
-    const projectMem: ProjectMemory = {
-      portal: "test-app",
-      overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
-    await memoryBank.createProjectMemory(projectMem);
+    await createTestProject(memoryBank, "test-app", { overview: "Test project" });
 
-    const execution = createTestExecution("test-app", "550e8400-e29b-41d4-a716-446655440034");
+    const execution = new ExecutionMemoryBuilder("test-app", "550e8400-e29b-41d4-a716-446655440034")
+      .withAgent("senior-coder")
+      .addLesson("Repository pattern improves testability")
+      .build();
+
     const learnings = await extractor.analyzeExecution(execution);
 
     if (learnings.length === 0) {
@@ -315,7 +237,7 @@ Deno.test("MemoryCommands: pendingReject archives proposal", async () => {
 });
 
 Deno.test("MemoryCommands: pendingReject non-existent returns error", async () => {
-  const { commands, cleanup } = await initPendingTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.pendingReject("non-existent-id", "test");
 
@@ -328,18 +250,17 @@ Deno.test("MemoryCommands: pendingReject non-existent returns error", async () =
 // ===== Pending Approve All Tests =====
 
 Deno.test("MemoryCommands: pendingApproveAll processes all", async () => {
-  const { commands, memoryBank, extractor, cleanup } = await initPendingTest();
+  const { commands, memoryBank, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment({
+    withExtractor: true,
+  });
   try {
-    const projectMem: ProjectMemory = {
-      portal: "test-app",
-      overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
-    await memoryBank.createProjectMemory(projectMem);
+    await createTestProject(memoryBank, "test-app", { overview: "Test project" });
 
-    const execution = createTestExecution("test-app", "550e8400-e29b-41d4-a716-446655440035");
+    const execution = new ExecutionMemoryBuilder("test-app", "550e8400-e29b-41d4-a716-446655440035")
+      .withAgent("senior-coder")
+      .addLesson("Repository pattern improves testability")
+      .build();
+
     const learnings = await extractor.analyzeExecution(execution);
 
     // Create multiple proposals
@@ -360,7 +281,7 @@ Deno.test("MemoryCommands: pendingApproveAll processes all", async () => {
 });
 
 Deno.test("MemoryCommands: pendingApproveAll with none returns message", async () => {
-  const { commands, cleanup } = await initPendingTest();
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
   try {
     const result = await commands.pendingApproveAll();
 

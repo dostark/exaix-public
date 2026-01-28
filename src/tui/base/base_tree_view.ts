@@ -21,7 +21,7 @@ import { TuiSessionBase } from "../tui_common.ts";
 import type { DialogBase } from "../utils/dialog_base.ts";
 import { ConfirmDialog, InputDialog } from "../utils/dialog_base.ts";
 import type { KeyBinding } from "../utils/keyboard.ts";
-import type { SpinnerState } from "../utils/spinner.ts";
+import { nextFrame, renderSpinner, type SpinnerState, startSpinner, stopSpinner } from "../utils/spinner.ts";
 import {
   collapseAll,
   expandAll,
@@ -74,11 +74,12 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
 
   // ===== Navigation Methods =====
 
-  /**
-   * Navigate to previous node in tree
-   */
   protected navigateUp(): void {
-    const prevId = getPrevNodeId(this.state.tree, this.state.selectedId || "");
+    if (!this.state.selectedId) {
+      this.navigateEnd();
+      return;
+    }
+    const prevId = getPrevNodeId(this.state.tree, this.state.selectedId);
     if (prevId) {
       this.state.selectedId = prevId;
     }
@@ -88,7 +89,11 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
    * Navigate to next node in tree
    */
   protected navigateDown(): void {
-    const nextId = getNextNodeId(this.state.tree, this.state.selectedId || "");
+    if (!this.state.selectedId) {
+      this.navigateHome();
+      return;
+    }
+    const nextId = getNextNodeId(this.state.tree, this.state.selectedId);
     if (nextId) {
       this.state.selectedId = nextId;
     }
@@ -146,9 +151,11 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
   protected handleNavigationKeys(key: string): boolean {
     switch (key) {
       case "up":
+      case "k":
         this.navigateUp();
         return true;
       case "down":
+      case "j":
         this.navigateDown();
         return true;
       case "home":
@@ -191,6 +198,18 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
     }
 
     return false;
+  }
+
+  /**
+   * Main key handler for the view
+   * Delegates to dialogs, help, and navigation handlers
+   * Returns true if key was handled
+   */
+  handleKey(key: string): Promise<boolean> {
+    if (this.handleDialogKeys(key)) return Promise.resolve(true);
+    if (this.handleHelpKeys(key)) return Promise.resolve(true);
+    if (this.handleNavigationKeys(key)) return Promise.resolve(true);
+    return Promise.resolve(false);
   }
 
   /**
@@ -256,13 +275,19 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
   protected setLoading(loading: boolean, message = ""): void {
     this.state.isLoading = loading;
     this.state.loadingMessage = message;
+    if (loading) {
+      this.localSpinnerState = startSpinner(this.localSpinnerState, message);
+    } else {
+      this.localSpinnerState = stopSpinner(this.localSpinnerState);
+    }
   }
 
   /**
-   * Tick spinner animation
+   * Advance spinner animation frame
    */
-  protected tickSpinner(): void {
-    this.state.spinnerFrame = (this.state.spinnerFrame + 1) % 10;
+  public tickSpinner(): void {
+    this.localSpinnerState = nextFrame(this.localSpinnerState);
+    this.state.spinnerFrame = this.localSpinnerState.frame % 10;
   }
 
   // ===== State Accessors =====
@@ -335,7 +360,7 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
    */
   renderStatusBar(): string {
     if (this.state.isLoading) {
-      return this.state.loadingMessage;
+      return renderSpinner(this.localSpinnerState, { useColors: this.state.useColors });
     }
     return this.statusMessage ? `Status: ${this.statusMessage}` : "Ready";
   }
