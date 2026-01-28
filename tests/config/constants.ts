@@ -57,3 +57,77 @@ export const TEST_PROVIDER_ID_ANTHROPIC = "anthropic-claude-3";
 export const TEST_PROVIDER_ID_GOOGLE_ERROR = "google-test";
 export const TEST_PROVIDER_ID_OPENAI_ERROR = "openai-test";
 export const TEST_PROVIDER_ID_ANTHROPIC_ERROR = "anthropic-test";
+
+// ============================================================================
+// Token Metrics Integration Test Constants
+// ============================================================================
+
+// Environment variable names
+export const ENV_TEST_ENABLE_PAID_LLM = "EXO_TEST_ENABLE_PAID_LLM";
+export const ENV_TEST_ENABLE_PAID_LLM_VALUE = "1";
+
+// Test prompts for token metrics validation
+export const TOKEN_METRICS_TEST_PROMPT = "Say OK";
+
+// Model names for integration testing
+export const TOKEN_METRICS_MODEL_GOOGLE = "gemini-2.5-flash";
+export const TOKEN_METRICS_MODEL_OPENAI = "gpt-4o-mini";
+export const TOKEN_METRICS_MODEL_ANTHROPIC = "claude-3-5-haiku-20241022";
+
+// Wait times for async operations (milliseconds)
+export const TOKEN_METRICS_ASYNC_WAIT_MS = 1000;
+
+// Database query limits
+export const TOKEN_METRICS_DB_QUERY_LIMIT = 10;
+
+// Action type for token usage events
+export const ACTION_TYPE_LLM_USAGE = "llm.usage";
+
+// Skip messages for common API errors
+export const SKIP_MSG_OPT_IN_REQUIRED =
+  "EXO_TEST_ENABLE_PAID_LLM is not set to '1' (opt-in required to avoid API costs)";
+export const SKIP_MSG_GOOGLE_API_KEY_MISSING = "GOOGLE_API_KEY not set";
+export const SKIP_MSG_OPENAI_API_KEY_MISSING = "OPENAI_API_KEY not set";
+export const SKIP_MSG_ANTHROPIC_API_KEY_MISSING = "ANTHROPIC_API_KEY not set";
+export const SKIP_MSG_GOOGLE_INVALID_KEY = "Invalid API key (401)";
+export const SKIP_MSG_GOOGLE_RATE_LIMIT = "Rate limit exceeded (429)";
+export const SKIP_MSG_GOOGLE_MODEL_NOT_FOUND = "Model not found (404)";
+export const SKIP_MSG_GOOGLE_QUOTA = "Insufficient quota (403)";
+export const SKIP_MSG_OPENAI_INVALID_KEY = "Invalid API key (401)";
+export const SKIP_MSG_OPENAI_RATE_LIMIT = "Rate limit exceeded (429)";
+export const SKIP_MSG_OPENAI_MODEL_NOT_FOUND = "Model not found (404)";
+export const SKIP_MSG_OPENAI_QUOTA = "Insufficient quota";
+export const SKIP_MSG_ANTHROPIC_INVALID_KEY = "Invalid API key (401)";
+export const SKIP_MSG_ANTHROPIC_RATE_LIMIT = "Rate limit exceeded (429)";
+export const SKIP_MSG_ANTHROPIC_MODEL_NOT_FOUND = "Model not found (404)";
+export const SKIP_MSG_ANTHROPIC_CREDITS = "Insufficient credits (400)";
+export const SKIP_MSG_ANTHROPIC_QUOTA = "Insufficient quota (403)";
+
+// Error message patterns for detection
+export const ERROR_PATTERN_401 = "401";
+export const ERROR_PATTERN_UNAUTHORIZED = "unauthorized";
+export const ERROR_PATTERN_429 = "429";
+export const ERROR_PATTERN_RATE_LIMIT = "rate limit";
+export const ERROR_PATTERN_404 = "404";
+export const ERROR_PATTERN_NOT_FOUND = "not found";
+export const ERROR_PATTERN_400 = "400";
+export const ERROR_PATTERN_CREDIT = "credit";
+export const ERROR_PATTERN_BALANCE = "balance";
+export const ERROR_PATTERN_403 = "403";
+export const ERROR_PATTERN_QUOTA = "quota";
+
+// Assertion messages
+export const ASSERT_MSG_LLM_USAGE_EVENTS_GOOGLE = "Expected at least one llm.usage event for Google";
+export const ASSERT_MSG_LLM_USAGE_EVENTS_OPENAI = "Expected at least one llm.usage event for OpenAI";
+export const ASSERT_MSG_LLM_USAGE_EVENTS_ANTHROPIC = "Expected at least one llm.usage event for Anthropic";
+export const ASSERT_MSG_PROMPT_TOKENS_EXISTS = "prompt_tokens should exist";
+export const ASSERT_MSG_COMPLETION_TOKENS_EXISTS = "completion_tokens should exist";
+export const ASSERT_MSG_TOTAL_TOKENS_EXISTS = "total_tokens should exist";
+export const ASSERT_MSG_COST_USD_EXISTS = "cost_usd should exist";
+export const ASSERT_MSG_MODEL_EXISTS = "model should exist";
+export const ASSERT_MSG_PROMPT_TOKENS_GT_ZERO = "prompt_tokens should be > 0";
+export const ASSERT_MSG_COMPLETION_TOKENS_GT_ZERO = "completion_tokens should be > 0";
+export const ASSERT_MSG_TOTAL_TOKENS_GT_ZERO = "total_tokens should be > 0";
+export const ASSERT_MSG_COST_USD_GT_ZERO = "cost_usd should be > 0";
+export const ASSERT_MSG_RESPONSE_EXISTS = "Provider should return a response";
+export const ASSERT_MSG_RESPONSE_NOT_EMPTY = "Response should not be empty";
