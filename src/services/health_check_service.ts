@@ -1,11 +1,3 @@
-/**
- * Health Check Service - Comprehensive Health Monitoring & Readiness Checks
- *
- * Provides health check endpoints for orchestrators (Kubernetes, Docker, etc.) to determine
- * service readiness and liveness. Implements standard health check patterns with support
- * for critical and non-critical checks.
- */
-
 import type { DatabaseService } from "./db.ts";
 import type { IModelProvider } from "../ai/providers.ts";
 import type { Config } from "../config/schema.ts";
@@ -16,6 +8,8 @@ import {
   DEFAULT_MEMORY_WARN_PERCENT,
 } from "../config/constants.ts";
 import { HealthCheckVerdict, HealthStatus } from "../enums.ts";
+import { EventLogger } from "./event_logger.ts";
+import { LogMethod } from "./decorators/logging.ts";
 
 /**
  * Interface for individual health check implementations
@@ -75,7 +69,14 @@ export class HealthCheckService {
   private startTime = Date.now();
   private healthCache = new Map<string, CachedHealthResult>();
 
-  constructor(private version: string, private config?: Config) {}
+  constructor(
+    private version: string,
+    private config?: Config,
+    private logger?: EventLogger,
+  ) {
+    // Determine logger instance
+    this.logger = logger ?? new EventLogger({ prefix: "[HealthCheck]" });
+  }
 
   public get checkTimeoutMs(): number {
     return this.config?.health?.check_timeout_ms ?? DEFAULT_HEALTH_CHECK_TIMEOUT_MS;
@@ -103,7 +104,9 @@ export class HealthCheckService {
   /**
    * Perform all registered health checks and return overall status
    */
+  @LogMethod(new EventLogger({ prefix: "[HealthCheck]" }), "health.check_all")
   async checkHealth(): Promise<HealthReport> {
+    // ... existing implementation ...
     const results: Record<string, HealthCheckResult> = {};
     let hasFailure = false;
     let hasWarning = false;
@@ -173,7 +176,9 @@ export class HealthCheckService {
    * @param providerName The name of the provider to check
    * @returns True if the provider is healthy, false otherwise
    */
+  @LogMethod(new EventLogger({ prefix: "[HealthCheck]" }), "health.check_provider")
   async checkProvider(providerName: string): Promise<boolean> {
+    // ... existing implementation ...
     const now = Date.now();
     const cached = this.healthCache.get(providerName);
 

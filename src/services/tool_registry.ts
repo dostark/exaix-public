@@ -11,6 +11,11 @@ import type { DatabaseService } from "./db.ts";
 import { PathResolver } from "./path_resolver.ts";
 import { ActivityActor, LogLevel } from "../enums.ts";
 
+import { MiddlewarePipeline } from "./middleware/pipeline.ts";
+import { ServiceContext } from "./common/types.ts";
+import { LogEvent } from "./common/types.ts";
+import { ValidationError } from "./common/errors.ts";
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -61,6 +66,16 @@ export interface ToolRegistryConfig {
   traceId?: string;
   agentId?: string;
   baseDir?: string;
+}
+
+/**
+ * Context for tool execution middleware
+ */
+interface ToolContext extends ServiceContext {
+  toolName: string;
+  params: Record<string, any>;
+  result?: ToolResult;
+  toolRegistry: ToolRegistry;
 }
 
 // ============================================================================
@@ -252,6 +267,7 @@ export class ToolRegistry {
   private pathResolver: PathResolver;
   private tools: Map<string, Tool>;
   private baseDir: string;
+  private pipeline: MiddlewarePipeline<ToolContext>;
 
   constructor(options?: ToolRegistryConfig) {
     // Use ConfigSchema to parse and apply all defaults automatically
@@ -273,8 +289,56 @@ export class ToolRegistry {
 
     this.pathResolver = new PathResolver(this.config);
     this.tools = new Map();
+    this.pipeline = new MiddlewarePipeline<ToolContext>();
 
     this.registerCoreTools();
+    this.setupMiddleware();
+  }
+
+  private setupMiddleware() {
+    // Validation Middleware
+    this.pipeline.use(async (ctx, next) => {
+      if (!this.tools.has(ctx.toolName)) {
+        ctx.result = {
+          success: false,
+          error: `Tool '${ctx.toolName}' not found`,
+        };
+        return; // Stop pipeline
+      }
+      await next();
+    });
+
+    // Logging Middleware
+    this.pipeline.use(async (ctx, next) => {
+      const startTime = Date.now();
+      try {
+        await next();
+        this.logActivity(`tool.${ctx.toolName}`, {
+          success: ctx.result?.success ?? false,
+          duration_ms: Date.now() - startTime,
+          params: ctx.params,
+          error: ctx.result?.error,
+        });
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        this.logActivity(`tool.${ctx.toolName}`, {
+          success: false,
+          duration_ms: Date.now() - startTime,
+          params: ctx.params,
+          error: errorMsg,
+        });
+        throw error;
+      }
+    });
+
+    // Error Handling Middleware
+    this.pipeline.use(async (ctx, next) => {
+      try {
+        await next();
+      } catch (error) {
+        ctx.result = this.formatError(error);
+      }
+    });
   }
 
   /**
@@ -396,69 +460,44 @@ export class ToolRegistry {
    * Execute a tool by name
    */
   async execute(toolName: string, params: Record<string, any>): Promise<ToolResult> {
-    const startTime = Date.now();
+    const context: ToolContext = {
+      toolName,
+      params,
+      toolRegistry: this,
+      traceId: this.traceId,
+      agentId: this.agentId,
+    };
 
-    try {
-      if (!this.tools.has(toolName)) {
-        return {
-          success: false,
-          error: `Tool '${toolName}' not found`,
-        };
-      }
-
-      let result: ToolResult;
-
+    await this.pipeline.execute(context, async () => {
+      // Core Execution Logic
       switch (toolName) {
         case "read_file":
-          result = await this.readFile(params.path);
+          context.result = await this.readFile(params.path);
           break;
         case "write_file":
-          result = await this.writeFile(params.path, params.content);
+          context.result = await this.writeFile(params.path, params.content);
           break;
         case "list_directory":
-          result = await this.listDirectory(params.path);
+          context.result = await this.listDirectory(params.path);
           break;
         case "search_files":
-          result = await this.searchFiles(params.pattern, params.path);
+          context.result = await this.searchFiles(params.pattern, params.path);
           break;
         case "run_command":
-          result = await this.runCommand(params.command, params.args || []);
+          context.result = await this.runCommand(params.command, params.args || []);
           break;
         case "create_directory":
-          result = await this.createDirectory(params.path);
+          context.result = await this.createDirectory(params.path);
           break;
-
         default:
-          result = {
+          context.result = {
             success: false,
             error: `Tool '${toolName}' not implemented`,
           };
       }
+    });
 
-      // Log execution
-      this.logActivity(`tool.${toolName}`, {
-        success: result.success,
-        duration_ms: Date.now() - startTime,
-        params,
-        error: result.error,
-      });
-
-      return result;
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-
-      this.logActivity(`tool.${toolName}`, {
-        success: false,
-        duration_ms: Date.now() - startTime,
-        params,
-        error: errorMsg,
-      });
-
-      return {
-        success: false,
-        error: errorMsg,
-      };
-    }
+    return context.result!;
   }
 
   /**

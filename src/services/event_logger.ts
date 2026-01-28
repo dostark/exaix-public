@@ -18,54 +18,9 @@
 import type { DatabaseService } from "./db.ts";
 import type { ActivityRepository } from "../repositories/activity_repository.ts";
 import { LogLevel } from "../enums.ts";
+import { Actor, LogEvent } from "./common/types.ts";
 
-// ============================================================================
-// Types and Interfaces
-// ============================================================================
-
-// export type LogLevel = "info" | "warn" | "error" | "debug"; // Moved to enums.ts
-
-/**
- * Actor types:
- * - "system" - Daemon, watcher, internal services
- * - "agent:<id>" - AI agent (e.g., "agent:senior-coder", "agent:request-processor")
- * - "<user>" - Human user identity from git config or OS (e.g., "john@example.com", "jdoe")
- */
-export type Actor = string;
-
-/**
- * Structured log event
- */
-export interface LogEvent {
-  /** Action type in domain.action format (e.g., "daemon.started") */
-  action: string;
-
-  /** Target entity (file path, service name, etc.) */
-  target: string;
-
-  /** Additional context as key-value pairs */
-  payload?: Record<string, unknown>;
-
-  /**
-   * Actor performing the action:
-   * - "system" for daemon/services
-   * - "agent:<id>" for AI agents (e.g., "agent:senior-coder")
-   * - User identity for humans (e.g., "john@example.com" from git, or OS username)
-   */
-  actor?: Actor;
-
-  /** Trace ID for correlation */
-  traceId?: string;
-
-  /** Agent ID for agent-specific events */
-  agentId?: string;
-
-  /** Log level for console output */
-  level?: LogLevel;
-
-  /** Custom emoji/icon for console output */
-  icon?: string;
-}
+export type { Actor, LogEvent };
 
 /**
  * Configuration for EventLogger
