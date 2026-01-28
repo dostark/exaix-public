@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-27T17:34:45.158Z",
+  "generated_at": "2026-01-28T10:33:13.691Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -645,6 +645,32 @@
         ".copilot/chunks/agent-content-schema.md.chunk5.txt",
         ".copilot/chunks/agent-content-schema.md.chunk6.txt",
         ".copilot/chunks/agent-content-schema.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-33-code-duplication-refactoring.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 33: Code Duplication Refactoring & Architecture Improvement",
+      "short_summary": "Systematic refactoring to reduce code duplication from 4.06% to <2% while improving overall architecture quality through SOLID principles, design patterns, and measurable metrics.",
+      "version": "1.0",
+      "topics": [
+        "refactoring",
+        "architecture",
+        "code-quality",
+        "design-patterns",
+        "testing",
+        "metrics"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk0.txt",
+        ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk1.txt",
+        ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk2.txt",
+        ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk3.txt",
+        ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk4.txt",
+        ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk5.txt",
+        ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk6.txt",
+        ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk7.txt"
       ]
     },
     {
