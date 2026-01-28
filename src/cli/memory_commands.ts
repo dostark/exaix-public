@@ -968,25 +968,26 @@ export class MemoryCommands {
     if (created + modified + deleted > 0) {
       lines.push("Changes:");
       lines.push("─".repeat(40));
-      if (created > 0) {
-        lines.push(`  Created:  ${created} file(s)`);
-        for (const f of exec.changes.files_created || []) {
-          lines.push(`    + ${f}`);
-        }
-      }
-      if (modified > 0) {
-        lines.push(`  Modified: ${modified} file(s)`);
-        for (const f of exec.changes.files_modified || []) {
-          lines.push(`    ~ ${f}`);
-        }
-      }
-      if (deleted > 0) {
-        lines.push(`  Deleted:  ${deleted} file(s)`);
-        for (const f of exec.changes.files_deleted || []) {
-          lines.push(`    - ${f}`);
-        }
-      }
+      this.appendFileChangeLines(lines, "Created", created, exec.changes.files_created, "+");
+      this.appendFileChangeLines(lines, "Modified", modified, exec.changes.files_modified, "~");
+      this.appendFileChangeLines(lines, "Deleted", deleted, exec.changes.files_deleted, "-");
       lines.push("");
+    }
+  }
+
+  // Helper: append file change lines for a given type
+  private appendFileChangeLines(
+    lines: string[],
+    label: string,
+    count: number,
+    files: string[] | undefined,
+    symbol: string,
+  ): void {
+    if (count > 0 && files) {
+      lines.push(`  ${label}:  ${count} file(s)`);
+      for (const f of files) {
+        lines.push(`    ${symbol} ${f}`);
+      }
     }
   }
 
@@ -1017,21 +1018,22 @@ export class MemoryCommands {
     if (created.length + modified.length + deleted.length > 0) {
       lines.push("## Changes");
       lines.push("");
-      if (created.length > 0) {
-        lines.push("### Created");
-        for (const f of created) lines.push(`- \`${f}\``);
-        lines.push("");
-      }
-      if (modified.length > 0) {
-        lines.push("### Modified");
-        for (const f of modified) lines.push(`- \`${f}\``);
-        lines.push("");
-      }
-      if (deleted.length > 0) {
-        lines.push("### Deleted");
-        for (const f of deleted) lines.push(`- \`${f}\``);
-        lines.push("");
-      }
+      this.appendMarkdownFileChangeSection(lines, "Created", created);
+      this.appendMarkdownFileChangeSection(lines, "Modified", modified);
+      this.appendMarkdownFileChangeSection(lines, "Deleted", deleted);
+    }
+  }
+
+  // Helper: append markdown file change section
+  private appendMarkdownFileChangeSection(
+    lines: string[],
+    label: string,
+    files: string[],
+  ): void {
+    if (files.length > 0) {
+      lines.push(`### ${label}`);
+      for (const f of files) lines.push(`- \`${f}\``);
+      lines.push("");
     }
   }
 
@@ -1498,24 +1500,16 @@ export class MemoryCommands {
       }
 
       const skillId = options.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-
+      // Ensure required fields for type safety
+      const skillDef = this.buildDerivedSkillDefinition({
+        name: options.name,
+        description: options.description,
+        instructions: options.instructions,
+        learningIds: options.learningIds,
+      }, skillId);
       const derivedSkill = await this.skills.deriveSkillFromLearnings(
         options.learningIds,
-        {
-          skill_id: skillId,
-          name: options.name,
-          version: "1.0.0",
-          status: SkillStatus.DRAFT,
-          description: options.description || `Skill derived from ${options.learningIds.length} learnings`,
-          scope: MemoryScope.PROJECT,
-          triggers: {
-            keywords: [],
-            task_types: [],
-            file_patterns: [],
-            tags: [],
-          },
-          instructions: options.instructions || "Instructions to be filled in.",
-        },
+        skillDef,
       );
 
       switch (format) {
@@ -1532,6 +1526,33 @@ export class MemoryCommands {
     } catch (error) {
       return `Error deriving skill: ${(error as Error).message}`;
     }
+  }
+
+  // Helper: build derived skill definition object
+  private buildDerivedSkillDefinition(
+    options: {
+      name: string;
+      description?: string;
+      instructions?: string;
+      learningIds: string[];
+    },
+    skillId: string,
+  ) {
+    return {
+      skill_id: skillId,
+      name: options.name,
+      version: "1.0.0",
+      status: SkillStatus.DRAFT,
+      description: options.description || `Skill derived from ${options.learningIds.length} learnings`,
+      scope: MemoryScope.PROJECT,
+      triggers: {
+        keywords: [],
+        task_types: [],
+        file_patterns: [],
+        tags: [],
+      },
+      instructions: options.instructions || "Instructions to be filled in.",
+    };
   }
 
   /**
@@ -1560,24 +1581,8 @@ export class MemoryCommands {
       const skillId = name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       const location = options.category || "project";
 
-      const skill = await this.skills.createSkill(
-        {
-          skill_id: skillId,
-          name,
-          version: "1.0.0",
-          description: options.description || `${name} skill`,
-          source: location === "learned" ? MemorySource.LEARNED : MemorySource.USER,
-          scope: MemoryScope.PROJECT,
-          status: SkillStatus.DRAFT,
-          instructions: options.instructions || "No instructions provided.",
-          triggers: {
-            keywords: options.triggersKeywords || [],
-            task_types: options.triggersTaskTypes || [],
-            file_patterns: [],
-            tags: [],
-          },
-        },
-      );
+      const skillDef = this.buildSkillDefinition(name, skillId, location, options);
+      const skill = await this.skills.createSkill(skillDef);
 
       switch (format) {
         case "json":
@@ -1591,6 +1596,36 @@ export class MemoryCommands {
     } catch (error) {
       return `Error creating skill: ${(error as Error).message}`;
     }
+  }
+
+  // Helper: build skill definition object
+  private buildSkillDefinition(
+    name: string,
+    skillId: string,
+    location: string,
+    options: {
+      description?: string;
+      instructions?: string;
+      triggersKeywords?: string[];
+      triggersTaskTypes?: string[];
+    },
+  ) {
+    return {
+      skill_id: skillId,
+      name,
+      version: "1.0.0",
+      description: options.description || `${name} skill`,
+      source: location === "learned" ? MemorySource.LEARNED : MemorySource.USER,
+      scope: MemoryScope.PROJECT,
+      status: SkillStatus.DRAFT,
+      instructions: options.instructions || "No instructions provided.",
+      triggers: {
+        keywords: options.triggersKeywords || [],
+        task_types: options.triggersTaskTypes || [],
+        file_patterns: [],
+        tags: [],
+      },
+    };
   }
 
   // ===== Skills Formatting Helpers =====

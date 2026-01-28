@@ -149,3 +149,34 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
 
   return { db, tempDir, config, configService, cleanup: cleanupAll };
 }
+
+/**
+ * Helper to run git commands in tests
+ */
+export async function runGitCommand(cwd: string, args: string[]): Promise<string> {
+  const cmd = new Deno.Command("git", {
+    args: ["-C", cwd, ...args],
+    stdout: "piped",
+    stderr: "piped",
+  });
+
+  const { stdout, success, stderr } = await cmd.output();
+  if (!success) {
+    const error = new TextDecoder().decode(stderr);
+    throw new Error(`Git command failed: ${args.join(" ")}\n${error}`);
+  }
+
+  return new TextDecoder().decode(stdout).trim();
+}
+
+/**
+ * Initialize a git repository in the temp directory with a default user and initial commit
+ */
+export async function initGitRepo(tempDir: string): Promise<void> {
+  await runGitCommand(tempDir, ["init", "-b", "master"]);
+  await runGitCommand(tempDir, ["config", "user.email", "test@example.com"]);
+  await runGitCommand(tempDir, ["config", "user.name", "Test User"]);
+
+  // Create initial commit to ensure branch exists (root commit)
+  await runGitCommand(tempDir, ["commit", "--allow-empty", "-m", "Initial commit"]);
+}

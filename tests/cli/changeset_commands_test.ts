@@ -12,14 +12,14 @@
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import { FlowStepType, MemoryOperation, MemoryStatus, PortalOperation } from "../../src/enums.ts";
+import { FlowStepType, MemoryOperation, MemoryStatus } from "../../src/enums.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ChangesetCommands } from "../../src/cli/changeset_commands.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { GitService } from "../../src/services/git_service.ts";
-import { createCliTestContext } from "./helpers/test_setup.ts";
+import { createCliTestContext, initGitRepo, runGitCommand } from "./helpers/test_setup.ts";
 import type { Config } from "../../src/config/schema.ts";
 
 describe("ChangesetCommands", () => {
@@ -38,15 +38,8 @@ describe("ChangesetCommands", () => {
     config = result.config;
     cleanup = result.cleanup;
 
-    // Initialize git repository with master branch (like user's repo)
-    await runGitCommand(tempDir, ["init", "-b", "master"]);
-    await runGitCommand(tempDir, ["config", "user.email", "test@example.com"]);
-    await runGitCommand(tempDir, ["config", "user.name", "Test User"]);
-
-    // Create initial commit on master
-    await Deno.writeTextFile(join(tempDir, "README.md"), "# Test Project\n");
-    await runGitCommand(tempDir, [MemoryOperation.ADD, "README.md"]);
-    await runGitCommand(tempDir, ["commit", "-m", "Initial commit"]);
+    // Initialize git repository
+    await initGitRepo(tempDir);
 
     gitService = new GitService({ config, db });
     changesetCommands = new ChangesetCommands({ config, db }, gitService);
@@ -129,14 +122,7 @@ describe("ChangesetCommands", () => {
       const portalDir = await Deno.makeTempDir({ prefix: "portal-repo-" });
       try {
         // Initialize git repo in portal directory
-        await runGitCommand(portalDir, ["init", "-b", "master"]);
-        await runGitCommand(portalDir, ["config", "user.email", "test@example.com"]);
-        await runGitCommand(portalDir, ["config", "user.name", "Test User"]);
-
-        // Create initial commit
-        await Deno.writeTextFile(join(portalDir, "README.md"), "# Portal Project\n");
-        await runGitCommand(portalDir, ["add", "README.md"]);
-        await runGitCommand(portalDir, ["commit", "-m", "Initial commit"]);
+        await initGitRepo(portalDir); // Uses shared helper
 
         // Create a feature branch in the portal repo
         await createFeatureBranch(portalDir, "request-006", "portal-456-ghi");
@@ -260,7 +246,7 @@ describe("ChangesetCommands", () => {
       await db.waitForFlush();
 
       // Check activity log
-      const activities = await db.getActivitiesByTrace("def-456-abc");
+      const activities = await db.getActivitiesByTraceSafe("def-456-abc");
       const approval = activities.find((a: { action_type: string }) => a.action_type === "changeset.approved");
 
       assertExists(approval);
@@ -301,7 +287,7 @@ describe("ChangesetCommands", () => {
       await db.waitForFlush();
 
       // Check activity log
-      const activities = await db.getActivitiesByTrace("abc-345-edf");
+      const activities = await db.getActivitiesByTraceSafe("abc-345-edf");
       const rejection = activities.find((a: { action_type: string }) => a.action_type === "changeset.rejected");
 
       assertExists(rejection);
@@ -318,7 +304,7 @@ describe("ChangesetCommands", () => {
       // Wait for batched write to complete
       await db.waitForFlush();
 
-      const activities = await db.getActivitiesByTrace("def-678-bca");
+      const activities = await db.getActivitiesByTraceSafe("def-678-bca");
       const rejection = activities.find((a: { action_type: string }) => a.action_type === "changeset.rejected");
       assertExists(rejection);
       if (!rejection) throw new Error("Rejection not found");
@@ -382,14 +368,7 @@ describe("ChangesetCommands", () => {
     const portalDir = await Deno.makeTempDir({ prefix: "portal-repo-" });
     try {
       // Initialize git repo in portal directory with master branch (like user's repo)
-      await runGitCommand(portalDir, ["init", "-b", "master"]);
-      await runGitCommand(portalDir, ["config", "user.email", "test@example.com"]);
-      await runGitCommand(portalDir, ["config", "user.name", "Test User"]);
-
-      // Create initial commit
-      await Deno.writeTextFile(join(portalDir, "README.md"), "# Portal Project\n");
-      await runGitCommand(portalDir, ["add", "README.md"]);
-      await runGitCommand(portalDir, ["commit", "-m", "Initial commit"]);
+      await initGitRepo(portalDir); // Uses shared helper
 
       // Create a feature branch in the portal repository
       await createFeatureBranch(portalDir, "request-a300d5a5", "a300d5a5");
@@ -422,24 +401,6 @@ describe("ChangesetCommands", () => {
     }
   });
 });
-
-// Helper functions
-
-async function runGitCommand(cwd: string, args: string[]): Promise<string> {
-  const cmd = new Deno.Command(PortalOperation.GIT, {
-    args: ["-C", cwd, ...args],
-    stdout: "piped",
-    stderr: "piped",
-  });
-
-  const { stdout, success } = await cmd.output();
-  if (!success) {
-    const stderr = new TextDecoder().decode(await cmd.output().then((r) => r.stderr));
-    throw new Error(`Git command failed: ${args.join(" ")}\n${stderr}`);
-  }
-
-  return new TextDecoder().decode(stdout).trim();
-}
 
 async function createFeatureBranch(
   repoDir: string,
@@ -487,14 +448,7 @@ describe("ChangesetCommands - Edge Cases", () => {
     cleanup = result.cleanup;
 
     // Initialize git repository with master branch (like user's repo)
-    await runGitCommand(tempDir, ["init", "-b", "master"]);
-    await runGitCommand(tempDir, ["config", "user.email", "test@example.com"]);
-    await runGitCommand(tempDir, ["config", "user.name", "Test User"]);
-
-    // Create initial commit on master
-    await Deno.writeTextFile(join(tempDir, "README.md"), "# Test Project\n");
-    await runGitCommand(tempDir, [MemoryOperation.ADD, "README.md"]);
-    await runGitCommand(tempDir, ["commit", "-m", "Initial commit"]);
+    await initGitRepo(tempDir);
 
     gitService = new GitService({ config, db });
     changesetCommands = new ChangesetCommands({ config, db }, gitService);

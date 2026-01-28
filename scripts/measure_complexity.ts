@@ -11,7 +11,6 @@ export async function getBabelParse(): Promise<(code: string, opts?: any) => any
 
   for (const url of localCandidates) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mod: any = await import(url);
       if (mod.parse) return mod.parse;
       if (mod.default && typeof mod.default.parse === "function") return mod.default.parse;
@@ -31,7 +30,6 @@ export async function getBabelParse(): Promise<(code: string, opts?: any) => any
 
   for (const url of cdnCandidates) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const mod: any = await import(url);
       if (mod.parse) return mod.parse;
       if (mod.default && typeof mod.default.parse === "function") return mod.default.parse;
