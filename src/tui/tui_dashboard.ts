@@ -36,6 +36,15 @@ import {
   MockStructuredLoggerService,
 } from "./tui_dashboard_mocks.ts";
 import { colorize, getTheme, type TuiTheme } from "./utils/colors.ts";
+import {
+  handleMemoryNotifications as _handleMemoryNotifications,
+  renderNotificationPanel,
+} from "./tui_helpers/notifications.ts";
+import {
+  resetToDefault as helperResetToDefault,
+  restoreLayout as helperRestoreLayout,
+  saveLayout as helperSaveLayout,
+} from "./tui_helpers/layout_persistence.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import { Table } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
@@ -365,81 +374,7 @@ export function renderGlobalHelpOverlay(_theme: Theme): string[] {
 
 // ===== Notification Panel Rendering =====
 
-export async function renderNotificationPanel(
-  notificationService: NotificationService,
-  theme: Theme,
-  state: DashboardViewState,
-  maxHeight = 10,
-): Promise<string[]> {
-  const lines: string[] = [];
-  let activeNotifications = await notificationService.getNotifications();
-
-  if (state.showMemoryNotifications) {
-    activeNotifications = activeNotifications.filter((n) => n.type === "memory_update_pending");
-  }
-
-  if (activeNotifications.length === 0) {
-    lines.push(colorize("  No notifications", theme.textDim, theme.reset));
-    return lines;
-  }
-
-  // Header
-  const title = state.showMemoryNotifications ? "Pending Memory Updates" : "Notifications";
-  lines.push(
-    colorize(
-      `${DASHBOARD_ICONS.notification.bell} ${title} (${activeNotifications.length})`,
-      theme.h2,
-      theme.reset,
-    ),
-  );
-  lines.push("");
-
-  // Show most recent notifications (up to maxHeight - 2 for header)
-  const visibleNotifications = activeNotifications.slice(0, maxHeight - 2);
-
-  for (let i = 0; i < visibleNotifications.length; i++) {
-    const notification = visibleNotifications[i];
-    const type = notification.type;
-    const icon = (DASHBOARD_ICONS.notification as any)[type] || "ℹ️";
-    const timestamp = notification.created_at ? new Date(notification.created_at) : new Date();
-    const timeAgo = formatTimeAgo(timestamp);
-
-    const isSelected = state.showMemoryNotifications && i === state.selectedMemoryNotifIndex;
-
-    let messageColor = theme.text;
-    const t = type as string;
-    if (t === "error" || t === "memory_rejected") messageColor = theme.error;
-    else if (t === "warning") messageColor = theme.warning;
-    else if (t === "success" || t === "memory_approved") messageColor = theme.success;
-    else if (t === "info" || t === "memory_update_pending") messageColor = theme.primary;
-
-    const prefix = isSelected ? "▶ " : "  ";
-    let line = `${prefix}${icon} ${colorize(notification.message, messageColor, theme.reset)} ${
-      colorize(`(${timeAgo})`, theme.textDim, theme.reset)
-    }`;
-
-    if (isSelected) {
-      line = colorize(line, theme.primary, theme.reset);
-    }
-    lines.push(line);
-  }
-
-  if (activeNotifications.length > visibleNotifications.length) {
-    const more = activeNotifications.length - visibleNotifications.length;
-    lines.push(colorize(`  ... and ${more} more`, theme.textDim, theme.reset));
-  }
-
-  return lines;
-}
-
-function formatTimeAgo(date: Date): string {
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-
-  if (seconds < 60) return "just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return `${Math.floor(seconds / 86400)}d ago`;
-}
+// `renderNotificationPanel` and `handleMemoryNotifications` moved to `src/tui/tui_helpers/notifications.ts`.
 
 // ===== View Picker Rendering =====
 
@@ -502,6 +437,50 @@ export function renderPaneTitleBar(pane: Pane, theme: Theme): string {
     return colorize(title, theme.primary, theme.reset);
   }
   return colorize(title, theme.textDim, theme.reset);
+}
+
+// Helper handlers extracted from the large dashboard key handler to reduce complexity
+function _handleHelpOverlay(self: any, key: string, panes: Pane[]) {
+  if (key === "?" || key === "escape" || key === "esc") {
+    self.state.showHelp = false;
+  }
+  return panes.findIndex((p) => p.id === self.activePaneId);
+}
+
+async function _handleMemoryNotificationsLocal(
+  self: any,
+  key: string,
+  panes: Pane[],
+  notificationService: NotificationService,
+) {
+  return await _handleMemoryNotifications(self, key, panes, notificationService);
+}
+
+function _handleViewPicker(self: any, key: string, views: any[], panes: Pane[], viewPickerIndexRef: { index: number }) {
+  if (key === "escape" || key === "esc") {
+    self.state.showViewPicker = false;
+  } else if (key === "up" || key === "k") {
+    viewPickerIndexRef.index = (viewPickerIndexRef.index - 1 + views.length) % views.length;
+  } else if (key === "down" || key === "j") {
+    viewPickerIndexRef.index = (viewPickerIndexRef.index + 1) % views.length;
+  } else if (key === "enter") {
+    const activePane = panes.find((p) => p.id === self.activePaneId);
+    if (activePane) {
+      activePane.view = views[viewPickerIndexRef.index];
+    }
+    self.state.showViewPicker = false;
+  } else if (key >= "1" && key <= "7") {
+    const idx = parseInt(key) - 1;
+    if (idx < views.length) {
+      const activePane = panes.find((p) => p.id === self.activePaneId);
+      if (activePane) {
+        activePane.view = views[idx];
+      }
+      self.state.showViewPicker = false;
+    }
+  }
+
+  return panes.findIndex((p) => p.id === self.activePaneId);
 }
 
 export async function launchTuiDashboard(
@@ -610,160 +589,17 @@ export async function launchTuiDashboard(
       state,
       theme,
       notificationService,
+      // Expose extracted helpers so test-mode key handler can call them
+      handleHelpOverlay: _handleHelpOverlay,
+      handleViewPicker: _handleViewPicker,
+      handleMemoryNotifications: _handleMemoryNotificationsLocal,
       async handleKey(key: string) {
-        // Handle help overlay
-        if (this.state.showHelp) {
-          if (key === "?" || key === "escape" || key === "esc") {
-            this.state.showHelp = false;
-          }
-          return panes.findIndex((p) => p.id === this.activePaneId);
-        }
-
-        // Handle memory notifications
-        if (this.state.showMemoryNotifications) {
-          if (key === "escape" || key === "esc" || key === "m") {
-            this.state.showMemoryNotifications = false;
-          } else {
-            const allNotifs = await this.notificationService.getNotifications();
-            const memoryNotifs = allNotifs.filter((n) => n.type === "memory_update_pending");
-            const count = memoryNotifs.length;
-
-            if (key === "up" || key === "k") {
-              if (count > 0) {
-                this.state.selectedMemoryNotifIndex = (this.state.selectedMemoryNotifIndex - 1 + count) % count;
-              }
-            } else if (key === "down" || key === "j") {
-              if (count > 0) {
-                this.state.selectedMemoryNotifIndex = (this.state.selectedMemoryNotifIndex + 1) % count;
-              }
-            } else if (key === "a" && count > 0) {
-              const selected = memoryNotifs[this.state.selectedMemoryNotifIndex];
-              await this.approveMemoryUpdate((selected.proposal_id || selected.id) as string);
-            } else if (key === "r" && count > 0) {
-              const selected = memoryNotifs[this.state.selectedMemoryNotifIndex];
-              await this.rejectMemoryUpdate((selected.proposal_id || selected.id) as string);
-            }
-          }
-          return panes.findIndex((p) => p.id === this.activePaneId);
-        }
-
-        // Handle view picker
-        if (this.state.showViewPicker) {
-          if (key === "escape" || key === "esc") {
-            this.state.showViewPicker = false;
-          } else if (key === "up" || key === "k") {
-            viewPickerIndex = (viewPickerIndex - 1 + views.length) % views.length;
-          } else if (key === "down" || key === "j") {
-            viewPickerIndex = (viewPickerIndex + 1) % views.length;
-          } else if (key === "enter") {
-            // Change current pane's view
-            const activePane = panes.find((p) => p.id === this.activePaneId);
-            if (activePane) {
-              activePane.view = views[viewPickerIndex];
-            }
-            this.state.showViewPicker = false;
-          } else if (key >= "1" && key <= "7") {
-            const idx = parseInt(key) - 1;
-            if (idx < views.length) {
-              const activePane = panes.find((p) => p.id === this.activePaneId);
-              if (activePane) {
-                activePane.view = views[idx];
-              }
-              this.state.showViewPicker = false;
-            }
-          }
-          return panes.findIndex((p) => p.id === this.activePaneId);
-        }
-
-        // Normal key handling
-        if (key === "?" || key === "f1") {
-          this.state.showHelp = true;
-        } else if (key === "p") {
-          this.state.showViewPicker = true;
-          viewPickerIndex = 0;
-        } else if (key === "n") {
-          this.state.showNotifications = !this.state.showNotifications;
-        } else if (key === "m") {
-          this.state.showMemoryNotifications = !this.state.showMemoryNotifications;
-          this.state.selectedMemoryNotifIndex = 0;
-        } else if (key === "tab") {
-          const currentIndex = panes.findIndex((p) => p.id === this.activePaneId);
-          const nextIndex = (currentIndex + 1) % panes.length;
-          this.activePaneId = panes[nextIndex].id;
-          panes.forEach((p) => p.focused = false);
-          panes[nextIndex].focused = true;
-        } else if (key === "shift+tab") {
-          const currentIndex = panes.findIndex((p) => p.id === this.activePaneId);
-          const prevIndex = (currentIndex - 1 + panes.length) % panes.length;
-          this.activePaneId = panes[prevIndex].id;
-          panes.forEach((p) => p.focused = false);
-          panes[prevIndex].focused = true;
-        } else if (key >= "1" && key <= "7") {
-          // Direct pane navigation
-          const idx = parseInt(key) - 1;
-          if (idx < panes.length) {
-            panes.forEach((p) => p.focused = false);
-            panes[idx].focused = true;
-            this.activePaneId = panes[idx].id;
-          }
-        } else if (key === "v") { // Split vertical
-          const activePane = panes.find((p) => p.id === this.activePaneId);
-          if (activePane && panes.length < 4) {
-            const newId = `pane-${panes.length}`;
-            const halfWidth = Math.floor(activePane.width / 2);
-            activePane.width = halfWidth;
-            const newPane: Pane = {
-              id: newId,
-              view: views[panes.length % views.length],
-              x: activePane.x + halfWidth,
-              y: activePane.y,
-              width: activePane.width,
-              height: activePane.height,
-              focused: false,
-              maximized: false,
-            };
-            panes.push(newPane);
-            await this.notify("Pane split vertically", "info");
-          }
-        } else if (key === "h") { // Split horizontal
-          const activePane = panes.find((p) => p.id === this.activePaneId);
-          if (activePane && panes.length < 4) {
-            const newId = `pane-${panes.length}`;
-            const halfHeight = Math.floor(activePane.height / 2);
-            activePane.height = halfHeight;
-            const newPane: Pane = {
-              id: newId,
-              view: this.views[panes.length % this.views.length],
-              x: activePane.x,
-              y: activePane.y + halfHeight,
-              width: activePane.width,
-              height: activePane.height,
-              focused: false,
-              maximized: false,
-            };
-            panes.push(newPane);
-            await this.notify("Pane split horizontally", "info");
-          }
-        } else if (key === "c") { // Close pane
-          if (panes.length > 1) {
-            const index = panes.findIndex((p) => p.id === this.activePaneId);
-            panes.splice(index, 1);
-            this.activePaneId = panes[0].id;
-            panes[0].focused = true;
-            await this.notify("Pane closed", "info");
-          }
-        } else if (key === "z") { // Maximize/restore
-          this.maximizePane(this.activePaneId);
-        } else if (key === "enter") { // Enter
-          // No-op for test
-        } else if (key === "s") { // Save layout
-          if (this.saveLayout) await this.saveLayout();
-        } else if (key === "r") { // Restore layout
-          if (this.restoreLayout) await this.restoreLayout();
-        } else if (key === "d") { // Reset to default
-          if (this.resetToDefault) await this.resetToDefault();
-        }
-        return panes.findIndex((p) => p.id === this.activePaneId);
+        const viewPickerRef = { index: viewPickerIndex };
+        const idx = await import("./tui_helpers/handle_key.ts").then((m) =>
+          m.testModeHandleKey(this, key, panes, views, viewPickerRef)
+        );
+        viewPickerIndex = viewPickerRef.index;
+        return idx;
       },
       async render() {
         // Test mode render - does nothing
@@ -973,82 +809,21 @@ export async function launchTuiDashboard(
 
   const prodState: DashboardViewState = createDefaultDashboardState();
 
-  // Helper to add notification
-  const addNotification = (message: string, type: "info" | "success" | "warning" | "error" = "info") => {
-    // Legacy support for production TUI - using database is better
-    // For now we'll just log it
-    console.log(`[${type}] ${message}`);
+  // Helper to add notification (accepts generic string to match helper signature)
+  const addNotification = (message: string, type?: string) => {
+    const t = type ?? "info";
+    console.log(`[${t}] ${message}`);
   };
 
-  // Layout persistence
-  const layoutFile = `${Deno.env.get("HOME")}/.exoframe/tui_layout.json`;
-
-  const saveLayout = async () => {
-    try {
-      await Deno.mkdir(`${Deno.env.get("HOME")}/.exoframe`, { recursive: true });
-      const layout = {
-        panes: panes.map((p) => ({
-          id: p.id,
-          viewName: p.view.name,
-          x: p.x,
-          y: p.y,
-          width: p.width,
-          height: p.height,
-          focused: p.focused,
-          maximized: p.maximized,
-        })),
-        activePaneId,
-        version: "1.1",
-      };
-      await Deno.writeTextFile(layoutFile, JSON.stringify(layout, null, 2));
-      addNotification("Layout saved", "success");
-    } catch (error) {
-      addNotification(`Failed to save layout: ${error}`, "error");
-    }
-  };
-
+  // Layout persistence delegated to helper module
+  const saveLayout = async () => await helperSaveLayout(panes, activePaneId, addNotification);
   const restoreLayout = async () => {
-    try {
-      const content = await Deno.readTextFile(layoutFile);
-      const layout = JSON.parse(content);
-      if ((layout.version === "1.0" || layout.version === "1.1") && layout.panes) {
-        panes.length = 0;
-        for (const p of layout.panes) {
-          const view = views.find((v) => v.name === p.viewName) || views[0];
-          panes.push({
-            id: p.id,
-            view,
-            x: p.x,
-            y: p.y,
-            width: p.width,
-            height: p.height,
-            focused: p.focused,
-            maximized: p.maximized ?? false,
-          });
-        }
-        activePaneId = layout.activePaneId || panes[0]?.id || "main";
-        addNotification("Layout restored", "success");
-      }
-    } catch (_error) {
-      // If restore fails, keep default layout
-      console.log("Using default layout (restore failed)");
-    }
+    const result = await helperRestoreLayout(panes, views, addNotification);
+    if (result?.activePaneId) activePaneId = result.activePaneId;
   };
-
   const resetToDefault = () => {
-    panes.length = 0;
-    panes.push({
-      id: "main",
-      view: views[0],
-      x: 0,
-      y: 0,
-      width: 80,
-      height: 24,
-      focused: true,
-      maximized: false,
-    });
-    activePaneId = "main";
-    addNotification("Layout reset to default", "info");
+    const newId = helperResetToDefault(panes, views, addNotification);
+    activePaneId = newId;
   };
 
   // Restore layout on startup
@@ -1058,7 +833,7 @@ export async function launchTuiDashboard(
   console.log("ExoFrame TUI Dashboard");
   console.log("======================");
 
-  const render = async () => {
+  async function prodRender() {
     console.clear();
 
     // Header with view indicators
@@ -1135,11 +910,12 @@ export async function launchTuiDashboard(
     console.log("║ Layout: s=save, r=restore, d=default | n=notifications | p=view picker      ║");
     console.log("║ Exit: Esc                                                                    ║");
     console.log("╚══════════════════════════════════════════════════════════════════════════════╝");
-  };
+  }
 
+  const render = prodRender;
   await render();
 
-  if (!options.nonInteractive) {
+  async function runProdInteractiveLoop() {
     // Interactive mode: attempt to enable raw mode when possible and provide a line-based fallback
     let rawEnabled = false;
     try {
@@ -1160,185 +936,25 @@ export async function launchTuiDashboard(
           const input = decoder.decode(chunk);
           const key = input; // preserve escape sequences
 
-          // Handle help overlay
-          if (prodState.showHelp) {
-            if (key === "?" || key === "\x1b") {
-              prodState.showHelp = false;
-              await render();
-            }
-            continue;
-          }
+          const activePaneRef = { id: activePaneId };
+          const res = await import("./tui_helpers/prod_handle_key.ts").then((m) =>
+            m.prodHandleKey(key, {
+              prodState,
+              panes,
+              views,
+              activePaneRef,
+              notificationService,
+              addNotification,
+              saveLayout,
+              restoreLayout,
+              resetToDefault,
+            })
+          );
 
-          // Handle memory notifications
-          if (prodState.showMemoryNotifications) {
-            if (key === "m" || key === "\x1b") {
-              prodState.showMemoryNotifications = false;
-              await render();
-            } else {
-              const allNotifs = await notificationService.getNotifications();
-              const memoryNotifs = allNotifs.filter((n: TuiNotification) => n.type === "memory_update_pending");
-              const count = memoryNotifs.length;
-
-              if (key === "\x1b[A" || key === "k") { // Up arrow
-                if (count > 0) {
-                  prodState.selectedMemoryNotifIndex = (prodState.selectedMemoryNotifIndex - 1 + count) % count;
-                  await render();
-                }
-              } else if (key === "\x1b[B" || key === "j") { // Down arrow
-                if (count > 0) {
-                  prodState.selectedMemoryNotifIndex = (prodState.selectedMemoryNotifIndex + 1) % count;
-                  await render();
-                }
-              } else if (key === "a" && count > 0) {
-                const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
-                await notificationService.notify(`Approved: ${selected.message}`, "success");
-                await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
-                await render();
-              } else if (key === "r" && count > 0) {
-                const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
-                await notificationService.notify(`Rejected: ${selected.message}`, "error");
-                await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
-                await render();
-              }
-            }
-            continue;
-          }
-
-          // Handle notification panel
-          if (prodState.showNotifications) {
-            if (key === "n" || key === "\x1b") {
-              prodState.showNotifications = false;
-              await render();
-            }
-            continue;
-          }
-
-          if (key === "\x1b") { // Esc
-            break;
-          } else if (key === "?") { // Help
-            prodState.showHelp = true;
-            await render();
-          } else if (key === "n") { // Notifications
-            prodState.showNotifications = !prodState.showNotifications;
-            await render();
-          } else if (key === "m") { // Memory Updates
-            prodState.showMemoryNotifications = !prodState.showMemoryNotifications;
-            prodState.selectedMemoryNotifIndex = 0;
-            await render();
-          } else if (key === "\t") { // Tab
-            const currentIndex = panes.findIndex((p) => p.id === activePaneId);
-            const nextIndex = (currentIndex + 1) % panes.length;
-            activePaneId = panes[nextIndex].id;
-            panes.forEach((p) => p.focused = false);
-            panes[nextIndex].focused = true;
-            await render();
-          } else if (key === "\x1b[Z") { // Shift+Tab (reverse)
-            const currentIndex = panes.findIndex((p) => p.id === activePaneId);
-            const prevIndex = (currentIndex - 1 + panes.length) % panes.length;
-            activePaneId = panes[prevIndex].id;
-            panes.forEach((p) => p.focused = false);
-            panes[prevIndex].focused = true;
-            await render();
-          } else if (key >= "1" && key <= "7") { // Direct pane jump
-            const idx = parseInt(key) - 1;
-            if (idx < panes.length) {
-              panes.forEach((p) => p.focused = false);
-              panes[idx].focused = true;
-              activePaneId = panes[idx].id;
-              await render();
-            }
-          } else if (key === "v") { // Split vertical
-            const activePane = panes.find((p) => p.id === activePaneId);
-            if (activePane && panes.length < 4) { // Limit to 4 panes
-              const newId = `pane-${panes.length}`;
-              const halfWidth = Math.floor(activePane.width / 2);
-              activePane.width = halfWidth;
-              const newPane: Pane = {
-                id: newId,
-                view: views[panes.length % views.length],
-                x: activePane.x + halfWidth,
-                y: activePane.y,
-                width: activePane.width,
-                height: activePane.height,
-                focused: false,
-                maximized: false,
-              };
-              panes.push(newPane);
-              addNotification("Pane split vertically", "info");
-            }
-            await render();
-          } else if (key === "h") { // Split horizontal
-            const activePane = panes.find((p) => p.id === activePaneId);
-            if (activePane && panes.length < 4) {
-              const newId = `pane-${panes.length}`;
-              const halfHeight = Math.floor(activePane.height / 2);
-              activePane.height = halfHeight;
-              const newPane: Pane = {
-                id: newId,
-                view: views[panes.length % views.length],
-                x: activePane.x,
-                y: activePane.y + halfHeight,
-                width: activePane.width,
-                height: activePane.height,
-                focused: false,
-                maximized: false,
-              };
-              panes.push(newPane);
-              addNotification("Pane split horizontally", "info");
-            }
-            await render();
-          } else if (key === "c") { // Close pane
-            if (panes.length > 1) {
-              const index = panes.findIndex((p) => p.id === activePaneId);
-              panes.splice(index, 1);
-              activePaneId = panes[0].id;
-              panes[0].focused = true;
-              addNotification("Pane closed", "info");
-            }
-            await render();
-          } else if (key === "z") { // Maximize/restore
-            const activePane = panes.find((p) => p.id === activePaneId);
-            if (activePane) {
-              if (activePane.maximized) {
-                if (activePane.previousBounds) {
-                  activePane.x = activePane.previousBounds.x;
-                  activePane.y = activePane.previousBounds.y;
-                  activePane.width = activePane.previousBounds.width;
-                  activePane.height = activePane.previousBounds.height;
-                }
-                activePane.maximized = false;
-                addNotification("Pane restored", "info");
-              } else {
-                activePane.previousBounds = {
-                  x: activePane.x,
-                  y: activePane.y,
-                  width: activePane.width,
-                  height: activePane.height,
-                };
-                activePane.x = 0;
-                activePane.y = 0;
-                activePane.width = 80;
-                activePane.height = 24;
-                activePane.maximized = true;
-                addNotification("Pane maximized", "info");
-              }
-            }
-            await render();
-          } else if (key === "\n") { // Enter
-            console.log(`Selected pane: ${panes.find((p) => p.id === activePaneId)?.view.name}`);
-            // TODO: Implement pane-specific actions
-            await render();
-          } else if (key === "s") { // Save layout
-            await saveLayout();
-            await render();
-          } else if (key === "r") { // Restore layout
-            await restoreLayout();
-            await render();
-          } else if (key === "d") { // Reset to default
-            resetToDefault();
-            await render();
-          }
-          // Ignore other keys
+          activePaneId = activePaneRef.id;
+          if (res?.exit) break;
+          if (res?.reRender) await render();
+          continue;
         }
       } else {
         // Non-raw fallback: read lines from stdin (Enter-terminated commands)
@@ -1347,210 +963,24 @@ export async function launchTuiDashboard(
           const cmd = line.trim().toLowerCase();
           if (!cmd) continue;
 
-          // Handle help overlay
-          if (prodState.showHelp) {
-            if (cmd === "?" || cmd === "esc" || cmd === "escape") {
-              prodState.showHelp = false;
-              await render();
-            }
-            continue;
-          }
+          const activePaneRef = { id: activePaneId };
+          const res = await import("./tui_helpers/prod_handle_key.ts").then((m) =>
+            m.prodHandleKey(cmd, {
+              prodState,
+              panes,
+              views,
+              activePaneRef,
+              notificationService,
+              addNotification,
+              saveLayout,
+              restoreLayout,
+              resetToDefault,
+            })
+          );
 
-          // Handle memory notifications
-          if (prodState.showMemoryNotifications) {
-            if (cmd === "m" || cmd === "esc" || cmd === "escape") {
-              prodState.showMemoryNotifications = false;
-              await render();
-            } else {
-              const allNotifs = await notificationService.getNotifications();
-              const memoryNotifs = allNotifs.filter((n: TuiNotification) => n.type === "memory_update_pending");
-              const count = memoryNotifs.length;
-
-              if (cmd === "up" || cmd === "k") {
-                if (count > 0) {
-                  prodState.selectedMemoryNotifIndex = (prodState.selectedMemoryNotifIndex - 1 + count) % count;
-                  await render();
-                }
-              } else if (cmd === "down" || cmd === "j") {
-                if (count > 0) {
-                  prodState.selectedMemoryNotifIndex = (prodState.selectedMemoryNotifIndex + 1) % count;
-                  await render();
-                }
-              } else if (cmd === "a" && count > 0) {
-                const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
-                await notificationService.notify(`Approved: ${selected.message}`, "success");
-                await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
-                await render();
-              } else if (cmd === "r" && count > 0) {
-                const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
-                await notificationService.notify(`Rejected: ${selected.message}`, "error");
-                await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
-                await render();
-              }
-            }
-            continue;
-          }
-
-          // Handle notification panel
-          if (prodState.showNotifications) {
-            if (cmd === "n" || cmd === "esc" || cmd === "escape") {
-              prodState.showNotifications = false;
-              await render();
-            }
-            continue;
-          }
-
-          if (cmd === "esc" || cmd === "exit" || cmd === "q") break;
-
-          if (cmd === "?") {
-            prodState.showHelp = true;
-            await render();
-            continue;
-          }
-          if (cmd === "n") {
-            prodState.showNotifications = !prodState.showNotifications;
-            await render();
-            continue;
-          }
-          if (cmd === "m") {
-            prodState.showMemoryNotifications = !prodState.showMemoryNotifications;
-            prodState.selectedMemoryNotifIndex = 0;
-            await render();
-            continue;
-          }
-          if (cmd === "tab") {
-            const currentIndex = panes.findIndex((p) => p.id === activePaneId);
-            const nextIndex = (currentIndex + 1) % panes.length;
-            activePaneId = panes[nextIndex].id;
-            panes.forEach((p) => p.focused = false);
-            panes[nextIndex].focused = true;
-            await render();
-            continue;
-          }
-          if (cmd === "shift+tab" || cmd === "shift-tab") {
-            const currentIndex = panes.findIndex((p) => p.id === activePaneId);
-            const prevIndex = (currentIndex - 1 + panes.length) % panes.length;
-            activePaneId = panes[prevIndex].id;
-            panes.forEach((p) => p.focused = false);
-            panes[prevIndex].focused = true;
-            await render();
-            continue;
-          }
-          if (cmd >= "1" && cmd <= "7") {
-            const idx = parseInt(cmd) - 1;
-            if (idx < panes.length) {
-              panes.forEach((p) => p.focused = false);
-              panes[idx].focused = true;
-              activePaneId = panes[idx].id;
-              await render();
-            }
-            continue;
-          }
-          if (cmd === "v") {
-            const activePane = panes.find((p) => p.id === activePaneId);
-            if (activePane && panes.length < 4) {
-              const newId = `pane-${panes.length}`;
-              const halfWidth = Math.floor(activePane.width / 2);
-              activePane.width = halfWidth;
-              const newPane: Pane = {
-                id: newId,
-                view: views[panes.length % views.length],
-                x: activePane.x + halfWidth,
-                y: activePane.y,
-                width: activePane.width,
-                height: activePane.height,
-                focused: false,
-                maximized: false,
-              };
-              panes.push(newPane);
-              addNotification("Pane split vertically", "info");
-            }
-            await render();
-            continue;
-          }
-          if (cmd === "h") {
-            const activePane = panes.find((p) => p.id === activePaneId);
-            if (activePane && panes.length < 4) {
-              const newId = `pane-${panes.length}`;
-              const halfHeight = Math.floor(activePane.height / 2);
-              activePane.height = halfHeight;
-              const newPane: Pane = {
-                id: newId,
-                view: views[panes.length % views.length],
-                x: activePane.x,
-                y: activePane.y + halfHeight,
-                width: activePane.width,
-                height: activePane.height,
-                focused: false,
-                maximized: false,
-              };
-              panes.push(newPane);
-              addNotification("Pane split horizontally", "info");
-            }
-            await render();
-            continue;
-          }
-          if (cmd === "c") {
-            if (panes.length > 1) {
-              const index = panes.findIndex((p) => p.id === activePaneId);
-              panes.splice(index, 1);
-              activePaneId = panes[0].id;
-              panes[0].focused = true;
-              addNotification("Pane closed", "info");
-            }
-            await render();
-            continue;
-          }
-          if (cmd === "z") {
-            const activePane = panes.find((p) => p.id === activePaneId);
-            if (activePane) {
-              if (activePane.maximized) {
-                if (activePane.previousBounds) {
-                  activePane.x = activePane.previousBounds.x;
-                  activePane.y = activePane.previousBounds.y;
-                  activePane.width = activePane.previousBounds.width;
-                  activePane.height = activePane.previousBounds.height;
-                }
-                activePane.maximized = false;
-                addNotification("Pane restored", "info");
-              } else {
-                activePane.previousBounds = {
-                  x: activePane.x,
-                  y: activePane.y,
-                  width: activePane.width,
-                  height: activePane.height,
-                };
-                activePane.x = 0;
-                activePane.y = 0;
-                activePane.width = 80;
-                activePane.height = 24;
-                activePane.maximized = true;
-                addNotification("Pane maximized", "info");
-              }
-            }
-            await render();
-            continue;
-          }
-          if (cmd === "enter") {
-            console.log(`Selected pane: ${panes.find((p) => p.id === activePaneId)?.view.name}`);
-            await render();
-            continue;
-          }
-          if (cmd === "s") {
-            await saveLayout();
-            await render();
-            continue;
-          }
-          if (cmd === "r") {
-            await restoreLayout();
-            await render();
-            continue;
-          }
-          if (cmd === "d") {
-            resetToDefault();
-            await render();
-            continue;
-          }
+          activePaneId = activePaneRef.id;
+          if (res?.exit) break;
+          if (res?.reRender) await render();
         }
       }
     } finally {
@@ -1558,6 +988,10 @@ export async function launchTuiDashboard(
         tryDisableRawMode();
       }
     }
+  }
+
+  if (!options.nonInteractive) {
+    await runProdInteractiveLoop();
   }
 
   // Save layout on exit

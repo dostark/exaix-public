@@ -656,50 +656,8 @@ export class MemoryCommands {
       lines.push("");
     }
 
-    if (exec.changes) {
-      const created = exec.changes.files_created?.length || 0;
-      const modified = exec.changes.files_modified?.length || 0;
-      const deleted = exec.changes.files_deleted?.length || 0;
-
-      if (created + modified + deleted > 0) {
-        lines.push("Changes:");
-        lines.push("─".repeat(40));
-        if (created > 0) {
-          lines.push(`  Created:  ${created} file(s)`);
-          for (const f of exec.changes.files_created || []) {
-            lines.push(`    + ${f}`);
-          }
-        }
-        if (modified > 0) {
-          lines.push(`  Modified: ${modified} file(s)`);
-          for (const f of exec.changes.files_modified || []) {
-            lines.push(`    ~ ${f}`);
-          }
-        }
-        if (deleted > 0) {
-          lines.push(`  Deleted:  ${deleted} file(s)`);
-          for (const f of exec.changes.files_deleted || []) {
-            lines.push(`    - ${f}`);
-          }
-        }
-        lines.push("");
-      }
-    }
-
-    if (exec.lessons_learned && exec.lessons_learned.length > 0) {
-      lines.push("Lessons Learned:");
-      lines.push("─".repeat(40));
-      for (const lesson of exec.lessons_learned) {
-        lines.push(`  • ${lesson}`);
-      }
-      lines.push("");
-    }
-
-    if (exec.error_message) {
-      lines.push("Error:");
-      lines.push("─".repeat(40));
-      lines.push(`  ${exec.error_message}`);
-    }
+    this.appendChangesSummary(lines, exec);
+    this.appendLessonsAndError(lines, exec);
 
     return lines.join("\n");
   }
@@ -735,31 +693,8 @@ export class MemoryCommands {
       lines.push("");
     }
 
-    if (exec.changes) {
-      const created = exec.changes.files_created || [];
-      const modified = exec.changes.files_modified || [];
-      const deleted = exec.changes.files_deleted || [];
-
-      if (created.length + modified.length + deleted.length > 0) {
-        lines.push("## Changes");
-        lines.push("");
-        if (created.length > 0) {
-          lines.push("### Created");
-          for (const f of created) lines.push(`- \`${f}\``);
-          lines.push("");
-        }
-        if (modified.length > 0) {
-          lines.push("### Modified");
-          for (const f of modified) lines.push(`- \`${f}\``);
-          lines.push("");
-        }
-        if (deleted.length > 0) {
-          lines.push("### Deleted");
-          for (const f of deleted) lines.push(`- \`${f}\``);
-          lines.push("");
-        }
-      }
-    }
+    // Reuse helper to append change sections in markdown format
+    this.appendChangesMarkdown(lines, exec);
 
     if (exec.lessons_learned && exec.lessons_learned.length > 0) {
       lines.push("## Lessons Learned");
@@ -1021,6 +956,83 @@ export class MemoryCommands {
     }
 
     return lines.join("\n");
+  }
+
+  // Helper: append change summary lines for table output
+  private appendChangesSummary(lines: string[], exec: ExecutionMemory): void {
+    if (!exec.changes) return;
+    const created = exec.changes.files_created?.length || 0;
+    const modified = exec.changes.files_modified?.length || 0;
+    const deleted = exec.changes.files_deleted?.length || 0;
+
+    if (created + modified + deleted > 0) {
+      lines.push("Changes:");
+      lines.push("─".repeat(40));
+      if (created > 0) {
+        lines.push(`  Created:  ${created} file(s)`);
+        for (const f of exec.changes.files_created || []) {
+          lines.push(`    + ${f}`);
+        }
+      }
+      if (modified > 0) {
+        lines.push(`  Modified: ${modified} file(s)`);
+        for (const f of exec.changes.files_modified || []) {
+          lines.push(`    ~ ${f}`);
+        }
+      }
+      if (deleted > 0) {
+        lines.push(`  Deleted:  ${deleted} file(s)`);
+        for (const f of exec.changes.files_deleted || []) {
+          lines.push(`    - ${f}`);
+        }
+      }
+      lines.push("");
+    }
+  }
+
+  // Helper: append lessons learned and error section
+  private appendLessonsAndError(lines: string[], exec: ExecutionMemory): void {
+    if (exec.lessons_learned && exec.lessons_learned.length > 0) {
+      lines.push("Lessons Learned:");
+      lines.push("─".repeat(40));
+      for (const lesson of exec.lessons_learned) {
+        lines.push(`  • ${lesson}`);
+      }
+      lines.push("");
+    }
+
+    if (exec.error_message) {
+      lines.push("Error:");
+      lines.push("─".repeat(40));
+      lines.push(`  ${exec.error_message}`);
+    }
+  }
+
+  private appendChangesMarkdown(lines: string[], exec: ExecutionMemory): void {
+    if (!exec.changes) return;
+    const created = exec.changes.files_created || [];
+    const modified = exec.changes.files_modified || [];
+    const deleted = exec.changes.files_deleted || [];
+
+    if (created.length + modified.length + deleted.length > 0) {
+      lines.push("## Changes");
+      lines.push("");
+      if (created.length > 0) {
+        lines.push("### Created");
+        for (const f of created) lines.push(`- \`${f}\``);
+        lines.push("");
+      }
+      if (modified.length > 0) {
+        lines.push("### Modified");
+        for (const f of modified) lines.push(`- \`${f}\``);
+        lines.push("");
+      }
+      if (deleted.length > 0) {
+        lines.push("### Deleted");
+        for (const f of deleted) lines.push(`- \`${f}\``);
+        lines.push("");
+      }
+    }
   }
 
   /**

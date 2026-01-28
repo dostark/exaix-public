@@ -88,6 +88,22 @@ export function traverse(node: Node, cb: (n: Node, parent?: Node) => void, paren
   }
 }
 
+// New traversal helper that provides the full ancestor chain to the callback.
+export function traverseWithAncestors(node: Node, cb: (n: Node, ancestors: Node[]) => void, ancestors: Node[] = []) {
+  if (!node || typeof node !== "object") return;
+  cb(node, ancestors);
+
+  for (const key of Object.keys(node)) {
+    if (key === "loc" || key === "range") continue;
+    const child = node[key];
+    if (Array.isArray(child)) {
+      for (const c of child) traverseWithAncestors(c, cb, [...ancestors, node]);
+    } else if (child && typeof child === "object" && child.type) {
+      traverseWithAncestors(child, cb, [...ancestors, node]);
+    }
+  }
+}
+
 export function complexityForNode(node: Node): number {
   let complexity = 1;
 
@@ -251,13 +267,20 @@ async function runComplexityCheck() {
     // Also compute top-level (module) complexity by traversing AST but skipping function bodies
     let topLevelComplexity = 0;
     if (ast) {
-      traverse(ast, (n: Node, parent?: Node) => {
+      traverseWithAncestors(ast, (n: Node, ancestors: Node[]) => {
         if (!n || typeof n.type !== "string") return;
-        // skip traversing inside functions when accounting for top-level
+        // If any ancestor is a function-like node, skip counting this node for top-level
         if (
-          parent &&
-          (parent.type === "FunctionDeclaration" || parent.type === "FunctionExpression" ||
-            parent.type === "ArrowFunctionExpression")
+          ancestors.some((a) =>
+            [
+              "FunctionDeclaration",
+              "FunctionExpression",
+              "ArrowFunctionExpression",
+              "ClassMethod",
+              "ObjectMethod",
+              "ClassPrivateMethod",
+            ].includes(a.type)
+          )
         ) return;
         switch (n.type) {
           case "IfStatement":

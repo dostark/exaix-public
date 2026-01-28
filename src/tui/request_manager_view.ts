@@ -677,6 +677,61 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     }
   }
 
+  /**
+   * Handle completed dialogs (delegated from handleKey).
+   * Extracted to keep handleKey concise and improve testability.
+   */
+  private async processDialogCompletion(
+    dialog: InputDialog | ConfirmDialog | null,
+    dialogType: "search" | "filter-status" | "filter-agent" | "create" | "priority" | null,
+  ): Promise<void> {
+    if (!dialog) return;
+
+    // Input dialog confirmed
+    if (dialog instanceof InputDialog && dialog.getState() === "confirmed") {
+      const result = dialog.getResult();
+      if (result.type === "confirmed") {
+        switch (dialogType) {
+          case "search":
+            this.handleSearchResult(result.value);
+            break;
+          case "filter-status":
+            this.handleFilterStatusResult(result.value);
+            break;
+          case "filter-agent":
+            this.handleFilterAgentResult(result.value);
+            break;
+          case "create":
+            // Async handling - await to surface errors to status
+            try {
+              await this.handleCreateResult(result.value);
+            } catch (e) {
+              this.setStatus(`Error: ${e}`, "error");
+            }
+            break;
+          case "priority":
+            this.handlePriorityResult(result.value);
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    // Confirm dialog (cancel request)
+    if (dialog instanceof ConfirmDialog && dialog.getState() === "confirmed") {
+      await this.processConfirmDialog(dialog);
+    }
+  }
+
+  private async processConfirmDialog(_dialog: ConfirmDialog): Promise<void> {
+    try {
+      await this.handleCancelConfirm();
+    } catch (e) {
+      this.setStatus(`Error: ${e}`, "error");
+    }
+  }
+
   private handlePriorityResult(value: string): void {
     if (!value || !this.state.selectedRequestId) return;
 
@@ -821,40 +876,8 @@ export class RequestManagerTuiSession extends TuiSessionBase {
         const dialogType = this.pendingDialogType;
         this.state.activeDialog = null;
         this.pendingDialogType = null;
-
-        // Handle InputDialog results
-        if (dialog instanceof InputDialog && dialog.getState() === "confirmed") {
-          const result = dialog.getResult();
-          if (result.type === "confirmed") {
-            switch (dialogType) {
-              case "search":
-                this.handleSearchResult(result.value);
-                break;
-              case "filter-status":
-                this.handleFilterStatusResult(result.value);
-                break;
-              case "filter-agent":
-                this.handleFilterAgentResult(result.value);
-                break;
-              case "create":
-                // Async handling - fire and forget with proper error handling
-                this.handleCreateResult(result.value).catch((e) => {
-                  this.setStatus(`Error: ${e}`, "error");
-                });
-                break;
-              case "priority":
-                this.handlePriorityResult(result.value);
-                break;
-            }
-          }
-        }
-
-        // Handle ConfirmDialog results
-        if (dialog instanceof ConfirmDialog && dialog.getState() === "confirmed") {
-          this.handleCancelConfirm().catch((e) => {
-            this.setStatus(`Error: ${e}`, "error");
-          });
-        }
+        // Delegate dialog completion handling to helpers
+        await this.processDialogCompletion(dialog, dialogType);
       }
       return true;
     }
