@@ -15,6 +15,6 @@
 
 ---
 
-## Phase 33.1: TUI Views Refactoring 📋 PLANNED
+## Phase 33.1: TUI Views Refactoring [/] IN PROGRESS
 
 **Goal:** Reduce duplication by 200-300 lines, reduce complexity from 15-25 to <10

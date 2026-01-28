@@ -10,6 +10,9 @@ import { ChangesetStatus } from "../enums.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
 import { isTestMode } from "../config/env_schema.ts";
+import { ValidationChain } from "./validation/validation_chain.ts";
+import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
+import { CommandUtils } from "./utils/command_utils.ts";
 
 export interface ChangesetMetadata {
   branch: string;
@@ -464,64 +467,82 @@ export class ChangesetCommands extends BaseCommand {
    * @param branchName Branch name or request_id
    */
   async approve(branchName: string): Promise<void> {
-    const changeset = await this.show(branchName);
-    const repoPath = await this.findRepoForBranch(changeset.branch);
+    try {
+      // Validate input
+      const validation = new ValidationChain()
+        .addRule("branchName", ValidationChain.required())
+        .addRule("branchName", ValidationChain.isString())
+        .validate({ branchName });
 
-    // Get the default branch for this repository
-    const defaultBranch = await this.getDefaultBranch(repoPath);
+      if (!validation.isValid) {
+        throw new Error(CommandUtils.formatValidationErrors(validation));
+      }
 
-    // Verify we're on the default branch
-    const currentBranchCmd = new Deno.Command("git", {
-      args: ["branch", "--show-current"],
-      cwd: repoPath,
-      stdout: "piped",
-      stderr: "piped",
-    });
+      const changeset = await this.show(branchName);
+      const repoPath = await this.findRepoForBranch(changeset.branch);
 
-    const branchResult = await currentBranchCmd.output();
-    const currentBranch = new TextDecoder().decode(branchResult.stdout).trim();
+      // Get the default branch for this repository
+      const defaultBranch = await this.getDefaultBranch(repoPath);
 
-    if (currentBranch !== defaultBranch) {
-      throw new Error(
-        `Must be on '${defaultBranch}' branch to approve changesets (currently on '${currentBranch}')\nRun: git checkout ${defaultBranch}`,
-      );
+      // Verify we're on the default branch
+      const currentBranchCmd = new Deno.Command("git", {
+        args: ["branch", "--show-current"],
+        cwd: repoPath,
+        stdout: "piped",
+        stderr: "piped",
+      });
+
+      const branchResult = await currentBranchCmd.output();
+      const currentBranch = new TextDecoder().decode(branchResult.stdout).trim();
+
+      if (currentBranch !== defaultBranch) {
+        throw new Error(
+          `Must be on '${defaultBranch}' branch to approve changesets (currently on '${currentBranch}')\nRun: git checkout ${defaultBranch}`,
+        );
+      }
+
+      // Create GitService for the portal repository
+      const portalGitService = new GitService({
+        config: this.config,
+        db: this.db,
+        repoPath,
+        traceId: changeset.trace_id,
+        agentId: await this.getUserIdentity(),
+      });
+
+      // Merge branch
+      await portalGitService.runGitCommand([
+        "merge",
+        "--no-ff",
+        changeset.branch,
+        "-m",
+        `Merge ${changeset.request_id}: ${
+          changeset.commits[0]?.message || "agent changes"
+        }\n\nTrace-Id: ${changeset.trace_id}`,
+      ]);
+
+      // Get merge commit SHA
+      const shaResult = await portalGitService.runGitCommand(["rev-parse", "HEAD"]);
+      const commitSha = shaResult.output.trim();
+
+      // Log approval with user identity
+      const _userIdentity = await this.getUserIdentity();
+      const actionLogger = await this.getActionLogger();
+      actionLogger.info("changeset.approved", changeset.request_id, {
+        commit_sha: commitSha,
+        branch: changeset.branch,
+        files_changed: changeset.files_changed,
+        approved_at: new Date().toISOString(),
+        via: "cli",
+        command: this.getCommandLineString(),
+      }, changeset.trace_id);
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "ChangesetCommands.approve",
+        args: { branchName },
+        error,
+      });
     }
-
-    // Create GitService for the portal repository
-    const portalGitService = new GitService({
-      config: this.config,
-      db: this.db,
-      repoPath,
-      traceId: changeset.trace_id,
-      agentId: await this.getUserIdentity(),
-    });
-
-    // Merge branch
-    await portalGitService.runGitCommand([
-      "merge",
-      "--no-ff",
-      changeset.branch,
-      "-m",
-      `Merge ${changeset.request_id}: ${
-        changeset.commits[0]?.message || "agent changes"
-      }\n\nTrace-Id: ${changeset.trace_id}`,
-    ]);
-
-    // Get merge commit SHA
-    const shaResult = await portalGitService.runGitCommand(["rev-parse", "HEAD"]);
-    const commitSha = shaResult.output.trim();
-
-    // Log approval with user identity
-    const _userIdentity = await this.getUserIdentity();
-    const actionLogger = await this.getActionLogger();
-    actionLogger.info("changeset.approved", changeset.request_id, {
-      commit_sha: commitSha,
-      branch: changeset.branch,
-      files_changed: changeset.files_changed,
-      approved_at: new Date().toISOString(),
-      via: "cli",
-      command: this.getCommandLineString(),
-    }, changeset.trace_id);
   }
 
   /**
@@ -530,108 +551,123 @@ export class ChangesetCommands extends BaseCommand {
    * @param reason Rejection reason
    */
   async reject(branchName: string, reason: string): Promise<void> {
-    if (!reason || reason.trim().length === 0) {
-      throw new Error(
-        'Rejection reason is required\nUse: exoctl changeset reject <id> --reason "your reason"',
-      );
-    }
-
-    const changeset = await this.show(branchName);
-    const repoPath = await this.findRepoForBranch(changeset.branch);
-
-    // Create GitService for the portal repository
-    const portalGitService = new GitService({
-      config: this.config,
-      db: this.db,
-      repoPath,
-      traceId: changeset.trace_id,
-      agentId: await this.getUserIdentity(),
-    });
-
-    // Try to delete branch
     try {
-      await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
-    } catch (error) {
-      // Check if the error is due to branch being checked out
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage.includes("used by worktree") || errorMessage.includes("checked out")) {
-        // Branch is checked out somewhere, try to handle it
-        try {
-          // Check what branch is currently checked out
-          const currentBranchResult = await portalGitService.runGitCommand(["branch", "--show-current"]);
-          const currentBranch = currentBranchResult.output.trim();
+      // Validate input
+      const validation = new ValidationChain()
+        .addRule("branchName", ValidationChain.required())
+        .addRule("reason", (val) => (typeof val !== "string" || val.trim().length === 0) ? "is required" : null)
+        .validate({ branchName, reason });
 
-          if (currentBranch === changeset.branch) {
-            // Branch is checked out in the main working tree, switch to master first
-            await portalGitService.runGitCommand(["checkout", "master"]);
-          } else {
-            // Branch might be checked out in a worktree, try to remove worktrees
-            const worktreeList = await portalGitService.runGitCommand(["worktree", "list", "--porcelain"]);
-            const worktrees = worktreeList.output.trim().split("\n");
+      if (!validation.isValid) {
+        throw new Error(
+          CommandUtils.formatValidationErrors(validation) +
+            '\nUse: exoctl changeset reject <id> --reason "your reason"',
+        );
+      }
 
-            let worktreePath: string | null = null;
-            for (let i = 0; i < worktrees.length; i++) {
-              const line = worktrees[i];
-              if (line.startsWith("worktree ")) {
-                const path = line.substring("worktree ".length);
-                // Check the next few lines for branch info (skip HEAD line)
-                for (let j = i + 1; j < worktrees.length && j < i + 4; j++) {
-                  if (worktrees[j].startsWith("branch ")) {
-                    const branchRef = worktrees[j].substring("branch ".length);
-                    // Extract branch name from refs/heads/branch
-                    const branchName = branchRef.startsWith("refs/heads/")
-                      ? branchRef.substring("refs/heads/".length)
-                      : branchRef.split("/").pop();
-                    if (branchName === changeset.branch) {
-                      worktreePath = path;
-                      break;
+      const changeset = await this.show(branchName);
+      const repoPath = await this.findRepoForBranch(changeset.branch);
+
+      // Create GitService for the portal repository
+      const portalGitService = new GitService({
+        config: this.config,
+        db: this.db,
+        repoPath,
+        traceId: changeset.trace_id,
+        agentId: await this.getUserIdentity(),
+      });
+
+      // Try to delete branch
+      try {
+        await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
+      } catch (error) {
+        // Check if the error is due to branch being checked out
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage.includes("used by worktree") || errorMessage.includes("checked out")) {
+          // Branch is checked out somewhere, try to handle it
+          try {
+            // Check what branch is currently checked out
+            const currentBranchResult = await portalGitService.runGitCommand(["branch", "--show-current"]);
+            const currentBranch = currentBranchResult.output.trim();
+
+            if (currentBranch === changeset.branch) {
+              // Branch is checked out in the main working tree, switch to master first
+              await portalGitService.runGitCommand(["checkout", "master"]);
+            } else {
+              // Branch might be checked out in a worktree, try to remove worktrees
+              const worktreeList = await portalGitService.runGitCommand(["worktree", "list", "--porcelain"]);
+              const worktrees = worktreeList.output.trim().split("\n");
+
+              let worktreePath: string | null = null;
+              for (let i = 0; i < worktrees.length; i++) {
+                const line = worktrees[i];
+                if (line.startsWith("worktree ")) {
+                  const path = line.substring("worktree ".length);
+                  // Check the next few lines for branch info (skip HEAD line)
+                  for (let j = i + 1; j < worktrees.length && j < i + 4; j++) {
+                    if (worktrees[j].startsWith("branch ")) {
+                      const branchRef = worktrees[j].substring("branch ".length);
+                      // Extract branch name from refs/heads/branch
+                      const branchName = branchRef.startsWith("refs/heads/")
+                        ? branchRef.substring("refs/heads/".length)
+                        : branchRef.split("/").pop();
+                      if (branchName === changeset.branch) {
+                        worktreePath = path;
+                        break;
+                      }
                     }
                   }
+                  if (worktreePath) break;
                 }
-                if (worktreePath) break;
+              }
+
+              if (worktreePath) {
+                // Check if this is the main working tree (can't be removed)
+                const mainWorktreeResult = await portalGitService.runGitCommand(["worktree", "list", "--porcelain"]);
+                const mainWorktree = mainWorktreeResult.output.trim().split("\n")[0];
+                if (mainWorktree && mainWorktree.includes(worktreePath)) {
+                  // This is the main working tree, switch to master instead
+                  await portalGitService.runGitCommand(["checkout", "master"]);
+                } else {
+                  // Remove the worktree forcefully
+                  await portalGitService.runGitCommand(["worktree", "remove", "--force", worktreePath]);
+                }
               }
             }
 
-            if (worktreePath) {
-              // Check if this is the main working tree (can't be removed)
-              const mainWorktreeResult = await portalGitService.runGitCommand(["worktree", "list", "--porcelain"]);
-              const mainWorktree = mainWorktreeResult.output.trim().split("\n")[0];
-              if (mainWorktree && mainWorktree.includes(worktreePath)) {
-                // This is the main working tree, switch to master instead
-                await portalGitService.runGitCommand(["checkout", "master"]);
-              } else {
-                // Remove the worktree forcefully
-                await portalGitService.runGitCommand(["worktree", "remove", "--force", worktreePath]);
-              }
-            }
+            // Now try to delete the branch again
+            await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
+          } catch (worktreeError) {
+            const wtErrorMessage = worktreeError instanceof Error ? worktreeError.message : String(worktreeError);
+            throw new Error(
+              `Failed to delete branch: ${errorMessage}\n` +
+                `Attempted to resolve checkout/worktree conflict but failed: ${wtErrorMessage}\n` +
+                `Try manually checking out a different branch and then deleting: git checkout master && git branch -D ${changeset.branch}`,
+            );
           }
-
-          // Now try to delete the branch again
-          await portalGitService.runGitCommand(["branch", "-D", changeset.branch]);
-        } catch (worktreeError) {
-          const wtErrorMessage = worktreeError instanceof Error ? worktreeError.message : String(worktreeError);
-          throw new Error(
-            `Failed to delete branch: ${errorMessage}\n` +
-              `Attempted to resolve checkout/worktree conflict but failed: ${wtErrorMessage}\n` +
-              `Try manually checking out a different branch and then deleting: git checkout master && git branch -D ${changeset.branch}`,
-          );
+        } else {
+          // Re-throw other errors
+          throw error;
         }
-      } else {
-        // Re-throw other errors
-        throw error;
       }
-    }
 
-    // Log rejection with user identity
-    const _userIdentity = await this.getUserIdentity();
-    const actionLogger = await this.getActionLogger();
-    actionLogger.info("changeset.rejected", changeset.request_id, {
-      branch: changeset.branch,
-      rejection_reason: reason,
-      files_changed: changeset.files_changed,
-      rejected_at: new Date().toISOString(),
-      via: "cli",
-      command: this.getCommandLineString(),
-    }, changeset.trace_id);
+      // Log rejection with user identity
+      const _userIdentity = await this.getUserIdentity();
+      const actionLogger = await this.getActionLogger();
+      actionLogger.info("changeset.rejected", changeset.request_id, {
+        branch: changeset.branch,
+        rejection_reason: reason,
+        files_changed: changeset.files_changed,
+        rejected_at: new Date().toISOString(),
+        via: "cli",
+        command: this.getCommandLineString(),
+      }, changeset.trace_id);
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "ChangesetCommands.reject",
+        args: { branchName, reason },
+        error,
+      });
+    }
   }
 }

@@ -8,6 +8,7 @@ import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { ConfigService } from "../config/service.ts";
+import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
 
 export interface DaemonStatus {
   running: boolean;
@@ -34,139 +35,155 @@ export class DaemonCommands extends BaseCommand {
    * Start the ExoFrame daemon
    */
   async start(): Promise<void> {
-    const workspaceRoot = this.config.system.root;
-    const logFile = join(workspaceRoot, this.config.paths.runtime, "daemon.log");
+    try {
+      const workspaceRoot = this.config.system.root;
+      const logFile = join(workspaceRoot, this.config.paths.runtime, "daemon.log");
 
-    // Find daemon script relative to this command file
-    const currentFile = fromFileUrl(import.meta.url);
-    const mainScript = Deno.env.get("EXO_DAEMON_SCRIPT") || join(dirname(currentFile), "..", "main.ts");
+      // Find daemon script relative to this command file
+      const currentFile = fromFileUrl(import.meta.url);
+      const mainScript = Deno.env.get("EXO_DAEMON_SCRIPT") || join(dirname(currentFile), "..", "main.ts");
 
-    const status = await this.status();
-    if (status.running) {
-      await this.logger.info("daemon.already_running", "daemon", { pid: status.pid });
-      return;
-    }
+      const status = await this.status();
+      if (status.running) {
+        await this.logger.info("daemon.already_running", "daemon", { pid: status.pid });
+        return;
+      }
 
-    await this.logger.info("daemon.starting", "daemon");
+      await this.logger.info("daemon.starting", "daemon");
 
-    // Check if main.ts exists
-    if (!await exists(mainScript)) {
-      throw new Error(
-        `Daemon script not found: ${mainScript}\nEnsure ExoFrame is properly installed in this workspace`,
-      );
-    }
+      // Check if main.ts exists
+      if (!await exists(mainScript)) {
+        throw new Error(
+          `Daemon script not found: ${mainScript}\nEnsure ExoFrame is properly installed in this workspace`,
+        );
+      }
 
-    // Ensure log file directory exists
-    const exoDir = join(workspaceRoot, this.config.paths.runtime);
-    await ensureDir(exoDir);
+      // Ensure log file directory exists
+      const exoDir = join(workspaceRoot, this.config.paths.runtime);
+      await ensureDir(exoDir);
 
-    // Start daemon process in background using shell for true detachment
-    // This allows the CLI to exit while daemon continues running
-    const env: Record<string, string> = Deno.env.toObject();
+      // Start daemon process in background using shell for true detachment
+      // This allows the CLI to exit while daemon continues running
+      const env: Record<string, string> = Deno.env.toObject();
 
-    // Explicitly pass config path if available
-    if (this.configService) {
-      env.EXO_CONFIG_PATH = this.configService.getConfigPath();
-    }
+      // Explicitly pass config path if available
+      if (this.configService) {
+        env.EXO_CONFIG_PATH = this.configService.getConfigPath();
+      }
 
-    const exoEnvVars = Object.entries(env)
-      .filter(([k]) => k.startsWith("EXO_"))
-      .map(([k, v]) => `${k}=${v}`)
-      .join(" ");
-    const envPrefix = exoEnvVars ? `${exoEnvVars} ` : "";
-    const cmd = new Deno.Command("bash", {
-      args: [
-        "-c",
-        `${envPrefix}nohup deno run --allow-all "${mainScript}" > "${logFile}" 2>&1 & echo $!`,
-      ],
-      stdout: "piped",
-      stderr: "piped",
-      stdin: "null",
-      cwd: workspaceRoot,
-    });
-
-    const output = await cmd.output();
-    const pidStr = new TextDecoder().decode(output.stdout).trim();
-    const pid = parseInt(pidStr, 10);
-
-    if (isNaN(pid) || output.code !== 0) {
-      const err = new TextDecoder().decode(output.stderr);
-      throw new Error(`Failed to start daemon: ${err}`);
-    }
-
-    // Write PID file
-    await Deno.writeTextFile(this.pidFile, pid.toString());
-
-    // Wait for daemon to fully start (up to 3 seconds with retries)
-    // CI environments may need more time for database initialization
-    const started = await this.waitForProcessState(pid, true, 3000);
-
-    if (!started) {
-      await this.logDaemonActivity("daemon.start_failed", {
-        error: "Daemon failed to start within timeout",
-        pid: pid,
+      const exoEnvVars = Object.entries(env)
+        .filter(([k]) => k.startsWith("EXO_"))
+        .map(([k, v]) => `${k}=${v}`)
+        .join(" ");
+      const envPrefix = exoEnvVars ? `${exoEnvVars} ` : "";
+      const cmd = new Deno.Command("bash", {
+        args: [
+          "-c",
+          `${envPrefix}nohup deno run --allow-all "${mainScript}" > "${logFile}" 2>&1 & echo $!`,
+        ],
+        stdout: "piped",
+        stderr: "piped",
+        stdin: "null",
+        cwd: workspaceRoot,
       });
-      throw new Error("Daemon failed to start. Check logs for details.");
-    }
 
-    // Log successful start (writes to both console and Activity Journal)
-    await this.logDaemonActivity("daemon.started", {
-      pid: pid,
-      log_file: logFile,
-    });
+      const output = await cmd.output();
+      const pidStr = new TextDecoder().decode(output.stdout).trim();
+      const pid = parseInt(pidStr, 10);
+
+      if (isNaN(pid) || output.code !== 0) {
+        const err = new TextDecoder().decode(output.stderr);
+        throw new Error(`Failed to start daemon: ${err}`);
+      }
+
+      // Write PID file
+      await Deno.writeTextFile(this.pidFile, pid.toString());
+
+      // Wait for daemon to fully start (up to 3 seconds with retries)
+      // CI environments may need more time for database initialization
+      const started = await this.waitForProcessState(pid, true, 3000);
+
+      if (!started) {
+        await this.logDaemonActivity("daemon.start_failed", {
+          error: "Daemon failed to start within timeout",
+          pid: pid,
+        });
+        throw new Error("Daemon failed to start. Check logs for details.");
+      }
+
+      // Log successful start (writes to both console and Activity Journal)
+      await this.logDaemonActivity("daemon.started", {
+        pid: pid,
+        log_file: logFile,
+      });
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "DaemonCommands.start",
+        args: {},
+        error,
+      });
+    }
   }
 
   /**
    * Stop the ExoFrame daemon
    */
   async stop(): Promise<void> {
-    const status = await this.status();
-
-    if (!status.running) {
-      await this.logger.info("daemon.not_running", "daemon");
-      return;
-    }
-
-    await this.logger.info("daemon.stopping", "daemon", { pid: status.pid });
-
     try {
-      // Send SIGTERM
-      const killCmd = new Deno.Command("kill", {
-        args: ["-TERM", status.pid!.toString()],
-        stdout: "piped",
-        stderr: "piped",
-      });
+      const status = await this.status();
 
-      await killCmd.output();
-
-      // Wait for process to exit (up to 5 seconds)
-      const stopped = await this.waitForProcessState(status.pid!, false, 5000);
-      if (stopped) {
-        await Deno.remove(this.pidFile).catch(() => {});
-        await this.logDaemonActivity("daemon.stopped", {
-          pid: status.pid,
-          method: "graceful",
-        });
+      if (!status.running) {
+        await this.logger.info("daemon.not_running", "daemon");
         return;
       }
 
-      // Force kill if still running
-      await this.logger.warn("daemon.force_stopping", "daemon", { pid: status.pid });
-      const forceKillCmd = new Deno.Command("kill", {
-        args: ["-KILL", status.pid!.toString()],
-        stdout: "piped",
-        stderr: "piped",
-      });
+      await this.logger.info("daemon.stopping", "daemon", { pid: status.pid });
 
-      await forceKillCmd.output();
-      await Deno.remove(this.pidFile).catch(() => {});
-      await this.logDaemonActivity("daemon.stopped", {
-        pid: status.pid,
-        method: "forced",
+      try {
+        // Send SIGTERM
+        const killCmd = new Deno.Command("kill", {
+          args: ["-TERM", status.pid!.toString()],
+          stdout: "piped",
+          stderr: "piped",
+        });
+
+        await killCmd.output();
+
+        // Wait for process to exit (up to 5 seconds)
+        const stopped = await this.waitForProcessState(status.pid!, false, 5000);
+        if (stopped) {
+          await Deno.remove(this.pidFile).catch(() => {});
+          await this.logDaemonActivity("daemon.stopped", {
+            pid: status.pid,
+            method: "graceful",
+          });
+          return;
+        }
+
+        // Force kill if still running
+        await this.logger.warn("daemon.force_stopping", "daemon", { pid: status.pid });
+        const forceKillCmd = new Deno.Command("kill", {
+          args: ["-KILL", status.pid!.toString()],
+          stdout: "piped",
+          stderr: "piped",
+        });
+
+        await forceKillCmd.output();
+        await Deno.remove(this.pidFile).catch(() => {});
+        await this.logDaemonActivity("daemon.stopped", {
+          pid: status.pid,
+          method: "forced",
+        });
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        throw new Error(`Failed to stop daemon: ${message}`);
+      }
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "DaemonCommands.stop",
+        args: {},
+        error,
       });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to stop daemon: ${message}`);
     }
   }
 
@@ -174,17 +191,25 @@ export class DaemonCommands extends BaseCommand {
    * Restart the ExoFrame daemon
    */
   async restart(): Promise<void> {
-    await this.logger.info("daemon.restarting", "daemon");
-    const beforeStatus = await this.status();
-    await this.stop();
-    // Brief pause to ensure port/resources are released
-    await new Promise((resolve) => queueMicrotask(() => resolve(undefined)));
-    await this.start();
-    const afterStatus = await this.status();
-    await this.logDaemonActivity("daemon.restarted", {
-      previous_pid: beforeStatus.pid,
-      new_pid: afterStatus.pid,
-    });
+    try {
+      await this.logger.info("daemon.restarting", "daemon");
+      const beforeStatus = await this.status();
+      await this.stop();
+      // Brief pause to ensure port/resources are released
+      await new Promise((resolve) => queueMicrotask(() => resolve(undefined)));
+      await this.start();
+      const afterStatus = await this.status();
+      await this.logDaemonActivity("daemon.restarted", {
+        previous_pid: beforeStatus.pid,
+        new_pid: afterStatus.pid,
+      });
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "DaemonCommands.restart",
+        args: {},
+        error,
+      });
+    }
   }
 
   /**
@@ -250,27 +275,35 @@ export class DaemonCommands extends BaseCommand {
    * @param follow Follow log output (tail -f)
    */
   async logs(lines: number = 50, follow: boolean = false): Promise<void> {
-    const logFile = join(this.config.system.root, this.config.paths.runtime, "daemon.log");
+    try {
+      const logFile = join(this.config.system.root, this.config.paths.runtime, "daemon.log");
 
-    if (!await exists(logFile)) {
-      await this.logger.info("daemon.no_logs", logFile, { hint: "Daemon may not have been started yet" });
-      return;
+      if (!await exists(logFile)) {
+        await this.logger.info("daemon.no_logs", logFile, { hint: "Daemon may not have been started yet" });
+        return;
+      }
+
+      const args = ["-n", lines.toString()];
+      if (follow) {
+        args.push("-f");
+      }
+      args.push(logFile);
+
+      const cmd = new Deno.Command("tail", {
+        args,
+        stdout: "inherit",
+        stderr: "inherit",
+      });
+
+      const process = cmd.spawn();
+      await process.status;
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "DaemonCommands.logs",
+        args: { lines, follow },
+        error,
+      });
     }
-
-    const args = ["-n", lines.toString()];
-    if (follow) {
-      args.push("-f");
-    }
-    args.push(logFile);
-
-    const cmd = new Deno.Command("tail", {
-      args,
-      stdout: "inherit",
-      stderr: "inherit",
-    });
-
-    const process = cmd.spawn();
-    await process.status;
   }
 
   /**

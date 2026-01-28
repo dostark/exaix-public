@@ -5,6 +5,9 @@ import { BaseCommand, type CommandContext } from "./base.ts";
 import { PlanStatus } from "../enums.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { isTestMode } from "../config/env_schema.ts";
+import { ValidationChain } from "./validation/validation_chain.ts";
+import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
+import { CommandUtils } from "./utils/command_utils.ts";
 
 export interface PlanMetadata {
   id: string;
@@ -137,58 +140,76 @@ export class PlanCommands extends BaseCommand {
    * Only plans with status='review' can be approved.
    */
   async approve(planId: string, skills?: string[]): Promise<void> {
-    const sourcePath = join(this.workspacePlansDir, `${planId}.md`);
-    const targetPath = join(this.workspaceActiveDir, `${planId}.md`);
+    try {
+      // Validate input
+      const validation = new ValidationChain()
+        .addRule("planId", ValidationChain.required())
+        .addRule("planId", ValidationChain.isString())
+        .validate({ planId });
 
-    // Load and parse plan
-    const { frontmatter, body } = await this.loadPlan(sourcePath);
+      if (!validation.isValid) {
+        throw new Error(CommandUtils.formatValidationErrors(validation));
+      }
 
-    // Validate status
-    if (frontmatter.status !== PlanStatus.REVIEW) {
-      throw new Error(
-        `Only plans with status='review' can be approved. Current status: ${frontmatter.status}`,
-      );
+      const sourcePath = join(this.workspacePlansDir, `${planId}.md`);
+      const targetPath = join(this.workspaceActiveDir, `${planId}.md`);
+
+      // Load and parse plan
+      const { frontmatter, body } = await this.loadPlan(sourcePath);
+
+      // Validate status
+      if (frontmatter.status !== PlanStatus.REVIEW) {
+        throw new Error(
+          `Only plans with status='review' can be approved. Current status: ${frontmatter.status}`,
+        );
+      }
+
+      // Validate target path doesn't exist, or archive existing plan
+      if (await exists(targetPath)) {
+        // Archive existing plan
+        await ensureDir(this.workspaceArchiveDir);
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const archivePath = join(this.workspaceArchiveDir, `${planId}_archived_${timestamp}.md`);
+        await Deno.rename(targetPath, archivePath);
+      }
+
+      // Get user context
+      const { actor, actionLogger, now } = await this.getUserContext();
+
+      // Update frontmatter
+      const updatedFrontmatter: Record<string, unknown> = {
+        ...frontmatter,
+        status: PlanStatus.APPROVED,
+        approved_by: actor,
+        approved_at: now,
+      };
+
+      // Add skills if provided
+      if (skills && skills.length > 0) {
+        updatedFrontmatter.skills = JSON.stringify(skills);
+      }
+
+      // Write updated plan to target
+      await ensureDir(this.workspaceActiveDir);
+      const updatedContent = this.serializePlan(updatedFrontmatter, body);
+      await Deno.writeTextFile(targetPath, updatedContent);
+
+      // Remove original (atomic operation complete)
+      await Deno.remove(sourcePath);
+
+      // Log activity with user identity
+      actionLogger.info("plan.approved", planId, {
+        approved_at: now,
+        via: "cli",
+        command: this.getCommandLineString(),
+      }, frontmatter.trace_id as string | undefined);
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "PlanCommands.approve",
+        args: { planId, skills },
+        error,
+      });
     }
-
-    // Validate target path doesn't exist, or archive existing plan
-    if (await exists(targetPath)) {
-      // Archive existing plan
-      await ensureDir(this.workspaceArchiveDir);
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const archivePath = join(this.workspaceArchiveDir, `${planId}_archived_${timestamp}.md`);
-      await Deno.rename(targetPath, archivePath);
-    }
-
-    // Get user context
-    const { actor, actionLogger, now } = await this.getUserContext();
-
-    // Update frontmatter
-    const updatedFrontmatter: Record<string, unknown> = {
-      ...frontmatter,
-      status: PlanStatus.APPROVED,
-      approved_by: actor,
-      approved_at: now,
-    };
-
-    // Add skills if provided
-    if (skills && skills.length > 0) {
-      updatedFrontmatter.skills = JSON.stringify(skills);
-    }
-
-    // Write updated plan to target
-    await ensureDir(this.workspaceActiveDir);
-    const updatedContent = this.serializePlan(updatedFrontmatter, body);
-    await Deno.writeTextFile(targetPath, updatedContent);
-
-    // Remove original (atomic operation complete)
-    await Deno.remove(sourcePath);
-
-    // Log activity with user identity
-    actionLogger.info("plan.approved", planId, {
-      approved_at: now,
-      via: "cli",
-      command: this.getCommandLineString(),
-    }, frontmatter.trace_id as string | undefined);
   }
 
   /**
@@ -196,65 +217,79 @@ export class PlanCommands extends BaseCommand {
    * Requires a rejection reason.
    */
   async reject(planId: string, reason: string): Promise<void> {
-    if (!reason || reason.trim() === "") {
-      throw new Error("Rejection reason is required");
-    }
+    try {
+      // Validate input
+      const validation = new ValidationChain()
+        .addRule("planId", ValidationChain.required())
+        .addRule("reason", ValidationChain.required())
+        .validate({ planId, reason });
 
-    // Find the plan in any directory (like show method does)
-    const searchPaths = [
-      { path: join(this.workspacePlansDir, `${planId}.md`), sourceDir: this.workspacePlansDir },
-      { path: join(this.workspaceRejectedDir, `${planId}_rejected.md`), sourceDir: this.workspaceRejectedDir },
-      { path: join(this.workspaceActiveDir, `${planId}.md`), sourceDir: this.workspaceActiveDir },
-      { path: join(this.workspaceArchiveDir, `${planId}.md`), sourceDir: this.workspaceArchiveDir },
-    ];
-
-    let sourcePath: string | null = null;
-    let frontmatter: Record<string, unknown> | null = null;
-    let body: string | null = null;
-
-    for (const { path: planPath } of searchPaths) {
-      if (await exists(planPath)) {
-        const { frontmatter: fm, body: b } = await this.loadPlan(planPath);
-        sourcePath = planPath;
-        frontmatter = fm;
-        body = b;
-        break;
+      if (!validation.isValid) {
+        throw new Error(CommandUtils.formatValidationErrors(validation));
       }
+
+      // Find the plan in any directory (like show method does)
+      const searchPaths = [
+        { path: join(this.workspacePlansDir, `${planId}.md`), sourceDir: this.workspacePlansDir },
+        { path: join(this.workspaceRejectedDir, `${planId}_rejected.md`), sourceDir: this.workspaceRejectedDir },
+        { path: join(this.workspaceActiveDir, `${planId}.md`), sourceDir: this.workspaceActiveDir },
+        { path: join(this.workspaceArchiveDir, `${planId}.md`), sourceDir: this.workspaceArchiveDir },
+      ];
+
+      let sourcePath: string | null = null;
+      let frontmatter: Record<string, unknown> | null = null;
+      let body: string | null = null;
+
+      for (const { path: planPath } of searchPaths) {
+        if (await exists(planPath)) {
+          const { frontmatter: fm, body: b } = await this.loadPlan(planPath);
+          sourcePath = planPath;
+          frontmatter = fm;
+          body = b;
+          break;
+        }
+      }
+
+      if (!sourcePath || !frontmatter || !body) {
+        throw new Error(`Plan not found: ${planId}`);
+      }
+
+      const targetPath = join(this.workspaceRejectedDir, `${planId}_rejected.md`);
+
+      // Get user context
+      const { actor, actionLogger, now } = await this.getUserContext();
+
+      // Update frontmatter
+      const updatedFrontmatter = {
+        ...frontmatter,
+        status: PlanStatus.REJECTED,
+        rejected_by: actor,
+        rejected_at: now,
+        rejection_reason: reason,
+      };
+
+      // Write updated plan to target
+      await ensureDir(this.workspaceRejectedDir);
+      const updatedContent = this.serializePlan(updatedFrontmatter, body);
+      await Deno.writeTextFile(targetPath, updatedContent);
+
+      // Remove original (atomic operation complete)
+      await Deno.remove(sourcePath);
+
+      // Log activity with user identity
+      actionLogger.info("plan.rejected", planId, {
+        reason: reason,
+        rejected_at: now,
+        via: "cli",
+        command: this.getCommandLineString(),
+      }, frontmatter.trace_id as string | undefined);
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "PlanCommands.reject",
+        args: { planId, reason },
+        error,
+      });
     }
-
-    if (!sourcePath || !frontmatter || !body) {
-      throw new Error(`Plan not found: ${planId}`);
-    }
-
-    const targetPath = join(this.workspaceRejectedDir, `${planId}_rejected.md`);
-
-    // Get user context
-    const { actor, actionLogger, now } = await this.getUserContext();
-
-    // Update frontmatter
-    const updatedFrontmatter = {
-      ...frontmatter,
-      status: PlanStatus.REJECTED,
-      rejected_by: actor,
-      rejected_at: now,
-      rejection_reason: reason,
-    };
-
-    // Write updated plan to target
-    await ensureDir(this.workspaceRejectedDir);
-    const updatedContent = this.serializePlan(updatedFrontmatter, body);
-    await Deno.writeTextFile(targetPath, updatedContent);
-
-    // Remove original (atomic operation complete)
-    await Deno.remove(sourcePath);
-
-    // Log activity with user identity
-    actionLogger.info("plan.rejected", planId, {
-      reason: reason,
-      rejected_at: now,
-      via: "cli",
-      command: this.getCommandLineString(),
-    }, frontmatter.trace_id as string | undefined);
   }
 
   /**
@@ -262,55 +297,72 @@ export class PlanCommands extends BaseCommand {
    * Plan remains in Workspace/Plans for the agent to address.
    */
   async revise(planId: string, comments: string[]): Promise<void> {
-    if (!comments || comments.length === 0) {
-      throw new Error("At least one comment is required");
+    try {
+      // Validate input
+      const validation = new ValidationChain()
+        .addRule("planId", ValidationChain.required())
+        .addRule(
+          "comments",
+          (val) => (!Array.isArray(val) || val.length === 0) ? "at least one comment is required" : null,
+        )
+        .validate({ planId, comments });
+
+      if (!validation.isValid) {
+        throw new Error(CommandUtils.formatValidationErrors(validation));
+      }
+
+      const planPath = join(this.workspacePlansDir, `${planId}.md`);
+
+      // Load and parse plan
+      const { frontmatter, body } = await this.loadPlan(planPath);
+
+      // Get user context
+      const { actor, actionLogger, now } = await this.getUserContext();
+
+      // Update frontmatter
+      const updatedFrontmatter = {
+        ...frontmatter,
+        status: PlanStatus.NEEDS_REVISION,
+        reviewed_by: actor,
+        reviewed_at: now,
+      };
+
+      // Append comments to body
+      let updatedBody = body;
+      const reviewCommentsMarker = "## Review Comments";
+
+      // Check if review comments section exists
+      if (updatedBody.includes(reviewCommentsMarker)) {
+        // Append to existing section
+        const formattedComments = comments.map((c) => `⚠️ ${c}`).join("\n");
+        updatedBody = updatedBody.replace(
+          reviewCommentsMarker,
+          `${reviewCommentsMarker}\n\n${formattedComments}`,
+        );
+      } else {
+        // Add new section at the end
+        const formattedComments = comments.map((c) => `⚠️ ${c}`).join("\n");
+        updatedBody = `${updatedBody.trim()}\n\n${reviewCommentsMarker}\n\n${formattedComments}\n`;
+      }
+
+      // Write updated plan
+      const updatedContent = this.serializePlan(updatedFrontmatter, updatedBody);
+      await Deno.writeTextFile(planPath, updatedContent);
+
+      // Log activity with user identity
+      actionLogger.info("plan.revision_requested", planId, {
+        comment_count: comments.length,
+        reviewed_at: now,
+        via: "cli",
+        command: this.getCommandLineString(),
+      }, frontmatter.trace_id as string | undefined);
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "PlanCommands.revise",
+        args: { planId, comments },
+        error,
+      });
     }
-
-    const planPath = join(this.workspacePlansDir, `${planId}.md`);
-
-    // Load and parse plan
-    const { frontmatter, body } = await this.loadPlan(planPath);
-
-    // Get user context
-    const { actor, actionLogger, now } = await this.getUserContext();
-
-    // Update frontmatter
-    const updatedFrontmatter = {
-      ...frontmatter,
-      status: PlanStatus.NEEDS_REVISION,
-      reviewed_by: actor,
-      reviewed_at: now,
-    };
-
-    // Append comments to body
-    let updatedBody = body;
-    const reviewCommentsMarker = "## Review Comments";
-
-    // Check if review comments section exists
-    if (updatedBody.includes(reviewCommentsMarker)) {
-      // Append to existing section
-      const formattedComments = comments.map((c) => `⚠️ ${c}`).join("\n");
-      updatedBody = updatedBody.replace(
-        reviewCommentsMarker,
-        `${reviewCommentsMarker}\n\n${formattedComments}`,
-      );
-    } else {
-      // Add new section at the end
-      const formattedComments = comments.map((c) => `⚠️ ${c}`).join("\n");
-      updatedBody = `${updatedBody.trim()}\n\n${reviewCommentsMarker}\n\n${formattedComments}\n`;
-    }
-
-    // Write updated plan
-    const updatedContent = this.serializePlan(updatedFrontmatter, updatedBody);
-    await Deno.writeTextFile(planPath, updatedContent);
-
-    // Log activity with user identity
-    actionLogger.info("plan.revision_requested", planId, {
-      comment_count: comments.length,
-      reviewed_at: now,
-      via: "cli",
-      command: this.getCommandLineString(),
-    }, frontmatter.trace_id as string | undefined);
   }
 
   /**

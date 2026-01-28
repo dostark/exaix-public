@@ -14,6 +14,9 @@ import { ensureDir, exists } from "@std/fs";
 import { join } from "@std/path";
 import { parse as parseToml, stringify as stringifyToml } from "@std/toml";
 import { BaseCommand } from "./base.ts";
+import { ValidationChain } from "./validation/validation_chain.ts";
+import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
+import { CommandUtils } from "./utils/command_utils.ts";
 import {
   type BlueprintCreateResult,
   type BlueprintDetails,
@@ -425,134 +428,137 @@ export class BlueprintCommands extends BaseCommand {
     agentId: string,
     options: BlueprintCreateOptions,
   ): Promise<BlueprintCreateResult> {
-    // Validate agent_id format
-    if (!/^[a-z0-9-]+$/.test(agentId)) {
-      throw new Error(
-        "agent_id must be lowercase alphanumeric with hyphens only\nExample: test-agent",
-      );
-    }
+    try {
+      // Validate inputs
+      const validation = new ValidationChain()
+        .addRule("agentId", ValidationChain.required())
+        .addRule(
+          "agentId",
+          (val) => /^[a-z0-9-]+$/.test(String(val)) ? null : "must be lowercase alphanumeric with hyphens only",
+        )
+        .addRule("agentId", (val) => isReservedAgentId(String(val)) ? `reserved name: ${val}` : null)
+        .addRule("name", (_val) => (!options.name) ? "--name is required" : null)
+        .addRule("model", (_val) => (!options.model && !options.template) ? "--model is required" : null)
+        .validate({ agentId, ...options });
 
-    // Check reserved names
-    if (isReservedAgentId(agentId)) {
-      throw new Error(
-        `'${agentId}' is a reserved agent_id\nReserved names: ${Array.from(["system", "test"]).join(", ")}`,
-      );
-    }
+      if (!validation.isValid) {
+        throw new Error(CommandUtils.formatValidationErrors(validation));
+      }
 
-    // Check if blueprint already exists
-    const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
-    if (await exists(blueprintPath)) {
-      throw new Error(
-        `Blueprint '${agentId}' already exists\nUse 'exoctl blueprint edit ${agentId}' to modify`,
-      );
-    }
-
-    // Apply template if specified
-    let model = options.model;
-    let capabilities = options.capabilities?.split(",").map((s) => s.trim()) || [];
-    let systemPrompt = options.systemPrompt;
-
-    if (options.template && TEMPLATES[options.template]) {
-      const template = TEMPLATES[options.template];
-      model = model || template.model;
-      capabilities = capabilities.length > 0 ? capabilities : template.capabilities;
-      systemPrompt = systemPrompt || template.systemPrompt;
-    }
-
-    // Validate required fields
-    if (!options.name) {
-      throw new Error(
-        '--name is required\nUsage: exoctl blueprint create <agent-id> --name "<name>" --model "<model>"',
-      );
-    }
-
-    if (!model) {
-      throw new Error(
-        '--model is required\nUsage: exoctl blueprint create <agent-id> --name "<name>" --model "<model>"',
-      );
-    }
-
-    // Validate model provider is configured
-    const [provider] = model.split(":");
-    if (this.config.ai && provider !== "mock") {
-      const configuredProvider = this.config.ai.provider;
-      if (provider !== configuredProvider) {
-        console.warn(
-          `⚠️  Warning: Blueprint uses provider '${provider}' but config uses '${configuredProvider}'\n` +
-            `   The blueprint will be created but may fail at runtime.\n`,
+      // Check if blueprint already exists
+      const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
+      if (await exists(blueprintPath)) {
+        throw new Error(
+          `Blueprint '${agentId}' already exists\nUse 'exoctl blueprint edit ${agentId}' to modify`,
         );
       }
-    }
 
-    // Load system prompt from file if specified
-    if (options.systemPromptFile) {
-      if (!await exists(options.systemPromptFile)) {
-        throw new Error(`System prompt file not found: ${options.systemPromptFile}`);
+      // Apply template if specified
+      let model = options.model;
+      let capabilities = options.capabilities?.split(",").map((s) => s.trim()) || [];
+      let systemPrompt = options.systemPrompt;
+
+      if (options.template && TEMPLATES[options.template]) {
+        const template = TEMPLATES[options.template];
+        model = model || template.model;
+        capabilities = capabilities.length > 0 ? capabilities : template.capabilities;
+        systemPrompt = systemPrompt || template.systemPrompt;
       }
-      systemPrompt = await Deno.readTextFile(options.systemPromptFile);
-    }
 
-    // Use default template if no system prompt provided
-    if (!systemPrompt) {
-      systemPrompt = TEMPLATES.default.systemPrompt;
-    }
+      if (!model) {
+        // Should catch cases where template doesn't provide model or is invalid, though validation above helps
+        throw new Error("--model is required");
+      }
 
-    // Validate system prompt has required tags
-    if (!systemPrompt.includes("<thought>") || !systemPrompt.includes("<content>")) {
-      throw new Error(
-        "System prompt must include output format instructions\nRequired: <thought> and <content> tags",
-      );
-    }
+      // Validate model provider is configured
+      const [provider] = model.split(":");
+      if (this.config.ai && provider !== "mock") {
+        const configuredProvider = this.config.ai.provider;
+        if (provider !== configuredProvider) {
+          console.warn(
+            `⚠️  Warning: Blueprint uses provider '${provider}' but config uses '${configuredProvider}'\n` +
+              `   The blueprint will be created but may fail at runtime.\n`,
+          );
+        }
+      }
 
-    // Create frontmatter
-    const frontmatter = {
-      agent_id: agentId,
-      name: options.name,
-      model: model,
-      capabilities: capabilities,
-      created: new Date().toISOString(),
-      created_by: await this.getUserIdentity(),
-      version: "1.0.0",
-      ...(options.description && { description: options.description }),
-    };
+      // Load system prompt from file if specified
+      if (options.systemPromptFile) {
+        if (!await exists(options.systemPromptFile)) {
+          throw new Error(`System prompt file not found: ${options.systemPromptFile}`);
+        }
+        systemPrompt = await Deno.readTextFile(options.systemPromptFile);
+      }
 
-    // Validate frontmatter
-    const validation = BlueprintFrontmatterSchema.safeParse(frontmatter);
-    if (!validation.success) {
-      throw new Error(`Invalid blueprint: ${validation.error.message}`);
-    }
+      // Use default template if no system prompt provided
+      if (!systemPrompt) {
+        systemPrompt = TEMPLATES.default.systemPrompt;
+      }
 
-    // Generate blueprint content
-    const content = `+++
+      // Validate system prompt has required tags
+      if (!systemPrompt.includes("<thought>") || !systemPrompt.includes("<content>")) {
+        throw new Error(
+          "System prompt must include output format instructions\nRequired: <thought> and <content> tags",
+        );
+      }
+
+      // Create frontmatter
+      const frontmatter = {
+        agent_id: agentId,
+        name: options.name,
+        model: model,
+        capabilities: capabilities,
+        created: new Date().toISOString(),
+        created_by: await this.getUserIdentity(),
+        version: "1.0.0",
+        ...(options.description && { description: options.description }),
+      };
+
+      // Validate frontmatter
+      const frontmatterValidation = BlueprintFrontmatterSchema.safeParse(frontmatter);
+      if (!frontmatterValidation.success) {
+        throw new Error(`Invalid blueprint: ${frontmatterValidation.error.message}`);
+      }
+
+      // Generate blueprint content
+      const content = `+++
 ${stringifyToml(frontmatter)}+++
 
 ${systemPrompt}
 `;
 
-    // Ensure directory exists
-    await ensureDir(this.getBlueprintsDir());
+      // Ensure directory exists
+      await ensureDir(this.getBlueprintsDir());
 
-    // Write blueprint file
-    await Deno.writeTextFile(blueprintPath, content);
+      // Write blueprint file
+      await Deno.writeTextFile(blueprintPath, content);
 
-    // Log activity
-    const logger = await this.getActionLogger();
-    await logger.info("blueprint.created", agentId, {
-      model,
-      template: options.template,
-      via: "cli",
-    });
+      // Log activity
+      const logger = await this.getActionLogger();
+      await logger.info("blueprint.created", agentId, {
+        model,
+        template: options.template,
+        via: "cli",
+      });
 
-    return {
-      agent_id: agentId,
-      name: options.name,
-      model: model,
-      capabilities,
-      created: frontmatter.created,
-      created_by: frontmatter.created_by,
-      version: "1.0.0",
-      path: blueprintPath,
-    };
+      return {
+        agent_id: agentId,
+        name: options.name as string,
+        model: model,
+        capabilities,
+        created: frontmatter.created as string,
+        created_by: frontmatter.created_by as string,
+        version: "1.0.0",
+        path: blueprintPath,
+      };
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "BlueprintCommands.create",
+        args: { agentId, options },
+        error,
+      });
+      throw error;
+    }
   }
 
   /**
@@ -687,68 +693,84 @@ ${systemPrompt}
    * Edit a blueprint in user's $EDITOR
    */
   async edit(agentId: string): Promise<void> {
-    const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
+    try {
+      const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
 
-    if (!await exists(blueprintPath)) {
-      throw new Error(
-        `Blueprint '${agentId}' not found\nUse 'exoctl blueprint list' to see available blueprints`,
-      );
+      if (!await exists(blueprintPath)) {
+        throw new Error(
+          `Blueprint '${agentId}' not found\nUse 'exoctl blueprint list' to see available blueprints`,
+        );
+      }
+
+      // Get editor from environment or use default
+      const editor = Deno.env.get("EDITOR") || Deno.env.get("VISUAL") || "vi";
+
+      // Open file in editor
+      const command = new Deno.Command(editor, {
+        args: [blueprintPath],
+        stdin: "inherit",
+        stdout: "inherit",
+        stderr: "inherit",
+      });
+
+      const { code } = await command.output();
+
+      if (code !== 0) {
+        throw new Error(`Editor exited with code ${code}`);
+      }
+
+      // Validate after editing
+      const validation = await this.validate(agentId);
+      if (!validation.valid) {
+        console.warn(`\n⚠️  Warning: Blueprint has validation errors after editing:`);
+        validation.errors?.forEach((error) => console.warn(`   - ${error}`));
+        console.warn(`\nFix these issues or the blueprint may not work correctly.\n`);
+      }
+
+      // Log activity
+      const logger = await this.getActionLogger();
+      await logger.info("blueprint.edited", agentId, {
+        via: "cli",
+        editor,
+        valid: validation.valid,
+      });
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "BlueprintCommands.edit",
+        args: { agentId },
+        error,
+      });
     }
-
-    // Get editor from environment or use default
-    const editor = Deno.env.get("EDITOR") || Deno.env.get("VISUAL") || "vi";
-
-    // Open file in editor
-    const command = new Deno.Command(editor, {
-      args: [blueprintPath],
-      stdin: "inherit",
-      stdout: "inherit",
-      stderr: "inherit",
-    });
-
-    const { code } = await command.output();
-
-    if (code !== 0) {
-      throw new Error(`Editor exited with code ${code}`);
-    }
-
-    // Validate after editing
-    const validation = await this.validate(agentId);
-    if (!validation.valid) {
-      console.warn(`\n⚠️  Warning: Blueprint has validation errors after editing:`);
-      validation.errors?.forEach((error) => console.warn(`   - ${error}`));
-      console.warn(`\nFix these issues or the blueprint may not work correctly.\n`);
-    }
-
-    // Log activity
-    const logger = await this.getActionLogger();
-    await logger.info("blueprint.edited", agentId, {
-      via: "cli",
-      editor,
-      valid: validation.valid,
-    });
   }
 
   /**
    * Remove a blueprint
    */
   async remove(agentId: string, options: BlueprintRemoveOptions = {}): Promise<void> {
-    const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
+    try {
+      const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
 
-    if (!await exists(blueprintPath)) {
-      throw new Error(
-        `Blueprint '${agentId}' not found\nUse 'exoctl blueprint list' to see available blueprints`,
-      );
+      if (!await exists(blueprintPath)) {
+        throw new Error(
+          `Blueprint '${agentId}' not found\nUse 'exoctl blueprint list' to see available blueprints`,
+        );
+      }
+
+      // Remove the file
+      await Deno.remove(blueprintPath);
+
+      // Log activity
+      const logger = await this.getActionLogger();
+      await logger.info("blueprint.removed", agentId, {
+        via: "cli",
+        forced: options.force || false,
+      });
+    } catch (error) {
+      await DefaultErrorStrategy.handle({
+        commandName: "BlueprintCommands.remove",
+        args: { agentId, options },
+        error,
+      });
     }
-
-    // Remove the file
-    await Deno.remove(blueprintPath);
-
-    // Log activity
-    const logger = await this.getActionLogger();
-    await logger.info("blueprint.removed", agentId, {
-      via: "cli",
-      forced: options.force || false,
-    });
   }
 }
