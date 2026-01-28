@@ -17,6 +17,7 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 **Exit Criteria:** `exoctl journal` command working with all filters defined in MT-26. (✅ Complete)
 
 ## References
+
 - **White Paper:** Section 2 "Activity Journal: Your AI Bill of Materials"
 - **Test Scenarios:** Scenario MT-26 "Activity Journal Queries"
 
@@ -25,10 +26,12 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 ## Step 29.1: Journal Service Enhancements
 
 **Action:** Update `DatabaseService` to support flexible querying.
+
 - [x] Add `queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]>` method.
 - [x] `JournalFilterOptions`: `{ traceId?, actionType?, agentId?, limit?, since? }`.
 
 **Success Criteria:**
+
 - [x] `DatabaseService` can query with filters.
 - [x] Unit tests for multi-filter queries pass.
 - [x] Performance check: Queries under <100ms for standard limits.
@@ -40,15 +43,16 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 - **Goal:** Implement the `exoctl journal` command handler using Cliffy.
 - **Location:** `src/cli/commands/journal.ts`, `src/cli/exoctl.ts`
 - **Actions:**
-    1.  Create `JournalCommands` class following the pattern of `PlanCommands`.
-    2.  Implement the `journal` command definition with options:
-        - `--filter <string[]>` (Allow multiple, e.g. `-f trace_id=... -f action_type=...`)
-        - `--tail <number>` (Alias `-n`, default 50)
-        - `--format <json|table>` (Default table)
-        - `--follow, -f` (Future: Streaming support? For now, just static query). *Note: MT-26 mentions streaming, but let's scope strict query first, maybe adding generic watch later.* **Decision:** Static query first.
-    3.  Register command in `exoctl.ts`.
+  1. Create `JournalCommands` class following the pattern of `PlanCommands`.
+  2. Implement the `journal` command definition with options:
+     - `--filter <string[]>` (Allow multiple, e.g. `-f trace_id=... -f action_type=...`)
+     - `--tail <number>` (Alias `-n`, default 50)
+     - `--format <json|table>` (Default table)
+     - `--follow, -f` (Future: Streaming support? For now, just static query). _Note: MT-26 mentions streaming, but let's scope strict query first, maybe adding generic watch later._ **Decision:** Static query first.
+  3. Register command in `exoctl.ts`.
 
 **Success Criteria:**
+
 - [x] `exoctl journal --help` shows usage.
 - [x] Arguments parsed correctly (key-value pairs for filters).
 - [x] Command calls `DatabaseService.queryActivity`.
@@ -60,14 +64,15 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 - **Goal:** Present journal data in a human-readable table or machine-parsable JSON.
 - **Location:** `src/cli/commands/journal.ts` (or `src/utils/formatting.ts`)
 - **Actions:**
-    1.  **Table View:**
-        - Columns: `Timestamp`, `Action`, `Agent`, `Trace ID`, `Target`.
-        - Truncate long values (like `Trace ID` or `Target`) to fit screen unless verbose.
-        - Color-code `action_type` (e.g., `error` in red, `success` in green).
-    2.  **JSON View:**
-        - Output raw JSON array of `ActivityRecord` objects.
+  1. **Table View:**
+     - Columns: `Timestamp`, `Action`, `Agent`, `Trace ID`, `Target`.
+     - Truncate long values (like `Trace ID` or `Target`) to fit screen unless verbose.
+     - Color-code `action_type` (e.g., `error` in red, `success` in green).
+  2. **JSON View:**
+     - Output raw JSON array of `ActivityRecord` objects.
 
 **Success Criteria:**
+
 - [x] JSON output is valid and complete.
 - [x] Table output is aligned and readable on standard terminal width.
 
@@ -77,13 +82,14 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 
 - **Goal:** Verify the end-to-end flow against test scenarios.
 - **Actions:**
-    1.  Create verification script `tests/verification/verify_journal_cmd.ts` (or use manual steps).
-    2.  Execute Scenario MT-26 manually.
+  1. Create verification script `tests/verification/verify_journal_cmd.ts` (or use manual steps).
+  2. Execute Scenario MT-26 manually.
 
 **Verification Plan (MT-26 Mapping):**
-1.  **Basic Queries:** `exoctl journal` (default tail), `exoctl journal --filter trace_id=...`
-2.  **Combined Filters:** `exoctl journal --filter agent_id=mock --filter action_type=request.created`
-3.  **Export:** `exoctl journal --format json > export.json`
+
+1. **Basic Queries:** `exoctl journal` (default tail), `exoctl journal --filter trace_id=...`
+2. **Combined Filters:** `exoctl journal --filter agent_id=mock --filter action_type=request.created`
+3. **Export:** `exoctl journal --format json > export.json`
 
 ---
 
@@ -137,4 +143,3 @@ topics: ["exoctl", "journal", "cli", "audit", "database"]
 
 - [x] Manual verification via `exoctl dashboard`.
 - [x] Verify filtering by Agent, Trace ID, and Action Type works in TUI using real data.
-

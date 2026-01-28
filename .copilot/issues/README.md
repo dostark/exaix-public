@@ -22,7 +22,7 @@ Create an issue document in `.copilot/issues/` when:
 
 Use the following template for all issues:
 
-```markdown
+````markdown
 ---
 title: "Brief, descriptive title"
 status: open | in-progress | blocked | resolved | wontfix
@@ -47,10 +47,12 @@ Clear description of the issue. What is broken or missing?
 command1
 command2
 ```
+````
 
 ## Observed Behavior
 
 What actually happens? Include:
+
 - Error messages
 - Log excerpts
 - Screenshots (if applicable)
@@ -95,8 +97,8 @@ Why this priority level? Impact on users/system.
 - **Fix**: What changes were made
 - **Commit**: Link to commit or PR
 - **Verified**: How the fix was tested
-```
 
+````
 ## Naming Convention
 
 Use descriptive, kebab-case filenames:
@@ -205,7 +207,7 @@ github_issue: #123
 ---
 
 See also: https://github.com/org/repo/issues/123
-```
+````
 
 ## Searching Issues
 

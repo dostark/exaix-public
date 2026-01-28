@@ -42,7 +42,7 @@ export class ChangesetRegistry {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    this.db.instance.prepare(sql).run(
+    await this.db.preparedRun(sql, [
       id,
       validated.trace_id,
       validated.portal,
@@ -53,7 +53,7 @@ export class ChangesetRegistry {
       validated.files_changed,
       created,
       validated.created_by,
-    );
+    ]);
 
     // Log to Activity Journal
     await this.logger.info("changeset.created", validated.branch, {
@@ -71,35 +71,28 @@ export class ChangesetRegistry {
   /**
    * Get changeset by ID
    */
-  get(id: string): Changeset | null {
+  async get(id: string): Promise<Changeset | null> {
     const sql = `SELECT * FROM changesets WHERE id = ?`;
-    const row = this.db.instance.prepare(sql).get(id);
+    const row = await this.db.preparedGet(sql, [id]);
 
-    if (!row) {
-      return null;
-    }
-
+    if (!row) return null;
     return ChangesetSchema.parse(row);
   }
 
   /**
    * Get changeset by branch name
    */
-  getByBranch(branch: string): Changeset | null {
+  async getByBranch(branch: string): Promise<Changeset | null> {
     const sql = `SELECT * FROM changesets WHERE branch = ?`;
-    const row = this.db.instance.prepare(sql).get(branch);
-
-    if (!row) {
-      return null;
-    }
-
+    const row = await this.db.preparedGet(sql, [branch]);
+    if (!row) return null;
     return ChangesetSchema.parse(row);
   }
 
   /**
    * List changesets with optional filters
    */
-  list(filters?: ChangesetFilters): Changeset[] {
+  async list(filters?: ChangesetFilters): Promise<Changeset[]> {
     let sql = `SELECT * FROM changesets WHERE 1=1`;
     const params: Array<string | number> = [];
 
@@ -125,9 +118,7 @@ export class ChangesetRegistry {
 
     sql += ` ORDER BY created DESC`;
 
-    const rows = this.db.instance.prepare(sql).all(
-      ...(params as Array<string | number | boolean | null | Uint8Array | bigint>),
-    );
+    const rows = await this.db.preparedAll<any>(sql, params as unknown[]);
     return rows.map((row) => ChangesetSchema.parse(row));
   }
 
@@ -141,7 +132,7 @@ export class ChangesetRegistry {
     reason?: string,
   ): Promise<void> {
     // Get existing changeset
-    const changeset = this.get(id);
+    const changeset = await this.get(id);
     if (!changeset) {
       throw new Error(`Changeset not found: ${id}`);
     }
@@ -183,37 +174,37 @@ export class ChangesetRegistry {
       params.push(id);
     }
 
-    this.db.instance.prepare(sql).run(...(params as Array<string | number | boolean | null | Uint8Array | bigint>));
+    await this.db.preparedRun(sql, params as unknown[]);
   }
 
   /**
    * Get all changesets for a specific trace
    */
-  getByTrace(trace_id: string): Changeset[] {
-    return this.list({ trace_id });
+  async getByTrace(trace_id: string): Promise<Changeset[]> {
+    return await this.list({ trace_id });
   }
 
   /**
    * Get pending changesets for a portal
    */
-  getPendingForPortal(portal: string): Changeset[] {
-    return this.list({ portal, status: ChangesetStatus.PENDING });
+  async getPendingForPortal(portal: string): Promise<Changeset[]> {
+    return await this.list({ portal, status: ChangesetStatus.PENDING });
   }
 
   /**
    * Count changesets by status
    */
-  countByStatus(status: ChangesetStatus): number {
+  async countByStatus(status: ChangesetStatus): Promise<number> {
     const sql = `SELECT COUNT(*) as count FROM changesets WHERE status = ?`;
-    const row = this.db.instance.prepare(sql).get(status);
-    return (row as { count: number })?.count || 0;
+    const row = await this.db.preparedGet<{ count: number }>(sql, [status]);
+    return row?.count || 0;
   }
 
   /**
    * Delete a changeset (for testing/cleanup only)
    */
-  delete(id: string): void {
+  async delete(id: string): Promise<void> {
     const sql = `DELETE FROM changesets WHERE id = ?`;
-    this.db.instance.prepare(sql).run(id);
+    await this.db.preparedRun(sql, [id]);
   }
 }

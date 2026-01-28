@@ -4,7 +4,7 @@ scope: dev
 title: OpenAI adaptation notes
 short_summary: "OpenAI usage guide with quick-start, RAG steps, prompt templates, and tool-use guardrails for gpt-4o family."
 version: "0.2"
-topics: ["provider-adaptations","prompts","rag","tooling","thinking-protocol"]
+topics: ["provider-adaptations", "prompts", "rag", "tooling", "thinking-protocol"]
 ---
 
 # OpenAI provider adaptation notes

@@ -31,15 +31,15 @@ estimated_effort: 4-6 hours
 
 ## Progress Summary
 
-| Milestone | Status | Description |
-|-----------|--------|-------------|
-| Analysis | ✅ Completed | Audit current skill usage and references |
-| Design | ✅ Completed | Define new Blueprints/Skills structure |
-| Migration | ✅ Completed | Move core skills to Blueprints/Skills |
+| Milestone         | Status       | Description                                 |
+| ----------------- | ------------ | ------------------------------------------- |
+| Analysis          | ✅ Completed | Audit current skill usage and references    |
+| Design            | ✅ Completed | Define new Blueprints/Skills structure      |
+| Migration         | ✅ Completed | Move core skills to Blueprints/Skills       |
 | Reference Updates | ✅ Completed | Update all skill references in agents/flows |
-| Validation | ✅ Completed | Verify all references work correctly |
-| Documentation | ✅ Completed | Update docs and READMEs |
-| Testing | ✅ Completed | Run full test suite |
+| Validation        | ✅ Completed | Verify all references work correctly        |
+| Documentation     | ✅ Completed | Update docs and READMEs                     |
+| Testing           | ✅ Completed | Run full test suite                         |
 
 ---
 
@@ -49,21 +49,21 @@ The core skills currently located in `Memory/Skills/core/` are fundamentally blu
 
 ### Key Problems
 
-| Problem | Impact | Current Location |
-|---------|--------|------------------|
-| **Misplaced Blueprints** | Core skills are templates, not learned memory | `Memory/Skills/core/` |
-| **Conceptual Confusion** | Skills vs Memory distinction unclear | Mixed concerns |
+| Problem                        | Impact                                               | Current Location                   |
+| ------------------------------ | ---------------------------------------------------- | ---------------------------------- |
+| **Misplaced Blueprints**       | Core skills are templates, not learned memory        | `Memory/Skills/core/`              |
+| **Conceptual Confusion**       | Skills vs Memory distinction unclear                 | Mixed concerns                     |
 | **Organization Inconsistency** | Skills referenced by blueprints but stored elsewhere | `Blueprints/` references `Memory/` |
-| **Maintenance Burden** | Related concepts split across directories | Harder to maintain |
+| **Maintenance Burden**         | Related concepts split across directories            | Harder to maintain                 |
 
 ### Key Goals
 
-| Goal | Description |
-|------|-------------|
-| **Logical Grouping** | All blueprint templates in one location |
-| **Clear Separation** | Blueprints (templates) vs Memory (learned knowledge) |
-| **Consistent References** | Skills referenced by blueprints stored with blueprints |
-| **Better Discoverability** | Related concepts grouped together |
+| Goal                       | Description                                            |
+| -------------------------- | ------------------------------------------------------ |
+| **Logical Grouping**       | All blueprint templates in one location                |
+| **Clear Separation**       | Blueprints (templates) vs Memory (learned knowledge)   |
+| **Consistent References**  | Skills referenced by blueprints stored with blueprints |
+| **Better Discoverability** | Related concepts grouped together                      |
 
 ---
 
@@ -88,17 +88,20 @@ Memory/Skills/core/
 ### Skill Reference Analysis
 
 **Agents referencing core skills:**
+
 - `Blueprints/Agents/senior-coder.md`: `["typescript-patterns", "error-handling", "code-review"]`
 - `Blueprints/Agents/code-analyst.md`: References various skills
 - `Blueprints/Agents/quality-judge.md`: References code review skills
 
 **Flows referencing core skills:**
+
 - `Blueprints/Flows/code_review.flow.ts`: `defaultSkills: ["code-review"]`
 - Various other flows reference core skills
 
 ### Blueprint Structure Analysis
 
 Current `Blueprints/` structure:
+
 ```
 Blueprints/
 ├── Agents/          # Agent configuration blueprints
@@ -107,6 +110,7 @@ Blueprints/
 ```
 
 **Proposed new structure:**
+
 ```
 Blueprints/
 ├── Agents/          # Agent configuration blueprints
@@ -145,24 +149,28 @@ Blueprints/
 ### Migration Strategy
 
 #### Phase 1: Preparation (1 hour)
+
 - [x] Create `Blueprints/Skills/` directory
 - [x] Create `Blueprints/Skills/README.md` explaining purpose
 - [x] Audit all skill references in codebase
 - [x] Document current skill usage patterns
 
 #### Phase 2: Migration (2 hours)
+
 - [x] Move all files from `Memory/Skills/core/` to `Blueprints/Skills/`
 - [x] Update skill loading logic to check both locations during transition
 - [x] Verify file integrity after move
 - [x] Update any hardcoded paths in code
 
 #### Phase 3: Reference Updates (1 hour)
+
 - [x] Update skill loading code to prioritize `Blueprints/Skills/`
 - [x] Add fallback to `Memory/Skills/core/` for backward compatibility
 - [x] Update any documentation references
 - [x] Test that all agent/flow references still work
 
 #### Phase 4: Cleanup (1 hour)
+
 - [x] Remove `Memory/Skills/core/` directory after verification
 - [x] Update `Memory/Skills/README.md` to clarify purpose
 - [x] Update main project README with new structure
@@ -177,11 +185,13 @@ Blueprints/
 **Objective:** Create new Skills blueprint directory and documentation
 
 **Tasks:**
+
 1. [x] Create `Blueprints/Skills/` directory
 2. [x] Create `Blueprints/Skills/README.md` with purpose and structure
 3. [x] Update `Blueprints/README.md` to include Skills section
 
 **Success Criteria:**
+
 - `Blueprints/Skills/` directory exists
 - Skills README explains purpose and structure
 - Main Blueprints README updated
@@ -191,11 +201,13 @@ Blueprints/
 **Objective:** Move core skills to blueprint location
 
 **Tasks:**
+
 1. [x] Move all `.skill.md` files from `Memory/Skills/core/` to `Blueprints/Skills/`
 2. [x] Preserve file metadata and permissions
 3. [x] Verify file integrity with checksums
 
 **Success Criteria:**
+
 - All 8 core skill files moved successfully
 - File contents unchanged (verified with diff)
 - File permissions preserved
@@ -205,12 +217,14 @@ Blueprints/
 **Objective:** Update skill loading logic to use new location
 
 **Tasks:**
+
 1. [x] Locate skill loading code in `src/services/memory_bank.ts` or similar
 2. [x] Update path resolution to check `Blueprints/Skills/` first
 3. [x] Add fallback to old location during transition
 4. [x] Update any hardcoded skill paths
 
 **Success Criteria:**
+
 - Skill loading prioritizes `Blueprints/Skills/`
 - Fallback to old location works
 - No hardcoded paths remain
@@ -220,12 +234,14 @@ Blueprints/
 **Objective:** Ensure all references work with new structure
 
 **Tasks:**
+
 1. [x] Test agent loading with skill references
 2. [x] Test flow execution with skill dependencies
 3. [x] Run skill-related tests
 4. [x] Verify no broken references
 
 **Success Criteria:**
+
 - All agents load successfully
 - All flows execute without skill errors
 - Skill-related tests pass
@@ -236,12 +252,14 @@ Blueprints/
 **Objective:** Update documentation and remove old structure
 
 **Tasks:**
+
 1. [x] Update project README with new structure
 2. [x] Update developer documentation
 3. [x] Remove `Memory/Skills/core/` directory
 4. [x] Update Memory README to clarify purpose
 
 **Success Criteria:**
+
 - Project documentation updated
 - Old directory removed safely
 - Memory purpose clearly documented
@@ -277,6 +295,7 @@ grep -r "Memory/Skills/core" src/ docs/
 ## Success Criteria
 
 ### Functional Requirements
+
 - All core skills moved to `Blueprints/Skills/`
 - All agent skill references resolve correctly
 - All flow skill dependencies work
@@ -284,6 +303,7 @@ grep -r "Memory/Skills/core" src/ docs/
 - Backward compatibility maintained during transition
 
 ### Non-Functional Requirements
+
 - Clear separation between blueprints and memory
 - Consistent directory structure
 - Improved discoverability of related concepts
@@ -291,6 +311,7 @@ grep -r "Memory/Skills/core" src/ docs/
 - Documentation updated and accurate
 
 ### Quality Metrics
+
 - All skill files present and intact
 - No broken skill references in agents/flows
 - Test coverage maintained for skill functionality
@@ -318,12 +339,12 @@ grep -r "Memory/Skills/core" src/ docs/
 
 ## Risk Assessment
 
-| Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
-| Broken skill references | Medium | High | Test thoroughly, maintain fallbacks |
-| Missing skill files | Low | High | Use file integrity checks, backups |
-| Performance regression | Low | Medium | Benchmark skill loading before/after |
-| Documentation confusion | Medium | Low | Update all docs, clear communication |
+| Risk                    | Probability | Impact | Mitigation                           |
+| ----------------------- | ----------- | ------ | ------------------------------------ |
+| Broken skill references | Medium      | High   | Test thoroughly, maintain fallbacks  |
+| Missing skill files     | Low         | High   | Use file integrity checks, backups   |
+| Performance regression  | Low         | Medium | Benchmark skill loading before/after |
+| Documentation confusion | Medium      | Low    | Update all docs, clear communication |
 
 ---
 

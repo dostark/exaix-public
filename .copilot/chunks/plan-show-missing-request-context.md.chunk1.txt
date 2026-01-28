@@ -1,4 +1,3 @@
-**Current `exoctl plan show` output:**
 ```
 ✅ plan.show: request-f493fe2a_plan
    status: review
@@ -10,6 +9,7 @@
 ## Expected Behavior
 
 **Enhanced `exoctl plan list` should show:**
+
 - Original request ID/title
 - Agent that created the plan
 - Portal context (if applicable)
@@ -17,6 +17,7 @@
 - Request priority
 
 **Enhanced `exoctl plan show` should show:**
+
 - Link to original request (`request_id`)
 - Agent information
 - Portal context

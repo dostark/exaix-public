@@ -69,6 +69,7 @@ Journal shows the following error sequence:
 ```
 
 **Key Issues:**
+
 1. System selects `test-provider` instead of configured `google:gemini-2.0-flash-exp`
 2. Plan validation fails
 3. Request is marked as failed
@@ -101,4 +102,3 @@ Journal shows the following error sequence:
 ## Priority Justification
 
 **HIGH** - This breaks the core request → plan → execution workflow. Users cannot process requests in deployed workspaces, making the system unusable for its primary purpose.
-

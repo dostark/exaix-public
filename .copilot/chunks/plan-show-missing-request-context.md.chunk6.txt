@@ -1,4 +1,3 @@
-**Files Modified:**
 - `src/cli/plan_commands.ts`: Enhanced metadata extraction and request loading
 - `src/cli/exoctl.ts`: Updated CLI display formatting
 - `exo.config.toml`: Fixed workspace path configuration

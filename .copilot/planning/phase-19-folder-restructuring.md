@@ -15,16 +15,16 @@
 
 ## Progress Summary
 
-| Milestone | Status | Description |
-|-----------|--------|-------------|
-| Current State Audit | ❌ Not Started | Document all folders and their purposes |
-| Design New Structure | ❌ Not Started | Define target folder hierarchy |
-| Migration Scripts | ❌ Not Started | Create automated migration tooling |
-| .gitignore Update | ❌ Not Started | Update ignore patterns for new structure |
-| Service Updates | ❌ Not Started | Update path references in services |
-| CLI Updates | ❌ Not Started | Update CLI commands for new paths |
-| Documentation | ❌ Not Started | Update all docs with new structure |
-| Testing | ❌ Not Started | Verify all tests pass with new structure |
+| Milestone            | Status         | Description                              |
+| -------------------- | -------------- | ---------------------------------------- |
+| Current State Audit  | ❌ Not Started | Document all folders and their purposes  |
+| Design New Structure | ❌ Not Started | Define target folder hierarchy           |
+| Migration Scripts    | ❌ Not Started | Create automated migration tooling       |
+| .gitignore Update    | ❌ Not Started | Update ignore patterns for new structure |
+| Service Updates      | ❌ Not Started | Update path references in services       |
+| CLI Updates          | ❌ Not Started | Update CLI commands for new paths        |
+| Documentation        | ❌ Not Started | Update all docs with new structure       |
+| Testing              | ❌ Not Started | Verify all tests pass with new structure |
 
 ---
 
@@ -41,23 +41,23 @@ a **domain-driven folder hierarchy** that clearly separates:
 
 ### Key Problems
 
-| Problem | Impact | Example |
-|---------|--------|---------|
-| **Lifecycle Fragmentation** | Requests start in `Inbox/`, execute in `System/Active/`, no clear archive | User loses track of request lifecycle |
-| **Mixed Concerns in System/** | `journal.db`, `daemon.pid`, `daemon.log` alongside `Active/` | Runtime pollution |
-| **Confusing Naming** | `agents/` = AI knowledge base, `Blueprints/Agents/` = agent definitions | Naming collision |
-| **Orphaned Templates** | `templates/` at root, separate from `Blueprints/` | Inconsistent location |
-| **No Clear Archive** | Documentation mentions Archive but structure unclear | Completed work not organized |
+| Problem                       | Impact                                                                    | Example                               |
+| ----------------------------- | ------------------------------------------------------------------------- | ------------------------------------- |
+| **Lifecycle Fragmentation**   | Requests start in `Inbox/`, execute in `System/Active/`, no clear archive | User loses track of request lifecycle |
+| **Mixed Concerns in System/** | `journal.db`, `daemon.pid`, `daemon.log` alongside `Active/`              | Runtime pollution                     |
+| **Confusing Naming**          | `agents/` = AI knowledge base, `Blueprints/Agents/` = agent definitions   | Naming collision                      |
+| **Orphaned Templates**        | `templates/` at root, separate from `Blueprints/`                         | Inconsistent location                 |
+| **No Clear Archive**          | Documentation mentions Archive but structure unclear                      | Completed work not organized          |
 
 ### Key Goals
 
-| Goal | Description |
-|------|-------------|
-| **Domain Separation** | Each top-level folder has single responsibility |
-| **Lifecycle Clarity** | Request → Plan → Active → Archive flow is obvious |
-| **Runtime Isolation** | Daemon files in dedicated location |
-| **Consistent Naming** | No ambiguous folder names |
-| **Backward Compatibility** | Symlinks for transition period |
+| Goal                       | Description                                       |
+| -------------------------- | ------------------------------------------------- |
+| **Domain Separation**      | Each top-level folder has single responsibility   |
+| **Lifecycle Clarity**      | Request → Plan → Active → Archive flow is obvious |
+| **Runtime Isolation**      | Daemon files in dedicated location                |
+| **Consistent Naming**      | No ambiguous folder names                         |
+| **Backward Compatibility** | Symlinks for transition period                    |
 
 ---
 
@@ -129,6 +129,7 @@ System/
 ```
 
 **Issues:**
+
 - Active plans mixed with daemon runtime files
 - No separation between persistent data and ephemeral state
 - Git must ignore runtime files but track Active/ structure
@@ -141,6 +142,7 @@ Blueprints/Agents/  # Actual agent definitions
 ```
 
 **Issues:**
+
 - New users look for agent definitions in `agents/`
 - The name doesn't convey "AI assistant knowledge base"
 - Creates cognitive overhead when explaining structure
@@ -156,6 +158,7 @@ templates/
 ```
 
 **Issues:**
+
 - Sample config belongs with configuration
 - Templates not integrated with Blueprints/
 - Unclear purpose without README
@@ -220,14 +223,14 @@ ExoFrame/
 
 #### Domain Separation
 
-| Domain | Folder | Responsibility |
-|--------|--------|----------------|
-| **Runtime** | `.exo/` | Ephemeral daemon state, caches |
+| Domain          | Folder        | Responsibility                   |
+| --------------- | ------------- | -------------------------------- |
+| **Runtime**     | `.exo/`       | Ephemeral daemon state, caches   |
 | **Definitions** | `Blueprints/` | Static templates (agents, flows) |
-| **Lifecycle** | `Workspace/` | Request processing pipeline |
-| **Knowledge** | `Memory/` | Persistent learnings, skills |
-| **Integration** | `Portals/` | External project access |
-| **Dev Context** | `.copilot/` | AI assistant knowledge base |
+| **Lifecycle**   | `Workspace/`  | Request processing pipeline      |
+| **Knowledge**   | `Memory/`     | Persistent learnings, skills     |
+| **Integration** | `Portals/`    | External project access          |
+| **Dev Context** | `.copilot/`   | AI assistant knowledge base      |
 
 #### Lifecycle Clarity
 
@@ -240,12 +243,12 @@ New Flow:
 
 #### Naming Improvements
 
-| Old Name | New Name | Rationale |
-|----------|----------|-----------|
-| `agents/` | `.copilot/` | Indicates AI dev tooling, dotfile convention |
-| `Inbox/` | `Workspace/` | Better conveys active work area |
-| `System/` | `.exo/` | Standard runtime dir, clearly gitignored |
-| `templates/` | `Blueprints/Agents/templates/` | Integrated with definitions |
+| Old Name     | New Name                       | Rationale                                    |
+| ------------ | ------------------------------ | -------------------------------------------- |
+| `agents/`    | `.copilot/`                    | Indicates AI dev tooling, dotfile convention |
+| `Inbox/`     | `Workspace/`                   | Better conveys active work area              |
+| `System/`    | `.exo/`                        | Standard runtime dir, clearly gitignored     |
+| `templates/` | `Blueprints/Agents/templates/` | Integrated with definitions                  |
 
 ---
 
@@ -256,16 +259,19 @@ New Flow:
 **Goal:** Build tooling for safe folder migration with rollback capability.
 
 **Deliverables:**
+
 1. Create `scripts/migrate_folders.ts` with dry-run mode
 2. Create backup mechanism before migration
 3. Create symlink generator for backward compatibility
 4. Add migration status tracking
 
 **Files to Create:**
+
 - `scripts/migrate_folders.ts`
 - `scripts/migration_config.json`
 
 **Migration Config Schema:**
+
 ```json
 {
   "version": "19.0.0",
@@ -286,12 +292,14 @@ New Flow:
 ```
 
 **Success Criteria:**
+
 - [ ] Migration script runs in dry-run mode without changes
 - [ ] Backup created before actual migration
 - [ ] Symlinks created for backward compatibility
 - [ ] Rollback restores original structure
 
 **Projected Tests:** `tests/scripts/migrate_folders_test.ts`
+
 ```
 ❌ Migration: dry-run reports planned changes
 ❌ Migration: creates backup before changes
@@ -306,6 +314,7 @@ New Flow:
 **Goal:** Move runtime artifacts to dedicated .exo/ directory.
 
 **Deliverables:**
+
 1. Create `.exo/` directory structure
 2. Update `ConfigService` to use `.exo/journal.db`
 3. Update `DaemonCommands` to use `.exo/daemon.pid` and `.exo/daemon.log`
@@ -313,6 +322,7 @@ New Flow:
 5. Create migration for existing `System/` runtime files
 
 **Files to Modify:**
+
 - `src/config/service.ts` - Database path
 - `src/cli/daemon_commands.ts` - PID and log paths
 - `src/services/db.ts` - Database path resolution
@@ -320,13 +330,14 @@ New Flow:
 
 **Path Changes:**
 
-| Old Path | New Path |
-|----------|----------|
+| Old Path            | New Path          |
+| ------------------- | ----------------- |
 | `System/journal.db` | `.exo/journal.db` |
 | `System/daemon.pid` | `.exo/daemon.pid` |
 | `System/daemon.log` | `.exo/daemon.log` |
 
 **Success Criteria:**
+
 - [ ] `.exo/` directory created on daemon start
 - [ ] Database operations use new path
 - [ ] Daemon PID/log use new paths
@@ -334,6 +345,7 @@ New Flow:
 - [ ] `.gitignore` properly excludes `.exo/`
 
 **Projected Tests:** `tests/services/db_test.ts`, `tests/cli/daemon_commands_test.ts`
+
 ```
 ❌ Database: uses .exo/journal.db path
 ❌ Daemon: writes PID to .exo/daemon.pid
@@ -356,6 +368,7 @@ New Flow:
 The notification system currently maintains a **redundant storage layer** in `System/Notifications/memory.json` that duplicates what's already in the Activity Journal database.
 
 **Current Implementation:**
+
 - **Path:** `System/Notifications/memory.json`
 - **Format:** JSON array of notification objects
 - **Purpose:** User alerts for pending memory updates (Phase 12.9)
@@ -375,13 +388,13 @@ Current (Redundant):
 
 **Problems with Current Approach:**
 
-| Problem | Impact |
-|---------|--------|
-| **Data Duplication** | Same notification data in two places (DB + file) |
-| **Sync Complexity** | File and DB can become inconsistent |
-| **File I/O Overhead** | Parse/stringify JSON on every operation |
-| **Race Conditions** | Concurrent file access not handled |
-| **Maintenance Burden** | Two storage layers to maintain |
+| Problem                | Impact                                           |
+| ---------------------- | ------------------------------------------------ |
+| **Data Duplication**   | Same notification data in two places (DB + file) |
+| **Sync Complexity**    | File and DB can become inconsistent              |
+| **File I/O Overhead**  | Parse/stringify JSON on every operation          |
+| **Race Conditions**    | Concurrent file access not handled               |
+| **Maintenance Burden** | Two storage layers to maintain                   |
 
 **Why SQLite is Better:**
 
@@ -394,6 +407,7 @@ ExoFrame **already has** all the infrastructure needed:
 ✅ Indexed queries for fast filtering
 
 **Deliverables:**
+
 1. Remove `System/Notifications/` directory entirely
 2. Add `notifications` table to `journal.db` schema
 3. Update `NotificationService` to use database-only storage
@@ -442,20 +456,23 @@ export class NotificationService {
     // Single database operation - no files!
     const id = crypto.randomUUID();
 
-    await this.db.execute(`
+    await this.db.execute(
+      `
       INSERT INTO notifications (id, type, message, proposal_id, created_at, metadata)
       VALUES (?, ?, ?, ?, ?, ?)
-    `, [
-      id,
-      'memory_update_pending',
-      `Memory update pending: ${proposal.learning.title}`,
-      proposal.id,
-      new Date().toISOString(),
-      JSON.stringify({ learning_title: proposal.learning.title, reason: proposal.reason })
-    ]);
+    `,
+      [
+        id,
+        "memory_update_pending",
+        `Memory update pending: ${proposal.learning.title}`,
+        proposal.id,
+        new Date().toISOString(),
+        JSON.stringify({ learning_title: proposal.learning.title, reason: proposal.reason }),
+      ],
+    );
 
     // Activity Journal logging (already exists)
-    this.db.logActivity('notification-service', 'memory.update.pending', proposal.id);
+    this.db.logActivity("notification-service", "memory.update.pending", proposal.id);
   }
 
   async getNotifications(): Promise<MemoryNotification[]> {
@@ -479,43 +496,52 @@ export class NotificationService {
 
   async clearNotification(proposalId: string): Promise<void> {
     // Soft delete with timestamp
-    await this.db.execute(`
+    await this.db.execute(
+      `
       UPDATE notifications
       SET dismissed_at = ?
       WHERE proposal_id = ? AND dismissed_at IS NULL
-    `, [new Date().toISOString(), proposalId]);
+    `,
+      [new Date().toISOString(), proposalId],
+    );
   }
 
   async clearAllNotifications(): Promise<void> {
-    await this.db.execute(`
+    await this.db.execute(
+      `
       UPDATE notifications
       SET dismissed_at = ?
       WHERE dismissed_at IS NULL
-    `, [new Date().toISOString()]);
+    `,
+      [new Date().toISOString()],
+    );
   }
 }
 ```
 
 **Files to Modify:**
+
 - `src/services/notification.ts` - Replace file I/O with SQL queries
 - `src/services/db.ts` - Add notification query helpers
 - `src/tui/tui_dashboard.ts` - Query notifications from DB
 - `src/cli/memory_commands.ts` - Query notifications from DB
 
 **Files to Create:**
+
 - `migrations/010_add_notifications_table.sql` - Schema migration
 - `scripts/migrate_notifications_to_db.ts` - One-time data migration
 
 **Files to Delete:**
+
 - `System/Notifications/memory.json` - No longer needed
 - `System/Notifications/` directory - Remove entirely
 
 **Path Changes:**
 
-| Old Storage | New Storage | Status |
-|-------------|-------------|--------|
+| Old Storage                        | New Storage                        | Status        |
+| ---------------------------------- | ---------------------------------- | ------------- |
 | `System/Notifications/memory.json` | `journal.db`.`notifications` table | ✅ Simplified |
-| `System/Notifications/` directory | (removed) | ✅ Eliminated |
+| `System/Notifications/` directory  | (removed)                          | ✅ Eliminated |
 
 **Migration Script:**
 
@@ -536,17 +562,20 @@ async function migrateNotificationsToDatabase(config: Config, db: DatabaseServic
 
   // Insert into database
   for (const notif of notifications) {
-    await db.execute(`
+    await db.execute(
+      `
       INSERT INTO notifications (id, type, message, proposal_id, created_at, metadata)
       VALUES (?, ?, ?, ?, ?, ?)
-    `, [
-      crypto.randomUUID(),
-      notif.type,
-      notif.message,
-      notif.proposal_id,
-      notif.created_at,
-      '{}'
-    ]);
+    `,
+      [
+        crypto.randomUUID(),
+        notif.type,
+        notif.message,
+        notif.proposal_id,
+        notif.created_at,
+        "{}",
+      ],
+    );
   }
 
   // Archive old file
@@ -560,18 +589,19 @@ async function migrateNotificationsToDatabase(config: Config, db: DatabaseServic
 
 **Benefits of SQLite Approach:**
 
-| Benefit | Impact |
-|---------|--------|
-| ✅ **Single Source of Truth** | No data duplication between file and DB |
-| ✅ **ACID Transactions** | No race conditions or corruption |
-| ✅ **Indexed Queries** | Fast filtering by type, date, dismissal status |
-| ✅ **Concurrent Access** | SQLite handles locking automatically |
-| ✅ **Schema Evolution** | Migrations already in place |
-| ✅ **Simpler Code** | ~50% less code in NotificationService |
-| ✅ **Better Performance** | Binary format, no JSON parse/stringify |
-| ✅ **Auditability** | Notifications linked to Activity Journal |
+| Benefit                       | Impact                                         |
+| ----------------------------- | ---------------------------------------------- |
+| ✅ **Single Source of Truth** | No data duplication between file and DB        |
+| ✅ **ACID Transactions**      | No race conditions or corruption               |
+| ✅ **Indexed Queries**        | Fast filtering by type, date, dismissal status |
+| ✅ **Concurrent Access**      | SQLite handles locking automatically           |
+| ✅ **Schema Evolution**       | Migrations already in place                    |
+| ✅ **Simpler Code**           | ~50% less code in NotificationService          |
+| ✅ **Better Performance**     | Binary format, no JSON parse/stringify         |
+| ✅ **Auditability**           | Notifications linked to Activity Journal       |
 
 **Success Criteria:**
+
 - [x] `notifications` table added to `journal.db`
 - [x] Migration runs successfully
 - [x] NotificationService uses database-only storage
@@ -581,6 +611,7 @@ async function migrateNotificationsToDatabase(config: Config, db: DatabaseServic
 - [x] Performance improved (no file I/O overhead)
 
 **Projected Tests:** `tests/services/notification_sqlite_test.ts`
+
 ```
 ✅ Migration: adds notifications table to journal.db
 ✅ Migration: notifications table has correct schema
@@ -665,6 +696,7 @@ ExoFrame/
 ```
 
 **Rationale:**
+
 - `.exo/`: All runtime and ephemeral state, clearly separated and gitignored.
 - `Blueprints/`: All static agent and flow definitions, including templates and examples.
 - `Workspace/`: All user-facing lifecycle content, with a clear flow from Requests → Plans → Active → Archive.
@@ -682,6 +714,7 @@ This structure enforces domain separation, lifecycle clarity, and naming consist
 **Goal:** Consolidate lifecycle folders under Workspace/.
 
 **Deliverables:**
+
 1. Create `Workspace/` directory with subdirectories
 2. Move `Inbox/Requests/` → `Workspace/Requests/`
 3. Move `Inbox/Plans/` → `Workspace/Plans/`
@@ -691,6 +724,7 @@ This structure enforces domain separation, lifecycle clarity, and naming consist
 7. Update all services using these paths
 
 **Files to Modify:**
+
 - `src/services/watcher.ts` - Watch paths
 - `src/services/request_processor.ts` - Request/Plan paths
 - `src/services/plan_executor.ts` - Active path
@@ -699,14 +733,15 @@ This structure enforces domain separation, lifecycle clarity, and naming consist
 
 **Path Changes:**
 
-| Old Path | New Path |
-|----------|----------|
+| Old Path          | New Path              |
+| ----------------- | --------------------- |
 | `Inbox/Requests/` | `Workspace/Requests/` |
-| `Inbox/Plans/` | `Workspace/Plans/` |
-| `System/Active/` | `Workspace/Active/` |
-| (new) | `Workspace/Archive/` |
+| `Inbox/Plans/`    | `Workspace/Plans/`    |
+| `System/Active/`  | `Workspace/Active/`   |
+| (new)             | `Workspace/Archive/`  |
 
 **Archive Structure:**
+
 ```
 Workspace/Archive/
 ├── index.json           # Fast lookup index
@@ -720,6 +755,7 @@ Workspace/Archive/
 ```
 
 **Success Criteria:**
+
 - [ ] All lifecycle stages in Workspace/
 - [ ] Symlinks provide backward compatibility
 - [ ] Watcher detects files in new locations
@@ -727,6 +763,7 @@ Workspace/Archive/
 - [ ] Archive stores completed work
 
 **Projected Tests:** `tests/services/watcher_test.ts`, `tests/cli/request_commands_test.ts`
+
 ```
 ❌ Watcher: monitors Workspace/Requests/
 ❌ Watcher: monitors Workspace/Plans/
@@ -743,6 +780,7 @@ Workspace/Archive/
 **Goal:** Rename AI knowledge base to avoid confusion with Blueprints/Agents/.
 
 **Deliverables:**
+
 1. Move `agents/` → `.copilot/`
 2. Update all scripts referencing `agents/`
 3. Update documentation references
@@ -751,6 +789,7 @@ Workspace/Archive/
 6. Update `.gitignore` patterns
 
 **Files to Modify:**
+
 - `scripts/build_agents_index.ts` → Path references
 - `scripts/build_agents_embeddings.ts` → Path references
 - `scripts/verify_manifest_fresh.ts` → Path references
@@ -763,15 +802,16 @@ Workspace/Archive/
 
 **Path Changes:**
 
-| Old Path | New Path |
-|----------|----------|
+| Old Path               | New Path                 |
+| ---------------------- | ------------------------ |
 | `agents/manifest.json` | `.copilot/manifest.json` |
-| `agents/chunks/` | `.copilot/chunks/` |
-| `agents/embeddings/` | `.copilot/embeddings/` |
-| `agents/planning/` | `.copilot/planning/` |
-| `agents/docs/` | `.copilot/docs/` |
+| `agents/chunks/`       | `.copilot/chunks/`       |
+| `agents/embeddings/`   | `.copilot/embeddings/`   |
+| `agents/planning/`     | `.copilot/planning/`     |
+| `agents/docs/`         | `.copilot/docs/`         |
 
 **Success Criteria:**
+
 - [ ] All AI knowledge base files in `.copilot/`
 - [ ] Build scripts work with new paths
 - [ ] Symlink provides transition compatibility
@@ -779,6 +819,7 @@ Workspace/Archive/
 - [ ] No references to old `agents/` path in code
 
 **Projected Tests:** `tests/scripts/build_agents_test.ts`
+
 ```
 ❌ Build: agents index uses .copilot/ path
 ❌ Build: embeddings use .copilot/ path
@@ -792,6 +833,7 @@ Workspace/Archive/
 **Goal:** Move orphaned templates into Blueprints structure.
 
 **Deliverables:**
+
 1. Move `templates/exo.config.sample.toml` → root (sample config)
 2. Move `templates/README.template.md` → `Blueprints/Agents/templates/`
 3. Move `templates/Knowledge_Dashboard.md` → `docs/templates/`
@@ -800,13 +842,14 @@ Workspace/Archive/
 
 **Files to Move:**
 
-| Old Path | New Path | Rationale |
-|----------|----------|-----------|
-| `templates/exo.config.sample.toml` | `exo.config.sample.toml` | Root config sample |
-| `templates/README.template.md` | `Blueprints/Agents/templates/` | Agent template |
-| `templates/Knowledge_Dashboard.md` | `docs/templates/` | Doc template |
+| Old Path                           | New Path                       | Rationale          |
+| ---------------------------------- | ------------------------------ | ------------------ |
+| `templates/exo.config.sample.toml` | `exo.config.sample.toml`       | Root config sample |
+| `templates/README.template.md`     | `Blueprints/Agents/templates/` | Agent template     |
+| `templates/Knowledge_Dashboard.md` | `docs/templates/`              | Doc template       |
 
 **Success Criteria:**
+
 - [ ] No orphaned `templates/` directory
 - [ ] Config sample at root level
 - [ ] Agent templates with Blueprints
@@ -821,6 +864,7 @@ Workspace/Archive/
 **Goal:** Consolidate and update .gitignore for new folder structure.
 
 **Current .gitignore Issues:**
+
 ```gitignore
 # Current patterns (problematic)
 /System/*.db*           # Will be obsolete
@@ -832,6 +876,7 @@ Workspace/Archive/
 ```
 
 **Deliverables:**
+
 1. Add `.exo/` runtime directory patterns
 2. Add `Workspace/` lifecycle patterns
 3. Keep `Portals/` pattern (unchanged)
@@ -840,9 +885,11 @@ Workspace/Archive/
 6. Organize patterns by domain with clear section headers
 
 **File to Modify:**
+
 - `.gitignore`
 
 **New .gitignore Structure:**
+
 ```gitignore
 # ============================================
 # ExoFrame .gitignore
@@ -926,18 +973,19 @@ exoframe
 
 **Pattern Changes:**
 
-| Old Pattern | New Pattern | Status |
-|-------------|-------------|--------|
-| `/System/*.db*` | `.exo/*.db*` | New primary |
-| `/System/daemon.pid` | `.exo/daemon.pid` | New primary |
-| `/System/*.log` | `.exo/daemon.log` | New primary |
-| `/Inbox/` | `Workspace/Requests/`, `Workspace/Plans/` | New primary |
-| (none) | `Workspace/Active/` | New |
-| (none) | `Workspace/Archive/` | New |
-| `/Portals/` | `Portals/` | Unchanged |
-| `!agents/coverage/` | `!.copilot/coverage/` | Renamed |
+| Old Pattern          | New Pattern                               | Status      |
+| -------------------- | ----------------------------------------- | ----------- |
+| `/System/*.db*`      | `.exo/*.db*`                              | New primary |
+| `/System/daemon.pid` | `.exo/daemon.pid`                         | New primary |
+| `/System/*.log`      | `.exo/daemon.log`                         | New primary |
+| `/Inbox/`            | `Workspace/Requests/`, `Workspace/Plans/` | New primary |
+| (none)               | `Workspace/Active/`                       | New         |
+| (none)               | `Workspace/Archive/`                      | New         |
+| `/Portals/`          | `Portals/`                                | Unchanged   |
+| `!agents/coverage/`  | `!.copilot/coverage/`                     | Renamed     |
 
 **Success Criteria:**
+
 - [ ] `.exo/` directory fully ignored
 - [ ] `Workspace/` subdirectories properly ignored
 - [ ] Old patterns kept with deprecation comments
@@ -945,6 +993,7 @@ exoframe
 - [ ] `git status` shows no untracked runtime files
 
 **Projected Tests:** `tests/scripts/migrate_folders_test.ts`
+
 ```
 ❌ Gitignore: .exo/ files not tracked
 ❌ Gitignore: Workspace/ user content not tracked
@@ -959,16 +1008,19 @@ exoframe
 **Goal:** Update ConfigService to support new folder structure with fallbacks.
 
 **Deliverables:**
+
 1. Add path resolution with fallback to old paths
 2. Add deprecation warnings for old paths
 3. Add configuration for custom paths
 4. Update default path constants
 
 **Files to Modify:**
+
 - `src/config/service.ts`
 - `src/config/paths.ts` (new)
 
 **New Path Configuration:**
+
 ```toml
 # exo.config.toml
 [paths]
@@ -980,12 +1032,14 @@ blueprints = "Blueprints"    # Definitions
 ```
 
 **Success Criteria:**
+
 - [ ] ConfigService resolves new paths
 - [ ] Fallback to old paths with warning
 - [ ] Custom paths configurable
 - [ ] All services use ConfigService for paths
 
 **Projected Tests:** `tests/config/service_test.ts`
+
 ```
 ❌ Config: resolves Workspace path
 ❌ Config: resolves .exo runtime path
@@ -1000,6 +1054,7 @@ blueprints = "Blueprints"    # Definitions
 **Goal:** Update all CLI commands to use new paths.
 
 **Deliverables:**
+
 1. Update `request` commands for `Workspace/Requests/`
 2. Update `plan` commands for `Workspace/Plans/`
 3. Update `daemon` commands for `.exo/`
@@ -1007,12 +1062,14 @@ blueprints = "Blueprints"    # Definitions
 5. Update help text with new paths
 
 **Files to Modify:**
+
 - `src/cli/request_commands.ts`
 - `src/cli/plan_commands.ts`
 - `src/cli/daemon_commands.ts`
 - `src/cli/archive_commands.ts` (new)
 
 **New Commands:**
+
 ```bash
 exoctl archive list              # List archived plans
 exoctl archive show <trace-id>   # Show archived plan details
@@ -1021,12 +1078,14 @@ exoctl archive stats             # Archive statistics
 ```
 
 **Success Criteria:**
+
 - [ ] All commands use new paths
 - [ ] Help text reflects new structure
 - [ ] Archive commands functional
 - [ ] Backward compatibility via fallbacks
 
 **Projected Tests:** `tests/cli/*_commands_test.ts`
+
 ```
 ❌ Request: uses Workspace/Requests/ path
 ❌ Plan: uses Workspace/Plans/ path
@@ -1042,6 +1101,7 @@ exoctl archive stats             # Archive statistics
 **Goal:** Update all documentation to reflect new folder structure.
 
 **Deliverables:**
+
 1. Update `docs/ExoFrame_Architecture.md` diagrams
 2. Update `docs/ExoFrame_User_Guide.md` paths
 3. Update `README.md` quick start
@@ -1049,6 +1109,7 @@ exoctl archive stats             # Archive statistics
 5. Create migration guide for existing users
 
 **Files to Modify:**
+
 - `docs/ExoFrame_Architecture.md`
 - `docs/ExoFrame_User_Guide.md`
 - `README.md`
@@ -1056,6 +1117,7 @@ exoctl archive stats             # Archive statistics
 - `docs/Migration_Guide_v19.md` (new)
 
 **Success Criteria:**
+
 - [ ] All diagrams show new structure
 - [ ] User guide uses new paths
 - [ ] Migration guide helps existing users
@@ -1070,6 +1132,7 @@ exoctl archive stats             # Archive statistics
 **Goal:** Implement automatic archival of completed plans.
 
 **Deliverables:**
+
 1. Create `ArchiveService` for plan archival
 2. Implement date-based directory structure
 3. Create archive index for fast lookups
@@ -1077,10 +1140,12 @@ exoctl archive stats             # Archive statistics
 5. Implement archive search and retrieval
 
 **Files to Create:**
+
 - `src/services/archive_service.ts`
 - `src/schemas/archive.ts`
 
 **Archive Schema:**
+
 ```typescript
 const ArchiveEntrySchema = z.object({
   trace_id: z.string().uuid(),
@@ -1097,6 +1162,7 @@ const ArchiveEntrySchema = z.object({
 ```
 
 **Success Criteria:**
+
 - [ ] Plans archived on completion
 - [ ] Date-based directory structure
 - [ ] Index enables fast search
@@ -1104,6 +1170,7 @@ const ArchiveEntrySchema = z.object({
 - [ ] Search by date/agent/portal works
 
 **Projected Tests:** `tests/services/archive_service_test.ts`
+
 ```
 ❌ Archive: stores completed plan
 ❌ Archive: creates year/month structure
@@ -1120,6 +1187,7 @@ const ArchiveEntrySchema = z.object({
 **Goal:** Ensure all tests pass with new folder structure.
 
 **Deliverables:**
+
 1. Update test fixtures for new paths
 2. Run full test suite
 3. Fix any path-related failures
@@ -1127,16 +1195,19 @@ const ArchiveEntrySchema = z.object({
 5. Performance test archive operations
 
 **Files to Modify:**
+
 - `tests/**/*.ts` - Path updates as needed
 - `tests_infra/**/*.ts` - Test infrastructure updates
 
 **Success Criteria:**
+
 - [ ] All 2577+ tests pass
 - [ ] No path hardcoding in tests
 - [ ] Migration tests verify compatibility
 - [ ] Archive performance acceptable (<100ms for 10k entries)
 
 **Projected Tests:** Full suite + new tests
+
 ```
 ❌ Migration: regression tests pass
 ❌ Archive: performance under load
@@ -1165,6 +1236,7 @@ This document outlines the changes needed to integrate the new SQLite-based noti
 **Location:** `src/tui/tui_dashboard.ts`
 
 **Current Notification Interface:**
+
 ```typescript
 export interface Notification {
   id: string;
@@ -1178,15 +1250,17 @@ export interface Notification {
 ```
 
 **Current State:**
+
 ```typescript
 export interface DashboardViewState {
   showNotifications: boolean;
-  notifications: Notification[];  // In-memory array
+  notifications: Notification[]; // In-memory array
   // ... other fields
 }
 ```
 
 **Current Behavior:**
+
 - Notifications stored in memory (`state.notifications[]`)
 - Created via `createNotification()` helper
 - Auto-expire after duration (5 seconds default)
@@ -1217,14 +1291,14 @@ export interface DashboardViewState {
 // src/tui/tui_dashboard.ts
 
 export interface TuiNotification {
-  id?: string;                    // UUID from database
+  id?: string; // UUID from database
   type: "memory_update_pending" | "memory_approved" | "memory_rejected" | "info" | "success" | "warning" | "error";
   message: string;
-  proposal_id?: string;           // For memory update notifications
-  trace_id?: string;              // Link to activity
-  created_at?: string;            // ISO timestamp
-  dismissed_at?: string | null;   // Soft-delete timestamp
-  metadata?: string;              // JSON metadata
+  proposal_id?: string; // For memory update notifications
+  trace_id?: string; // Link to activity
+  created_at?: string; // ISO timestamp
+  dismissed_at?: string | null; // Soft-delete timestamp
+  metadata?: string; // JSON metadata
 }
 ```
 
@@ -1239,9 +1313,9 @@ export async function launchTuiDashboard(
   options: {
     testMode?: boolean;
     nonInteractive?: boolean;
-    notificationService?: NotificationService;  // NEW
-    config?: Config;                            // NEW
-    db?: DatabaseService;                       // NEW
+    notificationService?: NotificationService; // NEW
+    config?: Config; // NEW
+    db?: DatabaseService; // NEW
   } = {},
 ): Promise<TuiDashboard | undefined> {
   // Initialize services
@@ -1260,7 +1334,7 @@ export async function launchTuiDashboard(
 ```typescript
 // BEFORE:
 export interface DashboardViewState {
-  notifications: Notification[];  // ❌ Remove
+  notifications: Notification[]; // ❌ Remove
 }
 
 // AFTER:
@@ -1421,7 +1495,7 @@ if (key === "m") {
   } else if (key === "a") {
     // Approve selected memory update
     const notifications = await this.notificationService.getNotifications();
-    const memoryNotifs = notifications.filter(n => n.type === "memory_update_pending");
+    const memoryNotifs = notifications.filter((n) => n.type === "memory_update_pending");
     if (memoryNotifs.length > 0) {
       const selected = memoryNotifs[this.selectedMemoryNotifIndex];
       // Trigger approval workflow
@@ -1431,7 +1505,7 @@ if (key === "m") {
   } else if (key === "r") {
     // Reject selected memory update
     const notifications = await this.notificationService.getNotifications();
-    const memoryNotifs = notifications.filter(n => n.type === "memory_update_pending");
+    const memoryNotifs = notifications.filter((n) => n.type === "memory_update_pending");
     if (memoryNotifs.length > 0) {
       const selected = memoryNotifs[this.selectedMemoryNotifIndex];
       // Trigger rejection workflow
@@ -1453,24 +1527,22 @@ class MockNotificationService {
   private notifications: MemoryNotification[] = [];
 
   async getNotifications(): Promise<MemoryNotification[]> {
-    return this.notifications.filter(n => !n.dismissed_at);
+    return this.notifications.filter((n) => !n.dismissed_at);
   }
 
   async getPendingCount(): Promise<number> {
-    return this.notifications.filter(n =>
-      n.type === "memory_update_pending" && !n.dismissed_at
-    ).length;
+    return this.notifications.filter((n) => n.type === "memory_update_pending" && !n.dismissed_at).length;
   }
 
   async clearNotification(proposalId: string): Promise<void> {
-    const notif = this.notifications.find(n => n.proposal_id === proposalId);
+    const notif = this.notifications.find((n) => n.proposal_id === proposalId);
     if (notif) {
       notif.dismissed_at = new Date().toISOString();
     }
   }
 
   async clearAllNotifications(): Promise<void> {
-    this.notifications.forEach(n => {
+    this.notifications.forEach((n) => {
       n.dismissed_at = new Date().toISOString();
     });
   }
@@ -1529,6 +1601,7 @@ Deno.test("TUI Dashboard: dismisses notification via database", async () => {
 ## Implementation Checklist
 
 ### Phase 1: Core Integration
+
 - [x] Update `Notification` interface to match SQLite schema
 - [x] Add `NotificationService` dependency to `launchTuiDashboard()`
 - [x] Remove in-memory `notifications` array from state
@@ -1537,40 +1610,45 @@ Deno.test("TUI Dashboard: dismisses notification via database", async () => {
 - [x] Add async rendering support
 
 ### Phase 2: Memory Update Notifications
+
 - [x] Add memory notification icon mapping
 - [x] Add `m` keyboard shortcut for memory notifications
 - [x] Implement memory notification approval/rejection workflow
 - [x] Add memory notification detail view
 
 ### Phase 3: Testing
+
 - [x] Create `MockNotificationService` for tests
 - [x] Update existing dashboard tests
 - [x] Add tests for database-backed notifications
 - [x] Add tests for memory update notification handling
 
 ### Phase 4: Documentation
+
 - [x] Update TUI keyboard reference
 - [ ] Update help screen with memory notification shortcuts
 - [ ] Document notification persistence behavior
 
 ## Benefits
 
-| Benefit | Impact |
-|---------|--------|
-| **Persistent Notifications** | Notifications survive TUI restarts |
-| **Consistent Data** | Single source of truth (database) |
-| **Better Performance** | No in-memory array management |
-| **Audit Trail** | All notifications logged to Activity Journal |
-| **Memory Integration** | Direct link to memory update proposals |
+| Benefit                      | Impact                                       |
+| ---------------------------- | -------------------------------------------- |
+| **Persistent Notifications** | Notifications survive TUI restarts           |
+| **Consistent Data**          | Single source of truth (database)            |
+| **Better Performance**       | No in-memory array management                |
+| **Audit Trail**              | All notifications logged to Activity Journal |
+| **Memory Integration**       | Direct link to memory update proposals       |
 
 ## Backward Compatibility
 
 **Breaking Changes:**
+
 - `Notification` interface updated (type field expanded)
 - `notify()` method signature may change
 - Auto-expire behavior removed (database-backed)
 
 **Migration Path:**
+
 - Existing in-memory notifications will be lost on restart (acceptable)
 - New notifications will be database-backed
 - Tests updated to use mock service
@@ -1596,6 +1674,7 @@ Deno.test("TUI Dashboard: dismisses notification via database", async () => {
 ---
 
 **Next Steps:**
+
 1. Completed all planned integration phases.
 2. Final review and documentation update.
 
@@ -1631,25 +1710,25 @@ exoctl migrate folders --rollback   # Restore if needed
 
 ## Risk Assessment
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Breaking existing workflows | High | Symlinks + deprecation warnings |
-| Lost data during migration | Critical | Backup before migration |
-| Test failures | Medium | Incremental migration with testing |
-| Documentation drift | Low | Update docs in same PR as changes |
-| CI/CD pipeline breaks | Medium | Update CI config in migration |
+| Risk                        | Impact   | Mitigation                         |
+| --------------------------- | -------- | ---------------------------------- |
+| Breaking existing workflows | High     | Symlinks + deprecation warnings    |
+| Lost data during migration  | Critical | Backup before migration            |
+| Test failures               | Medium   | Incremental migration with testing |
+| Documentation drift         | Low      | Update docs in same PR as changes  |
+| CI/CD pipeline breaks       | Medium   | Update CI config in migration      |
 
 ---
 
 ## Success Metrics
 
-| Metric | Target |
-|--------|--------|
-| Folder depth for lifecycle | ≤2 levels |
-| Path ambiguity score | 0 (no confusing names) |
-| Migration success rate | 100% |
-| Test pass rate | 100% |
-| Documentation coverage | 100% of new paths |
+| Metric                     | Target                 |
+| -------------------------- | ---------------------- |
+| Folder depth for lifecycle | ≤2 levels              |
+| Path ambiguity score       | 0 (no confusing names) |
+| Migration success rate     | 100%                   |
+| Test pass rate             | 100%                   |
+| Documentation coverage     | 100% of new paths      |
 
 ---
 
@@ -1662,11 +1741,11 @@ exoctl migrate folders --rollback   # Restore if needed
 
 ## Timeline
 
-| Week | Steps | Deliverables |
-|------|-------|--------------|
-| 1 | 19.1-19.3 | Migration tooling, .exo/, Workspace/ |
-| 2 | 19.4-19.6 | .copilot/, templates, ConfigService |
-| 3 | 19.7-19.10 | CLI, docs, archive, testing |
+| Week | Steps      | Deliverables                         |
+| ---- | ---------- | ------------------------------------ |
+| 1    | 19.1-19.3  | Migration tooling, .exo/, Workspace/ |
+| 2    | 19.4-19.6  | .copilot/, templates, ConfigService  |
+| 3    | 19.7-19.10 | CLI, docs, archive, testing          |
 
 ---
 

@@ -1,4 +1,3 @@
-
 ## Phase 2: The Nervous System (Events & State) ✅ COMPLETED
 
 **Goal:** The system reacts to file changes securely and reliably.
@@ -177,4 +176,3 @@ await generator.generate({
     valid).
 
 ---
-

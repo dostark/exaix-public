@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["git", "commit", "documentation", "best-practices"]
 ---
 
-
 ```text
 Key points
 - Review changes with `git status` and `git diff` before committing

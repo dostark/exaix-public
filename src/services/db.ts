@@ -2,6 +2,7 @@ import { Database } from "@db/sqlite";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import type { Config } from "../config/schema.ts";
+import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 
 interface LogEntry {
   activityId: string;
@@ -34,6 +35,7 @@ export class DatabaseService {
   private readonly FLUSH_INTERVAL_MS: number;
   private readonly MAX_BATCH_SIZE: number;
   private isClosing = false;
+  private readonly dbBreaker: CircuitBreaker;
 
   constructor(config: Config) {
     const dbDir = join(config.system.root, config.paths.runtime);
@@ -51,6 +53,14 @@ export class DatabaseService {
     // Load batch configuration
     this.FLUSH_INTERVAL_MS = config.database.batch_flush_ms;
     this.MAX_BATCH_SIZE = config.database.batch_max_size;
+
+    const dbCfg = (config as any).database ?? {};
+    const breakerOpts = {
+      failureThreshold: dbCfg.failure_threshold ?? 5,
+      resetTimeout: dbCfg.reset_timeout_ms ?? 60_000,
+      halfOpenSuccessThreshold: dbCfg.half_open_success_threshold ?? 2,
+    };
+    this.dbBreaker = new CircuitBreaker(breakerOpts);
   }
 
   /**
@@ -200,24 +210,26 @@ export class DatabaseService {
    */
   private async executeBatchInsert(batch: LogEntry[], context: string): Promise<void> {
     try {
-      await this.retryTransaction(() => {
-        for (const entry of batch) {
-          this.db.exec(
-            `INSERT INTO activity (id, trace_id, actor, agent_id, action_type, target, payload, timestamp)
+      await this.dbBreaker.execute(() =>
+        this.retryTransaction(() => {
+          for (const entry of batch) {
+            this.db.exec(
+              `INSERT INTO activity (id, trace_id, actor, agent_id, action_type, target, payload, timestamp)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-              entry.activityId ?? null,
-              entry.traceId ?? null,
-              entry.actor ?? null,
-              entry.agentId ?? null,
-              entry.actionType ?? null,
-              entry.target ?? null,
-              entry.payload ?? null,
-              entry.timestamp ?? null,
-            ],
-          );
-        }
-      });
+              [
+                entry.activityId ?? null,
+                entry.traceId ?? null,
+                entry.actor ?? null,
+                entry.agentId ?? null,
+                entry.actionType ?? null,
+                entry.target ?? null,
+                entry.payload ?? null,
+                entry.timestamp ?? null,
+              ],
+            );
+          }
+        })
+      );
     } catch (error) {
       console.error(`Failed to flush ${batch.length} activity logs (${context}):`, error);
     }
@@ -277,6 +289,20 @@ export class DatabaseService {
   }
 
   /**
+   * Async, breaker-safe version of `getActivitiesByTrace`.
+   */
+  async getActivitiesByTraceSafe(traceId: string): Promise<ActivityRecord[]> {
+    const stmt = this.db.prepare(
+      `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
+       FROM activity
+       WHERE trace_id = ?
+       ORDER BY timestamp`,
+    );
+
+    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(traceId) as unknown as ActivityRecord[]));
+  }
+
+  /**
    * Query activities by action_type (for testing/debugging)
    */
   getActivitiesByActionType(actionType: string): ActivityRecord[] {
@@ -288,6 +314,20 @@ export class DatabaseService {
     );
 
     return stmt.all(actionType) as unknown as ActivityRecord[];
+  }
+
+  /**
+   * Async, breaker-safe version of `getActivitiesByActionType`.
+   */
+  async getActivitiesByActionTypeSafe(actionType: string): Promise<ActivityRecord[]> {
+    const stmt = this.db.prepare(
+      `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
+       FROM activity
+       WHERE action_type = ?
+       ORDER BY timestamp`,
+    );
+
+    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(actionType) as unknown as ActivityRecord[]));
   }
 
   /**
@@ -312,7 +352,8 @@ export class DatabaseService {
        LIMIT ?`,
     );
 
-    return stmt.all(limit) as unknown as ActivityRecord[];
+    // Use breaker to protect this query
+    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(limit) as unknown as ActivityRecord[]));
   }
 
   /**
@@ -378,7 +419,31 @@ export class DatabaseService {
     params.push(filter.limit || 50);
 
     const stmt = this.db.prepare(query);
-    return stmt.all(...params) as unknown as ActivityRecord[];
+    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(...params) as unknown as ActivityRecord[]));
+  }
+
+  /**
+   * Execute a prepared statement and return a single row (breaker-protected)
+   */
+  async preparedGet<T = unknown>(query: string, params: unknown[] = []): Promise<T | null> {
+    const stmt = this.db.prepare(query);
+    return await this.dbBreaker.execute(() => Promise.resolve(stmt.get(...(params as any)) as unknown as T | null));
+  }
+
+  /**
+   * Execute a prepared statement and return all rows (breaker-protected)
+   */
+  async preparedAll<T = unknown>(query: string, params: unknown[] = []): Promise<T[]> {
+    const stmt = this.db.prepare(query);
+    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(...(params as any)) as unknown as T[]));
+  }
+
+  /**
+   * Execute a prepared run (INSERT/UPDATE/DELETE) (breaker-protected)
+   */
+  async preparedRun(query: string, params: unknown[] = []): Promise<any> {
+    const stmt = this.db.prepare(query);
+    return await this.dbBreaker.execute(() => Promise.resolve(stmt.run(...(params as any))));
   }
 
   private buildWhereClause(filter: JournalFilterOptions, params: (string | number)[]): string {

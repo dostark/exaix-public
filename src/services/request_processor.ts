@@ -31,6 +31,8 @@ import { ProviderSelector } from "../ai/provider_selector.ts";
 import { ProviderRegistry } from "../ai/provider_registry.ts";
 import { CostTracker } from "./cost_tracker.ts";
 import { HealthCheckService } from "./health_check_service.ts";
+import { CircuitBreaker, CircuitBreakerProvider } from "../ai/circuit_breaker.ts";
+import { LogMethod } from "./decorators/logging.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -89,6 +91,7 @@ export class RequestProcessor {
   private readonly logger: EventLogger;
   private readonly flowValidator: FlowValidatorImpl;
   private readonly providerSelector: ProviderSelector;
+  private readonly ioBreaker: CircuitBreaker;
 
   constructor(
     private readonly config: Config,
@@ -127,6 +130,12 @@ export class RequestProcessor {
     //   join(config.system.root, processorConfig.blueprintsPath)
     // );
     this.flowValidator = null as any; // Temporary for testing
+    // IO circuit breaker used to protect filesystem and PlanWriter operations
+    this.ioBreaker = new CircuitBreaker({
+      failureThreshold: 3,
+      resetTimeout: 60_000,
+      halfOpenSuccessThreshold: 2,
+    });
   }
 
   /**
@@ -134,6 +143,7 @@ export class RequestProcessor {
    * @param filePath - Absolute path to the request file
    * @returns Path to generated plan, or null if processing failed
    */
+  @LogMethod(new EventLogger({ prefix: "[RequestProcessor]" }), "request.process")
   async process(filePath: string): Promise<string | null> {
     // Step 1: Parse the request file
     const parsed = await this.parseRequestFile(filePath);
@@ -275,11 +285,18 @@ export class RequestProcessor {
             taskComplexity,
           );
 
-          // Create the provider instance
-          selectedProvider = await ProviderFactory.createByName(this.config, selectedProviderName);
+          // Create the provider instance and wrap with circuit breaker provider
+          const rawProvider = await ProviderFactory.createByName(this.config, selectedProviderName);
+          selectedProvider = new CircuitBreakerProvider(rawProvider, {
+            failureThreshold: 5,
+            resetTimeout: 60_000,
+            halfOpenSuccessThreshold: 2,
+          });
+
           traceLogger.info("provider.selected", selectedProviderName, {
             taskComplexity,
             trace_id: traceId,
+            provider_wrapped: selectedProvider.id,
           });
         }
 
@@ -319,10 +336,10 @@ export class RequestProcessor {
               this.config.paths.workspace,
               this.config.paths.rejected,
             );
-            await Deno.mkdir(rejectedDir, { recursive: true });
+            await this.ioBreaker.execute(() => Deno.mkdir(rejectedDir, { recursive: true }));
 
             const rejectedPath = join(rejectedDir, `${requestId}_failed.md`);
-            await Deno.writeTextFile(rejectedPath, rawContent);
+            await this.ioBreaker.execute(() => Deno.writeTextFile(rejectedPath, rawContent));
 
             errorMessage += ` (Saved to ${rejectedPath})`;
             traceLogger.info("plan.saved_rejected", rejectedPath, { reason: "validation_failed" });
@@ -354,7 +371,7 @@ export class RequestProcessor {
     traceLogger: any,
     extra?: Record<string, unknown>,
   ): Promise<string> {
-    const planResult = await this.planWriter.writePlan(result, metadata);
+    const planResult = await this.ioBreaker.execute(() => this.planWriter.writePlan(result, metadata));
     await this.updateRequestStatus(filePath, rawContent, RequestStatus.PLANNED);
     const logObj: Record<string, unknown> = { plan_path: planResult.planPath, ...(extra ?? {}) };
     traceLogger.info("request.planned", filePath, logObj);

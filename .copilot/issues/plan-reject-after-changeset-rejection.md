@@ -72,7 +72,7 @@ const planPath = this.findPlanInDirectory(planId, [
   this.workspacePath("Plans"),
   this.workspacePath("Active"),
   this.workspacePath("Archive"),
-  this.workspacePath("Rejected")
+  this.workspacePath("Rejected"),
 ]);
 ```
 

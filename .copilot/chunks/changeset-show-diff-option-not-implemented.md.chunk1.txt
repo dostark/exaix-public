@@ -1,15 +1,19 @@
-## Expected Behavior
 - `--diff` (and `-d`) should be a valid option for `exoctl changeset show`.
 - When provided, the command should print only the unified diff for the changeset, not the full details.
 - The help output should document the `--diff` option.
 
 ## Observed Behavior
+
 - The CLI rejects `--diff` and `-d` as unknown options.
 - The only way to see the diff is to run `exoctl changeset show <id>` and manually extract the diff from the output.
 
 ## Impact
+
 - Users cannot easily view just the diff for a changeset from the CLI.
 - This is inconsistent with typical CLI UX and the help description.
 
 ## Resolution
+
 ✅ **FIXED**: Added `--diff`/`-d` option to `exoctl changeset show` command.
+
+**Changes Made:**

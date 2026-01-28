@@ -7,8 +7,6 @@ updated: 2026-01-23
 labels: [bug, cli, plan]
 ---
 
-# Rejected plans not shown in plan show command
-
 ## Problem
 
 When a plan is rejected using `exoctl plan reject`, it can no longer be viewed using `exoctl plan show <id>`. The command returns "Plan not found" even though the plan appears in `exoctl plan list` with status "rejected".

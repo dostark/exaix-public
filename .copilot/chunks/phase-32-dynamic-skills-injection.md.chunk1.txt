@@ -11,6 +11,7 @@
 The `security-expert` agent blueprint has `no_code_changes: true` in its system prompt, preventing it from creating changesets even when explicitly requested. This is by design - security experts should audit, not modify code.
 
 However, there are legitimate scenarios where a security expert should write files:
+
 - Creating audit reports (`audit.md`)
 - Generating security documentation
 - Writing security test cases

@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["tdd", "testing", "prompts", "examples"]
 ---
 
-
 ```text
 Key points
 - Always write failing tests first, then implement minimal code to pass
@@ -29,3 +28,4 @@ Do / Don't
 - ✅ Do update Implementation Plan step when complete
 - ❌ Don't implement without tests first
 - ❌ Don't skip context injection for complex components
+```

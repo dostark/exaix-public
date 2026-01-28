@@ -27,18 +27,19 @@ npx jscpd src/ tests/ --reporters html,json --output ./jscpd-report
 
 ## Command Options
 
-| Option | Description | Example |
-|--------|-------------|---------|
-| `--min-lines` | Minimum lines to consider clone | `--min-lines 5` (default: 5) |
+| Option         | Description                      | Example                         |
+| -------------- | -------------------------------- | ------------------------------- |
+| `--min-lines`  | Minimum lines to consider clone  | `--min-lines 5` (default: 5)    |
 | `--min-tokens` | Minimum tokens to consider clone | `--min-tokens 50` (default: 50) |
-| `--threshold` | Fail if duplication exceeds % | `--threshold 10` |
-| `--reporters` | Output formats | `json`, `html`, `console` |
-| `--ignore` | Patterns to ignore | `--ignore "**/node_modules/**"` |
-| `--format` | Languages to scan | `--format typescript` |
+| `--threshold`  | Fail if duplication exceeds %    | `--threshold 10`                |
+| `--reporters`  | Output formats                   | `json`, `html`, `console`       |
+| `--ignore`     | Patterns to ignore               | `--ignore "**/node_modules/**"` |
+| `--format`     | Languages to scan                | `--format typescript`           |
 
 ## Understanding Output
 
 ### Console Output
+
 ```
 Clone found (typescript):
  - tests/ai/openai_provider_test.ts [64:2 - 78:13] (14 lines, 136 tokens)
@@ -46,11 +47,13 @@ Clone found (typescript):
 ```
 
 Interpretation:
+
 - **File 1**: `openai_provider_test.ts`, lines 64-78
 - **File 2**: `anthropic_provider_test.ts`, lines 44-56
 - **Size**: 14 lines, 136 tokens (larger = higher priority for refactoring)
 
 ### JSON Report Structure
+
 ```json
 {
   "statistics": {
@@ -67,24 +70,25 @@ Interpretation:
 
 ## Duplication Thresholds
 
-| Level | Percentage | Action |
-|-------|------------|--------|
-| 🟢 Good | < 2% | No action needed |
-| 🟡 Warning | 2-5% | Monitor, refactor when convenient |
-| 🟠 High | 5-10% | Plan refactoring phase |
-| 🔴 Critical | > 10% | Immediate attention required |
+| Level       | Percentage | Action                            |
+| ----------- | ---------- | --------------------------------- |
+| 🟢 Good     | < 2%       | No action needed                  |
+| 🟡 Warning  | 2-5%       | Monitor, refactor when convenient |
+| 🟠 High     | 5-10%      | Plan refactoring phase            |
+| 🔴 Critical | > 10%      | Immediate attention required      |
 
 ### Per-File Thresholds
 
-| Level | Percentage | Action |
-|-------|------------|--------|
-| 🟢 Good | < 15% | Acceptable |
-| 🟡 Warning | 15-30% | Consider helper extraction |
-| 🔴 Critical | > 30% | Create extraction plan |
+| Level       | Percentage | Action                     |
+| ----------- | ---------- | -------------------------- |
+| 🟢 Good     | < 15%      | Acceptable                 |
+| 🟡 Warning  | 15-30%     | Consider helper extraction |
+| 🔴 Critical | > 30%      | Create extraction plan     |
 
 ## Common Duplication Patterns
 
 ### 1. Test Setup Duplication
+
 ```typescript
 // BAD: Repeated across test files
 const { db, tempDir, cleanup } = await initTestDbService();
@@ -96,6 +100,7 @@ const ctx = await createTestFixture();
 ```
 
 ### 2. Provider Pattern Duplication
+
 ```typescript
 // BAD: Same constructor in multiple providers
 constructor(config: Config) {
@@ -113,6 +118,7 @@ export abstract class BaseProvider {
 ```
 
 ### 3. Test Assertion Patterns
+
 ```typescript
 // BAD: Same assertions repeated
 assertEquals(result.status, "success");
@@ -159,6 +165,7 @@ assertSuccessResult(result, { dataLength: 3 });
 ## Integration with CI
 
 Add to pre-commit or CI pipeline:
+
 ```bash
 # Fail if duplication > 5%
 npx jscpd src/ tests/ --threshold 5
@@ -170,6 +177,7 @@ npx jscpd src/ai/ --threshold 3
 ## ExoFrame-Specific Patterns
 
 ### Test Helper Locations
+
 - `tests/helpers/` - General test utilities
 - `tests/cli/helpers/` - CLI test setup
 - `tests/integration/helpers/` - Integration test environment

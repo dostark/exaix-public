@@ -1,4 +1,3 @@
-
 ## Phase 1: The Iron Skeleton (Runtime & Storage) ✅ COMPLETED
 
 **Goal:** A running Deno daemon that can write to the database, read configuration, and establish the physical storage

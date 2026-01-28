@@ -1,10 +1,9 @@
-```markdown
-**Before Step 10.5**:
 - Agent docs existed but were hard to discover
 - No clear workflow for using RAG
 - Inconsistent prompting patterns
 
 **After Step 10.5**:
+
 - 19 agent docs (up from 11)
 - 8 copy-paste prompt templates
 - Cross-reference map for navigation
@@ -25,3 +24,5 @@ deno run --allow-read scripts/validate_agents_docs.ts
 
 ```markdown
 ### The Meta-Learning: Documentation Is a Product
+
+Treating documentation like code revolutionized quality:

@@ -116,9 +116,9 @@ export class CostTracker {
       ? [today.toISOString(), tomorrow.toISOString(), provider]
       : [today.toISOString(), tomorrow.toISOString()];
 
-    const result = this.db.instance.prepare(query).get(...params) as { total_cost: number | null };
+    const result = await this.db.preparedGet<{ total_cost: number | null }>(query, params);
 
-    return await Promise.resolve(result?.total_cost ?? 0);
+    return result?.total_cost ?? 0;
   }
 
   /**
@@ -155,7 +155,7 @@ export class CostTracker {
       ? [startDate.toISOString(), endDate.toISOString(), provider]
       : [startDate.toISOString(), endDate.toISOString()];
 
-    const rows = await this.db.instance.prepare(query).all(...params) as any[];
+    const rows = await this.db.preparedAll<any>(query, params);
 
     return rows.map((row) => ({
       id: row.id,
@@ -206,7 +206,7 @@ export class CostTracker {
       );
     }
 
-    await this.db.instance.prepare(query).run(...params);
+    await this.db.preparedRun(query, params);
   }
 
   /**

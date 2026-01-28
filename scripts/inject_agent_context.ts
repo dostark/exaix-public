@@ -39,7 +39,19 @@ export async function inject(agent: string, query: string, _maxChunks = 2) {
   const best = await findBest(agent, query);
   if (!best.path) return { found: false };
   const mdBody = best.md!.replace(/^---[\s\S]*?---/, "");
-  const paragraph = mdBody.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)[0] || "";
+  const paragraphs = mdBody.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  // Prefer a paragraph that mentions 'rag' or 'inject' or is reasonably long.
+  let paragraph = "";
+  for (const p of paragraphs) {
+    const low = p.toLowerCase();
+    if (low.includes("rag") || low.includes("inject")) {
+      paragraph = p;
+      break;
+    }
+  }
+  if (!paragraph) {
+    paragraph = paragraphs.find((p) => p.length > 40 && !/^key points$/i.test(p)) || paragraphs[0] || "";
+  }
   return {
     found: true,
     path: best.path,

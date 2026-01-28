@@ -1,4 +1,3 @@
-Requirements from agents/:
 - Follow Service Pattern from agents/source/exoframe.md
 - Maintain test coverage per agents/tests/testing.md
 - Update docs per agents/docs/documentation.md
@@ -19,3 +18,6 @@ ANALYZE phase:
 - No existing db.ts helper in tests/helpers/
 - Risk: Circular dependencies if placed in wrong location
 - Dependencies: All test files import from tests/helpers/
+
+PLAN phase:
+Tool calls needed:

@@ -28,7 +28,7 @@ Use systematic debugging approach:
    - What's the actual behavior?
    - Where's the gap?
    - What files are involved?
-   </thinking>
+     </thinking>
 
 4. FIX:
    - Implement minimal fix
@@ -66,7 +66,7 @@ Use systematic debugging approach:
    - Actual: cleanup() might be missing or called conditionally
    - Gap: Test setup doesn't guarantee cleanup
    - Files: tests/config_test.ts, possibly tests/helpers/db.ts
-   </thinking>
+     </thinking>
 
 4. FIX:
    - Check if cleanup is in try/finally
@@ -104,7 +104,7 @@ Use systematic debugging approach:
    - Actual: Permission denied even for valid paths
    - Gap: Permission check logic might be too restrictive
    - Files: src/services/PathResolver.ts, Portal config validation
-   </thinking>
+     </thinking>
 
 4. FIX:
    - Read PathResolver permission logic
@@ -143,7 +143,7 @@ Use systematic debugging approach:
    - Actual: Type definition doesn't include temperature
    - Gap: Schema mismatch or wrong type imported
    - Files: src/ai/model_adapter.ts, src/schemas/
-   </thinking>
+     </thinking>
 
 4. FIX:
    - Check Zod schema definition for model config

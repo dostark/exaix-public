@@ -12,6 +12,7 @@
 
 import { assert, assertEquals, assertExists } from "@std/assert";
 import { EventLogger } from "../src/services/event_logger.ts";
+import { createStubDb } from "./test_helpers.ts";
 
 const TEST_ACTION = "test.action";
 const TEST_WARNING = "test.warning";
@@ -29,10 +30,7 @@ const TEST_USER = "test-user";
 
 Deno.test("[regression] Stub db object has required logActivity method", () => {
   // This is the stub db object used in exoctl.ts fallback paths
-  const stubDb = {
-    logActivity: () => {},
-    waitForFlush: async () => {},
-  };
+  const stubDb = createStubDb();
 
   // Verify methods exist and are callable
   assertExists(stubDb.logActivity, "stubDb.logActivity should exist");
@@ -47,10 +45,7 @@ Deno.test("[regression] Stub db object has required logActivity method", () => {
 
 Deno.test("[regression] EventLogger works with stub db that has logActivity", async () => {
   // Simulate the fallback db stub from exoctl.ts
-  const stubDb = {
-    logActivity: () => {},
-    waitForFlush: async () => {},
-  };
+  const stubDb = createStubDb();
 
   // Create EventLogger with stub db (same as CLI does in fallback mode)
   const logger = new EventLogger({ db: stubDb as any });
@@ -103,10 +98,7 @@ Deno.test("[regression] EventLogger works with no db at all (console-only mode)"
 });
 
 Deno.test("[regression] EventLogger child loggers work with stub db", async () => {
-  const stubDb = {
-    logActivity: () => {},
-    waitForFlush: async () => {},
-  };
+  const stubDb = createStubDb();
 
   const parentLogger = new EventLogger({ db: stubDb as any });
   const childLogger = parentLogger.child({ actor: TEST_USER, traceId: TEST_TRACE_ID });
@@ -198,10 +190,7 @@ Deno.test("[regression] BlueprintCommands works with stub db", async () => {
   } as any;
 
   // Create stub db with required methods
-  const stubDb = {
-    logActivity: () => {},
-    waitForFlush: async () => {},
-  };
+  const stubDb = createStubDb();
 
   // Create command handler
   const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });

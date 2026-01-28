@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["openai", "debugging", "prompts", "diff-first"]
 ---
 
-
 ## Key points
 
 - Reproduce first (tests or exact commands).

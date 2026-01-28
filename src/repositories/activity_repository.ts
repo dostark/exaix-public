@@ -80,13 +80,13 @@ export class DatabaseActivityRepository implements ActivityRepository {
   }
 
   async getActivitiesByTraceId(traceId: string): Promise<Activity[]> {
-    const records = this.db.getActivitiesByTrace(traceId);
-    return await records.map(this.mapRecordToActivity);
+    const records = await this.db.getActivitiesByTraceSafe(traceId);
+    return records.map(this.mapRecordToActivity);
   }
 
   async getActivitiesByActionType(actionType: string): Promise<Activity[]> {
-    const records = this.db.getActivitiesByActionType(actionType);
-    return await records.map(this.mapRecordToActivity);
+    const records = await this.db.getActivitiesByActionTypeSafe(actionType);
+    return records.map(this.mapRecordToActivity);
   }
 
   async getRecentActivities(limit: number = 100): Promise<Activity[]> {

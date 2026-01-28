@@ -210,7 +210,7 @@ export class QueryJournalTool extends ToolHandler {
     try {
       let activities;
       if (trace_id) {
-        activities = await this.db.getActivitiesByTrace(trace_id);
+        activities = await this.db.getActivitiesByTraceSafe(trace_id);
       } else {
         activities = await this.db.getRecentActivity(limit);
       }

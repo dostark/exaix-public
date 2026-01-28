@@ -6,12 +6,12 @@
 
 Research modern approaches for the subsystem type:
 
-| Subsystem | Research Areas |
-|-----------|---------------|
-| Agents | ReAct, Reflexion, Chain-of-Thought, Tool Use |
-| Flows | Multi-agent orchestration, DAG execution, transforms |
-| Memory | RAG, semantic search, context windows |
-| Tools | Function calling, schema validation, sandboxing |
+| Subsystem | Research Areas                                       |
+| --------- | ---------------------------------------------------- |
+| Agents    | ReAct, Reflexion, Chain-of-Thought, Tool Use         |
+| Flows     | Multi-agent orchestration, DAG execution, transforms |
+| Memory    | RAG, semantic search, context windows                |
+| Tools     | Function calling, schema validation, sandboxing      |
 
 ### 2.2 Gap Analysis
 

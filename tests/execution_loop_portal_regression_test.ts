@@ -79,7 +79,7 @@ content = "hello from portal"
     assert(!existsInRoot, "File should NOT exist in root directory");
 
     // Verify changeset was registered
-    const changesets = changesetRegistry.list({ portal: "my-portal" });
+    const changesets = await changesetRegistry.list({ portal: "my-portal" });
     assertEquals(changesets.length, 1, "Should have registered 1 changeset");
     assertEquals(changesets[0].portal, "my-portal");
     assertExists(changesets[0].commit_sha, "Changeset should have a commit SHA");

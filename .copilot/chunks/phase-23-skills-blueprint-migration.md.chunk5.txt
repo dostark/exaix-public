@@ -11,3 +11,5 @@ Memory/Skills/core/
 ```
 
 ### Skill Reference Analysis
+
+**Agents referencing core skills:**

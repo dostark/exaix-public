@@ -29,6 +29,7 @@ exoctl plan show <plan-id>
 ## Observed Behavior
 
 **Current `exoctl plan list` output:**
+
 ```
 ✅ plan.list: plans
    count: 1
@@ -38,6 +39,7 @@ exoctl plan show <plan-id>
 ```
 
 **Current `exoctl plan show` output:**
+
 ```
 ✅ plan.show: request-f493fe2a_plan
    status: review
@@ -49,6 +51,7 @@ exoctl plan show <plan-id>
 ## Expected Behavior
 
 **Enhanced `exoctl plan list` should show:**
+
 - Original request ID/title
 - Agent that created the plan
 - Portal context (if applicable)
@@ -56,6 +59,7 @@ exoctl plan show <plan-id>
 - Request priority
 
 **Enhanced `exoctl plan show` should show:**
+
 - Link to original request (`request_id`)
 - Agent information
 - Portal context
@@ -93,12 +97,14 @@ exoctl plan show <plan-id>
 ## Technical Details
 
 **Available Data:**
+
 - Plan files contain `request_id` and `trace_id`
 - Request files contain `agent`, `portal`, `priority`, `created_by`, etc.
 - Agent information is available in `Blueprints/Agents/`
 - Portal information is available in config
 
 **Implementation:**
+
 - Modify plan commands to read associated request data
 - Add request metadata to plan display
 - Include agent and portal context
@@ -119,6 +125,7 @@ Medium priority - this is a UX improvement that would significantly help users n
 **Root Cause:** Plan commands only displayed basic plan metadata (id, status, trace_id) without loading associated request information, making it difficult for users to understand plan context and trace requests back to their source.
 
 **Fix Applied:**
+
 1. **Enhanced PlanMetadata Interface:** Added request context fields (`request_id`, `request_title`, `request_agent`, `request_portal`, `request_priority`, `request_created_by`)
 2. **Request Data Loading:** Modified `PlanCommands.extractPlanMetadataWithRequest()` to load request information when `request_id` is present in plan frontmatter
 3. **CLI Display Updates:** Updated `exoctl plan list` and `exoctl plan show` commands to display request context information
@@ -126,6 +133,7 @@ Medium priority - this is a UX improvement that would significantly help users n
 5. **Title Extraction:** Implemented smart title extraction from request content (prefers headers, falls back to first content line)
 
 **Files Modified:**
+
 - `src/cli/plan_commands.ts`: Enhanced metadata extraction and request loading
 - `src/cli/exoctl.ts`: Updated CLI display formatting
 - `exo.config.toml`: Fixed workspace path configuration

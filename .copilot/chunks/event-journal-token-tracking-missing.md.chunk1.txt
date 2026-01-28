@@ -13,8 +13,8 @@ Example expected payload:
 
 ```json
 {
-  "provider":"google-gemini-2.0-flash-exp",
-  "model":"gemini-2.0-flash-exp",
+  "provider": "google-gemini-2.0-flash-exp",
+  "model": "gemini-2.0-flash-exp",
   "input_tokens": 150,
   "output_tokens": 75,
   "cost_usd": 0.0012,

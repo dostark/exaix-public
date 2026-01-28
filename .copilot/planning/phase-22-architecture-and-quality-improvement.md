@@ -36,31 +36,31 @@ Extended systematic analysis of ExoFrame's `src/` directory identified **16 addi
 
 ### Key Metrics (Additional Issues)
 
-| Category | Count | Critical | High | Medium | Low |
-|----------|-------|----------|-------|--------|-----|
-| Performance | 3 | 1 | 2 | 0 | 0 |
-| Security | 3 | 1 | 1 | 1 | 0 |
-| Architecture | 3 | 0 | 2 | 1 | 0 |
-| Reliability | 3 | 1 | 1 | 1 | 0 |
-| Code Quality | 4 | 0 | 1 | 3 | 0 |
-| **Total** | **16** | **3** | **7** | **6** | **0** |
+| Category     | Count  | Critical | High  | Medium | Low   |
+| ------------ | ------ | -------- | ----- | ------ | ----- |
+| Performance  | 3      | 1        | 2     | 0      | 0     |
+| Security     | 3      | 1        | 1     | 1      | 0     |
+| Architecture | 3      | 0        | 2     | 1      | 0     |
+| Reliability  | 3      | 1        | 1     | 1      | 0     |
+| Code Quality | 4      | 0        | 1     | 3      | 0     |
+| **Total**    | **16** | **3**    | **7** | **6**  | **0** |
 
 ### Files Requiring Immediate Attention
 
-| Priority | File | Lines | Issues | Primary Concern |
-|----------|------|-------|--------|-----------------|
-| 🔴 P0 | `src/services/agent_executor.ts` | 250-400 | 1 | ✅ **RESOLVED** - Blocking git operations |
-| 🔴 P0 | `src/services/tool_registry.ts` | 360-390 | 1 | ✅ **RESOLVED** - Path traversal security |
-| 🔴 P0 | `src/services/db.ts` | 200-308 | 1 | ✅ **RESOLVED** - Synchronous blocking delays |
-| 🔴 P0 | `src/ai/provider_factory.ts` | 79-424 | 1 | Excessive documentation duplication |
-| 🟠 P1 | `src/services/watcher.ts` | 180-230 | 2 | ✅ **RESOLVED** - File stability blocking + race conditions |
-| 🟠 P1 | `src/flows/flow_runner.ts` | 200-250 | 1 | ✅ **RESOLVED** - Missing error boundaries |
-| 🟠 P1 | `src/mcp/server.ts` | 300-350 | 1 | ✅ **RESOLVED** - Classified error handling implemented |
-| 🟠 P1 | `src/services/git_service.ts` | 300-365 | 1 | ✅ **RESOLVED** - Error recovery implemented |
-| 🟡 P2 | `src/services/memory_bank.ts` | 100-200 | 2 | File-based storage limitations + coupling |
-| 🟡 P2 | `src/main.ts` | 150-200 | 1 | Missing input validation |
-| 🟡 P2 | `src/ai/provider_factory.ts` | Various | 1 | Tight coupling |
-| 🟡 P2 | `src/services/tool_registry.ts` | 400-450 | 1 | Incomplete command whitelisting |
+| Priority | File                             | Lines   | Issues | Primary Concern                                             |
+| -------- | -------------------------------- | ------- | ------ | ----------------------------------------------------------- |
+| 🔴 P0    | `src/services/agent_executor.ts` | 250-400 | 1      | ✅ **RESOLVED** - Blocking git operations                   |
+| 🔴 P0    | `src/services/tool_registry.ts`  | 360-390 | 1      | ✅ **RESOLVED** - Path traversal security                   |
+| 🔴 P0    | `src/services/db.ts`             | 200-308 | 1      | ✅ **RESOLVED** - Synchronous blocking delays               |
+| 🔴 P0    | `src/ai/provider_factory.ts`     | 79-424  | 1      | Excessive documentation duplication                         |
+| 🟠 P1    | `src/services/watcher.ts`        | 180-230 | 2      | ✅ **RESOLVED** - File stability blocking + race conditions |
+| 🟠 P1    | `src/flows/flow_runner.ts`       | 200-250 | 1      | ✅ **RESOLVED** - Missing error boundaries                  |
+| 🟠 P1    | `src/mcp/server.ts`              | 300-350 | 1      | ✅ **RESOLVED** - Classified error handling implemented     |
+| 🟠 P1    | `src/services/git_service.ts`    | 300-365 | 1      | ✅ **RESOLVED** - Error recovery implemented                |
+| 🟡 P2    | `src/services/memory_bank.ts`    | 100-200 | 2      | File-based storage limitations + coupling                   |
+| 🟡 P2    | `src/main.ts`                    | 150-200 | 1      | Missing input validation                                    |
+| 🟡 P2    | `src/ai/provider_factory.ts`     | Various | 1      | Tight coupling                                              |
+| 🟡 P2    | `src/services/tool_registry.ts`  | 400-450 | 1      | Incomplete command whitelisting                             |
 
 ---
 
@@ -165,12 +165,14 @@ async revertUnauthorizedChanges(
 #### Impact Analysis
 
 **Quantitative Impact**:
+
 - **Availability Risk**: Single corrupted repo can block entire system
 - **Recovery Time**: Requires manual process restart (no auto-recovery)
 - **Performance**: Sequential file processing O(n) instead of batched O(1)
 - **Debugging**: No logging or error context for git failures
 
 **Qualitative Impact**:
+
 - **System Reliability**: 🔴 Critical single point of failure
 - **User Experience**: Complete system hangs with no feedback
 - **Operational Burden**: Manual intervention required for recovery
@@ -195,17 +197,20 @@ Create a new utility module for safe subprocess execution:
 #### Implementation Plan
 
 **Phase 1: Infrastructure (2 hours)**
+
 - [x] Create `src/utils/subprocess.ts` with SafeSubprocess class
 - [x] Add comprehensive error types and logging
 - [x] Write unit tests for subprocess utility
 
 **Phase 2: AgentExecutor Refactor (4 hours)**
+
 - [x] Replace `auditGitChanges()` with timeout-protected version
 - [x] Replace `revertUnauthorizedChanges()` with concurrent batching
 - [x] Add proper error handling and logging
 - [x] Update method signatures if needed
 
 **Phase 3: Integration Testing (2 hours)**
+
 - [x] Test timeout behavior with slow git commands
 - [x] Test concurrent file processing limits
 - [x] Test error aggregation and reporting
@@ -321,22 +326,24 @@ private async resolvePath(path: string): Promise<string> {
 
 #### Identified Security Issues
 
-| Issue | Impact | Severity | CVSS Score |
-|-------|--------|----------|------------|
-| Path Traversal | Directory escape | 🔴 Critical | 8.6 |
-| Inconsistent Validation | Bypass validation | 🔴 Critical | 7.8 |
-| Synchronous Calls | Blocking operations | 🟠 High | 6.5 |
-| Error Handling | Information disclosure | 🟡 Medium | 4.3 |
+| Issue                   | Impact                 | Severity    | CVSS Score |
+| ----------------------- | ---------------------- | ----------- | ---------- |
+| Path Traversal          | Directory escape       | 🔴 Critical | 8.6        |
+| Inconsistent Validation | Bypass validation      | 🔴 Critical | 7.8        |
+| Synchronous Calls       | Blocking operations    | 🟠 High     | 6.5        |
+| Error Handling          | Information disclosure | 🟡 Medium   | 4.3        |
 
 #### Impact Analysis
 
 **Security Impact**:
+
 - **Path Traversal Attack**: `../../../etc/passwd` could access system files
 - **Data Exfiltration**: Sensitive files outside workspace could be read
 - **Privilege Escalation**: Access to configuration files or other portals
 - **Information Disclosure**: Error messages reveal system path structure
 
 **Performance Impact**:
+
 - Synchronous `Deno.realPathSync()` blocks event loop
 - Multiple filesystem operations per path resolution
 - Inefficient validation logic with fallbacks
@@ -361,18 +368,21 @@ private async resolvePath(path: string): Promise<string> {
 #### Implementation Plan
 
 **Phase 1: Security Infrastructure (3 hours)**
+
 - [x] Create `src/utils/path_security.ts` with comprehensive path validation
 - [x] Add path traversal detection and prevention
 - [x] Implement secure root validation logic
 - [x] Write comprehensive unit tests for security scenarios
 
 **Phase 2: Tool Registry Integration (2 hours)**
+
 - [x] Replace vulnerable `resolvePath()` method
 - [x] Add security event logging
 - [x] Update error handling to prevent information leakage
 - [x] Test with various path traversal attack vectors
 
 **Phase 3: Security Testing (1 hour)**
+
 - [x] Test path traversal attempts: `../../../etc/passwd`
 - [x] Test symlink attacks and absolute path bypasses
 - [x] Test non-existent file creation within allowed roots
@@ -433,15 +443,18 @@ Database retry logic uses synchronous `setTimeout` delays that block the event l
 #### Current Problematic Code
 
 **File**: `src/services/db.ts` (Lines 200-308)
+
 #### Impact Analysis
 
 **Performance Impact**:
+
 - Event loop blocked during retry delays
 - Cannot process other requests concurrently
 - Poor scalability under load
 - Increased latency for all operations
 
 **Reliability Impact**:
+
 - System unresponsive during database contention
 - Cannot handle multiple concurrent transactions
 - Potential for cascading failures
@@ -453,16 +466,19 @@ Database retry logic uses synchronous `setTimeout` delays that block the event l
 #### Implementation Plan
 
 **Phase 1: Replace Blocking Delays (1 hour)**
+
 - [x] Replace `setTimeout` blocking pattern with non-blocking alternative
 - [x] Add jitter to prevent thundering herd problems
 - [x] Cap maximum delay to prevent excessive waits
 
 **Phase 2: Add Retry Options (2 hours)**
+
 - [x] Create `RetryOptions` interface for configurable retry behavior
 - [x] Update all `retryTransaction` calls to use new options
 - [x] Add comprehensive logging for retry attempts
 
 **Phase 3: Testing (1 hour)**
+
 - [x] Test concurrent transaction handling
 - [x] Verify non-blocking behavior under load
 - [x] Test jitter prevents thundering herd
@@ -598,6 +614,7 @@ private delay(ms: number): Promise<void> {
 **✅ COMPLETED**: Issue #4 File Stability Checking with Blocking Operations
 
 **Changes Made**:
+
 - **src/utils/async_utils.ts**: Added non-blocking `delay()` utility function
 - **src/config/constants.ts**: Added configurable stability constants
 - **src/services/watcher.ts**: Updated `readFileWhenStable()` to use non-blocking delays
@@ -706,6 +723,7 @@ private async processFileQueued(path: string) {
 **✅ COMPLETED**: Issue #5 Race Conditions in File Watching
 
 **Changes Made**:
+
 - **src/services/watcher.ts**: Added `processFileQueued()` method with processing set synchronization
 - **tests/watcher_test.ts**: Added 3 comprehensive test cases for race condition prevention
 
@@ -850,7 +868,6 @@ private async handleToolsCall(
 }
 ```
 
-
 #### Success Criteria
 
 - ✅ **Classified Errors:** `classifyError` maps validation, security, not_found, permission, timeout, and generic errors to distinct types and JSON-RPC codes.
@@ -931,7 +948,6 @@ private async runGitCommand(
 
 **File**: `tests/services/git_service_test.ts` (ADD)
 
-
 ---
 
 ## 🟡 MEDIUM PRIORITY ISSUES (P2)
@@ -969,6 +985,7 @@ private async writeMarkdownFile(path: string, content: string): Promise<void> {
 ```
 
 **Issues Identified**:
+
 1. **No Concurrency Control**: Multiple operations can read/write the same files simultaneously
 2. **Race Conditions**: Concurrent updates to `learnings.md`, `patterns.md`, etc. can cause data loss
 3. **File Corruption Risk**: Partial writes during concurrent operations
@@ -978,16 +995,19 @@ private async writeMarkdownFile(path: string, content: string): Promise<void> {
 #### Impact Analysis
 
 **Data Integrity Risk**:
+
 - Race conditions during concurrent memory updates
 - Potential data loss when multiple operations modify the same files
 - Inconsistent state when operations are interrupted mid-write
 
 **Performance Impact**:
+
 - Excessive file I/O for simple operations
 - No caching of frequently accessed memory data
 - Sequential processing instead of batched operations
 
 **Scalability Issues**:
+
 - File-based storage doesn't scale with concurrent users
 - No connection pooling or optimization for multiple operations
 - Memory usage grows linearly with number of projects
@@ -1056,17 +1076,20 @@ private async withFileLock<T>(
 #### Implementation Plan
 
 **Phase 1: Core Infrastructure (2 hours)**
+
 - [x] Implement `withFileLock()` method with proper error handling
 - [x] Add lock file cleanup on process exit
 - [x] Test basic locking functionality
 
 **Phase 2: Protect Critical Operations (3 hours)**
+
 - [x] Add locking to `createProjectMemory()` and `updateProjectMemory()`
 - [x] Add locking to `addGlobalLearning()` and `promoteLearning()`
 - [x] Add locking to `createExecutionRecord()`
 - [x] Add locking to `rebuildIndices()` operations
 
 **Phase 3: Testing & Validation (1 hour)**
+
 - [x] Write comprehensive concurrency tests
 - [x] Test lock timeout behavior
 - [x] Verify data integrity under concurrent load
@@ -1075,6 +1098,7 @@ private async withFileLock<T>(
 #### Success Criteria
 
 **Status**: ✅ **ALL SUCCESS CRITERIA MET** (Validated with comprehensive testing)
+
 - ✅ **File Locking**: All critical file operations are protected by exclusive locks
 - ✅ **Race Condition Prevention**: Concurrent operations on the same files are serialized
 - ✅ **Data Integrity**: No data corruption during concurrent memory updates
@@ -1112,6 +1136,7 @@ ls -la Memory/**/*.lock
 **Commit**: `f1f3d81` - "feat: implement file locking for Memory Bank concurrent access protection"
 
 **What Was Accomplished**:
+
 - Implemented comprehensive file locking mechanism with `withFileLock()` method
 - Protected all critical memory bank operations (addGlobalLearning, addPattern, addDecision, updateProjectMemory)
 - Added 5 new concurrency tests covering concurrent access, lock cleanup, and timeout behavior
@@ -1119,6 +1144,7 @@ ls -la Memory/**/*.lock
 - Validated all success criteria through automated testing
 
 **Key Technical Achievements**:
+
 - Exclusive file locking using Deno.createNew flag prevents race conditions
 - Timeout protection (5 seconds) prevents indefinite blocking
 - Exponential backoff retry logic handles contention gracefully
@@ -1163,16 +1189,19 @@ The ProviderFactory class had tight coupling with concrete provider implementati
 #### Impact Analysis
 
 **Maintainability Impact**:
+
 - Adding new providers required modifying the factory's switch statement
 - Changes to provider constructors would break the factory
 - Factory became a bottleneck for provider-related changes
 
 **Testability Impact**:
+
 - Could not unit test factory logic without instantiating real providers
 - Integration tests required API keys and network access
 - Difficult to test error handling for specific providers
 
 **Extensibility Impact**:
+
 - Third-party providers could not be added without modifying core code
 - Provider plugins or extensions were not supported
 
@@ -1208,6 +1237,7 @@ The ProviderFactory class had tight coupling with concrete provider implementati
 **Commit**: `f1f3d82` - "feat: implement provider registry pattern to decouple ProviderFactory from concrete implementations"
 
 **What Was Accomplished**:
+
 - Created `IProviderFactory` interface and `ProviderRegistry` class for loose coupling
 - Implemented concrete factory classes for all provider types (Mock, Ollama, Anthropic, OpenAI, Google)
 - Refactored `ProviderFactory.createProvider()` to use registry-first approach with legacy fallback
@@ -1216,6 +1246,7 @@ The ProviderFactory class had tight coupling with concrete provider implementati
 - All 72 AI-related tests pass, ensuring backward compatibility maintained
 
 **Key Technical Achievements**:
+
 - **Registry Pattern**: Clean separation between factory interface and concrete implementations
 - **Testability**: Provider creation logic can now be unit tested without instantiating real providers
 - **Extensibility**: New providers can be added by registering factory classes without modifying core code
@@ -1226,6 +1257,7 @@ The ProviderFactory class had tight coupling with concrete provider implementati
 **Testing Results**: 7/7 registry tests passing, 72/72 AI tests passing, full backward compatibility verified
 
 **Benefits Achieved**:
+
 - ✅ Loose coupling between services
 - ✅ Improved testability and maintainability
 - ✅ Plugin architecture for third-party providers
@@ -1332,12 +1364,14 @@ private async runCommand(command: string, args: string[]): Promise<ToolResult> {
 #### Impact Analysis
 
 **Security Impact**:
+
 - **Command Injection Risk**: Malicious arguments could exploit allowed commands (e.g., `git` with `--exec-path` or shell metacharacters)
 - **Privilege Escalation**: Commands like `git` or `npm` could be used to execute arbitrary code
 - **Data Exfiltration**: Lack of restrictions on output redirection or network commands
 - **System Compromise**: Missing restrictions on potentially dangerous commands
 
 **Functionality Impact**:
+
 - **Limited Tool Capabilities**: Agents cannot use common safe utilities for text processing or analysis
 - **Poor Developer Experience**: Basic operations require workarounds or manual implementation
 - **Reduced Automation**: Cannot perform common file operations or data transformations
@@ -1364,18 +1398,46 @@ Create categorized command whitelist with safety levels:
 
 // Level 1: Completely Safe - No arguments can cause harm
 const SAFE_COMMANDS = new Set([
-  "echo", "printf", "pwd", "whoami", "id", "date", "uptime",
-  "which", "type", "command", "hash", "alias",
+  "echo",
+  "printf",
+  "pwd",
+  "whoami",
+  "id",
+  "date",
+  "uptime",
+  "which",
+  "type",
+  "command",
+  "hash",
+  "alias",
 ]);
 
 // Level 2: Safe with Validation - Arguments must be validated
 const VALIDATED_COMMANDS = new Set([
   // File operations (safe)
-  "ls", "cat", "head", "tail", "wc", "file", "stat", "basename", "dirname",
+  "ls",
+  "cat",
+  "head",
+  "tail",
+  "wc",
+  "file",
+  "stat",
+  "basename",
+  "dirname",
   // Text processing (safe)
-  "grep", "cut", "tr", "sort", "uniq", "rev", "fold", "fmt",
+  "grep",
+  "cut",
+  "tr",
+  "sort",
+  "uniq",
+  "rev",
+  "fold",
+  "fmt",
   // Development tools (restricted)
-  "git", "npm", "node", "deno",
+  "git",
+  "npm",
+  "node",
+  "deno",
 ]);
 
 // Combined whitelist for backward compatibility
@@ -1515,18 +1577,21 @@ private validateGrepArguments(args: string[]): { valid: boolean; reason?: string
 #### Implementation Plan
 
 **Phase 1: Command Classification (1 hour)**
+
 - [ ] Analyze current ALLOWED_COMMANDS usage and dependencies
 - [ ] Classify commands by safety level (safe, validated, restricted)
 - [ ] Add missing safe commands (text processing, file utilities)
 - [ ] Update ALLOWED_COMMANDS to maintain backward compatibility
 
 **Phase 2: Argument Validation System (2 hours)**
+
 - [ ] Implement `validateCommandArguments()` method
 - [ ] Add command-specific validation functions
 - [ ] Integrate validation into `runCommand()` method
 - [ ] Add comprehensive error messages for validation failures
 
 **Phase 3: Testing & Validation (1 hour)**
+
 - [ ] Write unit tests for argument validation
 - [ ] Test command classification and safety levels
 - [ ] Verify backward compatibility with existing usage
@@ -1666,6 +1731,7 @@ The command whitelisting system is incomplete and lacks proper argument validati
 **✅ COMPLETED**: Issue #12 Command Whitelisting with Comprehensive Security
 
 **Changes Made**:
+
 - **Command Classification System**: Implemented SAFE_COMMANDS (12 commands) and VALIDATED_COMMANDS (16 commands) for security levels
 - **Argument Validation Engine**: Added `validateCommandArguments()` with pattern-based blocking of dangerous shell constructs
 - **Command-Specific Validators**: Implemented specialized validation for git, npm/node/deno, ls, and grep commands
@@ -1675,6 +1741,7 @@ The command whitelisting system is incomplete and lacks proper argument validati
 **Test Results**: All 12 tests passing (100% success rate), full test suite passes with no regressions
 
 **Key Technical Achievements**:
+
 - **Security-First Design**: Blocks shell metacharacters (`;`, `&`, `|`, `>`, `<`), pipes, and command separators
 - **Command-Specific Restrictions**: Git blocks dangerous options like `--exec-path`, npm/node/deno limited to safe subcommands only
 - **Expanded Command Set**: From 10 to 28 safe commands including text processing (grep, cut, sort) and file utilities (head, tail, wc)
@@ -1683,6 +1750,7 @@ The command whitelisting system is incomplete and lacks proper argument validati
 - **Error Handling**: Clear, actionable error messages for security violations
 
 **Security Improvements Achieved**:
+
 - ✅ **Command Injection Prevention**: Shell metacharacters and dangerous patterns blocked
 - ✅ **Privilege Escalation Protection**: Git and runtime commands restricted to safe operations
 - ✅ **Data Exfiltration Prevention**: Output redirection and pipes blocked
@@ -1690,6 +1758,7 @@ The command whitelisting system is incomplete and lacks proper argument validati
 - ✅ **Audit Trail**: Security violations logged for monitoring and forensics
 
 **Files Modified**:
+
 - `src/services/tool_registry.ts`: Added command classification, argument validation system, and integration
 - `tests/services/tool_registry_test.ts`: Added 12 comprehensive security tests
 
@@ -1697,6 +1766,7 @@ The command whitelisting system is incomplete and lacks proper argument validati
 **Commit**: `feat: implement comprehensive command whitelisting with argument validation`
 
 **Benefits Delivered**:
+
 - **Enhanced Security**: Robust protection against command injection and privilege escalation
 - **Improved Functionality**: 28 safe commands available for agent operations (up from 10)
 - **Developer Experience**: Clear error messages and comprehensive test coverage
@@ -1724,7 +1794,7 @@ const ALLOWED_COMMANDS = new Set([
 
 **File**: `src/services/tool_registry.ts` (Lines 447-453)
 
-```typescript
+````typescript
 private async runCommand(command: string, args: string[]): Promise<ToolResult> {
   try {
     // Check if command is whitelisted
@@ -1775,7 +1845,7 @@ static create(config: Config): IModelProvider {
   const options = this.resolveOptions(config);
   return this.createProvider(options);
 }
-```
+````
 
 #### Affected Methods
 
@@ -1798,12 +1868,14 @@ All public static methods have this issue:
 #### Impact Analysis
 
 **Quantitative Impact**:
+
 - Total file size: 424 lines
 - Comment lines: ~212 (50%)
 - Duplicate comments: ~106 (25%)
 - Actual code: ~212 (50%)
 
 **Qualitative Impact**:
+
 - **Maintainability**: Every doc update requires changing 2 locations
 - **Readability**: Developers must parse redundant information
 - **IDE Experience**: Autocomplete shows duplicate documentation
@@ -1813,6 +1885,7 @@ All public static methods have this issue:
 #### Root Cause
 
 Likely caused by:
+
 1. Merge conflict resolution that kept both versions
 2. Different developers using different JSDoc styles
 3. Automated documentation tool running twice
@@ -1824,7 +1897,7 @@ Likely caused by:
 
 Use concise TypeScript-idiomatic style:
 
-```typescript
+````typescript
 /**
  * Create an LLM provider based on environment and configuration.
  *
@@ -1845,7 +1918,7 @@ static create(config: Config): IModelProvider {
   const options = this.resolveOptions(config);
   return this.createProvider(options);
 }
-```
+````
 
 **Step 2: Add Cross-References**
 
@@ -1869,12 +1942,14 @@ static createByName(config: Config, name: string): IModelProvider {
 #### Implementation Plan
 
 **Phase 1: Audit (30 min)**
+
 - [ ] Create list of all duplicate JSDoc occurrences
 - [ ] Compare duplicate blocks to identify any differences
 - [ ] Document which style is more prevalent
 - [ ] Check for intentional semantic differences
 
 **Phase 2: Refactor (1 hour)**
+
 - [ ] Remove all duplicate JSDoc blocks
 - [ ] Standardize remaining docs to TypeScript idioms
 - [ ] Add missing `@throws` declarations
@@ -1882,12 +1957,14 @@ static createByName(config: Config, name: string): IModelProvider {
 - [ ] Add `@see` cross-references between related methods
 
 **Phase 3: Validation (30 min)**
+
 - [ ] Run TypeScript compiler to verify no doc errors
 - [ ] Check IDE autocomplete works correctly
 - [ ] Review documentation output in generated docs
 - [ ] Verify all methods still have documentation
 
 **Phase 4: Prevention**
+
 - [ ] Add ESLint rule to detect duplicate JSDoc
 - [ ] Update `.copilot/docs/coding-standards.md`
 - [ ] Add pre-commit hook for JSDoc validation
@@ -1938,17 +2015,20 @@ grep -Pzo '(?s)/\*\*.*?\*/\s*/\*\*.*?\*/' src/ai/provider_factory.ts
 ## Implementation Roadmap
 
 ### Phase 0: Quick Documentation Fixes (Day 1)
+
 - [x] Fix ProviderFactory JSDoc duplication (Issue #13)
 - [ ] Add ESLint rule for duplicate JSDoc detection
 - [ ] Update coding standards documentation
 
 ### Phase 1: Critical Infrastructure (Week 1-2)
+
 - [ ] Implement SafeSubprocess utility
 - [ ] Create PathSecurity utility
 - [x] Fix synchronous blocking delays (Issue #4)
 - [x] Add timeout protection to git operations (Issue #8)
 
 ### Phase 2: Service Refactoring (Week 3-4)
+
 - [ ] Refactor AgentExecutor git operations
 - [x] Fix ToolRegistry path resolution (Issue #12)
 - [x] Improve FileWatcher stability checking (Issue #4)
@@ -1956,12 +2036,14 @@ grep -Pzo '(?s)/\*\*.*?\*/\s*/\*\*.*?\*/' src/ai/provider_factory.ts
 - [ ] Add error boundaries to FlowRunner (Issue #6)
 
 ### Phase 3: Reliability Improvements (Week 5-6)
+
 - [x] Enhance MCP server error handling (Issue #7)
 - [x] Add GitService error recovery (Issue #8)
 - [x] Implement MemoryBank file locking (Issue #9)
 - [ ] Add comprehensive input validation
 
 ### Phase 4: Testing & Validation (Week 7-8)
+
 - [x] Write comprehensive tests for all fixes (completed for Issues #4, #5, #7, #8, #9, #10, #12, #13)
 - [ ] Performance testing under load
 - [ ] Security testing for vulnerabilities
@@ -1972,6 +2054,7 @@ grep -Pzo '(?s)/\*\*.*?\*/\s*/\*\*.*?\*/' src/ai/provider_factory.ts
 ## Success Criteria
 
 ### Functional Requirements
+
 - ✅ All git operations have configurable timeouts (30s default)
 - ✅ Path traversal attacks are blocked with proper validation
 - ✅ No synchronous operations block the event loop
@@ -1981,6 +2064,7 @@ grep -Pzo '(?s)/\*\*.*?\*/\s*/\*\*.*?\*/' src/ai/provider_factory.ts
 - ✅ Git service handles repository corruption gracefully
 
 ### Non-Functional Requirements
+
 - ✅ Performance impact <5% for normal operations
 - ✅ Memory usage remains stable under load
 - ✅ Error logging provides actionable debugging information
@@ -1988,6 +2072,7 @@ grep -Pzo '(?s)/\*\*.*?\*/\s*/\*\*.*?\*/' src/ai/provider_factory.ts
 - ✅ All fixes are backward compatible
 
 ### Quality Metrics
+
 - ✅ Unit test coverage >90% for new utilities
 - ✅ Integration tests pass for all service interactions
 - ✅ Static analysis passes with zero new warnings

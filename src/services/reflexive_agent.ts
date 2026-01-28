@@ -24,6 +24,9 @@ import {
 } from "./agent_runner.ts";
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
+import { CircuitBreaker } from "../ai/circuit_breaker.ts";
+import { LogMethod } from "./decorators/logging.ts";
+import { EventLogger } from "./event_logger.ts";
 
 // ============================================================================
 // Critique Schema
@@ -161,6 +164,8 @@ export class ReflexiveAgent {
   private agentRunner: AgentRunner;
   private critiqueRunner: AgentRunner;
   private outputValidator: OutputValidator;
+  private readonly agentBreaker: CircuitBreaker;
+  private readonly critiqueBreaker: CircuitBreaker;
   private db?: DatabaseService;
 
   private config: {
@@ -214,8 +219,21 @@ export class ReflexiveAgent {
     this.agentRunner = new AgentRunner(modelProvider, agentRunnerConfig);
     this.critiqueRunner = new AgentRunner(modelProvider, agentRunnerConfig);
     this.outputValidator = createOutputValidator({ autoRepair: true });
+
+    this.agentBreaker = new CircuitBreaker({
+      failureThreshold: 5,
+      resetTimeout: 60_000,
+      halfOpenSuccessThreshold: 2,
+    });
+
+    this.critiqueBreaker = new CircuitBreaker({
+      failureThreshold: 5,
+      resetTimeout: 60_000,
+      halfOpenSuccessThreshold: 2,
+    });
   }
 
+  @LogMethod(new EventLogger({ prefix: "[ReflexiveAgent]" }), "reflexive.run")
   async run(blueprint: Blueprint, request: ParsedRequest): Promise<ReflexiveExecutionResult> {
     const startTime = performance.now();
     const iterations: ReflexionIteration[] = [];
@@ -229,7 +247,7 @@ export class ReflexiveAgent {
       const iterationStart = performance.now();
 
       if (i === 1) {
-        currentResponse = await this.agentRunner.run(blueprint, request);
+        currentResponse = await this.agentBreaker.execute(() => this.agentRunner.run(blueprint, request));
       } else {
         currentResponse = await this.refine(blueprint, request, currentResponse!, finalCritique!);
       }
@@ -312,7 +330,9 @@ export class ReflexiveAgent {
       traceId: request.traceId,
     };
 
-    const critiqueResult = await this.critiqueRunner.run(critiqueBlueprint, critiqueRequest);
+    const critiqueResult = await this.critiqueBreaker.execute(() =>
+      this.critiqueRunner.run(critiqueBlueprint, critiqueRequest)
+    );
 
     const validationResult = this.outputValidator.validate(critiqueResult.content, CritiqueSchema);
 

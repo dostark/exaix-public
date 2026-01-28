@@ -5,3 +5,5 @@ Use `TestEnvironment.create()` for full integration tests that require workspace
 ### Test Environment Variables (Phase 28)
 
 All test-related environment variables use the `EXO_TEST_*` prefix for clarity and separation from production env vars:
+
+**Standard Test Variables:**

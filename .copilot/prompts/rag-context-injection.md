@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["rag", "embeddings", "context-injection", "prompts"]
 ---
 
-
 ## Prompt Template
 
 ```text

@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["refactoring", "thinking-protocol", "prompts", "examples"]
 ---
 
-
 ## Prompt Template
 
 ```markdown
@@ -27,6 +26,7 @@ Context injection:
 deno run --allow-read scripts/inject_agent_context.ts claude "refactoring [pattern] [component]" 6
 
 Requirements from agents/:
+
 - Follow Service Pattern from agents/source/exoframe.md
 - Maintain test coverage per agents/tests/testing.md
 - Update docs per agents/docs/documentation.md
@@ -57,6 +57,7 @@ Context injection:
 deno run --allow-read scripts/inject_agent_context.ts claude "refactoring database testing helpers" 6
 
 Requirements from agents/:
+
 - Follow Service Pattern from agents/source/exoframe.md
 - Maintain test coverage per agents/tests/testing.md
 - Update docs per agents/docs/documentation.md
@@ -80,12 +81,13 @@ ANALYZE phase:
 
 PLAN phase:
 Tool calls needed:
+
 1. grep_search for "initTestDbService" (get usage count)
 2. Parallel read: tests/helpers/test_utils.ts, tests/db_test.ts (patterns)
 3. Create tests/helpers/db.ts with exported helper
 4. Update 2 representative files as examples
 5. Run tests to verify
-</thinking>
+   </thinking>
 
 [then execute the plan with actual tool calls]
 ```

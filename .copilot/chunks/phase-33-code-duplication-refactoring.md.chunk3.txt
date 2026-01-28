@@ -1,1 +1,11 @@
+1. **TUI Views** - 200-300 lines duplicated, high complexity (15-25)
+2. **Test Helpers** - 150-200 lines duplicated, slow setup (200-500ms)
+3. **CLI Commands** - 100-150 lines duplicated, inconsistent validation
+4. **Provider Factories** - 80-120 lines duplicated, slow init (50-150ms)
+5. **Services** - 60-100 lines duplicated, low error recovery (50%)
+
+---
+
+## Architecture Design
+
 ### Refactoring Priorities

@@ -13,18 +13,18 @@ This document proposes enhancements to ExoFrame's Flow orchestration system base
 
 ## Implementation Status
 
-| Component | Status | Location | Tests |
-|-----------|--------|----------|-------|
-| ConditionEvaluator | ✅ Complete | `src/flows/condition_evaluator.ts` | ✅ 21 tests |
-| EvaluationCriteria | ✅ Complete | `src/flows/evaluation_criteria.ts` | ✅ 37 tests |
-| GateEvaluator | ✅ Complete | `src/flows/gate_evaluator.ts` | ✅ 8 tests |
-| JudgeEvaluator | ✅ Complete | `src/flows/judge_evaluator.ts` | ✅ 14 tests |
-| FeedbackLoop | ✅ Complete | `src/flows/feedback_loop.ts` | ✅ 15 tests |
-| FlowRunner Condition Integration | ✅ Complete | `src/flows/flow_runner.ts` | ✅ Included in flow_runner_test |
-| Schema Extensions | ✅ Complete | `src/schemas/flow.ts` | ✅ Included in existing tests |
-| Quality Judge Blueprint | ✅ Complete | `Blueprints/Agents/quality-judge.md` | N/A |
-| LLM Judge Template | ✅ Complete | `Blueprints/Flows/templates/llm-judge-code-review.flow.template.ts` | N/A |
-| Self-Correcting Template | ✅ Complete | `Blueprints/Flows/templates/self-correcting.flow.template.ts` | N/A |
+| Component                        | Status      | Location                                                            | Tests                           |
+| -------------------------------- | ----------- | ------------------------------------------------------------------- | ------------------------------- |
+| ConditionEvaluator               | ✅ Complete | `src/flows/condition_evaluator.ts`                                  | ✅ 21 tests                     |
+| EvaluationCriteria               | ✅ Complete | `src/flows/evaluation_criteria.ts`                                  | ✅ 37 tests                     |
+| GateEvaluator                    | ✅ Complete | `src/flows/gate_evaluator.ts`                                       | ✅ 8 tests                      |
+| JudgeEvaluator                   | ✅ Complete | `src/flows/judge_evaluator.ts`                                      | ✅ 14 tests                     |
+| FeedbackLoop                     | ✅ Complete | `src/flows/feedback_loop.ts`                                        | ✅ 15 tests                     |
+| FlowRunner Condition Integration | ✅ Complete | `src/flows/flow_runner.ts`                                          | ✅ Included in flow_runner_test |
+| Schema Extensions                | ✅ Complete | `src/schemas/flow.ts`                                               | ✅ Included in existing tests   |
+| Quality Judge Blueprint          | ✅ Complete | `Blueprints/Agents/quality-judge.md`                                | N/A                             |
+| LLM Judge Template               | ✅ Complete | `Blueprints/Flows/templates/llm-judge-code-review.flow.template.ts` | N/A                             |
+| Self-Correcting Template         | ✅ Complete | `Blueprints/Flows/templates/self-correcting.flow.template.ts`       | N/A                             |
 
 **Current Test Count:** 175 flow tests passing
 
@@ -34,17 +34,17 @@ This document proposes enhancements to ExoFrame's Flow orchestration system base
 
 ### Existing Tests (175 total)
 
-| Test File | Tests | Coverage |
-|-----------|-------|----------|
-| `condition_evaluator_test.ts` | 21 | Condition expressions, context building, validation |
-| `gate_evaluator_test.ts` | 8 | Gate pass/fail, retry actions, score thresholds |
-| `judge_evaluator_test.ts` | 14 | JSON parsing, heuristics, score normalization |
-| `feedback_loop_test.ts` | 15 | Iterations, stop conditions, improvement agents |
-| `evaluation_criteria_test.ts` | 37 | CRITERIA, weighted scores, prompt building |
-| `flow_runner_test.ts` | ~40 | Execution, dependencies, transforms, conditions |
-| `dependency_resolver_test.ts` | ~15 | DAG resolution, cycle detection |
-| `transforms_test.ts` | ~15 | Transform functions |
-| `define_flow_test.ts` | ~10 | Flow definition, validation |
+| Test File                     | Tests | Coverage                                            |
+| ----------------------------- | ----- | --------------------------------------------------- |
+| `condition_evaluator_test.ts` | 21    | Condition expressions, context building, validation |
+| `gate_evaluator_test.ts`      | 8     | Gate pass/fail, retry actions, score thresholds     |
+| `judge_evaluator_test.ts`     | 14    | JSON parsing, heuristics, score normalization       |
+| `feedback_loop_test.ts`       | 15    | Iterations, stop conditions, improvement agents     |
+| `evaluation_criteria_test.ts` | 37    | CRITERIA, weighted scores, prompt building          |
+| `flow_runner_test.ts`         | ~40   | Execution, dependencies, transforms, conditions     |
+| `dependency_resolver_test.ts` | ~15   | DAG resolution, cycle detection                     |
+| `transforms_test.ts`          | ~15   | Transform functions                                 |
+| `define_flow_test.ts`         | ~10   | Flow definition, validation                         |
 
 ### Test Implementation (All Complete ✅)
 
@@ -150,13 +150,13 @@ Deno.test("FlowRunner: consensus step aggregates results");
 
 ### Phase 15 Gaps Identified:
 
-| Task | Status | Priority | Effort |
-|------|--------|----------|--------|
-| `judge_evaluator_test.ts` | ❌ Missing | P1 | 2h |
-| `feedback_loop_test.ts` | ❌ Missing | P1 | 2h |
-| `evaluation_criteria_test.ts` | ❌ Missing | P2 | 1h |
-| `self-correcting.flow.template.ts` | ❌ Missing | P3 | 1h |
-| Documentation Update (Phase 15.7) | ⚠️ Partial | P2 | 2h |
+| Task                               | Status     | Priority | Effort |
+| ---------------------------------- | ---------- | -------- | ------ |
+| `judge_evaluator_test.ts`          | ❌ Missing | P1       | 2h     |
+| `feedback_loop_test.ts`            | ❌ Missing | P1       | 2h     |
+| `evaluation_criteria_test.ts`      | ❌ Missing | P2       | 1h     |
+| `self-correcting.flow.template.ts` | ❌ Missing | P3       | 1h     |
+| Documentation Update (Phase 15.7)  | ⚠️ Partial | P2       | 2h     |
 
 ### Recommended Completion Order:
 
@@ -181,16 +181,16 @@ Deno.test("FlowRunner: consensus step aggregates results");
 
 ### Identified Weaknesses 🔴 → **Now Addressed** ✅
 
-| Weakness                     | Impact                                               | Resolution |
-| ---------------------------- | ---------------------------------------------------- | --------------------- |
+| Weakness                     | Impact                                               | Resolution                                       |
+| ---------------------------- | ---------------------------------------------------- | ------------------------------------------------ |
 | **Conditions not evaluated** | `condition` field in schema is ignored in FlowRunner | ✅ ConditionEvaluator integrated into FlowRunner |
-| **No quality gates**         | Can't gate progression based on quality thresholds   | ✅ GateEvaluator with configurable thresholds |
-| **No feedback loops**        | Steps can't iterate based on output quality          | ✅ FeedbackLoop with Reflexion pattern |
-| **No LLM evaluation**        | No built-in way to assess output quality             | ✅ JudgeEvaluator + EvaluationCriteria library |
-| **No dynamic routing**       | Can't branch based on step results                   | ✅ Schema supports branch step type |
-| **No self-correction**       | Failed steps can only retry, not adapt               | ✅ FeedbackLoop for iterative improvement |
-| **Output validation**        | No schema validation for step outputs                | ✅ EvaluationCriteria for structured validation |
-| **No consensus mechanisms**  | Parallel workers can't vote/agree                    | ✅ Schema supports consensus step type |
+| **No quality gates**         | Can't gate progression based on quality thresholds   | ✅ GateEvaluator with configurable thresholds    |
+| **No feedback loops**        | Steps can't iterate based on output quality          | ✅ FeedbackLoop with Reflexion pattern           |
+| **No LLM evaluation**        | No built-in way to assess output quality             | ✅ JudgeEvaluator + EvaluationCriteria library   |
+| **No dynamic routing**       | Can't branch based on step results                   | ✅ Schema supports branch step type              |
+| **No self-correction**       | Failed steps can only retry, not adapt               | ✅ FeedbackLoop for iterative improvement        |
+| **Output validation**        | No schema validation for step outputs                | ✅ EvaluationCriteria for structured validation  |
+| **No consensus mechanisms**  | Parallel workers can't vote/agree                    | ✅ Schema supports consensus step type           |
 
 ---
 
@@ -755,14 +755,14 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 
 ## Success Metrics
 
-| Metric | Target | Current Status |
-|--------|--------|----------------|
-| Condition Evaluation | 100% of flows with conditions execute correctly | ✅ Achieved - 21 tests passing |
-| Quality Gates | Gate steps correctly pass/fail based on thresholds | ✅ Achieved - 8 tests passing |
-| Judge Accuracy | Judge evaluations correlate with human assessment (>80%) | ✅ Achieved - 14 tests, JSON/heuristic parsing validated |
-| Feedback Improvement | Loop improves quality score by >0.15 on average | ✅ Achieved - 15 tests, iteration/stop conditions validated |
-| No Regressions | All existing flow tests continue to pass | ✅ Achieved - 175 tests passing |
-| Test Coverage | All new components have dedicated tests | ✅ Complete - All 6 components have tests |
+| Metric               | Target                                                   | Current Status                                              |
+| -------------------- | -------------------------------------------------------- | ----------------------------------------------------------- |
+| Condition Evaluation | 100% of flows with conditions execute correctly          | ✅ Achieved - 21 tests passing                              |
+| Quality Gates        | Gate steps correctly pass/fail based on thresholds       | ✅ Achieved - 8 tests passing                               |
+| Judge Accuracy       | Judge evaluations correlate with human assessment (>80%) | ✅ Achieved - 14 tests, JSON/heuristic parsing validated    |
+| Feedback Improvement | Loop improves quality score by >0.15 on average          | ✅ Achieved - 15 tests, iteration/stop conditions validated |
+| No Regressions       | All existing flow tests continue to pass                 | ✅ Achieved - 175 tests passing                             |
+| Test Coverage        | All new components have dedicated tests                  | ✅ Complete - All 6 components have tests                   |
 
 ---
 
@@ -770,30 +770,30 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 
 **New Files**:
 
-| File | Status |
-|------|--------|
-| `src/flows/gate_evaluator.ts` | ✅ Created |
-| `src/flows/judge_evaluator.ts` | ✅ Created |
-| `src/flows/feedback_loop.ts` | ✅ Created |
-| `src/flows/evaluation_criteria.ts` | ✅ Created |
-| `src/flows/condition_evaluator.ts` | ✅ Created |
-| `Blueprints/Agents/quality-judge.md` | ✅ Created (as .md) |
-| `Blueprints/Flows/templates/llm-judge.flow.template.ts` | ✅ Created (as llm-judge-code-review) |
-| `Blueprints/Flows/templates/self-correcting.flow.template.ts` | ❌ Not created |
-| `tests/flows/gate_evaluator_test.ts` | ✅ Created (8 tests) |
-| `tests/flows/judge_evaluator_test.ts` | ✅ Created (14 tests) |
-| `tests/flows/feedback_loop_test.ts` | ✅ Created (15 tests) |
-| `tests/flows/condition_evaluator_test.ts` | ✅ Created (21 tests) |
-| `tests/flows/evaluation_criteria_test.ts` | ✅ Created (37 tests) |
+| File                                                          | Status                                |
+| ------------------------------------------------------------- | ------------------------------------- |
+| `src/flows/gate_evaluator.ts`                                 | ✅ Created                            |
+| `src/flows/judge_evaluator.ts`                                | ✅ Created                            |
+| `src/flows/feedback_loop.ts`                                  | ✅ Created                            |
+| `src/flows/evaluation_criteria.ts`                            | ✅ Created                            |
+| `src/flows/condition_evaluator.ts`                            | ✅ Created                            |
+| `Blueprints/Agents/quality-judge.md`                          | ✅ Created (as .md)                   |
+| `Blueprints/Flows/templates/llm-judge.flow.template.ts`       | ✅ Created (as llm-judge-code-review) |
+| `Blueprints/Flows/templates/self-correcting.flow.template.ts` | ❌ Not created                        |
+| `tests/flows/gate_evaluator_test.ts`                          | ✅ Created (8 tests)                  |
+| `tests/flows/judge_evaluator_test.ts`                         | ✅ Created (14 tests)                 |
+| `tests/flows/feedback_loop_test.ts`                           | ✅ Created (15 tests)                 |
+| `tests/flows/condition_evaluator_test.ts`                     | ✅ Created (21 tests)                 |
+| `tests/flows/evaluation_criteria_test.ts`                     | ✅ Created (37 tests)                 |
 
 **Modified Files**:
 
-| File | Status |
-|------|--------|
-| `src/schemas/flow.ts` | ✅ Updated - gate, branch, consensus types |
-| `src/flows/flow_runner.ts` | ✅ Updated - condition integration |
-| `src/flows/transforms.ts` | ✅ Updated - evaluation transforms |
-| `src/flows/dependency_resolver.ts` | ✅ Updated - branch handling |
+| File                               | Status                                     |
+| ---------------------------------- | ------------------------------------------ |
+| `src/schemas/flow.ts`              | ✅ Updated - gate, branch, consensus types |
+| `src/flows/flow_runner.ts`         | ✅ Updated - condition integration         |
+| `src/flows/transforms.ts`          | ✅ Updated - evaluation transforms         |
+| `src/flows/dependency_resolver.ts` | ✅ Updated - branch handling               |
 
 ---
 
@@ -803,14 +803,15 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 
 **Files to Update:**
 
-| File | Updates Required |
-|------|------------------|
-| `docs/ExoFrame_User_Guide.md` | Flow section: conditions, gates, loops, judge patterns |
-| `docs/Building_with_AI_Agents.md` | New orchestration patterns, examples |
-| `docs/ExoFrame_Implementation_Plan.md` | Phase 15 completion status |
-| `Blueprints/Flows/README.md` | New templates, step types |
+| File                                   | Updates Required                                       |
+| -------------------------------------- | ------------------------------------------------------ |
+| `docs/ExoFrame_User_Guide.md`          | Flow section: conditions, gates, loops, judge patterns |
+| `docs/Building_with_AI_Agents.md`      | New orchestration patterns, examples                   |
+| `docs/ExoFrame_Implementation_Plan.md` | Phase 15 completion status                             |
+| `Blueprints/Flows/README.md`           | New templates, step types                              |
 
 **Tasks:**
+
 1. Document condition evaluation syntax and examples
 2. Add quality gate configuration guide
 3. Document feedback loop patterns
@@ -819,6 +820,7 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 6. Add troubleshooting section for new features
 
 **Success Criteria:**
+
 - [ ] User guide has complete Flow feature documentation
 - [ ] Each new pattern has worked example
 - [ ] API reference updated for new schema fields
@@ -843,21 +845,23 @@ All enhancements are **additive** - existing flows continue to work unchanged:
 
 ### Phase 15.7 Documentation Updates ✅ Complete
 
-| Document | Updates Made |
-|----------|--------------|
-| `ExoFrame_Architecture.md` | Added Flow Orchestration Architecture section, Mermaid diagram, Component table |
-| `ExoFrame_Technical_Spec.md` | Added section 5.8.2.2 Flow Orchestration Improvements with schemas and criteria |
-| `ExoFrame_User_Guide.md` | Added Flow Step Types, Condition Expressions, Quality Gates, Feedback Loops |
-| `phase-15-flow-orchestration-improvements.md` | Updated success metrics, file status, completion status |
-| `Blueprints/Flows/templates/README.md` | Added Self-Correcting template documentation |
+| Document                                      | Updates Made                                                                    |
+| --------------------------------------------- | ------------------------------------------------------------------------------- |
+| `ExoFrame_Architecture.md`                    | Added Flow Orchestration Architecture section, Mermaid diagram, Component table |
+| `ExoFrame_Technical_Spec.md`                  | Added section 5.8.2.2 Flow Orchestration Improvements with schemas and criteria |
+| `ExoFrame_User_Guide.md`                      | Added Flow Step Types, Condition Expressions, Quality Gates, Feedback Loops     |
+| `phase-15-flow-orchestration-improvements.md` | Updated success metrics, file status, completion status                         |
+| `Blueprints/Flows/templates/README.md`        | Added Self-Correcting template documentation                                    |
 
 ### Phase 15 Summary
 
 **Implementation Complete:**
+
 - 5 core components implemented (ConditionEvaluator, GateEvaluator, JudgeEvaluator, FeedbackLoop, EvaluationCriteria)
 - 175 flow tests passing
 - Full documentation across Architecture, Technical Spec, and User Guide
 - Self-correcting flow template demonstrating all Phase 15 features
 
 **Optional/Future:**
+
 - [ ] Migration guide for existing flows (if needed)

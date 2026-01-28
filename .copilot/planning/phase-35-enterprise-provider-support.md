@@ -13,11 +13,13 @@ Following Phase 26's provider flexibility improvements and Phase 28's environmen
 ### **Problem Statement**
 
 **Current Limitation:**
+
 - Users with paid Google AI Pro subscriptions hit free-tier quotas
 - Simple `GOOGLE_API_KEY` authentication bypasses Vertex AI enterprise benefits
 - No access to Google Cloud project-based billing and regional endpoints
 
 **Impact:**
+
 - Wasted subscription costs (paying for capacity that can't be accessed)
 - Poor user experience (rate limit errors despite having paid tier)
 - Missed features (regional data residency, advanced quotas, cost tracking)
@@ -30,6 +32,7 @@ Implement two enterprise provider types:
 2. **OpenRouter (Priority 2)** - Unified API gateway to 100+ models
 
 **Key Decisions:**
+
 - Backward compatible: existing `GOOGLE_API_KEY` continues to work
 - Secure credential storage: Service account JSON via environment variable
 - 🟢 **Solo Edition feature** - Available to all users immediately
@@ -54,6 +57,7 @@ Implement two enterprise provider types:
 ### Existing Provider Architecture (Post-Phase 26)
 
 **Strengths:**
+
 - ✅ Provider-agnostic `IModelProvider` interface
 - ✅ `ProviderRegistry` with metadata (cost tier, capabilities)
 - ✅ `ProviderFactory` with fallback chain support
@@ -62,6 +66,7 @@ Implement two enterprise provider types:
 - ✅ Cost tracking infrastructure
 
 **Current Google Provider:**
+
 ```typescript
 // src/ai/providers/google_provider.ts
 export class GoogleProvider implements IModelProvider {
@@ -73,6 +78,7 @@ export class GoogleProvider implements IModelProvider {
 ```
 
 **Limitations:**
+
 - Only supports simple `GOOGLE_API_KEY` authentication
 - No service account / OAuth2 flows
 - No project-based quota access
@@ -82,16 +88,16 @@ export class GoogleProvider implements IModelProvider {
 
 ## Comparative Analysis: Vertex AI vs Google AI API
 
-| Feature | Google AI API (Current) | Vertex AI (Target) |
-|---------|-------------------------|-------------------|
-| **Authentication** | Simple API key | Service account JSON + OAuth2 |
-| **Quota** | Free tier (very limited) | Project-based (tied to billing) |
-| **Billing** | Per-key (limited tracking) | Per-project (GCP billing integration) |
-| **Endpoint** | `generativelanguage.googleapis.com` | `{region}-aiplatform.googleapis.com` |
-| **Data Residency** | Global | Regional (us-central1, europe-west4, etc.) |
-| **Cost Tracking** | Manual estimation | GCP Cloud Billing APIs |
-| **Models** | Gemini only | Gemini + vertex-exclusive models |
-| **Availability** | 🟢 Free tier | 🔵 Requires GCP project + billing |
+| Feature            | Google AI API (Current)             | Vertex AI (Target)                         |
+| ------------------ | ----------------------------------- | ------------------------------------------ |
+| **Authentication** | Simple API key                      | Service account JSON + OAuth2              |
+| **Quota**          | Free tier (very limited)            | Project-based (tied to billing)            |
+| **Billing**        | Per-key (limited tracking)          | Per-project (GCP billing integration)      |
+| **Endpoint**       | `generativelanguage.googleapis.com` | `{region}-aiplatform.googleapis.com`       |
+| **Data Residency** | Global                              | Regional (us-central1, europe-west4, etc.) |
+| **Cost Tracking**  | Manual estimation                   | GCP Cloud Billing APIs                     |
+| **Models**         | Gemini only                         | Gemini + vertex-exclusive models           |
+| **Availability**   | 🟢 Free tier                        | 🔵 Requires GCP project + billing          |
 
 ---
 
@@ -102,6 +108,7 @@ export class GoogleProvider implements IModelProvider {
 Following Phase 27's magic value externalization standards, **ALL** hardcoded values in Phase 29 implementation **MUST** be externalized to constants or configuration files.
 
 **Prohibited:**
+
 ```typescript
 // ❌ BAD: Magic numbers and strings
 const tokenExpiry = now + 3600; // What is 3600?
@@ -113,6 +120,7 @@ const timeout = 60000; // Magic timeout
 ```
 
 **Required:**
+
 ```typescript
 // ✅ GOOD: Externalized constants
 import * as DEFAULTS from "../config/constants.ts";
@@ -128,6 +136,7 @@ const timeout = DEFAULTS.VERTEX_AI_TIMEOUT_MS;
 **Constants File Updates Required:**
 
 Add to `src/config/constants.ts`:
+
 ```typescript
 // OAuth2 Authentication
 export const OAUTH_TOKEN_TTL_SECONDS = 3600; // 1 hour standard OAuth2 expiry
@@ -175,6 +184,7 @@ export const JWT_TYPE = "JWT" as const;
 **Validation Checklist:**
 
 Before submitting PR, verify:
+
 - [ ] No numeric literals except 0, 1, -1 in production code
 - [ ] No string literals for URLs, error messages, or status codes
 - [ ] All timeouts reference constants
@@ -184,6 +194,7 @@ Before submitting PR, verify:
 - [ ] HTTP status codes use named constants
 
 **Grep Commands to Detect Magic Values:**
+
 ```bash
 # Detect potential magic numbers (excluding 0, 1, -1)
 grep -rEn --include='*.ts' '([^a-zA-Z_]|^)([2-9][0-9]*|[1-9][0-9]{2,})' src/ai/
@@ -206,11 +217,13 @@ grep -rEn --include='*.ts' 'throw new Error\("' src/ai/
 **Goal:** Implement service account authentication for Google Vertex AI
 
 **Files to Create:**
+
 - `src/ai/providers/vertex_ai_provider.ts` (NEW)
 - `src/ai/auth/google_auth.ts` (NEW)
 - `src/config/vertex_config.ts` (NEW)
 
 **Files to Modify:**
+
 - `src/ai/provider_registry.ts` (register Vertex AI)
 - `src/ai/provider_factory.ts` (add Vertex AI creation logic)
 - `src/config/schema.ts` (add Vertex AI config schema)
@@ -298,7 +311,7 @@ export class GoogleAuth {
     const jwt = await this.signJWT(jwtHeader, jwtClaim);
 
     // Exchange JWT for access token
-    const response =await fetch(this.serviceAccountKey.token_uri, {
+    const response = await fetch(this.serviceAccountKey.token_uri, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
@@ -356,7 +369,7 @@ export class GoogleAuth {
       .replace(/-----END PRIVATE KEY-----/, "")
       .replace(/\\s/g, "");
 
-    const binaryDer = Uint8Array.from(atob(pemContents), c => c.charCodeAt(0));
+    const binaryDer = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
 
     return await crypto.subtle.importKey(
       "pkcs8",
@@ -368,9 +381,7 @@ export class GoogleAuth {
   }
 
   private base64urlEncode(data: string | Uint8Array): string {
-    const bytes = typeof data === "string"
-      ? new TextEncoder().encode(data)
-      : data;
+    const bytes = typeof data === "string" ? new TextEncoder().encode(data) : data;
 
     const base64 = btoa(String.fromCharCode(...bytes));
     return base64
@@ -405,6 +416,7 @@ export function getServiceAccountFromEnv(envVar: string): ServiceAccountKey | nu
 ```
 
 **Success Criteria:**
+
 - [ ] `ServiceAccountKeySchema` validates Google service account JSON structure
 - [ ] `GoogleAuth.getAccessToken()` successfully authenticates and returns valid OAuth2 tokens
 - [ ] Token refresh works automatically when tokens expire
@@ -446,7 +458,8 @@ export class VertexAIProvider implements IModelProvider {
 
     const region = options.region || "us-central1";
     const projectId = options.serviceAccount.project_id;
-    this.baseUrl = `https://${region}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/google/models/${options.model}:generateContent`;
+    this.baseUrl =
+      `https://${region}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${region}/publishers/google/models/${options.model}:generateContent`;
   }
 
   async generateResponse(prompt: string): Promise<ModelResponse> {
@@ -533,7 +546,7 @@ export class VertexAIProvider implements IModelProvider {
         if (done) break;
 
         const chunk = decoder.decode(value);
-        const lines = chunk.split("\\n").filter(line => line.trim());
+        const lines = chunk.split("\\n").filter((line) => line.trim());
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
@@ -551,6 +564,7 @@ export class VertexAIProvider implements IModelProvider {
 ```
 
 **Success Criteria:**
+
 - [ ] `VertexAIProvider` implements `IModelProvider` interface
 - [ ] Authenticates via `GoogleAuth` service account flow
 - [ ] Constructs correct Vertex AI API endpoint with region and project ID
@@ -584,12 +598,14 @@ const ModelConfigSchema = z.object({
 ```
 
 **Environment Variable:**
+
 ```bash
 # User providesservice account JSON as single-line env var
 export VERTEX_AI_SERVICE_ACCOUNT='{"type":"service_account","project_id":"my-project",...}'
 ```
 
 **exo.config.toml:**
+
 ```toml
 [models.vertex]
 provider = "vertex-ai"
@@ -601,6 +617,7 @@ max_tokens = 2048
 ```
 
 **Success Criteria:**
+
 - [ ] `VertexAIConfigSchema` validates all Vertex AI configuration options
 - [ ] Service account JSON loaded from configurable environment variable
 - [ ] Regional endpoint configuration works correctly
@@ -613,33 +630,34 @@ max_tokens = 2048
 
 Based on [`docs/dev/json/google_models_2026012.json`](../../docs/dev/json/google_models_2026012.json) analysis:
 
-| Tier | Model | Input Limit | Output Limit | Use Case | Special Features |
-|------|-------|-------------|--------------|----------|------------------|
-| **Default (Fast)** | `gemini-2.5-flash` | 1M tokens | 65K tokens | General use, recommended | Thinking mode, batch, cache |
-| **Ultra Fast** | `gemini-2.5-flash-lite` | 1M tokens | 65K tokens | High-volume, cost-sensitive | Lighter, cheaper |
-| **Premium** | `gemini-2.5-pro` | 1M tokens |65K tokens | Complex reasoning | Best quality, thinking mode |
-| **Deep Research** | `deep-research-pro-preview-12-2025` | 131K tokens | 65K tokens | Advanced reasoning tasks | Extended thinking |
-| **Future-Proof** | `gemini-flash-latest` | 1M tokens | 65K tokens | Auto-updates to latest stable | Always current |
-| **Cutting Edge** | `gemini-3-flash-preview` | 1M tokens | 65K tokens | Experimental features | Preview access |
+| Tier               | Model                               | Input Limit | Output Limit | Use Case                      | Special Features            |
+| ------------------ | ----------------------------------- | ----------- | ------------ | ----------------------------- | --------------------------- |
+| **Default (Fast)** | `gemini-2.5-flash`                  | 1M tokens   | 65K tokens   | General use, recommended      | Thinking mode, batch, cache |
+| **Ultra Fast**     | `gemini-2.5-flash-lite`             | 1M tokens   | 65K tokens   | High-volume, cost-sensitive   | Lighter, cheaper            |
+| **Premium**        | `gemini-2.5-pro`                    | 1M tokens   | 65K tokens   | Complex reasoning             | Best quality, thinking mode |
+| **Deep Research**  | `deep-research-pro-preview-12-2025` | 131K tokens | 65K tokens   | Advanced reasoning tasks      | Extended thinking           |
+| **Future-Proof**   | `gemini-flash-latest`               | 1M tokens   | 65K tokens   | Auto-updates to latest stable | Always current              |
+| **Cutting Edge**   | `gemini-3-flash-preview`            | 1M tokens   | 65K tokens   | Experimental features         | Preview access              |
 
 **Model Selection Logic:**
 
 Add to `src/config/constants.ts`:
+
 ```typescript
 // Gemini Model Recommendations (2025-2026)
 export const GEMINI_MODELS = {
   // Stable releases (recommended)
-  FLASH_2_5: "gemini-2.5-flash",           // Default choice
+  FLASH_2_5: "gemini-2.5-flash", // Default choice
   FLASH_LITE_2_5: "gemini-2.5-flash-lite", // Ultra-cheap
-  PRO_2_5: "gemini-2.5-pro",               // Premium quality
+  PRO_2_5: "gemini-2.5-pro", // Premium quality
 
   // Auto-updating aliases
-  FLASH_LATEST: "gemini-flash-latest",     // Tracks latest Flash
-  PRO_LATEST: "gemini-pro-latest",         // Tracks latest Pro
+  FLASH_LATEST: "gemini-flash-latest", // Tracks latest Flash
+  PRO_LATEST: "gemini-pro-latest", // Tracks latest Pro
 
   // Preview/Experimental
-  FLASH_3_PREVIEW: "gemini-3-flash-preview",   // Gemini 3 preview
-  PRO_3_PREVIEW: "gemini-3-pro-preview",       // Gemini 3 Pro preview
+  FLASH_3_PREVIEW: "gemini-3-flash-preview", // Gemini 3 preview
+  PRO_3_PREVIEW: "gemini-3-pro-preview", // Gemini 3 Pro preview
 
   // Specialized
   DEEP_RESEARCH: "deep-research-pro-preview-12-2025", // Research tasks
@@ -687,12 +705,14 @@ region = "us-central1"
 **"Thinking" Mode Support:**
 
 Models with `"thinking": true` in JSON support extended reasoning:
+
 - ✅ `gemini-2.5-flash`
 - ✅ `gemini-2.5-pro`
 - ✅ `deep-research-*`
 - ✅ `gemini-3-*-preview`
 
 **Implementation Note:**
+
 ```typescript
 // In VertexAIProvider constructor
 if (modelSupportsThinking(options.model)) {
@@ -702,6 +722,7 @@ if (modelSupportsThinking(options.model)) {
 ```
 
 **Success Criteria:**
+
 - [ ] Model constants defined in `src/config/constants.ts`
 - [ ] Configuration examples use 2.5+ models
 - [ ] Thinking mode flag supported for capable models
@@ -715,9 +736,11 @@ if (modelSupportsThinking(options.model)) {
 **Goal:** Add unified API gateway support for 100+ models
 
 **Files to Create:**
+
 - `src/ai/providers/openrouter_provider.ts` (NEW)
 
 **Files to Modify:**
+
 - `src/ai/provider_registry.ts` (register OpenRouter)
 - `src/ai/provider_factory.ts` (add OpenRouter creation logic)
 - `src/config/schema.ts` (add OpenRouter config schema)
@@ -824,7 +847,7 @@ export class OpenRouterProvider implements IModelProvider {
         if (done) break;
 
         const chunk = decoder.decode(value);
-        const lines = chunk.split("\\n").filter(line => line.trim());
+        const lines = chunk.split("\\n").filter((line) => line.trim());
 
         for (const line of lines) {
           if (line.startsWith("data: ")) {
@@ -844,6 +867,7 @@ export class OpenRouterProvider implements IModelProvider {
 ```
 
 **Configuration:**
+
 ```toml
 [models.openrouter]
 provider = "openrouter"
@@ -854,6 +878,7 @@ site_url = "https://exoframe.dev"
 ```
 
 **Success Criteria:**
+
 - [ ] `OpenRouterProvider` implements `IModelProvider` interface
 - [ ] Supports OpenRouter's unified API format (OpenAI-compatible)
 - [ ] Model names use OpenRouter format (`provider/model`)
@@ -886,7 +911,7 @@ class ProviderFactory {
       case "openrouter":
         return this.createOpenRouter(config, options);
 
-      // ... existing cases
+        // ... existing cases
     }
   }
 
@@ -898,7 +923,7 @@ class ProviderFactory {
     if (!serviceAccount) {
       throw new Error(
         `Vertex AI requires service account JSON in ${envVar} environment variable.\\n` +
-        `See docs/ExoFrame_User_Guide.md#vertex-ai-setup for instructions.`
+          `See docs/ExoFrame_User_Guide.md#vertex-ai-setup for instructions.`,
       );
     }
 
@@ -930,6 +955,7 @@ class ProviderFactory {
 ```
 
 **Success Criteria:**
+
 - [ ] `ProviderFactory.create()` supports "vertex-ai" and "openrouter" providers
 - [ ] Vertex AI creation validates service account JSON before instantiation
 - [ ] OpenRouter creation validates API key presence
@@ -967,6 +993,7 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
 ```
 
 **Success Criteria:**
+
 - [ ] Vertex AI registered with "PAID" cost tier and "enterprise-quotas" strength
 - [ ] OpenRouter registered with "multi-model" capability
 - [ ] Metadata enables intelligent provider selection via existing Phase 26 logic
@@ -979,6 +1006,7 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
 #### Step 5.1: Unit Tests
 
 **Files to Create:**
+
 - `tests/ai/auth/google_auth_test.ts`
 - `tests/ai/providers/vertex_ai_provider_test.ts`
 - `tests/ai/providers/openrouter_provider_test.ts`
@@ -1007,6 +1035,7 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
    - [ ] Streaming works correctly
 
 **Success Criteria:**
+
 - [ ] All unit tests pass
 - [ ] Code coverage \u003e 90% for new modules
 - [ ] Edge cases covered (auth failures, malformed responses, timeouts)
@@ -1036,6 +1065,7 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
    ```
 
 **Success Criteria:**
+
 - [ ] Vertex AI authenticates successfully with service account
 - [ ] Vertex AI requests return valid responses
 - [ ] OpenRouter requests work with unified API
@@ -1052,13 +1082,13 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
 
 Add section 2.0.1.5: **Enterprise Providers**
 
-```markdown
+````markdown
 #### Enterprise Providers 🟢 Solo Edition
 
-| Provider          | Endpoint                  | Authentication        | Use Case                                     |
-| ----------------- | ------------------------- | --------------------- | -------------------------------------------- |
-| **Vertex AI**     | `{region}-aiplatform.googleapis.com` | Service account JSON  | GCP projects, enterprise quotas, billing     |
-| **OpenRouter**    | `openrouter.ai/api/v1`     | API key               | Unified access to 100+ models                |
+| Provider       | Endpoint                             | Authentication       | Use Case                                 |
+| -------------- | ------------------------------------ | -------------------- | ---------------------------------------- |
+| **Vertex AI**  | `{region}-aiplatform.googleapis.com` | Service account JSON | GCP projects, enterprise quotas, billing |
+| **OpenRouter** | `openrouter.ai/api/v1`               | API key              | Unified access to 100+ models            |
 
 **Vertex AI Setup:**
 
@@ -1083,6 +1113,7 @@ Vertex AI requires a Google Cloud project with billing enabled and a service acc
    gcloud iam service-accounts keys create ~/exoframe-vertex-key.json \\
      --iam-account=exoframe-vertex@PROJECT_ID.iam.gserviceaccount.com
    ```
+````
 
 3. **Configure ExoFrame:**
    ```bash
@@ -1111,8 +1142,8 @@ Vertex AI requires a Google Cloud project with billing enabled and a service acc
    provider = "openrouter"
    model = "anthropic/claude-3-opus"  # or any supported model
    ```
-```
 
+````
 **Success Criteria:**
 - [ ] Technical Spec documents Vertex AI setup process
 - [ ] OpenRouter configuration examples provided
@@ -1154,16 +1185,16 @@ ExoFrame supports enterprise LLM providers for users with paid subscriptions who
 3. **Configure ExoFrame:**
    ```bash
    export VERTEX_AI_SERVICE_ACCOUNT=$(cat ~/path/to/service-account-key.json)
-   ```
+````
 
-   ```toml
-   [models.vertex]
-   provider = "vertex-ai"
-   region = "us-central1"  # or europe-west4, asia-southeast1
-   model = "gemini-2.5-flash"
-   temperature = 0.7
-   max_tokens = 2048
-   ```
+```toml
+[models.vertex]
+provider = "vertex-ai"
+region = "us-central1"  # or europe-west4, asia-southeast1
+model = "gemini-2.5-flash"
+temperature = 0.7
+max_tokens = 2048
+```
 
 4. **Test:**
    ```bash
@@ -1171,6 +1202,7 @@ ExoFrame supports enterprise LLM providers for users with paid subscriptions who
    ```
 
 **Troubleshooting:**
+
 - **"Invalid service account JSON":** Ensure JSON is valid and includes all required fields
 - **"Permission denied":** Verify service account has "Vertex AI User" role
 - **"Quota exceeded":** Check GCP billing and quota limits in Cloud Console
@@ -1178,6 +1210,7 @@ ExoFrame supports enterprise LLM providers for users with paid subscriptions who
 #### OpenRouter (Unified API Gateway)
 
 **When to use:**
+
 - You want access to 100+ models via single API key
 - You need automatic fallback and load balancing
 - You want unified billing across multiple providers
@@ -1202,8 +1235,8 @@ ExoFrame supports enterprise LLM providers for users with paid subscriptions who
    ```
 
 **Supported models:** See [openrouter.ai/models](https://openrouter.ai/models) for full list.
-```
 
+```
 **Success Criteria:**
 - [ ] User Guide provides clear setup instructions for both providers
 - [ ] Prerequisites listed upfront
@@ -1352,3 +1385,4 @@ Add section on enterprise provider usage patterns.
 - **User Experience:** Setup complexity is higher for Vertex AI. Excellent docs critical.
 - **Incremental Value:** Vertex AI alone solves the immediate quota problem. OpenRouter can be Phase 29.1.
 - **Edition Strategy:** Both providers in 🟢 Solo Edition. Enterprise providers (Bedrock, Azure) reserved for 🟣 Enterprise.
+```

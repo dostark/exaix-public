@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["refactoring", "code-quality", "maintenance"]
 ---
 
-
 **Purpose:** Systematically refactor code for clarity, performance, or maintainability.
 
 ---

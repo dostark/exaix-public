@@ -84,19 +84,20 @@ export class NotificationService {
     metadata?: string,
   ): Promise<void> {
     const id = crypto.randomUUID();
-    await Promise.resolve(
-      this.db.instance.prepare(`
+    await this.db.preparedRun(
+      `
       INSERT INTO notifications (id, type, message, proposal_id, trace_id, created_at, metadata)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(
-          id,
-          type,
-          message,
-          proposalId || null,
-          traceId || null,
-          new Date().toISOString(),
-          metadata || null,
-        ),
+    `,
+      [
+        id,
+        type,
+        message,
+        proposalId || null,
+        traceId || null,
+        new Date().toISOString(),
+        metadata || null,
+      ],
     );
   }
 
@@ -147,14 +148,17 @@ export class NotificationService {
    * @returns Array of notifications
    */
   async getNotifications(): Promise<MemoryNotification[]> {
-    const rows = this.db.instance.prepare(`
+    const rows = await this.db.preparedAll<MemoryNotification>(
+      `
       SELECT id, type, message, proposal_id, trace_id, created_at, dismissed_at, metadata
       FROM notifications
       WHERE dismissed_at IS NULL
       ORDER BY created_at DESC
-    `).all() as unknown as MemoryNotification[];
+    `,
+      [],
+    );
 
-    return await Promise.resolve(rows);
+    return rows;
   }
 
   /**
@@ -163,13 +167,16 @@ export class NotificationService {
    * @returns Number of pending notifications
    */
   async getPendingCount(): Promise<number> {
-    const result = this.db.instance.prepare(`
+    const result = await this.db.preparedGet<{ count: number }>(
+      `
       SELECT COUNT(*) as count
       FROM notifications
       WHERE type = 'memory_update_pending' AND dismissed_at IS NULL
-    `).get() as { count: number };
+    `,
+      [],
+    );
 
-    return await Promise.resolve(result?.count || 0);
+    return result?.count || 0;
   }
 
   /**
@@ -178,12 +185,13 @@ export class NotificationService {
    * @param proposalId - Proposal ID to clear
    */
   async clearNotification(proposalId: string): Promise<void> {
-    await Promise.resolve(
-      this.db.instance.prepare(`
+    await this.db.preparedRun(
+      `
       UPDATE notifications
       SET dismissed_at = ?
       WHERE proposal_id = ? AND dismissed_at IS NULL
-    `).run(new Date().toISOString(), proposalId),
+    `,
+      [new Date().toISOString(), proposalId],
     );
   }
 
@@ -191,12 +199,13 @@ export class NotificationService {
    * Clear all notifications (soft-delete)
    */
   async clearAllNotifications(): Promise<void> {
-    await Promise.resolve(
-      this.db.instance.prepare(`
+    await this.db.preparedRun(
+      `
       UPDATE notifications
       SET dismissed_at = ?
       WHERE dismissed_at IS NULL
-    `).run(new Date().toISOString()),
+    `,
+      [new Date().toISOString()],
     );
   }
 

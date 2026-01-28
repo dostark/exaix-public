@@ -20,6 +20,7 @@ jscpd-report/
 report/
 test-*.toml
 cov_profile/
+.duplication_report/
 
 # Allow agent-facing coverage snapshot (new location)
 !.copilot/coverage/

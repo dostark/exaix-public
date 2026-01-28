@@ -1,4 +1,3 @@
-**Success Criteria:**
 - [x] JSON output is valid and complete.
 - [x] Table output is aligned and readable on standard terminal width.
 
@@ -8,13 +7,14 @@
 
 - **Goal:** Verify the end-to-end flow against test scenarios.
 - **Actions:**
-    1.  Create verification script `tests/verification/verify_journal_cmd.ts` (or use manual steps).
-    2.  Execute Scenario MT-26 manually.
+  1. Create verification script `tests/verification/verify_journal_cmd.ts` (or use manual steps).
+  2. Execute Scenario MT-26 manually.
 
 **Verification Plan (MT-26 Mapping):**
-1.  **Basic Queries:** `exoctl journal` (default tail), `exoctl journal --filter trace_id=...`
-2.  **Combined Filters:** `exoctl journal --filter agent_id=mock --filter action_type=request.created`
-3.  **Export:** `exoctl journal --format json > export.json`
+
+1. **Basic Queries:** `exoctl journal` (default tail), `exoctl journal --filter trace_id=...`
+2. **Combined Filters:** `exoctl journal --filter agent_id=mock --filter action_type=request.created`
+3. **Export:** `exoctl journal --format json > export.json`
 
 ---
 

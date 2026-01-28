@@ -11,6 +11,7 @@
 import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
+import { createStubDb } from "./test_helpers.ts";
 
 const TEST_REQUEST_ID = "request-test123";
 const TEST_TRACE_ID = "test-trace-123";
@@ -115,9 +116,7 @@ Deno.test("[regression] Changeset list shows request and plan context", async ()
     // Create mock context with test config
     const context = {
       config,
-      db: {
-        getActivitiesByTrace: () => Promise.resolve([]),
-      },
+      db: createStubDb({ getActivitiesByTrace: () => Promise.resolve([]) }),
     } as any;
 
     // Test that ChangesetCommands can be instantiated with the enhanced interface

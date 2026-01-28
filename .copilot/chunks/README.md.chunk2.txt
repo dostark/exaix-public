@@ -31,6 +31,6 @@ Why this priority level? Impact on users/system.
 - **Fix**: What changes were made
 - **Commit**: Link to commit or PR
 - **Verified**: How the fix was tested
-```
 
+````
 ## Naming Convention

@@ -326,7 +326,7 @@ export class ChangesetCommands extends BaseCommand {
         const files = new TextDecoder().decode(diffResult.stdout).trim().split("\n").filter((f) => f);
 
         // Check if branch has been merged or rejected via activity log
-        const activities = await this.db.getActivitiesByTrace(trace_id);
+        const activities = await this.db.getActivitiesByTraceSafe(trace_id);
         const status = activities.some((a: { action_type: string }) => a.action_type === "changeset.approved")
           ? ChangesetStatus.APPROVED
           : activities.some((a: { action_type: string }) => a.action_type === "changeset.rejected")

@@ -7,4 +7,5 @@
   - Task: “Perform a multi-file refactor with OpenAI.”
   - Gap: provider doc doesn’t enforce diff-first structure.
   - Patch: add/update a prompt template under `.copilot/prompts/` requiring Files → Plan → Diffs → Verification.
+
 ## Related Documents

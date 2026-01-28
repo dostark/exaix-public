@@ -26,6 +26,7 @@ Following the completion of Phase 19 planning, several actionable items have bee
 Update `scaffold.sh` and `deploy_workspace.sh` to match the new folder structure and domain separation.
 
 **Details:**
+
 - Remove creation/copying of `Memory/Tasks` (should not exist).
 - Copy the entire `Memory/` folder (with all files and subfolders) from the repository into the destination workspace, preserving its structure and contents. This ensures all persistent knowledge, execution history, indices, and project memory are available in the deployed workspace.
 - Copy all content from `Blueprints/` (including subfolders), but do not copy the entire `templates/` folder.
@@ -44,6 +45,7 @@ Update `scaffold.sh` and `deploy_workspace.sh` to match the new folder structure
 Align all test files (e.g., `scaffold_test.ts`) with the new folder structure.
 
 **Details:**
+
 - Remove checks for `Memory/Tasks` and any references to deprecated folders.
 - Update assertions to expect only the new structure (e.g., `Workspace/Active/`, `Workspace/Archive/`).
 - Ensure tests verify that all files and subfolders from `Blueprints/` are present in the scaffolded workspace.
@@ -60,6 +62,7 @@ Align all test files (e.g., `scaffold_test.ts`) with the new folder structure.
 Enforce clear separation between runtime, lifecycle, and memory domains.
 
 **Details:**
+
 - Ensure only `Workspace/Active/` exists for in-progress work.
 - Remove any code, scripts, or documentation referencing `Memory/Tasks/active` or similar.
 - Document the rationale for this separation in the planning docs.
@@ -74,6 +77,7 @@ Enforce clear separation between runtime, lifecycle, and memory domains.
 Update planning and user documentation to reflect the actionable changes.
 
 **Details:**
+
 - Add migration notes and rationale to the planning docs.
 - Update any quick start or setup guides to match the new structure.
 - Communicate the removal of deprecated folders and the new domain boundaries.
@@ -119,22 +123,22 @@ Update planning and user documentation to reflect the actionable changes.
 
 ## Risks & Mitigation
 
-| Risk                                   | Impact | Mitigation                                 |
-|-----------------------------------------|--------|---------------------------------------------|
-| Missed references to deprecated folders | Medium | Comprehensive search and test coverage      |
-| User confusion during transition        | Medium | Clear documentation and migration notes     |
-| Test failures due to path changes       | High   | Update all tests and run full suite         |
+| Risk                                    | Impact | Mitigation                              |
+| --------------------------------------- | ------ | --------------------------------------- |
+| Missed references to deprecated folders | Medium | Comprehensive search and test coverage  |
+| User confusion during transition        | Medium | Clear documentation and migration notes |
+| Test failures due to path changes       | High   | Update all tests and run full suite     |
 
 ---
 
 ## Timeline
 
-| Step            | Duration | Deliverable        |
-|-----------------|----------|--------------------|
-| Script refactor | 0.5 day  | Updated scripts    |
-| Test updates    | 0.5 day  | Passing tests      |
-| Documentation   | 0.5 day  | Updated docs       |
-| Validation      | 0.5 day  | Full test suite pass|
+| Step            | Duration | Deliverable          |
+| --------------- | -------- | -------------------- |
+| Script refactor | 0.5 day  | Updated scripts      |
+| Test updates    | 0.5 day  | Passing tests        |
+| Documentation   | 0.5 day  | Updated docs         |
+| Validation      | 0.5 day  | Full test suite pass |
 
 ---
 
@@ -147,23 +151,23 @@ Update planning and user documentation to reflect the actionable changes.
 
 ## Success Metrics
 
-| Metric                    | Target |
-|---------------------------|--------|
-| Deprecated folders in repo| 0      |
-| Test pass rate            | 100%   |
-| User confusion reports    | 0      |
-| Documentation coverage    | 100%   |
+| Metric                     | Target |
+| -------------------------- | ------ |
+| Deprecated folders in repo | 0      |
+| Test pass rate             | 100%   |
+| User confusion reports     | 0      |
+| Documentation coverage     | 100%   |
 
 ---
 
 ## Summary Table
 
-| Folder/File                | Create/Copy? | Notes                                 |
-|---------------------------|:------------:|---------------------------------------|
-| Memory/Tasks/              |      ❌      | Remove all references                  |
-| Memory/ (all content)      |      ✔️      | Copy entire folder with all files/subfolders |
-| templates/ (folder)        |      ❌      | Do not copy folder                     |
-| exo.config.sample.toml     |      ✔️      | Copy to root                           |
-| README.md                  |      ✔️      | Copy to root                           |
-| Blueprints/ (all content)  |      ✔️      | Copy all files and subfolders          |
+| Folder/File                  | Create/Copy? | Notes                                                  |
+| ---------------------------- | :----------: | ------------------------------------------------------ |
+| Memory/Tasks/                |      ❌      | Remove all references                                  |
+| Memory/ (all content)        |      ✔️      | Copy entire folder with all files/subfolders           |
+| templates/ (folder)          |      ❌      | Do not copy folder                                     |
+| exo.config.sample.toml       |      ✔️      | Copy to root                                           |
+| README.md                    |      ✔️      | Copy to root                                           |
+| Blueprints/ (all content)    |      ✔️      | Copy all files and subfolders                          |
 | docs/ (top-level files only) |      ✔️      | Copy only files directly in docs/, not from subfolders |

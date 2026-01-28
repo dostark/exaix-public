@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["regression", "testing", "bug-prevention"]
 ---
 
-
 **Purpose:** Add or update regression tests to prevent recurrence of bugs and failures.
 
 ---

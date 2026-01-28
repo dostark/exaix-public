@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["bug-fix", "testing", "regression", "validation"]
 ---
 
-
 ```text
 Key points
 - Identify root cause from bug report or test failure

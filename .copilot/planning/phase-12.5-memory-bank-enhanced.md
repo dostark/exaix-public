@@ -36,13 +36,13 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 
 ### Key Design Decisions
 
-| Decision | Rationale |
-|----------|-----------|
+| Decision                                | Rationale                                                           |
+| --------------------------------------- | ------------------------------------------------------------------- |
 | **Markdown for human-readable content** | Patterns, decisions, learnings stored as `.md` for developer review |
-| **JSON for structured indices** | Fast programmatic access for search and filtering |
-| **No external vector DB** | Reuse `agents/embeddings/` pattern with mock vectors |
-| **CLI-first interface** | Both users and agents interact via `exoctl memory` |
-| **Pending → Approved workflow** | User notification before memory updates are finalized |
+| **JSON for structured indices**         | Fast programmatic access for search and filtering                   |
+| **No external vector DB**               | Reuse `agents/embeddings/` pattern with mock vectors                |
+| **CLI-first interface**                 | Both users and agents interact via `exoctl memory`                  |
+| **Pending → Approved workflow**         | User notification before memory updates are finalized               |
 
 ### Dependencies
 
@@ -56,30 +56,30 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 
 ### 2.1 Current State (Phase 12.1-12.4)
 
-| Capability | Status | Implementation |
-|------------|--------|----------------|
-| Project Memory | ✅ | `Memory/Projects/{portal}/` |
-| Execution History | ✅ | `Memory/Execution/{trace-id}/` |
-| Activity Journal Integration | ✅ | SQLite logging via `DatabaseService` |
-| Search (basic) | ✅ | `searchMemory()` in MemoryBankService |
-| CLI Commands | ❌ | Not implemented |
-| Global Memory | ❌ | Not implemented |
-| Agent Memory Updates | ❌ | Not implemented |
-| Semantic/RAG Search | ❌ | Not implemented |
-| User Notification | ❌ | Not implemented |
+| Capability                   | Status | Implementation                        |
+| ---------------------------- | ------ | ------------------------------------- |
+| Project Memory               | ✅     | `Memory/Projects/{portal}/`           |
+| Execution History            | ✅     | `Memory/Execution/{trace-id}/`        |
+| Activity Journal Integration | ✅     | SQLite logging via `DatabaseService`  |
+| Search (basic)               | ✅     | `searchMemory()` in MemoryBankService |
+| CLI Commands                 | ❌     | Not implemented                       |
+| Global Memory                | ❌     | Not implemented                       |
+| Agent Memory Updates         | ❌     | Not implemented                       |
+| Semantic/RAG Search          | ❌     | Not implemented                       |
+| User Notification            | ❌     | Not implemented                       |
 
 ### 2.2 Desired State (Memory Banks v2)
 
-| Capability | Priority | Phase |
-|------------|----------|-------|
-| Core CLI Commands | HIGH | 12.5 |
-| Global Memory (`Memory/Global/`) | HIGH | 12.8 |
-| Memory Promote/Demote | MEDIUM | 12.8 |
-| Agent Memory Extraction | HIGH | 12.9 |
-| Pending/Approval Workflow | MEDIUM | 12.9 |
-| User Notification | MEDIUM | 12.9 |
-| Tag-Based Search | HIGH | 12.10 |
-| Simple RAG (no external deps) | LOW | 12.10 |
+| Capability                       | Priority | Phase |
+| -------------------------------- | -------- | ----- |
+| Core CLI Commands                | HIGH     | 12.5  |
+| Global Memory (`Memory/Global/`) | HIGH     | 12.8  |
+| Memory Promote/Demote            | MEDIUM   | 12.8  |
+| Agent Memory Extraction          | HIGH     | 12.9  |
+| Pending/Approval Workflow        | MEDIUM   | 12.9  |
+| User Notification                | MEDIUM   | 12.9  |
+| Tag-Based Search                 | HIGH     | 12.10 |
+| Simple RAG (no external deps)    | LOW      | 12.10 |
 
 ### 2.3 Feature Gap Summary
 
@@ -104,12 +104,12 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 
 ### 3.1 Industry Memory Systems
 
-| System | Key Innovation | Relevance to ExoFrame |
-|--------|----------------|----------------------|
-| **mem0** | Adaptive memory layers (user/agent/session) | Multi-scope memory hierarchy |
-| **MemGPT** | Self-editing memory with archival system | Agent-managed memory updates |
-| **Zep** | Temporal awareness + entity extraction | Pattern extraction from executions |
-| **LangMem** | Semantic memory graphs | Tag-based relationship mapping |
+| System      | Key Innovation                              | Relevance to ExoFrame              |
+| ----------- | ------------------------------------------- | ---------------------------------- |
+| **mem0**    | Adaptive memory layers (user/agent/session) | Multi-scope memory hierarchy       |
+| **MemGPT**  | Self-editing memory with archival system    | Agent-managed memory updates       |
+| **Zep**     | Temporal awareness + entity extraction      | Pattern extraction from executions |
+| **LangMem** | Semantic memory graphs                      | Tag-based relationship mapping     |
 
 ### 3.2 Patterns to Adopt
 
@@ -133,12 +133,12 @@ This document extends the Memory Banks architecture defined in Phase 12 with adv
 
 ### 3.3 Patterns to Avoid
 
-| Anti-Pattern | Reason | Alternative |
-|--------------|--------|-------------|
-| External vector database | Adds complexity, ExoFrame is self-contained | Reuse `agents/embeddings/` mock vectors |
-| Graph database for relations | Over-engineering for current scope | JSON indices with tag cross-references |
-| Real-time memory sync | Performance overhead | Batch updates on execution complete |
-| Auto-approve all memory | Quality control issues | User notification + approval workflow |
+| Anti-Pattern                 | Reason                                      | Alternative                             |
+| ---------------------------- | ------------------------------------------- | --------------------------------------- |
+| External vector database     | Adds complexity, ExoFrame is self-contained | Reuse `agents/embeddings/` mock vectors |
+| Graph database for relations | Over-engineering for current scope          | JSON indices with tag cross-references  |
+| Real-time memory sync        | Performance overhead                        | Batch updates on execution complete     |
+| Auto-approve all memory      | Quality control issues                      | User notification + approval workflow   |
 
 ---
 
@@ -207,11 +207,11 @@ export const LearningSchema = z.object({
   description: z.string().max(500),
 
   category: z.enum([
-    "pattern",        // Code pattern learned
-    "anti-pattern",   // What to avoid
-    "decision",       // Architectural choice
-    "insight",        // General observation
-    "troubleshooting" // Problem + solution
+    "pattern", // Code pattern learned
+    "anti-pattern", // What to avoid
+    "decision", // Architectural choice
+    "insight", // General observation
+    "troubleshooting", // Problem + solution
   ]),
 
   tags: z.array(z.string()).max(10),
@@ -417,16 +417,16 @@ export class NotificationService {
 
 ### 5.1 Markdown vs JSON Analysis
 
-| Content Type | Format | Rationale |
-|--------------|--------|-----------|
-| Project Overview | `.md` | Human-authored, needs readability |
-| Patterns & Decisions | `.md` | Reviewed by developers |
-| Learnings | `.md` | Narrative context important |
-| Execution Summary | `.md` | Human-readable reports |
-| Context Data | `.json` | Programmatic access for agents |
-| Search Indices | `.json` | Fast lookup, no human editing |
-| Pending Proposals | `.md` | User needs to review content |
-| Statistics | `.json` | Numerical data, charting |
+| Content Type         | Format  | Rationale                         |
+| -------------------- | ------- | --------------------------------- |
+| Project Overview     | `.md`   | Human-authored, needs readability |
+| Patterns & Decisions | `.md`   | Reviewed by developers            |
+| Learnings            | `.md`   | Narrative context important       |
+| Execution Summary    | `.md`   | Human-readable reports            |
+| Context Data         | `.json` | Programmatic access for agents    |
+| Search Indices       | `.json` | Fast lookup, no human editing     |
+| Pending Proposals    | `.md`   | User needs to review content      |
+| Statistics           | `.json` | Numerical data, charting          |
 
 ### 5.2 Hybrid Approach
 
@@ -439,7 +439,8 @@ Memory/Projects/my-app/
 ```
 
 **Markdown Content:**
-```markdown
+
+````markdown
 # Code Patterns: my-app
 
 ## Error Handling Pattern
@@ -459,10 +460,11 @@ try {
   throw error;
 }
 ```
+````
 
 **Files:** `src/services/*.ts`
-```
 
+````
 **JSON Index:**
 ```json
 {
@@ -477,7 +479,7 @@ try {
     }
   ]
 }
-```
+````
 
 ### 5.3 Index Synchronization
 
@@ -512,6 +514,7 @@ The `agents/embeddings/` directory contains:
 - `scripts/build_agents_embeddings.ts` - Build script with mock/OpenAI modes
 
 **Mock Vector Generation:**
+
 ```typescript
 // From scripts/build_agents_embeddings.ts
 async function mockVector(text: string, dim = 64): Promise<number[]> {
@@ -531,7 +534,7 @@ Reuse the same pattern for Memory Banks:
 ```typescript
 // src/services/memory_embedding.ts
 
-import { mockVector, chunkText } from "../../scripts/build_agents_embeddings.ts";
+import { chunkText, mockVector } from "../../scripts/build_agents_embeddings.ts";
 
 export class MemoryEmbeddingService {
   private readonly EMBED_DIR = "Memory/Index/embeddings";
@@ -544,16 +547,23 @@ export class MemoryEmbeddingService {
       chunks.map(async (chunk) => ({
         text: chunk,
         vector: await mockVector(chunk, 64),
-      }))
+      })),
     );
 
     const outPath = `${this.EMBED_DIR}/${learning.id}.json`;
-    await Deno.writeTextFile(outPath, JSON.stringify({
-      id: learning.id,
-      scope: learning.scope,
-      category: learning.category,
-      vecs,
-    }, null, 2));
+    await Deno.writeTextFile(
+      outPath,
+      JSON.stringify(
+        {
+          id: learning.id,
+          scope: learning.scope,
+          category: learning.category,
+          vecs,
+        },
+        null,
+        2,
+      ),
+    );
 
     await this.updateManifest(learning.id, outPath);
   }
@@ -575,7 +585,7 @@ export class MemoryEmbeddingService {
 
     // Sort by score and return top results
     results.sort((a, b) => b.score - a.score);
-    const topIds = [...new Set(results.slice(0, limit).map(r => r.id))];
+    const topIds = [...new Set(results.slice(0, limit).map((r) => r.id))];
 
     return this.loadLearningsByIds(topIds);
   }
@@ -635,6 +645,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Goal:** Implement foundational CLI commands for Memory Banks interaction.
 
 **Tasks:**
+
 - [x] Create `src/cli/memory_commands.ts`
 - [x] Implement `exoctl memory list`
 - [x] Implement `exoctl memory search <query>`
@@ -645,11 +656,13 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] Integrate into `src/cli/exoctl.ts`
 
 **Deliverables:**
+
 - [x] `src/cli/memory_commands.ts` (~600 LOC)
 - [x] `tests/cli/memory_commands_test.ts` (~350 LOC)
 - [x] Updated `src/cli/exoctl.ts` with memory command tree
 
 **Success Criteria:**
+
 - [x] `exoctl memory list` returns list of all memory banks
 - [x] `exoctl memory search "pattern"` returns matching entries
 - [x] `exoctl memory project show my-app` displays project memory
@@ -658,6 +671,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] 100% of new CLI commands have unit tests
 
 **Tests (22 tests implemented, all passing):**
+
 - `memory_commands_test.ts`:
   - `memory list returns all banks` ✅
   - `memory list with projects` ✅
@@ -689,6 +703,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Goal:** Implement cross-project memory storage and promote/demote workflow.
 
 **Tasks:**
+
 - [x] Create `Memory/Global/` directory structure
 - [x] Implement `GlobalMemorySchema` in `src/schemas/memory_bank.ts`
 - [x] Add `LearningSchema` to schemas
@@ -701,11 +716,13 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] Write unit tests for all new functionality
 
 **Deliverables:**
+
 - [x] Updated `src/schemas/memory_bank.ts` (+100 LOC: Learning, GlobalMemory schemas)
 - [x] Updated `src/services/memory_bank.ts` (+320 LOC: global memory operations)
 - [x] Updated `src/cli/memory_commands.ts` (+280 LOC: global CLI commands)
 
 **Success Criteria:**
+
 - [x] `Memory/Global/learnings.md` contains promoted learnings
 - [x] `exoctl memory global show` displays global memory
 - [x] `exoctl memory promote <id> --from my-app` moves learning to global
@@ -714,6 +731,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] 100% of new methods have unit tests
 
 **Tests (35 tests implemented, all passing):**
+
 - `memory_bank_global_test.ts` (21 tests):
   - `LearningSchema validates minimal learning` ✅
   - `LearningSchema validates global learning without project` ✅
@@ -759,6 +777,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Goal:** Enable agents to propose memory updates with user notification.
 
 **Tasks:**
+
 - [x] Implement `MemoryUpdateProposalSchema`
 - [x] Create `src/services/memory_extractor.ts`
 - [x] Implement `analyzeExecution()` for learning extraction
@@ -770,6 +789,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] Write unit and integration tests
 
 **Deliverables:**
+
 - `src/services/memory_extractor.ts` (~360 LOC) ✅
 - `src/services/notification.ts` (~195 LOC) ✅
 - Updated `src/cli/memory_commands.ts` (+260 LOC) ✅
@@ -777,6 +797,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - `src/schemas/memory_bank.ts` (+35 LOC for ProposalLearningSchema, MemoryUpdateProposalSchema) ✅
 
 **Success Criteria:**
+
 - [x] After execution, learnings extracted and written to `Memory/Pending/`
 - [x] User notified via CLI output: "1 memory update pending approval"
 - [x] `exoctl memory pending list` shows pending proposals
@@ -787,6 +808,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] 100% of new services have unit tests
 
 **Tests (44 tests):**
+
 - `tests/services/memory_extractor_test.ts` (22 tests):
   - Schema validation tests (5)
   - `analyzeExecution` extracts learnings from success/failure (5)
@@ -815,6 +837,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Goal:** Implement comprehensive search with optional embedding support.
 
 **Tasks:**
+
 - [x] Implement `searchByTags()` in MemoryBankService
 - [x] Implement `searchByKeyword()` with ranking
 - [x] Create `src/services/memory_embedding.ts`
@@ -826,6 +849,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] Write unit tests
 
 **Deliverables:**
+
 - `src/services/memory_embedding.ts` (~320 LOC) ✅
 - Updated `src/services/memory_bank.ts` (+270 LOC) ✅
 - Updated `src/cli/memory_commands.ts` (~30 LOC) ✅
@@ -834,6 +858,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - `Memory/Index/embeddings/` directory structure ✅
 
 **Success Criteria:**
+
 - [x] `exoctl memory search "error handling" --tags typescript` returns tagged results
 - [x] `exoctl memory search "error handling" --use-embeddings` uses fuzzy match
 - [x] `exoctl memory rebuild-index --include-embeddings` regenerates all indices including embeddings
@@ -842,6 +867,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] 100% of search methods have unit tests
 
 **Tests (32 tests implemented vs 18 projected):**
+
 - `memory_search_test.ts` (11 tests):
   - `searchByTags returns matching entries` (2)
   - `searchByTags with multiple tags uses AND` (1)
@@ -871,6 +897,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Goal:** Final integration, documentation update, and validation.
 
 **Tasks:**
+
 - [x] Update `docs/Memory_Banks.md` with v2 features
 - [x] Update `docs/ExoFrame_Architecture.md` with new diagrams
 - [x] Update `docs/ExoFrame_User_Guide.md` with CLI reference
@@ -880,11 +907,13 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [ ] Update `agents/manifest.json` with memory integration (deferred)
 
 **Deliverables:**
+
 - Updated documentation (5 files) ✅
 - Integration test suite (`tests/integration/memory_integration_test.ts`) ✅
 - Performance benchmarks (8 integration tests) ✅
 
 **Success Criteria:**
+
 - [x] All documentation reflects v2 architecture
 - [x] Integration tests pass end-to-end workflow (8 tests)
 - [x] Performance benchmarks meet targets
@@ -892,6 +921,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] No grep matches for outdated Memory Banks references
 
 **Tests (8 tests):**
+
 - `tests/integration/memory_integration_test.ts`:
   - `full workflow: execution → extract → approve → search` ✅
   - `execution failure extracts troubleshooting learning` ✅
@@ -909,6 +939,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Goal:** Implement interactive Memory Bank view in the TUI dashboard.
 
 **Tasks:**
+
 - [x] Create `src/tui/memory_view.ts` with base component
 - [x] Implement memory bank list panel (projects, global, execution)
 - [x] Implement navigation between memory scopes (Tab/Arrow keys)
@@ -920,6 +951,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] Write unit tests for view components
 
 **Deliverables:**
+
 - [x] `src/tui/memory_view.ts` (~875 LOC)
 - [x] `src/tui/memory_panels/index.ts` (~430 LOC):
   - [x] `renderProjectPanel()`
@@ -933,6 +965,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] `tests/tui/memory_view_test.ts` (~397 LOC, 32 tests)
 
 **TUI Layout Design:**
+
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │  ExoFrame Dashboard                          [Memory] [1 Pending]   │
@@ -954,21 +987,23 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 ```
 
 **Keyboard Navigation:**
-| Key | Action |
-|-----|--------|
-| `Tab` | Switch between panels |
-| `↑/↓` | Navigate list items |
-| `Enter` | Select/expand item |
-| `g` | Jump to Global Memory |
-| `p` | Jump to Projects |
-| `e` | Jump to Executions |
-| `s` | Open search input |
-| `n` | Show pending proposals |
-| `/` | Quick search (vim-style) |
-| `q` | Return to dashboard |
-| `?` | Show help overlay |
+
+| Key     | Action                   |
+| ------- | ------------------------ |
+| `Tab`   | Switch between panels    |
+| `↑/↓`   | Navigate list items      |
+| `Enter` | Select/expand item       |
+| `g`     | Jump to Global Memory    |
+| `p`     | Jump to Projects         |
+| `e`     | Jump to Executions       |
+| `s`     | Open search input        |
+| `n`     | Show pending proposals   |
+| `/`     | Quick search (vim-style) |
+| `q`     | Return to dashboard      |
+| `?`     | Show help overlay        |
 
 **Success Criteria:**
+
 - [x] Memory view accessible from main dashboard via `[m]` key
 - [x] Tree navigation for memory bank hierarchy
 - [x] Detail panel shows selected item content
@@ -978,6 +1013,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] 100% of view components have unit tests
 
 **Tests (32 tests - exceeds target of 18):**
+
 - `memory_view_test.ts`:
   - `initializes with default state` (1)
   - `initialize loads tree and selects first node` (1)
@@ -1019,6 +1055,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Goal:** Add interactive pending proposal management and action dialogs to TUI.
 
 **Tasks:**
+
 - [x] Create pending proposals panel with badge notification
 - [x] Implement proposal detail view with diff display
 - [x] Add approve/reject actions with confirmation dialogs
@@ -1030,6 +1067,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] Write unit and integration tests
 
 **Deliverables:**
+
 - [x] `src/tui/memory_panels/index.ts` (includes `renderPendingPanel`, `renderStatsPanel`)
 - [x] `src/tui/dialogs/memory_dialogs.ts` (~540 LOC):
   - [x] `ConfirmApproveDialog`
@@ -1042,6 +1080,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] `tests/tui/memory_pending_panel_test.ts` (22 tests)
 
 **Pending Panel Layout:**
+
 ```
 ┌─ Pending Proposals (3) ──────────────────────────────────────────────┐
 │ ┌────────────────────────────────────────────────────────────────┐   │
@@ -1060,6 +1099,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 ```
 
 **Statistics Panel Layout:**
+
 ```
 ┌─ Memory Statistics ──────────────────────────────────────────────────┐
 │                                                                      │
@@ -1079,6 +1119,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 ```
 
 **Dialog Interactions:**
+
 ```
 ┌─ Approve Proposal ───────────────────────────────────────────────────┐
 │                                                                      │
@@ -1102,6 +1143,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 ```
 
 **Success Criteria:**
+
 - [x] Pending badge shows count on Memory tab header
 - [x] Pending proposals list with visual indicators
 - [x] Approve/reject actions with confirmation
@@ -1113,6 +1155,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] 100% of dialogs have unit tests
 
 **Tests (59 tests - exceeds target of 16):**
+
 - `memory_pending_panel_test.ts` (22 tests):
   - `renders pending proposals list` ✅
   - `shows proposal titles` ✅
@@ -1182,6 +1225,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 **Goal:** Final integration, polish, and performance optimization for TUI Memory view.
 
 **Tasks:**
+
 - [x] Implement async loading with spinners for large memory banks
 - [x] Add markdown rendering in detail panel
 - [x] Implement syntax highlighting for code blocks (basic code block styling)
@@ -1193,12 +1237,14 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] Integration tests for full TUI workflows
 
 **Deliverables:**
+
 - [x] Updated TUI components with async loading
 - [x] `src/tui/utils/markdown_renderer.ts` (~230 LOC)
 - [x] Updated styles and color themes
 - [x] `tests/tui/memory_integration_test.ts` (~520 LOC, 18 tests)
 
 **Implementation Notes:**
+
 - Created comprehensive markdown renderer with ANSI color support
 - Added 10-frame Braille spinner animation (⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏)
 - Implemented loading state with try/finally pattern for robustness
@@ -1208,19 +1254,21 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - 18 integration tests covering full workflows and renderer functions
 
 **Color Coding Scheme:**
-| Element | Color | Meaning |
-|---------|-------|---------|
-| Global Memory | 🟣 Magenta | Cross-project scope |
-| Project Memory | 🔵 Blue | Project-specific |
-| Execution | 🟢 Green | Execution history |
-| Pending | 🟡 Yellow | Awaiting approval |
-| Pattern | 🔵 Cyan | Code pattern |
-| Anti-pattern | 🔴 Red | What to avoid |
-| Decision | 🟣 Magenta | Architectural choice |
-| High confidence | Bold | Strong signal |
-| Low confidence | Dim | Tentative |
+
+| Element         | Color      | Meaning              |
+| --------------- | ---------- | -------------------- |
+| Global Memory   | 🟣 Magenta | Cross-project scope  |
+| Project Memory  | 🔵 Blue    | Project-specific     |
+| Execution       | 🟢 Green   | Execution history    |
+| Pending         | 🟡 Yellow  | Awaiting approval    |
+| Pattern         | 🔵 Cyan    | Code pattern         |
+| Anti-pattern    | 🔴 Red     | What to avoid        |
+| Decision        | 🟣 Magenta | Architectural choice |
+| High confidence | Bold       | Strong signal        |
+| Low confidence  | Dim        | Tentative            |
 
 **Success Criteria:**
+
 - [x] Memory view loads < 200ms for 100+ learnings
 - [x] Markdown renders with formatting
 - [x] Code blocks have syntax highlighting (basic)
@@ -1230,6 +1278,7 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 - [x] All integration tests pass (18/18)
 
 **Tests (18 tests):**
+
 - `memory_integration_test.ts`:
   - `full TUI workflow: navigate → view → search` ✅
   - `pending workflow: view → approve → verify` ✅
@@ -1254,16 +1303,16 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 
 ## 8. Rollback Plan
 
-| Phase | Rollback Strategy |
-|-------|-------------------|
-| 12.5 | Remove CLI commands, revert `src/cli/` |
-| 12.8 | Delete `Memory/Global/`, remove schemas |
-| 12.9 | Remove extractor service, revert AgentRunner |
-| 12.10 | Delete embedding service, remove indices |
-| 12.11 | Revert documentation changes |
+| Phase | Rollback Strategy                                            |
+| ----- | ------------------------------------------------------------ |
+| 12.5  | Remove CLI commands, revert `src/cli/`                       |
+| 12.8  | Delete `Memory/Global/`, remove schemas                      |
+| 12.9  | Remove extractor service, revert AgentRunner                 |
+| 12.10 | Delete embedding service, remove indices                     |
+| 12.11 | Revert documentation changes                                 |
 | 12.12 | Remove `src/tui/memory_view.ts` and panels, revert dashboard |
-| 12.13 | Remove dialogs and pending panel, revert memory_view |
-| 12.14 | Remove polish features, revert to 12.13 state |
+| 12.13 | Remove dialogs and pending panel, revert memory_view         |
+| 12.14 | Remove polish features, revert to 12.13 state                |
 
 **Critical Checkpoint:** After Phase 12.9, rollback becomes complex. Ensure 12.5 and 12.8 are stable before proceeding.
 
@@ -1273,32 +1322,32 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 
 ### 9.1 Code Quality
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| Test Coverage | ≥ 80% line, ≥ 75% branch | `deno coverage` |
-| New Tests | ≥ 130 tests added | Test count delta |
-| LOC Added | ~2,400 LOC | `wc -l` on new files |
+| Metric        | Target                   | Measurement          |
+| ------------- | ------------------------ | -------------------- |
+| Test Coverage | ≥ 80% line, ≥ 75% branch | `deno coverage`      |
+| New Tests     | ≥ 130 tests added        | Test count delta     |
+| LOC Added     | ~2,400 LOC               | `wc -l` on new files |
 
 ### 9.2 Functionality
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| CLI Commands | 20+ commands | Command tree count |
-| TUI Views | 4 panels + 4 dialogs | Component count |
-| Search Latency | < 100ms | Benchmark test |
-| Embedding Latency | < 500ms | Benchmark test |
-| TUI Load Latency | < 200ms | Benchmark test |
-| Zero Regressions | 0 failures | Full test suite |
+| Metric            | Target               | Measurement        |
+| ----------------- | -------------------- | ------------------ |
+| CLI Commands      | 20+ commands         | Command tree count |
+| TUI Views         | 4 panels + 4 dialogs | Component count    |
+| Search Latency    | < 100ms              | Benchmark test     |
+| Embedding Latency | < 500ms              | Benchmark test     |
+| TUI Load Latency  | < 200ms              | Benchmark test     |
+| Zero Regressions  | 0 failures           | Full test suite    |
 
 ### 9.3 User Experience
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| CLI Discoverability | 100% commands have help | `--help` coverage |
-| TUI Discoverability | 100% views have help overlay | `?` key coverage |
-| Notification Delivery | 100% proposals notified | Integration test |
-| Format Options | 3 formats (json/table/md) | CLI validation |
-| Keyboard Navigation | 100% actions keyboard-accessible | Accessibility test |
+| Metric                | Target                           | Measurement        |
+| --------------------- | -------------------------------- | ------------------ |
+| CLI Discoverability   | 100% commands have help          | `--help` coverage  |
+| TUI Discoverability   | 100% views have help overlay     | `?` key coverage   |
+| Notification Delivery | 100% proposals notified          | Integration test   |
+| Format Options        | 3 formats (json/table/md)        | CLI validation     |
+| Keyboard Navigation   | 100% actions keyboard-accessible | Accessibility test |
 
 ---
 
@@ -1320,36 +1369,36 @@ async searchMemory(query: string, options: SearchOptions): Promise<SearchResult[
 
 ### 10.3 Code References
 
-| File | Purpose |
-|------|---------|
-| `src/schemas/memory_bank.ts` | Zod schemas for memory structures |
-| `src/services/memory_bank.ts` | Core CRUD operations |
-| `scripts/build_agents_embeddings.ts` | Embedding generation pattern |
-| `src/services/database.ts` | Activity Journal integration |
+| File                                 | Purpose                           |
+| ------------------------------------ | --------------------------------- |
+| `src/schemas/memory_bank.ts`         | Zod schemas for memory structures |
+| `src/services/memory_bank.ts`        | Core CRUD operations              |
+| `scripts/build_agents_embeddings.ts` | Embedding generation pattern      |
+| `src/services/database.ts`           | Activity Journal integration      |
 
 ---
 
 ## Appendix A: Full Test Inventory
 
-| Phase | Test File | Test Count |
-|-------|-----------|------------|
-| 12.5 | `tests/cli/memory_commands_test.ts` | 20 |
-| 12.8 | `tests/services/memory_bank_global_test.ts` | 12 |
-| 12.8 | `tests/cli/memory_commands_global_test.ts` | 3 |
-| 12.9 | `tests/services/memory_extractor_test.ts` | 9 |
-| 12.9 | `tests/services/notification_test.ts` | 2 |
-| 12.9 | `tests/services/memory_pending_test.ts` | 9 |
-| 12.9 | `tests/services/agent_runner_memory_test.ts` | 4 |
-| 12.9 | `tests/cli/memory_commands_pending_test.ts` | 1 |
-| 12.10 | `tests/services/memory_search_test.ts` | 8 |
-| 12.10 | `tests/services/memory_embedding_test.ts` | 8 |
-| 12.10 | `tests/services/rebuild_index_test.ts` | 2 |
-| 12.11 | `tests/integration/memory_integration_test.ts` | 10 |
-| 12.12 | `tests/tui/memory_view_test.ts` | 18 |
-| 12.13 | `tests/tui/memory_pending_panel_test.ts` | 10 |
-| 12.13 | `tests/tui/memory_dialogs_test.ts` | 6 |
-| 12.14 | `tests/tui/memory_tui_integration_test.ts` | 8 |
-| **Total** | | **130** |
+| Phase     | Test File                                      | Test Count |
+| --------- | ---------------------------------------------- | ---------- |
+| 12.5      | `tests/cli/memory_commands_test.ts`            | 20         |
+| 12.8      | `tests/services/memory_bank_global_test.ts`    | 12         |
+| 12.8      | `tests/cli/memory_commands_global_test.ts`     | 3          |
+| 12.9      | `tests/services/memory_extractor_test.ts`      | 9          |
+| 12.9      | `tests/services/notification_test.ts`          | 2          |
+| 12.9      | `tests/services/memory_pending_test.ts`        | 9          |
+| 12.9      | `tests/services/agent_runner_memory_test.ts`   | 4          |
+| 12.9      | `tests/cli/memory_commands_pending_test.ts`    | 1          |
+| 12.10     | `tests/services/memory_search_test.ts`         | 8          |
+| 12.10     | `tests/services/memory_embedding_test.ts`      | 8          |
+| 12.10     | `tests/services/rebuild_index_test.ts`         | 2          |
+| 12.11     | `tests/integration/memory_integration_test.ts` | 10         |
+| 12.12     | `tests/tui/memory_view_test.ts`                | 18         |
+| 12.13     | `tests/tui/memory_pending_panel_test.ts`       | 10         |
+| 12.13     | `tests/tui/memory_dialogs_test.ts`             | 6          |
+| 12.14     | `tests/tui/memory_tui_integration_test.ts`     | 8          |
+| **Total** |                                                | **130**    |
 
 ---
 

@@ -11,6 +11,7 @@
 import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
+import { createStubDb } from "./test_helpers.ts";
 
 const STATUS_APPROVED = "approved";
 const STATUS_REJECTED = "rejected";
@@ -91,10 +92,7 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
     } as any;
 
     // Create stub db
-    const stubDb = {
-      logActivity: () => {},
-      waitForFlush: async () => {},
-    };
+    const stubDb = createStubDb();
 
     const planCommands = new PlanCommands({ config, db: stubDb as any });
 
@@ -140,6 +138,29 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
     const stubDb = {
       logActivity: () => {},
       waitForFlush: async () => {},
+      preparedGet: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve(null);
+      },
+      preparedAll: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve([]);
+      },
+      preparedRun: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve({});
+      },
+      async getActivitiesByTraceSafe(traceId: string) {
+        if (typeof (this as any).getActivitiesByTrace === "function") {
+          const r = (this as any).getActivitiesByTrace(traceId);
+          return r instanceof Promise ? await r : r;
+        }
+        return [];
+      },
+      async getActivitiesByActionTypeSafe(actionType: string) {
+        if (typeof (this as any).getActivitiesByActionType === "function") {
+          const r = (this as any).getActivitiesByActionType(actionType);
+          return r instanceof Promise ? await r : r;
+        }
+        return [];
+      },
     };
 
     const planCommands = new PlanCommands({ config, db: stubDb as any });
@@ -182,6 +203,29 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
     const stubDb = {
       logActivity: () => {},
       waitForFlush: async () => {},
+      preparedGet: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve(null);
+      },
+      preparedAll: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve([]);
+      },
+      preparedRun: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve({});
+      },
+      async getActivitiesByTraceSafe(traceId: string) {
+        if (typeof (this as any).getActivitiesByTrace === "function") {
+          const r = (this as any).getActivitiesByTrace(traceId);
+          return r instanceof Promise ? await r : r;
+        }
+        return [];
+      },
+      async getActivitiesByActionTypeSafe(actionType: string) {
+        if (typeof (this as any).getActivitiesByActionType === "function") {
+          const r = (this as any).getActivitiesByActionType(actionType);
+          return r instanceof Promise ? await r : r;
+        }
+        return [];
+      },
     };
 
     const planCommands = new PlanCommands({ config, db: stubDb as any });
@@ -225,6 +269,29 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
     const stubDb = {
       logActivity: () => {},
       waitForFlush: async () => {},
+      preparedGet: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve(null);
+      },
+      preparedAll: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve([]);
+      },
+      preparedRun: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve({});
+      },
+      async getActivitiesByTraceSafe(traceId: string) {
+        if (typeof (this as any).getActivitiesByTrace === "function") {
+          const r = (this as any).getActivitiesByTrace(traceId);
+          return r instanceof Promise ? await r : r;
+        }
+        return [];
+      },
+      async getActivitiesByActionTypeSafe(actionType: string) {
+        if (typeof (this as any).getActivitiesByActionType === "function") {
+          const r = (this as any).getActivitiesByActionType(actionType);
+          return r instanceof Promise ? await r : r;
+        }
+        return [];
+      },
     };
 
     const planCommands = new PlanCommands({ config, db: stubDb as any });
@@ -267,6 +334,29 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
     const stubDb = {
       logActivity: () => {},
       waitForFlush: async () => {},
+      preparedGet: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve(null);
+      },
+      preparedAll: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve([]);
+      },
+      preparedRun: function (_query: string, _params: unknown[] = []) {
+        return Promise.resolve({});
+      },
+      async getActivitiesByTraceSafe(traceId: string) {
+        if (typeof (this as any).getActivitiesByTrace === "function") {
+          const r = (this as any).getActivitiesByTrace(traceId);
+          return r instanceof Promise ? await r : r;
+        }
+        return [];
+      },
+      async getActivitiesByActionTypeSafe(actionType: string) {
+        if (typeof (this as any).getActivitiesByActionType === "function") {
+          const r = (this as any).getActivitiesByActionType(actionType);
+          return r instanceof Promise ? await r : r;
+        }
+        return [];
+      },
     };
 
     const planCommands = new PlanCommands({ config, db: stubDb as any });

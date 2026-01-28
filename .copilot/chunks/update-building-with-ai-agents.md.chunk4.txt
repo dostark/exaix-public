@@ -13,7 +13,7 @@ git log b849adf..HEAD --format="%H" | while read hash; do git show --stat $hash;
 
 2. **Write new Part(s)**:
 
-```markdown
+````markdown
    ## Part XVII: The Self-Documenting Agent System (January 2026)
 
 ### The Bootstrap Problem Revisited

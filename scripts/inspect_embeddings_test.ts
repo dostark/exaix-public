@@ -1,4 +1,4 @@
-import { assert, assertExists } from "https://deno.land/std@0.203.0/assert/mod.ts";
+import { assert } from "https://deno.land/std@0.203.0/assert/mod.ts";
 
 // This test writes a temporary embedding file into agents/embeddings and a temporary manifest
 // then runs the inspect script with a query that should match the vector exactly (score ~1.0).

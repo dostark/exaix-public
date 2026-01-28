@@ -88,6 +88,7 @@ Use `TestEnvironment.create()` for full integration tests that require workspace
 All test-related environment variables use the `EXO_TEST_*` prefix for clarity and separation from production env vars:
 
 **Standard Test Variables:**
+
 - `EXO_TEST_MODE` — Indicates test environment (replaces legacy `DENO_TEST`)
 - `EXO_TEST_CLI_MODE` — Indicates CLI test mode (replaces legacy `EXOCTL_TEST_MODE`)
 - `EXO_TEST_ENABLE_PAID_LLM` — Opt-in for paid API tests in CI (0 or 1)
@@ -101,7 +102,7 @@ All test-related environment variables use the `EXO_TEST_*` prefix for clarity a
 Use the helper functions from `src/config/env_schema.ts` instead of direct env var access:
 
 ```typescript
-import { isTestMode, isCIMode } from "../config/env_schema.ts";
+import { isCIMode, isTestMode } from "../config/env_schema.ts";
 
 // Check if in test environment
 if (isTestMode()) {
@@ -117,6 +118,7 @@ if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
 ```
 
 **Best Practices:**
+
 - ✅ Always use `isTestMode()` instead of checking `DENO_TEST` or `EXO_TEST_MODE` directly
 - ✅ Always use `isCIMode()` instead of checking `CI` or `EXO_CI_MODE` directly
 - ✅ Use `EXO_TEST_*` prefix for any new test-related env vars

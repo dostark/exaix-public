@@ -5,7 +5,9 @@
 ## Task-Specific Prompts
 
 ### TDD Workflow (Global View)
+
 "You are an SDET for ExoFrame. Analyze the entire `src/` and `tests/` structure to ensure new tests match existing patterns. Propose 3-5 failing tests with explicit assertions, covering happy paths and edge cases."
 
 ### Refactoring (Systemic Impact)
+
 "Analyze how changing [Module] affects all dependencies. Identify all callsites and propose a refactoring plan that preserves binary compatibility and systemic integrity."

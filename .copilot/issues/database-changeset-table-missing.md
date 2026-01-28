@@ -11,7 +11,6 @@ created: 2026-01-26
 labels: [bug, database, migration, execution]
 ---
 
-
 ## Problem
 
 The `changesets` table is not being created during database migration, causing execution failures with "no such table: changesets" error when trying to track plan execution changesets.

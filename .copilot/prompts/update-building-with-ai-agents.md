@@ -105,7 +105,7 @@ git log b849adf..HEAD --format="%H" | while read hash; do git show --stat $hash;
 
 2. **Write new Part(s)**:
 
-   ```markdown
+   ````markdown
    ## Part XVII: The Self-Documenting Agent System (January 2026)
 
    ### The Bootstrap Problem Revisited
@@ -128,7 +128,7 @@ git log b849adf..HEAD --format="%H" | while read hash; do git show --stat $hash;
    the agents/ system to guide that enhancement. Peak irony.
 
    [... continues with technical details, examples, before/after, patterns ...]
-   ```
+   ````
 
 3. **Update reference sections**:
    - Add rows to Essential Patterns table
@@ -159,11 +159,13 @@ the agents/ system to guide that enhancement. Peak irony.
 
 ```markdown
 **Before Step 10.5**:
+
 - Agent docs existed but were hard to discover
 - No clear workflow for using RAG
 - Inconsistent prompting patterns
 
 **After Step 10.5**:
+
 - 19 agent docs (up from 11)
 - 8 copy-paste prompt templates
 - Cross-reference map for navigation
@@ -186,6 +188,7 @@ deno run --allow-read scripts/validate_agents_docs.ts
 ### The Meta-Learning: Documentation Is a Product
 
 Treating documentation like code revolutionized quality:
+
 - Schema validation (YAML frontmatter with Zod)
 - Automated testing (12 tests for content structure)
 - CI gates (can't merge broken docs)
@@ -199,6 +202,7 @@ Treating documentation like code revolutionized quality:
 ## agents/ Folder Enhancements
 
 The agents/ folder was updated with the following improvements:
+
 - Added claude.md version 0.2
 - Created claude-rag.md with RAG workflow
 - Added 8 prompt templates

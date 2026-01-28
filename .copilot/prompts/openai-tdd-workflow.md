@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["openai", "tdd", "testing", "prompts", "diff-first"]
 ---
 
-
 ```text
 Key points
 - Start by proposing failing tests with explicit assertions.

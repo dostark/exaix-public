@@ -10,6 +10,7 @@
 ```
 
 **Key Issues:**
+
 1. System selects `test-provider` instead of configured `google:gemini-2.0-flash-exp`
 2. Plan validation fails
 3. Request is marked as failed

@@ -715,8 +715,9 @@ topics: ["navigation", "quick-reference", "task-mapping"]
    - ✅ Good: `const filePath = pathResolver.resolve(userInput); // validates against Portal permissions`
 
 5. **Hardcoding paths**
-  - ❌ Bad: `"/home/user/ExoFrame/.exo/Active"`
-  - ✅ Good: `join(workspaceRoot, ".exo", "Active")` (use PathResolver)
+
+- ❌ Bad: `"/home/user/ExoFrame/.exo/Active"`
+- ✅ Good: `join(workspaceRoot, ".exo", "Active")` (use PathResolver)
 
 6. **Missing activity logging**
    - ❌ Bad: Side effects (file writes, executions) without EventLogger calls

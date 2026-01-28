@@ -16,4 +16,4 @@ I had just enhanced the agents/ system to make it MORE useful... without using
    the agents/ system to guide that enhancement. Peak irony.
 
 [... continues with technical details, examples, before/after, patterns ...]
-   ```
+   ````

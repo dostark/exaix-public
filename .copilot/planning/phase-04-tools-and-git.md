@@ -1,4 +1,3 @@
-
 ## Phase 4: The Hands (Tools & Git) ✅ COMPLETED
 
 **Goal:** Agents execute actions securely and robustly.

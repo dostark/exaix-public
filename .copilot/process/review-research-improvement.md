@@ -37,12 +37,14 @@ A structured methodology for evaluating ExoFrame subsystems, identifying archite
 ### 1.1 Documentation Review
 
 Read all relevant documentation:
+
 - Primary docs in `docs/`
 - Blueprints in `Blueprints/`
 - README files in relevant directories
 - Implementation plan sections
 
 **Checklist:**
+
 - [ ] Understand the stated purpose/goals
 - [ ] Identify documented features vs. missing features
 - [ ] Note any TODOs, FIXMEs, or acknowledged gaps
@@ -50,12 +52,14 @@ Read all relevant documentation:
 ### 1.2 Implementation Analysis
 
 Examine the actual code:
+
 - Use `semantic_search` for relevant code patterns
 - Read key service files end-to-end
 - Check test coverage for behavior documentation
 - Look for inconsistencies between docs and implementation
 
 **Key Questions:**
+
 - Does the implementation match the documentation?
 - Are there unused/dead code paths?
 - What error handling exists?
@@ -64,6 +68,7 @@ Examine the actual code:
 ### 1.3 Template/Example Audit
 
 For pattern-based subsystems (Agents, Flows):
+
 - Count existing templates
 - Assess template quality and coverage
 - Identify missing patterns
@@ -76,34 +81,36 @@ For pattern-based subsystems (Agents, Flows):
 
 Research modern approaches for the subsystem type:
 
-| Subsystem | Research Areas |
-|-----------|---------------|
-| Agents | ReAct, Reflexion, Chain-of-Thought, Tool Use |
-| Flows | Multi-agent orchestration, DAG execution, transforms |
-| Memory | RAG, semantic search, context windows |
-| Tools | Function calling, schema validation, sandboxing |
+| Subsystem | Research Areas                                       |
+| --------- | ---------------------------------------------------- |
+| Agents    | ReAct, Reflexion, Chain-of-Thought, Tool Use         |
+| Flows     | Multi-agent orchestration, DAG execution, transforms |
+| Memory    | RAG, semantic search, context windows                |
+| Tools     | Function calling, schema validation, sandboxing      |
 
 ### 2.2 Gap Analysis
 
 Compare current implementation to best practices:
 
 ```markdown
-| Feature | Current State | Best Practice | Gap |
-|---------|--------------|---------------|-----|
-| Feature A | Basic | Advanced | Missing X, Y |
-| Feature B | None | Required | Not implemented |
-| Feature C | Good | Good | None |
+| Feature   | Current State | Best Practice | Gap             |
+| --------- | ------------- | ------------- | --------------- |
+| Feature A | Basic         | Advanced      | Missing X, Y    |
+| Feature B | None          | Required      | Not implemented |
+| Feature C | Good          | Good          | None            |
 ```
 
 ### 2.3 Document Weaknesses
 
 Create numbered weakness list with:
+
 - **Problem:** What's wrong or missing
 - **Impact:** Why it matters
 - **Evidence:** Code reference showing the issue
 
 **Example:**
-```markdown
+
+````markdown
 ### 1. No Self-Reflection Mechanism
 
 **Problem:** Agents produce output in single pass without self-evaluation.
@@ -111,13 +118,15 @@ Create numbered weakness list with:
 **Impact:** Quality varies; no automatic improvement loops.
 
 **Evidence:**
+
 ```typescript
 // agent_runner.ts:115 - Single-pass execution
 const rawResponse = await this.modelProvider.generate(combinedPrompt);
 const result = this.parseResponse(rawResponse); // Direct return
 ```
-```
+````
 
+````
 ## Phase 3: Plan (Create Improvement Roadmap)
 
 ### 3.1 Planning Document Structure
@@ -154,11 +163,12 @@ Create `agents/planning/phase-N-<subsystem>-improvements.md`:
 
 ## Success Metrics
 [How to measure improvement]
-```
+````
 
 ### 3.2 Sub-Phase Design
 
 Each sub-phase should have:
+
 - **Goal:** Single-sentence objective
 - **Tasks:** Numbered implementation steps
 - **Success Criteria:** Checkboxes for completion
@@ -171,33 +181,37 @@ Each sub-phase should have:
 
 This phase should update:
 
-| Document | Purpose |
-|----------|----------|
-| `docs/ExoFrame_User_Guide.md` | User-facing feature documentation |
-| `docs/Building_with_AI_Agents.md` | Patterns and best practices |
-| `docs/ExoFrame_Implementation_Plan.md` | Phase completion status |
-| Subsystem README | Template catalog, configuration reference |
+| Document                               | Purpose                                   |
+| -------------------------------------- | ----------------------------------------- |
+| `docs/ExoFrame_User_Guide.md`          | User-facing feature documentation         |
+| `docs/Building_with_AI_Agents.md`      | Patterns and best practices               |
+| `docs/ExoFrame_Implementation_Plan.md` | Phase completion status                   |
+| Subsystem README                       | Template catalog, configuration reference |
 
 **Documentation Phase Template:**
+
 ```markdown
 ### Phase N.X: Documentation Update (1 day)
 
 **Goal:** Update user-facing documentation to reflect new capabilities.
 
 **Files to Update:**
-| File | Updates Required |
-|------|------------------|
-| docs/ExoFrame_User_Guide.md | [Section]: [features] |
-| docs/Building_with_AI_Agents.md | [patterns, examples] |
-| [Subsystem]/README.md | [templates, config] |
+
+| File                            | Updates Required      |
+| ------------------------------- | --------------------- |
+| docs/ExoFrame_User_Guide.md     | [Section]: [features] |
+| docs/Building_with_AI_Agents.md | [patterns, examples]  |
+| [Subsystem]/README.md           | [templates, config]   |
 
 **Tasks:**
+
 1. Document new features with examples
 2. Update CLI reference
 3. Add troubleshooting section
 4. Update configuration reference
 
 **Success Criteria:**
+
 - [ ] User guide complete
 - [ ] Each feature has example
 - [ ] CLI documented
@@ -205,25 +219,27 @@ This phase should update:
 
 ### 3.4 Prioritization Matrix
 
-| Priority | Criteria |
-|----------|----------|
-| Critical | Blocking issues, security, data integrity |
-| High | Major quality/reliability improvements |
-| Medium | Important features, moderate impact |
-| Low | Nice-to-have, polish, minor improvements |
-| **Final** | Documentation Update (always last phase) |
+| Priority  | Criteria                                  |
+| --------- | ----------------------------------------- |
+| Critical  | Blocking issues, security, data integrity |
+| High      | Major quality/reliability improvements    |
+| Medium    | Important features, moderate impact       |
+| Low       | Nice-to-have, polish, minor improvements  |
+| **Final** | Documentation Update (always last phase)  |
 
 ## Phase 4: Artifacts (Create Concrete Deliverables)
 
 ### 4.1 Templates
 
 Create reusable templates that encode best practices:
+
 - Place in appropriate `templates/` directory
 - Include inline documentation
 - Provide customization points with placeholders
 - Add usage examples
 
 **Template Structure:**
+
 ```markdown
 ---
 [frontmatter with metadata]
@@ -232,27 +248,34 @@ Create reusable templates that encode best practices:
 # Template Name
 
 ## Overview
+
 [What this template is for]
 
 ## Instructions
+
 [How to use it]
 
 ## Output Format
+
 [Expected structure]
 
 ## Example
+
 [Complete worked example]
 
 ## Customization Points
+
 [Table of placeholders]
 
 ## When to Use
+
 [✅ Good for / ❌ Not ideal for]
 ```
 
 ### 4.2 Example Implementations
 
 Create concrete examples showing the pattern in action:
+
 - Real scenarios, not toy examples
 - Complete implementations
 - Comments explaining key decisions
@@ -260,6 +283,7 @@ Create concrete examples showing the pattern in action:
 ### 4.3 Documentation Updates
 
 Update relevant READMEs with:
+
 - New template descriptions
 - Comparison tables
 - Implementation status
@@ -285,6 +309,7 @@ Before completing the pattern:
 **Request:** "Review the concept of Flows, find weaknesses, create improvement plan"
 
 **Process:**
+
 1. **Review:** Read `Blueprints/Flows/`, `src/flows/`, examples, templates
 2. **Research:** Multi-agent patterns, LLM-as-a-Judge, DAG orchestration
 3. **Plan:** Created `phase-15-flow-orchestration-improvements.md`
@@ -300,6 +325,7 @@ Before completing the pattern:
 **Request:** "Same review-research-improvement for direct agent orchestration"
 
 **Process:**
+
 1. **Review:** Read `Blueprints/Agents/`, `AgentRunner`, `AgentExecutor`, templates
 2. **Research:** Reflexion, ReAct, tool-use patterns, confidence scoring
 3. **Plan:** Created `phase-16-agent-orchestration-improvements.md`
@@ -313,13 +339,13 @@ Before completing the pattern:
 
 ## Common Pitfalls
 
-| Pitfall | Prevention |
-|---------|------------|
-| Vague weaknesses | Require code evidence for each |
-| Over-scoped plans | Limit to 6-8 sub-phases |
-| Missing dependencies | Draw dependency graph |
-| No success criteria | Mandate checkboxes per phase |
-| Orphan artifacts | Update READMEs immediately |
+| Pitfall              | Prevention                     |
+| -------------------- | ------------------------------ |
+| Vague weaknesses     | Require code evidence for each |
+| Over-scoped plans    | Limit to 6-8 sub-phases        |
+| Missing dependencies | Draw dependency graph          |
+| No success criteria  | Mandate checkboxes per phase   |
+| Orphan artifacts     | Update READMEs immediately     |
 
 ## Related Documents
 

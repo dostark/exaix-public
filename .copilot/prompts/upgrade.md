@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["upgrade", "dependencies", "version", "maintenance"]
 ---
 
-
 **Purpose:** Plan and execute upgrades of dependencies or versions, ensuring stability and coverage.
 
 ---

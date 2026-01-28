@@ -10,6 +10,7 @@ import {
 import { HealthCheckVerdict, HealthStatus } from "../enums.ts";
 import { EventLogger } from "./event_logger.ts";
 import { LogMethod } from "./decorators/logging.ts";
+import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 
 /**
  * Interface for individual health check implementations
@@ -66,6 +67,7 @@ interface CachedHealthResult {
  */
 export class HealthCheckService {
   private checks = new Map<string, HealthCheck>();
+  private checkBreakers = new Map<string, CircuitBreaker>();
   private startTime = Date.now();
   private healthCache = new Map<string, CachedHealthResult>();
 
@@ -99,6 +101,14 @@ export class HealthCheckService {
    */
   registerCheck(check: HealthCheck): void {
     this.checks.set(check.name, check);
+    // Create a per-check circuit breaker with reasonable defaults (can be tuned via config)
+    const healthCfg = (this.config as any)?.health ?? {};
+    const opts = {
+      failureThreshold: healthCfg.failure_threshold ?? 3,
+      resetTimeout: healthCfg.reset_timeout_ms ?? 60_000,
+      halfOpenSuccessThreshold: healthCfg.half_open_success_threshold ?? 2,
+    };
+    this.checkBreakers.set(check.name, new CircuitBreaker(opts));
   }
 
   /**
@@ -106,7 +116,6 @@ export class HealthCheckService {
    */
   @LogMethod(new EventLogger({ prefix: "[HealthCheck]" }), "health.check_all")
   async checkHealth(): Promise<HealthReport> {
-    // ... existing implementation ...
     const results: Record<string, HealthCheckResult> = {};
     let hasFailure = false;
     let hasWarning = false;
@@ -117,16 +126,26 @@ export class HealthCheckService {
         const start = performance.now();
 
         try {
-          // Add timeout to each check using AbortSignal.timeout
-          const timeoutSignal = AbortSignal.timeout(this.checkTimeoutMs);
-          const result = await Promise.race([
-            check.check(),
-            new Promise<never>((_, reject) => {
-              timeoutSignal.addEventListener("abort", () => {
-                reject(new Error(`Health check '${name}' timed out after ${this.checkTimeoutMs}ms`));
+          const breaker = this.checkBreakers.get(name);
+
+          // Build a timed execution promise that enforces the check timeout and clears the timer
+          const timedExecution = async () => {
+            let timer: number | undefined;
+            try {
+              const p = check.check();
+              const timeoutP = new Promise<never>((_, reject) => {
+                timer = setTimeout(
+                  () => reject(new Error(`Health check '${name}' timed out after ${this.checkTimeoutMs}ms`)),
+                  this.checkTimeoutMs,
+                );
               });
-            }),
-          ]);
+              return await Promise.race([p, timeoutP]);
+            } finally {
+              if (typeof timer !== "undefined") clearTimeout(timer);
+            }
+          };
+
+          const result = breaker ? await breaker.execute(() => timedExecution()) : await timedExecution();
 
           const duration = performance.now() - start;
           results[name] = {
@@ -193,7 +212,24 @@ export class HealthCheckService {
     }
 
     try {
-      const result = await check.check();
+      const breaker = this.checkBreakers.get(providerName);
+      const timed = async () => {
+        let timer: number | undefined;
+        try {
+          const p = check.check();
+          const timeoutP = new Promise<never>((_, reject) => {
+            timer = setTimeout(
+              () => reject(new Error(`Provider health check timed out after ${this.checkTimeoutMs}ms`)),
+              this.checkTimeoutMs,
+            );
+          });
+          return await Promise.race([p, timeoutP]);
+        } finally {
+          if (typeof timer !== "undefined") clearTimeout(timer);
+        }
+      };
+
+      const result = breaker ? await breaker.execute(() => timed()) : await timed();
 
       // Cache the result
       this.healthCache.set(providerName, {
@@ -232,25 +268,25 @@ export class DatabaseHealthCheck implements HealthCheck {
     const start = performance.now();
 
     try {
-      // Simple query to verify connectivity
-      const result = this.db.instance.prepare("SELECT 1 as health_check").get() as { health_check: number };
+      // Simple query to verify connectivity (breaker-protected)
+      const result = await this.db.preparedGet<{ health_check: number }>("SELECT 1 as health_check");
 
       const duration = performance.now() - start;
 
-      if (result.health_check === 1) {
-        return await Promise.resolve({
+      if (result && result.health_check === 1) {
+        return {
           status: HealthCheckVerdict.PASS,
           metadata: {
             response_time_ms: Math.round(duration),
           },
           duration_ms: Math.round(duration),
-        });
+        };
       } else {
-        return await Promise.resolve({
+        return {
           status: HealthCheckVerdict.FAIL,
           message: "Database returned unexpected result",
           duration_ms: Math.round(duration),
-        });
+        };
       }
     } catch (error) {
       const duration = performance.now() - start;
@@ -490,6 +526,17 @@ export function initializeHealthChecks(
 
   return health;
 }
+
+// expose circuit state for checks for testing/inspection
+export interface HealthCheckServiceWithInspection extends HealthCheckService {
+  getCheckCircuitState(name: string): string | null;
+}
+
+// Add runtime method on prototype for inspection
+(HealthCheckService.prototype as any).getCheckCircuitState = function (name: string) {
+  const cb = (this as any).checkBreakers?.get(name) as CircuitBreaker | undefined;
+  return cb ? cb.getState() : null;
+};
 
 /**
  * HTTP endpoint handler for health checks

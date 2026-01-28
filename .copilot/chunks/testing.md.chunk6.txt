@@ -12,6 +12,7 @@ if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
 ```
 
 **Best Practices:**
+
 - ✅ Always use `isTestMode()` instead of checking `DENO_TEST` or `EXO_TEST_MODE` directly
 - ✅ Always use `isCIMode()` instead of checking `CI` or `EXO_CI_MODE` directly
 - ✅ Use `EXO_TEST_*` prefix for any new test-related env vars

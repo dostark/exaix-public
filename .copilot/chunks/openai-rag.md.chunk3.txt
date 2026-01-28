@@ -5,4 +5,4 @@
 Examples (by level)
 
 - Junior (simple, 2–3 chunks):
- "Inspect embeddings for 'write a unit test'. Inject 3 chunks. Then answer in the format Files → Plan → Diffs → Verification. Keep it short and cite the doc paths used."
+  "Inspect embeddings for 'write a unit test'. Inject 3 chunks. Then answer in the format Files → Plan → Diffs → Verification. Keep it short and cite the doc paths used."

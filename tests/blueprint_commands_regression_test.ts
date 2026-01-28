@@ -12,6 +12,7 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
+import { createStubDb } from "./test_helpers.ts";
 
 const AGENT_ID_YAML = "yaml-agent";
 const AGENT_NAME_YAML = "YAML Format Agent";
@@ -56,10 +57,7 @@ function createTestConfig(root: string) {
 }
 
 // Create stub db for testing
-const stubDb = {
-  logActivity: () => {},
-  waitForFlush: async () => {},
-};
+const stubDb = createStubDb();
 
 // ============================================================================
 // Regression Tests for Blueprint Frontmatter Parsing

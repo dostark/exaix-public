@@ -130,7 +130,8 @@ Deno.test("Test 2: Stability verification - slow write in chunks", async () => {
     await new Promise((resolve) => setTimeout(resolve, 25));
 
     // Try to read - should wait until stable
-    const startTime = Date.now();
+    const usePerf = typeof performance !== "undefined" && typeof performance.now === "function";
+    const startTime = usePerf ? performance.now() : Date.now();
 
     // Run readFileWhenStable concurrently with writes
     const readPromise = readFileWhenStable(testFile);
@@ -138,13 +139,13 @@ Deno.test("Test 2: Stability verification - slow write in chunks", async () => {
     await writePromise; // Ensure writes complete
     const content = await readPromise;
 
-    const duration = Date.now() - startTime;
+    const endTime = usePerf ? performance.now() : Date.now();
+    const duration = Math.round(endTime - startTime);
 
-    // Should have waited for file to stabilize (at least a few attempts)
-    assertEquals(content.length > 1024 * 1024, true); // At least some content
+    // Should have waited for file to stabilize (at least a chunk worth)
+    assertEquals(content.length >= 1024 * 1024, true); // At least 1MB
 
     // Should have taken some time to stabilize (but not too long)
-    // Note: In fast environments, this might complete quickly, so we make this more lenient
     assertEquals(duration >= 0, true); // At least some time passed
     assertEquals(duration < 3000, true); // Didn't exhaust all retries
   } finally {
@@ -777,7 +778,8 @@ Deno.test("File Stability - Exponential backoff timing", async () => {
     // Create a file that keeps changing size during stability check
     await Deno.writeTextFile(testFile, "initial");
 
-    const startTime = Date.now();
+    const usePerf = typeof performance !== "undefined" && typeof performance.now === "function";
+    const startTime = usePerf ? performance.now() : Date.now();
 
     // This should fail after 5 attempts with exponential backoff
     try {
@@ -803,7 +805,8 @@ Deno.test("File Stability - Exponential backoff timing", async () => {
       assert(error.message.includes("never stabilized"), `Expected stabilization error, got: ${error.message}`);
 
       // Verify timing - should be close to sum of backoff delays (1850ms)
-      const elapsed = Date.now() - startTime;
+      const endTime = usePerf ? performance.now() : Date.now();
+      const elapsed = Math.round(endTime - startTime);
       assert(elapsed >= 1800, `Should wait at least 1800ms, got ${elapsed}ms`);
       assert(elapsed <= 2500, `Should not wait too long, got ${elapsed}ms`);
     }

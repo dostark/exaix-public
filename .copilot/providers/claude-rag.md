@@ -34,6 +34,7 @@ deno run --allow-read scripts/inspect_embeddings.ts --query "test database setup
 **Output:** Ranked list of `.copilot/chunks/*.txt` files with cosine similarity scores.
 
 **Example output:**
+
 ```
 Top 5 matches for "test database setup":
 1. .copilot/chunks/testing.md.chunk1.txt (similarity: 0.92)
@@ -61,12 +62,13 @@ if (context.found) {
     model: "claude-3-5-sonnet-20241022",
     max_tokens: 8192,
     system: systemPrompt,
-    messages: [{ role: "user", content: userMessage }]
+    messages: [{ role: "user", content: userMessage }],
   });
 }
 ```
 
 **CLI usage:**
+
 ```bash
 # Get context for a specific query
 deno run --allow-read scripts/inject_agent_context.ts --query "write security tests" --agent claude
@@ -91,18 +93,19 @@ deno run --allow-read scripts/inject_agent_context.ts --query "write security te
 
 ### Recommended Chunk Allocation
 
-| Task Complexity | Chunks | Estimated Tokens | Use Case |
-|----------------|--------|------------------|----------|
-| Simple (single file edit) | 2-3 | 1-1.5k | Quick fixes, single function implementation |
-| Medium (multi-file feature) | 4-6 | 2-3k | Feature implementation, refactoring |
-| Complex (architecture change) | 8-10 | 4-5k | Multi-service refactoring, debugging |
-| Maximum | 10-12 | 5-6k | Cross-cutting concerns, security audit |
+| Task Complexity               | Chunks | Estimated Tokens | Use Case                                    |
+| ----------------------------- | ------ | ---------------- | ------------------------------------------- |
+| Simple (single file edit)     | 2-3    | 1-1.5k           | Quick fixes, single function implementation |
+| Medium (multi-file feature)   | 4-6    | 2-3k             | Feature implementation, refactoring         |
+| Complex (architecture change) | 8-10   | 4-5k             | Multi-service refactoring, debugging        |
+| Maximum                       | 10-12  | 5-6k             | Cross-cutting concerns, security audit      |
 
 **Best practice:** Start with 4-6 chunks, add more only if Claude requests additional context.
 
 ### Token-Efficient Prompting
 
 ✅ **Good:** Include chunk summaries in system prompt, full chunks in user message
+
 ```
 System: You are working on ExoFrame. Relevant docs: [testing.md: TDD patterns, exoframe.md: service patterns]
 User: [Full chunk text]\n\nTask: Implement ConfigLoader error handling
@@ -115,6 +118,7 @@ User: [Full chunk text]\n\nTask: Implement ConfigLoader error handling
 ### Mock Embeddings (Default)
 
 The default embeddings use **SHA-256-based deterministic vectors** (64-dimensional):
+
 - **Pros**: No API calls, reproducible, fast generation
 - **Cons**: Lower semantic accuracy than learned embeddings
 - **Quality**: Good for keyword matching, moderate for semantic similarity
@@ -130,6 +134,7 @@ deno run --allow-read --allow-write --allow-net --allow-env \
 ```
 
 **Configuration:**
+
 - Model: `text-embedding-3-small` (1536 dimensions, reduced to 64 via PCA)
 - Cost: ~$0.002 per agent doc (one-time)
 - Quality: High semantic accuracy
@@ -139,6 +144,7 @@ deno run --allow-read --allow-write --allow-net --allow-env \
 Use pre-generated embeddings from external sources:
 
 1. **Prepare embedding files** following the template:
+
 ```json
 {
   "path": ".copilot/tests/testing.md",
@@ -155,6 +161,7 @@ Use pre-generated embeddings from external sources:
 2. **Place files** in `.copilot/embeddings/` (format: `<doc-name>.json`)
 
 3. **Validate and import**:
+
 ```bash
 deno run --allow-read --allow-write scripts/build_agents_embeddings.ts \
   --mode precomputed --dir .copilot/embeddings
@@ -167,12 +174,14 @@ deno run --allow-read --allow-write scripts/build_agents_embeddings.ts \
 ### Scenario: Add Security Tests for PathResolver
 
 **Step 1: Retrieve relevant context**
+
 ```typescript
 const query = "security tests PathResolver path traversal";
 const context = await inject("claude", query, 6);
 ```
 
 **Step 2: Build enriched system prompt**
+
 ```typescript
 const systemPrompt = `
 You are a security-focused test developer for ExoFrame.
@@ -193,6 +202,7 @@ Follow TDD workflow: write failing tests first, then implement fixes.
 ```
 
 **Step 3: Call Claude API**
+
 ```typescript
 const response = await anthropic.messages.create({
   model: "claude-3-5-sonnet-20241022",
@@ -200,12 +210,13 @@ const response = await anthropic.messages.create({
   system: systemPrompt,
   messages: [{
     role: "user",
-    content: "Write comprehensive security tests for PathResolver"
-  }]
+    content: "Write comprehensive security tests for PathResolver",
+  }],
 });
 ```
 
 **Step 4: Validate response includes**
+
 - `initTestDbService()` or `createCliTestContext()` usage
 - Explicit assertions for attack vectors
 - Try/finally cleanup blocks
@@ -220,9 +231,7 @@ When retrieving chunks, filter by relevant metadata:
 ```typescript
 // Filter for Claude + dev scope
 const manifest = JSON.parse(await Deno.readTextFile(".copilot/manifest.json"));
-const relevantDocs = manifest.docs.filter(doc =>
-  doc.agent === "claude" && doc.scope === "dev"
-);
+const relevantDocs = manifest.docs.filter((doc) => doc.agent === "claude" && doc.scope === "dev");
 ```
 
 ### Combine Chunks Intelligently
@@ -234,14 +243,14 @@ Group related chunks together:
 const testingChunks = [
   ".copilot/chunks/testing.md.chunk0.txt",
   ".copilot/chunks/testing.md.chunk1.txt",
-  ".copilot/chunks/testing.md.chunk2.txt"
+  ".copilot/chunks/testing.md.chunk2.txt",
 ];
 
 // Better: Mix relevant chunks from different docs
 const mixedChunks = [
-  ".copilot/chunks/testing.md.chunk1.txt",  // initTestDbService pattern
+  ".copilot/chunks/testing.md.chunk1.txt", // initTestDbService pattern
   ".copilot/chunks/exoframe.md.chunk2.txt", // Service patterns
-  ".copilot/chunks/testing.md.chunk3.txt"   // Security tests
+  ".copilot/chunks/testing.md.chunk3.txt", // Security tests
 ];
 ```
 
@@ -269,7 +278,7 @@ const logChunkUsage = (chunkPath: string, taskType: string, wasHelpful: boolean)
     timestamp: new Date().toISOString(),
     chunk: chunkPath,
     taskType,
-    helpful: wasHelpful
+    helpful: wasHelpful,
   }));
 };
 
@@ -311,6 +320,7 @@ console.log(JSON.stringify(result, null, 2));
 ```
 
 Usage:
+
 ```bash
 bin/agent-context "write security tests"
 ```
@@ -322,6 +332,7 @@ bin/agent-context "write security tests"
 **Problem:** `inject_agent_context.ts` returns `{ found: false }`
 
 **Solutions:**
+
 1. Check query matches document topics: `.copilot/manifest.json`
 2. Verify agent type exists: `"claude"`, `"copilot"`, `"openai"`, `"google"`
 3. Rebuild embeddings: `deno run --allow-read --allow-write scripts/build_agents_embeddings.ts --mode mock`
@@ -331,6 +342,7 @@ bin/agent-context "write security tests"
 **Problem:** Top chunks have cosine similarity < 0.5
 
 **Solutions:**
+
 1. Use more specific queries with domain keywords
 2. Switch from mock to OpenAI embeddings for better semantic matching
 3. Add more relevant topics to document frontmatter
@@ -341,6 +353,7 @@ bin/agent-context "write security tests"
 **Problem:** Context injection uses >10k tokens
 
 **Solutions:**
+
 1. Reduce chunk count (4-6 is recommended)
 2. Use `short_summary` only for simple tasks
 3. Filter chunks by relevance threshold (cosine similarity > 0.6)

@@ -4,12 +4,13 @@ scope: dev
 title: ExoFrame Source Development Guidelines
 short_summary: "Guidance for developing ExoFrame source code: TDD-first, patterns, project structure, and best practices."
 version: "0.1"
-topics: ["source","development","tdd","patterns"]
+topics: ["source", "development", "tdd", "patterns"]
 ---
 
 # ExoFrame Source Development Guidelines
 
 Key points
+
 - Strict TDD-first approach: write failing tests before implementation
 - Follow step-specific Success Criteria in `docs/ExoFrame_Implementation_Plan.md`
 - Keep Problems tab clean: fix TypeScript errors and linter issues before marking a step complete
@@ -18,15 +19,18 @@ Canonical prompt (short):
 "You are a repository-aware coding assistant for ExoFrame. Consult `.copilot/manifest.json` and include the `short_summary` for relevant docs before replying. Follow the TDD-first workflow: suggest tests first, implement minimal code, and add verification steps."
 
 Examples
+
 - "Add unit tests for a service's error handling and implement the minimal change to pass them."
 - "Refactor module X to reduce duplication while keeping behavior unchanged; provide tests demonstrating equivalence."
 
 Do / Don't
+
 - ✅ Do follow TDD and verify Success Criteria
 - ✅ Do add module-level documentation and file headers
 - ❌ Don't proceed with implementation if no refined Implementation Plan step exists
 
 Examples section
+
 - Example prompt: "You are an engineer. Propose a set of failing tests that validate behavior X. Output JSON with test names and assertions."
 
 ## Full migration: Source guidelines (extended)
@@ -58,23 +62,26 @@ Use Zod for config validation and keep config options in `exo.config.toml` examp
 Constructor-based DI: pass `config`, `db`, and `provider` into services. Keep side effects out of constructors where feasible.
 
 ### System Constraints & Patterns
+
 - **Runtime Persistence**: The .exo/Active, Workspace/Requests, and Workspace/Plans folders are the "Database". Code must respect file-system atomicity (use `writeTextFile` with atomic renaming where possible).
 - **Activity Journal**: All side-effects (file writes, executions, errors) MUST be logged to the Activity Journal (`.exo/journal.db`) via `EventLogger`.
 - **Security Modes**:
-    - **Sandboxed**: No network, no file access (default).
-    - **Hybrid**: Read-only access to specific "Portal" paths.
-    - **Note**: Always use `PathResolver` to validate paths before access.
+  - **Sandboxed**: No network, no file access (default).
+  - **Hybrid**: Read-only access to specific "Portal" paths.
+  - **Note**: Always use `PathResolver` to validate paths before access.
 - **MCP Enforcement**: In Hybrid mode, agents can read files directly but MUST use MCP tools for writes (to ensure auditability).
 
 ### Configuration Constants & Magic Numbers
 
 **ALL magic numbers MUST be configurable constants** centralized appropriately:
+
 - **Production code:** `src/config/constants.ts`
 - **Test code:** `tests/config/constants.ts` for test-specific constants (test prompts, mock data, test environment variables, etc.)
 
 Never use hardcoded numeric literals in business logic or test code.
 
 **Requirements:**
+
 - ✅ Extract ALL numeric literals > 1 into named constants
 - ✅ Group related constants by module/feature in `constants.ts`
 - ✅ Use descriptive names with `DEFAULT_` prefix for production, `TEST_` prefix for test constants
@@ -83,6 +90,7 @@ Never use hardcoded numeric literals in business logic or test code.
 - ✅ Keep test-specific constants (test prompts, mock API keys, test messages) in `tests/config/constants.ts`
 
 **Examples:**
+
 ```typescript
 // ❌ BAD: Magic numbers in code
 const timeout = 30000;
@@ -90,7 +98,11 @@ const maxRetries = 3;
 const delay = Math.pow(2, attempt) * 100;
 
 // ✅ GOOD: Configurable constants
-import { DEFAULT_GIT_COMMAND_TIMEOUT_MS, DEFAULT_GIT_MAX_RETRIES, DEFAULT_GIT_RETRY_BACKOFF_BASE_MS } from "../config/constants.ts";
+import {
+  DEFAULT_GIT_COMMAND_TIMEOUT_MS,
+  DEFAULT_GIT_MAX_RETRIES,
+  DEFAULT_GIT_RETRY_BACKOFF_BASE_MS,
+} from "../config/constants.ts";
 
 const timeout = DEFAULT_GIT_COMMAND_TIMEOUT_MS;
 const maxRetries = DEFAULT_GIT_MAX_RETRIES;
@@ -104,6 +116,7 @@ const apiKey = Deno.env.get(TEST_CONSTANTS.ENV_GOOGLE_API_KEY);
 ```
 
 **Constants File Structure:**
+
 - Group constants by module/feature with clear section headers
 - Include JSDoc comments explaining purpose and units
 - Use consistent naming patterns
@@ -115,12 +128,14 @@ const apiKey = Deno.env.get(TEST_CONSTANTS.ENV_GOOGLE_API_KEY);
 **Pattern:** Always validate environment variable inputs via Zod schema
 
 ExoFrame supports only 4 production environment variables for runtime overrides:
+
 - `EXO_LLM_PROVIDER` - Override AI provider (validated against ProviderType enum)
 - `EXO_LLM_MODEL` - Override model name (must be non-empty)
 - `EXO_LLM_BASE_URL` - Override API endpoint (must be valid URL)
 - `EXO_LLM_TIMEOUT_MS` - Override timeout (1000-300000ms, validated)
 
 **Requirements:**
+
 - ✅ Use `getValidatedEnvOverrides()` for production env vars
 - ✅ Use `isTestMode()` and `isCIMode()` helpers for test detection
 - ✅ Use `EXO_TEST_*` prefix for all test-related environment variables
@@ -128,9 +143,10 @@ ExoFrame supports only 4 production environment variables for runtime overrides:
 - ✅ All env vars validated via Zod schema in `src/config/env_schema.ts`
 
 **Examples:**
+
 ```typescript
 // ✅ GOOD: Validated env var usage
-import { getValidatedEnvOverrides, isTestMode, isCIMode } from "../config/env_schema.ts";
+import { getValidatedEnvOverrides, isCIMode, isTestMode } from "../config/env_schema.ts";
 
 const envOverrides = getValidatedEnvOverrides();
 const provider = envOverrides.EXO_LLM_PROVIDER ?? config.ai?.provider ?? DEFAULT_PROVIDER;
@@ -152,6 +168,7 @@ const timeout = Number(Deno.env.get("EXO_LLM_TIMEOUT_MS")); // Could be invalid!
 ```
 
 **Validation Benefits:**
+
 - Invalid values are rejected with clear warnings
 - Type safety enforced (URLs, numbers, enums)
 - Prevents runtime errors from misconfigured env vars
@@ -166,7 +183,9 @@ Based on systematic code review and fixes implemented in Phase 22, here are the 
 ### ✅ REQUIRED PATTERNS
 
 #### 1. Non-Blocking Async Operations
+
 **Pattern**: Always use non-blocking alternatives to synchronous operations
+
 ```typescript
 // ✅ GOOD: Non-blocking delay
 private delay(ms: number): Promise<void> {
@@ -178,19 +197,23 @@ await new Promise(resolve => setTimeout(resolve, ms)); // Blocks event loop
 ```
 
 #### 2. Timeout Protection for External Operations
+
 **Pattern**: All subprocess, network, and external operations must have configurable timeouts
+
 ```typescript
 // ✅ GOOD: Timeout-protected subprocess
 const cmd = new Deno.Command("git", {
   args,
   stdout: "piped",
   stderr: "piped",
-  signal: AbortSignal.timeout(DEFAULT_GIT_COMMAND_TIMEOUT_MS)
+  signal: AbortSignal.timeout(DEFAULT_GIT_COMMAND_TIMEOUT_MS),
 });
 ```
 
 #### 3. Secure Path Validation
+
 **Pattern**: All file paths must be validated against canonical real paths to prevent traversal attacks
+
 ```typescript
 // ✅ GOOD: Secure path resolution
 import { PathSecurity } from "../utils/path_security.ts";
@@ -198,7 +221,9 @@ const securePath = await PathSecurity.resolveAndValidate(path, allowedRoots);
 ```
 
 #### 4. Proper Synchronization for Concurrent Operations
+
 **Pattern**: Use file locking or queuing to prevent race conditions in concurrent file operations
+
 ```typescript
 // ✅ GOOD: File locking for concurrent access
 await this.withFileLock(filePath, async () => {
@@ -207,14 +232,18 @@ await this.withFileLock(filePath, async () => {
 ```
 
 #### 5. Registry Pattern for Service Decoupling
+
 **Pattern**: Use registry patterns to decouple factory classes from concrete implementations
+
 ```typescript
 // ✅ GOOD: Registry-based provider creation
 const provider = await ProviderRegistry.create(options);
 ```
 
 #### 6. Single JSDoc Block Per Method
+
 **Pattern**: Each method should have exactly one JSDoc block with complete documentation
+
 ```typescript
 // ✅ GOOD: Single comprehensive JSDoc
 /**
@@ -227,7 +256,9 @@ static create(config: Config): IModelProvider
 ```
 
 #### 7. Error Boundaries and Isolation
+
 **Pattern**: Isolate failures to prevent cascading corruption of execution contexts
+
 ```typescript
 // ✅ GOOD: Error boundary isolation
 try {
@@ -239,7 +270,9 @@ try {
 ```
 
 #### 8. Classified Error Handling
+
 **Pattern**: Classify errors into specific types with appropriate HTTP/JSON-RPC codes
+
 ```typescript
 // ✅ GOOD: Classified error responses
 if (error instanceof ValidationError) {
@@ -248,7 +281,9 @@ if (error instanceof ValidationError) {
 ```
 
 #### 9. File Locking for Concurrent Access
+
 **Pattern**: Use exclusive file locks for read-modify-write operations on shared files
+
 ```typescript
 // ✅ GOOD: Atomic file operations with locking
 await this.withFileLock(`${filePath}.lock`, async () => {
@@ -261,7 +296,9 @@ await this.withFileLock(`${filePath}.lock`, async () => {
 ### ❌ PROHIBITED ANTI-PATTERNS
 
 #### 1. Blocking Synchronous Operations
+
 **Anti-pattern**: Never use synchronous delays, file operations, or blocking calls in async contexts
+
 ```typescript
 // ❌ BAD: Blocking operations
 setTimeout(() => {}, 1000); // Blocks event loop
@@ -269,7 +306,9 @@ Deno.readTextFileSync(path); // Synchronous file I/O
 ```
 
 #### 2. Missing Timeout Protection
+
 **Anti-pattern**: Never execute external commands without timeout protection
+
 ```typescript
 // ❌ BAD: No timeout protection
 const cmd = new Deno.Command("git", { args: ["status"] });
@@ -277,7 +316,9 @@ await cmd.output(); // Can hang indefinitely
 ```
 
 #### 3. Path Traversal Vulnerabilities
+
 **Anti-pattern**: Never use unvalidated paths or string concatenation for file operations
+
 ```typescript
 // ❌ BAD: Path traversal vulnerable
 const fullPath = `${baseDir}/${userInput}`; // Allows ../../../etc/passwd
@@ -285,7 +326,9 @@ await Deno.readTextFile(fullPath);
 ```
 
 #### 4. Race Conditions in File Operations
+
 **Anti-pattern**: Never perform concurrent read-modify-write operations without synchronization
+
 ```typescript
 // ❌ BAD: Race condition prone
 const content = await Deno.readTextFile(file);
@@ -294,7 +337,9 @@ await Deno.writeTextFile(file, updated); // Can conflict with concurrent operati
 ```
 
 #### 5. Tight Coupling Between Services
+
 **Anti-pattern**: Never directly instantiate concrete classes in factory methods
+
 ```typescript
 // ❌ BAD: Tight coupling
 export class ProviderFactory {
@@ -305,7 +350,9 @@ export class ProviderFactory {
 ```
 
 #### 6. Duplicate JSDoc Blocks
+
 **Anti-pattern**: Never have multiple JSDoc comment blocks for the same method
+
 ```typescript
 // ❌ BAD: Duplicate JSDoc
 /**
@@ -318,15 +365,19 @@ static method() {}
 ```
 
 #### 7. Missing Error Isolation
+
 **Anti-pattern**: Never allow single failures to corrupt entire execution contexts
+
 ```typescript
 // ❌ BAD: No error isolation
-const results = await Promise.all(steps.map(step => execute(step)));
+const results = await Promise.all(steps.map((step) => execute(step)));
 // One failure can corrupt the entire results array
 ```
 
 #### 8. Generic Error Handling
+
 **Anti-pattern**: Never catch all errors generically without proper classification
+
 ```typescript
 // ❌ BAD: Generic error handling
 try {
@@ -337,7 +388,9 @@ try {
 ```
 
 #### 9. File Operations Without Locking
+
 **Anti-pattern**: Never perform read-modify-write on shared files without exclusive locks
+
 ```typescript
 // ❌ BAD: Unlocked file operations
 const data = JSON.parse(await Deno.readTextFile("shared.json"));
@@ -349,6 +402,7 @@ await Deno.writeTextFile("shared.json", JSON.stringify(data));
 ### Implementation Verification
 
 **All code changes must be verified against these patterns:**
+
 - ✅ Passes all unit tests with comprehensive coverage
 - ✅ No blocking operations in async contexts
 - ✅ All external operations have timeout protection
@@ -359,6 +413,7 @@ await Deno.writeTextFile("shared.json", JSON.stringify(data));
 - ✅ File operations use appropriate locking mechanisms
 
 **Pre-commit Checklist:**
+
 - [ ] No synchronous operations in async methods
 - [ ] All external commands have timeout protection
 - [ ] File paths validated against canonical real paths
@@ -370,4 +425,5 @@ await Deno.writeTextFile("shared.json", JSON.stringify(data));
 
 ---
 
+```
 ```

@@ -10,6 +10,7 @@
 import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
+import { createStubDb } from "./test_helpers.ts";
 
 const AGENT_ID = "multiline-test";
 const CAP_TESTING = "testing";
@@ -59,10 +60,7 @@ This blueprint uses multi-line YAML array format.
       },
     } as any;
 
-    const stubDb = {
-      logActivity: () => {},
-      waitForFlush: async () => {},
-    };
+    const stubDb = createStubDb();
 
     const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
 

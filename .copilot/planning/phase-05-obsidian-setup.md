@@ -1,4 +1,3 @@
-
 ### Step 5: Obsidian Setup & Runtime Integration ✅ COMPLETED
 
 **Goal:** Configure Obsidian as the primary UI for ExoFrame, enabling users to view dashboards, manage tasks, and monitor agent activity without leaving their knowledge management environment.
@@ -376,3 +375,4 @@ SORT timestamp DESC
 6. [x] Dashboard loads without errors in Obsidian
 
 ---
+```

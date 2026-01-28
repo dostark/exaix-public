@@ -5,6 +5,7 @@
 > This phase standardized ExoFrame's environment variable usage, retired redundant production env vars, and implemented Zod validation for runtime overrides.
 >
 > **Completed:** All phases (1-8)
+>
 > - Phase 1: Env validation schema (`src/config/env_schema.ts`)
 > - Phase 2: Deprecated var removal from `src/`
 > - Phase 3: Test var standardization (`EXO_TEST_*`)
@@ -44,40 +45,40 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
 
 ### Production Environment Variables (To Review)
 
-| Variable | Purpose | Action | Rationale |
-|----------|---------|--------|-----------|
-| `EXO_LLM_PROVIDER` | Override AI provider | **KEEP** | Essential for CLI/TUI runtime override |
-| `EXO_LLM_MODEL` | Override AI model | **KEEP** | Essential for CLI/TUI runtime override |
-| `EXO_LLM_BASE_URL` | Override API endpoint | **KEEP** | Essential for CLI/TUI runtime override |
-| `EXO_LLM_TIMEOUT_MS` | Override request timeout | **KEEP** | Essential for CLI/TUI runtime override |
-| `EXO_OLLAMA_RETRY_MAX` | Ollama retry attempts | **RETIRE** | Use `exo.config.toml` [ai.retry.ollama] |
-| `EXO_OLLAMA_RETRY_BACKOFF_MS` | Ollama retry backoff | **RETIRE** | Use `exo.config.toml` [ai.retry.ollama] |
-| `EXO_OPENAI_RETRY_MAX` | OpenAI retry attempts | **RETIRE** | Use `exo.config.toml` [ai.retry.openai] |
-| `EXO_OPENAI_RETRY_BACKOFF_MS` | OpenAI retry backoff | **RETIRE** | Use `exo.config.toml` [ai.retry.openai] |
-| `EXO_OPENAI_TIMEOUT_MS` | OpenAI timeout | **RETIRE** | Use `exo.config.toml` [models.<name>.timeout_ms] |
+| Variable                      | Purpose                  | Action     | Rationale                                        |
+| ----------------------------- | ------------------------ | ---------- | ------------------------------------------------ |
+| `EXO_LLM_PROVIDER`            | Override AI provider     | **KEEP**   | Essential for CLI/TUI runtime override           |
+| `EXO_LLM_MODEL`               | Override AI model        | **KEEP**   | Essential for CLI/TUI runtime override           |
+| `EXO_LLM_BASE_URL`            | Override API endpoint    | **KEEP**   | Essential for CLI/TUI runtime override           |
+| `EXO_LLM_TIMEOUT_MS`          | Override request timeout | **KEEP**   | Essential for CLI/TUI runtime override           |
+| `EXO_OLLAMA_RETRY_MAX`        | Ollama retry attempts    | **RETIRE** | Use `exo.config.toml` [ai.retry.ollama]          |
+| `EXO_OLLAMA_RETRY_BACKOFF_MS` | Ollama retry backoff     | **RETIRE** | Use `exo.config.toml` [ai.retry.ollama]          |
+| `EXO_OPENAI_RETRY_MAX`        | OpenAI retry attempts    | **RETIRE** | Use `exo.config.toml` [ai.retry.openai]          |
+| `EXO_OPENAI_RETRY_BACKOFF_MS` | OpenAI retry backoff     | **RETIRE** | Use `exo.config.toml` [ai.retry.openai]          |
+| `EXO_OPENAI_TIMEOUT_MS`       | OpenAI timeout           | **RETIRE** | Use `exo.config.toml` [models.<name>.timeout_ms] |
 
 ### Testing Environment Variables (To Standardize)
 
-| Current Name | Purpose | New Name | Action |
-|--------------|---------|----------|--------|
-| `EXO_ENABLE_PAID_LLM` | CI opt-in for paid API tests | `EXO_TEST_ENABLE_PAID_LLM` | **RENAME** |
-| `EXO_OPENAI_API_KEY` | OpenAI API key for tests | `EXO_TEST_OPENAI_API_KEY` | **RENAME** |
-| `EXO_TEST_LLM_MODEL` | Override model for tests | (keep as-is) | **KEEP** |
-| `EXO_ENABLE_OLLAMA` | Enable Ollama integration tests | `EXO_TEST_ENABLE_OLLAMA` | **RENAME** |
-| `EXO_RUN_LLAMA_TESTS` | Enable Llama tests | `EXO_TEST_ENABLE_LLAMA` | **RENAME** |
-| `DENO_TEST` | Detect test environment | `EXO_TEST_MODE` | **RENAME** |
-| `CI` | Detect CI environment | `EXO_CI_MODE` | **RENAME** (optional) |
-| `EXOCTL_TEST_MODE` | CLI test mode | `EXO_TEST_CLI_MODE` | **RENAME** |
+| Current Name          | Purpose                         | New Name                   | Action                |
+| --------------------- | ------------------------------- | -------------------------- | --------------------- |
+| `EXO_ENABLE_PAID_LLM` | CI opt-in for paid API tests    | `EXO_TEST_ENABLE_PAID_LLM` | **RENAME**            |
+| `EXO_OPENAI_API_KEY`  | OpenAI API key for tests        | `EXO_TEST_OPENAI_API_KEY`  | **RENAME**            |
+| `EXO_TEST_LLM_MODEL`  | Override model for tests        | (keep as-is)               | **KEEP**              |
+| `EXO_ENABLE_OLLAMA`   | Enable Ollama integration tests | `EXO_TEST_ENABLE_OLLAMA`   | **RENAME**            |
+| `EXO_RUN_LLAMA_TESTS` | Enable Llama tests              | `EXO_TEST_ENABLE_LLAMA`    | **RENAME**            |
+| `DENO_TEST`           | Detect test environment         | `EXO_TEST_MODE`            | **RENAME**            |
+| `CI`                  | Detect CI environment           | `EXO_CI_MODE`              | **RENAME** (optional) |
+| `EXOCTL_TEST_MODE`    | CLI test mode                   | `EXO_TEST_CLI_MODE`        | **RENAME**            |
 
 ### System Environment Variables (Keep Standard Names)
 
-| Variable | Purpose | Action |
-|----------|---------|--------|
-| `HOME` | User home directory | **KEEP** (system standard) |
-| `USER` / `USERNAME` | Current user | **KEEP** (system standard) |
-| `EDITOR` / `VISUAL` | User's editor | **KEEP** (POSIX standard) |
-| `OLLAMA_BASE_URL` | Ollama endpoint | **KEEP** (external standard) |
-| `OPENAI_API_KEY` | OpenAI key (scripts) | **KEEP** (external standard) |
+| Variable            | Purpose              | Action                       |
+| ------------------- | -------------------- | ---------------------------- |
+| `HOME`              | User home directory  | **KEEP** (system standard)   |
+| `USER` / `USERNAME` | Current user         | **KEEP** (system standard)   |
+| `EDITOR` / `VISUAL` | User's editor        | **KEEP** (POSIX standard)    |
+| `OLLAMA_BASE_URL`   | Ollama endpoint      | **KEEP** (external standard) |
+| `OPENAI_API_KEY`    | OpenAI key (scripts) | **KEEP** (external standard) |
 
 ---
 
@@ -88,6 +89,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
 **Goal:** Create Zod schema for validating environment variable inputs
 
 **Files to Modify:**
+
 - `src/config/env_schema.ts` (NEW)
 - `src/config/schema.ts` (UPDATE)
 
@@ -110,9 +112,11 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
      EXO_LLM_TIMEOUT_MS: z.string()
        .regex(/^\d+$/)
        .transform(Number)
-       .pipe(z.number()
-         .min(DEFAULTS.AI_TIMEOUT_MS_MIN)
-         .max(DEFAULTS.AI_TIMEOUT_MS_MAX))
+       .pipe(
+         z.number()
+           .min(DEFAULTS.AI_TIMEOUT_MS_MIN)
+           .max(DEFAULTS.AI_TIMEOUT_MS_MAX),
+       )
        .optional(),
    });
 
@@ -193,6 +197,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
    ```
 
 **Success Criteria:**
+
 - [x] `EnvLLMOverrideSchema` validates all four supported env vars
 - [x] Invalid values (e.g., non-numeric timeout) are rejected with warnings
 - [x] `ProviderFactory` uses validated env overrides
@@ -205,6 +210,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
 **Goal:** Remove all production env vars that duplicate TOML config
 
 **Files to Modify:**
+
 - `src/ai/providers.ts`
 - `src/ai/providers/llama_provider.ts`
 
@@ -233,6 +239,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
    - Anthropic: Use `config.ai_retry.providers?.anthropic` or defaults
 
 **Success Criteria:**
+
 - [x] No references to `EXO_OLLAMA_RETRY_*` in src/
 - [x] No references to `EXO_OPENAI_RETRY_*` in src/
 - [x] No references to `EXO_OPENAI_TIMEOUT_MS` in src/
@@ -246,6 +253,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
 **Goal:** Rename testing env vars to use `EXO_TEST_*` prefix for clarity
 
 **Files to Modify:**
+
 - `src/ai/providers.ts`
 - `tests/ai/*.ts` (multiple files)
 - `tests/integration/*.ts` (multiple files)
@@ -313,6 +321,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
    - CI workflows (`.github/workflows/*.yml`)
 
 **Success Criteria:**
+
 - [x] All test files use `EXO_TEST_*` prefix
 - [x] `isTestMode()` and `isCIMode()` helpers created
 - [x] No direct references to `DENO_TEST` or `EXOCTL_TEST_MODE` in src/
@@ -326,6 +335,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
 **Goal:** Add comprehensive documentation of all supported env vars
 
 **Files to Modify:**
+
 - `templates/exo.config.sample.toml`
 
 **Steps:**
@@ -408,6 +418,7 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
    ```
 
 **Success Criteria:**
+
 - [x] All four production env vars documented with examples
 - [x] All testing env vars documented
 - [x] Clear guidance on when to use env vars vs. TOML config
@@ -424,10 +435,12 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
 **Goal:** ~~Document breaking changes and migration path~~ (N/A)
 
 **Files to Create:**
+
 - `docs/dev/Migration_Guide_Phase28.md`
 
 **Content:**
-```markdown
+
+````markdown
 # Migration Guide: Phase 28 Environment Variable Cleanup
 
 ## Breaking Changes
@@ -436,32 +449,34 @@ Following Phase 27's configuration consolidation, ExoFrame still has scattered e
 
 The following environment variables have been **REMOVED** in Phase 28:
 
-| Removed Variable | Replacement in exo.config.toml |
-|------------------|-------------------------------|
-| `EXO_OLLAMA_RETRY_MAX` | `[ai.retry.ollama] max_attempts = 3` |
+| Removed Variable              | Replacement in exo.config.toml             |
+| ----------------------------- | ------------------------------------------ |
+| `EXO_OLLAMA_RETRY_MAX`        | `[ai.retry.ollama] max_attempts = 3`       |
 | `EXO_OLLAMA_RETRY_BACKOFF_MS` | `[ai.retry.ollama] backoff_base_ms = 1000` |
-| `EXO_OPENAI_RETRY_MAX` | `[ai.retry.openai] max_attempts = 3` |
+| `EXO_OPENAI_RETRY_MAX`        | `[ai.retry.openai] max_attempts = 3`       |
 | `EXO_OPENAI_RETRY_BACKOFF_MS` | `[ai.retry.openai] backoff_base_ms = 1000` |
-| `EXO_OPENAI_TIMEOUT_MS` | `[models.<name>] timeout_ms = 30000` |
+| `EXO_OPENAI_TIMEOUT_MS`       | `[models.<name>] timeout_ms = 30000`       |
 
 **Migration:**
+
 1. Remove these env vars from your deployment scripts
 2. Add equivalent values to your `exo.config.toml` file
 3. Restart ExoFrame daemon
 
 ### Renamed Testing Environment Variables
 
-| Old Name | New Name |
-|----------|----------|
+| Old Name              | New Name                   |
+| --------------------- | -------------------------- |
 | `EXO_ENABLE_PAID_LLM` | `EXO_TEST_ENABLE_PAID_LLM` |
-| `EXO_OPENAI_API_KEY` | `EXO_TEST_OPENAI_API_KEY` |
-| `EXO_ENABLE_OLLAMA` | `EXO_TEST_ENABLE_OLLAMA` |
-| `EXO_RUN_LLAMA_TESTS` | `EXO_TEST_ENABLE_LLAMA` |
-| `DENO_TEST` | `EXO_TEST_MODE` |
-| `EXOCTL_TEST_MODE` | `EXO_TEST_CLI_MODE` |
-| `CI` | `EXO_CI_MODE` (optional) |
+| `EXO_OPENAI_API_KEY`  | `EXO_TEST_OPENAI_API_KEY`  |
+| `EXO_ENABLE_OLLAMA`   | `EXO_TEST_ENABLE_OLLAMA`   |
+| `EXO_RUN_LLAMA_TESTS` | `EXO_TEST_ENABLE_LLAMA`    |
+| `DENO_TEST`           | `EXO_TEST_MODE`            |
+| `EXOCTL_TEST_MODE`    | `EXO_TEST_CLI_MODE`        |
+| `CI`                  | `EXO_CI_MODE` (optional)   |
 
 **Migration:**
+
 1. Update your test scripts to use new names
 2. Update CI/CD pipeline configurations
 3. Both old and new names supported temporarily (legacy fallback)
@@ -476,6 +491,7 @@ These env vars are **KEPT** for CLI/TUI runtime overrides:
 - `EXO_LLM_TIMEOUT_MS`
 
 **Usage Example:**
+
 ```bash
 # Override provider and model for a single request
 export EXO_LLM_PROVIDER=ollama
@@ -486,12 +502,14 @@ exoctl request create --prompt "Test" --agent my-agent
 export EXO_LLM_TIMEOUT_MS=999  # ❌ Will warn (below minimum 1000)
 export EXO_LLM_TIMEOUT_MS=60000  # ✅ Valid
 ```
+````
 
 ## New Features
 
 ### Environment Variable Validation
 
 All `EXO_LLM_*` env vars are now validated via Zod schema:
+
 - `EXO_LLM_PROVIDER`: Must be valid provider type
 - `EXO_LLM_MODEL`: Must be non-empty string
 - `EXO_LLM_BASE_URL`: Must be valid URL
@@ -502,12 +520,13 @@ Invalid values will be rejected with warnings in logs.
 ## Testing
 
 Run tests with new env var names:
+
 ```bash
 EXO_TEST_MODE=1 deno task test
 EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 ```
-```
 
+````
 **Success Criteria:**
 - [x] Migration guide (N/A - not needed, no production deployment)
 - [x] Examples provided for TOML equivalents (in exo.config.sample.toml)
@@ -541,13 +560,13 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
        assertEquals(overrides.EXO_LLM_TIMEOUT_MS, undefined); // Below min
      });
    });
-   ```
+````
 
 2. **Update existing provider factory tests:**
    ```typescript
    Deno.test("ProviderFactory: EXO_LLM_PROVIDER override", async () => {
      await withEnvVars({ EXO_LLM_PROVIDER: "ollama", EXO_LLM_MODEL: "test" }, async () => {
-       const config = { /* minimal config */ };
+       const config = {/* minimal config */};
        const provider = await ProviderFactory.create(config);
        assertEquals(provider.id.includes("ollama"), true);
      });
@@ -560,6 +579,7 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
    - Search/replace `Deno.env.get("DENO_TEST")` → `isTestMode()`
 
 **Success Criteria:**
+
 - [ ] All tests pass with new env var names
 - [ ] Validation tests cover all four `EXO_LLM_*` vars
 - [ ] No failing tests due to env var changes
@@ -571,6 +591,7 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 **Goal:** Update all user-facing documentation
 
 **Files to Modify:**
+
 - `docs/ExoFrame_User_Guide.md`
 - `README.md`
 - `.copilot/README.md`
@@ -585,12 +606,12 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 
    ### Production Overrides (CLI/TUI)
 
-   | Variable | Description | Example |
-   |----------|-------------|---------|
-   | `EXO_LLM_PROVIDER` | Override AI provider | `export EXO_LLM_PROVIDER=ollama` |
-   | `EXO_LLM_MODEL` | Override AI model | `export EXO_LLM_MODEL=llama3.2` |
-   | `EXO_LLM_BASE_URL` | Override API endpoint | `export EXO_LLM_BASE_URL=http://localhost:11434` |
-   | `EXO_LLM_TIMEOUT_MS` | Override timeout (1000-300000) | `export EXO_LLM_TIMEOUT_MS=60000` |
+   | Variable             | Description                    | Example                                          |
+   | -------------------- | ------------------------------ | ------------------------------------------------ |
+   | `EXO_LLM_PROVIDER`   | Override AI provider           | `export EXO_LLM_PROVIDER=ollama`                 |
+   | `EXO_LLM_MODEL`      | Override AI model              | `export EXO_LLM_MODEL=llama3.2`                  |
+   | `EXO_LLM_BASE_URL`   | Override API endpoint          | `export EXO_LLM_BASE_URL=http://localhost:11434` |
+   | `EXO_LLM_TIMEOUT_MS` | Override timeout (1000-300000) | `export EXO_LLM_TIMEOUT_MS=60000`                |
 
    **Best Practice:** Use `exo.config.toml` for persistent configuration. Use env vars for temporary runtime overrides.
    ```
@@ -601,6 +622,7 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
    - Link to migration guide
 
 **Success Criteria:**
+
 - [ ] User Guide documents all four production env vars
 - [ ] README mentions env var support
 - [ ] `.copilot/README.md` updated with agent guidance
@@ -625,6 +647,7 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
      ### Runtime Environment Variable Overrides
 
      ExoFrame supports 4 environment variables for runtime configuration overrides:
+
      - `EXO_LLM_PROVIDER` - Override AI provider (validated against ProviderType enum)
      - `EXO_LLM_MODEL` - Override model name (must be non-empty)
      - `EXO_LLM_BASE_URL` - Override API endpoint (must be valid URL)
@@ -660,14 +683,14 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 
      1. **No Magic Values:** Never hardcode numbers or strings in code.
      2. **Configuration:**
-         - **User-Facing:** Add to `exo.config.sample.toml` and `src/config/schema.ts`.
-         - **Internal:** Use `src/constants.ts`.
-         - **CLI/TUI:** Use `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
+        - **User-Facing:** Add to `exo.config.sample.toml` and `src/config/schema.ts`.
+        - **Internal:** Use `src/constants.ts`.
+        - **CLI/TUI:** Use `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
      3. **Enums:** ALWAYS use TypeScript enums from `src/enums.ts`.
      4. **Environment Variables:**
-         - **Production:** Only use `EXO_LLM_*` vars for runtime overrides
-         - **Testing:** Use `EXO_TEST_*` prefix for all test-related vars
-         - **Validation:** All env vars MUST be validated via Zod schema
+        - **Production:** Only use `EXO_LLM_*` vars for runtime overrides
+        - **Testing:** Use `EXO_TEST_*` prefix for all test-related vars
+        - **Validation:** All env vars MUST be validated via Zod schema
      5. **Reference:** See `CONTRIBUTING.md` and `docs/dev/Migration_Guide_Phase28.md`.
      ```
 
@@ -675,7 +698,7 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
    - Add section on environment variable handling
    - Document `getValidatedEnvOverrides()` pattern
    - Example:
-     ```markdown
+     ````markdown
      ### Environment Variable Configuration
 
      **Pattern:** Always validate environment variable inputs via Zod schema
@@ -690,13 +713,15 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
      // ❌ Bad: Direct env var access without validation
      const provider = Deno.env.get("EXO_LLM_PROVIDER");
      ```
+     ````
+     ```
      ```
 
 7. **`.copilot/tests/testing.md`**
    - Update test environment variable section
    - Document all `EXO_TEST_*` variables
    - Add examples of `isTestMode()` and `isCIMode()` helpers:
-     ```markdown
+     ````markdown
      ### Test Environment Variables
 
      All test-related environment variables use the `EXO_TEST_*` prefix:
@@ -708,8 +733,9 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
      - `EXO_TEST_ENABLE_LLAMA` - Enable Llama provider tests
 
      **Helpers:**
+
      ```typescript
-     import { isTestMode, isCIMode } from "../config/env_schema.ts";
+     import { isCIMode, isTestMode } from "../config/env_schema.ts";
 
      // Check if in test environment
      if (isTestMode()) {
@@ -720,6 +746,8 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
      if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
        // Skip paid API tests
      }
+     ```
+     ````
      ```
      ```
 
@@ -785,6 +813,7 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
    ```
 
 **Success Criteria:**
+
 - [ ] `ExoFrame_Technical_Spec.md` documents `env_schema.ts` and validation
 - [ ] `ExoFrame_User_Guide.md` has env var reference section
 - [ ] `ExoFrame_Architecture.md` updated with config precedence
@@ -800,16 +829,16 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 
 ## Timeline
 
-| Phase | Estimated Time | Description |
-|-------|----------------|-------------|
-| Phase 1 | 2 hours | Create env var validation schema |
-| Phase 2 | 1 hour | Retire deprecated production env vars |
-| Phase 3 | 3 hours | Standardize testing env vars |
-| Phase 4 | 1 hour | Document in exo.config.sample.toml |
-| Phase 5 | 1 hour | Create migration guide |
-| Phase 6 | 2 hours | Update and verify tests |
-| Phase 7 | 1 hour | Update user-facing documentation |
-| **Phase 8** | **2 hours** | **Update all docs/ and .copilot/ documentation** |
+| Phase       | Estimated Time | Description                                      |
+| ----------- | -------------- | ------------------------------------------------ |
+| Phase 1     | 2 hours        | Create env var validation schema                 |
+| Phase 2     | 1 hour         | Retire deprecated production env vars            |
+| Phase 3     | 3 hours        | Standardize testing env vars                     |
+| Phase 4     | 1 hour         | Document in exo.config.sample.toml               |
+| Phase 5     | 1 hour         | Create migration guide                           |
+| Phase 6     | 2 hours        | Update and verify tests                          |
+| Phase 7     | 1 hour         | Update user-facing documentation                 |
+| **Phase 8** | **2 hours**    | **Update all docs/ and .copilot/ documentation** |
 
 **Total Estimated Effort:** ~13 hours (was 11 hours)
 
@@ -832,12 +861,12 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 
 ## Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Breaking change disrupts deployments | High | Provide clear migration guide with TOML equivalents |
-| Tests fail with new env var names | Medium | Comprehensive test updates in Phase 6 |
-| Users unaware of env var validation | Low | Document validation rules in TOML comments |
-| Legacy env var usage in scripts | Medium | Add warnings for deprecated vars (optional) |
+| Risk                                 | Impact | Mitigation                                          |
+| ------------------------------------ | ------ | --------------------------------------------------- |
+| Breaking change disrupts deployments | High   | Provide clear migration guide with TOML equivalents |
+| Tests fail with new env var names    | Medium | Comprehensive test updates in Phase 6               |
+| Users unaware of env var validation  | Low    | Document validation rules in TOML comments          |
+| Legacy env var usage in scripts      | Medium | Add warnings for deprecated vars (optional)         |
 
 ---
 
@@ -857,6 +886,7 @@ EXO_TEST_ENABLE_PAID_LLM=1 deno task test:integration
 **Last Updated:** 2026-01-20
 
 **Notes:**
+
 - Phase 5 (Migration Guide) marked as N/A - no production deployment exists
 - API key tests skip gracefully when keys unavailable (CI-safe)
 - Core implementation (Phases 1-4) complete and verified

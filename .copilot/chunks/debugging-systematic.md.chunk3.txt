@@ -14,7 +14,7 @@ Use systematic debugging approach:
    - Actual: Permission denied even for valid paths
    - Gap: Permission check logic might be too restrictive
    - Files: src/services/PathResolver.ts, Portal config validation
-   </thinking>
+     </thinking>
 
 4. FIX:
    - Read PathResolver permission logic

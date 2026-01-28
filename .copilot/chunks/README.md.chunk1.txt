@@ -1,4 +1,4 @@
-```markdown
+````markdown
 ---
 title: "Brief, descriptive title"
 status: open | in-progress | blocked | resolved | wontfix
@@ -23,10 +23,12 @@ Clear description of the issue. What is broken or missing?
 command1
 command2
 ```
+````
 
 ## Observed Behavior
 
 What actually happens? Include:
+
 - Error messages
 - Log excerpts
 - Screenshots (if applicable)

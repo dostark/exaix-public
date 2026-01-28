@@ -6,6 +6,7 @@ deno run --allow-read scripts/inspect_embeddings.ts --query "test database setup
 **Output:** Ranked list of `.copilot/chunks/*.txt` files with cosine similarity scores.
 
 **Example output:**
+
 ```
 Top 5 matches for "test database setup":
 1. .copilot/chunks/testing.md.chunk1.txt (similarity: 0.92)

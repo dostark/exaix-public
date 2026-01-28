@@ -4,7 +4,7 @@
    - Actual: cleanup() might be missing or called conditionally
    - Gap: Test setup doesn't guarantee cleanup
    - Files: tests/config_test.ts, possibly tests/helpers/db.ts
-   </thinking>
+     </thinking>
 
 4. FIX:
    - Check if cleanup is in try/finally

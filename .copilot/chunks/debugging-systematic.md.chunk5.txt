@@ -4,7 +4,7 @@
    - Actual: Type definition doesn't include temperature
    - Gap: Schema mismatch or wrong type imported
    - Files: src/ai/model_adapter.ts, src/schemas/
-   </thinking>
+     </thinking>
 
 4. FIX:
    - Check Zod schema definition for model config

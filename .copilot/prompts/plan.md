@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["planning", "features", "tdd", "requirements"]
 ---
 
-
 ```text
 Key points
 - Break down features into actionable steps with success criteria

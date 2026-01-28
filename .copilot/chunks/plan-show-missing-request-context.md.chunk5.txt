@@ -1,6 +1,7 @@
-**Fix Applied:**
 1. **Enhanced PlanMetadata Interface:** Added request context fields (`request_id`, `request_title`, `request_agent`, `request_portal`, `request_priority`, `request_created_by`)
 2. **Request Data Loading:** Modified `PlanCommands.extractPlanMetadataWithRequest()` to load request information when `request_id` is present in plan frontmatter
 3. **CLI Display Updates:** Updated `exoctl plan list` and `exoctl plan show` commands to display request context information
 4. **Config Path Fix:** Corrected workspace path configuration in `exo.config.toml` (removed redundant `./Workspace/` prefixes)
 5. **Title Extraction:** Implemented smart title extraction from request content (prefers headers, falls back to first content line)
+
+**Files Modified:**

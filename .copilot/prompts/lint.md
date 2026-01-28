@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["linting", "formatting", "code-quality", "style"]
 ---
 
-
 **Purpose:** Ensure code is clean, consistent, and follows ExoFrame style guidelines.
 
 ---

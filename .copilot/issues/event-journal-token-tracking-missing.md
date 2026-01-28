@@ -7,7 +7,6 @@ updated: 2026-01-23
 labels: [bug, event-journal, token-usage]
 ---
 
-
 ## Problem
 
 The event journal's activity table payloads contain provider and model information but lack tracking of token usage (input tokens, output tokens) and associated costs. This violates ExoFrame's declared functionality for cost tracking and monitoring.
@@ -42,8 +41,8 @@ Example expected payload:
 
 ```json
 {
-  "provider":"google-gemini-2.0-flash-exp",
-  "model":"gemini-2.0-flash-exp",
+  "provider": "google-gemini-2.0-flash-exp",
+  "model": "gemini-2.0-flash-exp",
   "input_tokens": 150,
   "output_tokens": 75,
   "cost_usd": 0.0012,

@@ -8,7 +8,6 @@ topics: ["prompts", "gemini", "quickstart", "long-context"]
 ---
 
 ```text
-
 Key points
   - Optimize for **broad reasoning** across module boundaries.
   - Uses **Long-Chain Reasoning** to identify systemic dependencies.

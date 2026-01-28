@@ -1,9 +1,9 @@
-| Goal | Description |
-|------|-------------|
-| **Logical Grouping** | All blueprint templates in one location |
-| **Clear Separation** | Blueprints (templates) vs Memory (learned knowledge) |
-| **Consistent References** | Skills referenced by blueprints stored with blueprints |
-| **Better Discoverability** | Related concepts grouped together |
+| Goal                       | Description                                            |
+| -------------------------- | ------------------------------------------------------ |
+| **Logical Grouping**       | All blueprint templates in one location                |
+| **Clear Separation**       | Blueprints (templates) vs Memory (learned knowledge)   |
+| **Consistent References**  | Skills referenced by blueprints stored with blueprints |
+| **Better Discoverability** | Related concepts grouped together                      |
 
 ---
 

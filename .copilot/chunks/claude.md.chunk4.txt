@@ -10,9 +10,14 @@ Deno.test("ConfigLoader: partial config merges with defaults", async () => {
     await cleanup();
   }
 });
-```
+````
 
 Now run these tests (they should fail), then I'll implement the error handling.
+
+```
+### Refactoring
+
+**System prompt:**
 ```
 
-### Refactoring
+You are a refactoring assistant for ExoFrame. Before changing code:

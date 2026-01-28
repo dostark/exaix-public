@@ -179,6 +179,7 @@ interface ViewState {
 ### 4.1 Current Split View Implementation
 
 The current split view in `tui_dashboard.ts` provides:
+
 - Basic vertical (`v`) and horizontal (`h`) splitting
 - Tab/Shift+Tab pane switching
 - Close pane (`c`)
@@ -232,20 +233,20 @@ When creating a new pane, show a picker:
 
 #### 4.2.3 Pane Management Features
 
-| Feature | Keyboard | Description |
-|---------|----------|-------------|
-| Split vertical | `v` | Split active pane left/right |
-| Split horizontal | `h` | Split active pane top/bottom |
-| Close pane | `c` | Close active pane |
-| Maximize pane | `z` | Toggle zoom (maximize/restore) |
-| Swap panes | `x` | Swap active with next pane |
-| Resize left | `Ctrl+←` | Shrink width |
-| Resize right | `Ctrl+→` | Grow width |
-| Resize up | `Ctrl+↑` | Shrink height |
-| Resize down | `Ctrl+↓` | Grow height |
-| Layout picker | `L` | Open layout preset picker |
-| Save layout | `Ctrl+S` | Save current layout |
-| Named layouts | `Ctrl+L` | Manage named layouts |
+| Feature          | Keyboard | Description                    |
+| ---------------- | -------- | ------------------------------ |
+| Split vertical   | `v`      | Split active pane left/right   |
+| Split horizontal | `h`      | Split active pane top/bottom   |
+| Close pane       | `c`      | Close active pane              |
+| Maximize pane    | `z`      | Toggle zoom (maximize/restore) |
+| Swap panes       | `x`      | Swap active with next pane     |
+| Resize left      | `Ctrl+←` | Shrink width                   |
+| Resize right     | `Ctrl+→` | Grow width                     |
+| Resize up        | `Ctrl+↑` | Shrink height                  |
+| Resize down      | `Ctrl+↓` | Grow height                    |
+| Layout picker    | `L`      | Open layout preset picker      |
+| Save layout      | `Ctrl+S` | Save current layout            |
+| Named layouts    | `Ctrl+L` | Manage named layouts           |
 
 #### 4.2.4 Pane State Interface
 
@@ -260,23 +261,23 @@ interface EnhancedPane extends Pane {
   focused: boolean;
 
   // NEW: Enhanced features
-  minimumWidth: number;     // Prevent over-shrinking
+  minimumWidth: number; // Prevent over-shrinking
   minimumHeight: number;
-  isMaximized: boolean;     // Zoom state
-  savedBounds?: {           // For restore after maximize
+  isMaximized: boolean; // Zoom state
+  savedBounds?: { // For restore after maximize
     x: number;
     y: number;
     width: number;
     height: number;
   };
-  syncGroup?: string;       // For linked scrolling
+  syncGroup?: string; // For linked scrolling
 }
 
 interface LayoutPreset {
   id: string;
   name: string;
   paneConfig: {
-    x: number;       // Percentage 0-100
+    x: number; // Percentage 0-100
     y: number;
     width: number;
     height: number;
@@ -777,18 +778,18 @@ export abstract class TuiSessionBase {
 
 **Keyboard Shortcuts:**
 
-| Key | Action |
-|-----|--------|
-| `v` | Split vertical |
-| `h` | Split horizontal |
-| `c` | Close pane |
-| `z` | Maximize/restore pane |
-| `x` | Swap with next pane |
-| `L` | Layout preset picker |
-| `Ctrl+←/→/↑/↓` | Resize pane |
-| `Ctrl+S` | Save layout |
-| `Ctrl+L` | Named layouts manager |
-| `1-6` | Quick layout preset |
+| Key            | Action                |
+| -------------- | --------------------- |
+| `v`            | Split vertical        |
+| `h`            | Split horizontal      |
+| `c`            | Close pane            |
+| `z`            | Maximize/restore pane |
+| `x`            | Swap with next pane   |
+| `L`            | Layout preset picker  |
+| `Ctrl+←/→/↑/↓` | Resize pane           |
+| `Ctrl+S`       | Save layout           |
+| `Ctrl+L`       | Named layouts manager |
+| `1-6`          | Quick layout preset   |
 
 ---
 
@@ -826,17 +827,17 @@ The dashboard includes 7 integrated views:
 
 ### Global Navigation
 
-| Key         | Action                     |
-| ----------- | -------------------------- |
-| `Tab`       | Switch to next view/pane   |
+| Key         | Action                       |
+| ----------- | ---------------------------- |
+| `Tab`       | Switch to next view/pane     |
 | `Shift+Tab` | Switch to previous view/pane |
-| `?`         | Show help for current view |
-| `R`         | Refresh current view       |
-| `v`         | Split pane vertical        |
-| `h`         | Split pane horizontal      |
-| `z`         | Maximize/restore pane      |
-| `L`         | Layout presets             |
-| `q`         | Quit dashboard             |
+| `?`         | Show help for current view   |
+| `R`         | Refresh current view         |
+| `v`         | Split pane vertical          |
+| `h`         | Split pane horizontal        |
+| `z`         | Maximize/restore pane        |
+| `L`         | Layout presets               |
+| `q`         | Quit dashboard               |
 
 ### View-Specific Features
 
@@ -978,20 +979,20 @@ Create `docs/TUI_Keyboard_Reference.md`:
 
 ### 7.1 Quantitative Metrics
 
-| Metric             | Initial | Target | Final   |
-| ------------------ | ------- | ------ | ------- |
-| Total TUI Tests    | 225     | 400+   | **656** ✅ |
-| Test Coverage      | ~60%    | 80%+   | **85%+** ✅ |
+| Metric             | Initial | Target | Final        |
+| ------------------ | ------- | ------ | ------------ |
+| Total TUI Tests    | 225     | 400+   | **656** ✅   |
+| Test Coverage      | ~60%    | 80%+   | **85%+** ✅  |
 | Lines of Code      | ~2500   | ~5000  | **~6000** ✅ |
-| Views with Loading | 1/7     | 7/7    | **7/7** ✅ |
-| Views with Help    | 1/7     | 7/7    | **7/7** ✅ |
-| Views with Search  | 2/7     | 7/7    | **7/7** ✅ |
-| Views with Dialogs | 1/7     | 6/7    | **7/7** ✅ |
+| Views with Loading | 1/7     | 7/7    | **7/7** ✅   |
+| Views with Help    | 1/7     | 7/7    | **7/7** ✅   |
+| Views with Search  | 2/7     | 7/7    | **7/7** ✅   |
+| Views with Dialogs | 1/7     | 6/7    | **7/7** ✅   |
 
 ### 7.2 Qualitative Metrics
 
-| Metric              | Success Criteria                         | Status |
-| ------------------- | ---------------------------------------- | ------ |
+| Metric              | Success Criteria                         | Status      |
+| ------------------- | ---------------------------------------- | ----------- |
 | **Consistency**     | All views follow same patterns           | ✅ Achieved |
 | **Discoverability** | ? key shows comprehensive help           | ✅ Achieved |
 | **Safety**          | Destructive actions require confirmation | ✅ Achieved |
@@ -1000,37 +1001,37 @@ Create `docs/TUI_Keyboard_Reference.md`:
 
 ### 7.3 Test Requirements per Phase (Actual Results)
 
-| Phase                | Planned | Actual | Status |
-| -------------------- | ------- | ------ | ------ |
-| 13.1 Shared Utils    | 50      | 53     | ✅ |
-| 13.2 TuiSessionBase  | 20      | 27     | ✅ |
-| 13.3 Portal Manager  | 30      | 63     | ✅ |
-| 13.4 Plan Reviewer   | 30      | 71     | ✅ |
-| 13.5 Monitor         | 25      | 73     | ✅ |
-| 13.6 Request Manager | 25      | 73     | ✅ |
-| 13.7 Agent Status    | 20      | 63     | ✅ |
-| 13.8 Daemon Control  | 15      | 61     | ✅ |
-| 13.9 Dashboard       | 20      | 107    | ✅ |
-| 13.10 Documentation  | 0       | 0      | ✅ |
-| 13.11 Split View     | 30      | 65     | ✅ |
-| **Total**            | **265** | **656** | ✅ |
+| Phase                | Planned | Actual  | Status |
+| -------------------- | ------- | ------- | ------ |
+| 13.1 Shared Utils    | 50      | 53      | ✅     |
+| 13.2 TuiSessionBase  | 20      | 27      | ✅     |
+| 13.3 Portal Manager  | 30      | 63      | ✅     |
+| 13.4 Plan Reviewer   | 30      | 71      | ✅     |
+| 13.5 Monitor         | 25      | 73      | ✅     |
+| 13.6 Request Manager | 25      | 73      | ✅     |
+| 13.7 Agent Status    | 20      | 63      | ✅     |
+| 13.8 Daemon Control  | 15      | 61      | ✅     |
+| 13.9 Dashboard       | 20      | 107     | ✅     |
+| 13.10 Documentation  | 0       | 0       | ✅     |
+| 13.11 Split View     | 30      | 65      | ✅     |
+| **Total**            | **265** | **656** | ✅     |
 
 ---
 
 ## 8. Rollback Plan
 
-| Phase | Rollback Strategy                 | Status |
-| ----- | --------------------------------- | ------ |
-| 13.1  | Delete `src/tui/utils/` new files | N/A - Complete ✅ |
-| 13.2  | Revert `tui_common.ts` changes    | N/A - Complete ✅ |
-| 13.3  | Revert `portal_manager_view.ts`   | N/A - Complete ✅ |
-| 13.4  | Revert `plan_reviewer_view.ts`    | N/A - Complete ✅ |
-| 13.5  | Revert `monitor_view.ts`          | N/A - Complete ✅ |
-| 13.6  | Revert `request_manager_view.ts`  | N/A - Complete ✅ |
-| 13.7  | Revert `agent_status_view.ts`     | N/A - Complete ✅ |
-| 13.8  | Revert `daemon_control_view.ts`   | N/A - Complete ✅ |
-| 13.9  | Revert `tui_dashboard.ts`         | N/A - Complete ✅ |
-| 13.10 | Revert documentation changes      | N/A - Complete ✅ |
+| Phase | Rollback Strategy                     | Status            |
+| ----- | ------------------------------------- | ----------------- |
+| 13.1  | Delete `src/tui/utils/` new files     | N/A - Complete ✅ |
+| 13.2  | Revert `tui_common.ts` changes        | N/A - Complete ✅ |
+| 13.3  | Revert `portal_manager_view.ts`       | N/A - Complete ✅ |
+| 13.4  | Revert `plan_reviewer_view.ts`        | N/A - Complete ✅ |
+| 13.5  | Revert `monitor_view.ts`              | N/A - Complete ✅ |
+| 13.6  | Revert `request_manager_view.ts`      | N/A - Complete ✅ |
+| 13.7  | Revert `agent_status_view.ts`         | N/A - Complete ✅ |
+| 13.8  | Revert `daemon_control_view.ts`       | N/A - Complete ✅ |
+| 13.9  | Revert `tui_dashboard.ts`             | N/A - Complete ✅ |
+| 13.10 | Revert documentation changes          | N/A - Complete ✅ |
 | 13.11 | Revert layout_manager, layout_dialogs | N/A - Complete ✅ |
 
 **All phases completed successfully. No rollback needed.**
@@ -1039,20 +1040,20 @@ Create `docs/TUI_Keyboard_Reference.md`:
 
 ## 9. Timeline Summary
 
-| Phase                      | Planned    | Actual     | Status |
-| -------------------------- | ---------- | ---------- | ------ |
-| 13.1 Shared Infrastructure | 1 day      | Completed  | ✅ |
-| 13.2 TuiSessionBase        | 0.5 day    | Completed  | ✅ |
-| 13.3 Portal Manager        | 1 day      | Completed  | ✅ |
-| 13.4 Plan Reviewer         | 1 day      | Completed  | ✅ |
-| 13.5 Monitor               | 1 day      | Completed  | ✅ |
-| 13.6 Request Manager       | 1 day      | Completed  | ✅ |
-| 13.7 Agent Status          | 0.5 day    | Completed  | ✅ |
-| 13.8 Daemon Control        | 0.5 day    | Completed  | ✅ |
-| 13.9 Dashboard Integration | 0.5 day    | Completed  | ✅ |
-| 13.10 Documentation        | 0.5 day    | Completed  | ✅ |
-| 13.11 Split View           | 1 day      | Completed  | ✅ |
-| **Total**                  | **9 days** | **Complete** | ✅ |
+| Phase                      | Planned    | Actual       | Status |
+| -------------------------- | ---------- | ------------ | ------ |
+| 13.1 Shared Infrastructure | 1 day      | Completed    | ✅     |
+| 13.2 TuiSessionBase        | 0.5 day    | Completed    | ✅     |
+| 13.3 Portal Manager        | 1 day      | Completed    | ✅     |
+| 13.4 Plan Reviewer         | 1 day      | Completed    | ✅     |
+| 13.5 Monitor               | 1 day      | Completed    | ✅     |
+| 13.6 Request Manager       | 1 day      | Completed    | ✅     |
+| 13.7 Agent Status          | 0.5 day    | Completed    | ✅     |
+| 13.8 Daemon Control        | 0.5 day    | Completed    | ✅     |
+| 13.9 Dashboard Integration | 0.5 day    | Completed    | ✅     |
+| 13.10 Documentation        | 0.5 day    | Completed    | ✅     |
+| 13.11 Split View           | 1 day      | Completed    | ✅     |
+| **Total**                  | **9 days** | **Complete** | ✅     |
 
 ---
 
@@ -1060,19 +1061,19 @@ Create `docs/TUI_Keyboard_Reference.md`:
 
 ### Commits
 
-| Phase | Commit Hash | Description |
-| ----- | ----------- | ----------- |
-| 13.1  | 62abbbf     | Shared TUI Infrastructure |
-| 13.2  | 02091ca     | Enhanced TuiSessionBase |
-| 13.3  | e28c7ec     | Portal Manager Enhancement |
-| 13.4  | bfa8e8c     | Plan Reviewer Enhancement |
-| 13.5  | 9def473     | Monitor View Enhancement |
+| Phase | Commit Hash | Description                 |
+| ----- | ----------- | --------------------------- |
+| 13.1  | 62abbbf     | Shared TUI Infrastructure   |
+| 13.2  | 02091ca     | Enhanced TuiSessionBase     |
+| 13.3  | e28c7ec     | Portal Manager Enhancement  |
+| 13.4  | bfa8e8c     | Plan Reviewer Enhancement   |
+| 13.5  | 9def473     | Monitor View Enhancement    |
 | 13.6  | a721eb8     | Request Manager Enhancement |
-| 13.7  | 75f2f02     | Agent Status Enhancement |
-| 13.8  | f4c21dd     | Daemon Control Enhancement |
-| 13.9  | 86f134b     | Dashboard Integration |
-| 13.10 | 2aece8c     | User Documentation |
-| 13.11 | ad8757d     | Split View Enhancement |
+| 13.7  | 75f2f02     | Agent Status Enhancement    |
+| 13.8  | f4c21dd     | Daemon Control Enhancement  |
+| 13.9  | 86f134b     | Dashboard Integration       |
+| 13.10 | 2aece8c     | User Documentation          |
+| 13.11 | ad8757d     | Split View Enhancement      |
 
 ### Final Test Count: 656 TUI tests
 

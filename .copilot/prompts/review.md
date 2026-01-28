@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["code-review", "quality-assurance", "best-practices"]
 ---
 
-
 **Purpose:** Systematically review code changes for correctness, style, and completeness.
 
 ---

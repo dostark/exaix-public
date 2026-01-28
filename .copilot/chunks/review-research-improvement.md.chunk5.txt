@@ -1,11 +1,11 @@
-**Evidence:**
 ```typescript
 // agent_runner.ts:115 - Single-pass execution
 const rawResponse = await this.modelProvider.generate(combinedPrompt);
 const result = this.parseResponse(rawResponse); // Direct return
 ```
-```
+````
 
+````
 ## Phase 3: Plan (Create Improvement Roadmap)
 
 ### 3.1 Planning Document Structure

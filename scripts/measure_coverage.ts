@@ -12,7 +12,7 @@ const flags = parse(Deno.args, {
   default: { threshold: "85" },
 });
 
-const THRESHOLD = parseFloat(flags.threshold);
+const _THRESHOLD = parseFloat(flags.threshold);
 const COVERAGE_DIR = "coverage";
 
 async function runCoverageCheck() {
@@ -52,7 +52,7 @@ async function runCoverageCheck() {
   });
 
   const { stdout } = await covCmd.output();
-  const lcovOutput = new TextDecoder().decode(stdout);
+  const _lcovOutput = new TextDecoder().decode(stdout);
 
   // Basic parsing of LCOV to total percentage (very rough approximation)
   // Logic: Sum of (DA:line,hits) / Total Lines

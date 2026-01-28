@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["documentation", "writing", "clarity"]
 ---
 
-
 **Purpose:** Create or update documentation for ExoFrame codebase, ensuring clarity and completeness.
 
 ---

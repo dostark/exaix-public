@@ -16,12 +16,14 @@ We have implemented the MCP Foundation (Server, Transport) and FileSystem/Git to
 **Goal:** Allow agents to perform ExoFrame actions.
 
 **New Tools:**
-1.  `exoframe_create_request`: Create a new request file.
-2.  `exoframe_list_plans`: List pending plans.
-3.  `exoframe_approve_plan`: Approve a plan by ID.
-4.  `exoframe_query_journal`: Query the Activity Journal.
+
+1. `exoframe_create_request`: Create a new request file.
+2. `exoframe_list_plans`: List pending plans.
+3. `exoframe_approve_plan`: Approve a plan by ID.
+4. `exoframe_query_journal`: Query the Activity Journal.
 
 **Implementation Plan:**
+
 - [x] Create `src/mcp/domain_tools.ts`
 - [x] Implement `ToolHandler` for each domain tool.
 - [x] Register tools in `src/mcp/server.ts`.
@@ -31,16 +33,19 @@ We have implemented the MCP Foundation (Server, Transport) and FileSystem/Git to
 **Goal:** Ensure generic configuration and permission handling.
 
 **Updates:**
+
 - [x] Use `exo.config.toml` for enabling/disabling tools (refer to [src/config/schema.ts](file:///home/dkasymov/git/ExoFrame/src/config/schema.ts)).
 - [x] Enforce `agent_id` tracking for all tool calls.
 
 ### Step 25.3: Verification
 
 **Tests:**
+
 - [x] Unit tests for domain tools (mocking `RequestCommands` and `PlanCommands`).
 - [x] Integration tests via `exoctl mcp start`.
 
 **Documentation:**
+
 - [x] Provide `claude_desktop_config.json` example (moved to `templates/mcp/`).
 - [x] Provide `cline_settings.json` example (moved to `templates/mcp/`).
 

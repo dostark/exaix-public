@@ -24,3 +24,6 @@ the agents/ system to guide that enhancement. Peak irony.
 ```
 
 **Before/After with Concrete Examples**:
+
+```markdown
+**Before Step 10.5**:

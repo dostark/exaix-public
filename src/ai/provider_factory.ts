@@ -27,6 +27,7 @@ import {
   ProviderMetadata,
   ProviderRegistry,
 } from "./provider_registry.ts";
+import { AbstractKeyBasedProviderFactory } from "./factories/abstract_provider_factory.ts";
 import { RateLimitedProvider } from "./rate_limited_provider.ts";
 import { PricingTier } from "../enums.ts";
 import { IModelProvider, ProviderInfo, ResolvedProviderOptions } from "./types.ts";
@@ -356,8 +357,19 @@ export class ProviderFactory {
     // Try registry first for modern providers
     const factory = ProviderRegistry.getFactory(options.provider);
     if (factory) {
+      // For key-based factories (which validate API keys on creation), we
+      // must eagerly instantiate so that missing credentials cause create()
+      // to reject as tests and calling code expect. Other factories can be
+      // returned lazily to defer heavy initialization.
+      if (factory instanceof AbstractKeyBasedProviderFactory) {
+        return await factory.create(options);
+      }
+
       // Use LazyProvider to defer initialization until first use
-      return new LazyProvider(factory, options);
+      // Provide a stable id (including mock strategy) so LazyProvider.id
+      // matches what concrete factories will produce once initialized.
+      const id = this.generateProviderId(options);
+      return new LazyProvider(factory, options, id);
     }
 
     // Fall back to legacy direct instantiation for backward compatibility

@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["openai", "quickstart", "rag", "diff-first", "prompts"]
 ---
 
-
 ## Key points
 
 - Always retrieve relevant context from `agents/` before proposing changes.

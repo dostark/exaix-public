@@ -1,4 +1,3 @@
-**Success Criteria:**
 - [x] `exoctl journal --help` shows usage.
 - [x] Arguments parsed correctly (key-value pairs for filters).
 - [x] Command calls `DatabaseService.queryActivity`.
@@ -10,9 +9,11 @@
 - **Goal:** Present journal data in a human-readable table or machine-parsable JSON.
 - **Location:** `src/cli/commands/journal.ts` (or `src/utils/formatting.ts`)
 - **Actions:**
-    1.  **Table View:**
-        - Columns: `Timestamp`, `Action`, `Agent`, `Trace ID`, `Target`.
-        - Truncate long values (like `Trace ID` or `Target`) to fit screen unless verbose.
-        - Color-code `action_type` (e.g., `error` in red, `success` in green).
-    2.  **JSON View:**
-        - Output raw JSON array of `ActivityRecord` objects.
+  1. **Table View:**
+     - Columns: `Timestamp`, `Action`, `Agent`, `Trace ID`, `Target`.
+     - Truncate long values (like `Trace ID` or `Target`) to fit screen unless verbose.
+     - Color-code `action_type` (e.g., `error` in red, `success` in green).
+  2. **JSON View:**
+     - Output raw JSON array of `ActivityRecord` objects.
+
+**Success Criteria:**

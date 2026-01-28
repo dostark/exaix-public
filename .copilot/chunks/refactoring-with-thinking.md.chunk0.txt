@@ -17,6 +17,7 @@ Context injection:
 deno run --allow-read scripts/inject_agent_context.ts claude "refactoring [pattern] [component]" 6
 
 Requirements from agents/:
+
 - Follow Service Pattern from agents/source/exoframe.md
 - Maintain test coverage per agents/tests/testing.md
 - Update docs per agents/docs/documentation.md

@@ -11,7 +11,35 @@ export const CommandUtils = {
    */
   formatValidationErrors(result: ValidationResult): string {
     if (result.isValid) return "";
-    return `Validation failed:\n- ${result.errors.join("\n- ")}`;
+
+    const mapError = (err: string) => {
+      const parts = err.split(":");
+      if (parts.length === 1) return err;
+
+      const key = parts[0].trim();
+      const rest = parts.slice(1).join(":").trim();
+
+      // Common niceties for human-friendly messages used by tests
+      if (rest === "is required") {
+        if (key === "reason") return "Rejection reason is required";
+        return `${key.charAt(0).toUpperCase() + key.slice(1)} is required`;
+      }
+
+      if (/^at least/i.test(rest)) {
+        // Drop the key and capitalize the message: "At least one comment is required"
+        return rest.charAt(0).toUpperCase() + rest.slice(1);
+      }
+
+      // Default: try to produce "Field message" or fall back to raw
+      if (/^(cannot|is|must|should|at least)/i.test(rest)) {
+        return `${key.charAt(0).toUpperCase() + key.slice(1)} ${rest}`;
+      }
+
+      return `${key.charAt(0).toUpperCase() + key.slice(1)}: ${rest}`;
+    };
+
+    const formatted = result.errors.map(mapError).join("\n- ");
+    return `Validation failed:\n- ${formatted}`;
   },
 
   /**

@@ -11,6 +11,7 @@ import { assertSpyCalls, spy } from "@std/testing/mock";
 import { DatabaseActivityRepository } from "../../src/repositories/activity_repository.ts";
 import type { ActivityRepository } from "../../src/repositories/activity_repository.ts";
 import type { DatabaseService } from "../../src/services/db.ts";
+import { createStubDb } from "../test_helpers.ts";
 
 // Mock Activity entity for testing
 interface Activity {
@@ -98,9 +99,7 @@ Deno.test("DatabaseActivityRepository: retrieves activities by trace ID", async 
 
   const getActivitiesByTraceSpy = spy(() => mockActivities);
 
-  const mockDb = {
-    getActivitiesByTrace: getActivitiesByTraceSpy,
-  } as unknown as DatabaseService;
+  const mockDb = createStubDb({ getActivitiesByTrace: getActivitiesByTraceSpy }) as unknown as DatabaseService;
 
   const repo = new DatabaseActivityRepository(mockDb);
 
@@ -130,9 +129,9 @@ Deno.test("DatabaseActivityRepository: retrieves activities by action type", asy
 
   const getActivitiesByActionTypeSpy = spy(() => mockActivities);
 
-  const mockDb = {
+  const mockDb = createStubDb({
     getActivitiesByActionType: getActivitiesByActionTypeSpy,
-  } as unknown as DatabaseService;
+  }) as unknown as DatabaseService;
 
   const repo = new DatabaseActivityRepository(mockDb);
 
@@ -163,9 +162,7 @@ Deno.test("DatabaseActivityRepository: retrieves recent activities", async () =>
     return Promise.resolve(mockActivities);
   });
 
-  const mockDb = {
-    getRecentActivity: getRecentActivitySpy,
-  } as unknown as DatabaseService;
+  const mockDb = createStubDb({ getRecentActivity: getRecentActivitySpy }) as unknown as DatabaseService;
 
   const repo = new DatabaseActivityRepository(mockDb);
 
@@ -191,9 +188,7 @@ Deno.test("DatabaseActivityRepository: maps database records to domain objects",
 
   const getActivitiesByTraceSpy = spy(() => [mockDbRecord]);
 
-  const mockDb = {
-    getActivitiesByTrace: getActivitiesByTraceSpy,
-  } as unknown as DatabaseService;
+  const mockDb = createStubDb({ getActivitiesByTrace: getActivitiesByTraceSpy }) as unknown as DatabaseService;
 
   const repo = new DatabaseActivityRepository(mockDb);
 
@@ -225,9 +220,7 @@ Deno.test("DatabaseActivityRepository: handles null values correctly", async () 
 
   const getActivitiesByTraceSpy = spy(() => [mockDbRecord]);
 
-  const mockDb = {
-    getActivitiesByTrace: getActivitiesByTraceSpy,
-  } as unknown as DatabaseService;
+  const mockDb = createStubDb({ getActivitiesByTrace: getActivitiesByTraceSpy }) as unknown as DatabaseService;
 
   const repo = new DatabaseActivityRepository(mockDb);
 
@@ -257,6 +250,22 @@ Deno.test("DatabaseActivityRepository: handles malformed JSON payload gracefully
 
   const mockDb = {
     getActivitiesByTrace: getActivitiesByTraceSpy,
+    async getActivitiesByTraceSafe(traceId: string) {
+      if (typeof (this as any).getActivitiesByTrace === "function") {
+        const r = (this as any).getActivitiesByTrace(traceId);
+        return r instanceof Promise ? await r : r;
+      }
+      return [];
+    },
+    preparedGet: function (_query: string, _params: unknown[] = []) {
+      return Promise.resolve(null);
+    },
+    preparedAll: function (_query: string, _params: unknown[] = []) {
+      return Promise.resolve([]);
+    },
+    preparedRun: function (_query: string, _params: unknown[] = []) {
+      return Promise.resolve({});
+    },
   } as unknown as DatabaseService;
 
   const repo = new DatabaseActivityRepository(mockDb);

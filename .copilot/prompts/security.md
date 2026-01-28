@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["security", "vulnerability", "patch", "validation"]
 ---
 
-
 **Purpose:** Plan and implement security fixes, following best practices for validation and documentation.
 
 ---

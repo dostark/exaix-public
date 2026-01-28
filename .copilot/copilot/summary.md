@@ -4,7 +4,7 @@ scope: dev
 title: ExoFrame Quick Summary
 short_summary: "One-line overview of ExoFrame for quick Copilot context injection."
 version: "0.1"
-topics: ["quickstart","overview"]
+topics: ["quickstart", "overview"]
 ---
 
 # ExoFrame Quick Summary

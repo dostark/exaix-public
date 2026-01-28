@@ -1,8 +1,3 @@
-# But it's still listed
-exoctl plan list
-# Shows the plan with status: rejected
-```
-
 ## Observed Behavior
 
 - `exoctl plan show <rejected-plan-id>` returns "Plan not found"

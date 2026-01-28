@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["cross-reference", "navigation", "prompts", "workflow"]
 ---
 
-
 **Purpose:**
 This document provides a prompt template and usage examples for agents to navigate ExoFrame's cross-reference map when performing development tasks.
 

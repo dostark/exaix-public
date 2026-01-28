@@ -1,6 +1,7 @@
 # Google Gemini Provider Adaptation Guide
 
 Key points
+
 - Gemini 1.5 Pro supports a **2M token context window**, ideal for whole-repository analysis.
 - Leverage **parallel function calling** to execute multiple searches or file reads in one turn.
 - Use **Long-Chain Reasoning** to analyze systemic impacts across multiple modules.

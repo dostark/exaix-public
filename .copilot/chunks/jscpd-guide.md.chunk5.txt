@@ -1,3 +1,20 @@
+```typescript
+// BAD: Same assertions repeated
+assertEquals(result.status, "success");
+assertEquals(result.data.length, 3);
+assertExists(result.timestamp);
+
+// GOOD: Custom assertion helper
+assertSuccessResult(result, { dataLength: 3 });
+```
+
+## Refactoring Workflow
+
+1. **Run jscpd** to identify duplicates
+   ```bash
+   npx jscpd src/ tests/ --reporters json --output ./jscpd-report
+   ```
+
 2. **Prioritize** by tokens (larger = more impact)
    ```bash
    grep -o '"duplicatedTokens": [0-9]*' jscpd-report/jscpd-report.json | sort -t: -k2 -nr | head -20
@@ -7,21 +24,3 @@
    ```bash
    grep -B15 'filename.ts' jscpd-report/jscpd-report.json
    ```
-
-4. **Plan extraction** based on pattern type:
-   - Same file duplication → Extract method
-   - Cross-file duplication → Extract helper/utility
-   - Test duplication → Create test helper or fixture
-
-5. **Implement** with tests first:
-   - Create helper with tests
-   - Refactor one usage
-   - Verify tests pass
-   - Refactor remaining usages
-
-6. **Verify** duplication reduced:
-   ```bash
-   npx jscpd src/ tests/ --reporters json --output ./jscpd-report-after
-   ```
-
-## Integration with CI

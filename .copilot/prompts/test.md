@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["testing", "tdd", "regression", "quality"]
 ---
 
-
 **Purpose:** Create robust tests for new or existing code, following TDD and regression best practices.
 
 ---

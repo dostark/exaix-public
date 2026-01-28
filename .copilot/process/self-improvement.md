@@ -10,6 +10,7 @@ topics: ["self-improvement", "instruction-adequacy", "agents", "maintenance", "r
 # Self-improvement loop for `.copilot/` instructions
 
 Key points
+
 - Before non-trivial work, run an **Instruction Adequacy Check**: do we have enough ExoFrame-specific guidance to act and verify?
 - If guidance is missing, do a **Doc Patch Loop**: add the smallest, task-scoped update to `.copilot/`, then rebuild/validate, then continue the primary task.
 - Keep updates grounded: add checklists, examples, and commands; avoid speculative “nice-to-have” prose.
@@ -80,6 +81,7 @@ Use this at the start of a session or before a multi-step change.
 - **Missing tests**: doc changes not guarded; regressions likely.
 
 Do / Don’t
+
 - ✅ Do keep doc updates minimal and scoped to the current task.
 - ✅ Do ask 1–3 clarifying questions if the requirement is ambiguous before changing docs.
 - ✅ Do rebuild `.copilot/manifest.json`, chunks, and embeddings after agent doc edits.
@@ -101,6 +103,7 @@ Examples
   - Task: “Perform a multi-file refactor with OpenAI.”
   - Gap: provider doc doesn’t enforce diff-first structure.
   - Patch: add/update a prompt template under `.copilot/prompts/` requiring Files → Plan → Diffs → Verification.
+
 ## Related Documents
 
 - [Review-Research-Improvement Pattern](./review-research-improvement.md) - For architectural reviews and improvement planning (larger scope than instruction gaps)

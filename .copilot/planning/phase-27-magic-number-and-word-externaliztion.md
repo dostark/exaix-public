@@ -17,13 +17,13 @@ This phase aims to make ExoFrame fully user-configurable by externalizing all ha
 
 All planned phases have been successfully executed:
 
-1.  **Discovery:** Identified extensive magic numbers/words.
-2.  **Enums:** Created and migrated `ProviderType`, `TaskComplexity`, `PricingTier`, `RequestStatus`, `ExecutionStatus`, etc.
-3.  **Config:** Implemented comprehensive schema in `src/config/schema.ts` and created `exo.config.sample.toml`.
-4.  **Constants:** Externalized internal values to `src/constants.ts` and `src/config/constants.ts`.
-5.  **CLI/TUI:** Created `src/cli/cli.config.ts` and `src/tui/tui.config.ts`.
-6.  **Refactoring:** Updated services (`ProviderFactory`, `MemoryCommands`, `MonitorView`, etc.) to use the new configs.
-7.  **Documentation:** Updated Technical Spec, Provider Strategy Guide, and created `docs/dev/Migration_Guide_Phase27.md`.
+1. **Discovery:** Identified extensive magic numbers/words.
+2. **Enums:** Created and migrated `ProviderType`, `TaskComplexity`, `PricingTier`, `RequestStatus`, `ExecutionStatus`, etc.
+3. **Config:** Implemented comprehensive schema in `src/config/schema.ts` and created `exo.config.sample.toml`.
+4. **Constants:** Externalized internal values to `src/constants.ts` and `src/config/constants.ts`.
+5. **CLI/TUI:** Created `src/cli/cli.config.ts` and `src/tui/tui.config.ts`.
+6. **Refactoring:** Updated services (`ProviderFactory`, `MemoryCommands`, `MonitorView`, etc.) to use the new configs.
+7. **Documentation:** Updated Technical Spec, Provider Strategy Guide, and created `docs/dev/Migration_Guide_Phase27.md`.
 
 ---
 
@@ -33,8 +33,8 @@ All planned phases have been successfully executed:
 
 ### Next Steps Required:
 
-1.  **Monitoring:** Watch for any regressions or new magic numbers in future PRs.
-2.  **Adoption:** Ensure all team members switch to using the new configuration system.
+1. **Monitoring:** Watch for any regressions or new magic numbers in future PRs.
+2. **Adoption:** Ensure all team members switch to using the new configuration system.
 
 ---
 
@@ -42,21 +42,21 @@ All planned phases have been successfully executed:
 
 ### High Priority (Blockers for User Configurability):
 
-1.  **Provider Fallback Chains** - ✅ COMPLETED
-2.  **Status Enum Creation** - ✅ COMPLETED
-3.  **Schema Enum Migration** - ✅ COMPLETED
-4.  **Default Agent/Model Config** - ✅ COMPLETED
+1. **Provider Fallback Chains** - ✅ COMPLETED
+2. **Status Enum Creation** - ✅ COMPLETED
+3. **Schema Enum Migration** - ✅ COMPLETED
+4. **Default Agent/Model Config** - ✅ COMPLETED
 
 ### Medium Priority (User Experience):
 
-5.  **TUI Constants Externalization** - ✅ COMPLETED
-6.  **CLI Constants Externalization** - ✅ COMPLETED
-7.  **Memory/Skill Status Enums** - ✅ COMPLETED
+5. **TUI Constants Externalization** - ✅ COMPLETED
+6. **CLI Constants Externalization** - ✅ COMPLETED
+7. **Memory/Skill Status Enums** - ✅ COMPLETED
 
 ### Low Priority (Polish):
 
-8.  **Icon/Color Mappings** - ✅ COMPLETED
-9.  **Error Message Templates** - ✅ COMPLETED (via TUI/CLI configs or standard errors)
+8. **Icon/Color Mappings** - ✅ COMPLETED
+9. **Error Message Templates** - ✅ COMPLETED (via TUI/CLI configs or standard errors)
 10. **Validation Rules** - ✅ COMPLETED (via Zod schemas)
 
 ## Goals
@@ -101,6 +101,7 @@ All planned phases have been successfully executed:
 **Status:** Completed.
 
 **Completed:**
+
 - `exo.config.sample.toml` created with full options.
 - Schema updated.
 - Services refactored.
@@ -130,10 +131,12 @@ All planned phases have been successfully executed:
 ### Phase 3: Configuration Migration ✅ **COMPLETED**
 
 ### Phase 4: Testing and Validation ✅ **COMPLETED**
+
 - Unit tests passed.
 - Manual verification of TUI/CLI logic (code review).
 
 ### Phase 5: Documentation and Migration ✅ **COMPLETED**
+
 - `ExoFrame_Technical_Spec.md` updated.
 - `Provider_Strategy_Guide.md` updated.
 - `Migration_Guide_Phase27.md` created.
@@ -161,7 +164,6 @@ All planned phases have been successfully executed:
 
 ---
 
-
 ## Additional Tasks
 
 ### Update Agent Instructions in `.copilot/`
@@ -188,11 +190,13 @@ All planned phases have been successfully executed:
 ## Success Criteria (Updated 2026-01-14)
 
 **Phase 1 Success (Completed):**
+
 - Magic number/word discovery completed with comprehensive findings
 - Initial enum creation and basic constants setup done
 - Provider implementations migrated to use constants
 
 **Phase 2-4 Success (Completed) ✅:**
+
 - All user-facing configuration externalized to TOML files (provider fallback chains, default agents, timeouts) ✅
 - All internal constants moved to dedicated constants/enums files ✅
 - No hardcoded model/provider names in core provider logic ✅
@@ -201,6 +205,7 @@ All planned phases have been successfully executed:
 - TUI/CLI constants externalized to config files ✅
 
 **Final Success (Completed) ✅:**
+
 - Zero magic words found by discovery grep commands ✅
 - Users can fully configure ExoFrame behavior without code changes ✅
 - All tests pass with externalized configuration ✅

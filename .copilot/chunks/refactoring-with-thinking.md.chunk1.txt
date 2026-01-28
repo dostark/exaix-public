@@ -20,3 +20,5 @@ Use your thinking protocol:
 
 Context injection:
 deno run --allow-read scripts/inject_agent_context.ts claude "refactoring database testing helpers" 6
+
+Requirements from agents/:

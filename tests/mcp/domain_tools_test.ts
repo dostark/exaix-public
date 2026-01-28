@@ -210,13 +210,11 @@ To be approved
   });
 
   await t.step("Tools handle errors gracefully (catch block)", async () => {
-    // Stub db method to throw, forcing an error in tool execution
+    // Stub async safe db method to throw, forcing an error in tool execution
     const stubMethod = stub(
       db,
-      "getActivitiesByTrace",
-      () => {
-        throw new Error("Database Failure");
-      },
+      "getActivitiesByTraceSafe",
+      () => Promise.reject(new Error("Database Failure")),
     );
 
     const tool = new QueryJournalTool(config, db);

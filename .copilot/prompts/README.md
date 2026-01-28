@@ -7,7 +7,6 @@ version: "0.1"
 topics: ["prompts", "templates", "agents", "workflows", "best-practices"]
 ---
 
-
 Welcome to the ExoFrame prompt template library for coding agents. This collection enables agents to systematically wrap raw user prompts with advanced, context-rich instructions, ensuring clarity, completeness, and best practices for all coding tasks in the ExoFrame codebase.
 
 ## How It Works
@@ -113,30 +112,30 @@ This folder contains example prompts demonstrating how to effectively utilize th
 ### OpenAI (gpt-4o family)
 
 1. **[openai-quickstart.md](openai-quickstart.md)** — Use agents/ first (diff-first + verification)
-    - When to use: Any OpenAI-driven coding task
-    - Key pattern: Inject context → Files/Plan/Diffs/Verification → cite doc paths
+   - When to use: Any OpenAI-driven coding task
+   - Key pattern: Inject context → Files/Plan/Diffs/Verification → cite doc paths
 
 2. **[openai-rag-context-injection.md](openai-rag-context-injection.md)** — Inspect → Inject → execute with context
-    - When to use: Unfamiliar areas, multi-step tasks, cross-cutting changes
-    - Key pattern: inspect_embeddings → inject_agent_context → minimal diffs
+   - When to use: Unfamiliar areas, multi-step tasks, cross-cutting changes
+   - Key pattern: inspect_embeddings → inject_agent_context → minimal diffs
 
 3. **[openai-tdd-workflow.md](openai-tdd-workflow.md)** — Tests first with explicit assertions
-    - When to use: New features, bugfixes that need regression coverage
-    - Key pattern: failing tests → minimal implementation → verify
+   - When to use: New features, bugfixes that need regression coverage
+   - Key pattern: failing tests → minimal implementation → verify
 
 4. **[openai-debugging-systematic.md](openai-debugging-systematic.md)** — Reproduce → Diagnose → Fix → Verify
-    - When to use: Flakes, runtime errors, TypeScript failures
-    - Key pattern: evidence-first debugging + minimal diffs
+   - When to use: Flakes, runtime errors, TypeScript failures
+   - Key pattern: evidence-first debugging + minimal diffs
 
 ### Google (Gemini 1.5 Pro)
 
 1. **[google-quickstart.md](google-quickstart.md)** — Native long-context + broad reasoning
-    - When to use: Global refactorings, architecture audits, complex systemic changes
-    - Key pattern: Saturation → Global Check → TDD → high-quality diffs
+   - When to use: Global refactorings, architecture audits, complex systemic changes
+   - Key pattern: Saturation → Global Check → TDD → high-quality diffs
 
 2. **[google-tdd-workflow.md](google-tdd-workflow.md)** — Exhaustive tests covering boundary conditions
-    - When to use: New features requiring high reliability
-    - Key pattern: Research → Plan (5+ cases) → Execute → Finalize
+   - When to use: New features requiring high reliability
+   - Key pattern: Research → Plan (5+ cases) → Execute → Finalize
 
 - When to use: Complex questions, unfamiliar areas, multi-step tasks
 - Key pattern: Inspect → Inject → Execute with context
@@ -148,23 +147,23 @@ This folder contains example prompts demonstrating how to effectively utilize th
 
 Match your task to the appropriate prompt template:
 
-| Your Task | Use This Template |
-| ---------- | ----------------- |
-| Add a new feature with tests | [tdd-workflow.md](tdd-workflow.md) |
-| Extract common code to helper | [refactoring-with-thinking.md](refactoring-with-thinking.md) |
-| Fix a failing test | [debugging-systematic.md](debugging-systematic.md) |
-| Work on Implementation Plan step | [implementation-plan-driven.md](implementation-plan-driven.md) |
-| Create a commit message | [commit-message.md](commit-message.md) |
+| Your Task                          | Use This Template                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| Add a new feature with tests       | [tdd-workflow.md](tdd-workflow.md)                                     |
+| Extract common code to helper      | [refactoring-with-thinking.md](refactoring-with-thinking.md)           |
+| Fix a failing test                 | [debugging-systematic.md](debugging-systematic.md)                     |
+| Work on Implementation Plan step   | [implementation-plan-driven.md](implementation-plan-driven.md)         |
+| Create a commit message            | [commit-message.md](commit-message.md)                                 |
 | Update Building with AI Agents doc | [update-building-with-ai-agents.md](update-building-with-ai-agents.md) |
-| Don't know where to start | [cross-reference-navigation.md](cross-reference-navigation.md) |
-| I’m missing guidance in agents/ | [self-improvement-loop.md](self-improvement-loop.md) |
-| Need docs for unfamiliar area | [rag-context-injection.md](rag-context-injection.md) |
-| OpenAI quickstart (diff-first) | [openai-quickstart.md](openai-quickstart.md) |
-| OpenAI context injection | [openai-rag-context-injection.md](openai-rag-context-injection.md) |
-| OpenAI TDD workflow | [openai-tdd-workflow.md](openai-tdd-workflow.md) |
-| OpenAI debugging workflow | [openai-debugging-systematic.md](openai-debugging-systematic.md) |
-| Gemini quickstart (long-context) | [google-quickstart.md](google-quickstart.md) |
-| Gemini TDD workflow (exhaustive) | [google-tdd-workflow.md](google-tdd-workflow.md) |
+| Don't know where to start          | [cross-reference-navigation.md](cross-reference-navigation.md)         |
+| I’m missing guidance in agents/    | [self-improvement-loop.md](self-improvement-loop.md)                   |
+| Need docs for unfamiliar area      | [rag-context-injection.md](rag-context-injection.md)                   |
+| OpenAI quickstart (diff-first)     | [openai-quickstart.md](openai-quickstart.md)                           |
+| OpenAI context injection           | [openai-rag-context-injection.md](openai-rag-context-injection.md)     |
+| OpenAI TDD workflow                | [openai-tdd-workflow.md](openai-tdd-workflow.md)                       |
+| OpenAI debugging workflow          | [openai-debugging-systematic.md](openai-debugging-systematic.md)       |
+| Gemini quickstart (long-context)   | [google-quickstart.md](google-quickstart.md)                           |
+| Gemini TDD workflow (exhaustive)   | [google-tdd-workflow.md](google-tdd-workflow.md)                       |
 
 ### 2. Customize the Template
 
@@ -196,11 +195,11 @@ For multi-step tasks:
 
 **How many chunks to inject:**
 
-| Task Complexity | Chunks | Example |
-| --------------- | ------ | ------- |
-| Simple lookup | 2-3 | "How do I clean up database connections?" |
-| Standard feature | 4-6 | "Add input validation for Portal config" |
-| Complex feature | 8-10 | "Design security test suite for Portal boundaries" |
+| Task Complexity     | Chunks       | Example                                             |
+| ------------------- | ------------ | --------------------------------------------------- |
+| Simple lookup       | 2-3          | "How do I clean up database connections?"           |
+| Standard feature    | 4-6          | "Add input validation for Portal config"            |
+| Complex feature     | 8-10         | "Design security test suite for Portal boundaries"  |
 | Multi-step workflow | 3-5 per step | "Step 1: Design → Step 2: Test → Step 3: Implement" |
 
 **Note:** Claude has 200k context window, but targeted context is more effective than dumping all docs.

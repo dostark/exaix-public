@@ -8,9 +8,12 @@
 **Exit Criteria:** `exoctl journal` command working with all filters defined in MT-26. (✅ Complete)
 
 ## References
+
 - **White Paper:** Section 2 "Activity Journal: Your AI Bill of Materials"
 - **Test Scenarios:** Scenario MT-26 "Activity Journal Queries"
 
 ---
 
 ## Step 29.1: Journal Service Enhancements
+
+**Action:** Update `DatabaseService` to support flexible querying.

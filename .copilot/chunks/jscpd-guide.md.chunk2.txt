@@ -1,9 +1,17 @@
+```
+Clone found (typescript):
+ - tests/ai/openai_provider_test.ts [64:2 - 78:13] (14 lines, 136 tokens)
+   tests/ai/anthropic_provider_test.ts [44:2 - 56:12]
+```
+
 Interpretation:
+
 - **File 1**: `openai_provider_test.ts`, lines 64-78
 - **File 2**: `anthropic_provider_test.ts`, lines 44-56
 - **Size**: 14 lines, 136 tokens (larger = higher priority for refactoring)
 
 ### JSON Report Structure
+
 ```json
 {
   "statistics": {
@@ -19,12 +27,3 @@ Interpretation:
 ```
 
 ## Duplication Thresholds
-
-| Level | Percentage | Action |
-|-------|------------|--------|
-| 🟢 Good | < 2% | No action needed |
-| 🟡 Warning | 2-5% | Monitor, refactor when convenient |
-| 🟠 High | 5-10% | Plan refactoring phase |
-| 🔴 Critical | > 10% | Immediate attention required |
-
-### Per-File Thresholds

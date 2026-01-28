@@ -72,7 +72,7 @@ async function main() {
   const qvec = await readQuery();
 
   // load embedding files from manifest or fallback to scanning directory
-  let files: string[] = [];
+  const files: string[] = [];
   try {
     const manifestPath = `${dir}/manifest.json`;
     try {
@@ -118,7 +118,7 @@ async function main() {
         const score = cosine(qvec, vector);
         results.push({ score, file: f, text: text?.slice(0, 200) });
       }
-    } catch (e) {
+    } catch (_e) {
       // ignore parse/read errors for individual files
     }
   }

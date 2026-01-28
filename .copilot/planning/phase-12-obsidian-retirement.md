@@ -6,6 +6,7 @@
 **Status:** IN PROGRESS - Phases 12.1-12.4, 12.6 COMPLETED ✅
 
 **Completion Status:**
+
 - ✅ Phase 12.1: Memory Banks Architecture (COMPLETE)
 - ✅ Phase 12.2: Memory Bank Services (COMPLETE)
 - ✅ Phase 12.3: Mission Reporter Migration (COMPLETE)
@@ -17,6 +18,7 @@
 This document outlines the comprehensive plan for **Phase 12: Obsidian Retirement**, which will remove Obsidian as a dependency (even optional) and migrate to a standalone, TUI-integrated **Memory Banks** system for long-term project knowledge storage.
 
 **Key Objectives:**
+
 - Remove all Obsidian-specific code, tests, and dependencies
 - Preserve knowledge management capabilities through Memory Banks architecture
 - Clean break migration with comprehensive test coverage
@@ -49,12 +51,14 @@ Phase 5 successfully integrated Obsidian as an optional knowledge management lay
 With the completion of **Phase 9 (TUI Dashboard)**, ExoFrame now has a native, terminal-based interface that provides:
 
 **Functional Overlap:**
+
 - ✅ Real-time monitoring (better than static Obsidian vault)
 - ✅ Plan review and execution control
 - ✅ Activity log browsing
 - ✅ System status and metrics
 
 **Maintenance Burden:**
+
 - 5 dedicated test files in `tests/obsidian/` (~500 LOC)
 - Dataview query compatibility testing
 - Wikilink format validation
@@ -62,12 +66,14 @@ With the completion of **Phase 9 (TUI Dashboard)**, ExoFrame now has a native, t
 - Frontmatter schema for Obsidian compatibility
 
 **Conceptual Complexity:**
+
 - Two UIs for overlapping functionality (TUI dashboard vs. Obsidian vault)
 - Users must install and configure Obsidian separately
 - Knowledge/ directory structure optimized for Obsidian browsing, not programmatic access
 - Wikilink generation overhead in mission reporting
 
 **Limited Value Proposition:**
+
 - TUI provides superior real-time interaction
 - Obsidian was primarily a read-only view
 - No unique capabilities beyond what TUI can provide
@@ -228,7 +234,7 @@ export class MemoryBankService {
 
   async updateProjectMemory(
     portal: string,
-    updates: Partial<ProjectMemory>
+    updates: Partial<ProjectMemory>,
   ): Promise<void> {
     // Merge updates into existing project memory
     // Write back to Memory/Projects/{portal}/
@@ -252,7 +258,7 @@ export class MemoryBankService {
 
   async getExecutionHistory(
     portal?: string,
-    limit?: number
+    limit?: number,
   ): Promise<ExecutionMemory[]> {
     // Read Memory/Execution/**/context.json
     // Filter by portal if specified
@@ -328,15 +334,15 @@ const results = await memoryBank.searchMemory("authentication");
 
 ### 3.1 Code Changes Overview
 
-| Category           | Add  | Modify | Remove | Total Δ |
-| ------------------ | ---- | ------ | ------ | ------- |
-| Schemas            | +100 | 0      | 0      | +100    |
-| Services           | +300 | 50     | 100    | +250    |
-| TUI Views          | +150 | 0      | 0      | +150    |
-| CLI Commands       | +100 | 20     | 0      | +120    |
-| Tests              | +200 | 50     | 500    | -250    |
-| Migration Scripts  | +150 | 0      | 0      | +150    |
-| **Total**          | +1000| 120    | 600    | +520    |
+| Category          | Add   | Modify | Remove | Total Δ |
+| ----------------- | ----- | ------ | ------ | ------- |
+| Schemas           | +100  | 0      | 0      | +100    |
+| Services          | +300  | 50     | 100    | +250    |
+| TUI Views         | +150  | 0      | 0      | +150    |
+| CLI Commands      | +100  | 20     | 0      | +120    |
+| Tests             | +200  | 50     | 500    | -250    |
+| Migration Scripts | +150  | 0      | 0      | +150    |
+| **Total**         | +1000 | 120    | 600    | +520    |
 
 **Net Impact:** +520 LOC (excluding documentation)
 
@@ -345,27 +351,32 @@ const results = await memoryBank.searchMemory("authentication");
 #### Source Files (`src/`)
 
 **File:** `src/services/plan_writer.ts`
+
 - **Remove:** `generateWikiLinks()` method (line ~265)
 - **Remove:** `generateWikiLinks` property from class
 - **Impact:** ~30 LOC removed
 
 **File:** `src/services/mission_reporter.ts`
+
 - **Remove:** `toWikiLink()` method (line ~368)
 - **Remove:** Wikilink generation in `buildContextSection()`
 - **Impact:** ~40 LOC removed
 
 **File:** `src/parsers/markdown.ts`
+
 - **Remove:** Comment "YAML format is used for Dataview compatibility in Obsidian" (line ~22)
 - **Keep:** YAML frontmatter parsing (it's not Obsidian-specific)
 - **Impact:** ~1 LOC removed (comment only)
 
 **File:** `src/schemas/request.ts`
+
 - **Remove:** Comment about Dataview compatibility (line ~9)
 - **Impact:** ~1 LOC removed (comment only)
 
 #### Test Files (`tests/`)
 
 **Files to Delete Entirely:**
+
 - `tests/obsidian/dashboard_queries_test.ts` (~120 LOC)
 - `tests/obsidian/dashboard_test.ts` (~150 LOC)
 - `tests/obsidian/file_watcher_test.ts` (~80 LOC)
@@ -375,11 +386,13 @@ const results = await memoryBank.searchMemory("authentication");
 **Total:** ~500 LOC removed
 
 **Files to Modify:**
+
 - `tests/mission_reporter_test.ts`: Remove wikilink assertions (~10 LOC)
 
 #### Templates
 
 **File:** `templates/Knowledge_Dashboard.md`
+
 - **Action:** Remove (Obsidian-specific Dataview queries)
 - **Impact:** ~50 LOC removed
 
@@ -412,7 +425,7 @@ interface MigrationStats {
 async function migrateReportsToExecutionMemory(
   knowledgePath: string,
   memoryPath: string,
-  dryRun: boolean
+  dryRun: boolean,
 ): Promise<number> {
   const reportsDir = join(knowledgePath, "Reports");
   if (!await exists(reportsDir)) return 0;
@@ -456,7 +469,7 @@ async function migrateReportsToExecutionMemory(
       };
       await Deno.writeTextFile(
         join(execDir, "context.json"),
-        JSON.stringify(contextJson, null, 2)
+        JSON.stringify(contextJson, null, 2),
       );
 
       // Generate changes.diff if git history available
@@ -473,7 +486,7 @@ async function migrateReportsToExecutionMemory(
 async function migratePortalsToProjectMemory(
   knowledgePath: string,
   memoryPath: string,
-  dryRun: boolean
+  dryRun: boolean,
 ): Promise<number> {
   const portalsDir = join(knowledgePath, "Portals");
   if (!await exists(portalsDir)) return 0;
@@ -509,7 +522,7 @@ async function migratePortalsToProjectMemory(
 
 async function archiveKnowledgeDirectory(
   knowledgePath: string,
-  dryRun: boolean
+  dryRun: boolean,
 ): Promise<void> {
   if (!await exists(knowledgePath)) return;
 
@@ -525,7 +538,7 @@ async function archiveKnowledgeDirectory(
 
 async function generateMemoryIndices(
   memoryPath: string,
-  dryRun: boolean
+  dryRun: boolean,
 ): Promise<void> {
   // Scan Memory/ tree and build indices
   const indexDir = join(memoryPath, "Index");
@@ -584,7 +597,7 @@ Options:
     stats.reports_migrated = await migrateReportsToExecutionMemory(
       knowledgePath,
       memoryPath,
-      dryRun
+      dryRun,
     );
 
     // Step 2: Migrate Portals/ → Projects/
@@ -592,7 +605,7 @@ Options:
     stats.portals_migrated = await migratePortalsToProjectMemory(
       knowledgePath,
       memoryPath,
-      dryRun
+      dryRun,
     );
 
     // Step 3: Archive original Knowledge/ directory
@@ -611,9 +624,8 @@ Options:
 
     if (stats.errors.length > 0) {
       console.log("\n⚠️  Errors encountered:");
-      stats.errors.forEach(err => console.log(`   - ${err}`));
+      stats.errors.forEach((err) => console.log(`   - ${err}`));
     }
-
   } catch (error) {
     console.error(`\n❌ Migration failed: ${error.message}`);
     Deno.exit(1);
@@ -673,6 +685,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 **Goal:** Design and document memory banks system
 
 **Tasks:**
+
 - [x] Create `docs/Memory_Banks.md` with full architecture
 - [x] Define Zod schemas in `src/schemas/memory_bank.ts`
 - [x] Design directory structure
@@ -680,16 +693,19 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 - [x] Review with stakeholders
 
 **Deliverables:**
+
 - [x] `docs/Memory_Banks.md` (comprehensive architecture doc)
 - [x] `src/schemas/memory_bank.ts` (schemas)
 - [x] `agents/planning/phase-12-obsidian-retirement.md` (this document)
 
 **Success Criteria:**
+
 - [x] Schemas validated with Zod
 - [x] Architecture reviewed and approved
 - [x] Migration approach agreed upon
 
 **Tests:**
+
 - [x] Schema validation tests in `tests/schemas/memory_bank_test.ts` (10+ tests)
 
 ---
@@ -699,6 +715,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 **Goal:** Build core memory bank CRUD operations
 
 **Tasks:**
+
 - [x] Implement `src/services/memory_bank.ts`
 - [x] Implement `src/services/project_memory.ts` (consolidated into memory_bank.ts)
 - [x] Implement `src/services/execution_memory.ts` (consolidated into memory_bank.ts)
@@ -706,15 +723,18 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 - [x] Integrate Activity Journal logging for all memory operations
 
 **Deliverables:**
+
 - [x] `src/services/memory_bank.ts` (~800+ LOC - consolidated all memory operations)
 - [x] Consolidated project and execution memory services into single service
 
 **Success Criteria:**
+
 - [x] All CRUD operations functional
 - [x] Activity Journal integration verified
 - [x] Memory bank files written with correct structure
 
 **Tests:**
+
 - [x] `tests/services/memory_bank_test.ts` (~200 LOC, 18 tests passing)
 - [x] Integration tests for Activity Journal logging
 
@@ -725,6 +745,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 **Goal:** Update MissionReporter to use Memory/Execution/
 
 **Tasks:**
+
 - [x] Update `src/services/mission_reporter.ts`
   - Change output path to `Memory/Execution/{trace-id}/`
   - Remove `toWikiLink()` method
@@ -734,16 +755,19 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 - [x] Verify Activity Journal integration
 
 **Deliverables:**
+
 - [x] Updated `src/services/mission_reporter.ts` (~100+ LOC changed)
 - [x] Updated `tests/mission_reporter_test.ts` (5 tests passing)
 
 **Success Criteria:**
+
 - [x] Mission reports written to Memory/Execution/
 - [x] No wikilinks generated
 - [x] Structured output (summary.md, context.json, changes.diff)
 - [x] Lessons learned extraction working
 
 **Tests:**
+
 - [x] All MissionReporter tests passing (5/5 tests)
 - [x] Integration tests verify Memory/Execution/ structure
 
@@ -754,6 +778,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 **Goal:** Delete all Obsidian-specific code and tests
 
 **Tasks:**
+
 - [x] Remove `tests/obsidian/` directory (5 files, ~500 LOC)
 - [x] Remove `templates/Knowledge_Dashboard.md`
 - [x] Remove wikilink methods from `plan_writer.ts` and `mission_reporter.ts`
@@ -763,17 +788,20 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 - [x] Fix all TypeScript compilation errors
 
 **Deliverables:**
+
 - [x] ~600 LOC removed
 - [x] All tests still passing (1073/1168 total tests passing)
 - [x] TypeScript compilation errors resolved
 
 **Success Criteria:**
+
 - [x] `tests/obsidian/` deleted
 - [x] No wikilink generation code remains
 - [x] No `grep` matches for "obsidian|wikilink|dataview" in `src/` (except historical comments in docs)
 - [x] All core functionality compiles and tests pass
 
 **Tests:**
+
 - [x] All remaining tests pass (no regressions)
 - [x] Memory Banks tests fully operational (18/18 + 5/5 mission reporter tests)
 - [x] Grep audit confirms no Obsidian code remains in active codebase
@@ -785,6 +813,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 > **📄 MOVED TO:** [phase-12.5-memory-bank-enhanced.md](phase-12.5-memory-bank-enhanced.md)
 >
 > Phase 12.5 has been expanded into a comprehensive Memory Banks v2 Enhanced Architecture document that includes:
+>
 > - **Phase 12.5:** Core CLI Commands (20+ commands)
 > - **Phase 12.8:** Global Memory & Promote/Demote
 > - **Phase 12.9:** Agent Memory Updates with User Notification
@@ -792,6 +821,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 > - **Phase 12.11:** Integration & Documentation
 >
 > See the linked document for:
+>
 > - Gap analysis comparing current vs. desired state
 > - Reference architecture survey (mem0, MemGPT, Zep, LangMem)
 > - Enhanced schemas (LearningSchema, MemoryUpdateProposalSchema, GlobalMemorySchema)
@@ -814,6 +844,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 **Tasks:**
 
 **New Documentation:**
+
 - [x] Create `docs/Memory_Banks.md`
   - Architecture overview
   - Directory structure
@@ -822,6 +853,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
   - Migration guide
 
 **Implementation Plan Updates:**
+
 - [x] Update `docs/ExoFrame_Implementation_Plan.md`
   - Mark Phase 5 as "DEPRECATED - Removed in v1.1"
   - Add deprecation notice at top of Phase 5
@@ -832,6 +864,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
   - Remove wikilink and Dataview references
 
 **Architecture Documentation:**
+
 - [x] Update `docs/ExoFrame_Architecture.md`
   - Replace Knowledge/ with Memory/ in directory structure
   - Update directory structure diagrams
@@ -840,6 +873,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
   - Update "agents/ Knowledge Base Index" section (not affected by this change)
 
 **User Guide:**
+
 - [x] Update `docs/ExoFrame_User_Guide.md`
   - **REMOVE** entire "3.2 Obsidian Integration" section
   - **REMOVE** Dataview setup instructions
@@ -850,12 +884,14 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
   - Update CLI reference for memory commands
 
 **Testing Strategy:**
+
 - [x] Update `docs/ExoFrame_Testing_and_CI_Strategy.md`
   - Remove Obsidian integration tests from test inventory
   - Update test location table (remove `tests/obsidian/`)
   - Update test count
 
 **Developer Setup:**
+
 - [x] Update `docs/ExoFrame_Developer_Setup.md`
   - Remove Obsidian installation instructions
   - Remove Obsidian vault configuration
@@ -864,6 +900,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
   - Update YAML frontmatter rationale (remove Dataview mention)
 
 **Technical Spec:**
+
 - [x] Update `docs/ExoFrame_Technical_Spec.md`
   - Update file format inventory
   - Remove Obsidian-specific formats (Dataview queries, wikilinks)
@@ -871,27 +908,32 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
   - Update directory structure
 
 **Building with AI Agents (Narrative):**
+
 - [x] Update `docs/Building_with_AI_Agents.md`
   - Add historical note about Obsidian experiment
   - Update "Activity Export" section (no longer exports for Obsidian)
   - Note: Keep historical sections but add context that Obsidian was retired
 
 **White Paper:**
+
 - [ ] Update `docs/ExoFrame_White_Paper.md` (if it mentions Obsidian)
   - Remove Obsidian references
   - Add Memory Banks to architecture
 
 **README:**
+
 - [x] Update `README.md`
   - Remove Obsidian from features
   - Add Memory Banks to features
   - Update quick start guide (no Obsidian setup)
 
 **Deliverables:**
+
 - `docs/Memory_Banks.md` (new, ~150 LOC)
 - 10 documentation files updated (~300 LOC changed across all files)
 
 **Success Criteria:**
+
 - [x] All documentation updated
 - [x] Phase 5 marked as DEPRECATED
 - [x] No broken cross-references
@@ -899,6 +941,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 - [x] Memory Banks fully documented
 
 **Tests:**
+
 - [ ] Documentation structure tests pass (`tests/docs/*_test.ts`)
 - [ ] Grep audit: no "Obsidian" in docs except Implementation Plan Phase 5 and historical sections
 
@@ -909,6 +952,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 **Goal:** Comprehensive testing and sign-off
 
 **Tasks:**
+
 - [ ] Run full test suite
 - [ ] Integration testing (end-to-end workflows)
 - [ ] Manual testing checklist
@@ -920,12 +964,14 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 - [ ] Sign-off from stakeholders
 
 **Deliverables:**
+
 - Test report (all tests passing)
 - Manual testing checklist (completed)
 - Performance benchmarks (passing)
 - Phase 12 sign-off
 
 **Success Criteria:**
+
 - [ ] All automated tests pass (0 failures, 0 regressions)
 - [ ] Manual testing checklist complete
 - [ ] Performance benchmarks meet targets
@@ -933,6 +979,7 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 - [ ] Migration tested with production data
 
 **Tests:**
+
 - [ ] Full test suite: `deno test --allow-all`
 - [ ] Integration test scenarios
 - [ ] Performance benchmarks
@@ -943,16 +990,16 @@ Deno.test("Migration: dry-run mode makes no changes", async () => {
 
 Each implementation phase has a defined rollback strategy:
 
-| Phase   | Rollback Strategy                                    |
-| ------- | ---------------------------------------------------- |
-| 12.1    | Revert schema files, delete planning docs            |
-| 12.2    | Remove memory bank services, revert tests            |
-| 12.3    | Revert MissionReporter to Knowledge/Reports/         |
-| 12.4    | Restore Obsidian code from git history               |
-| 12.5    | Delete migration script                              |
-| 12.6    | Revert CLI commands                                  |
-| 12.7    | Revert documentation changes                         |
-| 12.8    | Full revert to Phase 11 state                        |
+| Phase | Rollback Strategy                            |
+| ----- | -------------------------------------------- |
+| 12.1  | Revert schema files, delete planning docs    |
+| 12.2  | Remove memory bank services, revert tests    |
+| 12.3  | Revert MissionReporter to Knowledge/Reports/ |
+| 12.4  | Restore Obsidian code from git history       |
+| 12.5  | Delete migration script                      |
+| 12.6  | Revert CLI commands                          |
+| 12.7  | Revert documentation changes                 |
+| 12.8  | Full revert to Phase 11 state                |
 
 **Critical Rollback Point:** After Phase 12.4 (Obsidian code removal), rollback becomes more complex. Ensure Phases 12.1-12.3 are stable before proceeding to 12.4.
 
@@ -993,12 +1040,14 @@ Each implementation phase has a defined rollback strategy:
 TUI dashboard integration for Memory Banks will be implemented in a separate phase after v1.1 release:
 
 **Planned Features:**
+
 - Memory Banks view in TUI dashboard (keyboard shortcut `m`)
 - Projects tab (list, view details)
 - Execution history tab (browse past executions)
 - Search tab (query across all memory)
 
 **Rationale for Separate Phase:**
+
 - Phase 12 focuses on establishing memory banks infrastructure
 - TUI integration adds UI complexity
 - Can be released incrementally without blocking Obsidian retirement
@@ -1008,14 +1057,14 @@ TUI dashboard integration for Memory Banks will be implemented in a separate pha
 
 ## 8. Risk Assessment
 
-| Risk                                      | Likelihood | Impact | Mitigation                                                                 |
-| ----------------------------------------- | ---------- | ------ | -------------------------------------------------------------------------- |
-| **Data Loss During Migration**            | Low        | High   | Dry-run mode, backup before migration, extensive testing                   |
-| **Regression in Core Functionality**      | Medium     | High   | Comprehensive test suite, manual QA checklist                              |
-| **Performance Degradation**               | Low        | Medium | Benchmarking, indexed search                                                |
-| **User Confusion (Breaking Change)**      | Medium     | Medium | Clear migration guide, helpful error messages, changelog                   |
-| **Incomplete Obsidian Code Removal**      | Low        | Low    | grep audit, code review, comprehensive testing                             |
-| **Incomplete Documentation Update**       | Medium     | Medium | Systematic grep search, documentation tests, manual review                 |
+| Risk                                 | Likelihood | Impact | Mitigation                                                 |
+| ------------------------------------ | ---------- | ------ | ---------------------------------------------------------- |
+| **Data Loss During Migration**       | Low        | High   | Dry-run mode, backup before migration, extensive testing   |
+| **Regression in Core Functionality** | Medium     | High   | Comprehensive test suite, manual QA checklist              |
+| **Performance Degradation**          | Low        | Medium | Benchmarking, indexed search                               |
+| **User Confusion (Breaking Change)** | Medium     | Medium | Clear migration guide, helpful error messages, changelog   |
+| **Incomplete Obsidian Code Removal** | Low        | Low    | grep audit, code review, comprehensive testing             |
+| **Incomplete Documentation Update**  | Medium     | Medium | Systematic grep search, documentation tests, manual review |
 
 ---
 
@@ -1048,12 +1097,14 @@ TUI dashboard integration for Memory Banks will be implemented in a separate pha
 ### A. Current Obsidian Footprint
 
 **Source Files (19 references):**
+
 - plan_writer.ts: generateWikiLinks method
 - mission_reporter.ts: toWikiLink method
 - markdown.ts: YAML/Dataview comment
 - request.ts: Dataview compatibility comment
 
 **Test Files (5 dedicated files, ~500 LOC):**
+
 - tests/obsidian/dashboard_queries_test.ts
 - tests/obsidian/dashboard_test.ts
 - tests/obsidian/file_watcher_test.ts
@@ -1061,6 +1112,7 @@ TUI dashboard integration for Memory Banks will be implemented in a separate pha
 - tests/obsidian/vault_structure_test.ts
 
 **Documentation (50+ references):**
+
 - Implementation Plan: Phase 5 (lines 1184-2100+)
 - User Guide: Obsidian setup instructions
 - Architecture: Knowledge/ directory references
@@ -1091,6 +1143,7 @@ Total: ~770 KB
 
 **Document Status:** APPROVED — Ready for implementation
 **User Decisions:**
+
 - Directory name: `/Memory` (confirmed)
 - Migration: Clean break with backup (confirmed)
 - Context directory: Fold into Projects/ (confirmed)

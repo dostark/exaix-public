@@ -6,11 +6,12 @@
 
 ## Success Metrics
 [How to measure improvement]
-```
+````
 
 ### 3.2 Sub-Phase Design
 
 Each sub-phase should have:
+
 - **Goal:** Single-sentence objective
 - **Tasks:** Numbered implementation steps
 - **Success Criteria:** Checkboxes for completion

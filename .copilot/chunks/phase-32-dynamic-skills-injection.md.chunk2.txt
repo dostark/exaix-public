@@ -7,6 +7,7 @@
 ### Solution: Runtime Skills Injection
 
 Allow users to inject skills (e.g., `documentation-driven`, `file-ops`) at:
+
 1. **Request creation** - `exoctl request "..." --skills <skills>`
 2. **Plan approval** - `exoctl plan approve <id> --skills <skills>`
 

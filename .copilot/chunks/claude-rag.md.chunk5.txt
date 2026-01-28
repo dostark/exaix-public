@@ -1,4 +1,5 @@
 ✅ **Good:** Include chunk summaries in system prompt, full chunks in user message
+
 ```
 System: You are working on ExoFrame. Relevant docs: [testing.md: TDD patterns, exoframe.md: service patterns]
 User: [Full chunk text]\n\nTask: Implement ConfigLoader error handling
@@ -11,6 +12,7 @@ User: [Full chunk text]\n\nTask: Implement ConfigLoader error handling
 ### Mock Embeddings (Default)
 
 The default embeddings use **SHA-256-based deterministic vectors** (64-dimensional):
+
 - **Pros**: No API calls, reproducible, fast generation
 - **Cons**: Lower semantic accuracy than learned embeddings
 - **Quality**: Good for keyword matching, moderate for semantic similarity

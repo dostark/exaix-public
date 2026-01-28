@@ -8,6 +8,7 @@ topics: ["openai", "rag", "embeddings", "context-injection", "prompts"]
 ---
 
 Key points
+
 - Inspect RAG embeddings first to confirm retrieval quality.
 - Inject only the chunks you need (start small).
 - Cite the agent docs used to reinforce the habit.

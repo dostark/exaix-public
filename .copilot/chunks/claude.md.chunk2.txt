@@ -1,5 +1,4 @@
-Claude response:
-```
+````
 <thinking>
 The ConfigLoader needs to handle missing files gracefully. I'll propose tests first, then implement.
 

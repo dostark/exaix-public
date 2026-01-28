@@ -19,7 +19,7 @@ Use systematic debugging approach:
    - What's the actual behavior?
    - Where's the gap?
    - What files are involved?
-   </thinking>
+     </thinking>
 
 4. FIX:
    - Implement minimal fix
