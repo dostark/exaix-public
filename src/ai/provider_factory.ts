@@ -10,11 +10,9 @@
 declare const Deno: any;
 
 import * as DEFAULTS from "../config/constants.ts";
-import { IModelProvider } from "./providers.ts";
-import { MockStrategy } from "../enums.ts";
 import { Config } from "../config/schema.ts";
 import { AiConfig, getDefaultModels } from "../config/ai_config.ts";
-import { ProviderType } from "../enums.ts";
+import { MockStrategy, ProviderType } from "../enums.ts";
 import { LlamaProvider } from "./providers/llama_provider.ts";
 import { InputValidator } from "../schemas/input_validation.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
@@ -31,60 +29,10 @@ import {
 } from "./provider_registry.ts";
 import { RateLimitedProvider } from "./rate_limited_provider.ts";
 import { PricingTier } from "../enums.ts";
-
-// ============================================================================
-// Types and Interfaces
-// ============================================================================
-
-/**
- * Resolved provider options after merging env vars and config
- */
-export interface ResolvedProviderOptions {
-  /** Provider type */
-  provider: ProviderType;
-  /** Model name */
-  model: string;
-  /** API base URL */
-  baseUrl?: string;
-  /** Timeout in milliseconds */
-  timeoutMs: number;
-  /** API key (for cloud providers) */
-  apiKey?: string;
-  /** Mock strategy */
-  mockStrategy?: MockStrategy;
-  /** Mock fixtures directory */
-  mockFixturesDir?: string;
-  /** Custom provider ID */
-  id?: string;
-}
-
-/**
- * Provider information for logging/debugging
- */
-export interface ProviderInfo {
-  /** Provider type */
-  type: ProviderType;
-  /** Provider ID */
-  id: string;
-  /** Model name */
-  model: string;
-  /** Source of configuration */
-  source: "env" | "config" | "default";
-}
-
-// ============================================================================
-// Custom Error Type
-// ============================================================================
-
-/**
- * Error thrown by ProviderFactory
- */
-export class ProviderFactoryError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ProviderFactoryError";
-  }
-}
+import { IModelProvider, ProviderInfo, ResolvedProviderOptions } from "./types.ts";
+export type { IModelProvider, ProviderInfo, ResolvedProviderOptions };
+import { ProviderFactoryError } from "./errors.ts";
+import { LazyProvider } from "./providers/lazy_provider.ts";
 
 // ============================================================================
 // ProviderFactory Implementation
@@ -408,7 +356,8 @@ export class ProviderFactory {
     // Try registry first for modern providers
     const factory = ProviderRegistry.getFactory(options.provider);
     if (factory) {
-      return await factory.create(options);
+      // Use LazyProvider to defer initialization until first use
+      return new LazyProvider(factory, options);
     }
 
     // Fall back to legacy direct instantiation for backward compatibility

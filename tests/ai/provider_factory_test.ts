@@ -18,7 +18,8 @@
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
 import { DaemonStatus, MCPTransport } from "../../src/enums.ts";
-import { getProviderForModel, ProviderFactory, ProviderFactoryError } from "../../src/ai/provider_factory.ts";
+import { getProviderForModel, ProviderFactory } from "../../src/ai/provider_factory.ts";
+import { ProviderFactoryError } from "../../src/ai/errors.ts";
 import { LogLevel, ProviderType, SqliteJournalMode } from "../../src/enums.ts";
 import { RateLimitError } from "../../src/ai/rate_limited_provider.ts";
 import { SecureCredentialStore } from "../../src/utils/credential_security.ts";

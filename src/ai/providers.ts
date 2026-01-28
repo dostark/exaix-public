@@ -7,7 +7,8 @@
 declare const Deno: any;
 
 import { ProviderRegistry } from "./provider_registry.ts";
-import { ResolvedProviderOptions } from "./provider_factory.ts";
+import { IModelProvider, ModelOptions, ResolvedProviderOptions } from "./types.ts";
+export type { IModelProvider, ModelOptions };
 import {
   DEFAULT_OLLAMA_BASE_URL,
   DEFAULT_OLLAMA_MODEL,
@@ -24,37 +25,6 @@ import {
 
 // Import error classes from common
 import { ConnectionError, ModelProviderError, TimeoutError } from "./providers/common.ts";
-
-// ============================================================================
-// Types and Interfaces
-// ============================================================================
-
-/**
- * Options for model generation requests.
- */
-export interface ModelOptions {
-  temperature?: number;
-  max_tokens?: number;
-  top_p?: number;
-  stop?: string[];
-  stream?: boolean;
-}
-
-/**
- * Standard interface that all model providers must implement.
- */
-export interface IModelProvider {
-  /** Unique identifier for this provider instance. */
-  id: string;
-
-  /**
-   * Generate a response from the model.
-   * @param prompt The input prompt to send to the model
-   * @param options Optional generation parameters
-   * @returns The generated text response
-   */
-  generate(prompt: string, options?: ModelOptions): Promise<string>;
-}
 
 // ============================================================================
 // Mock Provider (for testing)
