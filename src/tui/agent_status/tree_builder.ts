@@ -1,0 +1,83 @@
+/**
+ * Tree builder utilities for Agent Status View
+ * Extracted from agent_status_view.ts to reduce complexity
+ */
+
+import { createGroupNode, createNode, type TreeNode } from "../utils/tree_view.ts";
+import type { AgentStatus } from "../agent_status_view.ts";
+import {
+  AGENT_STATUS_ACTIVE,
+  AGENT_STATUS_ERROR,
+  AGENT_STATUS_INACTIVE,
+  AGENT_STATUS_ORDER,
+} from "../../config/constants.ts";
+
+const AGENT_STATUS_ICONS: Record<string, string> = {
+  [AGENT_STATUS_ACTIVE]: "🟢",
+  [AGENT_STATUS_INACTIVE]: "⚪",
+  [AGENT_STATUS_ERROR]: "🔴",
+};
+
+/**
+ * Build flat agent tree (no grouping)
+ */
+export function buildFlatTree(agents: AgentStatus[]): TreeNode[] {
+  return agents.map((agent) => {
+    const icon = AGENT_STATUS_ICONS[agent.status] || "⚪";
+    const label = `${icon} ${agent.name} (${agent.model})`;
+    return createNode(agent.id, label, "agent", { expanded: true });
+  });
+}
+
+/**
+ * Build agent tree grouped by status
+ */
+export function buildTreeByStatus(agents: AgentStatus[]): TreeNode[] {
+  const byStatus = new Map<string, AgentStatus[]>();
+  for (const agent of agents) {
+    if (!byStatus.has(agent.status)) {
+      byStatus.set(agent.status, []);
+    }
+    byStatus.get(agent.status)!.push(agent);
+  }
+
+  // Order: active, inactive, error
+  return AGENT_STATUS_ORDER
+    .filter((status) => byStatus.has(status))
+    .map((status) => {
+      const statusAgents = byStatus.get(status)!;
+      const icon = AGENT_STATUS_ICONS[status] || "⚪";
+      const children = statusAgents.map((agent) => {
+        const label = `🤖 ${agent.name} (${agent.model})`;
+        return createNode(agent.id, label, "agent", { expanded: true });
+      });
+      return createGroupNode(
+        `status-${status}`,
+        `${icon} ${status.charAt(0).toUpperCase() + status.slice(1)} (${statusAgents.length})`,
+        "status-group",
+        children,
+      );
+    });
+}
+
+/**
+ * Build agent tree grouped by model
+ */
+export function buildTreeByModel(agents: AgentStatus[]): TreeNode[] {
+  const byModel = new Map<string, AgentStatus[]>();
+  for (const agent of agents) {
+    if (!byModel.has(agent.model)) {
+      byModel.set(agent.model, []);
+    }
+    byModel.get(agent.model)!.push(agent);
+  }
+
+  return Array.from(byModel.entries()).map(([model, modelAgents]) => {
+    const children = modelAgents.map((agent) => {
+      const icon = AGENT_STATUS_ICONS[agent.status] || "⚪";
+      const label = `${icon} ${agent.name}`;
+      return createNode(agent.id, label, "agent", { expanded: true });
+    });
+    return createGroupNode(`model-${model}`, `🧠 ${model} (${modelAgents.length})`, "model-group", children);
+  });
+}

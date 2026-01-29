@@ -99,20 +99,18 @@ export const REQUEST_KEY_BINDINGS: KeyBinding[] = [
 // --- Imports for Phase 13.6 ---
 import { TuiSessionBase } from "./tui_common.ts";
 import { RequestPriority, RequestStatus } from "../enums.ts";
-import {
-  collapseAll,
-  createGroupNode,
-  createNode,
-  expandAll,
-  findNode,
-  flattenTree,
-  renderTree,
-  toggleNode,
-  type TreeNode,
-} from "./utils/tree_view.ts";
+import { createGroupNode, createNode, findNode, flattenTree, renderTree, type TreeNode } from "./utils/tree_view.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
+
+// --- Extracted utilities ---
+import {
+  isGroupNode as isGroupNodeUtil,
+  NavigationHandler,
+  TreeManipulationHandler,
+} from "./request_manager/key_handlers.ts";
+import { formatDetailContent as formatDetailContentUtil } from "./request_manager/formatters.ts";
 
 // --- Adapter: RequestCommands as RequestService ---
 import type { RequestCommands } from "../cli/request_commands.ts";
@@ -244,7 +242,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
    * Check if an ID is a group node ID (not a request ID).
    */
   private isGroupNode(id: string): boolean {
-    return id.startsWith("status-") || id.startsWith("priority-") || id.startsWith("agent-");
+    return isGroupNodeUtil(this.state.requestTree, id);
   }
 
   /**
@@ -428,52 +426,33 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   // ===== Navigation =====
 
   navigateTree(direction: "up" | "down" | "first" | "last"): void {
-    const flat = flattenTree(this.state.requestTree);
-    if (flat.length === 0) return;
-
-    const currentIdx = this.state.selectedRequestId
-      ? flat.findIndex((n) => n.node.id === this.state.selectedRequestId)
-      : -1;
-
-    let newIdx: number;
-    switch (direction) {
-      case "up":
-        newIdx = currentIdx > 0 ? currentIdx - 1 : 0;
-        break;
-      case "down":
-        newIdx = currentIdx < flat.length - 1 ? currentIdx + 1 : flat.length - 1;
-        break;
-      case "first":
-        newIdx = 0;
-        break;
-      case "last":
-        newIdx = flat.length - 1;
-        break;
-    }
-
-    this.state.selectedRequestId = flat[newIdx]?.node.id || null;
+    this.state.selectedRequestId = NavigationHandler.navigate(
+      this.state.requestTree,
+      this.state.selectedRequestId,
+      direction,
+    );
   }
 
   // Node expansion/collapse
   expandSelectedNode(): void {
-    if (!this.state.selectedRequestId) return;
-    const node = findNode(this.state.requestTree, this.state.selectedRequestId);
-    if (node && node.type === "group" && !node.expanded) {
-      this.state.requestTree = toggleNode(this.state.requestTree, this.state.selectedRequestId);
-    }
+    this.state.requestTree = TreeManipulationHandler.expandNode(
+      this.state.requestTree,
+      this.state.selectedRequestId,
+    );
   }
 
   collapseSelectedNode(): void {
-    if (!this.state.selectedRequestId) return;
-    const node = findNode(this.state.requestTree, this.state.selectedRequestId);
-    if (node && node.type === "group" && node.expanded) {
-      this.state.requestTree = toggleNode(this.state.requestTree, this.state.selectedRequestId);
-    }
+    this.state.requestTree = TreeManipulationHandler.collapseNode(
+      this.state.requestTree,
+      this.state.selectedRequestId,
+    );
   }
 
   toggleSelectedNode(): void {
-    if (!this.state.selectedRequestId) return;
-    this.state.requestTree = toggleNode(this.state.requestTree, this.state.selectedRequestId);
+    this.state.requestTree = TreeManipulationHandler.toggleNode(
+      this.state.requestTree,
+      this.state.selectedRequestId,
+    );
   }
 
   // ===== Detail View =====
@@ -492,61 +471,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   }
 
   private formatDetailContent(request: Request | undefined, content: string): string {
-    if (!request) return content;
-
-    const lines = [
-      `╔══════════════════════════════════════════════════════════════╗`,
-      `║                      REQUEST DETAILS                         ║`,
-      `╠══════════════════════════════════════════════════════════════╣`,
-      `║ ID:       ${request.trace_id.padEnd(50)}║`,
-      `║ Title:    ${request.title.padEnd(50)}║`,
-      `║ Status:   ${request.status.padEnd(50)}║`,
-      `║ Priority: ${request.priority.padEnd(50)}║`,
-      `║ Agent:    ${request.agent.padEnd(50)}║`,
-      `║ Created:  ${new Date(request.created).toLocaleString().padEnd(50)}║`,
-      `║ Creator:  ${request.created_by.padEnd(50)}║`,
-    ];
-
-    // Phase 17: Add skills section if present
-    if (request.skills) {
-      lines.push(`╠══════════════════════════════════════════════════════════════╣`);
-      lines.push(`║ Applied Skills:                                              ║`);
-
-      if (request.skills.explicit && request.skills.explicit.length > 0) {
-        lines.push(`║   Explicit: ${request.skills.explicit.join(", ").slice(0, 46).padEnd(46)} ║`);
-      }
-      if (request.skills.autoMatched && request.skills.autoMatched.length > 0) {
-        lines.push(`║   Auto-matched: ${request.skills.autoMatched.join(", ").slice(0, 42).padEnd(42)} ║`);
-      }
-      if (request.skills.fromDefaults && request.skills.fromDefaults.length > 0) {
-        lines.push(`║   From defaults: ${request.skills.fromDefaults.join(", ").slice(0, 41).padEnd(41)} ║`);
-      }
-      if (request.skills.skipped && request.skills.skipped.length > 0) {
-        lines.push(`║   Skipped: ${request.skills.skipped.join(", ").slice(0, 47).padEnd(47)} ║`);
-      }
-      if (
-        !request.skills.explicit?.length && !request.skills.autoMatched?.length &&
-        !request.skills.fromDefaults?.length
-      ) {
-        lines.push(`║   (none)                                                     ║`);
-      }
-    }
-
-    lines.push(`╠══════════════════════════════════════════════════════════════╣`);
-    lines.push(`║ Content:                                                     ║`);
-    lines.push(`╠══════════════════════════════════════════════════════════════╣`);
-
-    // Add content lines
-    const contentLines = content.split("\n");
-    for (const line of contentLines) {
-      lines.push(`║ ${line.slice(0, 60).padEnd(60)}║`);
-    }
-
-    lines.push(`╚══════════════════════════════════════════════════════════════╝`);
-    lines.push("");
-    lines.push("Press ESC or q to close");
-
-    return lines.join("\n");
+    return formatDetailContentUtil(request, content);
   }
 
   renderDetail(): string {
@@ -971,10 +896,10 @@ export class RequestManagerTuiSession extends TuiSessionBase {
         await this.refresh();
         return true;
       case "C":
-        this.state.requestTree = collapseAll(this.state.requestTree);
+        this.state.requestTree = TreeManipulationHandler.collapseAll(this.state.requestTree);
         return true;
       case "E":
-        this.state.requestTree = expandAll(this.state.requestTree);
+        this.state.requestTree = TreeManipulationHandler.expandAll(this.state.requestTree);
         return true;
 
       case "?":

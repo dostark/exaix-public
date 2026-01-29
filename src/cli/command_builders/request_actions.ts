@@ -1,0 +1,159 @@
+/**
+ * Action handlers for Request commands
+ * Extracted from exoctl.ts to reduce complexity
+ */
+
+import type { RequestCommands } from "../request_commands.ts";
+import { RequestPriority } from "../../enums.ts";
+import { PRIORITY_ICONS } from "../cli.config.ts";
+
+export interface RequestActionContext {
+  requestCommands: RequestCommands;
+  display: any;
+}
+
+/**
+ * Handle request create action
+ */
+export async function handleRequestCreate(
+  context: RequestActionContext,
+  options: any,
+  description?: string,
+): Promise<void> {
+  const { requestCommands, display } = context;
+
+  try {
+    // Handle file input
+    if (options.file) {
+      const result = await requestCommands.createFromFile(options.file, {
+        agent: options.flow ? undefined : options.agent,
+        priority: options.priority as RequestPriority,
+        portal: options.portal,
+        model: options.model,
+        flow: options.flow,
+        skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
+      });
+      printRequestResult(context, result, !!options.json, !!options.dryRun);
+      return;
+    }
+
+    // Require description for inline mode
+    if (!description) {
+      display.error("cli.error", "request", {
+        message: 'Description required. Usage: exoctl request "<description>" or use --file',
+      });
+      Deno.exit(1);
+    }
+
+    // Create request
+    const result = await requestCommands.create(description, {
+      agent: options.flow ? undefined : options.agent,
+      priority: options.priority as RequestPriority,
+      portal: options.portal,
+      model: options.model,
+      flow: options.flow,
+      skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
+    });
+
+    if (options.dryRun) {
+      display.info("cli.dry_run", "request", { would_create: result.filename });
+      return;
+    }
+
+    printRequestResult(context, result, !!options.json, false);
+  } catch (error) {
+    display.error("cli.error", "request", { message: error instanceof Error ? error.message : "Unknown error" });
+    Deno.exit(1);
+  }
+}
+
+/**
+ * Handle request list action
+ */
+export async function handleRequestList(
+  context: RequestActionContext,
+  options: any,
+): Promise<void> {
+  const { requestCommands, display } = context;
+
+  try {
+    const requests = await requestCommands.list(options.status);
+    if (options.json) {
+      display.info("cli.output", "requests", { data: JSON.stringify(requests, null, 2) });
+    } else {
+      if (requests.length === 0) {
+        display.info("request.list", "requests", { count: 0, message: "No requests found" });
+        return;
+      }
+      display.info("request.list", "requests", { count: requests.length });
+      for (const req of requests) {
+        const priorityIcon = PRIORITY_ICONS[req.priority] || PRIORITY_ICONS.default;
+        display.info(`${priorityIcon} ${req.trace_id.slice(0, 8)}`, req.trace_id, {
+          status: req.status,
+          agent: req.flow ? undefined : req.agent,
+          flow: req.flow,
+          created: `${req.created_by} @ ${req.created}`,
+        });
+      }
+    }
+  } catch (error) {
+    display.error("cli.error", "request list", {
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    Deno.exit(1);
+  }
+}
+
+/**
+ * Handle request show action
+ */
+export async function handleRequestShow(
+  context: RequestActionContext,
+  id: string,
+): Promise<void> {
+  const { requestCommands, display } = context;
+
+  try {
+    const { metadata, content } = await requestCommands.show(id);
+    display.info("request.show", metadata.trace_id.slice(0, 8), {
+      trace_id: metadata.trace_id,
+      status: metadata.status,
+      priority: metadata.priority,
+      agent: metadata.flow ? undefined : metadata.agent,
+      flow: metadata.flow,
+      created: `${metadata.created_by} @ ${metadata.created}`,
+    });
+    display.info("request.content", id, { content });
+  } catch (error) {
+    display.error("cli.error", "request show", {
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    Deno.exit(1);
+  }
+}
+
+/**
+ * Print request result (helper function)
+ */
+function printRequestResult(
+  context: RequestActionContext,
+  result: any,
+  json: boolean,
+  _dryRun: boolean,
+): void {
+  const { display } = context;
+
+  if (json) {
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    const priorityIcon = PRIORITY_ICONS[result.priority] || PRIORITY_ICONS.default;
+    display.info("request.created", result.trace_id.slice(0, 8), {
+      trace_id: result.trace_id,
+      filename: result.filename,
+      priority: `${priorityIcon} ${result.priority}`,
+      agent: result.flow ? undefined : result.agent,
+      flow: result.flow,
+      status: result.status,
+    });
+  }
+}

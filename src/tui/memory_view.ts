@@ -37,6 +37,16 @@ import {
 import { renderCategoryBadge, renderConfidence, renderMarkdown, renderSpinner } from "./utils/markdown_renderer.ts";
 import { MEMORY_STALE_MS } from "./tui.config.ts";
 
+// Extracted utilities
+import { NavigationHandler, SearchModeHandler, ShortcutHandler } from "./memory_view/key_handlers.ts";
+import {
+  processAddLearningDialog,
+  processBulkApproveDialog,
+  processConfirmApproveDialog,
+  processConfirmRejectDialog,
+  processPromoteDialog,
+} from "./memory_view/dialog_processor.ts";
+
 // ===== Types =====
 
 export type MemoryScope = "global" | "projects" | "executions" | "pending" | "search";
@@ -439,104 +449,66 @@ export class MemoryViewTuiSession extends TuiSessionBase {
 
     // Search mode handling
     if (this.state.searchActive) {
-      if (key === "escape") {
-        this.state.searchActive = false;
-        this.state.searchQuery = "";
-        await this.loadTree();
-        return true;
+      const result = SearchModeHandler.handleKey(
+        key,
+        this.state.searchQuery,
+        () => {
+          this.state.searchActive = false;
+          this.state.searchQuery = "";
+          this.loadTree();
+        },
+        () => {
+          this.executeSearch();
+          this.state.searchActive = false;
+        },
+      );
+      if (result.newQuery !== undefined) {
+        this.state.searchQuery = result.newQuery;
       }
-      if (key === "enter") {
-        await this.executeSearch();
-        this.state.searchActive = false;
-        return true;
-      }
-      if (key === "backspace") {
-        this.state.searchQuery = this.state.searchQuery.slice(0, -1);
-        return true;
-      }
-      if (key.length === 1) {
-        this.state.searchQuery += key;
-        return true;
-      }
-      return true;
+      return result.handled;
     }
 
     // Shortcut keys
-    switch (key) {
-      case "g":
-        await this.jumpToScope("global");
-        return true;
-      case "p":
-        await this.jumpToScope("projects");
-        return true;
-      case "e":
-        await this.jumpToScope("executions");
-        return true;
-      case "n":
-        await this.jumpToScope("pending");
-        return true;
-      case "s":
-      case "/":
+    const shortcutHandled = await ShortcutHandler.handleKey(key, {
+      jumpToScope: (scope) => this.jumpToScope(scope as MemoryScope),
+      startSearch: () => {
         this.state.searchActive = true;
         this.state.searchQuery = "";
-        return true;
-      case "?":
+      },
+      showHelp: () => {
         this.state.detailContent = this.renderHelpContent();
-        return true;
-      case "a":
-        await this.approveSelectedProposal();
-        return true;
-      case "r":
-        await this.rejectSelectedProposal();
-        return true;
-      case "A":
-        await this.approveAllProposals();
-        return true;
-      case "L":
-        this.openAddLearningDialog();
-        return true;
-      case "P":
-        this.promoteSelectedLearning();
-        return true;
-      case "R":
-        await this.refresh();
-        return true;
-    }
+      },
+      approveProposal: () => this.approveSelectedProposal(),
+      rejectProposal: () => this.rejectSelectedProposal(),
+      approveAll: () => this.approveAllProposals(),
+      addLearning: () => this.openAddLearningDialog(),
+      promoteLearning: () => this.promoteSelectedLearning(),
+      refresh: () => this.refresh(),
+    });
+    if (shortcutHandled) return true;
 
     // Navigation keys
-    if (this.flatNodes.length === 0) return false;
+    const navHandled = await NavigationHandler.handleKey(
+      key,
+      this.flatNodes,
+      this.state.selectedNodeId,
+      async (nodeId, node) => {
+        this.state.selectedNodeId = nodeId;
+        await this.loadDetailForNode(node);
+      },
+    );
+    if (navHandled) return true;
 
-    const currentIndex = this.flatNodes.findIndex((n) => n.id === this.state.selectedNodeId);
-
-    switch (key) {
-      case "up":
-        if (currentIndex > 0) {
-          this.state.selectedNodeId = this.flatNodes[currentIndex - 1].id;
-          await this.loadDetailForNode(this.flatNodes[currentIndex - 1]);
-        }
-        return true;
-      case "down":
-        if (currentIndex < this.flatNodes.length - 1) {
-          this.state.selectedNodeId = this.flatNodes[currentIndex + 1].id;
-          await this.loadDetailForNode(this.flatNodes[currentIndex + 1]);
-        }
-        return true;
-      case "enter":
-      case "right":
-        await this.toggleExpand();
-        return true;
-      case "left":
-        await this.collapseOrParent();
-        return true;
-      case "home":
-        this.state.selectedNodeId = this.flatNodes[0].id;
-        await this.loadDetailForNode(this.flatNodes[0]);
-        return true;
-      case "end":
-        this.state.selectedNodeId = this.flatNodes[this.flatNodes.length - 1].id;
-        await this.loadDetailForNode(this.flatNodes[this.flatNodes.length - 1]);
-        return true;
+    // Handle expand/collapse
+    if (key === "enter" || key === "right") {
+      await this.toggleExpand();
+      return true;
     }
+    if (key === "left") {
+      await this.collapseOrParent();
+      return true;
+    }
+
     return false;
   }
 
@@ -717,70 +689,26 @@ export class MemoryViewTuiSession extends TuiSessionBase {
 
     this.state.activeDialog = null;
 
+    const context = {
+      service: this.service,
+      onStatusUpdate: (msg: string) => {
+        this.statusMessage = msg;
+      },
+      onTreeReload: () => this.loadTree(),
+      onPendingCountReload: () => this.loadPendingCount(),
+    };
+
     // Handle different dialog types with typed results
     if (dialog instanceof ConfirmApproveDialog) {
-      const result = dialog.getResult();
-      if (result.type === "cancelled") {
-        this.statusMessage = "Cancelled";
-        return;
-      }
-      try {
-        await this.service.approvePending(result.value.proposalId);
-        this.statusMessage = "Proposal approved";
-        await this.loadTree();
-        await this.loadPendingCount();
-      } catch (e) {
-        this.statusMessage = `Error: ${e instanceof Error ? e.message : String(e)}`;
-      }
+      await processConfirmApproveDialog(dialog, context);
     } else if (dialog instanceof ConfirmRejectDialog) {
-      const result = dialog.getResult();
-      if (result.type === "cancelled") {
-        this.statusMessage = "Cancelled";
-        return;
-      }
-      try {
-        await this.service.rejectPending(result.value.proposalId, result.value.reason);
-        this.statusMessage = "Proposal rejected";
-        await this.loadTree();
-        await this.loadPendingCount();
-      } catch (e) {
-        this.statusMessage = `Error: ${e instanceof Error ? e.message : String(e)}`;
-      }
+      await processConfirmRejectDialog(dialog, context);
     } else if (dialog instanceof BulkApproveDialog) {
-      const result = dialog.getResult();
-      if (result.type === "cancelled") {
-        this.statusMessage = "Cancelled";
-        return;
-      }
-      try {
-        const pending = await this.service.listPending();
-        let approved = 0;
-        for (const proposal of pending) {
-          await this.service.approvePending(proposal.id);
-          approved++;
-        }
-        this.statusMessage = `Approved ${approved} proposals`;
-        await this.loadTree();
-        await this.loadPendingCount();
-      } catch (e) {
-        this.statusMessage = `Error: ${e instanceof Error ? e.message : String(e)}`;
-      }
+      await processBulkApproveDialog(dialog, context);
     } else if (dialog instanceof AddLearningDialog) {
-      const result = dialog.getResult();
-      if (result.type === "cancelled") {
-        this.statusMessage = "Cancelled";
-        return;
-      }
-      // AddLearning would require additional service method
-      this.statusMessage = "Learning add not implemented yet";
+      processAddLearningDialog(dialog, context);
     } else if (dialog instanceof PromoteDialog) {
-      const result = dialog.getResult();
-      if (result.type === "cancelled") {
-        this.statusMessage = "Cancelled";
-        return;
-      }
-      // Promote would require additional service method
-      this.statusMessage = "Promote not implemented yet";
+      processPromoteDialog(dialog, context);
     }
   }
 

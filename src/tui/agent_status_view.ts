@@ -15,8 +15,6 @@ import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from
 import type { TreeNode } from "./utils/tree_view.ts";
 import {
   collapseAll,
-  createGroupNode,
-  createNode,
   expandAll,
   findNode,
   flattenTree,
@@ -30,6 +28,10 @@ import {
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
+
+// Extracted utilities
+import { MainViewHandler, ViewModeHandler } from "./agent_status/key_handlers.ts";
+import { buildFlatTree, buildTreeByModel, buildTreeByStatus } from "./agent_status/tree_builder.ts";
 
 // ===== Service Interfaces =====
 
@@ -429,58 +431,11 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     const agents = this.getFilteredAgents();
 
     if (this.state.groupBy === "none") {
-      // Flat list
-      this.state.agentTree = agents.map((agent) => {
-        const icon = AGENT_STATUS_ICONS[agent.status] || "⚪";
-        const label = `${icon} ${agent.name} (${agent.model})`;
-        return createNode(agent.id, label, "agent", { expanded: true });
-      });
+      this.state.agentTree = buildFlatTree(agents);
     } else if (this.state.groupBy === "status") {
-      // Group by status
-      const byStatus = new Map<string, AgentStatus[]>();
-      for (const agent of agents) {
-        if (!byStatus.has(agent.status)) {
-          byStatus.set(agent.status, []);
-        }
-        byStatus.get(agent.status)!.push(agent);
-      }
-
-      // Order: active, inactive, error
-      const statusOrder = ["active", "inactive", "error"];
-      this.state.agentTree = statusOrder
-        .filter((status) => byStatus.has(status))
-        .map((status) => {
-          const statusAgents = byStatus.get(status)!;
-          const icon = AGENT_STATUS_ICONS[status] || "⚪";
-          const children = statusAgents.map((agent) => {
-            const label = `🤖 ${agent.name} (${agent.model})`;
-            return createNode(agent.id, label, "agent", { expanded: true });
-          });
-          return createGroupNode(
-            `status-${status}`,
-            `${icon} ${status.charAt(0).toUpperCase() + status.slice(1)} (${statusAgents.length})`,
-            "status-group",
-            children,
-          );
-        });
+      this.state.agentTree = buildTreeByStatus(agents);
     } else if (this.state.groupBy === "model") {
-      // Group by model
-      const byModel = new Map<string, AgentStatus[]>();
-      for (const agent of agents) {
-        if (!byModel.has(agent.model)) {
-          byModel.set(agent.model, []);
-        }
-        byModel.get(agent.model)!.push(agent);
-      }
-
-      this.state.agentTree = Array.from(byModel.entries()).map(([model, modelAgents]) => {
-        const children = modelAgents.map((agent) => {
-          const icon = AGENT_STATUS_ICONS[agent.status] || "⚪";
-          const label = `${icon} ${agent.name}`;
-          return createNode(agent.id, label, "agent", { expanded: true });
-        });
-        return createGroupNode(`model-${model}`, `🧠 ${model} (${modelAgents.length})`, "model-group", children);
-      });
+      this.state.agentTree = buildTreeByModel(agents);
     }
   }
 
@@ -838,79 +793,44 @@ export class AgentStatusTuiSession extends TuiSessionBase {
       return true;
     }
 
-    // Handle detail view
-    if (this.state.showDetail) {
-      if (key === "escape" || key === "q") {
-        this.hideDetail();
-      }
-      return true;
-    }
-
-    // Handle logs view
-    if (this.state.showLogs) {
-      if (key === "escape" || key === "q") {
-        this.hideLogs();
-      }
-      return true;
-    }
-
-    // Handle help view
-    if (this.state.showHelp) {
-      if (key === "escape" || key === "q" || key === "?") {
-        this.state.showHelp = false;
-      }
-      return true;
-    }
+    // Handle view modes (detail, logs, help)
+    const viewModeHandled = ViewModeHandler.handleKey(
+      key,
+      {
+        showDetail: this.state.showDetail,
+        showLogs: this.state.showLogs,
+        showHelp: this.state.showHelp,
+      },
+      {
+        hideDetail: () => this.hideDetail(),
+        hideLogs: () => this.hideLogs(),
+        toggleHelp: () => {
+          this.state.showHelp = false;
+        },
+      },
+    );
+    if (viewModeHandled) return true;
 
     // Main view key handling
-    switch (key) {
-      case "up":
-        this.navigateUp();
-        return true;
-      case "down":
-        this.navigateDown();
-        return true;
-      case "home":
-        this.navigateToFirst();
-        return true;
-      case "end":
-        this.navigateToLast();
-        return true;
-      case "left":
-        this.collapseSelected();
-        return true;
-      case "right":
-        this.expandSelected();
-        return true;
-      case "enter":
-        await this.showAgentDetail();
-        return true;
-      case "l":
-        await this.showAgentLogs();
-        return true;
-      case "s":
-        this.showSearchDialog();
-        return true;
-      case "g":
-        this.toggleGrouping();
-        return true;
-      case "R":
-        await this.refreshAgents();
-        return true;
-      case "a":
-        this.toggleAutoRefresh();
-        return true;
-      case "c":
-        this.collapseAllNodes();
-        return true;
-      case "E":
-        this.expandAllNodes();
-        return true;
-      case "?":
+    return await MainViewHandler.handleKey(key, {
+      navigateUp: () => this.navigateUp(),
+      navigateDown: () => this.navigateDown(),
+      navigateToFirst: () => this.navigateToFirst(),
+      navigateToLast: () => this.navigateToLast(),
+      collapseSelected: () => this.collapseSelected(),
+      expandSelected: () => this.expandSelected(),
+      showAgentDetail: () => this.showAgentDetail(),
+      showAgentLogs: () => this.showAgentLogs(),
+      showSearchDialog: () => this.showSearchDialog(),
+      toggleGrouping: () => this.toggleGrouping(),
+      refreshAgents: () => this.refreshAgents(),
+      toggleAutoRefresh: () => this.toggleAutoRefresh(),
+      collapseAllNodes: () => this.collapseAllNodes(),
+      expandAllNodes: () => this.expandAllNodes(),
+      toggleHelp: () => {
         this.state.showHelp = true;
-        return true;
-    }
-    return false;
+      },
+    });
   }
 
   // ===== Rendering =====

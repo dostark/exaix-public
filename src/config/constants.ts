@@ -388,6 +388,60 @@ export const DEFAULT_GOOGLE_ENDPOINT = "https://generativelanguage.googleapis.co
 export const DEFAULT_SUBPROCESS_TIMEOUT_MS = 30000;
 
 // ============================================================================
+// Keyboard Key Constants
+// ============================================================================
+export const KEY_ESCAPE = "escape";
+export const KEY_ENTER = "enter";
+export const KEY_BACKSPACE = "backspace";
+export const KEY_UP = "up";
+export const KEY_DOWN = "down";
+export const KEY_LEFT = "left";
+export const KEY_RIGHT = "right";
+export const KEY_HOME = "home";
+export const KEY_END = "end";
+export const KEY_QUESTION = "?";
+export const KEY_SLASH = "/";
+export const KEY_Q = "q";
+
+// Shortcut keys for memory view
+export const KEY_G = "g";
+export const KEY_P = "p";
+export const KEY_E = "e";
+export const KEY_N = "n";
+export const KEY_S = "s";
+export const KEY_A = "a";
+export const KEY_R = "r";
+export const KEY_L = "L";
+export const KEY_CAPITAL_P = "P";
+export const KEY_CAPITAL_R = "R";
+export const KEY_CAPITAL_A = "A";
+export const KEY_CAPITAL_E = "E";
+export const KEY_C = "c";
+
+// ============================================================================
+// Agent Status Constants
+// ============================================================================
+export const AGENT_STATUS_ACTIVE = "active";
+export const AGENT_STATUS_INACTIVE = "inactive";
+export const AGENT_STATUS_ERROR = "error";
+
+export const AGENT_HEALTH_HEALTHY = "healthy";
+export const AGENT_HEALTH_WARNING = "warning";
+export const AGENT_HEALTH_CRITICAL = "critical";
+
+// Agent status order for grouping
+export const AGENT_STATUS_ORDER = [AGENT_STATUS_ACTIVE, AGENT_STATUS_INACTIVE, AGENT_STATUS_ERROR];
+
+// ============================================================================
+// Memory Scope Constants
+// ============================================================================
+export const MEMORY_SCOPE_GLOBAL = "global";
+export const MEMORY_SCOPE_PROJECTS = "projects";
+export const MEMORY_SCOPE_EXECUTIONS = "executions";
+export const MEMORY_SCOPE_PENDING = "pending";
+export const MEMORY_SCOPE_SEARCH = "search";
+
+// ============================================================================
 // Logging Defaults
 // ============================================================================
 export const DEFAULT_LOG_LEVEL = LogLevel.INFO;

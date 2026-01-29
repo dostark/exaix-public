@@ -24,10 +24,19 @@ import { FlowCommands } from "./flow_commands.ts";
 import { DashboardCommands } from "./dashboard_commands.ts";
 import { MemoryCommands } from "./memory_commands.ts";
 import { JournalCommands } from "./commands/journal.ts";
-import { RequestPriority } from "../enums.ts";
-import { CLI_DEFAULTS, PRIORITY_ICONS } from "./cli.config.ts";
+import { CLI_DEFAULTS } from "./cli.config.ts";
 import { McpCommands } from "./commands/mcp.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
+
+// Extracted action handlers
+import { handleRequestCreate, handleRequestList, handleRequestShow } from "./command_builders/request_actions.ts";
+import {
+  handlePlanApprove,
+  handlePlanList,
+  handlePlanReject,
+  handlePlanRevise,
+  handlePlanShow,
+} from "./command_builders/plan_actions.ts";
 
 // Allow tests to run the CLI entrypoint without initializing heavy services
 export function isTestMode() {
@@ -118,49 +127,7 @@ export const __test_command = new Command()
       .option("--dry-run", "Show what would be created without writing")
       .option("--json", "Output in JSON format")
       .action(async (options, description?: string) => {
-        try {
-          // Handle file input
-          if (options.file) {
-            const result = await requestCommands.createFromFile(options.file, {
-              agent: options.flow ? undefined : options.agent,
-              priority: options.priority as RequestPriority,
-              portal: options.portal,
-              model: options.model,
-              flow: options.flow,
-              skills: options.skills ? options.skills.split(",").map((s) => s.trim()) : undefined,
-            });
-            printRequestResult(result, !!options.json, !!options.dryRun);
-            return;
-          }
-
-          // Require description for inline mode
-          if (!description) {
-            display.error("cli.error", "request", {
-              message: 'Description required. Usage: exoctl request "<description>" or use --file',
-            });
-            Deno.exit(1);
-          }
-
-          // Create request
-          const result = await requestCommands.create(description, {
-            agent: options.flow ? undefined : options.agent,
-            priority: options.priority as RequestPriority,
-            portal: options.portal,
-            model: options.model,
-            flow: options.flow,
-            skills: options.skills ? options.skills.split(",").map((s) => s.trim()) : undefined,
-          });
-
-          if (options.dryRun) {
-            display.info("cli.dry_run", "request", { would_create: result.filename });
-            return;
-          }
-
-          printRequestResult(result, !!options.json, false);
-        } catch (error) {
-          display.error("cli.error", "request", { message: error instanceof Error ? error.message : "Unknown error" });
-          Deno.exit(1);
-        }
+        await handleRequestCreate({ requestCommands, display }, options, description);
       })
       .example("Create a request for a specific agent", 'exoctl request "Analyze this code" --agent code-reviewer')
       .example("Create a request for a multi-agent flow", 'exoctl request "Build a web app" --flow web-development')
@@ -175,32 +142,7 @@ export const __test_command = new Command()
           .option("-s, --status <status:string>", "Filter by status")
           .option("--json", "Output in JSON format")
           .action(async (options) => {
-            try {
-              const requests = await requestCommands.list(options.status);
-              if (options.json) {
-                display.info("cli.output", "requests", { data: JSON.stringify(requests, null, 2) });
-              } else {
-                if (requests.length === 0) {
-                  display.info("request.list", "requests", { count: 0, message: "No requests found" });
-                  return;
-                }
-                display.info("request.list", "requests", { count: requests.length });
-                for (const req of requests) {
-                  const priorityIcon = PRIORITY_ICONS[req.priority] || PRIORITY_ICONS.default;
-                  display.info(`${priorityIcon} ${req.trace_id.slice(0, 8)}`, req.trace_id, {
-                    status: req.status,
-                    agent: req.flow ? undefined : req.agent,
-                    flow: req.flow,
-                    created: `${req.created_by} @ ${req.created}`,
-                  });
-                }
-              }
-            } catch (error) {
-              display.error("cli.error", "request list", {
-                message: error instanceof Error ? error.message : "Unknown error",
-              });
-              Deno.exit(1);
-            }
+            await handleRequestList({ requestCommands, display }, options);
           }),
       )
       .command(
@@ -208,24 +150,7 @@ export const __test_command = new Command()
         new Command()
           .description("Show request details")
           .action(async (_options: void, ...args: string[]) => {
-            const id = args[0];
-            try {
-              const { metadata, content } = await requestCommands.show(id);
-              display.info("request.show", metadata.trace_id.slice(0, 8), {
-                trace_id: metadata.trace_id,
-                status: metadata.status,
-                priority: metadata.priority,
-                agent: metadata.flow ? undefined : metadata.agent,
-                flow: metadata.flow,
-                created: `${metadata.created_by} @ ${metadata.created}`,
-              });
-              display.info("request.content", id, { content });
-            } catch (error) {
-              display.error("cli.error", "request show", {
-                message: error instanceof Error ? error.message : "Unknown error",
-              });
-              Deno.exit(1);
-            }
+            await handleRequestShow({ requestCommands, display }, args[0]);
           }),
       ),
   )
@@ -240,44 +165,7 @@ export const __test_command = new Command()
           .description("List all plans awaiting review")
           .option("-s, --status <status:string>", "Filter by status (review, needs_revision)")
           .action(async (options) => {
-            try {
-              const plans = await planCommands.list(options.status);
-              if (plans.length === 0) {
-                display.info("plan.list", "plans", { count: 0, message: "No plans found" });
-                return;
-              }
-              display.info("plan.list", "plans", { count: plans.length });
-              for (const plan of plans) {
-                const statusIcon = plan.status === "review" ? "🔍" : "⚠️";
-                const displayData: Record<string, unknown> = {
-                  status: plan.status,
-                  trace: plan.trace_id ? `${plan.trace_id.substring(0, 8)}...` : undefined,
-                };
-
-                // Add request information if available
-                if (plan.request_title) {
-                  displayData.request = plan.request_title.length > 50
-                    ? `${plan.request_title.substring(0, 47)}...`
-                    : plan.request_title;
-                }
-                if (plan.request_agent) {
-                  displayData.agent = plan.request_agent;
-                }
-                if (plan.request_portal) {
-                  displayData.portal = plan.request_portal;
-                }
-                if (plan.request_priority) {
-                  displayData.priority = plan.request_priority;
-                }
-
-                display.info(`${statusIcon} ${plan.id}`, plan.id, displayData);
-              }
-            } catch (error) {
-              display.error("cli.error", "plan list", {
-                message: error instanceof Error ? error.message : "Unknown error",
-              });
-              Deno.exit(1);
-            }
+            await handlePlanList({ planCommands, display }, options);
           }),
       )
       .command(
@@ -285,42 +173,7 @@ export const __test_command = new Command()
         new Command()
           .description("Show details of a specific plan")
           .action(async (_options, ...args: string[]) => {
-            const id = args[0] as unknown as string;
-            try {
-              const plan = await planCommands.show(id);
-              const displayData: Record<string, unknown> = {
-                status: plan.status,
-                trace: plan.trace_id,
-              };
-
-              // Add request information if available
-              if (plan.request_id) {
-                displayData.request = plan.request_id;
-              }
-              if (plan.request_title) {
-                displayData.title = plan.request_title;
-              }
-              if (plan.request_agent) {
-                displayData.agent = plan.request_agent;
-              }
-              if (plan.request_portal) {
-                displayData.portal = plan.request_portal;
-              }
-              if (plan.request_priority) {
-                displayData.priority = plan.request_priority;
-              }
-              if (plan.request_created_by) {
-                displayData.created_by = plan.request_created_by;
-              }
-
-              display.info("plan.show", plan.id, displayData);
-              display.info("plan.content", id, { content: plan.content });
-            } catch (error) {
-              display.error("cli.error", "plan show", {
-                message: error instanceof Error ? error.message : "Unknown error",
-              });
-              Deno.exit(1);
-            }
+            await handlePlanShow({ planCommands, display }, args[0] as string);
           }),
       )
       .command(
@@ -329,18 +182,7 @@ export const __test_command = new Command()
           .description("Approve a plan and move it to Workspace/Active")
           .option("--skills <skills:string>", "Comma-separated list of skills to inject during execution")
           .action(async (options, ...args: string[]) => {
-            const id = args[0] as unknown as string;
-            try {
-              await planCommands.approve(
-                id,
-                options.skills ? options.skills.split(",").map((s) => s.trim()) : undefined,
-              );
-            } catch (error) {
-              display.error("cli.error", "plan approve", {
-                message: error instanceof Error ? error.message : "Unknown error",
-              });
-              Deno.exit(1);
-            }
+            await handlePlanApprove({ planCommands, display }, args[0] as string, options);
           }),
       )
       .command(
@@ -349,15 +191,7 @@ export const __test_command = new Command()
           .description("Reject a plan with a reason")
           .option("-r, --reason <reason:string>", "Rejection reason (required)", { required: true })
           .action(async (options, ...args: string[]) => {
-            const id = args[0] as unknown as string;
-            try {
-              await planCommands.reject(id, options.reason);
-            } catch (error) {
-              display.error("cli.error", "plan reject", {
-                message: error instanceof Error ? error.message : "Unknown error",
-              });
-              Deno.exit(1);
-            }
+            await handlePlanReject({ planCommands, display }, args[0] as string, options.reason);
           }),
       )
       .command(
@@ -369,15 +203,7 @@ export const __test_command = new Command()
             required: true,
           })
           .action(async (options, ...args: string[]) => {
-            const id = args[0] as unknown as string;
-            try {
-              await planCommands.revise(id, options.comment);
-            } catch (error) {
-              display.error("cli.error", "plan revise", {
-                message: error instanceof Error ? error.message : "Unknown error",
-              });
-              Deno.exit(1);
-            }
+            await handlePlanRevise({ planCommands, display }, args[0] as string, options.comment);
           }),
       ),
   )
@@ -1385,24 +1211,6 @@ export const __test_command = new Command()
           }),
       ),
   );
-
-// Helper function for printing request results
-import type { RequestMetadata } from "./request_commands.ts";
-
-function printRequestResult(result: RequestMetadata, json: boolean, _dryRun: boolean) {
-  if (json) {
-    display.info("cli.output", "request", { data: JSON.stringify(result, null, 2) });
-  } else {
-    display.info("request.created", result.filename, {
-      trace_id: result.trace_id,
-      priority: result.priority,
-      agent: result.flow ? undefined : result.agent,
-      flow: result.flow,
-      path: result.path,
-      next: "Daemon will process this automatically",
-    });
-  }
-}
 
 const journalCommand = new Command()
   .description("Query the Activity Journal")
