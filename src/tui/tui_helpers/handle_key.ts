@@ -1,4 +1,5 @@
 import type { Pane } from "../tui_dashboard.ts";
+import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
 
 export async function testModeHandleKey(
   dashboard: any,
@@ -54,53 +55,27 @@ export async function testModeHandleKey(
       dashboard.activePaneId = panes[idx].id;
     }
   } else if (key === "v") { // Split vertical
-    const activePane = panes.find((p) => p.id === dashboard.activePaneId);
-    if (activePane && panes.length < 4) {
-      const newId = `pane-${panes.length}`;
-      const halfWidth = Math.floor(activePane.width / 2);
-      activePane.width = halfWidth;
-      const newPane: Pane = {
-        id: newId,
-        view: views[panes.length % views.length],
-        x: activePane.x + halfWidth,
-        y: activePane.y,
-        width: activePane.width,
-        height: activePane.height,
-        focused: false,
-        maximized: false,
-      };
-      panes.push(newPane);
-      await dashboard.notify("Pane split vertically", "info");
-    }
+    await splitPane(panes, dashboard.activePaneId, views, "vertical", dashboard.notify.bind(dashboard));
   } else if (key === "h") { // Split horizontal
-    const activePane = panes.find((p) => p.id === dashboard.activePaneId);
-    if (activePane && panes.length < 4) {
-      const newId = `pane-${panes.length}`;
-      const halfHeight = Math.floor(activePane.height / 2);
-      activePane.height = halfHeight;
-      const newPane: Pane = {
-        id: newId,
-        view: views[panes.length % views.length],
-        x: activePane.x,
-        y: activePane.y + halfHeight,
-        width: activePane.width,
-        height: activePane.height,
-        focused: false,
-        maximized: false,
-      };
-      panes.push(newPane);
-      await dashboard.notify("Pane split horizontally", "info");
-    }
+    await splitPane(panes, dashboard.activePaneId, views, "horizontal", dashboard.notify.bind(dashboard));
   } else if (key === "c") { // Close pane
-    if (panes.length > 1) {
-      const index = panes.findIndex((p) => p.id === dashboard.activePaneId);
-      panes.splice(index, 1);
-      dashboard.activePaneId = panes[0].id;
-      panes[0].focused = true;
-      await dashboard.notify("Pane closed", "info");
-    }
+    const result = await closePane(
+      panes,
+      dashboard.activePaneId,
+      dashboard.activePaneId,
+      dashboard.notify.bind(dashboard),
+    );
+    dashboard.activePaneId = result.activePaneId;
   } else if (key === "z") { // Maximize/restore
-    dashboard.maximizePane(dashboard.activePaneId);
+    maximizePane(panes, dashboard.activePaneId, dashboard.notify.bind(dashboard));
+  } else if (key === "ctrl+left") {
+    resizePane(panes, dashboard.activePaneId, -0.05, 0);
+  } else if (key === "ctrl+right") {
+    resizePane(panes, dashboard.activePaneId, 0.05, 0);
+  } else if (key === "ctrl+up") {
+    resizePane(panes, dashboard.activePaneId, 0, -0.05);
+  } else if (key === "ctrl+down") {
+    resizePane(panes, dashboard.activePaneId, 0, 0.05);
   } else if (key === "enter") { // Enter
     // No-op for test
   } else if (key === "s") { // Save layout

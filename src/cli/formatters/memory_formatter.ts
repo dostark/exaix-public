@@ -11,6 +11,14 @@ import type {
   Skill,
   SkillMatch,
 } from "../../schemas/memory_bank.ts";
+import {
+  CLI_PREVIEW_LENGTH_LONG,
+  CLI_PREVIEW_LENGTH_SHORT,
+  CLI_SEPARATOR_LENGTH,
+  CLI_SEPARATOR_LONG,
+  CLI_SEPARATOR_MEDIUM,
+  CLI_SEPARATOR_WIDE,
+} from "../../config/constants.ts";
 
 /**
  * Handles formatting of Memory Bank data for CLI output.
@@ -21,7 +29,7 @@ export class MemoryFormatter {
   formatListTable(summary: MemoryBankSummary): string {
     const lines: string[] = [
       "Memory Banks Summary",
-      "═".repeat(50),
+      "═".repeat(CLI_SEPARATOR_LENGTH),
       "",
       `Projects:    ${summary.projects.length}`,
       `Executions:  ${summary.executions}`,
@@ -72,7 +80,7 @@ export class MemoryFormatter {
 
     const lines: string[] = [
       `Search Results for "${query}"`,
-      "═".repeat(60),
+      "═".repeat(CLI_SEPARATOR_MEDIUM),
       "",
       `Found ${results.length} result(s)`,
       "",
@@ -128,7 +136,7 @@ export class MemoryFormatter {
 
     const lines: string[] = [
       "Project Memories",
-      "═".repeat(50),
+      "═".repeat(CLI_SEPARATOR_LENGTH),
       "",
       "Name                 │ Patterns │ Decisions",
       "─────────────────────┼──────────┼──────────",
@@ -176,11 +184,11 @@ export class MemoryFormatter {
   formatProjectShowTable(project: ProjectMemory): string {
     const lines: string[] = [
       `Project Memory: ${project.portal}`,
-      "═".repeat(60),
+      "═".repeat(CLI_SEPARATOR_MEDIUM),
       "",
       "Overview:",
       "─".repeat(40),
-      project.overview.substring(0, 500),
+      project.overview.substring(0, CLI_PREVIEW_LENGTH_LONG),
       "",
     ];
 
@@ -198,7 +206,7 @@ export class MemoryFormatter {
       lines.push(`Decisions (${project.decisions.length}):`);
       lines.push("─".repeat(40));
       for (const decision of project.decisions) {
-        lines.push(`  • [${decision.date}] ${decision.decision.substring(0, 50)}...`);
+        lines.push(`  • [${decision.date}] ${decision.decision.substring(0, CLI_PREVIEW_LENGTH_SHORT)}...`);
       }
       lines.push("");
     }
@@ -276,7 +284,7 @@ export class MemoryFormatter {
 
     const lines: string[] = [
       "Execution History",
-      "═".repeat(80),
+      "═".repeat(CLI_SEPARATOR_WIDE),
       "",
       "Trace ID   │ Status    │ Portal          │ Started",
       "───────────┼───────────┼─────────────────┼" + "─".repeat(20),
@@ -324,7 +332,7 @@ export class MemoryFormatter {
   formatExecutionShowTable(exec: ExecutionMemory): string {
     const lines: string[] = [
       `Execution Details: ${exec.trace_id}`,
-      "═".repeat(70),
+      "═".repeat(CLI_SEPARATOR_LONG),
       "",
       `Trace ID:    ${exec.trace_id}`,
       `Request ID:  ${exec.request_id}`,
@@ -414,7 +422,7 @@ export class MemoryFormatter {
   formatGlobalShowTable(globalMem: GlobalMemory): string {
     const lines: string[] = [
       "Global Memory",
-      "═".repeat(60),
+      "═".repeat(CLI_SEPARATOR_MEDIUM),
       "",
       `Version:    ${globalMem.version}`,
       `Updated:    ${globalMem.updated_at}`,
@@ -426,7 +434,7 @@ export class MemoryFormatter {
 
     if (globalMem.learnings.length > 0) {
       lines.push("Recent Learnings (top 5):");
-      lines.push("─".repeat(50));
+      lines.push("─".repeat(CLI_SEPARATOR_LENGTH));
       for (const learning of globalMem.learnings.slice(0, 5)) {
         lines.push(`  • [${learning.category}] ${learning.title}`);
       }
@@ -470,7 +478,7 @@ export class MemoryFormatter {
   formatGlobalLearningsTable(learnings: Learning[]): string {
     const lines: string[] = [
       "Global Learnings",
-      "═".repeat(80),
+      "═".repeat(CLI_SEPARATOR_WIDE),
       "",
       "ID         │ Category      │ Confidence │ Title",
       "───────────┼───────────────┼────────────┼" + "─".repeat(40),
@@ -513,7 +521,7 @@ export class MemoryFormatter {
   formatGlobalStatsTable(stats: GlobalMemoryStats): string {
     const lines: string[] = [
       "Global Memory Statistics",
-      "═".repeat(50),
+      "═".repeat(CLI_SEPARATOR_LENGTH),
       "",
       `Total Learnings: ${stats.total_learnings}`,
       `Last Activity:   ${stats.last_activity}`,
@@ -576,7 +584,7 @@ export class MemoryFormatter {
   formatPendingListTable(proposals: MemoryUpdateProposal[]): string {
     const lines: string[] = [
       "Pending Memory Update Proposals",
-      "═".repeat(80),
+      "═".repeat(CLI_SEPARATOR_WIDE),
       "",
       "ID".padEnd(38) + "Title".padEnd(30) + "Category".padEnd(15) + "Scope",
       "─".repeat(80),
@@ -622,7 +630,7 @@ export class MemoryFormatter {
   formatPendingShowTable(proposal: MemoryUpdateProposal): string {
     const lines: string[] = [
       "Pending Proposal Details",
-      "═".repeat(60),
+      "═".repeat(CLI_SEPARATOR_MEDIUM),
       "",
       `ID:          ${proposal.id}`,
       `Status:      ${proposal.status}`,

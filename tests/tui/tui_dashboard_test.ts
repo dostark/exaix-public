@@ -193,9 +193,9 @@ Deno.test("TUI dashboard split view functionality", async () => {
   assertEquals(dashboard.panes.length, 2);
 
   // Resize pane
-  const originalWidth = dashboard.panes[0].width;
-  dashboard.resizePane(dashboard.panes[0].id, 10, 0);
-  assertEquals(dashboard.panes[0].width, originalWidth + 10);
+  const originalFlexWidth = dashboard.panes[0].flexWidth;
+  dashboard.resizePane(dashboard.panes[0].id, 0.1, 0); // Increase flex width by 0.1
+  assertEquals(dashboard.panes[0].flexWidth.toFixed(2), (originalFlexWidth + 0.1).toFixed(2));
   dashboard.destroy();
 });
 
@@ -254,6 +254,10 @@ Deno.test("TUI dashboard layout save and restore", async () => {
         dashboard.panes.push({
           id: p.id,
           view: { name: p.viewName }, // Mock view
+          flexX: p.flexX ?? (p.x / 80),
+          flexY: p.flexY ?? (p.y / 24),
+          flexWidth: p.flexWidth ?? (p.width / 80),
+          flexHeight: p.flexHeight ?? (p.height / 24),
           x: p.x,
           y: p.y,
           width: p.width,
@@ -372,6 +376,10 @@ Deno.test("TUI dashboard comprehensive keyboard actions test", async () => {
     dashboard.panes.push({
       id: "main",
       view: { name: "PortalManagerView" },
+      flexX: 0,
+      flexY: 0,
+      flexWidth: 1.0,
+      flexHeight: 1.0,
       x: 0,
       y: 0,
       width: 80,
@@ -722,4 +730,52 @@ Deno.test("TUI dashboard key bindings block other keys when help is shown", asyn
   // Now split should work
   await dashboard.handleKey("v");
   assertEquals(dashboard.panes.length, paneCountBefore + 1);
+});
+
+Deno.test("TUI dashboard neighbor-aware flex resizing logic", async () => {
+  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+
+  // 1. Vertical split: Pane 0 (Left 0.5) | Pane 1 (Right 0.5)
+  await dashboard.splitPane("vertical");
+  assertEquals(dashboard.panes[0].flexWidth, 0.5);
+  assertEquals(dashboard.panes[1].flexWidth, 0.5);
+  assertEquals(dashboard.panes[1].flexX, 0.5);
+
+  // Resize Pane 0 to the right by +0.1
+  dashboard.resizePane(dashboard.panes[0].id, 0.1, 0);
+  assertEquals(dashboard.panes[0].flexWidth, 0.6);
+  assertEquals(dashboard.panes[1].flexX, 0.6); // Neighbor moved
+  assertEquals(parseFloat(dashboard.panes[1].flexWidth.toFixed(2)), 0.4); // Neighbor shrunk
+
+  // Resize Pane 1 to the right by +0.1 (should act as left edge move for Pane 1)
+  // Our resizePane logic for "right sibling" handles moving the border between them.
+  // If we select Pane 1 and "resize left" (-0.1), it should grow Pane 0 and shrink Pane 1.
+  dashboard.switchPane(dashboard.panes[1].id);
+  dashboard.resizePane(dashboard.panes[1].id, -0.1, 0);
+  assertEquals(dashboard.panes[0].flexWidth, 0.7); // Pane 0 grew
+  assertEquals(dashboard.panes[1].flexX, 0.7); // Border moved right
+  assertEquals(parseFloat(dashboard.panes[1].flexWidth.toFixed(2)), 0.3);
+
+  // 2. Horizontal split on Pane 0: Pane 0 (Top) | Pane 2 (Bottom)
+  dashboard.switchPane(dashboard.panes[0].id);
+  await dashboard.splitPane("horizontal");
+  // Pane 0 now has flexHeight 0.5 of its original 1.0 = 0.5
+  // Pane 2 has flexY 0.5 and flexHeight 0.5
+  assertEquals(dashboard.panes[0].flexHeight, 0.5);
+  assertEquals(dashboard.panes[2].flexHeight, 0.5);
+  assertEquals(dashboard.panes[2].flexY, 0.5);
+
+  // Resize Pane 0 down by +0.1
+  dashboard.resizePane(dashboard.panes[0].id, 0, 0.1);
+  assertEquals(dashboard.panes[0].flexHeight, 0.6);
+  assertEquals(dashboard.panes[2].flexY, 0.6); // Neighbor moved down
+  assertEquals(parseFloat(dashboard.panes[2].flexHeight.toFixed(2)), 0.4);
+
+  // Test boundaries: try to resize Pane 1 too small
+  dashboard.switchPane(dashboard.panes[1].id);
+  // Pane 1 is 0.3 width. Min flex is 0.1. Resize by -0.3 should stop at 0.1.
+  dashboard.resizePane(dashboard.panes[1].id, -0.3, 0);
+  assertEquals(dashboard.panes[1].flexWidth >= 0.1, true);
+
+  dashboard.destroy();
 });

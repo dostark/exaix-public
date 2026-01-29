@@ -515,3 +515,13 @@ export const TUI_ICON_BULLET = "•";
 export const TUI_MSG_PRESS_CLOSE_HELP = "\nPress ? or Esc to close help";
 export const TUI_MSG_DASHBOARD_HEADER =
   "                         ExoFrame TUI Dashboard                               ";
+// ============================================================================
+// CLI Display and Validation Constants
+// ============================================================================
+export const CLI_SEPARATOR_LENGTH = 50;
+export const CLI_SEPARATOR_MEDIUM = 60;
+export const CLI_SEPARATOR_LONG = 70;
+export const CLI_SEPARATOR_WIDE = 80;
+export const CLI_PREVIEW_LENGTH_SHORT = 50;
+export const CLI_PREVIEW_LENGTH_LONG = 500;
+export const PORTAL_ALIAS_MAX_LENGTH = 50;

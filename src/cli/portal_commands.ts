@@ -4,6 +4,7 @@ import type { DatabaseService } from "../services/db.ts";
 import { ConfigService } from "../config/service.ts";
 import { ContextCardGenerator } from "../services/context_card_generator.ts";
 import { EventLogger } from "../services/event_logger.ts";
+import { PORTAL_ALIAS_MAX_LENGTH } from "../config/constants.ts";
 
 export interface PortalInfo {
   alias: string;
@@ -415,8 +416,8 @@ export class PortalCommands {
     if (alias.length === 0) {
       throw new Error("Alias cannot be empty");
     }
-    if (alias.length > 50) {
-      throw new Error("Alias cannot exceed 50 characters");
+    if (alias.length > PORTAL_ALIAS_MAX_LENGTH) {
+      throw new Error(`Alias cannot exceed ${PORTAL_ALIAS_MAX_LENGTH} characters`);
     }
 
     // Check for invalid characters

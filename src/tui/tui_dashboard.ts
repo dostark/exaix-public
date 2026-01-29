@@ -510,6 +510,10 @@ export async function launchTuiDashboard(
   const initialPane: Pane = {
     id: "main",
     view: views[0],
+    flexX: 0,
+    flexY: 0,
+    flexWidth: 1.0,
+    flexHeight: 1.0,
     x: 0,
     y: 0,
     width: 80,
@@ -666,6 +670,10 @@ export async function launchTuiDashboard(
         panes.push({
           id: "main",
           view: views[0],
+          flexX: 0,
+          flexY: 0,
+          flexWidth: 1.0,
+          flexHeight: 1.0,
           x: 0,
           y: 0,
           width: 80,
@@ -716,9 +724,10 @@ export async function launchTuiDashboard(
   const prodState: DashboardViewState = createDefaultDashboardState();
 
   // Helper to add notification (accepts generic string to match helper signature)
-  const addNotification = (message: string, type?: string) => {
+  const addNotification = async (message: string, type?: string) => {
     const t = type ?? "info";
     console.log(`[${t}] ${message}`);
+    await Promise.resolve();
   };
 
   // Layout persistence delegated to helper module

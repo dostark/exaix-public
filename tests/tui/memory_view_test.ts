@@ -108,17 +108,17 @@ Deno.test("MemoryViewTuiSession: expand/collapse with enter key", async () => {
   assertExists(projectsNode);
   if (!projectsNode) return; // Type guard
 
-  // Initially expanded (from loadTree)
-  assertEquals(projectsNode.expanded, true);
-
-  // Jump to projects and toggle
-  await session.handleKey("p");
-  await session.handleKey("enter");
+  // Initially collapsed (from buildTree)
   assertEquals(projectsNode.expanded, false);
 
-  // Toggle again
+  // Jump to projects and expand
+  await session.handleKey("p");
   await session.handleKey("enter");
   assertEquals(projectsNode.expanded, true);
+
+  // Toggle again (collapse)
+  await session.handleKey("enter");
+  assertEquals(projectsNode.expanded, false);
 });
 
 Deno.test("MemoryViewTuiSession: left key collapses or moves to parent", async () => {

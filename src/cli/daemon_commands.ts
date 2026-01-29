@@ -271,10 +271,10 @@ export class DaemonCommands extends BaseCommand {
 
   /**
    * Show daemon logs
-   * @param lines Number of lines to show (default: 50)
+   * @param lines Number of lines to show
    * @param follow Follow log output (tail -f)
    */
-  async logs(lines: number = 50, follow: boolean = false): Promise<void> {
+  async logs(lines: number = CLI_DEFAULTS.LOG_LINES, follow: boolean = false): Promise<void> {
     try {
       const logFile = join(this.config.system.root, this.config.paths.runtime, "daemon.log");
 

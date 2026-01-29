@@ -1,5 +1,6 @@
 import type { Pane } from "../tui_dashboard.ts";
 import type { MemoryNotification as TuiNotification, NotificationService } from "../../services/notification.ts";
+import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
 
 export interface ProdHandleCtx {
   prodState: any;
@@ -7,7 +8,7 @@ export interface ProdHandleCtx {
   views: any[];
   activePaneRef: { id: string };
   notificationService: NotificationService;
-  addNotification: (message: string, type?: "info" | "success" | "warning" | "error") => void;
+  addNotification: (message: string, type?: string) => Promise<void>;
   saveLayout: () => Promise<void> | void;
   restoreLayout: () => Promise<void> | void;
   resetToDefault: () => void;
@@ -101,81 +102,29 @@ export async function prodHandleKey(key: string, ctx: ProdHandleCtx): Promise<{ 
     }
     return { reRender: false };
   } else if (key === "v") { // Split vertical
-    const activePane = panes.find((p) => p.id === activePaneRef.id);
-    if (activePane && panes.length < 4) {
-      const newId = `pane-${panes.length}`;
-      const halfWidth = Math.floor(activePane.width / 2);
-      activePane.width = halfWidth;
-      const newPane: Pane = {
-        id: newId,
-        view: views[panes.length % views.length],
-        x: activePane.x + halfWidth,
-        y: activePane.y,
-        width: activePane.width,
-        height: activePane.height,
-        focused: false,
-        maximized: false,
-      };
-      panes.push(newPane);
-      addNotification("Pane split vertically", "info");
-    }
+    await splitPane(panes, activePaneRef.id, views, "vertical", addNotification);
     return { reRender: true };
   } else if (key === "h") { // Split horizontal
-    const activePane = panes.find((p) => p.id === activePaneRef.id);
-    if (activePane && panes.length < 4) {
-      const newId = `pane-${panes.length}`;
-      const halfHeight = Math.floor(activePane.height / 2);
-      activePane.height = halfHeight;
-      const newPane: Pane = {
-        id: newId,
-        view: views[panes.length % views.length],
-        x: activePane.x,
-        y: activePane.y + halfHeight,
-        width: activePane.width,
-        height: activePane.height,
-        focused: false,
-        maximized: false,
-      };
-      panes.push(newPane);
-      addNotification("Pane split horizontally", "info");
-    }
+    await splitPane(panes, activePaneRef.id, views, "horizontal", addNotification);
     return { reRender: true };
   } else if (key === "c") { // Close pane
-    if (panes.length > 1) {
-      const index = panes.findIndex((p) => p.id === activePaneRef.id);
-      panes.splice(index, 1);
-      activePaneRef.id = panes[0].id;
-      panes[0].focused = true;
-      addNotification("Pane closed", "info");
-    }
+    const result = await closePane(panes, activePaneRef.id, activePaneRef.id, addNotification);
+    activePaneRef.id = result.activePaneId;
     return { reRender: true };
   } else if (key === "z") { // Maximize/restore
-    const activePane = panes.find((p) => p.id === activePaneRef.id);
-    if (activePane) {
-      if (activePane.maximized) {
-        if (activePane.previousBounds) {
-          activePane.x = activePane.previousBounds.x;
-          activePane.y = activePane.previousBounds.y;
-          activePane.width = activePane.previousBounds.width;
-          activePane.height = activePane.previousBounds.height;
-        }
-        activePane.maximized = false;
-        addNotification("Pane restored", "info");
-      } else {
-        activePane.previousBounds = {
-          x: activePane.x,
-          y: activePane.y,
-          width: activePane.width,
-          height: activePane.height,
-        };
-        activePane.x = 0;
-        activePane.y = 0;
-        activePane.width = 80;
-        activePane.height = 24;
-        activePane.maximized = true;
-        addNotification("Pane maximized", "info");
-      }
-    }
+    maximizePane(panes, activePaneRef.id, addNotification);
+    return { reRender: true };
+  } else if (key === "\x1b[1;5D" || key === "ctrl+left") { // Ctrl+Left
+    resizePane(panes, activePaneRef.id, -0.05, 0);
+    return { reRender: true };
+  } else if (key === "\x1b[1;5C" || key === "ctrl+right") { // Ctrl+Right
+    resizePane(panes, activePaneRef.id, 0.05, 0);
+    return { reRender: true };
+  } else if (key === "\x1b[1;5A" || key === "ctrl+up") { // Ctrl+Up
+    resizePane(panes, activePaneRef.id, 0, -0.05);
+    return { reRender: true };
+  } else if (key === "\x1b[1;5B" || key === "ctrl+down") { // Ctrl+Down
+    resizePane(panes, activePaneRef.id, 0, 0.05);
     return { reRender: true };
   } else if (key === "\n" || key === "enter") {
     // Enter: show selected pane info (no-op for helper)

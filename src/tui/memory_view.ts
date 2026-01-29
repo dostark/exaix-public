@@ -20,6 +20,7 @@ import { TreeBuilder } from "./memory_view/tree_builder.ts";
 import { DialogProcessor } from "./memory_view/dialog_processor.ts";
 import { KeyHandler } from "./memory_view/key_handlers.ts";
 import { MemoryServiceInterface, TreeNode } from "./memory_view/types.ts";
+export type { MemoryServiceInterface, TreeNode };
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "../services/db.ts";
 import { MemoryBankService } from "../services/memory_bank.ts";

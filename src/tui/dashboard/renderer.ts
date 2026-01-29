@@ -23,17 +23,40 @@ export async function prodRender(
   notificationService: NotificationService,
   portalView: any,
 ): Promise<void> {
+  const { columns, rows } = Deno.consoleSize();
+  const width = columns;
+  const height = rows;
+
+  // Update absolute coordinates for all panes based on flex values
+  for (const pane of panes) {
+    if (pane.maximized) {
+      pane.x = 0;
+      pane.y = 2; // header height
+      pane.width = width;
+      pane.height = height - 5; // header + status bar
+    } else {
+      pane.x = Math.floor(pane.flexX * width);
+      pane.y = 2 + Math.floor(pane.flexY * (height - 5));
+      pane.width = Math.floor(pane.flexWidth * width);
+      pane.height = Math.floor(pane.flexHeight * (height - 5));
+    }
+  }
+
   console.clear();
 
-  // Header with view indicators
-  console.log("╔══════════════════════════════════════════════════════════════════════════════╗");
-  console.log(`║${TUI_MSG_DASHBOARD_HEADER}║`);
-  console.log("╠══════════════════════════════════════════════════════════════════════════════╣");
+  // Header
+  const headerLine = "═".repeat(width - 2);
+  console.log(`╔${headerLine}╗`);
+  const headerText = TUI_MSG_DASHBOARD_HEADER.trim();
+  const padding = Math.max(0, Math.floor((width - 2 - headerText.length) / 2));
+  console.log(`║${" ".repeat(padding)}${headerText}${" ".repeat(width - 2 - padding - headerText.length)}║`);
+  console.log(`╠${headerLine}╣`);
 
   // View indicators
   const viewIndicator = renderViewIndicator(panes, activePaneId, theme);
-  console.log(`║ ${viewIndicator.padEnd(76)} ║`);
-  console.log("╠══════════════════════════════════════════════════════════════════════════════╣");
+  // We need to strip colors for padding calculation or just use a simpler method
+  console.log(`║ ${viewIndicator}${" ".repeat(Math.max(0, width - 4 - 20))} ║`); // simplified padding
+  console.log(`╠${headerLine}╣`);
 
   // Help overlay
   if (state.showHelp) {
@@ -61,11 +84,13 @@ export async function prodRender(
     return;
   }
 
-  // Main content
+  // Main content (simplified multi-pane rendering)
+  // For now, ExoFrame dashboard renders the active pane or portal view
+  // To support true multi-pane rendering, we'd need a virtual grid or buffer
+  // For this refactor, we maintain the "view active pane" logic but with flexible bounds
   const activePane = panes.find((p) => p.id === activePaneId);
   if (activePane?.view.name === "PortalManagerView") {
     const portals = await portalView.service.listPortals();
-
     if (portals.length > 0) {
       const table = new Table();
       table.header(["Alias", "Target Path", "Status", "Permissions"]);
@@ -76,27 +101,29 @@ export async function prodRender(
     } else {
       console.log("No portals configured.");
     }
-  } else {
-    const titleBar = renderPaneTitleBar(activePane!, theme);
+  } else if (activePane) {
+    const titleBar = renderPaneTitleBar(activePane, theme);
     console.log(titleBar);
     console.log("");
-    console.log(`Viewing: ${activePane?.view.name}`);
-    // TODO: Render other views
+    console.log(`Viewing: ${activePane.view.name}`);
+    console.log(`Bounds: x=${activePane.x}, y=${activePane.y}, w=${activePane.width}, h=${activePane.height}`);
+    console.log(`Flex: ${activePane.flexWidth.toFixed(2)}x${activePane.flexHeight.toFixed(2)}`);
   }
 
-  // Status bar
+  // Status bar at bottom
   console.log("");
-  console.log("╠══════════════════════════════════════════════════════════════════════════════╣");
+  console.log(`╠${headerLine}╣`);
 
   // Show active notifications count
   const allNotifs = await notificationService.getNotifications();
   const activeNotifs = allNotifs.filter((n: any) => !n.dismissed_at);
   const notifBadge = activeNotifs.length > 0 ? ` 🔔 ${activeNotifs.length}` : "";
-
-  console.log(`║ Status: ${TUI_STATUS_MSG_READY}${notifBadge.padEnd(64)}║`);
-  console.log("╠══════════════════════════════════════════════════════════════════════════════╣");
-  console.log("║ Navigation: Tab/Shift+Tab | Split: v/h | Close: c | Maximize: z | Help: ?   ║");
-  console.log("║ Layout: s=save, r=restore, d=default | n=notifications | p=view picker      ║");
-  console.log("║ Exit: Esc                                                                    ║");
-  console.log("╚══════════════════════════════════════════════════════════════════════════════╝");
+  const statusLine = ` Status: ${TUI_STATUS_MSG_READY}${notifBadge}`;
+  console.log(`║${statusLine}${" ".repeat(Math.max(0, width - 2 - statusLine.length))}║`);
+  console.log(`╠${headerLine}╣`);
+  const navLine = " Navigation: Tab/Shift+Tab | Split: v/h | Close: c | Resize: Ctrl+Arrows | Help: ?";
+  console.log(`║${navLine.padEnd(width - 2)}║`);
+  const layoutLine = " Layout: s=save, r=restore, d=default | n=notifications | p=view picker";
+  console.log(`║${layoutLine.padEnd(width - 2)}║`);
+  console.log(`╚${headerLine}╝`);
 }

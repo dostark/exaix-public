@@ -13,6 +13,10 @@ export async function saveLayout(
       panes: panes.map((p) => ({
         id: p.id,
         viewName: p.view.name,
+        flexX: p.flexX,
+        flexY: p.flexY,
+        flexWidth: p.flexWidth,
+        flexHeight: p.flexHeight,
         x: p.x,
         y: p.y,
         width: p.width,
@@ -21,7 +25,7 @@ export async function saveLayout(
         maximized: p.maximized,
       })),
       activePaneId,
-      version: "1.1",
+      version: "1.2",
     };
     await Deno.writeTextFile(getLayoutFile(), JSON.stringify(layout, null, 2));
     addNotification("Layout saved", "success");
@@ -38,13 +42,23 @@ export async function restoreLayout(
   try {
     const content = await Deno.readTextFile(getLayoutFile());
     const layout = JSON.parse(content);
-    if ((layout.version === "1.0" || layout.version === "1.1") && layout.panes) {
+    if ((layout.version === "1.0" || layout.version === "1.1" || layout.version === "1.2") && layout.panes) {
       panes.length = 0;
       for (const p of layout.panes) {
         const view = views.find((v: any) => v.name === p.viewName) || views[0];
+        // Upgrade from 1.0/1.1 (absolute) to 1.2 (flex)
+        const flexX = p.flexX ?? (p.x / 80);
+        const flexY = p.flexY ?? (p.y / 24);
+        const flexWidth = p.flexWidth ?? (p.width / 80);
+        const flexHeight = p.flexHeight ?? (p.height / 24);
+
         panes.push({
           id: p.id,
           view,
+          flexX,
+          flexY,
+          flexWidth,
+          flexHeight,
           x: p.x,
           y: p.y,
           width: p.width,
@@ -69,6 +83,10 @@ export function resetToDefault(panes: Pane[], views: any[], addNotification: (m:
   panes.push({
     id: "main",
     view: views[0],
+    flexX: 0,
+    flexY: 0,
+    flexWidth: 1.0,
+    flexHeight: 1.0,
     x: 0,
     y: 0,
     width: 80,
