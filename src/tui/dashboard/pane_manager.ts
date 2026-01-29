@@ -3,6 +3,8 @@
  * Extracted from tui_dashboard.ts to reduce complexity
  */
 
+import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../config/constants.ts";
+
 import type { Pane } from "../tui_dashboard.ts";
 
 /**
@@ -299,8 +301,8 @@ export function maximizePane(
     pane.flexHeight = 1.0;
     pane.x = 0;
     pane.y = 0;
-    pane.width = 80;
-    pane.height = 24;
+    pane.width = TUI_LAYOUT_FULL_WIDTH;
+    pane.height = TUI_LAYOUT_DEFAULT_HEIGHT;
     pane.maximized = true;
     notify("Pane maximized", "info");
   }

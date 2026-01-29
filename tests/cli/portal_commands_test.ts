@@ -12,7 +12,7 @@
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
-import { ExecutionStatus, SkillStatus } from "../../src/enums.ts";
+import { ExecutionStatus, PortalStatus } from "../../src/enums.ts";
 import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { PortalCommands } from "../../src/cli/portal_commands.ts";
@@ -121,9 +121,9 @@ Deno.test("PortalCommands: lists all portals with status", async () => {
     portals.sort((a, b) => a.alias.localeCompare(b.alias));
 
     assertEquals(portals[0].alias, "Portal1");
-    assertEquals(portals[0].status, SkillStatus.ACTIVE);
+    assertEquals(portals[0].status, PortalStatus.ACTIVE);
     assertEquals(portals[1].alias, "Portal2");
-    assertEquals(portals[1].status, SkillStatus.ACTIVE);
+    assertEquals(portals[1].status, PortalStatus.ACTIVE);
   } finally {
     await env1.cleanup();
     await env2.cleanup();
@@ -156,7 +156,7 @@ Deno.test("PortalCommands: shows portal details", async () => {
 
     assertExists(details);
     assertEquals(details.alias, "ShowPortal");
-    assertEquals(details.status, SkillStatus.ACTIVE);
+    assertEquals(details.status, PortalStatus.ACTIVE);
     assertEquals(details.targetPath, targetDir);
     assertExists(details.symlinkPath);
     assertExists(details.contextCardPath);

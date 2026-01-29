@@ -4,7 +4,8 @@
  */
 
 import { createGroupNode, createNode, type TreeNode } from "../utils/tree_view.ts";
-import type { AgentStatus } from "../agent_status_view.ts";
+import type { AgentStatus } from "../../enums.ts";
+import type { AgentStatusItem } from "../agent_status_view.ts";
 import {
   AGENT_STATUS_ACTIVE,
   AGENT_STATUS_ERROR,
@@ -26,7 +27,7 @@ const AGENT_STATUS_ICONS: Record<string, string> = {
 /**
  * Build flat agent tree (no grouping)
  */
-export function buildFlatTree(agents: AgentStatus[]): TreeNode[] {
+export function buildFlatTree(agents: AgentStatusItem[]): TreeNode[] {
   return agents.map((agent) => {
     const icon = AGENT_STATUS_ICONS[agent.status] || "⚪";
     const label = `${icon} ${agent.name} (${agent.model})`;
@@ -37,8 +38,8 @@ export function buildFlatTree(agents: AgentStatus[]): TreeNode[] {
 /**
  * Build agent tree grouped by status
  */
-export function buildTreeByStatus(agents: AgentStatus[]): TreeNode[] {
-  const byStatus = new Map<string, AgentStatus[]>();
+export function buildTreeByStatus(agents: AgentStatusItem[]): TreeNode[] {
+  const byStatus = new Map<string, AgentStatusItem[]>();
   for (const agent of agents) {
     if (!byStatus.has(agent.status)) {
       byStatus.set(agent.status, []);
@@ -68,8 +69,8 @@ export function buildTreeByStatus(agents: AgentStatus[]): TreeNode[] {
 /**
  * Build agent tree grouped by model
  */
-export function buildTreeByModel(agents: AgentStatus[]): TreeNode[] {
-  const byModel = new Map<string, AgentStatus[]>();
+export function buildTreeByModel(agents: AgentStatusItem[]): TreeNode[] {
+  const byModel = new Map<string, AgentStatusItem[]>();
   for (const agent of agents) {
     if (!byModel.has(agent.model)) {
       byModel.set(agent.model, []);

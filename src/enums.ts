@@ -162,20 +162,67 @@ export enum SecurityMode {
 }
 
 /**
+ * General status codes for entities in the system.
+ * This is the single source of truth for all status values.
+ */
+export enum GeneralStatus {
+  // Basic states
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  BROKEN = "broken",
+  PENDING = "pending",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  CONFIRMED = "confirmed",
+  CANCELLED = "cancelled",
+  DRAFT = "draft",
+  DEPRECATED = "deprecated",
+
+  // Execution states
+  RUNNING = "running",
+
+  // Plan states
+  REVIEW = "review",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  NEEDS_REVISION = "needs_revision",
+
+  // Agent/System states
+  ERROR = "error",
+
+  // Request states
+  IN_PROGRESS = "in_progress",
+  PLANNED = "planned",
+}
+
+/**
+ * Status codes specific to agents.
+ */
+export enum AgentStatus {
+  ACTIVE = GeneralStatus.ACTIVE,
+  INACTIVE = GeneralStatus.INACTIVE,
+  ERROR = GeneralStatus.ERROR,
+}
+
+/**
+ * Health status codes for agents.
+ */
+export enum AgentHealth {
+  HEALTHY = "healthy",
+  WARNING = "warning",
+  CRITICAL = "critical",
+}
+
+/**
  * Status states for task and execution lifecycle.
  * Tracks the progress and completion state of operations.
  */
 export enum ExecutionStatus {
-  /** Task is queued and waiting to start */
-  PENDING = "pending",
-  /** Task is currently running */
-  ACTIVE = "active",
-  /** Task is running (as recorded in memory banks) */
-  RUNNING = "running",
-  /** Task completed successfully */
-  COMPLETED = "completed",
-  /** Task failed or was terminated */
-  FAILED = "failed",
+  PENDING = GeneralStatus.PENDING,
+  ACTIVE = GeneralStatus.ACTIVE,
+  RUNNING = GeneralStatus.RUNNING,
+  COMPLETED = GeneralStatus.COMPLETED,
+  FAILED = GeneralStatus.FAILED,
 }
 
 /**
@@ -192,42 +239,27 @@ export enum RequestPriority {
  * Status for user requests.
  */
 export enum RequestStatus {
-  /** Initial status, received but not yet processed */
-  PENDING = "pending",
-  /** Request has been processed and an implementation plan created */
-  PLANNED = "planned",
-  /** Implementation is currently in progress */
-  IN_PROGRESS = "in_progress",
-  /** Request implementation finished successfully */
-  COMPLETED = "completed",
-  /** Request execution failed */
-  FAILED = "failed",
-  /** Request was manually cancelled */
-  CANCELLED = "cancelled",
+  PENDING = GeneralStatus.PENDING,
+  PLANNED = GeneralStatus.PLANNED,
+  IN_PROGRESS = GeneralStatus.IN_PROGRESS,
+  COMPLETED = GeneralStatus.COMPLETED,
+  FAILED = GeneralStatus.FAILED,
+  CANCELLED = GeneralStatus.CANCELLED,
 }
 
 /**
  * Status for execution plans.
  */
 export enum PlanStatus {
-  /** Initial status, needs human review */
-  REVIEW = "review",
-  /** Approved by human, ready for execution */
-  APPROVED = "approved",
-  /** Currently executing */
-  ACTIVE = "active",
-  /** Successfully executed */
-  COMPLETED = "completed",
-  /** Failed execution */
-  FAILED = "failed",
-  /** Execution error */
-  ERROR = "error",
-  /** Rejected by human */
-  REJECTED = "rejected",
-  /** Needs revision by agent */
-  NEEDS_REVISION = "needs_revision",
-  /** Legacy or unknown status */
-  PENDING = "pending",
+  REVIEW = GeneralStatus.REVIEW,
+  APPROVED = GeneralStatus.APPROVED,
+  ACTIVE = GeneralStatus.ACTIVE,
+  COMPLETED = GeneralStatus.COMPLETED,
+  FAILED = GeneralStatus.FAILED,
+  ERROR = GeneralStatus.ERROR,
+  REJECTED = GeneralStatus.REJECTED,
+  NEEDS_REVISION = GeneralStatus.NEEDS_REVISION,
+  PENDING = GeneralStatus.PENDING,
 }
 
 /**
@@ -260,12 +292,26 @@ export enum MemoryStatus {
  * Status for skill lifecycle.
  */
 export enum SkillStatus {
-  /** Skill is under development */
-  DRAFT = "draft",
-  /** Skill is active and available for use */
-  ACTIVE = "active",
-  /** Skill is no longer recommended for use */
-  DEPRECATED = "deprecated",
+  DRAFT = GeneralStatus.DRAFT,
+  ACTIVE = GeneralStatus.ACTIVE,
+  DEPRECATED = GeneralStatus.DEPRECATED,
+}
+
+/**
+ * Status for portal lifecycle.
+ */
+export enum PortalStatus {
+  ACTIVE = GeneralStatus.ACTIVE,
+  BROKEN = GeneralStatus.BROKEN,
+}
+
+/**
+ * Status for dialog lifecycle.
+ */
+export enum DialogStatus {
+  ACTIVE = GeneralStatus.ACTIVE,
+  CONFIRMED = GeneralStatus.CONFIRMED,
+  CANCELLED = GeneralStatus.CANCELLED,
 }
 
 /**
@@ -686,4 +732,89 @@ export enum HealthCheckVerdict {
   PASS = "pass",
   WARN = "warn",
   FAIL = "fail",
+}
+
+/**
+ * Types of nodes in the TUI tree view.
+ */
+export enum TuiNodeType {
+  ROOT = "root",
+  SCOPE = "scope",
+  PROJECT = "project",
+  EXECUTION = "execution",
+  LEARNING = "learning",
+  PATTERN = "pattern",
+  DECISION = "decision",
+  AGENT = "agent",
+  STATUS_GROUP = "status-group",
+  MODEL_GROUP = "model-group",
+  GROUP = "group",
+}
+
+/**
+ * Grouping modes for TUI views.
+ */
+export enum TuiGroupBy {
+  NONE = "none",
+  STATUS = "status",
+  MODEL = "model",
+}
+
+/**
+ * Capabilities supported by AI providers.
+ */
+export enum ProviderCapability {
+  CHAT = "chat",
+  STREAMING = "streaming",
+  VISION = "vision",
+  TOOLS = "tools",
+}
+
+/**
+ * Icons used in the TUI.
+ */
+export enum TuiIcon {
+  AGENT = "🤖",
+  LEARNING = "🎯",
+  BRAIN = "🧠",
+  SUCCESS = "✅",
+  WARNING = "⚠️",
+  CRITICAL = "❌",
+  INFO = "ℹ️",
+  BULLET = "•",
+  PORTAL_ACTIVE = "🟢",
+  PORTAL_BROKEN = "🔴",
+  PORTAL_INACTIVE = "⚪",
+  FOLDER = "📂",
+}
+
+/**
+ * Keyboard key codes and shortcuts.
+ */
+export enum KeyboardKey {
+  ESCAPE = "escape",
+  ENTER = "enter",
+  BACKSPACE = "backspace",
+  UP = "up",
+  DOWN = "down",
+  LEFT = "left",
+  RIGHT = "right",
+  HOME = "home",
+  END = "end",
+  QUESTION = "?",
+  SLASH = "/",
+  Q = "q",
+  G = "g",
+  P = "p",
+  E = "e",
+  N = "n",
+  S = "s",
+  A = "a",
+  R = "r",
+  L = "L",
+  CAPITAL_P = "P",
+  CAPITAL_R = "R",
+  CAPITAL_A = "A",
+  CAPITAL_E = "E",
+  C = "c",
 }

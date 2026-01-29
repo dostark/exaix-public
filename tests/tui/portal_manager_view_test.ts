@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "@std/assert";
 import { PortalManagerView, PortalService } from "../../src/tui/portal_manager_view.ts";
+import { GeneralStatus, PortalStatus } from "../../src/enums.ts";
 import { createPortalTuiWithPortals } from "./helpers.ts";
 
 // Minimal PortalService mock for tests
@@ -57,14 +58,14 @@ Deno.test("renderPortalList shows error for non-active status", () => {
   const portals = [
     {
       alias: "Main",
-      status: "active" as const,
+      status: PortalStatus.ACTIVE,
       targetPath: "/Portals/Main",
       symlinkPath: "/symlink/Main",
       contextCardPath: "/card/Main.md",
     },
     {
       alias: "Docs",
-      status: "broken" as const,
+      status: PortalStatus.BROKEN,
       targetPath: "/Portals/Docs",
       symlinkPath: "/symlink/Docs",
       contextCardPath: "/card/Docs.md",
@@ -81,7 +82,13 @@ Deno.test("renderPortalList handles empty and malformed portal list", () => {
   const output = view.renderPortalList([]);
   assertEquals(output, "");
   // Malformed: missing status/targetPath, fill with empty strings
-  const portals = [{ alias: "X", status: "active" as const, targetPath: "", symlinkPath: "", contextCardPath: "" }];
+  const portals = [{
+    alias: "X",
+    status: PortalStatus.ACTIVE,
+    targetPath: "",
+    symlinkPath: "",
+    contextCardPath: "",
+  }];
   const out2 = view.renderPortalList(portals);
   assert(out2.includes("X"));
 });
@@ -95,14 +102,14 @@ Deno.test("lists all active portals", async () => {
       targetPath: "/Portals/Main",
       symlinkPath: "/symlink/Main",
       contextCardPath: "/card/Main.md",
-      status: "active" as const,
+      status: PortalStatus.ACTIVE,
     },
     {
       alias: "Docs",
       targetPath: "/Portals/Docs",
       symlinkPath: "/symlink/Docs",
       contextCardPath: "/card/Docs.md",
-      status: "broken" as const,
+      status: GeneralStatus.BROKEN as const,
     },
   ]);
   const portals = await view.listPortals();
@@ -116,9 +123,9 @@ Deno.test("lists all active portals", async () => {
 
 Deno.test("TUI: keyboard navigation and selection", () => {
   const { service: _service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
-    { alias: "Test", status: "broken" as const, targetPath: "/Portals/Test" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
+    { alias: "Test", status: GeneralStatus.BROKEN as const, targetPath: "/Portals/Test" },
   ]);
   assertEquals(tui.getSelectedIndex(), 0, "Initial selection is first portal");
   tui.handleKey("down");
@@ -138,8 +145,8 @@ Deno.test("TUI: keyboard navigation and selection", () => {
 
 Deno.test("TUI session hydrates from listPortals when available", () => {
   const { service: _service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
   tui.handleKey("end");
   assertEquals(tui.getSelectedIndex(), 1);
@@ -147,8 +154,8 @@ Deno.test("TUI session hydrates from listPortals when available", () => {
 
 Deno.test("TUI: action triggers and state update", async () => {
   const { service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
   // Need to mock listPortals for refresh after remove
   service.listPortals = () => Promise.resolve([]);
@@ -166,7 +173,7 @@ Deno.test("TUI: action triggers and state update", async () => {
 
 Deno.test("TUI: error display and recovery", () => {
   const { service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
   tui.setSelectedIndex(1); // out of bounds
   tui.handleKey("enter");
@@ -178,8 +185,8 @@ Deno.test("TUI: error display and recovery", () => {
 
 Deno.test("TUI: accessibility - keyboard only", async () => {
   const { service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
   // Need to mock listPortals for remove
   service.listPortals = () => Promise.resolve([]);
@@ -194,8 +201,8 @@ Deno.test("TUI: accessibility - keyboard only", async () => {
 
 Deno.test("TUI: edge cases - rapid changes and errors", async () => {
   const { service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
   await tui.handleKey("down");
   await tui.handleKey("up");
@@ -204,7 +211,13 @@ Deno.test("TUI: edge cases - rapid changes and errors", async () => {
 
   // After opening, update portals to simulate removal
   tui.updatePortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main", symlinkPath: "", contextCardPath: "" },
+    {
+      alias: "Main",
+      status: PortalStatus.ACTIVE,
+      targetPath: "/Portals/Main",
+      symlinkPath: "",
+      contextCardPath: "",
+    },
   ]);
 
   // After update, selection may be on group or portal - verify it's valid
@@ -227,14 +240,14 @@ Deno.test("TUI: displays portal details panel on selection", () => {
   const { tui, service: _service, view: _view } = createPortalTuiWithPortals([
     {
       alias: "Main",
-      status: "active" as const,
+      status: PortalStatus.ACTIVE,
       targetPath: "/Portals/Main",
       symlinkPath: "/symlink/Main",
       contextCardPath: "/card/Main.md",
     },
     {
       alias: "Docs",
-      status: "active" as const,
+      status: PortalStatus.ACTIVE,
       targetPath: "/Portals/Docs",
       symlinkPath: "/symlink/Docs",
       contextCardPath: "/card/Docs.md",
@@ -257,7 +270,7 @@ Deno.test("performs portal actions", async () => {
       targetPath: "/Portals/Main",
       symlinkPath: "/symlink/Main",
       contextCardPath: "/card/Main.md",
-      status: "active" as const,
+      status: PortalStatus.ACTIVE,
     },
   ]);
   // openPortal/closePortal throw by design in CLI mode, so only test refresh/remove
@@ -287,7 +300,7 @@ Deno.test("quick-jump to portal directory returns correct path", async () => {
       targetPath: "/Portals/Main",
       symlinkPath: "/symlink/Main",
       contextCardPath: "/card/Main.md",
-      status: "active" as const,
+      status: PortalStatus.ACTIVE,
     },
   ]);
   const path = await view.quickJumpToPortalDir("Main");
@@ -301,7 +314,7 @@ Deno.test("get portal filesystem path returns correct mount path", async () => {
       targetPath: "/mnt/portals/main",
       symlinkPath: "/symlink/Main",
       contextCardPath: "/card/Main.md",
-      status: "active" as const,
+      status: PortalStatus.ACTIVE,
     },
   ]);
   const path = await view.getPortalFilesystemPath("Main");
@@ -315,7 +328,7 @@ Deno.test("get portal activity log returns activity and errors", () => {
       targetPath: "/Portals/Main",
       symlinkPath: "/symlink/Main",
       contextCardPath: "/card/Main.md",
-      status: "active" as const,
+      status: PortalStatus.ACTIVE,
     },
   ]);
   const log = view.getPortalActivityLog("Main");
@@ -325,7 +338,7 @@ Deno.test("get portal activity log returns activity and errors", () => {
 
 Deno.test("TUI: renders action buttons for selected portal", () => {
   const { tui, service: _service, view: _view } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
   const buttons = tui.renderActionButtons?.();
   assert(buttons && buttons.includes("Open") && buttons.includes("Refresh") && buttons.includes("Remove"));
@@ -333,7 +346,7 @@ Deno.test("TUI: renders action buttons for selected portal", () => {
 
 Deno.test("TUI: renders status bar and updates on error", () => {
   const { service: _service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
   // Initially ready
   assert(tui.renderStatusBar?.().includes("Ready"));
@@ -345,7 +358,7 @@ Deno.test("TUI: renders status bar and updates on error", () => {
 
 Deno.test("TUI: exposes focusable elements for accessibility", () => {
   const { service: _service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
   const focusables = tui.getFocusableElements?.();
   assert(
@@ -356,14 +369,14 @@ Deno.test("TUI: exposes focusable elements for accessibility", () => {
 
 Deno.test("TUI: updates portal list and reflects state in real time", () => {
   const { service: _service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
   tui.setSelectedIndex(1);
   // Remove Docs portal
   tui.updatePortals?.([{
     alias: "Main",
-    status: "active" as const,
+    status: PortalStatus.ACTIVE,
     targetPath: "/Portals/Main",
     symlinkPath: "",
     contextCardPath: "",
@@ -375,9 +388,9 @@ Deno.test("TUI: updates portal list and reflects state in real time", () => {
 // PortalManagerTuiSession keyboard interaction tests
 Deno.test("PortalManagerTuiSession keyboard navigation - down arrow", () => {
   const { service: _service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
-    { alias: "API", status: "active" as const, targetPath: "/Portals/API" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
+    { alias: "API", status: PortalStatus.ACTIVE, targetPath: "/Portals/API" },
   ]);
 
   // Start at index 0
@@ -398,9 +411,9 @@ Deno.test("PortalManagerTuiSession keyboard navigation - down arrow", () => {
 
 Deno.test("PortalManagerTuiSession keyboard navigation - up arrow", () => {
   const { service: _service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
-    { alias: "API", status: "active" as const, targetPath: "/Portals/API" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
+    { alias: "API", status: PortalStatus.ACTIVE, targetPath: "/Portals/API" },
   ]);
 
   // Start at index 0
@@ -422,9 +435,9 @@ Deno.test("PortalManagerTuiSession keyboard navigation - up arrow", () => {
 
 Deno.test("PortalManagerTuiSession keyboard navigation - end key", async () => {
   const { service: _service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
-    { alias: "API", status: "active" as const, targetPath: "/Portals/API" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
+    { alias: "API", status: PortalStatus.ACTIVE, targetPath: "/Portals/API" },
   ]);
 
   // Start at index 0
@@ -439,9 +452,9 @@ Deno.test("PortalManagerTuiSession keyboard navigation - end key", async () => {
 
 Deno.test("PortalManagerTuiSession keyboard navigation - home key", async () => {
   const { tui, service: _service, view: _view } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
-    { alias: "API", status: "active" as const, targetPath: "/Portals/API" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
+    { alias: "API", status: PortalStatus.ACTIVE, targetPath: "/Portals/API" },
   ]);
 
   // First navigate to end
@@ -456,8 +469,8 @@ Deno.test("PortalManagerTuiSession keyboard navigation - home key", async () => 
 Deno.test("PortalManagerTuiSession keyboard actions - enter (open portal)", async () => {
   let openedPortal = "";
   const { service: _service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
   _service.openPortal = (alias: string) => {
     openedPortal = alias;
@@ -478,8 +491,8 @@ Deno.test("PortalManagerTuiSession keyboard actions - enter (open portal)", asyn
 Deno.test("PortalManagerTuiSession keyboard actions - r (refresh portal)", async () => {
   let refreshedPortal = "";
   const { service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
   service.refreshPortal = (alias: string) => {
     refreshedPortal = alias;
@@ -500,8 +513,8 @@ Deno.test("PortalManagerTuiSession keyboard actions - r (refresh portal)", async
 Deno.test("PortalManagerTuiSession keyboard actions - d (remove portal)", async () => {
   let removedPortal = "";
   const { service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
   service.removePortal = (alias: string) => {
     removedPortal = alias;
@@ -510,8 +523,20 @@ Deno.test("PortalManagerTuiSession keyboard actions - d (remove portal)", async 
   // Mock listPortals to return remaining portals after remove
   service.listPortals = () =>
     Promise.resolve([
-      { alias: "Main", status: "active" as const, targetPath: "/Portals/Main", symlinkPath: "", contextCardPath: "" },
-      { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs", symlinkPath: "", contextCardPath: "" },
+      {
+        alias: "Main",
+        status: PortalStatus.ACTIVE,
+        targetPath: "/Portals/Main",
+        symlinkPath: "",
+        contextCardPath: "",
+      },
+      {
+        alias: "Docs",
+        status: PortalStatus.ACTIVE,
+        targetPath: "/Portals/Docs",
+        symlinkPath: "",
+        contextCardPath: "",
+      },
     ]);
 
   // Select first portal and press d (now shows confirm dialog)
@@ -523,7 +548,7 @@ Deno.test("PortalManagerTuiSession keyboard actions - d (remove portal)", async 
 
 Deno.test("PortalManagerTuiSession keyboard actions - error handling", async () => {
   const { service, view: _view, tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
   service.openPortal = () => {
     throw new Error("Failed to open portal");
@@ -550,7 +575,7 @@ Deno.test("PortalManagerTuiSession keyboard actions - no portals", () => {
 
 Deno.test("PortalManagerTuiSession keyboard actions - invalid selection", async () => {
   const { tui, service: _service, view: _view } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   // Set invalid selection
@@ -565,10 +590,10 @@ Deno.test("PortalManagerTuiSession keyboard actions - invalid selection", async 
 
 Deno.test("Phase 13.3: Portal tree is built with status groups", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "broken" as const, targetPath: "/Portals/Docs" },
-    { alias: "Temp", status: "inactive", targetPath: "/Portals/Temp" },
-    { alias: "API", status: "active" as const, targetPath: "/Portals/API" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: GeneralStatus.BROKEN as const, targetPath: "/Portals/Docs" },
+    { alias: "Temp", status: GeneralStatus.INACTIVE, targetPath: "/Portals/Temp" },
+    { alias: "API", status: PortalStatus.ACTIVE, targetPath: "/Portals/API" },
   ]);
 
   const tree = tui.getPortalTree();
@@ -592,8 +617,8 @@ Deno.test("Phase 13.3: Portal tree is built with status groups", () => {
 
 Deno.test("Phase 13.3: Portal tree rendering", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "broken" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: GeneralStatus.BROKEN as const, targetPath: "/Portals/Docs" },
   ]);
 
   const lines = tui.renderPortalTree();
@@ -604,7 +629,7 @@ Deno.test("Phase 13.3: Portal tree rendering", () => {
 
 Deno.test("Phase 13.3: Help screen toggle", async () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   // Initially help is hidden
@@ -621,7 +646,7 @@ Deno.test("Phase 13.3: Help screen toggle", async () => {
 
 Deno.test("Phase 13.3: Help screen can be closed with escape", async () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   await tui.handleKey("?");
@@ -633,7 +658,7 @@ Deno.test("Phase 13.3: Help screen can be closed with escape", async () => {
 
 Deno.test("Phase 13.3: Help screen rendering", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   const helpLines = tui.renderHelp();
@@ -645,7 +670,7 @@ Deno.test("Phase 13.3: Help screen rendering", () => {
 
 Deno.test("Phase 13.3: Loading state management", async () => {
   const { tui, service } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   // Create a slow operation
@@ -675,9 +700,9 @@ Deno.test("Phase 13.3: Loading state management", async () => {
 
 Deno.test("Phase 13.3: Expand/Collapse all", async () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "broken" as const, targetPath: "/Portals/Docs" },
-    { alias: "API", status: "inactive", targetPath: "/Portals/API" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: GeneralStatus.BROKEN as const, targetPath: "/Portals/Docs" },
+    { alias: "API", status: GeneralStatus.INACTIVE, targetPath: "/Portals/API" },
   ]);
 
   const tree = tui.getPortalTree();
@@ -698,7 +723,7 @@ Deno.test("Phase 13.3: Expand/Collapse all", async () => {
 
 Deno.test("Phase 13.3: Color mode toggle", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   // Default is colors enabled
@@ -717,7 +742,7 @@ Deno.test("Phase 13.3: Color mode toggle", () => {
 
 Deno.test("Phase 13.3: Action buttons include help shortcut", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   const buttons = tui.renderActionButtons();
@@ -727,7 +752,7 @@ Deno.test("Phase 13.3: Action buttons include help shortcut", () => {
 
 Deno.test("Phase 13.3: Status bar shows loading spinner", async () => {
   const { tui, service } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   let resolvePromise: () => void;
@@ -751,8 +776,8 @@ Deno.test("Phase 13.3: Status bar shows loading spinner", async () => {
 
 Deno.test("Phase 13.3: Selected portal getters work with tree", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
 
   // Get selected via tree method
@@ -766,7 +791,7 @@ Deno.test("Phase 13.3: Selected portal getters work with tree", () => {
 
 Deno.test("Phase 13.3: View name getter", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   assertEquals(tui.getViewName(), "Portal Manager");
@@ -774,7 +799,7 @@ Deno.test("Phase 13.3: View name getter", () => {
 
 Deno.test("Phase 13.3: Key bindings are defined", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   const bindings = tui.getKeyBindings();
@@ -791,7 +816,7 @@ Deno.test("Phase 13.3: Key bindings are defined", () => {
 
 Deno.test("Phase 13.3: Confirm dialog for remove", async () => {
   const { tui, service } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   let removeTriggered = false;
@@ -817,7 +842,7 @@ Deno.test("Phase 13.3: Confirm dialog for remove", async () => {
 
 Deno.test("Phase 13.3: Confirm dialog executes on confirm", async () => {
   const { tui, service } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   let removeTriggered = false;
@@ -838,15 +863,27 @@ Deno.test("Phase 13.3: Confirm dialog executes on confirm", async () => {
 
 Deno.test("Phase 13.3: Refresh view with R key", async () => {
   const { tui, service } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   let listCalled = false;
   service.listPortals = () => {
     listCalled = true;
     return Promise.resolve([
-      { alias: "Main", status: "active" as const, targetPath: "/Portals/Main", symlinkPath: "", contextCardPath: "" },
-      { alias: "New", status: "active" as const, targetPath: "/Portals/New", symlinkPath: "", contextCardPath: "" },
+      {
+        alias: "Main",
+        status: PortalStatus.ACTIVE,
+        targetPath: "/Portals/Main",
+        symlinkPath: "",
+        contextCardPath: "",
+      },
+      {
+        alias: "New",
+        status: PortalStatus.ACTIVE,
+        targetPath: "/Portals/New",
+        symlinkPath: "",
+        contextCardPath: "",
+      },
     ]);
   };
 
@@ -856,8 +893,8 @@ Deno.test("Phase 13.3: Refresh view with R key", async () => {
 
 Deno.test("Phase 13.3: Left arrow collapses expanded group", async () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
 
   // Expand all first
@@ -880,8 +917,8 @@ Deno.test("Phase 13.3: Left arrow collapses expanded group", async () => {
 
 Deno.test("Phase 13.3: Right arrow expands collapsed group", async () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
 
   // Collapse all first
@@ -904,7 +941,7 @@ Deno.test("Phase 13.3: Right arrow expands collapsed group", async () => {
 
 Deno.test("Phase 13.3: Spinner tick updates frame", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   // Tick the spinner
@@ -925,7 +962,7 @@ Deno.test("Phase 13.3: Empty portal list creates empty tree", () => {
 
 Deno.test("Phase 13.3: Get active dialog when none", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
   const dialog = tui.getActiveDialog();
@@ -935,9 +972,9 @@ Deno.test("Phase 13.3: Get active dialog when none", () => {
 
 Deno.test("Phase 13.3: Update portals preserves selection when possible", () => {
   const { tui } = createPortalTuiWithPortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs" },
-    { alias: "API", status: "active" as const, targetPath: "/Portals/API" },
+    { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
+    { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
+    { alias: "API", status: PortalStatus.ACTIVE, targetPath: "/Portals/API" },
   ]);
 
   // Select the second portal
@@ -946,9 +983,20 @@ Deno.test("Phase 13.3: Update portals preserves selection when possible", () => 
 
   // Update portals (same list)
   tui.updatePortals([
-    { alias: "Main", status: "active" as const, targetPath: "/Portals/Main", symlinkPath: "", contextCardPath: "" },
-    { alias: "Docs", status: "active" as const, targetPath: "/Portals/Docs", symlinkPath: "", contextCardPath: "" },
-    { alias: "API", status: "active" as const, targetPath: "/Portals/API", symlinkPath: "", contextCardPath: "" },
+    {
+      alias: "Main",
+      status: PortalStatus.ACTIVE,
+      targetPath: "/Portals/Main",
+      symlinkPath: "",
+      contextCardPath: "",
+    },
+    {
+      alias: "Docs",
+      status: PortalStatus.ACTIVE,
+      targetPath: "/Portals/Docs",
+      symlinkPath: "",
+      contextCardPath: "",
+    },
   ]);
 
   // Selection should be preserved
@@ -971,7 +1019,7 @@ Deno.test("Phase 13.3: createTuiSession accepts useColors parameter", () => {
   const view = new PortalManagerView(service);
   const portals = [{
     alias: "Test",
-    status: "active" as const,
+    status: PortalStatus.ACTIVE,
     targetPath: "/test",
     symlinkPath: "",
     contextCardPath: "",

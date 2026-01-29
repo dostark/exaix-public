@@ -7,6 +7,15 @@
  * and rich context display in the terminal.
  */
 
+import {
+  CLI_SEPARATOR_WIDE,
+  LOG_RENDERER_MAX_MESSAGE_LENGTH,
+  LOG_RENDERER_SEPARATOR_LENGTH,
+  LOG_RENDERER_TRACE_ID_LENGTH,
+  TIME_MS_PER_HOUR,
+  TIME_MS_PER_MINUTE,
+  TIME_MS_PER_SECOND,
+} from "../config/constants.ts";
 import { colorize, type TuiTheme } from "./utils/colors.ts";
 import type { LogEntry, LogLevel } from "../services/structured_logger.ts";
 
@@ -38,7 +47,7 @@ export const DEFAULT_LOG_RENDER_OPTIONS: LogRenderOptions = {
   showContext: true,
   showPerformance: true,
   useColors: true,
-  maxMessageLength: 100,
+  maxMessageLength: LOG_RENDERER_MAX_MESSAGE_LENGTH,
   truncateMessages: true,
   theme: {
     primary: "\x1b[36m", // cyan
@@ -128,14 +137,20 @@ export function renderContextBadges(entry: LogEntry, options: LogRenderOptions):
   const badges: string[] = [];
 
   if (entry.context.trace_id) {
-    badges.push(colorize(`trace:${entry.context.trace_id.slice(0, 8)}`, options.theme.primary, options.theme.reset));
+    badges.push(
+      colorize(
+        `trace:${entry.context.trace_id.slice(0, LOG_RENDERER_TRACE_ID_LENGTH)}`,
+        options.theme.primary,
+        options.theme.reset,
+      ),
+    );
   }
 
   if (entry.context.correlation_id) {
     badges.push(
       colorize(
         `
-      corr:${entry.context.correlation_id.slice(0, 8)}`,
+      corr:${entry.context.correlation_id.slice(0, LOG_RENDERER_TRACE_ID_LENGTH)}`,
         options.theme.secondary,
         options.theme.reset,
       ),
@@ -191,7 +206,7 @@ export function renderDetailedLogEntry(entry: LogEntry, options: Partial<LogRend
   lines.push(renderLogEntry(entry, opts));
 
   // Separator
-  lines.push(colorize("─".repeat(80), opts.theme.border, opts.theme.reset));
+  lines.push(colorize("─".repeat(CLI_SEPARATOR_WIDE), opts.theme.border, opts.theme.reset));
 
   // Context details()()
   if (Object.keys(entry.context).some((key) => entry.context[key as keyof typeof entry.context])) {
@@ -247,7 +262,7 @@ export function renderLogSummary(entries: LogEntry[], options: Partial<LogRender
   const lines: string[] = [];
 
   lines.push(colorize("Log Summary", opts.theme.h1, opts.theme.reset));
-  lines.push(colorize("─".repeat(50), opts.theme.border, opts.theme.reset));
+  lines.push(colorize("─".repeat(LOG_RENDERER_SEPARATOR_LENGTH), opts.theme.border, opts.theme.reset));
 
   // Basic stats
   const totalEntries = entries.length;
@@ -324,10 +339,10 @@ function getLevelInfo(level: LogLevel): { icon: string; color: string } {
  * Format duration in human-readable format
  */
 function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-  if (ms < 3600000) return `${(ms / 60000).toFixed(1)}m`;
-  return `${(ms / 3600000).toFixed(1)}h`;
+  if (ms < TIME_MS_PER_SECOND) return `${ms}ms`;
+  if (ms < TIME_MS_PER_MINUTE) return `${(ms / TIME_MS_PER_SECOND).toFixed(1)}s`;
+  if (ms < TIME_MS_PER_HOUR) return `${(ms / TIME_MS_PER_MINUTE).toFixed(1)}m`;
+  return `${(ms / TIME_MS_PER_HOUR).toFixed(1)}h`;
 }
 
 /**
@@ -369,7 +384,7 @@ export function renderCorrelationVisualization(
   const lines: string[] = [];
 
   lines.push(colorize(`Correlation: ${correlationId}`, opts.theme.h1, opts.theme.reset));
-  lines.push(colorize("═".repeat(80), opts.theme.border, opts.theme.reset));
+  lines.push(colorize("═".repeat(CLI_SEPARATOR_WIDE), opts.theme.border, opts.theme.reset));
 
   // Sort by timestamp
   const sortedEntries = entries.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());

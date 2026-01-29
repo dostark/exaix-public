@@ -14,7 +14,9 @@ import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
-import { DaemonStatus } from "../enums.ts";
+import { DaemonStatus, GeneralStatus } from "../enums.ts";
+import { TUI_LAYOUT_MEDIUM_WIDTH } from "../config/constants.ts";
+import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 
 // ===== Service Interfaces =====
 
@@ -258,7 +260,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       activeDialog: null,
       lastStatusCheck: null,
       autoRefresh: false,
-      autoRefreshInterval: 5000,
+      autoRefreshInterval: MONITOR_AUTO_REFRESH_INTERVAL_MS,
     };
   }
 
@@ -359,7 +361,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
   private parseStatus(rawStatus: string): DaemonStatus {
     const lower = rawStatus.toLowerCase();
-    if (lower.includes("running") || lower.includes("active") || lower.includes("started")) {
+    if (lower.includes("running") || lower.includes(GeneralStatus.ACTIVE) || lower.includes("started")) {
       return DaemonStatus.RUNNING;
     }
     if (lower.includes("stopped") || lower.includes("inactive") || lower.includes("not running")) {
@@ -656,17 +658,21 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     lines.push("╔═══════════════════════════════════════════════════════════════╗");
     lines.push("║                    DAEMON STATUS                              ║");
     lines.push("╠═══════════════════════════════════════════════════════════════╣");
-    lines.push(`║  Status: ${statusIcon} ${statusLabel.padEnd(51)} ║`);
+    lines.push(`║  Status: ${statusIcon} ${statusLabel.padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 9)} ║`);
 
     if (this.state.lastStatusCheck) {
       const timeStr = this.state.lastStatusCheck.toLocaleTimeString();
-      lines.push(`║  Last Check: ${timeStr.padEnd(48)} ║`);
+      lines.push(`║  Last Check: ${timeStr.padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 12)} ║`);
     }
 
     if (this.state.autoRefresh) {
-      lines.push(`║  Auto-refresh: ON (every ${Math.floor(this.state.autoRefreshInterval / 1000)}s)${"".padEnd(34)} ║`);
+      lines.push(
+        `║  Auto-refresh: ON (every ${Math.floor(this.state.autoRefreshInterval / 1000)}s)${
+          "".padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 26)
+        } ║`,
+      );
     } else {
-      lines.push(`║  Auto-refresh: OFF${"".padEnd(44)} ║`);
+      lines.push(`║  Auto-refresh: OFF${"".padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 16)} ║`);
     }
 
     lines.push("║                                                               ║");
@@ -675,8 +681,10 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     if (this.state.errorContent.length > 0) {
       lines.push("║  ⚠️  Recent Errors:                                            ║");
       for (const error of this.state.errorContent.slice(0, 3)) {
-        const truncated = error.length > 57 ? error.substring(0, 54) + "..." : error;
-        lines.push(`║    ${truncated.padEnd(59)} ║`);
+        const truncated = error.length > TUI_LAYOUT_MEDIUM_WIDTH - 3
+          ? error.substring(0, TUI_LAYOUT_MEDIUM_WIDTH - 6) + "..."
+          : error;
+        lines.push(`║    ${truncated.padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 1)} ║`);
       }
       lines.push("║                                                               ║");
     }
@@ -696,8 +704,10 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
     if (this.state.logContent.length > 0) {
       for (const log of this.state.logContent.slice(-15)) {
-        const truncated = log.length > 61 ? log.substring(0, 58) + "..." : log;
-        lines.push(`║ ${truncated.padEnd(63)} ║`);
+        const truncated = log.length > TUI_LAYOUT_MEDIUM_WIDTH + 1
+          ? log.substring(0, TUI_LAYOUT_MEDIUM_WIDTH - 2) + "..."
+          : log;
+        lines.push(`║ ${truncated.padEnd(TUI_LAYOUT_MEDIUM_WIDTH + 3)} ║`);
       }
     } else {
       lines.push("║  (No logs available)                                          ║");
@@ -708,8 +718,10 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       lines.push("║                       ERRORS                                  ║");
       lines.push("╠═══════════════════════════════════════════════════════════════╣");
       for (const error of this.state.errorContent.slice(-5)) {
-        const truncated = error.length > 61 ? error.substring(0, 58) + "..." : error;
-        lines.push(`║ ⚠️ ${truncated.padEnd(60)} ║`);
+        const truncated = error.length > TUI_LAYOUT_MEDIUM_WIDTH + 1
+          ? error.substring(0, TUI_LAYOUT_MEDIUM_WIDTH - 2) + "..."
+          : error;
+        lines.push(`║ ⚠️ ${truncated.padEnd(TUI_LAYOUT_MEDIUM_WIDTH)} ║`);
       }
     }
 

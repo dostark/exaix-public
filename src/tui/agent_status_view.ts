@@ -25,9 +25,12 @@ import {
   renderTree,
   toggleNode,
 } from "./utils/tree_view.ts";
+import { AgentHealth, AgentStatus, TuiGroupBy, TuiIcon } from "../enums.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
+import { DEFAULT_QUERY_LIMIT, TUI_LAYOUT_NARROW_WIDTH, TUI_LIMIT_MEDIUM } from "../config/constants.ts";
+import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 
 // Extracted utilities
 import { MainViewHandler, ViewModeHandler } from "./agent_status/key_handlers.ts";
@@ -39,23 +42,22 @@ import { buildFlatTree, buildTreeByModel, buildTreeByStatus } from "./agent_stat
  * Service interface for agent status access.
  */
 export interface AgentService {
-  listAgents(): Promise<AgentStatus[]>;
+  listAgents(): Promise<AgentStatusItem[]>;
   getAgentLogs(agentId: string, limit?: number): Promise<AgentLogEntry[]>;
-  getAgentHealth(agentId: string): Promise<AgentHealth>;
+  getAgentHealth(agentId: string): Promise<AgentHealthData>;
 }
 
-export interface AgentStatus {
+export interface AgentStatusItem {
   id: string;
   name: string;
   model: string;
-  status: "active" | "inactive" | "error";
+  status: AgentStatus;
   lastActivity: string; // ISO timestamp
   capabilities: string[];
   defaultSkills: string[]; // Phase 17: Skills from blueprint default_skills
 }
-
-export interface AgentHealth {
-  status: "healthy" | "warning" | "critical";
+export interface AgentHealthData {
+  status: AgentHealth;
   issues: string[];
   uptime: number; // seconds
 }
@@ -92,44 +94,33 @@ export interface AgentViewState {
   /** Current search query */
   searchQuery: string;
   /** Current grouping mode */
-  groupBy: typeof TUI_GROUP_BY_NONE | typeof TUI_GROUP_BY_STATUS | typeof TUI_GROUP_BY_MODEL;
+  groupBy: TuiGroupBy;
   /** Whether auto-refresh is enabled */
   autoRefresh: boolean;
   /** Auto-refresh interval in ms */
   autoRefreshInterval: number;
 }
 
-import {
-  AGENT_STATUS_ACTIVE,
-  AGENT_STATUS_ERROR,
-  AGENT_STATUS_INACTIVE,
-  TUI_GROUP_BY_MODEL,
-  TUI_GROUP_BY_NONE,
-  TUI_GROUP_BY_STATUS,
-  TUI_ICON_CRITICAL,
-  TUI_ICON_INFO,
-  TUI_ICON_SUCCESS,
-  TUI_ICON_WARNING,
-} from "../config/constants.ts";
-
 // ===== Icons and Visual Constants =====
 
+// ===== Constants & Enums =====
+
 export const AGENT_STATUS_ICONS: Record<string, string> = {
-  [AGENT_STATUS_ACTIVE]: "🟢",
-  [AGENT_STATUS_INACTIVE]: "🟡",
-  [AGENT_STATUS_ERROR]: "🔴",
+  [AgentStatus.ACTIVE]: "🟢",
+  [AgentStatus.INACTIVE]: "🟡",
+  [AgentStatus.ERROR]: "🔴",
 };
 
 export const AGENT_HEALTH_ICONS: Record<string, string> = {
-  healthy: TUI_ICON_SUCCESS,
-  warning: TUI_ICON_WARNING,
-  critical: TUI_ICON_CRITICAL,
+  [AgentHealth.HEALTHY]: TuiIcon.SUCCESS,
+  [AgentHealth.WARNING]: TuiIcon.WARNING,
+  [AgentHealth.CRITICAL]: TuiIcon.CRITICAL,
 };
 
 export const LOG_LEVEL_ICONS: Record<string, string> = {
-  info: TUI_ICON_INFO,
-  warn: TUI_ICON_WARNING,
-  error: TUI_ICON_CRITICAL,
+  info: TuiIcon.INFO,
+  warn: TuiIcon.WARNING,
+  error: TuiIcon.CRITICAL,
 };
 
 export const AGENT_STATUS_COLORS: Record<string, string> = {
@@ -170,28 +161,28 @@ export const AGENT_KEY_BINDINGS: KeyBinding[] = [
  */
 export class AgentStatusView {
   private selectedAgentId: string | null = null;
-  private agents: AgentStatus[] = [];
+  private agents: AgentStatusItem[] = [];
 
   constructor(private readonly agentService: AgentService) {}
 
   /** Get all agents with their status. */
-  async getAgentList(): Promise<AgentStatus[]> {
+  async getAgentList(): Promise<AgentStatusItem[]> {
     this.agents = await this.agentService.listAgents();
     return this.agents;
   }
 
   /** Get cached agents (without fetch) */
-  getCachedAgents(): AgentStatus[] {
+  getCachedAgents(): AgentStatusItem[] {
     return [...this.agents];
   }
 
   /** Get detailed health for an agent. */
-  async getAgentHealth(agentId: string): Promise<AgentHealth> {
+  async getAgentHealth(agentId: string): Promise<AgentHealthData> {
     return await this.agentService.getAgentHealth(agentId);
   }
 
   /** Get logs for an agent. */
-  async getAgentLogs(agentId: string, limit = 50): Promise<AgentLogEntry[]> {
+  async getAgentLogs(agentId: string, limit = DEFAULT_QUERY_LIMIT): Promise<AgentLogEntry[]> {
     return await this.agentService.getAgentLogs(agentId, limit);
   }
 
@@ -228,7 +219,7 @@ export class AgentStatusView {
     }
     const [health, logs] = await Promise.all([
       this.getAgentHealth(this.selectedAgentId),
-      this.getAgentLogs(this.selectedAgentId, 10),
+      this.getAgentLogs(this.selectedAgentId, TUI_LIMIT_MEDIUM),
     ]);
     const lines = [`Agent: ${this.selectedAgentId}`, ""];
     const healthIcon = AGENT_HEALTH_ICONS[health.status] || "❓";
@@ -277,17 +268,17 @@ export class AgentStatusView {
  * Minimal AgentService mock for TUI session tests
  */
 export class MinimalAgentServiceMock implements AgentService {
-  private agents: AgentStatus[] = [];
+  private agents: AgentStatusItem[] = [];
 
-  constructor(agents: AgentStatus[] = []) {
+  constructor(agents: AgentStatusItem[] = []) {
     this.agents = agents;
   }
 
-  listAgents(): Promise<AgentStatus[]> {
+  listAgents(): Promise<AgentStatusItem[]> {
     return Promise.resolve([...this.agents]);
   }
 
-  getAgentLogs(_agentId: string, _limit = 50): Promise<AgentLogEntry[]> {
+  getAgentLogs(_agentId: string, _limit = TUI_LIMIT_MEDIUM): Promise<AgentLogEntry[]> {
     return Promise.resolve([
       {
         timestamp: new Date().toISOString(),
@@ -297,15 +288,16 @@ export class MinimalAgentServiceMock implements AgentService {
     ]);
   }
 
-  getAgentHealth(_agentId: string): Promise<AgentHealth> {
+  getAgentHealth(_agentId: string): Promise<AgentHealthData> {
+    // Mock health data
     return Promise.resolve({
-      status: "healthy",
+      status: AgentHealth.HEALTHY,
       issues: [],
       uptime: 3600,
     });
   }
 
-  setAgents(agents: AgentStatus[]): void {
+  setAgents(agents: AgentStatusItem[]): void {
     this.agents = agents;
   }
 }
@@ -320,7 +312,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
   private state: AgentViewState;
   private localSpinnerState: SpinnerState;
   private autoRefreshTimer: number | null = null;
-  private agents: AgentStatus[] = [];
+  private agents: AgentStatusItem[] = [];
 
   constructor(agentView: AgentStatusView, useColors = true) {
     super(useColors);
@@ -336,9 +328,9 @@ export class AgentStatusTuiSession extends TuiSessionBase {
       logContent: "",
       activeDialog: null,
       searchQuery: "",
-      groupBy: TUI_GROUP_BY_NONE,
-      autoRefresh: false,
-      autoRefreshInterval: 5000,
+      groupBy: TuiGroupBy.NONE,
+      autoRefresh: useColors ? true : false,
+      autoRefreshInterval: MONITOR_AUTO_REFRESH_INTERVAL_MS,
     };
   }
 
@@ -368,11 +360,11 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     return this.state.agentTree;
   }
 
-  getAgents(): AgentStatus[] {
+  getAgents(): AgentStatusItem[] {
     return this.agents;
   }
 
-  setAgents(agents: AgentStatus[]): void {
+  setAgents(agents: AgentStatusItem[]): void {
     this.agents = agents;
     this.buildTree();
     this.selectFirstAgent();
@@ -414,8 +406,21 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     return this.state.searchQuery;
   }
 
-  getGroupBy(): typeof TUI_GROUP_BY_NONE | typeof TUI_GROUP_BY_STATUS | typeof TUI_GROUP_BY_MODEL {
+  getGroupBy(): TuiGroupBy {
     return this.state.groupBy;
+  }
+
+  getGroupByLabel(): string {
+    switch (this.state.groupBy) {
+      case TuiGroupBy.NONE:
+        return "None";
+      case TuiGroupBy.STATUS:
+        return "Status";
+      case TuiGroupBy.MODEL:
+        return "Model";
+      default:
+        return "Unknown";
+    }
   }
 
   isAutoRefreshEnabled(): boolean {
@@ -443,16 +448,20 @@ export class AgentStatusTuiSession extends TuiSessionBase {
   private buildTree(): void {
     const agents = this.getFilteredAgents();
 
-    if (this.state.groupBy === TUI_GROUP_BY_NONE) {
-      this.state.agentTree = buildFlatTree(agents);
-    } else if (this.state.groupBy === TUI_GROUP_BY_STATUS) {
-      this.state.agentTree = buildTreeByStatus(agents);
-    } else if (this.state.groupBy === TUI_GROUP_BY_MODEL) {
-      this.state.agentTree = buildTreeByModel(agents);
+    switch (this.state.groupBy) {
+      case TuiGroupBy.NONE:
+        this.state.agentTree = buildFlatTree(agents);
+        break;
+      case TuiGroupBy.STATUS:
+        this.state.agentTree = buildTreeByStatus(agents);
+        break;
+      case TuiGroupBy.MODEL:
+        this.state.agentTree = buildTreeByModel(agents);
+        break;
     }
   }
 
-  private getFilteredAgents(): AgentStatus[] {
+  private getFilteredAgents(): AgentStatusItem[] {
     let result = [...this.agents];
 
     // Apply search filter
@@ -549,14 +558,18 @@ export class AgentStatusTuiSession extends TuiSessionBase {
   // ===== Grouping =====
 
   toggleGrouping(): void {
-    const modes = [TUI_GROUP_BY_NONE, TUI_GROUP_BY_STATUS, TUI_GROUP_BY_MODEL] as const;
-    const currentIndex = modes.indexOf(this.state.groupBy as any);
-    this.state.groupBy = modes[(currentIndex + 1) % modes.length];
+    if (this.state.groupBy === TuiGroupBy.NONE) {
+      this.state.groupBy = TuiGroupBy.STATUS;
+    } else if (this.state.groupBy === TuiGroupBy.STATUS) {
+      this.state.groupBy = TuiGroupBy.MODEL;
+    } else {
+      this.state.groupBy = TuiGroupBy.NONE;
+    }
     this.buildTree();
     this.selectFirstAgent();
   }
 
-  setGroupBy(mode: typeof TUI_GROUP_BY_NONE | typeof TUI_GROUP_BY_STATUS | typeof TUI_GROUP_BY_MODEL): void {
+  setGroupBy(mode: TuiGroupBy): void {
     this.state.groupBy = mode;
     this.buildTree();
     this.selectFirstAgent();
@@ -580,7 +593,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     }
   }
 
-  private formatDetailContent(agent: AgentStatus | undefined, health: AgentHealth): string {
+  private formatDetailContent(agent: AgentStatusItem | undefined, health: AgentHealthData): string {
     if (!agent) return "Agent not found.";
 
     const lines: string[] = [];
@@ -910,6 +923,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
       title: "Agent Status Help",
       sections: this.getHelpSections(),
       useColors: this.useColors,
+      width: TUI_LAYOUT_NARROW_WIDTH,
     });
   }
 
@@ -969,7 +983,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
  */
 export class LegacyAgentStatusTuiSession extends TuiSessionBase {
   private readonly agentView: AgentStatusView;
-  private agents: AgentStatus[] = [];
+  private agents: AgentStatusItem[] = [];
 
   constructor(agentView: AgentStatusView, useColors = true) {
     super(useColors);

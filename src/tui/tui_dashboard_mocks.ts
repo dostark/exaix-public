@@ -5,6 +5,8 @@
  */
 import { PortalService } from "./portal_manager_view.ts";
 import {
+  AgentHealth,
+  AgentStatus,
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
@@ -14,6 +16,7 @@ import {
   MemorySource,
   MemoryStatus,
   MemoryType,
+  PortalStatus,
   RequestPriority,
   SkillStatus,
 } from "../enums.ts";
@@ -30,7 +33,7 @@ export class MockPortalService implements PortalService {
       targetPath: "/mock/path",
       symlinkPath: "/mock/symlink",
       contextCardPath: "/mock/card",
-      status: "active" as const,
+      status: PortalStatus.ACTIVE,
       permissions: "rw",
     });
   }
@@ -244,7 +247,7 @@ export class MockAgentService {
         id: "agent-1",
         name: "CodeReviewer",
         model: "gpt-4",
-        status: "active" as const,
+        status: AgentStatus.ACTIVE,
         lastActivity: new Date().toISOString(),
         capabilities: ["code-review", "testing"],
         defaultSkills: ["tdd-methodology", "code-review", "typescript-patterns"],
@@ -253,7 +256,7 @@ export class MockAgentService {
         id: "agent-2",
         name: "DocWriter",
         model: "claude-3",
-        status: "inactive" as const,
+        status: AgentStatus.INACTIVE,
         lastActivity: new Date(Date.now() - 3600000).toISOString(),
         capabilities: ["documentation"],
         defaultSkills: ["documentation-driven", "api-first"],
@@ -264,7 +267,7 @@ export class MockAgentService {
   /** Returns mock health for an agent. */
   getAgentHealth(agentId: string) {
     return Promise.resolve({
-      status: agentId === "agent-1" ? "healthy" as const : "warning" as const,
+      status: agentId === "agent-1" ? AgentHealth.HEALTHY : AgentHealth.WARNING,
       issues: agentId === "agent-1" ? [] : ["High memory usage"],
       uptime: 86400, // 1 day
     });

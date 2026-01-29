@@ -11,6 +11,13 @@ import type {
   MemoryUpdateProposal,
   ProjectMemory,
 } from "../../schemas/memory_bank.ts";
+import {
+  TUI_DETAIL_MAX_OVERVIEW_CHARS,
+  TUI_DETAIL_MAX_SUMMARY_CHARS,
+  TUI_LIMIT_LONG,
+  TUI_LIMIT_MEDIUM,
+  TUI_LIMIT_SHORT,
+} from "../../config/constants.ts";
 
 // ===== Color Constants =====
 
@@ -63,7 +70,8 @@ export function renderProjectPanel(
 
   if (memory.overview) {
     lines.push("## Overview");
-    const overview = memory.overview.length > 300 ? memory.overview.slice(0, 297) + "..." : memory.overview;
+    const limit = TUI_DETAIL_MAX_OVERVIEW_CHARS;
+    const overview = memory.overview.length > limit ? memory.overview.slice(0, limit - 3) + "..." : memory.overview;
     lines.push(overview);
     lines.push("");
   }
@@ -72,12 +80,13 @@ export function renderProjectPanel(
     lines.push(
       `${c.pattern}## Patterns (${memory.patterns.length})${c.reset}`,
     );
-    for (const p of memory.patterns.slice(0, 8)) {
+    const limit = TUI_LIMIT_MEDIUM;
+    for (const p of memory.patterns.slice(0, limit)) {
       const tags = p.tags?.length ? ` [${p.tags.join(", ")}]` : "";
       lines.push(`  • ${p.name}${tags}`);
     }
-    if (memory.patterns.length > 8) {
-      lines.push(`  ... and ${memory.patterns.length - 8} more`);
+    if (memory.patterns.length > limit) {
+      lines.push(`  ... and ${memory.patterns.length - limit} more`);
     }
     lines.push("");
   }
@@ -86,22 +95,24 @@ export function renderProjectPanel(
     lines.push(
       `${c.decision}## Decisions (${memory.decisions.length})${c.reset}`,
     );
-    for (const d of memory.decisions.slice(0, 5)) {
+    const limit = TUI_LIMIT_SHORT;
+    for (const d of memory.decisions.slice(0, limit)) {
       lines.push(`  • ${d.decision}`);
     }
-    if (memory.decisions.length > 5) {
-      lines.push(`  ... and ${memory.decisions.length - 5} more`);
+    if (memory.decisions.length > limit) {
+      lines.push(`  ... and ${memory.decisions.length - limit} more`);
     }
     lines.push("");
   }
 
   if (memory.references && memory.references.length > 0) {
     lines.push(`## References (${memory.references.length})`);
-    for (const r of memory.references.slice(0, 5)) {
+    const limit = TUI_LIMIT_SHORT;
+    for (const r of memory.references.slice(0, limit)) {
       lines.push(`  • ${r.type}: ${r.path}`);
     }
-    if (memory.references.length > 5) {
-      lines.push(`  ... and ${memory.references.length - 5} more`);
+    if (memory.references.length > limit) {
+      lines.push(`  ... and ${memory.references.length - limit} more`);
     }
   }
 
@@ -132,11 +143,12 @@ export function renderGlobalPanel(
     lines.push(
       `${c.pattern}## Global Patterns (${memory.patterns.length})${c.reset}`,
     );
-    for (const p of memory.patterns.slice(0, 5)) {
+    const limit = TUI_LIMIT_SHORT;
+    for (const p of memory.patterns.slice(0, limit)) {
       lines.push(`  • ${p.name}`);
     }
-    if (memory.patterns.length > 5) {
-      lines.push(`  ... and ${memory.patterns.length - 5} more`);
+    if (memory.patterns.length > limit) {
+      lines.push(`  ... and ${memory.patterns.length - limit} more`);
     }
     lines.push("");
   }
@@ -145,22 +157,24 @@ export function renderGlobalPanel(
     lines.push(
       `${c.antiPattern}## Anti-Patterns (${memory.anti_patterns.length})${c.reset}`,
     );
-    for (const ap of memory.anti_patterns.slice(0, 5)) {
+    const limit = TUI_LIMIT_SHORT;
+    for (const ap of memory.anti_patterns.slice(0, limit)) {
       lines.push(`  ⚠ ${ap.name}`);
     }
-    if (memory.anti_patterns.length > 5) {
-      lines.push(`  ... and ${memory.anti_patterns.length - 5} more`);
+    if (memory.anti_patterns.length > limit) {
+      lines.push(`  ... and ${memory.anti_patterns.length - limit} more`);
     }
     lines.push("");
   }
 
   if (memory.learnings && memory.learnings.length > 0) {
     lines.push(`## Learnings (${memory.learnings.length})`);
-    for (const l of memory.learnings.slice(0, 8)) {
+    const limit = TUI_LIMIT_MEDIUM;
+    for (const l of memory.learnings.slice(0, limit)) {
       lines.push(`  • ${l.title} [${l.category}]`);
     }
-    if (memory.learnings.length > 8) {
-      lines.push(`  ... and ${memory.learnings.length - 8} more`);
+    if (memory.learnings.length > limit) {
+      lines.push(`  ... and ${memory.learnings.length - limit} more`);
     }
   }
 
@@ -203,7 +217,8 @@ export function renderExecutionPanel(
 
   if (memory.summary) {
     lines.push("## Summary");
-    const summary = memory.summary.length > 200 ? memory.summary.slice(0, 197) + "..." : memory.summary;
+    const limit = TUI_DETAIL_MAX_SUMMARY_CHARS;
+    const summary = memory.summary.length > limit ? memory.summary.slice(0, limit - 3) + "..." : memory.summary;
     lines.push(`  ${summary}`);
     lines.push("");
   }
@@ -213,16 +228,15 @@ export function renderExecutionPanel(
     ...memory.changes.files_modified,
     ...memory.changes.files_deleted,
   ];
-  if (allChanges.length > 0) {
-    lines.push(`## Files Changed (${allChanges.length})`);
-    for (const file of allChanges.slice(0, 5)) {
-      lines.push(`  • ${file}`);
-    }
-    if (allChanges.length > 5) {
-      lines.push(`  ... and ${allChanges.length - 5} more`);
-    }
-    lines.push("");
+  lines.push(`## Files Changed (${allChanges.length})`);
+  const limit = TUI_LIMIT_SHORT;
+  for (const file of allChanges.slice(0, limit)) {
+    lines.push(`  • ${file}`);
   }
+  if (allChanges.length > limit) {
+    lines.push(`  ... and ${allChanges.length - limit} more`);
+  }
+  lines.push("");
 
   if (memory.lessons_learned && memory.lessons_learned.length > 0) {
     lines.push("## Lessons Learned");
@@ -301,7 +315,8 @@ export function renderSearchPanel(
   lines.push(`Found ${results.length} results:`);
   lines.push("");
 
-  for (let i = 0; i < Math.min(results.length, 15); i++) {
+  const limit = TUI_LIMIT_LONG;
+  for (let i = 0; i < Math.min(results.length, limit); i++) {
     const result = results[i];
     const selected = i === selectedIndex ? ">" : " ";
     const score = (result.relevance_score ?? 0).toFixed(2);
@@ -312,9 +327,9 @@ export function renderSearchPanel(
     lines.push(`    Score: ${score} | Portal: ${result.portal ?? "global"}`);
   }
 
-  if (results.length > 15) {
+  if (results.length > limit) {
     lines.push("");
-    lines.push(`... and ${results.length - 15} more results`);
+    lines.push(`... and ${results.length - limit} more results`);
   }
 
   return lines.join("\n");
@@ -345,7 +360,8 @@ export function renderPendingPanel(
   lines.push(`${proposals.length} proposal(s) awaiting review:`);
   lines.push("");
 
-  for (let i = 0; i < Math.min(proposals.length, 10); i++) {
+  const limit = TUI_LIMIT_MEDIUM;
+  for (let i = 0; i < Math.min(proposals.length, limit); i++) {
     const proposal = proposals[i];
     const selected = i === selectedIndex ? ">" : " ";
     const age = formatAge(proposal.created_at);
@@ -354,9 +370,9 @@ export function renderPendingPanel(
     lines.push(`    Scope: ${proposal.target_scope} | ${age}`);
   }
 
-  if (proposals.length > 10) {
+  if (proposals.length > limit) {
     lines.push("");
-    lines.push(`... and ${proposals.length - 10} more`);
+    lines.push(`... and ${proposals.length - limit} more`);
   }
 
   return lines.join("\n");

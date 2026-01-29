@@ -12,12 +12,28 @@ import type {
   SkillMatch,
 } from "../../schemas/memory_bank.ts";
 import {
+  CLI_LAYOUT_BOX_INDENT_WIDTH,
+  CLI_LAYOUT_BOX_LABEL_WIDTH,
+  CLI_LAYOUT_BOX_WIDTH_STANDARD,
+  CLI_LAYOUT_BOX_WIDTH_WIDE,
+  CLI_LAYOUT_PADDING_STANDARD,
+  CLI_LAYOUT_SKILL_ID_WIDTH,
+  CLI_LAYOUT_SKILL_NAME_WIDTH,
+  CLI_LAYOUT_SKILL_SOURCE_WIDTH,
+  CLI_LAYOUT_SKILL_STATUS_WIDTH,
+  CLI_LAYOUT_SKILL_VERSION_WIDTH,
   CLI_PREVIEW_LENGTH_LONG,
   CLI_PREVIEW_LENGTH_SHORT,
   CLI_SEPARATOR_LENGTH,
   CLI_SEPARATOR_LONG,
   CLI_SEPARATOR_MEDIUM,
+  CLI_SEPARATOR_NARROW,
+  CLI_SEPARATOR_SHORT,
   CLI_SEPARATOR_WIDE,
+  CLI_TRUNCATE_ID_LONG,
+  CLI_TRUNCATE_ID_SHORT,
+  CLI_TRUNCATE_TITLE_MEDIUM,
+  CLI_TRUNCATE_TITLE_SHORT,
 } from "../../config/constants.ts";
 
 /**
@@ -39,7 +55,7 @@ export class MemoryFormatter {
 
     if (summary.projects.length > 0) {
       lines.push("Projects:");
-      lines.push("─".repeat(30));
+      lines.push("─".repeat(CLI_SEPARATOR_SHORT));
       for (const project of summary.projects) {
         lines.push(`  • ${project}`);
       }
@@ -85,7 +101,7 @@ export class MemoryFormatter {
       `Found ${results.length} result(s)`,
       "",
       "Type       │ Portal          │ Title",
-      "───────────┼─────────────────┼" + "─".repeat(30),
+      "───────────┼─────────────────┼" + "─".repeat(CLI_SEPARATOR_SHORT),
     ];
 
     for (const result of results) {
@@ -287,7 +303,7 @@ export class MemoryFormatter {
       "═".repeat(CLI_SEPARATOR_WIDE),
       "",
       "Trace ID   │ Status    │ Portal          │ Started",
-      "───────────┼───────────┼─────────────────┼" + "─".repeat(20),
+      "───────────┼───────────┼─────────────────┼" + "─".repeat(CLI_LAYOUT_PADDING_STANDARD),
     ];
 
     for (const exec of executions) {
@@ -317,7 +333,7 @@ export class MemoryFormatter {
     ];
 
     for (const exec of executions) {
-      const traceId = exec.trace_id.substring(0, 8);
+      const traceId = exec.trace_id.substring(0, CLI_TRUNCATE_ID_SHORT);
       lines.push(
         `| ${traceId}... | ${exec.status} | ${exec.portal} | ${exec.agent} | ${exec.started_at} |`,
       );
@@ -343,14 +359,14 @@ export class MemoryFormatter {
       `Completed:   ${exec.completed_at || "In progress"}`,
       "",
       "Summary:",
-      "─".repeat(40),
+      "─".repeat(CLI_SEPARATOR_NARROW),
       exec.summary,
       "",
     ];
 
     if (exec.context_files && exec.context_files.length > 0) {
       lines.push(`Context Files (${exec.context_files.length}):`);
-      lines.push("─".repeat(40));
+      lines.push("─".repeat(CLI_SEPARATOR_NARROW));
       for (const file of exec.context_files) {
         lines.push(`  • ${file}`);
       }
@@ -481,14 +497,14 @@ export class MemoryFormatter {
       "═".repeat(CLI_SEPARATOR_WIDE),
       "",
       "ID         │ Category      │ Confidence │ Title",
-      "───────────┼───────────────┼────────────┼" + "─".repeat(40),
+      "───────────┼───────────────┼────────────┼" + "─".repeat(CLI_SEPARATOR_NARROW),
     ];
 
     for (const l of learnings) {
-      const id = l.id.substring(0, 8) + "..";
+      const id = l.id.substring(0, CLI_TRUNCATE_ID_SHORT) + "..";
       const category = l.category.padEnd(13);
       const confidence = l.confidence.padEnd(10);
-      const title = l.title.substring(0, 35);
+      const title = l.title.substring(0, CLI_TRUNCATE_TITLE_MEDIUM);
       lines.push(`${id} │ ${category} │ ${confidence} │ ${title}`);
     }
 
@@ -508,7 +524,9 @@ export class MemoryFormatter {
 
     for (const l of learnings) {
       lines.push(
-        `| ${l.id.substring(0, 8)}... | ${l.category} | ${l.title} | ${l.confidence} | ${l.source} |`,
+        `| ${
+          l.id.substring(0, CLI_TRUNCATE_ID_SHORT)
+        }... | ${l.category} | ${l.title} | ${l.confidence} | ${l.source} |`,
       );
     }
 
@@ -530,18 +548,18 @@ export class MemoryFormatter {
 
     if (Object.keys(stats.by_category).length > 0) {
       lines.push("By Category:");
-      lines.push("─".repeat(30));
+      lines.push("─".repeat(CLI_SEPARATOR_SHORT));
       for (const [cat, count] of Object.entries(stats.by_category)) {
-        lines.push(`  ${cat.padEnd(20)} ${count}`);
+        lines.push(`  ${cat.padEnd(CLI_LAYOUT_PADDING_STANDARD)} ${count}`);
       }
       lines.push("");
     }
 
     if (Object.keys(stats.by_project).length > 0) {
       lines.push("By Project:");
-      lines.push("─".repeat(30));
+      lines.push("─".repeat(CLI_SEPARATOR_SHORT));
       for (const [project, count] of Object.entries(stats.by_project)) {
-        lines.push(`  ${project.padEnd(20)} ${count}`);
+        lines.push(`  ${project.padEnd(CLI_LAYOUT_PADDING_STANDARD)} ${count}`);
       }
     }
 
@@ -587,12 +605,12 @@ export class MemoryFormatter {
       "═".repeat(CLI_SEPARATOR_WIDE),
       "",
       "ID".padEnd(38) + "Title".padEnd(30) + "Category".padEnd(15) + "Scope",
-      "─".repeat(80),
+      "─".repeat(CLI_SEPARATOR_WIDE),
     ];
 
     for (const proposal of proposals) {
-      const id = proposal.id.substring(0, 36);
-      const title = proposal.learning.title.substring(0, 28).padEnd(30);
+      const id = proposal.id.substring(0, CLI_TRUNCATE_ID_LONG);
+      const title = proposal.learning.title.substring(0, CLI_TRUNCATE_TITLE_SHORT).padEnd(30);
       const category = proposal.learning.category.padEnd(15);
       const scope = proposal.target_project || "global";
       lines.push(`${id}  ${title}${category}${scope}`);
@@ -613,7 +631,7 @@ export class MemoryFormatter {
     ];
 
     for (const proposal of proposals) {
-      const id = proposal.id.substring(0, 8) + "...";
+      const id = proposal.id.substring(0, CLI_TRUNCATE_ID_SHORT) + "...";
       const title = proposal.learning.title.substring(0, 30);
       const category = proposal.learning.category;
       const scope = proposal.target_project || "global";
@@ -704,11 +722,11 @@ export class MemoryFormatter {
     lines.push("├──────────────────────┼─────────────────────────┼──────────┼─────────┼────────────┤");
 
     for (const skill of skills) {
-      const id = skill.skill_id.padEnd(20).slice(0, 20);
-      const name = skill.name.padEnd(23).slice(0, 23);
-      const source = skill.source.padEnd(8).slice(0, 8);
-      const version = skill.version.padEnd(7).slice(0, 7);
-      const status = skill.status.padEnd(10).slice(0, 10);
+      const id = skill.skill_id.padEnd(CLI_LAYOUT_SKILL_ID_WIDTH).slice(0, CLI_LAYOUT_SKILL_ID_WIDTH);
+      const name = skill.name.padEnd(CLI_LAYOUT_SKILL_NAME_WIDTH).slice(0, CLI_LAYOUT_SKILL_NAME_WIDTH);
+      const source = skill.source.padEnd(CLI_LAYOUT_SKILL_SOURCE_WIDTH).slice(0, CLI_LAYOUT_SKILL_SOURCE_WIDTH);
+      const version = skill.version.padEnd(CLI_LAYOUT_SKILL_VERSION_WIDTH).slice(0, CLI_LAYOUT_SKILL_VERSION_WIDTH);
+      const status = skill.status.padEnd(CLI_LAYOUT_SKILL_STATUS_WIDTH).slice(0, CLI_LAYOUT_SKILL_STATUS_WIDTH);
       lines.push(`│ ${id} │ ${name} │ ${source} │ ${version} │ ${status} │`);
     }
 
@@ -734,13 +752,13 @@ export class MemoryFormatter {
   formatSkillShowTable(skill: Skill): string {
     const lines: string[] = [];
     lines.push("┌─────────────────────────────────────────────────────────────┐");
-    lines.push(`│ Skill: ${skill.name.padEnd(51)} │`);
+    lines.push(`│ Skill: ${skill.name.padEnd(CLI_LAYOUT_BOX_LABEL_WIDTH - 4)} │`);
     lines.push("├─────────────────────────────────────────────────────────────┤");
-    lines.push(`│ Skill ID:   ${skill.skill_id.padEnd(47)} │`);
-    lines.push(`│ Source:     ${skill.source.padEnd(47)} │`);
-    lines.push(`│ Scope:      ${skill.scope.padEnd(47)} │`);
-    lines.push(`│ Version:    ${skill.version.padEnd(47)} │`);
-    lines.push(`│ Status:     ${skill.status.padEnd(47)} │`);
+    lines.push(`│ Skill ID:   ${skill.skill_id.padEnd(CLI_LAYOUT_BOX_WIDTH_STANDARD)} │`);
+    lines.push(`│ Source:     ${skill.source.padEnd(CLI_LAYOUT_BOX_WIDTH_STANDARD)} │`);
+    lines.push(`│ Scope:      ${skill.scope.padEnd(CLI_LAYOUT_BOX_WIDTH_STANDARD)} │`);
+    lines.push(`│ Version:    ${skill.version.padEnd(CLI_LAYOUT_BOX_WIDTH_STANDARD)} │`);
+    lines.push(`│ Status:     ${skill.status.padEnd(CLI_LAYOUT_BOX_WIDTH_STANDARD)} │`);
     lines.push("├─────────────────────────────────────────────────────────────┤");
     lines.push(`│ Description:                                                │`);
 
@@ -748,32 +766,53 @@ export class MemoryFormatter {
     const descWords = skill.description.split(" ");
     let descLine = "";
     for (const word of descWords) {
-      if ((descLine + " " + word).length > 55) {
-        lines.push(`│   ${descLine.padEnd(57)} │`);
+      if ((descLine + " " + word).length > CLI_LAYOUT_BOX_LABEL_WIDTH) {
+        lines.push(`│   ${descLine.padEnd(CLI_LAYOUT_BOX_WIDTH_WIDE)} │`);
         descLine = word;
       } else {
         descLine = descLine ? `${descLine} ${word}` : word;
       }
     }
     if (descLine) {
-      lines.push(`│   ${descLine.padEnd(57)} │`);
+      lines.push(`│   ${descLine.padEnd(CLI_LAYOUT_BOX_WIDTH_WIDE)} │`);
     }
 
     lines.push("├─────────────────────────────────────────────────────────────┤");
     lines.push(`│ Triggers:                                                   │`);
-    lines.push(`│   Keywords:   ${(skill.triggers.keywords?.join(", ") || "none").slice(0, 43).padEnd(43)} │`);
-    lines.push(`│   Task Types: ${(skill.triggers.task_types?.join(", ") || "none").slice(0, 43).padEnd(43)} │`);
-    lines.push(`│   Tags:       ${(skill.triggers.tags?.join(", ") || "none").slice(0, 43).padEnd(43)} │`);
+    lines.push(
+      `│   Keywords:   ${
+        (skill.triggers.keywords?.join(", ") || "none").slice(0, CLI_LAYOUT_BOX_INDENT_WIDTH).padEnd(
+          CLI_LAYOUT_BOX_INDENT_WIDTH,
+        )
+      } │`,
+    );
+    lines.push(
+      `│   Task Types: ${
+        (skill.triggers.task_types?.join(", ") || "none").slice(0, CLI_LAYOUT_BOX_INDENT_WIDTH).padEnd(
+          CLI_LAYOUT_BOX_INDENT_WIDTH,
+        )
+      } │`,
+    );
+    lines.push(
+      `│   Tags:       ${
+        (skill.triggers.tags?.join(", ") || "none").slice(0, CLI_LAYOUT_BOX_INDENT_WIDTH).padEnd(
+          CLI_LAYOUT_BOX_INDENT_WIDTH,
+        )
+      } │`,
+    );
     lines.push("├─────────────────────────────────────────────────────────────┤");
     lines.push(`│ Instructions:                                               │`);
 
     // Show first few lines of instructions
     const instructionLines = skill.instructions.split("\n").slice(0, 5);
     for (const line of instructionLines) {
-      lines.push(`│   ${line.slice(0, 55).padEnd(57)} │`);
+      lines.push(`│   ${line.slice(0, CLI_LAYOUT_BOX_LABEL_WIDTH).padEnd(CLI_LAYOUT_BOX_WIDTH_WIDE)} │`);
     }
     if (skill.instructions.split("\n").length > 5) {
-      lines.push(`│   ... (${skill.instructions.split("\n").length - 5} more lines)`.padEnd(59) + " │");
+      lines.push(
+        `│   ... (${skill.instructions.split("\n").length - 5} more lines)`.padEnd(CLI_LAYOUT_BOX_WIDTH_WIDE + 2) +
+          " │",
+      );
     }
 
     lines.push("└─────────────────────────────────────────────────────────────┘");

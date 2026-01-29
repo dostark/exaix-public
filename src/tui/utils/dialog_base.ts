@@ -11,7 +11,9 @@ import { ANSI, colorize, getTheme, padEnd, type TuiTheme, visibleLength } from "
 
 // ===== Dialog Types =====
 
-export type DialogState = "active" | "confirmed" | "cancelled";
+import { DialogStatus } from "../../enums.ts";
+
+export type DialogState = DialogStatus;
 
 export type DialogResult<T = unknown> =
   | { type: "confirmed"; value: T }
@@ -52,12 +54,12 @@ export const BOX = {
  * Abstract base class for all dialogs
  */
 export abstract class DialogBase<T = unknown> {
-  protected state: DialogState = "active";
+  protected state: DialogState = DialogStatus.ACTIVE;
   protected focusIndex = 0;
   protected _resultValue?: T;
 
   isActive(): boolean {
-    return this.state === "active";
+    return this.state === DialogStatus.ACTIVE;
   }
 
   getState(): DialogState {
@@ -74,12 +76,16 @@ export abstract class DialogBase<T = unknown> {
   abstract getResult(): DialogResult<T>;
 
   protected cancel(): void {
-    this.state = "cancelled";
+    if (this.state === DialogStatus.ACTIVE) {
+      this.state = DialogStatus.CANCELLED;
+    }
   }
 
   protected confirm(value: T): void {
-    this.state = "confirmed";
-    this._resultValue = value;
+    if (this.state === DialogStatus.ACTIVE) {
+      this.state = DialogStatus.CONFIRMED;
+      this._resultValue = value;
+    }
   }
 
   protected moveFocus(direction: 1 | -1): void {

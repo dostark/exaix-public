@@ -5,6 +5,7 @@
 
 import { z } from "zod";
 import { MCPTransport } from "../enums.ts";
+import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
 // ============================================================================
 // MCP Configuration Schema
@@ -80,7 +81,7 @@ export const ApprovePlanToolArgsSchema = z.object({
 
 export const QueryJournalToolArgsSchema = z.object({
   trace_id: z.string().optional(),
-  limit: z.number().int().positive().default(50),
+  limit: z.number().int().positive().default(DEFAULT_QUERY_LIMIT),
   agent_id: z.string().min(1, "Agent ID required").default("system"),
 });
 

@@ -14,12 +14,12 @@
 
 import { ConfidenceLevel } from "../../src/enums.ts";
 import {
+  DialogStatus,
   LearningCategory,
   MemoryOperation,
   MemoryScope,
   MemorySource,
   MemoryStatus,
-  SkillStatus,
 } from "../../src/enums.ts";
 
 import { assertEquals, assertExists } from "@std/assert";
@@ -76,7 +76,7 @@ Deno.test("ConfirmApproveDialog: starts active", () => {
   const dialog = new ConfirmApproveDialog(proposal);
 
   assertEquals(dialog.isActive(), true);
-  assertEquals(dialog.getState(), SkillStatus.ACTIVE);
+  assertEquals(dialog.getState(), DialogStatus.ACTIVE);
 });
 
 Deno.test("ConfirmApproveDialog: left/right switches focus", () => {

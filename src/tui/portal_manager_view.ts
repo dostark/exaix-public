@@ -18,6 +18,8 @@ import { ConfirmDialog, type DialogBase } from "./utils/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import { createGroupNode, createNode, flattenTree, type TreeNode, type TreeRenderOptions } from "./utils/tree_view.ts";
+import { PortalStatus, TuiIcon } from "../enums.ts";
+import { TUI_LAYOUT_NARROW_WIDTH } from "../config/constants.ts";
 
 // ===== Portal View Extensions =====
 
@@ -45,10 +47,10 @@ export interface PortalService {
 // ===== Portal Status Icons =====
 
 const PORTAL_ICONS = {
-  active: "🟢",
-  broken: "🔴",
-  inactive: "⚪",
-  folder: "📂",
+  active: TuiIcon.PORTAL_ACTIVE,
+  broken: TuiIcon.PORTAL_BROKEN,
+  inactive: TuiIcon.PORTAL_INACTIVE,
+  folder: TuiIcon.FOLDER,
 } as const;
 
 // ===== Key Bindings =====
@@ -104,16 +106,16 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
         "portal",
         {
           data: portal,
-          icon: PORTAL_ICONS[portal.status as keyof typeof PORTAL_ICONS] || PORTAL_ICONS.inactive,
+          icon: portal.status === PortalStatus.ACTIVE ? TuiIcon.PORTAL_ACTIVE : TuiIcon.PORTAL_BROKEN,
           badge: portal.status,
         },
       );
 
       switch (portal.status) {
-        case "active":
+        case PortalStatus.ACTIVE:
           active.push(node);
           break;
-        case "broken":
+        case PortalStatus.BROKEN:
           broken.push(node);
           break;
         default:
@@ -423,7 +425,7 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
       title: "Portal Manager Help",
       sections,
       useColors: this.state.useColors,
-      width: 50,
+      width: TUI_LAYOUT_NARROW_WIDTH,
     });
   }
 
@@ -489,7 +491,7 @@ export class PortalManagerView implements PortalService {
   renderPortalList(portals: PortalInfo[]): string {
     return portals.map((p) => {
       let line = `${p.alias} [${p.status}] (${p.targetPath})`;
-      if (p.status && p.status !== "active") {
+      if (p.status && p.status !== PortalStatus.ACTIVE) {
         line += `  ⚠️ ERROR: ${p.status}`;
       }
       return line;

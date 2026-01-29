@@ -24,6 +24,7 @@ import { FlowCommands } from "./flow_commands.ts";
 import { DashboardCommands } from "./dashboard_commands.ts";
 import { MemoryCommands } from "./memory_commands.ts";
 import { JournalCommands } from "./commands/journal.ts";
+import { PortalStatus } from "../enums.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { McpCommands } from "./commands/mcp.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
@@ -557,7 +558,7 @@ export const __test_command = new Command()
               display.info("portal.list", "portals", { count: portals.length });
               for (const portal of portals) {
                 display.info(portal.alias, portal.symlinkPath, {
-                  status: portal.status === "active" ? "Active ✓" : "Broken ⚠",
+                  status: portal.status === PortalStatus.ACTIVE ? "Active ✓" : "Broken ⚠",
                   target: portal.targetPath + (portal.status === "broken" ? " (not found)" : ""),
                   context: portal.contextCardPath,
                 });

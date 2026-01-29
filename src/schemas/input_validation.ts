@@ -1,12 +1,24 @@
 import { z } from "zod";
 import { MockStrategy, ProviderType, SecurityMode } from "../enums.ts";
+import {
+  BLUEPRINT_NAME_MAX_LENGTH,
+  DEFAULT_AGENT_MAX_TOOL_CALLS,
+  DEFAULT_AGENT_TIMEOUT_MS,
+  FILENAME_MAX_LENGTH,
+  MAX_ID_LENGTH,
+  MAX_NAME_LENGTH,
+  MODEL_NAME_MAX_LENGTH,
+  PATH_MAX_LENGTH,
+  PLAN_CONTENT_MAX_LENGTH,
+  USER_REQUEST_MAX_LENGTH,
+} from "../config/constants.ts";
 
 /**
  * Blueprint name validation - prevents path traversal and injection
  */
 export const BlueprintNameSchema = z.string()
   .min(1, "Blueprint name cannot be empty")
-  .max(100, "Blueprint name too long (max 100 chars)")
+  .max(BLUEPRINT_NAME_MAX_LENGTH, `Blueprint name too long (max ${BLUEPRINT_NAME_MAX_LENGTH} chars)`)
   .regex(/^[a-zA-Z0-9_-]+$/, "Blueprint name can only contain letters, numbers, hyphens, and underscores")
   .refine(
     (val: string) => !/\.\./.test(val),
@@ -24,7 +36,7 @@ export const BlueprintNameSchema = z.string()
  */
 export const PortalNameSchema = z.string()
   .min(1, "Portal name cannot be empty")
-  .max(50, "Portal name too long (max 50 chars)")
+  .max(MAX_NAME_LENGTH, `Portal name too long (max ${MAX_NAME_LENGTH} chars)`)
   .regex(/^[a-zA-Z0-9_-]+$/, "Portal name can only contain letters, numbers, hyphens, and underscores");
 
 /**
@@ -32,7 +44,7 @@ export const PortalNameSchema = z.string()
  */
 export const AgentIdSchema = z.string()
   .min(1, "Agent ID cannot be empty")
-  .max(50, "Agent ID too long (max 50 chars)")
+  .max(MAX_ID_LENGTH, `Agent ID too long (max ${MAX_ID_LENGTH} chars)`)
   .regex(/^[a-zA-Z0-9_-]+$/, "Agent ID can only contain letters, numbers, hyphens, and underscores")
   .refine(
     (val: string) => !/\.\./.test(val),
@@ -50,7 +62,7 @@ export const TraceIdSchema = z.string()
  */
 export const UserRequestSchema = z.string()
   .min(1, "Request cannot be empty")
-  .max(10000, "Request too long (max 10KB)")
+  .max(USER_REQUEST_MAX_LENGTH, `Request too long (max ${USER_REQUEST_MAX_LENGTH} chars)`)
   .refine(
     (val: string) => !/<script[^>]*>.*?<\/script>/gis.test(val),
     "Script tags not allowed",
@@ -70,7 +82,7 @@ export const UserRequestSchema = z.string()
  */
 export const PlanSchema = z.string()
   .min(1, "Plan cannot be empty")
-  .max(50000, "Plan too long (max 50KB)")
+  .max(PLAN_CONTENT_MAX_LENGTH, `Plan too long (max ${PLAN_CONTENT_MAX_LENGTH} chars)`)
   .refine(
     (val: string) => !/<script[^>]*>.*?<\/script>/gis.test(val),
     "Script tags not allowed",
@@ -101,7 +113,7 @@ export const ModelConfigSchema = z.object({
       message: "Provider must be a valid supported provider type",
     },
   ),
-  model: z.string().min(1).max(100),
+  model: z.string().min(1).max(MODEL_NAME_MAX_LENGTH),
   temperature: z.number().min(0).max(2).optional(),
   max_tokens: z.number().int().min(1).max(100000).optional(),
   base_url: z.string().url().optional(),
@@ -119,7 +131,7 @@ export const ModelConfigSchema = z.object({
  */
 export const ExecutionContextSchema = z.object({
   trace_id: TraceIdSchema,
-  request_id: z.string().min(1).max(100),
+  request_id: z.string().min(1).max(MAX_ID_LENGTH),
   request: UserRequestSchema,
   plan: PlanSchema,
   portal: PortalNameSchema,
@@ -136,8 +148,8 @@ export const AgentExecutionOptionsSchema = z.object({
   agent_id: BlueprintNameSchema,
   portal: PortalNameSchema,
   security_mode: z.nativeEnum(SecurityMode).default(SecurityMode.SANDBOXED),
-  timeout_ms: z.number().int().positive().default(300000), // 5 minutes
-  max_tool_calls: z.number().int().positive().default(100),
+  timeout_ms: z.number().int().positive().default(DEFAULT_AGENT_TIMEOUT_MS),
+  max_tool_calls: z.number().int().positive().default(DEFAULT_AGENT_MAX_TOOL_CALLS),
   audit_enabled: z.boolean().default(true),
 }).strict();
 
@@ -197,7 +209,7 @@ export class InputSanitizer {
       .replace(/\.\./g, "_._") // Replace .. with _._
       .replace(/^\.+/, "") // Remove leading dots
       .replace(/\.+$/, "") // Remove trailing dots
-      .substring(0, 255); // Limit length
+      .substring(0, FILENAME_MAX_LENGTH); // Limit length
   }
 
   /**
@@ -209,7 +221,7 @@ export class InputSanitizer {
       .replace(/[<>:"|?*]/g, "_") // Replace dangerous chars
       .replace(/^\/+/, "") // Remove leading slashes
       .replace(/\/+$/, "") // Remove trailing slashes
-      .substring(0, 4096); // Limit path length
+      .substring(0, PATH_MAX_LENGTH); // Limit path length
   }
 
   /**
@@ -219,7 +231,7 @@ export class InputSanitizer {
     return this.removeControlChars(text)
       .replace(/<script[^>]*>.*?<\/script>/gis, "[SCRIPT REMOVED]") // Remove script tags
       .replace(/<iframe[^>]*>.*?<\/iframe>/gis, "[IFRAME REMOVED]") // Remove iframe tags
-      .substring(0, 10000); // Limit length
+      .substring(0, USER_REQUEST_MAX_LENGTH); // Limit length
   }
 
   /**
@@ -228,7 +240,7 @@ export class InputSanitizer {
   static sanitizePlanText(text: string): string {
     return this.removeControlChars(text)
       .replace(/<script[^>]*>.*?<\/script>/gis, "[SCRIPT REMOVED]") // Remove script tags
-      .substring(0, 50000); // Limit length
+      .substring(0, PLAN_CONTENT_MAX_LENGTH); // Limit length
   }
 
   /**

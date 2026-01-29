@@ -1,34 +1,34 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { CritiqueSeverity } from "../../src/enums.ts";
+import { AgentHealth, AgentStatus } from "../../src/enums.ts";
 
 import {
-  AgentHealth,
+  AgentHealthData,
   AgentLogEntry,
   AgentService,
-  AgentStatus,
+  AgentStatusItem,
   AgentStatusView,
 } from "../../src/tui/agent_status_view.ts";
 
 class EmptyAgentService implements AgentService {
-  listAgents(): Promise<AgentStatus[]> {
+  listAgents(): Promise<AgentStatusItem[]> {
     return Promise.resolve([]);
   }
   getAgentLogs(): Promise<AgentLogEntry[]> {
     return Promise.resolve([]);
   }
-  getAgentHealth(): Promise<AgentHealth> {
-    return Promise.resolve({ status: "healthy", issues: [], uptime: 0 });
+  getAgentHealth(): Promise<AgentHealthData> {
+    return Promise.resolve({ status: AgentHealth.HEALTHY, issues: [], uptime: 0 });
   }
 }
 
 class DetailedAgentService implements AgentService {
-  listAgents(): Promise<AgentStatus[]> {
+  listAgents(): Promise<AgentStatusItem[]> {
     return Promise.resolve([
       {
         id: "agent-x",
         name: "Agent X",
         model: "mock-model",
-        status: "error",
+        status: AgentStatus.ERROR,
         lastActivity: new Date().toISOString(),
         capabilities: ["chat"],
         defaultSkills: [],
@@ -41,8 +41,8 @@ class DetailedAgentService implements AgentService {
       { timestamp: new Date().toISOString(), level: "info", message: "Recovered" },
     ]);
   }
-  getAgentHealth(_agentId: string): Promise<AgentHealth> {
-    return Promise.resolve({ status: CritiqueSeverity.CRITICAL, issues: ["OOM", "Crash loop"], uptime: 3600 * 5 });
+  getAgentHealth(_agentId: string): Promise<AgentHealthData> {
+    return Promise.resolve({ status: AgentHealth.CRITICAL, issues: ["OOM", "Crash loop"], uptime: 3600 * 5 });
   }
 }
 

@@ -8,6 +8,7 @@
  */
 
 import { ConfidenceLevel } from "../../enums.ts";
+import { TUI_LAYOUT_FULL_WIDTH } from "../../config/constants.ts";
 
 // ===== ANSI Styles =====
 
@@ -34,7 +35,7 @@ export interface RenderOptions {
  * Render markdown text to ANSI-styled output
  */
 export function renderMarkdown(text: string, options: RenderOptions): string {
-  const { useColors, maxWidth = 80 } = options;
+  const { useColors, maxWidth = TUI_LAYOUT_FULL_WIDTH } = options;
   const s = useColors ? MarkdownStyles : emptyStyles();
 
   const lines = text.split("\n");
@@ -137,19 +138,12 @@ function renderInlineStyles(text: string, s: typeof MarkdownStyles): string {
  * Create empty styles for no-color mode
  */
 function emptyStyles(): typeof MarkdownStyles {
-  return {
-    h1: "",
-    h2: "",
-    h3: "",
-    bold: "",
-    italic: "",
-    code: "",
-    codeBlock: "",
-    link: "",
-    listMarker: "",
-    dim: "",
-    reset: "",
-  };
+  // Create an object with same keys as MarkdownStyles but empty strings
+  const empty: any = {};
+  for (const key of Object.keys(MarkdownStyles)) {
+    empty[key] = "";
+  }
+  return empty as typeof MarkdownStyles;
 }
 
 /**

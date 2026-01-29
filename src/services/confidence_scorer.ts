@@ -18,6 +18,25 @@ import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
 import { ConfidenceAssessmentLevel, FactorImpact } from "../enums.ts";
+import {
+  CONFIDENCE_ADJUSTMENT_CERTAIN,
+  CONFIDENCE_ADJUSTMENT_HEDGING,
+  CONFIDENCE_ADJUSTMENT_QUALIFIER,
+  CONFIDENCE_ADJUSTMENT_QUESTION,
+  CONFIDENCE_ADJUSTMENT_SHORT,
+  CONFIDENCE_ADJUSTMENT_UNCERTAIN,
+  CONFIDENCE_ADJUSTMENT_VERY_SHORT,
+  CONFIDENCE_DEFAULT_HIGH_THRESHOLD,
+  CONFIDENCE_DEFAULT_LOW_THRESHOLD,
+  CONFIDENCE_DEFAULT_VERY_LOW_THRESHOLD,
+  CONFIDENCE_LENGTH_THRESHOLD_SHORT,
+  CONFIDENCE_LENGTH_THRESHOLD_VERY_SHORT,
+  CONFIDENCE_SCORE_BASE,
+  CONFIDENCE_THRESHOLD_HIGH,
+  CONFIDENCE_THRESHOLD_LOW,
+  CONFIDENCE_THRESHOLD_MEDIUM,
+  CONFIDENCE_THRESHOLD_VERY_LOW,
+} from "../config/constants.ts";
 
 // ============================================================================
 // Confidence Schema
@@ -167,9 +186,9 @@ export class ConfidenceScorer {
 
   constructor(modelProvider: IModelProvider, config: ConfidenceScorerConfig = {}) {
     const {
-      lowConfidenceThreshold = 50,
-      veryLowThreshold = 30,
-      highConfidenceThreshold = 80,
+      lowConfidenceThreshold = CONFIDENCE_DEFAULT_LOW_THRESHOLD,
+      veryLowThreshold = CONFIDENCE_DEFAULT_VERY_LOW_THRESHOLD,
+      highConfidenceThreshold = CONFIDENCE_DEFAULT_HIGH_THRESHOLD,
       autoReview = true,
       extractionPromptTemplate = DEFAULT_EXTRACTION_PROMPT,
       verbose = false,
@@ -261,7 +280,7 @@ export class ConfidenceScorer {
    * Quick assessment without LLM call - based on heuristics
    */
   assessQuick(response: string): ConfidenceAssessment {
-    let score = 70;
+    let score = CONFIDENCE_SCORE_BASE;
 
     const indicators = {
       certainWords: ["definitely", "certainly", "absolutely", "always", "never"],
@@ -273,27 +292,27 @@ export class ConfidenceScorer {
     const lowered = response.toLowerCase();
 
     for (const word of indicators.certainWords) {
-      if (lowered.includes(word)) score += 3;
+      if (lowered.includes(word)) score += CONFIDENCE_ADJUSTMENT_CERTAIN;
     }
 
     for (const word of indicators.uncertainWords) {
-      if (lowered.includes(word)) score -= 8;
+      if (lowered.includes(word)) score += CONFIDENCE_ADJUSTMENT_UNCERTAIN;
     }
 
     for (const word of indicators.hedgingWords) {
-      if (lowered.includes(word)) score -= 5;
+      if (lowered.includes(word)) score += CONFIDENCE_ADJUSTMENT_HEDGING;
     }
 
     for (const word of indicators.qualifiers) {
-      if (lowered.includes(word)) score -= 2;
+      if (lowered.includes(word)) score += CONFIDENCE_ADJUSTMENT_QUALIFIER;
     }
 
     if (response.includes("?") && !response.includes('?"')) {
-      score -= 10;
+      score += CONFIDENCE_ADJUSTMENT_QUESTION;
     }
 
-    if (response.length < 50) score -= 15;
-    if (response.length < 20) score -= 20;
+    if (response.length < CONFIDENCE_LENGTH_THRESHOLD_SHORT) score += CONFIDENCE_ADJUSTMENT_SHORT;
+    if (response.length < CONFIDENCE_LENGTH_THRESHOLD_VERY_SHORT) score += CONFIDENCE_ADJUSTMENT_VERY_SHORT;
 
     score = Math.max(0, Math.min(100, score));
 
@@ -401,7 +420,7 @@ export class ConfidenceScorer {
   }
 
   private scoreToLevel(score: number): ConfidenceAssessmentLevel {
-    if (score >= 90) return ConfidenceAssessmentLevel.VERY_HIGH;
+    if (score >= CONFIDENCE_THRESHOLD_HIGH) return ConfidenceAssessmentLevel.VERY_HIGH;
     if (score >= this.config.highConfidenceThreshold) return ConfidenceAssessmentLevel.HIGH;
     if (score >= this.config.lowConfidenceThreshold) return ConfidenceAssessmentLevel.MEDIUM;
     if (score >= this.config.veryLowThreshold) return ConfidenceAssessmentLevel.LOW;
@@ -410,7 +429,7 @@ export class ConfidenceScorer {
 
   private createDefaultAssessment(): ConfidenceAssessment {
     return {
-      score: 50,
+      score: CONFIDENCE_DEFAULT_LOW_THRESHOLD,
       level: ConfidenceAssessmentLevel.MEDIUM,
       reasoning: "Unable to parse confidence assessment, defaulting to medium",
       factors: [],
@@ -448,9 +467,9 @@ export function createStrictConfidenceScorer(
   config?: ConfidenceScorerConfig,
 ): ConfidenceScorer {
   return new ConfidenceScorer(modelProvider, {
-    lowConfidenceThreshold: 70,
-    veryLowThreshold: 50,
-    highConfidenceThreshold: 90,
+    lowConfidenceThreshold: CONFIDENCE_THRESHOLD_MEDIUM,
+    veryLowThreshold: CONFIDENCE_THRESHOLD_LOW,
+    highConfidenceThreshold: CONFIDENCE_THRESHOLD_HIGH,
     autoReview: true,
     ...config,
   });
@@ -461,9 +480,9 @@ export function createLenientConfidenceScorer(
   config?: ConfidenceScorerConfig,
 ): ConfidenceScorer {
   return new ConfidenceScorer(modelProvider, {
-    lowConfidenceThreshold: 30,
+    lowConfidenceThreshold: CONFIDENCE_THRESHOLD_VERY_LOW,
     veryLowThreshold: 15,
-    highConfidenceThreshold: 70,
+    highConfidenceThreshold: CONFIDENCE_THRESHOLD_MEDIUM,
     autoReview: false,
     ...config,
   });

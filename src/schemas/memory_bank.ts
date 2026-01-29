@@ -30,6 +30,7 @@ import {
   ReviewSource,
   SkillStatus,
 } from "../enums.ts";
+import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
 // ===== Project Memory Schemas =====
 
@@ -278,7 +279,7 @@ export const SkillTriggersSchema = z.object({
 export const SkillQualityCriterionSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
-  weight: z.number().min(0).max(100).default(50),
+  weight: z.number().min(0).max(100).default(DEFAULT_QUERY_LIMIT),
 });
 
 /**

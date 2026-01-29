@@ -1,5 +1,6 @@
 import type { ExecutionMemory, Learning, MemorySearchResult, ProjectMemory } from "../schemas/memory_bank.ts";
 import { MemoryStatus, MemoryType } from "../enums.ts";
+import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
 export interface SearchDeps {
   projectsDir: string;
@@ -17,7 +18,7 @@ export async function searchMemory(
 ): Promise<MemorySearchResult[]> {
   const results: MemorySearchResult[] = [];
   const queryLower = query.toLowerCase();
-  const limit = options?.limit || 50;
+  const limit = options?.limit || DEFAULT_QUERY_LIMIT;
 
   // Search project memory
   for await (const entry of Deno.readDir(deps.projectsDir)) {
@@ -91,7 +92,7 @@ export async function searchByTags(
   deps: SearchDeps,
 ): Promise<MemorySearchResult[]> {
   const results: MemorySearchResult[] = [];
-  const limit = options?.limit || 50;
+  const limit = options?.limit || DEFAULT_QUERY_LIMIT;
   const normalizedTags = tags.map((t) => t.toLowerCase());
 
   for await (const entry of Deno.readDir(deps.projectsDir)) {
@@ -158,7 +159,7 @@ export async function searchByKeyword(
   deps: SearchDeps,
 ): Promise<MemorySearchResult[]> {
   const results: MemorySearchResult[] = [];
-  const limit = options?.limit || 50;
+  const limit = options?.limit || DEFAULT_QUERY_LIMIT;
   const keywordLower = keyword.toLowerCase();
 
   for await (const entry of Deno.readDir(deps.projectsDir)) {
@@ -241,7 +242,7 @@ export async function searchMemoryAdvanced(
   },
   deps: SearchDeps,
 ): Promise<MemorySearchResult[]> {
-  const limit = options.limit || 50;
+  const limit = options.limit || DEFAULT_QUERY_LIMIT;
   const results: MemorySearchResult[] = [];
   const seenIds = new Set<string>();
 

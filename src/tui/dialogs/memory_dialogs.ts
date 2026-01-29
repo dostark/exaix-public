@@ -11,6 +11,7 @@
  */
 
 import type { MemoryUpdateProposal } from "../../schemas/memory_bank.ts";
+import { TUI_LAYOUT_DIALOG_WIDTH } from "../../config/constants.ts";
 
 // ===== Dialog Types =====
 
@@ -18,16 +19,18 @@ export type DialogResult<T = unknown> =
   | { type: "confirmed"; value: T }
   | { type: "cancelled" };
 
-export type DialogState = "active" | "confirmed" | "cancelled";
+import { DialogStatus } from "../../enums.ts";
+
+export type DialogState = DialogStatus;
 
 // ===== Base Dialog =====
 
 export abstract class DialogBase<T = unknown> {
-  protected state: DialogState = "active";
+  protected state: DialogState = DialogStatus.ACTIVE;
   protected focusIndex = 0;
 
   isActive(): boolean {
-    return this.state === "active";
+    return this.state === DialogStatus.ACTIVE;
   }
 
   getState(): DialogState {
@@ -40,12 +43,16 @@ export abstract class DialogBase<T = unknown> {
   abstract getResult(): DialogResult<T>;
 
   protected cancel(): void {
-    this.state = "cancelled";
+    if (this.state === DialogStatus.ACTIVE) {
+      this.state = DialogStatus.CANCELLED;
+    }
   }
 
   protected confirm(value: T): void {
-    this.state = "confirmed";
-    this._resultValue = value;
+    if (this.state === DialogStatus.ACTIVE) {
+      this.state = DialogStatus.CONFIRMED;
+      this._resultValue = value;
+    }
   }
 
   protected _resultValue?: T;
@@ -95,7 +102,7 @@ export class ConfirmApproveDialog extends DialogBase<ApproveDialogResult> {
 
   render(width: number, _height: number): string {
     const lines: string[] = [];
-    const innerWidth = Math.min(width - 4, 70);
+    const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
     const border = "─".repeat(innerWidth);
 
     lines.push(`┌─ Approve Proposal ${border.slice(17)}┐`);
@@ -202,7 +209,7 @@ export class ConfirmRejectDialog extends DialogBase<RejectDialogResult> {
 
   render(width: number, _height: number): string {
     const lines: string[] = [];
-    const innerWidth = Math.min(width - 4, 70);
+    const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
     const border = "─".repeat(innerWidth);
 
     lines.push(`┌─ Reject Proposal ${border.slice(16)}┐`);
@@ -397,7 +404,7 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
 
   render(width: number, _height: number): string {
     const lines: string[] = [];
-    const innerWidth = Math.min(width - 4, 70);
+    const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
     const border = "─".repeat(innerWidth);
 
     lines.push(`┌─ Add Learning ${border.slice(13)}┐`);
@@ -534,7 +541,7 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
 
   render(width: number, _height: number): string {
     const lines: string[] = [];
-    const innerWidth = Math.min(width - 4, 70);
+    const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
     const border = "─".repeat(innerWidth);
 
     lines.push(`┌─ Promote to Global ${border.slice(18)}┐`);
@@ -627,7 +634,7 @@ export class BulkApproveDialog extends DialogBase<BulkApproveResult> {
 
   render(width: number, _height: number): string {
     const lines: string[] = [];
-    const innerWidth = Math.min(width - 4, 70);
+    const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
     const border = "─".repeat(innerWidth);
 
     lines.push(`┌─ Approve All Proposals ${border.slice(22)}┐`);

@@ -17,6 +17,7 @@ import { type DialogBase } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
+import { TUI_LAYOUT_DIALOG_WIDTH, TUI_LAYOUT_MEDIUM_WIDTH, TUI_LIMIT_MEDIUM } from "../config/constants.ts";
 
 // ===== Service Interface =====
 
@@ -300,7 +301,9 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
     }
 
     const tree: TreeNode<SkillSummary>[] = [];
-    const order = groupBy === "source" ? ["core", "project", "learned"] : ["active", "draft", "deprecated"];
+    const order = groupBy === "source"
+      ? ["core", "project", "learned"]
+      : [SkillStatus.ACTIVE, SkillStatus.DRAFT, SkillStatus.DEPRECATED];
 
     for (const key of order) {
       const groupSkills = groups.get(key);
@@ -391,11 +394,11 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
     if (skill.instructions) {
       lines.push("");
       lines.push("Instructions:");
-      const instrLines = skill.instructions.split("\n").slice(0, 10);
+      const instrLines = skill.instructions.split("\n").slice(0, TUI_LIMIT_MEDIUM);
       for (const line of instrLines) {
         lines.push(`  ${line}`);
       }
-      if (skill.instructions.split("\n").length > 10) {
+      if (skill.instructions.split("\n").length > TUI_LIMIT_MEDIUM) {
         lines.push("  ...(truncated)");
       }
     }
@@ -518,7 +521,10 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
   private handleFilterStatusResult(value: string): void {
     const normalized = value.toLowerCase().trim();
-    if (normalized === "all" || normalized === "active" || normalized === "draft" || normalized === "deprecated") {
+    if (
+      normalized === "all" || normalized === SkillStatus.ACTIVE || normalized === SkillStatus.DRAFT ||
+      normalized === SkillStatus.DEPRECATED
+    ) {
       this.skillsViewExtensions.filterStatus = normalized as any;
       this.loadSkills().then(() => {
         this.buildTree();
@@ -604,7 +610,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
     }
     if (this.state.filterText) filterInfo.push(`search="${this.state.filterText}"`);
     if (filterInfo.length > 0) {
-      lines.push(`║ Filters: ${filterInfo.join(", ").padEnd(50)}║`);
+      lines.push(`║ Filters: ${filterInfo.join(", ").padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 10)}║`);
       lines.push("╠══════════════════════════════════════════════════════════════╣");
     }
 
@@ -618,7 +624,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
         indentSize: 2,
       });
       for (const line of treeLines.slice(0, 15)) {
-        lines.push(`║ ${line.padEnd(60)}║`);
+        lines.push(`║ ${line.padEnd(TUI_LAYOUT_MEDIUM_WIDTH)}║`);
       }
     }
 
@@ -626,7 +632,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
     // Status bar
     const statusText = this.renderStatusBar();
-    lines.push(`║ ${statusText.padEnd(60)}║`);
+    lines.push(`║ ${statusText.padEnd(TUI_LAYOUT_MEDIUM_WIDTH)}║`);
 
     // Key hints
     lines.push("║ ↑↓:nav  Enter:detail  /:search  f:source  s:status  ?:help   ║");
@@ -727,7 +733,11 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
   renderDialog(): string[] {
     if (this.state.activeDialog) {
-      return this.state.activeDialog.render({ useColors: this.state.useColors, width: 70, height: 10 });
+      return this.state.activeDialog.render({
+        useColors: this.state.useColors,
+        width: TUI_LAYOUT_DIALOG_WIDTH,
+        height: TUI_LIMIT_MEDIUM,
+      });
     }
     return [];
   }

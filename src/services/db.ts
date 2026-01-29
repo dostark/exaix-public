@@ -3,6 +3,7 @@ import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
+import { DB_MAX_RETRY_DELAY_MS, DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
 interface LogEntry {
   activityId: string;
@@ -161,7 +162,7 @@ export class DatabaseService {
     const {
       maxRetries = 3,
       baseDelay = 100,
-      maxDelay = 5000,
+      maxDelay = DB_MAX_RETRY_DELAY_MS,
       backoffFactor = 2,
       jitter = true,
     } = options;
@@ -429,7 +430,7 @@ export class DatabaseService {
 
     query += ` ORDER BY timestamp DESC`;
     query += ` LIMIT ?`;
-    params.push(filter.limit || 50);
+    params.push(filter.limit || DEFAULT_QUERY_LIMIT);
 
     const stmt = this.db.prepare(query);
     return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(...params) as unknown as ActivityRecord[]));

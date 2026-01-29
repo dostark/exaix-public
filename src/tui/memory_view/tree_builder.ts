@@ -3,6 +3,7 @@
  */
 
 import { renderSpinnerFrame } from "../utils/spinner.ts";
+import { TuiIcon, TuiNodeType } from "../../enums.ts";
 import {
   MEMORY_SCOPE_EXECUTIONS,
   MEMORY_SCOPE_GLOBAL,
@@ -12,10 +13,6 @@ import {
   TUI_LABEL_GLOBAL_MEMORY,
   TUI_LABEL_PENDING,
   TUI_LABEL_PROJECTS,
-  TUI_NODE_TYPE_EXECUTION,
-  TUI_NODE_TYPE_LEARNING,
-  TUI_NODE_TYPE_PROJECT,
-  TUI_NODE_TYPE_SCOPE,
   TUI_PREFIX_EXECUTION,
   TUI_PREFIX_PROJECT,
   TUI_TREE_PAGINATION_LIMIT,
@@ -34,7 +31,7 @@ export class TreeBuilder {
     const globalMemory = await service.getGlobalMemory();
     tree.push({
       id: MEMORY_SCOPE_GLOBAL,
-      type: TUI_NODE_TYPE_SCOPE,
+      type: TuiNodeType.SCOPE,
       label: TUI_LABEL_GLOBAL_MEMORY,
       expanded: false,
       children: [],
@@ -47,15 +44,15 @@ export class TreeBuilder {
     for (const p of projects.slice(0, TUI_TREE_PAGINATION_LIMIT)) {
       projectNodes.push({
         id: `${TUI_PREFIX_PROJECT}${p}`,
-        type: TUI_NODE_TYPE_PROJECT,
-        label: p,
+        type: TuiNodeType.PROJECT,
+        label: `${TuiIcon.FOLDER} ${p}`,
         expanded: false,
         children: [],
       });
     }
     tree.push({
       id: MEMORY_SCOPE_PROJECTS,
-      type: TUI_NODE_TYPE_SCOPE,
+      type: TuiNodeType.SCOPE,
       label: TUI_LABEL_PROJECTS,
       expanded: false,
       children: projectNodes,
@@ -66,7 +63,7 @@ export class TreeBuilder {
     const executions = await service.getExecutionHistory({ limit: TUI_TREE_RECENT_LIMIT });
     const executionNodes: TreeNode[] = executions.map((e: any) => ({
       id: `${TUI_PREFIX_EXECUTION}${e.trace_id}`,
-      type: TUI_NODE_TYPE_EXECUTION,
+      type: TuiNodeType.EXECUTION,
       label: e.trace_id.slice(0, 8),
       expanded: false,
       children: [],
@@ -74,7 +71,7 @@ export class TreeBuilder {
     }));
     tree.push({
       id: MEMORY_SCOPE_EXECUTIONS,
-      type: TUI_NODE_TYPE_SCOPE,
+      type: TuiNodeType.SCOPE,
       label: TUI_LABEL_EXECUTIONS,
       expanded: false,
       children: executionNodes,
@@ -85,7 +82,7 @@ export class TreeBuilder {
     const pending = await service.listPending();
     const pendingNodes: TreeNode[] = pending.map((p) => ({
       id: `${MEMORY_SCOPE_PENDING}:${p.id}`,
-      type: TUI_NODE_TYPE_LEARNING,
+      type: TuiNodeType.LEARNING,
       label: p.learning.title,
       expanded: false,
       children: [],
@@ -93,7 +90,7 @@ export class TreeBuilder {
     }));
     tree.push({
       id: MEMORY_SCOPE_PENDING,
-      type: TUI_NODE_TYPE_SCOPE,
+      type: TuiNodeType.SCOPE,
       label: TUI_LABEL_PENDING,
       expanded: false,
       children: pendingNodes,

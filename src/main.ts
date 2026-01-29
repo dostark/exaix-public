@@ -1,4 +1,5 @@
 import { ConfigService } from "./config/service.ts";
+import { DaemonStatus } from "./enums.ts";
 import { FileWatcher } from "./services/watcher.ts";
 import { DatabaseService } from "./services/db.ts";
 import { ProviderFactory } from "./ai/provider_factory.ts";
@@ -263,7 +264,7 @@ if (import.meta.main) {
         model: providerInfo.model,
         watching_requests: requestsPath,
         watching_plans: activePath,
-        status: "active",
+        status: DaemonStatus.RUNNING,
       },
       icon: "✅",
     });

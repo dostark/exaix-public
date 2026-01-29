@@ -23,6 +23,8 @@ import {
   DEFAULT_GIT_LS_FILES_TIMEOUT_MS,
   DEFAULT_GIT_REVERT_CONCURRENCY_LIMIT,
   DEFAULT_GIT_STATUS_TIMEOUT_MS,
+  MAX_NAME_LENGTH,
+  MAX_PROMPT_LENGTH,
 } from "../config/constants.ts";
 import {
   type AgentExecutionOptions,
@@ -52,7 +54,7 @@ export class AgentExecutionError extends Error {
  * Prevents YAML deserialization attacks by using strict validation
  */
 const BlueprintSchema = z.object({
-  name: z.string().regex(/^[a-zA-Z0-9_-]+$/).max(50).optional(),
+  name: z.string().regex(/^[a-zA-Z0-9_-]+$/).max(MAX_NAME_LENGTH).optional(),
   model: z.string().max(100),
   provider: z.string().refine(
     (val) => {
@@ -64,7 +66,7 @@ const BlueprintSchema = z.object({
       message: "Provider must be a non-empty string",
     },
   ),
-  capabilities: z.array(z.string().max(50)).max(20).default([]),
+  capabilities: z.array(z.string().max(MAX_NAME_LENGTH)).max(20).default([]),
 }).strict(); // No extra fields allowed
 
 /**
@@ -205,7 +207,7 @@ export class AgentExecutor {
       .replace(/<object[^>]*>.*?<\/object>/gis, "[REMOVED OBJECT]")
       .replace(/<embed[^>]*>.*?<\/embed>/gis, "[REMOVED EMBED]")
       // Limit length to prevent resource exhaustion
-      .slice(0, 50000);
+      .slice(0, MAX_PROMPT_LENGTH);
   }
 
   /**

@@ -4,14 +4,20 @@ import type { DatabaseService } from "../services/db.ts";
 import { ConfigService } from "../config/service.ts";
 import { ContextCardGenerator } from "../services/context_card_generator.ts";
 import { EventLogger } from "../services/event_logger.ts";
+import { PortalStatus } from "../enums.ts";
 import { PORTAL_ALIAS_MAX_LENGTH } from "../config/constants.ts";
+
+/**
+ * Valid status values for portals.
+ * Portals can only be ACTIVE (working) or BROKEN (symlink/target issues).
+ */
 
 export interface PortalInfo {
   alias: string;
   targetPath: string;
   symlinkPath: string;
   contextCardPath: string;
-  status: "active" | "broken";
+  status: PortalStatus;
   created?: string;
   lastVerified?: string;
 }
@@ -151,16 +157,16 @@ export class PortalCommands {
         );
 
         let targetPath: string;
-        let status: "active" | "broken";
+        let status: PortalStatus;
 
         try {
           targetPath = await Deno.readLink(symlinkPath);
           // Check if target still exists
           await Deno.stat(targetPath);
-          status = "active";
+          status = PortalStatus.ACTIVE;
         } catch {
           targetPath = "(unknown)";
-          status = "broken";
+          status = PortalStatus.BROKEN;
         }
 
         // Get created timestamp from config
@@ -199,7 +205,7 @@ export class PortalCommands {
     );
 
     let targetPath: string;
-    let status: "active" | "broken";
+    let status: PortalStatus;
     let permissions: string | undefined;
 
     try {
@@ -211,7 +217,7 @@ export class PortalCommands {
     try {
       targetPath = await Deno.readLink(symlinkPath);
       const stat = await Deno.stat(targetPath);
-      status = stat.isDirectory ? "active" : "broken";
+      status = stat.isDirectory ? PortalStatus.ACTIVE : PortalStatus.BROKEN;
 
       // Try to determine permissions
       try {
@@ -224,7 +230,7 @@ export class PortalCommands {
       }
     } catch {
       targetPath = await Deno.readLink(symlinkPath).catch(() => "(unknown)");
-      status = "broken";
+      status = PortalStatus.BROKEN;
     }
 
     // Get created timestamp from config

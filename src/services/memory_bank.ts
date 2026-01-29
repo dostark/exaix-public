@@ -17,6 +17,7 @@ import { ensureDir, ensureDirSync, exists } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import { ActivityType, MemoryReferenceType, MemoryScope, MemorySource, MemoryStatus, MemoryType } from "../enums.ts";
+import { LOCK_ACQUIRE_TIMEOUT_MS } from "../config/constants.ts";
 import {
   ExecutionMemorySchema,
   GlobalMemorySchema,
@@ -117,7 +118,7 @@ export class MemoryBankService {
   private async withFileLock<T>(
     lockPath: string,
     operation: () => Promise<T>,
-    timeoutMs: number = 5000,
+    timeoutMs: number = LOCK_ACQUIRE_TIMEOUT_MS,
     maxRetries: number = 3,
   ): Promise<T> {
     let lastError: Error | null = null;

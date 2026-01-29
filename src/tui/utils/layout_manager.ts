@@ -12,6 +12,7 @@
  */
 
 import { colorize, type TuiTheme } from "./colors.ts";
+import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../config/constants.ts";
 
 // ===== Layout Types =====
 
@@ -267,7 +268,7 @@ export class LayoutManager {
   private terminalHeight: number;
   private namedLayouts: Map<string, Layout> = new Map();
 
-  constructor(width: number = 80, height: number = 24) {
+  constructor(width: number = TUI_LAYOUT_FULL_WIDTH, height: number = TUI_LAYOUT_DEFAULT_HEIGHT) {
     this.terminalWidth = width;
     this.terminalHeight = height;
   }

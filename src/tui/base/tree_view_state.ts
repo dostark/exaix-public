@@ -7,6 +7,7 @@
 
 import type { DialogBase } from "../utils/dialog_base.ts";
 import type { TreeNode } from "../utils/tree_view.ts";
+import { DEFAULT_REFRESH_INTERVAL_MS } from "../../config/constants.ts";
 
 /**
  * Common state for tree-based views
@@ -72,7 +73,7 @@ export function createTreeViewState<T>(): TreeViewState<T> {
     scrollOffset: 0,
     refreshConfig: {
       enabled: false,
-      intervalMs: 5000,
+      intervalMs: DEFAULT_REFRESH_INTERVAL_MS,
       lastRefresh: 0,
     },
   };

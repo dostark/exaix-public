@@ -9,6 +9,7 @@ import { BaseCommand, type CommandContext } from "./base.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { ConfigService } from "../config/service.ts";
 import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
+import { DAEMON_STOP_TIMEOUT_MS } from "../config/constants.ts";
 
 export interface DaemonStatus {
   running: boolean;
@@ -150,7 +151,7 @@ export class DaemonCommands extends BaseCommand {
         await killCmd.output();
 
         // Wait for process to exit (up to 5 seconds)
-        const stopped = await this.waitForProcessState(status.pid!, false, 5000);
+        const stopped = await this.waitForProcessState(status.pid!, false, DAEMON_STOP_TIMEOUT_MS);
         if (stopped) {
           await Deno.remove(this.pidFile).catch(() => {});
           await this.logDaemonActivity("daemon.stopped", {

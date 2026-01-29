@@ -7,7 +7,14 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { EvaluationCategory, ExecutionStatus, MemoryScope, MemorySource, SkillStatus } from "../../src/enums.ts";
+import {
+  AgentStatus,
+  EvaluationCategory,
+  ExecutionStatus,
+  MemoryScope,
+  MemorySource,
+  SkillStatus,
+} from "../../src/enums.ts";
 import { MinimalSkillsServiceMock, SkillsManagerView, type SkillSummary } from "../../src/tui/skills_manager_view.ts";
 
 // ===== Test Data =====
@@ -184,7 +191,7 @@ Deno.test("AgentStatusView: displays defaultSkills in detail", async () => {
       id: "agent-1",
       name: "CodeReviewer",
       model: "gpt-4",
-      status: SkillStatus.ACTIVE,
+      status: AgentStatus.ACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: ["code-review"],
       defaultSkills: ["tdd-methodology", "typescript-patterns"],

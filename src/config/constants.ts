@@ -421,16 +421,10 @@ export const KEY_C = "c";
 // ============================================================================
 // Agent Status Constants
 // ============================================================================
-export const AGENT_STATUS_ACTIVE = "active";
-export const AGENT_STATUS_INACTIVE = "inactive";
-export const AGENT_STATUS_ERROR = "error";
 
-export const AGENT_HEALTH_HEALTHY = "healthy";
-export const AGENT_HEALTH_WARNING = "warning";
-export const AGENT_HEALTH_CRITICAL = "critical";
-
-// Agent status order for grouping
-export const AGENT_STATUS_ORDER = [AGENT_STATUS_ACTIVE, AGENT_STATUS_INACTIVE, AGENT_STATUS_ERROR];
+// ============================================================================
+// General Status Constants
+// ============================================================================
 
 // ============================================================================
 // Memory Scope Constants
@@ -462,7 +456,8 @@ export const LOG_FILE_EXTENSION = ".jsonl";
 // ============================================================================
 export const TUI_TREE_PAGINATION_LIMIT = 20;
 export const TUI_TREE_RECENT_LIMIT = 10;
-export const TUI_DETAIL_MAX_OVERVIEW_CHARS = 200;
+export const TUI_DETAIL_MAX_OVERVIEW_CHARS = 300;
+export const TUI_DETAIL_MAX_SUMMARY_CHARS = 200;
 export const TUI_DETAIL_DATE_LOCALE = "en-US";
 
 export const TUI_PREFIX_PROJECT = "project:";
@@ -486,32 +481,9 @@ export const TUI_LABEL_REQUEST_DETAILS = "REQUEST DETAILS";
 
 export const TUI_MSG_SELECT_ITEM = "Select an item to view details.";
 export const TUI_MSG_PRESS_QUIT = "Press ESC or q to close";
-// TUI Node Types
-export const TUI_NODE_TYPE_ROOT = "root";
-export const TUI_NODE_TYPE_SCOPE = "scope";
-export const TUI_NODE_TYPE_PROJECT = "project";
-export const TUI_NODE_TYPE_EXECUTION = "execution";
-export const TUI_NODE_TYPE_LEARNING = "learning";
-export const TUI_NODE_TYPE_PATTERN = "pattern";
-export const TUI_NODE_TYPE_DECISION = "decision";
-export const TUI_NODE_TYPE_AGENT = "agent";
-export const TUI_NODE_TYPE_STATUS_GROUP = "status-group";
-export const TUI_NODE_TYPE_MODEL_GROUP = "model-group";
-export const TUI_NODE_TYPE_GROUP = "group";
 
 // TUI Grouping Modes
-export const TUI_GROUP_BY_NONE = "none";
-export const TUI_GROUP_BY_STATUS = "status";
-export const TUI_GROUP_BY_MODEL = "model";
 
-export const TUI_ICON_AGENT = "🤖";
-export const TUI_ICON_LEARNING = "🎯";
-export const TUI_ICON_BRAIN = "🧠";
-export const TUI_ICON_SUCCESS = "✅";
-export const TUI_ICON_WARNING = "⚠️";
-export const TUI_ICON_CRITICAL = "❌";
-export const TUI_ICON_INFO = "ℹ️";
-export const TUI_ICON_BULLET = "•";
 export const TUI_MSG_PRESS_CLOSE_HELP = "\nPress ? or Esc to close help";
 export const TUI_MSG_DASHBOARD_HEADER =
   "                         ExoFrame TUI Dashboard                               ";
@@ -522,6 +494,198 @@ export const CLI_SEPARATOR_LENGTH = 50;
 export const CLI_SEPARATOR_MEDIUM = 60;
 export const CLI_SEPARATOR_LONG = 70;
 export const CLI_SEPARATOR_WIDE = 80;
+export const CLI_SEPARATOR_SHORT = 30;
+export const CLI_SEPARATOR_NARROW = 40;
 export const CLI_PREVIEW_LENGTH_SHORT = 50;
 export const CLI_PREVIEW_LENGTH_LONG = 500;
 export const PORTAL_ALIAS_MAX_LENGTH = 50;
+
+export const CLI_LAYOUT_SKILL_ID_WIDTH = 20;
+export const CLI_LAYOUT_SKILL_NAME_WIDTH = 23;
+export const CLI_LAYOUT_SKILL_SOURCE_WIDTH = 8;
+export const CLI_LAYOUT_SKILL_VERSION_WIDTH = 7;
+export const CLI_LAYOUT_SKILL_STATUS_WIDTH = 10;
+export const CLI_LAYOUT_BOX_WIDTH_WIDE = 57;
+export const CLI_LAYOUT_BOX_WIDTH_STANDARD = 47;
+export const CLI_LAYOUT_BOX_LABEL_WIDTH = 55;
+export const CLI_LAYOUT_BOX_INDENT_WIDTH = 43;
+export const CLI_LAYOUT_PADDING_STANDARD = 20;
+
+export const CLI_TRUNCATE_TITLE_SHORT = 28;
+export const CLI_TRUNCATE_TITLE_MEDIUM = 35;
+export const CLI_TRUNCATE_ID_SHORT = 8;
+export const CLI_TRUNCATE_ID_LONG = 36;
+
+export const LOG_RENDERER_MAX_MESSAGE_LENGTH = 100;
+export const LOG_RENDERER_TRACE_ID_LENGTH = 8;
+export const LOG_RENDERER_SEPARATOR_LENGTH = 50;
+
+export const TIME_MS_PER_SECOND = 1000;
+export const TIME_MS_PER_MINUTE = 60_000;
+export const TIME_MS_PER_HOUR = 3_600_000;
+// ============================================================================
+// TUI Layout and Display Constants
+// ============================================================================
+export const TUI_LAYOUT_LABEL_WIDTH = 30;
+export const TUI_LAYOUT_FULL_WIDTH = 80;
+export const TUI_LAYOUT_MEDIUM_WIDTH = 60;
+export const TUI_LAYOUT_DIALOG_WIDTH = 70;
+export const TUI_LAYOUT_VALUE_WIDTH = 50;
+export const TUI_LAYOUT_DEFAULT_HEIGHT = 24;
+export const TUI_LIMIT_PREVIEW_ITEMS = 10;
+export const TUI_LIMIT_SEARCH_RESULTS = 20;
+export const TUI_LIMIT_SHORT = 5;
+export const TUI_LIMIT_MEDIUM = 10;
+export const TUI_LIMIT_LONG = 15;
+export const TUI_LIMIT_LOGS_MAX = 1000;
+export const TUI_LIMIT_LOGS_DEFAULT = 500;
+export const TUI_PREVIEW_SHORT = 40;
+export const TUI_PREVIEW_MEDIUM = 60;
+export const TUI_SPINNER_FRAMES = 10;
+
+// ============================================================================
+// Retry and Error Constants
+// ============================================================================
+
+/** Error types that should trigger a retry */
+export const RETRYABLE_ERROR_TYPES = [
+  "RateLimitError",
+  "TimeoutError",
+  "NetworkError",
+  "ServiceUnavailable",
+  "InternalServerError",
+  "ConnectionError",
+  "ECONNRESET",
+  "ETIMEDOUT",
+];
+
+/** Message substrings that indicate a retryable condition */
+export const RETRYABLE_MESSAGE_PATTERNS = [
+  "rate limit",
+  "timeout",
+  "network",
+  "unavailable",
+  "internal server",
+  "connection",
+  "econnreset",
+  "etimedout",
+  "socket hang up",
+];
+
+/** HTTP status codes that are considered retryable */
+export const RETRYABLE_HTTP_STATUS_CODES = [
+  "429", // Too Many Requests
+  "500", // Internal Server Error
+  "502", // Bad Gateway
+  "503", // Service Unavailable
+  "504", // Gateway Timeout
+];
+
+// ============================================================================
+// General System Limits and Thresholds
+// ============================================================================
+
+/** Maximum length for names (portals, agents, etc.) */
+export const MAX_NAME_LENGTH = 50;
+
+/** Maximum length for unique identifiers */
+export const MAX_ID_LENGTH = 50;
+
+/** Default limit for database and service queries */
+export const DEFAULT_QUERY_LIMIT = 50;
+
+/** Minimum length threshold for meaningful content (summary, prompt, etc.) */
+export const MIN_CONTENT_THRESHOLD = 50;
+
+/** Narrow width for TUI minor panels and windows */
+export const TUI_LAYOUT_NARROW_WIDTH = 50;
+
+/** Default refresh interval for TUI views */
+export const DEFAULT_REFRESH_INTERVAL_MS = 5000;
+
+/** Timeout for acquiring file locks */
+export const LOCK_ACQUIRE_TIMEOUT_MS = 5000;
+
+/** Timeout for stopping the daemon */
+export const DAEMON_STOP_TIMEOUT_MS = 5000;
+
+/** Max delay for database retries */
+export const DB_MAX_RETRY_DELAY_MS = 5000;
+
+/** Maximum length for blueprint names */
+export const BLUEPRINT_NAME_MAX_LENGTH = 100;
+
+/** Maximum length for user requests */
+export const USER_REQUEST_MAX_LENGTH = 10000;
+
+/** Maximum length for plan content */
+export const PLAN_CONTENT_MAX_LENGTH = 50000;
+
+/** Maximum length for model names */
+export const MODEL_NAME_MAX_LENGTH = 100;
+
+/** Maximum length for filenames */
+export const FILENAME_MAX_LENGTH = 255;
+
+/** Maximum length for file paths */
+export const PATH_MAX_LENGTH = 4096;
+
+/** Default timeout for agent execution in milliseconds */
+export const DEFAULT_AGENT_TIMEOUT_MS = 300000;
+
+/** Default maximum tool calls for agent execution */
+export const DEFAULT_AGENT_MAX_TOOL_CALLS = 100;
+
+/** TUI Portal Icons */
+export const TUI_ICON_PORTAL_ACTIVE = "🟢";
+export const TUI_ICON_PORTAL_BROKEN = "🔴";
+export const TUI_ICON_PORTAL_INACTIVE = "⚪";
+export const TUI_ICON_FOLDER = "📂";
+export const TUI_ICON_AGENT = "🤖";
+export const TUI_ICON_BRAIN = "🧠";
+
+/** TUI Node Types */
+export const TUI_NODE_TYPE_AGENT = "agent";
+export const TUI_NODE_TYPE_MODEL_GROUP = "model_group";
+export const TUI_NODE_TYPE_STATUS_GROUP = "status_group";
+
+/** TUI View Labels */
+export const TUI_LABEL_PORTAL_MANAGER = "Portal Manager";
+
+/** Maximum length for system prompts */
+export const MAX_PROMPT_LENGTH = 50000;
+
+/** Confidence Score Thresholds */
+export const CONFIDENCE_THRESHOLD_VERY_LOW = 30;
+export const CONFIDENCE_THRESHOLD_LOW = 50;
+export const CONFIDENCE_THRESHOLD_MEDIUM = 70;
+export const CONFIDENCE_THRESHOLD_HIGH = 90;
+
+/** Default Confidence Thresholds */
+export const CONFIDENCE_DEFAULT_LOW_THRESHOLD = 50;
+export const CONFIDENCE_DEFAULT_VERY_LOW_THRESHOLD = 30;
+export const CONFIDENCE_DEFAULT_HIGH_THRESHOLD = 80;
+
+/** Confidence Scoring Base Values */
+export const CONFIDENCE_SCORE_BASE = 70;
+
+/** Confidence Adjustments */
+export const CONFIDENCE_ADJUSTMENT_CERTAIN = 3;
+export const CONFIDENCE_ADJUSTMENT_UNCERTAIN = -8;
+export const CONFIDENCE_ADJUSTMENT_HEDGING = -5;
+export const CONFIDENCE_ADJUSTMENT_QUALIFIER = -2;
+export const CONFIDENCE_ADJUSTMENT_QUESTION = -10;
+export const CONFIDENCE_ADJUSTMENT_SHORT = -15;
+export const CONFIDENCE_ADJUSTMENT_VERY_SHORT = -20;
+
+/** Confidence Length Thresholds */
+export const CONFIDENCE_LENGTH_THRESHOLD_SHORT = 50;
+export const CONFIDENCE_LENGTH_THRESHOLD_VERY_SHORT = 20;
+
+// ============================================================================
+// Agent Status Constants
+// ============================================================================
+export const AGENT_STATUS_ACTIVE = "active";
+export const AGENT_STATUS_INACTIVE = "inactive";
+export const AGENT_STATUS_ERROR = "error";
+export const AGENT_STATUS_ORDER = [AGENT_STATUS_ACTIVE, AGENT_STATUS_INACTIVE, AGENT_STATUS_ERROR];

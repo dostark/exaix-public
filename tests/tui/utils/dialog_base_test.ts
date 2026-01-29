@@ -5,7 +5,7 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { SkillStatus } from "../../../src/enums.ts";
+import { DialogStatus, SkillStatus as _SkillStatus } from "../../../src/enums.ts";
 import {
   BOX,
   ConfirmDialog,
@@ -103,7 +103,7 @@ Deno.test("ConfirmDialog: creates with options", () => {
   });
 
   assertEquals(dialog.isActive(), true);
-  assertEquals(dialog.getState(), SkillStatus.ACTIVE);
+  assertEquals(dialog.getState(), DialogStatus.ACTIVE);
 });
 
 Deno.test("ConfirmDialog: getFocusableElements returns buttons", () => {

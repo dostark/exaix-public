@@ -18,6 +18,8 @@ import { DialogBase } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import type { LogEntry, LogLevel, StructuredLogger } from "../services/structured_logger.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
+import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "../config/constants.ts";
+import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 
 // ===== Service Interfaces =====
 
@@ -206,7 +208,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
       if (this.logViewExtensions.autoRefresh) {
         this.refreshLogs();
       }
-    }, 5000); // 5 second refresh
+    }, MONITOR_AUTO_REFRESH_INTERVAL_MS); // Use centralized refresh interval
   }
 
   private handleNewLogEntry(entry: LogEntry): void {
@@ -216,8 +218,8 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     this.buildTree();
 
     // Limit entries to prevent memory issues
-    if (this.logViewExtensions.logEntries.length > 1000) {
-      this.logViewExtensions.logEntries = this.logViewExtensions.logEntries.slice(0, 1000);
+    if (this.logViewExtensions.logEntries.length > TUI_LIMIT_LOGS_MAX) {
+      this.logViewExtensions.logEntries = this.logViewExtensions.logEntries.slice(0, TUI_LIMIT_LOGS_MAX);
     }
   }
 
@@ -227,7 +229,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
       this.setLoading(true, "Refreshing logs...");
       const options: LogQueryOptions = {
         level: this.logViewExtensions.logLevelFilter,
-        limit: 500,
+        limit: TUI_LIMIT_LOGS_DEFAULT,
         includePerformance: this.logViewExtensions.showPerformanceMetrics,
       };
 
@@ -733,12 +735,12 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     if (this.logViewExtensions.showDetail) {
       const detailLines = this.logViewExtensions.detailContent.split("\n");
       const startY = Math.max(0, Math.floor((height - detailLines.length) / 2));
-      const startX = Math.max(0, Math.floor((width - 80) / 2));
+      const startX = Math.max(0, Math.floor((width - TUI_LAYOUT_FULL_WIDTH) / 2));
 
       for (let i = 0; i < height; i++) {
         if (i >= startY && i < startY + detailLines.length) {
           const line = detailLines[i - startY];
-          const paddedLine = line.padEnd(80);
+          const paddedLine = line.padEnd(TUI_LAYOUT_FULL_WIDTH);
           lines.push(" ".repeat(startX) + paddedLine);
         } else {
           lines.push("");

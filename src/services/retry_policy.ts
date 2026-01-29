@@ -10,6 +10,7 @@
  */
 
 import { z } from "zod";
+import { RETRYABLE_ERROR_TYPES, RETRYABLE_HTTP_STATUS_CODES, RETRYABLE_MESSAGE_PATTERNS } from "../config/constants.ts";
 
 // ============================================================================
 // Configuration Schema
@@ -35,16 +36,7 @@ export const RetryPolicyConfigSchema = z.object({
   jitterFactor: z.number().min(0).max(1).default(0.1),
 
   /** Error types that should trigger retry */
-  retryableErrors: z.array(z.string()).default([
-    "RateLimitError",
-    "TimeoutError",
-    "NetworkError",
-    "ServiceUnavailable",
-    "InternalServerError",
-    "ConnectionError",
-    "ECONNRESET",
-    "ETIMEDOUT",
-  ]),
+  retryableErrors: z.array(z.string()).default([...RETRYABLE_ERROR_TYPES]),
 
   /** Temperature increase per retry (0 = no change) */
   temperatureIncrement: z.number().min(0).max(0.5).default(0.1),
@@ -312,24 +304,11 @@ export class RetryPolicy {
     }
 
     // Check by message patterns
-    const retryablePatterns = [
-      "rate limit",
-      "timeout",
-      "network",
-      "unavailable",
-      "internal server",
-      "connection",
-      "econnreset",
-      "etimedout",
-      "socket hang up",
-      "429", // HTTP rate limit
-      "500", // Internal server error
-      "502", // Bad gateway
-      "503", // Service unavailable
-      "504", // Gateway timeout
-    ];
+    const isPatternMatch = RETRYABLE_MESSAGE_PATTERNS.some((pattern) => errorMessage.includes(pattern));
+    if (isPatternMatch) return true;
 
-    return retryablePatterns.some((pattern) => errorMessage.includes(pattern));
+    // Check by HTTP status code patterns
+    return RETRYABLE_HTTP_STATUS_CODES.some((code) => errorMessage.includes(code));
   }
 
   /**

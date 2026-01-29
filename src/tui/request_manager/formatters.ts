@@ -3,7 +3,13 @@
  * Extracted from request_manager_view.ts to reduce complexity
  */
 
-import { TUI_DETAIL_DATE_LOCALE, TUI_LABEL_REQUEST_DETAILS, TUI_MSG_PRESS_QUIT } from "../../config/constants.ts";
+import {
+  TUI_DETAIL_DATE_LOCALE,
+  TUI_LABEL_REQUEST_DETAILS,
+  TUI_LAYOUT_MEDIUM_WIDTH,
+  TUI_LAYOUT_VALUE_WIDTH,
+  TUI_MSG_PRESS_QUIT,
+} from "../../config/constants.ts";
 import type { Request } from "../request_manager_view.ts";
 
 /**
@@ -16,15 +22,19 @@ export class RequestFormatter {
   static formatRequestMetadata(request: Request): string[] {
     return [
       `╔══════════════════════════════════════════════════════════════╗`,
-      `║${TUI_LABEL_REQUEST_DETAILS.padStart(30 + TUI_LABEL_REQUEST_DETAILS.length / 2).padEnd(60)}║`,
+      `║${
+        TUI_LABEL_REQUEST_DETAILS.padStart(TUI_LAYOUT_MEDIUM_WIDTH / 2 + TUI_LABEL_REQUEST_DETAILS.length / 2).padEnd(
+          TUI_LAYOUT_MEDIUM_WIDTH,
+        )
+      }║`,
       `╠══════════════════════════════════════════════════════════════╣`,
-      `║ ID:       ${request.trace_id.padEnd(50)}║`,
-      `║ Title:    ${request.title.padEnd(50)}║`,
-      `║ Status:   ${request.status.padEnd(50)}║`,
-      `║ Priority: ${request.priority.padEnd(50)}║`,
-      `║ Agent:    ${request.agent.padEnd(50)}║`,
-      `║ Created:  ${new Date(request.created).toLocaleString(TUI_DETAIL_DATE_LOCALE).padEnd(50)}║`,
-      `║ Creator:  ${request.created_by.padEnd(50)}║`,
+      `║ ID:       ${request.trace_id.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+      `║ Title:    ${request.title.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+      `║ Status:   ${request.status.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+      `║ Priority: ${request.priority.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+      `║ Agent:    ${request.agent.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+      `║ Created:  ${new Date(request.created).toLocaleString(TUI_DETAIL_DATE_LOCALE).padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+      `║ Creator:  ${request.created_by.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
     ];
   }
 
@@ -40,22 +50,30 @@ export class RequestFormatter {
     ];
 
     if (request.skills.explicit && request.skills.explicit.length > 0) {
-      lines.push(`║   Explicit: ${request.skills.explicit.join(", ").slice(0, 46).padEnd(46)} ║`);
+      const explicitStr = request.skills.explicit.join(", ");
+      const limit = TUI_LAYOUT_MEDIUM_WIDTH - 14;
+      lines.push(`║   Explicit: ${explicitStr.slice(0, limit).padEnd(limit)} ║`);
     }
     if (request.skills.autoMatched && request.skills.autoMatched.length > 0) {
-      lines.push(`║   Auto-matched: ${request.skills.autoMatched.join(", ").slice(0, 42).padEnd(42)} ║`);
+      const autoStr = request.skills.autoMatched.join(", ");
+      const limit = TUI_LAYOUT_MEDIUM_WIDTH - 18;
+      lines.push(`║   Auto-matched: ${autoStr.slice(0, limit).padEnd(limit)} ║`);
     }
     if (request.skills.fromDefaults && request.skills.fromDefaults.length > 0) {
-      lines.push(`║   From defaults: ${request.skills.fromDefaults.join(", ").slice(0, 41).padEnd(41)} ║`);
+      const defStr = request.skills.fromDefaults.join(", ");
+      const limit = TUI_LAYOUT_MEDIUM_WIDTH - 19;
+      lines.push(`║   From defaults: ${defStr.slice(0, limit).padEnd(limit)} ║`);
     }
     if (request.skills.skipped && request.skills.skipped.length > 0) {
-      lines.push(`║   Skipped: ${request.skills.skipped.join(", ").slice(0, 47).padEnd(47)} ║`);
+      const skipStr = request.skills.skipped.join(", ");
+      const limit = TUI_LAYOUT_MEDIUM_WIDTH - 13;
+      lines.push(`║   Skipped: ${skipStr.slice(0, limit).padEnd(limit)} ║`);
     }
     if (
       !request.skills.explicit?.length && !request.skills.autoMatched?.length &&
       !request.skills.fromDefaults?.length
     ) {
-      lines.push(`║   (none)                                                     ║`);
+      lines.push(`║   (none)`.padEnd(TUI_LAYOUT_MEDIUM_WIDTH + 1) + `║`);
     }
 
     return lines;
@@ -73,7 +91,7 @@ export class RequestFormatter {
 
     const contentLines = content.split("\n");
     for (const line of contentLines) {
-      lines.push(`║ ${line.slice(0, 60).padEnd(60)}║`);
+      lines.push(`║ ${line.slice(0, TUI_LAYOUT_MEDIUM_WIDTH).padEnd(TUI_LAYOUT_MEDIUM_WIDTH)}║`);
     }
 
     return lines;

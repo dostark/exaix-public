@@ -1,6 +1,7 @@
 import { Database } from "@db/sqlite";
 import { join } from "@std/path";
 import type { Config } from "../config/schema.ts";
+import { DEFAULT_DATABASE_BUSY_TIMEOUT_MS } from "../config/constants.ts";
 
 /**
  * Database connection interface for pooling
@@ -121,7 +122,7 @@ export class DatabaseConnectionPool {
     await db.exec("PRAGMA journal_mode = WAL;");
     await db.exec("PRAGMA foreign_keys = ON;");
     // Set busy timeout to 5000ms to handle concurrency
-    await db.exec("PRAGMA busy_timeout = 5000;");
+    await db.exec(`PRAGMA busy_timeout = ${DEFAULT_DATABASE_BUSY_TIMEOUT_MS};`);
 
     return await new SQLiteConnection(db, this.config);
   }

@@ -1,4 +1,5 @@
 import type { Pane } from "../tui_dashboard.ts";
+import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../config/constants.ts";
 
 export const getLayoutFile = () => `${Deno.env.get("HOME")}/.exoframe/tui_layout.json`;
 
@@ -47,10 +48,10 @@ export async function restoreLayout(
       for (const p of layout.panes) {
         const view = views.find((v: any) => v.name === p.viewName) || views[0];
         // Upgrade from 1.0/1.1 (absolute) to 1.2 (flex)
-        const flexX = p.flexX ?? (p.x / 80);
-        const flexY = p.flexY ?? (p.y / 24);
-        const flexWidth = p.flexWidth ?? (p.width / 80);
-        const flexHeight = p.flexHeight ?? (p.height / 24);
+        const flexX = p.flexX ?? (p.x / TUI_LAYOUT_FULL_WIDTH);
+        const flexY = p.flexY ?? (p.y / TUI_LAYOUT_DEFAULT_HEIGHT);
+        const flexWidth = p.flexWidth ?? (p.width / TUI_LAYOUT_FULL_WIDTH);
+        const flexHeight = p.flexHeight ?? (p.height / TUI_LAYOUT_DEFAULT_HEIGHT);
 
         panes.push({
           id: p.id,
@@ -89,8 +90,8 @@ export function resetToDefault(panes: Pane[], views: any[], addNotification: (m:
     flexHeight: 1.0,
     x: 0,
     y: 0,
-    width: 80,
-    height: 24,
+    width: TUI_LAYOUT_FULL_WIDTH,
+    height: TUI_LAYOUT_DEFAULT_HEIGHT,
     focused: true,
     maximized: false,
   });

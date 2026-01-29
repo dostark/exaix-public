@@ -56,6 +56,7 @@ export interface MonitorViewExtensions {
 
 // ===== Icons and Visual Constants =====
 import { LOG_COLORS, LOG_ICONS, MONITOR_AUTO_REFRESH_INTERVAL_MS, MONITOR_KEY_BINDINGS } from "./tui.config.ts";
+import { TUI_LAYOUT_NARROW_WIDTH } from "../config/constants.ts";
 
 export { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS };
 
@@ -429,7 +430,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
       title: "Monitor View Help",
       sections,
       useColors: this.useColors,
-      width: 50,
+      width: TUI_LAYOUT_NARROW_WIDTH,
     });
   }
 

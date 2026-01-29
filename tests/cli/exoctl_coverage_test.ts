@@ -17,7 +17,8 @@ import {
   MemorySource,
   MemoryStatus,
   PortalOperation,
-  SkillStatus,
+  PortalStatus,
+  SkillStatus as _SkillStatus,
 } from "../../src/enums.ts";
 
 // Reusable helpers
@@ -532,7 +533,7 @@ Deno.test("portal list prints entries when present", async () => {
         alias: "MyPortal",
         symlinkPath: "Portals/MyPortal",
         targetPath: "/tmp/target",
-        status: SkillStatus.ACTIVE,
+        status: PortalStatus.ACTIVE,
         contextCardPath: "Memory/Projects/MyPortal/portal.md",
       },
       {

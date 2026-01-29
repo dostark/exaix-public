@@ -3,7 +3,7 @@
  * Extracted from request_manager_view.ts to reduce complexity
  */
 
-import { TUI_NODE_TYPE_GROUP } from "../../config/constants.ts";
+import { TuiNodeType } from "../../enums.ts";
 import type { TreeNode } from "../utils/tree_view.ts";
 import { collapseAll, expandAll, findNode, flattenTree, toggleNode } from "../utils/tree_view.ts";
 
@@ -100,7 +100,7 @@ export class TreeManipulationHandler {
  */
 export function isGroupNode(tree: TreeNode[], nodeId: string): boolean {
   const node = findNode(tree, nodeId);
-  return node?.type === TUI_NODE_TYPE_GROUP;
+  return node?.type === TuiNodeType.GROUP;
 }
 /**
  * Main key handler for Request Manager view

@@ -9,28 +9,27 @@ import {
   AGENT_KEY_BINDINGS,
   AGENT_STATUS_COLORS,
   AGENT_STATUS_ICONS,
-  AgentHealth,
+  AgentHealthData,
   AgentLogEntry,
   AgentService,
-  AgentStatus,
+  AgentStatusItem,
   AgentStatusView,
   AgentViewState,
   LOG_LEVEL_ICONS,
   MinimalAgentServiceMock,
 } from "../../src/tui/agent_status_view.ts";
+import { AgentHealth, AgentStatus, TuiGroupBy } from "../../src/enums.ts";
 import { CritiqueSeverity } from "../../src/enums.ts";
-
-import { SkillStatus } from "../../src/enums.ts";
 
 // ===== Mock AgentService for testing =====
 
 class MockAgentService implements AgentService {
-  private agents: AgentStatus[] = [
+  private agents: AgentStatusItem[] = [
     {
       id: "agent1",
       name: "Agent 1",
       model: "gpt-4",
-      status: SkillStatus.ACTIVE,
+      status: AgentStatus.ACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: ["code", "chat"],
       defaultSkills: [],
@@ -39,7 +38,7 @@ class MockAgentService implements AgentService {
       id: "agent2",
       name: "Agent 2",
       model: "gpt-3",
-      status: "inactive",
+      status: AgentStatus.INACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: ["chat"],
       defaultSkills: [],
@@ -48,20 +47,20 @@ class MockAgentService implements AgentService {
       id: "agent3",
       name: "Agent 3",
       model: "gpt-4",
-      status: "error",
+      status: AgentStatus.ERROR,
       lastActivity: new Date().toISOString(),
       capabilities: ["code"],
       defaultSkills: [],
     },
   ];
 
-  listAgents(): Promise<AgentStatus[]> {
+  listAgents(): Promise<AgentStatusItem[]> {
     return Promise.resolve([...this.agents]);
   }
 
-  getAgentHealth(_agentId: string): Promise<AgentHealth> {
+  getAgentHealth(_agentId: string): Promise<AgentHealthData> {
     return Promise.resolve({
-      status: "healthy",
+      status: AgentHealth.HEALTHY,
       issues: [],
       uptime: 12345,
     });
@@ -82,7 +81,7 @@ class MockAgentService implements AgentService {
     ]);
   }
 
-  setAgents(agents: AgentStatus[]): void {
+  setAgents(agents: AgentStatusItem[]): void {
     this.agents = agents;
   }
 }
@@ -156,11 +155,11 @@ Deno.test("AgentViewState: interface has all required properties", () => {
     logContent: "",
     activeDialog: null,
     searchQuery: "",
-    groupBy: "none",
+    groupBy: TuiGroupBy.NONE,
     autoRefresh: false,
     autoRefreshInterval: 5000,
   };
-  if (state.groupBy !== "none") {
+  if (state.groupBy !== TuiGroupBy.NONE) {
     throw new Error("Default groupBy should be 'none'");
   }
 });
@@ -168,7 +167,7 @@ Deno.test("AgentViewState: interface has all required properties", () => {
 // ===== Phase 13.7: Icon Tests =====
 
 Deno.test("AGENT_STATUS_ICONS: has all status types", () => {
-  const requiredKeys = [SkillStatus.ACTIVE, "inactive", "error"];
+  const requiredKeys = [AgentStatus.ACTIVE, "inactive", "error"];
   for (const key of requiredKeys) {
     if (!AGENT_STATUS_ICONS[key]) {
       throw new Error(`Missing status icon for: ${key}`);
@@ -195,7 +194,7 @@ Deno.test("LOG_LEVEL_ICONS: has all log levels", () => {
 });
 
 Deno.test("AGENT_STATUS_COLORS: has all status types", () => {
-  const requiredKeys = [SkillStatus.ACTIVE, "inactive", "error", "healthy", "warning", CritiqueSeverity.CRITICAL];
+  const requiredKeys = [AgentStatus.ACTIVE, "inactive", "error", "healthy", "warning", CritiqueSeverity.CRITICAL];
   for (const key of requiredKeys) {
     if (!AGENT_STATUS_COLORS[key]) {
       throw new Error(`Missing color for: ${key}`);
@@ -286,25 +285,25 @@ Deno.test("AgentStatusTuiSession: grouping modes", async () => {
   await session.initialize();
 
   // Default is "none"
-  if (session.getGroupBy() !== "none") {
+  if (session.getGroupBy() !== TuiGroupBy.NONE) {
     throw new Error("Default groupBy should be 'none'");
   }
 
   // Toggle to status
   session.toggleGrouping();
-  if (session.getGroupBy() !== "status") {
+  if (session.getGroupBy() !== TuiGroupBy.STATUS) {
     throw new Error("First toggle should be 'status'");
   }
 
   // Toggle to model
   session.toggleGrouping();
-  if (session.getGroupBy() !== "model") {
+  if (session.getGroupBy() !== TuiGroupBy.MODEL) {
     throw new Error("Second toggle should be 'model'");
   }
 
   // Toggle back to none
   session.toggleGrouping();
-  if (session.getGroupBy() !== "none") {
+  if (session.getGroupBy() !== TuiGroupBy.NONE) {
     throw new Error("Third toggle should be 'none'");
   }
 });
@@ -315,13 +314,13 @@ Deno.test("AgentStatusTuiSession: setGroupBy", async () => {
   const session = view.createTuiSession(false);
   await session.initialize();
 
-  session.setGroupBy("status");
-  if (session.getGroupBy() !== "status") {
+  session.setGroupBy(TuiGroupBy.STATUS);
+  if (session.getGroupBy() !== TuiGroupBy.STATUS) {
     throw new Error("setGroupBy('status') failed");
   }
 
-  session.setGroupBy("model");
-  if (session.getGroupBy() !== "model") {
+  session.setGroupBy(TuiGroupBy.MODEL);
+  if (session.getGroupBy() !== TuiGroupBy.MODEL) {
     throw new Error("setGroupBy('model') failed");
   }
 });
@@ -559,12 +558,12 @@ Deno.test("AgentStatusTuiSession: setAgents", async () => {
   const session = view.createTuiSession(false);
   await session.initialize();
 
-  const newAgents: AgentStatus[] = [
+  const newAgents: AgentStatusItem[] = [
     {
       id: "new1",
       name: "New Agent",
       model: "claude",
-      status: SkillStatus.ACTIVE,
+      status: AgentStatus.ACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: ["code"],
       defaultSkills: [],
@@ -609,7 +608,7 @@ Deno.test("AgentStatusTuiSession: collapse/expand operations", async () => {
   await session.initialize();
 
   // Switch to status grouping first
-  session.setGroupBy("status");
+  session.setGroupBy(TuiGroupBy.STATUS);
 
   // Collapse all
   session.collapseAllNodes();
@@ -654,7 +653,7 @@ Deno.test("AgentStatusTuiSession: handleKey actions", async () => {
   }
 
   await session.handleKey("g"); // toggle grouping
-  if (session.getGroupBy() === "none") {
+  if (session.getGroupBy() === TuiGroupBy.NONE) {
     throw new Error("g should toggle grouping");
   }
 });
@@ -715,12 +714,12 @@ Deno.test("AgentStatusTuiSession: getKeyBindings", () => {
 });
 
 Deno.test("MinimalAgentServiceMock: works correctly", async () => {
-  const agents: AgentStatus[] = [
+  const agents: AgentStatusItem[] = [
     {
       id: "test1",
       name: "Test",
       model: "test-model",
-      status: SkillStatus.ACTIVE,
+      status: AgentStatus.ACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: [],
       defaultSkills: [],

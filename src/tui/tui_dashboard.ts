@@ -13,6 +13,7 @@
  */
 
 import { NotificationService } from "../services/notification.ts";
+import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../config/constants.ts";
 import { colorize, getTheme, type TuiTheme } from "./utils/colors.ts";
 import {
   handleMemoryNotifications as _handleMemoryNotifications,
@@ -516,8 +517,8 @@ export async function launchTuiDashboard(
     flexHeight: 1.0,
     x: 0,
     y: 0,
-    width: 80,
-    height: 24,
+    width: TUI_LAYOUT_FULL_WIDTH,
+    height: TUI_LAYOUT_DEFAULT_HEIGHT,
     focused: true,
     maximized: false,
   };
@@ -676,8 +677,8 @@ export async function launchTuiDashboard(
           flexHeight: 1.0,
           x: 0,
           y: 0,
-          width: 80,
-          height: 24,
+          width: TUI_LAYOUT_FULL_WIDTH,
+          height: TUI_LAYOUT_DEFAULT_HEIGHT,
           focused: true,
           maximized: false,
         });

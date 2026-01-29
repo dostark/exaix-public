@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 import { McpToolName } from "../enums.ts";
+import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
 // ============================================================================
 // Plan Step Schema
@@ -77,7 +78,7 @@ export const PlanSchema = z.object({
   description: z.string().min(1),
 
   /** Optional: Ordered list of execution steps (1-50 steps) */
-  steps: z.array(PlanStepSchema).min(1).max(50).optional(),
+  steps: z.array(PlanStepSchema).min(1).max(DEFAULT_QUERY_LIMIT).optional(),
 
   /** Optional: Estimated total duration */
   estimatedDuration: z.string().optional(),
