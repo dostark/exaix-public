@@ -441,6 +441,13 @@ export const MEMORY_SCOPE_EXECUTIONS = "executions";
 export const MEMORY_SCOPE_PENDING = "pending";
 export const MEMORY_SCOPE_SEARCH = "search";
 
+export type MemoryTuiScope =
+  | typeof MEMORY_SCOPE_GLOBAL
+  | typeof MEMORY_SCOPE_PROJECTS
+  | typeof MEMORY_SCOPE_EXECUTIONS
+  | typeof MEMORY_SCOPE_PENDING
+  | typeof MEMORY_SCOPE_SEARCH;
+
 // ============================================================================
 // Logging Defaults
 // ============================================================================
@@ -449,3 +456,62 @@ export const DEFAULT_LOG_MAX_SIZE_MB = 10;
 export const DEFAULT_LOG_MAX_FILES = 5;
 export const LOG_FILE_PREFIX = "structured-log";
 export const LOG_FILE_EXTENSION = ".jsonl";
+
+// ============================================================================
+// TUI Display and UI Constants
+// ============================================================================
+export const TUI_TREE_PAGINATION_LIMIT = 20;
+export const TUI_TREE_RECENT_LIMIT = 10;
+export const TUI_DETAIL_MAX_OVERVIEW_CHARS = 200;
+export const TUI_DETAIL_DATE_LOCALE = "en-US";
+
+export const TUI_PREFIX_PROJECT = "project:";
+export const TUI_PREFIX_EXECUTION = "execution:";
+export const TUI_PREFIX_PENDING = "pending:";
+
+export const TUI_STATUS_MSG_CANCELLED = "Cancelled";
+export const TUI_STATUS_MSG_ERROR_PREFIX = "Error: ";
+export const TUI_STATUS_MSG_PROPOSAL_APPROVED = "Proposal approved";
+export const TUI_STATUS_MSG_PROPOSAL_REJECTED = "Proposal rejected";
+export const TUI_STATUS_MSG_BULK_APPROVE_COMPLETED = "Bulk approval completed";
+export const TUI_STATUS_MSG_LEARNING_ADDED = "Learning added";
+export const TUI_STATUS_MSG_PROMOTE_COMPLETED = "Promoted to global";
+export const TUI_STATUS_MSG_READY = "Ready";
+
+export const TUI_LABEL_GLOBAL_MEMORY = "Global Memory";
+export const TUI_LABEL_PROJECTS = "Projects";
+export const TUI_LABEL_EXECUTIONS = "Executions";
+export const TUI_LABEL_PENDING = "Pending Proposals";
+export const TUI_LABEL_REQUEST_DETAILS = "REQUEST DETAILS";
+
+export const TUI_MSG_SELECT_ITEM = "Select an item to view details.";
+export const TUI_MSG_PRESS_QUIT = "Press ESC or q to close";
+// TUI Node Types
+export const TUI_NODE_TYPE_ROOT = "root";
+export const TUI_NODE_TYPE_SCOPE = "scope";
+export const TUI_NODE_TYPE_PROJECT = "project";
+export const TUI_NODE_TYPE_EXECUTION = "execution";
+export const TUI_NODE_TYPE_LEARNING = "learning";
+export const TUI_NODE_TYPE_PATTERN = "pattern";
+export const TUI_NODE_TYPE_DECISION = "decision";
+export const TUI_NODE_TYPE_AGENT = "agent";
+export const TUI_NODE_TYPE_STATUS_GROUP = "status-group";
+export const TUI_NODE_TYPE_MODEL_GROUP = "model-group";
+export const TUI_NODE_TYPE_GROUP = "group";
+
+// TUI Grouping Modes
+export const TUI_GROUP_BY_NONE = "none";
+export const TUI_GROUP_BY_STATUS = "status";
+export const TUI_GROUP_BY_MODEL = "model";
+
+export const TUI_ICON_AGENT = "🤖";
+export const TUI_ICON_LEARNING = "🎯";
+export const TUI_ICON_BRAIN = "🧠";
+export const TUI_ICON_SUCCESS = "✅";
+export const TUI_ICON_WARNING = "⚠️";
+export const TUI_ICON_CRITICAL = "❌";
+export const TUI_ICON_INFO = "ℹ️";
+export const TUI_ICON_BULLET = "•";
+export const TUI_MSG_PRESS_CLOSE_HELP = "\nPress ? or Esc to close help";
+export const TUI_MSG_DASHBOARD_HEADER =
+  "                         ExoFrame TUI Dashboard                               ";

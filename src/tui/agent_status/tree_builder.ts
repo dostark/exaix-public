@@ -10,6 +10,11 @@ import {
   AGENT_STATUS_ERROR,
   AGENT_STATUS_INACTIVE,
   AGENT_STATUS_ORDER,
+  TUI_ICON_AGENT,
+  TUI_ICON_BRAIN,
+  TUI_NODE_TYPE_AGENT,
+  TUI_NODE_TYPE_MODEL_GROUP,
+  TUI_NODE_TYPE_STATUS_GROUP,
 } from "../../config/constants.ts";
 
 const AGENT_STATUS_ICONS: Record<string, string> = {
@@ -25,7 +30,7 @@ export function buildFlatTree(agents: AgentStatus[]): TreeNode[] {
   return agents.map((agent) => {
     const icon = AGENT_STATUS_ICONS[agent.status] || "⚪";
     const label = `${icon} ${agent.name} (${agent.model})`;
-    return createNode(agent.id, label, "agent", { expanded: true });
+    return createNode(agent.id, label, TUI_NODE_TYPE_AGENT, { expanded: true });
   });
 }
 
@@ -48,13 +53,13 @@ export function buildTreeByStatus(agents: AgentStatus[]): TreeNode[] {
       const statusAgents = byStatus.get(status)!;
       const icon = AGENT_STATUS_ICONS[status] || "⚪";
       const children = statusAgents.map((agent) => {
-        const label = `🤖 ${agent.name} (${agent.model})`;
-        return createNode(agent.id, label, "agent", { expanded: true });
+        const label = `${TUI_ICON_AGENT} ${agent.name} (${agent.model})`;
+        return createNode(agent.id, label, TUI_NODE_TYPE_AGENT, { expanded: true });
       });
       return createGroupNode(
         `status-${status}`,
         `${icon} ${status.charAt(0).toUpperCase() + status.slice(1)} (${statusAgents.length})`,
-        "status-group",
+        TUI_NODE_TYPE_STATUS_GROUP,
         children,
       );
     });
@@ -76,8 +81,13 @@ export function buildTreeByModel(agents: AgentStatus[]): TreeNode[] {
     const children = modelAgents.map((agent) => {
       const icon = AGENT_STATUS_ICONS[agent.status] || "⚪";
       const label = `${icon} ${agent.name}`;
-      return createNode(agent.id, label, "agent", { expanded: true });
+      return createNode(agent.id, label, TUI_NODE_TYPE_AGENT, { expanded: true });
     });
-    return createGroupNode(`model-${model}`, `🧠 ${model} (${modelAgents.length})`, "model-group", children);
+    return createGroupNode(
+      `model-${model}`,
+      `${TUI_ICON_BRAIN} ${model} (${modelAgents.length})`,
+      TUI_NODE_TYPE_MODEL_GROUP,
+      children,
+    );
   });
 }

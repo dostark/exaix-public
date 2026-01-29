@@ -12,29 +12,7 @@
  * - Layout persistence
  */
 
-import process from "node:process";
-import { PortalManagerView } from "./portal_manager_view.ts";
-import { PlanReviewerView } from "./plan_reviewer_view.ts";
-import { MonitorView } from "./monitor_view.ts";
-import { StructuredLogViewer } from "./structured_log_viewer.ts";
-import { DaemonControlView } from "./daemon_control_view.ts";
-import { AgentStatusView } from "./agent_status_view.ts";
-import { RequestManagerView } from "./request_manager_view.ts";
-import { MemoryView } from "./memory_view.ts";
-import { SkillsManagerView } from "./skills_manager_view.ts";
-import { type MemoryNotification as TuiNotification, NotificationService } from "../services/notification.ts";
-import {
-  MockAgentService,
-  MockDaemonService,
-  MockLogService,
-  MockMemoryService,
-  MockPlanService,
-  MockPortalService,
-  MockRequestService,
-  MockSkillsService,
-  MockStructuredLogger,
-  MockStructuredLoggerService,
-} from "./tui_dashboard_mocks.ts";
+import { NotificationService } from "../services/notification.ts";
 import { colorize, getTheme, type TuiTheme } from "./utils/colors.ts";
 import {
   handleMemoryNotifications as _handleMemoryNotifications,
@@ -47,8 +25,16 @@ import {
 } from "./tui_helpers/layout_persistence.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
-import { Table } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
 import type { DatabaseService } from "../services/db.ts";
+import { initDashboardViews } from "./dashboard/view_registry.ts";
+import { prodRender } from "./dashboard/renderer.ts";
+import {
+  closePane as helperClosePane,
+  maximizePane as helperMaximizePane,
+  resizePane as helperResizePane,
+  splitPane as helperSplitPane,
+  switchPane as helperSwitchPane,
+} from "./dashboard/pane_manager.ts";
 
 // Type alias for convenience
 type Theme = TuiTheme;
@@ -134,7 +120,11 @@ type DashboardAction =
   | "view_5"
   | "view_6"
   | "view_7"
-  | "show_memory_notifications";
+  | "show_memory_notifications"
+  | "resize_left"
+  | "resize_right"
+  | "resize_up"
+  | "resize_down";
 
 export const DASHBOARD_KEY_BINDINGS: KeyBinding<DashboardAction>[] = [
   // Navigation
@@ -150,6 +140,12 @@ export const DASHBOARD_KEY_BINDINGS: KeyBinding<DashboardAction>[] = [
   { key: "s", action: "save_layout", description: "Save layout", category: "Layout" },
   { key: "r", action: "restore_layout", description: "Restore layout", category: "Layout" },
   { key: "d", action: "reset_layout", description: "Reset to default", category: "Layout" },
+
+  // Resizing
+  { key: "Ctrl+Left", action: "resize_left", description: "Resize left", category: "Layout" },
+  { key: "Ctrl+Right", action: "resize_right", description: "Resize right", category: "Layout" },
+  { key: "Ctrl+Up", action: "resize_up", description: "Resize up", category: "Layout" },
+  { key: "Ctrl+Down", action: "resize_down", description: "Resize down", category: "Layout" },
 
   // Dialogs
   { key: "?", action: "show_help", description: "Show help", category: "General" },
@@ -223,13 +219,28 @@ export function getDashboardHelpSections(): HelpSection[] {
 export interface Pane {
   id: string;
   view: any;
+  /** Relative flex position and size (0.0 to 1.0) */
+  flexX: number;
+  flexY: number;
+  flexWidth: number;
+  flexHeight: number;
+  /** Calculated screen coordinates (pixels/chars) */
   x: number;
   y: number;
   width: number;
   height: number;
   focused: boolean;
   maximized?: boolean;
-  previousBounds?: { x: number; y: number; width: number; height: number };
+  previousBounds?: {
+    flexX: number;
+    flexY: number;
+    flexWidth: number;
+    flexHeight: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 export interface TuiDashboard {
@@ -491,44 +502,8 @@ export async function launchTuiDashboard(
     databaseService?: DatabaseService;
   } = {},
 ): Promise<TuiDashboard | undefined> {
-  // Minimal idiomatic dashboard object for TDD
-  const portalService = new MockPortalService();
-  const planService = new MockPlanService();
-  const logService = options.databaseService || new MockLogService();
-  const structuredLogger = new MockStructuredLogger();
-  const structuredLoggerService = new MockStructuredLoggerService();
-  const daemonService = new MockDaemonService();
-  const agentService = new MockAgentService();
-  const requestService = new MockRequestService();
-  const memoryService = new MockMemoryService();
-  const skillsService = new MockSkillsService();
-  const views = [
-    Object.assign(new PortalManagerView(portalService), { name: "PortalManagerView" }),
-    Object.assign(new PlanReviewerView(planService), { name: "PlanReviewerView" }),
-    Object.assign(new MonitorView(logService), { name: "MonitorView" }),
-    Object.assign(
-      new StructuredLogViewer(structuredLoggerService, structuredLogger as any, { testMode: options.testMode }),
-      {
-        name: "StructuredLogViewer",
-      },
-    ),
-    Object.assign(new DaemonControlView(daemonService), { name: "DaemonControlView" }),
-    Object.assign(new AgentStatusView(agentService), { name: "AgentStatusView" }),
-    Object.assign(new RequestManagerView(requestService), { name: "RequestManagerView" }),
-    Object.assign(new MemoryView(memoryService), { name: "MemoryView" }),
-    Object.assign(new SkillsManagerView(skillsService), { name: "SkillsManagerView" }),
-  ].map((view) => {
-    const v: any = view;
-    if (typeof v.getFocusableElements !== "function") {
-      if (v.name === "PortalManagerView") {
-        v.getFocusableElements = () => ["portal-list", "action-buttons", "status-bar"];
-      } else {
-        v.getFocusableElements = () => ["main"];
-      }
-    }
-    return v;
-  });
-
+  // Initialize views using registry
+  const views = initDashboardViews({ testMode: options.testMode, databaseService: options.databaseService });
   const portalView = views[0];
 
   // Initialize with single pane
@@ -652,91 +627,22 @@ export async function launchTuiDashboard(
         closePane: "c",
       },
       async splitPane(direction: "vertical" | "horizontal") {
-        const activePane = panes.find((p) => p.id === this.activePaneId);
-        if (!activePane) return;
-        const newId = `pane-${panes.length}`;
-        if (direction === "vertical") {
-          // Split vertically: left-right
-          const halfWidth = Math.floor(activePane.width / 2);
-          activePane.width = halfWidth;
-          const newPane: Pane = {
-            id: newId,
-            view: views[1], // Default to next view
-            x: activePane.x + halfWidth,
-            y: activePane.y,
-            width: activePane.width,
-            height: activePane.height,
-            focused: false,
-            maximized: false,
-          };
-          panes.push(newPane);
-        } else {
-          // Split horizontally: top-bottom
-          const halfHeight = Math.floor(activePane.height / 2);
-          activePane.height = halfHeight;
-          const newPane: Pane = {
-            id: newId,
-            view: views[1],
-            x: activePane.x,
-            y: activePane.y + halfHeight,
-            width: activePane.width,
-            height: activePane.height,
-            focused: false,
-            maximized: false,
-          };
-          panes.push(newPane);
-        }
-        await this.notify(`Pane split ${direction}`, "info");
+        const result = await helperSplitPane(panes, this.activePaneId, views, direction, this.notify.bind(this));
+        this.activePaneId = result.activePaneId;
       },
       async closePane(paneId: string) {
-        const index = panes.findIndex((p) => p.id === paneId);
-        if (index === -1 || panes.length === 1) return; // Can't close last pane
-        panes.splice(index, 1);
-        if (this.activePaneId === paneId) {
-          this.activePaneId = panes[0].id;
-          panes[0].focused = true;
-        }
-        await this.notify("Pane closed", "info");
+        const result = await helperClosePane(panes, this.activePaneId, paneId, this.notify.bind(this));
+        this.activePaneId = result.activePaneId;
       },
       resizePane(paneId: string, deltaWidth: number, deltaHeight: number) {
-        const pane = panes.find((p) => p.id === paneId);
-        if (pane) {
-          pane.width = Math.max(10, pane.width + deltaWidth);
-          pane.height = Math.max(5, pane.height + deltaHeight);
-        }
+        helperResizePane(panes, paneId, deltaWidth, deltaHeight);
       },
       switchPane(paneId: string) {
-        const pane = panes.find((p) => p.id === paneId);
-        if (pane) {
-          panes.forEach((p) => p.focused = false);
-          pane.focused = true;
-          this.activePaneId = paneId;
-        }
+        const newId = helperSwitchPane(panes, paneId);
+        if (newId) this.activePaneId = newId;
       },
       maximizePane(paneId: string) {
-        const pane = panes.find((p) => p.id === paneId);
-        if (!pane) return;
-
-        if (pane.maximized) {
-          // Restore
-          if (pane.previousBounds) {
-            pane.x = pane.previousBounds.x;
-            pane.y = pane.previousBounds.y;
-            pane.width = pane.previousBounds.width;
-            pane.height = pane.previousBounds.height;
-          }
-          pane.maximized = false;
-          this.notify("Pane restored", "info");
-        } else {
-          // Maximize
-          pane.previousBounds = { x: pane.x, y: pane.y, width: pane.width, height: pane.height };
-          pane.x = 0;
-          pane.y = 0;
-          pane.width = 80;
-          pane.height = 24;
-          pane.maximized = true;
-          this.notify("Pane maximized", "info");
-        }
+        helperMaximizePane(panes, paneId, this.notify.bind(this));
       },
       restorePane(paneId: string) {
         const pane = panes.find((p) => p.id === paneId);
@@ -833,86 +739,10 @@ export async function launchTuiDashboard(
   console.log("ExoFrame TUI Dashboard");
   console.log("======================");
 
-  async function prodRender() {
-    console.clear();
-
-    // Header with view indicators
-    console.log("╔══════════════════════════════════════════════════════════════════════════════╗");
-    console.log("║                         ExoFrame TUI Dashboard                               ║");
-    console.log("╠══════════════════════════════════════════════════════════════════════════════╣");
-
-    // View indicators
-    const viewIndicator = renderViewIndicator(panes, activePaneId, theme);
-    console.log(`║ ${viewIndicator.padEnd(76)} ║`);
-    console.log("╠══════════════════════════════════════════════════════════════════════════════╣");
-
-    // Help overlay
-    if (prodState.showHelp) {
-      const helpLines = renderGlobalHelpOverlay(theme);
-      for (const line of helpLines) {
-        console.log(line);
-      }
-      console.log("\nPress ? or Esc to close help");
-      return;
-    }
-
-    // Notification panel
-    if (prodState.showNotifications || prodState.showMemoryNotifications) {
-      const notifLines = await renderNotificationPanel(notificationService, theme, prodState);
-      for (const line of notifLines) {
-        console.log(line);
-      }
-      const closeKey = prodState.showMemoryNotifications ? "m" : "n";
-      process.stdout.write(`\nPress ${closeKey} to close`);
-      if (prodState.showMemoryNotifications) {
-        process.stdout.write(" | a: Approve | r: Reject | Up/Down: Navigate\n");
-      } else {
-        process.stdout.write("\n");
-      }
-      return;
-    }
-
-    // Main content
-    const activePane = panes.find((p) => p.id === activePaneId);
-    if (activePane?.view.name === "PortalManagerView") {
-      const portals = await portalView.service.listPortals();
-
-      if (portals.length > 0) {
-        const table = new Table();
-        table.header(["Alias", "Target Path", "Status", "Permissions"]);
-        for (const p of portals) {
-          table.push([p.alias, p.targetPath, p.status, p.permissions]);
-        }
-        table.render();
-      } else {
-        console.log("No portals configured.");
-      }
-    } else {
-      const titleBar = renderPaneTitleBar(activePane!, theme);
-      console.log(titleBar);
-      console.log("");
-      console.log(`Viewing: ${activePane?.view.name}`);
-      // TODO: Render other views
-    }
-
-    // Status bar
-    console.log("");
-    console.log("╠══════════════════════════════════════════════════════════════════════════════╣");
-
-    // Show active notifications count
-    const allNotifs = await notificationService.getNotifications();
-    const activeNotifs = allNotifs.filter((n: TuiNotification) => !n.dismissed_at);
-    const notifBadge = activeNotifs.length > 0 ? ` 🔔 ${activeNotifs.length}` : "";
-
-    console.log(`║ Status: Ready${notifBadge.padEnd(64)}║`);
-    console.log("╠══════════════════════════════════════════════════════════════════════════════╣");
-    console.log("║ Navigation: Tab/Shift+Tab | Split: v/h | Close: c | Maximize: z | Help: ?   ║");
-    console.log("║ Layout: s=save, r=restore, d=default | n=notifications | p=view picker      ║");
-    console.log("║ Exit: Esc                                                                    ║");
-    console.log("╚══════════════════════════════════════════════════════════════════════════════╝");
+  async function prodRenderWrapper() {
+    await prodRender(panes, activePaneId, prodState, theme, notificationService, portalView);
   }
-
-  const render = prodRender;
+  const render = prodRenderWrapper;
   await render();
 
   async function runProdInteractiveLoop() {

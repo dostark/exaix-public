@@ -36,10 +36,28 @@ import type {
   GlobalMemory,
   Learning,
   MemorySearchResult,
+  MemoryUpdateProposal,
   Pattern,
   ProjectMemory,
   Reference,
 } from "../schemas/memory_bank.ts";
+
+export type {
+  ActivitySummary,
+  Decision,
+  ExecutionMemory,
+  GlobalMemory,
+  Learning,
+  MemorySearchResult,
+  MemoryUpdateProposal,
+  Pattern,
+  ProjectMemory,
+  Reference,
+};
+
+import { parseDecisions, parsePatterns } from "./memory_bank/parsers.ts";
+import { formatExecutionSummary } from "./memory_bank/formatters.ts";
+import { buildFilesIndex, buildPatternsIndex, buildTagsIndex, writeIndices } from "./memory_bank/index_builder.ts";
 
 /**
  * Memory Bank Service
@@ -176,8 +194,8 @@ export class MemoryBankService {
       const decisionsContent = await this.readMarkdownFile(join(projectDir, "decisions.md"));
       const referencesContent = await this.readMarkdownFile(join(projectDir, "references.md"));
 
-      const patterns = this.parsePatterns(patternsContent);
-      const decisions = this.parseDecisions(decisionsContent);
+      const patterns = parsePatterns(patternsContent);
+      const decisions = parseDecisions(decisionsContent);
       const references = this.parseReferences(referencesContent);
 
       return {
@@ -358,7 +376,7 @@ export class MemoryBankService {
     await ensureDir(execDir);
 
     // Write summary.md
-    const summary = this.formatExecutionSummary(execution);
+    const summary = formatExecutionSummary(execution);
     await this.writeMarkdownFile(join(execDir, "summary.md"), summary);
 
     // Write context.json
@@ -928,87 +946,15 @@ export class MemoryBankService {
    * - tags.json: Tag → projects/patterns mapping
    */
   async rebuildIndices(): Promise<void> {
-    const filesIndex: Record<string, string[]> = {};
-    const patternsIndex: Record<string, string[]> = {};
-    const tagsIndex: Record<string, string[]> = {};
-
-    // Index execution memory (files)
+    // Build indices using extracted functions
     const executions = await this.getExecutionHistory(undefined, 1000);
-    for (const exec of executions) {
-      const allFiles = [
-        ...(exec.changes?.files_created || []),
-        ...(exec.changes?.files_modified || []),
-        ...(exec.context_files || []),
-      ];
-
-      for (const file of allFiles) {
-        if (!filesIndex[file]) {
-          filesIndex[file] = [];
-        }
-        filesIndex[file].push(exec.trace_id);
-      }
-    }
-
-    // Index project memory (patterns, tags)
-    for await (const entry of Deno.readDir(this.projectsDir)) {
-      if (entry.isDirectory) {
-        const projectMem = await this.getProjectMemory(entry.name);
-        if (projectMem) {
-          for (const pattern of projectMem.patterns) {
-            if (!patternsIndex[pattern.name]) {
-              patternsIndex[pattern.name] = [];
-            }
-            patternsIndex[pattern.name].push(entry.name);
-
-            // Index tags
-            for (const tag of pattern.tags || []) {
-              if (!tagsIndex[tag]) {
-                tagsIndex[tag] = [];
-              }
-              tagsIndex[tag].push(`pattern:${entry.name}:${pattern.name}`);
-            }
-          }
-
-          // Index decision tags
-          for (const decision of projectMem.decisions) {
-            for (const tag of decision.tags || []) {
-              if (!tagsIndex[tag]) {
-                tagsIndex[tag] = [];
-              }
-              tagsIndex[tag].push(`decision:${entry.name}:${decision.date}`);
-            }
-          }
-        }
-      }
-    }
-
-    // Index global learnings tags
+    const filesIndex = buildFilesIndex(executions);
+    const patternsIndex = await buildPatternsIndex(this.projectsDir, this.getProjectMemory.bind(this));
     const learnings = await this.loadLearningsFromFile();
-    for (const learning of learnings) {
-      if (learning.status !== MemoryStatus.APPROVED) continue;
-      for (const tag of learning.tags || []) {
-        if (!tagsIndex[tag]) {
-          tagsIndex[tag] = [];
-        }
-        tagsIndex[tag].push(`learning:global:${learning.id}`);
-      }
-    }
+    const tagsIndex = await buildTagsIndex(this.projectsDir, this.getProjectMemory.bind(this), learnings);
 
     // Write indices
-    await Deno.writeTextFile(
-      join(this.indexDir, "files.json"),
-      JSON.stringify(filesIndex, null, 2),
-    );
-
-    await Deno.writeTextFile(
-      join(this.indexDir, "patterns.json"),
-      JSON.stringify(patternsIndex, null, 2),
-    );
-
-    await Deno.writeTextFile(
-      join(this.indexDir, "tags.json"),
-      JSON.stringify(tagsIndex, null, 2),
-    );
+    await writeIndices(this.indexDir, filesIndex, patternsIndex, tagsIndex);
 
     // Log index rebuild
     this.logActivity({
@@ -1086,124 +1032,6 @@ export class MemoryBankService {
   }
 
   /**
-   * Parse patterns from markdown content
-   */
-  private parsePatterns(content: string): Pattern[] {
-    // Simple parsing - assumes patterns are separated by "## " headers
-    const patterns: Pattern[] = [];
-    const sections = content.split(/^## /m).filter((s) => s.trim());
-
-    for (const section of sections) {
-      const lines = section.split("\n");
-      const name = lines[0].trim();
-
-      // Find the description (everything until **Examples** or **Tags**)
-      let descriptionEnd = lines.length;
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].startsWith("**Examples:**") || lines[i].startsWith("**Tags:")) {
-          descriptionEnd = i;
-          break;
-        }
-      }
-
-      const description = lines.slice(1, descriptionEnd).join("\n").trim();
-
-      // Parse examples
-      const examples: string[] = [];
-      const examplesStart = lines.findIndex((line) => line.startsWith("**Examples:**"));
-      if (examplesStart !== -1) {
-        for (let i = examplesStart + 1; i < lines.length; i++) {
-          if (lines[i].startsWith("**") || lines[i].trim() === "") break;
-          const match = lines[i].match(/^- (.+)$/);
-          if (match) {
-            examples.push(match[1]);
-          }
-        }
-      }
-
-      // Parse tags
-      let tags: string[] | undefined;
-      const tagsLine = lines.find((line) => line.startsWith("**Tags:"));
-      if (tagsLine) {
-        const tagsMatch = tagsLine.match(/\*\*Tags:\*\* (.+)/);
-        if (tagsMatch) {
-          tags = tagsMatch[1].split(", ").map((t) => t.trim());
-        }
-      }
-
-      if (name && description) {
-        patterns.push({
-          name,
-          description,
-          examples,
-          tags,
-        });
-      }
-    }
-
-    return patterns;
-  }
-
-  /**
-   * Parse decisions from markdown content
-   */
-  private parseDecisions(content: string): Decision[] {
-    const decisions: Decision[] = [];
-    const sections = content.split(/^## /m).filter((s) => s.trim());
-
-    for (const section of sections) {
-      const lines = section.split("\n");
-      const match = lines[0].match(/^(\d{4}-\d{2}-\d{2}): (.+)$/);
-
-      if (match) {
-        const date = match[1];
-        const decision = match[2];
-
-        // Find the rationale (everything until **Alternatives** or **Tags**)
-        let rationaleEnd = lines.length;
-        for (let i = 1; i < lines.length; i++) {
-          if (lines[i].startsWith("**Alternatives considered:**") || lines[i].startsWith("**Tags:")) {
-            rationaleEnd = i;
-            break;
-          }
-        }
-
-        const rationale = lines.slice(1, rationaleEnd).join("\n").trim();
-
-        // Parse alternatives
-        let alternatives: string[] | undefined;
-        const alternativesLine = lines.find((line) => line.startsWith("**Alternatives considered:"));
-        if (alternativesLine) {
-          const alternativesMatch = alternativesLine.match(/\*\*Alternatives considered:\*\* (.+)/);
-          if (alternativesMatch) {
-            alternatives = alternativesMatch[1].split(", ").map((a) => a.trim());
-          }
-        }
-
-        // Parse tags
-        let tags: string[] | undefined;
-        const tagsLine = lines.find((line) => line.startsWith("**Tags:"));
-        if (tagsLine) {
-          const tagsMatch = tagsLine.match(/\*\*Tags:\*\* (.+)/);
-          if (tagsMatch) {
-            tags = tagsMatch[1].split(", ").map((t) => t.trim());
-          }
-        }
-
-        decisions.push({
-          date,
-          decision,
-          rationale,
-          alternatives,
-          tags,
-        });
-      }
-    }
-
-    return decisions;
-  }
-
-  /**
    * Parse references from markdown content
    */
   private parseReferences(content: string): Reference[] {
@@ -1265,47 +1093,6 @@ export class MemoryBankService {
       const title = r.description || r.path;
       return `- [${title}](${r.path})${desc}`;
     }).join("\n");
-  }
-
-  /** (r)(r)(r)
-   * Format execution summary to markdown
-   */
-  private formatExecutionSummary(exec: ExecutionMemory): string {
-    let md = `# Execution Summary\n\n`;
-    md += `**Trace ID:** ${exec.trace_id}\n`;
-    md += `**Request ID:** ${exec.request_id}\n`;
-    md += `**Portal:** ${exec.portal}\n`;
-    md += `**Agent:** ${exec.agent}\n`;
-    md += `**Status:** ${exec.status}\n`;
-    md += `**Started:** ${exec.started_at}\n`;
-    if (exec.completed_at) {
-      md += `**Completed:** ${exec.completed_at}\n`;
-    }
-    md += `\n## Summary\n\n${exec.summary}\n`;
-
-    if (exec.changes) {
-      md += `\n## Changes\n\n`;
-      if (exec.changes.files_created.length > 0) {
-        md += `**Created:**\n${exec.changes.files_created.map((f) => `- ${f}`).join("\n")}\n\n`;
-      }
-      if (exec.changes.files_modified.length > 0) {
-        md += `**Modified:**\n${exec.changes.files_modified.map((f) => `- ${f}`).join("\n")}\n\n`;
-      }
-      if (exec.changes.files_deleted.length > 0) {
-        md += `**Deleted:**\n${exec.changes.files_deleted.map((f) => `- ${f}`).join("\n")}\n\n`;
-      }
-    }
-
-    if (exec.lessons_learned && exec.lessons_learned.length > 0) {
-      md += `\n## Lessons Learned\n\n`;
-      md += exec.lessons_learned.map((l) => `- ${l}`).join("\n");
-    }
-
-    if (exec.error_message) {
-      md += `\n## Error\n\n${exec.error_message}\n`;
-    }
-
-    return md;
   }
 
   /**

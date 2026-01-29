@@ -100,17 +100,22 @@ export const REQUEST_KEY_BINDINGS: KeyBinding[] = [
 import { TuiSessionBase } from "./tui_common.ts";
 import { RequestPriority, RequestStatus } from "../enums.ts";
 import { createGroupNode, createNode, findNode, flattenTree, renderTree, type TreeNode } from "./utils/tree_view.ts";
-import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 
 // --- Extracted utilities ---
 import {
-  isGroupNode as isGroupNodeUtil,
+  isGroupNode as helperIsGroupNode,
+  MainKeyHandler,
   NavigationHandler,
   TreeManipulationHandler,
 } from "./request_manager/key_handlers.ts";
-import { formatDetailContent as formatDetailContentUtil } from "./request_manager/formatters.ts";
+import { RequestFormatter } from "./request_manager/formatters.ts";
+import {
+  processDialogCompletion as helperProcessDialogCompletion,
+  type RequestDialogType,
+} from "./request_manager/dialog_handlers.ts";
+import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 
 // --- Adapter: RequestCommands as RequestService ---
 import type { RequestCommands } from "../cli/request_commands.ts";
@@ -192,7 +197,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   protected requests: Request[] = [];
 
   // Track pending dialog type for result handling
-  private pendingDialogType: "search" | "filter-status" | "filter-agent" | "create" | "priority" | null = null;
+  private pendingDialogType: RequestDialogType | null = null;
 
   // Pending cancel request ID for confirm dialog
   private pendingCancelRequestId: string | null = null;
@@ -242,7 +247,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
    * Check if an ID is a group node ID (not a request ID).
    */
   private isGroupNode(id: string): boolean {
-    return isGroupNodeUtil(this.state.requestTree, id);
+    return helperIsGroupNode(this.state.requestTree, id);
   }
 
   /**
@@ -471,7 +476,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   }
 
   private formatDetailContent(request: Request | undefined, content: string): string {
-    return formatDetailContentUtil(request, content);
+    return RequestFormatter.formatDetailContent(request, content);
   }
 
   renderDetail(): string {
@@ -608,45 +613,17 @@ export class RequestManagerTuiSession extends TuiSessionBase {
    */
   private async processDialogCompletion(
     dialog: InputDialog | ConfirmDialog | null,
-    dialogType: "search" | "filter-status" | "filter-agent" | "create" | "priority" | null,
+    dialogType: RequestDialogType,
   ): Promise<void> {
-    if (!dialog) return;
-
-    // Input dialog confirmed
-    if (dialog instanceof InputDialog && dialog.getState() === "confirmed") {
-      const result = dialog.getResult();
-      if (result.type === "confirmed") {
-        switch (dialogType) {
-          case "search":
-            this.handleSearchResult(result.value);
-            break;
-          case "filter-status":
-            this.handleFilterStatusResult(result.value);
-            break;
-          case "filter-agent":
-            this.handleFilterAgentResult(result.value);
-            break;
-          case "create":
-            // Async handling - await to surface errors to status
-            try {
-              await this.handleCreateResult(result.value);
-            } catch (e) {
-              this.setStatus(`Error: ${e}`, "error");
-            }
-            break;
-          case "priority":
-            this.handlePriorityResult(result.value);
-            break;
-          default:
-            break;
-        }
-      }
-    }
-
-    // Confirm dialog (cancel request)
-    if (dialog instanceof ConfirmDialog && dialog.getState() === "confirmed") {
-      await this.processConfirmDialog(dialog);
-    }
+    await helperProcessDialogCompletion(dialog, dialogType, {
+      handleSearchResult: this.handleSearchResult.bind(this),
+      handleFilterStatusResult: this.handleFilterStatusResult.bind(this),
+      handleFilterAgentResult: this.handleFilterAgentResult.bind(this),
+      handleCreateResult: this.handleCreateResult.bind(this),
+      handlePriorityResult: this.handlePriorityResult.bind(this),
+      processConfirmDialog: this.processConfirmDialog.bind(this),
+      setStatus: this.setStatus.bind(this),
+    });
   }
 
   private async processConfirmDialog(_dialog: ConfirmDialog): Promise<void> {
@@ -802,7 +779,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
         this.state.activeDialog = null;
         this.pendingDialogType = null;
         // Delegate dialog completion handling to helpers
-        await this.processDialogCompletion(dialog, dialogType);
+        await this.processDialogCompletion(dialog, dialogType as RequestDialogType);
       }
       return true;
     }
@@ -836,81 +813,30 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   }
 
   private async handleMainKey(key: string): Promise<boolean> {
-    switch (key) {
-      case "up":
-        this.navigateTree("up");
-        return true;
-      case "down":
-        this.navigateTree("down");
-        return true;
-      case "home":
-        this.navigateTree("first");
-        return true;
-      case "end":
-        this.navigateTree("last");
-        return true;
-      case "left":
-        this.collapseSelectedNode();
-        return true;
-      case "right":
-        this.expandSelectedNode();
-        return true;
-      case "enter":
-        if (this.state.selectedRequestId) {
-          // If it's a group node, toggle it
-          if (this.isGroupNode(this.state.selectedRequestId)) {
-            this.toggleSelectedNode();
-          } else {
-            // Show detail - fire and forget with error handling
-            await this.showRequestDetail(this.state.selectedRequestId);
-          }
-        }
-        return true;
-      case "c":
-        this.showCreateDialog();
-        return true;
-      case "d":
-        if (this.state.selectedRequestId && !this.isGroupNode(this.state.selectedRequestId)) {
-          // Only for actual request IDs, not group IDs
-          this.showCancelConfirm(this.state.selectedRequestId);
-        }
-        return true;
-      case "p":
-        if (this.state.selectedRequestId && !this.isGroupNode(this.state.selectedRequestId)) {
-          this.showPriorityDialog();
-        }
-        return true;
-      case "s":
-        this.showSearchDialog();
-        return true;
-      case "f":
-        this.showFilterStatusDialog();
-        return true;
-      case "a":
-        this.showFilterAgentDialog();
-        return true;
-      case "g":
-        this.toggleGrouping();
-        return true;
-      case "R":
-        await this.refresh();
-        return true;
-      case "C":
-        this.state.requestTree = TreeManipulationHandler.collapseAll(this.state.requestTree);
-        return true;
-      case "E":
-        this.state.requestTree = TreeManipulationHandler.expandAll(this.state.requestTree);
-        return true;
-
-      case "?":
-        this.state.showHelp = true;
-        return true;
-      case "q":
-      case "escape":
-        // Could emit quit event
-        return true;
-    }
-    return false;
+    return await MainKeyHandler.handle(
+      key,
+      {
+        selectedRequestId: this.state.selectedRequestId,
+        requestTree: this.state.requestTree,
+      },
+      {
+        navigateTree: this.navigateTree.bind(this),
+        collapseSelectedNode: this.collapseSelectedNode.bind(this),
+        expandSelectedNode: this.expandSelectedNode.bind(this),
+        toggleSelectedNode: this.toggleSelectedNode.bind(this),
+        toggleGrouping: this.toggleGrouping.bind(this),
+        refresh: this.refresh.bind(this),
+        showRequestDetail: this.showRequestDetail.bind(this),
+        showCreateDialog: this.showCreateDialog.bind(this),
+        showCancelConfirm: this.showCancelConfirm.bind(this),
+        showPriorityDialog: this.showPriorityDialog.bind(this),
+        showSearchDialog: this.showSearchDialog.bind(this),
+        showFilterStatusDialog: this.showFilterStatusDialog.bind(this),
+        showFilterAgentDialog: this.showFilterAgentDialog.bind(this),
+        setShowHelp: (show: boolean) => this.state.showHelp = show,
+        updateTree: (tree: TreeNode[]) => this.state.requestTree = tree,
+      },
+    );
   }
 
   // ===== Lifecycle =====

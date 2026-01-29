@@ -92,31 +92,44 @@ export interface AgentViewState {
   /** Current search query */
   searchQuery: string;
   /** Current grouping mode */
-  groupBy: "status" | "model" | "none";
+  groupBy: typeof TUI_GROUP_BY_NONE | typeof TUI_GROUP_BY_STATUS | typeof TUI_GROUP_BY_MODEL;
   /** Whether auto-refresh is enabled */
   autoRefresh: boolean;
   /** Auto-refresh interval in ms */
   autoRefreshInterval: number;
 }
 
+import {
+  AGENT_STATUS_ACTIVE,
+  AGENT_STATUS_ERROR,
+  AGENT_STATUS_INACTIVE,
+  TUI_GROUP_BY_MODEL,
+  TUI_GROUP_BY_NONE,
+  TUI_GROUP_BY_STATUS,
+  TUI_ICON_CRITICAL,
+  TUI_ICON_INFO,
+  TUI_ICON_SUCCESS,
+  TUI_ICON_WARNING,
+} from "../config/constants.ts";
+
 // ===== Icons and Visual Constants =====
 
 export const AGENT_STATUS_ICONS: Record<string, string> = {
-  active: "🟢",
-  inactive: "🟡",
-  error: "🔴",
+  [AGENT_STATUS_ACTIVE]: "🟢",
+  [AGENT_STATUS_INACTIVE]: "🟡",
+  [AGENT_STATUS_ERROR]: "🔴",
 };
 
 export const AGENT_HEALTH_ICONS: Record<string, string> = {
-  healthy: "✅",
-  warning: "⚠️",
-  critical: "❌",
+  healthy: TUI_ICON_SUCCESS,
+  warning: TUI_ICON_WARNING,
+  critical: TUI_ICON_CRITICAL,
 };
 
 export const LOG_LEVEL_ICONS: Record<string, string> = {
-  info: "ℹ️",
-  warn: "⚠️",
-  error: "❌",
+  info: TUI_ICON_INFO,
+  warn: TUI_ICON_WARNING,
+  error: TUI_ICON_CRITICAL,
 };
 
 export const AGENT_STATUS_COLORS: Record<string, string> = {
@@ -323,7 +336,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
       logContent: "",
       activeDialog: null,
       searchQuery: "",
-      groupBy: "none",
+      groupBy: TUI_GROUP_BY_NONE,
       autoRefresh: false,
       autoRefreshInterval: 5000,
     };
@@ -401,7 +414,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     return this.state.searchQuery;
   }
 
-  getGroupBy(): "status" | "model" | "none" {
+  getGroupBy(): typeof TUI_GROUP_BY_NONE | typeof TUI_GROUP_BY_STATUS | typeof TUI_GROUP_BY_MODEL {
     return this.state.groupBy;
   }
 
@@ -430,11 +443,11 @@ export class AgentStatusTuiSession extends TuiSessionBase {
   private buildTree(): void {
     const agents = this.getFilteredAgents();
 
-    if (this.state.groupBy === "none") {
+    if (this.state.groupBy === TUI_GROUP_BY_NONE) {
       this.state.agentTree = buildFlatTree(agents);
-    } else if (this.state.groupBy === "status") {
+    } else if (this.state.groupBy === TUI_GROUP_BY_STATUS) {
       this.state.agentTree = buildTreeByStatus(agents);
-    } else if (this.state.groupBy === "model") {
+    } else if (this.state.groupBy === TUI_GROUP_BY_MODEL) {
       this.state.agentTree = buildTreeByModel(agents);
     }
   }
@@ -536,14 +549,14 @@ export class AgentStatusTuiSession extends TuiSessionBase {
   // ===== Grouping =====
 
   toggleGrouping(): void {
-    const modes: Array<"none" | "status" | "model"> = ["none", "status", "model"];
-    const currentIndex = modes.indexOf(this.state.groupBy);
+    const modes = [TUI_GROUP_BY_NONE, TUI_GROUP_BY_STATUS, TUI_GROUP_BY_MODEL] as const;
+    const currentIndex = modes.indexOf(this.state.groupBy as any);
     this.state.groupBy = modes[(currentIndex + 1) % modes.length];
     this.buildTree();
     this.selectFirstAgent();
   }
 
-  setGroupBy(mode: "status" | "model" | "none"): void {
+  setGroupBy(mode: typeof TUI_GROUP_BY_NONE | typeof TUI_GROUP_BY_STATUS | typeof TUI_GROUP_BY_MODEL): void {
     this.state.groupBy = mode;
     this.buildTree();
     this.selectFirstAgent();

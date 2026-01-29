@@ -3,7 +3,7 @@
  * Extracted from memory_view.ts to reduce complexity
  */
 
-import type { TreeNode } from "../memory_view.ts";
+import type { TreeNode } from "./types.ts";
 import {
   KEY_BACKSPACE,
   KEY_DOWN,
@@ -19,9 +19,60 @@ import {
 } from "../../config/constants.ts";
 
 /**
- * Handle search mode key input
+ * Consolidates all key handlers for Memory View
  */
-export class SearchModeHandler {
+export class KeyHandler {
+  /**
+   * Handle search mode key input
+   */
+  static handleSearchKey(
+    key: string,
+    searchQuery: string,
+    onEscape: () => void,
+    onEnter: () => void,
+  ): { handled: boolean; newQuery?: string } {
+    return SearchModeHandler.handleKey(key, searchQuery, onEscape, onEnter);
+  }
+
+  /**
+   * Handle navigation key input
+   */
+  static async handleNavigationKey(
+    key: string,
+    flatNodes: TreeNode[],
+    currentNodeId: string | null,
+    onNavigate: (nodeId: string, node: TreeNode) => Promise<void>,
+  ): Promise<boolean> {
+    return await NavigationHandler.handleKey(key, flatNodes, currentNodeId, onNavigate);
+  }
+
+  /**
+   * Handle shortcut key input
+   */
+  static async handleShortcutKey(
+    key: string,
+    handlers: ShortcutHandlers,
+  ): Promise<boolean> {
+    return await ShortcutHandler.handleKey(key, handlers);
+  }
+}
+
+interface ShortcutHandlers {
+  jumpToScope?: (scope: string) => Promise<void>;
+  startSearch?: () => void;
+  showHelp?: () => void;
+  approveProposal?: () => Promise<void>;
+  rejectProposal?: () => Promise<void>;
+  approveAll?: () => Promise<void>;
+  addLearning?: () => void;
+  promoteLearning?: () => void;
+  refresh?: () => Promise<void>;
+}
+
+/**
+ * Internal search mode handler
+ */
+class SearchModeHandler {
   static handleKey(
     key: string,
     searchQuery: string,
@@ -47,9 +98,9 @@ export class SearchModeHandler {
 }
 
 /**
- * Handle navigation key input
+ * Internal navigation handler
  */
-export class NavigationHandler {
+class NavigationHandler {
   static async handleKey(
     key: string,
     flatNodes: TreeNode[],
@@ -91,22 +142,12 @@ export class NavigationHandler {
 }
 
 /**
- * Handle shortcut key input
+ * Internal shortcut handler
  */
-export class ShortcutHandler {
+class ShortcutHandler {
   static async handleKey(
     key: string,
-    handlers: {
-      jumpToScope?: (scope: string) => Promise<void>;
-      startSearch?: () => void;
-      showHelp?: () => void;
-      approveProposal?: () => Promise<void>;
-      rejectProposal?: () => Promise<void>;
-      approveAll?: () => Promise<void>;
-      addLearning?: () => void;
-      promoteLearning?: () => void;
-      refresh?: () => Promise<void>;
-    },
+    handlers: ShortcutHandlers,
   ): Promise<boolean> {
     switch (key) {
       case "g":

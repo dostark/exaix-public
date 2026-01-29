@@ -14,18 +14,17 @@
  */
 
 import { TuiSessionBase } from "./tui_common.ts";
+// Redundant import removed
+import { MemoryFormatter } from "./memory_view/formatters.ts";
+import { TreeBuilder } from "./memory_view/tree_builder.ts";
+import { DialogProcessor } from "./memory_view/dialog_processor.ts";
+import { KeyHandler } from "./memory_view/key_handlers.ts";
+import { MemoryServiceInterface, TreeNode } from "./memory_view/types.ts";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "../services/db.ts";
 import { MemoryBankService } from "../services/memory_bank.ts";
 import { MemoryExtractorService } from "../services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../services/memory_embedding.ts";
-import type {
-  ExecutionMemory,
-  GlobalMemory,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  ProjectMemory,
-} from "../schemas/memory_bank.ts";
 import {
   AddLearningDialog,
   BulkApproveDialog,
@@ -34,37 +33,14 @@ import {
   type DialogBase,
   PromoteDialog,
 } from "./dialogs/memory_dialogs.ts";
-import { renderCategoryBadge, renderConfidence, renderMarkdown, renderSpinner } from "./utils/markdown_renderer.ts";
+import { renderSpinner } from "./utils/markdown_renderer.ts";
+import { MemoryTuiScope } from "../config/constants.ts";
 import { MEMORY_STALE_MS } from "./tui.config.ts";
-
-// Extracted utilities
-import { NavigationHandler, SearchModeHandler, ShortcutHandler } from "./memory_view/key_handlers.ts";
-import {
-  processAddLearningDialog,
-  processBulkApproveDialog,
-  processConfirmApproveDialog,
-  processConfirmRejectDialog,
-  processPromoteDialog,
-} from "./memory_view/dialog_processor.ts";
 
 // ===== Types =====
 
-export type MemoryScope = "global" | "projects" | "executions" | "pending" | "search";
-
-export type TreeNodeType = "root" | "scope" | "project" | "execution" | "learning" | "pattern" | "decision";
-
-export interface TreeNode {
-  id: string;
-  type: TreeNodeType;
-  label: string;
-  expanded: boolean;
-  children: TreeNode[];
-  data?: unknown;
-  badge?: number;
-}
-
 export interface MemoryViewState {
-  activeScope: MemoryScope;
+  activeScope: MemoryTuiScope;
   selectedNodeId: string | null;
   searchQuery: string;
   searchActive: boolean;
@@ -79,24 +55,7 @@ export interface MemoryViewState {
   lastRefresh: number;
 }
 
-export interface MemoryServiceInterface {
-  getProjects(): Promise<string[]>;
-  getProjectMemory(portal: string): Promise<ProjectMemory | null>;
-  getGlobalMemory(): Promise<GlobalMemory | null>;
-  getExecutionByTraceId(traceId: string): Promise<ExecutionMemory | null>;
-  getExecutionHistory(options?: {
-    portal?: string;
-    limit?: number;
-  }): Promise<ExecutionMemory[]>;
-  search(
-    query: string,
-    options?: { portal?: string; limit?: number },
-  ): Promise<MemorySearchResult[]>;
-  listPending(): Promise<MemoryUpdateProposal[]>;
-  getPending(proposalId: string): Promise<MemoryUpdateProposal | null>;
-  approvePending(proposalId: string): Promise<void>;
-  rejectPending(proposalId: string, reason: string): Promise<void>;
-}
+// Redundant types removed, imported from types.ts
 
 // ===== Service Adapter =====
 
@@ -205,7 +164,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
     return { ...this.state };
   }
 
-  getActiveScope(): MemoryScope {
+  getActiveScope(): MemoryTuiScope {
     return this.state.activeScope;
   }
 
@@ -314,97 +273,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
    * Load the memory bank tree structure
    */
   async loadTree(): Promise<void> {
-    const projects = await this.service.getProjects();
-    const globalMemory = await this.service.getGlobalMemory();
-    const pending = await this.service.listPending();
-    const executions = await this.service.getExecutionHistory({ limit: 20 });
-
-    const tree: TreeNode[] = [];
-
-    // Global Memory node
-    const globalLearningsCount = globalMemory?.learnings?.length ?? 0;
-    tree.push({
-      id: "global",
-      type: "scope",
-      label: `Global Memory`,
-      expanded: false,
-      children: [],
-      badge: globalLearningsCount,
-      data: globalMemory,
-    });
-
-    // Projects node
-    const projectsNode: TreeNode = {
-      id: "projects",
-      type: "scope",
-      label: "Projects",
-      expanded: true,
-      children: [],
-      badge: projects.length,
-    };
-
-    for (const portal of projects) {
-      const projectMemory = await this.service.getProjectMemory(portal);
-      const patternCount = projectMemory?.patterns?.length ?? 0;
-      projectsNode.children.push({
-        id: `project:${portal}`,
-        type: "project",
-        label: portal,
-        expanded: false,
-        children: [],
-        badge: patternCount,
-        data: projectMemory,
-      });
-    }
-    tree.push(projectsNode);
-
-    // Executions node
-    const executionsNode: TreeNode = {
-      id: "executions",
-      type: "scope",
-      label: "Executions",
-      expanded: false,
-      children: [],
-      badge: executions.length,
-    };
-
-    for (const exec of executions.slice(0, 10)) {
-      executionsNode.children.push({
-        id: `execution:${exec.trace_id}`,
-        type: "execution",
-        label: `${exec.trace_id.slice(0, 8)}... ${exec.summary?.slice(0, 30) ?? ""}`,
-        expanded: false,
-        children: [],
-        data: exec,
-      });
-    }
-    tree.push(executionsNode);
-
-    // Pending node
-    if (pending.length > 0) {
-      const pendingNode: TreeNode = {
-        id: "pending",
-        type: "scope",
-        label: "Pending",
-        expanded: false,
-        children: [],
-        badge: pending.length,
-      };
-
-      for (const proposal of pending) {
-        pendingNode.children.push({
-          id: `pending:${proposal.id}`,
-          type: "learning",
-          label: proposal.learning.title,
-          expanded: false,
-          children: [],
-          data: proposal,
-        });
-      }
-      tree.push(pendingNode);
-    }
-
-    this.state.tree = tree;
+    this.state.tree = await TreeBuilder.buildTree(this.service);
     this.flattenTree();
   }
 
@@ -449,7 +318,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
 
     // Search mode handling
     if (this.state.searchActive) {
-      const result = SearchModeHandler.handleKey(
+      const result = KeyHandler.handleSearchKey(
         key,
         this.state.searchQuery,
         () => {
@@ -469,8 +338,8 @@ export class MemoryViewTuiSession extends TuiSessionBase {
     }
 
     // Shortcut keys
-    const shortcutHandled = await ShortcutHandler.handleKey(key, {
-      jumpToScope: (scope) => this.jumpToScope(scope as MemoryScope),
+    const shortcutHandled = await KeyHandler.handleShortcutKey(key, {
+      jumpToScope: (scope) => this.jumpToScope(scope as MemoryTuiScope),
       startSearch: () => {
         this.state.searchActive = true;
         this.state.searchQuery = "";
@@ -488,7 +357,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
     if (shortcutHandled) return true;
 
     // Navigation keys
-    const navHandled = await NavigationHandler.handleKey(
+    const navHandled = await KeyHandler.handleNavigationKey(
       key,
       this.flatNodes,
       this.state.selectedNodeId,
@@ -515,7 +384,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
   /**
    * Jump to a specific scope
    */
-  async jumpToScope(scope: MemoryScope): Promise<void> {
+  async jumpToScope(scope: MemoryTuiScope): Promise<void> {
     this.state.activeScope = scope;
     const scopeNode = this.flatNodes.find((n) => n.id === scope);
     if (scopeNode) {
@@ -700,15 +569,15 @@ export class MemoryViewTuiSession extends TuiSessionBase {
 
     // Handle different dialog types with typed results
     if (dialog instanceof ConfirmApproveDialog) {
-      await processConfirmApproveDialog(dialog, context);
+      await DialogProcessor.processConfirmApproveDialog(dialog, context);
     } else if (dialog instanceof ConfirmRejectDialog) {
-      await processConfirmRejectDialog(dialog, context);
+      await DialogProcessor.processConfirmRejectDialog(dialog, context);
     } else if (dialog instanceof BulkApproveDialog) {
-      await processBulkApproveDialog(dialog, context);
+      await DialogProcessor.processBulkApproveDialog(dialog, context);
     } else if (dialog instanceof AddLearningDialog) {
-      processAddLearningDialog(dialog, context);
+      await DialogProcessor.processAddLearningDialog(dialog, context);
     } else if (dialog instanceof PromoteDialog) {
-      processPromoteDialog(dialog, context);
+      await DialogProcessor.processPromoteDialog(dialog, context);
     }
   }
 
@@ -720,197 +589,20 @@ export class MemoryViewTuiSession extends TuiSessionBase {
   async loadDetailForNode(node: TreeNode): Promise<void> {
     switch (node.type) {
       case "scope":
-        this.state.detailContent = this.renderScopeDetail(node);
+        this.state.detailContent = MemoryFormatter.formatScopeDetail(node);
         break;
       case "project":
-        this.state.detailContent = await this.renderProjectDetail(node);
+        this.state.detailContent = await MemoryFormatter.formatProjectDetail(node, this.service);
         break;
       case "execution":
-        this.state.detailContent = await this.renderExecutionDetail(node);
+        this.state.detailContent = await MemoryFormatter.formatExecutionDetail(node, this.service);
         break;
       case "learning":
-        this.state.detailContent = this.renderLearningDetail(node);
+        this.state.detailContent = MemoryFormatter.formatLearningDetail(node, this.state.useColors);
         break;
       default:
         this.state.detailContent = `Selected: ${node.label}`;
     }
-  }
-
-  private renderScopeDetail(node: TreeNode): string {
-    if (node.id === "global") {
-      const memory = node.data as GlobalMemory | null;
-      if (!memory) return "Global memory not initialized.\n\nRun: exoctl memory global show";
-      return [
-        "# Global Memory",
-        "",
-        `Learnings: ${memory.learnings?.length ?? 0}`,
-        `Patterns: ${memory.patterns?.length ?? 0}`,
-        `Anti-patterns: ${memory.anti_patterns?.length ?? 0}`,
-        "",
-        "## Recent Learnings",
-        ...(memory.learnings?.slice(0, 5).map((l) => `- ${l.title} [${l.category}]`) ?? []),
-      ].join("\n");
-    }
-    if (node.id === "projects") {
-      return [
-        "# Projects",
-        "",
-        `${node.badge ?? 0} project memories`,
-        "",
-        "Select a project to view details.",
-      ].join("\n");
-    }
-    if (node.id === "executions") {
-      return [
-        "# Executions",
-        "",
-        `${node.badge ?? 0} total executions`,
-        "",
-        "Select an execution to view details.",
-      ].join("\n");
-    }
-    if (node.id === "pending") {
-      return [
-        "# Pending Proposals",
-        "",
-        `${node.badge ?? 0} proposals awaiting review`,
-        "",
-        "Press [a] to approve, [r] to reject.",
-      ].join("\n");
-    }
-    return `Scope: ${node.label}`;
-  }
-
-  private async renderProjectDetail(node: TreeNode): Promise<string> {
-    const portal = node.id.replace("project:", "");
-    const memory = node.data as ProjectMemory | null;
-    if (!memory) {
-      const fresh = await this.service.getProjectMemory(portal);
-      if (!fresh) return `Project '${portal}' has no memory bank.`;
-      return this.formatProjectMemory(portal, fresh);
-    }
-    return this.formatProjectMemory(portal, memory);
-  }
-
-  private formatProjectMemory(portal: string, memory: ProjectMemory): string {
-    const lines = [
-      `# Project: ${portal}`,
-      "",
-    ];
-
-    if (memory.overview) {
-      lines.push("## Overview");
-      lines.push(memory.overview.slice(0, 200) + (memory.overview.length > 200 ? "..." : ""));
-      lines.push("");
-    }
-
-    if (memory.patterns && memory.patterns.length > 0) {
-      lines.push("## Patterns");
-      for (const p of memory.patterns.slice(0, 5)) {
-        lines.push(`- ${p.name} [${p.tags?.join(", ") ?? ""}]`);
-      }
-      lines.push("");
-    }
-
-    if (memory.decisions && memory.decisions.length > 0) {
-      lines.push("## Decisions");
-      for (const d of memory.decisions.slice(0, 5)) {
-        lines.push(`- ${d.decision}`);
-      }
-      lines.push("");
-    }
-
-    return lines.join("\n");
-  }
-
-  private async renderExecutionDetail(node: TreeNode): Promise<string> {
-    const traceId = node.id.replace("execution:", "");
-    const memory = node.data as ExecutionMemory | null;
-    if (!memory) {
-      const fresh = await this.service.getExecutionByTraceId(traceId);
-      if (!fresh) return `Execution '${traceId}' not found.`;
-      return this.formatExecutionMemory(fresh);
-    }
-    return this.formatExecutionMemory(memory);
-  }
-
-  private formatExecutionMemory(memory: ExecutionMemory): string {
-    const lines = [
-      `# Execution: ${memory.trace_id.slice(0, 8)}...`,
-      "",
-      `**Status:** ${memory.status}`,
-      `**Agent:** ${memory.agent}`,
-      `**Portal:** ${memory.portal}`,
-      `**Started:** ${memory.started_at}`,
-      memory.completed_at ? `**Completed:** ${memory.completed_at}` : "",
-      "",
-    ];
-
-    if (memory.summary) {
-      lines.push("## Summary");
-      lines.push(memory.summary.slice(0, 200));
-      lines.push("");
-    }
-
-    if (memory.changes) {
-      const totalChanges = (memory.changes.files_created?.length ?? 0) +
-        (memory.changes.files_modified?.length ?? 0) +
-        (memory.changes.files_deleted?.length ?? 0);
-      if (totalChanges > 0) {
-        lines.push("## Changes");
-        if (memory.changes.files_created?.length) {
-          lines.push(`  Created: ${memory.changes.files_created.length} files`);
-        }
-        if (memory.changes.files_modified?.length) {
-          lines.push(`  Modified: ${memory.changes.files_modified.length} files`);
-        }
-        if (memory.changes.files_deleted?.length) {
-          lines.push(`  Deleted: ${memory.changes.files_deleted.length} files`);
-        }
-        lines.push("");
-      }
-    }
-
-    if (memory.lessons_learned && memory.lessons_learned.length > 0) {
-      lines.push("## Lessons Learned");
-      for (const lesson of memory.lessons_learned) {
-        lines.push(`- ${lesson}`);
-      }
-    }
-
-    return lines.filter((l) => l !== "").join("\n");
-  }
-
-  private renderLearningDetail(node: TreeNode): string {
-    const proposal = node.data as MemoryUpdateProposal | null;
-    if (!proposal) return `Learning: ${node.label}`;
-
-    const learning = proposal.learning;
-    const useColors = this.state.useColors;
-
-    // Build content with color badges
-    const categoryBadge = renderCategoryBadge(learning.category, useColors);
-    const confidenceBadge = renderConfidence(learning.confidence, useColors);
-
-    const content = [
-      `# ${learning.title}`,
-      "",
-      `**Category:** ${categoryBadge}`,
-      `**Confidence:** ${confidenceBadge}`,
-      `**Scope:** ${proposal.target_scope}`,
-      proposal.target_project ? `**Project:** ${proposal.target_project}` : "",
-      `**Tags:** ${learning.tags?.join(", ") ?? "none"}`,
-      "",
-      "## Description",
-      learning.description,
-      "",
-      "## Reason for Proposal",
-      proposal.reason,
-      "",
-      `[a] Approve  [r] Reject`,
-    ].filter((l) => l !== "").join("\n");
-
-    return renderMarkdown(content, { useColors });
   }
 
   // ===== Search =====
@@ -1005,32 +697,13 @@ export class MemoryViewTuiSession extends TuiSessionBase {
    * Render the tree panel
    */
   renderTreePanel(): string {
-    // Show loading state
-    if (this.state.isLoading) {
-      const spinner = renderSpinner(this.state.spinnerFrame);
-      return `${spinner} ${this.state.loadingMessage}`;
-    }
-
-    const lines: string[] = [];
-    const renderNode = (node: TreeNode, indent: number) => {
-      const prefix = "  ".repeat(indent);
-      const arrow = node.children.length > 0 ? (node.expanded ? "▾" : "▸") : " ";
-      const badge = node.badge !== undefined ? ` (${node.badge})` : "";
-      const selected = node.id === this.state.selectedNodeId ? ">" : " ";
-      lines.push(`${selected}${prefix}${arrow} ${node.label}${badge}`);
-
-      if (node.expanded) {
-        for (const child of node.children) {
-          renderNode(child, indent + 1);
-        }
-      }
-    };
-
-    for (const node of this.state.tree) {
-      renderNode(node, 0);
-    }
-
-    return lines.join("\n");
+    return TreeBuilder.renderTree(
+      this.state.tree,
+      this.state.selectedNodeId,
+      this.state.isLoading,
+      this.state.spinnerFrame,
+      this.state.loadingMessage,
+    );
   }
 
   /**

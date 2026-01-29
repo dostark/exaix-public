@@ -3,6 +3,7 @@
  * Extracted from request_manager_view.ts to reduce complexity
  */
 
+import { TUI_NODE_TYPE_GROUP } from "../../config/constants.ts";
 import type { TreeNode } from "../utils/tree_view.ts";
 import { collapseAll, expandAll, findNode, flattenTree, toggleNode } from "../utils/tree_view.ts";
 
@@ -99,5 +100,108 @@ export class TreeManipulationHandler {
  */
 export function isGroupNode(tree: TreeNode[], nodeId: string): boolean {
   const node = findNode(tree, nodeId);
-  return node?.type === "group";
+  return node?.type === TUI_NODE_TYPE_GROUP;
+}
+/**
+ * Main key handler for Request Manager view
+ */
+export class MainKeyHandler {
+  /**
+   * Handle main view keyboard keys
+   */
+  static async handle(
+    key: string,
+    state: {
+      selectedRequestId: string | null;
+      requestTree: TreeNode[];
+    },
+    actions: {
+      navigateTree: (dir: "up" | "down" | "first" | "last") => void;
+      collapseSelectedNode: () => void;
+      expandSelectedNode: () => void;
+      toggleSelectedNode: () => void;
+      toggleGrouping: () => void;
+      refresh: () => Promise<void>;
+      showRequestDetail: (id: string) => Promise<void>;
+      showCreateDialog: () => void;
+      showCancelConfirm: (id: string) => void;
+      showPriorityDialog: () => void;
+      showSearchDialog: () => void;
+      showFilterStatusDialog: () => void;
+      showFilterAgentDialog: () => void;
+      setShowHelp: (show: boolean) => void;
+      updateTree: (tree: TreeNode[]) => void;
+    },
+  ): Promise<boolean> {
+    switch (key) {
+      case "up":
+        actions.navigateTree("up");
+        return true;
+      case "down":
+        actions.navigateTree("down");
+        return true;
+      case "home":
+        actions.navigateTree("first");
+        return true;
+      case "end":
+        actions.navigateTree("last");
+        return true;
+      case "left":
+        actions.collapseSelectedNode();
+        return true;
+      case "right":
+        actions.expandSelectedNode();
+        return true;
+      case "enter":
+        if (state.selectedRequestId) {
+          if (isGroupNode(state.requestTree, state.selectedRequestId)) {
+            actions.toggleSelectedNode();
+          } else {
+            await actions.showRequestDetail(state.selectedRequestId);
+          }
+        }
+        return true;
+      case "c":
+        actions.showCreateDialog();
+        return true;
+      case "d":
+        if (state.selectedRequestId && !isGroupNode(state.requestTree, state.selectedRequestId)) {
+          actions.showCancelConfirm(state.selectedRequestId);
+        }
+        return true;
+      case "p":
+        if (state.selectedRequestId && !isGroupNode(state.requestTree, state.selectedRequestId)) {
+          actions.showPriorityDialog();
+        }
+        return true;
+      case "s":
+        actions.showSearchDialog();
+        return true;
+      case "f":
+        actions.showFilterStatusDialog();
+        return true;
+      case "a":
+        actions.showFilterAgentDialog();
+        return true;
+      case "g":
+        actions.toggleGrouping();
+        return true;
+      case "R":
+        await actions.refresh();
+        return true;
+      case "C":
+        actions.updateTree(TreeManipulationHandler.collapseAll(state.requestTree));
+        return true;
+      case "E":
+        actions.updateTree(TreeManipulationHandler.expandAll(state.requestTree));
+        return true;
+      case "?":
+        actions.setShowHelp(true);
+        return true;
+      case "q":
+      case "escape":
+        return true;
+    }
+    return false;
+  }
 }

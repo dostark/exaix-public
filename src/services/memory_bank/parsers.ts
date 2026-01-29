@@ -1,0 +1,123 @@
+/**
+ * Parser utilities for Memory Bank Service
+ * Extracted from memory_bank.ts to reduce complexity
+ */
+
+import type { Decision, Pattern } from "../../schemas/memory_bank.ts";
+
+/**
+ * Parse patterns from markdown content
+ */
+export function parsePatterns(content: string): Pattern[] {
+  const patterns: Pattern[] = [];
+  const sections = content.split(/^## /m).filter((s) => s.trim());
+
+  for (const section of sections) {
+    const lines = section.split("\n");
+    const name = lines[0].trim();
+
+    // Find the description (everything until **Examples** or **Tags**)
+    let descriptionEnd = lines.length;
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].startsWith("**Examples:**") || lines[i].startsWith("**Tags:")) {
+        descriptionEnd = i;
+        break;
+      }
+    }
+
+    const description = lines.slice(1, descriptionEnd).join("\n").trim();
+
+    // Parse examples
+    const examples: string[] = [];
+    const examplesStart = lines.findIndex((line) => line.startsWith("**Examples:**"));
+    if (examplesStart !== -1) {
+      for (let i = examplesStart + 1; i < lines.length; i++) {
+        if (lines[i].startsWith("**") || lines[i].trim() === "") break;
+        const match = lines[i].match(/^- (.+)$/);
+        if (match) {
+          examples.push(match[1]);
+        }
+      }
+    }
+
+    // Parse tags
+    let tags: string[] | undefined;
+    const tagsLine = lines.find((line) => line.startsWith("**Tags:"));
+    if (tagsLine) {
+      const tagsMatch = tagsLine.match(/\*\*Tags:\*\* (.+)/);
+      if (tagsMatch) {
+        tags = tagsMatch[1].split(", ").map((t) => t.trim());
+      }
+    }
+
+    if (name && description) {
+      patterns.push({
+        name,
+        description,
+        examples,
+        tags,
+      });
+    }
+  }
+
+  return patterns;
+}
+
+/**
+ * Parse decisions from markdown content
+ */
+export function parseDecisions(content: string): Decision[] {
+  const decisions: Decision[] = [];
+  const sections = content.split(/^## /m).filter((s) => s.trim());
+
+  for (const section of sections) {
+    const lines = section.split("\n");
+    const match = lines[0].match(/^(\d{4}-\d{2}-\d{2}): (.+)$/);
+
+    if (match) {
+      const date = match[1];
+      const decision = match[2];
+
+      // Find the rationale (everything until **Alternatives** or **Tags**)
+      let rationaleEnd = lines.length;
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i].startsWith("**Alternatives considered:**") || lines[i].startsWith("**Tags:")) {
+          rationaleEnd = i;
+          break;
+        }
+      }
+
+      const rationale = lines.slice(1, rationaleEnd).join("\n").trim();
+
+      // Parse alternatives
+      let alternatives: string[] | undefined;
+      const alternativesLine = lines.find((line) => line.startsWith("**Alternatives considered:"));
+      if (alternativesLine) {
+        const alternativesMatch = alternativesLine.match(/\*\*Alternatives considered:\*\* (.+)/);
+        if (alternativesMatch) {
+          alternatives = alternativesMatch[1].split(", ").map((a) => a.trim());
+        }
+      }
+
+      // Parse tags
+      let tags: string[] | undefined;
+      const tagsLine = lines.find((line) => line.startsWith("**Tags:"));
+      if (tagsLine) {
+        const tagsMatch = tagsLine.match(/\*\*Tags:\*\* (.+)/);
+        if (tagsMatch) {
+          tags = tagsMatch[1].split(", ").map((t) => t.trim());
+        }
+      }
+
+      decisions.push({
+        date,
+        decision,
+        rationale,
+        alternatives,
+        tags,
+      });
+    }
+  }
+
+  return decisions;
+}
