@@ -13,7 +13,7 @@
  */
 
 import { join } from "@std/path";
-import { ensureDir, ensureDirSync, ensureFile, exists } from "@std/fs";
+import { ensureDir, ensureDirSync, exists } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import { ActivityType, MemoryReferenceType, MemoryScope, MemorySource, MemoryStatus, MemoryType } from "../enums.ts";
@@ -66,11 +66,12 @@ export class MemoryBankService {
   */
   constructor(private config: Config, private db: DatabaseService) {
     this.memoryRoot = join(config.system.root, config.paths.memory);
-    this.projectsDir = join(this.memoryRoot, config.paths.memoryProjects);
-    this.executionDir = join(this.memoryRoot, config.paths.memoryExecution);
-    this.tasksDir = join(this.memoryRoot, config.paths.memoryTasks);
-    this.indexDir = join(this.memoryRoot, config.paths.memoryIndex);
-    this.globalDir = join(this.memoryRoot, config.paths.memoryGlobal);
+    // Use subdirectory names directly, not full paths (which already include Memory/)
+    this.projectsDir = join(this.memoryRoot, "Projects");
+    this.executionDir = join(this.memoryRoot, "Execution");
+    this.tasksDir = join(this.memoryRoot, "Tasks");
+    this.indexDir = join(this.memoryRoot, "Index");
+    this.globalDir = join(this.memoryRoot, "Global");
 
     // Ensure directory structure exists
     this.initializeDirectories();
@@ -119,9 +120,14 @@ export class MemoryBankService {
           // Always close and remove the lock file
           try {
             lockFile.close();
+          } catch {
+            // Ignore close errors
+          }
+
+          try {
             await Deno.remove(lockPath);
           } catch {
-            // Ignore cleanup errors
+            // Ignore cleanup errors - lock file may already be removed
           }
         }
       } catch (error) {
@@ -1071,7 +1077,11 @@ export class MemoryBankService {
    * Write markdown file content
    */
   private async writeMarkdownFile(path: string, content: string): Promise<void> {
-    await ensureFile(path);
+    const dir = path.substring(0, path.lastIndexOf("/"));
+
+    if (dir) {
+      await ensureDir(dir);
+    }
     await Deno.writeTextFile(path, content);
   }
 

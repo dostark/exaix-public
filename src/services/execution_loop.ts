@@ -669,7 +669,7 @@ export class ExecutionLoop {
   private createMissionReporter(): MissionReporter {
     const memoryBank = new MemoryBankService(this.config, this.db!);
     const reportConfig = {
-      reportsDirectory: join(this.config.system.root, this.config.paths.memoryExecution),
+      reportsDirectory: join(this.config.system.root, this.config.paths.memory, "Execution"),
     };
     return new MissionReporter(this.config, reportConfig, memoryBank, this.db);
   }
@@ -802,7 +802,7 @@ export class ExecutionLoop {
         const failureDir = join(
           this.config.system.root,
           this.config.paths.memory,
-          this.config.paths.memoryExecution,
+          "Execution",
           traceId,
         );
         await Deno.mkdir(failureDir, { recursive: true });

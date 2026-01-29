@@ -2,20 +2,9 @@
  * RequestProcessor - Processes request files and generates plans
  * Implements Step 5.9 of the ExoFrame Implementation Plan
  * Integrates with RequestRouter for flow-aware request processing (Step 7.6)
- *
- * Responsibilities:
- * 1. Parse request files (YAML frontmatter + body)
- * 2. Route requests using RequestRouter (flow vs agent validation)
- * 3. Load agent blueprints or validate flows
- * 4. Call AgentRunner.run() or generate flow execution plans
- * 5. Write plans to Workspace/Plans/ using PlanWriter
- * 6. Update request status (pending → planned | failed)
- * 7. Log all activities to Activity Journal
  */
 
-import { parse as parseYaml } from "@std/yaml";
 import { basename, join } from "@std/path";
-import { exists } from "@std/fs";
 import type { IModelProvider } from "../ai/providers.ts";
 import type { DatabaseService } from "./db.ts";
 import type { Config } from "../config/schema.ts";
@@ -33,52 +22,19 @@ import { CostTracker } from "./cost_tracker.ts";
 import { HealthCheckService } from "./health_check_service.ts";
 import { CircuitBreaker, CircuitBreakerProvider } from "../ai/circuit_breaker.ts";
 import { LogMethod } from "./decorators/logging.ts";
+import { RequestParser } from "./request_processing/request_parser.ts";
+import { StatusManager } from "./request_processing/status_manager.ts";
+import type { RequestFrontmatter } from "./request_processing/types.ts";
 
 // ============================================================================
 // Types and Interfaces
 // ============================================================================
 
-/**
- * Configuration for RequestProcessor
- */
 export interface RequestProcessorConfig {
-  /** Path to Workspace directory (contains Requests/ and Plans/) */
   workspacePath: string;
-
-  /** Directory within Workspace for request files */
   requestsDir: string;
-
-  /** Path to agent blueprints directory */
   blueprintsPath: string;
-
-  /** Whether to include agent reasoning in plans */
   includeReasoning: boolean;
-}
-
-/**
- * Parsed request frontmatter (YAML format)
- */
-interface RequestFrontmatter {
-  trace_id: string;
-  created: string;
-  status: RequestStatus;
-  priority: string;
-  agent?: string;
-  flow?: string;
-  source: string;
-  created_by: string;
-  portal?: string;
-  model?: string;
-  skills?: string; // Stored as JSON string in frontmatter
-}
-
-/**
- * Result of parsing a request file
- */
-interface ParsedRequestFile {
-  frontmatter: RequestFrontmatter;
-  body: string;
-  rawContent: string;
 }
 
 // ============================================================================
@@ -92,14 +48,16 @@ export class RequestProcessor {
   private readonly flowValidator: FlowValidatorImpl;
   private readonly providerSelector: ProviderSelector;
   private readonly ioBreaker: CircuitBreaker;
+  private readonly requestParser: RequestParser;
+  private readonly statusManager: StatusManager;
 
   constructor(
     private readonly config: Config,
     private readonly db: DatabaseService,
     private readonly processorConfig: RequestProcessorConfig,
-    private readonly testProvider?: IModelProvider, // For testing only
+    private readonly testProvider?: IModelProvider,
   ) {
-    // Initialize ProviderSelector for intelligent provider selection
+    // Initialize services
     const costTracker = new CostTracker(db, config);
     const healthChecker = new HealthCheckService("1.0.0", config);
     this.providerSelector = new ProviderSelector(
@@ -108,45 +66,36 @@ export class RequestProcessor {
       healthChecker,
     );
 
-    // Initialize EventLogger for this service
     this.logger = new EventLogger({
       db,
       defaultActor: "agent:request-processor",
     });
 
-    // Initialize PlanWriter
     this.plansDir = join(config.system.root, config.paths.workspace, "Plans");
     this.planWriter = new PlanWriter({
       plansDirectory: this.plansDir,
       includeReasoning: processorConfig.includeReasoning,
-      generateWikiLinks: true, // Enable for Memory Banks compatibility
+      generateWikiLinks: true,
       runtimeRoot: join(config.system.root, config.paths.runtime),
       db,
     });
 
-    // Initialize FlowValidator (lazy initialization for test compatibility)
-    // this.flowValidator = new FlowValidatorImpl(
-    //   new FlowLoader(join(config.system.root, config.paths.memory, "Projects")),
-    //   join(config.system.root, processorConfig.blueprintsPath)
-    // );
     this.flowValidator = null as any; // Temporary for testing
-    // IO circuit breaker used to protect filesystem and PlanWriter operations
+
     this.ioBreaker = new CircuitBreaker({
       failureThreshold: 3,
       resetTimeout: 60_000,
       halfOpenSuccessThreshold: 2,
     });
+
+    // Initialize extracted components
+    this.requestParser = new RequestParser(this.logger);
+    this.statusManager = new StatusManager(this.logger);
   }
 
-  /**
-   * Process a request file and generate a plan
-   * @param filePath - Absolute path to the request file
-   * @returns Path to generated plan, or null if processing failed
-   */
   @LogMethod(new EventLogger({ prefix: "[RequestProcessor]" }), "request.process")
   async process(filePath: string): Promise<string | null> {
-    // Step 1: Parse the request file
-    const parsed = await this.parseRequestFile(filePath);
+    const parsed = await this.requestParser.parse(filePath);
     if (!parsed) {
       return null;
     }
@@ -154,13 +103,7 @@ export class RequestProcessor {
     const { frontmatter, body } = parsed;
     const traceId = frontmatter.trace_id;
     const requestId = basename(filePath, ".md");
-
-    // Create trace-specific logger
     const traceLogger = this.logger.child({ traceId });
-
-    // Log processing start
-    const hasFlow = !!frontmatter.flow;
-    const hasAgent = !!frontmatter.agent;
 
     traceLogger.info("request.processing", filePath, {
       flow: frontmatter.flow,
@@ -168,7 +111,6 @@ export class RequestProcessor {
       priority: frontmatter.priority,
     });
 
-    // Prevent re-processing of already planned/completed requests
     if (
       [RequestStatus.PLANNED, PlanStatus.APPROVED, RequestStatus.COMPLETED, RequestStatus.FAILED].includes(
         frontmatter.status,
@@ -180,12 +122,14 @@ export class RequestProcessor {
       return null;
     }
 
-    // Validate request has required fields
+    const hasFlow = !!frontmatter.flow;
+    const hasAgent = !!frontmatter.agent;
+
     if (hasFlow && hasAgent) {
       traceLogger.error("request.invalid", filePath, {
         error: "Request cannot specify both 'flow' and 'agent' fields",
       });
-      await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
+      await this.statusManager.updateStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
       return null;
     }
 
@@ -193,17 +137,16 @@ export class RequestProcessor {
       traceLogger.error("request.invalid", filePath, {
         error: "Request must specify either 'flow' or 'agent' field",
       });
-      await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
+      await this.statusManager.updateStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
       return null;
     }
 
-    // Build middleware pipeline for logging, error handling, and timing
+    // Middleware setup
     const pipelineModule = await import("./middleware/pipeline.ts");
     const MiddlewarePipeline = pipelineModule
       .MiddlewarePipeline as typeof import("./middleware/pipeline.ts").MiddlewarePipeline;
     const pipeline = new MiddlewarePipeline<any>();
 
-    // Error-logging middleware: log error and rethrow so outer catch can handle domain logic
     pipeline.use(async (ctx, next) => {
       try {
         await next();
@@ -213,13 +156,12 @@ export class RequestProcessor {
             error: err instanceof Error ? err.message : String(err),
           });
         } catch {
-          // swallow logging errors
+          // Ignore logging errors
         }
         throw err;
       }
     });
 
-    // Timing middleware: measure processing duration and emit a metric log
     pipeline.use(async (ctx, next) => {
       const start = (typeof performance !== "undefined") ? performance.now() : Date.now();
       await next();
@@ -227,182 +169,188 @@ export class RequestProcessor {
       try {
         ctx.traceLogger?.info("request.processing.duration", ctx.filePath, { duration_ms: duration });
       } catch {
-        // ignore
+        // Ignore logging errors
       }
     });
 
     const context: any = { filePath, parsed, frontmatter, body, traceLogger, requestId };
 
     try {
-      const planPath = await pipeline.execute<string | null>(context, async () => {
-        let planContent: string;
-        let _agentId: string;
-
+      const planPath = await pipeline.execute<string | null>(context, () => {
         if (hasFlow) {
-          // Handle flow request
-          if (this.flowValidator) {
-            const validation = await this.flowValidator.validateFlow(frontmatter.flow!);
-            if (!validation.valid) {
-              traceLogger.error("flow.validation.failed", frontmatter.flow!, {
-                error: validation.error,
-              });
-              await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
-              return null;
-            }
-          } // Skip validation if flowValidator is not available (test environment)
-
-          // Generate flow execution plan
-          planContent = JSON.stringify({
-            title: `Flow Execution: ${frontmatter.flow}`,
-            description: `Execute the ${frontmatter.flow} flow`,
-            steps: [{
-              step: 1,
-              title: "Execute Flow",
-              description: `Execute the ${frontmatter.flow} flow with the provided request`,
-              flow: frontmatter.flow,
-            }],
-          });
-          _agentId = "flow-executor"; // Special agent ID for flow execution
-
-          // Create mock result for PlanWriter
-          const result = {
-            thought: `Prepared flow ${frontmatter.flow} for execution`,
-            content: planContent,
-            raw: planContent,
-          };
-
-          // Step 5: Write the plan using PlanWriter
-          const metadata: RequestMetadata = {
-            requestId,
-            traceId,
-            createdAt: new Date(frontmatter.created),
-            contextFiles: [],
-            contextWarnings: [],
-            model: frontmatter.model,
-            portal: frontmatter.portal,
-          };
-
-          return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger, {
-            flow: frontmatter.flow,
-          });
+          return this.processFlowRequest(frontmatter, parsed, filePath, requestId, traceId, traceLogger);
         } else {
-          // Handle agent request (existing logic)
-          const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
-          const loadedBlueprint = await blueprintLoader.load(frontmatter.agent!);
-          if (!loadedBlueprint) {
-            traceLogger.error("blueprint.not_found", frontmatter.agent!, {
-              request: filePath,
-            });
-            await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
-            traceLogger.error("request.failed", filePath, {
-              error: `Blueprint not found: ${frontmatter.agent}`,
-            });
-            return null;
-          }
-          const blueprint = blueprintLoader.toLegacyBlueprint(loadedBlueprint);
-
-          // Step 3: Build the parsed request for AgentRunner
-          const request: ParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as ParsedRequest;
-
-          // Step 4: Select appropriate provider for this task
-          const taskComplexity = this.classifyTaskComplexity(blueprint, request);
-          let selectedProvider: IModelProvider;
-
-          if (this.testProvider) {
-            // Use test provider override
-            selectedProvider = this.testProvider;
-            traceLogger.info("provider.selected", "test-provider", {
-              taskComplexity,
-              trace_id: traceId,
-            });
-          } else {
-            // Use ProviderSelector for intelligent selection
-            const selectedProviderName = await this.providerSelector.selectProviderForTask(
-              this.config,
-              taskComplexity,
-            );
-
-            // Create the provider instance and wrap with circuit breaker provider
-            const rawProvider = await ProviderFactory.createByName(this.config, selectedProviderName);
-            selectedProvider = new CircuitBreakerProvider(rawProvider, {
-              failureThreshold: 5,
-              resetTimeout: 60_000,
-              halfOpenSuccessThreshold: 2,
-            });
-
-            traceLogger.info("provider.selected", selectedProviderName, {
-              taskComplexity,
-              trace_id: traceId,
-              provider_wrapped: selectedProvider.id,
-            });
-          }
-
-          // Create AgentRunner with selected provider
-          const agentRunner = new AgentRunner(selectedProvider, { db: this.db });
-
-          const result = await agentRunner.run(blueprint, request);
-          planContent = result.content;
-          _agentId = frontmatter.agent!;
-
-          // Step 5: Write the plan using PlanWriter
-          const metadata: RequestMetadata = {
-            requestId,
-            traceId,
-            createdAt: new Date(frontmatter.created),
-            contextFiles: [],
-            contextWarnings: [],
-            model: frontmatter.model,
-            portal: frontmatter.portal,
-          };
-
-          return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger);
+          return this.processAgentRequest(frontmatter, body, parsed, filePath, requestId, traceId, traceLogger);
         }
       });
 
       return planPath;
     } catch (error: unknown) {
-      // Handle errors gracefully
-      let errorMessage = error instanceof Error ? error.message : String(error);
-
-      // Check for PlanValidationError and save raw content
-      if (error && typeof error === "object" && (error as any).name === "PlanValidationError") {
-        const validationError = error as any;
-        const rawContent = validationError.details?.rawContent;
-        if (rawContent) {
-          try {
-            // Use configured rejected path or default
-            const rejectedDir = join(
-              this.config.system.root,
-              this.config.paths.workspace,
-              this.config.paths.rejected,
-            );
-            await this.ioBreaker.execute(() => Deno.mkdir(rejectedDir, { recursive: true }));
-
-            const rejectedPath = join(rejectedDir, `${requestId}_failed.md`);
-            await this.ioBreaker.execute(() => Deno.writeTextFile(rejectedPath, rawContent));
-
-            errorMessage += ` (Saved to ${rejectedPath})`;
-            traceLogger.info("plan.saved_rejected", rejectedPath, { reason: "validation_failed" });
-          } catch (writeErr) {
-            traceLogger.warn("plan.save_rejected_failed", filePath, { error: String(writeErr) });
-          }
-        }
-      }
-
-      traceLogger.error("request.failed", filePath, {
-        error: errorMessage,
-      });
-
-      await this.updateRequestStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
-
+      this.handleError(error, filePath, requestId, parsed.rawContent, traceLogger);
       return null;
     }
   }
 
-  /**
-   * Helper to write a plan via PlanWriter, mark the request as planned, log, and return the plan path.
-   * Centralizes duplicated post-processing logic used for both flow and agent paths.
-   */
+  private async processFlowRequest(
+    frontmatter: RequestFrontmatter,
+    parsed: any,
+    filePath: string,
+    requestId: string,
+    traceId: string,
+    traceLogger: any,
+  ): Promise<string | null> {
+    if (this.flowValidator) {
+      const validation = await this.flowValidator.validateFlow(frontmatter.flow!);
+      if (!validation.valid) {
+        traceLogger.error("flow.validation.failed", frontmatter.flow!, {
+          error: validation.error,
+        });
+        await this.statusManager.updateStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
+        return null;
+      }
+    }
+
+    const planContent = JSON.stringify({
+      title: `Flow Execution: ${frontmatter.flow}`,
+      description: `Execute the ${frontmatter.flow} flow`,
+      steps: [{
+        step: 1,
+        title: "Execute Flow",
+        description: `Execute the ${frontmatter.flow} flow with the provided request`,
+        flow: frontmatter.flow,
+      }],
+    });
+
+    const result = {
+      thought: `Prepared flow ${frontmatter.flow} for execution`,
+      content: planContent,
+      raw: planContent,
+    };
+
+    const metadata: RequestMetadata = {
+      requestId,
+      traceId,
+      createdAt: new Date(frontmatter.created),
+      contextFiles: [],
+      contextWarnings: [],
+      model: frontmatter.model,
+      portal: frontmatter.portal,
+    };
+
+    return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger, {
+      flow: frontmatter.flow,
+    });
+  }
+
+  private async processAgentRequest(
+    frontmatter: RequestFrontmatter,
+    body: string,
+    parsed: any,
+    filePath: string,
+    requestId: string,
+    traceId: string,
+    traceLogger: any,
+  ): Promise<string | null> {
+    const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
+    const loadedBlueprint = await blueprintLoader.load(frontmatter.agent!);
+    if (!loadedBlueprint) {
+      traceLogger.error("blueprint.not_found", frontmatter.agent!, {
+        request: filePath,
+      });
+      await this.statusManager.updateStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
+      traceLogger.error("request.failed", filePath, {
+        error: `Blueprint not found: ${frontmatter.agent}`,
+      });
+      return null;
+    }
+    const blueprint = blueprintLoader.toLegacyBlueprint(loadedBlueprint);
+
+    const request: ParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as ParsedRequest;
+
+    const taskComplexity = this.classifyTaskComplexity(blueprint, request);
+    let selectedProvider: IModelProvider;
+
+    if (this.testProvider) {
+      selectedProvider = this.testProvider;
+      traceLogger.info("provider.selected", "test-provider", {
+        taskComplexity,
+        trace_id: traceId,
+      });
+    } else {
+      const selectedProviderName = await this.providerSelector.selectProviderForTask(
+        this.config,
+        taskComplexity,
+      );
+
+      const rawProvider = await ProviderFactory.createByName(this.config, selectedProviderName);
+      selectedProvider = new CircuitBreakerProvider(rawProvider, {
+        failureThreshold: 5,
+        resetTimeout: 60_000,
+        halfOpenSuccessThreshold: 2,
+      });
+
+      traceLogger.info("provider.selected", selectedProviderName, {
+        taskComplexity,
+        trace_id: traceId,
+        provider_wrapped: selectedProvider.id,
+      });
+    }
+
+    const agentRunner = new AgentRunner(selectedProvider, { db: this.db });
+    const result = await agentRunner.run(blueprint, request);
+
+    const metadata: RequestMetadata = {
+      requestId,
+      traceId,
+      createdAt: new Date(frontmatter.created),
+      contextFiles: [],
+      contextWarnings: [],
+      model: frontmatter.model,
+      portal: frontmatter.portal,
+    };
+
+    return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger);
+  }
+
+  private async handleError(
+    error: unknown,
+    filePath: string,
+    requestId: string,
+    rawContent: string,
+    traceLogger: any,
+  ) {
+    let errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (error && typeof error === "object" && (error as any).name === "PlanValidationError") {
+      const validationError = error as any;
+      const rawDetails = validationError.details?.rawContent;
+      if (rawDetails) {
+        try {
+          const rejectedDir = join(
+            this.config.system.root,
+            this.config.paths.workspace,
+            this.config.paths.rejected,
+          );
+          await this.ioBreaker.execute(() => Deno.mkdir(rejectedDir, { recursive: true }));
+
+          const rejectedPath = join(rejectedDir, `${requestId}_failed.md`);
+          await this.ioBreaker.execute(() => Deno.writeTextFile(rejectedPath, rawDetails));
+
+          errorMessage += ` (Saved to ${rejectedPath})`;
+          traceLogger.info("plan.saved_rejected", rejectedPath, { reason: "validation_failed" });
+        } catch (writeErr) {
+          traceLogger.warn("plan.save_rejected_failed", filePath, { error: String(writeErr) });
+        }
+      }
+    }
+
+    traceLogger.error("request.failed", filePath, {
+      error: errorMessage,
+    });
+
+    await this.statusManager.updateStatus(filePath, rawContent, RequestStatus.FAILED);
+  }
+
   private async writePlanAndReturnPath(
     result: any,
     metadata: RequestMetadata,
@@ -412,123 +360,18 @@ export class RequestProcessor {
     extra?: Record<string, unknown>,
   ): Promise<string> {
     const planResult = await this.ioBreaker.execute(() => this.planWriter.writePlan(result, metadata));
-    await this.updateRequestStatus(filePath, rawContent, RequestStatus.PLANNED);
+    await this.statusManager.updateStatus(filePath, rawContent, RequestStatus.PLANNED);
     const logObj: Record<string, unknown> = { plan_path: planResult.planPath, ...(extra ?? {}) };
     traceLogger.info("request.planned", filePath, logObj);
     return planResult.planPath;
   }
 
-  /**
-   * Parse a request file and extract frontmatter and body
-   */
-  private async parseRequestFile(filePath: string): Promise<ParsedRequestFile | null> {
-    // Check file exists
-    if (!await exists(filePath)) {
-      await this.logger.error("file.not_found", filePath, {});
-      return null;
-    }
-
-    try {
-      const content = await Deno.readTextFile(filePath);
-
-      // Extract YAML frontmatter between --- delimiters
-      const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-      if (!yamlMatch) {
-        await this.logger.error("frontmatter.invalid", filePath, {
-          error: "Missing or malformed --- delimiters",
-        });
-        return null;
-      }
-
-      const yamlContent = yamlMatch[1];
-      const body = yamlMatch[2] || "";
-
-      // Parse YAML
-      const frontmatter = parseYaml(yamlContent) as unknown as RequestFrontmatter;
-
-      // Validate required fields
-      if (!frontmatter.trace_id) {
-        await this.logger.error("frontmatter.missing_trace_id", filePath, {});
-        return null;
-      }
-
-      return {
-        frontmatter,
-        body,
-        rawContent: content,
-      };
-    } catch (error) {
-      await this.logger.error("file.parse_failed", filePath, {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      return null;
-    }
-  }
-
-  /**
-   * Load an agent blueprint from the blueprints directory
-   * Uses unified BlueprintLoader for consistent parsing
-   */
-  private async loadBlueprint(agentId: string): Promise<Blueprint | null> {
-    try {
-      const loader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
-      const loaded = await loader.load(agentId);
-      if (!loaded) {
-        return null;
-      }
-      return loader.toLegacyBlueprint(loaded);
-    } catch (error) {
-      await this.logger.error("blueprint.load_failed", agentId, {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      return null;
-    }
-  }
-
-  /**
-   * Classify task complexity based on blueprint and request characteristics
-   * Used by ProviderSelector to choose appropriate provider
-   */
   private classifyTaskComplexity(blueprint: Blueprint, _request: ParsedRequest): TaskComplexity {
     const agentId = blueprint.agentId || "";
-
-    // Simple tasks: basic analysis, short responses, well-defined problems
-    if (agentId.includes("analyzer") || agentId.includes("summarizer")) {
-      return TaskComplexity.SIMPLE;
-    }
-
-    // Complex tasks: code generation, planning, multi-step reasoning
-    if (
-      agentId.includes("coder") || agentId.includes("planner") || agentId.includes("architect")
-    ) {
+    if (agentId.includes("analyzer") || agentId.includes("summarizer")) return TaskComplexity.SIMPLE;
+    if (agentId.includes("coder") || agentId.includes("planner") || agentId.includes("architect")) {
       return TaskComplexity.COMPLEX;
     }
-
-    // Medium tasks: general purpose agents, content creation, analysis
     return TaskComplexity.MEDIUM;
-  }
-
-  /**
-   * Update the status field in a request file's YAML frontmatter
-   */
-  private async updateRequestStatus(
-    filePath: string,
-    originalContent: string,
-    newStatus: string,
-  ): Promise<void> {
-    try {
-      // Replace the status field in the YAML frontmatter
-      const updatedContent = originalContent.replace(
-        /^(status:\s*).+$/m,
-        `$1${newStatus as string}`,
-      );
-
-      await Deno.writeTextFile(filePath, updatedContent);
-    } catch (error) {
-      await this.logger.error("request.status_update_failed", filePath, {
-        new_status: newStatus,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
   }
 }

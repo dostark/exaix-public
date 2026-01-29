@@ -19,7 +19,7 @@ export class ContextCardGenerator {
   }
 
   async generate(info: PortalInfo): Promise<void> {
-    const portalsDir = join(this.config.system.root, this.config.paths.memory, this.config.paths.memoryProjects);
+    const portalsDir = join(this.config.system.root, this.config.paths.memory, "Projects");
 
     // Ensure directory exists
     await Deno.mkdir(portalsDir, { recursive: true });

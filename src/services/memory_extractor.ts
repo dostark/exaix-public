@@ -40,7 +40,7 @@ export class MemoryExtractorService {
     private db: DatabaseService,
     private memoryBank: MemoryBankService,
   ) {
-    this.pendingDir = join(config.system.root, config.paths.memory, config.paths.memoryPending);
+    this.pendingDir = join(config.system.root, config.paths.memory, "Pending");
   }
 
   // ===== Extraction Operations =====

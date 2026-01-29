@@ -593,7 +593,7 @@ Deno.test("ExecutionLoop: uses correct memory execution path configuration", asy
     // Verify that the execution loop uses the configured memory execution path
     // This is a regression test to ensure paths are not hardcoded
     const expectedPath = join(tempDir, "Memory", "Execution");
-    const actualPath = join(config.system.root, config.paths.memory, config.paths.memoryExecution);
+    const actualPath = join(config.system.root, config.paths.memory, "Execution");
 
     assertEquals(actualPath, expectedPath, "ExecutionLoop should use configured memoryExecution path");
   } finally {

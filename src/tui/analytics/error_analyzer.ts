@@ -1,0 +1,50 @@
+import type { LogEntry } from "../../services/structured_logger.ts";
+import type { ErrorPattern } from "./types.ts";
+
+/**
+ * Detect error patterns in logs
+ */
+export function detectErrorPatterns(entries: LogEntry[]): ErrorPattern[] {
+  const errorEntries = entries.filter((e) => e.level === "error" || e.level === "fatal");
+
+  // Group by error message pattern (simplified)
+  const patterns: Record<string, {
+    count: number;
+    firstSeen: Date;
+    lastSeen: Date;
+    operations: Set<string>;
+  }> = {};
+
+  for (const entry of errorEntries) {
+    const pattern = entry.error?.message || entry.message;
+    const operation = entry.context.operation || "unknown";
+    const timestamp = new Date(entry.timestamp);
+
+    if (!patterns[pattern]) {
+      patterns[pattern] = {
+        count: 0,
+        firstSeen: timestamp,
+        lastSeen: timestamp,
+        operations: new Set(),
+      };
+    }
+
+    patterns[pattern].count++;
+    patterns[pattern].operations.add(operation);
+
+    if (timestamp < patterns[pattern].firstSeen) {
+      patterns[pattern].firstSeen = timestamp;
+    }
+    if (timestamp > patterns[pattern].lastSeen) {
+      patterns[pattern].lastSeen = timestamp;
+    }
+  }
+
+  return Object.entries(patterns).map(([pattern, data]) => ({
+    pattern,
+    count: data.count,
+    firstSeen: data.firstSeen,
+    lastSeen: data.lastSeen,
+    affectedOperations: Array.from(data.operations),
+  })).sort((a, b) => b.count - a.count);
+}

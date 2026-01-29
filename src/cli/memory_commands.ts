@@ -88,7 +88,7 @@ export class MemoryCommands {
     let lastActivity: string | null = null;
 
     // List projects
-    const projectsDir = join(this.config.system.root, this.config.paths.memory, this.config.paths.memoryProjects);
+    const projectsDir = join(this.config.system.root, this.config.paths.memory, "Projects");
     if (await exists(projectsDir)) {
       for await (const entry of Deno.readDir(projectsDir)) {
         if (entry.isDirectory) {
@@ -98,7 +98,7 @@ export class MemoryCommands {
     }
 
     // Count executions and find last activity
-    const executionDir = join(this.config.system.root, this.config.paths.memory, this.config.paths.memoryExecution);
+    const executionDir = join(this.config.system.root, this.config.paths.memory, "Execution");
     if (await exists(executionDir)) {
       const executionList = await this.memoryBank.getExecutionHistory(undefined, 1);
       executions = await this.countExecutions();
@@ -119,7 +119,7 @@ export class MemoryCommands {
    */
   private async countExecutions(): Promise<number> {
     let count = 0;
-    const executionDir = join(this.config.system.root, this.config.paths.memory, this.config.paths.memoryExecution);
+    const executionDir = join(this.config.system.root, this.config.paths.memory, "Execution");
     if (await exists(executionDir)) {
       for await (const entry of Deno.readDir(executionDir)) {
         if (entry.isDirectory) {
@@ -204,7 +204,7 @@ export class MemoryCommands {
   async projectList(format: OutputFormat = "table"): Promise<string> {
     const projects: { name: string; patterns: number; decisions: number }[] = [];
 
-    const projectsDir = join(this.config.system.root, this.config.paths.memory, this.config.paths.memoryProjects);
+    const projectsDir = join(this.config.system.root, this.config.paths.memory, "Projects");
     if (await exists(projectsDir)) {
       for await (const entry of Deno.readDir(projectsDir)) {
         if (entry.isDirectory) {
@@ -370,6 +370,30 @@ export class MemoryCommands {
       case "table":
       default:
         return this.formatter.formatGlobalLearningsTable(learnings);
+    }
+  }
+
+  /**
+   * Show global memory statistics
+   *
+   * @param format - Output format
+   * @returns Formatted statistics or error message
+   */
+  async globalStats(format: OutputFormat = "table"): Promise<string> {
+    const globalMem = await this.memoryBank.getGlobalMemory();
+
+    if (!globalMem) {
+      return "Global memory not initialized. Run 'exoctl memory global init' first.";
+    }
+
+    switch (format) {
+      case "json":
+        return JSON.stringify(globalMem.statistics, null, 2);
+      case "md":
+        return this.formatter.formatGlobalStatsMarkdown(globalMem.statistics);
+      case "table":
+      default:
+        return this.formatter.formatGlobalStatsTable(globalMem.statistics);
     }
   }
 

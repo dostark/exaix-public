@@ -144,7 +144,7 @@ export class PortalCommands {
         const contextCardPath = join(
           this.config.system.root,
           this.config.paths.memory,
-          this.config.paths.memoryProjects,
+          "Projects",
           entry.name,
           "portal.md",
         );
@@ -192,7 +192,7 @@ export class PortalCommands {
     const contextCardPath = join(
       this.config.system.root,
       this.config.paths.memory,
-      this.config.paths.memoryProjects,
+      "Projects",
       alias,
       "portal.md",
     );
@@ -248,7 +248,7 @@ export class PortalCommands {
     const contextCardPath = join(
       this.config.system.root,
       this.config.paths.memory,
-      this.config.paths.memoryProjects,
+      "Projects",
       alias,
       "portal.md",
     );
@@ -273,7 +273,7 @@ export class PortalCommands {
       const archivedDir = join(
         this.config.system.root,
         this.config.paths.memory,
-        this.config.paths.memoryProjects,
+        "Projects",
         "_archived",
       );
       await Deno.mkdir(archivedDir, { recursive: true });
@@ -312,7 +312,7 @@ export class PortalCommands {
       const contextCardPath = join(
         this.config.system.root,
         this.config.paths.memory,
-        this.config.paths.memoryProjects,
+        "Projects",
         portalAlias,
         "portal.md",
       );

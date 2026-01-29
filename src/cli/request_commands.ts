@@ -5,18 +5,11 @@
  * It replaces manual file creation with validated, structured request generation.
  */
 
-import { join } from "@std/path";
-import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { RequestPriority, RequestStatus } from "../enums.ts";
-import { ValidationChain } from "./validation/validation_chain.ts";
-import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
-import { CommandUtils } from "./utils/command_utils.ts";
-
-/**
- * Valid priority levels for requests
- */
-// export type RequestPriority = "low" | "normal" | "high" | "critical"; // Moved to enums.ts
+import { RequestCreateHandler } from "./handlers/request_create_handler.ts";
+import { RequestListHandler } from "./handlers/request_list_handler.ts";
+import { RequestShowHandler } from "./handlers/request_show_handler.ts";
 
 /**
  * Options for creating a request
@@ -81,30 +74,22 @@ export interface RequestShowResult {
   content: string;
 }
 
-const VALID_PRIORITIES: RequestPriority[] = [
-  RequestPriority.LOW,
-  RequestPriority.NORMAL,
-  RequestPriority.HIGH,
-  RequestPriority.CRITICAL,
-];
-
 /**
  * RequestCommands provides CLI operations for creating and managing requests.
  * All operations are logged to activity_log with actor='human'.
  */
 export class RequestCommands extends BaseCommand {
-  private workspaceRequestsDir: string;
+  private createHandler: RequestCreateHandler;
+  private listHandler: RequestListHandler;
+  private showHandler: RequestShowHandler;
 
   constructor(
     context: CommandContext,
   ) {
     super(context);
-    // Resolve paths relative to system root
-    this.workspaceRequestsDir = join(
-      context.config.system.root,
-      context.config.paths.workspace,
-      context.config.paths.requests,
-    );
+    this.createHandler = new RequestCreateHandler(context);
+    this.listHandler = new RequestListHandler(context);
+    this.showHandler = new RequestShowHandler(context);
   }
 
   /**
@@ -119,133 +104,7 @@ export class RequestCommands extends BaseCommand {
     options: RequestOptions = {},
     source: RequestSource = "cli",
   ): Promise<RequestMetadata> {
-    try {
-      const trimmedDescription = description.trim();
-      const priority = options.priority || RequestPriority.NORMAL;
-
-      // Validate input
-      const validation = new ValidationChain()
-        .addRule("description", (val) => (!val) ? "cannot be empty" : null)
-        .addRule(
-          "priority",
-          (val) =>
-            (!VALID_PRIORITIES.includes(val as RequestPriority))
-              ? `Invalid priority. Must be one of: ${VALID_PRIORITIES.join(", ")}`
-              : null,
-        )
-        .addRule(
-          "flow",
-          (val) =>
-            (val && options.agent)
-              ? "Cannot specify both 'flow' and 'agent'. Use 'flow' for multi-agent workflows or 'agent' for single agent requests."
-              : null,
-        )
-        .validate({ description: trimmedDescription, priority, flow: options.flow });
-
-      if (!validation.isValid) {
-        throw new Error(CommandUtils.formatValidationErrors(validation));
-      }
-
-      // Validate flow exists if specified
-      if (options.flow) {
-        const flowPath = join(this.config.system.root, "Blueprints", "Flows", `${options.flow}.flow.ts`);
-        try {
-          await Deno.stat(flowPath);
-        } catch {
-          throw new Error(`Flow '${options.flow}' not found. Check that the flow file exists in Blueprints/Flows/`);
-        }
-      }
-
-      // Set defaults
-      const agent = options.agent || "default";
-      const portal = options.portal;
-
-      // Generate unique trace_id
-      const trace_id = crypto.randomUUID();
-      const shortId = trace_id.slice(0, 8);
-      const filename = `request-${shortId}.md`;
-      const path = join(this.workspaceRequestsDir, filename);
-
-      // Get user identity
-      const created_by = await this.getUserIdentity();
-      const created = new Date().toISOString();
-
-      // Build frontmatter
-      const frontmatterFields: Record<string, string> = {
-        trace_id,
-        created,
-        status: RequestStatus.PENDING,
-        priority,
-        agent,
-        source,
-        created_by,
-      };
-
-      if (portal) {
-        frontmatterFields.portal = portal;
-      }
-
-      if (options.model) {
-        frontmatterFields.model = options.model;
-      }
-
-      if (options.flow) {
-        frontmatterFields.flow = options.flow;
-      }
-
-      if (options.skills && options.skills.length > 0) {
-        frontmatterFields.skills = JSON.stringify(options.skills);
-      }
-
-      // Build file content with YAML frontmatter
-      const frontmatter = this.serializeFrontmatter(frontmatterFields);
-      const content = `${frontmatter}\n\n# Request\n\n${trimmedDescription}\n`;
-
-      // Ensure directory exists
-      await ensureDir(this.workspaceRequestsDir);
-
-      // Write file
-      await Deno.writeTextFile(path, content);
-
-      // Log activity using EventLogger
-      const actionLogger = await this.getActionLogger();
-      actionLogger.info("request.created", path, {
-        trace_id,
-        priority,
-        agent,
-        portal: portal || null,
-        model: options.model || null,
-        flow: options.flow || null,
-        source,
-        created_by,
-        description_length: trimmedDescription.length,
-        via: "cli",
-        command: this.getCommandLineString(),
-      }, trace_id);
-
-      return {
-        trace_id,
-        filename,
-        path,
-        status: RequestStatus.PENDING,
-        priority,
-        agent,
-        portal,
-        model: options.model,
-        flow: options.flow,
-        skills: options.skills,
-        created,
-        created_by,
-        source,
-      };
-    } catch (error) {
-      await DefaultErrorStrategy.handle({
-        commandName: "RequestCommands.create",
-        args: { description, options, source },
-        error,
-      });
-      throw error; // Re-throw to ensure the return type contract is respected or handled by caller (though ErrorStrategy usually throws)
-    }
+    return await this.createHandler.create(description, options, source);
   }
 
   /**
@@ -258,31 +117,7 @@ export class RequestCommands extends BaseCommand {
     filePath: string,
     options: RequestOptions = {},
   ): Promise<RequestMetadata> {
-    try {
-      // Check file exists
-      if (!await exists(filePath)) {
-        throw new Error(`File not found: ${filePath}`);
-      }
-
-      // Read file content
-      const content = await Deno.readTextFile(filePath);
-      const trimmed = content.trim();
-
-      // Validate not empty
-      if (!trimmed) {
-        throw new Error("File is empty");
-      }
-
-      // Create request with file source
-      return this.create(trimmed, options, "file");
-    } catch (error) {
-      await DefaultErrorStrategy.handle({
-        commandName: "RequestCommands.createFromFile",
-        args: { filePath, options },
-        error,
-      });
-      throw error;
-    }
+    return await this.createHandler.createFromFile(filePath, options);
   }
 
   /**
@@ -291,53 +126,7 @@ export class RequestCommands extends BaseCommand {
    * @returns Array of request entries sorted by created date (newest first)
    */
   async list(status?: string): Promise<RequestEntry[]> {
-    const requests: RequestEntry[] = [];
-
-    // Check if directory exists
-    if (!await exists(this.workspaceRequestsDir)) {
-      return [];
-    }
-
-    // Scan directory
-    for await (const entry of Deno.readDir(this.workspaceRequestsDir)) {
-      if (!entry.isFile || !entry.name.endsWith(".md")) {
-        continue;
-      }
-
-      const filePath = join(this.workspaceRequestsDir, entry.name);
-      const content = await Deno.readTextFile(filePath);
-      const frontmatter = this.extractFrontmatter(content);
-
-      // Skip if status filter doesn't match
-      if (status && frontmatter.status !== status) {
-        continue;
-      }
-
-      requests.push({
-        trace_id: frontmatter.trace_id || "",
-        filename: entry.name,
-        path: filePath,
-        status: frontmatter.status || "unknown",
-        priority: frontmatter.priority || "normal",
-        agent: frontmatter.agent || "default",
-        portal: frontmatter.portal,
-        model: frontmatter.model,
-        flow: frontmatter.flow,
-        skills: frontmatter.skills ? JSON.parse(frontmatter.skills) : undefined,
-        created: frontmatter.created || "",
-        created_by: frontmatter.created_by || "unknown",
-        source: frontmatter.source || "unknown",
-      });
-    }
-
-    // Sort by created date descending (newest first)
-    requests.sort((a, b) => {
-      const dateA = new Date(a.created).getTime();
-      const dateB = new Date(b.created).getTime();
-      return dateB - dateA;
-    });
-
-    return requests;
+    return await this.listHandler.list(status);
   }
 
   /**
@@ -346,77 +135,6 @@ export class RequestCommands extends BaseCommand {
    * @returns Request metadata and content body
    */
   async show(idOrFilename: string): Promise<RequestShowResult> {
-    // Check if directory exists
-    if (!await exists(this.workspaceRequestsDir)) {
-      throw new Error(`Request not found: ${idOrFilename}`);
-    }
-
-    // Try to find the request
-    let matchingFile: string | null = null;
-    let matchingFrontmatter: Record<string, string> | null = null;
-
-    for await (const entry of Deno.readDir(this.workspaceRequestsDir)) {
-      if (!entry.isFile || !entry.name.endsWith(".md")) {
-        continue;
-      }
-
-      const filePath = join(this.workspaceRequestsDir, entry.name);
-      const content = await Deno.readTextFile(filePath);
-      const frontmatter = this.extractFrontmatter(content);
-
-      // Match by filename
-      if (entry.name === idOrFilename) {
-        matchingFile = filePath;
-        matchingFrontmatter = frontmatter;
-        break;
-      }
-
-      // Match by full trace_id
-      if (frontmatter.trace_id === idOrFilename) {
-        matchingFile = filePath;
-        matchingFrontmatter = frontmatter;
-        break;
-      }
-
-      // Match by short trace_id (first 8 chars)
-      if (frontmatter.trace_id && frontmatter.trace_id.startsWith(idOrFilename)) {
-        if (matchingFile) {
-          // Ambiguous match - multiple requests match the short ID
-          throw new Error(`Ambiguous request ID: ${idOrFilename}. Please use a longer ID.`);
-        }
-        matchingFile = filePath;
-        matchingFrontmatter = frontmatter;
-        // Continue to check for ambiguity
-      }
-    }
-
-    if (!matchingFile || !matchingFrontmatter) {
-      throw new Error(`Request not found: ${idOrFilename}`);
-    }
-
-    // Read full content
-    const fullContent = await Deno.readTextFile(matchingFile);
-
-    // Extract body (content after YAML frontmatter)
-    const body = fullContent.replace(/^---\n[\s\S]*?\n---\n?/, "").trim();
-
-    return {
-      metadata: {
-        trace_id: matchingFrontmatter.trace_id || "",
-        filename: matchingFile.split("/").pop() || "",
-        path: matchingFile,
-        status: matchingFrontmatter.status || "unknown",
-        priority: matchingFrontmatter.priority || "normal",
-        agent: matchingFrontmatter.agent || "default",
-        portal: matchingFrontmatter.portal,
-        model: matchingFrontmatter.model,
-        flow: matchingFrontmatter.flow,
-        skills: matchingFrontmatter.skills ? JSON.parse(matchingFrontmatter.skills) : undefined,
-        created: matchingFrontmatter.created || "",
-        created_by: matchingFrontmatter.created_by || "unknown",
-        source: matchingFrontmatter.source || "unknown",
-      },
-      content: body,
-    };
+    return await this.showHandler.show(idOrFilename);
   }
 }

@@ -1,0 +1,49 @@
+import type { LogEntry } from "../../services/structured_logger.ts";
+import type { TraceAnalysis } from "./types.ts";
+
+/**
+ * Analyze a trace through the system
+ */
+export function analyzeTrace(entries: LogEntry[]): TraceAnalysis | null {
+  if (entries.length === 0) return null;
+
+  // Find common trace ID
+  const traceIds = new Set(entries.map((e) => e.context.trace_id).filter(Boolean));
+  if (traceIds.size !== 1) return null;
+
+  const traceId = Array.from(traceIds)[0]!;
+
+  // Find correlation ID (may be null)
+  const correlationIds = new Set(entries.map((e) => e.context.correlation_id).filter(Boolean));
+  const correlationId = correlationIds.size === 1 ? Array.from(correlationIds)[0] : undefined;
+
+  // Sort entries by timestamp
+  const sortedEntries = entries.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+  const operations = sortedEntries.map((entry) => ({
+    operation: entry.context.operation || "unknown",
+    timestamp: new Date(entry.timestamp),
+    duration: entry.performance?.duration_ms,
+    agentId: entry.context.agent_id,
+    level: entry.level,
+    message: entry.message,
+  }));
+
+  // Time analysis
+  const start = operations[0].timestamp;
+  const end = operations[operations.length - 1].timestamp;
+  const duration = end.getTime() - start.getTime();
+
+  // Error analysis
+  const errorCount = operations.filter((op) => op.level === "error" || op.level === "fatal").length;
+  const success = errorCount === 0;
+
+  return {
+    traceId,
+    correlationId,
+    operations,
+    timeSpan: { start, end, duration },
+    errorCount,
+    success,
+  };
+}
