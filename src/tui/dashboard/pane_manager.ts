@@ -3,7 +3,7 @@
  * Extracted from tui_dashboard.ts to reduce complexity
  */
 
-import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../config/constants.ts";
+import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../utils/constants.ts";
 
 import type { Pane } from "../tui_dashboard.ts";
 

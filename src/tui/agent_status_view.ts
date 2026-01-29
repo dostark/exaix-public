@@ -25,11 +25,18 @@ import {
   renderTree,
   toggleNode,
 } from "./utils/tree_view.ts";
-import { AgentHealth, AgentStatus, TuiGroupBy, TuiIcon } from "../enums.ts";
+import { AgentHealth, AgentStatus, TuiGroupBy } from "../enums.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
-import { DEFAULT_QUERY_LIMIT, TUI_LAYOUT_NARROW_WIDTH, TUI_LIMIT_MEDIUM } from "../config/constants.ts";
+import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
+import {
+  TUI_AGENT_HEALTH_ICONS,
+  TUI_AGENT_STATUS_ICONS,
+  TUI_LAYOUT_NARROW_WIDTH,
+  TUI_LIMIT_MEDIUM,
+  TUI_LOG_LEVEL_ICONS,
+} from "./utils/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 
 // Extracted utilities
@@ -106,21 +113,21 @@ export interface AgentViewState {
 // ===== Constants & Enums =====
 
 export const AGENT_STATUS_ICONS: Record<string, string> = {
-  [AgentStatus.ACTIVE]: "🟢",
-  [AgentStatus.INACTIVE]: "🟡",
-  [AgentStatus.ERROR]: "🔴",
+  [AgentStatus.ACTIVE]: TUI_AGENT_STATUS_ICONS.active,
+  [AgentStatus.INACTIVE]: TUI_AGENT_STATUS_ICONS.inactive,
+  [AgentStatus.ERROR]: TUI_AGENT_STATUS_ICONS.error,
 };
 
 export const AGENT_HEALTH_ICONS: Record<string, string> = {
-  [AgentHealth.HEALTHY]: TuiIcon.SUCCESS,
-  [AgentHealth.WARNING]: TuiIcon.WARNING,
-  [AgentHealth.CRITICAL]: TuiIcon.CRITICAL,
+  [AgentHealth.HEALTHY]: TUI_AGENT_HEALTH_ICONS.healthy,
+  [AgentHealth.WARNING]: TUI_AGENT_HEALTH_ICONS.warning,
+  [AgentHealth.CRITICAL]: TUI_AGENT_HEALTH_ICONS.critical,
 };
 
 export const LOG_LEVEL_ICONS: Record<string, string> = {
-  info: TuiIcon.INFO,
-  warn: TuiIcon.WARNING,
-  error: TuiIcon.CRITICAL,
+  info: TUI_LOG_LEVEL_ICONS.info,
+  warn: TUI_LOG_LEVEL_ICONS.warn,
+  error: TUI_LOG_LEVEL_ICONS.error,
 };
 
 export const AGENT_STATUS_COLORS: Record<string, string> = {

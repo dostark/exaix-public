@@ -14,10 +14,12 @@ import type {
 import {
   TUI_DETAIL_MAX_OVERVIEW_CHARS,
   TUI_DETAIL_MAX_SUMMARY_CHARS,
+  TUI_ICON_FAILURE,
+  TUI_ICON_SUCCESS,
   TUI_LIMIT_LONG,
   TUI_LIMIT_MEDIUM,
   TUI_LIMIT_SHORT,
-} from "../../config/constants.ts";
+} from "../utils/constants.ts";
 
 // ===== Color Constants =====
 
@@ -196,7 +198,11 @@ export function renderExecutionPanel(
     return lines.join("\n");
   }
 
-  const statusIcon = memory.status === "completed" ? "✓" : memory.status === "failed" ? "✗" : "◐";
+  const statusIcon = memory.status === "completed"
+    ? TUI_ICON_SUCCESS
+    : memory.status === "failed"
+    ? TUI_ICON_FAILURE
+    : "◐";
   const statusColor = memory.status === "completed" ? "\x1b[32m" : memory.status === "failed" ? "\x1b[31m" : "\x1b[33m";
 
   lines.push(
@@ -273,7 +279,11 @@ export function renderExecutionListPanel(
   for (let i = startIdx; i < endIdx; i++) {
     const exec = executions[i];
     const selected = i === selectedIndex ? ">" : " ";
-    const statusIcon = exec.status === "completed" ? "✓" : exec.status === "failed" ? "✗" : "◐";
+    const statusIcon = exec.status === "completed"
+      ? TUI_ICON_SUCCESS
+      : exec.status === "failed"
+      ? TUI_ICON_FAILURE
+      : "◐";
     const summary = exec.summary?.slice(0, 40) ?? "";
     lines.push(`${selected} ${statusIcon} ${exec.trace_id.slice(0, 8)} ${summary}`);
   }

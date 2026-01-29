@@ -19,6 +19,7 @@ import type { DatabaseService } from "./db.ts";
 import type { ActivityRepository } from "../repositories/activity_repository.ts";
 import { LogLevel } from "../enums.ts";
 import { Actor, LogEvent } from "./common/types.ts";
+import { TUI_DEFAULT_ICONS } from "../tui/utils/constants.ts";
 
 export type { Actor, LogEvent };
 
@@ -62,10 +63,10 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
 
 /** Default icons for each log level */
 const DEFAULT_ICONS: Record<LogLevel, string> = {
-  [LogLevel.INFO]: "✅",
-  [LogLevel.WARN]: "⚠️",
-  [LogLevel.ERROR]: "❌",
-  [LogLevel.DEBUG]: "🔍",
+  [LogLevel.INFO]: TUI_DEFAULT_ICONS.info,
+  [LogLevel.WARN]: TUI_DEFAULT_ICONS.warn,
+  [LogLevel.ERROR]: TUI_DEFAULT_ICONS.error,
+  [LogLevel.DEBUG]: TUI_DEFAULT_ICONS.debug,
 };
 
 /** Cached user identity to avoid repeated git calls */

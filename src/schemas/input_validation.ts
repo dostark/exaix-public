@@ -2,7 +2,6 @@ import { z } from "zod";
 import { MockStrategy, ProviderType, SecurityMode } from "../enums.ts";
 import {
   BLUEPRINT_NAME_MAX_LENGTH,
-  DEFAULT_AGENT_MAX_TOOL_CALLS,
   DEFAULT_AGENT_TIMEOUT_MS,
   FILENAME_MAX_LENGTH,
   MAX_ID_LENGTH,
@@ -12,6 +11,9 @@ import {
   PLAN_CONTENT_MAX_LENGTH,
   USER_REQUEST_MAX_LENGTH,
 } from "../config/constants.ts";
+
+// Default values for agent configuration
+const DEFAULT_AGENT_MAX_TOOL_CALLS = 100;
 
 /**
  * Blueprint name validation - prevents path traversal and injection

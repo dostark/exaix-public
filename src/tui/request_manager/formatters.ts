@@ -9,7 +9,7 @@ import {
   TUI_LAYOUT_MEDIUM_WIDTH,
   TUI_LAYOUT_VALUE_WIDTH,
   TUI_MSG_PRESS_QUIT,
-} from "../../config/constants.ts";
+} from "../../tui/utils/constants.ts";
 import type { Request } from "../request_manager_view.ts";
 
 /**

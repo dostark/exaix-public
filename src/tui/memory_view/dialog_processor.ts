@@ -17,7 +17,7 @@ import {
   TUI_STATUS_MSG_PROMOTE_COMPLETED,
   TUI_STATUS_MSG_PROPOSAL_APPROVED,
   TUI_STATUS_MSG_PROPOSAL_REJECTED,
-} from "../../config/constants.ts";
+} from "../utils/constants.ts";
 import type { MemoryServiceInterface } from "./types.ts";
 
 export interface DialogProcessorContext {

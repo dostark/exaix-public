@@ -11,7 +11,7 @@
  */
 
 import type { MemoryUpdateProposal } from "../../schemas/memory_bank.ts";
-import { TUI_LAYOUT_DIALOG_WIDTH } from "../../config/constants.ts";
+import { TUI_LAYOUT_DIALOG_WIDTH } from "../utils/constants.ts";
 
 // ===== Dialog Types =====
 

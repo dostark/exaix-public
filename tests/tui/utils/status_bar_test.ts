@@ -28,6 +28,7 @@ import {
 } from "../../../src/tui/utils/status_bar.ts";
 import { createSpinnerState, startSpinner } from "../../../src/tui/utils/spinner.ts";
 import { getTheme } from "../../../src/tui/utils/colors.ts";
+import { TUI_ICON_SUCCESS } from "../../../src/tui/utils/constants.ts";
 
 Deno.test("createStatusBarState: creates initial state", () => {
   const state = createStatusBarState();
@@ -219,7 +220,7 @@ Deno.test("createStatusItem: accepts custom label", () => {
 Deno.test("createStatusItem: works without theme", () => {
   const item = createStatusItem(ExecutionStatus.COMPLETED);
   assertEquals(item.text, ExecutionStatus.COMPLETED);
-  assertEquals(item.icon, "✓");
+  assertEquals(item.icon, TUI_ICON_SUCCESS);
   assertEquals(item.color, "");
 });
 

@@ -17,7 +17,14 @@ import { type DialogBase } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import { TUI_LAYOUT_DIALOG_WIDTH, TUI_LAYOUT_MEDIUM_WIDTH, TUI_LIMIT_MEDIUM } from "../config/constants.ts";
+import {
+  TUI_LAYOUT_DIALOG_WIDTH,
+  TUI_LAYOUT_MEDIUM_WIDTH,
+  TUI_LIMIT_MEDIUM,
+  TUI_SKILL_ICON,
+  TUI_SOURCE_ICONS,
+  TUI_STATUS_ICONS,
+} from "./utils/constants.ts";
 
 // ===== Service Interface =====
 
@@ -66,18 +73,18 @@ export interface SkillsViewExtensions {
 // ===== Icons and Visual Constants =====
 
 export const SOURCE_ICONS: Record<string, string> = {
-  core: "📦",
-  project: "📁",
-  learned: "📚",
+  core: TUI_SOURCE_ICONS.core,
+  project: TUI_SOURCE_ICONS.project,
+  learned: TUI_SOURCE_ICONS.learned,
 };
 
 export const STATUS_ICONS: Record<string, string> = {
-  active: "🟢",
-  draft: "🟡",
-  deprecated: "⚫",
+  active: TUI_STATUS_ICONS.active,
+  draft: TUI_STATUS_ICONS.draft,
+  deprecated: TUI_STATUS_ICONS.deprecated,
 };
 
-export const SKILL_ICON = "🎯";
+export const SKILL_ICON = TUI_SKILL_ICON;
 
 // ===== Key Bindings =====
 

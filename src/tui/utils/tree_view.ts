@@ -8,6 +8,7 @@
  */
 
 import { colorize, getTheme, padEnd, visibleLength } from "./colors.ts";
+import { TUI_TREE_ICONS } from "./constants.ts";
 
 // ===== Tree Node Types =====
 
@@ -47,26 +48,26 @@ export const defaultTreeOptions: TreeRenderOptions = {
 // ===== Tree Icons =====
 
 export const TREE_ICONS = {
-  expanded: "▼",
-  collapsed: "▶",
-  leaf: "•",
-  file: "📄",
-  folder: "📁",
-  folderOpen: "📂",
-  root: "🏠",
-  project: "📦",
-  execution: "⚡",
-  pattern: "🔷",
-  decision: "✓",
-  learning: "💡",
-  pending: "⏳",
-  search: "🔍",
-  global: "🌐",
-  agent: "🤖",
-  portal: "🚪",
-  daemon: "👻",
-  request: "📝",
-  log: "📋",
+  expanded: TUI_TREE_ICONS.expanded,
+  collapsed: TUI_TREE_ICONS.collapsed,
+  leaf: TUI_TREE_ICONS.leaf,
+  file: TUI_TREE_ICONS.file,
+  folder: TUI_TREE_ICONS.folder,
+  folderOpen: TUI_TREE_ICONS.folderOpen,
+  root: TUI_TREE_ICONS.root,
+  project: TUI_TREE_ICONS.project,
+  execution: TUI_TREE_ICONS.execution,
+  pattern: TUI_TREE_ICONS.pattern,
+  decision: TUI_TREE_ICONS.decision,
+  learning: TUI_TREE_ICONS.learning,
+  pending: TUI_TREE_ICONS.pending,
+  search: TUI_TREE_ICONS.search,
+  global: TUI_TREE_ICONS.global,
+  agent: TUI_TREE_ICONS.agent,
+  portal: TUI_TREE_ICONS.portal,
+  daemon: TUI_TREE_ICONS.daemon,
+  request: TUI_TREE_ICONS.request,
+  log: TUI_TREE_ICONS.log,
 } as const;
 
 export type TreeIconType = keyof typeof TREE_ICONS;

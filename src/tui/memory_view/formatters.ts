@@ -14,11 +14,13 @@ import {
   MEMORY_SCOPE_GLOBAL,
   MEMORY_SCOPE_PENDING,
   MEMORY_SCOPE_PROJECTS,
+} from "../../config/constants.ts";
+import {
   TUI_DETAIL_MAX_OVERVIEW_CHARS,
   TUI_MSG_PRESS_QUIT,
   TUI_PREFIX_EXECUTION,
   TUI_PREFIX_PROJECT,
-} from "../../config/constants.ts";
+} from "../utils/constants.ts";
 import { renderCategoryBadge, renderConfidence, renderMarkdown } from "../utils/markdown_renderer.ts";
 import type { MemoryServiceInterface, TreeNode } from "./types.ts";
 

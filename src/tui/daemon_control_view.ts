@@ -15,7 +15,7 @@ import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import { DaemonStatus, GeneralStatus } from "../enums.ts";
-import { TUI_LAYOUT_MEDIUM_WIDTH } from "../config/constants.ts";
+import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "./utils/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 
 // ===== Service Interfaces =====
@@ -63,10 +63,10 @@ export interface DaemonViewState {
 // ===== Icons and Visual Constants =====
 
 export const DAEMON_STATUS_ICONS: Record<string, string> = {
-  [DaemonStatus.RUNNING]: "🟢",
-  [DaemonStatus.STOPPED]: "🔴",
-  [DaemonStatus.ERROR]: "⚠️",
-  [DaemonStatus.UNKNOWN]: "❓",
+  [DaemonStatus.RUNNING]: TUI_DAEMON_STATUS_ICONS.running,
+  [DaemonStatus.STOPPED]: TUI_DAEMON_STATUS_ICONS.stopped,
+  [DaemonStatus.ERROR]: TUI_DAEMON_STATUS_ICONS.error,
+  [DaemonStatus.UNKNOWN]: TUI_DAEMON_STATUS_ICONS.unknown,
 };
 
 export const DAEMON_STATUS_COLORS: Record<string, string> = {

@@ -13,7 +13,7 @@
  */
 
 import { NotificationService } from "../services/notification.ts";
-import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../config/constants.ts";
+import { TUI_DASHBOARD_ICONS, TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "./utils/constants.ts";
 import { colorize, getTheme, type TuiTheme } from "./utils/colors.ts";
 import {
   handleMemoryNotifications as _handleMemoryNotifications,
@@ -60,41 +60,41 @@ export interface DashboardViewState {
 
 export const DASHBOARD_ICONS = {
   views: {
-    PortalManagerView: "🌀",
-    PlanReviewerView: "📋",
-    MonitorView: "📊",
-    StructuredLogViewer: "🔍",
-    DaemonControlView: "⚙️",
-    AgentStatusView: "🤖",
-    RequestManagerView: "📥",
-    MemoryView: "💾",
-    SkillsManagerView: "🎯",
+    PortalManagerView: TUI_DASHBOARD_ICONS.views.PortalManagerView,
+    PlanReviewerView: TUI_DASHBOARD_ICONS.views.PlanReviewerView,
+    MonitorView: TUI_DASHBOARD_ICONS.views.MonitorView,
+    StructuredLogViewer: TUI_DASHBOARD_ICONS.views.StructuredLogViewer,
+    DaemonControlView: TUI_DASHBOARD_ICONS.views.DaemonControlView,
+    AgentStatusView: TUI_DASHBOARD_ICONS.views.AgentStatusView,
+    RequestManagerView: TUI_DASHBOARD_ICONS.views.RequestManagerView,
+    MemoryView: TUI_DASHBOARD_ICONS.views.MemoryView,
+    SkillsManagerView: TUI_DASHBOARD_ICONS.views.SkillsManagerView,
   } as Record<string, string>,
   pane: {
-    focused: "●",
-    unfocused: "○",
-    split: "│",
-    horizontal: "─",
-    corner: "┼",
+    focused: TUI_DASHBOARD_ICONS.pane.focused,
+    unfocused: TUI_DASHBOARD_ICONS.pane.unfocused,
+    split: TUI_DASHBOARD_ICONS.pane.split,
+    horizontal: TUI_DASHBOARD_ICONS.pane.horizontal,
+    corner: TUI_DASHBOARD_ICONS.pane.corner,
   },
   notification: {
-    info: "ℹ️",
-    success: "✅",
-    warning: "⚠️",
-    error: "❌",
-    bell: "🔔",
-    memory_update_pending: "📝",
-    memory_approved: "✅",
-    memory_rejected: "❌",
+    info: TUI_DASHBOARD_ICONS.notification.info,
+    success: TUI_DASHBOARD_ICONS.notification.success,
+    warning: TUI_DASHBOARD_ICONS.notification.warning,
+    error: TUI_DASHBOARD_ICONS.notification.error,
+    bell: TUI_DASHBOARD_ICONS.notification.bell,
+    memory_update_pending: TUI_DASHBOARD_ICONS.notification.memory_update_pending,
+    memory_approved: TUI_DASHBOARD_ICONS.notification.memory_approved,
+    memory_rejected: TUI_DASHBOARD_ICONS.notification.memory_rejected,
   },
   layout: {
-    single: "□",
-    vertical: "▯▯",
-    horizontal: "▭▭",
-    quad: "⊞",
-    save: "💾",
-    load: "📂",
-    reset: "🔄",
+    single: TUI_DASHBOARD_ICONS.layout.single,
+    vertical: TUI_DASHBOARD_ICONS.layout.vertical,
+    horizontal: TUI_DASHBOARD_ICONS.layout.horizontal,
+    quad: TUI_DASHBOARD_ICONS.layout.quad,
+    save: TUI_DASHBOARD_ICONS.layout.save,
+    load: TUI_DASHBOARD_ICONS.layout.load,
+    reset: TUI_DASHBOARD_ICONS.layout.reset,
   },
 } as const;
 

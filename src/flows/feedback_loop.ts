@@ -11,6 +11,7 @@ import { z } from "zod";
 import { EvaluationCriterion, getCriteriaByNames } from "./evaluation_criteria.ts";
 import { FlowGateOnFail } from "../enums.ts";
 import { GateEvaluator, GateResult } from "./gate_evaluator.ts";
+import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../tui/utils/constants.ts";
 
 /**
  * Feedback loop configuration schema
@@ -244,7 +245,7 @@ export class FeedbackLoop {
           gateResult.evaluation.criteriaScores,
         )
       ) {
-        const status = result.passed ? "✓" : "✗";
+        const status = result.passed ? TUI_ICON_SUCCESS : TUI_ICON_FAILURE;
         parts.push(
           `  ${status} ${name}: ${(result.score * 100).toFixed(1)}%`,
         );

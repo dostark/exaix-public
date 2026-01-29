@@ -12,7 +12,7 @@
  */
 
 import { colorize, type TuiTheme } from "./colors.ts";
-import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../config/constants.ts";
+import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "./constants.ts";
 
 // ===== Layout Types =====
 

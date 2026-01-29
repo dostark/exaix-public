@@ -9,6 +9,8 @@ import {
   MEMORY_SCOPE_GLOBAL,
   MEMORY_SCOPE_PENDING,
   MEMORY_SCOPE_PROJECTS,
+} from "../../config/constants.ts";
+import {
   TUI_LABEL_EXECUTIONS,
   TUI_LABEL_GLOBAL_MEMORY,
   TUI_LABEL_PENDING,
@@ -17,7 +19,7 @@ import {
   TUI_PREFIX_PROJECT,
   TUI_TREE_PAGINATION_LIMIT,
   TUI_TREE_RECENT_LIMIT,
-} from "../../config/constants.ts";
+} from "../utils/constants.ts";
 import type { MemoryServiceInterface, TreeNode } from "./types.ts";
 
 export class TreeBuilder {

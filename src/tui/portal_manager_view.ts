@@ -19,7 +19,7 @@ import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import { createGroupNode, createNode, flattenTree, type TreeNode, type TreeRenderOptions } from "./utils/tree_view.ts";
 import { PortalStatus, TuiIcon } from "../enums.ts";
-import { TUI_LAYOUT_NARROW_WIDTH } from "../config/constants.ts";
+import { TUI_LAYOUT_NARROW_WIDTH, TUI_PORTAL_ICONS } from "./utils/constants.ts";
 
 // ===== Portal View Extensions =====
 
@@ -47,10 +47,10 @@ export interface PortalService {
 // ===== Portal Status Icons =====
 
 const PORTAL_ICONS = {
-  active: TuiIcon.PORTAL_ACTIVE,
-  broken: TuiIcon.PORTAL_BROKEN,
-  inactive: TuiIcon.PORTAL_INACTIVE,
-  folder: TuiIcon.FOLDER,
+  active: TUI_PORTAL_ICONS.active,
+  broken: TUI_PORTAL_ICONS.broken,
+  inactive: TUI_PORTAL_ICONS.inactive,
+  folder: TUI_PORTAL_ICONS.folder,
 } as const;
 
 // ===== Key Bindings =====

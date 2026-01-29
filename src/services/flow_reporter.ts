@@ -10,6 +10,7 @@ import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import type { FlowResult } from "../flows/flow_runner.ts";
 import type { Flow } from "../schemas/flow.ts";
+import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../tui/utils/constants.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -163,7 +164,7 @@ export class FlowReporter {
    * Generate title for the flow report
    */
   private buildTitle(flow: Flow, flowResult: FlowResult): string {
-    const status = flowResult.success ? "✅ Success" : "❌ Failed";
+    const status = flowResult.success ? `${TUI_ICON_SUCCESS} Success` : `${TUI_ICON_FAILURE} Failed`;
     return `# Flow Report: ${flow.name} (${status})\n\n`;
   }
 
@@ -178,7 +179,7 @@ export class FlowReporter {
     summary += "|------|--------|----------|---------|-----------|\n";
 
     for (const step of steps) {
-      const status = step.success ? "✅" : "❌";
+      const status = step.success ? TUI_ICON_SUCCESS : TUI_ICON_FAILURE;
       const duration = `${step.duration}ms`;
       const started = step.startedAt.toLocaleTimeString();
       const completed = step.completedAt.toLocaleTimeString();
@@ -187,7 +188,9 @@ export class FlowReporter {
     }
 
     summary += `\n**Total Duration:** ${flowResult.duration}ms\n`;
-    summary += `**Overall Status:** ${flowResult.success ? "✅ Success" : "❌ Failed"}\n\n`;
+    summary += `**Overall Status:** ${
+      flowResult.success ? `${TUI_ICON_SUCCESS} Success` : `${TUI_ICON_FAILURE} Failed`
+    }\n\n`;
 
     return summary;
   }
@@ -202,7 +205,7 @@ export class FlowReporter {
       outputs += `### ${stepId}\n\n`;
 
       if (stepResult.success && stepResult.result) {
-        outputs += `**Status:** ✅ Success\n`;
+        outputs += `**Status:** ${TUI_ICON_SUCCESS} Success\n`;
         outputs += `**Duration:** ${stepResult.duration}ms\n\n`;
 
         // Include agent response content
@@ -215,7 +218,7 @@ export class FlowReporter {
           outputs += `**Raw Response:**\n\n\`\`\`\n${stepResult.result.raw}\n\`\`\`\n\n`;
         }
       } else {
-        outputs += `**Status:** ❌ Failed\n`;
+        outputs += `**Status:** ${TUI_ICON_FAILURE} Failed\n`;
         outputs += `**Duration:** ${stepResult.duration}ms\n`;
         if (stepResult.error) {
           outputs += `**Error:** ${stepResult.error}\n`;

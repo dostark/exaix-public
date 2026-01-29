@@ -54,19 +54,19 @@ export interface RequestViewState {
 
 // --- Phase 13.6: Visual constants ---
 export const PRIORITY_ICONS: Record<string, string> = {
-  [RequestPriority.CRITICAL]: "🔴",
-  [RequestPriority.HIGH]: "🟠",
-  [RequestPriority.NORMAL]: "⚪",
-  [RequestPriority.LOW]: "🔵",
+  [RequestPriority.CRITICAL]: TUI_PRIORITY_ICONS.critical,
+  [RequestPriority.HIGH]: TUI_PRIORITY_ICONS.high,
+  [RequestPriority.NORMAL]: TUI_PRIORITY_ICONS.normal,
+  [RequestPriority.LOW]: TUI_PRIORITY_ICONS.low,
 };
 
 export const STATUS_ICONS: Record<string, string> = {
-  [RequestStatus.PENDING]: "⏳",
-  [RequestStatus.PLANNED]: "📋",
-  [RequestStatus.IN_PROGRESS]: "🔄",
-  [RequestStatus.COMPLETED]: "✅",
-  [RequestStatus.CANCELLED]: "❌",
-  [RequestStatus.FAILED]: "💥",
+  [RequestStatus.PENDING]: TUI_STATUS_ICONS.pending,
+  [RequestStatus.PLANNED]: TUI_STATUS_ICONS.queued,
+  [RequestStatus.IN_PROGRESS]: TUI_STATUS_ICONS.running,
+  [RequestStatus.COMPLETED]: TUI_STATUS_ICONS.completed,
+  [RequestStatus.CANCELLED]: TUI_STATUS_ICONS.cancelled,
+  [RequestStatus.FAILED]: TUI_STATUS_ICONS.failed,
 };
 
 export const STATUS_COLORS: Record<string, string> = {
@@ -119,6 +119,7 @@ import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 
 // --- Adapter: RequestCommands as RequestService ---
 import type { RequestCommands } from "../cli/request_commands.ts";
+import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "./utils/constants.ts";
 
 /**
  * Adapter: RequestCommands as RequestService

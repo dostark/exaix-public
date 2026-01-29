@@ -7,6 +7,8 @@
  * - Output formatting options
  */
 
+import { TUI_PRIORITY_ICONS } from "../tui/utils/constants.ts";
+
 export const MEMORY_COMMAND_DEFAULTS = {
   LIMIT: 20,
   FORMAT: "table" as const,
@@ -22,11 +24,11 @@ export const MEMORY_COMMAND_DEFAULTS = {
 };
 
 export const PRIORITY_ICONS: Record<string, string> = {
-  critical: "🔴",
-  high: "🟠",
-  normal: "🟢",
-  low: "⚪",
-  default: "🟢", // Fallback
+  critical: TUI_PRIORITY_ICONS.critical,
+  high: TUI_PRIORITY_ICONS.high,
+  normal: TUI_PRIORITY_ICONS.normal,
+  low: TUI_PRIORITY_ICONS.low,
+  default: TUI_PRIORITY_ICONS.default,
 };
 
 export const CLI_DEFAULTS = {

@@ -4,24 +4,26 @@
  */
 
 import { createGroupNode, createNode, type TreeNode } from "../utils/tree_view.ts";
-import type { AgentStatus } from "../../enums.ts";
 import type { AgentStatusItem } from "../agent_status_view.ts";
 import {
   AGENT_STATUS_ACTIVE,
   AGENT_STATUS_ERROR,
   AGENT_STATUS_INACTIVE,
   AGENT_STATUS_ORDER,
+} from "../../config/constants.ts";
+import {
+  TUI_AGENT_STATUS_ICONS,
   TUI_ICON_AGENT,
   TUI_ICON_BRAIN,
   TUI_NODE_TYPE_AGENT,
   TUI_NODE_TYPE_MODEL_GROUP,
   TUI_NODE_TYPE_STATUS_GROUP,
-} from "../../config/constants.ts";
+} from "../utils/constants.ts";
 
 const AGENT_STATUS_ICONS: Record<string, string> = {
-  [AGENT_STATUS_ACTIVE]: "🟢",
-  [AGENT_STATUS_INACTIVE]: "⚪",
-  [AGENT_STATUS_ERROR]: "🔴",
+  [AGENT_STATUS_ACTIVE]: TUI_AGENT_STATUS_ICONS.active,
+  [AGENT_STATUS_INACTIVE]: TUI_AGENT_STATUS_ICONS.inactive,
+  [AGENT_STATUS_ERROR]: TUI_AGENT_STATUS_ICONS.error,
 };
 
 /**

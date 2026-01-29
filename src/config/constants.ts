@@ -452,42 +452,6 @@ export const LOG_FILE_PREFIX = "structured-log";
 export const LOG_FILE_EXTENSION = ".jsonl";
 
 // ============================================================================
-// TUI Display and UI Constants
-// ============================================================================
-export const TUI_TREE_PAGINATION_LIMIT = 20;
-export const TUI_TREE_RECENT_LIMIT = 10;
-export const TUI_DETAIL_MAX_OVERVIEW_CHARS = 300;
-export const TUI_DETAIL_MAX_SUMMARY_CHARS = 200;
-export const TUI_DETAIL_DATE_LOCALE = "en-US";
-
-export const TUI_PREFIX_PROJECT = "project:";
-export const TUI_PREFIX_EXECUTION = "execution:";
-export const TUI_PREFIX_PENDING = "pending:";
-
-export const TUI_STATUS_MSG_CANCELLED = "Cancelled";
-export const TUI_STATUS_MSG_ERROR_PREFIX = "Error: ";
-export const TUI_STATUS_MSG_PROPOSAL_APPROVED = "Proposal approved";
-export const TUI_STATUS_MSG_PROPOSAL_REJECTED = "Proposal rejected";
-export const TUI_STATUS_MSG_BULK_APPROVE_COMPLETED = "Bulk approval completed";
-export const TUI_STATUS_MSG_LEARNING_ADDED = "Learning added";
-export const TUI_STATUS_MSG_PROMOTE_COMPLETED = "Promoted to global";
-export const TUI_STATUS_MSG_READY = "Ready";
-
-export const TUI_LABEL_GLOBAL_MEMORY = "Global Memory";
-export const TUI_LABEL_PROJECTS = "Projects";
-export const TUI_LABEL_EXECUTIONS = "Executions";
-export const TUI_LABEL_PENDING = "Pending Proposals";
-export const TUI_LABEL_REQUEST_DETAILS = "REQUEST DETAILS";
-
-export const TUI_MSG_SELECT_ITEM = "Select an item to view details.";
-export const TUI_MSG_PRESS_QUIT = "Press ESC or q to close";
-
-// TUI Grouping Modes
-
-export const TUI_MSG_PRESS_CLOSE_HELP = "\nPress ? or Esc to close help";
-export const TUI_MSG_DASHBOARD_HEADER =
-  "                         ExoFrame TUI Dashboard                               ";
-// ============================================================================
 // CLI Display and Validation Constants
 // ============================================================================
 export const CLI_SEPARATOR_LENGTH = 50;
@@ -523,26 +487,6 @@ export const LOG_RENDERER_SEPARATOR_LENGTH = 50;
 export const TIME_MS_PER_SECOND = 1000;
 export const TIME_MS_PER_MINUTE = 60_000;
 export const TIME_MS_PER_HOUR = 3_600_000;
-// ============================================================================
-// TUI Layout and Display Constants
-// ============================================================================
-export const TUI_LAYOUT_LABEL_WIDTH = 30;
-export const TUI_LAYOUT_FULL_WIDTH = 80;
-export const TUI_LAYOUT_MEDIUM_WIDTH = 60;
-export const TUI_LAYOUT_DIALOG_WIDTH = 70;
-export const TUI_LAYOUT_VALUE_WIDTH = 50;
-export const TUI_LAYOUT_DEFAULT_HEIGHT = 24;
-export const TUI_LIMIT_PREVIEW_ITEMS = 10;
-export const TUI_LIMIT_SEARCH_RESULTS = 20;
-export const TUI_LIMIT_SHORT = 5;
-export const TUI_LIMIT_MEDIUM = 10;
-export const TUI_LIMIT_LONG = 15;
-export const TUI_LIMIT_LOGS_MAX = 1000;
-export const TUI_LIMIT_LOGS_DEFAULT = 500;
-export const TUI_PREVIEW_SHORT = 40;
-export const TUI_PREVIEW_MEDIUM = 60;
-export const TUI_SPINNER_FRAMES = 10;
-
 // ============================================================================
 // Retry and Error Constants
 // ============================================================================
@@ -597,9 +541,6 @@ export const DEFAULT_QUERY_LIMIT = 50;
 /** Minimum length threshold for meaningful content (summary, prompt, etc.) */
 export const MIN_CONTENT_THRESHOLD = 50;
 
-/** Narrow width for TUI minor panels and windows */
-export const TUI_LAYOUT_NARROW_WIDTH = 50;
-
 /** Default refresh interval for TUI views */
 export const DEFAULT_REFRESH_INTERVAL_MS = 5000;
 
@@ -632,25 +573,6 @@ export const PATH_MAX_LENGTH = 4096;
 
 /** Default timeout for agent execution in milliseconds */
 export const DEFAULT_AGENT_TIMEOUT_MS = 300000;
-
-/** Default maximum tool calls for agent execution */
-export const DEFAULT_AGENT_MAX_TOOL_CALLS = 100;
-
-/** TUI Portal Icons */
-export const TUI_ICON_PORTAL_ACTIVE = "🟢";
-export const TUI_ICON_PORTAL_BROKEN = "🔴";
-export const TUI_ICON_PORTAL_INACTIVE = "⚪";
-export const TUI_ICON_FOLDER = "📂";
-export const TUI_ICON_AGENT = "🤖";
-export const TUI_ICON_BRAIN = "🧠";
-
-/** TUI Node Types */
-export const TUI_NODE_TYPE_AGENT = "agent";
-export const TUI_NODE_TYPE_MODEL_GROUP = "model_group";
-export const TUI_NODE_TYPE_STATUS_GROUP = "status_group";
-
-/** TUI View Labels */
-export const TUI_LABEL_PORTAL_MANAGER = "Portal Manager";
 
 /** Maximum length for system prompts */
 export const MAX_PROMPT_LENGTH = 50000;

@@ -8,6 +8,7 @@
 
 import { colorize, getTheme, padEnd, type TuiTheme, visibleLength } from "./colors.ts";
 import { renderSpinner, type SpinnerState, type SpinnerStyle } from "./spinner.ts";
+import { TUI_ICON_SUCCESS } from "./constants.ts";
 
 // ===== Status Bar Types =====
 
@@ -201,7 +202,7 @@ export function createStatusItem(
   const icons: Record<string, string> = {
     active: "●",
     pending: "◐",
-    completed: "✓",
+    completed: TUI_ICON_SUCCESS,
     failed: "✗",
   };
 
