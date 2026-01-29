@@ -404,6 +404,8 @@ export const KEY_SLASH = "/";
 export const KEY_Q = "q";
 
 // Shortcut keys for memory view
+export const KEY_B = "b";
+export const KEY_F = "f";
 export const KEY_G = "g";
 export const KEY_P = "p";
 export const KEY_E = "e";
@@ -411,12 +413,29 @@ export const KEY_N = "n";
 export const KEY_S = "s";
 export const KEY_A = "a";
 export const KEY_R = "r";
-export const KEY_L = "L";
+export const KEY_K = "k";
+export const KEY_L = "l";
+export const KEY_SPACE = "space";
+export const KEY_T = "t";
 export const KEY_CAPITAL_P = "P";
 export const KEY_CAPITAL_R = "R";
 export const KEY_CAPITAL_A = "A";
 export const KEY_CAPITAL_E = "E";
 export const KEY_C = "c";
+export const KEY_D = "d";
+export const KEY_H = "h";
+export const KEY_M = "m";
+export const KEY_V = "v";
+export const KEY_Z = "z";
+export const KEY_TAB = "Tab";
+export const KEY_SHIFT_TAB = "Shift+Tab";
+export const KEY_1_TO_7 = "1-7";
+export const KEY_CTRL_LEFT = "Ctrl+Left";
+export const KEY_CTRL_RIGHT = "Ctrl+Right";
+export const KEY_CTRL_UP = "Ctrl+Up";
+export const KEY_CTRL_DOWN = "Ctrl+Down";
+export const KEY_ESC_Q = "Esc/q";
+export const KEY_CAPITAL_C = "C";
 
 // ============================================================================
 // Agent Status Constants

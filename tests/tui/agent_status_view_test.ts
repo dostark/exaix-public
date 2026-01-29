@@ -708,8 +708,17 @@ Deno.test("AgentStatusTuiSession: getKeyBindings", () => {
   const session = view.createTuiSession(false);
 
   const bindings = session.getKeyBindings();
-  if (bindings !== AGENT_KEY_BINDINGS) {
-    throw new Error("getKeyBindings should return AGENT_KEY_BINDINGS");
+  if (bindings.length !== AGENT_KEY_BINDINGS.length) {
+    throw new Error("getKeyBindings should return same number of bindings as AGENT_KEY_BINDINGS");
+  }
+  for (let i = 0; i < bindings.length; i++) {
+    if (
+      bindings[i].key !== AGENT_KEY_BINDINGS[i].key ||
+      bindings[i].action !== AGENT_KEY_BINDINGS[i].action ||
+      bindings[i].category !== AGENT_KEY_BINDINGS[i].category
+    ) {
+      throw new Error(`getKeyBindings binding ${i} does not match AGENT_KEY_BINDINGS`);
+    }
   }
 });
 

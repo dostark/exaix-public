@@ -16,10 +16,35 @@ import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./ut
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { DialogBase } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
+import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { LogEntry, LogLevel, StructuredLogger } from "../services/structured_logger.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "./utils/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
+import {
+  KEY_A,
+  KEY_B,
+  KEY_C,
+  KEY_CAPITAL_C,
+  KEY_CAPITAL_E,
+  KEY_DOWN,
+  KEY_E,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_F,
+  KEY_G,
+  KEY_HOME,
+  KEY_LEFT,
+  KEY_P,
+  KEY_Q,
+  KEY_QUESTION,
+  KEY_RIGHT,
+  KEY_S,
+  KEY_SPACE,
+  KEY_T,
+  KEY_UP,
+} from "../config/constants.ts";
 
 // ===== Service Interfaces =====
 
@@ -108,31 +133,35 @@ export const STRUCTURED_LOG_LEVEL_COLORS: Record<LogLevel, string> = {
 
 // ===== Key Bindings =====
 
-export const STRUCTURED_LOG_VIEWER_KEY_BINDINGS: KeyBinding[] = [
-  { key: "up", action: "navigate-up", description: "Move up", category: "Navigation" },
-  { key: "down", action: "navigate-down", description: "Move down", category: "Navigation" },
-  { key: "home", action: "navigate-home", description: "Go to first", category: "Navigation" },
-  { key: "end", action: "navigate-end", description: "Go to last", category: "Navigation" },
-  { key: "left", action: "collapse", description: "Collapse group", category: "Navigation" },
-  { key: "right", action: "expand", description: "Expand group", category: "Navigation" },
-  { key: "enter", action: "view-details", description: "View log details", category: "Actions" },
-  { key: "space", action: "toggle-pause", description: "Toggle pause", category: "Actions" },
-  { key: "b", action: "bookmark", description: "Bookmark entry", category: "Actions" },
-  { key: "e", action: "export", description: "Export logs", category: "Actions" },
-  { key: "s", action: "search", description: "Search logs", category: "Actions" },
-  { key: "f", action: "filter-level", description: "Filter by log level", category: "Actions" },
-  { key: "c", action: "correlation-mode", description: "Toggle correlation mode", category: "Actions" },
-  { key: "t", action: "trace-mode", description: "Toggle trace mode", category: "Actions" },
-  { key: "p", action: "performance-toggle", description: "Toggle performance metrics", category: "View" },
-  { key: "g", action: "toggle-grouping", description: "Toggle grouping", category: "View" },
-  { key: "R", action: "refresh", description: "Force refresh", category: "View" },
-  { key: "a", action: "auto-refresh", description: "Toggle auto-refresh", category: "View" },
-  { key: "C", action: "collapse-all", description: "Collapse all", category: "View" },
-  { key: "E", action: "expand-all", description: "Expand all", category: "View" },
-  { key: "?", action: "help", description: "Toggle help", category: "Help" },
-  { key: "q", action: "quit", description: "Close/Back", category: "Help" },
-  { key: "escape", action: "cancel", description: "Close dialog/view", category: "Help" },
-];
+export class StructuredLogViewerKeyBindings extends KeyBindingsBase {
+  readonly KEY_BINDINGS: readonly KeyBinding[] = [
+    { key: KEY_UP, action: "navigate-up", description: "Move up", category: "Navigation" },
+    { key: KEY_DOWN, action: "navigate-down", description: "Move down", category: "Navigation" },
+    { key: KEY_HOME, action: "navigate-home", description: "Go to first", category: "Navigation" },
+    { key: KEY_END, action: "navigate-end", description: "Go to last", category: "Navigation" },
+    { key: KEY_LEFT, action: "collapse", description: "Collapse group", category: "Navigation" },
+    { key: KEY_RIGHT, action: "expand", description: "Expand group", category: "Navigation" },
+    { key: KEY_ENTER, action: "view-details", description: "View log details", category: "Actions" },
+    { key: KEY_SPACE, action: "toggle-pause", description: "Toggle pause", category: "Actions" },
+    { key: KEY_B, action: "bookmark", description: "Bookmark entry", category: "Actions" },
+    { key: KEY_E, action: "export", description: "Export logs", category: "Actions" },
+    { key: KEY_S, action: "search", description: "Search logs", category: "Actions" },
+    { key: KEY_F, action: "filter-level", description: "Filter by log level", category: "Actions" },
+    { key: KEY_C, action: "correlation-mode", description: "Toggle correlation mode", category: "Actions" },
+    { key: KEY_T, action: "trace-mode", description: "Toggle trace mode", category: "Actions" },
+    { key: KEY_P, action: "performance-toggle", description: "Toggle performance metrics", category: "View" },
+    { key: KEY_G, action: "toggle-grouping", description: "Toggle grouping", category: "View" },
+    { key: "R", action: "refresh", description: "Force refresh", category: "View" },
+    { key: KEY_A, action: "auto-refresh", description: "Toggle auto-refresh", category: "View" },
+    { key: KEY_CAPITAL_C, action: "collapse-all", description: "Collapse all", category: "View" },
+    { key: KEY_CAPITAL_E, action: "expand-all", description: "Expand all", category: "View" },
+    { key: KEY_QUESTION, action: "help", description: "Toggle help", category: "Help" },
+    { key: KEY_Q, action: "quit", description: "Close/Back", category: "Help" },
+    { key: KEY_ESCAPE, action: "cancel", description: "Close dialog/view", category: "Help" },
+  ];
+}
+
+export const STRUCTURED_LOG_VIEWER_KEY_BINDINGS = new StructuredLogViewerKeyBindings().KEY_BINDINGS;
 
 // ===== StructuredLogViewer Class =====
 
@@ -611,7 +640,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
 
     // 3. Handle detail view
     if (this.logViewExtensions.showDetail) {
-      if (key === "escape" || key === "q") {
+      if (key === KEY_ESCAPE || key === KEY_Q) {
         this.logViewExtensions.showDetail = false;
         this.logViewExtensions.detailContent = "";
       }
@@ -620,7 +649,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
 
     // 5. Main actions
     switch (key) {
-      case "enter":
+      case KEY_ENTER:
         if (this.state.selectedId) {
           if (this.isGroupNode(this.state.selectedId)) {
             this.toggleCurrentNode();
@@ -630,18 +659,18 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
           }
         }
         break;
-      case "space":
+      case KEY_SPACE:
         this.toggleRealTime();
         break;
-      case "b":
+      case KEY_B:
         if (this.state.selectedId && !this.isGroupNode(this.state.selectedId)) {
           this.toggleBookmark(this.state.selectedId);
         }
         break;
-      case "e":
+      case KEY_E:
         await this.exportLogs();
         break;
-      case "s":
+      case KEY_S:
         this.showInputDialog({
           title: "Search Logs",
           label: "Enter search query:",
@@ -649,31 +678,31 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
         });
         this.pendingDialogType = "search";
         break;
-      case "f":
+      case KEY_F:
         // Toggle log level filter dialog would go here
         break;
-      case "c":
+      case KEY_C:
         await this.handleCorrelationMode();
         break;
-      case "t":
+      case KEY_T:
         await this.handleTraceMode();
         break;
-      case "p":
+      case KEY_P:
         this.togglePerformanceMetrics();
         break;
-      case "g":
+      case KEY_G:
         this.toggleGrouping();
         break;
       case "R":
         await this.refreshLogs();
         break;
-      case "a":
+      case KEY_A:
         this.toggleAutoRefresh();
         break;
-      case "C":
+      case KEY_CAPITAL_C:
         this.collapseAllNodes();
         break;
-      case "E":
+      case KEY_CAPITAL_E:
         this.expandAllNodes();
         break;
       default:

@@ -121,8 +121,8 @@ Deno.test("keyBindingsToHelpSections: converts bindings to sections", () => {
 
 Deno.test("keyBindingsToHelpSections: groups by category", () => {
   const bindings: KeyBinding<"nav" | "action">[] = [
-    { key: "↑", action: "nav", description: "Up", category: "Navigation" },
-    { key: "↓", action: "nav", description: "Down", category: "Navigation" },
+    { key: "up", action: "nav", description: "Up", category: "Navigation" },
+    { key: "down", action: "nav", description: "Down", category: "Navigation" },
     { key: "a", action: "action", description: "Act", category: "Actions" },
   ];
   const sections = keyBindingsToHelpSections(bindings);

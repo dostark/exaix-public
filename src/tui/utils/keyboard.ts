@@ -16,6 +16,109 @@ export interface KeyEvent {
   raw?: string;
 }
 
+// ===== Key Value Types =====
+
+/**
+ * All possible key values for key bindings
+ */
+export type KeyValue =
+  // Navigation keys
+  | "up"
+  | "down"
+  | "left"
+  | "right"
+  | "home"
+  | "end"
+  | "pageup"
+  | "pagedown"
+  // Action keys
+  | "enter"
+  | "escape"
+  | "tab"
+  | "space"
+  | "backspace"
+  | "delete"
+  // Common shortcuts
+  | "ctrl+c"
+  | "ctrl+d"
+  | "ctrl+q"
+  | "ctrl+s"
+  | "ctrl+r"
+  | "ctrl+l"
+  // Single character keys (lowercase)
+  | "a"
+  | "b"
+  | "c"
+  | "d"
+  | "e"
+  | "f"
+  | "g"
+  | "h"
+  | "i"
+  | "j"
+  | "k"
+  | "l"
+  | "m"
+  | "n"
+  | "o"
+  | "p"
+  | "q"
+  | "r"
+  | "s"
+  | "t"
+  | "u"
+  | "v"
+  | "w"
+  | "x"
+  | "y"
+  | "z"
+  // Single character keys (uppercase/special)
+  | "A"
+  | "B"
+  | "C"
+  | "D"
+  | "E"
+  | "F"
+  | "G"
+  | "H"
+  | "I"
+  | "J"
+  | "K"
+  | "L"
+  | "M"
+  | "N"
+  | "O"
+  | "P"
+  | "Q"
+  | "R"
+  | "S"
+  | "T"
+  | "U"
+  | "V"
+  | "W"
+  | "X"
+  | "Y"
+  | "Z"
+  // Special characters
+  | "?"
+  | "/"
+  | "1"
+  | "2"
+  | "3"
+  | "4"
+  | "5"
+  | "6"
+  | "7"
+  // Special key combinations
+  | "Tab"
+  | "Shift+Tab"
+  | "Ctrl+Left"
+  | "Ctrl+Right"
+  | "Ctrl+Up"
+  | "Ctrl+Down"
+  | "Esc/q"
+  | "1-7";
+
 // ===== Common Key Constants =====
 
 export const KEYS = {
@@ -48,18 +151,31 @@ export const KEYS = {
 
 // ===== Key Binding =====
 
-export interface KeyBinding<T = string> {
-  key: string;
+export interface KeyBinding<TAction extends string | KeyHandler = string, KeyBindingCategory extends string = string> {
+  key: KeyValue;
   modifiers?: KeyModifier[];
-  action: T;
+  action: TAction;
   description: string;
-  category?: string;
+  category?: KeyBindingCategory;
   global?: boolean;
 }
 
-export interface KeyBindingGroup<T = string> {
+// ===== Key Binding Categories =====
+
+/**
+ * Categories for organizing key bindings in help screens and documentation
+ */
+export type KeyBindingCategory =
+  | "Navigation"
+  | "Actions"
+  | "View"
+  | "Help"
+  | "Layout"
+  | "General";
+
+export interface KeyBindingGroup<TAction extends string | KeyHandler = string> {
   name: string;
-  bindings: KeyBinding<T>[];
+  bindings: KeyBinding<TAction>[];
 }
 
 // ===== Key Handler Types =====
@@ -75,7 +191,7 @@ export interface KeyHandlerMap {
 /**
  * Manages keyboard bindings and handlers
  */
-export class KeyboardManager<TAction extends string = string> {
+export class KeyboardManager<TAction extends string | KeyHandler = string> {
   private bindings: Map<string, KeyBinding<TAction>> = new Map();
   private handlers: Map<TAction, KeyHandler> = new Map();
   private enabled: boolean = true;
@@ -328,15 +444,15 @@ export function matchesKey(key: string, pattern: string): boolean {
 /**
  * Generate help screen content from key bindings
  */
-export function generateHelpScreen<T extends string>(
-  bindings: KeyBinding<T>[],
+export function generateHelpScreen<TAction extends string | KeyHandler>(
+  bindings: KeyBinding<TAction>[],
   options: { title?: string; useColors?: boolean } = {},
 ): string[] {
   const { title = "Keyboard Shortcuts", useColors = true } = options;
   const lines: string[] = [];
 
   // Group by category
-  const categories = new Map<string, KeyBinding<T>[]>();
+  const categories = new Map<string, KeyBinding<TAction>[]>();
   for (const binding of bindings) {
     const cat = binding.category ?? "General";
     const list = categories.get(cat) ?? [];

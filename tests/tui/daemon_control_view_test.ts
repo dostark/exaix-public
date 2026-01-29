@@ -5,7 +5,7 @@
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
-import { DaemonStatus } from "../../src/enums.ts";
+import { DaemonKeyAction, DaemonStatus } from "../../src/enums.ts";
 
 import {
   CLIDaemonService,
@@ -145,13 +145,13 @@ Deno.test("DAEMON_STATUS_COLORS: has all status types", () => {
 
 Deno.test("DAEMON_KEY_BINDINGS: has all expected bindings", () => {
   const requiredActions = [
-    "start",
-    "stop",
-    "restart",
-    "view-logs",
-    "view-config",
-    "refresh",
-    "help",
+    DaemonKeyAction.START,
+    DaemonKeyAction.STOP,
+    DaemonKeyAction.RESTART,
+    DaemonKeyAction.VIEW_LOGS,
+    DaemonKeyAction.VIEW_CONFIG,
+    DaemonKeyAction.REFRESH,
+    DaemonKeyAction.HELP,
   ];
   const bindingActions = DAEMON_KEY_BINDINGS.map((b) => b.action);
   for (const action of requiredActions) {

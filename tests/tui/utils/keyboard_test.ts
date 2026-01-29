@@ -193,14 +193,14 @@ Deno.test("KeyboardManager: getBindingsByCategory groups bindings", () => {
   const manager = new KeyboardManager<"a" | "b" | "c">();
 
   manager.bindAll([
-    { key: "a", action: "a", description: "A", category: "Cat1" },
-    { key: "b", action: "b", description: "B", category: "Cat1" },
-    { key: "c", action: "c", description: "C", category: "Cat2" },
+    { key: "a", action: "a", description: "A", category: "General" },
+    { key: "b", action: "b", description: "B", category: "General" },
+    { key: "c", action: "c", description: "C", category: "Actions" },
   ]);
 
   const groups = manager.getBindingsByCategory();
-  assertEquals(groups.get("Cat1")?.length, 2);
-  assertEquals(groups.get("Cat2")?.length, 1);
+  assertEquals(groups.get("General")?.length, 2);
+  assertEquals(groups.get("Actions")?.length, 1);
 });
 
 // ===== Navigation Handlers Tests =====

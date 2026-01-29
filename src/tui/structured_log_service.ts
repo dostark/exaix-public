@@ -103,6 +103,17 @@ export class StructuredLoggerService implements StructuredLogService {
     return await this.getStructuredLogs({ agentId });
   }
 
+  async exportLogs(filename: string, entries: LogEntry[]): Promise<void> {
+    try {
+      const jsonContent = JSON.stringify(entries, null, 2);
+      await Deno.writeTextFile(filename, jsonContent);
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.structuredLogger.error("Failed to export logs", err, { filename, entryCount: entries.length });
+      throw err;
+    }
+  }
+
   addLogEntry(entry: LogEntry): void {
     // Add to buffer
     this.logBuffer.push(entry);

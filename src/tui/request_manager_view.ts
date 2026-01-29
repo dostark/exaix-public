@@ -79,22 +79,32 @@ export const STATUS_COLORS: Record<string, string> = {
 };
 
 // --- Phase 13.6: Key bindings ---
-export const REQUEST_KEY_BINDINGS: KeyBinding[] = [
-  { key: "↑/↓", description: "Navigate requests", action: "navigate" },
-  { key: "Home/End", description: "Jump to first/last", action: "navigate-edge" },
-  { key: "←/→", description: "Collapse/Expand group", action: "collapse-expand" },
-  { key: "Enter", description: "View request details", action: "view-detail" },
-  { key: "c", description: "Create new request", action: "create" },
-  { key: "d", description: "Cancel request", action: "delete" },
-  { key: "p", description: "Change priority", action: "priority" },
-  { key: "s", description: "Search requests", action: "search" },
-  { key: "f", description: "Filter by status", action: "filter-status" },
-  { key: "a", description: "Filter by agent", action: "filter-agent" },
-  { key: "g", description: "Toggle grouping", action: "toggle-grouping" },
-  { key: "R", description: "Force refresh", action: "refresh" },
-  { key: "c/E", description: "Collapse/Expand all", action: "collapse-expand-all" },
-  { key: "?", description: "Show help", action: "help" },
-];
+export class RequestKeyBindings extends KeyBindingsBase {
+  readonly KEY_BINDINGS: readonly KeyBinding[] = [
+    { key: "up", description: "Navigate up", action: "navigate-up", category: "Navigation" },
+    { key: "down", description: "Navigate down", action: "navigate-down", category: "Navigation" },
+    { key: "home", description: "Jump to first", action: "navigate-home", category: "Navigation" },
+    { key: "end", description: "Jump to last", action: "navigate-end", category: "Navigation" },
+    { key: "left", description: "Collapse group", action: "collapse", category: "Navigation" },
+    { key: "right", description: "Expand group", action: "expand", category: "Navigation" },
+    { key: "enter", description: "View request details", action: "view-detail", category: "Actions" },
+    { key: "c", description: "Create new request", action: "create", category: "Actions" },
+    { key: "d", description: "Cancel request", action: "delete", category: "Actions" },
+    { key: "p", description: "Change priority", action: "priority", category: "Actions" },
+    { key: "s", description: "Search requests", action: "search", category: "Actions" },
+    { key: "f", description: "Filter by status", action: "filter-status", category: "Actions" },
+    { key: "a", description: "Filter by agent", action: "filter-agent", category: "Actions" },
+    { key: "g", description: "Toggle grouping", action: "toggle-grouping", category: "View" },
+    { key: "R", description: "Force refresh", action: "refresh", category: "View" },
+    { key: "C", description: "Collapse all", action: "collapse-all", category: "View" },
+    { key: "E", description: "Expand all", action: "expand-all", category: "View" },
+    { key: "?", description: "Show help", action: "help", category: "Help" },
+    { key: "q", description: "Quit", action: "quit", category: "Help" },
+    { key: "escape", description: "Cancel/close", action: "cancel", category: "Help" },
+  ];
+}
+
+export const REQUEST_KEY_BINDINGS = new RequestKeyBindings().KEY_BINDINGS;
 
 // --- Imports for Phase 13.6 ---
 import { TuiSessionBase } from "./tui_common.ts";
@@ -102,6 +112,8 @@ import { RequestPriority, RequestStatus } from "../enums.ts";
 import { createGroupNode, createNode, findNode, flattenTree, renderTree, type TreeNode } from "./utils/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
+import { KeyBindingsBase } from "./base/key_bindings_base.ts";
+import { KEY_ESCAPE, KEY_Q, KEY_QUESTION } from "../config/constants.ts";
 
 // --- Extracted utilities ---
 import {
@@ -113,8 +125,9 @@ import {
 import { RequestFormatter } from "./request_manager/formatters.ts";
 import {
   processDialogCompletion as helperProcessDialogCompletion,
-  type RequestDialogType,
+  type RequestDialogTypeUnion,
 } from "./request_manager/dialog_handlers.ts";
+import { RequestDialogType } from "../enums.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 
 // --- Adapter: RequestCommands as RequestService ---
@@ -198,7 +211,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   protected requests: Request[] = [];
 
   // Track pending dialog type for result handling
-  private pendingDialogType: RequestDialogType | null = null;
+  private pendingDialogType: RequestDialogTypeUnion = null;
 
   // Pending cancel request ID for confirm dialog
   private pendingCancelRequestId: string | null = null;
@@ -493,7 +506,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       placeholder: "title, ID, or agent...",
       defaultValue: this.state.searchQuery,
     });
-    this.pendingDialogType = "search";
+    this.pendingDialogType = RequestDialogType.SEARCH;
   }
 
   showFilterStatusDialog(): void {
@@ -503,7 +516,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       placeholder: "status...",
       defaultValue: this.state.filterStatus || "",
     });
-    this.pendingDialogType = "filter-status";
+    this.pendingDialogType = RequestDialogType.FILTER_STATUS;
   }
 
   showFilterAgentDialog(): void {
@@ -513,7 +526,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       placeholder: "agent name...",
       defaultValue: this.state.filterAgent || "",
     });
-    this.pendingDialogType = "filter-agent";
+    this.pendingDialogType = RequestDialogType.FILTER_AGENT;
   }
 
   showCreateDialog(): void {
@@ -522,7 +535,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       label: "Enter request description:",
       placeholder: "What would you like to request?",
     });
-    this.pendingDialogType = "create";
+    this.pendingDialogType = RequestDialogType.CREATE;
   }
 
   showCancelConfirm(requestId: string): void {
@@ -544,7 +557,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       label: "Enter new priority (low, normal, high, critical):",
       placeholder: "priority...",
     });
-    this.pendingDialogType = "priority";
+    this.pendingDialogType = RequestDialogType.PRIORITY;
   }
 
   // Dialog result handlers
@@ -614,7 +627,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
    */
   private async processDialogCompletion(
     dialog: InputDialog | ConfirmDialog | null,
-    dialogType: RequestDialogType,
+    dialogType: RequestDialogTypeUnion,
   ): Promise<void> {
     await helperProcessDialogCompletion(dialog, dialogType, {
       handleSearchResult: this.handleSearchResult.bind(this),
@@ -780,7 +793,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
         this.state.activeDialog = null;
         this.pendingDialogType = null;
         // Delegate dialog completion handling to helpers
-        await this.processDialogCompletion(dialog, dialogType as RequestDialogType);
+        await this.processDialogCompletion(dialog, dialogType);
       }
       return true;
     }
@@ -800,14 +813,14 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   }
 
   private handleDetailKey(key: string): boolean {
-    if (key === "escape" || key === "q") {
+    if (key === KEY_ESCAPE || key === KEY_Q) {
       this.state.showDetail = false;
     }
     return true;
   }
 
   private handleHelpKey(key: string): boolean {
-    if (key === "?" || key === "escape" || key === "q") {
+    if (key === KEY_QUESTION || key === KEY_ESCAPE || key === KEY_Q) {
       this.state.showHelp = false;
     }
     return true;

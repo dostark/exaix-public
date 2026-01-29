@@ -26,7 +26,29 @@ import {
 } from "./tui_helpers/layout_persistence.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
+import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { DatabaseService } from "../services/db.ts";
+import {
+  KEY_1_TO_7,
+  KEY_C,
+  KEY_CTRL_DOWN,
+  KEY_CTRL_LEFT,
+  KEY_CTRL_RIGHT,
+  KEY_CTRL_UP,
+  KEY_D,
+  KEY_ESC_Q,
+  KEY_H,
+  KEY_M,
+  KEY_N,
+  KEY_P,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_S,
+  KEY_SHIFT_TAB,
+  KEY_TAB,
+  KEY_V,
+  KEY_Z,
+} from "../config/constants.ts";
 import { initDashboardViews } from "./dashboard/view_registry.ts";
 import { prodRender } from "./dashboard/renderer.ts";
 import {
@@ -127,34 +149,38 @@ type DashboardAction =
   | "resize_up"
   | "resize_down";
 
-export const DASHBOARD_KEY_BINDINGS: KeyBinding<DashboardAction>[] = [
-  // Navigation
-  { key: "Tab", action: "next_pane", description: "Next pane", category: "Navigation" },
-  { key: "Shift+Tab", action: "prev_pane", description: "Previous pane", category: "Navigation" },
-  { key: "1-7", action: "view_1", description: "Jump to pane 1-7", category: "Navigation" },
+export class DashboardKeyBindings extends KeyBindingsBase<DashboardAction> {
+  readonly KEY_BINDINGS: readonly KeyBinding<DashboardAction>[] = [
+    // Navigation
+    { key: KEY_TAB, action: "next_pane", description: "Next pane", category: "Navigation" },
+    { key: KEY_SHIFT_TAB, action: "prev_pane", description: "Previous pane", category: "Navigation" },
+    { key: KEY_1_TO_7, action: "view_1", description: "Jump to pane 1-7", category: "Navigation" },
 
-  // Layout
-  { key: "v", action: "split_vertical", description: "Split pane vertically", category: "Layout" },
-  { key: "h", action: "split_horizontal", description: "Split pane horizontally", category: "Layout" },
-  { key: "c", action: "close_pane", description: "Close current pane", category: "Layout" },
-  { key: "z", action: "maximize_pane", description: "Maximize/restore pane", category: "Layout" },
-  { key: "s", action: "save_layout", description: "Save layout", category: "Layout" },
-  { key: "r", action: "restore_layout", description: "Restore layout", category: "Layout" },
-  { key: "d", action: "reset_layout", description: "Reset to default", category: "Layout" },
+    // Layout
+    { key: KEY_V, action: "split_vertical", description: "Split pane vertically", category: "Layout" },
+    { key: KEY_H, action: "split_horizontal", description: "Split pane horizontally", category: "Layout" },
+    { key: KEY_C, action: "close_pane", description: "Close current pane", category: "Layout" },
+    { key: KEY_Z, action: "maximize_pane", description: "Maximize/restore pane", category: "Layout" },
+    { key: KEY_S, action: "save_layout", description: "Save layout", category: "Layout" },
+    { key: KEY_R, action: "restore_layout", description: "Restore layout", category: "Layout" },
+    { key: KEY_D, action: "reset_layout", description: "Reset to default", category: "Layout" },
 
-  // Resizing
-  { key: "Ctrl+Left", action: "resize_left", description: "Resize left", category: "Layout" },
-  { key: "Ctrl+Right", action: "resize_right", description: "Resize right", category: "Layout" },
-  { key: "Ctrl+Up", action: "resize_up", description: "Resize up", category: "Layout" },
-  { key: "Ctrl+Down", action: "resize_down", description: "Resize down", category: "Layout" },
+    // Resizing
+    { key: KEY_CTRL_LEFT, action: "resize_left", description: "Resize left", category: "Layout" },
+    { key: KEY_CTRL_RIGHT, action: "resize_right", description: "Resize right", category: "Layout" },
+    { key: KEY_CTRL_UP, action: "resize_up", description: "Resize up", category: "Layout" },
+    { key: KEY_CTRL_DOWN, action: "resize_down", description: "Resize down", category: "Layout" },
 
-  // Dialogs
-  { key: "?", action: "show_help", description: "Show help", category: "General" },
-  { key: "n", action: "show_notifications", description: "Toggle notifications", category: "General" },
-  { key: "m", action: "show_memory_notifications", description: "Memory updates", category: "General" },
-  { key: "p", action: "show_view_picker", description: "View picker", category: "General" },
-  { key: "Esc/q", action: "quit", description: "Quit dashboard", category: "General" },
-];
+    // Dialogs
+    { key: KEY_QUESTION, action: "show_help", description: "Show help", category: "General" },
+    { key: KEY_N, action: "show_notifications", description: "Toggle notifications", category: "General" },
+    { key: KEY_M, action: "show_memory_notifications", description: "Memory updates", category: "General" },
+    { key: KEY_P, action: "show_view_picker", description: "View picker", category: "General" },
+    { key: KEY_ESC_Q, action: "quit", description: "Quit dashboard", category: "General" },
+  ];
+}
+
+export const DASHBOARD_KEY_BINDINGS = new DashboardKeyBindings().KEY_BINDINGS;
 
 // ===== Help Sections =====
 

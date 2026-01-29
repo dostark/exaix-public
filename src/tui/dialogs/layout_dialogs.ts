@@ -10,7 +10,7 @@
  */
 
 import { colorize, type TuiTheme } from "../utils/colors.ts";
-import { DASHBOARD_ICONS } from "../tui_dashboard.ts";
+import { TUI_DASHBOARD_ICONS } from "../utils/constants.ts";
 
 // ===== View Picker Dialog =====
 
@@ -21,13 +21,17 @@ export interface ViewInfo {
 }
 
 export const AVAILABLE_VIEWS: ViewInfo[] = [
-  { name: "PortalManagerView", icon: "🌀", description: "Manage project portals" },
-  { name: "PlanReviewerView", icon: "📋", description: "Review agent plans" },
-  { name: "MonitorView", icon: "📊", description: "Real-time logs" },
-  { name: "DaemonControlView", icon: "⚙️", description: "Daemon control" },
-  { name: "AgentStatusView", icon: "🤖", description: "Agent health" },
-  { name: "RequestManagerView", icon: "📥", description: "Manage requests" },
-  { name: "MemoryView", icon: "💾", description: "Memory banks" },
+  {
+    name: "PortalManagerView",
+    icon: TUI_DASHBOARD_ICONS.views.PortalManagerView,
+    description: "Manage project portals",
+  },
+  { name: "PlanReviewerView", icon: TUI_DASHBOARD_ICONS.views.PlanReviewerView, description: "Review agent plans" },
+  { name: "MonitorView", icon: TUI_DASHBOARD_ICONS.views.MonitorView, description: "Real-time logs" },
+  { name: "DaemonControlView", icon: TUI_DASHBOARD_ICONS.views.DaemonControlView, description: "Daemon control" },
+  { name: "AgentStatusView", icon: TUI_DASHBOARD_ICONS.views.AgentStatusView, description: "Agent health" },
+  { name: "RequestManagerView", icon: TUI_DASHBOARD_ICONS.views.RequestManagerView, description: "Manage requests" },
+  { name: "MemoryView", icon: TUI_DASHBOARD_ICONS.views.MemoryView, description: "Memory banks" },
 ];
 
 export interface ViewPickerDialogState {
@@ -362,7 +366,7 @@ export function renderNamedLayoutDialog(
       const isSelected = i === state.selectedIndex && state.mode !== "save";
       const prefix = isSelected ? "▶ " : "  ";
 
-      let line = `${prefix}${DASHBOARD_ICONS.layout.save} ${layout}`;
+      let line = `${prefix}${TUI_DASHBOARD_ICONS.layout.save} ${layout}`;
       line = line.padEnd(38);
 
       if (isSelected) {

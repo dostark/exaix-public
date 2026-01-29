@@ -14,9 +14,59 @@ import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
+import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { DaemonStatus, GeneralStatus } from "../enums.ts";
+import { DaemonKeyAction, KeyBindingCategory } from "../enums.ts";
 import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "./utils/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
+import {
+  KEY_A,
+  KEY_C,
+  KEY_CAPITAL_R,
+  KEY_ESCAPE,
+  KEY_K,
+  KEY_L,
+  KEY_Q,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_S,
+} from "../config/constants.ts";
+
+// ===== Constants =====
+
+/** CLI command constants */
+const CLI_CMD_START = "start";
+const CLI_CMD_STOP = "stop";
+const CLI_CMD_STATUS = "status";
+const CLI_CMD_DAEMON = "daemon";
+
+/** Status parsing constants */
+const STATUS_RUNNING = "running";
+const STATUS_STARTED = "started";
+const STATUS_STOPPED = "stopped";
+const STATUS_INACTIVE = "inactive";
+const STATUS_NOT_RUNNING = "not running";
+const STATUS_ERROR = "error";
+const STATUS_FAILED = "failed";
+const STATUS_CRASH = "crash";
+
+/** UI display constants */
+const UI_CLOSE_LOGS = "[ESC] Close logs";
+const UI_CLOSE_CONFIG = "[ESC] Close config";
+const UI_STATUS_PANEL_KEYS = "  [s] Start  [k] Stop  [r] Restart  [l] Logs  [R] Refresh";
+const UI_CONFIG_FILE = "exo.config.toml";
+const UI_CONFIG_COMING_SOON = "(Configuration viewer coming soon)";
+
+/** Help text constants */
+const HELP_START_DESC = "Start daemon";
+const HELP_STOP_DESC = "Stop daemon (with confirm)";
+const HELP_RESTART_DESC = "Restart daemon (with confirm)";
+const HELP_LOGS_DESC = "View logs";
+const HELP_CONFIG_DESC = "View config";
+const HELP_REFRESH_DESC = "Refresh status";
+const HELP_AUTO_REFRESH_DESC = "Toggle auto-refresh";
+const HELP_HELP_DESC = "Toggle this help";
+const HELP_QUIT_DESC = "Close/Back";
 
 // ===== Service Interfaces =====
 
@@ -84,18 +134,47 @@ export const LOG_LEVEL_COLORS: Record<string, string> = {
 
 // ===== Key Bindings =====
 
-export const DAEMON_KEY_BINDINGS: KeyBinding[] = [
-  { key: "s", action: "start", description: "Start daemon", category: "Actions" },
-  { key: "k", action: "stop", description: "Stop daemon (with confirm)", category: "Actions" },
-  { key: "r", action: "restart", description: "Restart daemon (with confirm)", category: "Actions" },
-  { key: "l", action: "view-logs", description: "View logs", category: "View" },
-  { key: "c", action: "view-config", description: "View config", category: "View" },
-  { key: "R", action: "refresh", description: "Refresh status", category: "View" },
-  { key: "a", action: "auto-refresh", description: "Toggle auto-refresh", category: "View" },
-  { key: "?", action: "help", description: "Toggle help", category: "Help" },
-  { key: "q", action: "quit", description: "Close/Back", category: "Help" },
-  { key: "escape", action: "cancel", description: "Close dialog/view", category: "Help" },
-];
+export class DaemonKeyBindings extends KeyBindingsBase<DaemonKeyAction> {
+  KEY_BINDINGS: readonly KeyBinding<DaemonKeyAction>[] = [
+    { key: KEY_S, action: DaemonKeyAction.START, description: "Start daemon", category: KeyBindingCategory.ACTIONS },
+    {
+      key: KEY_K,
+      action: DaemonKeyAction.STOP,
+      description: "Stop daemon (with confirm)",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_R,
+      action: DaemonKeyAction.RESTART,
+      description: "Restart daemon (with confirm)",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    { key: KEY_L, action: DaemonKeyAction.VIEW_LOGS, description: "View logs", category: KeyBindingCategory.VIEW },
+    { key: KEY_C, action: DaemonKeyAction.VIEW_CONFIG, description: "View config", category: KeyBindingCategory.VIEW },
+    {
+      key: KEY_CAPITAL_R,
+      action: DaemonKeyAction.REFRESH,
+      description: "Refresh status",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_A,
+      action: DaemonKeyAction.AUTO_REFRESH,
+      description: "Toggle auto-refresh",
+      category: KeyBindingCategory.VIEW,
+    },
+    { key: KEY_QUESTION, action: DaemonKeyAction.HELP, description: "Toggle help", category: KeyBindingCategory.HELP },
+    { key: KEY_Q, action: DaemonKeyAction.QUIT, description: "Close/Back", category: KeyBindingCategory.HELP },
+    {
+      key: KEY_ESCAPE,
+      action: DaemonKeyAction.CANCEL,
+      description: "Close dialog/view",
+      category: KeyBindingCategory.HELP,
+    },
+  ];
+}
+
+export const DAEMON_KEY_BINDINGS = new DaemonKeyBindings().KEY_BINDINGS;
 
 // ===== CLI Daemon Service Implementation =====
 
@@ -106,10 +185,10 @@ export class CLIDaemonService implements DaemonService {
   #cliScript = new URL("../../src/cli/exoctl.ts", import.meta.url).pathname;
 
   async start(): Promise<void> {
-    await this.#runDaemonCmd(["start"]);
+    await this.#runDaemonCmd([CLI_CMD_START]);
   }
   async stop(): Promise<void> {
-    await this.#runDaemonCmd(["stop"]);
+    await this.#runDaemonCmd([CLI_CMD_STOP]);
   }
   async restart(): Promise<void> {
     await this.stop();
@@ -117,7 +196,7 @@ export class CLIDaemonService implements DaemonService {
   }
   async getStatus(): Promise<string> {
     const cmd = new Deno.Command("deno", {
-      args: ["run", "--allow-all", this.#cliScript, "daemon", "status"],
+      args: ["run", "--allow-all", this.#cliScript, CLI_CMD_DAEMON, CLI_CMD_STATUS],
       stdout: "piped",
       stderr: "null",
     });
@@ -332,8 +411,8 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     return this.state.lastStatusCheck;
   }
 
-  override getKeyBindings(): KeyBinding[] {
-    return DAEMON_KEY_BINDINGS;
+  override getKeyBindings(): KeyBinding<DaemonKeyAction>[] {
+    return [...DAEMON_KEY_BINDINGS];
   }
 
   // ===== Status Operations =====
@@ -361,13 +440,13 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
   private parseStatus(rawStatus: string): DaemonStatus {
     const lower = rawStatus.toLowerCase();
-    if (lower.includes("running") || lower.includes(GeneralStatus.ACTIVE) || lower.includes("started")) {
+    if (lower.includes(STATUS_RUNNING) || lower.includes(GeneralStatus.ACTIVE) || lower.includes(STATUS_STARTED)) {
       return DaemonStatus.RUNNING;
     }
-    if (lower.includes("stopped") || lower.includes("inactive") || lower.includes("not running")) {
+    if (lower.includes(STATUS_STOPPED) || lower.includes(STATUS_INACTIVE) || lower.includes(STATUS_NOT_RUNNING)) {
       return DaemonStatus.STOPPED;
     }
-    if (lower.includes("error") || lower.includes("failed") || lower.includes("crash")) {
+    if (lower.includes(STATUS_ERROR) || lower.includes(STATUS_FAILED) || lower.includes(STATUS_CRASH)) {
       return DaemonStatus.ERROR;
     }
     return DaemonStatus.UNKNOWN;
@@ -524,25 +603,25 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       {
         title: "Daemon Actions",
         items: [
-          { key: "s", description: "Start daemon" },
-          { key: "k", description: "Stop daemon (with confirm)" },
-          { key: "r", description: "Restart daemon (with confirm)" },
+          { key: "s", description: HELP_START_DESC },
+          { key: "k", description: HELP_STOP_DESC },
+          { key: "r", description: HELP_RESTART_DESC },
         ],
       },
       {
         title: "View",
         items: [
-          { key: "l", description: "View logs" },
-          { key: "c", description: "View config" },
-          { key: "R", description: "Refresh status" },
-          { key: "a", description: "Toggle auto-refresh" },
+          { key: "l", description: HELP_LOGS_DESC },
+          { key: "c", description: HELP_CONFIG_DESC },
+          { key: "R", description: HELP_REFRESH_DESC },
+          { key: "a", description: HELP_AUTO_REFRESH_DESC },
         ],
       },
       {
         title: "General",
         items: [
-          { key: "?", description: "Toggle this help" },
-          { key: "q/Esc", description: "Close/Back" },
+          { key: "?", description: HELP_HELP_DESC },
+          { key: "q/Esc", description: HELP_QUIT_DESC },
         ],
       },
     ];
@@ -593,7 +672,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
     // Handle logs view
     if (this.state.showLogs) {
-      if (key === "escape" || key === "q") {
+      if (key === KEY_ESCAPE || key === KEY_Q) {
         this.hideLogs();
       }
       return true;
@@ -601,7 +680,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
     // Handle config view
     if (this.state.showConfig) {
-      if (key === "escape" || key === "q") {
+      if (key === KEY_ESCAPE || key === KEY_Q) {
         this.hideConfig();
       }
       return true;
@@ -609,7 +688,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
     // Handle help view
     if (this.state.showHelp) {
-      if (key === "escape" || key === "q" || key === "?") {
+      if (key === KEY_ESCAPE || key === KEY_Q || key === KEY_QUESTION) {
         this.state.showHelp = false;
       }
       return true;
@@ -617,7 +696,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
     // Main view key handling
     switch (key) {
-      case "s":
+      case KEY_S:
         this.pendingDialogAction = "start";
         this.showStartConfirm();
         return true;
@@ -625,23 +704,23 @@ export class DaemonControlTuiSession extends TuiSessionBase {
         this.pendingDialogAction = "stop";
         this.showStopConfirm();
         return true;
-      case "r":
+      case KEY_R:
         this.pendingDialogAction = "restart";
         this.showRestartConfirm();
         return true;
-      case "l":
+      case KEY_L:
         await this.showLogs();
         return true;
-      case "c":
+      case KEY_C:
         this.showConfig();
         return true;
-      case "R":
+      case KEY_CAPITAL_R:
         await this.refreshStatus();
         return true;
-      case "a":
+      case KEY_A:
         this.toggleAutoRefresh();
         return true;
-      case "?":
+      case KEY_QUESTION:
         this.state.showHelp = true;
         return true;
     }
@@ -690,7 +769,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     }
 
     lines.push("╠═══════════════════════════════════════════════════════════════╣");
-    lines.push("║  [s] Start  [k] Stop  [r] Restart  [l] Logs  [R] Refresh      ║");
+    lines.push(`║${UI_STATUS_PANEL_KEYS}      ║`);
     lines.push("╚═══════════════════════════════════════════════════════════════╝");
 
     return lines;
@@ -727,7 +806,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
     lines.push("╚═══════════════════════════════════════════════════════════════╝");
     lines.push("");
-    lines.push("[ESC] Close logs");
+    lines.push(UI_CLOSE_LOGS);
     return lines;
   }
 
@@ -736,13 +815,13 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     lines.push("╔═══════════════════════════════════════════════════════════════╗");
     lines.push("║                    DAEMON CONFIGURATION                       ║");
     lines.push("╠═══════════════════════════════════════════════════════════════╣");
-    lines.push("║  Config File: exo.config.toml                                 ║");
+    lines.push(`║  Config File: ${UI_CONFIG_FILE.padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 13)} ║`);
     lines.push("║                                                               ║");
-    lines.push("║  (Configuration viewer coming soon)                           ║");
+    lines.push(`║  ${UI_CONFIG_COMING_SOON.padEnd(TUI_LAYOUT_MEDIUM_WIDTH - 2)} ║`);
     lines.push("║                                                               ║");
     lines.push("╚═══════════════════════════════════════════════════════════════╝");
     lines.push("");
-    lines.push("[ESC] Close config");
+    lines.push(UI_CLOSE_CONFIG);
     return lines;
   }
 

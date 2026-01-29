@@ -15,6 +15,7 @@ import { MemorySource, SkillStatus } from "../enums.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { type DialogBase } from "./utils/dialog_base.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
+import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import {
@@ -25,6 +26,7 @@ import {
   TUI_SOURCE_ICONS,
   TUI_STATUS_ICONS,
 } from "./utils/constants.ts";
+import { KEY_ENTER, KEY_ESCAPE, KEY_Q, KEY_SLASH } from "../config/constants.ts";
 
 // ===== Service Interface =====
 
@@ -88,21 +90,30 @@ export const SKILL_ICON = TUI_SKILL_ICON;
 
 // ===== Key Bindings =====
 
-export const SKILLS_KEY_BINDINGS: KeyBinding[] = [
-  { key: "↑/↓", description: "Navigate skills", action: "navigate" },
-  { key: "Home/End", description: "Jump to first/last", action: "navigate-edge" },
-  { key: "←/→", description: "Collapse/Expand group", action: "collapse-expand" },
-  { key: "Enter", description: "View skill details", action: "view-detail" },
-  { key: "d", description: "Delete skill", action: "delete" },
-  { key: "/", description: "Search skills", action: "search" },
-  { key: "f", description: "Filter by source", action: "filter-source" },
-  { key: "s", description: "Filter by status", action: "filter-status" },
-  { key: "g", description: "Toggle grouping", action: "toggle-grouping" },
-  { key: "R", description: "Force refresh", action: "refresh" },
-  { key: "c/E", description: "Collapse/Expand all", action: "collapse-expand-all" },
-  { key: "?", description: "Show help", action: "help" },
-  { key: "q/Esc", description: "Back/Close", action: "back" },
-];
+export class SkillsKeyBindings extends KeyBindingsBase {
+  readonly KEY_BINDINGS: readonly KeyBinding[] = [
+    { key: "up", description: "Navigate up", action: "navigate-up", category: "Navigation" },
+    { key: "down", description: "Navigate down", action: "navigate-down", category: "Navigation" },
+    { key: "home", description: "Jump to first", action: "navigate-home", category: "Navigation" },
+    { key: "end", description: "Jump to last", action: "navigate-end", category: "Navigation" },
+    { key: "left", description: "Collapse group", action: "collapse", category: "Navigation" },
+    { key: "right", description: "Expand group", action: "expand", category: "Navigation" },
+    { key: "enter", description: "View skill details", action: "view-detail", category: "Actions" },
+    { key: "d", description: "Delete skill", action: "delete", category: "Actions" },
+    { key: "/", description: "Search skills", action: "search", category: "Actions" },
+    { key: "f", description: "Filter by source", action: "filter-source", category: "Actions" },
+    { key: "s", description: "Filter by status", action: "filter-status", category: "Actions" },
+    { key: "g", description: "Toggle grouping", action: "toggle-grouping", category: "View" },
+    { key: "R", description: "Force refresh", action: "refresh", category: "View" },
+    { key: "C", description: "Collapse all", action: "collapse-all", category: "View" },
+    { key: "E", description: "Expand all", action: "expand-all", category: "View" },
+    { key: "?", description: "Show help", action: "help", category: "Help" },
+    { key: "q", description: "Back", action: "back", category: "Help" },
+    { key: "escape", description: "Close", action: "close", category: "Help" },
+  ];
+}
+
+export const SKILLS_KEY_BINDINGS = new SkillsKeyBindings().KEY_BINDINGS;
 
 // ===== Help Sections =====
 
@@ -667,7 +678,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
     // 2. Handle detail view
     if (this.skillsViewExtensions.showDetail) {
-      if (key === "q" || key === "escape") {
+      if (key === KEY_Q || key === KEY_ESCAPE) {
         this.hideDetail();
       }
       return true;
@@ -683,11 +694,10 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
     // 5. Handle action keys
     switch (key) {
-      case "return":
-      case "enter":
+      case KEY_ENTER:
         await this.showDetail();
         return true;
-      case "/":
+      case KEY_SLASH:
         this.showSearchDialog();
         return true;
       case "f":

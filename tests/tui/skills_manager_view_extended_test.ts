@@ -100,7 +100,7 @@ Deno.test("SkillsManagerView: SKILL_ICON is defined", () => {
 
 Deno.test("SkillsManagerView: SKILLS_KEY_BINDINGS has required keys", () => {
   const actions = SKILLS_KEY_BINDINGS.map((b) => b.action);
-  assertEquals(actions.includes("navigate"), true);
+  assertEquals(actions.includes("navigate-up"), true);
   assertEquals(actions.includes("view-detail"), true);
   assertEquals(actions.includes(MemoryOperation.DELETE), true);
   assertEquals(actions.includes("search"), true);

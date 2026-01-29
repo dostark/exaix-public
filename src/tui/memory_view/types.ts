@@ -9,8 +9,9 @@ import type {
   MemoryUpdateProposal,
   ProjectMemory,
 } from "../../services/memory_bank.ts";
+import { TuiNodeType } from "../../enums.ts";
 
-export type TreeNodeType = "root" | "scope" | "project" | "execution" | "learning" | "pattern" | "decision";
+export type TreeNodeType = TuiNodeType;
 
 export interface TreeNode {
   id: string;

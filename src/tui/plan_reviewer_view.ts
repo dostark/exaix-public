@@ -23,8 +23,27 @@ import { BaseTreeView } from "./base/base_tree_view.ts";
 import { PlanStatus } from "../enums.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "./utils/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import type { KeyBinding } from "./utils/keyboard.ts";
+import type { KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
+import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { createGroupNode, createNode, flattenTree, type TreeNode, type TreeRenderOptions } from "./utils/tree_view.ts";
+import {
+  KEY_A,
+  KEY_C,
+  KEY_CAPITAL_A,
+  KEY_CAPITAL_R,
+  KEY_DOWN,
+  KEY_E,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_HOME,
+  KEY_LEFT,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_RIGHT,
+  KEY_S,
+  KEY_UP,
+} from "../config/constants.ts";
 
 // ===== Plan Types =====
 
@@ -68,26 +87,75 @@ const PLAN_ICONS: Record<string, string> = {
   folder: "📁",
 } as const;
 
+// ===== Plan Action Types =====
+const NAVIAGATION_UP: PlanAction = "navigate-up";
+const NAVIAGATION_DOWN: PlanAction = "navigate-down";
+const NAVIAGATION_HOME: PlanAction = "navigate-home";
+const NAVIAGATION_END: PlanAction = "navigate-end";
+const ACTION_VIEW_DIFF: PlanAction = "view-diff";
+const ACTION_APPROVE: PlanAction = "approve";
+const ACTION_REJECT: PlanAction = "reject";
+const ACTION_APPROVE_ALL: PlanAction = "approve-all";
+const NAVIGATION_COLLAPSE: PlanAction = "collapse";
+const NAVIGATION_EXPAND: PlanAction = "expand";
+const ACTION_SEARCH: PlanAction = "search";
+const ACTION_CANCEL: PlanAction = "cancel";
+const VIEW_REFRESH: PlanAction = "refresh-view";
+const VIEW_HELP: PlanAction = "help";
+const VIEW_EXPAND_ALL: PlanAction = "expand-all";
+const VIEW_COLLAPSE_ALL: PlanAction = "collapse-all";
+export type PlanAction =
+  | "navigate-up"
+  | "navigate-down"
+  | "navigate-home"
+  | "navigate-end"
+  | "view-diff"
+  | "approve"
+  | "reject"
+  | "approve-all"
+  | "collapse"
+  | "expand"
+  | "search"
+  | "cancel"
+  | "refresh-view"
+  | "help"
+  | "expand-all"
+  | "collapse-all";
+
+// ===== Key Binding Categories =====
+
+const CATEGORY_NAVIGATION: KeyBindingCategory = "Navigation";
+const CATEGORY_ACTIONS: KeyBindingCategory = "Actions";
+const CATEGORY_VIEW: KeyBindingCategory = "View";
+export type PlanActionCategory =
+  | "Navigation"
+  | "Actions"
+  | "View";
+
 // ===== Key Bindings =====
 
-const PLAN_KEY_BINDINGS: KeyBinding<string>[] = [
-  { key: "up", action: "navigate-up", description: "Move up", category: "Navigation" },
-  { key: "down", action: "navigate-down", description: "Move down", category: "Navigation" },
-  { key: "home", action: "navigate-home", description: "Go to first", category: "Navigation" },
-  { key: "end", action: "navigate-end", description: "Go to last", category: "Navigation" },
-  { key: "enter", action: "view-diff", description: "View diff", category: "Actions" },
-  { key: "a", action: "approve", description: "Approve plan", category: "Actions" },
-  { key: "r", action: "reject", description: "Reject plan", category: "Actions" },
-  { key: "A", action: "approve-all", description: "Approve all pending", category: "Actions" },
-  { key: "left", action: "collapse", description: "Collapse node", category: "Navigation" },
-  { key: "right", action: "expand", description: "Expand node", category: "Navigation" },
-  { key: "s", action: "search", description: "Search/filter", category: "Actions" },
-  { key: "escape", action: "cancel", description: "Close/Cancel", category: "Actions" },
-  { key: "R", action: "refresh-view", description: "Refresh view", category: "View" },
-  { key: "?", action: "help", description: "Toggle help", category: "View" },
-  { key: "e", action: "expand-all", description: "Expand all", category: "View" },
-  { key: "c", action: "collapse-all", description: "Collapse all", category: "View" },
-];
+export class PlanKeyBindings extends KeyBindingsBase<PlanAction, KeyBindingCategory> {
+  readonly KEY_BINDINGS: readonly KeyBinding<PlanAction, KeyBindingCategory>[] = [
+    { key: KEY_UP, action: NAVIAGATION_UP, description: "Move up", category: CATEGORY_NAVIGATION },
+    { key: KEY_DOWN, action: NAVIAGATION_DOWN, description: "Move down", category: CATEGORY_NAVIGATION },
+    { key: KEY_HOME, action: NAVIAGATION_HOME, description: "Go to first", category: CATEGORY_NAVIGATION },
+    { key: KEY_END, action: NAVIAGATION_END, description: "Go to last", category: CATEGORY_NAVIGATION },
+    { key: KEY_ENTER, action: ACTION_VIEW_DIFF, description: "View diff", category: CATEGORY_ACTIONS },
+    { key: KEY_A, action: ACTION_APPROVE, description: "Approve plan", category: CATEGORY_ACTIONS },
+    { key: KEY_R, action: ACTION_REJECT, description: "Reject plan", category: CATEGORY_ACTIONS },
+    { key: KEY_CAPITAL_A, action: ACTION_APPROVE_ALL, description: "Approve all pending", category: CATEGORY_ACTIONS },
+    { key: KEY_LEFT, action: NAVIGATION_COLLAPSE, description: "Collapse node", category: CATEGORY_NAVIGATION },
+    { key: KEY_RIGHT, action: NAVIGATION_EXPAND, description: "Expand node", category: CATEGORY_NAVIGATION },
+    { key: KEY_S, action: ACTION_SEARCH, description: "Search/filter", category: CATEGORY_ACTIONS },
+    { key: KEY_ESCAPE, action: ACTION_CANCEL, description: "Close/Cancel", category: CATEGORY_ACTIONS },
+    { key: KEY_CAPITAL_R, action: VIEW_REFRESH, description: "Refresh view", category: CATEGORY_VIEW },
+    { key: KEY_QUESTION, action: VIEW_HELP, description: "Toggle help", category: CATEGORY_VIEW },
+    { key: KEY_E, action: VIEW_EXPAND_ALL, description: "Expand all", category: CATEGORY_VIEW },
+    { key: KEY_C, action: VIEW_COLLAPSE_ALL, description: "Collapse all", category: CATEGORY_VIEW },
+  ];
+}
+
+export const PLAN_KEY_BINDINGS = new PlanKeyBindings().KEY_BINDINGS;
 
 // ===== Service Interface =====
 
@@ -635,8 +703,8 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
     return this.statusMessage;
   }
 
-  override getKeyBindings(): KeyBinding<string>[] {
-    return PLAN_KEY_BINDINGS as KeyBinding<string>[];
+  override getKeyBindings(): KeyBinding<PlanAction>[] {
+    return [...PLAN_KEY_BINDINGS];
   }
 
   override getViewName(): string {

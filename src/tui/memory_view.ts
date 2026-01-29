@@ -14,6 +14,7 @@
  */
 
 import { TuiSessionBase } from "./tui_common.ts";
+import { TuiNodeType } from "../enums.ts";
 // Redundant import removed
 import { MemoryFormatter } from "./memory_view/formatters.ts";
 import { TreeBuilder } from "./memory_view/tree_builder.ts";
@@ -622,7 +623,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
     // Build search results tree
     const searchNode: TreeNode = {
       id: "search-results",
-      type: "scope",
+      type: TuiNodeType.SCOPE,
       label: `Search: "${this.state.searchQuery}"`,
       expanded: true,
       children: [],
@@ -633,7 +634,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
       const score = result.relevance_score?.toFixed(2) ?? "0.00";
       searchNode.children.push({
         id: `search:${result.id ?? result.trace_id ?? result.title}`,
-        type: "learning",
+        type: TuiNodeType.LEARNING,
         label: `${result.title} (${score})`,
         expanded: false,
         children: [],

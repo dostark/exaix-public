@@ -11,6 +11,7 @@ import type {
   MemoryUpdateProposal,
   ProjectMemory,
 } from "../../schemas/memory_bank.ts";
+import { ANSI } from "../utils/colors.ts";
 import {
   TUI_DETAIL_MAX_OVERVIEW_CHARS,
   TUI_DETAIL_MAX_SUMMARY_CHARS,
@@ -24,19 +25,19 @@ import {
 // ===== Color Constants =====
 
 export const MemoryColors = {
-  global: "\x1b[35m", // Magenta
-  project: "\x1b[34m", // Blue
-  execution: "\x1b[32m", // Green
-  pending: "\x1b[33m", // Yellow
-  pattern: "\x1b[36m", // Cyan
-  antiPattern: "\x1b[31m", // Red
-  decision: "\x1b[35m", // Magenta
-  insight: "\x1b[34m", // Blue
-  troubleshooting: "\x1b[33m", // Yellow
-  high: "\x1b[1m", // Bold
+  global: ANSI.magenta,
+  project: ANSI.blue,
+  execution: ANSI.green,
+  pending: ANSI.yellow,
+  pattern: ANSI.cyan,
+  antiPattern: ANSI.red,
+  decision: ANSI.magenta,
+  insight: ANSI.blue,
+  troubleshooting: ANSI.yellow,
+  high: ANSI.bold,
   medium: "",
-  low: "\x1b[2m", // Dim
-  reset: "\x1b[0m",
+  low: ANSI.dim,
+  reset: ANSI.reset,
 };
 
 // ===== Panel Interface =====

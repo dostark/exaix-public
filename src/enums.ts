@@ -818,3 +818,39 @@ export enum KeyboardKey {
   CAPITAL_E = "E",
   C = "c",
 }
+
+/**
+ * Types of dialogs used in the Request Manager View.
+ */
+export enum RequestDialogType {
+  SEARCH = "search",
+  FILTER_STATUS = "filter-status",
+  FILTER_AGENT = "filter-agent",
+  CREATE = "create",
+  PRIORITY = "priority",
+}
+
+/**
+ * Actions for daemon control key bindings.
+ */
+export enum DaemonKeyAction {
+  START = "start",
+  STOP = "stop",
+  RESTART = "restart",
+  VIEW_LOGS = "view-logs",
+  VIEW_CONFIG = "view-config",
+  REFRESH = "refresh",
+  AUTO_REFRESH = "auto-refresh",
+  HELP = "help",
+  QUIT = "quit",
+  CANCEL = "cancel",
+}
+
+/**
+ * Categories for key bindings.
+ */
+export enum KeyBindingCategory {
+  ACTIONS = "Actions",
+  VIEW = "View",
+  HELP = "Help",
+}

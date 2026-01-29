@@ -33,7 +33,7 @@ async function main() {
     console.log(`Changeset created with ID: ${id}`);
 
     console.log("Listing changesets...");
-    const list = registry.list();
+    const list = await registry.list();
     console.log(`Found ${list.length} changesets.`);
     const found = list.find((c) => c.id === id);
 

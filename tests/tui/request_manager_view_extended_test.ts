@@ -102,7 +102,7 @@ Deno.test("RequestManagerView: STATUS_COLORS covers all statuses", () => {
 
 Deno.test("RequestManagerView: REQUEST_KEY_BINDINGS is comprehensive", () => {
   const actions = REQUEST_KEY_BINDINGS.map((b) => b.action);
-  assertEquals(actions.includes("navigate"), true);
+  assertEquals(actions.includes("navigate-up"), true);
   assertEquals(actions.includes("create"), true);
   assertEquals(actions.includes(MemoryOperation.DELETE), true);
   assertEquals(actions.includes("help"), true);

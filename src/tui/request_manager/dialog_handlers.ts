@@ -4,15 +4,16 @@
  */
 
 import { ConfirmDialog, InputDialog } from "../utils/dialog_base.ts";
+import { RequestDialogType } from "../../enums.ts";
 
-export type RequestDialogType = "search" | "filter-status" | "filter-agent" | "create" | "priority" | null;
+export type RequestDialogTypeUnion = RequestDialogType | null;
 
 /**
  * Handle completed dialogs for Request Manager
  */
 export async function processDialogCompletion(
   dialog: InputDialog | ConfirmDialog | null,
-  dialogType: RequestDialogType,
+  dialogType: RequestDialogTypeUnion,
   handlers: {
     handleSearchResult: (value: string) => void;
     handleFilterStatusResult: (value: string) => void;
@@ -30,23 +31,23 @@ export async function processDialogCompletion(
     const result = dialog.getResult();
     if (result.type === "confirmed") {
       switch (dialogType) {
-        case "search":
+        case RequestDialogType.SEARCH:
           handlers.handleSearchResult(result.value);
           break;
-        case "filter-status":
+        case RequestDialogType.FILTER_STATUS:
           handlers.handleFilterStatusResult(result.value);
           break;
-        case "filter-agent":
+        case RequestDialogType.FILTER_AGENT:
           handlers.handleFilterAgentResult(result.value);
           break;
-        case "create":
+        case RequestDialogType.CREATE:
           try {
             await handlers.handleCreateResult(result.value);
           } catch (e) {
             handlers.setStatus(`Error: ${e}`, "error");
           }
           break;
-        case "priority":
+        case RequestDialogType.PRIORITY:
           handlers.handlePriorityResult(result.value);
           break;
         default:
