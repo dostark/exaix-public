@@ -24,9 +24,18 @@ export async function prodRender(
   notificationService: NotificationService,
   portalView: any,
 ): Promise<void> {
-  const { columns, rows } = Deno.consoleSize();
-  const width = columns;
-  const height = rows;
+  let width: number;
+  let height: number;
+
+  try {
+    const { columns, rows } = Deno.consoleSize();
+    width = columns;
+    height = rows;
+  } catch {
+    // Fallback for environments without TTY (like CI)
+    width = 80;
+    height = 24;
+  }
 
   // Update absolute coordinates for all panes based on flex values
   for (const pane of panes) {

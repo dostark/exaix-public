@@ -45,7 +45,6 @@ import {
   KEY_O,
   KEY_RIGHT,
   KEY_S,
-  KEY_SPACE,
   KEY_T,
   KEY_TAB,
   KEY_Y,
@@ -198,7 +197,7 @@ Deno.test("ConfirmRejectDialog: enters edit mode for reason", () => {
   dialog.handleKey(KEY_CAPITAL_N);
   dialog.handleKey(KEY_O);
   dialog.handleKey(KEY_T);
-  dialog.handleKey(KEY_SPACE);
+  dialog.handleKey(" ");
   dialog.handleKey(KEY_N);
   dialog.handleKey(KEY_E);
   dialog.handleKey(KEY_E);
