@@ -17,6 +17,7 @@ import {
   DaemonViewState,
   MinimalDaemonServiceMock,
 } from "../../src/tui/daemon_control_view.ts";
+import { KEY_C, KEY_ESCAPE, KEY_L, KEY_Q, KEY_QUESTION } from "../../src/config/constants.ts";
 
 // ===== Mock CLI Daemon Service for testing (no real process spawn) =====
 
@@ -355,10 +356,10 @@ Deno.test("DaemonControlTuiSession: handleKey help toggle", async () => {
   const session = view.createTuiSession(false);
   await session.initialize();
 
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   assert(session.isHelpVisible());
 
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assert(!session.isHelpVisible());
 });
 
@@ -368,10 +369,10 @@ Deno.test("DaemonControlTuiSession: handleKey logs", async () => {
   const session = view.createTuiSession(false);
   await session.initialize();
 
-  await session.handleKey("l");
+  await session.handleKey(KEY_L);
   assert(session.isLogsVisible());
 
-  await session.handleKey("q");
+  await session.handleKey(KEY_Q);
   assert(!session.isLogsVisible());
 });
 
@@ -381,10 +382,10 @@ Deno.test("DaemonControlTuiSession: handleKey config", async () => {
   const session = view.createTuiSession(false);
   await session.initialize();
 
-  await session.handleKey("c");
+  await session.handleKey(KEY_C);
   assert(session.isConfigVisible());
 
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assert(!session.isConfigVisible());
 });
 

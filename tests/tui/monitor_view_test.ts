@@ -14,6 +14,23 @@ import {
   sampleLogEntries,
   sampleLogEntry,
 } from "./helpers.ts";
+import {
+  KEY_A,
+  KEY_B,
+  KEY_C,
+  KEY_CAPITAL_E,
+  KEY_CAPITAL_R,
+  KEY_DOWN,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_G,
+  KEY_HOME,
+  KEY_QUESTION,
+  KEY_S,
+  KEY_SPACE,
+  KEY_UP,
+} from "../../src/config/constants.ts";
 
 // Additional coverage for MonitorView rendering and color helpers
 Deno.test("MonitorView - getLogColor covers all cases", () => {
@@ -298,13 +315,13 @@ Deno.test("Phase 13.5: MonitorTuiSession - toggle grouping", async () => {
 
   assertEquals(session.getGroupBy(), "none");
 
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   assertEquals(session.getGroupBy(), MemorySource.AGENT);
 
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   assertEquals(session.getGroupBy(), "action");
 
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   assertEquals(session.getGroupBy(), "none");
 });
 
@@ -313,9 +330,9 @@ Deno.test("Phase 13.5: MonitorTuiSession - help toggle", async () => {
   const session = monitorView.createTuiSession();
 
   assertEquals(session.isHelpVisible(), false);
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   assertEquals(session.isHelpVisible(), true);
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   assertEquals(session.isHelpVisible(), false);
 });
 
@@ -324,9 +341,9 @@ Deno.test("Phase 13.5: MonitorTuiSession - pause toggle", async () => {
   const session = monitorView.createTuiSession();
 
   assertEquals(session.isPaused(), false);
-  await session.handleKey("space");
+  await session.handleKey(KEY_SPACE);
   assertEquals(session.isPaused(), true);
-  await session.handleKey("space");
+  await session.handleKey(KEY_SPACE);
   assertEquals(session.isPaused(), false);
 });
 
@@ -346,12 +363,12 @@ Deno.test("Phase 13.5: MonitorTuiSession - bookmarking", async () => {
   const session = monitorView.createTuiSession();
 
   assertEquals(session.getBookmarkedIds().size, 0);
-  await session.handleKey("b");
+  await session.handleKey(KEY_B);
   assertEquals(session.getBookmarkedIds().size, 1);
   assert(session.isBookmarked("1"));
 
   // Toggle off
-  await session.handleKey("b");
+  await session.handleKey(KEY_B);
   assertEquals(session.getBookmarkedIds().size, 0);
 });
 
@@ -381,13 +398,13 @@ Deno.test("Phase 13.5: MonitorTuiSession - navigation", async () => {
   const session = monitorView.createTuiSession();
 
   // Navigate down
-  await session.handleKey("down");
+  await session.handleKey(KEY_DOWN);
   // Navigate up
-  await session.handleKey("up");
+  await session.handleKey(KEY_UP);
   // Go to end
-  await session.handleKey("end");
+  await session.handleKey(KEY_END);
   // Go to home
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
 });
 
 Deno.test("Phase 13.5: MonitorTuiSession - expand/collapse all", async () => {
@@ -416,15 +433,15 @@ Deno.test("Phase 13.5: MonitorTuiSession - expand/collapse all", async () => {
   const session = monitorView.createTuiSession();
 
   // Switch to grouped mode
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
 
   // Collapse all
-  await session.handleKey("c");
+  await session.handleKey(KEY_C);
   const collapsed = session.getLogTree();
   assert(collapsed.every((n) => !n.expanded), "All should be collapsed");
 
   // Expand all
-  await session.handleKey("E");
+  await session.handleKey(KEY_CAPITAL_E);
   const expanded = session.getLogTree();
   assert(expanded.every((n) => n.expanded), "All should be expanded");
 });
@@ -447,12 +464,12 @@ Deno.test("Phase 13.5: MonitorTuiSession - detail view", async () => {
   assertEquals(session.isDetailVisible(), false);
 
   // Open detail
-  await session.handleKey("enter");
+  await session.handleKey(KEY_ENTER);
   assertEquals(session.isDetailVisible(), true);
   assert(session.getDetailContent().includes("ID: 1"));
 
   // Close detail
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.isDetailVisible(), false);
 });
 
@@ -526,9 +543,9 @@ Deno.test("Phase 13.5: MonitorTuiSession - auto refresh toggle", async () => {
   const session = monitorView.createTuiSession();
 
   assertEquals(session.isAutoRefreshEnabled(), false);
-  await session.handleKey("a");
+  await session.handleKey(KEY_A);
   assertEquals(session.isAutoRefreshEnabled(), true);
-  await session.handleKey("a");
+  await session.handleKey(KEY_A);
   assertEquals(session.isAutoRefreshEnabled(), false);
 
   // Clean up timer
@@ -549,11 +566,11 @@ Deno.test("Phase 13.5: MonitorTuiSession - search dialog", async () => {
   const session = monitorView.createTuiSession();
 
   assertEquals(session.hasActiveDialog(), false);
-  await session.handleKey("s");
+  await session.handleKey(KEY_S);
   assertEquals(session.hasActiveDialog(), true);
 
   // Cancel dialog
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -562,7 +579,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - refresh", async () => {
   const session = monitorView.createTuiSession();
 
   // This should not throw
-  await session.handleKey("R");
+  await session.handleKey(KEY_CAPITAL_R);
 });
 
 Deno.test("Phase 13.5: MonitorTuiSession - empty logs tree", () => {

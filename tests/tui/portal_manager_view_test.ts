@@ -2,6 +2,22 @@ import { assert, assertEquals } from "@std/assert";
 import { PortalManagerView, PortalService } from "../../src/tui/portal_manager_view.ts";
 import { GeneralStatus, PortalStatus } from "../../src/enums.ts";
 import { createPortalTuiWithPortals } from "./helpers.ts";
+import {
+  KEY_C,
+  KEY_CAPITAL_R,
+  KEY_D,
+  KEY_DOWN,
+  KEY_E,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_HOME,
+  KEY_LEFT,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_RIGHT,
+  KEY_UP,
+} from "../../src/config/constants.ts";
 
 // Minimal PortalService mock for tests
 class MinimalPortalServiceMock implements PortalService {
@@ -128,15 +144,15 @@ Deno.test("TUI: keyboard navigation and selection", () => {
     { alias: "Test", status: GeneralStatus.BROKEN as const, targetPath: "/Portals/Test" },
   ]);
   assertEquals(tui.getSelectedIndex(), 0, "Initial selection is first portal");
-  tui.handleKey("down");
+  tui.handleKey(KEY_DOWN);
   assertEquals(tui.getSelectedIndex(), 1, "Down arrow moves selection");
-  tui.handleKey("up");
+  tui.handleKey(KEY_UP);
   assertEquals(tui.getSelectedIndex(), 0, "Up arrow moves selection");
   // Note: With tree view, end/home navigate tree nodes (including groups)
   // The exact index depends on tree structure (groups + portals)
-  tui.handleKey("end");
+  tui.handleKey(KEY_END);
   const afterEnd = tui.getSelectedIndex();
-  tui.handleKey("home");
+  tui.handleKey(KEY_HOME);
   const afterHome = tui.getSelectedIndex();
   // Just verify navigation works and returns to a valid state
   assert(afterEnd >= 0, "End key should navigate to valid position");
@@ -148,7 +164,7 @@ Deno.test("TUI session hydrates from listPortals when available", () => {
     { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
     { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
-  tui.handleKey("end");
+  tui.handleKey(KEY_END);
   assertEquals(tui.getSelectedIndex(), 1);
 });
 
@@ -160,14 +176,14 @@ Deno.test("TUI: action triggers and state update", async () => {
   // Need to mock listPortals for refresh after remove
   service.listPortals = () => Promise.resolve([]);
 
-  await tui.handleKey("down"); // select Docs
-  await tui.handleKey("enter"); // open Docs
+  await tui.handleKey(KEY_DOWN); // select Docs
+  await tui.handleKey(KEY_ENTER); // open Docs
   assertEquals(service.actions[0], { type: "open", id: "Docs" });
-  await tui.handleKey("r"); // refresh Docs
+  await tui.handleKey(KEY_R); // refresh Docs
   assertEquals(service.actions[1], { type: "refresh", id: "Docs" });
   // Note: 'd' now shows confirm dialog (Phase 13.3), need to confirm
-  await tui.handleKey("d"); // shows dialog
-  await tui.handleKey("enter"); // confirm remove
+  await tui.handleKey(KEY_D); // shows dialog
+  await tui.handleKey(KEY_ENTER); // confirm remove
   assertEquals(service.actions[2], { type: "remove", id: "Docs" });
 });
 
@@ -176,10 +192,10 @@ Deno.test("TUI: error display and recovery", () => {
     { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
   tui.setSelectedIndex(1); // out of bounds
-  tui.handleKey("enter");
+  tui.handleKey(KEY_ENTER);
   assert(tui.getStatusMessage().includes("Error"), "Error message shown");
   tui.setSelectedIndex(0);
-  tui.handleKey("r");
+  tui.handleKey(KEY_R);
   assertEquals(service.actions[0], { type: "refresh", id: "Main" });
 });
 
@@ -191,11 +207,11 @@ Deno.test("TUI: accessibility - keyboard only", async () => {
   // Need to mock listPortals for remove
   service.listPortals = () => Promise.resolve([]);
 
-  await tui.handleKey("down");
-  await tui.handleKey("enter");
-  await tui.handleKey("r");
-  await tui.handleKey("d"); // shows dialog
-  await tui.handleKey("enter"); // confirm
+  await tui.handleKey(KEY_DOWN);
+  await tui.handleKey(KEY_ENTER);
+  await tui.handleKey(KEY_R);
+  await tui.handleKey(KEY_D); // shows dialog
+  await tui.handleKey(KEY_ENTER); // confirm
   assertEquals(service.actions.map((a) => a.type), ["open", "refresh", "remove"]);
 });
 
@@ -204,10 +220,10 @@ Deno.test("TUI: edge cases - rapid changes and errors", async () => {
     { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
     { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
   ]);
-  await tui.handleKey("down");
-  await tui.handleKey("up");
-  await tui.handleKey("down");
-  await tui.handleKey("enter"); // Opens first portal
+  await tui.handleKey(KEY_DOWN);
+  await tui.handleKey(KEY_UP);
+  await tui.handleKey(KEY_DOWN);
+  await tui.handleKey(KEY_ENTER); // Opens first portal
 
   // After opening, update portals to simulate removal
   tui.updatePortals([
@@ -230,7 +246,7 @@ Deno.test("TUI: edge cases - rapid changes and errors", async () => {
 
   // Set index directly to the Main portal and try to open
   tui.setSelectedIndex(0);
-  await tui.handleKey("enter");
+  await tui.handleKey(KEY_ENTER);
 
   const statusMsg = tui.getStatusMessage();
   assert(statusMsg.includes("Error") || statusMsg.includes("Simulated"), `Expected error in status: ${statusMsg}`);
@@ -352,7 +368,7 @@ Deno.test("TUI: renders status bar and updates on error", () => {
   assert(tui.renderStatusBar?.().includes("Ready"));
   // Trigger error
   tui.setSelectedIndex(99); // out of bounds
-  tui.handleKey("enter");
+  tui.handleKey(KEY_ENTER);
   assert(tui.renderStatusBar?.().includes("Error"));
 });
 
@@ -397,15 +413,15 @@ Deno.test("PortalManagerTuiSession keyboard navigation - down arrow", () => {
   assertEquals(tui.getSelectedIndex(), 0);
 
   // Press down - should go to index 1
-  tui.handleKey("down");
+  tui.handleKey(KEY_DOWN);
   assertEquals(tui.getSelectedIndex(), 1);
 
   // Press down again - should go to index 2
-  tui.handleKey("down");
+  tui.handleKey(KEY_DOWN);
   assertEquals(tui.getSelectedIndex(), 2);
 
   // Press down at end - should stay at index 2
-  tui.handleKey("down");
+  tui.handleKey(KEY_DOWN);
   assertEquals(tui.getSelectedIndex(), 2);
 });
 
@@ -421,15 +437,15 @@ Deno.test("PortalManagerTuiSession keyboard navigation - up arrow", () => {
   assertEquals(tui.getSelectedIndex(), 2);
 
   // Press up - should go to index 1
-  tui.handleKey("up");
+  tui.handleKey(KEY_UP);
   assertEquals(tui.getSelectedIndex(), 1);
 
   // Press up again - should go to index 0
-  tui.handleKey("up");
+  tui.handleKey(KEY_UP);
   assertEquals(tui.getSelectedIndex(), 0);
 
   // Press up at beginning - should stay at index 0
-  tui.handleKey("up");
+  tui.handleKey(KEY_UP);
   assertEquals(tui.getSelectedIndex(), 0);
 });
 
@@ -444,7 +460,7 @@ Deno.test("PortalManagerTuiSession keyboard navigation - end key", async () => {
   assertEquals(tui.getSelectedIndex(), 0);
 
   // Press end - with tree view, navigates to last node (may be group or portal)
-  await tui.handleKey("end");
+  await tui.handleKey(KEY_END);
   // Just verify it navigates somewhere valid
   const endIndex = tui.getSelectedIndex();
   assert(endIndex >= 0, "End should navigate to valid index");
@@ -458,10 +474,10 @@ Deno.test("PortalManagerTuiSession keyboard navigation - home key", async () => 
   ]);
 
   // First navigate to end
-  await tui.handleKey("end");
+  await tui.handleKey(KEY_END);
 
   // Press home - should go back to first node in tree
-  await tui.handleKey("home");
+  await tui.handleKey(KEY_HOME);
   const homeIndex = tui.getSelectedIndex();
   assert(homeIndex >= 0, "Home should navigate to valid index");
 });
@@ -479,12 +495,12 @@ Deno.test("PortalManagerTuiSession keyboard actions - enter (open portal)", asyn
 
   // Select first portal and press enter
   tui.setSelectedIndex(0);
-  await tui.handleKey("enter");
+  await tui.handleKey(KEY_ENTER);
   assertEquals(openedPortal, "Main");
 
   // Select second portal and press enter
   tui.setSelectedIndex(1);
-  await tui.handleKey("enter");
+  await tui.handleKey(KEY_ENTER);
   assertEquals(openedPortal, "Docs");
 });
 
@@ -501,12 +517,12 @@ Deno.test("PortalManagerTuiSession keyboard actions - r (refresh portal)", async
 
   // Select first portal and press r
   tui.setSelectedIndex(0);
-  await tui.handleKey("r");
+  await tui.handleKey(KEY_R);
   assertEquals(refreshedPortal, "Main");
 
   // Select second portal and press r
   tui.setSelectedIndex(1);
-  await tui.handleKey("r");
+  await tui.handleKey(KEY_R);
   assertEquals(refreshedPortal, "Docs");
 });
 
@@ -541,8 +557,8 @@ Deno.test("PortalManagerTuiSession keyboard actions - d (remove portal)", async 
 
   // Select first portal and press d (now shows confirm dialog)
   tui.setSelectedIndex(0);
-  await tui.handleKey("d"); // shows dialog
-  await tui.handleKey("enter"); // confirm
+  await tui.handleKey(KEY_D); // shows dialog
+  await tui.handleKey(KEY_ENTER); // confirm
   assertEquals(removedPortal, "Main", "First remove should target Main");
 });
 
@@ -555,7 +571,7 @@ Deno.test("PortalManagerTuiSession keyboard actions - error handling", async () 
   };
 
   // Try to open portal - should handle error gracefully
-  await tui.handleKey("enter");
+  await tui.handleKey(KEY_ENTER);
   assertEquals(tui.getStatusMessage(), "Error: Failed to open portal");
 });
 
@@ -563,12 +579,11 @@ Deno.test("PortalManagerTuiSession keyboard actions - no portals", () => {
   const { tui, service: _service, view: _view } = createPortalTuiWithPortals([]); // Empty list
 
   // Keyboard actions should be ignored when no portals
-  tui.handleKey("down");
-  tui.handleKey("up");
-  tui.handleKey("enter");
-  tui.handleKey("r");
-  tui.handleKey("d");
-
+  tui.handleKey(KEY_DOWN);
+  tui.handleKey(KEY_UP);
+  tui.handleKey(KEY_ENTER);
+  tui.handleKey(KEY_R);
+  tui.handleKey(KEY_D);
   // Should remain at index 0
   assertEquals(tui.getSelectedIndex(), 0);
 });
@@ -580,7 +595,7 @@ Deno.test("PortalManagerTuiSession keyboard actions - invalid selection", async 
 
   // Set invalid selection
   tui.setSelectedIndex(-1);
-  await tui.handleKey("enter");
+  await tui.handleKey(KEY_ENTER);
   assertEquals(tui.getStatusMessage(), "Error: No portal selected");
 });
 
@@ -636,11 +651,11 @@ Deno.test("Phase 13.3: Help screen toggle", async () => {
   assertEquals(tui.isHelpVisible(), false, "Help should be hidden initially");
 
   // Press ? to show help
-  await tui.handleKey("?");
+  await tui.handleKey(KEY_QUESTION);
   assertEquals(tui.isHelpVisible(), true, "Help should be visible after ?");
 
   // Press ? to hide help
-  await tui.handleKey("?");
+  await tui.handleKey(KEY_QUESTION);
   assertEquals(tui.isHelpVisible(), false, "Help should be hidden after second ?");
 });
 
@@ -649,10 +664,10 @@ Deno.test("Phase 13.3: Help screen can be closed with escape", async () => {
     { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
   ]);
 
-  await tui.handleKey("?");
+  await tui.handleKey(KEY_QUESTION);
   assertEquals(tui.isHelpVisible(), true);
 
-  await tui.handleKey("escape");
+  await tui.handleKey(KEY_ESCAPE);
   assertEquals(tui.isHelpVisible(), false, "Escape should close help");
 });
 
@@ -684,7 +699,7 @@ Deno.test("Phase 13.3: Loading state management", async () => {
   assertEquals(tui.isLoading(), false, "Should not be loading initially");
 
   // Start operation (don't await)
-  const opPromise = tui.handleKey("enter");
+  const opPromise = tui.handleKey(KEY_ENTER);
 
   // Should be loading now
   assertEquals(tui.isLoading(), true, "Should be loading during operation");
@@ -709,13 +724,13 @@ Deno.test("Phase 13.3: Expand/Collapse all", async () => {
   assert(tree.length > 0, "Should have tree nodes");
 
   // Collapse all
-  await tui.handleKey("c");
+  await tui.handleKey(KEY_C);
   const collapsedTree = tui.getPortalTree();
   const allCollapsed = collapsedTree.every((n) => !n.expanded);
   assertEquals(allCollapsed, true, "All groups should be collapsed after 'c'");
 
   // Expand all
-  await tui.handleKey("e");
+  await tui.handleKey(KEY_E);
   const expandedTree = tui.getPortalTree();
   const allExpanded = expandedTree.every((n) => n.expanded);
   assertEquals(allExpanded, true, "All groups should be expanded after 'e'");
@@ -761,7 +776,7 @@ Deno.test("Phase 13.3: Status bar shows loading spinner", async () => {
   });
   service.refreshPortal = () => slowPromise;
 
-  const opPromise = tui.handleKey("r");
+  const opPromise = tui.handleKey(KEY_R);
 
   // Check status bar during loading
   const statusDuring = tui.renderStatusBar();
@@ -828,14 +843,14 @@ Deno.test("Phase 13.3: Confirm dialog for remove", async () => {
   service.listPortals = () => Promise.resolve([]);
 
   // Press d - should show confirm dialog, not immediately remove
-  await tui.handleKey("d");
+  await tui.handleKey(KEY_D);
 
   // Should have active dialog
   assertEquals(tui.hasActiveDialog(), true, "Should have dialog open");
   assertEquals(removeTriggered, false, "Remove should not trigger yet");
 
   // Cancel the dialog
-  await tui.handleKey("escape");
+  await tui.handleKey(KEY_ESCAPE);
   assertEquals(tui.hasActiveDialog(), false, "Dialog should be closed");
   assertEquals(removeTriggered, false, "Remove should not trigger after cancel");
 });
@@ -853,11 +868,11 @@ Deno.test("Phase 13.3: Confirm dialog executes on confirm", async () => {
   service.listPortals = () => Promise.resolve([]);
 
   // Press d - show confirm dialog
-  await tui.handleKey("d");
+  await tui.handleKey(KEY_D);
   assertEquals(tui.hasActiveDialog(), true, "Should have dialog");
 
   // Press enter to confirm
-  await tui.handleKey("enter");
+  await tui.handleKey(KEY_ENTER);
   assertEquals(removeTriggered, true, "Remove should trigger after confirm");
 });
 
@@ -887,7 +902,7 @@ Deno.test("Phase 13.3: Refresh view with R key", async () => {
     ]);
   };
 
-  await tui.handleKey("R");
+  await tui.handleKey(KEY_CAPITAL_R);
   assertEquals(listCalled, true, "Should call listPortals on R");
 });
 
@@ -898,17 +913,17 @@ Deno.test("Phase 13.3: Left arrow collapses expanded group", async () => {
   ]);
 
   // Expand all first
-  await tui.handleKey("e");
+  await tui.handleKey(KEY_E);
 
   // Navigate to active group (it should be at home)
-  await tui.handleKey("home");
+  await tui.handleKey(KEY_HOME);
 
   const treeBefore = tui.getPortalTree();
   const activeGroupBefore = treeBefore.find((n) => n.id === "active-group");
   assertEquals(activeGroupBefore?.expanded, true, "Should be expanded");
 
   // Press left to collapse
-  await tui.handleKey("left");
+  await tui.handleKey(KEY_LEFT);
 
   const treeAfter = tui.getPortalTree();
   const activeGroupAfter = treeAfter.find((n) => n.id === "active-group");
@@ -922,17 +937,17 @@ Deno.test("Phase 13.3: Right arrow expands collapsed group", async () => {
   ]);
 
   // Collapse all first
-  await tui.handleKey("c");
+  await tui.handleKey(KEY_C);
 
   // Navigate to active group
-  await tui.handleKey("home");
+  await tui.handleKey(KEY_HOME);
 
   const treeBefore = tui.getPortalTree();
   const activeGroupBefore = treeBefore.find((n) => n.id === "active-group");
   assertEquals(activeGroupBefore?.expanded, false, "Should be collapsed");
 
   // Press right to expand
-  await tui.handleKey("right");
+  await tui.handleKey(KEY_RIGHT);
 
   const treeAfter = tui.getPortalTree();
   const activeGroupAfter = treeAfter.find((n) => n.id === "active-group");

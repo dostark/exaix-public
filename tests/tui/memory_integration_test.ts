@@ -35,6 +35,23 @@ import {
   stripMarkdown,
   wrapText,
 } from "../../src/tui/utils/markdown_renderer.ts";
+import {
+  KEY_A,
+  KEY_CAPITAL_R,
+  KEY_DOWN,
+  KEY_E,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_G,
+  KEY_N,
+  KEY_O,
+  KEY_P,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_S,
+  KEY_TAB,
+  KEY_Y,
+} from "../../src/config/constants.ts";
 
 // ===== Mock Service with Full Data =====
 
@@ -272,33 +289,32 @@ Deno.test("TUI Integration: full workflow - navigate → view → search", async
   assertGreater(tree.length, 0, "Tree should have nodes");
 
   // Navigate to projects
-  await session.handleKey("p");
+  await session.handleKey(KEY_P);
   assertEquals(session.getState().activeScope, "projects");
 
   // Expand projects
-  await session.handleKey("enter");
-
+  await session.handleKey(KEY_ENTER);
   // Navigate down to first project
-  await session.handleKey("down");
+  await session.handleKey(KEY_DOWN);
 
   // View detail
   const detail = session.getDetailContent();
   assertExists(detail);
 
   // Activate search
-  await session.handleKey("s");
+  await session.handleKey(KEY_S);
   assertEquals(session.isSearchActive(), true);
 
   // Type query
-  await session.handleKey("e");
-  await session.handleKey("r");
-  await session.handleKey("r");
-  await session.handleKey("o");
-  await session.handleKey("r");
+  await session.handleKey(KEY_E);
+  await session.handleKey(KEY_R);
+  await session.handleKey(KEY_R);
+  await session.handleKey(KEY_O);
+  await session.handleKey(KEY_R);
   assertEquals(session.getSearchQuery(), "error");
 
   // Execute search
-  await session.handleKey("enter");
+  await session.handleKey(KEY_ENTER);
   assertEquals(session.isSearchActive(), false);
 
   // Should have search results
@@ -314,20 +330,20 @@ Deno.test("TUI Integration: pending workflow - view → approve → verify", asy
   await session.initialize();
 
   // Navigate to pending
-  await session.handleKey("n");
+  await session.handleKey(KEY_N);
 
   // Expand pending
-  await session.handleKey("enter");
+  await session.handleKey(KEY_ENTER);
 
   // Navigate to first pending item
-  await session.handleKey("down");
+  await session.handleKey(KEY_DOWN);
 
   // Open approve dialog
-  await session.handleKey("a");
+  await session.handleKey(KEY_A);
   assertEquals(session.hasActiveDialog(), true);
 
   // Confirm approval
-  await session.handleKey("y");
+  await session.handleKey(KEY_Y);
 
   // Dialog should close
   assertEquals(session.hasActiveDialog(), false);
@@ -344,24 +360,24 @@ Deno.test("TUI Integration: reject workflow with reason", async () => {
   await session.initialize();
 
   // Navigate to pending
-  await session.handleKey("n");
-  await session.handleKey("enter");
-  await session.handleKey("down");
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
 
   // Open reject dialog
-  await session.handleKey("r");
+  await session.handleKey(KEY_R);
   assertEquals(session.hasActiveDialog(), true);
 
   // Navigate to reason field and type
-  await session.handleKey("tab");
-  await session.handleKey("enter"); // Enter edit mode
-  await session.handleKey("N");
-  await session.handleKey("o");
+  await session.handleKey(KEY_TAB);
+  await session.handleKey(KEY_ENTER); // Enter edit mode
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_O);
 
   // Confirm (navigate to button and press)
-  await session.handleKey("escape"); // Exit edit mode
-  await session.handleKey("tab"); // Go to Reject button
-  await session.handleKey("enter");
+  await session.handleKey(KEY_ESCAPE); // Exit edit mode
+  await session.handleKey(KEY_TAB); // Go to Reject button
+  await session.handleKey(KEY_ENTER);
 
   // Verify rejected
   assertEquals(session.hasActiveDialog(), false);
@@ -395,7 +411,7 @@ Deno.test("TUI Integration: refresh updates data", async () => {
   await new Promise((r) => setTimeout(r, 10));
 
   // Trigger refresh
-  await session.handleKey("R");
+  await session.handleKey(KEY_CAPITAL_R);
 
   const newTime = session.getState().lastRefresh;
   assertGreater(newTime, initialTime, "Refresh should update timestamp");
@@ -408,26 +424,26 @@ Deno.test("TUI Integration: keyboard accessibility - full navigation", async () 
   await session.initialize();
 
   // Test all scope shortcuts
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   assertEquals(session.getState().activeScope, MemoryScope.GLOBAL);
 
-  await session.handleKey("p");
+  await session.handleKey(KEY_P);
   assertEquals(session.getState().activeScope, "projects");
 
-  await session.handleKey("e");
+  await session.handleKey(KEY_E);
   assertEquals(session.getState().activeScope, "executions");
 
-  await session.handleKey("n");
+  await session.handleKey(KEY_N);
   assertEquals(session.getState().activeScope, MemoryStatus.PENDING);
 
   // Test help
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   assertStringIncludes(session.getDetailContent(), "Help");
 
   // Test escape in search mode
-  await session.handleKey("s");
+  await session.handleKey(KEY_S);
   assertEquals(session.isSearchActive(), true);
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.isSearchActive(), false);
 });
 

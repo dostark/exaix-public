@@ -17,6 +17,33 @@ export function sampleRequests(arr: Array<Record<string, any>>) {
   return arr.map((a) => sampleRequest(a));
 }
 
+export function sampleTestRequests() {
+  return sampleRequests([
+    {
+      trace_id: "req-1",
+      filename: "request-1.md",
+      title: "Request 1",
+      status: MemoryStatus.PENDING,
+      priority: "normal",
+      agent: "default",
+      created: "2025-12-23T10:00:00Z",
+      created_by: "test@example.com",
+      source: "cli",
+    },
+    {
+      trace_id: "req-2",
+      filename: "request-2.md",
+      title: "Request 2",
+      status: ExecutionStatus.COMPLETED,
+      priority: "high",
+      agent: "other",
+      created: "2025-12-23T11:00:00Z",
+      created_by: "test@example.com",
+      source: "cli",
+    },
+  ]);
+}
+
 export function createMockRequestService(initial: Array<Record<string, any>> = []) {
   class MockRequestService {
     requests: any[];
@@ -66,8 +93,8 @@ export function createMockRequestService(initial: Array<Record<string, any>> = [
 // -------------------------
 // Additional TUI helpers
 // -------------------------
-import { RequestManagerView } from "../../src/tui/request_manager_view.ts";
-import { MemorySource, MemoryStatus, SkillStatus } from "../../src/enums.ts";
+import { LegacyRequestManagerTuiSession, RequestManagerView } from "../../src/tui/request_manager_view.ts";
+import { ExecutionStatus, MemorySource, MemoryStatus, SkillStatus } from "../../src/enums.ts";
 
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { MonitorView } from "../../src/tui/monitor_view.ts";
@@ -385,6 +412,87 @@ export function countLinesContaining(lines: string[], text: string): number {
 }
 
 // -------------------------
+// Legacy request manager helpers
+// -------------------------
+export function createLegacyMockRequestService() {
+  return {
+    listRequests: () => Promise.resolve([]),
+    getRequestContent: () => Promise.resolve(""),
+    createRequest: () => Promise.resolve({} as any),
+    updateRequestStatus: () => Promise.resolve(true),
+  };
+}
+
+export function createLegacyTuiSession(requests: any[] = []) {
+  const mockService = createLegacyMockRequestService();
+  return new LegacyRequestManagerTuiSession(requests, mockService);
+}
+
+export function createLegacyTuiSessionWithTracking() {
+  let createCalled = false;
+  let viewCalled = false;
+  let deleteCalled = false;
+
+  const mockService = {
+    listRequests: () => Promise.resolve([]),
+    getRequestContent: (_id: string) => {
+      viewCalled = true;
+      return Promise.resolve("content");
+    },
+    createRequest: () => {
+      createCalled = true;
+      return Promise.resolve({
+        trace_id: "new-req",
+        filename: "request-new.md",
+        title: "New Request",
+        status: MemoryStatus.PENDING,
+        priority: "normal",
+        agent: "default",
+        created: new Date().toISOString(),
+        created_by: "test@example.com",
+        source: "cli",
+      } as any);
+    },
+    updateRequestStatus: () => {
+      deleteCalled = true;
+      return Promise.resolve(true);
+    },
+  };
+
+  const requests = sampleTestRequests();
+  const session = new LegacyRequestManagerTuiSession(requests, mockService);
+
+  return { session, createCalled: () => createCalled, viewCalled: () => viewCalled, deleteCalled: () => deleteCalled };
+}
+
+export function createLegacyTuiSessionWithLongTraceId() {
+  const mockService = {
+    listRequests: () => Promise.resolve([]),
+    getRequestContent: () => Promise.resolve(""),
+    createRequest: () =>
+      Promise.resolve({
+        trace_id: "12345678-abcd-efgh-ijkl-mnopqrstuvwx",
+      } as any),
+    updateRequestStatus: () => Promise.resolve(true),
+  };
+
+  const requests = sampleTestRequests();
+  return new LegacyRequestManagerTuiSession(requests, mockService);
+}
+
+export function createLegacyTuiSessionWithErrors() {
+  const mockService = {
+    listRequests: () => Promise.resolve([]),
+    getRequestContent: () => Promise.reject(new Error("View error")),
+    createRequest: () => Promise.reject(new Error("Create error")),
+    updateRequestStatus: () => Promise.reject(new Error("Delete error")),
+  };
+
+  const requests = sampleTestRequests();
+  return new LegacyRequestManagerTuiSession(requests, mockService);
+}
+
+// -------------------------
 // Dialog test helpers
 // -------------------------
 export function createMockDialogRenderOptions(width: number = 60, height: number = 20) {
@@ -396,22 +504,101 @@ export function createMockDialogRenderOptions(width: number = 60, height: number
 }
 
 // -------------------------
-// Spinner/Loading test helpers
+// Skills Manager helpers
 // -------------------------
-export function createMockSpinnerState(active: boolean = false, frame: number = 0) {
+import { MinimalSkillsServiceMock, SkillsManagerView, type SkillSummary } from "../../src/tui/skills_manager_view.ts";
+import { EvaluationCategory, MemoryScope } from "../../src/enums.ts";
+
+// Re-export enums for use by test files
+export { EvaluationCategory, MemoryScope };
+
+export function sampleSkill(overrides: Record<string, any> = {}) {
   return {
-    active,
-    frame,
-    message: active ? "Loading..." : "",
-    startTime: active ? Date.now() : 0,
+    id: overrides.id ?? `skill-${Math.floor(Math.random() * 1e6)}`,
+    name: overrides.name ?? "Test Skill",
+    version: overrides.version ?? "1.0.0",
+    status: overrides.status ?? SkillStatus.ACTIVE,
+    source: overrides.source ?? MemorySource.CORE,
+    description: overrides.description ?? "Test skill description",
+    triggers: overrides.triggers ?? {
+      keywords: ["test"],
+    },
+    instructions: overrides.instructions ?? "Test instructions",
+    ...overrides,
   };
 }
 
-export function createMockProgressState(current: number = 0, total: number = 100) {
-  return {
-    current,
-    total,
-    message: "Processing...",
-    startTime: Date.now(),
-  };
+export function sampleSkills(arr: Array<Record<string, any>>) {
+  return arr.map((a) => sampleSkill(a));
+}
+
+export function sampleTestSkills(): SkillSummary[] {
+  return sampleSkills([
+    {
+      id: "tdd-methodology",
+      name: "TDD Methodology",
+      version: "1.0.0",
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.CORE,
+      description: "Test-Driven Development methodology",
+      triggers: {
+        keywords: ["tdd", "test-first"],
+        taskTypes: ["testing"],
+        filePatterns: ["*_test.ts"],
+      },
+      instructions: "Write failing test first, then implement.\nRepeat until done.\nRefactor as needed.",
+    },
+    {
+      id: "security-first",
+      name: "Security First",
+      version: "1.0.0",
+      status: SkillStatus.ACTIVE,
+      source: MemorySource.CORE,
+      description: "Security-focused development",
+      triggers: {
+        keywords: [EvaluationCategory.SECURITY, "auth"],
+      },
+    },
+    {
+      id: "project-conventions",
+      name: "Project Conventions",
+      version: "1.0.0",
+      status: SkillStatus.ACTIVE,
+      source: MemoryScope.PROJECT,
+    },
+    {
+      id: "learned-pattern",
+      name: "Learned Pattern",
+      version: "1.0.0",
+      status: SkillStatus.DRAFT,
+      source: MemorySource.LEARNED,
+    },
+    {
+      id: "deprecated-skill",
+      name: "Deprecated Skill",
+      version: "0.5.0",
+      status: SkillStatus.DEPRECATED,
+      source: MemoryScope.PROJECT,
+    },
+  ]);
+}
+
+export function createTestSkills(): SkillSummary[] {
+  return sampleTestSkills();
+}
+
+export function createMockSkillsService(initial: Array<Record<string, any>> = []) {
+  return new MinimalSkillsServiceMock(sampleSkills(initial));
+}
+
+export function createSkillsManagerViewWithMock(skills: SkillSummary[] = sampleTestSkills()) {
+  const service = new MinimalSkillsServiceMock(skills);
+  const view = new SkillsManagerView(service);
+  return { service, view };
+}
+
+export function createSkillsManagerTuiSession(skills: SkillSummary[] = sampleTestSkills()) {
+  const { service, view } = createSkillsManagerViewWithMock(skills);
+  const session = view.createTuiSession(false);
+  return { service, view, session };
 }

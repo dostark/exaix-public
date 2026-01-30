@@ -12,7 +12,24 @@ import {
   createViewWithRequests,
   sampleRequest as _sampleRequest,
   sampleRequests as _sampleRequests,
+  sampleTestRequests,
 } from "./helpers.ts";
+import {
+  KEY_C,
+  KEY_CAPITAL_C,
+  KEY_CAPITAL_E,
+  KEY_D,
+  KEY_DOWN,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_HOME,
+  KEY_P,
+  KEY_QUESTION,
+  KEY_S,
+  KEY_TAB,
+  KEY_UP,
+} from "../../src/config/constants.ts";
 
 Deno.test("RequestManagerView - renders request list correctly", async () => {
   const { service: _service, view } = createViewWithRequests([
@@ -188,21 +205,21 @@ Deno.test("RequestManagerTuiSession - keyboard navigation", async () => {
   assertEquals(tui.getSelectedRequest()?.trace_id, "req-1");
 
   // Navigate down
-  await tui.handleKey("down");
+  await tui.handleKey(KEY_DOWN);
   assertEquals(tui.getSelectedIndexInRequests(), 1);
   assertEquals(tui.getSelectedRequest()?.trace_id, "req-2");
 
   // Navigate up
-  await tui.handleKey("up");
+  await tui.handleKey(KEY_UP);
   assertEquals(tui.getSelectedIndexInRequests(), 0);
   assertEquals(tui.getSelectedRequest()?.trace_id, "req-1");
 
   // Navigate to end
-  await tui.handleKey("end");
+  await tui.handleKey(KEY_END);
   assertEquals(tui.getSelectedIndexInRequests(), 1);
 
   // Navigate to home
-  await tui.handleKey("home");
+  await tui.handleKey(KEY_HOME);
   assertEquals(tui.getSelectedIndexInRequests(), 0);
 });
 
@@ -228,22 +245,22 @@ Deno.test("RequestManagerTuiSession - keyboard actions show dialogs", async () =
   assertEquals(tui.getState().selectedRequestId, "req-1");
 
   // 'c' key shows create dialog
-  await tui.handleKey("c");
+  await tui.handleKey(KEY_C);
   assert(tui.getState().activeDialog !== null, "Create dialog should be shown");
 
   // Cancel the dialog
-  await tui.handleKey("escape");
+  await tui.handleKey(KEY_ESCAPE);
   assertEquals(tui.getState().activeDialog, null, "Dialog should be closed");
 
   // 's' key shows search dialog
-  await tui.handleKey("s");
+  await tui.handleKey(KEY_S);
   assert(tui.getState().activeDialog !== null, "Search dialog should be shown");
-  await tui.handleKey("escape");
+  await tui.handleKey(KEY_ESCAPE);
 
   // '?' key shows help
-  await tui.handleKey("?");
+  await tui.handleKey(KEY_QUESTION);
   assert(tui.getState().showHelp, "Help should be shown");
-  await tui.handleKey("?");
+  await tui.handleKey(KEY_QUESTION);
   assertEquals(tui.getState().showHelp, false, "Help should be hidden");
 });
 
@@ -276,19 +293,16 @@ Deno.test("RequestManagerTuiSession - create request via dialog", async () => {
   // Type description and confirm
   const dialog = tui.getState().activeDialog!;
   // Focus on input field
-  dialog.handleKey("enter"); // Focus input
+  dialog.handleKey(KEY_ENTER); // Focus input
   // Type characters
   for (const char of "Test request") {
     dialog.handleKey(char);
   }
   // Tab to confirm button
-  dialog.handleKey("tab");
-  dialog.handleKey("tab");
+  dialog.handleKey(KEY_TAB);
+  dialog.handleKey(KEY_TAB);
   // Confirm
-  dialog.handleKey("enter");
-
-  // Process the dialog result
-  await tui.handleKey("");
+  dialog.handleKey(KEY_ENTER);
 
   // Wait for async create to complete
   await new Promise((resolve) => setTimeout(resolve, 50));
@@ -303,16 +317,16 @@ Deno.test("RequestManagerTuiSession - handles empty request list", async () => {
   const tui = view.createTuiSession([]);
 
   // Navigation should be safe with empty list
-  await tui.handleKey("down");
-  await tui.handleKey("up");
+  await tui.handleKey(KEY_DOWN);
+  await tui.handleKey(KEY_UP);
 
   // 'c' key should still show create dialog even with empty list
-  await tui.handleKey("c");
+  await tui.handleKey(KEY_C);
   assert(tui.getState().activeDialog !== null, "Create dialog should show even with empty list");
-  await tui.handleKey("escape");
+  await tui.handleKey(KEY_ESCAPE);
 
   // 'd' without selection should do nothing
-  await tui.handleKey("d");
+  await tui.handleKey(KEY_D);
   // No dialog should show because no request is selected
 });
 
@@ -328,7 +342,7 @@ Deno.test("RequestManagerTuiSession - error handling via dialog", async () => {
   assert(tui.getState().activeDialog !== null);
 
   // Cancel dialog
-  await tui.handleKey("escape");
+  await tui.handleKey(KEY_ESCAPE);
   assertEquals(tui.getState().activeDialog, null);
 });
 
@@ -494,30 +508,7 @@ Deno.test("Phase 13.6: Search functionality", () => {
 
 Deno.test("Phase 13.6: Filter by status", () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = [
-    {
-      trace_id: "req-1",
-      filename: "request-1.md",
-      title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
-    },
-    {
-      trace_id: "req-2",
-      filename: "request-2.md",
-      title: "Request 2",
-      status: ExecutionStatus.COMPLETED,
-      priority: "high",
-      agent: "other",
-      created: "2025-12-23T11:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
-    },
-  ];
+  const requests = sampleTestRequests();
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -660,7 +651,7 @@ Deno.test("Phase 13.6: Cancel confirm dialog", async () => {
   assert(tui.getState().activeDialog !== null);
 
   // Cancel the dialog
-  await tui.handleKey("escape");
+  await tui.handleKey(KEY_ESCAPE);
   assertEquals(tui.getState().activeDialog, null);
 });
 
@@ -683,11 +674,11 @@ Deno.test("Phase 13.6: Priority dialog", async () => {
   const tui = view.createTuiSession(requests);
 
   // Show priority dialog via 'p' key
-  await tui.handleKey("p");
+  await tui.handleKey(KEY_P);
   assert(tui.getState().activeDialog !== null);
 
   // Cancel
-  await tui.handleKey("escape");
+  await tui.handleKey(KEY_ESCAPE);
   assertEquals(tui.getState().activeDialog, null);
 });
 
@@ -725,8 +716,8 @@ Deno.test("Phase 13.6: Tree navigation with groups", async () => {
   assertEquals(tui.getState().groupBy, "status");
 
   // Navigate should work with groups
-  await tui.handleKey("down");
-  await tui.handleKey("down");
+  await tui.handleKey(KEY_DOWN);
+  await tui.handleKey(KEY_DOWN);
   // Should be navigating through the tree
   assert(tui.getState().selectedRequestId !== null);
 });
@@ -770,30 +761,7 @@ Deno.test("Phase 13.6: setRequests updates tree", () => {
 
 Deno.test("Phase 13.6: Collapse and expand all", async () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = [
-    {
-      trace_id: "req-1",
-      filename: "request-1.md",
-      title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
-    },
-    {
-      trace_id: "req-2",
-      filename: "request-2.md",
-      title: "Request 2",
-      status: ExecutionStatus.COMPLETED,
-      priority: "high",
-      agent: "other",
-      created: "2025-12-23T11:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
-    },
-  ];
+  const requests = sampleTestRequests();
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -804,10 +772,10 @@ Deno.test("Phase 13.6: Collapse and expand all", async () => {
   assert(tui.getState().requestTree[0].expanded);
 
   // Collapse all ('C' key)
-  await tui.handleKey("C");
+  await tui.handleKey(KEY_CAPITAL_C);
   assertEquals(tui.getState().requestTree[0].expanded, false);
 
   // Expand all ('E' key)
-  await tui.handleKey("E");
+  await tui.handleKey(KEY_CAPITAL_E);
   assertEquals(tui.getState().requestTree[0].expanded, true);
 });

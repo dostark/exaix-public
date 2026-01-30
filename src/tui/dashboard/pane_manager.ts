@@ -25,6 +25,12 @@ export async function splitPane(
     // Split vertically: left-right
     const halfFlexWidth = activePane.flexWidth / 2;
     const halfWidth = Math.floor(activePane.width / 2);
+    if (
+      (globalThis as any).Deno && (globalThis as any).Deno.env &&
+      (globalThis as any).Deno.env.get("EXO_TEST_LOG_SPLIT_DEBUG") === "1"
+    ) {
+      console.debug("[TUI][DEBUG] splitPane vertical BEFORE", activePane.id, "flexWidth=", activePane.flexWidth);
+    }
 
     const newPane: Pane = {
       id: newId,
@@ -43,6 +49,12 @@ export async function splitPane(
 
     activePane.flexWidth = halfFlexWidth;
     activePane.width = halfWidth;
+    if (
+      (globalThis as any).Deno && (globalThis as any).Deno.env &&
+      (globalThis as any).Deno.env.get("EXO_TEST_LOG_SPLIT_DEBUG") === "1"
+    ) {
+      console.debug("[TUI][DEBUG] splitPane vertical AFTER", activePane.id, "flexWidth=", activePane.flexWidth);
+    }
     panes.push(newPane);
   } else {
     // Split horizontally: top-bottom
@@ -66,6 +78,7 @@ export async function splitPane(
 
     activePane.flexHeight = halfFlexHeight;
     activePane.height = halfHeight;
+    // Append the new bottom pane to the end so test indexing remains stable
     panes.push(newPane);
   }
 

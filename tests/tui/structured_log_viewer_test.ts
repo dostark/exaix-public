@@ -1,6 +1,24 @@
 import { assert, assertEquals } from "@std/assert";
 import { type StructuredLogService, StructuredLogViewer } from "../../src/tui/structured_log_viewer.ts";
 import type { LogEntry, StructuredLogger } from "../../src/services/structured_logger.ts";
+import {
+  KEY_B,
+  KEY_C,
+  KEY_CAPITAL_C,
+  KEY_CAPITAL_E,
+  KEY_DOWN,
+  KEY_E,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_HOME,
+  KEY_Q,
+  KEY_QUESTION,
+  KEY_RIGHT,
+  KEY_S,
+  KEY_T,
+  KEY_UP,
+} from "../../src/config/constants.ts";
 
 // Mock Service
 class MockLogService implements StructuredLogService {
@@ -122,12 +140,12 @@ Deno.test("StructuredLogViewer: handleKey navigation", async () => {
   const firstId = viewer.getSelectedId();
   assert(firstId);
 
-  await viewer.handleKey("down");
+  await viewer.handleKey(KEY_DOWN);
   const secondId = viewer.getSelectedId();
   assert(secondId);
   assert(firstId !== secondId);
 
-  await viewer.handleKey("up");
+  await viewer.handleKey(KEY_UP);
   assertEquals(viewer.getSelectedId(), firstId);
 });
 
@@ -179,7 +197,7 @@ Deno.test("StructuredLogViewer: handleKey expand/collapse details", async () => 
   // Index 0 is Group?
   // Let's verify grouping.
 
-  await viewer.handleKey("enter"); // Toggles group or expands log
+  await viewer.handleKey(KEY_ENTER); // Toggles group or expands log
   // If it was group, it toggles.
   // If it was log, it expands.
 
@@ -200,11 +218,11 @@ Deno.test("StructuredLogViewer: bookmark toggles state", async () => {
   const logId = logs[0].timestamp;
 
   (viewer as any).state.selectedId = logId;
-  await viewer.handleKey("b");
+  await viewer.handleKey(KEY_B);
 
   assert(viewer.getExtensions().bookmarkedIds.has(logId));
 
-  await viewer.handleKey("b");
+  await viewer.handleKey(KEY_B);
   assert(!viewer.getExtensions().bookmarkedIds.has(logId));
 });
 
@@ -212,14 +230,14 @@ Deno.test("StructuredLogViewer: help toggle", async () => {
   const service = new MockLogService();
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
 
-  await viewer.handleKey("?");
+  await viewer.handleKey(KEY_QUESTION);
   assert((viewer as any).state.showHelp);
 
   const output = await viewer.render(100, 40);
   const helpContent = output.join("\n");
   assert(helpContent.includes("Structured Log Viewer Help"));
 
-  await viewer.handleKey("escape"); // escape also closes help
+  await viewer.handleKey(KEY_ESCAPE); // escape also closes help
   assert(!(viewer as any).state.showHelp);
 });
 
@@ -227,14 +245,14 @@ Deno.test("StructuredLogViewer: search dialog interaction", async () => {
   const service = new MockLogService();
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
 
-  await viewer.handleKey("s");
+  await viewer.handleKey(KEY_S);
   const dialog = (viewer as any).state.activeDialog;
   assert(dialog, "Dialog should be active");
   // Access private options via cast
   assert((dialog as any).options.title.includes("Search Logs"));
 
   // Cancel dialog
-  await viewer.handleKey("escape");
+  await viewer.handleKey(KEY_ESCAPE);
   assert(!(viewer as any).state.activeDialog);
 });
 
@@ -244,14 +262,14 @@ Deno.test("StructuredLogViewer: collapse/expand all", async () => {
   await viewer.refreshLogs();
 
   // Test collapse all
-  await viewer.handleKey("C");
+  await viewer.handleKey(KEY_CAPITAL_C);
   let tree = (viewer as any).state.tree;
   // Deep check: groups should be collapsed
   const hasCollapsedGroup = tree.some((node: any) => node.type === "group" && node.expanded === false);
   assert(hasCollapsedGroup, "Should have collapsed groups");
 
   // Test expand all
-  await viewer.handleKey("E");
+  await viewer.handleKey(KEY_CAPITAL_E);
   tree = (viewer as any).state.tree;
   const hasExpandedGroup = tree.some((node: any) => node.type === "group" && node.expanded === true);
   assert(hasExpandedGroup, "Should have expanded groups");
@@ -271,7 +289,7 @@ Deno.test("StructuredLogViewer: export logs", async () => {
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
   await viewer.refreshLogs();
 
-  await viewer.handleKey("e");
+  await viewer.handleKey(KEY_E);
   assert(exportCalled, "exportLogs should have been called on the service");
   assert(exportFilename.startsWith("structured-logs-"));
 });
@@ -329,7 +347,7 @@ Deno.test("StructuredLogViewer: correlation and trace mode", async () => {
   assert(filteredLogs.every((l: LogEntry) => l.context.correlation_id === "c1"));
 
   // Toggle off
-  await viewer.handleKey("c");
+  await viewer.handleKey(KEY_C);
   assertEquals(viewer.getExtensions().correlationMode, false, "Correlation mode should be disabled");
 
   // Test trace mode filtering
@@ -406,20 +424,20 @@ Deno.test("StructuredLogViewer: navigation edge cases", async () => {
 
   // Test home/end
   const firstId = viewer.getSelectedId();
-  await viewer.handleKey("end");
+  await viewer.handleKey(KEY_END);
   assert(viewer.getSelectedId() !== firstId);
 
-  await viewer.handleKey("home");
+  await viewer.handleKey(KEY_HOME);
   assertEquals(viewer.getSelectedId(), firstId);
 
   // Test left/right on non-expandable or already in state
   // Force selection of a leaf node
   // Expand first group
-  await viewer.handleKey("enter");
-  await viewer.handleKey("right"); // Should do nothing on leaf or already expanded
+  await viewer.handleKey(KEY_ENTER);
+  await viewer.handleKey(KEY_RIGHT); // Should do nothing on leaf or already expanded
 
   // Test escape/q handling
-  await viewer.handleKey("q");
+  await viewer.handleKey(KEY_Q);
   // Helper does nothing on Q usually, but check no error
 });
 
@@ -428,21 +446,20 @@ Deno.test("StructuredLogViewer: dialog key handling", async () => {
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
 
   // Open search dialog
-  await viewer.handleKey("s");
+  await viewer.handleKey(KEY_S);
 
   // Interact with dialog
   // Default focus is on input, but we need to press Enter to start editing
-  await viewer.handleKey("enter");
-
-  await viewer.handleKey("t"); // type 't'
-  await viewer.handleKey("e"); // type 'e'
+  await viewer.handleKey(KEY_ENTER);
+  await viewer.handleKey(KEY_T); // type 't'
+  await viewer.handleKey(KEY_E); // type 'e'
 
   // Verify value inside dialog
   const activeDialog = (viewer as any).state.activeDialog;
   assertEquals(activeDialog.getValue(), "te");
 
-  await viewer.handleKey("enter"); // stop editing, moves focus to OK
-  await viewer.handleKey("enter"); // confirm
+  await viewer.handleKey(KEY_ENTER); // stop editing, moves focus to OK
+  await viewer.handleKey(KEY_ENTER); // confirm
 
   // After confirm, search query should be updated
   assertEquals((viewer as any).state.filterText, "te");
@@ -536,20 +553,20 @@ Deno.test("StructuredLogViewer: correlation/trace key shortcuts", async () => {
   (viewer as any).state.selectedId = firstLogId;
 
   // Press 'c' to enable correlation mode for "c1"
-  await viewer.handleKey("c");
+  await viewer.handleKey(KEY_C);
   assertEquals(viewer.getExtensions().correlationMode, true, "Correlation mode should be enabled via 'c'");
   assertEquals(viewer.getExtensions().activeCorrelationId, "c1");
 
   // Press 'c' to disable
-  await viewer.handleKey("c");
+  await viewer.handleKey(KEY_C);
   assertEquals(viewer.getExtensions().correlationMode, false, "Correlation mode should be disabled via 'c'");
   assertEquals(viewer.getExtensions().activeCorrelationId, null);
 
   // Press 't' to enable trace mode for "t1"
-  await viewer.handleKey("t");
+  await viewer.handleKey(KEY_T);
   assertEquals(viewer.getExtensions().activeTraceId, "t1");
 
   // Press 't' to disable
-  await viewer.handleKey("t");
+  await viewer.handleKey(KEY_T);
   assertEquals(viewer.getExtensions().activeTraceId, null);
 });

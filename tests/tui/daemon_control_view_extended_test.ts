@@ -16,6 +16,7 @@ import {
   LOG_LEVEL_COLORS,
   MinimalDaemonServiceMock,
 } from "../../src/tui/daemon_control_view.ts";
+import { KEY_A, KEY_CAPITAL_R, KEY_ESCAPE, KEY_K, KEY_R, KEY_S, KEY_Y } from "../../src/config/constants.ts";
 
 // ===== Constants Tests =====
 
@@ -382,7 +383,7 @@ Deno.test("DaemonControlTuiSession: handleKey with active dialog", async () => {
   assertEquals(session.hasActiveDialog(), true);
 
   // Cancel the dialog
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -394,7 +395,7 @@ Deno.test("DaemonControlTuiSession: handleKey 's' shows start confirm", async ()
 
   await session.initialize();
 
-  await session.handleKey("s");
+  await session.handleKey(KEY_S);
   assertEquals(session.hasActiveDialog(), true);
 });
 
@@ -406,7 +407,7 @@ Deno.test("DaemonControlTuiSession: handleKey 'k' shows stop confirm", async () 
 
   await session.initialize();
 
-  await session.handleKey("k");
+  await session.handleKey(KEY_K);
   assertEquals(session.hasActiveDialog(), true);
 });
 
@@ -417,7 +418,7 @@ Deno.test("DaemonControlTuiSession: handleKey 'r' shows restart confirm", async 
 
   await session.initialize();
 
-  await session.handleKey("r");
+  await session.handleKey(KEY_R);
   assertEquals(session.hasActiveDialog(), true);
 });
 
@@ -433,7 +434,7 @@ Deno.test("DaemonControlTuiSession: handleKey 'R' refreshes status", async () =>
   // Wait a tiny bit to ensure time difference
   await new Promise((r) => setTimeout(r, 10));
 
-  await session.handleKey("R");
+  await session.handleKey(KEY_CAPITAL_R);
 
   const afterCheck = session.getLastStatusCheck();
   // Should have refreshed
@@ -449,10 +450,10 @@ Deno.test("DaemonControlTuiSession: handleKey 'a' toggles auto-refresh", async (
 
   assertEquals(session.isAutoRefreshEnabled(), false);
 
-  await session.handleKey("a");
+  await session.handleKey(KEY_A);
   assertEquals(session.isAutoRefreshEnabled(), true);
 
-  await session.handleKey("a");
+  await session.handleKey(KEY_A);
   assertEquals(session.isAutoRefreshEnabled(), false);
 
   session.dispose();
@@ -591,11 +592,11 @@ Deno.test("DaemonControlTuiSession: confirm start dialog executes start", async 
   assertEquals(session.getDaemonStatus(), DaemonStatus.STOPPED);
 
   // Open start dialog via handleKey
-  await session.handleKey("s");
+  await session.handleKey(KEY_S);
   assertEquals(session.hasActiveDialog(), true);
 
   // Confirm the dialog (press 'y' for yes)
-  await session.handleKey("y");
+  await session.handleKey(KEY_Y);
   assertEquals(session.hasActiveDialog(), false);
 
   // Give time for async start to complete
@@ -621,7 +622,7 @@ Deno.test("DaemonControlTuiSession: getFocusableElements in different states", a
   assertEquals(elements.includes("start-button"), false); // Dialog controls override
 
   // Cancel dialog
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
 
   // With logs view
   await session.showLogs();

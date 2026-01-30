@@ -31,6 +31,25 @@ import {
   PromoteDialog,
 } from "../../src/tui/dialogs/memory_dialogs.ts";
 import type { MemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
+import {
+  KEY_A,
+  KEY_B,
+  KEY_BACKSPACE,
+  KEY_C,
+  KEY_CAPITAL_N,
+  KEY_D,
+  KEY_E,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_N,
+  KEY_O,
+  KEY_RIGHT,
+  KEY_S,
+  KEY_SPACE,
+  KEY_T,
+  KEY_TAB,
+  KEY_Y,
+} from "../../src/config/constants.ts";
 
 // ===== Test Fixtures =====
 
@@ -64,7 +83,7 @@ Deno.test("ConfirmApproveDialog: renders correctly", () => {
   const proposal = createMockProposal();
   const dialog = new ConfirmApproveDialog(proposal);
 
-  const rendered = dialog.render(80, 20);
+  const rendered = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertExists(rendered);
   assertEquals(rendered.includes("Approve Proposal"), true);
   assertEquals(rendered.includes("Error Handling Pattern"), true);
@@ -83,12 +102,12 @@ Deno.test("ConfirmApproveDialog: left/right switches focus", () => {
   const proposal = createMockProposal();
   const dialog = new ConfirmApproveDialog(proposal);
 
-  dialog.handleKey("right");
-  const rendered1 = dialog.render(80, 20);
+  dialog.handleKey(KEY_RIGHT);
+  const rendered1 = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertEquals(rendered1.includes("[No, Cancel]"), true);
 
-  dialog.handleKey("left");
-  const rendered2 = dialog.render(80, 20);
+  dialog.handleKey(KEY_RIGHT);
+  const rendered2 = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertEquals(rendered2.includes("[Yes, Approve]"), true);
 });
 
@@ -96,7 +115,7 @@ Deno.test("ConfirmApproveDialog: enter on approve confirms", () => {
   const proposal = createMockProposal();
   const dialog = new ConfirmApproveDialog(proposal);
 
-  dialog.handleKey("enter");
+  dialog.handleKey(KEY_ENTER);
   assertEquals(dialog.isActive(), false);
   assertEquals(dialog.getState(), "confirmed");
 
@@ -111,7 +130,7 @@ Deno.test("ConfirmApproveDialog: 'y' shortcut confirms", () => {
   const proposal = createMockProposal();
   const dialog = new ConfirmApproveDialog(proposal);
 
-  dialog.handleKey("y");
+  dialog.handleKey(KEY_Y);
   assertEquals(dialog.isActive(), false);
   assertEquals(dialog.getState(), "confirmed");
 });
@@ -120,7 +139,7 @@ Deno.test("ConfirmApproveDialog: escape cancels", () => {
   const proposal = createMockProposal();
   const dialog = new ConfirmApproveDialog(proposal);
 
-  dialog.handleKey("escape");
+  dialog.handleKey(KEY_ESCAPE);
   assertEquals(dialog.isActive(), false);
   assertEquals(dialog.getState(), "cancelled");
 
@@ -132,7 +151,7 @@ Deno.test("ConfirmApproveDialog: 'n' shortcut cancels", () => {
   const proposal = createMockProposal();
   const dialog = new ConfirmApproveDialog(proposal);
 
-  dialog.handleKey("n");
+  dialog.handleKey(KEY_N);
   assertEquals(dialog.isActive(), false);
   assertEquals(dialog.getState(), "cancelled");
 });
@@ -152,7 +171,7 @@ Deno.test("ConfirmRejectDialog: renders correctly", () => {
   const proposal = createMockProposal();
   const dialog = new ConfirmRejectDialog(proposal);
 
-  const rendered = dialog.render(80, 20);
+  const rendered = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertExists(rendered);
   assertEquals(rendered.includes("Reject Proposal"), true);
   assertEquals(rendered.includes("Error Handling Pattern"), true);
@@ -164,9 +183,9 @@ Deno.test("ConfirmRejectDialog: navigates with tab/arrow", () => {
   const dialog = new ConfirmRejectDialog(proposal);
 
   // Tab cycles through reason input, reject button, cancel button
-  dialog.handleKey("tab");
-  dialog.handleKey("tab");
-  dialog.handleKey("tab");
+  dialog.handleKey(KEY_TAB);
+  dialog.handleKey(KEY_TAB);
+  dialog.handleKey(KEY_TAB);
   // Should be back to reason input
   assertEquals(dialog.isActive(), true);
 });
@@ -175,17 +194,17 @@ Deno.test("ConfirmRejectDialog: enters edit mode for reason", () => {
   const proposal = createMockProposal();
   const dialog = new ConfirmRejectDialog(proposal);
 
-  dialog.handleKey("enter"); // Enter edit mode on reason input
-  dialog.handleKey("N");
-  dialog.handleKey("o");
-  dialog.handleKey("t");
-  dialog.handleKey(" ");
-  dialog.handleKey("n");
-  dialog.handleKey("e");
-  dialog.handleKey("e");
-  dialog.handleKey("d");
-  dialog.handleKey("e");
-  dialog.handleKey("d");
+  dialog.handleKey(KEY_ENTER); // Enter edit mode on reason input
+  dialog.handleKey(KEY_CAPITAL_N);
+  dialog.handleKey(KEY_O);
+  dialog.handleKey(KEY_T);
+  dialog.handleKey(KEY_SPACE);
+  dialog.handleKey(KEY_N);
+  dialog.handleKey(KEY_E);
+  dialog.handleKey(KEY_E);
+  dialog.handleKey(KEY_D);
+  dialog.handleKey(KEY_E);
+  dialog.handleKey(KEY_D);
 
   assertEquals(dialog.getReason(), "Not needed");
 });
@@ -194,12 +213,11 @@ Deno.test("ConfirmRejectDialog: backspace removes characters in edit mode", () =
   const proposal = createMockProposal();
   const dialog = new ConfirmRejectDialog(proposal);
 
-  dialog.handleKey("enter"); // Enter edit mode
-  dialog.handleKey("a");
-  dialog.handleKey("b");
-  dialog.handleKey("c");
-  dialog.handleKey("backspace");
-
+  dialog.handleKey(KEY_ENTER); // Enter edit mode
+  dialog.handleKey(KEY_A);
+  dialog.handleKey(KEY_B);
+  dialog.handleKey(KEY_C);
+  dialog.handleKey(KEY_BACKSPACE);
   assertEquals(dialog.getReason(), "ab");
 });
 
@@ -207,12 +225,12 @@ Deno.test("ConfirmRejectDialog: escape exits edit mode", () => {
   const proposal = createMockProposal();
   const dialog = new ConfirmRejectDialog(proposal);
 
-  dialog.handleKey("enter"); // Enter edit mode
-  dialog.handleKey("t");
-  dialog.handleKey("e");
-  dialog.handleKey("s");
-  dialog.handleKey("t");
-  dialog.handleKey("escape"); // Exit edit mode
+  dialog.handleKey(KEY_ENTER); // Enter edit mode
+  dialog.handleKey(KEY_T);
+  dialog.handleKey(KEY_E);
+  dialog.handleKey(KEY_S);
+  dialog.handleKey(KEY_T);
+  dialog.handleKey(KEY_ESCAPE); // Exit edit mode
 
   // Dialog should still be active (not cancelled)
   assertEquals(dialog.isActive(), true);
@@ -224,8 +242,8 @@ Deno.test("ConfirmRejectDialog: confirms with reason", () => {
   const dialog = new ConfirmRejectDialog(proposal);
 
   // Navigate to reject button and confirm
-  dialog.handleKey("tab"); // to reject button
-  dialog.handleKey("enter");
+  dialog.handleKey(KEY_TAB); // to reject button
+  dialog.handleKey(KEY_ENTER);
 
   assertEquals(dialog.isActive(), false);
   const result = dialog.getResult();
@@ -240,7 +258,7 @@ Deno.test("ConfirmRejectDialog: confirms with reason", () => {
 Deno.test("AddLearningDialog: renders correctly", () => {
   const dialog = new AddLearningDialog();
 
-  const rendered = dialog.render(80, 20);
+  const rendered = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertExists(rendered);
   assertEquals(rendered.includes("Add Learning"), true);
   assertEquals(rendered.includes("Title"), true);
@@ -259,9 +277,9 @@ Deno.test("AddLearningDialog: validates required fields", () => {
   // Try to submit without title
   // Navigate to save button (field 6) and try to save
   for (let i = 0; i < 6; i++) {
-    dialog.handleKey("tab");
+    dialog.handleKey(KEY_TAB);
   }
-  dialog.handleKey("enter");
+  dialog.handleKey(KEY_ENTER);
 
   // Should still be active because validation failed
   assertEquals(dialog.isActive(), true);
@@ -283,7 +301,7 @@ Deno.test("AddLearningDialog: form fields can be edited", () => {
 Deno.test("AddLearningDialog: escape cancels", () => {
   const dialog = new AddLearningDialog();
 
-  dialog.handleKey("escape");
+  dialog.handleKey(KEY_ESCAPE);
   assertEquals(dialog.isActive(), false);
   assertEquals(dialog.getState(), "cancelled");
 });
@@ -304,7 +322,7 @@ Deno.test("AddLearningDialog: getFocusableElements returns all fields", () => {
 Deno.test("PromoteDialog: renders correctly", () => {
   const dialog = new PromoteDialog("Error Handling Pattern", "my-app");
 
-  const rendered = dialog.render(80, 20);
+  const rendered = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertExists(rendered);
   assertEquals(rendered.includes("Promote to Global"), true);
   assertEquals(rendered.includes("Error Handling Pattern"), true);
@@ -314,7 +332,7 @@ Deno.test("PromoteDialog: renders correctly", () => {
 Deno.test("PromoteDialog: shows explanation text", () => {
   const dialog = new PromoteDialog("Test Learning", "test-project");
 
-  const rendered = dialog.render(80, 20);
+  const rendered = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertEquals(rendered.includes("copy the learning to Global Memory"), true);
   assertEquals(rendered.includes("original will remain"), true);
 });
@@ -322,15 +340,15 @@ Deno.test("PromoteDialog: shows explanation text", () => {
 Deno.test("PromoteDialog: left/right switches focus", () => {
   const dialog = new PromoteDialog("Test", "proj");
 
-  dialog.handleKey("right");
-  const rendered = dialog.render(80, 20);
+  dialog.handleKey(KEY_RIGHT);
+  const rendered = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertEquals(rendered.includes("[Cancel]"), true);
 });
 
 Deno.test("PromoteDialog: enter confirms promotion", () => {
   const dialog = new PromoteDialog("Test Learning", "my-project");
 
-  dialog.handleKey("enter");
+  dialog.handleKey(KEY_ENTER);
   assertEquals(dialog.isActive(), false);
 
   const result = dialog.getResult();
@@ -344,7 +362,7 @@ Deno.test("PromoteDialog: enter confirms promotion", () => {
 Deno.test("PromoteDialog: 'y' shortcut confirms", () => {
   const dialog = new PromoteDialog("Test", "proj");
 
-  dialog.handleKey("y");
+  dialog.handleKey(KEY_Y);
   assertEquals(dialog.isActive(), false);
   assertEquals(dialog.getState(), "confirmed");
 });
@@ -352,7 +370,7 @@ Deno.test("PromoteDialog: 'y' shortcut confirms", () => {
 Deno.test("PromoteDialog: escape cancels", () => {
   const dialog = new PromoteDialog("Test", "proj");
 
-  dialog.handleKey("escape");
+  dialog.handleKey(KEY_ESCAPE);
   assertEquals(dialog.isActive(), false);
   assertEquals(dialog.getState(), "cancelled");
 });
@@ -369,7 +387,7 @@ Deno.test("PromoteDialog: getters return correct values", () => {
 Deno.test("BulkApproveDialog: renders correctly", () => {
   const dialog = new BulkApproveDialog(5);
 
-  const rendered = dialog.render(80, 20);
+  const rendered = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertExists(rendered);
   assertEquals(rendered.includes("Approve All Proposals"), true);
   assertEquals(rendered.includes("5 proposal(s)"), true);
@@ -378,22 +396,22 @@ Deno.test("BulkApproveDialog: renders correctly", () => {
 Deno.test("BulkApproveDialog: shows warning text", () => {
   const dialog = new BulkApproveDialog(3);
 
-  const rendered = dialog.render(80, 20);
+  const rendered = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertEquals(rendered.includes("cannot be undone"), true);
 });
 
 Deno.test("BulkApproveDialog: left/right switches focus", () => {
   const dialog = new BulkApproveDialog(10);
 
-  dialog.handleKey("right");
-  const rendered = dialog.render(80, 20);
+  dialog.handleKey(KEY_RIGHT);
+  const rendered = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertEquals(rendered.includes("[Cancel]"), true);
 });
 
 Deno.test("BulkApproveDialog: enter confirms", () => {
   const dialog = new BulkApproveDialog(7);
 
-  dialog.handleKey("enter");
+  dialog.handleKey(KEY_ENTER);
   assertEquals(dialog.isActive(), false);
 
   const result = dialog.getResult();
@@ -406,7 +424,7 @@ Deno.test("BulkApproveDialog: enter confirms", () => {
 Deno.test("BulkApproveDialog: 'y' shortcut confirms", () => {
   const dialog = new BulkApproveDialog(3);
 
-  dialog.handleKey("y");
+  dialog.handleKey(KEY_Y);
   assertEquals(dialog.isActive(), false);
   assertEquals(dialog.getState(), "confirmed");
 });
@@ -414,7 +432,7 @@ Deno.test("BulkApproveDialog: 'y' shortcut confirms", () => {
 Deno.test("BulkApproveDialog: escape cancels", () => {
   const dialog = new BulkApproveDialog(5);
 
-  dialog.handleKey("escape");
+  dialog.handleKey(KEY_ESCAPE);
   assertEquals(dialog.isActive(), false);
   assertEquals(dialog.getState(), "cancelled");
 });
@@ -423,7 +441,7 @@ Deno.test("BulkApproveDialog: progress updates rendering", () => {
   const dialog = new BulkApproveDialog(10);
 
   dialog.setProgress(3);
-  const rendered = dialog.render(80, 20);
+  const rendered = dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
   assertEquals(rendered.includes("Progress"), true);
   assertEquals(rendered.includes("3/10"), true);
 });
@@ -461,9 +479,9 @@ Deno.test("All dialogs: render returns non-empty string", () => {
   const promote = new PromoteDialog("Test", "proj");
   const bulk = new BulkApproveDialog(5);
 
-  assertEquals(approve.render(80, 20).length > 0, true);
-  assertEquals(reject.render(80, 20).length > 0, true);
-  assertEquals(add.render(80, 20).length > 0, true);
-  assertEquals(promote.render(80, 20).length > 0, true);
-  assertEquals(bulk.render(80, 20).length > 0, true);
+  assertEquals(approve.render({ width: 80, height: 20, useColors: true }).length > 0, true);
+  assertEquals(reject.render({ width: 80, height: 20, useColors: true }).length > 0, true);
+  assertEquals(add.render({ width: 80, height: 20, useColors: true }).length > 0, true);
+  assertEquals(promote.render({ width: 80, height: 20, useColors: true }).length > 0, true);
+  assertEquals(bulk.render({ width: 80, height: 20, useColors: true }).length > 0, true);
 });

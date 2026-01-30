@@ -19,6 +19,7 @@ import {
   KEY_R,
   KEY_S,
   KEY_SHIFT_TAB,
+  KEY_TAB,
   KEY_V,
   KEY_Z,
 } from "../../config/constants.ts";
@@ -122,7 +123,7 @@ export async function prodHandleKey(key: string, ctx: ProdHandleCtx): Promise<{ 
     prodState.showMemoryNotifications = !prodState.showMemoryNotifications;
     prodState.selectedMemoryNotifIndex = 0;
     return { reRender: true };
-  } else if (key === "\t" || key === "tab") { // Tab
+  } else if (key === "\t" || key === KEY_TAB) { // Tab
     const currentIndex = findActiveIndex();
     const nextIndex = (currentIndex + 1) % panes.length;
     activePaneRef.id = panes[nextIndex].id;

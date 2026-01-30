@@ -10,17 +10,40 @@ import { CritiqueSeverity } from "../../src/enums.ts";
 import { ExecutionStatus, MemorySource, MemoryStatus } from "../../src/enums.ts";
 
 import {
-  LegacyRequestManagerTuiSession,
+  createLegacyTuiSession,
+  createLegacyTuiSessionWithErrors,
+  createLegacyTuiSessionWithLongTraceId,
+  createLegacyTuiSessionWithTracking,
+} from "./helpers.ts";
+
+import {
   MinimalRequestServiceMock,
   PRIORITY_ICONS,
   type Request,
   REQUEST_KEY_BINDINGS,
   RequestAction,
   RequestCommandsServiceAdapter,
+  RequestManagerTuiSession,
   RequestManagerView,
   STATUS_COLORS,
   STATUS_ICONS,
 } from "../../src/tui/request_manager_view.ts";
+import {
+  KEY_C,
+  KEY_D,
+  KEY_DOWN,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_HOME,
+  KEY_LEFT,
+  KEY_P,
+  KEY_Q,
+  KEY_QUESTION,
+  KEY_RIGHT,
+  KEY_UP,
+  KEY_V,
+} from "../../src/config/constants.ts";
 
 // ===== Test Data =====
 
@@ -88,6 +111,25 @@ function createTestRequests(): Request[] {
       source: "cli",
     },
   ];
+}
+
+function createTestSessionWithMockService(
+  getRequestContentResult: string | Error = "Test content",
+): RequestManagerTuiSession {
+  const mockService = {
+    listRequests: () => Promise.resolve([]),
+    getRequestContent: (_id: string) =>
+      getRequestContentResult instanceof Error
+        ? Promise.reject(getRequestContentResult)
+        : Promise.resolve(getRequestContentResult),
+    createRequest: () => Promise.resolve({} as Request),
+    updateRequestStatus: () => Promise.resolve(true),
+  };
+
+  const requests = createTestRequests();
+  const view = new RequestManagerView(mockService);
+  const session = view.createTuiSession(requests);
+  return session;
 }
 
 // ===== Constants Tests =====
@@ -198,12 +240,12 @@ Deno.test("RequestManagerTuiSession: navigateTree first and last", async () => {
   const session = view.createTuiSession(requests);
 
   // Navigate to last
-  await session.handleKey("end");
+  await session.handleKey(KEY_END);
   const lastState = session.getState();
   assertExists(lastState.selectedRequestId);
 
   // Navigate to first
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
   const firstState = session.getState();
   assertExists(firstState.selectedRequestId);
 });
@@ -276,8 +318,7 @@ Deno.test("RequestManagerTuiSession: expandSelectedNode and collapseSelectedNode
   session.toggleGrouping(); // none -> status
 
   // Navigate to a group node
-  await session.handleKey("home");
-
+  await session.handleKey(KEY_HOME);
   // Try to collapse and expand
   session.collapseSelectedNode();
   session.expandSelectedNode();
@@ -297,7 +338,7 @@ Deno.test("RequestManagerTuiSession: toggleSelectedNode", async () => {
   session.toggleGrouping();
 
   // Navigate to first (group node)
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
 
   // Toggle the node
   session.toggleSelectedNode();
@@ -307,16 +348,7 @@ Deno.test("RequestManagerTuiSession: toggleSelectedNode", async () => {
 });
 
 Deno.test("RequestManagerTuiSession: showRequestDetail formats content", async () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: (_id: string) => Promise.resolve("Test content here"),
-    createRequest: () => Promise.resolve({} as Request),
-    updateRequestStatus: () => Promise.resolve(true),
-  };
-
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Test content here");
 
   await session.showRequestDetail("req-002");
 
@@ -327,16 +359,7 @@ Deno.test("RequestManagerTuiSession: showRequestDetail formats content", async (
 });
 
 Deno.test("RequestManagerTuiSession: showRequestDetail handles error", async () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: (_id: string) => Promise.reject(new Error("Failed to load")),
-    createRequest: () => Promise.resolve({} as Request),
-    updateRequestStatus: () => Promise.resolve(true),
-  };
-
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService(new Error("Failed to load"));
 
   await session.showRequestDetail("req-001");
 
@@ -345,16 +368,7 @@ Deno.test("RequestManagerTuiSession: showRequestDetail handles error", async () 
 });
 
 Deno.test("RequestManagerTuiSession: detail view with skills shows all skill types", async () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: (_id: string) => Promise.resolve("Content"),
-    createRequest: () => Promise.resolve({} as Request),
-    updateRequestStatus: () => Promise.resolve(true),
-  };
-
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   await session.showRequestDetail("req-002");
 
@@ -434,7 +448,7 @@ Deno.test("RequestManagerTuiSession: render shows help when showHelp is true", a
   const view = new RequestManagerView(mockService);
   const session = view.createTuiSession(requests);
 
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   assertEquals(session.getState().showHelp, true);
 
   const output = session.render();
@@ -443,61 +457,37 @@ Deno.test("RequestManagerTuiSession: render shows help when showHelp is true", a
 });
 
 Deno.test("RequestManagerTuiSession: close help with '?'", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   assertEquals(session.getState().showHelp, true);
 
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   assertEquals(session.getState().showHelp, false);
 });
 
 Deno.test("RequestManagerTuiSession: close detail with 'q'", async () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: () => Promise.resolve("Content"),
-    createRequest: () => Promise.resolve({} as Request),
-    updateRequestStatus: () => Promise.resolve(true),
-  };
-
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   await session.showRequestDetail("req-001");
   assertEquals(session.getState().showDetail, true);
 
-  await session.handleKey("q");
+  await session.handleKey(KEY_Q);
   assertEquals(session.getState().showDetail, false);
 });
 
 Deno.test("RequestManagerTuiSession: close detail with escape", async () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: () => Promise.resolve("Content"),
-    createRequest: () => Promise.resolve({} as Request),
-    updateRequestStatus: () => Promise.resolve(true),
-  };
-
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   await session.showRequestDetail("req-001");
   assertEquals(session.getState().showDetail, true);
 
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.getState().showDetail, false);
 });
 
 Deno.test("RequestManagerTuiSession: render shows current filters", () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   const state = session.getState();
   state.searchQuery = "test";
@@ -530,21 +520,16 @@ Deno.test("RequestManagerTuiSession: getFocusableElements returns correct elemen
 });
 
 Deno.test("RequestManagerTuiSession: setRequests updates internal state", () => {
-  const mockService = new MinimalRequestServiceMock();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession([]);
+  const session = createTestSessionWithMockService("Content");
 
+  assertEquals(session.getRequests().length, 5); // createTestRequests() returns 5 requests
+
+  session.setRequests([]);
   assertEquals(session.getRequests().length, 0);
-
-  session.setRequests(createTestRequests());
-  assertEquals(session.getRequests().length, 5);
 });
 
 Deno.test("RequestManagerTuiSession: refresh rebuilds tree", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   const treeBefore = session.getState().requestTree.length;
 
@@ -555,64 +540,49 @@ Deno.test("RequestManagerTuiSession: refresh rebuilds tree", async () => {
 });
 
 Deno.test("RequestManagerTuiSession: showSearchDialog and handleSearchResult", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   // Show search dialog
   session.showSearchDialog();
   assertEquals(session.getState().activeDialog !== null, true);
 
   // Cancel dialog
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.getState().activeDialog, null);
 });
 
 Deno.test("RequestManagerTuiSession: showFilterStatusDialog", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   session.showFilterStatusDialog();
   assertEquals(session.getState().activeDialog !== null, true);
 
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.getState().activeDialog, null);
 });
 
 Deno.test("RequestManagerTuiSession: showFilterAgentDialog", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   session.showFilterAgentDialog();
   assertEquals(session.getState().activeDialog !== null, true);
 
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.getState().activeDialog, null);
 });
 
 Deno.test("RequestManagerTuiSession: showCreateDialog", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   session.showCreateDialog();
   assertEquals(session.getState().activeDialog !== null, true);
 
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.getState().activeDialog, null);
 });
 
 Deno.test("RequestManagerTuiSession: showCancelConfirm for non-existent request", () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   // Try to show cancel for non-existent request
   session.showCancelConfirm("non-existent");
@@ -622,97 +592,82 @@ Deno.test("RequestManagerTuiSession: showCancelConfirm for non-existent request"
 });
 
 Deno.test("RequestManagerTuiSession: showPriorityDialog", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   session.showPriorityDialog();
   assertEquals(session.getState().activeDialog !== null, true);
 
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.getState().activeDialog, null);
 });
 
 Deno.test("RequestManagerTuiSession: left arrow collapses, right arrow expands", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   // Switch to grouping mode
   session.toggleGrouping();
 
   // Navigate to a group
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
 
   // Collapse with left arrow
-  await session.handleKey("left");
+  await session.handleKey(KEY_LEFT);
 
   // Expand with right arrow
-  await session.handleKey("right");
+  await session.handleKey(KEY_RIGHT);
 
   const state = session.getState();
   assertExists(state);
 });
 
 Deno.test("RequestManagerTuiSession: enter on group toggles expansion", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   // Switch to grouping mode
   session.toggleGrouping();
 
   // Navigate to a group node (first item should be a group)
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
 
   const state = session.getState();
   if (state.selectedRequestId?.startsWith("status-")) {
     // Toggle with enter
-    await session.handleKey("enter");
+    await session.handleKey(KEY_ENTER);
     // Should not show detail for groups
     assertEquals(session.getState().showDetail, false);
   }
 });
 
 Deno.test("RequestManagerTuiSession: d key on non-request does nothing", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   // Switch to grouping mode
   session.toggleGrouping();
 
   // Navigate to a group node
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
 
   const state = session.getState();
   if (state.selectedRequestId?.startsWith("status-")) {
     // Try to delete a group (should do nothing)
-    await session.handleKey("d");
+    await session.handleKey(KEY_D);
     assertEquals(session.getState().activeDialog, null);
   }
 });
 
 Deno.test("RequestManagerTuiSession: p key on non-request does nothing", async () => {
-  const mockService = new MinimalRequestServiceMock();
-  const requests = createTestRequests();
-  const view = new RequestManagerView(mockService);
-  const session = view.createTuiSession(requests);
+  const session = createTestSessionWithMockService("Content");
 
   // Switch to grouping mode
   session.toggleGrouping();
 
   // Navigate to a group node
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
 
   const state = session.getState();
   if (state.selectedRequestId?.startsWith("status-")) {
     // Try to change priority of a group (should do nothing)
-    await session.handleKey("p");
+    await session.handleKey(KEY_P);
     assertEquals(session.getState().activeDialog, null);
   }
 });
@@ -720,15 +675,7 @@ Deno.test("RequestManagerTuiSession: p key on non-request does nothing", async (
 // ===== LegacyRequestManagerTuiSession Tests =====
 
 Deno.test("LegacyRequestManagerTuiSession: getSelectedIndex and setSelectedIndex", () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: () => Promise.resolve(""),
-    createRequest: () => Promise.resolve({} as Request),
-    updateRequestStatus: () => Promise.resolve(true),
-  };
-
-  const requests = createTestRequests();
-  const session = new LegacyRequestManagerTuiSession(requests, mockService);
+  const session = createLegacyTuiSession(createTestRequests());
 
   assertEquals(session.getSelectedIndex(), 0);
 
@@ -744,146 +691,73 @@ Deno.test("LegacyRequestManagerTuiSession: getSelectedIndex and setSelectedIndex
 });
 
 Deno.test("LegacyRequestManagerTuiSession: handleKey navigation", async () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: () => Promise.resolve(""),
-    createRequest: () => Promise.resolve({} as Request),
-    updateRequestStatus: () => Promise.resolve(true),
-  };
-
-  const requests = createTestRequests();
-  const session = new LegacyRequestManagerTuiSession(requests, mockService);
+  const session = createLegacyTuiSession(createTestRequests());
 
   assertEquals(session.getSelectedIndex(), 0);
 
-  await session.handleKey("down");
+  await session.handleKey(KEY_DOWN);
   assertEquals(session.getSelectedIndex(), 1);
 
-  await session.handleKey("up");
+  await session.handleKey(KEY_UP);
   assertEquals(session.getSelectedIndex(), 0);
 
-  await session.handleKey("end");
+  await session.handleKey(KEY_END);
   assertEquals(session.getSelectedIndex(), 4);
 
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
   assertEquals(session.getSelectedIndex(), 0);
 });
 
 Deno.test("LegacyRequestManagerTuiSession: handleKey actions", async () => {
-  let createCalled = false;
-  let viewCalled = false;
-  let deleteCalled = false;
+  const { session, createCalled, viewCalled, deleteCalled } = createLegacyTuiSessionWithTracking();
 
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: (_id: string) => {
-      viewCalled = true;
-      return Promise.resolve("content");
-    },
-    createRequest: () => {
-      createCalled = true;
-      return Promise.resolve({
-        trace_id: "new-req",
-        filename: "request-new.md",
-        title: "New Request",
-        status: MemoryStatus.PENDING,
-        priority: "normal",
-        agent: "default",
-        created: new Date().toISOString(),
-        created_by: "test@example.com",
-        source: "cli",
-      } as Request);
-    },
-    updateRequestStatus: () => {
-      deleteCalled = true;
-      return Promise.resolve(true);
-    },
-  };
+  await session.handleKey(KEY_C);
+  assertEquals(createCalled(), true);
 
-  const requests = createTestRequests();
-  const session = new LegacyRequestManagerTuiSession(requests, mockService);
+  await session.handleKey(KEY_V);
+  assertEquals(viewCalled(), true);
 
-  await session.handleKey("c");
-  assertEquals(createCalled, true);
-
-  await session.handleKey("v");
-  assertEquals(viewCalled, true);
-
-  await session.handleKey("d");
-  assertEquals(deleteCalled, true);
+  await session.handleKey(KEY_D);
+  assertEquals(deleteCalled(), true);
 });
 
 Deno.test("LegacyRequestManagerTuiSession: getSelectedRequest", () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: () => Promise.resolve(""),
-    createRequest: () => Promise.resolve({} as Request),
-    updateRequestStatus: () => Promise.resolve(true),
-  };
-
-  const requests = createTestRequests();
-  const session = new LegacyRequestManagerTuiSession(requests, mockService);
+  const session = createLegacyTuiSession(createTestRequests());
 
   const selected = session.getSelectedRequest();
   assertEquals(selected?.trace_id, "req-001");
 });
 
 Deno.test("LegacyRequestManagerTuiSession: getStatusMessage after action", async () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: () => Promise.resolve(""),
-    createRequest: () =>
-      Promise.resolve({
-        trace_id: "12345678-abcd-efgh-ijkl-mnopqrstuvwx",
-      } as Request),
-    updateRequestStatus: () => Promise.resolve(true),
-  };
+  const session = createLegacyTuiSessionWithLongTraceId();
 
-  const requests = createTestRequests();
-  const session = new LegacyRequestManagerTuiSession(requests, mockService);
-
-  await session.handleKey("c");
+  await session.handleKey(KEY_C);
   assertStringIncludes(session.getStatusMessage(), "Created request:");
 });
 
 Deno.test("LegacyRequestManagerTuiSession: handleKey with empty requests", async () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: () => Promise.resolve(""),
-    createRequest: () => Promise.resolve({} as Request),
-    updateRequestStatus: () => Promise.resolve(true),
-  };
-
-  const session = new LegacyRequestManagerTuiSession([], mockService);
+  const session = createLegacyTuiSession([]);
 
   // Should not throw with empty requests
-  await session.handleKey("down");
-  await session.handleKey("up");
+  await session.handleKey(KEY_DOWN);
+  await session.handleKey(KEY_UP);
 
   assertEquals(session.getSelectedIndex(), 0);
 });
 
 Deno.test("LegacyRequestManagerTuiSession: error handling in actions", async () => {
-  const mockService = {
-    listRequests: () => Promise.resolve([]),
-    getRequestContent: () => Promise.reject(new Error("View error")),
-    createRequest: () => Promise.reject(new Error("Create error")),
-    updateRequestStatus: () => Promise.reject(new Error("Delete error")),
-  };
-
-  const requests = createTestRequests();
-  const session = new LegacyRequestManagerTuiSession(requests, mockService);
+  const session = createLegacyTuiSessionWithErrors();
 
   // Test create error
-  await session.handleKey("c");
+  await session.handleKey(KEY_C);
   assertStringIncludes(session.getStatusMessage(), "Error:");
 
   // Test view error
-  await session.handleKey("v");
+  await session.handleKey(KEY_V);
   assertStringIncludes(session.getStatusMessage(), "Error:");
 
   // Test delete error
-  await session.handleKey("d");
+  await session.handleKey(KEY_D);
   assertStringIncludes(session.getStatusMessage(), "Error:");
 });
 

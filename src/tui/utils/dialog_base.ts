@@ -682,3 +682,83 @@ export function wrapToWidth(text: string, width: number): string[] {
   if (currentLine) lines.push(currentLine);
   return lines;
 }
+
+// ===== Dialog Render Setup Helper =====
+
+/**
+ * Common render setup for dialogs - extracts duplicated initialization code
+ */
+export function setupDialogRender(options: DialogRenderOptions): {
+  width: number;
+  height: number;
+  theme: TuiTheme;
+  lines: string[];
+  innerWidth: number;
+} {
+  const width = options.width;
+  const height = options.height || 20;
+  const theme = getTheme(options.useColors);
+  const lines: string[] = [];
+  const innerWidth = Math.min(options.width - 4, 70); // TUI_LAYOUT_DIALOG_WIDTH = 70
+  return { width, height, theme, lines, innerWidth };
+}
+
+/**
+ * Render common dialog ending with buttons and bottom border
+ */
+export function renderDialogEnding(
+  buttonsLine: string,
+  innerWidth: number,
+  theme: TuiTheme,
+  lines: string[],
+): void {
+  lines.push(renderBoxLineCentered(buttonsLine, innerWidth, theme));
+  lines.push(renderBoxLine("", innerWidth, theme));
+  lines.push(renderBoxBottom(innerWidth, theme));
+}
+
+/**
+ * Render memory update proposal information
+ */
+export function renderProposalInfo(
+  proposal: any, // MemoryUpdateProposal
+  innerWidth: number,
+  theme: TuiTheme,
+  lines: string[],
+  options: { showScope?: boolean; showCategory?: boolean } = {},
+): void {
+  const { showScope = true, showCategory = true } = options;
+
+  // Operation and scope
+  const operation = proposal.operation || "add";
+  const scope = proposal.target_scope || "global";
+  const project = proposal.target_project ? ` (${proposal.target_project})` : "";
+
+  lines.push(
+    renderBoxLine(`  Operation: ${operation}${showScope ? ` | Scope: ${scope}${project}` : ""}`, innerWidth, theme),
+  );
+
+  // Learning title
+  if (proposal.learning?.title) {
+    lines.push(renderBoxLine(`  Title: ${proposal.learning.title}`, innerWidth, theme));
+  }
+
+  // Category if requested
+  if (showCategory && proposal.learning?.category) {
+    lines.push(renderBoxLine(`  Category: ${proposal.learning.category}`, innerWidth, theme));
+  }
+
+  // Agent and reason
+  if (proposal.agent) {
+    lines.push(renderBoxLine(`  Agent: ${proposal.agent}`, innerWidth, theme));
+  }
+
+  if (proposal.reason) {
+    const reason = proposal.reason.length > innerWidth - 10
+      ? proposal.reason.slice(0, innerWidth - 13) + "..."
+      : proposal.reason;
+    lines.push(renderBoxLine(`  Reason: ${reason}`, innerWidth, theme));
+  }
+
+  lines.push(renderBoxLine("", innerWidth, theme));
+}

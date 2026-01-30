@@ -21,6 +21,18 @@ import {
 } from "../../src/tui/agent_status_view.ts";
 import { AgentHealth, AgentStatus, TuiGroupBy } from "../../src/enums.ts";
 import { CritiqueSeverity } from "../../src/enums.ts";
+import {
+  KEY_DOWN,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_G,
+  KEY_HOME,
+  KEY_L,
+  KEY_Q,
+  KEY_QUESTION,
+  KEY_UP,
+} from "../../src/config/constants.ts";
 
 // ===== Mock AgentService for testing =====
 
@@ -628,10 +640,10 @@ Deno.test("AgentStatusTuiSession: handleKey navigation", async () => {
   await session.initialize();
 
   // Test basic navigation keys
-  await session.handleKey("down");
-  await session.handleKey("up");
-  await session.handleKey("home");
-  await session.handleKey("end");
+  await session.handleKey(KEY_DOWN);
+  await session.handleKey(KEY_UP);
+  await session.handleKey(KEY_HOME);
+  await session.handleKey(KEY_END);
 
   // Should not throw
 });
@@ -643,17 +655,17 @@ Deno.test("AgentStatusTuiSession: handleKey actions", async () => {
   await session.initialize();
 
   // Test action keys
-  await session.handleKey("?"); // help
+  await session.handleKey(KEY_QUESTION); // help
   if (!session.isHelpVisible()) {
     throw new Error("? should toggle help");
   }
 
-  await session.handleKey("escape"); // close help
+  await session.handleKey(KEY_ESCAPE); // close help
   if (session.isHelpVisible()) {
     throw new Error("escape should close help");
   }
 
-  await session.handleKey("g"); // toggle grouping
+  await session.handleKey(KEY_G); // toggle grouping
   if (session.getGroupBy() === TuiGroupBy.NONE) {
     throw new Error("g should toggle grouping");
   }
@@ -665,12 +677,12 @@ Deno.test("AgentStatusTuiSession: handleKey detail view", async () => {
   const session = view.createTuiSession(false);
   await session.initialize();
 
-  await session.handleKey("enter");
+  await session.handleKey(KEY_ENTER);
   if (!session.isDetailVisible()) {
     throw new Error("enter should show detail");
   }
 
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   if (session.isDetailVisible()) {
     throw new Error("escape should close detail");
   }
@@ -682,12 +694,12 @@ Deno.test("AgentStatusTuiSession: handleKey logs view", async () => {
   const session = view.createTuiSession(false);
   await session.initialize();
 
-  await session.handleKey("l");
+  await session.handleKey(KEY_L);
   if (!session.isLogsVisible()) {
     throw new Error("l should show logs");
   }
 
-  await session.handleKey("q");
+  await session.handleKey(KEY_Q);
   if (session.isLogsVisible()) {
     throw new Error("q should close logs");
   }

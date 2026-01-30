@@ -793,7 +793,9 @@ Deno.test("File Stability - Exponential backoff timing", async () => {
       };
 
       // Start changing the file continuously
-      const _changePromise = changeFile();
+      const _changePromise = changeFile().catch(() => {
+        // Ignore errors when directory is cleaned up
+      });
 
       // Try to read it stably - should timeout after ~1.85 seconds (sum of backoff delays)
       const watcher = new FileWatcher(createMockConfig(tempDir), () => {});

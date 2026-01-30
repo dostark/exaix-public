@@ -16,6 +16,7 @@ import {
   SkillStatus,
 } from "../../src/enums.ts";
 import { MinimalSkillsServiceMock, SkillsManagerView, type SkillSummary } from "../../src/tui/skills_manager_view.ts";
+import { KEY_DOWN, KEY_ENTER, KEY_ESCAPE, KEY_G, KEY_QUESTION, KEY_SLASH } from "../../src/config/constants.ts";
 
 // ===== Test Data =====
 
@@ -82,7 +83,7 @@ Deno.test("SkillsManagerView: navigates with keyboard", async () => {
   await session.initialize();
 
   // Navigate down
-  await session.handleKey("down");
+  await session.handleKey(KEY_DOWN);
   const selectedId = session.getSelectedId();
 
   // Should have moved selection
@@ -97,12 +98,11 @@ Deno.test("SkillsManagerView: shows skill detail on select", async () => {
   await session.initialize();
 
   // Navigate to a skill (past the group header)
-  await session.handleKey("down");
-  await session.handleKey("down");
+  await session.handleKey(KEY_DOWN);
+  await session.handleKey(KEY_DOWN);
 
   // Show detail
-  await session.handleKey("enter");
-
+  await session.handleKey(KEY_ENTER);
   assertEquals(session.isShowingDetail(), true);
   const detail = session.renderDetail();
   assertStringIncludes(detail, "Skill:");
@@ -116,11 +116,11 @@ Deno.test("SkillsManagerView: opens search dialog", async () => {
   await session.initialize();
 
   // Open search dialog
-  await session.handleKey("/");
+  await session.handleKey(KEY_SLASH);
   assertEquals(session.hasActiveDialog(), true);
 
   // Cancel search
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -148,15 +148,15 @@ Deno.test("SkillsManagerView: cycles grouping mode", async () => {
   await session.initialize();
 
   // Cycle grouping
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   let extensions = session.getExtensions();
   assertEquals(extensions.groupBy, "status");
 
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   extensions = session.getExtensions();
   assertEquals(extensions.groupBy, "none");
 
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   extensions = session.getExtensions();
   assertEquals(extensions.groupBy, "source");
 });
@@ -169,7 +169,7 @@ Deno.test("SkillsManagerView: shows help screen", async () => {
   await session.initialize();
 
   // Show help
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   assertEquals(session.isShowingHelp(), true);
 
   const help = session.renderHelp();
@@ -204,8 +204,8 @@ Deno.test("AgentStatusView: displays defaultSkills in detail", async () => {
   await session.initialize();
 
   // Navigate to agent and show detail (use handleKey as that's the AgentStatusView's method)
-  await session.handleKey("down");
-  await session.handleKey("enter");
+  await session.handleKey(KEY_DOWN);
+  await session.handleKey(KEY_ENTER);
 
   // renderDetail returns string[] in AgentStatusView
   const detail = session.renderDetail();
@@ -247,8 +247,8 @@ Deno.test("RequestManagerView: shows skills in request detail", async () => {
   const session = view.createTuiSession(requests);
 
   // Navigate to request and show detail (use handleKey for RequestManagerView)
-  await session.handleKey("down");
-  await session.handleKey("enter");
+  await session.handleKey(KEY_DOWN);
+  await session.handleKey(KEY_ENTER);
 
   // renderDetail returns string[] for RequestManager
   const detail = session.renderDetail();

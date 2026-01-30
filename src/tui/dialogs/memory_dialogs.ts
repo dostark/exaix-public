@@ -1,17 +1,15 @@
-/**
- * Memory Dialogs - Interactive dialogs for memory management actions
- *
- * Part of Phase 12.13: TUI Memory View - Pending & Actions
- *
- * Provides:
- * - ConfirmApproveDialog - Confirm approval of a pending proposal
- * - ConfirmRejectDialog - Confirm rejection with optional reason
- * - AddLearningDialog - Form for manual learning entry
- * - PromoteDialog - Promote project learning to global
- */
-
 import type { MemoryUpdateProposal } from "../../schemas/memory_bank.ts";
 import { TUI_LAYOUT_DIALOG_WIDTH } from "../utils/constants.ts";
+import {
+  DialogBase,
+  type DialogRenderOptions,
+  renderBoxLine,
+  renderBoxTop,
+  renderButton,
+  renderDialogEnding,
+  renderProposalInfo,
+  setupDialogRender,
+} from "../utils/dialog_base.ts";
 
 // ===== Dialog Types =====
 
@@ -34,41 +32,6 @@ import {
 } from "../../config/constants.ts";
 
 export type DialogState = DialogStatus;
-
-// ===== Base Dialog =====
-
-export abstract class DialogBase<T = unknown> {
-  protected state: DialogState = DialogStatus.ACTIVE;
-  protected focusIndex = 0;
-
-  isActive(): boolean {
-    return this.state === DialogStatus.ACTIVE;
-  }
-
-  getState(): DialogState {
-    return this.state;
-  }
-
-  abstract getFocusableElements(): string[];
-  abstract handleKey(key: string): void;
-  abstract render(width: number, height: number): string;
-  abstract getResult(): DialogResult<T>;
-
-  protected cancel(): void {
-    if (this.state === DialogStatus.ACTIVE) {
-      this.state = DialogStatus.CANCELLED;
-    }
-  }
-
-  protected confirm(value: T): void {
-    if (this.state === DialogStatus.ACTIVE) {
-      this.state = DialogStatus.CONFIRMED;
-      this._resultValue = value;
-    }
-  }
-
-  protected _resultValue?: T;
-}
 
 // ===== Confirm Approve Dialog =====
 
@@ -112,44 +75,35 @@ export class ConfirmApproveDialog extends DialogBase<ApproveDialogResult> {
     }
   }
 
-  render(width: number, _height: number): string {
-    const lines: string[] = [];
-    const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
-    const border = "─".repeat(innerWidth);
+  render(options: DialogRenderOptions): string[] {
+    const { theme, lines, innerWidth } = setupDialogRender(options);
 
-    lines.push(`┌─ Approve Proposal ${border.slice(17)}┐`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
-    lines.push(`│  Title: ${this.proposal.learning.title.slice(0, innerWidth - 12).padEnd(innerWidth - 10)}│`);
-    lines.push(`│  Scope: ${this.proposal.target_scope.padEnd(innerWidth - 10)}│`);
-    lines.push(`│  Category: ${this.proposal.learning.category.padEnd(innerWidth - 13)}│`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
+    lines.push(renderBoxTop(innerWidth, " Approve Proposal ", theme));
+    renderProposalInfo(this.proposal, innerWidth, theme, lines);
 
     // Description (truncated)
     const desc = this.proposal.learning.description?.slice(0, innerWidth - 6) ?? "(no description)";
-    lines.push(`│  ${desc.padEnd(innerWidth - 2)}│`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
+    lines.push(renderBoxLine(`  ${desc.padEnd(innerWidth - 2)}`, innerWidth, theme));
+    lines.push(renderBoxLine("", innerWidth, theme));
 
     // Tags if available
     if (this.proposal.learning.tags && this.proposal.learning.tags.length > 0) {
       const tagsLine = `Tags: ${this.proposal.learning.tags.join(", ")}`.slice(0, innerWidth - 4);
-      lines.push(`│  ${tagsLine.padEnd(innerWidth - 2)}│`);
-      lines.push(`│${" ".repeat(innerWidth)}│`);
+      lines.push(renderBoxLine(`  ${tagsLine.padEnd(innerWidth - 2)}`, innerWidth, theme));
+      lines.push(renderBoxLine("", innerWidth, theme));
     }
 
     // Buttons
-    const approveBtn = this.focusIndex === 0 ? "[Yes, Approve]" : " Yes, Approve ";
-    const cancelBtn = this.focusIndex === 1 ? "[No, Cancel]" : " No, Cancel ";
+    const approveBtn = renderButton("Yes, Approve", this.focusIndex === 0, false, theme);
+    const cancelBtn = renderButton("No, Cancel", this.focusIndex === 1, false, theme);
     const buttonsLine = `${approveBtn}    ${cancelBtn}`;
-    const padding = Math.floor((innerWidth - buttonsLine.length) / 2);
-    lines.push(`│${" ".repeat(padding)}${buttonsLine}${" ".repeat(innerWidth - padding - buttonsLine.length)}│`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
-    lines.push(`└${border}┘`);
+    renderDialogEnding(buttonsLine, innerWidth, theme, lines);
 
-    return lines.join("\n");
+    return lines;
   }
 
   getResult(): DialogResult<ApproveDialogResult> {
-    if (this.state === "confirmed" && this._resultValue) {
+    if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
       return { type: "confirmed", value: this._resultValue };
     }
     return { type: "cancelled" };
@@ -219,37 +173,36 @@ export class ConfirmRejectDialog extends DialogBase<RejectDialogResult> {
     }
   }
 
-  render(width: number, _height: number): string {
-    const lines: string[] = [];
-    const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
-    const border = "─".repeat(innerWidth);
+  render(options: DialogRenderOptions): string[] {
+    const { theme, lines, innerWidth } = setupDialogRender(options);
 
-    lines.push(`┌─ Reject Proposal ${border.slice(16)}┐`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
-    lines.push(`│  Title: ${this.proposal.learning.title.slice(0, innerWidth - 12).padEnd(innerWidth - 10)}│`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
+    lines.push(renderBoxTop(innerWidth, " Reject Proposal ", theme));
+    renderProposalInfo(this.proposal, innerWidth, theme, lines, { showScope: false, showCategory: false });
 
     // Reason input
     const reasonLabel = this.focusIndex === 0 ? "[Reason (optional)]:" : " Reason (optional): ";
-    const reasonValue = this.reason || (this.inputActive ? "│" : "(none)");
-    lines.push(`│  ${reasonLabel}${" ".repeat(Math.max(0, innerWidth - reasonLabel.length - 3))}│`);
-    lines.push(`│  ${reasonValue.slice(0, innerWidth - 4).padEnd(innerWidth - 2)}│`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
+    const reasonValue = this.reason || (this.inputActive ? "|" : "(none)");
+    lines.push(
+      renderBoxLine(
+        `  ${reasonLabel}${" ".repeat(Math.max(0, innerWidth - reasonLabel.length - 3))}`,
+        innerWidth,
+        theme,
+      ),
+    );
+    lines.push(renderBoxLine(`  ${reasonValue.slice(0, innerWidth - 4).padEnd(innerWidth - 2)}`, innerWidth, theme));
+    lines.push(renderBoxLine("", innerWidth, theme));
 
     // Buttons
-    const rejectBtn = this.focusIndex === 1 ? "[Yes, Reject]" : " Yes, Reject ";
-    const cancelBtn = this.focusIndex === 2 ? "[No, Cancel]" : " No, Cancel ";
+    const rejectBtn = renderButton("Yes, Reject", this.focusIndex === 1, true, theme);
+    const cancelBtn = renderButton("No, Cancel", this.focusIndex === 2, false, theme);
     const buttonsLine = `${rejectBtn}    ${cancelBtn}`;
-    const padding = Math.floor((innerWidth - buttonsLine.length) / 2);
-    lines.push(`│${" ".repeat(padding)}${buttonsLine}${" ".repeat(innerWidth - padding - buttonsLine.length)}│`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
-    lines.push(`└${border}┘`);
+    renderDialogEnding(buttonsLine, innerWidth, theme, lines);
 
-    return lines.join("\n");
+    return lines;
   }
 
   getResult(): DialogResult<RejectDialogResult> {
-    if (this.state === "confirmed" && this._resultValue) {
+    if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
       return { type: "confirmed", value: this._resultValue };
     }
     return { type: "cancelled" };
@@ -414,7 +367,9 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
     };
   }
 
-  render(width: number, _height: number): string {
+  render(options: DialogRenderOptions): string[] {
+    const width = options.width;
+    const _height = options.height || 20;
     const lines: string[] = [];
     const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
     const border = "─".repeat(innerWidth);
@@ -463,11 +418,11 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
     lines.push(`│${" ".repeat(innerWidth)}│`);
     lines.push(`└${border}┘`);
 
-    return lines.join("\n");
+    return lines;
   }
 
   getResult(): DialogResult<AddLearningResult> {
-    if (this.state === "confirmed" && this._resultValue) {
+    if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
       return { type: "confirmed", value: this._resultValue };
     }
     return { type: "cancelled" };
@@ -551,7 +506,9 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
     }
   }
 
-  render(width: number, _height: number): string {
+  render(options: DialogRenderOptions): string[] {
+    const width = options.width;
+    const _height = options.height || 20;
     const lines: string[] = [];
     const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
     const border = "─".repeat(innerWidth);
@@ -574,11 +531,11 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
     lines.push(`│${" ".repeat(innerWidth)}│`);
     lines.push(`└${border}┘`);
 
-    return lines.join("\n");
+    return lines;
   }
 
   getResult(): DialogResult<PromoteDialogResult> {
-    if (this.state === "confirmed" && this._resultValue) {
+    if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
       return { type: "confirmed", value: this._resultValue };
     }
     return { type: "cancelled" };
@@ -644,7 +601,9 @@ export class BulkApproveDialog extends DialogBase<BulkApproveResult> {
     this.inProgress = current < this.count;
   }
 
-  render(width: number, _height: number): string {
+  render(options: DialogRenderOptions): string[] {
+    const width = options.width;
+    const _height = options.height || 20;
     const lines: string[] = [];
     const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
     const border = "─".repeat(innerWidth);
@@ -680,11 +639,11 @@ export class BulkApproveDialog extends DialogBase<BulkApproveResult> {
 
     lines.push(`└${border}┘`);
 
-    return lines.join("\n");
+    return lines;
   }
 
   getResult(): DialogResult<BulkApproveResult> {
-    if (this.state === "confirmed" && this._resultValue) {
+    if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
       return { type: "confirmed", value: this._resultValue };
     }
     return { type: "cancelled" };

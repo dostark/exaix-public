@@ -25,6 +25,35 @@ import type {
 } from "../../src/schemas/memory_bank.ts";
 import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
+import {
+  KEY_A,
+  KEY_BACKSPACE,
+  KEY_CAPITAL_A,
+  KEY_CAPITAL_P,
+  KEY_DOWN,
+  KEY_E,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_G,
+  KEY_HOME,
+  KEY_L,
+  KEY_LEFT,
+  KEY_N,
+  KEY_P,
+  KEY_PAGEDOWN,
+  KEY_PAGEUP,
+  KEY_Q,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_RIGHT,
+  KEY_S,
+  KEY_T,
+  KEY_TAB,
+  KEY_U,
+  KEY_UP,
+  KEY_Y,
+} from "../../src/config/constants.ts";
 
 /**
  * Comprehensive mock service for testing all memory view branches
@@ -273,6 +302,23 @@ function createSessionWithService(service: ExtendedMockMemoryService): MemoryVie
   return new MemoryViewTuiSession(service as unknown as MemoryServiceInterface);
 }
 
+async function testExecutionDetailRendering(exec: any): Promise<string> {
+  const service = createConfiguredService({
+    executions: [exec],
+  });
+
+  const session = createSessionWithService(service);
+  await session.initialize();
+
+  await session.handleKey(KEY_E);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
+  const detail = session.getDetailContent();
+
+  assertEquals(typeof detail, "string");
+  return detail;
+}
+
 // ===== Tests =====
 
 Deno.test("MemoryViewTuiSession: getters return correct values", () => {
@@ -328,7 +374,7 @@ Deno.test("MemoryViewTuiSession: renders global scope detail with memory", async
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   const detail = session.getDetailContent();
 
   assertStringIncludes(detail, "Global");
@@ -342,7 +388,7 @@ Deno.test("MemoryViewTuiSession: renders global scope detail without memory", as
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   const detail = session.getDetailContent();
 
   assertEquals(typeof detail, "string");
@@ -356,7 +402,7 @@ Deno.test("MemoryViewTuiSession: renders projects scope detail", async () => {
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("p");
+  await session.handleKey(KEY_P);
   const detail = session.getDetailContent();
 
   assertEquals(typeof detail, "string");
@@ -370,7 +416,7 @@ Deno.test("MemoryViewTuiSession: renders executions scope detail", async () => {
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("e");
+  await session.handleKey(KEY_E);
   const detail = session.getDetailContent();
 
   assertEquals(typeof detail, "string");
@@ -384,7 +430,7 @@ Deno.test("MemoryViewTuiSession: renders pending scope detail", async () => {
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("n");
+  await session.handleKey(KEY_N);
   const detail = session.getDetailContent();
 
   assertEquals(typeof detail, "string");
@@ -399,9 +445,9 @@ Deno.test("MemoryViewTuiSession: renders project detail with memory", async () =
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("p");
-  await session.handleKey("enter");
-  await session.handleKey("down");
+  await session.handleKey(KEY_P);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
   const detail = session.getDetailContent();
 
   assertEquals(typeof detail, "string");
@@ -416,9 +462,9 @@ Deno.test("MemoryViewTuiSession: renders project detail without memory", async (
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("p");
-  await session.handleKey("enter");
-  await session.handleKey("down");
+  await session.handleKey(KEY_P);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
   const detail = session.getDetailContent();
 
   assertEquals(typeof detail, "string");
@@ -426,19 +472,7 @@ Deno.test("MemoryViewTuiSession: renders project detail without memory", async (
 
 Deno.test("MemoryViewTuiSession: renders execution detail with all fields", async () => {
   const exec = createMockExecution("trace-full", ExecutionStatus.COMPLETED);
-  const service = createConfiguredService({
-    executions: [exec],
-  });
-
-  const session = createSessionWithService(service);
-  await session.initialize();
-
-  await session.handleKey("e");
-  await session.handleKey("enter");
-  await session.handleKey("down");
-  const detail = session.getDetailContent();
-
-  assertEquals(typeof detail, "string");
+  await testExecutionDetailRendering(exec);
 });
 
 Deno.test("MemoryViewTuiSession: renders execution detail for running status", async () => {
@@ -450,37 +484,13 @@ Deno.test("MemoryViewTuiSession: renders execution detail for running status", a
     files_deleted: [],
   };
   exec.lessons_learned = undefined;
-  const service = createConfiguredService({
-    executions: [exec],
-  });
-
-  const session = createSessionWithService(service);
-  await session.initialize();
-
-  await session.handleKey("e");
-  await session.handleKey("enter");
-  await session.handleKey("down");
-  const detail = session.getDetailContent();
-
-  assertEquals(typeof detail, "string");
+  await testExecutionDetailRendering(exec);
 });
 
 Deno.test("MemoryViewTuiSession: renders execution detail for failed status", async () => {
   const exec = createMockExecution("trace-failed", ExecutionStatus.FAILED);
   exec.error_message = "Something went wrong";
-  const service = createConfiguredService({
-    executions: [exec],
-  });
-
-  const session = createSessionWithService(service);
-  await session.initialize();
-
-  await session.handleKey("e");
-  await session.handleKey("enter");
-  await session.handleKey("down");
-  const detail = session.getDetailContent();
-
-  assertEquals(typeof detail, "string");
+  await testExecutionDetailRendering(exec);
 });
 
 Deno.test("MemoryViewTuiSession: approveSelectedProposal with no selection", async () => {
@@ -489,7 +499,7 @@ Deno.test("MemoryViewTuiSession: approveSelectedProposal with no selection", asy
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("a");
+  await session.handleKey(KEY_A);
   const statusBar = session.renderStatusBar();
   assertEquals(typeof statusBar, "string");
 });
@@ -500,7 +510,7 @@ Deno.test("MemoryViewTuiSession: rejectSelectedProposal with no selection", asyn
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("r");
+  await session.handleKey(KEY_R);
   const statusBar = session.renderStatusBar();
   assertEquals(typeof statusBar, "string");
 });
@@ -511,7 +521,7 @@ Deno.test("MemoryViewTuiSession: approveAllProposals with no proposals", async (
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("A");
+  await session.handleKey(KEY_CAPITAL_A);
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -523,7 +533,7 @@ Deno.test("MemoryViewTuiSession: approveAllProposals with proposals opens dialog
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("A");
+  await session.handleKey(KEY_CAPITAL_A);
   assertEquals(session.hasActiveDialog(), true);
 });
 
@@ -533,7 +543,7 @@ Deno.test("MemoryViewTuiSession: openAddLearningDialog opens dialog", async () =
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("l");
+  await session.handleKey(KEY_L);
   assertEquals(session.hasActiveDialog(), true);
 });
 
@@ -543,7 +553,7 @@ Deno.test("MemoryViewTuiSession: promoteSelectedLearning without learning select
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("P");
+  await session.handleKey(KEY_CAPITAL_P);
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -553,8 +563,8 @@ Deno.test("MemoryViewTuiSession: search with empty query reloads tree", async ()
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("s");
-  await session.handleKey("enter");
+  await session.handleKey(KEY_S);
+  await session.handleKey(KEY_ENTER);
 
   assertEquals(session.isSearchActive(), false);
 });
@@ -570,12 +580,12 @@ Deno.test("MemoryViewTuiSession: search with query executes search", async () =>
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("s");
-  await session.handleKey("t");
-  await session.handleKey("e");
-  await session.handleKey("s");
-  await session.handleKey("t");
-  await session.handleKey("enter");
+  await session.handleKey(KEY_S);
+  await session.handleKey(KEY_T);
+  await session.handleKey(KEY_E);
+  await session.handleKey(KEY_S);
+  await session.handleKey(KEY_T);
+  await session.handleKey(KEY_ENTER);
 
   assertEquals(typeof session.getActiveScope(), "string");
 });
@@ -586,8 +596,8 @@ Deno.test("MemoryViewTuiSession: navigation with empty tree does nothing", async
   });
 
   const session = createSessionWithService(service);
-  await session.handleKey("down");
-  await session.handleKey("up");
+  await session.handleKey(KEY_DOWN);
+  await session.handleKey(KEY_UP);
 });
 
 Deno.test("MemoryViewTuiSession: renderTreePanel returns string", async () => {
@@ -610,12 +620,12 @@ Deno.test("MemoryViewTuiSession: renderStatusBar shows search input when active"
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("s");
-  await session.handleKey("q");
-  await session.handleKey("u");
-  await session.handleKey("e");
-  await session.handleKey("r");
-  await session.handleKey("y");
+  await session.handleKey(KEY_S);
+  await session.handleKey(KEY_Q);
+  await session.handleKey(KEY_U);
+  await session.handleKey(KEY_E);
+  await session.handleKey(KEY_R);
+  await session.handleKey(KEY_Y);
 
   const statusBar = session.renderStatusBar();
   assertStringIncludes(statusBar, "query");
@@ -629,7 +639,7 @@ Deno.test("MemoryViewTuiSession: renderActionButtons shows context-specific acti
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("n");
+  await session.handleKey(KEY_N);
 
   const actions = session.renderActionButtons();
   assertEquals(typeof actions, "string");
@@ -643,7 +653,7 @@ Deno.test("MemoryViewTuiSession: renderDialog returns dialog content when active
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("A");
+  await session.handleKey(KEY_CAPITAL_A);
   assertEquals(session.hasActiveDialog(), true);
 
   const dialogContent = session.renderDialog(80, 24);
@@ -658,10 +668,10 @@ Deno.test("MemoryViewTuiSession: dialog escape cancels", async () => {
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("A");
+  await session.handleKey(KEY_CAPITAL_A);
   assertEquals(session.hasActiveDialog(), true);
 
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -673,10 +683,10 @@ Deno.test("MemoryViewTuiSession: handleKey with dialog forwards to dialog", asyn
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("A");
+  await session.handleKey(KEY_CAPITAL_A);
   assertEquals(session.hasActiveDialog(), true);
 
-  await session.handleKey("tab");
+  await session.handleKey(KEY_TAB);
   assertEquals(session.hasActiveDialog(), true);
 });
 
@@ -686,11 +696,11 @@ Deno.test("MemoryViewTuiSession: ? toggles help", async () => {
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   const detail = session.getDetailContent();
   assertStringIncludes(detail.toLowerCase(), "help");
 
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
 });
 
 Deno.test("MemoryViewTuiSession: findNodeById returns null for invalid ID", async () => {
@@ -722,9 +732,9 @@ Deno.test("MemoryViewTuiSession: handles pending proposal detail rendering", asy
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("n");
-  await session.handleKey("enter");
-  await session.handleKey("down");
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
   const detail = session.getDetailContent();
 
   assertEquals(typeof detail, "string");
@@ -739,11 +749,11 @@ Deno.test("MemoryViewTuiSession: approve pending proposal with selection", async
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("n");
-  await session.handleKey("enter");
-  await session.handleKey("down");
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
 
-  await session.handleKey("a");
+  await session.handleKey(KEY_A);
   assertEquals(session.hasActiveDialog(), true);
 });
 
@@ -756,11 +766,11 @@ Deno.test("MemoryViewTuiSession: reject pending proposal with selection", async 
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("n");
-  await session.handleKey("enter");
-  await session.handleKey("down");
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
 
-  await session.handleKey("r");
+  await session.handleKey(KEY_R);
   assertEquals(session.hasActiveDialog(), true);
 });
 
@@ -786,9 +796,9 @@ Deno.test("MemoryViewTuiSession: left and right navigation", async () => {
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("p");
-  await session.handleKey("right");
-  await session.handleKey("left");
+  await session.handleKey(KEY_P);
+  await session.handleKey(KEY_RIGHT);
+  await session.handleKey(KEY_LEFT);
 
   assertEquals(session.getActiveScope(), "projects");
 });
@@ -802,8 +812,8 @@ Deno.test("MemoryViewTuiSession: Home and End keys for navigation", async () => 
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("end");
-  await session.handleKey("home");
+  await session.handleKey(KEY_END);
+  await session.handleKey(KEY_HOME);
 
   assertEquals(typeof session.getSelectedNodeId(), "string");
 });
@@ -817,8 +827,8 @@ Deno.test("MemoryViewTuiSession: PageUp and PageDown keys", async () => {
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("pagedown");
-  await session.handleKey("pageup");
+  await session.handleKey(KEY_PAGEDOWN);
+  await session.handleKey(KEY_PAGEUP);
 
   assertEquals(typeof session.getSelectedNodeId(), "string");
 });
@@ -832,10 +842,10 @@ Deno.test("MemoryViewTuiSession: search escape cancels search mode", async () =>
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("s");
+  await session.handleKey(KEY_S);
   assertEquals(session.isSearchActive(), true);
 
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.isSearchActive(), false);
 });
 
@@ -848,12 +858,12 @@ Deno.test("MemoryViewTuiSession: search backspace removes character", async () =
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("s");
-  await session.handleKey("t");
-  await session.handleKey("e");
-  await session.handleKey("s");
-  await session.handleKey("t");
-  await session.handleKey("backspace");
+  await session.handleKey(KEY_S);
+  await session.handleKey(KEY_T);
+  await session.handleKey(KEY_E);
+  await session.handleKey(KEY_S);
+  await session.handleKey(KEY_T);
+  await session.handleKey(KEY_BACKSPACE);
 
   const statusBar = session.renderStatusBar();
   assertStringIncludes(statusBar, "tes");
@@ -869,16 +879,16 @@ Deno.test("MemoryViewTuiSession: multiple scope navigation cycles", async () => 
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   assertEquals(session.getActiveScope(), MemoryScope.GLOBAL);
 
-  await session.handleKey("p");
+  await session.handleKey(KEY_P);
   assertEquals(session.getActiveScope(), "projects");
 
-  await session.handleKey("e");
+  await session.handleKey(KEY_E);
   assertEquals(session.getActiveScope(), "executions");
 
-  await session.handleKey("n");
+  await session.handleKey(KEY_N);
   assertEquals(session.getActiveScope(), MemoryStatus.PENDING);
 });
 
@@ -925,10 +935,10 @@ Deno.test("MemoryViewTuiSession: handles nested tree expansion", async () => {
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("p");
-  await session.handleKey("enter");
-  await session.handleKey("down");
-  await session.handleKey("enter");
+  await session.handleKey(KEY_P);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
+  await session.handleKey(KEY_ENTER);
 
   const tree = session.renderTreePanel();
   assertEquals(typeof tree, "string");
@@ -958,8 +968,8 @@ Deno.test("MemoryViewTuiSession: tree with learnings renders correctly", async (
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("g");
-  await session.handleKey("enter");
+  await session.handleKey(KEY_G);
+  await session.handleKey(KEY_ENTER);
 
   const tree = session.renderTreePanel();
   assertStringIncludes(tree, "Global");

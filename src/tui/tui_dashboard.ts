@@ -613,6 +613,14 @@ export async function launchTuiDashboard(
           m.testModeHandleKey(this, key, panes, views, viewPickerRef)
         );
         viewPickerIndex = viewPickerRef.index;
+        if (
+          (globalThis as any).Deno && (globalThis as any).Deno.env &&
+          (globalThis as any).Deno.env.get("EXO_TEST_LOG_TAB_DEBUG") === "1"
+        ) {
+          console.debug("[TUI][DEBUG] launch.handleKey returned active=", this.activePaneId);
+        }
+        // Stabilize state: allow any queued tasks to run before returning to tests
+        await new Promise((res) => setTimeout(res, 0));
         return idx;
       },
       async render() {

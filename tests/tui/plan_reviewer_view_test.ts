@@ -1,6 +1,25 @@
 import { assert, assertEquals } from "@std/assert";
 import { MemoryStatus, PlanStatus } from "../../src/enums.ts";
-import { ExoPathDefaults } from "../../src/config/constants.ts";
+import {
+  ExoPathDefaults,
+  KEY_A,
+  KEY_C,
+  KEY_CAPITAL_A,
+  KEY_CAPITAL_R,
+  KEY_DOWN,
+  KEY_E,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_HOME,
+  KEY_LEFT,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_UP,
+  KEY_X,
+  KEY_Y,
+  KEY_Z,
+} from "../../src/config/constants.ts";
 
 import {
   DbLikePlanServiceAdapter,
@@ -179,13 +198,13 @@ Deno.test("PlanReviewerTuiSession: error handling in #triggerAction (service thr
   session.setSelectedIndex(0);
 
   // Press 'a' to show dialog, then confirm
-  await session.handleKey("a");
-  await session.handleKey("enter"); // confirm
+  await session.handleKey(KEY_A);
+  await session.handleKey(KEY_ENTER); // confirm
   assertEquals(session.getStatusMessage(), "Error: fail-approve");
 
   // Press 'r' to show dialog, then confirm
-  await session.handleKey("r");
-  await session.handleKey("enter"); // confirm
+  await session.handleKey(KEY_R);
+  await session.handleKey(KEY_ENTER); // confirm
   assertEquals(session.getStatusMessage(), "Error: fail-reject");
   assert(called);
 });
@@ -230,7 +249,7 @@ Deno.test("PlanReviewerView: renderPlanList and renderDiff", () => {
 
 Deno.test("PlanReviewerTuiSession: edge cases (no plans, invalid selection)", () => {
   const { session } = createPlanReviewerSession([]);
-  session.handleKey("down"); // should not throw
+  session.handleKey(KEY_DOWN); // should not throw
   session.setSelectedIndex(-1);
   assertEquals(session.getSelectedIndex(), 0);
 });
@@ -270,15 +289,15 @@ Deno.test("PlanReviewerTuiSession keyboard navigation - down arrow", async () =>
   assertEquals(session.getSelectedIndex(), 0);
 
   // Press down - should go to index 1
-  await session.handleKey("down");
+  await session.handleKey(KEY_DOWN);
   assertEquals(session.getSelectedIndex(), 1);
 
   // Press down again - should go to index 2
-  await session.handleKey("down");
+  await session.handleKey(KEY_DOWN);
   assertEquals(session.getSelectedIndex(), 2);
 
   // Press down at end - should stay at index 2
-  await session.handleKey("down");
+  await session.handleKey(KEY_DOWN);
   assertEquals(session.getSelectedIndex(), 2);
 });
 
@@ -295,15 +314,15 @@ Deno.test("PlanReviewerTuiSession keyboard navigation - up arrow", async () => {
   assertEquals(session.getSelectedIndex(), 2);
 
   // Press up - should go to index 1
-  await session.handleKey("up");
+  await session.handleKey(KEY_UP);
   assertEquals(session.getSelectedIndex(), 1);
 
   // Press up again - should go to index 0
-  await session.handleKey("up");
+  await session.handleKey(KEY_UP);
   assertEquals(session.getSelectedIndex(), 0);
 
   // Press up at beginning - should stay at index 0
-  await session.handleKey("up");
+  await session.handleKey(KEY_UP);
   assertEquals(session.getSelectedIndex(), 0);
 });
 
@@ -319,7 +338,7 @@ Deno.test("PlanReviewerTuiSession keyboard navigation - end key", async () => {
   assertEquals(session.getSelectedIndex(), 0);
 
   // Press end - should go to last index (2)
-  await session.handleKey("end");
+  await session.handleKey(KEY_END);
   assertEquals(session.getSelectedIndex(), 2);
 });
 
@@ -332,10 +351,10 @@ Deno.test("PlanReviewerTuiSession keyboard navigation - home key", async () => {
   const { session } = createPlanReviewerSession(plans);
 
   // Navigate to end first
-  await session.handleKey("end");
+  await session.handleKey(KEY_END);
 
   // Press home - with tree view, navigates to first tree node
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
   const homeIndex = session.getSelectedIndex();
   assert(homeIndex >= 0, "Home should navigate to valid index");
 });
@@ -357,8 +376,8 @@ Deno.test("PlanReviewerTuiSession keyboard actions - a (approve plan)", async ()
 
   // Select first plan and press a (shows dialog)
   session.setSelectedIndex(0);
-  await session.handleKey("a");
-  await session.handleKey("enter"); // confirm
+  await session.handleKey(KEY_A);
+  await session.handleKey(KEY_ENTER); // confirm
   assertEquals(approvedPlan, "plan1");
 });
 
@@ -379,8 +398,8 @@ Deno.test("PlanReviewerTuiSession keyboard actions - r (reject plan)", async () 
 
   // Select first plan and press r (shows dialog)
   session.setSelectedIndex(0);
-  await session.handleKey("r");
-  await session.handleKey("enter"); // confirm
+  await session.handleKey(KEY_R);
+  await session.handleKey(KEY_ENTER); // confirm
   assertEquals(rejectedPlan, "plan1");
 });
 
@@ -395,8 +414,8 @@ Deno.test("PlanReviewerTuiSession keyboard actions - error handling", async () =
   const session = new PlanReviewerTuiSession(plans, mockService);
 
   // Try to approve plan (shows dialog first)
-  await session.handleKey("a");
-  await session.handleKey("enter"); // confirm
+  await session.handleKey(KEY_A);
+  await session.handleKey(KEY_ENTER); // confirm
   assertEquals(session.getStatusMessage(), "Error: Failed to approve plan");
 });
 
@@ -404,10 +423,10 @@ Deno.test("PlanReviewerTuiSession keyboard actions - no plans", async () => {
   const session = new PlanReviewerTuiSession([], new MinimalPlanServiceMock());
 
   // Keyboard actions should be ignored when no plans
-  await session.handleKey("down");
-  await session.handleKey("up");
-  await session.handleKey("a");
-  await session.handleKey("r");
+  await session.handleKey(KEY_DOWN);
+  await session.handleKey(KEY_UP);
+  await session.handleKey(KEY_A);
+  await session.handleKey(KEY_R);
 
   // Should remain at index 0
   assertEquals(session.getSelectedIndex(), 0);
@@ -420,10 +439,9 @@ Deno.test("PlanReviewerTuiSession keyboard actions - invalid keys ignored", asyn
   const initialIndex = session.getSelectedIndex();
 
   // Invalid keys should be ignored
-  await session.handleKey("invalid");
-  await session.handleKey("x");
-  await session.handleKey("y");
-  await session.handleKey("z");
+  await session.handleKey(KEY_X);
+  await session.handleKey(KEY_Y);
+  await session.handleKey(KEY_Z);
 
   // Selection should remain unchanged
   assertEquals(session.getSelectedIndex(), initialIndex);
@@ -482,11 +500,11 @@ Deno.test("Phase 13.4: Help screen toggle", async () => {
   assertEquals(session.isHelpVisible(), false, "Help should be hidden initially");
 
   // Press ? to show help
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   assertEquals(session.isHelpVisible(), true, "Help should be visible after ?");
 
   // Press ? to hide help
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   assertEquals(session.isHelpVisible(), false, "Help should be hidden after second ?");
 });
 
@@ -514,12 +532,12 @@ Deno.test("Phase 13.4: Confirm dialog for approve", async () => {
   const session = new PlanReviewerTuiSession(plans, mockService);
 
   // Press a - should show confirm dialog, not immediately approve
-  await session.handleKey("a");
+  await session.handleKey(KEY_A);
   assertEquals(session.hasActiveDialog(), true, "Should have dialog open");
   assertEquals(approveTriggered, false, "Approve should not trigger yet");
 
   // Cancel the dialog
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.hasActiveDialog(), false, "Dialog should be closed");
   assertEquals(approveTriggered, false, "Approve should not trigger after cancel");
 });
@@ -537,12 +555,12 @@ Deno.test("Phase 13.4: Confirm dialog for reject", async () => {
   const session = new PlanReviewerTuiSession(plans, mockService);
 
   // Press r - should show confirm dialog
-  await session.handleKey("r");
+  await session.handleKey(KEY_R);
   assertEquals(session.hasActiveDialog(), true, "Should have dialog open");
   assertEquals(rejectTriggered, false, "Reject should not trigger yet");
 
   // Confirm the dialog
-  await session.handleKey("enter");
+  await session.handleKey(KEY_ENTER);
   assertEquals(rejectTriggered, true, "Reject should trigger after confirm");
 });
 
@@ -557,12 +575,12 @@ Deno.test("Phase 13.4: Diff view toggle", async () => {
   assertEquals(session.isDiffVisible(), false);
 
   // Press enter to view diff
-  await session.handleKey("enter");
+  await session.handleKey(KEY_ENTER);
   assertEquals(session.isDiffVisible(), true, "Diff should be visible after enter");
   assert(session.getDiffContent().includes("+ added line"), "Diff content should include added line");
 
   // Press escape to close diff
-  await session.handleKey("escape");
+  await session.handleKey(KEY_ESCAPE);
   assertEquals(session.isDiffVisible(), false, "Diff should be hidden after escape");
 });
 
@@ -572,7 +590,7 @@ Deno.test("Phase 13.4: Diff rendering", async () => {
   mockService.getDiff = () => Promise.resolve("+ added\n- removed\n@@ context @@");
 
   const session = new PlanReviewerTuiSession(plans, mockService);
-  await session.handleKey("enter");
+  await session.handleKey(KEY_ENTER);
 
   const diffLines = session.renderDiff();
   assert(diffLines.length > 0, "Should have diff lines");
@@ -588,13 +606,13 @@ Deno.test("Phase 13.4: Expand/Collapse all", async () => {
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
   // Collapse all
-  await session.handleKey("c");
+  await session.handleKey(KEY_C);
   const collapsedTree = session.getPlanTree();
   const allCollapsed = collapsedTree.every((n) => !n.expanded);
   assertEquals(allCollapsed, true, "All groups should be collapsed after 'c'");
 
   // Expand all
-  await session.handleKey("e");
+  await session.handleKey(KEY_E);
   const expandedTree = session.getPlanTree();
   const allExpanded = expandedTree.every((n) => n.expanded);
   assertEquals(allExpanded, true, "All groups should be expanded after 'e'");
@@ -612,12 +630,16 @@ Deno.test("Phase 13.4: Approve all pending", async () => {
     approved.push(planId);
     return Promise.resolve(true);
   };
-  mockService.listPending = () => Promise.resolve([]);
+  mockService.listPending = () =>
+    Promise.resolve([
+      { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+      { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
+    ]);
 
   const session = new PlanReviewerTuiSession(plans, mockService);
 
   // Press A to approve all pending
-  await session.handleKey("A");
+  await session.handleKey(KEY_CAPITAL_A);
 
   // Should have approved 2 plans
   assertEquals(approved.length, 2, "Should approve 2 pending plans");
@@ -639,7 +661,7 @@ Deno.test("Phase 13.4: Refresh view with R key", async () => {
 
   const session = new PlanReviewerTuiSession(plans, mockService);
 
-  await session.handleKey("R");
+  await session.handleKey(KEY_CAPITAL_R);
   assertEquals(listCalled, true, "Should call listPending on R");
 });
 
@@ -658,7 +680,7 @@ Deno.test("Phase 13.4: Loading state management", async () => {
   assertEquals(session.isLoading(), false, "Should not be loading initially");
 
   // Start operation (don't await)
-  const opPromise = session.handleKey("enter");
+  const opPromise = session.handleKey(KEY_ENTER);
 
   // Should be loading now
   assertEquals(session.isLoading(), true, "Should be loading during operation");
@@ -751,17 +773,17 @@ Deno.test("Phase 13.4: Left arrow collapses expanded group", async () => {
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
   // Expand all first
-  await session.handleKey("e");
+  await session.handleKey(KEY_E);
 
   // Navigate to pending group (home)
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
 
   const treeBefore = session.getPlanTree();
   const pendingGroupBefore = treeBefore.find((n) => n.id === "pending-group");
   assertEquals(pendingGroupBefore?.expanded, true, "Should be expanded");
 
   // Press left to collapse
-  await session.handleKey("left");
+  await session.handleKey(KEY_LEFT);
 
   const treeAfter = session.getPlanTree();
   const pendingGroupAfter = treeAfter.find((n) => n.id === "pending-group");

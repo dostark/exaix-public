@@ -32,9 +32,9 @@ import {
   BulkApproveDialog,
   ConfirmApproveDialog,
   ConfirmRejectDialog,
-  type DialogBase,
   PromoteDialog,
 } from "./dialogs/memory_dialogs.ts";
+import { type DialogBase } from "./utils/dialog_base.ts";
 import { renderSpinner } from "./utils/markdown_renderer.ts";
 import { KEY_ENTER, KEY_LEFT, KEY_RIGHT, MemoryTuiScope } from "../config/constants.ts";
 import { MEMORY_STALE_MS } from "./tui.config.ts";
@@ -762,7 +762,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
     if (!this.state.activeDialog || !this.state.activeDialog.isActive()) {
       return null;
     }
-    return this.state.activeDialog.render(width, height);
+    return this.state.activeDialog.render({ width, height, useColors: this.useColors }).join("\n");
   }
 }
 

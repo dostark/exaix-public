@@ -18,12 +18,40 @@ import { MemoryScope, MemoryStatus } from "../../src/enums.ts";
 import { MemoryView, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
 import { MockMemoryService } from "../../src/tui/tui_dashboard_mocks.ts";
+import {
+  KEY_A,
+  KEY_BACKSPACE,
+  KEY_DOWN,
+  KEY_E,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_G,
+  KEY_HOME,
+  KEY_LEFT,
+  KEY_N,
+  KEY_P,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_S,
+  KEY_SLASH,
+  KEY_T,
+} from "../../src/config/constants.ts";
 
 // ===== Test Setup =====
 
 function createTestSession(): MemoryViewTuiSession {
   const mockService = new MockMemoryService();
   return new MemoryViewTuiSession(mockService as unknown as MemoryServiceInterface);
+}
+
+async function enterSearchAndType(session: MemoryViewTuiSession, text: string): Promise<void> {
+  // Enter search mode
+  await session.handleKey(KEY_S);
+  // Type each character
+  for (const char of text) {
+    await session.handleKey(char);
+  }
 }
 
 // ===== Session Initialization Tests =====
@@ -81,7 +109,7 @@ Deno.test("MemoryViewTuiSession: isSearchActive tracks search mode", async () =>
   await session.initialize();
 
   assertEquals(session.isSearchActive(), false);
-  await session.handleKey("s");
+  await session.handleKey(KEY_S);
   assertEquals(session.isSearchActive(), true);
 });
 
@@ -92,7 +120,7 @@ Deno.test("MemoryViewTuiSession: up/down navigation changes selection", async ()
   await session.initialize();
 
   const initialSelection = session.getSelectedNodeId();
-  await session.handleKey("down");
+  await session.handleKey(KEY_DOWN);
   const newSelection = session.getSelectedNodeId();
 
   assertNotEquals(initialSelection, newSelection);
@@ -112,12 +140,12 @@ Deno.test("MemoryViewTuiSession: expand/collapse with enter key", async () => {
   assertEquals(projectsNode.expanded, false);
 
   // Jump to projects and expand
-  await session.handleKey("p");
-  await session.handleKey("enter");
+  await session.handleKey(KEY_P);
+  await session.handleKey(KEY_ENTER);
   assertEquals(projectsNode.expanded, true);
 
   // Toggle again (collapse)
-  await session.handleKey("enter");
+  await session.handleKey(KEY_ENTER);
   assertEquals(projectsNode.expanded, false);
 });
 
@@ -126,14 +154,14 @@ Deno.test("MemoryViewTuiSession: left key collapses or moves to parent", async (
   await session.initialize();
 
   // Jump to projects (expanded)
-  await session.handleKey("p");
+  await session.handleKey(KEY_P);
   const tree = session.getTree();
   const projectsNode = tree.find((n) => n.id === "projects");
   assertExists(projectsNode);
   if (!projectsNode) return; // Type guard
 
   // Collapse with left
-  await session.handleKey("left");
+  await session.handleKey(KEY_LEFT);
   assertEquals(projectsNode.expanded, false);
 });
 
@@ -141,12 +169,12 @@ Deno.test("MemoryViewTuiSession: home/end keys jump to first/last", async () => 
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("end");
+  await session.handleKey(KEY_END);
   // Should be at last node
   const state = session.getState();
   assertExists(state.selectedNodeId);
 
-  await session.handleKey("home");
+  await session.handleKey(KEY_HOME);
   // Should be at first node
   const tree = session.getTree();
   assertEquals(session.getSelectedNodeId(), tree[0].id);
@@ -158,7 +186,7 @@ Deno.test("MemoryViewTuiSession: 'g' jumps to global scope", async () => {
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
   assertEquals(session.getActiveScope(), MemoryScope.GLOBAL);
   assertEquals(session.getSelectedNodeId(), MemoryScope.GLOBAL);
 });
@@ -167,8 +195,8 @@ Deno.test("MemoryViewTuiSession: 'p' jumps to projects scope", async () => {
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("g"); // Go elsewhere first
-  await session.handleKey("p");
+  await session.handleKey(KEY_G); // Go elsewhere first
+  await session.handleKey(KEY_P);
   assertEquals(session.getActiveScope(), "projects");
   assertEquals(session.getSelectedNodeId(), "projects");
 });
@@ -177,7 +205,7 @@ Deno.test("MemoryViewTuiSession: 'e' jumps to executions scope", async () => {
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("e");
+  await session.handleKey(KEY_E);
   assertEquals(session.getActiveScope(), "executions");
   assertEquals(session.getSelectedNodeId(), "executions");
 });
@@ -186,7 +214,7 @@ Deno.test("MemoryViewTuiSession: 'n' jumps to pending scope", async () => {
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("n");
+  await session.handleKey(KEY_N);
   assertEquals(session.getActiveScope(), MemoryStatus.PENDING);
 });
 
@@ -196,7 +224,7 @@ Deno.test("MemoryViewTuiSession: 's' activates search mode", async () => {
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("s");
+  await session.handleKey(KEY_S);
   assertEquals(session.isSearchActive(), true);
   assertEquals(session.getSearchQuery(), "");
 });
@@ -205,7 +233,7 @@ Deno.test("MemoryViewTuiSession: '/' also activates search mode", async () => {
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("/");
+  await session.handleKey(KEY_SLASH);
   assertEquals(session.isSearchActive(), true);
 });
 
@@ -213,11 +241,7 @@ Deno.test("MemoryViewTuiSession: typing in search mode updates query", async () 
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("s");
-  await session.handleKey("t");
-  await session.handleKey("e");
-  await session.handleKey("s");
-  await session.handleKey("t");
+  await enterSearchAndType(session, "test");
 
   assertEquals(session.getSearchQuery(), "test");
 });
@@ -226,12 +250,8 @@ Deno.test("MemoryViewTuiSession: backspace removes last character in search", as
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("s");
-  await session.handleKey("t");
-  await session.handleKey("e");
-  await session.handleKey("s");
-  await session.handleKey("t");
-  await session.handleKey("backspace");
+  await enterSearchAndType(session, "test");
+  await session.handleKey(KEY_BACKSPACE);
 
   assertEquals(session.getSearchQuery(), "tes");
 });
@@ -240,12 +260,8 @@ Deno.test("MemoryViewTuiSession: escape exits search mode", async () => {
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("s");
-  await session.handleKey("t");
-  await session.handleKey("e");
-  await session.handleKey("s");
-  await session.handleKey("t");
-  await session.handleKey("escape");
+  await enterSearchAndType(session, "test");
+  await session.handleKey(KEY_ESCAPE);
 
   assertEquals(session.isSearchActive(), false);
   assertEquals(session.getSearchQuery(), "");
@@ -255,15 +271,15 @@ Deno.test("MemoryViewTuiSession: enter executes search", async () => {
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("s");
-  await session.handleKey("p");
-  await session.handleKey("a");
-  await session.handleKey("t");
-  await session.handleKey("t");
-  await session.handleKey("e");
-  await session.handleKey("r");
-  await session.handleKey("n");
-  await session.handleKey("enter");
+  await session.handleKey(KEY_S);
+  await session.handleKey(KEY_P);
+  await session.handleKey(KEY_A);
+  await session.handleKey(KEY_T);
+  await session.handleKey(KEY_T);
+  await session.handleKey(KEY_E);
+  await session.handleKey(KEY_R);
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_ENTER);
 
   assertEquals(session.isSearchActive(), false);
 
@@ -288,7 +304,7 @@ Deno.test("MemoryViewTuiSession: '?' shows help content", async () => {
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION);
   const content = session.getDetailContent();
   assertEquals(content.includes("Help"), true);
   assertEquals(content.includes("Navigation"), true);
@@ -320,11 +336,7 @@ Deno.test("MemoryViewTuiSession: renderStatusBar shows search input when active"
   const session = createTestSession();
   await session.initialize();
 
-  await session.handleKey("s");
-  await session.handleKey("t");
-  await session.handleKey("e");
-  await session.handleKey("s");
-  await session.handleKey("t");
+  await enterSearchAndType(session, "test");
 
   const statusBar = session.renderStatusBar();
   assertEquals(statusBar.includes("Search:"), true);
@@ -336,8 +348,8 @@ Deno.test("MemoryViewTuiSession: renderActionButtons shows context-specific acti
   await session.initialize();
 
   // On projects node
-  await session.handleKey("p");
-  await session.handleKey("down"); // Navigate to first project child
+  await session.handleKey(KEY_P);
+  await session.handleKey(KEY_DOWN); // Navigate to first project child
   const buttons = session.renderActionButtons();
   assertEquals(buttons.includes("Enter") || buttons.includes("View"), true);
 });

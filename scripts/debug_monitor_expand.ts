@@ -1,3 +1,4 @@
+import { KEY_C, KEY_E, KEY_G } from "../src/config/constants.ts";
 import { createMonitorViewWithLogs } from "../tests/tui/helpers.ts";
 
 const { monitorView } = createMonitorViewWithLogs([
@@ -27,16 +28,16 @@ const session = monitorView.createTuiSession();
 
 async function run() {
   // Switch to grouped mode
-  await session.handleKey("g");
+  await session.handleKey(KEY_G);
 
   console.log("After grouping (before collapse):");
   console.log(JSON.stringify(session.getLogTree(), null, 2));
 
-  await session.handleKey("c");
+  await session.handleKey(KEY_C);
   console.log("After collapse:");
   console.log(JSON.stringify(session.getLogTree(), null, 2));
 
-  await session.handleKey("E");
+  await session.handleKey(KEY_E);
   console.log("After expand:");
   console.log(JSON.stringify(session.getLogTree(), null, 2));
 }

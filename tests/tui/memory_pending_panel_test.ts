@@ -23,6 +23,19 @@ import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
 import { renderPendingPanel, renderStatsPanel } from "../../src/tui/memory_panels/index.ts";
 import type { MemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
+import {
+  KEY_A,
+  KEY_CAPITAL_A,
+  KEY_DOWN,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_L,
+  KEY_N,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_TAB,
+  KEY_Y,
+} from "../../src/config/constants.ts";
 
 // ===== Test Fixtures =====
 
@@ -294,7 +307,7 @@ Deno.test("MemoryViewTuiSession: 'n' jumps to pending scope", async () => {
   const session = new MemoryViewTuiSession(service);
   await session.initialize();
 
-  await session.handleKey("n");
+  await session.handleKey(KEY_N);
 
   assertEquals(session.getActiveScope(), MemoryStatus.PENDING);
 });
@@ -314,11 +327,11 @@ Deno.test("MemoryViewTuiSession: 'a' opens approve dialog when on pending item",
   await session.initialize();
 
   // Navigate to pending and select a proposal
-  await session.handleKey("n");
-  await session.handleKey("enter"); // Expand pending
-  await session.handleKey("down"); // Select first proposal
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_ENTER); // Expand pending
+  await session.handleKey(KEY_DOWN); // Select first proposal
 
-  await session.handleKey("a");
+  await session.handleKey(KEY_A);
 
   assertEquals(session.hasActiveDialog(), true);
 });
@@ -329,11 +342,10 @@ Deno.test("MemoryViewTuiSession: 'r' opens reject dialog when on pending item", 
   await session.initialize();
 
   // Navigate to pending and select a proposal
-  await session.handleKey("n");
-  await session.handleKey("enter");
-  await session.handleKey("down");
-
-  await session.handleKey("r");
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
+  await session.handleKey(KEY_R);
 
   assertEquals(session.hasActiveDialog(), true);
 });
@@ -343,7 +355,7 @@ Deno.test("MemoryViewTuiSession: 'A' opens bulk approve dialog", async () => {
   const session = new MemoryViewTuiSession(service);
   await session.initialize();
 
-  await session.handleKey("A");
+  await session.handleKey(KEY_CAPITAL_A);
 
   assertEquals(session.hasActiveDialog(), true);
 });
@@ -353,7 +365,7 @@ Deno.test("MemoryViewTuiSession: 'l' opens add learning dialog", async () => {
   const session = new MemoryViewTuiSession(service);
   await session.initialize();
 
-  await session.handleKey("l");
+  await session.handleKey(KEY_L);
 
   assertEquals(session.hasActiveDialog(), true);
 });
@@ -364,9 +376,9 @@ Deno.test("MemoryViewTuiSession: action buttons show pending actions", async () 
   await session.initialize();
 
   // Navigate to pending and select a proposal
-  await session.handleKey("n");
-  await session.handleKey("enter");
-  await session.handleKey("down");
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
 
   const buttons = session.renderActionButtons();
   assertEquals(buttons.includes("[a] Approve"), true);
@@ -379,10 +391,10 @@ Deno.test("MemoryViewTuiSession: dialog receives key events", async () => {
   const session = new MemoryViewTuiSession(service);
   await session.initialize();
 
-  await session.handleKey("A"); // Open bulk approve dialog
+  await session.handleKey(KEY_CAPITAL_A); // Open bulk approve dialog
   assertEquals(session.hasActiveDialog(), true);
 
-  await session.handleKey("escape"); // Cancel dialog
+  await session.handleKey(KEY_ESCAPE); // Cancel dialog
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -391,7 +403,7 @@ Deno.test("MemoryViewTuiSession: renderDialog returns dialog content", async () 
   const session = new MemoryViewTuiSession(service);
   await session.initialize();
 
-  await session.handleKey("A");
+  await session.handleKey(KEY_CAPITAL_A); // Open bulk approve dialog
 
   const dialogContent = session.renderDialog(80, 20);
   assertExists(dialogContent);
@@ -407,13 +419,13 @@ Deno.test("MemoryViewTuiSession: approve action updates count", async () => {
   assertEquals(initialCount, 3);
 
   // Navigate to pending item
-  await session.handleKey("n");
-  await session.handleKey("enter");
-  await session.handleKey("down");
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
 
   // Open approve dialog and confirm
-  await session.handleKey("a");
-  await session.handleKey("y");
+  await session.handleKey(KEY_A);
+  await session.handleKey(KEY_Y);
 
   // Count should decrease
   const newCount = session.getPendingCount();
@@ -426,17 +438,17 @@ Deno.test("MemoryViewTuiSession: reject action with reason", async () => {
   await session.initialize();
 
   // Navigate to pending item
-  await session.handleKey("n");
-  await session.handleKey("enter");
-  await session.handleKey("down");
+  await session.handleKey(KEY_N);
+  await session.handleKey(KEY_ENTER);
+  await session.handleKey(KEY_DOWN);
 
   // Open reject dialog
-  await session.handleKey("r");
+  await session.handleKey(KEY_R);
   assertEquals(session.hasActiveDialog(), true);
 
   // Navigate to reject button and confirm
-  await session.handleKey("tab"); // to reject button
-  await session.handleKey("enter");
+  await session.handleKey(KEY_TAB); // to reject button
+  await session.handleKey(KEY_ENTER);
 
   assertEquals(session.hasActiveDialog(), false);
   assertEquals(session.getPendingCount(), 2);
@@ -447,7 +459,7 @@ Deno.test("MemoryViewTuiSession: help shows new action keys", async () => {
   const session = new MemoryViewTuiSession(service);
   await session.initialize();
 
-  await session.handleKey("?");
+  await session.handleKey(KEY_QUESTION); // Open help
 
   const help = session.getDetailContent();
   assertEquals(help.includes("a: Approve"), true);

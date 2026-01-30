@@ -20,6 +20,19 @@ import {
 } from "../../../src/tui/utils/dialog_base.ts";
 import { getTheme } from "../../../src/tui/utils/colors.ts";
 import { createMockDialogRenderOptions } from "../helpers.ts";
+import {
+  KEY_A,
+  KEY_B,
+  KEY_BACKSPACE,
+  KEY_C,
+  KEY_DOWN,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_N,
+  KEY_TAB,
+  KEY_UP,
+  KEY_Y,
+} from "../../../src/config/constants.ts";
 
 // ===== Box Characters Tests =====
 
@@ -124,7 +137,7 @@ Deno.test("ConfirmDialog: y key confirms", () => {
     message: "Are you sure?",
   });
 
-  dialog.handleKey("y");
+  dialog.handleKey(KEY_Y);
   assertEquals(dialog.getState(), "confirmed");
   assertEquals(dialog.getResult().type, "confirmed");
 });
@@ -135,7 +148,7 @@ Deno.test("ConfirmDialog: n key cancels", () => {
     message: "Are you sure?",
   });
 
-  dialog.handleKey("n");
+  dialog.handleKey(KEY_N);
   assertEquals(dialog.getState(), "cancelled");
   assertEquals(dialog.getResult().type, "cancelled");
 });
@@ -146,7 +159,7 @@ Deno.test("ConfirmDialog: escape cancels", () => {
     message: "Are you sure?",
   });
 
-  dialog.handleKey("escape");
+  dialog.handleKey(KEY_ESCAPE);
   assertEquals(dialog.getState(), "cancelled");
 });
 
@@ -157,9 +170,9 @@ Deno.test("ConfirmDialog: tab moves focus", () => {
   });
 
   assertEquals(dialog.getFocusIndex(), 0);
-  dialog.handleKey("tab");
+  dialog.handleKey(KEY_TAB);
   assertEquals(dialog.getFocusIndex(), 1);
-  dialog.handleKey("tab");
+  dialog.handleKey(KEY_TAB);
   assertEquals(dialog.getFocusIndex(), 0);
 });
 
@@ -169,7 +182,7 @@ Deno.test("ConfirmDialog: enter on confirm button confirms", () => {
     message: "Are you sure?",
   });
 
-  dialog.handleKey("enter");
+  dialog.handleKey(KEY_ENTER);
   assertEquals(dialog.getState(), "confirmed");
 });
 
@@ -179,8 +192,8 @@ Deno.test("ConfirmDialog: enter on cancel button cancels", () => {
     message: "Are you sure?",
   });
 
-  dialog.handleKey("tab"); // Move to cancel
-  dialog.handleKey("enter");
+  dialog.handleKey(KEY_TAB); // Move to cancel
+  dialog.handleKey(KEY_ENTER);
   assertEquals(dialog.getState(), "cancelled");
 });
 
@@ -242,7 +255,7 @@ Deno.test("InputDialog: enter on input starts editing", () => {
   });
 
   assertEquals(dialog.isEditing(), false);
-  dialog.handleKey("enter");
+  dialog.handleKey(KEY_ENTER);
   assertEquals(dialog.isEditing(), true);
 });
 
@@ -252,9 +265,9 @@ Deno.test("InputDialog: escape exits editing", () => {
     label: "Value",
   });
 
-  dialog.handleKey("enter"); // Start editing
+  dialog.handleKey(KEY_ENTER); // Start editing
   assertEquals(dialog.isEditing(), true);
-  dialog.handleKey("escape");
+  dialog.handleKey(KEY_ESCAPE);
   assertEquals(dialog.isEditing(), false);
 });
 
@@ -264,10 +277,10 @@ Deno.test("InputDialog: typing adds characters", () => {
     label: "Value",
   });
 
-  dialog.handleKey("enter"); // Start editing
-  dialog.handleKey("a");
-  dialog.handleKey("b");
-  dialog.handleKey("c");
+  dialog.handleKey(KEY_ENTER); // Start editing
+  dialog.handleKey(KEY_A);
+  dialog.handleKey(KEY_B);
+  dialog.handleKey(KEY_C);
 
   assertEquals(dialog.getValue(), "abc");
 });
@@ -279,8 +292,8 @@ Deno.test("InputDialog: backspace removes characters", () => {
     defaultValue: "abc",
   });
 
-  dialog.handleKey("enter"); // Start editing
-  dialog.handleKey("backspace");
+  dialog.handleKey(KEY_ENTER); // Start editing
+  dialog.handleKey(KEY_BACKSPACE);
   assertEquals(dialog.getValue(), "ab");
 });
 
@@ -324,7 +337,7 @@ Deno.test("SelectDialog: down key moves selection", () => {
   });
 
   assertEquals(dialog.getSelectedIndex(), 0);
-  dialog.handleKey("down");
+  dialog.handleKey(KEY_DOWN);
   assertEquals(dialog.getSelectedIndex(), 1);
 });
 
@@ -338,7 +351,7 @@ Deno.test("SelectDialog: up key moves selection", () => {
     selectedIndex: 1,
   });
 
-  dialog.handleKey("up");
+  dialog.handleKey(KEY_UP);
   assertEquals(dialog.getSelectedIndex(), 0);
 });
 
@@ -351,7 +364,7 @@ Deno.test("SelectDialog: enter confirms selection", () => {
     ],
   });
 
-  dialog.handleKey("enter");
+  dialog.handleKey(KEY_ENTER);
   assertEquals(dialog.getState(), "confirmed");
   const result = dialog.getResult();
   assertEquals(result.type, "confirmed");
@@ -368,7 +381,7 @@ Deno.test("SelectDialog: escape cancels", () => {
     ],
   });
 
-  dialog.handleKey("escape");
+  dialog.handleKey(KEY_ESCAPE);
   assertEquals(dialog.getState(), "cancelled");
 });
 
