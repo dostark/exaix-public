@@ -348,12 +348,12 @@ Deno.test("MemoryViewTuiSession: 'A' opens bulk approve dialog", async () => {
   assertEquals(session.hasActiveDialog(), true);
 });
 
-Deno.test("MemoryViewTuiSession: 'L' opens add learning dialog", async () => {
+Deno.test("MemoryViewTuiSession: 'l' opens add learning dialog", async () => {
   const service = new MockMemoryServiceWithPending();
   const session = new MemoryViewTuiSession(service);
   await session.initialize();
 
-  await session.handleKey("L");
+  await session.handleKey("l");
 
   assertEquals(session.hasActiveDialog(), true);
 });

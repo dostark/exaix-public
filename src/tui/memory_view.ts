@@ -36,7 +36,7 @@ import {
   PromoteDialog,
 } from "./dialogs/memory_dialogs.ts";
 import { renderSpinner } from "./utils/markdown_renderer.ts";
-import { MemoryTuiScope } from "../config/constants.ts";
+import { KEY_ENTER, KEY_LEFT, KEY_RIGHT, MemoryTuiScope } from "../config/constants.ts";
 import { MEMORY_STALE_MS } from "./tui.config.ts";
 
 // ===== Types =====
@@ -371,11 +371,11 @@ export class MemoryViewTuiSession extends TuiSessionBase {
     if (navHandled) return true;
 
     // Handle expand/collapse
-    if (key === "enter" || key === "right") {
+    if (key === KEY_ENTER || key === KEY_RIGHT) {
       await this.toggleExpand();
       return true;
     }
-    if (key === "left") {
+    if (key === KEY_LEFT) {
       await this.collapseOrParent();
       return true;
     }

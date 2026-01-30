@@ -17,6 +17,18 @@
  * - Loading state management
  */
 
+import {
+  KEY_C,
+  KEY_DOWN,
+  KEY_E,
+  KEY_END,
+  KEY_HOME,
+  KEY_J,
+  KEY_K,
+  KEY_LEFT,
+  KEY_RIGHT,
+  KEY_UP,
+} from "../../config/constants.ts";
 import { TuiSessionBase } from "../tui_common.ts";
 import type { DialogBase } from "../utils/dialog_base.ts";
 import { ConfirmDialog, InputDialog } from "../utils/dialog_base.ts";
@@ -150,28 +162,28 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
    */
   protected handleNavigationKeys(key: string): boolean {
     switch (key) {
-      case "up":
-      case "k":
+      case KEY_UP:
+      case KEY_K:
         this.navigateUp();
         return true;
-      case "down":
-      case "j":
+      case KEY_DOWN:
+      case KEY_J:
         this.navigateDown();
         return true;
-      case "home":
+      case KEY_HOME:
         this.navigateHome();
         return true;
-      case "end":
+      case KEY_END:
         this.navigateEnd();
         return true;
-      case "left":
-      case "right":
+      case KEY_LEFT:
+      case KEY_RIGHT:
         this.toggleCurrentNode();
         return true;
-      case "e":
+      case KEY_E:
         this.expandAllNodes();
         return true;
-      case "c":
+      case KEY_C:
         this.collapseAllNodes();
         return true;
       default:

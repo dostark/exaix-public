@@ -789,37 +789,6 @@ export enum TuiIcon {
 }
 
 /**
- * Keyboard key codes and shortcuts.
- */
-export enum KeyboardKey {
-  ESCAPE = "escape",
-  ENTER = "enter",
-  BACKSPACE = "backspace",
-  UP = "up",
-  DOWN = "down",
-  LEFT = "left",
-  RIGHT = "right",
-  HOME = "home",
-  END = "end",
-  QUESTION = "?",
-  SLASH = "/",
-  Q = "q",
-  G = "g",
-  P = "p",
-  E = "e",
-  N = "n",
-  S = "s",
-  A = "a",
-  R = "r",
-  L = "L",
-  CAPITAL_P = "P",
-  CAPITAL_R = "R",
-  CAPITAL_A = "A",
-  CAPITAL_E = "E",
-  C = "c",
-}
-
-/**
  * Types of dialogs used in the Request Manager View.
  */
 export enum RequestDialogType {
@@ -846,11 +815,11 @@ export enum DaemonKeyAction {
   CANCEL = "cancel",
 }
 
-/**
- * Categories for key bindings.
- */
-export enum KeyBindingCategory {
-  ACTIONS = "Actions",
-  VIEW = "View",
-  HELP = "Help",
-}
+// /**
+//  * Categories for key bindings.
+//  */
+// export enum KeyBindingCategory {
+//   ACTIONS = "Actions",
+//   VIEW = "View",
+//   HELP = "Help",
+// }

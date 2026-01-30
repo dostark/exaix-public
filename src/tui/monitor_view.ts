@@ -16,7 +16,7 @@ import { BaseTreeView } from "./base/base_tree_view.ts";
 import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { type DialogBase } from "./utils/dialog_base.ts";
-import type { KeyBinding } from "./utils/keyboard.ts";
+import { type KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
 import type { ActivityRecord, JournalFilterOptions } from "../services/db.ts";
 
 // ===== Service Interfaces =====
@@ -55,10 +55,192 @@ export interface MonitorViewExtensions {
 // ===== Icons and Visual Constants =====
 
 // ===== Icons and Visual Constants =====
-import { LOG_COLORS, LOG_ICONS, MONITOR_AUTO_REFRESH_INTERVAL_MS, MONITOR_KEY_BINDINGS } from "./tui.config.ts";
+import { LOG_COLORS, LOG_ICONS, MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 import { TUI_LAYOUT_NARROW_WIDTH } from "./utils/constants.ts";
+import {
+  KEY_A,
+  KEY_B,
+  KEY_C,
+  KEY_CAPITAL_A,
+  KEY_CAPITAL_E,
+  KEY_CAPITAL_R,
+  KEY_CAPITAL_T,
+  KEY_DOWN,
+  KEY_E,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_F,
+  KEY_G,
+  KEY_HOME,
+  KEY_LEFT,
+  KEY_Q,
+  KEY_QUESTION,
+  KEY_RIGHT,
+  KEY_S,
+  KEY_SPACE,
+  KEY_T,
+  KEY_UP,
+} from "../config/constants.ts";
+import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 
-export { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS };
+export { LOG_COLORS, LOG_ICONS };
+
+export enum MonitorViewAction {
+  NAVIGATE_UP = "navigate-up",
+  NAVIGATE_DOWN = "navigate-down",
+  NAVIGATE_HOME = "navigate-home",
+  NAVIGATE_END = "navigate-end",
+  COLLAPSE = "collapse",
+  EXPAND = "expand",
+  VIEW_DETAILS = "view-details",
+  TOGGLE_PAUSE = "toggle-pause",
+  BOOKMARK = "bookmark",
+  EXPORT = "export",
+  SEARCH = "search",
+  FILTER_AGENT = "filter-agent",
+  FILTER_TIME = "filter-time",
+  FILTER_TRACE = "filter-trace",
+  FILTER_ACTION = "filter-action",
+  TOGGLE_GROUPING = "toggle-grouping",
+  REFRESH = "refresh",
+  AUTO_REFRESH = "auto-refresh",
+  COLLAPSE_ALL = "collapse-all",
+  EXPAND_ALL = "expand-all",
+  HELP = "help",
+  QUIT = "quit",
+  CANCEL = "cancel",
+}
+
+export class MonitorViewBindings extends KeyBindingsBase<MonitorViewAction, KeyBindingCategory> {
+  readonly KEY_BINDINGS: readonly KeyBinding<MonitorViewAction, KeyBindingCategory>[] = [
+    {
+      key: KEY_UP,
+      action: MonitorViewAction.NAVIGATE_UP,
+      description: "Move up",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_DOWN,
+      action: MonitorViewAction.NAVIGATE_DOWN,
+      description: "Move down",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_HOME,
+      action: MonitorViewAction.NAVIGATE_HOME,
+      description: "Go to first",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_END,
+      action: MonitorViewAction.NAVIGATE_END,
+      description: "Go to last",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_LEFT,
+      action: MonitorViewAction.COLLAPSE,
+      description: "Collapse group",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_RIGHT,
+      action: MonitorViewAction.EXPAND,
+      description: "Expand group",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_ENTER,
+      action: MonitorViewAction.VIEW_DETAILS,
+      description: "View log details",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_SPACE,
+      action: MonitorViewAction.TOGGLE_PAUSE,
+      description: "Toggle pause",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_B,
+      action: MonitorViewAction.BOOKMARK,
+      description: "Bookmark entry",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    { key: KEY_E, action: MonitorViewAction.EXPORT, description: "Export logs", category: KeyBindingCategory.ACTIONS },
+    { key: KEY_S, action: MonitorViewAction.SEARCH, description: "Search logs", category: KeyBindingCategory.ACTIONS },
+    {
+      key: KEY_F,
+      action: MonitorViewAction.FILTER_AGENT,
+      description: "Filter by agent",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_T,
+      action: MonitorViewAction.FILTER_TIME,
+      description: "Filter by time",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_CAPITAL_T,
+      action: MonitorViewAction.FILTER_TRACE,
+      description: "Filter by Trace ID",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_CAPITAL_A,
+      action: MonitorViewAction.FILTER_ACTION,
+      description: "Filter by Action Type",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_G,
+      action: MonitorViewAction.TOGGLE_GROUPING,
+      description: "Toggle grouping",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_CAPITAL_R,
+      action: MonitorViewAction.REFRESH,
+      description: "Force refresh",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_A,
+      action: MonitorViewAction.AUTO_REFRESH,
+      description: "Toggle auto-refresh",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_C,
+      action: MonitorViewAction.COLLAPSE_ALL,
+      description: "Collapse all",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_CAPITAL_E,
+      action: MonitorViewAction.EXPAND_ALL,
+      description: "Expand all",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_QUESTION,
+      action: MonitorViewAction.HELP,
+      description: "Toggle help",
+      category: KeyBindingCategory.HELP,
+    },
+    { key: KEY_Q, action: MonitorViewAction.QUIT, description: "Close/Back", category: KeyBindingCategory.HELP },
+    {
+      key: KEY_ESCAPE,
+      action: MonitorViewAction.CANCEL,
+      description: "Close dialog/view",
+      category: KeyBindingCategory.HELP,
+    },
+  ];
+}
+
+export const MONITOR_KEY_BINDINGS = new MonitorViewBindings().KEY_BINDINGS;
 
 // ===== Monitor View Class =====
 
@@ -275,7 +457,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
   }
 
   override getKeyBindings(): KeyBinding[] {
-    return MONITOR_KEY_BINDINGS;
+    return [...MONITOR_KEY_BINDINGS];
   }
 
   isPaused(): boolean {
@@ -747,7 +929,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
 
     // 5. Handle action keys
     switch (key) {
-      case "enter": {
+      case KEY_ENTER: {
         const selectedId = this.state.selectedId;
         if (selectedId) {
           const selected = this.getSelectedNode();
@@ -759,46 +941,46 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
         }
         return true;
       }
-      case "space":
+      case KEY_SPACE:
         this.togglePause();
         return true;
-      case "b":
+      case KEY_B:
         this.toggleBookmark();
         return true;
-      case "s":
+      case KEY_S:
         this.showSearchDialog();
         return true;
-      case "f":
+      case KEY_F:
         this.showFilterByAgentDialog();
         return true;
-      case "t":
+      case KEY_T:
         this.showTimeFilterDialog();
         return true;
-      case "T":
+      case KEY_CAPITAL_T:
         this.showFilterByTraceIdDialog();
         return true;
-      case "A":
+      case KEY_CAPITAL_A:
         this.showFilterByActionTypeDialog();
         return true;
-      case "g":
+      case KEY_G:
         this.toggleGrouping();
         return true;
-      case "a":
+      case KEY_A:
         this.toggleAutoRefresh();
         return true;
-      case "R":
+      case KEY_CAPITAL_R:
         await this.refresh();
         return true;
-      case "e":
+      case KEY_E:
         this.exportLogs();
         return true;
-      case "E":
+      case KEY_CAPITAL_E:
         this.expandAllNodes();
         return true;
-      case "c":
+      case KEY_C:
         this.collapseAllNodes();
         return true;
-      case "?":
+      case KEY_QUESTION:
         this.state.showHelp = true;
         return true;
       default:

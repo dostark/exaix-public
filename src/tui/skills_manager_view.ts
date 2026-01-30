@@ -14,7 +14,7 @@
 import { MemorySource, SkillStatus } from "../enums.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { type DialogBase } from "./utils/dialog_base.ts";
-import type { KeyBinding } from "./utils/keyboard.ts";
+import { KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
@@ -26,7 +26,26 @@ import {
   TUI_SOURCE_ICONS,
   TUI_STATUS_ICONS,
 } from "./utils/constants.ts";
-import { KEY_ENTER, KEY_ESCAPE, KEY_Q, KEY_SLASH } from "../config/constants.ts";
+import {
+  KEY_C,
+  KEY_D,
+  KEY_DOWN,
+  KEY_E,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_F,
+  KEY_G,
+  KEY_HOME,
+  KEY_LEFT,
+  KEY_Q,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_RIGHT,
+  KEY_S,
+  KEY_SLASH,
+  KEY_UP,
+} from "../config/constants.ts";
 
 // ===== Service Interface =====
 
@@ -90,26 +109,96 @@ export const SKILL_ICON = TUI_SKILL_ICON;
 
 // ===== Key Bindings =====
 
-export class SkillsKeyBindings extends KeyBindingsBase {
-  readonly KEY_BINDINGS: readonly KeyBinding[] = [
-    { key: "up", description: "Navigate up", action: "navigate-up", category: "Navigation" },
-    { key: "down", description: "Navigate down", action: "navigate-down", category: "Navigation" },
-    { key: "home", description: "Jump to first", action: "navigate-home", category: "Navigation" },
-    { key: "end", description: "Jump to last", action: "navigate-end", category: "Navigation" },
-    { key: "left", description: "Collapse group", action: "collapse", category: "Navigation" },
-    { key: "right", description: "Expand group", action: "expand", category: "Navigation" },
-    { key: "enter", description: "View skill details", action: "view-detail", category: "Actions" },
-    { key: "d", description: "Delete skill", action: "delete", category: "Actions" },
-    { key: "/", description: "Search skills", action: "search", category: "Actions" },
-    { key: "f", description: "Filter by source", action: "filter-source", category: "Actions" },
-    { key: "s", description: "Filter by status", action: "filter-status", category: "Actions" },
-    { key: "g", description: "Toggle grouping", action: "toggle-grouping", category: "View" },
-    { key: "R", description: "Force refresh", action: "refresh", category: "View" },
-    { key: "C", description: "Collapse all", action: "collapse-all", category: "View" },
-    { key: "E", description: "Expand all", action: "expand-all", category: "View" },
-    { key: "?", description: "Show help", action: "help", category: "Help" },
-    { key: "q", description: "Back", action: "back", category: "Help" },
-    { key: "escape", description: "Close", action: "close", category: "Help" },
+export enum SkillsAction {
+  NAVIGATE_UP = "navigate-up",
+  NAVIGATE_DOWN = "navigate-down",
+  NAVIGATE_HOME = "navigate-home",
+  NAVIGATE_END = "navigate-end",
+  COLLAPSE = "collapse",
+  EXPAND = "expand",
+  VIEW_DETAIL = "view-detail",
+  DELETE = "delete",
+  SEARCH = "search",
+  FILTER_SOURCE = "filter-source",
+  FILTER_STATUS = "filter-status",
+  TOGGLE_GROUPING = "toggle-grouping",
+  REFRESH = "refresh",
+  COLLAPSE_ALL = "collapse-all",
+  EXPAND_ALL = "expand-all",
+  HELP = "help",
+  BACK = "back",
+  CLOSE = "close",
+}
+export class SkillsKeyBindings extends KeyBindingsBase<SkillsAction, KeyBindingCategory> {
+  readonly KEY_BINDINGS: readonly KeyBinding<SkillsAction, KeyBindingCategory>[] = [
+    {
+      key: KEY_UP,
+      description: "Navigate up",
+      action: SkillsAction.NAVIGATE_UP,
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_DOWN,
+      description: "Navigate down",
+      action: SkillsAction.NAVIGATE_DOWN,
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_HOME,
+      description: "Jump to first",
+      action: SkillsAction.NAVIGATE_HOME,
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_END,
+      description: "Jump to last",
+      action: SkillsAction.NAVIGATE_END,
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_LEFT,
+      description: "Collapse group",
+      action: SkillsAction.COLLAPSE,
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_RIGHT,
+      description: "Expand group",
+      action: SkillsAction.EXPAND,
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_ENTER,
+      description: "View skill details",
+      action: SkillsAction.VIEW_DETAIL,
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    { key: KEY_D, description: "Delete skill", action: SkillsAction.DELETE, category: KeyBindingCategory.ACTIONS },
+    { key: KEY_SLASH, description: "Search skills", action: SkillsAction.SEARCH, category: KeyBindingCategory.ACTIONS },
+    {
+      key: KEY_F,
+      description: "Filter by source",
+      action: SkillsAction.FILTER_SOURCE,
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_S,
+      description: "Filter by status",
+      action: SkillsAction.FILTER_STATUS,
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_G,
+      description: "Toggle grouping",
+      action: SkillsAction.TOGGLE_GROUPING,
+      category: KeyBindingCategory.VIEW,
+    },
+    { key: KEY_R, description: "Force refresh", action: SkillsAction.REFRESH, category: KeyBindingCategory.VIEW },
+    { key: KEY_C, description: "Collapse all", action: SkillsAction.COLLAPSE_ALL, category: KeyBindingCategory.VIEW },
+    { key: KEY_E, description: "Expand all", action: SkillsAction.EXPAND_ALL, category: KeyBindingCategory.VIEW },
+    { key: KEY_QUESTION, description: "Show help", action: SkillsAction.HELP, category: KeyBindingCategory.HELP },
+    { key: KEY_Q, description: "Back", action: SkillsAction.BACK, category: KeyBindingCategory.HELP },
+    { key: KEY_ESCAPE, description: "Close", action: SkillsAction.CLOSE, category: KeyBindingCategory.HELP },
   ];
 }
 

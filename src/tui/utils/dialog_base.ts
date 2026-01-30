@@ -12,6 +12,22 @@ import { ANSI, colorize, getTheme, padEnd, type TuiTheme, visibleLength } from "
 // ===== Dialog Types =====
 
 import { DialogStatus } from "../../enums.ts";
+import {
+  KEY_BACKSPACE,
+  KEY_DELETE,
+  KEY_DOWN,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_HOME,
+  KEY_LEFT,
+  KEY_N,
+  KEY_RIGHT,
+  KEY_SHIFT_TAB,
+  KEY_TAB,
+  KEY_UP,
+  KEY_Y,
+} from "../../config/constants.ts";
 
 export type DialogState = DialogStatus;
 
@@ -128,23 +144,23 @@ export class ConfirmDialog extends DialogBase<boolean> {
 
   handleKey(key: string): void {
     switch (key) {
-      case "left":
-      case "right":
-      case "tab":
-        this.moveFocus(key === "left" ? -1 : 1);
+      case KEY_LEFT:
+      case KEY_RIGHT:
+      case KEY_TAB:
+        this.moveFocus(key === KEY_LEFT ? -1 : 1);
         break;
-      case "enter":
+      case KEY_ENTER:
         if (this.focusIndex === 0) {
           this.confirm(true);
         } else {
           this.cancel();
         }
         break;
-      case "y":
+      case KEY_Y:
         this.confirm(true);
         break;
-      case "n":
-      case "escape":
+      case KEY_N:
+      case KEY_ESCAPE:
         this.cancel();
         break;
     }
@@ -262,19 +278,19 @@ export class InputDialog extends DialogBase<string> {
     }
 
     switch (key) {
-      case "tab":
+      case KEY_TAB:
         this.moveFocus(1);
         break;
-      case "shift+tab":
+      case KEY_SHIFT_TAB:
         this.moveFocus(-1);
         break;
-      case "up":
+      case KEY_UP:
         this.moveFocus(-1);
         break;
-      case "down":
+      case KEY_DOWN:
         this.moveFocus(1);
         break;
-      case "enter":
+      case KEY_ENTER:
         if (this.focusIndex === 0) {
           this.editing = true;
         } else if (this.focusIndex === 1) {
@@ -285,7 +301,7 @@ export class InputDialog extends DialogBase<string> {
           this.cancel();
         }
         break;
-      case "escape":
+      case KEY_ESCAPE:
         this.cancel();
         break;
     }
@@ -293,34 +309,34 @@ export class InputDialog extends DialogBase<string> {
 
   private handleEditKey(key: string): void {
     switch (key) {
-      case "escape":
+      case KEY_ESCAPE:
         this.editing = false;
         break;
-      case "enter":
+      case KEY_ENTER:
         this.editing = false;
         this.moveFocus(1);
         break;
-      case "backspace":
+      case KEY_BACKSPACE:
         if (this.cursorPos > 0) {
           this.value = this.value.slice(0, this.cursorPos - 1) + this.value.slice(this.cursorPos);
           this.cursorPos--;
         }
         break;
-      case "delete":
+      case KEY_DELETE:
         if (this.cursorPos < this.value.length) {
           this.value = this.value.slice(0, this.cursorPos) + this.value.slice(this.cursorPos + 1);
         }
         break;
-      case "left":
+      case KEY_LEFT:
         if (this.cursorPos > 0) this.cursorPos--;
         break;
-      case "right":
+      case KEY_RIGHT:
         if (this.cursorPos < this.value.length) this.cursorPos++;
         break;
-      case "home":
+      case KEY_HOME:
         this.cursorPos = 0;
         break;
-      case "end":
+      case KEY_END:
         this.cursorPos = this.value.length;
         break;
       default:
@@ -430,7 +446,7 @@ export class SelectDialog<T = string> extends DialogBase<T> {
     if (this.focusIndex === 0) {
       // Navigating list
       switch (key) {
-        case "up":
+        case KEY_UP:
           if (this.selectedIndex > 0) {
             this.selectedIndex--;
             if (this.selectedIndex < this.scrollOffset) {
@@ -438,7 +454,7 @@ export class SelectDialog<T = string> extends DialogBase<T> {
             }
           }
           break;
-        case "down":
+        case KEY_DOWN:
           if (this.selectedIndex < this.options.options.length - 1) {
             this.selectedIndex++;
             if (this.selectedIndex >= this.scrollOffset + this.maxVisible) {
@@ -446,33 +462,33 @@ export class SelectDialog<T = string> extends DialogBase<T> {
             }
           }
           break;
-        case "tab":
+        case KEY_TAB:
           this.moveFocus(1);
           break;
-        case "enter":
+        case KEY_ENTER:
           this.confirm(this.options.options[this.selectedIndex].value);
           break;
-        case "escape":
+        case KEY_ESCAPE:
           this.cancel();
           break;
       }
     } else {
       switch (key) {
-        case "tab":
+        case KEY_TAB:
           this.moveFocus(1);
           break;
-        case "shift+tab":
-        case "up":
+        case KEY_SHIFT_TAB:
+        case KEY_UP:
           this.moveFocus(-1);
           break;
-        case "enter":
+        case KEY_ENTER:
           if (this.focusIndex === 1) {
             this.confirm(this.options.options[this.selectedIndex].value);
           } else {
             this.cancel();
           }
           break;
-        case "escape":
+        case KEY_ESCAPE:
           this.cancel();
           break;
       }

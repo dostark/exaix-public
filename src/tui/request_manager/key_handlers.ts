@@ -3,6 +3,28 @@
  * Extracted from request_manager_view.ts to reduce complexity
  */
 
+import {
+  KEY_A,
+  KEY_C,
+  KEY_CAPITAL_C,
+  KEY_CAPITAL_E,
+  KEY_D,
+  KEY_DOWN,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_F,
+  KEY_G,
+  KEY_HOME,
+  KEY_LEFT,
+  KEY_P,
+  KEY_Q,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_RIGHT,
+  KEY_S,
+  KEY_UP,
+} from "../../config/constants.ts";
 import { TuiNodeType } from "../../enums.ts";
 import type { TreeNode } from "../utils/tree_view.ts";
 import { collapseAll, expandAll, findNode, flattenTree, toggleNode } from "../utils/tree_view.ts";
@@ -134,25 +156,25 @@ export class MainKeyHandler {
     },
   ): Promise<boolean> {
     switch (key) {
-      case "up":
+      case KEY_UP:
         actions.navigateTree("up");
         return true;
-      case "down":
+      case KEY_DOWN:
         actions.navigateTree("down");
         return true;
-      case "home":
+      case KEY_HOME:
         actions.navigateTree("first");
         return true;
-      case "end":
+      case KEY_END:
         actions.navigateTree("last");
         return true;
-      case "left":
+      case KEY_LEFT:
         actions.collapseSelectedNode();
         return true;
-      case "right":
+      case KEY_RIGHT:
         actions.expandSelectedNode();
         return true;
-      case "enter":
+      case KEY_ENTER:
         if (state.selectedRequestId) {
           if (isGroupNode(state.requestTree, state.selectedRequestId)) {
             actions.toggleSelectedNode();
@@ -161,45 +183,45 @@ export class MainKeyHandler {
           }
         }
         return true;
-      case "c":
+      case KEY_C:
         actions.showCreateDialog();
         return true;
-      case "d":
+      case KEY_D:
         if (state.selectedRequestId && !isGroupNode(state.requestTree, state.selectedRequestId)) {
           actions.showCancelConfirm(state.selectedRequestId);
         }
         return true;
-      case "p":
+      case KEY_P:
         if (state.selectedRequestId && !isGroupNode(state.requestTree, state.selectedRequestId)) {
           actions.showPriorityDialog();
         }
         return true;
-      case "s":
+      case KEY_S:
         actions.showSearchDialog();
         return true;
-      case "f":
+      case KEY_F:
         actions.showFilterStatusDialog();
         return true;
-      case "a":
+      case KEY_A:
         actions.showFilterAgentDialog();
         return true;
-      case "g":
+      case KEY_G:
         actions.toggleGrouping();
         return true;
-      case "R":
+      case KEY_R:
         await actions.refresh();
         return true;
-      case "C":
+      case KEY_CAPITAL_C:
         actions.updateTree(TreeManipulationHandler.collapseAll(state.requestTree));
         return true;
-      case "E":
+      case KEY_CAPITAL_E:
         actions.updateTree(TreeManipulationHandler.expandAll(state.requestTree));
         return true;
-      case "?":
+      case KEY_QUESTION:
         actions.setShowHelp(true);
         return true;
-      case "q":
-      case "escape":
+      case KEY_Q:
+      case KEY_ESCAPE:
         return true;
     }
     return false;

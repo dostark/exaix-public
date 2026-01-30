@@ -9,6 +9,7 @@ import {
   AGENT_KEY_BINDINGS,
   AGENT_STATUS_COLORS,
   AGENT_STATUS_ICONS,
+  AgentAction,
   AgentHealthData,
   AgentLogEntry,
   AgentService,
@@ -205,14 +206,14 @@ Deno.test("AGENT_STATUS_COLORS: has all status types", () => {
 // ===== Phase 13.7: Key Bindings Tests =====
 
 Deno.test("AGENT_KEY_BINDINGS: has all expected bindings", () => {
-  const requiredActions = [
-    "navigate-up",
-    "navigate-down",
-    "view-details",
-    "view-logs",
-    "refresh",
-    "help",
-    "toggle-grouping",
+  const requiredActions: AgentAction[] = [
+    AgentAction.NAVIGATE_UP,
+    AgentAction.NAVIGATE_DOWN,
+    AgentAction.VIEW_DETAILS,
+    AgentAction.VIEW_LOGS,
+    AgentAction.REFRESH,
+    AgentAction.HELP,
+    AgentAction.TOGGLE_GROUPING,
   ];
   const bindingActions = AGENT_KEY_BINDINGS.map((b) => b.action);
   for (const action of requiredActions) {

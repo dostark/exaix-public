@@ -13,10 +13,10 @@ import { TuiSessionBase } from "./tui_common.ts";
 import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "./utils/spinner.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
-import type { KeyBinding } from "./utils/keyboard.ts";
+import { type KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { DaemonStatus, GeneralStatus } from "../enums.ts";
-import { DaemonKeyAction, KeyBindingCategory } from "../enums.ts";
+import { DaemonKeyAction } from "../enums.ts";
 import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "./utils/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 import {
@@ -134,9 +134,29 @@ export const LOG_LEVEL_COLORS: Record<string, string> = {
 
 // ===== Key Bindings =====
 
-export class DaemonKeyBindings extends KeyBindingsBase<DaemonKeyAction> {
-  KEY_BINDINGS: readonly KeyBinding<DaemonKeyAction>[] = [
-    { key: KEY_S, action: DaemonKeyAction.START, description: "Start daemon", category: KeyBindingCategory.ACTIONS },
+// ===== Daemon Action Types =====
+export enum DaemonAction {
+  START = "start",
+  STOP = "stop",
+  RESTART = "restart",
+  VIEW_LOGS = "view-logs",
+  VIEW_CONFIG = "view-config",
+  REFRESH = "refresh",
+  AUTO_REFRESH = "auto-refresh",
+  HELP = "help",
+  QUIT = "quit",
+  CANCEL = "cancel",
+}
+// ===== Key Binding Categories =====
+
+export class DaemonKeyBindings extends KeyBindingsBase<DaemonKeyAction, KeyBindingCategory> {
+  readonly KEY_BINDINGS: readonly KeyBinding<DaemonKeyAction, KeyBindingCategory>[] = [
+    {
+      key: KEY_S,
+      action: DaemonKeyAction.START,
+      description: "Start daemon",
+      category: KeyBindingCategory.ACTIONS,
+    },
     {
       key: KEY_K,
       action: DaemonKeyAction.STOP,
@@ -149,8 +169,18 @@ export class DaemonKeyBindings extends KeyBindingsBase<DaemonKeyAction> {
       description: "Restart daemon (with confirm)",
       category: KeyBindingCategory.ACTIONS,
     },
-    { key: KEY_L, action: DaemonKeyAction.VIEW_LOGS, description: "View logs", category: KeyBindingCategory.VIEW },
-    { key: KEY_C, action: DaemonKeyAction.VIEW_CONFIG, description: "View config", category: KeyBindingCategory.VIEW },
+    {
+      key: KEY_L,
+      action: DaemonKeyAction.VIEW_LOGS,
+      description: "View logs",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_C,
+      action: DaemonKeyAction.VIEW_CONFIG,
+      description: "View config",
+      category: KeyBindingCategory.VIEW,
+    },
     {
       key: KEY_CAPITAL_R,
       action: DaemonKeyAction.REFRESH,
@@ -163,7 +193,12 @@ export class DaemonKeyBindings extends KeyBindingsBase<DaemonKeyAction> {
       description: "Toggle auto-refresh",
       category: KeyBindingCategory.VIEW,
     },
-    { key: KEY_QUESTION, action: DaemonKeyAction.HELP, description: "Toggle help", category: KeyBindingCategory.HELP },
+    {
+      key: KEY_QUESTION,
+      action: DaemonKeyAction.HELP,
+      description: "Toggle help",
+      category: KeyBindingCategory.HELP,
+    },
     { key: KEY_Q, action: DaemonKeyAction.QUIT, description: "Close/Back", category: KeyBindingCategory.HELP },
     {
       key: KEY_ESCAPE,
@@ -411,7 +446,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     return this.state.lastStatusCheck;
   }
 
-  override getKeyBindings(): KeyBinding<DaemonKeyAction>[] {
+  override getKeyBindings(): KeyBinding<DaemonKeyAction, KeyBindingCategory>[] {
     return [...DAEMON_KEY_BINDINGS];
   }
 

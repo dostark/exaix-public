@@ -15,7 +15,7 @@
 import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { DialogBase } from "./utils/dialog_base.ts";
-import type { KeyBinding } from "./utils/keyboard.ts";
+import { type KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { LogEntry, LogLevel, StructuredLogger } from "../services/structured_logger.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
@@ -39,6 +39,7 @@ import {
   KEY_P,
   KEY_Q,
   KEY_QUESTION,
+  KEY_R,
   KEY_RIGHT,
   KEY_S,
   KEY_SPACE,
@@ -133,31 +134,172 @@ export const STRUCTURED_LOG_LEVEL_COLORS: Record<LogLevel, string> = {
 
 // ===== Key Bindings =====
 
-export class StructuredLogViewerKeyBindings extends KeyBindingsBase {
-  readonly KEY_BINDINGS: readonly KeyBinding[] = [
-    { key: KEY_UP, action: "navigate-up", description: "Move up", category: "Navigation" },
-    { key: KEY_DOWN, action: "navigate-down", description: "Move down", category: "Navigation" },
-    { key: KEY_HOME, action: "navigate-home", description: "Go to first", category: "Navigation" },
-    { key: KEY_END, action: "navigate-end", description: "Go to last", category: "Navigation" },
-    { key: KEY_LEFT, action: "collapse", description: "Collapse group", category: "Navigation" },
-    { key: KEY_RIGHT, action: "expand", description: "Expand group", category: "Navigation" },
-    { key: KEY_ENTER, action: "view-details", description: "View log details", category: "Actions" },
-    { key: KEY_SPACE, action: "toggle-pause", description: "Toggle pause", category: "Actions" },
-    { key: KEY_B, action: "bookmark", description: "Bookmark entry", category: "Actions" },
-    { key: KEY_E, action: "export", description: "Export logs", category: "Actions" },
-    { key: KEY_S, action: "search", description: "Search logs", category: "Actions" },
-    { key: KEY_F, action: "filter-level", description: "Filter by log level", category: "Actions" },
-    { key: KEY_C, action: "correlation-mode", description: "Toggle correlation mode", category: "Actions" },
-    { key: KEY_T, action: "trace-mode", description: "Toggle trace mode", category: "Actions" },
-    { key: KEY_P, action: "performance-toggle", description: "Toggle performance metrics", category: "View" },
-    { key: KEY_G, action: "toggle-grouping", description: "Toggle grouping", category: "View" },
-    { key: "R", action: "refresh", description: "Force refresh", category: "View" },
-    { key: KEY_A, action: "auto-refresh", description: "Toggle auto-refresh", category: "View" },
-    { key: KEY_CAPITAL_C, action: "collapse-all", description: "Collapse all", category: "View" },
-    { key: KEY_CAPITAL_E, action: "expand-all", description: "Expand all", category: "View" },
-    { key: KEY_QUESTION, action: "help", description: "Toggle help", category: "Help" },
-    { key: KEY_Q, action: "quit", description: "Close/Back", category: "Help" },
-    { key: KEY_ESCAPE, action: "cancel", description: "Close dialog/view", category: "Help" },
+export enum StructuredLogViewerAction {
+  NAVIGATE_UP = "navigate-up",
+  NAVIGATE_DOWN = "navigate-down",
+  NAVIGATE_HOME = "navigate-home",
+  NAVIGATE_END = "navigate-end",
+  COLLAPSE = "collapse",
+  EXPAND = "expand",
+  VIEW_DETAILS = "view-details",
+  TOGGLE_PAUSE = "toggle-pause",
+  BOOKMARK = "bookmark",
+  EXPORT = "export",
+  SEARCH = "search",
+  FILTER_LEVEL = "filter-level",
+  CORRELATION_MODE = "correlation-mode",
+  TRACE_MODE = "trace-mode",
+  PERFORMANCE_TOGGLE = "performance-toggle",
+  TOGGLE_GROUPING = "toggle-grouping",
+  REFRESH = "refresh",
+  AUTO_REFRESH = "auto-refresh",
+  COLLAPSE_ALL = "collapse-all",
+  EXPAND_ALL = "expand-all",
+  HELP = "help",
+  QUIT = "quit",
+  CANCEL = "cancel",
+}
+
+export class StructuredLogViewerKeyBindings extends KeyBindingsBase<StructuredLogViewerAction, KeyBindingCategory> {
+  readonly KEY_BINDINGS: readonly KeyBinding<StructuredLogViewerAction, KeyBindingCategory>[] = [
+    {
+      key: KEY_UP,
+      action: StructuredLogViewerAction.NAVIGATE_UP,
+      description: "Move up",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_DOWN,
+      action: StructuredLogViewerAction.NAVIGATE_DOWN,
+      description: "Move down",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_HOME,
+      action: StructuredLogViewerAction.NAVIGATE_HOME,
+      description: "Go to first",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_END,
+      action: StructuredLogViewerAction.NAVIGATE_END,
+      description: "Go to last",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_LEFT,
+      action: StructuredLogViewerAction.COLLAPSE,
+      description: "Collapse group",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_RIGHT,
+      action: StructuredLogViewerAction.EXPAND,
+      description: "Expand group",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_ENTER,
+      action: StructuredLogViewerAction.VIEW_DETAILS,
+      description: "View log details",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_SPACE,
+      action: StructuredLogViewerAction.TOGGLE_PAUSE,
+      description: "Toggle pause",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_B,
+      action: StructuredLogViewerAction.BOOKMARK,
+      description: "Bookmark entry",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_E,
+      action: StructuredLogViewerAction.EXPORT,
+      description: "Export logs",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_S,
+      action: StructuredLogViewerAction.SEARCH,
+      description: "Search logs",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_F,
+      action: StructuredLogViewerAction.FILTER_LEVEL,
+      description: "Filter by log level",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_C,
+      action: StructuredLogViewerAction.CORRELATION_MODE,
+      description: "Toggle correlation mode",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_T,
+      action: StructuredLogViewerAction.TRACE_MODE,
+      description: "Toggle trace mode",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_P,
+      action: StructuredLogViewerAction.PERFORMANCE_TOGGLE,
+      description: "Toggle performance metrics",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_G,
+      action: StructuredLogViewerAction.TOGGLE_GROUPING,
+      description: "Toggle grouping",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_R,
+      action: StructuredLogViewerAction.REFRESH,
+      description: "Force refresh",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_A,
+      action: StructuredLogViewerAction.AUTO_REFRESH,
+      description: "Toggle auto-refresh",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_CAPITAL_C,
+      action: StructuredLogViewerAction.COLLAPSE_ALL,
+      description: "Collapse all",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_CAPITAL_E,
+      action: StructuredLogViewerAction.EXPAND_ALL,
+      description: "Expand all",
+      category: KeyBindingCategory.VIEW,
+    },
+    {
+      key: KEY_QUESTION,
+      action: StructuredLogViewerAction.HELP,
+      description: "Toggle help",
+      category: KeyBindingCategory.HELP,
+    },
+    {
+      key: KEY_Q,
+      action: StructuredLogViewerAction.QUIT,
+      description: "Close/Back",
+      category: KeyBindingCategory.HELP,
+    },
+    {
+      key: KEY_ESCAPE,
+      action: StructuredLogViewerAction.CANCEL,
+      description: "Close dialog/view",
+      category: KeyBindingCategory.HELP,
+    },
   ];
 }
 

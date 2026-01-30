@@ -23,7 +23,7 @@ import { BaseTreeView } from "./base/base_tree_view.ts";
 import { PlanStatus } from "../enums.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "./utils/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import type { KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
+import { type KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { createGroupNode, createNode, flattenTree, type TreeNode, type TreeRenderOptions } from "./utils/tree_view.ts";
 import {
@@ -38,10 +38,12 @@ import {
   KEY_ESCAPE,
   KEY_HOME,
   KEY_LEFT,
+  KEY_Q,
   KEY_QUESTION,
   KEY_R,
   KEY_RIGHT,
   KEY_S,
+  KEY_SLASH,
   KEY_UP,
 } from "../config/constants.ts";
 
@@ -88,70 +90,86 @@ const PLAN_ICONS: Record<string, string> = {
 } as const;
 
 // ===== Plan Action Types =====
-const NAVIAGATION_UP: PlanAction = "navigate-up";
-const NAVIAGATION_DOWN: PlanAction = "navigate-down";
-const NAVIAGATION_HOME: PlanAction = "navigate-home";
-const NAVIAGATION_END: PlanAction = "navigate-end";
-const ACTION_VIEW_DIFF: PlanAction = "view-diff";
-const ACTION_APPROVE: PlanAction = "approve";
-const ACTION_REJECT: PlanAction = "reject";
-const ACTION_APPROVE_ALL: PlanAction = "approve-all";
-const NAVIGATION_COLLAPSE: PlanAction = "collapse";
-const NAVIGATION_EXPAND: PlanAction = "expand";
-const ACTION_SEARCH: PlanAction = "search";
-const ACTION_CANCEL: PlanAction = "cancel";
-const VIEW_REFRESH: PlanAction = "refresh-view";
-const VIEW_HELP: PlanAction = "help";
-const VIEW_EXPAND_ALL: PlanAction = "expand-all";
-const VIEW_COLLAPSE_ALL: PlanAction = "collapse-all";
-export type PlanAction =
-  | "navigate-up"
-  | "navigate-down"
-  | "navigate-home"
-  | "navigate-end"
-  | "view-diff"
-  | "approve"
-  | "reject"
-  | "approve-all"
-  | "collapse"
-  | "expand"
-  | "search"
-  | "cancel"
-  | "refresh-view"
-  | "help"
-  | "expand-all"
-  | "collapse-all";
+export enum PlanAction {
+  NAVIGATE_UP = "navigate-up",
+  NAVIGATE_DOWN = "navigate-down",
+  NAVIGATE_HOME = "navigate-home",
+  NAVIGATE_END = "navigate-end",
+  VIEW_DIFF = "view-diff",
+  APPROVE = "approve",
+  REJECT = "reject",
+  APPROVE_ALL = "approve-all",
+  COLLAPSE = "collapse",
+  EXPAND = "expand",
+  SEARCH = "search",
+  CANCEL = "cancel",
+  REFRESH_VIEW = "refresh-view",
+  HELP = "help",
+  EXPAND_ALL = "expand-all",
+  COLLAPSE_ALL = "collapse-all",
+}
 
-// ===== Key Binding Categories =====
-
-const CATEGORY_NAVIGATION: KeyBindingCategory = "Navigation";
-const CATEGORY_ACTIONS: KeyBindingCategory = "Actions";
-const CATEGORY_VIEW: KeyBindingCategory = "View";
-export type PlanActionCategory =
-  | "Navigation"
-  | "Actions"
-  | "View";
+export enum PlanActionCategory {
+  NAVIGATION = "Navigation",
+  ACTIONS = "Actions",
+  VIEW = "View",
+}
 
 // ===== Key Bindings =====
 
 export class PlanKeyBindings extends KeyBindingsBase<PlanAction, KeyBindingCategory> {
   readonly KEY_BINDINGS: readonly KeyBinding<PlanAction, KeyBindingCategory>[] = [
-    { key: KEY_UP, action: NAVIAGATION_UP, description: "Move up", category: CATEGORY_NAVIGATION },
-    { key: KEY_DOWN, action: NAVIAGATION_DOWN, description: "Move down", category: CATEGORY_NAVIGATION },
-    { key: KEY_HOME, action: NAVIAGATION_HOME, description: "Go to first", category: CATEGORY_NAVIGATION },
-    { key: KEY_END, action: NAVIAGATION_END, description: "Go to last", category: CATEGORY_NAVIGATION },
-    { key: KEY_ENTER, action: ACTION_VIEW_DIFF, description: "View diff", category: CATEGORY_ACTIONS },
-    { key: KEY_A, action: ACTION_APPROVE, description: "Approve plan", category: CATEGORY_ACTIONS },
-    { key: KEY_R, action: ACTION_REJECT, description: "Reject plan", category: CATEGORY_ACTIONS },
-    { key: KEY_CAPITAL_A, action: ACTION_APPROVE_ALL, description: "Approve all pending", category: CATEGORY_ACTIONS },
-    { key: KEY_LEFT, action: NAVIGATION_COLLAPSE, description: "Collapse node", category: CATEGORY_NAVIGATION },
-    { key: KEY_RIGHT, action: NAVIGATION_EXPAND, description: "Expand node", category: CATEGORY_NAVIGATION },
-    { key: KEY_S, action: ACTION_SEARCH, description: "Search/filter", category: CATEGORY_ACTIONS },
-    { key: KEY_ESCAPE, action: ACTION_CANCEL, description: "Close/Cancel", category: CATEGORY_ACTIONS },
-    { key: KEY_CAPITAL_R, action: VIEW_REFRESH, description: "Refresh view", category: CATEGORY_VIEW },
-    { key: KEY_QUESTION, action: VIEW_HELP, description: "Toggle help", category: CATEGORY_VIEW },
-    { key: KEY_E, action: VIEW_EXPAND_ALL, description: "Expand all", category: CATEGORY_VIEW },
-    { key: KEY_C, action: VIEW_COLLAPSE_ALL, description: "Collapse all", category: CATEGORY_VIEW },
+    {
+      key: KEY_UP,
+      action: PlanAction.NAVIGATE_UP,
+      description: "Move up",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_DOWN,
+      action: PlanAction.NAVIGATE_DOWN,
+      description: "Move down",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_HOME,
+      action: PlanAction.NAVIGATE_HOME,
+      description: "Go to first",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    {
+      key: KEY_END,
+      action: PlanAction.NAVIGATE_END,
+      description: "Go to last",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    { key: KEY_ENTER, action: PlanAction.VIEW_DIFF, description: "View diff", category: KeyBindingCategory.ACTIONS },
+    { key: KEY_A, action: PlanAction.APPROVE, description: "Approve plan", category: KeyBindingCategory.ACTIONS },
+    { key: KEY_R, action: PlanAction.REJECT, description: "Reject plan", category: KeyBindingCategory.ACTIONS },
+    {
+      key: KEY_CAPITAL_A,
+      action: PlanAction.APPROVE_ALL,
+      description: "Approve all pending",
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEY_LEFT,
+      action: PlanAction.COLLAPSE,
+      description: "Collapse node",
+      category: KeyBindingCategory.NAVIGATION,
+    },
+    { key: KEY_RIGHT, action: PlanAction.EXPAND, description: "Expand node", category: KeyBindingCategory.NAVIGATION },
+    { key: KEY_S, action: PlanAction.SEARCH, description: "Search/filter", category: KeyBindingCategory.ACTIONS },
+    { key: KEY_ESCAPE, action: PlanAction.CANCEL, description: "Close/Cancel", category: KeyBindingCategory.ACTIONS },
+    {
+      key: KEY_CAPITAL_R,
+      action: PlanAction.REFRESH_VIEW,
+      description: "Refresh view",
+      category: KeyBindingCategory.VIEW,
+    },
+    { key: KEY_QUESTION, action: PlanAction.HELP, description: "Toggle help", category: KeyBindingCategory.VIEW },
+    { key: KEY_E, action: PlanAction.EXPAND_ALL, description: "Expand all", category: KeyBindingCategory.VIEW },
+    { key: KEY_C, action: PlanAction.COLLAPSE_ALL, description: "Collapse all", category: KeyBindingCategory.VIEW },
   ];
 }
 
@@ -417,7 +435,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
 
     // 3. Handle diff view
     if (this.planExtensions.showDiff) {
-      if (key === "escape" || key === "q" || key === "enter") {
+      if (key === KEY_ESCAPE || key === KEY_Q || key === KEY_ENTER) {
         this.planExtensions.showDiff = false;
         this.planExtensions.diffContent = "";
       }
@@ -425,7 +443,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
     }
 
     // 4. Handle search mode reset
-    if (this.state.filterText !== "" && key === "escape") {
+    if (this.state.filterText !== "" && key === KEY_ESCAPE) {
       this.state.filterText = "";
       this.buildTree(this.plans);
       return true;
@@ -439,7 +457,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
 
     // 6. Handle action keys
     switch (key) {
-      case "enter": {
+      case KEY_ENTER: {
         const selected = this.getSelectedNode();
         if (selected && selected.type === "group") {
           this.toggleCurrentNode();
@@ -448,19 +466,19 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
         }
         return true;
       }
-      case "a":
+      case KEY_A:
         this.showApproveConfirmDialog();
         return true;
-      case "r":
+      case KEY_R:
         this.showRejectDialog();
         return true;
-      case "A":
+      case KEY_CAPITAL_A:
         await this.approveAllPending();
         return true;
-      case "R":
+      case KEY_CAPITAL_R:
         await this.refreshView();
         return true;
-      case "/":
+      case KEY_SLASH:
         this.showSearchDialog();
         return true;
       default:

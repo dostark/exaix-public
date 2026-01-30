@@ -5,12 +5,25 @@
 
 import type { TreeNode } from "./types.ts";
 import {
+  KEY_A,
   KEY_BACKSPACE,
+  KEY_CAPITAL_A,
+  KEY_CAPITAL_P,
+  KEY_CAPITAL_R,
   KEY_DOWN,
+  KEY_E,
   KEY_END,
   KEY_ENTER,
   KEY_ESCAPE,
+  KEY_G,
   KEY_HOME,
+  KEY_L,
+  KEY_N,
+  KEY_P,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_S,
+  KEY_SLASH,
   KEY_UP,
   MEMORY_SCOPE_EXECUTIONS,
   MEMORY_SCOPE_GLOBAL,
@@ -150,41 +163,41 @@ class ShortcutHandler {
     handlers: ShortcutHandlers,
   ): Promise<boolean> {
     switch (key) {
-      case "g":
+      case KEY_G:
         if (handlers.jumpToScope) await handlers.jumpToScope(MEMORY_SCOPE_GLOBAL);
         return true;
-      case "p":
+      case KEY_P:
         if (handlers.jumpToScope) await handlers.jumpToScope(MEMORY_SCOPE_PROJECTS);
         return true;
-      case "e":
+      case KEY_E:
         if (handlers.jumpToScope) await handlers.jumpToScope(MEMORY_SCOPE_EXECUTIONS);
         return true;
-      case "n":
+      case KEY_N:
         if (handlers.jumpToScope) await handlers.jumpToScope(MEMORY_SCOPE_PENDING);
         return true;
-      case "s":
-      case "/":
+      case KEY_S:
+      case KEY_SLASH:
         if (handlers.startSearch) handlers.startSearch();
         return true;
-      case "?":
+      case KEY_QUESTION:
         if (handlers.showHelp) handlers.showHelp();
         return true;
-      case "a":
+      case KEY_A:
         if (handlers.approveProposal) await handlers.approveProposal();
         return true;
-      case "r":
+      case KEY_R:
         if (handlers.rejectProposal) await handlers.rejectProposal();
         return true;
-      case "A":
+      case KEY_CAPITAL_A:
         if (handlers.approveAll) await handlers.approveAll();
         return true;
-      case "L":
+      case KEY_L:
         if (handlers.addLearning) handlers.addLearning();
         return true;
-      case "P":
+      case KEY_CAPITAL_P:
         if (handlers.promoteLearning) handlers.promoteLearning();
         return true;
-      case "R":
+      case KEY_CAPITAL_R:
         if (handlers.refresh) await handlers.refresh();
         return true;
     }

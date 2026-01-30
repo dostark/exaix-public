@@ -7,7 +7,7 @@
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { CritiqueSeverity } from "../../src/enums.ts";
 
-import { ExecutionStatus, MemoryOperation, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import { ExecutionStatus, MemorySource, MemoryStatus } from "../../src/enums.ts";
 
 import {
   LegacyRequestManagerTuiSession,
@@ -15,6 +15,7 @@ import {
   PRIORITY_ICONS,
   type Request,
   REQUEST_KEY_BINDINGS,
+  RequestAction,
   RequestCommandsServiceAdapter,
   RequestManagerView,
   STATUS_COLORS,
@@ -102,10 +103,10 @@ Deno.test("RequestManagerView: STATUS_COLORS covers all statuses", () => {
 
 Deno.test("RequestManagerView: REQUEST_KEY_BINDINGS is comprehensive", () => {
   const actions = REQUEST_KEY_BINDINGS.map((b) => b.action);
-  assertEquals(actions.includes("navigate-up"), true);
-  assertEquals(actions.includes("create"), true);
-  assertEquals(actions.includes(MemoryOperation.DELETE), true);
-  assertEquals(actions.includes("help"), true);
+  assertEquals(actions.includes(RequestAction.NAVIGATE_UP), true);
+  assertEquals(actions.includes(RequestAction.CREATE), true);
+  assertEquals(actions.includes(RequestAction.DELETE), true);
+  assertEquals(actions.includes(RequestAction.HELP), true);
 });
 
 Deno.test("RequestManagerView: PRIORITY_ICONS and STATUS_ICONS have all values", () => {

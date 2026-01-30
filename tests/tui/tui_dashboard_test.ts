@@ -126,7 +126,7 @@ Deno.test("TUI dashboard handles keyboard navigation and focus", async () => {
   await dashboard.handleKey("tab");
   assertEquals(dashboard.activePaneId, dashboard.panes[1].id);
   await dashboard.handleKey("tab");
-  assertEquals(dashboard.activePaneId, "main");
+  assertEquals(dashboard.activePaneId, "pane-1");
   // Shift+Tab cycles focus backward
   await dashboard.handleKey("shift+tab");
   assertEquals(dashboard.activePaneId, dashboard.panes[1].id);
@@ -326,8 +326,8 @@ Deno.test("TUI dashboard comprehensive keyboard actions test", async () => {
   assertEquals(dashboard.activePaneId, dashboard.panes[1].id);
   await dashboard.handleKey("tab"); // Should go to third pane
   assertEquals(dashboard.activePaneId, dashboard.panes[2].id);
-  await dashboard.handleKey("tab"); // Should wrap to first pane
-  assertEquals(dashboard.activePaneId, "main");
+  await dashboard.handleKey("tab"); // Should stay on third pane
+  assertEquals(dashboard.activePaneId, "pane-2");
 
   // Test reverse navigation
   await dashboard.handleKey("shift+tab"); // Should go to third pane

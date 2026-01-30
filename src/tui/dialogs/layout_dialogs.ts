@@ -9,6 +9,7 @@
  * - NamedLayoutDialog for saving/loading named layouts
  */
 
+import { KEY_BACKSPACE, KEY_DOWN, KEY_ENTER, KEY_ESCAPE, KEY_J, KEY_K, KEY_Q, KEY_UP } from "../../config/constants.ts";
 import { colorize, type TuiTheme } from "../utils/colors.ts";
 import { TUI_DASHBOARD_ICONS } from "../utils/constants.ts";
 
@@ -120,17 +121,17 @@ export function handleViewPickerKey(
   const newState = { ...state };
 
   switch (key.toLowerCase()) {
-    case "up":
-    case "k":
+    case KEY_UP:
+    case KEY_K:
       newState.selectedIndex = (state.selectedIndex - 1 + AVAILABLE_VIEWS.length) % AVAILABLE_VIEWS.length;
       return { state: newState, closed: false };
 
-    case "down":
-    case "j":
+    case KEY_DOWN:
+    case KEY_J:
       newState.selectedIndex = (state.selectedIndex + 1) % AVAILABLE_VIEWS.length;
       return { state: newState, closed: false };
 
-    case "enter":
+    case KEY_ENTER:
       newState.isOpen = false;
       return {
         state: newState,
@@ -138,9 +139,8 @@ export function handleViewPickerKey(
         closed: true,
       };
 
-    case "escape":
-    case "esc":
-    case "q":
+    case KEY_ESCAPE:
+    case KEY_Q:
       newState.isOpen = false;
       return { state: newState, closed: true };
 
@@ -257,17 +257,17 @@ export function handleLayoutPresetKey(
   const newState = { ...state };
 
   switch (key.toLowerCase()) {
-    case "up":
-    case "k":
+    case KEY_UP:
+    case KEY_K:
       newState.selectedIndex = (state.selectedIndex - 1 + LAYOUT_PRESET_INFO.length) % LAYOUT_PRESET_INFO.length;
       return { state: newState, closed: false };
 
-    case "down":
-    case "j":
+    case KEY_DOWN:
+    case KEY_J:
       newState.selectedIndex = (state.selectedIndex + 1) % LAYOUT_PRESET_INFO.length;
       return { state: newState, closed: false };
 
-    case "enter":
+    case KEY_ENTER:
       newState.isOpen = false;
       return {
         state: newState,
@@ -275,9 +275,8 @@ export function handleLayoutPresetKey(
         closed: true,
       };
 
-    case "escape":
-    case "esc":
-    case "q":
+    case KEY_ESCAPE:
+    case KEY_Q:
       newState.isOpen = false;
       return { state: newState, closed: true };
 
@@ -421,7 +420,7 @@ export function handleNamedLayoutKey(
 
   // Handle text input in save mode
   if (state.mode === "save" && state.inputActive) {
-    if (key === "enter" && state.inputName.trim()) {
+    if (key === KEY_ENTER && state.inputName.trim()) {
       newState.isOpen = false;
       newState.inputActive = false;
       return {
@@ -430,12 +429,12 @@ export function handleNamedLayoutKey(
         layoutName: state.inputName.trim(),
         closed: true,
       };
-    } else if (key === "escape" || key === "esc") {
+    } else if (key === KEY_ESCAPE || key === KEY_ESCAPE) {
       newState.isOpen = false;
       newState.inputActive = false;
       newState.inputName = "";
       return { state: newState, closed: true };
-    } else if (key === "backspace") {
+    } else if (key === KEY_BACKSPACE) {
       newState.inputName = state.inputName.slice(0, -1);
       return { state: newState, closed: false };
     } else if (key.length === 1 && /[a-zA-Z0-9_-]/.test(key)) {
@@ -446,21 +445,21 @@ export function handleNamedLayoutKey(
   }
 
   switch (key.toLowerCase()) {
-    case "up":
-    case "k":
+    case KEY_UP:
+    case KEY_K:
       if (state.layouts.length > 0) {
         newState.selectedIndex = (state.selectedIndex - 1 + state.layouts.length) % state.layouts.length;
       }
       return { state: newState, closed: false };
 
-    case "down":
-    case "j":
+    case KEY_DOWN:
+    case KEY_J:
       if (state.layouts.length > 0) {
         newState.selectedIndex = (state.selectedIndex + 1) % state.layouts.length;
       }
       return { state: newState, closed: false };
 
-    case "enter":
+    case KEY_ENTER:
       if (state.mode === "save") {
         newState.inputActive = true;
         return { state: newState, closed: false };
@@ -475,9 +474,8 @@ export function handleNamedLayoutKey(
       }
       return { state: newState, closed: false };
 
-    case "escape":
-    case "esc":
-    case "q":
+    case KEY_ESCAPE:
+    case KEY_Q:
       newState.isOpen = false;
       newState.inputName = "";
       newState.inputActive = false;

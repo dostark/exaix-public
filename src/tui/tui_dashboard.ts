@@ -29,15 +29,22 @@ import type { KeyBinding } from "./utils/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { DatabaseService } from "../services/db.ts";
 import {
+  KEY_1,
   KEY_1_TO_7,
+  KEY_7,
   KEY_C,
   KEY_CTRL_DOWN,
   KEY_CTRL_LEFT,
   KEY_CTRL_RIGHT,
   KEY_CTRL_UP,
   KEY_D,
+  KEY_DOWN,
+  KEY_ENTER,
   KEY_ESC_Q,
+  KEY_ESCAPE,
   KEY_H,
+  KEY_J,
+  KEY_K,
   KEY_M,
   KEY_N,
   KEY_P,
@@ -46,6 +53,7 @@ import {
   KEY_S,
   KEY_SHIFT_TAB,
   KEY_TAB,
+  KEY_UP,
   KEY_V,
   KEY_Z,
 } from "../config/constants.ts";
@@ -189,35 +197,35 @@ export function getDashboardHelpSections(): HelpSection[] {
     {
       title: "Navigation",
       items: [
-        { key: "Tab", description: "Switch to next pane" },
-        { key: "Shift+Tab", description: "Switch to previous pane" },
-        { key: "1-7", description: "Jump directly to pane" },
+        { key: KEY_TAB, description: "Switch to next pane" },
+        { key: KEY_SHIFT_TAB, description: "Switch to previous pane" },
+        { key: KEY_1_TO_7, description: "Jump directly to pane" },
       ],
     },
     {
       title: "Layout Management",
       items: [
-        { key: "v", description: "Split pane vertically (left/right)" },
-        { key: "h", description: "Split pane horizontally (top/bottom)" },
-        { key: "c", description: "Close current pane" },
-        { key: "z", description: "Maximize/restore pane (zoom)" },
+        { key: KEY_V, description: "Split pane vertically (left/right)" },
+        { key: KEY_H, description: "Split pane horizontally (top/bottom)" },
+        { key: KEY_C, description: "Close current pane" },
+        { key: KEY_Z, description: "Maximize/restore pane (zoom)" },
       ],
     },
     {
       title: "Layout Persistence",
       items: [
-        { key: "s", description: "Save current layout" },
-        { key: "r", description: "Restore saved layout" },
-        { key: "d", description: "Reset to default layout" },
+        { key: KEY_S, description: "Save current layout" },
+        { key: KEY_R, description: "Restore saved layout" },
+        { key: KEY_D, description: "Reset to default layout" },
       ],
     },
     {
       title: "View Navigation",
       items: [
-        { key: "p", description: "Open view picker dialog" },
-        { key: "n", description: "Toggle notification panel" },
-        { key: "m", description: "Toggle memory update notifications" },
-        { key: "?", description: "Show this help screen" },
+        { key: KEY_P, description: "Open view picker dialog" },
+        { key: KEY_N, description: "Toggle notification panel" },
+        { key: KEY_M, description: "Toggle memory update notifications" },
+        { key: KEY_QUESTION, description: "Show this help screen" },
       ],
     },
     {
@@ -495,19 +503,19 @@ async function _handleMemoryNotificationsLocal(
 }
 
 function _handleViewPicker(self: any, key: string, views: any[], panes: Pane[], viewPickerIndexRef: { index: number }) {
-  if (key === "escape" || key === "esc") {
+  if (key === KEY_ESCAPE) {
     self.state.showViewPicker = false;
-  } else if (key === "up" || key === "k") {
+  } else if (key === KEY_UP || key === KEY_K) {
     viewPickerIndexRef.index = (viewPickerIndexRef.index - 1 + views.length) % views.length;
-  } else if (key === "down" || key === "j") {
+  } else if (key === KEY_DOWN || key === KEY_J) {
     viewPickerIndexRef.index = (viewPickerIndexRef.index + 1) % views.length;
-  } else if (key === "enter") {
+  } else if (key === KEY_ENTER) {
     const activePane = panes.find((p) => p.id === self.activePaneId);
     if (activePane) {
       activePane.view = views[viewPickerIndexRef.index];
     }
     self.state.showViewPicker = false;
-  } else if (key >= "1" && key <= "7") {
+  } else if (key >= KEY_1 && key <= KEY_7) {
     const idx = parseInt(key) - 1;
     if (idx < views.length) {
       const activePane = panes.find((p) => p.id === self.activePaneId);
@@ -650,12 +658,12 @@ export async function launchTuiDashboard(
         screenReader: false,
       },
       keybindings: {
-        nextView: "Tab",
-        prevView: "Shift+Tab",
-        notify: "n",
-        splitVertical: "v",
-        splitHorizontal: "h",
-        closePane: "c",
+        nextView: KEY_TAB,
+        prevView: KEY_SHIFT_TAB,
+        notify: KEY_N,
+        splitVertical: KEY_V,
+        splitHorizontal: KEY_H,
+        closePane: KEY_C,
       },
       async splitPane(direction: "vertical" | "horizontal") {
         const result = await helperSplitPane(panes, this.activePaneId, views, direction, this.notify.bind(this));

@@ -165,13 +165,26 @@ export interface KeyBinding<TAction extends string | KeyHandler = string, KeyBin
 /**
  * Categories for organizing key bindings in help screens and documentation
  */
-export type KeyBindingCategory =
-  | "Navigation"
-  | "Actions"
-  | "View"
-  | "Help"
-  | "Layout"
-  | "General";
+export enum KeyBindingCategory {
+  NAVIGATION = "Navigation",
+  ACTIONS = "Actions",
+  VIEW = "View",
+  HELP = "Help",
+  LAYOUT = "Layout",
+  GENERAL = "General",
+}
+
+// /**
+//  * Enum for key binding categories - provides reusable constants
+//  */
+// export enum KeyBindingCategoryEnum {
+//   NAVIGATION = "Navigation",
+//   ACTIONS = "Actions",
+//   VIEW = "View",
+//   HELP = "Help",
+//   LAYOUT = "Layout",
+//   GENERAL = "General",
+// }
 
 export interface KeyBindingGroup<TAction extends string | KeyHandler = string> {
   name: string;

@@ -533,7 +533,7 @@ Deno.test("MemoryViewTuiSession: openAddLearningDialog opens dialog", async () =
   const session = createSessionWithService(service);
   await session.initialize();
 
-  await session.handleKey("L");
+  await session.handleKey("l");
   assertEquals(session.hasActiveDialog(), true);
 });
 

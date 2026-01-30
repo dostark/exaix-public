@@ -7,13 +7,12 @@
 import { assertEquals, assertExists, assertNotEquals, assertStringIncludes } from "@std/assert";
 import { EvaluationCategory } from "../../src/enums.ts";
 
-import { MemoryOperation } from "../../src/enums.ts";
-
 import {
   createSkillsManagerView,
   MinimalSkillsServiceMock,
   SKILL_ICON,
   SKILLS_KEY_BINDINGS,
+  SkillsAction,
   SkillsManagerView,
   type SkillSummary,
   SOURCE_ICONS,
@@ -100,12 +99,12 @@ Deno.test("SkillsManagerView: SKILL_ICON is defined", () => {
 
 Deno.test("SkillsManagerView: SKILLS_KEY_BINDINGS has required keys", () => {
   const actions = SKILLS_KEY_BINDINGS.map((b) => b.action);
-  assertEquals(actions.includes("navigate-up"), true);
-  assertEquals(actions.includes("view-detail"), true);
-  assertEquals(actions.includes(MemoryOperation.DELETE), true);
-  assertEquals(actions.includes("search"), true);
-  assertEquals(actions.includes("help"), true);
-  assertEquals(actions.includes("back"), true);
+  assertEquals(actions.includes(SkillsAction.NAVIGATE_UP), true);
+  assertEquals(actions.includes(SkillsAction.VIEW_DETAIL), true);
+  assertEquals(actions.includes(SkillsAction.DELETE), true);
+  assertEquals(actions.includes(SkillsAction.SEARCH), true);
+  assertEquals(actions.includes(SkillsAction.HELP), true);
+  assertEquals(actions.includes(SkillsAction.BACK), true);
 });
 
 // ===== SkillsManagerView Core Tests =====

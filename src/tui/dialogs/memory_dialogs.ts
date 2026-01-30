@@ -20,6 +20,18 @@ export type DialogResult<T = unknown> =
   | { type: "cancelled" };
 
 import { DialogStatus } from "../../enums.ts";
+import {
+  KEY_BACKSPACE,
+  KEY_DOWN,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_LEFT,
+  KEY_N,
+  KEY_RIGHT,
+  KEY_TAB,
+  KEY_UP,
+  KEY_Y,
+} from "../../config/constants.ts";
 
 export type DialogState = DialogStatus;
 
@@ -78,23 +90,23 @@ export class ConfirmApproveDialog extends DialogBase<ApproveDialogResult> {
 
   handleKey(key: string): void {
     switch (key) {
-      case "left":
-      case "right":
-      case "tab":
+      case KEY_LEFT:
+      case KEY_RIGHT:
+      case KEY_TAB:
         this.focusIndex = this.focusIndex === 0 ? 1 : 0;
         break;
-      case "enter":
+      case KEY_ENTER:
         if (this.focusIndex === 0) {
           this.confirm({ proposalId: this.proposal.id });
         } else {
           this.cancel();
         }
         break;
-      case "y":
+      case KEY_Y:
         this.confirm({ proposalId: this.proposal.id });
         break;
-      case "n":
-      case "escape":
+      case KEY_N:
+      case KEY_ESCAPE:
         this.cancel();
         break;
     }
@@ -171,12 +183,12 @@ export class ConfirmRejectDialog extends DialogBase<RejectDialogResult> {
 
   handleKey(key: string): void {
     if (this.inputActive) {
-      if (key === "escape" || key === "enter") {
+      if (key === KEY_ESCAPE || key === KEY_ENTER) {
         this.inputActive = false;
-        if (key === "enter") {
+        if (key === KEY_ENTER) {
           this.focusIndex = 1; // Move to reject button
         }
-      } else if (key === "backspace") {
+      } else if (key === KEY_BACKSPACE) {
         this.reason = this.reason.slice(0, -1);
       } else if (key.length === 1) {
         this.reason += key;
@@ -185,14 +197,14 @@ export class ConfirmRejectDialog extends DialogBase<RejectDialogResult> {
     }
 
     switch (key) {
-      case "tab":
-      case "down":
+      case KEY_TAB:
+      case KEY_DOWN:
         this.focusIndex = (this.focusIndex + 1) % 3;
         break;
-      case "up":
+      case KEY_UP:
         this.focusIndex = (this.focusIndex - 1 + 3) % 3;
         break;
-      case "enter":
+      case KEY_ENTER:
         if (this.focusIndex === 0) {
           this.inputActive = true;
         } else if (this.focusIndex === 1) {
@@ -201,7 +213,7 @@ export class ConfirmRejectDialog extends DialogBase<RejectDialogResult> {
           this.cancel();
         }
         break;
-      case "escape":
+      case KEY_ESCAPE:
         this.cancel();
         break;
     }
@@ -305,14 +317,14 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
     }
 
     switch (key) {
-      case "tab":
-      case "down":
+      case KEY_TAB:
+      case KEY_DOWN:
         this.activeField = (this.activeField + 1) % 8;
         break;
-      case "up":
+      case KEY_UP:
         this.activeField = (this.activeField - 1 + 8) % 8;
         break;
-      case "enter":
+      case KEY_ENTER:
         if (this.activeField === 6) {
           // Save button
           if (this.validate()) {
@@ -325,41 +337,41 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
           this.editMode = true;
         }
         break;
-      case "escape":
+      case KEY_ESCAPE:
         this.cancel();
         break;
     }
   }
 
   private handleEditModeKey(key: string): void {
-    if (key === "escape" || key === "enter") {
+    if (key === KEY_ESCAPE || key === KEY_ENTER) {
       this.editMode = false;
       return;
     }
 
     switch (this.activeField) {
       case 0: // title
-        if (key === "backspace") {
+        if (key === KEY_BACKSPACE) {
           this.title = this.title.slice(0, -1);
         } else if (key.length === 1) {
           this.title += key;
         }
         break;
       case 1: // category - cycle through
-        if (key === "left" || key === "right" || key.length === 1) {
+        if (key === KEY_LEFT || key === KEY_RIGHT || key.length === 1) {
           const idx = this.categories.indexOf(this.category);
           this.category = this.categories[(idx + 1) % this.categories.length];
         }
         break;
       case 2: // content
-        if (key === "backspace") {
+        if (key === KEY_BACKSPACE) {
           this.content = this.content.slice(0, -1);
         } else if (key.length === 1) {
           this.content += key;
         }
         break;
       case 3: // tags
-        if (key === "backspace") {
+        if (key === KEY_BACKSPACE) {
           this.tags = this.tags.slice(0, -1);
         } else if (key.length === 1) {
           this.tags += key;
@@ -369,7 +381,7 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
         this.scope = this.scope === "global" ? "project" : "global";
         break;
       case 5: // portal
-        if (key === "backspace") {
+        if (key === KEY_BACKSPACE) {
           this.portal = this.portal.slice(0, -1);
         } else if (key.length === 1) {
           this.portal += key;
@@ -511,12 +523,12 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
 
   handleKey(key: string): void {
     switch (key) {
-      case "left":
-      case "right":
-      case "tab":
+      case KEY_LEFT:
+      case KEY_RIGHT:
+      case KEY_TAB:
         this.focusIndex = this.focusIndex === 0 ? 1 : 0;
         break;
-      case "enter":
+      case KEY_ENTER:
         if (this.focusIndex === 0) {
           this.confirm({
             learningTitle: this.learningTitle,
@@ -526,14 +538,14 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
           this.cancel();
         }
         break;
-      case "y":
+      case KEY_Y:
         this.confirm({
           learningTitle: this.learningTitle,
           sourcePortal: this.sourcePortal,
         });
         break;
-      case "n":
-      case "escape":
+      case KEY_N:
+      case KEY_ESCAPE:
         this.cancel();
         break;
     }
@@ -605,23 +617,23 @@ export class BulkApproveDialog extends DialogBase<BulkApproveResult> {
     if (this.inProgress) return; // Ignore keys during progress
 
     switch (key) {
-      case "left":
-      case "right":
-      case "tab":
+      case KEY_LEFT:
+      case KEY_RIGHT:
+      case KEY_TAB:
         this.focusIndex = this.focusIndex === 0 ? 1 : 0;
         break;
-      case "enter":
+      case KEY_ENTER:
         if (this.focusIndex === 0) {
           this.confirm({ count: this.count });
         } else {
           this.cancel();
         }
         break;
-      case "y":
+      case KEY_Y:
         this.confirm({ count: this.count });
         break;
-      case "n":
-      case "escape":
+      case KEY_N:
+      case KEY_ESCAPE:
         this.cancel();
         break;
     }
