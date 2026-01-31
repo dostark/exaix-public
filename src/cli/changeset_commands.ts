@@ -9,10 +9,10 @@ import { GitService } from "../services/git_service.ts";
 import { ChangesetStatus } from "../enums.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
-import { isTestMode } from "../config/env_schema.ts";
 import { ValidationChain } from "./validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
 import { CommandUtils } from "./utils/command_utils.ts";
+import { enrichWithRequest } from "./utils/request_enricher.ts";
 
 export interface ChangesetMetadata {
   branch: string;
@@ -157,48 +157,11 @@ export class ChangesetCommands extends BaseCommand {
   private async extractChangesetMetadataWithContext(
     basicMetadata: ChangesetMetadata,
   ): Promise<ChangesetMetadata> {
-    const metadata = { ...basicMetadata };
-
-    // Load request information if we have a request_id
-    if (metadata.request_id) {
-      try {
-        // Extract trace_id from request_id (format: "request-{trace_id}")
-        let requestIdentifier = metadata.request_id;
-        if (metadata.request_id.startsWith("request-")) {
-          const traceId = metadata.request_id.substring(8); // Remove "request-" prefix
-          requestIdentifier = traceId;
-        }
-
-        const requestResult = await this.requestCommands.show(requestIdentifier);
-        const request = requestResult.metadata;
-
-        // Extract title from content (first header or first non-empty line)
-        const contentLines = requestResult.content.split("\n").map((line) => line.trim()).filter((line) => line);
-        let title = "Untitled Request";
-
-        for (const line of contentLines) {
-          if (line.startsWith("# ")) {
-            title = line.substring(2).trim();
-            break;
-          } else if (!line.startsWith("#") && line) {
-            title = line;
-            break;
-          }
-        }
-
-        metadata.request_title = title;
-        metadata.request_agent = request.agent;
-        metadata.request_portal = request.portal;
-        metadata.request_priority = request.priority;
-        metadata.request_created_by = request.created_by;
-        metadata.request_flow = request.flow;
-      } catch (error) {
-        // If request can't be loaded, continue without request info
-        if (!isTestMode()) {
-          console.warn(`Warning: Could not load request info for changeset ${metadata.request_id}:`, error);
-        }
-      }
-    }
+    const metadata = await enrichWithRequest(
+      this.requestCommands,
+      basicMetadata,
+      `changeset ${basicMetadata.request_id}`,
+    );
 
     // Try to find associated plan using trace_id
     if (metadata.trace_id) {

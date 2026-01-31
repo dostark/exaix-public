@@ -427,13 +427,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
   // ===== Key Handling =====
 
   override async handleKey(key: string): Promise<boolean> {
-    // 1. Handle dialogs (delegated to base)
-    if (this.handleDialogKeys(key)) return true;
-
-    // 2. Handle help screen (delegated to base)
-    if (this.handleHelpKeys(key)) return true;
-
-    // 3. Handle diff view
+    // 1. Handle diff view
     if (this.planExtensions.showDiff) {
       if (key === KEY_ESCAPE || key === KEY_Q || key === KEY_ENTER) {
         this.planExtensions.showDiff = false;
@@ -442,16 +436,13 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
       return true;
     }
 
-    // 4. Handle search mode reset
-    if (this.state.filterText !== "" && key === KEY_ESCAPE) {
-      this.state.filterText = "";
-      this.buildTree(this.plans);
-      return true;
-    }
-
-    // 5. Handle navigation (delegated to base)
-    if (this.handleNavigationKeys(key)) {
+    // 2. Handle navigation & common keys (delegated to base)
+    if (this.handleKeySync(key)) {
       this.syncSelectedIndex();
+      // If filter was cleared (handled by base), rebuild tree
+      if (this.state.filterText === "" && key === KEY_ESCAPE) {
+        this.buildTree(this.plans);
+      }
       return true;
     }
 
@@ -489,17 +480,14 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
   // ===== Actions =====
 
   private async showDiffAction(plan: Plan): Promise<void> {
-    this.setLoading(true, `Loading diff for ${plan.id}...`);
+    const diff = await this.executeWithLoading(
+      `Loading diff for ${plan.id}...`,
+      () => this.service.getDiff(plan.id),
+    );
 
-    try {
-      const diff = await this.service.getDiff(plan.id);
+    if (diff !== null) {
       this.planExtensions.diffContent = diff;
       this.planExtensions.showDiff = true;
-      this.statusMessage = "";
-    } catch (e) {
-      this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
-    } finally {
-      this.setLoading(false);
     }
   }
 
@@ -521,17 +509,14 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
     if (!selected || selected.type !== "plan") return;
     const planId = selected.id;
 
-    this.setLoading(true, `Approving ${planId}...`);
-
-    try {
-      await this.service.approve(planId, "reviewer");
-      this.statusMessage = `Approved ${planId}`;
-      await this.refreshView();
-    } catch (e) {
-      this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
-    } finally {
-      this.setLoading(false);
-    }
+    await this.executeWithLoading(
+      `Approving ${planId}...`,
+      async () => {
+        await this.service.approve(planId, "reviewer");
+        await this.refreshView();
+      },
+      () => `Approved ${planId}`,
+    );
   }
 
   private showRejectDialog(): void {
@@ -550,17 +535,14 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
   }
 
   private async executeReject(planId: string, reason: string): Promise<void> {
-    this.setLoading(true, `Rejecting ${planId}...`);
-
-    try {
-      await this.service.reject(planId, "reviewer", reason);
-      this.statusMessage = `Rejected ${planId}`;
-      await this.refreshView();
-    } catch (e) {
-      this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
-    } finally {
-      this.setLoading(false);
-    }
+    await this.executeWithLoading(
+      `Rejecting ${planId}...`,
+      async () => {
+        await this.service.reject(planId, "reviewer", reason);
+        await this.refreshView();
+      },
+      () => `Rejected ${planId}`,
+    );
   }
 
   private async approveAllPending(): Promise<void> {
@@ -570,38 +552,33 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
       return;
     }
 
-    this.setLoading(true, "Approving all pending plans...");
-    let approved = 0;
-
-    try {
-      for (const node of pendingGroup.children) {
-        if (node.data) {
-          await this.service.approve(node.id, "reviewer");
-          approved++;
+    await this.executeWithLoading(
+      "Approving all pending plans...",
+      async () => {
+        let approved = 0;
+        for (const node of pendingGroup.children) {
+          if (node.data) {
+            await this.service.approve(node.id, "reviewer");
+            approved++;
+          }
         }
-      }
-      this.statusMessage = `Approved ${approved} plans`;
-      await this.refreshView();
-    } catch (e) {
-      this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
-    } finally {
-      this.setLoading(false);
-    }
+        await this.refreshView();
+        return approved;
+      },
+      (count) => `Approved ${count} plans`,
+    );
   }
 
   private async refreshView(): Promise<void> {
-    this.setLoading(true, "Refreshing plans...");
-
-    try {
-      const newPlans = await this.service.listPending();
-      this.updatePlans(newPlans);
-      this.state.lastRefresh = Date.now();
-      this.statusMessage = "Refreshed";
-    } catch (e) {
-      this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
-    } finally {
-      this.setLoading(false);
-    }
+    await this.executeWithLoading(
+      "Refreshing plans...",
+      async () => {
+        const newPlans = await this.service.listPending();
+        this.updatePlans(newPlans);
+        this.state.lastRefresh = Date.now();
+      },
+      () => "Refreshed",
+    );
   }
 
   // ===== State Accessors =====

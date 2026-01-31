@@ -487,7 +487,7 @@ export function renderPaneTitleBar(pane: Pane, theme: Theme): string {
 
 // Helper handlers extracted from the large dashboard key handler to reduce complexity
 function _handleHelpOverlay(self: any, key: string, panes: Pane[]) {
-  if (key === "?" || key === "escape" || key === "esc") {
+  if (key === KEY_QUESTION || key === KEY_ESCAPE) {
     self.state.showHelp = false;
   }
   return panes.findIndex((p) => p.id === self.activePaneId);

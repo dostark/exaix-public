@@ -907,13 +907,13 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
     this.pendingDialogType = null;
   }
 
-  override async handleKey(key: string): Promise<boolean> {
+  public override handleKeySync(key: string): boolean {
     // 1. Handle dialogs (delegated to base)
     if (this.handleDialogKeys(key)) return true;
 
     // 2. Handle detail view
     if (this.monitorExtensions.showDetail) {
-      if (key === "escape" || key === "q") {
+      if (key === KEY_ESCAPE || key === KEY_Q) {
         this.monitorExtensions.showDetail = false;
       }
       return true;
@@ -923,8 +923,10 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
     if (this.handleHelpKeys(key)) return true;
 
     // 4. Handle navigation (delegated to base)
-    if (this.handleNavigationKeys(key)) {
-      return true;
+    if (key !== KEY_E && key !== KEY_CAPITAL_R) {
+      if (this.handleNavigationKeys(key)) {
+        return true;
+      }
     }
 
     // 5. Handle action keys
@@ -969,7 +971,8 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
         this.toggleAutoRefresh();
         return true;
       case KEY_CAPITAL_R:
-        await this.refresh();
+        // Refresh is async, but we can trigger it and return true synchronously
+        this.refresh();
         return true;
       case KEY_E:
         this.exportLogs();
@@ -980,12 +983,13 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
       case KEY_C:
         this.collapseAllNodes();
         return true;
-      case KEY_QUESTION:
-        this.state.showHelp = true;
-        return true;
       default:
         return false;
     }
+  }
+
+  override handleKey(key: string): Promise<boolean> {
+    return Promise.resolve(this.handleKeySync(key));
   }
 
   // ===== Lifecycle =====

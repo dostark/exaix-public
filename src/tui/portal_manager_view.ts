@@ -309,16 +309,13 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
     // 2. Handle help screen (delegated to base)
     if (this.handleHelpKeys(key)) return true;
 
-    // 3. Handle search mode exit
-    if (this.state.filterText !== "" && key === "escape") {
-      this.state.filterText = "";
-      this.buildTree(this.portals);
-      return true;
-    }
-
-    // 4. Handle navigation (delegated to base)
-    if (this.handleNavigationKeys(key)) {
+    // 4. Handle navigation & common keys (delegated to base)
+    if (this.handleKeySync(key)) {
       this.syncSelectedIndex();
+      // If filter was cleared (handled by base), rebuild tree
+      if (this.state.filterText === "" && key === "escape") {
+        this.buildTree(this.portals);
+      }
       return true;
     }
 
@@ -365,32 +362,22 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
     const portal = this.portals[this.selectedIndex];
     if (!portal) return;
 
-    this.setLoading(true, `Opening ${portal.alias}...`);
-
-    try {
-      await this.service.openPortal(portal.alias);
-      this.statusMessage = `Opened ${portal.alias}`;
-    } catch (e) {
-      this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
-    } finally {
-      this.setLoading(false);
-    }
+    await this.executeWithLoading(
+      `Opening ${portal.alias}...`,
+      () => this.service.openPortal(portal.alias),
+      () => `Opened ${portal.alias}`,
+    );
   }
 
   private async executeRefresh(): Promise<void> {
     const portal = this.portals[this.selectedIndex];
     if (!portal) return;
 
-    this.setLoading(true, `Refreshing ${portal.alias}...`);
-
-    try {
-      await this.service.refreshPortal(portal.alias);
-      this.statusMessage = `Refreshed ${portal.alias}`;
-    } catch (e) {
-      this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
-    } finally {
-      this.setLoading(false);
-    }
+    await this.executeWithLoading(
+      `Refreshing ${portal.alias}...`,
+      () => this.service.refreshPortal(portal.alias),
+      () => `Refreshed ${portal.alias}`,
+    );
   }
 
   private showRemoveConfirmDialog(): void {
@@ -411,33 +398,26 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
     const portal = this.portals[this.selectedIndex];
     if (!portal) return;
 
-    this.setLoading(true, `Removing ${portal.alias}...`);
-
-    try {
-      await this.service.removePortal(portal.alias);
-      this.statusMessage = `Removed ${portal.alias}`;
-      // Refresh the list
-      await this.refreshView();
-    } catch (e) {
-      this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
-    } finally {
-      this.setLoading(false);
-    }
+    await this.executeWithLoading(
+      `Removing ${portal.alias}...`,
+      async () => {
+        await this.service.removePortal(portal.alias);
+        await this.refreshView();
+      },
+      () => `Removed ${portal.alias}`,
+    );
   }
 
   private async refreshView(): Promise<void> {
-    this.setLoading(true, "Refreshing portals...");
-
-    try {
-      const newPortals = await this.service.listPortals();
-      this.updatePortals(newPortals);
-      this.portalExtensions.lastRefresh = Date.now();
-      this.statusMessage = "Refreshed";
-    } catch (e) {
-      this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
-    } finally {
-      this.setLoading(false);
-    }
+    await this.executeWithLoading(
+      "Refreshing portals...",
+      async () => {
+        const newPortals = await this.service.listPortals();
+        this.updatePortals(newPortals);
+        this.portalExtensions.lastRefresh = Date.now();
+      },
+      () => "Refreshed",
+    );
   }
 
   // ===== State Accessors =====
@@ -450,8 +430,16 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
     this.portals = newPortals;
     this.buildTree(newPortals);
 
-    if (this.selectedIndex >= newPortals.length) {
+    if (!this.state.selectedId && newPortals.length > 0) {
+      this.state.selectedId = newPortals[0].alias;
+      this.selectedIndex = 0;
+    } else if (this.selectedIndex >= newPortals.length) {
       this.selectedIndex = Math.max(0, newPortals.length - 1);
+      if (newPortals.length > 0) {
+        this.state.selectedId = newPortals[this.selectedIndex].alias;
+      } else {
+        this.state.selectedId = null;
+      }
     }
   }
 

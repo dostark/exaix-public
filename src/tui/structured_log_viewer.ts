@@ -27,6 +27,7 @@ import {
   KEY_C,
   KEY_CAPITAL_C,
   KEY_CAPITAL_E,
+  KEY_CAPITAL_R,
   KEY_DOWN,
   KEY_E,
   KEY_END,
@@ -773,7 +774,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
 
   // ===== Input Handling =====
 
-  override async handleKey(key: string): Promise<boolean> {
+  public override handleKeySync(key: string): boolean {
     // 1. Handle dialogs (delegated to base)
     if (this.handleDialogKeys(key)) return true;
 
@@ -789,7 +790,13 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
       return true;
     }
 
-    // 5. Main actions
+    // 4. Handle navigation (delegated to base)
+    // Avoid keys that we handle specifically in this subclass or asynchronously
+    if (key !== KEY_C && key !== KEY_T && key !== KEY_E && key !== KEY_CAPITAL_R) {
+      if (this.handleNavigationKeys(key)) return true;
+    }
+
+    // 5. Main actions (sync part)
     switch (key) {
       case KEY_ENTER:
         if (this.state.selectedId) {
@@ -800,18 +807,15 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
             this.logViewExtensions.detailContent = this.getLogDetail(this.state.selectedId);
           }
         }
-        break;
+        return true;
       case KEY_SPACE:
         this.toggleRealTime();
-        break;
+        return true;
       case KEY_B:
         if (this.state.selectedId && !this.isGroupNode(this.state.selectedId)) {
           this.toggleBookmark(this.state.selectedId);
         }
-        break;
-      case KEY_E:
-        await this.exportLogs();
-        break;
+        return true;
       case KEY_S:
         this.showInputDialog({
           title: "Search Logs",
@@ -819,40 +823,50 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
           defaultValue: this.state.filterText,
         });
         this.pendingDialogType = "search";
-        break;
+        return true;
       case KEY_F:
         // Toggle log level filter dialog would go here
-        break;
-      case KEY_C:
-        await this.handleCorrelationMode();
-        break;
-      case KEY_T:
-        await this.handleTraceMode();
-        break;
+        return true;
       case KEY_P:
         this.togglePerformanceMetrics();
-        break;
+        return true;
       case KEY_G:
         this.toggleGrouping();
-        break;
-      case "R":
-        await this.refreshLogs();
-        break;
+        return true;
       case KEY_A:
         this.toggleAutoRefresh();
-        break;
+        return true;
       case KEY_CAPITAL_C:
         this.collapseAllNodes();
-        break;
+        return true;
       case KEY_CAPITAL_E:
         this.expandAllNodes();
-        break;
+        return true;
       default:
-        // Handle navigation and other default keys
-        if (this.handleNavigationKeys(key)) return true;
-        return super.handleKey(key);
+        return false;
     }
-    return true;
+  }
+
+  override async handleKey(key: string): Promise<boolean> {
+    // 1. Try sync part first
+    if (this.handleKeySync(key)) return true;
+
+    // 2. Handle async actions
+    switch (key) {
+      case KEY_E:
+        await this.exportLogs();
+        return true;
+      case KEY_C:
+        await this.handleCorrelationMode();
+        return true;
+      case KEY_T:
+        await this.handleTraceMode();
+        return true;
+      case KEY_CAPITAL_R:
+        await this.refreshLogs();
+        return true;
+    }
+    return false;
   }
 
   private isGroupNode(id: string): boolean {

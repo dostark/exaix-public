@@ -6,6 +6,26 @@
  * Provides consistent help screen rendering for all views.
  */
 
+import {
+  KEY_BACKSPACE,
+  KEY_DOWN,
+  KEY_END,
+  KEY_ENTER,
+  KEY_ESCAPE,
+  KEY_HOME,
+  KEY_J,
+  KEY_K,
+  KEY_LEFT,
+  KEY_Q,
+  KEY_QUESTION,
+  KEY_R,
+  KEY_RIGHT,
+  KEY_S,
+  KEY_SHIFT_TAB,
+  KEY_SPACE,
+  KEY_TAB,
+  KEY_UP,
+} from "../../config/constants.ts";
 import { colorize, getTheme } from "./colors.ts";
 import { renderBoxBottom, renderBoxLine, renderBoxLineCentered, renderBoxTop } from "./dialog_base.ts";
 import type { KeyBinding } from "./keyboard.ts";
@@ -124,12 +144,12 @@ export function getNavigationHelpSection(): HelpSection {
   return {
     title: "Navigation",
     items: [
-      { key: "↑/k", description: "Move up" },
-      { key: "↓/j", description: "Move down" },
-      { key: "Home", description: "Go to first item" },
-      { key: "End", description: "Go to last item" },
-      { key: "Enter", description: "Select/expand item" },
-      { key: "Escape", description: "Go back/cancel" },
+      { key: KEY_UP, description: "Move up" },
+      { key: KEY_DOWN, description: "Move down" },
+      { key: KEY_HOME, description: "Go to first item" },
+      { key: KEY_END, description: "Go to last item" },
+      { key: KEY_ENTER, description: "Select/expand item" },
+      { key: KEY_ESCAPE, description: "Go back/cancel" },
     ],
   };
 }
@@ -141,10 +161,10 @@ export function getSearchHelpSection(): HelpSection {
   return {
     title: "Search",
     items: [
-      { key: "s, /", description: "Start search" },
-      { key: "Enter", description: "Execute search" },
-      { key: "Escape", description: "Cancel search" },
-      { key: "Backspace", description: "Delete character" },
+      { key: KEY_S, description: "Start search" },
+      { key: KEY_ENTER, description: "Execute search" },
+      { key: KEY_ESCAPE, description: "Cancel search" },
+      { key: KEY_BACKSPACE, description: "Delete character" },
     ],
   };
 }
@@ -156,10 +176,10 @@ export function getTreeHelpSection(): HelpSection {
   return {
     title: "Tree Navigation",
     items: [
-      { key: "Enter", description: "Expand/collapse node" },
-      { key: "←", description: "Collapse node or go to parent" },
-      { key: "→", description: "Expand node or go to first child" },
-      { key: "Space", description: "Toggle selection" },
+      { key: KEY_ENTER, description: "Expand/collapse node" },
+      { key: KEY_LEFT, description: "Collapse node or go to parent" },
+      { key: KEY_RIGHT, description: "Expand node or go to first child" },
+      { key: KEY_SPACE, description: "Toggle selection" },
     ],
   };
 }
@@ -171,11 +191,11 @@ export function getGlobalHelpSection(): HelpSection {
   return {
     title: "Global",
     items: [
-      { key: "?", description: "Toggle help" },
-      { key: "R", description: "Refresh" },
-      { key: "Tab", description: "Next panel/pane" },
-      { key: "Shift+Tab", description: "Previous panel/pane" },
-      { key: "q", description: "Quit" },
+      { key: KEY_QUESTION, description: "Toggle help" },
+      { key: KEY_R, description: "Refresh" },
+      { key: KEY_TAB, description: "Next panel/pane" },
+      { key: KEY_SHIFT_TAB, description: "Previous panel/pane" },
+      { key: KEY_Q, description: "Quit" },
     ],
   };
 }
@@ -205,10 +225,10 @@ export function renderQuickHelp(
  */
 export function getStandardQuickHelp(): { key: string; action: string }[] {
   return [
-    { key: "?", action: "Help" },
-    { key: "R", action: "Refresh" },
-    { key: "s", action: "Search" },
-    { key: "q", action: "Quit" },
+    { key: KEY_QUESTION, action: "Help" },
+    { key: KEY_R, action: "Refresh" },
+    { key: KEY_S, action: "Search" },
+    { key: KEY_Q, action: "Quit" },
   ];
 }
 
@@ -293,31 +313,31 @@ export function handleHelpKey(
   }
 
   switch (key) {
-    case "escape":
-    case "?":
-    case "q":
+    case KEY_ESCAPE:
+    case KEY_QUESTION:
+    case KEY_Q:
       return {
         state: toggleHelpDialog(state),
         handled: true,
       };
-    case "up":
-    case "k":
+    case KEY_UP:
+    case KEY_K:
       return {
         state: scrollHelpDialog(state, "up", visibleLines),
         handled: true,
       };
-    case "down":
-    case "j":
+    case KEY_DOWN:
+    case KEY_J:
       return {
         state: scrollHelpDialog(state, "down", visibleLines),
         handled: true,
       };
-    case "home":
+    case KEY_HOME:
       return {
         state: { ...state, scrollOffset: 0 },
         handled: true,
       };
-    case "end":
+    case KEY_END:
       return {
         state: {
           ...state,

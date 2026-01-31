@@ -28,6 +28,7 @@ import {
 } from "./utils/constants.ts";
 import {
   KEY_C,
+  KEY_CAPITAL_R,
   KEY_D,
   KEY_DOWN,
   KEY_E,
@@ -761,13 +762,13 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
   // ===== Input Handling =====
 
-  override async handleKey(key: string): Promise<boolean> {
+  public override handleKeySync(key: string): boolean {
     // 1. Handle dialogs (delegated to base)
     if (this.handleDialogKeys(key)) return true;
 
     // 2. Handle detail view
     if (this.skillsViewExtensions.showDetail) {
-      if (key === KEY_Q || key === KEY_ESCAPE) {
+      if (key === KEY_ESCAPE || key === KEY_Q) {
         this.hideDetail();
       }
       return true;
@@ -777,36 +778,50 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
     if (this.handleHelpKeys(key)) return true;
 
     // 4. Handle navigation (delegated to base)
-    if (this.handleNavigationKeys(key)) {
-      return true;
+    // Avoid keys that we handle specifically in this subclass or asynchronously
+    if (key !== KEY_R && key !== KEY_CAPITAL_R) { // BASE handles c and e by default
+      if (this.handleNavigationKeys(key)) {
+        return true;
+      }
     }
 
     // 5. Handle action keys
     switch (key) {
       case KEY_ENTER:
-        await this.showDetail();
-        return true;
+      case KEY_CAPITAL_R:
+        return false; // Handle asynchronously
       case KEY_SLASH:
         this.showSearchDialog();
         return true;
-      case "f":
+      case KEY_F:
         this.showFilterSourceDialog();
         return true;
-      case "s":
+      case KEY_S:
         this.showFilterStatusDialog();
         return true;
-      case "g":
+      case KEY_G:
         this.cycleGrouping();
         return true;
-      case "d":
+      case KEY_D:
         this.showDeleteConfirm();
-        return true;
-      case "R":
-        await this.refresh();
         return true;
       default:
         return false;
     }
+  }
+
+  override async handleKey(key: string): Promise<boolean> {
+    if (this.handleKeySync(key)) return true;
+
+    switch (key) {
+      case KEY_ENTER:
+        await this.showDetail();
+        return true;
+      case KEY_CAPITAL_R:
+        await this.refresh();
+        return true;
+    }
+    return false;
   }
 
   isShowingHelp(): boolean {

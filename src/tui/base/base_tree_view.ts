@@ -22,11 +22,14 @@ import {
   KEY_DOWN,
   KEY_E,
   KEY_END,
+  KEY_ESCAPE,
   KEY_HOME,
   KEY_J,
   KEY_K,
   KEY_LEFT,
+  KEY_QUESTION,
   KEY_RIGHT,
+  KEY_SLASH,
   KEY_UP,
 } from "../../config/constants.ts";
 import { TuiSessionBase } from "../tui_common.ts";
@@ -186,6 +189,15 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
       case KEY_C:
         this.collapseAllNodes();
         return true;
+      case KEY_SLASH:
+        // By default, search is handled by subclasses if they have a search dialog
+        return false;
+      case KEY_ESCAPE:
+        if (this.state.filterText !== "") {
+          this.state.filterText = "";
+          return true;
+        }
+        return false;
       default:
         return false;
     }
@@ -197,18 +209,29 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
    */
   protected handleHelpKeys(key: string): boolean {
     if (this.state.showHelp) {
-      if (key === "?" || key === "escape" || key === "q") {
+      if (key === KEY_QUESTION || key === KEY_ESCAPE) {
         this.state.showHelp = false;
         return true;
       }
       return true; // Consume all keys when help is shown
     }
 
-    if (key === "?") {
+    if (key === KEY_QUESTION) {
       this.state.showHelp = true;
       return true;
     }
 
+    return false;
+  }
+
+  /**
+   * Synchronous version of key handler for internal use
+   * to ensure state updates happen in the same tick.
+   */
+  public handleKeySync(key: string): boolean {
+    if (this.handleDialogKeys(key)) return true;
+    if (this.handleHelpKeys(key)) return true;
+    if (this.handleNavigationKeys(key)) return true;
     return false;
   }
 
@@ -218,10 +241,7 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
    * Returns true if key was handled
    */
   handleKey(key: string): Promise<boolean> {
-    if (this.handleDialogKeys(key)) return Promise.resolve(true);
-    if (this.handleHelpKeys(key)) return Promise.resolve(true);
-    if (this.handleNavigationKeys(key)) return Promise.resolve(true);
-    return Promise.resolve(false);
+    return Promise.resolve(this.handleKeySync(key));
   }
 
   /**
@@ -291,6 +311,29 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
       this.localSpinnerState = startSpinner(this.localSpinnerState, message);
     } else {
       this.localSpinnerState = stopSpinner(this.localSpinnerState);
+    }
+  }
+
+  /**
+   * Execute an async action with loading state and common error handling
+   */
+  async executeWithLoading<R>(
+    message: string,
+    action: () => Promise<R>,
+    successMessage?: (result: R) => string,
+  ): Promise<R | null> {
+    this.setLoading(true, message);
+    try {
+      const result = await action();
+      if (successMessage) {
+        this.statusMessage = successMessage(result);
+      }
+      return result;
+    } catch (e) {
+      this.statusMessage = e instanceof Error ? `Error: ${e.message}` : `Error: ${String(e)}`;
+      return null;
+    } finally {
+      this.setLoading(false);
     }
   }
 

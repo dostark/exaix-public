@@ -261,6 +261,38 @@ export class HealthCheckService {
       return false;
     }
   }
+
+  /**
+   * Helper to build a HealthCheckResult based on thresholds
+   */
+  public static resultWithThreshold(
+    status: { warn: number; critical: number },
+    current: number,
+    options: {
+      messagePrefix: string;
+      unit: string;
+      durationMs: number;
+      metadata: Record<string, unknown>;
+    },
+  ): HealthCheckResult {
+    let verdict = HealthCheckVerdict.PASS;
+    let message: string | undefined;
+
+    if (current >= status.critical) {
+      verdict = HealthCheckVerdict.FAIL;
+      message = `${options.messagePrefix} critically high: ${current.toFixed(1)}${options.unit} used`;
+    } else if (current >= status.warn) {
+      verdict = HealthCheckVerdict.WARN;
+      message = `${options.messagePrefix} high: ${current.toFixed(1)}${options.unit} used`;
+    }
+
+    return {
+      status: verdict,
+      message,
+      metadata: options.metadata,
+      duration_ms: Math.round(options.durationMs),
+    };
+  }
 }
 
 /**
@@ -393,42 +425,21 @@ export class DiskSpaceHealthCheck implements HealthCheck {
 
       const duration = performance.now() - start;
 
-      if (usePercent >= this.thresholds.critical) {
-        return {
-          status: HealthCheckVerdict.FAIL,
-          message: `Disk space critically low: ${usePercent}% used`,
+      return HealthCheckService.resultWithThreshold(
+        this.thresholds,
+        usePercent,
+        {
+          messagePrefix: "Disk space",
+          unit: "%",
+          durationMs: duration,
           metadata: {
             path: this.path,
             used_percent: usePercent,
             warn_threshold: this.thresholds.warn,
             critical_threshold: this.thresholds.critical,
           },
-          duration_ms: Math.round(duration),
-        };
-      } else if (usePercent >= this.thresholds.warn) {
-        return {
-          status: HealthCheckVerdict.WARN,
-          message: `Disk space low: ${usePercent}% used`,
-          metadata: {
-            path: this.path,
-            used_percent: usePercent,
-            warn_threshold: this.thresholds.warn,
-            critical_threshold: this.thresholds.critical,
-          },
-          duration_ms: Math.round(duration),
-        };
-      } else {
-        return {
-          status: HealthCheckVerdict.PASS,
-          metadata: {
-            path: this.path,
-            used_percent: usePercent,
-            warn_threshold: this.thresholds.warn,
-            critical_threshold: this.thresholds.critical,
-          },
-          duration_ms: Math.round(duration),
-        };
-      }
+        },
+      );
     } catch (error) {
       const duration = performance.now() - start;
       return {
@@ -463,39 +474,20 @@ export class MemoryHealthCheck implements HealthCheck {
 
       const duration = performance.now() - start;
 
-      if (usedPercent >= this.thresholds.critical) {
-        return Promise.resolve({
-          status: HealthCheckVerdict.FAIL,
-          message: `Memory usage critically high: ${usedPercent.toFixed(1)}% used`,
+      return HealthCheckService.resultWithThreshold(
+        this.thresholds,
+        usedPercent,
+        {
+          messagePrefix: "Memory usage",
+          unit: "%",
+          durationMs: duration,
           metadata: {
             used_mb: Math.round(usedMB),
             total_mb: Math.round(totalMB),
             used_percent: Math.round(usedPercent * 10) / 10,
           },
-          duration_ms: Math.round(duration),
-        });
-      } else if (usedPercent >= this.thresholds.warn) {
-        return Promise.resolve({
-          status: HealthCheckVerdict.WARN,
-          message: `Memory usage high: ${usedPercent.toFixed(1)}% used`,
-          metadata: {
-            used_mb: Math.round(usedMB),
-            total_mb: Math.round(totalMB),
-            used_percent: Math.round(usedPercent * 10) / 10,
-          },
-          duration_ms: Math.round(duration),
-        });
-      } else {
-        return await Promise.resolve({
-          status: HealthCheckVerdict.PASS,
-          metadata: {
-            used_mb: Math.round(usedMB),
-            total_mb: Math.round(totalMB),
-            used_percent: Math.round(usedPercent * 10) / 10,
-          },
-          duration_ms: Math.round(duration),
-        });
-      }
+        },
+      );
     } catch (error) {
       const duration = performance.now() - start;
       return await Promise.resolve({
