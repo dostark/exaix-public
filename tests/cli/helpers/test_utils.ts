@@ -30,6 +30,31 @@ export async function withTestMod<T>(fn: (mod: any, ctx: any) => Promise<T> | T)
 }
 
 /**
+ * Helper to run a function with a timeout.
+ */
+async function runWithTimeout<T>(
+  fn: () => Promise<T> | T,
+  timeoutMs: number,
+  timeoutMessage: string = `Test operation timed out after ${timeoutMs}ms`,
+): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await Promise.race([
+      Promise.resolve(fn()),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener("abort", () => {
+          reject(new Error(timeoutMessage));
+        });
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
  * Captures console.log output during the execution of a function.
  */
 export async function captureConsoleOutput(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
@@ -37,20 +62,9 @@ export async function captureConsoleOutput(fn: () => Promise<void> | void, timeo
   const origLog = console.log;
   console.log = (msg: string) => (out += msg + "\n");
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
-    await Promise.race([
-      fn(),
-      new Promise<never>((_, reject) => {
-        controller.signal.addEventListener("abort", () => {
-          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
-        });
-      }),
-    ]);
+    await runWithTimeout(fn, timeoutMs);
   } finally {
-    clearTimeout(timeoutId);
     console.log = origLog;
   }
   return out;
@@ -70,20 +84,9 @@ export async function captureAllOutputs(fn: () => Promise<void> | void, timeoutM
   console.warn = (...args: any[]) => warns.push(args.join(" "));
   console.error = (...args: any[]) => errs.push(args.join(" "));
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
-    await Promise.race([
-      fn(),
-      new Promise<never>((_, reject) => {
-        controller.signal.addEventListener("abort", () => {
-          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
-        });
-      }),
-    ]);
+    await runWithTimeout(fn, timeoutMs);
   } finally {
-    clearTimeout(timeoutId);
     console.log = origLog;
     console.warn = origWarn;
     console.error = origErr;
@@ -94,34 +97,32 @@ export async function captureAllOutputs(fn: () => Promise<void> | void, timeoutM
 /**
  * Expects the function to call Deno.exit and captures the console.error output.
  */
-export async function expectExitWithLogs(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
+export async function expectExitWithLogs(
+  fn: () => Promise<void> | void,
+  timeoutMs: number = 10000,
+): Promise<{ err: any; errors: string[]; exitCalled: boolean }> {
   const origExit = Deno.exit;
   const origErr = console.error;
   const errors: string[] = [];
+  let exitCalled = false;
   console.error = (...args: any[]) => errors.push(args.join(" "));
   (Deno as any).exit = (code?: number) => {
+    exitCalled = true;
     throw new Error(`DENO_EXIT:${code ?? 0}`);
   };
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
   try {
-    await Promise.race([
-      fn(),
-      new Promise<never>((_, reject) => {
-        controller.signal.addEventListener("abort", () => {
-          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
-        });
-      }),
-    ]);
-    throw new Error("Expected Deno.exit to be called");
+    await runWithTimeout(async () => {
+      await fn();
+      throw new Error("Expected Deno.exit to be called");
+    }, timeoutMs);
   } catch (e: any) {
     if (!e.message.startsWith("DENO_EXIT:") && !e.message.includes("timed out")) throw e;
-    return { err: e, errors };
+    return { err: e, errors, exitCalled };
   } finally {
-    clearTimeout(timeoutId);
     console.error = origErr;
     Deno.exit = origExit;
   }
+  // This should never be reached, but TypeScript requires it
+  throw new Error("Unexpected code path in expectExitWithLogs");
 }

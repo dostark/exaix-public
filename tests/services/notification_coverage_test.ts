@@ -11,15 +11,7 @@
 import { assertEquals } from "@std/assert";
 import { createStubDb } from "../test_helpers.ts";
 import { NotificationService } from "../../src/services/notification.ts";
-import type { MemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
-import {
-  ConfidenceLevel,
-  LearningCategory,
-  MemoryOperation,
-  MemoryScope,
-  MemorySource,
-  MemoryStatus,
-} from "../../src/enums.ts";
+import { MemoryScope } from "../../src/enums.ts";
 
 /**
  * Creates test environment for notification tests
@@ -100,35 +92,7 @@ function initNotificationTest() {
   };
 }
 
-/**
- * Creates a test proposal
- */
-function createTestProposal(overrides?: Partial<MemoryUpdateProposal>): MemoryUpdateProposal {
-  return {
-    id: "550e8400-e29b-41d4-a716-446655440000",
-    created_at: "2026-01-04T12:00:00Z",
-    operation: MemoryOperation.ADD,
-    target_scope: MemoryScope.PROJECT,
-    target_project: "my-app",
-    learning: {
-      id: "550e8400-e29b-41d4-a716-446655440001",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.EXECUTION,
-      scope: MemoryScope.PROJECT,
-      project: "my-app",
-      title: "Test Pattern",
-      description: "A test pattern for notifications",
-      category: LearningCategory.PATTERN,
-      tags: ["test"],
-      confidence: ConfidenceLevel.MEDIUM,
-    },
-    reason: "Extracted from execution",
-    agent: "senior-coder",
-    execution_id: "trace-123",
-    status: MemoryStatus.PENDING,
-    ...overrides,
-  };
-}
+import { createTestProposal } from "./helpers/notification_test_helper.ts";
 
 // Note: Database corruption or file errors are handled by DatabaseService/SQLite driver themselves.
 // These tests are updated to ensure the service behaves reasonably when the table is empty.

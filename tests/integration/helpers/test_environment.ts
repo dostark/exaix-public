@@ -29,6 +29,7 @@ import {
   getWorkspaceRejectedDir,
   getWorkspaceRequestsDir,
 } from "../../helpers/paths_helper.ts";
+import { setupGitRepo } from "../../helpers/git_test_helper.ts";
 
 export interface TestEnvironmentOptions {
   /** Custom config overrides */
@@ -89,22 +90,10 @@ export class TestEnvironment {
 
     // Initialize git if requested
     if (options.initGit !== false) {
-      await new Deno.Command(PortalOperation.GIT, {
-        args: ["init", "-b", "main"],
-        cwd: tempDir,
-        stdout: "null",
-        stderr: "null",
-      }).output();
-
-      await new Deno.Command(PortalOperation.GIT, {
-        args: ["config", "user.email", "test@exoframe.dev"],
-        cwd: tempDir,
-      }).output();
-
-      await new Deno.Command(PortalOperation.GIT, {
-        args: ["config", "user.name", "ExoFrame Test"],
-        cwd: tempDir,
-      }).output();
+      await setupGitRepo(tempDir, {
+        initialCommit: false, // We'll do a custom commit with gitignore
+        branch: "main",
+      });
 
       // Create initial commit with .gitignore to prevent collateral damage from git reset --hard
       await Deno.writeTextFile(
@@ -112,6 +101,7 @@ export class TestEnvironment {
         "Workspace/\n.exo/journal.db*\n.exo/daemon.*\ndeno.lock\n",
       );
       await Deno.writeTextFile(join(tempDir, ".gitkeep"), "");
+
       await new Deno.Command(PortalOperation.GIT, {
         args: [MemoryOperation.ADD, "."],
         cwd: tempDir,
@@ -220,6 +210,39 @@ retry_backoff_base_ms = 1000
   /**
    * Create a request file in /Workspace/Requests
    */
+  /**
+   * Helper to generate frontmatter
+   */
+  private generateFrontmatter(options: {
+    traceId: string;
+    created?: string;
+    requestId?: string;
+    flowId?: string;
+    status?: string;
+    priority?: number;
+    agentId?: string;
+    portal?: string;
+    tags?: string[];
+  }): string {
+    return [
+      "---",
+      `trace_id: "${options.traceId}"`,
+      `created: "${options.created ?? new Date().toISOString()}"`,
+      `status: ${options.status ?? "pending"}`,
+      `priority: ${options.priority ?? 5}`,
+      options.flowId ? `flow: ${options.flowId}` : null,
+      options.agentId ? `agent: ${options.agentId}` : (options.flowId ? null : `agent: senior-coder`),
+      `source: test`,
+      `created_by: test_environment`,
+      options.portal ? `portal: "${options.portal}"` : null,
+      `tags: [${(options.tags ?? []).map((t) => `"${t}"`).join(", ")}]`,
+      "---",
+    ].filter(Boolean).join("\n");
+  }
+
+  /**
+   * Create a request file in /Workspace/Requests
+   */
   async createRequest(
     description: string,
     options: {
@@ -235,24 +258,16 @@ retry_backoff_base_ms = 1000
     const fileName = `request-${shortId}.md`;
     const filePath = join(getWorkspaceRequestsDir(this.tempDir), fileName);
 
-    const frontmatter = [
-      "---",
-      `trace_id: "${traceId}"`,
-      `created: "${new Date().toISOString()}"`,
-      `status: pending`,
-      `priority: ${options.priority ?? 5}`,
-      `agent: ${options.agentId ?? "senior-coder"}`,
-      `source: test`,
-      `created_by: test_environment`,
-      options.portal ? `portal: "${options.portal}"` : null,
-      `tags: [${(options.tags ?? []).map((t) => `"${t}"`).join(", ")}]`,
-      "---",
-    ].filter(Boolean).join("\n");
+    const frontmatter = this.generateFrontmatter({
+      traceId,
+      priority: options.priority,
+      agentId: options.agentId, // generateFrontmatter handles default "senior-coder" if not flow
+      tags: options.tags,
+      portal: options.portal,
+    });
 
     const content = `${frontmatter}\n\n# Request\n\n${description}\n`;
-
     await Deno.writeTextFile(filePath, content);
-
     return { filePath, traceId };
   }
 
@@ -275,25 +290,17 @@ retry_backoff_base_ms = 1000
     const fileName = `request-${shortId}.md`;
     const filePath = join(getWorkspaceRequestsDir(this.tempDir), fileName);
 
-    const frontmatter = [
-      "---",
-      `trace_id: "${traceId}"`,
-      `created: "${new Date().toISOString()}"`,
-      `status: pending`,
-      `priority: ${options.priority ?? 5}`,
-      `flow: ${flowId}`,
-      options.agentId ? `agent: ${options.agentId}` : null,
-      `source: test`,
-      `created_by: test_environment`,
-      options.portal ? `portal: "${options.portal}"` : null,
-      `tags: [${(options.tags ?? []).map((t) => `"${t}"`).join(", ")}]`,
-      "---",
-    ].filter(Boolean).join("\n");
+    const frontmatter = this.generateFrontmatter({
+      traceId,
+      flowId,
+      priority: options.priority,
+      agentId: options.agentId,
+      tags: options.tags,
+      portal: options.portal,
+    });
 
     const content = `${frontmatter}\n\n# Flow Request\n\n${description}\n`;
-
     await Deno.writeTextFile(filePath, content);
-
     return { filePath, traceId };
   }
 

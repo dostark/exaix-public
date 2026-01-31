@@ -251,7 +251,7 @@ Deno.test("blueprint validate invalid triggers exit", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["blueprint", "validate", "bad-agent"]);
     });
-    assert(errors.some((e) => e.includes("Invalid")));
+    assert(errors.some((e: string) => e.includes("Invalid")));
   });
 });
 
@@ -297,7 +297,7 @@ Deno.test("request inline create handles create errors and exits", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "Do something"]);
     });
-    assert(errors.some((e) => e.includes("create failed")));
+    assert(errors.some((e: string) => e.includes("create failed")));
   });
 });
 
@@ -309,7 +309,7 @@ Deno.test("request show handles not found and exits", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "show", "missing"]);
     });
-    assert(errors.some((e) => e.includes("not found")));
+    assert(errors.some((e: string) => e.includes("not found")));
   });
 });
 
@@ -443,7 +443,7 @@ Deno.test("request without description exits with error", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST]);
     });
-    assert(errors.some((e) => e.includes("Description required")));
+    assert(errors.some((e: string) => e.includes("Description required")));
   });
 });
 
@@ -522,7 +522,7 @@ Deno.test("blueprint create error exits with message", async () => {
         "mock:test",
       ]);
     });
-    assert(errors.some((e) => e.includes("boom")));
+    assert(errors.some((e: string) => e.includes("boom")));
   });
 });
 
@@ -566,7 +566,7 @@ Deno.test("changeset show error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["changeset", "show", "cs-1"]);
     });
-    assert(errors.some((e) => e.includes("not found")));
+    assert(errors.some((e: string) => e.includes("not found")));
   });
 });
 
@@ -666,7 +666,7 @@ Deno.test("request --file errors exit with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/missing.md"]);
     });
-    assert(errors.some((e) => e.includes("file missing")));
+    assert(errors.some((e: string) => e.includes("file missing")));
   });
 });
 

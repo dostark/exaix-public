@@ -32,7 +32,7 @@ Deno.test("plan list error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["plan", "list"]);
     });
-    assert(errors.some((e) => e.includes("plan list failed")));
+    assert(errors.some((e: string) => e.includes("plan list failed")));
   });
 });
 
@@ -44,7 +44,7 @@ Deno.test("plan show error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["plan", "show", "missing"]);
     });
-    assert(errors.some((e) => e.includes("plan not found")));
+    assert(errors.some((e: string) => e.includes("plan not found")));
   });
 });
 
@@ -56,7 +56,7 @@ Deno.test("plan approve error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["plan", "approve", "p-1"]);
     });
-    assert(errors.some((e) => e.includes("approval failed")));
+    assert(errors.some((e: string) => e.includes("approval failed")));
   });
 });
 
@@ -68,7 +68,7 @@ Deno.test("plan reject error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["plan", "reject", "p-1", "-r", "bad"]);
     });
-    assert(errors.some((e) => e.includes("rejection failed")));
+    assert(errors.some((e: string) => e.includes("rejection failed")));
   });
 });
 
@@ -80,7 +80,7 @@ Deno.test("plan revise error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["plan", "revise", "p-1", "-c", "comment"]);
     });
-    assert(errors.some((e) => e.includes("revision failed")));
+    assert(errors.some((e: string) => e.includes("revision failed")));
   });
 });
 
@@ -94,7 +94,7 @@ Deno.test("changeset list error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["changeset", "list"]);
     });
-    assert(errors.some((e) => e.includes("changeset list failed")));
+    assert(errors.some((e: string) => e.includes("changeset list failed")));
   });
 });
 
@@ -106,7 +106,7 @@ Deno.test("changeset approve error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["changeset", "approve", "cs-1"]);
     });
-    assert(errors.some((e) => e.includes("approval failed")));
+    assert(errors.some((e: string) => e.includes("approval failed")));
   });
 });
 
@@ -118,7 +118,7 @@ Deno.test("changeset reject error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["changeset", "reject", "cs-1", "-r", "bad"]);
     });
-    assert(errors.some((e) => e.includes("rejection failed")));
+    assert(errors.some((e: string) => e.includes("rejection failed")));
   });
 });
 
@@ -132,7 +132,7 @@ Deno.test("git branches error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([PortalOperation.GIT, "branches"]);
     });
-    assert(errors.some((e) => e.includes("git error")));
+    assert(errors.some((e: string) => e.includes("git error")));
   });
 });
 
@@ -144,7 +144,7 @@ Deno.test("git status error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([PortalOperation.GIT, "status"]);
     });
-    assert(errors.some((e) => e.includes("status failed")));
+    assert(errors.some((e: string) => e.includes("status failed")));
   });
 });
 
@@ -156,7 +156,7 @@ Deno.test("git log error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([PortalOperation.GIT, "log", "-t", "trace-1"]);
     });
-    assert(errors.some((e) => e.includes("log failed")));
+    assert(errors.some((e: string) => e.includes("log failed")));
   });
 });
 
@@ -170,7 +170,7 @@ Deno.test("daemon start error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["daemon", "start"]);
     });
-    assert(errors.some((e) => e.includes("start failed")));
+    assert(errors.some((e: string) => e.includes("start failed")));
   });
 });
 
@@ -182,7 +182,7 @@ Deno.test("daemon stop error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["daemon", "stop"]);
     });
-    assert(errors.some((e) => e.includes("stop failed")));
+    assert(errors.some((e: string) => e.includes("stop failed")));
   });
 });
 
@@ -194,7 +194,7 @@ Deno.test("daemon restart error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["daemon", "restart"]);
     });
-    assert(errors.some((e) => e.includes("restart failed")));
+    assert(errors.some((e: string) => e.includes("restart failed")));
   });
 });
 
@@ -206,7 +206,7 @@ Deno.test("daemon status error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["daemon", "status"]);
     });
-    assert(errors.some((e) => e.includes("status failed")));
+    assert(errors.some((e: string) => e.includes("status failed")));
   });
 });
 
@@ -218,7 +218,7 @@ Deno.test("daemon logs error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["daemon", "logs"]);
     });
-    assert(errors.some((e) => e.includes("logs failed")));
+    assert(errors.some((e: string) => e.includes("logs failed")));
   });
 });
 
@@ -232,7 +232,7 @@ Deno.test("portal add error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["portal", MemoryOperation.ADD, "/tmp/path", "alias"]);
     });
-    assert(errors.some((e) => e.includes("add failed")));
+    assert(errors.some((e: string) => e.includes("add failed")));
   });
 });
 
@@ -244,7 +244,7 @@ Deno.test("portal list error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["portal", "list"]);
     });
-    assert(errors.some((e) => e.includes("list failed")));
+    assert(errors.some((e: string) => e.includes("list failed")));
   });
 });
 
@@ -256,7 +256,7 @@ Deno.test("portal show error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["portal", "show", "alias"]);
     });
-    assert(errors.some((e) => e.includes("show failed")));
+    assert(errors.some((e: string) => e.includes("show failed")));
   });
 });
 
@@ -268,7 +268,7 @@ Deno.test("portal remove error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["portal", "remove", "alias"]);
     });
-    assert(errors.some((e) => e.includes("remove failed")));
+    assert(errors.some((e: string) => e.includes("remove failed")));
   });
 });
 
@@ -280,7 +280,7 @@ Deno.test("portal verify error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["portal", "verify"]);
     });
-    assert(errors.some((e) => e.includes("verify failed")));
+    assert(errors.some((e: string) => e.includes("verify failed")));
   });
 });
 
@@ -292,7 +292,7 @@ Deno.test("portal refresh error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["portal", "refresh", "alias"]);
     });
-    assert(errors.some((e) => e.includes("refresh failed")));
+    assert(errors.some((e: string) => e.includes("refresh failed")));
   });
 });
 
@@ -306,7 +306,7 @@ Deno.test("blueprint list error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["blueprint", "list"]);
     });
-    assert(errors.some((e) => e.includes("list failed")));
+    assert(errors.some((e: string) => e.includes("list failed")));
   });
 });
 
@@ -318,7 +318,7 @@ Deno.test("blueprint show error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["blueprint", "show", "agent-1"]);
     });
-    assert(errors.some((e) => e.includes("show failed")));
+    assert(errors.some((e: string) => e.includes("show failed")));
   });
 });
 
@@ -330,7 +330,7 @@ Deno.test("blueprint validate error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["blueprint", "validate", "agent-1"]);
     });
-    assert(errors.some((e) => e.includes("validate failed")));
+    assert(errors.some((e: string) => e.includes("validate failed")));
   });
 });
 
@@ -342,7 +342,7 @@ Deno.test("blueprint edit error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["blueprint", "edit", "agent-1"]);
     });
-    assert(errors.some((e) => e.includes("edit failed")));
+    assert(errors.some((e: string) => e.includes("edit failed")));
   });
 });
 
@@ -354,7 +354,7 @@ Deno.test("blueprint remove error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["blueprint", "remove", "agent-1"]);
     });
-    assert(errors.some((e) => e.includes("remove failed")));
+    assert(errors.some((e: string) => e.includes("remove failed")));
   });
 });
 
@@ -395,7 +395,7 @@ Deno.test("request list error exits with message", async () => {
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list"]);
     });
-    assert(errors.some((e) => e.includes("list failed")));
+    assert(errors.some((e: string) => e.includes("list failed")));
   });
 });
 

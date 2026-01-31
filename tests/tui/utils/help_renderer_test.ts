@@ -143,8 +143,8 @@ Deno.test("getNavigationHelpSection: returns navigation section", () => {
   const section = getNavigationHelpSection();
   assertEquals(section.title, "Navigation");
   assertEquals(section.items.length > 0, true);
-  assertEquals(section.items.some((i) => i.key.includes("↑")), true);
-  assertEquals(section.items.some((i) => i.key.includes("↓")), true);
+  assertEquals(section.items.some((i) => i.key.includes("up")), true);
+  assertEquals(section.items.some((i) => i.key.includes("down")), true);
 });
 
 Deno.test("getSearchHelpSection: returns search section", () => {

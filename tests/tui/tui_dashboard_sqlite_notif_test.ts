@@ -1,19 +1,11 @@
 import { assertEquals } from "@std/assert";
-import { launchTuiDashboard } from "../../src/tui/tui_dashboard.ts";
-import { NotificationService } from "../../src/services/notification.ts";
-import { initTestDbService } from "../helpers/db.ts";
 import { MemoryOperation, MemoryScope, MemoryStatus } from "../../src/enums.ts";
+import { createTuiDashboardWithNotification } from "./dashboard_helper.ts";
 
 Deno.test("TUI Dashboard + SQLite: handles notification service integration", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-  const notificationService = new NotificationService(config, db);
+  const { dashboard, notificationService, cleanup } = await createTuiDashboardWithNotification();
 
   try {
-    const dashboard = await launchTuiDashboard({
-      testMode: true,
-      notificationService,
-    }) as any;
-
     // Phase 1: Verify NotificationService is integrated
     // This will initially fail if launchTuiDashboard doesn't accept or store the service
     assertEquals(dashboard.notificationService, notificationService);

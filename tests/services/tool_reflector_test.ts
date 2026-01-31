@@ -80,6 +80,32 @@ function createMockToolCall(overrides?: Partial<ToolCall>): ToolCall {
 // ToolReflectionSchema Tests
 // ============================================================================
 
+// Helper to setup reflector test context
+function setupReflector(
+  responses: string[] = [],
+  config?: any,
+) {
+  const provider = createMockProvider(responses.length ? responses : [makeReflectionJSON({ success: true })]);
+  const reflector = createToolReflector(provider, config);
+
+  // Default mock executor
+  const createExecutor = (
+    result: Partial<ToolResult> = { success: true, output: "result" },
+  ) => {
+    return (_params: Record<string, unknown>) =>
+      Promise.resolve({
+        ...createMockToolResult(true),
+        ...result,
+      });
+  };
+
+  return { reflector, createExecutor, provider };
+}
+
+// ============================================================================
+// ToolReflectionSchema Tests
+// ============================================================================
+
 Deno.test("[ToolReflectionSchema] validates correct reflection", () => {
   const valid = {
     success: true,
@@ -127,17 +153,14 @@ Deno.test("[ToolReflectionSchema] rejects confidence out of range", () => {
 // ============================================================================
 
 Deno.test("[ToolReflector] accepts successful tool result", async () => {
-  const mockResponses = [
+  const { reflector, createExecutor } = setupReflector([
     makeReflectionJSON({ success: true, confidence: 90, achieved_purpose: true }),
-  ];
+  ]);
 
-  const reflector = createToolReflector(createMockProvider(mockResponses));
-
-  const executor = (_params: Record<string, unknown>) => {
-    return Promise.resolve(createMockToolResult(true, "file contents"));
-  };
-
-  const result = await reflector.executeWithReflection(createMockToolCall(), executor);
+  const result = await reflector.executeWithReflection(
+    createMockToolCall(),
+    createExecutor({ output: "file contents" }),
+  );
 
   assertEquals(result.reflection.success, true);
   assertEquals(result.reflection.achieved_purpose, true);
@@ -145,7 +168,7 @@ Deno.test("[ToolReflector] accepts successful tool result", async () => {
 });
 
 Deno.test("[ToolReflector] retries on failed reflection", async () => {
-  const mockResponses = [
+  const { reflector } = setupReflector([
     makeReflectionJSON({
       success: false,
       confidence: 30,
@@ -154,9 +177,7 @@ Deno.test("[ToolReflector] retries on failed reflection", async () => {
       retry_reason: "Try again",
     }),
     makeReflectionJSON({ success: true, confidence: 85, achieved_purpose: true }),
-  ];
-
-  const reflector = createToolReflector(createMockProvider(mockResponses));
+  ]);
 
   let executionCount = 0;
   const executor = (_params: Record<string, unknown>) => {
@@ -171,45 +192,39 @@ Deno.test("[ToolReflector] retries on failed reflection", async () => {
 });
 
 Deno.test("[ToolReflector] stops after maxRetries", async () => {
-  const mockResponses = [
+  const responses = [
     makeReflectionJSON({ success: false, confidence: 20, achieved_purpose: false, retry_suggested: true }),
     makeReflectionJSON({ success: false, confidence: 25, achieved_purpose: false, retry_suggested: true }),
     makeReflectionJSON({ success: false, confidence: 30, achieved_purpose: false, retry_suggested: true }),
   ];
 
-  const reflector = createToolReflector(createMockProvider(mockResponses), {
-    maxRetries: 2,
-  });
+  const { reflector, createExecutor } = setupReflector(responses, { maxRetries: 2 });
 
-  const executor = (_params: Record<string, unknown>) => {
-    return Promise.resolve(createMockToolResult(false, null, "Error"));
-  };
-
-  const result = await reflector.executeWithReflection(createMockToolCall(), executor);
+  const result = await reflector.executeWithReflection(
+    createMockToolCall(),
+    createExecutor({ success: false, error: "Error" }),
+  );
 
   assertEquals(result.retryCount, 2);
   assertEquals(result.reflection.success, false);
 });
 
 Deno.test("[ToolReflector] does not retry when not suggested", async () => {
-  const mockResponses = [
+  const { reflector, createExecutor } = setupReflector([
     makeReflectionJSON({ success: false, confidence: 20, achieved_purpose: false, retry_suggested: false }),
-  ];
+  ]);
 
-  const reflector = createToolReflector(createMockProvider(mockResponses));
-
-  const executor = (_params: Record<string, unknown>) => {
-    return Promise.resolve(createMockToolResult(false, null, "Error"));
-  };
-
-  const result = await reflector.executeWithReflection(createMockToolCall(), executor);
+  const result = await reflector.executeWithReflection(
+    createMockToolCall(),
+    createExecutor({ success: false, error: "Error" }),
+  );
 
   assertEquals(result.retryCount, 0);
   assertEquals(result.reflection.retry_suggested, false);
 });
 
 Deno.test("[ToolReflector] applies alternative parameters on retry", async () => {
-  const mockResponses = [
+  const { reflector } = setupReflector([
     makeReflectionJSON({
       success: false,
       confidence: 30,
@@ -219,9 +234,7 @@ Deno.test("[ToolReflector] applies alternative parameters on retry", async () =>
       alternative_parameters: { path: "/correct/path.txt" },
     }),
     makeReflectionJSON({ success: true, confidence: 90, achieved_purpose: true }),
-  ];
-
-  const reflector = createToolReflector(createMockProvider(mockResponses));
+  ]);
 
   let lastParams: Record<string, unknown> = {};
   const executor = (params: Record<string, unknown>) => {
@@ -239,15 +252,13 @@ Deno.test("[ToolReflector] applies alternative parameters on retry", async () =>
 // ============================================================================
 
 Deno.test("[ToolReflector] executes independent calls in parallel", async () => {
-  const mockResponses = [
+  const responses = [
     makeReflectionJSON({ success: true, confidence: 90 }),
     makeReflectionJSON({ success: true, confidence: 90 }),
     makeReflectionJSON({ success: true, confidence: 90 }),
   ];
 
-  const reflector = createToolReflector(createMockProvider(mockResponses), {
-    parallelExecution: true,
-  });
+  const { reflector } = setupReflector(responses, { parallelExecution: true });
 
   const toolCalls: ToolCall[] = [
     { id: "1", name: McpToolName.READ_FILE, parameters: { path: "a.txt" }, purpose: "Read A" },
@@ -266,15 +277,13 @@ Deno.test("[ToolReflector] executes independent calls in parallel", async () => 
 });
 
 Deno.test("[ToolReflector] respects dependencies in parallel execution", async () => {
-  const mockResponses = [
+  const responses = [
     makeReflectionJSON({ success: true, confidence: 90 }),
     makeReflectionJSON({ success: true, confidence: 90 }),
     makeReflectionJSON({ success: true, confidence: 90 }),
   ];
 
-  const reflector = createToolReflector(createMockProvider(mockResponses), {
-    parallelExecution: true,
-  });
+  const { reflector } = setupReflector(responses, { parallelExecution: true });
 
   const executionOrder: string[] = [];
 
@@ -300,14 +309,12 @@ Deno.test("[ToolReflector] respects dependencies in parallel execution", async (
 });
 
 Deno.test("[ToolReflector] executes sequentially when parallel disabled", async () => {
-  const mockResponses = [
+  const responses = [
     makeReflectionJSON({ success: true, confidence: 90 }),
     makeReflectionJSON({ success: true, confidence: 90 }),
   ];
 
-  const reflector = createToolReflector(createMockProvider(mockResponses), {
-    parallelExecution: false,
-  });
+  const { reflector } = setupReflector(responses, { parallelExecution: false });
 
   const toolCalls: ToolCall[] = [
     { id: "1", name: McpToolName.READ_FILE, parameters: {}, purpose: "First" },
@@ -328,16 +335,12 @@ Deno.test("[ToolReflector] executes sequentially when parallel disabled", async 
 // ============================================================================
 
 Deno.test("[ToolReflector] tracks metrics correctly", async () => {
-  const mockResponses = [
+  const { reflector, createExecutor } = setupReflector([
     makeReflectionJSON({ success: true, confidence: 90 }),
     makeReflectionJSON({ success: false, confidence: 20, retry_suggested: false }),
-  ];
+  ]);
 
-  const reflector = createToolReflector(createMockProvider(mockResponses));
-
-  const executor = (_params: Record<string, unknown>) => {
-    return Promise.resolve(createMockToolResult(true, "result"));
-  };
+  const executor = createExecutor();
 
   await reflector.executeWithReflection(createMockToolCall({ id: "1" }), executor);
   await reflector.executeWithReflection(createMockToolCall({ id: "2" }), executor);
@@ -350,12 +353,10 @@ Deno.test("[ToolReflector] tracks metrics correctly", async () => {
 });
 
 Deno.test("[ToolReflector] tracks retry metrics", async () => {
-  const mockResponses = [
+  const { reflector } = setupReflector([
     makeReflectionJSON({ success: false, confidence: 20, retry_suggested: true }),
     makeReflectionJSON({ success: true, confidence: 90 }),
-  ];
-
-  const reflector = createToolReflector(createMockProvider(mockResponses));
+  ]);
 
   let callCount = 0;
   const executor = (_params: Record<string, unknown>) => {
@@ -372,16 +373,12 @@ Deno.test("[ToolReflector] tracks retry metrics", async () => {
 });
 
 Deno.test("[ToolReflector] tracks tool distribution", async () => {
-  const mockResponses = [
+  const { reflector, createExecutor } = setupReflector([
     makeReflectionJSON({ success: true, confidence: 90 }),
     makeReflectionJSON({ success: true, confidence: 90 }),
-  ];
+  ]);
 
-  const reflector = createToolReflector(createMockProvider(mockResponses));
-
-  const executor = (_params: Record<string, unknown>) => {
-    return Promise.resolve(createMockToolResult(true, "result"));
-  };
+  const executor = createExecutor();
 
   await reflector.executeWithReflection(createMockToolCall({ name: McpToolName.READ_FILE }), executor);
   await reflector.executeWithReflection(createMockToolCall({ name: McpToolName.READ_FILE }), executor);
@@ -392,15 +389,11 @@ Deno.test("[ToolReflector] tracks tool distribution", async () => {
 });
 
 Deno.test("[ToolReflector] resets metrics", async () => {
-  const mockResponses = [makeReflectionJSON({ success: true })];
+  const { reflector, createExecutor } = setupReflector([
+    makeReflectionJSON({ success: true }),
+  ]);
 
-  const reflector = createToolReflector(createMockProvider(mockResponses));
-
-  const executor = (_params: Record<string, unknown>) => {
-    return Promise.resolve(createMockToolResult(true, "result"));
-  };
-
-  await reflector.executeWithReflection(createMockToolCall(), executor);
+  await reflector.executeWithReflection(createMockToolCall(), createExecutor());
 
   reflector.resetMetrics();
   const metrics = reflector.getMetrics();
@@ -424,6 +417,7 @@ Deno.test("[createStrictToolReflector] creates strict reflector", async () => {
     makeReflectionJSON({ success: true, confidence: 90 }), // Above threshold
   ];
 
+  // We are testing factory - mocking behavior manually in the test body as specific logic is tested
   // Create reflector but we use the one with retry responses below
   createStrictToolReflector(createMockProvider(mockResponses));
 
@@ -434,6 +428,7 @@ Deno.test("[createStrictToolReflector] creates strict reflector", async () => {
   };
 
   // Since first reflection is below 85 threshold but doesn't suggest retry, it should fail
+  // But wait, the test implies we use reflector2.
   const mockResponsesWithRetry = [
     makeReflectionJSON({ success: true, confidence: 80, retry_suggested: true }),
     makeReflectionJSON({ success: true, confidence: 90 }),
@@ -468,43 +463,37 @@ Deno.test("[createFastToolReflector] creates fast reflector", async () => {
 // ============================================================================
 
 Deno.test("[ToolReflector] handles parse failure gracefully", async () => {
-  const mockResponses = ["Invalid JSON response"];
+  const { reflector, createExecutor } = setupReflector(["Invalid JSON response"]);
 
-  const reflector = createToolReflector(createMockProvider(mockResponses));
-
-  const executor = (_params: Record<string, unknown>) => {
-    return Promise.resolve(createMockToolResult(true, "result"));
-  };
-
-  const result = await reflector.executeWithReflection(createMockToolCall(), executor);
+  const result = await reflector.executeWithReflection(
+    createMockToolCall(),
+    createExecutor(),
+  );
 
   // Should fall back to default reflection based on tool result
   assertEquals(result.reflection.success, true);
 });
 
 Deno.test("[ToolReflector] handles tool error", async () => {
-  const mockResponses = [
+  const { reflector, createExecutor } = setupReflector([
     makeReflectionJSON({
       success: false,
       confidence: 20,
       issues: [{ type: "error", description: "Failed", severity: CritiqueSeverity.CRITICAL }],
     }),
-  ];
+  ]);
 
-  const reflector = createToolReflector(createMockProvider(mockResponses));
-
-  const executor = (_params: Record<string, unknown>) => {
-    return Promise.resolve(createMockToolResult(false, null, "Permission denied"));
-  };
-
-  const result = await reflector.executeWithReflection(createMockToolCall(), executor);
+  const result = await reflector.executeWithReflection(
+    createMockToolCall(),
+    createExecutor({ success: false, output: null, error: "Permission denied" }),
+  );
 
   assertEquals(result.success, false);
   assert(result.error?.includes("Permission denied"));
 });
 
 Deno.test("[ToolReflector] rejects on critical issues", async () => {
-  const mockResponses = [
+  const { reflector, createExecutor } = setupReflector([
     makeReflectionJSON({
       success: true,
       confidence: 90,
@@ -512,15 +501,12 @@ Deno.test("[ToolReflector] rejects on critical issues", async () => {
       issues: [{ type: "error", description: "Critical error", severity: CritiqueSeverity.CRITICAL }],
       retry_suggested: false,
     }),
-  ];
+  ]);
 
-  const reflector = createToolReflector(createMockProvider(mockResponses));
-
-  const executor = (_params: Record<string, unknown>) => {
-    return Promise.resolve(createMockToolResult(true, "result"));
-  };
-
-  const result = await reflector.executeWithReflection(createMockToolCall(), executor);
+  const result = await reflector.executeWithReflection(
+    createMockToolCall(),
+    createExecutor(),
+  );
 
   // Should fail because of critical issue despite high confidence
   assertEquals(result.reflection.issues.length, 1);

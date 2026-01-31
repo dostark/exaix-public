@@ -22,6 +22,37 @@ export interface GitTestContext {
 }
 
 /**
+ * Helper to initialize git repository in a directory
+ */
+export async function setupGitRepo(path: string, options: { initialCommit?: boolean; branch?: string } = {}) {
+  const { initialCommit = false, branch = "master" } = options;
+
+  const commands = [
+    ["init", "-b", branch],
+    ["config", "user.name", "Test User"],
+    ["config", "user.email", "test@example.com"],
+  ];
+
+  for (const args of commands) {
+    await new Deno.Command(PortalOperation.GIT, {
+      args,
+      cwd: path,
+      stdout: "null",
+      stderr: "null",
+    }).output();
+  }
+
+  if (initialCommit) {
+    await new Deno.Command(PortalOperation.GIT, {
+      args: ["commit", "--allow-empty", "-m", "Initial commit"],
+      cwd: path,
+      stdout: "null",
+      stderr: "null",
+    }).output();
+  }
+}
+
+/**
  * Creates a test environment with initialized git repository
  */
 export async function createGitTestContext(prefix: string = "git-test-"): Promise<GitTestContext> {

@@ -23,19 +23,36 @@ async function cleanupAuditFolder(config: any): Promise<void> {
   }
 }
 
-Deno.test("MCPServer: includes comprehensive security headers", async () => {
+// Helper for MCP Server security tests
+async function withMCPServerSecurity(
+  options: { transport?: MCPTransport } = {},
+  fn: (ctx: { server: MCPServer; db: any; config: any; headers: any }) => void | Promise<void>,
+) {
   const { db, config, cleanup } = await initTestDbService();
+
+  if (options.transport) {
+    config.mcp.transport = options.transport;
+  }
 
   try {
     const server = new MCPServer({
       config,
       db,
-      transport: MCPTransport.STDIO, // Start with stdio, we'll add HTTP later
+      transport: options.transport || MCPTransport.STDIO,
     });
 
-    // Test that security headers method exists and returns proper headers
-    const headers = (server as any).getSecurityHeaders();
+    // Helper to get headers if available
+    const headers = (server as any).getSecurityHeaders ? (server as any).getSecurityHeaders() : {};
 
+    await fn({ server, db, config, headers });
+  } finally {
+    await cleanup();
+    await cleanupAuditFolder(config);
+  }
+}
+
+Deno.test("MCPServer: includes comprehensive security headers", async () => {
+  await withMCPServerSecurity({}, ({ headers }) => {
     // Content Security Policy
     assertStringIncludes(headers["Content-Security-Policy"], "default-src 'none'");
     assertStringIncludes(headers["Content-Security-Policy"], "frame-ancestors 'none'");
@@ -57,22 +74,11 @@ Deno.test("MCPServer: includes comprehensive security headers", async () => {
 
     // Permissions policy
     assertStringIncludes(headers["Permissions-Policy"], "geolocation=()");
-  } finally {
-    await cleanup();
-    await cleanupAuditFolder(config);
-  }
+  });
 });
 
 Deno.test("MCPServer: applies security headers to HTTP responses", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const server = new MCPServer({
-      config,
-      db,
-      transport: MCPTransport.STDIO,
-    });
-
+  await withMCPServerSecurity({}, ({ server }) => {
     // Mock a Response object
     const mockResponse = new Response("test content", {
       status: 200,
@@ -89,24 +95,12 @@ Deno.test("MCPServer: applies security headers to HTTP responses", async () => {
 
     // Verify original content is preserved
     assertEquals(enhancedResponse.status, 200);
-    // Note: Can't easily test body content in this mock setup
-  } finally {
-    await cleanup();
-    await cleanupAuditFolder(config);
-  }
+  });
 });
 
 Deno.test("MCPServer: CSP prevents inline script execution", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const server = new MCPServer({
-      config,
-      db,
-      transport: MCPTransport.STDIO,
-    });
-
-    const csp = (server as any).getSecurityHeaders()["Content-Security-Policy"];
+  await withMCPServerSecurity({}, ({ headers }) => {
+    const csp = headers["Content-Security-Policy"];
 
     // Verify CSP syntax is valid and secure
     assertStringIncludes(csp, "default-src 'none'");
@@ -114,23 +108,11 @@ Deno.test("MCPServer: CSP prevents inline script execution", async () => {
     // Should not allow unsafe-inline for scripts
     assert(!csp.includes("script-src 'unsafe-inline'"));
     assert(!csp.includes("script-src *"));
-  } finally {
-    await cleanup();
-    await cleanupAuditFolder(config);
-  }
+  });
 });
 
 Deno.test("MCPServer: HSTS enforces HTTPS", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const server = new MCPServer({
-      config,
-      db,
-      transport: MCPTransport.STDIO,
-    });
-
-    const headers = (server as any).getSecurityHeaders();
+  await withMCPServerSecurity({}, ({ headers }) => {
     const hsts = headers["Strict-Transport-Security"];
 
     assertStringIncludes(hsts, "max-age=");
@@ -141,24 +123,11 @@ Deno.test("MCPServer: HSTS enforces HTTPS", async () => {
     assert(maxAgeMatch !== null);
     const maxAge = parseInt(maxAgeMatch[1]);
     assert(maxAge >= 31536000); // 1 year in seconds
-  } finally {
-    await cleanup();
-    await cleanupAuditFolder(config);
-  }
+  });
 });
 
 Deno.test("MCPServer: headers prevent common attacks", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-
-  try {
-    const server = new MCPServer({
-      config,
-      db,
-      transport: MCPTransport.STDIO,
-    });
-
-    const headers = (server as any).getSecurityHeaders();
-
+  await withMCPServerSecurity({}, ({ headers }) => {
     // Should prevent iframe embedding (clickjacking)
     assertEquals(headers["X-Frame-Options"], "DENY");
 
@@ -170,43 +139,18 @@ Deno.test("MCPServer: headers prevent common attacks", async () => {
 
     // Should restrict referrer information
     assertEquals(headers["Referrer-Policy"], "strict-origin-when-cross-origin");
-  } finally {
-    await cleanup();
-    await cleanupAuditFolder(config);
-  }
+  });
 });
 
 Deno.test("MCPServer: supports SSE transport configuration", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-  // Modify config to use SSE transport
-  config.mcp.transport = MCPTransport.SSE;
-
-  try {
-    const server = new MCPServer({
-      config,
-      db,
-      transport: MCPTransport.SSE,
-    });
-
+  await withMCPServerSecurity({ transport: MCPTransport.SSE }, ({ server }) => {
     // Verify server is configured for SSE
     assertEquals((server as any).transport, MCPTransport.SSE);
-  } finally {
-    await cleanup();
-    await cleanupAuditFolder(config);
-  }
+  });
 });
 
 Deno.test("MCPServer: handles HTTP POST requests", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-  config.mcp.transport = MCPTransport.SSE;
-
-  try {
-    const server = new MCPServer({
-      config,
-      db,
-      transport: MCPTransport.SSE,
-    });
-
+  await withMCPServerSecurity({ transport: MCPTransport.SSE }, async ({ server }) => {
     // Create a mock initialize request
     const initRequest = new Request("http://localhost:3000", {
       method: "POST",
@@ -233,23 +177,11 @@ Deno.test("MCPServer: handles HTTP POST requests", async () => {
     // Verify it's a JSON response
     assertEquals(response.headers.get("Content-Type"), "application/json");
     assertEquals(response.status, 200);
-  } finally {
-    await cleanup();
-    await cleanupAuditFolder(config);
-  }
+  });
 });
 
 Deno.test("MCPServer: rejects non-POST HTTP requests", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-  config.mcp.transport = MCPTransport.SSE;
-
-  try {
-    const server = new MCPServer({
-      config,
-      db,
-      transport: MCPTransport.SSE,
-    });
-
+  await withMCPServerSecurity({ transport: MCPTransport.SSE }, async ({ server }) => {
     // Create a GET request
     const getRequest = new Request("http://localhost:3000", {
       method: "GET",
@@ -260,23 +192,11 @@ Deno.test("MCPServer: rejects non-POST HTTP requests", async () => {
     // Should return 405 Method Not Allowed with security headers
     assertEquals(response.status, 405);
     assert(response.headers.get("Content-Security-Policy") !== null);
-  } finally {
-    await cleanup();
-    await cleanupAuditFolder(config);
-  }
+  });
 });
 
 Deno.test("MCPServer: handles malformed JSON in HTTP requests", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-  config.mcp.transport = MCPTransport.SSE;
-
-  try {
-    const server = new MCPServer({
-      config,
-      db,
-      transport: MCPTransport.SSE,
-    });
-
+  await withMCPServerSecurity({ transport: MCPTransport.SSE }, async ({ server }) => {
     // Create a request with invalid JSON
     const badRequest = new Request("http://localhost:3000", {
       method: "POST",
@@ -293,31 +213,16 @@ Deno.test("MCPServer: handles malformed JSON in HTTP requests", async () => {
     const responseBody = await response.json();
     assertEquals(responseBody.error.code, -32700);
     assertStringIncludes(responseBody.error.message, "Parse error");
-  } finally {
-    await cleanup();
-    await cleanupAuditFolder(config);
-  }
+  });
 });
 
 Deno.test("MCPServer: HTTP server only starts with SSE transport", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-  // Keep default stdio transport
-
-  try {
-    const server = new MCPServer({
-      config,
-      db,
-      transport: MCPTransport.STDIO,
-    });
-
+  await withMCPServerSecurity({ transport: MCPTransport.STDIO }, async ({ server }) => {
     // Should reject HTTP server start with stdio transport
     await assertRejects(
       () => (server as any).startHTTPServer(3000),
       Error,
       "HTTP server only available for SSE transport",
     );
-  } finally {
-    await cleanup();
-    await cleanupAuditFolder(config);
-  }
+  });
 });

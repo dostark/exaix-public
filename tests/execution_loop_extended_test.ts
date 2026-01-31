@@ -16,36 +16,52 @@ import { getWorkspaceActiveDir } from "./helpers/paths_helper.ts";
 
 // ===== executeNext tests =====
 
-Deno.test("ExecutionLoop.executeNext: returns success when no plans available", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-no-plans-" });
-  const { db, cleanup } = await initTestDbService();
+// Helper for test setup
+async function runExecutionTest(
+  prefix: string,
+  fn: (ctx: {
+    tempDir: string;
+    config: any;
+    db: any;
+    loop: ExecutionLoop;
+    activeDir: string;
+  }) => Promise<void>,
+  options: { noDb?: boolean } = {},
+) {
+  const tempDir = await Deno.makeTempDir({ prefix: `exec-ext-${prefix}-` });
+  let db, cleanup;
+
+  if (!options.noDb) {
+    const dbService = await initTestDbService();
+    db = dbService.db;
+    cleanup = dbService.cleanup;
+  }
 
   try {
     const config = createMockConfig(tempDir);
-    // Create empty Workspace/Plans directory
-    const plansDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(plansDir, { recursive: true });
+    const activeDir = getWorkspaceActiveDir(tempDir);
+    await Deno.mkdir(activeDir, { recursive: true });
 
     const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
-    const result = await loop.executeNext();
-
-    assertEquals(result.success, true);
-    assertEquals(result.traceId, undefined);
+    await fn({ tempDir, config, db, loop, activeDir });
   } finally {
-    await cleanup();
+    if (cleanup) await cleanup();
     await Deno.remove(tempDir, { recursive: true });
   }
+}
+
+// ===== executeNext tests =====
+
+Deno.test("ExecutionLoop.executeNext: returns success when no plans available", async () => {
+  await runExecutionTest("no-plans", async ({ loop }) => {
+    const result = await loop.executeNext();
+    assertEquals(result.success, true);
+    assertEquals(result.traceId, undefined);
+  });
 });
 
 Deno.test("ExecutionLoop.executeNext: processes pending plan", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-next-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const plansDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(plansDir, { recursive: true });
-
+  await runExecutionTest("next", async ({ activeDir, loop }) => {
     const planContent = `---
 trace_id: "test-execute-next"
 request_id: next-test
@@ -62,19 +78,13 @@ description = "Read test file"
 path = "test.txt"
 \`\`\`
 `;
-
-    const planPath = join(plansDir, "next-test.md");
+    const planPath = join(activeDir, "next-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.executeNext();
-
     assertExists(result.traceId);
     assertEquals(result.traceId, "test-execute-next");
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 Deno.test("ExecutionLoop.executeNext: skips non-pending plans", async () => {

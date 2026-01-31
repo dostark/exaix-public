@@ -51,6 +51,20 @@ function makeCritiqueJSON(options: {
   });
 }
 
+// Helper for running agent tests
+async function runAgentTest(
+  mockResponses: string[],
+  options: any = {},
+  assertions: (result: any, agent: any) => void | Promise<void>,
+) {
+  const agent = createReflexiveAgent(createMockProvider(mockResponses), options);
+  const result = await agent.run(
+    { systemPrompt: "Test", agentId: "test" },
+    { userPrompt: "Help", context: {} },
+  );
+  await assertions(result, agent);
+}
+
 // ============================================================================
 // CritiqueSchema Tests
 // ============================================================================
@@ -114,53 +128,36 @@ Deno.test("[ReflexiveAgent] accepts excellent response on first iteration", asyn
     makeCritiqueJSON({ quality: CritiqueQuality.EXCELLENT, confidence: 95, passed: true }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses));
-
-  const result = await agent.run(
-    { systemPrompt: "You are a helpful assistant", agentId: "test" },
-    { userPrompt: "Help me", context: {} },
-  );
-
-  assertEquals(result.totalIterations, 1);
-  assert(result.earlyExit);
-  assertEquals(result.final.content, "This is a great response");
-  assertEquals(result.finalCritique?.quality, CritiqueQuality.EXCELLENT);
+  await runAgentTest(mockResponses, {}, (result) => {
+    assertEquals(result.totalIterations, 1);
+    assert(result.earlyExit);
+    assertEquals(result.final.content, "This is a great response");
+    assertEquals(result.finalCritique?.quality, CritiqueQuality.EXCELLENT);
+  });
 });
 
 Deno.test("[ReflexiveAgent] refines response when quality is poor", async () => {
   const mockResponses = [
-    // Initial response
     makeXMLResponse("First attempt", "Initial poor response"),
-    // First critique (poor, needs improvement)
     makeCritiqueJSON({
       quality: CritiqueQuality.POOR,
       confidence: 30,
       passed: false,
       issues: [{ type: "accuracy", severity: CritiqueSeverity.CRITICAL, description: "Inaccurate" }],
     }),
-    // Refined response
     makeXMLResponse("Second attempt", "Improved response"),
-    // Second critique (good, should accept)
     makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses), {
-    maxIterations: 3,
+  await runAgentTest(mockResponses, { maxIterations: 3 }, (result) => {
+    assertEquals(result.totalIterations, 2);
+    assertEquals(result.final.content, "Improved response");
+    assertGreater(result.iterations.length, 1);
   });
-
-  const result = await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  assertEquals(result.totalIterations, 2);
-  assertEquals(result.final.content, "Improved response");
-  assertGreater(result.iterations.length, 1);
 });
 
 Deno.test("[ReflexiveAgent] stops at maxIterations", async () => {
   const mockResponses = [
-    // All iterations produce poor quality that never passes
     makeXMLResponse("Attempt 1", "Response 1"),
     makeCritiqueJSON({ quality: CritiqueQuality.POOR, confidence: 20, passed: false }),
     makeXMLResponse("Attempt 2", "Response 2"),
@@ -169,19 +166,14 @@ Deno.test("[ReflexiveAgent] stops at maxIterations", async () => {
     makeCritiqueJSON({ quality: CritiqueQuality.POOR, confidence: 30, passed: false }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses), {
+  await runAgentTest(mockResponses, {
     maxIterations: 3,
     confidenceThreshold: 90,
     minQuality: CritiqueQuality.EXCELLENT,
+  }, (result) => {
+    assertEquals(result.totalIterations, 3);
+    assert(!result.earlyExit);
   });
-
-  const result = await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  assertEquals(result.totalIterations, 3);
-  assert(!result.earlyExit);
 });
 
 Deno.test("[ReflexiveAgent] tracks iterations correctly", async () => {
@@ -192,20 +184,13 @@ Deno.test("[ReflexiveAgent] tracks iterations correctly", async () => {
     makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 80, passed: true }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses), {
-    maxIterations: 5,
+  await runAgentTest(mockResponses, { maxIterations: 5 }, (result) => {
+    assertEquals(result.iterations.length, 2);
+    assertEquals(result.iterations[0].iteration, 1);
+    assertEquals(result.iterations[1].iteration, 2);
+    assertExists(result.iterations[0].critique);
+    assertExists(result.iterations[1].critique);
   });
-
-  const result = await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  assertEquals(result.iterations.length, 2);
-  assertEquals(result.iterations[0].iteration, 1);
-  assertEquals(result.iterations[1].iteration, 2);
-  assertExists(result.iterations[0].critique);
-  assertExists(result.iterations[1].critique);
 });
 
 // ============================================================================
@@ -222,17 +207,10 @@ Deno.test("[ReflexiveAgent] accepts based on confidence threshold", async () => 
     }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses), {
-    confidenceThreshold: 70,
+  await runAgentTest(mockResponses, { confidenceThreshold: 70 }, (result) => {
+    assertEquals(result.totalIterations, 1);
+    assert(result.earlyExit);
   });
-
-  const result = await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  assertEquals(result.totalIterations, 1);
-  assert(result.earlyExit);
 });
 
 Deno.test("[ReflexiveAgent] accepts based on quality level", async () => {
@@ -245,17 +223,12 @@ Deno.test("[ReflexiveAgent] accepts based on quality level", async () => {
     }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses), {
+  await runAgentTest(mockResponses, {
     minQuality: CritiqueQuality.ACCEPTABLE,
     confidenceThreshold: 90,
+  }, (result) => {
+    assertEquals(result.totalIterations, 1);
   });
-
-  const result = await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  assertEquals(result.totalIterations, 1);
 });
 
 Deno.test("[ReflexiveAgent] rejects with critical issues", async () => {
@@ -271,16 +244,9 @@ Deno.test("[ReflexiveAgent] rejects with critical issues", async () => {
     makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses), {
-    maxIterations: 3,
+  await runAgentTest(mockResponses, { maxIterations: 3 }, (result) => {
+    assertEquals(result.totalIterations, 2);
   });
-
-  const result = await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  assertEquals(result.totalIterations, 2);
 });
 
 // ============================================================================
@@ -293,18 +259,12 @@ Deno.test("[ReflexiveAgent] tracks metrics correctly", async () => {
     makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses));
-
-  await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  const metrics = agent.getMetrics();
-
-  assertEquals(metrics.totalExecutions, 1);
-  assertEquals(metrics.totalIterations, 1);
-  assertEquals(metrics.qualityDistribution.good, 1);
+  await runAgentTest(mockResponses, {}, (_result, agent) => {
+    const metrics = agent.getMetrics();
+    assertEquals(metrics.totalExecutions, 1);
+    assertEquals(metrics.totalIterations, 1);
+    assertEquals(metrics.qualityDistribution.good, 1);
+  });
 });
 
 Deno.test("[ReflexiveAgent] accumulates metrics across executions", async () => {
@@ -344,18 +304,12 @@ Deno.test("[ReflexiveAgent] resets metrics", async () => {
     makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses));
-
-  await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  agent.resetMetrics();
-  const metrics = agent.getMetrics();
-
-  assertEquals(metrics.totalExecutions, 0);
-  assertEquals(metrics.totalIterations, 0);
+  await runAgentTest(mockResponses, {}, (_result, agent) => {
+    agent.resetMetrics();
+    const metrics = agent.getMetrics();
+    assertEquals(metrics.totalExecutions, 0);
+    assertEquals(metrics.totalIterations, 0);
+  });
 });
 
 // ============================================================================
@@ -403,16 +357,11 @@ Deno.test("[ReflexiveAgent] handles critique parse failure gracefully", async ()
     "This is not valid JSON at all",
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses));
-
-  const result = await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  // Should still complete with fallback critique
-  assertExists(result.final);
-  assertEquals(result.totalIterations, 1);
+  await runAgentTest(mockResponses, {}, (result) => {
+    // Should still complete with fallback critique
+    assertExists(result.final);
+    assertEquals(result.totalIterations, 1);
+  });
 });
 
 Deno.test("[ReflexiveAgent] calculates average confidence", async () => {
@@ -423,15 +372,10 @@ Deno.test("[ReflexiveAgent] calculates average confidence", async () => {
     makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 80, passed: true }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses));
-
-  const result = await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  // Average of 60 and 80
-  assertEquals(result.averageConfidence, 70);
+  await runAgentTest(mockResponses, {}, (result) => {
+    // Average of 60 and 80
+    assertEquals(result.averageConfidence, 70);
+  });
 });
 
 Deno.test("[ReflexiveAgent] tracks total duration", async () => {
@@ -440,14 +384,9 @@ Deno.test("[ReflexiveAgent] tracks total duration", async () => {
     makeCritiqueJSON({ quality: CritiqueQuality.EXCELLENT, confidence: 95, passed: true }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses));
-
-  const result = await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  assertGreater(result.totalDurationMs, 0);
+  await runAgentTest(mockResponses, {}, (result) => {
+    assertGreater(result.totalDurationMs, 0);
+  });
 });
 
 Deno.test("[ReflexiveAgent] tracks issue type distribution", async () => {
@@ -466,15 +405,9 @@ Deno.test("[ReflexiveAgent] tracks issue type distribution", async () => {
     makeCritiqueJSON({ quality: CritiqueQuality.GOOD, confidence: 85, passed: true }),
   ];
 
-  const agent = createReflexiveAgent(createMockProvider(mockResponses));
-
-  await agent.run(
-    { systemPrompt: "Test", agentId: "test" },
-    { userPrompt: "Help", context: {} },
-  );
-
-  const metrics = agent.getMetrics();
-
-  assertEquals(metrics.issueTypeDistribution["accuracy"], 1);
-  assertEquals(metrics.issueTypeDistribution["clarity"], 1);
+  await runAgentTest(mockResponses, {}, (_result, agent) => {
+    const metrics = agent.getMetrics();
+    assertEquals(metrics.issueTypeDistribution["accuracy"], 1);
+    assertEquals(metrics.issueTypeDistribution["clarity"], 1);
+  });
 });

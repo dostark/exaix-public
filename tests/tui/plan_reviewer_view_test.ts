@@ -56,9 +56,17 @@ async function setupWorkspace(planId: string, frontmatter: Record<string, string
   return root;
 }
 
-Deno.test("lists pending plans via PlanCommands", async () => {
-  const planId = "p1";
-  const root = await setupWorkspace(planId, { status: PlanStatus.REVIEW, title: "Add login" }, "# Plan Body\n");
+// Helper for setting up PlanCommands based tests
+async function setupPlanReviewerTest(options: {
+  planId?: string;
+  frontmatter?: Record<string, string>;
+  body?: string;
+} = {}) {
+  const planId = options.planId || "p1";
+  const frontmatter = options.frontmatter || { status: PlanStatus.REVIEW, title: "Test Plan" };
+  const body = options.body || "# Body\n";
+
+  const root = await setupWorkspace(planId, frontmatter, body);
   const db = new MockDB();
   const context: any = {
     config: {
@@ -69,48 +77,60 @@ Deno.test("lists pending plans via PlanCommands", async () => {
   };
   const cmd = new PlanCommands(context);
   const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
-  const pending = await view.listPending();
-  assertEquals(pending.length, 1);
-  // Cleanup
-  await Deno.remove(root, { recursive: true });
+
+  return { root, view, cmd, db, planId };
+}
+
+// Helper for TUI session tests with service overrides
+function createInteractiveSession(
+  plans: any[] = [{ id: "p1", title: "Plan 1" }],
+  overrides: Partial<MinimalPlanServiceMock> = {},
+) {
+  const mockService = new MinimalPlanServiceMock();
+  Object.assign(mockService, overrides);
+  const session = new PlanReviewerTuiSession(plans, mockService);
+  return { session, mockService };
+}
+
+Deno.test("lists pending plans via PlanCommands", async () => {
+  const { view, root } = await setupPlanReviewerTest({
+    planId: "p1",
+    frontmatter: { status: PlanStatus.REVIEW, title: "Add login" },
+  });
+
+  try {
+    const pending = await view.listPending();
+    assertEquals(pending.length, 1);
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
 });
 
 Deno.test("returns plan content as diff via PlanCommands", async () => {
-  const planId = "p2";
-  const body = "- old\n+ new\n";
-  const root = await setupWorkspace(planId, { status: PlanStatus.REVIEW, title: "Change README" }, body);
-  const db = new MockDB();
-  const context: any = {
-    config: {
-      system: { root: root },
-      paths: { ...ExoPathDefaults },
-    },
-    db,
-  };
-  const cmd = new PlanCommands(context);
-  const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
-  const diff = await view.getDiff(planId);
-  assertEquals(diff.includes("+ new"), true);
-  await Deno.remove(root, { recursive: true });
+  const { view, root, planId } = await setupPlanReviewerTest({
+    planId: "p2",
+    frontmatter: { status: PlanStatus.REVIEW, title: "Change README" },
+    body: "- old\n+ new\n",
+  });
+
+  try {
+    const diff = await view.getDiff(planId);
+    assertEquals(diff.includes("+ new"), true);
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
 });
 
 Deno.test("approve moves plan and logs activity via PlanCommands", async () => {
-  const planId = "p3";
-  const root = await setupWorkspace(planId, { status: "review", title: "Refactor" }, "# Body\n");
-  const db = new MockDB();
-  const context: any = {
-    config: {
-      system: { root: root },
-      paths: { ...ExoPathDefaults },
-    },
-    db,
-  };
-  const cmd = new PlanCommands(context);
-  const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
-  const ok = await view.approve(planId, "reviewer-1");
-  assert(ok);
-  // Check that plan file moved to Workspace/Active
+  const { view, root, planId } = await setupPlanReviewerTest({
+    planId: "p3",
+    frontmatter: { status: "review", title: "Refactor" },
+  });
+
   try {
+    const ok = await view.approve(planId, "reviewer-1");
+    assert(ok);
+    // Check that plan file moved to Workspace/Active
     const activePath = `${root}/Workspace/Active/${planId}.md`;
     const exists = await Deno.stat(activePath).then(() => true).catch(() => false);
     assertEquals(exists, true);
@@ -139,21 +159,14 @@ Deno.test("DB-like path logs reviewer and reason", async () => {
 });
 
 Deno.test("reject moves plan to Workspace/Rejected and logs reason via PlanCommands", async () => {
-  const planId = "p4";
-  const root = await setupWorkspace(planId, { status: PlanStatus.REVIEW, title: "WIP" }, "# Body\n");
-  const db = new MockDB();
-  const context: any = {
-    config: {
-      system: { root: root },
-      paths: { ...ExoPathDefaults },
-    },
-    db,
-  };
-  const cmd = new PlanCommands(context);
-  const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
-  const ok = await view.reject(planId, "reviewer-2", "needs changes");
-  assert(ok);
+  const { view, root, planId } = await setupPlanReviewerTest({
+    planId: "p4",
+    frontmatter: { status: PlanStatus.REVIEW, title: "WIP" },
+  });
+
   try {
+    const ok = await view.reject(planId, "reviewer-2", "needs changes");
+    assert(ok);
     const rejectedPath = `${root}/Workspace/Rejected/${planId}_rejected.md`;
     const exists = await Deno.stat(rejectedPath).then(() => true).catch(() => false);
     assertEquals(exists, true);
@@ -163,28 +176,25 @@ Deno.test("reject moves plan to Workspace/Rejected and logs reason via PlanComma
 });
 
 Deno.test("handles very large plan content via PlanCommands", async () => {
-  const planId = "p5";
   const large = "a".repeat(100_000);
-  const root = await setupWorkspace(planId, { status: PlanStatus.REVIEW, title: "Big change" }, large);
-  const db = new MockDB();
-  const context: any = {
-    config: {
-      system: { root: root },
-      paths: { ...ExoPathDefaults },
-    },
-    db,
-  };
-  const cmd = new PlanCommands(context);
-  const view = new PlanReviewerView(new PlanCommandsServiceAdapter(cmd));
-  const diff = await view.getDiff(planId);
-  assertEquals(diff.length, large.length);
-  await Deno.remove(root, { recursive: true });
+  const { view, root, planId } = await setupPlanReviewerTest({
+    planId: "p5",
+    frontmatter: { status: PlanStatus.REVIEW, title: "Big change" },
+    body: large,
+  });
+
+  try {
+    const diff = await view.getDiff(planId);
+    assertEquals(diff.length, large.length);
+  } finally {
+    await Deno.remove(root, { recursive: true });
+  }
 });
 
 Deno.test("PlanReviewerTuiSession: error handling in #triggerAction (service throws)", async () => {
   let called = false;
   const plans = [{ id: "p1", title: "T1" }];
-  const session = new PlanReviewerTuiSession(plans, {
+  const { session } = createInteractiveSession(plans, {
     listPending: () => Promise.resolve([]),
     getDiff: () => Promise.resolve(""),
     approve: () => {
@@ -195,6 +205,7 @@ Deno.test("PlanReviewerTuiSession: error handling in #triggerAction (service thr
       throw new Error("fail-reject");
     },
   });
+
   session.setSelectedIndex(0);
 
   // Press 'a' to show dialog, then confirm
@@ -365,14 +376,13 @@ Deno.test("PlanReviewerTuiSession keyboard actions - a (approve plan)", async ()
     { id: "plan1", title: "Plan 1" },
     { id: "plan2", title: "Plan 2" },
   ];
-  const mockService = new MinimalPlanServiceMock();
-  mockService.approve = (planId: string) => {
-    approvedPlan = planId;
-    return Promise.resolve(true);
-  };
-  mockService.listPending = () => Promise.resolve(plans);
-
-  const session = new PlanReviewerTuiSession(plans, mockService);
+  const { session } = createInteractiveSession(plans, {
+    approve: (planId: string) => {
+      approvedPlan = planId;
+      return Promise.resolve(true);
+    },
+    listPending: () => Promise.resolve(plans),
+  });
 
   // Select first plan and press a (shows dialog)
   session.setSelectedIndex(0);
@@ -387,14 +397,13 @@ Deno.test("PlanReviewerTuiSession keyboard actions - r (reject plan)", async () 
     { id: "plan1", title: "Plan 1" },
     { id: "plan2", title: "Plan 2" },
   ];
-  const mockService = new MinimalPlanServiceMock();
-  mockService.reject = (planId: string) => {
-    rejectedPlan = planId;
-    return Promise.resolve(true);
-  };
-  mockService.listPending = () => Promise.resolve(plans);
-
-  const session = new PlanReviewerTuiSession(plans, mockService);
+  const { session } = createInteractiveSession(plans, {
+    reject: (planId: string) => {
+      rejectedPlan = planId;
+      return Promise.resolve(true);
+    },
+    listPending: () => Promise.resolve(plans),
+  });
 
   // Select first plan and press r (shows dialog)
   session.setSelectedIndex(0);
@@ -405,13 +414,12 @@ Deno.test("PlanReviewerTuiSession keyboard actions - r (reject plan)", async () 
 
 Deno.test("PlanReviewerTuiSession keyboard actions - error handling", async () => {
   const plans = [{ id: "plan1", title: "Plan 1" }];
-  const mockService = new MinimalPlanServiceMock();
-  mockService.approve = () => {
-    throw new Error("Failed to approve plan");
-  };
-  mockService.listPending = () => Promise.resolve(plans);
-
-  const session = new PlanReviewerTuiSession(plans, mockService);
+  const { session } = createInteractiveSession(plans, {
+    approve: () => {
+      throw new Error("Failed to approve plan");
+    },
+    listPending: () => Promise.resolve(plans),
+  });
 
   // Try to approve plan (shows dialog first)
   await session.handleKey(KEY_A);
@@ -522,14 +530,13 @@ Deno.test("Phase 13.4: Help screen rendering", () => {
 Deno.test("Phase 13.4: Confirm dialog for approve", async () => {
   const plans = [{ id: "p1", title: "Plan 1" }];
   let approveTriggered = false;
-  const mockService = new MinimalPlanServiceMock();
-  mockService.approve = () => {
-    approveTriggered = true;
-    return Promise.resolve(true);
-  };
-  mockService.listPending = () => Promise.resolve([]);
-
-  const session = new PlanReviewerTuiSession(plans, mockService);
+  const { session } = createInteractiveSession(plans, {
+    approve: () => {
+      approveTriggered = true;
+      return Promise.resolve(true);
+    },
+    listPending: () => Promise.resolve([]),
+  });
 
   // Press a - should show confirm dialog, not immediately approve
   await session.handleKey(KEY_A);
@@ -545,14 +552,13 @@ Deno.test("Phase 13.4: Confirm dialog for approve", async () => {
 Deno.test("Phase 13.4: Confirm dialog for reject", async () => {
   const plans = [{ id: "p1", title: "Plan 1" }];
   let rejectTriggered = false;
-  const mockService = new MinimalPlanServiceMock();
-  mockService.reject = () => {
-    rejectTriggered = true;
-    return Promise.resolve(true);
-  };
-  mockService.listPending = () => Promise.resolve([]);
-
-  const session = new PlanReviewerTuiSession(plans, mockService);
+  const { session } = createInteractiveSession(plans, {
+    reject: () => {
+      rejectTriggered = true;
+      return Promise.resolve(true);
+    },
+    listPending: () => Promise.resolve([]),
+  });
 
   // Press r - should show confirm dialog
   await session.handleKey(KEY_R);
@@ -566,10 +572,9 @@ Deno.test("Phase 13.4: Confirm dialog for reject", async () => {
 
 Deno.test("Phase 13.4: Diff view toggle", async () => {
   const plans = [{ id: "p1", title: "Plan 1" }];
-  const mockService = new MinimalPlanServiceMock();
-  mockService.getDiff = () => Promise.resolve("+ added line\n- removed line");
-
-  const session = new PlanReviewerTuiSession(plans, mockService);
+  const { session } = createInteractiveSession(plans, {
+    getDiff: () => Promise.resolve("+ added line\n- removed line"),
+  });
 
   // Initially diff is hidden
   assertEquals(session.isDiffVisible(), false);
@@ -586,10 +591,10 @@ Deno.test("Phase 13.4: Diff view toggle", async () => {
 
 Deno.test("Phase 13.4: Diff rendering", async () => {
   const plans = [{ id: "p1", title: "Plan 1" }];
-  const mockService = new MinimalPlanServiceMock();
-  mockService.getDiff = () => Promise.resolve("+ added\n- removed\n@@ context @@");
+  const { session } = createInteractiveSession(plans, {
+    getDiff: () => Promise.resolve("+ added\n- removed\n@@ context @@"),
+  });
 
-  const session = new PlanReviewerTuiSession(plans, mockService);
   await session.handleKey(KEY_ENTER);
 
   const diffLines = session.renderDiff();
@@ -625,18 +630,17 @@ Deno.test("Phase 13.4: Approve all pending", async () => {
     { id: "p3", title: "Plan 3", status: PlanStatus.APPROVED },
   ];
   const approved: string[] = [];
-  const mockService = new MinimalPlanServiceMock();
-  mockService.approve = (planId: string) => {
-    approved.push(planId);
-    return Promise.resolve(true);
-  };
-  mockService.listPending = () =>
-    Promise.resolve([
-      { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
-      { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
-    ]);
-
-  const session = new PlanReviewerTuiSession(plans, mockService);
+  const { session } = createInteractiveSession(plans, {
+    approve: (planId: string) => {
+      approved.push(planId);
+      return Promise.resolve(true);
+    },
+    listPending: () =>
+      Promise.resolve([
+        { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+        { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
+      ]),
+  });
 
   // Press A to approve all pending
   await session.handleKey(KEY_CAPITAL_A);
@@ -650,16 +654,15 @@ Deno.test("Phase 13.4: Approve all pending", async () => {
 Deno.test("Phase 13.4: Refresh view with R key", async () => {
   const plans = [{ id: "p1", title: "Plan 1", status: PlanStatus.REVIEW }];
   let listCalled = false;
-  const mockService = new MinimalPlanServiceMock();
-  mockService.listPending = () => {
-    listCalled = true;
-    return Promise.resolve([
-      { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
-      { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
-    ]);
-  };
-
-  const session = new PlanReviewerTuiSession(plans, mockService);
+  const { session } = createInteractiveSession(plans, {
+    listPending: () => {
+      listCalled = true;
+      return Promise.resolve([
+        { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+        { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
+      ]);
+    },
+  });
 
   await session.handleKey(KEY_CAPITAL_R);
   assertEquals(listCalled, true, "Should call listPending on R");
@@ -671,10 +674,9 @@ Deno.test("Phase 13.4: Loading state management", async () => {
   const slowPromise = new Promise<string>((resolve) => {
     resolvePromise = () => resolve("diff content");
   });
-  const mockService = new MinimalPlanServiceMock();
-  mockService.getDiff = () => slowPromise;
-
-  const session = new PlanReviewerTuiSession(plans, mockService);
+  const { session } = createInteractiveSession(plans, {
+    getDiff: () => slowPromise,
+  });
 
   // Initial state
   assertEquals(session.isLoading(), false, "Should not be loading initially");

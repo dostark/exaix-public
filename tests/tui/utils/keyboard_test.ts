@@ -12,6 +12,7 @@ import {
   type KeyBinding,
   KeyboardManager,
   KEYS,
+  type KeyValue,
   matchesKey,
   parseKey,
 } from "../../../src/tui/utils/keyboard.ts";
@@ -103,15 +104,15 @@ Deno.test("matchesKey: is case insensitive", () => {
 
 // ===== Keyboard Manager Tests =====
 
+// Helper for KeyboardManager tests
+function setupManager<T extends string>(action: T = "test" as T, key: KeyValue = "x") {
+  const manager = new KeyboardManager<T>();
+  manager.bind({ key, action, description: "Test Action" });
+  return manager;
+}
+
 Deno.test("KeyboardManager: binds and retrieves bindings", () => {
-  const manager = new KeyboardManager<"save" | "quit">();
-
-  manager.bind({
-    key: "ctrl+s",
-    action: "save",
-    description: "Save file",
-  });
-
+  const manager = setupManager<"save">("save", "ctrl+s");
   const bindings = manager.getBindings();
   assertEquals(bindings.length, 1);
   assertEquals(bindings[0].action, "save");
@@ -119,28 +120,23 @@ Deno.test("KeyboardManager: binds and retrieves bindings", () => {
 
 Deno.test("KeyboardManager: bindAll adds multiple bindings", () => {
   const manager = new KeyboardManager<"a" | "b">();
-
   manager.bindAll([
     { key: "a", action: "a", description: "Action A" },
     { key: "b", action: "b", description: "Action B" },
   ]);
-
   assertEquals(manager.getBindings().length, 2);
 });
 
 Deno.test("KeyboardManager: hasBinding checks existence", () => {
-  const manager = new KeyboardManager<"test">();
-  manager.bind({ key: "x", action: "test", description: "Test" });
-
+  const manager = setupManager();
   assertEquals(manager.hasBinding("x"), true);
   assertEquals(manager.hasBinding("y"), false);
 });
 
 Deno.test("KeyboardManager: handle calls handler", async () => {
-  const manager = new KeyboardManager<"test">();
+  const manager = setupManager();
   let called = false;
 
-  manager.bind({ key: "x", action: "test", description: "Test" });
   manager.on("test", () => {
     called = true;
     return true;
@@ -158,10 +154,9 @@ Deno.test("KeyboardManager: handle returns false for unbound key", async () => {
 });
 
 Deno.test("KeyboardManager: disable prevents handling", async () => {
-  const manager = new KeyboardManager<"test">();
+  const manager = setupManager();
   let called = false;
 
-  manager.bind({ key: "x", action: "test", description: "Test" });
   manager.on("test", () => {
     called = true;
     return true;
@@ -174,10 +169,9 @@ Deno.test("KeyboardManager: disable prevents handling", async () => {
 });
 
 Deno.test("KeyboardManager: enable re-enables handling", async () => {
-  const manager = new KeyboardManager<"test">();
+  const manager = setupManager();
   let called = false;
 
-  manager.bind({ key: "x", action: "test", description: "Test" });
   manager.on("test", () => {
     called = true;
     return true;
@@ -205,73 +199,56 @@ Deno.test("KeyboardManager: getBindingsByCategory groups bindings", () => {
 
 // ===== Navigation Handlers Tests =====
 
-Deno.test("createNavigationHandlers: up decrements index", () => {
-  let index = 5;
+// Helper for navigation tests
+function setupNavHandlers(initialIndex = 0, length = 10) {
+  let index = initialIndex;
+  const setIndex = (i: number) => {
+    index = i;
+  };
   const handlers = createNavigationHandlers(
-    () => ({ selectedIndex: index, length: 10 }),
-    (i) => {
-      index = i;
-    },
+    () => ({ selectedIndex: index, length }),
+    setIndex,
   );
+  return {
+    handlers,
+    getIndex: () => index,
+    setIndex,
+  };
+}
 
+Deno.test("createNavigationHandlers: up decrements index", () => {
+  const { handlers, getIndex } = setupNavHandlers(5);
   handlers.up("up");
-  assertEquals(index, 4);
+  assertEquals(getIndex(), 4);
 });
 
 Deno.test("createNavigationHandlers: down increments index", () => {
-  let index = 5;
-  const handlers = createNavigationHandlers(
-    () => ({ selectedIndex: index, length: 10 }),
-    (i) => {
-      index = i;
-    },
-  );
-
+  const { handlers, getIndex } = setupNavHandlers(5);
   handlers.down("down");
-  assertEquals(index, 6);
+  assertEquals(getIndex(), 6);
 });
 
 Deno.test("createNavigationHandlers: home goes to start", () => {
-  let index = 5;
-  const handlers = createNavigationHandlers(
-    () => ({ selectedIndex: index, length: 10 }),
-    (i) => {
-      index = i;
-    },
-  );
-
+  const { handlers, getIndex } = setupNavHandlers(5);
   handlers.home("home");
-  assertEquals(index, 0);
+  assertEquals(getIndex(), 0);
 });
 
 Deno.test("createNavigationHandlers: end goes to end", () => {
-  let index = 5;
-  const handlers = createNavigationHandlers(
-    () => ({ selectedIndex: index, length: 10 }),
-    (i) => {
-      index = i;
-    },
-  );
-
+  const { handlers, getIndex } = setupNavHandlers(5);
   handlers.end("end");
-  assertEquals(index, 9);
+  assertEquals(getIndex(), 9);
 });
 
 Deno.test("createNavigationHandlers: respects bounds", () => {
-  let index = 0;
-  const handlers = createNavigationHandlers(
-    () => ({ selectedIndex: index, length: 10 }),
-    (i) => {
-      index = i;
-    },
-  );
+  const ctx = setupNavHandlers(0);
 
-  handlers.up("up"); // Should not go below 0
-  assertEquals(index, 0);
+  ctx.handlers.up("up"); // Should not go below 0
+  assertEquals(ctx.getIndex(), 0);
 
-  index = 9;
-  handlers.down("down"); // Should not go above length - 1
-  assertEquals(index, 9);
+  ctx.setIndex(9);
+  ctx.handlers.down("down"); // Should not go above length - 1
+  assertEquals(ctx.getIndex(), 9);
 });
 
 // ===== Generate Help Screen Tests =====

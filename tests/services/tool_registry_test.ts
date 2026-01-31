@@ -176,30 +176,32 @@ Deno.test("ToolRegistry: should block dangerous npm subcommands", async () => {
   assert(result.error?.includes("subcommand not allowed"));
 });
 
-// ===== File Operations Tests =====
-
-Deno.test("ToolRegistry: should create directory", async () => {
+// Helper for file tests
+async function runToolRegistryTest(fn: (registry: ToolRegistry, tempDir: string) => Promise<void>) {
   const tempDir = await Deno.makeTempDir({ prefix: "tool-registry-test-" });
   try {
     const registry = createRegistry(tempDir);
     await Deno.mkdir(join(tempDir, "Workspace"), { recursive: true });
+    await fn(registry, tempDir);
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+}
 
+// ===== File Operations Tests =====
+
+Deno.test("ToolRegistry: should create directory", async () => {
+  await runToolRegistryTest(async (registry, tempDir) => {
     const testDir = "Workspace/new-dir/nested";
     const result = await registry.execute("create_directory", { path: testDir });
 
     assert(result.success);
     assert((await Deno.stat(join(tempDir, testDir))).isDirectory);
-  } finally {
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 Deno.test("ToolRegistry: should write and read files", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "tool-registry-test-" });
-  try {
-    const registry = createRegistry(tempDir);
-    await Deno.mkdir(join(tempDir, "Workspace"), { recursive: true });
-
+  await runToolRegistryTest(async (registry, tempDir) => {
     const filePath = "Workspace/test.txt";
     const content = "Hello World";
     const writeResult = await registry.execute("write_file", { path: filePath, content });
@@ -210,19 +212,13 @@ Deno.test("ToolRegistry: should write and read files", async () => {
     const readResult = await registry.execute("read_file", { path: filePath });
     assert(readResult.success);
     assertEquals(readResult.data.content, content);
-  } finally {
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 Deno.test("ToolRegistry: should list directory contents", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "tool-registry-test-" });
-  try {
-    const registry = createRegistry(tempDir);
-    await Deno.mkdir(join(tempDir, "Workspace"), { recursive: true });
-
+  await runToolRegistryTest(async (registry, _tempDir) => {
     await registry.execute("write_file", { path: "Workspace/file1.txt", content: "1" });
-    await Deno.mkdir(join(tempDir, "Workspace/subdir"), { recursive: true });
+    await registry.execute("create_directory", { path: "Workspace/subdir" });
     await registry.execute("write_file", { path: "Workspace/subdir/file2.txt", content: "2" });
 
     const listResult = await registry.execute("list_directory", { path: "Workspace" });
@@ -231,17 +227,12 @@ Deno.test("ToolRegistry: should list directory contents", async () => {
 
     assert(entries.some((e) => e.name === "file1.txt" && !e.isDirectory));
     assert(entries.some((e) => e.name === "subdir" && e.isDirectory));
-  } finally {
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 Deno.test("ToolRegistry: should search files", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "tool-registry-test-" });
-  try {
-    const registry = createRegistry(tempDir);
-    await Deno.mkdir(join(tempDir, "Workspace"), { recursive: true });
-    await Deno.mkdir(join(tempDir, "Workspace/src"), { recursive: true });
+  await runToolRegistryTest(async (registry, _tempDir) => {
+    await registry.execute("create_directory", { path: "Workspace/src" });
 
     await registry.execute("write_file", { path: "Workspace/src/main.ts", content: "console.log('main')" });
     await registry.execute("write_file", { path: "Workspace/src/utils.ts", content: "export const util = 1" });
@@ -255,31 +246,21 @@ Deno.test("ToolRegistry: should search files", async () => {
     assert(files.some((f) => f.endsWith("main.ts")));
     assert(files.some((f) => f.endsWith("utils.ts")));
     assert(!files.some((f) => f.endsWith("readme.md")));
-  } finally {
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 Deno.test("ToolRegistry: should handle missing files gracefully", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "tool-registry-test-" });
-  try {
-    const registry = createRegistry(tempDir);
+  await runToolRegistryTest(async (registry, _tempDir) => {
     const result = await registry.execute("read_file", { path: "nonexistent.txt" });
     assert(!result.success);
     assert(result.error?.includes("not found") || result.error?.includes("outside allowed roots"));
-  } finally {
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 Deno.test("ToolRegistry: should prevent path traversal", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "tool-registry-test-" });
-  try {
-    const registry = createRegistry(tempDir);
+  await runToolRegistryTest(async (registry, _tempDir) => {
     const result = await registry.execute("read_file", { path: "../secret.txt" });
     assert(!result.success);
     assert(result.error?.includes("Access denied") || result.error?.includes("outside allowed roots"));
-  } finally {
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });

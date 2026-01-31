@@ -33,62 +33,34 @@ export interface PortalTestOptions {
   initGit?: boolean;
 }
 
+import { setupGitRepo } from "../../helpers/git_test_helper.ts";
+export { setupGitRepo };
+
 /**
- * Initialize MCP server test environment with portal
- *
- * @example
- * const ctx = await initMCPTest({ createFiles: true });
- * try {
- *   // Run tests with ctx.server
- * } finally {
- *   await ctx.cleanup();
- * }
+ * Helper to initialize common test environment (files, git, db, config)
  */
-export async function initMCPTest(
-  options: PortalTestOptions = {},
-): Promise<MCPTestContext> {
+async function initTestEnv(options: PortalTestOptions & { prefix?: string }) {
   const {
     portalAlias = "TestPortal",
     createFiles = false,
     fileContent = {},
     permissions = {},
     initGit = false,
+    prefix = "mcp-test-",
   } = options;
 
-  const tempDir = await Deno.makeTempDir({ prefix: "mcp-test-" });
+  const tempDir = await Deno.makeTempDir({ prefix });
   const portalPath = join(tempDir, portalAlias);
   await ensureDir(portalPath);
 
-  // Initialize git repository if requested
   if (initGit) {
-    await new Deno.Command(PortalOperation.GIT, {
-      args: ["init"],
-      cwd: portalPath,
-      stdout: "null",
-      stderr: "null",
-    }).output();
-
-    await new Deno.Command(PortalOperation.GIT, {
-      args: ["config", "user.name", "Test User"],
-      cwd: portalPath,
-      stdout: "null",
-      stderr: "null",
-    }).output();
-
-    await new Deno.Command(PortalOperation.GIT, {
-      args: ["config", "user.email", "test@example.com"],
-      cwd: portalPath,
-      stdout: "null",
-      stderr: "null",
-    }).output();
+    await setupGitRepo(portalPath);
   }
 
-  // Create default test file if requested
   if (createFiles) {
     await Deno.writeTextFile(join(portalPath, "test.txt"), "content");
   }
 
-  // Create additional files from fileContent map
   for (const [filename, content] of Object.entries(fileContent)) {
     const filePath = join(portalPath, filename);
     const dir = join(filePath, "..");
@@ -109,16 +81,79 @@ export async function initMCPTest(
     portals: [portalConfig],
   });
 
-  const server = new MCPServer({ config, db, transport: MCPTransport.STDIO });
-  await server.start();
-
   const cleanup = async () => {
-    await server.stop();
     await dbCleanup();
     await Deno.remove(tempDir, { recursive: true }).catch(() => {});
   };
 
-  return { tempDir, portalPath, server, db, cleanup };
+  return { tempDir, portalPath, config, db, cleanup };
+}
+
+/**
+ * Initialize MCP server test environment with portal
+ */
+export async function initMCPTest(
+  options: PortalTestOptions = {},
+): Promise<MCPTestContext> {
+  const env = await initTestEnv(options);
+  const server = new MCPServer({ config: env.config, db: env.db, transport: MCPTransport.STDIO });
+  await server.start();
+
+  const cleanup = async () => {
+    await server.stop();
+    await env.cleanup();
+  };
+
+  return {
+    tempDir: env.tempDir,
+    portalPath: env.portalPath,
+    server,
+    db: env.db,
+    cleanup,
+  };
+}
+
+// ... initMCPTestWithoutPortal ...
+
+// ...
+
+export async function initToolPermissionTest(
+  options: ToolPermissionOptions = {},
+): Promise<ToolPermissionTestContext> {
+  const {
+    portalAlias = "TestPortal",
+    operations = [PortalOperation.READ],
+    agentId = "test-agent",
+    fileContent = {},
+    initGit = false,
+  } = options;
+
+  const env = await initTestEnv({
+    portalAlias,
+    fileContent,
+    initGit,
+    permissions: {
+      agents_allowed: [agentId],
+      operations,
+    },
+    prefix: "mcp-perm-test-",
+  });
+
+  const permissions: PortalPermissions = {
+    alias: portalAlias,
+    target_path: env.portalPath,
+    agents_allowed: [agentId],
+    operations,
+  };
+
+  return {
+    tempDir: env.tempDir,
+    portalPath: env.portalPath,
+    config: env.config,
+    db: env.db,
+    permissions,
+    cleanup: env.cleanup,
+  };
 }
 
 /**
@@ -142,6 +177,11 @@ export async function initMCPTestWithoutPortal(): Promise<
 
   return { tempDir, server, db, cleanup };
 }
+
+/**
+ * Alias for initMCPTestWithoutPortal to maintain compatibility
+ */
+export const initSimpleMCPServer = initMCPTestWithoutPortal;
 
 /**
  * Create MCP tool call request
@@ -253,6 +293,7 @@ export function assertMCPContentIncludes(response: any, text: string): void {
 
 /**
  * Create a test portal with git initialization
+ * @deprecated Use setupGitRepo instead
  */
 export async function createGitPortal(
   tempDir: string,
@@ -260,30 +301,7 @@ export async function createGitPortal(
 ): Promise<string> {
   const portalPath = join(tempDir, portalName);
   await ensureDir(portalPath);
-
-  // Initialize git repo
-  await new Deno.Command(PortalOperation.GIT, {
-    args: ["init"],
-    cwd: portalPath,
-    stdout: "null",
-    stderr: "null",
-  }).output();
-
-  // Configure git
-  await new Deno.Command(PortalOperation.GIT, {
-    args: ["config", "user.email", "test@example.com"],
-    cwd: portalPath,
-    stdout: "null",
-    stderr: "null",
-  }).output();
-
-  await new Deno.Command(PortalOperation.GIT, {
-    args: ["config", "user.name", "Test User"],
-    cwd: portalPath,
-    stdout: "null",
-    stderr: "null",
-  }).output();
-
+  await setupGitRepo(portalPath);
   return portalPath;
 }
 
@@ -313,83 +331,4 @@ export interface ToolPermissionOptions {
   agentId?: string;
   fileContent?: Record<string, string>;
   initGit?: boolean;
-}
-
-export async function initToolPermissionTest(
-  options: ToolPermissionOptions = {},
-): Promise<ToolPermissionTestContext> {
-  const {
-    portalAlias = "TestPortal",
-    operations = [PortalOperation.READ],
-    agentId = "test-agent",
-    fileContent = {},
-    initGit = false,
-  } = options;
-
-  const tempDir = await Deno.makeTempDir({ prefix: "mcp-perm-test-" });
-  const portalPath = join(tempDir, portalAlias);
-  await ensureDir(portalPath);
-
-  // Create files
-  for (const [path, content] of Object.entries(fileContent)) {
-    const fullPath = join(portalPath, path);
-    await ensureDir(join(fullPath, ".."));
-    await Deno.writeTextFile(fullPath, content);
-  }
-
-  // Initialize git if requested
-  if (initGit) {
-    await createGitPortal(tempDir, portalAlias);
-  }
-
-  const { db, cleanup: dbCleanup } = await initTestDbService();
-
-  const config = createMockConfig(tempDir, {
-    portals: [{
-      alias: portalAlias,
-      target_path: portalPath,
-    }],
-  });
-
-  const permissions: PortalPermissions = {
-    alias: portalAlias,
-    target_path: portalPath,
-    agents_allowed: [agentId],
-    operations,
-  };
-
-  return {
-    tempDir,
-    portalPath,
-    config,
-    db,
-    permissions,
-    cleanup: async () => {
-      await dbCleanup();
-      await Deno.remove(tempDir, { recursive: true }).catch(() => {});
-    },
-  };
-}
-
-/**
- * Initialize simple MCP server for prompts/resources tests without portals
- */
-export async function initSimpleMCPServer() {
-  const tempDir = await Deno.makeTempDir({ prefix: "mcp-simple-" });
-  const { db, cleanup: dbCleanup } = await initTestDbService();
-
-  const config = createMockConfig(tempDir);
-  const server = new MCPServer({ config, db, transport: MCPTransport.STDIO });
-  await server.start();
-
-  return {
-    tempDir,
-    server,
-    db,
-    cleanup: async () => {
-      await server.stop();
-      await dbCleanup();
-      await Deno.remove(tempDir, { recursive: true }).catch(() => {});
-    },
-  };
 }

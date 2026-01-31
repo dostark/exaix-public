@@ -11,9 +11,24 @@ import { initSimpleMCPServer } from "./helpers/test_setup.ts";
 // Prompts List Tests
 // ============================================================================
 
-Deno.test("MCP Server: handles prompts/list request", async () => {
-  const { server, cleanup } = await initSimpleMCPServer();
+// Helper for MCP server tests
+async function withMCPServer(
+  fn: (ctx: { server: any; db: any }) => Promise<void>,
+) {
+  const { server, db, cleanup } = await initSimpleMCPServer();
   try {
+    await fn({ server, db });
+  } finally {
+    await cleanup();
+  }
+}
+
+// ============================================================================
+// Prompts List Tests
+// ============================================================================
+
+Deno.test("MCP Server: handles prompts/list request", async () => {
+  await withMCPServer(async ({ server }) => {
     const response = await server.handleRequest({
       jsonrpc: "2.0",
       id: 1,
@@ -29,14 +44,11 @@ Deno.test("MCP Server: handles prompts/list request", async () => {
     const promptNames = result.prompts.map((p) => p.name);
     assertEquals(promptNames.includes("execute_plan"), true);
     assertEquals(promptNames.includes("create_changeset"), true);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("MCP Server: prompts/list includes descriptions and arguments", async () => {
-  const { server, cleanup } = await initSimpleMCPServer();
-  try {
+  await withMCPServer(async ({ server }) => {
     const response = await server.handleRequest({
       jsonrpc: "2.0",
       id: 1,
@@ -58,9 +70,7 @@ Deno.test("MCP Server: prompts/list includes descriptions and arguments", async 
     assertExists(executePlan.description);
     assertExists(executePlan.arguments);
     assertEquals(executePlan.arguments!.length, 2);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 // ============================================================================
@@ -68,8 +78,7 @@ Deno.test("MCP Server: prompts/list includes descriptions and arguments", async 
 // ============================================================================
 
 Deno.test("MCP Server: handles prompts/get for execute_plan", async () => {
-  const { server, cleanup } = await initSimpleMCPServer();
-  try {
+  await withMCPServer(async ({ server }) => {
     const response = await server.handleRequest({
       jsonrpc: "2.0",
       id: 1,
@@ -93,14 +102,11 @@ Deno.test("MCP Server: handles prompts/get for execute_plan", async () => {
     assertEquals(result.messages[0].role, MemorySource.USER);
     assertStringIncludes(result.messages[0].content.text, "test-plan-123");
     assertStringIncludes(result.messages[0].content.text, "MyApp");
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("MCP Server: handles prompts/get for create_changeset", async () => {
-  const { server, cleanup } = await initSimpleMCPServer();
-  try {
+  await withMCPServer(async ({ server }) => {
     const response = await server.handleRequest({
       jsonrpc: "2.0",
       id: 1,
@@ -121,14 +127,11 @@ Deno.test("MCP Server: handles prompts/get for create_changeset", async () => {
     assertStringIncludes(result.messages[0].content.text, "MyApp");
     assertStringIncludes(result.messages[0].content.text, "Add authentication");
     assertStringIncludes(result.messages[0].content.text, "trace-789");
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("MCP Server: prompts/get rejects unknown prompt", async () => {
-  const { server, cleanup } = await initSimpleMCPServer();
-  try {
+  await withMCPServer(async ({ server }) => {
     const response = await server.handleRequest({
       jsonrpc: "2.0",
       id: 1,
@@ -139,14 +142,11 @@ Deno.test("MCP Server: prompts/get rejects unknown prompt", async () => {
     assertExists(response.error);
     assertEquals(response.error.code, -32602);
     assertStringIncludes(response.error.message, "not found");
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("MCP Server: prompts/get logs to Activity Journal", async () => {
-  const { server, db, cleanup } = await initSimpleMCPServer();
-  try {
+  await withMCPServer(async ({ server, db }) => {
     await server.handleRequest({
       jsonrpc: "2.0",
       id: 1,
@@ -164,7 +164,5 @@ Deno.test("MCP Server: prompts/get logs to Activity Journal", async () => {
 
     const log = logs[0] as { target: string };
     assertEquals(log.target, "log-test-plan");
-  } finally {
-    await cleanup();
-  }
+  });
 });

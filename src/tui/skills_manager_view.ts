@@ -810,6 +810,26 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
     }
   }
 
+  /**
+   * Override base help key handling to support 'q' for closing help
+   */
+  protected override handleHelpKeys(key: string): boolean {
+    if (this.state.showHelp) {
+      if (key === KEY_QUESTION || key === KEY_ESCAPE || key === KEY_Q) {
+        this.state.showHelp = false;
+        return true;
+      }
+      return true; // Consume all keys when help is shown
+    }
+
+    if (key === KEY_QUESTION) {
+      this.state.showHelp = true;
+      return true;
+    }
+
+    return false;
+  }
+
   override async handleKey(key: string): Promise<boolean> {
     if (this.handleKeySync(key)) return true;
 

@@ -42,8 +42,11 @@ import {
   renderViewPickerDialog,
 } from "../../src/tui/dialogs/layout_dialogs.ts";
 import { getTheme } from "../../src/tui/utils/colors.ts";
+import { createPanes, createTestPane, setupLayoutManager } from "./layout_test_helper.ts";
 
 const theme = getTheme(true);
+
+// ===== Layout Manager Tests =====
 
 // ===== Layout Manager Tests =====
 
@@ -55,7 +58,7 @@ Deno.test("LayoutManager: creates with default dimensions", () => {
 });
 
 Deno.test("LayoutManager: creates with custom dimensions", () => {
-  const manager = createLayoutManager(120, 40);
+  const manager = setupLayoutManager(120, 40);
   const size = manager.getTerminalSize();
   assertEquals(size.width, 120);
   assertEquals(size.height, 40);
@@ -100,7 +103,7 @@ Deno.test("LayoutManager: getPresetByShortcut returns correct preset", () => {
 });
 
 Deno.test("LayoutManager: applyPreset - single creates one pane", () => {
-  const manager = createLayoutManager(80, 24);
+  const manager = setupLayoutManager();
   const panes = manager.applyPreset("single", ["PortalManagerView"]);
 
   assertEquals(panes.length, 1);
@@ -110,7 +113,7 @@ Deno.test("LayoutManager: applyPreset - single creates one pane", () => {
 });
 
 Deno.test("LayoutManager: applyPreset - side-by-side creates two panes", () => {
-  const manager = createLayoutManager(80, 24);
+  const manager = setupLayoutManager();
   const panes = manager.applyPreset("side-by-side", ["PortalManagerView", "MonitorView"]);
 
   assertEquals(panes.length, 2);
@@ -121,7 +124,7 @@ Deno.test("LayoutManager: applyPreset - side-by-side creates two panes", () => {
 });
 
 Deno.test("LayoutManager: applyPreset - stacked creates two panes", () => {
-  const manager = createLayoutManager(80, 24);
+  const manager = setupLayoutManager();
   const panes = manager.applyPreset("stacked", ["PortalManagerView", "MonitorView"]);
 
   assertEquals(panes.length, 2);
@@ -132,7 +135,7 @@ Deno.test("LayoutManager: applyPreset - stacked creates two panes", () => {
 });
 
 Deno.test("LayoutManager: applyPreset - quad creates four panes", () => {
-  const manager = createLayoutManager(80, 24);
+  const manager = setupLayoutManager();
   const panes = manager.applyPreset("quad", [
     "PortalManagerView",
     "PlanReviewerView",
@@ -167,16 +170,8 @@ Deno.test("LayoutManager: applyPreset throws for unknown preset", () => {
 // ===== Split Pane Tests =====
 
 Deno.test("LayoutManager: splitPane - vertical split", () => {
-  const manager = createLayoutManager(80, 24);
-  const panes: LayoutPane[] = [{
-    id: "main",
-    viewName: "PortalManagerView",
-    x: 0,
-    y: 0,
-    width: 80,
-    height: 24,
-    focused: true,
-  }];
+  const manager = setupLayoutManager();
+  const panes: LayoutPane[] = [createTestPane()];
 
   const result = manager.splitPane(panes, "main", "vertical", "MonitorView");
 
@@ -188,16 +183,8 @@ Deno.test("LayoutManager: splitPane - vertical split", () => {
 });
 
 Deno.test("LayoutManager: splitPane - horizontal split", () => {
-  const manager = createLayoutManager(80, 24);
-  const panes: LayoutPane[] = [{
-    id: "main",
-    viewName: "PortalManagerView",
-    x: 0,
-    y: 0,
-    width: 80,
-    height: 24,
-    focused: true,
-  }];
+  const manager = setupLayoutManager();
+  const panes: LayoutPane[] = [createTestPane()];
 
   const result = manager.splitPane(panes, "main", "horizontal", "MonitorView");
 
@@ -231,15 +218,7 @@ Deno.test("LayoutManager: splitPane throws when max panes reached", () => {
 
 Deno.test("LayoutManager: splitPane throws for pane too narrow", () => {
   const manager = createLayoutManager();
-  const panes: LayoutPane[] = [{
-    id: "main",
-    viewName: "PortalManagerView",
-    x: 0,
-    y: 0,
-    width: MIN_PANE_WIDTH,
-    height: 24,
-    focused: true,
-  }];
+  const panes: LayoutPane[] = [createTestPane({ width: MIN_PANE_WIDTH })];
 
   assertThrows(
     () => manager.splitPane(panes, "main", "vertical", "MonitorView"),
@@ -250,15 +229,7 @@ Deno.test("LayoutManager: splitPane throws for pane too narrow", () => {
 
 Deno.test("LayoutManager: splitPane throws for pane too short", () => {
   const manager = createLayoutManager();
-  const panes: LayoutPane[] = [{
-    id: "main",
-    viewName: "PortalManagerView",
-    x: 0,
-    y: 0,
-    width: 80,
-    height: MIN_PANE_HEIGHT,
-    focused: true,
-  }];
+  const panes: LayoutPane[] = [createTestPane({ height: MIN_PANE_HEIGHT })];
 
   assertThrows(
     () => manager.splitPane(panes, "main", "horizontal", "MonitorView"),
@@ -270,11 +241,8 @@ Deno.test("LayoutManager: splitPane throws for pane too short", () => {
 // ===== Close Pane Tests =====
 
 Deno.test("LayoutManager: closePane removes pane and expands adjacent", () => {
-  const manager = createLayoutManager(80, 24);
-  const panes: LayoutPane[] = [
-    { id: "left", viewName: "PortalManagerView", x: 0, y: 0, width: 40, height: 24, focused: true },
-    { id: "right", viewName: "MonitorView", x: 40, y: 0, width: 40, height: 24, focused: false },
-  ];
+  const manager = setupLayoutManager();
+  const panes = createPanes(2);
 
   const result = manager.closePane(panes, "right");
 
@@ -285,15 +253,7 @@ Deno.test("LayoutManager: closePane removes pane and expands adjacent", () => {
 
 Deno.test("LayoutManager: closePane throws for last pane", () => {
   const manager = createLayoutManager();
-  const panes: LayoutPane[] = [{
-    id: "main",
-    viewName: "PortalManagerView",
-    x: 0,
-    y: 0,
-    width: 80,
-    height: 24,
-    focused: true,
-  }];
+  const panes: LayoutPane[] = [createTestPane()];
 
   assertThrows(
     () => manager.closePane(panes, "main"),
@@ -304,10 +264,7 @@ Deno.test("LayoutManager: closePane throws for last pane", () => {
 
 Deno.test("LayoutManager: closePane throws for unknown pane", () => {
   const manager = createLayoutManager();
-  const panes: LayoutPane[] = [
-    { id: "main", viewName: "PortalManagerView", x: 0, y: 0, width: 40, height: 24, focused: true },
-    { id: "other", viewName: "MonitorView", x: 40, y: 0, width: 40, height: 24, focused: false },
-  ];
+  const panes = createPanes(2);
 
   assertThrows(
     () => manager.closePane(panes, DaemonStatus.UNKNOWN),
@@ -320,10 +277,7 @@ Deno.test("LayoutManager: closePane throws for unknown pane", () => {
 
 Deno.test("LayoutManager: swapPanes swaps view names", () => {
   const manager = createLayoutManager();
-  const panes: LayoutPane[] = [
-    { id: "left", viewName: "PortalManagerView", x: 0, y: 0, width: 40, height: 24, focused: true },
-    { id: "right", viewName: "MonitorView", x: 40, y: 0, width: 40, height: 24, focused: false },
-  ];
+  const panes = createPanes(2);
 
   manager.swapPanes(panes, "left", "right");
 
@@ -334,7 +288,7 @@ Deno.test("LayoutManager: swapPanes swaps view names", () => {
 Deno.test("LayoutManager: swapPanes throws for unknown pane", () => {
   const manager = createLayoutManager();
   const panes: LayoutPane[] = [
-    { id: "left", viewName: "PortalManagerView", x: 0, y: 0, width: 40, height: 24, focused: true },
+    createTestPane({ id: "left", width: 40 }),
   ];
 
   assertThrows(
@@ -347,9 +301,9 @@ Deno.test("LayoutManager: swapPanes throws for unknown pane", () => {
 // ===== Maximize Pane Tests =====
 
 Deno.test("LayoutManager: maximizePane maximizes pane", () => {
-  const manager = createLayoutManager(80, 24);
+  const manager = setupLayoutManager();
   const panes: LayoutPane[] = [
-    { id: "left", viewName: "PortalManagerView", x: 0, y: 0, width: 40, height: 24, focused: true },
+    createTestPane({ id: "left", width: 40 }),
   ];
 
   manager.maximizePane(panes, "left");
@@ -361,7 +315,7 @@ Deno.test("LayoutManager: maximizePane maximizes pane", () => {
 });
 
 Deno.test("LayoutManager: maximizePane restores pane", () => {
-  const manager = createLayoutManager(80, 24);
+  const manager = setupLayoutManager();
   const panes: LayoutPane[] = [
     {
       id: "left",
@@ -386,11 +340,8 @@ Deno.test("LayoutManager: maximizePane restores pane", () => {
 // ===== Resize Pane Tests =====
 
 Deno.test("LayoutManager: resizePane - shrink left", () => {
-  const manager = createLayoutManager(80, 24);
-  const panes: LayoutPane[] = [
-    { id: "left", viewName: "PortalManagerView", x: 0, y: 0, width: 40, height: 24, focused: true },
-    { id: "right", viewName: "MonitorView", x: 40, y: 0, width: 40, height: 24, focused: false },
-  ];
+  const manager = setupLayoutManager();
+  const panes = createPanes(2);
 
   // Shrinking left shrinks the pane's own width (no adjacent pane to the left to expand)
   manager.resizePane(panes, "left", "left", 5);
@@ -402,11 +353,8 @@ Deno.test("LayoutManager: resizePane - shrink left", () => {
 });
 
 Deno.test("LayoutManager: resizePane - grow right", () => {
-  const manager = createLayoutManager(80, 24);
-  const panes: LayoutPane[] = [
-    { id: "left", viewName: "PortalManagerView", x: 0, y: 0, width: 40, height: 24, focused: true },
-    { id: "right", viewName: "MonitorView", x: 40, y: 0, width: 40, height: 24, focused: false },
-  ];
+  const manager = setupLayoutManager();
+  const panes = createPanes(2);
 
   manager.resizePane(panes, "left", "right", 5);
 
@@ -419,15 +367,7 @@ Deno.test("LayoutManager: resizePane - grow right", () => {
 
 Deno.test("LayoutManager: saveNamedLayout saves layout", () => {
   const manager = createLayoutManager();
-  const panes: LayoutPane[] = [{
-    id: "main",
-    viewName: "PortalManagerView",
-    x: 0,
-    y: 0,
-    width: 80,
-    height: 24,
-    focused: true,
-  }];
+  const panes: LayoutPane[] = [createTestPane()];
 
   const layout = manager.saveNamedLayout("test-layout", panes, "main");
 
@@ -437,15 +377,7 @@ Deno.test("LayoutManager: saveNamedLayout saves layout", () => {
 
 Deno.test("LayoutManager: loadNamedLayout loads saved layout", () => {
   const manager = createLayoutManager();
-  const panes: LayoutPane[] = [{
-    id: "main",
-    viewName: "PortalManagerView",
-    x: 0,
-    y: 0,
-    width: 80,
-    height: 24,
-    focused: true,
-  }];
+  const panes: LayoutPane[] = [createTestPane()];
 
   manager.saveNamedLayout("test-layout", panes, "main");
   const loaded = manager.loadNamedLayout("test-layout");
@@ -461,15 +393,7 @@ Deno.test("LayoutManager: loadNamedLayout returns undefined for unknown", () => 
 
 Deno.test("LayoutManager: deleteNamedLayout removes layout", () => {
   const manager = createLayoutManager();
-  const panes: LayoutPane[] = [{
-    id: "main",
-    viewName: "PortalManagerView",
-    x: 0,
-    y: 0,
-    width: 80,
-    height: 24,
-    focused: true,
-  }];
+  const panes: LayoutPane[] = [createTestPane()];
 
   manager.saveNamedLayout("test-layout", panes, "main");
   const deleted = manager.deleteNamedLayout("test-layout");
@@ -481,15 +405,7 @@ Deno.test("LayoutManager: deleteNamedLayout removes layout", () => {
 
 Deno.test("LayoutManager: listNamedLayouts returns layout names", () => {
   const manager = createLayoutManager();
-  const panes: LayoutPane[] = [{
-    id: "main",
-    viewName: "PortalManagerView",
-    x: 0,
-    y: 0,
-    width: 80,
-    height: 24,
-    focused: true,
-  }];
+  const panes: LayoutPane[] = [createTestPane()];
 
   manager.saveNamedLayout("layout-1", panes, "main");
   manager.saveNamedLayout("layout-2", panes, "main");
@@ -504,15 +420,7 @@ Deno.test("LayoutManager: listNamedLayouts returns layout names", () => {
 
 Deno.test("LayoutManager: serializeLayout creates JSON", () => {
   const manager = createLayoutManager();
-  const panes: LayoutPane[] = [{
-    id: "main",
-    viewName: "PortalManagerView",
-    x: 0,
-    y: 0,
-    width: 80,
-    height: 24,
-    focused: true,
-  }];
+  const panes: LayoutPane[] = [createTestPane()];
 
   const json = manager.serializeLayout(panes, "main");
   const parsed = JSON.parse(json);

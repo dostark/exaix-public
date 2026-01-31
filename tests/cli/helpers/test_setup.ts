@@ -169,14 +169,11 @@ export async function runGitCommand(cwd: string, args: string[]): Promise<string
   return new TextDecoder().decode(stdout).trim();
 }
 
+import { setupGitRepo } from "../../helpers/git_test_helper.ts";
+
 /**
  * Initialize a git repository in the temp directory with a default user and initial commit
  */
 export async function initGitRepo(tempDir: string): Promise<void> {
-  await runGitCommand(tempDir, ["init", "-b", "master"]);
-  await runGitCommand(tempDir, ["config", "user.email", "test@example.com"]);
-  await runGitCommand(tempDir, ["config", "user.name", "Test User"]);
-
-  // Create initial commit to ensure branch exists (root commit)
-  await runGitCommand(tempDir, ["commit", "--allow-empty", "-m", "Initial commit"]);
+  await setupGitRepo(tempDir, { initialCommit: true });
 }

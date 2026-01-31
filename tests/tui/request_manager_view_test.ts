@@ -368,7 +368,14 @@ Deno.test("Phase 13.6: Tree grouping by status", () => {
   const requests = [
     {
       trace_id: "req-1",
+      filename: "request-1.md",
       title: "Request 1",
+      status: "pending",
+      priority: "normal",
+      agent: "default",
+      created: "2025-12-23T10:00:00Z",
+      created_by: "test@example.com",
+      source: "cli",
     },
     {
       trace_id: "req-2",

@@ -1,20 +1,12 @@
 import { assertEquals } from "@std/assert";
-import { launchTuiDashboard } from "../../src/tui/tui_dashboard.ts";
-import { NotificationService } from "../../src/services/notification.ts";
-import { initTestDbService } from "../helpers/db.ts";
 import { MemoryOperation, MemoryScope, MemoryStatus } from "../../src/enums.ts";
 import { KEY_A, KEY_DOWN, KEY_M, KEY_R, KEY_UP } from "../../src/config/constants.ts";
+import { createTuiDashboardWithNotification } from "./dashboard_helper.ts";
 
 Deno.test("TUI Dashboard + Memory: handles memory update notifications", async () => {
-  const { db, config, cleanup } = await initTestDbService();
-  const notificationService = new NotificationService(config, db);
+  const { dashboard, notificationService, cleanup } = await createTuiDashboardWithNotification();
 
   try {
-    const dashboard = await launchTuiDashboard({
-      testMode: true,
-      notificationService,
-    }) as any;
-
     // 1. Add some notifications (info and memory_update_pending)
     await notificationService.notify("Normal info", "info");
     await notificationService.notifyMemoryUpdate({
