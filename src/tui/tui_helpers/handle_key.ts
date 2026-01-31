@@ -24,15 +24,18 @@ import {
   KEY_Z,
 } from "../../config/constants.ts";
 
-export async function testModeHandleKey(
+// ===== Helper Functions =====
+
+/**
+ * Handle overlay and picker keys
+ */
+async function handleOverlayKeys(
   dashboard: any,
   key: string,
   panes: Pane[],
   views: any[],
   viewPickerRef: { index: number },
-): Promise<number> {
-  const k = (key || "").toLowerCase();
-  // Handle overlays and pickers via extracted helpers
+): Promise<number | null> {
   if (dashboard.state.showHelp) {
     return await (dashboard as any).handleHelpOverlay?.(dashboard, key, panes) ?? 0;
   }
@@ -47,18 +50,51 @@ export async function testModeHandleKey(
     return idx;
   }
 
-  // Normal key handling
+  return null;
+}
+
+/**
+ * Handle state toggle keys
+ */
+function handleStateToggleKeys(dashboard: any, key: string, viewPickerRef: { index: number }): boolean {
+  const k = key.toLowerCase();
+
   if (k === KEY_QUESTION || k === KEY_F1) {
     dashboard.state.showHelp = true;
-  } else if (k === KEY_P) {
+    return true;
+  }
+
+  if (k === KEY_P) {
     dashboard.state.showViewPicker = true;
     viewPickerRef.index = 0;
-  } else if (key === KEY_N) {
+    return true;
+  }
+
+  if (key === KEY_N) {
     dashboard.state.showNotifications = !dashboard.state.showNotifications;
-  } else if (key === KEY_M) {
+    return true;
+  }
+
+  if (key === KEY_M) {
     dashboard.state.showMemoryNotifications = !dashboard.state.showMemoryNotifications;
     dashboard.state.selectedMemoryNotifIndex = 0;
-  } else if (k === KEY_TAB) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Handle pane navigation keys
+ */
+function handlePaneNavigationKeys(
+  dashboard: any,
+  key: string,
+  panes: Pane[],
+): boolean {
+  const k = key.toLowerCase();
+
+  if (k === KEY_TAB) {
     const currentIndex = panes.findIndex((p) => p.id === dashboard.activePaneId);
     // Debug: ensure panes and activePaneId are as expected during tests
     if (
@@ -78,13 +114,19 @@ export async function testModeHandleKey(
     dashboard.activePaneId = panes[nextIndex].id;
     panes.forEach((p) => p.focused = false);
     panes[nextIndex].focused = true;
-  } else if (k === KEY_SHIFT_TAB.toLowerCase()) {
+    return true;
+  }
+
+  if (k === KEY_SHIFT_TAB.toLowerCase()) {
     const currentIndex = panes.findIndex((p) => p.id === dashboard.activePaneId);
     const prevIndex = (currentIndex - 1 + panes.length) % panes.length;
     dashboard.activePaneId = panes[prevIndex].id;
     panes.forEach((p) => p.focused = false);
     panes[prevIndex].focused = true;
-  } else if (key >= KEY_1 && key <= KEY_7) {
+    return true;
+  }
+
+  if (key >= KEY_1 && key <= KEY_7) {
     // Direct pane navigation
     const idx = parseInt(key) - 1;
     if (idx < panes.length) {
@@ -92,15 +134,36 @@ export async function testModeHandleKey(
       panes[idx].focused = true;
       dashboard.activePaneId = panes[idx].id;
     }
-  } else if (k === KEY_V) { // Split vertical
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Handle pane management keys (split, close, maximize)
+ */
+async function handlePaneManagementKeys(
+  dashboard: any,
+  key: string,
+  panes: Pane[],
+  views: any[],
+): Promise<boolean> {
+  const k = key.toLowerCase();
+
+  if (k === KEY_V) { // Split vertical
     const res = await splitPane(panes, dashboard.activePaneId, views, "vertical", dashboard.notify.bind(dashboard));
-    // Keep active pane id in sync with helper result (no-op in current impl,
-    // but keeps behavior consistent if helper changes)
     dashboard.activePaneId = res.activePaneId;
-  } else if (k === KEY_H) { // Split horizontal
+    return true;
+  }
+
+  if (k === KEY_H) { // Split horizontal
     const res = await splitPane(panes, dashboard.activePaneId, views, "horizontal", dashboard.notify.bind(dashboard));
     dashboard.activePaneId = res.activePaneId;
-  } else if (k === KEY_C) { // Close pane
+    return true;
+  }
+
+  if (k === KEY_C) { // Close pane
     const result = await closePane(
       panes,
       dashboard.activePaneId,
@@ -108,24 +171,88 @@ export async function testModeHandleKey(
       dashboard.notify.bind(dashboard),
     );
     dashboard.activePaneId = result.activePaneId;
-  } else if (k === KEY_Z) { // Maximize/restore
+    return true;
+  }
+
+  if (k === KEY_Z) { // Maximize/restore
     maximizePane(panes, dashboard.activePaneId, dashboard.notify.bind(dashboard));
-  } else if (k === KEY_CTRL_LEFT.toLowerCase()) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Handle layout operation keys (resize, save, restore)
+ */
+async function handleLayoutOperationKeys(dashboard: any, key: string, panes: Pane[]): Promise<boolean> {
+  const k = key.toLowerCase();
+
+  if (k === KEY_CTRL_LEFT.toLowerCase()) {
     resizePane(panes, dashboard.activePaneId, -0.05, 0);
-  } else if (k === KEY_CTRL_RIGHT.toLowerCase()) {
+    return true;
+  }
+
+  if (k === KEY_CTRL_RIGHT.toLowerCase()) {
     resizePane(panes, dashboard.activePaneId, 0.05, 0);
-  } else if (k === KEY_CTRL_UP.toLowerCase()) {
+    return true;
+  }
+
+  if (k === KEY_CTRL_UP.toLowerCase()) {
     resizePane(panes, dashboard.activePaneId, 0, -0.05);
-  } else if (k === KEY_CTRL_DOWN.toLowerCase()) {
+    return true;
+  }
+
+  if (k === KEY_CTRL_DOWN.toLowerCase()) {
     resizePane(panes, dashboard.activePaneId, 0, 0.05);
-  } else if (key === KEY_ENTER) { // Enter
-    // No-op for test
-  } else if (k === KEY_S) { // Save layout
+    return true;
+  }
+
+  if (k === KEY_S) { // Save layout
     if (dashboard.saveLayout) await dashboard.saveLayout();
-  } else if (k === KEY_R) { // Restore layout
+    return true;
+  }
+
+  if (k === KEY_R) { // Restore layout
     if (dashboard.restoreLayout) await dashboard.restoreLayout();
-  } else if (k === KEY_D) { // Reset to default
+    return true;
+  }
+
+  if (k === KEY_D) { // Reset to default
     if (dashboard.resetToDefault) await dashboard.resetToDefault();
+    return true;
+  }
+
+  return false;
+}
+
+export async function testModeHandleKey(
+  dashboard: any,
+  key: string,
+  panes: Pane[],
+  views: any[],
+  viewPickerRef: { index: number },
+): Promise<number> {
+  // 1. Handle overlays and pickers
+  const overlayResult = await handleOverlayKeys(dashboard, key, panes, views, viewPickerRef);
+  if (overlayResult !== null) return overlayResult;
+
+  // 2. Handle state toggles
+  if (handleStateToggleKeys(dashboard, key, viewPickerRef)) return 0;
+
+  // 3. Handle pane navigation
+  if (handlePaneNavigationKeys(dashboard, key, panes)) return 0;
+
+  // 4. Handle pane management
+  if (await handlePaneManagementKeys(dashboard, key, panes, views)) return 0;
+
+  // 5. Handle layout operations
+  if (await handleLayoutOperationKeys(dashboard, key, panes)) return 0;
+
+  // 6. Handle special keys
+  if (key === KEY_ENTER) {
+    // No-op for test
+    return 0;
   }
 
   // Ensure activePaneId reflects focused pane (robustness against variant code paths)

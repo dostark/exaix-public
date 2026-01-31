@@ -907,6 +907,100 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
     this.pendingDialogType = null;
   }
 
+  // ===== Key Handling =====
+
+  /**
+   * Handle navigation and selection keys
+   */
+  private handleSelectionKey(key: string): boolean {
+    switch (key) {
+      case KEY_ENTER: {
+        const selectedId = this.state.selectedId;
+        if (selectedId) {
+          const selected = this.getSelectedNode();
+          if (selected && selected.type !== "log") {
+            this.toggleCurrentNode();
+          } else {
+            this.showLogDetail(selectedId);
+          }
+        }
+        return true;
+      }
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Handle toggle action keys
+   */
+  private handleToggleKey(key: string): boolean {
+    switch (key) {
+      case KEY_SPACE:
+        this.togglePause();
+        return true;
+      case KEY_B:
+        this.toggleBookmark();
+        return true;
+      case KEY_G:
+        this.toggleGrouping();
+        return true;
+      case KEY_A:
+        this.toggleAutoRefresh();
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Handle dialog action keys
+   */
+  private handleDialogKey(key: string): boolean {
+    switch (key) {
+      case KEY_S:
+        this.showSearchDialog();
+        return true;
+      case KEY_F:
+        this.showFilterByAgentDialog();
+        return true;
+      case KEY_T:
+        this.showTimeFilterDialog();
+        return true;
+      case KEY_CAPITAL_T:
+        this.showFilterByTraceIdDialog();
+        return true;
+      case KEY_CAPITAL_A:
+        this.showFilterByActionTypeDialog();
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Handle bulk action keys
+   */
+  private handleBulkActionKey(key: string): boolean {
+    switch (key) {
+      case KEY_CAPITAL_R:
+        // Refresh is async, but we can trigger it and return true synchronously
+        this.refresh();
+        return true;
+      case KEY_E:
+        this.exportLogs();
+        return true;
+      case KEY_CAPITAL_E:
+        this.expandAllNodes();
+        return true;
+      case KEY_C:
+        this.collapseAllNodes();
+        return true;
+      default:
+        return false;
+    }
+  }
+
   public override handleKeySync(key: string): boolean {
     // 1. Handle dialogs (delegated to base)
     if (this.handleDialogKeys(key)) return true;
@@ -929,63 +1023,13 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
       }
     }
 
-    // 5. Handle action keys
-    switch (key) {
-      case KEY_ENTER: {
-        const selectedId = this.state.selectedId;
-        if (selectedId) {
-          const selected = this.getSelectedNode();
-          if (selected && selected.type !== "log") {
-            this.toggleCurrentNode();
-          } else {
-            this.showLogDetail(selectedId);
-          }
-        }
-        return true;
-      }
-      case KEY_SPACE:
-        this.togglePause();
-        return true;
-      case KEY_B:
-        this.toggleBookmark();
-        return true;
-      case KEY_S:
-        this.showSearchDialog();
-        return true;
-      case KEY_F:
-        this.showFilterByAgentDialog();
-        return true;
-      case KEY_T:
-        this.showTimeFilterDialog();
-        return true;
-      case KEY_CAPITAL_T:
-        this.showFilterByTraceIdDialog();
-        return true;
-      case KEY_CAPITAL_A:
-        this.showFilterByActionTypeDialog();
-        return true;
-      case KEY_G:
-        this.toggleGrouping();
-        return true;
-      case KEY_A:
-        this.toggleAutoRefresh();
-        return true;
-      case KEY_CAPITAL_R:
-        // Refresh is async, but we can trigger it and return true synchronously
-        this.refresh();
-        return true;
-      case KEY_E:
-        this.exportLogs();
-        return true;
-      case KEY_CAPITAL_E:
-        this.expandAllNodes();
-        return true;
-      case KEY_C:
-        this.collapseAllNodes();
-        return true;
-      default:
-        return false;
-    }
+    // 5. Handle action keys using helper methods
+    if (this.handleSelectionKey(key)) return true;
+    if (this.handleToggleKey(key)) return true;
+    if (this.handleDialogKey(key)) return true;
+    if (this.handleBulkActionKey(key)) return true;
+
+    return false;
   }
 
   override handleKey(key: string): Promise<boolean> {

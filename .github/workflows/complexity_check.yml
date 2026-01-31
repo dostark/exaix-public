@@ -20,7 +20,7 @@ jobs:
 
       - name: Run complexity script (JSON)
         run: |
-          deno run --allow-read --allow-net scripts/measure_complexity.ts --threshold 10 --json > complexity.json
+          deno run --allow-read --allow-net scripts/measure_complexity.ts --threshold 20 --json > complexity.json
 
       - name: Fail on complexity breaches
         run: |

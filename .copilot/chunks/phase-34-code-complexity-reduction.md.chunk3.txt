@@ -1,0 +1,11 @@
+1. **TUI Dashboard** - `launchTuiDashboard()`: 29 complexity, massive initialization function
+2. **TUI Key Handlers** - `prodHandleKey()`: 53 complexity, extensive conditional logic
+3. **Flow Execution** - `execute()`: 27 complexity, complex state management
+4. **Plan Processing** - `toMarkdown()`: 61 complexity, nested formatting logic
+5. **Monitor View** - `handleKeySync()`: 26 complexity, complex key handling
+
+---
+
+## Architecture Design
+
+### Refactoring Priorities

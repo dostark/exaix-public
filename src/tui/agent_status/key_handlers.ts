@@ -22,6 +22,158 @@ import {
   KEY_UP,
 } from "../../config/constants.ts";
 
+// ===== Helper Functions =====
+
+/**
+ * Handle navigation keys (up, down, home, end)
+ */
+function handleNavigationKeys(
+  key: string,
+  actions: {
+    navigateUp?: () => void;
+    navigateDown?: () => void;
+    navigateToFirst?: () => void;
+    navigateToLast?: () => void;
+  },
+): boolean {
+  switch (key) {
+    case KEY_UP:
+      if (actions.navigateUp) actions.navigateUp();
+      return true;
+    case KEY_DOWN:
+      if (actions.navigateDown) actions.navigateDown();
+      return true;
+    case KEY_HOME:
+      if (actions.navigateToFirst) actions.navigateToFirst();
+      return true;
+    case KEY_END:
+      if (actions.navigateToLast) actions.navigateToLast();
+      return true;
+  }
+  return false;
+}
+
+/**
+ * Handle tree expansion keys (left, right)
+ */
+function handleTreeExpansionKeys(
+  key: string,
+  actions: {
+    collapseSelected?: () => void;
+    expandSelected?: () => void;
+  },
+): boolean {
+  switch (key) {
+    case KEY_LEFT:
+      if (actions.collapseSelected) actions.collapseSelected();
+      return true;
+    case KEY_RIGHT:
+      if (actions.expandSelected) actions.expandSelected();
+      return true;
+  }
+  return false;
+}
+
+/**
+ * Handle action keys (enter, logs)
+ */
+async function handleActionKeys(
+  key: string,
+  actions: {
+    showAgentDetail?: () => Promise<void>;
+    showAgentLogs?: () => Promise<void>;
+  },
+): Promise<boolean> {
+  switch (key) {
+    case KEY_ENTER:
+      if (actions.showAgentDetail) await actions.showAgentDetail();
+      return true;
+    case "l":
+      if (actions.showAgentLogs) await actions.showAgentLogs();
+      return true;
+  }
+  return false;
+}
+
+/**
+ * Handle dialog keys (search)
+ */
+function handleDialogKeys(
+  key: string,
+  actions: {
+    showSearchDialog?: () => void;
+  },
+): boolean {
+  if (key === KEY_S) {
+    if (actions.showSearchDialog) actions.showSearchDialog();
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Handle toggle keys (grouping, auto refresh)
+ */
+function handleToggleKeys(
+  key: string,
+  actions: {
+    toggleGrouping?: () => void;
+    toggleAutoRefresh?: () => void;
+  },
+): boolean {
+  switch (key) {
+    case KEY_G:
+      if (actions.toggleGrouping) actions.toggleGrouping();
+      return true;
+    case KEY_A:
+      if (actions.toggleAutoRefresh) actions.toggleAutoRefresh();
+      return true;
+  }
+  return false;
+}
+
+/**
+ * Handle bulk action keys (collapse/expand all)
+ */
+function handleBulkActionKeys(
+  key: string,
+  actions: {
+    collapseAllNodes?: () => void;
+    expandAllNodes?: () => void;
+  },
+): boolean {
+  switch (key) {
+    case KEY_C:
+      if (actions.collapseAllNodes) actions.collapseAllNodes();
+      return true;
+    case KEY_CAPITAL_E:
+      if (actions.expandAllNodes) actions.expandAllNodes();
+      return true;
+  }
+  return false;
+}
+
+/**
+ * Handle system keys (refresh, help)
+ */
+async function handleSystemKeys(
+  key: string,
+  actions: {
+    refreshAgents?: () => Promise<void>;
+    toggleHelp?: () => void;
+  },
+): Promise<boolean> {
+  switch (key) {
+    case KEY_CAPITAL_R:
+      if (actions.refreshAgents) await actions.refreshAgents();
+      return true;
+    case KEY_QUESTION:
+      if (actions.toggleHelp) actions.toggleHelp();
+      return true;
+  }
+  return false;
+}
+
 /**
  * Handle view mode keys (detail, logs, help)
  */
@@ -91,53 +243,15 @@ export class MainViewHandler {
       toggleHelp?: () => void;
     },
   ): Promise<boolean> {
-    switch (key) {
-      case KEY_UP:
-        if (actions.navigateUp) actions.navigateUp();
-        return true;
-      case KEY_DOWN:
-        if (actions.navigateDown) actions.navigateDown();
-        return true;
-      case KEY_HOME:
-        if (actions.navigateToFirst) actions.navigateToFirst();
-        return true;
-      case KEY_END:
-        if (actions.navigateToLast) actions.navigateToLast();
-        return true;
-      case KEY_LEFT:
-        if (actions.collapseSelected) actions.collapseSelected();
-        return true;
-      case KEY_RIGHT:
-        if (actions.expandSelected) actions.expandSelected();
-        return true;
-      case KEY_ENTER:
-        if (actions.showAgentDetail) await actions.showAgentDetail();
-        return true;
-      case "l":
-        if (actions.showAgentLogs) await actions.showAgentLogs();
-        return true;
-      case KEY_S:
-        if (actions.showSearchDialog) actions.showSearchDialog();
-        return true;
-      case KEY_G:
-        if (actions.toggleGrouping) actions.toggleGrouping();
-        return true;
-      case KEY_CAPITAL_R:
-        if (actions.refreshAgents) await actions.refreshAgents();
-        return true;
-      case KEY_A:
-        if (actions.toggleAutoRefresh) actions.toggleAutoRefresh();
-        return true;
-      case KEY_C:
-        if (actions.collapseAllNodes) actions.collapseAllNodes();
-        return true;
-      case KEY_CAPITAL_E:
-        if (actions.expandAllNodes) actions.expandAllNodes();
-        return true;
-      case KEY_QUESTION:
-        if (actions.toggleHelp) actions.toggleHelp();
-        return true;
-    }
-    return false;
+    // Try each handler in order
+    return (
+      handleNavigationKeys(key, actions) ||
+      handleTreeExpansionKeys(key, actions) ||
+      (await handleActionKeys(key, actions)) ||
+      handleDialogKeys(key, actions) ||
+      handleToggleKeys(key, actions) ||
+      handleBulkActionKeys(key, actions) ||
+      (await handleSystemKeys(key, actions))
+    );
   }
 }

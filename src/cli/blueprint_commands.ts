@@ -315,6 +315,117 @@ export class BlueprintCommands extends BaseCommand {
   }
 
   /**
+   * Parse TOML frontmatter from content
+   */
+  private parseTomlFrontmatter(content: string): { frontmatter: Record<string, unknown> | null; body: string } {
+    const tomlMatch = content.match(/^\+\+\+\n([\s\S]*?)\n\+\+\+\n?([\s\S]*)$/);
+    if (!tomlMatch) return { frontmatter: null, body: content };
+
+    try {
+      const frontmatter = parseToml(tomlMatch[1]) as Record<string, unknown>;
+      const body = tomlMatch[2] || "";
+      return { frontmatter, body };
+    } catch {
+      return { frontmatter: null, body: content };
+    }
+  }
+
+  /**
+   * Parse YAML frontmatter from content
+   */
+  private parseYamlFrontmatter(content: string): { frontmatter: Record<string, unknown> | null; body: string } {
+    const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+    if (!yamlMatch) return { frontmatter: null, body: content };
+
+    try {
+      const yamlContent = yamlMatch[1];
+      const frontmatter = this.parseYamlContent(yamlContent);
+      const body = yamlMatch[2] || "";
+      return { frontmatter, body };
+    } catch {
+      return { frontmatter: null, body: content };
+    }
+  }
+
+  /**
+   * Parse YAML content into frontmatter object
+   */
+  private parseYamlContent(yamlContent: string): Record<string, unknown> {
+    const frontmatter: Record<string, unknown> = {};
+    const lines = yamlContent.split("\n");
+
+    let currentKey: string | null = null;
+    let currentArray: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      // Skip empty lines and comments
+      if (!trimmed || trimmed.startsWith("#")) continue;
+
+      // Check if this is a list item (starts with -)
+      if (trimmed.startsWith("- ")) {
+        if (currentKey) {
+          currentArray.push(trimmed.slice(2).trim());
+        }
+        continue;
+      }
+
+      // If we were building an array, save it now
+      if (currentKey && currentArray.length > 0) {
+        frontmatter[currentKey] = currentArray;
+        currentKey = null;
+        currentArray = [];
+      }
+
+      // Parse key: value line
+      const colonIndex = line.indexOf(":");
+      if (colonIndex === -1) continue;
+
+      const key = line.slice(0, colonIndex).trim();
+      const value = line.slice(colonIndex + 1).trim();
+
+      // Handle quoted strings
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        frontmatter[key] = value.slice(1, -1);
+        continue;
+      }
+
+      // Handle inline arrays [item1, item2]
+      if (value.startsWith("[") && value.endsWith("]")) {
+        try {
+          frontmatter[key] = JSON.parse(value.replace(/'/g, '"'));
+        } catch {
+          console.warn(`Failed to parse inline array for key '${key}': ${value}`);
+          frontmatter[key] = [];
+        }
+        continue;
+      }
+
+      // If value is empty, this might be a multi-line array
+      if (!value) {
+        currentKey = key;
+        currentArray = [];
+        continue;
+      }
+
+      // Default: store as string
+      frontmatter[key] = value;
+    }
+
+    // Handle any remaining array
+    if (currentKey && currentArray.length > 0) {
+      frontmatter[currentKey] = currentArray;
+    }
+
+    return frontmatter;
+  }
+
+  /**
    * Extract frontmatter from blueprint content.
    * Supports both TOML (+++) and YAML (---) formats for backwards compatibility.
    */
@@ -323,102 +434,171 @@ export class BlueprintCommands extends BaseCommand {
     body: string;
   } {
     // First try TOML format (+++)
-    const tomlMatch = content.match(/^\+\+\+\n([\s\S]*?)\n\+\+\+\n?([\s\S]*)$/);
-    if (tomlMatch) {
-      try {
-        const frontmatter = parseToml(tomlMatch[1]) as Record<string, unknown>;
-        const body = tomlMatch[2] || "";
-        return { frontmatter, body };
-      } catch {
-        return { frontmatter: null, body: content };
-      }
+    const tomlResult = this.parseTomlFrontmatter(content);
+    if (tomlResult.frontmatter) {
+      return tomlResult;
     }
 
     // Then try YAML format (---) for backwards compatibility
-    const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
-    if (yamlMatch) {
-      try {
-        // Parse YAML frontmatter (supports both inline and multi-line arrays)
-        const yamlContent = yamlMatch[1];
-        const frontmatter: Record<string, unknown> = {};
-        const lines = yamlContent.split("\n");
+    return this.parseYamlFrontmatter(content);
+  }
 
-        let currentKey: string | null = null;
-        let currentArray: string[] = [];
+  /**
+   * Validate blueprint creation inputs
+   */
+  private validateCreateInputs(agentId: string, options: BlueprintCreateOptions): void {
+    const validation = new ValidationChain()
+      .addRule("agentId", ValidationChain.required())
+      .addRule(
+        "agentId",
+        (val) => /^[a-z0-9-]+$/.test(String(val)) ? null : "must be lowercase alphanumeric with hyphens only",
+      )
+      .addRule("agentId", (val) => isReservedAgentId(String(val)) ? `reserved name: ${val}` : null)
+      .addRule("name", (_val) => (!options.name) ? "--name is required" : null)
+      .addRule("model", (_val) => (!options.model && !options.template) ? "--model is required" : null)
+      .validate({ agentId, ...options });
 
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
-          const trimmed = line.trim();
+    if (!validation.isValid) {
+      throw new Error(CommandUtils.formatValidationErrors(validation));
+    }
+  }
 
-          // Skip empty lines and comments
-          if (!trimmed || trimmed.startsWith("#")) continue;
+  /**
+   * Check if blueprint already exists
+   */
+  private async checkBlueprintExists(agentId: string): Promise<string> {
+    const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
+    if (await exists(blueprintPath)) {
+      throw new Error(
+        `Blueprint '${agentId}' already exists\nUse 'exoctl blueprint edit ${agentId}' to modify`,
+      );
+    }
+    return blueprintPath;
+  }
 
-          // Check if this is a list item (starts with -)
-          if (trimmed.startsWith("- ")) {
-            if (currentKey) {
-              currentArray.push(trimmed.slice(2).trim());
-            }
-            continue;
-          }
+  /**
+   * Apply template settings to options
+   */
+  private applyTemplate(
+    options: BlueprintCreateOptions,
+  ): { model: string; capabilities: string[]; systemPrompt?: string } {
+    let model = options.model;
+    let capabilities = options.capabilities?.split(",").map((s) => s.trim()) || [];
+    let systemPrompt = options.systemPrompt;
 
-          // If we were building an array, save it now
-          if (currentKey && currentArray.length > 0) {
-            frontmatter[currentKey] = currentArray;
-            currentKey = null;
-            currentArray = [];
-          }
-
-          // Parse key: value line
-          const colonIndex = line.indexOf(":");
-          if (colonIndex === -1) continue;
-
-          const key = line.slice(0, colonIndex).trim();
-          const value = line.slice(colonIndex + 1).trim();
-
-          // Handle quoted strings
-          if (
-            (value.startsWith('"') && value.endsWith('"')) ||
-            (value.startsWith("'") && value.endsWith("'"))
-          ) {
-            frontmatter[key] = value.slice(1, -1);
-            continue;
-          }
-
-          // Handle inline arrays [item1, item2]
-          if (value.startsWith("[") && value.endsWith("]")) {
-            try {
-              frontmatter[key] = JSON.parse(value.replace(/'/g, '"'));
-            } catch {
-              console.warn(`Failed to parse inline array for key '${key}': ${value}`);
-              frontmatter[key] = [];
-            }
-            continue;
-          }
-
-          // If value is empty, this might be a multi-line array
-          if (!value) {
-            currentKey = key;
-            currentArray = [];
-            continue;
-          }
-
-          // Default: store as string
-          frontmatter[key] = value;
-        }
-
-        // Handle any remaining array
-        if (currentKey && currentArray.length > 0) {
-          frontmatter[currentKey] = currentArray;
-        }
-
-        const body = yamlMatch[2] || "";
-        return { frontmatter, body };
-      } catch {
-        return { frontmatter: null, body: content };
-      }
+    if (options.template && TEMPLATES[options.template]) {
+      const template = TEMPLATES[options.template];
+      model = model || template.model;
+      capabilities = capabilities.length > 0 ? capabilities : template.capabilities;
+      systemPrompt = systemPrompt || template.systemPrompt;
     }
 
-    return { frontmatter: null, body: content };
+    if (!model) {
+      throw new Error("--model is required");
+    }
+
+    return { model, capabilities, systemPrompt };
+  }
+
+  /**
+   * Validate model provider configuration
+   */
+  private validateModelProvider(model: string): void {
+    const [provider] = model.split(":");
+    if (this.config.ai && provider !== "mock") {
+      const configuredProvider = this.config.ai.provider;
+      if (provider !== configuredProvider) {
+        console.warn(
+          `⚠️  Warning: Blueprint uses provider '${provider}' but config uses '${configuredProvider}'\n` +
+            `   The blueprint will be created but may fail at runtime.\n`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Load and validate system prompt
+   */
+  private async loadSystemPrompt(options: BlueprintCreateOptions, systemPrompt?: string): Promise<string> {
+    let finalPrompt = systemPrompt;
+
+    // Load from file if specified
+    if (options.systemPromptFile) {
+      if (!await exists(options.systemPromptFile)) {
+        throw new Error(`System prompt file not found: ${options.systemPromptFile}`);
+      }
+      finalPrompt = await Deno.readTextFile(options.systemPromptFile);
+    }
+
+    // Use default if no prompt provided
+    if (!finalPrompt) {
+      finalPrompt = TEMPLATES.default.systemPrompt;
+    }
+
+    // Validate required tags
+    if (!finalPrompt.includes("<thought>") || !finalPrompt.includes("<content>")) {
+      throw new Error(
+        "System prompt must include output format instructions\nRequired: <thought> and <content> tags",
+      );
+    }
+
+    return finalPrompt;
+  }
+
+  /**
+   * Create and validate blueprint frontmatter
+   */
+  private async createFrontmatter(
+    agentId: string,
+    options: BlueprintCreateOptions,
+    model: string,
+    capabilities: string[],
+  ): Promise<Record<string, unknown>> {
+    const frontmatter = {
+      agent_id: agentId,
+      name: options.name,
+      model: model,
+      capabilities: capabilities,
+      created: new Date().toISOString(),
+      created_by: await this.getUserIdentity(),
+      version: "1.0.0",
+      ...(options.description && { description: options.description }),
+    };
+
+    const validation = BlueprintFrontmatterSchema.safeParse(frontmatter);
+    if (!validation.success) {
+      throw new Error(`Invalid blueprint: ${validation.error.message}`);
+    }
+
+    return frontmatter;
+  }
+
+  /**
+   * Write blueprint file and log activity
+   */
+  private async writeBlueprintFile(
+    blueprintPath: string,
+    frontmatter: Record<string, unknown>,
+    systemPrompt: string,
+    agentId: string,
+    model: string,
+    options: BlueprintCreateOptions,
+  ): Promise<void> {
+    const content = `+++
+${stringifyToml(frontmatter)}+++
+
+${systemPrompt}
+`;
+
+    await ensureDir(this.getBlueprintsDir());
+    await Deno.writeTextFile(blueprintPath, content);
+
+    const logger = await this.getActionLogger();
+    await logger.info("blueprint.created", agentId, {
+      model,
+      template: options.template,
+      via: "cli",
+    });
   }
 
   /**
@@ -430,116 +610,25 @@ export class BlueprintCommands extends BaseCommand {
   ): Promise<BlueprintCreateResult> {
     try {
       // Validate inputs
-      const validation = new ValidationChain()
-        .addRule("agentId", ValidationChain.required())
-        .addRule(
-          "agentId",
-          (val) => /^[a-z0-9-]+$/.test(String(val)) ? null : "must be lowercase alphanumeric with hyphens only",
-        )
-        .addRule("agentId", (val) => isReservedAgentId(String(val)) ? `reserved name: ${val}` : null)
-        .addRule("name", (_val) => (!options.name) ? "--name is required" : null)
-        .addRule("model", (_val) => (!options.model && !options.template) ? "--model is required" : null)
-        .validate({ agentId, ...options });
-
-      if (!validation.isValid) {
-        throw new Error(CommandUtils.formatValidationErrors(validation));
-      }
+      this.validateCreateInputs(agentId, options);
 
       // Check if blueprint already exists
-      const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
-      if (await exists(blueprintPath)) {
-        throw new Error(
-          `Blueprint '${agentId}' already exists\nUse 'exoctl blueprint edit ${agentId}' to modify`,
-        );
-      }
+      const blueprintPath = await this.checkBlueprintExists(agentId);
 
-      // Apply template if specified
-      let model = options.model;
-      let capabilities = options.capabilities?.split(",").map((s) => s.trim()) || [];
-      let systemPrompt = options.systemPrompt;
+      // Apply template settings
+      const { model, capabilities, systemPrompt } = this.applyTemplate(options);
 
-      if (options.template && TEMPLATES[options.template]) {
-        const template = TEMPLATES[options.template];
-        model = model || template.model;
-        capabilities = capabilities.length > 0 ? capabilities : template.capabilities;
-        systemPrompt = systemPrompt || template.systemPrompt;
-      }
+      // Validate model provider
+      this.validateModelProvider(model);
 
-      if (!model) {
-        // Should catch cases where template doesn't provide model or is invalid, though validation above helps
-        throw new Error("--model is required");
-      }
+      // Load and validate system prompt
+      const finalSystemPrompt = await this.loadSystemPrompt(options, systemPrompt);
 
-      // Validate model provider is configured
-      const [provider] = model.split(":");
-      if (this.config.ai && provider !== "mock") {
-        const configuredProvider = this.config.ai.provider;
-        if (provider !== configuredProvider) {
-          console.warn(
-            `⚠️  Warning: Blueprint uses provider '${provider}' but config uses '${configuredProvider}'\n` +
-              `   The blueprint will be created but may fail at runtime.\n`,
-          );
-        }
-      }
+      // Create and validate frontmatter
+      const frontmatter = await this.createFrontmatter(agentId, options, model, capabilities);
 
-      // Load system prompt from file if specified
-      if (options.systemPromptFile) {
-        if (!await exists(options.systemPromptFile)) {
-          throw new Error(`System prompt file not found: ${options.systemPromptFile}`);
-        }
-        systemPrompt = await Deno.readTextFile(options.systemPromptFile);
-      }
-
-      // Use default template if no system prompt provided
-      if (!systemPrompt) {
-        systemPrompt = TEMPLATES.default.systemPrompt;
-      }
-
-      // Validate system prompt has required tags
-      if (!systemPrompt.includes("<thought>") || !systemPrompt.includes("<content>")) {
-        throw new Error(
-          "System prompt must include output format instructions\nRequired: <thought> and <content> tags",
-        );
-      }
-
-      // Create frontmatter
-      const frontmatter = {
-        agent_id: agentId,
-        name: options.name,
-        model: model,
-        capabilities: capabilities,
-        created: new Date().toISOString(),
-        created_by: await this.getUserIdentity(),
-        version: "1.0.0",
-        ...(options.description && { description: options.description }),
-      };
-
-      // Validate frontmatter
-      const frontmatterValidation = BlueprintFrontmatterSchema.safeParse(frontmatter);
-      if (!frontmatterValidation.success) {
-        throw new Error(`Invalid blueprint: ${frontmatterValidation.error.message}`);
-      }
-
-      // Generate blueprint content
-      const content = `+++
-${stringifyToml(frontmatter)}+++
-
-${systemPrompt}
-`;
-
-      // Ensure directory exists
-      await ensureDir(this.getBlueprintsDir());
-
-      // Write blueprint file
-      await Deno.writeTextFile(blueprintPath, content);
-
-      // Log activity
-      const logger = await this.getActionLogger();
-      await logger.info("blueprint.created", agentId, {
-        model,
-        template: options.template,
-        via: "cli",
-      });
+      // Write blueprint file and log activity
+      await this.writeBlueprintFile(blueprintPath, frontmatter, finalSystemPrompt, agentId, model, options);
 
       return {
         agent_id: agentId,

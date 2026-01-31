@@ -25,6 +25,8 @@ import {
   KEY_S,
   KEY_SLASH,
   KEY_UP,
+} from "../../config/constants.ts";
+import {
   MEMORY_SCOPE_EXECUTIONS,
   MEMORY_SCOPE_GLOBAL,
   MEMORY_SCOPE_PENDING,
@@ -162,19 +164,58 @@ class ShortcutHandler {
     key: string,
     handlers: ShortcutHandlers,
   ): Promise<boolean> {
+    // Handle scope navigation
+    if (await this.handleScopeNavigation(key, handlers)) return true;
+
+    // Handle search and help
+    if (this.handleSearchAndHelp(key, handlers)) return true;
+
+    // Handle proposal actions
+    if (await this.handleProposalActions(key, handlers)) return true;
+
+    // Handle learning actions
+    if (this.handleLearningActions(key, handlers)) return true;
+
+    // Handle global actions
+    if (await this.handleGlobalActions(key, handlers)) return true;
+
+    return false;
+  }
+
+  /**
+   * Handle scope navigation keys (G, P, E, N)
+   */
+  private static async handleScopeNavigation(
+    key: string,
+    handlers: ShortcutHandlers,
+  ): Promise<boolean> {
+    if (!handlers.jumpToScope) return false;
+
     switch (key) {
       case KEY_G:
-        if (handlers.jumpToScope) await handlers.jumpToScope(MEMORY_SCOPE_GLOBAL);
+        await handlers.jumpToScope(MEMORY_SCOPE_GLOBAL);
         return true;
       case KEY_P:
-        if (handlers.jumpToScope) await handlers.jumpToScope(MEMORY_SCOPE_PROJECTS);
+        await handlers.jumpToScope(MEMORY_SCOPE_PROJECTS);
         return true;
       case KEY_E:
-        if (handlers.jumpToScope) await handlers.jumpToScope(MEMORY_SCOPE_EXECUTIONS);
+        await handlers.jumpToScope(MEMORY_SCOPE_EXECUTIONS);
         return true;
       case KEY_N:
-        if (handlers.jumpToScope) await handlers.jumpToScope(MEMORY_SCOPE_PENDING);
+        await handlers.jumpToScope(MEMORY_SCOPE_PENDING);
         return true;
+    }
+    return false;
+  }
+
+  /**
+   * Handle search and help keys (S, /, ?)
+   */
+  private static handleSearchAndHelp(
+    key: string,
+    handlers: ShortcutHandlers,
+  ): boolean {
+    switch (key) {
       case KEY_S:
       case KEY_SLASH:
         if (handlers.startSearch) handlers.startSearch();
@@ -182,6 +223,18 @@ class ShortcutHandler {
       case KEY_QUESTION:
         if (handlers.showHelp) handlers.showHelp();
         return true;
+    }
+    return false;
+  }
+
+  /**
+   * Handle proposal actions (A, R, Shift+A)
+   */
+  private static async handleProposalActions(
+    key: string,
+    handlers: ShortcutHandlers,
+  ): Promise<boolean> {
+    switch (key) {
       case KEY_A:
         if (handlers.approveProposal) await handlers.approveProposal();
         return true;
@@ -191,12 +244,36 @@ class ShortcutHandler {
       case KEY_CAPITAL_A:
         if (handlers.approveAll) await handlers.approveAll();
         return true;
+    }
+    return false;
+  }
+
+  /**
+   * Handle learning actions (L, Shift+P)
+   */
+  private static handleLearningActions(
+    key: string,
+    handlers: ShortcutHandlers,
+  ): boolean {
+    switch (key) {
       case KEY_L:
         if (handlers.addLearning) handlers.addLearning();
         return true;
       case KEY_CAPITAL_P:
         if (handlers.promoteLearning) handlers.promoteLearning();
         return true;
+    }
+    return false;
+  }
+
+  /**
+   * Handle global actions (Shift+R)
+   */
+  private static async handleGlobalActions(
+    key: string,
+    handlers: ShortcutHandlers,
+  ): Promise<boolean> {
+    switch (key) {
       case KEY_CAPITAL_R:
         if (handlers.refresh) await handlers.refresh();
         return true;

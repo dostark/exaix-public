@@ -117,6 +117,30 @@ export class FlowRunner {
     const flowRunId = crypto.randomUUID();
     const startedAt = new Date();
 
+    // Validate flow
+    await this.validateFlow(flow, request, flowRunId);
+
+    const stepResults = new Map<string, StepResult>();
+
+    try {
+      // Execute waves and aggregate results
+      await this.executeWaves(flow, request, flowRunId, stepResults);
+
+      // Aggregate output and finalize
+      return await this.aggregateAndFinalize(flow, request, flowRunId, stepResults, startedAt);
+    } catch (error) {
+      return await this.handleExecutionError(flow, request, flowRunId, stepResults, startedAt, error);
+    }
+  }
+
+  /**
+   * Validate the flow before execution
+   */
+  private async validateFlow(
+    flow: Flow,
+    request: { userPrompt: string; traceId?: string; requestId?: string },
+    flowRunId: string,
+  ): Promise<void> {
     // Log flow validation start
     await this.eventLogger.log("flow.validating", {
       flowId: flow.id,
@@ -145,7 +169,17 @@ export class FlowRunner {
       traceId: request.traceId,
       requestId: request.requestId,
     });
+  }
 
+  /**
+   * Execute waves sequentially with parallel step execution
+   */
+  private async executeWaves(
+    flow: Flow,
+    request: { userPrompt: string; traceId?: string; requestId?: string },
+    flowRunId: string,
+    stepResults: Map<string, StepResult>,
+  ): Promise<void> {
     // Log flow start
     await this.eventLogger.log("flow.started", {
       flowRunId,
@@ -157,237 +191,296 @@ export class FlowRunner {
       requestId: request.requestId,
     });
 
-    const stepResults = new Map<string, StepResult>();
+    // Resolve dependency graph
+    await this.eventLogger.log("flow.dependencies.resolving", {
+      flowRunId,
+      flowId: flow.id,
+      traceId: request.traceId,
+      requestId: request.requestId,
+    });
 
-    try {
-      // Resolve dependency graph
-      await this.eventLogger.log("flow.dependencies.resolving", {
-        flowRunId,
-        flowId: flow.id,
-        traceId: request.traceId,
-        requestId: request.requestId,
+    const resolver = new DependencyResolver(flow.steps);
+    const waves = resolver.groupIntoWaves();
+
+    await this.eventLogger.log("flow.dependencies.resolved", {
+      flowRunId,
+      flowId: flow.id,
+      waveCount: waves.length,
+      totalSteps: flow.steps.length,
+      traceId: request.traceId,
+      requestId: request.requestId,
+    });
+
+    const failFast = flow.settings?.failFast ?? true;
+
+    // Execute waves sequentially
+    for (let waveIndex = 0; waveIndex < waves.length; waveIndex++) {
+      const wave = waves[waveIndex];
+      await this.executeWave(flow, request, flowRunId, wave, waveIndex, stepResults, failFast);
+    }
+  }
+
+  /**
+   * Execute a single wave of steps in parallel
+   */
+  private async executeWave(
+    flow: Flow,
+    request: { userPrompt: string; traceId?: string; requestId?: string },
+    flowRunId: string,
+    wave: string[],
+    waveIndex: number,
+    stepResults: Map<string, StepResult>,
+    failFast: boolean,
+  ): Promise<void> {
+    const waveNumber = waveIndex + 1;
+
+    // Log wave start
+    await this.eventLogger.log("flow.wave.started", {
+      flowRunId,
+      waveNumber,
+      waveSize: wave.length,
+      stepIds: wave,
+      traceId: request.traceId,
+      requestId: request.requestId,
+    });
+
+    // Execute steps in this wave in parallel
+    const wavePromises = wave.map((stepId) => this.executeStepSafe(flowRunId, stepId, flow, request, stepResults));
+    const waveResults = await Promise.allSettled(wavePromises);
+
+    // Process wave results
+    const waveFailed = await this.processWaveResults(
+      flow,
+      request,
+      flowRunId,
+      wave,
+      waveNumber,
+      waveResults,
+      stepResults,
+      failFast,
+    );
+
+    // If failFast is enabled and wave failed, stop execution
+    if (waveFailed && failFast) {
+      const failedStepIndex = wave.findIndex((_stepId, i) => {
+        const result = waveResults[i];
+        return result.status === "rejected" ||
+          (result.status === "fulfilled" && !result.value.success);
       });
+      const failedStepId = wave[failedStepIndex];
+      const failedResult = waveResults[failedStepIndex];
+      const errorMessage = failedResult.status === "fulfilled"
+        ? failedResult.value.error || "Unknown error"
+        : (failedResult as any).reason?.message || String((failedResult as any).reason || "Unknown error");
+      throw new FlowExecutionError(`Step ${failedStepId} failed: ${errorMessage}`, flowRunId);
+    }
+  }
 
-      const resolver = new DependencyResolver(flow.steps);
-      const waves = resolver.groupIntoWaves();
+  /**
+   * Process results from a completed wave
+   */
+  private async processWaveResults(
+    _flow: Flow,
+    request: { userPrompt: string; traceId?: string; requestId?: string },
+    flowRunId: string,
+    wave: string[],
+    waveNumber: number,
+    waveResults: PromiseSettledResult<StepResult>[],
+    stepResults: Map<string, StepResult>,
+    failFast: boolean,
+  ): Promise<boolean> {
+    let waveFailed = false;
+    let waveSuccessCount = 0;
+    let waveFailureCount = 0;
+    const waveErrors: Array<{ stepId: string; error: unknown }> = [];
 
-      await this.eventLogger.log("flow.dependencies.resolved", {
-        flowRunId,
-        flowId: flow.id,
-        waveCount: waves.length,
-        totalSteps: flow.steps.length,
-        traceId: request.traceId,
-        requestId: request.requestId,
-      });
+    for (let i = 0; i < wave.length; i++) {
+      const stepId = wave[i];
+      const promiseResult = waveResults[i];
 
-      const _maxParallelism = flow.settings?.maxParallelism ?? 3;
-      const failFast = flow.settings?.failFast ?? true;
+      try {
+        if (promiseResult.status === "fulfilled") {
+          const result = promiseResult.value;
+          stepResults.set(stepId, result);
 
-      // Execute waves sequentially
-      for (let waveIndex = 0; waveIndex < waves.length; waveIndex++) {
-        const wave = waves[waveIndex];
-        const waveNumber = waveIndex + 1;
-
-        // Log wave start
-        await this.eventLogger.log("flow.wave.started", {
-          flowRunId,
-          waveNumber,
-          waveSize: wave.length,
-          stepIds: wave,
-          traceId: request.traceId,
-          requestId: request.requestId,
-        });
-
-        // Execute steps in this wave in parallel using a safe executor
-        const wavePromises = wave.map((stepId) => this.executeStepSafe(flowRunId, stepId, flow, request, stepResults));
-        const waveResults = await Promise.allSettled(wavePromises);
-
-        // Process results with strong error boundaries
-        let waveFailed = false;
-        let waveSuccessCount = 0;
-        let waveFailureCount = 0;
-        const waveErrors: Array<{ stepId: string; error: unknown }> = [];
-
-        for (let i = 0; i < wave.length; i++) {
-          const stepId = wave[i];
-          const promiseResult = waveResults[i];
-
-          try {
-            if (promiseResult.status === "fulfilled") {
-              const result = promiseResult.value;
-              // Always set result into stepResults to preserve existing data
-              stepResults.set(stepId, result);
-
-              if (result.success) {
-                waveSuccessCount++;
-              } else {
-                waveFailureCount++;
-                if (failFast) {
-                  waveFailed = true;
-                }
-              }
-            } else {
-              // Execution threw; record safe failure
-              const error = promiseResult.reason;
-              waveErrors.push({ stepId, error });
-
-              const errorStepResult: StepResult = {
-                stepId,
-                success: false,
-                error: error instanceof Error ? error.message : String(error),
-                duration: 0,
-                startedAt: new Date(),
-                completedAt: new Date(),
-              };
-
-              stepResults.set(stepId, errorStepResult);
-              waveFailureCount++;
-
-              if (failFast) {
-                waveFailed = true;
-              }
-            }
-          } catch (processingError) {
-            // Protect aggregation code from throwing and corrupting results
-            await this.eventLogger.log("flow.step.processing_error", {
-              flowRunId,
-              stepId,
-              error: processingError instanceof Error ? processingError.message : String(processingError),
-              traceId: request.traceId,
-              requestId: request.requestId,
-            });
-
+          if (result.success) {
+            waveSuccessCount++;
+          } else {
             waveFailureCount++;
             if (failFast) {
               waveFailed = true;
             }
           }
-        }
+        } else {
+          // Execution threw; record safe failure
+          const error = promiseResult.reason;
+          waveErrors.push({ stepId, error });
 
-        // Log wave completion
-        await this.eventLogger.log("flow.wave.completed", {
+          const errorStepResult: StepResult = {
+            stepId,
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+            duration: 0,
+            startedAt: new Date(),
+            completedAt: new Date(),
+          };
+
+          stepResults.set(stepId, errorStepResult);
+          waveFailureCount++;
+
+          if (failFast) {
+            waveFailed = true;
+          }
+        }
+      } catch (processingError) {
+        // Protect aggregation code from throwing and corrupting results
+        await this.eventLogger.log("flow.step.processing_error", {
           flowRunId,
-          waveNumber,
-          waveSize: wave.length,
-          successCount: waveSuccessCount,
-          failureCount: waveFailureCount,
-          failed: waveFailed,
+          stepId,
+          error: processingError instanceof Error ? processingError.message : String(processingError),
           traceId: request.traceId,
           requestId: request.requestId,
         });
 
-        // Log any wave-level errors
-        if (waveErrors.length > 0) {
-          await this.eventLogger.log("flow.wave.errors", {
-            flowRunId,
-            waveNumber,
-            errorCount: waveErrors.length,
-            errors: waveErrors.map(({ stepId, error }) => ({
-              stepId,
-              error: error instanceof Error ? error.message : String(error),
-            })),
-            traceId: request.traceId,
-            requestId: request.requestId,
-          });
-        }
-
-        // If failFast is enabled and any step in this wave failed, stop execution
-        if (waveFailed && failFast) {
-          const failedStepIndex = wave.findIndex((_stepId, i) => {
-            const result = waveResults[i];
-            return result.status === "rejected" ||
-              (result.status === "fulfilled" && !result.value.success);
-          });
-          const failedStepId = wave[failedStepIndex];
-          const failedResult = waveResults[failedStepIndex];
-          const errorMessage = failedResult.status === "fulfilled"
-            ? failedResult.value.error || "Unknown error"
-            : (failedResult as any).reason?.message || String((failedResult as any).reason || "Unknown error");
-          throw new FlowExecutionError(`Step ${failedStepId} failed: ${errorMessage}`, flowRunId);
+        waveFailureCount++;
+        if (failFast) {
+          waveFailed = true;
         }
       }
-
-      // Aggregate output
-      await this.eventLogger.log("flow.output.aggregating", {
-        flowRunId,
-        flowId: flow.id,
-        outputFrom: flow.output?.from,
-        outputFormat: flow.output?.format,
-        totalSteps: stepResults.size,
-        traceId: request.traceId,
-        requestId: request.requestId,
-      });
-
-      const output = this.aggregateOutput(flow, stepResults);
-
-      await this.eventLogger.log("flow.output.aggregated", {
-        flowRunId,
-        flowId: flow.id,
-        outputLength: output.length,
-        traceId: request.traceId,
-        requestId: request.requestId,
-      });
-
-      const completedAt = new Date();
-      const duration = completedAt.getTime() - startedAt.getTime();
-
-      // Determine overall success
-      const success = Array.from(stepResults.values()).every((result) => result.success);
-      const successfulSteps = Array.from(stepResults.values()).filter((r) => r.success).length;
-      const failedSteps = stepResults.size - successfulSteps;
-
-      // Log flow completion
-      await this.eventLogger.log("flow.completed", {
-        flowRunId,
-        flowId: flow.id,
-        success,
-        duration,
-        stepsCompleted: stepResults.size,
-        successfulSteps,
-        failedSteps,
-        outputLength: output.length,
-        traceId: request.traceId,
-        requestId: request.requestId,
-      });
-
-      // Aggregate and log token usage summary (post-processing step)
-      if (this.db && request.traceId) {
-        await this.aggregateAndLogTokenUsage(flowRunId, flow.id, request.traceId, request.requestId);
-      }
-
-      return {
-        flowRunId,
-        success,
-        stepResults,
-        output,
-        duration,
-        startedAt,
-        completedAt,
-      };
-    } catch (error) {
-      const completedAt = new Date();
-      const duration = completedAt.getTime() - startedAt.getTime();
-
-      // Determine partial results from the current stepResults map
-      const successfulSteps = Array.from(stepResults.values()).filter((r) => r.success).length;
-      const failedSteps = stepResults.size - successfulSteps;
-
-      // Log flow failure
-      await this.eventLogger.log("flow.failed", {
-        flowRunId,
-        flowId: flow.id,
-        error: error instanceof Error ? error.message : String(error),
-        errorType: error instanceof Error ? error.constructor.name : "Unknown",
-        duration,
-        stepsAttempted: stepResults.size,
-        successfulSteps,
-        failedSteps,
-        traceId: request.traceId,
-        requestId: request.requestId,
-      });
-
-      throw error;
     }
+
+    // Log wave completion
+    await this.eventLogger.log("flow.wave.completed", {
+      flowRunId,
+      waveNumber,
+      waveSize: wave.length,
+      successCount: waveSuccessCount,
+      failureCount: waveFailureCount,
+      failed: waveFailed,
+      traceId: request.traceId,
+      requestId: request.requestId,
+    });
+
+    // Log any wave-level errors
+    if (waveErrors.length > 0) {
+      await this.eventLogger.log("flow.wave.errors", {
+        flowRunId,
+        waveNumber,
+        errorCount: waveErrors.length,
+        errors: waveErrors.map(({ stepId, error }) => ({
+          stepId,
+          error: error instanceof Error ? error.message : String(error),
+        })),
+        traceId: request.traceId,
+        requestId: request.requestId,
+      });
+    }
+
+    return waveFailed;
+  }
+
+  /**
+   * Aggregate output and create final flow result
+   */
+  private async aggregateAndFinalize(
+    flow: Flow,
+    request: { userPrompt: string; traceId?: string; requestId?: string },
+    flowRunId: string,
+    stepResults: Map<string, StepResult>,
+    startedAt: Date,
+  ): Promise<FlowResult> {
+    // Aggregate output
+    await this.eventLogger.log("flow.output.aggregating", {
+      flowRunId,
+      flowId: flow.id,
+      outputFrom: flow.output?.from,
+      outputFormat: flow.output?.format,
+      totalSteps: stepResults.size,
+      traceId: request.traceId,
+      requestId: request.requestId,
+    });
+
+    const output = this.aggregateOutput(flow, stepResults);
+
+    await this.eventLogger.log("flow.output.aggregated", {
+      flowRunId,
+      flowId: flow.id,
+      outputLength: output.length,
+      traceId: request.traceId,
+      requestId: request.requestId,
+    });
+
+    const completedAt = new Date();
+    const duration = completedAt.getTime() - startedAt.getTime();
+
+    // Determine overall success
+    const success = Array.from(stepResults.values()).every((result) => result.success);
+    const successfulSteps = Array.from(stepResults.values()).filter((r) => r.success).length;
+    const failedSteps = stepResults.size - successfulSteps;
+
+    // Log flow completion
+    await this.eventLogger.log("flow.completed", {
+      flowRunId,
+      flowId: flow.id,
+      success,
+      duration,
+      stepsCompleted: stepResults.size,
+      successfulSteps,
+      failedSteps,
+      outputLength: output.length,
+      traceId: request.traceId,
+      requestId: request.requestId,
+    });
+
+    // Aggregate and log token usage summary
+    if (this.db && request.traceId) {
+      await this.aggregateAndLogTokenUsage(flowRunId, flow.id, request.traceId, request.requestId);
+    }
+
+    return {
+      flowRunId,
+      success,
+      stepResults,
+      output,
+      duration,
+      startedAt,
+      completedAt,
+    };
+  }
+
+  /**
+   * Handle execution errors and create error result
+   */
+  private async handleExecutionError(
+    flow: Flow,
+    request: { userPrompt: string; traceId?: string; requestId?: string },
+    flowRunId: string,
+    stepResults: Map<string, StepResult>,
+    startedAt: Date,
+    error: unknown,
+  ): Promise<never> {
+    const completedAt = new Date();
+    const duration = completedAt.getTime() - startedAt.getTime();
+
+    // Determine partial results
+    const successfulSteps = Array.from(stepResults.values()).filter((r) => r.success).length;
+    const failedSteps = stepResults.size - successfulSteps;
+
+    // Log flow failure
+    await this.eventLogger.log("flow.failed", {
+      flowRunId,
+      flowId: flow.id,
+      error: error instanceof Error ? error.message : String(error),
+      errorType: error instanceof Error ? error.constructor.name : "Unknown",
+      duration,
+      stepsAttempted: stepResults.size,
+      successfulSteps,
+      failedSteps,
+      traceId: request.traceId,
+      requestId: request.requestId,
+    });
+
+    throw error;
   }
 
   /**

@@ -10,7 +10,7 @@ import type { IModelProvider } from "../ai/providers.ts";
 import type { DatabaseService } from "./db.ts";
 import { createLLMRetryPolicy, type RetryPolicy, type RetryPolicyConfig, type RetryResult } from "./retry_policy.ts";
 import { createOutputValidator, OutputValidator, type ValidationMetrics } from "./output_validator.ts";
-import type { SkillMatch, SkillsService } from "./skills.ts";
+import type { SkillsService } from "./skills.ts";
 import { extractKeywords } from "../utils/text.ts";
 
 // Note: SkillMatchRequest may be used in future for direct skill matching
@@ -180,55 +180,108 @@ export class AgentRunner {
     const requestId = request.requestId;
 
     // Phase 17: Match skills based on request context
-    let matchedSkills: SkillMatch[] = [];
-    let skillContext = "";
-    let skillsApplied: string[] = [];
-
-    if (this.skillsService && !this.disableSkills) {
-      try {
-        // Step 1: Check for request-level explicit skills override
-        if (request.skills && request.skills.length > 0) {
-          // Use explicit skills from request
-          skillsApplied = request.skills;
-        } else {
-          // Step 2: Try trigger-based matching
-          matchedSkills = await this.skillsService.matchSkills({
-            requestText: request.userPrompt,
-            keywords: this.extractKeywords(request.userPrompt),
-            taskType: request.taskType,
-            filePaths: request.filePaths,
-            tags: request.tags,
-            agentId,
-          });
-
-          if (matchedSkills.length > 0) {
-            skillsApplied = matchedSkills.map((m) => m.skillId);
-          } else if (blueprint.defaultSkills && blueprint.defaultSkills.length > 0) {
-            // Step 3: Fall back to blueprint default skills if no matches
-            skillsApplied = blueprint.defaultSkills;
-          }
-        }
-
-        // Step 4: Filter out skipped skills
-        if (request.skipSkills && request.skipSkills.length > 0) {
-          skillsApplied = skillsApplied.filter((s) => !request.skipSkills!.includes(s));
-        }
-
-        if (skillsApplied.length > 0) {
-          skillContext = await this.skillsService.buildSkillContext(skillsApplied);
-
-          // Record skill usage
-          for (const skillId of skillsApplied) {
-            await this.skillsService.recordSkillUsage(skillId);
-          }
-        }
-      } catch (error) {
-        console.error("[AgentRunner] Skill matching failed:", error);
-        // Continue without skills - non-fatal error
-      }
-    }
+    const skillsApplied = await this.matchAndApplySkills(blueprint, request, agentId);
 
     // Log agent execution start
+    this.logExecutionStart(request, agentId, traceId, requestId, skillsApplied);
+
+    // Step 1: Construct the combined prompt (with skill context)
+    const skillContext = skillsApplied.length > 0 && this.skillsService
+      ? await this.skillsService.buildSkillContext(skillsApplied)
+      : "";
+    const combinedPrompt = this.constructPrompt(blueprint, request, skillContext);
+
+    // Step 2: Execute via the model provider (with retry if enabled)
+    const retryResult = await this.executeWithRetry(combinedPrompt, startTime);
+
+    const duration = Date.now() - startTime;
+
+    // Handle retry failure
+    if (!retryResult.success) {
+      this.handleExecutionFailure(retryResult, requestId, agentId, traceId, duration);
+    }
+
+    // Step 3: Parse the response to extract thought and content
+    const rawResponse = retryResult.value!;
+    const result = this.parseResponse(rawResponse);
+
+    // Log successful execution
+    this.logExecutionCompletion(result, rawResponse, retryResult, requestId, agentId, traceId, duration, skillsApplied);
+
+    return {
+      ...result,
+      skillsApplied: skillsApplied.length > 0 ? skillsApplied : undefined,
+    };
+  }
+
+  /**
+   * Match and apply skills for the given request
+   */
+  private async matchAndApplySkills(
+    blueprint: Blueprint,
+    request: ParsedRequest,
+    agentId: string,
+  ): Promise<string[]> {
+    if (!this.skillsService || this.disableSkills) {
+      return [];
+    }
+
+    try {
+      let skillsApplied: string[] = [];
+
+      // Step 1: Check for request-level explicit skills override
+      if (request.skills && request.skills.length > 0) {
+        // Use explicit skills from request
+        skillsApplied = request.skills;
+      } else {
+        // Step 2: Try trigger-based matching
+        const matchedSkills = await this.skillsService.matchSkills({
+          requestText: request.userPrompt,
+          keywords: this.extractKeywords(request.userPrompt),
+          taskType: request.taskType,
+          filePaths: request.filePaths,
+          tags: request.tags,
+          agentId,
+        });
+
+        if (matchedSkills.length > 0) {
+          skillsApplied = matchedSkills.map((m) => m.skillId);
+        } else if (blueprint.defaultSkills && blueprint.defaultSkills.length > 0) {
+          // Step 3: Fall back to blueprint default skills if no matches
+          skillsApplied = blueprint.defaultSkills;
+        }
+      }
+
+      // Step 4: Filter out skipped skills
+      if (request.skipSkills && request.skipSkills.length > 0) {
+        skillsApplied = skillsApplied.filter((s) => !request.skipSkills!.includes(s));
+      }
+
+      if (skillsApplied.length > 0) {
+        // Record skill usage
+        for (const skillId of skillsApplied) {
+          await this.skillsService.recordSkillUsage(skillId);
+        }
+      }
+
+      return skillsApplied;
+    } catch (error) {
+      console.error("[AgentRunner] Skill matching failed:", error);
+      // Continue without skills - non-fatal error
+      return [];
+    }
+  }
+
+  /**
+   * Log the start of agent execution
+   */
+  private logExecutionStart(
+    request: ParsedRequest,
+    agentId: string,
+    traceId: string | undefined,
+    requestId: string | undefined,
+    skillsApplied: string[],
+  ): void {
     this.logActivity(
       "agent",
       "agent.execution_started",
@@ -245,18 +298,20 @@ export class AgentRunner {
       traceId,
       agentId,
     );
+  }
 
-    // Step 1: Construct the combined prompt (with skill context)
-    const combinedPrompt = this.constructPrompt(blueprint, request, skillContext);
-
-    // Step 2: Execute via the model provider (with retry if enabled)
-    let retryResult: RetryResult<string>;
-
+  /**
+   * Execute the model generation with retry logic
+   */
+  private async executeWithRetry(
+    combinedPrompt: string,
+    startTime: number,
+  ): Promise<RetryResult<string>> {
     if (this.disableRetry) {
       // Direct execution without retry
       try {
         const rawResponse = await this.modelProvider.generate(combinedPrompt);
-        retryResult = {
+        return {
           success: true,
           value: rawResponse,
           totalAttempts: 1,
@@ -264,7 +319,7 @@ export class AgentRunner {
           retryHistory: [],
         };
       } catch (error) {
-        retryResult = {
+        return {
           success: false,
           error: error instanceof Error ? error : new Error(String(error)),
           totalAttempts: 1,
@@ -274,39 +329,54 @@ export class AgentRunner {
       }
     } else {
       // Execute with retry policy
-      retryResult = await this.retryPolicy.execute(
+      return await this.retryPolicy.execute(
         async () => await this.modelProvider.generate(combinedPrompt),
       );
     }
+  }
 
-    const duration = Date.now() - startTime;
+  /**
+   * Handle execution failure by logging and throwing
+   */
+  private handleExecutionFailure(
+    retryResult: RetryResult<string>,
+    requestId: string | undefined,
+    agentId: string,
+    traceId: string | undefined,
+    duration: number,
+  ): never {
+    this.logActivity(
+      "agent",
+      "agent.execution_failed",
+      requestId || null,
+      {
+        agent_id: agentId,
+        duration_ms: duration,
+        total_attempts: retryResult.totalAttempts,
+        retry_history: retryResult.retryHistory,
+        error_type: retryResult.error?.constructor.name || "Unknown",
+        error_message: retryResult.error?.message || "Unknown error",
+      },
+      traceId,
+      agentId,
+    );
 
-    // Handle retry failure
-    if (!retryResult.success) {
-      this.logActivity(
-        "agent",
-        "agent.execution_failed",
-        requestId || null,
-        {
-          agent_id: agentId,
-          duration_ms: duration,
-          total_attempts: retryResult.totalAttempts,
-          retry_history: retryResult.retryHistory,
-          error_type: retryResult.error?.constructor.name || "Unknown",
-          error_message: retryResult.error?.message || "Unknown error",
-        },
-        traceId,
-        agentId,
-      );
+    throw retryResult.error || new Error("Agent execution failed after retries");
+  }
 
-      throw retryResult.error || new Error("Agent execution failed after retries");
-    }
-
-    // Step 3: Parse the response to extract thought and content
-    const rawResponse = retryResult.value!;
-    const result = this.parseResponse(rawResponse);
-
-    // Log successful execution
+  /**
+   * Log successful execution completion
+   */
+  private logExecutionCompletion(
+    result: { thought: string; content: string },
+    rawResponse: string,
+    retryResult: RetryResult<string>,
+    requestId: string | undefined,
+    agentId: string,
+    traceId: string | undefined,
+    duration: number,
+    skillsApplied: string[],
+  ): void {
     this.logActivity(
       "agent",
       "agent.execution_completed",
@@ -324,11 +394,6 @@ export class AgentRunner {
       traceId,
       agentId,
     );
-
-    return {
-      ...result,
-      skillsApplied: skillsApplied.length > 0 ? skillsApplied : undefined,
-    };
   }
 
   /**

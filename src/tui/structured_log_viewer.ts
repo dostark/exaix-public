@@ -774,48 +774,77 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
 
   // ===== Input Handling =====
 
-  public override handleKeySync(key: string): boolean {
-    // 1. Handle dialogs (delegated to base)
-    if (this.handleDialogKeys(key)) return true;
+  /**
+   * Handle detail view key actions
+   */
+  private handleDetailViewKey(key: string): boolean {
+    if (!this.logViewExtensions.showDetail) return false;
 
-    // 2. Handle help overlay (delegated to base)
-    if (this.handleHelpKeys(key)) return true;
-
-    // 3. Handle detail view
-    if (this.logViewExtensions.showDetail) {
-      if (key === KEY_ESCAPE || key === KEY_Q) {
-        this.logViewExtensions.showDetail = false;
-        this.logViewExtensions.detailContent = "";
-      }
+    if (key === KEY_ESCAPE || key === KEY_Q) {
+      this.logViewExtensions.showDetail = false;
+      this.logViewExtensions.detailContent = "";
       return true;
     }
 
-    // 4. Handle navigation (delegated to base)
-    // Avoid keys that we handle specifically in this subclass or asynchronously
-    if (key !== KEY_C && key !== KEY_T && key !== KEY_E && key !== KEY_CAPITAL_R) {
-      if (this.handleNavigationKeys(key)) return true;
-    }
+    return false;
+  }
 
-    // 5. Main actions (sync part)
+  /**
+   * Handle selection and navigation key actions
+   */
+  private handleSelectionKey(key: string): boolean {
+    if (key !== KEY_ENTER) return false;
+
+    if (this.state.selectedId) {
+      if (this.isGroupNode(this.state.selectedId)) {
+        this.toggleCurrentNode();
+      } else {
+        this.logViewExtensions.showDetail = true;
+        this.logViewExtensions.detailContent = this.getLogDetail(this.state.selectedId);
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Handle toggle key actions
+   */
+  private handleToggleKey(key: string): boolean {
     switch (key) {
-      case KEY_ENTER:
-        if (this.state.selectedId) {
-          if (this.isGroupNode(this.state.selectedId)) {
-            this.toggleCurrentNode();
-          } else {
-            this.logViewExtensions.showDetail = true;
-            this.logViewExtensions.detailContent = this.getLogDetail(this.state.selectedId);
-          }
-        }
-        return true;
       case KEY_SPACE:
         this.toggleRealTime();
         return true;
-      case KEY_B:
-        if (this.state.selectedId && !this.isGroupNode(this.state.selectedId)) {
-          this.toggleBookmark(this.state.selectedId);
-        }
+      case KEY_P:
+        this.togglePerformanceMetrics();
         return true;
+      case KEY_G:
+        this.toggleGrouping();
+        return true;
+      case KEY_A:
+        this.toggleAutoRefresh();
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Handle bookmark key actions
+   */
+  private handleBookmarkKey(key: string): boolean {
+    if (key !== KEY_B) return false;
+
+    if (this.state.selectedId && !this.isGroupNode(this.state.selectedId)) {
+      this.toggleBookmark(this.state.selectedId);
+    }
+    return true;
+  }
+
+  /**
+   * Handle dialog key actions
+   */
+  private handleDialogKey(key: string): boolean {
+    switch (key) {
       case KEY_S:
         this.showInputDialog({
           title: "Search Logs",
@@ -827,15 +856,16 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
       case KEY_F:
         // Toggle log level filter dialog would go here
         return true;
-      case KEY_P:
-        this.togglePerformanceMetrics();
-        return true;
-      case KEY_G:
-        this.toggleGrouping();
-        return true;
-      case KEY_A:
-        this.toggleAutoRefresh();
-        return true;
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Handle bulk action key actions
+   */
+  private handleBulkActionKey(key: string): boolean {
+    switch (key) {
       case KEY_CAPITAL_C:
         this.collapseAllNodes();
         return true;
@@ -845,6 +875,30 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
       default:
         return false;
     }
+  }
+
+  public override handleKeySync(key: string): boolean {
+    // 1. Handle dialogs (delegated to base)
+    if (this.handleDialogKeys(key)) return true;
+
+    // 2. Handle help overlay (delegated to base)
+    if (this.handleHelpKeys(key)) return true;
+
+    // 3. Handle detail view
+    if (this.handleDetailViewKey(key)) return true;
+
+    // 4. Handle navigation (delegated to base)
+    // Avoid keys that we handle specifically in this subclass or asynchronously
+    if (key !== KEY_C && key !== KEY_T && key !== KEY_E && key !== KEY_CAPITAL_R) {
+      if (this.handleNavigationKeys(key)) return true;
+    }
+
+    // 5. Main actions - try each handler in order
+    return this.handleSelectionKey(key) ||
+      this.handleToggleKey(key) ||
+      this.handleBookmarkKey(key) ||
+      this.handleDialogKey(key) ||
+      this.handleBulkActionKey(key);
   }
 
   override async handleKey(key: string): Promise<boolean> {

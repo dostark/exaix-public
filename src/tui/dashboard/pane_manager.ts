@@ -161,6 +161,110 @@ export async function closePane(
 }
 
 /**
+ * Find the right sibling pane that shares the left edge with our right edge
+ */
+function findRightSibling(panes: Pane[], pane: Pane): Pane | undefined {
+  return panes.find((p) =>
+    p.id !== pane.id &&
+    Math.abs(p.flexX - (pane.flexX + pane.flexWidth)) < 0.01 &&
+    Math.abs(p.flexY - pane.flexY) < 0.01 &&
+    Math.abs(p.flexHeight - pane.flexHeight) < 0.01
+  );
+}
+
+/**
+ * Find the left sibling pane that shares the right edge with our left edge
+ */
+function findLeftSibling(panes: Pane[], pane: Pane): Pane | undefined {
+  return panes.find((p) =>
+    p.id !== pane.id &&
+    Math.abs((p.flexX + p.flexWidth) - pane.flexX) < 0.01 &&
+    Math.abs(p.flexY - pane.flexY) < 0.01 &&
+    Math.abs(p.flexHeight - pane.flexHeight) < 0.01
+  );
+}
+
+/**
+ * Find the bottom sibling pane that shares the top edge with our bottom edge
+ */
+function findBottomSibling(panes: Pane[], pane: Pane): Pane | undefined {
+  return panes.find((p) =>
+    p.id !== pane.id &&
+    Math.abs(p.flexY - (pane.flexY + pane.flexHeight)) < 0.01 &&
+    Math.abs(p.flexX - pane.flexX) < 0.01 &&
+    Math.abs(p.flexWidth - pane.flexWidth) < 0.01
+  );
+}
+
+/**
+ * Find the top sibling pane that shares the bottom edge with our top edge
+ */
+function findTopSibling(panes: Pane[], pane: Pane): Pane | undefined {
+  return panes.find((p) =>
+    p.id !== pane.id &&
+    Math.abs((p.flexY + p.flexHeight) - pane.flexY) < 0.01 &&
+    Math.abs(p.flexX - pane.flexX) < 0.01 &&
+    Math.abs(p.flexWidth - pane.flexWidth) < 0.01
+  );
+}
+
+/**
+ * Handle width resizing by adjusting flex values with sibling pane
+ */
+function handleWidthResize(panes: Pane[], pane: Pane, deltaFlexWidth: number, MIN_FLEX: number): void {
+  const oldFlexWidth = pane.flexWidth;
+  const newFlexWidth = Math.max(MIN_FLEX, Math.min(0.9, pane.flexWidth + deltaFlexWidth));
+  const actualDelta = newFlexWidth - oldFlexWidth;
+
+  if (actualDelta === 0) return;
+
+  // Try right sibling first
+  const rightSibling = findRightSibling(panes, pane);
+  if (rightSibling && rightSibling.flexWidth - actualDelta >= MIN_FLEX) {
+    pane.flexWidth = newFlexWidth;
+    rightSibling.flexX += actualDelta;
+    rightSibling.flexWidth -= actualDelta;
+    return;
+  }
+
+  // Try left sibling as fallback
+  const leftSibling = findLeftSibling(panes, pane);
+  if (leftSibling && leftSibling.flexWidth - actualDelta >= MIN_FLEX) {
+    pane.flexX -= actualDelta;
+    pane.flexWidth = newFlexWidth;
+    leftSibling.flexWidth -= actualDelta;
+  }
+}
+
+/**
+ * Handle height resizing by adjusting flex values with sibling pane
+ */
+function handleHeightResize(panes: Pane[], pane: Pane, deltaFlexHeight: number, MIN_FLEX: number): void {
+  const oldFlexHeight = pane.flexHeight;
+  const newFlexHeight = Math.max(MIN_FLEX, Math.min(0.9, pane.flexHeight + deltaFlexHeight));
+  const actualDelta = newFlexHeight - oldFlexHeight;
+
+  if (actualDelta === 0) return;
+
+  // Try bottom sibling first
+  const bottomSibling = findBottomSibling(panes, pane);
+  if (bottomSibling && bottomSibling.flexHeight - actualDelta >= MIN_FLEX) {
+    pane.flexHeight = newFlexHeight;
+    bottomSibling.flexY += actualDelta;
+    bottomSibling.flexHeight -= actualDelta;
+    return;
+  }
+
+  // Try top sibling as fallback
+  const topSibling = findTopSibling(panes, pane);
+  if (topSibling && topSibling.flexHeight - actualDelta >= MIN_FLEX) {
+    pane.flexY -= actualDelta;
+    pane.flexHeight = newFlexHeight;
+    topSibling.flexHeight -= actualDelta;
+  }
+}
+
+/**
  * Resize a pane by adjusting flex values and its neighbors
  */
 export function resizePane(
@@ -175,83 +279,11 @@ export function resizePane(
   const MIN_FLEX = 0.1;
 
   if (deltaFlexWidth !== 0) {
-    const oldFlexWidth = pane.flexWidth;
-    const newFlexWidth = Math.max(MIN_FLEX, Math.min(0.9, pane.flexWidth + deltaFlexWidth));
-    const actualDelta = newFlexWidth - oldFlexWidth;
-
-    if (actualDelta !== 0) {
-      // Find sibling to the right (shares left edge with our right edge)
-      const rightSibling = panes.find((p) =>
-        p.id !== pane.id &&
-        Math.abs(p.flexX - (pane.flexX + pane.flexWidth)) < 0.01 &&
-        Math.abs(p.flexY - pane.flexY) < 0.01 &&
-        Math.abs(p.flexHeight - pane.flexHeight) < 0.01
-      );
-
-      if (rightSibling) {
-        if (rightSibling.flexWidth - actualDelta >= MIN_FLEX) {
-          pane.flexWidth = newFlexWidth;
-          rightSibling.flexX += actualDelta;
-          rightSibling.flexWidth -= actualDelta;
-        }
-      } else {
-        // Find sibling to the left (shares right edge with our left edge)
-        const leftSibling = panes.find((p) =>
-          p.id !== pane.id &&
-          Math.abs((p.flexX + p.flexWidth) - pane.flexX) < 0.01 &&
-          Math.abs(p.flexY - pane.flexY) < 0.01 &&
-          Math.abs(p.flexHeight - pane.flexHeight) < 0.01
-        );
-
-        if (leftSibling) {
-          if (leftSibling.flexWidth - actualDelta >= MIN_FLEX) {
-            pane.flexX -= actualDelta;
-            pane.flexWidth = newFlexWidth;
-            leftSibling.flexWidth -= actualDelta;
-          }
-        }
-      }
-    }
+    handleWidthResize(panes, pane, deltaFlexWidth, MIN_FLEX);
   }
 
   if (deltaFlexHeight !== 0) {
-    const oldFlexHeight = pane.flexHeight;
-    const newFlexHeight = Math.max(MIN_FLEX, Math.min(0.9, pane.flexHeight + deltaFlexHeight));
-    const actualDelta = newFlexHeight - oldFlexHeight;
-
-    if (actualDelta !== 0) {
-      // Find sibling below
-      const bottomSibling = panes.find((p) =>
-        p.id !== pane.id &&
-        Math.abs(p.flexY - (pane.flexY + pane.flexHeight)) < 0.01 &&
-        Math.abs(p.flexX - pane.flexX) < 0.01 &&
-        Math.abs(p.flexWidth - pane.flexWidth) < 0.01
-      );
-
-      if (bottomSibling) {
-        if (bottomSibling.flexHeight - actualDelta >= MIN_FLEX) {
-          pane.flexHeight = newFlexHeight;
-          bottomSibling.flexY += actualDelta;
-          bottomSibling.flexHeight -= actualDelta;
-        }
-      } else {
-        // Find sibling above
-        const topSibling = panes.find((p) =>
-          p.id !== pane.id &&
-          Math.abs((p.flexY + p.flexHeight) - pane.flexY) < 0.01 &&
-          Math.abs(p.flexX - pane.flexX) < 0.01 &&
-          Math.abs(p.flexWidth - pane.flexWidth) < 0.01
-        );
-
-        if (topSibling) {
-          if (topSibling.flexHeight - actualDelta >= MIN_FLEX) {
-            pane.flexY -= actualDelta;
-            pane.flexHeight = newFlexHeight;
-            topSibling.flexHeight -= actualDelta;
-          }
-        }
-      }
-    }
+    handleHeightResize(panes, pane, deltaFlexHeight, MIN_FLEX);
   }
 }
 

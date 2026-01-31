@@ -155,6 +155,31 @@ export class MainKeyHandler {
       updateTree: (tree: TreeNode[]) => void;
     },
   ): Promise<boolean> {
+    // Handle navigation keys
+    if (this.handleNavigationKeys(key, actions)) return true;
+
+    // Handle tree manipulation keys
+    if (this.handleTreeKeys(key, actions)) return true;
+
+    // Handle action keys
+    if (await this.handleActionKeys(key, state, actions)) return true;
+
+    // Handle filter and search keys
+    if (this.handleFilterKeys(key, actions)) return true;
+
+    // Handle global keys
+    if (this.handleGlobalKeys(key, state, actions)) return true;
+
+    return false;
+  }
+
+  /**
+   * Handle navigation keys (up, down, home, end)
+   */
+  private static handleNavigationKeys(
+    key: string,
+    actions: { navigateTree: (dir: "up" | "down" | "first" | "last") => void },
+  ): boolean {
     switch (key) {
       case KEY_UP:
         actions.navigateTree("up");
@@ -168,12 +193,47 @@ export class MainKeyHandler {
       case KEY_END:
         actions.navigateTree("last");
         return true;
+    }
+    return false;
+  }
+
+  /**
+   * Handle tree manipulation keys (left, right, enter for groups)
+   */
+  private static handleTreeKeys(
+    key: string,
+    actions: {
+      collapseSelectedNode: () => void;
+      expandSelectedNode: () => void;
+      toggleSelectedNode: () => void;
+    },
+  ): boolean {
+    switch (key) {
       case KEY_LEFT:
         actions.collapseSelectedNode();
         return true;
       case KEY_RIGHT:
         actions.expandSelectedNode();
         return true;
+    }
+    return false;
+  }
+
+  /**
+   * Handle action keys (enter for details, create, delete, priority)
+   */
+  private static async handleActionKeys(
+    key: string,
+    state: { selectedRequestId: string | null; requestTree: TreeNode[] },
+    actions: {
+      toggleSelectedNode: () => void;
+      showRequestDetail: (id: string) => Promise<void>;
+      showCreateDialog: () => void;
+      showCancelConfirm: (id: string) => void;
+      showPriorityDialog: () => void;
+    },
+  ): Promise<boolean> {
+    switch (key) {
       case KEY_ENTER:
         if (state.selectedRequestId) {
           if (isGroupNode(state.requestTree, state.selectedRequestId)) {
@@ -196,6 +256,22 @@ export class MainKeyHandler {
           actions.showPriorityDialog();
         }
         return true;
+    }
+    return false;
+  }
+
+  /**
+   * Handle filter and search keys
+   */
+  private static handleFilterKeys(
+    key: string,
+    actions: {
+      showSearchDialog: () => void;
+      showFilterStatusDialog: () => void;
+      showFilterAgentDialog: () => void;
+    },
+  ): boolean {
+    switch (key) {
       case KEY_S:
         actions.showSearchDialog();
         return true;
@@ -205,11 +281,29 @@ export class MainKeyHandler {
       case KEY_A:
         actions.showFilterAgentDialog();
         return true;
+    }
+    return false;
+  }
+
+  /**
+   * Handle global keys (grouping, refresh, help, quit)
+   */
+  private static handleGlobalKeys(
+    key: string,
+    state: { requestTree: TreeNode[] },
+    actions: {
+      toggleGrouping: () => void;
+      refresh: () => Promise<void>;
+      setShowHelp: (show: boolean) => void;
+      updateTree: (tree: TreeNode[]) => void;
+    },
+  ): boolean {
+    switch (key) {
       case KEY_G:
         actions.toggleGrouping();
         return true;
       case KEY_R:
-        await actions.refresh();
+        actions.refresh();
         return true;
       case KEY_CAPITAL_C:
         actions.updateTree(TreeManipulationHandler.collapseAll(state.requestTree));

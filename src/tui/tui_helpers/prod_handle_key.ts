@@ -37,6 +37,245 @@ export interface ProdHandleCtx {
 }
 
 /**
+ * Handles key events for memory notifications mode.
+ * Processes navigation, approval, and rejection of memory notifications.
+ */
+async function handleMemoryNotificationsKey(
+  key: string,
+  ctx: ProdHandleCtx,
+): Promise<{ exit?: boolean; reRender?: boolean }> {
+  const { prodState, notificationService } = ctx;
+
+  // Exit memory notifications mode
+  if (key === "m" || key === "\x1b" || key === "esc") {
+    prodState.showMemoryNotifications = false;
+    return { reRender: true };
+  }
+
+  const allNotifs = await notificationService.getNotifications();
+  const memoryNotifs = allNotifs.filter((n: TuiNotification) => n.type === "memory_update_pending");
+  const count = memoryNotifs.length;
+
+  // Navigation keys
+  if (key === "\x1b[A" || key === "k" || key === "up") { // Up
+    if (count > 0) {
+      prodState.selectedMemoryNotifIndex = (prodState.selectedMemoryNotifIndex - 1 + count) % count;
+      return { reRender: true };
+    }
+  } else if (key === "\x1b[B" || key === "j" || key === "down") { // Down
+    if (count > 0) {
+      prodState.selectedMemoryNotifIndex = (prodState.selectedMemoryNotifIndex + 1) % count;
+      return { reRender: true };
+    }
+  }
+
+  // Action keys
+  if ((key === "a" || key === "A") && count > 0) {
+    const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
+    await notificationService.notify(`Approved: ${selected.message}`, "success");
+    await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
+    return { reRender: true };
+  } else if ((key === "r" || key === "R") && count > 0) {
+    const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
+    await notificationService.notify(`Rejected: ${selected.message}`, "error");
+    await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
+    return { reRender: true };
+  }
+
+  return { reRender: false };
+}
+
+/**
+ * Handles key events for notification panel mode.
+ * Processes exit from notification panel.
+ */
+function handleNotificationPanelKey(key: string, ctx: ProdHandleCtx): { exit?: boolean; reRender?: boolean } {
+  const { prodState } = ctx;
+
+  if (key === KEY_N || key === "\x1b" || key === KEY_ESCAPE) {
+    prodState.showNotifications = false;
+    return { reRender: true };
+  }
+
+  return { reRender: false };
+}
+
+/**
+ * Handles global commands like exit, help, and notification toggles.
+ */
+function handleGlobalCommands(
+  key: string,
+  ctx: ProdHandleCtx,
+): { exit?: boolean; reRender?: boolean } | null {
+  const { prodState } = ctx;
+
+  if (key === "\x1b") { // Esc
+    return { exit: true };
+  } else if (key === KEY_QUESTION) { // Help
+    prodState.showHelp = true;
+    return { reRender: true };
+  } else if (key === KEY_N) { // Notifications toggle
+    prodState.showNotifications = !prodState.showNotifications;
+    return { reRender: true };
+  } else if (key === KEY_M) { // Memory updates toggle
+    prodState.showMemoryNotifications = !prodState.showMemoryNotifications;
+    prodState.selectedMemoryNotifIndex = 0;
+    return { reRender: true };
+  }
+
+  return null;
+}
+
+/**
+ * Handles pane navigation keys (tab, shift+tab, direct pane jump).
+ */
+function handlePaneNavigation(
+  key: string,
+  ctx: ProdHandleCtx,
+): { reRender: boolean } | null {
+  const { panes, activePaneRef } = ctx;
+
+  // Helper to find active pane index
+  const findActiveIndex = () => panes.findIndex((p) => p.id === activePaneRef.id);
+
+  if (key === "\t" || key === KEY_TAB) { // Tab
+    const currentIndex = findActiveIndex();
+    const nextIndex = (currentIndex + 1) % panes.length;
+    activePaneRef.id = panes[nextIndex].id;
+    panes.forEach((p) => p.focused = false);
+    panes[nextIndex].focused = true;
+    return { reRender: true };
+  } else if (key === "\x1b[Z" || key === KEY_SHIFT_TAB) { // Shift+Tab
+    const currentIndex = findActiveIndex();
+    const prevIndex = (currentIndex - 1 + panes.length) % panes.length;
+    activePaneRef.id = panes[prevIndex].id;
+    panes.forEach((p) => p.focused = false);
+    panes[prevIndex].focused = true;
+    return { reRender: true };
+  } else if (key >= KEY_1 && key <= KEY_7) { // Direct pane jump
+    const idx = parseInt(key) - 1;
+    if (idx < panes.length) {
+      panes.forEach((p) => p.focused = false);
+      panes[idx].focused = true;
+      activePaneRef.id = panes[idx].id;
+      return { reRender: true };
+    }
+    return { reRender: false };
+  }
+
+  return null;
+}
+
+/**
+ * Handles pane management operations (split, close, maximize).
+ */
+async function handlePaneManagement(
+  key: string,
+  ctx: ProdHandleCtx,
+): Promise<{ reRender: boolean } | null> {
+  const { panes, views, activePaneRef, addNotification } = ctx;
+
+  if (key === KEY_V) { // Split vertical
+    await splitPane(panes, activePaneRef.id, views, "vertical", addNotification);
+    return { reRender: true };
+  } else if (key === KEY_H) { // Split horizontal
+    await splitPane(panes, activePaneRef.id, views, "horizontal", addNotification);
+    return { reRender: true };
+  } else if (key === KEY_C) { // Close pane
+    const result = await closePane(panes, activePaneRef.id, activePaneRef.id, addNotification);
+    activePaneRef.id = result.activePaneId;
+    return { reRender: true };
+  } else if (key === KEY_Z) { // Maximize/restore
+    maximizePane(panes, activePaneRef.id, addNotification);
+    return { reRender: true };
+  }
+
+  return null;
+}
+
+/**
+ * Handles pane resizing operations (Ctrl+arrow keys).
+ */
+function handlePaneResizing(
+  key: string,
+  ctx: ProdHandleCtx,
+): { reRender: boolean } | null {
+  const { panes, activePaneRef } = ctx;
+
+  if (key === "\x1b[1;5D" || key === KEY_CTRL_LEFT) { // Ctrl+Left
+    resizePane(panes, activePaneRef.id, -0.05, 0);
+    return { reRender: true };
+  } else if (key === "\x1b[1;5C" || key === KEY_CTRL_RIGHT) { // Ctrl+Right
+    resizePane(panes, activePaneRef.id, 0.05, 0);
+    return { reRender: true };
+  } else if (key === "\x1b[1;5A" || key === KEY_CTRL_UP) { // Ctrl+Up
+    resizePane(panes, activePaneRef.id, 0, -0.05);
+    return { reRender: true };
+  } else if (key === "\x1b[1;5B" || key === KEY_CTRL_DOWN) { // Ctrl+Down
+    resizePane(panes, activePaneRef.id, 0, 0.05);
+    return { reRender: true };
+  }
+
+  return null;
+}
+
+/**
+ * Handles layout operations (save, restore, reset).
+ */
+async function handleLayoutOperations(
+  key: string,
+  ctx: ProdHandleCtx,
+): Promise<{ reRender: boolean } | null> {
+  if (key === "\n" || key === KEY_ENTER) {
+    // Enter: show selected pane info (no-op for helper)
+    return { reRender: true };
+  } else if (key === KEY_S) {
+    await ctx.saveLayout();
+    return { reRender: true };
+  } else if (key === KEY_R) {
+    await ctx.restoreLayout();
+    return { reRender: true };
+  } else if (key === KEY_D) {
+    ctx.resetToDefault();
+    return { reRender: true };
+  }
+
+  return null;
+}
+
+/**
+ * Handles key events for top-level navigation and commands.
+ * Processes pane navigation, splitting, resizing, layout operations, and global commands.
+ */
+async function handleTopLevelNavigationKey(
+  key: string,
+  ctx: ProdHandleCtx,
+): Promise<{ exit?: boolean; reRender?: boolean }> {
+  // Global commands
+  const globalResult = handleGlobalCommands(key, ctx);
+  if (globalResult) return globalResult;
+
+  // Pane navigation
+  const navigationResult = handlePaneNavigation(key, ctx);
+  if (navigationResult) return navigationResult;
+
+  // Pane management
+  const managementResult = await handlePaneManagement(key, ctx);
+  if (managementResult) return managementResult;
+
+  // Pane resizing
+  const resizeResult = handlePaneResizing(key, ctx);
+  if (resizeResult) return resizeResult;
+
+  // Layout operations
+  const layoutResult = await handleLayoutOperations(key, ctx);
+  if (layoutResult) return layoutResult;
+
+  // No-op for unrecognized keys
+  return { reRender: false };
+}
+
+/**
  * Handles key events for the production TUI (Text User Interface) environment.
  * Processes navigation, pane management, notification toggling, and memory notification actions
  * based on the provided key input and current context state.
@@ -60,133 +299,20 @@ export interface ProdHandleCtx {
  * specific keyboard shortcuts for the TUI.
  */
 export async function prodHandleKey(key: string, ctx: ProdHandleCtx): Promise<{ exit?: boolean; reRender?: boolean }> {
-  const { prodState, panes, views, activePaneRef, notificationService, addNotification } = ctx;
-
-  // Helper to find active pane index
-  const findActiveIndex = () => panes.findIndex((p) => p.id === activePaneRef.id);
+  const { prodState } = ctx;
 
   // Memory notifications handling
   if (prodState.showMemoryNotifications) {
-    if (key === "m" || key === "\x1b" || key === "esc") {
-      prodState.showMemoryNotifications = false;
-      return { reRender: true };
-    }
-
-    const allNotifs = await notificationService.getNotifications();
-    const memoryNotifs = allNotifs.filter((n: TuiNotification) => n.type === "memory_update_pending");
-    const count = memoryNotifs.length;
-
-    if (key === "\x1b[A" || key === "k" || key === "up") { // Up
-      if (count > 0) {
-        prodState.selectedMemoryNotifIndex = (prodState.selectedMemoryNotifIndex - 1 + count) % count;
-        return { reRender: true };
-      }
-    } else if (key === "\x1b[B" || key === "j" || key === "down") { // Down
-      if (count > 0) {
-        prodState.selectedMemoryNotifIndex = (prodState.selectedMemoryNotifIndex + 1) % count;
-        return { reRender: true };
-      }
-    } else if ((key === "a" || key === "A") && count > 0) {
-      const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
-      await notificationService.notify(`Approved: ${selected.message}`, "success");
-      await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
-      return { reRender: true };
-    } else if ((key === "r" || key === "R") && count > 0) {
-      const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
-      await notificationService.notify(`Rejected: ${selected.message}`, "error");
-      await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
-      return { reRender: true };
-    }
-
-    return { reRender: false };
+    return await handleMemoryNotificationsKey(key, ctx);
   }
 
   // Notification panel handling
   if (prodState.showNotifications) {
-    if (key === KEY_N || key === "\x1b" || key === KEY_ESCAPE) {
-      prodState.showNotifications = false;
-      return { reRender: true };
-    }
-    return { reRender: false };
+    return handleNotificationPanelKey(key, ctx);
   }
 
   // Top-level navigation and commands
-  if (key === "\x1b") { // Esc
-    return { exit: true };
-  } else if (key === KEY_QUESTION) { // Help
-    prodState.showHelp = true;
-    return { reRender: true };
-  } else if (key === KEY_N) { // Notifications toggle
-    prodState.showNotifications = !prodState.showNotifications;
-    return { reRender: true };
-  } else if (key === KEY_M) { // Memory updates toggle
-    prodState.showMemoryNotifications = !prodState.showMemoryNotifications;
-    prodState.selectedMemoryNotifIndex = 0;
-    return { reRender: true };
-  } else if (key === "\t" || key === KEY_TAB) { // Tab
-    const currentIndex = findActiveIndex();
-    const nextIndex = (currentIndex + 1) % panes.length;
-    activePaneRef.id = panes[nextIndex].id;
-    panes.forEach((p) => p.focused = false);
-    panes[nextIndex].focused = true;
-    return { reRender: true };
-  } else if (key === "\x1b[Z" || key === KEY_SHIFT_TAB) { // Shift+Tab
-    const currentIndex = findActiveIndex();
-    const prevIndex = (currentIndex - 1 + panes.length) % panes.length;
-    activePaneRef.id = panes[prevIndex].id;
-    panes.forEach((p) => p.focused = false);
-    panes[prevIndex].focused = true;
-    return { reRender: true };
-  } else if (key >= KEY_1 && key <= KEY_7) { // Direct pane jump
-    const idx = parseInt(key) - 1;
-    if (idx < panes.length) {
-      panes.forEach((p) => p.focused = false);
-      panes[idx].focused = true;
-      activePaneRef.id = panes[idx].id;
-      return { reRender: true };
-    }
-    return { reRender: false };
-  } else if (key === KEY_V) { // Split vertical
-    await splitPane(panes, activePaneRef.id, views, "vertical", addNotification);
-    return { reRender: true };
-  } else if (key === KEY_H) { // Split horizontal
-    await splitPane(panes, activePaneRef.id, views, "horizontal", addNotification);
-    return { reRender: true };
-  } else if (key === KEY_C) { // Close pane
-    const result = await closePane(panes, activePaneRef.id, activePaneRef.id, addNotification);
-    activePaneRef.id = result.activePaneId;
-    return { reRender: true };
-  } else if (key === KEY_Z) { // Maximize/restore
-    maximizePane(panes, activePaneRef.id, addNotification);
-    return { reRender: true };
-  } else if (key === "\x1b[1;5D" || key === KEY_CTRL_LEFT) { // Ctrl+Left
-    resizePane(panes, activePaneRef.id, -0.05, 0);
-    return { reRender: true };
-  } else if (key === "\x1b[1;5C" || key === KEY_CTRL_RIGHT) { // Ctrl+Right
-    resizePane(panes, activePaneRef.id, 0.05, 0);
-    return { reRender: true };
-  } else if (key === "\x1b[1;5A" || key === KEY_CTRL_UP) { // Ctrl+Up
-    resizePane(panes, activePaneRef.id, 0, -0.05);
-    return { reRender: true };
-  } else if (key === "\x1b[1;5B" || key === KEY_CTRL_DOWN) { // Ctrl+Down
-    resizePane(panes, activePaneRef.id, 0, 0.05);
-    return { reRender: true };
-  } else if (key === "\n" || key === KEY_ENTER) {
-    // Enter: show selected pane info (no-op for helper)
-    return { reRender: true };
-  } else if (key === KEY_S) {
-    await ctx.saveLayout();
-    return { reRender: true };
-  } else if (key === KEY_R) {
-    await ctx.restoreLayout();
-    return { reRender: true };
-  } else if (key === KEY_D) {
-    ctx.resetToDefault();
-    return { reRender: true };
-  }
-
-  // No-op for unrecognized keys
-  return { reRender: false };
+  return await handleTopLevelNavigationKey(key, ctx);
 }
 
 export default prodHandleKey;

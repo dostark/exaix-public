@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-23T17:41:24.560Z",
+  "generated_at": "2026-01-31T17:00:11.951Z",
   "index": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -156,9 +156,19 @@
       "embeddingFile": ".copilot/embeddings/self-improvement-loop.md.json"
     },
     {
+      "path": ".copilot/source/agent-thought-standardization.md",
+      "title": "Agent Thought Section Standardization",
+      "embeddingFile": ".copilot/embeddings/agent-thought-standardization.md.json"
+    },
+    {
       "path": ".copilot/source/exoframe.md",
       "title": "ExoFrame Source Development Guidelines",
       "embeddingFile": ".copilot/embeddings/exoframe.md.json"
+    },
+    {
+      "path": ".copilot/source/agent-content-schema.md",
+      "title": "Agent Content Schema Reference",
+      "embeddingFile": ".copilot/embeddings/agent-content-schema.md.json"
     },
     {
       "path": ".copilot/planning/phase-21-magic-numbers-centralization.md",
@@ -177,8 +187,18 @@
       "embeddingFile": ".copilot/embeddings/phase-35-enterprise-provider-support.md.json"
     },
     {
+      "path": ".copilot/planning/phase-33-code-duplication-refactoring.md",
+      "title": "Phase 33: Code Duplication Refactoring & Architecture Improvement",
+      "embeddingFile": ".copilot/embeddings/phase-33-code-duplication-refactoring.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-08-third-party-llm-provider.md",
       "embeddingFile": ".copilot/embeddings/phase-08-third-party-llm-provider.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-30-cli-flow-request.md",
+      "title": "Phase 30: Add Flow Support to `exoctl request` Command",
+      "embeddingFile": ".copilot/embeddings/phase-30-cli-flow-request.md.json"
     },
     {
       "path": ".copilot/planning/phase-22-architecture-and-quality-improvement.md",
@@ -204,6 +224,11 @@
     {
       "path": ".copilot/planning/phase-25-mcp-server.md",
       "embeddingFile": ".copilot/embeddings/phase-25-mcp-server.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-34-code-complexity-reduction.md",
+      "title": "Phase 34: Code Complexity Reduction & Function Refactoring",
+      "embeddingFile": ".copilot/embeddings/phase-34-code-complexity-reduction.md.json"
     },
     {
       "path": ".copilot/planning/phase-15-flow-orchestration-improvements.md",
@@ -255,6 +280,11 @@
       "embeddingFile": ".copilot/embeddings/phase-14-code-deduplication.md.json"
     },
     {
+      "path": ".copilot/planning/phase-32-dynamic-skills-injection.md",
+      "title": "Phase 32: Dynamic Skills Injection for Requests and Plans",
+      "embeddingFile": ".copilot/embeddings/phase-32-dynamic-skills-injection.md.json"
+    },
+    {
       "path": ".copilot/planning/phase-09-ux-improvement.md",
       "embeddingFile": ".copilot/embeddings/phase-09-ux-improvement.md.json"
     },
@@ -278,6 +308,11 @@
     {
       "path": ".copilot/planning/phase-28-env-var-cleanup-and-validation.md",
       "embeddingFile": ".copilot/embeddings/phase-28-env-var-cleanup-and-validation.md.json"
+    },
+    {
+      "path": ".copilot/planning/phase-31-agent-blueprint-json-migration.md",
+      "title": "Agent Blueprint JSON Migration",
+      "embeddingFile": ".copilot/embeddings/phase-31-agent-blueprint-json-migration.md.json"
     },
     {
       "path": ".copilot/planning/phase-01-runtime-and-storage.md",
@@ -368,6 +403,15 @@
       "embeddingFile": ".copilot/embeddings/request-processing-failure-test-provider.md.json"
     },
     {
+      "path": ".copilot/issues/002_security_expert_no_changeset.md",
+      "embeddingFile": ".copilot/embeddings/002_security_expert_no_changeset.md.json"
+    },
+    {
+      "path": ".copilot/issues/plan-show-missing-request-context.md",
+      "title": "exoctl plan show/list Missing Request and Agent Context",
+      "embeddingFile": ".copilot/embeddings/plan-show-missing-request-context.md.json"
+    },
+    {
       "path": ".copilot/issues/001_daemon_plan_lifecycle.md",
       "embeddingFile": ".copilot/embeddings/001_daemon_plan_lifecycle.md.json"
     },
@@ -381,6 +425,11 @@
       "embeddingFile": ".copilot/embeddings/changeset-approve-branch-not-found.md.json"
     },
     {
+      "path": ".copilot/issues/plan-step-execution-logic-missing.md",
+      "title": "Plan step execution logic not implemented",
+      "embeddingFile": ".copilot/embeddings/plan-step-execution-logic-missing.md.json"
+    },
+    {
       "path": ".copilot/issues/README.md",
       "title": "Issues Folder Guidelines",
       "embeddingFile": ".copilot/embeddings/README.md.json"
@@ -389,6 +438,21 @@
       "path": ".copilot/issues/plan-show-rejected-plans-not-displayed.md",
       "title": "Rejected plans not shown in plan show command",
       "embeddingFile": ".copilot/embeddings/plan-show-rejected-plans-not-displayed.md.json"
+    },
+    {
+      "path": ".copilot/issues/changeset-show-missing-request-context.md",
+      "title": "Enhance changeset commands to show request and plan context",
+      "embeddingFile": ".copilot/embeddings/changeset-show-missing-request-context.md.json"
+    },
+    {
+      "path": ".copilot/issues/database-changeset-table-missing.md",
+      "title": "Database changeset table not created during migration",
+      "embeddingFile": ".copilot/embeddings/database-changeset-table-missing.md.json"
+    },
+    {
+      "path": ".copilot/issues/llm-provider-env-vars-ignored.md",
+      "title": "LLM Provider Environment Variables Ignored in Provider Selection",
+      "embeddingFile": ".copilot/embeddings/llm-provider-env-vars-ignored.md.json"
     },
     {
       "path": ".copilot/issues/plan-validation-failure-senior-coder.md",
@@ -404,6 +468,16 @@
       "path": ".copilot/issues/changeset-show-diff-option-not-implemented.md",
       "title": "changeset show --diff option not implemented",
       "embeddingFile": ".copilot/embeddings/changeset-show-diff-option-not-implemented.md.json"
+    },
+    {
+      "path": ".copilot/issues/plan-reject-after-changeset-rejection.md",
+      "title": "Cannot reject plan after changeset rejection",
+      "embeddingFile": ".copilot/embeddings/plan-reject-after-changeset-rejection.md.json"
+    },
+    {
+      "path": ".copilot/issues/execution-folder-wrong-location.md",
+      "title": "Execution folder placed in workspace root instead of Memory/",
+      "embeddingFile": ".copilot/embeddings/execution-folder-wrong-location.md.json"
     },
     {
       "path": ".copilot/issues/event-journal-token-tracking-missing.md",

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-31T16:34:46.069Z",
+  "generated_at": "2026-01-31T17:55:00.160Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -722,6 +722,32 @@
         ".copilot/chunks/phase-22-architecture-and-quality-improvement.md.chunk5.txt",
         ".copilot/chunks/phase-22-architecture-and-quality-improvement.md.chunk6.txt",
         ".copilot/chunks/phase-22-architecture-and-quality-improvement.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-34-code-complexity-reduction.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 34: Code Complexity Reduction & Function Refactoring",
+      "short_summary": "Systematic refactoring to reduce cyclomatic complexity from average 38.23 to <30, targeting functions >25 complexity and files >150 complexity through function extraction, architectural improvements, and design pattern implementation.",
+      "version": "1.0",
+      "topics": [
+        "refactoring",
+        "complexity",
+        "architecture",
+        "design-patterns",
+        "maintainability",
+        "code-quality"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk0.txt",
+        ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk1.txt",
+        ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk2.txt",
+        ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk3.txt",
+        ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk4.txt",
+        ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk5.txt",
+        ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk6.txt",
+        ".copilot/chunks/phase-34-code-complexity-reduction.md.chunk7.txt"
       ]
     },
     {

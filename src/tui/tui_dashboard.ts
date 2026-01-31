@@ -537,8 +537,237 @@ export async function launchTuiDashboard(
     databaseService?: DatabaseService;
   } = {},
 ): Promise<TuiDashboard | undefined> {
+  if (options.testMode) {
+    return await createTestDashboard(options);
+  }
+
+  return await createProductionDashboard(options);
+}
+
+/**
+ * Creates a test-mode dashboard with mocked services and simplified behavior.
+ * This reduces the complexity of the main launchTuiDashboard function by extracting
+ * all test-specific initialization logic.
+ */
+function createTestDashboard(options: {
+  notificationService?: NotificationService;
+  databaseService?: DatabaseService;
+}): TuiDashboard {
   // Initialize views using registry
-  const views = initDashboardViews({ testMode: options.testMode, databaseService: options.databaseService });
+  const views = initDashboardViews({ testMode: true, databaseService: options.databaseService });
+  const portalView = views[0];
+
+  // Initialize with single pane
+  const initialPane: Pane = {
+    id: "main",
+    view: views[0],
+    flexX: 0,
+    flexY: 0,
+    flexWidth: 1.0,
+    flexHeight: 1.0,
+    x: 0,
+    y: 0,
+    width: TUI_LAYOUT_FULL_WIDTH,
+    height: TUI_LAYOUT_DEFAULT_HEIGHT,
+    focused: true,
+    maximized: false,
+  };
+  const panes: Pane[] = [initialPane];
+  const activePaneId = "main";
+
+  // Initialize state
+  const state: DashboardViewState = createDefaultDashboardState();
+  const theme: Theme = getTheme(true);
+
+  // View picker state
+  let viewPickerIndex = 0;
+
+  // Initialize notification service if not provided
+  const localNotifs: any[] = [];
+  const notificationService = options.notificationService || {
+    async notify(message: string, type = "info") {
+      localNotifs.unshift({ // Newest first
+        id: crypto.randomUUID(),
+        type,
+        message,
+        created_at: new Date().toISOString(),
+      });
+      await Promise.resolve();
+    },
+    async getNotifications() {
+      return await Promise.resolve(localNotifs.filter((n) => !n.dismissed_at));
+    },
+    async getPendingCount() {
+      return await Promise.resolve(localNotifs.filter((n) => !n.dismissed_at).length);
+    },
+    async clearNotification(id: string) {
+      const notif = localNotifs.find((n) => n.id === id);
+      if (notif) notif.dismissed_at = new Date().toISOString();
+      await Promise.resolve();
+    },
+    async clearAllNotifications() {
+      localNotifs.forEach((n) => n.dismissed_at = new Date().toISOString());
+      await Promise.resolve();
+    },
+  } as unknown as NotificationService;
+
+  return {
+    panes,
+    activePaneId,
+    views,
+    state,
+    theme,
+    notificationService,
+    // Expose extracted helpers so test-mode key handler can call them
+    handleHelpOverlay: _handleHelpOverlay,
+    handleViewPicker: _handleViewPicker,
+    handleMemoryNotifications: _handleMemoryNotificationsLocal,
+    async handleKey(key: string) {
+      const viewPickerRef = { index: viewPickerIndex };
+      const idx = await import("./tui_helpers/handle_key.ts").then((m) =>
+        m.testModeHandleKey(this, key, panes, views, viewPickerRef)
+      );
+      viewPickerIndex = viewPickerRef.index;
+      if (
+        (globalThis as any).Deno && (globalThis as any).Deno.env &&
+        (globalThis as any).Deno.env.get("EXO_TEST_LOG_TAB_DEBUG") === "1"
+      ) {
+        console.debug("[TUI][DEBUG] launch.handleKey returned active=", this.activePaneId);
+      }
+      // Stabilize state: allow any queued tasks to run before returning to tests
+      await new Promise((res) => setTimeout(res, 0));
+      return idx;
+    },
+    async render() {
+      // Test mode render - does nothing
+    },
+    async renderStatusBar() {
+      const activePane = panes.find((p) => p.id === this.activePaneId);
+      const indicator = renderViewIndicator(panes, this.activePaneId, this.theme);
+      const notificationCount = await this.notificationService.getPendingCount();
+      const notificationBadge = notificationCount > 0 ? ` 🔔${notificationCount}` : "";
+      return `${indicator} │ Active: ${activePane?.view.name}${notificationBadge}`;
+    },
+    renderViewIndicator() {
+      return renderViewIndicator(panes, this.activePaneId, this.theme);
+    },
+    renderGlobalHelp() {
+      return renderGlobalHelpOverlay(this.theme);
+    },
+    async renderNotifications() {
+      return await renderNotificationPanel(this.notificationService, this.theme, this.state);
+    },
+    async approveMemoryUpdate(_proposalId: string) {
+      await this.notify("Memory update approved (test)", "success");
+    },
+    async rejectMemoryUpdate(_proposalId: string) {
+      await this.notify("Memory update rejected (test)", "error");
+    },
+    portalManager: {
+      service: (portalView as any).service,
+      renderPortalList: (portalView as any).renderPortalList.bind(portalView),
+    },
+    async notify(message: string, type = "info") {
+      await this.notificationService.notify(message, type);
+    },
+    async dismissNotification(id: string) {
+      await this.notificationService.clearNotification(id);
+    },
+    async clearNotifications() {
+      await this.notificationService.clearAllNotifications();
+    },
+    accessibility: {
+      highContrast: false,
+      screenReader: false,
+    },
+    keybindings: {
+      nextView: KEY_TAB,
+      prevView: KEY_SHIFT_TAB,
+      notify: KEY_N,
+      splitVertical: KEY_V,
+      splitHorizontal: KEY_H,
+      closePane: KEY_C,
+    },
+    async splitPane(direction: "vertical" | "horizontal") {
+      const result = await helperSplitPane(panes, this.activePaneId, views, direction, this.notify.bind(this));
+      this.activePaneId = result.activePaneId;
+    },
+    async closePane(paneId: string) {
+      const result = await helperClosePane(panes, this.activePaneId, paneId, this.notify.bind(this));
+      this.activePaneId = result.activePaneId;
+    },
+    resizePane(paneId: string, deltaWidth: number, deltaHeight: number) {
+      helperResizePane(panes, paneId, deltaWidth, deltaHeight);
+    },
+    switchPane(paneId: string) {
+      const newId = helperSwitchPane(panes, paneId);
+      if (newId) this.activePaneId = newId;
+    },
+    maximizePane(paneId: string) {
+      helperMaximizePane(panes, paneId, this.notify.bind(this));
+    },
+    restorePane(paneId: string) {
+      const pane = panes.find((p) => p.id === paneId);
+      if (pane && pane.maximized) {
+        this.maximizePane(paneId);
+      }
+    },
+    saveLayout() {
+      // Mock save - in production this would write to file
+      // For testing, we can override this method
+      return Promise.resolve();
+    },
+    restoreLayout() {
+      // Mock restore - in production this would read from file
+      // For testing, we can override this method
+      return Promise.resolve();
+    },
+    async resetToDefault() {
+      // Reset to single pane with PortalManagerView
+      panes.length = 0;
+      panes.push({
+        id: "main",
+        view: views[0],
+        flexX: 0,
+        flexY: 0,
+        flexWidth: 1.0,
+        flexHeight: 1.0,
+        x: 0,
+        y: 0,
+        width: TUI_LAYOUT_FULL_WIDTH,
+        height: TUI_LAYOUT_DEFAULT_HEIGHT,
+        focused: true,
+        maximized: false,
+      });
+      this.activePaneId = "main";
+      await this.clearNotifications();
+      await this.notify("Layout reset to default", "info");
+    },
+    destroy() {
+      // Clean up all views to prevent interval leaks in tests
+      for (const view of views) {
+        if (typeof view.dispose === "function") {
+          view.dispose();
+        } else if (typeof view.destroy === "function") {
+          view.destroy();
+        }
+      }
+    },
+  } as TuiDashboard;
+}
+
+/**
+ * Creates a production-mode dashboard with full TUI functionality.
+ * This reduces the complexity of the main launchTuiDashboard function by extracting
+ * all production-specific initialization and interactive loop logic.
+ */
+async function createProductionDashboard(options: {
+  nonInteractive?: boolean;
+  notificationService?: NotificationService;
+  databaseService?: DatabaseService;
+}): Promise<TuiDashboard | undefined> {
+  // Initialize views using registry
+  const views = initDashboardViews({ testMode: false, databaseService: options.databaseService });
   const portalView = views[0];
 
   // Initialize with single pane
@@ -560,188 +789,8 @@ export async function launchTuiDashboard(
   let activePaneId = "main";
 
   // Initialize state
-  const state: DashboardViewState = createDefaultDashboardState();
+  const _state: DashboardViewState = createDefaultDashboardState();
   const theme: Theme = getTheme(true);
-
-  // View picker state
-  let viewPickerIndex = 0;
-
-  if (options.testMode) {
-    // Initialize notification service if not provided
-    const localNotifs: any[] = [];
-    const notificationService = options.notificationService || {
-      async notify(message: string, type = "info") {
-        localNotifs.unshift({ // Newest first
-          id: crypto.randomUUID(),
-          type,
-          message,
-          created_at: new Date().toISOString(),
-        });
-        await Promise.resolve();
-      },
-      async getNotifications() {
-        return await Promise.resolve(localNotifs.filter((n) => !n.dismissed_at));
-      },
-      async getPendingCount() {
-        return await Promise.resolve(localNotifs.filter((n) => !n.dismissed_at).length);
-      },
-      async clearNotification(id: string) {
-        const notif = localNotifs.find((n) => n.id === id);
-        if (notif) notif.dismissed_at = new Date().toISOString();
-        await Promise.resolve();
-      },
-      async clearAllNotifications() {
-        localNotifs.forEach((n) => n.dismissed_at = new Date().toISOString());
-        await Promise.resolve();
-      },
-    } as unknown as NotificationService;
-
-    return {
-      panes,
-      activePaneId,
-      views,
-      state,
-      theme,
-      notificationService,
-      // Expose extracted helpers so test-mode key handler can call them
-      handleHelpOverlay: _handleHelpOverlay,
-      handleViewPicker: _handleViewPicker,
-      handleMemoryNotifications: _handleMemoryNotificationsLocal,
-      async handleKey(key: string) {
-        const viewPickerRef = { index: viewPickerIndex };
-        const idx = await import("./tui_helpers/handle_key.ts").then((m) =>
-          m.testModeHandleKey(this, key, panes, views, viewPickerRef)
-        );
-        viewPickerIndex = viewPickerRef.index;
-        if (
-          (globalThis as any).Deno && (globalThis as any).Deno.env &&
-          (globalThis as any).Deno.env.get("EXO_TEST_LOG_TAB_DEBUG") === "1"
-        ) {
-          console.debug("[TUI][DEBUG] launch.handleKey returned active=", this.activePaneId);
-        }
-        // Stabilize state: allow any queued tasks to run before returning to tests
-        await new Promise((res) => setTimeout(res, 0));
-        return idx;
-      },
-      async render() {
-        // Test mode render - does nothing
-      },
-      async renderStatusBar() {
-        const activePane = panes.find((p) => p.id === this.activePaneId);
-        const indicator = renderViewIndicator(panes, this.activePaneId, this.theme);
-        const notificationCount = await this.notificationService.getPendingCount();
-        const notificationBadge = notificationCount > 0 ? ` 🔔${notificationCount}` : "";
-        return `${indicator} │ Active: ${activePane?.view.name}${notificationBadge}`;
-      },
-      renderViewIndicator() {
-        return renderViewIndicator(panes, this.activePaneId, this.theme);
-      },
-      renderGlobalHelp() {
-        return renderGlobalHelpOverlay(this.theme);
-      },
-      async renderNotifications() {
-        return await renderNotificationPanel(this.notificationService, this.theme, this.state);
-      },
-      async approveMemoryUpdate(_proposalId: string) {
-        await this.notify("Memory update approved (test)", "success");
-      },
-      async rejectMemoryUpdate(_proposalId: string) {
-        await this.notify("Memory update rejected (test)", "error");
-      },
-      portalManager: {
-        service: (portalView as any).service,
-        renderPortalList: (portalView as any).renderPortalList.bind(portalView),
-      },
-      async notify(message: string, type = "info") {
-        await this.notificationService.notify(message, type);
-      },
-      async dismissNotification(id: string) {
-        await this.notificationService.clearNotification(id);
-      },
-      async clearNotifications() {
-        await this.notificationService.clearAllNotifications();
-      },
-      accessibility: {
-        highContrast: false,
-        screenReader: false,
-      },
-      keybindings: {
-        nextView: KEY_TAB,
-        prevView: KEY_SHIFT_TAB,
-        notify: KEY_N,
-        splitVertical: KEY_V,
-        splitHorizontal: KEY_H,
-        closePane: KEY_C,
-      },
-      async splitPane(direction: "vertical" | "horizontal") {
-        const result = await helperSplitPane(panes, this.activePaneId, views, direction, this.notify.bind(this));
-        this.activePaneId = result.activePaneId;
-      },
-      async closePane(paneId: string) {
-        const result = await helperClosePane(panes, this.activePaneId, paneId, this.notify.bind(this));
-        this.activePaneId = result.activePaneId;
-      },
-      resizePane(paneId: string, deltaWidth: number, deltaHeight: number) {
-        helperResizePane(panes, paneId, deltaWidth, deltaHeight);
-      },
-      switchPane(paneId: string) {
-        const newId = helperSwitchPane(panes, paneId);
-        if (newId) this.activePaneId = newId;
-      },
-      maximizePane(paneId: string) {
-        helperMaximizePane(panes, paneId, this.notify.bind(this));
-      },
-      restorePane(paneId: string) {
-        const pane = panes.find((p) => p.id === paneId);
-        if (pane && pane.maximized) {
-          this.maximizePane(paneId);
-        }
-      },
-      saveLayout() {
-        // Mock save - in production this would write to file
-        // For testing, we can override this method
-        return Promise.resolve();
-      },
-      restoreLayout() {
-        // Mock restore - in production this would read from file
-        // For testing, we can override this method
-        return Promise.resolve();
-      },
-      async resetToDefault() {
-        // Reset to single pane with PortalManagerView
-        panes.length = 0;
-        panes.push({
-          id: "main",
-          view: views[0],
-          flexX: 0,
-          flexY: 0,
-          flexWidth: 1.0,
-          flexHeight: 1.0,
-          x: 0,
-          y: 0,
-          width: TUI_LAYOUT_FULL_WIDTH,
-          height: TUI_LAYOUT_DEFAULT_HEIGHT,
-          focused: true,
-          maximized: false,
-        });
-        this.activePaneId = "main";
-        await this.clearNotifications();
-        await this.notify("Layout reset to default", "info");
-      },
-      destroy() {
-        // Clean up all views to prevent interval leaks in tests
-        for (const view of views) {
-          if (typeof view.dispose === "function") {
-            view.dispose();
-          } else if (typeof view.destroy === "function") {
-            view.destroy();
-          }
-        }
-      },
-    } as TuiDashboard;
-  }
-  // Production TUI integration using console-based rendering
-  // TODO: Replace with full deno-tui integration when available
 
   // Production state
   // Initialize services for production
@@ -797,89 +846,119 @@ export async function launchTuiDashboard(
   const render = prodRenderWrapper;
   await render();
 
-  async function runProdInteractiveLoop() {
-    // Interactive mode: attempt to enable raw mode when possible and provide a line-based fallback
-    let rawEnabled = false;
-    try {
-      const stdinAny = Deno.stdin as any;
-      const isTty = typeof stdinAny.isTerminal === "function" && stdinAny.isTerminal();
-      if (isTty) {
-        rawEnabled = tryEnableRawMode();
-        if (!rawEnabled) console.warn("Warning: terminal raw mode not available; keyboard keys will require Enter.");
-      } else {
-        console.log("Non-tty stdin detected; using line-based input (press Enter after commands).");
-      }
-
-      const decoder = new TextDecoder();
-
-      if (rawEnabled) {
-        // Raw-mode loop - immediate key sequences
-        for await (const chunk of Deno.stdin.readable) {
-          const input = decoder.decode(chunk);
-          const key = input; // preserve escape sequences
-
-          const activePaneRef = { id: activePaneId };
-          const res = await import("./tui_helpers/prod_handle_key.ts").then((m) =>
-            m.prodHandleKey(key, {
-              prodState,
-              panes,
-              views,
-              activePaneRef,
-              notificationService,
-              addNotification,
-              saveLayout,
-              restoreLayout,
-              resetToDefault,
-            })
-          );
-
-          activePaneId = activePaneRef.id;
-          if (res?.exit) break;
-          if (res?.reRender) await render();
-          continue;
-        }
-      } else {
-        // Non-raw fallback: read lines from stdin (Enter-terminated commands)
-        const { readLines } = await import("https://deno.land/std@0.203.0/io/mod.ts");
-        for await (const line of readLines(Deno.stdin)) {
-          const cmd = line.trim().toLowerCase();
-          if (!cmd) continue;
-
-          const activePaneRef = { id: activePaneId };
-          const res = await import("./tui_helpers/prod_handle_key.ts").then((m) =>
-            m.prodHandleKey(cmd, {
-              prodState,
-              panes,
-              views,
-              activePaneRef,
-              notificationService,
-              addNotification,
-              saveLayout,
-              restoreLayout,
-              resetToDefault,
-            })
-          );
-
-          activePaneId = activePaneRef.id;
-          if (res?.exit) break;
-          if (res?.reRender) await render();
-        }
-      }
-    } finally {
-      if (rawEnabled) {
-        tryDisableRawMode();
-      }
-    }
-  }
-
   if (!options.nonInteractive) {
-    await runProdInteractiveLoop();
+    await runProductionInteractiveLoop({
+      panes,
+      activePaneId: { value: activePaneId },
+      views,
+      prodState,
+      theme,
+      notificationService,
+      addNotification,
+      saveLayout,
+      restoreLayout,
+      resetToDefault,
+      render,
+    });
+    activePaneId = { value: activePaneId }.value;
   }
 
   // Save layout on exit
   await saveLayout();
 
   console.log("Exiting dashboard.");
+
+  // Production mode doesn't return a dashboard object
+  return undefined;
+}
+
+/**
+ * Runs the production interactive loop with raw mode or line-based input.
+ * This extracts the complex interactive loop logic from the main function.
+ */
+async function runProductionInteractiveLoop(context: {
+  panes: Pane[];
+  activePaneId: { value: string };
+  views: any[];
+  prodState: DashboardViewState;
+  theme: Theme;
+  notificationService: NotificationService;
+  addNotification: (message: string, type?: string) => Promise<void>;
+  saveLayout: () => Promise<void>;
+  restoreLayout: () => Promise<void>;
+  resetToDefault: () => void;
+  render: () => Promise<void>;
+}): Promise<void> {
+  // Interactive mode: attempt to enable raw mode when possible and provide a line-based fallback
+  let rawEnabled = false;
+  try {
+    const stdinAny = Deno.stdin as any;
+    const isTty = typeof stdinAny.isTerminal === "function" && stdinAny.isTerminal();
+    if (isTty) {
+      rawEnabled = tryEnableRawMode();
+      if (!rawEnabled) console.warn("Warning: terminal raw mode not available; keyboard keys will require Enter.");
+    } else {
+      console.log("Non-tty stdin detected; using line-based input (press Enter after commands).");
+    }
+
+    const decoder = new TextDecoder();
+
+    if (rawEnabled) {
+      // Raw-mode loop - immediate key sequences
+      for await (const chunk of Deno.stdin.readable) {
+        const input = decoder.decode(chunk);
+        const key = input; // preserve escape sequences
+
+        const res = await import("./tui_helpers/prod_handle_key.ts").then((m) =>
+          m.prodHandleKey(key, {
+            prodState: context.prodState,
+            panes: context.panes,
+            views: context.views,
+            activePaneRef: { id: context.activePaneId.value },
+            notificationService: context.notificationService,
+            addNotification: context.addNotification,
+            saveLayout: context.saveLayout,
+            restoreLayout: context.restoreLayout,
+            resetToDefault: context.resetToDefault,
+          })
+        );
+
+        context.activePaneId.value = { id: context.activePaneId.value }.id;
+        if (res?.exit) break;
+        if (res?.reRender) await context.render();
+        continue;
+      }
+    } else {
+      // Non-raw fallback: read lines from stdin (Enter-terminated commands)
+      const { readLines } = await import("https://deno.land/std@0.203.0/io/mod.ts");
+      for await (const line of readLines(Deno.stdin)) {
+        const cmd = line.trim().toLowerCase();
+        if (!cmd) continue;
+
+        const res = await import("./tui_helpers/prod_handle_key.ts").then((m) =>
+          m.prodHandleKey(cmd, {
+            prodState: context.prodState,
+            panes: context.panes,
+            views: context.views,
+            activePaneRef: { id: context.activePaneId.value },
+            notificationService: context.notificationService,
+            addNotification: context.addNotification,
+            saveLayout: context.saveLayout,
+            restoreLayout: context.restoreLayout,
+            resetToDefault: context.resetToDefault,
+          })
+        );
+
+        context.activePaneId.value = { id: context.activePaneId.value }.id;
+        if (res?.exit) break;
+        if (res?.reRender) await context.render();
+      }
+    }
+  } finally {
+    if (rawEnabled) {
+      tryDisableRawMode();
+    }
+  }
 }
 
 if (import.meta.main) {
