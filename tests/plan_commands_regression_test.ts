@@ -62,6 +62,16 @@ async function createTestWorkspace(baseDir: string): Promise<{
   return { plansDir, activeDir, rejectedDir };
 }
 
+// Helper for test setup
+function initPlanTest(tempDir: string) {
+  const config = {
+    system: { root: tempDir },
+    paths: { ...ExoPathDefaults },
+  } as any;
+  const stubDb = createStubDb();
+  return { config, stubDb };
+}
+
 // ============================================================================
 // Regression Tests for Plan List Directory Scanning
 // ============================================================================
@@ -79,16 +89,8 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
 
-    // Create minimal config pointing to our test workspace
-    const config = {
-      system: { root: tempDir },
-      paths: { ...ExoPathDefaults },
-    } as any;
-
-    // Create stub db
-    const stubDb = createStubDb();
-
-    const planCommands = new PlanCommands({ config, db: stubDb as any });
+    const { config, stubDb } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands({ config, db: stubDb });
 
     // List with status=approved - should find the plan in Active directory
     const approvedPlans = await planCommands.list(STATUS_APPROVED);
@@ -116,41 +118,8 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
 
-    // Create minimal config
-    const config = {
-      system: { root: tempDir },
-      paths: { ...ExoPathDefaults },
-    } as any;
-
-    const stubDb = {
-      logActivity: () => {},
-      waitForFlush: async () => {},
-      preparedGet: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve(null);
-      },
-      preparedAll: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve([]);
-      },
-      preparedRun: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve({});
-      },
-      async getActivitiesByTraceSafe(traceId: string) {
-        if (typeof (this as any).getActivitiesByTrace === "function") {
-          const r = (this as any).getActivitiesByTrace(traceId);
-          return r instanceof Promise ? await r : r;
-        }
-        return [];
-      },
-      async getActivitiesByActionTypeSafe(actionType: string) {
-        if (typeof (this as any).getActivitiesByActionType === "function") {
-          const r = (this as any).getActivitiesByActionType(actionType);
-          return r instanceof Promise ? await r : r;
-        }
-        return [];
-      },
-    };
-
-    const planCommands = new PlanCommands({ config, db: stubDb as any });
+    const { config, stubDb } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands({ config, db: stubDb });
 
     // List with status=rejected - should find the plan in Rejected directory
     const rejectedPlans = await planCommands.list(STATUS_REJECTED);
@@ -175,40 +144,8 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
 
-    const config = {
-      system: { root: tempDir },
-      paths: { ...ExoPathDefaults },
-    } as any;
-
-    const stubDb = {
-      logActivity: () => {},
-      waitForFlush: async () => {},
-      preparedGet: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve(null);
-      },
-      preparedAll: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve([]);
-      },
-      preparedRun: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve({});
-      },
-      async getActivitiesByTraceSafe(traceId: string) {
-        if (typeof (this as any).getActivitiesByTrace === "function") {
-          const r = (this as any).getActivitiesByTrace(traceId);
-          return r instanceof Promise ? await r : r;
-        }
-        return [];
-      },
-      async getActivitiesByActionTypeSafe(actionType: string) {
-        if (typeof (this as any).getActivitiesByActionType === "function") {
-          const r = (this as any).getActivitiesByActionType(actionType);
-          return r instanceof Promise ? await r : r;
-        }
-        return [];
-      },
-    };
-
-    const planCommands = new PlanCommands({ config, db: stubDb as any });
+    const { config, stubDb } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands({ config, db: stubDb });
 
     // List with status=review - should find the plan in Plans directory
     const reviewPlans = await planCommands.list(STATUS_REVIEW);
@@ -234,40 +171,8 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
 
-    const config = {
-      system: { root: tempDir },
-      paths: { ...ExoPathDefaults },
-    } as any;
-
-    const stubDb = {
-      logActivity: () => {},
-      waitForFlush: async () => {},
-      preparedGet: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve(null);
-      },
-      preparedAll: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve([]);
-      },
-      preparedRun: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve({});
-      },
-      async getActivitiesByTraceSafe(traceId: string) {
-        if (typeof (this as any).getActivitiesByTrace === "function") {
-          const r = (this as any).getActivitiesByTrace(traceId);
-          return r instanceof Promise ? await r : r;
-        }
-        return [];
-      },
-      async getActivitiesByActionTypeSafe(actionType: string) {
-        if (typeof (this as any).getActivitiesByActionType === "function") {
-          const r = (this as any).getActivitiesByActionType(actionType);
-          return r instanceof Promise ? await r : r;
-        }
-        return [];
-      },
-    };
-
-    const planCommands = new PlanCommands({ config, db: stubDb as any });
+    const { config, stubDb } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands({ config, db: stubDb });
 
     // List without filter - should find all 3 plans from all directories
     const allPlans = await planCommands.list();
@@ -292,40 +197,8 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
 
-    const config = {
-      system: { root: tempDir },
-      paths: { ...ExoPathDefaults },
-    } as any;
-
-    const stubDb = {
-      logActivity: () => {},
-      waitForFlush: async () => {},
-      preparedGet: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve(null);
-      },
-      preparedAll: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve([]);
-      },
-      preparedRun: function (_query: string, _params: unknown[] = []) {
-        return Promise.resolve({});
-      },
-      async getActivitiesByTraceSafe(traceId: string) {
-        if (typeof (this as any).getActivitiesByTrace === "function") {
-          const r = (this as any).getActivitiesByTrace(traceId);
-          return r instanceof Promise ? await r : r;
-        }
-        return [];
-      },
-      async getActivitiesByActionTypeSafe(actionType: string) {
-        if (typeof (this as any).getActivitiesByActionType === "function") {
-          const r = (this as any).getActivitiesByActionType(actionType);
-          return r instanceof Promise ? await r : r;
-        }
-        return [];
-      },
-    };
-
-    const planCommands = new PlanCommands({ config, db: stubDb as any });
+    const { config, stubDb } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands({ config, db: stubDb });
 
     // Should not throw, just return empty array
     const allPlans = await planCommands.list();
@@ -363,19 +236,8 @@ Deno.test("[regression] Plan reject finds plans in any directory", async () => {
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
 
-    // Create minimal config
-    const config = {
-      system: { root: tempDir },
-      paths: { ...ExoPathDefaults },
-    } as any;
-
-    // Create stub db with required methods
-    const stubDb = {
-      logActivity: () => {},
-      waitForFlush: async () => {},
-    };
-
-    const planCommands = new PlanCommands({ config, db: stubDb as any });
+    const { config, stubDb } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands({ config, db: stubDb });
 
     // Before the fix: reject() would only search Workspace/Plans directory
     // After the fix: reject() searches all directories like show() and list()
@@ -455,19 +317,8 @@ This plan references a request and should show request context.
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
     const { RequestCommands: _RequestCommands } = await import("../src/cli/request_commands.ts");
 
-    // Create minimal config pointing to our test workspace
-    const config = {
-      system: { root: tempDir },
-      paths: { ...ExoPathDefaults },
-    } as any;
-
-    // Create stub db
-    const stubDb = {
-      logActivity: () => {},
-      waitForFlush: async () => {},
-    };
-
-    const planCommands = new PlanCommands({ config, db: stubDb as any });
+    const { config, stubDb } = initPlanTest(tempDir);
+    const planCommands = new PlanCommands({ config, db: stubDb });
 
     // Test plan list includes request context
     const plans = await planCommands.list();

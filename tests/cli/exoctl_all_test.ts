@@ -10,6 +10,7 @@ import {
   PortalOperation,
   SkillStatus,
 } from "../../src/enums.ts";
+import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 
 /*
   Note: This test file exercises the top-level CLI parsing and command
@@ -21,108 +22,6 @@ import {
   integration, use the other CLI test modules that rely on
   `initTestDbService()` / `createCliTestContext()`.
 */
-
-// Reusable helpers
-async function withTestMod<T>(fn: (mod: any, ctx: any) => Promise<T> | T) {
-  const origEnv = Deno.env.get("EXO_TEST_MODE");
-  Deno.env.set("EXO_TEST_MODE", "1");
-  try {
-    const mod = await import("../../src/cli/exoctl.ts");
-    const ctx = mod.__test_getContext();
-    return await fn(mod, ctx);
-  } finally {
-    if (origEnv === undefined) Deno.env.delete("EXO_TEST_MODE");
-    else Deno.env.set("EXO_TEST_MODE", origEnv);
-  }
-}
-
-async function captureConsoleOutput(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
-  let out = "";
-  const origLog = console.log;
-  console.log = (msg: string) => (out += msg + "\n");
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    await Promise.race([
-      fn(),
-      new Promise<never>((_, reject) => {
-        controller.signal.addEventListener("abort", () => {
-          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
-        });
-      }),
-    ]);
-  } finally {
-    clearTimeout(timeoutId);
-    console.log = origLog;
-  }
-  return out;
-}
-
-async function captureAllOutputs(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
-  const logs: string[] = [];
-  const warns: string[] = [];
-  const errs: string[] = [];
-  const origLog = console.log;
-  const origWarn = console.warn;
-  const origErr = console.error;
-  console.log = (...args: any[]) => logs.push(args.join(" "));
-  console.warn = (...args: any[]) => warns.push(args.join(" "));
-  console.error = (...args: any[]) => errs.push(args.join(" "));
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    await Promise.race([
-      fn(),
-      new Promise<never>((_, reject) => {
-        controller.signal.addEventListener("abort", () => {
-          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
-        });
-      }),
-    ]);
-  } finally {
-    clearTimeout(timeoutId);
-    console.log = origLog;
-    console.warn = origWarn;
-    console.error = origErr;
-  }
-  return { logs, warns, errs };
-}
-
-async function expectExitWithLogs(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
-  const origExit = Deno.exit;
-  const origErr = console.error;
-  const errors: string[] = [];
-  console.error = (...args: any[]) => errors.push(args.join(" "));
-  (Deno as any).exit = (code?: number) => {
-    throw new Error(`DENO_EXIT:${code ?? 0}`);
-  };
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    await Promise.race([
-      fn(),
-      new Promise<never>((_, reject) => {
-        controller.signal.addEventListener("abort", () => {
-          reject(new Error(`Test operation timed out after ${timeoutMs}ms`));
-        });
-      }),
-    ]);
-    throw new Error("Expected Deno.exit to be called");
-  } catch (e: any) {
-    if (!e.message.startsWith("DENO_EXIT:") && !e.message.includes("timed out")) throw e;
-    return { err: e, errors };
-  } finally {
-    clearTimeout(timeoutId);
-    console.error = origErr;
-    Deno.exit = origExit;
-  }
-}
 
 // ---- Basic module export sanity tests ----
 Deno.test("exoctl exposes test context when EXO_TEST_MODE=1", async () => {

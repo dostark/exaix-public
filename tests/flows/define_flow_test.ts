@@ -3,9 +3,9 @@ import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
 import { defineFlow } from "../../src/flows/define_flow.ts";
 import { FlowSchema } from "../../src/schemas/flow.ts";
 
-// Test defineFlow helper function
-Deno.test("defineFlow: creates valid flow definition with minimal required fields", () => {
-  const flow = defineFlow({
+// Helper to create a minimal valid flow definition
+function defineMinimalFlow(overrides: Record<string, any> = {}) {
+  return defineFlow({
     id: "test-flow",
     name: "Test Flow",
     description: "A simple test flow",
@@ -28,7 +28,13 @@ Deno.test("defineFlow: creates valid flow definition with minimal required field
     output: {
       from: "step1",
     },
+    ...overrides,
   });
+}
+
+// Test defineFlow helper function
+Deno.test("defineFlow: creates valid flow definition with minimal required fields", () => {
+  const flow = defineMinimalFlow();
 
   // Validate the flow structure
   assertEquals(flow.id, "test-flow");
@@ -135,7 +141,7 @@ Deno.test("defineFlow: rejects invalid flow definitions", () => {
   // Test empty steps array - this should be caught by schema validation
   assertThrows(
     () =>
-      defineFlow({
+      defineMinimalFlow({
         id: "test",
         name: "Test",
         description: "Test",
@@ -147,6 +153,13 @@ Deno.test("defineFlow: rejects invalid flow definitions", () => {
 });
 
 Deno.test("defineFlow: applies default values correctly", () => {
+  // Minimal overrides, relying on defineFlow to fill in defaults
+  // (though defineMinimalFlow fills some too, this test checks defineFlow logic mainly)
+  // We'll construct it manually to be sure we are testing defineFlow's default logic
+  // but we can reuse the steps logic if we want, or just verify defineMinimalFlow
+  // correctly delegates.
+  // Actually, let's keep this test focused on defineFlow but use a compact setup.
+
   const flow = defineFlow({
     id: "minimal",
     name: "Minimal",
@@ -156,15 +169,7 @@ Deno.test("defineFlow: applies default values correctly", () => {
         id: "step1",
         name: "Step 1",
         agent: "agent1",
-        dependsOn: [],
-        input: {
-          source: FlowInputSource.REQUEST,
-          transform: "passthrough",
-        },
-        retry: {
-          maxAttempts: 1,
-          backoffMs: 1000,
-        },
+        // Omitting dependsOn, input, and retry to test defaults
       },
     ],
     output: {
@@ -216,21 +221,8 @@ Deno.test("defineFlow: allows valid dependency references", () => {
 Deno.test("defineFlow: throws error for empty flow ID", () => {
   assertThrows(
     () =>
-      defineFlow({
+      defineMinimalFlow({
         id: "",
-        name: "Test",
-        description: "Test",
-        steps: [
-          {
-            id: "step1",
-            name: "Step 1",
-            agent: "agent1",
-            dependsOn: [],
-            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-            retry: { maxAttempts: 1, backoffMs: 1000 },
-          },
-        ],
-        output: { from: "step1" },
       }),
     Error,
     "Flow ID cannot be empty",
@@ -240,21 +232,8 @@ Deno.test("defineFlow: throws error for empty flow ID", () => {
 Deno.test("defineFlow: throws error for empty flow name", () => {
   assertThrows(
     () =>
-      defineFlow({
-        id: "test",
+      defineMinimalFlow({
         name: "",
-        description: "Test",
-        steps: [
-          {
-            id: "step1",
-            name: "Step 1",
-            agent: "agent1",
-            dependsOn: [],
-            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-            retry: { maxAttempts: 1, backoffMs: 1000 },
-          },
-        ],
-        output: { from: "step1" },
       }),
     Error,
     "Flow name cannot be empty",
@@ -264,21 +243,8 @@ Deno.test("defineFlow: throws error for empty flow name", () => {
 Deno.test("defineFlow: throws error for empty flow description", () => {
   assertThrows(
     () =>
-      defineFlow({
-        id: "test",
-        name: "Test",
+      defineMinimalFlow({
         description: "",
-        steps: [
-          {
-            id: "step1",
-            name: "Step 1",
-            agent: "agent1",
-            dependsOn: [],
-            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-            retry: { maxAttempts: 1, backoffMs: 1000 },
-          },
-        ],
-        output: { from: "step1" },
       }),
     Error,
     "Flow description cannot be empty",
@@ -288,12 +254,8 @@ Deno.test("defineFlow: throws error for empty flow description", () => {
 Deno.test("defineFlow: throws error for empty steps array", () => {
   assertThrows(
     () =>
-      defineFlow({
-        id: "test",
-        name: "Test",
-        description: "Test",
+      defineMinimalFlow({
         steps: [],
-        output: { from: "step1" },
       }),
     Error,
     "Flow must have at least one step",
@@ -303,21 +265,8 @@ Deno.test("defineFlow: throws error for empty steps array", () => {
 Deno.test("defineFlow: throws error for empty step ID", () => {
   assertThrows(
     () =>
-      defineFlow({
-        id: "test",
-        name: "Test",
-        description: "Test",
-        steps: [
-          {
-            id: "",
-            name: "Step 1",
-            agent: "agent1",
-            dependsOn: [],
-            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-            retry: { maxAttempts: 1, backoffMs: 1000 },
-          },
-        ],
-        output: { from: "step1" },
+      defineMinimalFlow({
+        steps: [{ ...defineMinimalFlow().steps[0], id: "" }],
       }),
     Error,
     "Step ID cannot be empty",
@@ -327,21 +276,8 @@ Deno.test("defineFlow: throws error for empty step ID", () => {
 Deno.test("defineFlow: throws error for empty step name", () => {
   assertThrows(
     () =>
-      defineFlow({
-        id: "test",
-        name: "Test",
-        description: "Test",
-        steps: [
-          {
-            id: "step1",
-            name: "",
-            agent: "agent1",
-            dependsOn: [],
-            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-            retry: { maxAttempts: 1, backoffMs: 1000 },
-          },
-        ],
-        output: { from: "step1" },
+      defineMinimalFlow({
+        steps: [{ ...defineMinimalFlow().steps[0], name: "" }],
       }),
     Error,
     "Step name cannot be empty",
@@ -351,21 +287,8 @@ Deno.test("defineFlow: throws error for empty step name", () => {
 Deno.test("defineFlow: throws error for empty agent reference", () => {
   assertThrows(
     () =>
-      defineFlow({
-        id: "test",
-        name: "Test",
-        description: "Test",
-        steps: [
-          {
-            id: "step1",
-            name: "Step 1",
-            agent: "",
-            dependsOn: [],
-            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-            retry: { maxAttempts: 1, backoffMs: 1000 },
-          },
-        ],
-        output: { from: "step1" },
+      defineMinimalFlow({
+        steps: [{ ...defineMinimalFlow().steps[0], agent: "" }],
       }),
     Error,
     "Agent reference cannot be empty",
@@ -375,21 +298,7 @@ Deno.test("defineFlow: throws error for empty agent reference", () => {
 Deno.test("defineFlow: throws error for invalid maxParallelism", () => {
   assertThrows(
     () =>
-      defineFlow({
-        id: "test",
-        name: "Test",
-        description: "Test",
-        steps: [
-          {
-            id: "step1",
-            name: "Step 1",
-            agent: "agent1",
-            dependsOn: [],
-            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-            retry: { maxAttempts: 1, backoffMs: 1000 },
-          },
-        ],
-        output: { from: "step1" },
+      defineMinimalFlow({
         settings: { maxParallelism: 0 },
       }),
     Error,
@@ -400,21 +309,8 @@ Deno.test("defineFlow: throws error for invalid maxParallelism", () => {
 Deno.test("defineFlow: throws error for invalid retry maxAttempts", () => {
   assertThrows(
     () =>
-      defineFlow({
-        id: "test",
-        name: "Test",
-        description: "Test",
-        steps: [
-          {
-            id: "step1",
-            name: "Step 1",
-            agent: "agent1",
-            dependsOn: [],
-            input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-            retry: { maxAttempts: 0, backoffMs: 1000 },
-          },
-        ],
-        output: { from: "step1" },
+      defineMinimalFlow({
+        steps: [{ ...defineMinimalFlow().steps[0], retry: { maxAttempts: 0, backoffMs: 1000 } }],
       }),
     Error,
     "Number must be greater than or equal to 1",

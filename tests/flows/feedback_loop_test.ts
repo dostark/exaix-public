@@ -99,9 +99,10 @@ class MockAgentRunner {
 // FeedbackLoop Basic Tests
 // ============================================================
 
-Deno.test("FeedbackLoop: stops when target score reached", async () => {
+// Helper to setup feedback loop components
+function setupFeedbackLoop(defaultScore: number, configOverrides: Partial<FeedbackLoopConfig> = {}) {
   const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.95); // Above target
+  mockJudge.setDefaultScore(defaultScore);
 
   const gateEvaluator = new GateEvaluator(mockJudge);
   const improvementAgent = new MockImprovementAgent();
@@ -115,7 +116,18 @@ Deno.test("FeedbackLoop: stops when target score reached", async () => {
     criteria: ["CODE_CORRECTNESS"],
     minImprovement: 0.05,
     includePreviousAttempts: true,
+    ...configOverrides,
   };
+
+  return { mockJudge, gateEvaluator, improvementAgent, feedbackLoop, config };
+}
+
+// ============================================================
+// FeedbackLoop Basic Tests
+// ============================================================
+
+Deno.test("FeedbackLoop: stops when target score reached", async () => {
+  const { feedbackLoop, config } = setupFeedbackLoop(0.95); // Above target
 
   const result = await feedbackLoop.run(config, "Initial content", "Original request");
 
@@ -126,23 +138,11 @@ Deno.test("FeedbackLoop: stops when target score reached", async () => {
 });
 
 Deno.test("FeedbackLoop: stops at max iterations", async () => {
-  const mockJudge = new MockJudgeInvoker();
   // Always returns low score
-  mockJudge.setDefaultScore(0.5);
-
-  const gateEvaluator = new GateEvaluator(mockJudge);
-  const improvementAgent = new MockImprovementAgent();
-
-  const feedbackLoop = new FeedbackLoop(gateEvaluator, improvementAgent);
-
-  const config: FeedbackLoopConfig = {
+  const { feedbackLoop, config } = setupFeedbackLoop(0.5, {
     maxIterations: 3,
-    targetScore: 0.9,
-    evaluator: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
     minImprovement: 0.0, // Don't stop for no improvement
-    includePreviousAttempts: true,
-  };
+  });
 
   const result = await feedbackLoop.run(config, "Initial content", "Original request");
 
@@ -152,23 +152,11 @@ Deno.test("FeedbackLoop: stops at max iterations", async () => {
 });
 
 Deno.test("FeedbackLoop: tracks iterations correctly", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.6);
-
-  const gateEvaluator = new GateEvaluator(mockJudge);
-  const improvementAgent = new MockImprovementAgent();
-  improvementAgent.setImprovedContent("Attempt 2 content");
-
-  const feedbackLoop = new FeedbackLoop(gateEvaluator, improvementAgent);
-
-  const config: FeedbackLoopConfig = {
+  const { feedbackLoop, improvementAgent, config } = setupFeedbackLoop(0.6, {
     maxIterations: 2,
-    targetScore: 0.9,
-    evaluator: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
     minImprovement: 0.0,
-    includePreviousAttempts: true,
-  };
+  });
+  improvementAgent.setImprovedContent("Attempt 2 content");
 
   const result = await feedbackLoop.run(config, "Initial content", "Original request");
 
@@ -184,9 +172,11 @@ Deno.test("FeedbackLoop: tracks iterations correctly", async () => {
 // ============================================================
 
 Deno.test("FeedbackLoop: stops on no improvement", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  let callCount = 0;
+  const { mockJudge, feedbackLoop, config } = setupFeedbackLoop(0.7, {
+    minImprovement: 0.05, // 0.01 improvement is below threshold
+  });
 
+  let callCount = 0;
   // First call: 0.7, subsequent calls: 0.71 (less than minImprovement of 0.05)
   const originalEvaluate = mockJudge.evaluate.bind(mockJudge);
   mockJudge.evaluate = async (...args) => {
@@ -199,20 +189,6 @@ Deno.test("FeedbackLoop: stops on no improvement", async () => {
     return await originalEvaluate(...args);
   };
 
-  const gateEvaluator = new GateEvaluator(mockJudge);
-  const improvementAgent = new MockImprovementAgent();
-
-  const feedbackLoop = new FeedbackLoop(gateEvaluator, improvementAgent);
-
-  const config: FeedbackLoopConfig = {
-    maxIterations: 5,
-    targetScore: 0.9,
-    evaluator: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    minImprovement: 0.05, // 0.01 improvement is below threshold
-    includePreviousAttempts: true,
-  };
-
   const result = await feedbackLoop.run(config, "Initial content", "Original request");
 
   assertEquals(result.success, false);
@@ -221,9 +197,9 @@ Deno.test("FeedbackLoop: stops on no improvement", async () => {
 });
 
 Deno.test("FeedbackLoop: stops on score degradation", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  let callCount = 0;
+  const { mockJudge, feedbackLoop, config } = setupFeedbackLoop(0.75);
 
+  let callCount = 0;
   // First call: 0.75, second call: 0.65 (degradation)
   const originalEvaluate = mockJudge.evaluate.bind(mockJudge);
   mockJudge.evaluate = async (...args) => {
@@ -236,20 +212,6 @@ Deno.test("FeedbackLoop: stops on score degradation", async () => {
     return await originalEvaluate(...args);
   };
 
-  const gateEvaluator = new GateEvaluator(mockJudge);
-  const improvementAgent = new MockImprovementAgent();
-
-  const feedbackLoop = new FeedbackLoop(gateEvaluator, improvementAgent);
-
-  const config: FeedbackLoopConfig = {
-    maxIterations: 5,
-    targetScore: 0.9,
-    evaluator: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    minImprovement: 0.05,
-    includePreviousAttempts: true,
-  };
-
   const result = await feedbackLoop.run(config, "Initial content", "Original request");
 
   assertEquals(result.success, false);
@@ -259,23 +221,8 @@ Deno.test("FeedbackLoop: stops on score degradation", async () => {
 });
 
 Deno.test("FeedbackLoop: stops on improvement agent error", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.6);
-
-  const gateEvaluator = new GateEvaluator(mockJudge);
-  const improvementAgent = new MockImprovementAgent();
+  const { feedbackLoop, improvementAgent, config } = setupFeedbackLoop(0.6, { maxIterations: 3 });
   improvementAgent.setThrows(true); // Will throw on improve
-
-  const feedbackLoop = new FeedbackLoop(gateEvaluator, improvementAgent);
-
-  const config: FeedbackLoopConfig = {
-    maxIterations: 3,
-    targetScore: 0.9,
-    evaluator: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    minImprovement: 0.05,
-    includePreviousAttempts: true,
-  };
 
   const result = await feedbackLoop.run(config, "Initial content", "Original request");
 
@@ -288,22 +235,10 @@ Deno.test("FeedbackLoop: stops on improvement agent error", async () => {
 // ============================================================
 
 Deno.test("FeedbackLoop: calls improvement agent with correct parameters", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.6);
-
-  const gateEvaluator = new GateEvaluator(mockJudge);
-  const improvementAgent = new MockImprovementAgent();
-
-  const feedbackLoop = new FeedbackLoop(gateEvaluator, improvementAgent);
-
-  const config: FeedbackLoopConfig = {
+  const { feedbackLoop, improvementAgent, config } = setupFeedbackLoop(0.6, {
     maxIterations: 2,
-    targetScore: 0.9,
-    evaluator: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
     minImprovement: 0.0,
-    includePreviousAttempts: true,
-  };
+  });
 
   await feedbackLoop.run(config, "Initial content", "Original request");
 
@@ -318,23 +253,11 @@ Deno.test("FeedbackLoop: calls improvement agent with correct parameters", async
 });
 
 Deno.test("FeedbackLoop: uses improved content in subsequent iterations", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.6);
-
-  const gateEvaluator = new GateEvaluator(mockJudge);
-  const improvementAgent = new MockImprovementAgent();
-  improvementAgent.setImprovedContent("Much better content");
-
-  const feedbackLoop = new FeedbackLoop(gateEvaluator, improvementAgent);
-
-  const config: FeedbackLoopConfig = {
+  const { feedbackLoop, improvementAgent, config } = setupFeedbackLoop(0.6, {
     maxIterations: 3,
-    targetScore: 0.9,
-    evaluator: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
     minImprovement: 0.0,
-    includePreviousAttempts: true,
-  };
+  });
+  improvementAgent.setImprovedContent("Much better content");
 
   const result = await feedbackLoop.run(config, "Initial content", "Original request");
 
@@ -497,22 +420,7 @@ Deno.test("runSelfCorrectingAgent: improves through iterations", async () => {
 // ============================================================
 
 Deno.test("FeedbackLoop: tracks total duration", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.95);
-
-  const gateEvaluator = new GateEvaluator(mockJudge);
-  const improvementAgent = new MockImprovementAgent();
-
-  const feedbackLoop = new FeedbackLoop(gateEvaluator, improvementAgent);
-
-  const config: FeedbackLoopConfig = {
-    maxIterations: 3,
-    targetScore: 0.9,
-    evaluator: FlowConsensusMethod.JUDGE,
-    criteria: ["CODE_CORRECTNESS"],
-    minImprovement: 0.05,
-    includePreviousAttempts: true,
-  };
+  const { feedbackLoop, config } = setupFeedbackLoop(0.95, { maxIterations: 3 });
 
   const result = await feedbackLoop.run(config, "Content", "Request");
 
@@ -525,26 +433,14 @@ Deno.test("FeedbackLoop: tracks total duration", async () => {
 // ============================================================
 
 Deno.test("FeedbackLoop: handles multiple criteria", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.95);
-
-  const gateEvaluator = new GateEvaluator(mockJudge);
-  const improvementAgent = new MockImprovementAgent();
-
-  const feedbackLoop = new FeedbackLoop(gateEvaluator, improvementAgent);
-
-  const config: FeedbackLoopConfig = {
+  const { feedbackLoop, config } = setupFeedbackLoop(0.95, {
     maxIterations: 3,
-    targetScore: 0.9,
-    evaluator: FlowConsensusMethod.JUDGE,
     criteria: [
       "CODE_CORRECTNESS",
       "HAS_TESTS",
       CRITERIA.DOCUMENTATION_QUALITY,
     ],
-    minImprovement: 0.05,
-    includePreviousAttempts: true,
-  };
+  });
 
   const result = await feedbackLoop.run(config, "Content", "Request");
 

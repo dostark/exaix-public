@@ -3,18 +3,14 @@
  */
 
 import { assertEquals, assertRejects } from "@std/assert";
-import { EvaluationCategory, MCPTransport, ProviderCostTier } from "../../src/enums.ts";
-
+import { EvaluationCategory, ProviderCostTier } from "../../src/enums.ts";
 import { HealthCheckVerdict } from "../../src/enums.ts";
-
 import { MockProviderFactory, ProviderRegistry } from "../../src/ai/provider_registry.ts";
 import { ProviderSelector } from "../../src/ai/provider_selector.ts";
 import { CostTracker } from "../../src/services/cost_tracker.ts";
 import { HealthCheckService } from "../../src/services/health_check_service.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import { Config } from "../../src/config/schema.ts";
-import { LogLevel, PricingTier, SqliteJournalMode, TaskComplexity } from "../../src/enums.ts";
-import { ExoPathDefaults } from "../../src/config/constants.ts";
+import { PricingTier, TaskComplexity } from "../../src/enums.ts";
 
 // ============================================================================
 // Provider Selector Tests
@@ -59,8 +55,7 @@ Deno.test("ProviderSelector: selects optimal provider based on criteria", async 
       check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
-    // Import and create selector (will implement this)
-    const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
+    // Import and create selector
     const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
 
     const provider = await selector.selectProvider({
@@ -82,7 +77,6 @@ Deno.test("ProviderSelector: throws error when no suitable provider found", asyn
     const costTracker = new CostTracker(db);
     const healthService = new HealthCheckService("1.0.0");
 
-    const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
     const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
 
     await assertRejects(
@@ -143,7 +137,6 @@ Deno.test("ProviderSelector: respects budget constraints", async () => {
       check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
-    const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
     const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
 
     const provider = await selector.selectProvider({
@@ -196,7 +189,6 @@ Deno.test("ProviderSelector: routes tasks by complexity", async () => {
       check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
-    const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
     const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
 
     // Simple task should prefer local provider
@@ -256,7 +248,6 @@ Deno.test("ProviderSelector: filters by required capabilities", async () => {
       check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
-    const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
     const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
 
     // Request vision capability should select vision provider
@@ -308,7 +299,6 @@ Deno.test("ProviderSelector: excludes unhealthy providers", async () => {
       check: async () => await ({ status: HealthCheckVerdict.FAIL }),
     });
 
-    const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
     const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
 
     const provider = await selector.selectProvider({
@@ -360,102 +350,18 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
       check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
-    const { ProviderSelector } = await import("../../src/ai/provider_selector.ts");
+    const { createTestConfig } = await import("./helpers/test_config.ts");
 
     // Create config with task routing
-    const config: Config = {
-      system: { version: "1.0.0", root: "/tmp", log_level: LogLevel.INFO },
-      paths: {
-        ...ExoPathDefaults,
+    const config = createTestConfig();
+    config.provider_strategy = {
+      ...config.provider_strategy,
+      prefer_free: false,
+      task_routing: {
+        simple: ["simple-provider"],
+        complex: ["complex-provider"],
       },
-      database: {
-        batch_flush_ms: 100,
-        batch_max_size: 100,
-        sqlite: { journal_mode: SqliteJournalMode.WAL, foreign_keys: true, busy_timeout_ms: 5000 },
-      },
-      watcher: { debounce_ms: 200, stability_check: true },
-      agents: { default_model: "default", timeout_sec: 60, max_iterations: 10 },
-      portals: [],
-      ai_endpoints: {},
-      ai_retry: { max_attempts: 3, backoff_base_ms: 1000, timeout_per_request_ms: 30000 },
-      ai_timeout: { default_ms: 30000, providers: { ollama: 60000, anthropic: 60000, openai: 30000, google: 30000 } },
-      ai_anthropic: {
-        api_version: "2023-06-01",
-        default_model: "claude-3-5-sonnet-20241022",
-        max_tokens_default: 4096,
-      },
-      mcp: { enabled: true, transport: MCPTransport.STDIO, server_name: "exoframe", version: "1.0.0" },
-      mcp_defaults: { agent_id: "system" },
-      rate_limiting: {
-        enabled: true,
-        max_calls_per_minute: 60,
-        max_tokens_per_hour: 100000,
-        max_cost_per_day: 50,
-        cost_per_1k_tokens: 0.03,
-      },
-      git: {
-        branch_prefix_pattern: "^(feat|fix|docs|chore|refactor|test)/",
-        allowed_prefixes: ["feat", "fix", "docs", "chore", "refactor", "test"],
-        operations: {
-          status_timeout_ms: 10000,
-          ls_files_timeout_ms: 5000,
-          checkout_timeout_ms: 10000,
-          clean_timeout_ms: 5000,
-          log_timeout_ms: 5000,
-          diff_timeout_ms: 10000,
-          command_timeout_ms: 30000,
-          max_retries: 3,
-          retry_backoff_base_ms: 100,
-          branch_name_collision_max_retries: 5,
-          trace_id_short_length: 8,
-          branch_suffix_length: 6,
-        },
-      },
-      models: {
-        default: { provider: "mock", model: "mock-model", timeout_ms: 30000 },
-        fast: { provider: "mock", model: "mock-fast", timeout_ms: 15000 },
-        local: { provider: "ollama", model: "llama3.2", timeout_ms: 60000 },
-      },
-      provider_strategy: {
-        prefer_free: false,
-        allow_local: true,
-        max_daily_cost_usd: 10.00,
-        health_check_enabled: true,
-        fallback_enabled: true,
-        task_routing: {
-          simple: ["simple-provider"],
-          complex: ["complex-provider"],
-        },
-        fallback_chains: {},
-      },
-      providers: {},
-      cost_tracking: {
-        batch_delay_ms: 5000,
-        max_batch_size: 50,
-        rates: {
-          openai: 0.01,
-          anthropic: 0.015,
-          google: 0,
-          ollama: 0,
-          mock: 0,
-        },
-      },
-      mock: {
-        delay_ms: 500,
-        input_tokens: 100,
-        output_tokens: 50,
-      },
-      ui: {
-        prompt_preview_length: 50,
-        prompt_preview_extended: 100,
-      },
-      health: {
-        check_timeout_ms: 30000,
-        cache_ttl_ms: 60000,
-        memory_warn_percent: 80,
-        memory_critical_percent: 95,
-      },
-    };
+    } as any;
 
     const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
 

@@ -35,23 +35,14 @@ Deno.test("RequestManagerView - renders request list correctly", async () => {
   const { service: _service, view } = createViewWithRequests([
     {
       trace_id: "12345678-abcd-1234-5678-123456789abc",
-      filename: "request-12345678.md",
       title: "Request 12345678",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
     },
     {
       trace_id: "87654321-abcd-1234-5678-123456789abc",
-      filename: "request-87654321.md",
       title: "Request 87654321",
       status: "planned",
       priority: "high",
       agent: "code-reviewer",
-      created: "2025-12-23T09:00:00Z",
-      created_by: "user@example.com",
     },
   ]);
   const requests = await _service.listRequests();
@@ -82,13 +73,7 @@ Deno.test("RequestManagerView - renders request content", () => {
 Deno.test("RequestManagerView - lists requests via service", async () => {
   const { service: _service } = createViewWithRequests([{
     trace_id: "test-123",
-    filename: "request-test.md",
     title: "Test Request",
-    status: MemoryStatus.PENDING,
-    priority: "normal",
-    agent: "default",
-    created: "2025-12-23T10:00:00Z",
-    created_by: "test@example.com",
   }]);
   const requests = await _service.listRequests();
 
@@ -139,13 +124,7 @@ Deno.test("RequestManagerView - gets request content", async () => {
   const { service: _service, view } = createViewWithRequests([
     {
       trace_id: "test-123",
-      filename: "request-test.md",
       title: "Test Request",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
     },
   ]);
   const content = await view.getRequestContent("test-123");
@@ -157,13 +136,7 @@ Deno.test("RequestManagerView - updates request status", async () => {
   const { service: _service, view } = createViewWithRequests([
     {
       trace_id: "test-123",
-      filename: "request-test.md",
       title: "Test Request",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
     },
   ]);
   const success = await view.updateRequestStatus("test-123", ExecutionStatus.COMPLETED);
@@ -225,19 +198,12 @@ Deno.test("RequestManagerTuiSession - keyboard navigation", async () => {
 
 Deno.test("RequestManagerTuiSession - keyboard actions show dialogs", async () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = [
+  const requests = _sampleRequests([
     {
       trace_id: "req-1",
-      filename: "request-1.md",
       title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
-  ];
+  ]);
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -348,30 +314,16 @@ Deno.test("RequestManagerTuiSession - error handling via dialog", async () => {
 
 Deno.test("RequestManagerTuiSession - get selected request", () => {
   const _service = new MinimalRequestServiceMock();
-  const requests = [
+  const requests = _sampleRequests([
     {
       trace_id: "req-1",
-      filename: "request-1.md",
       title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
     {
       trace_id: "req-2",
-      filename: "request-2.md",
       title: "Request 2",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T11:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
-  ];
+  ]);
   const view = new RequestManagerView(_service);
   const tui = view.createTuiSession(requests);
 
@@ -416,14 +368,7 @@ Deno.test("Phase 13.6: Tree grouping by status", () => {
   const requests = [
     {
       trace_id: "req-1",
-      filename: "request-1.md",
       title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
     {
       trace_id: "req-2",
@@ -465,30 +410,20 @@ Deno.test("Phase 13.6: Tree grouping by status", () => {
 
 Deno.test("Phase 13.6: Search functionality", () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = [
+  const requests = _sampleRequests([
     {
       trace_id: "req-1",
-      filename: "request-1.md",
       title: "Bug fix",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
       agent: "developer",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
     {
       trace_id: "req-2",
-      filename: "request-2.md",
       title: "Feature request",
       status: ExecutionStatus.COMPLETED,
       priority: "high",
       agent: "designer",
-      created: "2025-12-23T11:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
-  ];
+  ]);
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -571,19 +506,12 @@ Deno.test("Phase 13.6: Help sections", () => {
 
 Deno.test("Phase 13.6: Render methods return strings", () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = [
+  const requests = _sampleRequests([
     {
       trace_id: "req-1",
-      filename: "request-1.md",
       title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
-  ];
+  ]);
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -630,19 +558,12 @@ Deno.test("Phase 13.6: REQUEST_KEY_BINDINGS", async () => {
 
 Deno.test("Phase 13.6: Cancel confirm dialog", async () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = [
+  const requests = _sampleRequests([
     {
       trace_id: "req-1",
-      filename: "request-1.md",
       title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
-  ];
+  ]);
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -657,19 +578,12 @@ Deno.test("Phase 13.6: Cancel confirm dialog", async () => {
 
 Deno.test("Phase 13.6: Priority dialog", async () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = [
+  const requests = _sampleRequests([
     {
       trace_id: "req-1",
-      filename: "request-1.md",
       title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
-  ];
+  ]);
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -684,30 +598,19 @@ Deno.test("Phase 13.6: Priority dialog", async () => {
 
 Deno.test("Phase 13.6: Tree navigation with groups", async () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = [
+  const requests = _sampleRequests([
     {
       trace_id: "req-1",
-      filename: "request-1.md",
       title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
     {
       trace_id: "req-2",
-      filename: "request-2.md",
       title: "Request 2",
       status: ExecutionStatus.COMPLETED,
       priority: "high",
       agent: "other",
-      created: "2025-12-23T11:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
-  ];
+  ]);
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -741,19 +644,12 @@ Deno.test("Phase 13.6: setRequests updates tree", () => {
   assertEquals(tui.getState().requestTree.length, 0);
 
   // Set new requests
-  tui.setRequests([
+  tui.setRequests(_sampleRequests([
     {
       trace_id: "new-req",
-      filename: "request-new.md",
       title: "New Request",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T12:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
     },
-  ]);
+  ]));
 
   assertEquals(tui.getRequests().length, 1);
   assertEquals(tui.getState().requestTree.length, 1);

@@ -1,38 +1,17 @@
-import { IModelProvider, ModelOptions } from "../providers.ts";
-import { EventLogger } from "../../services/event_logger.ts";
-import { withRetry } from "./common.ts";
+import { ModelOptions } from "../providers.ts";
 import { extractGoogleContent, performProviderCall, tokenMapperGoogle } from "../provider_common_utils.ts";
-import type { Config } from "../../config/schema.ts";
 import * as DEFAULTS from "../../config/constants.ts";
+import { BaseProvider, BaseProviderOptions } from "./base_provider.ts";
 
 /**
  * Options for GoogleProvider
  */
-export interface GoogleProviderOptions {
-  apiKey: string;
-  model?: string;
-  id?: string;
-  logger?: EventLogger;
-  retryDelayMs?: number;
-  maxRetries?: number;
-  baseUrl?: string;
-  config?: Config;
-  timeoutMs?: number;
-}
+export type GoogleProviderOptions = BaseProviderOptions;
 
 /**
  * GoogleProvider implements IModelProvider for Google's Gemini models.
  */
-export class GoogleProvider implements IModelProvider {
-  public readonly id: string;
-  private readonly apiKey: string;
-  private readonly model: string;
-  private readonly baseUrl: string;
-  private readonly logger?: EventLogger;
-  private readonly retryDelayMs: number;
-  private readonly maxRetries: number;
-  private readonly timeoutMs: number;
-
+export class GoogleProvider extends BaseProvider {
   /**
    * @param options.apiKey Google API key
    * @param options.model Model name (default: gemini-pro)
@@ -44,45 +23,21 @@ export class GoogleProvider implements IModelProvider {
    * @param options.config Optional config object for endpoints and retry settings
    */
   constructor(options: GoogleProviderOptions) {
-    this.apiKey = options.apiKey;
-    this.model = options.model || DEFAULTS.DEFAULT_GOOGLE_MODEL;
-    this.id = options.id || `google-${this.model}`;
-    this.logger = options.logger;
-
-    // Read base URL from config or use default
-    this.baseUrl = options.baseUrl ||
-      options.config?.ai_endpoints?.google ||
-      DEFAULTS.DEFAULT_GOOGLE_ENDPOINT;
-
-    // Read retry settings from config or use defaults (same as OpenAI for Google)
-    this.retryDelayMs = options.retryDelayMs ||
-      options.config?.ai_retry?.max_attempts ||
-      DEFAULTS.DEFAULT_AI_RETRY_BACKOFF_BASE_MS;
-
-    this.maxRetries = options.maxRetries ||
-      options.config?.ai_retry?.max_attempts ||
-      DEFAULTS.DEFAULT_AI_RETRY_MAX_ATTEMPTS;
-
-    // Read timeout from options, config, or default
-    this.timeoutMs = options.timeoutMs ||
-      options.config?.ai_timeout?.providers?.google ||
-      DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS;
-  }
-
-  /**
-   * Generate a completion from the model.
-   */
-  async generate(prompt: string, options?: ModelOptions): Promise<string> {
-    return await withRetry(
-      () => this.attemptGenerate(prompt, options),
-      { maxRetries: this.maxRetries, baseDelayMs: this.retryDelayMs },
+    super(
+      options,
+      DEFAULTS.DEFAULT_GOOGLE_MODEL,
+      options.config?.ai_endpoints?.google || DEFAULTS.DEFAULT_GOOGLE_ENDPOINT,
+      options.config?.ai_timeout?.providers?.google || DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS,
+      options.config?.ai_retry?.max_attempts || DEFAULTS.DEFAULT_AI_RETRY_BACKOFF_BASE_MS,
+      options.config?.ai_retry?.max_attempts || DEFAULTS.DEFAULT_AI_RETRY_MAX_ATTEMPTS,
+      "google",
     );
   }
 
   /**
    * Internal: attempt a single completion call.
    */
-  private async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
+  protected override async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
     const endpoint = `${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`;
 
     const data = await performProviderCall(endpoint, {

@@ -151,21 +151,7 @@ export class ProviderFactory {
    */
   static async create(config: Config, db?: DatabaseService): Promise<IModelProvider> {
     const options = this.resolveOptions(config);
-    const provider = await this.createProvider(options);
-
-    // Apply rate limiting if enabled
-    if (config.rate_limiting?.enabled) {
-      const costTracker = db ? new CostTracker(db, config) : undefined;
-      return new RateLimitedProvider(provider, {
-        maxCallsPerMinute: config.rate_limiting.max_calls_per_minute,
-        maxTokensPerHour: config.rate_limiting.max_tokens_per_hour,
-        maxCostPerDay: config.rate_limiting.max_cost_per_day,
-        costPer1kTokens: config.rate_limiting.cost_per_1k_tokens,
-        costTracker,
-      });
-    }
-
-    return provider;
+    return await this.createAndWrap(config, options, db);
   }
 
   /**
@@ -183,21 +169,7 @@ export class ProviderFactory {
     }
 
     const options = this.resolveOptionsByName(config, name);
-    const provider = await this.createProvider(options);
-
-    // Apply rate limiting if enabled
-    if (config.rate_limiting?.enabled) {
-      const costTracker = db ? new CostTracker(db, config) : undefined;
-      return new RateLimitedProvider(provider, {
-        maxCallsPerMinute: config.rate_limiting.max_calls_per_minute,
-        maxTokensPerHour: config.rate_limiting.max_tokens_per_hour,
-        maxCostPerDay: config.rate_limiting.max_cost_per_day,
-        costPer1kTokens: config.rate_limiting.cost_per_1k_tokens,
-        costTracker,
-      });
-    }
-
-    return provider;
+    return await this.createAndWrap(config, options, db);
   }
 
   /**
@@ -208,13 +180,7 @@ export class ProviderFactory {
    */
   static getProviderInfo(config: Config): ProviderInfo {
     const options = this.resolveOptions(config);
-    const source = this.determineSource();
-    return {
-      type: options.provider,
-      id: this.generateProviderId(options),
-      model: options.model,
-      source,
-    };
+    return this.buildProviderInfo(options);
   }
 
   /**
@@ -226,13 +192,7 @@ export class ProviderFactory {
    */
   static getProviderInfoByName(config: Config, name: string): ProviderInfo {
     const options = this.resolveOptionsByName(config, name);
-    const source = this.determineSource();
-    return {
-      type: options.provider,
-      id: this.generateProviderId(options),
-      model: options.model,
-      source,
-    };
+    return this.buildProviderInfo(options);
   }
 
   /**
@@ -334,6 +294,44 @@ export class ProviderFactory {
   private static resolveOptionsByName(config: Config, name: string): ResolvedProviderOptions {
     const modelConfig = config.models?.[name] ?? config.models?.["default"] ?? config.ai;
     return this.resolveOptions(config, modelConfig);
+  }
+
+  /**
+   * Helper to create a provider and wrap it with rate limiting if configured
+   */
+  private static async createAndWrap(
+    config: Config,
+    options: ResolvedProviderOptions,
+    db?: DatabaseService,
+  ): Promise<IModelProvider> {
+    const provider = await this.createProvider(options);
+
+    // Apply rate limiting if enabled
+    if (config.rate_limiting?.enabled) {
+      const costTracker = db ? new CostTracker(db, config) : undefined;
+      return new RateLimitedProvider(provider, {
+        maxCallsPerMinute: config.rate_limiting.max_calls_per_minute,
+        maxTokensPerHour: config.rate_limiting.max_tokens_per_hour,
+        maxCostPerDay: config.rate_limiting.max_cost_per_day,
+        costPer1kTokens: config.rate_limiting.cost_per_1k_tokens,
+        costTracker,
+      });
+    }
+
+    return provider;
+  }
+
+  /**
+   * Internal helper to build ProviderInfo from options
+   */
+  private static buildProviderInfo(options: ResolvedProviderOptions): ProviderInfo {
+    const source = this.determineSource();
+    return {
+      type: options.provider,
+      id: this.generateProviderId(options),
+      model: options.model,
+      source,
+    };
   }
 
   /**

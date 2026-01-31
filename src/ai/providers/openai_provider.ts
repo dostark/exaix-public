@@ -1,38 +1,17 @@
-import { IModelProvider, ModelOptions } from "../providers.ts";
-import { EventLogger } from "../../services/event_logger.ts";
-import { withRetry } from "./common.ts";
+import { ModelOptions } from "../providers.ts";
 import { performProviderCall, tokenMapperOpenAI } from "../provider_common_utils.ts";
-import type { Config } from "../../config/schema.ts";
 import * as DEFAULTS from "../../config/constants.ts";
+import { BaseProvider, BaseProviderOptions } from "./base_provider.ts";
 
 /**
  * Options for OpenAIProvider
  */
-export interface OpenAIProviderOptions {
-  apiKey: string;
-  model?: string;
-  id?: string;
-  logger?: EventLogger;
-  retryDelayMs?: number;
-  maxRetries?: number;
-  baseUrl?: string;
-  config?: Config;
-  timeoutMs?: number;
-}
+export type OpenAIProviderOptions = BaseProviderOptions;
 
 /**
  * OpenAIProvider implements IModelProvider for OpenAI's GPT models.
  */
-export class OpenAIProvider implements IModelProvider {
-  public readonly id: string;
-  private readonly apiKey: string;
-  private readonly model: string;
-  private readonly baseUrl: string;
-  private readonly logger?: EventLogger;
-  private readonly retryDelayMs: number;
-  private readonly maxRetries: number;
-  private readonly timeoutMs: number;
-
+export class OpenAIProvider extends BaseProvider {
   /**
    * @param options.apiKey OpenAI API key
    * @param options.model Model name (default: gpt-4)
@@ -44,44 +23,21 @@ export class OpenAIProvider implements IModelProvider {
    * @param options.config Optional config object for endpoints and retry settings
    */
   constructor(options: OpenAIProviderOptions) {
-    this.apiKey = options.apiKey;
-    this.model = options.model || DEFAULTS.DEFAULT_OPENAI_MODEL;
-    this.id = options.id || `openai-${this.model}`;
-    this.logger = options.logger;
-
-    // Read base URL from config or use default
-    this.baseUrl = options.baseUrl ||
-      options.config?.ai_endpoints?.openai ||
-      DEFAULTS.DEFAULT_OPENAI_ENDPOINT;
-
-    // Read retry settings from config or use defaults
-    this.retryDelayMs = options.retryDelayMs ||
-      options.config?.ai_retry?.providers?.openai?.backoff_base_ms ||
-      DEFAULTS.DEFAULT_OPENAI_RETRY_BACKOFF_MS;
-
-    this.maxRetries = options.maxRetries ||
-      options.config?.ai_retry?.providers?.openai?.max_attempts ||
-      DEFAULTS.DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS;
-
-    this.timeoutMs = options.timeoutMs ||
-      options.config?.ai_timeout?.providers?.openai ||
-      DEFAULTS.DEFAULT_OPENAI_TIMEOUT_MS;
-  }
-
-  /**
-   * Generate a completion from the model.
-   */
-  async generate(prompt: string, options?: ModelOptions): Promise<string> {
-    return await withRetry(
-      () => this.attemptGenerate(prompt, options),
-      { maxRetries: this.maxRetries, baseDelayMs: this.retryDelayMs },
+    super(
+      options,
+      DEFAULTS.DEFAULT_OPENAI_MODEL,
+      options.config?.ai_endpoints?.openai || DEFAULTS.DEFAULT_OPENAI_ENDPOINT,
+      options.config?.ai_timeout?.providers?.openai || DEFAULTS.DEFAULT_OPENAI_TIMEOUT_MS,
+      options.config?.ai_retry?.providers?.openai?.backoff_base_ms || DEFAULTS.DEFAULT_OPENAI_RETRY_BACKOFF_MS,
+      options.config?.ai_retry?.providers?.openai?.max_attempts || DEFAULTS.DEFAULT_OPENAI_RETRY_MAX_ATTEMPTS,
+      "openai",
     );
   }
 
   /**
    * Internal: attempt a single completion call.
    */
-  private async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
+  protected override async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
     const data = await performProviderCall(this.baseUrl, {
       method: "POST",
       headers: {

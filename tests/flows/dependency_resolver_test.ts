@@ -4,6 +4,22 @@ import { FlowInputSource } from "../../src/enums.ts";
 import { DependencyResolver, FlowValidationError } from "../../src/flows/dependency_resolver.ts";
 import { FlowStep, FlowStepInput } from "../../src/schemas/flow.ts";
 
+const defaultStepProps = {
+  agent: "agent1",
+  input: { source: FlowInputSource.REQUEST, transform: "passthrough" } as any,
+  retry: { maxAttempts: 1, backoffMs: 1000 },
+};
+
+function createStep(id: string, dependsOn: string[] = [], overrides: Partial<FlowStepInput> = {}): FlowStepInput {
+  return {
+    id,
+    name: `Step ${id}`,
+    dependsOn,
+    ...defaultStepProps,
+    ...overrides,
+  };
+}
+
 // Test DependencyResolver class
 Deno.test("DependencyResolver: handles empty flow", () => {
   const resolver = new DependencyResolver([]);
@@ -12,48 +28,21 @@ Deno.test("DependencyResolver: handles empty flow", () => {
 });
 
 Deno.test("DependencyResolver: handles single step with no dependencies", () => {
-  const steps: FlowStepInput[] = [
-    {
-      id: "step1",
-      name: "Step 1",
-      agent: "agent1",
-      dependsOn: [],
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-  ];
-
+  const steps = [createStep("step1")];
   const resolver = new DependencyResolver(steps as FlowStep[]);
   assertEquals(resolver.topologicalSort(), ["step1"]);
   assertEquals(resolver.groupIntoWaves(), [["step1"]]);
 });
 
 Deno.test("DependencyResolver: handles linear chain", () => {
-  const steps: FlowStepInput[] = [
-    {
-      id: "step1",
-      name: "Step 1",
-      agent: "agent1",
-      dependsOn: [],
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "step2",
-      name: "Step 2",
-      agent: "agent2",
-      dependsOn: ["step1"],
+  const steps = [
+    createStep("step1"),
+    createStep("step2", ["step1"], {
       input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "step3",
-      name: "Step 3",
-      agent: "agent3",
-      dependsOn: ["step2"],
+    }),
+    createStep("step3", ["step2"], {
       input: { source: FlowInputSource.STEP, stepId: "step2", transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
+    }),
   ];
 
   const resolver = new DependencyResolver(steps as FlowStep[]);
@@ -62,44 +51,22 @@ Deno.test("DependencyResolver: handles linear chain", () => {
 });
 
 Deno.test("DependencyResolver: handles parallel steps", () => {
-  const steps: FlowStepInput[] = [
-    {
-      id: "start",
-      name: "Start",
-      agent: "agent1",
-      dependsOn: [],
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "parallel1",
-      name: "Parallel 1",
-      agent: "agent2",
-      dependsOn: ["start"],
+  const steps = [
+    createStep("start"),
+    createStep("parallel1", ["start"], {
       input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "parallel2",
-      name: "Parallel 2",
-      agent: "agent3",
-      dependsOn: ["start"],
+    }),
+    createStep("parallel2", ["start"], {
       input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "end",
-      name: "End",
-      agent: "agent4",
-      dependsOn: ["parallel1", "parallel2"],
+    }),
+    createStep("end", ["parallel1", "parallel2"], {
       input: { source: FlowInputSource.AGGREGATE, transform: "combine" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
+    }),
   ];
 
   const resolver = new DependencyResolver(steps as FlowStep[]);
   const topoOrder = resolver.topologicalSort();
-  // Should start with "start", end with "end", and have parallel steps in some order
+
   assertEquals(topoOrder[0], "start");
   assertEquals(topoOrder[topoOrder.length - 1], "end");
   assertEquals(topoOrder.includes("parallel1"), true);
@@ -114,17 +81,7 @@ Deno.test("DependencyResolver: handles parallel steps", () => {
 });
 
 Deno.test("DependencyResolver: detects self-referencing cycle", () => {
-  const steps: FlowStepInput[] = [
-    {
-      id: "step1",
-      name: "Step 1",
-      agent: "agent1",
-      dependsOn: ["step1"], // Self-reference
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-  ];
-
+  const steps = [createStep("step1", ["step1"])];
   const resolver = new DependencyResolver(steps as FlowStep[]);
   assertThrows(
     () => resolver.topologicalSort(),
@@ -134,23 +91,9 @@ Deno.test("DependencyResolver: detects self-referencing cycle", () => {
 });
 
 Deno.test("DependencyResolver: detects simple cycle", () => {
-  const steps: FlowStepInput[] = [
-    {
-      id: "step1",
-      name: "Step 1",
-      agent: "agent1",
-      dependsOn: ["step2"],
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "step2",
-      name: "Step 2",
-      agent: "agent2",
-      dependsOn: ["step1"],
-      input: { source: FlowInputSource.STEP, stepId: "step1", transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
+  const steps = [
+    createStep("step1", ["step2"]),
+    createStep("step2", ["step1"]),
   ];
 
   const resolver = new DependencyResolver(steps as FlowStep[]);
@@ -162,31 +105,10 @@ Deno.test("DependencyResolver: detects simple cycle", () => {
 });
 
 Deno.test("DependencyResolver: detects complex cycle", () => {
-  const steps: FlowStepInput[] = [
-    {
-      id: "a",
-      name: "A",
-      agent: "agent1",
-      dependsOn: ["c"],
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "b",
-      name: "B",
-      agent: "agent2",
-      dependsOn: ["a"],
-      input: { source: FlowInputSource.STEP, stepId: "a", transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "c",
-      name: "C",
-      agent: "agent3",
-      dependsOn: ["b"],
-      input: { source: FlowInputSource.STEP, stepId: "b", transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
+  const steps = [
+    createStep("a", ["c"]),
+    createStep("b", ["a"], { input: { source: FlowInputSource.STEP, stepId: "a", transform: "passthrough" } }),
+    createStep("c", ["b"], { input: { source: FlowInputSource.STEP, stepId: "b", transform: "passthrough" } }),
   ];
 
   const resolver = new DependencyResolver(steps as FlowStep[]);
@@ -198,39 +120,15 @@ Deno.test("DependencyResolver: detects complex cycle", () => {
 });
 
 Deno.test("DependencyResolver: handles diamond pattern", () => {
-  const steps: FlowStepInput[] = [
-    {
-      id: "start",
-      name: "Start",
-      agent: "agent1",
-      dependsOn: [],
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "branch1",
-      name: "Branch 1",
-      agent: "agent2",
-      dependsOn: ["start"],
+  const steps = [
+    createStep("start"),
+    createStep("branch1", ["start"], {
       input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "branch2",
-      name: "Branch 2",
-      agent: "agent3",
-      dependsOn: ["start"],
+    }),
+    createStep("branch2", ["start"], {
       input: { source: FlowInputSource.STEP, stepId: "start", transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "merge",
-      name: "Merge",
-      agent: "agent4",
-      dependsOn: ["branch1", "branch2"],
-      input: { source: FlowInputSource.AGGREGATE, transform: "combine" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
+    }),
+    createStep("merge", ["branch1", "branch2"], { input: { source: FlowInputSource.AGGREGATE, transform: "combine" } }),
   ];
 
   const resolver = new DependencyResolver(steps as FlowStep[]);
@@ -247,16 +145,7 @@ Deno.test("DependencyResolver: handles diamond pattern", () => {
 });
 
 Deno.test("DependencyResolver: throws error for invalid dependency", () => {
-  const steps: FlowStepInput[] = [
-    {
-      id: "step1",
-      name: "Step 1",
-      agent: "agent1",
-      dependsOn: ["nonexistent"],
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-  ];
+  const steps = [createStep("step1", ["nonexistent"])];
 
   assertThrows(
     () => new DependencyResolver(steps as FlowStep[]),
@@ -266,31 +155,10 @@ Deno.test("DependencyResolver: throws error for invalid dependency", () => {
 });
 
 Deno.test("DependencyResolver: handles all parallel steps", () => {
-  const steps: FlowStepInput[] = [
-    {
-      id: "step1",
-      name: "Step 1",
-      agent: "agent1",
-      dependsOn: [],
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "step2",
-      name: "Step 2",
-      agent: "agent2",
-      dependsOn: [],
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
-    {
-      id: "step3",
-      name: "Step 3",
-      agent: "agent3",
-      dependsOn: [],
-      input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
-      retry: { maxAttempts: 1, backoffMs: 1000 },
-    },
+  const steps = [
+    createStep("step1"),
+    createStep("step2"),
+    createStep("step3"),
   ];
 
   const resolver = new DependencyResolver(steps as FlowStep[]);

@@ -1,4 +1,12 @@
-export function sampleRequest(overrides: Record<string, any> = {}) {
+import { Request } from "../../src/tui/request_manager_view.ts";
+import { ExecutionStatus, MemorySource, MemoryStatus, SkillStatus } from "../../src/enums.ts";
+import { LegacyRequestManagerTuiSession, RequestManagerView } from "../../src/tui/request_manager_view.ts";
+
+import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
+import { MonitorView } from "../../src/tui/monitor_view.ts";
+import { MinimalPlanServiceMock, PlanReviewerTuiSession } from "../../src/tui/plan_reviewer_view.ts";
+
+export function sampleRequest(overrides: Record<string, any> = {}): Request {
   return {
     trace_id: overrides.trace_id ?? `req-${Math.floor(Math.random() * 1e6)}`,
     filename: overrides.filename ?? "request.md",
@@ -10,10 +18,10 @@ export function sampleRequest(overrides: Record<string, any> = {}) {
     created_by: overrides.created_by ?? "test@example.com",
     source: overrides.source ?? "cli",
     ...overrides,
-  };
+  } as Request;
 }
 
-export function sampleRequests(arr: Array<Record<string, any>>) {
+export function sampleRequests(arr: Array<Record<string, any>>): Request[] {
   return arr.map((a) => sampleRequest(a));
 }
 
@@ -89,16 +97,6 @@ export function createMockRequestService(initial: Array<Record<string, any>> = [
 
   return new MockRequestService(initial);
 }
-
-// -------------------------
-// Additional TUI helpers
-// -------------------------
-import { LegacyRequestManagerTuiSession, RequestManagerView } from "../../src/tui/request_manager_view.ts";
-import { ExecutionStatus, MemorySource, MemoryStatus, SkillStatus } from "../../src/enums.ts";
-
-import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
-import { MonitorView } from "../../src/tui/monitor_view.ts";
-import { MinimalPlanServiceMock, PlanReviewerTuiSession } from "../../src/tui/plan_reviewer_view.ts";
 
 export function createViewWithRequests(arr: Array<Record<string, any>> = []) {
   const service = createMockRequestService(sampleRequests(arr));

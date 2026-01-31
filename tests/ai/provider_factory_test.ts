@@ -17,149 +17,27 @@
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import { DaemonStatus, MCPTransport } from "../../src/enums.ts";
 import { getProviderForModel, ProviderFactory } from "../../src/ai/provider_factory.ts";
 import { ProviderFactoryError } from "../../src/ai/errors.ts";
-import { LogLevel, ProviderType, SqliteJournalMode } from "../../src/enums.ts";
+import { DaemonStatus, ProviderType } from "../../src/enums.ts";
 import { RateLimitError } from "../../src/ai/rate_limited_provider.ts";
 import { SecureCredentialStore } from "../../src/utils/credential_security.ts";
 import { MockStrategy } from "../../src/enums.ts";
 
 import { AiConfig, AiConfigSchema } from "../../src/config/ai_config.ts";
 import { Config } from "../../src/config/schema.ts";
-import { ExoPathDefaults } from "../../src/config/constants.ts";
 
 // ============================================================================
 // Test Fixtures
 // ============================================================================
 
+import { createTestConfig as _createTestConfig } from "./helpers/test_config.ts";
+
 /**
  * Create a minimal config for testing.
- * The aiConfig parameter is a partial input that gets parsed through AiConfigSchema
- * to apply defaults.
  */
 function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
-  // Parse through schema to apply defaults
-  const parsedAi = aiConfig ? AiConfigSchema.parse(aiConfig) : undefined;
-
-  return {
-    system: {
-      root: "/tmp/exoframe-test",
-      log_level: LogLevel.INFO,
-    },
-    paths: { ...ExoPathDefaults },
-    database: {
-      batch_flush_ms: 100,
-      batch_max_size: 50,
-      sqlite: {
-        journal_mode: SqliteJournalMode.WAL,
-        foreign_keys: true,
-        busy_timeout_ms: 5000,
-      },
-    },
-    watcher: { debounce_ms: 200, stability_check: true },
-    agents: {
-      default_model: "default",
-      timeout_sec: 60,
-      max_iterations: 10,
-    },
-    portals: [],
-    mcp: {
-      enabled: true,
-      transport: MCPTransport.STDIO,
-      server_name: "exoframe",
-      version: "1.0.0",
-    },
-    // ConfigSchema includes defaults for the following sections; provide
-    // entries so TypeScript sees a complete `Config` literal.
-    ai_endpoints: {},
-    ai_retry: {
-      max_attempts: 3,
-      backoff_base_ms: 1000,
-      timeout_per_request_ms: 30000,
-    },
-    ai_anthropic: {
-      api_version: "2023-06-01",
-      default_model: "claude-opus-4.5",
-      max_tokens_default: 4096,
-    },
-    mcp_defaults: { agent_id: "system" },
-    rate_limiting: {
-      enabled: true,
-      max_calls_per_minute: 60,
-      max_tokens_per_hour: 100000,
-      max_cost_per_day: 50,
-      cost_per_1k_tokens: 0.03,
-    },
-    git: {
-      branch_prefix_pattern: "^(feat|fix|docs|chore|refactor|test)/",
-      allowed_prefixes: ["feat", "fix", "docs", "chore", "refactor", "test"],
-      operations: {
-        status_timeout_ms: 10000,
-        ls_files_timeout_ms: 5000,
-        checkout_timeout_ms: 10000,
-        clean_timeout_ms: 5000,
-        log_timeout_ms: 5000,
-        diff_timeout_ms: 10000,
-        command_timeout_ms: 30000,
-        max_retries: 3,
-        retry_backoff_base_ms: 100,
-        branch_name_collision_max_retries: 5,
-        trace_id_short_length: 8,
-        branch_suffix_length: 6,
-      },
-    },
-    ai: parsedAi,
-    ai_timeout: {
-      default_ms: 30000,
-      providers: {
-        openai: 30000,
-        anthropic: 60000,
-        google: 30000,
-        ollama: 120000,
-      },
-    },
-    models: {
-      default: { provider: ProviderType.OPENAI, model: "gpt-5.2-pro", timeout_ms: 30000 },
-      fast: { provider: ProviderType.OPENAI, model: "gpt-5.2-pro-mini", timeout_ms: 15000 },
-      local: { provider: ProviderType.OLLAMA, model: "llama3.2", timeout_ms: 60000 },
-    },
-    provider_strategy: {
-      prefer_free: true,
-      allow_local: true,
-      max_daily_cost_usd: 5.00,
-      health_check_enabled: true,
-      fallback_enabled: true,
-      fallback_chains: {},
-    },
-    providers: {},
-    cost_tracking: {
-      batch_delay_ms: 5000,
-      max_batch_size: 50,
-      rates: {
-        openai: 0.01,
-        anthropic: 0.015,
-        google: 0,
-        ollama: 0,
-        mock: 0,
-      },
-    },
-    mock: {
-      delay_ms: 500,
-      input_tokens: 100,
-      output_tokens: 50,
-    },
-    ui: {
-      prompt_preview_length: 50,
-      prompt_preview_extended: 100,
-    },
-    health: {
-      check_timeout_ms: 30000,
-      cache_ttl_ms: 60000,
-      memory_warn_percent: 80,
-      memory_critical_percent: 95,
-    },
-  };
+  return _createTestConfig(aiConfig);
 }
 
 /**

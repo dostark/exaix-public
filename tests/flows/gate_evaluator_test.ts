@@ -9,20 +9,24 @@ import { FlowGateOnFail } from "../../src/enums.ts";
 import { GateConfig, GateEvaluator, MockJudgeInvoker } from "../../src/flows/gate_evaluator.ts";
 import { EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
 
-Deno.test("GateEvaluator: passes gate when score above threshold", async () => {
+const DEFAULT_CONFIG: GateConfig = {
+  agent: "judge-agent",
+  criteria: ["CODE_CORRECTNESS"],
+  threshold: 0.8,
+  onFail: FlowGateOnFail.HALT,
+  maxRetries: 3,
+};
+
+function setupEvaluator(score: number, configOverrides: Partial<GateConfig> = {}) {
   const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.85);
-
+  mockJudge.setDefaultScore(score);
   const evaluator = new GateEvaluator(mockJudge);
+  const config = { ...DEFAULT_CONFIG, ...configOverrides };
+  return { mockJudge, evaluator, config };
+}
 
-  const config: GateConfig = {
-    agent: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    threshold: 0.8,
-    onFail: FlowGateOnFail.HALT,
-    maxRetries: 3,
-  };
-
+Deno.test("GateEvaluator: passes gate when score above threshold", async () => {
+  const { evaluator, config } = setupEvaluator(0.85);
   const result = await evaluator.evaluate(config, "Test code content");
 
   assertEquals(result.passed, true);
@@ -32,19 +36,7 @@ Deno.test("GateEvaluator: passes gate when score above threshold", async () => {
 });
 
 Deno.test("GateEvaluator: fails gate when score below threshold", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.65);
-
-  const evaluator = new GateEvaluator(mockJudge);
-
-  const config: GateConfig = {
-    agent: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    threshold: 0.8,
-    onFail: FlowGateOnFail.HALT,
-    maxRetries: 3,
-  };
-
+  const { evaluator, config } = setupEvaluator(0.65);
   const result = await evaluator.evaluate(config, "Poor quality code");
 
   assertEquals(result.passed, false);
@@ -52,18 +44,7 @@ Deno.test("GateEvaluator: fails gate when score below threshold", async () => {
 });
 
 Deno.test("GateEvaluator: returns retry action when configured", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.6);
-
-  const evaluator = new GateEvaluator(mockJudge);
-
-  const config: GateConfig = {
-    agent: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    threshold: 0.8,
-    onFail: FlowGateOnFail.RETRY,
-    maxRetries: 3,
-  };
+  const { evaluator, config } = setupEvaluator(0.6, { onFail: FlowGateOnFail.RETRY });
 
   // First attempt - should return retry
   const result = await evaluator.evaluate(config, "Content", undefined, 0);
@@ -74,18 +55,7 @@ Deno.test("GateEvaluator: returns retry action when configured", async () => {
 });
 
 Deno.test("GateEvaluator: halts after max retries exceeded", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.6);
-
-  const evaluator = new GateEvaluator(mockJudge);
-
-  const config: GateConfig = {
-    agent: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    threshold: 0.8,
-    onFail: FlowGateOnFail.RETRY,
-    maxRetries: 3,
-  };
+  const { evaluator, config } = setupEvaluator(0.6, { onFail: FlowGateOnFail.RETRY });
 
   // Last attempt (attempt 2 = third try with 0-indexing)
   const result = await evaluator.evaluate(config, "Content", undefined, 2);
@@ -96,18 +66,10 @@ Deno.test("GateEvaluator: halts after max retries exceeded", async () => {
 });
 
 Deno.test("GateEvaluator: continues with warning when configured", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.5);
-
-  const evaluator = new GateEvaluator(mockJudge);
-
-  const config: GateConfig = {
-    agent: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    threshold: 0.8,
+  const { evaluator, config } = setupEvaluator(0.5, {
     onFail: FlowGateOnFail.CONTINUE_WITH_WARNING,
     maxRetries: 1,
-  };
+  });
 
   const result = await evaluator.evaluate(config, "Content");
 
@@ -116,13 +78,13 @@ Deno.test("GateEvaluator: continues with warning when configured", async () => {
 });
 
 Deno.test("GateEvaluator: uses specific mock result", async () => {
-  const mockJudge = new MockJudgeInvoker();
+  const { mockJudge, evaluator, config } = setupEvaluator(0.85, { maxRetries: 1 });
+
   const customResult: EvaluationResult = {
     overallScore: 0.95,
     pass: true,
     feedback: "Excellent!",
     criteriaScores: {
-      // The criterion name is lowercase (as defined in CRITERIA.CODE_CORRECTNESS.name)
       "code_correctness": {
         name: "code_correctness",
         score: 0.95,
@@ -139,16 +101,6 @@ Deno.test("GateEvaluator: uses specific mock result", async () => {
   };
   mockJudge.setMockResult("judge-agent", customResult);
 
-  const evaluator = new GateEvaluator(mockJudge);
-
-  const config: GateConfig = {
-    agent: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    threshold: 0.8,
-    onFail: FlowGateOnFail.HALT,
-    maxRetries: 1,
-  };
-
   const result = await evaluator.evaluate(config, "Content");
 
   assertEquals(result.passed, true);
@@ -157,39 +109,15 @@ Deno.test("GateEvaluator: uses specific mock result", async () => {
 });
 
 Deno.test("GateEvaluator: handles edge case scores", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.8); // Exactly at threshold
-
-  const evaluator = new GateEvaluator(mockJudge);
-
-  const config: GateConfig = {
-    agent: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    threshold: 0.8, // Exactly matches score
-    onFail: FlowGateOnFail.HALT,
-    maxRetries: 1,
-  };
-
+  // Score exactly matches threshold (0.8)
+  const { evaluator, config } = setupEvaluator(0.8, { maxRetries: 1 });
   const result = await evaluator.evaluate(config, "Content");
 
-  // Score equal to threshold should pass
   assertEquals(result.passed, true);
 });
 
 Deno.test("GateEvaluator: tracks evaluation duration", async () => {
-  const mockJudge = new MockJudgeInvoker();
-  mockJudge.setDefaultScore(0.85);
-
-  const evaluator = new GateEvaluator(mockJudge);
-
-  const config: GateConfig = {
-    agent: "judge-agent",
-    criteria: ["CODE_CORRECTNESS"],
-    threshold: 0.8,
-    onFail: FlowGateOnFail.HALT,
-    maxRetries: 1,
-  };
-
+  const { evaluator, config } = setupEvaluator(0.85);
   const result = await evaluator.evaluate(config, "Content");
 
   assertExists(result.evaluationDurationMs);

@@ -71,13 +71,23 @@ function createTestProposal(): MemoryUpdateProposal {
   };
 }
 
+// Helper wrapper for notification tests
+async function withNotificationService(
+  fn: (ctx: { notification: NotificationService; db: any }) => Promise<void>,
+) {
+  const { db, notification, cleanup } = await initNotificationTest();
+  try {
+    await fn({ notification, db });
+  } finally {
+    await cleanup();
+  }
+}
+
 // ===== NotificationService Tests =====
 
 Deno.test("NotificationService: notifyMemoryUpdate logs to Activity Journal", async () => {
-  const { db, notification, cleanup } = await initNotificationTest();
-  try {
+  await withNotificationService(async ({ db, notification }) => {
     const proposal = createTestProposal();
-
     await notification.notifyMemoryUpdate(proposal);
 
     // Wait for batch flush
@@ -89,16 +99,12 @@ Deno.test("NotificationService: notifyMemoryUpdate logs to Activity Journal", as
     ).all() as Array<{ action_type: string; target: string; payload: string }>;
     assertEquals(activities.length, 1);
     assertStringIncludes(activities[0].payload, proposal.id);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("NotificationService: notifyMemoryUpdate writes notification to database", async () => {
-  const { db, notification, cleanup } = await initNotificationTest();
-  try {
+  await withNotificationService(async ({ db, notification }) => {
     const proposal = createTestProposal();
-
     await notification.notifyMemoryUpdate(proposal);
 
     // Check notification was written to database
@@ -114,14 +120,11 @@ Deno.test("NotificationService: notifyMemoryUpdate writes notification to databa
     assertEquals(rows.length, 1);
     assertEquals(rows[0].proposal_id, proposal.id);
     assertEquals(rows[0].type, "memory_update_pending");
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("NotificationService: notifyMemoryUpdate appends to existing notifications", async () => {
-  const { notification, cleanup } = await initNotificationTest();
-  try {
+  await withNotificationService(async ({ notification }) => {
     const proposal1 = createTestProposal();
     const proposal2 = {
       ...createTestProposal(),
@@ -133,14 +136,11 @@ Deno.test("NotificationService: notifyMemoryUpdate appends to existing notificat
 
     const notifications = await notification.getNotifications();
     assertEquals(notifications.length, 2);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("NotificationService: getNotifications returns all pending", async () => {
-  const { notification, cleanup } = await initNotificationTest();
-  try {
+  await withNotificationService(async ({ notification }) => {
     const proposal = createTestProposal();
     await notification.notifyMemoryUpdate(proposal);
 
@@ -149,24 +149,18 @@ Deno.test("NotificationService: getNotifications returns all pending", async () 
     assertEquals(notifications.length, 1);
     assertEquals(notifications[0].proposal_id, proposal.id);
     assertExists(notifications[0].created_at);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("NotificationService: getNotifications returns empty array if none", async () => {
-  const { notification, cleanup } = await initNotificationTest();
-  try {
+  await withNotificationService(async ({ notification }) => {
     const notifications = await notification.getNotifications();
     assertEquals(notifications.length, 0);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("NotificationService: clearNotification removes specific notification", async () => {
-  const { notification, cleanup } = await initNotificationTest();
-  try {
+  await withNotificationService(async ({ notification }) => {
     const proposal1 = createTestProposal();
     const proposal2 = {
       ...createTestProposal(),
@@ -181,14 +175,11 @@ Deno.test("NotificationService: clearNotification removes specific notification"
     const remaining = await notification.getNotifications();
     assertEquals(remaining.length, 1);
     assertEquals(remaining[0].proposal_id, proposal2.id);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("NotificationService: clearAllNotifications removes all", async () => {
-  const { notification, cleanup } = await initNotificationTest();
-  try {
+  await withNotificationService(async ({ notification }) => {
     const proposal1 = createTestProposal();
     const proposal2 = {
       ...createTestProposal(),
@@ -202,32 +193,24 @@ Deno.test("NotificationService: clearAllNotifications removes all", async () => 
 
     const remaining = await notification.getNotifications();
     assertEquals(remaining.length, 0);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("NotificationService: notifyApproval logs approval event", async () => {
-  const { db, notification, cleanup } = await initNotificationTest();
-  try {
+  await withNotificationService(async ({ db, notification }) => {
     await notification.notifyApproval("proposal-id-123", "Test Learning");
-
     await db.waitForFlush();
 
     const activities = db.instance.prepare(
       "SELECT action_type FROM activity WHERE action_type = 'memory.update.approved'",
     ).all() as Array<{ action_type: string }>;
     assertEquals(activities.length, 1);
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("NotificationService: notifyRejection logs rejection event", async () => {
-  const { db, notification, cleanup } = await initNotificationTest();
-  try {
+  await withNotificationService(async ({ db, notification }) => {
     await notification.notifyRejection("proposal-id-456", "Not relevant");
-
     await db.waitForFlush();
 
     const activities = db.instance.prepare(
@@ -235,14 +218,11 @@ Deno.test("NotificationService: notifyRejection logs rejection event", async () 
     ).all() as Array<{ action_type: string; payload: string }>;
     assertEquals(activities.length, 1);
     assertStringIncludes(activities[0].payload, "Not relevant");
-  } finally {
-    await cleanup();
-  }
+  });
 });
 
 Deno.test("NotificationService: getPendingCount returns correct count", async () => {
-  const { notification, cleanup } = await initNotificationTest();
-  try {
+  await withNotificationService(async ({ notification }) => {
     assertEquals(await notification.getPendingCount(), 0);
 
     await notification.notifyMemoryUpdate(createTestProposal());
@@ -253,7 +233,5 @@ Deno.test("NotificationService: getPendingCount returns correct count", async ()
       id: "550e8400-e29b-41d4-a716-446655440005",
     });
     assertEquals(await notification.getPendingCount(), 2);
-  } finally {
-    await cleanup();
-  }
+  });
 });

@@ -1,39 +1,18 @@
-import { IModelProvider, ModelOptions } from "../providers.ts";
-import { EventLogger } from "../../services/event_logger.ts";
-import { withRetry } from "./common.ts";
+import { ModelOptions } from "../providers.ts";
 import { extractAnthropicContent, performProviderCall, tokenMapperAnthropic } from "../provider_common_utils.ts";
-import type { Config } from "../../config/schema.ts";
 import * as DEFAULTS from "../../config/constants.ts";
+import { BaseProvider, BaseProviderOptions } from "./base_provider.ts";
 
 /**
  * Options for AnthropicProvider
  */
-export interface AnthropicProviderOptions {
-  apiKey: string;
-  model?: string;
-  id?: string;
-  logger?: EventLogger;
-  retryDelayMs?: number;
-  maxRetries?: number;
-  baseUrl?: string;
-  apiVersion?: string;
-  config?: Config;
-  timeoutMs?: number;
-}
+export type AnthropicProviderOptions = BaseProviderOptions;
 
 /**
  * AnthropicProvider implements IModelProvider for Anthropic's Claude models.
  */
-export class AnthropicProvider implements IModelProvider {
-  public readonly id: string;
-  private readonly apiKey: string;
-  private readonly model: string;
-  private readonly baseUrl: string;
+export class AnthropicProvider extends BaseProvider {
   private readonly apiVersion: string;
-  private readonly logger?: EventLogger;
-  private readonly retryDelayMs: number;
-  private readonly maxRetries: number;
-  private readonly timeoutMs: number;
 
   /**
    * @param options.apiKey Anthropic API key
@@ -46,56 +25,27 @@ export class AnthropicProvider implements IModelProvider {
    * @param options.apiVersion Optional API version (reads from config)
    * @param options.config Optional config object for endpoints and retry settings
    */
-  constructor(options: AnthropicProviderOptions) {
-    this.apiKey = options.apiKey;
-
-    // Read model from options, config, or default
-    this.model = options.model ||
-      options.config?.ai_anthropic?.default_model ||
-      DEFAULTS.DEFAULT_ANTHROPIC_MODEL;
-
-    this.id = options.id || `anthropic-${this.model}`;
-    this.logger = options.logger;
-
-    // Read base URL from config or use default
-    this.baseUrl = options.baseUrl ||
-      options.config?.ai_endpoints?.anthropic ||
-      DEFAULTS.DEFAULT_ANTHROPIC_ENDPOINT;
+  constructor(options: AnthropicProviderOptions & { apiVersion?: string }) {
+    super(
+      options,
+      options.config?.ai_anthropic?.default_model || DEFAULTS.DEFAULT_ANTHROPIC_MODEL,
+      options.config?.ai_endpoints?.anthropic || DEFAULTS.DEFAULT_ANTHROPIC_ENDPOINT,
+      options.config?.ai_timeout?.providers?.anthropic || DEFAULTS.DEFAULT_ANTHROPIC_TIMEOUT_MS,
+      options.config?.ai_retry?.providers?.anthropic?.backoff_base_ms || DEFAULTS.DEFAULT_ANTHROPIC_RETRY_BACKOFF_MS,
+      options.config?.ai_retry?.providers?.anthropic?.max_attempts || DEFAULTS.DEFAULT_ANTHROPIC_RETRY_MAX_ATTEMPTS,
+      "anthropic",
+    );
 
     // Read API version from config or use default
     this.apiVersion = options.apiVersion ||
       options.config?.ai_anthropic?.api_version ||
       DEFAULTS.DEFAULT_ANTHROPIC_API_VERSION;
-
-    // Read retry settings from config or use defaults
-    this.retryDelayMs = options.retryDelayMs ||
-      options.config?.ai_retry?.providers?.anthropic?.backoff_base_ms ||
-      DEFAULTS.DEFAULT_ANTHROPIC_RETRY_BACKOFF_MS;
-
-    this.maxRetries = options.maxRetries ||
-      options.config?.ai_retry?.providers?.anthropic?.max_attempts ||
-      DEFAULTS.DEFAULT_ANTHROPIC_RETRY_MAX_ATTEMPTS;
-
-    // Read timeout from options, config, or default
-    this.timeoutMs = options.timeoutMs ||
-      options.config?.ai_timeout?.providers?.anthropic ||
-      DEFAULTS.DEFAULT_ANTHROPIC_TIMEOUT_MS;
-  }
-
-  /**
-   * Generate a completion from the model.
-   */
-  async generate(prompt: string, options?: ModelOptions): Promise<string> {
-    return await withRetry(
-      () => this.attemptGenerate(prompt, options),
-      { maxRetries: this.maxRetries, baseDelayMs: this.retryDelayMs },
-    );
   }
 
   /**
    * Internal: attempt a single completion call.
    */
-  private async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
+  protected override async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
     const data = await performProviderCall(this.baseUrl, {
       method: "POST",
       headers: {
