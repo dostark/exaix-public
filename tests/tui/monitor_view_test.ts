@@ -13,6 +13,8 @@ import {
   createTwoAgentLogs,
   sampleLogEntries,
   sampleLogEntry,
+  sampleMonitorLogs,
+  sampleSingleMonitorLog,
 } from "./helpers.ts";
 import {
   KEY_A,
@@ -350,18 +352,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - pause toggle", async () => {
 });
 
 Deno.test("Phase 13.5: MonitorTuiSession - bookmarking", async () => {
-  const { session } = createMonitorSession([
-    {
-      id: "1",
-      trace_id: "t1",
-      actor: MemorySource.USER,
-      agent_id: "a1",
-      action_type: "request_created",
-      target: "target.md",
-      payload: {},
-      timestamp: "2025-12-22T10:00:00Z",
-    },
-  ]);
+  const { session } = createMonitorSession(sampleMonitorLogs().slice(0, 1));
 
   assertEquals(session.getBookmarkedIds().size, 0);
   await session.handleKey(KEY_B);
@@ -374,28 +365,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - bookmarking", async () => {
 });
 
 Deno.test("Phase 13.5: MonitorTuiSession - navigation", async () => {
-  const { session } = createMonitorSession([
-    {
-      id: "1",
-      trace_id: "t1",
-      actor: MemorySource.USER,
-      agent_id: "a1",
-      action_type: "request_created",
-      target: "target.md",
-      payload: {},
-      timestamp: "2025-12-22T10:00:00Z",
-    },
-    {
-      id: "2",
-      trace_id: "t2",
-      actor: MemorySource.USER,
-      agent_id: "a2",
-      action_type: "plan.approved",
-      target: "target2.md",
-      payload: {},
-      timestamp: "2025-12-22T10:01:00Z",
-    },
-  ]);
+  const { session } = createMonitorSession(sampleMonitorLogs());
 
   // Navigate down
   await session.handleKey(KEY_DOWN);
@@ -408,28 +378,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - navigation", async () => {
 });
 
 Deno.test("Phase 13.5: MonitorTuiSession - expand/collapse all", async () => {
-  const { session } = createMonitorSession([
-    {
-      id: "1",
-      trace_id: "t1",
-      actor: MemorySource.USER,
-      agent_id: "a1",
-      action_type: "request_created",
-      target: "target.md",
-      payload: {},
-      timestamp: "2025-12-22T10:00:00Z",
-    },
-    {
-      id: "2",
-      trace_id: "t2",
-      actor: MemorySource.USER,
-      agent_id: "a2",
-      action_type: "plan.approved",
-      target: "target2.md",
-      payload: {},
-      timestamp: "2025-12-22T10:01:00Z",
-    },
-  ]);
+  const { session } = createMonitorSession(sampleMonitorLogs());
 
   // Switch to grouped mode
   await session.handleKey(KEY_G);
@@ -515,18 +464,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - key bindings", () => {
 });
 
 Deno.test("Phase 13.5: MonitorTuiSession - export logs", () => {
-  const { session } = createMonitorSession([
-    {
-      id: "1",
-      trace_id: "t1",
-      actor: MemorySource.USER,
-      agent_id: "a1",
-      action_type: "request_created",
-      target: "target.md",
-      payload: { data: "test" },
-      timestamp: "2025-12-22T10:00:00Z",
-    },
-  ]);
+  const { session } = createMonitorSession(sampleSingleMonitorLog());
 
   const exported = session.exportLogs();
   assert(exported.includes("request_created"));

@@ -1,5 +1,5 @@
 import { Request } from "../../src/tui/request_manager_view.ts";
-import { ExecutionStatus, MemorySource, MemoryStatus, SkillStatus } from "../../src/enums.ts";
+import { ExecutionStatus, MemorySource, MemoryStatus, PlanStatus, SkillStatus } from "../../src/enums.ts";
 import { LegacyRequestManagerTuiSession, RequestManagerView } from "../../src/tui/request_manager_view.ts";
 
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
@@ -50,6 +50,85 @@ export function sampleTestRequests() {
       source: "cli",
     },
   ]);
+}
+
+export function sampleBasicRequest() {
+  return sampleRequests([
+    {
+      trace_id: "req-1",
+      title: "Request 1",
+    },
+  ]);
+}
+
+export function sampleTwoRequests() {
+  return sampleRequests([
+    {
+      trace_id: "req-1",
+      title: "Request 1",
+    },
+    {
+      trace_id: "req-2",
+      title: "Request 2",
+    },
+  ]);
+}
+
+export function sampleGroupedRequests() {
+  return sampleRequests([
+    {
+      trace_id: "req-1",
+      title: "Request 1",
+    },
+    {
+      trace_id: "req-2",
+      title: "Request 2",
+      status: ExecutionStatus.COMPLETED,
+      priority: "high",
+      agent: "other",
+    },
+  ]);
+}
+
+export function sampleNewRequest() {
+  return sampleRequests([
+    {
+      trace_id: "new-req",
+      title: "New Request",
+    },
+  ]);
+}
+
+// -------------------------
+// Plan reviewer helpers
+// -------------------------
+export function sampleBasicPlans() {
+  return [
+    { id: "plan1", title: "Plan 1" },
+    { id: "plan2", title: "Plan 2" },
+    { id: "plan3", title: "Plan 3" },
+  ];
+}
+
+export function sampleSinglePlan() {
+  return [
+    { id: "plan1", title: "Plan 1" },
+  ];
+}
+
+export function samplePlansWithStatuses() {
+  return [
+    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+    { id: "p2", title: "Plan 2", status: PlanStatus.APPROVED },
+    { id: "p3", title: "Plan 3", status: PlanStatus.REJECTED },
+  ];
+}
+
+export function samplePendingPlans() {
+  return [
+    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+    { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
+  ];
 }
 
 export function createMockRequestService(initial: Array<Record<string, any>> = []) {
@@ -148,6 +227,48 @@ export function createTwoActionLogs() {
   return sampleLogEntries([
     { action_type: "request_created" },
     { action_type: "plan_approved" },
+  ]);
+}
+
+/** Convenience: create basic monitor test logs */
+export function sampleMonitorLogs() {
+  return sampleLogEntries([
+    {
+      id: "1",
+      trace_id: "t1",
+      actor: MemorySource.USER,
+      agent_id: "a1",
+      action_type: "request_created",
+      target: "target.md",
+      payload: {},
+      timestamp: "2025-12-22T10:00:00Z",
+    },
+    {
+      id: "2",
+      trace_id: "t2",
+      actor: MemorySource.USER,
+      agent_id: "a2",
+      action_type: "plan.approved",
+      target: "target2.md",
+      payload: {},
+      timestamp: "2025-12-22T10:01:00Z",
+    },
+  ]);
+}
+
+/** Convenience: create single monitor test log */
+export function sampleSingleMonitorLog() {
+  return sampleLogEntries([
+    {
+      id: "1",
+      trace_id: "t1",
+      actor: MemorySource.USER,
+      agent_id: "a1",
+      action_type: "request_created",
+      target: "target.md",
+      payload: { data: "test" },
+      timestamp: "2025-12-22T10:00:00Z",
+    },
   ]);
 }
 
@@ -599,4 +720,152 @@ export function createSkillsManagerTuiSession(skills: SkillSummary[] = sampleTes
   const { service, view } = createSkillsManagerViewWithMock(skills);
   const session = view.createTuiSession(false);
   return { service, view, session };
+}
+
+// ===== Memory Service Mock =====
+
+import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
+import type { MemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
+
+export class MinimalMemoryServiceMock implements MemoryServiceInterface {
+  proposals: MemoryUpdateProposal[] = [];
+  approvedCount = 0;
+
+  constructor(proposals: MemoryUpdateProposal[] = []) {
+    this.proposals = proposals;
+  }
+
+  getProjects(): Promise<string[]> {
+    return Promise.resolve(["default"]);
+  }
+
+  getProjectMemory(_portal: string): Promise<any> {
+    return Promise.resolve(null);
+  }
+
+  getGlobalMemory(): Promise<any> {
+    return Promise.resolve(null);
+  }
+
+  getExecutionByTraceId(_traceId: string): Promise<any> {
+    return Promise.resolve(null);
+  }
+
+  getExecutionHistory(_options?: { portal?: string; limit?: number }): Promise<any[]> {
+    return Promise.resolve([]);
+  }
+
+  search(_query: string, _options?: { portal?: string; limit?: number }): Promise<any[]> {
+    return Promise.resolve([]);
+  }
+
+  listPending(): Promise<MemoryUpdateProposal[]> {
+    return Promise.resolve(this.proposals);
+  }
+
+  getPending(proposalId: string): Promise<MemoryUpdateProposal | null> {
+    return Promise.resolve(
+      this.proposals.find((p) => p.id === proposalId) ?? null,
+    );
+  }
+
+  approvePending(proposalId: string): Promise<void> {
+    this.proposals = this.proposals.filter((p) => p.id !== proposalId);
+    this.approvedCount++;
+    return Promise.resolve();
+  }
+
+  rejectPending(proposalId: string, _reason: string): Promise<void> {
+    this.proposals = this.proposals.filter((p) => p.id !== proposalId);
+    return Promise.resolve();
+  }
+
+  getApprovedCount(): number {
+    return this.approvedCount;
+  }
+}
+
+// -------------------------
+// Memory View helpers
+// -------------------------
+import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
+import { ConfidenceLevel, LearningCategory, MemoryOperation, MemoryReferenceType } from "../../src/enums.ts";
+
+export function createMockProposals(): MemoryUpdateProposal[] {
+  return [
+    {
+      id: "proposal-1",
+      agent: "test-agent",
+      operation: MemoryOperation.ADD,
+      learning: {
+        id: "learning-1",
+        title: "Error Handling Pattern",
+        category: LearningCategory.PATTERN,
+        description: "Use try-catch for all async functions",
+        confidence: ConfidenceLevel.HIGH,
+        tags: ["error-handling"],
+        source: MemorySource.AGENT,
+        scope: MemoryScope.PROJECT,
+        created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+      },
+      target_scope: MemoryScope.PROJECT,
+      target_project: "my-app",
+      reason: "Extracted from execution",
+      created_at: new Date(Date.now() - 3600000).toISOString(),
+      status: MemoryStatus.PENDING,
+    },
+    {
+      id: "proposal-2",
+      agent: "test-agent",
+      operation: MemoryOperation.ADD,
+      learning: {
+        id: "learning-2",
+        title: "API Rate Limiting",
+        category: LearningCategory.DECISION,
+        description: "Implement rate limiting for all API endpoints",
+        confidence: ConfidenceLevel.MEDIUM,
+        tags: [MemoryReferenceType.API, EvaluationCategory.SECURITY],
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
+        created_at: new Date(Date.now() - 18000000).toISOString(), // 5 hours ago
+      },
+      target_scope: MemoryScope.GLOBAL,
+      reason: "Common pattern across projects",
+      created_at: new Date(Date.now() - 18000000).toISOString(),
+      status: MemoryStatus.PENDING,
+    },
+    {
+      id: "proposal-3",
+      agent: "test-agent",
+      operation: MemoryOperation.ADD,
+      learning: {
+        id: "learning-3",
+        title: "Database Connection Issue",
+        category: LearningCategory.TROUBLESHOOTING,
+        description: "Connection timeout solutions",
+        confidence: ConfidenceLevel.HIGH,
+        tags: ["database"],
+        source: MemorySource.EXECUTION,
+        scope: MemoryScope.PROJECT,
+        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+      },
+      target_scope: MemoryScope.PROJECT,
+      target_project: "api-service",
+      reason: "Documented troubleshooting steps",
+      created_at: new Date(Date.now() - 86400000).toISOString(),
+      status: MemoryStatus.PENDING,
+    },
+  ];
+}
+
+export function createMemoryViewSession(proposals: MemoryUpdateProposal[] = []) {
+  const service = new MinimalMemoryServiceMock(proposals);
+  const session = new MemoryViewTuiSession(service);
+  return { service, session };
+}
+
+export async function createInitializedMemoryViewSession(proposals: MemoryUpdateProposal[] = []) {
+  const { service, session } = createMemoryViewSession(proposals);
+  await session.initialize();
+  return { service, session };
 }

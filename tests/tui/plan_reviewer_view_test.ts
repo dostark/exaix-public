@@ -28,7 +28,7 @@ import {
   PlanReviewerTuiSession,
   PlanReviewerView,
 } from "../../src/tui/plan_reviewer_view.ts";
-import { createPlanReviewerSession } from "./helpers.ts";
+import { createPlanReviewerSession, sampleBasicPlans, samplePendingPlans, samplePlansWithStatuses } from "./helpers.ts";
 import { PlanCommands } from "../../src/cli/plan_commands.ts";
 
 function yamlFrontmatter(obj: Record<string, string>): string {
@@ -289,12 +289,7 @@ Deno.test("PlanReviewerView: works with DB-like service", async () => {
 
 // PlanReviewerTuiSession keyboard interaction tests
 Deno.test("PlanReviewerTuiSession keyboard navigation - down arrow", async () => {
-  const plans = [
-    { id: "plan1", title: "Plan 1" },
-    { id: "plan2", title: "Plan 2" },
-    { id: "plan3", title: "Plan 3" },
-  ];
-  const { session } = createPlanReviewerSession(plans);
+  const { session } = createPlanReviewerSession(sampleBasicPlans());
 
   // Start at index 0
   assertEquals(session.getSelectedIndex(), 0);
@@ -313,12 +308,7 @@ Deno.test("PlanReviewerTuiSession keyboard navigation - down arrow", async () =>
 });
 
 Deno.test("PlanReviewerTuiSession keyboard navigation - up arrow", async () => {
-  const plans = [
-    { id: "plan1", title: "Plan 1" },
-    { id: "plan2", title: "Plan 2" },
-    { id: "plan3", title: "Plan 3" },
-  ];
-  const { session } = createPlanReviewerSession(plans);
+  const { session } = createPlanReviewerSession(sampleBasicPlans());
 
   // Start at index 2
   session.setSelectedIndex(2);
@@ -338,12 +328,7 @@ Deno.test("PlanReviewerTuiSession keyboard navigation - up arrow", async () => {
 });
 
 Deno.test("PlanReviewerTuiSession keyboard navigation - end key", async () => {
-  const plans = [
-    { id: "plan1", title: "Plan 1" },
-    { id: "plan2", title: "Plan 2" },
-    { id: "plan3", title: "Plan 3" },
-  ];
-  const { session } = createPlanReviewerSession(plans);
+  const { session } = createPlanReviewerSession(sampleBasicPlans());
 
   // Start at index 0
   assertEquals(session.getSelectedIndex(), 0);
@@ -354,12 +339,7 @@ Deno.test("PlanReviewerTuiSession keyboard navigation - end key", async () => {
 });
 
 Deno.test("PlanReviewerTuiSession keyboard navigation - home key", async () => {
-  const plans = [
-    { id: "plan1", title: "Plan 1" },
-    { id: "plan2", title: "Plan 2" },
-    { id: "plan3", title: "Plan 3" },
-  ];
-  const { session } = createPlanReviewerSession(plans);
+  const { session } = createPlanReviewerSession(sampleBasicPlans());
 
   // Navigate to end first
   await session.handleKey(KEY_END);
@@ -488,10 +468,7 @@ Deno.test("Phase 13.4: Plan tree is built with status groups", () => {
 });
 
 Deno.test("Phase 13.4: Plan tree rendering", () => {
-  const plans = [
-    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
-    { id: "p2", title: "Plan 2", status: PlanStatus.APPROVED },
-  ];
+  const plans = samplePlansWithStatuses().slice(0, 2); // Just p1 and p2
   const session = new PlanReviewerTuiSession(plans, new MinimalPlanServiceMock());
 
   const lines = session.renderPlanTree();
@@ -635,11 +612,7 @@ Deno.test("Phase 13.4: Approve all pending", async () => {
       approved.push(planId);
       return Promise.resolve(true);
     },
-    listPending: () =>
-      Promise.resolve([
-        { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
-        { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
-      ]),
+    listPending: () => Promise.resolve(samplePendingPlans()),
   });
 
   // Press A to approve all pending

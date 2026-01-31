@@ -12,26 +12,14 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { EvaluationCategory } from "../../src/enums.ts";
-
-import { DaemonStatus } from "../../src/enums.ts";
-
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { initTestDbService } from "../helpers/db.ts";
-import { type MemoryUpdateProposal, MemoryUpdateProposalSchema } from "../../src/schemas/memory_bank.ts";
+import { MemoryUpdateProposalSchema } from "../../src/schemas/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
-import type { ExecutionMemory, ProjectMemory } from "../../src/schemas/memory_bank.ts";
-import {
-  ConfidenceLevel,
-  ExecutionStatus,
-  LearningCategory,
-  MemoryOperation,
-  MemoryScope,
-  MemorySource,
-  MemoryStatus,
-} from "../../src/enums.ts";
+import type { ExecutionMemory } from "../../src/schemas/memory_bank.ts";
+import { ExecutionStatus, LearningCategory, MemoryStatus } from "../../src/enums.ts";
 import {
   getMemoryExecutionDir,
   getMemoryGlobalDir,
@@ -39,143 +27,48 @@ import {
   getMemoryPendingDir,
   getMemoryProjectsDir,
 } from "../helpers/paths_helper.ts";
+import {
+  createApprovedProposal,
+  createGlobalProposal,
+  createInvalidProposal,
+  createInvalidStatusProposal,
+  createMinimalProposal,
+  createTestProposal,
+} from "./helpers/memory_test_helpers.ts";
+import { createMinimalProjectMemory } from "./helpers/memory_bank_test_helpers.ts";
 
 // ===== MemoryUpdateProposalSchema Tests =====
 
 Deno.test("MemoryUpdateProposalSchema: validates minimal proposal", () => {
-  const proposal: MemoryUpdateProposal = {
-    id: "550e8400-e29b-41d4-a716-446655440000",
-    created_at: "2026-01-04T12:00:00Z",
-    operation: MemoryOperation.ADD,
-    target_scope: MemoryScope.PROJECT,
-    target_project: "my-app",
-    learning: {
-      id: "550e8400-e29b-41d4-a716-446655440001",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.EXECUTION,
-      source_id: "trace-123",
-      scope: MemoryScope.PROJECT,
-      project: "my-app",
-      title: "Use repository pattern",
-      description: "Database access should go through repositories",
-      category: LearningCategory.PATTERN,
-      tags: ["architecture"],
-      confidence: ConfidenceLevel.MEDIUM,
-      references: [],
-    },
-    reason: "Extracted from successful execution",
-    agent: "senior-coder",
-    execution_id: "trace-123",
-    status: MemoryStatus.PENDING,
-  };
+  const proposal = createMinimalProposal();
 
   const result = MemoryUpdateProposalSchema.safeParse(proposal);
   assertEquals(result.success, true);
 });
 
 Deno.test("MemoryUpdateProposalSchema: validates global scope proposal", () => {
-  const proposal = {
-    id: "550e8400-e29b-41d4-a716-446655440002",
-    created_at: "2026-01-04T12:00:00Z",
-    operation: MemoryOperation.PROMOTE,
-    target_scope: MemoryScope.GLOBAL,
-    learning: {
-      id: "550e8400-e29b-41d4-a716-446655440003",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.AGENT,
-      scope: MemoryScope.GLOBAL,
-      title: "Always validate input",
-      description: "Input validation prevents security issues",
-      category: LearningCategory.INSIGHT,
-      tags: [EvaluationCategory.SECURITY],
-      confidence: ConfidenceLevel.HIGH,
-    },
-    reason: "Pattern observed across multiple projects",
-    agent: "architect",
-    status: MemoryStatus.PENDING,
-  };
+  const proposal = createGlobalProposal();
 
   const result = MemoryUpdateProposalSchema.safeParse(proposal);
   assertEquals(result.success, true);
 });
 
 Deno.test("MemoryUpdateProposalSchema: validates approved proposal", () => {
-  const proposal = {
-    id: "550e8400-e29b-41d4-a716-446655440004",
-    created_at: "2026-01-04T12:00:00Z",
-    operation: MemoryOperation.ADD,
-    target_scope: MemoryScope.PROJECT,
-    target_project: "my-app",
-    learning: {
-      id: "550e8400-e29b-41d4-a716-446655440005",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
-      scope: MemoryScope.PROJECT,
-      project: "my-app",
-      title: "Test Learning",
-      description: "Test description",
-      category: LearningCategory.PATTERN,
-      tags: [],
-      confidence: ConfidenceLevel.LOW,
-    },
-    reason: "User requested",
-    agent: "user-cli",
-    status: MemoryStatus.APPROVED,
-    reviewed_at: "2026-01-04T13:00:00Z",
-    reviewed_by: MemorySource.USER,
-  };
+  const proposal = createApprovedProposal();
 
   const result = MemoryUpdateProposalSchema.safeParse(proposal);
   assertEquals(result.success, true);
 });
 
 Deno.test("MemoryUpdateProposalSchema: rejects invalid operation", () => {
-  const proposal = {
-    id: "550e8400-e29b-41d4-a716-446655440006",
-    created_at: "2026-01-04T12:00:00Z",
-    operation: "invalid-op", // Invalid
-    target_scope: MemoryScope.PROJECT,
-    learning: {
-      id: "550e8400-e29b-41d4-a716-446655440007",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
-      scope: MemoryScope.PROJECT,
-      title: "Test",
-      description: "Test",
-      category: LearningCategory.PATTERN,
-      tags: [],
-      confidence: ConfidenceLevel.LOW,
-    },
-    reason: "Test",
-    agent: "test",
-    status: MemoryStatus.PENDING,
-  };
+  const proposal = createInvalidProposal();
 
   const result = MemoryUpdateProposalSchema.safeParse(proposal);
   assertEquals(result.success, false);
 });
 
 Deno.test("MemoryUpdateProposalSchema: rejects invalid status", () => {
-  const proposal = {
-    id: "550e8400-e29b-41d4-a716-446655440008",
-    created_at: "2026-01-04T12:00:00Z",
-    operation: MemoryOperation.ADD,
-    target_scope: MemoryScope.PROJECT,
-    learning: {
-      id: "550e8400-e29b-41d4-a716-446655440009",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
-      scope: MemoryScope.PROJECT,
-      title: "Test",
-      description: "Test",
-      category: LearningCategory.PATTERN,
-      tags: [],
-      confidence: ConfidenceLevel.LOW,
-    },
-    reason: "Test",
-    agent: "test",
-    status: DaemonStatus.UNKNOWN, // Invalid
-  };
+  const proposal = createInvalidStatusProposal();
 
   const result = MemoryUpdateProposalSchema.safeParse(proposal);
   assertEquals(result.success, false);
@@ -501,23 +394,17 @@ Deno.test("MemoryExtractorService: approvePending merges learning to project", a
   const { memoryBank, extractor, cleanup } = await initExtractorTest();
   try {
     // Create project memory first
-    const projectMem: ProjectMemory = {
+    const projectMem = createMinimalProjectMemory({
       portal: "my-app",
       overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
+    });
     await memoryBank.createProjectMemory(projectMem);
 
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440022");
-    const learnings = await extractor.analyzeExecution(execution);
+    const proposalId = await createTestProposal(extractor, "my-app", "550e8400-e29b-41d4-a716-446655440022");
 
-    if (learnings.length === 0) {
-      return;
+    if (!proposalId) {
+      return; // No learnings extracted
     }
-
-    const proposalId = await extractor.createProposal(learnings[0], execution, "senior-coder");
 
     await extractor.approvePending(proposalId);
 
@@ -533,23 +420,17 @@ Deno.test("MemoryExtractorService: approvePending merges learning to project", a
 Deno.test("MemoryExtractorService: approvePending removes from Pending", async () => {
   const { config, memoryBank, extractor, cleanup } = await initExtractorTest();
   try {
-    const projectMem: ProjectMemory = {
+    const projectMem = createMinimalProjectMemory({
       portal: "my-app",
       overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
+    });
     await memoryBank.createProjectMemory(projectMem);
 
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440023");
-    const learnings = await extractor.analyzeExecution(execution);
+    const proposalId = await createTestProposal(extractor, "my-app", "550e8400-e29b-41d4-a716-446655440023");
 
-    if (learnings.length === 0) {
-      return;
+    if (!proposalId) {
+      return; // No learnings extracted
     }
-
-    const proposalId = await extractor.createProposal(learnings[0], execution, "senior-coder");
 
     await extractor.approvePending(proposalId);
 
@@ -564,23 +445,17 @@ Deno.test("MemoryExtractorService: approvePending removes from Pending", async (
 Deno.test("MemoryExtractorService: approvePending logs to Activity Journal", async () => {
   const { db, memoryBank, extractor, cleanup } = await initExtractorTest();
   try {
-    const projectMem: ProjectMemory = {
+    const projectMem = createMinimalProjectMemory({
       portal: "my-app",
       overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
+    });
     await memoryBank.createProjectMemory(projectMem);
 
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440024");
-    const learnings = await extractor.analyzeExecution(execution);
+    const proposalId = await createTestProposal(extractor, "my-app", "550e8400-e29b-41d4-a716-446655440024");
 
-    if (learnings.length === 0) {
-      return;
+    if (!proposalId) {
+      return; // No learnings extracted
     }
-
-    const proposalId = await extractor.createProposal(learnings[0], execution, "senior-coder");
 
     await extractor.approvePending(proposalId);
 
@@ -598,14 +473,11 @@ Deno.test("MemoryExtractorService: approvePending logs to Activity Journal", asy
 Deno.test("MemoryExtractorService: rejectPending archives proposal", async () => {
   const { config, extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440025");
-    const learnings = await extractor.analyzeExecution(execution);
+    const proposalId = await createTestProposal(extractor, "my-app", "550e8400-e29b-41d4-a716-446655440025");
 
-    if (learnings.length === 0) {
-      return;
+    if (!proposalId) {
+      return; // No learnings extracted
     }
-
-    const proposalId = await extractor.createProposal(learnings[0], execution, "senior-coder");
 
     await extractor.rejectPending(proposalId, "Not relevant");
 
@@ -620,14 +492,11 @@ Deno.test("MemoryExtractorService: rejectPending archives proposal", async () =>
 Deno.test("MemoryExtractorService: rejectPending logs rejection reason", async () => {
   const { db, extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440026");
-    const learnings = await extractor.analyzeExecution(execution);
+    const proposalId = await createTestProposal(extractor, "my-app", "550e8400-e29b-41d4-a716-446655440026");
 
-    if (learnings.length === 0) {
-      return;
+    if (!proposalId) {
+      return; // No learnings extracted
     }
-
-    const proposalId = await extractor.createProposal(learnings[0], execution, "senior-coder");
 
     await extractor.rejectPending(proposalId, "Not relevant to project");
 
@@ -646,13 +515,10 @@ Deno.test("MemoryExtractorService: rejectPending logs rejection reason", async (
 Deno.test("MemoryExtractorService: approveAll processes all pending", async () => {
   const { memoryBank, extractor, cleanup } = await initExtractorTest();
   try {
-    const projectMem: ProjectMemory = {
+    const projectMem = createMinimalProjectMemory({
       portal: "my-app",
       overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
+    });
     await memoryBank.createProjectMemory(projectMem);
 
     const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440027");

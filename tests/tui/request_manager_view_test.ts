@@ -10,9 +10,13 @@ import {
   createMockRequestService as _createMockRequestService,
   createTuiWithRequests,
   createViewWithRequests,
+  sampleBasicRequest,
+  sampleGroupedRequests,
+  sampleNewRequest,
   sampleRequest as _sampleRequest,
   sampleRequests as _sampleRequests,
   sampleTestRequests,
+  sampleTwoRequests,
 } from "./helpers.ts";
 import {
   KEY_C,
@@ -147,30 +151,7 @@ Deno.test("RequestManagerView - updates request status", async () => {
 // TUI Session Tests
 Deno.test("RequestManagerTuiSession - keyboard navigation", async () => {
   const _service = new MinimalRequestServiceMock();
-  const requests = [
-    {
-      trace_id: "req-1",
-      filename: "request-1.md",
-      title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
-    },
-    {
-      trace_id: "req-2",
-      filename: "request-2.md",
-      title: "Request 2",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T11:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
-    },
-  ];
+  const requests = sampleTestRequests();
   const { view: _view, tui } = createTuiWithRequests(requests);
 
   // Initial selection - first request
@@ -198,12 +179,7 @@ Deno.test("RequestManagerTuiSession - keyboard navigation", async () => {
 
 Deno.test("RequestManagerTuiSession - keyboard actions show dialogs", async () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = _sampleRequests([
-    {
-      trace_id: "req-1",
-      title: "Request 1",
-    },
-  ]);
+  const requests = sampleBasicRequest();
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -314,16 +290,7 @@ Deno.test("RequestManagerTuiSession - error handling via dialog", async () => {
 
 Deno.test("RequestManagerTuiSession - get selected request", () => {
   const _service = new MinimalRequestServiceMock();
-  const requests = _sampleRequests([
-    {
-      trace_id: "req-1",
-      title: "Request 1",
-    },
-    {
-      trace_id: "req-2",
-      title: "Request 2",
-    },
-  ]);
+  const requests = sampleTwoRequests();
   const view = new RequestManagerView(_service);
   const tui = view.createTuiSession(requests);
 
@@ -365,30 +332,7 @@ Deno.test("Phase 13.6: RequestViewState interface", () => {
 
 Deno.test("Phase 13.6: Tree grouping by status", () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = [
-    {
-      trace_id: "req-1",
-      filename: "request-1.md",
-      title: "Request 1",
-      status: "pending",
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
-    },
-    {
-      trace_id: "req-2",
-      filename: "request-2.md",
-      title: "Request 2",
-      status: ExecutionStatus.COMPLETED,
-      priority: "high",
-      agent: "other",
-      created: "2025-12-23T11:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
-    },
-  ];
+  const requests = sampleTestRequests();
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -513,12 +457,7 @@ Deno.test("Phase 13.6: Help sections", () => {
 
 Deno.test("Phase 13.6: Render methods return strings", () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = _sampleRequests([
-    {
-      trace_id: "req-1",
-      title: "Request 1",
-    },
-  ]);
+  const requests = sampleBasicRequest();
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -585,12 +524,7 @@ Deno.test("Phase 13.6: Cancel confirm dialog", async () => {
 
 Deno.test("Phase 13.6: Priority dialog", async () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = _sampleRequests([
-    {
-      trace_id: "req-1",
-      title: "Request 1",
-    },
-  ]);
+  const requests = sampleBasicRequest();
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -605,19 +539,7 @@ Deno.test("Phase 13.6: Priority dialog", async () => {
 
 Deno.test("Phase 13.6: Tree navigation with groups", async () => {
   const mockService = new MinimalRequestServiceMock();
-  const requests = _sampleRequests([
-    {
-      trace_id: "req-1",
-      title: "Request 1",
-    },
-    {
-      trace_id: "req-2",
-      title: "Request 2",
-      status: ExecutionStatus.COMPLETED,
-      priority: "high",
-      agent: "other",
-    },
-  ]);
+  const requests = sampleGroupedRequests();
   const view = new RequestManagerView(mockService);
   const tui = view.createTuiSession(requests);
 
@@ -651,12 +573,7 @@ Deno.test("Phase 13.6: setRequests updates tree", () => {
   assertEquals(tui.getState().requestTree.length, 0);
 
   // Set new requests
-  tui.setRequests(_sampleRequests([
-    {
-      trace_id: "new-req",
-      title: "New Request",
-    },
-  ]));
+  tui.setRequests(sampleNewRequest());
 
   assertEquals(tui.getRequests().length, 1);
   assertEquals(tui.getState().requestTree.length, 1);

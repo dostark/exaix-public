@@ -30,6 +30,24 @@ class MockOutput implements LogOutput {
   }
 }
 
+/**
+ * Creates a test logger with mock output for testing
+ */
+function createTestLogger(
+  minLevel: StructuredLoggerConfig["minLevel"] = "info",
+  enablePerformanceTracking = false,
+): { logger: StructuredLogger; output: MockOutput } {
+  const output = new MockOutput();
+  const config: StructuredLoggerConfig = {
+    minLevel,
+    outputs: [output],
+    enablePerformanceTracking,
+  };
+
+  const logger = new StructuredLogger(config);
+  return { logger, output };
+}
+
 // ============================================================================
 // Test Suites
 // ============================================================================
@@ -85,70 +103,42 @@ Deno.test("StructuredLogger - Initialization", async (t) => {
 
 Deno.test("StructuredLogger - Log Level Filtering", async (t) => {
   await t.step("should filter debug messages when minLevel is info", () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("info");
     logger.debug("Debug message");
     logger.info("Info message");
 
-    assertEquals(mockOutput.entries.length, 1);
-    assertEquals(mockOutput.entries[0].level, "info");
+    assertEquals(output.entries.length, 1);
+    assertEquals(output.entries[0].level, "info");
   });
 
   await t.step("should allow all levels when minLevel is debug", () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "debug",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("debug");
     logger.debug("Debug message");
     logger.info("Info message");
     logger.warn("Warn message");
     logger.error("Error message");
     logger.fatal("Fatal message");
 
-    assertEquals(mockOutput.entries.length, 5);
-    assertEquals(mockOutput.entries.map((e) => e.level), ["debug", "info", "warn", "error", "fatal"]);
+    assertEquals(output.entries.length, 5);
+    assertEquals(output.entries.map((e) => e.level), ["debug", "info", "warn", "error", "fatal"]);
   });
 
   await t.step("should only allow error and fatal when minLevel is error", () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "error",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("error");
     logger.debug("Debug message");
     logger.info("Info message");
     logger.warn("Warn message");
     logger.error("Error message");
     logger.fatal("Fatal message");
 
-    assertEquals(mockOutput.entries.length, 2);
-    assertEquals(mockOutput.entries.map((e) => e.level), ["error", "fatal"]);
+    assertEquals(output.entries.length, 2);
+    assertEquals(output.entries.map((e) => e.level), ["error", "fatal"]);
   });
 });
 
 Deno.test("StructuredLogger - Context Management", async (t) => {
   await t.step("should include context in log entries", () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("info");
     logger.setContext({
       trace_id: "trace-123",
       user_id: "user-456",
@@ -157,39 +147,25 @@ Deno.test("StructuredLogger - Context Management", async (t) => {
 
     logger.info("Test message");
 
-    assertEquals(mockOutput.entries.length, 1);
-    assertEquals(mockOutput.entries[0].context.trace_id, "trace-123");
-    assertEquals(mockOutput.entries[0].context.user_id, "user-456");
-    assertEquals(mockOutput.entries[0].context.operation, "test-op");
+    assertEquals(output.entries.length, 1);
+    assertEquals(output.entries[0].context.trace_id, "trace-123");
+    assertEquals(output.entries[0].context.user_id, "user-456");
+    assertEquals(output.entries[0].context.operation, "test-op");
   });
 
   await t.step("should merge context with setContext", () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("info");
     logger.setContext({ trace_id: "trace-123" });
     logger.setContext({ user_id: "user-456" });
 
     logger.info("Test message");
 
-    assertEquals(mockOutput.entries[0].context.trace_id, "trace-123");
-    assertEquals(mockOutput.entries[0].context.user_id, "user-456");
+    assertEquals(output.entries[0].context.trace_id, "trace-123");
+    assertEquals(output.entries[0].context.user_id, "user-456");
   });
 
   await t.step("child logger should inherit parent context", () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const parentLogger = new StructuredLogger(config);
+    const { logger: parentLogger, output } = createTestLogger("info");
     parentLogger.setContext({
       trace_id: "trace-123",
       user_id: "user-456",
@@ -202,62 +178,41 @@ Deno.test("StructuredLogger - Context Management", async (t) => {
 
     childLogger.info("Child message");
 
-    assertEquals(mockOutput.entries[0].context.trace_id, "trace-123");
-    assertEquals(mockOutput.entries[0].context.user_id, "user-456");
-    assertEquals(mockOutput.entries[0].context.operation, "child-op");
-    assertEquals(mockOutput.entries[0].context.request_id, "req-789");
+    assertEquals(output.entries[0].context.trace_id, "trace-123");
+    assertEquals(output.entries[0].context.user_id, "user-456");
+    assertEquals(output.entries[0].context.operation, "child-op");
+    assertEquals(output.entries[0].context.request_id, "req-789");
   });
 });
 
 Deno.test("StructuredLogger - Error Handling", async (t) => {
   await t.step("should include error details in log entries", () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("info");
     const testError = new Error("Test error message");
     testError.name = "TestError";
     (testError as any).code = "TEST_ERROR";
 
     logger.error("Something went wrong", testError);
 
-    assertEquals(mockOutput.entries.length, 1);
-    assertEquals(mockOutput.entries[0].level, "error");
-    assertEquals(mockOutput.entries[0].error?.name, "TestError");
-    assertEquals(mockOutput.entries[0].error?.message, "Test error message");
-    assertEquals(mockOutput.entries[0].error?.code, "TEST_ERROR");
-    assert(mockOutput.entries[0].error?.stack);
+    assertEquals(output.entries.length, 1);
+    assertEquals(output.entries[0].level, "error");
+    assertEquals(output.entries[0].error?.name, "TestError");
+    assertEquals(output.entries[0].error?.message, "Test error message");
+    assertEquals(output.entries[0].error?.code, "TEST_ERROR");
+    assert(output.entries[0].error?.stack);
   });
 
   await t.step("should handle error logging without error object", () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("info");
     logger.error("Error without exception");
 
-    assertEquals(mockOutput.entries[0].error, undefined);
+    assertEquals(output.entries[0].error, undefined);
   });
 });
 
 Deno.test("StructuredLogger - Performance Tracking", async (t) => {
   await t.step("should track operation performance when enabled", async () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: true,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("info", true);
 
     const result = await logger.time("test-operation", async () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -267,21 +222,14 @@ Deno.test("StructuredLogger - Performance Tracking", async (t) => {
     assertEquals(result, "success");
 
     // Should have logged the operation completion
-    const completionLog = mockOutput.entries.find((e) => e.message.includes("Operation completed"));
+    const completionLog = output.entries.find((e) => e.message.includes("Operation completed"));
     assert(completionLog);
     assert(completionLog?.metadata?.performance);
     assert((completionLog?.metadata?.performance as any).duration_ms >= 10);
   });
 
   await t.step("should track failed operations", async () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: true,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("info", true);
 
     await assertRejects(async () => {
       await logger.time("failing-operation", () => {
@@ -290,21 +238,14 @@ Deno.test("StructuredLogger - Performance Tracking", async (t) => {
     });
 
     // Should have logged the operation failure
-    const failureLog = mockOutput.entries.find((e) => e.message.includes("Operation failed"));
+    const failureLog = output.entries.find((e) => e.message.includes("Operation failed"));
     assert(failureLog);
     assertEquals(failureLog?.level, "error");
     assert(failureLog?.error);
   });
 
   await t.step("should skip performance tracking when disabled", async () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("info", false);
 
     const result = await logger.time("test-operation", async () => {
       await Promise.resolve(); // Make it actually async
@@ -313,7 +254,7 @@ Deno.test("StructuredLogger - Performance Tracking", async (t) => {
 
     assertEquals(result, "success");
     // Should not have logged anything since performance tracking is disabled
-    assertEquals(mockOutput.entries.length, 0);
+    assertEquals(output.entries.length, 0);
   });
 });
 
@@ -497,14 +438,7 @@ Deno.test("StructuredLogger - Global Logger", async (t) => {
 
 Deno.test("StructuredLogger - Audit vs Notification Evaluation", async (t) => {
   await t.step("should identify security-critical audit events", () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("info");
 
     // Audit events - security critical
     logger.error("Authentication failed", new Error("Invalid credentials"), {
@@ -531,26 +465,19 @@ Deno.test("StructuredLogger - Audit vs Notification Evaluation", async (t) => {
       threshold: 0.10,
     });
 
-    assertEquals(mockOutput.entries.length, 4);
+    assertEquals(output.entries.length, 4);
 
     // Verify audit events have audit_event flag
-    const auditEntries = mockOutput.entries.filter((e) => e.metadata?.audit_event);
+    const auditEntries = output.entries.filter((e) => e.metadata?.audit_event);
     assertEquals(auditEntries.length, 2);
 
     // Verify notification events don't have audit_event flag
-    const notificationEntries = mockOutput.entries.filter((e) => !e.metadata?.audit_event);
+    const notificationEntries = output.entries.filter((e) => !e.metadata?.audit_event);
     assertEquals(notificationEntries.length, 2);
   });
 
   await t.step("should support structured audit context", () => {
-    const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
-      minLevel: "info",
-      outputs: [mockOutput],
-      enablePerformanceTracking: false,
-    };
-
-    const logger = new StructuredLogger(config);
+    const { logger, output } = createTestLogger("info");
     logger.setContext({
       trace_id: "audit-trace-123",
       operation: "user-authentication",
@@ -568,8 +495,8 @@ Deno.test("StructuredLogger - Audit vs Notification Evaluation", async (t) => {
       },
     });
 
-    assertEquals(mockOutput.entries.length, 1);
-    const entry = mockOutput.entries[0];
+    assertEquals(output.entries.length, 1);
+    const entry = output.entries[0];
 
     assertEquals(entry.context.operation, "user-authentication");
     assertEquals(entry.metadata?.audit_event, true);

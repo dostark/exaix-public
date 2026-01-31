@@ -243,7 +243,7 @@ retry_backoff_base_ms = 1000
   /**
    * Create a request file in /Workspace/Requests
    */
-  async createRequest(
+  createRequest(
     description: string,
     options: {
       traceId?: string;
@@ -253,28 +253,16 @@ retry_backoff_base_ms = 1000
       portal?: string;
     } = {},
   ): Promise<{ filePath: string; traceId: string }> {
-    const traceId = options.traceId ?? crypto.randomUUID();
-    const shortId = traceId.substring(0, 8);
-    const fileName = `request-${shortId}.md`;
-    const filePath = join(getWorkspaceRequestsDir(this.tempDir), fileName);
-
-    const frontmatter = this.generateFrontmatter({
-      traceId,
-      priority: options.priority,
-      agentId: options.agentId, // generateFrontmatter handles default "senior-coder" if not flow
-      tags: options.tags,
-      portal: options.portal,
+    return this.createRequestBase(description, {
+      ...options,
+      contentPrefix: "# Request",
     });
-
-    const content = `${frontmatter}\n\n# Request\n\n${description}\n`;
-    await Deno.writeTextFile(filePath, content);
-    return { filePath, traceId };
   }
 
   /**
    * Create a flow request file in /Workspace/Requests
    */
-  async createFlowRequest(
+  createFlowRequest(
     description: string,
     flowId: string,
     options: {
@@ -285,6 +273,28 @@ retry_backoff_base_ms = 1000
       portal?: string;
     } = {},
   ): Promise<{ filePath: string; traceId: string }> {
+    return this.createRequestBase(description, {
+      ...options,
+      flowId,
+      contentPrefix: "# Flow Request",
+    });
+  }
+
+  /**
+   * Base method for creating request files
+   */
+  private async createRequestBase(
+    description: string,
+    options: {
+      traceId?: string;
+      agentId?: string;
+      priority?: number;
+      tags?: string[];
+      portal?: string;
+      flowId?: string;
+      contentPrefix: string;
+    },
+  ): Promise<{ filePath: string; traceId: string }> {
     const traceId = options.traceId ?? crypto.randomUUID();
     const shortId = traceId.substring(0, 8);
     const fileName = `request-${shortId}.md`;
@@ -292,14 +302,14 @@ retry_backoff_base_ms = 1000
 
     const frontmatter = this.generateFrontmatter({
       traceId,
-      flowId,
+      flowId: options.flowId,
       priority: options.priority,
       agentId: options.agentId,
       tags: options.tags,
       portal: options.portal,
     });
 
-    const content = `${frontmatter}\n\n# Flow Request\n\n${description}\n`;
+    const content = `${frontmatter}\n\n${options.contentPrefix}\n\n${description}\n`;
     await Deno.writeTextFile(filePath, content);
     return { filePath, traceId };
   }

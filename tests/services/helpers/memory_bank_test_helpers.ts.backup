@@ -1,0 +1,184 @@
+import type { DecisioncutionMemory, Learning, Pattern, ProjeProjectMemory } from "../../../src/schemas/memory_bank.ts";
+import {
+  ActivityType,
+ 
+ 
+  LearningCategory,
+  MemoryScope,
+  MemorySource,
+
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryReferenceType,
+  MemoryScope,
+  MemorySource,
+  MemoryStatus,
+} from "../../../src/enums.ts";
+import { MemoryBankService } from "../../../src/services/memory_bank.ts";
+import { initTestDbService } from "../../helpers/db.ts";
+import type { Config } from "../../../src/config/schema.ts";
+
+/**
+ * Creates a test setup with MemoryBankService and a pre-created project memory
+ */
+export async function createTestMemoryBankWithProject(
+  projectOverrides: Partial<ProjectMemory> = {}
+): Promise<{
+  service: MemoryBankService;
+  config: Config;
+  cleanup: () => Promise<void>;
+}> {
+  const { db, config, cleanup: dbCleanup } = await initTestDbService();
+
+  const service = new MemoryBankService(config, db);
+
+  // Create project memory
+  const projectMemory = createMinimalProjectMemory({
+    portal: "my-app",
+    overview: "Test project",
+    ...projectOverrides,
+  });
+  await service.createProjectMemory(projectMemory);
+
+  const cleanup = async () => {
+    await dbCleanup();
+  };
+
+  return { service, config, cleanup };
+}
+
+/**
+ * Creates a test setup with MemoryBankService and initialized global memory
+ */
+export async function createTestMemoryBankWithGlobal(
+  globalOverrides: Partial<Learning> = {}
+): Promise<{
+  service: MemoryBankService;
+  config: Config;
+  cleanup: () => Promise<void>;
+}> {
+  const { db, config, cleanup: dbCleanup } = await initTestDbService();
+
+  const service = new MemoryBankService(config, db);
+  await service.initGlobalMemory();
+
+  const cleanup = async () => {
+    await dbCleanup();
+  };
+
+  return { service, config, cleanup };
+}
+
+/**
+ * Creates a minimal valid ProjectMemory for testing
+ */
+export function createMinimalProjectMemory(overrides: Partial<ProjectMemory> = {}): ProjectMemory {
+  return {
+    portal: overrides.portal ?? "test-portal",
+    overview: overrides.overview ?? "Test project overview",
+    patterns: overrides.patterns ?? [],
+    decisions: overrides.decisions ?? [],
+    references: overrides.references ?? [],
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a ProjectMemory with sample data for testing
+ */
+export function createSampleProjectMemory(overrides: Partial<ProjectMemory> = {}): ProjectMemory {
+  return {
+    portal: overrides.portal ?? "test-portal",
+    overview: overrides.overview ?? "A comprehensive test project with various memory components",
+    patterns: overrides.patterns ?? [
+      createSamplePattern(),
+    ],
+    decisions: overrides.decisions ?? [
+      createSampleDecision(),
+    ],
+    references: overrides.references ?? [
+      {
+        type: MemoryReferenceType.FILE,
+        path: "src/main.ts",
+        description: "Main application entry point",
+      },
+    ],
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a minimal valid ExecutionMemory for testing
+ */
+export function createMinimalExecutionMemory(overrides: Partial<ExecutionMemory> = {}): ExecutionMemory {
+  return {
+    trace_id: overrides.trace_id ?? "test-trace-123",
+    request_id: overrides.request_id ?? "req-123",
+    started_at: overrides.started_at ?? "2026-01-04T10:00:00Z",
+    completed_at: overrides.completed_at ?? "2026-01-04T10:30:00Z",
+    status: overrides.status ?? ExecutionStatus.COMPLETED,
+    portal: overrides.portal ?? "test-portal",
+    agent: overrides.agent ?? "test-agent",
+    summary: overrides.summary ?? "Test execution summary",
+    context_files: overrides.context_files ?? [],
+    context_portals: overrides.context_portals ?? [],
+    changes: overrides.changes ?? {
+      files_created: [],
+      files_modified: [],
+      files_deleted: [],
+    },
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a sample Learning for testing
+ */
+export function createSampleLearning(overrides: Partial<Learning> = {}): Learning {
+  return {
+    id: overrides.id ?? "learning-123",
+    created_at: overrides.created_at ?? "2026-01-04T12:00:00Z",
+    source: overrides.source ?? MemorySource.EXECUTION,
+    source_id: overrides.source_id ?? "trace-123",
+    scope: overrides.scope ?? MemoryScope.PROJECT,
+    project: overrides.project ?? "test-portal",
+    title: overrides.title ?? "Sample Learning",
+    description: overrides.description ?? "A sample learning entry",
+
+   category: overrides.category ?? LearningCategory.PATTERN,
+    tags: overrides.tags ?? ["sample"],
+    confidence: overrides.confidence ?? ConfidenceLevel.MEDIUM,
+    references: overrides.references ?? [],
+    status: overrides.status ?? MemoryStatus.APPROVED,
+    ...overrides,
+  };
+}
+
+
+/**
+ * Creates a sample Pattern for testing
+ */
+export function createSamplePattern(overrides: Partial<Pattern> = {}): Pattern {
+  return {
+    name: overrides.name ?? "Sample Pattern",
+    description: overrides.description ?? "A sample pattern",
+    examples: overrides.examples ?? [],
+    tags: overrides.tags ?? ["sample"],
+    ...overrides,
+  };
+}
+
+/**
+ * Creates a sample Decision for testing
+ */
+export function createSampleDecision(overrides: Partial<Decision> = {}): Decision {
+  return {
+    date: overrides.date ?? "2026-01-04",
+    decision: overrides.decision ?? "Sample Decision",
+    rationale: overrides.rationale ?? "Sample rationale",
+    alternatives: overrides.alternatives ?? ["Option A", "Option B"],
+    tags: overrides.tags ?? ["sample"],
+    ...overrides,
+  };
+}

@@ -1,18 +1,14 @@
 import { assertEquals } from "@std/assert";
 import { assertSpyCalls, spy } from "@std/testing/mock";
 import { GracefulShutdown } from "../../src/services/graceful_shutdown.ts";
+import { createMockLogger } from "./helpers/graceful_shutdown_test_helpers.ts";
 
 /**
  * Tests for GracefulShutdown - Comprehensive Graceful Shutdown Handling
  */
 
 Deno.test("GracefulShutdown: initializes with logger", () => {
-  const mockLogger = {
-    info: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
-    fatal: spy(() => {}),
-  } as any;
+  const mockLogger = createMockLogger();
 
   const shutdown = new GracefulShutdown(mockLogger);
   assertEquals(shutdown["shuttingDown"], false);
@@ -20,12 +16,7 @@ Deno.test("GracefulShutdown: initializes with logger", () => {
 });
 
 Deno.test("GracefulShutdown: registers cleanup tasks", () => {
-  const mockLogger = {
-    info: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
-    fatal: spy(() => {}),
-  } as any;
+  const mockLogger = createMockLogger();
 
   const shutdown = new GracefulShutdown(mockLogger);
 
@@ -41,12 +32,7 @@ Deno.test("GracefulShutdown: registers cleanup tasks", () => {
 });
 
 Deno.test("GracefulShutdown: runs cleanup tasks in reverse order (LIFO)", async () => {
-  const mockLogger = {
-    info: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
-    fatal: spy(() => {}),
-  } as any;
+  const mockLogger = createMockLogger();
 
   const shutdown = new GracefulShutdown(mockLogger);
 
@@ -75,12 +61,7 @@ Deno.test("GracefulShutdown: runs cleanup tasks in reverse order (LIFO)", async 
 });
 
 Deno.test("GracefulShutdown: handles cleanup task failures", async () => {
-  const mockLogger = {
-    info: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
-    fatal: spy(() => {}),
-  } as any;
+  const mockLogger = createMockLogger();
 
   const shutdown = new GracefulShutdown(mockLogger);
 
@@ -97,12 +78,7 @@ Deno.test("GracefulShutdown: handles cleanup task failures", async () => {
 });
 
 Deno.test("GracefulShutdown: prevents multiple shutdown attempts", async () => {
-  const mockLogger = {
-    info: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
-    fatal: spy(() => {}),
-  } as any;
+  const mockLogger = createMockLogger();
 
   const shutdown = new GracefulShutdown(mockLogger);
 
@@ -121,12 +97,7 @@ Deno.test("GracefulShutdown: prevents multiple shutdown attempts", async () => {
 });
 
 Deno.test("GracefulShutdown: uses default timeout when not specified", () => {
-  const mockLogger = {
-    info: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
-    fatal: spy(() => {}),
-  } as any;
+  const mockLogger = createMockLogger();
 
   const shutdown = new GracefulShutdown(mockLogger);
 
@@ -139,13 +110,7 @@ Deno.test("GracefulShutdown: uses default timeout when not specified", () => {
 });
 
 Deno.test("GracefulShutdown: logs shutdown progress", async () => {
-  const mockLogger = {
-    info: spy(() => {}),
-
-    warn: spy(() => {}),
-    error: spy(() => {}),
-    fatal: spy(() => {}),
-  } as any;
+  const mockLogger = createMockLogger();
 
   const shutdown = new GracefulShutdown(mockLogger);
 
@@ -164,12 +129,7 @@ Deno.test("GracefulShutdown: logs shutdown progress", async () => {
 });
 
 Deno.test("GracefulShutdown: handles cleanup timeout", async () => {
-  const mockLogger = {
-    info: spy(() => {}),
-    warn: spy(() => {}),
-    error: spy(() => {}),
-    fatal: spy(() => {}),
-  } as any;
+  const mockLogger = createMockLogger();
 
   const shutdown = new GracefulShutdown(mockLogger);
 

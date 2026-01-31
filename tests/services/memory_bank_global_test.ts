@@ -33,11 +33,12 @@ import {
   MemoryType,
 } from "../../src/enums.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
+import { createSampleLearning, createTestMemoryBankWithGlobal } from "./helpers/memory_bank_test_helpers.ts";
 
 // ===== Learning Schema Tests =====
 
 Deno.test("LearningSchema: validates minimal learning", () => {
-  const learning = {
+  const learning = createSampleLearning({
     id: "550e8400-e29b-41d4-a716-446655440000",
     created_at: "2026-01-04T12:00:00Z",
     source: MemorySource.EXECUTION,
@@ -49,14 +50,14 @@ Deno.test("LearningSchema: validates minimal learning", () => {
     tags: ["error-handling", "typescript"],
     confidence: ConfidenceLevel.HIGH,
     status: MemoryStatus.APPROVED,
-  };
+  });
 
   const result = LearningSchema.safeParse(learning);
   assertEquals(result.success, true);
 });
 
 Deno.test("LearningSchema: validates global learning without project", () => {
-  const learning = {
+  const learning = createSampleLearning({
     id: "550e8400-e29b-41d4-a716-446655440001",
     created_at: "2026-01-04T12:00:00Z",
     source: MemorySource.USER,
@@ -67,14 +68,14 @@ Deno.test("LearningSchema: validates global learning without project", () => {
     tags: ["testing", "workflow"],
     confidence: ConfidenceLevel.HIGH,
     status: MemoryStatus.APPROVED,
-  };
+  });
 
   const result = LearningSchema.safeParse(learning);
   assertEquals(result.success, true);
 });
 
 Deno.test("LearningSchema: validates pending status with references", () => {
-  const learning = {
+  const learning = createSampleLearning({
     id: "550e8400-e29b-41d4-a716-446655440002",
     created_at: "2026-01-04T12:00:00Z",
     source: MemorySource.AGENT,
@@ -88,35 +89,35 @@ Deno.test("LearningSchema: validates pending status with references", () => {
     confidence: ConfidenceLevel.MEDIUM,
     references: [
       { type: MemoryReferenceType.FILE, path: "src/services/user.ts" },
-      { type: MemorySource.EXECUTION, path: "trace-123" },
+      { type: MemoryReferenceType.EXECUTION, path: "trace-123" },
     ],
     status: MemoryStatus.PENDING,
-  };
+  });
 
   const result = LearningSchema.safeParse(learning);
   assertEquals(result.success, true);
 });
 
 Deno.test("LearningSchema: rejects invalid category", () => {
-  const learning = {
+  const learning = createSampleLearning({
     id: "550e8400-e29b-41d4-a716-446655440003",
     created_at: "2026-01-04T12:00:00Z",
     source: MemorySource.USER,
     scope: MemoryScope.GLOBAL,
     title: "Test",
     description: "Test description",
-    category: "invalid-category", // Invalid
+    category: "invalid-category" as any, // Invalid
     tags: [],
     confidence: ConfidenceLevel.HIGH,
     status: MemoryStatus.APPROVED,
-  };
+  });
 
   const result = LearningSchema.safeParse(learning);
   assertEquals(result.success, false);
 });
 
 Deno.test("LearningSchema: rejects invalid status", () => {
-  const learning = {
+  const learning = createSampleLearning({
     id: "550e8400-e29b-41d4-a716-446655440004",
     created_at: "2026-01-04T12:00:00Z",
     source: MemorySource.USER,
@@ -126,8 +127,8 @@ Deno.test("LearningSchema: rejects invalid status", () => {
     category: LearningCategory.PATTERN,
     tags: [],
     confidence: ConfidenceLevel.HIGH,
-    status: DaemonStatus.UNKNOWN, // Invalid
-  };
+    status: DaemonStatus.UNKNOWN as any, // Invalid
+  });
 
   const result = LearningSchema.safeParse(learning);
   assertEquals(result.success, false);
@@ -159,7 +160,7 @@ Deno.test("GlobalMemorySchema: validates populated global memory", () => {
     version: "1.0.0",
     updated_at: "2026-01-04T12:00:00Z",
     learnings: [
-      {
+      createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440000",
         created_at: "2026-01-04T12:00:00Z",
         source: MemorySource.USER,
@@ -170,7 +171,7 @@ Deno.test("GlobalMemorySchema: validates populated global memory", () => {
         tags: [MemoryScope.GLOBAL],
         confidence: ConfidenceLevel.HIGH,
         status: MemoryStatus.APPROVED,
-      },
+      }),
     ],
     patterns: [
       {
@@ -254,13 +255,10 @@ Deno.test("MemoryBankService: getGlobalMemory returns initialized memory", async
 });
 
 Deno.test("MemoryBankService: addGlobalLearning creates learning entry", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { service, cleanup } = await createTestMemoryBankWithGlobal();
 
   try {
-    const service = new MemoryBankService(config, db);
-    await service.initGlobalMemory();
-
-    const learning: Learning = {
+    const learning = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
       source: MemorySource.USER,
@@ -271,7 +269,7 @@ Deno.test("MemoryBankService: addGlobalLearning creates learning entry", async (
       tags: [EvaluationCategory.SECURITY, "validation"],
       confidence: ConfidenceLevel.HIGH,
       status: MemoryStatus.APPROVED,
-    };
+    });
 
     await service.addGlobalLearning(learning);
 
@@ -287,13 +285,10 @@ Deno.test("MemoryBankService: addGlobalLearning creates learning entry", async (
 });
 
 Deno.test("MemoryBankService: addGlobalLearning updates markdown file", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { service, config, cleanup } = await createTestMemoryBankWithGlobal();
 
   try {
-    const service = new MemoryBankService(config, db);
-    await service.initGlobalMemory();
-
-    const learning: Learning = {
+    const learning = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
       source: MemorySource.USER,
@@ -304,7 +299,7 @@ Deno.test("MemoryBankService: addGlobalLearning updates markdown file", async ()
       tags: [EvaluationCategory.SECURITY],
       confidence: ConfidenceLevel.HIGH,
       status: MemoryStatus.APPROVED,
-    };
+    });
 
     await service.addGlobalLearning(learning);
 
@@ -318,13 +313,10 @@ Deno.test("MemoryBankService: addGlobalLearning updates markdown file", async ()
 });
 
 Deno.test("MemoryBankService: addGlobalLearning logs to Activity Journal", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { service, db, cleanup } = await createTestMemoryBankWithGlobal();
 
   try {
-    const service = new MemoryBankService(config, db);
-    await service.initGlobalMemory();
-
-    const learning: Learning = {
+    const learning = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
       source: MemorySource.USER,
@@ -335,7 +327,7 @@ Deno.test("MemoryBankService: addGlobalLearning logs to Activity Journal", async
       tags: [],
       confidence: ConfidenceLevel.MEDIUM,
       status: MemoryStatus.APPROVED,
-    };
+    });
 
     await service.addGlobalLearning(learning);
 
@@ -481,12 +473,13 @@ Deno.test("MemoryBankService: promoteLearning from non-existent project throws",
 // ===== Demote Learning Tests =====
 
 Deno.test("MemoryBankService: demoteLearning moves from global to project", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { service, cleanup } = await createTestMemoryBankWithGlobal({
+    title: "Test Pattern",
+    description: "A test pattern for demotion",
+  });
 
   try {
-    const service = new MemoryBankService(config, db);
-
-    // Create project and global memory
+    // Create target project for demotion
     const projectMem: ProjectMemory = {
       portal: "target-app",
       overview: "Target project",
@@ -495,30 +488,20 @@ Deno.test("MemoryBankService: demoteLearning moves from global to project", asyn
       references: [],
     };
     await service.createProjectMemory(projectMem);
-    await service.initGlobalMemory();
 
-    // Add global learning
-    const learning: Learning = {
-      id: "550e8400-e29b-41d4-a716-446655440000",
-      created_at: "2026-01-04T12:00:00Z",
-      source: MemorySource.USER,
-      scope: MemoryScope.GLOBAL,
-      title: "Test Pattern",
-      description: "A pattern to demote",
-      category: LearningCategory.PATTERN,
-      tags: ["test"],
-      confidence: ConfidenceLevel.HIGH,
-      status: MemoryStatus.APPROVED,
-    };
-    await service.addGlobalLearning(learning);
-
-    // Demote to project
-    await service.demoteLearning(learning.id, "target-app");
-
-    // Verify removed from global
+    // Get the learning ID from the helper-created learning
     const globalMem = await service.getGlobalMemory();
     assertExists(globalMem);
-    assertEquals(globalMem.learnings.length, 0);
+    assertEquals(globalMem.learnings.length, 1);
+    const learningId = globalMem.learnings[0].id;
+
+    // Demote to project
+    await service.demoteLearning(learningId, "target-app");
+
+    // Verify removed from global
+    const updatedGlobalMem = await service.getGlobalMemory();
+    assertExists(updatedGlobalMem);
+    assertEquals(updatedGlobalMem.learnings.length, 0);
 
     // Verify added to project patterns
     const project = await service.getProjectMemory("target-app");
@@ -547,7 +530,7 @@ Deno.test("MemoryBankService: demoteLearning removes from global index", async (
     await service.initGlobalMemory();
 
     // Add two learnings
-    const learning1: Learning = {
+    const learning1 = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440001",
       created_at: "2026-01-04T12:00:00Z",
       source: MemorySource.USER,
@@ -558,8 +541,8 @@ Deno.test("MemoryBankService: demoteLearning removes from global index", async (
       tags: [],
       confidence: ConfidenceLevel.HIGH,
       status: MemoryStatus.APPROVED,
-    };
-    const learning2: Learning = {
+    });
+    const learning2 = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440002",
       created_at: "2026-01-04T12:00:00Z",
       source: MemorySource.USER,
@@ -570,7 +553,7 @@ Deno.test("MemoryBankService: demoteLearning removes from global index", async (
       tags: [],
       confidence: ConfidenceLevel.MEDIUM,
       status: MemoryStatus.APPROVED,
-    };
+    });
     await service.addGlobalLearning(learning1);
     await service.addGlobalLearning(learning2);
 
@@ -617,13 +600,10 @@ Deno.test("MemoryBankService: demoteLearning non-existent learning throws", asyn
 });
 
 Deno.test("MemoryBankService: demoteLearning to non-existent project throws", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { service, cleanup } = await createTestMemoryBankWithGlobal();
 
   try {
-    const service = new MemoryBankService(config, db);
-    await service.initGlobalMemory();
-
-    const learning: Learning = {
+    const learning = createSampleLearning({
       id: "550e8400-e29b-41d4-a716-446655440000",
       created_at: "2026-01-04T12:00:00Z",
       source: MemorySource.USER,
@@ -634,7 +614,7 @@ Deno.test("MemoryBankService: demoteLearning to non-existent project throws", as
       tags: [],
       confidence: ConfidenceLevel.HIGH,
       status: MemoryStatus.APPROVED,
-    };
+    });
     await service.addGlobalLearning(learning);
 
     await assertRejects(
@@ -660,7 +640,7 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
 
     // Add learnings with different categories
     const learnings: Learning[] = [
-      {
+      createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440001",
         created_at: "2026-01-04T12:00:00Z",
         source: MemorySource.USER,
@@ -672,8 +652,8 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
         tags: [],
         confidence: ConfidenceLevel.HIGH,
         status: MemoryStatus.APPROVED,
-      },
-      {
+      }),
+      createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440002",
         created_at: "2026-01-04T12:00:00Z",
         source: MemorySource.USER,
@@ -685,8 +665,8 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
         tags: [],
         confidence: ConfidenceLevel.MEDIUM,
         status: MemoryStatus.APPROVED,
-      },
-      {
+      }),
+      createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440003",
         created_at: "2026-01-04T12:00:00Z",
         source: MemorySource.AGENT,
@@ -698,7 +678,7 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
         tags: [],
         confidence: ConfidenceLevel.LOW,
         status: MemoryStatus.APPROVED,
-      },
+      }),
     ];
 
     for (const learning of learnings) {

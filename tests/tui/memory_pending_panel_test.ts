@@ -12,17 +12,19 @@
  */
 
 import { ConfidenceLevel } from "../../src/enums.ts";
-import { EvaluationCategory } from "../../src/enums.ts";
-
-import { MemoryReferenceType } from "../../src/enums.ts";
-
+import { EvaluationCategory as _EvaluationCategory } from "../../src/enums.ts";
+import { MemoryReferenceType as _MemoryReferenceType } from "../../src/enums.ts";
 import { LearningCategory, MemoryOperation, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
-
 import { assertEquals, assertExists } from "@std/assert";
-import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
-import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
+import { MemoryViewTuiSession as _MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
+import type { MemoryServiceInterface as _MemoryServiceInterface } from "../../src/tui/memory_view.ts";
 import { renderPendingPanel, renderStatsPanel } from "../../src/tui/memory_panels/index.ts";
 import type { MemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
+import {
+  createInitializedMemoryViewSession,
+  createMockProposals,
+  MinimalMemoryServiceMock as _MinimalMemoryServiceMock,
+} from "./helpers.ts";
 import {
   KEY_A,
   KEY_CAPITAL_A,
@@ -38,121 +40,6 @@ import {
 } from "../../src/config/constants.ts";
 
 // ===== Test Fixtures =====
-
-function createMockProposals(): MemoryUpdateProposal[] {
-  return [
-    {
-      id: "proposal-1",
-      agent: "test-agent",
-      operation: MemoryOperation.ADD,
-      learning: {
-        id: "learning-1",
-        title: "Error Handling Pattern",
-        category: LearningCategory.PATTERN,
-        description: "Use try-catch for all async functions",
-        confidence: ConfidenceLevel.HIGH,
-        tags: ["error-handling"],
-        source: MemorySource.AGENT,
-        scope: MemoryScope.PROJECT,
-        created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-      },
-      target_scope: MemoryScope.PROJECT,
-      target_project: "my-app",
-      reason: "Extracted from execution",
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-      status: MemoryStatus.PENDING,
-    },
-    {
-      id: "proposal-2",
-      agent: "test-agent",
-      operation: MemoryOperation.ADD,
-      learning: {
-        id: "learning-2",
-        title: "API Rate Limiting",
-        category: LearningCategory.DECISION,
-        description: "Implement rate limiting for all API endpoints",
-        confidence: ConfidenceLevel.MEDIUM,
-        tags: [MemoryReferenceType.API, EvaluationCategory.SECURITY],
-        source: MemorySource.AGENT,
-        scope: MemoryScope.GLOBAL,
-        created_at: new Date(Date.now() - 18000000).toISOString(), // 5 hours ago
-      },
-      target_scope: MemoryScope.GLOBAL,
-      reason: "Common pattern across projects",
-      created_at: new Date(Date.now() - 18000000).toISOString(),
-      status: MemoryStatus.PENDING,
-    },
-    {
-      id: "proposal-3",
-      agent: "test-agent",
-      operation: MemoryOperation.ADD,
-      learning: {
-        id: "learning-3",
-        title: "Database Connection Issue",
-        category: LearningCategory.TROUBLESHOOTING,
-        description: "Connection timeout solutions",
-        confidence: ConfidenceLevel.HIGH,
-        tags: ["database"],
-        source: MemorySource.EXECUTION,
-        scope: MemoryScope.PROJECT,
-        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-      },
-      target_scope: MemoryScope.PROJECT,
-      target_project: "api-service",
-      reason: "Documented troubleshooting steps",
-      created_at: new Date(Date.now() - 86400000).toISOString(),
-      status: MemoryStatus.PENDING,
-    },
-  ];
-}
-
-class MockMemoryServiceWithPending implements MemoryServiceInterface {
-  private proposals: MemoryUpdateProposal[] = createMockProposals();
-
-  getProjects(): Promise<string[]> {
-    return Promise.resolve(["my-app", "api-service"]);
-  }
-
-  getProjectMemory() {
-    return Promise.resolve(null);
-  }
-
-  getGlobalMemory() {
-    return Promise.resolve(null);
-  }
-
-  getExecutionByTraceId() {
-    return Promise.resolve(null);
-  }
-
-  getExecutionHistory() {
-    return Promise.resolve([]);
-  }
-
-  search() {
-    return Promise.resolve([]);
-  }
-
-  listPending(): Promise<MemoryUpdateProposal[]> {
-    return Promise.resolve(this.proposals);
-  }
-
-  getPending(proposalId: string): Promise<MemoryUpdateProposal | null> {
-    return Promise.resolve(
-      this.proposals.find((p) => p.id === proposalId) ?? null,
-    );
-  }
-
-  approvePending(proposalId: string): Promise<void> {
-    this.proposals = this.proposals.filter((p) => p.id !== proposalId);
-    return Promise.resolve();
-  }
-
-  rejectPending(proposalId: string, _reason: string): Promise<void> {
-    this.proposals = this.proposals.filter((p) => p.id !== proposalId);
-    return Promise.resolve();
-  }
-}
 
 // ===== renderPendingPanel Tests =====
 
@@ -303,9 +190,7 @@ Deno.test("renderStatsPanel: shows all categories", () => {
 // ===== MemoryViewTuiSession Pending Actions Tests =====
 
 Deno.test("MemoryViewTuiSession: 'n' jumps to pending scope", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   await session.handleKey(KEY_N);
 
@@ -313,18 +198,14 @@ Deno.test("MemoryViewTuiSession: 'n' jumps to pending scope", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: pending badge shows count", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   const count = session.getPendingCount();
   assertEquals(count, 3);
 });
 
 Deno.test("MemoryViewTuiSession: 'a' opens approve dialog when on pending item", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   // Navigate to pending and select a proposal
   await session.handleKey(KEY_N);
@@ -337,9 +218,7 @@ Deno.test("MemoryViewTuiSession: 'a' opens approve dialog when on pending item",
 });
 
 Deno.test("MemoryViewTuiSession: 'r' opens reject dialog when on pending item", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   // Navigate to pending and select a proposal
   await session.handleKey(KEY_N);
@@ -351,9 +230,7 @@ Deno.test("MemoryViewTuiSession: 'r' opens reject dialog when on pending item", 
 });
 
 Deno.test("MemoryViewTuiSession: 'A' opens bulk approve dialog", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   await session.handleKey(KEY_CAPITAL_A);
 
@@ -361,9 +238,7 @@ Deno.test("MemoryViewTuiSession: 'A' opens bulk approve dialog", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: 'l' opens add learning dialog", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   await session.handleKey(KEY_L);
 
@@ -371,9 +246,7 @@ Deno.test("MemoryViewTuiSession: 'l' opens add learning dialog", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: action buttons show pending actions", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   // Navigate to pending and select a proposal
   await session.handleKey(KEY_N);
@@ -387,9 +260,7 @@ Deno.test("MemoryViewTuiSession: action buttons show pending actions", async () 
 });
 
 Deno.test("MemoryViewTuiSession: dialog receives key events", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   await session.handleKey(KEY_CAPITAL_A); // Open bulk approve dialog
   assertEquals(session.hasActiveDialog(), true);
@@ -399,9 +270,7 @@ Deno.test("MemoryViewTuiSession: dialog receives key events", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: renderDialog returns dialog content", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   await session.handleKey(KEY_CAPITAL_A); // Open bulk approve dialog
 
@@ -411,9 +280,7 @@ Deno.test("MemoryViewTuiSession: renderDialog returns dialog content", async () 
 });
 
 Deno.test("MemoryViewTuiSession: approve action updates count", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   const initialCount = session.getPendingCount();
   assertEquals(initialCount, 3);
@@ -433,9 +300,7 @@ Deno.test("MemoryViewTuiSession: approve action updates count", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: reject action with reason", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   // Navigate to pending item
   await session.handleKey(KEY_N);
@@ -455,9 +320,7 @@ Deno.test("MemoryViewTuiSession: reject action with reason", async () => {
 });
 
 Deno.test("MemoryViewTuiSession: help shows new action keys", async () => {
-  const service = new MockMemoryServiceWithPending();
-  const session = new MemoryViewTuiSession(service);
-  await session.initialize();
+  const { session } = await createInitializedMemoryViewSession(createMockProposals());
 
   await session.handleKey(KEY_QUESTION); // Open help
 

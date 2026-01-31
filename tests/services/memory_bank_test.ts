@@ -13,7 +13,7 @@ import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { Decision, ExecutionMemory, Learning, Pattern, ProjectMemory } from "../../src/schemas/memory_bank.ts";
+import type { Decision, Learning, Pattern } from "../../src/schemas/memory_bank.ts";
 import {
   ActivityType,
   ConfidenceLevel,
@@ -24,6 +24,12 @@ import {
   MemoryStatus,
 } from "../../src/enums.ts";
 import { getMemoryExecutionDir, getMemoryIndexDir, getMemoryProjectsDir } from "../helpers/paths_helper.ts";
+import {
+  createMinimalExecutionMemory,
+  createMinimalProjectMemory,
+  createSampleProjectMemory,
+  createTestMemoryBankWithProject,
+} from "./helpers/memory_bank_test_helpers.ts";
 // Helper function to generate valid UUIDs for testing
 function generateTestUUID(): string {
   return crypto.randomUUID();
@@ -47,13 +53,10 @@ Deno.test("MemoryBankService: createProjectMemory creates directory structure", 
 
   try {
     const service = new MemoryBankService(config, db);
-    const projectMem: ProjectMemory = {
+    const projectMem = createMinimalProjectMemory({
       portal: "test-project",
       overview: "A test project for memory banks",
-      patterns: [],
-      decisions: [],
-      references: [],
-    };
+    });
 
     await service.createProjectMemory(projectMem);
 
@@ -80,7 +83,7 @@ Deno.test("MemoryBankService: getProjectMemory reads existing project", async ()
     const service = new MemoryBankService(config, db);
 
     // Create project first
-    const projectMem: ProjectMemory = {
+    const projectMem = createSampleProjectMemory({
       portal: "my-app",
       overview: "My application overview",
       patterns: [
@@ -90,9 +93,7 @@ Deno.test("MemoryBankService: getProjectMemory reads existing project", async ()
           examples: ["src/repos/user_repo.ts"],
         },
       ],
-      decisions: [],
-      references: [],
-    };
+    });
 
     await service.createProjectMemory(projectMem);
 
@@ -109,20 +110,9 @@ Deno.test("MemoryBankService: getProjectMemory reads existing project", async ()
 });
 
 Deno.test("MemoryBankService: addPattern appends to existing patterns", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { service, cleanup } = await createTestMemoryBankWithProject();
 
   try {
-    const service = new MemoryBankService(config, db);
-
-    // Create project
-    await service.createProjectMemory({
-      portal: "my-app",
-      overview: "Test app",
-      patterns: [],
-      decisions: [],
-      references: [],
-    });
-
     // Add pattern
     const pattern: Pattern = {
       name: "Factory Pattern",
@@ -145,20 +135,9 @@ Deno.test("MemoryBankService: addPattern appends to existing patterns", async ()
 });
 
 Deno.test("MemoryBankService: addDecision appends to existing decisions", async () => {
-  const { db, config, cleanup } = await initTestDbService();
+  const { service, cleanup } = await createTestMemoryBankWithProject();
 
   try {
-    const service = new MemoryBankService(config, db);
-
-    // Create project
-    await service.createProjectMemory({
-      portal: "my-app",
-      overview: "Test app",
-      patterns: [],
-      decisions: [],
-      references: [],
-    });
-
     // Add decision
     const decision: Decision = {
       date: "2026-01-03",
@@ -188,13 +167,10 @@ Deno.test("MemoryBankService: updateProjectMemory merges updates", async () => {
     const service = new MemoryBankService(config, db);
 
     // Create project
-    await service.createProjectMemory({
+    await service.createProjectMemory(createMinimalProjectMemory({
       portal: "my-app",
       overview: "Original overview",
-      patterns: [],
-      decisions: [],
-      references: [],
-    });
+    }));
 
     // Update overview
     await service.updateProjectMemory("my-app", {
@@ -219,14 +195,12 @@ Deno.test("MemoryBankService: createExecutionRecord creates directory structure"
     const service = new MemoryBankService(config, db);
 
     const traceId = "550e8400-e29b-41d4-a716-446655440000";
-    const execution: ExecutionMemory = {
+    const execution = createMinimalExecutionMemory({
       trace_id: traceId,
       request_id: "REQ-123",
       started_at: "2026-01-03T10:00:00Z",
       completed_at: "2026-01-03T10:15:00Z",
-      status: ExecutionStatus.COMPLETED,
       portal: "my-app",
-      agent: "senior-coder",
       summary: "Added authentication middleware",
       context_files: ["src/middleware/auth.ts"],
       context_portals: ["my-app"],
@@ -236,7 +210,7 @@ Deno.test("MemoryBankService: createExecutionRecord creates directory structure"
         files_deleted: [],
       },
       lessons_learned: ["Always validate JWT expiration"],
-    };
+    });
 
     await service.createExecutionRecord(execution);
 
@@ -264,22 +238,15 @@ Deno.test("MemoryBankService: getExecutionByTraceId retrieves execution", async 
     const service = new MemoryBankService(config, db);
 
     const traceId = "550e8400-e29b-41d4-a716-446655440001";
-    const execution: ExecutionMemory = {
+    const execution = createMinimalExecutionMemory({
       trace_id: traceId,
       request_id: "REQ-124",
       started_at: "2026-01-03T11:00:00Z",
       status: ExecutionStatus.RUNNING,
       portal: "my-app",
-      agent: "senior-coder",
       summary: "In progress",
-      context_files: [],
-      context_portals: [],
-      changes: {
-        files_created: [],
-        files_modified: [],
-        files_deleted: [],
-      },
-    };
+      completed_at: undefined,
+    });
 
     await service.createExecutionRecord(execution);
 
@@ -301,33 +268,26 @@ Deno.test("MemoryBankService: getExecutionHistory returns all executions", async
     const service = new MemoryBankService(config, db);
 
     // Create multiple executions
-    const execution1: ExecutionMemory = {
+    const execution1 = createMinimalExecutionMemory({
       trace_id: "550e8400-e29b-41d4-a716-446655440010",
       request_id: "REQ-1",
       started_at: "2026-01-03T09:00:00Z",
       completed_at: "2026-01-03T09:10:00Z",
-      status: ExecutionStatus.COMPLETED,
       portal: "app-1",
-      agent: "senior-coder",
       summary: "First execution",
-      context_files: [],
-      context_portals: [],
-      changes: { files_created: [], files_modified: [], files_deleted: [] },
-    };
+    });
 
-    const execution2: ExecutionMemory = {
+    const execution2 = createMinimalExecutionMemory({
       trace_id: "550e8400-e29b-41d4-a716-446655440011",
       request_id: "REQ-2",
       started_at: "2026-01-03T10:00:00Z",
       completed_at: "2026-01-03T10:10:00Z",
-      status: ExecutionStatus.COMPLETED,
       portal: "app-2",
-      agent: "senior-coder",
       summary: "Second execution",
       context_files: [],
       context_portals: [],
       changes: { files_created: [], files_modified: [], files_deleted: [] },
-    };
+    });
 
     await service.createExecutionRecord(execution1);
     await service.createExecutionRecord(execution2);
@@ -351,31 +311,21 @@ Deno.test("MemoryBankService: getExecutionHistory filters by portal", async () =
     const service = new MemoryBankService(config, db);
 
     // Create executions for different portals
-    await service.createExecutionRecord({
+    await service.createExecutionRecord(createMinimalExecutionMemory({
       trace_id: "550e8400-e29b-41d4-a716-446655440020",
       request_id: "REQ-1",
       started_at: "2026-01-03T09:00:00Z",
-      status: ExecutionStatus.COMPLETED,
       portal: "app-1",
-      agent: "senior-coder",
       summary: "App 1 execution",
-      context_files: [],
-      context_portals: [],
-      changes: { files_created: [], files_modified: [], files_deleted: [] },
-    });
+    }));
 
-    await service.createExecutionRecord({
+    await service.createExecutionRecord(createMinimalExecutionMemory({
       trace_id: "550e8400-e29b-41d4-a716-446655440021",
       request_id: "REQ-2",
       started_at: "2026-01-03T10:00:00Z",
-      status: ExecutionStatus.COMPLETED,
       portal: "app-2",
-      agent: "senior-coder",
       summary: "App 2 execution",
-      context_files: [],
-      context_portals: [],
-      changes: { files_created: [], files_modified: [], files_deleted: [] },
-    });
+    }));
 
     // Filter by portal
     const app1History = await service.getExecutionHistory("app-1");
@@ -394,18 +344,13 @@ Deno.test("MemoryBankService: getExecutionHistory respects limit", async () => {
 
     // Create 5 executions
     for (let i = 0; i < 5; i++) {
-      await service.createExecutionRecord({
+      await service.createExecutionRecord(createMinimalExecutionMemory({
         trace_id: `550e8400-e29b-41d4-a716-44665544003${i}`,
         request_id: `REQ-${i}`,
         started_at: `2026-01-03T0${i}:00:00Z`,
-        status: ExecutionStatus.COMPLETED,
         portal: "my-app",
-        agent: "senior-coder",
         summary: `Execution ${i}`,
-        context_files: [],
-        context_portals: [],
-        changes: { files_created: [], files_modified: [], files_deleted: [] },
-      });
+      }));
     }
 
     // Get limited history
@@ -423,20 +368,16 @@ Deno.test("MemoryBankService: createExecutionRecord handles failed execution wit
     const service = new MemoryBankService(config, db);
 
     const traceId = "550e8400-e29b-41d4-a716-446655440040";
-    const execution: ExecutionMemory = {
+    const execution = createMinimalExecutionMemory({
       trace_id: traceId,
       request_id: "REQ-FAIL",
       started_at: "2026-01-03T10:00:00Z",
       completed_at: "2026-01-03T10:01:00Z",
       status: ExecutionStatus.FAILED,
       portal: "my-app",
-      agent: "senior-coder",
       summary: "Failed to add feature",
-      context_files: [],
-      context_portals: [],
-      changes: { files_created: [], files_modified: [], files_deleted: [] },
       error_message: "PermissionDenied: Cannot write to protected directory",
-    };
+    });
 
     await service.createExecutionRecord(execution);
 
@@ -458,13 +399,10 @@ Deno.test("MemoryBankService: searchMemory finds matching content", async () => 
     const service = new MemoryBankService(config, db);
 
     // Create project with authentication-related content
-    await service.createProjectMemory({
+    await service.createProjectMemory(createMinimalProjectMemory({
       portal: "auth-app",
       overview: "Authentication service using JWT tokens",
-      patterns: [],
-      decisions: [],
-      references: [],
-    });
+    }));
 
     // Create execution with authentication work
     await service.createExecutionRecord({
@@ -496,13 +434,10 @@ Deno.test("MemoryBankService: createProjectMemory logs to Activity Journal", asy
   try {
     const service = new MemoryBankService(config, db);
 
-    await service.createProjectMemory({
+    await service.createProjectMemory(createMinimalProjectMemory({
       portal: "test-portal",
       overview: "Test project",
-      patterns: [],
-      decisions: [],
-      references: [],
-    });
+    }));
 
     // Wait for batch flush
     await db.waitForFlush();
@@ -525,13 +460,10 @@ Deno.test("MemoryBankService: addPattern logs to Activity Journal", async () => 
   try {
     const service = new MemoryBankService(config, db);
 
-    await service.createProjectMemory({
+    await service.createProjectMemory(createMinimalProjectMemory({
       portal: "test-portal",
       overview: "Test",
-      patterns: [],
-      decisions: [],
-      references: [],
-    });
+    }));
 
     await service.addPattern("test-portal", {
       name: "Test Pattern",
@@ -597,26 +529,19 @@ Deno.test("MemoryBankService: rebuildIndices generates index files", async () =>
     const service = new MemoryBankService(config, db);
 
     // Create some memory content
-    await service.createProjectMemory({
+    await service.createProjectMemory(createMinimalProjectMemory({
       portal: "app-1",
       overview: "First app",
-      patterns: [],
-      decisions: [],
-      references: [],
-    });
+    }));
 
-    await service.createExecutionRecord({
+    await service.createExecutionRecord(createMinimalExecutionMemory({
       trace_id: "550e8400-e29b-41d4-a716-446655440070",
       request_id: "REQ-1",
       started_at: "2026-01-03T10:00:00Z",
-      status: ExecutionStatus.COMPLETED,
       portal: "app-1",
-      agent: "senior-coder",
       summary: "Test",
       context_files: ["src/app.ts"],
-      context_portals: [],
-      changes: { files_created: [], files_modified: [], files_deleted: [] },
-    });
+    }));
 
     // Rebuild indices
     await service.rebuildIndices();
@@ -678,13 +603,11 @@ Deno.test("MemoryBankService: concurrent project memory updates maintain data in
     const portal = "concurrent-test";
 
     // Create initial project memory
-    const initialMem: ProjectMemory = {
+    const initialMem = createMinimalProjectMemory({
       portal,
       overview: "Initial overview",
       patterns: [{ name: "Initial Pattern", description: "Test pattern", examples: ["src/example.ts"] }],
-      decisions: [],
-      references: [],
-    };
+    });
 
     await service.createProjectMemory(initialMem);
 
