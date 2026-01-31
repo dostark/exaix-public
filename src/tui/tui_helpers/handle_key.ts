@@ -1,28 +1,6 @@
 import type { Pane } from "../tui_dashboard.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
-import {
-  KEY_1,
-  KEY_7,
-  KEY_C,
-  KEY_CTRL_DOWN,
-  KEY_CTRL_LEFT,
-  KEY_CTRL_RIGHT,
-  KEY_CTRL_UP,
-  KEY_D,
-  KEY_ENTER,
-  KEY_F1,
-  KEY_H,
-  KEY_M,
-  KEY_N,
-  KEY_P,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_S,
-  KEY_SHIFT_TAB,
-  KEY_TAB,
-  KEY_V,
-  KEY_Z,
-} from "../../config/constants.ts";
+import { KEYS } from "../utils/keyboard.ts";
 
 // ===== Helper Functions =====
 
@@ -59,23 +37,23 @@ async function handleOverlayKeys(
 function handleStateToggleKeys(dashboard: any, key: string, viewPickerRef: { index: number }): boolean {
   const k = key.toLowerCase();
 
-  if (k === KEY_QUESTION || k === KEY_F1) {
+  if (k === KEYS.QUESTION || k === KEYS.F1) {
     dashboard.state.showHelp = true;
     return true;
   }
 
-  if (k === KEY_P) {
+  if (k === KEYS.P) {
     dashboard.state.showViewPicker = true;
     viewPickerRef.index = 0;
     return true;
   }
 
-  if (key === KEY_N) {
+  if (key === KEYS.N) {
     dashboard.state.showNotifications = !dashboard.state.showNotifications;
     return true;
   }
 
-  if (key === KEY_M) {
+  if (key === KEYS.M) {
     dashboard.state.showMemoryNotifications = !dashboard.state.showMemoryNotifications;
     dashboard.state.selectedMemoryNotifIndex = 0;
     return true;
@@ -94,7 +72,7 @@ function handlePaneNavigationKeys(
 ): boolean {
   const k = key.toLowerCase();
 
-  if (k === KEY_TAB) {
+  if (k === KEYS.TAB) {
     const currentIndex = panes.findIndex((p) => p.id === dashboard.activePaneId);
     // Debug: ensure panes and activePaneId are as expected during tests
     if (
@@ -117,7 +95,7 @@ function handlePaneNavigationKeys(
     return true;
   }
 
-  if (k === KEY_SHIFT_TAB.toLowerCase()) {
+  if (k === KEYS.SHIFT_TAB.toLowerCase()) {
     const currentIndex = panes.findIndex((p) => p.id === dashboard.activePaneId);
     const prevIndex = (currentIndex - 1 + panes.length) % panes.length;
     dashboard.activePaneId = panes[prevIndex].id;
@@ -126,7 +104,7 @@ function handlePaneNavigationKeys(
     return true;
   }
 
-  if (key >= KEY_1 && key <= KEY_7) {
+  if (key >= KEYS.ONE && key <= KEYS.SEVEN) {
     // Direct pane navigation
     const idx = parseInt(key) - 1;
     if (idx < panes.length) {
@@ -151,19 +129,19 @@ async function handlePaneManagementKeys(
 ): Promise<boolean> {
   const k = key.toLowerCase();
 
-  if (k === KEY_V) { // Split vertical
+  if (k === KEYS.V) { // Split vertical
     const res = await splitPane(panes, dashboard.activePaneId, views, "vertical", dashboard.notify.bind(dashboard));
     dashboard.activePaneId = res.activePaneId;
     return true;
   }
 
-  if (k === KEY_H) { // Split horizontal
+  if (k === KEYS.H) { // Split horizontal
     const res = await splitPane(panes, dashboard.activePaneId, views, "horizontal", dashboard.notify.bind(dashboard));
     dashboard.activePaneId = res.activePaneId;
     return true;
   }
 
-  if (k === KEY_C) { // Close pane
+  if (k === KEYS.C) { // Close pane
     const result = await closePane(
       panes,
       dashboard.activePaneId,
@@ -174,7 +152,7 @@ async function handlePaneManagementKeys(
     return true;
   }
 
-  if (k === KEY_Z) { // Maximize/restore
+  if (k === KEYS.Z) { // Maximize/restore
     maximizePane(panes, dashboard.activePaneId, dashboard.notify.bind(dashboard));
     return true;
   }
@@ -188,37 +166,37 @@ async function handlePaneManagementKeys(
 async function handleLayoutOperationKeys(dashboard: any, key: string, panes: Pane[]): Promise<boolean> {
   const k = key.toLowerCase();
 
-  if (k === KEY_CTRL_LEFT.toLowerCase()) {
+  if (k === KEYS.CTRL_LEFT.toLowerCase()) {
     resizePane(panes, dashboard.activePaneId, -0.05, 0);
     return true;
   }
 
-  if (k === KEY_CTRL_RIGHT.toLowerCase()) {
+  if (k === KEYS.CTRL_RIGHT.toLowerCase()) {
     resizePane(panes, dashboard.activePaneId, 0.05, 0);
     return true;
   }
 
-  if (k === KEY_CTRL_UP.toLowerCase()) {
+  if (k === KEYS.CTRL_UP.toLowerCase()) {
     resizePane(panes, dashboard.activePaneId, 0, -0.05);
     return true;
   }
 
-  if (k === KEY_CTRL_DOWN.toLowerCase()) {
+  if (k === KEYS.CTRL_DOWN.toLowerCase()) {
     resizePane(panes, dashboard.activePaneId, 0, 0.05);
     return true;
   }
 
-  if (k === KEY_S) { // Save layout
+  if (k === KEYS.S) { // Save layout
     if (dashboard.saveLayout) await dashboard.saveLayout();
     return true;
   }
 
-  if (k === KEY_R) { // Restore layout
+  if (k === KEYS.R) { // Restore layout
     if (dashboard.restoreLayout) await dashboard.restoreLayout();
     return true;
   }
 
-  if (k === KEY_D) { // Reset to default
+  if (k === KEYS.D) { // Reset to default
     if (dashboard.resetToDefault) await dashboard.resetToDefault();
     return true;
   }
@@ -250,7 +228,7 @@ export async function testModeHandleKey(
   if (await handleLayoutOperationKeys(dashboard, key, panes)) return 0;
 
   // 6. Handle special keys
-  if (key === KEY_ENTER) {
+  if (key === KEYS.ENTER) {
     // No-op for test
     return 0;
   }

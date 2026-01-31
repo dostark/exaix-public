@@ -17,21 +17,7 @@
  * - Loading state management
  */
 
-import {
-  KEY_C,
-  KEY_DOWN,
-  KEY_E,
-  KEY_END,
-  KEY_ESCAPE,
-  KEY_HOME,
-  KEY_J,
-  KEY_K,
-  KEY_LEFT,
-  KEY_QUESTION,
-  KEY_RIGHT,
-  KEY_SLASH,
-  KEY_UP,
-} from "../../config/constants.ts";
+import { KEYS } from "../utils/keyboard.ts";
 import { TuiSessionBase } from "../tui_common.ts";
 import type { DialogBase } from "../utils/dialog_base.ts";
 import { ConfirmDialog, InputDialog } from "../utils/dialog_base.ts";
@@ -165,34 +151,34 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
    */
   protected handleNavigationKeys(key: string): boolean {
     switch (key) {
-      case KEY_UP:
-      case KEY_K:
+      case KEYS.UP:
+      case KEYS.K:
         this.navigateUp();
         return true;
-      case KEY_DOWN:
-      case KEY_J:
+      case KEYS.DOWN:
+      case KEYS.J:
         this.navigateDown();
         return true;
-      case KEY_HOME:
+      case KEYS.HOME:
         this.navigateHome();
         return true;
-      case KEY_END:
+      case KEYS.END:
         this.navigateEnd();
         return true;
-      case KEY_LEFT:
-      case KEY_RIGHT:
+      case KEYS.LEFT:
+      case KEYS.RIGHT:
         this.toggleCurrentNode();
         return true;
-      case KEY_E:
+      case KEYS.E:
         this.expandAllNodes();
         return true;
-      case KEY_C:
+      case KEYS.C:
         this.collapseAllNodes();
         return true;
-      case KEY_SLASH:
+      case KEYS.SLASH:
         // By default, search is handled by subclasses if they have a search dialog
         return false;
-      case KEY_ESCAPE:
+      case KEYS.ESCAPE:
         if (this.state.filterText !== "") {
           this.state.filterText = "";
           return true;
@@ -209,14 +195,14 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
    */
   protected handleHelpKeys(key: string): boolean {
     if (this.state.showHelp) {
-      if (key === KEY_QUESTION || key === KEY_ESCAPE) {
+      if (key === KEYS.QUESTION || key === KEYS.ESCAPE) {
         this.state.showHelp = false;
         return true;
       }
       return true; // Consume all keys when help is shown
     }
 
-    if (key === KEY_QUESTION) {
+    if (key === KEYS.QUESTION) {
       this.state.showHelp = true;
       return true;
     }

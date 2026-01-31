@@ -3,28 +3,7 @@
  * Extracted from request_manager_view.ts to reduce complexity
  */
 
-import {
-  KEY_A,
-  KEY_C,
-  KEY_CAPITAL_C,
-  KEY_CAPITAL_E,
-  KEY_D,
-  KEY_DOWN,
-  KEY_END,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_F,
-  KEY_G,
-  KEY_HOME,
-  KEY_LEFT,
-  KEY_P,
-  KEY_Q,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_RIGHT,
-  KEY_S,
-  KEY_UP,
-} from "../../config/constants.ts";
+import { KEYS } from "../utils/keyboard.ts";
 import { TuiNodeType } from "../../enums.ts";
 import type { TreeNode } from "../utils/tree_view.ts";
 import { collapseAll, expandAll, findNode, flattenTree, toggleNode } from "../utils/tree_view.ts";
@@ -181,16 +160,16 @@ export class MainKeyHandler {
     actions: { navigateTree: (dir: "up" | "down" | "first" | "last") => void },
   ): boolean {
     switch (key) {
-      case KEY_UP:
+      case KEYS.UP:
         actions.navigateTree("up");
         return true;
-      case KEY_DOWN:
+      case KEYS.DOWN:
         actions.navigateTree("down");
         return true;
-      case KEY_HOME:
+      case KEYS.HOME:
         actions.navigateTree("first");
         return true;
-      case KEY_END:
+      case KEYS.END:
         actions.navigateTree("last");
         return true;
     }
@@ -209,10 +188,10 @@ export class MainKeyHandler {
     },
   ): boolean {
     switch (key) {
-      case KEY_LEFT:
+      case KEYS.LEFT:
         actions.collapseSelectedNode();
         return true;
-      case KEY_RIGHT:
+      case KEYS.RIGHT:
         actions.expandSelectedNode();
         return true;
     }
@@ -234,7 +213,7 @@ export class MainKeyHandler {
     },
   ): Promise<boolean> {
     switch (key) {
-      case KEY_ENTER:
+      case KEYS.ENTER:
         if (state.selectedRequestId) {
           if (isGroupNode(state.requestTree, state.selectedRequestId)) {
             actions.toggleSelectedNode();
@@ -243,15 +222,15 @@ export class MainKeyHandler {
           }
         }
         return true;
-      case KEY_C:
+      case KEYS.C:
         actions.showCreateDialog();
         return true;
-      case KEY_D:
+      case KEYS.D:
         if (state.selectedRequestId && !isGroupNode(state.requestTree, state.selectedRequestId)) {
           actions.showCancelConfirm(state.selectedRequestId);
         }
         return true;
-      case KEY_P:
+      case KEYS.P:
         if (state.selectedRequestId && !isGroupNode(state.requestTree, state.selectedRequestId)) {
           actions.showPriorityDialog();
         }
@@ -272,13 +251,13 @@ export class MainKeyHandler {
     },
   ): boolean {
     switch (key) {
-      case KEY_S:
+      case KEYS.S:
         actions.showSearchDialog();
         return true;
-      case KEY_F:
+      case KEYS.F:
         actions.showFilterStatusDialog();
         return true;
-      case KEY_A:
+      case KEYS.A:
         actions.showFilterAgentDialog();
         return true;
     }
@@ -299,23 +278,23 @@ export class MainKeyHandler {
     },
   ): boolean {
     switch (key) {
-      case KEY_G:
+      case KEYS.G:
         actions.toggleGrouping();
         return true;
-      case KEY_R:
+      case KEYS.R:
         actions.refresh();
         return true;
-      case KEY_CAPITAL_C:
+      case KEYS.CAP_C:
         actions.updateTree(TreeManipulationHandler.collapseAll(state.requestTree));
         return true;
-      case KEY_CAPITAL_E:
+      case KEYS.CAP_E:
         actions.updateTree(TreeManipulationHandler.expandAll(state.requestTree));
         return true;
-      case KEY_QUESTION:
+      case KEYS.QUESTION:
         actions.setShowHelp(true);
         return true;
-      case KEY_Q:
-      case KEY_ESCAPE:
+      case KEYS.Q:
+      case KEYS.ESCAPE:
         return true;
     }
     return false;

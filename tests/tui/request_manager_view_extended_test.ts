@@ -28,22 +28,7 @@ import {
   STATUS_COLORS,
   STATUS_ICONS,
 } from "../../src/tui/request_manager_view.ts";
-import {
-  KEY_C,
-  KEY_D,
-  KEY_DOWN,
-  KEY_END,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_HOME,
-  KEY_LEFT,
-  KEY_P,
-  KEY_Q,
-  KEY_QUESTION,
-  KEY_RIGHT,
-  KEY_UP,
-  KEY_V,
-} from "../../src/config/constants.ts";
+import { KEYS } from "../../src/tui/utils/keyboard.ts";
 
 // ===== Test Data =====
 
@@ -240,12 +225,12 @@ Deno.test("RequestManagerTuiSession: navigateTree first and last", async () => {
   const session = view.createTuiSession(requests);
 
   // Navigate to last
-  await session.handleKey(KEY_END);
+  await session.handleKey(KEYS.END);
   const lastState = session.getState();
   assertExists(lastState.selectedRequestId);
 
   // Navigate to first
-  await session.handleKey(KEY_HOME);
+  await session.handleKey(KEYS.HOME);
   const firstState = session.getState();
   assertExists(firstState.selectedRequestId);
 });
@@ -318,7 +303,7 @@ Deno.test("RequestManagerTuiSession: expandSelectedNode and collapseSelectedNode
   session.toggleGrouping(); // none -> status
 
   // Navigate to a group node
-  await session.handleKey(KEY_HOME);
+  await session.handleKey(KEYS.HOME);
   // Try to collapse and expand
   session.collapseSelectedNode();
   session.expandSelectedNode();
@@ -338,7 +323,7 @@ Deno.test("RequestManagerTuiSession: toggleSelectedNode", async () => {
   session.toggleGrouping();
 
   // Navigate to first (group node)
-  await session.handleKey(KEY_HOME);
+  await session.handleKey(KEYS.HOME);
 
   // Toggle the node
   session.toggleSelectedNode();
@@ -448,7 +433,7 @@ Deno.test("RequestManagerTuiSession: render shows help when showHelp is true", a
   const view = new RequestManagerView(mockService);
   const session = view.createTuiSession(requests);
 
-  await session.handleKey(KEY_QUESTION);
+  await session.handleKey(KEYS.QUESTION);
   assertEquals(session.getState().showHelp, true);
 
   const output = session.render();
@@ -459,10 +444,10 @@ Deno.test("RequestManagerTuiSession: render shows help when showHelp is true", a
 Deno.test("RequestManagerTuiSession: close help with '?'", async () => {
   const session = createTestSessionWithMockService("Content");
 
-  await session.handleKey(KEY_QUESTION);
+  await session.handleKey(KEYS.QUESTION);
   assertEquals(session.getState().showHelp, true);
 
-  await session.handleKey(KEY_QUESTION);
+  await session.handleKey(KEYS.QUESTION);
   assertEquals(session.getState().showHelp, false);
 });
 
@@ -472,7 +457,7 @@ Deno.test("RequestManagerTuiSession: close detail with 'q'", async () => {
   await session.showRequestDetail("req-001");
   assertEquals(session.getState().showDetail, true);
 
-  await session.handleKey(KEY_Q);
+  await session.handleKey(KEYS.Q);
   assertEquals(session.getState().showDetail, false);
 });
 
@@ -482,7 +467,7 @@ Deno.test("RequestManagerTuiSession: close detail with escape", async () => {
   await session.showRequestDetail("req-001");
   assertEquals(session.getState().showDetail, true);
 
-  await session.handleKey(KEY_ESCAPE);
+  await session.handleKey(KEYS.ESCAPE);
   assertEquals(session.getState().showDetail, false);
 });
 
@@ -547,7 +532,7 @@ Deno.test("RequestManagerTuiSession: showSearchDialog and handleSearchResult", a
   assertEquals(session.getState().activeDialog !== null, true);
 
   // Cancel dialog
-  await session.handleKey(KEY_ESCAPE);
+  await session.handleKey(KEYS.ESCAPE);
   assertEquals(session.getState().activeDialog, null);
 });
 
@@ -557,7 +542,7 @@ Deno.test("RequestManagerTuiSession: showFilterStatusDialog", async () => {
   session.showFilterStatusDialog();
   assertEquals(session.getState().activeDialog !== null, true);
 
-  await session.handleKey(KEY_ESCAPE);
+  await session.handleKey(KEYS.ESCAPE);
   assertEquals(session.getState().activeDialog, null);
 });
 
@@ -567,7 +552,7 @@ Deno.test("RequestManagerTuiSession: showFilterAgentDialog", async () => {
   session.showFilterAgentDialog();
   assertEquals(session.getState().activeDialog !== null, true);
 
-  await session.handleKey(KEY_ESCAPE);
+  await session.handleKey(KEYS.ESCAPE);
   assertEquals(session.getState().activeDialog, null);
 });
 
@@ -577,7 +562,7 @@ Deno.test("RequestManagerTuiSession: showCreateDialog", async () => {
   session.showCreateDialog();
   assertEquals(session.getState().activeDialog !== null, true);
 
-  await session.handleKey(KEY_ESCAPE);
+  await session.handleKey(KEYS.ESCAPE);
   assertEquals(session.getState().activeDialog, null);
 });
 
@@ -597,7 +582,7 @@ Deno.test("RequestManagerTuiSession: showPriorityDialog", async () => {
   session.showPriorityDialog();
   assertEquals(session.getState().activeDialog !== null, true);
 
-  await session.handleKey(KEY_ESCAPE);
+  await session.handleKey(KEYS.ESCAPE);
   assertEquals(session.getState().activeDialog, null);
 });
 
@@ -608,13 +593,13 @@ Deno.test("RequestManagerTuiSession: left arrow collapses, right arrow expands",
   session.toggleGrouping();
 
   // Navigate to a group
-  await session.handleKey(KEY_HOME);
+  await session.handleKey(KEYS.HOME);
 
   // Collapse with left arrow
-  await session.handleKey(KEY_LEFT);
+  await session.handleKey(KEYS.LEFT);
 
   // Expand with right arrow
-  await session.handleKey(KEY_RIGHT);
+  await session.handleKey(KEYS.RIGHT);
 
   const state = session.getState();
   assertExists(state);
@@ -627,12 +612,12 @@ Deno.test("RequestManagerTuiSession: enter on group toggles expansion", async ()
   session.toggleGrouping();
 
   // Navigate to a group node (first item should be a group)
-  await session.handleKey(KEY_HOME);
+  await session.handleKey(KEYS.HOME);
 
   const state = session.getState();
   if (state.selectedRequestId?.startsWith("status-")) {
     // Toggle with enter
-    await session.handleKey(KEY_ENTER);
+    await session.handleKey(KEYS.ENTER);
     // Should not show detail for groups
     assertEquals(session.getState().showDetail, false);
   }
@@ -645,12 +630,12 @@ Deno.test("RequestManagerTuiSession: d key on non-request does nothing", async (
   session.toggleGrouping();
 
   // Navigate to a group node
-  await session.handleKey(KEY_HOME);
+  await session.handleKey(KEYS.HOME);
 
   const state = session.getState();
   if (state.selectedRequestId?.startsWith("status-")) {
     // Try to delete a group (should do nothing)
-    await session.handleKey(KEY_D);
+    await session.handleKey(KEYS.D);
     assertEquals(session.getState().activeDialog, null);
   }
 });
@@ -662,12 +647,12 @@ Deno.test("RequestManagerTuiSession: p key on non-request does nothing", async (
   session.toggleGrouping();
 
   // Navigate to a group node
-  await session.handleKey(KEY_HOME);
+  await session.handleKey(KEYS.HOME);
 
   const state = session.getState();
   if (state.selectedRequestId?.startsWith("status-")) {
     // Try to change priority of a group (should do nothing)
-    await session.handleKey(KEY_P);
+    await session.handleKey(KEYS.P);
     assertEquals(session.getState().activeDialog, null);
   }
 });
@@ -695,29 +680,29 @@ Deno.test("LegacyRequestManagerTuiSession: handleKey navigation", async () => {
 
   assertEquals(session.getSelectedIndex(), 0);
 
-  await session.handleKey(KEY_DOWN);
+  await session.handleKey(KEYS.DOWN);
   assertEquals(session.getSelectedIndex(), 1);
 
-  await session.handleKey(KEY_UP);
+  await session.handleKey(KEYS.UP);
   assertEquals(session.getSelectedIndex(), 0);
 
-  await session.handleKey(KEY_END);
+  await session.handleKey(KEYS.END);
   assertEquals(session.getSelectedIndex(), 4);
 
-  await session.handleKey(KEY_HOME);
+  await session.handleKey(KEYS.HOME);
   assertEquals(session.getSelectedIndex(), 0);
 });
 
 Deno.test("LegacyRequestManagerTuiSession: handleKey actions", async () => {
   const { session, createCalled, viewCalled, deleteCalled } = createLegacyTuiSessionWithTracking();
 
-  await session.handleKey(KEY_C);
+  await session.handleKey(KEYS.C);
   assertEquals(createCalled(), true);
 
-  await session.handleKey(KEY_V);
+  await session.handleKey(KEYS.V);
   assertEquals(viewCalled(), true);
 
-  await session.handleKey(KEY_D);
+  await session.handleKey(KEYS.D);
   assertEquals(deleteCalled(), true);
 });
 
@@ -731,7 +716,7 @@ Deno.test("LegacyRequestManagerTuiSession: getSelectedRequest", () => {
 Deno.test("LegacyRequestManagerTuiSession: getStatusMessage after action", async () => {
   const session = createLegacyTuiSessionWithLongTraceId();
 
-  await session.handleKey(KEY_C);
+  await session.handleKey(KEYS.C);
   assertStringIncludes(session.getStatusMessage(), "Created request:");
 });
 
@@ -739,8 +724,8 @@ Deno.test("LegacyRequestManagerTuiSession: handleKey with empty requests", async
   const session = createLegacyTuiSession([]);
 
   // Should not throw with empty requests
-  await session.handleKey(KEY_DOWN);
-  await session.handleKey(KEY_UP);
+  await session.handleKey(KEYS.DOWN);
+  await session.handleKey(KEYS.UP);
 
   assertEquals(session.getSelectedIndex(), 0);
 });
@@ -749,15 +734,15 @@ Deno.test("LegacyRequestManagerTuiSession: error handling in actions", async () 
   const session = createLegacyTuiSessionWithErrors();
 
   // Test create error
-  await session.handleKey(KEY_C);
+  await session.handleKey(KEYS.C);
   assertStringIncludes(session.getStatusMessage(), "Error:");
 
   // Test view error
-  await session.handleKey(KEY_V);
+  await session.handleKey(KEYS.V);
   assertStringIncludes(session.getStatusMessage(), "Error:");
 
   // Test delete error
-  await session.handleKey(KEY_D);
+  await session.handleKey(KEYS.D);
   assertStringIncludes(session.getStatusMessage(), "Error:");
 });
 

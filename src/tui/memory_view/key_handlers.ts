@@ -4,28 +4,7 @@
  */
 
 import type { TreeNode } from "./types.ts";
-import {
-  KEY_A,
-  KEY_BACKSPACE,
-  KEY_CAPITAL_A,
-  KEY_CAPITAL_P,
-  KEY_CAPITAL_R,
-  KEY_DOWN,
-  KEY_E,
-  KEY_END,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_G,
-  KEY_HOME,
-  KEY_L,
-  KEY_N,
-  KEY_P,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_S,
-  KEY_SLASH,
-  KEY_UP,
-} from "../../config/constants.ts";
+import { KEYS } from "../utils/keyboard.ts";
 import {
   MEMORY_SCOPE_EXECUTIONS,
   MEMORY_SCOPE_GLOBAL,
@@ -94,15 +73,15 @@ class SearchModeHandler {
     onEscape: () => void,
     onEnter: () => void,
   ): { handled: boolean; newQuery?: string } {
-    if (key === KEY_ESCAPE) {
+    if (key === KEYS.ESCAPE) {
       onEscape();
       return { handled: true };
     }
-    if (key === KEY_ENTER) {
+    if (key === KEYS.ENTER) {
       onEnter();
       return { handled: true };
     }
-    if (key === KEY_BACKSPACE) {
+    if (key === KEYS.BACKSPACE) {
       return { handled: true, newQuery: searchQuery.slice(0, -1) };
     }
     if (key.length === 1) {
@@ -127,25 +106,25 @@ class NavigationHandler {
     const currentIndex = flatNodes.findIndex((n) => n.id === currentNodeId);
 
     switch (key) {
-      case KEY_UP:
+      case KEYS.UP:
         if (currentIndex > 0) {
           const node = flatNodes[currentIndex - 1];
           await onNavigate(node.id, node);
         }
         return true;
-      case KEY_DOWN:
+      case KEYS.DOWN:
         if (currentIndex < flatNodes.length - 1) {
           const node = flatNodes[currentIndex + 1];
           await onNavigate(node.id, node);
         }
         return true;
-      case KEY_HOME:
+      case KEYS.HOME:
         if (flatNodes.length > 0) {
           const node = flatNodes[0];
           await onNavigate(node.id, node);
         }
         return true;
-      case KEY_END:
+      case KEYS.END:
         if (flatNodes.length > 0) {
           const node = flatNodes[flatNodes.length - 1];
           await onNavigate(node.id, node);
@@ -192,16 +171,16 @@ class ShortcutHandler {
     if (!handlers.jumpToScope) return false;
 
     switch (key) {
-      case KEY_G:
+      case KEYS.G:
         await handlers.jumpToScope(MEMORY_SCOPE_GLOBAL);
         return true;
-      case KEY_P:
+      case KEYS.P:
         await handlers.jumpToScope(MEMORY_SCOPE_PROJECTS);
         return true;
-      case KEY_E:
+      case KEYS.E:
         await handlers.jumpToScope(MEMORY_SCOPE_EXECUTIONS);
         return true;
-      case KEY_N:
+      case KEYS.N:
         await handlers.jumpToScope(MEMORY_SCOPE_PENDING);
         return true;
     }
@@ -216,11 +195,11 @@ class ShortcutHandler {
     handlers: ShortcutHandlers,
   ): boolean {
     switch (key) {
-      case KEY_S:
-      case KEY_SLASH:
+      case KEYS.S:
+      case KEYS.SLASH:
         if (handlers.startSearch) handlers.startSearch();
         return true;
-      case KEY_QUESTION:
+      case KEYS.QUESTION:
         if (handlers.showHelp) handlers.showHelp();
         return true;
     }
@@ -235,13 +214,13 @@ class ShortcutHandler {
     handlers: ShortcutHandlers,
   ): Promise<boolean> {
     switch (key) {
-      case KEY_A:
+      case KEYS.A:
         if (handlers.approveProposal) await handlers.approveProposal();
         return true;
-      case KEY_R:
+      case KEYS.R:
         if (handlers.rejectProposal) await handlers.rejectProposal();
         return true;
-      case KEY_CAPITAL_A:
+      case KEYS.CAP_A:
         if (handlers.approveAll) await handlers.approveAll();
         return true;
     }
@@ -256,10 +235,10 @@ class ShortcutHandler {
     handlers: ShortcutHandlers,
   ): boolean {
     switch (key) {
-      case KEY_L:
+      case KEYS.L:
         if (handlers.addLearning) handlers.addLearning();
         return true;
-      case KEY_CAPITAL_P:
+      case KEYS.CAP_P:
         if (handlers.promoteLearning) handlers.promoteLearning();
         return true;
     }
@@ -274,7 +253,7 @@ class ShortcutHandler {
     handlers: ShortcutHandlers,
   ): Promise<boolean> {
     switch (key) {
-      case KEY_CAPITAL_R:
+      case KEYS.CAP_R:
         if (handlers.refresh) await handlers.refresh();
         return true;
     }

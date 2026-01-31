@@ -11,7 +11,7 @@ import { renderNotificationPanel } from "../tui_helpers/notifications.ts";
 import type { NotificationService } from "../../services/notification.ts";
 import type { DashboardViewState } from "../tui_dashboard.ts";
 import { Table } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
-import { KEY_M, KEY_N, KEY_R } from "../../config/constants.ts";
+import { KEYS } from "../utils/keyboard.ts";
 
 /**
  * Production render function for the dashboard
@@ -84,10 +84,10 @@ export async function prodRender(
     for (const line of notifLines) {
       console.log(line);
     }
-    const closeKey = state.showMemoryNotifications ? KEY_M : KEY_N;
+    const closeKey = state.showMemoryNotifications ? KEYS.M : KEYS.N;
     process.stdout.write(`\nPress ${closeKey} to close`);
     if (state.showMemoryNotifications) {
-      process.stdout.write(` | ${KEY_M}: Approve | ${KEY_R}: Reject | Up/Down: Navigate\n`);
+      process.stdout.write(` | ${KEYS.M}: Approve | ${KEYS.R}: Reject | Up/Down: Navigate\n`);
     } else {
       process.stdout.write("\n");
     }

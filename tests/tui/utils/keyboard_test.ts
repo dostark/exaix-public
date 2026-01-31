@@ -9,6 +9,7 @@ import {
   createNavigationHandlers,
   formatKey,
   generateHelpScreen,
+  isValidKeyValue,
   type KeyBinding,
   KeyboardManager,
   KEYS,
@@ -30,6 +31,71 @@ Deno.test("KEYS: has action keys", () => {
   assertEquals(KEYS.ENTER, "enter");
   assertEquals(KEYS.ESCAPE, "escape");
   assertEquals(KEYS.TAB, "tab");
+});
+
+// ===== Key Validation Tests =====
+
+Deno.test("isValidKeyValue: validates navigation keys", () => {
+  assertEquals(isValidKeyValue("up"), true);
+  assertEquals(isValidKeyValue("down"), true);
+  assertEquals(isValidKeyValue("left"), true);
+  assertEquals(isValidKeyValue("right"), true);
+  assertEquals(isValidKeyValue("home"), true);
+  assertEquals(isValidKeyValue("end"), true);
+  assertEquals(isValidKeyValue("pageup"), true);
+  assertEquals(isValidKeyValue("pagedown"), true);
+});
+
+Deno.test("isValidKeyValue: validates action keys", () => {
+  assertEquals(isValidKeyValue("enter"), true);
+  assertEquals(isValidKeyValue("escape"), true);
+  assertEquals(isValidKeyValue("tab"), true);
+  assertEquals(isValidKeyValue("space"), true);
+  assertEquals(isValidKeyValue("backspace"), true);
+  assertEquals(isValidKeyValue("delete"), true);
+});
+
+Deno.test("isValidKeyValue: validates shortcuts", () => {
+  assertEquals(isValidKeyValue("ctrl+c"), true);
+  assertEquals(isValidKeyValue("ctrl+d"), true);
+  assertEquals(isValidKeyValue("ctrl+q"), true);
+  assertEquals(isValidKeyValue("ctrl+s"), true);
+  assertEquals(isValidKeyValue("ctrl+r"), true);
+  assertEquals(isValidKeyValue("ctrl+l"), true);
+});
+
+Deno.test("isValidKeyValue: validates single characters", () => {
+  assertEquals(isValidKeyValue("a"), true);
+  assertEquals(isValidKeyValue("z"), true);
+  assertEquals(isValidKeyValue("A"), true);
+  assertEquals(isValidKeyValue("Z"), true);
+  assertEquals(isValidKeyValue("1"), true);
+  assertEquals(isValidKeyValue("7"), true);
+});
+
+Deno.test("isValidKeyValue: validates special characters", () => {
+  assertEquals(isValidKeyValue("?"), true);
+  assertEquals(isValidKeyValue("/"), true);
+});
+
+Deno.test("isValidKeyValue: validates special combinations", () => {
+  assertEquals(isValidKeyValue("Tab"), true);
+  assertEquals(isValidKeyValue("Shift+Tab"), true);
+  assertEquals(isValidKeyValue("Ctrl+Left"), true);
+  assertEquals(isValidKeyValue("Ctrl+Right"), true);
+  assertEquals(isValidKeyValue("Ctrl+Up"), true);
+  assertEquals(isValidKeyValue("Ctrl+Down"), true);
+  assertEquals(isValidKeyValue("Esc/q"), true);
+  assertEquals(isValidKeyValue("1-7"), true);
+});
+
+Deno.test("isValidKeyValue: rejects invalid keys", () => {
+  assertEquals(isValidKeyValue("invalid"), false);
+  assertEquals(isValidKeyValue("ctrl+z"), false);
+  assertEquals(isValidKeyValue("shift+a"), false);
+  assertEquals(isValidKeyValue("alt+tab"), false);
+  assertEquals(isValidKeyValue(""), false);
+  assertEquals(isValidKeyValue("random"), false);
 });
 
 // ===== Parse Key Tests =====

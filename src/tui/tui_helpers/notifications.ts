@@ -1,4 +1,4 @@
-import { KEY_ESCAPE, KEY_M } from "../../config/constants.ts";
+import { KEYS } from "../utils/keyboard.ts";
 import { colorize } from "../utils/colors.ts";
 
 export function formatTimeAgo(date: Date): string {
@@ -77,7 +77,7 @@ export async function handleMemoryNotifications(
   panes: any[],
   notificationService: any,
 ) {
-  if (key === KEY_ESCAPE || key === KEY_M) {
+  if (key === KEYS.ESCAPE || key === KEYS.M) {
     self.state.showMemoryNotifications = false;
   } else {
     const allNotifs = await notificationService.getNotifications();

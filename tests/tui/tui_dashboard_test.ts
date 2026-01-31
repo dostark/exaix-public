@@ -3,29 +3,7 @@ import { launchTuiDashboard, type TuiDashboard } from "../../src/tui/tui_dashboa
 import { SkillStatus } from "../../src/enums.ts";
 
 import { assertEquals } from "https://deno.land/std@0.204.0/assert/assert_equals.ts";
-import {
-  KEY_1,
-  KEY_2,
-  KEY_3,
-  KEY_7,
-  KEY_C,
-  KEY_D,
-  KEY_DOWN,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_H,
-  KEY_N,
-  KEY_P,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_S,
-  KEY_SHIFT_TAB,
-  KEY_TAB,
-  KEY_UP,
-  KEY_V,
-  KEY_X,
-  KEY_Z,
-} from "../../src/config/constants.ts";
+import { KEYS } from "../../src/tui/utils/keyboard.ts";
 
 Deno.test("TUI dashboard handles empty portal list and error state", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
@@ -52,12 +30,12 @@ Deno.test("TUI dashboard rapid navigation and focus wraparound", async () => {
   dashboard.switchPane("main"); // Start with main pane
   // Simulate rapid tabbing
   for (let i = 0; i < 20; ++i) {
-    await dashboard.handleKey(KEY_TAB);
+    await dashboard.handleKey(KEYS.TAB);
   }
   assertEquals(dashboard.activePaneId, "main"); // Should wrap around to first pane
   // Simulate rapid shift+tab
   for (let i = 0; i < 20; ++i) {
-    await dashboard.handleKey(KEY_SHIFT_TAB);
+    await dashboard.handleKey(KEYS.SHIFT_TAB);
   }
   assertEquals(dashboard.activePaneId, "main"); // Should wrap around
   dashboard.destroy();
@@ -142,17 +120,17 @@ Deno.test("TUI dashboard handles keyboard navigation and focus", async () => {
   // Initial focus
   assertEquals(dashboard.activePaneId, "main");
   // Tab cycles focus forward
-  await dashboard.handleKey(KEY_TAB);
+  await dashboard.handleKey(KEYS.TAB);
   assertEquals(dashboard.activePaneId, "main"); // Only one pane, wraps to itself
   // Add another pane
   await dashboard.splitPane("vertical");
   assertEquals(dashboard.panes.length, 2);
-  await dashboard.handleKey(KEY_TAB);
+  await dashboard.handleKey(KEYS.TAB);
   assertEquals(dashboard.activePaneId, dashboard.panes[1].id);
-  await dashboard.handleKey(KEY_TAB);
+  await dashboard.handleKey(KEYS.TAB);
   assertEquals(dashboard.activePaneId, "main"); // Wraps back to first pane
   // Shift+Tab cycles focus backward
-  await dashboard.handleKey(KEY_SHIFT_TAB);
+  await dashboard.handleKey(KEYS.SHIFT_TAB);
   assertEquals(dashboard.activePaneId, dashboard.panes[1].id);
   dashboard.destroy();
 });
@@ -324,53 +302,53 @@ Deno.test("TUI dashboard comprehensive keyboard actions test", async () => {
   assertEquals(dashboard.activePaneId, "main");
 
   // Test Tab navigation (should wrap with single pane)
-  await dashboard.handleKey(KEY_TAB);
+  await dashboard.handleKey(KEYS.TAB);
   assertEquals(dashboard.activePaneId, "main");
 
   // Test Shift+Tab navigation
-  await dashboard.handleKey(KEY_SHIFT_TAB);
+  await dashboard.handleKey(KEYS.SHIFT_TAB);
   assertEquals(dashboard.activePaneId, "main");
 
   // Test vertical split
-  await dashboard.handleKey(KEY_V);
+  await dashboard.handleKey(KEYS.V);
   assertEquals(dashboard.panes.length, 2);
   assertEquals(dashboard.panes[0].width, 40); // Half width
   assertEquals(dashboard.panes[1].x, 40); // Offset by half width
 
   // Test horizontal split on second pane
   dashboard.switchPane(dashboard.panes[1].id);
-  await dashboard.handleKey(KEY_H);
+  await dashboard.handleKey(KEYS.H);
   assertEquals(dashboard.panes.length, 3);
   assertEquals(dashboard.panes[1].height, 12); // Half height
   assertEquals(dashboard.panes[2].y, 12); // Offset by half height
 
   // Test pane navigation with multiple panes
   dashboard.switchPane("main");
-  await dashboard.handleKey(KEY_TAB); // Should go to second pane
+  await dashboard.handleKey(KEYS.TAB); // Should go to second pane
   assertEquals(dashboard.activePaneId, dashboard.panes[1].id);
-  await dashboard.handleKey(KEY_TAB); // Should go to third pane
+  await dashboard.handleKey(KEYS.TAB); // Should go to third pane
   assertEquals(dashboard.activePaneId, dashboard.panes[2].id);
-  await dashboard.handleKey(KEY_TAB); // Should wrap to first pane
+  await dashboard.handleKey(KEYS.TAB); // Should wrap to first pane
   assertEquals(dashboard.activePaneId, "main");
 
   // Test reverse navigation
-  await dashboard.handleKey(KEY_SHIFT_TAB); // Should go to third pane
+  await dashboard.handleKey(KEYS.SHIFT_TAB); // Should go to third pane
   assertEquals(dashboard.activePaneId, dashboard.panes[2].id);
-  await dashboard.handleKey(KEY_SHIFT_TAB); // Should go to second pane
+  await dashboard.handleKey(KEYS.SHIFT_TAB); // Should go to second pane
   assertEquals(dashboard.activePaneId, dashboard.panes[1].id);
 
   // Test close pane (close third pane)
   dashboard.switchPane(dashboard.panes[2].id);
-  await dashboard.handleKey(KEY_C);
+  await dashboard.handleKey(KEYS.C);
   assertEquals(dashboard.panes.length, 2);
   assertEquals(dashboard.activePaneId, dashboard.panes[0].id); // Should switch to first pane
 
   // Test Enter key (no-op)
-  await dashboard.handleKey(KEY_ENTER);
+  await dashboard.handleKey(KEYS.ENTER);
   assertEquals(dashboard.panes.length, 2); // Should remain unchanged
 
   // Test invalid key (should be ignored)
-  await dashboard.handleKey(KEY_X);
+  await dashboard.handleKey(KEYS.X);
   assertEquals(dashboard.panes.length, 2); // Should remain unchanged
 
   // Test save layout
@@ -379,7 +357,7 @@ Deno.test("TUI dashboard comprehensive keyboard actions test", async () => {
     layoutSaved = true;
     return Promise.resolve();
   };
-  await dashboard.handleKey(KEY_S);
+  await dashboard.handleKey(KEYS.S);
   assertEquals(layoutSaved, true);
 
   // Test restore layout
@@ -388,7 +366,7 @@ Deno.test("TUI dashboard comprehensive keyboard actions test", async () => {
     layoutRestored = true;
     return Promise.resolve();
   };
-  await dashboard.handleKey(KEY_R);
+  await dashboard.handleKey(KEYS.R);
   assertEquals(layoutRestored, true);
 
   // Test reset to default
@@ -413,11 +391,11 @@ Deno.test("TUI dashboard comprehensive keyboard actions test", async () => {
     dashboard.activePaneId = "main";
     return Promise.resolve();
   };
-  await dashboard.handleKey(KEY_D);
+  await dashboard.handleKey(KEYS.D);
   assertEquals(layoutReset, true);
 
   // Test invalid key (should be ignored, no crash)
-  await dashboard.handleKey(KEY_X);
+  await dashboard.handleKey(KEYS.X);
   assertEquals(dashboard.panes.length, 1); // Should remain unchanged
   dashboard.destroy();
 });
@@ -458,19 +436,19 @@ Deno.test("TUI dashboard help overlay toggle", async () => {
   assertEquals(dashboard.state.showHelp, false);
 
   // Show help with ?
-  await dashboard.handleKey(KEY_QUESTION);
+  await dashboard.handleKey(KEYS.QUESTION);
   assertEquals(dashboard.state.showHelp, true);
 
   // Hide help with ?
-  await dashboard.handleKey(KEY_QUESTION);
+  await dashboard.handleKey(KEYS.QUESTION);
   assertEquals(dashboard.state.showHelp, false);
 
   // Show help again
-  await dashboard.handleKey(KEY_QUESTION);
+  await dashboard.handleKey(KEYS.QUESTION);
   assertEquals(dashboard.state.showHelp, true);
 
   // Hide with escape
-  await dashboard.handleKey(KEY_ESCAPE);
+  await dashboard.handleKey(KEYS.ESCAPE);
   assertEquals(dashboard.state.showHelp, false);
   dashboard.destroy();
 });
@@ -482,11 +460,11 @@ Deno.test("TUI dashboard notification toggle", async () => {
   assertEquals(dashboard.state.showNotifications, false);
 
   // Toggle notifications with n
-  await dashboard.handleKey(KEY_N);
+  await dashboard.handleKey(KEYS.N);
   assertEquals(dashboard.state.showNotifications, true);
 
   // Toggle off
-  await dashboard.handleKey(KEY_N);
+  await dashboard.handleKey(KEYS.N);
   assertEquals(dashboard.state.showNotifications, false);
   dashboard.destroy();
 });
@@ -598,17 +576,17 @@ Deno.test("TUI dashboard direct pane navigation with number keys", async () => {
   assertEquals(dashboard.panes.length, 3);
 
   // Navigate directly to panes using number keys
-  await dashboard.handleKey(KEY_1);
+  await dashboard.handleKey(KEYS.ONE);
   assertEquals(dashboard.activePaneId, dashboard.panes[0].id);
 
-  await dashboard.handleKey(KEY_2);
+  await dashboard.handleKey(KEYS.TWO);
   assertEquals(dashboard.activePaneId, dashboard.panes[1].id);
 
-  await dashboard.handleKey(KEY_3);
+  await dashboard.handleKey(KEYS.THREE);
   assertEquals(dashboard.activePaneId, dashboard.panes[2].id);
 
   // Invalid pane number (beyond available panes)
-  await dashboard.handleKey(KEY_7);
+  await dashboard.handleKey(KEYS.SEVEN);
   assertEquals(dashboard.activePaneId, dashboard.panes[2].id); // Should stay on pane 3
   dashboard.destroy();
 });
@@ -621,13 +599,13 @@ Deno.test("TUI dashboard pane maximize/restore", async () => {
   const originalHeight = dashboard.panes[0].height;
 
   // Maximize with z
-  await dashboard.handleKey(KEY_Z);
+  await dashboard.handleKey(KEYS.Z);
   assertEquals(dashboard.panes[0].maximized, true);
   assertEquals(dashboard.panes[0].width, 80);
   assertEquals(dashboard.panes[0].height, 24);
 
   // Restore with z
-  await dashboard.handleKey(KEY_Z);
+  await dashboard.handleKey(KEYS.Z);
   assertEquals(dashboard.panes[0].maximized, false);
   assertEquals(dashboard.panes[0].width, originalWidth);
   assertEquals(dashboard.panes[0].height, originalHeight);
@@ -652,11 +630,11 @@ Deno.test("TUI dashboard view picker state", async () => {
   assertEquals(dashboard.state.showViewPicker, false);
 
   // Show view picker with p
-  await dashboard.handleKey(KEY_P);
+  await dashboard.handleKey(KEYS.P);
   assertEquals(dashboard.state.showViewPicker, true);
 
   // Close with escape
-  await dashboard.handleKey(KEY_ESCAPE);
+  await dashboard.handleKey(KEYS.ESCAPE);
   assertEquals(dashboard.state.showViewPicker, false);
 });
 
@@ -664,15 +642,15 @@ Deno.test("TUI dashboard view picker navigation", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
 
   // Open view picker
-  await dashboard.handleKey(KEY_P);
+  await dashboard.handleKey(KEYS.P);
   assertEquals(dashboard.state.showViewPicker, true);
 
   // Navigate with arrow keys (view picker should handle them)
-  await dashboard.handleKey(KEY_DOWN);
-  await dashboard.handleKey(KEY_UP);
+  await dashboard.handleKey(KEYS.DOWN);
+  await dashboard.handleKey(KEYS.UP);
 
   // Select with enter
-  await dashboard.handleKey(KEY_ENTER);
+  await dashboard.handleKey(KEYS.ENTER);
   assertEquals(dashboard.state.showViewPicker, false);
 });
 
@@ -682,10 +660,10 @@ Deno.test("TUI dashboard view picker number selection", async () => {
   const originalView = dashboard.panes[0].view.name;
 
   // Open view picker
-  await dashboard.handleKey(KEY_P);
+  await dashboard.handleKey(KEYS.P);
 
   // Select view 2 directly
-  await dashboard.handleKey(KEY_2);
+  await dashboard.handleKey(KEYS.TWO);
   assertEquals(dashboard.state.showViewPicker, false);
 
   // View should have changed
@@ -696,12 +674,12 @@ Deno.test("TUI dashboard notifications with split operations", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
 
   // Split should add notification
-  await dashboard.handleKey(KEY_V);
+  await dashboard.handleKey(KEYS.V);
   const notifs = await dashboard.notificationService.getNotifications();
   assertEquals(notifs.length > 0, true);
 
   // Close should add notification
-  await dashboard.handleKey(KEY_C);
+  await dashboard.handleKey(KEYS.C);
   const notifsAfterClose = await dashboard.notificationService.getNotifications();
   assertEquals(notifsAfterClose.length > 0, true);
 });
@@ -739,20 +717,20 @@ Deno.test("TUI dashboard key bindings block other keys when help is shown", asyn
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
 
   // Show help
-  await dashboard.handleKey(KEY_QUESTION);
+  await dashboard.handleKey(KEYS.QUESTION);
   assertEquals(dashboard.state.showHelp, true);
 
   // Try to split - should be blocked
   const paneCountBefore = dashboard.panes.length;
-  await dashboard.handleKey(KEY_V);
+  await dashboard.handleKey(KEYS.V);
   assertEquals(dashboard.panes.length, paneCountBefore); // No split occurred
 
   // Close help
-  await dashboard.handleKey(KEY_QUESTION);
+  await dashboard.handleKey(KEYS.QUESTION);
   assertEquals(dashboard.state.showHelp, false);
 
   // Now split should work
-  await dashboard.handleKey(KEY_V);
+  await dashboard.handleKey(KEYS.V);
   assertEquals(dashboard.panes.length, paneCountBefore + 1);
 });
 

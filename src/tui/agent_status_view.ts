@@ -28,28 +28,8 @@ import {
 import { AgentHealth, AgentStatus, TuiGroupBy } from "../enums.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
-import { type KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
+import { type KeyBinding, KeyBindingCategory, KEYS } from "./utils/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import {
-  DEFAULT_QUERY_LIMIT,
-  KEY_A,
-  KEY_C,
-  KEY_CAPITAL_E,
-  KEY_CAPITAL_R,
-  KEY_DOWN,
-  KEY_END,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_G,
-  KEY_HOME,
-  KEY_L,
-  KEY_LEFT,
-  KEY_Q,
-  KEY_QUESTION,
-  KEY_RIGHT,
-  KEY_S,
-  KEY_UP,
-} from "../config/constants.ts";
 import {
   TUI_AGENT_HEALTH_ICONS,
   TUI_AGENT_STATUS_ICONS,
@@ -58,6 +38,7 @@ import {
   TUI_LOG_LEVEL_ICONS,
 } from "./utils/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
+import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
 // Extracted utilities
 import { MainViewHandler, ViewModeHandler } from "./agent_status/key_handlers.ts";
@@ -186,88 +167,88 @@ export enum AgentAction {
 export class AgentKeyBindings extends KeyBindingsBase<AgentAction, KeyBindingCategory> {
   readonly KEY_BINDINGS: readonly KeyBinding<AgentAction, KeyBindingCategory>[] = [
     {
-      key: KEY_UP,
+      key: KEYS.UP,
       action: AgentAction.NAVIGATE_UP,
       description: "Move up",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_DOWN,
+      key: KEYS.DOWN,
       action: AgentAction.NAVIGATE_DOWN,
       description: "Move down",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_HOME,
+      key: KEYS.HOME,
       action: AgentAction.NAVIGATE_HOME,
       description: "Go to first",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_END,
+      key: KEYS.END,
       action: AgentAction.NAVIGATE_END,
       description: "Go to last",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_LEFT,
+      key: KEYS.LEFT,
       action: AgentAction.COLLAPSE,
       description: "Collapse group",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_RIGHT,
+      key: KEYS.RIGHT,
       action: AgentAction.EXPAND,
       description: "Expand group",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_ENTER,
+      key: KEYS.ENTER,
       action: AgentAction.VIEW_DETAILS,
       description: "View agent details",
       category: KeyBindingCategory.ACTIONS,
     },
     {
-      key: KEY_L,
+      key: KEYS.L,
       action: AgentAction.VIEW_LOGS,
       description: "View agent logs",
       category: KeyBindingCategory.ACTIONS,
     },
-    { key: KEY_S, action: AgentAction.SEARCH, description: "Search agents", category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.S, action: AgentAction.SEARCH, description: "Search agents", category: KeyBindingCategory.ACTIONS },
     {
-      key: KEY_G,
+      key: KEYS.G,
       action: AgentAction.TOGGLE_GROUPING,
       description: "Toggle grouping",
       category: KeyBindingCategory.VIEW,
     },
     {
-      key: KEY_CAPITAL_R,
+      key: KEYS.CAP_R,
       action: AgentAction.REFRESH,
       description: "Force refresh",
       category: KeyBindingCategory.VIEW,
     },
     {
-      key: KEY_A,
+      key: KEYS.A,
       action: AgentAction.AUTO_REFRESH,
       description: "Toggle auto-refresh",
       category: KeyBindingCategory.VIEW,
     },
     {
-      key: KEY_C,
+      key: KEYS.C,
       action: AgentAction.COLLAPSE_ALL,
       description: "Collapse all",
       category: KeyBindingCategory.VIEW,
     },
     {
-      key: KEY_CAPITAL_E,
+      key: KEYS.CAP_E,
       action: AgentAction.EXPAND_ALL,
       description: "Expand all",
       category: KeyBindingCategory.VIEW,
     },
-    { key: KEY_QUESTION, action: AgentAction.HELP, description: "Toggle help", category: KeyBindingCategory.HELP },
-    { key: KEY_Q, action: AgentAction.QUIT, description: "Close/Back", category: KeyBindingCategory.HELP },
+    { key: KEYS.QUESTION, action: AgentAction.HELP, description: "Toggle help", category: KeyBindingCategory.HELP },
+    { key: KEYS.Q, action: AgentAction.QUIT, description: "Close/Back", category: KeyBindingCategory.HELP },
     {
-      key: KEY_ESCAPE,
+      key: KEYS.ESCAPE,
       action: AgentAction.CANCEL,
       description: "Close dialog/view",
       category: KeyBindingCategory.HELP,

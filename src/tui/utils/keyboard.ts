@@ -16,113 +16,14 @@ export interface KeyEvent {
   raw?: string;
 }
 
-// ===== Key Value Types =====
+// ===== Key Constants =====
 
 /**
  * All possible key values for key bindings
+ * This object serves as both the type definition and runtime constants
  */
-export type KeyValue =
-  // Navigation keys
-  | "up"
-  | "down"
-  | "left"
-  | "right"
-  | "home"
-  | "end"
-  | "pageup"
-  | "pagedown"
-  // Action keys
-  | "enter"
-  | "escape"
-  | "tab"
-  | "space"
-  | "backspace"
-  | "delete"
-  // Common shortcuts
-  | "ctrl+c"
-  | "ctrl+d"
-  | "ctrl+q"
-  | "ctrl+s"
-  | "ctrl+r"
-  | "ctrl+l"
-  // Single character keys (lowercase)
-  | "a"
-  | "b"
-  | "c"
-  | "d"
-  | "e"
-  | "f"
-  | "g"
-  | "h"
-  | "i"
-  | "j"
-  | "k"
-  | "l"
-  | "m"
-  | "n"
-  | "o"
-  | "p"
-  | "q"
-  | "r"
-  | "s"
-  | "t"
-  | "u"
-  | "v"
-  | "w"
-  | "x"
-  | "y"
-  | "z"
-  // Single character keys (uppercase/special)
-  | "A"
-  | "B"
-  | "C"
-  | "D"
-  | "E"
-  | "F"
-  | "G"
-  | "H"
-  | "I"
-  | "J"
-  | "K"
-  | "L"
-  | "M"
-  | "N"
-  | "O"
-  | "P"
-  | "Q"
-  | "R"
-  | "S"
-  | "T"
-  | "U"
-  | "V"
-  | "W"
-  | "X"
-  | "Y"
-  | "Z"
-  // Special characters
-  | "?"
-  | "/"
-  | "1"
-  | "2"
-  | "3"
-  | "4"
-  | "5"
-  | "6"
-  | "7"
-  // Special key combinations
-  | "Tab"
-  | "Shift+Tab"
-  | "Ctrl+Left"
-  | "Ctrl+Right"
-  | "Ctrl+Up"
-  | "Ctrl+Down"
-  | "Esc/q"
-  | "1-7";
-
-// ===== Common Key Constants =====
-
 export const KEYS = {
-  // Navigation
+  // Navigation keys
   UP: "up",
   DOWN: "down",
   LEFT: "left",
@@ -132,10 +33,11 @@ export const KEYS = {
   PAGE_UP: "pageup",
   PAGE_DOWN: "pagedown",
 
-  // Actions
+  // Action keys
   ENTER: "enter",
   ESCAPE: "escape",
   TAB: "tab",
+  CAP_TAB: "Tab",
   SPACE: "space",
   BACKSPACE: "backspace",
   DELETE: "delete",
@@ -147,7 +49,105 @@ export const KEYS = {
   CTRL_S: "ctrl+s",
   CTRL_R: "ctrl+r",
   CTRL_L: "ctrl+l",
+
+  // Single character keys (lowercase)
+  A: "a",
+  B: "b",
+  C: "c",
+  D: "d",
+  E: "e",
+  F: "f",
+  G: "g",
+  H: "h",
+  I: "i",
+  J: "j",
+  K: "k",
+  L: "l",
+  M: "m",
+  N: "n",
+  O: "o",
+  P: "p",
+  Q: "q",
+  R: "r",
+  S: "s",
+  T: "t",
+  U: "u",
+  V: "v",
+  W: "w",
+  X: "x",
+  Y: "y",
+  Z: "z",
+
+  // Single character keys (uppercase/special)
+  CAP_A: "A",
+  CAP_B: "B",
+  CAP_C: "C",
+  CAP_D: "D",
+  CAP_E: "E",
+  CAP_F: "F",
+  CAP_G: "G",
+  CAP_H: "H",
+  CAP_I: "I",
+  CAP_J: "J",
+  CAP_K: "K",
+  CAP_L: "L",
+  CAP_M: "M",
+  CAP_N: "N",
+  CAP_O: "O",
+  CAP_P: "P",
+  CAP_Q: "Q",
+  CAP_R: "R",
+  CAP_S: "S",
+  CAP_T: "T",
+  CAP_U: "U",
+  CAP_V: "V",
+  CAP_W: "W",
+  CAP_X: "X",
+  CAP_Y: "Y",
+  CAP_Z: "Z",
+
+  // Special characters
+  QUESTION: "?",
+  SLASH: "/",
+  F1: "f1",
+  ONE: "1",
+  TWO: "2",
+  THREE: "3",
+  FOUR: "4",
+  FIVE: "5",
+  SIX: "6",
+  SEVEN: "7",
+
+  // Special key combinations
+  SHIFT_TAB: "Shift+Tab",
+  CTRL_LEFT: "Ctrl+Left",
+  CTRL_RIGHT: "Ctrl+Right",
+  CTRL_UP: "Ctrl+Up",
+  CTRL_DOWN: "Ctrl+Down",
+  ESC_Q: "Esc/q",
+  ONE_TO_SEVEN: "1-7",
 } as const;
+
+/**
+ * All possible key values for key bindings
+ * Derived from the KEYS object values for type safety
+ */
+export type KeyValue = typeof KEYS[keyof typeof KEYS];
+
+// ===== Key Validation =====
+
+/**
+ * All valid key values for runtime validation
+ * Automatically derived from KEYS object values
+ */
+const VALID_KEY_VALUES = new Set(Object.values(KEYS));
+
+/**
+ * Type guard to validate if a string is a valid KeyValue
+ */
+export function isValidKeyValue(key: string): key is KeyValue {
+  return VALID_KEY_VALUES.has(key as KeyValue);
+}
 
 // ===== Key Binding =====
 

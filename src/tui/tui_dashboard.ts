@@ -25,38 +25,9 @@ import {
   saveLayout as helperSaveLayout,
 } from "./tui_helpers/layout_persistence.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import type { KeyBinding } from "./utils/keyboard.ts";
+import { KeyBinding, KEYS } from "./utils/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { DatabaseService } from "../services/db.ts";
-import {
-  KEY_1,
-  KEY_1_TO_7,
-  KEY_7,
-  KEY_C,
-  KEY_CTRL_DOWN,
-  KEY_CTRL_LEFT,
-  KEY_CTRL_RIGHT,
-  KEY_CTRL_UP,
-  KEY_D,
-  KEY_DOWN,
-  KEY_ENTER,
-  KEY_ESC_Q,
-  KEY_ESCAPE,
-  KEY_H,
-  KEY_J,
-  KEY_K,
-  KEY_M,
-  KEY_N,
-  KEY_P,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_S,
-  KEY_SHIFT_TAB,
-  KEY_TAB,
-  KEY_UP,
-  KEY_V,
-  KEY_Z,
-} from "../config/constants.ts";
 import { initDashboardViews } from "./dashboard/view_registry.ts";
 import { prodRender } from "./dashboard/renderer.ts";
 import {
@@ -160,31 +131,31 @@ type DashboardAction =
 export class DashboardKeyBindings extends KeyBindingsBase<DashboardAction> {
   readonly KEY_BINDINGS: readonly KeyBinding<DashboardAction>[] = [
     // Navigation
-    { key: KEY_TAB, action: "next_pane", description: "Next pane", category: "Navigation" },
-    { key: KEY_SHIFT_TAB, action: "prev_pane", description: "Previous pane", category: "Navigation" },
-    { key: KEY_1_TO_7, action: "view_1", description: "Jump to pane 1-7", category: "Navigation" },
+    { key: KEYS.TAB, action: "next_pane", description: "Next pane", category: "Navigation" },
+    { key: KEYS.SHIFT_TAB, action: "prev_pane", description: "Previous pane", category: "Navigation" },
+    { key: KEYS.ONE_TO_SEVEN, action: "view_1", description: "Jump to pane 1-7", category: "Navigation" },
 
     // Layout
-    { key: KEY_V, action: "split_vertical", description: "Split pane vertically", category: "Layout" },
-    { key: KEY_H, action: "split_horizontal", description: "Split pane horizontally", category: "Layout" },
-    { key: KEY_C, action: "close_pane", description: "Close current pane", category: "Layout" },
-    { key: KEY_Z, action: "maximize_pane", description: "Maximize/restore pane", category: "Layout" },
-    { key: KEY_S, action: "save_layout", description: "Save layout", category: "Layout" },
-    { key: KEY_R, action: "restore_layout", description: "Restore layout", category: "Layout" },
-    { key: KEY_D, action: "reset_layout", description: "Reset to default", category: "Layout" },
+    { key: KEYS.V, action: "split_vertical", description: "Split pane vertically", category: "Layout" },
+    { key: KEYS.H, action: "split_horizontal", description: "Split pane horizontally", category: "Layout" },
+    { key: KEYS.C, action: "close_pane", description: "Close current pane", category: "Layout" },
+    { key: KEYS.CAP_Z, action: "maximize_pane", description: "Maximize/restore pane", category: "Layout" },
+    { key: KEYS.S, action: "save_layout", description: "Save layout", category: "Layout" },
+    { key: KEYS.R, action: "restore_layout", description: "Restore layout", category: "Layout" },
+    { key: KEYS.D, action: "reset_layout", description: "Reset to default", category: "Layout" },
 
     // Resizing
-    { key: KEY_CTRL_LEFT, action: "resize_left", description: "Resize left", category: "Layout" },
-    { key: KEY_CTRL_RIGHT, action: "resize_right", description: "Resize right", category: "Layout" },
-    { key: KEY_CTRL_UP, action: "resize_up", description: "Resize up", category: "Layout" },
-    { key: KEY_CTRL_DOWN, action: "resize_down", description: "Resize down", category: "Layout" },
+    { key: KEYS.CTRL_LEFT, action: "resize_left", description: "Resize left", category: "Layout" },
+    { key: KEYS.CTRL_RIGHT, action: "resize_right", description: "Resize right", category: "Layout" },
+    { key: KEYS.CTRL_UP, action: "resize_up", description: "Resize up", category: "Layout" },
+    { key: KEYS.CTRL_DOWN, action: "resize_down", description: "Resize down", category: "Layout" },
 
     // Dialogs
-    { key: KEY_QUESTION, action: "show_help", description: "Show help", category: "General" },
-    { key: KEY_N, action: "show_notifications", description: "Toggle notifications", category: "General" },
-    { key: KEY_M, action: "show_memory_notifications", description: "Memory updates", category: "General" },
-    { key: KEY_P, action: "show_view_picker", description: "View picker", category: "General" },
-    { key: KEY_ESC_Q, action: "quit", description: "Quit dashboard", category: "General" },
+    { key: KEYS.QUESTION, action: "show_help", description: "Show help", category: "General" },
+    { key: KEYS.N, action: "show_notifications", description: "Toggle notifications", category: "General" },
+    { key: KEYS.M, action: "show_memory_notifications", description: "Memory updates", category: "General" },
+    { key: KEYS.P, action: "show_view_picker", description: "View picker", category: "General" },
+    { key: KEYS.ESC_Q, action: "quit", description: "Quit dashboard", category: "General" },
   ];
 }
 
@@ -197,35 +168,35 @@ export function getDashboardHelpSections(): HelpSection[] {
     {
       title: "Navigation",
       items: [
-        { key: KEY_TAB, description: "Switch to next pane" },
-        { key: KEY_SHIFT_TAB, description: "Switch to previous pane" },
-        { key: KEY_1_TO_7, description: "Jump directly to pane" },
+        { key: KEYS.TAB, description: "Switch to next pane" },
+        { key: KEYS.SHIFT_TAB, description: "Switch to previous pane" },
+        { key: KEYS.ONE_TO_SEVEN, description: "Jump directly to pane" },
       ],
     },
     {
       title: "Layout Management",
       items: [
-        { key: KEY_V, description: "Split pane vertically (left/right)" },
-        { key: KEY_H, description: "Split pane horizontally (top/bottom)" },
-        { key: KEY_C, description: "Close current pane" },
-        { key: KEY_Z, description: "Maximize/restore pane (zoom)" },
+        { key: KEYS.V, description: "Split pane vertically (left/right)" },
+        { key: KEYS.H, description: "Split pane horizontally (top/bottom)" },
+        { key: KEYS.C, description: "Close current pane" },
+        { key: KEYS.CAP_Z, description: "Maximize/restore pane (zoom)" },
       ],
     },
     {
       title: "Layout Persistence",
       items: [
-        { key: KEY_S, description: "Save current layout" },
-        { key: KEY_R, description: "Restore saved layout" },
-        { key: KEY_D, description: "Reset to default layout" },
+        { key: KEYS.S, description: "Save current layout" },
+        { key: KEYS.R, description: "Restore saved layout" },
+        { key: KEYS.D, description: "Reset to default layout" },
       ],
     },
     {
       title: "View Navigation",
       items: [
-        { key: KEY_P, description: "Open view picker dialog" },
-        { key: KEY_N, description: "Toggle notification panel" },
-        { key: KEY_M, description: "Toggle memory update notifications" },
-        { key: KEY_QUESTION, description: "Show this help screen" },
+        { key: KEYS.P, description: "Open view picker dialog" },
+        { key: KEYS.N, description: "Toggle notification panel" },
+        { key: KEYS.M, description: "Toggle memory update notifications" },
+        { key: KEYS.QUESTION, description: "Show this help screen" },
       ],
     },
     {
@@ -487,7 +458,7 @@ export function renderPaneTitleBar(pane: Pane, theme: Theme): string {
 
 // Helper handlers extracted from the large dashboard key handler to reduce complexity
 function _handleHelpOverlay(self: any, key: string, panes: Pane[]) {
-  if (key === KEY_QUESTION || key === KEY_ESCAPE) {
+  if (key === KEYS.QUESTION || key === KEYS.ESCAPE) {
     self.state.showHelp = false;
   }
   return panes.findIndex((p) => p.id === self.activePaneId);
@@ -503,19 +474,19 @@ async function _handleMemoryNotificationsLocal(
 }
 
 function _handleViewPicker(self: any, key: string, views: any[], panes: Pane[], viewPickerIndexRef: { index: number }) {
-  if (key === KEY_ESCAPE) {
+  if (key === KEYS.ESCAPE) {
     self.state.showViewPicker = false;
-  } else if (key === KEY_UP || key === KEY_K) {
+  } else if (key === KEYS.UP || key === KEYS.K) {
     viewPickerIndexRef.index = (viewPickerIndexRef.index - 1 + views.length) % views.length;
-  } else if (key === KEY_DOWN || key === KEY_J) {
+  } else if (key === KEYS.DOWN || key === KEYS.J) {
     viewPickerIndexRef.index = (viewPickerIndexRef.index + 1) % views.length;
-  } else if (key === KEY_ENTER) {
+  } else if (key === KEYS.ENTER) {
     const activePane = panes.find((p) => p.id === self.activePaneId);
     if (activePane) {
       activePane.view = views[viewPickerIndexRef.index];
     }
     self.state.showViewPicker = false;
-  } else if (key >= KEY_1 && key <= KEY_7) {
+  } else if (key >= KEYS.ONE && key <= KEYS.SEVEN) {
     const idx = parseInt(key) - 1;
     if (idx < views.length) {
       const activePane = panes.find((p) => p.id === self.activePaneId);
@@ -681,12 +652,12 @@ function createTestDashboard(options: {
       screenReader: false,
     },
     keybindings: {
-      nextView: KEY_TAB,
-      prevView: KEY_SHIFT_TAB,
-      notify: KEY_N,
-      splitVertical: KEY_V,
-      splitHorizontal: KEY_H,
-      closePane: KEY_C,
+      nextView: KEYS.TAB,
+      prevView: KEYS.SHIFT_TAB,
+      notify: KEYS.N,
+      splitVertical: KEYS.V,
+      splitHorizontal: KEYS.H,
+      closePane: KEYS.C,
     },
     async splitPane(direction: "vertical" | "horizontal") {
       const result = await helperSplitPane(panes, this.activePaneId, views, direction, this.notify.bind(this));

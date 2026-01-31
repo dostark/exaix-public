@@ -17,28 +17,11 @@ import { BaseTreeView } from "./base/base_tree_view.ts";
 import { ConfirmDialog, type DialogBase } from "./utils/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
-import { KeyBindingCategory } from "./utils/keyboard.ts";
+import { KeyBindingCategory, KEYS } from "./utils/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { createGroupNode, createNode, flattenTree, type TreeNode, type TreeRenderOptions } from "./utils/tree_view.ts";
 import { PortalStatus, TuiIcon } from "../enums.ts";
 import { TUI_LAYOUT_NARROW_WIDTH, TUI_PORTAL_ICONS } from "./utils/constants.ts";
-import {
-  KEY_C,
-  KEY_CAPITAL_R,
-  KEY_D,
-  KEY_DOWN,
-  KEY_E,
-  KEY_END,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_HOME,
-  KEY_LEFT,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_RIGHT,
-  KEY_S,
-  KEY_UP,
-} from "../config/constants.ts";
 
 // ===== Portal View Extensions =====
 
@@ -97,61 +80,61 @@ const PORTAL_ICONS = {
 export class PortalKeyBindings extends KeyBindingsBase<PortalAction, KeyBindingCategory> {
   readonly KEY_BINDINGS: readonly KeyBinding<PortalAction, KeyBindingCategory>[] = [
     {
-      key: KEY_UP,
+      key: KEYS.UP,
       action: PortalAction.NAVIGATE_UP,
       description: "Move up",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_DOWN,
+      key: KEYS.DOWN,
       action: PortalAction.NAVIGATE_DOWN,
       description: "Move down",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_HOME,
+      key: KEYS.HOME,
       action: PortalAction.NAVIGATE_HOME,
       description: "Go to first",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_END,
+      key: KEYS.END,
       action: PortalAction.NAVIGATE_END,
       description: "Go to last",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_ENTER,
+      key: KEYS.ENTER,
       action: PortalAction.OPEN,
       description: "Open portal / expand",
       category: KeyBindingCategory.ACTIONS,
     },
     { key: "r", action: PortalAction.REFRESH, description: "Refresh portal", category: KeyBindingCategory.ACTIONS },
-    { key: KEY_D, action: PortalAction.REMOVE, description: "Remove portal", category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.D, action: PortalAction.REMOVE, description: "Remove portal", category: KeyBindingCategory.ACTIONS },
     {
-      key: KEY_LEFT,
+      key: KEYS.LEFT,
       action: PortalAction.COLLAPSE,
       description: "Collapse node",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_RIGHT,
+      key: KEYS.RIGHT,
       action: PortalAction.EXPAND,
       description: "Expand node",
       category: KeyBindingCategory.NAVIGATION,
     },
-    { key: KEY_S, action: PortalAction.SEARCH, description: "Search/filter", category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.S, action: PortalAction.SEARCH, description: "Search/filter", category: KeyBindingCategory.ACTIONS },
     {
-      key: KEY_ESCAPE,
+      key: KEYS.ESCAPE,
       action: PortalAction.CANCEL,
       description: "Clear filter / close dialog",
       category: KeyBindingCategory.ACTIONS,
     },
     { key: "R", action: PortalAction.REFRESH_VIEW, description: "Refresh view", category: KeyBindingCategory.VIEW },
-    { key: KEY_QUESTION, action: PortalAction.HELP, description: "Toggle help", category: KeyBindingCategory.VIEW },
-    { key: KEY_E, action: PortalAction.EXPAND_ALL, description: "Expand all", category: KeyBindingCategory.VIEW },
+    { key: KEYS.QUESTION, action: PortalAction.HELP, description: "Toggle help", category: KeyBindingCategory.VIEW },
+    { key: KEYS.E, action: PortalAction.EXPAND_ALL, description: "Expand all", category: KeyBindingCategory.VIEW },
     {
-      key: KEY_C,
+      key: KEYS.C,
       action: PortalAction.COLLAPSE_ALL,
       description: "Collapse all",
       category: KeyBindingCategory.VIEW,
@@ -321,7 +304,7 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
 
     // 6. Handle action keys
     switch (key) {
-      case KEY_ENTER: {
+      case KEYS.ENTER: {
         const selected = this.getSelectedNode();
         if (selected && selected.type === "group") {
           this.toggleCurrentNode();
@@ -330,25 +313,25 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
         }
         return true;
       }
-      case KEY_R:
+      case KEYS.R:
         await this.executeRefresh();
         return true;
-      case KEY_D:
+      case KEYS.D:
         this.showRemoveConfirmDialog();
         return true;
-      case KEY_CAPITAL_R:
+      case KEYS.CAP_R:
         await this.refreshView();
         return true;
-      case KEY_QUESTION:
+      case KEYS.QUESTION:
         this.state.showHelp = true;
         return true;
-      case KEY_E:
+      case KEYS.E:
         this.expandAllNodes();
         return true;
-      case KEY_C:
+      case KEYS.C:
         this.collapseAllNodes();
         return true;
-      case KEY_S:
+      case KEYS.S:
         // In a real TUI, this would open a search input
         return true;
       default:

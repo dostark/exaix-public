@@ -388,94 +388,10 @@ export const DEFAULT_GOOGLE_ENDPOINT = "https://generativelanguage.googleapis.co
 export const DEFAULT_SUBPROCESS_TIMEOUT_MS = 30000;
 
 // ============================================================================
-// Keyboard Key Constants
+// Keyboard Key Constants - DEPRECATED: Use KEYS from src/tui/utils/keyboard.ts
 // ============================================================================
-export const KEY_0 = "0";
-export const KEY_1 = "1";
-export const KEY_2 = "2";
-export const KEY_3 = "3";
-export const KEY_4 = "4";
-export const KEY_5 = "5";
-export const KEY_6 = "6";
-export const KEY_7 = "7";
-export const KEY_8 = "8";
-export const KEY_9 = "9";
-export const KEY_A = "a";
-export const KEY_B = "b";
-export const KEY_C = "c";
-export const KEY_D = "d";
-export const KEY_E = "e";
-export const KEY_F = "f";
-export const KEY_G = "g";
-export const KEY_H = "h";
-export const KEY_I = "i";
-export const KEY_J = "j";
-export const KEY_K = "k";
-export const KEY_L = "l";
-export const KEY_M = "m";
-export const KEY_N = "n";
-export const KEY_O = "o";
-export const KEY_P = "p";
-export const KEY_Q = "q";
-export const KEY_R = "r";
-export const KEY_S = "s";
-export const KEY_T = "t";
-export const KEY_U = "u";
-export const KEY_V = "v";
-export const KEY_W = "w";
-export const KEY_X = "x";
-export const KEY_Y = "y";
-export const KEY_Z = "z";
-export const KEY_CAPITAL_A = "A";
-export const KEY_CAPITAL_B = "B";
-export const KEY_CAPITAL_C = "C";
-export const KEY_CAPITAL_D = "D";
-export const KEY_CAPITAL_E = "E";
-export const KEY_CAPITAL_F = "F";
-export const KEY_CAPITAL_G = "G";
-export const KEY_CAPITAL_H = "H";
-export const KEY_CAPITAL_I = "I";
-export const KEY_CAPITAL_J = "J";
-export const KEY_CAPITAL_K = "K";
-export const KEY_CAPITAL_L = "L";
-export const KEY_CAPITAL_M = "M";
-export const KEY_CAPITAL_N = "N";
-export const KEY_CAPITAL_O = "O";
-export const KEY_CAPITAL_P = "P";
-export const KEY_CAPITAL_Q = "Q";
-export const KEY_CAPITAL_R = "R";
-export const KEY_CAPITAL_S = "S";
-export const KEY_CAPITAL_T = "T";
-export const KEY_CAPITAL_U = "U";
-export const KEY_CAPITAL_V = "V";
-export const KEY_CAPITAL_W = "W";
-export const KEY_CAPITAL_X = "X";
-export const KEY_CAPITAL_Y = "Y";
-export const KEY_CAPITAL_Z = "Z";
-export const KEY_ESCAPE = "escape";
-export const KEY_ENTER = "enter";
-export const KEY_BACKSPACE = "backspace";
-export const KEY_UP = "up";
-export const KEY_DOWN = "down";
-export const KEY_PAGEUP = "pageup";
-export const KEY_PAGEDOWN = "pagedown";
-export const KEY_DELETE = "delete";
-export const KEY_LEFT = "left";
-export const KEY_RIGHT = "right";
-export const KEY_HOME = "home";
-export const KEY_END = "end";
-export const KEY_QUESTION = "?";
-export const KEY_SLASH = "/";
-export const KEY_SPACE = "space";
-export const KEY_F1 = "f1";
-export const KEY_TAB = "tab";
-export const KEY_SHIFT_TAB = "Shift+Tab";
-export const KEY_1_TO_7 = "1-7";
-export const KEY_CTRL_LEFT = "Ctrl+Left";
-export const KEY_CTRL_RIGHT = "Ctrl+Right";
-export const KEY_CTRL_UP = "Ctrl+Up";
-export const KEY_CTRL_DOWN = "Ctrl+Down";
-export const KEY_ESC_Q = "Esc/q";
+// All KEY_ constants have been moved to the KEYS object in src/tui/utils/keyboard.ts
+// for better type safety and consistency. Please import from there instead.
 
 // ============================================================================
 // Agent Status Constants

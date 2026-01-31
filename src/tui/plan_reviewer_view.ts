@@ -23,29 +23,9 @@ import { BaseTreeView } from "./base/base_tree_view.ts";
 import { PlanStatus } from "../enums.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "./utils/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import { type KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
+import { type KeyBinding, KeyBindingCategory, KEYS } from "./utils/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { createGroupNode, createNode, flattenTree, type TreeNode, type TreeRenderOptions } from "./utils/tree_view.ts";
-import {
-  KEY_A,
-  KEY_C,
-  KEY_CAPITAL_A,
-  KEY_CAPITAL_R,
-  KEY_DOWN,
-  KEY_E,
-  KEY_END,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_HOME,
-  KEY_LEFT,
-  KEY_Q,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_RIGHT,
-  KEY_S,
-  KEY_SLASH,
-  KEY_UP,
-} from "../config/constants.ts";
 
 // ===== Plan Types =====
 
@@ -120,56 +100,56 @@ export enum PlanActionCategory {
 export class PlanKeyBindings extends KeyBindingsBase<PlanAction, KeyBindingCategory> {
   readonly KEY_BINDINGS: readonly KeyBinding<PlanAction, KeyBindingCategory>[] = [
     {
-      key: KEY_UP,
+      key: KEYS.UP,
       action: PlanAction.NAVIGATE_UP,
       description: "Move up",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_DOWN,
+      key: KEYS.DOWN,
       action: PlanAction.NAVIGATE_DOWN,
       description: "Move down",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_HOME,
+      key: KEYS.HOME,
       action: PlanAction.NAVIGATE_HOME,
       description: "Go to first",
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_END,
+      key: KEYS.END,
       action: PlanAction.NAVIGATE_END,
       description: "Go to last",
       category: KeyBindingCategory.NAVIGATION,
     },
-    { key: KEY_ENTER, action: PlanAction.VIEW_DIFF, description: "View diff", category: KeyBindingCategory.ACTIONS },
-    { key: KEY_A, action: PlanAction.APPROVE, description: "Approve plan", category: KeyBindingCategory.ACTIONS },
-    { key: KEY_R, action: PlanAction.REJECT, description: "Reject plan", category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.ENTER, action: PlanAction.VIEW_DIFF, description: "View diff", category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.A, action: PlanAction.APPROVE, description: "Approve plan", category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.R, action: PlanAction.REJECT, description: "Reject plan", category: KeyBindingCategory.ACTIONS },
     {
-      key: KEY_CAPITAL_A,
+      key: KEYS.CAP_A,
       action: PlanAction.APPROVE_ALL,
       description: "Approve all pending",
       category: KeyBindingCategory.ACTIONS,
     },
     {
-      key: KEY_LEFT,
+      key: KEYS.LEFT,
       action: PlanAction.COLLAPSE,
       description: "Collapse node",
       category: KeyBindingCategory.NAVIGATION,
     },
-    { key: KEY_RIGHT, action: PlanAction.EXPAND, description: "Expand node", category: KeyBindingCategory.NAVIGATION },
-    { key: KEY_S, action: PlanAction.SEARCH, description: "Search/filter", category: KeyBindingCategory.ACTIONS },
-    { key: KEY_ESCAPE, action: PlanAction.CANCEL, description: "Close/Cancel", category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.RIGHT, action: PlanAction.EXPAND, description: "Expand node", category: KeyBindingCategory.NAVIGATION },
+    { key: KEYS.S, action: PlanAction.SEARCH, description: "Search/filter", category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.ESCAPE, action: PlanAction.CANCEL, description: "Close/Cancel", category: KeyBindingCategory.ACTIONS },
     {
-      key: KEY_CAPITAL_R,
+      key: KEYS.CAP_R,
       action: PlanAction.REFRESH_VIEW,
       description: "Refresh view",
       category: KeyBindingCategory.VIEW,
     },
-    { key: KEY_QUESTION, action: PlanAction.HELP, description: "Toggle help", category: KeyBindingCategory.VIEW },
-    { key: KEY_E, action: PlanAction.EXPAND_ALL, description: "Expand all", category: KeyBindingCategory.VIEW },
-    { key: KEY_C, action: PlanAction.COLLAPSE_ALL, description: "Collapse all", category: KeyBindingCategory.VIEW },
+    { key: KEYS.QUESTION, action: PlanAction.HELP, description: "Toggle help", category: KeyBindingCategory.VIEW },
+    { key: KEYS.E, action: PlanAction.EXPAND_ALL, description: "Expand all", category: KeyBindingCategory.VIEW },
+    { key: KEYS.C, action: PlanAction.COLLAPSE_ALL, description: "Collapse all", category: KeyBindingCategory.VIEW },
   ];
 }
 
@@ -429,7 +409,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
   override async handleKey(key: string): Promise<boolean> {
     // 1. Handle diff view
     if (this.planExtensions.showDiff) {
-      if (key === KEY_ESCAPE || key === KEY_Q || key === KEY_ENTER) {
+      if (key === KEYS.ESCAPE || key === KEYS.Q || key === KEYS.ENTER) {
         this.planExtensions.showDiff = false;
         this.planExtensions.diffContent = "";
       }
@@ -440,7 +420,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
     if (this.handleKeySync(key)) {
       this.syncSelectedIndex();
       // If filter was cleared (handled by base), rebuild tree
-      if (this.state.filterText === "" && key === KEY_ESCAPE) {
+      if (this.state.filterText === "" && key === KEYS.ESCAPE) {
         this.buildTree(this.plans);
       }
       return true;
@@ -448,7 +428,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
 
     // 6. Handle action keys
     switch (key) {
-      case KEY_ENTER: {
+      case KEYS.ENTER: {
         const selected = this.getSelectedNode();
         if (selected && selected.type === "group") {
           this.toggleCurrentNode();
@@ -457,19 +437,19 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
         }
         return true;
       }
-      case KEY_A:
+      case KEYS.A:
         this.showApproveConfirmDialog();
         return true;
-      case KEY_R:
+      case KEYS.R:
         this.showRejectDialog();
         return true;
-      case KEY_CAPITAL_A:
+      case KEYS.CAP_A:
         await this.approveAllPending();
         return true;
-      case KEY_CAPITAL_R:
+      case KEYS.CAP_R:
         await this.refreshView();
         return true;
-      case KEY_SLASH:
+      case KEYS.SLASH:
         this.showSearchDialog();
         return true;
       default:

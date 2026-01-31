@@ -1,24 +1,6 @@
 // --- Service interface for Request management ---
 
-import {
-  KEY_A,
-  KEY_C,
-  KEY_CAPITAL_C,
-  KEY_CAPITAL_E,
-  KEY_D,
-  KEY_DOWN,
-  KEY_END,
-  KEY_ENTER,
-  KEY_F,
-  KEY_G,
-  KEY_HOME,
-  KEY_LEFT,
-  KEY_P,
-  KEY_R,
-  KEY_RIGHT,
-  KEY_S,
-  KEY_UP,
-} from "../config/constants.ts";
+import { KEYS } from "./utils/keyboard.ts";
 import { KeyBindingCategory } from "./utils/keyboard.ts";
 export interface RequestService {
   listRequests(status?: string): Promise<Request[]>;
@@ -127,95 +109,95 @@ export enum RequestAction {
 export class RequestKeyBindings extends KeyBindingsBase<RequestAction, KeyBindingCategory> {
   readonly KEY_BINDINGS: readonly KeyBinding<RequestAction, KeyBindingCategory>[] = [
     {
-      key: KEY_UP,
+      key: KEYS.UP,
       description: "Navigate up",
       action: RequestAction.NAVIGATE_UP,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_DOWN,
+      key: KEYS.DOWN,
       description: "Navigate down",
       action: RequestAction.NAVIGATE_DOWN,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_HOME,
+      key: KEYS.HOME,
       description: "Jump to first",
       action: RequestAction.NAVIGATE_HOME,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_END,
+      key: KEYS.END,
       description: "Jump to last",
       action: RequestAction.NAVIGATE_END,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_LEFT,
+      key: KEYS.LEFT,
       description: "Collapse group",
       action: RequestAction.COLLAPSE,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_RIGHT,
+      key: KEYS.RIGHT,
       description: "Expand group",
       action: RequestAction.EXPAND,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_ENTER,
+      key: KEYS.ENTER,
       description: "View request details",
       action: RequestAction.VIEW_DETAIL,
       category: KeyBindingCategory.ACTIONS,
     },
     {
-      key: KEY_C,
+      key: KEYS.C,
       description: "Create new request",
       action: RequestAction.CREATE,
       category: KeyBindingCategory.ACTIONS,
     },
-    { key: KEY_D, description: "Cancel request", action: RequestAction.DELETE, category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.D, description: "Cancel request", action: RequestAction.DELETE, category: KeyBindingCategory.ACTIONS },
     {
-      key: KEY_P,
+      key: KEYS.P,
       description: "Change priority",
       action: RequestAction.PRIORITY,
       category: KeyBindingCategory.ACTIONS,
     },
-    { key: KEY_S, description: "Search requests", action: RequestAction.SEARCH, category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.S, description: "Search requests", action: RequestAction.SEARCH, category: KeyBindingCategory.ACTIONS },
     {
-      key: KEY_F,
+      key: KEYS.F,
       description: "Filter by status",
       action: RequestAction.FILTER_STATUS,
       category: KeyBindingCategory.ACTIONS,
     },
     {
-      key: KEY_A,
+      key: KEYS.A,
       description: "Filter by agent",
       action: RequestAction.FILTER_AGENT,
       category: KeyBindingCategory.ACTIONS,
     },
     {
-      key: KEY_G,
+      key: KEYS.G,
       description: "Toggle grouping",
       action: RequestAction.TOGGLE_GROUPING,
       category: KeyBindingCategory.VIEW,
     },
-    { key: KEY_R, description: "Force refresh", action: RequestAction.REFRESH, category: KeyBindingCategory.VIEW },
+    { key: KEYS.R, description: "Force refresh", action: RequestAction.REFRESH, category: KeyBindingCategory.VIEW },
     {
-      key: KEY_CAPITAL_C,
+      key: KEYS.CAP_C,
       description: "Collapse all",
       action: RequestAction.COLLAPSE_ALL,
       category: KeyBindingCategory.VIEW,
     },
     {
-      key: KEY_CAPITAL_E,
+      key: KEYS.CAP_E,
       description: "Expand all",
       action: RequestAction.EXPAND_ALL,
       category: KeyBindingCategory.VIEW,
     },
-    { key: KEY_QUESTION, description: "Show help", action: RequestAction.HELP, category: KeyBindingCategory.HELP },
-    { key: KEY_Q, description: "Quit", action: RequestAction.QUIT, category: KeyBindingCategory.HELP },
-    { key: KEY_ESCAPE, description: "Cancel/close", action: RequestAction.CANCEL, category: KeyBindingCategory.HELP },
+    { key: KEYS.QUESTION, description: "Show help", action: RequestAction.HELP, category: KeyBindingCategory.HELP },
+    { key: KEYS.Q, description: "Quit", action: RequestAction.QUIT, category: KeyBindingCategory.HELP },
+    { key: KEYS.ESCAPE, description: "Cancel/close", action: RequestAction.CANCEL, category: KeyBindingCategory.HELP },
   ];
 }
 
@@ -228,7 +210,6 @@ import { createGroupNode, createNode, findNode, flattenTree, renderTree, type Tr
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import type { KeyBinding } from "./utils/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import { KEY_ESCAPE, KEY_Q, KEY_QUESTION } from "../config/constants.ts";
 
 // --- Extracted utilities ---
 import {
@@ -928,14 +909,14 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   }
 
   private handleDetailKey(key: string): boolean {
-    if (key === KEY_ESCAPE || key === KEY_Q) {
+    if (key === KEYS.ESCAPE || key === KEYS.Q) {
       this.state.showDetail = false;
     }
     return true;
   }
 
   private handleHelpKey(key: string): boolean {
-    if (key === KEY_QUESTION || key === KEY_ESCAPE || key === KEY_Q) {
+    if (key === KEYS.QUESTION || key === KEYS.ESCAPE || key === KEYS.Q) {
       this.state.showHelp = false;
     }
     return true;

@@ -3,24 +3,7 @@
  * Extracted from agent_status_view.ts to reduce complexity
  */
 
-import {
-  KEY_A,
-  KEY_C,
-  KEY_CAPITAL_E,
-  KEY_CAPITAL_R,
-  KEY_DOWN,
-  KEY_END,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_G,
-  KEY_HOME,
-  KEY_LEFT,
-  KEY_Q,
-  KEY_QUESTION,
-  KEY_RIGHT,
-  KEY_S,
-  KEY_UP,
-} from "../../config/constants.ts";
+import { KEYS } from "../utils/keyboard.ts";
 
 // ===== Helper Functions =====
 
@@ -37,16 +20,16 @@ function handleNavigationKeys(
   },
 ): boolean {
   switch (key) {
-    case KEY_UP:
+    case KEYS.UP:
       if (actions.navigateUp) actions.navigateUp();
       return true;
-    case KEY_DOWN:
+    case KEYS.DOWN:
       if (actions.navigateDown) actions.navigateDown();
       return true;
-    case KEY_HOME:
+    case KEYS.HOME:
       if (actions.navigateToFirst) actions.navigateToFirst();
       return true;
-    case KEY_END:
+    case KEYS.END:
       if (actions.navigateToLast) actions.navigateToLast();
       return true;
   }
@@ -64,10 +47,10 @@ function handleTreeExpansionKeys(
   },
 ): boolean {
   switch (key) {
-    case KEY_LEFT:
+    case KEYS.LEFT:
       if (actions.collapseSelected) actions.collapseSelected();
       return true;
-    case KEY_RIGHT:
+    case KEYS.RIGHT:
       if (actions.expandSelected) actions.expandSelected();
       return true;
   }
@@ -85,7 +68,7 @@ async function handleActionKeys(
   },
 ): Promise<boolean> {
   switch (key) {
-    case KEY_ENTER:
+    case KEYS.ENTER:
       if (actions.showAgentDetail) await actions.showAgentDetail();
       return true;
     case "l":
@@ -104,7 +87,7 @@ function handleDialogKeys(
     showSearchDialog?: () => void;
   },
 ): boolean {
-  if (key === KEY_S) {
+  if (key === KEYS.S) {
     if (actions.showSearchDialog) actions.showSearchDialog();
     return true;
   }
@@ -122,10 +105,10 @@ function handleToggleKeys(
   },
 ): boolean {
   switch (key) {
-    case KEY_G:
+    case KEYS.G:
       if (actions.toggleGrouping) actions.toggleGrouping();
       return true;
-    case KEY_A:
+    case KEYS.A:
       if (actions.toggleAutoRefresh) actions.toggleAutoRefresh();
       return true;
   }
@@ -143,10 +126,10 @@ function handleBulkActionKeys(
   },
 ): boolean {
   switch (key) {
-    case KEY_C:
+    case KEYS.C:
       if (actions.collapseAllNodes) actions.collapseAllNodes();
       return true;
-    case KEY_CAPITAL_E:
+    case KEYS.CAP_E:
       if (actions.expandAllNodes) actions.expandAllNodes();
       return true;
   }
@@ -164,10 +147,10 @@ async function handleSystemKeys(
   },
 ): Promise<boolean> {
   switch (key) {
-    case KEY_CAPITAL_R:
+    case KEYS.CAP_R:
       if (actions.refreshAgents) await actions.refreshAgents();
       return true;
-    case KEY_QUESTION:
+    case KEYS.QUESTION:
       if (actions.toggleHelp) actions.toggleHelp();
       return true;
   }
@@ -193,7 +176,7 @@ export class ViewModeHandler {
   ): boolean {
     // Handle detail view
     if (viewState.showDetail) {
-      if (key === KEY_ESCAPE || key === KEY_Q) {
+      if (key === KEYS.ESCAPE || key === KEYS.Q) {
         actions.hideDetail();
       }
       return true;
@@ -201,7 +184,7 @@ export class ViewModeHandler {
 
     // Handle logs view
     if (viewState.showLogs) {
-      if (key === KEY_ESCAPE || key === KEY_Q) {
+      if (key === KEYS.ESCAPE || key === KEYS.Q) {
         actions.hideLogs();
       }
       return true;
@@ -209,7 +192,7 @@ export class ViewModeHandler {
 
     // Handle help view
     if (viewState.showHelp) {
-      if (key === KEY_ESCAPE || key === KEY_Q || key === KEY_QUESTION) {
+      if (key === KEYS.ESCAPE || key === KEYS.Q || key === KEYS.QUESTION) {
         actions.toggleHelp();
       }
       return true;

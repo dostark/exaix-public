@@ -1,28 +1,7 @@
 import type { Pane } from "../tui_dashboard.ts";
 import type { MemoryNotification as TuiNotification, NotificationService } from "../../services/notification.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
-import {
-  KEY_1,
-  KEY_7,
-  KEY_C,
-  KEY_CTRL_DOWN,
-  KEY_CTRL_LEFT,
-  KEY_CTRL_RIGHT,
-  KEY_CTRL_UP,
-  KEY_D,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_H,
-  KEY_M,
-  KEY_N,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_S,
-  KEY_SHIFT_TAB,
-  KEY_TAB,
-  KEY_V,
-  KEY_Z,
-} from "../../config/constants.ts";
+import { KEYS } from "../utils/keyboard.ts";
 
 export interface ProdHandleCtx {
   prodState: any;
@@ -92,7 +71,7 @@ async function handleMemoryNotificationsKey(
 function handleNotificationPanelKey(key: string, ctx: ProdHandleCtx): { exit?: boolean; reRender?: boolean } {
   const { prodState } = ctx;
 
-  if (key === KEY_N || key === "\x1b" || key === KEY_ESCAPE) {
+  if (key === KEYS.N || key === "\x1b" || key === KEYS.ESCAPE) {
     prodState.showNotifications = false;
     return { reRender: true };
   }
@@ -111,13 +90,13 @@ function handleGlobalCommands(
 
   if (key === "\x1b") { // Esc
     return { exit: true };
-  } else if (key === KEY_QUESTION) { // Help
+  } else if (key === KEYS.QUESTION) { // Help
     prodState.showHelp = true;
     return { reRender: true };
-  } else if (key === KEY_N) { // Notifications toggle
+  } else if (key === KEYS.N) { // Notifications toggle
     prodState.showNotifications = !prodState.showNotifications;
     return { reRender: true };
-  } else if (key === KEY_M) { // Memory updates toggle
+  } else if (key === KEYS.M) { // Memory updates toggle
     prodState.showMemoryNotifications = !prodState.showMemoryNotifications;
     prodState.selectedMemoryNotifIndex = 0;
     return { reRender: true };
@@ -138,21 +117,21 @@ function handlePaneNavigation(
   // Helper to find active pane index
   const findActiveIndex = () => panes.findIndex((p) => p.id === activePaneRef.id);
 
-  if (key === "\t" || key === KEY_TAB) { // Tab
+  if (key === "\t" || key === KEYS.TAB) { // Tab
     const currentIndex = findActiveIndex();
     const nextIndex = (currentIndex + 1) % panes.length;
     activePaneRef.id = panes[nextIndex].id;
     panes.forEach((p) => p.focused = false);
     panes[nextIndex].focused = true;
     return { reRender: true };
-  } else if (key === "\x1b[Z" || key === KEY_SHIFT_TAB) { // Shift+Tab
+  } else if (key === "\x1b[Z" || key === KEYS.SHIFT_TAB) { // Shift+Tab
     const currentIndex = findActiveIndex();
     const prevIndex = (currentIndex - 1 + panes.length) % panes.length;
     activePaneRef.id = panes[prevIndex].id;
     panes.forEach((p) => p.focused = false);
     panes[prevIndex].focused = true;
     return { reRender: true };
-  } else if (key >= KEY_1 && key <= KEY_7) { // Direct pane jump
+  } else if (key >= KEYS.ONE && key <= KEYS.SEVEN) { // Direct pane jump
     const idx = parseInt(key) - 1;
     if (idx < panes.length) {
       panes.forEach((p) => p.focused = false);
@@ -175,17 +154,17 @@ async function handlePaneManagement(
 ): Promise<{ reRender: boolean } | null> {
   const { panes, views, activePaneRef, addNotification } = ctx;
 
-  if (key === KEY_V) { // Split vertical
+  if (key === KEYS.V) { // Split vertical
     await splitPane(panes, activePaneRef.id, views, "vertical", addNotification);
     return { reRender: true };
-  } else if (key === KEY_H) { // Split horizontal
+  } else if (key === KEYS.H) { // Split horizontal
     await splitPane(panes, activePaneRef.id, views, "horizontal", addNotification);
     return { reRender: true };
-  } else if (key === KEY_C) { // Close pane
+  } else if (key === KEYS.C) { // Close pane
     const result = await closePane(panes, activePaneRef.id, activePaneRef.id, addNotification);
     activePaneRef.id = result.activePaneId;
     return { reRender: true };
-  } else if (key === KEY_Z) { // Maximize/restore
+  } else if (key === KEYS.Z) { // Maximize/restore
     maximizePane(panes, activePaneRef.id, addNotification);
     return { reRender: true };
   }
@@ -202,16 +181,16 @@ function handlePaneResizing(
 ): { reRender: boolean } | null {
   const { panes, activePaneRef } = ctx;
 
-  if (key === "\x1b[1;5D" || key === KEY_CTRL_LEFT) { // Ctrl+Left
+  if (key === "\x1b[1;5D" || key === KEYS.CTRL_LEFT) { // Ctrl+Left
     resizePane(panes, activePaneRef.id, -0.05, 0);
     return { reRender: true };
-  } else if (key === "\x1b[1;5C" || key === KEY_CTRL_RIGHT) { // Ctrl+Right
+  } else if (key === "\x1b[1;5C" || key === KEYS.CTRL_RIGHT) { // Ctrl+Right
     resizePane(panes, activePaneRef.id, 0.05, 0);
     return { reRender: true };
-  } else if (key === "\x1b[1;5A" || key === KEY_CTRL_UP) { // Ctrl+Up
+  } else if (key === "\x1b[1;5A" || key === KEYS.CTRL_UP) { // Ctrl+Up
     resizePane(panes, activePaneRef.id, 0, -0.05);
     return { reRender: true };
-  } else if (key === "\x1b[1;5B" || key === KEY_CTRL_DOWN) { // Ctrl+Down
+  } else if (key === "\x1b[1;5B" || key === KEYS.CTRL_DOWN) { // Ctrl+Down
     resizePane(panes, activePaneRef.id, 0, 0.05);
     return { reRender: true };
   }
@@ -226,16 +205,16 @@ async function handleLayoutOperations(
   key: string,
   ctx: ProdHandleCtx,
 ): Promise<{ reRender: boolean } | null> {
-  if (key === "\n" || key === KEY_ENTER) {
+  if (key === "\n" || key === KEYS.ENTER) {
     // Enter: show selected pane info (no-op for helper)
     return { reRender: true };
-  } else if (key === KEY_S) {
+  } else if (key === KEYS.S) {
     await ctx.saveLayout();
     return { reRender: true };
-  } else if (key === KEY_R) {
+  } else if (key === KEYS.R) {
     await ctx.restoreLayout();
     return { reRender: true };
-  } else if (key === KEY_D) {
+  } else if (key === KEYS.D) {
     ctx.resetToDefault();
     return { reRender: true };
   }
@@ -295,7 +274,7 @@ async function handleTopLevelNavigationKey(
  *   - `\x1b[1;5A` is Ctrl+Up Arrow.
  *   - `\x1b[1;5B` is Ctrl+Down Arrow.
  *
- * Other key constants (e.g., KEY_N, KEY_M, KEY_QUESTION) are assumed to be defined elsewhere and represent
+ * Other key constants (e.g., KEYS.N, KEYS.M, KEYS.QUESTION) are defined in the KEYS object and represent
  * specific keyboard shortcuts for the TUI.
  */
 export async function prodHandleKey(key: string, ctx: ProdHandleCtx): Promise<{ exit?: boolean; reRender?: boolean }> {

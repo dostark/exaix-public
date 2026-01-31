@@ -13,24 +13,11 @@ import { TuiSessionBase } from "./tui_common.ts";
 import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "./utils/spinner.ts";
 import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
-import { type KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
+import { type KeyBinding, KeyBindingCategory, KEYS } from "./utils/keyboard.ts";
+import { DaemonKeyAction, DaemonStatus, GeneralStatus } from "../enums.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import { DaemonStatus, GeneralStatus } from "../enums.ts";
-import { DaemonKeyAction } from "../enums.ts";
 import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "./utils/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
-import {
-  KEY_A,
-  KEY_C,
-  KEY_CAPITAL_R,
-  KEY_ESCAPE,
-  KEY_K,
-  KEY_L,
-  KEY_Q,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_S,
-} from "../config/constants.ts";
 
 // ===== Constants =====
 
@@ -152,56 +139,56 @@ export enum DaemonAction {
 export class DaemonKeyBindings extends KeyBindingsBase<DaemonKeyAction, KeyBindingCategory> {
   readonly KEY_BINDINGS: readonly KeyBinding<DaemonKeyAction, KeyBindingCategory>[] = [
     {
-      key: KEY_S,
+      key: KEYS.S,
       action: DaemonKeyAction.START,
       description: "Start daemon",
       category: KeyBindingCategory.ACTIONS,
     },
     {
-      key: KEY_K,
+      key: KEYS.K,
       action: DaemonKeyAction.STOP,
       description: "Stop daemon (with confirm)",
       category: KeyBindingCategory.ACTIONS,
     },
     {
-      key: KEY_R,
+      key: KEYS.R,
       action: DaemonKeyAction.RESTART,
       description: "Restart daemon (with confirm)",
       category: KeyBindingCategory.ACTIONS,
     },
     {
-      key: KEY_L,
+      key: KEYS.L,
       action: DaemonKeyAction.VIEW_LOGS,
       description: "View logs",
       category: KeyBindingCategory.VIEW,
     },
     {
-      key: KEY_C,
+      key: KEYS.C,
       action: DaemonKeyAction.VIEW_CONFIG,
       description: "View config",
       category: KeyBindingCategory.VIEW,
     },
     {
-      key: KEY_CAPITAL_R,
+      key: KEYS.CAP_R,
       action: DaemonKeyAction.REFRESH,
       description: "Refresh status",
       category: KeyBindingCategory.VIEW,
     },
     {
-      key: KEY_A,
+      key: KEYS.A,
       action: DaemonKeyAction.AUTO_REFRESH,
       description: "Toggle auto-refresh",
       category: KeyBindingCategory.VIEW,
     },
     {
-      key: KEY_QUESTION,
+      key: KEYS.QUESTION,
       action: DaemonKeyAction.HELP,
       description: "Toggle help",
       category: KeyBindingCategory.HELP,
     },
-    { key: KEY_Q, action: DaemonKeyAction.QUIT, description: "Close/Back", category: KeyBindingCategory.HELP },
+    { key: KEYS.Q, action: DaemonKeyAction.QUIT, description: "Close/Back", category: KeyBindingCategory.HELP },
     {
-      key: KEY_ESCAPE,
+      key: KEYS.ESCAPE,
       action: DaemonKeyAction.CANCEL,
       description: "Close dialog/view",
       category: KeyBindingCategory.HELP,
@@ -707,7 +694,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
     // Handle logs view
     if (this.state.showLogs) {
-      if (key === KEY_ESCAPE || key === KEY_Q) {
+      if (key === KEYS.ESCAPE || key === KEYS.Q) {
         this.hideLogs();
       }
       return true;
@@ -715,7 +702,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
     // Handle config view
     if (this.state.showConfig) {
-      if (key === KEY_ESCAPE || key === KEY_Q) {
+      if (key === KEYS.ESCAPE || key === KEYS.Q) {
         this.hideConfig();
       }
       return true;
@@ -723,7 +710,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
     // Handle help view
     if (this.state.showHelp) {
-      if (key === KEY_ESCAPE || key === KEY_Q || key === KEY_QUESTION) {
+      if (key === KEYS.ESCAPE || key === KEYS.Q || key === KEYS.QUESTION) {
         this.state.showHelp = false;
       }
       return true;
@@ -731,7 +718,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
     // Main view key handling
     switch (key) {
-      case KEY_S:
+      case KEYS.S:
         this.pendingDialogAction = "start";
         this.showStartConfirm();
         return true;
@@ -739,23 +726,23 @@ export class DaemonControlTuiSession extends TuiSessionBase {
         this.pendingDialogAction = "stop";
         this.showStopConfirm();
         return true;
-      case KEY_R:
+      case KEYS.R:
         this.pendingDialogAction = "restart";
         this.showRestartConfirm();
         return true;
-      case KEY_L:
+      case KEYS.L:
         await this.showLogs();
         return true;
-      case KEY_C:
+      case KEYS.C:
         this.showConfig();
         return true;
-      case KEY_CAPITAL_R:
+      case KEYS.CAP_R:
         await this.refreshStatus();
         return true;
-      case KEY_A:
+      case KEYS.A:
         this.toggleAutoRefresh();
         return true;
-      case KEY_QUESTION:
+      case KEYS.QUESTION:
         this.state.showHelp = true;
         return true;
     }

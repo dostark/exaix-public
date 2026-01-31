@@ -6,26 +6,7 @@
  * Provides consistent help screen rendering for all views.
  */
 
-import {
-  KEY_BACKSPACE,
-  KEY_DOWN,
-  KEY_END,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_HOME,
-  KEY_J,
-  KEY_K,
-  KEY_LEFT,
-  KEY_Q,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_RIGHT,
-  KEY_S,
-  KEY_SHIFT_TAB,
-  KEY_SPACE,
-  KEY_TAB,
-  KEY_UP,
-} from "../../config/constants.ts";
+import { KEYS } from "./keyboard.ts";
 import { colorize, getTheme } from "./colors.ts";
 import { renderBoxBottom, renderBoxLine, renderBoxLineCentered, renderBoxTop } from "./dialog_base.ts";
 import type { KeyBinding } from "./keyboard.ts";
@@ -144,12 +125,12 @@ export function getNavigationHelpSection(): HelpSection {
   return {
     title: "Navigation",
     items: [
-      { key: KEY_UP, description: "Move up" },
-      { key: KEY_DOWN, description: "Move down" },
-      { key: KEY_HOME, description: "Go to first item" },
-      { key: KEY_END, description: "Go to last item" },
-      { key: KEY_ENTER, description: "Select/expand item" },
-      { key: KEY_ESCAPE, description: "Go back/cancel" },
+      { key: KEYS.UP, description: "Move up" },
+      { key: KEYS.DOWN, description: "Move down" },
+      { key: KEYS.HOME, description: "Go to first item" },
+      { key: KEYS.END, description: "Go to last item" },
+      { key: KEYS.ENTER, description: "Select/expand item" },
+      { key: KEYS.ESCAPE, description: "Go back/cancel" },
     ],
   };
 }
@@ -161,10 +142,10 @@ export function getSearchHelpSection(): HelpSection {
   return {
     title: "Search",
     items: [
-      { key: KEY_S, description: "Start search" },
-      { key: KEY_ENTER, description: "Execute search" },
-      { key: KEY_ESCAPE, description: "Cancel search" },
-      { key: KEY_BACKSPACE, description: "Delete character" },
+      { key: KEYS.S, description: "Start search" },
+      { key: KEYS.ENTER, description: "Execute search" },
+      { key: KEYS.ESCAPE, description: "Cancel search" },
+      { key: KEYS.BACKSPACE, description: "Delete character" },
     ],
   };
 }
@@ -176,10 +157,10 @@ export function getTreeHelpSection(): HelpSection {
   return {
     title: "Tree Navigation",
     items: [
-      { key: KEY_ENTER, description: "Expand/collapse node" },
-      { key: KEY_LEFT, description: "Collapse node or go to parent" },
-      { key: KEY_RIGHT, description: "Expand node or go to first child" },
-      { key: KEY_SPACE, description: "Toggle selection" },
+      { key: KEYS.ENTER, description: "Expand/collapse node" },
+      { key: KEYS.LEFT, description: "Collapse node or go to parent" },
+      { key: KEYS.RIGHT, description: "Expand node or go to first child" },
+      { key: KEYS.SPACE, description: "Toggle selection" },
     ],
   };
 }
@@ -191,11 +172,11 @@ export function getGlobalHelpSection(): HelpSection {
   return {
     title: "Global",
     items: [
-      { key: KEY_QUESTION, description: "Toggle help" },
-      { key: KEY_R, description: "Refresh" },
-      { key: KEY_TAB, description: "Next panel/pane" },
-      { key: KEY_SHIFT_TAB, description: "Previous panel/pane" },
-      { key: KEY_Q, description: "Quit" },
+      { key: KEYS.QUESTION, description: "Toggle help" },
+      { key: KEYS.R, description: "Refresh" },
+      { key: KEYS.TAB, description: "Next panel/pane" },
+      { key: KEYS.SHIFT_TAB, description: "Previous panel/pane" },
+      { key: KEYS.Q, description: "Quit" },
     ],
   };
 }
@@ -225,10 +206,10 @@ export function renderQuickHelp(
  */
 export function getStandardQuickHelp(): { key: string; action: string }[] {
   return [
-    { key: KEY_QUESTION, action: "Help" },
-    { key: KEY_R, action: "Refresh" },
-    { key: KEY_S, action: "Search" },
-    { key: KEY_Q, action: "Quit" },
+    { key: KEYS.QUESTION, action: "Help" },
+    { key: KEYS.R, action: "Refresh" },
+    { key: KEYS.S, action: "Search" },
+    { key: KEYS.Q, action: "Quit" },
   ];
 }
 
@@ -313,31 +294,31 @@ export function handleHelpKey(
   }
 
   switch (key) {
-    case KEY_ESCAPE:
-    case KEY_QUESTION:
-    case KEY_Q:
+    case KEYS.ESCAPE:
+    case KEYS.QUESTION:
+    case KEYS.Q:
       return {
         state: toggleHelpDialog(state),
         handled: true,
       };
-    case KEY_UP:
-    case KEY_K:
+    case KEYS.UP:
+    case KEYS.K:
       return {
         state: scrollHelpDialog(state, "up", visibleLines),
         handled: true,
       };
-    case KEY_DOWN:
-    case KEY_J:
+    case KEYS.DOWN:
+    case KEYS.J:
       return {
         state: scrollHelpDialog(state, "down", visibleLines),
         handled: true,
       };
-    case KEY_HOME:
+    case KEYS.HOME:
       return {
         state: { ...state, scrollOffset: 0 },
         handled: true,
       };
-    case KEY_END:
+    case KEYS.END:
       return {
         state: {
           ...state,

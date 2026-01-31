@@ -26,27 +26,7 @@ import {
   TUI_SOURCE_ICONS,
   TUI_STATUS_ICONS,
 } from "./utils/constants.ts";
-import {
-  KEY_C,
-  KEY_CAPITAL_R,
-  KEY_D,
-  KEY_DOWN,
-  KEY_E,
-  KEY_END,
-  KEY_ENTER,
-  KEY_ESCAPE,
-  KEY_F,
-  KEY_G,
-  KEY_HOME,
-  KEY_LEFT,
-  KEY_Q,
-  KEY_QUESTION,
-  KEY_R,
-  KEY_RIGHT,
-  KEY_S,
-  KEY_SLASH,
-  KEY_UP,
-} from "../config/constants.ts";
+import { KEYS } from "./utils/keyboard.ts";
 
 // ===== Service Interface =====
 
@@ -133,73 +113,78 @@ export enum SkillsAction {
 export class SkillsKeyBindings extends KeyBindingsBase<SkillsAction, KeyBindingCategory> {
   readonly KEY_BINDINGS: readonly KeyBinding<SkillsAction, KeyBindingCategory>[] = [
     {
-      key: KEY_UP,
+      key: KEYS.UP,
       description: "Navigate up",
       action: SkillsAction.NAVIGATE_UP,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_DOWN,
+      key: KEYS.DOWN,
       description: "Navigate down",
       action: SkillsAction.NAVIGATE_DOWN,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_HOME,
+      key: KEYS.HOME,
       description: "Jump to first",
       action: SkillsAction.NAVIGATE_HOME,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_END,
+      key: KEYS.END,
       description: "Jump to last",
       action: SkillsAction.NAVIGATE_END,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_LEFT,
+      key: KEYS.LEFT,
       description: "Collapse group",
       action: SkillsAction.COLLAPSE,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_RIGHT,
+      key: KEYS.RIGHT,
       description: "Expand group",
       action: SkillsAction.EXPAND,
       category: KeyBindingCategory.NAVIGATION,
     },
     {
-      key: KEY_ENTER,
+      key: KEYS.ENTER,
       description: "View skill details",
       action: SkillsAction.VIEW_DETAIL,
       category: KeyBindingCategory.NAVIGATION,
     },
-    { key: KEY_D, description: "Delete skill", action: SkillsAction.DELETE, category: KeyBindingCategory.ACTIONS },
-    { key: KEY_SLASH, description: "Search skills", action: SkillsAction.SEARCH, category: KeyBindingCategory.ACTIONS },
+    { key: KEYS.D, description: "Delete skill", action: SkillsAction.DELETE, category: KeyBindingCategory.ACTIONS },
     {
-      key: KEY_F,
+      key: KEYS.SLASH,
+      description: "Search skills",
+      action: SkillsAction.SEARCH,
+      category: KeyBindingCategory.ACTIONS,
+    },
+    {
+      key: KEYS.F,
       description: "Filter by source",
       action: SkillsAction.FILTER_SOURCE,
       category: KeyBindingCategory.ACTIONS,
     },
     {
-      key: KEY_S,
+      key: KEYS.S,
       description: "Filter by status",
       action: SkillsAction.FILTER_STATUS,
       category: KeyBindingCategory.ACTIONS,
     },
     {
-      key: KEY_G,
+      key: KEYS.G,
       description: "Toggle grouping",
       action: SkillsAction.TOGGLE_GROUPING,
       category: KeyBindingCategory.VIEW,
     },
-    { key: KEY_R, description: "Force refresh", action: SkillsAction.REFRESH, category: KeyBindingCategory.VIEW },
-    { key: KEY_C, description: "Collapse all", action: SkillsAction.COLLAPSE_ALL, category: KeyBindingCategory.VIEW },
-    { key: KEY_E, description: "Expand all", action: SkillsAction.EXPAND_ALL, category: KeyBindingCategory.VIEW },
-    { key: KEY_QUESTION, description: "Show help", action: SkillsAction.HELP, category: KeyBindingCategory.HELP },
-    { key: KEY_Q, description: "Back", action: SkillsAction.BACK, category: KeyBindingCategory.HELP },
-    { key: KEY_ESCAPE, description: "Close", action: SkillsAction.CLOSE, category: KeyBindingCategory.HELP },
+    { key: KEYS.R, description: "Force refresh", action: SkillsAction.REFRESH, category: KeyBindingCategory.VIEW },
+    { key: KEYS.C, description: "Collapse all", action: SkillsAction.COLLAPSE_ALL, category: KeyBindingCategory.VIEW },
+    { key: KEYS.E, description: "Expand all", action: SkillsAction.EXPAND_ALL, category: KeyBindingCategory.VIEW },
+    { key: KEYS.QUESTION, description: "Show help", action: SkillsAction.HELP, category: KeyBindingCategory.HELP },
+    { key: KEYS.Q, description: "Back", action: SkillsAction.BACK, category: KeyBindingCategory.HELP },
+    { key: KEYS.ESCAPE, description: "Close", action: SkillsAction.CLOSE, category: KeyBindingCategory.HELP },
   ];
 }
 
@@ -768,7 +753,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
     // 2. Handle detail view
     if (this.skillsViewExtensions.showDetail) {
-      if (key === KEY_ESCAPE || key === KEY_Q) {
+      if (key === KEYS.ESCAPE || key === KEYS.Q) {
         this.hideDetail();
       }
       return true;
@@ -779,7 +764,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
     // 4. Handle navigation (delegated to base)
     // Avoid keys that we handle specifically in this subclass or asynchronously
-    if (key !== KEY_R && key !== KEY_CAPITAL_R) { // BASE handles c and e by default
+    if (key !== KEYS.R && key !== KEYS.CAP_R) { // BASE handles c and e by default
       if (this.handleNavigationKeys(key)) {
         return true;
       }
@@ -787,22 +772,22 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
     // 5. Handle action keys
     switch (key) {
-      case KEY_ENTER:
-      case KEY_CAPITAL_R:
+      case KEYS.ENTER:
+      case KEYS.CAP_R:
         return false; // Handle asynchronously
-      case KEY_SLASH:
+      case KEYS.SLASH:
         this.showSearchDialog();
         return true;
-      case KEY_F:
+      case KEYS.F:
         this.showFilterSourceDialog();
         return true;
-      case KEY_S:
+      case KEYS.S:
         this.showFilterStatusDialog();
         return true;
-      case KEY_G:
+      case KEYS.G:
         this.cycleGrouping();
         return true;
-      case KEY_D:
+      case KEYS.D:
         this.showDeleteConfirm();
         return true;
       default:
@@ -815,14 +800,14 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
    */
   protected override handleHelpKeys(key: string): boolean {
     if (this.state.showHelp) {
-      if (key === KEY_QUESTION || key === KEY_ESCAPE || key === KEY_Q) {
+      if (key === KEYS.QUESTION || key === KEYS.ESCAPE || key === KEYS.Q) {
         this.state.showHelp = false;
         return true;
       }
       return true; // Consume all keys when help is shown
     }
 
-    if (key === KEY_QUESTION) {
+    if (key === KEYS.QUESTION) {
       this.state.showHelp = true;
       return true;
     }
@@ -834,10 +819,10 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
     if (this.handleKeySync(key)) return true;
 
     switch (key) {
-      case KEY_ENTER:
+      case KEYS.ENTER:
         await this.showDetail();
         return true;
-      case KEY_CAPITAL_R:
+      case KEYS.CAP_R:
         await this.refresh();
         return true;
     }

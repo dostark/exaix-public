@@ -9,7 +9,7 @@
  * - NamedLayoutDialog for saving/loading named layouts
  */
 
-import { KEY_BACKSPACE, KEY_DOWN, KEY_ENTER, KEY_ESCAPE, KEY_J, KEY_K, KEY_Q, KEY_UP } from "../../config/constants.ts";
+import { KEYS } from "../utils/keyboard.ts";
 import { colorize, type TuiTheme } from "../utils/colors.ts";
 import { TUI_DASHBOARD_ICONS } from "../utils/constants.ts";
 
@@ -121,17 +121,17 @@ export function handleViewPickerKey(
   const newState = { ...state };
 
   switch (key.toLowerCase()) {
-    case KEY_UP:
-    case KEY_K:
+    case KEYS.UP:
+    case KEYS.K:
       newState.selectedIndex = (state.selectedIndex - 1 + AVAILABLE_VIEWS.length) % AVAILABLE_VIEWS.length;
       return { state: newState, closed: false };
 
-    case KEY_DOWN:
-    case KEY_J:
+    case KEYS.DOWN:
+    case KEYS.J:
       newState.selectedIndex = (state.selectedIndex + 1) % AVAILABLE_VIEWS.length;
       return { state: newState, closed: false };
 
-    case KEY_ENTER:
+    case KEYS.ENTER:
       newState.isOpen = false;
       return {
         state: newState,
@@ -139,8 +139,8 @@ export function handleViewPickerKey(
         closed: true,
       };
 
-    case KEY_ESCAPE:
-    case KEY_Q:
+    case KEYS.ESCAPE:
+    case KEYS.Q:
       newState.isOpen = false;
       return { state: newState, closed: true };
 
@@ -257,17 +257,17 @@ export function handleLayoutPresetKey(
   const newState = { ...state };
 
   switch (key.toLowerCase()) {
-    case KEY_UP:
-    case KEY_K:
+    case KEYS.UP:
+    case KEYS.K:
       newState.selectedIndex = (state.selectedIndex - 1 + LAYOUT_PRESET_INFO.length) % LAYOUT_PRESET_INFO.length;
       return { state: newState, closed: false };
 
-    case KEY_DOWN:
-    case KEY_J:
+    case KEYS.DOWN:
+    case KEYS.J:
       newState.selectedIndex = (state.selectedIndex + 1) % LAYOUT_PRESET_INFO.length;
       return { state: newState, closed: false };
 
-    case KEY_ENTER:
+    case KEYS.ENTER:
       newState.isOpen = false;
       return {
         state: newState,
@@ -275,8 +275,8 @@ export function handleLayoutPresetKey(
         closed: true,
       };
 
-    case KEY_ESCAPE:
-    case KEY_Q:
+    case KEYS.ESCAPE:
+    case KEYS.Q:
       newState.isOpen = false;
       return { state: newState, closed: true };
 
@@ -420,7 +420,7 @@ export function handleNamedLayoutKey(
 
   // Handle text input in save mode
   if (state.mode === "save" && state.inputActive) {
-    if (key === KEY_ENTER && state.inputName.trim()) {
+    if (key === KEYS.ENTER && state.inputName.trim()) {
       newState.isOpen = false;
       newState.inputActive = false;
       return {
@@ -429,12 +429,12 @@ export function handleNamedLayoutKey(
         layoutName: state.inputName.trim(),
         closed: true,
       };
-    } else if (key === KEY_ESCAPE || key === KEY_ESCAPE) {
+    } else if (key === KEYS.ESCAPE || key === KEYS.ESCAPE) {
       newState.isOpen = false;
       newState.inputActive = false;
       newState.inputName = "";
       return { state: newState, closed: true };
-    } else if (key === KEY_BACKSPACE) {
+    } else if (key === KEYS.BACKSPACE) {
       newState.inputName = state.inputName.slice(0, -1);
       return { state: newState, closed: false };
     } else if (key.length === 1 && /[a-zA-Z0-9_-]/.test(key)) {
@@ -445,21 +445,21 @@ export function handleNamedLayoutKey(
   }
 
   switch (key.toLowerCase()) {
-    case KEY_UP:
-    case KEY_K:
+    case KEYS.UP:
+    case KEYS.K:
       if (state.layouts.length > 0) {
         newState.selectedIndex = (state.selectedIndex - 1 + state.layouts.length) % state.layouts.length;
       }
       return { state: newState, closed: false };
 
-    case KEY_DOWN:
-    case KEY_J:
+    case KEYS.DOWN:
+    case KEYS.J:
       if (state.layouts.length > 0) {
         newState.selectedIndex = (state.selectedIndex + 1) % state.layouts.length;
       }
       return { state: newState, closed: false };
 
-    case KEY_ENTER:
+    case KEYS.ENTER:
       if (state.mode === "save") {
         newState.inputActive = true;
         return { state: newState, closed: false };
@@ -474,8 +474,8 @@ export function handleNamedLayoutKey(
       }
       return { state: newState, closed: false };
 
-    case KEY_ESCAPE:
-    case KEY_Q:
+    case KEYS.ESCAPE:
+    case KEYS.Q:
       newState.isOpen = false;
       newState.inputName = "";
       newState.inputActive = false;
