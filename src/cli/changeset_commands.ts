@@ -11,8 +11,8 @@ import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
 import { ValidationChain } from "./validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
-import { CommandUtils } from "./utils/command_utils.ts";
-import { enrichWithRequest } from "./utils/request_enricher.ts";
+import { CommandUtils } from "../helpers/command_utils.ts";
+import { enrichWithRequest } from "../helpers/request_enricher.ts";
 
 export interface ChangesetMetadata {
   branch: string;

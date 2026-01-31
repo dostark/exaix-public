@@ -10,13 +10,13 @@
  */
 
 import { TuiSessionBase } from "./tui_common.ts";
-import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "./utils/spinner.ts";
-import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
-import { type KeyBinding, KeyBindingCategory, KEYS } from "./utils/keyboard.ts";
+import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "../helpers/spinner.ts";
+import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
+import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { DaemonKeyAction, DaemonStatus, GeneralStatus } from "../enums.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "./utils/constants.ts";
+import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 
 // ===== Constants =====

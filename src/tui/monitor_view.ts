@@ -13,10 +13,10 @@
  */
 
 import { BaseTreeView } from "./base/base_tree_view.ts";
-import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
-import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import { type DialogBase } from "./utils/dialog_base.ts";
-import { type KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
+import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "../helpers/tree_view.ts";
+import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { type DialogBase } from "../helpers/dialog_base.ts";
+import { type KeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
 import type { ActivityRecord, JournalFilterOptions } from "../services/db.ts";
 
 // ===== Service Interfaces =====
@@ -54,8 +54,8 @@ export interface MonitorViewExtensions {
 
 // ===== Icons and Visual Constants =====
 import { LOG_COLORS, LOG_ICONS, MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
-import { TUI_LAYOUT_NARROW_WIDTH } from "./utils/constants.ts";
-import { KEYS } from "./utils/keyboard.ts";
+import { TUI_LAYOUT_NARROW_WIDTH } from "../helpers/constants.ts";
+import { KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 
 export { LOG_COLORS, LOG_ICONS };

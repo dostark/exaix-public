@@ -4,14 +4,14 @@
  */
 
 import process from "node:process";
-import { type TuiTheme as Theme } from "../utils/colors.ts";
-import { TUI_MSG_DASHBOARD_HEADER, TUI_MSG_PRESS_CLOSE_HELP, TUI_STATUS_MSG_READY } from "../utils/constants.ts";
+import { type TuiTheme as Theme } from "../../helpers/colors.ts";
+import { TUI_MSG_DASHBOARD_HEADER, TUI_MSG_PRESS_CLOSE_HELP, TUI_STATUS_MSG_READY } from "../../helpers/constants.ts";
 import { type Pane, renderGlobalHelpOverlay, renderPaneTitleBar, renderViewIndicator } from "../tui_dashboard.ts";
 import { renderNotificationPanel } from "../tui_helpers/notifications.ts";
 import type { NotificationService } from "../../services/notification.ts";
 import type { DashboardViewState } from "../tui_dashboard.ts";
 import { Table } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
-import { KEYS } from "../utils/keyboard.ts";
+import { KEYS } from "../../helpers/keyboard.ts";
 
 /**
  * Production render function for the dashboard

@@ -14,7 +14,7 @@ import {
   DEFAULT_GIT_RETRY_BACKOFF_BASE_MS,
   DEFAULT_GIT_TRACE_ID_SHORT_LENGTH,
 } from "../config/constants.ts";
-import { SecureRandom } from "../utils/secure_random.ts";
+import { SecureRandom } from "../helpers/secure_random.ts";
 import { ActivityActor } from "../enums.ts";
 
 // ============================================================================

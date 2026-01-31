@@ -1,4 +1,4 @@
-import { createLayoutManager, type LayoutPane } from "../../src/tui/utils/layout_manager.ts";
+import { createLayoutManager, type LayoutPane } from "../../src/helpers/layout_manager.ts";
 
 export function setupLayoutManager(width = 80, height = 24) {
   return createLayoutManager(width, height);

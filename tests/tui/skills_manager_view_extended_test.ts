@@ -24,7 +24,7 @@ import {
   createTestSkills,
   sampleTestSkills,
 } from "./helpers.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Test Data =====
 

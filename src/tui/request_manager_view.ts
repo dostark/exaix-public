@@ -1,7 +1,7 @@
 // --- Service interface for Request management ---
 
-import { KEYS } from "./utils/keyboard.ts";
-import { KeyBindingCategory } from "./utils/keyboard.ts";
+import { KEYS } from "../helpers/keyboard.ts";
+import { KeyBindingCategory } from "../helpers/keyboard.ts";
 export interface RequestService {
   listRequests(status?: string): Promise<Request[]>;
   getRequestContent(requestId: string): Promise<string>;
@@ -206,9 +206,9 @@ export const REQUEST_KEY_BINDINGS = new RequestKeyBindings().KEY_BINDINGS;
 // --- Imports for Phase 13.6 ---
 import { TuiSessionBase } from "./tui_common.ts";
 import { RequestPriority, RequestStatus } from "../enums.ts";
-import { createGroupNode, createNode, findNode, flattenTree, renderTree, type TreeNode } from "./utils/tree_view.ts";
-import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import type { KeyBinding } from "./utils/keyboard.ts";
+import { createGroupNode, createNode, findNode, flattenTree, renderTree, type TreeNode } from "../helpers/tree_view.ts";
+import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import type { KeyBinding } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 
 // --- Extracted utilities ---
@@ -224,11 +224,11 @@ import {
   type RequestDialogTypeUnion,
 } from "./request_manager/dialog_handlers.ts";
 import { RequestDialogType } from "../enums.ts";
-import { ConfirmDialog, InputDialog } from "./utils/dialog_base.ts";
+import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
 
 // --- Adapter: RequestCommands as RequestService ---
 import type { RequestCommands } from "../cli/request_commands.ts";
-import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "./utils/constants.ts";
+import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "../helpers/constants.ts";
 
 /**
  * Adapter: RequestCommands as RequestService

@@ -20,8 +20,8 @@ import {
   TUI_MSG_PRESS_QUIT,
   TUI_PREFIX_EXECUTION,
   TUI_PREFIX_PROJECT,
-} from "../utils/constants.ts";
-import { renderCategoryBadge, renderConfidence, renderMarkdown } from "../utils/markdown_renderer.ts";
+} from "../../helpers/constants.ts";
+import { renderCategoryBadge, renderConfidence, renderMarkdown } from "../../helpers/markdown_renderer.ts";
 import type { MemoryServiceInterface, TreeNode } from "./types.ts";
 
 export class MemoryFormatter {

@@ -28,7 +28,7 @@ import {
   STATUS_COLORS,
   STATUS_ICONS,
 } from "../../src/tui/request_manager_view.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Test Data =====
 

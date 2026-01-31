@@ -3,7 +3,7 @@
  * Extracted from request_manager_view.ts to reduce complexity
  */
 
-import { ConfirmDialog, InputDialog } from "../utils/dialog_base.ts";
+import { ConfirmDialog, InputDialog } from "../../helpers/dialog_base.ts";
 import { RequestDialogType } from "../../enums.ts";
 
 export type RequestDialogTypeUnion = RequestDialogType | null;

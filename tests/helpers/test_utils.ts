@@ -1,0 +1,270 @@
+/**
+ * Shared Test Utilities
+ *
+ * Reduces code duplication across test files by providing common test data factories,
+ * mock service base classes, and utility functions.
+ */
+
+import { MemorySource, MemoryStatus, PlanStatus, SkillStatus } from "../../src/enums.ts";
+
+// ===== Test Data Factories =====
+
+export interface TestDataOverrides {
+  [key: string]: unknown;
+}
+
+/**
+ * Generic test data factory that creates objects with default values and overrides
+ */
+export class TestDataFactory<T extends Record<string, unknown>> {
+  private defaults: T;
+
+  constructor(defaults: T) {
+    this.defaults = { ...defaults };
+  }
+
+  create(overrides: Partial<T> = {}): T {
+    return { ...this.defaults, ...overrides };
+  }
+
+  createMany(count: number, overrides: Partial<T>[] = []): T[] {
+    return Array.from({ length: count }, (_, i) => this.create(overrides[i] || {}));
+  }
+}
+
+// Request factory
+export const requestFactory = new TestDataFactory({
+  trace_id: `req-${Math.floor(Math.random() * 1e6)}`,
+  filename: "request.md",
+  title: "Request",
+  status: MemoryStatus.PENDING,
+  priority: "normal" as const,
+  agent: "default",
+  created: new Date().toISOString(),
+  created_by: "test@example.com",
+  source: "cli",
+});
+
+// Plan factory
+export const planFactory = new TestDataFactory({
+  id: `plan-${Math.floor(Math.random() * 1e6)}`,
+  title: "Plan",
+  status: PlanStatus.REVIEW,
+});
+
+// Skill factory
+export const skillFactory = new TestDataFactory({
+  id: `skill-${Math.floor(Math.random() * 1e6)}`,
+  name: "Skill",
+  version: "1.0.0",
+  status: SkillStatus.ACTIVE,
+  source: MemorySource.CORE,
+  description: "Test skill",
+});
+
+// ===== Mock Service Base Classes =====
+
+/**
+ * Base class for mock services with common CRUD operations
+ */
+export abstract class BaseMockService<T> {
+  protected items: T[] = [];
+
+  constructor(initialItems: T[] = []) {
+    this.items = [...initialItems];
+  }
+
+  list(): Promise<T[]> {
+    return Promise.resolve([...this.items]);
+  }
+
+  get(id: string): Promise<T | null> {
+    const item = this.items.find((item: any) => item.id === id || (item as any).trace_id === id);
+    return Promise.resolve(item || null);
+  }
+
+  create(item: Omit<T, "id"> & { id?: string }): Promise<T> {
+    const newItem = {
+      ...item,
+      id: item.id || `item-${Date.now()}-${Math.random()}`,
+    } as T;
+    this.items.push(newItem);
+    return Promise.resolve(newItem);
+  }
+
+  update(id: string, updates: Partial<T>): Promise<boolean> {
+    const index = this.items.findIndex((item: any) => item.id === id || (item as any).trace_id === id);
+    if (index === -1) return Promise.resolve(false);
+
+    this.items[index] = { ...this.items[index], ...updates };
+    return Promise.resolve(true);
+  }
+
+  delete(id: string): Promise<boolean> {
+    const index = this.items.findIndex((item: any) => item.id === id || (item as any).trace_id === id);
+    if (index === -1) return Promise.resolve(false);
+
+    this.items.splice(index, 1);
+    return Promise.resolve(true);
+  }
+}
+
+/**
+ * Mock service for requests with common operations
+ */
+export class MockRequestService extends BaseMockService<any> {
+  constructor(initialRequests: any[] = []) {
+    super(initialRequests);
+  }
+
+  listRequests(status?: string): Promise<any[]> {
+    if (status) {
+      return Promise.resolve(this.items.filter((r) => r.status === status));
+    }
+    return this.list();
+  }
+
+  getRequestContent(id: string): Promise<string> {
+    const request = this.items.find((r) => r.trace_id === id);
+    return Promise.resolve(request ? `Content for ${id}` : "");
+  }
+
+  createRequest(description: string, options?: any): Promise<any> {
+    return this.create({
+      trace_id: `test-${Date.now()}`,
+      filename: `request-test.md`,
+      title: description,
+      status: MemoryStatus.PENDING,
+      priority: options?.priority || "normal",
+      agent: options?.agent || "default",
+      portal: options?.portal,
+      model: options?.model,
+      created: new Date().toISOString(),
+      created_by: "test@example.com",
+      source: "cli",
+    });
+  }
+
+  updateRequestStatus(id: string, status: string): Promise<boolean> {
+    return this.update(id, { status });
+  }
+}
+
+/**
+ * Mock service for plans with common operations
+ */
+export class MockPlanService extends BaseMockService<any> {
+  constructor(initialPlans: any[] = []) {
+    super(initialPlans);
+  }
+
+  getPlanContent(id: string): Promise<string> {
+    const plan = this.items.find((p) => p.id === id);
+    return Promise.resolve(plan ? `Content for plan ${id}` : "");
+  }
+
+  approvePlan(id: string): Promise<boolean> {
+    return this.update(id, { status: PlanStatus.APPROVED });
+  }
+
+  rejectPlan(id: string, reason?: string): Promise<boolean> {
+    return this.update(id, { status: PlanStatus.REJECTED, rejectionReason: reason });
+  }
+}
+
+// ===== Common Test Data Sets =====
+
+export const commonTestData = {
+  requests: {
+    basic: () =>
+      requestFactory.createMany(2, [
+        { trace_id: "req-1" },
+        { trace_id: "req-2", title: "Request 2", status: MemoryStatus.APPROVED },
+      ]),
+    two: () =>
+      requestFactory.createMany(2, [
+        { trace_id: "req-1" },
+        { trace_id: "req-2", title: "Request 2" },
+      ]),
+
+    grouped: () =>
+      requestFactory.createMany(2, [
+        {},
+        {
+          trace_id: "req-2",
+          title: "Request 2",
+          status: MemoryStatus.APPROVED,
+          agent: "other",
+        },
+      ]),
+    pending: () =>
+      requestFactory.createMany(2, [
+        { status: MemoryStatus.PENDING },
+        { status: MemoryStatus.PENDING, trace_id: "req-2", title: "Request 2" },
+      ]),
+  },
+
+  plans: {
+    basic: () => planFactory.createMany(3),
+    single: () => planFactory.createMany(1),
+    withStatuses: () =>
+      planFactory.createMany(3, [
+        { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
+        { id: "p2", title: "Plan 2", status: PlanStatus.APPROVED },
+        { id: "p3", title: "Plan 3", status: PlanStatus.REJECTED },
+      ]),
+    pending: () =>
+      planFactory.createMany(2, [
+        { status: PlanStatus.REVIEW },
+        { status: PlanStatus.REVIEW, id: "p2", title: "Plan 2" },
+      ]),
+  },
+
+  skills: {
+    basic: () => skillFactory.createMany(3),
+    single: () => skillFactory.createMany(1),
+    withStatuses: () =>
+      skillFactory.createMany(3, [
+        { status: SkillStatus.ACTIVE },
+        { status: SkillStatus.DRAFT },
+        { status: SkillStatus.DEPRECATED },
+      ]),
+  },
+
+  // Standard mock objects
+  mockObjects: {
+    newRequest: () => ({
+      trace_id: "new-req",
+      filename: "request-new.md",
+      title: "New Request",
+      status: MemoryStatus.PENDING,
+      priority: "normal" as const,
+      agent: "default",
+      created: new Date().toISOString(),
+      created_by: "test@example.com",
+      source: "tui" as const,
+    }),
+  },
+};
+
+// ===== Utility Functions =====
+
+/**
+ * Creates a standard test scenario with service, view, and TUI session
+ */
+export function createTestScenario<T>(
+  ServiceClass: new (items: any[]) => T,
+  ViewClass: any,
+  data: any[] = [],
+) {
+  const service = new ServiceClass(data);
+  const view = new ViewClass(service);
+  return { service, view };
+}
+
+/**
+ * Creates a TUI session for testing
+ */
+export function createTuiSession(view: any, data: any[] = []) {
+  return view.createTuiSession ? view.createTuiSession(data) : view.createTuiSession(false);
+}

@@ -23,7 +23,7 @@ import {
   stopLoading,
   stopSpinner,
   updateProgress,
-} from "../../../src/tui/utils/spinner.ts";
+} from "../../../src/helpers/spinner.ts";
 
 // ===== Spinner Definitions Tests =====
 

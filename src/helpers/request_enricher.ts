@@ -1,5 +1,5 @@
-import { RequestCommands } from "../request_commands.ts";
-import { isTestMode } from "../../config/env_schema.ts";
+import { RequestCommands } from "../cli/request_commands.ts";
+import { isTestMode } from "../config/env_schema.ts";
 
 export interface RequestEnrichable {
   request_id?: string;

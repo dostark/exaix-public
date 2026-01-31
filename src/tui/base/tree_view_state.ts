@@ -5,8 +5,8 @@
  * This interface captures the common state fields shared across all tree-based views.
  */
 
-import type { DialogBase } from "../utils/dialog_base.ts";
-import type { TreeNode } from "../utils/tree_view.ts";
+import type { DialogBase } from "../../helpers/dialog_base.ts";
+import type { TreeNode } from "../../helpers/tree_view.ts";
 import { DEFAULT_REFRESH_INTERVAL_MS } from "../../config/constants.ts";
 
 /**

@@ -7,59 +7,14 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import {
-  AgentStatus,
-  EvaluationCategory,
-  ExecutionStatus,
-  MemoryScope,
-  MemorySource,
-  SkillStatus,
-} from "../../src/enums.ts";
+import { AgentStatus, ExecutionStatus } from "../../src/enums.ts";
 import { MinimalSkillsServiceMock, SkillsManagerView, type SkillSummary } from "../../src/tui/skills_manager_view.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
+import { sampleTestSkills } from "./helpers.ts";
 
 // ===== Test Data =====
 
-const TEST_SKILLS: SkillSummary[] = [
-  {
-    id: "tdd-methodology",
-    name: "TDD Methodology",
-    version: "1.0.0",
-    status: SkillStatus.ACTIVE,
-    source: MemorySource.CORE,
-    description: "Test-Driven Development methodology",
-    triggers: {
-      keywords: ["tdd", "test-first"],
-      taskTypes: ["testing"],
-    },
-    instructions: "Write failing test first, then implement",
-  },
-  {
-    id: "security-first",
-    name: "Security First",
-    version: "1.0.0",
-    status: SkillStatus.ACTIVE,
-    source: MemorySource.CORE,
-    description: "Security-focused development",
-    triggers: {
-      keywords: [EvaluationCategory.SECURITY, "auth"],
-    },
-  },
-  {
-    id: "project-conventions",
-    name: "Project Conventions",
-    version: "1.0.0",
-    status: SkillStatus.ACTIVE,
-    source: MemoryScope.PROJECT,
-  },
-  {
-    id: "learned-pattern",
-    name: "Learned Pattern",
-    version: "1.0.0",
-    status: SkillStatus.DRAFT,
-    source: MemorySource.LEARNED,
-  },
-];
+const TEST_SKILLS: SkillSummary[] = sampleTestSkills();
 
 // ===== SkillsManagerView Tests =====
 

@@ -16,7 +16,7 @@ import {
   sampleMonitorLogs,
   sampleSingleMonitorLog,
 } from "./helpers.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // Helper for creating a monitor session
 function createMonitorSession(logs: any[] = []) {

@@ -24,7 +24,7 @@ import {
   renderLayoutPresetPicker,
   renderPaneBorder,
   renderResizeIndicator,
-} from "../../src/tui/utils/layout_manager.ts";
+} from "../../src/helpers/layout_manager.ts";
 import {
   AVAILABLE_VIEWS,
   createLayoutPresetState,
@@ -41,7 +41,7 @@ import {
   renderSwapIndicator,
   renderViewPickerDialog,
 } from "../../src/tui/dialogs/layout_dialogs.ts";
-import { getTheme } from "../../src/tui/utils/colors.ts";
+import { getTheme } from "../../src/helpers/colors.ts";
 import { createPanes, createTestPane, setupLayoutManager } from "./layout_test_helper.ts";
 
 const theme = getTheme(true);

@@ -21,7 +21,7 @@ import { getProviderForModel, ProviderFactory } from "../../src/ai/provider_fact
 import { ProviderFactoryError } from "../../src/ai/errors.ts";
 import { DaemonStatus, ProviderType } from "../../src/enums.ts";
 import { RateLimitError } from "../../src/ai/rate_limited_provider.ts";
-import { SecureCredentialStore } from "../../src/utils/credential_security.ts";
+import { SecureCredentialStore } from "../../src/helpers/credential_security.ts";
 import { MockStrategy } from "../../src/enums.ts";
 
 import { AiConfig, AiConfigSchema } from "../../src/config/ai_config.ts";

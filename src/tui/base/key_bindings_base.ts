@@ -5,7 +5,7 @@
  * All TUI components should inherit from this class to ensure consistent key binding structure.
  */
 
-import type { KeyBinding, KeyHandler } from "../utils/keyboard.ts";
+import type { KeyBinding, KeyHandler } from "../../helpers/keyboard.ts";
 
 /**
  * Base class for key binding collections.

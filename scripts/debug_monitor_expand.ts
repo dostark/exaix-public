@@ -1,4 +1,4 @@
-import { KEYS } from "../src/tui/utils/keyboard.ts";
+import { KEYS } from "../src/helpers/keyboard.ts";
 import { createMonitorViewWithLogs } from "../tests/tui/helpers.ts";
 
 const { monitorView } = createMonitorViewWithLogs([

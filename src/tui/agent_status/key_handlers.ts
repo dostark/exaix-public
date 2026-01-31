@@ -3,7 +3,7 @@
  * Extracted from agent_status_view.ts to reduce complexity
  */
 
-import { KEYS } from "../utils/keyboard.ts";
+import { KEYS } from "../../helpers/keyboard.ts";
 
 // ===== Helper Functions =====
 

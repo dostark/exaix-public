@@ -3,7 +3,7 @@ import { launchTuiDashboard, type TuiDashboard } from "../../src/tui/tui_dashboa
 import { SkillStatus } from "../../src/enums.ts";
 
 import { assertEquals } from "https://deno.land/std@0.204.0/assert/assert_equals.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 Deno.test("TUI dashboard handles empty portal list and error state", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;

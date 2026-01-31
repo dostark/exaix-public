@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
 import { ExecutionStatus, MemorySource, MemoryStatus, RequestPriority } from "../../src/enums.ts";
+import { commonTestData } from "../helpers/test_utils.ts";
 
 import {
   MinimalRequestServiceMock,
@@ -18,7 +19,7 @@ import {
   sampleTestRequests,
   sampleTwoRequests,
 } from "./helpers.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 Deno.test("RequestManagerView - renders request list correctly", async () => {
   const { service: _service, view } = createViewWithRequests([
@@ -197,17 +198,7 @@ Deno.test("RequestManagerTuiSession - create request via dialog", async () => {
   const mockService = new MinimalRequestServiceMock();
   mockService.createRequest = (desc: string) => {
     createdDescription = desc;
-    return Promise.resolve({
-      trace_id: "new-req",
-      filename: "request-new.md",
-      title: "New Request",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: new Date().toISOString(),
-      created_by: "test@example.com",
-      source: "tui",
-    });
+    return Promise.resolve(commonTestData.mockObjects.newRequest());
   };
 
   const view = new RequestManagerView(mockService);

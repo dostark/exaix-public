@@ -26,7 +26,7 @@ import {
   toggleNode,
   TREE_ICONS,
   type TreeNode,
-} from "../../../src/tui/utils/tree_view.ts";
+} from "../../../src/helpers/tree_view.ts";
 import { createTestTree } from "../helpers.ts";
 
 // ===== Tree Icons Tests =====

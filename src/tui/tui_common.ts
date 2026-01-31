@@ -9,10 +9,10 @@
  * - Status bar integration
  */
 
-import { getTheme, type TuiTheme } from "./utils/colors.ts";
-import { createSpinnerState, nextFrame, type SpinnerState, startSpinner, stopSpinner } from "./utils/spinner.ts";
-import { createStatusBarState, setStatusMessage, type StatusBarState } from "./utils/status_bar.ts";
-import type { KeyBinding, KeyHandler } from "./utils/keyboard.ts";
+import { getTheme, type TuiTheme } from "../helpers/colors.ts";
+import { createSpinnerState, nextFrame, type SpinnerState, startSpinner, stopSpinner } from "../helpers/spinner.ts";
+import { createStatusBarState, setStatusMessage, type StatusBarState } from "../helpers/status_bar.ts";
+import type { KeyBinding, KeyHandler } from "../helpers/keyboard.ts";
 
 // ===== View State Types =====
 
@@ -490,6 +490,6 @@ export function clampScrollOffset(
 
 // ===== Re-exports for convenience =====
 
-export { getTheme, type TuiTheme } from "./utils/colors.ts";
-export { createSpinnerState, renderSpinner, type SpinnerState } from "./utils/spinner.ts";
-export { createStatusBarState, renderStatusBar, type StatusBarState } from "./utils/status_bar.ts";
+export { getTheme, type TuiTheme } from "../helpers/colors.ts";
+export { createSpinnerState, renderSpinner, type SpinnerState } from "../helpers/spinner.ts";
+export { createStatusBarState, renderStatusBar, type StatusBarState } from "../helpers/status_bar.ts";

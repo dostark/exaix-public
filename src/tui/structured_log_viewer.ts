@@ -12,14 +12,14 @@
  * - Log level filtering with visual indicators
  */
 
-import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
-import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import { DialogBase } from "./utils/dialog_base.ts";
-import { type KeyBinding, KeyBindingCategory, KEYS } from "./utils/keyboard.ts";
+import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "../helpers/tree_view.ts";
+import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { DialogBase } from "../helpers/dialog_base.ts";
+import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { LogEntry, LogLevel, StructuredLogger } from "../services/structured_logger.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
-import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "./utils/constants.ts";
+import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 
 // ===== Service Interfaces =====

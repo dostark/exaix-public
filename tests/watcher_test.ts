@@ -4,7 +4,7 @@ import { FileWatcher } from "../src/services/watcher.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import { initTestDbService } from "./helpers/db.ts";
 import { createWatcherTestContext } from "./helpers/watcher_test_helper.ts";
-import { delay } from "../src/utils/async_utils.ts";
+import { delay } from "../src/helpers/async_utils.ts";
 import {
   DEFAULT_WATCHER_STABILITY_BACKOFF_MS,
   DEFAULT_WATCHER_STABILITY_MAX_ATTEMPTS,

@@ -1,5 +1,5 @@
-import { KEYS } from "../utils/keyboard.ts";
-import { colorize } from "../utils/colors.ts";
+import { KEYS } from "../../helpers/keyboard.ts";
+import { colorize } from "../../helpers/colors.ts";
 
 export function formatTimeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);

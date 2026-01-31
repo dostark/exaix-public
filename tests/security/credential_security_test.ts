@@ -14,7 +14,7 @@
  */
 
 import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
-import { SecureCredentialStore } from "../../src/utils/credential_security.ts";
+import { SecureCredentialStore } from "../../src/helpers/credential_security.ts";
 
 // ============================================================================
 // Unit Tests for SecureCredentialStore

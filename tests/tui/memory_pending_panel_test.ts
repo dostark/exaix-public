@@ -25,7 +25,7 @@ import {
   createMockProposals,
   MinimalMemoryServiceMock as _MinimalMemoryServiceMock,
 } from "./helpers.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Test Fixtures =====
 

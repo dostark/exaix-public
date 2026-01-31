@@ -13,8 +13,8 @@
  */
 
 import { NotificationService } from "../services/notification.ts";
-import { TUI_DASHBOARD_ICONS, TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "./utils/constants.ts";
-import { colorize, getTheme, type TuiTheme } from "./utils/colors.ts";
+import { TUI_DASHBOARD_ICONS, TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../helpers/constants.ts";
+import { colorize, getTheme, type TuiTheme } from "../helpers/colors.ts";
 import {
   handleMemoryNotifications as _handleMemoryNotifications,
   renderNotificationPanel,
@@ -24,8 +24,8 @@ import {
   restoreLayout as helperRestoreLayout,
   saveLayout as helperSaveLayout,
 } from "./tui_helpers/layout_persistence.ts";
-import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import { KeyBinding, KEYS } from "./utils/keyboard.ts";
+import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { KeyBinding, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { DatabaseService } from "../services/db.ts";
 import { initDashboardViews } from "./dashboard/view_registry.ts";

@@ -11,7 +11,7 @@ import { z } from "zod";
 import { EvaluationCriterion, getCriteriaByNames } from "./evaluation_criteria.ts";
 import { FlowGateOnFail } from "../enums.ts";
 import { GateEvaluator, GateResult } from "./gate_evaluator.ts";
-import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../tui/utils/constants.ts";
+import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../helpers/constants.ts";
 
 /**
  * Feedback loop configuration schema

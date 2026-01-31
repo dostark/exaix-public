@@ -2,7 +2,7 @@
  * Tree builder and renderer for Memory View
  */
 
-import { renderSpinnerFrame } from "../utils/spinner.ts";
+import { renderSpinnerFrame } from "../../helpers/spinner.ts";
 import { TuiIcon, TuiNodeType } from "../../enums.ts";
 import {
   MEMORY_SCOPE_EXECUTIONS,
@@ -19,7 +19,7 @@ import {
   TUI_PREFIX_PROJECT,
   TUI_TREE_PAGINATION_LIMIT,
   TUI_TREE_RECENT_LIMIT,
-} from "../utils/constants.ts";
+} from "../../helpers/constants.ts";
 import type { MemoryServiceInterface, TreeNode } from "./types.ts";
 
 export class TreeBuilder {

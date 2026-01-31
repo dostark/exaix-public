@@ -3,7 +3,7 @@ import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import { EventLogger } from "./event_logger.ts";
 import { DEFAULT_WATCHER_STABILITY_BACKOFF_MS, DEFAULT_WATCHER_STABILITY_MAX_ATTEMPTS } from "../config/constants.ts";
-import { delay } from "../utils/async_utils.ts";
+import { delay } from "../helpers/async_utils.ts";
 
 /**
  * Event emitted when a stable file is detected

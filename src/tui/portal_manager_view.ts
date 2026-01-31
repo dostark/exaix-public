@@ -14,14 +14,20 @@
 
 import { PortalDetails, PortalInfo } from "../cli/portal_commands.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
-import { ConfirmDialog, type DialogBase } from "./utils/dialog_base.ts";
-import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
-import type { KeyBinding } from "./utils/keyboard.ts";
-import { KeyBindingCategory, KEYS } from "./utils/keyboard.ts";
+import { ConfirmDialog, type DialogBase } from "../helpers/dialog_base.ts";
+import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import type { KeyBinding } from "../helpers/keyboard.ts";
+import { KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import { createGroupNode, createNode, flattenTree, type TreeNode, type TreeRenderOptions } from "./utils/tree_view.ts";
+import {
+  createGroupNode,
+  createNode,
+  flattenTree,
+  type TreeNode,
+  type TreeRenderOptions,
+} from "../helpers/tree_view.ts";
 import { PortalStatus, TuiIcon } from "../enums.ts";
-import { TUI_LAYOUT_NARROW_WIDTH, TUI_PORTAL_ICONS } from "./utils/constants.ts";
+import { TUI_LAYOUT_NARROW_WIDTH, TUI_PORTAL_ICONS } from "../helpers/constants.ts";
 
 // ===== Portal View Extensions =====
 

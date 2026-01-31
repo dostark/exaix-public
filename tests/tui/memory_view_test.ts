@@ -18,7 +18,7 @@ import { MemoryScope, MemoryStatus } from "../../src/enums.ts";
 import { MemoryView, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
 import { MockMemoryService } from "../../src/tui/tui_dashboard_mocks.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Test Setup =====
 

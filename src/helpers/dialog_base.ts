@@ -8,10 +8,11 @@
  */
 
 import { ANSI, colorize, getTheme, padEnd, type TuiTheme, visibleLength } from "./colors.ts";
+import { renderDialogButtons, renderDialogLine, renderDialogTitle, renderEmptyDialogLine } from "./dialog_rendering.ts";
 
 // ===== Dialog Types =====
 
-import { DialogStatus } from "../../enums.ts";
+import { DialogStatus } from "../enums.ts";
 import { KEYS } from "./keyboard.ts";
 
 export type DialogState = DialogStatus;
@@ -157,12 +158,10 @@ export class ConfirmDialog extends DialogBase<boolean> {
     const lines: string[] = [];
 
     // Top border with title
-    const titleLine = ` ${this.options.title} `;
-    const topBorder = renderBoxTop(innerWidth, titleLine, theme);
-    lines.push(topBorder);
+    lines.push(renderDialogTitle(this.options.title, innerWidth, theme));
 
     // Empty line
-    lines.push(renderBoxLine("", innerWidth, theme));
+    lines.push(renderEmptyDialogLine(innerWidth, theme));
 
     // Message lines
     const messages = Array.isArray(this.options.message)
@@ -170,31 +169,21 @@ export class ConfirmDialog extends DialogBase<boolean> {
       : wrapToWidth(this.options.message, innerWidth - 4);
 
     for (const msg of messages) {
-      lines.push(renderBoxLine(`  ${msg}`, innerWidth, theme));
+      lines.push(renderDialogLine(`  ${msg}`, innerWidth, theme));
     }
 
     // Empty line
-    lines.push(renderBoxLine("", innerWidth, theme));
+    lines.push(renderEmptyDialogLine(innerWidth, theme));
 
     // Buttons
-    const confirmBtn = renderButton(
-      this.options.confirmText,
-      this.focusIndex === 0,
-      this.options.destructive,
-      theme,
-    );
-    const cancelBtn = renderButton(
-      this.options.cancelText,
-      this.focusIndex === 1,
-      false,
-      theme,
-    );
-
-    const buttonLine = `${confirmBtn}    ${cancelBtn}`;
-    lines.push(renderBoxLineCentered(buttonLine, innerWidth, theme));
+    const buttons = [
+      { text: this.options.confirmText, focused: this.focusIndex === 0 },
+      { text: this.options.cancelText, focused: this.focusIndex === 1 },
+    ];
+    lines.push(renderDialogButtons(buttons, innerWidth, theme));
 
     // Empty line
-    lines.push(renderBoxLine("", innerWidth, theme));
+    lines.push(renderEmptyDialogLine(innerWidth, theme));
 
     // Bottom border
     lines.push(renderBoxBottom(innerWidth, theme));
@@ -340,13 +329,13 @@ export class InputDialog extends DialogBase<string> {
     const lines: string[] = [];
 
     // Top border with title
-    lines.push(renderBoxTop(innerWidth, ` ${this.options.title} `, theme));
+    lines.push(renderDialogTitle(this.options.title, innerWidth, theme));
 
     // Empty line
-    lines.push(renderBoxLine("", innerWidth, theme));
+    lines.push(renderEmptyDialogLine(innerWidth, theme));
 
     // Label
-    lines.push(renderBoxLine(`  ${this.options.label}:`, innerWidth, theme));
+    lines.push(renderDialogLine(`  ${this.options.label}:`, innerWidth, theme));
 
     // Input field
     const inputWidth = innerWidth - 6;
@@ -360,21 +349,21 @@ export class InputDialog extends DialogBase<string> {
       !this.value && !!this.options.placeholder,
       theme,
     );
-    lines.push(renderBoxLine(`  ${inputField}`, innerWidth, theme));
+    lines.push(renderDialogLine(`  ${inputField}`, innerWidth, theme));
 
     // Empty line
-    lines.push(renderBoxLine("", innerWidth, theme));
+    lines.push(renderEmptyDialogLine(innerWidth, theme));
 
     // Buttons
-    const canConfirm = !this.options.required || this.value.length > 0;
-    const confirmBtn = renderButton("OK", this.focusIndex === 1, false, theme, !canConfirm);
-    const cancelBtn = renderButton("Cancel", this.focusIndex === 2, false, theme);
-
-    const buttonLine = `${confirmBtn}    ${cancelBtn}`;
-    lines.push(renderBoxLineCentered(buttonLine, innerWidth, theme));
+    const _canConfirm = !this.options.required || this.value.length > 0;
+    const buttons = [
+      { text: "OK", focused: this.focusIndex === 1 },
+      { text: "Cancel", focused: this.focusIndex === 2 },
+    ];
+    lines.push(renderDialogButtons(buttons, innerWidth, theme));
 
     // Empty line
-    lines.push(renderBoxLine("", innerWidth, theme));
+    lines.push(renderEmptyDialogLine(innerWidth, theme));
 
     // Bottom border
     lines.push(renderBoxBottom(innerWidth, theme));
@@ -486,10 +475,10 @@ export class SelectDialog<T = string> extends DialogBase<T> {
     const lines: string[] = [];
 
     // Top border with title
-    lines.push(renderBoxTop(innerWidth, ` ${this.options.title} `, theme));
+    lines.push(renderDialogTitle(this.options.title, innerWidth, theme));
 
     // Empty line
-    lines.push(renderBoxLine("", innerWidth, theme));
+    lines.push(renderEmptyDialogLine(innerWidth, theme));
 
     // Options list
     const visibleOptions = this.options.options.slice(
@@ -506,7 +495,7 @@ export class SelectDialog<T = string> extends DialogBase<T> {
       const prefix = isSelected ? (listFocused ? "▶" : "•") : " ";
       const label = `${prefix} ${opt.label}`;
       const styledLabel = isSelected && listFocused ? colorize(label, theme.treeSelected, theme.reset) : label;
-      lines.push(renderBoxLine(`  ${styledLabel}`, innerWidth, theme));
+      lines.push(renderDialogLine(`  ${styledLabel}`, innerWidth, theme));
     }
 
     // Scroll indicator
@@ -520,17 +509,17 @@ export class SelectDialog<T = string> extends DialogBase<T> {
     }
 
     // Empty line
-    lines.push(renderBoxLine("", innerWidth, theme));
+    lines.push(renderEmptyDialogLine(innerWidth, theme));
 
     // Buttons
-    const confirmBtn = renderButton("Select", this.focusIndex === 1, false, theme);
-    const cancelBtn = renderButton("Cancel", this.focusIndex === 2, false, theme);
-
-    const buttonLine = `${confirmBtn}    ${cancelBtn}`;
-    lines.push(renderBoxLineCentered(buttonLine, innerWidth, theme));
+    const buttons = [
+      { text: "Select", focused: this.focusIndex === 1 },
+      { text: "Cancel", focused: this.focusIndex === 2 },
+    ];
+    lines.push(renderDialogButtons(buttons, innerWidth, theme));
 
     // Empty line
-    lines.push(renderBoxLine("", innerWidth, theme));
+    lines.push(renderEmptyDialogLine(innerWidth, theme));
 
     // Bottom border
     lines.push(renderBoxBottom(innerWidth, theme));

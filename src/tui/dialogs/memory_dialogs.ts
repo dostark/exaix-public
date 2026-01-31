@@ -1,6 +1,6 @@
 import type { MemoryUpdateProposal } from "../../schemas/memory_bank.ts";
-import { TUI_LAYOUT_DIALOG_WIDTH } from "../utils/constants.ts";
-import { KEYS } from "../utils/keyboard.ts";
+import { TUI_LAYOUT_DIALOG_WIDTH } from "../../helpers/constants.ts";
+import { KEYS } from "../../helpers/keyboard.ts";
 import {
   DialogBase,
   type DialogRenderOptions,
@@ -10,7 +10,7 @@ import {
   renderDialogEnding,
   renderProposalInfo,
   setupDialogRender,
-} from "../utils/dialog_base.ts";
+} from "../../helpers/dialog_base.ts";
 
 // ===== Dialog Types =====
 

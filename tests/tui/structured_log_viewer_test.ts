@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { type StructuredLogService, StructuredLogViewer } from "../../src/tui/structured_log_viewer.ts";
 import type { LogEntry, StructuredLogger } from "../../src/services/structured_logger.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // Mock Service
 class MockLogService implements StructuredLogService {

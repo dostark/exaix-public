@@ -1,135 +1,50 @@
 import { Request } from "../../src/tui/request_manager_view.ts";
-import { ExecutionStatus, MemorySource, MemoryStatus, PlanStatus, SkillStatus } from "../../src/enums.ts";
+import { MemorySource, MemoryStatus, SkillStatus } from "../../src/enums.ts";
 import { LegacyRequestManagerTuiSession, RequestManagerView } from "../../src/tui/request_manager_view.ts";
-
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { MonitorView } from "../../src/tui/monitor_view.ts";
 import { MinimalPlanServiceMock, PlanReviewerTuiSession } from "../../src/tui/plan_reviewer_view.ts";
+import { commonTestData, requestFactory } from "../helpers/test_utils.ts";
 
-export function sampleRequest(overrides: Record<string, any> = {}): Request {
-  return {
-    trace_id: overrides.trace_id ?? `req-${Math.floor(Math.random() * 1e6)}`,
-    filename: overrides.filename ?? "request.md",
-    title: overrides.title ?? "Request",
-    status: overrides.status ?? MemoryStatus.PENDING,
-    priority: overrides.priority ?? "normal",
-    agent: overrides.agent ?? "default",
-    created: overrides.created ?? new Date().toISOString(),
-    created_by: overrides.created_by ?? "test@example.com",
-    source: overrides.source ?? "cli",
+// Counter for deterministic IDs in tests
+let requestIdCounter = 1;
+
+// Use shared test data factories with deterministic IDs
+export const sampleRequest = (overrides: Record<string, any> = {}): Request => {
+  const deterministicOverrides = {
+    trace_id: `req-${requestIdCounter++}`,
     ...overrides,
-  } as Request;
-}
+  };
+  return requestFactory.create(deterministicOverrides) as Request;
+};
 
-export function sampleRequests(arr: Array<Record<string, any>>): Request[] {
-  return arr.map((a) => sampleRequest(a));
-}
+export const sampleRequests = (arr: Array<Record<string, any>>): Request[] => arr.map((a) => sampleRequest(a));
 
-export function sampleTestRequests() {
-  return sampleRequests([
-    {
-      trace_id: "req-1",
-      filename: "request-1.md",
-      title: "Request 1",
-      status: MemoryStatus.PENDING,
-      priority: "normal",
-      agent: "default",
-      created: "2025-12-23T10:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
-    },
-    {
-      trace_id: "req-2",
-      filename: "request-2.md",
-      title: "Request 2",
-      status: ExecutionStatus.COMPLETED,
-      priority: "high",
-      agent: "other",
-      created: "2025-12-23T11:00:00Z",
-      created_by: "test@example.com",
-      source: "cli",
-    },
-  ]);
-}
+export const sampleTestRequests = () => commonTestData.requests.basic();
 
-export function sampleBasicRequest() {
-  return sampleRequests([
-    {
-      trace_id: "req-1",
-      title: "Request 1",
-    },
-  ]);
-}
+export const sampleBasicRequest = () => commonTestData.requests.basic();
 
-export function sampleTwoRequests() {
-  return sampleRequests([
-    {
-      trace_id: "req-1",
-      title: "Request 1",
-    },
-    {
-      trace_id: "req-2",
-      title: "Request 2",
-    },
-  ]);
-}
+export const sampleTwoRequests = () => commonTestData.requests.two();
 
-export function sampleGroupedRequests() {
-  return sampleRequests([
-    {
-      trace_id: "req-1",
-      title: "Request 1",
-    },
-    {
-      trace_id: "req-2",
-      title: "Request 2",
-      status: ExecutionStatus.COMPLETED,
-      priority: "high",
-      agent: "other",
-    },
-  ]);
-}
+export const sampleGroupedRequests = () => commonTestData.requests.grouped();
 
-export function sampleNewRequest() {
-  return sampleRequests([
-    {
-      trace_id: "new-req",
-      title: "New Request",
-    },
-  ]);
-}
+export const sampleNewRequest = () => [sampleRequest({ trace_id: "new-req", title: "New Request" })];
 
-// -------------------------
-// Plan reviewer helpers
-// -------------------------
-export function sampleBasicPlans() {
-  return [
-    { id: "plan1", title: "Plan 1" },
-    { id: "plan2", title: "Plan 2" },
-    { id: "plan3", title: "Plan 3" },
-  ];
-}
+// Plan helpers using shared utilities
+export const sampleBasicPlans = () => commonTestData.plans.basic();
 
-export function sampleSinglePlan() {
-  return [
-    { id: "plan1", title: "Plan 1" },
-  ];
-}
+export const sampleSinglePlan = () => commonTestData.plans.single();
 
-export function samplePlansWithStatuses() {
-  return [
-    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
-    { id: "p2", title: "Plan 2", status: PlanStatus.APPROVED },
-    { id: "p3", title: "Plan 3", status: PlanStatus.REJECTED },
-  ];
-}
+export const samplePlansWithStatuses = () => commonTestData.plans.withStatuses();
 
-export function samplePendingPlans() {
-  return [
-    { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
-    { id: "p2", title: "Plan 2", status: PlanStatus.REVIEW },
-  ];
-}
+export const samplePendingPlans = () => commonTestData.plans.pending();
+
+// Skill helpers using shared utilities
+export const sampleBasicSkills = () => commonTestData.skills.basic;
+
+export const sampleSingleSkill = () => commonTestData.skills.single;
+
+export const sampleSkillsWithStatuses = () => commonTestData.skills.withStatuses;
 
 export function createMockRequestService(initial: Array<Record<string, any>> = []) {
   class MockRequestService {
@@ -413,7 +328,7 @@ export function createPlanReviewerSession(plans: Array<Record<string, any>> = []
 // -------------------------
 // Tree view helpers
 // -------------------------
-import type { TreeNode } from "../../src/tui/utils/tree_view.ts";
+import type { TreeNode } from "../../src/helpers/tree_view.ts";
 
 export function createTestTree(): TreeNode[] {
   return [
@@ -560,17 +475,7 @@ export function createLegacyTuiSessionWithTracking() {
     },
     createRequest: () => {
       createCalled = true;
-      return Promise.resolve({
-        trace_id: "new-req",
-        filename: "request-new.md",
-        title: "New Request",
-        status: MemoryStatus.PENDING,
-        priority: "normal",
-        agent: "default",
-        created: new Date().toISOString(),
-        created_by: "test@example.com",
-        source: "cli",
-      } as any);
+      return Promise.resolve(commonTestData.mockObjects.newRequest() as any);
     },
     updateRequestStatus: () => {
       deleteCalled = true;

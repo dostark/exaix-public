@@ -25,7 +25,7 @@ import type {
 } from "../../src/schemas/memory_bank.ts";
 import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 class ExtendedMockMemoryService implements MemoryServiceInterface {
   private projects: string[] = ["TestPortal"];
   private projectMemories: Map<string, ProjectMemory | null> = new Map();

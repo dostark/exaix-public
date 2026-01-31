@@ -2,7 +2,7 @@ import { assert, assertEquals } from "@std/assert";
 import { PortalManagerView, PortalService } from "../../src/tui/portal_manager_view.ts";
 import { GeneralStatus, PortalStatus } from "../../src/enums.ts";
 import { createPortalTuiWithPortals } from "./helpers.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // Minimal PortalService mock for tests
 class MinimalPortalServiceMock implements PortalService {

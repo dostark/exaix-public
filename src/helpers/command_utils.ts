@@ -3,7 +3,7 @@
  * Helper functions for CLI commands
  */
 
-import { ValidationResult } from "../base/command.ts";
+import { ValidationResult } from "../cli/base/command.ts";
 
 export const CommandUtils = {
   /**

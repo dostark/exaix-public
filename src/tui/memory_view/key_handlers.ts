@@ -4,7 +4,7 @@
  */
 
 import type { TreeNode } from "./types.ts";
-import { KEYS } from "../utils/keyboard.ts";
+import { KEYS } from "../../helpers/keyboard.ts";
 import {
   MEMORY_SCOPE_EXECUTIONS,
   MEMORY_SCOPE_GLOBAL,

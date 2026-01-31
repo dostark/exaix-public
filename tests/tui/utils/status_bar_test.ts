@@ -25,10 +25,10 @@ import {
   type StatusBarConfig,
   type StatusBarItem,
   type StatusBarState,
-} from "../../../src/tui/utils/status_bar.ts";
-import { createSpinnerState, startSpinner } from "../../../src/tui/utils/spinner.ts";
-import { getTheme } from "../../../src/tui/utils/colors.ts";
-import { TUI_ICON_SUCCESS } from "../../../src/tui/utils/constants.ts";
+} from "../../../src/helpers/status_bar.ts";
+import { createSpinnerState, startSpinner } from "../../../src/helpers/spinner.ts";
+import { getTheme } from "../../../src/helpers/colors.ts";
+import { TUI_ICON_SUCCESS } from "../../../src/helpers/constants.ts";
 
 Deno.test("createStatusBarState: creates initial state", () => {
   const state = createStatusBarState();

@@ -7,7 +7,7 @@
  * - Display formatting options
  */
 
-import { TUI_LOG_ICONS } from "./utils/constants.ts";
+import { TUI_LOG_ICONS } from "../helpers/constants.ts";
 
 export const LOG_ICONS: Record<string, string> = {
   "request_created": TUI_LOG_ICONS["request_created"],

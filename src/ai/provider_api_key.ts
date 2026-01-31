@@ -1,5 +1,5 @@
 // Utility to get API key from env and optionally persist to SecureCredentialStore
-import { SecureCredentialStore } from "../utils/credential_security.ts";
+import { SecureCredentialStore } from "../helpers/credential_security.ts";
 
 /**
  * Get API key from environment variable, optionally persist to SecureCredentialStore if opted in.

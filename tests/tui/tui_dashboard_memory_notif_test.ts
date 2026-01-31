@@ -1,6 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { MemoryOperation, MemoryScope, MemoryStatus } from "../../src/enums.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 import { createTuiDashboardWithNotification } from "./dashboard_helper.ts";
 
 Deno.test("TUI Dashboard + Memory: handles memory update notifications", async () => {

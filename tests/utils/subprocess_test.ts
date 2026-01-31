@@ -5,7 +5,7 @@
  */
 
 import { assert, assertEquals, assertRejects } from "@std/assert";
-import { SafeSubprocess, SubprocessError, SubprocessTimeoutError } from "../../src/utils/subprocess.ts";
+import { SafeSubprocess, SubprocessError, SubprocessTimeoutError } from "../../src/helpers/subprocess.ts";
 
 Deno.test("SafeSubprocess: runs command successfully", async () => {
   const result = await SafeSubprocess.run("echo", ["hello"]);

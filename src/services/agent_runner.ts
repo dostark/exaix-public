@@ -11,7 +11,7 @@ import type { DatabaseService } from "./db.ts";
 import { createLLMRetryPolicy, type RetryPolicy, type RetryPolicyConfig, type RetryResult } from "./retry_policy.ts";
 import { createOutputValidator, OutputValidator, type ValidationMetrics } from "./output_validator.ts";
 import type { SkillsService } from "./skills.ts";
-import { extractKeywords } from "../utils/text.ts";
+import { extractKeywords } from "../helpers/text.ts";
 
 // Note: SkillMatchRequest may be used in future for direct skill matching
 // Keeping import for consistency with SkillsService integration

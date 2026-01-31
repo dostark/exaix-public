@@ -20,8 +20,8 @@ import {
   renderQuickHelp,
   scrollHelpDialog,
   toggleHelpDialog,
-} from "../../../src/tui/utils/help_renderer.ts";
-import type { KeyBinding } from "../../../src/tui/utils/keyboard.ts";
+} from "../../../src/helpers/help_renderer.ts";
+import type { KeyBinding } from "../../../src/helpers/keyboard.ts";
 
 // ===== renderHelpScreen tests =====
 

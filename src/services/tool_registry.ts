@@ -577,7 +577,7 @@ export class ToolRegistry {
    * - Otherwise, validate it's within allowed roots
    */
   private async resolvePath(path: string): Promise<string> {
-    const { PathSecurity, PathTraversalError, PathAccessError } = await import("../utils/path_security.ts");
+    const { PathSecurity, PathTraversalError, PathAccessError } = await import("../helpers/path_security.ts");
 
     // Use PathResolver for alias paths
     if (path.startsWith("@")) {

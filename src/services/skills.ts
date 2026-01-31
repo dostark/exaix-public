@@ -16,7 +16,7 @@ import { parse as parseYaml, stringify as stringifyYaml } from "@std/yaml";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import { MemoryScope, MemorySource, SkillStatus } from "../enums.ts";
-import { extractKeywords } from "../utils/text.ts";
+import { extractKeywords } from "../helpers/text.ts";
 import {
   type Skill,
   type SkillIndex,

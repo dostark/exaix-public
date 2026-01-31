@@ -7,7 +7,7 @@
  * - Output formatting options
  */
 
-import { TUI_PRIORITY_ICONS } from "../tui/utils/constants.ts";
+import { TUI_PRIORITY_ICONS } from "../helpers/constants.ts";
 
 export const MEMORY_COMMAND_DEFAULTS = {
   LIMIT: 20,

@@ -19,7 +19,7 @@ import type { DatabaseService } from "./db.ts";
 import type { ActivityRepository } from "../repositories/activity_repository.ts";
 import { LogLevel } from "../enums.ts";
 import { Actor, LogEvent } from "./common/types.ts";
-import { TUI_DEFAULT_ICONS } from "../tui/utils/constants.ts";
+import { TUI_DEFAULT_ICONS } from "../helpers/constants.ts";
 
 export type { Actor, LogEvent };
 

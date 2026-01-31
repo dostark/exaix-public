@@ -16,7 +16,7 @@ import {
   TIME_MS_PER_MINUTE,
   TIME_MS_PER_SECOND,
 } from "../config/constants.ts";
-import { colorize, type TuiTheme } from "./utils/colors.ts";
+import { colorize, type TuiTheme } from "../helpers/colors.ts";
 import type { LogEntry, LogLevel } from "../services/structured_logger.ts";
 
 /**

@@ -459,7 +459,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
     portalPath: string,
     authorizedFiles: string[],
   ): Promise<string[]> {
-    const { SafeSubprocess, SubprocessTimeoutError } = await import("../utils/subprocess.ts");
+    const { SafeSubprocess, SubprocessTimeoutError } = await import("../helpers/subprocess.ts");
 
     try {
       // Get git status with timeout protection
@@ -592,7 +592,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
     portalPath: string,
     unauthorizedFiles: string[],
   ): Promise<void> {
-    const { SafeSubprocess } = await import("../utils/subprocess.ts");
+    const { SafeSubprocess } = await import("../helpers/subprocess.ts");
 
     if (unauthorizedFiles.length === 0) return;
 
@@ -702,7 +702,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
     portalPath: string,
     authorizedFiles: string[],
   ): Promise<{ reverted: string[]; failed: string[] }> {
-    const { SafeSubprocess } = await import("../utils/subprocess.ts");
+    const { SafeSubprocess } = await import("../helpers/subprocess.ts");
 
     // 1. Acquire lock to prevent concurrent access
     const lockFile = join(portalPath, ".exo-git-lock");
@@ -848,7 +848,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
    * Get latest commit SHA from git log
    */
   async getLatestCommitSha(portalPath: string): Promise<string> {
-    const { SafeSubprocess } = await import("../utils/subprocess.ts");
+    const { SafeSubprocess } = await import("../helpers/subprocess.ts");
 
     const result = await SafeSubprocess.run("git", ["log", "-1", "--format=%H"], {
       cwd: portalPath,
@@ -866,7 +866,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
    * Get changed files from git diff
    */
   async getChangedFiles(portalPath: string): Promise<string[]> {
-    const { SafeSubprocess } = await import("../utils/subprocess.ts");
+    const { SafeSubprocess } = await import("../helpers/subprocess.ts");
 
     const result = await SafeSubprocess.run("git", ["diff", "--name-only"], {
       cwd: portalPath,

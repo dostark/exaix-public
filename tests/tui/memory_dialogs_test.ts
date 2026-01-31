@@ -31,7 +31,7 @@ import {
   PromoteDialog,
 } from "../../src/tui/dialogs/memory_dialogs.ts";
 import type { MemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Test Fixtures =====
 

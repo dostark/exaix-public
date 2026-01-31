@@ -34,9 +34,9 @@ import {
   ConfirmRejectDialog,
   PromoteDialog,
 } from "./dialogs/memory_dialogs.ts";
-import { type DialogBase } from "./utils/dialog_base.ts";
-import { renderSpinner } from "./utils/markdown_renderer.ts";
-import { KEYS } from "./utils/keyboard.ts";
+import { type DialogBase } from "../helpers/dialog_base.ts";
+import { renderSpinner } from "../helpers/markdown_renderer.ts";
+import { KEYS } from "../helpers/keyboard.ts";
 import { MemoryTuiScope } from "../config/constants.ts";
 import { MEMORY_STALE_MS } from "./tui.config.ts";
 

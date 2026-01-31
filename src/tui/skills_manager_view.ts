@@ -13,11 +13,11 @@
 
 import { MemorySource, SkillStatus } from "../enums.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
-import { type DialogBase } from "./utils/dialog_base.ts";
-import { KeyBinding, KeyBindingCategory } from "./utils/keyboard.ts";
+import { type DialogBase } from "../helpers/dialog_base.ts";
+import { KeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "./utils/tree_view.ts";
-import { type HelpSection, renderHelpScreen } from "./utils/help_renderer.ts";
+import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "../helpers/tree_view.ts";
+import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import {
   TUI_LAYOUT_DIALOG_WIDTH,
   TUI_LAYOUT_MEDIUM_WIDTH,
@@ -25,8 +25,8 @@ import {
   TUI_SKILL_ICON,
   TUI_SOURCE_ICONS,
   TUI_STATUS_ICONS,
-} from "./utils/constants.ts";
-import { KEYS } from "./utils/keyboard.ts";
+} from "../helpers/constants.ts";
+import { KEYS } from "../helpers/keyboard.ts";
 
 // ===== Service Interface =====
 

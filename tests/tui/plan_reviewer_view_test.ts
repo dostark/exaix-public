@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { MemoryStatus, PlanStatus } from "../../src/enums.ts";
 import { ExoPathDefaults } from "../../src/config/constants.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 import {
   DbLikePlanServiceAdapter,

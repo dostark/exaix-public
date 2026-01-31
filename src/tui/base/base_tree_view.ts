@@ -17,12 +17,12 @@
  * - Loading state management
  */
 
-import { KEYS } from "../utils/keyboard.ts";
+import { KEYS } from "../../helpers/keyboard.ts";
 import { TuiSessionBase } from "../tui_common.ts";
-import type { DialogBase } from "../utils/dialog_base.ts";
-import { ConfirmDialog, InputDialog } from "../utils/dialog_base.ts";
-import type { KeyBinding } from "../utils/keyboard.ts";
-import { nextFrame, renderSpinner, type SpinnerState, startSpinner, stopSpinner } from "../utils/spinner.ts";
+import type { DialogBase } from "../../helpers/dialog_base.ts";
+import { ConfirmDialog, InputDialog } from "../../helpers/dialog_base.ts";
+import type { KeyBinding } from "../../helpers/keyboard.ts";
+import { nextFrame, renderSpinner, type SpinnerState, startSpinner, stopSpinner } from "../../helpers/spinner.ts";
 import {
   collapseAll,
   expandAll,
@@ -33,7 +33,7 @@ import {
   toggleNode,
   type TreeNode,
   type TreeRenderOptions,
-} from "../utils/tree_view.ts";
+} from "../../helpers/tree_view.ts";
 import { createTreeViewState, type TreeViewState } from "./tree_view_state.ts";
 
 /**

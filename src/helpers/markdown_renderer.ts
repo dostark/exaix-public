@@ -7,7 +7,7 @@
  * Supports: headers, bold, italic, code blocks, lists, links.
  */
 
-import { ConfidenceLevel } from "../../enums.ts";
+import { ConfidenceLevel } from "../enums.ts";
 import { TUI_LAYOUT_FULL_WIDTH } from "./constants.ts";
 
 // ===== ANSI Styles =====

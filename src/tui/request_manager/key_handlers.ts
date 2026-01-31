@@ -3,10 +3,10 @@
  * Extracted from request_manager_view.ts to reduce complexity
  */
 
-import { KEYS } from "../utils/keyboard.ts";
+import { KEYS } from "../../helpers/keyboard.ts";
 import { TuiNodeType } from "../../enums.ts";
-import type { TreeNode } from "../utils/tree_view.ts";
-import { collapseAll, expandAll, findNode, flattenTree, toggleNode } from "../utils/tree_view.ts";
+import type { TreeNode } from "../../helpers/tree_view.ts";
+import { collapseAll, expandAll, findNode, flattenTree, toggleNode } from "../../helpers/tree_view.ts";
 
 /**
  * Navigation handler for tree navigation

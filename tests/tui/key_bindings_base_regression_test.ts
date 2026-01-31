@@ -7,7 +7,7 @@
 
 import { assertEquals } from "@std/assert";
 import { KeyBindingsBase } from "../../src/tui/base/key_bindings_base.ts";
-import { KeyBinding } from "../../src/tui/utils/keyboard.ts";
+import { KeyBinding } from "../../src/helpers/keyboard.ts";
 
 // Test implementation of KeyBindingsBase
 class TestKeyBindings extends KeyBindingsBase {

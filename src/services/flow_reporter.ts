@@ -10,7 +10,7 @@ import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import type { FlowResult } from "../flows/flow_runner.ts";
 import type { Flow } from "../schemas/flow.ts";
-import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../tui/utils/constants.ts";
+import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../helpers/constants.ts";
 
 // ============================================================================
 // Types and Interfaces

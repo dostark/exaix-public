@@ -9,9 +9,9 @@
  * - NamedLayoutDialog for saving/loading named layouts
  */
 
-import { KEYS } from "../utils/keyboard.ts";
-import { colorize, type TuiTheme } from "../utils/colors.ts";
-import { TUI_DASHBOARD_ICONS } from "../utils/constants.ts";
+import { KEYS } from "../../helpers/keyboard.ts";
+import { colorize, type TuiTheme } from "../../helpers/colors.ts";
+import { TUI_DASHBOARD_ICONS } from "../../helpers/constants.ts";
 
 // ===== View Picker Dialog =====
 

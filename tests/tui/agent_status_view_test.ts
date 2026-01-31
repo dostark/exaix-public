@@ -21,7 +21,7 @@ import {
 } from "../../src/tui/agent_status_view.ts";
 import { AgentHealth, AgentStatus, TuiGroupBy } from "../../src/enums.ts";
 import { CritiqueSeverity } from "../../src/enums.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Mock AgentService for testing =====
 

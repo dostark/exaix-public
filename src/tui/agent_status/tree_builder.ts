@@ -3,7 +3,7 @@
  * Extracted from agent_status_view.ts to reduce complexity
  */
 
-import { createGroupNode, createNode, type TreeNode } from "../utils/tree_view.ts";
+import { createGroupNode, createNode, type TreeNode } from "../../helpers/tree_view.ts";
 import type { AgentStatusItem } from "../agent_status_view.ts";
 import {
   AGENT_STATUS_ACTIVE,
@@ -18,7 +18,7 @@ import {
   TUI_NODE_TYPE_AGENT,
   TUI_NODE_TYPE_MODEL_GROUP,
   TUI_NODE_TYPE_STATUS_GROUP,
-} from "../utils/constants.ts";
+} from "../../helpers/constants.ts";
 
 const AGENT_STATUS_ICONS: Record<string, string> = {
   [AGENT_STATUS_ACTIVE]: TUI_AGENT_STATUS_ICONS.active,

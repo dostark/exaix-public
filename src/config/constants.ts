@@ -388,9 +388,9 @@ export const DEFAULT_GOOGLE_ENDPOINT = "https://generativelanguage.googleapis.co
 export const DEFAULT_SUBPROCESS_TIMEOUT_MS = 30000;
 
 // ============================================================================
-// Keyboard Key Constants - DEPRECATED: Use KEYS from src/tui/utils/keyboard.ts
+// Keyboard Key Constants - DEPRECATED: Use KEYS from src/t../helpers/keyboard.ts
 // ============================================================================
-// All KEY_ constants have been moved to the KEYS object in src/tui/utils/keyboard.ts
+// All KEY_ constants have been moved to the KEYS object in src/t../helpers/keyboard.ts
 // for better type safety and consistency. Please import from there instead.
 
 // ============================================================================

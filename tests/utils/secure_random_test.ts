@@ -3,7 +3,7 @@
  */
 
 import { assert, assertEquals, assertFalse, assertMatch, assertNotEquals } from "@std/assert";
-import { SecureRandom } from "../../src/utils/secure_random.ts";
+import { SecureRandom } from "../../src/helpers/secure_random.ts";
 
 Deno.test("SecureRandom: generates cryptographically secure bytes", () => {
   const bytes = SecureRandom.getRandomBytes(32);

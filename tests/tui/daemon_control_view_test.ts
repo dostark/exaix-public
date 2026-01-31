@@ -17,7 +17,7 @@ import {
   DaemonViewState,
   MinimalDaemonServiceMock,
 } from "../../src/tui/daemon_control_view.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Mock CLI Daemon Service for testing (no real process spawn) =====
 

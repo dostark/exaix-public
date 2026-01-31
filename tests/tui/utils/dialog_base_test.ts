@@ -17,10 +17,10 @@ import {
   renderButton,
   SelectDialog,
   wrapToWidth,
-} from "../../../src/tui/utils/dialog_base.ts";
-import { getTheme } from "../../../src/tui/utils/colors.ts";
+} from "../../../src/helpers/dialog_base.ts";
+import { getTheme } from "../../../src/helpers/colors.ts";
 import { createMockDialogRenderOptions } from "../helpers.ts";
-import { KEYS } from "../../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../../src/helpers/keyboard.ts";
 
 // ===== Box Characters Tests =====
 

@@ -16,7 +16,7 @@ import {
   LOG_LEVEL_COLORS,
   MinimalDaemonServiceMock,
 } from "../../src/tui/daemon_control_view.ts";
-import { KEYS } from "../../src/tui/utils/keyboard.ts";
+import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // Helper for setting up daemon view tests
 async function setupDaemonTest(options: {

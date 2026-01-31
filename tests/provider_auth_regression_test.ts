@@ -11,7 +11,7 @@ import { assertEquals, assertRejects } from "@std/assert";
 import { AnthropicProviderFactory, GoogleProviderFactory, OpenAIProviderFactory } from "../src/ai/provider_registry.ts";
 import { ResolvedProviderOptions } from "../src/ai/provider_factory.ts";
 import { MockStrategy, ProviderType } from "../src/enums.ts";
-import { SecureCredentialStore } from "../src/utils/credential_security.ts";
+import { SecureCredentialStore } from "../src/helpers/credential_security.ts";
 import * as TEST_CONSTANTS from "./config/constants.ts";
 
 const TEST_KEY_ANTHROPIC = "sk-ant-test-key";

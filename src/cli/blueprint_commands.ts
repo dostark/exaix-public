@@ -16,7 +16,7 @@ import { parse as parseToml, stringify as stringifyToml } from "@std/toml";
 import { BaseCommand } from "./base.ts";
 import { ValidationChain } from "./validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
-import { CommandUtils } from "./utils/command_utils.ts";
+import { CommandUtils } from "../helpers/command_utils.ts";
 import {
   type BlueprintCreateResult,
   type BlueprintDetails,
