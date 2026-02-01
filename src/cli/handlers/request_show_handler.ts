@@ -21,48 +21,7 @@ export class RequestShowHandler extends BaseCommand {
       throw new Error(`Request not found: ${idOrFilename}`);
     }
 
-    // Try to find the request
-    let matchingFile: string | null = null;
-    let matchingFrontmatter: Record<string, string> | null = null;
-
-    for await (const entry of Deno.readDir(this.workspaceRequestsDir)) {
-      if (!entry.isFile || !entry.name.endsWith(".md")) {
-        continue;
-      }
-
-      const filePath = join(this.workspaceRequestsDir, entry.name);
-      const content = await Deno.readTextFile(filePath);
-      const frontmatter = this.extractFrontmatter(content);
-
-      // Match by filename
-      if (entry.name === idOrFilename) {
-        matchingFile = filePath;
-        matchingFrontmatter = frontmatter;
-        break;
-      }
-
-      // Match by full trace_id
-      if (frontmatter.trace_id === idOrFilename) {
-        matchingFile = filePath;
-        matchingFrontmatter = frontmatter;
-        break;
-      }
-
-      // Match by short trace_id (first 8 chars)
-      if (frontmatter.trace_id && frontmatter.trace_id.startsWith(idOrFilename)) {
-        if (matchingFile) {
-          // Ambiguous match - multiple requests match the short ID
-          throw new Error(`Ambiguous request ID: ${idOrFilename}. Please use a longer ID.`);
-        }
-        matchingFile = filePath;
-        matchingFrontmatter = frontmatter;
-        // Continue to check for ambiguity
-      }
-    }
-
-    if (!matchingFile || !matchingFrontmatter) {
-      throw new Error(`Request not found: ${idOrFilename}`);
-    }
+    const { matchingFile, matchingFrontmatter } = await this.findMatchingRequestFile(idOrFilename);
 
     // Read full content
     const fullContent = await Deno.readTextFile(matchingFile);
@@ -88,5 +47,38 @@ export class RequestShowHandler extends BaseCommand {
       },
       content: body,
     };
+  }
+
+  private async findMatchingRequestFile(
+    idOrFilename: string,
+  ): Promise<{ matchingFile: string; matchingFrontmatter: Record<string, string> }> {
+    let matchingFile: string | null = null;
+    let matchingFrontmatter: Record<string, string> | null = null;
+
+    for await (const entry of Deno.readDir(this.workspaceRequestsDir)) {
+      if (!entry.isFile || !entry.name.endsWith(".md")) continue;
+
+      const filePath = join(this.workspaceRequestsDir, entry.name);
+      const content = await Deno.readTextFile(filePath);
+      const frontmatter = this.extractFrontmatter(content);
+
+      if (entry.name === idOrFilename || frontmatter.trace_id === idOrFilename) {
+        return { matchingFile: filePath, matchingFrontmatter: frontmatter };
+      }
+
+      if (frontmatter.trace_id && frontmatter.trace_id.startsWith(idOrFilename)) {
+        if (matchingFile) {
+          throw new Error(`Ambiguous request ID: ${idOrFilename}. Please use a longer ID.`);
+        }
+        matchingFile = filePath;
+        matchingFrontmatter = frontmatter;
+      }
+    }
+
+    if (!matchingFile || !matchingFrontmatter) {
+      throw new Error(`Request not found: ${idOrFilename}`);
+    }
+
+    return { matchingFile, matchingFrontmatter };
   }
 }

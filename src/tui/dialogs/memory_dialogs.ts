@@ -293,43 +293,53 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
 
     switch (this.activeField) {
       case 0: // title
-        if (key === KEYS.BACKSPACE) {
-          this.title = this.title.slice(0, -1);
-        } else if (key.length === 1) {
-          this.title += key;
-        }
+        this.title = this.applyTextInputKey(this.title, key);
         break;
       case 1: // category - cycle through
-        if (key === KEYS.LEFT || key === KEYS.RIGHT || key.length === 1) {
-          const idx = this.categories.indexOf(this.category);
-          this.category = this.categories[(idx + 1) % this.categories.length];
-        }
+        this.category = this.applyCategoryKey(this.category, key);
         break;
       case 2: // content
-        if (key === KEYS.BACKSPACE) {
-          this.content = this.content.slice(0, -1);
-        } else if (key.length === 1) {
-          this.content += key;
-        }
+        this.content = this.applyTextInputKey(this.content, key);
         break;
       case 3: // tags
-        if (key === KEYS.BACKSPACE) {
-          this.tags = this.tags.slice(0, -1);
-        } else if (key.length === 1) {
-          this.tags += key;
-        }
+        this.tags = this.applyTextInputKey(this.tags, key);
         break;
       case 4: // scope
         this.scope = this.scope === "global" ? "project" : "global";
         break;
       case 5: // portal
-        if (key === KEYS.BACKSPACE) {
-          this.portal = this.portal.slice(0, -1);
-        } else if (key.length === 1) {
-          this.portal += key;
-        }
+        this.portal = this.applyTextInputKey(this.portal, key);
         break;
     }
+  }
+
+  private applyTextInputKey(current: string, key: string): string {
+    if (key === KEYS.BACKSPACE) return current.slice(0, -1);
+    if (key.length === 1) return current + key;
+    return current;
+  }
+
+  private applyCategoryKey(current: string, key: string): string {
+    if (key !== KEYS.LEFT && key !== KEYS.RIGHT && key.length !== 1) return current;
+    const idx = this.categories.indexOf(current);
+    return this.categories[(idx + 1) % this.categories.length];
+  }
+
+  private fieldLabel(fieldIndex: number, label: string): string {
+    return this.activeField === fieldIndex ? `[${label}]:` : ` ${label}: `;
+  }
+
+  private fieldDisplayValue(fieldIndex: number, value: string, placeholder: string): string {
+    if (value) return value;
+    if (this.editMode && this.activeField === fieldIndex) return "│";
+    return placeholder;
+  }
+
+  private renderPortalField(innerWidth: number): string[] {
+    if (this.scope !== "project") return [];
+    const portalLabel = this.fieldLabel(5, "Portal");
+    const portalValue = this.fieldDisplayValue(5, this.portal, "(required)");
+    return [`│  ${portalLabel} ${portalValue.slice(0, innerWidth - 12).padEnd(innerWidth - 11)}│`];
   }
 
   private validate(): boolean {
@@ -367,34 +377,30 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
     lines.push(`│${" ".repeat(innerWidth)}│`);
 
     // Title
-    const titleLabel = this.activeField === 0 ? "[Title]:" : " Title: ";
-    const titleValue = this.title || (this.editMode && this.activeField === 0 ? "│" : "(required)");
+    const titleLabel = this.fieldLabel(0, "Title");
+    const titleValue = this.fieldDisplayValue(0, this.title, "(required)");
     lines.push(`│  ${titleLabel} ${titleValue.slice(0, innerWidth - 12).padEnd(innerWidth - 11)}│`);
 
     // Category
-    const catLabel = this.activeField === 1 ? "[Category]:" : " Category: ";
+    const catLabel = this.fieldLabel(1, "Category");
     lines.push(`│  ${catLabel} ${this.category.padEnd(innerWidth - 14)}│`);
 
     // Content
-    const contLabel = this.activeField === 2 ? "[Content]:" : " Content: ";
-    const contValue = this.content || (this.editMode && this.activeField === 2 ? "│" : "(optional)");
+    const contLabel = this.fieldLabel(2, "Content");
+    const contValue = this.fieldDisplayValue(2, this.content, "(optional)");
     lines.push(`│  ${contLabel} ${contValue.slice(0, innerWidth - 13).padEnd(innerWidth - 12)}│`);
 
     // Tags
-    const tagsLabel = this.activeField === 3 ? "[Tags]:" : " Tags: ";
-    const tagsValue = this.tags || (this.editMode && this.activeField === 3 ? "│" : "(comma-separated)");
+    const tagsLabel = this.fieldLabel(3, "Tags");
+    const tagsValue = this.fieldDisplayValue(3, this.tags, "(comma-separated)");
     lines.push(`│  ${tagsLabel} ${tagsValue.slice(0, innerWidth - 10).padEnd(innerWidth - 9)}│`);
 
     // Scope
-    const scopeLabel = this.activeField === 4 ? "[Scope]:" : " Scope: ";
+    const scopeLabel = this.fieldLabel(4, "Scope");
     lines.push(`│  ${scopeLabel} ${this.scope.padEnd(innerWidth - 11)}│`);
 
     // Portal (only if project scope)
-    if (this.scope === "project") {
-      const portalLabel = this.activeField === 5 ? "[Portal]:" : " Portal: ";
-      const portalValue = this.portal || (this.editMode && this.activeField === 5 ? "│" : "(required)");
-      lines.push(`│  ${portalLabel} ${portalValue.slice(0, innerWidth - 12).padEnd(innerWidth - 11)}│`);
-    }
+    lines.push(...this.renderPortalField(innerWidth));
 
     lines.push(`│${" ".repeat(innerWidth)}│`);
 

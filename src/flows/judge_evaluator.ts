@@ -100,77 +100,8 @@ export class JudgeEvaluator implements JudgeInvoker {
   ): EvaluationResult {
     const criteriaScores: EvaluationResult["criteriaScores"] = {};
 
-    // Try different response formats
     for (const criterion of criteria) {
-      const name = criterion.name;
-
-      // Check for direct criterion scores
-      if (parsed.criteriaScores && typeof parsed.criteriaScores === "object") {
-        const scores = parsed.criteriaScores as Record<string, unknown>;
-        if (scores[name] && typeof scores[name] === "object") {
-          const scoreObj = scores[name] as Record<string, unknown>;
-          criteriaScores[name] = {
-            name,
-            score: this.normalizeScore(scoreObj.score),
-            reasoning: String(scoreObj.reasoning || scoreObj.reason || ""),
-            issues: Array.isArray(scoreObj.issues) ? scoreObj.issues.map(String) : [],
-            passed: this.normalizeScore(scoreObj.score) >=
-              0.7,
-          };
-          continue;
-        }
-      }
-
-      // Check for scores object
-      if (parsed.scores && typeof parsed.scores === "object") {
-        const scores = parsed.scores as Record<string, unknown>;
-        if (name in scores) {
-          const score = this.normalizeScore(scores[name]);
-          criteriaScores[name] = {
-            name,
-            score,
-            reasoning: "",
-            issues: [],
-            passed: score >= 0.7,
-          };
-          continue;
-        }
-      }
-
-      // Check for direct criterion name at top level
-      if (name in parsed) {
-        const value = parsed[name];
-        if (typeof value === "object" && value !== null) {
-          const obj = value as Record<string, unknown>;
-          criteriaScores[name] = {
-            name,
-            score: this.normalizeScore(obj.score ?? obj.value ?? 0),
-            reasoning: String(obj.reasoning || obj.reason || obj.feedback || ""),
-            issues: Array.isArray(obj.issues) ? obj.issues.map(String) : [],
-            passed: this.normalizeScore(obj.score ?? obj.value ?? 0) >=
-              0.7,
-          };
-        } else {
-          const score = this.normalizeScore(value);
-          criteriaScores[name] = {
-            name,
-            score,
-            reasoning: "",
-            issues: [],
-            passed: score >= 0.7,
-          };
-        }
-        continue;
-      }
-
-      // Default: criterion not found
-      criteriaScores[name] = {
-        name,
-        score: 0,
-        reasoning: "Criterion not evaluated",
-        issues: ["Criterion score not found in response"],
-        passed: false,
-      };
+      criteriaScores[criterion.name] = this.extractCriterionScore(parsed, criterion);
     }
 
     // Calculate overall score
@@ -186,6 +117,100 @@ export class JudgeEvaluator implements JudgeInvoker {
       metadata: {
         evaluatedAt: new Date().toISOString(),
       },
+    };
+  }
+
+  private extractCriterionScore(
+    parsed: Record<string, unknown>,
+    criterion: EvaluationCriterion,
+  ): EvaluationResult["criteriaScores"][string] {
+    const name = criterion.name;
+
+    const fromCriteriaScores = this.extractCriterionFromCriteriaScores(parsed, name);
+    if (fromCriteriaScores) return fromCriteriaScores;
+
+    const fromScoresObject = this.extractCriterionFromScoresObject(parsed, name);
+    if (fromScoresObject) return fromScoresObject;
+
+    const fromTopLevel = this.extractCriterionFromTopLevel(parsed, name);
+    if (fromTopLevel) return fromTopLevel;
+
+    return {
+      name,
+      score: 0,
+      reasoning: "Criterion not evaluated",
+      issues: ["Criterion score not found in response"],
+      passed: false,
+    };
+  }
+
+  private extractCriterionFromCriteriaScores(
+    parsed: Record<string, unknown>,
+    name: string,
+  ): EvaluationResult["criteriaScores"][string] | null {
+    if (!parsed.criteriaScores || typeof parsed.criteriaScores !== "object") return null;
+
+    const scores = parsed.criteriaScores as Record<string, unknown>;
+    const raw = scores[name];
+    if (!raw || typeof raw !== "object") return null;
+
+    const scoreObj = raw as Record<string, unknown>;
+    const score = this.normalizeScore(scoreObj.score);
+
+    return {
+      name,
+      score,
+      reasoning: String(scoreObj.reasoning || scoreObj.reason || ""),
+      issues: Array.isArray(scoreObj.issues) ? scoreObj.issues.map(String) : [],
+      passed: score >= 0.7,
+    };
+  }
+
+  private extractCriterionFromScoresObject(
+    parsed: Record<string, unknown>,
+    name: string,
+  ): EvaluationResult["criteriaScores"][string] | null {
+    if (!parsed.scores || typeof parsed.scores !== "object") return null;
+
+    const scores = parsed.scores as Record<string, unknown>;
+    if (!(name in scores)) return null;
+
+    const score = this.normalizeScore(scores[name]);
+    return {
+      name,
+      score,
+      reasoning: "",
+      issues: [],
+      passed: score >= 0.7,
+    };
+  }
+
+  private extractCriterionFromTopLevel(
+    parsed: Record<string, unknown>,
+    name: string,
+  ): EvaluationResult["criteriaScores"][string] | null {
+    if (!(name in parsed)) return null;
+
+    const value = parsed[name];
+    if (typeof value === "object" && value !== null) {
+      const obj = value as Record<string, unknown>;
+      const score = this.normalizeScore(obj.score ?? obj.value ?? 0);
+      return {
+        name,
+        score,
+        reasoning: String(obj.reasoning || obj.reason || obj.feedback || ""),
+        issues: Array.isArray(obj.issues) ? obj.issues.map(String) : [],
+        passed: score >= 0.7,
+      };
+    }
+
+    const score = this.normalizeScore(value);
+    return {
+      name,
+      score,
+      reasoning: "",
+      issues: [],
+      passed: score >= 0.7,
     };
   }
 

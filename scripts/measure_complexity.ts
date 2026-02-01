@@ -71,6 +71,21 @@ const OUTPUT_JSON = !!flags.json;
 
 type Node = any;
 
+export function computeFileComplexityMetrics(
+  fnComplexities: number[],
+  topLevelComplexity: number,
+): {
+  fileComplexity: number;
+  fileComplexitySum: number;
+  maxFnComplexity: number;
+  topLevelComplexity: number;
+} {
+  const maxFnComplexity = fnComplexities.length > 0 ? Math.max(...fnComplexities) : 0;
+  const fileComplexity = Math.max(maxFnComplexity, topLevelComplexity);
+  const fileComplexitySum = fnComplexities.reduce((sum, c) => sum + c, 0) + topLevelComplexity;
+  return { fileComplexity, fileComplexitySum, maxFnComplexity, topLevelComplexity };
+}
+
 export function traverse(node: Node, cb: (n: Node, parent?: Node) => void, parent?: Node) {
   if (!node || typeof node !== "object") return;
   cb(node, parent);
@@ -170,7 +185,12 @@ async function runComplexityCheck() {
   let totalFiles = 0;
   let totalFunctions = 0;
   const fileSummaries: Array<
-    { path: string; fileComplexity: number; functions: Array<{ name: string; complexity: number; line?: number }> }
+    {
+      path: string;
+      fileComplexity: number;
+      fileComplexitySum: number;
+      functions: Array<{ name: string; complexity: number; line?: number }>;
+    }
   > = [];
 
   let babelParse: ((code: string, opts?: any) => any) | null = null;
@@ -247,7 +267,6 @@ async function runComplexityCheck() {
     }
 
     const fnResults: Array<{ name: string; complexity: number; line?: number }> = [];
-    let fileComplexity = 0;
 
     for (const fn of functions) {
       let c = 0;
@@ -259,7 +278,6 @@ async function runComplexityCheck() {
         c = 1;
       }
       fnResults.push({ name: fn.name, complexity: c, line: fn.line });
-      fileComplexity += c;
     }
 
     // Also compute top-level (module) complexity by traversing AST but skipping function bodies
@@ -305,11 +323,15 @@ async function runComplexityCheck() {
       topLevelComplexity = calculateComplexityFromText(content);
     }
 
-    fileComplexity += topLevelComplexity;
+    const { fileComplexity, fileComplexitySum } = computeFileComplexityMetrics(
+      fnResults.map((f) => f.complexity),
+      topLevelComplexity,
+    );
 
     fileSummaries.push({
       path: entry.path,
       fileComplexity,
+      fileComplexitySum,
       functions: fnResults.sort((a, b) => b.complexity - a.complexity),
     });
 
@@ -343,12 +365,12 @@ async function runComplexityCheck() {
     functions: Array<{ path: string; name: string; complexity: number; line?: number }>;
   } = { files: [], functions: [] };
   for (const f of fileSummaries) {
-    if (f.fileComplexity >= THRESHOLD) {
+    if (f.fileComplexity > THRESHOLD) {
       if (!OUTPUT_JSON) console.log(`  - File ${f.path}: ${f.fileComplexity}`);
       exceeding.files.push({ path: f.path, complexity: f.fileComplexity });
     }
     for (const fn of f.functions) {
-      if (fn.complexity >= THRESHOLD) {
+      if (fn.complexity > THRESHOLD) {
         if (!OUTPUT_JSON) {
           console.log(`    • Function ${fn.name} in ${f.path} (line ${fn.line ?? "?"}): ${fn.complexity}`);
         }

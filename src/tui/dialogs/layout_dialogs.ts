@@ -418,31 +418,8 @@ export function handleNamedLayoutKey(
 
   const newState = { ...state };
 
-  // Handle text input in save mode
-  if (state.mode === "save" && state.inputActive) {
-    if (key === KEYS.ENTER && state.inputName.trim()) {
-      newState.isOpen = false;
-      newState.inputActive = false;
-      return {
-        state: newState,
-        action: "save",
-        layoutName: state.inputName.trim(),
-        closed: true,
-      };
-    } else if (key === KEYS.ESCAPE || key === KEYS.ESCAPE) {
-      newState.isOpen = false;
-      newState.inputActive = false;
-      newState.inputName = "";
-      return { state: newState, closed: true };
-    } else if (key === KEYS.BACKSPACE) {
-      newState.inputName = state.inputName.slice(0, -1);
-      return { state: newState, closed: false };
-    } else if (key.length === 1 && /[a-zA-Z0-9_-]/.test(key)) {
-      newState.inputName = state.inputName + key;
-      return { state: newState, closed: false };
-    }
-    return { state: newState, closed: false };
-  }
+  const saveInputResult = handleSaveModeInputKey(state, newState, key);
+  if (saveInputResult) return saveInputResult;
 
   switch (key.toLowerCase()) {
     case KEYS.UP:
@@ -484,6 +461,49 @@ export function handleNamedLayoutKey(
     default:
       return { state: newState, closed: false };
   }
+}
+
+function handleSaveModeInputKey(
+  state: NamedLayoutDialogState,
+  newState: NamedLayoutDialogState,
+  key: string,
+): {
+  state: NamedLayoutDialogState;
+  action?: "save" | "load" | "delete";
+  layoutName?: string;
+  closed: boolean;
+} | null {
+  if (state.mode !== "save" || !state.inputActive) return null;
+
+  if (key === KEYS.ENTER && state.inputName.trim()) {
+    newState.isOpen = false;
+    newState.inputActive = false;
+    return {
+      state: newState,
+      action: "save",
+      layoutName: state.inputName.trim(),
+      closed: true,
+    };
+  }
+
+  if (key === KEYS.ESCAPE) {
+    newState.isOpen = false;
+    newState.inputActive = false;
+    newState.inputName = "";
+    return { state: newState, closed: true };
+  }
+
+  if (key === KEYS.BACKSPACE) {
+    newState.inputName = state.inputName.slice(0, -1);
+    return { state: newState, closed: false };
+  }
+
+  if (key.length === 1 && /[a-zA-Z0-9_-]/.test(key)) {
+    newState.inputName = state.inputName + key;
+    return { state: newState, closed: false };
+  }
+
+  return { state: newState, closed: false };
 }
 
 // ===== Pane Swap Indicator =====

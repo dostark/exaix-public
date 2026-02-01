@@ -683,16 +683,21 @@ export class DaemonControlTuiSession extends TuiSessionBase {
   // ===== Key Handling =====
 
   async handleKey(key: string): Promise<boolean> {
-    // Handle active dialog first
-    if (this.state.activeDialog) {
-      this.state.activeDialog.handleKey(key);
-      if (!this.state.activeDialog.isActive()) {
-        this.closeDialog();
-      }
-      return true;
-    }
+    if (this.handleDialogKey(key)) return true;
+    if (this.handleOverlayViewKey(key)) return true;
+    return await this.handleMainViewKey(key);
+  }
 
-    // Handle logs view
+  private handleDialogKey(key: string): boolean {
+    if (!this.state.activeDialog) return false;
+    this.state.activeDialog.handleKey(key);
+    if (!this.state.activeDialog.isActive()) {
+      this.closeDialog();
+    }
+    return true;
+  }
+
+  private handleOverlayViewKey(key: string): boolean {
     if (this.state.showLogs) {
       if (key === KEYS.ESCAPE || key === KEYS.Q) {
         this.hideLogs();
@@ -700,7 +705,6 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       return true;
     }
 
-    // Handle config view
     if (this.state.showConfig) {
       if (key === KEYS.ESCAPE || key === KEYS.Q) {
         this.hideConfig();
@@ -708,7 +712,6 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       return true;
     }
 
-    // Handle help view
     if (this.state.showHelp) {
       if (key === KEYS.ESCAPE || key === KEYS.Q || key === KEYS.QUESTION) {
         this.state.showHelp = false;
@@ -716,7 +719,10 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       return true;
     }
 
-    // Main view key handling
+    return false;
+  }
+
+  private async handleMainViewKey(key: string): Promise<boolean> {
     switch (key) {
       case KEYS.S:
         this.pendingDialogAction = "start";
@@ -745,8 +751,9 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       case KEYS.QUESTION:
         this.state.showHelp = true;
         return true;
+      default:
+        return false;
     }
-    return false;
   }
 
   // ===== Rendering =====

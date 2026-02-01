@@ -204,69 +204,83 @@ export class PlanAdapter {
    * Render the analysis section
    */
   private renderAnalysisSection(plan: Plan): string[] {
+    if (!plan.analysis) return [];
+
+    const sections: string[] = ["## Analysis Results", ""];
+    const analysis = plan.analysis as NonNullable<Plan["analysis"]>;
+
+    sections.push(...this.renderAnalysisBasics(analysis));
+    sections.push(...this.renderAnalysisModules(analysis));
+    sections.push(...this.renderAnalysisComponents(analysis));
+    sections.push(...this.renderAnalysisPatterns(analysis));
+    sections.push(...this.renderAnalysisMetrics(analysis));
+    sections.push(...this.renderAnalysisRecommendations(analysis));
+
+    return sections;
+  }
+
+  private renderAnalysisBasics(analysis: NonNullable<Plan["analysis"]>): string[] {
     const sections: string[] = [];
-
-    if (!plan.analysis) return sections;
-
-    sections.push("## Analysis Results", "");
-
-    // Basic metrics
-    if (plan.analysis.totalFiles) sections.push(`**Total Files:** ${plan.analysis.totalFiles}`);
-    if (plan.analysis.linesOfCode) sections.push(`**Lines of Code:** ${plan.analysis.linesOfCode}`);
-    if (plan.analysis.mainLanguage) sections.push(`**Main Language:** ${plan.analysis.mainLanguage}`);
-    if (plan.analysis.framework) sections.push(`**Framework:** ${plan.analysis.framework}`);
-    if (plan.analysis.types) sections.push(`**Type Definitions:** ${plan.analysis.types}`);
+    if (analysis.totalFiles) sections.push(`**Total Files:** ${analysis.totalFiles}`);
+    if (analysis.linesOfCode) sections.push(`**Lines of Code:** ${analysis.linesOfCode}`);
+    if (analysis.mainLanguage) sections.push(`**Main Language:** ${analysis.mainLanguage}`);
+    if (analysis.framework) sections.push(`**Framework:** ${analysis.framework}`);
+    if (analysis.types) sections.push(`**Type Definitions:** ${analysis.types}`);
     sections.push("");
+    return sections;
+  }
 
-    // Modules
-    if (plan.analysis.modules && plan.analysis.modules.length > 0) {
-      sections.push("### Modules", "");
-      plan.analysis.modules.forEach((m) => {
-        sections.push(`- **${m.name}**: ${m.purpose}`);
-        if (m.exports.length > 0) sections.push(`  - *Exports:* ${m.exports.join(", ")}`);
-        if (m.dependencies.length > 0) sections.push(`  - *Dependencies:* ${m.dependencies.join(", ")}`);
-      });
-      sections.push("");
-    }
+  private renderAnalysisModules(analysis: NonNullable<Plan["analysis"]>): string[] {
+    if (!analysis.modules || analysis.modules.length === 0) return [];
+    const sections: string[] = ["### Modules", ""];
+    analysis.modules.forEach((m) => {
+      sections.push(`- **${m.name}**: ${m.purpose}`);
+      if (m.exports.length > 0) sections.push(`  - *Exports:* ${m.exports.join(", ")}`);
+      if (m.dependencies.length > 0) sections.push(`  - *Dependencies:* ${m.dependencies.join(", ")}`);
+    });
+    sections.push("");
+    return sections;
+  }
 
-    // Components
-    if (plan.analysis.components && plan.analysis.components.length > 0) {
-      sections.push("### Key Components", "");
-      plan.analysis.components.forEach((c) => {
-        sections.push(`- **${c.name}** (${c.location}): ${c.purpose}`);
-        if (c.api) sections.push(`  - *API:* ${c.api}`);
-        if (c.dependencies && c.dependencies.length > 0) {
-          sections.push(`  - *Dependencies:* ${c.dependencies.join(", ")}`);
-        }
-      });
-      sections.push("");
-    }
+  private renderAnalysisComponents(analysis: NonNullable<Plan["analysis"]>): string[] {
+    if (!analysis.components || analysis.components.length === 0) return [];
+    const sections: string[] = ["### Key Components", ""];
+    analysis.components.forEach((c) => {
+      sections.push(`- **${c.name}** (${c.location}): ${c.purpose}`);
+      if (c.api) sections.push(`  - *API:* ${c.api}`);
+      if (c.dependencies && c.dependencies.length > 0) {
+        sections.push(`  - *Dependencies:* ${c.dependencies.join(", ")}`);
+      }
+    });
+    sections.push("");
+    return sections;
+  }
 
-    // Patterns
-    if (plan.analysis.patterns && plan.analysis.patterns.length > 0) {
-      sections.push("### Patterns Identified", "");
-      plan.analysis.patterns.forEach((p) => {
-        sections.push(`- **${p.pattern}** in \`${p.location}\`: ${p.usage}`);
-      });
-      sections.push("");
-    }
+  private renderAnalysisPatterns(analysis: NonNullable<Plan["analysis"]>): string[] {
+    if (!analysis.patterns || analysis.patterns.length === 0) return [];
+    const sections: string[] = ["### Patterns Identified", ""];
+    analysis.patterns.forEach((p) => {
+      sections.push(`- **${p.pattern}** in \`${p.location}\`: ${p.usage}`);
+    });
+    sections.push("");
+    return sections;
+  }
 
-    // Metrics
-    if (plan.analysis.metrics && plan.analysis.metrics.length > 0) {
-      sections.push("### Metrics", "");
-      plan.analysis.metrics.forEach((m) => {
-        sections.push(`- **${m.metric}**: ${m.value} - *${m.assessment}*`);
-      });
-      sections.push("");
-    }
+  private renderAnalysisMetrics(analysis: NonNullable<Plan["analysis"]>): string[] {
+    if (!analysis.metrics || analysis.metrics.length === 0) return [];
+    const sections: string[] = ["### Metrics", ""];
+    analysis.metrics.forEach((m) => {
+      sections.push(`- **${m.metric}**: ${m.value} - *${m.assessment}*`);
+    });
+    sections.push("");
+    return sections;
+  }
 
-    // Recommendations
-    if (plan.analysis.recommendations && plan.analysis.recommendations.length > 0) {
-      sections.push("### Recommendations", "");
-      plan.analysis.recommendations.forEach((r) => sections.push(`- ${r}`));
-      sections.push("");
-    }
-
+  private renderAnalysisRecommendations(analysis: NonNullable<Plan["analysis"]>): string[] {
+    if (!analysis.recommendations || analysis.recommendations.length === 0) return [];
+    const sections: string[] = ["### Recommendations", ""];
+    analysis.recommendations.forEach((r) => sections.push(`- ${r}`));
+    sections.push("");
     return sections;
   }
 
