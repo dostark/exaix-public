@@ -8,34 +8,146 @@ import { parse } from "https://deno.land/std@0.224.0/flags/mod.ts";
  */
 
 const flags = parse(Deno.args, {
-  string: ["threshold"],
+  string: ["threshold", "limit"],
+  boolean: ["full", "parallel"],
   default: { threshold: "85" },
 });
 
 const _THRESHOLD = parseFloat(flags.threshold);
 const COVERAGE_DIR = "coverage";
 
+type CoverageRow = {
+  file: string;
+  branchPct: number;
+  linePct: number;
+};
+
+function filterKnownNoisyCoverageWarnings(stderrText: string): string {
+  // Deno can emit a non-fatal warning when coverage data references temp files
+  // created/deleted during tests (e.g., /tmp/exo-flow-*/my-flow.flow.ts).
+  // The run still succeeds, so we filter this message to keep output clean.
+  return stderrText
+    .split("\n")
+    .filter((line) => !line.includes('Error generating coverage report: Failed to fetch "file:///tmp/'))
+    .filter((line) => !line.includes("Before generating coverage report, run `deno test --coverage`"))
+    .join("\n")
+    .trim();
+}
+
+function stripAnsi(text: string): string {
+  // Matches ANSI color/style codes like: \x1b[0m, \x1b[32m, \x1b[1;33m
+  // Build the escape character without embedding control chars or \u escapes in source.
+  const esc = String.fromCharCode(27);
+  const ansiRegex = new RegExp(`${esc}\\[[0-9;]*m`, "g");
+  return text.replace(ansiRegex, "");
+}
+
+function parseCoverageTable(output: string): CoverageRow[] {
+  const rows: CoverageRow[] = [];
+
+  for (const rawLine of stripAnsi(output).split("\n")) {
+    const line = rawLine.trimEnd();
+    if (!line.startsWith("|")) continue;
+    if (line.includes("----")) continue;
+    if (line.startsWith("| File")) continue;
+
+    const match = line.match(/^\|\s*(.+?)\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|?$/);
+    if (!match) continue;
+
+    const file = match[1];
+    const branchPct = Number(match[2]);
+    const linePct = Number(match[3]);
+
+    if (!Number.isFinite(branchPct) || !Number.isFinite(linePct)) continue;
+
+    rows.push({ file, branchPct, linePct });
+  }
+
+  return rows;
+}
+
+function printLowestCovered(
+  rows: CoverageRow[],
+  opts: { label: string; filter: (row: CoverageRow) => boolean; limit: number },
+) {
+  const filtered = rows
+    .filter(opts.filter)
+    .filter((r) => r.file !== "All files")
+    .toSorted((a, b) => a.linePct - b.linePct);
+
+  console.log(`\n📉 Lowest covered (${opts.label})`);
+  for (const row of filtered.slice(0, opts.limit)) {
+    console.log(
+      `- ${row.file} (line ${row.linePct.toFixed(1)}%, branch ${row.branchPct.toFixed(1)}%)`,
+    );
+  }
+}
+
+async function runCoverageReport(): Promise<string> {
+  const covSummaryCmd = new Deno.Command("deno", {
+    args: [
+      "coverage",
+      COVERAGE_DIR,
+      // Some tests generate temp sources under /tmp that are deleted by the time the report runs.
+      // Excluding /tmp avoids hard failures when those sources no longer exist.
+      "--exclude=^file:///tmp/",
+    ],
+    stdout: "piped",
+    stderr: "piped",
+    env: { ...Deno.env.toObject(), NO_COLOR: "1" },
+  });
+
+  const result = await covSummaryCmd.output();
+  const stdout = new TextDecoder().decode(result.stdout);
+  const stderr = new TextDecoder().decode(result.stderr);
+
+  if (result.code !== 0) {
+    throw new Error(
+      `deno coverage failed (exit ${result.code})${stderr ? `: ${stderr.trim()}` : ""}`,
+    );
+  }
+
+  return stdout;
+}
+
 async function runCoverageCheck() {
   console.log(`🧪 Running tests with coverage tracking...`);
+
+  // Coverage data accumulates across runs if the directory is reused.
+  // Clean it first so summaries match the current test run.
+  try {
+    await Deno.remove(COVERAGE_DIR, { recursive: true });
+  } catch {
+    // Ignore missing directory / permission issues.
+  }
 
   // 1. Run Tests
   const testCmd = new Deno.Command("deno", {
     args: [
       "test",
       "--allow-all",
-      "--parallel",
+      ...(flags.parallel ? ["--parallel"] : []),
       `--coverage=${COVERAGE_DIR}`,
       "tests/",
     ],
     stdout: "inherit",
-    stderr: "inherit",
+    // Capture stderr so we can filter known noisy, non-fatal coverage warnings.
+    stderr: "piped",
   });
 
   const testResult = await testCmd.output();
 
-  if (testResult.code !== 0) {
-    console.error("❌ Tests failed. Cannot measure coverage.");
-    Deno.exit(testResult.code);
+  const testStderr = new TextDecoder().decode(testResult.stderr);
+  const filteredTestStderr = filterKnownNoisyCoverageWarnings(testStderr);
+  if (filteredTestStderr) {
+    console.error(filteredTestStderr);
+  }
+
+  const testsPassed = testResult.code === 0;
+  if (!testsPassed) {
+    console.error(
+      "❌ Tests failed. Attempting to generate coverage report from partial results...",
+    );
   }
 
   // 2. Generate Coverage Report
@@ -46,13 +158,29 @@ async function runCoverageCheck() {
       "coverage",
       COVERAGE_DIR,
       "--lcov",
+      "--exclude=^file:///tmp/",
     ],
     stdout: "piped",
     stderr: "piped",
+    env: { ...Deno.env.toObject(), NO_COLOR: "1" },
   });
 
-  const { stdout } = await covCmd.output();
-  const _lcovOutput = new TextDecoder().decode(stdout);
+  try {
+    const lcovResult = await covCmd.output();
+    if (lcovResult.code !== 0) {
+      const stderr = new TextDecoder().decode(lcovResult.stderr);
+      console.error(
+        `⚠️  Failed to generate LCOV (exit ${lcovResult.code})${stderr ? `: ${stderr.trim()}` : ""}`,
+      );
+    } else {
+      const _lcovOutput = new TextDecoder().decode(lcovResult.stdout);
+      void _lcovOutput;
+    }
+  } catch (error) {
+    console.error(
+      `⚠️  Failed to generate LCOV: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 
   // Basic parsing of LCOV to total percentage (very rough approximation)
   // Logic: Sum of (DA:line,hits) / Total Lines
@@ -62,25 +190,60 @@ async function runCoverageCheck() {
   // Since deno coverage --lcov doesn't output summary stats easily, we will run without lcov for human readable
   // and parse that.
 
-  const covSummaryCmd = new Deno.Command("deno", {
-    args: ["coverage", COVERAGE_DIR],
-    stdout: "piped",
-    stderr: "piped",
-  });
+  const limit = Number.parseInt(flags.limit ?? "15", 10);
+  const listLimit = Number.isFinite(limit) && limit > 0 ? limit : 15;
 
-  const summaryResult = await covSummaryCmd.output();
-  const summaryText = new TextDecoder().decode(summaryResult.stdout);
-  console.log(summaryText); // Print detailed file coverage
+  let summaryText = "";
+  try {
+    summaryText = await runCoverageReport();
+  } catch (error) {
+    console.error(
+      `⚠️  Failed to generate coverage table: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  if (summaryText) {
+    if (flags.full) {
+      console.log(summaryText);
+    }
+
+    const rows = parseCoverageTable(summaryText);
+    const totals = rows.find((r) => r.file === "All files");
+
+    if (totals) {
+      console.log(
+        `\n✅ Coverage totals: line ${totals.linePct.toFixed(1)}%, branch ${totals.branchPct.toFixed(1)}%`,
+      );
+    }
+
+    printLowestCovered(rows, {
+      label: "src/",
+      filter: (r) => r.file.startsWith("src/"),
+      limit: listLimit,
+    });
+
+    printLowestCovered(rows, {
+      label: "scripts/",
+      filter: (r) => r.file.startsWith("scripts/"),
+      limit: Math.min(10, listLimit),
+    });
+  }
 
   // Extract total coverage from the end of the output if exists, or calculate manual average
   // Deno coverage default output lists files. It doesn't give a grand total line.
 
   // We will assume success if tests passed for now, but in a real setting we'd process the lcov.
-  console.log(`✅ Coverage report generated. Check output above.`);
-  console.log(`ℹ️  Note: Strict coverage threshold calculation requires external lcov parser.`);
+  console.log(`\n✅ Coverage report generated.`);
+  if (!flags.full) {
+    console.log(`ℹ️  Tip: re-run with --full to print the full per-file table.`);
+  }
 
   // Cleanup
   // await Deno.remove(COVERAGE_DIR, { recursive: true });
+
+  if (!testsPassed) {
+    Deno.exit(testResult.code);
+  }
 }
 
 if (import.meta.main) {

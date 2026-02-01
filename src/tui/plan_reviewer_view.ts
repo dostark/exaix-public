@@ -307,6 +307,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
         createGroupNode("pending-group", `Pending (${pending.length})`, "group", pending, {
           icon: PLAN_ICONS[PlanStatus.REVIEW],
           badge: pending.length,
+          expanded: true,
         }),
       );
     }
@@ -316,6 +317,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
         createGroupNode("approved-group", `Approved (${approved.length})`, "group", approved, {
           icon: PLAN_ICONS[PlanStatus.APPROVED],
           badge: approved.length,
+          expanded: true,
         }),
       );
     }
@@ -325,6 +327,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
         createGroupNode("rejected-group", `Rejected (${rejected.length})`, "group", rejected, {
           icon: PLAN_ICONS[PlanStatus.REJECTED],
           badge: rejected.length,
+          expanded: true,
         }),
       );
     }
@@ -334,6 +337,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
         createGroupNode("unknown-group", `Unknown (${unknown.length})`, "group", unknown, {
           icon: PLAN_ICONS.unknown,
           badge: unknown.length,
+          expanded: true,
         }),
       );
     }

@@ -17,14 +17,14 @@ export interface TestDataOverrides {
  * Generic test data factory that creates objects with default values and overrides
  */
 export class TestDataFactory<T extends Record<string, unknown>> {
-  private defaults: T;
+  private readonly defaultsFactory: () => T;
 
-  constructor(defaults: T) {
-    this.defaults = { ...defaults };
+  constructor(defaults: T | (() => T)) {
+    this.defaultsFactory = typeof defaults === "function" ? defaults : () => ({ ...defaults });
   }
 
   create(overrides: Partial<T> = {}): T {
-    return { ...this.defaults, ...overrides };
+    return { ...this.defaultsFactory(), ...overrides };
   }
 
   createMany(count: number, overrides: Partial<T>[] = []): T[] {
@@ -33,7 +33,7 @@ export class TestDataFactory<T extends Record<string, unknown>> {
 }
 
 // Request factory
-export const requestFactory = new TestDataFactory({
+export const requestFactory = new TestDataFactory(() => ({
   trace_id: `req-${Math.floor(Math.random() * 1e6)}`,
   filename: "request.md",
   title: "Request",
@@ -43,24 +43,24 @@ export const requestFactory = new TestDataFactory({
   created: new Date().toISOString(),
   created_by: "test@example.com",
   source: "cli",
-});
+}));
 
 // Plan factory
-export const planFactory = new TestDataFactory({
+export const planFactory = new TestDataFactory(() => ({
   id: `plan-${Math.floor(Math.random() * 1e6)}`,
   title: "Plan",
   status: PlanStatus.REVIEW,
-});
+}));
 
 // Skill factory
-export const skillFactory = new TestDataFactory({
+export const skillFactory = new TestDataFactory(() => ({
   id: `skill-${Math.floor(Math.random() * 1e6)}`,
   name: "Skill",
   version: "1.0.0",
   status: SkillStatus.ACTIVE,
   source: MemorySource.CORE,
   description: "Test skill",
-});
+}));
 
 // ===== Mock Service Base Classes =====
 
