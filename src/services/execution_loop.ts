@@ -16,6 +16,7 @@ import { MemoryBankService } from "./memory_bank.ts";
 import { MissionReporter } from "./mission_reporter.ts";
 import { PlanExecutor } from "./plan_executor.ts";
 import { ExecutionStatus, PlanStatus } from "../enums.ts";
+import { parseStructuredPlanFromMarkdown, type StructuredPlan } from "./structured_plan_parser.ts";
 
 // ============================================================================
 // Types
@@ -51,19 +52,6 @@ interface PlanAction {
   tool: string;
   params: Record<string, unknown>;
   description?: string;
-}
-
-interface PlanStep {
-  number: number;
-  title: string;
-  content: string;
-}
-
-interface StructuredPlan {
-  trace_id: string;
-  request_id: string;
-  agent: string;
-  steps: PlanStep[];
 }
 
 interface TaskLease {
@@ -182,7 +170,11 @@ export class ExecutionLoop {
       }
 
       // Check if this is a structured plan with steps
-      const structuredPlan = this.parseStructuredPlan(planContent, frontmatter);
+      const structuredPlan = parseStructuredPlanFromMarkdown(planContent, {
+        trace_id: frontmatter.trace_id,
+        request_id: frontmatter.request_id,
+        agent_id: frontmatter.agent_id,
+      });
 
       if (structuredPlan) {
         // Use PlanExecutor for structured plans
@@ -355,61 +347,6 @@ export class ExecutionLoop {
     }
 
     return actions;
-  }
-
-  /**
-   * Detect and parse structured plan with steps
-   * Looks for markdown headers that indicate structured execution steps
-   */
-  private parseStructuredPlan(planContent: string, frontmatter: PlanFrontmatter): StructuredPlan | null {
-    // Look for step headers like "## Step 1: Title" or "## Execution Steps"
-    const stepRegex = /^## Step (\d+): (.+)$/gm;
-    const executionStepsRegex = /^## Execution Steps$/m;
-
-    if (!executionStepsRegex.test(planContent)) {
-      return null; // Not a structured plan
-    }
-
-    const steps: PlanStep[] = [];
-    let match;
-
-    // Reset regex lastIndex
-    stepRegex.lastIndex = 0;
-
-    while ((match = stepRegex.exec(planContent)) !== null) {
-      const stepNumber = parseInt(match[1]);
-      const title = match[2];
-
-      // Extract step content until next step or end
-      const startIndex = match.index + match[0].length;
-      let endIndex = planContent.length;
-
-      // Find next step header
-      const nextMatch = stepRegex.exec(planContent);
-      if (nextMatch) {
-        endIndex = nextMatch.index;
-        stepRegex.lastIndex = nextMatch.index; // Reset for next iteration
-      }
-
-      const content = planContent.substring(startIndex, endIndex).trim();
-
-      steps.push({
-        number: stepNumber,
-        title,
-        content,
-      });
-    }
-
-    if (steps.length === 0) {
-      return null; // No steps found
-    }
-
-    return {
-      trace_id: frontmatter.trace_id,
-      request_id: frontmatter.request_id,
-      agent: frontmatter.agent_id || "unknown",
-      steps,
-    };
   }
 
   /**

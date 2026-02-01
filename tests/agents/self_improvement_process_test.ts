@@ -1,8 +1,12 @@
 // Unit tests to verify Step 10.8 self-improvement loop is properly implemented
-// Usage: deno test --allow-read tests/agents/self_improvement_process_test.ts
 
-import { assert, assertExists } from "https://deno.land/std@0.203.0/assert/mod.ts";
-import { parse } from "https://deno.land/std@0.203.0/yaml/mod.ts";
+import { assert, assertExists } from "@std/assert";
+import {
+  assertChunksWereGenerated,
+  assertEmbeddingsGenerated,
+  assertFilesExist,
+  assertFrontmatterSchemaAndShortSummary,
+} from "../helpers/copilot_assertions.ts";
 
 const REQUIRED_FILES = [
   ".copilot/process/self-improvement.md",
@@ -15,10 +19,7 @@ const REQUIRED_FILES = [
 ];
 
 Deno.test("Self-improvement loop: verify required files exist", async () => {
-  for (const file of REQUIRED_FILES) {
-    const stat = await Deno.stat(file);
-    assert(stat.isFile, `${file} should exist and be a file`);
-  }
+  await assertFilesExist(REQUIRED_FILES);
 });
 
 Deno.test("Self-improvement loop: verify process doc and template have required sections", async () => {
@@ -44,22 +45,7 @@ Deno.test("Self-improvement loop: verify frontmatter schema + short_summary limi
     ".copilot/prompts/self-improvement-loop.md",
   ];
 
-  for (const filePath of files) {
-    const content = await Deno.readTextFile(filePath);
-    const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
-    assertExists(fmMatch, `${filePath} should have YAML frontmatter`);
-
-    const fm = parse(fmMatch[1]) as Record<string, unknown>;
-
-    assert(fm.agent, `${filePath} should have agent`);
-    assert(fm.scope, `${filePath} should have scope`);
-    assert(fm.title, `${filePath} should have title`);
-    assert(fm.short_summary, `${filePath} should have short_summary`);
-    assert(fm.version, `${filePath} should have version`);
-
-    const summary = fm.short_summary as string;
-    assert(summary.length <= 200, `${filePath} short_summary should be <=200 chars, got ${summary.length}`);
-  }
+  await assertFrontmatterSchemaAndShortSummary(files);
 });
 
 Deno.test("Self-improvement loop: verify provider docs reference common process", async () => {
@@ -123,22 +109,7 @@ Deno.test("Self-improvement loop: verify embeddings generated", async () => {
     ".copilot/embeddings/self-improvement-loop.md.json",
   ];
 
-  for (const file of embeddingFiles) {
-    const stat = await Deno.stat(file);
-    assert(stat.isFile, `${file} should exist`);
-
-    const content = await Deno.readTextFile(file);
-    const embeddingData = JSON.parse(content);
-    assert(embeddingData.path, "Embedding file should have path");
-    assert(embeddingData.title, "Embedding file should have title");
-    assert(Array.isArray(embeddingData.vecs), "Embedding file should have vecs array");
-    assert(embeddingData.vecs.length > 0, "Embedding file should have at least 1 vector");
-
-    const firstVec = embeddingData.vecs[0];
-    assert(firstVec.text, "Vector should have text");
-    assert(Array.isArray(firstVec.vector), "Vector should have vector array");
-    assert(firstVec.vector.length === 64, "Vector should be 64-dimensional");
-  }
+  await assertEmbeddingsGenerated(embeddingFiles);
 });
 
 Deno.test("Self-improvement loop: verify chunks were generated", async () => {
@@ -147,15 +118,5 @@ Deno.test("Self-improvement loop: verify chunks were generated", async () => {
     "self-improvement-loop.md.chunk",
   ];
 
-  for (const pattern of patterns) {
-    let found = false;
-    for await (const entry of Deno.readDir(".copilot/chunks")) {
-      if (!entry.isFile) continue;
-      if (!entry.name.startsWith(pattern)) continue;
-      found = true;
-      const content = await Deno.readTextFile(`.copilot/chunks/${entry.name}`);
-      assert(content.length > 0, `Chunk file ${entry.name} should not be empty`);
-    }
-    assert(found, `Should have at least one chunk file matching ${pattern}`);
-  }
+  await assertChunksWereGenerated(patterns);
 });

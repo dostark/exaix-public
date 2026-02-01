@@ -26,7 +26,7 @@ async function runExecutionTest(
     loop: ExecutionLoop;
     activeDir: string;
   }) => Promise<void>,
-  options: { noDb?: boolean } = {},
+  options: { noDb?: boolean; createActiveDir?: boolean; agentId?: string } = {},
 ) {
   const tempDir = await Deno.makeTempDir({ prefix: `exec-ext-${prefix}-` });
   let db, cleanup;
@@ -40,9 +40,12 @@ async function runExecutionTest(
   try {
     const config = createMockConfig(tempDir);
     const activeDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(activeDir, { recursive: true });
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
+    if (options.createActiveDir !== false) {
+      await Deno.mkdir(activeDir, { recursive: true });
+    }
+
+    const loop = new ExecutionLoop({ config, db, agentId: options.agentId ?? "test-agent" });
     await fn({ tempDir, config, db, loop, activeDir });
   } finally {
     if (cleanup) await cleanup();
@@ -88,15 +91,8 @@ path = "test.txt"
 });
 
 Deno.test("ExecutionLoop.executeNext: skips non-pending plans", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-skip-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const plansDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(plansDir, { recursive: true });
-
-    // Create plan with SkillStatus.ACTIVE status (not MemoryStatus.PENDING)
+  await runExecutionTest("skip", async ({ activeDir, loop }) => {
+    // Create plan with active status (not pending)
     const planContent = `---
 trace_id: "test-skip-active"
 request_id: skip-test
@@ -106,82 +102,47 @@ status: active
 # Should Be Skipped Plan
 `;
 
-    const planPath = join(plansDir, "skip-test.md");
+    const planPath = join(activeDir, "skip-test.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.executeNext();
-
-    // Should return success with no trace (no work to do)
     assertEquals(result.success, true);
     assertEquals(result.traceId, undefined);
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 Deno.test("ExecutionLoop.executeNext: handles plans directory not found", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-notfound-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    // Don't create the Workspace/Plans directory
-
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
-    const result = await loop.executeNext();
-
-    // Should return success with no trace (no work to do)
-    assertEquals(result.success, true);
-    assertEquals(result.traceId, undefined);
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  await runExecutionTest(
+    "notfound",
+    async ({ loop }) => {
+      const result = await loop.executeNext();
+      assertEquals(result.success, true);
+      assertEquals(result.traceId, undefined);
+    },
+    { createActiveDir: false },
+  );
 });
 
 Deno.test("ExecutionLoop.executeNext: skips plans with invalid frontmatter", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-invalid-fm-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const plansDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(plansDir, { recursive: true });
-
-    // Create plan with no frontmatter
+  await runExecutionTest("invalid-fm", async ({ activeDir, loop }) => {
     const planContent = `# No Frontmatter Plan
 
 This plan has no YAML frontmatter.
 `;
 
-    const planPath = join(plansDir, "no-frontmatter.md");
+    const planPath = join(activeDir, "no-frontmatter.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.executeNext();
-
-    // Should skip invalid plan and return no work
     assertEquals(result.success, true);
     assertEquals(result.traceId, undefined);
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 // ===== parsePlanActions edge cases =====
 
 Deno.test("ExecutionLoop: skips non-TOML code blocks", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-non-toml-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const activeDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(activeDir, { recursive: true });
-
+  await runExecutionTest("non-toml", async ({ activeDir, loop }) => {
     const planContent = `---
 trace_id: "test-non-toml"
 request_id: non-toml-test
@@ -203,29 +164,17 @@ print("Hello")
 No TOML actions here.
 `;
 
-    const planPath = join(getWorkspaceActiveDir(tempDir), "non-toml-test.md");
+    const planPath = join(activeDir, "non-toml-test.md");
     await Deno.writeTextFile(planPath, planContent);
-
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.processTask(planPath);
 
     // Should succeed (creates dummy file when no actions)
     assertEquals(result.success, true);
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 Deno.test("ExecutionLoop: skips invalid TOML blocks", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-bad-toml-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const activeDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(activeDir, { recursive: true });
-
+  await runExecutionTest("bad-toml", async ({ activeDir, loop }) => {
     const planContent = `---
 trace_id: "test-bad-toml"
 request_id: bad-toml-test
@@ -241,29 +190,17 @@ this is not valid toml = [broken
 Should skip the invalid block.
 `;
 
-    const planPath = join(getWorkspaceActiveDir(tempDir), "bad-toml-test.md");
+    const planPath = join(activeDir, "bad-toml-test.md");
     await Deno.writeTextFile(planPath, planContent);
-
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.processTask(planPath);
 
     // Should succeed (no valid actions found)
     assertEquals(result.success, true);
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 Deno.test("ExecutionLoop: skips TOML blocks without tool field", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-no-tool-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const activeDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(activeDir, { recursive: true });
-
+  await runExecutionTest("no-tool", async ({ activeDir, loop }) => {
     const planContent = `---
 trace_id: "test-no-tool"
 request_id: no-tool-test
@@ -280,32 +217,19 @@ value = 42
 Should skip this block.
 `;
 
-    const planPath = join(getWorkspaceActiveDir(tempDir), "no-tool-test.md");
+    const planPath = join(activeDir, "no-tool-test.md");
     await Deno.writeTextFile(planPath, planContent);
-
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.processTask(planPath);
 
     // Should succeed (creates dummy file when no valid actions)
     assertEquals(result.success, true);
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 // ===== summarizeResult edge cases =====
 
 Deno.test("ExecutionLoop: logs action with null result", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-null-result-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const activeDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(activeDir, { recursive: true });
-
-    // Use a tool that returns null/undefined
+  await runExecutionTest("null-result", async ({ activeDir, db, loop }) => {
     const planContent = `---
 trace_id: "test-null-result"
 request_id: null-result-test
@@ -323,10 +247,8 @@ path = "does-not-exist.txt"
 \`\`\`
 `;
 
-    const planPath = join(getWorkspaceActiveDir(tempDir), "null-result-test.md");
+    const planPath = join(activeDir, "null-result-test.md");
     await Deno.writeTextFile(planPath, planContent);
-
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     // This may fail due to file not found, but we just want to ensure summarizeResult works
     const _result = await loop.processTask(planPath);
 
@@ -334,24 +256,16 @@ path = "does-not-exist.txt"
     await new Promise((resolve) => setTimeout(resolve, 150));
     const activities = db.getActivitiesByTrace("test-null-result");
     assert(activities.length > 0, "Some activities should be logged");
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 // ===== Lease handling edge cases =====
 
 Deno.test("ExecutionLoop: same agent can reacquire own lease", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-reacquire-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const activeDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(activeDir, { recursive: true });
-
-    const planContent = `---
+  await runExecutionTest(
+    "reacquire",
+    async ({ activeDir, loop }) => {
+      const planContent = `---
 trace_id: "test-reacquire"
 request_id: reacquire-test
 status: active
@@ -360,38 +274,28 @@ status: active
 # Reacquire Lease Test
 `;
 
-    const planPath = join(activeDir, "reacquire-test.md");
-    await Deno.writeTextFile(planPath, planContent);
+      const planPath = join(activeDir, "reacquire-test.md");
+      await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "same-agent" });
+      // First execution
+      const result1 = await loop.processTask(planPath);
+      assertEquals(result1.success, true);
 
-    // First execution
-    const result1 = await loop.processTask(planPath);
-    assertEquals(result1.success, true);
+      // Plan was archived, recreate it
+      await Deno.writeTextFile(planPath, planContent);
 
-    // Plan was archived, recreate it
-    await Deno.writeTextFile(planPath, planContent);
-
-    // Second execution by same agent should work
-    const result2 = await loop.processTask(planPath);
-    assertEquals(result2.success, true);
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+      // Second execution by same agent should work
+      const result2 = await loop.processTask(planPath);
+      assertEquals(result2.success, true);
+    },
+    { agentId: "same-agent" },
+  );
 });
 
 // ===== Error handling edge cases =====
 
 Deno.test("ExecutionLoop: handles missing request_id in frontmatter", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-no-request-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const activeDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(activeDir, { recursive: true });
-
+  await runExecutionTest("no-request", async ({ activeDir, loop }) => {
     const planContent = `---
 trace_id: "test-no-request"
 status: active
@@ -403,26 +307,15 @@ status: active
     const planPath = join(activeDir, "no-request.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, false);
     assert(result.error?.includes("request_id"), "Error should mention missing request_id");
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 Deno.test("ExecutionLoop: handles empty frontmatter content", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-empty-fm-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const activeDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(activeDir, { recursive: true });
-
+  await runExecutionTest("empty-fm", async ({ activeDir, loop }) => {
     const planContent = `---
 ---
 
@@ -432,29 +325,18 @@ Deno.test("ExecutionLoop: handles empty frontmatter content", async () => {
     const planPath = join(activeDir, "empty-frontmatter.md");
     await Deno.writeTextFile(planPath, planContent);
 
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, false);
     // Should fail due to missing required fields
     assertExists(result.error);
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 // ===== executeNext with actions =====
 
 Deno.test("ExecutionLoop.executeNext: fails when plan has no actions", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-no-actions-" });
-  const { db, cleanup } = await initTestDbService();
-
-  try {
-    const config = createMockConfig(tempDir);
-    const plansDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(plansDir, { recursive: true });
-
+  await runExecutionTest("no-actions", async ({ activeDir, loop }) => {
     const planContent = `---
 trace_id: "test-no-actions"
 request_id: no-actions-test
@@ -466,19 +348,14 @@ status: pending
 This plan has no TOML action blocks.
 `;
 
-    const planPath = join(plansDir, "no-actions.md");
+    const planPath = join(activeDir, "no-actions.md");
     await Deno.writeTextFile(planPath, planContent);
-
-    const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.executeNext();
 
     // executeNext requires at least one action
     assertEquals(result.success, false);
     assert(result.error?.includes("no executable actions"), "Should mention no actions");
-  } finally {
-    await cleanup();
-    await Deno.remove(tempDir, { recursive: true });
-  }
+  });
 });
 
 // ===== commitChanges nothing to commit =====
@@ -554,14 +431,10 @@ path = "existing.txt"
 // ===== Without database =====
 
 Deno.test("ExecutionLoop: works without database (no logging)", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "exec-ext-no-db-" });
-
-  try {
-    const config = createMockConfig(tempDir);
-    const activeDir = getWorkspaceActiveDir(tempDir);
-    await Deno.mkdir(activeDir, { recursive: true });
-
-    const planContent = `---
+  await runExecutionTest(
+    "no-db",
+    async ({ activeDir, loop }) => {
+      const planContent = `---
 trace_id: "test-no-db"
 request_id: no-db-test
 status: active
@@ -572,18 +445,15 @@ status: active
 No actions - just testing without db.
 `;
 
-    const planPath = join(activeDir, "no-db-test.md");
-    await Deno.writeTextFile(planPath, planContent);
+      const planPath = join(activeDir, "no-db-test.md");
+      await Deno.writeTextFile(planPath, planContent);
 
-    // Create ExecutionLoop without db parameter
-    const loop = new ExecutionLoop({ config, agentId: "test-agent" });
-    const result = await loop.processTask(planPath);
+      const result = await loop.processTask(planPath);
 
-    // Should succeed even without database
-    assertEquals(result.success, true);
-  } finally {
-    await Deno.remove(tempDir, { recursive: true });
-  }
+      assertEquals(result.success, true);
+    },
+    { noDb: true },
+  );
 });
 
 Deno.test("ExecutionLoop: uses correct memory execution path configuration", async () => {
