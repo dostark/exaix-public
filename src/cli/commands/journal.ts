@@ -59,6 +59,10 @@ export class JournalCommands extends BaseCommand {
       filterOptions.actor = options.actor;
     }
 
+    if (options.target) {
+      filterOptions.target = options.target;
+    }
+
     if (options.filter) {
       // Normalize filter to always be an array (Cliffy sometimes returns string for single value)
       const filters = Array.isArray(options.filter) ? options.filter : [options.filter];
@@ -85,6 +89,15 @@ export class JournalCommands extends BaseCommand {
           case "time": // Alias for since
           case "since":
             filterOptions.since = value;
+            break;
+          case "payload":
+            filterOptions.payload = value;
+            break;
+          case "actor":
+            filterOptions.actor = value;
+            break;
+          case "target":
+            filterOptions.target = value;
             break;
           default:
             console.error(

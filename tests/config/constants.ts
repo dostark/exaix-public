@@ -27,6 +27,107 @@ export const ERROR_MSG_NOT_FOUND = "not_found";
 export const LOG_MSG_NOT_FOUND_DETECTED = "❌ 404/Not Found Error Detected!";
 
 // ============================================================================
+// Schema Describer Test Constants
+// ============================================================================
+
+export enum SchemaDescriberKey {
+  Name = "name",
+  Age = "age",
+  Tags = "tags",
+  Status = "status",
+}
+
+export enum SchemaDescriberEnumValue {
+  Active = "active",
+  Inactive = "inactive",
+}
+
+export enum SchemaDescriberType {
+  String = "string",
+  Number = "number",
+  Unknown = "unknown",
+}
+
+export enum SchemaDescriberToken {
+  ArrayPrefix = "Array<",
+  ArraySuffix = ">",
+  EnumPrefix = "enum(",
+  EnumSuffix = ")",
+  EnumSeparator = " | ",
+  OptionalPrefix = "optional(",
+  OptionalSuffix = ")",
+  Quote = '"',
+  FieldSeparator = ": ",
+}
+
+// ============================================================================
+// Journal Formatter / Commands Test Constants
+// ============================================================================
+
+export enum JournalFormat {
+  Json = "json",
+  Table = "table",
+  Text = "text",
+}
+
+export const JOURNAL_FORMAT_JSON = JournalFormat.Json;
+export const JOURNAL_FORMAT_TABLE = JournalFormat.Table;
+export const JOURNAL_FORMAT_TEXT = JournalFormat.Text;
+
+export enum JournalAction {
+  Error = "test.error",
+  Approve = "test.approve",
+  Create = "test.create",
+  Generic = "test.action",
+}
+
+export const JOURNAL_ACTION_ERROR = JournalAction.Error;
+export const JOURNAL_ACTION_APPROVE = JournalAction.Approve;
+export const JOURNAL_ACTION_CREATE = JournalAction.Create;
+export const JOURNAL_ACTION_GENERIC = JournalAction.Generic;
+
+export const JOURNAL_ID_ONE = "activity-1";
+export const JOURNAL_ID_TWO = "activity-2";
+export const JOURNAL_ID_THREE = "activity-3";
+
+export const JOURNAL_TRACE_ID_ONE = "trace-1";
+export const JOURNAL_TRACE_ID_TWO = "trace-2";
+export const JOURNAL_TRACE_ID_THREE = "trace-3";
+
+export const JOURNAL_ACTOR_USER = "user";
+export const JOURNAL_AGENT_ID = "agent-1";
+
+export const JOURNAL_TARGET_SHORT = "target-short";
+export const JOURNAL_TARGET_LONG = "target-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+
+export const JOURNAL_PAYLOAD = "{}";
+
+export const JOURNAL_TIMESTAMP_ONE = "2026-01-01T00:00:00.000Z";
+export const JOURNAL_TIMESTAMP_TWO = "2026-01-01T00:00:01.000Z";
+export const JOURNAL_TIMESTAMP_THREE = "2026-01-01T00:00:02.000Z";
+
+export const JOURNAL_TRUNCATE_MAX = 30;
+export const JOURNAL_ELLIPSIS = "...";
+
+export const JOURNAL_ACTIVITY_COUNT = 3;
+export const JOURNAL_COUNT_VALUE = 2;
+
+export const JOURNAL_DISTINCT_FIELD_ACTION = "action_type";
+export const JOURNAL_TAIL_LIMIT = 5;
+export const JOURNAL_CAPTURE_COUNT_ONE = 1;
+
+export const JOURNAL_FILTER_TRACE = `trace_id=${JOURNAL_TRACE_ID_ONE}`;
+export const JOURNAL_FILTER_ACTION = `action_type=${JournalAction.Generic}`;
+export const JOURNAL_FILTER_AGENT = `agent_id=${JOURNAL_AGENT_ID}`;
+export const JOURNAL_SINCE_VALUE = "2026-01-01T00:00:00.000Z";
+export const JOURNAL_FILTER_SINCE = `since=${JOURNAL_SINCE_VALUE}`;
+export const JOURNAL_FILTER_UNKNOWN = "unknown=foo";
+export const JOURNAL_FILTER_INVALID = "invalidfilter";
+
+export const JOURNAL_INVALID_FILTER_PREFIX = "Invalid filter format:";
+export const JOURNAL_UNKNOWN_FILTER_PREFIX = "Unknown filter key:";
+
+// ============================================================================
 // Token Usage Regression Test Constants
 // ============================================================================
 
