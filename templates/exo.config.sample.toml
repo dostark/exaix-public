@@ -137,7 +137,7 @@ strategy = "recorded"
 # Directory for recorded fixtures used by the mock provider
 fixtures_dir = "./tests/fixtures/ai"
 
-[ai.endpoints]
+[ai_endpoints]
 # Override default provider API endpoints (optional)
 # Useful for self-hosted instances, proxies, or custom deployments
 ollama = "http://localhost:11434/api/generate"
@@ -145,25 +145,40 @@ anthropic = "https://api.anthropic.com/v1/messages"
 openai = "https://api.openai.com/v1/chat/completions"
 google = "https://generativelanguage.googleapis.com/v1/models"
 
-[ai.retry]
+[ai_retry]
 # HTTP retry configuration for LLM API calls (all providers)
 max_attempts = 3           # Maximum retry attempts for transient failures
 backoff_base_ms = 1000     # Base delay between retries (exponential backoff)
 timeout_per_request_ms = 30000  # Timeout for individual HTTP requests
 
-[ai.retry.ollama]
+[ai_retry.providers.ollama]
 max_attempts = 3
 backoff_base_ms = 1000
 
-[ai.retry.anthropic]
+[ai_retry.providers.anthropic]
 max_attempts = 5
 backoff_base_ms = 2000
 
-[ai.retry.openai]
+[ai_retry.providers.openai]
 max_attempts = 3
 backoff_base_ms = 1000
 
-[ai.anthropic]
+[ai_retry.providers.google]
+max_attempts = 3
+backoff_base_ms = 1000
+
+[ai_timeout]
+# Default timeout for LLM calls in milliseconds
+default_ms = 30000
+
+[ai_timeout.providers]
+google = 30000
+openai = 30000
+anthropic = 30000
+ollama = 60000
+mock = 1000
+
+[ai_anthropic]
 # Anthropic Claude-specific configuration
 api_version = "2023-06-01"
 default_model = "claude-haiku-4-5-20251001"
@@ -201,7 +216,7 @@ transport = "stdio" # allowed: stdio, sse
 server_name = "exoframe"
 version = "1.0.0"
 
-[mcp.defaults]
+[mcp_defaults]
 # Default agent ID for MCP tool operations when not explicitly specified
 agent_id = "system"
 
@@ -240,6 +255,18 @@ health_check_enabled = true
 # Enable automatic fallback to alternative providers on failure
 fallback_enabled = true
 
+[provider_strategy.task_routing]
+# Route tasks by complexity/type (optional)
+simple = ["ollama", "google"]
+medium = ["google", "anthropic"]
+complex = ["anthropic", "openai"]
+code_generation = ["anthropic", "openai"]
+
+[provider_strategy.budgets]
+# Per-provider daily budgets in USD (optional)
+anthropic_daily_usd = 3.00
+openai_daily_usd = 2.00
+
 # ---------------------------------------------------------------------------
 # Mock provider configuration (for testing/development)
 # ---------------------------------------------------------------------------
@@ -252,6 +279,24 @@ input_tokens = 100
 output_tokens = 50
 
 # ---------------------------------------------------------------------------
+# Provider-specific overrides
+# ---------------------------------------------------------------------------
+[providers.google]
+cost_tier = "freemium"
+free_quota_requests_per_day = 1500
+timeout_ms = 30000
+
+[providers.ollama]
+cost_tier = "free"
+base_url = "http://localhost:11434"
+timeout_ms = 60000
+
+[providers.anthropic]
+cost_tier = "paid"
+timeout_ms = 30000
+rate_limit_rpm = 50
+
+# ---------------------------------------------------------------------------
 # UI and display configuration
 # ---------------------------------------------------------------------------
 [ui]
@@ -261,11 +306,22 @@ prompt_preview_length = 50
 prompt_preview_extended = 100
 
 # ---------------------------------------------------------------------------
+# Health check configuration
+# ---------------------------------------------------------------------------
+[health]
+check_timeout_ms = 30000
+cache_ttl_ms = 300000
+memory_warn_percent = 80
+memory_critical_percent = 95
+
+# ---------------------------------------------------------------------------
 # Git operations configuration
 # ---------------------------------------------------------------------------
 [git.operations]
 # Timeout for git status operations (ms)
 status_timeout_ms = 10000
+# Timeout for git ls-files operations (ms)
+ls_files_timeout_ms = 10000
 # Timeout for git checkout operations (ms)
 checkout_timeout_ms = 10000
 # Timeout for git clean operations (ms)
