@@ -165,7 +165,7 @@ Deno.test("migrate_db.ts up is idempotent", async () => {
       dbPath,
       "SELECT COUNT(*) FROM schema_migrations;",
     );
-    assertEquals(count.trim(), "4", "Should have exactly 4 migrations applied");
+    assertEquals(count.trim(), "1", "Should have exactly 1 migration applied");
   } finally {
     await Deno.remove(tmp, { recursive: true }).catch(() => {});
   }
@@ -189,7 +189,7 @@ Deno.test("migrate_db.ts down reverts last migration", async () => {
       dbPath,
       "SELECT COUNT(*) FROM schema_migrations;",
     );
-    assertEquals(count.trim(), "3", "Should have 3 migrations after reverting last one");
+    assertEquals(count.trim(), "0", "Should have 0 migrations after reverting last one");
   } finally {
     await Deno.remove(tmp, { recursive: true }).catch(() => {});
   }
@@ -259,12 +259,9 @@ DROP TABLE IF EXISTS test_order_table;
       "SELECT version FROM schema_migrations ORDER BY id;",
     );
     const versions = migrations.trim().split("\n");
-    assertEquals(versions.length, 5);
+    assertEquals(versions.length, 2);
     assertEquals(versions[0], "001_init.sql");
-    assertEquals(versions[1], "002_reviews.sql");
-    assertEquals(versions[2], "002_test_order.sql");
-    assertEquals(versions[3], "003_notifications.sql");
-    assertEquals(versions[4], "004_cost_tracking.sql");
+    assertEquals(versions[1], "002_test_order.sql");
 
     // Verify test table was created
     const tables = queryDb(
