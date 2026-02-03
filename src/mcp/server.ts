@@ -31,7 +31,7 @@ import { logInfo } from "../services/structured_logger.ts";
  * Future phases will add:
  * - Additional tools (write_file, list_directory, git_*)
  * - Resource discovery (portal:// URIs)
- * - Prompt templates (execute_plan, create_changeset)
+ * - Prompt templates (execute_plan, create_review)
  */
 
 interface MCPServerOptions {

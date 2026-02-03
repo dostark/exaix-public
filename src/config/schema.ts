@@ -5,9 +5,19 @@ import * as DEFAULTS from "./constants.ts";
 import { ProviderTypeSchema } from "./ai_config.ts";
 import { LogLevel, ProviderCostTier, SqliteJournalMode } from "../enums.ts";
 
+// Helper to get current working directory safely
+function getCwdSafe(): string {
+  try {
+    return Deno.cwd();
+  } catch {
+    // Fallback to /tmp if cwd doesn't exist (can happen in tests)
+    return "/tmp";
+  }
+}
+
 export const ConfigSchema = z.object({
   system: z.object({
-    root: z.string().default(Deno.cwd()),
+    root: z.string().default(getCwdSafe()),
     log_level: z.nativeEnum(LogLevel).default(LogLevel.INFO),
     version: z.string().optional(),
   }),
