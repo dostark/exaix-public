@@ -1,6 +1,10 @@
 -- up
--- Note: PRAGMA statements must be run BEFORE the transaction begins
--- The migrate script should handle PRAGMAs separately
+-- ExoFrame Database Schema - Complete Initialization
+-- Combined migration - all tables created at once
+
+-- ============================================================================
+-- Activity Tracking
+-- ============================================================================
 
 CREATE TABLE IF NOT EXISTS activity (
   id TEXT PRIMARY KEY,
@@ -12,10 +16,15 @@ CREATE TABLE IF NOT EXISTS activity (
   payload TEXT NOT NULL,
   timestamp DATETIME DEFAULT (datetime('now'))
 );
+
 CREATE INDEX IF NOT EXISTS idx_activity_trace ON activity(trace_id);
 CREATE INDEX IF NOT EXISTS idx_activity_time ON activity(timestamp);
 CREATE INDEX IF NOT EXISTS idx_activity_actor ON activity(actor);
 CREATE INDEX IF NOT EXISTS idx_activity_agent ON activity(agent_id);
+
+-- ============================================================================
+-- File Locking / Leases
+-- ============================================================================
 
 CREATE TABLE IF NOT EXISTS leases (
   file_path TEXT PRIMARY KEY,
@@ -24,8 +33,102 @@ CREATE TABLE IF NOT EXISTS leases (
   heartbeat_at DATETIME DEFAULT (datetime('now')),
   expires_at DATETIME NOT NULL
 );
+
 CREATE INDEX IF NOT EXISTS idx_leases_expires ON leases(expires_at);
 
+-- ============================================================================
+-- Reviews (Git-based changes with approval workflow)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id TEXT PRIMARY KEY,              -- UUID
+  trace_id TEXT NOT NULL,           -- Link to request/plan
+  portal TEXT NOT NULL,             -- Portal name
+  branch TEXT NOT NULL,             -- Git branch name (feat/<desc>-<trace>)
+  repository TEXT NOT NULL DEFAULT '',  -- Git repository path
+  status TEXT NOT NULL,             -- pending, approved, rejected
+  description TEXT NOT NULL,        -- Description of changes
+  commit_sha TEXT,                  -- Latest commit SHA from agent
+  files_changed INTEGER DEFAULT 0,  -- Number of files in commit
+  created TEXT NOT NULL,            -- ISO 8601 timestamp
+  created_by TEXT NOT NULL,         -- Agent blueprint name
+  approved_at TEXT,                 -- Approval timestamp
+  approved_by TEXT,                 -- User who approved
+  rejected_at TEXT,                 -- Rejection timestamp
+  rejected_by TEXT,                 -- User who rejected
+  rejection_reason TEXT             -- Reason for rejection
+);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_trace_id ON reviews(trace_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status);
+CREATE INDEX IF NOT EXISTS idx_reviews_portal ON reviews(portal);
+CREATE INDEX IF NOT EXISTS idx_reviews_created_by ON reviews(created_by);
+CREATE INDEX IF NOT EXISTS idx_reviews_branch ON reviews(branch);
+CREATE INDEX IF NOT EXISTS idx_reviews_repository ON reviews(repository);
+
+-- ============================================================================
+-- Notifications
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id TEXT PRIMARY KEY,
+  type TEXT NOT NULL,
+  message TEXT NOT NULL,
+  proposal_id TEXT,
+  trace_id TEXT,
+  created_at TEXT NOT NULL,
+  dismissed_at TEXT,
+  metadata TEXT  -- JSON for extensibility
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
+CREATE INDEX IF NOT EXISTS idx_notifications_dismissed ON notifications(dismissed_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_proposal ON notifications(proposal_id);
+
+-- ============================================================================
+-- Provider Cost Tracking
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS provider_costs (
+  id TEXT PRIMARY KEY,
+  provider TEXT NOT NULL,
+  requests INTEGER NOT NULL DEFAULT 0,
+  tokens INTEGER NOT NULL DEFAULT 0,
+  estimated_cost_usd REAL NOT NULL DEFAULT 0.0,
+  timestamp DATETIME DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_provider_costs_provider ON provider_costs(provider);
+CREATE INDEX IF NOT EXISTS idx_provider_costs_timestamp ON provider_costs(timestamp);
+
+-- ============================================================================
+-- Artifacts (Read-only agent outputs)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS artifacts (
+  id TEXT PRIMARY KEY,
+  status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
+  type TEXT NOT NULL CHECK (type IN ('analysis', 'report', 'diagram')),
+  agent TEXT NOT NULL,
+  portal TEXT,
+  created TEXT NOT NULL,
+  updated TEXT,
+  request_id TEXT NOT NULL,
+  file_path TEXT NOT NULL UNIQUE,
+  rejection_reason TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_artifacts_status ON artifacts(status);
+CREATE INDEX IF NOT EXISTS idx_artifacts_agent ON artifacts(agent);
+CREATE INDEX IF NOT EXISTS idx_artifacts_portal ON artifacts(portal);
+CREATE INDEX IF NOT EXISTS idx_artifacts_request_id ON artifacts(request_id);
+CREATE INDEX IF NOT EXISTS idx_artifacts_created ON artifacts(created DESC);
+
 -- down
+DROP TABLE IF EXISTS artifacts;
+DROP TABLE IF EXISTS provider_costs;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS leases;
 DROP TABLE IF EXISTS activity;
