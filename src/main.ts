@@ -4,7 +4,7 @@ import { FileWatcher } from "./services/watcher.ts";
 import { DatabaseService } from "./services/db.ts";
 import { ProviderFactory } from "./ai/provider_factory.ts";
 import { RequestProcessor } from "./services/request_processor.ts";
-import { ChangesetRegistry } from "./services/changeset_registry.ts";
+import { ReviewRegistry } from "./services/review_registry.ts";
 import { EventLogger } from "./services/event_logger.ts";
 import {
   ConsoleOutput,
@@ -158,8 +158,8 @@ if (import.meta.main) {
       }
     });
 
-    // Initialize Changeset Registry
-    const changesetRegistry = new ChangesetRegistry(dbService, logger);
+    // Initialize Review Registry
+    const reviewRegistry = new ReviewRegistry(dbService, logger);
 
     // Initialize ExecutionLoop for robust plan execution (Step 5.12)
     const { ExecutionLoop } = await import("./services/execution_loop.ts");
@@ -168,7 +168,7 @@ if (import.meta.main) {
       db: dbService,
       agentId: "daemon",
       llmProvider,
-      changesetRegistry,
+      reviewRegistry,
     });
 
     // Start file watcher for approved plans (Workspace/Active)

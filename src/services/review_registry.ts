@@ -1,7 +1,7 @@
 /**
  * Review Registry Service
  *
- * Manages changesets created by agents during plan execution.
+ * Manages reviews created by agents during plan execution.
  * Provides database-backed tracking with approval workflow.
  */
 
@@ -36,7 +36,7 @@ export class ReviewRegistry {
 
     // Insert into database
     const sql = `
-      INSERT INTO changesets (
+      INSERT INTO reviews (
         id, trace_id, portal, branch, repository, status, description,
         commit_sha, files_changed, created, created_by
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -154,7 +154,7 @@ export class ReviewRegistry {
    * Get review by ID
    */
   async get(id: string): Promise<Review | null> {
-    const sql = `SELECT * FROM changesets WHERE id = ?`;
+    const sql = `SELECT * FROM reviews WHERE id = ?`;
     const row = await this.db.preparedGet(sql, [id]);
 
     if (!row) return null;
@@ -165,17 +165,17 @@ export class ReviewRegistry {
    * Get review by branch name
    */
   async getByBranch(branch: string): Promise<Review | null> {
-    const sql = `SELECT * FROM changesets WHERE branch = ?`;
+    const sql = `SELECT * FROM reviews WHERE branch = ?`;
     const row = await this.db.preparedGet(sql, [branch]);
     if (!row) return null;
     return ReviewSchema.parse(row);
   }
 
   /**
-   * List changesets with optional filters
+   * List reviews with optional filters
    */
   async list(filters?: ReviewFilters): Promise<Review[]> {
-    let sql = `SELECT * FROM changesets WHERE 1=1`;
+    let sql = `SELECT * FROM reviews WHERE 1=1`;
     const params: Array<string | number> = [];
 
     if (filters?.trace_id) {
@@ -221,11 +221,11 @@ export class ReviewRegistry {
 
     const timestamp = new Date().toISOString();
 
-    let sql = `UPDATE changesets SET status = ?`;
+    let sql = `UPDATE reviews SET status = ?`;
     const params: Array<string | number | null> = [status];
 
     if (status === ReviewStatus.APPROVED) {
-      sql = `UPDATE changesets SET status = ?, approved_at = ?, approved_by = ? WHERE id = ?`;
+      sql = `UPDATE reviews SET status = ?, approved_at = ?, approved_by = ? WHERE id = ?`;
       params.push(timestamp, user || null, id);
 
       // Log approval
@@ -238,7 +238,7 @@ export class ReviewRegistry {
         approved_at: timestamp,
       }, review.trace_id);
     } else if (status === ReviewStatus.REJECTED) {
-      sql = `UPDATE changesets SET status = ?, rejected_at = ?, rejected_by = ?, rejection_reason = ? WHERE id = ?`;
+      sql = `UPDATE reviews SET status = ?, rejected_at = ?, rejected_by = ?, rejection_reason = ? WHERE id = ?`;
       params.push(timestamp, user || null, reason || null, id);
 
       // Log rejection
@@ -260,24 +260,24 @@ export class ReviewRegistry {
   }
 
   /**
-   * Get all changesets for a specific trace
+   * Get all reviews for a specific trace
    */
   async getByTrace(trace_id: string): Promise<Review[]> {
     return await this.list({ trace_id });
   }
 
   /**
-   * Get pending changesets for a portal
+   * Get pending reviews for a portal
    */
   async getPendingForPortal(portal: string): Promise<Review[]> {
     return await this.list({ portal, status: ReviewStatus.PENDING });
   }
 
   /**
-   * Count changesets by status
+   * Count reviews by status
    */
   async countByStatus(status: ReviewStatus): Promise<number> {
-    const sql = `SELECT COUNT(*) as count FROM changesets WHERE status = ?`;
+    const sql = `SELECT COUNT(*) as count FROM reviews WHERE status = ?`;
     const row = await this.db.preparedGet<{ count: number }>(sql, [status]);
     return row?.count || 0;
   }
@@ -286,7 +286,7 @@ export class ReviewRegistry {
    * Delete a review (for testing/cleanup only)
    */
   async delete(id: string): Promise<void> {
-    const sql = `DELETE FROM changesets WHERE id = ?`;
+    const sql = `DELETE FROM reviews WHERE id = ?`;
     await this.db.preparedRun(sql, [id]);
   }
 }

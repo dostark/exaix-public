@@ -83,6 +83,36 @@ export const CHANGESETS_TABLE_SQL = `
 `;
 
 /**
+ * SQL for reviews table (renamed from changesets in Phase 36)
+ */
+export const REVIEWS_TABLE_SQL = `
+  CREATE TABLE IF NOT EXISTS reviews (
+    id TEXT PRIMARY KEY,
+    trace_id TEXT NOT NULL,
+    portal TEXT,
+    branch TEXT NOT NULL,
+    repository TEXT NOT NULL,
+    status TEXT NOT NULL,
+    description TEXT NOT NULL,
+    commit_sha TEXT,
+    files_changed INTEGER DEFAULT 0,
+    created TEXT NOT NULL,
+    created_by TEXT NOT NULL,
+    approved_at TEXT,
+    approved_by TEXT,
+    rejected_at TEXT,
+    rejected_by TEXT,
+    rejection_reason TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_reviews_trace_id ON reviews(trace_id);
+  CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status);
+  CREATE INDEX IF NOT EXISTS idx_reviews_portal ON reviews(portal);
+  CREATE INDEX IF NOT EXISTS idx_reviews_created_by ON reviews(created_by);
+  CREATE INDEX IF NOT EXISTS idx_reviews_branch ON reviews(branch);
+  CREATE INDEX IF NOT EXISTS idx_reviews_repository ON reviews(repository);
+`;
+
+/**
  * SQL for activity_journal table (from migration 001)
  */
 export const ACTIVITY_JOURNAL_TABLE_SQL = `
@@ -161,7 +191,7 @@ export const ARTIFACTS_TABLE_SQL = `
 export function initFullSchema(db: DatabaseService): void {
   db.instance.exec(ACTIVITY_TABLE_SQL);
   db.instance.exec(ACTIVITY_JOURNAL_TABLE_SQL);
-  db.instance.exec(CHANGESETS_TABLE_SQL);
+  db.instance.exec(REVIEWS_TABLE_SQL);
   db.instance.exec(NOTIFICATIONS_TABLE_SQL);
   db.instance.exec(PROVIDER_COSTS_TABLE_SQL);
   db.instance.exec(ARTIFACTS_TABLE_SQL);

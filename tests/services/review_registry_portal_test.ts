@@ -2,7 +2,7 @@ import { assertEquals } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import { ChangesetRegistry } from "../../src/services/changeset_registry.ts";
+import { ReviewRegistry } from "../../src/services/review_registry.ts";
 import { GitService } from "../../src/services/git_service.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createMockConfig } from "../helpers/config.ts";
@@ -10,20 +10,20 @@ import { EventLogger } from "../../src/services/event_logger.ts";
 import type { Config } from "../../src/config/schema.ts";
 
 /**
- * TDD Tests for ChangesetRegistry Portal Support
- * Task 3.2: Changeset Tracking Updates
+ * TDD Tests for ReviewRegistry Portal Support
+ * Task 3.2: Review Tracking Updates
  *
- * Tests that ChangesetRegistry can track changesets in portal repositories
+ * Tests that ReviewRegistry can track reviews in portal repositories
  * and associate them with portal workspaces
  */
 
-describe("ChangesetRegistry Portal Support", () => {
+describe("ReviewRegistry Portal Support", () => {
   let tempDir: string;
   let portalRepoDir: string;
   let workspaceRepoDir: string;
   let config: Config;
   let cleanup: () => Promise<void>;
-  let registry: ChangesetRegistry;
+  let registry: ReviewRegistry;
   let portalGitService: GitService;
   let workspaceGitService: GitService;
   let logger: EventLogger;
@@ -45,7 +45,7 @@ describe("ChangesetRegistry Portal Support", () => {
     config = createMockConfig(tempDir);
     logger = new EventLogger({ db: dbService.db });
 
-    registry = new ChangesetRegistry(dbService.db, logger);
+    registry = new ReviewRegistry(dbService.db, logger);
     portalGitService = new GitService({ config, repoPath: portalRepoDir });
     workspaceGitService = new GitService({ config, repoPath: workspaceRepoDir });
   });
@@ -56,43 +56,43 @@ describe("ChangesetRegistry Portal Support", () => {
     }
   });
 
-  describe("createChangeset with repository path", () => {
-    it("stores portal repository path in changeset", async () => {
+  describe("createReview with repository path", () => {
+    it("stores portal repository path in review", async () => {
       const traceId = crypto.randomUUID();
       const branchName = await portalGitService.createBranch({
         requestId: "test-request",
         traceId,
       });
 
-      const changesetId = await registry.createChangeset(
+      const reviewId = await registry.createReview(
         traceId,
         "test-portal",
         branchName,
         portalRepoDir,
       );
 
-      const changeset = await registry.get(changesetId);
-      assertEquals(changeset?.repository, portalRepoDir);
-      assertEquals(changeset?.portal, "test-portal");
+      const review = await registry.get(reviewId);
+      assertEquals(review?.repository, portalRepoDir);
+      assertEquals(review?.portal, "test-portal");
     });
 
-    it("stores workspace repository path for workspace changesets", async () => {
+    it("stores workspace repository path for workspace reviews", async () => {
       const traceId = crypto.randomUUID();
       const branchName = await workspaceGitService.createBranch({
         requestId: "workspace-req",
         traceId,
       });
 
-      const changesetId = await registry.createChangeset(
+      const reviewId = await registry.createReview(
         traceId,
-        null, // No portal for workspace changeset
+        null, // No portal for workspace review
         branchName,
         workspaceRepoDir,
       );
 
-      const changeset = await registry.get(changesetId);
-      assertEquals(changeset?.repository, workspaceRepoDir);
-      assertEquals(changeset?.portal, null);
+      const review = await registry.get(reviewId);
+      assertEquals(review?.repository, workspaceRepoDir);
+      assertEquals(review?.portal, null);
     });
 
     it("creates branch in specified repository", async () => {
@@ -102,7 +102,7 @@ describe("ChangesetRegistry Portal Support", () => {
         traceId,
       });
 
-      await registry.createChangeset(
+      await registry.createReview(
         traceId,
         "test-portal",
         branchName,
@@ -122,13 +122,13 @@ describe("ChangesetRegistry Portal Support", () => {
   describe("getDiff from portal repository", () => {
     it("retrieves diff from portal repository", async () => {
       const traceId = crypto.randomUUID();
-      // Create changeset in portal repo
+      // Create review in portal repo
       const branchName = await portalGitService.createBranch({
         requestId: "diff-test",
         traceId,
       });
 
-      const changesetId = await registry.createChangeset(
+      const reviewId = await registry.createReview(
         traceId,
         "test-portal",
         branchName,
@@ -144,7 +144,7 @@ describe("ChangesetRegistry Portal Support", () => {
       });
 
       // Get diff
-      const diff = await registry.getDiff(changesetId);
+      const diff = await registry.getDiff(reviewId);
 
       // Verify diff contains portal content
       assertEquals(diff.includes("portal content"), true);
@@ -154,7 +154,7 @@ describe("ChangesetRegistry Portal Support", () => {
     it("diff from portal repo is isolated from workspace repo", async () => {
       const portalTraceId = crypto.randomUUID();
       const workspaceTraceId = crypto.randomUUID();
-      // Create changesets in both repos
+      // Create reviews in both repos
       const portalBranch = await portalGitService.createBranch({
         requestId: "portal-diff",
         traceId: portalTraceId,
@@ -165,14 +165,14 @@ describe("ChangesetRegistry Portal Support", () => {
         traceId: workspaceTraceId,
       });
 
-      const portalChangesetId = await registry.createChangeset(
+      const portalReviewId = await registry.createReview(
         portalTraceId,
         "test-portal",
         portalBranch,
         portalRepoDir,
       );
 
-      const workspaceChangesetId = await registry.createChangeset(
+      const workspaceReviewId = await registry.createReview(
         workspaceTraceId,
         null,
         workspaceBranch,
@@ -195,8 +195,8 @@ describe("ChangesetRegistry Portal Support", () => {
       });
 
       // Get diffs
-      const portalDiff = await registry.getDiff(portalChangesetId);
-      const workspaceDiff = await registry.getDiff(workspaceChangesetId);
+      const portalDiff = await registry.getDiff(portalReviewId);
+      const workspaceDiff = await registry.getDiff(workspaceReviewId);
 
       // Verify diffs are isolated
       assertEquals(portalDiff.includes("portal.txt"), true);
@@ -207,12 +207,12 @@ describe("ChangesetRegistry Portal Support", () => {
     });
   });
 
-  describe("changeset listing by repository", () => {
-    it("lists changesets from specific portal", async () => {
+  describe("review listing by repository", () => {
+    it("lists reviews from specific portal", async () => {
       const trace1 = crypto.randomUUID();
       const trace2 = crypto.randomUUID();
       const trace3 = crypto.randomUUID();
-      // Create changesets in different repos
+      // Create reviews in different repos
       const portalBranch1 = await portalGitService.createBranch({
         requestId: "portal1",
         traceId: trace1,
@@ -226,18 +226,18 @@ describe("ChangesetRegistry Portal Support", () => {
         traceId: trace3,
       });
 
-      await registry.createChangeset(trace1, "test-portal", portalBranch1, portalRepoDir);
-      await registry.createChangeset(trace2, "test-portal", portalBranch2, portalRepoDir);
-      await registry.createChangeset(trace3, null, workspaceBranch, workspaceRepoDir);
+      await registry.createReview(trace1, "test-portal", portalBranch1, portalRepoDir);
+      await registry.createReview(trace2, "test-portal", portalBranch2, portalRepoDir);
+      await registry.createReview(trace3, null, workspaceBranch, workspaceRepoDir);
 
-      // List changesets for portal
-      const portalChangesets = await registry.list({ portal: "test-portal" });
-      assertEquals(portalChangesets.length, 2);
-      assertEquals(portalChangesets.every((cs) => cs.portal === "test-portal"), true);
-      assertEquals(portalChangesets.every((cs) => cs.repository === portalRepoDir), true);
+      // List reviews for portal
+      const portalReviews = await registry.list({ portal: "test-portal" });
+      assertEquals(portalReviews.length, 2);
+      assertEquals(portalReviews.every((cs) => cs.portal === "test-portal"), true);
+      assertEquals(portalReviews.every((cs) => cs.repository === portalRepoDir), true);
     });
 
-    it("lists workspace changesets separately", async () => {
+    it("lists workspace reviews separately", async () => {
       const portalTraceId = crypto.randomUUID();
       const workspaceTraceId = crypto.randomUUID();
       const portalBranch = await portalGitService.createBranch({
@@ -249,15 +249,15 @@ describe("ChangesetRegistry Portal Support", () => {
         traceId: workspaceTraceId,
       });
 
-      await registry.createChangeset(portalTraceId, "test-portal", portalBranch, portalRepoDir);
-      await registry.createChangeset(workspaceTraceId, null, workspaceBranch, workspaceRepoDir);
+      await registry.createReview(portalTraceId, "test-portal", portalBranch, portalRepoDir);
+      await registry.createReview(workspaceTraceId, null, workspaceBranch, workspaceRepoDir);
 
-      // List all changesets
-      const allChangesets = await registry.list();
-      const workspaceChangesets = allChangesets.filter((cs) => cs.portal === null);
+      // List all reviews
+      const allReviews = await registry.list();
+      const workspaceReviews = allReviews.filter((cs) => cs.portal === null);
 
-      assertEquals(workspaceChangesets.length, 1);
-      assertEquals(workspaceChangesets[0].repository, workspaceRepoDir);
+      assertEquals(workspaceReviews.length, 1);
+      assertEquals(workspaceReviews[0].repository, workspaceRepoDir);
     });
   });
 });

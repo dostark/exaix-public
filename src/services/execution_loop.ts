@@ -11,7 +11,7 @@ import type { DatabaseService } from "./db.ts";
 import type { IModelProvider } from "../ai/providers.ts";
 import { GitService } from "./git_service.ts";
 import { ToolRegistry } from "./tool_registry.ts";
-import { ChangesetRegistry } from "./changeset_registry.ts";
+import { ReviewRegistry } from "./review_registry.ts";
 import { MemoryBankService } from "./memory_bank.ts";
 import { MissionReporter } from "./mission_reporter.ts";
 import { PlanExecutor } from "./plan_executor.ts";
@@ -27,7 +27,7 @@ export interface ExecutionLoopConfig {
   db?: DatabaseService;
   agentId: string;
   llmProvider?: IModelProvider;
-  changesetRegistry?: ChangesetRegistry;
+  reviewRegistry?: ReviewRegistry;
 }
 
 export interface ExecutionResult {
@@ -82,19 +82,19 @@ export class ExecutionLoop {
   private leases = new Map<string, TaskLease>();
 
   constructor(
-    { config, db, agentId, llmProvider, changesetRegistry }: ExecutionLoopConfig & {
-      changesetRegistry?: ChangesetRegistry;
+    { config, db, agentId, llmProvider, reviewRegistry }: ExecutionLoopConfig & {
+      reviewRegistry?: ReviewRegistry;
     },
   ) {
     this.config = config;
     this.db = db;
     this.agentId = agentId;
     this.llmProvider = llmProvider;
-    this.changesetRegistry = changesetRegistry;
+    this.reviewRegistry = reviewRegistry;
     this.plansDir = join(config.system.root, config.paths.workspace, config.paths.active);
   }
 
-  private changesetRegistry?: ChangesetRegistry;
+  private reviewRegistry?: ReviewRegistry;
   private llmProvider?: IModelProvider;
 
   /**
@@ -650,20 +650,21 @@ export class ExecutionLoop {
     commitSha: string,
   ): Promise<void> {
     try {
-      console.log(`[ExecutionLoop] Registering changeset for ${requestId} (Branch: ${branch})`);
-      if (this.changesetRegistry) {
-        await this.changesetRegistry.register({
+      console.log(`[ExecutionLoop] Registering review for ${requestId} (Branch: ${branch})`);
+      if (this.reviewRegistry) {
+        await this.reviewRegistry.register({
           trace_id: traceId,
           portal: portal,
           branch: branch,
+          repository: this.config.system.root,
           description: `Execution for request ${requestId}`,
           commit_sha: commitSha,
           files_changed: 1, // Defaulting to 1 for now
           created_by: this.agentId,
         });
-        console.log(`[ExecutionLoop] Changeset registered successfully`);
+        console.log(`[ExecutionLoop] Review registered successfully`);
       } else {
-        console.error("[ExecutionLoop] changesetRegistry is NOT initialized!");
+        console.error("[ExecutionLoop] reviewRegistry is NOT initialized!");
       }
     } catch (error) {
       console.error("[ExecutionLoop] Failed to register changeset:", error);
