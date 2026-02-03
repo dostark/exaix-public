@@ -129,69 +129,26 @@ interface ValidationResult {
 function validateMigration(migrationFile: string, db: Database): ValidationResult {
   switch (migrationFile) {
     case "001_init.sql": {
-      // Check that core tables exist
-      const tables = ["activity", "leases"];
+      // Check that all core tables exist (consolidated migration)
+      const tables = ["activity", "leases", "reviews", "notifications", "provider_costs", "artifacts"];
       for (const table of tables) {
         const result = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(table);
         if (!result) {
           return { success: false, error: `Table '${table}' was not created` };
         }
       }
-      return { success: true };
-    }
-
-    case "002_changesets.sql": {
-      // Check that changesets table exists
-      const changesetTable = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='changesets'")
-        .get();
-      if (!changesetTable) {
-        return { success: false, error: "changesets table was not created" };
-      }
 
       // Check that required indexes exist
       const indexes = [
-        "idx_changesets_trace_id",
-        "idx_changesets_status",
-        "idx_changesets_portal",
-        "idx_changesets_created_by",
-        "idx_changesets_branch",
-      ];
-      for (const index of indexes) {
-        const indexExists = db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name=?").get(index);
-        if (!indexExists) {
-          return { success: false, error: `Index '${index}' was not created` };
-        }
-      }
-      return { success: true };
-    }
-
-    case "003_notifications.sql": {
-      // Check that notifications table exists
-      const notificationsTable = db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='notifications'",
-      ).get();
-      if (!notificationsTable) {
-        return { success: false, error: "notifications table was not created" };
-      }
-      return { success: true };
-    }
-
-    case "004_cost_tracking.sql": {
-      // Check that provider_costs table exists
-      const providerCostsTable = db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='provider_costs'",
-      )
-        .get();
-      if (!providerCostsTable) {
-        return { success: false, error: "provider_costs table was not created" };
-      }
-
-      // Check that required indexes exist
-      const costIndexes = [
+        "idx_reviews_trace_id",
+        "idx_reviews_status",
+        "idx_reviews_portal",
+        "idx_reviews_created_by",
+        "idx_reviews_branch",
         "idx_provider_costs_provider",
         "idx_provider_costs_timestamp",
       ];
-      for (const index of costIndexes) {
+      for (const index of indexes) {
         const indexExists = db.prepare("SELECT name FROM sqlite_master WHERE type='index' AND name=?").get(index);
         if (!indexExists) {
           return { success: false, error: `Index '${index}' was not created` };
