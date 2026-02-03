@@ -200,7 +200,7 @@ export class ExecutionLoop {
 
       // Register review
       if (commitSha) {
-        await this.registerChangeset(
+        await this.registerReview(
           requestId,
           traceId,
           frontmatter.portal || "unknown",
