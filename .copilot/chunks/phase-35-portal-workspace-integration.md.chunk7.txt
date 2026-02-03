@@ -1,9 +1,19 @@
-- [ ] Agents create feature branches in portal workspace (`~/git/ExoFrame/.git/`)
-- [ ] Git commits happen in portal repository, not deployed workspace
-- [ ] Changesets reflect actual code modifications (not all workspace files)
-- [ ] `exoctl changeset show` displays diffs from portal repo
-- [ ] Multiple portals can be used simultaneously without conflicts
-- [ ] Read-only agents (e.g., `code-analyst`) don't create unnecessary branches
-- [ ] Write agents (e.g., `feature-developer`) modify portal files directly
+```text
+~/ExoFrame/                     # Deployed workspace (execution environment)
+├── .git/                       # ❌ Wrong repo for agent operations
+│   ├── master                  # Minimal "Initial commit" branch
+│   └── feat/request-*          # ❌ Feature branches created here
+├── Portals/
+│   └── portal-exoframe -> ~/git/ExoFrame/  # Symlink to actual repo
 
-**Quality Requirements:**
+~/git/ExoFrame/                 # Portal workspace (source of truth)
+├── .git/                       # ✅ Where git operations SHOULD happen
+│   ├── main                    # Actual codebase
+│   └── (no feature branches)   # ❌ Branches missing here
+├── src/                        # Actual source code
+└── tests/                      # Actual tests
+```
+
+### Impact Assessment
+
+**Critical Problems:**

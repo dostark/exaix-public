@@ -1,9 +1,6 @@
-- ❌ **Code Analysis**: Results tracked in wrong repo
-- ❌ **Feature Development**: Branches created in execution environment
-- ❌ **Code Review**: Changesets reference incorrect file paths
-- ❌ **Team Collaboration**: Other developers can't pull changes
-- ❌ **CI/CD Integration**: Changes not in source repo don't trigger pipelines
+1. **Agent Execution Environment**: Agents execute with working directory set to deployed workspace (`~/ExoFrame`)
+2. **Portal Access**: Portals are symlinked under `~/ExoFrame/Portals/`, but git operations happen in parent directory
+3. **Git Context**: Git commands inherit the execution directory, creating branches/commits in deployed workspace's repo
+4. **Changeset Tracking**: Changesets compare against deployed workspace's minimal `master` branch, not portal's actual codebase
 
-### Success Criteria
-
-**Functional Requirements:**
+**File Structure:**

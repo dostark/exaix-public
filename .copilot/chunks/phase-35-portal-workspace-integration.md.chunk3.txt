@@ -1,6 +1,14 @@
-1. **Agent Execution Environment**: Agents execute with working directory set to deployed workspace (`~/ExoFrame`)
-2. **Portal Access**: Portals are symlinked under `~/ExoFrame/Portals/`, but git operations happen in parent directory
-3. **Git Context**: Git commands inherit the execution directory, creating branches/commits in deployed workspace's repo
-4. **Changeset Tracking**: Changesets compare against deployed workspace's minimal `master` branch, not portal's actual codebase
+- ✅ Consistent review workflow (same commands for code and artifacts)
+- ✅ No git repository pollution
+- ✅ Simple file-based storage with frontmatter metadata
+- ✅ Clear separation: portals for code, Memory/ for artifacts
+- ✅ Easy cleanup via file retention policies
 
-**File Structure:**
+**Implementation:**
+
+- Artifacts written to `~/ExoFrame/Memory/Execution/artifact-<request-id>.md`
+- Frontmatter schema: `status: pending|approved|rejected`, `created`, `agent`, `portal`
+- Database tracks artifact location (file path instead of git branch)
+- `exoctl changeset show` detects type (git diff vs file content) automatically
+
+## References

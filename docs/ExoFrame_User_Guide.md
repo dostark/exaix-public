@@ -1985,7 +1985,7 @@ exoctl changeset approve <changeset-id>
 
 #### Troubleshooting Portal Issues
 
-**Issue: Portal not found**
+##### Issue: Portal not found
 
 ```bash
 # Verify portal exists
@@ -1995,7 +1995,7 @@ exoctl portal list
 exoctl portal show my-project
 ```
 
-**Issue: Git operations in wrong repository**
+##### Issue: Git operations in wrong repository
 
 ```bash
 # Verify portal has .git directory
@@ -2005,7 +2005,7 @@ ls -la ~/git/MyProject/.git
 exoctl changeset show <id> | grep repository
 ```
 
-**Issue: Changeset shows all workspace files**
+##### Issue: Changeset shows all workspace files
 
 ```bash
 # This indicates portal execution didn't work

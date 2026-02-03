@@ -261,6 +261,12 @@ Deno.test("[artifact] Memory/Execution directory is created if missing", async (
     const stat = await Deno.stat("Memory/Execution");
     assertEquals(stat.isDirectory, true, "Memory/Execution should be a directory");
   } finally {
+    // Clean up test artifacts
+    try {
+      await Deno.remove("Memory/Execution", { recursive: true });
+    } catch {
+      // Ignore if doesn't exist
+    }
     await cleanup();
   }
 });

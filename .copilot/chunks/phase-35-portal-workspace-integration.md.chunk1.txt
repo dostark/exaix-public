@@ -1,16 +1,3 @@
-- **Related Issue:** Portal workspace git operations creating branches in wrong repository
-- **Related Phase:** [Phase 04: Tools and Git](./phase-04-tools-and-git.md)
-- **Related Phase:** [Phase 19: Folder Restructuring](./phase-19-folder-restructuring.md)
-- **User Guide:** `docs/ExoFrame_User_Guide.md` - Portal configuration
-- **Technical Spec:** `docs/dev/ExoFrame_Technical_Spec.md` - Portal architecture
+**Context:** Read-only agents (e.g., `code-analyst`) produce analysis artifacts that need review/approval workflow similar to code changesets, but storing them in git branches causes repository pollution and conceptual mismatch.
 
----
-
-## Problem Statement
-
-### Current Behavior (Broken)
-
-**Observed Issue:**
-When agents execute requests targeting portals (e.g., `exoctl request --portal portal-exoframe "Analyze CLI structure"`), the system creates feature branches and changesets in the **deployed workspace** (`~/ExoFrame`) instead of the **portal workspace** (`~/git/ExoFrame`).
-
-**Example:**
+**Decision:**

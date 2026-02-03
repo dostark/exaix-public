@@ -1,21 +1,9 @@
-```bash
-# Request targets portal
-exoctl request --portal portal-exoframe --agent code-analyst "Analyze src/cli/"
+1. **Artifact Storage:** Read-only agent outputs stored in `Memory/Execution/<artifact-id>.md`
+2. **Frontmatter Status:** Artifacts include YAML frontmatter with `status` field (pending/approved/rejected)
+3. **Unified Command:** `exoctl changeset` works for both:
+   - Git changesets (write agents in portal repos)
+   - File artifacts (read-only agents in Memory/Execution/)
+4. **Approval Workflow:** `exoctl changeset approve/reject` updates artifact status without git operations
+5. **Future Rename:** Phase 36 will rename `exoctl changeset` → `exoctl review` for semantic clarity
 
-# Expected: Branch created in ~/git/ExoFrame
-# Actual: Branch created in ~/ExoFrame
-```
-
-**Changeset shows incorrect behavior:**
-
-```bash
-exoctl changeset show request-f05f6840
-# Shows:
-#   branch: feat/request-f05f6840-f05f6840 (in ~/ExoFrame)
-#   files_changed: 320 (all workspace files appear as "new")
-#   commits: 1 (in wrong repository)
-```
-
-### Root Cause Analysis
-
-**Architecture Flaw:**
+**Benefits:**

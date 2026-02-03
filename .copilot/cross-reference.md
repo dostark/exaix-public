@@ -7,7 +7,7 @@ version: "0.1"
 topics: ["navigation", "quick-reference", "task-mapping"]
 ---
 
-# Agent Documentation Cross-Reference Map
+## Agent Documentation Cross-Reference Map
 
 ## Task → Agent Doc Quick Reference
 
