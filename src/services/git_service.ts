@@ -112,6 +112,47 @@ export class GitService {
   }
 
   /**
+   * Set the repository path for git operations
+   * Validates that the path exists and is a git repository
+   *
+   * @param repoPath - Absolute path to git repository
+   * @throws GitRepositoryError if path is invalid or not a git repository
+   */
+  setRepository(repoPath: string): void {
+    // Validate directory exists
+    try {
+      const stat = Deno.statSync(repoPath);
+      if (!stat.isDirectory) {
+        throw new GitRepositoryError(`Not a directory: ${repoPath}`);
+      }
+    } catch (error) {
+      if (error instanceof GitRepositoryError) throw error;
+      throw new GitRepositoryError(`Not a git repository: ${repoPath}`);
+    }
+
+    // Validate .git directory exists
+    try {
+      const gitStat = Deno.statSync(`${repoPath}/.git`);
+      if (!gitStat.isDirectory) {
+        throw new GitRepositoryError(`Not a git repository: ${repoPath}`);
+      }
+    } catch {
+      throw new GitRepositoryError(`Not a git repository: ${repoPath}`);
+    }
+
+    this.repoPath = repoPath;
+  }
+
+  /**
+   * Get the current repository path
+   *
+   * @returns Absolute path to current git repository
+   */
+  getRepository(): string {
+    return this.repoPath;
+  }
+
+  /**
    * Ensure git repository is initialized
    */
   async ensureRepository(): Promise<void> {
@@ -375,6 +416,16 @@ export class GitService {
       });
       throw error;
     }
+  }
+
+  /**
+   * Get the current branch name
+   *
+   * @returns Current branch name
+   */
+  async getCurrentBranch(): Promise<string> {
+    const result = await this.runGitCommand(["branch", "--show-current"]);
+    return result.output.trim();
   }
 
   /**

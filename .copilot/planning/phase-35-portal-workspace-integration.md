@@ -432,61 +432,89 @@ Task 1.3 completed with a practical, testable approach. The `buildExecutionConte
 
 ### Week 3: Git Operations & Changeset Tracking
 
-#### Task 3.1: Git Service Portal Support
+#### Task 3.1: Git Service Portal Support ✅
+
+**Status:** COMPLETE
 
 **File:** `src/services/git_service.ts`
 
+**Implementation:**
+
 ```typescript
 export class GitService {
-  private repositoryPath: string;
+  private repoPath: string;
 
   /**
-   * Set the git repository for operations
+   * Set the repository path for git operations
+   * Validates that the path exists and is a git repository
    */
   setRepository(repoPath: string): void {
-    if (!existsSync(join(repoPath, ".git"))) {
-      throw new Error(`Not a git repository: ${repoPath}`);
+    // Validate directory exists
+    try {
+      const stat = Deno.statSync(repoPath);
+      if (!stat.isDirectory) {
+        throw new GitRepositoryError(`Not a directory: ${repoPath}`);
+      }
+    } catch (error) {
+      if (error instanceof GitRepositoryError) throw error;
+      throw new GitRepositoryError(`Not a git repository: ${repoPath}`);
     }
-    this.repositoryPath = repoPath;
+
+    // Validate .git directory exists
+    try {
+      const gitStat = Deno.statSync(`${repoPath}/.git`);
+      if (!gitStat.isDirectory) {
+        throw new GitRepositoryError(`Not a git repository: ${repoPath}`);
+      }
+    } catch {
+      throw new GitRepositoryError(`Not a git repository: ${repoPath}`);
+    }
+
+    this.repoPath = repoPath;
   }
 
   /**
-   * Create feature branch in configured repository
+   * Get the current repository path
    */
-  async createBranch(branchName: string): Promise<void> {
-    await SafeSubprocess.run("git", ["checkout", "-b", branchName], {
-      cwd: this.repositoryPath, // Use portal repo, not deployed workspace
-      timeoutMs: DEFAULT_GIT_TIMEOUT_MS,
-    });
+  getRepository(): string {
+    return this.repoPath;
   }
 
   /**
-   * Commit changes in configured repository
+   * Get the current branch name
    */
-  async commit(message: string): Promise<void> {
-    await SafeSubprocess.run("git", ["commit", "-m", message], {
-      cwd: this.repositoryPath,
-      timeoutMs: DEFAULT_GIT_TIMEOUT_MS,
-    });
+  async getCurrentBranch(): Promise<string> {
+    const result = await this.runGitCommand(["branch", "--show-current"]);
+    return result.output.trim();
   }
 }
 ```
 
 **Success Criteria:**
 
-- [ ] Git service accepts configurable repository path
-- [ ] All git operations use configured repository
-- [ ] Validation that repository exists and is valid
-- [ ] Error handling for invalid repositories
+- ✅ Git service accepts configurable repository path
+- ✅ All git operations use configured repository (via `this.repoPath` in `runGitCommand`)
+- ✅ Validation that repository exists and is valid
+- ✅ Error handling for invalid repositories
 
-**Projected Test Scenarios:**
+**Test Scenarios:**
 
-- Unit test: `GitService.setRepository()` validates repository exists
-- Unit test: `GitService.setRepository()` throws error for non-git directory
-- Unit test: `GitService.createBranch()` uses configured repository path
-- Unit test: `GitService.commit()` operates in configured repository
-- Integration test: Git operations in portal repo don't affect deployed workspace
-- Integration test: Multiple git services can target different repositories
+- ✅ Unit test: `setRepository()` accepts valid git repository path
+- ✅ Unit test: `setRepository()` throws error for non-existent directory
+- ✅ Unit test: `setRepository()` throws error for directory without .git
+- ✅ Unit test: `setRepository()` allows switching between repositories
+- ✅ Unit test: `getRepository()` returns current repository path
+- ✅ Unit test: `getRepository()` returns updated path after setRepository
+- ✅ Integration test: `createBranch()` uses configured repository path
+- ✅ Integration test: `getCurrentBranch()` reads from configured repository
+- ✅ Integration test: Git operations in portal repo don't affect workspace
+- ✅ Integration test: Multiple git services can target different repositories
+
+**Test File:** `tests/services/git_service_portal_test.ts` - 11 tests passing
+
+**Implementation Notes:**
+
+Task 3.1 completed with full TDD workflow (RED→GREEN→REFACTOR). Added `setRepository()`, `getRepository()`, and `getCurrentBranch()` methods to GitService. All git operations already use `this.repoPath` via `runGitCommand()`, so portal isolation works automatically. The GitService now supports targeting different repositories, enabling agents to work in portal repos while preserving deployed workspace state.
 
 #### Task 3.2: Changeset Registry Portal Support
 
