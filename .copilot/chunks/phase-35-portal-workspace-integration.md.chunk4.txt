@@ -1,4 +1,4 @@
-```
+```text
 ~/ExoFrame/                     # Deployed workspace (execution environment)
 ├── .git/                       # ❌ Wrong repo for agent operations
 │   ├── master                  # Minimal "Initial commit" branch

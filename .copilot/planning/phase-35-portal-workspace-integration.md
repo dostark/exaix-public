@@ -62,7 +62,7 @@ exoctl changeset show request-f05f6840
 
 **File Structure:**
 
-```
+```text
 ~/ExoFrame/                     # Deployed workspace (execution environment)
 ├── .git/                       # ❌ Wrong repo for agent operations
 │   ├── master                  # Minimal "Initial commit" branch
@@ -251,7 +251,7 @@ class PortalPathResolver {
 
 ### Week 1-2: Core Architecture Changes
 
-**Task 1.1: Portal Execution Context**
+#### Task 1.1: Portal Execution Context
 
 **File:** `src/services/execution_context.ts` (new)
 
@@ -328,7 +328,7 @@ export class ExecutionContextBuilder {
 - ✅ Integration test: Portal context resolves symlinks correctly
 - ✅ Integration test: Multiple portal contexts isolated from each other
 
-**Task 1.2: Update Agent Executor**
+#### Task 1.2: Update Agent Executor
 
 **File:** `src/services/agent_executor.ts`
 
@@ -384,7 +384,7 @@ export class AgentExecutor {
 - ✅ Integration test: Agent execution in portal workspace creates files in portal
 - ✅ Integration test: Portal execution isolated from deployed workspace
 
-**Task 1.3: Request Router Integration**
+#### Task 1.3: Request Router Integration
 
 **File:** `src/services/request_router.ts`
 
@@ -408,23 +408,23 @@ export class RequestRouter {
 
 **Success Criteria:**
 
-- [ ] Request router builds correct context based on portal parameter
+- [x] Request router builds correct context based on portal parameter
 - [ ] Context passed to agent executor and flow runner
-- [ ] Portal requests use portal workspace
-- [ ] Non-portal requests use deployed workspace
+- [x] Portal requests use portal workspace
+- [x] Non-portal requests use deployed workspace
 
 **Projected Test Scenarios:**
 
-- Unit test: Request with portal parameter creates portal context
-- Unit test: Request without portal parameter creates workspace context
-- Unit test: Invalid portal alias throws descriptive error
-- Integration test: Portal request executes in portal workspace
-- Integration test: Non-portal request executes in deployed workspace
-- Integration test: Context correctly passed to agent executor
+- ✅ Unit test: Request with portal parameter creates portal context
+- ✅ Unit test: Request without portal parameter creates workspace context
+- ✅ Unit test: Invalid portal alias throws descriptive error
+- ⏭️ Integration test: Portal request executes in portal workspace (skipped - requires route update)
+- ⏭️ Integration test: Non-portal request executes in deployed workspace (skipped - requires route update)
+- ⏭️ Integration test: Context correctly passed to agent executor (skipped - requires route update)
 
 ### Week 3: Git Operations & Changeset Tracking
 
-**Task 3.1: Git Service Portal Support**
+#### Task 3.1: Git Service Portal Support
 
 **File:** `src/services/git_service.ts`
 
@@ -480,7 +480,7 @@ export class GitService {
 - Integration test: Git operations in portal repo don't affect deployed workspace
 - Integration test: Multiple git services can target different repositories
 
-**Task 3.2: Changeset Registry Portal Support**
+#### Task 3.2: Changeset Registry Portal Support
 
 **File:** `src/services/changeset_registry.ts`
 
@@ -546,7 +546,7 @@ export class ChangesetRegistry {
 
 ### Week 4: Agent Capability Differentiation
 
-**Task 4.1: Read-Only Agent Optimization**
+#### Task 4.1: Read-Only Agent Optimization
 
 **File:** `src/services/agent_executor.ts`
 
@@ -601,7 +601,7 @@ export class AgentExecutor {
 - Integration test: Read-only execution stores results in Memory/
 - Integration test: Read-only agent can read portal files without git tracking
 
-**Task 4.2: Multi-Portal Support**
+#### Task 4.2: Multi-Portal Support
 
 **File:** `src/services/portal_service.ts`
 
@@ -653,7 +653,7 @@ export class PortalService {
 
 ### Week 5-6: Testing & Documentation
 
-**Task 5.1: Integration Tests**
+#### Task 5.1: Integration Tests
 
 **File:** `tests/integration/portal_workspace_integration_test.ts`
 
@@ -754,7 +754,7 @@ Deno.test("[integration] Changeset shows actual file changes", async () => {
 - E2E test: Complete workflow from request to changeset approval in portal
 - E2E test: Portal execution + changeset review + merge workflow
 
-**Task 5.2: Documentation Updates**
+#### Task 5.2: Documentation Updates
 
 **File:** `docs/ExoFrame_User_Guide.md`
 
@@ -817,7 +817,6 @@ exoctl changeset approve <changeset-id>
 - Approve changes with `exoctl changeset approve <id>`
 - Merge feature branch in portal repo after execution
 
-````
 **Success Criteria:**
 
 - [ ] User guide updated with portal workflows
@@ -1067,7 +1066,7 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 
 **Read-Only Agent:**
 
-```
+```text
 ~/ExoFrame/Portals/portal-exoframe -> ~/git/ExoFrame/
                                        ├── src/       (READ)
                                        ├── tests/     (READ)
@@ -1076,7 +1075,7 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 
 **Write-Capable Agent:**
 
-```
+```text
 ~/git/ExoFrame/
 ├── .git/                 (CREATE BRANCH, COMMIT)
 ├── src/                  (READ, WRITE)
