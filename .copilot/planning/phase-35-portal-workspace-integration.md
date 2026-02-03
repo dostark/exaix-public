@@ -9,10 +9,41 @@ topics: ["portals", "git", "changesets", "architecture", "workspace", "collabora
 
 **Goal:** Redesign the agent execution architecture to work directly in portal workspaces (e.g., `~/git/ExoFrame`) instead of the deployed workspace (e.g., `~/ExoFrame`), ensuring git operations, feature branches, and changesets track actual source code changes in the correct repositories.
 
-**Status:** [ ] PLANNED
+**Status:** [x] IN PROGRESS
 **Timebox:** 4-6 weeks
 **Entry Criteria:** Current architecture documented, portal system functional, agent execution working
 **Exit Criteria:** Agents create branches in portal repos, changesets reflect actual code changes, team collaboration enabled, all tests passing
+
+## Design Decision: Read-Only Agent Artifact Workflow
+
+**Decision Date:** 2026-02-03
+
+**Context:** Read-only agents (e.g., `code-analyst`) produce analysis artifacts that need review/approval workflow similar to code changesets, but storing them in git branches causes repository pollution and conceptual mismatch.
+
+**Decision:**
+
+1. **Artifact Storage:** Read-only agent outputs stored in `Memory/Execution/<artifact-id>.md`
+2. **Frontmatter Status:** Artifacts include YAML frontmatter with `status` field (pending/approved/rejected)
+3. **Unified Command:** `exoctl changeset` works for both:
+   - Git changesets (write agents in portal repos)
+   - File artifacts (read-only agents in Memory/Execution/)
+4. **Approval Workflow:** `exoctl changeset approve/reject` updates artifact status without git operations
+5. **Future Rename:** Phase 36 will rename `exoctl changeset` → `exoctl review` for semantic clarity
+
+**Benefits:**
+
+- ✅ Consistent review workflow (same commands for code and artifacts)
+- ✅ No git repository pollution
+- ✅ Simple file-based storage with frontmatter metadata
+- ✅ Clear separation: portals for code, Memory/ for artifacts
+- ✅ Easy cleanup via file retention policies
+
+**Implementation:**
+
+- Artifacts written to `~/ExoFrame/Memory/Execution/artifact-<request-id>.md`
+- Frontmatter schema: `status: pending|approved|rejected`, `created`, `agent`, `portal`
+- Database tracks artifact location (file path instead of git branch)
+- `exoctl changeset show` detects type (git diff vs file content) automatically
 
 ## References
 
@@ -202,9 +233,10 @@ const workspaceContext: ExecutionContext = {
 **Read-Only Agents** (e.g., `code-analyst`, `quality-judge`):
 
 - Execute in portal workspace for analysis
-- No feature branch creation
-- No changeset tracking (analysis only)
-- Results stored in Memory/ under deployed workspace
+- Create artifacts in `Memory/Execution/` with frontmatter status
+- Tracked via `exoctl changeset` command (unified with git changesets)
+- Approval workflow: `exoctl changeset approve <id>` updates status field
+- No git branch creation (artifacts are files, not code changes)
 
 **Write-Capable Agents** (e.g., `feature-developer`, `senior-coder`):
 
@@ -670,7 +702,7 @@ export class ChangesetRegistry {
 
 Task 3.2 completed with full TDD workflow. Updated changeset schema to support null portal (workspace changesets), added repository field for git isolation. The `getDiff()` method dynamically finds the repository's root commit for diff baseline, making it branch-agnostic (works with main/master/etc). Migration 005 adds repository column with index for efficient lookups.
 
-### Week 4: Agent Capability Differentiation
+### Week 4: Agent Capability Differentiation & Artifact Management
 
 #### Task 4.1: Read-Only Agent Optimization ✅
 
@@ -803,11 +835,205 @@ export class PortalPermissionsService {
 
 Task 4.2 completed with full TDD workflow. Added git repository validation to PortalPermissionsService. The `validateGitRepo()` method checks for the presence of a .git directory in the portal's target path using Deno.statSync(), throwing an error if the portal doesn't exist and returning false if the directory doesn't exist or isn't accessible. The `listGitEnabledPortals()` method filters all portals to return only those with valid git repositories, enabling optimized portal selection for write operations. This enables multi-portal workflows where git-enabled portals can be automatically identified and selected for write operations while non-git portals remain available for read-only access.
 
-- Unit test: `PortalService.listGitEnabledPortals()` filters portals correctly
-- Integration test: Concurrent execution in two different portals isolated
-- Integration test: Git operations in portal A don't affect portal B
-- Integration test: Portal without git repo rejects write operations
-- E2E test: Multi-portal workflow with sequential operations in different portals
+#### Task 4.3: Read-Only Agent Artifact Management
+
+**Files:**
+
+- `src/services/artifact_registry.ts` (new)
+- `src/schemas/artifact.ts` (new)
+- `Memory/Execution/` (directory for artifacts)
+
+**Artifact Format:**
+
+```markdown
+---
+status: pending
+type: analysis
+agent: code-analyst
+portal: my-project
+created: 2026-02-03T10:30:00Z
+request_id: request-f05f6840
+---
+
+# Code Analysis: CLI Structure
+
+## Summary
+
+Analyzed 15 files in `src/cli/` directory...
+
+## Findings
+
+1. **Command Pattern**: All commands extend BaseCommand
+2. **Validation**: Input validation inconsistent across commands
+3. **Error Handling**: 3 commands missing proper error boundaries
+
+## Recommendations
+
+- Standardize validation using shared validator
+- Add error boundaries to all command handlers
+- Extract common CLI utilities to shared module
+```
+
+**ArtifactRegistry Implementation:**
+
+```typescript
+export interface Artifact {
+  id: string;
+  status: "pending" | "approved" | "rejected";
+  type: "analysis" | "report" | "diagram";
+  agent: string;
+  portal?: string;
+  created: Date;
+  request_id: string;
+  file_path: string; // Path in Memory/Execution/
+  content?: string; // Cached content
+}
+
+export class ArtifactRegistry {
+  /**
+   * Create new artifact from agent execution
+   */
+  async createArtifact(
+    requestId: string,
+    agent: string,
+    content: string,
+    portal?: string,
+  ): Promise<string> {
+    const artifactId = `artifact-${shortId()}`;
+    const filePath = `Memory/Execution/${artifactId}.md`;
+
+    // Add frontmatter
+    const frontmatter = `---
+status: pending
+type: analysis
+agent: ${agent}
+portal: ${portal || "null"}
+created: ${new Date().toISOString()}
+request_id: ${requestId}
+---
+
+`;
+
+    await Deno.writeTextFile(filePath, frontmatter + content);
+
+    // Track in database
+    await this.db.saveArtifact({
+      id: artifactId,
+      status: "pending",
+      agent,
+      portal,
+      request_id: requestId,
+      file_path: filePath,
+    });
+
+    return artifactId;
+  }
+
+  /**
+   * Update artifact status (approve/reject)
+   */
+  async updateStatus(
+    artifactId: string,
+    status: "approved" | "rejected",
+    reason?: string,
+  ): Promise<void> {
+    const artifact = await this.getArtifact(artifactId);
+
+    // Read current content
+    const content = await Deno.readTextFile(artifact.file_path);
+
+    // Update frontmatter status
+    const updated = content.replace(
+      /^status: .*$/m,
+      `status: ${status}`,
+    );
+
+    await Deno.writeTextFile(artifact.file_path, updated);
+
+    // Update database
+    await this.db.updateArtifact(artifactId, { status, updated: new Date() });
+  }
+
+  /**
+   * Get artifact content
+   */
+  async getArtifact(artifactId: string): Promise<Artifact> {
+    const artifact = await this.db.getArtifact(artifactId);
+    const content = await Deno.readTextFile(artifact.file_path);
+
+    return { ...artifact, content };
+  }
+
+  /**
+   * List artifacts with filters
+   */
+  async listArtifacts(filters?: {
+    status?: string;
+    agent?: string;
+    portal?: string;
+  }): Promise<Artifact[]> {
+    return await this.db.listArtifacts(filters);
+  }
+}
+```
+
+**Changeset Command Integration:**
+
+```typescript
+// exoctl changeset show <id>
+// Auto-detect type and display accordingly
+
+if (id.startsWith("artifact-")) {
+  const artifact = await artifactRegistry.getArtifact(id);
+  console.log(artifact.content); // Show markdown content
+} else {
+  const changeset = await changesetRegistry.get(id);
+  const diff = await changesetRegistry.getDiff(id);
+  console.log(diff); // Show git diff
+}
+
+// exoctl changeset approve <id>
+if (id.startsWith("artifact-")) {
+  await artifactRegistry.updateStatus(id, "approved");
+  console.log("Artifact approved");
+} else {
+  await changesetRegistry.approve(id);
+  await gitService.mergeBranch(changeset.branch);
+  console.log("Changeset merged");
+}
+```
+
+**Success Criteria:**
+
+- ✅ Artifacts created in `Memory/Execution/` with frontmatter
+- ✅ Artifact status tracked (pending/approved/rejected)
+- ✅ `exoctl changeset` works for both git changesets and artifacts
+- ✅ Artifact content displayed with `exoctl changeset show`
+- ✅ Approval updates frontmatter status field
+- ✅ Database tracks artifacts alongside changesets
+
+**Test Scenarios:**
+
+- ✅ Unit test: Create artifact with frontmatter status
+- ✅ Unit test: Store artifact in database
+- ✅ Unit test: Update artifact status from pending to approved
+- ✅ Unit test: Update artifact status from pending to rejected with reason
+- ✅ Unit test: List artifacts filtered by status
+- ✅ Unit test: List artifacts filtered by agent
+- ✅ Unit test: List artifacts filtered by portal
+- ✅ Unit test: Get artifact with content
+- ✅ Unit test: Create artifact without portal (null portal)
+- ✅ Unit test: Memory/Execution directory auto-created
+- Integration test: `exoctl changeset show artifact-123` displays content
+- Integration test: `exoctl changeset approve artifact-123` updates status
+- Integration test: Mixed list shows both git changesets and artifacts
+- E2E test: Complete workflow - request → artifact → review → approve
+
+**Test File:** `tests/services/artifact_registry_test.ts` - 10 tests passing
+
+**Implementation Notes:**
+
+Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented ArtifactRegistry service for managing read-only agent analysis outputs. Artifacts are stored as markdown files with YAML frontmatter in `Memory/Execution/`, with metadata tracked in SQLite database. The service provides createArtifact(), updateStatus(), getArtifact(), and listArtifacts() methods. Frontmatter includes status field (pending/approved/rejected) enabling review workflow parallel to git changesets. Database migration 006 adds artifacts table with indexes for common queries. This provides a lightweight, file-based artifact storage system separate from git, avoiding repository pollution while maintaining consistent review workflows.
 
 ### Week 5-6: Testing & Documentation
 
@@ -1208,13 +1434,43 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 
 ## Future Enhancements
 
-### Post-Phase 35 Improvements
+### Phase 36: Command Renaming (`exoctl changeset` → `exoctl review`)
+
+**Goal:** Rename `exoctl changeset` to `exoctl review` for semantic clarity
+
+**Rationale:**
+
+- "Changeset" implies git changes only
+- "Review" covers both code changesets AND analysis artifacts
+- More intuitive for users ("review the analysis" vs "show changeset")
+
+**Migration Plan:**
+
+1. Add `exoctl review` as alias to `exoctl changeset`
+2. Deprecation warning on `exoctl changeset` usage
+3. Update all documentation to use `exoctl review`
+4. Remove `exoctl changeset` in next major version
+
+**Commands:**
+
+```bash
+exoctl review list                    # All pending reviews (code + artifacts)
+exoctl review show <id>               # Show code diff OR artifact content
+exoctl review approve <id>            # Approve git merge OR artifact status
+exoctl review reject <id> --reason    # Reject with feedback
+exoctl review list --type code        # Filter by type
+exoctl review list --type artifact    # Filter by type
+```
+
+### Post-Phase 36 Improvements
 
 1. **Automatic Portal Detection**: Auto-detect git repositories and suggest portal creation
 2. **Portal Synchronization**: Sync deployed workspace with portal changes
 3. **Multi-Portal Flows**: Orchestrate work across multiple portals
 4. **Portal Templates**: Pre-configured portals for common project types
 5. **Portal Permissions**: Fine-grained access control per portal
+6. **Artifact Templates**: Pre-defined formats for analysis reports
+7. **Artifact Search**: Full-text search across approved artifacts
 
 ---
 
