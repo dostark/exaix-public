@@ -1,0 +1,8 @@
+**Goal:** Redesign the agent execution architecture to work directly in portal workspaces (e.g., `~/git/ExoFrame`) instead of the deployed workspace (e.g., `~/ExoFrame`), ensuring git operations, feature branches, and changesets track actual source code changes in the correct repositories.
+
+**Status:** [ ] PLANNED
+**Timebox:** 4-6 weeks
+**Entry Criteria:** Current architecture documented, portal system functional, agent execution working
+**Exit Criteria:** Agents create branches in portal repos, changesets reflect actual code changes, team collaboration enabled, all tests passing
+
+## References

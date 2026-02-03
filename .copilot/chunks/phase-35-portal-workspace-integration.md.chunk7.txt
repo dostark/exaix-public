@@ -1,0 +1,9 @@
+- [ ] Agents create feature branches in portal workspace (`~/git/ExoFrame/.git/`)
+- [ ] Git commits happen in portal repository, not deployed workspace
+- [ ] Changesets reflect actual code modifications (not all workspace files)
+- [ ] `exoctl changeset show` displays diffs from portal repo
+- [ ] Multiple portals can be used simultaneously without conflicts
+- [ ] Read-only agents (e.g., `code-analyst`) don't create unnecessary branches
+- [ ] Write agents (e.g., `feature-developer`) modify portal files directly
+
+**Quality Requirements:**

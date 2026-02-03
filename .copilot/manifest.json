@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-31T20:03:05.031Z",
+  "generated_at": "2026-02-03T13:03:52.940Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -848,6 +848,33 @@
         ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk5.txt",
         ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk6.txt",
         ".copilot/chunks/phase-31-agent-blueprint-json-migration.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-35-portal-workspace-integration.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 35: Portal Workspace Integration & Git Changeset Architecture",
+      "short_summary": "Redesign agent execution model to work directly in portal workspaces instead of deployed workspace, enabling proper git operations, changesets, and team collaboration on actual source code repositories.",
+      "version": "1.0",
+      "topics": [
+        "portals",
+        "git",
+        "changesets",
+        "architecture",
+        "workspace",
+        "collaboration",
+        "version-control"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-35-portal-workspace-integration.md.chunk0.txt",
+        ".copilot/chunks/phase-35-portal-workspace-integration.md.chunk1.txt",
+        ".copilot/chunks/phase-35-portal-workspace-integration.md.chunk2.txt",
+        ".copilot/chunks/phase-35-portal-workspace-integration.md.chunk3.txt",
+        ".copilot/chunks/phase-35-portal-workspace-integration.md.chunk4.txt",
+        ".copilot/chunks/phase-35-portal-workspace-integration.md.chunk5.txt",
+        ".copilot/chunks/phase-35-portal-workspace-integration.md.chunk6.txt",
+        ".copilot/chunks/phase-35-portal-workspace-integration.md.chunk7.txt"
       ]
     },
     {

@@ -1,0 +1,8 @@
+1. **Lost Changes**: Modifications in deployed workspace are ephemeral (lost on redeploy)
+2. **Fragmented History**: Git history split between execution and source repositories
+3. **Broken Collaboration**: Team members can't see/review changes in source repo
+4. **Invalid Changesets**: 320 "new" files when only 5 files should change
+5. **Approval Confusion**: Reviewing changes in wrong context
+6. **Deployment Issues**: Changes in wrong repo don't get deployed
+
+**Affected Workflows:**

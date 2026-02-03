@@ -1,4 +1,4 @@
-# Phase 35: Enterprise LLM Provider Support (Vertex AI + OpenRouter)
+# Phase 40: Enterprise LLM Provider Support (Vertex AI + OpenRouter)
 
 > [!NOTE]
 > **Status: Planning**

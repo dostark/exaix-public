@@ -1,0 +1,19 @@
+```
+~/ExoFrame/                     # Deployed workspace (execution environment)
+├── .git/                       # ❌ Wrong repo for agent operations
+│   ├── master                  # Minimal "Initial commit" branch
+│   └── feat/request-*          # ❌ Feature branches created here
+├── Portals/
+│   └── portal-exoframe -> ~/git/ExoFrame/  # Symlink to actual repo
+
+~/git/ExoFrame/                 # Portal workspace (source of truth)
+├── .git/                       # ✅ Where git operations SHOULD happen
+│   ├── main                    # Actual codebase
+│   └── (no feature branches)   # ❌ Branches missing here
+├── src/                        # Actual source code
+└── tests/                      # Actual tests
+```
+
+### Impact Assessment
+
+**Critical Problems:**
