@@ -63,8 +63,8 @@ export function getPrompts(): MCPPrompt[] {
       ],
     },
     {
-      name: "create_changeset",
-      description: "Create a changeset for code changes with git integration",
+      name: "create_review",
+      description: "Create a review for code changes with git integration",
       arguments: [
         {
           name: "portal",
@@ -73,7 +73,7 @@ export function getPrompts(): MCPPrompt[] {
         },
         {
           name: "description",
-          description: "Description of the changeset purpose",
+          description: "Description of the review purpose",
           required: true,
         },
         {
