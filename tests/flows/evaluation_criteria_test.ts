@@ -252,30 +252,30 @@ Deno.test("calculateWeightedScore: returns 0 for empty criteria", () => {
 // checkRequiredCriteria Tests
 // ============================================================
 
+const correctnessAndCompletenessCriteria: EvaluationCriterion[] = [
+  {
+    name: "code_correctness",
+    description: "Test",
+    weight: 1.0,
+    required: true,
+    category: EvaluationCategory.CORRECTNESS,
+  },
+  {
+    name: "code_completeness",
+    description: "Test",
+    weight: 1.0,
+    required: false,
+    category: EvaluationCategory.COMPLETENESS,
+  },
+];
+
 Deno.test("checkRequiredCriteria: passes when all required met", () => {
   const criteriaResults: Record<string, CriterionResult> = {
     code_correctness: { name: "code_correctness", score: 0.9, reasoning: "Good", issues: [], passed: true },
     code_completeness: { name: "code_completeness", score: 0.8, reasoning: "OK", issues: [], passed: true },
   };
 
-  const criteria: EvaluationCriterion[] = [
-    {
-      name: "code_correctness",
-      description: "Test",
-      weight: 1.0,
-      required: true,
-      category: EvaluationCategory.CORRECTNESS,
-    },
-    {
-      name: "code_completeness",
-      description: "Test",
-      weight: 1.0,
-      required: false,
-      category: EvaluationCategory.COMPLETENESS,
-    },
-  ];
-
-  const passed = checkRequiredCriteria(criteriaResults, criteria, 0.7);
+  const passed = checkRequiredCriteria(criteriaResults, correctnessAndCompletenessCriteria, 0.7);
   assertEquals(passed, true);
 });
 
@@ -291,24 +291,7 @@ Deno.test("checkRequiredCriteria: fails when required criterion below threshold"
     code_completeness: { name: "code_completeness", score: 0.9, reasoning: "Great", issues: [], passed: true },
   };
 
-  const criteria: EvaluationCriterion[] = [
-    {
-      name: "code_correctness",
-      description: "Test",
-      weight: 1.0,
-      required: true,
-      category: EvaluationCategory.CORRECTNESS,
-    },
-    {
-      name: "code_completeness",
-      description: "Test",
-      weight: 1.0,
-      required: false,
-      category: EvaluationCategory.COMPLETENESS,
-    },
-  ];
-
-  const passed = checkRequiredCriteria(criteriaResults, criteria, 0.7);
+  const passed = checkRequiredCriteria(criteriaResults, correctnessAndCompletenessCriteria, 0.7);
   assertEquals(passed, false);
 });
 

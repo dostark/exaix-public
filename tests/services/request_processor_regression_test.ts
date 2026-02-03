@@ -1,11 +1,9 @@
 import { RequestProcessor } from "../../src/services/request_processor.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { ConfigService } from "../../src/config/service.ts";
-import { dirname, fromFileUrl, join } from "@std/path";
+import { join } from "@std/path";
 import { ConsoleOutput, initializeGlobalLogger, resetGlobalLogger } from "../../src/services/structured_logger.ts";
-
-const TEST_FILE_PATH = fromFileUrl(import.meta.url);
-const REPO_ROOT = dirname(dirname(dirname(TEST_FILE_PATH)));
+import { REPO_ROOT } from "../helpers/repo_root.ts";
 
 /**
  * Regression test for: "Request processing fails with test-provider selection"

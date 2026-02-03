@@ -26,6 +26,7 @@ import type {
   ProjectMemory,
 } from "../../src/schemas/memory_bank.ts";
 import { type MemoryServiceInterface, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
+import { MinimalMemoryServiceMock } from "./helpers.ts";
 import {
   renderCategoryBadge,
   renderConfidence,
@@ -39,25 +40,22 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Mock Service with Full Data =====
 
-class MockMemoryServiceFull implements MemoryServiceInterface {
+class MockMemoryServiceFull extends MinimalMemoryServiceMock implements MemoryServiceInterface {
   private projects = ["my-app", "api-service", "web-client"];
-  private proposals: MemoryUpdateProposal[] = [];
-  private approvedCount = 0;
 
   constructor() {
-    // Create initial proposals
-    this.proposals = [
+    super([
       createMockProposal("prop-1", "Error Handling Pattern", LearningCategory.PATTERN),
       createMockProposal("prop-2", "API Rate Limiting", LearningCategory.DECISION),
       createMockProposal("prop-3", "Database Troubleshooting", LearningCategory.TROUBLESHOOTING),
-    ];
+    ]);
   }
 
-  getProjects(): Promise<string[]> {
+  override getProjects(): Promise<string[]> {
     return Promise.resolve(this.projects);
   }
 
-  getProjectMemory(portal: string): Promise<ProjectMemory | null> {
+  override getProjectMemory(portal: string): Promise<ProjectMemory | null> {
     if (!this.projects.includes(portal)) return Promise.resolve(null);
     return Promise.resolve({
       portal,
@@ -87,7 +85,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
     });
   }
 
-  getGlobalMemory(): Promise<GlobalMemory | null> {
+  override getGlobalMemory(): Promise<GlobalMemory | null> {
     return Promise.resolve({
       version: "1.0.0",
       updated_at: new Date().toISOString(),
@@ -132,7 +130,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
     });
   }
 
-  getExecutionByTraceId(traceId: string): Promise<ExecutionMemory | null> {
+  override getExecutionByTraceId(traceId: string): Promise<ExecutionMemory | null> {
     return Promise.resolve({
       portal: "my-app",
       trace_id: traceId,
@@ -153,7 +151,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
     });
   }
 
-  getExecutionHistory(): Promise<ExecutionMemory[]> {
+  override getExecutionHistory(): Promise<ExecutionMemory[]> {
     return Promise.resolve([
       {
         portal: "my-app",
@@ -183,7 +181,7 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
     ]);
   }
 
-  search(query: string): Promise<MemorySearchResult[]> {
+  override search(query: string): Promise<MemorySearchResult[]> {
     if (!query.trim()) return Promise.resolve([]);
     return Promise.resolve([
       {
@@ -205,29 +203,6 @@ class MockMemoryServiceFull implements MemoryServiceInterface {
         tags: ["logging"],
       },
     ]);
-  }
-
-  listPending(): Promise<MemoryUpdateProposal[]> {
-    return Promise.resolve(this.proposals);
-  }
-
-  getPending(proposalId: string): Promise<MemoryUpdateProposal | null> {
-    return Promise.resolve(this.proposals.find((p) => p.id === proposalId) ?? null);
-  }
-
-  approvePending(proposalId: string): Promise<void> {
-    this.proposals = this.proposals.filter((p) => p.id !== proposalId);
-    this.approvedCount++;
-    return Promise.resolve();
-  }
-
-  rejectPending(proposalId: string, _reason: string): Promise<void> {
-    this.proposals = this.proposals.filter((p) => p.id !== proposalId);
-    return Promise.resolve();
-  }
-
-  getApprovedCount(): number {
-    return this.approvedCount;
   }
 }
 

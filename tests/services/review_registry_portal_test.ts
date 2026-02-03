@@ -7,6 +7,7 @@ import { GitService } from "../../src/services/git_service.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
+import { GitTestHelper, setupGitRepo } from "../helpers/git_test_helper.ts";
 import type { Config } from "../../src/config/schema.ts";
 
 /**
@@ -36,11 +37,11 @@ describe("ReviewRegistry Portal Support", () => {
     portalRepoDir = join(tempDir, "portal-repo");
     workspaceRepoDir = join(tempDir, "workspace-repo");
 
-    // Create directories with git repos
-    await ensureDir(join(portalRepoDir, ".git"));
-    await ensureDir(join(workspaceRepoDir, ".git"));
-    await initGitRepo(portalRepoDir);
-    await initGitRepo(workspaceRepoDir);
+    // Create directories and initialize actual git repos
+    await ensureDir(portalRepoDir);
+    await ensureDir(workspaceRepoDir);
+    await setupGitRepo(portalRepoDir, { initialCommit: true });
+    await setupGitRepo(workspaceRepoDir, { initialCommit: true });
 
     config = createMockConfig(tempDir);
     logger = new EventLogger({ db: dbService.db });
@@ -97,6 +98,7 @@ describe("ReviewRegistry Portal Support", () => {
 
     it("creates branch in specified repository", async () => {
       const traceId = crypto.randomUUID();
+
       const branchName = await portalGitService.createBranch({
         requestId: "portal-req",
         traceId,
@@ -109,20 +111,18 @@ describe("ReviewRegistry Portal Support", () => {
         portalRepoDir,
       );
 
-      // Verify branch exists in portal repo
-      const portalBranches = await getBranches(portalRepoDir);
-      assertEquals(portalBranches.some((b) => b.startsWith("feat/portal-req-")), true);
+      const portalBranches = await new GitTestHelper(portalRepoDir).listBranches();
+      assertEquals(portalBranches.includes(branchName), true);
 
-      // Verify branch does NOT exist in workspace repo
-      const workspaceBranches = await getBranches(workspaceRepoDir);
-      assertEquals(workspaceBranches.some((b) => b.startsWith("feat/portal-req-")), false);
+      const workspaceBranches = await new GitTestHelper(workspaceRepoDir).listBranches();
+      assertEquals(workspaceBranches.includes(branchName), false);
     });
   });
 
   describe("getDiff from portal repository", () => {
     it("retrieves diff from portal repository", async () => {
       const traceId = crypto.randomUUID();
-      // Create review in portal repo
+
       const branchName = await portalGitService.createBranch({
         requestId: "diff-test",
         traceId,
@@ -135,7 +135,6 @@ describe("ReviewRegistry Portal Support", () => {
         portalRepoDir,
       );
 
-      // Make a change in portal repo
       await Deno.writeTextFile(join(portalRepoDir, "test.txt"), "portal content");
       await portalGitService.runGitCommand(["add", "."]);
       await portalGitService.commit({
@@ -143,10 +142,8 @@ describe("ReviewRegistry Portal Support", () => {
         traceId,
       });
 
-      // Get diff
       const diff = await registry.getDiff(reviewId);
 
-      // Verify diff contains portal content
       assertEquals(diff.includes("portal content"), true);
       assertEquals(diff.includes("test.txt"), true);
     });
@@ -154,7 +151,7 @@ describe("ReviewRegistry Portal Support", () => {
     it("diff from portal repo is isolated from workspace repo", async () => {
       const portalTraceId = crypto.randomUUID();
       const workspaceTraceId = crypto.randomUUID();
-      // Create reviews in both repos
+
       const portalBranch = await portalGitService.createBranch({
         requestId: "portal-diff",
         traceId: portalTraceId,
@@ -179,7 +176,6 @@ describe("ReviewRegistry Portal Support", () => {
         workspaceRepoDir,
       );
 
-      // Make different changes in each repo
       await Deno.writeTextFile(join(portalRepoDir, "portal.txt"), "portal only");
       await portalGitService.runGitCommand(["add", "."]);
       await portalGitService.commit({
@@ -194,11 +190,9 @@ describe("ReviewRegistry Portal Support", () => {
         traceId: workspaceTraceId,
       });
 
-      // Get diffs
       const portalDiff = await registry.getDiff(portalReviewId);
       const workspaceDiff = await registry.getDiff(workspaceReviewId);
 
-      // Verify diffs are isolated
       assertEquals(portalDiff.includes("portal.txt"), true);
       assertEquals(portalDiff.includes("workspace.txt"), false);
 
@@ -261,63 +255,3 @@ describe("ReviewRegistry Portal Support", () => {
     });
   });
 });
-
-// ============================================================================
-// Test Helpers
-// ============================================================================
-
-async function initGitRepo(repoPath: string): Promise<void> {
-  const initCmd = new Deno.Command("git", {
-    args: ["init"],
-    cwd: repoPath,
-    stdout: "null",
-    stderr: "null",
-  });
-  await initCmd.output();
-
-  // Configure identity
-  await new Deno.Command("git", {
-    args: ["config", "user.name", "Test User"],
-    cwd: repoPath,
-    stdout: "null",
-  }).output();
-
-  await new Deno.Command("git", {
-    args: ["config", "user.email", "test@example.com"],
-    cwd: repoPath,
-    stdout: "null",
-  }).output();
-
-  // Create initial commit
-  const file = join(repoPath, "README.md");
-  await Deno.writeTextFile(file, "# Test Repo");
-
-  const addCmd = new Deno.Command("git", {
-    args: ["add", "."],
-    cwd: repoPath,
-    stdout: "null",
-    stderr: "null",
-  });
-  await addCmd.output();
-
-  const commitCmd = new Deno.Command("git", {
-    args: ["commit", "-m", "Initial commit"],
-    cwd: repoPath,
-    stdout: "null",
-    stderr: "null",
-  });
-  await commitCmd.output();
-}
-
-async function getBranches(repoPath: string): Promise<string[]> {
-  const cmd = new Deno.Command("git", {
-    args: ["branch", "--format=%(refname:short)"],
-    cwd: repoPath,
-    stdout: "piped",
-  });
-
-  const { stdout } = await cmd.output();
-  const output = new TextDecoder().decode(stdout).trim();
-
-  return output ? output.split("\n") : [];
-}

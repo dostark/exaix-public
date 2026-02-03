@@ -1,14 +1,12 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
-import { ensureDir } from "@std/fs";
 import { RequestRouter } from "../../src/services/request_router.ts";
-import type { PortalPermissions } from "../../src/schemas/portal_permissions.ts";
-import { PortalOperation } from "../../src/enums.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import type { Config } from "../../src/config/schema.ts";
+import { setupPortalWorkspaceTestDirs } from "./helpers/portal_workspace_test_helper.ts";
 
 /**
  * TDD Tests for RequestRouter WorkspaceExecutionContext Integration
@@ -33,25 +31,10 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     tempDir = dbService.tempDir;
     cleanup = dbService.cleanup;
 
-    portalDir = join(tempDir, "portal");
-    workspaceDir = join(tempDir, "workspace");
-
-    // Create directories with git repos
-    await ensureDir(join(portalDir, ".git"));
-    await ensureDir(join(workspaceDir, ".git"));
-    await ensureDir(join(portalDir, "Blueprints", "Agents"));
-
-    // Create portal config
-    const portalConfig: PortalPermissions = {
-      alias: "test-portal",
-      target_path: portalDir,
-      operations: [
-        PortalOperation.READ,
-        PortalOperation.WRITE,
-        PortalOperation.GIT,
-      ],
-      agents_allowed: ["*"],
-    };
+    const dirs = await setupPortalWorkspaceTestDirs(tempDir);
+    portalDir = dirs.portalDir;
+    workspaceDir = dirs.workspaceDir;
+    const portalConfig = dirs.portalConfig;
 
     // Create mock config
     config = createMockConfig(workspaceDir, {

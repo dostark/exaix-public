@@ -29,10 +29,12 @@ import {
 } from "../helpers/paths_helper.ts";
 import {
   createApprovedProposal,
+  createFailedExecutionMemory,
   createGlobalProposal,
   createInvalidProposal,
   createInvalidStatusProposal,
   createMinimalProposal,
+  createSuccessfulExecutionMemory,
   createTestProposal,
 } from "./helpers/memory_test_helpers.ts";
 import { createMinimalProjectMemory } from "./helpers/memory_bank_test_helpers.ts";
@@ -106,59 +108,6 @@ async function initExtractorTest() {
 }
 
 /**
- * Creates a test execution with learnable content
- */
-function createSuccessfulExecution(portal: string, traceId: string): ExecutionMemory {
-  return {
-    trace_id: traceId,
-    request_id: `req-${traceId.substring(0, 8)}`,
-    started_at: "2026-01-04T10:00:00Z",
-    completed_at: "2026-01-04T10:30:00Z",
-    status: ExecutionStatus.COMPLETED,
-    portal,
-    agent: "senior-coder",
-    summary:
-      "Implemented repository pattern for database access. Created UserRepository with CRUD operations. Added proper error handling with typed exceptions.",
-    context_files: ["src/services/user.ts", "src/types/errors.ts"],
-    context_portals: [portal],
-    changes: {
-      files_created: ["src/repos/user_repo.ts", "src/types/repo_errors.ts"],
-      files_modified: ["src/services/user.ts"],
-      files_deleted: [],
-    },
-    lessons_learned: [
-      "Repository pattern improves testability",
-      "Typed errors make debugging easier",
-    ],
-  };
-}
-
-/**
- * Creates a test execution with failure
- */
-function createFailedExecution(portal: string, traceId: string): ExecutionMemory {
-  return {
-    trace_id: traceId,
-    request_id: `req-${traceId.substring(0, 8)}`,
-    started_at: "2026-01-04T11:00:00Z",
-    completed_at: "2026-01-04T11:15:00Z",
-    status: ExecutionStatus.FAILED,
-    portal,
-    agent: "senior-coder",
-    summary: "Failed to implement feature due to missing dependency configuration.",
-    context_files: ["src/config.ts"],
-    context_portals: [portal],
-    changes: {
-      files_created: [],
-      files_modified: [],
-      files_deleted: [],
-    },
-    error_message: "Module not found: @db/sqlite. Ensure dependencies are installed.",
-    lessons_learned: ["Always verify dependencies before implementation"],
-  };
-}
-
-/**
  * Creates a trivial execution with no learnable content
  */
 function createTrivialExecution(portal: string, traceId: string): ExecutionMemory {
@@ -184,7 +133,7 @@ function createTrivialExecution(portal: string, traceId: string): ExecutionMemor
 Deno.test("MemoryExtractorService: analyzeExecution extracts learnings from success", async () => {
   const { extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440010");
+    const execution = createSuccessfulExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440010");
 
     const learnings = await extractor.analyzeExecution(execution);
 
@@ -202,7 +151,7 @@ Deno.test("MemoryExtractorService: analyzeExecution extracts learnings from succ
 Deno.test("MemoryExtractorService: analyzeExecution extracts from lessons_learned", async () => {
   const { extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440011");
+    const execution = createSuccessfulExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440011");
 
     const learnings = await extractor.analyzeExecution(execution);
 
@@ -219,7 +168,7 @@ Deno.test("MemoryExtractorService: analyzeExecution extracts from lessons_learne
 Deno.test("MemoryExtractorService: analyzeExecution extracts from failed execution", async () => {
   const { extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createFailedExecution("my-app", "550e8400-e29b-41d4-a716-446655440012");
+    const execution = createFailedExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440012");
 
     const learnings = await extractor.analyzeExecution(execution);
 
@@ -237,7 +186,7 @@ Deno.test("MemoryExtractorService: analyzeExecution extracts from failed executi
 Deno.test("MemoryExtractorService: analyzeExecution includes error context", async () => {
   const { extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createFailedExecution("my-app", "550e8400-e29b-41d4-a716-446655440013");
+    const execution = createFailedExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440013");
 
     const learnings = await extractor.analyzeExecution(execution);
 
@@ -269,7 +218,7 @@ Deno.test("MemoryExtractorService: analyzeExecution returns empty for trivial ex
 Deno.test("MemoryExtractorService: createProposal writes to Pending directory", async () => {
   const { config, extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440015");
+    const execution = createSuccessfulExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440015");
     const learnings = await extractor.analyzeExecution(execution);
 
     // Should have at least one learning
@@ -297,7 +246,7 @@ Deno.test("MemoryExtractorService: createProposal writes to Pending directory", 
 Deno.test("MemoryExtractorService: createProposal generates valid proposal file", async () => {
   const { config, extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440016");
+    const execution = createSuccessfulExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440016");
     const learnings = await extractor.analyzeExecution(execution);
 
     if (learnings.length === 0) {
@@ -323,7 +272,7 @@ Deno.test("MemoryExtractorService: createProposal generates valid proposal file"
 Deno.test("MemoryExtractorService: createProposal logs to Activity Journal", async () => {
   const { db, extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440017");
+    const execution = createSuccessfulExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440017");
     const learnings = await extractor.analyzeExecution(execution);
 
     if (learnings.length === 0) {
@@ -350,7 +299,7 @@ Deno.test("MemoryExtractorService: createProposal logs to Activity Journal", asy
 Deno.test("MemoryExtractorService: listPending returns all pending proposals", async () => {
   const { extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440020");
+    const execution = createSuccessfulExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440020");
     const learnings = await extractor.analyzeExecution(execution);
 
     // Create multiple proposals
@@ -370,7 +319,7 @@ Deno.test("MemoryExtractorService: listPending returns all pending proposals", a
 Deno.test("MemoryExtractorService: getPending returns proposal details", async () => {
   const { extractor, cleanup } = await initExtractorTest();
   try {
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440021");
+    const execution = createSuccessfulExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440021");
     const learnings = await extractor.analyzeExecution(execution);
 
     if (learnings.length === 0) {
@@ -521,7 +470,7 @@ Deno.test("MemoryExtractorService: approveAll processes all pending", async () =
     });
     await memoryBank.createProjectMemory(projectMem);
 
-    const execution = createSuccessfulExecution("my-app", "550e8400-e29b-41d4-a716-446655440027");
+    const execution = createSuccessfulExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440027");
     const learnings = await extractor.analyzeExecution(execution);
 
     // Create multiple proposals

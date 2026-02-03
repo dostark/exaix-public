@@ -1,32 +1,8 @@
 import { assert, assertEquals } from "@std/assert";
-import { dirname, fromFileUrl, join } from "@std/path";
+import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { inject } from "../../scripts/inject_agent_context.ts";
-
-const TEST_FILE_PATH = fromFileUrl(import.meta.url);
-const REPO_ROOT = dirname(dirname(dirname(TEST_FILE_PATH)));
-
-async function withRepoRoot<T>(fn: () => Promise<T> | T): Promise<T> {
-  let previousCwd: string | undefined;
-  try {
-    previousCwd = Deno.cwd();
-  } catch {
-    previousCwd = undefined;
-  }
-
-  Deno.chdir(REPO_ROOT);
-  try {
-    return await fn();
-  } finally {
-    if (previousCwd) {
-      try {
-        Deno.chdir(previousCwd);
-      } catch {
-        // Ignore: previous cwd may no longer exist.
-      }
-    }
-  }
-}
+import { REPO_ROOT, withRepoRoot } from "../helpers/repo_root.ts";
 
 // Helper to create temporary markdown files under .copilot/providers
 async function writeAgentMarkdown(filename: string, content: string) {

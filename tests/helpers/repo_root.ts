@@ -1,0 +1,25 @@
+import { dirname, fromFileUrl } from "@std/path";
+
+export const REPO_ROOT = dirname(dirname(dirname(fromFileUrl(import.meta.url))));
+
+export async function withRepoRoot<T>(fn: () => Promise<T> | T): Promise<T> {
+  let previousCwd: string | null = null;
+  try {
+    previousCwd = Deno.cwd();
+  } catch {
+    previousCwd = null;
+  }
+
+  Deno.chdir(REPO_ROOT);
+  try {
+    return await fn();
+  } finally {
+    if (previousCwd) {
+      try {
+        Deno.chdir(previousCwd);
+      } catch {
+        // Ignore: previous cwd may no longer exist.
+      }
+    }
+  }
+}

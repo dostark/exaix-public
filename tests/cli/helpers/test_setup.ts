@@ -8,6 +8,7 @@ import { PortalCommands } from "../../../src/cli/portal_commands.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
 import { getMemoryProjectsDir } from "../../helpers/paths_helper.ts";
+import { GitTestHelper, setupGitRepo } from "../../helpers/git_test_helper.ts";
 
 /**
  * Creates a complete portal test environment with all necessary directories
@@ -154,22 +155,8 @@ export async function createCliTestContext(options?: { createDirs?: string[] }) 
  * Helper to run git commands in tests
  */
 export async function runGitCommand(cwd: string, args: string[]): Promise<string> {
-  const cmd = new Deno.Command("git", {
-    args: ["-C", cwd, ...args],
-    stdout: "piped",
-    stderr: "piped",
-  });
-
-  const { stdout, success, stderr } = await cmd.output();
-  if (!success) {
-    const error = new TextDecoder().decode(stderr);
-    throw new Error(`Git command failed: ${args.join(" ")}\n${error}`);
-  }
-
-  return new TextDecoder().decode(stdout).trim();
+  return await new GitTestHelper(cwd).runGit(args);
 }
-
-import { setupGitRepo } from "../../helpers/git_test_helper.ts";
 
 /**
  * Initialize a git repository in the temp directory with a default user and initial commit

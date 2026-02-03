@@ -12,23 +12,10 @@ import type { MemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
 import type { MemoryExtractorService } from "../../../src/services/memory_extractor.ts";
 import type { ExecutionMemory } from "../../../src/schemas/memory_bank.ts";
 
-/**
- * Creates a test execution with learnable content and returns a proposal ID
- * This helper encapsulates the common pattern of creating an execution, analyzing it,
- * and creating a proposal for testing memory extractor operations.
- */
-export async function createTestProposal(
-  extractor: MemoryExtractorService,
-  portal: string = "my-app",
-  traceId?: string,
-): Promise<string | null> {
-  // Use a unique trace ID if not provided
-  const executionTraceId = traceId ??
-    `550e8400-e29b-41d4-a716-44665544${Math.random().toString().slice(2, 4).padStart(3, "0")}`;
-
-  const execution: ExecutionMemory = {
-    trace_id: executionTraceId,
-    request_id: `req-${executionTraceId.substring(0, 8)}`,
+export function createSuccessfulExecutionMemory(portal: string, traceId: string): ExecutionMemory {
+  return {
+    trace_id: traceId,
+    request_id: `req-${traceId.substring(0, 8)}`,
     started_at: "2026-01-04T10:00:00Z",
     completed_at: "2026-01-04T10:30:00Z",
     status: ExecutionStatus.COMPLETED,
@@ -48,6 +35,45 @@ export async function createTestProposal(
       "Typed errors make debugging easier",
     ],
   };
+}
+
+export function createFailedExecutionMemory(portal: string, traceId: string): ExecutionMemory {
+  return {
+    trace_id: traceId,
+    request_id: `req-${traceId.substring(0, 8)}`,
+    started_at: "2026-01-04T11:00:00Z",
+    completed_at: "2026-01-04T11:15:00Z",
+    status: ExecutionStatus.FAILED,
+    portal,
+    agent: "senior-coder",
+    summary: "Failed to implement feature due to missing dependency configuration.",
+    context_files: ["src/config.ts"],
+    context_portals: [portal],
+    changes: {
+      files_created: [],
+      files_modified: [],
+      files_deleted: [],
+    },
+    error_message: "Module not found: @db/sqlite. Ensure dependencies are installed.",
+    lessons_learned: ["Always verify dependencies before implementation"],
+  };
+}
+
+/**
+ * Creates a test execution with learnable content and returns a proposal ID
+ * This helper encapsulates the common pattern of creating an execution, analyzing it,
+ * and creating a proposal for testing memory extractor operations.
+ */
+export async function createTestProposal(
+  extractor: MemoryExtractorService,
+  portal: string = "my-app",
+  traceId?: string,
+): Promise<string | null> {
+  // Use a unique trace ID if not provided
+  const executionTraceId = traceId ??
+    `550e8400-e29b-41d4-a716-44665544${Math.random().toString().slice(2, 4).padStart(3, "0")}`;
+
+  const execution = createSuccessfulExecutionMemory(portal, executionTraceId);
 
   const learnings = await extractor.analyzeExecution(execution);
 
