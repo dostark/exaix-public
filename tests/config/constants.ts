@@ -8,6 +8,9 @@
 export const REGRESSION_TEST_PROMPT = "Hello, reply with 'OK'";
 export const TEST_LOG_PREVIEW_LENGTH = 50;
 
+// Test Timeouts (in milliseconds)
+export const REGRESSION_TEST_TIMEOUT_MS = 30000;
+
 // Environment Keys
 export const ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY";
 export const ENV_OPENAI_API_KEY = "OPENAI_API_KEY";

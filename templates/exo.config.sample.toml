@@ -115,13 +115,13 @@ target_path = "/home/me/projects/my-repo"
 #   - claude-sonnet-4-5-20250929 (Balanced - Sep 2025)
 #   - claude-opus-4-5-20251101 (Premium - Nov 2025)
 # Google:
-#   - gemini-2.0-flash-exp (Free/Agentic)
-#   - gemini-2.5-flash (Recommended - Stable 2025 release)
+#   - gemini-flash-latest (Recommended - Always latest Flash model)
+#   - gemini-2.5-flash (Stable 2025 release)
 # ---------------------------------------------------------------------------
 [ai]
 provider = "google"     # Overridden by EXO_LLM_PROVIDER
 # Provider-specific model name (optional)
-model = "gemini-2.0-flash-exp"    # Overridden by EXO_LLM_MODEL
+model = "gemini-flash-latest"    # Overridden by EXO_LLM_MODEL
 # Base URL for custom provider endpoints (optional)
 base_url = ""           # Overridden by EXO_LLM_BASE_URL
 # Request timeout (ms)
@@ -191,14 +191,14 @@ max_tokens_default = 4096
 
 [models.default]
 provider = "google"
-model = "gemini-2.0-flash-exp"
+model = "gemini-flash-latest"
 timeout_ms = 30000         # Request timeout for this model preset
 max_tokens = 2048
 temperature = 0.2
 
 [models.fast]
 provider = "google"
-model = "gemini-2.0-flash-exp"
+model = "gemini-flash-latest"
 timeout_ms = 15000         # Faster timeout for quick responses
 
 [models.local]

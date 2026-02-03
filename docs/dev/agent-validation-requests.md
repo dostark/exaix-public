@@ -11,6 +11,31 @@ This document contains realistic validation requests for each agent blueprint in
 
 ## Setup Requirements
 
+### Prerequisites (Required)
+
+1. **Add portal for the ExoFrame repo** (from the deployed workspace at `~/ExoFrame`):
+
+   ```bash
+   exoctl portal add ~/git/ExoFrame portal-exoframe
+   exoctl daemon restart
+   ```
+
+2. **Enable paid LLMs for validation runs** (set in the same shell before starting the daemon):
+
+   ```bash
+   export EXO_TEST_ENABLE_PAID_LLM=1
+   # Set provider API key(s) as needed for your target model
+   export GOOGLE_API_KEY=...
+   export OPENAI_API_KEY=...
+   export ANTHROPIC_API_KEY=...
+   ```
+
+   Then restart the daemon:
+
+   ```bash
+   exoctl daemon restart
+   ```
+
 ### Portal Configuration
 
 - **Portal Path**: `~/git/ExoFrame` (the ExoFrame repository)
@@ -42,7 +67,7 @@ Each request follows this structure:
 **exoctl Command**:
 
 ```bash
-exoctl request --agent code-analyst "Analyze the CLI command structure in ExoFrame. Examine src/cli/ and src/cli/commands/ to understand: - Command hierarchy and organization - Common patterns across command implementations - Error handling consistency - CLI argument validation approaches - Opportunities for command consolidation or refactoring Provide specific recommendations for improving the CLI architecture."
+exoctl request --portal portal-exoframe --agent code-analyst "Analyze the CLI command structure in ExoFrame. Examine src/cli/ and src/cli/commands/ to understand: - Command hierarchy and organization - Common patterns across command implementations - Error handling consistency - CLI argument validation approaches - Opportunities for command consolidation or refactoring Provide specific recommendations for improving the CLI architecture."
 ```
 
 **Request**:
@@ -86,7 +111,7 @@ Provide specific recommendations for improving the CLI architecture.
 **exoctl Command**:
 
 ```bash
-exoctl request --agent performance-engineer "Analyze the performance characteristics of ExoFrame's database connection pooling system. Examine src/services/database_connection_pool.ts and related database operations to identify: - Connection pool sizing and utilization patterns - Query execution bottlenecks in the request processing pipeline - Memory usage in database result caching - Scalability limitations under concurrent agent executions - Specific optimization recommendations for the SQLite/PostgreSQL implementations"
+exoctl request --portal portal-exoframe --agent performance-engineer "Analyze the performance characteristics of ExoFrame's database connection pooling system. Examine src/services/database_connection_pool.ts and related database operations to identify: - Connection pool sizing and utilization patterns - Query execution bottlenecks in the request processing pipeline - Memory usage in database result caching - Scalability limitations under concurrent agent executions - Specific optimization recommendations for the SQLite/PostgreSQL implementations"
 ```
 
 **Request**:
@@ -129,7 +154,7 @@ Analyze the performance characteristics of ExoFrame's database connection poolin
 **exoctl Command**:
 
 ```bash
-exoctl request --agent product-manager "We need to implement a real-time agent monitoring dashboard in the TUI. As a product manager, analyze this requirement and create: - Detailed user stories with acceptance criteria for monitoring active agents, request queues, and system health - Technical requirements considering the existing TUI architecture in src/tui/ - Success metrics for the dashboard feature (response time, user satisfaction, error detection) - Potential risks and dependencies with the daemon and database services Structure this as a complete requirements specification for the Team+ edition feature."
+exoctl request --portal portal-exoframe --agent product-manager "We need to implement a real-time agent monitoring dashboard in the TUI. As a product manager, analyze this requirement and create: - Detailed user stories with acceptance criteria for monitoring active agents, request queues, and system health - Technical requirements considering the existing TUI architecture in src/tui/ - Success metrics for the dashboard feature (response time, user satisfaction, error detection) - Potential risks and dependencies with the daemon and database services Structure this as a complete requirements specification for the Team+ edition feature."
 ```
 
 **Request**:
@@ -172,7 +197,7 @@ Structure this as a complete requirements specification for the Team+ edition fe
 **exoctl Command**:
 
 ```bash
-exoctl request --agent qa-engineer "Create a comprehensive testing strategy for ExoFrame's portal permission system. Include: - Unit test cases for portal access validation in src/services/portal_permissions.ts - Integration tests for cross-portal file operations and security boundaries - Edge cases for symlinked directories, permission escalation, and concurrent access - Test data requirements for different portal configurations - Automation recommendations for CI/CD pipeline integration Provide specific test cases that validate the security boundaries between portals and the main workspace."
+exoctl request --portal portal-exoframe --agent qa-engineer "Create a comprehensive testing strategy for ExoFrame's portal permission system. Include: - Unit test cases for portal access validation in src/services/portal_permissions.ts - Integration tests for cross-portal file operations and security boundaries - Edge cases for symlinked directories, permission escalation, and concurrent access - Test data requirements for different portal configurations - Automation recommendations for CI/CD pipeline integration Provide specific test cases that validate the security boundaries between portals and the main workspace."
 ```
 
 **Request**:
@@ -216,7 +241,7 @@ Provide specific test cases that validate the security boundaries between portal
 **exoctl Command**:
 
 ```bash
-exoctl request --agent quality-judge "Evaluate the quality of the security implementation in ExoFrame's context loader. Assess: - Code correctness in src/services/context_loader.ts for portal access validation - Security boundary enforcement between workspace and portals - Input sanitization and path traversal protection - Error handling for unauthorized access attempts - Code maintainability and adherence to security best practices Provide a detailed quality assessment with specific findings and recommendations for the security-critical context loading functionality."
+exoctl request --portal portal-exoframe --agent quality-judge "Evaluate the quality of the security implementation in ExoFrame's context loader. Assess: - Code correctness in src/services/context_loader.ts for portal access validation - Security boundary enforcement between workspace and portals - Input sanitization and path traversal protection - Error handling for unauthorized access attempts - Code maintainability and adherence to security best practices Provide a detailed quality assessment with specific findings and recommendations for the security-critical context loading functionality."
 ```
 
 **Request**:
@@ -260,7 +285,7 @@ Provide a detailed quality assessment with specific findings and recommendations
 **exoctl Command**:
 
 ```bash
-exoctl request --agent security-expert "Perform a security audit of ExoFrame's AI provider API key management system. Identify: - Key storage security in src/ai/provider_api_key.ts and configuration files - Encryption practices for sensitive provider credentials - Access control for API keys across different editions (Solo/Team/Enterprise) - Key rotation and expiration handling - Compliance with security best practices for credential management Provide specific remediation steps with code examples for securing the multi-provider API key infrastructure."
+exoctl request --portal portal-exoframe --agent security-expert "Perform a security audit of ExoFrame's AI provider API key management system. Identify: - Key storage security in src/ai/provider_api_key.ts and configuration files - Encryption practices for sensitive provider credentials - Access control for API keys across different editions (Solo/Team/Enterprise) - Key rotation and expiration handling - Compliance with security best practices for credential management Provide specific remediation steps with code examples for securing the multi-provider API key infrastructure."
 ```
 
 **Request**:
@@ -304,7 +329,7 @@ Provide specific remediation steps with code examples for securing the multi-pro
 **exoctl Command**:
 
 ```bash
-exoctl request --agent senior-coder "Implement a new CLI command for memory bank management in ExoFrame. Plan the implementation including: - New command structure in src/cli/commands/memory_commands.ts for listing, searching, and managing memory banks - Integration with existing memory services (src/services/memory_bank.ts, memory_embedding.ts) - Database schema changes for memory metadata storage - Input validation and security measures for memory operations - Error handling strategy and user feedback mechanisms Provide a complete implementation plan with specific code changes for the memory management CLI feature."
+exoctl request --portal portal-exoframe --agent senior-coder "Implement a new CLI command for memory bank management in ExoFrame. Plan the implementation including: - New command structure in src/cli/commands/memory_commands.ts for listing, searching, and managing memory banks - Integration with existing memory services (src/services/memory_bank.ts, memory_embedding.ts) - Database schema changes for memory metadata storage - Input validation and security measures for memory operations - Error handling strategy and user feedback mechanisms Provide a complete implementation plan with specific code changes for the memory management CLI feature."
 ```
 
 **Request**:
@@ -348,7 +373,7 @@ Provide a complete implementation plan with specific code changes for the memory
 **exoctl Command**:
 
 ```bash
-exoctl request --agent software-architect "Design the architecture for MCP (Model Context Protocol) server support in ExoFrame. Consider: - Server implementation structure in src/mcp/ for exposing ExoFrame as MCP server - Integration with existing agent execution pipeline and tool registry - Authentication and authorization for external MCP clients - Resource and tool discovery mechanisms for ExoFrame capabilities - Performance and security requirements for the Team+ edition MCP server Provide a complete architectural design with implementation phases for MCP server integration."
+exoctl request --portal portal-exoframe --agent software-architect "Design the architecture for MCP (Model Context Protocol) server support in ExoFrame. Consider: - Server implementation structure in src/mcp/ for exposing ExoFrame as MCP server - Integration with existing agent execution pipeline and tool registry - Authentication and authorization for external MCP clients - Resource and tool discovery mechanisms for ExoFrame capabilities - Performance and security requirements for the Team+ edition MCP server Provide a complete architectural design with implementation phases for MCP server integration."
 ```
 
 **Request**:
@@ -392,7 +417,7 @@ Provide a complete architectural design with implementation phases for MCP serve
 **exoctl Command**:
 
 ```bash
-exoctl request --agent technical-writer "Create comprehensive API documentation for ExoFrame's flow engine. Include: - Complete API reference for flow definition, execution, and management in src/flows/ - Request/response formats with examples for flow_runner.ts and flow_loader.ts - Authentication requirements and flow execution permissions - Error handling documentation for flow validation and execution failures - Code examples in TypeScript for creating custom flows - Integration guides for multi-agent workflow orchestration Ensure the documentation covers both programmatic and CLI usage patterns for the flow system."
+exoctl request --portal portal-exoframe --agent technical-writer "Create comprehensive API documentation for ExoFrame's flow engine. Include: - Complete API reference for flow definition, execution, and management in src/flows/ - Request/response formats with examples for flow_runner.ts and flow_loader.ts - Authentication requirements and flow execution permissions - Error handling documentation for flow validation and execution failures - Code examples in TypeScript for creating custom flows - Integration guides for multi-agent workflow orchestration Ensure the documentation covers both programmatic and CLI usage patterns for the flow system."
 ```
 
 **Request**:
@@ -437,7 +462,7 @@ Ensure the documentation covers both programmatic and CLI usage patterns for the
 **exoctl Command**:
 
 ```bash
-exoctl request --agent test-engineer "Implement comprehensive tests for ExoFrame's changeset registry system. Create: - Unit tests for changeset tracking and validation in src/services/changeset_registry.ts - Integration tests for git changeset operations and workspace synchronization - End-to-end tests for complete changeset lifecycle (creation, approval, execution) - Mock data and test fixtures for different changeset scenarios - Test automation setup for CI/CD validation of changeset integrity Provide specific test implementations that ensure the reliability of the git-based change tracking system."
+exoctl request --portal portal-exoframe --agent test-engineer "Implement comprehensive tests for ExoFrame's changeset registry system. Create: - Unit tests for changeset tracking and validation in src/services/changeset_registry.ts - Integration tests for git changeset operations and workspace synchronization - End-to-end tests for complete changeset lifecycle (creation, approval, execution) - Mock data and test fixtures for different changeset scenarios - Test automation setup for CI/CD validation of changeset integrity Provide specific test implementations that ensure the reliability of the git-based change tracking system."
 ```
 
 **Request**:
@@ -481,7 +506,7 @@ Provide specific test implementations that ensure the reliability of the git-bas
 **exoctl Command**:
 
 ```bash
-exoctl request --agent api-documenter "Generate comprehensive documentation for the ExoFrame agent blueprint schema. Document: - Complete TOML schema specification for agent definitions in Blueprints/Agents/ - All supported blueprint fields, types, and validation rules - Model configuration options for different AI providers (Claude, GPT, Ollama, Gemini) - Capability definitions and tool access permissions - Example blueprints for each agent type with detailed field explanations - Migration guides for updating blueprints between versions Base the documentation on the actual blueprint loader implementation in src/services/blueprint_loader.ts."
+exoctl request --portal portal-exoframe --agent api-documenter "Generate comprehensive documentation for the ExoFrame agent blueprint schema. Document: - Complete TOML schema specification for agent definitions in Blueprints/Agents/ - All supported blueprint fields, types, and validation rules - Model configuration options for different AI providers (Claude, GPT, Ollama, Gemini) - Capability definitions and tool access permissions - Example blueprints for each agent type with detailed field explanations - Migration guides for updating blueprints between versions Base the documentation on the actual blueprint loader implementation in src/services/blueprint_loader.ts."
 ```
 
 **Request**:
@@ -526,7 +551,7 @@ Base the documentation on the actual blueprint loader implementation in src/serv
 **exoctl Command**:
 
 ```bash
-exoctl request --agent code-reviewer "Perform a comprehensive code review of ExoFrame's plan executor implementation. Evaluate: - Code quality and correctness in src/services/plan_executor.ts and related execution logic - Security validation of plan execution and tool invocation - Error handling for malformed plans and execution failures - Performance optimization opportunities in the execution pipeline - Maintainability concerns with the multi-step plan processing - Testing coverage and quality for the core execution engine Provide specific recommendations for improving the reliability and security of the plan execution system."
+exoctl request --portal portal-exoframe --agent code-reviewer "Perform a comprehensive code review of ExoFrame's plan executor implementation. Evaluate: - Code quality and correctness in src/services/plan_executor.ts and related execution logic - Security validation of plan execution and tool invocation - Error handling for malformed plans and execution failures - Performance optimization opportunities in the execution pipeline - Maintainability concerns with the multi-step plan processing - Testing coverage and quality for the core execution engine Provide specific recommendations for improving the reliability and security of the plan execution system."
 ```
 
 **Request**:

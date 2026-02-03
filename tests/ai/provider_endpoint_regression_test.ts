@@ -21,16 +21,25 @@ import * as TEST_CONSTANTS from "../config/constants.ts";
 const TEST_PROMPT = TEST_CONSTANTS.REGRESSION_TEST_PROMPT;
 
 Deno.test({
-  name: "[regression] GoogleProvider: Verify gemini-2.0-flash-exp works with v1beta",
+  name: "[regression] GoogleProvider: Verify gemini-flash-latest works with v1beta",
   ignore: !Deno.env.get(TEST_CONSTANTS.ENV_GOOGLE_API_KEY),
   fn: async () => {
     const provider = new GoogleProvider({
       apiKey: Deno.env.get(TEST_CONSTANTS.ENV_GOOGLE_API_KEY)!,
-      model: DEFAULT_GOOGLE_MODEL, // gemini-2.0-flash-exp
+      model: DEFAULT_GOOGLE_MODEL, // gemini-flash-latest
     });
 
+    let timeoutId: number | undefined;
     try {
-      const response = await provider.generate(TEST_PROMPT);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(
+          () =>
+            reject(new Error(`Request timed out after ${TEST_CONSTANTS.REGRESSION_TEST_TIMEOUT_MS / 1000} seconds`)),
+          TEST_CONSTANTS.REGRESSION_TEST_TIMEOUT_MS,
+        );
+      });
+      const response = await Promise.race([provider.generate(TEST_PROMPT), timeoutPromise]);
+      clearTimeout(timeoutId!);
       assert(response.length > 0, "Response should not be empty");
       console.log(
         `${TEST_CONSTANTS.LOG_PREFIX_GOOGLE_RESPONSE} ${
@@ -38,6 +47,7 @@ Deno.test({
         }...`,
       );
     } catch (error: any) {
+      if (timeoutId) clearTimeout(timeoutId);
       console.log(`${TEST_CONSTANTS.LOG_PREFIX_GOOGLE_ERROR} ${error.name} - ${error.message}`);
       if (error.message.includes(TEST_CONSTANTS.ERROR_MSG_HTTP_404)) throw error;
       console.log(TEST_CONSTANTS.LOG_MSG_ENDPOINT_REACHED);
@@ -54,8 +64,17 @@ Deno.test({
       model: DEFAULT_OPENAI_MODEL,
     });
 
+    let timeoutId: number | undefined;
     try {
-      const response = await provider.generate(TEST_PROMPT);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(
+          () =>
+            reject(new Error(`Request timed out after ${TEST_CONSTANTS.REGRESSION_TEST_TIMEOUT_MS / 1000} seconds`)),
+          TEST_CONSTANTS.REGRESSION_TEST_TIMEOUT_MS,
+        );
+      });
+      const response = await Promise.race([provider.generate(TEST_PROMPT), timeoutPromise]);
+      clearTimeout(timeoutId!);
       assert(response.length > 0, "Response should not be empty");
       console.log(
         `${TEST_CONSTANTS.LOG_PREFIX_OPENAI_RESPONSE} ${
@@ -63,6 +82,7 @@ Deno.test({
         }...`,
       );
     } catch (error: any) {
+      if (timeoutId) clearTimeout(timeoutId);
       console.log(`${TEST_CONSTANTS.LOG_PREFIX_OPENAI_ERROR} ${error.name} - ${error.message}`);
       if (error.message.includes(TEST_CONSTANTS.ERROR_MSG_HTTP_404)) throw error;
       console.log(TEST_CONSTANTS.LOG_MSG_ENDPOINT_REACHED);
@@ -79,8 +99,17 @@ Deno.test({
       model: DEFAULT_ANTHROPIC_MODEL,
     });
 
+    let timeoutId: number | undefined;
     try {
-      const response = await provider.generate(TEST_PROMPT);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(
+          () =>
+            reject(new Error(`Request timed out after ${TEST_CONSTANTS.REGRESSION_TEST_TIMEOUT_MS / 1000} seconds`)),
+          TEST_CONSTANTS.REGRESSION_TEST_TIMEOUT_MS,
+        );
+      });
+      const response = await Promise.race([provider.generate(TEST_PROMPT), timeoutPromise]);
+      clearTimeout(timeoutId!);
       assert(response.length > 0, "Response should not be empty");
       console.log(
         `${TEST_CONSTANTS.LOG_PREFIX_ANTHROPIC_RESPONSE} ${
@@ -88,6 +117,7 @@ Deno.test({
         }...`,
       );
     } catch (error: any) {
+      if (timeoutId) clearTimeout(timeoutId);
       console.log(`${TEST_CONSTANTS.LOG_PREFIX_ANTHROPIC_ERROR} ${error.name} - ${error.message}`);
       // Anthropic 404 is "not_found_error"
       if (

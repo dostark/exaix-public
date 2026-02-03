@@ -144,8 +144,8 @@ export const DEFAULT_OLLAMA_MODEL = "llama3.2";
 export const DEFAULT_OPENAI_BASE_URL = "https://api.openai.com";
 // Options: gpt-5-mini (default), gpt-5, gpt-5-pro, gpt-5.2, o4-mini, gpt-5-codex
 export const DEFAULT_OPENAI_MODEL = "gpt-5-mini";
-// Options: gemini-2.0-flash-exp (default), gemini-2.5-flash, gemini-2.0-flash-lite, gemini-3-pro-latest, gemini-2.5-pro
-export const DEFAULT_GOOGLE_MODEL = "gemini-2.5-flash";
+// Options: gemini-flash-latest (default), gemini-2.5-flash, gemini-2.0-flash-lite, gemini-3-pro-latest, gemini-2.5-pro
+export const DEFAULT_GOOGLE_MODEL = "gemini-flash-latest";
 
 // ============================================================================
 // Mock Provider Validation Limits
