@@ -337,7 +337,7 @@ export class ReviewCommands extends BaseCommand {
       const branches = await this.list();
       const match = branches.find((b) => b.request_id === branchName || b.branch === `feat/${branchName}`);
       if (!match) {
-        throw new Error(`Review not found: ${branchName}\nRun 'exoctl changeset list' to see available reviews`);
+        throw new Error(`Review not found: ${branchName}\nRun 'exoctl review list' to see available reviews`);
       }
       fullBranch = match.branch;
     }
@@ -527,7 +527,7 @@ export class ReviewCommands extends BaseCommand {
       if (!validation.isValid) {
         throw new Error(
           CommandUtils.formatValidationErrors(validation) +
-            '\nUse: exoctl changeset reject <id> --reason "your reason"',
+            '\nUse: exoctl review reject <id> --reason "your reason"',
         );
       }
 

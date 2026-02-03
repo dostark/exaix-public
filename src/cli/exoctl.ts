@@ -15,7 +15,6 @@
 import { Command } from "@cliffy/command";
 import { PlanCommands } from "./plan_commands.ts";
 import { RequestCommands } from "./request_commands.ts";
-import { ChangesetCommands } from "./changeset_commands.ts";
 import { ReviewCommands } from "./review_commands.ts";
 import { GitCommands } from "./git_commands.ts";
 import { DaemonCommands } from "./daemon_commands.ts";
@@ -65,7 +64,6 @@ if (services.success) {
 
 const requestCommands = new RequestCommands(context);
 const planCommands = new PlanCommands(context);
-const changesetCommands = new ChangesetCommands(context, gitService);
 const reviewCommands = new ReviewCommands(context, gitService);
 const gitCommands = new GitCommands(context);
 const daemonCommands = new DaemonCommands({ ...context, configService });
@@ -87,7 +85,6 @@ export function __test_getContext() {
     context,
     requestCommands,
     planCommands,
-    changesetCommands,
     reviewCommands,
     gitCommands,
     daemonCommands,
@@ -211,25 +208,25 @@ export const __test_command = new Command()
           }),
       ),
   )
-  // Changeset commands
+  // Review commands (replaces changeset commands)
   .command(
-    "changeset",
+    "review",
     new Command()
-      .description("Review and manage agent-generated code changes")
+      .description("Review and manage agent-generated outputs (code changes and artifacts)")
       .command(
         "list",
         new Command()
-          .description("List all pending changesets")
+          .description("List all pending reviews")
           .option("-s, --status <status:string>", "Filter by status (pending, approved, rejected)")
           .action(async (options) => {
             try {
-              const changesets = await changesetCommands.list(options.status);
-              if (changesets.length === 0) {
-                display.info("changeset.list", "changesets", { count: 0, message: "No changesets found" });
+              const reviews = await reviewCommands.list(options.status);
+              if (reviews.length === 0) {
+                display.info("review.list", "reviews", { count: 0, message: "No reviews found" });
                 return;
               }
-              display.info("changeset.list", "changesets", { count: changesets.length });
-              for (const cs of changesets) {
+              display.info("review.list", "reviews", { count: reviews.length });
+              for (const cs of reviews) {
                 const statusEmoji = cs.status === "approved" ? "✅" : cs.status === "rejected" ? "❌" : "📌";
                 const requestTitle = cs.request_title ? `"${cs.request_title}"` : cs.request_id;
                 const planInfo = cs.plan_id ? `plan: ${cs.plan_id} (${cs.plan_status})` : "";
@@ -247,7 +244,7 @@ export const __test_command = new Command()
                 });
               }
             } catch (error) {
-              display.error("cli.error", "changeset list", {
+              display.error("cli.error", "review list", {
                 message: error instanceof Error ? error.message : "Unknown error",
               });
               Deno.exit(1);
@@ -257,12 +254,12 @@ export const __test_command = new Command()
       .command(
         "show <id>",
         new Command()
-          .description("Show changeset details including diff")
-          .option("-d, --diff", "Show only the diff for the changeset")
+          .description("Show review details including diff")
+          .option("-d, --diff", "Show only the diff for the review")
           .action(async (options, ...args: string[]) => {
             const id = args[0] as unknown as string;
             try {
-              const cs = await changesetCommands.show(id);
+              const cs = await reviewCommands.show(id);
 
               if (options.diff) {
                 // Output only the diff
@@ -275,7 +272,7 @@ export const __test_command = new Command()
                 const agentInfo = cs.request_agent || cs.agent_id;
                 const portalInfo = cs.request_portal || cs.portal || "workspace";
 
-                display.info(`${statusEmoji} changeset.show`, cs.request_id, {
+                display.info(`${statusEmoji} review.show`, cs.request_id, {
                   branch: cs.branch,
                   status: cs.status || "pending",
                   request: requestTitle,
@@ -307,10 +304,10 @@ export const __test_command = new Command()
                     timestamp: new Date(commit.timestamp).toLocaleString(),
                   });
                 }
-                display.info("changeset.diff", id, { diff: cs.diff });
+                display.info("review.diff", id, { diff: cs.diff });
               }
             } catch (error) {
-              display.error("cli.error", "changeset show", {
+              display.error("cli.error", "review show", {
                 message: error instanceof Error ? error.message : "Unknown error",
               });
               Deno.exit(1);
@@ -320,13 +317,13 @@ export const __test_command = new Command()
       .command(
         "approve <id>",
         new Command()
-          .description("Approve changeset and merge to main")
+          .description("Approve review and merge to main (for code changes) or mark as approved (for artifacts)")
           .action(async (_options, ...args: string[]) => {
             const id = args[0] as unknown as string;
             try {
-              await changesetCommands.approve(id);
+              await reviewCommands.approve(id);
             } catch (error) {
-              display.error("cli.error", "changeset approve", {
+              display.error("cli.error", "review approve", {
                 message: error instanceof Error ? error.message : "Unknown error",
               });
               Deno.exit(1);
@@ -336,14 +333,14 @@ export const __test_command = new Command()
       .command(
         "reject <id>",
         new Command()
-          .description("Reject changeset and delete branch")
+          .description("Reject review and delete branch (for code changes) or mark as rejected (for artifacts)")
           .option("-r, --reason <reason:string>", "Rejection reason (required)", { required: true })
           .action(async (options, ...args: string[]) => {
             const id = args[0] as unknown as string;
             try {
-              await changesetCommands.reject(id, options.reason);
+              await reviewCommands.reject(id, options.reason);
             } catch (error) {
-              display.error("cli.error", "changeset reject", {
+              display.error("cli.error", "review reject", {
                 message: error instanceof Error ? error.message : "Unknown error",
               });
               Deno.exit(1);
