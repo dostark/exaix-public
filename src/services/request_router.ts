@@ -2,6 +2,8 @@ import { FlowRunner } from "../flows/flow_runner.ts";
 import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
 import { EventLogger } from "./event_logger.ts";
 import { BlueprintLoader } from "./blueprint_loader.ts";
+import { WorkspaceExecutionContext, WorkspaceExecutionContextBuilder } from "./workspace_execution_context.ts";
+import type { Config } from "../config/schema.ts";
 
 /**
  * RequestRouter - Routes requests to appropriate execution engine
@@ -42,7 +44,44 @@ export class RequestRouter {
     private eventLogger: EventLogger,
     private defaultAgentId: string,
     private blueprintsPath: string,
+    private config: Config,
   ) {}
+
+  /**
+   * Build execution context based on request portal parameter
+   */
+  buildExecutionContext(request: {
+    frontmatter: Record<string, any>;
+  }): WorkspaceExecutionContext {
+    const portalAlias = request.frontmatter.portal;
+
+    // If portal specified, create portal context
+    if (portalAlias) {
+      // Find portal in config
+      const portal = this.config.portals.find((p) => p.alias === portalAlias);
+
+      if (!portal) {
+        throw new Error(`Portal '${portalAlias}' not found`);
+      }
+
+      // Build portal context using the portal config
+      // Note: We need to convert PortalConfig to PortalPermissions format
+      const portalPermissions = {
+        alias: portal.alias,
+        target_path: portal.target_path,
+        created: portal.created,
+        operations: [],
+        agents_allowed: ["*"],
+      };
+
+      return WorkspaceExecutionContextBuilder.forPortal(portalPermissions as any);
+    }
+
+    // Otherwise, create workspace context
+    return WorkspaceExecutionContextBuilder.forWorkspace(
+      this.config.system.root,
+    );
+  }
 
   /**
    * Route a request to the appropriate execution engine
