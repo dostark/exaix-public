@@ -177,6 +177,34 @@ export class AgentExecutor {
   }
 
   /**
+   * Determine if agent requires git tracking based on capabilities
+   * Agents with write capabilities need branch creation and commit tracking
+   *
+   * @param blueprint - Agent blueprint with capabilities
+   * @returns true if agent has write capabilities requiring git tracking
+   */
+  requiresGitTracking(blueprint: Blueprint): boolean {
+    const writeCapabilities = [
+      "write_file",
+      "git_commit",
+      "git_create_branch",
+    ];
+
+    return blueprint.capabilities.some((cap) => writeCapabilities.includes(cap));
+  }
+
+  /**
+   * Check if agent is read-only (no write capabilities)
+   * Inverse of requiresGitTracking
+   *
+   * @param blueprint - Agent blueprint with capabilities
+   * @returns true if agent has no write capabilities
+   */
+  isReadOnlyAgent(blueprint: Blueprint): boolean {
+    return !this.requiresGitTracking(blueprint);
+  }
+
+  /**
    * Load agent blueprint from file with security validation
    */
   async loadBlueprint(rawAgentName: unknown): Promise<Blueprint> {

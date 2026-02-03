@@ -1,0 +1,181 @@
+import { assertEquals } from "@std/assert";
+import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
+import { AgentExecutor } from "../../src/services/agent_executor.ts";
+import type { Blueprint } from "../../src/services/agent_executor.ts";
+import { initTestDbService } from "../helpers/db.ts";
+import { createMockConfig } from "../helpers/config.ts";
+import { EventLogger } from "../../src/services/event_logger.ts";
+import { PathResolver } from "../../src/services/path_resolver.ts";
+import { PortalPermissionsService } from "../../src/services/portal_permissions.ts";
+import type { Config } from "../../src/config/schema.ts";
+
+/**
+ * TDD Tests for Agent Capability Differentiation
+ * Task 4.1: Read-Only Agent Optimization
+ *
+ * Tests that AgentExecutor can differentiate between read-only and write-capable agents
+ */
+
+describe("AgentExecutor Capability Differentiation", () => {
+  let config: Config;
+  let executor: AgentExecutor;
+  let cleanup: () => Promise<void>;
+
+  beforeEach(async () => {
+    const dbService = await initTestDbService();
+    cleanup = dbService.cleanup;
+
+    config = createMockConfig(dbService.tempDir);
+    const logger = new EventLogger({ db: dbService.db });
+    const pathResolver = new PathResolver(config);
+    const permissions = new PortalPermissionsService([]);
+
+    executor = new AgentExecutor(
+      config,
+      dbService.db,
+      logger,
+      pathResolver,
+      permissions,
+    );
+  });
+
+  afterEach(async () => {
+    if (cleanup) {
+      await cleanup();
+    }
+  });
+
+  describe("requiresGitTracking", () => {
+    it("returns false for read-only agents without write capabilities", () => {
+      const blueprint: Blueprint = {
+        name: "code-analyst",
+        model: "gpt-4",
+        provider: "openai",
+        capabilities: ["read_file", "list_files", "search_code"],
+        systemPrompt: "Analyze code",
+      };
+
+      const result = executor.requiresGitTracking(blueprint);
+      assertEquals(result, false);
+    });
+
+    it("returns true for agents with write_file capability", () => {
+      const blueprint: Blueprint = {
+        name: "feature-developer",
+        model: "gpt-4",
+        provider: "openai",
+        capabilities: ["read_file", "write_file", "list_files"],
+        systemPrompt: "Develop features",
+      };
+
+      const result = executor.requiresGitTracking(blueprint);
+      assertEquals(result, true);
+    });
+
+    it("returns true for agents with git_commit capability", () => {
+      const blueprint: Blueprint = {
+        name: "commit-agent",
+        model: "gpt-4",
+        provider: "openai",
+        capabilities: ["read_file", "git_commit"],
+        systemPrompt: "Commit changes",
+      };
+
+      const result = executor.requiresGitTracking(blueprint);
+      assertEquals(result, true);
+    });
+
+    it("returns true for agents with git_create_branch capability", () => {
+      const blueprint: Blueprint = {
+        name: "branch-agent",
+        model: "gpt-4",
+        provider: "openai",
+        capabilities: ["read_file", "git_create_branch"],
+        systemPrompt: "Create branches",
+      };
+
+      const result = executor.requiresGitTracking(blueprint);
+      assertEquals(result, true);
+    });
+
+    it("returns true for agents with multiple write capabilities", () => {
+      const blueprint: Blueprint = {
+        name: "full-developer",
+        model: "gpt-4",
+        provider: "openai",
+        capabilities: ["read_file", "write_file", "git_commit", "git_create_branch"],
+        systemPrompt: "Full development",
+      };
+
+      const result = executor.requiresGitTracking(blueprint);
+      assertEquals(result, true);
+    });
+
+    it("returns false for agents with only read capabilities", () => {
+      const blueprint: Blueprint = {
+        name: "analyzer",
+        model: "gpt-4",
+        provider: "openai",
+        capabilities: ["read_file", "search_code", "list_files", "grep_search"],
+        systemPrompt: "Analyze and search",
+      };
+
+      const result = executor.requiresGitTracking(blueprint);
+      assertEquals(result, false);
+    });
+
+    it("returns false for agents with empty capabilities", () => {
+      const blueprint: Blueprint = {
+        name: "minimal-agent",
+        model: "gpt-4",
+        provider: "openai",
+        capabilities: [],
+        systemPrompt: "Minimal agent",
+      };
+
+      const result = executor.requiresGitTracking(blueprint);
+      assertEquals(result, false);
+    });
+
+    it("is case-sensitive for capability names", () => {
+      const blueprint: Blueprint = {
+        name: "case-test",
+        model: "gpt-4",
+        provider: "openai",
+        capabilities: ["WRITE_FILE", "Write_File"], // Wrong case
+        systemPrompt: "Test case sensitivity",
+      };
+
+      const result = executor.requiresGitTracking(blueprint);
+      assertEquals(result, false); // Should not match wrong case
+    });
+  });
+
+  describe("isReadOnlyAgent", () => {
+    it("returns true for agents without write capabilities", () => {
+      const blueprint: Blueprint = {
+        name: "reader",
+        model: "gpt-4",
+        provider: "openai",
+        capabilities: ["read_file", "list_files"],
+        systemPrompt: "Read only",
+      };
+
+      const result = executor.isReadOnlyAgent(blueprint);
+      assertEquals(result, true);
+    });
+
+    it("returns false for agents with write capabilities", () => {
+      const blueprint: Blueprint = {
+        name: "writer",
+        model: "gpt-4",
+        provider: "openai",
+        capabilities: ["read_file", "write_file"],
+        systemPrompt: "Read and write",
+      };
+
+      const result = executor.isReadOnlyAgent(blueprint);
+      assertEquals(result, false);
+    });
+  });
+});
