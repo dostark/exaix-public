@@ -184,6 +184,43 @@ export class PortalPermissionsService {
   }
 
   /**
+   * Validate portal has git repository
+   * Checks for .git directory in portal's target path
+   */
+  validateGitRepo(portalAlias: string): boolean {
+    const portal = this.getPortal(portalAlias);
+
+    if (!portal) {
+      throw new Error(`Portal '${portalAlias}' not found`);
+    }
+
+    try {
+      const gitDir = `${portal.target_path}/.git`;
+      const stat = Deno.statSync(gitDir);
+      return stat.isDirectory;
+    } catch {
+      // If .git doesn't exist or can't be accessed, return false
+      return false;
+    }
+  }
+
+  /**
+   * List portals with git support
+   * Returns only portals that have a .git directory
+   */
+  listGitEnabledPortals(): PortalPermissions[] {
+    const allPortals = Array.from(this.portals.values());
+    return allPortals.filter((portal) => {
+      try {
+        return this.validateGitRepo(portal.alias);
+      } catch {
+        // If validation throws, portal doesn't have git
+        return false;
+      }
+    });
+  }
+
+  /**
    * Enhanced RBAC permission check with resource/action/condition model
    */
   checkPermission(
