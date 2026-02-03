@@ -1047,6 +1047,7 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
 **Manual Test Scenarios:**
 
 1. **Vertex AI Setup:**
+
    ```bash
    # 1. Create GCP project and enable Vertex AI API
    # 2. Create service account with Vertex AI User role
@@ -1058,6 +1059,7 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
    ```
 
 2. **OpenRouter Setup:**
+
    ```bash
    export OPENROUTER_API_KEY="sk-or-..."
 
@@ -1115,7 +1117,8 @@ Vertex AI requires a Google Cloud project with billing enabled and a service acc
    ```
 ````
 
-3. **Configure ExoFrame:**
+1. **Configure ExoFrame:**
+
    ```bash
    export VERTEX_AI_SERVICE_ACCOUNT=$(cat ~/exoframe-vertex-key.json)
    ```
@@ -1133,18 +1136,21 @@ Vertex AI requires a Google Cloud project with billing enabled and a service acc
 
 1. Get API key from [openrouter.ai](https://openrouter.ai/keys)
 2. Export as environment variable:
+
    ```bash
    export OPENROUTER_API_KEY="sk-or-v1-..."
    ```
+
 3. Configure model:
+
    ```toml
    [models.openrouter]
    provider = "openrouter"
    model = "anthropic/claude-3-opus"  # or any supported model
    ```
 
-````
 **Success Criteria:**
+
 - [ ] Technical Spec documents Vertex AI setup process
 - [ ] OpenRouter configuration examples provided
 - [ ] Service account creation instructions clear and complete
@@ -1196,7 +1202,8 @@ temperature = 0.7
 max_tokens = 2048
 ```
 
-4. **Test:**
+1. **Test:**
+
    ```bash
    exoctl request "Test Vertex AI" --model vertex
    ```
@@ -1219,6 +1226,7 @@ max_tokens = 2048
 
 1. Get API key from [openrouter.ai/keys](https://openrouter.ai/keys)
 2. Configure ExoFrame:
+
    ```bash
    export OPENROUTER_API_KEY="sk-or-v1-..."
    ```
@@ -1230,14 +1238,15 @@ max_tokens = 2048
    ```
 
 3. Test:
+
    ```bash
    exoctl request "Test OpenRouter" --model openrouter
    ```
 
 **Supported models:** See [openrouter.ai/models](https://openrouter.ai/models) for full list.
 
-```
 **Success Criteria:**
+
 - [ ] User Guide provides clear setup instructions for both providers
 - [ ] Prerequisites listed upfront
 - [ ] Troubleshooting section addresses common issues
@@ -1250,6 +1259,7 @@ max_tokens = 2048
 Add section on enterprise provider usage patterns.
 
 **Success Criteria:**
+
 - [ ] `.copilot/` documentation explains when to use enterprise providers
 - [ ] Code examples show proper configuration patterns
 - [ ] Security best practices documented (service account JSON handling)
@@ -1385,4 +1395,3 @@ Add section on enterprise provider usage patterns.
 - **User Experience:** Setup complexity is higher for Vertex AI. Excellent docs critical.
 - **Incremental Value:** Vertex AI alone solves the immediate quota problem. OpenRouter can be Phase 29.1.
 - **Edition Strategy:** Both providers in 🟢 Solo Edition. Enterprise providers (Bedrock, Azure) reserved for 🟣 Enterprise.
-```
