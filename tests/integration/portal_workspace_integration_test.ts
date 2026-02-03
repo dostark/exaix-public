@@ -4,7 +4,7 @@
  * Tests verify:
  * - Agents execute in portal workspace, not deployed workspace
  * - Git branches created in portal repository
- * - Changesets track actual file changes in portal
+ * - Reviews track actual file changes in portal
  * - Multi-portal operations are isolated
  */
 

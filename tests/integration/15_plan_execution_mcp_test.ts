@@ -1,12 +1,12 @@
 /**
  * Integration Test 15: Plan Execution via MCP Server
  *
- * Tests the complete flow: request → plan → MCP execution → changeset
+ * Tests the complete flow: request → plan → MCP execution → review
  * Covers Steps 6.1-6.5 integration with both sandboxed and hybrid security modes.
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";
-import { ChangesetStatus, McpToolName, MemoryOperation, PortalOperation, SecurityMode } from "../../src/enums.ts";
+import { McpToolName, MemoryOperation, PortalOperation, ReviewStatus, SecurityMode } from "../../src/enums.ts";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { EventLogger } from "../../src/services/event_logger.ts";
@@ -128,7 +128,7 @@ Create a simple hello world function in src/utils.ts
 
     const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
     assertEquals(frontmatter.trace_id, traceId);
-    assertEquals(frontmatter.status, ChangesetStatus.APPROVED);
+    assertEquals(frontmatter.status, ReviewStatus.APPROVED);
     assertEquals(frontmatter.agent, "mock-agent");
     assertEquals(frontmatter.portal, "TestPortal");
 
@@ -148,15 +148,15 @@ Create a simple hello world function in src/utils.ts
       created_by: "mock-agent",
     });
 
-    assertExists(reviewId, "Changeset should be created");
+    assertExists(reviewId, "Review should be created");
 
     // Step 4: Verify review was registered correctly
     const review = await reviewRegistry.get(reviewId);
-    assertExists(review, "Changeset should exist");
-    assert(review !== null, "Changeset should not be null");
+    assertExists(review, "Review should exist");
+    assert(review !== null, "Review should not be null");
     assertEquals(review!.trace_id, traceId);
     assertEquals(review!.portal, "TestPortal");
-    assertEquals(review!.status, ChangesetStatus.PENDING);
+    assertEquals(review!.status, ReviewStatus.PENDING);
     assertEquals(review!.created_by, "mock-agent");
     assertEquals(review!.files_changed, 1);
 
@@ -248,7 +248,7 @@ Modify README.md with additional content
     assertExists(reviewId);
 
     const review = await reviewRegistry.get(reviewId);
-    assertEquals(review?.status, ChangesetStatus.PENDING);
+    assertEquals(review?.status, ReviewStatus.PENDING);
 
     console.log("✅ Happy Path (Hybrid Mode) - All checks passed");
   } finally {
@@ -316,7 +316,7 @@ this is not valid yaml: [unclosed bracket
   }
 });
 
-Deno.test("Integration Test 15.4: Changeset Lifecycle - Approval", async () => {
+Deno.test("Integration Test 15.4: Review Lifecycle - Approval", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
 
   try {
@@ -325,7 +325,7 @@ Deno.test("Integration Test 15.4: Changeset Lifecycle - Approval", async () => {
 
     const traceId = crypto.randomUUID();
 
-    // Create changeset
+    // Create review
     const reviewId = await reviewRegistry.register({
       trace_id: traceId,
       repository: "/test/repo",
@@ -339,19 +339,19 @@ Deno.test("Integration Test 15.4: Changeset Lifecycle - Approval", async () => {
 
     // Verify initial status
     let review = await reviewRegistry.get(reviewId);
-    assertEquals(review?.status, ChangesetStatus.PENDING);
+    assertEquals(review?.status, ReviewStatus.PENDING);
     assertEquals(review?.approved_at, null);
 
-    // Approve changeset
+    // Approve review
     await reviewRegistry.updateStatus(
       reviewId,
-      ChangesetStatus.APPROVED,
+      ReviewStatus.APPROVED,
       "admin@example.com",
     );
 
     // Verify updated status
     review = await reviewRegistry.get(reviewId);
-    assertEquals(review?.status, ChangesetStatus.APPROVED);
+    assertEquals(review?.status, ReviewStatus.APPROVED);
     assertEquals(review?.approved_by, "admin@example.com");
     assertExists(review?.approved_at);
 
@@ -364,13 +364,13 @@ Deno.test("Integration Test 15.4: Changeset Lifecycle - Approval", async () => {
 
     assert(events.length > 0, "Should log approval event");
 
-    console.log("✅ Changeset Approval - All checks passed");
+    console.log("✅ Review Approval - All checks passed");
   } finally {
     await dbCleanup();
   }
 });
 
-Deno.test("Integration Test 15.5: Changeset Lifecycle - Rejection", async () => {
+Deno.test("Integration Test 15.5: Review Lifecycle - Rejection", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
 
   try {
@@ -379,7 +379,7 @@ Deno.test("Integration Test 15.5: Changeset Lifecycle - Rejection", async () => 
 
     const traceId = crypto.randomUUID();
 
-    // Create changeset
+    // Create review
     const reviewId = await reviewRegistry.register({
       trace_id: traceId,
       repository: "/test/repo",
@@ -391,17 +391,17 @@ Deno.test("Integration Test 15.5: Changeset Lifecycle - Rejection", async () => 
       created_by: "test-agent",
     });
 
-    // Reject changeset
+    // Reject review
     await reviewRegistry.updateStatus(
       reviewId,
-      ChangesetStatus.REJECTED,
+      ReviewStatus.REJECTED,
       "reviewer@example.com",
       "Does not meet coding standards",
     );
 
     // Verify rejection
     const review = await reviewRegistry.get(reviewId);
-    assertEquals(review?.status, ChangesetStatus.REJECTED);
+    assertEquals(review?.status, ReviewStatus.REJECTED);
     assertEquals(review?.rejected_by, "reviewer@example.com");
     assertEquals(review?.rejection_reason, "Does not meet coding standards");
     assertExists(review?.rejected_at);
@@ -415,13 +415,13 @@ Deno.test("Integration Test 15.5: Changeset Lifecycle - Rejection", async () => 
 
     assert(events.length > 0, "Should log rejection event");
 
-    console.log("✅ Changeset Rejection - All checks passed");
+    console.log("✅ Review Rejection - All checks passed");
   } finally {
     await dbCleanup();
   }
 });
 
-Deno.test("Integration Test 15.6: Changeset Filtering", async () => {
+Deno.test("Integration Test 15.6: Review Filtering", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
 
   try {
@@ -431,7 +431,7 @@ Deno.test("Integration Test 15.6: Changeset Filtering", async () => {
     const traceId1 = crypto.randomUUID();
     const traceId2 = crypto.randomUUID();
 
-    // Create multiple changesets
+    // Create multiple reviews
     await reviewRegistry.register({
       trace_id: traceId1,
       repository: "/test/repo",
@@ -455,26 +455,26 @@ Deno.test("Integration Test 15.6: Changeset Filtering", async () => {
     });
 
     // Approve one
-    await reviewRegistry.updateStatus(review2Id, ChangesetStatus.APPROVED, "admin");
+    await reviewRegistry.updateStatus(review2Id, ReviewStatus.APPROVED, "admin");
 
     // Filter by status
-    const pendingChangesets = await reviewRegistry.list({ status: ChangesetStatus.PENDING });
-    assertEquals(pendingChangesets.length, 1);
+    const pendingReviews = await reviewRegistry.list({ status: ReviewStatus.PENDING });
+    assertEquals(pendingReviews.length, 1);
 
-    const approvedChangesets = await reviewRegistry.list({ status: ChangesetStatus.APPROVED });
-    assertEquals(approvedChangesets.length, 1);
+    const approvedReviews = await reviewRegistry.list({ status: ReviewStatus.APPROVED });
+    assertEquals(approvedReviews.length, 1);
 
     // Filter by portal
-    const portal1Changesets = await reviewRegistry.list({ portal: "Portal1" });
-    assertEquals(portal1Changesets.length, 1);
-    assertEquals(portal1Changesets[0].portal, "Portal1");
+    const portal1Reviews = await reviewRegistry.list({ portal: "Portal1" });
+    assertEquals(portal1Reviews.length, 1);
+    assertEquals(portal1Reviews[0].portal, "Portal1");
 
     // Filter by agent
-    const agent2Changesets = await reviewRegistry.list({ created_by: "agent2" });
-    assertEquals(agent2Changesets.length, 1);
-    assertEquals(agent2Changesets[0].created_by, "agent2");
+    const agent2Reviews = await reviewRegistry.list({ created_by: "agent2" });
+    assertEquals(agent2Reviews.length, 1);
+    assertEquals(agent2Reviews[0].created_by, "agent2");
 
-    console.log("✅ Changeset Filtering - All checks passed");
+    console.log("✅ Review Filtering - All checks passed");
   } finally {
     await dbCleanup();
   }
@@ -660,7 +660,7 @@ Deno.test("Integration Test 15.9: Agent Orchestration Errors", async () => {
   }
 });
 
-Deno.test("Integration Test 15.10: Changeset Query Methods", async () => {
+Deno.test("Integration Test 15.10: Review Query Methods", async () => {
   const { db: dbService, cleanup: dbCleanup } = await initTestDbService();
 
   try {
@@ -670,7 +670,7 @@ Deno.test("Integration Test 15.10: Changeset Query Methods", async () => {
     const trace1 = crypto.randomUUID();
     const trace2 = crypto.randomUUID();
 
-    // Create multiple changesets
+    // Create multiple reviews
     const _cs1 = await reviewRegistry.register({
       trace_id: trace1,
       repository: "/test/repo",
@@ -704,27 +704,27 @@ Deno.test("Integration Test 15.10: Changeset Query Methods", async () => {
       created_by: "agent-beta",
     });
 
-    // Approve one changeset
-    await reviewRegistry.updateStatus(cs2, ChangesetStatus.APPROVED, "admin@example.com");
+    // Approve one review
+    await reviewRegistry.updateStatus(cs2, ReviewStatus.APPROVED, "admin@example.com");
 
-    // Test: Get changesets by trace_id
+    // Test: Get reviews by trace_id
     const byTrace = await reviewRegistry.list({ trace_id: trace1 });
-    assertEquals(byTrace.length, 2, "Should find 2 changesets for trace1");
+    assertEquals(byTrace.length, 2, "Should find 2 reviews for trace1");
 
-    // Test: Get pending changesets for portal
+    // Test: Get pending reviews for portal
     const pendingForPortalA = await reviewRegistry.list({
       portal: "PortalA",
-      status: ChangesetStatus.PENDING,
+      status: ReviewStatus.PENDING,
     });
     assertEquals(pendingForPortalA.length, 1, "Should find 1 pending review for PortalA");
 
     // Test: Count by status
-    const allPending = await reviewRegistry.list({ status: ChangesetStatus.PENDING });
-    const allApproved = await reviewRegistry.list({ status: ChangesetStatus.APPROVED });
-    assertEquals(allPending.length, 2, "Should have 2 pending changesets");
+    const allPending = await reviewRegistry.list({ status: ReviewStatus.PENDING });
+    const allApproved = await reviewRegistry.list({ status: ReviewStatus.APPROVED });
+    assertEquals(allPending.length, 2, "Should have 2 pending reviews");
     assertEquals(allApproved.length, 1, "Should have 1 approved review");
 
-    console.log("✅ Changeset Query Methods - All checks passed");
+    console.log("✅ Review Query Methods - All checks passed");
   } finally {
     await dbCleanup();
   }
@@ -883,7 +883,7 @@ Deno.test("Integration Test 15.12: Performance & Concurrent Execution", async ()
     // Test 3: Verify no interference between concurrent operations
     for (let i = 0; i < concurrentResults.length; i++) {
       const cs = await reviewRegistry.get(concurrentResults[i]);
-      assertExists(cs, `Changeset ${i + 1} should exist`);
+      assertExists(cs, `Review ${i + 1} should exist`);
       assertEquals(cs!.portal, `Portal${i + 1}`, "Portal data should be correct");
       assertEquals(cs!.trace_id, concurrentTraces[i], "Trace ID should match");
     }
@@ -891,7 +891,7 @@ Deno.test("Integration Test 15.12: Performance & Concurrent Execution", async ()
     // Test 4: Memory - Verify no obvious leaks (basic check)
     const initialMemory = Deno.memoryUsage();
 
-    // Create and retrieve many changesets
+    // Create and retrieve many reviews
     for (let i = 0; i < 50; i++) {
       const tid = crypto.randomUUID();
       const cid = await reviewRegistry.register({

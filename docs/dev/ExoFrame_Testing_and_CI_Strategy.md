@@ -873,7 +873,7 @@ The template includes:
 **Prompt Handling:**
 
 - `should provide execute_plan prompt`
-- `should provide create_changeset prompt`
+- `should provide create_review prompt`
 - `should validate prompt arguments`
 
 **Security:**
@@ -958,7 +958,7 @@ The template includes:
 - `should execute plan via MCP server (SSE transport)`
 - `should create feature branch via MCP`
 - `should commit changes via MCP`
-- `should register changeset after MCP execution`
+- `should register review after MCP execution`
 
 **Sandboxed Mode:**
 

@@ -1,8 +1,8 @@
 -- up
--- Migration 002: Changesets Table
--- Creates table for tracking agent-created changesets with approval workflow
+-- Migration 002: Reviews Table
+-- Creates table for tracking agent-created reviews with approval workflow
 
-CREATE TABLE IF NOT EXISTS changesets (
+CREATE TABLE IF NOT EXISTS reviews (
   id TEXT PRIMARY KEY,              -- UUID
   trace_id TEXT NOT NULL,           -- Link to request/plan
   portal TEXT NOT NULL,             -- Portal name
@@ -21,11 +21,11 @@ CREATE TABLE IF NOT EXISTS changesets (
 );
 
 -- Indexes for efficient querying
-CREATE INDEX IF NOT EXISTS idx_changesets_trace_id ON changesets(trace_id);
-CREATE INDEX IF NOT EXISTS idx_changesets_status ON changesets(status);
-CREATE INDEX IF NOT EXISTS idx_changesets_portal ON changesets(portal);
-CREATE INDEX IF NOT EXISTS idx_changesets_created_by ON changesets(created_by);
-CREATE INDEX IF NOT EXISTS idx_changesets_branch ON changesets(branch);
+CREATE INDEX IF NOT EXISTS idx_reviews_trace_id ON reviews(trace_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status);
+CREATE INDEX IF NOT EXISTS idx_reviews_portal ON reviews(portal);
+CREATE INDEX IF NOT EXISTS idx_reviews_created_by ON reviews(created_by);
+CREATE INDEX IF NOT EXISTS idx_reviews_branch ON reviews(branch);
 
 -- down
 DROP TABLE IF EXISTS changesets;

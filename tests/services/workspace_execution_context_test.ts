@@ -48,7 +48,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
       assertEquals(context.workingDirectory, portalDir);
       assertEquals(context.gitRepository, join(portalDir, ".git"));
       assertEquals(context.allowedPaths, [portalDir]);
-      assertEquals(context.changesetRepo, join(portalDir, ".git"));
+      assertEquals(context.reviewRepo, join(portalDir, ".git"));
       assertEquals(context.portal, "test-portal");
       assertEquals(context.portalTarget, portalDir);
     });
@@ -119,7 +119,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
       assertEquals(context.workingDirectory, workspaceDir);
       assertEquals(context.gitRepository, join(workspaceDir, ".git"));
       assertEquals(context.allowedPaths, [workspaceDir]);
-      assertEquals(context.changesetRepo, join(workspaceDir, ".git"));
+      assertEquals(context.reviewRepo, join(workspaceDir, ".git"));
       assertEquals(context.portal, undefined);
       assertEquals(context.portalTarget, undefined);
     });
@@ -228,17 +228,17 @@ describe("WorkspaceExecutionContextBuilder", () => {
       const context = WorkspaceExecutionContextBuilder.forPortal(portal);
 
       assertEquals(context.gitRepository, join(portalDir, ".git"));
-      assertEquals(context.changesetRepo, join(portalDir, ".git"));
+      assertEquals(context.reviewRepo, join(portalDir, ".git"));
     });
 
     it("points to workspace git repository", () => {
       const context = WorkspaceExecutionContextBuilder.forWorkspace(workspaceDir);
 
       assertEquals(context.gitRepository, join(workspaceDir, ".git"));
-      assertEquals(context.changesetRepo, join(workspaceDir, ".git"));
+      assertEquals(context.reviewRepo, join(workspaceDir, ".git"));
     });
 
-    it("git repository and changeset repo are the same", () => {
+    it("git repository and review repo are the same", () => {
       const portal: PortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
@@ -246,7 +246,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
 
       const context = WorkspaceExecutionContextBuilder.forPortal(portal);
 
-      assertEquals(context.gitRepository, context.changesetRepo);
+      assertEquals(context.gitRepository, context.reviewRepo);
     });
   });
 });

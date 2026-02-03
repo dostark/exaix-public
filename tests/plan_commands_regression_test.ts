@@ -216,8 +216,8 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
 // ============================================================================
 
 /**
- * Regression test for: "Plan not found" error when rejecting plans after changeset rejection
- * Root cause: reject() method only searched Workspace/Plans directory, but plans could be in other directories after changeset operations
+ * Regression test for: "Plan not found" error when rejecting plans after review rejection
+ * Root cause: reject() method only searched Workspace/Plans directory, but plans could be in other directories after review operations
  * Fix: Updated reject() to search all directories like show() and list() methods
  */
 Deno.test("[regression] Plan reject finds plans in any directory", async () => {
@@ -226,7 +226,7 @@ Deno.test("[regression] Plan reject finds plans in any directory", async () => {
   try {
     const { activeDir, rejectedDir } = await createTestWorkspace(tempDir);
 
-    // Create plans in Active and Rejected directories (simulating post-changeset state)
+    // Create plans in Active and Rejected directories (simulating post-review state)
     const activePlanId = "active_plan_123";
     const rejectedPlanId = "rejected_plan_456";
 

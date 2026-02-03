@@ -1,5 +1,5 @@
 // Integration tests for exoctl CLI commands not yet covered
-// Covers: request list, request show, plan list, plan show, changeset list, changeset show, portal add/remove/refresh, dashboard
+// Covers: request list, request show, plan list, plan show, review list, review show, portal add/remove/refresh, dashboard
 
 import { assert, assertStringIncludes } from "@std/assert";
 import { FlowInputSource } from "../../src/enums.ts";
@@ -146,22 +146,22 @@ Deno.test("CLI: plan show displays plan details", async () => {
   }
 });
 
-Deno.test("CLI: changeset list shows pending changesets", async () => {
+Deno.test("CLI: review list shows pending reviews", async () => {
   const env = await TestEnvironment.create();
   try {
     // Just check command runs in clean env
-    const result = await runExoctl(["changeset", "list"], env.tempDir);
+    const result = await runExoctl(["review", "list"], env.tempDir);
     assert(result.code === 0);
   } finally {
     await env.cleanup();
   }
 });
 
-Deno.test("CLI: changeset show displays changeset details", async () => {
+Deno.test("CLI: review show displays review details", async () => {
   const env = await TestEnvironment.create();
   try {
     // Just check command runs with dummy id
-    const result = await runExoctl(["changeset", "show", "dummy-id"], env.tempDir);
+    const result = await runExoctl(["review", "show", "dummy-id"], env.tempDir);
     assert(result.code === 0 || result.code === 1);
   } finally {
     await env.cleanup();

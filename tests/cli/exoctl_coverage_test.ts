@@ -84,39 +84,39 @@ Deno.test("plan revise error exits with message", async () => {
   });
 });
 
-// ===== Changeset Command Error Handlers =====
+// ===== Review Command Error Handlers =====
 
-Deno.test("changeset list error exits with message", async () => {
+Deno.test("review list error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.changesetCommands as any).list = () => {
-      throw new Error("changeset list failed");
+    (ctx.reviewCommands as any).list = () => {
+      throw new Error("review list failed");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["changeset", "list"]);
+      await (mod.__test_command as any).parse(["review", "list"]);
     });
-    assert(errors.some((e: string) => e.includes("changeset list failed")));
+    assert(errors.some((e: string) => e.includes("review list failed")));
   });
 });
 
-Deno.test("changeset approve error exits with message", async () => {
+Deno.test("review approve error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.changesetCommands as any).approve = () => {
+    (ctx.reviewCommands as any).approve = () => {
       throw new Error("approval failed");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["changeset", "approve", "cs-1"]);
+      await (mod.__test_command as any).parse(["review", "approve", "cs-1"]);
     });
     assert(errors.some((e: string) => e.includes("approval failed")));
   });
 });
 
-Deno.test("changeset reject error exits with message", async () => {
+Deno.test("review reject error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.changesetCommands as any).reject = () => {
+    (ctx.reviewCommands as any).reject = () => {
       throw new Error("rejection failed");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["changeset", "reject", "cs-1", "-r", "bad"]);
+      await (mod.__test_command as any).parse(["review", "reject", "cs-1", "-r", "bad"]);
     });
     assert(errors.some((e: string) => e.includes("rejection failed")));
   });
@@ -399,27 +399,27 @@ Deno.test("request list error exits with message", async () => {
   });
 });
 
-// ===== Changeset List with Status Filter =====
+// ===== Review List with Status Filter =====
 
-Deno.test("changeset list passes status filter", async () => {
+Deno.test("review list passes status filter", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.changesetCommands as any).list = (status?: string) => {
+    (ctx.reviewCommands as any).list = (status?: string) => {
       assertEquals(status, MemoryStatus.PENDING);
       return [];
     };
     await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["changeset", "list", "-s", MemoryStatus.PENDING]);
+      await (mod.__test_command as any).parse(["review", "list", "-s", MemoryStatus.PENDING]);
     });
   });
 });
 
-Deno.test("changeset list empty prints message", async () => {
+Deno.test("review list empty prints message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.changesetCommands as any).list = () => [];
+    (ctx.reviewCommands as any).list = () => [];
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["changeset", "list"]);
+      await (mod.__test_command as any).parse(["review", "list"]);
     });
-    assert(out.includes("No changesets found") || out.includes("changeset.list"));
+    assert(out.includes("No reviews found") || out.includes("review.list"));
   });
 });
 

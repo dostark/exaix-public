@@ -10,7 +10,7 @@ import { MemorySource } from "../../src/enums.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import {
-  generateCreateChangesetPrompt,
+  generateCreateReviewPrompt,
   generateExecutePlanPrompt,
   generatePrompt,
   getPrompt,
@@ -26,7 +26,7 @@ Deno.test("getPrompts: returns all available prompts", () => {
 
   assertEquals(prompts.length, 2);
   assertEquals(prompts[0].name, "execute_plan");
-  assertEquals(prompts[1].name, "create_changeset");
+  assertEquals(prompts[1].name, "create_review");
 });
 
 Deno.test("getPrompt: returns specific prompt by name", () => {
@@ -106,13 +106,13 @@ Deno.test("generateExecutePlanPrompt: logs to Activity Journal", async () => {
 });
 
 // ============================================================================
-// Create Changeset Prompt Tests
+// Create Review Prompt Tests
 // ============================================================================
 
-Deno.test("generateCreateChangesetPrompt: generates prompt with changeset details", async () => {
+Deno.test("generateCreateReviewPrompt: generates prompt with review details", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
-    const result = generateCreateChangesetPrompt({
+    const result = generateCreateReviewPrompt({
       portal: "MyApp",
       description: "Add user authentication",
       trace_id: "trace-789",
@@ -133,10 +133,10 @@ Deno.test("generateCreateChangesetPrompt: generates prompt with changeset detail
   }
 });
 
-Deno.test("generateCreateChangesetPrompt: includes git workflow guidance", async () => {
+Deno.test("generateCreateReviewPrompt: includes git workflow guidance", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
-    const result = generateCreateChangesetPrompt({
+    const result = generateCreateReviewPrompt({
       portal: "TestPortal",
       description: "Fix bug",
       trace_id: "trace-123",
@@ -153,18 +153,18 @@ Deno.test("generateCreateChangesetPrompt: includes git workflow guidance", async
   }
 });
 
-Deno.test("generateCreateChangesetPrompt: logs to Activity Journal", async () => {
+Deno.test("generateCreateReviewPrompt: logs to Activity Journal", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
-    generateCreateChangesetPrompt({
+    generateCreateReviewPrompt({
       portal: "TestPortal",
-      description: "Test changeset",
+      description: "Test review",
       trace_id: "log-trace-456",
     }, db);
     await new Promise((resolve) => setTimeout(resolve, 150));
 
     const logs = db.instance.prepare("SELECT * FROM activity WHERE action_type = ?")
-      .all("mcp.prompts.create_changeset");
+      .all("mcp.prompts.create_review");
     assertEquals(logs.length, 1);
 
     const log = logs[0] as { target: string; payload: string };
@@ -172,7 +172,7 @@ Deno.test("generateCreateChangesetPrompt: logs to Activity Journal", async () =>
 
     const payload = JSON.parse(log.payload);
     assertEquals(payload.portal, "TestPortal");
-    assertEquals(payload.description, "Test changeset");
+    assertEquals(payload.description, "Test review");
   } finally {
     await cleanup();
   }
@@ -195,12 +195,12 @@ Deno.test("generatePrompt: routes to execute_plan generator", async () => {
   }
 });
 
-Deno.test("generatePrompt: routes to create_changeset generator", async () => {
+Deno.test("generatePrompt: routes to create_review generator", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     const config = createMockConfig("/tmp/test");
     const result = generatePrompt(
-      "create_changeset",
+      "create_review",
       {
         portal: "TestPortal",
         description: "Test change",

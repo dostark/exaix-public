@@ -100,7 +100,7 @@ Provide specific recommendations for improving the CLI architecture.
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor code-analyst --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -143,7 +143,7 @@ Analyze the performance characteristics of ExoFrame's database connection poolin
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor performance-engineer --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -186,7 +186,7 @@ Structure this as a complete requirements specification for the Team+ edition fe
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor product-manager --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -230,7 +230,7 @@ Provide specific test cases that validate the security boundaries between portal
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor qa-engineer --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -274,7 +274,7 @@ Provide a detailed quality assessment with specific findings and recommendations
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor quality-judge --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -318,7 +318,7 @@ Provide specific remediation steps with code examples for securing the multi-pro
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor security-expert --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -362,7 +362,7 @@ Provide a complete implementation plan with specific code changes for the memory
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor senior-coder --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -406,7 +406,7 @@ Provide a complete architectural design with implementation phases for MCP serve
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor software-architect --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -451,7 +451,7 @@ Ensure the documentation covers both programmatic and CLI usage patterns for the
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor technical-writer --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -462,18 +462,18 @@ Ensure the documentation covers both programmatic and CLI usage patterns for the
 **exoctl Command**:
 
 ```bash
-exoctl request --portal portal-exoframe --agent test-engineer "Implement comprehensive tests for ExoFrame's changeset registry system. Create: - Unit tests for changeset tracking and validation in src/services/changeset_registry.ts - Integration tests for git changeset operations and workspace synchronization - End-to-end tests for complete changeset lifecycle (creation, approval, execution) - Mock data and test fixtures for different changeset scenarios - Test automation setup for CI/CD validation of changeset integrity Provide specific test implementations that ensure the reliability of the git-based change tracking system."
+exoctl request --portal portal-exoframe --agent test-engineer "Implement comprehensive tests for ExoFrame's review registry system. Create: - Unit tests for review tracking and validation in src/services/review_registry.ts - Integration tests for git review operations and workspace synchronization - End-to-end tests for complete review lifecycle (creation, approval, execution) - Mock data and test fixtures for different review scenarios - Test automation setup for CI/CD validation of review integrity Provide specific test implementations that ensure the reliability of the git-based change tracking system."
 ```
 
 **Request**:
 
 ```text
-Implement comprehensive tests for ExoFrame's changeset registry system. Create:
-- Unit tests for changeset tracking and validation in src/services/changeset_registry.ts
-- Integration tests for git changeset operations and workspace synchronization
-- End-to-end tests for complete changeset lifecycle (creation, approval, execution)
-- Mock data and test fixtures for different changeset scenarios
-- Test automation setup for CI/CD validation of changeset integrity
+Implement comprehensive tests for ExoFrame's review registry system. Create:
+- Unit tests for review tracking and validation in src/services/review_registry.ts
+- Integration tests for git review operations and workspace synchronization
+- End-to-end tests for complete review lifecycle (creation, approval, execution)
+- Mock data and test fixtures for different review scenarios
+- Test automation setup for CI/CD validation of review integrity
 Provide specific test implementations that ensure the reliability of the git-based change tracking system.
 ```
 
@@ -495,7 +495,7 @@ Provide specific test implementations that ensure the reliability of the git-bas
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor test-engineer --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -540,7 +540,7 @@ Base the documentation on the actual blueprint loader implementation in src/serv
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor api-documenter --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 
@@ -586,7 +586,7 @@ Provide specific recommendations for improving the reliability and security of t
 6. **Common validation steps:**
    - Review the generated plan: `exoctl plan list --recent 1`
    - Examine plan details: `exoctl plan show <plan-id>`
-   - Check for any changesets created: `exoctl review list --recent 1`
+   - Check for any reviews created: `exoctl review list --recent 1`
    - Review journal events: `exoctl journal events --actor code-reviewer --limit 10`
    - Verify trace ID consistency across request, plan, and execution
 

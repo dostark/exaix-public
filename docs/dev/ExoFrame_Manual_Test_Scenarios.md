@@ -30,7 +30,7 @@
 
 ### Plan Execution
 
-- [MT-08: Plan Execution & Changeset Management](#scenario-mt-08-plan-execution--changeset-management) - End-to-end execution pipeline
+- [MT-08: Plan Execution & Review Management](#scenario-mt-08-plan-execution--review-management) - End-to-end execution pipeline
 
 ### Portal & Git Management
 
@@ -949,9 +949,9 @@ cat ~/ExoFrame/Workspace/Plans/*_rejected.md 2>/dev/null
 
 ---
 
-## Scenario MT-08: Plan Execution & Changeset Management
+## Scenario MT-08: Plan Execution & Review Management
 
-**Purpose:** Verify complete plan execution flow via Plan Executor service, changeset creation, and approval/rejection workflow.
+**Purpose:** Verify complete plan execution flow via Plan Executor service, review creation, and approval/rejection workflow.
 
 **Status:** ✅ **IMPLEMENTED** - Full plan execution via PlanExecutor with ReAct-style loop, ToolRegistry security, and git management.
 
@@ -1031,18 +1031,18 @@ exoctl plan approve <plan-id>
 # Step 5: Wait for execution
 sleep 10
 
-# Step 6: Verify changeset created
-exoctl changeset list
+# Step 6: Verify review created
+exoctl review list
 
 # Expected output:
-# ✅ changeset-uuid  TestApp  feat/hello-world-abc  pending
+# ✅ review-uuid  TestApp  feat/hello-world-abc  pending
 ```
 
-### Part D: Changeset Verification
+### Part D: Review Verification
 
 ```bash
-# Step 1: View changeset details
-exoctl changeset show <changeset-id>
+# Step 1: View review details
+exoctl review show <review-id>
 
 # Expected output:
 # Portal: TestApp
@@ -1053,7 +1053,7 @@ exoctl changeset show <changeset-id>
 # Created By: senior-coder
 
 # Step 2: View diff
-exoctl changeset show <changeset-id> --diff
+exoctl review show <review-id> --diff
 
 # Expected output:
 # +++ src/utils.ts
@@ -1079,11 +1079,11 @@ exoctl journal --filter trace_id=<trace-id>
 # plan.execution_completed
 ```
 
-### Part E: Changeset Approval
+### Part E: Review Approval
 
 ```bash
-# Step 1: Approve the changeset (merges to main)
-exoctl changeset approve <changeset-id>
+# Step 1: Approve the review (merges to main)
+exoctl review approve <review-id>
 
 # Step 2: Verify merge completed
 cd /tmp/test-portal
@@ -1094,24 +1094,24 @@ git log --oneline -5
 cat /tmp/test-portal/src/utils.ts
 # Should contain hello world function
 
-# Step 4: Check changeset status updated
-exoctl changeset show <changeset-id>
+# Step 4: Check review status updated
+exoctl review show <review-id>
 # Status should be: approved
 # approved_by and approved_at should be set
 ```
 
-### Part F: Changeset Rejection (Alternative Flow)
+### Part F: Review Rejection (Alternative Flow)
 
 ```bash
-# Step 1: Create another request and wait for changeset
+# Step 1: Create another request and wait for review
 exoctl request "Add goodbye function" --agent senior-coder --portal TestApp
 sleep 15
 
-# Step 2: Reject the changeset with reason
-exoctl changeset reject <changeset-id> --reason "Needs different approach"
+# Step 2: Reject the review with reason
+exoctl review reject <review-id> --reason "Needs different approach"
 
 # Step 3: Verify rejection recorded
-exoctl changeset show <changeset-id>
+exoctl review show <review-id>
 # Status: rejected
 # rejected_by and rejected_at should be set
 # rejection_reason: "Needs different approach"
@@ -1188,22 +1188,22 @@ exoctl git log <trace-id>
 
 - Request created and plan generated
 - Plan approval triggers PlanExecutor
-- Changeset created with status=pending
+- Review created with status=pending
 
 **Part D (Verification):**
 
-- Changeset details show correct portal, branch, commit
+- Review details show correct portal, branch, commit
 - Diff shows expected code changes
 - Activity Journal logs execution steps (`step.started`, `action.executing`)
 
 **Part E (Approval):**
 
-- Changeset merged to main branch
+- Review merged to main branch
 - Status updated to approved with timestamps
 
 **Part F (Rejection):**
 
-- Changeset status updated to rejected
+- Review status updated to rejected
 - Reason recorded correctly
 
 **Part G (Security):**
@@ -1235,13 +1235,13 @@ exoctl git log <trace-id>
 - [ ] Feature branch created with correct naming: `feat/<request-id>`
 - [ ] Commit includes trace_id metadata
 
-**Changeset Lifecycle:**
+**Review Lifecycle:**
 
-- [ ] Changeset registered in database with status=pending
-- [ ] `exoctl changeset list` shows pending changesets
-- [ ] `exoctl changeset show <id>` displays details and diff
-- [ ] `exoctl changeset approve <id>` merges to main
-- [ ] `exoctl changeset reject <id>` records reason and updates status
+- [ ] Review registered in database with status=pending
+- [ ] `exoctl review list` shows pending reviews
+- [ ] `exoctl review show <id>` displays details and diff
+- [ ] `exoctl review approve <id>` merges to main
+- [ ] `exoctl review reject <id>` records reason and updates status
 
 **Activity Journal:**
 
@@ -1418,7 +1418,7 @@ exoctl request list
 
 ## Scenario MT-11: Real LLM Integration
 
-**Purpose:** Verify ExoFrame works with real LLM API providers (Anthropic, OpenAI, Google Gemini) through complete end-to-end workflows including plan generation, execution, and changeset creation.
+**Purpose:** Verify ExoFrame works with real LLM API providers (Anthropic, OpenAI, Google Gemini) through complete end-to-end workflows including plan generation, execution, and review creation.
 
 ### Preconditions
 
@@ -1481,11 +1481,11 @@ exoctl plan approve $PLAN_ID
 
 # Step 11: Wait for execution
 sleep 45
-exoctl changeset list
+exoctl review list
 
-# Step 12: Verify changeset created
-CHANGESET_ID=$(exoctl changeset list | grep pending | head -1 | awk '{print $2}')
-exoctl changeset show $CHANGESET_ID
+# Step 12: Verify review created
+CHANGESET_ID=$(exoctl review list | grep pending | head -1 | awk '{print $2}')
+exoctl review show $CHANGESET_ID
 
 # Step 13: Check token usage
 # sqlite3 ~/ExoFrame/.exo/journal.db "SELECT * FROM activity WHERE payload LIKE '%tokens%' ORDER BY timestamp DESC LIMIT 5;"
@@ -1538,9 +1538,9 @@ PLAN_ID=$(exoctl plan list --status review | head -1 | awk '{print $2}')
 exoctl plan show $PLAN_ID
 exoctl plan approve $PLAN_ID
 
-# Step 8: Wait for execution and verify changeset
+# Step 8: Wait for execution and verify review
 sleep 45
-exoctl changeset list
+exoctl review list
 
 # Step 9: Compare quality with Anthropic
 # Check daemon log for response characteristics
@@ -1590,7 +1590,7 @@ exoctl plan show $PLAN_ID
 exoctl plan approve $PLAN_ID
 
 sleep 45
-exoctl changeset list
+exoctl review list
 ```
 
 ### Part D: Provider Comparison
@@ -1626,7 +1626,7 @@ LIMIT 20;
 - Daemon starts with Anthropic provider
 - Claude model visible in logs
 - Plan generated with detailed, nuanced steps
-- Execution produces changeset with actual file modifications
+- Execution produces review with actual file modifications
 - Token usage logged (typically 2000-5000 tokens per plan)
 - High-quality, context-aware responses
 
@@ -1635,7 +1635,7 @@ LIMIT 20;
 - Daemon switches to OpenAI provider
 - GPT model visible in logs
 - Plan generated with structured, clear steps
-- Execution successful with changeset
+- Execution successful with review
 - Token usage logged (typically 1500-4000 tokens per plan)
 - Direct, action-oriented responses
 
@@ -1644,7 +1644,7 @@ LIMIT 20;
 - Daemon switches to Gemini provider
 - Gemini model visible in logs
 - Plan generated (may be more concise)
-- Execution successful with changeset
+- Execution successful with review
 - Token usage logged (typically 1000-3000 tokens per plan)
 - Fast response times
 
@@ -1655,8 +1655,8 @@ LIMIT 20;
 ls -la Workspace/Plans/
 ls -la Workspace/Active/
 
-# Verify changesets created
-ls -la Workspace/Changesets/
+# Verify reviews created
+ls -la Workspace/Reviews/
 
 # Check git branches created
 cd /tmp/real-llm-test
@@ -1697,12 +1697,12 @@ cp exo.config.sample.toml exo.config.toml
 
 ### Pass Criteria
 
-- [ ] **Anthropic Claude**: Provider loads, plan generated, changeset created
-- [ ] **OpenAI GPT**: Provider loads, plan generated, changeset created
-- [ ] **Google Gemini**: Provider loads, plan generated, changeset created
+- [ ] **Anthropic Claude**: Provider loads, plan generated, review created
+- [ ] **OpenAI GPT**: Provider loads, plan generated, review created
+- [ ] **Google Gemini**: Provider loads, plan generated, review created
 - [ ] All three providers produce coherent, actionable plans
 - [ ] Execution steps generate real file changes (not just planning responses)
-- [ ] Changesets contain valid git diffs
+- [ ] Reviews contain valid git diffs
 - [ ] Token usage tracked accurately for all providers
 - [ ] No API errors or timeout failures
 - [ ] Cost tracking logs present (if configured)
@@ -1741,7 +1741,7 @@ deno run --allow-read scripts/validate_config.ts exo.config.toml
 grep "provider =" exo.config.toml
 ```
 
-**No Changeset Created:**
+**No Review Created:**
 
 ```bash
 # Check execution logs
@@ -2466,7 +2466,7 @@ exoctl request "Test conflict" --flow test-review-flow --agent senior-coder 2>&1
 - Plan generated with multi-step structure
 - Multiple agents execute in dependency order
 - Step transitions logged (step.started, step.completed)
-- Final changeset includes work from all agents
+- Final review includes work from all agents
 
 **Part D (Validation):**
 
@@ -2513,10 +2513,10 @@ for req_file in ~/ExoFrame/Workspace/Requests/*; do
   fi
 done
 
-# Remove generated plans and changesets
+# Remove generated plans and reviews
 rm -f ~/ExoFrame/Workspace/Plans/*test-review-flow*.md
 rm -f ~/ExoFrame/Workspace/Active/*test-review-flow*.md
-rm -f ~/ExoFrame/Workspace/Changesets/*test-review-flow*.md
+rm -f ~/ExoFrame/Workspace/Reviews/*test-review-flow*.md
 ```
 
 ### Pass Criteria
@@ -3715,9 +3715,9 @@ exoctl journal --filter trace_id=$TRACE_ID
 
 # Part F: Merge Operations
 
-# Step 14: Approve changeset (merge to main)
-CHANGESET_ID=$(exoctl changeset list | grep pending | head -1 | awk '{print $1}')
-exoctl changeset approve $CHANGESET_ID
+# Step 14: Approve review (merge to main)
+CHANGESET_ID=$(exoctl review list | grep pending | head -1 | awk '{print $1}')
+exoctl review approve $CHANGESET_ID
 
 # Step 15: Verify merge commit
 cd /tmp/git-test-portal
@@ -4013,7 +4013,7 @@ exoctl git log $PORTAL_FLOW_ID
 
 | ID    | Scenario                              | Risk | Pass | Fail | Skip | Notes |
 | ----- | ------------------------------------- | ---- | ---- | ---- | ---- | ----- |
-| MT-08 | Plan Execution & Changeset Management | High |      |      |      |       |
+| MT-08 | Plan Execution & Review Management | High |      |      |      |       |
 
 #### Portal & Git Management
 
@@ -4093,7 +4093,7 @@ exoctl git log $PORTAL_FLOW_ID
 3. MT-04: Create Request
 4. MT-05: Plan Generation (Mock LLM)
 5. MT-06: Plan Approval
-6. MT-08: Plan Execution & Changeset Management
+6. MT-08: Plan Execution & Review Management
 7. MT-09: Portal Management
 8. MT-10: Daemon Crash Recovery
 9. MT-13: Database Corruption Recovery

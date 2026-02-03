@@ -261,7 +261,7 @@ DROP TABLE IF EXISTS test_order_table;
     const versions = migrations.trim().split("\n");
     assertEquals(versions.length, 5);
     assertEquals(versions[0], "001_init.sql");
-    assertEquals(versions[1], "002_changesets.sql");
+    assertEquals(versions[1], "002_reviews.sql");
     assertEquals(versions[2], "002_test_order.sql");
     assertEquals(versions[3], "003_notifications.sql");
     assertEquals(versions[4], "004_cost_tracking.sql");

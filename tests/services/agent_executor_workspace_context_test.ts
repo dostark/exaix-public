@@ -60,7 +60,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
       assertEquals(typeof context.workingDirectory, "string");
       assertEquals(typeof context.gitRepository, "string");
       assertEquals(Array.isArray(context.allowedPaths), true);
-      assertEquals(typeof context.changesetRepo, "string");
+      assertEquals(typeof context.reviewRepo, "string");
       assertEquals(context.portal, "test-portal");
     });
 
@@ -71,7 +71,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
       assertEquals(typeof context.workingDirectory, "string");
       assertEquals(typeof context.gitRepository, "string");
       assertEquals(Array.isArray(context.allowedPaths), true);
-      assertEquals(typeof context.changesetRepo, "string");
+      assertEquals(typeof context.reviewRepo, "string");
       assertEquals(context.portal, undefined);
     });
   });
@@ -142,7 +142,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
 
       // Git operations should target portal's .git directory
       assertEquals(context.gitRepository, join(portalDir, ".git"));
-      assertEquals(context.changesetRepo, join(portalDir, ".git"));
+      assertEquals(context.reviewRepo, join(portalDir, ".git"));
     });
 
     it("uses workspace git repository for workspace context", () => {
@@ -150,7 +150,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
 
       // Git operations should target workspace's .git directory
       assertEquals(context.gitRepository, join(workspaceDir, ".git"));
-      assertEquals(context.changesetRepo, join(workspaceDir, ".git"));
+      assertEquals(context.reviewRepo, join(workspaceDir, ".git"));
     });
 
     it("git repository paths are independent per context", () => {
@@ -164,7 +164,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
 
       // Different contexts should have different git repos
       assertEquals(portalContext.gitRepository !== workspaceContext.gitRepository, true);
-      assertEquals(portalContext.changesetRepo !== workspaceContext.changesetRepo, true);
+      assertEquals(portalContext.reviewRepo !== workspaceContext.reviewRepo, true);
     });
   });
 

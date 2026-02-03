@@ -48,15 +48,15 @@ Deno.test("plan approve calls planCommands.approve", async () => {
   });
 });
 
-Deno.test("changeset reject calls changesetCommands.reject", async () => {
+Deno.test("review reject calls reviewCommands.reject", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    (ctx.changesetCommands as any).reject = (id: string, reason: string) => {
+    (ctx.reviewCommands as any).reject = (id: string, reason: string) => {
       called = true;
       assertEquals(id, "cs-1");
       assertEquals(reason, "not-good");
     };
-    await (mod.__test_command as any).parse(["changeset", "reject", "cs-1", "-r", "not-good"]);
+    await (mod.__test_command as any).parse(["review", "reject", "cs-1", "-r", "not-good"]);
     assert(called);
   });
 });
@@ -169,11 +169,11 @@ Deno.test("plan list shows entries and status icons", async () => {
   });
 });
 
-Deno.test("changeset list prints entries when present", async () => {
+Deno.test("review list prints entries when present", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.changesetCommands as any).list =
+    (ctx.reviewCommands as any).list =
       () => [{ request_id: "req-1", branch: "feat/x", files_changed: 2, created_at: Date.now(), trace_id: "trace-1" }];
-    const out = await captureConsoleOutput(async () => await (mod.__test_command as any).parse(["changeset", "list"]));
+    const out = await captureConsoleOutput(async () => await (mod.__test_command as any).parse(["review", "list"]));
     assert(out.includes("feat/x") || out.includes("req-1"));
   });
 });
@@ -334,9 +334,9 @@ Deno.test("plan show prints content", async () => {
   });
 });
 
-Deno.test("changeset show prints commits and diff", async () => {
+Deno.test("review show prints commits and diff", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.changesetCommands as any).show = (_id: string) => ({
+    (ctx.reviewCommands as any).show = (_id: string) => ({
       request_id: "req-1",
       branch: "feat/x",
       files_changed: 1,
@@ -344,16 +344,16 @@ Deno.test("changeset show prints commits and diff", async () => {
       diff: "---a\n+++b\n",
     });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["changeset", "show", "cs-1"]);
+      await (mod.__test_command as any).parse(["review", "show", "cs-1"]);
     });
 
     assert(out.includes("abcdef12") && out.includes("---a"));
   });
 });
 
-Deno.test("changeset show --diff outputs only diff", async () => {
+Deno.test("review show --diff outputs only diff", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.changesetCommands as any).show = (_id: string) => ({
+    (ctx.reviewCommands as any).show = (_id: string) => ({
       request_id: "req-1",
       branch: "feat/x",
       files_changed: 1,
@@ -361,12 +361,12 @@ Deno.test("changeset show --diff outputs only diff", async () => {
       diff: "diff --git a/file.txt b/file.txt\n---a\n+++b\n",
     });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["changeset", "show", "cs-1", "--diff"]);
+      await (mod.__test_command as any).parse(["review", "show", "cs-1", "--diff"]);
     });
 
     // Should output only the diff, no formatted messages
     assertEquals(out, "diff --git a/file.txt b/file.txt\n---a\n+++b\n\n");
-    assert(!out.includes("changeset.show"));
+    assert(!out.includes("review.show"));
     assert(!out.includes("abcdef12"));
   });
 });
@@ -558,13 +558,13 @@ Deno.test("git branches passes pattern option to listBranches", async () => {
   });
 });
 
-Deno.test("changeset show error exits with message", async () => {
+Deno.test("review show error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.changesetCommands as any).show = (_id: string) => {
+    (ctx.reviewCommands as any).show = (_id: string) => {
       throw new Error("not found");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["changeset", "show", "cs-1"]);
+      await (mod.__test_command as any).parse(["review", "show", "cs-1"]);
     });
     assert(errors.some((e: string) => e.includes("not found")));
   });

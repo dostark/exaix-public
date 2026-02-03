@@ -22,7 +22,7 @@ graph TB
         Exoctl[exoctl CLI Entry]
         ReqCmd[Request Commands]
         PlanCmd[Plan Commands]
-        ChangeCmd[Changeset Commands]
+        ChangeCmd[Review Commands]
         GitCmd[Git Commands]
         DaemonCmd[Daemon Commands]
         PortalCmd[Portal Commands]
@@ -472,7 +472,7 @@ graph TB
         O3[Register MCP tools & resources]
         O4[Connect agent via MCP]
         O5[Monitor agent MCP tool calls]
-        O6[Receive changeset details]
+        O6[Receive review details]
     end
 
     subgraph MCPServer["ExoFrame MCP Server"]
@@ -498,8 +498,8 @@ graph TB
         SM2[Hybrid: Read-only + audit]
     end
 
-    subgraph Registry[Changeset Registry]
-        R1[Register changeset record]
+    subgraph Registry[Review Registry]
+        R1[Register review record]
         R2[Store commit SHA]
         R3[Link to trace_id]
         R4[Set status = pending]
@@ -624,7 +624,7 @@ graph LR
         Base[BaseCommand<br/>Shared logic]
         Req[RequestCommands<br/>Create requests]
         Plan[PlanCommands<br/>Review plans]
-        Change[ChangesetCommands<br/>Review code]
+        Change[ReviewCommands<br/>Review code]
         Git[GitCommands<br/>Git operations]
         Daemon[DaemonCommands<br/>Daemon control]
         Portal[PortalCommands<br/>External projects]
@@ -1339,10 +1339,10 @@ graph LR
 ### 3. **Auditability & Governance**
 
 - Every action logged to Activity Journal (tiered by edition)
-- Trace ID links: request → plan → changeset → commit
+- Trace ID links: request → plan → review → commit
 - Git commit footers with `Exo-Trace` metadata
 - Immutable event stream for compliance (🟣 Enterprise: WORM storage)
-- Explicit approval gates: plans and changesets require human authorization
+- Explicit approval gates: plans and reviews require human authorization
 
 ### 4. **Multi-Provider Support**
 

@@ -46,7 +46,7 @@ Traditional AI coding assistants (GitHub Copilot, Cursor, Windsurf) excel at rea
 
 1. **Comprehensive Audit Trail** - Every agent action logged with trace IDs linking requests → plans → code changes → commits. The Activity Journal serves as your organization's "AI Bill of Materials."
 
-2. **Explicit Approval Gates** - Plans must be approved before execution. Changesets must be reviewed before merging. Agents never act without explicit human authorization.
+2. **Explicit Approval Gates** - Plans must be approved before execution. Reviews must be reviewed before merging. Agents never act without explicit human authorization.
 
 3. **Regulatory Compliance** - Pre-configured compliance frameworks for EU AI Act, HIPAA, SOX, and ISO 27001 (Enterprise Edition).
 
@@ -169,7 +169,7 @@ Agents operate under a **three-phase approval workflow:**
 
 1. **Request Phase:** Human creates request (or request auto-generated from external trigger)
 2. **Plan Phase:** Agent generates plan → **STOPS** → waits for human approval
-3. **Execution Phase:** Agent implements approved plan → creates changeset → **STOPS** → waits for merge approval
+3. **Execution Phase:** Agent implements approved plan → creates review → **STOPS** → waits for merge approval
 
 **No agent ever modifies code without explicit human authorization.**
 
@@ -619,9 +619,9 @@ Approve:  exoctl plan approve auth-refactor
           ↓
 Execute:  Agent creates branch, refactors code, commits with trace_id
           ↓
-Evening:  exoctl changeset show auth-refactor → Review diff
+Evening:  exoctl review show auth-refactor → Review diff
           ↓
-Merge:    exoctl changeset approve auth-refactor → Done
+Merge:    exoctl review approve auth-refactor → Done
 ```
 
 **Workflow is impossible with IDE agents** (requires continuous human presence).
@@ -637,7 +637,7 @@ Plan (trace_id: 550e8400...)
   ↓
 Git Commits (footer: [ExoTrace: 550e8400...])
   ↓
-Changeset (trace_id: 550e8400...)
+Review (trace_id: 550e8400...)
   ↓
 Report (trace_id: 550e8400...)
   ↓
@@ -696,7 +696,7 @@ Enterprise Edition includes **turnkey compliance profiles** for major regulatory
 **ExoFrame Implementation:**
 
 - ✅ **Transparency:** Activity Journal logs all agent actions with reasoning
-- ✅ **Human Oversight:** Explicit approval gates (plan approval, changeset review)
+- ✅ **Human Oversight:** Explicit approval gates (plan approval, review review)
 - ✅ **Documentation:** Compliance reports auto-generated from Activity Journal
 - ✅ **Risk Assessment:** Governance dashboard flags high-risk operations
 
@@ -748,7 +748,7 @@ exoctl compliance export --framework hipaa \
 
 **ExoFrame Implementation:**
 
-- ✅ **Change Controls:** No code changes without plan approval + changeset review
+- ✅ **Change Controls:** No code changes without plan approval + review review
 - ✅ **Audit Trails:** Git commits linked to trace_id, Activity Journal immutable
 - ✅ **Segregation of Duties:** RBAC separates "developers" from "approvers"
 
@@ -816,9 +816,9 @@ exoctl request "Fix all deprecated API warnings" \
 exoctl plan show deprecated-api-fix
 exoctl plan approve deprecated-api-fix
 
-# Evening: Review changeset
-exoctl changeset show deprecated-api-fix
-exoctl changeset approve deprecated-api-fix
+# Evening: Review review
+exoctl review show deprecated-api-fix
+exoctl review approve deprecated-api-fix
 
 # Result: 50 files refactored, all changes traced to single request
 ```
@@ -833,7 +833,7 @@ exoctl changeset approve deprecated-api-fix
 - Agent generates plan with explanations
 - Review plan to understand architectural differences
 - Execute plan with agent-generated code
-- Study changeset to see actual implementation patterns
+- Study review to see actual implementation patterns
 
 **Value:** Learning by doing, with full audit trail for later reference.
 
@@ -859,7 +859,7 @@ exoctl request "Add Stripe payment integration" --agent full-stack-dev
 
 # CTO reviews plan in Web UI (approves/rejects with comments)
 
-# Agent executes, creates changeset
+# Agent executes, creates review
 
 # CEO reviews code changes in Web UI before merge
 ```
@@ -1275,11 +1275,11 @@ exoctl dashboard  # Or: exoctl plan list
 exoctl plan approve <plan-id>
 exoctl journal tail
 
-# 9. Review changeset
-exoctl changeset show <changeset-id>
+# 9. Review review
+exoctl review show <review-id>
 
 # 10. Merge changes
-exoctl changeset approve <changeset-id>
+exoctl review approve <review-id>
 ```
 
 **First task complete in ~5 minutes!**
@@ -1542,7 +1542,7 @@ Join 50+ organizations piloting governance-first AI agent orchestration:
 
 **AI-BOM (AI Bill of Materials):** Complete audit trail of all AI agent actions, analogous to software bill of materials (SBOM).
 
-**Changeset:** Git branch containing agent-generated code changes, pending human approval before merge.
+**Review:** Git branch containing agent-generated code changes, pending human approval before merge.
 
 **MCP (Model Context Protocol):** Standard protocol for AI agent tool integration, developed by Anthropic.
 
@@ -1552,7 +1552,7 @@ Join 50+ organizations piloting governance-first AI agent orchestration:
 
 **Request:** User-created markdown file describing desired outcome, triggering agent plan generation.
 
-**Trace ID:** UUID linking related actions (request → plan → commits → changeset → report) for forensic traceability.
+**Trace ID:** UUID linking related actions (request → plan → commits → review → report) for forensic traceability.
 
 ---
 
@@ -1563,7 +1563,7 @@ Join 50+ organizations piloting governance-first AI agent orchestration:
 | Requirement     | ExoFrame Implementation             | Evidence Location                                |
 | --------------- | ----------------------------------- | ------------------------------------------------ |
 | Transparency    | Activity Journal logs all decisions | `journal.db`                                     |
-| Human Oversight | Explicit plan & changeset approval  | Approval timestamps in Activity Journal          |
+| Human Oversight | Explicit plan & review approval     | Approval timestamps in Activity Journal          |
 | Risk Assessment | Governance dashboard risk scoring   | Web UI → Governance → Risk Matrix                |
 | Documentation   | Auto-generated compliance reports   | `exoctl compliance export --framework eu-ai-act` |
 
@@ -1578,12 +1578,12 @@ Join 50+ organizations piloting governance-first AI agent orchestration:
 
 ### SOX (Sarbanes-Oxley)
 
-| Requirement           | ExoFrame Implementation          | Evidence Location                     |
-| --------------------- | -------------------------------- | ------------------------------------- |
-| Change Controls       | Plan approval + changeset review | Activity Journal approval events      |
-| Segregation of Duties | RBAC (developers ≠ approvers)    | User roles configuration              |
-| Audit Trail Integrity | Immutable Activity Journal       | Cryptographic timestamps (Enterprise) |
-| IT General Controls   | Backup & recovery procedures     | Automated backup logs                 |
+| Requirement           | ExoFrame Implementation       | Evidence Location                     |
+| --------------------- | ----------------------------- | ------------------------------------- |
+| Change Controls       | Plan approval + review review | Activity Journal approval events      |
+| Segregation of Duties | RBAC (developers ≠ approvers) | User roles configuration              |
+| Audit Trail Integrity | Immutable Activity Journal    | Cryptographic timestamps (Enterprise) |
+| IT General Controls   | Backup & recovery procedures  | Automated backup logs                 |
 
 ---
 
@@ -1615,10 +1615,10 @@ Join 50+ organizations piloting governance-first AI agent orchestration:
 - **Parameters:** `{ "trace_id": string, "action_type": string, "start_date": ISO8601, "end_date": ISO8601 }`
 - **Returns:** Array of activity events
 
-**`exoframe_get_changeset`**
+**`exoframe_get_review`**
 
-- **Description:** Retrieve changeset diff for review
-- **Parameters:** `{ "changeset_id": string }`
+- **Description:** Retrieve review diff for review
+- **Parameters:** `{ "review_id": string }`
 - **Returns:** `{ "diff": string, "files_changed": number, "status": string }`
 
 ---

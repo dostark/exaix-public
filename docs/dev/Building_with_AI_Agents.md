@@ -2120,7 +2120,7 @@ All 721 tests passing. No functional changes.
 - 71 tests passing (8 → 15 → 26 → 37 → 53 → 71)
 - 6 MCP tools fully functional with security validation
 - Resources exposed via `portal://` URI scheme
-- Prompts registered (`execute_plan`, `create_changeset`)
+- Prompts registered (`execute_plan`, `create_review`)
 - Activity logging for all tool invocations
 - Zero TypeScript compilation errors
 - 81.1% line coverage, 89.3% branch coverage
@@ -2138,7 +2138,7 @@ All 721 tests passing. No functional changes.
 
 - Agent orchestration (spawn subprocess with MCP connection)
 - Execute plans through MCP tools
-- Changeset creation and tracking
+- Review creation and tracking
 - End-to-end integration tests
 
 ### The Meta-Lesson on Architecture Evolution
@@ -2313,8 +2313,8 @@ Result: 75% test coverage maintained, parsing errors eliminated
 ```
 Agent: [writes 50+ tests for PlanExecutor covering success/failure/malformed cases]
 Agent: [implements PlanExecutor with step-by-step execution]
-Agent: [adds changeset creation and git integration]
-Result: Plans now execute automatically, creating traceable changesets
+Agent: [adds review creation and git integration]
+Result: Plans now execute automatically, creating traceable reviews
 ```
 
 **The Execution Implementation Pattern**:
@@ -2590,7 +2590,7 @@ Agent: [creates comprehensive audit report]
 | Command | Actions Logged |
 | plan create | plan.created |
 | portal add | portal.added |
-| changeset apply | changeset.applied |
+| review apply | review.applied |
 
 ### Commands Missing Logging ❌
 

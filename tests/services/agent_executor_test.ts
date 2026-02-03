@@ -739,7 +739,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "AgentExecutor: validates changeset result has required fields",
+  name: "AgentExecutor: validates review result has required fields",
   fn: async () => {
     await setup();
     try {
@@ -761,7 +761,7 @@ Deno.test({
         execution_time_ms: 2000,
       };
 
-      const validated = executor.validateChangesetResult(validResult);
+      const validated = executor.validateReviewResult(validResult);
       assertExists(validated);
       assertEquals(validated.branch, "feat/test-abc123");
     } finally {
@@ -773,7 +773,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "AgentExecutor: rejects invalid changeset result",
+  name: "AgentExecutor: rejects invalid review result",
   fn: async () => {
     await setup();
     try {
@@ -795,7 +795,7 @@ Deno.test({
 
       assertThrows(
         () => {
-          executor.validateChangesetResult(invalidResult);
+          executor.validateReviewResult(invalidResult);
         },
         Error,
       );

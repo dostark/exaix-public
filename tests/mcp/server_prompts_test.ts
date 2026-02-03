@@ -43,7 +43,7 @@ Deno.test("MCP Server: handles prompts/list request", async () => {
 
     const promptNames = result.prompts.map((p) => p.name);
     assertEquals(promptNames.includes("execute_plan"), true);
-    assertEquals(promptNames.includes("create_changeset"), true);
+    assertEquals(promptNames.includes("create_review"), true);
   });
 });
 
@@ -105,14 +105,14 @@ Deno.test("MCP Server: handles prompts/get for execute_plan", async () => {
   });
 });
 
-Deno.test("MCP Server: handles prompts/get for create_changeset", async () => {
+Deno.test("MCP Server: handles prompts/get for create_review", async () => {
   await withMCPServer(async ({ server }) => {
     const response = await server.handleRequest({
       jsonrpc: "2.0",
       id: 1,
       method: "prompts/get",
       params: {
-        name: "create_changeset",
+        name: "create_review",
         arguments: { portal: "MyApp", description: "Add authentication", trace_id: "trace-789" },
       },
     });

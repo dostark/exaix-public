@@ -710,7 +710,7 @@ The Plan Execution Engine automatically executes approved plans moved to `Worksp
 | 5.12.1   | Detection           | ✅ Implemented | Monitors Workspace/Active for approved plans |
 | 5.12.2   | Parsing             | ✅ Implemented | Extracts and validates plan structure        |
 | 5.12.3   | Agent Orchestration | 📋 Planned     | Invokes LLM agent via MCP server with tools  |
-| 5.12.4   | Changeset Registry  | 📋 Planned     | Registers changeset created by agent         |
+| 5.12.4   | Review Registry     | 📋 Planned     | Registers review created by agent            |
 | 5.12.5   | Status Update       | 📋 Planned     | Marks plan executed, moves to archive        |
 | 5.12.6   | Error Handling      | 📋 Planned     | Handles agent/MCP/Git errors gracefully      |
 
@@ -1161,7 +1161,7 @@ Create REST API routes.
 - **Agent Orchestration:** Invoke LLM agent via MCP (stdio or SSE transport) with validated portal permissions
 - **Security Modes:** Sandboxed (no file access, all via MCP) or Hybrid (read-only + audit)
 - **Agent Execution:** Agent uses MCP tools to create feature branch and commit changes
-- **Changeset Registry:** Record changeset with commit SHA, created_by (agent name), and trace_id
+- **Review Registry:** Record review with commit SHA, created_by (agent name), and trace_id
 - **Status Update:** Mark executed, move to `System/Archive/`
 - **Error Handling:** Catch agent/MCP/Git errors, audit unauthorized changes (hybrid mode), preserve plan state
 
@@ -1178,7 +1178,7 @@ Create REST API routes.
 **Integration Tests:**
 
 - `tests/integration/14_plan_execution_parsing_test.ts` - 5 scenarios (parsing) ✅
-- `tests/integration/15_plan_execution_mcp_test.ts` - Full MCP flow (request → MCP → changeset) 📋
+- `tests/integration/15_plan_execution_mcp_test.ts` - Full MCP flow (request → MCP → review) 📋
 - Sandboxed mode security enforcement tests 📋
 - Hybrid mode audit detection tests 📋
 
@@ -1187,7 +1187,7 @@ Create REST API routes.
 - MCP server initialization (stdio/SSE transports)
 - Tool registration and invocation
 - Resource discovery (portal:// URIs)
-- Prompt handling (execute_plan, create_changeset)
+- Prompt handling (execute_plan, create_review)
 - Permission validation (agents_allowed, operations)
 - Security mode enforcement (sandboxed vs hybrid)
 - Unauthorized change detection and reversion
@@ -1207,7 +1207,7 @@ Create REST API routes.
 ├─────────────────────────────────────────────┤
 │ Resources: portal://PortalName/path URIs │
 ├─────────────────────────────────────────────┤
-│ Prompts: execute_plan, create_changeset │
+│ Prompts: execute_plan, create_review │
 ├─────────────────────────────────────────────┤
 │ Transport: stdio or SSE (HTTP) │
 └─────────────────────────────────────────────┘
@@ -1233,7 +1233,7 @@ Create REST API routes.
 **MCP Prompts:**
 
 - `execute_plan`: Execute an approved ExoFrame plan
-- `create_changeset`: Create a changeset for code changes
+- `create_review`: Create a review for code changes
 
 **Security Modes:**
 
@@ -1569,7 +1569,7 @@ Confidence scores (0-100) help determine output reliability:
 
 ### 8.5. Portal Workspace Integration
 
-Portal Workspace Integration enables agents to execute in external project repositories while maintaining proper git isolation and changeset tracking. This architecture redesign addresses the fundamental problem of agents creating branches and commits in the wrong repository.
+Portal Workspace Integration enables agents to execute in external project repositories while maintaining proper git isolation and review tracking. This architecture redesign addresses the fundamental problem of agents creating branches and commits in the wrong repository.
 
 #### Execution Context Architecture
 
@@ -1579,14 +1579,14 @@ ExoFrame uses an execution context model to determine where agents run and where
 
 - **Working Directory**: Portal target path (e.g., `~/git/ExoFrame`)
 - **Git Repository**: Portal's `.git/` directory
-- **Changesets**: Track changes in portal repository
+- **Reviews**: Track changes in portal repository
 - **Use Case**: All code modification workflows
 
 **Workspace Execution (Legacy):**
 
 - **Working Directory**: Deployed workspace (e.g., `~/ExoFrame`)
 - **Git Repository**: Workspace `.git/` directory
-- **Changesets**: Track workspace changes
+- **Reviews**: Track workspace changes
 - **Use Case**: Internal workspace management only
 
 **Implementation:**
@@ -1596,7 +1596,7 @@ interface WorkspaceExecutionContext {
   workingDirectory: string; // Where agent executes
   gitRepository: string; // Target for git operations
   allowedPaths: string[]; // File access boundaries
-  changesetRepo: string; // Changeset tracking repo
+  reviewRepo: string; // Review tracking repo
   portal?: string; // Portal alias (if portal execution)
   portalTarget?: string; // Resolved portal path
 }
@@ -1608,17 +1608,17 @@ interface WorkspaceExecutionContext {
 
 - Execute in portal workspace for context
 - No feature branch creation
-- No git changeset tracking
+- No git review tracking
 - Results stored as artifacts in `Memory/Execution/`
 - Artifacts include YAML frontmatter with status field (pending/approved/rejected)
-- Review via unified `exoctl changeset` command
+- Review via unified `exoctl review` command
 
 **Write-Capable Agents** (development, refactoring):
 
 - Execute in portal workspace
 - Create feature branches in portal's git repo
 - Commit changes to portal repository
-- Changesets track portal file modifications
+- Reviews track portal file modifications
 - Branch management follows git best practices
 
 **Capability Detection:**
@@ -1637,7 +1637,7 @@ Multiple portals can be used simultaneously without conflicts:
 - Each portal has isolated execution context
 - Git operations scoped to portal's repository
 - File access restricted to portal directory tree
-- Changeset tracking per portal
+- Review tracking per portal
 - Concurrent portal operations supported
 
 **Validation:**
@@ -1697,7 +1697,7 @@ validatePortalGitRepo(portal: PortalConfig): void {
 
 #### Artifact Management
 
-Read-only agents produce artifacts instead of git changesets:
+Read-only agents produce artifacts instead of git reviews:
 
 **Artifact Format:**
 
@@ -1724,9 +1724,9 @@ request_id: request-abc123
 
 **Unified Review:**
 
-- Same `exoctl changeset` command for both artifacts and git changesets
-- Auto-detection based on ID prefix (`artifact-` vs changeset ID)
-- Approval updates frontmatter status (artifacts) or merges branch (changesets)
+- Same `exoctl review` command for both artifacts and git reviews
+- Auto-detection based on ID prefix (`artifact-` vs review ID)
+- Approval updates frontmatter status (artifacts) or merges branch (reviews)
 
 ---
 

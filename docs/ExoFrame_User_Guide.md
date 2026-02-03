@@ -665,7 +665,7 @@ $ exoctl request list
 
 Review and approve plans before agents execute them:
 
-> **⚠️ IMPLEMENTATION STATUS:** Plan approval moves plans to `Workspace/Active/` where they are detected and parsed (Steps 5.12.1-5.12.2 ✅). Automatic agent-driven execution (Steps 5.12.3-5.12.6) is in development. In the agent-driven model, LLM agents will have direct portal access through scoped tools (read_file, write_file, git_create_branch, git_commit) and will create changesets themselves. See [ExoFrame Architecture](./ExoFrame_Architecture.md#plan-execution-flow-step-512) for details.
+> **⚠️ IMPLEMENTATION STATUS:** Plan approval moves plans to `Workspace/Active/` where they are detected and parsed (Steps 5.12.1-5.12.2 ✅). Automatic agent-driven execution (Steps 5.12.3-5.12.6) is in development. In the agent-driven model, LLM agents will have direct portal access through scoped tools (read_file, write_file, git_create_branch, git_commit) and will create reviews themselves. See [ExoFrame Architecture](./ExoFrame_Architecture.md#plan-execution-flow-step-512) for details.
 
 ```bash
 # List all plans awaiting review
@@ -715,7 +715,7 @@ $ exoctl plan approve implement-auth
   Status: Plan detected and parsed (agent-driven execution in development)
 
   Note: Currently, approved plans are detected and validated. Future: agents
-  will have portal access to create changesets directly. Agent-driven execution
+  will have portal access to create reviews directly. Agent-driven execution
   (Step 5.12.3-5.12.6) is in development.
 ```
 
@@ -1635,11 +1635,11 @@ exoctl plan show implement-auth
 # 4. Approve the plan
 exoctl plan approve implement-auth
 
-# 5. Review changesets created by agents
+# 5. Review changes created by agents
 exoctl review list
 exoctl review show implement-auth
 
-# 6. Approve the changeset to merge
+# 6. Approve the review to merge
 exoctl review approve implement-auth
 
 # Current Status:
@@ -1769,10 +1769,10 @@ exoctl daemon logs --follow
 **Code Changes Not Visible:**
 
 ```bash
-# List all changesets
+# List all reviews
 exoctl review list
 
-# Show specific changeset details
+# Show specific review details
 exoctl review show <id>
 
 # Check git status
@@ -1902,7 +1902,7 @@ exoctl daemon start
 
 ### 5.8 Portal Workflows
 
-Portals enable agents to work directly in external project repositories (e.g., `~/git/MyProject`) instead of the deployed workspace. This ensures git operations, feature branches, and changesets track actual source code changes in the correct repositories.
+Portals enable agents to work directly in external project repositories (e.g., `~/git/MyProject`) instead of the deployed workspace. This ensures git operations, feature branches, and reviews track actual source code changes in the correct repositories.
 
 #### How Portal Execution Works
 
@@ -1911,7 +1911,7 @@ When you submit a request targeting a portal:
 1. **Execution Environment**: Agent runs in portal workspace (e.g., `~/git/MyProject`)
 2. **Git Operations**: Branches and commits created in portal's repository
 3. **File Access**: Agent can read/write portal files directly
-4. **Changesets**: Track actual code changes in portal repository
+4. **Reviews**: Track actual code changes in portal repository
 
 #### Code Analysis with Portal
 
@@ -1924,7 +1924,7 @@ exoctl portal add ~/git/MyProject my-project
 # Submit analysis request (read-only agent)
 exoctl request --portal my-project "Analyze src/ architecture"
 
-# Review results (artifact, not git changeset)
+# Review results (artifact, not git review)
 exoctl review list
 exoctl review show artifact-<id>
 
@@ -1947,7 +1947,7 @@ Write-capable agents (like `feature-developer`) create feature branches in the p
 # Submit feature request (write-capable agent)
 exoctl request --portal my-project --agent feature-developer "Add user authentication"
 
-# Review changeset in portal repository
+# Review changes in portal repository
 cd ~/git/MyProject
 git log --oneline  # Shows feature branch
 git diff main      # Shows actual code changes
@@ -1972,14 +1972,14 @@ exoctl review approve <review-id>
 **Automatic Behaviors:**
 
 - ✅ Write agents create feature branches in portal repository
-- ✅ Changesets reference portal repo, not deployed workspace
+- ✅ Reviews reference portal repo, not deployed workspace
 - ✅ File modifications happen in portal workspace
 - ✅ Git history maintained in correct repository
 
 **Manual Steps:**
 
 - Add portals: `exoctl portal add /path/to/repo alias`
-- Review changesets: `exoctl review show <id>`
+- Review changes: `exoctl review show <id>`
 - Approve changes: `exoctl review approve <id>`
 - Merge feature branch in portal repo after execution
 
@@ -2001,7 +2001,7 @@ exoctl portal show my-project
 # Verify portal has .git directory
 ls -la ~/git/MyProject/.git
 
-# Check changeset repository reference
+# Check review repository reference
 exoctl review show <id> | grep repository
 ```
 
@@ -2035,7 +2035,7 @@ exoctl request --portal my-project "Analyze code"
 **Backward Compatibility:**
 
 - Requests without `--portal` continue to work in deployed workspace
-- Existing changesets remain valid
+- Existing reviews remain valid
 - No data migration required
 
 ---

@@ -79,10 +79,10 @@ content = "hello from portal"
     assert(!existsInRoot, "File should NOT exist in root directory");
 
     // Verify review was registered
-    const changesets = await reviewRegistry.list({ portal: "my-portal" });
-    assertEquals(changesets.length, 1, "Should have registered 1 review");
-    assertEquals(changesets[0].portal, "my-portal");
-    assertExists(changesets[0].commit_sha, "Changeset should have a commit SHA");
+    const reviews = await reviewRegistry.list({ portal: "my-portal" });
+    assertEquals(reviews.length, 1, "Should have registered 1 review");
+    assertEquals(reviews[0].portal, "my-portal");
+    assertExists(reviews[0].commit_sha, "Review should have a commit SHA");
   } finally {
     await cleanup();
     await Deno.remove(rootDir, { recursive: true });
