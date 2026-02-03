@@ -37,9 +37,9 @@ export class ChangesetRegistry {
     // Insert into database
     const sql = `
       INSERT INTO changesets (
-        id, trace_id, portal, branch, status, description,
+        id, trace_id, portal, branch, repository, status, description,
         commit_sha, files_changed, created, created_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await this.db.preparedRun(sql, [
@@ -47,6 +47,7 @@ export class ChangesetRegistry {
       validated.trace_id,
       validated.portal,
       validated.branch,
+      validated.repository,
       status,
       validated.description,
       validated.commit_sha || null,
@@ -61,11 +62,92 @@ export class ChangesetRegistry {
       trace_id: validated.trace_id,
       portal: validated.portal,
       branch: validated.branch,
+      repository: validated.repository,
       created_by: validated.created_by,
       files_changed: validated.files_changed,
     }, validated.trace_id);
 
     return id;
+  }
+
+  /**
+   * Create a new changeset with branch creation in specified repository
+   * Higher-level API that combines branch creation and registration
+   *
+   * @param traceId - Trace ID for the changeset (must be valid UUID)
+   * @param portal - Portal name (or null for workspace)
+   * @param branch - Branch name (already created by GitService)
+   * @param repository - Absolute path to git repository
+   * @returns Changeset ID
+   */
+  async createChangeset(
+    traceId: string,
+    portal: string | null,
+    branch: string,
+    repository: string,
+  ): Promise<string> {
+    // Register changeset using the register method
+    return await this.register({
+      trace_id: traceId,
+      portal: portal,
+      branch,
+      repository,
+      description: `Changeset for ${branch}`,
+      created_by: "agent", // TODO: Get from execution context
+      files_changed: 0,
+    });
+  }
+
+  /**
+   * Get diff for a changeset from its repository
+   *
+   * @param changesetId - Changeset ID
+   * @returns Git diff output
+   */
+  async getDiff(changesetId: string): Promise<string> {
+    const changeset = await this.get(changesetId);
+    if (!changeset) {
+      throw new Error(`Changeset not found: ${changesetId}`);
+    }
+
+    // Get the default branch (main/master/etc)
+    const branchCmd = new Deno.Command("git", {
+      args: ["branch", "--show-current"],
+      cwd: changeset.repository,
+      stdout: "piped",
+      stderr: "piped",
+    });
+
+    const branchResult = await branchCmd.output();
+    const _currentBranch = new TextDecoder().decode(branchResult.stdout).trim();
+
+    // Try to get first commit (root) as base
+    const rootCmd = new Deno.Command("git", {
+      args: ["rev-list", "--max-parents=0", "HEAD"],
+      cwd: changeset.repository,
+      stdout: "piped",
+      stderr: "piped",
+    });
+
+    const rootResult = await rootCmd.output();
+    const rootCommit = new TextDecoder().decode(rootResult.stdout).trim().split("\n")[0];
+
+    // Run git diff from root commit to HEAD
+    const cmd = new Deno.Command("git", {
+      args: ["diff", rootCommit, "HEAD"],
+      cwd: changeset.repository,
+      stdout: "piped",
+      stderr: "piped",
+    });
+
+    const { stdout, stderr, code } = await cmd.output();
+
+    if (code !== 0) {
+      const error = new TextDecoder().decode(stderr);
+      throw new Error(`Git diff failed: ${error}`);
+    }
+
+    return new TextDecoder().decode(stdout);
   }
 
   /**

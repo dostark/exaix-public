@@ -19,8 +19,9 @@ export const ChangesetStatusSchema = z.nativeEnum(ChangesetStatus);
 export const ChangesetSchema = z.object({
   id: z.string().uuid(), // Changeset UUID
   trace_id: z.string().uuid(), // Link to request/plan trace
-  portal: z.string().min(1), // Portal name
+  portal: z.string().nullish(), // Portal name (null for workspace)
   branch: z.string().min(1), // Git branch name (feat/<desc>-<trace>)
+  repository: z.string().min(1), // Absolute path to git repository
   status: ChangesetStatusSchema, // Current status
   description: z.string(), // Description of changes
   commit_sha: z.string().nullish(), // Latest commit SHA from agent
@@ -41,8 +42,9 @@ export type Changeset = z.infer<typeof ChangesetSchema>;
  */
 export const RegisterChangesetSchema = z.object({
   trace_id: z.string().uuid(),
-  portal: z.string().min(1),
+  portal: z.string().nullish(), // Can be null for workspace changesets
   branch: z.string().min(1),
+  repository: z.string().min(1), // Absolute path to git repository
   commit_sha: z.string().optional(),
   files_changed: z.number().int().nonnegative().default(0),
   description: z.string(),

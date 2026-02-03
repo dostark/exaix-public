@@ -59,8 +59,9 @@ export const CHANGESETS_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS changesets (
     id TEXT PRIMARY KEY,
     trace_id TEXT NOT NULL,
-    portal TEXT NOT NULL,
+    portal TEXT,
     branch TEXT NOT NULL,
+    repository TEXT NOT NULL,
     status TEXT NOT NULL,
     description TEXT NOT NULL,
     commit_sha TEXT,
@@ -78,6 +79,7 @@ export const CHANGESETS_TABLE_SQL = `
   CREATE INDEX IF NOT EXISTS idx_changesets_portal ON changesets(portal);
   CREATE INDEX IF NOT EXISTS idx_changesets_created_by ON changesets(created_by);
   CREATE INDEX IF NOT EXISTS idx_changesets_branch ON changesets(branch);
+  CREATE INDEX IF NOT EXISTS idx_changesets_repository ON changesets(repository);
 `;
 
 /**
