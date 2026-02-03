@@ -1,0 +1,19 @@
+- Clean rename: Complete removal of "changeset" terminology
+- Semantic accuracy: "Review" encompasses both code changes and artifacts
+- Consistent terminology: All docs, tests, and code updated simultaneously
+- No backward compatibility needed: No production deployment exists yet
+
+---
+
+## Goals
+
+- [ ] Rename CLI command group: `exoctl changeset` → `exoctl review`
+- [ ] Delete old changeset command files completely
+- [ ] Rename database table: `changesets` → `reviews` (with migration script)
+- [ ] Rename service classes: `ChangesetService` → `ReviewService`
+- [ ] Update all user-facing messages, logs, and error text
+- [ ] Update documentation (User Guide, Technical Spec, `.copilot/`)
+- [ ] Update all tests to use new terminology
+- [ ] Remove all "changeset" references from codebase
+
+---

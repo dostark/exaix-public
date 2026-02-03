@@ -1,0 +1,11 @@
+1. Read-only agent creates artifact in `Memory/Execution/artifact-<id>.md`
+2. `ChangesetService.createArtifactChangeset()` records it in `changesets` table
+3. User runs `exoctl changeset list` to see pending artifacts
+4. User runs `exoctl changeset approve <id>` to update frontmatter status
+5. Artifact frontmatter updated: `status: pending` → `status: approved`
+
+---
+
+## Terminology Comparison
+
+### Before (Current - Confusing)

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-03T13:41:35.867Z",
+  "generated_at": "2026-02-03T16:12:07.398Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -671,6 +671,33 @@
         ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk5.txt",
         ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk6.txt",
         ".copilot/chunks/phase-33-code-duplication-refactoring.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-36-changeset-to-review-rename.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 36: Rename 'changeset' to 'review' for Unified Artifact Workflow",
+      "short_summary": "Rename CLI commands and internal terminology from 'changeset' to 'review' to accurately reflect unified workflow for both git changesets and read-only artifacts, improving semantic clarity and user understanding.",
+      "version": "1.0",
+      "topics": [
+        "cli",
+        "naming",
+        "semantic-clarity",
+        "artifacts",
+        "changesets",
+        "review-workflow",
+        "ux"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-36-changeset-to-review-rename.md.chunk0.txt",
+        ".copilot/chunks/phase-36-changeset-to-review-rename.md.chunk1.txt",
+        ".copilot/chunks/phase-36-changeset-to-review-rename.md.chunk2.txt",
+        ".copilot/chunks/phase-36-changeset-to-review-rename.md.chunk3.txt",
+        ".copilot/chunks/phase-36-changeset-to-review-rename.md.chunk4.txt",
+        ".copilot/chunks/phase-36-changeset-to-review-rename.md.chunk5.txt",
+        ".copilot/chunks/phase-36-changeset-to-review-rename.md.chunk6.txt",
+        ".copilot/chunks/phase-36-changeset-to-review-rename.md.chunk7.txt"
       ]
     },
     {

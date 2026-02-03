@@ -16,6 +16,7 @@ import { Command } from "@cliffy/command";
 import { PlanCommands } from "./plan_commands.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { ChangesetCommands } from "./changeset_commands.ts";
+import { ReviewCommands } from "./review_commands.ts";
 import { GitCommands } from "./git_commands.ts";
 import { DaemonCommands } from "./daemon_commands.ts";
 import { PortalCommands } from "./portal_commands.ts";
@@ -65,6 +66,7 @@ if (services.success) {
 const requestCommands = new RequestCommands(context);
 const planCommands = new PlanCommands(context);
 const changesetCommands = new ChangesetCommands(context, gitService);
+const reviewCommands = new ReviewCommands(context, gitService);
 const gitCommands = new GitCommands(context);
 const daemonCommands = new DaemonCommands({ ...context, configService });
 const portalCommands = new PortalCommands({ config, db, configService });
@@ -86,6 +88,7 @@ export function __test_getContext() {
     requestCommands,
     planCommands,
     changesetCommands,
+    reviewCommands,
     gitCommands,
     daemonCommands,
     portalCommands,

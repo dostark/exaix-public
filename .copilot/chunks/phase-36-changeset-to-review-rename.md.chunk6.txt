@@ -1,0 +1,12 @@
+```typescript
+class ChangesetService {
+  async listChangesets(filters?: ChangesetFilters): Promise<ChangesetRecord[]>
+  async getChangesetById(id: string): Promise<ChangesetRecord | null>
+  async approveChangeset(id: string, approvedBy: string): Promise<void>
+  async rejectChangeset(id: string, reason: string, rejectedBy: string): Promise<void>
+  async createGitChangeset(requestId: string, branch: string, ...): Promise<string>
+  async createArtifactChangeset(requestId: string, filePath: string, ...): Promise<string>
+}
+```
+
+**Current Artifact Workflow (Phase 35):**

@@ -1,0 +1,9 @@
+# Phase 36: Rename 'changeset' to 'review' for Unified Artifact Workflow
+
+> [!NOTE]
+> **Status: Planning**
+> This phase improves semantic clarity by renaming `exoctl changeset` commands to `exoctl review`, accurately reflecting the unified review workflow for both git changesets (code changes) and file artifacts (analysis outputs).
+>
+> **Context:** Phase 35 introduced artifact storage in `Memory/Execution/` for read-only agents, creating a unified approval workflow via `exoctl changeset` commands. However, "changeset" is git-specific terminology that confuses users when reviewing non-code artifacts.
+
+## Executive Summary

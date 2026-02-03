@@ -1,0 +1,19 @@
+📌 implement-auth (feat/implement-auth-550e8400)  # Git changeset ✅ Makes sense
+   Files: 12
+   Type: git
+
+📌 artifact-026ad499 (code-analysis)  # File artifact ❌ Confusing terminology
+   Files: 1
+   Type: artifact
+```
+
+### **Proposed Solution**
+
+Rename commands and terminology from "changeset" to "review":
+
+- **CLI Commands:** `exoctl changeset` → `exoctl review`
+- **Database Tables:** `changesets` → `reviews` (with migration)
+- **Code Modules:** `ChangesetService` → `ReviewService`
+- **User-Facing Text:** "changeset" → "review" in messages and docs
+
+**Key Principles:**

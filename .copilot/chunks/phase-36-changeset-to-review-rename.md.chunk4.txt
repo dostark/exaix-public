@@ -1,0 +1,21 @@
+## Current State Analysis
+
+### Existing Changeset Infrastructure
+
+**CLI Commands (Phase 35):**
+
+```bash
+exoctl changeset list              # List pending changesets/artifacts
+exoctl changeset show <id>         # Show details with diff/content
+exoctl changeset approve <id>      # Approve for merge/acceptance
+exoctl changeset reject <id>       # Reject with reason
+```
+
+**Implementation Locations:**
+
+- **CLI:** `src/cli/commands/changeset.ts`
+- **Service:** `src/services/changeset_service.ts`
+- **Database:** `changesets` table in SQLite schema
+- **Types:** `ChangesetRecord`, `ChangesetStatus` in `src/types.ts`
+
+**Database Schema:**
