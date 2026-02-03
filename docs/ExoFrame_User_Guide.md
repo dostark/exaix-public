@@ -1900,6 +1900,144 @@ exoctl git branches | grep -v main | xargs git branch -d
 exoctl daemon start
 ```
 
+### 5.8 Portal Workflows
+
+Portals enable agents to work directly in external project repositories (e.g., `~/git/MyProject`) instead of the deployed workspace. This ensures git operations, feature branches, and changesets track actual source code changes in the correct repositories.
+
+#### How Portal Execution Works
+
+When you submit a request targeting a portal:
+
+1. **Execution Environment**: Agent runs in portal workspace (e.g., `~/git/MyProject`)
+2. **Git Operations**: Branches and commits created in portal's repository
+3. **File Access**: Agent can read/write portal files directly
+4. **Changesets**: Track actual code changes in portal repository
+
+#### Code Analysis with Portal
+
+Read-only agents (like `code-analyst`) execute in portal workspace but don't create git branches. Instead, they produce analysis artifacts stored in `Memory/Execution/`:
+
+```bash
+# Add portal to workspace
+exoctl portal add ~/git/MyProject my-project
+
+# Submit analysis request (read-only agent)
+exoctl request --portal my-project "Analyze src/ architecture"
+
+# Review results (artifact, not git changeset)
+exoctl changeset list
+exoctl changeset show artifact-<id>
+
+# Approve the analysis
+exoctl changeset approve artifact-<id>
+```
+
+**Analysis Workflow:**
+
+- Agent reads portal files for context
+- No git branch created (read-only operation)
+- Analysis stored as markdown artifact with frontmatter status
+- Review via unified `exoctl changeset` command
+
+#### Feature Development with Portal
+
+Write-capable agents (like `feature-developer`) create feature branches in the portal repository:
+
+```bash
+# Submit feature request (write-capable agent)
+exoctl request --portal my-project --agent feature-developer "Add user authentication"
+
+# Review changeset in portal repository
+cd ~/git/MyProject
+git log --oneline  # Shows feature branch
+git diff main      # Shows actual code changes
+
+# Or review via ExoFrame
+exoctl changeset list
+exoctl changeset show <changeset-id>
+
+# Approve and merge
+exoctl changeset approve <changeset-id>
+```
+
+**Development Workflow:**
+
+- Agent creates feature branch in portal's .git/
+- Code modifications happen in portal workspace
+- Changeset shows only modified files (not entire workspace)
+- Feature branch ready for review in source repository
+
+#### Portal Git Integration
+
+**Automatic Behaviors:**
+
+- ✅ Write agents create feature branches in portal repository
+- ✅ Changesets reference portal repo, not deployed workspace
+- ✅ File modifications happen in portal workspace
+- ✅ Git history maintained in correct repository
+
+**Manual Steps:**
+
+- Add portals: `exoctl portal add /path/to/repo alias`
+- Review changesets: `exoctl changeset show <id>`
+- Approve changes: `exoctl changeset approve <id>`
+- Merge feature branch in portal repo after execution
+
+#### Troubleshooting Portal Issues
+
+**Issue: Portal not found**
+
+```bash
+# Verify portal exists
+exoctl portal list
+
+# Check portal configuration
+exoctl portal show my-project
+```
+
+**Issue: Git operations in wrong repository**
+
+```bash
+# Verify portal has .git directory
+ls -la ~/git/MyProject/.git
+
+# Check changeset repository reference
+exoctl changeset show <id> | grep repository
+```
+
+**Issue: Changeset shows all workspace files**
+
+```bash
+# This indicates portal execution didn't work
+# Verify request used --portal flag
+exoctl request --portal my-project "..."
+
+# Check that portal path is correct
+exoctl portal show my-project
+```
+
+#### Migration from Workspace Execution
+
+**Before (workspace execution):**
+
+```bash
+exoctl request "Analyze code"
+# Result: Operates in ~/ExoFrame
+```
+
+**After (portal execution - recommended):**
+
+```bash
+exoctl request --portal my-project "Analyze code"
+# Result: Operates in ~/git/MyProject
+```
+
+**Backward Compatibility:**
+
+- Requests without `--portal` continue to work in deployed workspace
+- Existing changesets remain valid
+- No data migration required
+
 ---
 
 ## 6. Advanced Agent Features

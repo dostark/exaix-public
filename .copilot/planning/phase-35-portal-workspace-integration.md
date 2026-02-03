@@ -1083,11 +1083,47 @@ All agent capability logic (requiresGitTracking, isReadOnlyAgent) is tested in u
 - E2E test: Complete workflow from request to changeset approval in portal
 - E2E test: Portal execution + changeset review + merge workflow
 
-#### Task 5.2: Documentation Updates
+#### Task 5.2: Documentation Updates ✅
 
-**File:** `docs/ExoFrame_User_Guide.md`
+**Status:** COMPLETE
 
-Update portal workflow documentation:
+**Files Updated:**
+
+1. **`docs/ExoFrame_User_Guide.md`** - Added section 5.8 Portal Workflows
+2. **`docs/dev/ExoFrame_Technical_Spec.md`** - Added section 8.5 Portal Workspace Integration
+
+**User Guide Additions (Section 5.8):**
+
+- **How Portal Execution Works**: Explained execution environment, git operations, file access, and changeset tracking
+- **Code Analysis with Portal**: Complete workflow for read-only agents producing artifacts
+- **Feature Development with Portal**: Complete workflow for write-capable agents creating git changesets
+- **Portal Git Integration**: Automatic behaviors and manual steps
+- **Troubleshooting Portal Issues**: Common problems and solutions
+- **Migration from Workspace Execution**: Backward compatibility guidance
+
+**Technical Spec Additions (Section 8.5):**
+
+- **Execution Context Architecture**: Portal vs workspace execution modes with interface definition
+- **Agent Capability Modes**: Read-only vs write-capable agent behavior
+- **Multi-Portal Isolation**: Concurrent portal support with validation
+- **Security Implications**: Portal access validation, git operation security, file system boundaries
+- **Performance Considerations**: Overhead analysis, benchmark targets, optimization strategies
+- **Artifact Management**: Artifact format, storage, and unified review workflow
+
+**Success Criteria:**
+
+- ✅ User guide updated with portal workflows (section 5.8 added)
+- ✅ Examples show correct execution model (analysis and development workflows)
+- ✅ Troubleshooting section added (common portal issues covered)
+- ✅ Migration guide for existing users (backward compatibility explained)
+- ✅ Technical spec updated with execution model (section 8.5 added)
+- ✅ Architecture diagrams show portal integration (TypeScript interfaces and code examples)
+- ✅ Security implications documented (validation, boundaries, audit logging)
+- ✅ Performance considerations noted (overhead, benchmarks, optimization)
+
+**Implementation Notes:**
+
+Task 5.2 completed with comprehensive documentation updates. Both User Guide and Technical Spec now include detailed portal workflow sections covering execution models, agent capabilities, security, and performance. The documentation provides clear examples for both read-only (analysis) and write-capable (development) workflows, along with troubleshooting guidance and migration steps. All success criteria from the planning document have been met.
 
 ````markdown
 ## Portal Workflows

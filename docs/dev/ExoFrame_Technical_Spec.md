@@ -1567,6 +1567,167 @@ Confidence scores (0-100) help determine output reliability:
 - **Verification:** Each threat in Section 8 maps to a regression test listed in the Implementation Plan’s Phase 7 risk
   matrix; CI fails if any mitigation test regresses.
 
+### 8.5. Portal Workspace Integration
+
+Portal Workspace Integration enables agents to execute in external project repositories while maintaining proper git isolation and changeset tracking. This architecture redesign addresses the fundamental problem of agents creating branches and commits in the wrong repository.
+
+#### Execution Context Architecture
+
+ExoFrame uses an execution context model to determine where agents run and where git operations occur:
+
+**Portal Execution (Recommended):**
+
+- **Working Directory**: Portal target path (e.g., `~/git/ExoFrame`)
+- **Git Repository**: Portal's `.git/` directory
+- **Changesets**: Track changes in portal repository
+- **Use Case**: All code modification workflows
+
+**Workspace Execution (Legacy):**
+
+- **Working Directory**: Deployed workspace (e.g., `~/ExoFrame`)
+- **Git Repository**: Workspace `.git/` directory
+- **Changesets**: Track workspace changes
+- **Use Case**: Internal workspace management only
+
+**Implementation:**
+
+```typescript
+interface WorkspaceExecutionContext {
+  workingDirectory: string; // Where agent executes
+  gitRepository: string; // Target for git operations
+  allowedPaths: string[]; // File access boundaries
+  changesetRepo: string; // Changeset tracking repo
+  portal?: string; // Portal alias (if portal execution)
+  portalTarget?: string; // Resolved portal path
+}
+```
+
+#### Agent Capability Modes
+
+**Read-Only Agents** (analysis, review, quality):
+
+- Execute in portal workspace for context
+- No feature branch creation
+- No git changeset tracking
+- Results stored as artifacts in `Memory/Execution/`
+- Artifacts include YAML frontmatter with status field (pending/approved/rejected)
+- Review via unified `exoctl changeset` command
+
+**Write-Capable Agents** (development, refactoring):
+
+- Execute in portal workspace
+- Create feature branches in portal's git repo
+- Commit changes to portal repository
+- Changesets track portal file modifications
+- Branch management follows git best practices
+
+**Capability Detection:**
+
+```typescript
+requiresGitTracking(blueprint: Blueprint): boolean {
+  const writeCapabilities = ["write_file", "git_commit", "git_create_branch"];
+  return blueprint.capabilities.some(cap => writeCapabilities.includes(cap));
+}
+```
+
+#### Multi-Portal Isolation
+
+Multiple portals can be used simultaneously without conflicts:
+
+- Each portal has isolated execution context
+- Git operations scoped to portal's repository
+- File access restricted to portal directory tree
+- Changeset tracking per portal
+- Concurrent portal operations supported
+
+**Validation:**
+
+```typescript
+validatePortalGitRepo(portal: PortalConfig): void {
+  const gitDir = join(portal.target_path, ".git");
+  if (!existsSync(gitDir)) {
+    throw new Error(`Portal does not contain a git repository: ${portal.target_path}`);
+  }
+}
+```
+
+#### Security Implications
+
+**Portal Access Validation:**
+
+- Symlink resolution with `realpathSync()` to prevent symlink attacks
+- Path traversal prevention via strict boundary checks
+- Portal permission checks before execution
+- Git repository validation (`.git/` directory must exist)
+
+**Git Operation Security:**
+
+- Repository path validation before operations
+- Command injection prevention via parameterized commands
+- Atomic git operations (create branch + switch)
+- Branch name sanitization
+
+**File System Boundaries:**
+
+- Agents can only access `allowedPaths` specified in context
+- Deno permissions enforce filesystem boundaries
+- Portal operations logged for audit trail
+
+#### Performance Considerations
+
+**Portal Execution Overhead:**
+
+- Working directory change: O(1) operation
+- Git repository switching: No overhead (path-based)
+- File access validation: Minimal overhead (<1ms per operation)
+- Symlink resolution: Cached after first access
+
+**Benchmark Targets:**
+
+- Portal execution ≤5% slower than workspace execution
+- Multi-portal overhead: Linear scaling (no cross-portal interference)
+- Git operations: Same performance as native git commands
+
+**Optimization Strategies:**
+
+- Symlink paths cached in execution context
+- Git repository validation performed once at context creation
+- File access boundaries pre-computed
+- No additional database queries for portal metadata
+
+#### Artifact Management
+
+Read-only agents produce artifacts instead of git changesets:
+
+**Artifact Format:**
+
+```markdown
+---
+status: pending
+type: analysis
+agent: code-analyst
+portal: my-project
+created: 2026-02-03T10:30:00Z
+request_id: request-abc123
+---
+
+# Analysis Results
+
+...content...
+```
+
+**Storage:**
+
+- Location: `Memory/Execution/artifact-<id>.md`
+- Metadata tracked in SQLite database
+- Frontmatter includes status for approval workflow
+
+**Unified Review:**
+
+- Same `exoctl changeset` command for both artifacts and git changesets
+- Auto-detection based on ID prefix (`artifact-` vs changeset ID)
+- Approval updates frontmatter status (artifacts) or merges branch (changesets)
+
 ---
 
 ## 9. Concurrency & Locking
