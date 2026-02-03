@@ -263,7 +263,7 @@ export enum PlanStatus {
 }
 
 /**
- * Status for reviews (formerly changesets).
+ * Status for reviews.
  */
 export enum ReviewStatus {
   /** Created by agent, awaiting review */

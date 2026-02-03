@@ -160,9 +160,9 @@ Begin executing the plan.`,
 }
 
 /**
- * Generate prompt messages for create_changeset
+ * Generate prompt messages for create_review
  */
-export function generateCreateChangesetPrompt(
+export function generateCreateReviewPrompt(
   args: { portal: string; description: string; trace_id: string },
   db: DatabaseService,
 ): MCPPromptResult {
@@ -171,7 +171,7 @@ export function generateCreateChangesetPrompt(
   // Log prompt generation
   db.logActivity(
     "mcp.prompts",
-    "mcp.prompts.create_changeset",
+    "mcp.prompts.create_review",
     trace_id,
     {
       portal,
@@ -184,14 +184,14 @@ export function generateCreateChangesetPrompt(
       role: "user",
       content: {
         type: "text",
-        text: `You are creating a changeset in portal "${portal}".
+        text: `You are creating a review in portal "${portal}".
 
-**Changeset Description:** ${description}
+**Review Description:** ${description}
 
 **Trace ID:** ${trace_id}
 
 **Your Task:**
-1. Create a feature branch for this changeset:
+1. Create a feature branch for this review:
    - Use git_create_branch(portal, "feat/${trace_id}")
 2. Make the necessary code changes:
    - Read existing files to understand context
@@ -199,7 +199,7 @@ export function generateCreateChangesetPrompt(
 3. Verify your changes:
    - Use git_status to see what changed
    - Review the diff mentally
-4. Commit the changeset:
+4. Commit the review:
    - Use git_commit with a descriptive message
    - Include trace_id in message: "feat: ${description} [${trace_id}]"
 
@@ -219,13 +219,13 @@ export function generateCreateChangesetPrompt(
 - Include the trace_id in all commit messages
 - Test your changes mentally before committing
 
-Begin creating the changeset.`,
+Begin creating the review.`,
       },
     },
   ];
 
   return {
-    description: `Create changeset: ${description}`,
+    description: `Create review: ${description}`,
     messages,
   };
 }
@@ -245,8 +245,8 @@ export function generatePrompt(
         args as { plan_id: string; portal: string },
         db,
       );
-    case "create_changeset":
-      return generateCreateChangesetPrompt(
+    case "create_review":
+      return generateCreateReviewPrompt(
         args as { portal: string; description: string; trace_id: string },
         db,
       );

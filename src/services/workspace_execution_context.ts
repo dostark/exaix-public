@@ -32,7 +32,7 @@ export interface WorkspaceExecutionContext {
   allowedPaths: string[];
 
   /** Repository for review tracking */
-  changesetRepo: string;
+  reviewRepo: string;
 
   /** Portal alias (if executing in portal) */
   portal?: string;
@@ -65,7 +65,7 @@ export class WorkspaceExecutionContextBuilder {
       workingDirectory: portalTarget,
       gitRepository: gitDir,
       allowedPaths: [portalTarget],
-      changesetRepo: gitDir,
+      reviewRepo: gitDir,
       portal: portal.alias,
       portalTarget,
     };
@@ -91,7 +91,7 @@ export class WorkspaceExecutionContextBuilder {
       workingDirectory: normalizedPath,
       gitRepository: gitDir,
       allowedPaths: [normalizedPath],
-      changesetRepo: gitDir,
+      reviewRepo: gitDir,
     };
   }
 

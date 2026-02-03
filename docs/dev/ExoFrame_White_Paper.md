@@ -1,6 +1,6 @@
 # ExoFrame: The Governance-First AI Agent Operating System
 
-**White Paper - Three-Tier Edition**
+## White Paper - Three-Tier Edition**
 
 - **Date:** January 16, 2026
 - **Version:** 2.0.0
@@ -68,7 +68,7 @@ ExoFrame is available in three editions to serve different organizational needs:
 
 **Quick Comparison:**
 
-```
+```text
 Solo Edition:        CLI + TUI + Audit Trail + Local AI
 Team Edition:        Solo + Web UI + MCP Server + Collaboration
 Enterprise Edition:  Team + Governance + Compliance + Advanced Analytics
@@ -260,7 +260,7 @@ ExoFrame competes in three distinct segments:
 
 ### The ExoFrame Positioning Map
 
-```
+```text
 Enterprise Features
         ↑
         │     SuperAGI
@@ -522,7 +522,7 @@ plan_generation = { provider = "claude-3.5-sonnet", reason = "highest accuracy" 
 
 ExoFrame operates as a **secure daemon** on the host machine (or shared server for Team/Enterprise).
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                    User / Developer                      │
 └───────────┬────────────────────────┬────────────────────┘
@@ -578,7 +578,7 @@ ExoFrame operates as a **secure daemon** on the host machine (or shared server f
 
 Everything is a file—requests, plans, blueprints, reports:
 
-```
+```text
 ~/ExoFrame/
 ├── Workspace/
 │   ├── Requests/         ← Drop .md files here
@@ -608,7 +608,7 @@ Everything is a file—requests, plans, blueprints, reports:
 
 Unlike IDE agents requiring constant attention, ExoFrame runs as background daemon:
 
-```
+```text
 Morning:  Drop request → "Refactor authentication module"
           ↓
 Daemon:   Detects new request, generates plan, waits for approval
@@ -630,7 +630,7 @@ Merge:    exoctl review approve auth-refactor → Done
 
 Every action is linked via **trace_id** (UUID):
 
-```
+```text
 Request (trace_id: 550e8400...)
   ↓
 Plan (trace_id: 550e8400...)
@@ -1622,5 +1622,3 @@ Join 50+ organizations piloting governance-first AI agent orchestration:
 - **Returns:** `{ "diff": string, "files_changed": number, "status": string }`
 
 ---
-
-_End of White Paper - Version 2.0.0 - January 16, 2026_

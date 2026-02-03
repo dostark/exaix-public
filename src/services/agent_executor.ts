@@ -366,11 +366,11 @@ export class AgentExecutor {
           max_tokens: 4000,
         });
 
-        // Parse LLM response to extract changeset result
+        // Parse LLM response to extract review result
         const result = this.parseAgentResponse(response, context, startTime);
 
         // Validate result
-        const validated = this.validateChangesetResult(result);
+        const validated = this.validateReviewResult(result);
 
         // Log completion
         await this.logExecutionComplete(
@@ -393,7 +393,7 @@ export class AgentExecutor {
       };
 
       // Validate result
-      const validated = this.validateChangesetResult(result);
+      const validated = this.validateReviewResult(result);
 
       // Log completion
       await this.logExecutionComplete(
@@ -987,9 +987,9 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
   }
 
   /**
-   * Validate changeset result structure
+   * Validate review result structure
    */
-  validateChangesetResult(result: unknown): ChangesetResult {
+  validateReviewResult(result: unknown): ChangesetResult {
     return ChangesetResultSchema.parse(result);
   }
 

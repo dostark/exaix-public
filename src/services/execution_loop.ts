@@ -198,7 +198,7 @@ export class ExecutionLoop {
       // Commit changes
       const commitSha = await this.commitChanges(gitService, requestId!, traceId!);
 
-      // Register changeset
+      // Register review
       if (commitSha) {
         await this.registerChangeset(
           requestId,
@@ -640,9 +640,9 @@ export class ExecutionLoop {
   }
 
   /**
-   * Register a new changeset after successful execution
+   * Register a new review after successful execution
    */
-  private async registerChangeset(
+  private async registerReview(
     requestId: string,
     traceId: string,
     portal: string,
@@ -667,7 +667,7 @@ export class ExecutionLoop {
         console.error("[ExecutionLoop] reviewRegistry is NOT initialized!");
       }
     } catch (error) {
-      console.error("[ExecutionLoop] Failed to register changeset:", error);
+      console.error("[ExecutionLoop] Failed to register review:", error);
     }
   }
 
