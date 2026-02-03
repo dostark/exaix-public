@@ -23,6 +23,15 @@ function scoreDoc(md: string, query: string) {
 
 async function findBest(agent: string, query: string) {
   let best: { path?: string; fm?: Record<string, unknown>; score: number; md?: string } = { score: 0 };
+
+  // Check if .copilot directory exists
+  try {
+    await Deno.stat(AGENTS_DIR);
+  } catch {
+    // Directory doesn't exist, return empty result
+    return best;
+  }
+
   for await (const entry of walk(AGENTS_DIR, { exts: [".md"], maxDepth: 3 })) {
     if (!entry.isFile) continue;
     const md = await Deno.readTextFile(entry.path);

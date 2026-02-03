@@ -28,7 +28,13 @@ export async function setupGitRepo(path: string, options: { initialCommit?: bool
   const { initialCommit = false, branch = "master" } = options;
 
   // Save current directory and change to target to avoid cwd resolution issues
-  const originalCwd = Deno.cwd();
+  let originalCwd: string;
+  try {
+    originalCwd = Deno.cwd();
+  } catch {
+    // If cwd doesn't exist, use /tmp as fallback
+    originalCwd = "/tmp";
+  }
 
   try {
     // Change to target directory to ensure git commands work
