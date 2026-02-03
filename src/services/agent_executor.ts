@@ -15,6 +15,7 @@ import type { PathResolver } from "./path_resolver.ts";
 import type { PortalPermissionsService } from "./portal_permissions.ts";
 import type { IModelProvider } from "../ai/providers.ts";
 import { SafeError } from "../errors/safe_error.ts";
+import type { WorkspaceExecutionContext } from "./workspace_execution_context.ts";
 import {
   DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
   DEFAULT_GIT_CLEAN_TIMEOUT_MS,
@@ -84,6 +85,9 @@ export interface Blueprint {
  * AgentExecutor orchestrates agent execution with MCP
  */
 export class AgentExecutor {
+  private executionContext?: WorkspaceExecutionContext;
+  private originalWorkingDirectory?: string;
+
   constructor(
     private config: Config,
     private db: DatabaseService,
@@ -92,6 +96,85 @@ export class AgentExecutor {
     private permissions: PortalPermissionsService,
     private provider?: IModelProvider,
   ) {}
+
+  /**
+   * Set execution context for agent operations
+   * Changes working directory to context location
+   */
+  setExecutionContext(context: WorkspaceExecutionContext): void {
+    // Store original directory if not already stored
+    if (!this.originalWorkingDirectory) {
+      this.originalWorkingDirectory = Deno.cwd();
+    }
+
+    this.executionContext = context;
+
+    // Change to context working directory
+    Deno.chdir(context.workingDirectory);
+  }
+
+  /**
+   * Get current execution context
+   */
+  getExecutionContext(): WorkspaceExecutionContext | undefined {
+    return this.executionContext;
+  }
+
+  /**
+   * Clear execution context and restore original directory
+   */
+  clearExecutionContext(): void {
+    this.executionContext = undefined;
+
+    // Restore original working directory
+    if (this.originalWorkingDirectory) {
+      try {
+        Deno.chdir(this.originalWorkingDirectory);
+      } catch (_error) {
+        // Ignore if original directory no longer exists
+      }
+      this.originalWorkingDirectory = undefined;
+    }
+  }
+
+  /**
+   * Execute function within execution context, then restore
+   * Ensures directory is always restored even if function throws
+   */
+  async withExecutionContext<T>(
+    context: WorkspaceExecutionContext,
+    fn: () => Promise<T> | T,
+  ): Promise<T> {
+    const originalDir = Deno.cwd();
+
+    try {
+      this.setExecutionContext(context);
+      return await fn();
+    } finally {
+      // Always restore directory
+      try {
+        Deno.chdir(originalDir);
+      } catch (_error) {
+        // Ignore
+      }
+      this.executionContext = undefined;
+      this.originalWorkingDirectory = undefined;
+    }
+  }
+
+  /**
+   * Get git repository path from current execution context
+   */
+  getGitRepository(): string | undefined {
+    return this.executionContext?.gitRepository;
+  }
+
+  /**
+   * Get allowed paths from current execution context
+   */
+  getAllowedPaths(): string[] | undefined {
+    return this.executionContext?.allowedPaths;
+  }
 
   /**
    * Load agent blueprint from file with security validation
