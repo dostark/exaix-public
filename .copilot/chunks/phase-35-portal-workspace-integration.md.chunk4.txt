@@ -11,6 +11,6 @@
 ### Current Behavior (Broken)
 
 **Observed Issue:**
-When agents execute requests targeting portals (e.g., `exoctl request --portal portal-exoframe "Analyze CLI structure"`), the system creates feature branches and changesets in the **deployed workspace** (`~/ExoFrame`) instead of the **portal workspace** (`~/git/ExoFrame`).
+When agents execute requests targeting portals (e.g., `exoctl request --portal portal-exoframe "Analyze CLI structure"`), the system creates feature branches and reviews in the **deployed workspace** (`~/ExoFrame`) instead of the **portal workspace** (`~/git/ExoFrame`).
 
 **Example:**

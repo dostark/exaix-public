@@ -1,3 +1,5 @@
+## Executive Summary
+
 Following Phase 35's unified review workflow implementation (git changesets + file artifacts), ExoFrame needs clearer terminology to help users understand they're reviewing both code changes and analysis artifacts through a single command interface.
 
 ### **Problem Statement**
@@ -10,8 +12,3 @@ Following Phase 35's unified review workflow implementation (git changesets + fi
 - Semantic mismatch: "changeset" doesn't accurately describe artifact approval
 
 **User Experience Issues:**
-
-```bash
-# Confusing: Why is an analysis artifact called a "changeset"?
-$ exoctl changeset list
-🔀 Changesets (2):

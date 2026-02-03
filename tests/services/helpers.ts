@@ -67,13 +67,14 @@ export function createTestRequestRouter(
     logger,
     defaultAgent = "default-agent",
     blueprintsPath = "/tmp/blueprints",
+    config = {} as any,
   }: any,
 ) {
   class TestRequestRouter extends RequestRouter {
     private mockBlueprints: Map<string, any> = new Map();
 
     constructor() {
-      super(flowRunner, agentRunner, flowValidator, logger, defaultAgent, blueprintsPath);
+      super(flowRunner, agentRunner, flowValidator, logger, defaultAgent, blueprintsPath, config);
       this.mockBlueprints.set("senior-coder", { agentId: "senior-coder", name: "Senior Coder" });
       this.mockBlueprints.set("default-agent", { agentId: "default-agent", name: "Default Agent" });
     }

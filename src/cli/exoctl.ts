@@ -4,7 +4,7 @@
  *
  * Provides commands for:
  * - Plan review (approve/reject/revise)
- * - Changeset review (approve/reject code changes)
+ * - Review workflow (approve/reject code changes)
  * - Git operations (branch/status/log with trace_id)
  * - Daemon control (start/stop/status)
  * - Portal management (add/remove/verify external projects)
@@ -208,7 +208,7 @@ export const __test_command = new Command()
           }),
       ),
   )
-  // Review commands (replaces changeset commands)
+  // Review commands (replaces review commands)
   .command(
     "review",
     new Command()

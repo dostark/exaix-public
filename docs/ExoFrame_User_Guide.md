@@ -338,7 +338,7 @@ This ensures quality control over what enters the knowledge base.
 
 ### 4.1 Installation
 
-The ExoFrame CLI (`exoctl`) provides a comprehensive interface for managing plans, changesets, git operations, the daemon, and portals.
+The ExoFrame CLI (`exoctl`) provides a comprehensive interface for managing plans, reviews, git operations, the daemon, and portals.
 
 **Automatic Installation (recommended):**
 
@@ -719,32 +719,32 @@ $ exoctl plan approve implement-auth
   (Step 5.12.3-5.12.6) is in development.
 ```
 
-#### **Changeset Commands** - Review agent-generated code
+#### **Review Commands** - Review agent-generated outputs
 
-After agents execute plans and create git branches, review their code changes:
+After agents execute plans and create git branches or artifacts, review their outputs:
 
 ```bash
-# List all pending changesets (agent-created branches)
-exoctl changeset list
-exoctl changeset list --status pending
+# List all pending reviews (agent-created branches and artifacts)
+exoctl review list
+exoctl review list --status pending
 
-# Show changeset details with diff
-exoctl changeset show <request-id>
-exoctl changeset show feat/implement-auth-550e8400
+# Show review details with diff (for code) or content (for artifacts)
+exoctl review show <request-id>
+exoctl review show feat/implement-auth-550e8400
 
-# Approve changeset (merges branch to main)
-exoctl changeset approve <request-id>
+# Approve review (merges branch to main or marks artifact approved)
+exoctl review approve <request-id>
 
-# Reject changeset (deletes branch without merging)
-exoctl changeset reject <request-id> --reason "Failed code review"
+# Reject review (deletes branch or marks artifact rejected)
+exoctl review reject <request-id> --reason "Failed code review"
 ```
 
 **Example workflow:**
 
 ```bash
 # 1. See what code changes are ready
-$ exoctl changeset list
-🔀 Changesets (1):
+$ exoctl review list
+📋 Reviews (1):
 
 📌 implement-auth (feat/implement-auth-550e8400)
    Files: 12
@@ -752,8 +752,8 @@ $ exoctl changeset list
    Trace: 550e8400...
 
 # 2. Review the changes
-$ exoctl changeset show implement-auth
-🔀 Changeset: implement-auth
+$ exoctl review show implement-auth
+📋 Review: implement-auth
 
 Branch: feat/implement-auth-550e8400
 Files changed: 12
@@ -768,8 +768,8 @@ Diff:
 [full diff output...]
 
 # 3. Approve or reject
-$ exoctl changeset approve implement-auth
-✓ Changeset approved
+$ exoctl review approve implement-auth
+✓ Review approved
   Branch: feat/implement-auth-550e8400
   Merged to main: 3b5f7a21
   Files changed: 12
@@ -1424,10 +1424,10 @@ exoctl plan approve <id>                   # Approve for execution
 exoctl plan reject <id> --reason "..."     # Reject with feedback
 
 # Code review workflow
-exoctl changeset list                      # See agent-created branches
-exoctl changeset show <id>                 # Review code changes
-exoctl changeset approve <id>              # Merge to main
-exoctl changeset reject <id> --reason "..."# Delete branch
+exoctl review list                      # See agent-created branches
+exoctl review show <id>                 # Review code changes
+exoctl review approve <id>              # Merge to main
+exoctl review reject <id> --reason "..."# Delete branch
 
 # Portal management
 exoctl portal add ~/Dev/MyProject MyProject  # Mount external project
@@ -1468,7 +1468,7 @@ exoctl journal --count                    # Count activities by type
 All human actions via CLI are automatically logged to the Activity Journal:
 
 - Plan approvals/rejections → `plan.approved`, `plan.rejected`
-- Changeset approvals/rejections → `changeset.approved`, `changeset.rejected`
+- Review approvals/rejections → `review.approved`, `review.rejected`
 - All actions tagged with `actor='human'`, `via='cli'`
 - User identity captured from git config or OS username
 
@@ -1636,18 +1636,18 @@ exoctl plan show implement-auth
 exoctl plan approve implement-auth
 
 # 5. Review changesets created by agents
-exoctl changeset list
-exoctl changeset show implement-auth
+exoctl review list
+exoctl review show implement-auth
 
 # 6. Approve the changeset to merge
-exoctl changeset approve implement-auth
+exoctl review approve implement-auth
 
 # Current Status:
 # ✅ Request creation automated
 # ✅ Plan generation automated
 # ✅ Plan approval workflow complete
 # ✅ Plan detection and parsing implemented
-# ✅ Changeset creation and approval available
+# ✅ Review creation and approval available
 # 🚧 Full agent-driven execution in development
 
 # All completed steps logged to Activity Journal with trace_id
@@ -1744,7 +1744,7 @@ exoctl daemon logs --lines 50
 exoctl git branches --pattern "feat/*"
 
 # View agent activity
-exoctl changeset list
+exoctl review list
 
 # Restart daemon if needed
 exoctl daemon restart
@@ -1770,10 +1770,10 @@ exoctl daemon logs --follow
 
 ```bash
 # List all changesets
-exoctl changeset list
+exoctl review list
 
 # Show specific changeset details
-exoctl changeset show <id>
+exoctl review show <id>
 
 # Check git status
 exoctl git status
@@ -1857,7 +1857,7 @@ exoctl git status
 
 # List pending work
 exoctl plan list
-exoctl changeset list
+exoctl review list
 
 # View all branches
 exoctl git branches
@@ -1870,15 +1870,15 @@ exoctl git branches
 ```bash
 # Morning: Check what's pending
 exoctl plan list
-exoctl changeset list
+exoctl review list
 
 # Review and approve plans
 exoctl plan show <id>
 exoctl plan approve <id>
 
 # Review and merge code
-exoctl changeset show <id>
-exoctl changeset approve <id>
+exoctl review show <id>
+exoctl review approve <id>
 
 # End of day: Check daemon health
 exoctl daemon status
@@ -1925,11 +1925,11 @@ exoctl portal add ~/git/MyProject my-project
 exoctl request --portal my-project "Analyze src/ architecture"
 
 # Review results (artifact, not git changeset)
-exoctl changeset list
-exoctl changeset show artifact-<id>
+exoctl review list
+exoctl review show artifact-<id>
 
 # Approve the analysis
-exoctl changeset approve artifact-<id>
+exoctl review approve artifact-<id>
 ```
 
 **Analysis Workflow:**
@@ -1937,7 +1937,7 @@ exoctl changeset approve artifact-<id>
 - Agent reads portal files for context
 - No git branch created (read-only operation)
 - Analysis stored as markdown artifact with frontmatter status
-- Review via unified `exoctl changeset` command
+- Review via unified `exoctl review` command
 
 #### Feature Development with Portal
 
@@ -1953,18 +1953,18 @@ git log --oneline  # Shows feature branch
 git diff main      # Shows actual code changes
 
 # Or review via ExoFrame
-exoctl changeset list
-exoctl changeset show <changeset-id>
+exoctl review list
+exoctl review show <review-id>
 
 # Approve and merge
-exoctl changeset approve <changeset-id>
+exoctl review approve <review-id>
 ```
 
 **Development Workflow:**
 
 - Agent creates feature branch in portal's .git/
 - Code modifications happen in portal workspace
-- Changeset shows only modified files (not entire workspace)
+- Review shows only modified files (not entire workspace)
 - Feature branch ready for review in source repository
 
 #### Portal Git Integration
@@ -1979,8 +1979,8 @@ exoctl changeset approve <changeset-id>
 **Manual Steps:**
 
 - Add portals: `exoctl portal add /path/to/repo alias`
-- Review changesets: `exoctl changeset show <id>`
-- Approve changes: `exoctl changeset approve <id>`
+- Review changesets: `exoctl review show <id>`
+- Approve changes: `exoctl review approve <id>`
 - Merge feature branch in portal repo after execution
 
 #### Troubleshooting Portal Issues
@@ -2002,10 +2002,10 @@ exoctl portal show my-project
 ls -la ~/git/MyProject/.git
 
 # Check changeset repository reference
-exoctl changeset show <id> | grep repository
+exoctl review show <id> | grep repository
 ```
 
-##### Issue: Changeset shows all workspace files
+##### Issue: Review shows all workspace files
 
 ```bash
 # This indicates portal execution didn't work

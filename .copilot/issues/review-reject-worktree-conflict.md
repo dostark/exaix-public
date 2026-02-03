@@ -1,15 +1,15 @@
 ---
-title: "Cannot reject changeset when branch is used by worktree"
+title: "Cannot reject review when branch is used by worktree"
 status: resolved
 priority: medium
 created: 2026-01-23
 resolved: 2026-01-26
-labels: [bug, cli, changeset, git]
+labels: [bug, cli, review, git]
 ---
 
 ## Problem
 
-When attempting to reject a changeset using `exoctl changeset reject <id> --reason "reason"`, the command fails with an error if the branch is currently checked out in a worktree (typically a portal worktree). The error message is:
+When attempting to reject a review using `exoctl review reject <id> --reason "reason"`, the command fails with an error if the branch is currently checked out in a worktree (typically a portal worktree). The error message is:
 
 ```text
 Failed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/tmp/test-portal'
@@ -20,24 +20,24 @@ This prevents users from rejecting changesets that are associated with active po
 ## Reproduction Steps
 
 ```bash
-# Create and approve a plan (creates changeset)
+# Create and approve a plan (creates review)
 exoctl request "Add feature" --agent senior-coder --portal TestPortal
 exoctl plan approve <plan-id>
 
-# Try to reject the changeset
-exoctl changeset reject <request-id> --reason "Implementation issues"
+# Try to reject the review
+exoctl review reject <request-id> --reason "Implementation issues"
 # Fails with: Failed to delete branch: error: cannot delete branch 'feat/request-XXX-XXX' used by worktree at '/path/to/portal'
 ```
 
 ## Observed Behavior
 
-- `exoctl changeset reject` fails when the branch is checked out in a worktree
+- `exoctl review reject` fails when the branch is checked out in a worktree
 - Git error: `cannot delete branch 'branch-name' used by worktree at 'path'`
-- No alternative way to reject the changeset
+- No alternative way to reject the review
 
 ## Expected Behavior
 
-- `exoctl changeset reject` should succeed even when the branch is used by a worktree
+- `exoctl review reject` should succeed even when the branch is used by a worktree
 - Either force-remove the worktree before deleting the branch, or provide a clear error message with instructions
 - Changesets should be rejectable regardless of worktree status
 
@@ -71,11 +71,11 @@ exoctl changeset reject <request-id> --reason "Implementation issues"
 
 ## Workaround
 
-None currently available - changeset cannot be rejected if branch is in use by worktree.
+None currently available - review cannot be rejected if branch is in use by worktree.
 
 ## Priority Justification
 
-Medium priority - affects changeset rejection workflow when portals are involved, but doesn't break core functionality. Users can manually resolve by removing worktrees first, but this is not user-friendly.
+Medium priority - affects review rejection workflow when portals are involved, but doesn't break core functionality. Users can manually resolve by removing worktrees first, but this is not user-friendly.
 
 ## Resolution (when resolved)
 

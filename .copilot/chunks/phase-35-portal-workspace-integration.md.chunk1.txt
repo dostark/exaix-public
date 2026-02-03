@@ -1,3 +1,3 @@
-**Context:** Read-only agents (e.g., `code-analyst`) produce analysis artifacts that need review/approval workflow similar to code changesets, but storing them in git branches causes repository pollution and conceptual mismatch.
+**Context:** Read-only agents (e.g., `code-analyst`) produce analysis artifacts that need review/approval workflow similar to code reviews, but storing them in git branches causes repository pollution and conceptual mismatch.
 
 **Decision:**

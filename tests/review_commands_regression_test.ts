@@ -1,11 +1,11 @@
 /**
- * Changeset Commands Regression Tests
+ * Review Commands Regression Tests
  *
- * Regression tests for changeset list/show command enhancements.
+ * Regression tests for review list/show command enhancements.
  *
- * Regression test for: "Changeset commands show minimal information without request/plan context"
- * Root cause: ChangesetMetadata only included basic git information
- * Fix: Enhanced ChangesetMetadata with request and plan context loading
+ * Regression test for: "Review commands show minimal information without request/plan context"
+ * Root cause: ReviewMetadata only included basic git information
+ * Fix: Enhanced ReviewMetadata with request and plan context loading
  */
 
 import { assertEquals } from "@std/assert";
@@ -58,7 +58,7 @@ created_at: "${TEST_CREATED_AT}"
 
 # Test Plan
 
-This is a test plan for changeset regression testing.
+This is a test plan for review regression testing.
 `;
   await Deno.writeTextFile(path, content);
   return path;
@@ -83,9 +83,9 @@ async function createTestWorkspace(baseDir: string): Promise<{
   return { workspaceDir, requestsDir, plansDir, activeDir };
 }
 
-Deno.test("[regression] Changeset list shows request and plan context", async () => {
+Deno.test("[regression] Review list shows request and plan context", async () => {
   // Create temporary test directory
-  const tempDir = await Deno.makeTempDir({ prefix: "exoframe_changeset_test_" });
+  const tempDir = await Deno.makeTempDir({ prefix: "exoframe_review_test_" });
 
   try {
     const { workspaceDir: _workspaceDir, requestsDir, plansDir, activeDir: _activeDir } = await createTestWorkspace(
@@ -98,8 +98,8 @@ Deno.test("[regression] Changeset list shows request and plan context", async ()
     // Create test plan
     await createPlanFile(plansDir, `${TEST_REQUEST_ID}_plan`, TEST_TRACE_ID, "review");
 
-    // Import ChangesetCommands and dependencies
-    const { ChangesetCommands } = await import("../src/cli/changeset_commands.ts");
+    // Import ReviewCommands and dependencies
+    const { ReviewCommands } = await import("../src/cli/review_commands.ts");
 
     // Create minimal config pointing to our test workspace
     const config = {
@@ -113,14 +113,14 @@ Deno.test("[regression] Changeset list shows request and plan context", async ()
       db: createStubDb({ getActivitiesByTrace: () => Promise.resolve([]) }),
     } as any;
 
-    // Test that ChangesetCommands can be instantiated with the enhanced interface
-    const changesetCommands = new ChangesetCommands(context, {} as any);
+    // Test that ReviewCommands can be instantiated with the enhanced interface
+    const reviewCommands = new ReviewCommands(context, {} as any);
 
     // Verify the instance has the expected methods
-    assertEquals(typeof changesetCommands.list, "function");
-    assertEquals(typeof changesetCommands.show, "function");
+    assertEquals(typeof reviewCommands.list, "function");
+    assertEquals(typeof reviewCommands.show, "function");
 
-    // Test that the ChangesetMetadata interface includes the new fields
+    // Test that the ReviewMetadata interface includes the new fields
     // We can't directly test private methods, but we can verify the interface supports the new fields
     const testMetadata: any = {
       branch: TEST_BRANCH,
@@ -147,10 +147,10 @@ Deno.test("[regression] Changeset list shows request and plan context", async ()
   }
 });
 
-Deno.test("[regression] Changeset show displays complete context information", () => {
-  // This test verifies that the changeset show command includes all context fields
+Deno.test("[regression] Review show displays complete context information", () => {
+  // This test verifies that the review show command includes all context fields
 
-  const mockChangesetDetails = {
+  const mockReviewDetails = {
     branch: TEST_BRANCH,
     trace_id: TEST_TRACE_ID,
     request_id: TEST_REQUEST_ID,
@@ -181,11 +181,11 @@ Deno.test("[regression] Changeset show displays complete context information", (
   };
 
   // Verify all expected fields are present
-  assertEquals(mockChangesetDetails.request_title, "Test Request Title");
-  assertEquals(mockChangesetDetails.plan_id, `${TEST_REQUEST_ID}_plan`);
-  assertEquals(mockChangesetDetails.plan_status, "approved");
-  assertEquals(mockChangesetDetails.portal, "test-portal");
-  assertEquals(mockChangesetDetails.status, "pending");
-  assertEquals(mockChangesetDetails.diff, "mock diff output");
-  assertEquals(mockChangesetDetails.commits.length, 1);
+  assertEquals(mockReviewDetails.request_title, "Test Request Title");
+  assertEquals(mockReviewDetails.plan_id, `${TEST_REQUEST_ID}_plan`);
+  assertEquals(mockReviewDetails.plan_status, "approved");
+  assertEquals(mockReviewDetails.portal, "test-portal");
+  assertEquals(mockReviewDetails.status, "pending");
+  assertEquals(mockReviewDetails.diff, "mock diff output");
+  assertEquals(mockReviewDetails.commits.length, 1);
 });

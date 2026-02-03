@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-03T16:12:07.398Z",
+  "generated_at": "2026-02-03T17:50:59.502Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -882,12 +882,12 @@
       "agent": "claude",
       "scope": "dev",
       "title": "Phase 35: Portal Workspace Integration & Git Changeset Architecture",
-      "short_summary": "Redesign agent execution model to work directly in portal workspaces instead of deployed workspace, enabling proper git operations, changesets, and team collaboration on actual source code repositories.",
+      "short_summary": "Redesign agent execution model to work directly in portal workspaces instead of deployed workspace, enabling proper git operations, reviews, and team collaboration on actual source code repositories.",
       "version": "1.0",
       "topics": [
         "portals",
         "git",
-        "changesets",
+        "reviews",
         "architecture",
         "workspace",
         "collaboration",
@@ -1335,6 +1335,18 @@
       ]
     },
     {
+      "path": ".copilot/issues/review-reject-worktree-conflict.md",
+      "title": "Cannot reject review when branch is used by worktree",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/review-reject-worktree-conflict.md.chunk0.txt",
+        ".copilot/chunks/review-reject-worktree-conflict.md.chunk1.txt",
+        ".copilot/chunks/review-reject-worktree-conflict.md.chunk2.txt",
+        ".copilot/chunks/review-reject-worktree-conflict.md.chunk3.txt",
+        ".copilot/chunks/review-reject-worktree-conflict.md.chunk4.txt"
+      ]
+    },
+    {
       "path": ".copilot/issues/database-changeset-table-missing.md",
       "agent": "general",
       "scope": "dev",
@@ -1380,18 +1392,6 @@
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk2.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk3.txt",
         ".copilot/chunks/plan-validation-failure-senior-coder.md.chunk4.txt"
-      ]
-    },
-    {
-      "path": ".copilot/issues/changeset-reject-worktree-conflict.md",
-      "title": "Cannot reject changeset when branch is used by worktree",
-      "short_summary": "",
-      "chunks": [
-        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk0.txt",
-        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk1.txt",
-        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk2.txt",
-        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk3.txt",
-        ".copilot/chunks/changeset-reject-worktree-conflict.md.chunk4.txt"
       ]
     },
     {

@@ -1,3 +1,8 @@
+```bash
+# Confusing: Why is an analysis artifact called a "changeset"?
+$ exoctl changeset list
+🔀 Changesets (2):
+
 📌 implement-auth (feat/implement-auth-550e8400)  # Git changeset ✅ Makes sense
    Files: 12
    Type: git

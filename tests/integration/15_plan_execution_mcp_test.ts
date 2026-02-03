@@ -10,7 +10,7 @@ import { ChangesetStatus, McpToolName, MemoryOperation, PortalOperation, Securit
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { EventLogger } from "../../src/services/event_logger.ts";
-import { ChangesetRegistry } from "../../src/services/changeset_registry.ts";
+import { ReviewRegistry } from "../../src/services/review_registry.ts";
 import { parse as parseYaml } from "@std/yaml";
 import { initTestDbService } from "../helpers/db.ts";
 import { getWorkspaceActiveDir } from "../helpers/paths_helper.ts";
@@ -132,13 +132,14 @@ Create a simple hello world function in src/utils.ts
     assertEquals(frontmatter.agent, "mock-agent");
     assertEquals(frontmatter.portal, "TestPortal");
 
-    // Step 3: Verify changeset can be registered
+    // Step 3: Verify review can be registered
     // (In real execution, AgentExecutor would create branch and commit)
     const eventLogger = new EventLogger({ db: dbService });
-    const changesetRegistry = new ChangesetRegistry(dbService, eventLogger);
+    const reviewRegistry = new ReviewRegistry(dbService, eventLogger);
 
-    const changesetId = await changesetRegistry.register({
+    const reviewId = await reviewRegistry.register({
       trace_id: traceId,
+      repository: "/test/repo",
       portal: "TestPortal",
       branch: `feat/hello-world-${traceId.slice(0, 8)}`,
       commit_sha: "abc123def456",
@@ -147,17 +148,17 @@ Create a simple hello world function in src/utils.ts
       created_by: "mock-agent",
     });
 
-    assertExists(changesetId, "Changeset should be created");
+    assertExists(reviewId, "Changeset should be created");
 
-    // Step 4: Verify changeset was registered correctly
-    const changeset = await changesetRegistry.get(changesetId);
-    assertExists(changeset, "Changeset should exist");
-    assert(changeset !== null, "Changeset should not be null");
-    assertEquals(changeset!.trace_id, traceId);
-    assertEquals(changeset!.portal, "TestPortal");
-    assertEquals(changeset!.status, ChangesetStatus.PENDING);
-    assertEquals(changeset!.created_by, "mock-agent");
-    assertEquals(changeset!.files_changed, 1);
+    // Step 4: Verify review was registered correctly
+    const review = await reviewRegistry.get(reviewId);
+    assertExists(review, "Changeset should exist");
+    assert(review !== null, "Changeset should not be null");
+    assertEquals(review!.trace_id, traceId);
+    assertEquals(review!.portal, "TestPortal");
+    assertEquals(review!.status, ChangesetStatus.PENDING);
+    assertEquals(review!.created_by, "mock-agent");
+    assertEquals(review!.files_changed, 1);
 
     // Step 5: Verify Activity Journal events
     await dbService.waitForFlush(); // Flush batched log entries
@@ -168,8 +169,8 @@ Create a simple hello world function in src/utils.ts
 
     assert(events.length > 0, "Should have Activity Journal events");
 
-    const changesetCreatedEvent = events.find((e: any) => e.action_type === "changeset.created");
-    assertExists(changesetCreatedEvent, "Should have changeset.created event");
+    const reviewCreatedEvent = events.find((e: any) => e.action_type === "review.created");
+    assertExists(reviewCreatedEvent, "Should have review.created event");
 
     console.log("✅ Happy Path (Sandboxed) - All checks passed");
   } finally {
@@ -229,12 +230,13 @@ Modify README.md with additional content
     const readmeContent = await Deno.readTextFile(readmePath);
     assert(readmeContent.includes("# Test Portal"), "Portal files should be readable");
 
-    // Register changeset as if execution completed
+    // Register review as if execution completed
     const eventLogger = new EventLogger({ db: dbService });
-    const changesetRegistry = new ChangesetRegistry(dbService, eventLogger);
+    const reviewRegistry = new ReviewRegistry(dbService, eventLogger);
 
-    const changesetId = await changesetRegistry.register({
+    const reviewId = await reviewRegistry.register({
       trace_id: traceId,
+      repository: "/test/repo",
       portal: "TestPortal",
       branch: `feat/update-readme-${traceId.slice(0, 8)}`,
       commit_sha: "def456ghi789",
@@ -243,10 +245,10 @@ Modify README.md with additional content
       created_by: "mock-agent",
     });
 
-    assertExists(changesetId);
+    assertExists(reviewId);
 
-    const changeset = await changesetRegistry.get(changesetId);
-    assertEquals(changeset?.status, ChangesetStatus.PENDING);
+    const review = await reviewRegistry.get(reviewId);
+    assertEquals(review?.status, ChangesetStatus.PENDING);
 
     console.log("✅ Happy Path (Hybrid Mode) - All checks passed");
   } finally {
@@ -319,13 +321,14 @@ Deno.test("Integration Test 15.4: Changeset Lifecycle - Approval", async () => {
 
   try {
     const eventLogger = new EventLogger({ db: dbService });
-    const changesetRegistry = new ChangesetRegistry(dbService, eventLogger);
+    const reviewRegistry = new ReviewRegistry(dbService, eventLogger);
 
     const traceId = crypto.randomUUID();
 
     // Create changeset
-    const changesetId = await changesetRegistry.register({
+    const reviewId = await reviewRegistry.register({
       trace_id: traceId,
+      repository: "/test/repo",
       portal: "TestPortal",
       branch: "feat/test-feature",
       commit_sha: "abc123",
@@ -335,29 +338,29 @@ Deno.test("Integration Test 15.4: Changeset Lifecycle - Approval", async () => {
     });
 
     // Verify initial status
-    let changeset = await changesetRegistry.get(changesetId);
-    assertEquals(changeset?.status, ChangesetStatus.PENDING);
-    assertEquals(changeset?.approved_at, null);
+    let review = await reviewRegistry.get(reviewId);
+    assertEquals(review?.status, ChangesetStatus.PENDING);
+    assertEquals(review?.approved_at, null);
 
     // Approve changeset
-    await changesetRegistry.updateStatus(
-      changesetId,
+    await reviewRegistry.updateStatus(
+      reviewId,
       ChangesetStatus.APPROVED,
       "admin@example.com",
     );
 
     // Verify updated status
-    changeset = await changesetRegistry.get(changesetId);
-    assertEquals(changeset?.status, ChangesetStatus.APPROVED);
-    assertEquals(changeset?.approved_by, "admin@example.com");
-    assertExists(changeset?.approved_at);
+    review = await reviewRegistry.get(reviewId);
+    assertEquals(review?.status, ChangesetStatus.APPROVED);
+    assertEquals(review?.approved_by, "admin@example.com");
+    assertExists(review?.approved_at);
 
     // Verify Activity Journal logged approval
     await dbService.waitForFlush(); // Flush batched log entries
 
     const events = dbService.instance
       .prepare("SELECT * FROM activity WHERE action_type = ?")
-      .all("changeset.approved");
+      .all("review.approved");
 
     assert(events.length > 0, "Should log approval event");
 
@@ -372,13 +375,14 @@ Deno.test("Integration Test 15.5: Changeset Lifecycle - Rejection", async () => 
 
   try {
     const eventLogger = new EventLogger({ db: dbService });
-    const changesetRegistry = new ChangesetRegistry(dbService, eventLogger);
+    const reviewRegistry = new ReviewRegistry(dbService, eventLogger);
 
     const traceId = crypto.randomUUID();
 
     // Create changeset
-    const changesetId = await changesetRegistry.register({
+    const reviewId = await reviewRegistry.register({
       trace_id: traceId,
+      repository: "/test/repo",
       portal: "TestPortal",
       branch: "feat/bad-feature",
       commit_sha: "def456",
@@ -388,26 +392,26 @@ Deno.test("Integration Test 15.5: Changeset Lifecycle - Rejection", async () => 
     });
 
     // Reject changeset
-    await changesetRegistry.updateStatus(
-      changesetId,
+    await reviewRegistry.updateStatus(
+      reviewId,
       ChangesetStatus.REJECTED,
       "reviewer@example.com",
       "Does not meet coding standards",
     );
 
     // Verify rejection
-    const changeset = await changesetRegistry.get(changesetId);
-    assertEquals(changeset?.status, ChangesetStatus.REJECTED);
-    assertEquals(changeset?.rejected_by, "reviewer@example.com");
-    assertEquals(changeset?.rejection_reason, "Does not meet coding standards");
-    assertExists(changeset?.rejected_at);
+    const review = await reviewRegistry.get(reviewId);
+    assertEquals(review?.status, ChangesetStatus.REJECTED);
+    assertEquals(review?.rejected_by, "reviewer@example.com");
+    assertEquals(review?.rejection_reason, "Does not meet coding standards");
+    assertExists(review?.rejected_at);
 
     // Verify Activity Journal logged rejection
     await dbService.waitForFlush(); // Flush batched log entries
 
     const events = dbService.instance
       .prepare("SELECT * FROM activity WHERE action_type = ?")
-      .all("changeset.rejected");
+      .all("review.rejected");
 
     assert(events.length > 0, "Should log rejection event");
 
@@ -422,14 +426,15 @@ Deno.test("Integration Test 15.6: Changeset Filtering", async () => {
 
   try {
     const eventLogger = new EventLogger({ db: dbService });
-    const changesetRegistry = new ChangesetRegistry(dbService, eventLogger);
+    const reviewRegistry = new ReviewRegistry(dbService, eventLogger);
 
     const traceId1 = crypto.randomUUID();
     const traceId2 = crypto.randomUUID();
 
     // Create multiple changesets
-    await changesetRegistry.register({
+    await reviewRegistry.register({
       trace_id: traceId1,
+      repository: "/test/repo",
       portal: "Portal1",
       branch: "feat/feature1",
       commit_sha: "abc123",
@@ -438,8 +443,9 @@ Deno.test("Integration Test 15.6: Changeset Filtering", async () => {
       created_by: "agent1",
     });
 
-    const changeset2Id = await changesetRegistry.register({
+    const review2Id = await reviewRegistry.register({
       trace_id: traceId2,
+      repository: "/test/repo",
       portal: "Portal2",
       branch: "feat/feature2",
       commit_sha: "def456",
@@ -449,22 +455,22 @@ Deno.test("Integration Test 15.6: Changeset Filtering", async () => {
     });
 
     // Approve one
-    await changesetRegistry.updateStatus(changeset2Id, ChangesetStatus.APPROVED, "admin");
+    await reviewRegistry.updateStatus(review2Id, ChangesetStatus.APPROVED, "admin");
 
     // Filter by status
-    const pendingChangesets = await changesetRegistry.list({ status: ChangesetStatus.PENDING });
+    const pendingChangesets = await reviewRegistry.list({ status: ChangesetStatus.PENDING });
     assertEquals(pendingChangesets.length, 1);
 
-    const approvedChangesets = await changesetRegistry.list({ status: ChangesetStatus.APPROVED });
+    const approvedChangesets = await reviewRegistry.list({ status: ChangesetStatus.APPROVED });
     assertEquals(approvedChangesets.length, 1);
 
     // Filter by portal
-    const portal1Changesets = await changesetRegistry.list({ portal: "Portal1" });
+    const portal1Changesets = await reviewRegistry.list({ portal: "Portal1" });
     assertEquals(portal1Changesets.length, 1);
     assertEquals(portal1Changesets[0].portal, "Portal1");
 
     // Filter by agent
-    const agent2Changesets = await changesetRegistry.list({ created_by: "agent2" });
+    const agent2Changesets = await reviewRegistry.list({ created_by: "agent2" });
     assertEquals(agent2Changesets.length, 1);
     assertEquals(agent2Changesets[0].created_by, "agent2");
 
@@ -659,14 +665,15 @@ Deno.test("Integration Test 15.10: Changeset Query Methods", async () => {
 
   try {
     const eventLogger = new EventLogger({ db: dbService });
-    const changesetRegistry = new ChangesetRegistry(dbService, eventLogger);
+    const reviewRegistry = new ReviewRegistry(dbService, eventLogger);
 
     const trace1 = crypto.randomUUID();
     const trace2 = crypto.randomUUID();
 
     // Create multiple changesets
-    const _cs1 = await changesetRegistry.register({
+    const _cs1 = await reviewRegistry.register({
       trace_id: trace1,
+      repository: "/test/repo",
       portal: "PortalA",
       branch: "feat/feature-a",
       commit_sha: "abc123",
@@ -675,8 +682,9 @@ Deno.test("Integration Test 15.10: Changeset Query Methods", async () => {
       created_by: "agent-alpha",
     });
 
-    const cs2 = await changesetRegistry.register({
+    const cs2 = await reviewRegistry.register({
       trace_id: trace1,
+      repository: "/test/repo",
       portal: "PortalA",
       branch: "feat/feature-a-v2",
       commit_sha: "def456",
@@ -685,8 +693,9 @@ Deno.test("Integration Test 15.10: Changeset Query Methods", async () => {
       created_by: "agent-alpha",
     });
 
-    const _cs3 = await changesetRegistry.register({
+    const _cs3 = await reviewRegistry.register({
       trace_id: trace2,
+      repository: "/test/repo",
       portal: "PortalB",
       branch: "feat/feature-b",
       commit_sha: "ghi789",
@@ -696,24 +705,24 @@ Deno.test("Integration Test 15.10: Changeset Query Methods", async () => {
     });
 
     // Approve one changeset
-    await changesetRegistry.updateStatus(cs2, ChangesetStatus.APPROVED, "admin@example.com");
+    await reviewRegistry.updateStatus(cs2, ChangesetStatus.APPROVED, "admin@example.com");
 
     // Test: Get changesets by trace_id
-    const byTrace = await changesetRegistry.list({ trace_id: trace1 });
+    const byTrace = await reviewRegistry.list({ trace_id: trace1 });
     assertEquals(byTrace.length, 2, "Should find 2 changesets for trace1");
 
     // Test: Get pending changesets for portal
-    const pendingForPortalA = await changesetRegistry.list({
+    const pendingForPortalA = await reviewRegistry.list({
       portal: "PortalA",
       status: ChangesetStatus.PENDING,
     });
-    assertEquals(pendingForPortalA.length, 1, "Should find 1 pending changeset for PortalA");
+    assertEquals(pendingForPortalA.length, 1, "Should find 1 pending review for PortalA");
 
     // Test: Count by status
-    const allPending = await changesetRegistry.list({ status: ChangesetStatus.PENDING });
-    const allApproved = await changesetRegistry.list({ status: ChangesetStatus.APPROVED });
+    const allPending = await reviewRegistry.list({ status: ChangesetStatus.PENDING });
+    const allApproved = await reviewRegistry.list({ status: ChangesetStatus.APPROVED });
     assertEquals(allPending.length, 2, "Should have 2 pending changesets");
-    assertEquals(allApproved.length, 1, "Should have 1 approved changeset");
+    assertEquals(allApproved.length, 1, "Should have 1 approved review");
 
     console.log("✅ Changeset Query Methods - All checks passed");
   } finally {
@@ -824,14 +833,15 @@ Deno.test("Integration Test 15.12: Performance & Concurrent Execution", async ()
 
   try {
     const eventLogger = new EventLogger({ db: dbService });
-    const changesetRegistry = new ChangesetRegistry(dbService, eventLogger);
+    const reviewRegistry = new ReviewRegistry(dbService, eventLogger);
 
     // Test 1: Performance - Simple operations should be fast
     const startTime = Date.now();
 
     const traceId = crypto.randomUUID();
-    const changesetId = await changesetRegistry.register({
+    const reviewId = await reviewRegistry.register({
       trace_id: traceId,
+      repository: "/test/repo",
       portal: "TestPortal",
       branch: "feat/perf-test",
       commit_sha: "abc123",
@@ -840,20 +850,21 @@ Deno.test("Integration Test 15.12: Performance & Concurrent Execution", async ()
       created_by: "test-agent",
     });
 
-    const changeset = await changesetRegistry.get(changesetId);
-    assertExists(changeset);
+    const review = await reviewRegistry.get(reviewId);
+    assertExists(review);
 
     const elapsed = Date.now() - startTime;
     assert(elapsed < 1000, `Simple operations should complete in <1s (took ${elapsed}ms)`);
 
-    // Test 2: Concurrent changeset creation
+    // Test 2: Concurrent review creation
     const concurrentTraces = Array.from({ length: 5 }, () => crypto.randomUUID());
 
     const concurrentStart = Date.now();
     const concurrentResults = await Promise.all(
       concurrentTraces.map((trace, idx) =>
-        changesetRegistry.register({
+        reviewRegistry.register({
           trace_id: trace,
+          repository: "/test/repo",
           portal: `Portal${idx + 1}`,
           branch: `feat/concurrent-${idx + 1}`,
           commit_sha: `sha${idx + 1}`,
@@ -871,7 +882,7 @@ Deno.test("Integration Test 15.12: Performance & Concurrent Execution", async ()
 
     // Test 3: Verify no interference between concurrent operations
     for (let i = 0; i < concurrentResults.length; i++) {
-      const cs = await changesetRegistry.get(concurrentResults[i]);
+      const cs = await reviewRegistry.get(concurrentResults[i]);
       assertExists(cs, `Changeset ${i + 1} should exist`);
       assertEquals(cs!.portal, `Portal${i + 1}`, "Portal data should be correct");
       assertEquals(cs!.trace_id, concurrentTraces[i], "Trace ID should match");
@@ -883,8 +894,9 @@ Deno.test("Integration Test 15.12: Performance & Concurrent Execution", async ()
     // Create and retrieve many changesets
     for (let i = 0; i < 50; i++) {
       const tid = crypto.randomUUID();
-      const cid = await changesetRegistry.register({
+      const cid = await reviewRegistry.register({
         trace_id: tid,
+        repository: "/test/repo",
         portal: "MemTest",
         branch: `feat/mem-${i}`,
         commit_sha: `mem${i}`,
@@ -892,7 +904,7 @@ Deno.test("Integration Test 15.12: Performance & Concurrent Execution", async ()
         description: `Memory test ${i}`,
         created_by: "test-agent",
       });
-      await changesetRegistry.get(cid);
+      await reviewRegistry.get(cid);
     }
 
     const finalMemory = Deno.memoryUsage();

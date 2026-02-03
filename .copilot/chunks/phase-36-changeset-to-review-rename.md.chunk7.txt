@@ -1,11 +1,12 @@
-1. Read-only agent creates artifact in `Memory/Execution/artifact-<id>.md`
-2. `ChangesetService.createArtifactChangeset()` records it in `changesets` table
-3. User runs `exoctl changeset list` to see pending artifacts
-4. User runs `exoctl changeset approve <id>` to update frontmatter status
-5. Artifact frontmatter updated: `status: pending` → `status: approved`
+```typescript
+class ChangesetService {
+  async listChangesets(filters?: ChangesetFilters): Promise<ChangesetRecord[]>
+  async getChangesetById(id: string): Promise<ChangesetRecord | null>
+  async approveChangeset(id: string, approvedBy: string): Promise<void>
+  async rejectChangeset(id: string, reason: string, rejectedBy: string): Promise<void>
+  async createGitChangeset(requestId: string, branch: string, ...): Promise<string>
+  async createArtifactChangeset(requestId: string, filePath: string, ...): Promise<string>
+}
+```
 
----
-
-## Terminology Comparison
-
-### Before (Current - Confusing)
+**Current Artifact Workflow (Phase 35):**

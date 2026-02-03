@@ -9,7 +9,7 @@ exoctl request --portal portal-exoframe --agent code-analyst "Analyze src/cli/"
 **Changeset shows incorrect behavior:**
 
 ```bash
-exoctl changeset show request-f05f6840
+exoctl review show request-f05f6840
 # Shows:
 #   branch: feat/request-f05f6840-f05f6840 (in ~/ExoFrame)
 #   files_changed: 320 (all workspace files appear as "new")

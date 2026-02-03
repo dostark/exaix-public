@@ -1,17 +1,15 @@
-```sql
-CREATE TABLE changesets (
-  id TEXT PRIMARY KEY,
-  request_id TEXT NOT NULL,
-  trace_id TEXT NOT NULL,
-  type TEXT CHECK(type IN ('git', 'artifact')),
-  status TEXT CHECK(status IN ('pending', 'approved', 'rejected')),
-  file_path TEXT,           -- For artifacts
-  git_branch TEXT,          -- For git changesets
-  created_at TEXT NOT NULL,
-  approved_at TEXT,
-  approved_by TEXT,
-  FOREIGN KEY (request_id) REFERENCES requests(id)
-);
+```bash
+exoctl changeset list              # List pending changesets/artifacts
+exoctl changeset show <id>         # Show details with diff/content
+exoctl changeset approve <id>      # Approve for merge/acceptance
+exoctl changeset reject <id>       # Reject with reason
 ```
 
-**Service Methods:**
+**Implementation Locations:**
+
+- **CLI:** `src/cli/commands/changeset.ts`
+- **Service:** `src/services/changeset_service.ts`
+- **Database:** `changesets` table in SQLite schema
+- **Types:** `ChangesetRecord`, `ChangesetStatus` in `src/types.ts`
+
+**Database Schema:**

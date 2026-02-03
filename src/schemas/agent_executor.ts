@@ -58,7 +58,7 @@ export const ChangesetResultSchema = z.object({
     "Git commit SHA",
   ),
   files_changed: z.array(z.string()).describe("List of modified files"),
-  description: z.string().describe("Changeset description"),
+  description: z.string().describe("Review description"),
   tool_calls: z.number().int().nonnegative().describe(
     "Number of MCP tool calls made",
   ),

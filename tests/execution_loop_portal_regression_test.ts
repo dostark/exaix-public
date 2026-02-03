@@ -3,12 +3,12 @@ import { join } from "@std/path";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import { initTestDbService } from "./helpers/db.ts";
-import { ChangesetRegistry } from "../src/services/changeset_registry.ts";
+import { ReviewRegistry } from "../src/services/review_registry.ts";
 import { EventLogger } from "../src/services/event_logger.ts";
 import { ensureDir } from "@std/fs/ensure-dir";
 import { PlanStatus } from "../src/enums.ts";
 
-Deno.test("[regression] ExecutionLoop: targets portal directory and creates changeset", async () => {
+Deno.test("[regression] ExecutionLoop: targets portal directory and creates review", async () => {
   const rootDir = await Deno.makeTempDir({ prefix: "exec-portal-reg-" });
   const portalDir = join(rootDir, "my-portal");
   await ensureDir(portalDir);
@@ -32,12 +32,12 @@ Deno.test("[regression] ExecutionLoop: targets portal directory and creates chan
     await ensureDir(activeDir);
 
     const logger = new EventLogger({ db, defaultActor: "test" });
-    const changesetRegistry = new ChangesetRegistry(db, logger);
+    const reviewRegistry = new ReviewRegistry(db, logger);
     const loop = new ExecutionLoop({
       config,
       db,
       agentId: "test-agent",
-      changesetRegistry,
+      reviewRegistry,
     });
 
     const traceId = crypto.randomUUID();
@@ -78,9 +78,9 @@ content = "hello from portal"
     assert(existsInPortal, "File should exist in portal directory");
     assert(!existsInRoot, "File should NOT exist in root directory");
 
-    // Verify changeset was registered
-    const changesets = await changesetRegistry.list({ portal: "my-portal" });
-    assertEquals(changesets.length, 1, "Should have registered 1 changeset");
+    // Verify review was registered
+    const changesets = await reviewRegistry.list({ portal: "my-portal" });
+    assertEquals(changesets.length, 1, "Should have registered 1 review");
     assertEquals(changesets[0].portal, "my-portal");
     assertExists(changesets[0].commit_sha, "Changeset should have a commit SHA");
   } finally {

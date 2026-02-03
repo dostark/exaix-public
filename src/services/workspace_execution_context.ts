@@ -31,7 +31,7 @@ export interface WorkspaceExecutionContext {
   /** Allowed file paths for agent access */
   allowedPaths: string[];
 
-  /** Repository for changeset tracking */
+  /** Repository for review tracking */
   changesetRepo: string;
 
   /** Portal alias (if executing in portal) */

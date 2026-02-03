@@ -2,33 +2,33 @@
 agent: claude
 scope: dev
 title: "Phase 35: Portal Workspace Integration & Git Changeset Architecture"
-short_summary: "Redesign agent execution model to work directly in portal workspaces instead of deployed workspace, enabling proper git operations, changesets, and team collaboration on actual source code repositories."
+short_summary: "Redesign agent execution model to work directly in portal workspaces instead of deployed workspace, enabling proper git operations, reviews, and team collaboration on actual source code repositories."
 version: "1.0"
-topics: ["portals", "git", "changesets", "architecture", "workspace", "collaboration", "version-control"]
+topics: ["portals", "git", "reviews", "architecture", "workspace", "collaboration", "version-control"]
 ---
 
-**Goal:** Redesign the agent execution architecture to work directly in portal workspaces (e.g., `~/git/ExoFrame`) instead of the deployed workspace (e.g., `~/ExoFrame`), ensuring git operations, feature branches, and changesets track actual source code changes in the correct repositories.
+**Goal:** Redesign the agent execution architecture to work directly in portal workspaces (e.g., `~/git/ExoFrame`) instead of the deployed workspace (e.g., `~/ExoFrame`), ensuring git operations, feature branches, and reviews track actual source code changes in the correct repositories.
 
 **Status:** [x] IN PROGRESS
 **Timebox:** 4-6 weeks
 **Entry Criteria:** Current architecture documented, portal system functional, agent execution working
-**Exit Criteria:** Agents create branches in portal repos, changesets reflect actual code changes, team collaboration enabled, all tests passing
+**Exit Criteria:** Agents create branches in portal repos, reviews reflect actual code changes, team collaboration enabled, all tests passing
 
 ## Design Decision: Read-Only Agent Artifact Workflow
 
 **Decision Date:** 2026-02-03
 
-**Context:** Read-only agents (e.g., `code-analyst`) produce analysis artifacts that need review/approval workflow similar to code changesets, but storing them in git branches causes repository pollution and conceptual mismatch.
+**Context:** Read-only agents (e.g., `code-analyst`) produce analysis artifacts that need review/approval workflow similar to code reviews, but storing them in git branches causes repository pollution and conceptual mismatch.
 
 **Decision:**
 
 1. **Artifact Storage:** Read-only agent outputs stored in `Memory/Execution/<artifact-id>.md`
 2. **Frontmatter Status:** Artifacts include YAML frontmatter with `status` field (pending/approved/rejected)
-3. **Unified Command:** `exoctl changeset` works for both:
-   - Git changesets (write agents in portal repos)
+3. **Unified Command:** `exoctl review` works for both:
+   - Git reviews (write agents in portal repos)
    - File artifacts (read-only agents in Memory/Execution/)
-4. **Approval Workflow:** `exoctl changeset approve/reject` updates artifact status without git operations
-5. **Future Rename:** Phase 36 will rename `exoctl changeset` → `exoctl review` for semantic clarity
+4. **Approval Workflow:** `exoctl review approve/reject` updates artifact status without git operations
+5. **Phase 36 Completion:** Renamed `exoctl review` → `exoctl review` for semantic clarity (complete)
 
 **Benefits:**
 
@@ -43,7 +43,8 @@ topics: ["portals", "git", "changesets", "architecture", "workspace", "collabora
 - Artifacts written to `~/ExoFrame/Memory/Execution/artifact-<request-id>.md`
 - Frontmatter schema: `status: pending|approved|rejected`, `created`, `agent`, `portal`
 - Database tracks artifact location (file path instead of git branch)
-- `exoctl changeset show` detects type (git diff vs file content) automatically
+- `exoctl review show` detects type (git diff vs file content) automatically
+- **Phase 36 Update:** All commands use `review` terminology (completed 2026-02-03)
 
 ## References
 
@@ -60,7 +61,7 @@ topics: ["portals", "git", "changesets", "architecture", "workspace", "collabora
 ### Current Behavior (Broken)
 
 **Observed Issue:**
-When agents execute requests targeting portals (e.g., `exoctl request --portal portal-exoframe "Analyze CLI structure"`), the system creates feature branches and changesets in the **deployed workspace** (`~/ExoFrame`) instead of the **portal workspace** (`~/git/ExoFrame`).
+When agents execute requests targeting portals (e.g., `exoctl request --portal portal-exoframe "Analyze CLI structure"`), the system creates feature branches and reviews in the **deployed workspace** (`~/ExoFrame`) instead of the **portal workspace** (`~/git/ExoFrame`).
 
 **Example:**
 
@@ -75,7 +76,7 @@ exoctl request --portal portal-exoframe --agent code-analyst "Analyze src/cli/"
 **Changeset shows incorrect behavior:**
 
 ```bash
-exoctl changeset show request-f05f6840
+exoctl review show request-f05f6840
 # Shows:
 #   branch: feat/request-f05f6840-f05f6840 (in ~/ExoFrame)
 #   files_changed: 320 (all workspace files appear as "new")
@@ -135,7 +136,7 @@ exoctl changeset show request-f05f6840
 - [ ] Agents create feature branches in portal workspace (`~/git/ExoFrame/.git/`)
 - [ ] Git commits happen in portal repository, not deployed workspace
 - [ ] Changesets reflect actual code modifications (not all workspace files)
-- [ ] `exoctl changeset show` displays diffs from portal repo
+- [ ] `exoctl review show` displays diffs from portal repo
 - [ ] Multiple portals can be used simultaneously without conflicts
 - [ ] Read-only agents (e.g., `code-analyst`) don't create unnecessary branches
 - [ ] Write agents (e.g., `feature-developer`) modify portal files directly
@@ -234,8 +235,8 @@ const workspaceContext: ExecutionContext = {
 
 - Execute in portal workspace for analysis
 - Create artifacts in `Memory/Execution/` with frontmatter status
-- Tracked via `exoctl changeset` command (unified with git changesets)
-- Approval workflow: `exoctl changeset approve <id>` updates status field
+- Tracked via `exoctl review` command (unified with git reviews)
+- Approval workflow: `exoctl review approve <id>` updates status field
 - No git branch creation (artifacts are files, not code changes)
 
 **Write-Capable Agents** (e.g., `feature-developer`, `senior-coder`):
@@ -302,7 +303,7 @@ export interface ExecutionContext {
   /** Allowed file paths for agent access */
   allowedPaths: string[];
 
-  /** Repository for changeset tracking */
+  /** Repository for review tracking */
   changesetRepo: string;
 
   /** Portal alias (if executing in portal) */
@@ -555,7 +556,7 @@ Task 3.1 completed with full TDD workflow (RED→GREEN→REFACTOR). Added `setRe
 ```typescript
 export class ChangesetRegistry {
   /**
-   * Create changeset in portal repository
+   * Create review in portal repository
    */
   async createChangeset(
     requestId: string,
@@ -565,8 +566,8 @@ export class ChangesetRegistry {
     const branchName = `feat/request-${requestId}-${shortId()}`;
     await this.gitService.createBranch(branchName);
 
-    // Track changeset in portal's git repo
-    const changeset = {
+    // Track review in portal's git repo
+    const review = {
       id: requestId,
       branch: branchName,
       repository: context.gitRepository, // Portal repo path
@@ -574,19 +575,19 @@ export class ChangesetRegistry {
       status: "pending",
     };
 
-    await this.db.saveChangeset(changeset);
-    return changeset;
+    await this.db.saveChangeset(review);
+    return review;
   }
 
   /**
-   * Get diff for changeset from portal repository
+   * Get diff for review from portal repository
    */
   async getDiff(changesetId: string): Promise<string> {
-    const changeset = await this.db.getChangeset(changesetId);
+    const review = await this.db.getChangeset(changesetId);
 
     // Get diff from portal repo, not deployed workspace
     const diff = await SafeSubprocess.run("git", ["diff", "main..HEAD"], {
-      cwd: changeset.repository, // Use portal repo path
+      cwd: review.repository, // Use portal repo path
       captureOutput: true,
     });
 
@@ -611,7 +612,7 @@ export class ChangesetRegistry {
 
 **Files Modified:**
 
-- `src/schemas/changeset.ts` - Added `repository` field to schema
+- `src/schemas/review.ts` - Added `repository` field to schema
 - `src/services/changeset_registry.ts` - Added `createChangeset()` and `getDiff()` methods
 - `tests/helpers/db.ts` - Updated CHANGESETS_TABLE_SQL with repository column
 - `migrations/005_changeset_repository.sql` - New migration for repository column
@@ -621,7 +622,7 @@ export class ChangesetRegistry {
 ```typescript
 export class ChangesetRegistry {
   /**
-   * Create a new changeset with branch creation in specified repository
+   * Create a new review with branch creation in specified repository
    */
   async createChangeset(
     traceId: string,
@@ -641,28 +642,28 @@ export class ChangesetRegistry {
   }
 
   /**
-   * Get diff for a changeset from its repository
+   * Get diff for a review from its repository
    */
   async getDiff(changesetId: string): Promise<string> {
-    const changeset = await this.get(changesetId);
-    if (!changeset) {
+    const review = await this.get(changesetId);
+    if (!review) {
       throw new Error(`Changeset not found: ${changesetId}`);
     }
 
     // Get root commit for diff base
     const rootCmd = new Deno.Command("git", {
       args: ["rev-list", "--max-parents=0", "HEAD"],
-      cwd: changeset.repository,
+      cwd: review.repository,
       stdout: "piped",
     });
 
     const rootResult = await rootCmd.output();
     const rootCommit = new TextDecoder().decode(rootResult.stdout).trim().split("\n")[0];
 
-    // Run git diff from root to HEAD in changeset's repository
+    // Run git diff from root to HEAD in review's repository
     const cmd = new Deno.Command("git", {
       args: ["diff", rootCommit, "HEAD"],
-      cwd: changeset.repository,
+      cwd: review.repository,
       stdout: "piped",
       stderr: "piped",
     });
@@ -682,25 +683,25 @@ export class ChangesetRegistry {
 **Success Criteria:**
 
 - ✅ Changesets created in portal repository (createChangeset stores repository path)
-- ✅ Branch tracking references portal repo (changeset.repository field)
-- ✅ Diff generation uses portal repository (getDiff uses changeset.repository)
-- ✅ Database stores portal repo path (repository column in changesets table)
+- ✅ Branch tracking references portal repo (review.repository field)
+- ✅ Diff generation uses portal repository (getDiff uses review.repository)
+- ✅ Database stores portal repo path (repository column in reviews table)
 - ✅ Changeset list shows portal affiliation (list() filters by portal)
 
 **Test Scenarios:**
 
-- ✅ Unit test: `createChangeset()` stores portal repository path in changeset
-- ✅ Unit test: `createChangeset()` stores workspace repository path for workspace changesets
+- ✅ Unit test: `createChangeset()` stores portal repository path in review
+- ✅ Unit test: `createChangeset()` stores workspace repository path for workspace reviews
 - ✅ Unit test: `createChangeset()` creates branch in specified repository
 - ✅ Integration test: `getDiff()` retrieves diff from portal repository
 - ✅ Integration test: Diff from portal repo is isolated from workspace repo
-- ✅ Integration test: Changeset list correctly shows portal vs workspace changesets
+- ✅ Integration test: Changeset list correctly shows portal vs workspace reviews
 
 **Test File:** `tests/services/changeset_registry_portal_test.ts` - 10 tests passing
 
 **Implementation Notes:**
 
-Task 3.2 completed with full TDD workflow. Updated changeset schema to support null portal (workspace changesets), added repository field for git isolation. The `getDiff()` method dynamically finds the repository's root commit for diff baseline, making it branch-agnostic (works with main/master/etc). Migration 005 adds repository column with index for efficient lookups.
+Task 3.2 completed with full TDD workflow. Updated review schema to support null portal (workspace reviews), added repository field for git isolation. The `getDiff()` method dynamically finds the repository's root commit for diff baseline, making it branch-agnostic (works with main/master/etc). Migration 005 adds repository column with index for efficient lookups.
 
 ### Week 4: Agent Capability Differentiation & Artifact Management
 
@@ -980,25 +981,25 @@ request_id: ${requestId}
 **Changeset Command Integration:**
 
 ```typescript
-// exoctl changeset show <id>
+// exoctl review show <id>
 // Auto-detect type and display accordingly
 
 if (id.startsWith("artifact-")) {
   const artifact = await artifactRegistry.getArtifact(id);
   console.log(artifact.content); // Show markdown content
 } else {
-  const changeset = await changesetRegistry.get(id);
+  const review = await changesetRegistry.get(id);
   const diff = await changesetRegistry.getDiff(id);
   console.log(diff); // Show git diff
 }
 
-// exoctl changeset approve <id>
+// exoctl review approve <id>
 if (id.startsWith("artifact-")) {
   await artifactRegistry.updateStatus(id, "approved");
   console.log("Artifact approved");
 } else {
   await changesetRegistry.approve(id);
-  await gitService.mergeBranch(changeset.branch);
+  await gitService.mergeBranch(review.branch);
   console.log("Changeset merged");
 }
 ```
@@ -1007,10 +1008,10 @@ if (id.startsWith("artifact-")) {
 
 - ✅ Artifacts created in `Memory/Execution/` with frontmatter
 - ✅ Artifact status tracked (pending/approved/rejected)
-- ✅ `exoctl changeset` works for both git changesets and artifacts
-- ✅ Artifact content displayed with `exoctl changeset show`
+- ✅ `exoctl review` works for both git reviews and artifacts
+- ✅ Artifact content displayed with `exoctl review show`
 - ✅ Approval updates frontmatter status field
-- ✅ Database tracks artifacts alongside changesets
+- ✅ Database tracks artifacts alongside reviews
 
 **Test Scenarios:**
 
@@ -1024,16 +1025,16 @@ if (id.startsWith("artifact-")) {
 - ✅ Unit test: Get artifact with content
 - ✅ Unit test: Create artifact without portal (null portal)
 - ✅ Unit test: Memory/Execution directory auto-created
-- Integration test: `exoctl changeset show artifact-123` displays content
-- Integration test: `exoctl changeset approve artifact-123` updates status
-- Integration test: Mixed list shows both git changesets and artifacts
+- Integration test: `exoctl review show artifact-123` displays content
+- Integration test: `exoctl review approve artifact-123` updates status
+- Integration test: Mixed list shows both git reviews and artifacts
 - E2E test: Complete workflow - request → artifact → review → approve
 
 **Test File:** `tests/services/artifact_registry_test.ts` - 10 tests passing
 
 **Implementation Notes:**
 
-Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented ArtifactRegistry service for managing read-only agent analysis outputs. Artifacts are stored as markdown files with YAML frontmatter in `Memory/Execution/`, with metadata tracked in SQLite database. The service provides createArtifact(), updateStatus(), getArtifact(), and listArtifacts() methods. Frontmatter includes status field (pending/approved/rejected) enabling review workflow parallel to git changesets. Database migration 006 adds artifacts table with indexes for common queries. This provides a lightweight, file-based artifact storage system separate from git, avoiding repository pollution while maintaining consistent review workflows.
+Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented ArtifactRegistry service for managing read-only agent analysis outputs. Artifacts are stored as markdown files with YAML frontmatter in `Memory/Execution/`, with metadata tracked in SQLite database. The service provides createArtifact(), updateStatus(), getArtifact(), and listArtifacts() methods. Frontmatter includes status field (pending/approved/rejected) enabling review workflow parallel to git reviews. Database migration 006 adds artifacts table with indexes for common queries. This provides a lightweight, file-based artifact storage system separate from git, avoiding repository pollution while maintaining consistent review workflows.
 
 ### Week 5-6: Testing & Documentation
 
@@ -1057,7 +1058,7 @@ Created comprehensive integration test suite covering portal workspace execution
 
 - ✅ Integration tests for portal execution (5 tests covering execution context creation)
 - ✅ Tests verify branch creation location (git repository validation)
-- ✅ Tests validate changeset accuracy (portal context isolation)
+- ✅ Tests validate review accuracy (portal context isolation)
 - ✅ Tests cover multi-portal scenarios (multi-portal context isolation test)
 - ✅ All tests pass in CI (5/5 tests passing)
 
@@ -1080,8 +1081,8 @@ All agent capability logic (requiresGitTracking, isReadOnlyAgent) is tested in u
 - Integration test: Write agent creates branch in portal repo
 - Integration test: Changeset shows only modified files (not all workspace files)
 - Integration test: Multi-portal concurrent execution isolated
-- E2E test: Complete workflow from request to changeset approval in portal
-- E2E test: Portal execution + changeset review + merge workflow
+- E2E test: Complete workflow from request to review approval in portal
+- E2E test: Portal execution + review review + merge workflow
 
 #### Task 5.2: Documentation Updates ✅
 
@@ -1094,9 +1095,9 @@ All agent capability logic (requiresGitTracking, isReadOnlyAgent) is tested in u
 
 **User Guide Additions (Section 5.8):**
 
-- **How Portal Execution Works**: Explained execution environment, git operations, file access, and changeset tracking
+- **How Portal Execution Works**: Explained execution environment, git operations, file access, and review tracking
 - **Code Analysis with Portal**: Complete workflow for read-only agents producing artifacts
-- **Feature Development with Portal**: Complete workflow for write-capable agents creating git changesets
+- **Feature Development with Portal**: Complete workflow for write-capable agents creating git reviews
 - **Portal Git Integration**: Automatic behaviors and manual steps
 - **Troubleshooting Portal Issues**: Common problems and solutions
 - **Migration from Workspace Execution**: Backward compatibility guidance
@@ -1146,7 +1147,7 @@ exoctl portal add ~/git/MyProject my-project
 # Submit analysis request
 exoctl request --portal my-project "Analyze src/ architecture"
 
-# Review results (no changeset for read-only agents)
+# Review results (no review for read-only agents)
 exoctl plan list --recent 1
 ```
 ````
@@ -1157,14 +1158,14 @@ exoctl plan list --recent 1
 # Submit feature request
 exoctl request --portal my-project --agent feature-developer "Add user authentication"
 
-# Review changeset in portal repository
+# Review review in portal repository
 cd ~/git/MyProject
 git log --oneline  # Shows feature branch
 git diff main      # Shows actual code changes
 
 # Approve and execute
-exoctl changeset list
-exoctl changeset approve <changeset-id>
+exoctl review list
+exoctl review approve <review-id>
 ```
 
 ### Portal Git Integration
@@ -1178,8 +1179,8 @@ exoctl changeset approve <changeset-id>
 
 **Manual Steps:**
 
-- Review changeset with `exoctl changeset show <id>`
-- Approve changes with `exoctl changeset approve <id>`
+- Review review with `exoctl review show <id>`
+- Approve changes with `exoctl review approve <id>`
 - Merge feature branch in portal repo after execution
 
 **Success Criteria:**
@@ -1225,7 +1226,7 @@ ExoFrame uses an execution context model to determine where agents run and where
 **Read-Only Agents** (analysis, review, quality):
 - Execute in portal workspace for context
 - No feature branch creation
-- No changeset tracking
+- No review tracking
 - Results stored in Memory/
 
 **Write-Capable Agents** (development, refactoring):
@@ -1358,7 +1359,7 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
    exoctl request --portal my-project "Analyze code"
    ```
 
-3. Review changesets in correct repositories:
+3. Review reviews in correct repositories:
 
    ```bash
    cd ~/git/MyProject  # Portal repo
@@ -1370,7 +1371,7 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 **None** - The system remains backward compatible:
 
 - Requests without `--portal` continue to work in deployed workspace
-- Existing changesets remain valid
+- Existing reviews remain valid
 - No data migration required
 
 ---
@@ -1415,22 +1416,22 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 
 ## Future Enhancements
 
-### Phase 36: Command Renaming (`exoctl changeset` → `exoctl review`)
+### Phase 36: Command Renaming (`exoctl review` → `exoctl review`)
 
-**Goal:** Rename `exoctl changeset` to `exoctl review` for semantic clarity
+**Goal:** Rename `exoctl review` to `exoctl review` for semantic clarity
 
 **Rationale:**
 
 - "Changeset" implies git changes only
-- "Review" covers both code changesets AND analysis artifacts
-- More intuitive for users ("review the analysis" vs "show changeset")
+- "Review" covers both code reviews AND analysis artifacts
+- More intuitive for users ("review the analysis" vs "show review")
 
 **Migration Plan:**
 
-1. Add `exoctl review` as alias to `exoctl changeset`
-2. Deprecation warning on `exoctl changeset` usage
+1. Add `exoctl review` as alias to `exoctl review`
+2. Deprecation warning on `exoctl review` usage
 3. Update all documentation to use `exoctl review`
-4. Remove `exoctl changeset` in next major version
+4. Remove `exoctl review` in next major version
 
 **Commands:**
 
@@ -1483,7 +1484,7 @@ exoctl review list --type artifact    # Filter by type
 **Before (Broken):**
 
 ```yaml
-changeset:
+review:
   id: request-f05f6840
   branch: feat/request-f05f6840-f05f6840
   repository: /home/user/ExoFrame/.git
@@ -1498,7 +1499,7 @@ changeset:
 **After (Correct):**
 
 ```yaml
-changeset:
+review:
   id: request-f05f6840
   branch: feat/request-f05f6840-f05f6840
   repository: /home/user/git/ExoFrame/.git
@@ -1543,7 +1544,7 @@ changeset:
 ### Git Integration
 
 - [ ] Add `setRepository()` to GitService
-- [ ] Update changeset registry for portals
+- [ ] Update review registry for portals
 - [ ] Add portal repo path tracking
 - [ ] Update diff generation for portals
 

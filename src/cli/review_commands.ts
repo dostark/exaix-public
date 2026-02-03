@@ -160,7 +160,7 @@ export class ReviewCommands extends BaseCommand {
     const metadata = await enrichWithRequest(
       this.requestCommands,
       basicMetadata,
-      `changeset ${basicMetadata.request_id}`,
+      `review ${basicMetadata.request_id}`,
     );
 
     // Try to find associated plan using trace_id
@@ -175,7 +175,7 @@ export class ReviewCommands extends BaseCommand {
         }
       } catch (error) {
         // If plan can't be loaded, continue without plan info
-        console.warn(`Warning: Could not load plan info for changeset ${metadata.request_id}:`, error);
+        console.warn(`Warning: Could not load plan info for review ${metadata.request_id}:`, error);
       }
     }
 
@@ -229,7 +229,7 @@ export class ReviewCommands extends BaseCommand {
   /**
    * List all pending reviews (agent-created branches)
    * @param statusFilter Optional filter: 'pending', 'approved', 'rejected'
-   * @returns List of changeset metadata
+   * @returns List of review metadata
    */
   async list(statusFilter?: string): Promise<ReviewMetadata[]> {
     const reviews: ReviewMetadata[] = [];
@@ -326,7 +326,7 @@ export class ReviewCommands extends BaseCommand {
   }
 
   /**
-   * Show detailed changeset information including diff
+   * Show detailed review information including diff
    * @param branchName Branch name or request_id
    * @returns Review details
    */
@@ -429,7 +429,7 @@ export class ReviewCommands extends BaseCommand {
   }
 
   /**
-   * Approve changeset - merge branch to main
+   * Approve review - merge branch to main
    * @param branchName Branch name or request_id
    */
   async approve(branchName: string): Promise<void> {
@@ -444,8 +444,8 @@ export class ReviewCommands extends BaseCommand {
         throw new Error(CommandUtils.formatValidationErrors(validation));
       }
 
-      const changeset = await this.show(branchName);
-      const repoPath = await this.findRepoForBranch(changeset.branch);
+      const review = await this.show(branchName);
+      const repoPath = await this.findRepoForBranch(review.branch);
 
       // Get the default branch for this repository
       const defaultBranch = await this.getDefaultBranch(repoPath);
@@ -472,7 +472,7 @@ export class ReviewCommands extends BaseCommand {
         config: this.config,
         db: this.db,
         repoPath,
-        traceId: changeset.trace_id,
+        traceId: review.trace_id,
         agentId: await this.getUserIdentity(),
       });
 
@@ -480,11 +480,9 @@ export class ReviewCommands extends BaseCommand {
       await portalGitService.runGitCommand([
         "merge",
         "--no-ff",
-        changeset.branch,
+        review.branch,
         "-m",
-        `Merge ${changeset.request_id}: ${
-          changeset.commits[0]?.message || "agent changes"
-        }\n\nTrace-Id: ${changeset.trace_id}`,
+        `Merge ${review.request_id}: ${review.commits[0]?.message || "agent changes"}\n\nTrace-Id: ${review.trace_id}`,
       ]);
 
       // Get merge commit SHA
@@ -494,14 +492,14 @@ export class ReviewCommands extends BaseCommand {
       // Log approval with user identity
       const _userIdentity = await this.getUserIdentity();
       const actionLogger = await this.getActionLogger();
-      actionLogger.info("review.approved", changeset.request_id, {
+      actionLogger.info("review.approved", review.request_id, {
         commit_sha: commitSha,
-        branch: changeset.branch,
-        files_changed: changeset.files_changed,
+        branch: review.branch,
+        files_changed: review.files_changed,
         approved_at: new Date().toISOString(),
         via: "cli",
         command: this.getCommandLineString(),
-      }, changeset.trace_id);
+      }, review.trace_id);
     } catch (error) {
       await DefaultErrorStrategy.handle({
         commandName: "ReviewCommands.approve",
@@ -512,7 +510,7 @@ export class ReviewCommands extends BaseCommand {
   }
 
   /**
-   * Reject changeset - delete branch without merging
+   * Reject review - delete branch without merging
    * @param branchName Branch name or request_id
    * @param reason Rejection reason
    */
@@ -531,31 +529,31 @@ export class ReviewCommands extends BaseCommand {
         );
       }
 
-      const changeset = await this.show(branchName);
-      const repoPath = await this.findRepoForBranch(changeset.branch);
+      const review = await this.show(branchName);
+      const repoPath = await this.findRepoForBranch(review.branch);
 
       // Create GitService for the portal repository
       const portalGitService = new GitService({
         config: this.config,
         db: this.db,
         repoPath,
-        traceId: changeset.trace_id,
+        traceId: review.trace_id,
         agentId: await this.getUserIdentity(),
       });
 
-      await this.deleteBranchWithWorktreeHandling(portalGitService, changeset.branch);
+      await this.deleteBranchWithWorktreeHandling(portalGitService, review.branch);
 
       // Log rejection with user identity
       const _userIdentity = await this.getUserIdentity();
       const actionLogger = await this.getActionLogger();
-      actionLogger.info("review.rejected", changeset.request_id, {
-        branch: changeset.branch,
+      actionLogger.info("review.rejected", review.request_id, {
+        branch: review.branch,
         rejection_reason: reason,
-        files_changed: changeset.files_changed,
+        files_changed: review.files_changed,
         rejected_at: new Date().toISOString(),
         via: "cli",
         command: this.getCommandLineString(),
-      }, changeset.trace_id);
+      }, review.trace_id);
     } catch (error) {
       await DefaultErrorStrategy.handle({
         commandName: "ReviewCommands.reject",

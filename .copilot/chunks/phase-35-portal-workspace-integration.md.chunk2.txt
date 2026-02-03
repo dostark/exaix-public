@@ -1,9 +1,9 @@
 1. **Artifact Storage:** Read-only agent outputs stored in `Memory/Execution/<artifact-id>.md`
 2. **Frontmatter Status:** Artifacts include YAML frontmatter with `status` field (pending/approved/rejected)
-3. **Unified Command:** `exoctl changeset` works for both:
-   - Git changesets (write agents in portal repos)
+3. **Unified Command:** `exoctl review` works for both:
+   - Git reviews (write agents in portal repos)
    - File artifacts (read-only agents in Memory/Execution/)
-4. **Approval Workflow:** `exoctl changeset approve/reject` updates artifact status without git operations
-5. **Future Rename:** Phase 36 will rename `exoctl changeset` → `exoctl review` for semantic clarity
+4. **Approval Workflow:** `exoctl review approve/reject` updates artifact status without git operations
+5. **Phase 36 Completion:** Renamed `exoctl review` → `exoctl review` for semantic clarity (complete)
 
 **Benefits:**
