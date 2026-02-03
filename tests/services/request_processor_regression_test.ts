@@ -1,8 +1,11 @@
 import { RequestProcessor } from "../../src/services/request_processor.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { ConfigService } from "../../src/config/service.ts";
-import { join } from "@std/path";
+import { dirname, fromFileUrl, join } from "@std/path";
 import { ConsoleOutput, initializeGlobalLogger, resetGlobalLogger } from "../../src/services/structured_logger.ts";
+
+const TEST_FILE_PATH = fromFileUrl(import.meta.url);
+const REPO_ROOT = dirname(dirname(dirname(TEST_FILE_PATH)));
 
 /**
  * Regression test for: "Request processing fails with test-provider selection"
@@ -34,7 +37,7 @@ Deno.test("[regression] RequestProcessor uses ProviderSelector when no testProvi
     await Deno.mkdir(migrationsPath, { recursive: true });
 
     // Copy migrations
-    const repoMigrations = join(Deno.cwd(), "migrations");
+    const repoMigrations = join(REPO_ROOT, "migrations");
     for await (const entry of Deno.readDir(repoMigrations)) {
       if (entry.isFile && entry.name.endsWith(".sql")) {
         await Deno.copyFile(join(repoMigrations, entry.name), join(migrationsPath, entry.name));
@@ -42,7 +45,7 @@ Deno.test("[regression] RequestProcessor uses ProviderSelector when no testProvi
     }
 
     // --- Ensure DB schema is initialized (run setup_db.ts) ---
-    const setupScript = join(Deno.cwd(), "scripts", "setup_db.ts");
+    const setupScript = join(REPO_ROOT, "scripts", "setup_db.ts");
     const setupCmd = new Deno.Command("deno", {
       args: ["run", "--allow-read", "--allow-write", "--allow-env", "--allow-ffi", setupScript],
       cwd: tmpDir,

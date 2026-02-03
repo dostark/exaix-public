@@ -1,11 +1,36 @@
 import { assert, assertEquals } from "@std/assert";
-import { join } from "@std/path";
+import { dirname, fromFileUrl, join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { inject } from "../../scripts/inject_agent_context.ts";
 
+const TEST_FILE_PATH = fromFileUrl(import.meta.url);
+const REPO_ROOT = dirname(dirname(dirname(TEST_FILE_PATH)));
+
+async function withRepoRoot<T>(fn: () => Promise<T> | T): Promise<T> {
+  let previousCwd: string | undefined;
+  try {
+    previousCwd = Deno.cwd();
+  } catch {
+    previousCwd = undefined;
+  }
+
+  Deno.chdir(REPO_ROOT);
+  try {
+    return await fn();
+  } finally {
+    if (previousCwd) {
+      try {
+        Deno.chdir(previousCwd);
+      } catch {
+        // Ignore: previous cwd may no longer exist.
+      }
+    }
+  }
+}
+
 // Helper to create temporary markdown files under .copilot/providers
 async function writeAgentMarkdown(filename: string, content: string) {
-  const dir = join(".copilot", "providers");
+  const dir = join(REPO_ROOT, ".copilot", "providers");
   await ensureDir(dir);
   const path = join(dir, filename);
   await Deno.writeTextFile(path, content);
@@ -13,7 +38,7 @@ async function writeAgentMarkdown(filename: string, content: string) {
 }
 
 Deno.test("inject returns found=false when no matching agent docs", async () => {
-  const res = await inject("nonexistent-agent", "something");
+  const res = await withRepoRoot(() => inject("nonexistent-agent", "something"));
   assertEquals(res.found, false);
 });
 
@@ -33,7 +58,7 @@ This is the second paragraph.`;
   const path = await writeAgentMarkdown(filename, md);
 
   try {
-    const res = await inject("copilot", unique);
+    const res = await withRepoRoot(() => inject("copilot", unique));
     assertEquals(res.found, true);
     assert(res.path?.endsWith(filename));
     assertEquals(res.title, "Test Agent");
@@ -68,7 +93,7 @@ Contains the word foobar and also foobar again. Foobar appears multiple times.`;
   const p2 = await writeAgentMarkdown(f2, md2);
 
   try {
-    const res = await inject("copilot", "foobar again");
+    const res = await withRepoRoot(() => inject("copilot", "foobar again"));
     assertEquals(res.found, true);
     // should pick the higher scoring doc (md2)
     assert(res.path?.endsWith(f2));
@@ -82,7 +107,8 @@ Contains the word foobar and also foobar again. Foobar appears multiple times.`;
 Deno.test("script exits with code 2 and prints usage when no query provided", async () => {
   // Run as a subprocess without --query to trigger the usage exit
   const cmd = new Deno.Command("deno", {
-    args: ["run", "--quiet", "--allow-read", "scripts/inject_agent_context.ts"],
+    args: ["run", "--quiet", "--allow-read", join(REPO_ROOT, "scripts/inject_agent_context.ts")],
+    cwd: REPO_ROOT,
     stdout: "piped",
     stderr: "piped",
   });
@@ -91,8 +117,8 @@ Deno.test("script exits with code 2 and prints usage when no query provided", as
   const errStr = new TextDecoder().decode(stderr);
 
   // deno run exits with code 2 when usage is missing
-  assert(code === 2);
-  assert(errStr.includes("Usage: --query <text> --agent <agent>"));
+  assert(code === 2, `Expected exit code 2, got ${code}. stderr: ${errStr}`);
+  assert(errStr.includes("Usage: --query <text> --agent <agent>"), `Expected usage message in stderr, got: ${errStr}`);
 });
 
 Deno.test("main prints found=false JSON when no doc matches", async () => {
@@ -101,12 +127,13 @@ Deno.test("main prints found=false JSON when no doc matches", async () => {
       "run",
       "--quiet",
       "--allow-read",
-      "scripts/inject_agent_context.ts",
+      join(REPO_ROOT, "scripts/inject_agent_context.ts"),
       "--query",
       "nope",
       "--agent",
       "nonexistent-agent",
     ],
+    cwd: REPO_ROOT,
     stdout: "piped",
     stderr: "piped",
   });
@@ -129,7 +156,7 @@ This doc has no title or short summary but has a paragraph.`;
   const path = await writeAgentMarkdown(filename, md);
 
   try {
-    const res = await inject("copilot", "paragraph");
+    const res = await withRepoRoot(() => inject("copilot", "paragraph"));
     assertEquals(res.found, true);
     assertEquals(res.title, "");
     assertEquals(res.short_summary, "");

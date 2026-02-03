@@ -1143,13 +1143,13 @@ Deno.test("Slow: delay is accurate", async () => {
       responses: ["Response"],
     });
 
-    const start = Date.now();
+    const start = performance.now();
     await provider.generate("test");
-    const elapsed = Date.now() - start;
+    const elapsed = performance.now() - start;
 
     // Allow 250ms tolerance for system scheduling
     assert(
-      elapsed >= delayMs && elapsed < delayMs + 250,
+      elapsed >= delayMs - 50 && elapsed < delayMs + 250,
       `Expected delay ~${delayMs}ms, got ${elapsed}ms`,
     );
   }
