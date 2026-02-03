@@ -6,7 +6,7 @@
 import { join } from "@std/path";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { GitService } from "../services/git_service.ts";
-import { ChangesetStatus } from "../enums.ts";
+import { ReviewStatus } from "../enums.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
 import { ValidationChain } from "./validation/validation_chain.ts";
@@ -294,10 +294,10 @@ export class ReviewCommands extends BaseCommand {
         // Check if branch has been merged or rejected via activity log
         const activities = await this.db.getActivitiesByTraceSafe(trace_id);
         const status = activities.some((a: { action_type: string }) => a.action_type === "review.approved")
-          ? ChangesetStatus.APPROVED
+          ? ReviewStatus.APPROVED
           : activities.some((a: { action_type: string }) => a.action_type === "review.rejected")
-          ? ChangesetStatus.REJECTED
-          : ChangesetStatus.PENDING;
+          ? ReviewStatus.REJECTED
+          : ReviewStatus.PENDING;
 
         if (statusFilter && status !== statusFilter) continue;
 

@@ -263,9 +263,9 @@ export enum PlanStatus {
 }
 
 /**
- * Status for changesets.
+ * Status for reviews (formerly changesets).
  */
-export enum ChangesetStatus {
+export enum ReviewStatus {
   /** Created by agent, awaiting review */
   PENDING = "pending",
   /** Approved and merged */
@@ -273,6 +273,9 @@ export enum ChangesetStatus {
   /** Rejected */
   REJECTED = "rejected",
 }
+
+// Deprecated: Use ReviewStatus instead
+export const ChangesetStatus = ReviewStatus;
 
 /**
  * Status for memory bank entries (learnings, proposals).
