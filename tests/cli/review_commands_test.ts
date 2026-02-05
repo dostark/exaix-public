@@ -19,6 +19,7 @@ import { join } from "@std/path";
 import { ReviewCommands } from "../../src/cli/review_commands.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { GitService } from "../../src/services/git_service.ts";
+import { ArtifactRegistry } from "../../src/services/artifact_registry.ts";
 import { createCliTestContext, initGitRepo, runGitCommand } from "./helpers/test_setup.ts";
 import type { Config } from "../../src/config/schema.ts";
 
@@ -153,6 +154,134 @@ describe("ReviewCommands", () => {
         await Deno.remove(portalDir, { recursive: true });
       }
     });
+
+    it("should include artifact-backed reviews by default", async () => {
+      const artifactRegistry = new ArtifactRegistry(db, config.system.root);
+      const artifactId = await artifactRegistry.createArtifact(
+        "request-artifact-001",
+        "code-analyst",
+        "# Artifact body\n\nHello from artifact",
+      );
+
+      const reviews = await reviewCommands.list();
+      assertEquals(reviews.length, 1);
+      assertEquals(reviews[0].type, "artifact");
+      assertEquals(reviews[0].branch, artifactId);
+      assertEquals(reviews[0].request_id, "request-artifact-001");
+      assertEquals(reviews[0].status, MemoryStatus.PENDING);
+    });
+
+    it("should support type filtering (code vs artifact)", async () => {
+      // Create a code review (feat/* branch)
+      await createFeatureBranch(tempDir, "request-ty-001", "ty-001");
+
+      // Create an artifact review
+      const artifactRegistry = new ArtifactRegistry(db, config.system.root);
+      await artifactRegistry.createArtifact(
+        "request-ty-002",
+        "code-analyst",
+        "# Artifact\n\nOnly artifact",
+      );
+
+      const artifactsOnly = await reviewCommands.list(undefined, "artifact");
+      assertEquals(artifactsOnly.length, 1);
+      assertEquals(artifactsOnly[0].type, "artifact");
+
+      const codeOnly = await reviewCommands.list(undefined, "code");
+      assertEquals(codeOnly.length, 1);
+      assertEquals(codeOnly[0].type, "code");
+      assertStringIncludes(codeOnly[0].branch, "feat/request-ty-001-");
+    });
+
+    it("should merge and sort code + artifacts by created_at", async () => {
+      const artifactRegistry = new ArtifactRegistry(db, config.system.root);
+      await artifactRegistry.createArtifact(
+        "request-mixed001",
+        "code-analyst",
+        "# Early artifact\n\nFirst",
+      );
+
+      // Ensure git commit timestamp is later (git timestamps are second precision)
+      await delay(1500);
+      await createFeatureBranch(tempDir, "request-mixed002", "mixed-002");
+
+      const reviews = await reviewCommands.list();
+      assertEquals(reviews.length, 2);
+
+      // Most recent entry first (the git review created after the delay)
+      assertEquals(reviews[0].type, "code");
+      assertEquals(reviews[0].request_id, "request-mixed002");
+      assertEquals(reviews[1].type, "artifact");
+      assertEquals(reviews[1].request_id, "request-mixed001");
+    });
+
+    it("should filter by status across both code reviews and artifacts", async () => {
+      // Create a code review (pending by default)
+      await createFeatureBranch(tempDir, "request-901", "st-001");
+
+      // Create an artifact (pending by default)
+      const artifactRegistry = new ArtifactRegistry(db, config.system.root);
+      const artifactId = await artifactRegistry.createArtifact(
+        "request-st-002",
+        "code-analyst",
+        "# Pending Artifact\n\nPending artifact",
+      );
+
+      const pending = await reviewCommands.list(MemoryStatus.PENDING, "all");
+      assertEquals(pending.length, 2);
+      assertEquals(pending.some((r) => r.type === "code"), true);
+      assertEquals(pending.some((r) => r.type === "artifact"), true);
+
+      // Approve both
+      await reviewCommands.approve("request-901");
+      await db.waitForFlush();
+      await reviewCommands.approve(artifactId);
+
+      const approved = await reviewCommands.list(MemoryStatus.APPROVED, "all");
+      assertEquals(approved.length, 2);
+      assertEquals(approved.every((r) => r.status === MemoryStatus.APPROVED), true);
+
+      const rejected = await reviewCommands.list(MemoryStatus.REJECTED, "all");
+      assertEquals(rejected.length, 0);
+    });
+
+    it("should sort merged list by created_at descending across types", async () => {
+      // Create a code review first
+      await createFeatureBranch(tempDir, "request-902", "sort-001");
+
+      // Ensure artifact has a later timestamp
+      await delay(1100);
+      const artifactRegistry = new ArtifactRegistry(db, config.system.root);
+      await artifactRegistry.createArtifact(
+        "request-sort-002",
+        "code-analyst",
+        "# Newer Artifact\n\nNewer artifact",
+      );
+
+      const all = await reviewCommands.list(undefined, "all");
+      assertEquals(all.length, 2);
+      assertEquals(all[0].request_id, "request-sort-002");
+      assertEquals(all[0].type, "artifact");
+      assertEquals(all[1].request_id, "request-902");
+      assertEquals(all[1].type, "code");
+    });
+
+    it("artifact list entries should expose file_path", async () => {
+      const artifactRegistry = new ArtifactRegistry(db, config.system.root);
+      const artifactId = await artifactRegistry.createArtifact(
+        "request-filepath-001",
+        "code-analyst",
+        "# Artifact\n\nFile path test",
+      );
+
+      const all = await reviewCommands.list(undefined, "artifact");
+      const entry = all.find((r) => r.branch === artifactId);
+      assertExists(entry);
+      if (!entry) throw new Error("Artifact entry not found");
+      assertEquals(entry.type, "artifact");
+      assertExists(entry.file_path);
+      assertStringIncludes(entry.file_path!, "Memory/Execution/");
+    });
   });
 
   describe("show", () => {
@@ -201,6 +330,22 @@ describe("ReviewCommands", () => {
       const details = await reviewCommands.show("request-008");
       assertStringIncludes(details.diff, "diff --git");
       assertStringIncludes(details.diff, "feature content");
+    });
+
+    it("should show artifact content for artifact IDs", async () => {
+      const artifactRegistry = new ArtifactRegistry(db, config.system.root);
+      const artifactId = await artifactRegistry.createArtifact(
+        "request-artifact-002",
+        "code-analyst",
+        "# Artifact Title\n\nArtifact body content",
+      );
+
+      const details = await reviewCommands.show(artifactId);
+      assertEquals(details.type, "artifact");
+      assertEquals(details.branch, artifactId);
+      assertEquals(details.request_id, "request-artifact-002");
+      assertStringIncludes(details.diff, "Artifact body content");
+      assertEquals(details.commits.length, 0);
     });
   });
 
@@ -255,6 +400,22 @@ describe("ReviewCommands", () => {
       assertExists(payload.commit_sha);
       // User identity is now in actor field, not approved_by
       assertExists(approval.actor);
+    });
+
+    it("should mark artifact as approved (no git)", async () => {
+      const artifactRegistry = new ArtifactRegistry(db, config.system.root);
+      const artifactId = await artifactRegistry.createArtifact(
+        "request-artifact-003",
+        "code-analyst",
+        "# Approve Me\n\nThis is an artifact",
+      );
+
+      await reviewCommands.approve(artifactId);
+
+      const updated = await artifactRegistry.getArtifact(artifactId);
+      assertEquals(updated.status, "approved");
+      const fileContent = await Deno.readTextFile(join(config.system.root, updated.file_path));
+      assertStringIncludes(fileContent, "status: approved");
     });
   });
 
@@ -355,6 +516,23 @@ describe("ReviewCommands", () => {
       // Verify branch was deleted
       const branches = await runGitCommand(tempDir, ["branch", "--list", "feat/*"]);
       assertEquals(branches.includes("feat/request-018-def-111-ghi"), false);
+    });
+
+    it("should mark artifact as rejected with reason (no git)", async () => {
+      const artifactRegistry = new ArtifactRegistry(db, config.system.root);
+      const artifactId = await artifactRegistry.createArtifact(
+        "request-artifact-004",
+        "code-analyst",
+        "# Reject Me\n\nThis is an artifact",
+      );
+
+      await reviewCommands.reject(artifactId, "Not useful");
+
+      const updated = await artifactRegistry.getArtifact(artifactId);
+      assertEquals(updated.status, "rejected");
+      assertEquals(updated.rejection_reason, "Not useful");
+      const fileContent = await Deno.readTextFile(join(config.system.root, updated.file_path));
+      assertStringIncludes(fileContent, "status: rejected");
     });
   });
 

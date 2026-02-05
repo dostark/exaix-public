@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertExists } from "@std/assert";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { FlowStepType, MemoryOperation, MemorySource, PortalOperation } from "../src/enums.ts";
 import { join } from "@std/path";
 import { getDefaultPaths } from "../src/config/paths.ts";
@@ -162,8 +162,12 @@ agent_id: test-agent
 
 # Git Integration Test
 
-## Actions
-1. Write a test file
+\n\`\`\`toml
+tool = "write_file"
+[params]
+path = "git-test.txt"
+content = "hello from git integration test"
+\`\`\`\n
 `;
 
     const planPath = join(paths.activeDir, "git-commit-test.md");
@@ -373,8 +377,12 @@ agent_id: test-agent
 
 # Logging Test Plan
 
-## Actions
-1. Perform logged operations
+\n\`\`\`toml
+tool = "write_file"
+[params]
+path = "logging-test.txt"
+content = "activity journal logging test"
+\`\`\`\n
 `;
 
     const planPath = join(getWorkspaceActiveDir(tempDir), "logging-test.md");
@@ -443,6 +451,82 @@ agent_id: senior-coder
     // If parsing failed, this would have thrown
     assertEquals(result.traceId, "test-trace-parse");
     assertExists(result);
+  } finally {
+    await cleanup();
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+/**
+ * Regression test for deployed behavior where analysis agents (e.g. code-analyst)
+ * incorrectly triggered git branch creation and diffs instead of producing execution artifacts.
+ *
+ * Root cause: structured plans were auto-executed via PlanExecutor without checking agent capabilities.
+ * Fix: ExecutionLoop skips structured-plan execution for read-only agents.
+ */
+Deno.test("[regression] ExecutionLoop: skips structured execution for read-only agents", async () => {
+  const tempDir = await Deno.makeTempDir({ prefix: "exec-test-readonly-" });
+  const { db, cleanup } = await initTestDbService();
+  const traceId = crypto.randomUUID();
+
+  try {
+    const config = createMockConfig(tempDir);
+    const paths = getTestPaths(tempDir);
+    await Deno.mkdir(paths.activeDir, { recursive: true });
+
+    // Provide a read-only blueprint so ExecutionLoop can detect capability mode.
+    const blueprintsDir = join(tempDir, "Blueprints", "Agents");
+    await ensureDir(blueprintsDir);
+    await Deno.writeTextFile(
+      join(blueprintsDir, "code-analyst.md"),
+      `---\nagent_id: "code-analyst"\nname: "Code Analyst"\nmodel: "mock:test"\ncapabilities: ["read_file", "list_directory", "grep_search"]\ncreated: "2026-02-04T00:00:00Z"\ncreated_by: "test"\nversion: "1.0.0"\n---\n\n# Code Analyst\n`,
+    );
+
+    // Create a structured plan with steps (would normally trigger PlanExecutor)
+    const planContent =
+      `---\ntrace_id: "${traceId}"\nrequest_id: readonly-structured\nstatus: active\nagent_id: code-analyst\n---\n\n# Read-only Structured Plan\n\n## Execution Steps\n\n## Step 1: Analyze code\n\nRead files and produce an analysis report.\n`;
+
+    const planPath = join(paths.activeDir, "readonly-structured.md");
+    await Deno.writeTextFile(planPath, planContent);
+
+    // No llmProvider passed; this should still succeed for read-only agents.
+    const loop = new ExecutionLoop({ config, db, agentId: "daemon" });
+    const result = await loop.processTask(planPath);
+
+    assertEquals(result.success, true);
+    assertEquals(result.traceId, traceId);
+
+    // Should not initialize a git repository or create feature branches.
+    const gitDirExists = await Deno.stat(join(tempDir, ".git")).then(() => true).catch(() => false);
+    assertEquals(gitDirExists, false, ".git should not be created for read-only structured plans");
+
+    // Plan should be archived after success
+    const archivedPlan = join(paths.archiveDir, "readonly-structured.md");
+    const archivedExists = await Deno.stat(archivedPlan).then(() => true).catch(() => false);
+    assertEquals(archivedExists, true, "Plan should be archived");
+
+    // Execution artifacts should include plan.md for trace inspection
+    const planArtifactPath = join(paths.memoryExecution, traceId, "plan.md");
+    const planArtifactExists = await Deno.stat(planArtifactPath).then(() => true).catch(() => false);
+    assertEquals(planArtifactExists, true, "plan.md artifact should exist under Memory/Execution/<traceId>/");
+
+    // Read-only executions should also produce a canonical review artifact (artifact-*.md)
+    const artifacts = await db.preparedAll<
+      { id: string; status: string; agent: string; portal: string | null; request_id: string; file_path: string }
+    >(
+      "SELECT id, status, agent, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
+      ["readonly-structured"],
+    );
+    assertEquals(artifacts.length, 1, "Exactly one artifact should be created for a read-only execution");
+    assertStringIncludes(artifacts[0].id, "artifact-", "Artifact ID should have artifact- prefix");
+    assertEquals(artifacts[0].status, "pending");
+    assertEquals(artifacts[0].agent, "code-analyst");
+    assertEquals(artifacts[0].portal, null);
+
+    const artifactFileExists = await Deno.stat(join(tempDir, artifacts[0].file_path)).then(() => true).catch(() =>
+      false
+    );
+    assertEquals(artifactFileExists, true, "Artifact file should exist under Memory/Execution/");
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });
@@ -665,10 +749,10 @@ The system should still execute successfully using fallback behavior.
 
     assertEquals(result.success, true, "Should succeed even without actions");
 
-    // Should create test file as fallback
+    // No-op plans must not mutate repository state
     const testFile = join(tempDir, "test-execution.txt");
     const testFileExists = await Deno.stat(testFile).then(() => true).catch(() => false);
-    assert(testFileExists, "Should create test file when no actions present");
+    assertEquals(testFileExists, false, "Should not create dummy file when no actions present");
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });
@@ -819,6 +903,14 @@ Deno.test("ExecutionLoop: handles commit with no changes gracefully", async () =
       cwd: tempDir,
     }).output();
 
+    const headBefore = await new Deno.Command(PortalOperation.GIT, {
+      args: ["rev-parse", "HEAD"],
+      cwd: tempDir,
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    const shaBefore = new TextDecoder().decode(headBefore.stdout).trim();
+
     // Create plan that makes no actual file changes
     const planContent = `---
 trace_id: "test-trace-nochanges"
@@ -829,29 +921,38 @@ agent_id: test-agent
 
 # No Changes Plan
 
-This plan has no action blocks, and the test-execution.txt file will be identical.
+This plan has no action blocks.
 `;
 
     const planPath = join(systemActiveDir, "nochanges-test.md");
     await Deno.writeTextFile(planPath, planContent);
-
-    // Pre-create the test-execution.txt file that the loop would create
-    const testFile = join(tempDir, "test-execution.txt");
-    await Deno.writeTextFile(testFile, "existing content");
-    await new Deno.Command(PortalOperation.GIT, {
-      args: [MemoryOperation.ADD, "."],
-      cwd: tempDir,
-    }).output();
-    await new Deno.Command(PortalOperation.GIT, {
-      args: ["commit", "-m", "Add test file"],
-      cwd: tempDir,
-    }).output();
 
     const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.processTask(planPath);
 
     // Should succeed even with no changes to commit
     assertEquals(result.success, true);
+
+    const headAfter = await new Deno.Command(PortalOperation.GIT, {
+      args: ["rev-parse", "HEAD"],
+      cwd: tempDir,
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    const shaAfter = new TextDecoder().decode(headAfter.stdout).trim();
+    assertEquals(shaAfter, shaBefore, "No-op plan should not create a new commit");
+
+    const branchAfter = await new Deno.Command(PortalOperation.GIT, {
+      args: ["branch", "--show-current"],
+      cwd: tempDir,
+      stdout: "piped",
+      stderr: "piped",
+    }).output();
+    const currentBranch = new TextDecoder().decode(branchAfter.stdout).trim();
+    assert(
+      currentBranch === "master" || currentBranch === "main",
+      `Expected current branch to be master/main, got: ${currentBranch}`,
+    );
 
     await new Promise((resolve) => setTimeout(resolve, 150));
     const activities = db.getActivitiesByTrace("test-trace-nochanges");

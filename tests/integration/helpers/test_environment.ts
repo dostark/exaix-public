@@ -347,9 +347,25 @@ retry_backoff_base_ms = 1000
       "---",
     ].join("\n");
 
-    const actionsYaml = actions.map((a) =>
-      `- tool: ${a.tool}\n  params:\n${Object.entries(a.params).map(([k, v]) => `    ${k}: "${v}"`).join("\n")}`
-    ).join("\n");
+    const toTomlValue = (value: unknown): string => {
+      if (typeof value === "string") return JSON.stringify(value);
+      if (typeof value === "number") return String(value);
+      if (typeof value === "boolean") return value ? "true" : "false";
+      if (value === null || value === undefined) return JSON.stringify("");
+      return JSON.stringify(JSON.stringify(value));
+    };
+
+    const actionBlocks = actions.map((action) => {
+      const paramsLines = Object.entries(action.params)
+        .map(([key, value]) => `${key} = ${toTomlValue(value)}`)
+        .join("\n");
+
+      return `\`\`\`toml\n` +
+        `tool = ${JSON.stringify(action.tool)}\n` +
+        `[params]\n` +
+        `${paramsLines}\n` +
+        `\`\`\``;
+    }).join("\n\n");
 
     const content = `${frontmatter}
 
@@ -357,9 +373,7 @@ retry_backoff_base_ms = 1000
 
 ## Actions
 
-\`\`\`yaml
-${actionsYaml}
-\`\`\`
+${actionBlocks}
 
 ## Reasoning
 

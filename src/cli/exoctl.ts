@@ -218,9 +218,10 @@ export const __test_command = new Command()
         new Command()
           .description("List all pending reviews")
           .option("-s, --status <status:string>", "Filter by status (pending, approved, rejected)")
+          .option("-t, --type <type:string>", "Filter by type (code, artifact, all)", { default: "all" })
           .action(async (options) => {
             try {
-              const reviews = await reviewCommands.list(options.status);
+              const reviews = await reviewCommands.list(options.status, options.type);
               if (reviews.length === 0) {
                 display.info("review.list", "reviews", { count: 0, message: "No reviews found" });
                 return;
@@ -232,12 +233,14 @@ export const __test_command = new Command()
                 const planInfo = cs.plan_id ? `plan: ${cs.plan_id} (${cs.plan_status})` : "";
                 const agentInfo = cs.request_agent || cs.agent_id;
                 const portalInfo = cs.request_portal || cs.portal || "workspace";
+                const typeInfo = cs.type || "code";
 
                 display.info(`${statusEmoji} ${cs.request_id}`, cs.branch, {
                   request: requestTitle,
                   plan: planInfo || undefined,
                   agent: agentInfo,
                   portal: portalInfo,
+                  type: typeInfo,
                   files: cs.files_changed,
                   created: new Date(cs.created_at).toLocaleString(),
                   trace: `${cs.trace_id.substring(0, 8)}...`,

@@ -726,9 +726,7 @@ export class AgentExecutor {
       "git_create_branch",
     ];
 
-    return blueprint.capabilities.some((cap) =>
-      writeCapabilities.includes(cap)
-    );
+    return blueprint.capabilities.some((cap) => writeCapabilities.includes(cap));
   }
 
   /**
@@ -1036,6 +1034,134 @@ if (id.startsWith("artifact-")) {
 
 Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented ArtifactRegistry service for managing read-only agent analysis outputs. Artifacts are stored as markdown files with YAML frontmatter in `Memory/Execution/`, with metadata tracked in SQLite database. The service provides createArtifact(), updateStatus(), getArtifact(), and listArtifacts() methods. Frontmatter includes status field (pending/approved/rejected) enabling review workflow parallel to git reviews. Database migration 006 adds artifacts table with indexes for common queries. This provides a lightweight, file-based artifact storage system separate from git, avoiding repository pollution while maintaining consistent review workflows.
 
+#### Task 4.4: Wire Artifact Creation into the Execution Pipeline
+
+**Status:** [ ] NOT STARTED
+
+**Context:** Task 4.3 provides an `ArtifactRegistry`, but it must be _invoked_ by the execution pipeline so read-only agent outputs become reviewable artifacts (instead of implicit files scattered under `Memory/Execution/<traceId>/`).
+
+**Files (expected):**
+
+- `src/services/execution_loop.ts` (or the core executor responsible for completing a request)
+- `src/services/mission_reporter.ts` (if this is the canonical summary writer)
+- `src/services/artifact_registry.ts` (reuse)
+- `src/services/db.ts` / migrations (if schema not yet present in deployed builds)
+
+**Implementation:**
+
+1. **Detect read-only mode** using agent blueprint capabilities (single source of truth; reuse `isReadOnlyAgent` / `requiresGitTracking` decision).
+2. **Choose artifact content**:
+
+- Minimal: Use the final `summary.md` content as artifact body.
+- Better: Combine `summary.md` + a link/reference to the execution trace directory (`Memory/Execution/<traceId>/`).
+
+3. **Create artifact** at the end of a successful read-only execution:
+
+- `artifactId = await artifactRegistry.createArtifact(requestId, agentId, body, portal)`
+- Persist artifact file in `Memory/Execution/artifact-<id>.md` with frontmatter.
+
+4. **Do not create git branches/commits/reviews** in read-only mode.
+5. **Record the artifact ID** into the request/plan status record (optional but strongly recommended) so tooling can jump directly from request → artifact.
+
+**Success Criteria:**
+
+- [ ] Read-only agent execution produces a single canonical artifact file in `Memory/Execution/artifact-*.md`
+- [ ] Artifact frontmatter includes `status: pending`, `agent`, `portal`, `request_id`, `created`
+- [ ] No git branch/commit/review is created for read-only executions
+- [ ] The trace directory (`Memory/Execution/<traceId>/`) remains as supporting evidence (context, logs), but the artifact is the review surface
+
+**Projected Test Scenarios:**
+
+- Unit test: read-only structured plan produces artifact and no branch
+- Unit test: read-only legacy/no-op plan produces artifact and no branch
+- Integration test: portal read-only execution creates artifact with `portal` set
+
+**Implementation Notes:**
+
+- Prefer creating the artifact only once per request execution, even if multiple internal steps write intermediate files.
+- If both `summary.md` and `plan.md` exist, artifact should be derived from the _final_ post-execution summary.
+
+#### Task 4.5: Implement Unified `exoctl review` for Artifacts
+
+**Status:** [ ] NOT STARTED
+
+**Context:** Phase 35 promises a unified review workflow, but CLI must explicitly support artifact IDs (e.g., `artifact-xxxx`) and treat them differently from git reviews.
+
+**Files (expected):**
+
+- `src/cli/review_commands.ts`
+- `src/cli/exoctl.ts`
+- `src/services/artifact_registry.ts`
+- `src/schemas/artifact.ts`
+
+**Implementation:**
+
+1. **`review show <id>`**:
+
+- If `id` starts with `artifact-`: load via `ArtifactRegistry.getArtifact(id)` and print markdown body.
+- Else: existing git diff behavior.
+
+2. **`review approve <id>` / `review reject <id>`**:
+
+- If artifact: update frontmatter + DB status using `ArtifactRegistry.updateStatus(id, ...)`.
+- Else: existing branch merge/delete behavior.
+
+3. **`review list` includes artifacts**:
+
+- Default list returns both code reviews (feat/*) and pending artifacts.
+- Add optional `--type code|artifact|all` filter (default: all).
+
+**Success Criteria:**
+
+- [ ] `exoctl review show artifact-...` prints artifact content (no git required)
+- [ ] `exoctl review approve artifact-...` updates artifact frontmatter + DB status
+- [ ] `exoctl review reject artifact-... --reason ...` persists rejection reason
+- [ ] `exoctl review list` can show pending artifacts alongside code reviews
+
+**Projected Test Scenarios:**
+
+- Integration test: `exoctl review show artifact-*` displays content
+- Integration test: approving artifact updates status and is reflected in subsequent list
+- Integration test: mixed list shows both git and artifact entries
+
+**Implementation Notes:**
+
+- The CLI surface should not require the user to know whether an ID is code or artifact; prefix detection keeps UX simple.
+- Ensure list output includes a “type” indicator (code vs artifact) to reduce confusion.
+
+#### Task 4.6: Unify Review Storage and Filtering Semantics
+
+**Status:** [ ] NOT STARTED
+
+**Context:** Git reviews and artifacts are stored differently (git branches vs markdown files + DB). The system still needs consistent semantics for listing, filtering, and approval state.
+
+**Implementation Options:**
+
+1. **Lightweight merge in CLI (recommended first):**
+
+- Keep DB tables separate (`reviews`/`changesets` vs `artifacts`).
+- `review list` queries both sources and merges/sorts by created timestamp.
+
+2. **Unified “reviewables” view (later):**
+
+- Add a DB view/table to normalize both into a single query path.
+
+**Success Criteria:**
+
+- [ ] `review list --status pending` returns both pending git reviews and pending artifacts
+- [ ] Sort order is stable and intuitive (most recent first)
+- [ ] Output fields are consistent (id, status, agent, portal, created)
+
+**Projected Test Scenarios:**
+
+- Unit test: list merge logic sorts correctly and preserves type
+- Integration test: filters apply consistently across both sources
+
+**Implementation Notes:**
+
+- Don’t overload “branch” fields for artifacts; represent artifacts as file-backed reviewables with `file_path`.
+- Keep portal attribution consistent: git reviews inherit portal from repository; artifacts carry portal in frontmatter.
+
 ### Week 5-6: Testing & Documentation
 
 #### Task 5.1: Integration Tests ✅
@@ -1210,12 +1336,14 @@ Update architecture documentation:
 ExoFrame uses an execution context model to determine where agents run and where git operations occur:
 
 **Portal Execution (Recommended):**
+
 - Working Directory: Portal target path (e.g., `~/git/ExoFrame`)
 - Git Repository: Portal's `.git/` directory
 - Changesets: Track changes in portal repository
 - Use Case: All code modification workflows
 
 **Workspace Execution (Legacy):**
+
 - Working Directory: Deployed workspace (e.g., `~/ExoFrame`)
 - Git Repository: Workspace `.git/` directory
 - Changesets: Track workspace changes
@@ -1224,17 +1352,19 @@ ExoFrame uses an execution context model to determine where agents run and where
 ### Agent Capability Modes
 
 **Read-Only Agents** (analysis, review, quality):
+
 - Execute in portal workspace for context
 - No feature branch creation
 - No review tracking
 - Results stored in Memory/
 
 **Write-Capable Agents** (development, refactoring):
+
 - Execute in portal workspace
 - Create feature branches in portal repo
 - Commit changes to portal
 - Changesets track portal modifications
-````
+```
 
 **Success Criteria:**
 

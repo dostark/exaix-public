@@ -17,6 +17,9 @@ import { MissionReporter } from "./mission_reporter.ts";
 import { PlanExecutor } from "./plan_executor.ts";
 import { ExecutionStatus, PlanStatus } from "../enums.ts";
 import { parseStructuredPlanFromMarkdown, type StructuredPlan } from "./structured_plan_parser.ts";
+import { BlueprintLoader } from "./blueprint_loader.ts";
+import { isReadOnlyAgentCapabilities } from "./agent_capabilities.ts";
+import { ArtifactRegistry } from "./artifact_registry.ts";
 
 // ============================================================================
 // Types
@@ -60,6 +63,12 @@ interface TaskLease {
   acquiredAt: Date;
 }
 
+interface SuccessArtifactContext {
+  isReadOnly: boolean;
+  planAgentId?: string;
+  portal?: string;
+}
+
 // ============================================================================
 // ExecutionLoop Implementation
 // ============================================================================
@@ -80,6 +89,7 @@ export class ExecutionLoop {
   private agentId: string;
   private plansDir: string;
   private leases = new Map<string, TaskLease>();
+  private blueprintLoader: BlueprintLoader;
 
   constructor(
     { config, db, agentId, llmProvider, reviewRegistry }: ExecutionLoopConfig & {
@@ -92,10 +102,26 @@ export class ExecutionLoop {
     this.llmProvider = llmProvider;
     this.reviewRegistry = reviewRegistry;
     this.plansDir = join(config.system.root, config.paths.workspace, config.paths.active);
+    this.blueprintLoader = new BlueprintLoader({
+      blueprintsPath: join(config.system.root, config.paths.blueprints, "Agents"),
+    });
   }
 
   private reviewRegistry?: ReviewRegistry;
   private llmProvider?: IModelProvider;
+
+  private async isReadOnlyAgentId(agentId: string | undefined): Promise<boolean> {
+    if (!agentId) return false;
+
+    try {
+      const blueprint = await this.blueprintLoader.load(agentId);
+      if (!blueprint) return false;
+      return isReadOnlyAgentCapabilities(blueprint.capabilities);
+    } catch {
+      // If blueprint can't be loaded for any reason, fall back to executable behavior
+      return false;
+    }
+  }
 
   /**
    * Core execution logic shared between processTask and executeNext
@@ -138,27 +164,7 @@ export class ExecutionLoop {
         repoPath: executionRoot,
       });
 
-      // Set up Git (branch creation only for processTask)
-      let branchName: string | undefined;
-      if (initGitBranch) {
-        await gitService.ensureRepository();
-        await gitService.ensureIdentity();
-
-        // Ensure we start from master/main to avoid pollution from previous feature branches
-        try {
-          await gitService.checkoutBranch("master");
-        } catch {
-          try {
-            await gitService.checkoutBranch("main");
-          } catch {
-            // If neither exists (empty repo?), ignore
-          }
-        }
-
-        branchName = await gitService.createBranch({ requestId, traceId });
-      }
-
-      // Read and validate plan content
+      // Read plan content (needed to decide if we should create a git branch)
       const planContent = await Deno.readTextFile(planPath);
 
       // Check for special failure markers for testing
@@ -176,27 +182,62 @@ export class ExecutionLoop {
         agent_id: frontmatter.agent_id,
       });
 
-      if (structuredPlan) {
-        // Use PlanExecutor for structured plans
-        await this.executeStructuredPlan(structuredPlan, executionRoot, gitService);
-      } else {
-        // Parse and execute plan actions (legacy TOML format)
-        const actions = this.parsePlanActions(planContent);
+      // Parse legacy TOML actions only when the plan isn't structured
+      const actions = structuredPlan ? [] : this.parsePlanActions(planContent);
 
+      const planAgentId = frontmatter.agent_id || structuredPlan?.agent;
+      const isReadOnly = await this.isReadOnlyAgentId(planAgentId);
+      const hasExecutableWork = !isReadOnly && (structuredPlan !== null || actions.length > 0);
+
+      // Set up Git (branch creation only when we have executable work)
+      let branchName: string | undefined;
+      if (initGitBranch && hasExecutableWork) {
+        await gitService.ensureRepository();
+        await gitService.ensureIdentity();
+
+        // Ensure we start from master/main to avoid pollution from previous feature branches
+        try {
+          await gitService.checkoutBranch("master");
+        } catch {
+          try {
+            await gitService.checkoutBranch("main");
+          } catch {
+            // If neither exists (empty repo?), ignore
+          }
+        }
+
+        branchName = await gitService.createBranch({ requestId, traceId });
+      }
+
+      let didExecuteWork = false;
+
+      if (structuredPlan) {
+        if (isReadOnly) {
+          // Structured plans produced by read-only agents are analysis artifacts, not executable work.
+          // Mark success without mutating the repository or creating reviews.
+          this.logActivity("execution.readonly_structured_plan_skipped", traceId, {
+            request_id: requestId,
+            agent_id: planAgentId,
+          });
+        } else {
+          // Use PlanExecutor for structured plans
+          didExecuteWork = true;
+          await this.executeStructuredPlan(structuredPlan, executionRoot, gitService);
+        }
+      } else {
         if (actions.length === 0) {
           if (requireActions) {
             throw new Error("Plan contains no executable actions");
           }
-          // For testing or empty plans, create a dummy file to ensure we have changes
-          const testFile = join(executionRoot, "test-execution.txt");
-          await Deno.writeTextFile(testFile, `Execution by ${this.agentId} at ${new Date().toISOString()}`);
+          // No-op plan (e.g., read-only analysis output). Succeed without mutating the repository.
         } else {
+          didExecuteWork = true;
           await this.executePlanActions(actions, traceId, requestId, executionRoot);
         }
       }
 
-      // Commit changes
-      const commitSha = await this.commitChanges(gitService, requestId!, traceId!);
+      // Commit changes (if any)
+      const commitSha = didExecuteWork ? await this.commitChanges(gitService, requestId!, traceId!) : null;
 
       // Register review
       if (commitSha) {
@@ -210,7 +251,11 @@ export class ExecutionLoop {
       }
 
       // Handle success
-      await this.handleSuccess(planPath, traceId, requestId);
+      await this.handleSuccess(planPath, traceId, requestId, {
+        isReadOnly,
+        planAgentId,
+        portal: frontmatter.portal,
+      });
 
       return { success: true, traceId };
     } catch (error) {
@@ -509,6 +554,7 @@ export class ExecutionLoop {
     planPath: string,
     traceId: string,
     requestId: string,
+    artifactContext?: SuccessArtifactContext,
   ): Promise<void> {
     // Generate mission report
     await this.generateMissionReport(traceId, requestId);
@@ -523,6 +569,52 @@ export class ExecutionLoop {
       await Deno.writeTextFile(planPath, updatedContent);
     } catch (error) {
       console.error("Failed to update plan status:", error);
+    }
+
+    // Persist the executed plan as an execution artifact for trace inspection.
+    // This avoids relying on git diffs for read-only agent outputs.
+    try {
+      const execDir = join(this.config.system.root, this.config.paths.memory, "Execution", traceId);
+      await Deno.mkdir(execDir, { recursive: true });
+
+      const planContent = await Deno.readTextFile(planPath);
+      await Deno.writeTextFile(join(execDir, "plan.md"), planContent);
+    } catch (error) {
+      console.error("Failed to persist plan artifact:", error);
+    }
+
+    // Create a canonical review artifact for read-only agent executions.
+    // This provides a single stable review surface (separate from git).
+    if (artifactContext?.isReadOnly && this.db && artifactContext.planAgentId) {
+      try {
+        const summaryPath = join(
+          this.config.system.root,
+          this.config.paths.memory,
+          "Execution",
+          traceId,
+          "summary.md",
+        );
+        const summaryContent = await Deno.readTextFile(summaryPath);
+
+        const memoryRoot = this.config.paths.memory.replace(/^\.\/?/, "");
+        const memoryExecutionDir = this.config.paths.memoryExecution || "Execution";
+        const traceDirRel = `${memoryRoot}/${memoryExecutionDir}/${traceId}/`;
+        const artifactBody = `# Execution Artifact\n\n` +
+          `**Request:** ${requestId}\n\n` +
+          `**Trace:** ${traceId}\n\n` +
+          `**Trace directory:** ${traceDirRel}\n\n---\n\n` +
+          summaryContent;
+
+        const artifactRegistry = new ArtifactRegistry(this.db, this.config.system.root);
+        await artifactRegistry.createArtifact(
+          requestId,
+          artifactContext.planAgentId,
+          artifactBody,
+          artifactContext.portal,
+        );
+      } catch (error) {
+        console.error("Failed to create read-only artifact:", error);
+      }
     }
 
     // Archive plan

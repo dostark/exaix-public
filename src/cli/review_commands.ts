@@ -13,8 +13,11 @@ import { ValidationChain } from "./validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
 import { CommandUtils } from "../helpers/command_utils.ts";
 import { enrichWithRequest } from "../helpers/request_enricher.ts";
+import { ArtifactRegistry } from "../services/artifact_registry.ts";
 
 export interface ReviewMetadata {
+  type?: "code" | "artifact";
+  file_path?: string;
   branch: string;
   trace_id: string;
   request_id: string;
@@ -51,6 +54,8 @@ export interface ReviewDetails extends ReviewMetadata {
   }>;
 }
 
+export type ReviewTypeFilter = "all" | "code" | "artifact";
+
 /**
  * Commands for reviewing and managing agent-generated code reviews
  */
@@ -58,6 +63,7 @@ export class ReviewCommands extends BaseCommand {
   private gitService: GitService;
   private requestCommands: RequestCommands;
   private planCommands: PlanCommands;
+  private artifactRegistry: ArtifactRegistry;
 
   constructor(
     context: CommandContext,
@@ -67,6 +73,27 @@ export class ReviewCommands extends BaseCommand {
     this.gitService = gitService;
     this.requestCommands = new RequestCommands(context);
     this.planCommands = new PlanCommands(context);
+    this.artifactRegistry = new ArtifactRegistry(this.db, this.config.system.root);
+  }
+
+  private isArtifactId(id: string): boolean {
+    return id.startsWith("artifact-");
+  }
+
+  private normalizeTypeFilter(typeFilter?: string): ReviewTypeFilter {
+    if (!typeFilter) return "all";
+    const normalized = typeFilter.toLowerCase();
+    if (normalized === "code" || normalized === "artifact" || normalized === "all") return normalized;
+    return "all";
+  }
+
+  private normalizeStatusFilter(
+    statusFilter?: string,
+  ): ("pending" | "approved" | "rejected") | undefined {
+    if (!statusFilter) return undefined;
+    const normalized = statusFilter.toLowerCase();
+    if (normalized === "pending" || normalized === "approved" || normalized === "rejected") return normalized;
+    return undefined;
   }
 
   private async getDefaultBranch(repoPath: string): Promise<string> {
@@ -231,8 +258,44 @@ export class ReviewCommands extends BaseCommand {
    * @param statusFilter Optional filter: 'pending', 'approved', 'rejected'
    * @returns List of review metadata
    */
-  async list(statusFilter?: string): Promise<ReviewMetadata[]> {
+  async list(statusFilter?: string, typeFilter?: string): Promise<ReviewMetadata[]> {
+    const requestedType = this.normalizeTypeFilter(typeFilter);
     const reviews: ReviewMetadata[] = [];
+    const normalizedStatus = this.normalizeStatusFilter(statusFilter);
+
+    // Include artifact-backed reviews
+    if (requestedType === "all" || requestedType === "artifact") {
+      const artifacts = await this.artifactRegistry.listArtifacts({
+        status: normalizedStatus,
+      });
+
+      for (const artifact of artifacts) {
+        reviews.push({
+          type: "artifact",
+          branch: artifact.id,
+          trace_id: artifact.id,
+          request_id: artifact.request_id,
+          files_changed: 0,
+          created_at: artifact.created,
+          agent_id: artifact.agent,
+          file_path: artifact.file_path,
+          portal: artifact.portal ?? undefined,
+          status: artifact.status,
+          rejected_at: artifact.status === "rejected" ? artifact.updated ?? undefined : undefined,
+          rejection_reason: artifact.rejection_reason ?? undefined,
+          approved_at: artifact.status === "approved" ? artifact.updated ?? undefined : undefined,
+        });
+      }
+    }
+
+    if (requestedType !== "all" && requestedType !== "code") {
+      return reviews.sort((a, b) => {
+        const ta = Number(new Date(a.created_at));
+        const tb = Number(new Date(b.created_at));
+        return (tb || 0) - (ta || 0);
+      });
+    }
+
     const portalPaths = await this.getPortalRepoPaths();
 
     for (const repoPath of portalPaths) {
@@ -299,9 +362,10 @@ export class ReviewCommands extends BaseCommand {
           ? ReviewStatus.REJECTED
           : ReviewStatus.PENDING;
 
-        if (statusFilter && status !== statusFilter) continue;
+        if (normalizedStatus && status !== normalizedStatus) continue;
 
         const basicMetadata = {
+          type: "code" as const,
           branch,
           trace_id,
           request_id,
@@ -331,15 +395,61 @@ export class ReviewCommands extends BaseCommand {
    * @returns Review details
    */
   async show(branchName: string): Promise<ReviewDetails> {
+    // Artifact-backed review
+    if (this.isArtifactId(branchName)) {
+      const artifact = await this.artifactRegistry.getArtifact(branchName);
+      return {
+        type: "artifact",
+        branch: artifact.id,
+        trace_id: artifact.id,
+        request_id: artifact.request_id,
+        files_changed: 0,
+        created_at: artifact.created,
+        agent_id: artifact.agent,
+        portal: artifact.portal ?? undefined,
+        status: artifact.status,
+        rejection_reason: artifact.rejection_reason ?? undefined,
+        approved_at: artifact.status === "approved" ? artifact.updated ?? undefined : undefined,
+        rejected_at: artifact.status === "rejected" ? artifact.updated ?? undefined : undefined,
+        diff: artifact.body,
+        commits: [],
+      };
+    }
+
     // If not a full branch name, try to find matching branch
     let fullBranch = branchName;
     if (!branchName.startsWith("feat/")) {
-      const branches = await this.list();
+      const branches = await this.list(undefined, "code");
       const match = branches.find((b) => b.request_id === branchName || b.branch === `feat/${branchName}`);
-      if (!match) {
+      if (match) {
+        fullBranch = match.branch;
+      } else {
+        // Fallback: allow request_id shorthand for artifacts
+        const artifacts = await this.artifactRegistry.listArtifacts();
+        const byRequest = artifacts.find((a) => a.request_id === branchName);
+        if (byRequest) {
+          const artifact = await this.artifactRegistry.getArtifact(byRequest.id);
+          return {
+            type: "artifact",
+            branch: artifact.id,
+            trace_id: artifact.id,
+            request_id: artifact.request_id,
+            files_changed: 0,
+            created_at: artifact.created,
+            agent_id: artifact.agent,
+            file_path: artifact.file_path,
+            portal: artifact.portal ?? undefined,
+            status: artifact.status,
+            rejection_reason: artifact.rejection_reason ?? undefined,
+            approved_at: artifact.status === "approved" ? artifact.updated ?? undefined : undefined,
+            rejected_at: artifact.status === "rejected" ? artifact.updated ?? undefined : undefined,
+            diff: artifact.body,
+            commits: [],
+          };
+        }
+
         throw new Error(`Review not found: ${branchName}\nRun 'exoctl review list' to see available reviews`);
       }
-      fullBranch = match.branch;
     }
 
     const repoPath = await this.findRepoForBranch(fullBranch);
@@ -410,6 +520,7 @@ export class ReviewCommands extends BaseCommand {
     const [, request_id, trace_id] = match || ["", fullBranch, "unknown"];
 
     const basicMetadata = {
+      type: "code" as const,
       branch: fullBranch,
       trace_id,
       request_id,
@@ -444,7 +555,43 @@ export class ReviewCommands extends BaseCommand {
         throw new Error(CommandUtils.formatValidationErrors(validation));
       }
 
+      // Artifact approval path
+      if (this.isArtifactId(branchName)) {
+        await this.artifactRegistry.updateStatus(branchName, "approved");
+        const actionLogger = await this.getActionLogger();
+        actionLogger.info(
+          "review.approved",
+          branchName,
+          {
+            artifact_id: branchName,
+            approved_at: new Date().toISOString(),
+            via: "cli",
+            command: this.getCommandLineString(),
+          },
+          branchName,
+        );
+        return;
+      }
+
       const review = await this.show(branchName);
+
+      // If show() resolved to an artifact via request_id shorthand
+      if (review.type === "artifact") {
+        await this.artifactRegistry.updateStatus(review.branch, "approved");
+        const actionLogger = await this.getActionLogger();
+        actionLogger.info(
+          "review.approved",
+          review.request_id,
+          {
+            artifact_id: review.branch,
+            approved_at: new Date().toISOString(),
+            via: "cli",
+            command: this.getCommandLineString(),
+          },
+          review.trace_id,
+        );
+        return;
+      }
       const repoPath = await this.findRepoForBranch(review.branch);
 
       // Get the default branch for this repository
@@ -529,7 +676,45 @@ export class ReviewCommands extends BaseCommand {
         );
       }
 
+      // Artifact rejection path
+      if (this.isArtifactId(branchName)) {
+        await this.artifactRegistry.updateStatus(branchName, "rejected", reason);
+        const actionLogger = await this.getActionLogger();
+        actionLogger.info(
+          "review.rejected",
+          branchName,
+          {
+            artifact_id: branchName,
+            rejection_reason: reason,
+            rejected_at: new Date().toISOString(),
+            via: "cli",
+            command: this.getCommandLineString(),
+          },
+          branchName,
+        );
+        return;
+      }
+
       const review = await this.show(branchName);
+
+      // If show() resolved to an artifact via request_id shorthand
+      if (review.type === "artifact") {
+        await this.artifactRegistry.updateStatus(review.branch, "rejected", reason);
+        const actionLogger = await this.getActionLogger();
+        actionLogger.info(
+          "review.rejected",
+          review.request_id,
+          {
+            artifact_id: review.branch,
+            rejection_reason: reason,
+            rejected_at: new Date().toISOString(),
+            via: "cli",
+            command: this.getCommandLineString(),
+          },
+          review.trace_id,
+        );
+        return;
+      }
       const repoPath = await this.findRepoForBranch(review.branch);
 
       // Create GitService for the portal repository

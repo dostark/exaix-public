@@ -25,6 +25,9 @@ export interface RequestMetadata {
   /** Original request file name (without extension) */
   requestId: string;
 
+  /** Agent ID that generated this plan (blueprint name) */
+  agentId?: string;
+
   /** Trace ID linking request → plan → execution */
   traceId: string;
 
@@ -255,6 +258,10 @@ export class PlanWriter {
       `status: ${PlanStatus.REVIEW}`,
       `created_at: ${metadata.createdAt.toISOString()}`,
     ];
+
+    if (metadata.agentId) {
+      lines.push(`agent_id: "${metadata.agentId}"`);
+    }
 
     if (metadata.model) {
       lines.push(`model: "${metadata.model}"`);

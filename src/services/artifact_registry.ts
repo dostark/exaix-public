@@ -21,7 +21,14 @@ function shortId(): string {
  * Service for managing read-only agent artifacts
  */
 export class ArtifactRegistry {
-  constructor(private db: DatabaseService) {}
+  private rootDir: string;
+
+  constructor(
+    private db: DatabaseService,
+    rootDir: string = Deno.cwd(),
+  ) {
+    this.rootDir = rootDir;
+  }
 
   /**
    * Create new artifact from agent execution
@@ -33,11 +40,12 @@ export class ArtifactRegistry {
     portal?: string,
   ): Promise<string> {
     const artifactId = `artifact-${shortId()}`;
-    const filePath = join("Memory", "Execution", `${artifactId}.md`);
+    const relativeFilePath = join("Memory", "Execution", `${artifactId}.md`);
+    const absoluteFilePath = join(this.rootDir, relativeFilePath);
     const created = new Date().toISOString();
 
     // Ensure Memory/Execution directory exists
-    await Deno.mkdir(join("Memory", "Execution"), { recursive: true });
+    await Deno.mkdir(join(this.rootDir, "Memory", "Execution"), { recursive: true });
 
     // Create frontmatter
     const frontmatter: ArtifactFrontmatter = {
@@ -51,13 +59,13 @@ export class ArtifactRegistry {
 
     // Write file with frontmatter + content
     const fileContent = `---\n${stringifyYaml(frontmatter)}---\n\n${content}`;
-    await Deno.writeTextFile(filePath, fileContent);
+    await Deno.writeTextFile(absoluteFilePath, fileContent);
 
     // Save to database
     await this.db.preparedRun(
       `INSERT INTO artifacts (id, status, type, agent, portal, created, request_id, file_path)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [artifactId, "pending", "analysis", agent, portal || null, created, requestId, filePath],
+      [artifactId, "pending", "analysis", agent, portal || null, created, requestId, relativeFilePath],
     );
 
     return artifactId;
@@ -74,7 +82,7 @@ export class ArtifactRegistry {
     const artifact = await this.getArtifactRecord(artifactId);
 
     // Read current content
-    const fullContent = await Deno.readTextFile(artifact.file_path);
+    const fullContent = await Deno.readTextFile(join(this.rootDir, artifact.file_path));
 
     // Parse frontmatter
     const match = fullContent.match(/^---\n([\s\S]*?)\n---\n\n([\s\S]*)$/);
@@ -90,7 +98,7 @@ export class ArtifactRegistry {
 
     // Write updated file
     const updated = `---\n${stringifyYaml(frontmatter)}---\n\n${body}`;
-    await Deno.writeTextFile(artifact.file_path, updated);
+    await Deno.writeTextFile(join(this.rootDir, artifact.file_path), updated);
 
     // Update database
     const now = new Date().toISOString();
@@ -107,7 +115,7 @@ export class ArtifactRegistry {
     const artifact = await this.getArtifactRecord(artifactId);
 
     // Read file content
-    const content = await Deno.readTextFile(artifact.file_path);
+    const content = await Deno.readTextFile(join(this.rootDir, artifact.file_path));
 
     // Parse to extract body
     const match = content.match(/^---\n[\s\S]*?\n---\n\n([\s\S]*)$/);

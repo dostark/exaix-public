@@ -305,6 +305,7 @@ export class RequestProcessor {
       createdAt: new Date(frontmatter.created),
       contextFiles: [],
       contextWarnings: [],
+      agentId: frontmatter.agent,
       model: frontmatter.model,
       portal: frontmatter.portal,
     };

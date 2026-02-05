@@ -27,6 +27,7 @@ import {
   MAX_NAME_LENGTH,
   MAX_PROMPT_LENGTH,
 } from "../config/constants.ts";
+import { isReadOnlyAgentCapabilities, requiresGitTracking } from "./agent_capabilities.ts";
 import {
   type AgentExecutionOptions,
   type ChangesetResult,
@@ -184,13 +185,7 @@ export class AgentExecutor {
    * @returns true if agent has write capabilities requiring git tracking
    */
   requiresGitTracking(blueprint: Blueprint): boolean {
-    const writeCapabilities = [
-      "write_file",
-      "git_commit",
-      "git_create_branch",
-    ];
-
-    return blueprint.capabilities.some((cap) => writeCapabilities.includes(cap));
+    return requiresGitTracking(blueprint.capabilities);
   }
 
   /**
@@ -201,7 +196,7 @@ export class AgentExecutor {
    * @returns true if agent has no write capabilities
    */
   isReadOnlyAgent(blueprint: Blueprint): boolean {
-    return !this.requiresGitTracking(blueprint);
+    return isReadOnlyAgentCapabilities(blueprint.capabilities);
   }
 
   /**
