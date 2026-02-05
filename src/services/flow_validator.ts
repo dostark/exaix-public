@@ -17,71 +17,26 @@ export class FlowValidatorImpl implements FlowValidator {
    */
   async validateFlow(flowId: string): Promise<{ valid: boolean; error?: string }> {
     try {
-      // Check if flow exists
       const exists = await this.flowLoader.flowExists(flowId);
       if (!exists) {
         return { valid: false, error: `Flow '${flowId}' not found` };
       }
 
-      // Load flow; capture loader errors separately so we can normalize schema messages
-      let flow;
-      try {
-        flow = await this.flowLoader.loadFlow(flowId);
-      } catch (loaderErr) {
-        const msg = loaderErr instanceof Error ? loaderErr.message : String(loaderErr);
-        // Normalize known schema/string errors to the shorter messages tests expect
-        if (msg.includes("Agent reference cannot be empty")) {
-          return { valid: false, error: `Flow '${flowId}' has invalid agent` };
-        }
-        return { valid: false, error: `Flow '${flowId}' validation failed: ${msg}` };
-      }
+      const loadResult = await this.tryLoadFlow(flowId);
+      if (loadResult.error) return { valid: false, error: loadResult.error };
+      const flow = loadResult.flow;
 
-      // Validate basic flow structure
-      if (!flow.steps || flow.steps.length === 0) {
-        return { valid: false, error: `Flow '${flowId}' must contain at least one step` };
-      }
+      const structureError = this.validateStructure(flowId, flow);
+      if (structureError) return { valid: false, error: structureError };
 
-      // Validate step dependencies
-      const resolver = new DependencyResolver(flow.steps);
-      try {
-        resolver.topologicalSort(); // This will throw if there are cycles
-      } catch (error) {
-        return {
-          valid: false,
-          error: `Flow '${flowId}' has invalid dependencies: ${error instanceof Error ? error.message : String(error)}`,
-        };
-      }
+      const dependencyError = this.validateDependencies(flowId, flow.steps);
+      if (dependencyError) return { valid: false, error: dependencyError };
 
-      // Validate agents exist (basic check - could be enhanced)
-      for (const step of flow.steps) {
-        if (!step.agent || typeof step.agent !== "string" || step.agent === "") {
-          return {
-            valid: false,
-            error: `Flow '${flowId}' step '${step.id}' has invalid agent: ${step.agent}`,
-          };
-        }
-        // Note: Full agent validation would require loading agent blueprints
-        // For now, we just check the agent field is present
-      }
+      const agentError = this.validateStepAgents(flowId, flow.steps);
+      if (agentError) return { valid: false, error: agentError };
 
-      // Validate output configuration if present
-      if (flow.output) {
-        if (!flow.output.from || !flow.output.format) {
-          return {
-            valid: false,
-            error: `Flow '${flowId}' has invalid output configuration`,
-          };
-        }
-
-        // Check that output.from references a valid step
-        const outputStepExists = flow.steps.some((step) => step.id === flow.output!.from);
-        if (!outputStepExists) {
-          return {
-            valid: false,
-            error: `Flow '${flowId}' output.from references non-existent step: ${flow.output.from}`,
-          };
-        }
-      }
+      const outputError = this.validateOutput(flowId, flow);
+      if (outputError) return { valid: false, error: outputError };
 
       return { valid: true };
     } catch (error) {
@@ -90,5 +45,72 @@ export class FlowValidatorImpl implements FlowValidator {
         error: `Flow '${flowId}' validation failed: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
+  }
+
+  private async tryLoadFlow(
+    flowId: string,
+  ): Promise<{ flow: Awaited<ReturnType<FlowLoader["loadFlow"]>>; error?: string }> {
+    try {
+      const flow = await this.flowLoader.loadFlow(flowId);
+      return { flow };
+    } catch (loaderErr) {
+      const msg = loaderErr instanceof Error ? loaderErr.message : String(loaderErr);
+      if (msg.includes("Agent reference cannot be empty")) {
+        return { flow: undefined as any, error: `Flow '${flowId}' has invalid agent` };
+      }
+      return { flow: undefined as any, error: `Flow '${flowId}' validation failed: ${msg}` };
+    }
+  }
+
+  private validateStructure(flowId: string, flow: { steps?: unknown[] }): string | null {
+    if (!flow.steps || flow.steps.length === 0) {
+      return `Flow '${flowId}' must contain at least one step`;
+    }
+    return null;
+  }
+
+  private validateDependencies(flowId: string, steps: unknown[]): string | null {
+    const resolver = new DependencyResolver(steps as any);
+    try {
+      resolver.topologicalSort();
+      return null;
+    } catch (error) {
+      return `Flow '${flowId}' has invalid dependencies: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+
+  private validateStepAgents(flowId: string, steps: Array<{ id: string; agent?: unknown }>): string | null {
+    for (const step of steps) {
+      if (!step.agent || typeof step.agent !== "string" || step.agent === "") {
+        return `Flow '${flowId}' step '${step.id}' has invalid agent: ${step.agent}`;
+      }
+    }
+    return null;
+  }
+
+  private validateOutput(flowId: string, flow: { output?: any; steps: Array<{ id: string }> }): string | null {
+    if (!flow.output) return null;
+    if (!flow.output.from || !flow.output.format) {
+      return `Flow '${flowId}' has invalid output configuration`;
+    }
+
+    const outputFrom = flow.output.from;
+    const stepIds = new Set(flow.steps.map((s) => s.id));
+
+    if (typeof outputFrom === "string") {
+      if (stepIds.has(outputFrom)) return null;
+      return `Flow '${flowId}' output.from references non-existent step: ${outputFrom}`;
+    }
+
+    if (Array.isArray(outputFrom)) {
+      for (const stepId of outputFrom) {
+        if (!stepIds.has(stepId)) {
+          return `Flow '${flowId}' output.from references non-existent step: ${stepId}`;
+        }
+      }
+      return null;
+    }
+
+    return `Flow '${flowId}' has invalid output configuration`;
   }
 }

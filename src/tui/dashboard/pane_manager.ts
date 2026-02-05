@@ -100,52 +100,21 @@ export async function closePane(
 
   const closingPane = panes[index];
 
-  // Try to find a neighbor to merge into
-  // 1. Check for a sibling to the left
-  const leftSibling = panes.find((p) =>
-    p.id !== closingPane.id &&
-    Math.abs((p.flexX + p.flexWidth) - closingPane.flexX) < 0.01 &&
-    Math.abs(p.flexY - closingPane.flexY) < 0.01 &&
-    Math.abs(p.flexHeight - closingPane.flexHeight) < 0.01
-  );
+  const leftSibling = findLeftSibling(panes, closingPane);
+  const rightSibling = leftSibling ? undefined : findRightSibling(panes, closingPane);
+  const topSibling = leftSibling || rightSibling ? undefined : findTopSibling(panes, closingPane);
+  const bottomSibling = leftSibling || rightSibling || topSibling ? undefined : findBottomSibling(panes, closingPane);
 
   if (leftSibling) {
     leftSibling.flexWidth += closingPane.flexWidth;
-  } else {
-    // 2. Check for a sibling to the right
-    const rightSibling = panes.find((p) =>
-      p.id !== closingPane.id &&
-      Math.abs(p.flexX - (closingPane.flexX + closingPane.flexWidth)) < 0.01 &&
-      Math.abs(p.flexY - closingPane.flexY) < 0.01 &&
-      Math.abs(p.flexHeight - closingPane.flexHeight) < 0.01
-    );
-    if (rightSibling) {
-      rightSibling.flexX = closingPane.flexX;
-      rightSibling.flexWidth += closingPane.flexWidth;
-    } else {
-      // 3. Check for a sibling above
-      const topSibling = panes.find((p) =>
-        p.id !== closingPane.id &&
-        Math.abs((p.flexY + p.flexHeight) - closingPane.flexY) < 0.01 &&
-        Math.abs(p.flexX - closingPane.flexX) < 0.01 &&
-        Math.abs(p.flexWidth - closingPane.flexWidth) < 0.01
-      );
-      if (topSibling) {
-        topSibling.flexHeight += closingPane.flexHeight;
-      } else {
-        // 4. Check for a sibling below
-        const bottomSibling = panes.find((p) =>
-          p.id !== closingPane.id &&
-          Math.abs(p.flexY - (closingPane.flexY + closingPane.flexHeight)) < 0.01 &&
-          Math.abs(p.flexX - closingPane.flexX) < 0.01 &&
-          Math.abs(p.flexWidth - closingPane.flexWidth) < 0.01
-        );
-        if (bottomSibling) {
-          bottomSibling.flexY = closingPane.flexY;
-          bottomSibling.flexHeight += closingPane.flexHeight;
-        }
-      }
-    }
+  } else if (rightSibling) {
+    rightSibling.flexX = closingPane.flexX;
+    rightSibling.flexWidth += closingPane.flexWidth;
+  } else if (topSibling) {
+    topSibling.flexHeight += closingPane.flexHeight;
+  } else if (bottomSibling) {
+    bottomSibling.flexY = closingPane.flexY;
+    bottomSibling.flexHeight += closingPane.flexHeight;
   }
 
   panes.splice(index, 1);

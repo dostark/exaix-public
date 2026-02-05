@@ -414,47 +414,83 @@ export class ReviewCommands extends BaseCommand {
    */
   async list(statusFilter?: string, typeFilter?: string): Promise<ReviewMetadata[]> {
     const requestedType = this.normalizeTypeFilter(typeFilter);
-    const reviews: ReviewMetadata[] = [];
     const normalizedStatus = this.normalizeStatusFilter(statusFilter);
+    const reviews: ReviewMetadata[] = [];
 
-    // Include artifact-backed reviews
-    if (requestedType === "all" || requestedType === "artifact") {
-      const artifacts = await this.artifactRegistry.listArtifacts({
-        status: normalizedStatus,
-      });
-
-      for (const artifact of artifacts) {
-        reviews.push({
-          type: "artifact",
-          branch: artifact.id,
-          trace_id: artifact.id,
-          request_id: artifact.request_id,
-          files_changed: 0,
-          created_at: artifact.created,
-          agent_id: artifact.agent,
-          file_path: artifact.file_path,
-          portal: artifact.portal ?? undefined,
-          status: artifact.status,
-          rejected_at: artifact.status === "rejected" ? artifact.updated ?? undefined : undefined,
-          rejection_reason: artifact.rejection_reason ?? undefined,
-          approved_at: artifact.status === "approved" ? artifact.updated ?? undefined : undefined,
-        });
-      }
+    if (this.shouldIncludeArtifacts(requestedType)) {
+      await this.appendArtifactReviews(reviews, normalizedStatus);
     }
 
-    if (requestedType !== "all" && requestedType !== "code") {
-      return reviews.sort((a, b) => {
-        const ta = Number(new Date(a.created_at));
-        const tb = Number(new Date(b.created_at));
-        return (tb || 0) - (ta || 0);
-      });
+    if (!this.shouldIncludeCode(requestedType)) {
+      return this.sortReviewsNewestFirst(reviews);
     }
 
     const dbBranches = new Set<string>();
+    await this.appendDbCodeReviews(reviews, dbBranches, normalizedStatus);
+    await this.appendGitScannedCodeReviews(reviews, dbBranches, normalizedStatus);
 
-    // DB-first: treat `reviews` table as the source of truth for code reviews.
-    // Git scanning is kept as a legacy fallback for branches without DB entries.
+    return this.sortReviewsNewestFirst(reviews);
+  }
+
+  private shouldIncludeArtifacts(type: ReviewTypeFilter): boolean {
+    return type === "all" || type === "artifact";
+  }
+
+  private shouldIncludeCode(type: ReviewTypeFilter): boolean {
+    return type === "all" || type === "code";
+  }
+
+  private sortReviewsNewestFirst(reviews: ReviewMetadata[]): ReviewMetadata[] {
+    return reviews.sort((a, b) => {
+      const ta = Number(new Date(a.created_at));
+      const tb = Number(new Date(b.created_at));
+      return (tb || 0) - (ta || 0);
+    });
+  }
+
+  private async appendArtifactReviews(
+    reviews: ReviewMetadata[],
+    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+  ) {
+    const artifacts = await this.artifactRegistry.listArtifacts({
+      status: normalizedStatus,
+    });
+
+    for (const artifact of artifacts) {
+      reviews.push({
+        type: "artifact",
+        branch: artifact.id,
+        trace_id: artifact.id,
+        request_id: artifact.request_id,
+        files_changed: 0,
+        created_at: artifact.created,
+        agent_id: artifact.agent,
+        file_path: artifact.file_path,
+        portal: artifact.portal ?? undefined,
+        status: artifact.status,
+        rejected_at: artifact.status === "rejected" ? artifact.updated ?? undefined : undefined,
+        rejection_reason: artifact.rejection_reason ?? undefined,
+        approved_at: artifact.status === "approved" ? artifact.updated ?? undefined : undefined,
+      });
+    }
+  }
+
+  private getDbReviewQuery(
+    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+  ): { sql: string; args: unknown[] } {
+    const base =
+      "SELECT trace_id, portal, branch, repository, base_branch, worktree_path, files_changed, created, created_by, status, approved_at, approved_by, rejected_at, rejected_by, rejection_reason FROM reviews";
+    if (!normalizedStatus) return { sql: base, args: [] };
+    return { sql: `${base} WHERE status = ?`, args: [normalizedStatus] };
+  }
+
+  private async appendDbCodeReviews(
+    reviews: ReviewMetadata[],
+    dbBranches: Set<string>,
+    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+  ) {
     try {
+      const query = this.getDbReviewQuery(normalizedStatus);
       const rows = await this.db.preparedAll<{
         trace_id: string;
         portal: string | null;
@@ -471,158 +507,202 @@ export class ReviewCommands extends BaseCommand {
         rejected_at: string | null;
         rejected_by: string | null;
         rejection_reason: string | null;
-      }>(
-        normalizedStatus
-          ? "SELECT trace_id, portal, branch, repository, base_branch, worktree_path, files_changed, created, created_by, status, approved_at, approved_by, rejected_at, rejected_by, rejection_reason FROM reviews WHERE status = ?"
-          : "SELECT trace_id, portal, branch, repository, base_branch, worktree_path, files_changed, created, created_by, status, approved_at, approved_by, rejected_at, rejected_by, rejection_reason FROM reviews",
-        normalizedStatus ? [normalizedStatus] : [],
-      );
+      }>(query.sql, query.args);
 
       for (const row of rows) {
-        const branch = row.branch?.trim();
-        if (!branch) continue;
-
-        const requestMatch = branch.match(/^feat\/(request-[\w]+)-/);
-        const request_id = requestMatch?.[1] ?? `request-${row.trace_id?.substring(0, 8)}`;
-
-        const basicMetadata: ReviewMetadata = {
-          type: "code",
-          branch,
-          trace_id: row.trace_id,
-          request_id,
-          base_branch: row.base_branch ?? undefined,
-          worktree_path: row.worktree_path ?? undefined,
-          files_changed: row.files_changed ?? 0,
-          created_at: row.created,
-          agent_id: row.created_by,
-          portal: row.portal ?? undefined,
-          status: row.status?.toLowerCase(),
-          approved_at: row.approved_at ?? undefined,
-          approved_by: row.approved_by ?? undefined,
-          rejected_at: row.rejected_at ?? undefined,
-          rejected_by: row.rejected_by ?? undefined,
-          rejection_reason: row.rejection_reason ?? undefined,
-        };
-
-        dbBranches.add(branch);
-
-        try {
-          const enrichedMetadata = await this.extractReviewMetadataWithContext(basicMetadata);
-          reviews.push(enrichedMetadata);
-        } catch {
-          reviews.push(basicMetadata);
-        }
+        const basic = this.rowToBasicCodeReview(row);
+        if (!basic) continue;
+        dbBranches.add(basic.branch);
+        await this.pushEnrichedOrBasic(reviews, basic);
       }
     } catch {
       // Older DB schema or missing table; ignore and fall back to git scanning.
     }
+  }
 
+  private rowToBasicCodeReview(row: {
+    trace_id: string;
+    portal: string | null;
+    branch: string;
+    base_branch: string | null;
+    worktree_path: string | null;
+    files_changed: number | null;
+    created: string;
+    created_by: string;
+    status: string;
+    approved_at: string | null;
+    approved_by: string | null;
+    rejected_at: string | null;
+    rejected_by: string | null;
+    rejection_reason: string | null;
+  }): ReviewMetadata | null {
+    const branch = row.branch?.trim();
+    if (!branch) return null;
+
+    const requestMatch = branch.match(/^feat\/(request-[\w]+)-/);
+    const request_id = requestMatch?.[1] ?? `request-${row.trace_id?.substring(0, 8)}`;
+
+    return {
+      type: "code",
+      branch,
+      trace_id: row.trace_id,
+      request_id,
+      base_branch: row.base_branch ?? undefined,
+      worktree_path: row.worktree_path ?? undefined,
+      files_changed: row.files_changed ?? 0,
+      created_at: row.created,
+      agent_id: row.created_by,
+      portal: row.portal ?? undefined,
+      status: row.status?.toLowerCase(),
+      approved_at: row.approved_at ?? undefined,
+      approved_by: row.approved_by ?? undefined,
+      rejected_at: row.rejected_at ?? undefined,
+      rejected_by: row.rejected_by ?? undefined,
+      rejection_reason: row.rejection_reason ?? undefined,
+    };
+  }
+
+  private async pushEnrichedOrBasic(reviews: ReviewMetadata[], basic: ReviewMetadata) {
+    try {
+      const enrichedMetadata = await this.extractReviewMetadataWithContext(basic);
+      reviews.push(enrichedMetadata);
+    } catch {
+      reviews.push(basic);
+    }
+  }
+
+  private async appendGitScannedCodeReviews(
+    reviews: ReviewMetadata[],
+    dbBranches: Set<string>,
+    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+  ) {
     const portalPaths = await this.getPortalRepoPaths();
 
     for (const repoPath of portalPaths) {
-      const defaultBranch = await this.getDefaultBranch(repoPath);
-
-      // Get all branches with feat/ prefix (agent branches)
-      const branchesCmd = new Deno.Command("git", {
-        args: ["branch", "--list", "feat/*"],
-        cwd: repoPath,
-        stdout: "piped",
-        stderr: "piped",
-      });
-
-      const { stdout, success } = await branchesCmd.output();
-      if (!success) {
-        continue; // Skip repos with no feat branches
-      }
-
-      const branches = new TextDecoder().decode(stdout)
-        .trim()
-        .split("\n")
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0)
-        // '*' => current branch, '+' => checked out in another worktree
-        .map((line) => line.replace(/^[*+]\s+/, ""));
-
-      for (const branch of branches) {
-        if (dbBranches.has(branch)) continue;
-
-        // Extract trace_id from branch name (feat/{request_id}-{trace_id})
-        // request_id format: request-NNN, trace_id format: xxx-yyy-zzz
-        const match = branch.match(/^feat\/(request-[\w]+)-(.+)$/);
-        if (!match) continue;
-
-        const [, request_id, trace_id] = match;
-
-        // Get branch creation time and author
-        const logCmd = new Deno.Command("git", {
-          args: [
-            "log",
-            branch,
-            "--format=%H %aI %ae",
-            "-1",
-          ],
-          cwd: repoPath,
-          stdout: "piped",
-          stderr: "piped",
-        });
-
-        const logResult = await logCmd.output();
-        if (!logResult.success) continue;
-
-        const logLine = new TextDecoder().decode(logResult.stdout).trim();
-        const [, timestamp, agent_id] = logLine.split(" ");
-
-        const baseBranch = await this.resolveBaseBranchForBranch(branch, repoPath, defaultBranch);
-        const storedWorktreePath = await this.getStoredReviewWorktreePath(branch);
-
-        // Get number of files changed
-        const diffCmd = new Deno.Command("git", {
-          args: ["diff", "--name-only", `${baseBranch}...${branch}`],
-          cwd: repoPath,
-          stdout: "piped",
-          stderr: "piped",
-        });
-
-        const diffResult = await diffCmd.output();
-        const files = new TextDecoder().decode(diffResult.stdout).trim().split("\n").filter((f) => f);
-
-        // Check if branch has been merged or rejected via activity log
-        const storedTraceId = await this.getStoredReviewTraceId(branch);
-        const effectiveTraceId = storedTraceId ?? trace_id;
-        const activities = await this.db.getActivitiesByTraceSafe(effectiveTraceId);
-        const status = activities.some((a: { action_type: string }) => a.action_type === "review.approved")
-          ? ReviewStatus.APPROVED
-          : activities.some((a: { action_type: string }) => a.action_type === "review.rejected")
-          ? ReviewStatus.REJECTED
-          : ReviewStatus.PENDING;
-
-        if (normalizedStatus && status !== normalizedStatus) continue;
-
-        const basicMetadata = {
-          type: "code" as const,
-          branch,
-          trace_id: effectiveTraceId,
-          request_id,
-          base_branch: baseBranch,
-          worktree_path: storedWorktreePath ?? undefined,
-          files_changed: files.length,
-          created_at: timestamp,
-          agent_id,
-          status: status.toLowerCase(),
-        };
-
-        // Enrich with request and plan context
-        const enrichedMetadata = await this.extractReviewMetadataWithContext(basicMetadata);
-        reviews.push(enrichedMetadata);
-      }
+      await this.appendGitScannedCodeReviewsFromRepo(reviews, dbBranches, normalizedStatus, repoPath);
     }
+  }
 
-    return reviews.sort((a, b) => {
-      const ta = Number(new Date(a.created_at));
-      const tb = Number(new Date(b.created_at));
-      // Newer first
-      return (tb || 0) - (ta || 0);
+  private async appendGitScannedCodeReviewsFromRepo(
+    reviews: ReviewMetadata[],
+    dbBranches: Set<string>,
+    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+    repoPath: string,
+  ) {
+    const defaultBranch = await this.getDefaultBranch(repoPath);
+    const branches = await this.listFeatBranches(repoPath);
+
+    for (const branch of branches) {
+      if (dbBranches.has(branch)) continue;
+      const maybeReview = await this.buildCodeReviewFromGitBranch(repoPath, defaultBranch, branch, normalizedStatus);
+      if (maybeReview) reviews.push(maybeReview);
+    }
+  }
+
+  private async listFeatBranches(repoPath: string): Promise<string[]> {
+    const branchesCmd = new Deno.Command("git", {
+      args: ["branch", "--list", "feat/*"],
+      cwd: repoPath,
+      stdout: "piped",
+      stderr: "piped",
     });
+
+    const { stdout, success } = await branchesCmd.output();
+    if (!success) return [];
+
+    return new TextDecoder().decode(stdout)
+      .trim()
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      // '*' => current branch, '+' => checked out in another worktree
+      .map((line) => line.replace(/^[*+]\s+/, ""));
+  }
+
+  private parseRequestAndTraceFromBranch(branch: string): { request_id: string; trace_id: string } | null {
+    const match = branch.match(/^feat\/(request-[\w]+)-(.+)$/);
+    if (!match) return null;
+    return { request_id: match[1], trace_id: match[2] };
+  }
+
+  private async getBranchTimestampAndAgent(
+    repoPath: string,
+    branch: string,
+  ): Promise<{ timestamp: string; agent_id: string } | null> {
+    const logCmd = new Deno.Command("git", {
+      args: ["log", branch, "--format=%H %aI %ae", "-1"],
+      cwd: repoPath,
+      stdout: "piped",
+      stderr: "piped",
+    });
+
+    const logResult = await logCmd.output();
+    if (!logResult.success) return null;
+
+    const logLine = new TextDecoder().decode(logResult.stdout).trim();
+    const parts = logLine.split(" ");
+    if (parts.length < 3) return null;
+    return { timestamp: parts[1], agent_id: parts[2] };
+  }
+
+  private async getFilesChangedCount(repoPath: string, baseBranch: string, branch: string): Promise<number> {
+    const diffCmd = new Deno.Command("git", {
+      args: ["diff", "--name-only", `${baseBranch}...${branch}`],
+      cwd: repoPath,
+      stdout: "piped",
+      stderr: "piped",
+    });
+
+    const diffResult = await diffCmd.output();
+    const files = new TextDecoder().decode(diffResult.stdout).trim().split("\n").filter((f) => f);
+    return files.length;
+  }
+
+  private getStatusFromActivities(activities: Array<{ action_type: string }>): ReviewStatus {
+    let hasRejected = false;
+    for (const a of activities) {
+      if (a.action_type === "review.approved") return ReviewStatus.APPROVED;
+      if (a.action_type === "review.rejected") hasRejected = true;
+    }
+    return hasRejected ? ReviewStatus.REJECTED : ReviewStatus.PENDING;
+  }
+
+  private async buildCodeReviewFromGitBranch(
+    repoPath: string,
+    defaultBranch: string,
+    branch: string,
+    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+  ): Promise<ReviewMetadata | null> {
+    const parsed = this.parseRequestAndTraceFromBranch(branch);
+    if (!parsed) return null;
+
+    const logInfo = await this.getBranchTimestampAndAgent(repoPath, branch);
+    if (!logInfo) return null;
+
+    const baseBranch = await this.resolveBaseBranchForBranch(branch, repoPath, defaultBranch);
+    const storedWorktreePath = await this.getStoredReviewWorktreePath(branch);
+    const storedTraceId = await this.getStoredReviewTraceId(branch);
+    const effectiveTraceId = storedTraceId ?? parsed.trace_id;
+    const activities = await this.db.getActivitiesByTraceSafe(effectiveTraceId);
+    const status = this.getStatusFromActivities(activities);
+    if (normalizedStatus && status !== normalizedStatus) return null;
+
+    const filesChanged = await this.getFilesChangedCount(repoPath, baseBranch, branch);
+
+    const basicMetadata: ReviewMetadata = {
+      type: "code",
+      branch,
+      trace_id: effectiveTraceId,
+      request_id: parsed.request_id,
+      base_branch: baseBranch,
+      worktree_path: storedWorktreePath ?? undefined,
+      files_changed: filesChanged,
+      created_at: logInfo.timestamp,
+      agent_id: logInfo.agent_id,
+      status: status.toLowerCase(),
+    };
+
+    return await this.extractReviewMetadataWithContext(basicMetadata);
   }
 
   /**

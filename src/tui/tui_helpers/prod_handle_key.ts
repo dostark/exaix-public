@@ -25,8 +25,12 @@ async function handleMemoryNotificationsKey(
 ): Promise<{ exit?: boolean; reRender?: boolean }> {
   const { prodState, notificationService } = ctx;
 
+  const exitKeys = new Set(["m", "\x1b", "esc"]);
+  const navUpKeys = new Set(["\x1b[A", "k", "up"]);
+  const navDownKeys = new Set(["\x1b[B", "j", "down"]);
+
   // Exit memory notifications mode
-  if (key === "m" || key === "\x1b" || key === "esc") {
+  if (exitKeys.has(key)) {
     prodState.showMemoryNotifications = false;
     return { reRender: true };
   }
@@ -36,25 +40,34 @@ async function handleMemoryNotificationsKey(
   const count = memoryNotifs.length;
 
   // Navigation keys
-  if (key === "\x1b[A" || key === "k" || key === "up") { // Up
+  if (navUpKeys.has(key)) {
     if (count > 0) {
       prodState.selectedMemoryNotifIndex = (prodState.selectedMemoryNotifIndex - 1 + count) % count;
       return { reRender: true };
     }
-  } else if (key === "\x1b[B" || key === "j" || key === "down") { // Down
+    return { reRender: false };
+  }
+
+  if (navDownKeys.has(key)) {
     if (count > 0) {
       prodState.selectedMemoryNotifIndex = (prodState.selectedMemoryNotifIndex + 1) % count;
       return { reRender: true };
     }
+    return { reRender: false };
   }
 
   // Action keys
-  if ((key === "a" || key === "A") && count > 0) {
+  if (count === 0) return { reRender: false };
+
+  const action = key.toLowerCase();
+  if (action === "a") {
     const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
     await notificationService.notify(`Approved: ${selected.message}`, "success");
     await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
     return { reRender: true };
-  } else if ((key === "r" || key === "R") && count > 0) {
+  }
+
+  if (action === "r") {
     const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
     await notificationService.notify(`Rejected: ${selected.message}`, "error");
     await notificationService.clearNotification((selected.proposal_id || selected.id) as string);

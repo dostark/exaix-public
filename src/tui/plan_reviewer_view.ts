@@ -417,36 +417,37 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
   // ===== Key Handling =====
 
   override async handleKey(key: string): Promise<boolean> {
-    // 1. Handle diff view
-    if (this.planExtensions.showDiff) {
-      if (key === KEYS.ESCAPE || key === KEYS.Q || key === KEYS.ENTER) {
-        this.planExtensions.showDiff = false;
-        this.planExtensions.diffContent = "";
-      }
-      return true;
-    }
+    if (this.handleDiffViewKeys(key)) return true;
+    if (this.handleBaseKeysAndSync(key)) return true;
+    return await this.handleActionKeys(key);
+  }
 
-    // 2. Handle navigation & common keys (delegated to base)
-    if (this.handleKeySync(key)) {
-      this.syncSelectedIndex();
-      // If filter was cleared (handled by base), rebuild tree
-      if (this.state.filterText === "" && key === KEYS.ESCAPE) {
-        this.buildTree(this.plans);
-      }
-      return true;
-    }
+  private handleDiffViewKeys(key: string): boolean {
+    if (!this.planExtensions.showDiff) return false;
 
-    // 6. Handle action keys
+    if (key === KEYS.ESCAPE || key === KEYS.Q || key === KEYS.ENTER) {
+      this.planExtensions.showDiff = false;
+      this.planExtensions.diffContent = "";
+    }
+    return true;
+  }
+
+  private handleBaseKeysAndSync(key: string): boolean {
+    if (!this.handleKeySync(key)) return false;
+
+    this.syncSelectedIndex();
+    // If filter was cleared (handled by base), rebuild tree
+    if (this.state.filterText === "" && key === KEYS.ESCAPE) {
+      this.buildTree(this.plans);
+    }
+    return true;
+  }
+
+  private async handleActionKeys(key: string): Promise<boolean> {
     switch (key) {
-      case KEYS.ENTER: {
-        const selected = this.getSelectedNode();
-        if (selected && selected.type === "group") {
-          this.toggleCurrentNode();
-        } else if (selected && selected.type === "plan") {
-          await this.showDiffAction(selected.data as Plan);
-        }
+      case KEYS.ENTER:
+        await this.handleEnterKey();
         return true;
-      }
       case KEYS.A:
         this.showApproveConfirmDialog();
         return true;
@@ -464,6 +465,18 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
         return true;
       default:
         return false;
+    }
+  }
+
+  private async handleEnterKey(): Promise<void> {
+    const selected = this.getSelectedNode();
+    if (!selected) return;
+    if (selected.type === "group") {
+      this.toggleCurrentNode();
+      return;
+    }
+    if (selected.type === "plan") {
+      await this.showDiffAction(selected.data as Plan);
     }
   }
 

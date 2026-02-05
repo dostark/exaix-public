@@ -67,6 +67,33 @@ export class JournalCommands extends BaseCommand {
       // Normalize filter to always be an array (Cliffy sometimes returns string for single value)
       const filters = Array.isArray(options.filter) ? options.filter : [options.filter];
 
+      const applyFilterValue: Record<string, (value: string) => void> = {
+        trace_id: (value) => {
+          filterOptions.traceId = value;
+        },
+        action_type: (value) => {
+          filterOptions.actionType = value;
+        },
+        agent_id: (value) => {
+          filterOptions.agentId = value;
+        },
+        time: (value) => {
+          filterOptions.since = value;
+        },
+        since: (value) => {
+          filterOptions.since = value;
+        },
+        payload: (value) => {
+          filterOptions.payload = value;
+        },
+        actor: (value) => {
+          filterOptions.actor = value;
+        },
+        target: (value) => {
+          filterOptions.target = value;
+        },
+      };
+
       for (const filter of filters) {
         // Ensure filter is a string
         const filterStr = typeof filter === "string" ? filter : String(filter);
@@ -76,36 +103,17 @@ export class JournalCommands extends BaseCommand {
           Deno.exit(1);
         }
 
-        switch (key) {
-          case "trace_id":
-            filterOptions.traceId = value;
-            break;
-          case "action_type":
-            filterOptions.actionType = value;
-            break;
-          case "agent_id":
-            filterOptions.agentId = value;
-            break;
-          case "time": // Alias for since
-          case "since":
-            filterOptions.since = value;
-            break;
-          case "payload":
-            filterOptions.payload = value;
-            break;
-          case "actor":
-            filterOptions.actor = value;
-            break;
-          case "target":
-            filterOptions.target = value;
-            break;
-          default:
-            console.error(
-              colors.yellow(
-                `Unknown filter key: ${key}. Supported: trace_id, action_type, agent_id, since, payload, actor, target.`,
-              ),
-            );
+        const apply = applyFilterValue[key];
+        if (!apply) {
+          console.error(
+            colors.yellow(
+              `Unknown filter key: ${key}. Supported: trace_id, action_type, agent_id, since, payload, actor, target.`,
+            ),
+          );
+          continue;
         }
+
+        apply(value);
       }
     }
     return filterOptions;

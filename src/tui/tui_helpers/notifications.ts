@@ -19,6 +19,16 @@ export async function renderNotificationPanel(
   const lines: string[] = [];
   let activeNotifications = await notificationService.getNotifications();
 
+  const messageColorByType: Record<string, string> = {
+    error: theme.error,
+    memory_rejected: theme.error,
+    warning: theme.warning,
+    success: theme.success,
+    memory_approved: theme.success,
+    info: theme.primary,
+    memory_update_pending: theme.primary,
+  };
+
   if (state.showMemoryNotifications) {
     activeNotifications = activeNotifications.filter((n: any) => n.type === "memory_update_pending");
   }
@@ -45,12 +55,7 @@ export async function renderNotificationPanel(
 
     const isSelected = state.showMemoryNotifications && i === state.selectedMemoryNotifIndex;
 
-    let messageColor = theme.text;
-    const t = type as string;
-    if (t === "error" || t === "memory_rejected") messageColor = theme.error;
-    else if (t === "warning") messageColor = theme.warning;
-    else if (t === "success" || t === "memory_approved") messageColor = theme.success;
-    else if (t === "info" || t === "memory_update_pending") messageColor = theme.primary;
+    const messageColor = messageColorByType[String(type)] ?? theme.text;
 
     const prefix = isSelected ? "▶ " : "  ";
     let line = `${prefix}${icon} ${colorize(notification.message, messageColor, theme.reset)} ${

@@ -67,16 +67,7 @@ export class JournalFormatter {
       .body(
         activities.map((a) => {
           const timestamp = new Date(a.timestamp).toLocaleString();
-          let action = a.action_type;
-
-          // Color code actions
-          if (action.includes("error") || action.includes("fail") || action.includes("reject")) {
-            action = colors.red(action);
-          } else if (action.includes("approve") || action.includes("success")) {
-            action = colors.green(action);
-          } else if (action.includes("create") || action.includes("start")) {
-            action = colors.blue(action);
-          }
+          const action = this.styleAction(a.action_type);
 
           return [
             colors.gray(timestamp),
@@ -95,19 +86,12 @@ export class JournalFormatter {
   private static renderText(activities: ActivityRecord[], filter: JournalFilterOptions) {
     // Handle different query types
     if (filter.distinct) {
-      // DISTINCT query - show the distinct field values
-      for (const activity of activities) {
-        const value = activity[filter.distinct as keyof ActivityRecord] || "";
-        console.log(value);
-      }
+      this.renderDistinctText(activities, filter.distinct);
       return;
     }
 
     if (filter.count) {
-      // COUNT query - show action_type and count
-      for (const activity of activities) {
-        console.log(`${activity.action_type}: ${activity.count || 0}`);
-      }
+      this.renderCountText(activities);
       return;
     }
 
@@ -118,14 +102,7 @@ export class JournalFormatter {
       const agent = activity.agent_id || activity.actor || "-";
 
       // Color code action
-      let action = activity.action_type;
-      if (action.includes("error") || action.includes("fail") || action.includes("reject")) {
-        action = colors.red(action);
-      } else if (action.includes("approve") || action.includes("success")) {
-        action = colors.green(action);
-      } else if (action.includes("create") || action.includes("start")) {
-        action = colors.blue(action);
-      }
+      const action = this.styleAction(activity.action_type);
 
       console.log(
         `${colors.gray(timestamp)} ${action} ${colors.dim("agent=")}${agent} ${colors.dim("trace=")}${
@@ -133,6 +110,32 @@ export class JournalFormatter {
         } ${colors.dim("target=")}${activity.target || "-"}`,
       );
     }
+  }
+
+  private static renderDistinctText(activities: ActivityRecord[], distinctField: string) {
+    for (const activity of activities) {
+      const value = activity[distinctField as keyof ActivityRecord] || "";
+      console.log(value);
+    }
+  }
+
+  private static renderCountText(activities: ActivityRecord[]) {
+    for (const activity of activities) {
+      console.log(`${activity.action_type}: ${activity.count || 0}`);
+    }
+  }
+
+  private static styleAction(action: string): string {
+    if (action.includes("error") || action.includes("fail") || action.includes("reject")) {
+      return colors.red(action);
+    }
+    if (action.includes("approve") || action.includes("success")) {
+      return colors.green(action);
+    }
+    if (action.includes("create") || action.includes("start")) {
+      return colors.blue(action);
+    }
+    return action;
   }
 
   private static truncateText(str: string, max: number): string {

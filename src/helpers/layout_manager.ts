@@ -263,6 +263,76 @@ export const LAYOUT_PRESETS: LayoutPreset[] = [
 
 // ===== Layout Manager Class =====
 
+type ResizeDirection = "left" | "right" | "up" | "down";
+
+function resizePaneLeft(pane: LayoutPane, affected: LayoutPane | undefined, amount: number) {
+  if (pane.width - amount < MIN_PANE_WIDTH) return;
+  pane.width -= amount;
+  if (affected && affected.x > pane.x) {
+    affected.x -= amount;
+    affected.width += amount;
+  }
+}
+
+function resizePaneRight(
+  pane: LayoutPane,
+  affected: LayoutPane | undefined,
+  amount: number,
+  terminalWidth: number,
+) {
+  if (affected && affected.width - amount >= MIN_PANE_WIDTH) {
+    pane.width += amount;
+    affected.x += amount;
+    affected.width -= amount;
+    return;
+  }
+  if (!affected && pane.x + pane.width + amount <= terminalWidth) {
+    pane.width += amount;
+  }
+}
+
+function resizePaneUp(pane: LayoutPane, affected: LayoutPane | undefined, amount: number) {
+  if (pane.height - amount < MIN_PANE_HEIGHT) return;
+  pane.height -= amount;
+  if (affected && affected.y > pane.y) {
+    affected.y -= amount;
+    affected.height += amount;
+  }
+}
+
+function resizePaneDown(
+  pane: LayoutPane,
+  affected: LayoutPane | undefined,
+  amount: number,
+  terminalHeight: number,
+) {
+  if (affected && affected.height - amount >= MIN_PANE_HEIGHT) {
+    pane.height += amount;
+    affected.y += amount;
+    affected.height -= amount;
+    return;
+  }
+  if (!affected && pane.y + pane.height + amount <= terminalHeight) {
+    pane.height += amount;
+  }
+}
+
+const RESIZE_PANE_HANDLERS: Record<
+  ResizeDirection,
+  (args: {
+    pane: LayoutPane;
+    affected?: LayoutPane;
+    amount: number;
+    terminalWidth: number;
+    terminalHeight: number;
+  }) => void
+> = {
+  left: ({ pane, affected, amount }) => resizePaneLeft(pane, affected, amount),
+  right: ({ pane, affected, amount, terminalWidth }) => resizePaneRight(pane, affected, amount, terminalWidth),
+  up: ({ pane, affected, amount }) => resizePaneUp(pane, affected, amount),
+  down: ({ pane, affected, amount, terminalHeight }) => resizePaneDown(pane, affected, amount, terminalHeight),
+};
+
 export class LayoutManager {
   private terminalWidth: number;
   private terminalHeight: number;
@@ -447,7 +517,7 @@ export class LayoutManager {
   resizePane(
     panes: LayoutPane[],
     paneId: string,
-    direction: "left" | "right" | "up" | "down",
+    direction: ResizeDirection,
     amount: number = 5,
   ): LayoutPane[] {
     const pane = panes.find((p) => p.id === paneId);
@@ -458,44 +528,13 @@ export class LayoutManager {
     // Find adjacent pane that will be affected
     const affected = this.findAffectedPane(panes, pane, direction);
 
-    switch (direction) {
-      case "left":
-        if (pane.width - amount >= MIN_PANE_WIDTH) {
-          pane.width -= amount;
-          if (affected && affected.x > pane.x) {
-            affected.x -= amount;
-            affected.width += amount;
-          }
-        }
-        break;
-      case "right":
-        if (affected && affected.width - amount >= MIN_PANE_WIDTH) {
-          pane.width += amount;
-          affected.x += amount;
-          affected.width -= amount;
-        } else if (!affected && pane.x + pane.width + amount <= this.terminalWidth) {
-          pane.width += amount;
-        }
-        break;
-      case "up":
-        if (pane.height - amount >= MIN_PANE_HEIGHT) {
-          pane.height -= amount;
-          if (affected && affected.y > pane.y) {
-            affected.y -= amount;
-            affected.height += amount;
-          }
-        }
-        break;
-      case "down":
-        if (affected && affected.height - amount >= MIN_PANE_HEIGHT) {
-          pane.height += amount;
-          affected.y += amount;
-          affected.height -= amount;
-        } else if (!affected && pane.y + pane.height + amount <= this.terminalHeight) {
-          pane.height += amount;
-        }
-        break;
-    }
+    RESIZE_PANE_HANDLERS[direction]({
+      pane,
+      affected,
+      amount,
+      terminalWidth: this.terminalWidth,
+      terminalHeight: this.terminalHeight,
+    });
 
     return panes;
   }
@@ -662,20 +701,19 @@ export class LayoutManager {
     if (typeof layout !== "object" || layout === null) return false;
     const l = layout as Record<string, unknown>;
 
-    if (typeof l.name !== "string") return false;
+    const requiredLayoutStrings: Array<keyof Layout> = ["name", "activePaneId", "version"];
+    if (requiredLayoutStrings.some((k) => typeof l[k] !== "string")) return false;
     if (!Array.isArray(l.panes)) return false;
-    if (typeof l.activePaneId !== "string") return false;
-    if (typeof l.version !== "string") return false;
+
+    const requiredPaneStrings = ["id", "viewName"] as const;
+    const requiredPaneNumbers = ["x", "y", "width", "height"] as const;
 
     for (const pane of l.panes) {
       if (typeof pane !== "object" || pane === null) return false;
       const p = pane as Record<string, unknown>;
-      if (typeof p.id !== "string") return false;
-      if (typeof p.viewName !== "string") return false;
-      if (typeof p.x !== "number") return false;
-      if (typeof p.y !== "number") return false;
-      if (typeof p.width !== "number") return false;
-      if (typeof p.height !== "number") return false;
+
+      if (requiredPaneStrings.some((k) => typeof p[k] !== "string")) return false;
+      if (requiredPaneNumbers.some((k) => typeof p[k] !== "number")) return false;
     }
 
     return true;

@@ -418,55 +418,71 @@ export class SelectDialog<T = string> extends DialogBase<T> {
 
   handleKey(key: string): void {
     if (this.focusIndex === 0) {
-      // Navigating list
-      switch (key) {
-        case KEYS.UP:
-          if (this.selectedIndex > 0) {
-            this.selectedIndex--;
-            if (this.selectedIndex < this.scrollOffset) {
-              this.scrollOffset = this.selectedIndex;
-            }
-          }
-          break;
-        case KEYS.DOWN:
-          if (this.selectedIndex < this.options.options.length - 1) {
-            this.selectedIndex++;
-            if (this.selectedIndex >= this.scrollOffset + this.maxVisible) {
-              this.scrollOffset = this.selectedIndex - this.maxVisible + 1;
-            }
-          }
-          break;
-        case KEYS.TAB:
-          this.moveFocus(1);
-          break;
-        case KEYS.ENTER:
-          this.confirm(this.options.options[this.selectedIndex].value);
-          break;
-        case KEYS.ESCAPE:
-          this.cancel();
-          break;
-      }
-    } else {
-      switch (key) {
-        case KEYS.TAB:
-          this.moveFocus(1);
-          break;
-        case KEYS.SHIFT_TAB:
-        case KEYS.UP:
-          this.moveFocus(-1);
-          break;
-        case KEYS.ENTER:
-          if (this.focusIndex === 1) {
-            this.confirm(this.options.options[this.selectedIndex].value);
-          } else {
-            this.cancel();
-          }
-          break;
-        case KEYS.ESCAPE:
-          this.cancel();
-          break;
-      }
+      this.handleListKey(key);
+      return;
     }
+    this.handleButtonsKey(key);
+  }
+
+  private handleListKey(key: string): void {
+    switch (key) {
+      case KEYS.UP:
+        this.moveSelection(-1);
+        return;
+      case KEYS.DOWN:
+        this.moveSelection(1);
+        return;
+      case KEYS.TAB:
+        this.moveFocus(1);
+        return;
+      case KEYS.ENTER:
+        this.confirm(this.options.options[this.selectedIndex].value);
+        return;
+      case KEYS.ESCAPE:
+        this.cancel();
+        return;
+    }
+  }
+
+  private moveSelection(delta: number): void {
+    const nextIndex = this.selectedIndex + delta;
+    if (nextIndex < 0) return;
+    if (nextIndex >= this.options.options.length) return;
+
+    this.selectedIndex = nextIndex;
+
+    if (this.selectedIndex < this.scrollOffset) {
+      this.scrollOffset = this.selectedIndex;
+    }
+    if (this.selectedIndex >= this.scrollOffset + this.maxVisible) {
+      this.scrollOffset = this.selectedIndex - this.maxVisible + 1;
+    }
+  }
+
+  private handleButtonsKey(key: string): void {
+    switch (key) {
+      case KEYS.TAB:
+        this.moveFocus(1);
+        return;
+      case KEYS.SHIFT_TAB:
+      case KEYS.UP:
+        this.moveFocus(-1);
+        return;
+      case KEYS.ENTER:
+        this.confirmOrCancel();
+        return;
+      case KEYS.ESCAPE:
+        this.cancel();
+        return;
+    }
+  }
+
+  private confirmOrCancel(): void {
+    if (this.focusIndex === 1) {
+      this.confirm(this.options.options[this.selectedIndex].value);
+      return;
+    }
+    this.cancel();
   }
 
   render(opts: DialogRenderOptions): string[] {

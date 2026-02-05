@@ -48,6 +48,81 @@ export interface PanelRenderOptions {
   useColors: boolean;
 }
 
+function truncateText(text: string, limit: number): string {
+  if (text.length <= limit) return text;
+  return text.slice(0, limit - 3) + "...";
+}
+
+function pushLimitedList(
+  lines: string[],
+  items: string[],
+  limit: number,
+  render: (item: string) => string,
+): void {
+  for (const item of items.slice(0, limit)) {
+    lines.push(render(item));
+  }
+  if (items.length > limit) {
+    lines.push(`  ... and ${items.length - limit} more`);
+  }
+}
+
+function renderProjectOverview(lines: string[], overview: string): void {
+  lines.push("## Overview");
+  lines.push(truncateText(overview, TUI_DETAIL_MAX_OVERVIEW_CHARS));
+  lines.push("");
+}
+
+function renderProjectPatterns(
+  lines: string[],
+  patterns: ProjectMemory["patterns"],
+  c: { pattern: string; reset: string },
+): void {
+  if (!patterns || patterns.length === 0) return;
+  lines.push(`${c.pattern}## Patterns (${patterns.length})${c.reset}`);
+  const limit = TUI_LIMIT_MEDIUM;
+  for (const p of patterns.slice(0, limit)) {
+    const tags = p.tags?.length ? ` [${p.tags.join(", ")}]` : "";
+    lines.push(`  • ${p.name}${tags}`);
+  }
+  if (patterns.length > limit) {
+    lines.push(`  ... and ${patterns.length - limit} more`);
+  }
+  lines.push("");
+}
+
+function renderProjectDecisions(
+  lines: string[],
+  decisions: ProjectMemory["decisions"],
+  c: { decision: string; reset: string },
+): void {
+  if (!decisions || decisions.length === 0) return;
+  lines.push(`${c.decision}## Decisions (${decisions.length})${c.reset}`);
+  const limit = TUI_LIMIT_SHORT;
+  for (const d of decisions.slice(0, limit)) {
+    lines.push(`  • ${d.decision}`);
+  }
+  if (decisions.length > limit) {
+    lines.push(`  ... and ${decisions.length - limit} more`);
+  }
+  lines.push("");
+}
+
+function renderProjectReferences(
+  lines: string[],
+  references: ProjectMemory["references"],
+): void {
+  if (!references || references.length === 0) return;
+  lines.push(`## References (${references.length})`);
+  const limit = TUI_LIMIT_SHORT;
+  for (const r of references.slice(0, limit)) {
+    lines.push(`  • ${r.type}: ${r.path}`);
+  }
+  if (references.length > limit) {
+    lines.push(`  ... and ${references.length - limit} more`);
+  }
+}
+
 // ===== Project Panel =====
 
 export function renderProjectPanel(
@@ -71,53 +146,10 @@ export function renderProjectPanel(
     return lines.join("\n");
   }
 
-  if (memory.overview) {
-    lines.push("## Overview");
-    const limit = TUI_DETAIL_MAX_OVERVIEW_CHARS;
-    const overview = memory.overview.length > limit ? memory.overview.slice(0, limit - 3) + "..." : memory.overview;
-    lines.push(overview);
-    lines.push("");
-  }
-
-  if (memory.patterns && memory.patterns.length > 0) {
-    lines.push(
-      `${c.pattern}## Patterns (${memory.patterns.length})${c.reset}`,
-    );
-    const limit = TUI_LIMIT_MEDIUM;
-    for (const p of memory.patterns.slice(0, limit)) {
-      const tags = p.tags?.length ? ` [${p.tags.join(", ")}]` : "";
-      lines.push(`  • ${p.name}${tags}`);
-    }
-    if (memory.patterns.length > limit) {
-      lines.push(`  ... and ${memory.patterns.length - limit} more`);
-    }
-    lines.push("");
-  }
-
-  if (memory.decisions && memory.decisions.length > 0) {
-    lines.push(
-      `${c.decision}## Decisions (${memory.decisions.length})${c.reset}`,
-    );
-    const limit = TUI_LIMIT_SHORT;
-    for (const d of memory.decisions.slice(0, limit)) {
-      lines.push(`  • ${d.decision}`);
-    }
-    if (memory.decisions.length > limit) {
-      lines.push(`  ... and ${memory.decisions.length - limit} more`);
-    }
-    lines.push("");
-  }
-
-  if (memory.references && memory.references.length > 0) {
-    lines.push(`## References (${memory.references.length})`);
-    const limit = TUI_LIMIT_SHORT;
-    for (const r of memory.references.slice(0, limit)) {
-      lines.push(`  • ${r.type}: ${r.path}`);
-    }
-    if (memory.references.length > limit) {
-      lines.push(`  ... and ${memory.references.length - limit} more`);
-    }
-  }
+  if (memory.overview) renderProjectOverview(lines, memory.overview);
+  renderProjectPatterns(lines, memory.patterns, c);
+  renderProjectDecisions(lines, memory.decisions, c);
+  renderProjectReferences(lines, memory.references);
 
   return lines.join("\n");
 }
@@ -190,69 +222,80 @@ export function renderExecutionPanel(
   memory: ExecutionMemory | null,
   options: PanelRenderOptions,
 ): string {
+  if (!memory) return "No execution selected.";
+
   const lines: string[] = [];
   const { useColors } = options;
   const c = useColors ? MemoryColors : { execution: "", reset: "" };
 
-  if (!memory) {
-    lines.push("No execution selected.");
-    return lines.join("\n");
-  }
+  renderExecutionHeader(lines, memory, c);
+  renderExecutionDetails(lines, memory, useColors, c);
+  renderExecutionSummary(lines, memory);
+  renderExecutionFilesChanged(lines, memory);
+  renderExecutionLessons(lines, memory);
 
-  const statusIcon = memory.status === "completed"
-    ? TUI_ICON_SUCCESS
-    : memory.status === "failed"
-    ? TUI_ICON_FAILURE
-    : "◐";
-  const statusColor = memory.status === "completed" ? "\x1b[32m" : memory.status === "failed" ? "\x1b[31m" : "\x1b[33m";
+  return lines.join("\n");
+}
 
-  lines.push(
-    `${c.execution}# Execution: ${memory.trace_id.slice(0, 12)}...${c.reset}`,
-  );
+function renderExecutionHeader(
+  lines: string[],
+  memory: ExecutionMemory,
+  c: { execution: string; reset: string },
+): void {
+  lines.push(`${c.execution}# Execution: ${memory.trace_id.slice(0, 12)}...${c.reset}`);
   lines.push("");
+}
+
+function getExecutionStatusPresentation(
+  status: ExecutionMemory["status"],
+): { icon: string; color: string } {
+  if (status === "completed") return { icon: TUI_ICON_SUCCESS, color: "\x1b[32m" };
+  if (status === "failed") return { icon: TUI_ICON_FAILURE, color: "\x1b[31m" };
+  return { icon: "◐", color: "\x1b[33m" };
+}
+
+function renderExecutionDetails(
+  lines: string[],
+  memory: ExecutionMemory,
+  useColors: boolean,
+  c: { reset: string },
+): void {
+  const statusPresentation = getExecutionStatusPresentation(memory.status);
 
   lines.push("## Details");
   lines.push(
-    `  Status: ${useColors ? statusColor : ""}${statusIcon} ${memory.status}${c.reset}`,
+    `  Status: ${useColors ? statusPresentation.color : ""}${statusPresentation.icon} ${memory.status}${c.reset}`,
   );
   lines.push(`  Agent: ${memory.agent}`);
   lines.push(`  Started: ${formatDate(memory.started_at)}`);
-  if (memory.completed_at) {
-    lines.push(`  Completed: ${formatDate(memory.completed_at)}`);
-  }
+  if (memory.completed_at) lines.push(`  Completed: ${formatDate(memory.completed_at)}`);
   lines.push("");
+}
 
-  if (memory.summary) {
-    lines.push("## Summary");
-    const limit = TUI_DETAIL_MAX_SUMMARY_CHARS;
-    const summary = memory.summary.length > limit ? memory.summary.slice(0, limit - 3) + "..." : memory.summary;
-    lines.push(`  ${summary}`);
-    lines.push("");
-  }
+function renderExecutionSummary(lines: string[], memory: ExecutionMemory): void {
+  if (!memory.summary) return;
+  lines.push("## Summary");
+  lines.push(`  ${truncateText(memory.summary, TUI_DETAIL_MAX_SUMMARY_CHARS)}`);
+  lines.push("");
+}
 
+function renderExecutionFilesChanged(lines: string[], memory: ExecutionMemory): void {
   const allChanges = [
     ...memory.changes.files_created,
     ...memory.changes.files_modified,
     ...memory.changes.files_deleted,
   ];
   lines.push(`## Files Changed (${allChanges.length})`);
-  const limit = TUI_LIMIT_SHORT;
-  for (const file of allChanges.slice(0, limit)) {
-    lines.push(`  • ${file}`);
-  }
-  if (allChanges.length > limit) {
-    lines.push(`  ... and ${allChanges.length - limit} more`);
-  }
+  pushLimitedList(lines, allChanges, TUI_LIMIT_SHORT, (file) => `  • ${file}`);
   lines.push("");
+}
 
-  if (memory.lessons_learned && memory.lessons_learned.length > 0) {
-    lines.push("## Lessons Learned");
-    for (const lesson of memory.lessons_learned) {
-      lines.push(`  💡 ${lesson}`);
-    }
+function renderExecutionLessons(lines: string[], memory: ExecutionMemory): void {
+  if (!memory.lessons_learned || memory.lessons_learned.length === 0) return;
+  lines.push("## Lessons Learned");
+  for (const lesson of memory.lessons_learned) {
+    lines.push(`  💡 ${lesson}`);
   }
-
-  return lines.join("\n");
 }
 
 // ===== Execution List Panel =====

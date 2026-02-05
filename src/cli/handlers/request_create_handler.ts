@@ -35,38 +35,8 @@ export class RequestCreateHandler extends BaseCommand {
       const trimmedDescription = description.trim();
       const priority = options.priority || RequestPriority.NORMAL;
 
-      // Validate input
-      const validation = new ValidationChain()
-        .addRule("description", (val) => (!val) ? "cannot be empty" : null)
-        .addRule(
-          "priority",
-          (val) =>
-            (!VALID_PRIORITIES.includes(val as RequestPriority))
-              ? `Invalid priority. Must be one of: ${VALID_PRIORITIES.join(", ")}`
-              : null,
-        )
-        .addRule(
-          "flow",
-          (val) =>
-            (val && options.agent)
-              ? "Cannot specify both 'flow' and 'agent'. Use 'flow' for multi-agent workflows or 'agent' for single agent requests."
-              : null,
-        )
-        .validate({ description: trimmedDescription, priority, flow: options.flow });
-
-      if (!validation.isValid) {
-        throw new Error(CommandUtils.formatValidationErrors(validation));
-      }
-
-      // Validate flow exists if specified
-      if (options.flow) {
-        const flowPath = join(this.config.system.root, "Blueprints", "Flows", `${options.flow}.flow.ts`);
-        try {
-          await Deno.stat(flowPath);
-        } catch {
-          throw new Error(`Flow '${options.flow}' not found. Check that the flow file exists in Blueprints/Flows/`);
-        }
-      }
+      this.validateCreateInputs(trimmedDescription, options, priority);
+      if (options.flow) await this.assertFlowExists(options.flow);
 
       // Set defaults
       const agent = options.agent || "default";
@@ -93,25 +63,7 @@ export class RequestCreateHandler extends BaseCommand {
         created_by,
       };
 
-      if (portal) {
-        frontmatterFields.portal = portal;
-      }
-
-      if (options.target_branch) {
-        frontmatterFields.target_branch = options.target_branch;
-      }
-
-      if (options.model) {
-        frontmatterFields.model = options.model;
-      }
-
-      if (options.flow) {
-        frontmatterFields.flow = options.flow;
-      }
-
-      if (options.skills && options.skills.length > 0) {
-        frontmatterFields.skills = JSON.stringify(options.skills);
-      }
+      this.addOptionalFrontmatterFields(frontmatterFields, options, portal);
 
       // Build file content with YAML frontmatter
       const frontmatter = this.serializeFrontmatter(frontmatterFields);
@@ -162,6 +114,65 @@ export class RequestCreateHandler extends BaseCommand {
         error,
       });
       throw error;
+    }
+  }
+
+  private validateCreateInputs(description: string, options: RequestOptions, priority: RequestPriority): void {
+    const validation = new ValidationChain()
+      .addRule("description", (val) => (!val) ? "cannot be empty" : null)
+      .addRule(
+        "priority",
+        (val) =>
+          (!VALID_PRIORITIES.includes(val as RequestPriority))
+            ? `Invalid priority. Must be one of: ${VALID_PRIORITIES.join(", ")}`
+            : null,
+      )
+      .addRule(
+        "flow",
+        (val) =>
+          (val && options.agent)
+            ? "Cannot specify both 'flow' and 'agent'. Use 'flow' for multi-agent workflows or 'agent' for single agent requests."
+            : null,
+      )
+      .validate({ description, priority, flow: options.flow });
+
+    if (!validation.isValid) {
+      throw new Error(CommandUtils.formatValidationErrors(validation));
+    }
+  }
+
+  private async assertFlowExists(flowId: string): Promise<void> {
+    const flowPath = join(this.config.system.root, "Blueprints", "Flows", `${flowId}.flow.ts`);
+    try {
+      await Deno.stat(flowPath);
+    } catch {
+      throw new Error(`Flow '${flowId}' not found. Check that the flow file exists in Blueprints/Flows/`);
+    }
+  }
+
+  private addOptionalFrontmatterFields(
+    frontmatterFields: Record<string, string>,
+    options: RequestOptions,
+    portal: string | undefined,
+  ): void {
+    if (portal) {
+      frontmatterFields.portal = portal;
+    }
+
+    if (options.target_branch) {
+      frontmatterFields.target_branch = options.target_branch;
+    }
+
+    if (options.model) {
+      frontmatterFields.model = options.model;
+    }
+
+    if (options.flow) {
+      frontmatterFields.flow = options.flow;
+    }
+
+    if (options.skills && options.skills.length > 0) {
+      frontmatterFields.skills = JSON.stringify(options.skills);
     }
   }
 

@@ -284,41 +284,35 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
   // ===== Key Handling =====
 
   override async handleKey(key: string): Promise<boolean> {
-    // 0. Backwards-compatible handling for legacy tests
-    if (this.selectedIndex < 0 || this.selectedIndex >= this.portals.length) {
-      if (this.portals.length > 0) {
-        this.statusMessage = "Error: No portal selected";
-        return true;
-      }
-    }
-
-    // 1. Handle dialogs (delegated to base)
+    if (this.handleLegacySelectionGuard()) return true;
     if (this.handleDialogKeys(key)) return true;
-
-    // 2. Handle help screen (delegated to base)
     if (this.handleHelpKeys(key)) return true;
+    if (this.handleBaseKeysAndSync(key)) return true;
+    return await this.handleActionKeys(key);
+  }
 
-    // 4. Handle navigation & common keys (delegated to base)
-    if (this.handleKeySync(key)) {
-      this.syncSelectedIndex();
-      // If filter was cleared (handled by base), rebuild tree
-      if (this.state.filterText === "" && key === "escape") {
-        this.buildTree(this.portals);
-      }
-      return true;
+  private handleLegacySelectionGuard(): boolean {
+    if (this.selectedIndex >= 0 && this.selectedIndex < this.portals.length) return false;
+    if (this.portals.length === 0) return false;
+    this.statusMessage = "Error: No portal selected";
+    return true;
+  }
+
+  private handleBaseKeysAndSync(key: string): boolean {
+    if (!this.handleKeySync(key)) return false;
+    this.syncSelectedIndex();
+    // If filter was cleared (handled by base), rebuild tree
+    if (this.state.filterText === "" && key === "escape") {
+      this.buildTree(this.portals);
     }
+    return true;
+  }
 
-    // 6. Handle action keys
+  private async handleActionKeys(key: string): Promise<boolean> {
     switch (key) {
-      case KEYS.ENTER: {
-        const selected = this.getSelectedNode();
-        if (selected && selected.type === "group") {
-          this.toggleCurrentNode();
-        } else if (selected) {
-          await this.executeOpen();
-        }
+      case KEYS.ENTER:
+        await this.handleEnterKey();
         return true;
-      }
       case KEYS.R:
         await this.executeRefresh();
         return true;
@@ -343,6 +337,16 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
       default:
         return false;
     }
+  }
+
+  private async handleEnterKey(): Promise<void> {
+    const selected = this.getSelectedNode();
+    if (!selected) return;
+    if (selected.type === "group") {
+      this.toggleCurrentNode();
+      return;
+    }
+    await this.executeOpen();
   }
 
   // ===== Actions =====

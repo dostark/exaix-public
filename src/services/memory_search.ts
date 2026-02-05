@@ -11,79 +11,127 @@ export interface SearchDeps {
   calculateRelevance: (titleFreq: number, descFreq: number) => number;
 }
 
+function matchesAnyLower(texts: string[], queryLower: string): boolean {
+  return texts.some((text) => text.toLowerCase().includes(queryLower));
+}
+
+function normalizeTags(tags: string[] | undefined): string[] {
+  return (tags ?? []).map((t) => t.toLowerCase());
+}
+
+function includesAllTags(candidateTags: string[], requiredTags: string[]): boolean {
+  const normalizedCandidateTags = normalizeTags(candidateTags);
+  return requiredTags.every((t) => normalizedCandidateTags.includes(t));
+}
+
+async function collectProjectResults(
+  deps: SearchDeps,
+  portal: string | undefined,
+  collect: (portalName: string, projectMem: ProjectMemory) => MemorySearchResult[],
+): Promise<MemorySearchResult[]> {
+  const results: MemorySearchResult[] = [];
+
+  for await (const entry of Deno.readDir(deps.projectsDir)) {
+    if (!entry.isDirectory) continue;
+    if (portal && entry.name !== portal) continue;
+
+    const projectMem = await deps.getProjectMemory(entry.name);
+    if (!projectMem) continue;
+
+    results.push(...collect(entry.name, projectMem));
+  }
+
+  return results;
+}
+
+function buildProjectQueryResults(portal: string, projectMem: ProjectMemory, queryLower: string): MemorySearchResult[] {
+  const results: MemorySearchResult[] = [];
+
+  if (projectMem.overview.toLowerCase().includes(queryLower)) {
+    results.push({
+      type: MemoryType.PROJECT,
+      portal,
+      title: `${portal} Overview`,
+      summary: projectMem.overview.substring(0, 200),
+      relevance_score: 0.9,
+    });
+  }
+
+  for (const pattern of projectMem.patterns) {
+    if (matchesAnyLower([pattern.name, pattern.description], queryLower)) {
+      results.push({
+        type: MemoryType.PATTERN,
+        portal,
+        title: pattern.name,
+        summary: pattern.description,
+        relevance_score: 0.8,
+      });
+    }
+  }
+
+  for (const decision of projectMem.decisions) {
+    if (decision.decision.toLowerCase().includes(queryLower)) {
+      results.push({
+        type: MemoryType.DECISION,
+        portal,
+        title: `Decision: ${decision.date}`,
+        summary: decision.decision.substring(0, 200),
+        relevance_score: 0.7,
+      });
+    }
+  }
+
+  return results;
+}
+
+async function collectExecutionQueryResults(
+  deps: SearchDeps,
+  portal: string | undefined,
+  limit: number,
+  queryLower: string,
+): Promise<MemorySearchResult[]> {
+  const results: MemorySearchResult[] = [];
+  const executions = await deps.getExecutionHistory(portal, limit);
+
+  for (const execution of executions) {
+    if (!execution.summary.toLowerCase().includes(queryLower)) continue;
+
+    results.push({
+      type: MemoryType.EXECUTION,
+      portal: execution.portal,
+      title: `Execution: ${execution.trace_id.slice(0, 8)}`,
+      summary: execution.summary,
+      relevance_score: 0.6,
+      trace_id: execution.trace_id,
+    });
+  }
+
+  return results;
+}
+
+function sortAndLimit(results: MemorySearchResult[], limit: number): MemorySearchResult[] {
+  results.sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
+  return results.slice(0, limit);
+}
+
 export async function searchMemory(
   query: string,
   options: { portal?: string; limit?: number } | undefined,
   deps: SearchDeps,
 ): Promise<MemorySearchResult[]> {
-  const results: MemorySearchResult[] = [];
   const queryLower = query.toLowerCase();
   const limit = options?.limit || DEFAULT_QUERY_LIMIT;
 
-  // Search project memory
-  for await (const entry of Deno.readDir(deps.projectsDir)) {
-    if (entry.isDirectory) {
-      if (options?.portal && entry.name !== options.portal) continue;
-
-      const projectMem = await deps.getProjectMemory(entry.name);
-      if (projectMem) {
-        if (projectMem.overview.toLowerCase().includes(queryLower)) {
-          results.push({
-            type: MemoryType.PROJECT,
-            portal: entry.name,
-            title: `${entry.name} Overview`,
-            summary: projectMem.overview.substring(0, 200),
-            relevance_score: 0.9,
-          });
-        }
-
-        for (const pattern of projectMem.patterns) {
-          if (
-            pattern.name.toLowerCase().includes(queryLower) ||
-            pattern.description.toLowerCase().includes(queryLower)
-          ) {
-            results.push({
-              type: MemoryType.PATTERN,
-              portal: entry.name,
-              title: pattern.name,
-              summary: pattern.description,
-              relevance_score: 0.8,
-            });
-          }
-        }
-
-        for (const decision of projectMem.decisions) {
-          if (decision.decision.toLowerCase().includes(queryLower)) {
-            results.push({
-              type: MemoryType.DECISION,
-              portal: entry.name,
-              title: `Decision: ${decision.date}`,
-              summary: decision.decision.substring(0, 200),
-              relevance_score: 0.7,
-            });
-          }
-        }
-      }
-    }
-  }
-
-  // Search execution memory
-  const executions = await deps.getExecutionHistory(options?.portal, limit);
-  for (const execution of executions) {
-    if (execution.summary.toLowerCase().includes(queryLower)) {
-      results.push({
-        type: MemoryType.EXECUTION,
-        portal: execution.portal,
-        title: `Execution: ${execution.trace_id.slice(0, 8)}`,
-        summary: execution.summary,
-        relevance_score: 0.6,
-        trace_id: execution.trace_id,
-      });
-    }
-  }
-
-  results.sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
-  return results.slice(0, limit);
+  const results: MemorySearchResult[] = [];
+  results.push(
+    ...await collectProjectResults(
+      deps,
+      options?.portal,
+      (portalName, projectMem) => buildProjectQueryResults(portalName, projectMem, queryLower),
+    ),
+  );
+  results.push(...await collectExecutionQueryResults(deps, options?.portal, limit, queryLower));
+  return sortAndLimit(results, limit);
 }
 
 export async function searchByTags(
@@ -91,53 +139,44 @@ export async function searchByTags(
   options: { portal?: string; limit?: number } | undefined,
   deps: SearchDeps,
 ): Promise<MemorySearchResult[]> {
-  const results: MemorySearchResult[] = [];
   const limit = options?.limit || DEFAULT_QUERY_LIMIT;
+
   const normalizedTags = tags.map((t) => t.toLowerCase());
-
-  for await (const entry of Deno.readDir(deps.projectsDir)) {
-    if (entry.isDirectory) {
-      if (options?.portal && entry.name !== options.portal) continue;
-
-      const projectMem = await deps.getProjectMemory(entry.name);
-      if (projectMem) {
-        for (const pattern of projectMem.patterns) {
-          const patternTags = (pattern.tags || []).map((t) => t.toLowerCase());
-          if (normalizedTags.every((t) => patternTags.includes(t))) {
-            results.push({
-              type: MemoryType.PATTERN,
-              portal: entry.name,
-              title: pattern.name,
-              summary: pattern.description,
-              relevance_score: 0.9,
-              tags: pattern.tags,
-            });
-          }
-        }
-
-        for (const decision of projectMem.decisions) {
-          const decisionTags = (decision.tags || []).map((t) => t.toLowerCase());
-          if (normalizedTags.every((t) => decisionTags.includes(t))) {
-            results.push({
-              type: MemoryType.DECISION,
-              portal: entry.name,
-              title: `Decision: ${decision.date}`,
-              summary: decision.decision,
-              relevance_score: 0.85,
-              tags: decision.tags,
-            });
-          }
-        }
+  const results: MemorySearchResult[] = [];
+  results.push(
+    ...await collectProjectResults(deps, options?.portal, (portalName, projectMem) => {
+      const projectResults: MemorySearchResult[] = [];
+      for (const pattern of projectMem.patterns) {
+        if (!includesAllTags(pattern.tags ?? [], normalizedTags)) continue;
+        projectResults.push({
+          type: MemoryType.PATTERN,
+          portal: portalName,
+          title: pattern.name,
+          summary: pattern.description,
+          relevance_score: 0.9,
+          tags: pattern.tags,
+        });
       }
-    }
-  }
+      for (const decision of projectMem.decisions) {
+        if (!includesAllTags(decision.tags ?? [], normalizedTags)) continue;
+        projectResults.push({
+          type: MemoryType.DECISION,
+          portal: portalName,
+          title: `Decision: ${decision.date}`,
+          summary: decision.decision,
+          relevance_score: 0.85,
+          tags: decision.tags,
+        });
+      }
+      return projectResults;
+    }),
+  );
 
   // Global learnings
   const learnings = await deps.loadLearningsFromFile();
   for (const learning of learnings) {
     if (learning.status !== MemoryStatus.APPROVED) continue;
-    const learningTags = (learning.tags || []).map((t) => t.toLowerCase());
-    if (normalizedTags.every((t) => learningTags.includes(t))) {
+    if (includesAllTags(learning.tags ?? [], normalizedTags)) {
       results.push({
         type: MemoryType.LEARNING,
         title: learning.title,
@@ -149,8 +188,7 @@ export async function searchByTags(
     }
   }
 
-  results.sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
-  return results.slice(0, limit);
+  return sortAndLimit(results, limit);
 }
 
 export async function searchByKeyword(
@@ -158,79 +196,75 @@ export async function searchByKeyword(
   options: { portal?: string; limit?: number } | undefined,
   deps: SearchDeps,
 ): Promise<MemorySearchResult[]> {
-  const results: MemorySearchResult[] = [];
   const limit = options?.limit || DEFAULT_QUERY_LIMIT;
   const keywordLower = keyword.toLowerCase();
 
-  for await (const entry of Deno.readDir(deps.projectsDir)) {
-    if (entry.isDirectory) {
-      if (options?.portal && entry.name !== options.portal) continue;
+  const results: MemorySearchResult[] = [];
+  results.push(
+    ...await collectProjectResults(deps, options?.portal, (portalName, projectMem) => {
+      const projectResults: MemorySearchResult[] = [];
+      for (const pattern of projectMem.patterns) {
+        const titleFreq = deps.calculateFrequency(pattern.name, keywordLower);
+        const descFreq = deps.calculateFrequency(pattern.description, keywordLower);
+        if (titleFreq === 0 && descFreq === 0) continue;
 
-      const projectMem = await deps.getProjectMemory(entry.name);
-      if (projectMem) {
-        for (const pattern of projectMem.patterns) {
-          const titleFreq = deps.calculateFrequency(pattern.name, keywordLower);
-          const descFreq = deps.calculateFrequency(pattern.description, keywordLower);
-          if (titleFreq > 0 || descFreq > 0) {
-            results.push({
-              type: MemoryType.PATTERN,
-              portal: entry.name,
-              title: pattern.name,
-              summary: pattern.description,
-              relevance_score: deps.calculateRelevance(titleFreq, descFreq),
-              tags: pattern.tags,
-            });
-          }
-        }
-
-        for (const decision of projectMem.decisions) {
-          const titleFreq = deps.calculateFrequency(decision.decision, keywordLower);
-          const descFreq = deps.calculateFrequency(decision.rationale, keywordLower);
-          if (titleFreq > 0 || descFreq > 0) {
-            results.push({
-              type: MemoryType.DECISION,
-              portal: entry.name,
-              title: `Decision: ${decision.date}`,
-              summary: decision.decision,
-              relevance_score: deps.calculateRelevance(titleFreq, descFreq),
-              tags: decision.tags,
-            });
-          }
-        }
-
-        const overviewFreq = deps.calculateFrequency(projectMem.overview, keywordLower);
-        if (overviewFreq > 0) {
-          results.push({
-            type: MemoryType.PROJECT,
-            portal: entry.name,
-            title: `${entry.name} Overview`,
-            summary: projectMem.overview.substring(0, 200),
-            relevance_score: deps.calculateRelevance(0, overviewFreq),
-          });
-        }
+        projectResults.push({
+          type: MemoryType.PATTERN,
+          portal: portalName,
+          title: pattern.name,
+          summary: pattern.description,
+          relevance_score: deps.calculateRelevance(titleFreq, descFreq),
+          tags: pattern.tags,
+        });
       }
-    }
-  }
+
+      for (const decision of projectMem.decisions) {
+        const titleFreq = deps.calculateFrequency(decision.decision, keywordLower);
+        const descFreq = deps.calculateFrequency(decision.rationale, keywordLower);
+        if (titleFreq === 0 && descFreq === 0) continue;
+
+        projectResults.push({
+          type: MemoryType.DECISION,
+          portal: portalName,
+          title: `Decision: ${decision.date}`,
+          summary: decision.decision,
+          relevance_score: deps.calculateRelevance(titleFreq, descFreq),
+          tags: decision.tags,
+        });
+      }
+
+      const overviewFreq = deps.calculateFrequency(projectMem.overview, keywordLower);
+      if (overviewFreq > 0) {
+        projectResults.push({
+          type: MemoryType.PROJECT,
+          portal: portalName,
+          title: `${portalName} Overview`,
+          summary: projectMem.overview.substring(0, 200),
+          relevance_score: deps.calculateRelevance(0, overviewFreq),
+        });
+      }
+
+      return projectResults;
+    }),
+  );
 
   const learnings = await deps.loadLearningsFromFile();
   for (const learning of learnings) {
     if (learning.status !== MemoryStatus.APPROVED) continue;
     const titleFreq = deps.calculateFrequency(learning.title, keywordLower);
     const descFreq = deps.calculateFrequency(learning.description, keywordLower);
-    if (titleFreq > 0 || descFreq > 0) {
-      results.push({
-        type: MemoryType.LEARNING,
-        title: learning.title,
-        summary: learning.description,
-        relevance_score: deps.calculateRelevance(titleFreq, descFreq),
-        tags: learning.tags,
-        id: learning.id,
-      });
-    }
+    if (titleFreq === 0 && descFreq === 0) continue;
+    results.push({
+      type: MemoryType.LEARNING,
+      title: learning.title,
+      summary: learning.description,
+      relevance_score: deps.calculateRelevance(titleFreq, descFreq),
+      tags: learning.tags,
+      id: learning.id,
+    });
   }
 
-  results.sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
-  return results.slice(0, limit);
+  return sortAndLimit(results, limit);
 }
 
 export async function searchMemoryAdvanced(
@@ -243,41 +277,37 @@ export async function searchMemoryAdvanced(
   deps: SearchDeps,
 ): Promise<MemorySearchResult[]> {
   const limit = options.limit || DEFAULT_QUERY_LIMIT;
-  const results: MemorySearchResult[] = [];
-  const seenIds = new Set<string>();
 
   const getResultKey = (r: MemorySearchResult) => `${r.type}:${r.portal || ""}:${r.title}`;
+  const byKey = new Map<string, MemorySearchResult>();
+
+  const upsert = (result: MemorySearchResult, onMerge: (existing: MemorySearchResult) => void) => {
+    const key = getResultKey(result);
+    const existing = byKey.get(key);
+    if (!existing) {
+      byKey.set(key, result);
+      return;
+    }
+    onMerge(existing);
+  };
 
   if (options.tags && options.tags.length > 0) {
     const tagResults = await searchByTags(options.tags, { portal: options.portal, limit }, deps);
     for (const result of tagResults) {
-      const key = getResultKey(result);
-      if (seenIds.has(key)) {
-        const existing = results.find((r) => getResultKey(r) === key);
-        if (existing) existing.relevance_score = (existing.relevance_score || 0) + 0.2;
-      } else {
-        seenIds.add(key);
-        results.push(result);
-      }
+      upsert(result, (existing) => {
+        existing.relevance_score = (existing.relevance_score || 0) + 0.2;
+      });
     }
   }
 
   if (options.keyword) {
     const keywordResults = await searchByKeyword(options.keyword, { portal: options.portal, limit }, deps);
     for (const result of keywordResults) {
-      const key = getResultKey(result);
-      if (seenIds.has(key)) {
-        const existing = results.find((r) => getResultKey(r) === key);
-        if (existing) {
-          existing.relevance_score = Math.max(existing.relevance_score || 0, (result.relevance_score || 0) + 0.05);
-        }
-      } else {
-        seenIds.add(key);
-        results.push(result);
-      }
+      upsert(result, (existing) => {
+        existing.relevance_score = Math.max(existing.relevance_score || 0, (result.relevance_score || 0) + 0.05);
+      });
     }
   }
 
-  results.sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
-  return results.slice(0, limit);
+  return sortAndLimit(Array.from(byKey.values()), limit);
 }

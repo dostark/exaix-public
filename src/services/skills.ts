@@ -310,59 +310,118 @@ export class SkillsService {
     let totalScore = 0;
     let maxScore = 0;
 
-    // Keyword matching (weight: 40%)
-    if (triggers.keywords && triggers.keywords.length > 0) {
-      maxScore += 40;
-      const matchedKeywords = triggers.keywords.filter((kw) =>
-        request.keywords?.some((rk) =>
-          rk.toLowerCase().includes(kw.toLowerCase()) ||
-          kw.toLowerCase().includes(rk.toLowerCase())
-        )
-      );
-      if (matchedKeywords.length > 0) {
-        const keywordScore = (matchedKeywords.length / triggers.keywords.length) * 40;
-        totalScore += keywordScore;
-        matchedTriggers.keywords = matchedKeywords;
-      }
+    const keywordMatch = this.scoreKeywordTriggers(triggers.keywords, request.keywords);
+    maxScore += keywordMatch.max;
+    totalScore += keywordMatch.score;
+    if (keywordMatch.matched && keywordMatch.matched.length > 0) {
+      matchedTriggers.keywords = keywordMatch.matched;
     }
 
-    // Task type matching (weight: 30%)
-    if (triggers.task_types && triggers.task_types.length > 0) {
-      maxScore += 30;
-      if (request.taskType && triggers.task_types.includes(request.taskType)) {
-        totalScore += 30;
-        matchedTriggers.task_types = [request.taskType];
-      }
+    const taskTypeMatch = this.scoreTaskTypeTriggers(triggers.task_types, request.taskType);
+    maxScore += taskTypeMatch.max;
+    totalScore += taskTypeMatch.score;
+    if (taskTypeMatch.matched && taskTypeMatch.matched.length > 0) {
+      matchedTriggers.task_types = taskTypeMatch.matched;
     }
 
-    // File pattern matching (weight: 20%)
-    if (triggers.file_patterns && triggers.file_patterns.length > 0) {
-      maxScore += 20;
-      const matchedPatterns = triggers.file_patterns.filter((pattern) =>
-        request.filePaths?.some((fp) => this.matchGlob(fp, pattern))
-      );
-      if (matchedPatterns.length > 0) {
-        const patternScore = (matchedPatterns.length / triggers.file_patterns.length) * 20;
-        totalScore += patternScore;
-        matchedTriggers.file_patterns = matchedPatterns;
-      }
+    const filePatternMatch = this.scoreFilePatternTriggers(triggers.file_patterns, request.filePaths);
+    maxScore += filePatternMatch.max;
+    totalScore += filePatternMatch.score;
+    if (filePatternMatch.matched && filePatternMatch.matched.length > 0) {
+      matchedTriggers.file_patterns = filePatternMatch.matched;
     }
 
-    // Tag matching (weight: 10%)
-    if (triggers.tags && triggers.tags.length > 0) {
-      maxScore += 10;
-      const matchedTags = triggers.tags.filter((tag) => request.tags?.includes(tag));
-      if (matchedTags.length > 0) {
-        const tagScore = (matchedTags.length / triggers.tags.length) * 10;
-        totalScore += tagScore;
-        matchedTriggers.tags = matchedTags;
-      }
+    const tagMatch = this.scoreTagTriggers(triggers.tags, request.tags);
+    maxScore += tagMatch.max;
+    totalScore += tagMatch.score;
+    if (tagMatch.matched && tagMatch.matched.length > 0) {
+      matchedTriggers.tags = tagMatch.matched;
     }
 
     // Normalize score to 0-1
     const confidence = maxScore > 0 ? totalScore / maxScore : 0;
 
     return { confidence, matchedTriggers };
+  }
+
+  private scoreKeywordTriggers(
+    triggerKeywords: string[] | undefined,
+    requestKeywords: string[] | undefined,
+  ): { max: number; score: number; matched?: string[] } {
+    if (!triggerKeywords || triggerKeywords.length === 0) return { max: 0, score: 0 };
+    const candidates = requestKeywords ?? [];
+    if (candidates.length === 0) return { max: 40, score: 0 };
+
+    const triggerLower = triggerKeywords.map((k) => k.toLowerCase());
+    const requestLower = candidates.map((k) => k.toLowerCase());
+
+    const matched: string[] = [];
+    for (let i = 0; i < triggerKeywords.length; i++) {
+      const t = triggerKeywords[i];
+      const tl = triggerLower[i];
+      let found = false;
+      for (const rk of requestLower) {
+        if (rk.includes(tl)) {
+          found = true;
+          break;
+        }
+        if (tl.includes(rk)) {
+          found = true;
+          break;
+        }
+      }
+      if (found) matched.push(t);
+    }
+
+    if (matched.length === 0) return { max: 40, score: 0 };
+    return { max: 40, score: (matched.length / triggerKeywords.length) * 40, matched };
+  }
+
+  private scoreTaskTypeTriggers(
+    triggerTaskTypes: string[] | undefined,
+    requestTaskType: string | undefined,
+  ): { max: number; score: number; matched?: string[] } {
+    if (!triggerTaskTypes || triggerTaskTypes.length === 0) return { max: 0, score: 0 };
+    if (!requestTaskType) return { max: 30, score: 0 };
+    if (!triggerTaskTypes.includes(requestTaskType)) return { max: 30, score: 0 };
+    return { max: 30, score: 30, matched: [requestTaskType] };
+  }
+
+  private scoreFilePatternTriggers(
+    triggerPatterns: string[] | undefined,
+    requestFilePaths: string[] | undefined,
+  ): { max: number; score: number; matched?: string[] } {
+    if (!triggerPatterns || triggerPatterns.length === 0) return { max: 0, score: 0 };
+    const paths = requestFilePaths ?? [];
+    if (paths.length === 0) return { max: 20, score: 0 };
+
+    const matched: string[] = [];
+    for (const pattern of triggerPatterns) {
+      let found = false;
+      for (const fp of paths) {
+        if (this.matchGlob(fp, pattern)) {
+          found = true;
+          break;
+        }
+      }
+      if (found) matched.push(pattern);
+    }
+
+    if (matched.length === 0) return { max: 20, score: 0 };
+    return { max: 20, score: (matched.length / triggerPatterns.length) * 20, matched };
+  }
+
+  private scoreTagTriggers(
+    triggerTags: string[] | undefined,
+    requestTags: string[] | undefined,
+  ): { max: number; score: number; matched?: string[] } {
+    if (!triggerTags || triggerTags.length === 0) return { max: 0, score: 0 };
+    const tags = requestTags ?? [];
+    if (tags.length === 0) return { max: 10, score: 0 };
+
+    const matched = triggerTags.filter((tag) => tags.includes(tag));
+    if (matched.length === 0) return { max: 10, score: 0 };
+    return { max: 10, score: (matched.length / triggerTags.length) * 10, matched };
   }
 
   /**

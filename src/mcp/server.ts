@@ -387,10 +387,23 @@ export class MCPServer {
   }
 
   private classifyError(error: unknown): { type: string; code: number; message: string; data?: unknown } {
+    const isZodError = (value: unknown): value is { errors?: unknown[] } => {
+      return (
+        !!value &&
+        typeof value === "object" &&
+        "constructor" in value &&
+        ((value as any).constructor?.name === "ZodError")
+      );
+    };
+
+    const getErrorMessage = (value: unknown): string => {
+      if (value instanceof Error) return value.message || "";
+      if (typeof value === "string") return value;
+      return "";
+    };
+
     // Zod validation errors
-    if (
-      error && typeof error === "object" && "constructor" in error && (error as any).constructor?.name === "ZodError"
-    ) {
+    if (isZodError(error)) {
       const zodError = error as any;
       return {
         type: "validation_error",
@@ -406,23 +419,36 @@ export class MCPServer {
 
     // If it's an Error instance, inspect the message for classification
     if (error instanceof Error) {
-      const msg = error.message || "";
+      const msg = getErrorMessage(error);
+      const rules: Array<{ type: string; code: number; message: string; needles: string[] }> = [
+        {
+          type: "security_error",
+          code: -32602,
+          message: "Access denied: Invalid path",
+          needles: ["Path traversal", "outside allowed roots"],
+        },
+        {
+          type: "not_found_error",
+          code: -32602,
+          message: "Resource not found",
+          needles: ["not found", "ENOENT", "Portal"],
+        },
+        {
+          type: "permission_error",
+          code: -32603,
+          message: "Permission denied",
+          needles: ["permission", "EACCES", "Permission denied"],
+        },
+        {
+          type: "timeout_error",
+          code: -32603,
+          message: "Operation timed out",
+          needles: ["timeout", "aborted", "timed out"],
+        },
+      ];
 
-      if (msg.includes("Path traversal") || msg.includes("outside allowed roots")) {
-        return { type: "security_error", code: -32602, message: "Access denied: Invalid path" };
-      }
-
-      if (msg.includes("not found") || msg.includes("ENOENT") || msg.includes("Portal")) {
-        return { type: "not_found_error", code: -32602, message: "Resource not found" };
-      }
-
-      if (msg.includes("permission") || msg.includes("EACCES") || msg.includes("Permission denied")) {
-        return { type: "permission_error", code: -32603, message: "Permission denied" };
-      }
-
-      if (msg.includes("timeout") || msg.includes("aborted") || msg.includes("timed out")) {
-        return { type: "timeout_error", code: -32603, message: "Operation timed out" };
-      }
+      const rule = rules.find((r) => r.needles.some((needle) => msg.includes(needle)));
+      if (rule) return { type: rule.type, code: rule.code, message: rule.message };
     }
 
     // Fallback

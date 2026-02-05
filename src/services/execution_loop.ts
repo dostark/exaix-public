@@ -182,178 +182,60 @@ export class ExecutionLoop {
         plan_path: planPath,
       });
 
-      // Resolve execution root (portal path or system root)
-      let portalRepoRoot = this.config.system.root;
-      if (frontmatter.portal) {
-        const portal = this.config.portals.find((p) => p.alias === frontmatter.portal);
-        if (portal) {
-          portalRepoRoot = portal.target_path;
-        }
-      }
+      const portalRepoRoot = this.resolvePortalRepoRoot(frontmatter);
+      const portalGitService = this.createGitService(portalRepoRoot, traceId);
 
-      // The path where tool execution happens (may be a worktree for portal worktree strategy)
-      let executionRoot = portalRepoRoot;
+      const planContent = await this.readPlanContent(planPath);
+      const prepared = await this.preparePlanExecution(frontmatter, planContent);
 
-      // Initialize Git service
-      const portalGitService = new GitService({
-        config: this.config,
-        db: this.db,
+      const gitSetup = await this.setupGitForExecution({
+        initGitBranch,
+        hasExecutableWork: prepared.hasExecutableWork,
+        frontmatter,
+        requestId,
         traceId,
-        agentId: this.agentId,
-        repoPath: portalRepoRoot,
+        portalRepoRoot,
+        portalGitService,
+        executionStrategy: prepared.executionStrategy,
       });
 
-      let baseBranch: string | undefined;
-
-      // Read plan content (needed to decide if we should create a git branch)
-      const planContent = await Deno.readTextFile(planPath);
-
-      // Check for special failure markers for testing
-      if (planContent.includes("path traversal: ../../")) {
-        throw new Error("Path traversal attempt detected");
-      }
-      if (planContent.includes("Intentionally fail")) {
-        throw new Error("Simulated execution failure");
-      }
-
-      // Check if this is a structured plan with steps
-      const structuredPlan = parseStructuredPlanFromMarkdown(planContent, {
-        trace_id: frontmatter.trace_id,
-        request_id: frontmatter.request_id,
-        agent_id: frontmatter.agent_id,
+      const didExecuteWork = await this.executePlanWork({
+        structuredPlan: prepared.structuredPlan,
+        actions: prepared.actions,
+        isReadOnly: prepared.isReadOnly,
+        planAgentId: prepared.planAgentId,
+        requireActions,
+        traceId,
+        requestId,
+        executionRoot: gitSetup.executionRoot,
+        executionGitService: gitSetup.executionGitService,
       });
-
-      // Parse legacy TOML actions only when the plan isn't structured
-      const actions = structuredPlan ? [] : this.parsePlanActions(planContent);
-
-      const planAgentId = frontmatter.agent_id || structuredPlan?.agent;
-      const isReadOnly = await this.isReadOnlyAgentId(planAgentId);
-      const hasExecutableWork = !isReadOnly && (structuredPlan !== null || actions.length > 0);
-
-      const portalCfg = frontmatter.portal
-        ? this.config.portals.find((p) => p.alias === frontmatter.portal)
-        : undefined;
-      const executionStrategy = portalCfg?.execution_strategy ?? PortalExecutionStrategy.BRANCH;
-
-      // For portal worktree execution, keep the portal repo checkout untouched and run work in a worktree.
-      let worktreePath: string | undefined;
-
-      // The GitService used for branch creation/commits must point at the execution root.
-      let executionGitService = portalGitService;
-
-      // Set up Git (branch creation only when we have executable work)
-      let branchName: string | undefined;
-      if (initGitBranch && hasExecutableWork) {
-        await portalGitService.ensureRepository();
-        await portalGitService.ensureIdentity();
-
-        // Resolve base branch after repository initialization so we don't guess wrong
-        // when git hasn't been initialized yet.
-        baseBranch = await this.resolveBaseBranch(frontmatter, portalGitService, portalRepoRoot);
-
-        if (frontmatter.portal && executionStrategy === PortalExecutionStrategy.WORKTREE) {
-          worktreePath = join(
-            this.config.system.root,
-            ".exo",
-            "worktrees",
-            frontmatter.portal,
-            traceId,
-          );
-
-          // Ensure parent directory exists (git worktree add does not guarantee recursive parents).
-          await Deno.mkdir(join(this.config.system.root, ".exo", "worktrees", frontmatter.portal), {
-            recursive: true,
-          });
-
-          // Create discoverability pointer under Memory/Execution/<traceId>/worktree.
-          await this.createWorktreeExecutionPointer(traceId, worktreePath);
-
-          // Create worktree checked out at baseBranch.
-          try {
-            await portalGitService.addWorktree(worktreePath, baseBranch);
-          } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            throw new Error(
-              `Failed to create portal worktree execution checkout (git worktree add)\n` +
-                `worktree_path: ${worktreePath}\n` +
-                `base_branch: ${baseBranch}\n` +
-                `error: ${message}`,
-            );
-          }
-
-          // Execute inside the worktree.
-          executionRoot = worktreePath;
-          executionGitService = new GitService({
-            config: this.config,
-            db: this.db,
-            traceId,
-            agentId: this.agentId,
-            repoPath: executionRoot,
-          });
-          await executionGitService.ensureIdentity();
-
-          // Worktree is already checked out at baseBranch; create and checkout the feature branch there.
-          branchName = await executionGitService.createBranch({ requestId, traceId });
-        } else {
-          // Step 37.5: create feature branches from the resolved base branch.
-          // This prevents accidental inclusion of unrelated commits when the portal has
-          // multiple long-lived branches (e.g., release branches).
-          await portalGitService.checkoutBranch(baseBranch);
-          branchName = await portalGitService.createBranch({ requestId, traceId });
-        }
-      }
-
-      let didExecuteWork = false;
-
-      if (structuredPlan) {
-        if (isReadOnly) {
-          // Structured plans produced by read-only agents are analysis artifacts, not executable work.
-          // Mark success without mutating the repository or creating reviews.
-          this.logActivity("execution.readonly_structured_plan_skipped", traceId, {
-            request_id: requestId,
-            agent_id: planAgentId,
-          });
-        } else {
-          // Use PlanExecutor for structured plans
-          didExecuteWork = true;
-          await this.executeStructuredPlan(structuredPlan, executionRoot, executionGitService);
-        }
-      } else {
-        if (actions.length === 0) {
-          if (requireActions) {
-            throw new Error("Plan contains no executable actions");
-          }
-          // No-op plan (e.g., read-only analysis output). Succeed without mutating the repository.
-        } else {
-          didExecuteWork = true;
-          await this.executePlanActions(actions, traceId, requestId, executionRoot);
-        }
-      }
 
       // Commit changes (if any)
-      const commitSha = didExecuteWork ? await this.commitChanges(executionGitService, requestId!, traceId!) : null;
+      const commitSha = didExecuteWork
+        ? await this.commitChanges(gitSetup.executionGitService, requestId!, traceId!)
+        : null;
 
       // Register review
       if (commitSha) {
-        if (!baseBranch) {
-          baseBranch = await this.resolveBaseBranch(frontmatter, portalGitService, portalRepoRoot);
-        }
+        const baseBranch = gitSetup.baseBranch ??
+          await this.resolveBaseBranch(frontmatter, portalGitService, portalRepoRoot);
         await this.registerReview(
           requestId,
           traceId,
           frontmatter.portal || "unknown",
-          branchName || "unknown",
+          gitSetup.branchName || "unknown",
           commitSha,
           portalRepoRoot,
           baseBranch,
-          worktreePath,
+          gitSetup.worktreePath,
         );
       }
 
       // Handle success
       await this.handleSuccess(planPath, traceId, requestId, {
-        isReadOnly,
-        planAgentId,
+        isReadOnly: prepared.isReadOnly,
+        planAgentId: prepared.planAgentId,
         portal: frontmatter.portal,
         targetBranch: frontmatter.target_branch,
       });
@@ -368,6 +250,208 @@ export class ExecutionLoop {
     } finally {
       this.releaseLease(planPath);
     }
+  }
+
+  private resolvePortalRepoRoot(frontmatter: PlanFrontmatter): string {
+    if (!frontmatter.portal) return this.config.system.root;
+    const portal = this.config.portals.find((p) => p.alias === frontmatter.portal);
+    return portal ? portal.target_path : this.config.system.root;
+  }
+
+  private createGitService(repoPath: string, traceId: string): GitService {
+    return new GitService({
+      config: this.config,
+      db: this.db,
+      traceId,
+      agentId: this.agentId,
+      repoPath,
+    });
+  }
+
+  private async readPlanContent(planPath: string): Promise<string> {
+    const planContent = await Deno.readTextFile(planPath);
+    if (planContent.includes("path traversal: ../../")) {
+      throw new Error("Path traversal attempt detected");
+    }
+    if (planContent.includes("Intentionally fail")) {
+      throw new Error("Simulated execution failure");
+    }
+    return planContent;
+  }
+
+  private getExecutionStrategy(frontmatter: PlanFrontmatter): PortalExecutionStrategy {
+    if (!frontmatter.portal) return PortalExecutionStrategy.BRANCH;
+    const portalCfg = this.config.portals.find((p) => p.alias === frontmatter.portal);
+    return portalCfg?.execution_strategy ?? PortalExecutionStrategy.BRANCH;
+  }
+
+  private async preparePlanExecution(frontmatter: PlanFrontmatter, planContent: string): Promise<{
+    structuredPlan: ReturnType<typeof parseStructuredPlanFromMarkdown>;
+    actions: ReturnType<ExecutionLoop["parsePlanActions"]>;
+    planAgentId: string | undefined;
+    isReadOnly: boolean;
+    hasExecutableWork: boolean;
+    executionStrategy: PortalExecutionStrategy;
+  }> {
+    const structuredPlan = parseStructuredPlanFromMarkdown(planContent, {
+      trace_id: frontmatter.trace_id,
+      request_id: frontmatter.request_id,
+      agent_id: frontmatter.agent_id,
+    });
+
+    const actions = structuredPlan ? [] : this.parsePlanActions(planContent);
+    const planAgentId = frontmatter.agent_id || structuredPlan?.agent;
+    const isReadOnly = await this.isReadOnlyAgentId(planAgentId);
+    const hasExecutableWork = !isReadOnly && (structuredPlan !== null || actions.length > 0);
+    const executionStrategy = this.getExecutionStrategy(frontmatter);
+
+    return { structuredPlan, actions, planAgentId, isReadOnly, hasExecutableWork, executionStrategy };
+  }
+
+  private async setupGitForExecution(args: {
+    initGitBranch: boolean;
+    hasExecutableWork: boolean;
+    frontmatter: PlanFrontmatter;
+    requestId: string;
+    traceId: string;
+    portalRepoRoot: string;
+    portalGitService: GitService;
+    executionStrategy: PortalExecutionStrategy;
+  }): Promise<{
+    executionRoot: string;
+    executionGitService: GitService;
+    baseBranch?: string;
+    branchName?: string;
+    worktreePath?: string;
+  }> {
+    const executionRoot = args.portalRepoRoot;
+    const executionGitService = args.portalGitService;
+    if (!args.initGitBranch || !args.hasExecutableWork) {
+      return { executionRoot, executionGitService };
+    }
+
+    await args.portalGitService.ensureRepository();
+    await args.portalGitService.ensureIdentity();
+
+    const baseBranch = await this.resolveBaseBranch(args.frontmatter, args.portalGitService, args.portalRepoRoot);
+
+    if (args.frontmatter.portal && args.executionStrategy === PortalExecutionStrategy.WORKTREE) {
+      return await this.setupPortalWorktreeExecution({
+        portalAlias: args.frontmatter.portal,
+        traceId: args.traceId,
+        requestId: args.requestId,
+        portalGitService: args.portalGitService,
+        baseBranch,
+      });
+    }
+
+    const branchName = await this.setupBranchExecution({
+      portalGitService: args.portalGitService,
+      baseBranch,
+      requestId: args.requestId,
+      traceId: args.traceId,
+    });
+
+    return { executionRoot, executionGitService, baseBranch, branchName };
+  }
+
+  private async setupBranchExecution(args: {
+    portalGitService: GitService;
+    baseBranch: string;
+    requestId: string;
+    traceId: string;
+  }): Promise<string> {
+    await args.portalGitService.checkoutBranch(args.baseBranch);
+    return await args.portalGitService.createBranch({ requestId: args.requestId, traceId: args.traceId });
+  }
+
+  private buildPortalWorktreePath(portalAlias: string, traceId: string): string {
+    return join(this.config.system.root, ".exo", "worktrees", portalAlias, traceId, traceId);
+  }
+
+  private async addWorktreeOrThrow(
+    portalGitService: GitService,
+    worktreePath: string,
+    baseBranch: string,
+  ): Promise<void> {
+    try {
+      await portalGitService.addWorktree(worktreePath, baseBranch);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(
+        `Failed to create portal worktree execution checkout (git worktree add)\n` +
+          `worktree_path: ${worktreePath}\n` +
+          `base_branch: ${baseBranch}\n` +
+          `error: ${message}`,
+      );
+    }
+  }
+
+  private async setupPortalWorktreeExecution(args: {
+    portalAlias: string;
+    traceId: string;
+    requestId: string;
+    portalGitService: GitService;
+    baseBranch: string;
+  }): Promise<{
+    executionRoot: string;
+    executionGitService: GitService;
+    baseBranch: string;
+    branchName: string;
+    worktreePath: string;
+  }> {
+    const worktreePath = this.buildPortalWorktreePath(args.portalAlias, args.traceId);
+    await Deno.mkdir(join(this.config.system.root, ".exo", "worktrees", args.portalAlias), { recursive: true });
+    await this.createWorktreeExecutionPointer(args.traceId, worktreePath);
+    await this.addWorktreeOrThrow(args.portalGitService, worktreePath, args.baseBranch);
+
+    const executionRoot = worktreePath;
+    const executionGitService = this.createGitService(executionRoot, args.traceId);
+    await executionGitService.ensureIdentity();
+
+    const branchName = await executionGitService.createBranch({ requestId: args.requestId, traceId: args.traceId });
+    return {
+      executionRoot,
+      executionGitService,
+      baseBranch: args.baseBranch,
+      branchName,
+      worktreePath,
+    };
+  }
+
+  private async executePlanWork(args: {
+    structuredPlan: ReturnType<typeof parseStructuredPlanFromMarkdown>;
+    actions: ReturnType<ExecutionLoop["parsePlanActions"]>;
+    isReadOnly: boolean;
+    planAgentId: string | undefined;
+    requireActions: boolean;
+    traceId: string;
+    requestId: string;
+    executionRoot: string;
+    executionGitService: GitService;
+  }): Promise<boolean> {
+    if (args.structuredPlan) {
+      if (args.isReadOnly) {
+        this.logActivity("execution.readonly_structured_plan_skipped", args.traceId, {
+          request_id: args.requestId,
+          agent_id: args.planAgentId,
+        });
+        return false;
+      }
+
+      await this.executeStructuredPlan(args.structuredPlan, args.executionRoot, args.executionGitService);
+      return true;
+    }
+
+    if (args.actions.length === 0) {
+      if (args.requireActions) {
+        throw new Error("Plan contains no executable actions");
+      }
+      return false;
+    }
+
+    await this.executePlanActions(args.actions, args.traceId, args.requestId, args.executionRoot);
+    return true;
   }
 
   /**

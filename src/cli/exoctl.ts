@@ -107,6 +107,130 @@ export function __test_initializeServices(
   return initializeServices(opts);
 }
 
+async function handleReviewListAction(options: { status?: string; type?: string }) {
+  try {
+    const reviews = await reviewCommands.list(options.status, options.type);
+    if (reviews.length === 0) {
+      display.info("review.list", "reviews", { count: 0, message: "No reviews found" });
+      return;
+    }
+
+    display.info("review.list", "reviews", { count: reviews.length });
+    for (const cs of reviews) {
+      logReviewListItem(cs);
+    }
+  } catch (error) {
+    display.error("cli.error", "review list", {
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    Deno.exit(1);
+  }
+}
+
+function logReviewListItem(cs: any) {
+  const statusEmoji = getReviewStatusEmoji(cs.status);
+  const requestTitle = cs.request_title ? `"${cs.request_title}"` : cs.request_id;
+  const planInfo = cs.plan_id ? `plan: ${cs.plan_id} (${cs.plan_status})` : undefined;
+  const agentInfo = cs.request_agent || cs.agent_id;
+  const portalInfo = cs.request_portal || cs.portal || "workspace";
+  const typeInfo = cs.type || "code";
+  const trace = formatTraceShort(cs.trace_id);
+
+  display.info(`${statusEmoji} ${cs.request_id}`, cs.branch, {
+    request: requestTitle,
+    plan: planInfo,
+    agent: agentInfo,
+    portal: portalInfo,
+    type: typeInfo,
+    files: cs.files_changed,
+    created: new Date(cs.created_at).toLocaleString(),
+    trace,
+  });
+}
+
+function getReviewStatusEmoji(status: string | undefined): string {
+  if (status === "approved") return "✅";
+  if (status === "rejected") return "❌";
+  return "📌";
+}
+
+function formatTraceShort(traceId: string | undefined): string {
+  if (!traceId) return "";
+  return `${traceId.substring(0, 8)}...`;
+}
+
+async function handleReviewShowAction(options: { diff?: boolean }, id: string) {
+  try {
+    const cs = await reviewCommands.show(id);
+    if (options.diff) {
+      console.log(cs.diff);
+      return;
+    }
+    renderReviewShow(cs, id);
+  } catch (error) {
+    display.error("cli.error", "review show", {
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+    Deno.exit(1);
+  }
+}
+
+function renderReviewShow(cs: any, id: string) {
+  renderReviewShowSummary(cs);
+  renderReviewShowDecision(cs);
+  renderReviewShowCommits(cs);
+  display.info("review.diff", id, { diff: cs.diff });
+}
+
+function renderReviewShowSummary(cs: any) {
+  const statusEmoji = getReviewStatusEmoji(cs.status);
+  const requestTitle = cs.request_title ? `"${cs.request_title}"` : "Untitled Request";
+  const planInfo = cs.plan_id ? `${cs.plan_id} (${cs.plan_status})` : "unknown";
+  const agentInfo = cs.request_agent || cs.agent_id;
+  const portalInfo = cs.request_portal || cs.portal || "workspace";
+
+  display.info(`${statusEmoji} review.show`, cs.request_id, {
+    branch: cs.branch,
+    status: cs.status || "pending",
+    request: requestTitle,
+    plan: planInfo,
+    agent: agentInfo,
+    portal: portalInfo,
+    base_branch: cs.base_branch,
+    priority: cs.request_priority || "normal",
+    created_by: cs.request_created_by || "unknown",
+    files_changed: cs.files_changed,
+    commits: cs.commits.length,
+    trace: cs.trace_id,
+  });
+}
+
+function renderReviewShowDecision(cs: any) {
+  if (cs.approved_at) {
+    display.info("approved", new Date(cs.approved_at).toLocaleString(), {
+      by: cs.approved_by || "unknown",
+    });
+    return;
+  }
+
+  if (cs.rejected_at) {
+    display.info("rejected", new Date(cs.rejected_at).toLocaleString(), {
+      by: cs.rejected_by || "unknown",
+      reason: cs.rejection_reason || "no reason provided",
+    });
+  }
+}
+
+function renderReviewShowCommits(cs: any) {
+  display.info("commits", "", {});
+  for (const commit of cs.commits) {
+    display.info("commit", commit.sha.substring(0, 8), {
+      message: commit.message,
+      timestamp: new Date(commit.timestamp).toLocaleString(),
+    });
+  }
+}
+
 export const __test_command = new Command()
   .name("exoctl")
   .version("1.0.0")
@@ -221,104 +345,14 @@ export const __test_command = new Command()
           .description("List all pending reviews")
           .option("-s, --status <status:string>", "Filter by status (pending, approved, rejected)")
           .option("-t, --type <type:string>", "Filter by type (code, artifact, all)", { default: "all" })
-          .action(async (options) => {
-            try {
-              const reviews = await reviewCommands.list(options.status, options.type);
-              if (reviews.length === 0) {
-                display.info("review.list", "reviews", { count: 0, message: "No reviews found" });
-                return;
-              }
-              display.info("review.list", "reviews", { count: reviews.length });
-              for (const cs of reviews) {
-                const statusEmoji = cs.status === "approved" ? "✅" : cs.status === "rejected" ? "❌" : "📌";
-                const requestTitle = cs.request_title ? `"${cs.request_title}"` : cs.request_id;
-                const planInfo = cs.plan_id ? `plan: ${cs.plan_id} (${cs.plan_status})` : "";
-                const agentInfo = cs.request_agent || cs.agent_id;
-                const portalInfo = cs.request_portal || cs.portal || "workspace";
-                const typeInfo = cs.type || "code";
-
-                display.info(`${statusEmoji} ${cs.request_id}`, cs.branch, {
-                  request: requestTitle,
-                  plan: planInfo || undefined,
-                  agent: agentInfo,
-                  portal: portalInfo,
-                  type: typeInfo,
-                  files: cs.files_changed,
-                  created: new Date(cs.created_at).toLocaleString(),
-                  trace: `${cs.trace_id.substring(0, 8)}...`,
-                });
-              }
-            } catch (error) {
-              display.error("cli.error", "review list", {
-                message: error instanceof Error ? error.message : "Unknown error",
-              });
-              Deno.exit(1);
-            }
-          }),
+          .action(async (options) => await handleReviewListAction(options)),
       )
       .command(
         "show <id>",
         new Command()
           .description("Show review details including diff")
           .option("-d, --diff", "Show only the diff for the review")
-          .action(async (options, ...args: string[]) => {
-            const id = args[0] as unknown as string;
-            try {
-              const cs = await reviewCommands.show(id);
-
-              if (options.diff) {
-                // Output only the diff
-                console.log(cs.diff);
-              } else {
-                // Output full details
-                const statusEmoji = cs.status === "approved" ? "✅" : cs.status === "rejected" ? "❌" : "📌";
-                const requestTitle = cs.request_title ? `"${cs.request_title}"` : "Untitled Request";
-                const planInfo = cs.plan_id ? `${cs.plan_id} (${cs.plan_status})` : "unknown";
-                const agentInfo = cs.request_agent || cs.agent_id;
-                const portalInfo = cs.request_portal || cs.portal || "workspace";
-
-                display.info(`${statusEmoji} review.show`, cs.request_id, {
-                  branch: cs.branch,
-                  status: cs.status || "pending",
-                  request: requestTitle,
-                  plan: planInfo,
-                  agent: agentInfo,
-                  portal: portalInfo,
-                  base_branch: cs.base_branch,
-                  priority: cs.request_priority || "normal",
-                  created_by: cs.request_created_by || "unknown",
-                  files_changed: cs.files_changed,
-                  commits: cs.commits.length,
-                  trace: cs.trace_id,
-                });
-
-                if (cs.approved_at) {
-                  display.info("approved", new Date(cs.approved_at).toLocaleString(), {
-                    by: cs.approved_by || "unknown",
-                  });
-                } else if (cs.rejected_at) {
-                  display.info("rejected", new Date(cs.rejected_at).toLocaleString(), {
-                    by: cs.rejected_by || "unknown",
-                    reason: cs.rejection_reason || "no reason provided",
-                  });
-                }
-
-                display.info("commits", "", {});
-                for (const commit of cs.commits) {
-                  display.info("commit", commit.sha.substring(0, 8), {
-                    message: commit.message,
-                    timestamp: new Date(commit.timestamp).toLocaleString(),
-                  });
-                }
-                display.info("review.diff", id, { diff: cs.diff });
-              }
-            } catch (error) {
-              display.error("cli.error", "review show", {
-                message: error instanceof Error ? error.message : "Unknown error",
-              });
-              Deno.exit(1);
-            }
-          }),
+          .action(async (options, ...args: string[]) => await handleReviewShowAction(options, args[0] as string)),
       )
       .command(
         "approve <id>",

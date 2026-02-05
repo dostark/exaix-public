@@ -13,6 +13,59 @@ import type { DashboardViewState } from "../tui_dashboard.ts";
 import { Table } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 
+async function renderActivePaneContent(
+  panes: Pane[],
+  activePaneId: string,
+  theme: Theme,
+  portalView: any,
+): Promise<void> {
+  const activePane = panes.find((p) => p.id === activePaneId);
+  if (!activePane) return;
+
+  if (activePane.view.name === "PortalManagerView") {
+    const portals = await portalView.service.listPortals();
+    if (portals.length > 0) {
+      const table = new Table();
+      table.header(["Alias", "Target Path", "Status", "Permissions"]);
+      for (const p of portals) {
+        table.push([p.alias, p.targetPath, p.status, p.permissions]);
+      }
+      table.render();
+    } else {
+      console.log("No portals configured.");
+    }
+    return;
+  }
+
+  const titleBar = renderPaneTitleBar(activePane, theme);
+  console.log(titleBar);
+  console.log("");
+  console.log(`Viewing: ${activePane.view.name}`);
+  console.log(`Bounds: x=${activePane.x}, y=${activePane.y}, w=${activePane.width}, h=${activePane.height}`);
+  console.log(`Flex: ${activePane.flexWidth.toFixed(2)}x${activePane.flexHeight.toFixed(2)}`);
+}
+
+async function renderStatusBar(
+  width: number,
+  headerLine: string,
+  notificationService: NotificationService,
+): Promise<void> {
+  console.log("");
+  console.log(`╠${headerLine}╣`);
+
+  const allNotifs = await notificationService.getNotifications();
+  const activeNotifs = allNotifs.filter((n: any) => !n.dismissed_at);
+  const notifBadge = activeNotifs.length > 0 ? ` 🔔 ${activeNotifs.length}` : "";
+  const statusLine = ` Status: ${TUI_STATUS_MSG_READY}${notifBadge}`;
+  console.log(`║${statusLine}${" ".repeat(Math.max(0, width - 2 - statusLine.length))}║`);
+  console.log(`╠${headerLine}╣`);
+  const navLine = " Navigation: Tab/Shift+Tab | Split: v/h | Close: c | Resize: Ctrl+Arrows | Help: ?";
+  console.log(`║${navLine.padEnd(width - 2)}║`);
+  const layoutLine = " Layout: s=save, r=restore, d=default | n=notifications | p=view picker";
+  console.log(`║${layoutLine.padEnd(width - 2)}║`);
+  console.log(`╚${headerLine}╝`);
+}
+
 /**
  * Production render function for the dashboard
  */
@@ -98,42 +151,7 @@ export async function prodRender(
   // For now, ExoFrame dashboard renders the active pane or portal view
   // To support true multi-pane rendering, we'd need a virtual grid or buffer
   // For this refactor, we maintain the "view active pane" logic but with flexible bounds
-  const activePane = panes.find((p) => p.id === activePaneId);
-  if (activePane?.view.name === "PortalManagerView") {
-    const portals = await portalView.service.listPortals();
-    if (portals.length > 0) {
-      const table = new Table();
-      table.header(["Alias", "Target Path", "Status", "Permissions"]);
-      for (const p of portals) {
-        table.push([p.alias, p.targetPath, p.status, p.permissions]);
-      }
-      table.render();
-    } else {
-      console.log("No portals configured.");
-    }
-  } else if (activePane) {
-    const titleBar = renderPaneTitleBar(activePane, theme);
-    console.log(titleBar);
-    console.log("");
-    console.log(`Viewing: ${activePane.view.name}`);
-    console.log(`Bounds: x=${activePane.x}, y=${activePane.y}, w=${activePane.width}, h=${activePane.height}`);
-    console.log(`Flex: ${activePane.flexWidth.toFixed(2)}x${activePane.flexHeight.toFixed(2)}`);
-  }
 
-  // Status bar at bottom
-  console.log("");
-  console.log(`╠${headerLine}╣`);
-
-  // Show active notifications count
-  const allNotifs = await notificationService.getNotifications();
-  const activeNotifs = allNotifs.filter((n: any) => !n.dismissed_at);
-  const notifBadge = activeNotifs.length > 0 ? ` 🔔 ${activeNotifs.length}` : "";
-  const statusLine = ` Status: ${TUI_STATUS_MSG_READY}${notifBadge}`;
-  console.log(`║${statusLine}${" ".repeat(Math.max(0, width - 2 - statusLine.length))}║`);
-  console.log(`╠${headerLine}╣`);
-  const navLine = " Navigation: Tab/Shift+Tab | Split: v/h | Close: c | Resize: Ctrl+Arrows | Help: ?";
-  console.log(`║${navLine.padEnd(width - 2)}║`);
-  const layoutLine = " Layout: s=save, r=restore, d=default | n=notifications | p=view picker";
-  console.log(`║${layoutLine.padEnd(width - 2)}║`);
-  console.log(`╚${headerLine}╝`);
+  await renderActivePaneContent(panes, activePaneId, theme, portalView);
+  await renderStatusBar(width, headerLine, notificationService);
 }

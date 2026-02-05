@@ -753,10 +753,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
     // 2. Handle detail view
     if (this.skillsViewExtensions.showDetail) {
-      if (key === KEYS.ESCAPE || key === KEYS.Q) {
-        this.hideDetail();
-      }
-      return true;
+      return this.handleDetailKeysSync(key);
     }
 
     // 3. Handle help screen (delegated to base)
@@ -764,13 +761,27 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
     // 4. Handle navigation (delegated to base)
     // Avoid keys that we handle specifically in this subclass or asynchronously
-    if (key !== KEYS.R && key !== KEYS.CAP_R) { // BASE handles c and e by default
-      if (this.handleNavigationKeys(key)) {
-        return true;
-      }
+    if (this.shouldDelegateNavigation(key) && this.handleNavigationKeys(key)) {
+      return true;
     }
 
     // 5. Handle action keys
+    return this.handleActionKeysSync(key);
+  }
+
+  private handleDetailKeysSync(key: string): boolean {
+    if (key === KEYS.ESCAPE || key === KEYS.Q) {
+      this.hideDetail();
+    }
+    return true;
+  }
+
+  private shouldDelegateNavigation(key: string): boolean {
+    // BASE handles c and e by default
+    return key !== KEYS.R && key !== KEYS.CAP_R;
+  }
+
+  private handleActionKeysSync(key: string): boolean {
     switch (key) {
       case KEYS.ENTER:
       case KEYS.CAP_R:

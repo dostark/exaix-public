@@ -112,75 +112,105 @@ export class ProviderSelector {
    * @throws Error if no suitable provider is found
    */
   async selectProviderForTask(config: Config, taskType: string): Promise<string> {
-    // Check for environment variable overrides first (highest priority)
-    const envOverrides = getValidatedEnvOverrides();
-    if (envOverrides.EXO_LLM_PROVIDER) {
-      const providerName = envOverrides.EXO_LLM_PROVIDER;
-      const metadata = this.registry.getProviderMetadata(providerName);
-
-      if (metadata) {
-        // Check if this is a paid provider in test/CI environment without opt-in
-        const isPaidProvider = metadata.costTier === ProviderCostTier.PAID ||
-          metadata.costTier === ProviderCostTier.FREEMIUM ||
-          metadata.pricingTier === PricingTier.HIGH ||
-          metadata.pricingTier === PricingTier.MEDIUM ||
-          metadata.pricingTier === PricingTier.LOW;
-        const isTestOrCI = isTestMode() || isCIMode();
-        const paidLLMEnabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM") === "1";
-
-        if (isPaidProvider && isTestOrCI && !paidLLMEnabled) {
-          console.warn(
-            `⚠️  Environment-specified paid provider '${providerName}' blocked in test/CI environment. Set EXO_TEST_ENABLE_PAID_LLM=1 to enable. Falling back to intelligent selection`,
-          );
-        } else {
-          const isHealthy = await this.healthChecker.checkProvider(providerName);
-          if (isHealthy) {
-            return providerName;
-          } else {
-            console.warn(
-              `⚠️  Environment-specified provider '${providerName}' is not healthy, falling back to intelligent selection`,
-            );
-          }
-        }
-      } else {
-        console.warn(
-          `⚠️  Environment-specified provider '${providerName}' is not registered, falling back to intelligent selection`,
-        );
-      }
-    }
+    const envProvider = await this.trySelectEnvProvider();
+    if (envProvider) return envProvider;
 
     const strategy = config.provider_strategy;
+    const routedProvider = await this.trySelectRoutedProvider(strategy, taskType);
+    if (routedProvider) return routedProvider;
 
-    // Check if task routing is configured for this task type
-    if (strategy.task_routing && strategy.task_routing[taskType]) {
-      const routedProviders = strategy.task_routing[taskType];
+    const criteria = this.buildSelectionCriteria(strategy);
+    const taskComplexity = this.mapTaskComplexity(taskType);
+    if (taskComplexity) criteria.taskComplexity = taskComplexity;
 
-      // Find the first healthy provider from the routing list
-      for (const providerName of routedProviders) {
-        const metadata = this.registry.getProviderMetadata(providerName);
-        if (metadata) {
-          const isHealthy = await this.healthChecker.checkProvider(providerName);
-          if (isHealthy) {
-            return providerName;
-          }
-        }
-      }
+    return this.selectProvider(criteria);
+  }
+
+  private async trySelectEnvProvider(): Promise<string | null> {
+    const envOverrides = getValidatedEnvOverrides();
+    const providerName = envOverrides.EXO_LLM_PROVIDER;
+    if (!providerName) return null;
+
+    const metadata = this.registry.getProviderMetadata(providerName);
+    if (!metadata) {
+      console.warn(
+        `⚠️  Environment-specified provider '${providerName}' is not registered, falling back to intelligent selection`,
+      );
+      return null;
     }
 
-    // Fall back to criteria-based selection using config defaults
-    const criteria: SelectionCriteria = {
+    if (this.shouldBlockPaidProvider(metadata)) {
+      console.warn(
+        `⚠️  Environment-specified paid provider '${providerName}' blocked in test/CI environment. Set EXO_TEST_ENABLE_PAID_LLM=1 to enable. Falling back to intelligent selection`,
+      );
+      return null;
+    }
+
+    const isHealthy = await this.healthChecker.checkProvider(providerName);
+    if (!isHealthy) {
+      console.warn(
+        `⚠️  Environment-specified provider '${providerName}' is not healthy, falling back to intelligent selection`,
+      );
+      return null;
+    }
+
+    return providerName;
+  }
+
+  private shouldBlockPaidProvider(metadata: { costTier?: ProviderCostTier; pricingTier?: PricingTier }): boolean {
+    if (!this.isPaidProvider(metadata)) return false;
+    if (!this.isTestOrCI()) return false;
+    return !this.isPaidLLMEnabled();
+  }
+
+  private isPaidProvider(metadata: { costTier?: ProviderCostTier; pricingTier?: PricingTier }): boolean {
+    const paidCostTiers = new Set<ProviderCostTier>([ProviderCostTier.PAID, ProviderCostTier.FREEMIUM]);
+    const paidPricingTiers = new Set<PricingTier>([PricingTier.HIGH, PricingTier.MEDIUM, PricingTier.LOW]);
+    if (metadata.costTier && paidCostTiers.has(metadata.costTier)) return true;
+    if (metadata.pricingTier && paidPricingTiers.has(metadata.pricingTier)) return true;
+    return false;
+  }
+
+  private isTestOrCI(): boolean {
+    if (isTestMode()) return true;
+    if (isCIMode()) return true;
+    return false;
+  }
+
+  private isPaidLLMEnabled(): boolean {
+    return Deno.env.get("EXO_TEST_ENABLE_PAID_LLM") === "1";
+  }
+
+  private async trySelectRoutedProvider(
+    strategy: Config["provider_strategy"],
+    taskType: string,
+  ): Promise<string | null> {
+    const routedProviders = strategy.task_routing?.[taskType];
+    if (!routedProviders) return null;
+
+    for (const providerName of routedProviders) {
+      const metadata = this.registry.getProviderMetadata(providerName);
+      if (!metadata) continue;
+      const isHealthy = await this.healthChecker.checkProvider(providerName);
+      if (isHealthy) return providerName;
+    }
+
+    return null;
+  }
+
+  private buildSelectionCriteria(strategy: Config["provider_strategy"]): SelectionCriteria {
+    return {
       preferFree: strategy.prefer_free,
       maxCostUsd: strategy.max_daily_cost_usd,
       allowLocal: strategy.allow_local,
-      requiredCapabilities: ["chat"], // Default capability requirement
+      requiredCapabilities: ["chat"],
     };
+  }
 
-    // Map task type to complexity if it's a known type
-    if (taskType === TaskComplexity.SIMPLE || taskType === TaskComplexity.COMPLEX) {
-      criteria.taskComplexity = taskType as TaskComplexity;
-    }
-
-    return this.selectProvider(criteria);
+  private mapTaskComplexity(taskType: string): TaskComplexity | undefined {
+    if (taskType === TaskComplexity.SIMPLE) return TaskComplexity.SIMPLE;
+    if (taskType === TaskComplexity.COMPLEX) return TaskComplexity.COMPLEX;
+    return undefined;
   }
 
   /**

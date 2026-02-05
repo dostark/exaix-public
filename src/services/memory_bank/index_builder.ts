@@ -7,6 +7,10 @@ import { join } from "@std/path";
 import type { ExecutionMemory, Learning } from "../../schemas/memory_bank.ts";
 import { MemoryStatus } from "../../enums.ts";
 
+function pushTagRef(tagsIndex: Record<string, string[]>, tag: string, ref: string) {
+  (tagsIndex[tag] ??= []).push(ref);
+}
+
 /**
  * Build files index from execution history
  */
@@ -79,21 +83,15 @@ export async function buildTagsIndex(
       if (projectMem) {
         // Index pattern tags
         for (const pattern of projectMem.patterns) {
-          for (const tag of pattern.tags || []) {
-            if (!tagsIndex[tag]) {
-              tagsIndex[tag] = [];
-            }
-            tagsIndex[tag].push(`pattern:${entry.name}:${pattern.name}`);
+          for (const tag of (pattern.tags ?? [])) {
+            pushTagRef(tagsIndex, tag, `pattern:${entry.name}:${pattern.name}`);
           }
         }
 
         // Index decision tags
         for (const decision of projectMem.decisions) {
-          for (const tag of decision.tags || []) {
-            if (!tagsIndex[tag]) {
-              tagsIndex[tag] = [];
-            }
-            tagsIndex[tag].push(`decision:${entry.name}:${decision.date}`);
+          for (const tag of (decision.tags ?? [])) {
+            pushTagRef(tagsIndex, tag, `decision:${entry.name}:${decision.date}`);
           }
         }
       }
@@ -103,11 +101,8 @@ export async function buildTagsIndex(
   // Index global learnings tags
   for (const learning of learnings) {
     if (learning.status !== MemoryStatus.APPROVED) continue;
-    for (const tag of learning.tags || []) {
-      if (!tagsIndex[tag]) {
-        tagsIndex[tag] = [];
-      }
-      tagsIndex[tag].push(`learning:global:${learning.id}`);
+    for (const tag of (learning.tags ?? [])) {
+      pushTagRef(tagsIndex, tag, `learning:global:${learning.id}`);
     }
   }
 

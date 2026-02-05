@@ -92,6 +92,61 @@ export interface FlowEventLogger {
   log(event: string, payload: any): void;
 }
 
+type BuiltInTransformHandler = (ctx: {
+  input: string;
+  transformArgs?: unknown;
+  originalRequest?: string;
+}) => string;
+
+function applyMergeAsContextTransform(input: string, transformArgs: unknown): string {
+  if (Array.isArray(transformArgs)) {
+    return mergeAsContext(transformArgs);
+  }
+
+  try {
+    const inputs = JSON.parse(input);
+    if (Array.isArray(inputs)) {
+      return mergeAsContext(inputs);
+    }
+  } catch {
+    const inputs = input.split("\n\n").filter((s) => s.trim());
+    return mergeAsContext(inputs);
+  }
+
+  throw new Error("mergeAsContext requires an array of strings");
+}
+
+function applyExtractSectionTransform(input: string, transformArgs: unknown): string {
+  if (typeof transformArgs === "string") return extractSection(input, transformArgs);
+  throw new Error("extractSection requires a section name as transformArgs");
+}
+
+function applyAppendToRequestTransform(input: string, originalRequest: string | undefined): string {
+  if (originalRequest) return appendToRequest(originalRequest, input);
+  throw new Error("appendToRequest requires original request to be available");
+}
+
+function applyJsonExtractTransform(input: string, transformArgs: unknown): string {
+  if (typeof transformArgs === "string") return jsonExtract(input, transformArgs);
+  throw new Error("jsonExtract requires a field path as transformArgs");
+}
+
+function applyTemplateFillTransform(input: string, transformArgs: unknown): string {
+  if (typeof transformArgs === "object" && transformArgs !== null) {
+    return templateFill(input, transformArgs as Record<string, unknown>);
+  }
+  throw new Error("templateFill requires a context object as transformArgs");
+}
+
+const BUILT_IN_TRANSFORM_HANDLERS: Record<string, BuiltInTransformHandler> = {
+  passthrough: ({ input }) => passthrough(input),
+  mergeAsContext: ({ input, transformArgs }) => applyMergeAsContextTransform(input, transformArgs),
+  extractSection: ({ input, transformArgs }) => applyExtractSectionTransform(input, transformArgs),
+  appendToRequest: ({ input, originalRequest }) => applyAppendToRequestTransform(input, originalRequest),
+  jsonExtract: ({ input, transformArgs }) => applyJsonExtractTransform(input, transformArgs),
+  templateFill: ({ input, transformArgs }) => applyTemplateFillTransform(input, transformArgs),
+};
+
 /**
  * FlowRunner - Orchestrates multi-agent flow execution
  * Implements Step 7.4 of the ExoFrame Implementation Plan
@@ -729,62 +784,15 @@ export class FlowRunner {
     // Handle custom transform functions
     if (typeof transform === "function") {
       try {
-        return transform(input);
+        return transform(input) as string;
       } catch (error) {
         throw new Error(`Custom transform failed: ${(error as Error).message}`);
       }
     }
 
-    // Handle built-in transform functions
-    switch (transform) {
-      case "passthrough":
-        return passthrough(input);
-
-      case "mergeAsContext":
-        // For mergeAsContext, input should be an array
-        if (Array.isArray(transformArgs)) {
-          return mergeAsContext(transformArgs);
-        }
-        // If transformArgs is not provided, treat input as array of strings
-        try {
-          const inputs = JSON.parse(input);
-          if (Array.isArray(inputs)) {
-            return mergeAsContext(inputs);
-          }
-        } catch {
-          // If input is not JSON array, split by double newlines
-          const inputs = input.split("\n\n").filter((s) => s.trim());
-          return mergeAsContext(inputs);
-        }
-        throw new Error("mergeAsContext requires an array of strings");
-
-      case "extractSection":
-        if (typeof transformArgs === "string") {
-          return extractSection(input, transformArgs);
-        }
-        throw new Error("extractSection requires a section name as transformArgs");
-
-      case "appendToRequest":
-        if (originalRequest) {
-          return appendToRequest(originalRequest, input);
-        }
-        throw new Error("appendToRequest requires original request to be available");
-
-      case "jsonExtract":
-        if (typeof transformArgs === "string") {
-          return jsonExtract(input, transformArgs);
-        }
-        throw new Error("jsonExtract requires a field path as transformArgs");
-
-      case "templateFill":
-        if (typeof transformArgs === "object" && transformArgs !== null) {
-          return templateFill(input, transformArgs);
-        }
-        throw new Error("templateFill requires a context object as transformArgs");
-
-      default:
-        throw new Error(`Unknown transform: ${transform}`);
-    }
+    const handler = BUILT_IN_TRANSFORM_HANDLERS[transform];
+    if (!handler) throw new Error(`Unknown transform: ${transform}`);
+    return handler({ input, transformArgs, originalRequest });
   }
 
   /**

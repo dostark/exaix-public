@@ -354,75 +354,110 @@ export class BlueprintCommands extends BaseCommand {
     const frontmatter: Record<string, unknown> = {};
     const lines = yamlContent.split("\n");
 
-    let currentKey: string | null = null;
-    let currentArray: string[] = [];
+    const state: { currentKey: string | null; currentArray: string[] } = {
+      currentKey: null,
+      currentArray: [],
+    };
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
+    for (const line of lines) {
       const trimmed = line.trim();
+      if (this.isSkippableYamlLine(trimmed)) continue;
+      if (this.tryConsumeYamlListItem(trimmed, state)) continue;
 
-      // Skip empty lines and comments
-      if (!trimmed || trimmed.startsWith("#")) continue;
+      this.flushYamlArray(frontmatter, state);
 
-      // Check if this is a list item (starts with -)
-      if (trimmed.startsWith("- ")) {
-        if (currentKey) {
-          currentArray.push(trimmed.slice(2).trim());
-        }
-        continue;
-      }
-
-      // If we were building an array, save it now
-      if (currentKey && currentArray.length > 0) {
-        frontmatter[currentKey] = currentArray;
-        currentKey = null;
-        currentArray = [];
-      }
-
-      // Parse key: value line
-      const colonIndex = line.indexOf(":");
-      if (colonIndex === -1) continue;
-
-      const key = line.slice(0, colonIndex).trim();
-      const value = line.slice(colonIndex + 1).trim();
-
-      // Handle quoted strings
-      if (
-        (value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))
-      ) {
-        frontmatter[key] = value.slice(1, -1);
-        continue;
-      }
-
-      // Handle inline arrays [item1, item2]
-      if (value.startsWith("[") && value.endsWith("]")) {
-        try {
-          frontmatter[key] = JSON.parse(value.replace(/'/g, '"'));
-        } catch {
-          console.warn(`Failed to parse inline array for key '${key}': ${value}`);
-          frontmatter[key] = [];
-        }
-        continue;
-      }
-
-      // If value is empty, this might be a multi-line array
-      if (!value) {
-        currentKey = key;
-        currentArray = [];
-        continue;
-      }
-
-      // Default: store as string
-      frontmatter[key] = value;
+      const kv = this.parseYamlKeyValue(line);
+      if (!kv) continue;
+      this.applyYamlKeyValue(frontmatter, kv.key, kv.value, state);
     }
 
-    // Handle any remaining array
-    if (currentKey && currentArray.length > 0) {
-      frontmatter[currentKey] = currentArray;
-    }
+    this.flushYamlArray(frontmatter, state);
 
     return frontmatter;
+  }
+
+  private isSkippableYamlLine(trimmed: string): boolean {
+    if (!trimmed) return true;
+    if (trimmed.startsWith("#")) return true;
+    return false;
+  }
+
+  private tryConsumeYamlListItem(
+    trimmed: string,
+    state: { currentKey: string | null; currentArray: string[] },
+  ): boolean {
+    if (!trimmed.startsWith("- ")) return false;
+    if (state.currentKey) {
+      state.currentArray.push(trimmed.slice(2).trim());
+    }
+    return true;
+  }
+
+  private flushYamlArray(
+    frontmatter: Record<string, unknown>,
+    state: { currentKey: string | null; currentArray: string[] },
+  ): void {
+    if (state.currentKey && state.currentArray.length > 0) {
+      frontmatter[state.currentKey] = state.currentArray;
+      state.currentKey = null;
+      state.currentArray = [];
+    }
+  }
+
+  private parseYamlKeyValue(line: string): { key: string; value: string } | null {
+    const colonIndex = line.indexOf(":");
+    if (colonIndex === -1) return null;
+    return {
+      key: line.slice(0, colonIndex).trim(),
+      value: line.slice(colonIndex + 1).trim(),
+    };
+  }
+
+  private applyYamlKeyValue(
+    frontmatter: Record<string, unknown>,
+    key: string,
+    value: string,
+    state: { currentKey: string | null; currentArray: string[] },
+  ): void {
+    const unquoted = this.tryStripYamlQuotes(value);
+    if (unquoted !== null) {
+      frontmatter[key] = unquoted;
+      return;
+    }
+
+    if (this.isInlineYamlArray(value)) {
+      frontmatter[key] = this.parseInlineYamlArray(key, value);
+      return;
+    }
+
+    if (!value) {
+      state.currentKey = key;
+      state.currentArray = [];
+      return;
+    }
+
+    frontmatter[key] = value;
+  }
+
+  private tryStripYamlQuotes(value: string): string | null {
+    if (value.startsWith('"') && value.endsWith('"')) return value.slice(1, -1);
+    if (value.startsWith("'") && value.endsWith("'")) return value.slice(1, -1);
+    return null;
+  }
+
+  private isInlineYamlArray(value: string): boolean {
+    if (!value.startsWith("[")) return false;
+    if (!value.endsWith("]")) return false;
+    return true;
+  }
+
+  private parseInlineYamlArray(key: string, value: string): unknown[] {
+    try {
+      return JSON.parse(value.replace(/'/g, '"'));
+    } catch {
+      console.warn(`Failed to parse inline array for key '${key}': ${value}`);
+      return [];
+    }
   }
 
   /**
