@@ -16,6 +16,7 @@ import { TestEnvironment } from "./helpers/test_environment.ts";
 import { setupGitRepo } from "../helpers/git_test_helper.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";
+import { assertPointerPointsTo, pathExists } from "./helpers/worktree_portal_test_utils.ts";
 
 async function runExoctl(args: string[], cwd: string) {
   const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
@@ -79,24 +80,6 @@ async function gitStdout(repoPath: string, args: string[]): Promise<string> {
   }
 
   return new TextDecoder().decode(stdout).trim();
-}
-
-async function pathExists(path: string): Promise<boolean> {
-  return await Deno.stat(path).then(() => true).catch(() => false);
-}
-
-async function assertPointerPointsTo(traceRoot: string, traceId: string, expectedTarget: string): Promise<void> {
-  const pointerPath = join(traceRoot, "Memory", "Execution", traceId, "worktree");
-  const info = await Deno.lstat(pointerPath);
-
-  if (info.isSymlink) {
-    const linkTarget = await Deno.readLink(pointerPath);
-    assertEquals(linkTarget, expectedTarget);
-  } else {
-    assertEquals(info.isDirectory, true);
-    const pathText = await Deno.readTextFile(join(pointerPath, "PATH.txt"));
-    assertEquals(pathText.trim(), expectedTarget);
-  }
 }
 
 Deno.test("[e2e] Portal request → plan → execution → artifact review (read-only)", async () => {
@@ -503,7 +486,7 @@ Deno.test("[e2e] Portal target_branch review approve merges into that branch", a
     }).output();
 
     const approve = await runExoctl(["review", "approve", createdPortalBranch], env.tempDir);
-    assertEquals(approve.code, 0);
+    assertEquals(approve.code, 0, approve.stderr);
 
     // After merge: file should exist on the target branch but not on main.
     const fileOnTarget = await new Deno.Command(PortalOperation.GIT, {

@@ -6,58 +6,34 @@
  */
 
 import { assertEquals, assertExists, assertMatch, assertStringIncludes } from "@std/assert";
-import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
-import { PortalExecutionStrategy, PortalOperation } from "../../src/enums.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { ExecutionLoop } from "../../src/services/execution_loop.ts";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";
-import { setupGitRepo } from "../helpers/git_test_helper.ts";
 import { TestEnvironment } from "./helpers/test_environment.ts";
+import {
+  assertPointerPointsTo,
+  gitStdout,
+  listBranches,
+  pathExists,
+  setupWorktreePortalRepo,
+  withSingleWorktreePortal,
+} from "./helpers/worktree_portal_test_utils.ts";
 
-async function gitStdout(repoPath: string, args: string[]): Promise<string> {
-  const cmd = new Deno.Command(PortalOperation.GIT, {
-    args,
-    cwd: repoPath,
-    stdout: "piped",
-    stderr: "piped",
-  });
+async function setupPortalWorktreeExecutionLoop(env: TestEnvironment) {
+  const portalAlias = "worktree-portal";
+  const portalTargetPath = join(env.tempDir, "portal-worktree-target");
+  const targetBranch = "release_1.2";
 
-  const { success, stdout, stderr } = await cmd.output();
-  if (!success) {
-    const errorText = new TextDecoder().decode(stderr);
-    throw new Error(`Git command failed: ${args.join(" ")}\n${errorText}`);
-  }
+  await setupWorktreePortalRepo(portalTargetPath, targetBranch);
 
-  return new TextDecoder().decode(stdout).trim();
-}
+  const config = withSingleWorktreePortal(env.config, portalAlias, portalTargetPath, "main");
 
-async function listBranches(repoPath: string): Promise<string[]> {
-  const output = await gitStdout(repoPath, ["branch", "--list"]);
-  return output
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    // '*' => current branch, '+' => checked out in another worktree
-    .map((line) => line.replace(/^[*+]\s+/, ""));
-}
+  const logger = new EventLogger({ db: env.db });
+  const reviewRegistry = new ReviewRegistry(env.db, logger);
+  const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
 
-async function pathExists(path: string): Promise<boolean> {
-  return await Deno.stat(path).then(() => true).catch(() => false);
-}
-
-async function assertPointerPointsTo(traceRoot: string, traceId: string, expectedTarget: string): Promise<void> {
-  const pointerPath = join(traceRoot, "Memory", "Execution", traceId, "worktree");
-  const info = await Deno.lstat(pointerPath);
-
-  if (info.isSymlink) {
-    const linkTarget = await Deno.readLink(pointerPath);
-    assertEquals(linkTarget, expectedTarget);
-  } else {
-    assertEquals(info.isDirectory, true);
-    const pathText = await Deno.readTextFile(join(pointerPath, "PATH.txt"));
-    assertEquals(pathText.trim(), expectedTarget);
-  }
+  return { portalAlias, portalTargetPath, targetBranch, loop };
 }
 
 Deno.test(
@@ -66,35 +42,7 @@ Deno.test(
     const env = await TestEnvironment.create();
 
     try {
-      const portalAlias = "worktree-portal";
-      const portalTargetPath = join(env.tempDir, "portal-worktree-target");
-      const targetBranch = "release_1.2";
-
-      await ensureDir(join(portalTargetPath, "src"));
-      await setupGitRepo(portalTargetPath, { initialCommit: true, branch: "main" });
-
-      // Create a long-lived release branch.
-      await gitStdout(portalTargetPath, ["branch", targetBranch, "main"]);
-
-      // Simulate user checkout staying on main.
-      await gitStdout(portalTargetPath, ["checkout", "main"]);
-      assertEquals(await gitStdout(portalTargetPath, ["branch", "--show-current"]), "main");
-
-      const config = {
-        ...env.config,
-        portals: [
-          {
-            alias: portalAlias,
-            target_path: portalTargetPath,
-            default_branch: "main",
-            execution_strategy: PortalExecutionStrategy.WORKTREE,
-          },
-        ],
-      };
-
-      const logger = new EventLogger({ db: env.db });
-      const reviewRegistry = new ReviewRegistry(env.db, logger);
-      const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
+      const { portalAlias, portalTargetPath, targetBranch, loop } = await setupPortalWorktreeExecutionLoop(env);
 
       const traceA = crypto.randomUUID();
       const requestA = `request-${traceA.substring(0, 8)}`;
@@ -192,30 +140,7 @@ Deno.test(
     const env = await TestEnvironment.create();
 
     try {
-      const portalAlias = "worktree-portal";
-      const portalTargetPath = join(env.tempDir, "portal-worktree-target");
-
-      await ensureDir(join(portalTargetPath, "src"));
-      await setupGitRepo(portalTargetPath, { initialCommit: true, branch: "main" });
-
-      // Simulate user checkout staying on main.
-      await gitStdout(portalTargetPath, ["checkout", "main"]);
-
-      const config = {
-        ...env.config,
-        portals: [
-          {
-            alias: portalAlias,
-            target_path: portalTargetPath,
-            default_branch: "main",
-            execution_strategy: PortalExecutionStrategy.WORKTREE,
-          },
-        ],
-      };
-
-      const logger = new EventLogger({ db: env.db });
-      const reviewRegistry = new ReviewRegistry(env.db, logger);
-      const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
+      const { portalAlias, portalTargetPath, loop } = await setupPortalWorktreeExecutionLoop(env);
 
       const traceId = crypto.randomUUID();
       const requestId = `request-${traceId.substring(0, 8)}`;
