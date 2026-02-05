@@ -984,26 +984,24 @@ exoctl blueprint show senior-coder
 ### Part B: Portal Security Configuration
 
 ```bash
-# Step 1: Configure portal (security is enforced by ToolRegistry path validation)
-cat >> ~/ExoFrame/exo.config.toml << EOF
-[[portals]]
-alias = "TestApp"
-target_path = "/tmp/test-portal"
-# Note: Current ToolRegistry allows access to all portals if mounted
-EOF
-
-# Step 2: Create test portal directory with git repo
+# Step 1: Create test portal directory with git repo
 mkdir -p /tmp/test-portal/src
 cd /tmp/test-portal
-git init
+git init -b main
 echo "# Test App" > README.md
 echo "export const version = '1.0';" > src/index.ts
 git add .
 git commit -m "Initial commit"
 
+# Step 2: Create an additional long-lived base branch
+git checkout -b release_1.2
+git checkout main
+
 # Step 3: Mount portal in ExoFrame
 cd ~/ExoFrame
-exoctl portal add /tmp/test-portal TestApp
+exoctl portal add /tmp/test-portal TestApp \
+  --default-branch main \
+  --execution-strategy worktree
 
 # Step 4: Verify portal configuration
 exoctl portal list
@@ -1013,10 +1011,11 @@ exoctl portal show TestApp
 ### Part C: Plan Execution (Happy Path)
 
 ```bash
-# Step 1: Create request targeting the portal
+# Step 1: Create request targeting the portal and a specific base branch
 exoctl request "Add hello world function to src/utils.ts" \
     --agent senior-coder \
-    --portal TestApp
+  --portal TestApp \
+  --target-branch release_1.2
 
 # Step 2: Wait for plan generation (daemon processes request)
 sleep 5
@@ -1036,6 +1035,10 @@ exoctl review list
 
 # Expected output:
 # ✅ review-uuid  TestApp  feat/hello-world-abc  pending
+
+# Step 7: Verify worktree execution pointer exists (worktree strategy)
+# Note: This is a discoverability pointer; it may be a symlink or a PATH.txt file.
+ls -la ~/ExoFrame/Memory/Execution/<trace-id>/worktree
 ```
 
 ### Part D: Review Verification
@@ -1047,6 +1050,8 @@ exoctl review show <review-id>
 # Expected output:
 # Portal: TestApp
 # Branch: feat/hello-world-<trace-id-prefix>
+# Base Branch: release_1.2
+# Worktree Path: /... (present for worktree execution)
 # Commit: a1b2c3d
 # Files Changed: 1
 # Status: pending
@@ -1082,15 +1087,16 @@ exoctl journal --filter trace_id=<trace-id>
 ### Part E: Review Approval
 
 ```bash
-# Step 1: Approve the review (merges to main)
+# Step 1: Approve the review (merges to recorded base branch)
 exoctl review approve <review-id>
 
 # Step 2: Verify merge completed
 cd /tmp/test-portal
+git checkout release_1.2
 git log --oneline -5
 # Should show merge commit
 
-# Step 3: Verify file exists on main branch
+# Step 3: Verify file exists on base branch
 cat /tmp/test-portal/src/utils.ts
 # Should contain hello world function
 
@@ -1098,6 +1104,13 @@ cat /tmp/test-portal/src/utils.ts
 exoctl review show <review-id>
 # Status should be: approved
 # approved_by and approved_at should be set
+
+# Step 5: Cleanup expectations
+# - Branch-based execution: merge occurs; feature branch may remain.
+# - Worktree-based execution: worktree checkout + pointer are cleaned up, and the feature branch is deleted.
+#   - Pointer path: ~/ExoFrame/Memory/Execution/<trace-id>/worktree (symlink or PATH.txt).
+# - If a merge conflict occurs during approve (worktree-based): merge is aborted best-effort and worktree checkout + pointer are cleaned up,
+#   but the feature branch is kept for manual conflict resolution.
 ```
 
 ### Part F: Review Rejection (Alternative Flow)
@@ -3197,7 +3210,7 @@ exoctl journal --filter action_type=%request% --tail 5
 
 ### Steps
 
-````bash
+```bash
 # Part A: Basic Queries
 
 # Step 1: Query all activity
@@ -4011,8 +4024,8 @@ exoctl git log $PORTAL_FLOW_ID
 
 #### Plan Execution
 
-| ID    | Scenario                              | Risk | Pass | Fail | Skip | Notes |
-| ----- | ------------------------------------- | ---- | ---- | ---- | ---- | ----- |
+| ID    | Scenario                           | Risk | Pass | Fail | Skip | Notes |
+| ----- | ---------------------------------- | ---- | ---- | ---- | ---- | ----- |
 | MT-08 | Plan Execution & Review Management | High |      |      |      |       |
 
 #### Portal & Git Management
@@ -4142,5 +4155,4 @@ exoctl git log $PORTAL_FLOW_ID
 
 ---
 
-_End of Manual Test Scenarios_
-````
+## End of Manual Test Scenarios

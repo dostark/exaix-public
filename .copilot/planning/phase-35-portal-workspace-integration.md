@@ -23,12 +23,12 @@ topics: ["portals", "git", "reviews", "architecture", "workspace", "collaboratio
 **Decision:**
 
 1. **Artifact Storage:** Read-only agent outputs stored in `Memory/Execution/<artifact-id>.md`
-2. **Frontmatter Status:** Artifacts include YAML frontmatter with `status` field (pending/approved/rejected)
-3. **Unified Command:** `exoctl review` works for both:
+1. **Frontmatter Status:** Artifacts include YAML frontmatter with `status` field (pending/approved/rejected)
+1. **Unified Command:** `exoctl review` works for both:
    - Git reviews (write agents in portal repos)
    - File artifacts (read-only agents in Memory/Execution/)
-4. **Approval Workflow:** `exoctl review approve/reject` updates artifact status without git operations
-5. **Phase 36 Completion:** Renamed `exoctl review` → `exoctl review` for semantic clarity (complete)
+1. **Approval Workflow:** `exoctl review approve/reject` updates artifact status without git operations
+1. **Phase 36 Completion:** Renamed `exoctl changeset` → `exoctl review` for semantic clarity (complete)
 
 **Benefits:**
 
@@ -88,9 +88,9 @@ exoctl review show request-f05f6840
 **Architecture Flaw:**
 
 1. **Agent Execution Environment**: Agents execute with working directory set to deployed workspace (`~/ExoFrame`)
-2. **Portal Access**: Portals are symlinked under `~/ExoFrame/Portals/`, but git operations happen in parent directory
-3. **Git Context**: Git commands inherit the execution directory, creating branches/commits in deployed workspace's repo
-4. **Changeset Tracking**: Changesets compare against deployed workspace's minimal `master` branch, not portal's actual codebase
+1. **Portal Access**: Portals are symlinked under `~/ExoFrame/Portals/`, but git operations happen in parent directory
+1. **Git Context**: Git commands inherit the execution directory, creating branches/commits in deployed workspace's repo
+1. **Changeset Tracking**: Changesets compare against deployed workspace's minimal `master` branch, not portal's actual codebase
 
 **File Structure:**
 
@@ -115,11 +115,11 @@ exoctl review show request-f05f6840
 **Critical Problems:**
 
 1. **Lost Changes**: Modifications in deployed workspace are ephemeral (lost on redeploy)
-2. **Fragmented History**: Git history split between execution and source repositories
-3. **Broken Collaboration**: Team members can't see/review changes in source repo
-4. **Invalid Changesets**: 320 "new" files when only 5 files should change
-5. **Approval Confusion**: Reviewing changes in wrong context
-6. **Deployment Issues**: Changes in wrong repo don't get deployed
+1. **Fragmented History**: Git history split between execution and source repositories
+1. **Broken Collaboration**: Team members can't see/review changes in source repo
+1. **Invalid Changesets**: 320 "new" files when only 5 files should change
+1. **Approval Confusion**: Reviewing changes in wrong context
+1. **Deployment Issues**: Changes in wrong repo don't get deployed
 
 **Affected Workflows:**
 
@@ -518,8 +518,8 @@ Analyzed 15 files in `src/cli/` directory...
 ## Findings
 
 1. **Command Pattern**: All commands extend BaseCommand
-2. **Validation**: Input validation inconsistent across commands
-3. **Error Handling**: 3 commands missing proper error boundaries
+1. **Validation**: Input validation inconsistent across commands
+1. **Error Handling**: 3 commands missing proper error boundaries
 
 ## Recommendations
 
@@ -584,18 +584,18 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 **Implementation:**
 
 1. **Detect read-only mode** using agent blueprint capabilities (single source of truth; reuse `isReadOnlyAgent` / `requiresGitTracking` decision).
-2. **Choose artifact content**:
+1. **Choose artifact content**:
 
 - Minimal: Use the final `summary.md` content as artifact body.
 - Better: Combine `summary.md` + a link/reference to the execution trace directory (`Memory/Execution/<traceId>/`).
 
-3. **Create artifact** at the end of a successful read-only execution:
+1. **Create artifact** at the end of a successful read-only execution:
 
 - `artifactId = await artifactRegistry.createArtifact(requestId, agentId, body, portal)`
 - Persist artifact file in `Memory/Execution/artifact-<id>.md` with frontmatter.
 
-4. **Do not create git branches/commits/reviews** in read-only mode.
-5. **Record the artifact ID** into the request/plan status record (optional but strongly recommended) so tooling can jump directly from request → artifact.
+1. **Do not create git branches/commits/reviews** in read-only mode.
+1. **Record the artifact ID** into the request/plan status record (optional but strongly recommended) so tooling can jump directly from request → artifact.
 
 **Success Criteria:**
 
@@ -635,12 +635,12 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 - If `id` starts with `artifact-`: load via `ArtifactRegistry.getArtifact(id)` and print markdown body.
 - Else: existing git diff behavior.
 
-2. **`review approve <id>` / `review reject <id>`**:
+1. **`review approve <id>` / `review reject <id>`**:
 
 - If artifact: update frontmatter + DB status using `ArtifactRegistry.updateStatus(id, ...)`.
 - Else: existing branch merge/delete behavior.
 
-3. **`review list` includes artifacts**:
+1. **`review list` includes artifacts**:
 
 - Default list returns both code reviews (feat/*) and pending artifacts.
 - Add optional `--type code|artifact|all` filter (default: all).
@@ -676,7 +676,7 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 - Keep DB tables separate (`reviews`/`changesets` vs `artifacts`).
 - `review list` queries both sources and merges/sorts by created timestamp.
 
-2. **Unified “reviewables” view (later):**
+1. **Unified “reviewables” view (later):**
 
 - Add a DB view/table to normalize both into a single query path.
 
@@ -709,10 +709,10 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 Created comprehensive integration test suite covering portal workspace execution:
 
 1. **Portal Execution Context Creation**: Verifies WorkspaceExecutionContextBuilder.forPortal() creates correct context pointing to portal workspace
-2. **Read-Only Agent Capabilities**: Verifies portal git repository state remains clean (no branch creation for analysis workflows)
-3. **Write-Capable Agent Infrastructure**: Verifies portal git structure exists for write operations
-4. **Multi-Portal Isolation**: Verifies concurrent portal contexts are isolated from each other
-5. **Git Repository Validation**: Verifies validatePortalGitRepo() throws error for non-git portals
+1. **Read-Only Agent Capabilities**: Verifies portal git repository state remains clean (no branch creation for analysis workflows)
+1. **Write-Capable Agent Infrastructure**: Verifies portal git structure exists for write operations
+1. **Multi-Portal Isolation**: Verifies concurrent portal contexts are isolated from each other
+1. **Git Repository Validation**: Verifies validatePortalGitRepo() throws error for non-git portals
 
 **Success Criteria:**
 
@@ -751,7 +751,7 @@ All agent capability logic (requiresGitTracking, isReadOnlyAgent) is tested in u
 **Files Updated:**
 
 1. **`docs/ExoFrame_User_Guide.md`** - Added section 5.8 Portal Workflows
-2. **`docs/dev/ExoFrame_Technical_Spec.md`** - Added section 8.5 Portal Workspace Integration
+1. **`docs/dev/ExoFrame_Technical_Spec.md`** - Added section 8.5 Portal Workspace Integration
 
 **User Guide Additions (Section 5.8):**
 
@@ -836,9 +836,9 @@ Task 5.2 completed with comprehensive documentation updates. Both User Guide and
 **Scenarios:**
 
 1. Code analysis in portal (read-only)
-2. Feature development in portal (write-capable)
-3. Multi-portal workflow
-4. Changeset review and approval
+1. Feature development in portal (write-capable)
+1. Multi-portal workflow
+1. Changeset review and approval
 
 **Test Count:** ~5 E2E tests
 
@@ -904,7 +904,7 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
    exoctl portal add ~/git/MyProject my-project
    ```
 
-2. Update request commands to use portals:
+1. Update request commands to use portals:
 
    ```bash
    # Old (still works but not recommended)
@@ -914,7 +914,7 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
    exoctl request --portal my-project "Analyze code"
    ```
 
-3. Review reviews in correct repositories:
+1. Review reviews in correct repositories:
 
    ```bash
    cd ~/git/MyProject  # Portal repo
@@ -984,21 +984,21 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 **Migration Plan:**
 
 1. Add `exoctl review` as alias to `exoctl review`
-2. Deprecation warning on `exoctl review` usage
-3. Update all documentation to use `exoctl review`
-4. Remove `exoctl review` in next major version
+1. Deprecation warning on `exoctl review` usage
+1. Update all documentation to use `exoctl review`
+1. Remove `exoctl review` in next major version
 
 **Note:** This section is superseded by Phase 36. See `.copilot/planning/phase-36-changeset-to-review-rename.md` for the canonical CLI naming and migration notes.
 
 ### Post-Phase 36 Improvements
 
 1. **Automatic Portal Detection**: Auto-detect git repositories and suggest portal creation
-2. **Portal Synchronization**: Sync deployed workspace with portal changes
-3. **Multi-Portal Flows**: Orchestrate work across multiple portals
-4. **Portal Templates**: Pre-configured portals for common project types
-5. **Portal Permissions**: Fine-grained access control per portal
-6. **Artifact Templates**: Pre-defined formats for analysis reports
-7. **Artifact Search**: Full-text search across approved artifacts
+1. **Portal Synchronization**: Sync deployed workspace with portal changes
+1. **Multi-Portal Flows**: Orchestrate work across multiple portals
+1. **Portal Templates**: Pre-configured portals for common project types
+1. **Portal Permissions**: Fine-grained access control per portal
+1. **Artifact Templates**: Pre-defined formats for analysis reports
+1. **Artifact Search**: Full-text search across approved artifacts
 
 ---
 

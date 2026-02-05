@@ -582,6 +582,7 @@ exoctl request "Implement user authentication for the API"
 # With options
 exoctl request "Add rate limiting" --agent senior_coder --priority high
 exoctl request "Fix security bug" --priority critical --portal MyProject
+exoctl request "Patch release branch" --portal MyProject --target-branch release_1.2
 exoctl request "Build a web app" --flow web-development
 
 # From file (for complex/long requests)
@@ -608,17 +609,18 @@ exoctl request "Audit and write report" --agent security-expert --skills documen
 
 **Options:**
 
-| Option          | Short | Description                                                                      |
-| --------------- | ----- | -------------------------------------------------------------------------------- |
-| `--agent`       | `-a`  | Target agent blueprint (default: `default`, mutually exclusive with --flow)      |
-| `--flow`        |       | Target multi-agent flow (mutually exclusive with --agent)                        |
-| `--priority`    | `-p`  | Priority: `low`, `normal`, `high`, `critical`                                    |
-| `--portal`      |       | Portal alias for project context                                                 |
-| `--skills`      |       | Comma-separated list of skills to inject (e.g., `documentation-driven,file-ops`) |
-| `--file`        | `-f`  | Read description from file                                                       |
-| `--interactive` | `-i`  | Interactive mode with prompts                                                    |
-| `--dry-run`     |       | Preview without creating                                                         |
-| `--json`        |       | Machine-readable output                                                          |
+| Option            | Short | Description                                                                      |
+| ----------------- | ----- | -------------------------------------------------------------------------------- |
+| `--agent`         | `-a`  | Target agent blueprint (default: `default`, mutually exclusive with --flow)      |
+| `--flow`          |       | Target multi-agent flow (mutually exclusive with --agent)                        |
+| `--priority`      | `-p`  | Priority: `low`, `normal`, `high`, `critical`                                    |
+| `--portal`        |       | Portal alias for project context                                                 |
+| `--target-branch` |       | Target/base branch when working inside a portal (stored as `target_branch`)      |
+| `--skills`        |       | Comma-separated list of skills to inject (e.g., `documentation-driven,file-ops`) |
+| `--file`          | `-f`  | Read description from file                                                       |
+| `--interactive`   | `-i`  | Interactive mode with prompts                                                    |
+| `--dry-run`       |       | Preview without creating                                                         |
+| `--json`          |       | Machine-readable output                                                          |
 
 **Example workflow:**
 
@@ -739,6 +741,14 @@ exoctl review approve <request-id>
 exoctl review reject <request-id> --reason "Failed code review"
 ```
 
+**Cleanup behavior (code reviews):**
+
+- **Reject:** Deletes the feature branch (best-effort cleanup if the branch is checked out in a worktree).
+- **Approve:** Merges into the review’s recorded base branch (often `main`).
+  - If the review was executed in an **isolated worktree**, ExoFrame also removes the worktree checkout and its pointer at `Memory/Execution/{trace-id}/worktree`, and then deletes the feature branch.
+  - If the review was executed on a normal branch checkout, ExoFrame merges but does not automatically delete the feature branch.
+- **Merge conflict on approve (worktree reviews):** ExoFrame attempts `git merge --abort` and removes the worktree checkout + pointer to avoid leaving orphaned worktrees. The feature branch is kept so a human can resolve and re-merge.
+
 **Example workflow:**
 
 ```bash
@@ -831,8 +841,9 @@ Portals are symlinked directories that give agents controlled access to external
 
 ```bash
 # Add a new portal
-exoctl portal add <target-path> <alias>
+exoctl portal add <target-path> <alias> [--default-branch <branch>] [--execution-strategy <branch|worktree>]
 exoctl portal add ~/Dev/MyWebsite MyWebsite
+exoctl portal add ~/Dev/MyWebsite MyWebsite --default-branch main --execution-strategy worktree
 
 # List all configured portals
 exoctl portal list
@@ -869,11 +880,21 @@ exoctl portal refresh <alias>
 exoctl portal refresh MyWebsite
 ```
 
+**Portal base branch and execution strategy:**
+
+- `exoctl request --portal <alias> --target-branch <branch>` stores `target_branch` in request/plan frontmatter and uses it as the review's merge target (`base_branch`) for portal code reviews.
+- If `target_branch` is not provided, ExoFrame falls back to the portal's configured `default_branch` (if set), and otherwise auto-detects the repository's default branch.
+- `--execution-strategy` controls how ExoFrame runs write-capable portal work:
+  - `branch` (default): create a feature branch in the portal repo checkout.
+  - `worktree`: create an isolated git worktree per execution (good for parallel requests) and record `worktree_path` on the review.
+
+For worktree executions, ExoFrame also writes a discoverability pointer at `Memory/Execution/{trace-id}/worktree` (symlink when possible; `PATH.txt` fallback).
+
 **What happens when adding a portal:**
 
 1. Creates symlink: `~/ExoFrame/Portals/<alias>` → `<target-path>`
 2. Generates context card: `~/ExoFrame/Portals/<alias>.md`
-3. Updates `exo.config.toml` with portal configuration
+3. Updates `exo.config.toml` with portal configuration (optional per-portal keys: `default_branch` and `execution_strategy`)
 4. Validates Deno permissions for new path
 5. Restarts daemon if running (or prompts for manual restart)
 6. Logs action to Activity Journal
@@ -1913,6 +1934,15 @@ When you submit a request targeting a portal:
 3. **File Access**: Agent can read/write portal files directly
 4. **Reviews**: Track actual code changes in portal repository
 
+#### Cleanup & lifecycle notes
+
+- **Portals:** A portal is a stable symlink entry under `Portals/`. It is not auto-removed; use `exoctl portal remove <alias>` when you no longer want it mounted.
+- **Reviews:** Review records remain for audit/history, but their _working artifacts_ (branches/worktrees) may be cleaned up as part of approve/reject.
+- **Worktree execution:** Some portal runs use an isolated Git worktree checkout. A pointer is recorded at `Memory/Execution/{trace-id}/worktree` pointing to the worktree directory.
+  - **Approve/Reject:** Worktree checkout + pointer are removed to avoid stale worktrees.
+  - **Approve:** The feature branch is deleted after cleanup.
+  - **Merge conflict:** ExoFrame aborts the merge (best effort) and removes the worktree checkout + pointer, but keeps the feature branch for manual conflict resolution.
+
 #### Code Analysis with Portal
 
 Read-only agents (like `code-analyst`) execute in portal workspace but don't create git branches. Instead, they produce analysis artifacts stored in `Memory/Execution/`:
@@ -2839,4 +2869,4 @@ Cost tracking supports all major AI providers:
 
 ---
 
-### _End of User Guide_
+### End of User Guide

@@ -319,7 +319,41 @@ Success criteria
 
 Projected tests
 
-- Extend existing portal E2E integration test file(s) with strategy-based scenarios.
+- [x] Extend portal E2E suite with strategy-based scenarios.
+  - [x] `execution_strategy=branch` + `target_branch` merge
+  - [x] `execution_strategy=worktree` + `target_branch` merge
+  - [x] Negative: wrong checkout guard
+  - [x] Negative: missing portal discovery guard
+  - [x] Negative: merge conflict behavior
+
+### Step 37.9: Update documentation for `target_branch` + worktree execution
+
+- **Dependencies:** Steps 37.1–37.8
+- **Action:** Update documentation to reflect portal target branches and optional worktree execution strategy.
+
+Success criteria
+
+- User-facing docs describe how to target a portal branch (request frontmatter + CLI flags).
+- Architecture/spec docs describe branch vs worktree portal execution and review/merge semantics.
+- Manual test scenarios include coverage for `target_branch` and `execution_strategy=worktree`.
+- Testing/CI docs reflect the new portal E2E coverage expectations.
+
+Documentation updates (projected)
+
+- [x] [docs/Memory_Banks.md](../../docs/Memory_Banks.md)
+  - [x] Mention worktree discoverability pointer at `Memory/Execution/<trace_id>/worktree` (symlink or `PATH.txt`).
+- [x] [docs/ExoFrame_User_Guide.md](../../docs/ExoFrame_User_Guide.md)
+  - [x] Add examples: `exoctl request --portal <alias> --target-branch <branch>` and expected frontmatter.
+  - [x] Describe portal execution strategies (`branch` default, `worktree` optional) at a user level.
+- [x] [docs/dev/ExoFrame_Architecture.md](../../docs/dev/ExoFrame_Architecture.md)
+  - [x] Update portal execution flow to include target branch resolution and worktree execution path.
+- [x] [docs/dev/ExoFrame_Manual_Test_Scenarios.md](../../docs/dev/ExoFrame_Manual_Test_Scenarios.md)
+  - [x] Add/extend portal + git workflow scenario to cover `target_branch` and `execution_strategy=worktree`.
+- [x] [docs/dev/ExoFrame_Technical_Spec.md](../../docs/dev/ExoFrame_Technical_Spec.md)
+  - [x] Document `target_branch` semantics and the two portal execution strategies.
+  - [x] Call out review approval requirement: merge into the recorded base branch.
+- [x] [docs/dev/ExoFrame_Testing_and_CI_Strategy.md](../../docs/dev/ExoFrame_Testing_and_CI_Strategy.md)
+  - [x] Note that portal E2E suite covers strategy matrix + negative cases for review/merge.
 
 ---
 

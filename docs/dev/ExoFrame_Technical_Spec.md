@@ -45,12 +45,12 @@ ExoFrame deliberately supports **four agent execution modes**:
 
 1. **Local/Sovereign Agents** — run entirely on the user’s hardware (e.g., Ollama, deterministic scripts). They have
    unrestricted access to on-disk context within the allowed portals and do not require token-budget enforcement.
-2. **Federated / Third-Party Agents** — call out to remote APIs (e.g., Claude, GPT). They inherit provider-specific
+1. **Federated / Third-Party Agents** — call out to remote APIs (e.g., Claude, GPT). They inherit provider-specific
    token ceilings, rate limits, and privacy constraints that the engine enforces via the Context Loader and Capability
    pipeline.
-3. **Hybrid Agents** — orchestrations that mix local + federated sub-agents inside a single trace. Hybrid mode must log
+1. **Hybrid Agents** — orchestrations that mix local + federated sub-agents inside a single trace. Hybrid mode must log
    every cross-boundary handoff and only share context slices that the blueprint explicitly authorizes.
-4. **Multi-Agent Flows** — declarative workflows that coordinate multiple agents in sequence or parallel, enabled by
+1. **Multi-Agent Flows** — declarative workflows that coordinate multiple agents in sequence or parallel, enabled by
    flow-aware request routing (Phase 7).
 
 **Security Upgrade:** Migrated from Bun/Node to **Deno**, leveraging its capability-based security model and codifying
@@ -603,12 +603,12 @@ const planCommand = new Command()
    - ✓ Target path in `Workspace/Active` is available
    - ✓ Atomic file operation (rename)
 
-2. **Plan Rejection:**
+1. **Plan Rejection:**
    - ✓ Reason is required and non-empty
    - ✓ Frontmatter updated with rejection metadata
    - ✓ File moved to `/Workspace/Rejected` with `_rejected.md` suffix
 
-3. **Revision Request:**
+1. **Revision Request:**
    - ✓ At least one comment required
    - ✓ Comments formatted properly in markdown
    - ✓ Frontmatter status updated to `needs_revision`
@@ -760,14 +760,14 @@ await Promise.all([requestWatcher.start(), planWatcher.start()]);
 **Request Processing Flow:**
 
 1. **File Detection:** RequestWatcher detects new `.md` file in `Workspace/Requests/`
-2. **Frontmatter Parsing:** Extract YAML frontmatter with routing fields (`flow`, `agent`)
-3. **Routing Decision:**
+1. **Frontmatter Parsing:** Extract YAML frontmatter with routing fields (`flow`, `agent`)
+1. **Routing Decision:**
    - If `flow` field present → Route to FlowRunner (multi-agent)
    - If `agent` field present → Route to AgentRunner (single-agent)
    - If neither field → Use default agent from configuration
-4. **Validation:** Validate routing target exists and is properly configured
-5. **Plan Generation:** Generate appropriate execution plan
-6. **Status Update:** Update request status and log to Activity Journal
+1. **Validation:** Validate routing target exists and is properly configured
+1. **Plan Generation:** Generate appropriate execution plan
+1. **Status Update:** Update request status and log to Activity Journal
 
 **Routing Priority (Step 7.6):**
 
@@ -969,11 +969,11 @@ const feedbackConfig = {
 **Detection Flow:**
 
 1. FileWatcher detects file creation in `Workspace/Active/`
-2. Filter files by `_plan.md` suffix (ignore other files)
-3. Read file content
-4. Parse YAML frontmatter using `@std/yaml`
-5. Validate required field: `trace_id`
-6. Log detection events
+1. Filter files by `_plan.md` suffix (ignore other files)
+1. Read file content
+1. Parse YAML frontmatter using `@std/yaml`
+1. Validate required field: `trace_id`
+1. Log detection events
 
 **Validation Checks:**
 
@@ -1005,11 +1005,11 @@ const feedbackConfig = {
 **Parsing Flow:**
 
 1. Extract body section after YAML frontmatter
-2. Use regex to extract all steps: `## Step (\d+): ([^\n]+)`
-3. Validate step numbering is sequential (1, 2, 3...)
-4. Validate all steps have non-empty titles
-5. Build structured step objects
-6. Log parsing results
+1. Use regex to extract all steps: `## Step (\d+): ([^\n]+)`
+1. Validate step numbering is sequential (1, 2, 3...)
+1. Validate all steps have non-empty titles
+1. Build structured step objects
+1. Log parsing results
 
 **Step Extraction Regex:**
 
@@ -1263,15 +1263,10 @@ transport = "stdio"  # or "sse"
 server_name = "exoframe"
 
 [[portals]]
-name = "MyApp"
-path = "/home/user/projects/MyApp"
-agents_allowed = ["senior-coder", "code-reviewer"]
-operations = ["read", "write", "git"]
-
-[portals.MyApp.security]
-mode = "sandboxed"  # or "hybrid"
-audit_enabled = true
-log_all_actions = true
+alias = "MyApp"
+target_path = "/home/user/projects/MyApp"
+default_branch = "main"            # optional
+execution_strategy = "branch"      # optional: branch|worktree (default: branch)
 ```
 
 **Implementation Files:**
@@ -1305,12 +1300,12 @@ log_all_actions = true
 ### 6.1. Mechanism
 
 1. **Mounting:** User runs `deno task mount <target> <alias>`.
-2. **Linking:** Deno creates the symlink using `Deno.symlink`.
-3. **Permissioning:** _Crucial Step_ — `exoctl portal add` patches `exo.config.toml`, regenerates `deno.json` permission
+1. **Linking:** Deno creates the symlink using `Deno.symlink`.
+1. **Permissioning:** _Crucial Step_ — `exoctl portal add` patches `exo.config.toml`, regenerates `deno.json` permission
    lists, and runs `deno task config validate`. Only if validation succeeds do we restart the daemon (or hot-reload
    permissions on supported OSes). If any sub-step fails, the symlink is deleted and configuration rollback is performed
    automatically.
-4. **Verification:** After restart, `exoctl portal list --json` is executed and compared with the expected allow-list;
+1. **Verification:** After restart, `exoctl portal list --json` is executed and compared with the expected allow-list;
    mismatches block agent access and surface an actionable error.
 
 ```bash
@@ -1325,8 +1320,9 @@ log_all_actions = true
 
 ```bash
 # Add a new portal (creates symlink, generates context card, updates config)
-exoctl portal add <target-path> <alias>
+exoctl portal add <target-path> <alias> [--default-branch <branch>] [--execution-strategy <branch|worktree>]
 exoctl portal add ~/Dev/MyProject MyProject
+exoctl portal add ~/Dev/MyProject MyProject --default-branch main --execution-strategy worktree
 
 # List all configured portals with their status
 exoctl portal list
@@ -1349,6 +1345,15 @@ exoctl portal verify <alias>              # Verify specific portal
 exoctl portal refresh <alias>
 exoctl portal refresh MyProject           # Re-scans project and updates context card
 ```
+
+**Target branch and execution strategy semantics:**
+
+- A request/plan may specify `target_branch` (set via `exoctl request --target-branch ...`) to control the base branch for portal execution.
+- If `target_branch` is absent, the portal may specify `default_branch` as a fallback. Otherwise, ExoFrame auto-detects the repository default branch.
+- Portal execution uses the portal's `execution_strategy`:
+  - `branch`: create a feature branch in the portal repo checkout.
+  - `worktree`: create an isolated worktree checkout per trace and record `worktree_path` on the review.
+- Code reviews record `base_branch` (merge target) and optionally `worktree_path`; review approval merges into `base_branch`.
 
 **Portal Command Behavior:**
 
@@ -1417,14 +1422,14 @@ allow = ["git", "npm"]  # Mapped to --allow-run
 ### 7.1 Capability Enforcement Pipeline
 
 1. **Blueprint Parsing:** `BlueprintService` validates TOML against Zod schema and resolves macros (e.g., `portal:*`).
-2. **Permission Compilation:** At agent launch, requested capabilities are intersected with daemon-wide policy,
+1. **Permission Compilation:** At agent launch, requested capabilities are intersected with daemon-wide policy,
    producing concrete Deno flags (`--allow-read`, `--allow-run`, `--allow-net`) plus internal guards (tool registry
    filters, command allowlist).
-3. **Runtime Guardrails:** Even when Deno permits an API, the Tool Registry double-checks that the caller’s capability
+1. **Runtime Guardrails:** Even when Deno permits an API, the Tool Registry double-checks that the caller’s capability
    bit is set before dispatching commands.
-4. **Audit:** Granted permissions are recorded in the Activity Journal’s payload, and `exoctl log query --trace` shows
+1. **Audit:** Granted permissions are recorded in the Activity Journal’s payload, and `exoctl log query --trace` shows
    what the agent actually received.
-5. **Violation Handling:** Attempts to exceed declared capabilities raise a `CapabilityViolationError`, halt the agent,
+1. **Violation Handling:** Attempts to exceed declared capabilities raise a `CapabilityViolationError`, halt the agent,
    and trigger Mission Reporter warnings.
 
 ### 7.2 Local vs Federated vs Hybrid Agents
@@ -1467,15 +1472,15 @@ Memory Bank Tool Reflector Self-Critique Retry Policy
 
 1. **Session Memory**: Injects relevant context from past interactions
    (learnings, patterns, executions)
-2. **Agent Runner**: Executes agent with enhanced context
-3. **Tool Reflector**: Evaluates tool call results, retries with alternative
+1. **Agent Runner**: Executes agent with enhanced context
+1. **Tool Reflector**: Evaluates tool call results, retries with alternative
    parameters if needed
-4. **Reflexive Agent**: Self-critiques output and refines iteratively (optional,
+1. **Reflexive Agent**: Self-critiques output and refines iteratively (optional,
    for quality-critical tasks)
-5. **Output Validator**: Validates against schema, auto-repairs common JSON
+1. **Output Validator**: Validates against schema, auto-repairs common JSON
    errors
-6. **Retry Policy**: Handles transient failures with exponential backoff
-7. **Confidence Scorer**: Assesses output confidence, flags low-confidence for
+1. **Retry Policy**: Handles transient failures with exponential backoff
+1. **Confidence Scorer**: Assesses output confidence, flags low-confidence for
    human review
 
 #### 7.3.3 Blueprint Configuration
@@ -1620,6 +1625,14 @@ interface WorkspaceExecutionContext {
 - Commit changes to portal repository
 - Reviews track portal file modifications
 - Branch management follows git best practices
+
+**Cleanup & lifecycle (portal reviews):**
+
+- **Reject:** Deletes the feature branch (best-effort handling if the branch is checked out in a worktree).
+- **Approve:** Merges into the review’s recorded base branch.
+  - If the review was executed in an **isolated worktree**, ExoFrame also removes the worktree checkout and removes the execution pointer at `Memory/Execution/{trace-id}/worktree`, then deletes the feature branch.
+  - Otherwise, ExoFrame merges but keeps the feature branch.
+- **Merge conflict on approve (worktree reviews):** ExoFrame attempts `git merge --abort` and removes the worktree checkout + pointer to avoid orphaned worktrees, but keeps the feature branch for manual conflict resolution.
 
 **Capability Detection:**
 
@@ -1855,7 +1868,7 @@ class A2AAdapter {
    - ExoFrame agent processes normally
    - Adapter watches `/Workspace/Plans`, translates to A2A response
 
-2. **Outbound (ExoFrame → External)**:
+1. **Outbound (ExoFrame → External)**:
    - ExoFrame agent specifies A2A-compatible remote in blueprint
    - Adapter translates request file to A2A task
    - Posts to external agent's A2A endpoint
@@ -1884,9 +1897,9 @@ deno run --allow-read=./ExoFrame --allow-write=./ExoFrame \
 Implement A2A bridge only if one or more of these requirements emerge:
 
 1. **External System Integration**: Need to invoke agents in other frameworks (LangChain, AutoGen, etc.)
-2. **Multi-Instance Coordination**: Multiple ExoFrame deployments need to collaborate across machines
-3. **Agent Marketplace**: ExoFrame agents need to be discoverable/invokable by third-party systems
-4. **Enterprise Requirements**: Organization requires standardized agent protocols
+1. **Multi-Instance Coordination**: Multiple ExoFrame deployments need to collaborate across machines
+1. **Agent Marketplace**: ExoFrame agents need to be discoverable/invokable by third-party systems
+1. **Enterprise Requirements**: Organization requires standardized agent protocols
 
 **Current Recommendation**: Defer A2A implementation. File-based protocol is simpler, more secure, and sufficient for
 current use cases.

@@ -1148,6 +1148,21 @@ graph TB
     class Add,List,Show,Remove,Verify,Refresh cli
 ```
 
+### Portal review cleanup semantics
+
+Portal execution supports two related concepts that affect how reviews are created and later approved:
+
+- **Target/base branch selection:** ExoFrame resolves the base branch for portal work by preferring `target_branch` from request/plan frontmatter (set via `exoctl request --target-branch ...`), then portal `default_branch` from `exo.config.toml`, and finally repository default branch auto-detection.
+- **Execution strategy:** The portal config may set `execution_strategy` to `branch` (default: execute in the portal repo checkout on a feature branch) or `worktree` (execute in an isolated worktree checkout, record `worktree_path`, and write a discoverability pointer at `Memory/Execution/{trace-id}/worktree`).
+
+When portal execution creates a code review, ExoFrame records `base_branch` (merge target) and (for worktree runs) `worktree_path` on the review. Approval merges the feature branch into the recorded `base_branch`.
+
+The review record is durable (audit/history), but ExoFrame applies cleanup to avoid accumulating working directories and stale branches:
+
+- **Reject:** Deletes the feature branch (with best-effort handling if the branch is checked out in a worktree).
+- **Approve:** Merges the feature branch into the review’s recorded base branch. If the review was executed in an **isolated worktree** (review has `worktree_path`), ExoFrame removes the worktree checkout, removes the execution pointer at `Memory/Execution/{trace-id}/worktree`, and deletes the feature branch. If the review was executed on a normal branch checkout, ExoFrame merges but keeps the feature branch.
+- **Merge conflict (worktree reviews):** ExoFrame attempts to abort the merge and removes the worktree checkout + pointer, but keeps the feature branch for human conflict resolution.
+
 ---
 
 ## Blueprint Management System

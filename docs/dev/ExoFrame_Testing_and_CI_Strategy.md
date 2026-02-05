@@ -23,7 +23,7 @@ This document defines the testing strategy for ExoFrame, covering:
 
 ExoFrame follows a **test pyramid** approach:
 
-```
+```text
       ┌─────────────┐
       │   Manual    │  ← Pre-release QA
       │     QA      │     (10 scenarios)
@@ -133,6 +133,13 @@ temporary directories created during daemon tests.
 | 11 | **MCP Execution**       | Plan executed via MCP server                | MCP protocol flow    | 📋 Planned  |
 | 12 | **Sandboxed Mode**      | Agent runs with no file access              | Security enforcement | 📋 Planned  |
 | 13 | **Hybrid Mode Audit**   | Agent makes unauthorized file change        | Change detection     | 📋 Planned  |
+
+**Portal review cleanup coverage:** Integration tests for portal workflows should also validate cleanup semantics:
+
+- **Reject:** feature branch is deleted
+- **Target branch selection:** `target_branch` (request/plan) overrides portal `default_branch`; created reviews record `base_branch` and approval merges into that branch
+- **Worktree strategy:** worktree checkout + `Memory/Execution/{trace-id}/worktree` pointer are removed after approve/reject
+- **Approve merge conflict (worktree):** merge is aborted best-effort and worktree checkout + pointer are removed, while the feature branch is preserved for manual conflict resolution
 
 **Test Structure:**
 
@@ -1262,4 +1269,4 @@ deno task hooks:install
 
 ---
 
-_End of Testing and CI Strategy_
+## End of Testing and CI Strategy

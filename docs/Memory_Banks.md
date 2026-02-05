@@ -23,7 +23,7 @@ Memory Banks is ExoFrame's structured storage system for long-term project knowl
 
 ## Directory Structure
 
-```
+```text
 Memory/
 ├── Projects/              # Project-specific knowledge banks
 │   ├── {portal-name}/
@@ -107,7 +107,7 @@ interface Reference {
 - `decisions.md` — Markdown with structured sections
 - `references.md` — Markdown list with links
 
-**Example: Memory/Projects/my-app/overview.md**
+#### Example: Memory/Projects/my-app/overview.md
 
 ```markdown
 # My App — Project Overview
@@ -166,7 +166,17 @@ interface ExecutionMemory {
 - `context.json` — Structured execution metadata
 - `changes.diff` — Git diff output
 
-**Example: Memory/Execution/{trace-id}/summary.md**
+#### Portal worktree pointer (optional)
+
+Some portal executions use an isolated Git worktree checkout. In those cases, ExoFrame may record a discoverability pointer at:
+
+- `Memory/Execution/{trace-id}/worktree`
+
+This is typically a symlink (preferred) or a small directory containing `PATH.txt`, and it points to the actual worktree directory (commonly under `.exo/worktrees/...`).
+
+**Cleanup:** After the corresponding review is resolved (approved/rejected) the worktree checkout and this pointer are removed to avoid accumulating stale worktrees.
+
+#### Example: Memory/Execution/{trace-id}/summary.md
 
 ```markdown
 # Execution Summary

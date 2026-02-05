@@ -14,9 +14,9 @@
 import { walk } from "@std/fs";
 import { extname, join, normalize } from "@std/path";
 
-type Severity = "error" | "warn";
+export type Severity = "error" | "warn";
 
-interface Finding {
+export interface Finding {
   filePath: string;
   line: number; // 1-based
   rule: string;
@@ -24,7 +24,7 @@ interface Finding {
   message: string;
 }
 
-interface LintOptions {
+export interface LintOptions {
   fix: boolean;
   strict: boolean;
   verbose: boolean;
@@ -135,6 +135,63 @@ function splitLines(text: string): string[] {
 
 type Fence = { char: "`" | "~"; length: number };
 
+function decodeFragment(fragment: string): string {
+  try {
+    return decodeURIComponent(fragment);
+  } catch {
+    // If it's malformed, keep as-is and let the checker fail.
+    return fragment;
+  }
+}
+
+function stripMarkdownInline(text: string): string {
+  return text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/_([^_]+)_/g, "$1")
+    .replace(/<[^>]+>/g, "")
+    .trim();
+}
+
+function githubSlugify(raw: string, used: Map<string, number>): string {
+  const text = stripMarkdownInline(raw)
+    .toLowerCase()
+    .replace(/[\s]+/g, "-")
+    .replace(/[^a-z0-9\-]/g, "")
+    .replace(/^-|-$/g, "");
+
+  const base = text;
+  const count = used.get(base) ?? 0;
+  used.set(base, count + 1);
+  if (count === 0) return base;
+  return `${base}-${count}`;
+}
+
+function parseEmphasisOnlyLine(trimmed: string): { inner: string } | null {
+  if (trimmed.startsWith("**") && trimmed.endsWith("**") && trimmed.length > 4) {
+    return { inner: trimmed.slice(2, -2) };
+  }
+  if (trimmed.startsWith("__") && trimmed.endsWith("__") && trimmed.length > 4) {
+    return { inner: trimmed.slice(2, -2) };
+  }
+  if (
+    trimmed.startsWith("*") && !trimmed.startsWith("**") && trimmed.endsWith("*") &&
+    !trimmed.endsWith("**") && trimmed.length > 2
+  ) {
+    return { inner: trimmed.slice(1, -1) };
+  }
+  if (
+    trimmed.startsWith("_") && !trimmed.startsWith("__") && trimmed.endsWith("_") &&
+    !trimmed.endsWith("__") && trimmed.length > 2
+  ) {
+    return { inner: trimmed.slice(1, -1) };
+  }
+  return null;
+}
+
 function parseFenceStart(line: string): Fence | null {
   const trimmed = line.trimStart();
   const match = /^(?<ticks>`{3,})|^(?<tildes>~{3,})/.exec(trimmed);
@@ -208,7 +265,7 @@ function applySafeFixes(original: string): { fixed: string; changed: boolean } {
   return { fixed: text, changed: text !== original };
 }
 
-function lintMarkdown(content: string, filePath: string, options: LintOptions): Finding[] {
+export function lintMarkdown(content: string, filePath: string, options: LintOptions): Finding[] {
   const findings: Finding[] = [];
 
   const normalized = content.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
@@ -218,9 +275,43 @@ function lintMarkdown(content: string, filePath: string, options: LintOptions): 
   let fence: Fence | null = null;
   let fenceStartLine = 0;
 
+  const lineIsInFence: boolean[] = new Array(lines.length).fill(false);
+
+  // MD051: link fragments should resolve to known heading/html anchors.
+  const headingIdUsed = new Map<string, number>();
+  const knownFragments = new Set<string>();
+
+  // MD007: track unordered list indentation depth.
+  const ulIndentStack: number[] = [];
+
+  // MD029: warn once per ordered-list block (per indent) to reduce noise.
+  const olPrefixWarnedAtIndent = new Set<number>();
+
+  function getIndentWidth(line: string): number {
+    return (line.match(/^\s*/)?.[0] ?? "").replace(/\t/g, "  ").length;
+  }
+
+  function parseListMarker(line: string): { kind: "ul" | "ol"; indent: number } | null {
+    const ul = /^(?<indent>\s*)[-+*]\s+/.exec(line);
+    if (ul?.groups) return { kind: "ul", indent: getIndentWidth(line) };
+
+    const ol = /^(?<indent>\s*)(?<num>\d+)[.)]\s+/.exec(line);
+    if (ol?.groups) return { kind: "ol", indent: getIndentWidth(line) };
+
+    return null;
+  }
+
+  function looksLikeListContinuation(line: string): boolean {
+    // Heuristic: indented content is typically part of the preceding list item.
+    // This is intentionally conservative to avoid false-positive MD032.
+    return /^\s{2,}\S/.test(line) && !parseListMarker(line);
+  }
+
   for (let idx = 0; idx < lines.length; idx++) {
     const lineNo = idx + 1;
     const line = lines[idx];
+
+    lineIsInFence[idx] = inFence;
 
     const fenceStart = parseFenceStart(line);
     if (fenceStart) {
@@ -228,10 +319,138 @@ function lintMarkdown(content: string, filePath: string, options: LintOptions): 
         inFence = true;
         fence = fenceStart;
         fenceStartLine = lineNo;
+
+        // MD040/fenced-code-language: require language on opening fence.
+        const trimmed = line.trimStart();
+        const fenceToken = `${fenceStart.char}`.repeat(fenceStart.length);
+        const info = trimmed.slice(fenceToken.length).trim();
+        if (info.length === 0) {
+          findings.push({
+            filePath,
+            line: lineNo,
+            rule: "MD040/fenced-code-language",
+            severity: "error",
+            message: "Fenced code blocks should have a language specified",
+          });
+        }
       } else if (fence && isFenceClose(line, fence)) {
         inFence = false;
         fence = null;
         fenceStartLine = 0;
+      }
+    }
+
+    // Record again after state changes for this line.
+    lineIsInFence[idx] = inFence;
+
+    if (!inFence) {
+      // Collect heading IDs (GitHub-style) and HTML anchors for MD051.
+      const headingMatch = /^(?<hashes>#{1,6})\s+(?<text>.+?)\s*$/.exec(line);
+      if (headingMatch?.groups?.text) {
+        const headingText = headingMatch.groups.text.replace(/\s+#+\s*$/g, "").trim();
+        const slug = githubSlugify(headingText, headingIdUsed);
+        if (slug) knownFragments.add(slug);
+
+        // MD049/emphasis-style: headings should prefer asterisk emphasis.
+        if (/__[^_]+__/.test(headingText) || /_[^_]+_/.test(headingText)) {
+          findings.push({
+            filePath,
+            line: lineNo,
+            rule: "MD049/emphasis-style",
+            severity: "error",
+            message: "Emphasis style [Expected: asterisk; Actual: underscore]",
+          });
+        }
+      }
+
+      const htmlIdMatch = /<a\s+[^>]*\b(?:id|name)="(?<id>[^"]+)"[^>]*>/i.exec(line);
+      const htmlId = htmlIdMatch?.groups?.id?.trim();
+      if (htmlId) knownFragments.add(htmlId);
+
+      // MD036/no-emphasis-as-heading: emphasis-only line used like a heading.
+      const trimmed = line.trim();
+      const emphasis = parseEmphasisOnlyLine(trimmed);
+      const innerText = emphasis?.inner.trim();
+      const md036IgnorePunctuation = new Set([".", ",", ";", ":", "!", "?"]);
+      const lastChar = innerText?.slice(-1);
+      const looksLikeLabel = (lastChar && md036IgnorePunctuation.has(lastChar)) ?? false;
+      if (emphasis && !looksLikeLabel && !/^#{1,6}\s+/.test(trimmed)) {
+        findings.push({
+          filePath,
+          line: lineNo,
+          rule: "MD036/no-emphasis-as-heading",
+          severity: "error",
+          message: "Emphasis used instead of a heading",
+        });
+      }
+
+      // MD007/ul-indent: enforce 2-space indentation per nesting level.
+      const ulMatch = /^(?<indent>\s*)(?<marker>[-+*])\s+/.exec(line);
+      if (ulMatch?.groups) {
+        const indent = ulMatch.groups.indent.replace(/\t/g, "  ").length;
+        if (ulIndentStack.length === 0) {
+          ulIndentStack.push(indent);
+        } else {
+          const current = ulIndentStack[ulIndentStack.length - 1];
+
+          if (indent > current) {
+            const expected = current + 2;
+            if (indent !== expected) {
+              findings.push({
+                filePath,
+                line: lineNo,
+                rule: "MD007/ul-indent",
+                severity: "error",
+                message: `Unordered list indentation [Expected: 2; Actual: ${indent}]`,
+              });
+            }
+            ulIndentStack.push(indent);
+          } else {
+            while (ulIndentStack.length > 0 && indent < ulIndentStack[ulIndentStack.length - 1]) {
+              ulIndentStack.pop();
+            }
+            if (ulIndentStack.length === 0 || indent !== ulIndentStack[ulIndentStack.length - 1]) {
+              ulIndentStack.push(indent);
+            }
+          }
+        }
+      } else if (line.trim() === "") {
+        // Reset list tracking after a blank line.
+        ulIndentStack.length = 0;
+      }
+
+      // MD032/blanks-around-lists: top-level lists should be surrounded by blank lines.
+      // For nested lists (indent > 0), markdownlint does not require surrounding blank lines.
+      const listMarker = parseListMarker(line);
+      if (listMarker && listMarker.indent === 0) {
+        const prev = idx > 0 ? lines[idx - 1] : "";
+        if (
+          idx > 0 && prev.trim() !== "" && !parseListMarker(prev) &&
+          !looksLikeListContinuation(prev) &&
+          !prev.trimStart().startsWith(">")
+        ) {
+          findings.push({
+            filePath,
+            line: lineNo,
+            rule: "MD032/blanks-around-lists",
+            severity: "error",
+            message: "Lists should be surrounded by blank lines",
+          });
+        }
+
+        const next = idx + 1 < lines.length ? lines[idx + 1] : "";
+        if (
+          idx + 1 < lines.length && next.trim() !== "" && !parseListMarker(next) &&
+          !looksLikeListContinuation(next) && !next.trimStart().startsWith(">")
+        ) {
+          findings.push({
+            filePath,
+            line: lineNo,
+            rule: "MD032/blanks-around-lists",
+            severity: "error",
+            message: "Lists should be surrounded by blank lines",
+          });
+        }
       }
     }
 
@@ -286,9 +505,20 @@ function lintMarkdown(content: string, filePath: string, options: LintOptions): 
     // MD029/ol-prefix: ordered list item prefix style 1/1/1
     // Enforce `1.` as the prefix for every ordered list item.
     if (!inFence) {
-      const match = /^\s*(?<num>\d+)\.\s+/.exec(line);
+      // Reset list block tracking when leaving list context.
+      const listMarker = parseListMarker(line);
+      const continuation = looksLikeListContinuation(line);
+      const isBlank = line.trim() === "";
+      if (!isBlank && !continuation && listMarker === null) {
+        olPrefixWarnedAtIndent.clear();
+      }
+
+      const match = /^\s*(?<num>\d+)[.)]\s+/.exec(line);
       const actual = match?.groups?.num;
-      if (actual && actual !== "1") {
+      const indent = listMarker?.kind === "ol" ? listMarker.indent : 0;
+
+      if (actual && actual !== "1" && !olPrefixWarnedAtIndent.has(indent)) {
+        olPrefixWarnedAtIndent.add(indent);
         findings.push({
           filePath,
           line: lineNo,
@@ -297,6 +527,248 @@ function lintMarkdown(content: string, filePath: string, options: LintOptions): 
           message: `Ordered list item prefix [Expected: 1; Actual: ${actual}; Style: 1/1/1]`,
         });
       }
+    }
+  }
+
+  // MD051/link-fragments: validate local (#fragment) links
+  {
+    const fragmentRe = /\]\(#(?<frag>[^)]+)\)/g;
+    for (let idx = 0; idx < lines.length; idx++) {
+      const lineNo = idx + 1;
+      const line = lines[idx];
+
+      if (lineIsInFence[idx]) continue;
+
+      let match: RegExpExecArray | null;
+      while ((match = fragmentRe.exec(line)) !== null) {
+        const rawFrag = match.groups?.frag?.trim();
+        if (!rawFrag) continue;
+        const frag = decodeFragment(rawFrag);
+        if (!knownFragments.has(frag) && !knownFragments.has(frag.toLowerCase())) {
+          findings.push({
+            filePath,
+            line: lineNo,
+            rule: "MD051/link-fragments",
+            severity: "error",
+            message: "Link fragments should be valid",
+          });
+        }
+      }
+    }
+  }
+
+  // MD060/table-column-style: enforce aligned table pipes.
+  // Checks that the '|' characters align across header/separator/body rows.
+  {
+    const isTableSeparatorRow = (s: string): boolean => {
+      // Examples:
+      // | --- | --- |
+      // |:--- | ---:|
+      // ---|---
+      return /^\s*\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?\s*$/.test(s);
+    };
+
+    const isEscapedAt = (s: string, index: number): boolean => {
+      // A character is escaped if preceded by an odd number of backslashes.
+      let count = 0;
+      for (let i = index - 1; i >= 0 && s[i] === "\\"; i--) count++;
+      return (count % 2) === 1;
+    };
+
+    const EXTENDED_PICTOGRAPHIC_RE = /\p{Extended_Pictographic}/u;
+
+    const isWideCodePoint = (cp: number): boolean => {
+      // Approximate characters that most monospace editors render at 2 columns.
+      // Markdownlint's MD060 uses visual width for aligned tables.
+      if (
+        (cp >= 0x1100 && cp <= 0x115F) ||
+        (cp >= 0x2329 && cp <= 0x232A) ||
+        (cp >= 0x2E80 && cp <= 0x303E) ||
+        (cp >= 0x3040 && cp <= 0xA4CF) ||
+        (cp >= 0xAC00 && cp <= 0xD7A3) ||
+        (cp >= 0xF900 && cp <= 0xFAFF) ||
+        (cp >= 0xFE10 && cp <= 0xFE19) ||
+        (cp >= 0xFE30 && cp <= 0xFE6F) ||
+        (cp >= 0xFF00 && cp <= 0xFF60) ||
+        (cp >= 0xFFE0 && cp <= 0xFFE6)
+      ) {
+        return true;
+      }
+      return false;
+    };
+
+    const visualWidthOfCodePoint = (cp: number, ch: string): number => {
+      // Variation Selector-16 and other selectors should not add visual width.
+      if (cp === 0xFE0F) return 0;
+
+      // Treat emoji/pictographic characters as double-width.
+      if (EXTENDED_PICTOGRAPHIC_RE.test(ch)) return 2;
+
+      return isWideCodePoint(cp) ? 2 : 1;
+    };
+
+    const pipeVisualPositions = (line: string): number[] => {
+      // Positions are measured by visual columns (not string indices), ignoring
+      // pipes inside inline code spans and escaped pipes.
+      const positions: number[] = [];
+      let column = 0;
+
+      let inCodeSpan = false;
+      let codeSpanTicks = 0;
+
+      const openOrCloseCodeSpan = (tickCount: number) => {
+        if (!inCodeSpan) {
+          inCodeSpan = true;
+          codeSpanTicks = tickCount;
+          return;
+        }
+
+        if (tickCount === codeSpanTicks) {
+          inCodeSpan = false;
+          codeSpanTicks = 0;
+        }
+      };
+
+      // Walk by code points, but also track string indices for escape handling.
+      for (let i = 0; i < line.length;) {
+        const cp = line.codePointAt(i) ?? 0;
+        const ch = String.fromCodePoint(cp);
+        const cpLen = ch.length;
+
+        if (ch === "`") {
+          // Count consecutive backticks for inline code span delimiter.
+          let j = i;
+          while (j < line.length && line[j] === "`") j++;
+          const tickCount = j - i;
+          openOrCloseCodeSpan(tickCount);
+          column += tickCount; // backticks are 1-column each.
+          i = j;
+          continue;
+        }
+
+        if (!inCodeSpan && ch === "|" && !isEscapedAt(line, i)) {
+          positions.push(column);
+        }
+
+        column += visualWidthOfCodePoint(cp, ch);
+        i += cpLen;
+      }
+
+      return positions;
+    };
+
+    const rowMatchesTight = (row: string): boolean => {
+      if (!row.includes("|")) return false;
+      const trimmed = row.trim();
+      // No spaces adjacent to any pipe.
+      if (/\s\|/.test(trimmed) || /\|\s/.test(trimmed)) return false;
+      return true;
+    };
+
+    const rowMatchesCompact = (row: string): boolean => {
+      if (!row.includes("|")) return false;
+      const trimmed = row.trim();
+      const hasLeadingPipe = trimmed.startsWith("|");
+      const hasTrailingPipe = trimmed.endsWith("|");
+      let core = trimmed;
+      if (hasLeadingPipe) core = core.slice(1);
+      if (hasTrailingPipe) core = core.slice(0, -1);
+
+      const parts = core.split("|");
+      if (parts.length < 2) return false;
+
+      for (let c = 0; c < parts.length; c++) {
+        const cell = parts[c];
+        const isFirst = c === 0;
+        const isLast = c === parts.length - 1;
+
+        const startsWithSpace = cell.startsWith(" ");
+        const startsWithTwoSpaces = cell.startsWith("  ");
+        const endsWithSpace = cell.endsWith(" ");
+        const endsWithTwoSpaces = cell.endsWith("  ");
+
+        if (isFirst && !hasLeadingPipe) {
+          // Only trailing side must be single-space padded.
+          if (startsWithSpace) return false;
+          if (!endsWithSpace || endsWithTwoSpaces) return false;
+          continue;
+        }
+        if (isLast && !hasTrailingPipe) {
+          // Only leading side must be single-space padded.
+          if (endsWithSpace) return false;
+          if (!startsWithSpace || startsWithTwoSpaces) return false;
+          continue;
+        }
+
+        // Middle cells (and edge cells when leading/trailing pipes exist) must
+        // have exactly one leading and one trailing space.
+        if (!startsWithSpace || startsWithTwoSpaces) return false;
+        if (!endsWithSpace || endsWithTwoSpaces) return false;
+      }
+
+      return true;
+    };
+
+    for (let idx = 0; idx + 1 < lines.length; idx++) {
+      if (lineIsInFence[idx] || lineIsInFence[idx + 1]) continue;
+
+      const header = lines[idx];
+      const sep = lines[idx + 1];
+
+      if (!header.includes("|") || !isTableSeparatorRow(sep)) continue;
+
+      // Collect table lines (header, separator, body rows until blank/non-table).
+      const tableLineIdxs: number[] = [idx, idx + 1];
+      let rowIdx = idx + 2;
+      while (rowIdx < lines.length) {
+        if (lineIsInFence[rowIdx]) break;
+        const row = lines[rowIdx];
+        if (row.trim() === "") break;
+        if (!row.includes("|")) break;
+        tableLineIdxs.push(rowIdx);
+        rowIdx++;
+      }
+
+      // Determine which table column style the table best matches.
+      const headerPipePositions = pipeVisualPositions(lines[tableLineIdxs[0]]);
+      const alignedViolations: number[] = [];
+      const compactViolations: number[] = [];
+      const tightViolations: number[] = [];
+
+      for (const lineIndex of tableLineIdxs) {
+        const row = lines[lineIndex].replace(/[ \t]+$/g, "");
+
+        const rowPipes = pipeVisualPositions(row);
+        const alignedOk = rowPipes.length === headerPipePositions.length &&
+          rowPipes.every((p, i) => p === headerPipePositions[i]);
+        if (!alignedOk) alignedViolations.push(lineIndex);
+
+        if (!rowMatchesCompact(row)) compactViolations.push(lineIndex);
+        if (!rowMatchesTight(row)) tightViolations.push(lineIndex);
+      }
+
+      const styles = [
+        { name: "aligned", violations: alignedViolations },
+        { name: "compact", violations: compactViolations },
+        { name: "tight", violations: tightViolations },
+      ] as const;
+
+      const best = styles.reduce((a, b) => b.violations.length < a.violations.length ? b : a);
+
+      if (best.violations.length > 0) {
+        for (const badLineIndex of best.violations) {
+          findings.push({
+            filePath,
+            line: badLineIndex + 1,
+            rule: "MD060/table-column-style",
+            severity: "error",
+            message: `Table column style [Table pipe does not align with header for style "${best.name}"]`,
+          });
+        }
+      }
+
+      // Skip ahead to avoid re-detecting the same table on the next line.
+      idx = Math.max(idx, rowIdx - 1);
     }
   }
 
