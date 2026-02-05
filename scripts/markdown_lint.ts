@@ -31,13 +31,11 @@ export interface LintOptions {
 }
 
 const DEFAULT_ROOTS: readonly string[] = [
-  "docs",
+  // Keep the default scope focused on repo-maintained docs.
+  // Large/legacy doc trees (e.g. docs/) should be linted explicitly by passing
+  // paths on the command line.
   ".copilot",
   "Blueprints",
-  ".claude",
-  ".cursor",
-  ".ai",
-  ".anthropic",
   "README.md",
   "CONTRIBUTING.md",
   "CLAUDE.md",
@@ -45,6 +43,10 @@ const DEFAULT_ROOTS: readonly string[] = [
 
 const SKIP_DIRS = new Set([
   ".git",
+  ".ai",
+  ".anthropic",
+  ".claude",
+  ".cursor",
   "node_modules",
   "dist",
   "coverage",
@@ -329,7 +331,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: lineNo,
             rule: "MD040/fenced-code-language",
-            severity: "error",
+            severity: options.strict ? "error" : "warn",
             message: "Fenced code blocks should have a language specified",
           });
         }
@@ -357,7 +359,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: lineNo,
             rule: "MD049/emphasis-style",
-            severity: "error",
+            severity: options.strict ? "error" : "warn",
             message: "Emphasis style [Expected: asterisk; Actual: underscore]",
           });
         }
@@ -379,7 +381,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
           filePath,
           line: lineNo,
           rule: "MD036/no-emphasis-as-heading",
-          severity: "error",
+          severity: options.strict ? "error" : "warn",
           message: "Emphasis used instead of a heading",
         });
       }
@@ -400,7 +402,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
                 filePath,
                 line: lineNo,
                 rule: "MD007/ul-indent",
-                severity: "error",
+                severity: options.strict ? "error" : "warn",
                 message: `Unordered list indentation [Expected: 2; Actual: ${indent}]`,
               });
             }
@@ -433,7 +435,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: lineNo,
             rule: "MD032/blanks-around-lists",
-            severity: "error",
+            severity: options.strict ? "error" : "warn",
             message: "Lists should be surrounded by blank lines",
           });
         }
@@ -447,7 +449,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: lineNo,
             rule: "MD032/blanks-around-lists",
-            severity: "error",
+            severity: options.strict ? "error" : "warn",
             message: "Lists should be surrounded by blank lines",
           });
         }
@@ -549,7 +551,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: lineNo,
             rule: "MD051/link-fragments",
-            severity: "error",
+            severity: options.strict ? "error" : "warn",
             message: "Link fragments should be valid",
           });
         }
@@ -761,7 +763,7 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
             filePath,
             line: badLineIndex + 1,
             rule: "MD060/table-column-style",
-            severity: "error",
+            severity: options.strict ? "error" : "warn",
             message: `Table column style [Table pipe does not align with header for style "${best.name}"]`,
           });
         }

@@ -171,8 +171,22 @@ export class GitService {
       // Check if .git directory exists
       try {
         await Deno.stat(`${this.repoPath}/.git`);
-        // Repository already exists
-        this.logActivity("git.check", { status: "exists", duration_ms: Date.now() - startTime });
+        // Repository exists; ensure it has at least one commit.
+        const headResult = await this.runGitCommand(["rev-parse", "--verify", "HEAD"], { throwOnError: false });
+        if (headResult.exitCode === 0) {
+          this.logActivity("git.check", { status: "exists", duration_ms: Date.now() - startTime });
+          return;
+        }
+
+        // Unborn HEAD (e.g., repo was `git init`'d but never committed).
+        await this.ensureIdentity();
+        await this.createInitialCommit();
+
+        this.logActivity("git.init", {
+          success: true,
+          status: "initialized_existing_repo",
+          duration_ms: Date.now() - startTime,
+        });
         return;
       } catch {
         // .git doesn't exist, need to initialize
@@ -192,6 +206,8 @@ export class GitService {
         const error = new TextDecoder().decode(stderr);
         throw new Error(`Failed to initialize git repository: ${error}`);
       }
+
+      await this.ensureIdentity();
 
       // Create initial commit
       await this.createInitialCommit();
@@ -443,26 +459,47 @@ export class GitService {
   async getDefaultBranch(repoPath?: string): Promise<string> {
     const cwd = repoPath || this.repoPath || Deno.cwd();
 
-    try {
-      // Try to get the default branch from symbolic-ref
-      const result = await this.runGitCommand(["-C", cwd, "symbolic-ref", "refs/remotes/origin/HEAD"]);
-      // Result will be like "refs/remotes/origin/main" or "refs/remotes/origin/master"
-      const ref = result.output.trim();
-      const branchName = ref.split("/").pop();
-      if (branchName) {
-        return branchName;
-      }
-    } catch {
-      // If that fails (no remote), try to get the current branch as fallback
-      try {
-        const result = await this.runGitCommand(["-C", cwd, "branch", "--show-current"]);
-        const currentBranch = result.output.trim();
-        if (currentBranch) {
-          return currentBranch;
-        }
-      } catch {
-        // Last resort: assume "main"
-      }
+    // Prefer local HEAD resolution (works for local repos and even for unborn branches).
+    const headRef = await this.runGitCommand(
+      ["-C", cwd, "symbolic-ref", "--quiet", "--short", "HEAD"],
+      { throwOnError: false },
+    );
+
+    if (headRef.exitCode === 0) {
+      const branch = headRef.output.trim();
+      if (branch && branch !== "HEAD") return branch;
+    }
+
+    // If that fails, try "branch --show-current".
+    const current = await this.runGitCommand(
+      ["-C", cwd, "branch", "--show-current"],
+      { throwOnError: false },
+    );
+
+    if (current.exitCode === 0) {
+      const branch = current.output.trim();
+      if (branch) return branch;
+    }
+
+    // If we still can't identify it, pick a sensible existing local branch.
+    const localBranches = await this.runGitCommand(
+      ["-C", cwd, "for-each-ref", "--format=%(refname:short)", "refs/heads"],
+      { throwOnError: false },
+    );
+
+    if (localBranches.exitCode === 0) {
+      const branches = new Set(
+        localBranches.output
+          .split("\n")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      );
+
+      if (branches.has("main")) return "main";
+      if (branches.has("master")) return "master";
+
+      const first = branches.values().next().value as string | undefined;
+      if (first) return first;
     }
 
     // Default fallback

@@ -203,7 +203,7 @@ export class ExecutionLoop {
         repoPath: portalRepoRoot,
       });
 
-      const baseBranch = await this.resolveBaseBranch(frontmatter, portalGitService, portalRepoRoot);
+      let baseBranch: string | undefined;
 
       // Read plan content (needed to decide if we should create a git branch)
       const planContent = await Deno.readTextFile(planPath);
@@ -246,6 +246,10 @@ export class ExecutionLoop {
       if (initGitBranch && hasExecutableWork) {
         await portalGitService.ensureRepository();
         await portalGitService.ensureIdentity();
+
+        // Resolve base branch after repository initialization so we don't guess wrong
+        // when git hasn't been initialized yet.
+        baseBranch = await this.resolveBaseBranch(frontmatter, portalGitService, portalRepoRoot);
 
         if (frontmatter.portal && executionStrategy === PortalExecutionStrategy.WORKTREE) {
           worktreePath = join(
@@ -331,6 +335,9 @@ export class ExecutionLoop {
 
       // Register review
       if (commitSha) {
+        if (!baseBranch) {
+          baseBranch = await this.resolveBaseBranch(frontmatter, portalGitService, portalRepoRoot);
+        }
         await this.registerReview(
           requestId,
           traceId,
@@ -767,14 +774,17 @@ export class ExecutionLoop {
       });
       await gitCmd.output();
 
-      // Return to main branch
-      const checkoutCmd = new Deno.Command("git", {
-        args: ["checkout", "master"], // Try master first
-        cwd: this.config.system.root,
-        stdout: "piped",
-        stderr: "piped",
-      });
-      await checkoutCmd.output();
+      // Return to a common base branch if present.
+      for (const branch of ["main", "master"]) {
+        const checkoutCmd = new Deno.Command("git", {
+          args: ["checkout", branch],
+          cwd: this.config.system.root,
+          stdout: "piped",
+          stderr: "piped",
+        });
+        const { code } = await checkoutCmd.output();
+        if (code === 0) break;
+      }
     } catch {
       // Rollback failure is not critical
     }
