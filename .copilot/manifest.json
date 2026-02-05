@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-05T08:39:04.099Z",
+  "generated_at": "2026-02-05T12:03:32.616Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -800,6 +800,34 @@
         ".copilot/chunks/phase-29-journal-command.md.chunk5.txt",
         ".copilot/chunks/phase-29-journal-command.md.chunk6.txt",
         ".copilot/chunks/phase-29-journal-command.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-37-portal-target-branch-and-worktree-execution.md",
+      "agent": "claude",
+      "scope": "dev",
+      "title": "Phase 37: Portal Target Branches + Git Worktree Execution",
+      "short_summary": "Add portal-scoped target-branch support and support two portal-configurable execution strategies (branch default, worktree optional) for write-capable changes in multi-branch portal workflows.",
+      "version": "0.1",
+      "topics": [
+        "portals",
+        "git",
+        "worktree",
+        "branches",
+        "reviews",
+        "cli",
+        "execution",
+        "workflow"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-37-portal-target-branch-and-worktree-execution.md.chunk0.txt",
+        ".copilot/chunks/phase-37-portal-target-branch-and-worktree-execution.md.chunk1.txt",
+        ".copilot/chunks/phase-37-portal-target-branch-and-worktree-execution.md.chunk2.txt",
+        ".copilot/chunks/phase-37-portal-target-branch-and-worktree-execution.md.chunk3.txt",
+        ".copilot/chunks/phase-37-portal-target-branch-and-worktree-execution.md.chunk4.txt",
+        ".copilot/chunks/phase-37-portal-target-branch-and-worktree-execution.md.chunk5.txt",
+        ".copilot/chunks/phase-37-portal-target-branch-and-worktree-execution.md.chunk6.txt",
+        ".copilot/chunks/phase-37-portal-target-branch-and-worktree-execution.md.chunk7.txt"
       ]
     },
     {

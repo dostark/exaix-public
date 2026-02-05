@@ -5,6 +5,7 @@ import { ConfigService } from "../config/service.ts";
 import { ContextCardGenerator } from "../services/context_card_generator.ts";
 import { EventLogger } from "../services/event_logger.ts";
 import { PortalStatus } from "../enums.ts";
+import { PortalExecutionStrategy } from "../enums.ts";
 import { PORTAL_ALIAS_MAX_LENGTH } from "../config/constants.ts";
 
 /**
@@ -20,6 +21,8 @@ export interface PortalInfo {
   status: PortalStatus;
   created?: string;
   lastVerified?: string;
+  defaultBranch?: string;
+  executionStrategy?: PortalExecutionStrategy;
 }
 
 export interface PortalDetails extends PortalInfo {
@@ -58,7 +61,11 @@ export class PortalCommands {
   /**
    * Add a new portal
    */
-  async add(targetPath: string, alias: string): Promise<void> {
+  async add(
+    targetPath: string,
+    alias: string,
+    options?: { defaultBranch?: string; executionStrategy?: PortalExecutionStrategy },
+  ): Promise<void> {
     // Validate alias
     this.validateAlias(alias);
 
@@ -105,7 +112,10 @@ export class PortalCommands {
 
       // Update config file
       if (this.configService) {
-        await this.configService.addPortal(alias, absoluteTarget);
+        await this.configService.addPortal(alias, absoluteTarget, {
+          defaultBranch: options?.defaultBranch,
+          executionStrategy: options?.executionStrategy,
+        });
       }
 
       // Log to activity journal (also outputs to console)
@@ -179,6 +189,8 @@ export class PortalCommands {
           contextCardPath,
           status,
           created: configPortal?.created,
+          defaultBranch: configPortal?.default_branch,
+          executionStrategy: configPortal?.execution_strategy,
         });
       }
     } catch (error) {
@@ -244,6 +256,8 @@ export class PortalCommands {
       status,
       permissions,
       created: configPortal?.created,
+      defaultBranch: configPortal?.default_branch,
+      executionStrategy: configPortal?.execution_strategy,
     };
   }
 

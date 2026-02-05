@@ -29,6 +29,7 @@ export async function handleRequestCreate(
         agent: options.flow ? undefined : options.agent,
         priority: options.priority as RequestPriority,
         portal: options.portal,
+        target_branch: options.targetBranch,
         model: options.model,
         flow: options.flow,
         skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
@@ -50,6 +51,7 @@ export async function handleRequestCreate(
       agent: options.flow ? undefined : options.agent,
       priority: options.priority as RequestPriority,
       portal: options.portal,
+      target_branch: options.targetBranch,
       model: options.model,
       flow: options.flow,
       skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
@@ -92,6 +94,7 @@ export async function handleRequestList(
           status: req.status,
           agent: req.flow ? undefined : req.agent,
           flow: req.flow,
+          target_branch: req.target_branch,
           created: `${req.created_by} @ ${req.created}`,
         });
       }
@@ -121,6 +124,7 @@ export async function handleRequestShow(
       priority: metadata.priority,
       agent: metadata.flow ? undefined : metadata.agent,
       flow: metadata.flow,
+      target_branch: metadata.target_branch,
       created: `${metadata.created_by} @ ${metadata.created}`,
     });
     display.info("request.content", id, { content });

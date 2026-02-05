@@ -244,7 +244,7 @@ CREATE TABLE test_order_table (id INTEGER PRIMARY KEY);
 DROP TABLE IF EXISTS test_order_table;
 `;
     await Deno.writeTextFile(
-      join(tmp, "migrations", "002_test_order.sql"),
+      join(tmp, "migrations", "999_test_order.sql"),
       testMigration,
     );
 
@@ -261,7 +261,7 @@ DROP TABLE IF EXISTS test_order_table;
     const versions = migrations.trim().split("\n");
     assertEquals(versions.length, 2);
     assertEquals(versions[0], "001_init.sql");
-    assertEquals(versions[1], "002_test_order.sql");
+    assertEquals(versions[1], "999_test_order.sql");
 
     // Verify test table was created
     const tables = queryDb(
@@ -286,7 +286,7 @@ INVALID SQL SYNTAX HERE;
 DROP TABLE IF EXISTS good_table;
 `;
     await Deno.writeTextFile(
-      join(tmp, "migrations", "002_bad_sql.sql"),
+      join(tmp, "migrations", "999_bad_sql.sql"),
       badMigration,
     );
 
@@ -304,7 +304,7 @@ DROP TABLE IF EXISTS good_table;
       dbPath,
       "SELECT COUNT(*) FROM schema_migrations;",
     );
-    assertEquals(count.trim(), "1", "Only first migration should be applied");
+    assertEquals(count.trim(), "1", "Baseline migrations should remain applied after rollback");
   } finally {
     await Deno.remove(tmp, { recursive: true }).catch(() => {});
   }

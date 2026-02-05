@@ -3,7 +3,7 @@ import { AiConfigSchema } from "./ai_config.ts";
 import { MCPConfigSchema } from "../schemas/mcp.ts";
 import * as DEFAULTS from "./constants.ts";
 import { ProviderTypeSchema } from "./ai_config.ts";
-import { LogLevel, ProviderCostTier, SqliteJournalMode } from "../enums.ts";
+import { LogLevel, PortalExecutionStrategy, ProviderCostTier, SqliteJournalMode } from "../enums.ts";
 
 // Helper to get current working directory safely
 function getCwdSafe(): string {
@@ -103,6 +103,8 @@ export const ConfigSchema = z.object({
     alias: z.string(),
     target_path: z.string(),
     created: z.string().optional(),
+    default_branch: z.string().optional(),
+    execution_strategy: z.nativeEnum(PortalExecutionStrategy).optional(),
   })).default([]),
   /** AI/LLM provider configuration (legacy/single) */
   ai: AiConfigSchema.optional(),

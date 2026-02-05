@@ -46,6 +46,7 @@ export class RequestListHandler extends BaseCommand {
         priority: frontmatter.priority || "normal",
         agent: frontmatter.agent || "default",
         portal: frontmatter.portal,
+        target_branch: frontmatter.target_branch,
         model: frontmatter.model,
         flow: frontmatter.flow,
         skills: frontmatter.skills ? JSON.parse(frontmatter.skills) : undefined,

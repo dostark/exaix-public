@@ -223,6 +223,7 @@ retry_backoff_base_ms = 1000
     agentId?: string;
     portal?: string;
     tags?: string[];
+    targetBranch?: string;
   }): string {
     return [
       "---",
@@ -235,6 +236,7 @@ retry_backoff_base_ms = 1000
       `source: test`,
       `created_by: test_environment`,
       options.portal ? `portal: "${options.portal}"` : null,
+      options.targetBranch ? `target_branch: "${options.targetBranch}"` : null,
       `tags: [${(options.tags ?? []).map((t) => `"${t}"`).join(", ")}]`,
       "---",
     ].filter(Boolean).join("\n");
@@ -251,10 +253,12 @@ retry_backoff_base_ms = 1000
       priority?: number;
       tags?: string[];
       portal?: string;
+      targetBranch?: string;
     } = {},
   ): Promise<{ filePath: string; traceId: string }> {
     return this.createRequestBase(description, {
       ...options,
+      targetBranch: options.targetBranch,
       contentPrefix: "# Request",
     });
   }
@@ -271,10 +275,12 @@ retry_backoff_base_ms = 1000
       priority?: number;
       tags?: string[];
       portal?: string;
+      targetBranch?: string;
     } = {},
   ): Promise<{ filePath: string; traceId: string }> {
     return this.createRequestBase(description, {
       ...options,
+      targetBranch: options.targetBranch,
       flowId,
       contentPrefix: "# Flow Request",
     });
@@ -291,6 +297,7 @@ retry_backoff_base_ms = 1000
       priority?: number;
       tags?: string[];
       portal?: string;
+      targetBranch?: string;
       flowId?: string;
       contentPrefix: string;
     },
@@ -307,6 +314,7 @@ retry_backoff_base_ms = 1000
       agentId: options.agentId,
       tags: options.tags,
       portal: options.portal,
+      targetBranch: options.targetBranch,
     });
 
     const content = `${frontmatter}\n\n${options.contentPrefix}\n\n${description}\n`;
@@ -323,6 +331,8 @@ retry_backoff_base_ms = 1000
     options: {
       status?: string;
       agentId?: string;
+      portal?: string;
+      targetBranch?: string;
       actions?: Array<{ tool: string; params: Record<string, unknown> }>;
     } = {},
   ): Promise<string> {
@@ -344,6 +354,8 @@ retry_backoff_base_ms = 1000
       `agent_id: ${options.agentId ?? "senior-coder"}`,
       `status: ${options.status ?? "review"}`,
       `created_at: "${new Date().toISOString()}"`,
+      options.portal ? `portal: "${options.portal}"` : null,
+      options.targetBranch ? `target_branch: "${options.targetBranch}"` : null,
       "---",
     ].join("\n");
 

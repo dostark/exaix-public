@@ -21,6 +21,8 @@ export interface ReviewMetadata {
   branch: string;
   trace_id: string;
   request_id: string;
+  base_branch?: string;
+  worktree_path?: string;
   files_changed: number;
   created_at: string;
   agent_id: string;
@@ -139,6 +141,31 @@ export class ReviewCommands extends BaseCommand {
 
     // Ultimate fallback
     return "main";
+  }
+
+  private async getStoredReviewBaseBranch(branch: string): Promise<string | null> {
+    try {
+      const row = await this.db.preparedGet<{ base_branch: string | null }>(
+        "SELECT base_branch FROM reviews WHERE branch = ?",
+        [branch],
+      );
+      const base = row?.base_branch?.trim();
+      return base ? base : null;
+    } catch {
+      // Older DB schema or missing table/column; fall back to heuristics.
+      return null;
+    }
+  }
+
+  private async resolveBaseBranchForBranch(
+    branch: string,
+    repoPath: string,
+    fallbackDefaultBranch: string,
+  ): Promise<string> {
+    const stored = await this.getStoredReviewBaseBranch(branch);
+    if (stored) return stored;
+    // Fallback: existing heuristic default branch logic
+    return fallbackDefaultBranch || await this.getDefaultBranch(repoPath);
   }
 
   private async findRepoForBranch(branchName: string): Promise<string> {
@@ -343,9 +370,11 @@ export class ReviewCommands extends BaseCommand {
         const logLine = new TextDecoder().decode(logResult.stdout).trim();
         const [, timestamp, agent_id] = logLine.split(" ");
 
+        const baseBranch = await this.resolveBaseBranchForBranch(branch, repoPath, defaultBranch);
+
         // Get number of files changed
         const diffCmd = new Deno.Command("git", {
-          args: ["diff", "--name-only", `${defaultBranch}...${branch}`],
+          args: ["diff", "--name-only", `${baseBranch}...${branch}`],
           cwd: repoPath,
           stdout: "piped",
           stderr: "piped",
@@ -369,6 +398,7 @@ export class ReviewCommands extends BaseCommand {
           branch,
           trace_id,
           request_id,
+          base_branch: baseBranch,
           files_changed: files.length,
           created_at: timestamp,
           agent_id,
@@ -454,6 +484,7 @@ export class ReviewCommands extends BaseCommand {
 
     const repoPath = await this.findRepoForBranch(fullBranch);
     const defaultBranch = await this.getDefaultBranch(repoPath);
+    const baseBranch = await this.resolveBaseBranchForBranch(fullBranch, repoPath, defaultBranch);
 
     // Verify branch exists
     const checkCmd = new Deno.Command("git", {
@@ -474,7 +505,7 @@ export class ReviewCommands extends BaseCommand {
         "log",
         fullBranch,
         "--not",
-        defaultBranch,
+        baseBranch,
         "--format=%H|||%s|||%aI",
       ],
       cwd: repoPath,
@@ -494,7 +525,7 @@ export class ReviewCommands extends BaseCommand {
 
     // Get diff
     const diffCmd = new Deno.Command("git", {
-      args: ["diff", `${defaultBranch}...${fullBranch}`],
+      args: ["diff", `${baseBranch}...${fullBranch}`],
       cwd: repoPath,
       stdout: "piped",
       stderr: "piped",
@@ -505,7 +536,7 @@ export class ReviewCommands extends BaseCommand {
 
     // Get files changed count
     const filesCmd = new Deno.Command("git", {
-      args: ["diff", "--name-only", `${defaultBranch}...${fullBranch}`],
+      args: ["diff", "--name-only", `${baseBranch}...${fullBranch}`],
       cwd: repoPath,
       stdout: "piped",
       stderr: "piped",
@@ -524,6 +555,7 @@ export class ReviewCommands extends BaseCommand {
       branch: fullBranch,
       trace_id,
       request_id,
+      base_branch: baseBranch,
       files_changed: files.length,
       created_at: commits[commits.length - 1]?.timestamp || new Date().toISOString(),
       agent_id: commits[0]?.sha.substring(0, 8) || "unknown",
@@ -596,6 +628,7 @@ export class ReviewCommands extends BaseCommand {
 
       // Get the default branch for this repository
       const defaultBranch = await this.getDefaultBranch(repoPath);
+      const baseBranch = await this.resolveBaseBranchForBranch(review.branch, repoPath, defaultBranch);
 
       // Verify we're on the default branch
       const currentBranchCmd = new Deno.Command("git", {
@@ -608,9 +641,9 @@ export class ReviewCommands extends BaseCommand {
       const branchResult = await currentBranchCmd.output();
       const currentBranch = new TextDecoder().decode(branchResult.stdout).trim();
 
-      if (currentBranch !== defaultBranch) {
+      if (currentBranch !== baseBranch) {
         throw new Error(
-          `Must be on '${defaultBranch}' branch to approve reviews (currently on '${currentBranch}')\nRun: git checkout ${defaultBranch}`,
+          `Must be on '${baseBranch}' branch to approve reviews (currently on '${currentBranch}')\nRun: git checkout ${baseBranch}`,
         );
       }
 

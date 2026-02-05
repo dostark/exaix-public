@@ -24,7 +24,7 @@ import { FlowCommands } from "./flow_commands.ts";
 import { DashboardCommands } from "./dashboard_commands.ts";
 import { MemoryCommands } from "./memory_commands.ts";
 import { JournalCommands } from "./commands/journal.ts";
-import { PortalStatus } from "../enums.ts";
+import { PortalExecutionStrategy, PortalStatus } from "../enums.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { McpCommands } from "./commands/mcp.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
@@ -121,6 +121,7 @@ export const __test_command = new Command()
         default: CLI_DEFAULTS.PRIORITY,
       })
       .option("--portal <portal:string>", "Portal alias for context")
+      .option("--target-branch <branch:string>", "Target branch for this request (portal-aware)")
       .option("-m, --model <model:string>", "Named model configuration")
       .option("--flow <flow:string>", "Target multi-agent flow (mutually exclusive with --agent)")
       .option("--skills <skills:string>", "Comma-separated list of skills to inject")
@@ -282,6 +283,7 @@ export const __test_command = new Command()
                   plan: planInfo,
                   agent: agentInfo,
                   portal: portalInfo,
+                  base_branch: cs.base_branch,
                   priority: cs.request_priority || "normal",
                   created_by: cs.request_created_by || "unknown",
                   files_changed: cs.files_changed,
@@ -531,11 +533,33 @@ export const __test_command = new Command()
         "add <target-path> <alias>",
         new Command()
           .description("Add a new portal (symlink to external project)")
-          .action(async (_options, ...args: string[]) => {
+          .option("--default-branch <branch:string>", "Default base branch for this portal")
+          .option(
+            "--execution-strategy <strategy:string>",
+            "Execution strategy: branch (default) or worktree",
+          )
+          .action(async (options, ...args: string[]) => {
             const targetPath = args[0] as unknown as string;
             const alias = args[1] as unknown as string;
             try {
-              await portalCommands.add(targetPath, alias);
+              const strategy = options.executionStrategy as string | undefined;
+              const parsedStrategy = strategy
+                ? (strategy === PortalExecutionStrategy.BRANCH
+                  ? PortalExecutionStrategy.BRANCH
+                  : strategy === PortalExecutionStrategy.WORKTREE
+                  ? PortalExecutionStrategy.WORKTREE
+                  : undefined)
+                : undefined;
+              if (strategy && !parsedStrategy) {
+                throw new Error(
+                  `Invalid execution strategy. Must be one of: ${PortalExecutionStrategy.BRANCH}, ${PortalExecutionStrategy.WORKTREE}`,
+                );
+              }
+
+              await portalCommands.add(targetPath, alias, {
+                defaultBranch: options.defaultBranch,
+                executionStrategy: parsedStrategy,
+              });
             } catch (error) {
               display.error("cli.error", "portal add", {
                 message: error instanceof Error ? error.message : "Unknown error",
@@ -590,6 +614,8 @@ export const __test_command = new Command()
                 permissions: portal.permissions,
                 created: portal.created,
                 last_verified: portal.lastVerified,
+                default_branch: portal.defaultBranch,
+                execution_strategy: portal.executionStrategy,
               });
             } catch (error) {
               display.error("cli.error", "portal show", {

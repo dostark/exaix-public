@@ -10,6 +10,7 @@ export interface RequestFrontmatter {
   source: string;
   created_by: string;
   portal?: string;
+  target_branch?: string;
   model?: string;
   skills?: string;
 }

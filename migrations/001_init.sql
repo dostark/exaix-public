@@ -46,6 +46,8 @@ CREATE TABLE IF NOT EXISTS reviews (
   portal TEXT NOT NULL,             -- Portal name
   branch TEXT NOT NULL,             -- Git branch name (feat/<desc>-<trace>)
   repository TEXT NOT NULL DEFAULT '',  -- Git repository path
+  base_branch TEXT,                 -- Optional base/target branch for merge + diffs
+  worktree_path TEXT,               -- Optional worktree path for worktree execution strategy
   status TEXT NOT NULL,             -- pending, approved, rejected
   description TEXT NOT NULL,        -- Description of changes
   commit_sha TEXT,                  -- Latest commit SHA from agent
@@ -112,6 +114,7 @@ CREATE TABLE IF NOT EXISTS artifacts (
   type TEXT NOT NULL CHECK (type IN ('analysis', 'report', 'diagram')),
   agent TEXT NOT NULL,
   portal TEXT,
+  target_branch TEXT,               -- Optional target/base branch context for portal artifacts
   created TEXT NOT NULL,
   updated TEXT,
   request_id TEXT NOT NULL,

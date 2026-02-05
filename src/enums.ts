@@ -132,6 +132,16 @@ export enum PortalOperation {
 }
 
 /**
+ * Strategy for how ExoFrame executes plans within a portal repository.
+ * - BRANCH: execute directly in the repository checkout using feature branches
+ * - WORKTREE: execute in a git worktree (feature branch still used for review)
+ */
+export enum PortalExecutionStrategy {
+  BRANCH = "branch",
+  WORKTREE = "worktree",
+}
+
+/**
  * Cost tier classification for providers.
  */
 export enum ProviderCostTier {

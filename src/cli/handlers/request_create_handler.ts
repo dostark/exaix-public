@@ -97,6 +97,10 @@ export class RequestCreateHandler extends BaseCommand {
         frontmatterFields.portal = portal;
       }
 
+      if (options.target_branch) {
+        frontmatterFields.target_branch = options.target_branch;
+      }
+
       if (options.model) {
         frontmatterFields.model = options.model;
       }
@@ -143,6 +147,7 @@ export class RequestCreateHandler extends BaseCommand {
         priority,
         agent,
         portal,
+        target_branch: options.target_branch,
         model: options.model,
         flow: options.flow,
         skills: options.skills,

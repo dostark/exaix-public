@@ -45,6 +45,9 @@ export interface RequestMetadata {
 
   /** Optional: Portal ID for this request */
   portal?: string;
+
+  /** Optional: Target/base branch for this request (portal-aware) */
+  targetBranch?: string;
 }
 
 /**
@@ -269,6 +272,10 @@ export class PlanWriter {
 
     if (metadata.portal) {
       lines.push(`portal: "${metadata.portal}"`);
+    }
+
+    if (metadata.targetBranch) {
+      lines.push(`target_branch: "${metadata.targetBranch}"`);
     }
 
     lines.push("---");

@@ -1,11 +1,12 @@
 // Integration tests for exoctl CLI commands not yet covered
 // Covers: request list, request show, plan list, plan show, review list, review show, portal add/remove/refresh, dashboard
 
-import { assert, assertStringIncludes } from "@std/assert";
+import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { FlowInputSource } from "../../src/enums.ts";
 import { MemoryOperation } from "../../src/enums.ts";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
+import { ArtifactRegistry } from "../../src/services/artifact_registry.ts";
 
 // Helper to run exoctl command in a given workspace
 async function runExoctl(args: string[], cwd: string) {
@@ -99,6 +100,22 @@ Deno.test("CLI: request list shows created requests", async () => {
   }
 });
 
+Deno.test("[regression] CLI: request list surfaces target_branch", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    const targetBranch = "release_1.2";
+    const { traceId } = await env.createRequest("Request list target branch", { targetBranch });
+
+    const result = await runExoctl(["request", "list"], env.tempDir);
+    assertEquals(result.code, 0);
+    assertStringIncludes(result.stdout, traceId.substring(0, 8));
+    assertStringIncludes(result.stdout, "target_branch");
+    assertStringIncludes(result.stdout, targetBranch);
+  } finally {
+    await env.cleanup();
+  }
+});
+
 Deno.test("CLI: request show displays request details", async () => {
   const env = await TestEnvironment.create();
   try {
@@ -108,6 +125,21 @@ Deno.test("CLI: request show displays request details", async () => {
     const result = await runExoctl([FlowInputSource.REQUEST, "show", traceId], env.tempDir);
     assert(result.code === 0);
     assertStringIncludes(result.stdout, "Show details request");
+  } finally {
+    await env.cleanup();
+  }
+});
+
+Deno.test("[regression] CLI: request show surfaces target_branch", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    const targetBranch = "release_1.2";
+    const { traceId } = await env.createRequest("Show details request with target branch", { targetBranch });
+
+    const result = await runExoctl([FlowInputSource.REQUEST, "show", traceId], env.tempDir);
+    assertEquals(result.code, 0);
+    assertStringIncludes(result.stdout, "target_branch");
+    assertStringIncludes(result.stdout, targetBranch);
   } finally {
     await env.cleanup();
   }
@@ -168,6 +200,74 @@ Deno.test("CLI: review show displays review details", async () => {
   }
 });
 
+Deno.test("CLI: review show --diff displays artifact body for artifact IDs", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    const artifactRegistry = new ArtifactRegistry(env.db, env.tempDir);
+    const artifactId = await artifactRegistry.createArtifact(
+      "request-artifact-001",
+      "code-analyst",
+      "# Artifact Title\n\nArtifact body content",
+    );
+
+    const result = await runExoctl(["review", "show", artifactId, "--diff"], env.tempDir);
+    assertEquals(result.code, 0);
+    assertStringIncludes(result.stdout, "Artifact body content");
+  } finally {
+    await env.cleanup();
+  }
+});
+
+Deno.test("CLI: review approve marks artifact as approved (no git)", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    const artifactRegistry = new ArtifactRegistry(env.db, env.tempDir);
+    const artifactId = await artifactRegistry.createArtifact(
+      "request-artifact-002",
+      "code-analyst",
+      "# Approve Me\n\nThis is an artifact",
+    );
+
+    const approve = await runExoctl(["review", "approve", artifactId], env.tempDir);
+    assertEquals(approve.code, 0);
+
+    const updated = await artifactRegistry.getArtifact(artifactId);
+    assertEquals(updated.status, "approved");
+  } finally {
+    await env.cleanup();
+  }
+});
+
+Deno.test("CLI: review list includes both code reviews and artifact-backed reviews", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    // Create an artifact-backed review
+    const artifactRegistry = new ArtifactRegistry(env.db, env.tempDir);
+    const artifactId = await artifactRegistry.createArtifact(
+      "request-mixed-001",
+      "code-analyst",
+      "# Mixed Artifact\n\nHello from artifact",
+    );
+
+    // Create a minimal feat/* branch so the code-review path yields at least one entry
+    // (No commit required; branch points at existing commit.)
+    await new Deno.Command("git", {
+      args: ["branch", "feat/request-mixed-branch-001-abc"],
+      cwd: env.tempDir,
+      stdout: "null",
+      stderr: "null",
+    }).output();
+
+    const result = await runExoctl(["review", "list"], env.tempDir);
+    assertEquals(result.code, 0);
+
+    assertStringIncludes(result.stdout, artifactId);
+    assertStringIncludes(result.stdout, "feat/request-mixed-branch-001-abc");
+  } finally {
+    await env.cleanup();
+  }
+});
+
 Deno.test("CLI: portal add/remove/refresh works", async () => {
   const env = await TestEnvironment.create();
   try {
@@ -183,6 +283,129 @@ Deno.test("CLI: portal add/remove/refresh works", async () => {
     // Remove portal
     const remove = await runExoctl(["portal", "remove", "TestPortal"], env.tempDir);
     assert(remove.code === 0 || remove.code === 1);
+  } finally {
+    await env.cleanup();
+  }
+});
+
+Deno.test("[regression] CLI: request --target-branch writes target_branch frontmatter", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    const description = "Target branch frontmatter request";
+    const targetBranch = "release_1.2";
+
+    const create = await runExoctl([
+      "request",
+      description,
+      "--target-branch",
+      targetBranch,
+    ], env.tempDir);
+    assertEquals(create.code, 0);
+
+    const requestsDir = join(env.tempDir, "Workspace", "Requests");
+    const requestFiles: string[] = [];
+    for await (const entry of Deno.readDir(requestsDir)) {
+      if (!entry.isFile) continue;
+      if (!entry.name.endsWith(".md")) continue;
+      requestFiles.push(join(requestsDir, entry.name));
+    }
+
+    let matchedPath: string | null = null;
+    for (const filePath of requestFiles) {
+      const content = await Deno.readTextFile(filePath);
+      if (content.includes(`# Request\n\n${description}`)) {
+        matchedPath = filePath;
+        assertStringIncludes(content, `target_branch: ${targetBranch}`);
+        break;
+      }
+    }
+
+    assertExists(matchedPath, "Expected a request file containing the description");
+  } finally {
+    await env.cleanup();
+  }
+});
+
+Deno.test("[regression] CLI: portal add persists default_branch and execution_strategy", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    const portalAlias = "TestPortal";
+    const defaultBranch = "release_1.2";
+    const executionStrategy = "worktree";
+
+    // Create a dummy project to add as portal
+    await env.writeFile("ExternalProjects/TestPortal/README.md", "# Test Portal");
+
+    const add = await runExoctl([
+      "portal",
+      MemoryOperation.ADD,
+      "./ExternalProjects/TestPortal",
+      portalAlias,
+      "--default-branch",
+      defaultBranch,
+      "--execution-strategy",
+      executionStrategy,
+    ], env.tempDir);
+    assertEquals(add.code, 0);
+
+    const configText = await Deno.readTextFile(join(env.tempDir, "exo.config.toml"));
+    assertStringIncludes(configText, `alias = "${portalAlias}"`);
+    assertStringIncludes(configText, `default_branch = "${defaultBranch}"`);
+    assertStringIncludes(configText, `execution_strategy = "${executionStrategy}"`);
+  } finally {
+    await env.cleanup();
+  }
+});
+
+Deno.test("[regression] CLI: portal show includes default_branch and execution_strategy", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    const portalAlias = "TestPortal";
+    const defaultBranch = "release_1.2";
+    const executionStrategy = "worktree";
+
+    await env.writeFile("ExternalProjects/TestPortal/README.md", "# Test Portal");
+
+    const add = await runExoctl([
+      "portal",
+      MemoryOperation.ADD,
+      "./ExternalProjects/TestPortal",
+      portalAlias,
+      "--default-branch",
+      defaultBranch,
+      "--execution-strategy",
+      executionStrategy,
+    ], env.tempDir);
+    assertEquals(add.code, 0);
+
+    const show = await runExoctl(["portal", "show", portalAlias], env.tempDir);
+    assertEquals(show.code, 0);
+    assertStringIncludes(show.stdout, "default_branch");
+    assertStringIncludes(show.stdout, defaultBranch);
+    assertStringIncludes(show.stdout, "execution_strategy");
+    assertStringIncludes(show.stdout, executionStrategy);
+  } finally {
+    await env.cleanup();
+  }
+});
+
+Deno.test("[regression] CLI: portal add rejects invalid --execution-strategy", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    const portalAlias = "TestPortal";
+    await env.writeFile("ExternalProjects/TestPortal/README.md", "# Test Portal");
+
+    const add = await runExoctl([
+      "portal",
+      MemoryOperation.ADD,
+      "./ExternalProjects/TestPortal",
+      portalAlias,
+      "--execution-strategy",
+      "not-a-strategy",
+    ], env.tempDir);
+
+    assertEquals(add.code, 1);
+    assertStringIncludes(add.stderr + add.stdout, "Invalid execution strategy");
   } finally {
     await env.cleanup();
   }

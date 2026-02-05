@@ -3,6 +3,7 @@ import { dirname, isAbsolute, join } from "@std/path";
 import { crypto } from "@std/crypto";
 import { encodeHex } from "@std/encoding/hex";
 import { Config, ConfigSchema } from "./schema.ts";
+import { PortalExecutionStrategy } from "../enums.ts";
 import { logInfo } from "../services/structured_logger.ts";
 import { ExoPathDefaults } from "./constants.ts";
 
@@ -134,14 +135,24 @@ stability_check = true
     return this.config;
   }
 
-  public async addPortal(alias: string, targetPath: string): Promise<void> {
+  public async addPortal(
+    alias: string,
+    targetPath: string,
+    options?: { defaultBranch?: string; executionStrategy?: PortalExecutionStrategy },
+  ): Promise<void> {
     const created = new Date().toISOString();
 
     // Read current config
     const content = await Deno.readTextFile(this.configPath);
 
     // Add portal entry
-    const portalEntry = `\n[[portals]]\nalias = "${alias}"\ntarget_path = "${targetPath}"\ncreated = "${created}"\n`;
+    const defaultBranchLine = options?.defaultBranch ? `default_branch = "${options.defaultBranch}"\n` : "";
+    const executionStrategyLine = options?.executionStrategy
+      ? `execution_strategy = "${options.executionStrategy}"\n`
+      : "";
+
+    const portalEntry =
+      `\n[[portals]]\nalias = "${alias}"\ntarget_path = "${targetPath}"\ncreated = "${created}"\n${defaultBranchLine}${executionStrategyLine}`;
 
     // Append to config
     await Deno.writeTextFile(this.configPath, content + portalEntry);
@@ -171,11 +182,29 @@ stability_check = true
     this.config = this.load();
   }
 
-  public getPortals(): Array<{ alias: string; target_path: string; created?: string }> {
+  public getPortals(): Array<
+    {
+      alias: string;
+      target_path: string;
+      created?: string;
+      default_branch?: string;
+      execution_strategy?: PortalExecutionStrategy;
+    }
+  > {
     return this.config.portals || [];
   }
 
-  public getPortal(alias: string): { alias: string; target_path: string; created?: string } | undefined {
+  public getPortal(
+    alias: string,
+  ):
+    | {
+      alias: string;
+      target_path: string;
+      created?: string;
+      default_branch?: string;
+      execution_strategy?: PortalExecutionStrategy;
+    }
+    | undefined {
     return this.config.portals?.find((p) => p.alias === alias);
   }
 

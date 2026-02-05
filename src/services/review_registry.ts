@@ -37,24 +37,54 @@ export class ReviewRegistry {
     // Insert into database
     const sql = `
       INSERT INTO reviews (
-        id, trace_id, portal, branch, repository, status, description,
+        id, trace_id, portal, branch, repository, base_branch, worktree_path, status, description,
         commit_sha, files_changed, created, created_by
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    await this.db.preparedRun(sql, [
-      id,
-      validated.trace_id,
-      validated.portal,
-      validated.branch,
-      validated.repository,
-      status,
-      validated.description,
-      validated.commit_sha || null,
-      validated.files_changed,
-      created,
-      validated.created_by,
-    ]);
+    try {
+      await this.db.preparedRun(sql, [
+        id,
+        validated.trace_id,
+        validated.portal,
+        validated.branch,
+        validated.repository,
+        validated.base_branch || null,
+        validated.worktree_path || null,
+        status,
+        validated.description,
+        validated.commit_sha || null,
+        validated.files_changed,
+        created,
+        validated.created_by,
+      ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const looksLikeOldSchema = message.includes("base_branch") || message.includes("worktree_path");
+      if (!looksLikeOldSchema) throw error;
+
+      // Legacy schema fallback: DB not migrated yet.
+      const legacySql = `
+        INSERT INTO reviews (
+          id, trace_id, portal, branch, repository, status, description,
+          commit_sha, files_changed, created, created_by
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      await this.db.preparedRun(legacySql, [
+        id,
+        validated.trace_id,
+        validated.portal,
+        validated.branch,
+        validated.repository,
+        status,
+        validated.description,
+        validated.commit_sha || null,
+        validated.files_changed,
+        created,
+        validated.created_by,
+      ]);
+    }
 
     // Log to Activity Journal
     await this.logger.info("review.created", validated.branch, {
@@ -63,6 +93,8 @@ export class ReviewRegistry {
       portal: validated.portal,
       branch: validated.branch,
       repository: validated.repository,
+      base_branch: validated.base_branch,
+      worktree_path: validated.worktree_path,
       created_by: validated.created_by,
       files_changed: validated.files_changed,
     }, validated.trace_id);

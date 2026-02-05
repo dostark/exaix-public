@@ -38,6 +38,7 @@ export class ArtifactRegistry {
     agent: string,
     content: string,
     portal?: string,
+    targetBranch?: string,
   ): Promise<string> {
     const artifactId = `artifact-${shortId()}`;
     const relativeFilePath = join("Memory", "Execution", `${artifactId}.md`);
@@ -53,6 +54,7 @@ export class ArtifactRegistry {
       type: "analysis",
       agent,
       portal: portal || null,
+      target_branch: targetBranch?.trim() ? targetBranch.trim() : null,
       created,
       request_id: requestId,
     };
@@ -63,9 +65,19 @@ export class ArtifactRegistry {
 
     // Save to database
     await this.db.preparedRun(
-      `INSERT INTO artifacts (id, status, type, agent, portal, created, request_id, file_path)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [artifactId, "pending", "analysis", agent, portal || null, created, requestId, relativeFilePath],
+      `INSERT INTO artifacts (id, status, type, agent, portal, target_branch, created, request_id, file_path)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        artifactId,
+        "pending",
+        "analysis",
+        agent,
+        portal || null,
+        targetBranch?.trim() ? targetBranch.trim() : null,
+        created,
+        requestId,
+        relativeFilePath,
+      ],
     );
 
     return artifactId;
@@ -138,13 +150,14 @@ export class ArtifactRegistry {
       type: string;
       agent: string;
       portal: string | null;
+      target_branch: string | null;
       created: string;
       updated: string | null;
       request_id: string;
       file_path: string;
       rejection_reason: string | null;
     }>(
-      `SELECT id, status, type, agent, portal, created, updated, request_id, file_path, rejection_reason
+      `SELECT id, status, type, agent, portal, target_branch, created, updated, request_id, file_path, rejection_reason
        FROM artifacts WHERE id = ?`,
       [artifactId],
     );
@@ -161,6 +174,7 @@ export class ArtifactRegistry {
       type: row.type as "analysis" | "report" | "diagram",
       agent: row.agent,
       portal: row.portal,
+      target_branch: row.target_branch,
       created: row.created,
       updated: row.updated,
       request_id: row.request_id,
@@ -173,7 +187,8 @@ export class ArtifactRegistry {
    * List artifacts with filters
    */
   async listArtifacts(filters?: ArtifactFilters): Promise<Artifact[]> {
-    let query = `SELECT id, status, type, agent, portal, created, updated, request_id, file_path, rejection_reason
+    let query =
+      `SELECT id, status, type, agent, portal, target_branch, created, updated, request_id, file_path, rejection_reason
                  FROM artifacts WHERE 1=1`;
     const params: (string | null)[] = [];
 
@@ -205,6 +220,7 @@ export class ArtifactRegistry {
       type: string;
       agent: string;
       portal: string | null;
+      target_branch: string | null;
       created: string;
       updated: string | null;
       request_id: string;
@@ -218,6 +234,7 @@ export class ArtifactRegistry {
       type: row.type as "analysis" | "report" | "diagram",
       agent: row.agent,
       portal: row.portal,
+      target_branch: row.target_branch,
       created: row.created,
       updated: row.updated,
       request_id: row.request_id,

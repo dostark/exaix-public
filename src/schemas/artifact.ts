@@ -37,6 +37,7 @@ export const ArtifactFrontmatterSchema = z.object({
   type: z.enum(["analysis", "report", "diagram"]),
   agent: z.string(),
   portal: z.string().nullable().optional(),
+  target_branch: z.string().nullable().optional(),
   created: z.string(), // ISO 8601 timestamp
   request_id: z.string(),
 });
@@ -52,6 +53,7 @@ export const ArtifactSchema = z.object({
   type: z.enum(["analysis", "report", "diagram"]),
   agent: z.string(),
   portal: z.string().nullable().optional(),
+  target_branch: z.string().nullable().optional(),
   created: z.string(), // ISO 8601 timestamp
   updated: z.string().nullable().optional(), // ISO 8601 timestamp
   request_id: z.string(),
@@ -77,6 +79,7 @@ export const CreateArtifactInputSchema = z.object({
   agent: z.string(),
   content: z.string(), // Markdown content (frontmatter will be added)
   portal: z.string().nullable().optional(),
+  target_branch: z.string().nullable().optional(),
   type: z.enum(["analysis", "report", "diagram"]).default("analysis"),
 });
 

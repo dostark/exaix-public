@@ -533,6 +533,82 @@ Deno.test("[regression] ExecutionLoop: skips structured execution for read-only 
   }
 });
 
+/**
+ * Regression test for the legacy/no-op plan path:
+ * - Not a structured plan (no "## Execution Steps")
+ * - No TOML actions
+ * - Read-only agent
+ *
+ * Expected behavior: succeed without git mutations, but still create canonical artifact.
+ */
+Deno.test("[regression] ExecutionLoop: read-only legacy no-op plan produces artifact and no branch", async () => {
+  const tempDir = await Deno.makeTempDir({ prefix: "exec-test-readonly-legacy-" });
+  const { db, cleanup } = await initTestDbService();
+  const traceId = crypto.randomUUID();
+
+  try {
+    const config = createMockConfig(tempDir);
+    const paths = getTestPaths(tempDir);
+    await Deno.mkdir(paths.activeDir, { recursive: true });
+
+    // Provide a read-only blueprint so ExecutionLoop can detect capability mode.
+    const blueprintsDir = join(tempDir, "Blueprints", "Agents");
+    await ensureDir(blueprintsDir);
+    await Deno.writeTextFile(
+      join(blueprintsDir, "code-analyst.md"),
+      `---\nagent_id: "code-analyst"\nname: "Code Analyst"\nmodel: "mock:test"\ncapabilities: ["read_file", "list_directory", "grep_search"]\ncreated: "2026-02-04T00:00:00Z"\ncreated_by: "test"\nversion: "1.0.0"\n---\n\n# Code Analyst\n`,
+    );
+
+    // Legacy/no-op plan: not structured, no TOML blocks/actions.
+    const planContent =
+      `---\ntrace_id: "${traceId}"\nrequest_id: readonly-legacy\nstatus: active\nagent_id: code-analyst\n---\n\n# Read-only Legacy No-op Plan\n\nThis is an analysis output plan with no executable actions.\n`;
+
+    const planPath = join(paths.activeDir, "readonly-legacy.md");
+    await Deno.writeTextFile(planPath, planContent);
+
+    const loop = new ExecutionLoop({ config, db, agentId: "daemon" });
+    const result = await loop.processTask(planPath);
+
+    assertEquals(result.success, true);
+    assertEquals(result.traceId, traceId);
+
+    // Should not initialize a git repository or create feature branches.
+    const gitDirExists = await Deno.stat(join(tempDir, ".git")).then(() => true).catch(() => false);
+    assertEquals(gitDirExists, false, ".git should not be created for read-only legacy no-op plans");
+
+    // Plan should be archived after success
+    const archivedPlan = join(paths.archiveDir, "readonly-legacy.md");
+    const archivedExists = await Deno.stat(archivedPlan).then(() => true).catch(() => false);
+    assertEquals(archivedExists, true, "Plan should be archived");
+
+    // Execution artifacts should include plan.md for trace inspection
+    const planArtifactPath = join(paths.memoryExecution, traceId, "plan.md");
+    const planArtifactExists = await Deno.stat(planArtifactPath).then(() => true).catch(() => false);
+    assertEquals(planArtifactExists, true, "plan.md artifact should exist under Memory/Execution/<traceId>/");
+
+    // Read-only executions should also produce a canonical review artifact (artifact-*.md)
+    const artifacts = await db.preparedAll<
+      { id: string; status: string; agent: string; portal: string | null; request_id: string; file_path: string }
+    >(
+      "SELECT id, status, agent, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
+      ["readonly-legacy"],
+    );
+    assertEquals(artifacts.length, 1, "Exactly one artifact should be created for a read-only execution");
+    assertStringIncludes(artifacts[0].id, "artifact-", "Artifact ID should have artifact- prefix");
+    assertEquals(artifacts[0].status, "pending");
+    assertEquals(artifacts[0].agent, "code-analyst");
+    assertEquals(artifacts[0].portal, null);
+
+    const artifactFileExists = await Deno.stat(join(tempDir, artifacts[0].file_path)).then(() => true).catch(() =>
+      false
+    );
+    assertEquals(artifactFileExists, true, "Artifact file should exist under Memory/Execution/");
+  } finally {
+    await cleanup();
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
 Deno.test("ExecutionLoop: rejects plan with missing required frontmatter", async () => {
   const tempDir = await Deno.makeTempDir({ prefix: "exec-test-invalid-" });
   const { db, cleanup } = await initTestDbService();

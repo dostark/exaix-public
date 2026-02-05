@@ -195,39 +195,15 @@ sequenceDiagram
 
 ### Portal-Aware Execution Context
 
-**New Execution Strategy:**
+**Implementation (source of truth):**
 
-```typescript
-interface ExecutionContext {
-  // Where agent executes
-  workingDirectory: string; // Portal path or deployed workspace
-
-  // Git operations target
-  gitRepository: string; // Portal's .git/ directory
-
-  // File access constraints
-  allowedPaths: string[]; // Portal directory tree
-
-  // Changeset tracking
-  changesetRepo: string; // Where to create feature branch
-}
-
-// Example: Portal execution
-const portalContext: ExecutionContext = {
-  workingDirectory: "/home/user/git/ExoFrame",
-  gitRepository: "/home/user/git/ExoFrame/.git",
-  allowedPaths: ["/home/user/git/ExoFrame/**"],
-  changesetRepo: "/home/user/git/ExoFrame/.git",
-};
-
-// Example: Workspace execution (no portal)
-const workspaceContext: ExecutionContext = {
-  workingDirectory: "/home/user/ExoFrame",
-  gitRepository: "/home/user/ExoFrame/.git",
-  allowedPaths: ["/home/user/ExoFrame/**"],
-  changesetRepo: "/home/user/ExoFrame/.git",
-};
-```
+- `src/services/workspace_execution_context.ts`
+  - `WorkspaceExecutionContext`
+  - `WorkspaceExecutionContextBuilder.forPortal()` / `forWorkspace()`
+  - `WorkspaceExecutionContextBuilder.resolvePortalSymlink()`
+- Tests:
+  - `tests/services/workspace_execution_context_test.ts`
+  - `tests/integration/portal_workspace_integration_test.ts`
 
 ### Agent Capability Modes
 
@@ -250,33 +226,12 @@ const workspaceContext: ExecutionContext = {
 
 **File Access Rules:**
 
-```typescript
-class PortalPathResolver {
-  /**
-   * Resolve file path relative to portal workspace
-   */
-  resolvePortalPath(portalAlias: string, relativePath: string): string {
-    // ~/ExoFrame/Portals/portal-exoframe -> ~/git/ExoFrame
-    const portalTarget = this.resolveSymlink(portalAlias);
+**Implementation (source of truth):**
 
-    // Prevent path traversal
-    const safePath = this.sanitizePath(relativePath);
-
-    // Return absolute path in portal workspace
-    return join(portalTarget, safePath);
-  }
-
-  /**
-   * Validate file is within portal boundaries
-   */
-  validatePortalAccess(filePath: string, portalRoot: string): boolean {
-    const realPath = realpathSync(filePath);
-    const realPortal = realpathSync(portalRoot);
-
-    return realPath.startsWith(realPortal);
-  }
-}
-```
+- `src/services/path_resolver.ts` (alias + root-based resolution; uses `Deno.realPath` for security)
+- `src/helpers/path_security.ts` (within-roots enforcement)
+- `src/services/tool_registry.ts` (allowed roots include portal targets)
+- Additional portal-boundary checks exist in MCP handlers and agent execution tooling.
 
 ---
 
@@ -286,64 +241,11 @@ class PortalPathResolver {
 
 #### Task 1.1: Portal Execution Context
 
-**File:** `src/services/execution_context.ts` (new)
+**Files (source of truth):**
 
-```typescript
-/**
- * Execution context for agent operations
- * Determines where agents run and where git operations happen
- */
-export interface ExecutionContext {
-  /** Working directory for agent execution */
-  workingDirectory: string;
-
-  /** Git repository for version control operations */
-  gitRepository: string;
-
-  /** Allowed file paths for agent access */
-  allowedPaths: string[];
-
-  /** Repository for review tracking */
-  changesetRepo: string;
-
-  /** Portal alias (if executing in portal) */
-  portal?: string;
-
-  /** Portal target path (resolved symlink) */
-  portalTarget?: string;
-}
-
-export class ExecutionContextBuilder {
-  /**
-   * Build execution context for portal-based request
-   */
-  static forPortal(portalAlias: string, portalService: PortalService): ExecutionContext {
-    const portal = portalService.getPortal(portalAlias);
-    const portalTarget = portal.targetPath;
-
-    return {
-      workingDirectory: portalTarget,
-      gitRepository: join(portalTarget, ".git"),
-      allowedPaths: [portalTarget],
-      changesetRepo: join(portalTarget, ".git"),
-      portal: portalAlias,
-      portalTarget,
-    };
-  }
-
-  /**
-   * Build execution context for workspace request (no portal)
-   */
-  static forWorkspace(workspacePath: string): ExecutionContext {
-    return {
-      workingDirectory: workspacePath,
-      gitRepository: join(workspacePath, ".git"),
-      allowedPaths: [workspacePath],
-      changesetRepo: join(workspacePath, ".git"),
-    };
-  }
-}
-```
+- `src/services/workspace_execution_context.ts`
+  - `WorkspaceExecutionContext`
+  - `WorkspaceExecutionContextBuilder` (+ validation + symlink resolution)
 
 **Success Criteria:**
 
@@ -365,40 +267,14 @@ export class ExecutionContextBuilder {
 
 **File:** `src/services/agent_executor.ts`
 
-```typescript
-export class AgentExecutor {
-  async execute(
-    request: Request,
-    blueprint: Blueprint,
-    plan: Plan,
-    context: ExecutionContext, // NEW PARAMETER
-  ): Promise<ExecutionResult> {
-    // Set working directory to portal or workspace
-    Deno.chdir(context.workingDirectory);
+**Implementation (source of truth):**
 
-    // Configure git operations to use correct repo
-    this.gitService.setRepository(context.gitRepository);
-
-    // Validate file access against allowed paths
-    this.fileValidator.setAllowedPaths(context.allowedPaths);
-
-    // Execute plan steps in correct context
-    const result = await this.executePlanSteps(plan, context);
-
-    return result;
-  }
-
-  private async executePlanSteps(
-    plan: Plan,
-    context: ExecutionContext,
-  ): Promise<ExecutionResult> {
-    for (const step of plan.steps) {
-      // All file operations happen in context.workingDirectory
-      await this.executeStep(step, context);
-    }
-  }
-}
-```
+- `src/services/agent_executor.ts`
+  - execution-context lifecycle helpers (`setExecutionContext()`, `withExecutionContext()`)
+  - capability gating (`requiresGitTracking()`, `isReadOnlyAgent()`)
+- Tests:
+  - `tests/services/agent_executor_context_api_test.ts`
+  - `tests/services/agent_executor_workspace_context_test.ts`
 
 **Success Criteria:**
 
@@ -421,23 +297,11 @@ export class AgentExecutor {
 
 **File:** `src/services/request_router.ts`
 
-```typescript
-export class RequestRouter {
-  async route(request: Request): Promise<void> {
-    // Build execution context based on portal parameter
-    const context = request.portal
-      ? ExecutionContextBuilder.forPortal(request.portal, this.portalService)
-      : ExecutionContextBuilder.forWorkspace(this.workspacePath);
+**Implementation (source of truth):**
 
-    // Pass context to agent executor
-    if (request.type === "agent") {
-      await this.agentExecutor.execute(request, blueprint, plan, context);
-    } else if (request.type === "flow") {
-      await this.flowRunner.execute(flow, request, context);
-    }
-  }
-}
-```
+- `src/services/request_router.ts` (`buildExecutionContext()`)
+- Tests:
+  - `tests/services/request_router_context_test.ts`
 
 **Success Criteria:**
 
@@ -471,57 +335,9 @@ Task 1.3 completed with a practical, testable approach. The `buildExecutionConte
 
 **File:** `src/services/git_service.ts`
 
-**Implementation:**
+**Implementation (source of truth):**
 
-```typescript
-export class GitService {
-  private repoPath: string;
-
-  /**
-   * Set the repository path for git operations
-   * Validates that the path exists and is a git repository
-   */
-  setRepository(repoPath: string): void {
-    // Validate directory exists
-    try {
-      const stat = Deno.statSync(repoPath);
-      if (!stat.isDirectory) {
-        throw new GitRepositoryError(`Not a directory: ${repoPath}`);
-      }
-    } catch (error) {
-      if (error instanceof GitRepositoryError) throw error;
-      throw new GitRepositoryError(`Not a git repository: ${repoPath}`);
-    }
-
-    // Validate .git directory exists
-    try {
-      const gitStat = Deno.statSync(`${repoPath}/.git`);
-      if (!gitStat.isDirectory) {
-        throw new GitRepositoryError(`Not a git repository: ${repoPath}`);
-      }
-    } catch {
-      throw new GitRepositoryError(`Not a git repository: ${repoPath}`);
-    }
-
-    this.repoPath = repoPath;
-  }
-
-  /**
-   * Get the current repository path
-   */
-  getRepository(): string {
-    return this.repoPath;
-  }
-
-  /**
-   * Get the current branch name
-   */
-  async getCurrentBranch(): Promise<string> {
-    const result = await this.runGitCommand(["branch", "--show-current"]);
-    return result.output.trim();
-  }
-}
-```
+- `src/services/git_service.ts` (`setRepository()`, `getRepository()`, `getCurrentBranch()`)
 
 **Success Criteria:**
 
@@ -551,50 +367,10 @@ Task 3.1 completed with full TDD workflow (RED→GREEN→REFACTOR). Added `setRe
 
 #### Task 3.2: Changeset Registry Portal Support
 
-**File:** `src/services/changeset_registry.ts`
+**Files (source of truth):**
 
-```typescript
-export class ChangesetRegistry {
-  /**
-   * Create review in portal repository
-   */
-  async createChangeset(
-    requestId: string,
-    context: ExecutionContext,
-  ): Promise<Changeset> {
-    // Create feature branch in portal repo
-    const branchName = `feat/request-${requestId}-${shortId()}`;
-    await this.gitService.createBranch(branchName);
-
-    // Track review in portal's git repo
-    const review = {
-      id: requestId,
-      branch: branchName,
-      repository: context.gitRepository, // Portal repo path
-      portal: context.portal,
-      status: "pending",
-    };
-
-    await this.db.saveChangeset(review);
-    return review;
-  }
-
-  /**
-   * Get diff for review from portal repository
-   */
-  async getDiff(changesetId: string): Promise<string> {
-    const review = await this.db.getChangeset(changesetId);
-
-    // Get diff from portal repo, not deployed workspace
-    const diff = await SafeSubprocess.run("git", ["diff", "main..HEAD"], {
-      cwd: review.repository, // Use portal repo path
-      captureOutput: true,
-    });
-
-    return diff.stdout;
-  }
-}
-```
+- `src/services/review_registry.ts` (Phase 36 rename from changesets → reviews)
+- `src/schemas/review.ts` (includes repository + portal attribution)
 
 **Success Criteria:**
 
@@ -617,68 +393,7 @@ export class ChangesetRegistry {
 - `tests/helpers/db.ts` - Updated CHANGESETS_TABLE_SQL with repository column
 - `migrations/005_changeset_repository.sql` - New migration for repository column
 
-**Implementation:**
-
-```typescript
-export class ChangesetRegistry {
-  /**
-   * Create a new review with branch creation in specified repository
-   */
-  async createChangeset(
-    traceId: string,
-    portal: string | null,
-    branch: string,
-    repository: string,
-  ): Promise<string> {
-    return await this.register({
-      trace_id: traceId,
-      portal: portal,
-      branch,
-      repository,
-      description: `Changeset for ${branch}`,
-      created_by: "agent",
-      files_changed: 0,
-    });
-  }
-
-  /**
-   * Get diff for a review from its repository
-   */
-  async getDiff(changesetId: string): Promise<string> {
-    const review = await this.get(changesetId);
-    if (!review) {
-      throw new Error(`Changeset not found: ${changesetId}`);
-    }
-
-    // Get root commit for diff base
-    const rootCmd = new Deno.Command("git", {
-      args: ["rev-list", "--max-parents=0", "HEAD"],
-      cwd: review.repository,
-      stdout: "piped",
-    });
-
-    const rootResult = await rootCmd.output();
-    const rootCommit = new TextDecoder().decode(rootResult.stdout).trim().split("\n")[0];
-
-    // Run git diff from root to HEAD in review's repository
-    const cmd = new Deno.Command("git", {
-      args: ["diff", rootCommit, "HEAD"],
-      cwd: review.repository,
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    const { stdout, stderr, code } = await cmd.output();
-
-    if (code !== 0) {
-      const error = new TextDecoder().decode(stderr);
-      throw new Error(`Git diff failed: ${error}`);
-    }
-
-    return new TextDecoder().decode(stdout);
-  }
-}
-```
+**Note:** The previous `ChangesetRegistry` code snippets are obsolete after Phase 36; use `ReviewRegistry`.
 
 **Success Criteria:**
 
@@ -711,33 +426,10 @@ Task 3.2 completed with full TDD workflow. Updated review schema to support null
 
 **File:** `src/services/agent_executor.ts`
 
-**Implementation:**
+**Implementation (source of truth):**
 
-```typescript
-export class AgentExecutor {
-  /**
-   * Determine if agent requires git tracking based on capabilities
-   * Agents with write capabilities need branch creation and commit tracking
-   */
-  requiresGitTracking(blueprint: Blueprint): boolean {
-    const writeCapabilities = [
-      "write_file",
-      "git_commit",
-      "git_create_branch",
-    ];
-
-    return blueprint.capabilities.some((cap) => writeCapabilities.includes(cap));
-  }
-
-  /**
-   * Check if agent is read-only (no write capabilities)
-   * Inverse of requiresGitTracking
-   */
-  isReadOnlyAgent(blueprint: Blueprint): boolean {
-    return !this.requiresGitTracking(blueprint);
-  }
-}
-```
+- `src/services/agent_capabilities.ts` (single source of truth)
+- `src/services/agent_executor.ts` (thin wrappers)
 
 **Success Criteria:**
 
@@ -769,46 +461,9 @@ Task 4.1 completed with full TDD workflow. Added capability-based differentiatio
 
 **File:** `src/services/portal_permissions.ts`
 
-```typescript
-export class PortalPermissionsService {
-  /**
-   * Validate portal has git repository
-   * Checks for .git directory in portal's target path
-   */
-  validateGitRepo(portalAlias: string): boolean {
-    const portal = this.getPortal(portalAlias);
+**Implementation (source of truth):**
 
-    if (!portal) {
-      throw new Error(`Portal '${portalAlias}' not found`);
-    }
-
-    try {
-      const gitDir = `${portal.target_path}/.git`;
-      const stat = Deno.statSync(gitDir);
-      return stat.isDirectory;
-    } catch {
-      // If .git doesn't exist or can't be accessed, return false
-      return false;
-    }
-  }
-
-  /**
-   * List portals with git support
-   * Returns only portals that have a .git directory
-   */
-  listGitEnabledPortals(): PortalPermissions[] {
-    const allPortals = Array.from(this.portals.values());
-    return allPortals.filter((portal) => {
-      try {
-        return this.validateGitRepo(portal.alias);
-      } catch {
-        // If validation throws, portal doesn't have git
-        return false;
-      }
-    });
-  }
-}
-```
+- `src/services/portal_permissions.ts` (`validateGitRepo()`, `listGitEnabledPortals()`)
 
 **Success Criteria:**
 
@@ -873,134 +528,10 @@ Analyzed 15 files in `src/cli/` directory...
 - Extract common CLI utilities to shared module
 ```
 
-**ArtifactRegistry Implementation:**
+**Implementation:**
 
-```typescript
-export interface Artifact {
-  id: string;
-  status: "pending" | "approved" | "rejected";
-  type: "analysis" | "report" | "diagram";
-  agent: string;
-  portal?: string;
-  created: Date;
-  request_id: string;
-  file_path: string; // Path in Memory/Execution/
-  content?: string; // Cached content
-}
-
-export class ArtifactRegistry {
-  /**
-   * Create new artifact from agent execution
-   */
-  async createArtifact(
-    requestId: string,
-    agent: string,
-    content: string,
-    portal?: string,
-  ): Promise<string> {
-    const artifactId = `artifact-${shortId()}`;
-    const filePath = `Memory/Execution/${artifactId}.md`;
-
-    // Add frontmatter
-    const frontmatter = `---
-status: pending
-type: analysis
-agent: ${agent}
-portal: ${portal || "null"}
-created: ${new Date().toISOString()}
-request_id: ${requestId}
----
-
-`;
-
-    await Deno.writeTextFile(filePath, frontmatter + content);
-
-    // Track in database
-    await this.db.saveArtifact({
-      id: artifactId,
-      status: "pending",
-      agent,
-      portal,
-      request_id: requestId,
-      file_path: filePath,
-    });
-
-    return artifactId;
-  }
-
-  /**
-   * Update artifact status (approve/reject)
-   */
-  async updateStatus(
-    artifactId: string,
-    status: "approved" | "rejected",
-    reason?: string,
-  ): Promise<void> {
-    const artifact = await this.getArtifact(artifactId);
-
-    // Read current content
-    const content = await Deno.readTextFile(artifact.file_path);
-
-    // Update frontmatter status
-    const updated = content.replace(
-      /^status: .*$/m,
-      `status: ${status}`,
-    );
-
-    await Deno.writeTextFile(artifact.file_path, updated);
-
-    // Update database
-    await this.db.updateArtifact(artifactId, { status, updated: new Date() });
-  }
-
-  /**
-   * Get artifact content
-   */
-  async getArtifact(artifactId: string): Promise<Artifact> {
-    const artifact = await this.db.getArtifact(artifactId);
-    const content = await Deno.readTextFile(artifact.file_path);
-
-    return { ...artifact, content };
-  }
-
-  /**
-   * List artifacts with filters
-   */
-  async listArtifacts(filters?: {
-    status?: string;
-    agent?: string;
-    portal?: string;
-  }): Promise<Artifact[]> {
-    return await this.db.listArtifacts(filters);
-  }
-}
-```
-
-**Changeset Command Integration:**
-
-```typescript
-// exoctl review show <id>
-// Auto-detect type and display accordingly
-
-if (id.startsWith("artifact-")) {
-  const artifact = await artifactRegistry.getArtifact(id);
-  console.log(artifact.content); // Show markdown content
-} else {
-  const review = await changesetRegistry.get(id);
-  const diff = await changesetRegistry.getDiff(id);
-  console.log(diff); // Show git diff
-}
-
-// exoctl review approve <id>
-if (id.startsWith("artifact-")) {
-  await artifactRegistry.updateStatus(id, "approved");
-  console.log("Artifact approved");
-} else {
-  await changesetRegistry.approve(id);
-  await gitService.mergeBranch(review.branch);
-  console.log("Changeset merged");
-}
-```
+- Artifact storage + DB tracking: `src/services/artifact_registry.ts` and `src/schemas/artifact.ts`
+- Unified review CLI behavior (artifacts + git changesets): `src/cli/review_commands.ts` and `src/cli/exoctl.ts`
 
 **Success Criteria:**
 
@@ -1023,12 +554,15 @@ if (id.startsWith("artifact-")) {
 - ✅ Unit test: Get artifact with content
 - ✅ Unit test: Create artifact without portal (null portal)
 - ✅ Unit test: Memory/Execution directory auto-created
-- Integration test: `exoctl review show artifact-123` displays content
-- Integration test: `exoctl review approve artifact-123` updates status
-- Integration test: Mixed list shows both git reviews and artifacts
-- E2E test: Complete workflow - request → artifact → review → approve
+- ✅ Integration test: `exoctl review show artifact-* --diff` displays artifact body
+- ✅ Integration test: `exoctl review approve artifact-*` updates status
+- ✅ Integration test: Mixed list shows both git reviews and artifacts
+- ⏳ E2E test: Complete workflow - request → execution → artifact → review → approve
 
-**Test File:** `tests/services/artifact_registry_test.ts` - 10 tests passing
+**Test Files:**
+
+- `tests/services/artifact_registry_test.ts` - 10 tests passing
+- `tests/integration/18_cli_commands_integration_test.ts` - CLI-level artifact review scenarios
 
 **Implementation Notes:**
 
@@ -1036,7 +570,7 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 
 #### Task 4.4: Wire Artifact Creation into the Execution Pipeline
 
-**Status:** [ ] NOT STARTED
+**Status:** COMPLETE
 
 **Context:** Task 4.3 provides an `ArtifactRegistry`, but it must be _invoked_ by the execution pipeline so read-only agent outputs become reviewable artifacts (instead of implicit files scattered under `Memory/Execution/<traceId>/`).
 
@@ -1065,16 +599,16 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 
 **Success Criteria:**
 
-- [ ] Read-only agent execution produces a single canonical artifact file in `Memory/Execution/artifact-*.md`
-- [ ] Artifact frontmatter includes `status: pending`, `agent`, `portal`, `request_id`, `created`
-- [ ] No git branch/commit/review is created for read-only executions
-- [ ] The trace directory (`Memory/Execution/<traceId>/`) remains as supporting evidence (context, logs), but the artifact is the review surface
+- [x] Read-only agent execution produces a single canonical artifact file in `Memory/Execution/artifact-*.md`
+- [x] Artifact frontmatter includes `status: pending`, `agent`, `portal`, `request_id`, `created`
+- [x] No git branch/commit/review is created for read-only executions
+- [x] The trace directory (`Memory/Execution/<traceId>/`) remains as supporting evidence (context, logs), but the artifact is the review surface
 
-**Projected Test Scenarios:**
+**Test Scenarios:**
 
-- Unit test: read-only structured plan produces artifact and no branch
-- Unit test: read-only legacy/no-op plan produces artifact and no branch
-- Integration test: portal read-only execution creates artifact with `portal` set
+- [x] Unit test: read-only structured plan produces artifact and no branch
+- [x] Unit test: read-only legacy/no-op plan produces artifact and no branch
+- [x] Integration test: portal read-only execution creates artifact with `portal` set
 
 **Implementation Notes:**
 
@@ -1083,7 +617,7 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 
 #### Task 4.5: Implement Unified `exoctl review` for Artifacts
 
-**Status:** [ ] NOT STARTED
+**Status:** COMPLETE
 
 **Context:** Phase 35 promises a unified review workflow, but CLI must explicitly support artifact IDs (e.g., `artifact-xxxx`) and treat them differently from git reviews.
 
@@ -1113,16 +647,16 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 
 **Success Criteria:**
 
-- [ ] `exoctl review show artifact-...` prints artifact content (no git required)
-- [ ] `exoctl review approve artifact-...` updates artifact frontmatter + DB status
-- [ ] `exoctl review reject artifact-... --reason ...` persists rejection reason
-- [ ] `exoctl review list` can show pending artifacts alongside code reviews
+- [x] `exoctl review show artifact-...` prints artifact content (no git required)
+- [x] `exoctl review approve artifact-...` updates artifact frontmatter + DB status
+- [x] `exoctl review reject artifact-... --reason ...` persists rejection reason
+- [x] `exoctl review list` can show pending artifacts alongside code reviews
 
-**Projected Test Scenarios:**
+**Test Scenarios:**
 
-- Integration test: `exoctl review show artifact-*` displays content
-- Integration test: approving artifact updates status and is reflected in subsequent list
-- Integration test: mixed list shows both git and artifact entries
+- [x] Integration test: `exoctl review show artifact-*` displays content
+- [x] Integration test: approving artifact updates status and is reflected in subsequent list
+- [x] Integration test: mixed list shows both git and artifact entries
 
 **Implementation Notes:**
 
@@ -1131,7 +665,7 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 
 #### Task 4.6: Unify Review Storage and Filtering Semantics
 
-**Status:** [ ] NOT STARTED
+**Status:** COMPLETE
 
 **Context:** Git reviews and artifacts are stored differently (git branches vs markdown files + DB). The system still needs consistent semantics for listing, filtering, and approval state.
 
@@ -1148,14 +682,14 @@ Task 4.3 completed with full TDD workflow (RED→GREEN→REFACTOR). Implemented 
 
 **Success Criteria:**
 
-- [ ] `review list --status pending` returns both pending git reviews and pending artifacts
-- [ ] Sort order is stable and intuitive (most recent first)
-- [ ] Output fields are consistent (id, status, agent, portal, created)
+- [x] `review list --status pending` returns both pending git reviews and pending artifacts
+- [x] Sort order is stable and intuitive (most recent first)
+- [x] Output fields are consistent (id, status, agent, portal, created)
 
-**Projected Test Scenarios:**
+**Test Scenarios:**
 
-- Unit test: list merge logic sorts correctly and preserves type
-- Integration test: filters apply consistently across both sources
+- [x] Unit test: list merge logic sorts correctly and preserves type
+- [x] Integration test: filters apply consistently across both sources
 
 **Implementation Notes:**
 
@@ -1252,126 +786,17 @@ All agent capability logic (requiresGitTracking, isReadOnlyAgent) is tested in u
 
 Task 5.2 completed with comprehensive documentation updates. Both User Guide and Technical Spec now include detailed portal workflow sections covering execution models, agent capabilities, security, and performance. The documentation provides clear examples for both read-only (analysis) and write-capable (development) workflows, along with troubleshooting guidance and migration steps. All success criteria from the planning document have been met.
 
-````markdown
-## Portal Workflows
+**Docs (source of truth):**
 
-### How Portal Execution Works
-
-When you submit a request targeting a portal:
-
-1. **Execution Environment**: Agent runs in portal workspace (e.g., `~/git/ExoFrame`)
-2. **Git Operations**: Branches and commits created in portal's repository
-3. **File Access**: Agent can read/write portal files directly
-4. **Changesets**: Track actual code changes in portal repository
-
-### Example: Code Analysis with Portal
-
-```bash
-# Add portal to workspace
-exoctl portal add ~/git/MyProject my-project
-
-# Submit analysis request
-exoctl request --portal my-project "Analyze src/ architecture"
-
-# Review results (no review for read-only agents)
-exoctl plan list --recent 1
-```
-````
-
-### Example: Feature Development with Portal
-
-```bash
-# Submit feature request
-exoctl request --portal my-project --agent feature-developer "Add user authentication"
-
-# Review review in portal repository
-cd ~/git/MyProject
-git log --oneline  # Shows feature branch
-git diff main      # Shows actual code changes
-
-# Approve and execute
-exoctl review list
-exoctl review approve <review-id>
-```
-
-### Portal Git Integration
-
-**Automatic Behaviors:**
-
-- ✅ Write agents create feature branches in portal repository
-- ✅ Changesets reference portal repo, not deployed workspace
-- ✅ File modifications happen in portal workspace
-- ✅ Git history maintained in correct repository
-
-**Manual Steps:**
-
-- Review review with `exoctl review show <id>`
-- Approve changes with `exoctl review approve <id>`
-- Merge feature branch in portal repo after execution
+- `docs/ExoFrame_User_Guide.md` (Portal workflows)
+- `docs/dev/ExoFrame_Technical_Spec.md` (Portal execution + review architecture)
 
 **Success Criteria:**
 
-- [ ] User guide updated with portal workflows
-- [ ] Examples show correct execution model
-- [ ] Troubleshooting section added
-- [ ] Migration guide for existing users
-
-**Projected Test Scenarios:**
-
-- Documentation review: User guide examples tested against live system
-- Documentation review: Migration guide validated with test portal
-- Documentation review: Troubleshooting section covers common errors
-- E2E test: Follow user guide workflow for code analysis
-- E2E test: Follow user guide workflow for feature development
-
-**File:** `docs/dev/ExoFrame_Technical_Spec.md`
-
-Update architecture documentation:
-
-```markdown
-## 8.5 Portal Workspace Integration
-
-### Execution Context Architecture
-
-ExoFrame uses an execution context model to determine where agents run and where git operations occur:
-
-**Portal Execution (Recommended):**
-
-- Working Directory: Portal target path (e.g., `~/git/ExoFrame`)
-- Git Repository: Portal's `.git/` directory
-- Changesets: Track changes in portal repository
-- Use Case: All code modification workflows
-
-**Workspace Execution (Legacy):**
-
-- Working Directory: Deployed workspace (e.g., `~/ExoFrame`)
-- Git Repository: Workspace `.git/` directory
-- Changesets: Track workspace changes
-- Use Case: Internal workspace management only
-
-### Agent Capability Modes
-
-**Read-Only Agents** (analysis, review, quality):
-
-- Execute in portal workspace for context
-- No feature branch creation
-- No review tracking
-- Results stored in Memory/
-
-**Write-Capable Agents** (development, refactoring):
-
-- Execute in portal workspace
-- Create feature branches in portal repo
-- Commit changes to portal
-- Changesets track portal modifications
-```
-
-**Success Criteria:**
-
-- [ ] Technical spec updated with execution model
-- [ ] Architecture diagrams show portal integration
-- [ ] Security implications documented
-- [ ] Performance considerations noted
+- [x] Technical spec updated with execution model
+- [x] Architecture diagrams show portal integration
+- [x] Security implications documented
+- [x] Performance considerations noted
 
 **Projected Test Scenarios:**
 
@@ -1563,16 +988,7 @@ exoctl request --portal my-project --agent feature-developer "Add feature"
 3. Update all documentation to use `exoctl review`
 4. Remove `exoctl review` in next major version
 
-**Commands:**
-
-```bash
-exoctl review list                    # All pending reviews (code + artifacts)
-exoctl review show <id>               # Show code diff OR artifact content
-exoctl review approve <id>            # Approve git merge OR artifact status
-exoctl review reject <id> --reason    # Reject with feedback
-exoctl review list --type code        # Filter by type
-exoctl review list --type artifact    # Filter by type
-```
+**Note:** This section is superseded by Phase 36. See `.copilot/planning/phase-36-changeset-to-review-rename.md` for the canonical CLI naming and migration notes.
 
 ### Post-Phase 36 Improvements
 
@@ -1663,41 +1079,47 @@ review:
 
 ## Implementation Checklist
 
+**Verification (2026-02-05):**
+
+- Source-of-truth implementations: `src/services/workspace_execution_context.ts`, `src/services/agent_executor.ts`, `src/services/request_router.ts`, `src/services/execution_loop.ts`, `src/services/git_service.ts`, `src/services/review_registry.ts`
+- Key tests: `tests/services/workspace_execution_context_test.ts`, `tests/integration/portal_workspace_integration_test.ts`, `tests/services/git_service_portal_test.ts`
+- Docs: `docs/ExoFrame_User_Guide.md` (Portal Workflows + Portal Troubleshooting), `docs/dev/ExoFrame_Technical_Spec.md` (Portal Workspace Integration)
+
 ### Core Implementation
 
-- [ ] Create `ExecutionContext` interface and builder
-- [ ] Update `AgentExecutor` to accept context
-- [ ] Update `RequestRouter` to build context
-- [ ] Add portal workspace execution logic
-- [ ] Update git service repository handling
+- [x] Create `WorkspaceExecutionContext` interface and builder (`WorkspaceExecutionContextBuilder`)
+- [x] Update `AgentExecutor` to accept and use execution context (working directory + allowed paths)
+- [x] Update `RequestRouter` to build execution context from request frontmatter
+- [x] Add portal workspace execution logic (execution root resolves to `portal.target_path`)
+- [x] Update git service repository handling (repo-scoped git operations)
 
 ### Git Integration
 
-- [ ] Add `setRepository()` to GitService
-- [ ] Update review registry for portals
-- [ ] Add portal repo path tracking
-- [ ] Update diff generation for portals
+- [x] Add `setRepository()` + `getRepository()` to `GitService`
+- [x] Update review registry to support portal repositories (`Review.repository`)
+- [x] Add portal repo path tracking in DB schema (`reviews.repository`)
+- [x] Update diff generation to use the review's repository path
 
 ### Agent Capabilities
 
-- [ ] Implement `requiresGitTracking()` check
-- [ ] Optimize read-only agent execution
-- [ ] Add multi-portal isolation
-- [ ] Validate portal git repositories
+- [x] Implement `requiresGitTracking()` / read-only capability helpers (`src/services/agent_capabilities.ts`)
+- [x] Optimize read-only agent execution to skip git branch creation
+- [x] Add multi-portal isolation via per-request execution roots and repo-scoped git operations
+- [x] Validate portal git repositories (`validatePortalGitRepo`, `PortalPermissionsService.validateGitRepo()`)
 
 ### Testing
 
-- [ ] Write unit tests for ExecutionContext
-- [ ] Write integration tests for portal execution
-- [ ] Write E2E tests for workflows
-- [ ] Run full test suite and verify passing
+- [x] Write unit tests for execution context builder
+- [x] Write integration tests for portal execution context and validation
+- [ ] Write portal end-to-end tests for request → execution → review/artifact workflows (not currently present; integration coverage exists)
+- [x] Run full test suite and verify passing
 
 ### Documentation
 
-- [ ] Update User Guide with portal workflows
-- [ ] Update Technical Spec with architecture
-- [ ] Create migration guide for users
-- [ ] Add troubleshooting section
+- [x] Update User Guide with portal workflows
+- [x] Update Technical Spec with portal workspace architecture
+- [ ] Create migration guide for Phase 35 portal workflow changes (no dedicated Phase 35 migration guide found)
+- [x] Add troubleshooting section (includes portal troubleshooting)
 
 ### Deployment
 
@@ -1711,9 +1133,9 @@ review:
 
 **Phase Completion Criteria:**
 
-- [ ] All implementation tasks completed
-- [ ] All tests passing (unit, integration, E2E)
-- [ ] Documentation updated and reviewed
-- [ ] Backward compatibility maintained
-- [ ] Success metrics achieved
-- [ ] No critical bugs in production
+- [ ] All implementation tasks completed (blocked by missing E2E portal workflow tests + Phase 35 migration guide)
+- [ ] All tests passing (unit, integration, E2E) (unit/integration pass; portal E2E tests not yet implemented)
+- [x] Documentation updated and reviewed (User Guide + Technical Spec updated)
+- [ ] Backward compatibility maintained (requires staging/prod verification)
+- [ ] Success metrics achieved (requires runtime observation)
+- [ ] No critical bugs in production (requires production monitoring)

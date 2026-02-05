@@ -22,6 +22,8 @@ export const ReviewSchema = z.object({
   portal: z.string().nullish(), // Portal name (null for workspace)
   branch: z.string().min(1), // Git branch name (feat/<desc>-<trace>)
   repository: z.string().min(1), // Absolute path to git repository
+  base_branch: z.string().nullish(), // Base/target branch to merge into
+  worktree_path: z.string().nullish(), // Optional worktree execution path
   status: ReviewStatusSchema, // Current status
   description: z.string(), // Description of changes
   commit_sha: z.string().nullish(), // Latest commit SHA from agent
@@ -45,6 +47,8 @@ export const RegisterReviewSchema = z.object({
   portal: z.string().nullish(), // Can be null for workspace reviews
   branch: z.string().min(1),
   repository: z.string().min(1), // Absolute path to git repository
+  base_branch: z.string().optional(),
+  worktree_path: z.string().optional(),
   commit_sha: z.string().optional(),
   files_changed: z.number().int().nonnegative().default(0),
   description: z.string(),

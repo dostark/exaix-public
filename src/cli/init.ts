@@ -93,6 +93,7 @@ export async function initializeServices(
       gitService: gitLocal,
       provider: providerLocal,
       display: displayLocal,
+      configService: cfgService,
     };
   } catch (err) {
     // Fallback minimal stubs (same as runtime fallback)

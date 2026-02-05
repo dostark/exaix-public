@@ -101,6 +101,15 @@ max_iterations = 10
 alias = "my-repo"
 target_path = "/home/me/projects/my-repo"
 
+# Optional: default base branch for this portal when requests don't specify `target_branch`
+# default_branch = "main"
+
+# Optional: execution strategy for write-capable changes
+# - "branch"   : create feature branches in the portal checkout (default)
+# - "worktree" : create per-request worktrees under .exo/worktrees (opt-in)
+#               : ExoFrame also creates a discoverability pointer under Memory/Execution/<traceId>/worktree/
+# execution_strategy = "branch"
+
 # ---------------------------------------------------------------------------
 # AI / LLM provider configuration
 # Supported providers: mock | ollama | anthropic | openai | google

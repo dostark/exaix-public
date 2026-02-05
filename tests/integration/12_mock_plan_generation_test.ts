@@ -178,3 +178,38 @@ Deno.test("Integration: Mock Plan Generation - Activity Logging", async () => {
     await env.cleanup();
   }
 });
+
+Deno.test("[regression] RequestProcessor copies target_branch into plan frontmatter", async () => {
+  const env = await TestEnvironment.create();
+  try {
+    await env.createBlueprint(
+      "senior-coder",
+      `# Senior Coder Blueprint
+
+You are an expert software developer.
+
+## Response Format
+
+Always respond with:
+- <thought> tags containing your analysis
+- <content> tags containing the implementation plan
+`,
+    );
+
+    const { processor } = env.createRequestProcessor();
+    const targetBranch = "release_1.2";
+
+    const requestResult = await env.createRequest(
+      "Implement branch-targeted change",
+      { agentId: "senior-coder", targetBranch },
+    );
+
+    const planPath = await processor.process(requestResult.filePath);
+    assertExists(planPath, "RequestProcessor should generate plan");
+
+    const planContent = await Deno.readTextFile(planPath);
+    assertStringIncludes(planContent, `target_branch: "${targetBranch}"`);
+  } finally {
+    await env.cleanup();
+  }
+});

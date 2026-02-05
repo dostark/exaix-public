@@ -18,6 +18,7 @@ export interface RequestOptions {
   agent?: string;
   priority?: RequestPriority;
   portal?: string;
+  target_branch?: string;
   model?: string;
   flow?: string;
   skills?: string[];
@@ -39,6 +40,7 @@ export interface RequestMetadata {
   priority: RequestPriority;
   agent: string;
   portal?: string;
+  target_branch?: string;
   model?: string;
   flow?: string;
   skills?: string[];
@@ -58,6 +60,7 @@ export interface RequestEntry {
   priority: string;
   agent: string;
   portal?: string;
+  target_branch?: string;
   model?: string;
   flow?: string;
   skills?: string[];

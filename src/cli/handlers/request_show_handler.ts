@@ -38,6 +38,7 @@ export class RequestShowHandler extends BaseCommand {
         priority: matchingFrontmatter.priority || "normal",
         agent: matchingFrontmatter.agent || "default",
         portal: matchingFrontmatter.portal,
+        target_branch: matchingFrontmatter.target_branch,
         model: matchingFrontmatter.model,
         flow: matchingFrontmatter.flow,
         skills: matchingFrontmatter.skills ? JSON.parse(matchingFrontmatter.skills) : undefined,

@@ -49,6 +49,7 @@ interface PlanFrontmatter {
   created_at: string;
   updated_at?: string;
   portal?: string;
+  target_branch?: string;
 }
 
 interface PlanAction {
@@ -67,6 +68,7 @@ interface SuccessArtifactContext {
   isReadOnly: boolean;
   planAgentId?: string;
   portal?: string;
+  targetBranch?: string;
 }
 
 // ============================================================================
@@ -123,6 +125,23 @@ export class ExecutionLoop {
     }
   }
 
+  private async resolveBaseBranch(
+    frontmatter: PlanFrontmatter,
+    gitService: GitService,
+    executionRoot: string,
+  ): Promise<string> {
+    const fromPlan = frontmatter.target_branch?.trim();
+    if (fromPlan) return fromPlan;
+
+    if (frontmatter.portal) {
+      const portalCfg = this.config.portals.find((p) => p.alias === frontmatter.portal);
+      const fromPortal = portalCfg?.default_branch?.trim();
+      if (fromPortal) return fromPortal;
+    }
+
+    return await gitService.getDefaultBranch(executionRoot);
+  }
+
   /**
    * Core execution logic shared between processTask and executeNext
    */
@@ -164,6 +183,8 @@ export class ExecutionLoop {
         repoPath: executionRoot,
       });
 
+      const baseBranch = await this.resolveBaseBranch(frontmatter, gitService, executionRoot);
+
       // Read plan content (needed to decide if we should create a git branch)
       const planContent = await Deno.readTextFile(planPath);
 
@@ -195,16 +216,10 @@ export class ExecutionLoop {
         await gitService.ensureRepository();
         await gitService.ensureIdentity();
 
-        // Ensure we start from master/main to avoid pollution from previous feature branches
-        try {
-          await gitService.checkoutBranch("master");
-        } catch {
-          try {
-            await gitService.checkoutBranch("main");
-          } catch {
-            // If neither exists (empty repo?), ignore
-          }
-        }
+        // Step 37.5: create feature branches from the resolved base branch.
+        // This prevents accidental inclusion of unrelated commits when the portal has
+        // multiple long-lived branches (e.g., release branches).
+        await gitService.checkoutBranch(baseBranch);
 
         branchName = await gitService.createBranch({ requestId, traceId });
       }
@@ -247,6 +262,8 @@ export class ExecutionLoop {
           frontmatter.portal || "unknown",
           branchName || "unknown",
           commitSha,
+          executionRoot,
+          baseBranch,
         );
       }
 
@@ -255,6 +272,7 @@ export class ExecutionLoop {
         isReadOnly,
         planAgentId,
         portal: frontmatter.portal,
+        targetBranch: frontmatter.target_branch,
       });
 
       return { success: true, traceId };
@@ -611,6 +629,7 @@ export class ExecutionLoop {
           artifactContext.planAgentId,
           artifactBody,
           artifactContext.portal,
+          artifactContext.targetBranch,
         );
       } catch (error) {
         console.error("Failed to create read-only artifact:", error);
@@ -740,6 +759,8 @@ export class ExecutionLoop {
     portal: string,
     branch: string,
     commitSha: string,
+    repository: string,
+    baseBranch: string,
   ): Promise<void> {
     try {
       console.log(`[ExecutionLoop] Registering review for ${requestId} (Branch: ${branch})`);
@@ -748,7 +769,8 @@ export class ExecutionLoop {
           trace_id: traceId,
           portal: portal,
           branch: branch,
-          repository: this.config.system.root,
+          repository,
+          base_branch: baseBranch,
           description: `Execution for request ${requestId}`,
           commit_sha: commitSha,
           files_changed: 1, // Defaulting to 1 for now
