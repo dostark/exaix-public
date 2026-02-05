@@ -1355,6 +1355,16 @@ exoctl portal refresh MyProject           # Re-scans project and updates context
   - `worktree`: create an isolated worktree checkout per trace and record `worktree_path` on the review.
 - Code reviews record `base_branch` (merge target) and optionally `worktree_path`; review approval merges into `base_branch`.
 
+**Worktree maintenance commands:**
+
+```bash
+# List worktrees for a repository
+exoctl git worktrees list [--portal <alias>] [--repo <path>]
+
+# Prune stale worktree metadata (after manual deletion/crashes)
+exoctl git worktrees prune [--portal <alias>] [--repo <path>] [--dry-run] [--verbose] [--expire <time>]
+```
+
 **Portal Command Behavior:**
 
 - **add:** Creates symlink at `/Portals/<alias>`, generates project memory at `/Memory/Projects/<alias>/`, updates `exo.config.toml` with portal path, validates config, restarts daemon if running

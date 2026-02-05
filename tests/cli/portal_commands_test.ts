@@ -90,6 +90,22 @@ Deno.test("PortalCommands: rejects reserved alias names", async () => {
   }
 });
 
+Deno.test("PortalCommands: rejects unsafe default_branch", async () => {
+  const { targetDir, commands, cleanup } = await initPortalTest();
+  try {
+    await assertRejects(
+      async () =>
+        await commands.add(targetDir, "BadDefaultBranch", {
+          defaultBranch: "not a branch",
+        }),
+      Error,
+      "Invalid default_branch",
+    );
+  } finally {
+    await cleanup();
+  }
+});
+
 Deno.test("PortalCommands: rejects duplicate alias", async () => {
   const env1 = await initPortalTest();
   const env2 = await initPortalTest();

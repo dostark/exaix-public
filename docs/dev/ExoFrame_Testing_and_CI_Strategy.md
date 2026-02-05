@@ -141,6 +141,8 @@ temporary directories created during daemon tests.
 - **Worktree strategy:** worktree checkout + `Memory/Execution/{trace-id}/worktree` pointer are removed after approve/reject
 - **Approve merge conflict (worktree):** merge is aborted best-effort and worktree checkout + pointer are removed, while the feature branch is preserved for manual conflict resolution
 
+Debugging tip: when investigating test failures, `exoctl git worktrees list --portal <alias>` can help confirm which worktrees exist, and `exoctl git worktrees prune --portal <alias>` can clean up stale metadata.
+
 **Test Structure:**
 
 ```typescript

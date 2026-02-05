@@ -890,6 +890,11 @@ exoctl portal refresh MyWebsite
 
 For worktree executions, ExoFrame also writes a discoverability pointer at `Memory/Execution/{trace-id}/worktree` (symlink when possible; `PATH.txt` fallback).
 
+**Worktree maintenance:**
+
+- `exoctl git worktrees list [--portal <alias>] [--repo <path>]` shows all Git worktrees for a repository (useful to locate the active execution worktree).
+- `exoctl git worktrees prune [--portal <alias>] [--repo <path>]` prunes stale worktree metadata (useful after manual deletion or crashes).
+
 **What happens when adding a portal:**
 
 1. Creates symlink: `~/ExoFrame/Portals/<alias>` → `<target-path>`

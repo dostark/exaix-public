@@ -1,4 +1,4 @@
-**Status:** [ ] PLANNED
+**Status:** ✅ Completed
 **Timebox:** 2–4 weeks
 **Entry Criteria:** Phase 35 (portal execution root) and Phase 36 (review command) in place
 **Exit Criteria:** A request can target `portal + branch`, execution does not disturb the user’s checkout, and review approve merges into the intended portal branch reliably.

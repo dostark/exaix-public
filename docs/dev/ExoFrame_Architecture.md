@@ -1163,6 +1163,8 @@ The review record is durable (audit/history), but ExoFrame applies cleanup to av
 - **Approve:** Merges the feature branch into the review’s recorded base branch. If the review was executed in an **isolated worktree** (review has `worktree_path`), ExoFrame removes the worktree checkout, removes the execution pointer at `Memory/Execution/{trace-id}/worktree`, and deletes the feature branch. If the review was executed on a normal branch checkout, ExoFrame merges but keeps the feature branch.
 - **Merge conflict (worktree reviews):** ExoFrame attempts to abort the merge and removes the worktree checkout + pointer, but keeps the feature branch for human conflict resolution.
 
+Operational note: if you need to inspect or clean up worktrees manually, use `exoctl git worktrees list --portal <alias>` and `exoctl git worktrees prune --portal <alias>`.
+
 ---
 
 ## Blueprint Management System

@@ -17,7 +17,7 @@ topics: ["portals", "git", "worktree", "branches", "reviews", "cli", "execution"
 
 1. Making review approval merge into the **request’s target branch** (not “whatever default branch happens to exist”).
 
-**Status:** [ ] PLANNED
+**Status:** ✅ Completed
 **Timebox:** 2–4 weeks
 **Entry Criteria:** Phase 35 (portal execution root) and Phase 36 (review command) in place
 **Exit Criteria:** A request can target `portal + branch`, execution does not disturb the user’s checkout, and review approve merges into the intended portal branch reliably.
@@ -415,7 +415,7 @@ Add integration tests mirroring the new workflow:
 
 - [x] Add portal config field `default_branch` to schema and sample config
 - [x] Add portal config field `execution_strategy` to schema and sample config
-- [ ] Validate it (non-empty, safe branch name)
+- [x] Validate it (non-empty, safe branch name)
 
 ### Execution
 
@@ -428,13 +428,13 @@ Add integration tests mirroring the new workflow:
 
 ### Review
 
-- [ ] `review show` unchanged (diff still computed from repo + branch)
+- [x] `review show` unchanged (diff still computed from repo + branch)
 - [x] `review approve` merges into `base_branch` if present
 - [x] `review reject` removes worktree and deletes branch (with robust handling)
 
 ### Maintenance
 
-- [ ] Add `exoctl git worktrees prune` (optional but recommended)
+- [x] Add `exoctl git worktrees prune` (optional but recommended)
 
 ### Tests
 

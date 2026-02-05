@@ -174,6 +174,8 @@ Some portal executions use an isolated Git worktree checkout. In those cases, Ex
 
 This is typically a symlink (preferred) or a small directory containing `PATH.txt`, and it points to the actual worktree directory (commonly under `.exo/worktrees/...`).
 
+You can also inspect worktrees directly with `exoctl git worktrees list --portal <alias>` (or `--repo <path>`).
+
 **Cleanup:** After the corresponding review is resolved (approved/rejected) the worktree checkout and this pointer are removed to avoid accumulating stale worktrees.
 
 #### Example: Memory/Execution/{trace-id}/summary.md

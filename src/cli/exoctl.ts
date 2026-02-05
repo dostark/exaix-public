@@ -28,6 +28,7 @@ import { PortalExecutionStrategy, PortalStatus } from "../enums.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { McpCommands } from "./commands/mcp.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
+import { GitService } from "../services/git_service.ts";
 
 // Extracted action handlers
 import { handleRequestCreate, handleRequestList, handleRequestShow } from "./command_builders/request_actions.ts";
@@ -358,6 +359,118 @@ export const __test_command = new Command()
     "git",
     new Command()
       .description("Git repository operations")
+      .command(
+        "worktrees",
+        new Command()
+          .description("Git worktree maintenance")
+          .command(
+            "list",
+            new Command()
+              .description("List git worktrees")
+              .option("--portal <portal:string>", "Target a configured portal repository")
+              .option("--repo <repo:string>", "Target a repository path (absolute or relative)")
+              .action(async (options) => {
+                try {
+                  if (options.portal && options.repo) {
+                    throw new Error("Use either --portal or --repo (not both)");
+                  }
+
+                  let repoPath = config.system.root as string;
+
+                  if (options.portal) {
+                    const portal = configService?.getPortal(options.portal);
+                    if (!portal) {
+                      throw new Error(`Portal not found in config: ${options.portal}`);
+                    }
+                    repoPath = portal.target_path;
+                  } else if (options.repo) {
+                    repoPath = options.repo;
+                  }
+
+                  const effectiveGit = new GitService({
+                    config,
+                    db,
+                    repoPath,
+                  });
+
+                  const worktrees = await effectiveGit.listWorktrees();
+                  display.info("git.worktrees.list", repoPath, { count: worktrees.length });
+
+                  for (const wt of worktrees) {
+                    const branch = wt.branch
+                      ? wt.branch.replace(/^refs\/heads\//, "")
+                      : wt.detached
+                      ? "(detached)"
+                      : undefined;
+
+                    display.info(wt.path, branch ?? "(unknown)", {
+                      head: wt.head ? `${wt.head.substring(0, 8)}...` : undefined,
+                      locked: wt.locked ? true : undefined,
+                      prunable: wt.prunable ? true : undefined,
+                    });
+                  }
+                } catch (error) {
+                  display.error("cli.error", "git worktrees list", {
+                    message: error instanceof Error ? error.message : "Unknown error",
+                  });
+                  Deno.exit(1);
+                }
+              }),
+          )
+          .command(
+            "prune",
+            new Command()
+              .description("Prune stale git worktree metadata")
+              .option("--portal <portal:string>", "Target a configured portal repository")
+              .option("--repo <repo:string>", "Target a repository path (absolute or relative)")
+              .option("--dry-run", "Show what would be pruned")
+              .option("--verbose", "Verbose output")
+              .option("--expire <expire:string>", "Prune entries older than <time> (e.g., 'now', '3.days.ago')")
+              .action(async (options) => {
+                try {
+                  if (options.portal && options.repo) {
+                    throw new Error("Use either --portal or --repo (not both)");
+                  }
+
+                  let repoPath = config.system.root as string;
+
+                  if (options.portal) {
+                    const portal = configService?.getPortal(options.portal);
+                    if (!portal) {
+                      throw new Error(`Portal not found in config: ${options.portal}`);
+                    }
+                    repoPath = portal.target_path;
+                  } else if (options.repo) {
+                    repoPath = options.repo;
+                  }
+
+                  const effectiveGit = new GitService({
+                    config,
+                    db,
+                    repoPath,
+                  });
+
+                  const output = await effectiveGit.pruneWorktrees({
+                    dryRun: Boolean(options.dryRun),
+                    verbose: Boolean(options.verbose),
+                    expire: options.expire,
+                  });
+
+                  display.info("git.worktrees.prune", repoPath, {
+                    dry_run: options.dryRun ? true : undefined,
+                    verbose: options.verbose ? true : undefined,
+                    expire: options.expire,
+                    output: output.trim().length > 0 ? output.trim() : undefined,
+                  });
+                } catch (error) {
+                  display.error("cli.error", "git worktrees prune", {
+                    message: error instanceof Error ? error.message : "Unknown error",
+                  });
+                  Deno.exit(1);
+                }
+              }),
+          ),
+      )
       .command(
         "branches",
         new Command()

@@ -69,6 +69,10 @@ export class PortalCommands {
     // Validate alias
     this.validateAlias(alias);
 
+    if (options?.defaultBranch !== undefined) {
+      await this.validateBranchName(options.defaultBranch, { label: "default_branch" });
+    }
+
     // Resolve target path to absolute
     const absoluteTarget = resolve(targetPath);
 
@@ -144,6 +148,38 @@ export class PortalCommands {
       }
 
       throw error;
+    }
+  }
+
+  private async validateBranchName(branch: string, opts?: { label?: string }): Promise<void> {
+    const label = opts?.label ?? "branch";
+
+    if (typeof branch !== "string") {
+      throw new Error(`Invalid ${label}: must be a string`);
+    }
+
+    const trimmed = branch.trim();
+    if (trimmed.length === 0) {
+      throw new Error(`Invalid ${label}: must be non-empty`);
+    }
+    if (trimmed !== branch) {
+      throw new Error(`Invalid ${label}: must not include leading/trailing whitespace`);
+    }
+
+    // Use git's own ref-format validator (works without a repo).
+    const cmd = new Deno.Command("git", {
+      args: ["check-ref-format", "--branch", branch],
+      stdout: "null",
+      stderr: "piped",
+    });
+
+    const { success, stderr } = await cmd.output();
+    if (!success) {
+      const msg = new TextDecoder().decode(stderr).trim();
+      throw new Error(
+        `Invalid ${label}: '${branch}' is not a safe git branch name` +
+          (msg ? ` (${msg})` : ""),
+      );
     }
   }
 

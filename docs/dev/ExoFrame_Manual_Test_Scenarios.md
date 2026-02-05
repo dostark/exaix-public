@@ -1039,6 +1039,9 @@ exoctl review list
 # Step 7: Verify worktree execution pointer exists (worktree strategy)
 # Note: This is a discoverability pointer; it may be a symlink or a PATH.txt file.
 ls -la ~/ExoFrame/Memory/Execution/<trace-id>/worktree
+
+# Step 8: List git worktrees for the portal repo (optional, helps debugging)
+exoctl git worktrees list --portal TestApp
 ```
 
 ### Part D: Review Verification

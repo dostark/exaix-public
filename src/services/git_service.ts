@@ -46,6 +46,15 @@ export interface GitCommandOptions {
   retryOnLock?: boolean;
 }
 
+export interface WorktreeInfo {
+  path: string;
+  head?: string;
+  branch?: string;
+  detached?: boolean;
+  locked?: boolean;
+  prunable?: boolean;
+}
+
 // ============================================================================
 // Git Error Classes
 // ============================================================================
@@ -480,6 +489,82 @@ export class GitService {
     if (options?.force) args.push("--force");
     args.push(worktreePath);
     await this.runGitCommand(args);
+  }
+
+  /**
+   * Prune stale git worktree metadata.
+   *
+   * This is useful when worktree directories were deleted manually or after crashes,
+   * leaving stale entries under `.git/worktrees`.
+   */
+  async pruneWorktrees(options?: { dryRun?: boolean; verbose?: boolean; expire?: string }): Promise<string> {
+    const args = ["worktree", "prune"];
+    if (options?.dryRun) args.push("--dry-run");
+    if (options?.verbose) args.push("--verbose");
+    if (options?.expire) args.push("--expire", options.expire);
+
+    const result = await this.runGitCommand(args);
+    return result.output;
+  }
+
+  /**
+   * List git worktrees for this repository.
+   */
+  async listWorktrees(): Promise<WorktreeInfo[]> {
+    const result = await this.runGitCommand(["worktree", "list", "--porcelain"]);
+    return GitService.parseWorktreeListPorcelain(result.output);
+  }
+
+  private static parseWorktreeListPorcelain(output: string): WorktreeInfo[] {
+    const lines = output.split("\n");
+    const worktrees: WorktreeInfo[] = [];
+    let current: WorktreeInfo | null = null;
+
+    const flush = () => {
+      if (current?.path) worktrees.push(current);
+      current = null;
+    };
+
+    for (const rawLine of lines) {
+      const line = rawLine.trimEnd();
+      if (!line) continue;
+
+      if (line.startsWith("worktree ")) {
+        flush();
+        current = { path: line.substring("worktree ".length) };
+        continue;
+      }
+
+      if (!current) continue;
+
+      if (line.startsWith("HEAD ")) {
+        current.head = line.substring("HEAD ".length);
+        continue;
+      }
+
+      if (line.startsWith("branch ")) {
+        current.branch = line.substring("branch ".length);
+        continue;
+      }
+
+      if (line === "detached") {
+        current.detached = true;
+        continue;
+      }
+
+      if (line === "locked" || line.startsWith("locked ")) {
+        current.locked = true;
+        continue;
+      }
+
+      if (line === "prunable" || line.startsWith("prunable ")) {
+        current.prunable = true;
+        continue;
+      }
+    }
+
+    flush();
+    return worktrees;
   }
 
   public async runGitCommand(
