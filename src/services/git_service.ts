@@ -459,6 +459,29 @@ export class GitService {
     // Default fallback
     return "main";
   }
+
+  /**
+   * Add a git worktree at the given path, checked out at the given base branch/ref.
+   *
+   * Note: This does not create a feature branch; callers should create/checkout the
+   * feature branch within the worktree checkout.
+   */
+  async addWorktree(worktreePath: string, baseBranch: string): Promise<void> {
+    await this.runGitCommand(["worktree", "add", worktreePath, baseBranch]);
+  }
+
+  /**
+   * Remove a git worktree.
+   *
+   * This is not used by Phase 37.6 yet, but is helpful for future lifecycle cleanup.
+   */
+  async removeWorktree(worktreePath: string, options?: { force?: boolean }): Promise<void> {
+    const args = ["worktree", "remove"];
+    if (options?.force) args.push("--force");
+    args.push(worktreePath);
+    await this.runGitCommand(args);
+  }
+
   public async runGitCommand(
     args: string[],
     options: GitCommandOptions = {},

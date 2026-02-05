@@ -284,8 +284,8 @@ Success criteria
 
 Projected tests
 
-- E2E: execute two write plans targeting the same portal concurrently (or sequentially without cleanup) and verify both worktrees exist and are isolated.
-- Negative: if worktree creation fails, execution fails with an actionable error.
+- [x] E2E: execute two write plans targeting the same portal concurrently (or sequentially without cleanup) and verify both worktrees exist and are isolated.
+- [x] Negative: if worktree creation fails, execution fails with an actionable error.
 
 ### Step 37.7: Worktree lifecycle cleanup (approve/reject)
 
@@ -301,8 +301,9 @@ Success criteria
 
 Projected tests
 
-- Integration: reject removes worktree.
-- Negative: merge conflict leaves no orphaned worktrees after `merge --abort` cleanup.
+- [x] Integration: reject removes worktree, pointer, and branch.
+- [x] Integration: approve removes worktree, pointer, and branch.
+- [x] Negative: merge conflict leaves no orphaned worktrees after `merge --abort` cleanup.
 
 ### Step 37.8: Update portal E2E suite for `target_branch` + strategy matrix
 
@@ -386,16 +387,16 @@ Add integration tests mirroring the new workflow:
 
 - [x] Resolve base branch via request/plan/config fallback chain
 - [x] Implement `execution_strategy = branch` (baseline)
-- [ ] Implement `execution_strategy = worktree` (opt-in)
-- [ ] If `worktree`: implement `git worktree add` and run execution in worktree path
+- [x] Implement `execution_strategy = worktree` (opt-in)
+- [x] If `worktree`: implement `git worktree add` and run execution in worktree path
 - [x] Ensure review registration stores `repository` = portal repo root and records `base_branch`
-- [ ] If `worktree`: record `worktree_path` on review
+- [x] If `worktree`: record `worktree_path` on review
 
 ### Review
 
 - [ ] `review show` unchanged (diff still computed from repo + branch)
 - [x] `review approve` merges into `base_branch` if present
-- [ ] `review reject` removes worktree and deletes branch (with robust handling)
+- [x] `review reject` removes worktree and deletes branch (with robust handling)
 
 ### Maintenance
 
@@ -403,7 +404,7 @@ Add integration tests mirroring the new workflow:
 
 ### Tests
 
-- [ ] New integration tests for branch targeting + worktree lifecycle
+- [x] New integration tests for branch targeting + worktree lifecycle
 - [x] Update portal E2E tests to cover `target_branch`
 
 ---

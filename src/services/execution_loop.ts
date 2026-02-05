@@ -15,7 +15,7 @@ import { ReviewRegistry } from "./review_registry.ts";
 import { MemoryBankService } from "./memory_bank.ts";
 import { MissionReporter } from "./mission_reporter.ts";
 import { PlanExecutor } from "./plan_executor.ts";
-import { ExecutionStatus, PlanStatus } from "../enums.ts";
+import { ExecutionStatus, PlanStatus, PortalExecutionStrategy } from "../enums.ts";
 import { parseStructuredPlanFromMarkdown, type StructuredPlan } from "./structured_plan_parser.ts";
 import { BlueprintLoader } from "./blueprint_loader.ts";
 import { isReadOnlyAgentCapabilities } from "./agent_capabilities.ts";
@@ -142,6 +142,23 @@ export class ExecutionLoop {
     return await gitService.getDefaultBranch(executionRoot);
   }
 
+  private async createWorktreeExecutionPointer(traceId: string, canonicalWorktreePath: string): Promise<void> {
+    const traceDir = join(this.config.system.root, this.config.paths.memory, "Execution", traceId);
+    await Deno.mkdir(traceDir, { recursive: true });
+
+    const pointerPath = join(traceDir, "worktree");
+
+    // Prefer a symlink for discoverability. Fall back to a directory + PATH.txt if
+    // symlinks are unavailable in the current environment.
+    try {
+      await Deno.remove(pointerPath, { recursive: true }).catch(() => {});
+      await Deno.symlink(canonicalWorktreePath, pointerPath);
+    } catch {
+      await Deno.mkdir(pointerPath, { recursive: true });
+      await Deno.writeTextFile(join(pointerPath, "PATH.txt"), `${canonicalWorktreePath}\n`);
+    }
+  }
+
   /**
    * Core execution logic shared between processTask and executeNext
    */
@@ -166,24 +183,27 @@ export class ExecutionLoop {
       });
 
       // Resolve execution root (portal path or system root)
-      let executionRoot = this.config.system.root;
+      let portalRepoRoot = this.config.system.root;
       if (frontmatter.portal) {
         const portal = this.config.portals.find((p) => p.alias === frontmatter.portal);
         if (portal) {
-          executionRoot = portal.target_path;
+          portalRepoRoot = portal.target_path;
         }
       }
 
+      // The path where tool execution happens (may be a worktree for portal worktree strategy)
+      let executionRoot = portalRepoRoot;
+
       // Initialize Git service
-      const gitService = new GitService({
+      const portalGitService = new GitService({
         config: this.config,
         db: this.db,
         traceId,
         agentId: this.agentId,
-        repoPath: executionRoot,
+        repoPath: portalRepoRoot,
       });
 
-      const baseBranch = await this.resolveBaseBranch(frontmatter, gitService, executionRoot);
+      const baseBranch = await this.resolveBaseBranch(frontmatter, portalGitService, portalRepoRoot);
 
       // Read plan content (needed to decide if we should create a git branch)
       const planContent = await Deno.readTextFile(planPath);
@@ -210,18 +230,73 @@ export class ExecutionLoop {
       const isReadOnly = await this.isReadOnlyAgentId(planAgentId);
       const hasExecutableWork = !isReadOnly && (structuredPlan !== null || actions.length > 0);
 
+      const portalCfg = frontmatter.portal
+        ? this.config.portals.find((p) => p.alias === frontmatter.portal)
+        : undefined;
+      const executionStrategy = portalCfg?.execution_strategy ?? PortalExecutionStrategy.BRANCH;
+
+      // For portal worktree execution, keep the portal repo checkout untouched and run work in a worktree.
+      let worktreePath: string | undefined;
+
+      // The GitService used for branch creation/commits must point at the execution root.
+      let executionGitService = portalGitService;
+
       // Set up Git (branch creation only when we have executable work)
       let branchName: string | undefined;
       if (initGitBranch && hasExecutableWork) {
-        await gitService.ensureRepository();
-        await gitService.ensureIdentity();
+        await portalGitService.ensureRepository();
+        await portalGitService.ensureIdentity();
 
-        // Step 37.5: create feature branches from the resolved base branch.
-        // This prevents accidental inclusion of unrelated commits when the portal has
-        // multiple long-lived branches (e.g., release branches).
-        await gitService.checkoutBranch(baseBranch);
+        if (frontmatter.portal && executionStrategy === PortalExecutionStrategy.WORKTREE) {
+          worktreePath = join(
+            this.config.system.root,
+            ".exo",
+            "worktrees",
+            frontmatter.portal,
+            traceId,
+          );
 
-        branchName = await gitService.createBranch({ requestId, traceId });
+          // Ensure parent directory exists (git worktree add does not guarantee recursive parents).
+          await Deno.mkdir(join(this.config.system.root, ".exo", "worktrees", frontmatter.portal), {
+            recursive: true,
+          });
+
+          // Create discoverability pointer under Memory/Execution/<traceId>/worktree.
+          await this.createWorktreeExecutionPointer(traceId, worktreePath);
+
+          // Create worktree checked out at baseBranch.
+          try {
+            await portalGitService.addWorktree(worktreePath, baseBranch);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            throw new Error(
+              `Failed to create portal worktree execution checkout (git worktree add)\n` +
+                `worktree_path: ${worktreePath}\n` +
+                `base_branch: ${baseBranch}\n` +
+                `error: ${message}`,
+            );
+          }
+
+          // Execute inside the worktree.
+          executionRoot = worktreePath;
+          executionGitService = new GitService({
+            config: this.config,
+            db: this.db,
+            traceId,
+            agentId: this.agentId,
+            repoPath: executionRoot,
+          });
+          await executionGitService.ensureIdentity();
+
+          // Worktree is already checked out at baseBranch; create and checkout the feature branch there.
+          branchName = await executionGitService.createBranch({ requestId, traceId });
+        } else {
+          // Step 37.5: create feature branches from the resolved base branch.
+          // This prevents accidental inclusion of unrelated commits when the portal has
+          // multiple long-lived branches (e.g., release branches).
+          await portalGitService.checkoutBranch(baseBranch);
+          branchName = await portalGitService.createBranch({ requestId, traceId });
+        }
       }
 
       let didExecuteWork = false;
@@ -237,7 +312,7 @@ export class ExecutionLoop {
         } else {
           // Use PlanExecutor for structured plans
           didExecuteWork = true;
-          await this.executeStructuredPlan(structuredPlan, executionRoot, gitService);
+          await this.executeStructuredPlan(structuredPlan, executionRoot, executionGitService);
         }
       } else {
         if (actions.length === 0) {
@@ -252,7 +327,7 @@ export class ExecutionLoop {
       }
 
       // Commit changes (if any)
-      const commitSha = didExecuteWork ? await this.commitChanges(gitService, requestId!, traceId!) : null;
+      const commitSha = didExecuteWork ? await this.commitChanges(executionGitService, requestId!, traceId!) : null;
 
       // Register review
       if (commitSha) {
@@ -262,8 +337,9 @@ export class ExecutionLoop {
           frontmatter.portal || "unknown",
           branchName || "unknown",
           commitSha,
-          executionRoot,
+          portalRepoRoot,
           baseBranch,
+          worktreePath,
         );
       }
 
@@ -761,6 +837,7 @@ export class ExecutionLoop {
     commitSha: string,
     repository: string,
     baseBranch: string,
+    worktreePath?: string,
   ): Promise<void> {
     try {
       console.log(`[ExecutionLoop] Registering review for ${requestId} (Branch: ${branch})`);
@@ -771,6 +848,7 @@ export class ExecutionLoop {
           branch: branch,
           repository,
           base_branch: baseBranch,
+          worktree_path: worktreePath,
           description: `Execution for request ${requestId}`,
           commit_sha: commitSha,
           files_changed: 1, // Defaulting to 1 for now

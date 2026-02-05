@@ -80,12 +80,23 @@ export class TestEnvironment {
     // Copy flows for integration tests that need them
     const flowsSrcDir = join(dirname(fromFileUrl(import.meta.url)), "..", "..", "..", "Blueprints", "Flows");
     const flowsDestDir = join(tempDir, "Blueprints", "Flows");
-    await ensureDir(flowsDestDir);
     try {
-      copySync(flowsSrcDir, flowsDestDir);
+      // `copySync()` throws if destination exists. Some tests create `Blueprints/Flows` up-front.
+      // Avoid noisy warnings and just reuse the existing directory.
+      const destExists = await exists(flowsDestDir);
+      if (!destExists) {
+        copySync(flowsSrcDir, flowsDestDir);
+      }
     } catch (error) {
-      // Flows directory might not exist in some test scenarios, ignore
-      console.warn("Could not copy flows directory:", (error as Error).message);
+      // Flows directory might not exist in some test scenarios, ignore.
+      // Also ignore benign "already exists" errors.
+      if (error instanceof Deno.errors.NotFound) {
+        // ignore
+      } else if (error instanceof Deno.errors.AlreadyExists) {
+        // ignore
+      } else {
+        console.warn("Could not copy flows directory:", (error as Error).message);
+      }
     }
 
     // Initialize git if requested

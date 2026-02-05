@@ -157,6 +157,34 @@ export class ReviewCommands extends BaseCommand {
     }
   }
 
+  private async getStoredReviewWorktreePath(branch: string): Promise<string | null> {
+    try {
+      const row = await this.db.preparedGet<{ worktree_path: string | null }>(
+        "SELECT worktree_path FROM reviews WHERE branch = ?",
+        [branch],
+      );
+      const worktreePath = row?.worktree_path?.trim();
+      return worktreePath ? worktreePath : null;
+    } catch {
+      // Older DB schema or missing table/column.
+      return null;
+    }
+  }
+
+  private async getStoredReviewTraceId(branch: string): Promise<string | null> {
+    try {
+      const row = await this.db.preparedGet<{ trace_id: string | null }>(
+        "SELECT trace_id FROM reviews WHERE branch = ?",
+        [branch],
+      );
+      const traceId = row?.trace_id?.trim();
+      return traceId ? traceId : null;
+    } catch {
+      // Older DB schema or missing table/column.
+      return null;
+    }
+  }
+
   private async resolveBaseBranchForBranch(
     branch: string,
     repoPath: string,
@@ -166,6 +194,71 @@ export class ReviewCommands extends BaseCommand {
     if (stored) return stored;
     // Fallback: existing heuristic default branch logic
     return fallbackDefaultBranch || await this.getDefaultBranch(repoPath);
+  }
+
+  private getExecutionWorktreePointerPath(traceId: string): string {
+    return join(
+      this.config.system.root,
+      this.config.paths.memory,
+      this.config.paths.memoryExecution,
+      traceId,
+      "worktree",
+    );
+  }
+
+  private async removeExecutionWorktreePointer(traceId: string): Promise<void> {
+    const pointerPath = this.getExecutionWorktreePointerPath(traceId);
+
+    try {
+      const info = await Deno.lstat(pointerPath);
+      if (info.isSymlink) {
+        await Deno.remove(pointerPath);
+      } else {
+        await Deno.remove(pointerPath, { recursive: true });
+      }
+    } catch (error) {
+      if (error instanceof Deno.errors.NotFound) return;
+      throw error;
+    }
+  }
+
+  private async cleanupWorktreeReview(portalGitService: GitService, review: ReviewDetails): Promise<void> {
+    const worktreePath = review.worktree_path?.trim();
+    if (!worktreePath) return;
+
+    // 1) Remove worktree checkout to release the branch.
+    await portalGitService.runGitCommand(["worktree", "remove", "--force", worktreePath]);
+
+    // 2) Delete feature branch.
+    await portalGitService.runGitCommand(["branch", "-D", review.branch]);
+
+    // 3) Remove discoverability pointer (avoid dangling symlink/PATH.txt).
+    await this.removeExecutionWorktreePointer(review.trace_id);
+  }
+
+  private async bestEffortAbortMerge(portalGitService: GitService): Promise<void> {
+    try {
+      await portalGitService.runGitCommand(["merge", "--abort"], { throwOnError: false });
+    } catch {
+      // Best-effort only
+    }
+  }
+
+  private async bestEffortCleanupWorktreeCheckout(portalGitService: GitService, review: ReviewDetails): Promise<void> {
+    const worktreePath = review.worktree_path?.trim();
+    if (!worktreePath) return;
+
+    try {
+      await portalGitService.runGitCommand(["worktree", "remove", "--force", worktreePath], { throwOnError: false });
+    } catch {
+      // Best-effort only
+    }
+
+    try {
+      await this.removeExecutionWorktreePointer(review.trace_id);
+    } catch {
+      // Best-effort only
+    }
   }
 
   private async findRepoForBranch(branchName: string): Promise<string> {
@@ -371,6 +464,7 @@ export class ReviewCommands extends BaseCommand {
         const [, timestamp, agent_id] = logLine.split(" ");
 
         const baseBranch = await this.resolveBaseBranchForBranch(branch, repoPath, defaultBranch);
+        const storedWorktreePath = await this.getStoredReviewWorktreePath(branch);
 
         // Get number of files changed
         const diffCmd = new Deno.Command("git", {
@@ -399,6 +493,7 @@ export class ReviewCommands extends BaseCommand {
           trace_id,
           request_id,
           base_branch: baseBranch,
+          worktree_path: storedWorktreePath ?? undefined,
           files_changed: files.length,
           created_at: timestamp,
           agent_id,
@@ -485,6 +580,8 @@ export class ReviewCommands extends BaseCommand {
     const repoPath = await this.findRepoForBranch(fullBranch);
     const defaultBranch = await this.getDefaultBranch(repoPath);
     const baseBranch = await this.resolveBaseBranchForBranch(fullBranch, repoPath, defaultBranch);
+    const storedWorktreePath = await this.getStoredReviewWorktreePath(fullBranch);
+    const storedTraceId = await this.getStoredReviewTraceId(fullBranch);
 
     // Verify branch exists
     const checkCmd = new Deno.Command("git", {
@@ -553,9 +650,10 @@ export class ReviewCommands extends BaseCommand {
     const basicMetadata = {
       type: "code" as const,
       branch: fullBranch,
-      trace_id,
+      trace_id: storedTraceId ?? trace_id,
       request_id,
       base_branch: baseBranch,
+      worktree_path: storedWorktreePath ?? undefined,
       files_changed: files.length,
       created_at: commits[commits.length - 1]?.timestamp || new Date().toISOString(),
       agent_id: commits[0]?.sha.substring(0, 8) || "unknown",
@@ -657,13 +755,25 @@ export class ReviewCommands extends BaseCommand {
       });
 
       // Merge branch
-      await portalGitService.runGitCommand([
-        "merge",
-        "--no-ff",
-        review.branch,
-        "-m",
-        `Merge ${review.request_id}: ${review.commits[0]?.message || "agent changes"}\n\nTrace-Id: ${review.trace_id}`,
-      ]);
+      try {
+        await portalGitService.runGitCommand([
+          "merge",
+          "--no-ff",
+          review.branch,
+          "-m",
+          `Merge ${review.request_id}: ${
+            review.commits[0]?.message || "agent changes"
+          }\n\nTrace-Id: ${review.trace_id}`,
+        ]);
+      } catch (mergeError) {
+        // Phase 37.7 (negative path): if merge fails (e.g., conflict), avoid leaving the repo
+        // in a conflicted state and ensure we don't orphan a worktree checkout.
+        if (review.worktree_path) {
+          await this.bestEffortAbortMerge(portalGitService);
+          await this.bestEffortCleanupWorktreeCheckout(portalGitService, review);
+        }
+        throw mergeError;
+      }
 
       // Get merge commit SHA
       const shaResult = await portalGitService.runGitCommand(["rev-parse", "HEAD"]);
@@ -680,6 +790,12 @@ export class ReviewCommands extends BaseCommand {
         via: "cli",
         command: this.getCommandLineString(),
       }, review.trace_id);
+
+      // Phase 37.7: worktree lifecycle cleanup (opt-in strategy leaves an extra checkout).
+      // Keep branch-based reviews unchanged; only auto-clean worktree-based ones.
+      if (review.worktree_path) {
+        await this.cleanupWorktreeReview(portalGitService, review);
+      }
     } catch (error) {
       await DefaultErrorStrategy.handle({
         commandName: "ReviewCommands.approve",
@@ -759,7 +875,11 @@ export class ReviewCommands extends BaseCommand {
         agentId: await this.getUserIdentity(),
       });
 
-      await this.deleteBranchWithWorktreeHandling(portalGitService, review.branch);
+      if (review.worktree_path) {
+        await this.cleanupWorktreeReview(portalGitService, review);
+      } else {
+        await this.deleteBranchWithWorktreeHandling(portalGitService, review.branch);
+      }
 
       // Log rejection with user identity
       const _userIdentity = await this.getUserIdentity();
