@@ -7,11 +7,11 @@
  *   - write-capable agents: git-backed review in the portal repository
  */
 
-import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
+import { assert, assertEquals, assertExists, assertMatch, assertStringIncludes } from "@std/assert";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { ExecutionLoop } from "../../src/services/execution_loop.ts";
-import { PortalOperation } from "../../src/enums.ts";
+import { PortalExecutionStrategy, PortalOperation } from "../../src/enums.ts";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { setupGitRepo } from "../helpers/git_test_helper.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
@@ -60,7 +60,8 @@ async function listBranches(repoPath: string): Promise<string[]> {
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
-    .map((line) => line.replace(/^\*\s+/, ""));
+    // '*' => current branch, '+' => checked out in another worktree
+    .map((line) => line.replace(/^[*+]\s+/, ""));
 }
 
 async function gitStdout(repoPath: string, args: string[]): Promise<string> {
@@ -78,6 +79,24 @@ async function gitStdout(repoPath: string, args: string[]): Promise<string> {
   }
 
   return new TextDecoder().decode(stdout).trim();
+}
+
+async function pathExists(path: string): Promise<boolean> {
+  return await Deno.stat(path).then(() => true).catch(() => false);
+}
+
+async function assertPointerPointsTo(traceRoot: string, traceId: string, expectedTarget: string): Promise<void> {
+  const pointerPath = join(traceRoot, "Memory", "Execution", traceId, "worktree");
+  const info = await Deno.lstat(pointerPath);
+
+  if (info.isSymlink) {
+    const linkTarget = await Deno.readLink(pointerPath);
+    assertEquals(linkTarget, expectedTarget);
+  } else {
+    assertEquals(info.isDirectory, true);
+    const pathText = await Deno.readTextFile(join(pointerPath, "PATH.txt"));
+    assertEquals(pathText.trim(), expectedTarget);
+  }
 }
 
 Deno.test("[e2e] Portal request → plan → execution → artifact review (read-only)", async () => {
@@ -652,6 +671,144 @@ Deno.test("[e2e][negative] Portal CLI review show fails without portal symlink",
     await env.cleanup();
   }
 });
+
+Deno.test(
+  "[e2e] Portal target_branch + worktree strategy executes in worktree and review approve merges into that branch",
+  async () => {
+    const env = await TestEnvironment.create();
+
+    try {
+      const portalAlias = "write-portal";
+      const portalTargetPath = join(env.tempDir, "portal-write-target");
+      const targetBranch = "release_1.2";
+
+      await ensureDir(join(portalTargetPath, "src"));
+      await setupGitRepo(portalTargetPath, { initialCommit: true, branch: "main" });
+
+      // Create target branch and make it diverge from main.
+      await gitStdout(portalTargetPath, ["branch", targetBranch, "main"]);
+      await gitStdout(portalTargetPath, ["checkout", targetBranch]);
+      await Deno.writeTextFile(
+        join(portalTargetPath, "src", "release_base.ts"),
+        `export const base = ${JSON.stringify(targetBranch)};\n`,
+      );
+      await gitStdout(portalTargetPath, ["add", "."]);
+      await gitStdout(portalTargetPath, ["commit", "-m", "Release base commit"]);
+      const targetHeadBeforeExecution = await gitStdout(portalTargetPath, ["rev-parse", "HEAD"]);
+
+      // Simulate user checkout staying on main.
+      await gitStdout(portalTargetPath, ["checkout", "main"]);
+      assertEquals(await gitStdout(portalTargetPath, ["branch", "--show-current"]), "main");
+
+      const config = {
+        ...env.config,
+        portals: [
+          {
+            alias: portalAlias,
+            target_path: portalTargetPath,
+            default_branch: "main",
+            execution_strategy: PortalExecutionStrategy.WORKTREE,
+          },
+        ],
+      };
+
+      const { traceId } = await env.createRequest(
+        "Add a release-only file in the portal repo",
+        { agentId: "senior-coder", portal: portalAlias, targetBranch },
+      );
+      const requestId = `request-${traceId.substring(0, 8)}`;
+
+      const planPath = await env.createPlan(traceId, requestId, {
+        status: "review",
+        agentId: "senior-coder",
+        portal: portalAlias,
+        targetBranch,
+        actions: [
+          {
+            tool: "write_file",
+            params: {
+              path: "src/release_only.ts",
+              content: `export const releaseOnly = ${JSON.stringify(targetBranch)};\n`,
+            },
+          },
+        ],
+      });
+
+      const activePlanPath = await env.approvePlan(planPath);
+
+      const logger = new EventLogger({ db: env.db });
+      const reviewRegistry = new ReviewRegistry(env.db, logger);
+      const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
+      const result = await loop.processTask(activePlanPath);
+
+      assertEquals(result.success, true);
+      assertEquals(result.traceId, traceId);
+
+      // Portal checkout should remain untouched.
+      assertEquals(await gitStdout(portalTargetPath, ["branch", "--show-current"]), "main");
+
+      const portalBranchesAfter = await listBranches(portalTargetPath);
+      const createdPortalBranch = portalBranchesAfter.find((b) => b.startsWith(`feat/${requestId}-`));
+      assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
+      assertMatch(createdPortalBranch, /^feat\/request-[0-9a-f]{8}-/);
+
+      // Feature branch should be based on targetBranch HEAD.
+      const mergeBase = await gitStdout(portalTargetPath, ["merge-base", createdPortalBranch, targetBranch]);
+      assertEquals(mergeBase, targetHeadBeforeExecution);
+
+      // Review should record worktree_path.
+      const reviewRow = await env.db.preparedGet<{ worktree_path: string | null; base_branch: string | null }>(
+        "SELECT worktree_path, base_branch FROM reviews WHERE branch = ?",
+        [createdPortalBranch],
+      );
+      assertExists(reviewRow);
+      assertEquals(reviewRow.base_branch, targetBranch);
+      assertExists(reviewRow.worktree_path);
+
+      const canonicalWorktreePath = reviewRow.worktree_path;
+      assertEquals(await pathExists(canonicalWorktreePath), true);
+      await assertPointerPointsTo(env.tempDir, traceId, canonicalWorktreePath);
+
+      // Enable CLI portal discovery.
+      const portalsDir = join(env.tempDir, "Portals");
+      await ensureDir(portalsDir);
+      const portalSymlinkPath = join(portalsDir, portalAlias);
+      try {
+        await Deno.symlink(portalTargetPath, portalSymlinkPath);
+      } catch {
+        // Continue.
+      }
+
+      // Precondition: checkout target branch before approval.
+      await gitStdout(portalTargetPath, ["checkout", targetBranch]);
+
+      const approve = await runExoctl(["review", "approve", createdPortalBranch], env.tempDir);
+      assertEquals(approve.code, 0, approve.stderr);
+
+      // Worktree + pointer should be cleaned up, and feature branch deleted.
+      const wtList = await gitStdout(portalTargetPath, ["worktree", "list", "--porcelain"]);
+      assertEquals(wtList.includes(canonicalWorktreePath), false);
+      assertEquals(await pathExists(canonicalWorktreePath), false);
+      assertEquals(await pathExists(join(env.tempDir, "Memory", "Execution", traceId, "worktree")), false);
+      const branchesNow = await listBranches(portalTargetPath);
+      assertEquals(branchesNow.includes(createdPortalBranch), false);
+
+      // Merge should land on the target branch only.
+      const fileOnTarget = await gitStdout(portalTargetPath, ["show", `${targetBranch}:src/release_only.ts`]);
+      assertStringIncludes(fileOnTarget, targetBranch);
+
+      const fileOnMain = await new Deno.Command(PortalOperation.GIT, {
+        args: ["show", "main:src/release_only.ts"],
+        cwd: portalTargetPath,
+        stdout: "piped",
+        stderr: "piped",
+      }).output();
+      assertEquals(fileOnMain.success, false);
+    } finally {
+      await env.cleanup();
+    }
+  },
+);
 
 Deno.test("[e2e][negative] Portal CLI review approve fails if not on default branch", async () => {
   const env = await TestEnvironment.create();

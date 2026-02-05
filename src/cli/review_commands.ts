@@ -3,7 +3,7 @@
  * Handles approval/rejection of git branches created by agents
  */
 
-import { join } from "@std/path";
+import { dirname, isAbsolute, join, resolve } from "@std/path";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { GitService } from "../services/git_service.ts";
 import { ReviewStatus } from "../enums.ts";
@@ -261,18 +261,25 @@ export class ReviewCommands extends BaseCommand {
     }
   }
 
+  private resolvePortalEntryTarget(portalEntryPath: string, linkTarget: string): string {
+    if (isAbsolute(linkTarget)) return linkTarget;
+    return resolve(dirname(portalEntryPath), linkTarget);
+  }
+
   private async findRepoForBranch(branchName: string): Promise<string> {
     const portalsDir = join(this.config.system.root, this.config.paths.portals);
 
     const portalPaths: string[] = [];
     try {
       for await (const entry of Deno.readDir(portalsDir)) {
-        if (!entry.isSymlink) continue;
-        const symlinkPath = join(portalsDir, entry.name);
+        const portalEntryPath = join(portalsDir, entry.name);
         try {
-          const targetPath = await Deno.readLink(symlinkPath);
-          await Deno.stat(join(targetPath, ".git"));
-          portalPaths.push(targetPath);
+          // Prefer resolving symlink targets if possible, but also allow direct directories.
+          const resolvedPath = await Deno.readLink(portalEntryPath)
+            .then((linkTarget) => this.resolvePortalEntryTarget(portalEntryPath, linkTarget))
+            .catch(() => portalEntryPath);
+          await Deno.stat(join(resolvedPath, ".git"));
+          portalPaths.push(resolvedPath);
         } catch {
           continue;
         }
@@ -336,13 +343,15 @@ export class ReviewCommands extends BaseCommand {
     // Get all portal directories
     try {
       for await (const entry of Deno.readDir(portalsDir)) {
-        if (!entry.isSymlink) continue;
-        const symlinkPath = join(portalsDir, entry.name);
+        const portalEntryPath = join(portalsDir, entry.name);
         try {
-          const targetPath = await Deno.readLink(symlinkPath);
+          // Prefer resolving symlink targets if possible, but also allow direct directories.
+          const resolvedPath = await Deno.readLink(portalEntryPath)
+            .then((linkTarget) => this.resolvePortalEntryTarget(portalEntryPath, linkTarget))
+            .catch(() => portalEntryPath);
           // Check if target still exists and is a git repo
-          await Deno.stat(join(targetPath, ".git"));
-          portalPaths.push(targetPath);
+          await Deno.stat(join(resolvedPath, ".git"));
+          portalPaths.push(resolvedPath);
         } catch {
           // Skip broken portals or non-git repos
           continue;
@@ -365,6 +374,31 @@ export class ReviewCommands extends BaseCommand {
       } catch {
         continue;
       }
+    }
+
+    // Also scan repositories recorded in the reviews table.
+    // This makes `review list` resilient even if `Portals/<alias>` symlinks are missing
+    // or the CLI config does not include the portal entry.
+    try {
+      const rows = await this.db.preparedAll<{ repository: string }>(
+        "SELECT DISTINCT repository FROM reviews WHERE repository IS NOT NULL AND repository != ''",
+      );
+
+      for (const row of rows) {
+        const repoPath = row.repository?.trim();
+        if (!repoPath) continue;
+        if (portalPaths.includes(repoPath)) continue;
+
+        try {
+          await Deno.stat(join(repoPath, ".git"));
+          portalPaths.push(repoPath);
+        } catch {
+          // Skip non-existent or non-git repos.
+          continue;
+        }
+      }
+    } catch {
+      // Older DB schema or missing table; ignore.
     }
 
     // Also check workspace root for reviews (legacy/fallback)
@@ -416,6 +450,73 @@ export class ReviewCommands extends BaseCommand {
       });
     }
 
+    const dbBranches = new Set<string>();
+
+    // DB-first: treat `reviews` table as the source of truth for code reviews.
+    // Git scanning is kept as a legacy fallback for branches without DB entries.
+    try {
+      const rows = await this.db.preparedAll<{
+        trace_id: string;
+        portal: string | null;
+        branch: string;
+        repository: string;
+        base_branch: string | null;
+        worktree_path: string | null;
+        files_changed: number | null;
+        created: string;
+        created_by: string;
+        status: string;
+        approved_at: string | null;
+        approved_by: string | null;
+        rejected_at: string | null;
+        rejected_by: string | null;
+        rejection_reason: string | null;
+      }>(
+        normalizedStatus
+          ? "SELECT trace_id, portal, branch, repository, base_branch, worktree_path, files_changed, created, created_by, status, approved_at, approved_by, rejected_at, rejected_by, rejection_reason FROM reviews WHERE status = ?"
+          : "SELECT trace_id, portal, branch, repository, base_branch, worktree_path, files_changed, created, created_by, status, approved_at, approved_by, rejected_at, rejected_by, rejection_reason FROM reviews",
+        normalizedStatus ? [normalizedStatus] : [],
+      );
+
+      for (const row of rows) {
+        const branch = row.branch?.trim();
+        if (!branch) continue;
+
+        const requestMatch = branch.match(/^feat\/(request-[\w]+)-/);
+        const request_id = requestMatch?.[1] ?? `request-${row.trace_id?.substring(0, 8)}`;
+
+        const basicMetadata: ReviewMetadata = {
+          type: "code",
+          branch,
+          trace_id: row.trace_id,
+          request_id,
+          base_branch: row.base_branch ?? undefined,
+          worktree_path: row.worktree_path ?? undefined,
+          files_changed: row.files_changed ?? 0,
+          created_at: row.created,
+          agent_id: row.created_by,
+          portal: row.portal ?? undefined,
+          status: row.status?.toLowerCase(),
+          approved_at: row.approved_at ?? undefined,
+          approved_by: row.approved_by ?? undefined,
+          rejected_at: row.rejected_at ?? undefined,
+          rejected_by: row.rejected_by ?? undefined,
+          rejection_reason: row.rejection_reason ?? undefined,
+        };
+
+        dbBranches.add(branch);
+
+        try {
+          const enrichedMetadata = await this.extractReviewMetadataWithContext(basicMetadata);
+          reviews.push(enrichedMetadata);
+        } catch {
+          reviews.push(basicMetadata);
+        }
+      }
+    } catch {
+      // Older DB schema or missing table; ignore and fall back to git scanning.
+    }
+
     const portalPaths = await this.getPortalRepoPaths();
 
     for (const repoPath of portalPaths) {
@@ -423,7 +524,7 @@ export class ReviewCommands extends BaseCommand {
 
       // Get all branches with feat/ prefix (agent branches)
       const branchesCmd = new Deno.Command("git", {
-        args: ["branch", "--list", "feat/*", "--format=%(refname:short)"],
+        args: ["branch", "--list", "feat/*"],
         cwd: repoPath,
         stdout: "piped",
         stderr: "piped",
@@ -434,9 +535,17 @@ export class ReviewCommands extends BaseCommand {
         continue; // Skip repos with no feat branches
       }
 
-      const branches = new TextDecoder().decode(stdout).trim().split("\n").filter((b) => b);
+      const branches = new TextDecoder().decode(stdout)
+        .trim()
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        // '*' => current branch, '+' => checked out in another worktree
+        .map((line) => line.replace(/^[*+]\s+/, ""));
 
       for (const branch of branches) {
+        if (dbBranches.has(branch)) continue;
+
         // Extract trace_id from branch name (feat/{request_id}-{trace_id})
         // request_id format: request-NNN, trace_id format: xxx-yyy-zzz
         const match = branch.match(/^feat\/(request-[\w]+)-(.+)$/);
@@ -478,7 +587,9 @@ export class ReviewCommands extends BaseCommand {
         const files = new TextDecoder().decode(diffResult.stdout).trim().split("\n").filter((f) => f);
 
         // Check if branch has been merged or rejected via activity log
-        const activities = await this.db.getActivitiesByTraceSafe(trace_id);
+        const storedTraceId = await this.getStoredReviewTraceId(branch);
+        const effectiveTraceId = storedTraceId ?? trace_id;
+        const activities = await this.db.getActivitiesByTraceSafe(effectiveTraceId);
         const status = activities.some((a: { action_type: string }) => a.action_type === "review.approved")
           ? ReviewStatus.APPROVED
           : activities.some((a: { action_type: string }) => a.action_type === "review.rejected")
@@ -490,7 +601,7 @@ export class ReviewCommands extends BaseCommand {
         const basicMetadata = {
           type: "code" as const,
           branch,
-          trace_id,
+          trace_id: effectiveTraceId,
           request_id,
           base_branch: baseBranch,
           worktree_path: storedWorktreePath ?? undefined,
