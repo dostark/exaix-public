@@ -14,7 +14,7 @@ import {
   type ReviewFilters,
   ReviewSchema,
 } from "../schemas/review.ts";
-import { ReviewStatus } from "../enums.ts";
+import { ReviewStatus, type ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
 
 export class ReviewRegistry {
   constructor(
@@ -241,7 +241,7 @@ export class ReviewRegistry {
    */
   async updateStatus(
     id: string,
-    status: ReviewStatus,
+    status: ReviewStatusType,
     user?: string,
     reason?: string,
   ): Promise<void> {
@@ -308,7 +308,7 @@ export class ReviewRegistry {
   /**
    * Count reviews by status
    */
-  async countByStatus(status: ReviewStatus): Promise<number> {
+  async countByStatus(status: ReviewStatusType): Promise<number> {
     const sql = `SELECT COUNT(*) as count FROM reviews WHERE status = ?`;
     const row = await this.db.preparedGet<{ count: number }>(sql, [status]);
     return row?.count || 0;

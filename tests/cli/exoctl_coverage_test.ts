@@ -16,10 +16,13 @@ import {
   MemoryScope,
   MemorySource,
   MemoryStatus,
+  PlanStatus,
   PortalOperation,
   PortalStatus,
+  RequestStatus,
   SkillStatus as _SkillStatus,
 } from "../../src/enums.ts";
+import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 
 // ===== Plan Command Error Handlers =====
@@ -404,11 +407,11 @@ Deno.test("request list error exits with message", async () => {
 Deno.test("review list passes status filter", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.reviewCommands as any).list = (status?: string) => {
-      assertEquals(status, MemoryStatus.PENDING);
+      assertEquals(status, ReviewStatus.PENDING);
       return [];
     };
     await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["review", "list", "-s", MemoryStatus.PENDING]);
+      await (mod.__test_command as any).parse(["review", "list", "-s", ReviewStatus.PENDING]);
     });
   });
 });
@@ -439,7 +442,7 @@ Deno.test("portal list prints entries when present", async () => {
         alias: "BrokenPortal",
         symlinkPath: "Portals/BrokenPortal",
         targetPath: "/tmp/missing",
-        status: "broken",
+        status: PortalStatus.BROKEN,
         contextCardPath: "Memory/Projects/BrokenPortal/portal.md",
       },
     ];
@@ -734,7 +737,7 @@ Deno.test("request create with flow option", async () => {
 Deno.test("plan list shows needs_revision icon", async () => {
   await withTestMod(async (mod, ctx) => {
     (ctx.planCommands as any).list = () => [
-      { id: "p1", status: "needs_revision", trace_id: "t1" },
+      { id: "p1", status: PlanStatus.NEEDS_REVISION, trace_id: "t1" },
     ];
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["plan", "list"]);
@@ -795,7 +798,7 @@ Deno.test("end-to-end flow request workflow", async () => {
         priority: "normal",
         flow: "web-dev-flow",
         agent: null,
-        status: "pending",
+        status: RequestStatus.PENDING,
         created: new Date().toISOString(),
         description: "Build a web application",
       }];
@@ -809,7 +812,7 @@ Deno.test("end-to-end flow request workflow", async () => {
           trace_id: "flow-test-123",
           filename: "flow-test-123.md",
           path: "/tmp/flow-test-123.md",
-          status: "pending",
+          status: RequestStatus.PENDING,
           priority: "normal",
           agent: "default",
           flow: "web-dev-flow",

@@ -6,17 +6,15 @@
  */
 
 import { z } from "zod";
+import { REVIEW_STATUS_VALUES, ReviewStatus as ReviewStatusValue } from "../reviews/review_status.ts";
+import type { ReviewStatus } from "../reviews/review_status.ts";
 
 /**
  * Artifact status values
  */
-export const ArtifactStatus = {
-  PENDING: "pending",
-  APPROVED: "approved",
-  REJECTED: "rejected",
-} as const;
+export const ArtifactStatus = ReviewStatusValue;
 
-export type ArtifactStatusType = typeof ArtifactStatus[keyof typeof ArtifactStatus];
+export type ArtifactStatusType = ReviewStatus;
 
 /**
  * Artifact type values
@@ -33,7 +31,7 @@ export type ArtifactTypeValue = typeof ArtifactType[keyof typeof ArtifactType];
  * Artifact frontmatter schema (YAML)
  */
 export const ArtifactFrontmatterSchema = z.object({
-  status: z.enum(["pending", "approved", "rejected"]),
+  status: z.enum(REVIEW_STATUS_VALUES),
   type: z.enum(["analysis", "report", "diagram"]),
   agent: z.string(),
   portal: z.string().nullable().optional(),
@@ -49,7 +47,7 @@ export type ArtifactFrontmatter = z.infer<typeof ArtifactFrontmatterSchema>;
  */
 export const ArtifactSchema = z.object({
   id: z.string(),
-  status: z.enum(["pending", "approved", "rejected"]),
+  status: z.enum(REVIEW_STATUS_VALUES),
   type: z.enum(["analysis", "report", "diagram"]),
   agent: z.string(),
   portal: z.string().nullable().optional(),
@@ -89,7 +87,7 @@ export type CreateArtifactInput = z.infer<typeof CreateArtifactInputSchema>;
  * Artifact list filters
  */
 export const ArtifactFiltersSchema = z.object({
-  status: z.enum(["pending", "approved", "rejected"]).optional(),
+  status: z.enum(REVIEW_STATUS_VALUES).optional(),
   agent: z.string().optional(),
   portal: z.string().nullable().optional(),
   type: z.enum(["analysis", "report", "diagram"]).optional(),

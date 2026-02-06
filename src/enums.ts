@@ -236,7 +236,7 @@ export enum ExecutionStatus {
 }
 
 /**
- * Priority values for requests and tasks.
+ * Priority levels for user requests.
  */
 export enum RequestPriority {
   LOW = "low",
@@ -271,21 +271,6 @@ export enum PlanStatus {
   NEEDS_REVISION = GeneralStatus.NEEDS_REVISION,
   PENDING = GeneralStatus.PENDING,
 }
-
-/**
- * Status for reviews.
- */
-export enum ReviewStatus {
-  /** Created by agent, awaiting review */
-  PENDING = "pending",
-  /** Approved and merged */
-  APPROVED = "approved",
-  /** Rejected */
-  REJECTED = "rejected",
-}
-
-// Deprecated: Use ReviewStatus instead
-export const ChangesetStatus = ReviewStatus;
 
 /**
  * Status for memory bank entries (learnings, proposals).

@@ -5,7 +5,8 @@
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
-import { MemorySource, ReviewStatus } from "../../src/enums.ts";
+import { MemorySource } from "../../src/enums.ts";
+import { ReviewStatus } from "../../src/reviews/review_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";

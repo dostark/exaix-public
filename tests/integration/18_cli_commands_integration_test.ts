@@ -7,6 +7,7 @@ import { MemoryOperation } from "../../src/enums.ts";
 import { dirname, fromFileUrl, join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { ArtifactRegistry } from "../../src/services/artifact_registry.ts";
+import { ReviewStatus } from "../../src/reviews/review_status.ts";
 
 // Helper to run exoctl command in a given workspace
 async function runExoctl(args: string[], cwd: string) {
@@ -232,7 +233,7 @@ Deno.test("CLI: review approve marks artifact as approved (no git)", async () =>
     assertEquals(approve.code, 0);
 
     const updated = await artifactRegistry.getArtifact(artifactId);
-    assertEquals(updated.status, "approved");
+    assertEquals(updated.status, ReviewStatus.APPROVED);
   } finally {
     await env.cleanup();
   }

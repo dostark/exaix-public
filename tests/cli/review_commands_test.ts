@@ -12,7 +12,8 @@
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import { FlowStepType, MemoryOperation, MemoryStatus } from "../../src/enums.ts";
+import { FlowStepType, MemoryOperation } from "../../src/enums.ts";
+import { ReviewStatus } from "../../src/reviews/review_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
@@ -89,11 +90,11 @@ describe("ReviewCommands", () => {
       await db.waitForFlush();
 
       // Filter for approved
-      const approved = await reviewCommands.list(MemoryStatus.APPROVED);
+      const approved = await reviewCommands.list(ReviewStatus.APPROVED);
       assertEquals(approved.length, 1);
 
       // Filter for pending
-      const pending = await reviewCommands.list(MemoryStatus.PENDING);
+      const pending = await reviewCommands.list(ReviewStatus.PENDING);
       assertEquals(pending.length, 0);
     });
 
@@ -168,7 +169,7 @@ describe("ReviewCommands", () => {
       assertEquals(reviews[0].type, "artifact");
       assertEquals(reviews[0].branch, artifactId);
       assertEquals(reviews[0].request_id, "request-artifact-001");
-      assertEquals(reviews[0].status, MemoryStatus.PENDING);
+      assertEquals(reviews[0].status, ReviewStatus.PENDING);
     });
 
     it("should support type filtering (code vs artifact)", async () => {
@@ -227,7 +228,7 @@ describe("ReviewCommands", () => {
         "# Pending Artifact\n\nPending artifact",
       );
 
-      const pending = await reviewCommands.list(MemoryStatus.PENDING, "all");
+      const pending = await reviewCommands.list(ReviewStatus.PENDING, "all");
       assertEquals(pending.length, 2);
       assertEquals(pending.some((r) => r.type === "code"), true);
       assertEquals(pending.some((r) => r.type === "artifact"), true);
@@ -237,11 +238,11 @@ describe("ReviewCommands", () => {
       await db.waitForFlush();
       await reviewCommands.approve(artifactId);
 
-      const approved = await reviewCommands.list(MemoryStatus.APPROVED, "all");
+      const approved = await reviewCommands.list(ReviewStatus.APPROVED, "all");
       assertEquals(approved.length, 2);
-      assertEquals(approved.every((r) => r.status === MemoryStatus.APPROVED), true);
+      assertEquals(approved.every((r) => r.status === ReviewStatus.APPROVED), true);
 
-      const rejected = await reviewCommands.list(MemoryStatus.REJECTED, "all");
+      const rejected = await reviewCommands.list(ReviewStatus.REJECTED, "all");
       assertEquals(rejected.length, 0);
     });
 
@@ -413,9 +414,9 @@ describe("ReviewCommands", () => {
       await reviewCommands.approve(artifactId);
 
       const updated = await artifactRegistry.getArtifact(artifactId);
-      assertEquals(updated.status, "approved");
+      assertEquals(updated.status, ReviewStatus.APPROVED);
       const fileContent = await Deno.readTextFile(join(config.system.root, updated.file_path));
-      assertStringIncludes(fileContent, "status: approved");
+      assertStringIncludes(fileContent, `status: ${ReviewStatus.APPROVED}`);
     });
   });
 
@@ -529,10 +530,10 @@ describe("ReviewCommands", () => {
       await reviewCommands.reject(artifactId, "Not useful");
 
       const updated = await artifactRegistry.getArtifact(artifactId);
-      assertEquals(updated.status, "rejected");
+      assertEquals(updated.status, ReviewStatus.REJECTED);
       assertEquals(updated.rejection_reason, "Not useful");
       const fileContent = await Deno.readTextFile(join(config.system.root, updated.file_path));
-      assertStringIncludes(fileContent, "status: rejected");
+      assertStringIncludes(fileContent, `status: ${ReviewStatus.REJECTED}`);
     });
   });
 

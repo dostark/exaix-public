@@ -13,6 +13,7 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
+import { ReviewStatus } from "../src/reviews/review_status.ts";
 
 const TEST_REQUEST_ID = "request-test123";
 const TEST_TRACE_ID = "test-trace-123";
@@ -133,14 +134,14 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
       request_title: "Test Request",
       plan_id: "test_plan",
       portal: "test-portal",
-      status: "pending",
+      status: ReviewStatus.PENDING,
     };
 
     // Verify all expected fields are present
     assertEquals(testMetadata.request_title, "Test Request");
     assertEquals(testMetadata.plan_id, "test_plan");
     assertEquals(testMetadata.portal, "test-portal");
-    assertEquals(testMetadata.status, "pending");
+    assertEquals(testMetadata.status, ReviewStatus.PENDING);
   } finally {
     // Clean up
     await Deno.remove(tempDir, { recursive: true });
@@ -169,7 +170,7 @@ Deno.test("[regression] Review show displays complete context information", () =
     // Portal context
     portal: "test-portal",
     // Status context
-    status: "pending",
+    status: ReviewStatus.PENDING,
     diff: "mock diff output",
     commits: [
       {
@@ -185,7 +186,7 @@ Deno.test("[regression] Review show displays complete context information", () =
   assertEquals(mockReviewDetails.plan_id, `${TEST_REQUEST_ID}_plan`);
   assertEquals(mockReviewDetails.plan_status, "approved");
   assertEquals(mockReviewDetails.portal, "test-portal");
-  assertEquals(mockReviewDetails.status, "pending");
+  assertEquals(mockReviewDetails.status, ReviewStatus.PENDING);
   assertEquals(mockReviewDetails.diff, "mock diff output");
   assertEquals(mockReviewDetails.commits.length, 1);
 });

@@ -130,7 +130,7 @@ export class ListPlansTool extends ToolHandler {
         properties: {
           status: {
             type: "string",
-            enum: ["pending", "approved", "rejected", "review"], // align with enum values? mostly 'pending' or 'review'
+            enum: [PlanStatus.PENDING, PlanStatus.APPROVED, PlanStatus.REJECTED, PlanStatus.REVIEW],
             description: "Status to filter by",
           },
           agent_id: {

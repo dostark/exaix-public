@@ -4,6 +4,7 @@ import { ConfigService } from "../../src/config/service.ts";
 import { join } from "@std/path";
 import { ConsoleOutput, initializeGlobalLogger, resetGlobalLogger } from "../../src/services/structured_logger.ts";
 import { REPO_ROOT } from "../helpers/repo_root.ts";
+import { RequestStatus } from "../../src/enums.ts";
 
 /**
  * Regression test for: "Request processing fails with test-provider selection"
@@ -74,7 +75,7 @@ Body content`;
     const requestContent = `---
 trace_id: "trace-123"
 created: "${new Date().toISOString()}"
-status: "pending"
+status: "${RequestStatus.PENDING}"
 priority: "normal"
 agent: "test-agent"
 source: "cli"
@@ -116,7 +117,7 @@ Test body`;
 
     // Also verify request status changed from pending
     const updatedContent = await Deno.readTextFile(requestPath);
-    assert(!updatedContent.includes("status: pending"), "Status should have been updated");
+    assert(!updatedContent.includes(`status: "${RequestStatus.PENDING}"`), "Status should have been updated");
   } finally {
     resetGlobalLogger();
     await Deno.remove(tmpDir, { recursive: true }).catch(() => {});

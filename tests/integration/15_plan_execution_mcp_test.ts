@@ -6,7 +6,8 @@
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";
-import { McpToolName, MemoryOperation, PortalOperation, ReviewStatus, SecurityMode } from "../../src/enums.ts";
+import { McpToolName, MemoryOperation, PortalOperation, SecurityMode } from "../../src/enums.ts";
+import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { EventLogger } from "../../src/services/event_logger.ts";

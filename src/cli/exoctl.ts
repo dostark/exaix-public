@@ -25,6 +25,7 @@ import { DashboardCommands } from "./dashboard_commands.ts";
 import { MemoryCommands } from "./memory_commands.ts";
 import { JournalCommands } from "./commands/journal.ts";
 import { PortalExecutionStrategy, PortalStatus } from "../enums.ts";
+import { ReviewStatus, type ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { McpCommands } from "./commands/mcp.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
@@ -148,9 +149,9 @@ function logReviewListItem(cs: any) {
   });
 }
 
-function getReviewStatusEmoji(status: string | undefined): string {
-  if (status === "approved") return "✅";
-  if (status === "rejected") return "❌";
+function getReviewStatusEmoji(status: ReviewStatusType | undefined): string {
+  if (status === ReviewStatus.APPROVED) return "✅";
+  if (status === ReviewStatus.REJECTED) return "❌";
   return "📌";
 }
 
@@ -191,7 +192,7 @@ function renderReviewShowSummary(cs: any) {
 
   display.info(`${statusEmoji} review.show`, cs.request_id, {
     branch: cs.branch,
-    status: cs.status || "pending",
+    status: cs.status || ReviewStatus.PENDING,
     request: requestTitle,
     plan: planInfo,
     agent: agentInfo,

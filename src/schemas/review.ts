@@ -6,12 +6,13 @@
  */
 
 import { z } from "zod";
-import { ReviewStatus } from "../enums.ts";
+import { REVIEW_STATUS_VALUES } from "../reviews/review_status.ts";
+import type { ReviewStatus } from "../reviews/review_status.ts";
 
 /**
  * Review status values
  */
-export const ReviewStatusSchema = z.nativeEnum(ReviewStatus);
+export const ReviewStatusSchema: z.ZodType<ReviewStatus> = z.enum(REVIEW_STATUS_VALUES);
 
 /**
  * Review schema with all fields

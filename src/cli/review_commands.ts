@@ -6,7 +6,6 @@
 import { dirname, isAbsolute, join, resolve } from "@std/path";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { GitService } from "../services/git_service.ts";
-import { ReviewStatus } from "../enums.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
 import { ValidationChain } from "./validation/validation_chain.ts";
@@ -14,6 +13,8 @@ import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
 import { CommandUtils } from "../helpers/command_utils.ts";
 import { enrichWithRequest } from "../helpers/request_enricher.ts";
 import { ArtifactRegistry } from "../services/artifact_registry.ts";
+import { isReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
+import type { ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
 
 export interface ReviewMetadata {
   type?: "code" | "artifact";
@@ -39,7 +40,7 @@ export interface ReviewMetadata {
   // Portal context
   portal?: string;
   // Status context
-  status?: string;
+  status?: ReviewStatusType;
   approved_at?: string;
   approved_by?: string;
   rejected_at?: string;
@@ -91,11 +92,10 @@ export class ReviewCommands extends BaseCommand {
 
   private normalizeStatusFilter(
     statusFilter?: string,
-  ): ("pending" | "approved" | "rejected") | undefined {
+  ): ReviewStatusType | undefined {
     if (!statusFilter) return undefined;
     const normalized = statusFilter.toLowerCase();
-    if (normalized === "pending" || normalized === "approved" || normalized === "rejected") return normalized;
-    return undefined;
+    return isReviewStatus(normalized) ? normalized : undefined;
   }
 
   private async getDefaultBranch(repoPath: string): Promise<string> {
@@ -450,7 +450,7 @@ export class ReviewCommands extends BaseCommand {
 
   private async appendArtifactReviews(
     reviews: ReviewMetadata[],
-    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+    normalizedStatus: ReviewStatusType | undefined,
   ) {
     const artifacts = await this.artifactRegistry.listArtifacts({
       status: normalizedStatus,
@@ -468,15 +468,15 @@ export class ReviewCommands extends BaseCommand {
         file_path: artifact.file_path,
         portal: artifact.portal ?? undefined,
         status: artifact.status,
-        rejected_at: artifact.status === "rejected" ? artifact.updated ?? undefined : undefined,
+        rejected_at: artifact.status === ReviewStatus.REJECTED ? artifact.updated ?? undefined : undefined,
         rejection_reason: artifact.rejection_reason ?? undefined,
-        approved_at: artifact.status === "approved" ? artifact.updated ?? undefined : undefined,
+        approved_at: artifact.status === ReviewStatus.APPROVED ? artifact.updated ?? undefined : undefined,
       });
     }
   }
 
   private getDbReviewQuery(
-    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+    normalizedStatus: ReviewStatusType | undefined,
   ): { sql: string; args: unknown[] } {
     const base =
       "SELECT trace_id, portal, branch, repository, base_branch, worktree_path, files_changed, created, created_by, status, approved_at, approved_by, rejected_at, rejected_by, rejection_reason FROM reviews";
@@ -487,7 +487,7 @@ export class ReviewCommands extends BaseCommand {
   private async appendDbCodeReviews(
     reviews: ReviewMetadata[],
     dbBranches: Set<string>,
-    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+    normalizedStatus: ReviewStatusType | undefined,
   ) {
     try {
       const query = this.getDbReviewQuery(normalizedStatus);
@@ -542,6 +542,9 @@ export class ReviewCommands extends BaseCommand {
     const requestMatch = branch.match(/^feat\/(request-[\w]+)-/);
     const request_id = requestMatch?.[1] ?? `request-${row.trace_id?.substring(0, 8)}`;
 
+    const normalizedStatus = typeof row.status === "string" ? row.status.toLowerCase().trim() : undefined;
+    const status = isReviewStatus(normalizedStatus) ? normalizedStatus : undefined;
+
     return {
       type: "code",
       branch,
@@ -553,7 +556,7 @@ export class ReviewCommands extends BaseCommand {
       created_at: row.created,
       agent_id: row.created_by,
       portal: row.portal ?? undefined,
-      status: row.status?.toLowerCase(),
+      status,
       approved_at: row.approved_at ?? undefined,
       approved_by: row.approved_by ?? undefined,
       rejected_at: row.rejected_at ?? undefined,
@@ -574,7 +577,7 @@ export class ReviewCommands extends BaseCommand {
   private async appendGitScannedCodeReviews(
     reviews: ReviewMetadata[],
     dbBranches: Set<string>,
-    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+    normalizedStatus: ReviewStatusType | undefined,
   ) {
     const portalPaths = await this.getPortalRepoPaths();
 
@@ -586,7 +589,7 @@ export class ReviewCommands extends BaseCommand {
   private async appendGitScannedCodeReviewsFromRepo(
     reviews: ReviewMetadata[],
     dbBranches: Set<string>,
-    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+    normalizedStatus: ReviewStatusType | undefined,
     repoPath: string,
   ) {
     const defaultBranch = await this.getDefaultBranch(repoPath);
@@ -658,7 +661,7 @@ export class ReviewCommands extends BaseCommand {
     return files.length;
   }
 
-  private getStatusFromActivities(activities: Array<{ action_type: string }>): ReviewStatus {
+  private getStatusFromActivities(activities: Array<{ action_type: string }>): ReviewStatusType {
     let hasRejected = false;
     for (const a of activities) {
       if (a.action_type === "review.approved") return ReviewStatus.APPROVED;
@@ -671,7 +674,7 @@ export class ReviewCommands extends BaseCommand {
     repoPath: string,
     defaultBranch: string,
     branch: string,
-    normalizedStatus: ("pending" | "approved" | "rejected") | undefined,
+    normalizedStatus: ReviewStatusType | undefined,
   ): Promise<ReviewMetadata | null> {
     const parsed = this.parseRequestAndTraceFromBranch(branch);
     if (!parsed) return null;
@@ -699,7 +702,7 @@ export class ReviewCommands extends BaseCommand {
       files_changed: filesChanged,
       created_at: logInfo.timestamp,
       agent_id: logInfo.agent_id,
-      status: status.toLowerCase(),
+      status,
     };
 
     return await this.extractReviewMetadataWithContext(basicMetadata);
@@ -725,8 +728,8 @@ export class ReviewCommands extends BaseCommand {
         portal: artifact.portal ?? undefined,
         status: artifact.status,
         rejection_reason: artifact.rejection_reason ?? undefined,
-        approved_at: artifact.status === "approved" ? artifact.updated ?? undefined : undefined,
-        rejected_at: artifact.status === "rejected" ? artifact.updated ?? undefined : undefined,
+        approved_at: artifact.status === ReviewStatus.APPROVED ? artifact.updated ?? undefined : undefined,
+        rejected_at: artifact.status === ReviewStatus.REJECTED ? artifact.updated ?? undefined : undefined,
         diff: artifact.body,
         commits: [],
       };
@@ -757,8 +760,8 @@ export class ReviewCommands extends BaseCommand {
             portal: artifact.portal ?? undefined,
             status: artifact.status,
             rejection_reason: artifact.rejection_reason ?? undefined,
-            approved_at: artifact.status === "approved" ? artifact.updated ?? undefined : undefined,
-            rejected_at: artifact.status === "rejected" ? artifact.updated ?? undefined : undefined,
+            approved_at: artifact.status === ReviewStatus.APPROVED ? artifact.updated ?? undefined : undefined,
+            rejected_at: artifact.status === ReviewStatus.REJECTED ? artifact.updated ?? undefined : undefined,
             diff: artifact.body,
             commits: [],
           };
@@ -878,7 +881,7 @@ export class ReviewCommands extends BaseCommand {
 
       // Artifact approval path
       if (this.isArtifactId(branchName)) {
-        await this.artifactRegistry.updateStatus(branchName, "approved");
+        await this.artifactRegistry.updateStatus(branchName, ReviewStatus.APPROVED);
         const actionLogger = await this.getActionLogger();
         actionLogger.info(
           "review.approved",
@@ -898,7 +901,7 @@ export class ReviewCommands extends BaseCommand {
 
       // If show() resolved to an artifact via request_id shorthand
       if (review.type === "artifact") {
-        await this.artifactRegistry.updateStatus(review.branch, "approved");
+        await this.artifactRegistry.updateStatus(review.branch, ReviewStatus.APPROVED);
         const actionLogger = await this.getActionLogger();
         actionLogger.info(
           "review.approved",
@@ -1018,7 +1021,7 @@ export class ReviewCommands extends BaseCommand {
 
       // Artifact rejection path
       if (this.isArtifactId(branchName)) {
-        await this.artifactRegistry.updateStatus(branchName, "rejected", reason);
+        await this.artifactRegistry.updateStatus(branchName, ReviewStatus.REJECTED, reason);
         const actionLogger = await this.getActionLogger();
         actionLogger.info(
           "review.rejected",
@@ -1039,7 +1042,7 @@ export class ReviewCommands extends BaseCommand {
 
       // If show() resolved to an artifact via request_id shorthand
       if (review.type === "artifact") {
-        await this.artifactRegistry.updateStatus(review.branch, "rejected", reason);
+        await this.artifactRegistry.updateStatus(review.branch, ReviewStatus.REJECTED, reason);
         const actionLogger = await this.getActionLogger();
         actionLogger.info(
           "review.rejected",

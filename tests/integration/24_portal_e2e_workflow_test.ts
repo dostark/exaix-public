@@ -12,6 +12,7 @@ import { dirname, fromFileUrl, join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { ExecutionLoop } from "../../src/services/execution_loop.ts";
 import { PortalExecutionStrategy, PortalOperation } from "../../src/enums.ts";
+import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { setupGitRepo } from "../helpers/git_test_helper.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
@@ -163,7 +164,7 @@ Return an analysis-only plan.
 
     assertEquals(artifacts.length, 1, "Exactly one artifact should be created");
     assertExists(artifacts[0].id);
-    assertEquals(artifacts[0].status, "pending");
+    assertEquals(artifacts[0].status, ReviewStatus.PENDING);
     assertEquals(artifacts[0].agent, "code-analyst");
     assertEquals(artifacts[0].portal, portalAlias);
 
@@ -171,7 +172,7 @@ Return an analysis-only plan.
     const artifactFileExists = await Deno.stat(artifactAbsPath).then(() => true).catch(() => false);
     assertEquals(artifactFileExists, true, "Expected canonical artifact markdown file to exist");
     const artifactFileContentBefore = await Deno.readTextFile(artifactAbsPath);
-    assertStringIncludes(artifactFileContentBefore, "status: pending");
+    assertStringIncludes(artifactFileContentBefore, `status: ${ReviewStatus.PENDING}`);
     assertStringIncludes(artifactFileContentBefore, `request_id: ${requestId}`);
     assertStringIncludes(artifactFileContentBefore, `portal: ${portalAlias}`);
     assertStringIncludes(
@@ -202,10 +203,10 @@ Return an analysis-only plan.
       [artifacts[0].id],
     );
     assertExists(updated);
-    assertEquals(updated.status, "approved");
+    assertEquals(updated.status, ReviewStatus.APPROVED);
 
     const artifactFileContentAfter = await Deno.readTextFile(artifactAbsPath);
-    assertStringIncludes(artifactFileContentAfter, "status: approved");
+    assertStringIncludes(artifactFileContentAfter, `status: ${ReviewStatus.APPROVED}`);
   } finally {
     await env.cleanup();
   }

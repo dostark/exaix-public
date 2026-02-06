@@ -1,5 +1,6 @@
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { FlowStepType, MemoryOperation, MemorySource, PortalOperation } from "../src/enums.ts";
+import { ReviewStatus } from "../src/reviews/review_status.ts";
 import { join } from "@std/path";
 import { getDefaultPaths } from "../src/config/paths.ts";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";
@@ -519,7 +520,7 @@ Deno.test("[regression] ExecutionLoop: skips structured execution for read-only 
     );
     assertEquals(artifacts.length, 1, "Exactly one artifact should be created for a read-only execution");
     assertStringIncludes(artifacts[0].id, "artifact-", "Artifact ID should have artifact- prefix");
-    assertEquals(artifacts[0].status, "pending");
+    assertEquals(artifacts[0].status, ReviewStatus.PENDING);
     assertEquals(artifacts[0].agent, "code-analyst");
     assertEquals(artifacts[0].portal, null);
 
@@ -595,7 +596,7 @@ Deno.test("[regression] ExecutionLoop: read-only legacy no-op plan produces arti
     );
     assertEquals(artifacts.length, 1, "Exactly one artifact should be created for a read-only execution");
     assertStringIncludes(artifacts[0].id, "artifact-", "Artifact ID should have artifact- prefix");
-    assertEquals(artifacts[0].status, "pending");
+    assertEquals(artifacts[0].status, ReviewStatus.PENDING);
     assertEquals(artifacts[0].agent, "code-analyst");
     assertEquals(artifacts[0].portal, null);
 

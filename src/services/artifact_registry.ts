@@ -9,6 +9,7 @@ import { join } from "@std/path";
 import { parse as parseYaml, stringify as stringifyYaml } from "@std/yaml";
 import type { DatabaseService } from "./db.ts";
 import type { Artifact, ArtifactFilters, ArtifactFrontmatter, ArtifactWithContent } from "../schemas/artifact.ts";
+import { coerceReviewStatus, ReviewStatus, type ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
 
 /**
  * Generate short ID for artifacts
@@ -50,7 +51,7 @@ export class ArtifactRegistry {
 
     // Create frontmatter
     const frontmatter: ArtifactFrontmatter = {
-      status: "pending",
+      status: ReviewStatus.PENDING,
       type: "analysis",
       agent,
       portal: portal || null,
@@ -69,7 +70,7 @@ export class ArtifactRegistry {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         artifactId,
-        "pending",
+        ReviewStatus.PENDING,
         "analysis",
         agent,
         portal || null,
@@ -88,7 +89,7 @@ export class ArtifactRegistry {
    */
   async updateStatus(
     artifactId: string,
-    status: "approved" | "rejected",
+    status: Exclude<ReviewStatusType, typeof ReviewStatus.PENDING>,
     reason?: string,
   ): Promise<void> {
     const artifact = await this.getArtifactRecord(artifactId);
@@ -170,7 +171,7 @@ export class ArtifactRegistry {
 
     return {
       id: row.id,
-      status: row.status as "pending" | "approved" | "rejected",
+      status: coerceReviewStatus(row.status),
       type: row.type as "analysis" | "report" | "diagram",
       agent: row.agent,
       portal: row.portal,
@@ -230,7 +231,7 @@ export class ArtifactRegistry {
 
     return rows.map((row) => ({
       id: row.id,
-      status: row.status as "pending" | "approved" | "rejected",
+      status: coerceReviewStatus(row.status),
       type: row.type as "analysis" | "report" | "diagram",
       agent: row.agent,
       portal: row.portal,

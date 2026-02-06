@@ -2,6 +2,7 @@ import { Database } from "@db/sqlite";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createMockConfig } from "./config.ts";
 import { join } from "@std/path";
+import { REVIEW_STATUS_VALUES } from "../../src/reviews/review_status.ts";
 import type { Config } from "../../src/config/schema.ts";
 
 /**
@@ -137,10 +138,12 @@ export const PROVIDER_COSTS_TABLE_SQL = `
   CREATE INDEX IF NOT EXISTS idx_provider_costs_timestamp ON provider_costs(timestamp);
 `;
 
+const ARTIFACT_STATUS_CHECK_VALUES = REVIEW_STATUS_VALUES.map((status) => `'${status}'`).join(", ");
+
 export const ARTIFACTS_TABLE_SQL = `
   CREATE TABLE IF NOT EXISTS artifacts (
     id TEXT PRIMARY KEY,
-    status TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
+    status TEXT NOT NULL CHECK (status IN (${ARTIFACT_STATUS_CHECK_VALUES})),
     type TEXT NOT NULL CHECK (type IN ('analysis', 'report', 'diagram')),
     agent TEXT NOT NULL,
     portal TEXT,
