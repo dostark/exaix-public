@@ -14,7 +14,8 @@
 import { ConfidenceLevel } from "../../src/enums.ts";
 import { EvaluationCategory as _EvaluationCategory } from "../../src/enums.ts";
 import { MemoryReferenceType as _MemoryReferenceType } from "../../src/enums.ts";
-import { LearningCategory, MemoryOperation, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import { LearningCategory, MemoryOperation, MemoryScope, MemorySource } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { assertEquals, assertExists } from "@std/assert";
 import { MemoryViewTuiSession as _MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import type { MemoryServiceInterface as _MemoryServiceInterface } from "../../src/tui/memory_view.ts";

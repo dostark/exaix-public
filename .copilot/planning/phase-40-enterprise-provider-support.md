@@ -29,7 +29,7 @@ Following Phase 26's provider flexibility improvements and Phase 28's environmen
 Implement two enterprise provider types:
 
 1. **Google Vertex AI (Priority 1)** - Service account authentication for GCP projects
-2. **OpenRouter (Priority 2)** - Unified API gateway to 100+ models
+1. **OpenRouter (Priority 2)** - Unified API gateway to 100+ models
 
 **Key Decisions:**
 
@@ -1020,14 +1020,14 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
    - [ ] Expired tokens trigger refresh
    - [ ] Invalid service account JSON rejected
 
-2. **VertexAIProvider:**
+1. **VertexAIProvider:**
    - [ ] Constructs correct Vertex AI endpoint
    - [ ] Sends properly formatted requests
    - [ ] Parses Vertex AI responses
    - [ ] Handles authentication errors
    - [ ] Regional endpoints configurable
 
-3. **OpenRouterProvider:**
+1. **OpenRouterProvider:**
    - [ ] Constructs correct OpenRouter endpoint
    - [ ] Sets required headers (HTTP-Referer, X-Title)
    - [ ] Parses OpenRouter responses
@@ -1058,7 +1058,7 @@ ProviderRegistry.register(new OpenRouterProvider(/* placeholder */), {
    exoctl request "Hello, Vertex AI!" --model vertex
    ```
 
-2. **OpenRouter Setup:**
+1. **OpenRouter Setup:**
 
    ```bash
    export OPENROUTER_API_KEY="sk-or-..."
@@ -1135,13 +1135,13 @@ Vertex AI requires a Google Cloud project with billing enabled and a service acc
 **OpenRouter Setup:**
 
 1. Get API key from [openrouter.ai](https://openrouter.ai/keys)
-2. Export as environment variable:
+1. Export as environment variable:
 
    ```bash
    export OPENROUTER_API_KEY="sk-or-v1-..."
    ```
 
-3. Configure model:
+1. Configure model:
 
    ```toml
    [models.openrouter]
@@ -1162,10 +1162,11 @@ Vertex AI requires a Google Cloud project with billing enabled and a service acc
 
 Add section 2.4.4: **Enterprise Provider Setup**
 
-```markdown
+````markdown
 ### 2.4.4 Enterprise Providers (Vertex AI, OpenRouter)
 
 ExoFrame supports enterprise LLM providers for users with paid subscriptions who need:
+
 - Higher rate limits and quotas
 - Access to premium models
 - Unified billing across providers
@@ -1174,6 +1175,7 @@ ExoFrame supports enterprise LLM providers for users with paid subscriptions who
 #### Vertex AI (Google Cloud)
 
 **When to use:**
+
 - You have a Google AI Pro subscription but hit free-tier rate limits
 - You need project-based quotas and GCP billing integration
 - You require regional endpoints for data residency
@@ -1191,6 +1193,7 @@ ExoFrame supports enterprise LLM providers for users with paid subscriptions who
 3. **Configure ExoFrame:**
    ```bash
    export VERTEX_AI_SERVICE_ACCOUNT=$(cat ~/path/to/service-account-key.json)
+   ```
 ````
 
 ```toml
@@ -1225,7 +1228,7 @@ max_tokens = 2048
 **Setup steps:**
 
 1. Get API key from [openrouter.ai/keys](https://openrouter.ai/keys)
-2. Configure ExoFrame:
+1. Configure ExoFrame:
 
    ```bash
    export OPENROUTER_API_KEY="sk-or-v1-..."
@@ -1237,7 +1240,7 @@ max_tokens = 2048
    model = "anthropic/claude-3-opus"  # or any model from openrouter.ai/models
    ```
 
-3. Test:
+1. Test:
 
    ```bash
    exoctl request "Test OpenRouter" --model openrouter
@@ -1329,13 +1332,13 @@ Add section on enterprise provider usage patterns.
 
 ## Risks and Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| **R1:** Vertex AI API changes | High | Low | Pin to specific API version, monitor breaking changes |
-| **R2:** Service account JSON exposure | Critical | Medium | Validate no logging, env-only storage, security docs|
-| **R3:** OpenRouter API instability | Medium | Medium | Implement fallback to direct providers |
-| **R4:** User setup complexity | Medium | High | Detailed docs, setup validation scripts |
-| **R5:** Cost tracking inaccuracy | Medium | Low | Use GCP Billing APIs for Vertex AI (future) |
+| Risk                                  | Impact   | Likelihood | Mitigation                                            |
+| ------------------------------------- | -------- | ---------- | ----------------------------------------------------- |
+| **R1:** Vertex AI API changes         | High     | Low        | Pin to specific API version, monitor breaking changes |
+| **R2:** Service account JSON exposure | Critical | Medium     | Validate no logging, env-only storage, security docs  |
+| **R3:** OpenRouter API instability    | Medium   | Medium     | Implement fallback to direct providers                |
+| **R4:** User setup complexity         | Medium   | High       | Detailed docs, setup validation scripts               |
+| **R5:** Cost tracking inaccuracy      | Medium   | Low        | Use GCP Billing APIs for Vertex AI (future)           |
 
 ---
 
@@ -1366,14 +1369,14 @@ Add section on enterprise provider usage patterns.
 
 ## Implementation Timeline
 
-| Phase | Tasks | Duration | Dependencies |
-|-------|-------|----------|--------------|
-| **Phase 1** | Vertex AI auth + provider | 2-3 days | None |
-| **Phase 2** | OpenRouter integration | 1 day | None (parallel) |
-| **Phase 3** | Factory + registry integration | 0.5 days | Phase 1, 2 |
-| **Phase 4** | Testing (unit + manual) | 1-2 days | Phase 1, 2, 3 |
-| **Phase 5** | Documentation | 1 day | Phase 4 |
-| **Total** | | **5-7 days** | |
+| Phase       | Tasks                          | Duration     | Dependencies    |
+| ----------- | ------------------------------ | ------------ | --------------- |
+| **Phase 1** | Vertex AI auth + provider      | 2-3 days     | None            |
+| **Phase 2** | OpenRouter integration         | 1 day        | None (parallel) |
+| **Phase 3** | Factory + registry integration | 0.5 days     | Phase 1, 2      |
+| **Phase 4** | Testing (unit + manual)        | 1-2 days     | Phase 1, 2, 3   |
+| **Phase 5** | Documentation                  | 1 day        | Phase 4         |
+| **Total**   |                                | **5-7 days** |                 |
 
 **Estimated Effort:** 24-32 hours (senior developer)
 

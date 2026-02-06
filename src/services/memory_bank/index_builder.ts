@@ -5,7 +5,7 @@
 
 import { join } from "@std/path";
 import type { ExecutionMemory, Learning } from "../../schemas/memory_bank.ts";
-import { MemoryStatus } from "../../enums.ts";
+import { MemoryStatus } from "../../memory/memory_status.ts";
 
 function pushTagRef(tagsIndex: Record<string, string[]>, tag: string, ref: string) {
   (tagsIndex[tag] ??= []).push(ref);

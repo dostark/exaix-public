@@ -11,8 +11,8 @@ import {
   MemoryReferenceType,
   MemoryScope,
   MemorySource,
-  MemoryStatus,
 } from "../../../src/enums.ts";
+import { MemoryStatus } from "../../../src/memory/memory_status.ts";
 
 /**
  * Creates a test setup with MemoryBankService and a pre-created project memory

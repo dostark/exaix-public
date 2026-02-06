@@ -5,9 +5,9 @@ import {
   MemoryOperation,
   MemoryScope,
   MemorySource,
-  MemoryStatus,
   ReviewSource,
 } from "../../../src/enums.ts";
+import { MemoryStatus } from "../../../src/memory/memory_status.ts";
 import type { MemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
 import type { MemoryExtractorService } from "../../../src/services/memory_extractor.ts";
 import type { ExecutionMemory } from "../../../src/schemas/memory_bank.ts";

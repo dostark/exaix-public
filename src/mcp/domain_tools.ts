@@ -8,7 +8,7 @@ import {
 import { ToolHandler } from "./tools.ts";
 import { RequestCommands } from "../cli/request_commands.ts";
 import { PlanCommands } from "../cli/plan_commands.ts";
-import { PlanStatus } from "../enums.ts";
+import { PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
 
 /**
  * Domain-specific MCP Tools
@@ -94,7 +94,7 @@ export class ListPlansTool extends ToolHandler {
   async execute(args: unknown): Promise<MCPToolResponse> {
     const validatedArgs = ListPlansToolArgsSchema.parse(args);
     const { status, agent_id } = validatedArgs;
-    const filterStatus = status || PlanStatus.PENDING; // Match enum or default
+    const filterStatus: PlanStatusType = status ?? PlanStatus.PENDING;
 
     try {
       const planCmd = new PlanCommands({ config: this.config, db: this.db });

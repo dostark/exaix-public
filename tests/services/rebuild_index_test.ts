@@ -9,7 +9,8 @@
  */
 
 import { assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";
-import { LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import { LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { join } from "@std/path";
 import { exists } from "@std/fs";

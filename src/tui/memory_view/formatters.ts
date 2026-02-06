@@ -9,12 +9,7 @@ import type {
   MemoryUpdateProposal,
   ProjectMemory,
 } from "../../services/memory_bank.ts";
-import {
-  MEMORY_SCOPE_EXECUTIONS,
-  MEMORY_SCOPE_GLOBAL,
-  MEMORY_SCOPE_PENDING,
-  MEMORY_SCOPE_PROJECTS,
-} from "../../config/constants.ts";
+import { MemoryTuiScope } from "./memory_scope.ts";
 import {
   TUI_DETAIL_MAX_OVERVIEW_CHARS,
   TUI_MSG_PRESS_QUIT,
@@ -29,7 +24,7 @@ export class MemoryFormatter {
    * Format scope detail for display
    */
   static formatScopeDetail(node: TreeNode): string {
-    if (node.id === MEMORY_SCOPE_GLOBAL) {
+    if (node.id === MemoryTuiScope.GLOBAL) {
       const memory = node.data as GlobalMemory | null;
       if (!memory) return "Global memory not initialized.\n\nRun: exoctl memory global show";
       return [
@@ -43,7 +38,7 @@ export class MemoryFormatter {
         ...(memory.learnings?.slice(0, 5).map((l: Learning) => `- ${l.title} [${l.category}]`) ?? []),
       ].join("\n");
     }
-    if (node.id === MEMORY_SCOPE_PROJECTS) {
+    if (node.id === MemoryTuiScope.PROJECTS) {
       return [
         "# Projects",
         "",
@@ -52,7 +47,7 @@ export class MemoryFormatter {
         "Select a project to view details.",
       ].join("\n");
     }
-    if (node.id === MEMORY_SCOPE_EXECUTIONS) {
+    if (node.id === MemoryTuiScope.EXECUTIONS) {
       return [
         "# Executions",
         "",
@@ -61,7 +56,7 @@ export class MemoryFormatter {
         "Select an execution to view details.",
       ].join("\n");
     }
-    if (node.id === MEMORY_SCOPE_PENDING) {
+    if (node.id === MemoryTuiScope.PENDING) {
       return [
         "# Pending Proposals",
         "",

@@ -3,10 +3,10 @@
 import { KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingCategory } from "../helpers/keyboard.ts";
 export interface RequestService {
-  listRequests(status?: string): Promise<Request[]>;
+  listRequests(status?: RequestStatusType): Promise<Request[]>;
   getRequestContent(requestId: string): Promise<string>;
   createRequest(description: string, options?: RequestOptions): Promise<Request>;
-  updateRequestStatus(requestId: string, status: string): Promise<boolean>;
+  updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean>;
 }
 
 // --- Request data types ---
@@ -14,7 +14,7 @@ export interface Request {
   trace_id: string;
   filename: string;
   title: string;
-  status: string;
+  status: RequestStatusType;
   priority: string;
   agent: string;
   portal?: string;
@@ -49,7 +49,7 @@ export interface RequestViewState {
   detailContent: string;
   activeDialog: InputDialog | ConfirmDialog | null;
   searchQuery: string;
-  filterStatus: string | null;
+  filterStatus: RequestStatusType | null;
   filterPriority: string | null;
   filterAgent: string | null;
   groupBy: "none" | "status" | "priority" | "agent";
@@ -205,7 +205,8 @@ export const REQUEST_KEY_BINDINGS = new RequestKeyBindings().KEY_BINDINGS;
 
 // --- Imports for Phase 13.6 ---
 import { TuiSessionBase } from "./tui_common.ts";
-import { RequestPriority, RequestStatus } from "../enums.ts";
+import { RequestPriority } from "../enums.ts";
+import { isRequestStatus, RequestStatus, type RequestStatusType } from "../requests/request_status.ts";
 import { createGroupNode, createNode, findNode, flattenTree, renderTree, type TreeNode } from "../helpers/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import type { KeyBinding } from "../helpers/keyboard.ts";
@@ -236,7 +237,7 @@ import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "../helpers/constants.ts";
 export class RequestCommandsServiceAdapter implements RequestService {
   constructor(private readonly cmd: RequestCommands) {}
 
-  async listRequests(status?: string): Promise<Request[]> {
+  async listRequests(status?: RequestStatusType): Promise<Request[]> {
     const requests = await this.cmd.list(status);
     return requests.map((r) => ({
       trace_id: r.trace_id,
@@ -275,7 +276,7 @@ export class RequestCommandsServiceAdapter implements RequestService {
     };
   }
 
-  updateRequestStatus(requestId: string, status: string): Promise<boolean> {
+  updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean> {
     // RequestCommands doesn't have update status method, so we'll need to implement this
     // For now, return true as a placeholder
     console.warn(`updateRequestStatus not implemented for ${requestId} -> ${status}`);
@@ -288,10 +289,10 @@ export class RequestCommandsServiceAdapter implements RequestService {
  * Minimal RequestService mock for TUI session tests.
  */
 export class MinimalRequestServiceMock implements RequestService {
-  listRequests = (_status?: string) => Promise.resolve([]);
+  listRequests = (_status?: RequestStatusType) => Promise.resolve([]);
   getRequestContent = (_: string) => Promise.resolve("");
   createRequest = (_: string, __?: RequestOptions) => Promise.resolve({} as Request);
-  updateRequestStatus = (_: string, __: string) => Promise.resolve(true);
+  updateRequestStatus = (_: string, __: RequestStatusType) => Promise.resolve(true);
 }
 
 // --- Phase 13.6: Enhanced TUI Session ---
@@ -416,9 +417,9 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   }
 
   private buildGroupedByStatus(requests: Request[]): TreeNode[] {
-    const groups = new Map<string, Request[]>();
+    const groups = new Map<RequestStatusType, Request[]>();
     for (const req of requests) {
-      const status = req.status || "unknown";
+      const status = req.status;
       if (!groups.has(status)) groups.set(status, []);
       groups.get(status)!.push(req);
     }
@@ -664,9 +665,25 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   }
 
   private handleFilterStatusResult(value: string): void {
-    this.state.filterStatus = value || null;
+    const trimmed = value.trim();
+    if (!trimmed) {
+      this.state.filterStatus = null;
+      this.buildTree();
+      this.setStatus("Status filter cleared", "info");
+      return;
+    }
+
+    if (!isRequestStatus(trimmed)) {
+      this.setStatus(
+        `Invalid status: ${trimmed}. Expected one of: ${Object.values(RequestStatus).join(", ")}`,
+        "error",
+      );
+      return;
+    }
+
+    this.state.filterStatus = trimmed;
     this.buildTree();
-    this.setStatus(value ? `Filtering: status=${value}` : "Status filter cleared", "info");
+    this.setStatus(`Filtering: status=${trimmed}`, "info");
   }
 
   private handleFilterAgentResult(value: string): void {
@@ -1058,7 +1075,7 @@ export class LegacyRequestManagerTuiSession {
         case "delete": {
           const delRequest = this.requests[this.selectedIndex];
           if (delRequest) {
-            await this.service.updateRequestStatus(delRequest.trace_id, "cancelled");
+            await this.service.updateRequestStatus(delRequest.trace_id, RequestStatus.CANCELLED);
             this.statusMessage = `Cancelled request: ${delRequest.trace_id.slice(0, 8)}`;
           }
           break;
@@ -1095,7 +1112,7 @@ export class RequestManagerView implements RequestService {
     return new RequestManagerTuiSession(requests, this.service);
   }
 
-  listRequests(status?: string): Promise<Request[]> {
+  listRequests(status?: RequestStatusType): Promise<Request[]> {
     return this.service.listRequests(status);
   }
 
@@ -1107,7 +1124,7 @@ export class RequestManagerView implements RequestService {
     return this.service.createRequest(description, options);
   }
 
-  updateRequestStatus(requestId: string, status: string): Promise<boolean> {
+  updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean> {
     return this.service.updateRequestStatus(requestId, status);
   }
 
@@ -1126,13 +1143,13 @@ export class RequestManagerView implements RequestService {
         : request.priority === "low"
         ? "🔵"
         : "⚪";
-      const statusIcon = request.status === "pending"
+      const statusIcon = request.status === RequestStatus.PENDING
         ? "⏳"
-        : request.status === "planned"
+        : request.status === RequestStatus.PLANNED
         ? "📋"
-        : request.status === "completed"
+        : request.status === RequestStatus.COMPLETED
         ? "✅"
-        : request.status === "cancelled"
+        : request.status === RequestStatus.CANCELLED
         ? "❌"
         : "❓";
 

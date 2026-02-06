@@ -7,7 +7,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { MemoryStatus } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";

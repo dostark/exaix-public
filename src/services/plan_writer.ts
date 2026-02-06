@@ -10,7 +10,7 @@
 
 import type { DatabaseService } from "./db.ts";
 import { PlanAdapter, PlanValidationError } from "./plan_adapter.ts";
-import { PlanStatus } from "../enums.ts";
+import { PlanStatus } from "../plans/plan_status.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import type { ServiceContext } from "./common/types.ts";
 

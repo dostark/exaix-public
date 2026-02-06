@@ -16,7 +16,8 @@ import { join } from "@std/path";
 import { ensureDir, ensureDirSync, exists } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
-import { ActivityType, MemoryReferenceType, MemoryScope, MemorySource, MemoryStatus, MemoryType } from "../enums.ts";
+import { ActivityType, MemoryReferenceType, MemoryScope, MemorySource, MemoryType } from "../enums.ts";
+import { MemoryStatus } from "../memory/memory_status.ts";
 import { LOCK_ACQUIRE_TIMEOUT_MS } from "../config/constants.ts";
 import {
   ExecutionMemorySchema,

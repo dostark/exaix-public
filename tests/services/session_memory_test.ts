@@ -20,9 +20,9 @@ import {
   LearningCategory,
   MemoryScope,
   MemorySource,
-  MemoryStatus,
   MemoryType,
 } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 // ===== Mock Services =====
 

@@ -21,8 +21,8 @@ import {
   LearningCategory,
   MemoryScope,
   MemorySource,
-  MemoryStatus,
 } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { getMemoryExecutionDir, getMemoryIndexDir, getMemoryProjectsDir } from "../helpers/paths_helper.ts";
 import {
   createMinimalExecutionMemory,

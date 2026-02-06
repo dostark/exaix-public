@@ -3,7 +3,7 @@ import { join } from "@std/path";
 import { parse as parseYaml } from "@std/yaml";
 import { PlanCommands } from "../../src/cli/plan_commands.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
-import { PlanStatus } from "../../src/enums.ts";
+import { PlanStatus } from "../../src/plans/plan_status.ts";
 
 Deno.test("PlanCommands - Skills Injection on Approve", async (t) => {
   const { tempDir, config, db, cleanup } = await createCliTestContext();

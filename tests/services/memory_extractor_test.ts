@@ -19,7 +19,8 @@ import { MemoryUpdateProposalSchema } from "../../src/schemas/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import type { ExecutionMemory } from "../../src/schemas/memory_bank.ts";
-import { ExecutionStatus, LearningCategory, MemoryStatus } from "../../src/enums.ts";
+import { ExecutionStatus, LearningCategory } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import {
   getMemoryExecutionDir,
   getMemoryGlobalDir,

@@ -13,9 +13,9 @@ import {
   MemoryOperation,
   MemoryScope,
   MemorySource,
-  MemoryStatus,
   MemoryType,
 } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { ConfidenceLevel } from "../../src/enums.ts";
 import type {

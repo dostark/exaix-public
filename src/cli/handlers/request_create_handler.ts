@@ -1,7 +1,8 @@
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "../base.ts";
-import { RequestPriority, RequestStatus } from "../../enums.ts";
+import { RequestPriority } from "../../enums.ts";
+import { RequestStatus } from "../../requests/request_status.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { CommandUtils } from "../../helpers/command_utils.ts";

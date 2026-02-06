@@ -20,7 +20,8 @@ import { SecurityMode } from "../../src/enums.ts";
 
 import { PortalOperation } from "../../src/enums.ts";
 
-import { MemoryOperation, MemoryStatus } from "../../src/enums.ts";
+import { MemoryOperation } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { join } from "@std/path";
 import { AgentExecutor, Blueprint } from "../../src/services/agent_executor.ts";

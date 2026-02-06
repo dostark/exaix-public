@@ -7,13 +7,14 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { MemoryReferenceType } from "../../src/enums.ts";
 
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
+
 import {
   ExecutionStatus,
   LearningCategory,
   MemoryOperation,
   MemoryScope,
   MemorySource,
-  MemoryStatus,
   MemoryType,
 } from "../../src/enums.ts";
 

@@ -2,7 +2,7 @@ import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { FrontmatterParser } from "../parsers/markdown.ts";
 import { BaseCommand, type CommandContext } from "./base.ts";
-import { PlanStatus } from "../enums.ts";
+import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { ValidationChain } from "./validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
@@ -11,7 +11,7 @@ import { enrichWithRequest } from "../helpers/request_enricher.ts";
 
 export interface PlanMetadata {
   id: string;
-  status: string;
+  status: PlanStatusType;
   trace_id?: string;
   agent_id?: string;
   request_id?: string;
@@ -40,7 +40,7 @@ export interface PlanDetails extends PlanMetadata {
 function extractPlanMetadata(planId: string, frontmatter: Record<string, unknown>): PlanMetadata {
   return {
     id: planId,
-    status: (frontmatter.status as string) || "unknown",
+    status: coercePlanStatus(frontmatter.status, PlanStatus.REVIEW),
     trace_id: frontmatter.trace_id as string | undefined,
     agent_id: frontmatter.agent_id as string | undefined,
     request_id: frontmatter.request_id as string | undefined,
@@ -333,7 +333,7 @@ export class PlanCommands extends BaseCommand {
    * - Workspace/Rejected: rejected
    * - All directories when no filter is specified
    */
-  async list(statusFilter?: string): Promise<PlanMetadata[]> {
+  async list(statusFilter?: PlanStatusType): Promise<PlanMetadata[]> {
     const plans: PlanMetadata[] = [];
 
     // Determine which directories to scan based on status filter
@@ -384,11 +384,8 @@ export class PlanCommands extends BaseCommand {
           } catch (error) {
             // Handle malformed files gracefully
             console.warn(`Warning: Could not parse plan ${planId}:`, error);
-            if (!statusFilter || statusFilter === "unknown") {
-              plans.push({
-                id: planId,
-                status: "unknown",
-              });
+            if (!statusFilter) {
+              plans.push({ id: planId, status: PlanStatus.REVIEW });
             }
           }
         }
@@ -437,7 +434,7 @@ export class PlanCommands extends BaseCommand {
           // Handle plans without frontmatter
           return {
             id: planId,
-            status: "unknown",
+            status: PlanStatus.REVIEW,
             content: content,
           };
         }

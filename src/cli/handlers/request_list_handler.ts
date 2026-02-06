@@ -2,6 +2,7 @@ import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "../base.ts";
 import { type RequestEntry } from "../request_commands.ts";
+import { coerceRequestStatus, type RequestStatusType } from "../../requests/request_status.ts";
 
 export class RequestListHandler extends BaseCommand {
   private workspaceRequestsDir: string;
@@ -15,7 +16,7 @@ export class RequestListHandler extends BaseCommand {
     );
   }
 
-  async list(status?: string): Promise<RequestEntry[]> {
+  async list(status?: RequestStatusType): Promise<RequestEntry[]> {
     const requests: RequestEntry[] = [];
 
     // Check if directory exists
@@ -33,8 +34,10 @@ export class RequestListHandler extends BaseCommand {
       const content = await Deno.readTextFile(filePath);
       const frontmatter = this.extractFrontmatter(content);
 
+      const parsedStatus = coerceRequestStatus(frontmatter.status);
+
       // Skip if status filter doesn't match
-      if (status && frontmatter.status !== status) {
+      if (status && parsedStatus !== status) {
         continue;
       }
 
@@ -42,7 +45,7 @@ export class RequestListHandler extends BaseCommand {
         trace_id: frontmatter.trace_id || "",
         filename: entry.name,
         path: filePath,
-        status: frontmatter.status || "unknown",
+        status: parsedStatus,
         priority: frontmatter.priority || "normal",
         agent: frontmatter.agent || "default",
         portal: frontmatter.portal,

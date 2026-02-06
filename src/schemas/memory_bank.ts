@@ -25,11 +25,11 @@ import {
   MemoryReferenceType,
   MemoryScope,
   MemorySource,
-  MemoryStatus,
   MemoryType,
   ReviewSource,
   SkillStatus,
 } from "../enums.ts";
+import { MEMORY_STATUS_VALUES } from "../memory/memory_status.ts";
 import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
 // ===== Project Memory Schemas =====
@@ -134,7 +134,7 @@ export const LearningSchema = z.object({
 
   references: z.array(LearningReferenceSchema).optional().describe("Supporting evidence"),
 
-  status: z.nativeEnum(MemoryStatus).describe("Approval status"),
+  status: z.enum(MEMORY_STATUS_VALUES).describe("Approval status"),
   approved_at: z.string().datetime().optional(),
   archived_at: z.string().datetime().optional(),
 });
@@ -248,7 +248,7 @@ export const MemoryUpdateProposalSchema = z.object({
   agent: z.string().describe("Agent that proposed the update"),
   execution_id: z.string().optional().describe("Related execution trace_id"),
 
-  status: z.nativeEnum(MemoryStatus)
+  status: z.enum(MEMORY_STATUS_VALUES)
     .describe("Current proposal status"),
   reviewed_at: z.string().datetime().optional(),
   reviewed_by: z.nativeEnum(ReviewSource).optional(),

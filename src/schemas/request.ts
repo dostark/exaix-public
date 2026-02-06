@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RequestStatus } from "../enums.ts";
+import { REQUEST_STATUS_VALUES } from "../requests/request_status.ts";
 
 /**
  * Schema for ExoFrame request frontmatter
@@ -12,7 +12,7 @@ import { RequestStatus } from "../enums.ts";
 export const RequestSchema = z.object({
   trace_id: z.string().uuid("Invalid trace_id: must be a valid UUID"),
   agent_id: z.string().min(1, "agent_id cannot be empty"),
-  status: z.nativeEnum(RequestStatus),
+  status: z.enum(REQUEST_STATUS_VALUES),
   priority: z.number().int().min(0).max(10).default(5),
   created_at: z.string().datetime().optional(),
   tags: z.array(z.string()).default([]),

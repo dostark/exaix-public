@@ -15,13 +15,13 @@ import {
   MemoryOperation,
   MemoryScope,
   MemorySource,
-  MemoryStatus,
-  PlanStatus,
   PortalOperation,
   PortalStatus,
-  RequestStatus,
   SkillStatus as _SkillStatus,
 } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { PlanStatus } from "../../src/plans/plan_status.ts";
+import { RequestStatus } from "../../src/requests/request_status.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 

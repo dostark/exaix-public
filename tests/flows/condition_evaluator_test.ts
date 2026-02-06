@@ -4,7 +4,8 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { FlowInputSource, FlowOutputFormat, FlowStepType, MemoryStatus } from "../../src/enums.ts";
+import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { ConditionContext, ConditionEvaluator } from "../../src/flows/condition_evaluator.ts";
 import { Flow, FlowStep } from "../../src/schemas/flow.ts";
 import { StepResult } from "../../src/flows/flow_runner.ts";

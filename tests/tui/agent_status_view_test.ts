@@ -19,7 +19,8 @@ import {
   LOG_LEVEL_ICONS,
   MinimalAgentServiceMock,
 } from "../../src/tui/agent_status_view.ts";
-import { AgentHealth, AgentStatus, TuiGroupBy } from "../../src/enums.ts";
+import { AgentHealth, TuiGroupBy } from "../../src/enums.ts";
+import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
 import { CritiqueSeverity } from "../../src/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
@@ -169,7 +170,7 @@ Deno.test("AgentViewState: interface has all required properties", () => {
 // ===== Phase 13.7: Icon Tests =====
 
 Deno.test("AGENT_STATUS_ICONS: has all status types", () => {
-  const requiredKeys = [AgentStatus.ACTIVE, "inactive", "error"];
+  const requiredKeys = [AgentStatus.ACTIVE, AgentStatus.INACTIVE, AgentStatus.ERROR];
   for (const key of requiredKeys) {
     if (!AGENT_STATUS_ICONS[key]) {
       throw new Error(`Missing status icon for: ${key}`);
@@ -196,7 +197,14 @@ Deno.test("LOG_LEVEL_ICONS: has all log levels", () => {
 });
 
 Deno.test("AGENT_STATUS_COLORS: has all status types", () => {
-  const requiredKeys = [AgentStatus.ACTIVE, "inactive", "error", "healthy", "warning", CritiqueSeverity.CRITICAL];
+  const requiredKeys = [
+    AgentStatus.ACTIVE,
+    AgentStatus.INACTIVE,
+    AgentStatus.ERROR,
+    "healthy",
+    "warning",
+    CritiqueSeverity.CRITICAL,
+  ];
   for (const key of requiredKeys) {
     if (!AGENT_STATUS_COLORS[key]) {
       throw new Error(`Missing color for: ${key}`);

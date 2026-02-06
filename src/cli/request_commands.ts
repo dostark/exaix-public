@@ -6,7 +6,8 @@
  */
 
 import { BaseCommand, type CommandContext } from "./base.ts";
-import { RequestPriority, RequestStatus } from "../enums.ts";
+import { RequestPriority } from "../enums.ts";
+import type { RequestStatusType } from "../requests/request_status.ts";
 import { RequestCreateHandler } from "./handlers/request_create_handler.ts";
 import { RequestListHandler } from "./handlers/request_list_handler.ts";
 import { RequestShowHandler } from "./handlers/request_show_handler.ts";
@@ -36,7 +37,7 @@ export interface RequestMetadata {
   trace_id: string;
   filename: string;
   path: string;
-  status: RequestStatus.PENDING;
+  status: RequestStatusType;
   priority: RequestPriority;
   agent: string;
   portal?: string;
@@ -56,7 +57,7 @@ export interface RequestEntry {
   trace_id: string;
   filename: string;
   path: string;
-  status: string;
+  status: RequestStatusType;
   priority: string;
   agent: string;
   portal?: string;
@@ -128,7 +129,7 @@ export class RequestCommands extends BaseCommand {
    * @param status Optional status filter
    * @returns Array of request entries sorted by created date (newest first)
    */
-  async list(status?: string): Promise<RequestEntry[]> {
+  async list(status?: RequestStatusType): Promise<RequestEntry[]> {
     return await this.listHandler.list(status);
   }
 

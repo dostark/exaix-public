@@ -7,7 +7,8 @@
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { AgentStatus, ExecutionStatus } from "../../src/enums.ts";
+import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
+import { RequestStatus } from "../../src/requests/request_status.ts";
 import { MinimalSkillsServiceMock, SkillsManagerView, type SkillSummary } from "../../src/tui/skills_manager_view.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { sampleTestSkills } from "./helpers.ts";
@@ -182,7 +183,7 @@ Deno.test("RequestManagerView: shows skills in request detail", async () => {
       trace_id: "test-123",
       filename: "request-test.md",
       title: "Test Request",
-      status: ExecutionStatus.COMPLETED,
+      status: RequestStatus.COMPLETED,
       priority: "normal",
       agent: "code-reviewer",
       created: new Date().toISOString(),

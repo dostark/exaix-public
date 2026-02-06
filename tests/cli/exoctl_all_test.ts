@@ -6,10 +6,10 @@ import {
   FlowInputSource,
   MemoryOperation,
   MemorySource,
-  MemoryStatus,
   PortalOperation,
   SkillStatus,
 } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 
 /*

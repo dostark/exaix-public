@@ -19,7 +19,8 @@ import { z } from "zod";
 import type { MemoryBankService } from "./memory_bank.ts";
 import type { MemoryEmbeddingService } from "./memory_embedding.ts";
 import type { Learning, MemorySearchResult } from "../schemas/memory_bank.ts";
-import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../enums.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../enums.ts";
+import { MemoryStatus } from "../memory/memory_status.ts";
 
 // ===== Configuration Schema =====
 

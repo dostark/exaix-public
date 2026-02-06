@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { searchByKeyword, searchByTags, searchMemoryAdvanced } from "../../src/services/memory_search.ts";
-import { MemoryStatus, MemoryType } from "../../src/enums.ts";
+import { MemoryType } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 Deno.test("[regression] searchByKeyword finds patterns, decisions and overview", async () => {
   const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });

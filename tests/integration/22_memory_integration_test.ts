@@ -14,7 +14,8 @@ import { EvaluationCategory } from "../../src/enums.ts";
 
 import { FlowOutputFormat } from "../../src/enums.ts";
 
-import { ExecutionStatus, LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import { ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { assertEquals, assertExists, assertGreaterOrEqual, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";

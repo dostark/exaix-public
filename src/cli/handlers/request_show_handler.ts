@@ -2,6 +2,7 @@ import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "../base.ts";
 import { type RequestShowResult } from "../request_commands.ts";
+import { coerceRequestStatus } from "../../requests/request_status.ts";
 
 export class RequestShowHandler extends BaseCommand {
   private workspaceRequestsDir: string;
@@ -34,7 +35,7 @@ export class RequestShowHandler extends BaseCommand {
         trace_id: matchingFrontmatter.trace_id || "",
         filename: matchingFile.split("/").pop() || "",
         path: matchingFile,
-        status: matchingFrontmatter.status || "unknown",
+        status: coerceRequestStatus(matchingFrontmatter.status),
         priority: matchingFrontmatter.priority || "normal",
         agent: matchingFrontmatter.agent || "default",
         portal: matchingFrontmatter.portal,

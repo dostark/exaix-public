@@ -6,7 +6,7 @@ import {
   MockPortalService,
   MockRequestService,
 } from "../../src/tui/tui_dashboard_mocks.ts";
-import { MemoryStatus } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 Deno.test("MockPortalService: returns portals", async () => {
   const service = new MockPortalService();

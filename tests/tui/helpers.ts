@@ -1,10 +1,12 @@
 import { Request } from "../../src/tui/request_manager_view.ts";
-import { MemorySource, MemoryStatus, SkillStatus } from "../../src/enums.ts";
+import { MemorySource, SkillStatus } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { LegacyRequestManagerTuiSession, RequestManagerView } from "../../src/tui/request_manager_view.ts";
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { MonitorView } from "../../src/tui/monitor_view.ts";
 import { MinimalPlanServiceMock, PlanReviewerTuiSession } from "../../src/tui/plan_reviewer_view.ts";
 import { commonTestData, requestFactory } from "../helpers/test_utils.ts";
+import { RequestStatus, type RequestStatusType } from "../../src/requests/request_status.ts";
 
 // Counter for deterministic IDs in tests
 let requestIdCounter = 1;
@@ -52,7 +54,7 @@ export function createMockRequestService(initial: Array<Record<string, any>> = [
     constructor(requests: any[] = []) {
       this.requests = requests;
     }
-    listRequests(status?: string) {
+    listRequests(status?: RequestStatusType): Promise<Request[]> {
       if (status) {
         return Promise.resolve(this.requests.filter((r) => r.status === status));
       }
@@ -67,7 +69,7 @@ export function createMockRequestService(initial: Array<Record<string, any>> = [
         trace_id: `test-${Date.now()}`,
         filename: `request-test.md`,
         title: `Request test`,
-        status: MemoryStatus.PENDING,
+        status: RequestStatus.PENDING,
         priority: options?.priority || "normal",
         agent: options?.agent || "default",
         portal: options?.portal,
@@ -79,7 +81,7 @@ export function createMockRequestService(initial: Array<Record<string, any>> = [
       this.requests.push(newRequest);
       return Promise.resolve(newRequest);
     }
-    updateRequestStatus(id: string, status: string) {
+    updateRequestStatus(id: string, status: RequestStatusType) {
       const request = this.requests.find((r) => r.trace_id === id);
       if (request) {
         request.status = status;

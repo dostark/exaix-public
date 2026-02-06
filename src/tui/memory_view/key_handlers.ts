@@ -5,12 +5,7 @@
 
 import type { TreeNode } from "./types.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
-import {
-  MEMORY_SCOPE_EXECUTIONS,
-  MEMORY_SCOPE_GLOBAL,
-  MEMORY_SCOPE_PENDING,
-  MEMORY_SCOPE_PROJECTS,
-} from "../../config/constants.ts";
+import { MemoryTuiScope } from "./memory_scope.ts";
 
 /**
  * Consolidates all key handlers for Memory View
@@ -172,16 +167,16 @@ class ShortcutHandler {
 
     switch (key) {
       case KEYS.G:
-        await handlers.jumpToScope(MEMORY_SCOPE_GLOBAL);
+        await handlers.jumpToScope(MemoryTuiScope.GLOBAL);
         return true;
       case KEYS.P:
-        await handlers.jumpToScope(MEMORY_SCOPE_PROJECTS);
+        await handlers.jumpToScope(MemoryTuiScope.PROJECTS);
         return true;
       case KEYS.E:
-        await handlers.jumpToScope(MEMORY_SCOPE_EXECUTIONS);
+        await handlers.jumpToScope(MemoryTuiScope.EXECUTIONS);
         return true;
       case KEYS.N:
-        await handlers.jumpToScope(MEMORY_SCOPE_PENDING);
+        await handlers.jumpToScope(MemoryTuiScope.PENDING);
         return true;
     }
     return false;

@@ -11,7 +11,7 @@ Provide step-by-step instructions to bootstrap a local development workspace for
 in this plan: **Ubuntu (pure)** and **Windows with WSL2**. The goal is a reproducible, minimal environment that allows
 contributors to run the daemon, tests and benchmarks locally.
 
-### Goals
+## Goals
 
 - Install required tools (Git, Deno, SQLite; VS Code is optional)
 - Create a local repository and initial configuration
@@ -33,7 +33,7 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y git curl wget build-essential libsecret-1-dev sqlite3
 ```
 
-2. Install Deno (recommended installer)
+1. Install Deno (recommended installer)
 
 ```bash
 curl -fsSL https://deno.land/install.sh | sh
@@ -42,7 +42,7 @@ export PATH="$DENO_INSTALL/bin:$PATH"
 deno --version
 ```
 
-3. Install Ollama (for local LLM inference)
+1. Install Ollama (for local LLM inference)
 
 Ollama enables 100% local AI inference without cloud API dependencies. Install using the official installer:
 
@@ -84,7 +84,7 @@ ollama run llama3.2 "Hello, world!"
 - Without GPU, stick to smaller models (3b or 7b parameter variants)
 - Ollama uses ~2-4GB base memory plus model size
 
-4. Install VS Code (optional)
+1. Install VS Code (optional)
 
 ```bash
 wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
@@ -95,7 +95,7 @@ sudo apt install -y code
 rm microsoft.gpg
 ```
 
-5. Clone repo and bootstrap
+1. Clone repo and bootstrap
 
 ```bash
 # Solo Edition (open-source) - public repository only
@@ -142,7 +142,7 @@ deno run --watch --allow-read --allow-write --allow-run src/main.ts
 deno test --allow-read --allow-write --allow-run tests/setup_db_test.ts
 ```
 
-7. Test the Memory Banks system
+1. Test the Memory Banks system
 
 ```bash
 # Test Memory Banks services
@@ -152,7 +152,7 @@ deno test --allow-all tests/services/memory_bank_test.ts
 deno test --allow-all tests/
 ```
 
-8. Development workflow verification
+1. Development workflow verification
 
 **Test complete system:**
 
@@ -191,12 +191,12 @@ Notes specific to WSL2:
 
 - Ensure Git on Windows and Git inside WSL are consistent. Use the WSL-side git for repository work inside `~/ExoFrame`.
 
-2. Symlink behavior
+1. Symlink behavior
 
 - WSL supports Unix symlinks inside the distro. When creating Portals that point to Windows paths, prefer using
   WSL-mounted paths or ensure permissions allow access.
 
-3. Windows-side utilities (optional convenience)
+1. Windows-side utilities (optional convenience)
 
 - If you expect to run UI workflows from Windows, install the Windows Git client and ensure `core.autocrlf` matches your
   team policy.
@@ -385,7 +385,7 @@ This ensures downstream tools and agents always have access to the latest docume
 - Create `scripts/bootstrap_ubuntu.sh` and `scripts/bootstrap_wsl.sh` in repo and add basic CI verification that the
   scripts run in a clean container.
 
-**Clarification — Development repo vs Deployed workspace**
+#### Clarification — Development repo vs Deployed workspace
 
 This Implementation Plan documents work for the _ExoFrame development repository_ — the source repository containing
 `src/`, tests, CI, and developer tooling. The _deployed workspace_ (where end-users run the ExoFrame daemon and keep

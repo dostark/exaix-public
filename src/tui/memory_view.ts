@@ -37,13 +37,13 @@ import {
 import { type DialogBase } from "../helpers/dialog_base.ts";
 import { renderSpinner } from "../helpers/markdown_renderer.ts";
 import { KEYS } from "../helpers/keyboard.ts";
-import { MemoryTuiScope } from "../config/constants.ts";
+import { coerceMemoryTuiScope, MemoryTuiScope, type MemoryTuiScopeType } from "./memory_view/memory_scope.ts";
 import { MEMORY_STALE_MS } from "./tui.config.ts";
 
 // ===== Types =====
 
 export interface MemoryViewState {
-  activeScope: MemoryTuiScope;
+  activeScope: MemoryTuiScopeType;
   selectedNodeId: string | null;
   searchQuery: string;
   searchActive: boolean;
@@ -145,7 +145,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
     super();
     this.service = service;
     this.state = {
-      activeScope: "projects",
+      activeScope: MemoryTuiScope.PROJECTS,
       selectedNodeId: null,
       searchQuery: "",
       searchActive: false,
@@ -167,7 +167,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
     return { ...this.state };
   }
 
-  getActiveScope(): MemoryTuiScope {
+  getActiveScope(): MemoryTuiScopeType {
     return this.state.activeScope;
   }
 
@@ -342,7 +342,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
 
     // Shortcut keys
     const shortcutHandled = await KeyHandler.handleShortcutKey(key, {
-      jumpToScope: (scope) => this.jumpToScope(scope as MemoryTuiScope),
+      jumpToScope: (scope) => this.jumpToScope(coerceMemoryTuiScope(scope)),
       startSearch: () => {
         this.state.searchActive = true;
         this.state.searchQuery = "";
@@ -387,7 +387,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
   /**
    * Jump to a specific scope
    */
-  async jumpToScope(scope: MemoryTuiScope): Promise<void> {
+  async jumpToScope(scope: MemoryTuiScopeType): Promise<void> {
     this.state.activeScope = scope;
     const scopeNode = this.flatNodes.find((n) => n.id === scope);
     if (scopeNode) {

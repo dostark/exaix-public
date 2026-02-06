@@ -24,7 +24,8 @@ import type {
   ProposalLearning,
 } from "../schemas/memory_bank.ts";
 import { MemoryUpdateProposalSchema } from "../schemas/memory_bank.ts";
-import { MemoryOperation, MemoryReferenceType, MemoryScope, MemoryStatus } from "../enums.ts";
+import { MemoryOperation, MemoryReferenceType, MemoryScope } from "../enums.ts";
+import { MemoryStatus } from "../memory/memory_status.ts";
 import { LearningExtractor } from "./memory/learning_extractor.ts";
 
 /**

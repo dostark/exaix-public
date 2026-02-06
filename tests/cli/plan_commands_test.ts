@@ -12,7 +12,7 @@
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
-import { DaemonStatus } from "../../src/enums.ts";
+import { PlanStatus } from "../../src/plans/plan_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
@@ -418,11 +418,11 @@ status: needs_revision
 `,
       );
 
-      const reviewPlans = await planCommands.list("review");
+      const reviewPlans = await planCommands.list(PlanStatus.REVIEW);
       assertEquals(reviewPlans.length, 1);
       assertEquals(reviewPlans[0].id, "plan-004");
 
-      const revisionPlans = await planCommands.list("needs_revision");
+      const revisionPlans = await planCommands.list(PlanStatus.NEEDS_REVISION);
       assertEquals(revisionPlans.length, 1);
       assertEquals(revisionPlans[0].id, "plan-005");
     });
@@ -441,7 +441,7 @@ status: needs_revision
       const plans = await planCommands.list();
       assertEquals(plans.length, 1);
       assertEquals(plans[0].id, "plan-malformed");
-      assertEquals(plans[0].status, DaemonStatus.UNKNOWN);
+      assertEquals(plans[0].status, PlanStatus.REVIEW);
     });
 
     it("[regression] should include archived plans when filtering for approved status", async () => {
@@ -473,7 +473,7 @@ This plan is currently being executed.
 `,
       );
 
-      const approvedPlans = await planCommands.list("approved");
+      const approvedPlans = await planCommands.list(PlanStatus.APPROVED);
       assertEquals(approvedPlans.length, 2);
 
       // Should include both archived and active approved plans
@@ -482,8 +482,8 @@ This plan is currently being executed.
 
       assertExists(archivedPlan, "Should include archived approved plan");
       assertExists(activePlan, "Should include active approved plan");
-      assertEquals(archivedPlan.status, "approved");
-      assertEquals(activePlan.status, "approved");
+      assertEquals(archivedPlan.status, PlanStatus.APPROVED);
+      assertEquals(activePlan.status, PlanStatus.APPROVED);
 
       // Verify trace_ids are preserved correctly
       assertEquals(archivedPlan.trace_id, archivedTraceId);
@@ -517,7 +517,7 @@ This is a test plan with some content.
       const result = await planCommands.show(planId);
 
       assertEquals(result.id, planId);
-      assertEquals(result.status, "review");
+      assertEquals(result.status, PlanStatus.REVIEW);
       assertEquals(result.trace_id, "trace-show-001");
       assertEquals(result.content.includes("# Test Plan"), true);
       assertEquals(result.content.includes("## Actions"), true);
@@ -542,7 +542,7 @@ Just some content.
       const result = await planCommands.show(planId);
 
       assertEquals(result.id, planId);
-      assertEquals(result.status, DaemonStatus.UNKNOWN);
+      assertEquals(result.status, PlanStatus.REVIEW);
       assertEquals(result.content.includes("# Plan without frontmatter"), true);
     });
 
@@ -578,7 +578,7 @@ This plan was rejected for testing purposes.
       const result = await planCommands.show(planId);
 
       assertEquals(result.id, planId);
-      assertEquals(result.status, "rejected");
+      assertEquals(result.status, PlanStatus.REJECTED);
       assertEquals(result.trace_id, "trace-rejected-001");
       assertEquals(result.rejected_at, rejectedAt);
       assertEquals(result.rejected_by, rejectedBy);

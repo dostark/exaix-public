@@ -1,5 +1,6 @@
 import type { ExecutionMemory, Learning, MemorySearchResult, ProjectMemory } from "../schemas/memory_bank.ts";
-import { MemoryStatus, MemoryType } from "../enums.ts";
+import { MemoryType } from "../enums.ts";
+import { MemoryStatus } from "../memory/memory_status.ts";
 import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
 export interface SearchDeps {

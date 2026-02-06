@@ -11,7 +11,8 @@
  * - Vector length mismatch throws error
  */
 import { ensureDir } from "@std/fs";
-import { LearningCategory, MemoryScope, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import { LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { assert } from "@std/assert";
 import { assertAlmostEquals, assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";

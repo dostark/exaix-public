@@ -13,7 +13,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "@std/assert";
-import { MemoryStatus } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { BaseCommand, type CommandContext } from "../../src/cli/base.ts";

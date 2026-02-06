@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
-import { ExecutionStatus, MemorySource, MemoryStatus, RequestPriority } from "../../src/enums.ts";
+import { MemorySource, RequestPriority } from "../../src/enums.ts";
+import { RequestStatus } from "../../src/requests/request_status.ts";
 import { commonTestData } from "../helpers/test_utils.ts";
 
 import {
@@ -77,7 +78,7 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
       trace_id: "test-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: MemoryStatus.PENDING,
+      status: RequestStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T10:00:00Z",
@@ -87,17 +88,17 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
       trace_id: "test-2",
       filename: "request-2.md",
       title: "Request 2",
-      status: ExecutionStatus.COMPLETED,
+      status: RequestStatus.COMPLETED,
       priority: "normal",
       agent: "default",
       created: "2025-12-23T11:00:00Z",
       created_by: "test@example.com",
     },
   ]);
-  const pendingRequests = await view.listRequests(MemoryStatus.PENDING);
+  const pendingRequests = await view.listRequests(RequestStatus.PENDING);
 
   assertEquals(pendingRequests.length, 1);
-  assertEquals(pendingRequests[0].status, MemoryStatus.PENDING);
+  assertEquals(pendingRequests[0].status, RequestStatus.PENDING);
 });
 
 Deno.test("RequestManagerView - creates new request", async () => {
@@ -105,7 +106,7 @@ Deno.test("RequestManagerView - creates new request", async () => {
   const newRequest = await view.createRequest("Test request", { priority: RequestPriority.HIGH, agent: "test-agent" });
 
   assert(newRequest.trace_id);
-  assertEquals(newRequest.status, MemoryStatus.PENDING);
+  assertEquals(newRequest.status, RequestStatus.PENDING);
   assertEquals(newRequest.priority, RequestPriority.HIGH);
   assertEquals(newRequest.agent, "test-agent");
 });
@@ -129,7 +130,7 @@ Deno.test("RequestManagerView - updates request status", async () => {
       title: "Test Request",
     },
   ]);
-  const success = await view.updateRequestStatus("test-123", ExecutionStatus.COMPLETED);
+  const success = await view.updateRequestStatus("test-123", RequestStatus.COMPLETED);
 
   assertEquals(success, true);
 });
@@ -346,7 +347,7 @@ Deno.test("Phase 13.6: Search functionality", () => {
     {
       trace_id: "req-2",
       title: "Feature request",
-      status: ExecutionStatus.COMPLETED,
+      status: RequestStatus.COMPLETED,
       priority: "high",
       agent: "designer",
     },
@@ -375,11 +376,11 @@ Deno.test("Phase 13.6: Filter by status", () => {
   const tui = view.createTuiSession(requests);
 
   // Filter by status
-  tui.getState().filterStatus = MemoryStatus.PENDING;
+  tui.getState().filterStatus = RequestStatus.PENDING;
   tui.buildTree();
 
   assertEquals(tui.getFilteredRequests().length, 1);
-  assertEquals(tui.getFilteredRequests()[0].status, MemoryStatus.PENDING);
+  assertEquals(tui.getFilteredRequests()[0].status, RequestStatus.PENDING);
 });
 
 Deno.test("Phase 13.6: Filter by agent", () => {
@@ -389,7 +390,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
       trace_id: "req-1",
       filename: "request-1.md",
       title: "Request 1",
-      status: MemoryStatus.PENDING,
+      status: RequestStatus.PENDING,
       priority: "normal",
       agent: "developer",
       created: "2025-12-23T10:00:00Z",
@@ -400,7 +401,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
       trace_id: "req-2",
       filename: "request-2.md",
       title: "Request 2",
-      status: ExecutionStatus.COMPLETED,
+      status: RequestStatus.COMPLETED,
       priority: "high",
       agent: "designer",
       created: "2025-12-23T11:00:00Z",

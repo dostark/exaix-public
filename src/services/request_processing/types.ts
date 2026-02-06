@@ -1,9 +1,9 @@
-import type { RequestStatus } from "../../enums.ts";
+import type { RequestStatusType } from "../../requests/request_status.ts";
 
 export interface RequestFrontmatter {
   trace_id: string;
   created: string;
-  status: RequestStatus;
+  status: RequestStatusType;
   priority: string;
   agent?: string;
   flow?: string;

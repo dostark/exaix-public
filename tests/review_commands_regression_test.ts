@@ -13,6 +13,7 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
+import { PlanStatus } from "../src/plans/plan_status.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";
 
 const TEST_REQUEST_ID = "request-test123";
@@ -166,7 +167,7 @@ Deno.test("[regression] Review show displays complete context information", () =
     request_created_by: "test-user",
     // Plan context
     plan_id: `${TEST_REQUEST_ID}_plan`,
-    plan_status: "approved",
+    plan_status: PlanStatus.APPROVED,
     // Portal context
     portal: "test-portal",
     // Status context
@@ -184,7 +185,7 @@ Deno.test("[regression] Review show displays complete context information", () =
   // Verify all expected fields are present
   assertEquals(mockReviewDetails.request_title, "Test Request Title");
   assertEquals(mockReviewDetails.plan_id, `${TEST_REQUEST_ID}_plan`);
-  assertEquals(mockReviewDetails.plan_status, "approved");
+  assertEquals(mockReviewDetails.plan_status, PlanStatus.APPROVED);
   assertEquals(mockReviewDetails.portal, "test-portal");
   assertEquals(mockReviewDetails.status, ReviewStatus.PENDING);
   assertEquals(mockReviewDetails.diff, "mock diff output");

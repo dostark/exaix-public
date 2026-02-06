@@ -1,5 +1,6 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { AgentHealth, AgentStatus } from "../../src/enums.ts";
+import { AgentHealth } from "../../src/enums.ts";
+import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
 
 import {
   AgentHealthData,

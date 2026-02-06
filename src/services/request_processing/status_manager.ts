@@ -1,4 +1,5 @@
 import type { EventLogger } from "../event_logger.ts";
+import type { RequestStatusType } from "../../requests/request_status.ts";
 
 export class StatusManager {
   constructor(private readonly logger: EventLogger) {}
@@ -9,7 +10,7 @@ export class StatusManager {
   async updateStatus(
     filePath: string,
     originalContent: string,
-    newStatus: string,
+    newStatus: RequestStatusType,
   ): Promise<void> {
     try {
       // Replace the status field in the YAML frontmatter

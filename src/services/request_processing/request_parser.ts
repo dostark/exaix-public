@@ -2,6 +2,7 @@ import { parse as parseYaml } from "@std/yaml";
 import { exists } from "@std/fs";
 import type { EventLogger } from "../event_logger.ts";
 import type { ParsedRequestFile, RequestFrontmatter } from "./types.ts";
+import { coerceRequestStatus } from "../../requests/request_status.ts";
 
 export class RequestParser {
   constructor(private readonly logger: EventLogger) {}
@@ -33,6 +34,9 @@ export class RequestParser {
 
       // Parse YAML
       const frontmatter = parseYaml(yamlContent) as unknown as RequestFrontmatter;
+
+      // Normalize status to canonical set (guards against malformed/unknown values)
+      frontmatter.status = coerceRequestStatus(frontmatter.status);
 
       // Validate required fields
       if (!frontmatter.trace_id) {

@@ -208,12 +208,6 @@ export enum GeneralStatus {
 /**
  * Status codes specific to agents.
  */
-export enum AgentStatus {
-  ACTIVE = GeneralStatus.ACTIVE,
-  INACTIVE = GeneralStatus.INACTIVE,
-  ERROR = GeneralStatus.ERROR,
-}
-
 /**
  * Health status codes for agents.
  */
@@ -248,43 +242,11 @@ export enum RequestPriority {
 /**
  * Status for user requests.
  */
-export enum RequestStatus {
-  PENDING = GeneralStatus.PENDING,
-  PLANNED = GeneralStatus.PLANNED,
-  IN_PROGRESS = GeneralStatus.IN_PROGRESS,
-  COMPLETED = GeneralStatus.COMPLETED,
-  FAILED = GeneralStatus.FAILED,
-  CANCELLED = GeneralStatus.CANCELLED,
-}
-
-/**
- * Status for execution plans.
- */
-export enum PlanStatus {
-  REVIEW = GeneralStatus.REVIEW,
-  APPROVED = GeneralStatus.APPROVED,
-  ACTIVE = GeneralStatus.ACTIVE,
-  COMPLETED = GeneralStatus.COMPLETED,
-  FAILED = GeneralStatus.FAILED,
-  ERROR = GeneralStatus.ERROR,
-  REJECTED = GeneralStatus.REJECTED,
-  NEEDS_REVISION = GeneralStatus.NEEDS_REVISION,
-  PENDING = GeneralStatus.PENDING,
-}
-
-/**
- * Status for memory bank entries (learnings, proposals).
- */
-export enum MemoryStatus {
-  /** Entry is waiting for review */
-  PENDING = "pending",
-  /** Entry has been approved */
-  APPROVED = "approved",
-  /** Entry has been rejected */
-  REJECTED = "rejected",
-  /** Entry has been archived/deprecated */
-  ARCHIVED = "archived",
-}
+// NOTE: RequestStatus/PlanStatus/MemoryStatus are no longer enums.
+// Use the canonical const-object + union-type modules:
+// - src/requests/request_status.ts
+// - src/plans/plan_status.ts
+// - src/memory/memory_status.ts
 
 /**
  * Status for skill lifecycle.

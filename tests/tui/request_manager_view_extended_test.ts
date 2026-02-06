@@ -7,7 +7,8 @@
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { CritiqueSeverity } from "../../src/enums.ts";
 
-import { ExecutionStatus, MemorySource, MemoryStatus } from "../../src/enums.ts";
+import { MemorySource } from "../../src/enums.ts";
+import { RequestStatus } from "../../src/requests/request_status.ts";
 
 import {
   createLegacyTuiSession,
@@ -38,7 +39,7 @@ function createTestRequests(): Request[] {
       trace_id: "req-001",
       filename: "request-001.md",
       title: "Test Request 1",
-      status: MemoryStatus.PENDING,
+      status: RequestStatus.PENDING,
       priority: "normal",
       agent: "default",
       created: "2025-01-01T10:00:00Z",
@@ -49,7 +50,7 @@ function createTestRequests(): Request[] {
       trace_id: "req-002",
       filename: "request-002.md",
       title: "Test Request 2",
-      status: ExecutionStatus.COMPLETED,
+      status: RequestStatus.PENDING,
       priority: "high",
       agent: "code-reviewer",
       created: "2025-01-01T11:00:00Z",
@@ -66,7 +67,7 @@ function createTestRequests(): Request[] {
       trace_id: "req-003",
       filename: "request-003.md",
       title: "Test Request 3",
-      status: "in_progress",
+      status: RequestStatus.COMPLETED,
       priority: CritiqueSeverity.CRITICAL,
       agent: "architect",
       created: "2025-01-01T12:00:00Z",
@@ -77,7 +78,7 @@ function createTestRequests(): Request[] {
       trace_id: "req-004",
       filename: "request-004.md",
       title: "Cancelled Request",
-      status: "cancelled",
+      status: RequestStatus.CANCELLED,
       priority: "low",
       agent: "default",
       created: "2025-01-01T13:00:00Z",
@@ -88,7 +89,7 @@ function createTestRequests(): Request[] {
       trace_id: "req-005",
       filename: "request-005.md",
       title: "Failed Request",
-      status: ExecutionStatus.FAILED,
+      status: RequestStatus.FAILED,
       priority: "high",
       agent: "researcher",
       created: "2025-01-01T14:00:00Z",
@@ -369,7 +370,7 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
     trace_id: "req-empty",
     filename: "request-empty.md",
     title: "Request with empty skills",
-    status: MemoryStatus.PENDING,
+    status: RequestStatus.PENDING,
     priority: "normal",
     agent: "default",
     created: "2025-01-01T10:00:00Z",
@@ -402,9 +403,9 @@ Deno.test("RequestManagerTuiSession: filter by status and agent", () => {
 
   // Test filtering by status
   const state = session.getState();
-  state.filterStatus = MemoryStatus.PENDING;
+  state.filterStatus = RequestStatus.PENDING;
   session.buildTree();
-  assertEquals(session.getFilteredRequests().length, 1);
+  assertEquals(session.getFilteredRequests().length, 2);
 
   // Clear status filter
   state.filterStatus = null;
@@ -476,7 +477,7 @@ Deno.test("RequestManagerTuiSession: render shows current filters", () => {
 
   const state = session.getState();
   state.searchQuery = "test";
-  state.filterStatus = MemoryStatus.PENDING;
+  state.filterStatus = RequestStatus.PENDING;
   state.filterAgent = "default";
 
   const output = session.render();
@@ -756,7 +757,7 @@ Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", asy
       Promise.resolve({
         trace_id: "test-id",
         filename: "test.md",
-        status: MemoryStatus.PENDING,
+        status: RequestStatus.PENDING,
         priority: "normal",
         agent: "default",
         portal: undefined,
@@ -771,6 +772,6 @@ Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", asy
   const adapter = new RequestCommandsServiceAdapter(mockCmd);
 
   // This should log a warning but return true
-  const result = await adapter.updateRequestStatus("test-id", ExecutionStatus.COMPLETED);
+  const result = await adapter.updateRequestStatus("test-id", RequestStatus.COMPLETED);
   assertEquals(result, true);
 });

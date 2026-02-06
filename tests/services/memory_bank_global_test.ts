@@ -24,14 +24,8 @@ import {
   LearningSchema,
   type ProjectMemory,
 } from "../../src/schemas/memory_bank.ts";
-import {
-  ConfidenceLevel,
-  LearningCategory,
-  MemoryScope,
-  MemorySource,
-  MemoryStatus,
-  MemoryType,
-} from "../../src/enums.ts";
+import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryType } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 import { createSampleLearning, createTestMemoryBankWithGlobal } from "./helpers/memory_bank_test_helpers.ts";
 

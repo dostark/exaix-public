@@ -13,7 +13,8 @@
  */
 
 import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
-import { MemoryScope, MemoryStatus } from "../../src/enums.ts";
+import { MemoryScope } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { MemoryView, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";

@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "@std/assert";
-import { MemoryStatus, PlanStatus } from "../../src/enums.ts";
+import { PlanStatus } from "../../src/plans/plan_status.ts";
 import { ExoPathDefaults } from "../../src/config/constants.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
@@ -230,8 +230,8 @@ Deno.test("PlanReviewerView: reject throws if reason missing", async () => {
 Deno.test("PlanReviewerView: renderPlanList and renderDiff", () => {
   const view = new PlanReviewerView(new MinimalPlanServiceMock());
   const plans = [
-    { id: "p1", title: "T1", status: MemoryStatus.PENDING },
-    { id: "p2", title: "T2", status: MemoryStatus.APPROVED },
+    { id: "p1", title: "T1", status: PlanStatus.PENDING },
+    { id: "p2", title: "T2", status: PlanStatus.APPROVED },
   ];
   const list = view.renderPlanList(plans);
   assert(list.includes("p1 T1 [pending]"));

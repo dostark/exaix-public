@@ -5,7 +5,8 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { ExecutionStatus, MemoryStatus, SkillStatus } from "../../../src/enums.ts";
+import { ExecutionStatus, SkillStatus } from "../../../src/enums.ts";
+import { MemoryStatus } from "../../../src/memory/memory_status.ts";
 import {
   addStatusLine,
   clearStatusMessage,
@@ -193,14 +194,12 @@ Deno.test("createCountItem: creates count item", () => {
 
 Deno.test("createStatusItem: creates status items for all states", () => {
   const theme = getTheme(true);
-  const statuses: Array<
-    SkillStatus.ACTIVE | MemoryStatus.PENDING | ExecutionStatus.COMPLETED | ExecutionStatus.FAILED
-  > = [
+  const statuses = [
     SkillStatus.ACTIVE,
     MemoryStatus.PENDING,
     ExecutionStatus.COMPLETED,
     ExecutionStatus.FAILED,
-  ];
+  ] as const satisfies readonly ("active" | "pending" | "completed" | "failed")[];
 
   for (const status of statuses) {
     const item = createStatusItem(status, undefined, theme);

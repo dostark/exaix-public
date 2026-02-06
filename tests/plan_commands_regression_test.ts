@@ -13,10 +13,8 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
+import { PlanStatus } from "../src/plans/plan_status.ts";
 
-const STATUS_APPROVED = "approved";
-const STATUS_REJECTED = "rejected";
-const STATUS_REVIEW = "review";
 const TEST_AGENT_ID = "test-agent";
 const TEST_CREATED_AT = "2026-01-17T00:00:00.000Z";
 const TEST_PLAN_FILE = "test_plan.md";
@@ -84,7 +82,7 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
 
     // Create an approved plan in Active directory
     const traceId = crypto.randomUUID();
-    await createPlanFile(activeDir, TEST_PLAN_FILE, STATUS_APPROVED, traceId);
+    await createPlanFile(activeDir, TEST_PLAN_FILE, PlanStatus.APPROVED, traceId);
 
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
@@ -93,12 +91,12 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
     const planCommands = new PlanCommands({ config, db: stubDb });
 
     // List with status=approved - should find the plan in Active directory
-    const approvedPlans = await planCommands.list(STATUS_APPROVED);
+    const approvedPlans = await planCommands.list(PlanStatus.APPROVED);
 
     // Before the fix, this would return 0 plans (only scanned Plans directory)
     // After the fix, this should return 1 plan (scans Active directory for approved)
     assertEquals(approvedPlans.length, 1, "Should find 1 approved plan in Active directory");
-    assertEquals(approvedPlans[0].status, STATUS_APPROVED);
+    assertEquals(approvedPlans[0].status, PlanStatus.APPROVED);
     assertEquals(approvedPlans[0].trace_id, traceId);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
@@ -113,7 +111,7 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
 
     // Create a rejected plan in Rejected directory
     const traceId = crypto.randomUUID();
-    await createPlanFile(rejectedDir, TEST_PLAN_REJECTED_FILE, STATUS_REJECTED, traceId);
+    await createPlanFile(rejectedDir, TEST_PLAN_REJECTED_FILE, PlanStatus.REJECTED, traceId);
 
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
@@ -122,10 +120,10 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
     const planCommands = new PlanCommands({ config, db: stubDb });
 
     // List with status=rejected - should find the plan in Rejected directory
-    const rejectedPlans = await planCommands.list(STATUS_REJECTED);
+    const rejectedPlans = await planCommands.list(PlanStatus.REJECTED);
 
     assertEquals(rejectedPlans.length, 1, "Should find 1 rejected plan in Rejected directory");
-    assertEquals(rejectedPlans[0].status, STATUS_REJECTED);
+    assertEquals(rejectedPlans[0].status, PlanStatus.REJECTED);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -139,7 +137,7 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
 
     // Create a review plan in Plans directory
     const traceId = crypto.randomUUID();
-    await createPlanFile(plansDir, TEST_PLAN_FILE, STATUS_REVIEW, traceId);
+    await createPlanFile(plansDir, TEST_PLAN_FILE, PlanStatus.REVIEW, traceId);
 
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
@@ -148,10 +146,10 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
     const planCommands = new PlanCommands({ config, db: stubDb });
 
     // List with status=review - should find the plan in Plans directory
-    const reviewPlans = await planCommands.list(STATUS_REVIEW);
+    const reviewPlans = await planCommands.list(PlanStatus.REVIEW);
 
     assertEquals(reviewPlans.length, 1, "Should find 1 review plan in Plans directory");
-    assertEquals(reviewPlans[0].status, STATUS_REVIEW);
+    assertEquals(reviewPlans[0].status, PlanStatus.REVIEW);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -164,9 +162,9 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
     const { plansDir, activeDir, rejectedDir } = await createTestWorkspace(tempDir);
 
     // Create plans in all directories
-    await createPlanFile(plansDir, "review_plan.md", STATUS_REVIEW, crypto.randomUUID());
-    await createPlanFile(activeDir, "approved_plan.md", STATUS_APPROVED, crypto.randomUUID());
-    await createPlanFile(rejectedDir, "rejected_plan.md", STATUS_REJECTED, crypto.randomUUID());
+    await createPlanFile(plansDir, "review_plan.md", PlanStatus.REVIEW, crypto.randomUUID());
+    await createPlanFile(activeDir, "approved_plan.md", PlanStatus.APPROVED, crypto.randomUUID());
+    await createPlanFile(rejectedDir, "rejected_plan.md", PlanStatus.REJECTED, crypto.randomUUID());
 
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");
@@ -180,7 +178,7 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
     assertEquals(allPlans.length, 3, "Should find 3 plans across all directories");
 
     const statuses = allPlans.map((p) => p.status).sort();
-    assertEquals(statuses, [STATUS_APPROVED, STATUS_REJECTED, STATUS_REVIEW]);
+    assertEquals(statuses, [PlanStatus.APPROVED, PlanStatus.REJECTED, PlanStatus.REVIEW]);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }
@@ -204,7 +202,7 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
     const allPlans = await planCommands.list();
     assertEquals(allPlans.length, 0);
 
-    const approvedPlans = await planCommands.list(STATUS_APPROVED);
+    const approvedPlans = await planCommands.list(PlanStatus.APPROVED);
     assertEquals(approvedPlans.length, 0);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
@@ -230,8 +228,8 @@ Deno.test("[regression] Plan reject finds plans in any directory", async () => {
     const activePlanId = "active_plan_123";
     const rejectedPlanId = "rejected_plan_456";
 
-    await createPlanFile(activeDir, `${activePlanId}.md`, STATUS_APPROVED, crypto.randomUUID());
-    await createPlanFile(rejectedDir, `${rejectedPlanId}_rejected.md`, STATUS_REJECTED, crypto.randomUUID());
+    await createPlanFile(activeDir, `${activePlanId}.md`, PlanStatus.APPROVED, crypto.randomUUID());
+    await createPlanFile(rejectedDir, `${rejectedPlanId}_rejected.md`, PlanStatus.REJECTED, crypto.randomUUID());
 
     // Import PlanCommands
     const { PlanCommands } = await import("../src/cli/plan_commands.ts");

@@ -20,7 +20,7 @@
 // --- Adapter: PlanCommands as PlanService ---
 import type { PlanCommands } from "../cli/plan_commands.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
-import { PlanStatus } from "../enums.ts";
+import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "../helpers/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
@@ -39,11 +39,9 @@ export type Plan = {
   id: string;
   title: string;
   author?: string;
-  status?: string;
+  status?: PlanStatusType;
   created_at?: string;
 };
-
-export type PlanStatusType = PlanStatus | "unknown";
 
 // ===== Plan View State Extensions =====
 
@@ -61,7 +59,7 @@ export interface PlanViewExtensions {
 
 // ===== Plan Status Icons =====
 
-const PLAN_ICONS: Record<string, string> = {
+const PLAN_ICONS: Record<PlanStatusType | "folder", string> = {
   [PlanStatus.REVIEW]: "🔶",
   [PlanStatus.APPROVED]: "✅",
   [PlanStatus.REJECTED]: "❌",
@@ -71,7 +69,6 @@ const PLAN_ICONS: Record<string, string> = {
   [PlanStatus.ERROR]: "⚠️",
   [PlanStatus.NEEDS_REVISION]: "✍️",
   [PlanStatus.PENDING]: "⏳",
-  unknown: "❓",
   folder: "📁",
 } as const;
 
@@ -213,7 +210,7 @@ export class DbLikePlanServiceAdapter implements PlanService {
     return this.dbLike.getPlanDiff(planId);
   }
   async approve(planId: string, reviewer: string) {
-    await this.dbLike.updatePlanStatus(planId, "approved");
+    await this.dbLike.updatePlanStatus(planId, PlanStatus.APPROVED);
     await this.dbLike.logActivity({
       action_type: "plan.approve",
       plan_id: planId,
@@ -223,7 +220,7 @@ export class DbLikePlanServiceAdapter implements PlanService {
     return true;
   }
   async reject(planId: string, reviewer: string, reason?: string) {
-    await this.dbLike.updatePlanStatus(planId, "rejected");
+    await this.dbLike.updatePlanStatus(planId, PlanStatus.REJECTED);
     await this.dbLike.logActivity({
       action_type: "plan.reject",
       plan_id: planId,
@@ -273,14 +270,14 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
     const unknown: TreeNode<Plan>[] = [];
 
     for (const plan of plans) {
-      const status = (plan.status || "unknown") as PlanStatusType;
+      const status = coercePlanStatus(plan.status, PlanStatus.REVIEW);
       const node = createNode<Plan>(
         plan.id,
         plan.title || plan.id,
         "plan",
         {
           data: plan,
-          icon: PLAN_ICONS[status] || PLAN_ICONS.unknown,
+          icon: PLAN_ICONS[status],
           badge: status,
         },
       );
@@ -335,7 +332,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
     if (unknown.length > 0) {
       this.state.tree.push(
         createGroupNode("unknown-group", `Unknown (${unknown.length})`, "group", unknown, {
-          icon: PLAN_ICONS.unknown,
+          icon: "❓",
           badge: unknown.length,
           expanded: true,
         }),

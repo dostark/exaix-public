@@ -25,7 +25,8 @@ import {
   renderTree,
   toggleNode,
 } from "../helpers/tree_view.ts";
-import { AgentHealth, AgentStatus, TuiGroupBy } from "../enums.ts";
+import { AgentHealth, TuiGroupBy } from "../enums.ts";
+import { AgentStatus, type AgentStatusType } from "./agent_status/agent_status.ts";
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
 import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
@@ -59,7 +60,7 @@ export interface AgentStatusItem {
   id: string;
   name: string;
   model: string;
-  status: AgentStatus;
+  status: AgentStatusType;
   lastActivity: string; // ISO timestamp
   capabilities: string[];
   defaultSkills: string[]; // Phase 17: Skills from blueprint default_skills

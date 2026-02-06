@@ -6,7 +6,6 @@
 import { PortalService } from "./portal_manager_view.ts";
 import {
   AgentHealth,
-  AgentStatus,
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
@@ -14,12 +13,14 @@ import {
   MemoryReferenceType,
   MemoryScope,
   MemorySource,
-  MemoryStatus,
   MemoryType,
   PortalStatus,
   RequestPriority,
   SkillStatus,
 } from "../enums.ts";
+import { AgentStatus } from "./agent_status/agent_status.ts";
+import { MemoryStatus } from "../memory/memory_status.ts";
+import { RequestStatus, type RequestStatusType } from "../requests/request_status.ts";
 
 export class MockPortalService implements PortalService {
   /** Returns an empty list of portals. */
@@ -147,13 +148,13 @@ export class MockDaemonService {
  */
 export class MockRequestService {
   /** Returns a list of mock requests. */
-  listRequests(status?: string) {
+  listRequests(status?: RequestStatusType) {
     const allRequests = [
       {
         trace_id: "12345678-abcd-1234-5678-123456789abc",
         filename: "request-12345678.md",
         title: "Request 12345678",
-        status: "pending",
+        status: RequestStatus.PENDING,
         priority: RequestPriority.NORMAL,
         agent: "default",
         portal: "main",
@@ -172,7 +173,7 @@ export class MockRequestService {
         trace_id: "87654321-abcd-1234-5678-123456789abc",
         filename: "request-87654321.md",
         title: "Request 87654321",
-        status: "planned",
+        status: RequestStatus.PLANNED,
         priority: RequestPriority.HIGH,
         agent: "code-reviewer",
         portal: undefined,
@@ -216,7 +217,7 @@ High priority feature request.`);
       trace_id: crypto.randomUUID(),
       filename: `request-${crypto.randomUUID().slice(0, 8)}.md`,
       title: `Request ${crypto.randomUUID().slice(0, 8)}`,
-      status: "pending",
+      status: RequestStatus.PENDING,
       priority: options?.priority || RequestPriority.NORMAL,
       agent: options?.agent || "default",
       portal: options?.portal,
@@ -229,7 +230,7 @@ High priority feature request.`);
   }
 
   /** Simulates updating request status. */
-  updateRequestStatus(_requestId: string, _status: string) {
+  updateRequestStatus(_requestId: string, _status: RequestStatusType) {
     return Promise.resolve(true);
   }
 }

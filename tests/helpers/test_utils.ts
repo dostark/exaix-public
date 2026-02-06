@@ -5,7 +5,9 @@
  * mock service base classes, and utility functions.
  */
 
-import { MemorySource, MemoryStatus, PlanStatus, SkillStatus } from "../../src/enums.ts";
+import { MemorySource, SkillStatus } from "../../src/enums.ts";
+import { PlanStatus, type PlanStatusType } from "../../src/plans/plan_status.ts";
+import { RequestStatus, type RequestStatusType } from "../../src/requests/request_status.ts";
 
 // ===== Test Data Factories =====
 
@@ -32,13 +34,31 @@ export class TestDataFactory<T extends Record<string, unknown>> {
   }
 }
 
+export interface TestRequestFixture extends Record<string, unknown> {
+  trace_id: string;
+  filename: string;
+  title: string;
+  status: RequestStatusType;
+  priority: string;
+  agent: string;
+  created: string;
+  created_by: string;
+  source: string;
+}
+
+export interface TestPlanFixture extends Record<string, unknown> {
+  id: string;
+  title: string;
+  status: PlanStatusType;
+}
+
 // Request factory
-export const requestFactory = new TestDataFactory(() => ({
+export const requestFactory = new TestDataFactory<TestRequestFixture>(() => ({
   trace_id: `req-${Math.floor(Math.random() * 1e6)}`,
   filename: "request.md",
   title: "Request",
-  status: MemoryStatus.PENDING,
-  priority: "normal" as const,
+  status: RequestStatus.PENDING,
+  priority: "normal",
   agent: "default",
   created: new Date().toISOString(),
   created_by: "test@example.com",
@@ -46,7 +66,7 @@ export const requestFactory = new TestDataFactory(() => ({
 }));
 
 // Plan factory
-export const planFactory = new TestDataFactory(() => ({
+export const planFactory = new TestDataFactory<TestPlanFixture>(() => ({
   id: `plan-${Math.floor(Math.random() * 1e6)}`,
   title: "Plan",
   status: PlanStatus.REVIEW,
@@ -117,7 +137,7 @@ export class MockRequestService extends BaseMockService<any> {
     super(initialRequests);
   }
 
-  listRequests(status?: string): Promise<any[]> {
+  listRequests(status?: RequestStatusType): Promise<any[]> {
     if (status) {
       return Promise.resolve(this.items.filter((r) => r.status === status));
     }
@@ -134,7 +154,7 @@ export class MockRequestService extends BaseMockService<any> {
       trace_id: `test-${Date.now()}`,
       filename: `request-test.md`,
       title: description,
-      status: MemoryStatus.PENDING,
+      status: RequestStatus.PENDING,
       priority: options?.priority || "normal",
       agent: options?.agent || "default",
       portal: options?.portal,
@@ -145,7 +165,7 @@ export class MockRequestService extends BaseMockService<any> {
     });
   }
 
-  updateRequestStatus(id: string, status: string): Promise<boolean> {
+  updateRequestStatus(id: string, status: RequestStatusType): Promise<boolean> {
     return this.update(id, { status });
   }
 }
@@ -179,7 +199,7 @@ export const commonTestData = {
     basic: () =>
       requestFactory.createMany(2, [
         { trace_id: "req-1" },
-        { trace_id: "req-2", title: "Request 2", status: MemoryStatus.APPROVED },
+        { trace_id: "req-2", title: "Request 2", status: RequestStatus.PLANNED },
       ]),
     two: () =>
       requestFactory.createMany(2, [
@@ -193,14 +213,14 @@ export const commonTestData = {
         {
           trace_id: "req-2",
           title: "Request 2",
-          status: MemoryStatus.APPROVED,
+          status: RequestStatus.PLANNED,
           agent: "other",
         },
       ]),
     pending: () =>
       requestFactory.createMany(2, [
-        { status: MemoryStatus.PENDING },
-        { status: MemoryStatus.PENDING, trace_id: "req-2", title: "Request 2" },
+        { status: RequestStatus.PENDING },
+        { status: RequestStatus.PENDING, trace_id: "req-2", title: "Request 2" },
       ]),
   },
 
@@ -237,7 +257,7 @@ export const commonTestData = {
       trace_id: "new-req",
       filename: "request-new.md",
       title: "New Request",
-      status: MemoryStatus.PENDING,
+      status: RequestStatus.PENDING,
       priority: "normal" as const,
       agent: "default",
       created: new Date().toISOString(),

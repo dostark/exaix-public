@@ -4,7 +4,8 @@
  */
 
 import { z } from "zod";
-import { MCPTransport, PlanStatus } from "../enums.ts";
+import { MCPTransport } from "../enums.ts";
+import { PLAN_STATUS_VALUES } from "../plans/plan_status.ts";
 import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
 // ============================================================================
@@ -70,7 +71,7 @@ export const CreateRequestToolArgsSchema = z.object({
 });
 
 export const ListPlansToolArgsSchema = z.object({
-  status: z.nativeEnum(PlanStatus).optional(),
+  status: z.enum(PLAN_STATUS_VALUES).optional(),
   agent_id: z.string().min(1, "Agent ID required").default("system"),
 });
 

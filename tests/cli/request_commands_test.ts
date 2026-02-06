@@ -13,13 +13,8 @@
  */
 
 import { assertEquals, assertExists, assertNotEquals, assertRejects, assertStringIncludes } from "@std/assert";
-import {
-  CritiqueSeverity,
-  MemoryReferenceType,
-  MemoryStatus,
-  RequestPriority,
-  RequestStatus,
-} from "../../src/enums.ts";
+import { CritiqueSeverity, MemoryReferenceType, RequestPriority } from "../../src/enums.ts";
+import { RequestStatus } from "../../src/requests/request_status.ts";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
@@ -293,14 +288,14 @@ describe("RequestCommands", () => {
       // Create another request and manually modify its status
       const result2 = await requestCommands.create("Request 2");
       const content = await Deno.readTextFile(result2.path);
-      const updated = content.replace("status: pending", "status: processing");
+      const updated = content.replace("status: pending", "status: in_progress");
       await Deno.writeTextFile(result2.path, updated);
 
-      const pending = await requestCommands.list(MemoryStatus.PENDING);
+      const pending = await requestCommands.list(RequestStatus.PENDING);
       assertEquals(pending.length, 1);
 
-      const processing = await requestCommands.list("processing");
-      assertEquals(processing.length, 1);
+      const inProgress = await requestCommands.list(RequestStatus.IN_PROGRESS);
+      assertEquals(inProgress.length, 1);
     });
 
     it("should sort by created date descending", async () => {
@@ -321,7 +316,7 @@ describe("RequestCommands", () => {
       assertEquals(requests.length, 1);
       assertEquals(requests[0].priority, RequestPriority.HIGH);
       assertEquals(requests[0].agent, "architect");
-      assertEquals(requests[0].status, MemoryStatus.PENDING);
+      assertEquals(requests[0].status, RequestStatus.PENDING);
     });
   });
 

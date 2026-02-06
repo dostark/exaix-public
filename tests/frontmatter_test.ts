@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import { RequestStatus } from "../src/enums.ts";
+import { RequestStatus } from "../src/requests/request_status.ts";
 
 import { RequestSchema } from "../src/schemas/request.ts";
 import { FrontmatterParser } from "../src/parsers/markdown.ts";

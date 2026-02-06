@@ -4,12 +4,7 @@
 
 import { renderSpinnerFrame } from "../../helpers/spinner.ts";
 import { TuiIcon, TuiNodeType } from "../../enums.ts";
-import {
-  MEMORY_SCOPE_EXECUTIONS,
-  MEMORY_SCOPE_GLOBAL,
-  MEMORY_SCOPE_PENDING,
-  MEMORY_SCOPE_PROJECTS,
-} from "../../config/constants.ts";
+import { MemoryTuiScope } from "./memory_scope.ts";
 import {
   TUI_LABEL_EXECUTIONS,
   TUI_LABEL_GLOBAL_MEMORY,
@@ -32,7 +27,7 @@ export class TreeBuilder {
     // 1. Global Scope
     const globalMemory = await service.getGlobalMemory();
     tree.push({
-      id: MEMORY_SCOPE_GLOBAL,
+      id: MemoryTuiScope.GLOBAL,
       type: TuiNodeType.SCOPE,
       label: TUI_LABEL_GLOBAL_MEMORY,
       expanded: false,
@@ -53,7 +48,7 @@ export class TreeBuilder {
       });
     }
     tree.push({
-      id: MEMORY_SCOPE_PROJECTS,
+      id: MemoryTuiScope.PROJECTS,
       type: TuiNodeType.SCOPE,
       label: TUI_LABEL_PROJECTS,
       expanded: false,
@@ -72,7 +67,7 @@ export class TreeBuilder {
       data: e,
     }));
     tree.push({
-      id: MEMORY_SCOPE_EXECUTIONS,
+      id: MemoryTuiScope.EXECUTIONS,
       type: TuiNodeType.SCOPE,
       label: TUI_LABEL_EXECUTIONS,
       expanded: false,
@@ -83,7 +78,7 @@ export class TreeBuilder {
     // 4. Pending Scope
     const pending = await service.listPending();
     const pendingNodes: TreeNode[] = pending.map((p) => ({
-      id: `${MEMORY_SCOPE_PENDING}:${p.id}`,
+      id: `${MemoryTuiScope.PENDING}:${p.id}`,
       type: TuiNodeType.LEARNING,
       label: p.learning.title,
       expanded: false,
@@ -91,7 +86,7 @@ export class TreeBuilder {
       data: p,
     }));
     tree.push({
-      id: MEMORY_SCOPE_PENDING,
+      id: MemoryTuiScope.PENDING,
       type: TuiNodeType.SCOPE,
       label: TUI_LABEL_PENDING,
       expanded: false,

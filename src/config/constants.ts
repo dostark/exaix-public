@@ -394,30 +394,6 @@ export const DEFAULT_SUBPROCESS_TIMEOUT_MS = 30000;
 // for better type safety and consistency. Please import from there instead.
 
 // ============================================================================
-// Agent Status Constants
-// ============================================================================
-
-// ============================================================================
-// General Status Constants
-// ============================================================================
-
-// ============================================================================
-// Memory Scope Constants
-// ============================================================================
-export const MEMORY_SCOPE_GLOBAL = "global";
-export const MEMORY_SCOPE_PROJECTS = "projects";
-export const MEMORY_SCOPE_EXECUTIONS = "executions";
-export const MEMORY_SCOPE_PENDING = "pending";
-export const MEMORY_SCOPE_SEARCH = "search";
-
-export type MemoryTuiScope =
-  | typeof MEMORY_SCOPE_GLOBAL
-  | typeof MEMORY_SCOPE_PROJECTS
-  | typeof MEMORY_SCOPE_EXECUTIONS
-  | typeof MEMORY_SCOPE_PENDING
-  | typeof MEMORY_SCOPE_SEARCH;
-
-// ============================================================================
 // Logging Defaults
 // ============================================================================
 export const DEFAULT_LOG_LEVEL = LogLevel.INFO;
@@ -578,11 +554,3 @@ export const CONFIDENCE_ADJUSTMENT_VERY_SHORT = -20;
 /** Confidence Length Thresholds */
 export const CONFIDENCE_LENGTH_THRESHOLD_SHORT = 50;
 export const CONFIDENCE_LENGTH_THRESHOLD_VERY_SHORT = 20;
-
-// ============================================================================
-// Agent Status Constants
-// ============================================================================
-export const AGENT_STATUS_ACTIVE = "active";
-export const AGENT_STATUS_INACTIVE = "inactive";
-export const AGENT_STATUS_ERROR = "error";
-export const AGENT_STATUS_ORDER = [AGENT_STATUS_ACTIVE, AGENT_STATUS_INACTIVE, AGENT_STATUS_ERROR];

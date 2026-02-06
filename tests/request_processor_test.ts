@@ -14,7 +14,7 @@
  */
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
-import { MemoryStatus } from "../src/enums.ts";
+import { MemoryStatus } from "../src/memory/memory_status.ts";
 
 import { assert, assertEquals, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
