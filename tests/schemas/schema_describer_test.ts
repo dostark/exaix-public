@@ -51,3 +51,17 @@ Deno.test("describeSchema: unknown types fall back to unknown", () => {
   const result = describeSchema(z.any());
   assertEquals(result, SchemaDescriberType.Unknown);
 });
+
+Deno.test("describeSchema: primitives and optional are described", () => {
+  assertEquals(describeSchema(z.string()), SchemaDescriberType.String);
+  assertEquals(describeSchema(z.number()), SchemaDescriberType.Number);
+  assertEquals(describeSchema(z.boolean()), SchemaDescriberType.Boolean);
+
+  const optional = describeSchema(z.string().optional());
+  assertStringIncludes(optional, SchemaDescriberToken.OptionalPrefix);
+  assertStringIncludes(optional, SchemaDescriberType.String);
+});
+
+Deno.test("describeSchema: other Zod types fall back to unknown", () => {
+  assertEquals(describeSchema(z.date() as any), SchemaDescriberType.Unknown);
+});

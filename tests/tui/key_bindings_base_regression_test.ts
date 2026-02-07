@@ -36,9 +36,22 @@ Deno.test("[regression] KeyBindingsBase provides strict typing and utility metho
   const allBindings = keyBindings.getKeyBindings();
   assertEquals(allBindings.length, 2);
 
+  // Returned list should be a copy
+  allBindings.pop();
+  assertEquals(keyBindings.KEY_BINDINGS.length, 2);
+
   const binding = keyBindings.findBindingByAction("test-action-1");
   assertEquals(binding?.key, "a");
 
   const nonExistent = keyBindings.findBindingByAction("non-existent");
   assertEquals(nonExistent, undefined);
+
+  const byKey = keyBindings.findBindingByKey("b");
+  assertEquals(byKey?.action, "test-action-2");
+
+  const byKeyMissing = keyBindings.findBindingByKey("z");
+  assertEquals(byKeyMissing, undefined);
+
+  assertEquals(keyBindings.getActions(), ["test-action-1", "test-action-2"]);
+  assertEquals(keyBindings.getKeys(), ["a", "b"]);
 });

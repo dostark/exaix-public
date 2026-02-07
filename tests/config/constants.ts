@@ -68,6 +68,7 @@ export enum SchemaDescriberEnumValue {
 export enum SchemaDescriberType {
   String = "string",
   Number = "number",
+  Boolean = "boolean",
   Unknown = "unknown",
 }
 

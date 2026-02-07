@@ -188,7 +188,7 @@ export class RequestProcessor {
 
       return planPath;
     } catch (error: unknown) {
-      this.handleError(error, filePath, requestId, parsed.rawContent, traceLogger);
+      await this.handleError(error, filePath, requestId, parsed.rawContent, traceLogger);
       return null;
     }
   }
