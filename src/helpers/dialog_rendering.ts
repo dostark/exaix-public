@@ -145,7 +145,9 @@ export function createDialogBorder(
   title: string,
   theme: TuiTheme,
 ): string[] {
-  const innerWidth = Math.max(...lines.map((line) => visibleLength(line))) + 4;
+  const contentWidth = Math.max(...lines.map((line) => visibleLength(line))) + 4;
+  const titleLine = ` ${title} `;
+  const innerWidth = Math.max(contentWidth, visibleLength(titleLine));
   const borderedLines: string[] = [];
 
   // Top border with title

@@ -1,5 +1,50 @@
 import { BaseCommand, type CommandContext } from "../base.ts";
 import { MCPServer } from "../../mcp/server.ts";
+import { DEFAULT_MCP_HTTP_PORT } from "../../config/constants.ts";
+
+export interface McpStdioServer {
+  start(): void;
+  handleRequest(request: unknown): Promise<unknown>;
+}
+
+export interface McpStdioIo {
+  stdin: ReadableStream<Uint8Array>;
+  writeStdout: (data: Uint8Array) => Promise<number> | number;
+  onError?: (message: string, error: unknown) => void;
+}
+
+/**
+ * Run the MCP JSON-RPC stdio loop.
+ * Extracted for testability; `McpCommands.start()` wires this to Deno stdio.
+ */
+export async function runMcpStdioLoop(server: McpStdioServer, io: McpStdioIo): Promise<void> {
+  server.start();
+
+  const decoder = new TextDecoder();
+  const encoder = new TextEncoder();
+
+  for await (const chunk of io.stdin) {
+    const text = decoder.decode(chunk);
+    const lines = text.split("\n").filter((line) => line.trim() !== "");
+
+    for (const line of lines) {
+      try {
+        const request = JSON.parse(line);
+        const response = await server.handleRequest(request);
+        if (response) {
+          const responseStr = JSON.stringify(response) + "\n";
+          await io.writeStdout(encoder.encode(responseStr));
+        }
+      } catch (error) {
+        if (io.onError) {
+          io.onError("Failed to process request:", error);
+        } else {
+          console.error("Failed to process request:", error);
+        }
+      }
+    }
+  }
+}
 
 export class McpCommands extends BaseCommand {
   constructor(context: CommandContext) {
@@ -16,30 +61,12 @@ export class McpCommands extends BaseCommand {
     });
 
     if (transport === "sse") {
-      await server.startHTTPServer(options.port || 3000);
+      await server.startHTTPServer(options.port || DEFAULT_MCP_HTTP_PORT);
     } else {
-      server.start();
-      // Stdio loop for JSON-RPC 2.0
-      const decoder = new TextDecoder();
-      const encoder = new TextEncoder();
-
-      for await (const chunk of Deno.stdin.readable) {
-        const text = decoder.decode(chunk);
-        const lines = text.split("\n").filter((line) => line.trim() !== "");
-
-        for (const line of lines) {
-          try {
-            const request = JSON.parse(line);
-            const response = await server.handleRequest(request);
-            if (response) {
-              const responseStr = JSON.stringify(response) + "\n";
-              await Deno.stdout.write(encoder.encode(responseStr));
-            }
-          } catch (error) {
-            console.error("Failed to process request:", error);
-          }
-        }
-      }
+      await runMcpStdioLoop(server, {
+        stdin: Deno.stdin.readable,
+        writeStdout: (data) => Deno.stdout.write(data),
+      });
     }
   }
 }
