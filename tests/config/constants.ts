@@ -11,6 +11,26 @@ export const TEST_LOG_PREVIEW_LENGTH = 50;
 // Test Timeouts (in milliseconds)
 export const REGRESSION_TEST_TIMEOUT_MS = 30000;
 
+// ============================================================================
+// Provider / Transport Test Constants
+// ============================================================================
+
+// Use minimal retry/backoff in unit tests to avoid slowing the suite.
+export const TEST_RETRY_MAX_ATTEMPTS_SINGLE = 1;
+export const TEST_RETRY_BACKOFF_BASE_MS_ZERO = 0;
+export const TEST_PROVIDER_TIMEOUT_MS_SHORT = 50;
+
+// MCP CLI / Server tests
+export const TEST_MCP_PORT = 34567;
+export const TEST_MCP_DEFAULT_PORT = 3000;
+
+// LlamaProvider offline tests
+export const TEST_OLLAMA_ENDPOINT = "http://ollama.test/api/generate";
+export const TEST_LLAMAPROVIDER_MODEL_LLAMA = "llama3.2:1b";
+export const TEST_LLAMAPROVIDER_MODEL_CODELLAMA = "codellama:7b-instruct";
+export const TEST_LLAMAPROVIDER_PROMPT = "Hello";
+export const TEST_LLAMAPROVIDER_JSON_BODY = '{"ok":true}';
+
 // Environment Keys
 export const ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY";
 export const ENV_OPENAI_API_KEY = "OPENAI_API_KEY";
