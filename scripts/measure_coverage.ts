@@ -94,7 +94,9 @@ async function runCoverageReport(): Promise<string> {
     ],
     stdout: "piped",
     stderr: "piped",
-    env: { ...Deno.env.toObject(), NO_COLOR: "1" },
+    // CI may run this script without `--allow-env`. Deno.Command inherits the
+    // parent environment by default, so we only need to override NO_COLOR.
+    env: { NO_COLOR: "1" },
   });
 
   const result = await covSummaryCmd.output();
@@ -162,7 +164,9 @@ async function runCoverageCheck() {
     ],
     stdout: "piped",
     stderr: "piped",
-    env: { ...Deno.env.toObject(), NO_COLOR: "1" },
+    // CI may run this script without `--allow-env`. Deno.Command inherits the
+    // parent environment by default, so we only need to override NO_COLOR.
+    env: { NO_COLOR: "1" },
   });
 
   try {
