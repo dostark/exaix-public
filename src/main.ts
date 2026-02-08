@@ -6,6 +6,7 @@ import { ProviderFactory } from "./ai/provider_factory.ts";
 import { RequestProcessor } from "./services/request_processor.ts";
 import { ReviewRegistry } from "./services/review_registry.ts";
 import { EventLogger } from "./services/event_logger.ts";
+import { createConfigReloadHandler } from "./config/config_reload_handler.ts";
 import {
   ConsoleOutput,
   FileOutput,
@@ -208,23 +209,7 @@ if (import.meta.main) {
     // Watch for changes to exo.config.toml to reload config and log changes
     const configWatcher = new FileWatcher(
       config,
-      async (event) => {
-        if (!event.path.endsWith("exo.config.toml")) {
-          return;
-        }
-
-        const oldChecksum = configService.getChecksum();
-        const newConfig = configService.reload();
-        const newChecksum = configService.getChecksum();
-
-        if (oldChecksum !== newChecksum) {
-          await logger.info("config.updated", "exo.config.toml", {
-            old_checksum: oldChecksum.slice(0, 8),
-            new_checksum: newChecksum.slice(0, 8),
-            portals_count: newConfig.portals?.length || 0,
-          });
-        }
-      },
+      createConfigReloadHandler(configService, logger),
       {
         customWatchPath: config.system.root,
         extensions: [".toml"],

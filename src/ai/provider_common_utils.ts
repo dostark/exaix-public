@@ -1,6 +1,7 @@
 import { EventLogger } from "../services/event_logger.ts";
 import { AuthenticationError, RateLimitError } from "./providers/common.ts";
 import { ConnectionError, ModelProviderError } from "./providers.ts";
+import type { ModelOptions } from "./types.ts";
 import { DEFAULT_AI_RETRY_BACKOFF_BASE_MS, DEFAULT_AI_RETRY_MAX_ATTEMPTS } from "../config/constants.ts";
 import {
   COST_RATE_ANTHROPIC,
@@ -106,6 +107,29 @@ export function tokenMapperOpenAI(model: string) {
 /** Extract textual content from OpenAI response */
 export function extractOpenAIContent(d: any): string {
   return d.choices?.[0]?.message?.content ?? "";
+}
+
+export function createOpenAIChatCompletionsRequestInit(
+  apiKey: string,
+  model: string,
+  prompt: string,
+  options?: ModelOptions,
+): RequestInit {
+  return {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: options?.max_tokens,
+      temperature: options?.temperature,
+      top_p: options?.top_p,
+      stop: options?.stop,
+    }),
+  };
 }
 
 /** Token mapper for Google response shape */

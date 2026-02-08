@@ -10,6 +10,7 @@ import { CLI_DEFAULTS } from "./cli.config.ts";
 import { ConfigService } from "../config/service.ts";
 import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
 import { DAEMON_STOP_TIMEOUT_MS } from "../config/constants.ts";
+import { isProcessAlive } from "./process_utils.ts";
 
 export interface DaemonStatus {
   running: boolean;
@@ -235,15 +236,8 @@ export class DaemonCommands extends BaseCommand {
 
     // Check if process is running
     try {
-      const checkCmd = new Deno.Command("kill", {
-        args: ["-0", pid.toString()],
-        stdout: "piped",
-        stderr: "piped",
-      });
-
-      const result = await checkCmd.output();
-
-      if (!result.success) {
+      const alive = await isProcessAlive(pid);
+      if (!alive) {
         // Process not running, clean up PID file
         await Deno.remove(this.pidFile).catch(() => {});
         return { running: false, version };
@@ -323,7 +317,7 @@ export class DaemonCommands extends BaseCommand {
     const checkInterval = CLI_DEFAULTS.DAEMON_CHECK_INTERVAL_MS; // Check every 50ms
 
     while (Date.now() - startTime < timeoutMs) {
-      const isRunning = await this.isProcessRunning(pid);
+      const isRunning = await isProcessAlive(pid);
       if (isRunning === shouldBeRunning) {
         return true;
       }
@@ -335,23 +329,6 @@ export class DaemonCommands extends BaseCommand {
       }
     }
     return false;
-  }
-
-  /**
-   * Check if a process is running
-   */
-  private async isProcessRunning(pid: number): Promise<boolean> {
-    try {
-      const cmd = new Deno.Command("kill", {
-        args: ["-0", pid.toString()],
-        stdout: "piped",
-        stderr: "piped",
-      });
-      const result = await cmd.output();
-      return result.success;
-    } catch {
-      return false;
-    }
   }
 
   /**

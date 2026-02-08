@@ -3,6 +3,7 @@ import { join } from "@std/path";
 import { ConfigService } from "../src/config/service.ts";
 import { FileWatcher } from "../src/services/watcher.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
+import { createConfigReloadHandler } from "../src/config/config_reload_handler.ts";
 
 /**
  * Test for "Investigate why exoctl portal add not showing in daemon logs"
@@ -61,28 +62,10 @@ stability_check = false
     log: () => Promise.resolve(), // stub
   };
 
-  // 3. Setup Config Watcher (Mimic main.ts logic)
+  // 3. Setup Config Watcher (shared handler used by main.ts)
   const configWatcher = new FileWatcher(
     config,
-    async (event) => {
-      console.log("Watcher event:", event.path);
-      if (!event.path.endsWith("exo.config.toml")) {
-        return;
-      }
-
-      const oldChecksum = configService.getChecksum();
-      const newConfig = configService.reload();
-      const newChecksum = configService.getChecksum();
-
-      if (oldChecksum !== newChecksum) {
-        // Use our mock logger
-        await logger.info("config.updated", "exo.config.toml", {
-          old_checksum: oldChecksum.slice(0, 8),
-          new_checksum: newChecksum.slice(0, 8),
-          portals_count: newConfig.portals?.length || 0,
-        });
-      }
-    },
+    createConfigReloadHandler(configService, logger as any),
     {
       customWatchPath: tempDir, // Watch the temp root
       extensions: [".toml"],

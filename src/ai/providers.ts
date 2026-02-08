@@ -175,7 +175,7 @@ class OpenAIShim implements IModelProvider {
     this.id = options.id ?? `openai-${this.model}`;
   }
 
-  async generate(prompt: string, _options?: ModelOptions): Promise<string> {
+  async generate(prompt: string, options?: ModelOptions): Promise<string> {
     const url = `${this.baseUrl}/v1/chat/completions`;
 
     // Use default retry parameters
@@ -184,20 +184,14 @@ class OpenAIShim implements IModelProvider {
     const timeoutMs = DEFAULT_OPENAI_TIMEOUT_MS;
 
     // Import helpers dynamically to avoid module initialization cycles
-    const { fetchJsonWithRetries, extractOpenAIContent, tokenMapperOpenAI } = await import(
-      "./provider_common_utils.ts"
-    );
+    const { createOpenAIChatCompletionsRequestInit, fetchJsonWithRetries, extractOpenAIContent, tokenMapperOpenAI } =
+      await import(
+        "./provider_common_utils.ts"
+      );
 
     const data = await fetchJsonWithRetries(
       url,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${this.apiKey}`,
-        },
-        body: JSON.stringify({ model: this.model, messages: [{ role: "user", content: prompt }] }),
-      },
+      createOpenAIChatCompletionsRequestInit(this.apiKey, this.model, prompt, options),
       {
         id: this.id,
         maxAttempts,

@@ -314,6 +314,20 @@ export class BlueprintCommands extends BaseCommand {
     return join(this.config.system.root, this.config.paths.blueprints, this.config.paths.agents);
   }
 
+  private blueprintNotFoundError(agentId: string): Error {
+    return new Error(
+      `Blueprint '${agentId}' not found\nUse 'exoctl blueprint list' to see available blueprints`,
+    );
+  }
+
+  private async getExistingBlueprintPath(agentId: string): Promise<string> {
+    const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
+    if (!await exists(blueprintPath)) {
+      throw this.blueprintNotFoundError(agentId);
+    }
+    return blueprintPath;
+  }
+
   /**
    * Parse TOML frontmatter from content
    */
@@ -732,13 +746,7 @@ ${systemPrompt}
    * Show blueprint details
    */
   async show(agentId: string): Promise<BlueprintDetails> {
-    const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
-
-    if (!await exists(blueprintPath)) {
-      throw new Error(
-        `Blueprint '${agentId}' not found\nUse 'exoctl blueprint list' to see available blueprints`,
-      );
-    }
+    const blueprintPath = await this.getExistingBlueprintPath(agentId);
 
     const content = await Deno.readTextFile(blueprintPath);
     const { frontmatter } = this.extractTomlFrontmatter(content);
@@ -818,13 +826,7 @@ ${systemPrompt}
    */
   async edit(agentId: string): Promise<void> {
     try {
-      const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
-
-      if (!await exists(blueprintPath)) {
-        throw new Error(
-          `Blueprint '${agentId}' not found\nUse 'exoctl blueprint list' to see available blueprints`,
-        );
-      }
+      const blueprintPath = await this.getExistingBlueprintPath(agentId);
 
       // Get editor from environment or use default
       const editor = Deno.env.get("EDITOR") || Deno.env.get("VISUAL") || "vi";
@@ -872,13 +874,7 @@ ${systemPrompt}
    */
   async remove(agentId: string, options: BlueprintRemoveOptions = {}): Promise<void> {
     try {
-      const blueprintPath = join(this.getBlueprintsDir(), `${agentId}.md`);
-
-      if (!await exists(blueprintPath)) {
-        throw new Error(
-          `Blueprint '${agentId}' not found\nUse 'exoctl blueprint list' to see available blueprints`,
-        );
-      }
+      const blueprintPath = await this.getExistingBlueprintPath(agentId);
 
       // Remove the file
       await Deno.remove(blueprintPath);

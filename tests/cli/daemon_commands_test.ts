@@ -19,6 +19,7 @@ import { ensureDir, exists } from "@std/fs";
 import { ConfigService } from "../../src/config/service.ts";
 import type { Config } from "../../src/config/schema.ts";
 import { DaemonCommands } from "../../src/cli/daemon_commands.ts";
+import { isProcessAlive } from "../../src/cli/process_utils.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import { getRuntimeDir } from "../helpers/paths_helper.ts";
@@ -470,20 +471,6 @@ await new Promise(() => {});
 });
 
 // Helper functions
-
-async function isProcessAlive(pid: number): Promise<boolean> {
-  try {
-    const cmd = new Deno.Command("kill", {
-      args: ["-0", pid.toString()],
-      stdout: "piped",
-      stderr: "piped",
-    });
-    const result = await cmd.output();
-    return result.success;
-  } catch {
-    return false;
-  }
-}
 
 async function killProcess(pid: number): Promise<void> {
   try {

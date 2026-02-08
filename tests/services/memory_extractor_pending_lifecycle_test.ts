@@ -33,118 +33,122 @@ function makeProposalLearning(overrides: Partial<ProposalLearning> = {}): Propos
   };
 }
 
-Deno.test("MemoryExtractorService.listPending: returns [] when pending dir missing", async () => {
+async function withTempRoot(fn: (root: string) => Promise<void>): Promise<void> {
   const root = await Deno.makeTempDir({ prefix: "mem-extractor-" });
   try {
-    const config = createMockConfig(root);
-    const db = { logActivity: () => {} };
-    const memoryBank = {};
-
-    const svc = new MemoryExtractorService(config, db as any, memoryBank as any);
-
-    const pending = await svc.listPending();
-    assertEquals(pending, []);
+    await fn(root);
   } finally {
     await Deno.remove(root, { recursive: true });
   }
+}
+
+function makeService(root: string, overrides: {
+  db?: unknown;
+  memoryBank?: unknown;
+} = {}): {
+  config: ReturnType<typeof createMockConfig>;
+  svc: MemoryExtractorService;
+} {
+  const config = createMockConfig(root);
+  const db = overrides.db ?? { logActivity: () => {} };
+  const memoryBank = overrides.memoryBank ?? {};
+  const svc = new MemoryExtractorService(config, db as any, memoryBank as any);
+  return { config, svc };
+}
+
+async function ensurePendingDir(config: { system: { root: string }; paths: { memory: string } }): Promise<string> {
+  const pendingDir = join(config.system.root, config.paths.memory, "Pending");
+  await Deno.mkdir(pendingDir, { recursive: true });
+  return pendingDir;
+}
+
+function makeProposal(overrides: Partial<MemoryUpdateProposal> = {}): MemoryUpdateProposal {
+  const { id, created_at, learning, ...rest } = overrides;
+  return {
+    id: id ?? crypto.randomUUID(),
+    created_at: created_at ?? new Date().toISOString(),
+    operation: MemoryOperation.ADD,
+    target_scope: MemoryScope.GLOBAL,
+    target_project: undefined,
+    learning: learning ?? makeProposalLearning(),
+    reason: "r",
+    agent: "a",
+    execution_id: "e",
+    status: MemoryStatus.PENDING,
+    ...rest,
+  };
+}
+
+async function writeProposal(pendingDir: string, proposal: MemoryUpdateProposal): Promise<string> {
+  const proposalPath = join(pendingDir, `${proposal.id}.json`);
+  await Deno.writeTextFile(proposalPath, JSON.stringify(proposal));
+  return proposalPath;
+}
+
+Deno.test("MemoryExtractorService.listPending: returns [] when pending dir missing", async () => {
+  await withTempRoot(async (root) => {
+    const { svc } = makeService(root);
+    const pending = await svc.listPending();
+    assertEquals(pending, []);
+  });
 });
 
 Deno.test("MemoryExtractorService.listPending: skips invalid JSON and non-pending proposals", async () => {
-  const root = await Deno.makeTempDir({ prefix: "mem-extractor-" });
-  try {
-    const config = createMockConfig(root);
-    const db = { logActivity: () => {} };
-    const memoryBank = {};
-
-    const svc = new MemoryExtractorService(config, db as any, memoryBank as any);
-    const pendingDir = join(config.system.root, config.paths.memory, "Pending");
-    await Deno.mkdir(pendingDir, { recursive: true });
+  await withTempRoot(async (root) => {
+    const { config, svc } = makeService(root);
+    const pendingDir = await ensurePendingDir(config);
 
     // invalid json
     await Deno.writeTextFile(join(pendingDir, "bad.json"), "{not json");
 
     // valid schema, but status not pending
-    const nonPending: MemoryUpdateProposal = {
-      id: crypto.randomUUID(),
-      created_at: new Date().toISOString(),
-      operation: MemoryOperation.ADD,
-      target_scope: MemoryScope.GLOBAL,
-      target_project: undefined,
-      learning: makeProposalLearning(),
-      reason: "r",
-      agent: "a",
-      execution_id: "e",
-      status: MemoryStatus.APPROVED,
-    };
+    const nonPending = makeProposal({ status: MemoryStatus.APPROVED });
     await Deno.writeTextFile(join(pendingDir, "nonpending.json"), JSON.stringify(nonPending));
 
     const list = await svc.listPending();
     assertEquals(list.length, 0);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+  });
 });
 
 Deno.test("MemoryExtractorService.getPending: returns null for missing or invalid proposal file", async () => {
-  const root = await Deno.makeTempDir({ prefix: "mem-extractor-" });
-  try {
-    const config = createMockConfig(root);
-    const db = { logActivity: () => {} };
-    const memoryBank = {};
-
-    const svc = new MemoryExtractorService(config, db as any, memoryBank as any);
+  await withTempRoot(async (root) => {
+    const { config, svc } = makeService(root);
 
     const missing = await svc.getPending("does-not-exist");
     assertEquals(missing, null);
 
-    const pendingDir = join(config.system.root, config.paths.memory, "Pending");
-    await Deno.mkdir(pendingDir, { recursive: true });
+    const pendingDir = await ensurePendingDir(config);
 
     await Deno.writeTextFile(join(pendingDir, "bad-id.json"), "{not json");
     const invalid = await svc.getPending("bad-id");
     assertEquals(invalid, null);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+  });
 });
 
 Deno.test("MemoryExtractorService.approvePending: global proposal merges learning and removes file", async () => {
-  const root = await Deno.makeTempDir({ prefix: "mem-extractor-" });
-  try {
-    const config = createMockConfig(root);
+  await withTempRoot(async (root) => {
     const calls: unknown[] = [];
 
-    const db = { logActivity: (...args: unknown[]) => calls.push(args) };
-    const memoryBank = {
-      addGlobalLearning: (learning: Learning) => {
-        calls.push({ kind: "addGlobalLearning", learning });
-        return Promise.resolve();
+    const { config, svc } = makeService(root, {
+      db: { logActivity: (...args: unknown[]) => calls.push(args) },
+      memoryBank: {
+        addGlobalLearning: (learning: Learning) => {
+          calls.push({ kind: "addGlobalLearning", learning });
+          return Promise.resolve();
+        },
       },
-    };
+    });
 
-    const svc = new MemoryExtractorService(config, db as any, memoryBank as any);
+    const pendingDir = await ensurePendingDir(config);
 
-    const pendingDir = join(config.system.root, config.paths.memory, "Pending");
-    await Deno.mkdir(pendingDir, { recursive: true });
-
-    const proposalId = crypto.randomUUID();
-    const proposal: MemoryUpdateProposal = {
-      id: proposalId,
-      created_at: new Date().toISOString(),
-      operation: MemoryOperation.ADD,
-      target_scope: MemoryScope.GLOBAL,
-      target_project: undefined,
+    const proposal = makeProposal({
       learning: makeProposalLearning({ scope: MemoryScope.GLOBAL }),
-      reason: "r",
-      agent: "a",
-      execution_id: "e",
       status: MemoryStatus.PENDING,
-    };
+    });
 
-    const proposalPath = join(pendingDir, `${proposalId}.json`);
-    await Deno.writeTextFile(proposalPath, JSON.stringify(proposal));
+    const proposalPath = await writeProposal(pendingDir, proposal);
 
-    await svc.approvePending(proposalId);
+    await svc.approvePending(proposal.id);
 
     // file removed
     await assertRejects(() => Deno.stat(proposalPath));
@@ -153,35 +157,26 @@ Deno.test("MemoryExtractorService.approvePending: global proposal merges learnin
     assertExists(globalCall);
     assertEquals(globalCall.learning.status, MemoryStatus.APPROVED);
     assertExists(globalCall.learning.approved_at);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+  });
 });
 
 Deno.test("MemoryExtractorService.approvePending: project proposal adds pattern (file refs only)", async () => {
-  const root = await Deno.makeTempDir({ prefix: "mem-extractor-" });
-  try {
-    const config = createMockConfig(root);
+  await withTempRoot(async (root) => {
     const calls: unknown[] = [];
 
-    const db = { logActivity: (...args: unknown[]) => calls.push(args) };
-    const memoryBank = {
-      addPattern: (project: string, pattern: unknown) => {
-        calls.push({ kind: "addPattern", project, pattern });
-        return Promise.resolve();
+    const { config, svc } = makeService(root, {
+      db: { logActivity: (...args: unknown[]) => calls.push(args) },
+      memoryBank: {
+        addPattern: (project: string, pattern: unknown) => {
+          calls.push({ kind: "addPattern", project, pattern });
+          return Promise.resolve();
+        },
       },
-    };
+    });
 
-    const svc = new MemoryExtractorService(config, db as any, memoryBank as any);
+    const pendingDir = await ensurePendingDir(config);
 
-    const pendingDir = join(config.system.root, config.paths.memory, "Pending");
-    await Deno.mkdir(pendingDir, { recursive: true });
-
-    const proposalId = crypto.randomUUID();
-    const proposal: MemoryUpdateProposal = {
-      id: proposalId,
-      created_at: new Date().toISOString(),
-      operation: MemoryOperation.ADD,
+    const proposal = makeProposal({
       target_scope: MemoryScope.PROJECT,
       target_project: "portalA",
       learning: makeProposalLearning({
@@ -192,71 +187,37 @@ Deno.test("MemoryExtractorService.approvePending: project proposal adds pattern 
           { type: MemoryReferenceType.URL, path: "https://example.com" },
         ],
       }),
-      reason: "r",
-      agent: "a",
-      execution_id: "e",
       status: MemoryStatus.PENDING,
-    };
+    });
 
-    const proposalPath = join(pendingDir, `${proposalId}.json`);
-    await Deno.writeTextFile(proposalPath, JSON.stringify(proposal));
+    await writeProposal(pendingDir, proposal);
 
-    await svc.approvePending(proposalId);
+    await svc.approvePending(proposal.id);
 
     const addPatternCall = calls.find((c) => (c as any)?.kind === "addPattern") as any;
     assertExists(addPatternCall);
     assertEquals(addPatternCall.project, "portalA");
     assertEquals(Array.isArray(addPatternCall.pattern.examples), true);
     assertEquals(addPatternCall.pattern.examples, ["src/a.ts"]);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+  });
 });
 
 Deno.test("MemoryExtractorService.rejectPending: removes proposal file", async () => {
-  const root = await Deno.makeTempDir({ prefix: "mem-extractor-" });
-  try {
-    const config = createMockConfig(root);
-    const db = { logActivity: () => {} };
-    const memoryBank = {};
+  await withTempRoot(async (root) => {
+    const { config, svc } = makeService(root);
+    const pendingDir = await ensurePendingDir(config);
 
-    const svc = new MemoryExtractorService(config, db as any, memoryBank as any);
+    const proposal = makeProposal({ status: MemoryStatus.PENDING });
+    const proposalPath = await writeProposal(pendingDir, proposal);
 
-    const pendingDir = join(config.system.root, config.paths.memory, "Pending");
-    await Deno.mkdir(pendingDir, { recursive: true });
-
-    const proposalId = crypto.randomUUID();
-    const proposal: MemoryUpdateProposal = {
-      id: proposalId,
-      created_at: new Date().toISOString(),
-      operation: MemoryOperation.ADD,
-      target_scope: MemoryScope.GLOBAL,
-      target_project: undefined,
-      learning: makeProposalLearning(),
-      reason: "r",
-      agent: "a",
-      execution_id: "e",
-      status: MemoryStatus.PENDING,
-    };
-
-    const proposalPath = join(pendingDir, `${proposalId}.json`);
-    await Deno.writeTextFile(proposalPath, JSON.stringify(proposal));
-
-    await svc.rejectPending(proposalId, "no");
+    await svc.rejectPending(proposal.id, "no");
     await assertRejects(() => Deno.stat(proposalPath));
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+  });
 });
 
 Deno.test("MemoryExtractorService.approveAll: counts only successful approvals", async () => {
-  const root = await Deno.makeTempDir({ prefix: "mem-extractor-" });
-  try {
-    const config = createMockConfig(root);
-    const db = { logActivity: () => {} };
-    const memoryBank = {};
-
-    const svc = new MemoryExtractorService(config, db as any, memoryBank as any);
+  await withTempRoot(async (root) => {
+    const { svc } = makeService(root);
 
     (svc as any).listPending = () =>
       Promise.resolve([
@@ -271,7 +232,5 @@ Deno.test("MemoryExtractorService.approveAll: counts only successful approvals",
 
     const approved = await svc.approveAll();
     assertEquals(approved, 1);
-  } finally {
-    await Deno.remove(root, { recursive: true });
-  }
+  });
 });
