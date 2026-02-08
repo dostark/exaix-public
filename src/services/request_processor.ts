@@ -112,17 +112,75 @@ export class RequestProcessor {
       priority: frontmatter.priority,
     });
 
-    if (
-      frontmatter.status === RequestStatus.PLANNED ||
-      frontmatter.status === RequestStatus.COMPLETED ||
-      frontmatter.status === RequestStatus.FAILED ||
-      frontmatter.status === RequestStatus.CANCELLED
-    ) {
+    if (this.shouldSkipRequest(frontmatter, traceLogger, filePath)) {
       traceLogger.info("request.skipped", filePath, {
         reason: `Request already has status '${frontmatter.status}'`,
       });
       return null;
     }
+
+    const requestKind = await this.getRequestKindOrFail({
+      frontmatter,
+      filePath,
+      rawContent: parsed.rawContent,
+      traceLogger,
+    });
+    if (!requestKind) {
+      return null;
+    }
+
+    const pipeline = await this.createRequestProcessingPipeline();
+
+    const context: any = {
+      filePath,
+      parsed,
+      frontmatter,
+      body,
+      traceLogger,
+      requestId,
+      requestKind,
+    };
+
+    try {
+      const planPath = await pipeline.execute<string | null>(context, () => {
+        return this.processRequestByKind(
+          requestKind,
+          frontmatter,
+          body,
+          parsed,
+          filePath,
+          requestId,
+          traceId,
+          traceLogger,
+        );
+      });
+
+      return planPath;
+    } catch (error: unknown) {
+      await this.handleError(error, filePath, requestId, parsed.rawContent, traceLogger);
+      return null;
+    }
+  }
+
+  private shouldSkipRequest(frontmatter: RequestFrontmatter, _traceLogger: any, _filePath: string): boolean {
+    switch (frontmatter.status) {
+      case RequestStatus.PLANNED:
+      case RequestStatus.COMPLETED:
+      case RequestStatus.FAILED:
+      case RequestStatus.CANCELLED:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  private async getRequestKindOrFail(args: {
+    frontmatter: RequestFrontmatter;
+    filePath: string;
+    rawContent: string;
+    traceLogger: any;
+  }): Promise<"flow" | "agent" | null> {
+    const { frontmatter, filePath, rawContent, traceLogger } = args;
 
     const hasFlow = !!frontmatter.flow;
     const hasAgent = !!frontmatter.agent;
@@ -131,7 +189,7 @@ export class RequestProcessor {
       traceLogger.error("request.invalid", filePath, {
         error: "Request cannot specify both 'flow' and 'agent' fields",
       });
-      await this.statusManager.updateStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
+      await this.statusManager.updateStatus(filePath, rawContent, RequestStatus.FAILED);
       return null;
     }
 
@@ -139,14 +197,15 @@ export class RequestProcessor {
       traceLogger.error("request.invalid", filePath, {
         error: "Request must specify either 'flow' or 'agent' field",
       });
-      await this.statusManager.updateStatus(filePath, parsed.rawContent, RequestStatus.FAILED);
+      await this.statusManager.updateStatus(filePath, rawContent, RequestStatus.FAILED);
       return null;
     }
 
-    // Middleware setup
-    const pipelineModule = await import("./middleware/pipeline.ts");
-    const MiddlewarePipeline = pipelineModule
-      .MiddlewarePipeline as typeof import("./middleware/pipeline.ts").MiddlewarePipeline;
+    return hasFlow ? "flow" : "agent";
+  }
+
+  private async createRequestProcessingPipeline(): Promise<import("./middleware/pipeline.ts").MiddlewarePipeline<any>> {
+    const { MiddlewarePipeline } = await import("./middleware/pipeline.ts");
     const pipeline = new MiddlewarePipeline<any>();
 
     pipeline.use(async (ctx, next) => {
@@ -175,22 +234,24 @@ export class RequestProcessor {
       }
     });
 
-    const context: any = { filePath, parsed, frontmatter, body, traceLogger, requestId };
+    return pipeline;
+  }
 
-    try {
-      const planPath = await pipeline.execute<string | null>(context, () => {
-        if (hasFlow) {
-          return this.processFlowRequest(frontmatter, parsed, filePath, requestId, traceId, traceLogger);
-        } else {
-          return this.processAgentRequest(frontmatter, body, parsed, filePath, requestId, traceId, traceLogger);
-        }
-      });
-
-      return planPath;
-    } catch (error: unknown) {
-      await this.handleError(error, filePath, requestId, parsed.rawContent, traceLogger);
-      return null;
+  private processRequestByKind(
+    kind: "flow" | "agent",
+    frontmatter: RequestFrontmatter,
+    body: string,
+    parsed: any,
+    filePath: string,
+    requestId: string,
+    traceId: string,
+    traceLogger: any,
+  ): Promise<string | null> {
+    if (kind === "flow") {
+      return this.processFlowRequest(frontmatter, parsed, filePath, requestId, traceId, traceLogger);
     }
+
+    return this.processAgentRequest(frontmatter, body, parsed, filePath, requestId, traceId, traceLogger);
   }
 
   private async processFlowRequest(
