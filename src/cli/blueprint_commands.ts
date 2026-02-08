@@ -492,6 +492,23 @@ export class BlueprintCommands extends BaseCommand {
     return this.parseYamlFrontmatter(content);
   }
 
+  private blueprintMetadataFromFrontmatter(frontmatter: Record<string, unknown>): BlueprintMetadata | null {
+    const agentId = frontmatter.agent_id;
+    if (typeof agentId !== "string" || agentId.trim().length === 0) {
+      return null;
+    }
+
+    return {
+      agent_id: agentId,
+      name: frontmatter.name as string,
+      model: frontmatter.model as string,
+      capabilities: frontmatter.capabilities as string[] | undefined,
+      created: frontmatter.created as string,
+      created_by: frontmatter.created_by as string,
+      version: (frontmatter.version as string) || "1.0.0",
+    };
+  }
+
   /**
    * Validate blueprint creation inputs
    */
@@ -714,21 +731,12 @@ ${systemPrompt}
           const { frontmatter } = this.extractTomlFrontmatter(content);
 
           if (frontmatter) {
-            const agentId = frontmatter.agent_id;
-            if (typeof agentId !== "string" || agentId.trim().length === 0) {
+            const metadata = this.blueprintMetadataFromFrontmatter(frontmatter);
+            if (!metadata) {
               // Skip malformed blueprint files rather than crashing list output.
               continue;
             }
-
-            results.push({
-              agent_id: agentId,
-              name: frontmatter.name as string,
-              model: frontmatter.model as string,
-              capabilities: frontmatter.capabilities as string[] | undefined,
-              created: frontmatter.created as string,
-              created_by: frontmatter.created_by as string,
-              version: (frontmatter.version as string) || "1.0.0",
-            });
+            results.push(metadata);
           }
         }
       }
@@ -755,14 +763,13 @@ ${systemPrompt}
       throw new Error(`Invalid blueprint format: ${agentId}`);
     }
 
+    const metadata = this.blueprintMetadataFromFrontmatter(frontmatter);
+    if (!metadata) {
+      throw new Error(`Invalid blueprint format: ${agentId}`);
+    }
+
     return {
-      agent_id: frontmatter.agent_id as string,
-      name: frontmatter.name as string,
-      model: frontmatter.model as string,
-      capabilities: frontmatter.capabilities as string[] | undefined,
-      created: frontmatter.created as string,
-      created_by: frontmatter.created_by as string,
-      version: (frontmatter.version as string) || "1.0.0",
+      ...metadata,
       content,
     };
   }

@@ -23,6 +23,21 @@ const DEFAULT_COST_TRACKING_RATES: Record<string, number> = {
   [DEFAULTS.PROVIDER_MOCK]: DEFAULTS.COST_RATE_MOCK,
 };
 
+const DEFAULT_GIT_OPERATIONS = {
+  status_timeout_ms: DEFAULTS.DEFAULT_GIT_STATUS_TIMEOUT_MS,
+  ls_files_timeout_ms: DEFAULTS.DEFAULT_GIT_LS_FILES_TIMEOUT_MS,
+  checkout_timeout_ms: DEFAULTS.DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
+  clean_timeout_ms: DEFAULTS.DEFAULT_GIT_CLEAN_TIMEOUT_MS,
+  log_timeout_ms: DEFAULTS.DEFAULT_GIT_LOG_TIMEOUT_MS,
+  diff_timeout_ms: DEFAULTS.DEFAULT_GIT_DIFF_TIMEOUT_MS,
+  command_timeout_ms: DEFAULTS.DEFAULT_GIT_COMMAND_TIMEOUT_MS,
+  max_retries: DEFAULTS.DEFAULT_GIT_MAX_RETRIES,
+  retry_backoff_base_ms: DEFAULTS.DEFAULT_GIT_RETRY_BACKOFF_BASE_MS,
+  branch_name_collision_max_retries: DEFAULTS.DEFAULT_GIT_BRANCH_NAME_COLLISION_MAX_RETRIES,
+  trace_id_short_length: DEFAULTS.DEFAULT_GIT_TRACE_ID_SHORT_LENGTH,
+  branch_suffix_length: DEFAULTS.DEFAULT_GIT_BRANCH_SUFFIX_LENGTH,
+} as const;
+
 export const ConfigSchema = z.object({
   system: z.object({
     root: z.string().default(getCwdSafe()),
@@ -293,37 +308,11 @@ export const ConfigSchema = z.object({
         .min(DEFAULTS.GIT_BRANCH_SUFFIX_LENGTH_MIN)
         .max(DEFAULTS.GIT_BRANCH_SUFFIX_LENGTH_MAX)
         .default(DEFAULTS.DEFAULT_GIT_BRANCH_SUFFIX_LENGTH),
-    }).optional().default({
-      status_timeout_ms: DEFAULTS.DEFAULT_GIT_STATUS_TIMEOUT_MS,
-      ls_files_timeout_ms: DEFAULTS.DEFAULT_GIT_LS_FILES_TIMEOUT_MS,
-      checkout_timeout_ms: DEFAULTS.DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
-      clean_timeout_ms: DEFAULTS.DEFAULT_GIT_CLEAN_TIMEOUT_MS,
-      log_timeout_ms: DEFAULTS.DEFAULT_GIT_LOG_TIMEOUT_MS,
-      diff_timeout_ms: DEFAULTS.DEFAULT_GIT_DIFF_TIMEOUT_MS,
-      command_timeout_ms: DEFAULTS.DEFAULT_GIT_COMMAND_TIMEOUT_MS,
-      max_retries: DEFAULTS.DEFAULT_GIT_MAX_RETRIES,
-      retry_backoff_base_ms: DEFAULTS.DEFAULT_GIT_RETRY_BACKOFF_BASE_MS,
-      branch_name_collision_max_retries: DEFAULTS.DEFAULT_GIT_BRANCH_NAME_COLLISION_MAX_RETRIES,
-      trace_id_short_length: DEFAULTS.DEFAULT_GIT_TRACE_ID_SHORT_LENGTH,
-      branch_suffix_length: DEFAULTS.DEFAULT_GIT_BRANCH_SUFFIX_LENGTH,
-    }),
+    }).optional().default(DEFAULT_GIT_OPERATIONS),
   }).optional().default({
     branch_prefix_pattern: DEFAULTS.DEFAULT_GIT_BRANCH_PREFIX_PATTERN,
     allowed_prefixes: DEFAULTS.DEFAULT_GIT_ALLOWED_PREFIXES,
-    operations: {
-      status_timeout_ms: DEFAULTS.DEFAULT_GIT_STATUS_TIMEOUT_MS,
-      ls_files_timeout_ms: DEFAULTS.DEFAULT_GIT_LS_FILES_TIMEOUT_MS,
-      checkout_timeout_ms: DEFAULTS.DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
-      clean_timeout_ms: DEFAULTS.DEFAULT_GIT_CLEAN_TIMEOUT_MS,
-      log_timeout_ms: DEFAULTS.DEFAULT_GIT_LOG_TIMEOUT_MS,
-      diff_timeout_ms: DEFAULTS.DEFAULT_GIT_DIFF_TIMEOUT_MS,
-      command_timeout_ms: DEFAULTS.DEFAULT_GIT_COMMAND_TIMEOUT_MS,
-      max_retries: DEFAULTS.DEFAULT_GIT_MAX_RETRIES,
-      retry_backoff_base_ms: DEFAULTS.DEFAULT_GIT_RETRY_BACKOFF_BASE_MS,
-      branch_name_collision_max_retries: DEFAULTS.DEFAULT_GIT_BRANCH_NAME_COLLISION_MAX_RETRIES,
-      trace_id_short_length: DEFAULTS.DEFAULT_GIT_TRACE_ID_SHORT_LENGTH,
-      branch_suffix_length: DEFAULTS.DEFAULT_GIT_BRANCH_SUFFIX_LENGTH,
-    },
+    operations: DEFAULT_GIT_OPERATIONS,
   }),
   /** Provider strategy configuration for intelligent provider selection */
   provider_strategy: z.object({

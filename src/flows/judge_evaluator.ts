@@ -58,6 +58,11 @@ export class JudgeEvaluator implements JudgeInvoker {
     return this.parseEvaluationResponse(response.content, criteria);
   }
 
+  private calculateOverallScore(criteriaScores: EvaluationResult["criteriaScores"]): number {
+    const scores = Object.values(criteriaScores);
+    return scores.length > 0 ? scores.reduce((sum, s) => sum + s.score, 0) / scores.length : 0;
+  }
+
   /**
    * Parse evaluation response from judge agent
    */
@@ -105,8 +110,7 @@ export class JudgeEvaluator implements JudgeInvoker {
     }
 
     // Calculate overall score
-    const scores = Object.values(criteriaScores);
-    const overallScore = scores.length > 0 ? scores.reduce((sum, s) => sum + s.score, 0) / scores.length : 0;
+    const overallScore = this.calculateOverallScore(criteriaScores);
 
     return {
       overallScore,
@@ -302,8 +306,7 @@ export class JudgeEvaluator implements JudgeInvoker {
       };
     }
 
-    const scores = Object.values(criteriaScores);
-    const overallScore = scores.length > 0 ? scores.reduce((sum, s) => sum + s.score, 0) / scores.length : 0;
+    const overallScore = this.calculateOverallScore(criteriaScores);
 
     return {
       overallScore,

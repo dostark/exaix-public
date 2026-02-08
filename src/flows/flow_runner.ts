@@ -162,6 +162,19 @@ export class FlowRunner {
     this.conditionEvaluator = new ConditionEvaluator();
   }
 
+  private getFlowLogBase(
+    flow: Flow,
+    request: { traceId?: string; requestId?: string },
+    options: { includeStepCount?: boolean } = {},
+  ): Record<string, unknown> {
+    return {
+      flowId: flow.id,
+      ...(options.includeStepCount ? { stepCount: flow.steps.length } : {}),
+      traceId: request.traceId,
+      requestId: request.requestId,
+    };
+  }
+
   /**
    * Execute a flow with the given request
    */
@@ -198,31 +211,23 @@ export class FlowRunner {
   ): Promise<void> {
     // Log flow validation start
     await this.eventLogger.log("flow.validating", {
-      flowId: flow.id,
-      stepCount: flow.steps.length,
-      traceId: request.traceId,
-      requestId: request.requestId,
+      ...this.getFlowLogBase(flow, request, { includeStepCount: true }),
     });
 
     // Validate flow has steps
     if (flow.steps.length === 0) {
       await this.eventLogger.log("flow.validation.failed", {
-        flowId: flow.id,
         error: "Flow must have at least one step",
-        traceId: request.traceId,
-        requestId: request.requestId,
+        ...this.getFlowLogBase(flow, request),
       });
       throw new FlowExecutionError("Flow must have at least one step", flowRunId);
     }
 
     // Log flow validation success
     await this.eventLogger.log("flow.validated", {
-      flowId: flow.id,
-      stepCount: flow.steps.length,
       maxParallelism: flow.settings?.maxParallelism ?? 3,
       failFast: flow.settings?.failFast ?? true,
-      traceId: request.traceId,
-      requestId: request.requestId,
+      ...this.getFlowLogBase(flow, request, { includeStepCount: true }),
     });
   }
 
@@ -238,20 +243,15 @@ export class FlowRunner {
     // Log flow start
     await this.eventLogger.log("flow.started", {
       flowRunId,
-      flowId: flow.id,
-      stepCount: flow.steps.length,
       maxParallelism: flow.settings?.maxParallelism ?? 3,
       failFast: flow.settings?.failFast ?? true,
-      traceId: request.traceId,
-      requestId: request.requestId,
+      ...this.getFlowLogBase(flow, request, { includeStepCount: true }),
     });
 
     // Resolve dependency graph
     await this.eventLogger.log("flow.dependencies.resolving", {
       flowRunId,
-      flowId: flow.id,
-      traceId: request.traceId,
-      requestId: request.requestId,
+      ...this.getFlowLogBase(flow, request),
     });
 
     const resolver = new DependencyResolver(flow.steps);
@@ -259,11 +259,9 @@ export class FlowRunner {
 
     await this.eventLogger.log("flow.dependencies.resolved", {
       flowRunId,
-      flowId: flow.id,
       waveCount: waves.length,
       totalSteps: flow.steps.length,
-      traceId: request.traceId,
-      requestId: request.requestId,
+      ...this.getFlowLogBase(flow, request),
     });
 
     const failFast = flow.settings?.failFast ?? true;

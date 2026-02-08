@@ -6,7 +6,7 @@
  */
 
 import { colorize, type TuiTheme, visibleLength } from "./colors.ts";
-import { BOX } from "./dialog_base.ts";
+import { renderBoxBottom, renderBoxLine, renderBoxTop, wrapToWidth } from "./dialog_base.ts";
 
 // ===== Common Rendering Functions =====
 
@@ -125,7 +125,7 @@ export function renderDialogButtons(
 
 // ===== Re-export common functions from dialog_base.ts =====
 
-export { renderBoxLine, renderBoxTop, wrapToWidth } from "./dialog_base.ts";
+export { renderBoxBottom, renderBoxLine, renderBoxTop, wrapToWidth } from "./dialog_base.ts";
 
 // ===== Utility Functions =====
 
@@ -164,44 +164,4 @@ export function createDialogBorder(
   return borderedLines;
 }
 
-// ===== Import missing functions =====
-
-function renderBoxTop(innerWidth: number, title: string, theme: TuiTheme): string {
-  const leftPadding = Math.floor((innerWidth - visibleLength(title)) / 2);
-  const rightPadding = innerWidth - visibleLength(title) - leftPadding;
-  const topLine = BOX.topLeft +
-    BOX.horizontal.repeat(leftPadding) +
-    title +
-    BOX.horizontal.repeat(rightPadding) +
-    BOX.topRight;
-  return colorize(topLine, theme.border);
-}
-
-function renderBoxLine(content: string, width: number, theme: TuiTheme): string {
-  const padding = Math.max(0, width - visibleLength(content));
-  const line = BOX.vertical + content + " ".repeat(padding) + BOX.vertical;
-  return colorize(line, theme.border);
-}
-
-function renderBoxBottom(width: number, theme: TuiTheme): string {
-  const bottomLine = BOX.bottomLeft + BOX.horizontal.repeat(width) + BOX.bottomRight;
-  return colorize(bottomLine, theme.border);
-}
-
-function wrapToWidth(text: string, width: number): string[] {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let currentLine = "";
-
-  for (const word of words) {
-    if (currentLine.length + word.length + 1 <= width) {
-      currentLine += (currentLine ? " " : "") + word;
-    } else {
-      if (currentLine) lines.push(currentLine);
-      currentLine = word;
-    }
-  }
-
-  if (currentLine) lines.push(currentLine);
-  return lines;
-}
+// Note: box rendering + wrapping helpers are imported from dialog_base.ts

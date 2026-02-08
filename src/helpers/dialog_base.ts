@@ -27,6 +27,23 @@ export interface DialogRenderOptions {
   height: number;
 }
 
+function appendDialogHeader(lines: string[], title: string, innerWidth: number, theme: TuiTheme): void {
+  lines.push(renderDialogTitle(title, innerWidth, theme));
+  lines.push(renderEmptyDialogLine(innerWidth, theme));
+}
+
+function appendDialogFooter(
+  lines: string[],
+  buttons: Array<{ text: string; focused: boolean }>,
+  innerWidth: number,
+  theme: TuiTheme,
+): void {
+  lines.push(renderEmptyDialogLine(innerWidth, theme));
+  lines.push(renderDialogButtons(buttons, innerWidth, theme));
+  lines.push(renderEmptyDialogLine(innerWidth, theme));
+  lines.push(renderBoxBottom(innerWidth, theme));
+}
+
 // ===== Box Drawing Characters =====
 
 export const BOX = {
@@ -157,11 +174,7 @@ export class ConfirmDialog extends DialogBase<boolean> {
     const innerWidth = Math.min(opts.width - 4, 60);
     const lines: string[] = [];
 
-    // Top border with title
-    lines.push(renderDialogTitle(this.options.title, innerWidth, theme));
-
-    // Empty line
-    lines.push(renderEmptyDialogLine(innerWidth, theme));
+    appendDialogHeader(lines, this.options.title, innerWidth, theme);
 
     // Message lines
     const messages = Array.isArray(this.options.message)
@@ -172,21 +185,13 @@ export class ConfirmDialog extends DialogBase<boolean> {
       lines.push(renderDialogLine(`  ${msg}`, innerWidth, theme));
     }
 
-    // Empty line
-    lines.push(renderEmptyDialogLine(innerWidth, theme));
-
     // Buttons
     const buttons = [
       { text: this.options.confirmText, focused: this.focusIndex === 0 },
       { text: this.options.cancelText, focused: this.focusIndex === 1 },
     ];
-    lines.push(renderDialogButtons(buttons, innerWidth, theme));
 
-    // Empty line
-    lines.push(renderEmptyDialogLine(innerWidth, theme));
-
-    // Bottom border
-    lines.push(renderBoxBottom(innerWidth, theme));
+    appendDialogFooter(lines, buttons, innerWidth, theme);
 
     return lines;
   }
@@ -328,11 +333,7 @@ export class InputDialog extends DialogBase<string> {
     const innerWidth = Math.min(opts.width - 4, 60);
     const lines: string[] = [];
 
-    // Top border with title
-    lines.push(renderDialogTitle(this.options.title, innerWidth, theme));
-
-    // Empty line
-    lines.push(renderEmptyDialogLine(innerWidth, theme));
+    appendDialogHeader(lines, this.options.title, innerWidth, theme);
 
     // Label
     lines.push(renderDialogLine(`  ${this.options.label}:`, innerWidth, theme));
@@ -351,22 +352,14 @@ export class InputDialog extends DialogBase<string> {
     );
     lines.push(renderDialogLine(`  ${inputField}`, innerWidth, theme));
 
-    // Empty line
-    lines.push(renderEmptyDialogLine(innerWidth, theme));
-
     // Buttons
     const _canConfirm = !this.options.required || this.value.length > 0;
     const buttons = [
       { text: "OK", focused: this.focusIndex === 1 },
       { text: "Cancel", focused: this.focusIndex === 2 },
     ];
-    lines.push(renderDialogButtons(buttons, innerWidth, theme));
 
-    // Empty line
-    lines.push(renderEmptyDialogLine(innerWidth, theme));
-
-    // Bottom border
-    lines.push(renderBoxBottom(innerWidth, theme));
+    appendDialogFooter(lines, buttons, innerWidth, theme);
 
     return lines;
   }
@@ -490,11 +483,7 @@ export class SelectDialog<T = string> extends DialogBase<T> {
     const innerWidth = Math.min(opts.width - 4, 60);
     const lines: string[] = [];
 
-    // Top border with title
-    lines.push(renderDialogTitle(this.options.title, innerWidth, theme));
-
-    // Empty line
-    lines.push(renderEmptyDialogLine(innerWidth, theme));
+    appendDialogHeader(lines, this.options.title, innerWidth, theme);
 
     // Options list
     const visibleOptions = this.options.options.slice(
@@ -524,21 +513,13 @@ export class SelectDialog<T = string> extends DialogBase<T> {
       lines.push(renderBoxLineCentered(colorize(scrollIndicator, theme.textDim, theme.reset), innerWidth, theme));
     }
 
-    // Empty line
-    lines.push(renderEmptyDialogLine(innerWidth, theme));
-
     // Buttons
     const buttons = [
       { text: "Select", focused: this.focusIndex === 1 },
       { text: "Cancel", focused: this.focusIndex === 2 },
     ];
-    lines.push(renderDialogButtons(buttons, innerWidth, theme));
 
-    // Empty line
-    lines.push(renderEmptyDialogLine(innerWidth, theme));
-
-    // Bottom border
-    lines.push(renderBoxBottom(innerWidth, theme));
+    appendDialogFooter(lines, buttons, innerWidth, theme);
 
     return lines;
   }

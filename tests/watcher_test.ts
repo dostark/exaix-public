@@ -783,23 +783,52 @@ Deno.test("File Stability - Exponential backoff timing", async () => {
 
     // This should fail after 5 attempts with exponential backoff
     try {
+      const abortController = new AbortController();
+
+      const abortableSleep = (ms: number, signal: AbortSignal): Promise<void> => {
+        if (signal.aborted) return Promise.resolve();
+
+        return new Promise((resolve) => {
+          const onAbort = () => {
+            clearTimeout(timeoutId);
+            resolve();
+          };
+
+          const timeoutId = setTimeout(() => {
+            signal.removeEventListener("abort", onAbort);
+            resolve();
+          }, ms);
+
+          signal.addEventListener("abort", onAbort, { once: true });
+        });
+      };
+
       // Simulate a file that keeps changing size throughout the stability check
-      const changeFile = async () => {
+      const changeFile = async (signal: AbortSignal) => {
         // Keep changing for longer than the stability check duration (1850ms)
-        for (let i = 0; i < 50; i++) {
-          await Deno.writeTextFile(testFile, "x".repeat(i + 1));
-          await new Promise((resolve) => setTimeout(resolve, 20)); // Change every 20ms
+        for (let i = 0; i < 50 && !signal.aborted; i++) {
+          try {
+            await Deno.writeTextFile(testFile, "x".repeat(i + 1));
+          } catch {
+            // Ignore errors when directory is cleaned up
+          }
+          await abortableSleep(20, signal); // Change every 20ms
         }
       };
 
       // Start changing the file continuously
-      const _changePromise = changeFile().catch(() => {
-        // Ignore errors when directory is cleaned up
-      });
+      const changePromise = changeFile(abortController.signal);
 
-      // Try to read it stably - should timeout after ~1.85 seconds (sum of backoff delays)
-      const watcher = new FileWatcher(createMockConfig(tempDir), () => {});
-      await (watcher as any).readFileWhenStable(testFile);
+      try {
+        // Try to read it stably - should timeout after ~1.85 seconds (sum of backoff delays)
+        const watcher = new FileWatcher(createMockConfig(tempDir), () => {});
+        await (watcher as any).readFileWhenStable(testFile);
+      } finally {
+        abortController.abort();
+        await changePromise.catch(() => {
+          // Ignore errors when directory is cleaned up
+        });
+      }
 
       assert(false, "Should have thrown timeout error");
     } catch (error) {
