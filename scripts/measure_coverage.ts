@@ -16,6 +16,11 @@ const flags = parse(Deno.args, {
 const _THRESHOLD = parseFloat(flags.threshold);
 const COVERAGE_DIR = "coverage";
 
+const COVERAGE_EXCLUDE_PATTERNS = [
+  "^file:///tmp/",
+  "/scripts/",
+];
+
 type CoverageRow = {
   file: string;
   branchPct: number;
@@ -88,9 +93,7 @@ async function runCoverageReport(): Promise<string> {
     args: [
       "coverage",
       COVERAGE_DIR,
-      // Some tests generate temp sources under /tmp that are deleted by the time the report runs.
-      // Excluding /tmp avoids hard failures when those sources no longer exist.
-      "--exclude=^file:///tmp/",
+      ...COVERAGE_EXCLUDE_PATTERNS.map((pattern) => `--exclude=${pattern}`),
     ],
     stdout: "piped",
     stderr: "piped",
@@ -160,7 +163,7 @@ async function runCoverageCheck() {
       "coverage",
       COVERAGE_DIR,
       "--lcov",
-      "--exclude=^file:///tmp/",
+      ...COVERAGE_EXCLUDE_PATTERNS.map((pattern) => `--exclude=${pattern}`),
     ],
     stdout: "piped",
     stderr: "piped",
@@ -220,16 +223,12 @@ async function runCoverageCheck() {
       );
     }
 
+    console.log(`\nℹ️  Coverage excludes: ${COVERAGE_EXCLUDE_PATTERNS.join(", ")}`);
+
     printLowestCovered(rows, {
       label: "src/",
       filter: (r) => r.file.startsWith("src/"),
       limit: listLimit,
-    });
-
-    printLowestCovered(rows, {
-      label: "scripts/",
-      filter: (r) => r.file.startsWith("scripts/"),
-      limit: Math.min(10, listLimit),
     });
   }
 
