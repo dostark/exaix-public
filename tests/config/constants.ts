@@ -20,9 +20,102 @@ export const TEST_RETRY_MAX_ATTEMPTS_SINGLE = 1;
 export const TEST_RETRY_BACKOFF_BASE_MS_ZERO = 0;
 export const TEST_PROVIDER_TIMEOUT_MS_SHORT = 50;
 
+// Subprocess tests
+export const TEST_SUBPROCESS_TIMEOUT_MS_SHORT = 200;
+export const TEST_SUBPROCESS_LONG_RUNNING_MS = 2000;
+export const TEST_SUBPROCESS_ABORT_DELAY_MS = 50;
+
 // MCP CLI / Server tests
 export const TEST_MCP_PORT = 34567;
 export const TEST_MCP_DEFAULT_PORT = 3000;
+
+// AI Config Tests
+export const TEST_AI_INVALID_URL = "invalid-url";
+export const TEST_EMPTY_STRING = "";
+export const TEST_CUSTOM_PROVIDER_TYPE = "custom-provider";
+export const TEST_CUSTOM_PROVIDER_NAME = "Custom Provider";
+export const TEST_CUSTOM_PROVIDER_DESCRIPTION = "Custom provider for tests";
+export const TEST_CUSTOM_PROVIDER_CAPABILITY = "chat";
+export const TEST_CUSTOM_PROVIDER_STRENGTH = "general";
+export const TEST_CUSTOM_PROVIDER_ID = "custom-provider-id";
+export const TEST_CUSTOM_PROVIDER_RESPONSE = "custom-response";
+export const TEST_CUSTOM_PROVIDER_MODEL = "custom-provider-model";
+
+// Memory formatter tests
+export const TEST_PORTAL_NAME = "test-portal";
+export const TEST_PROJECT_OVERVIEW = "Project overview";
+export const TEST_PATTERN_NAME = "Pattern A";
+export const TEST_PATTERN_DESCRIPTION = "Pattern description";
+export const TEST_PATTERN_EXAMPLE = "src/pattern.ts";
+export const TEST_PATTERN_TAG = "pattern-tag";
+export const TEST_DECISION_DATE = "2026-02-08";
+export const TEST_DECISION_TEXT = "Adopt design";
+export const TEST_DECISION_RATIONALE = "Reduce risk";
+export const TEST_REFERENCE_PATH = "src/index.ts";
+export const TEST_REFERENCE_DESCRIPTION = "Reference description";
+export const TEST_TRACE_ID = "11111111-1111-4000-8000-000000000001";
+export const TEST_REQUEST_ID = "req-123";
+export const TEST_AGENT_NAME = "test-agent";
+export const TEST_STARTED_AT = "2026-02-08T00:00:00.000Z";
+export const TEST_COMPLETED_AT = "2026-02-08T01:00:00.000Z";
+export const TEST_SUMMARY_TEXT = "Execution summary";
+export const TEST_CONTEXT_FILE = "src/feature.ts";
+export const TEST_LESSON_TEXT = "Lesson learned";
+export const TEST_ERROR_TEXT = "Execution error";
+export const TEST_SEARCH_QUERY = "query";
+export const TEST_GLOBAL_VERSION = "1.0";
+export const TEST_GLOBAL_UPDATED_AT = "2026-02-08T02:00:00.000Z";
+export const TEST_GLOBAL_CATEGORY = "pattern";
+export const TEST_GLOBAL_PROJECT = "demo-project";
+
+// Dashboard mock tests
+export const TEST_SKILL_ID_USER = "tdd-methodology";
+export const TEST_SKILL_ID_LEARNED = "api-design-learned";
+export const TEST_AGENT_ID = "agent-1";
+export const TEST_PROPOSAL_ID = "proposal-1";
+export const TEST_UNKNOWN_PROPOSAL_ID = "proposal-unknown";
+
+// Request parser tests
+export const TEST_REQUEST_FILE_NAME = "request-test.md";
+export const TEST_REQUEST_BODY = "Implement feature X";
+export const TEST_REQUEST_TRACE_ID = "11111111-1111-4000-8000-000000000002";
+export const TEST_REQUEST_CREATED_AT = "2026-02-08T03:00:00.000Z";
+export const TEST_REQUEST_PRIORITY = "normal";
+export const TEST_REQUEST_AGENT = "default";
+export const TEST_REQUEST_SOURCE = "cli";
+export const TEST_REQUEST_CREATED_BY = "tester@example.com";
+export const TEST_REQUEST_STATUS_UNKNOWN = "unknown_status";
+export const TEST_REQUEST_STATUS_VALID = "planned";
+export const TEST_REQUEST_INVALID_YAML = "trace_id: [";
+export const TEST_LOG_ACTION_FILE_NOT_FOUND = "file.not_found";
+export const TEST_LOG_ACTION_FRONTMATTER_INVALID = "frontmatter.invalid";
+export const TEST_LOG_ACTION_MISSING_TRACE_ID = "frontmatter.missing_trace_id";
+export const TEST_LOG_ACTION_PARSE_FAILED = "file.parse_failed";
+
+// Agent status tests
+export const TEST_AGENT_STATUS_INVALID = "invalid-agent-status";
+
+// Blueprint commands tests
+export const TEST_BLUEPRINT_YAML_AGENT_ID = "yaml-inline-agent";
+export const TEST_BLUEPRINT_YAML_NAME = "YAML Inline Agent";
+export const TEST_BLUEPRINT_YAML_MODEL = "mock:test-model";
+export const TEST_BLUEPRINT_YAML_CAPABILITY_ONE = "alpha";
+export const TEST_BLUEPRINT_YAML_CAPABILITY_TWO = "beta";
+export const TEST_BLUEPRINT_YAML_CREATED = "2026-02-10T00:00:00Z";
+export const TEST_BLUEPRINT_YAML_CREATED_BY = "tester";
+export const TEST_BLUEPRINT_YAML_VERSION = "1.0.0";
+export const TEST_BLUEPRINT_MISSING_AGENT_ID = "missing-agent";
+export const TEST_BLUEPRINT_NO_FRONTMATTER_ID = "no-frontmatter";
+export const TEST_BLUEPRINT_NO_FRONTMATTER_CONTENT = "No frontmatter content";
+export const TEST_BLUEPRINT_ERROR_MISSING_FRONTMATTER = "Missing or invalid TOML frontmatter";
+
+// Graceful shutdown tests
+export const TEST_SIGNAL_SIGINT = "SIGINT";
+export const TEST_SIGNAL_SIGTERM = "SIGTERM";
+export const TEST_EVENT_UNHANDLED_REJECTION = "unhandledrejection";
+export const TEST_EVENT_ERROR = "error";
+export const LOG_MSG_SIGNAL_HANDLERS_REGISTERED = "Signal handlers registered for graceful shutdown";
+export const LOG_MSG_ERROR_HANDLERS_REGISTERED = "Error handlers registered for graceful shutdown";
 
 // LlamaProvider offline tests
 export const TEST_OLLAMA_ENDPOINT = "http://ollama.test/api/generate";

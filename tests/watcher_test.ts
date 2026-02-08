@@ -214,40 +214,44 @@ Deno.test("Stability verification - file never stabilizes", async () => {
   }
 });
 
-Deno.test("Error handling - permission denied during read", async () => {
-  const tempDir = await Deno.makeTempDir({ prefix: "watcher-test-permission-" });
-  try {
-    const testFile = join(tempDir, "readonly.txt");
-    await Deno.writeTextFile(testFile, "content");
-
-    // Remove read permissions
-    await Deno.chmod(testFile, 0o000);
-
-    // Try to read - should throw permission error
-    let errorThrown = false;
-    try {
-      await readFileWhenStable(testFile);
-    } catch (error) {
-      errorThrown = true;
-      // Should be permission error
-      assertEquals(
-        error instanceof Deno.errors.PermissionDenied ||
-          (error instanceof Error && error.message.includes("permission")),
-        true,
-      );
-    }
-
-    assertEquals(errorThrown, true);
-  } finally {
-    // Restore permissions before cleanup
+Deno.test({
+  name: "Error handling - permission denied during read",
+  ignore: Deno.build.os === "windows",
+  fn: async () => {
+    const tempDir = await Deno.makeTempDir({ prefix: "watcher-test-permission-" });
     try {
       const testFile = join(tempDir, "readonly.txt");
-      await Deno.chmod(testFile, 0o644);
-    } catch {
-      // Permission already restored or file deleted
+      await Deno.writeTextFile(testFile, "content");
+
+      // Remove read permissions
+      await Deno.chmod(testFile, 0o000);
+
+      // Try to read - should throw permission error
+      let errorThrown = false;
+      try {
+        await readFileWhenStable(testFile);
+      } catch (error) {
+        errorThrown = true;
+        // Should be permission error
+        assertEquals(
+          error instanceof Deno.errors.PermissionDenied ||
+            (error instanceof Error && error.message.includes("permission")),
+          true,
+        );
+      }
+
+      assertEquals(errorThrown, true);
+    } finally {
+      // Restore permissions before cleanup
+      try {
+        const testFile = join(tempDir, "readonly.txt");
+        await Deno.chmod(testFile, 0o644);
+      } catch {
+        // Permission already restored or file deleted
+      }
+      await Deno.remove(tempDir, { recursive: true }).catch(() => {});
     }
-    await Deno.remove(tempDir, { recursive: true }).catch(() => {});
-  }
+  },
 });
 
 Deno.test("Edge case - empty file remains empty", async () => {

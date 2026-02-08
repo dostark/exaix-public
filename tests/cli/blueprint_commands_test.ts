@@ -14,6 +14,20 @@ import { join } from "@std/path";
 import { BlueprintCommands } from "../../src/cli/blueprint_commands.ts";
 import type { CommandContext } from "../../src/cli/base.ts";
 import { TestEnvironment } from "../integration/helpers/test_environment.ts";
+import {
+  TEST_BLUEPRINT_ERROR_MISSING_FRONTMATTER,
+  TEST_BLUEPRINT_MISSING_AGENT_ID,
+  TEST_BLUEPRINT_NO_FRONTMATTER_CONTENT,
+  TEST_BLUEPRINT_NO_FRONTMATTER_ID,
+  TEST_BLUEPRINT_YAML_AGENT_ID,
+  TEST_BLUEPRINT_YAML_CAPABILITY_ONE,
+  TEST_BLUEPRINT_YAML_CAPABILITY_TWO,
+  TEST_BLUEPRINT_YAML_CREATED,
+  TEST_BLUEPRINT_YAML_CREATED_BY,
+  TEST_BLUEPRINT_YAML_MODEL,
+  TEST_BLUEPRINT_YAML_NAME,
+  TEST_BLUEPRINT_YAML_VERSION,
+} from "../config/constants.ts";
 
 // ============================================================================
 // Test Setup
@@ -259,6 +273,69 @@ Deno.test("[blueprint] list - returns metadata", async () => {
     assertEquals(blueprint.model, "anthropic:claude-sonnet");
     assertExists(blueprint.created);
     assertExists(blueprint.created_by);
+  } finally {
+    await teardownTest();
+  }
+});
+
+Deno.test("[blueprint] list - parses YAML inline arrays with invalid JSON", async () => {
+  await setupTest();
+  try {
+    const blueprintPath = join(
+      testEnv.config.system.root,
+      testEnv.config.paths.blueprints,
+      "Agents",
+      `${TEST_BLUEPRINT_YAML_AGENT_ID}.md`,
+    );
+    const yamlContent = `---
+agent_id: "${TEST_BLUEPRINT_YAML_AGENT_ID}"
+name: "${TEST_BLUEPRINT_YAML_NAME}"
+model: "${TEST_BLUEPRINT_YAML_MODEL}"
+capabilities: [${TEST_BLUEPRINT_YAML_CAPABILITY_ONE}, ${TEST_BLUEPRINT_YAML_CAPABILITY_TWO}]
+created: "${TEST_BLUEPRINT_YAML_CREATED}"
+created_by: "${TEST_BLUEPRINT_YAML_CREATED_BY}"
+version: "${TEST_BLUEPRINT_YAML_VERSION}"
+---
+
+Inline YAML array test
+`;
+    await Deno.writeTextFile(blueprintPath, yamlContent);
+
+    const blueprints = await commands.list();
+    const blueprint = blueprints.find((b) => b.agent_id === TEST_BLUEPRINT_YAML_AGENT_ID);
+
+    assertExists(blueprint);
+    if (!blueprint) throw new Error("Blueprint not found");
+    assertEquals(Array.isArray(blueprint.capabilities), true);
+    assertEquals(blueprint.capabilities?.length, 0);
+  } finally {
+    await teardownTest();
+  }
+});
+
+Deno.test("[blueprint] list - skips YAML frontmatter missing agent_id", async () => {
+  await setupTest();
+  try {
+    const blueprintPath = join(
+      testEnv.config.system.root,
+      testEnv.config.paths.blueprints,
+      "Agents",
+      `${TEST_BLUEPRINT_MISSING_AGENT_ID}.md`,
+    );
+    const yamlContent = `---
+name: "Missing Agent Id"
+model: "${TEST_BLUEPRINT_YAML_MODEL}"
+created: "${TEST_BLUEPRINT_YAML_CREATED}"
+created_by: "${TEST_BLUEPRINT_YAML_CREATED_BY}"
+version: "${TEST_BLUEPRINT_YAML_VERSION}"
+---
+
+Missing agent_id
+`;
+    await Deno.writeTextFile(blueprintPath, yamlContent);
+
+    const blueprints = await commands.list();
+    assertEquals(blueprints.length, 0);
   } finally {
     await teardownTest();
   }
@@ -657,6 +734,25 @@ Deno.test("[blueprint] list - returns empty array when no blueprints", async () 
   try {
     const results = await commands.list();
     assertEquals(results, []);
+  } finally {
+    await teardownTest();
+  }
+});
+
+Deno.test("[blueprint] validate - reports missing frontmatter", async () => {
+  await setupTest();
+  try {
+    const blueprintPath = join(
+      testEnv.config.system.root,
+      testEnv.config.paths.blueprints,
+      "Agents",
+      `${TEST_BLUEPRINT_NO_FRONTMATTER_ID}.md`,
+    );
+    await Deno.writeTextFile(blueprintPath, TEST_BLUEPRINT_NO_FRONTMATTER_CONTENT);
+
+    const result = await commands.validate(TEST_BLUEPRINT_NO_FRONTMATTER_ID);
+    assertEquals(result.valid, false);
+    assertStringIncludes(result.errors.join("\n"), TEST_BLUEPRINT_ERROR_MISSING_FRONTMATTER);
   } finally {
     await teardownTest();
   }

@@ -153,9 +153,88 @@ async function generateBuilds(options: BuildOptions = {}): Promise<boolean> {
 async function verifyCoverage(): Promise<boolean> {
   console.log(`\n⏳ Starting: Coverage Verification...${isDryRun ? " (DRY RUN)" : ""}`);
 
+  const COVERAGE_DIR = "coverage";
+  const COVERAGE_INCLUDE_PATTERN = "^file://.*ExoFrame/src/";
+  const COVERAGE_EXCLUDE_PATTERN = "(^file:///tmp/|test\\.(ts|js)$)";
+  const COVERAGE_WARNING_PATTERNS: RegExp[] = [
+    /Failed to fetch "file:\/\/\/tmp\//,
+    /Failed to create output file:/,
+    /Before generating coverage report, run `deno test --coverage`/,
+  ];
+  const LINE_THRESHOLD = 60.0;
+  const BRANCH_THRESHOLD = 50.0;
+
+  const stripAnsi = (text: string): string => {
+    const esc = String.fromCharCode(27);
+    const ansiRegex = new RegExp(`${esc}\\[[0-9;]*m`, "g");
+    return text.replace(ansiRegex, "");
+  };
+
+  const filterCoverageWarnings = (stderrText: string): string => {
+    return stderrText
+      .split("\n")
+      .map((line) => line.trimEnd())
+      .filter((line) => line.trim().length > 0)
+      .filter((line) => !COVERAGE_WARNING_PATTERNS.some((pattern) => pattern.test(line)))
+      .join("\n");
+  };
+
+  const parseCoverageTable = (output: string): Array<{ file: string; branch: number; line: number }> => {
+    const rows: Array<{ file: string; branch: number; line: number }> = [];
+    const normalized = stripAnsi(output);
+
+    for (const rawLine of normalized.split("\n")) {
+      const line = rawLine.trimEnd();
+      if (!line.startsWith("|")) continue;
+      if (line.includes("----")) continue;
+      if (line.startsWith("| File")) continue;
+
+      const match = line.match(
+        /^\|\s*(.+?)\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|\s*([0-9]+(?:\.[0-9]+)?)\s*\|?$/,
+      );
+      if (!match) continue;
+
+      const file = match[1];
+      const branch = Number(match[2]);
+      const linePct = Number(match[3]);
+
+      if (!Number.isFinite(branch) || !Number.isFinite(linePct)) continue;
+      rows.push({ file, branch, line: linePct });
+    }
+
+    return rows;
+  };
+
   // 1. Run tests with coverage
-  if (!await run(["deno", "task", "test:coverage"], "Running tests with coverage")) {
-    return false;
+  if (isDryRun) {
+    console.log("   [DRY RUN] Would run tests with coverage enabled");
+  } else {
+    console.log("\n⏳ Starting: Running tests with coverage...");
+    try {
+      await Deno.remove(COVERAGE_DIR, { recursive: true });
+    } catch (_error) {
+      // Ignore missing directory.
+    }
+
+    const testStart = Date.now();
+    const testCmd = new Deno.Command("deno", {
+      args: ["test", "--allow-all", `--coverage=${COVERAGE_DIR}`, "tests/"],
+      stdout: "inherit",
+      stderr: "piped",
+    });
+    const testResult = await testCmd.output();
+    const testDuration = Date.now() - testStart;
+    const filteredTestStderr = filterCoverageWarnings(new TextDecoder().decode(testResult.stderr));
+    if (filteredTestStderr) {
+      console.error(filteredTestStderr);
+    }
+
+    if (testResult.code !== 0) {
+      console.error(`❌ Failed: Running tests with coverage (Exit code: ${testResult.code})`);
+      return false;
+    }
+
+    console.log(`✅ Completed: Running tests with coverage in ${testDuration}ms`);
   }
 
   // 2. Generate report and parse
@@ -168,28 +247,19 @@ async function verifyCoverage(): Promise<boolean> {
   const covCmd = new Deno.Command("deno", {
     args: [
       "coverage",
-      "coverage/",
-      "--include=^file://.*ExoFrame/src/",
-      "--exclude=(^file:///tmp/|test\\.(ts|js)$)",
+      `${COVERAGE_DIR}/`,
+      `--include=${COVERAGE_INCLUDE_PATTERN}`,
+      `--exclude=${COVERAGE_EXCLUDE_PATTERN}`,
     ],
     stdout: "piped",
     stderr: "piped",
+    env: { NO_COLOR: "1" },
   });
   const covOutput = await covCmd.output();
   const outputText = new TextDecoder().decode(covOutput.stdout);
   const stderrText = new TextDecoder().decode(covOutput.stderr);
 
-  const ignoredStderrPatterns: RegExp[] = [
-    /Failed to fetch "file:\/\/\/tmp\//,
-    /Before generating coverage report, run `deno test --coverage`/,
-  ];
-
-  const relevantStderr = stderrText
-    .split("\n")
-    .map((line) => line.trimEnd())
-    .filter((line) => line.trim().length > 0)
-    .filter((line) => !ignoredStderrPatterns.some((pattern) => pattern.test(line)))
-    .join("\n");
+  const relevantStderr = filterCoverageWarnings(stderrText);
 
   // Deno coverage output ends with "Covered 95.00% of lines ..." or similar?
   // Actually standard deno coverage just lists files.
@@ -225,23 +295,18 @@ async function verifyCoverage(): Promise<boolean> {
   }
 
   // 3. Parse total coverage
-  // Deno coverage output format: "| All files | <lines>% | <functions>% |"
-  const totalLineMatch = outputText.match(/All files\s+\|\s+(\d+\.\d+)\s+\|\s+(\d+\.\d+)/);
-  if (totalLineMatch) {
-    const lines = parseFloat(totalLineMatch[1]);
-    const funcs = parseFloat(totalLineMatch[2]);
-    const LINE_THRESHOLD = 60.0;
-    const FUNC_THRESHOLD = 50.0;
+  const rows = parseCoverageTable(outputText);
+  const totalRow = rows.find((row) => row.file === "All files");
+  if (totalRow) {
+    console.log(`\n📊 Total Coverage: Lines: ${totalRow.line}%, Branch: ${totalRow.branch}%`);
 
-    console.log(`\n📊 Total Coverage: Lines: ${lines}%, Functions: ${funcs}%`);
-
-    if (lines < LINE_THRESHOLD || funcs < FUNC_THRESHOLD) {
+    if (totalRow.line < LINE_THRESHOLD || totalRow.branch < BRANCH_THRESHOLD) {
       console.error(
-        `❌ Failed: Coverage below threshold! (Target: L:${LINE_THRESHOLD}%, F:${FUNC_THRESHOLD}%)`,
+        `❌ Failed: Coverage below threshold! (Target: L:${LINE_THRESHOLD}%, B:${BRANCH_THRESHOLD}%)`,
       );
       return false;
     }
-    console.log(`✅ Coverage is above thresholds.`);
+    console.log("✅ Coverage is above thresholds.");
   } else {
     console.warn("⚠️ Warning: Could not parse total coverage summary.");
   }

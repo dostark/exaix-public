@@ -2,11 +2,21 @@ import {
   MockAgentService,
   MockDaemonService,
   MockLogService,
+  MockMemoryService,
   MockPlanService,
   MockPortalService,
   MockRequestService,
+  MockSkillsService,
+  MockStructuredLogger,
+  MockStructuredLoggerService,
 } from "../../src/tui/tui_dashboard_mocks.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import {
+  TEST_PROPOSAL_ID,
+  TEST_SKILL_ID_LEARNED,
+  TEST_SKILL_ID_USER,
+  TEST_UNKNOWN_PROPOSAL_ID,
+} from "../config/constants.ts";
 
 Deno.test("MockPortalService: returns portals", async () => {
   const service = new MockPortalService();
@@ -114,4 +124,79 @@ Deno.test("MockAgentService: all methods", async () => {
   if (health2.status !== "warning" || health2.issues.length !== 1) throw new Error("getAgentHealth agent-2 failed");
   const logs = await service.getAgentLogs("agent-1", 2);
   if (!Array.isArray(logs) || logs.length < 2) throw new Error("getAgentLogs failed");
+});
+
+Deno.test("MockMemoryService: returns memory data", async () => {
+  const service = new MockMemoryService();
+  const projects = await service.getProjects();
+  if (!Array.isArray(projects) || projects.length === 0) throw new Error("getProjects failed");
+
+  const projectMemory = await service.getProjectMemory(projects[0]);
+  if (!projectMemory || !projectMemory.portal) throw new Error("getProjectMemory failed");
+
+  const globalMemory = await service.getGlobalMemory();
+  if (!globalMemory || !Array.isArray(globalMemory.learnings)) throw new Error("getGlobalMemory failed");
+
+  const exec = await service.getExecutionByTraceId("trace-id");
+  if (!exec || !exec.trace_id) throw new Error("getExecutionByTraceId failed");
+
+  const history = await service.getExecutionHistory();
+  if (!Array.isArray(history) || history.length === 0) throw new Error("getExecutionHistory failed");
+
+  const results = await service.search("query");
+  if (!Array.isArray(results) || results.length === 0) throw new Error("search failed");
+
+  const pending = await service.listPending();
+  if (!Array.isArray(pending) || pending.length === 0) throw new Error("listPending failed");
+
+  const pendingItem = await service.getPending(TEST_PROPOSAL_ID);
+  if (!pendingItem || pendingItem.id !== TEST_PROPOSAL_ID) throw new Error("getPending failed");
+
+  const missing = await service.getPending(TEST_UNKNOWN_PROPOSAL_ID);
+  if (missing !== null) throw new Error("getPending should return null for unknown");
+
+  await service.approvePending(TEST_PROPOSAL_ID);
+  await service.rejectPending(TEST_PROPOSAL_ID, "reason");
+});
+
+Deno.test("MockSkillsService: filters and deletes skills", async () => {
+  const service = new MockSkillsService();
+  const all = await service.listSkills();
+  if (!Array.isArray(all) || all.length === 0) throw new Error("listSkills failed");
+
+  const userSkill = await service.getSkill(TEST_SKILL_ID_USER);
+  if (!userSkill) throw new Error("getSkill user failed");
+
+  const learnedSkill = await service.getSkill(TEST_SKILL_ID_LEARNED);
+  if (!learnedSkill) throw new Error("getSkill learned failed");
+
+  const userDelete = await service.deleteSkill(TEST_SKILL_ID_USER);
+  if (userDelete !== false) throw new Error("deleteSkill user should be false");
+
+  const learnedDelete = await service.deleteSkill(TEST_SKILL_ID_LEARNED);
+  if (learnedDelete !== true) throw new Error("deleteSkill learned should be true");
+});
+
+Deno.test("MockStructuredLogger: methods are callable", async () => {
+  const logger = new MockStructuredLogger();
+  logger.setContext();
+  if (logger.child() !== logger) throw new Error("child should return logger");
+  logger.debug();
+  logger.info();
+  logger.warn();
+  logger.error();
+  logger.fatal();
+  const result = await logger.time("op", () => Promise.resolve("ok"));
+  if (result !== "ok") throw new Error("time should return result");
+});
+
+Deno.test("MockStructuredLoggerService: returns empty logs and unsubscribe", async () => {
+  const service = new MockStructuredLoggerService();
+  if (!Array.isArray(await service.getStructuredLogs())) throw new Error("getStructuredLogs failed");
+  if (!Array.isArray(await service.getLogsByCorrelationId())) throw new Error("getLogsByCorrelationId failed");
+  if (!Array.isArray(await service.getLogsByTraceId())) throw new Error("getLogsByTraceId failed");
+  if (!Array.isArray(await service.getLogsByAgentId())) throw new Error("getLogsByAgentId failed");
+  const unsubscribe = service.subscribeToLogs((_entry: any) => {});
+  if (typeof unsubscribe !== "function") throw new Error("subscribeToLogs failed");
+  await service.exportLogs("file", []);
 });

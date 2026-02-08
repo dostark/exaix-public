@@ -1,7 +1,15 @@
-import { assertEquals } from "@std/assert";
-import { assertSpyCalls, spy } from "@std/testing/mock";
+import { assert, assertEquals } from "@std/assert";
+import { assertSpyCalls, spy, stub } from "@std/testing/mock";
 import { GracefulShutdown } from "../../src/services/graceful_shutdown.ts";
 import { createMockLogger } from "./helpers/graceful_shutdown_test_helpers.ts";
+import {
+  LOG_MSG_ERROR_HANDLERS_REGISTERED,
+  LOG_MSG_SIGNAL_HANDLERS_REGISTERED,
+  TEST_EVENT_ERROR,
+  TEST_EVENT_UNHANDLED_REJECTION,
+  TEST_SIGNAL_SIGINT,
+  TEST_SIGNAL_SIGTERM,
+} from "../config/constants.ts";
 
 /**
  * Tests for GracefulShutdown - Comprehensive Graceful Shutdown Handling
@@ -158,4 +166,44 @@ Deno.test("GracefulShutdown: handles cleanup timeout", async () => {
 
   // Cleanup the hanging task to avoid leaks (if any ops were seemingly pending)
   if (resolveHangingTask) resolveHangingTask();
+});
+
+Deno.test("GracefulShutdown: registerSignalHandlers registers SIGINT/SIGTERM", () => {
+  const mockLogger = createMockLogger();
+  const shutdown = new GracefulShutdown(mockLogger);
+
+  const addSignalSpy = spy((_signal: Deno.Signal, _handler: () => void) => {});
+  const addSignalStub = stub(Deno, "addSignalListener", addSignalSpy);
+
+  try {
+    shutdown.registerSignalHandlers();
+
+    assertSpyCalls(addSignalSpy, 2);
+    const signals = addSignalSpy.calls.map((call: any) => call.args[0]);
+    assert(signals.includes(TEST_SIGNAL_SIGINT));
+    assert(signals.includes(TEST_SIGNAL_SIGTERM));
+    assertEquals(mockLogger.info.calls[0].args[0], LOG_MSG_SIGNAL_HANDLERS_REGISTERED);
+  } finally {
+    addSignalStub.restore();
+  }
+});
+
+Deno.test("GracefulShutdown: registerErrorHandlers registers error listeners", () => {
+  const mockLogger = createMockLogger();
+  const shutdown = new GracefulShutdown(mockLogger);
+
+  const addEventSpy = spy((_type: string, _listener: EventListenerOrEventListenerObject) => {});
+  const addEventStub = stub(globalThis, "addEventListener", addEventSpy);
+
+  try {
+    shutdown.registerErrorHandlers();
+
+    assertSpyCalls(addEventSpy, 2);
+    const events = addEventSpy.calls.map((call: any) => call.args[0]);
+    assert(events.includes(TEST_EVENT_UNHANDLED_REJECTION));
+    assert(events.includes(TEST_EVENT_ERROR));
+    assertEquals(mockLogger.info.calls[0].args[0], LOG_MSG_ERROR_HANDLERS_REGISTERED);
+  } finally {
+    addEventStub.restore();
+  }
 });
