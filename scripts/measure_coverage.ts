@@ -34,6 +34,7 @@ function filterKnownNoisyCoverageWarnings(stderrText: string): string {
   return stderrText
     .split("\n")
     .filter((line) => !line.includes('Error generating coverage report: Failed to fetch "file:///tmp/'))
+    .filter((line) => !line.includes("Error generating coverage report: Failed to create output file:"))
     .filter((line) => !line.includes("Before generating coverage report, run `deno test --coverage`"))
     .join("\n")
     .trim();

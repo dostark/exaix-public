@@ -7,7 +7,8 @@ import { assertEquals, assertExists } from "@std/assert";
 import { FlowGateOnFail } from "../../src/enums.ts";
 
 import { GateConfig, GateEvaluator, MockJudgeInvoker } from "../../src/flows/gate_evaluator.ts";
-import { EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
+import { EvaluationCategory } from "../../src/enums.ts";
+import { EvaluationCriterion, EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
 
 const DEFAULT_CONFIG: GateConfig = {
   agent: "judge-agent",
@@ -122,4 +123,144 @@ Deno.test("GateEvaluator: tracks evaluation duration", async () => {
 
   assertExists(result.evaluationDurationMs);
   assertEquals(result.evaluationDurationMs >= 0, true);
+});
+
+Deno.test("GateEvaluator.evaluateStepResult: evaluates step result content", async () => {
+  const { evaluator, config } = setupEvaluator(0.85);
+
+  const stepResult = {
+    stepId: "s1",
+    success: true,
+    result: { content: "hello" },
+    duration: 1,
+    startedAt: new Date(),
+    completedAt: new Date(),
+  } as any;
+
+  const result = await evaluator.evaluateStepResult(config, stepResult, "original request");
+  assertEquals(result.action, "passed");
+});
+
+Deno.test("GateEvaluator: fails if required criteria fail even when overallScore meets threshold", async () => {
+  const judgeInvoker = {
+    evaluate: (
+      _agentId: string,
+      _content: string,
+      _criteria: EvaluationCriterion[],
+      _context?: string,
+    ): Promise<EvaluationResult> => {
+      return Promise.resolve({
+        overallScore: 0.95,
+        pass: true,
+        feedback: "Overall looks good but required criterion failed",
+        criteriaScores: {
+          code_correctness: {
+            name: "code_correctness",
+            score: 0.5,
+            reasoning: "Has correctness issues",
+            issues: ["Fails to compile"],
+            passed: false,
+          },
+        },
+        suggestions: [],
+        metadata: { evaluatedAt: new Date().toISOString() },
+      });
+    },
+  };
+
+  const evaluator = new GateEvaluator(judgeInvoker);
+  const config: GateConfig = {
+    agent: "judge-agent",
+    criteria: ["CODE_CORRECTNESS"],
+    threshold: 0.8,
+    onFail: FlowGateOnFail.HALT,
+    maxRetries: 1,
+  };
+
+  const result = await evaluator.evaluate(config, "content");
+  assertEquals(result.passed, false);
+  assertEquals(result.action, "halted");
+});
+
+Deno.test("GateEvaluator: supports criteria objects in config.criteria", async () => {
+  const { evaluator } = setupEvaluator(0.85);
+
+  const customCriterion: EvaluationCriterion = {
+    name: "custom_criterion",
+    description: "Custom criterion",
+    weight: 1,
+    required: false,
+    category: EvaluationCategory.QUALITY,
+  };
+
+  const config: GateConfig = {
+    agent: "judge-agent",
+    criteria: [customCriterion],
+    threshold: 0.8,
+    onFail: FlowGateOnFail.HALT,
+    maxRetries: 1,
+  };
+
+  const result = await evaluator.evaluate(config, "content");
+  assertEquals(result.passed, true);
+  assertEquals(Object.keys(result.evaluation.criteriaScores).includes("custom_criterion"), true);
+});
+
+Deno.test("GateEvaluator: handles judge errors and returns halted by default", async () => {
+  const judgeInvoker = {
+    evaluate: (
+      _agentId: string,
+      _content: string,
+      _criteria: EvaluationCriterion[],
+      _context?: string,
+    ): Promise<EvaluationResult> => {
+      throw new Error("judge failed");
+    },
+  };
+
+  const evaluator = new GateEvaluator(judgeInvoker);
+  const config: GateConfig = {
+    agent: "judge-agent",
+    criteria: ["CODE_CORRECTNESS"],
+    threshold: 0.8,
+    onFail: FlowGateOnFail.HALT,
+    maxRetries: 1,
+  };
+
+  const result = await evaluator.evaluate(config, "content");
+  assertEquals(result.passed, false);
+  assertEquals(result.action, "halted");
+  assertEquals(result.error, "judge failed");
+  assertEquals(result.evaluation.feedback.includes("Evaluation failed"), true);
+});
+
+Deno.test("GateEvaluator.formatFeedbackForRetry: includes failed criteria details and suggestions", () => {
+  const output = GateEvaluator.formatFeedbackForRetry({
+    passed: false,
+    score: 0.6,
+    attempts: 1,
+    action: "retry",
+    evaluationDurationMs: 10,
+    evaluation: {
+      overallScore: 0.6,
+      pass: false,
+      feedback: "needs improvement",
+      criteriaScores: {
+        clarity: {
+          name: "clarity",
+          score: 0.4,
+          reasoning: "Unclear",
+          issues: ["Too verbose"],
+          passed: false,
+        },
+      },
+      suggestions: ["Be more concise"],
+      metadata: { evaluatedAt: new Date().toISOString() },
+    },
+  });
+
+  assertEquals(output.includes("## Quality Gate Feedback"), true);
+  assertEquals(output.includes("### Areas Needing Improvement"), true);
+  assertEquals(output.includes("#### clarity"), true);
+  assertEquals(output.includes("Suggestions"), true);
 });

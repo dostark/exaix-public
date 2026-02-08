@@ -166,12 +166,30 @@ async function verifyCoverage(): Promise<boolean> {
 
   console.log("   Analyzing coverage...");
   const covCmd = new Deno.Command("deno", {
-    args: ["coverage", "coverage/", "--exclude=test\\.(ts|js)$"],
+    args: [
+      "coverage",
+      "coverage/",
+      "--include=^file://.*ExoFrame/src/",
+      "--exclude=(^file:///tmp/|test\\.(ts|js)$)",
+    ],
     stdout: "piped",
-    stderr: "inherit",
+    stderr: "piped",
   });
   const covOutput = await covCmd.output();
   const outputText = new TextDecoder().decode(covOutput.stdout);
+  const stderrText = new TextDecoder().decode(covOutput.stderr);
+
+  const ignoredStderrPatterns: RegExp[] = [
+    /Failed to fetch "file:\/\/\/tmp\//,
+    /Before generating coverage report, run `deno test --coverage`/,
+  ];
+
+  const relevantStderr = stderrText
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter((line) => line.trim().length > 0)
+    .filter((line) => !ignoredStderrPatterns.some((pattern) => pattern.test(line)))
+    .join("\n");
 
   // Deno coverage output ends with "Covered 95.00% of lines ..." or similar?
   // Actually standard deno coverage just lists files.
@@ -194,7 +212,17 @@ async function verifyCoverage(): Promise<boolean> {
   // but explicitly fail if `test:coverage` fails.
   // Use `deno coverage` output to show the user.
 
-  console.log(outputText);
+  if (covOutput.code !== 0) {
+    if (relevantStderr.length > 0) {
+      console.error(relevantStderr);
+      return false;
+    }
+    console.warn("⚠️ Warning: Coverage report included ephemeral file URLs (ignored). ");
+  }
+
+  if (outputText.trim().length > 0) {
+    console.log(outputText);
+  }
 
   // 3. Parse total coverage
   // Deno coverage output format: "| All files | <lines>% | <functions>% |"
