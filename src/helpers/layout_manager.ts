@@ -12,6 +12,7 @@
  */
 
 import { colorize, type TuiTheme } from "./colors.ts";
+import { renderLayoutPresetListLines } from "./layout_rendering.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "./constants.ts";
 
 // ===== Layout Types =====
@@ -752,34 +753,14 @@ export function renderLayoutPresetPicker(
   );
   lines.push(colorize("├────────────────────────────────────────┤", theme.border, theme.reset));
 
-  for (let i = 0; i < presets.length; i++) {
-    const preset = presets[i];
-    const isSelected = i === selectedIndex;
-    const prefix = isSelected ? "▶ " : "  ";
-    const suffix = isSelected ? " ◀" : "  ";
-
-    let line = `${prefix}${preset.shortcut}. ${preset.icon} ${preset.name}${suffix}`;
-    line = line.padEnd(38);
-
-    if (isSelected) {
-      line = colorize(line, theme.primary, theme.reset);
-    }
-
-    lines.push(
-      colorize("│", theme.border, theme.reset) + " " + line + " " +
-        colorize("│", theme.border, theme.reset),
-    );
-
-    // Show description for selected
-    if (isSelected) {
-      const desc = `   ${preset.description}`.padEnd(38);
-      lines.push(
-        colorize("│", theme.border, theme.reset) + " " +
-          colorize(desc, theme.textDim, theme.reset) + " " +
-          colorize("│", theme.border, theme.reset),
-      );
-    }
-  }
+  lines.push(
+    ...renderLayoutPresetListLines(
+      presets,
+      selectedIndex,
+      theme,
+      { width: 38, includeSuffix: true },
+    ),
+  );
 
   lines.push(colorize("├────────────────────────────────────────┤", theme.border, theme.reset));
   lines.push(

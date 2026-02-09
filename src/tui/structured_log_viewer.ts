@@ -21,6 +21,7 @@ import type { LogEntry, LogLevel, StructuredLogger } from "../services/structure
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
+import { DialogStatus } from "../enums.ts";
 
 // ===== Service Interfaces =====
 
@@ -726,7 +727,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
 
   protected override onDialogClosed(dialog: DialogBase): void {
     const result = dialog.getResult();
-    if (result.type !== "confirmed") {
+    if (result.type !== DialogStatus.CONFIRMED) {
       this.pendingDialogType = null;
       return;
     }

@@ -3,17 +3,14 @@ import { exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "../base.ts";
 import { type RequestShowResult } from "../request_commands.ts";
 import { coerceRequestStatus } from "../../requests/request_status.ts";
+import { getWorkspaceRequestsDir } from "./request_paths.ts";
 
 export class RequestShowHandler extends BaseCommand {
   private workspaceRequestsDir: string;
 
   constructor(context: CommandContext) {
     super(context);
-    this.workspaceRequestsDir = join(
-      context.config.system.root,
-      context.config.paths.workspace,
-      context.config.paths.requests,
-    );
+    this.workspaceRequestsDir = getWorkspaceRequestsDir(context);
   }
 
   async show(idOrFilename: string): Promise<RequestShowResult> {

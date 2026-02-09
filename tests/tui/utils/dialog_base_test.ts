@@ -126,8 +126,8 @@ Deno.test("ConfirmDialog: y key confirms", () => {
   });
 
   dialog.handleKey(KEYS.Y);
-  assertEquals(dialog.getState(), "confirmed");
-  assertEquals(dialog.getResult().type, "confirmed");
+  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
+  assertEquals(dialog.getResult().type, DialogStatus.CONFIRMED);
 });
 
 Deno.test("ConfirmDialog: n key cancels", () => {
@@ -137,8 +137,8 @@ Deno.test("ConfirmDialog: n key cancels", () => {
   });
 
   dialog.handleKey(KEYS.N);
-  assertEquals(dialog.getState(), "cancelled");
-  assertEquals(dialog.getResult().type, "cancelled");
+  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
+  assertEquals(dialog.getResult().type, DialogStatus.CANCELLED);
 });
 
 Deno.test("ConfirmDialog: escape cancels", () => {
@@ -148,7 +148,7 @@ Deno.test("ConfirmDialog: escape cancels", () => {
   });
 
   dialog.handleKey(KEYS.ESCAPE);
-  assertEquals(dialog.getState(), "cancelled");
+  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
 });
 
 Deno.test("ConfirmDialog: tab moves focus", () => {
@@ -171,7 +171,7 @@ Deno.test("ConfirmDialog: enter on confirm button confirms", () => {
   });
 
   dialog.handleKey(KEYS.ENTER);
-  assertEquals(dialog.getState(), "confirmed");
+  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
 });
 
 Deno.test("ConfirmDialog: enter on cancel button cancels", () => {
@@ -182,7 +182,7 @@ Deno.test("ConfirmDialog: enter on cancel button cancels", () => {
 
   dialog.handleKey(KEYS.TAB); // Move to cancel
   dialog.handleKey(KEYS.ENTER);
-  assertEquals(dialog.getState(), "cancelled");
+  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
 });
 
 Deno.test("ConfirmDialog: renders correctly", () => {
@@ -353,10 +353,10 @@ Deno.test("SelectDialog: enter confirms selection", () => {
   });
 
   dialog.handleKey(KEYS.ENTER);
-  assertEquals(dialog.getState(), "confirmed");
+  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
   const result = dialog.getResult();
-  assertEquals(result.type, "confirmed");
-  if (result.type === "confirmed") {
+  assertEquals(result.type, DialogStatus.CONFIRMED);
+  if (result.type === DialogStatus.CONFIRMED) {
     assertEquals(result.value, "a");
   }
 });
@@ -370,7 +370,7 @@ Deno.test("SelectDialog: escape cancels", () => {
   });
 
   dialog.handleKey(KEYS.ESCAPE);
-  assertEquals(dialog.getState(), "cancelled");
+  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
 });
 
 Deno.test("SelectDialog: renders options", () => {

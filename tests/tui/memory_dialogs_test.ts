@@ -94,11 +94,11 @@ Deno.test("ConfirmApproveDialog: enter on approve confirms", () => {
 
   dialog.handleKey(KEYS.ENTER);
   assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), "confirmed");
+  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
 
   const result = dialog.getResult();
-  assertEquals(result.type, "confirmed");
-  if (result.type === "confirmed") {
+  assertEquals(result.type, DialogStatus.CONFIRMED);
+  if (result.type === DialogStatus.CONFIRMED) {
     assertEquals(result.value.proposalId, "test-proposal-1");
   }
 });
@@ -109,7 +109,7 @@ Deno.test("ConfirmApproveDialog: 'y' shortcut confirms", () => {
 
   dialog.handleKey(KEYS.Y);
   assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), "confirmed");
+  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
 });
 
 Deno.test("ConfirmApproveDialog: escape cancels", () => {
@@ -118,10 +118,10 @@ Deno.test("ConfirmApproveDialog: escape cancels", () => {
 
   dialog.handleKey(KEYS.ESCAPE);
   assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), "cancelled");
+  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
 
   const result = dialog.getResult();
-  assertEquals(result.type, "cancelled");
+  assertEquals(result.type, DialogStatus.CANCELLED);
 });
 
 Deno.test("ConfirmApproveDialog: 'n' shortcut cancels", () => {
@@ -130,7 +130,7 @@ Deno.test("ConfirmApproveDialog: 'n' shortcut cancels", () => {
 
   dialog.handleKey(KEYS.N);
   assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), "cancelled");
+  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
 });
 
 Deno.test("ConfirmApproveDialog: getProposal returns proposal", () => {
@@ -224,8 +224,8 @@ Deno.test("ConfirmRejectDialog: confirms with reason", () => {
 
   assertEquals(dialog.isActive(), false);
   const result = dialog.getResult();
-  assertEquals(result.type, "confirmed");
-  if (result.type === "confirmed") {
+  assertEquals(result.type, DialogStatus.CONFIRMED);
+  if (result.type === DialogStatus.CONFIRMED) {
     assertEquals(result.value.proposalId, "test-proposal-1");
   }
 });
@@ -280,7 +280,7 @@ Deno.test("AddLearningDialog: escape cancels", () => {
 
   dialog.handleKey(KEYS.ESCAPE);
   assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), "cancelled");
+  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
 });
 
 Deno.test("AddLearningDialog: getFocusableElements returns all fields", () => {
@@ -329,8 +329,8 @@ Deno.test("PromoteDialog: enter confirms promotion", () => {
   assertEquals(dialog.isActive(), false);
 
   const result = dialog.getResult();
-  assertEquals(result.type, "confirmed");
-  if (result.type === "confirmed") {
+  assertEquals(result.type, DialogStatus.CONFIRMED);
+  if (result.type === DialogStatus.CONFIRMED) {
     assertEquals(result.value.learningTitle, "Test Learning");
     assertEquals(result.value.sourcePortal, "my-project");
   }
@@ -341,7 +341,7 @@ Deno.test("PromoteDialog: 'y' shortcut confirms", () => {
 
   dialog.handleKey(KEYS.Y);
   assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), "confirmed");
+  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
 });
 
 Deno.test("PromoteDialog: escape cancels", () => {
@@ -349,7 +349,7 @@ Deno.test("PromoteDialog: escape cancels", () => {
 
   dialog.handleKey(KEYS.ESCAPE);
   assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), "cancelled");
+  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
 });
 
 Deno.test("PromoteDialog: getters return correct values", () => {
@@ -392,8 +392,8 @@ Deno.test("BulkApproveDialog: enter confirms", () => {
   assertEquals(dialog.isActive(), false);
 
   const result = dialog.getResult();
-  assertEquals(result.type, "confirmed");
-  if (result.type === "confirmed") {
+  assertEquals(result.type, DialogStatus.CONFIRMED);
+  if (result.type === DialogStatus.CONFIRMED) {
     assertEquals(result.value.count, 7);
   }
 });
@@ -403,7 +403,7 @@ Deno.test("BulkApproveDialog: 'y' shortcut confirms", () => {
 
   dialog.handleKey(KEYS.Y);
   assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), "confirmed");
+  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
 });
 
 Deno.test("BulkApproveDialog: escape cancels", () => {
@@ -411,7 +411,7 @@ Deno.test("BulkApproveDialog: escape cancels", () => {
 
   dialog.handleKey(KEYS.ESCAPE);
   assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), "cancelled");
+  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
 });
 
 Deno.test("BulkApproveDialog: progress updates rendering", () => {

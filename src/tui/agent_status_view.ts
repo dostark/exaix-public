@@ -25,7 +25,7 @@ import {
   renderTree,
   toggleNode,
 } from "../helpers/tree_view.ts";
-import { AgentHealth, TuiGroupBy } from "../enums.ts";
+import { AgentHealth, DialogStatus, TuiGroupBy } from "../enums.ts";
 import { AgentStatus, type AgentStatusType } from "./agent_status/agent_status.ts";
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
@@ -904,7 +904,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
   closeDialog(): void {
     if (this.state.activeDialog) {
       const result = this.state.activeDialog.getResult();
-      if (this.state.activeDialog instanceof InputDialog && result.type === "confirmed") {
+      if (this.state.activeDialog instanceof InputDialog && result.type === DialogStatus.CONFIRMED) {
         this.applySearch(result.value as string);
       } else {
         this.state.activeDialog = null;

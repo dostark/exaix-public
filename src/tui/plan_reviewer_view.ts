@@ -23,6 +23,7 @@ import { BaseTreeView } from "./base/base_tree_view.ts";
 import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "../helpers/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { DialogStatus } from "../enums.ts";
 import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import {
@@ -381,7 +382,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
 
   protected override onDialogClosed(dialog: DialogBase): void {
     const result = dialog.getResult();
-    if (result.type === "cancelled") return;
+    if (result.type === DialogStatus.CANCELLED) return;
 
     if (dialog instanceof ConfirmDialog && result.value === true) {
       if (this.pendingRejectId) {

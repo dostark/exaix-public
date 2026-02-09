@@ -11,7 +11,7 @@
  * - Keyboard shortcuts
  */
 
-import { MemorySource, SkillStatus } from "../enums.ts";
+import { DialogStatus, MemorySource, SkillStatus } from "../enums.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { type DialogBase } from "../helpers/dialog_base.ts";
 import { KeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
@@ -567,7 +567,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
   protected override onDialogClosed(dialog: DialogBase): void {
     const result = dialog.getResult();
-    if (result.type !== "confirmed") {
+    if (result.type !== DialogStatus.CONFIRMED) {
       this.pendingDialogType = null;
       this.pendingDeleteSkillId = null;
       return;

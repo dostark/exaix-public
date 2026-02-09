@@ -18,6 +18,7 @@ import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts"
 import { type DialogBase } from "../helpers/dialog_base.ts";
 import { type KeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
 import type { ActivityRecord, JournalFilterOptions } from "../services/db.ts";
+import { DialogStatus } from "../enums.ts";
 
 // ===== Service Interfaces =====
 
@@ -855,7 +856,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
 
   protected override onDialogClosed(dialog: DialogBase): void {
     const result = dialog.getResult();
-    if (result.type === "cancelled") {
+    if (result.type === DialogStatus.CANCELLED) {
       this.pendingDialogType = null;
       return;
     }

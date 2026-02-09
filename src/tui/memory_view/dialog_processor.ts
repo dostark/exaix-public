@@ -1,3 +1,5 @@
+import { DialogStatus } from "../../enums.ts";
+
 /**
  * Dialog result processor for Memory View
  */
@@ -27,6 +29,27 @@ export interface DialogProcessorContext {
   onPendingCountReload: () => Promise<void>;
 }
 
+type DialogResult<T> = { type: DialogStatus.CONFIRMED; value: T } | { type: DialogStatus.CANCELLED };
+
+function getConfirmedValue<T>(result: DialogResult<T>, context: DialogProcessorContext): T | null {
+  if (result.type === DialogStatus.CANCELLED) {
+    context.onStatusUpdate(TUI_STATUS_MSG_CANCELLED);
+    return null;
+  }
+  return result.value;
+}
+
+async function withDialogErrorHandling(
+  context: DialogProcessorContext,
+  action: () => Promise<void>,
+): Promise<void> {
+  try {
+    await action();
+  } catch (e) {
+    context.onStatusUpdate(`${TUI_STATUS_MSG_ERROR_PREFIX}${e instanceof Error ? e.message : String(e)}`);
+  }
+}
+
 export class DialogProcessor {
   /**
    * Process confirm approve dialog result
@@ -35,19 +58,15 @@ export class DialogProcessor {
     dialog: ConfirmApproveDialog,
     context: DialogProcessorContext,
   ): Promise<void> {
-    const result = dialog.getResult();
-    if (result.type === "cancelled") {
-      context.onStatusUpdate(TUI_STATUS_MSG_CANCELLED);
-      return;
-    }
-    try {
-      await context.service.approvePending(result.value.proposalId);
+    const value = getConfirmedValue(dialog.getResult(), context);
+    if (!value) return;
+
+    await withDialogErrorHandling(context, async () => {
+      await context.service.approvePending(value.proposalId);
       context.onStatusUpdate(TUI_STATUS_MSG_PROPOSAL_APPROVED);
       await context.onTreeReload();
       await context.onPendingCountReload();
-    } catch (e) {
-      context.onStatusUpdate(`${TUI_STATUS_MSG_ERROR_PREFIX}${e instanceof Error ? e.message : String(e)}`);
-    }
+    });
   }
 
   /**
@@ -57,19 +76,15 @@ export class DialogProcessor {
     dialog: ConfirmRejectDialog,
     context: DialogProcessorContext,
   ): Promise<void> {
-    const result = dialog.getResult();
-    if (result.type === "cancelled") {
-      context.onStatusUpdate(TUI_STATUS_MSG_CANCELLED);
-      return;
-    }
-    try {
-      await context.service.rejectPending(result.value.proposalId, result.value.reason);
+    const value = getConfirmedValue(dialog.getResult(), context);
+    if (!value) return;
+
+    await withDialogErrorHandling(context, async () => {
+      await context.service.rejectPending(value.proposalId, value.reason);
       context.onStatusUpdate(TUI_STATUS_MSG_PROPOSAL_REJECTED);
       await context.onTreeReload();
       await context.onPendingCountReload();
-    } catch (e) {
-      context.onStatusUpdate(`${TUI_STATUS_MSG_ERROR_PREFIX}${e instanceof Error ? e.message : String(e)}`);
-    }
+    });
   }
 
   /**
@@ -79,12 +94,10 @@ export class DialogProcessor {
     dialog: BulkApproveDialog,
     context: DialogProcessorContext,
   ): Promise<void> {
-    const result = dialog.getResult();
-    if (result.type === "cancelled") {
-      context.onStatusUpdate(TUI_STATUS_MSG_CANCELLED);
-      return;
-    }
-    try {
+    const confirmed = getConfirmedValue(dialog.getResult(), context);
+    if (!confirmed) return;
+
+    await withDialogErrorHandling(context, async () => {
       const pending = await context.service.listPending();
       for (let i = 0; i < pending.length; i++) {
         dialog.setProgress(i + 1);
@@ -93,9 +106,7 @@ export class DialogProcessor {
       context.onStatusUpdate(TUI_STATUS_MSG_BULK_APPROVE_COMPLETED);
       await context.onTreeReload();
       await context.onPendingCountReload();
-    } catch (e) {
-      context.onStatusUpdate(`${TUI_STATUS_MSG_ERROR_PREFIX}${e instanceof Error ? e.message : String(e)}`);
-    }
+    });
   }
 
   /**
@@ -105,21 +116,17 @@ export class DialogProcessor {
     dialog: AddLearningDialog,
     context: DialogProcessorContext,
   ): Promise<void> {
-    const result = dialog.getResult();
-    if (result.type === "cancelled") {
-      context.onStatusUpdate(TUI_STATUS_MSG_CANCELLED);
-      return;
-    }
-    try {
+    const confirmed = getConfirmedValue(dialog.getResult(), context);
+    if (!confirmed) return;
+
+    await withDialogErrorHandling(context, async () => {
       // Manual learning additions might need a separate service method or similar
       // For now, we'll placeholder this or use internal service if available
       // Based on memory_bank.ts, we might need a specifically tailored method
       // but let's assume service has some method or we log it.
       context.onStatusUpdate(TUI_STATUS_MSG_LEARNING_ADDED);
       await context.onTreeReload();
-    } catch (e) {
-      context.onStatusUpdate(`${TUI_STATUS_MSG_ERROR_PREFIX}${e instanceof Error ? e.message : String(e)}`);
-    }
+    });
   }
 
   /**
@@ -129,17 +136,13 @@ export class DialogProcessor {
     dialog: PromoteDialog,
     context: DialogProcessorContext,
   ): Promise<void> {
-    const result = dialog.getResult();
-    if (result.type === "cancelled") {
-      context.onStatusUpdate(TUI_STATUS_MSG_CANCELLED);
-      return;
-    }
-    try {
+    const confirmed = getConfirmedValue(dialog.getResult(), context);
+    if (!confirmed) return;
+
+    await withDialogErrorHandling(context, async () => {
       // Implementation for promotion
       context.onStatusUpdate(TUI_STATUS_MSG_PROMOTE_COMPLETED);
       await context.onTreeReload();
-    } catch (e) {
-      context.onStatusUpdate(`${TUI_STATUS_MSG_ERROR_PREFIX}${e instanceof Error ? e.message : String(e)}`);
-    }
+    });
   }
 }

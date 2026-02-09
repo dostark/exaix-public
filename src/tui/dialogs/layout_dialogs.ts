@@ -11,7 +11,12 @@
 
 import { KEYS } from "../../helpers/keyboard.ts";
 import { colorize, type TuiTheme } from "../../helpers/colors.ts";
-import { TUI_DASHBOARD_ICONS } from "../../helpers/constants.ts";
+import {
+  TUI_DASHBOARD_ICONS,
+  TUI_LAYOUT_PRESET_LIST_WIDTH,
+  TUI_VIEW_PICKER_INNER_WIDTH,
+} from "../../helpers/constants.ts";
+import { type LayoutPresetDisplay, renderLayoutPresetListLines } from "../../helpers/layout_rendering.ts";
 
 // ===== View Picker Dialog =====
 
@@ -66,38 +71,26 @@ export function renderViewPickerDialog(
   lines.push(colorize("┌──────────────────────────────────────┐", theme.border, theme.reset));
   lines.push(
     colorize("│", theme.border, theme.reset) +
-      colorize(` ${title.padEnd(36)} `, theme.h1, theme.reset) +
+      colorize(` ${title.padEnd(TUI_VIEW_PICKER_INNER_WIDTH)} `, theme.h1, theme.reset) +
       colorize("│", theme.border, theme.reset),
   );
   lines.push(colorize("├──────────────────────────────────────┤", theme.border, theme.reset));
 
-  for (let i = 0; i < AVAILABLE_VIEWS.length; i++) {
-    const view = AVAILABLE_VIEWS[i];
-    const isSelected = i === state.selectedIndex;
-    const prefix = isSelected ? "▶ " : "  ";
+  const viewDisplays: LayoutPresetDisplay[] = AVAILABLE_VIEWS.map((view, index) => ({
+    name: view.name.replace("View", ""),
+    description: view.description,
+    icon: view.icon,
+    shortcut: String(index + 1),
+  }));
 
-    const shortName = view.name.replace("View", "");
-    let line = `${prefix}${i + 1}. ${view.icon} ${shortName}`;
-    line = line.padEnd(36);
-
-    if (isSelected) {
-      line = colorize(line, theme.primary, theme.reset);
-    }
-
-    lines.push(
-      colorize("│", theme.border, theme.reset) + " " + line + " " +
-        colorize("│", theme.border, theme.reset),
-    );
-
-    if (isSelected) {
-      const desc = `   ${view.description}`.padEnd(36);
-      lines.push(
-        colorize("│", theme.border, theme.reset) + " " +
-          colorize(desc, theme.textDim, theme.reset) + " " +
-          colorize("│", theme.border, theme.reset),
-      );
-    }
-  }
+  lines.push(
+    ...renderLayoutPresetListLines(
+      viewDisplays,
+      state.selectedIndex,
+      theme,
+      { width: TUI_VIEW_PICKER_INNER_WIDTH },
+    ),
+  );
 
   lines.push(colorize("├──────────────────────────────────────┤", theme.border, theme.reset));
   lines.push(
@@ -208,32 +201,14 @@ export function renderLayoutPresetDialog(
   );
   lines.push(colorize("├────────────────────────────────────────┤", theme.border, theme.reset));
 
-  for (let i = 0; i < LAYOUT_PRESET_INFO.length; i++) {
-    const preset = LAYOUT_PRESET_INFO[i];
-    const isSelected = i === state.selectedIndex;
-    const prefix = isSelected ? "▶ " : "  ";
-
-    let line = `${prefix}${preset.shortcut}. ${preset.icon} ${preset.name}`;
-    line = line.padEnd(38);
-
-    if (isSelected) {
-      line = colorize(line, theme.primary, theme.reset);
-    }
-
-    lines.push(
-      colorize("│", theme.border, theme.reset) + " " + line + " " +
-        colorize("│", theme.border, theme.reset),
-    );
-
-    if (isSelected) {
-      const desc = `   ${preset.description}`.padEnd(38);
-      lines.push(
-        colorize("│", theme.border, theme.reset) + " " +
-          colorize(desc, theme.textDim, theme.reset) + " " +
-          colorize("│", theme.border, theme.reset),
-      );
-    }
-  }
+  lines.push(
+    ...renderLayoutPresetListLines(
+      LAYOUT_PRESET_INFO,
+      state.selectedIndex,
+      theme,
+      { width: TUI_LAYOUT_PRESET_LIST_WIDTH },
+    ),
+  );
 
   lines.push(colorize("├────────────────────────────────────────┤", theme.border, theme.reset));
   lines.push(
@@ -360,23 +335,23 @@ export function renderNamedLayoutDialog(
         colorize("│", theme.border, theme.reset),
     );
 
-    for (let i = 0; i < state.layouts.length; i++) {
-      const layout = state.layouts[i];
-      const isSelected = i === state.selectedIndex && state.mode !== "save";
-      const prefix = isSelected ? "▶ " : "  ";
+    const savedLayoutDisplays: LayoutPresetDisplay[] = state.layouts.map((layout) => ({
+      name: layout,
+      description: "",
+      icon: TUI_DASHBOARD_ICONS.layout.save,
+      shortcut: "",
+    }));
 
-      let line = `${prefix}${TUI_DASHBOARD_ICONS.layout.save} ${layout}`;
-      line = line.padEnd(38);
+    const selectedIndex = state.mode === "save" ? null : state.selectedIndex;
 
-      if (isSelected) {
-        line = colorize(line, theme.primary, theme.reset);
-      }
-
-      lines.push(
-        colorize("│", theme.border, theme.reset) + " " + line + " " +
-          colorize("│", theme.border, theme.reset),
-      );
-    }
+    lines.push(
+      ...renderLayoutPresetListLines(
+        savedLayoutDisplays,
+        selectedIndex,
+        theme,
+        { width: TUI_LAYOUT_PRESET_LIST_WIDTH, showDescription: false },
+      ),
+    );
   } else if (state.mode !== "save") {
     lines.push(
       colorize("│", theme.border, theme.reset) +

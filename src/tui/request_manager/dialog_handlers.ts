@@ -4,7 +4,7 @@
  */
 
 import { ConfirmDialog, InputDialog } from "../../helpers/dialog_base.ts";
-import { RequestDialogType } from "../../enums.ts";
+import { DialogStatus, RequestDialogType } from "../../enums.ts";
 
 export type RequestDialogTypeUnion = RequestDialogType | null;
 
@@ -27,9 +27,9 @@ export async function processDialogCompletion(
   if (!dialog) return;
 
   // Input dialog confirmed
-  if (dialog instanceof InputDialog && dialog.getState() === "confirmed") {
+  if (dialog instanceof InputDialog && dialog.getState() === DialogStatus.CONFIRMED) {
     const result = dialog.getResult();
-    if (result.type === "confirmed") {
+    if (result.type === DialogStatus.CONFIRMED) {
       switch (dialogType) {
         case RequestDialogType.SEARCH:
           handlers.handleSearchResult(result.value);
@@ -57,7 +57,7 @@ export async function processDialogCompletion(
   }
 
   // Confirm dialog (cancel request)
-  if (dialog instanceof ConfirmDialog && dialog.getState() === "confirmed") {
+  if (dialog instanceof ConfirmDialog && dialog.getState() === DialogStatus.CONFIRMED) {
     await handlers.processConfirmDialog(dialog);
   }
 }

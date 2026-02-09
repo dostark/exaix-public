@@ -9,6 +9,12 @@
 
 import { ANSI, colorize, getTheme, padEnd, type TuiTheme, visibleLength } from "./colors.ts";
 import { renderDialogButtons, renderDialogLine, renderDialogTitle, renderEmptyDialogLine } from "./dialog_rendering.ts";
+import {
+  TUI_DIALOG_DEFAULT_HEIGHT,
+  TUI_DIALOG_INNER_PADDING,
+  TUI_LAYOUT_DIALOG_WIDTH,
+  TUI_LAYOUT_MEDIUM_WIDTH,
+} from "./constants.ts";
 
 // ===== Dialog Types =====
 
@@ -18,13 +24,20 @@ import { KEYS } from "./keyboard.ts";
 export type DialogState = DialogStatus;
 
 export type DialogResult<T = unknown> =
-  | { type: "confirmed"; value: T }
-  | { type: "cancelled" };
+  | { type: DialogStatus.CONFIRMED; value: T }
+  | { type: DialogStatus.CANCELLED };
 
 export interface DialogRenderOptions {
   useColors: boolean;
   width: number;
   height: number;
+}
+
+function createDialogResult<T>(state: DialogState, value: T | undefined): DialogResult<T> {
+  if (state === DialogStatus.CONFIRMED && value !== undefined) {
+    return { type: DialogStatus.CONFIRMED, value };
+  }
+  return { type: DialogStatus.CANCELLED };
 }
 
 function appendDialogHeader(lines: string[], title: string, innerWidth: number, theme: TuiTheme): void {
@@ -42,6 +55,17 @@ function appendDialogFooter(
   lines.push(renderDialogButtons(buttons, innerWidth, theme));
   lines.push(renderEmptyDialogLine(innerWidth, theme));
   lines.push(renderBoxBottom(innerWidth, theme));
+}
+
+function initSimpleDialogRender(options: DialogRenderOptions): {
+  theme: TuiTheme;
+  innerWidth: number;
+  lines: string[];
+} {
+  const theme = getTheme(options.useColors);
+  const innerWidth = Math.min(options.width - TUI_DIALOG_INNER_PADDING, TUI_LAYOUT_MEDIUM_WIDTH);
+  const lines: string[] = [];
+  return { theme, innerWidth, lines };
 }
 
 // ===== Box Drawing Characters =====
@@ -170,9 +194,7 @@ export class ConfirmDialog extends DialogBase<boolean> {
   }
 
   render(opts: DialogRenderOptions): string[] {
-    const theme = getTheme(opts.useColors);
-    const innerWidth = Math.min(opts.width - 4, 60);
-    const lines: string[] = [];
+    const { theme, innerWidth, lines } = initSimpleDialogRender(opts);
 
     appendDialogHeader(lines, this.options.title, innerWidth, theme);
 
@@ -197,10 +219,7 @@ export class ConfirmDialog extends DialogBase<boolean> {
   }
 
   getResult(): DialogResult<boolean> {
-    if (this.state === "confirmed") {
-      return { type: "confirmed", value: true };
-    }
-    return { type: "cancelled" };
+    return createDialogResult(this.state, this.state === DialogStatus.CONFIRMED ? true : undefined);
   }
 }
 
@@ -329,9 +348,7 @@ export class InputDialog extends DialogBase<string> {
   }
 
   render(opts: DialogRenderOptions): string[] {
-    const theme = getTheme(opts.useColors);
-    const innerWidth = Math.min(opts.width - 4, 60);
-    const lines: string[] = [];
+    const { theme, innerWidth, lines } = initSimpleDialogRender(opts);
 
     appendDialogHeader(lines, this.options.title, innerWidth, theme);
 
@@ -365,10 +382,7 @@ export class InputDialog extends DialogBase<string> {
   }
 
   getResult(): DialogResult<string> {
-    if (this.state === "confirmed" && this._resultValue !== undefined) {
-      return { type: "confirmed", value: this._resultValue };
-    }
-    return { type: "cancelled" };
+    return createDialogResult(this.state, this._resultValue);
   }
 }
 
@@ -479,9 +493,7 @@ export class SelectDialog<T = string> extends DialogBase<T> {
   }
 
   render(opts: DialogRenderOptions): string[] {
-    const theme = getTheme(opts.useColors);
-    const innerWidth = Math.min(opts.width - 4, 60);
-    const lines: string[] = [];
+    const { theme, innerWidth, lines } = initSimpleDialogRender(opts);
 
     appendDialogHeader(lines, this.options.title, innerWidth, theme);
 
@@ -525,10 +537,7 @@ export class SelectDialog<T = string> extends DialogBase<T> {
   }
 
   getResult(): DialogResult<T> {
-    if (this.state === "confirmed" && this._resultValue !== undefined) {
-      return { type: "confirmed", value: this._resultValue };
-    }
-    return { type: "cancelled" };
+    return createDialogResult(this.state, this._resultValue);
   }
 }
 
@@ -667,10 +676,10 @@ export function setupDialogRender(options: DialogRenderOptions): {
   innerWidth: number;
 } {
   const width = options.width;
-  const height = options.height || 20;
+  const height = options.height || TUI_DIALOG_DEFAULT_HEIGHT;
   const theme = getTheme(options.useColors);
   const lines: string[] = [];
-  const innerWidth = Math.min(options.width - 4, 70); // TUI_LAYOUT_DIALOG_WIDTH = 70
+  const innerWidth = Math.min(options.width - TUI_DIALOG_INNER_PADDING, TUI_LAYOUT_DIALOG_WIDTH);
   return { width, height, theme, lines, innerWidth };
 }
 

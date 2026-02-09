@@ -26,7 +26,7 @@ import {
   type TreeNode,
   type TreeRenderOptions,
 } from "../helpers/tree_view.ts";
-import { PortalStatus, TuiIcon } from "../enums.ts";
+import { DialogStatus, PortalStatus, TuiIcon } from "../enums.ts";
 import { TUI_LAYOUT_NARROW_WIDTH, TUI_PORTAL_ICONS } from "../helpers/constants.ts";
 
 // ===== Portal View Extensions =====
@@ -274,7 +274,7 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
 
   protected override onDialogClosed(dialog: DialogBase): void {
     const result = dialog.getResult();
-    if (result.type === "cancelled" || result.value !== true) return;
+    if (result.type === DialogStatus.CANCELLED || result.value !== true) return;
 
     if (dialog instanceof ConfirmDialog) {
       this.executeRemove();

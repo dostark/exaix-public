@@ -1,5 +1,5 @@
 import { assert, assertEquals, assertExists } from "@std/assert";
-import { DaemonStatus } from "../../src/enums.ts";
+import { DaemonStatus, DialogStatus } from "../../src/enums.ts";
 
 import { MemorySource } from "../../src/enums.ts";
 
@@ -483,7 +483,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed cancels cleanly", () =
   (session as any).pendingDialogType = "search";
 
   (session as any).onDialogClosed({
-    getResult: () => ({ type: "cancelled" }),
+    getResult: () => ({ type: DialogStatus.CANCELLED }),
   });
 
   assertEquals(session.getSearchQuery(), "before");
@@ -495,7 +495,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed applies search", () =>
 
   (session as any).pendingDialogType = "search";
   (session as any).onDialogClosed({
-    getResult: () => ({ type: "confirmed", value: "needle" }),
+    getResult: () => ({ type: DialogStatus.CONFIRMED, value: "needle" }),
   });
 
   assertEquals(session.getSearchQuery(), "needle");
@@ -506,7 +506,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed filters and clears age
 
   (session as any).pendingDialogType = "filter-agent";
   (session as any).onDialogClosed({
-    getResult: () => ({ type: "confirmed", value: "researcher" }),
+    getResult: () => ({ type: DialogStatus.CONFIRMED, value: "researcher" }),
   });
 
   await new Promise((res) => setTimeout(res, 0));
@@ -515,7 +515,7 @@ Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed filters and clears age
 
   (session as any).pendingDialogType = "filter-agent";
   (session as any).onDialogClosed({
-    getResult: () => ({ type: "confirmed", value: "" }),
+    getResult: () => ({ type: DialogStatus.CONFIRMED, value: "" }),
   });
 
   await new Promise((res) => setTimeout(res, 0));

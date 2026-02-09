@@ -14,7 +14,7 @@ import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
 import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
-import { DaemonKeyAction, DaemonStatus, GeneralStatus } from "../enums.ts";
+import { DaemonKeyAction, DaemonStatus, DialogStatus, GeneralStatus } from "../enums.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
@@ -656,7 +656,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
   closeDialog(): void {
     if (this.state.activeDialog) {
       const result = this.state.activeDialog.getResult();
-      if (result.type === "confirmed" && this.pendingDialogAction) {
+      if (result.type === DialogStatus.CONFIRMED && this.pendingDialogAction) {
         // Execute the pending action
         const action = this.pendingDialogAction;
         this.pendingDialogAction = null;

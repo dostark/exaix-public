@@ -13,7 +13,13 @@
  */
 
 import { NotificationService } from "../services/notification.ts";
-import { TUI_DASHBOARD_ICONS, TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../helpers/constants.ts";
+import {
+  TUI_DASHBOARD_ICONS,
+  TUI_DASHBOARD_VIEW_PICKER_WIDTH,
+  TUI_LAYOUT_DEFAULT_HEIGHT,
+  TUI_LAYOUT_FULL_WIDTH,
+  TUI_TREE_ICONS,
+} from "../helpers/constants.ts";
 import { colorize, getTheme, type TuiTheme } from "../helpers/colors.ts";
 import {
   handleMemoryNotifications as _handleMemoryNotifications,
@@ -30,6 +36,7 @@ import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { DatabaseService } from "../services/db.ts";
 import { initDashboardViews } from "./dashboard/view_registry.ts";
 import { prodRender } from "./dashboard/renderer.ts";
+import { type LayoutPresetDisplay, renderLayoutPresetListLines } from "../helpers/layout_rendering.ts";
 import {
   closePane as helperClosePane,
   maximizePane as helperMaximizePane,
@@ -410,24 +417,21 @@ export function renderViewPicker(
   );
   lines.push(colorize("├────────────────────────────────────┤", theme.border, theme.reset));
 
-  for (let i = 0; i < views.length; i++) {
-    const view = views[i];
-    const icon = DASHBOARD_ICONS.views[view.name] || "📦";
-    const shortName = view.name.replace("View", "");
+  const viewDisplays: LayoutPresetDisplay[] = views.map((view, index) => ({
+    name: view.name.replace("View", ""),
+    description: "",
+    icon: DASHBOARD_ICONS.views[view.name] || TUI_TREE_ICONS.project,
+    shortcut: String(index + 1),
+  }));
 
-    const isSelected = i === currentViewIndex;
-    const prefix = isSelected ? "▶ " : "  ";
-    const suffix = isSelected ? " ◀" : "  ";
-
-    let line = `${prefix}${i + 1}. ${icon} ${shortName}${suffix}`;
-    line = line.padEnd(34);
-
-    if (isSelected) {
-      line = colorize(line, theme.primary, theme.reset);
-    }
-
-    lines.push(colorize("│", theme.border, theme.reset) + " " + line + " " + colorize("│", theme.border, theme.reset));
-  }
+  lines.push(
+    ...renderLayoutPresetListLines(
+      viewDisplays,
+      currentViewIndex,
+      theme,
+      { width: TUI_DASHBOARD_VIEW_PICKER_WIDTH, includeSuffix: true, showDescription: false },
+    ),
+  );
 
   lines.push(colorize("├────────────────────────────────────┤", theme.border, theme.reset));
   lines.push(

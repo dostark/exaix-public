@@ -10,6 +10,7 @@ import {
 } from "../../../src/helpers/constants.ts";
 import { DialogProcessor } from "../../../src/tui/memory_view/dialog_processor.ts";
 import type { MemoryServiceInterface } from "../../../src/tui/memory_view/types.ts";
+import { DialogStatus } from "../../../src/enums.ts";
 
 function createContext(overrides?: Partial<{ service: MemoryServiceInterface }>) {
   const statuses: string[] = [];
@@ -49,7 +50,7 @@ function createContext(overrides?: Partial<{ service: MemoryServiceInterface }>)
 
 Deno.test("DialogProcessor.processConfirmApproveDialog: cancelled", async () => {
   const { ctx, statuses } = createContext();
-  const dialog = { getResult: () => ({ type: "cancelled" }) } as any;
+  const dialog = { getResult: () => ({ type: DialogStatus.CANCELLED }) } as any;
 
   await DialogProcessor.processConfirmApproveDialog(dialog, ctx);
 
@@ -68,7 +69,7 @@ Deno.test("DialogProcessor.processConfirmApproveDialog: success", async () => {
   } as unknown as MemoryServiceInterface;
 
   const { ctx, statuses, counters } = createContext({ service });
-  const dialog = { getResult: () => ({ type: "confirmed", value: { proposalId: "p1" } }) } as any;
+  const dialog = { getResult: () => ({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1" } }) } as any;
 
   await DialogProcessor.processConfirmApproveDialog(dialog, ctx);
 
@@ -91,7 +92,7 @@ Deno.test("DialogProcessor.processConfirmRejectDialog: success", async () => {
 
   const { ctx, statuses, counters } = createContext({ service });
   const dialog = {
-    getResult: () => ({ type: "confirmed", value: { proposalId: "p1", reason: "r" } }),
+    getResult: () => ({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } }),
   } as any;
 
   await DialogProcessor.processConfirmRejectDialog(dialog, ctx);
@@ -104,7 +105,7 @@ Deno.test("DialogProcessor.processConfirmRejectDialog: success", async () => {
 
 Deno.test("DialogProcessor.processConfirmRejectDialog: cancelled", async () => {
   const { ctx, statuses } = createContext();
-  const dialog = { getResult: () => ({ type: "cancelled" }) } as any;
+  const dialog = { getResult: () => ({ type: DialogStatus.CANCELLED }) } as any;
 
   await DialogProcessor.processConfirmRejectDialog(dialog, ctx);
 
@@ -120,7 +121,7 @@ Deno.test("DialogProcessor.processConfirmRejectDialog: error surfaces non-Error 
 
   const { ctx, statuses, counters } = createContext({ service });
   const dialog = {
-    getResult: () => ({ type: "confirmed", value: { proposalId: "p1", reason: "r" } }),
+    getResult: () => ({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } }),
   } as any;
 
   await DialogProcessor.processConfirmRejectDialog(dialog, ctx);
@@ -144,7 +145,7 @@ Deno.test("DialogProcessor.processBulkApproveDialog: approves each pending and r
   const { ctx, statuses, counters } = createContext({ service });
   const progress: number[] = [];
   const dialog = {
-    getResult: () => ({ type: "confirmed", value: {} }),
+    getResult: () => ({ type: DialogStatus.CONFIRMED, value: {} }),
     setProgress: (n: number) => progress.push(n),
   } as any;
 
@@ -159,7 +160,7 @@ Deno.test("DialogProcessor.processBulkApproveDialog: approves each pending and r
 
 Deno.test("DialogProcessor.processBulkApproveDialog: cancelled", async () => {
   const { ctx, statuses } = createContext();
-  const dialog = { getResult: () => ({ type: "cancelled" }) } as any;
+  const dialog = { getResult: () => ({ type: DialogStatus.CANCELLED }) } as any;
 
   await DialogProcessor.processBulkApproveDialog(dialog, ctx);
 
@@ -175,7 +176,7 @@ Deno.test("DialogProcessor.processBulkApproveDialog: error surfaces via status",
 
   const { ctx, statuses, counters } = createContext({ service });
   const dialog = {
-    getResult: () => ({ type: "confirmed", value: {} }),
+    getResult: () => ({ type: DialogStatus.CONFIRMED, value: {} }),
     setProgress: (_n: number) => {},
   } as any;
 
@@ -188,7 +189,7 @@ Deno.test("DialogProcessor.processBulkApproveDialog: error surfaces via status",
 
 Deno.test("DialogProcessor.processAddLearningDialog: cancelled", async () => {
   const { ctx, statuses } = createContext();
-  const dialog = { getResult: () => ({ type: "cancelled" }) } as any;
+  const dialog = { getResult: () => ({ type: DialogStatus.CANCELLED }) } as any;
 
   await DialogProcessor.processAddLearningDialog(dialog, ctx);
 
@@ -197,7 +198,7 @@ Deno.test("DialogProcessor.processAddLearningDialog: cancelled", async () => {
 
 Deno.test("DialogProcessor.processAddLearningDialog: confirmed sets status and reloads tree", async () => {
   const { ctx, statuses, counters } = createContext();
-  const dialog = { getResult: () => ({ type: "confirmed", value: {} }) } as any;
+  const dialog = { getResult: () => ({ type: DialogStatus.CONFIRMED, value: {} }) } as any;
 
   await DialogProcessor.processAddLearningDialog(dialog, ctx);
 
@@ -207,7 +208,7 @@ Deno.test("DialogProcessor.processAddLearningDialog: confirmed sets status and r
 
 Deno.test("DialogProcessor.processAddLearningDialog: error surfaces via status", async () => {
   const { statuses, counters, ctx } = createContext();
-  const dialog = { getResult: () => ({ type: "confirmed", value: {} }) } as any;
+  const dialog = { getResult: () => ({ type: DialogStatus.CONFIRMED, value: {} }) } as any;
   const failingCtx = {
     ...ctx,
     onTreeReload: () => Promise.reject(new Error("reload failed")),
@@ -221,7 +222,7 @@ Deno.test("DialogProcessor.processAddLearningDialog: error surfaces via status",
 
 Deno.test("DialogProcessor.processPromoteDialog: cancelled", async () => {
   const { ctx, statuses } = createContext();
-  const dialog = { getResult: () => ({ type: "cancelled" }) } as any;
+  const dialog = { getResult: () => ({ type: DialogStatus.CANCELLED }) } as any;
 
   await DialogProcessor.processPromoteDialog(dialog, ctx);
 
@@ -230,7 +231,7 @@ Deno.test("DialogProcessor.processPromoteDialog: cancelled", async () => {
 
 Deno.test("DialogProcessor.processPromoteDialog: confirmed sets status and reloads tree", async () => {
   const { ctx, statuses, counters } = createContext();
-  const dialog = { getResult: () => ({ type: "confirmed", value: {} }) } as any;
+  const dialog = { getResult: () => ({ type: DialogStatus.CONFIRMED, value: {} }) } as any;
 
   await DialogProcessor.processPromoteDialog(dialog, ctx);
 
@@ -246,7 +247,7 @@ Deno.test("DialogProcessor.processConfirmApproveDialog: error surfaces via statu
   } as unknown as MemoryServiceInterface;
 
   const { ctx, statuses, counters } = createContext({ service });
-  const dialog = { getResult: () => ({ type: "confirmed", value: { proposalId: "p1" } }) } as any;
+  const dialog = { getResult: () => ({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1" } }) } as any;
 
   await DialogProcessor.processConfirmApproveDialog(dialog, ctx);
 

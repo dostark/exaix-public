@@ -1,5 +1,5 @@
 import type { MemoryUpdateProposal } from "../../schemas/memory_bank.ts";
-import { TUI_LAYOUT_DIALOG_WIDTH } from "../../helpers/constants.ts";
+import { TUI_DIALOG_INNER_PADDING, TUI_LAYOUT_DIALOG_WIDTH } from "../../helpers/constants.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 import {
   DialogBase,
@@ -15,12 +15,65 @@ import {
 // ===== Dialog Types =====
 
 export type DialogResult<T = unknown> =
-  | { type: "confirmed"; value: T }
-  | { type: "cancelled" };
+  | { type: DialogStatus.CONFIRMED; value: T }
+  | { type: DialogStatus.CANCELLED };
 
 import { DialogStatus } from "../../enums.ts";
 
 export type DialogState = DialogStatus;
+
+function initMemoryDialogFrame(options: DialogRenderOptions): {
+  innerWidth: number;
+  border: string;
+  lines: string[];
+} {
+  const innerWidth = Math.min(options.width - TUI_DIALOG_INNER_PADDING, TUI_LAYOUT_DIALOG_WIDTH);
+  const border = "─".repeat(innerWidth);
+  const lines: string[] = [];
+  return { innerWidth, border, lines };
+}
+
+function handleBinaryDialogKey(
+  key: string,
+  focusIndex: number,
+  onConfirm: () => void,
+  onCancel: () => void,
+): number {
+  switch (key) {
+    case KEYS.LEFT:
+    case KEYS.RIGHT:
+    case KEYS.TAB:
+      return focusIndex === 0 ? 1 : 0;
+    case KEYS.ENTER:
+      if (focusIndex === 0) {
+        onConfirm();
+      } else {
+        onCancel();
+      }
+      return focusIndex;
+    case KEYS.Y:
+      onConfirm();
+      return focusIndex;
+    case KEYS.N:
+    case KEYS.ESCAPE:
+      onCancel();
+      return focusIndex;
+    default:
+      return focusIndex;
+  }
+}
+
+function appendCenteredButtons(
+  lines: string[],
+  innerWidth: number,
+  primaryButton: string,
+  secondaryButton: string,
+): void {
+  const buttonsLine = `${primaryButton}    ${secondaryButton}`;
+  const padding = Math.floor((innerWidth - buttonsLine.length) / 2);
+  lines.push(`│${" ".repeat(padding)}${buttonsLine}${" ".repeat(innerWidth - padding - buttonsLine.length)}│`);
+  lines.push(`│${" ".repeat(innerWidth)}│`);
+}
 
 // ===== Confirm Approve Dialog =====
 
@@ -41,27 +94,12 @@ export class ConfirmApproveDialog extends DialogBase<ApproveDialogResult> {
   }
 
   handleKey(key: string): void {
-    switch (key) {
-      case KEYS.LEFT:
-      case KEYS.RIGHT:
-      case KEYS.TAB:
-        this.focusIndex = this.focusIndex === 0 ? 1 : 0;
-        break;
-      case KEYS.ENTER:
-        if (this.focusIndex === 0) {
-          this.confirm({ proposalId: this.proposal.id });
-        } else {
-          this.cancel();
-        }
-        break;
-      case KEYS.Y:
-        this.confirm({ proposalId: this.proposal.id });
-        break;
-      case KEYS.N:
-      case KEYS.ESCAPE:
-        this.cancel();
-        break;
-    }
+    this.focusIndex = handleBinaryDialogKey(
+      key,
+      this.focusIndex,
+      () => this.confirm({ proposalId: this.proposal.id }),
+      () => this.cancel(),
+    );
   }
 
   render(options: DialogRenderOptions): string[] {
@@ -93,9 +131,9 @@ export class ConfirmApproveDialog extends DialogBase<ApproveDialogResult> {
 
   getResult(): DialogResult<ApproveDialogResult> {
     if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
-      return { type: "confirmed", value: this._resultValue };
+      return { type: DialogStatus.CONFIRMED, value: this._resultValue };
     }
-    return { type: "cancelled" };
+    return { type: DialogStatus.CANCELLED };
   }
 
   getProposal(): MemoryUpdateProposal {
@@ -192,9 +230,9 @@ export class ConfirmRejectDialog extends DialogBase<RejectDialogResult> {
 
   getResult(): DialogResult<RejectDialogResult> {
     if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
-      return { type: "confirmed", value: this._resultValue };
+      return { type: DialogStatus.CONFIRMED, value: this._resultValue };
     }
-    return { type: "cancelled" };
+    return { type: DialogStatus.CANCELLED };
   }
 
   getReason(): string {
@@ -367,11 +405,7 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
   }
 
   render(options: DialogRenderOptions): string[] {
-    const width = options.width;
-    const _height = options.height || 20;
-    const lines: string[] = [];
-    const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
-    const border = "─".repeat(innerWidth);
+    const { innerWidth, border, lines } = initMemoryDialogFrame(options);
 
     lines.push(`┌─ Add Learning ${border.slice(13)}┐`);
     lines.push(`│${" ".repeat(innerWidth)}│`);
@@ -407,10 +441,7 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
     // Buttons
     const saveBtn = this.activeField === 6 ? "[Save]" : " Save ";
     const cancelBtn = this.activeField === 7 ? "[Cancel]" : " Cancel ";
-    const buttonsLine = `${saveBtn}    ${cancelBtn}`;
-    const padding = Math.floor((innerWidth - buttonsLine.length) / 2);
-    lines.push(`│${" ".repeat(padding)}${buttonsLine}${" ".repeat(innerWidth - padding - buttonsLine.length)}│`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
+    appendCenteredButtons(lines, innerWidth, saveBtn, cancelBtn);
     lines.push(`└${border}┘`);
 
     return lines;
@@ -418,9 +449,9 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
 
   getResult(): DialogResult<AddLearningResult> {
     if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
-      return { type: "confirmed", value: this._resultValue };
+      return { type: DialogStatus.CONFIRMED, value: this._resultValue };
     }
-    return { type: "cancelled" };
+    return { type: DialogStatus.CANCELLED };
   }
 
   // For testing
@@ -472,41 +503,20 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
   }
 
   handleKey(key: string): void {
-    switch (key) {
-      case KEYS.LEFT:
-      case KEYS.RIGHT:
-      case KEYS.TAB:
-        this.focusIndex = this.focusIndex === 0 ? 1 : 0;
-        break;
-      case KEYS.ENTER:
-        if (this.focusIndex === 0) {
-          this.confirm({
-            learningTitle: this.learningTitle,
-            sourcePortal: this.sourcePortal,
-          });
-        } else {
-          this.cancel();
-        }
-        break;
-      case KEYS.Y:
+    this.focusIndex = handleBinaryDialogKey(
+      key,
+      this.focusIndex,
+      () =>
         this.confirm({
           learningTitle: this.learningTitle,
           sourcePortal: this.sourcePortal,
-        });
-        break;
-      case KEYS.N:
-      case KEYS.ESCAPE:
-        this.cancel();
-        break;
-    }
+        }),
+      () => this.cancel(),
+    );
   }
 
   render(options: DialogRenderOptions): string[] {
-    const width = options.width;
-    const _height = options.height || 20;
-    const lines: string[] = [];
-    const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
-    const border = "─".repeat(innerWidth);
+    const { innerWidth, border, lines } = initMemoryDialogFrame(options);
 
     lines.push(`┌─ Promote to Global ${border.slice(18)}┐`);
     lines.push(`│${" ".repeat(innerWidth)}│`);
@@ -520,10 +530,7 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
     // Buttons
     const promoteBtn = this.focusIndex === 0 ? "[Promote]" : " Promote ";
     const cancelBtn = this.focusIndex === 1 ? "[Cancel]" : " Cancel ";
-    const buttonsLine = `${promoteBtn}    ${cancelBtn}`;
-    const padding = Math.floor((innerWidth - buttonsLine.length) / 2);
-    lines.push(`│${" ".repeat(padding)}${buttonsLine}${" ".repeat(innerWidth - padding - buttonsLine.length)}│`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
+    appendCenteredButtons(lines, innerWidth, promoteBtn, cancelBtn);
     lines.push(`└${border}┘`);
 
     return lines;
@@ -531,9 +538,9 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
 
   getResult(): DialogResult<PromoteDialogResult> {
     if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
-      return { type: "confirmed", value: this._resultValue };
+      return { type: DialogStatus.CONFIRMED, value: this._resultValue };
     }
-    return { type: "cancelled" };
+    return { type: DialogStatus.CANCELLED };
   }
 
   getLearningTitle(): string {
@@ -568,27 +575,12 @@ export class BulkApproveDialog extends DialogBase<BulkApproveResult> {
   handleKey(key: string): void {
     if (this.inProgress) return; // Ignore keys during progress
 
-    switch (key) {
-      case KEYS.LEFT:
-      case KEYS.RIGHT:
-      case KEYS.TAB:
-        this.focusIndex = this.focusIndex === 0 ? 1 : 0;
-        break;
-      case KEYS.ENTER:
-        if (this.focusIndex === 0) {
-          this.confirm({ count: this.count });
-        } else {
-          this.cancel();
-        }
-        break;
-      case KEYS.Y:
-        this.confirm({ count: this.count });
-        break;
-      case KEYS.N:
-      case KEYS.ESCAPE:
-        this.cancel();
-        break;
-    }
+    this.focusIndex = handleBinaryDialogKey(
+      key,
+      this.focusIndex,
+      () => this.confirm({ count: this.count }),
+      () => this.cancel(),
+    );
   }
 
   setProgress(current: number): void {
@@ -597,11 +589,7 @@ export class BulkApproveDialog extends DialogBase<BulkApproveResult> {
   }
 
   render(options: DialogRenderOptions): string[] {
-    const width = options.width;
-    const _height = options.height || 20;
-    const lines: string[] = [];
-    const innerWidth = Math.min(width - 4, TUI_LAYOUT_DIALOG_WIDTH);
-    const border = "─".repeat(innerWidth);
+    const { innerWidth, border, lines } = initMemoryDialogFrame(options);
 
     lines.push(`┌─ Approve All Proposals ${border.slice(22)}┐`);
     lines.push(`│${" ".repeat(innerWidth)}│`);
@@ -626,10 +614,7 @@ export class BulkApproveDialog extends DialogBase<BulkApproveResult> {
       // Buttons
       const approveBtn = this.focusIndex === 0 ? "[Approve All]" : " Approve All ";
       const cancelBtn = this.focusIndex === 1 ? "[Cancel]" : " Cancel ";
-      const buttonsLine = `${approveBtn}    ${cancelBtn}`;
-      const padding = Math.floor((innerWidth - buttonsLine.length) / 2);
-      lines.push(`│${" ".repeat(padding)}${buttonsLine}${" ".repeat(innerWidth - padding - buttonsLine.length)}│`);
-      lines.push(`│${" ".repeat(innerWidth)}│`);
+      appendCenteredButtons(lines, innerWidth, approveBtn, cancelBtn);
     }
 
     lines.push(`└${border}┘`);
@@ -639,9 +624,9 @@ export class BulkApproveDialog extends DialogBase<BulkApproveResult> {
 
   getResult(): DialogResult<BulkApproveResult> {
     if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
-      return { type: "confirmed", value: this._resultValue };
+      return { type: DialogStatus.CONFIRMED, value: this._resultValue };
     }
-    return { type: "cancelled" };
+    return { type: DialogStatus.CANCELLED };
   }
 
   getCount(): number {
