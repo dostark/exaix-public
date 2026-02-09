@@ -13,6 +13,7 @@
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { PlanStatus } from "../../src/plans/plan_status.ts";
+import { RequestStatus } from "../../src/requests/request_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
@@ -24,7 +25,14 @@ import {
   getWorkspaceArchiveDir,
   getWorkspacePlansDir,
   getWorkspaceRejectedDir,
+  getWorkspaceRequestsDir,
 } from "../helpers/paths_helper.ts";
+import {
+  PLAN_REVIEW_COMMENT_PREFIX,
+  PLAN_REVIEW_COMMENTS_HEADER,
+  REQUEST_REVISION_COMMENT_PREFIX,
+  REQUEST_REVISION_COMMENTS_HEADER,
+} from "../../src/config/constants.ts";
 
 describe("PlanCommands", () => {
   let tempDir: string;
@@ -39,7 +47,13 @@ describe("PlanCommands", () => {
   beforeEach(async () => {
     // Initialize shared CLI test context
     const result = await createCliTestContext({
-      createDirs: ["Workspace/Plans", "Workspace/Active", "Workspace/Rejected", "Workspace/Archive"],
+      createDirs: [
+        "Workspace/Plans",
+        "Workspace/Active",
+        "Workspace/Rejected",
+        "Workspace/Archive",
+        "Workspace/Requests",
+      ],
     });
     tempDir = result.tempDir;
     db = result.db;
@@ -265,8 +279,8 @@ Some actions here
       assertEquals(updatedContent.includes("status: needs_revision"), true);
       assertEquals(updatedContent.includes("reviewed_by:"), true);
       assertEquals(updatedContent.includes("reviewed_at:"), true);
-      assertEquals(updatedContent.includes("## Review Comments"), true);
-      assertEquals(updatedContent.includes(`⚠️ ${comment}`), true);
+      assertEquals(updatedContent.includes(PLAN_REVIEW_COMMENTS_HEADER), true);
+      assertEquals(updatedContent.includes(`${PLAN_REVIEW_COMMENT_PREFIX}${comment}`), true);
 
       // Verify activity logged
       const activities = await db.getRecentActivity(10);
@@ -298,7 +312,7 @@ status: review
 
       // Verify all comments present
       for (const comment of comments) {
-        assertEquals(updatedContent.includes(`⚠️ ${comment}`), true);
+        assertEquals(updatedContent.includes(`${PLAN_REVIEW_COMMENT_PREFIX}${comment}`), true);
       }
 
       // Verify activity logged with correct count
@@ -347,8 +361,48 @@ Some actions
       await planCommands.revise(planId, ["New comment"]);
 
       const updatedContent = await Deno.readTextFile(join(inboxPlansDir, `${planId}.md`));
-      assertEquals(updatedContent.includes("⚠️ Previous comment"), true);
-      assertEquals(updatedContent.includes("⚠️ New comment"), true);
+      assertEquals(updatedContent.includes(`${PLAN_REVIEW_COMMENT_PREFIX}Previous comment`), true);
+      assertEquals(updatedContent.includes(`${PLAN_REVIEW_COMMENT_PREFIX}New comment`), true);
+    });
+
+    it("should reset request status and append revision instructions", async () => {
+      const planId = "test-plan-010";
+      const requestId = "request-abc";
+      const requestPath = join(getWorkspaceRequestsDir(tempDir), `${requestId}.md`);
+
+      const requestContent = `---
+trace_id: "trace-req"
+status: ${RequestStatus.PLANNED}
+priority: normal
+agent: code-analyst
+source: cli
+created: "2025-11-25T10:00:00Z"
+created_by: "tester"
+---
+
+# Request
+
+Original request
+`;
+      await Deno.writeTextFile(requestPath, requestContent);
+
+      const planContent = `---
+trace_id: "trace-req"
+request_id: "${requestId}"
+status: review
+---
+
+# Test Plan
+`;
+      await Deno.writeTextFile(join(inboxPlansDir, `${planId}.md`), planContent);
+
+      const comment = "Use portal src/cli for analysis";
+      await planCommands.revise(planId, [comment]);
+
+      const updatedRequest = await Deno.readTextFile(requestPath);
+      assertEquals(updatedRequest.includes(`status: ${RequestStatus.PENDING}`), true);
+      assertEquals(updatedRequest.includes(REQUEST_REVISION_COMMENTS_HEADER), true);
+      assertEquals(updatedRequest.includes(`${REQUEST_REVISION_COMMENT_PREFIX}${comment}`), true);
     });
   });
 

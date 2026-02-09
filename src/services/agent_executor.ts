@@ -36,6 +36,7 @@ import {
 } from "../schemas/agent_executor.ts";
 import { LogLevel, SecurityMode } from "../enums.ts";
 import { InputValidator } from "../schemas/input_validation.ts";
+import { buildPortalContextBlock } from "./prompt_context.ts";
 
 /**
  * Agent execution error class
@@ -421,6 +422,7 @@ export class AgentExecutor {
     // Sanitize all user-controlled inputs
     const sanitizedRequest = this.sanitizeUserInput(context.request);
     const sanitizedPlan = this.sanitizeUserInput(context.plan);
+    const portalContext = this.buildPortalContextBlock(options.portal);
 
     // Use clear delimiters that prevent injection
     return `${blueprint.systemPrompt}
@@ -431,7 +433,7 @@ export class AgentExecutor {
 **Portal:** ${options.portal}
 **Security Mode:** ${options.security_mode}
 
-## User Request (START)
+${portalContext ? `${portalContext}\n\n` : ""}## User Request (START)
 --- BEGIN USER INPUT ---
 ${sanitizedRequest}
 --- END USER INPUT ---
@@ -464,6 +466,16 @@ Respond with valid JSON containing the changeset result:
 \`\`\`
 
 Ensure your response contains ONLY valid JSON, no additional text.`;
+  }
+
+  private buildPortalContextBlock(portalAlias: string): string | null {
+    const portalRoot = this.executionContext?.portalTarget;
+    if (!portalRoot) return null;
+
+    return buildPortalContextBlock({
+      portalAlias,
+      portalRoot,
+    });
   }
 
   /**

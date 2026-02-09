@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-09T15:17:04.674Z",
+  "generated_at": "2026-02-09T16:59:43.945Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1282,6 +1282,19 @@
       ]
     },
     {
+      "path": ".copilot/issues/security-expert-artifact-duplicates-plan.md",
+      "title": "Read-only security-expert artifacts duplicate plan content",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/security-expert-artifact-duplicates-plan.md.chunk0.txt",
+        ".copilot/chunks/security-expert-artifact-duplicates-plan.md.chunk1.txt",
+        ".copilot/chunks/security-expert-artifact-duplicates-plan.md.chunk2.txt",
+        ".copilot/chunks/security-expert-artifact-duplicates-plan.md.chunk3.txt",
+        ".copilot/chunks/security-expert-artifact-duplicates-plan.md.chunk4.txt",
+        ".copilot/chunks/security-expert-artifact-duplicates-plan.md.chunk5.txt"
+      ]
+    },
+    {
       "path": ".copilot/issues/test-engineer-request-frontmatter-missing.md",
       "title": "Test-engineer request plan missing frontmatter",
       "short_summary": "",
@@ -1408,6 +1421,18 @@
         ".copilot/chunks/database-changeset-table-missing.md.chunk2.txt",
         ".copilot/chunks/database-changeset-table-missing.md.chunk3.txt",
         ".copilot/chunks/database-changeset-table-missing.md.chunk4.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/code-analyst-ignores-portal-context.md",
+      "title": "Code-analyst ignores portal context and hallucinates stack",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk0.txt",
+        ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk1.txt",
+        ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk2.txt",
+        ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk3.txt",
+        ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk4.txt"
       ]
     },
     {

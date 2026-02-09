@@ -2,10 +2,10 @@
    - Check agent output parsing and PlanWriter input in `src/services/request_processor.ts`.
    - Verify agent blueprint response format for `test-engineer`.
 
-2. **Plan writing**: Ensure `PlanWriter` always writes frontmatter even on validation errors.
+1. **Plan writing**: Ensure `PlanWriter` always writes frontmatter even on validation errors.
    - Check `src/services/plan_writer.ts` error paths.
 
-3. **Failure plan handling**: Confirm how `_failed` plan artifacts are generated.
+1. **Failure plan handling**: Confirm how `_failed` plan artifacts are generated.
    - Check CLI plan listing and any fallback serialization for failed plans.
 
 ## Related Files

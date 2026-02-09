@@ -15,6 +15,8 @@ import { PlanWriter, type RequestMetadata } from "./plan_writer.ts";
 import { TaskComplexity } from "../enums.ts";
 import { RequestStatus } from "../requests/request_status.ts";
 import { PlanStatus } from "../plans/plan_status.ts";
+import { PORTAL_CONTEXT_KEY } from "../config/constants.ts";
+import { buildPortalContextBlock } from "./prompt_context.ts";
 import { EventLogger } from "./event_logger.ts";
 import { FlowValidatorImpl } from "./flow_validator.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
@@ -331,6 +333,10 @@ export class RequestProcessor {
     const blueprint = blueprintLoader.toLegacyBlueprint(loadedBlueprint);
 
     const request: ParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as ParsedRequest;
+    const portalContext = this.buildPortalContext(frontmatter.portal, traceLogger);
+    if (portalContext) {
+      request.context[PORTAL_CONTEXT_KEY] = portalContext;
+    }
 
     const taskComplexity = this.classifyTaskComplexity(blueprint, request);
     let selectedProvider: IModelProvider;
@@ -511,5 +517,20 @@ export class RequestProcessor {
       return TaskComplexity.COMPLEX;
     }
     return TaskComplexity.MEDIUM;
+  }
+
+  private buildPortalContext(portalAlias?: string, traceLogger?: any): string | null {
+    if (!portalAlias) return null;
+
+    const portal = this.config.portals.find((p) => p.alias === portalAlias);
+    if (!portal) {
+      traceLogger?.warn("portal.context.not_found", portalAlias, { portal: portalAlias });
+      return null;
+    }
+
+    return buildPortalContextBlock({
+      portalAlias,
+      portalRoot: portal.target_path,
+    });
   }
 }

@@ -14,6 +14,8 @@ import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MockProvider } from "../src/ai/providers.ts";
 import { AgentRunner } from "../src/services/agent_runner.ts";
 import type { Blueprint, ParsedRequest } from "../src/services/agent_runner.ts";
+import { PORTAL_CONTEXT_KEY } from "../src/config/constants.ts";
+import { buildPortalContextBlock } from "../src/services/prompt_context.ts";
 
 // ============================================================================
 // Test Fixtures
@@ -93,6 +95,32 @@ Deno.test("AgentRunner formats combined prompt correctly", async () => {
   assertEquals(systemIndex >= 0, true, "System prompt should be present");
   assertEquals(userIndex >= 0, true, "User prompt should be present");
   assertEquals(systemIndex < userIndex, true, "System prompt should come before user prompt");
+});
+
+Deno.test("AgentRunner injects portal context when provided", async () => {
+  let capturedPrompt = "";
+
+  const mockProvider = new MockProvider(wellFormedResponse);
+  const originalGenerate = mockProvider.generate.bind(mockProvider);
+  mockProvider.generate = async (prompt: string) => {
+    capturedPrompt = prompt;
+    return await originalGenerate(prompt);
+  };
+
+  const runner = new AgentRunner(mockProvider);
+  const portalContext = buildPortalContextBlock({
+    portalAlias: "portal-exoframe",
+    portalRoot: "/tmp/portal-exoframe",
+  });
+
+  await runner.run(sampleBlueprint, {
+    ...sampleRequest,
+    context: {
+      [PORTAL_CONTEXT_KEY]: portalContext,
+    },
+  });
+
+  assertStringIncludes(capturedPrompt, portalContext);
 });
 
 // ============================================================================

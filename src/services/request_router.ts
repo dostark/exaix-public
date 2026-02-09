@@ -4,6 +4,8 @@ import { EventLogger } from "./event_logger.ts";
 import { BlueprintLoader } from "./blueprint_loader.ts";
 import { WorkspaceExecutionContext, WorkspaceExecutionContextBuilder } from "./workspace_execution_context.ts";
 import type { Config } from "../config/schema.ts";
+import { PORTAL_CONTEXT_KEY } from "../config/constants.ts";
+import { buildPortalContextBlock } from "./prompt_context.ts";
 
 /**
  * RequestRouter - Routes requests to appropriate execution engine
@@ -200,6 +202,10 @@ export class RequestRouter {
       traceId,
       requestId,
     };
+    const portalContext = this.buildPortalContext(request.frontmatter?.portal);
+    if (portalContext) {
+      parsedRequest.context[PORTAL_CONTEXT_KEY] = portalContext;
+    }
 
     // Execute agent
     const result = await this.agentRunner.run(blueprint, parsedRequest);
@@ -235,6 +241,10 @@ export class RequestRouter {
       traceId,
       requestId,
     };
+    const portalContext = this.buildPortalContext(request.frontmatter?.portal);
+    if (portalContext) {
+      parsedRequest.context[PORTAL_CONTEXT_KEY] = portalContext;
+    }
 
     // Execute default agent
     const result = await this.agentRunner.run(blueprint, parsedRequest);
@@ -257,5 +267,19 @@ export class RequestRouter {
       return null;
     }
     return loader.toLegacyBlueprint(loaded);
+  }
+
+  private buildPortalContext(portalAlias?: string): string | null {
+    if (!portalAlias) return null;
+
+    const portal = this.config.portals.find((p) => p.alias === portalAlias);
+    if (!portal) {
+      return null;
+    }
+
+    return buildPortalContextBlock({
+      portalAlias,
+      portalRoot: portal.target_path,
+    });
   }
 }

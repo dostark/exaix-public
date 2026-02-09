@@ -1,6 +1,7 @@
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { FlowStepType, MemoryOperation, MemorySource, PortalOperation } from "../src/enums.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";
+import { PlanStatus } from "../src/plans/plan_status.ts";
 import { join } from "@std/path";
 import { getDefaultPaths } from "../src/config/paths.ts";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";
@@ -618,7 +619,8 @@ Deno.test("[regression] ExecutionLoop: skips structured execution for read-only 
     assertEquals(artifactFileExists, true, "Artifact file should exist under Memory/Execution/");
 
     const artifactContent = await Deno.readTextFile(join(tempDir, artifacts[0].file_path));
-    assertStringIncludes(artifactContent, planContent);
+    const expectedPlanContent = planContent.replace("status: active", `status: ${PlanStatus.COMPLETED}`);
+    assertStringIncludes(artifactContent, expectedPlanContent);
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });
@@ -697,7 +699,8 @@ Deno.test("[regression] ExecutionLoop: read-only legacy no-op plan produces arti
     assertEquals(artifactFileExists, true, "Artifact file should exist under Memory/Execution/");
 
     const artifactContent = await Deno.readTextFile(join(tempDir, artifacts[0].file_path));
-    assertStringIncludes(artifactContent, planContent);
+    const expectedPlanContent = planContent.replace("status: active", `status: ${PlanStatus.COMPLETED}`);
+    assertStringIncludes(artifactContent, expectedPlanContent);
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });

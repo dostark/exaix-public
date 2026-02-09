@@ -442,6 +442,14 @@ export class ExecutionLoop {
     executionGitService: GitService;
   }): Promise<{ didExecuteWork: boolean; didMutateRepo: boolean; report?: string }> {
     if (args.structuredPlan) {
+      if (args.isReadOnly && (!this.llmProvider || !this.db)) {
+        this.logActivity("execution.readonly_structured_plan_skipped", args.traceId, {
+          request_id: args.requestId,
+          agent_id: args.planAgentId,
+        });
+        return { didExecuteWork: false, didMutateRepo: false };
+      }
+
       const structuredPlanResult = await this.executeStructuredPlan(
         args.structuredPlan,
         args.executionRoot,

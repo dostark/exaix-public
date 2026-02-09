@@ -12,6 +12,7 @@ import { createLLMRetryPolicy, type RetryPolicy, type RetryPolicyConfig, type Re
 import { createOutputValidator, OutputValidator, type ValidationMetrics } from "./output_validator.ts";
 import type { SkillsService } from "./skills.ts";
 import { extractKeywords } from "../helpers/text.ts";
+import { PORTAL_CONTEXT_KEY } from "../config/constants.ts";
 
 // Note: SkillMatchRequest may be used in future for direct skill matching
 // Keeping import for consistency with SkillsService integration
@@ -419,6 +420,11 @@ export class AgentRunner {
     // Inject skill context after system prompt (Phase 17)
     if (skillContext?.trim()) {
       parts.push(skillContext);
+    }
+
+    const portalContext = request.context?.[PORTAL_CONTEXT_KEY];
+    if (typeof portalContext === "string" && portalContext.trim()) {
+      parts.push(portalContext);
     }
 
     if (request.userPrompt.trim()) {

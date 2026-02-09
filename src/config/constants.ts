@@ -529,6 +529,27 @@ export const DEFAULT_AGENT_TIMEOUT_MS = 300000;
 /** Maximum length for system prompts */
 export const MAX_PROMPT_LENGTH = 50000;
 
+// ============================================================================
+// Prompt Context Defaults
+// ============================================================================
+
+export const PORTAL_CONTEXT_KEY = "portal_context";
+export const PORTAL_CONTEXT_SECTION_TITLE = "Portal Context (SYSTEM CONTROLLED)";
+export const PORTAL_CONTEXT_ALIAS_LABEL = "Portal Alias";
+export const PORTAL_CONTEXT_ROOT_LABEL = "Portal Root";
+export const PORTAL_CONTEXT_REPOSITORY_LABEL = "Repository Root";
+export const PORTAL_CONTEXT_REQUIRED_ACTIONS_TITLE = "Required Actions";
+export const PORTAL_CONTEXT_REQUIRED_ACTIONS = [
+  "Use list_directory and read_file to inspect the portal before responding.",
+  "Base analysis and changes only on files under the portal root.",
+  "Start in src/ when present; otherwise inspect top-level folders.",
+];
+
+export const PLAN_REVIEW_COMMENTS_HEADER = "## Review Comments";
+export const PLAN_REVIEW_COMMENT_PREFIX = "⚠️ ";
+export const REQUEST_REVISION_COMMENTS_HEADER = "## Revision Instructions";
+export const REQUEST_REVISION_COMMENT_PREFIX = PLAN_REVIEW_COMMENT_PREFIX;
+
 /** Confidence Score Thresholds */
 export const CONFIDENCE_THRESHOLD_VERY_LOW = 30;
 export const CONFIDENCE_THRESHOLD_LOW = 50;

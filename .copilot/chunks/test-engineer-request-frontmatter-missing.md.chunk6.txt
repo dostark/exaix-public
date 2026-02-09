@@ -5,6 +5,6 @@
      - `error` or `reason` field with the validation message
    - Store the raw LLM output under a `## Rejected Output` section in the body.
 
-2. **Align naming with CLI expectations**
+1. **Align naming with CLI expectations**
    - Write rejected plans with the `_rejected.md` suffix (instead of `_failed.md`) so the CLI treats them as rejected plans.
    - Ensure `exoctl plan list` and `exoctl plan show` can parse and display them without warnings.

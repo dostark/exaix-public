@@ -4,10 +4,17 @@ import { FrontmatterParser } from "../parsers/markdown.ts";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
 import { RequestCommands } from "./request_commands.ts";
+import { RequestStatus } from "../requests/request_status.ts";
 import { ValidationChain } from "./validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
 import { CommandUtils } from "../helpers/command_utils.ts";
 import { enrichWithRequest } from "../helpers/request_enricher.ts";
+import {
+  PLAN_REVIEW_COMMENT_PREFIX,
+  PLAN_REVIEW_COMMENTS_HEADER,
+  REQUEST_REVISION_COMMENT_PREFIX,
+  REQUEST_REVISION_COMMENTS_HEADER,
+} from "../config/constants.ts";
 
 export interface PlanMetadata {
   id: string;
@@ -62,6 +69,7 @@ function extractPlanMetadata(planId: string, frontmatter: Record<string, unknown
 export class PlanCommands extends BaseCommand {
   private workspacePlansDir: string;
   private workspaceActiveDir: string;
+  private workspaceRequestsDir: string;
   private workspaceRejectedDir: string;
   private workspaceArchiveDir: string;
   private parser: FrontmatterParser;
@@ -79,6 +87,7 @@ export class PlanCommands extends BaseCommand {
     this.workspaceActiveDir = join(root, workspace, config.paths.active);
     this.workspaceRejectedDir = join(root, workspace, config.paths.rejected);
     this.workspaceArchiveDir = join(root, workspace, config.paths.archive);
+    this.workspaceRequestsDir = join(root, workspace, config.paths.requests);
     this.parser = new FrontmatterParser();
     this.requestCommands = new RequestCommands(context);
   }
@@ -288,25 +297,27 @@ export class PlanCommands extends BaseCommand {
 
       // Append comments to body
       let updatedBody = body;
-      const reviewCommentsMarker = "## Review Comments";
+      const reviewCommentsMarker = PLAN_REVIEW_COMMENTS_HEADER;
 
       // Check if review comments section exists
       if (updatedBody.includes(reviewCommentsMarker)) {
         // Append to existing section
-        const formattedComments = comments.map((c) => `⚠️ ${c}`).join("\n");
+        const formattedComments = comments.map((c) => `${PLAN_REVIEW_COMMENT_PREFIX}${c}`).join("\n");
         updatedBody = updatedBody.replace(
           reviewCommentsMarker,
           `${reviewCommentsMarker}\n\n${formattedComments}`,
         );
       } else {
         // Add new section at the end
-        const formattedComments = comments.map((c) => `⚠️ ${c}`).join("\n");
+        const formattedComments = comments.map((c) => `${PLAN_REVIEW_COMMENT_PREFIX}${c}`).join("\n");
         updatedBody = `${updatedBody.trim()}\n\n${reviewCommentsMarker}\n\n${formattedComments}\n`;
       }
 
       // Write updated plan
       const updatedContent = this.serializePlan(updatedFrontmatter, updatedBody);
       await Deno.writeTextFile(planPath, updatedContent);
+
+      await this.updateRequestForRevision(frontmatter.request_id as string | undefined, comments, actionLogger);
 
       // Log activity with user identity
       actionLogger.info("plan.revision_requested", planId, {
@@ -322,6 +333,56 @@ export class PlanCommands extends BaseCommand {
         error,
       });
     }
+  }
+
+  private async updateRequestForRevision(
+    requestId: string | undefined,
+    comments: string[],
+    actionLogger: Awaited<ReturnType<BaseCommand["getActionLogger"]>>,
+  ): Promise<void> {
+    if (!requestId) return;
+
+    try {
+      const requestPath = join(this.workspaceRequestsDir, `${requestId}.md`);
+      if (!await exists(requestPath)) {
+        throw new Error(`Request not found: ${requestId}`);
+      }
+      const requestContent = await Deno.readTextFile(requestPath);
+      const { frontmatter, body } = this.extractFrontmatterWithBody(requestContent);
+
+      const updatedFrontmatter = {
+        ...frontmatter,
+        status: RequestStatus.PENDING,
+      };
+
+      const updatedBody = this.appendRequestRevisionComments(body, comments);
+      const updatedContent = this.serializePlan(updatedFrontmatter, updatedBody);
+      await Deno.writeTextFile(requestPath, updatedContent);
+
+      actionLogger.info("request.revision_queued", requestPath, {
+        request_id: requestId,
+        comment_count: comments.length,
+        via: "cli",
+      }, frontmatter.trace_id as string | undefined);
+    } catch (error) {
+      actionLogger.warn("request.revision_update_failed", requestId, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  private appendRequestRevisionComments(body: string, comments: string[]): string {
+    const revisionMarker = REQUEST_REVISION_COMMENTS_HEADER;
+    const formattedComments = comments.map((c) => `${REQUEST_REVISION_COMMENT_PREFIX}${c}`).join("\n");
+
+    if (body.includes(revisionMarker)) {
+      return body.replace(
+        revisionMarker,
+        `${revisionMarker}\n\n${formattedComments}`,
+      );
+    }
+
+    return `${body.trim()}\n\n${revisionMarker}\n\n${formattedComments}\n`;
   }
 
   /**
