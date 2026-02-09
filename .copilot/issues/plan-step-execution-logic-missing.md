@@ -58,7 +58,7 @@ cd ~/ExoFrame && ls -la Memory/Execution/  # May be missing expected results
    - Check daemon execution logic
    - Verify step execution implementation exists
 
-2. **Plan Processing**: Examine plan approval vs execution flow
+1. **Plan Processing**: Examine plan approval vs execution flow
    - Is approval triggering execution?
    - Are steps being parsed and executed?
 
@@ -84,15 +84,23 @@ High priority - core execution functionality is missing. The system can create a
 **Fix Implemented**:
 
 1. **Enhanced ExecutionLoop** to detect structured plans with "## Execution Steps" headers
-2. **Integrated PlanExecutor** for structured plan execution using LLM-generated actions
-3. **Updated ExecutionLoop constructor** to accept LLM provider for PlanExecutor
-4. **Modified main.ts** to pass LLM provider to ExecutionLoop
+1. **Integrated PlanExecutor** for structured plan execution using LLM-generated actions
+1. **Updated ExecutionLoop constructor** to accept LLM provider for PlanExecutor
+1. **Modified main.ts** to pass LLM provider to ExecutionLoop
 
 **Changes Made**:
 
 - `src/services/execution_loop.ts`: Added structured plan detection and PlanExecutor integration
 - `src/main.ts`: Updated ExecutionLoop initialization with LLM provider
 - All tests pass and code quality checks pass
+
+## Addendum: Read-only agent execution artifacts
+
+This issue did not cover the read-only execution artifact gap. After structured execution was added, read-only agents (e.g., `code-analyst`) still produced placeholder artifacts because report output was not persisted or embedded. That follow-up fix is documented in .copilot/issues/code-analyst-execution-artifact-empty.md and includes:
+
+- Executing read-only structured plans while disabling git mutations.
+- Generating an analysis report from tool outputs and writing it to `Memory/Execution/<trace>/analysis.md`.
+- Embedding the analysis report into the review artifact for `exoctl review show`.
 
 ## Examples
 
@@ -147,7 +155,7 @@ cd ~/ExoFrame && ls -la Memory/Execution/  # May be missing expected results
    - Check daemon execution logic
    - Verify step execution implementation exists
 
-2. **Plan Processing**: Examine plan approval vs execution flow
+1. **Plan Processing**: Examine plan approval vs execution flow
    - Is approval triggering execution?
    - Are steps being parsed and executed?
 

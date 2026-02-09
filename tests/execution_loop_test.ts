@@ -13,6 +13,8 @@ import {
   getWorkspaceRequestsDir,
 } from "./helpers/paths_helper.ts";
 import { ensureDir } from "@std/fs/ensure-dir";
+import type { IModelProvider } from "../src/ai/providers.ts";
+import { EXECUTION_REPORT_FILENAME } from "../src/config/constants.ts";
 
 /**
  * Tests for Step 4.3: Execution Loop (Resilient)
@@ -261,6 +263,92 @@ agent_id: test-agent
     const activities = db.getActivitiesByTrace("test-trace-fail");
     const failedLog = activities.find((a: any) => a.action_type === "execution.failed");
     assertExists(failedLog, "execution.failed should be logged");
+  } finally {
+    await cleanup();
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+/**
+ * Regression test for read-only plan execution producing analysis output.
+ * Root cause: read-only structured plans were skipped, so no analysis was generated.
+ * Fix: execute read-only structured plans with tool actions and generate analysis report.
+ */
+Deno.test("[regression] ExecutionLoop: read-only structured plan writes analysis report", async () => {
+  const tempDir = await Deno.makeTempDir({ prefix: "exec-test-readonly-report-" });
+  const { db, cleanup } = await initTestDbService();
+  const traceId = crypto.randomUUID();
+
+  class ReadOnlyReportProvider implements IModelProvider {
+    id = "readonly-report-provider";
+
+    generate(prompt: string): Promise<string> {
+      if (prompt.includes("EXECUTION REPORT")) {
+        return Promise.resolve("## Summary\n\nRead-only analysis report.");
+      }
+
+      return Promise.resolve(`
+\
+\`\`\`toml
+[[actions]]
+tool = "read_file"
+[actions.params]
+path = "analysis-target.txt"
+\`\`\`
+`);
+    }
+  }
+
+  try {
+    const config = createMockConfig(tempDir);
+    const paths = getTestPaths(tempDir);
+    await Deno.mkdir(paths.activeDir, { recursive: true });
+
+    // Provide a read-only blueprint so ExecutionLoop can detect capability mode.
+    const blueprintsDir = join(tempDir, "Blueprints", "Agents");
+    await ensureDir(blueprintsDir);
+    await Deno.writeTextFile(
+      join(blueprintsDir, "code-analyst.md"),
+      `---\nagent_id: "code-analyst"\nname: "Code Analyst"\nmodel: "mock:test"\ncapabilities: ["read_file", "list_directory", "grep_search"]\ncreated: "2026-02-04T00:00:00Z"\ncreated_by: "test"\nversion: "1.0.0"\n---\n\n# Code Analyst\n`,
+    );
+
+    await Deno.writeTextFile(join(tempDir, "analysis-target.txt"), "analysis source");
+
+    const planContent =
+      `---\ntrace_id: "${traceId}"\nrequest_id: readonly-report\nstatus: active\nagent_id: code-analyst\n---\n\n# Read-only Structured Plan\n\n## Execution Steps\n\n## Step 1: Analyze code\n\nRead files and produce an analysis report.\n`;
+
+    const planPath = join(paths.activeDir, "readonly-report.md");
+    await Deno.writeTextFile(planPath, planContent);
+
+    const loop = new ExecutionLoop({
+      config,
+      db,
+      agentId: "daemon",
+      llmProvider: new ReadOnlyReportProvider(),
+    });
+
+    const result = await loop.processTask(planPath);
+
+    assertEquals(result.success, true);
+    assertEquals(result.traceId, traceId);
+
+    const reportPath = join(paths.memoryExecution, traceId, EXECUTION_REPORT_FILENAME);
+    const reportExists = await Deno.stat(reportPath).then(() => true).catch(() => false);
+    assertEquals(reportExists, true, "analysis report should be written to Memory/Execution");
+
+    const reportContent = await Deno.readTextFile(reportPath);
+    assertStringIncludes(reportContent, "Read-only analysis report.");
+
+    const artifacts = await db.preparedAll<
+      { id: string; status: string; agent: string; portal: string | null; request_id: string; file_path: string }
+    >(
+      "SELECT id, status, agent, portal, request_id, file_path FROM artifacts WHERE request_id = ?",
+      ["readonly-report"],
+    );
+    assertEquals(artifacts.length, 1, "Exactly one artifact should be created for a read-only execution");
+
+    const artifactContent = await Deno.readTextFile(join(tempDir, artifacts[0].file_path));
+    assertStringIncludes(artifactContent, "Read-only analysis report.");
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });
@@ -528,6 +616,9 @@ Deno.test("[regression] ExecutionLoop: skips structured execution for read-only 
       false
     );
     assertEquals(artifactFileExists, true, "Artifact file should exist under Memory/Execution/");
+
+    const artifactContent = await Deno.readTextFile(join(tempDir, artifacts[0].file_path));
+    assertStringIncludes(artifactContent, planContent);
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });
@@ -604,6 +695,9 @@ Deno.test("[regression] ExecutionLoop: read-only legacy no-op plan produces arti
       false
     );
     assertEquals(artifactFileExists, true, "Artifact file should exist under Memory/Execution/");
+
+    const artifactContent = await Deno.readTextFile(join(tempDir, artifacts[0].file_path));
+    assertStringIncludes(artifactContent, planContent);
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });

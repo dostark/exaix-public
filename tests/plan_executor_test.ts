@@ -54,7 +54,8 @@ content = "Hello World"
 
     // Execute plan
     const planPath = join(tempDir, "Workspace/Active/plan.md");
-    const sha = await executor.execute(planPath, context);
+    const result = await executor.execute(planPath, context);
+    const sha = result.lastCommitSha;
 
     // Verify result
     assertExists(sha, "Should return commit SHA");
@@ -143,7 +144,8 @@ content = "Step 2"
       ],
     };
 
-    const sha = await executor.execute("plan.md", context);
+    const result = await executor.execute("plan.md", context);
+    const sha = result.lastCommitSha;
     assertExists(sha);
 
     // Verify both files created
@@ -216,7 +218,8 @@ Deno.test("PlanExecutor: handles no actions generated", async () => {
     };
 
     // Should return null (no commit)
-    const sha = await executor.execute("plan.md", context);
+    const result = await executor.execute("plan.md", context);
+    const sha = result.lastCommitSha;
     assertEquals(sha, null);
   } finally {
     await cleanup();
@@ -251,7 +254,8 @@ path = "bad.txt"
     };
 
     // Should return null because parsing fails -> no actions -> warning -> return null
-    const sha = await executor.execute("plan.md", context);
+    const result = await executor.execute("plan.md", context);
+    const sha = result.lastCommitSha;
     assertEquals(sha, null);
   } finally {
     await cleanup();
@@ -328,7 +332,8 @@ path = "read.txt"
     };
 
     // Should return null (no commit created for step)
-    const sha = await executor.execute("plan.md", context);
+    const result = await executor.execute("plan.md", context);
+    const sha = result.lastCommitSha;
     assertEquals(sha, null);
   } finally {
     await cleanup();

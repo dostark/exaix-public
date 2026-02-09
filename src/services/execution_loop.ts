@@ -21,6 +21,12 @@ import { parseStructuredPlanFromMarkdown, type StructuredPlan } from "./structur
 import { BlueprintLoader } from "./blueprint_loader.ts";
 import { isReadOnlyAgentCapabilities } from "./agent_capabilities.ts";
 import { ArtifactRegistry } from "./artifact_registry.ts";
+import {
+  EXECUTION_ARTIFACT_ANALYSIS_SECTION_TITLE,
+  EXECUTION_ARTIFACT_PLAN_SECTION_TITLE,
+  EXECUTION_ARTIFACT_SECTION_SEPARATOR,
+  EXECUTION_REPORT_FILENAME,
+} from "../config/constants.ts";
 
 // ============================================================================
 // Types
@@ -191,7 +197,7 @@ export class ExecutionLoop {
 
       const gitSetup = await this.setupGitForExecution({
         initGitBranch,
-        hasExecutableWork: prepared.hasExecutableWork,
+        hasExecutableWork: prepared.hasExecutableWork && !prepared.isReadOnly,
         frontmatter,
         requestId,
         traceId,
@@ -200,7 +206,7 @@ export class ExecutionLoop {
         executionStrategy: prepared.executionStrategy,
       });
 
-      const didExecuteWork = await this.executePlanWork({
+      const workResult = await this.executePlanWork({
         structuredPlan: prepared.structuredPlan,
         actions: prepared.actions,
         isReadOnly: prepared.isReadOnly,
@@ -213,7 +219,11 @@ export class ExecutionLoop {
       });
 
       // Commit changes (if any)
-      const commitSha = didExecuteWork
+      if (workResult.report) {
+        await this.persistExecutionReport(traceId, workResult.report);
+      }
+
+      const commitSha = workResult.didMutateRepo
         ? await this.commitChanges(gitSetup.executionGitService, requestId!, traceId!)
         : null;
 
@@ -303,7 +313,7 @@ export class ExecutionLoop {
     const actions = structuredPlan ? [] : this.parsePlanActions(planContent);
     const planAgentId = frontmatter.agent_id || structuredPlan?.agent;
     const isReadOnly = await this.isReadOnlyAgentId(planAgentId);
-    const hasExecutableWork = !isReadOnly && (structuredPlan !== null || actions.length > 0);
+    const hasExecutableWork = structuredPlan !== null || actions.length > 0;
     const executionStrategy = this.getExecutionStrategy(frontmatter);
 
     return { structuredPlan, actions, planAgentId, isReadOnly, hasExecutableWork, executionStrategy };
@@ -430,29 +440,38 @@ export class ExecutionLoop {
     requestId: string;
     executionRoot: string;
     executionGitService: GitService;
-  }): Promise<boolean> {
+  }): Promise<{ didExecuteWork: boolean; didMutateRepo: boolean; report?: string }> {
     if (args.structuredPlan) {
+      const structuredPlanResult = await this.executeStructuredPlan(
+        args.structuredPlan,
+        args.executionRoot,
+        args.executionGitService,
+        { enableGit: !args.isReadOnly, generateReport: args.isReadOnly },
+      );
+
       if (args.isReadOnly) {
-        this.logActivity("execution.readonly_structured_plan_skipped", args.traceId, {
+        this.logActivity("execution.readonly_structured_plan_executed", args.traceId, {
           request_id: args.requestId,
           agent_id: args.planAgentId,
         });
-        return false;
       }
 
-      await this.executeStructuredPlan(args.structuredPlan, args.executionRoot, args.executionGitService);
-      return true;
+      return {
+        didExecuteWork: true,
+        didMutateRepo: !args.isReadOnly,
+        report: structuredPlanResult.report,
+      };
     }
 
     if (args.actions.length === 0) {
       if (args.requireActions) {
         throw new Error("Plan contains no executable actions");
       }
-      return false;
+      return { didExecuteWork: false, didMutateRepo: false };
     }
 
     await this.executePlanActions(args.actions, args.traceId, args.requestId, args.executionRoot);
-    return true;
+    return { didExecuteWork: true, didMutateRepo: !args.isReadOnly };
   }
 
   /**
@@ -640,7 +659,8 @@ export class ExecutionLoop {
     plan: StructuredPlan,
     executionRoot: string,
     _gitService: GitService,
-  ): Promise<void> {
+    options?: { enableGit?: boolean; generateReport?: boolean },
+  ): Promise<{ report?: string }> {
     if (!this.llmProvider) {
       throw new Error("LLM provider required for structured plan execution");
     }
@@ -653,6 +673,7 @@ export class ExecutionLoop {
       this.config,
       this.llmProvider,
       this.db,
+      options,
     );
 
     // Create plan context
@@ -668,7 +689,8 @@ export class ExecutionLoop {
     const dummyPlanPath = join(executionRoot, "plan.md");
 
     // Execute the plan
-    await planExecutor.execute(dummyPlanPath, context);
+    const result = await planExecutor.execute(dummyPlanPath, context);
+    return { report: result.report };
   }
 
   /**
@@ -689,6 +711,16 @@ export class ExecutionLoop {
     }
 
     return String(result);
+  }
+
+  private async persistExecutionReport(traceId: string, report: string): Promise<void> {
+    try {
+      const execDir = join(this.config.system.root, this.config.paths.memory, "Execution", traceId);
+      await Deno.mkdir(execDir, { recursive: true });
+      await Deno.writeTextFile(join(execDir, EXECUTION_REPORT_FILENAME), report);
+    } catch (error) {
+      console.error("Failed to persist execution report:", error);
+    }
   }
 
   /**
@@ -773,6 +805,7 @@ export class ExecutionLoop {
     // This provides a single stable review surface (separate from git).
     if (artifactContext?.isReadOnly && this.db && artifactContext.planAgentId) {
       try {
+        const execDir = join(this.config.system.root, this.config.paths.memory, "Execution", traceId);
         const summaryPath = join(
           this.config.system.root,
           this.config.paths.memory,
@@ -781,15 +814,37 @@ export class ExecutionLoop {
           "summary.md",
         );
         const summaryContent = await Deno.readTextFile(summaryPath);
+        let planContent = "";
+        let analysisContent = "";
+
+        try {
+          planContent = await Deno.readTextFile(join(execDir, "plan.md"));
+        } catch (error) {
+          console.error("Failed to read plan content for artifact:", error);
+        }
+
+        try {
+          analysisContent = await Deno.readTextFile(join(execDir, EXECUTION_REPORT_FILENAME));
+        } catch (error) {
+          console.error("Failed to read analysis content for artifact:", error);
+        }
 
         const memoryRoot = this.config.paths.memory.replace(/^\.\/?/, "");
         const memoryExecutionDir = this.config.paths.memoryExecution || "Execution";
         const traceDirRel = `${memoryRoot}/${memoryExecutionDir}/${traceId}/`;
+        const planSection = planContent.trim().length > 0
+          ? `${EXECUTION_ARTIFACT_SECTION_SEPARATOR}${EXECUTION_ARTIFACT_PLAN_SECTION_TITLE}` +
+            `${EXECUTION_ARTIFACT_SECTION_SEPARATOR}${planContent}`
+          : "";
+        const analysisSection = analysisContent.trim().length > 0
+          ? `${EXECUTION_ARTIFACT_SECTION_SEPARATOR}${EXECUTION_ARTIFACT_ANALYSIS_SECTION_TITLE}` +
+            `${EXECUTION_ARTIFACT_SECTION_SEPARATOR}${analysisContent}`
+          : "";
         const artifactBody = `# Execution Artifact\n\n` +
           `**Request:** ${requestId}\n\n` +
           `**Trace:** ${traceId}\n\n` +
-          `**Trace directory:** ${traceDirRel}\n\n---\n\n` +
-          summaryContent;
+          `**Trace directory:** ${traceDirRel}` +
+          `${EXECUTION_ARTIFACT_SECTION_SEPARATOR}${summaryContent}${planSection}${analysisSection}`;
 
         const artifactRegistry = new ArtifactRegistry(this.db, this.config.system.root);
         await artifactRegistry.createArtifact(

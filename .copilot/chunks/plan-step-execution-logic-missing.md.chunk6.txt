@@ -1,21 +1,14 @@
-# Check execution results - no actual work done
-cd ~/ExoFrame && git branch -a  # May show unexpected commits
-cd ~/ExoFrame && ls -la Memory/Execution/  # May be missing expected results
-```
+- Plan marked "completed" immediately after approval without running steps
+- No execution results stored in Memory/Execution/
+- Git branches created with unexpected file additions instead of analysis results
 
-## Observed Behavior
+## Problem
 
-- Plan approval succeeds
-- Plan status changes to "completed" immediately
-- No step-by-step execution occurs
-- Execution memory records may be incomplete or missing
-- Git branches may contain unexpected file additions instead of analysis results
+Approved plans are marked as "completed" but the actual step execution logic is not implemented. Plans show successful completion without actually executing any steps, leading to false positive execution results.
 
-## Expected Behavior
+## Reproduction Steps
 
-- Plans should execute steps sequentially
-- Each step should be tracked and logged
-- Execution results should be properly stored in Memory/Execution/
-- Git operations should reflect actual analysis work, not random commits
-
-## Environment
+```bash
+# Create and approve a plan
+cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
+cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan approve <plan-id>

@@ -1,11 +1,7 @@
-Approved plans are marked as "completed" but the actual step execution logic is not implemented. Plans show successful completion without actually executing any steps, leading to false positive execution results.
+This issue did not cover the read-only execution artifact gap. After structured execution was added, read-only agents (e.g., `code-analyst`) still produced placeholder artifacts because report output was not persisted or embedded. That follow-up fix is documented in .copilot/issues/code-analyst-execution-artifact-empty.md and includes:
 
-## Reproduction Steps
+- Executing read-only structured plans while disabling git mutations.
+- Generating an analysis report from tool outputs and writing it to `Memory/Execution/<trace>/analysis.md`.
+- Embedding the analysis report into the review artifact for `exoctl review show`.
 
-```bash
-# Create and approve a plan
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts request "Analyze test suite" --agent default --model google:gemini-2.0-flash-exp --priority normal
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan approve <plan-id>
-
-# Check plan status - shows completed
-cd ~/ExoFrame && deno run --allow-all src/cli/exoctl.ts plan list
+## Examples

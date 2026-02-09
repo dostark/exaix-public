@@ -555,3 +555,17 @@ export const CONFIDENCE_ADJUSTMENT_VERY_SHORT = -20;
 /** Confidence Length Thresholds */
 export const CONFIDENCE_LENGTH_THRESHOLD_SHORT = 50;
 export const CONFIDENCE_LENGTH_THRESHOLD_VERY_SHORT = 20;
+
+// ============================================================================
+// Execution Artifacts
+// ============================================================================
+
+export const EXECUTION_ARTIFACT_SECTION_SEPARATOR = "\n\n---\n\n";
+export const EXECUTION_ARTIFACT_PLAN_SECTION_TITLE = "## Plan Output";
+export const EXECUTION_ARTIFACT_ANALYSIS_SECTION_TITLE = "## Analysis Output";
+
+export const EXECUTION_REPORT_FILENAME = "analysis.md";
+export const EXECUTION_REPORT_TOOL_OUTPUT_MAX_CHARS = 4000;
+export const EXECUTION_REPORT_PROMPT_MAX_CHARS = 20000;
+export const EXECUTION_REPORT_TEMPERATURE = 0.2;
+export const EXECUTION_REPORT_MAX_TOKENS = 2000;
