@@ -1,12 +1,25 @@
 import { assertStringIncludes } from "@std/assert";
 import { MemoryFormatter } from "../../src/cli/formatters/memory_formatter.ts";
-import { ExecutionStatus, MemoryReferenceType, MemorySource } from "../../src/enums.ts";
+import {
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryOperation,
+  MemoryReferenceType,
+  MemoryScope,
+  MemorySource,
+  SkillStatus,
+} from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import type {
   ExecutionMemory,
   GlobalMemory,
   GlobalMemoryStats,
   Learning,
+  MemoryUpdateProposal,
   ProjectMemory,
+  Skill,
+  SkillMatch,
 } from "../../src/schemas/memory_bank.ts";
 import {
   TEST_AGENT_NAME,
@@ -25,11 +38,22 @@ import {
   TEST_PATTERN_EXAMPLE,
   TEST_PATTERN_NAME,
   TEST_PATTERN_TAG,
+  TEST_PENDING_LEARNING_DESCRIPTION,
+  TEST_PENDING_LEARNING_TITLE,
+  TEST_PENDING_REASON,
   TEST_PORTAL_NAME,
   TEST_PROJECT_OVERVIEW,
   TEST_REFERENCE_DESCRIPTION,
   TEST_REFERENCE_PATH,
   TEST_REQUEST_ID,
+  TEST_SKILL_DESCRIPTION,
+  TEST_SKILL_ID,
+  TEST_SKILL_INSTRUCTIONS,
+  TEST_SKILL_KEYWORD,
+  TEST_SKILL_NAME,
+  TEST_SKILL_TAG,
+  TEST_SKILL_TASK_TYPE,
+  TEST_SKILL_VERSION,
   TEST_STARTED_AT,
   TEST_SUMMARY_TEXT,
   TEST_TRACE_ID,
@@ -128,6 +152,66 @@ function createGlobalMemory(): GlobalMemory {
   };
 }
 
+function createPendingProposal(): MemoryUpdateProposal {
+  return {
+    id: TEST_TRACE_ID,
+    created_at: TEST_STARTED_AT,
+    operation: MemoryOperation.ADD,
+    target_scope: MemoryScope.GLOBAL,
+    target_project: undefined,
+    learning: {
+      id: TEST_TRACE_ID,
+      created_at: TEST_STARTED_AT,
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
+      title: TEST_PENDING_LEARNING_TITLE,
+      description: TEST_PENDING_LEARNING_DESCRIPTION,
+      category: LearningCategory.PATTERN,
+      tags: [TEST_PATTERN_TAG],
+      confidence: ConfidenceLevel.HIGH,
+      references: [],
+    },
+    reason: TEST_PENDING_REASON,
+    agent: TEST_AGENT_NAME,
+    execution_id: TEST_TRACE_ID,
+    status: MemoryStatus.PENDING,
+  };
+}
+
+function createSkill(): Skill {
+  return {
+    id: TEST_TRACE_ID,
+    skill_id: TEST_SKILL_ID,
+    name: TEST_SKILL_NAME,
+    source: MemorySource.USER,
+    scope: MemoryScope.PROJECT,
+    version: TEST_SKILL_VERSION,
+    status: SkillStatus.ACTIVE,
+    description: TEST_SKILL_DESCRIPTION,
+    instructions: TEST_SKILL_INSTRUCTIONS,
+    created_at: TEST_STARTED_AT,
+    usage_count: 0,
+    triggers: {
+      keywords: [TEST_SKILL_KEYWORD],
+      task_types: [TEST_SKILL_TASK_TYPE],
+      file_patterns: [],
+      tags: [TEST_SKILL_TAG],
+    },
+  };
+}
+
+function createSkillMatch(): SkillMatch {
+  return {
+    skillId: TEST_SKILL_ID,
+    confidence: 0.92,
+    matchedTriggers: {
+      keywords: [TEST_SKILL_KEYWORD],
+      task_types: [TEST_SKILL_TASK_TYPE],
+      tags: [TEST_SKILL_TAG],
+    },
+  };
+}
+
 Deno.test("MemoryFormatter: formatProjectShowTable includes patterns, decisions, references", () => {
   const formatter = new MemoryFormatter();
   const result = formatter.formatProjectShowTable(createProjectMemory());
@@ -167,4 +251,50 @@ Deno.test("MemoryFormatter: formatGlobalStatsTable includes category and project
 
   assertStringIncludes(result, TEST_GLOBAL_CATEGORY);
   assertStringIncludes(result, TEST_GLOBAL_PROJECT);
+});
+
+Deno.test("MemoryFormatter: formatExecutionShowMarkdown includes changes, lessons, error", () => {
+  const formatter = new MemoryFormatter();
+  const result = formatter.formatExecutionShowMarkdown(createExecutionMemory());
+
+  assertStringIncludes(result, "## Changes");
+  assertStringIncludes(result, TEST_CONTEXT_FILE);
+  assertStringIncludes(result, "## Lessons Learned");
+  assertStringIncludes(result, TEST_LESSON_TEXT);
+  assertStringIncludes(result, "## Error");
+  assertStringIncludes(result, TEST_ERROR_TEXT);
+});
+
+Deno.test("MemoryFormatter: formatPendingListMarkdown includes proposal details", () => {
+  const formatter = new MemoryFormatter();
+  const result = formatter.formatPendingListMarkdown([createPendingProposal()]);
+
+  assertStringIncludes(result, "# Pending Memory Update Proposals");
+  assertStringIncludes(result, TEST_PENDING_LEARNING_TITLE);
+});
+
+Deno.test("MemoryFormatter: formatPendingShowTable includes learning and reason", () => {
+  const formatter = new MemoryFormatter();
+  const result = formatter.formatPendingShowTable(createPendingProposal());
+
+  assertStringIncludes(result, TEST_PENDING_LEARNING_DESCRIPTION);
+  assertStringIncludes(result, TEST_PENDING_REASON);
+});
+
+Deno.test("MemoryFormatter: formatSkillShowTable includes triggers and instructions", () => {
+  const formatter = new MemoryFormatter();
+  const result = formatter.formatSkillShowTable(createSkill());
+
+  assertStringIncludes(result, TEST_SKILL_KEYWORD);
+  assertStringIncludes(result, TEST_SKILL_TASK_TYPE);
+  assertStringIncludes(result, "more lines");
+});
+
+Deno.test("MemoryFormatter: formatSkillMatchTable includes trigger labels", () => {
+  const formatter = new MemoryFormatter();
+  const result = formatter.formatSkillMatchTable([createSkillMatch()]);
+
+  assertStringIncludes(result, "kw:");
+  assertStringIncludes(result, "tt:");
+  assertStringIncludes(result, "tag:");
 });

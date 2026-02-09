@@ -11,6 +11,31 @@ import { CostTracker } from "../../src/services/cost_tracker.ts";
 import { HealthCheckService } from "../../src/services/health_check_service.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { PricingTier, TaskComplexity } from "../../src/enums.ts";
+import { createTestConfig } from "./helpers/test_config.ts";
+
+async function withEnv<T>(vars: Record<string, string | undefined>, fn: () => Promise<T> | T): Promise<T> {
+  const previous: Record<string, string | undefined> = {};
+  for (const [key, value] of Object.entries(vars)) {
+    previous[key] = Deno.env.get(key);
+    if (value === undefined) {
+      Deno.env.delete(key);
+    } else {
+      Deno.env.set(key, value);
+    }
+  }
+
+  try {
+    return await fn();
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) {
+        Deno.env.delete(key);
+      } else {
+        Deno.env.set(key, value);
+      }
+    }
+  }
+}
 
 // ============================================================================
 // Provider Selector Tests
@@ -350,8 +375,6 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
       check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
 
-    const { createTestConfig } = await import("./helpers/test_config.ts");
-
     // Create config with task routing
     const config = createTestConfig();
     config.provider_strategy = {
@@ -372,6 +395,142 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
     // Test complex task routing
     const complexProvider = await selector.selectProviderForTask(config, "complex");
     assertEquals(complexProvider, "complex-provider");
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("ProviderSelector: env provider selected when healthy and allowed", async () => {
+  const { db, cleanup } = await initTestDbService();
+  try {
+    ProviderRegistry.clear();
+
+    ProviderRegistry.registerWithMetadata("mock", new MockProviderFactory(), {
+      name: "mock",
+      description: "Mock provider",
+      capabilities: ["chat"],
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.FREE,
+      strengths: ["general"],
+    });
+
+    const costTracker = new CostTracker(db);
+    const healthService = new HealthCheckService("1.0.0");
+    healthService.registerCheck({
+      name: "mock",
+      critical: false,
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
+    });
+
+    const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
+    const config = createTestConfig();
+
+    const selected = await withEnv(
+      { EXO_LLM_PROVIDER: "mock", EXO_TEST_MODE: "1" },
+      () => selector.selectProviderForTask(config, "simple"),
+    );
+
+    assertEquals(selected, "mock");
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("ProviderSelector: env provider fallback when unregistered or unhealthy", async () => {
+  const { db, cleanup } = await initTestDbService();
+  try {
+    ProviderRegistry.clear();
+
+    ProviderRegistry.registerWithMetadata("mock", new MockProviderFactory(), {
+      name: "mock",
+      description: "Mock provider",
+      capabilities: ["chat"],
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.FREE,
+      strengths: ["general"],
+    });
+
+    ProviderRegistry.registerWithMetadata("ollama", new MockProviderFactory(), {
+      name: "ollama",
+      description: "Ollama provider",
+      capabilities: ["chat"],
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.FREE,
+      strengths: ["general"],
+    });
+
+    const costTracker = new CostTracker(db);
+    const healthService = new HealthCheckService("1.0.0");
+    healthService.registerCheck({
+      name: "mock",
+      critical: false,
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
+    });
+    healthService.registerCheck({
+      name: "ollama",
+      critical: false,
+      check: async () => await ({ status: HealthCheckVerdict.FAIL }),
+    });
+
+    const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
+    const config = createTestConfig();
+
+    const selected = await withEnv(
+      { EXO_LLM_PROVIDER: "ollama", EXO_TEST_MODE: "1" },
+      () => selector.selectProviderForTask(config, "simple"),
+    );
+
+    assertEquals(selected, "mock");
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("ProviderSelector: blocks paid env provider in test mode", async () => {
+  const { db, cleanup } = await initTestDbService();
+  try {
+    ProviderRegistry.clear();
+
+    ProviderRegistry.registerWithMetadata("openai", new MockProviderFactory(), {
+      name: "openai",
+      description: "OpenAI provider",
+      capabilities: ["chat"],
+      costTier: ProviderCostTier.PAID,
+      pricingTier: PricingTier.HIGH,
+      strengths: ["general"],
+    });
+
+    ProviderRegistry.registerWithMetadata("mock", new MockProviderFactory(), {
+      name: "mock",
+      description: "Mock provider",
+      capabilities: ["chat"],
+      costTier: ProviderCostTier.FREE,
+      pricingTier: PricingTier.FREE,
+      strengths: ["general"],
+    });
+
+    const costTracker = new CostTracker(db);
+    const healthService = new HealthCheckService("1.0.0");
+    healthService.registerCheck({
+      name: "openai",
+      critical: false,
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
+    });
+    healthService.registerCheck({
+      name: "mock",
+      critical: false,
+      check: async () => await ({ status: HealthCheckVerdict.PASS }),
+    });
+
+    const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
+    const config = createTestConfig();
+
+    const selected = await withEnv(
+      { EXO_LLM_PROVIDER: "openai", EXO_TEST_MODE: "1", EXO_TEST_ENABLE_PAID_LLM: undefined },
+      () => selector.selectProviderForTask(config, "simple"),
+    );
+
+    assertEquals(selected, "mock");
   } finally {
     await cleanup();
   }

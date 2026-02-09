@@ -4,11 +4,13 @@ import { FlowStepType } from "../src/enums.ts";
 import { join } from "@std/path";
 import {
   GitCorruptionError,
+  GitError,
   GitLockError,
   GitNothingToCommitError,
   GitRepositoryError,
   GitService,
 } from "../src/services/git_service.ts";
+import { DEFAULT_GIT_EXIT_CODE_FATAL } from "../src/config/constants.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import { createGitTestContext, GitTestHelper } from "./helpers/git_test_helper.ts";
 
@@ -225,6 +227,67 @@ Deno.test("GitService: commit message format is correct", async () => {
   } finally {
     await cleanup();
   }
+});
+
+Deno.test("GitService: parseWorktreeListPorcelain handles flags", () => {
+  const output = [
+    "worktree /repo",
+    "HEAD 0123456789abcdef",
+    "branch refs/heads/main",
+    "locked",
+    "prunable",
+    "worktree /repo/wt1",
+    "HEAD fedcba9876543210",
+    "detached",
+    "locked reason",
+    "prunable because",
+    "",
+  ].join("\n");
+
+  const worktrees = (GitService as any).parseWorktreeListPorcelain(output);
+
+  assertEquals(worktrees.length, 2);
+  assertEquals(worktrees[0].path, "/repo");
+  assertEquals(worktrees[0].locked, true);
+  assertEquals(worktrees[0].prunable, true);
+  assertEquals(worktrees[1].path, "/repo/wt1");
+  assertEquals(worktrees[1].detached, true);
+  assertEquals(worktrees[1].locked, true);
+  assertEquals(worktrees[1].prunable, true);
+});
+
+Deno.test("GitService: classifyGitError maps common stderr patterns", () => {
+  const config = createMockConfig("/tmp/git-classify");
+  const git = new GitService({ config, repoPath: "/tmp/git-classify" });
+
+  const repoError = git.classifyGitError(128, "not a git repository", ["status"]);
+  assertEquals(repoError instanceof GitRepositoryError, true);
+
+  const lockError = git.classifyGitError(1, "index.lock exists", ["status"]);
+  assertEquals(lockError instanceof GitLockError, true);
+
+  const corruptionError = git.classifyGitError(1, "corrupt loose object", ["status"]);
+  assertEquals(corruptionError instanceof GitCorruptionError, true);
+
+  const invalidState = git.classifyGitError(DEFAULT_GIT_EXIT_CODE_FATAL, "fatal", ["status"]);
+  assertEquals(invalidState instanceof GitRepositoryError, true);
+
+  const nothingToCommit = git.classifyGitError(1, "nothing to commit", ["commit"]);
+  assertEquals(nothingToCommit instanceof GitNothingToCommitError, true);
+
+  const genericError = git.classifyGitError(1, "unknown", ["log"]);
+  assertEquals(genericError instanceof GitError, true);
+});
+
+Deno.test("GitService: isLockError identifies lock errors", () => {
+  const config = createMockConfig("/tmp/git-lock-error");
+  const git = new GitService({ config, repoPath: "/tmp/git-lock-error" });
+
+  const isLock = (git as any).isLockError(new Error("index.lock exists"));
+  const isNotLock = (git as any).isLockError(new Error("something else"));
+
+  assertEquals(isLock, true);
+  assertEquals(isNotLock, false);
 });
 
 Deno.test("GitService: works in already initialized repository", async () => {

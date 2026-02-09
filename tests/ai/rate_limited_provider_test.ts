@@ -13,10 +13,12 @@
  * - Cost tracking is accurate and prevents financial loss
  */
 
-import { assertEquals, assertRejects, assertStringIncludes } from "@std/assert";
+import { assert, assertEquals, assertRejects, assertStringIncludes } from "@std/assert";
 import { Spy, spy } from "@std/testing/mock";
 import { RateLimitedProvider, RateLimitError } from "../../src/ai/rate_limited_provider.ts";
 import { IModelProvider } from "../../src/ai/providers.ts";
+import { CostTracker } from "../../src/services/cost_tracker.ts";
+import { initTestDbService } from "../helpers/db.ts";
 
 // ============================================================================
 // Test Fixtures
@@ -245,4 +247,67 @@ Deno.test("RateLimitedProvider: resets daily cost counter", async () => {
   // Should allow call now
   await rateLimited.generate("test");
   assertEquals((mockProvider.generate as Spy).calls.length, 1);
+});
+
+Deno.test("RateLimitedProvider: records cost via tracker using provider name", async () => {
+  const { db, cleanup } = await initTestDbService();
+  try {
+    const costTracker = new CostTracker(db);
+    const mockProvider: IModelProvider = {
+      id: "openai-gpt-4",
+      generate: spy(() => Promise.resolve("ok")),
+    };
+
+    const rateLimited = new RateLimitedProvider(mockProvider, {
+      maxCallsPerMinute: 10,
+      maxTokensPerHour: 10000,
+      maxCostPerDay: 10,
+      costPer1kTokens: 0.001,
+      costTracker,
+    });
+
+    await rateLimited.generate("hello");
+    await costTracker.flush();
+
+    const openAiCost = await costTracker.getDailyCost("openai");
+    const mockCost = await costTracker.getDailyCost("mock");
+
+    assert(openAiCost > 0);
+    assertEquals(mockCost, 0);
+    assertEquals((mockProvider.generate as Spy).calls.length, 1);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("RateLimitedProvider: blocks when persistent budget exceeded", async () => {
+  const { db, cleanup } = await initTestDbService();
+  try {
+    const costTracker = new CostTracker(db);
+    await costTracker.trackRequest("openai", 1000);
+    await costTracker.flush();
+
+    const mockProvider: IModelProvider = {
+      id: "openai-gpt-4",
+      generate: spy(() => Promise.resolve("ok")),
+    };
+
+    const rateLimited = new RateLimitedProvider(mockProvider, {
+      maxCallsPerMinute: 10,
+      maxTokensPerHour: 10000,
+      maxCostPerDay: 0.001,
+      costPer1kTokens: 0.0001,
+      costTracker,
+    });
+
+    await assertRejects(
+      () => rateLimited.generate("tiny"),
+      RateLimitError,
+      "Persistent cost budget exceeded for openai",
+    );
+
+    assertEquals((mockProvider.generate as Spy).calls.length, 0);
+  } finally {
+    await cleanup();
+  }
 });

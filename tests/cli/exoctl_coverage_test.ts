@@ -23,6 +23,7 @@ import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { PlanStatus } from "../../src/plans/plan_status.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
+import { GitService } from "../../src/services/git_service.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 
 // ===== Plan Command Error Handlers =====
@@ -236,6 +237,187 @@ Deno.test("portal add error exits with message", async () => {
       await (mod.__test_command as any).parse(["portal", MemoryOperation.ADD, "/tmp/path", "alias"]);
     });
     assert(errors.some((e: string) => e.includes("add failed")));
+  });
+});
+
+// ===== Git Worktree Commands =====
+
+Deno.test("git worktrees list rejects --portal and --repo together", async () => {
+  await withTestMod(async (mod, _ctx) => {
+    const { errors } = await expectExitWithLogs(async () => {
+      await (mod.__test_command as any).parse([
+        PortalOperation.GIT,
+        "worktrees",
+        "list",
+        "--portal",
+        "portal-a",
+        "--repo",
+        "/tmp/repo",
+      ]);
+    });
+    assert(errors.some((e: string) => e.includes("Use either --portal or --repo")));
+  });
+});
+
+Deno.test("git worktrees list uses repo option and prints entries", async () => {
+  const originalList = (GitService.prototype as any).listWorktrees;
+  let capturedRepo = "";
+  let called = false;
+
+  (GitService.prototype as any).listWorktrees = function () {
+    called = true;
+    capturedRepo = (this as any).repoPath;
+    return Promise.resolve([
+      {
+        path: "/tmp/repo/wt1",
+        branch: "refs/heads/feat/test",
+        head: "abcd1234abcd1234",
+        locked: true,
+        prunable: false,
+      },
+      {
+        path: "/tmp/repo/wt2",
+        detached: true,
+        head: "deadbeefdeadbeef",
+        prunable: true,
+      },
+    ]);
+  };
+
+  try {
+    await withTestMod(async (mod, _ctx) => {
+      const output = await captureConsoleOutput(async () => {
+        await (mod.__test_command as any).parse([PortalOperation.GIT, "worktrees", "list", "--repo", "/tmp/repo"]);
+      });
+      assert(called);
+      assertEquals(capturedRepo, "/tmp/repo");
+      assert(output.length > 0);
+    });
+  } finally {
+    (GitService.prototype as any).listWorktrees = originalList;
+  }
+});
+
+Deno.test("git worktrees prune passes options to GitService", async () => {
+  const originalPrune = (GitService.prototype as any).pruneWorktrees;
+  let received: any = null;
+
+  (GitService.prototype as any).pruneWorktrees = function (options: any) {
+    received = options;
+    return Promise.resolve("pruned worktrees");
+  };
+
+  try {
+    await withTestMod(async (mod, _ctx) => {
+      const output = await captureConsoleOutput(async () => {
+        await (mod.__test_command as any).parse([
+          PortalOperation.GIT,
+          "worktrees",
+          "prune",
+          "--repo",
+          "/tmp/repo",
+          "--dry-run",
+          "--verbose",
+          "--expire",
+          "3.days.ago",
+        ]);
+      });
+      assertEquals(received, { dryRun: true, verbose: true, expire: "3.days.ago" });
+      assert(output.length > 0);
+    });
+  } finally {
+    (GitService.prototype as any).pruneWorktrees = originalPrune;
+  }
+});
+
+// ===== Portal Commands =====
+
+Deno.test("portal add rejects invalid execution strategy", async () => {
+  await withTestMod(async (mod, _ctx) => {
+    const { errors } = await expectExitWithLogs(async () => {
+      await (mod.__test_command as any).parse([
+        "portal",
+        "add",
+        "/tmp/path",
+        "alias",
+        "--execution-strategy",
+        "invalid",
+      ]);
+    });
+    assert(errors.some((e: string) => e.includes("Invalid execution strategy")));
+  });
+});
+
+Deno.test("portal verify logs warnings and summary", async () => {
+  await withTestMod(async (mod, ctx) => {
+    (ctx.portalCommands as any).verify = () => [
+      { alias: "Healthy", issues: [] },
+      { alias: "Broken", issues: ["missing"] },
+    ];
+
+    const { logs, warns } = await captureAllOutputs(async () => {
+      await (mod.__test_command as any).parse(["portal", "verify"]);
+    });
+
+    assert(warns.length >= 1);
+    assert(logs.join(" ").includes("portal.verify.summary"));
+  });
+});
+
+// ===== Review Show Branches =====
+
+Deno.test("review show --diff prints diff only", async () => {
+  await withTestMod(async (mod, ctx) => {
+    (ctx.reviewCommands as any).show = (_id: string) => ({ diff: "DIFF ONLY" });
+
+    const output = await captureConsoleOutput(async () => {
+      await (mod.__test_command as any).parse(["review", "show", "cs-1", "--diff"]);
+    });
+
+    assert(output.includes("DIFF ONLY"));
+  });
+});
+
+Deno.test("review show renders approved decision", async () => {
+  await withTestMod(async (mod, ctx) => {
+    (ctx.reviewCommands as any).show = (_id: string) => ({
+      request_id: "req-1",
+      branch: "feat/x",
+      status: ReviewStatus.APPROVED,
+      commits: [{ sha: "abcd1234", message: "done", timestamp: Date.now() }],
+      files_changed: 1,
+      diff: "diff",
+      approved_at: Date.now(),
+      approved_by: "tester",
+    });
+
+    const { logs } = await captureAllOutputs(async () => {
+      await (mod.__test_command as any).parse(["review", "show", "cs-1"]);
+    });
+
+    assert(logs.join(" ").includes("approved"));
+  });
+});
+
+Deno.test("review show renders rejected decision", async () => {
+  await withTestMod(async (mod, ctx) => {
+    (ctx.reviewCommands as any).show = (_id: string) => ({
+      request_id: "req-2",
+      branch: "feat/y",
+      status: ReviewStatus.REJECTED,
+      commits: [{ sha: "deadbeef", message: "nope", timestamp: Date.now() }],
+      files_changed: 2,
+      diff: "diff",
+      rejected_at: Date.now(),
+      rejected_by: "tester",
+      rejection_reason: "bad",
+    });
+
+    const { logs } = await captureAllOutputs(async () => {
+      await (mod.__test_command as any).parse(["review", "show", "cs-2"]);
+    });
+
+    assert(logs.join(" ").includes("rejected"));
   });
 });
 

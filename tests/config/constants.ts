@@ -68,6 +68,26 @@ export const TEST_GLOBAL_UPDATED_AT = "2026-02-08T02:00:00.000Z";
 export const TEST_GLOBAL_CATEGORY = "pattern";
 export const TEST_GLOBAL_PROJECT = "demo-project";
 
+// Memory skill tests
+export const TEST_SKILL_ID = "quality-skill";
+export const TEST_SKILL_NAME = "Quality Skill";
+export const TEST_SKILL_DESCRIPTION = "Improve code quality through refactoring.";
+export const TEST_SKILL_INSTRUCTIONS = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6";
+export const TEST_SKILL_VERSION = "1.0.0";
+export const TEST_SKILL_KEYWORD = "refactor";
+export const TEST_SKILL_TASK_TYPE = "code";
+export const TEST_SKILL_TAG = "quality";
+export const TEST_SKILL_REQUEST_TEXT = "Please refactor the module for quality.";
+export const TEST_DERIVED_SKILL_NAME = "Derived Skill";
+export const TEST_DERIVED_SKILL_DESCRIPTION = "Derived from learnings";
+export const TEST_DERIVED_SKILL_INSTRUCTIONS = "Follow best practices.";
+export const TEST_DERIVED_SKILL_ID = "derived-skill";
+
+// Memory pending proposal tests
+export const TEST_PENDING_LEARNING_TITLE = "Pending Learning";
+export const TEST_PENDING_LEARNING_DESCRIPTION = "Pending learning description";
+export const TEST_PENDING_REASON = "Proposed from execution";
+
 // Dashboard mock tests
 export const TEST_SKILL_ID_USER = "tdd-methodology";
 export const TEST_SKILL_ID_LEARNED = "api-design-learned";

@@ -8,12 +8,12 @@ import { parse } from "https://deno.land/std@0.224.0/flags/mod.ts";
  */
 
 const flags = parse(Deno.args, {
-  string: ["threshold", "limit"],
+  string: ["limit"],
   boolean: ["full", "parallel"],
-  default: { threshold: "85" },
 });
 
-const _THRESHOLD = parseFloat(flags.threshold);
+const LINE_THRESHOLD = 70;
+const BRANCH_THRESHOLD = 60;
 const COVERAGE_DIR = "coverage";
 
 const COVERAGE_EXCLUDE_PATTERNS = [
@@ -222,6 +222,13 @@ async function runCoverageCheck() {
       console.log(
         `\n✅ Coverage totals: line ${totals.linePct.toFixed(1)}%, branch ${totals.branchPct.toFixed(1)}%`,
       );
+
+      if (totals.linePct < LINE_THRESHOLD || totals.branchPct < BRANCH_THRESHOLD) {
+        console.error(
+          `❌ Coverage below threshold (line ${LINE_THRESHOLD}%, branch ${BRANCH_THRESHOLD}%).`,
+        );
+        Deno.exit(1);
+      }
     }
 
     console.log(`\nℹ️  Coverage excludes: ${COVERAGE_EXCLUDE_PATTERNS.join(", ")}`);

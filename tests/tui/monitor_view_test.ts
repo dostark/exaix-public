@@ -476,6 +476,71 @@ Deno.test("Phase 13.5: MonitorTuiSession - focusable elements", () => {
   assert(elements.includes("action-buttons"));
 });
 
+Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed cancels cleanly", () => {
+  const { session } = createMonitorSession(sampleMonitorLogs());
+
+  (session as any).state.filterText = "before";
+  (session as any).pendingDialogType = "search";
+
+  (session as any).onDialogClosed({
+    getResult: () => ({ type: "cancelled" }),
+  });
+
+  assertEquals(session.getSearchQuery(), "before");
+  assertEquals((session as any).pendingDialogType, null);
+});
+
+Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed applies search", () => {
+  const { session } = createMonitorSession(sampleMonitorLogs());
+
+  (session as any).pendingDialogType = "search";
+  (session as any).onDialogClosed({
+    getResult: () => ({ type: "confirmed", value: "needle" }),
+  });
+
+  assertEquals(session.getSearchQuery(), "needle");
+});
+
+Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed filters and clears agent", async () => {
+  const { session, monitorView } = createMonitorSession(createTwoAgentLogs());
+
+  (session as any).pendingDialogType = "filter-agent";
+  (session as any).onDialogClosed({
+    getResult: () => ({ type: "confirmed", value: "researcher" }),
+  });
+
+  await new Promise((res) => setTimeout(res, 0));
+  assertEquals(monitorView.getFilteredLogs().length, 1);
+  assertEquals(monitorView.getFilteredLogs()[0].agent_id, "researcher");
+
+  (session as any).pendingDialogType = "filter-agent";
+  (session as any).onDialogClosed({
+    getResult: () => ({ type: "confirmed", value: "" }),
+  });
+
+  await new Promise((res) => setTimeout(res, 0));
+  assertEquals(monitorView.getFilteredLogs().length, 2);
+});
+
+Deno.test("Phase 13.5: MonitorTuiSession - group node ignores bookmark and toggles on enter", async () => {
+  const { session } = createMonitorSession(createTwoAgentLogs());
+
+  await session.handleKey(KEYS.G);
+  const tree = session.getLogTree();
+  assertEquals(tree.length > 0, true);
+
+  const groupId = tree[0].id;
+  (session as any).state.selectedId = groupId;
+
+  await session.handleKey(KEYS.B);
+  assertEquals(session.getBookmarkedIds().size, 0);
+
+  const wasExpanded = tree[0].expanded;
+  await session.handleKey(KEYS.ENTER);
+  const updated = session.getLogTree();
+  assertEquals(updated[0].expanded, !wasExpanded);
+});
+
 Deno.test("Phase 13.5: MonitorTuiSession - search dialog", async () => {
   const { session } = createMonitorSession([]);
 

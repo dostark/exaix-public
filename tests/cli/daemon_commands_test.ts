@@ -607,6 +607,70 @@ describe("DaemonCommands - Edge Cases", () => {
     assertEquals(pidContent, currentPid.toString());
   });
 
+  it("start() should throw when daemon command fails", async () => {
+    const originalCommand = Deno.Command;
+    const dummyScript = join(tempDir, "src", "dummy_main.ts");
+    await ensureDir(join(tempDir, "src"));
+    await Deno.writeTextFile(dummyScript, "// dummy");
+    Deno.env.set("EXO_DAEMON_SCRIPT", dummyScript);
+
+    class FailingCommand {
+      constructor(_cmd: string, _opts: Deno.CommandOptions) {}
+      output() {
+        return Promise.resolve({
+          code: 1,
+          stdout: new Uint8Array(),
+          stderr: new TextEncoder().encode("boom"),
+          success: false,
+        } as Deno.CommandOutput);
+      }
+    }
+
+    try {
+      (Deno as any).Command = FailingCommand;
+      await assertRejects(
+        async () => await daemonCommands.start(),
+        Error,
+        "Failed to start daemon",
+      );
+    } finally {
+      (Deno as any).Command = originalCommand;
+      Deno.env.delete("EXO_DAEMON_SCRIPT");
+    }
+  });
+
+  it("start() should throw when daemon command returns invalid PID", async () => {
+    const originalCommand = Deno.Command;
+    const dummyScript = join(tempDir, "src", "dummy_main.ts");
+    await ensureDir(join(tempDir, "src"));
+    await Deno.writeTextFile(dummyScript, "// dummy");
+    Deno.env.set("EXO_DAEMON_SCRIPT", dummyScript);
+
+    class InvalidPidCommand {
+      constructor(_cmd: string, _opts: Deno.CommandOptions) {}
+      output() {
+        return Promise.resolve({
+          code: 0,
+          stdout: new TextEncoder().encode("not-a-pid"),
+          stderr: new Uint8Array(),
+          success: true,
+        } as Deno.CommandOutput);
+      }
+    }
+
+    try {
+      (Deno as any).Command = InvalidPidCommand;
+      await assertRejects(
+        async () => await daemonCommands.start(),
+        Error,
+        "Failed to start daemon",
+      );
+    } finally {
+      (Deno as any).Command = originalCommand;
+      Deno.env.delete("EXO_DAEMON_SCRIPT");
+    }
+  });
+
   it("stop() should return early when daemon not running", async () => {
     // Should return without error (early return)
     await daemonCommands.stop();

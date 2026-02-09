@@ -105,6 +105,172 @@ Deno.test("processDialogCompletion: confirmed ConfirmDialog is routed to process
   assertEquals(calls, ["confirm"]);
 });
 
+Deno.test("processDialogCompletion: cancelled InputDialog does not invoke handlers", async () => {
+  let called = 0;
+
+  const handlers = {
+    handleSearchResult: (_value: string) => {
+      called++;
+    },
+    handleFilterStatusResult: (_value: string) => {
+      called++;
+    },
+    handleFilterAgentResult: (_value: string) => {
+      called++;
+    },
+    handleCreateResult: (_value: string) => {
+      called++;
+      return Promise.resolve();
+    },
+    handlePriorityResult: (_value: string) => {
+      called++;
+    },
+    processConfirmDialog: (_dialog: ConfirmDialog) => {
+      called++;
+      return Promise.resolve();
+    },
+    setStatus: (_message: string) => {
+      called++;
+    },
+  };
+
+  const dialog = new InputDialog({
+    title: "Search",
+    label: "Query",
+    defaultValue: "q",
+  });
+
+  dialog.handleKey(KEYS.ESCAPE);
+
+  await processDialogCompletion(dialog, RequestDialogType.SEARCH, handlers);
+  assertEquals(called, 0);
+});
+
+Deno.test("processDialogCompletion: confirmed InputDialog routes filter and priority handlers", async () => {
+  const calls: string[] = [];
+
+  const handlers = {
+    handleSearchResult: (_value: string) => {},
+    handleFilterStatusResult: (value: string) => {
+      calls.push(`filter_status:${value}`);
+    },
+    handleFilterAgentResult: (value: string) => {
+      calls.push(`filter_agent:${value}`);
+    },
+    handleCreateResult: (_value: string) => Promise.resolve(),
+    handlePriorityResult: (value: string) => {
+      calls.push(`priority:${value}`);
+    },
+    processConfirmDialog: (_dialog: ConfirmDialog) => Promise.resolve(),
+    setStatus: (_message: string) => {},
+  };
+
+  const filterStatusDialog = new InputDialog({
+    title: "Filter Status",
+    label: "Status",
+    defaultValue: "pending",
+  });
+  confirmInputDialog(filterStatusDialog);
+  await processDialogCompletion(filterStatusDialog, RequestDialogType.FILTER_STATUS, handlers);
+
+  const filterAgentDialog = new InputDialog({
+    title: "Filter Agent",
+    label: "Agent",
+    defaultValue: "default",
+  });
+  confirmInputDialog(filterAgentDialog);
+  await processDialogCompletion(filterAgentDialog, RequestDialogType.FILTER_AGENT, handlers);
+
+  const priorityDialog = new InputDialog({
+    title: "Priority",
+    label: "Priority",
+    defaultValue: "high",
+  });
+  confirmInputDialog(priorityDialog);
+  await processDialogCompletion(priorityDialog, RequestDialogType.PRIORITY, handlers);
+
+  assertEquals(calls, ["filter_status:pending", "filter_agent:default", "priority:high"]);
+});
+
+Deno.test("processDialogCompletion: confirmed InputDialog with null dialogType is ignored", async () => {
+  let called = 0;
+
+  const handlers = {
+    handleSearchResult: (_value: string) => {
+      called++;
+    },
+    handleFilterStatusResult: (_value: string) => {
+      called++;
+    },
+    handleFilterAgentResult: (_value: string) => {
+      called++;
+    },
+    handleCreateResult: (_value: string) => {
+      called++;
+      return Promise.resolve();
+    },
+    handlePriorityResult: (_value: string) => {
+      called++;
+    },
+    processConfirmDialog: (_dialog: ConfirmDialog) => {
+      called++;
+      return Promise.resolve();
+    },
+    setStatus: (_message: string) => {
+      called++;
+    },
+  };
+
+  const dialog = new InputDialog({
+    title: "Unknown",
+    label: "Value",
+    defaultValue: "noop",
+  });
+  confirmInputDialog(dialog);
+
+  await processDialogCompletion(dialog, null, handlers);
+  assertEquals(called, 0);
+});
+
+Deno.test("processDialogCompletion: cancelled ConfirmDialog does not invoke handler", async () => {
+  let called = 0;
+
+  const handlers = {
+    handleSearchResult: (_value: string) => {
+      called++;
+    },
+    handleFilterStatusResult: (_value: string) => {
+      called++;
+    },
+    handleFilterAgentResult: (_value: string) => {
+      called++;
+    },
+    handleCreateResult: (_value: string) => {
+      called++;
+      return Promise.resolve();
+    },
+    handlePriorityResult: (_value: string) => {
+      called++;
+    },
+    processConfirmDialog: (_dialog: ConfirmDialog) => {
+      called++;
+      return Promise.resolve();
+    },
+    setStatus: (_message: string) => {
+      called++;
+    },
+  };
+
+  const dialog = new ConfirmDialog({
+    title: "Confirm",
+    message: "Cancel?",
+  });
+  dialog.handleKey(KEYS.N);
+
+  await processDialogCompletion(dialog, null, handlers);
+  assertEquals(called, 0);
+});
+
 Deno.test("processDialogCompletion: no-op on null dialog", async () => {
   let called = 0;
 

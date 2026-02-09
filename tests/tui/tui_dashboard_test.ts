@@ -1,9 +1,18 @@
 // Edge-case and end-to-end tests for TUI dashboard
-import { launchTuiDashboard, type TuiDashboard } from "../../src/tui/tui_dashboard.ts";
+import {
+  createDefaultDashboardState,
+  getDashboardHelpSections,
+  launchTuiDashboard,
+  type Pane,
+  renderPaneTitleBar,
+  renderViewPicker,
+  type TuiDashboard,
+} from "../../src/tui/tui_dashboard.ts";
 import { SkillStatus } from "../../src/enums.ts";
 
 import { assertEquals } from "https://deno.land/std@0.204.0/assert/assert_equals.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
+import { getTheme } from "../../src/helpers/colors.ts";
 
 Deno.test("TUI dashboard handles empty portal list and error state", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
@@ -429,6 +438,33 @@ Deno.test("TUI dashboard state initialization", async () => {
   dashboard.destroy();
 });
 
+Deno.test("TUI dashboard default state includes memory fields", () => {
+  const state = createDefaultDashboardState();
+  assertEquals(state.showHelp, false);
+  assertEquals(state.showNotifications, false);
+  assertEquals(state.showViewPicker, false);
+  assertEquals(state.isLoading, false);
+  assertEquals(state.loadingMessage, "");
+  assertEquals(state.error, null);
+  assertEquals(state.currentTheme, "dark");
+  assertEquals(state.highContrast, false);
+  assertEquals(state.screenReader, false);
+  assertEquals(state.showMemoryNotifications, false);
+  assertEquals(state.selectedMemoryNotifIndex, 0);
+});
+
+Deno.test("TUI dashboard help sections include navigation and layout keys", () => {
+  const sections = getDashboardHelpSections();
+  const titles = sections.map((section) => section.title);
+  assertEquals(titles.includes("Navigation"), true);
+  assertEquals(titles.includes("Layout Management"), true);
+
+  const navigation = sections.find((section) => section.title === "Navigation");
+  const navigationKeys = navigation?.items.map((item) => item.key) ?? [];
+  assertEquals(navigationKeys.includes(KEYS.TAB), true);
+  assertEquals(navigationKeys.includes(KEYS.SHIFT_TAB), true);
+});
+
 Deno.test("TUI dashboard help overlay toggle", async () => {
   const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
 
@@ -524,6 +560,42 @@ Deno.test("TUI dashboard view indicator rendering", async () => {
   // Should contain pane focus indicator
   assertEquals(indicator.includes("●") || indicator.includes("1:"), true);
   dashboard.destroy();
+});
+
+Deno.test("TUI dashboard view picker renders selected view", () => {
+  const theme = getTheme(true);
+  const views = [{ name: "PortalManagerView" }, { name: "MonitorView" }];
+  const lines = renderViewPicker(views, 1, theme);
+  const text = lines.join("\n");
+
+  assertEquals(text.includes("Select View"), true);
+  assertEquals(text.includes("PortalManager"), true);
+  assertEquals(text.includes("Monitor"), true);
+  assertEquals(text.includes("▶"), true);
+  assertEquals(text.includes("◀"), true);
+});
+
+Deno.test("TUI dashboard pane title bar reflects focus and max state", () => {
+  const theme = getTheme(true);
+  const pane: Pane = {
+    id: "main",
+    view: { name: "PortalManagerView" },
+    flexX: 0,
+    flexY: 0,
+    flexWidth: 1,
+    flexHeight: 1,
+    x: 0,
+    y: 0,
+    width: 80,
+    height: 24,
+    focused: true,
+    maximized: true,
+  };
+
+  const title = renderPaneTitleBar(pane, theme);
+  assertEquals(title.includes("PortalManager"), true);
+  assertEquals(title.includes("[MAX]"), true);
+  assertEquals(title.includes("●"), true);
 });
 
 Deno.test("TUI dashboard global help rendering", async () => {

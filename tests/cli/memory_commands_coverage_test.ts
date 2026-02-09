@@ -4,11 +4,36 @@
  * Covers untested paths to improve coverage from 66.1% to >80%
  */
 
-import { ConfidenceLevel, ExecutionStatus, LearningCategory, MemoryScope, MemoryType } from "../../src/enums.ts";
+import {
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryScope,
+  MemorySource,
+  MemoryType,
+} from "../../src/enums.ts";
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
+import { SkillsService } from "../../src/services/skills.ts";
 import { TestEnvironmentFactory } from "../fixtures/test_environment_factory.ts";
-import { LearningBuilder, ProjectMemoryBuilder } from "../fixtures/memory_builder.ts";
+import { ExecutionMemoryBuilder, LearningBuilder, ProjectMemoryBuilder } from "../fixtures/memory_builder.ts";
+import {
+  TEST_AGENT_NAME,
+  TEST_DERIVED_SKILL_DESCRIPTION,
+  TEST_DERIVED_SKILL_ID,
+  TEST_DERIVED_SKILL_INSTRUCTIONS,
+  TEST_DERIVED_SKILL_NAME,
+  TEST_PENDING_LEARNING_DESCRIPTION,
+  TEST_PENDING_LEARNING_TITLE,
+  TEST_PENDING_REASON,
+  TEST_SKILL_DESCRIPTION,
+  TEST_SKILL_ID,
+  TEST_SKILL_INSTRUCTIONS,
+  TEST_SKILL_KEYWORD,
+  TEST_SKILL_NAME,
+  TEST_SKILL_REQUEST_TEXT,
+  TEST_SKILL_TASK_TYPE,
+} from "../config/constants.ts";
 
 // ===== Search with Embeddings Tests =====
 
@@ -547,6 +572,234 @@ Deno.test("MemoryCommands: globalStats with learnings by category and project", 
     assertStringIncludes(result, "Global Memory Statistics");
     assertStringIncludes(result, "Total Learnings:");
     assertStringIncludes(result, "By Category:");
+  } finally {
+    await cleanup();
+  }
+});
+
+// ===== Pending Commands Success Paths =====
+
+Deno.test("MemoryCommands: pendingList and pendingShow return proposal details", async () => {
+  const { commands, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
+  try {
+    const execution = new ExecutionMemoryBuilder("PendingProject").build();
+    const proposalId = await extractor.createProposal(
+      {
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
+        title: TEST_PENDING_LEARNING_TITLE,
+        description: TEST_PENDING_LEARNING_DESCRIPTION,
+        category: LearningCategory.PATTERN,
+        tags: [TEST_SKILL_KEYWORD],
+        confidence: ConfidenceLevel.HIGH,
+        references: [],
+      },
+      execution,
+      TEST_AGENT_NAME,
+    );
+
+    const listResult = await commands.pendingList("table");
+    assertStringIncludes(listResult, "Pending Memory Update Proposals");
+    assertStringIncludes(listResult, TEST_PENDING_LEARNING_TITLE);
+
+    const showResult = await commands.pendingShow(proposalId, "md");
+    assertStringIncludes(showResult, "# Pending Proposal");
+    assertStringIncludes(showResult, TEST_PENDING_LEARNING_DESCRIPTION);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("MemoryCommands: pendingApprove approves global proposal", async () => {
+  const { commands, extractor, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
+  try {
+    await memoryBank.initGlobalMemory();
+
+    const execution = new ExecutionMemoryBuilder("GlobalProject").build();
+    const proposalId = await extractor.createProposal(
+      {
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
+        title: TEST_PENDING_LEARNING_TITLE,
+        description: TEST_PENDING_LEARNING_DESCRIPTION,
+        category: LearningCategory.PATTERN,
+        tags: [TEST_SKILL_KEYWORD],
+        confidence: ConfidenceLevel.HIGH,
+        references: [],
+      },
+      execution,
+      TEST_AGENT_NAME,
+    );
+
+    const result = await commands.pendingApprove(proposalId);
+    assertStringIncludes(result, "Proposal approved successfully");
+
+    const globalMem = await memoryBank.getGlobalMemory();
+    assertEquals(globalMem?.learnings.length, 1);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("MemoryCommands: pendingReject rejects proposal with reason", async () => {
+  const { commands, extractor, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
+  try {
+    const execution = new ExecutionMemoryBuilder("RejectProject").build();
+    const proposalId = await extractor.createProposal(
+      {
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
+        title: TEST_PENDING_LEARNING_TITLE,
+        description: TEST_PENDING_LEARNING_DESCRIPTION,
+        category: LearningCategory.PATTERN,
+        tags: [TEST_SKILL_KEYWORD],
+        confidence: ConfidenceLevel.HIGH,
+        references: [],
+      },
+      execution,
+      TEST_AGENT_NAME,
+    );
+
+    const result = await commands.pendingReject(proposalId, TEST_PENDING_REASON);
+    assertStringIncludes(result, "Proposal rejected");
+    assertStringIncludes(result, TEST_PENDING_REASON);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("MemoryCommands: pendingApproveAll approves multiple proposals", async () => {
+  const { commands, extractor, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
+  try {
+    await memoryBank.initGlobalMemory();
+    await memoryBank.createProjectMemory(new ProjectMemoryBuilder("PendingProject").build());
+
+    const globalExecution = new ExecutionMemoryBuilder("GlobalProject").build();
+    await extractor.createProposal(
+      {
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+        source: MemorySource.USER,
+        scope: MemoryScope.GLOBAL,
+        title: TEST_PENDING_LEARNING_TITLE,
+        description: TEST_PENDING_LEARNING_DESCRIPTION,
+        category: LearningCategory.PATTERN,
+        tags: [TEST_SKILL_KEYWORD],
+        confidence: ConfidenceLevel.HIGH,
+        references: [],
+      },
+      globalExecution,
+      TEST_AGENT_NAME,
+    );
+
+    const projectExecution = new ExecutionMemoryBuilder("PendingProject").build();
+    await extractor.createProposal(
+      {
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+        source: MemorySource.USER,
+        scope: MemoryScope.PROJECT,
+        project: "PendingProject",
+        title: TEST_PENDING_LEARNING_TITLE,
+        description: TEST_PENDING_LEARNING_DESCRIPTION,
+        category: LearningCategory.PATTERN,
+        tags: [TEST_SKILL_KEYWORD],
+        confidence: ConfidenceLevel.HIGH,
+        references: [],
+      },
+      projectExecution,
+      TEST_AGENT_NAME,
+    );
+
+    const result = await commands.pendingApproveAll();
+    assertStringIncludes(result, "Approved 2 proposal(s)");
+  } finally {
+    await cleanup();
+  }
+});
+
+// ===== Skills Commands Coverage =====
+
+Deno.test("MemoryCommands: skillList returns empty message when no skills exist", async () => {
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
+  try {
+    const result = await commands.skillList();
+
+    assertStringIncludes(result, "No skills found");
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("MemoryCommands: skillCreate, skillShow, and skillList (json) work", async () => {
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
+  try {
+    const createResult = await commands.skillCreate(TEST_SKILL_NAME, {
+      category: "learned",
+      description: TEST_SKILL_DESCRIPTION,
+      instructions: TEST_SKILL_INSTRUCTIONS,
+      triggersKeywords: [TEST_SKILL_KEYWORD],
+      triggersTaskTypes: [TEST_SKILL_TASK_TYPE],
+    });
+
+    assertStringIncludes(createResult, TEST_SKILL_ID);
+
+    const listJson = await commands.skillList({ category: "learned", format: "json" });
+    const parsed = JSON.parse(listJson) as Array<{ skill_id: string }>;
+    assertEquals(parsed[0].skill_id, TEST_SKILL_ID);
+
+    const showResult = await commands.skillShow(TEST_SKILL_ID, "md");
+    assertStringIncludes(showResult, TEST_SKILL_NAME);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("MemoryCommands: skillMatch returns matches for active skill", async () => {
+  const { commands, config, db, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
+  try {
+    await commands.skillCreate(TEST_SKILL_NAME, {
+      category: "learned",
+      description: TEST_SKILL_DESCRIPTION,
+      instructions: TEST_SKILL_INSTRUCTIONS,
+      triggersKeywords: [TEST_SKILL_KEYWORD],
+      triggersTaskTypes: [TEST_SKILL_TASK_TYPE],
+    });
+
+    const skills = new SkillsService(config, db);
+    await skills.initialize();
+    await skills.activateSkill(TEST_SKILL_ID);
+
+    const result = await commands.skillMatch(TEST_SKILL_REQUEST_TEXT, {
+      taskType: TEST_SKILL_TASK_TYPE,
+      format: "table",
+    });
+
+    assertStringIncludes(result, TEST_SKILL_ID);
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("MemoryCommands: skillDerive returns derived skill JSON", async () => {
+  const { commands, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
+  try {
+    const result = await commands.skillDerive({
+      learningIds: [crypto.randomUUID()],
+      name: TEST_DERIVED_SKILL_NAME,
+      description: TEST_DERIVED_SKILL_DESCRIPTION,
+      instructions: TEST_DERIVED_SKILL_INSTRUCTIONS,
+      format: "json",
+    });
+
+    const parsed = JSON.parse(result) as { skill_id: string };
+    assertEquals(parsed.skill_id, TEST_DERIVED_SKILL_ID);
   } finally {
     await cleanup();
   }
