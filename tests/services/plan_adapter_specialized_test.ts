@@ -95,6 +95,17 @@ Deno.test("PlanAdapter.toMarkdown - renders qa section", () => {
       testSummary: [
         { category: "Unit", planned: 100, executed: 100, passed: 98, failed: 2 },
       ],
+      coverage: {
+        unit: [
+          {
+            scenario: "Unit coverage",
+            setup: "Unit setup",
+            steps: ["Run unit tests"],
+            expectedResult: "All unit tests pass",
+            status: "PASS",
+          },
+        ],
+      },
       issues: [
         {
           title: "UI Glitch",
@@ -112,6 +123,8 @@ Deno.test("PlanAdapter.toMarkdown - renders qa section", () => {
   assertStringIncludes(markdown, "## QA & Testing Results");
   assertStringIncludes(markdown, "| Category | Planned | Executed | Passed | Failed |");
   assertStringIncludes(markdown, "| Unit | 100 | 100 | 98 | 2 |");
+  assertStringIncludes(markdown, "### Unit Coverage");
+  assertStringIncludes(markdown, "#### Unit coverage");
   assertStringIncludes(markdown, "### Issues Found");
   assertStringIncludes(markdown, "#### UI Glitch [Medium]");
   assertStringIncludes(markdown, "1. Click on profile");

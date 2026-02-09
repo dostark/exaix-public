@@ -348,6 +348,41 @@ export class PlanAdapter {
       sections.push("");
     }
 
+    if (plan.qa.coverage) {
+      const renderCoverage = (label: string, items?: any[]) => {
+        if (!items || items.length === 0) return;
+        sections.push(`### ${label} Coverage`, "");
+        items.forEach((entry) => {
+          if ("journey" in entry) {
+            sections.push(`#### ${entry.journey}: ${entry.scenario}`);
+            sections.push(`- **Preconditions:** ${entry.preconditions}`);
+            sections.push("**Steps:**");
+            entry.steps.forEach((step: string) => sections.push(`- ${step}`));
+            sections.push("**Verification Points:**");
+            entry.verificationPoints.forEach((point: string) => sections.push(`- ${point}`));
+            sections.push(`- **Status:** ${entry.status}`);
+            sections.push("");
+            return;
+          }
+
+          sections.push(`#### ${entry.scenario}`);
+          sections.push(`- **Setup:** ${entry.setup}`);
+          sections.push("**Steps:**");
+          entry.steps.forEach((step: string) => sections.push(`- ${step}`));
+          sections.push(`- **Expected Result:** ${entry.expectedResult}`);
+          sections.push(`- **Status:** ${entry.status}`);
+          if (entry.notes) {
+            sections.push(`- **Notes:** ${entry.notes}`);
+          }
+          sections.push("");
+        });
+      };
+
+      renderCoverage("Unit", plan.qa.coverage.unit);
+      renderCoverage("Integration", plan.qa.coverage.integration);
+      renderCoverage("E2E", plan.qa.coverage.e2e);
+    }
+
     if (plan.qa.issues && plan.qa.issues.length > 0) {
       sections.push("### Issues Found", "");
       plan.qa.issues.forEach((i) => {

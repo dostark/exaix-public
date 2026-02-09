@@ -14,6 +14,7 @@ import { BlueprintLoader } from "./blueprint_loader.ts";
 import { PlanWriter, type RequestMetadata } from "./plan_writer.ts";
 import { TaskComplexity } from "../enums.ts";
 import { RequestStatus } from "../requests/request_status.ts";
+import { PlanStatus } from "../plans/plan_status.ts";
 import { EventLogger } from "./event_logger.ts";
 import { FlowValidatorImpl } from "./flow_validator.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
@@ -157,7 +158,7 @@ export class RequestProcessor {
 
       return planPath;
     } catch (error: unknown) {
-      await this.handleError(error, filePath, requestId, parsed.rawContent, traceLogger);
+      await this.handleError(error, filePath, requestId, parsed.rawContent, traceLogger, frontmatter);
       return null;
     }
   }
@@ -384,6 +385,7 @@ export class RequestProcessor {
     requestId: string,
     rawContent: string,
     traceLogger: any,
+    frontmatter?: RequestFrontmatter,
   ) {
     let errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -399,8 +401,16 @@ export class RequestProcessor {
           );
           await this.ioBreaker.execute(() => Deno.mkdir(rejectedDir, { recursive: true }));
 
-          const rejectedPath = join(rejectedDir, `${requestId}_failed.md`);
-          await this.ioBreaker.execute(() => Deno.writeTextFile(rejectedPath, rawDetails));
+          const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
+          const rejectedContent = this.formatRejectedPlan({
+            frontmatter,
+            requestId,
+            traceId: frontmatter?.trace_id,
+            errorMessage,
+            rawDetails,
+            validationError,
+          });
+          await this.ioBreaker.execute(() => Deno.writeTextFile(rejectedPath, rejectedContent));
 
           errorMessage += ` (Saved to ${rejectedPath})`;
           traceLogger.info("plan.saved_rejected", rejectedPath, { reason: "validation_failed" });
@@ -415,6 +425,68 @@ export class RequestProcessor {
     });
 
     await this.statusManager.updateStatus(filePath, rawContent, RequestStatus.FAILED);
+  }
+
+  private formatRejectedPlan(args: {
+    frontmatter?: RequestFrontmatter;
+    requestId: string;
+    traceId?: string;
+    errorMessage: string;
+    rawDetails: string;
+    validationError: any;
+  }): string {
+    const createdAt = args.frontmatter?.created ?? new Date().toISOString();
+    const lines: string[] = [
+      "---",
+      `trace_id: "${args.traceId ?? "unknown"}"`,
+      `request_id: "${args.requestId}"`,
+      `status: ${PlanStatus.REJECTED}`,
+      `created_at: "${createdAt}"`,
+    ];
+
+    if (args.frontmatter?.agent) {
+      lines.push(`agent_id: "${args.frontmatter.agent}"`);
+    }
+    if (args.frontmatter?.portal) {
+      lines.push(`portal: "${args.frontmatter.portal}"`);
+    }
+    if (args.frontmatter?.model) {
+      lines.push(`model: "${args.frontmatter.model}"`);
+    }
+    if (args.frontmatter?.target_branch) {
+      lines.push(`target_branch: "${args.frontmatter.target_branch}"`);
+    }
+    if (args.frontmatter?.flow) {
+      lines.push(`flow: "${args.frontmatter.flow}"`);
+    }
+
+    lines.push(`error: "${args.errorMessage.replace(/"/g, "'")}"`);
+    lines.push("---", "");
+
+    const zodErrors = Array.isArray(args.validationError?.details?.zodErrors)
+      ? args.validationError.details.zodErrors
+      : [];
+    const errorDetails = zodErrors.length > 0
+      ? zodErrors.map((entry: any) => `- ${entry.path?.join(".") ?? ""}: ${entry.message}`)
+        .join("\n")
+      : "- Validation failed";
+
+    return [
+      ...lines,
+      "# Rejected Plan Output",
+      "",
+      "## Error",
+      args.errorMessage,
+      "",
+      "## Validation Details",
+      errorDetails,
+      "",
+      "## Raw Output",
+      "```text",
+      args.rawDetails,
+      "```",
+      "",
+    ].join("\n");
   }
 
   private async writePlanAndReturnPath(

@@ -4,7 +4,7 @@ Execution produces a concrete analysis document (e.g., in `Memory/Execution/<tra
 
 The review artifact only contains a generic "Execution Summary" placeholder. `files_changed` is 0, and no analysis document is present. The artifact shows:
 
-```
+```text
 # Execution Artifact
 
 **Request:** request-f60f935d

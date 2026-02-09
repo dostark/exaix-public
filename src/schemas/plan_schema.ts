@@ -63,6 +63,30 @@ export const PlanStepSchema = z.object({
 export type PlanStep = z.infer<typeof PlanStepSchema>;
 
 // ============================================================================
+// QA Coverage Schemas (Flexible)
+// ============================================================================
+
+const QACoverageStatusSchema = z.enum(["PASS", "FAIL"]);
+
+const QACoverageCaseSchema = z.object({
+  scenario: z.string(),
+  setup: z.string(),
+  steps: z.array(z.string()),
+  expectedResult: z.string(),
+  status: QACoverageStatusSchema,
+  notes: z.string().optional(),
+}).passthrough();
+
+const QAE2ECaseSchema = z.object({
+  journey: z.string(),
+  scenario: z.string(),
+  preconditions: z.string(),
+  steps: z.array(z.string()),
+  verificationPoints: z.array(z.string()),
+  status: QACoverageStatusSchema,
+}).passthrough();
+
+// ============================================================================
 // Plan Schema
 // ============================================================================
 
@@ -136,7 +160,7 @@ export const PlanSchema = z.object({
     })).optional(),
     /** Recommendations */
     recommendations: z.array(z.string()).optional(),
-  }).optional(),
+  }).passthrough().optional(),
 
   /** Optional: Security analysis results */
   security: z.object({
@@ -156,7 +180,7 @@ export const PlanSchema = z.object({
     recommendations: z.array(z.string()).optional(),
     /** Compliance notes */
     compliance: z.array(z.string()).optional(),
-  }).optional(),
+  }).passthrough().optional(),
 
   /** Optional: QA/testing results */
   qa: z.object({
@@ -170,23 +194,10 @@ export const PlanSchema = z.object({
     })).optional(),
     /** Test coverage analysis */
     coverage: z.object({
-      integration: z.array(z.object({
-        scenario: z.string(),
-        setup: z.string(),
-        steps: z.array(z.string()),
-        expectedResult: z.string(),
-        status: z.enum(["PASS", "FAIL"]),
-        notes: z.string().optional(),
-      })).optional(),
-      e2e: z.array(z.object({
-        journey: z.string(),
-        scenario: z.string(),
-        preconditions: z.string(),
-        steps: z.array(z.string()),
-        verificationPoints: z.array(z.string()),
-        status: z.enum(["PASS", "FAIL"]),
-      })).optional(),
-    }).optional(),
+      unit: z.array(QACoverageCaseSchema).optional(),
+      integration: z.array(QACoverageCaseSchema).optional(),
+      e2e: z.array(z.union([QAE2ECaseSchema, QACoverageCaseSchema])).optional(),
+    }).passthrough().optional(),
     /** Issues found */
     issues: z.array(z.object({
       title: z.string(),
@@ -195,7 +206,7 @@ export const PlanSchema = z.object({
       stepsToReproduce: z.array(z.string()),
       description: z.string().optional(),
     })).optional(),
-  }).optional(),
+  }).passthrough().optional(),
 
   /** Optional: Performance analysis results */
   performance: z.object({
@@ -220,8 +231,8 @@ export const PlanSchema = z.object({
       bottleneckPoints: z.array(z.string()),
       scalingStrategy: z.string(),
     }).optional(),
-  }).optional(),
-}).refine((data) => {
+  }).passthrough().optional(),
+}).passthrough().refine((data) => {
   // Either steps must be present, or at least one specialized field must be present
   const hasSteps = data.steps !== undefined;
   const hasSpecialized = data.analysis !== undefined ||

@@ -9,7 +9,7 @@
    - Check daemon execution logic
    - Verify step execution implementation exists
 
-2. **Plan Processing**: Examine plan approval vs execution flow
+1. **Plan Processing**: Examine plan approval vs execution flow
    - Is approval triggering execution?
    - Are steps being parsed and executed?
 

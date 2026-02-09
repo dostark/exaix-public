@@ -4,6 +4,7 @@ import { basename, join } from "@std/path";
 import { RequestProcessor } from "../src/services/request_processor.ts";
 import { initTestDbService } from "./helpers/db.ts";
 import { getWorkspaceRequestsDir } from "./helpers/paths_helper.ts";
+import { PlanStatus } from "../src/plans/plan_status.ts";
 import { RequestStatus } from "../src/requests/request_status.ts";
 
 Deno.test("RequestProcessor: PlanValidationError saves rejected raw content and marks request failed", async () => {
@@ -51,9 +52,11 @@ Do flow work.
 
     const requestId = basename(requestPath, ".md");
     const rejectedDir = join(config.system.root, config.paths.workspace, config.paths.rejected);
-    const rejectedPath = join(rejectedDir, `${requestId}_failed.md`);
+    const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
 
     const rejectedContent = await Deno.readTextFile(rejectedPath);
+    assertStringIncludes(rejectedContent, `status: ${PlanStatus.REJECTED}`);
+    assertStringIncludes(rejectedContent, `request_id: "${requestId}"`);
     assertStringIncludes(rejectedContent, rejectedRaw);
 
     const updatedRequest = await Deno.readTextFile(requestPath);

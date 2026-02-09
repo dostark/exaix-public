@@ -1,5 +1,3 @@
-# Code-analyst execution artifact contains only placeholder summary
-
 ## Problem
 
 After approving a correct plan for the `code-analyst` agent, execution completes but produces only a placeholder execution summary artifact. No analysis document is generated, and the review shows an empty diff with a generic summary.
@@ -7,11 +5,11 @@ After approving a correct plan for the `code-analyst` agent, execution completes
 ## Reproduction Steps
 
 1. Run the validation request for `code-analyst` from docs/dev/agent-validation-requests.md (line 70).
-2. Approve the plan:
+1. Approve the plan:
    - `exoctl plan approve request-f60f935d_plan`
-3. Verify the plan is completed:
+1. Verify the plan is completed:
    - `exoctl plan show request-f60f935d_plan`
-4. Inspect the review artifact:
+1. Inspect the review artifact:
    - `exoctl review list`
    - `exoctl review show artifact-74ff00ab`
 

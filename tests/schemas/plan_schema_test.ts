@@ -534,6 +534,38 @@ describe("PlanSchema - Specialized Agent Fields", () => {
         assertEquals(result.data.qa?.issues?.[0].severity, "High");
       }
     });
+
+    it("should accept unit coverage and alternative e2e shape", () => {
+      const planData = {
+        title: "QA Coverage Report",
+        description: "QA coverage with unit and e2e cases",
+        qa: {
+          coverage: {
+            unit: [
+              {
+                scenario: "Unit scenario",
+                setup: "Unit setup",
+                steps: ["Step 1"],
+                expectedResult: "Unit expected",
+                status: "PASS" as const,
+              },
+            ],
+            e2e: [
+              {
+                scenario: "E2E scenario",
+                setup: "E2E setup",
+                steps: ["Step A"],
+                expectedResult: "E2E expected",
+                status: "PASS" as const,
+              },
+            ],
+          },
+        },
+      };
+
+      const result = PlanSchema.safeParse(planData);
+      assertEquals(result.success, true);
+    });
   });
 
   describe("Performance Analysis Plans", () => {
