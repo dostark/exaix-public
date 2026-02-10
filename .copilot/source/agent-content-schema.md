@@ -14,7 +14,7 @@ This document defines the standardized JSON schema that all agent blueprints mus
 All agents must respond with two XML-like tags:
 
 1. `<thought>` - Agent's internal analysis and reasoning (see [agent-thought-standardization.md](agent-thought-standardization.md) for standardized structure)
-2. `<content>` - Valid JSON object matching the PlanSchema (see below)
+1. `<content>` - Valid JSON object matching the PlanSchema (see below)
 
 ## Required JSON Schema
 
@@ -40,7 +40,7 @@ The `<content>` section must contain **valid JSON** that conforms to this exact 
       ],
       "tools": ["read_file", "write_file", "run_command"],
       "successCriteria": ["Success criterion 1", "Success criterion 2"],
-      "dependencies": [2, 3],
+      "dependencies": ["Step 2", "requirements"],
       "rollback": "How to undo this step if needed"
     }
   ],
@@ -128,11 +128,11 @@ The `<content>` section must contain **valid JSON** that conforms to this exact 
 - Should be measurable/verifiable
 - Example: `["Migration file created with proper indexes", "Schema includes unique constraint on email"]`
 
-**dependencies** (array of integers)
+**dependencies** (array of strings or integers)
 
-- Step numbers that must complete first
+- Step numbers or labels that must complete first
 - Enables parallel execution where possible
-- Example: `[1, 2]` means steps 1 and 2 must complete before this step
+- Example: `["Step 1", "requirements"]` means those steps must complete before this step
 
 **rollback** (string)
 
@@ -202,7 +202,7 @@ Choose the appropriate template based on your agent type:
         }
       ],
       "successCriteria": ["How to verify success"],
-      "dependencies": [],
+      "dependencies": ["Step 0"],
       "rollback": "How to undo if needed"
     }
   ],
@@ -446,10 +446,10 @@ const result = PlanSchema.parse(jsonContent);
 When migrating from markdown to JSON format:
 
 1. **Preserve `<thought>` section** - Keep agent reasoning unchanged
-2. **Convert markdown structure** - Transform sections into JSON fields
-3. **Map content appropriately** - Use `title`, `description`, and `steps` to represent the same information
-4. **Add actions for automation** - Include specific tool invocations where possible
-5. **Validate thoroughly** - Ensure JSON passes Zod validation
+1. **Convert markdown structure** - Transform sections into JSON fields
+1. **Map content appropriately** - Use `title`, `description`, and `steps` to represent the same information
+1. **Add actions for automation** - Include specific tool invocations where possible
+1. **Validate thoroughly** - Ensure JSON passes Zod validation
 
 ## Reference
 

@@ -19,7 +19,7 @@ You are a helpful AI coding assistant. When given a request, analyze it carefull
 You MUST respond with two sections wrapped in XML-like tags:
 
 1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A **JSON object** matching the plan schema (see below)
+1. `<content>` - A **JSON object** matching the plan schema (see below)
 
 ### Plan JSON Schema
 
@@ -36,7 +36,7 @@ The `<content>` section must contain **valid JSON** with this exact structure:
       "description": "What this step does",
       "tools": ["read_file", "write_file", "run_command", "list_directory", "search_files"],
       "successCriteria": ["Success criterion 1", "Success criterion 2"],
-      "dependencies": [2, 3],
+      "dependencies": ["Step 2", "requirements"],
       "rollback": "How to undo this step if needed"
     }
   ],
@@ -55,7 +55,7 @@ The `<content>` section must contain **valid JSON** with this exact structure:
   - **description** (required): What this step does
   - **tools** (optional): Array of tools needed (valid: "read_file", "write_file", "run_command", "list_directory", "search_files")
   - **successCriteria** (optional): How to verify this step succeeded
-  - **dependencies** (optional): Array of step numbers that must complete first
+  - **dependencies** (optional): Array of step numbers or labels that must complete first
   - **rollback** (optional): How to undo this step
 - **estimatedDuration** (optional): Time estimate
 - **risks** (optional): Potential issues or concerns
