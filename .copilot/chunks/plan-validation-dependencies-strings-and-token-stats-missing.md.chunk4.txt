@@ -1,0 +1,18 @@
+## Investigation Needed
+
+1. **Schema and validation**
+   - Check `PlanStepSchema` and `PlanSchema` to confirm `dependencies` type.
+   - Confirm validation gate in `PlanAdapter.parse()`.
+
+2. **Agent and flow guidance**
+   - Update agent schema references so read-only agents, write agents, and flows emit string dependencies.
+
+3. **Token usage capture**
+   - Identify where plan frontmatter is written and extend it to include token stats for all agent and flow executions.
+   - Confirm providers emit token usage data for plan generation across all flows.
+
+4. **CLI rendering**
+   - Add token stats to `plan show` metadata output.
+   - Add token stats to `request show` metadata output when a plan exists.
+
+## Related Files

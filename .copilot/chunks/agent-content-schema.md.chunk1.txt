@@ -18,7 +18,7 @@
       ],
       "tools": ["read_file", "write_file", "run_command"],
       "successCriteria": ["Success criterion 1", "Success criterion 2"],
-      "dependencies": [2, 3],
+      "dependencies": ["Step 2", "requirements"],
       "rollback": "How to undo this step if needed"
     }
   ],

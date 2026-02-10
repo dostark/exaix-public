@@ -1,0 +1,13 @@
+- ExoFrame Version: current development version
+- OS: Linux
+- Deno Version: as configured in deno.json
+- Relevant Config: exo.config.toml (LLM provider settings)
+
+## Proposed Plan
+
+1. Update plan schema so `steps[].dependencies` accepts strings (and update any related types).
+2. Update agent content guidance and schema docs so read-only agents, write agents, and flows emit string dependencies.
+3. Embed token usage fields in plan frontmatter when the plan is saved for all agent and flow executions.
+4. Update `exoctl plan show` output to display token usage stats from plan frontmatter for any plan source.
+5. Update `exoctl request show` output to display the same token stats when a plan exists, regardless of plan source.
+6. Add or update tests for schema validation and CLI output rendering.

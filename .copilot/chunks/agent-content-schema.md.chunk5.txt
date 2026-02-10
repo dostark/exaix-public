@@ -2,11 +2,11 @@
 - Should be measurable/verifiable
 - Example: `["Migration file created with proper indexes", "Schema includes unique constraint on email"]`
 
-**dependencies** (array of integers)
+**dependencies** (array of strings or integers)
 
-- Step numbers that must complete first
+- Step numbers or labels that must complete first
 - Enables parallel execution where possible
-- Example: `[1, 2]` means steps 1 and 2 must complete before this step
+- Example: `["Step 1", "requirements"]` means those steps must complete before this step
 
 **rollback** (string)
 

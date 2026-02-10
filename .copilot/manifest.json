@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-10T11:52:03.250Z",
+  "generated_at": "2026-02-10T15:22:15.962Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1526,6 +1526,21 @@
         ".copilot/chunks/event-journal-token-tracking-missing.md.chunk2.txt",
         ".copilot/chunks/event-journal-token-tracking-missing.md.chunk3.txt",
         ".copilot/chunks/event-journal-token-tracking-missing.md.chunk4.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/plan-validation-dependencies-strings-and-token-stats-missing.md",
+      "title": "Plan validation rejects string dependencies and plan show lacks token stats",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/plan-validation-dependencies-strings-and-token-stats-missing.md.chunk0.txt",
+        ".copilot/chunks/plan-validation-dependencies-strings-and-token-stats-missing.md.chunk1.txt",
+        ".copilot/chunks/plan-validation-dependencies-strings-and-token-stats-missing.md.chunk2.txt",
+        ".copilot/chunks/plan-validation-dependencies-strings-and-token-stats-missing.md.chunk3.txt",
+        ".copilot/chunks/plan-validation-dependencies-strings-and-token-stats-missing.md.chunk4.txt",
+        ".copilot/chunks/plan-validation-dependencies-strings-and-token-stats-missing.md.chunk5.txt",
+        ".copilot/chunks/plan-validation-dependencies-strings-and-token-stats-missing.md.chunk6.txt",
+        ".copilot/chunks/plan-validation-dependencies-strings-and-token-stats-missing.md.chunk7.txt"
       ]
     }
   ]

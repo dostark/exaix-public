@@ -5,7 +5,7 @@ This document defines the standardized JSON schema that all agent blueprints mus
 All agents must respond with two XML-like tags:
 
 1. `<thought>` - Agent's internal analysis and reasoning (see [agent-thought-standardization.md](agent-thought-standardization.md) for standardized structure)
-2. `<content>` - Valid JSON object matching the PlanSchema (see below)
+1. `<content>` - Valid JSON object matching the PlanSchema (see below)
 
 ## Required JSON Schema
 
