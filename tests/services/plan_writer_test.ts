@@ -158,6 +158,66 @@ Deno.test("PlanWriter: writePlan handles minimal plan content", async () => {
   }
 });
 
+Deno.test("PlanWriter: writePlan includes token stats in frontmatter", async () => {
+  const { db, tempDir, cleanup } = await initTestDbService();
+  const mockConfig = createMockPlanWriterConfig(tempDir, db);
+
+  try {
+    const writer = new PlanWriter(mockConfig);
+    const traceId = "token-trace-123";
+
+    db.logActivity(
+      "system",
+      "llm.usage",
+      "openai-gpt-4",
+      {
+        prompt_tokens: 10,
+        completion_tokens: 5,
+        total_tokens: 15,
+        model: "gpt-4",
+        cost_usd: 0.001,
+        provider: "openai-gpt-4",
+        input_tokens: 10,
+        output_tokens: 5,
+      },
+      traceId,
+    );
+    await db.waitForFlush();
+
+    const metadata: RequestMetadata = {
+      requestId: "token-request",
+      traceId,
+      createdAt: new Date(),
+      contextFiles: [],
+      contextWarnings: [],
+    };
+
+    const planJson = JSON.stringify({
+      title: "Token Plan",
+      description: "Plan with token stats",
+      steps: [
+        {
+          step: 1,
+          title: "Do work",
+          description: "Execute tasks",
+        },
+      ],
+    });
+
+    const result = createMockExecutionResult(planJson);
+    const writeResult = await writer.writePlan(result, metadata);
+
+    assertStringIncludes(writeResult.content, "input_tokens: 10");
+    assertStringIncludes(writeResult.content, "output_tokens: 5");
+    assertStringIncludes(writeResult.content, "total_tokens: 15");
+    assertStringIncludes(writeResult.content, 'token_provider: "openai-gpt-4"');
+    assertStringIncludes(writeResult.content, 'token_model: "gpt-4"');
+    assertStringIncludes(writeResult.content, "token_cost_usd: 0.001");
+  } finally {
+    await cleanup();
+  }
+});
+
 Deno.test("PlanWriter: writePlan logs activity when database available", async () => {
   const { db, tempDir, cleanup } = await initTestDbService();
 

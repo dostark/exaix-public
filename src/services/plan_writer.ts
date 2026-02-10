@@ -98,6 +98,15 @@ export interface AgentExecutionResult {
   raw: string;
 }
 
+interface TokenUsageSummary {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  provider?: string;
+  model?: string;
+  costUsd?: number;
+}
+
 // ============================================================================
 // Plan Writer Service
 // ============================================================================
@@ -183,7 +192,8 @@ export class PlanWriter {
     const sections: string[] = [];
 
     // 1. Frontmatter
-    sections.push(this.generateFrontmatter(metadata));
+    const tokenSummary = await this.getTokenUsageSummary(metadata.traceId);
+    sections.push(this.generateFrontmatter(metadata, tokenSummary));
 
     // 2. Validate and convert JSON plan to markdown
     let planMarkdown: string;
@@ -253,7 +263,7 @@ export class PlanWriter {
   /**
    * Generate YAML frontmatter
    */
-  private generateFrontmatter(metadata: RequestMetadata): string {
+  private generateFrontmatter(metadata: RequestMetadata, tokenSummary?: TokenUsageSummary | null): string {
     const lines = [
       "---",
       `trace_id: "${metadata.traceId}"`,
@@ -278,9 +288,77 @@ export class PlanWriter {
       lines.push(`target_branch: "${metadata.targetBranch}"`);
     }
 
+    if (tokenSummary) {
+      lines.push(`input_tokens: ${tokenSummary.inputTokens}`);
+      lines.push(`output_tokens: ${tokenSummary.outputTokens}`);
+      lines.push(`total_tokens: ${tokenSummary.totalTokens}`);
+      if (tokenSummary.provider) {
+        lines.push(`token_provider: "${tokenSummary.provider}"`);
+      }
+      if (tokenSummary.model) {
+        lines.push(`token_model: "${tokenSummary.model}"`);
+      }
+      if (typeof tokenSummary.costUsd === "number") {
+        lines.push(`token_cost_usd: ${tokenSummary.costUsd}`);
+      }
+    }
+
     lines.push("---");
     lines.push("");
     return lines.join("\n");
+  }
+
+  private async getTokenUsageSummary(traceId: string): Promise<TokenUsageSummary | null> {
+    if (!this.config.db) {
+      return null;
+    }
+
+    const events = await this.config.db.queryActivity({ traceId, actionType: "llm.usage" });
+    if (events.length === 0) {
+      return null;
+    }
+
+    let inputTokens = 0;
+    let outputTokens = 0;
+    let totalTokens = 0;
+    let costUsd = 0;
+    const providers = new Set<string>();
+    const models = new Set<string>();
+
+    for (const event of events) {
+      try {
+        const payload = JSON.parse(event.payload) as Record<string, unknown>;
+        const input = Number(payload.input_tokens ?? payload.prompt_tokens ?? 0);
+        const output = Number(payload.output_tokens ?? payload.completion_tokens ?? 0);
+        const total = Number(payload.total_tokens ?? input + output);
+        const provider = (payload.provider ?? event.target) as string | undefined;
+        const model = payload.model as string | undefined;
+        const cost = Number(payload.cost_usd ?? 0);
+
+        inputTokens += input;
+        outputTokens += output;
+        totalTokens += total;
+        costUsd += cost;
+
+        if (provider) {
+          providers.add(provider);
+        }
+        if (model) {
+          models.add(model);
+        }
+      } catch {
+        // Skip malformed token records
+      }
+    }
+
+    return {
+      inputTokens,
+      outputTokens,
+      totalTokens,
+      provider: providers.size > 0 ? Array.from(providers).join(", ") : undefined,
+      model: models.size > 0 ? Array.from(models).join(", ") : undefined,
+      costUsd: Math.round(costUsd * 10000) / 10000,
+    };
   }
 
   /**

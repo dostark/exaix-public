@@ -145,6 +145,21 @@ export class FlowReporter {
       success: flowResult.success,
     };
 
+    if (flowResult.tokenSummary) {
+      frontmatter.input_tokens = flowResult.tokenSummary.input_tokens;
+      frontmatter.output_tokens = flowResult.tokenSummary.output_tokens;
+      frontmatter.total_tokens = flowResult.tokenSummary.total_tokens;
+      if (flowResult.tokenSummary.token_provider) {
+        frontmatter.token_provider = flowResult.tokenSummary.token_provider;
+      }
+      if (flowResult.tokenSummary.token_model) {
+        frontmatter.token_model = flowResult.tokenSummary.token_model;
+      }
+      if (typeof flowResult.tokenSummary.token_cost_usd === "number") {
+        frontmatter.token_cost_usd = flowResult.tokenSummary.token_cost_usd;
+      }
+    }
+
     if (requestId) {
       frontmatter.request_id = requestId;
     }

@@ -19,6 +19,7 @@ export type TokenMap = {
   total_tokens?: number;
   model?: string;
   cost_usd?: number;
+  provider?: string;
 };
 
 /**
@@ -76,7 +77,16 @@ export async function handleProviderResponse(
     try {
       const tokens = tokenMapper(data, id);
       if (tokens) {
-        await logger.info("llm.usage", id, tokens);
+        const inputTokens = tokens.prompt_tokens ?? 0;
+        const outputTokens = tokens.completion_tokens ?? 0;
+        const totalTokens = tokens.total_tokens ?? inputTokens + outputTokens;
+        await logger.info("llm.usage", id, {
+          ...tokens,
+          provider: tokens.provider ?? id,
+          input_tokens: inputTokens,
+          output_tokens: outputTokens,
+          total_tokens: totalTokens,
+        });
       }
     } catch {
       // never fail the provider call because token logging failed

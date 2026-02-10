@@ -64,6 +64,15 @@ export interface FlowResult {
   startedAt: Date;
   /** When the flow completed */
   completedAt: Date;
+  /** Optional token usage summary for the flow */
+  tokenSummary?: {
+    input_tokens: number;
+    output_tokens: number;
+    total_tokens: number;
+    token_provider?: string;
+    token_model?: string;
+    token_cost_usd?: number;
+  };
 }
 
 /**
@@ -486,9 +495,9 @@ export class FlowRunner {
     });
 
     // Aggregate and log token usage summary
-    if (this.db && request.traceId) {
-      await this.aggregateAndLogTokenUsage(flowRunId, flow.id, request.traceId, request.requestId);
-    }
+    const tokenSummary = (this.db && request.traceId)
+      ? await this.aggregateAndLogTokenUsage(flowRunId, flow.id, request.traceId, request.requestId)
+      : null;
 
     return {
       flowRunId,
@@ -498,6 +507,7 @@ export class FlowRunner {
       duration,
       startedAt,
       completedAt,
+      tokenSummary: tokenSummary ?? undefined,
     };
   }
 
@@ -889,7 +899,7 @@ export class FlowRunner {
     flowId: string,
     traceId: string,
     requestId?: string,
-  ): Promise<void> {
+  ): Promise<FlowResult["tokenSummary"] | null> {
     try {
       // Query all LLM usage events for this trace
       const tokenEvents = await this.db!.queryActivity({
@@ -911,7 +921,7 @@ export class FlowRunner {
           traceId,
           requestId,
         });
-        return;
+        return null;
       }
 
       // Aggregate token usage by provider
@@ -925,14 +935,16 @@ export class FlowRunner {
       let totalInputTokens = 0;
       let totalOutputTokens = 0;
       let totalCostUsd = 0;
+      const models = new Set<string>();
 
       for (const event of tokenEvents) {
         try {
           const payload = JSON.parse(event.payload);
-          const provider = payload.provider || "unknown";
-          const inputTokens = payload.input_tokens || 0;
-          const outputTokens = payload.output_tokens || 0;
+          const provider = payload.provider || event.target || "unknown";
+          const inputTokens = payload.input_tokens ?? payload.prompt_tokens ?? 0;
+          const outputTokens = payload.output_tokens ?? payload.completion_tokens ?? 0;
           const costUsd = payload.cost_usd || 0;
+          const model = payload.model as string | undefined;
 
           // Initialize provider stats if not exists
           if (!providerStats[provider]) {
@@ -953,6 +965,9 @@ export class FlowRunner {
           totalInputTokens += inputTokens;
           totalOutputTokens += outputTokens;
           totalCostUsd += costUsd;
+          if (model) {
+            models.add(model);
+          }
         } catch (_parseError) {
           // Skip malformed token events
           console.warn(`Skipping malformed token event: ${event.payload}`);
@@ -972,6 +987,15 @@ export class FlowRunner {
         traceId,
         requestId,
       });
+
+      return {
+        input_tokens: totalInputTokens,
+        output_tokens: totalOutputTokens,
+        total_tokens: totalInputTokens + totalOutputTokens,
+        token_provider: Object.keys(providerStats).join(", ") || undefined,
+        token_model: models.size > 0 ? Array.from(models).join(", ") : undefined,
+        token_cost_usd: Math.round(totalCostUsd * 10000) / 10000,
+      };
     } catch (error) {
       // Log error but don't fail the flow
       console.warn(`Failed to aggregate token usage for flow ${flowRunId}:`, error);
@@ -986,6 +1010,7 @@ export class FlowRunner {
       } catch {
         // Swallow logging errors to avoid cascading failures
       }
+      return null;
     }
   }
 }
