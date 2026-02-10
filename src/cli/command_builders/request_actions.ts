@@ -118,7 +118,7 @@ export async function handleRequestShow(
 
   try {
     const { metadata, content } = await requestCommands.show(id);
-    display.info("request.show", metadata.trace_id.slice(0, 8), {
+    const displayData: Record<string, unknown> = {
       trace_id: metadata.trace_id,
       status: metadata.status,
       priority: metadata.priority,
@@ -126,7 +126,28 @@ export async function handleRequestShow(
       flow: metadata.flow,
       target_branch: metadata.target_branch,
       created: `${metadata.created_by} @ ${metadata.created}`,
-    });
+    };
+
+    if (metadata.input_tokens !== undefined) {
+      displayData.input_tokens = metadata.input_tokens;
+    }
+    if (metadata.output_tokens !== undefined) {
+      displayData.output_tokens = metadata.output_tokens;
+    }
+    if (metadata.total_tokens !== undefined) {
+      displayData.total_tokens = metadata.total_tokens;
+    }
+    if (metadata.token_provider !== undefined) {
+      displayData.token_provider = metadata.token_provider;
+    }
+    if (metadata.token_model !== undefined) {
+      displayData.token_model = metadata.token_model;
+    }
+    if (metadata.token_cost_usd !== undefined) {
+      displayData.token_cost_usd = metadata.token_cost_usd;
+    }
+
+    display.info("request.show", metadata.trace_id.slice(0, 8), displayData);
     display.info("request.content", id, { content });
   } catch (error) {
     display.error("cli.error", "request show", {

@@ -45,6 +45,12 @@ export interface RequestMetadata {
   model?: string;
   flow?: string;
   skills?: string[];
+  input_tokens?: string;
+  output_tokens?: string;
+  total_tokens?: string;
+  token_provider?: string;
+  token_model?: string;
+  token_cost_usd?: string;
   created: string;
   created_by: string;
   source: RequestSource;
@@ -65,6 +71,12 @@ export interface RequestEntry {
   model?: string;
   flow?: string;
   skills?: string[];
+  input_tokens?: string;
+  output_tokens?: string;
+  total_tokens?: string;
+  token_provider?: string;
+  token_model?: string;
+  token_cost_usd?: string;
   created: string;
   created_by: string;
   source: string;

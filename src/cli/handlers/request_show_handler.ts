@@ -20,6 +20,8 @@ export class RequestShowHandler extends BaseCommand {
     }
 
     const { matchingFile, matchingFrontmatter } = await this.findMatchingRequestFile(idOrFilename);
+    const requestId = matchingFile.split("/").pop()?.replace(/\.md$/, "") ?? "";
+    const planTokens = await this.findPlanTokenStats(requestId);
 
     // Read full content
     const fullContent = await Deno.readTextFile(matchingFile);
@@ -40,6 +42,7 @@ export class RequestShowHandler extends BaseCommand {
         model: matchingFrontmatter.model,
         flow: matchingFrontmatter.flow,
         skills: matchingFrontmatter.skills ? JSON.parse(matchingFrontmatter.skills) : undefined,
+        ...(planTokens ?? {}),
         created: matchingFrontmatter.created || "",
         created_by: matchingFrontmatter.created_by || "unknown",
         source: matchingFrontmatter.source || "unknown",
@@ -79,5 +82,42 @@ export class RequestShowHandler extends BaseCommand {
     }
 
     return { matchingFile, matchingFrontmatter };
+  }
+
+  private async findPlanTokenStats(requestId: string): Promise<Record<string, string> | null> {
+    if (!requestId) {
+      return null;
+    }
+
+    const workspaceRoot = join(this.config.system.root, this.config.paths.workspace);
+    const plansDir = join(workspaceRoot, this.config.paths.plans);
+    const rejectedDir = join(workspaceRoot, this.config.paths.rejected);
+    const activeDir = join(workspaceRoot, this.config.paths.active);
+    const archiveDir = join(workspaceRoot, this.config.paths.archive);
+
+    const planId = `${requestId}_plan`;
+    const candidatePaths = [
+      join(plansDir, `${planId}.md`),
+      join(rejectedDir, `${planId}_rejected.md`),
+      join(activeDir, `${planId}.md`),
+      join(archiveDir, `${planId}.md`),
+    ];
+
+    for (const planPath of candidatePaths) {
+      if (await exists(planPath)) {
+        const content = await Deno.readTextFile(planPath);
+        const frontmatter = this.extractFrontmatter(content);
+        const tokenFields: Record<string, string> = {};
+        if (frontmatter.input_tokens) tokenFields.input_tokens = frontmatter.input_tokens;
+        if (frontmatter.output_tokens) tokenFields.output_tokens = frontmatter.output_tokens;
+        if (frontmatter.total_tokens) tokenFields.total_tokens = frontmatter.total_tokens;
+        if (frontmatter.token_provider) tokenFields.token_provider = frontmatter.token_provider;
+        if (frontmatter.token_model) tokenFields.token_model = frontmatter.token_model;
+        if (frontmatter.token_cost_usd) tokenFields.token_cost_usd = frontmatter.token_cost_usd;
+        return Object.keys(tokenFields).length > 0 ? tokenFields : null;
+      }
+    }
+
+    return null;
   }
 }

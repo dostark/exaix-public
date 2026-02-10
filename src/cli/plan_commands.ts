@@ -27,6 +27,12 @@ export interface PlanMetadata {
   request_portal?: string;
   request_priority?: string;
   request_created_by?: string;
+  input_tokens?: string;
+  output_tokens?: string;
+  total_tokens?: string;
+  token_provider?: string;
+  token_model?: string;
+  token_cost_usd?: string;
   created_at?: string;
   approved_by?: string;
   approved_at?: string;
@@ -52,6 +58,12 @@ function extractPlanMetadata(planId: string, frontmatter: Record<string, unknown
     agent_id: frontmatter.agent_id as string | undefined,
     request_id: frontmatter.request_id as string | undefined,
     created_at: frontmatter.created_at as string | undefined,
+    input_tokens: frontmatter.input_tokens as string | undefined,
+    output_tokens: frontmatter.output_tokens as string | undefined,
+    total_tokens: frontmatter.total_tokens as string | undefined,
+    token_provider: frontmatter.token_provider as string | undefined,
+    token_model: frontmatter.token_model as string | undefined,
+    token_cost_usd: frontmatter.token_cost_usd as string | undefined,
     approved_by: frontmatter.approved_by as string | undefined,
     approved_at: frontmatter.approved_at as string | undefined,
     rejected_by: frontmatter.rejected_by as string | undefined,

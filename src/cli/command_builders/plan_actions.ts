@@ -94,6 +94,24 @@ export async function handlePlanShow(
     if (plan.request_created_by) {
       displayData.created_by = plan.request_created_by;
     }
+    if (plan.input_tokens !== undefined) {
+      displayData.input_tokens = plan.input_tokens;
+    }
+    if (plan.output_tokens !== undefined) {
+      displayData.output_tokens = plan.output_tokens;
+    }
+    if (plan.total_tokens !== undefined) {
+      displayData.total_tokens = plan.total_tokens;
+    }
+    if (plan.token_provider !== undefined) {
+      displayData.token_provider = plan.token_provider;
+    }
+    if (plan.token_model !== undefined) {
+      displayData.token_model = plan.token_model;
+    }
+    if (plan.token_cost_usd !== undefined) {
+      displayData.token_cost_usd = plan.token_cost_usd;
+    }
 
     display.info("plan.show", plan.id, displayData);
     display.info("plan.content", id, { content: plan.content });
