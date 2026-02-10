@@ -2,6 +2,7 @@ import { assertEquals, assertExists } from "@std/assert";
 import { ModelFactory } from "../../src/ai/providers.ts";
 import { getTestModel } from "./helpers/test_model.ts";
 import { isCi } from "../helpers/env.ts";
+import { DEFAULT_OPENAI_BASE_URL } from "../../src/config/constants.ts";
 
 function isCiGuardActive(): boolean {
   return isCi() && Deno.env.get("EXO_TEST_ENABLE_PAID_LLM") !== "1";
@@ -49,7 +50,7 @@ Deno.test("OpenAIShim retries on 429 and returns content", async () => {
 // This test is ignored unless EXO_TEST_ENABLE_PAID_LLM=1 and EXO_TEST_OPENAI_API_KEY is set.
 // --------------------------------------------------------------------------
 const _enabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM");
-Deno.test({ name: "OpenAIShim: sanity check against real LLM (manual)", ignore: (_enabled !== "1") }, async () => {
+Deno.test({ name: "OpenAIShim: sanity check against real LLM (manual)", ignore: _enabled !== "1" }, async () => {
   const apiKey = Deno.env.get("EXO_TEST_OPENAI_API_KEY");
   if (!apiKey) {
     console.warn("Skipping manual LLM availability test: EXO_TEST_OPENAI_API_KEY not set");
@@ -57,7 +58,7 @@ Deno.test({ name: "OpenAIShim: sanity check against real LLM (manual)", ignore: 
   }
 
   const model = getTestModel();
-  const provider = await ModelFactory.create(model, { apiKey, baseUrl: "https://api.openai.com" });
+  const provider = await ModelFactory.create(model, { apiKey, baseUrl: DEFAULT_OPENAI_BASE_URL });
 
   try {
     const res = await provider.generate("Sanity check: are you available? Reply with 'ok'.");

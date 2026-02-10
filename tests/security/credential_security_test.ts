@@ -15,6 +15,7 @@
 
 import { assertEquals, assertExists, assertNotEquals } from "@std/assert";
 import { SecureCredentialStore } from "../../src/helpers/credential_security.ts";
+import { PROVIDER_ANTHROPIC, PROVIDER_OPENAI } from "../../src/config/constants.ts";
 
 // ============================================================================
 // Unit Tests for SecureCredentialStore
@@ -73,11 +74,11 @@ Deno.test("SecureCredentialStore: different keys for different names", async () 
   const key1 = "sk-anthropic123";
   const key2 = "sk-openai456";
 
-  await SecureCredentialStore.set("anthropic", key1);
-  await SecureCredentialStore.set("openai", key2);
+  await SecureCredentialStore.set(PROVIDER_ANTHROPIC, key1);
+  await SecureCredentialStore.set(PROVIDER_OPENAI, key2);
 
-  const retrieved1 = await SecureCredentialStore.get("anthropic");
-  const retrieved2 = await SecureCredentialStore.get("openai");
+  const retrieved1 = await SecureCredentialStore.get(PROVIDER_ANTHROPIC);
+  const retrieved2 = await SecureCredentialStore.get(PROVIDER_OPENAI);
 
   assertEquals(retrieved1, key1);
   assertEquals(retrieved2, key2);
@@ -88,13 +89,13 @@ Deno.test("SecureCredentialStore: clear only affects specified key", async () =>
   const key1 = "sk-anthropic123";
   const key2 = "sk-openai456";
 
-  await SecureCredentialStore.set("anthropic", key1);
-  await SecureCredentialStore.set("openai", key2);
+  await SecureCredentialStore.set(PROVIDER_ANTHROPIC, key1);
+  await SecureCredentialStore.set(PROVIDER_OPENAI, key2);
 
-  SecureCredentialStore.clear("anthropic");
+  SecureCredentialStore.clear(PROVIDER_ANTHROPIC);
 
-  const retrieved1 = await SecureCredentialStore.get("anthropic");
-  const retrieved2 = await SecureCredentialStore.get("openai");
+  const retrieved1 = await SecureCredentialStore.get(PROVIDER_ANTHROPIC);
+  const retrieved2 = await SecureCredentialStore.get(PROVIDER_OPENAI);
 
   assertEquals(retrieved1, null);
   assertEquals(retrieved2, key2);

@@ -13,7 +13,7 @@ import { DEFAULT_OPENAI_BASE_URL } from "../../src/config/constants.ts";
 
 const _enabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM");
 Deno.test(
-  { name: "LLM provider integration (manual) - end-to-end RequestProcessor", ignore: (_enabled !== "1") },
+  { name: "LLM provider integration (manual) - end-to-end RequestProcessor", ignore: _enabled !== "1" },
   async (_t) => {
     // Manual integration test - opt-in only
     // Requires:
