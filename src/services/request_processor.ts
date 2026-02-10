@@ -51,6 +51,7 @@ export class RequestProcessor {
   private readonly logger: EventLogger;
   private readonly flowValidator: FlowValidatorImpl;
   private readonly providerSelector: ProviderSelector;
+  private readonly costTracker: CostTracker;
   private readonly ioBreaker: CircuitBreaker;
   private readonly requestParser: RequestParser;
   private readonly statusManager: StatusManager;
@@ -60,13 +61,14 @@ export class RequestProcessor {
     private readonly db: DatabaseService,
     private readonly processorConfig: RequestProcessorConfig,
     private readonly testProvider?: IModelProvider,
+    costTracker?: CostTracker,
   ) {
     // Initialize services
-    const costTracker = new CostTracker(db, config);
+    this.costTracker = costTracker ?? new CostTracker(db, config);
     const healthChecker = new HealthCheckService("1.0.0", config);
     this.providerSelector = new ProviderSelector(
       ProviderRegistry,
-      costTracker,
+      this.costTracker,
       healthChecker,
     );
 
@@ -353,7 +355,13 @@ export class RequestProcessor {
         taskComplexity,
       );
 
-      const rawProvider = await ProviderFactory.createByName(this.config, selectedProviderName);
+      const rawProvider = await ProviderFactory.createByName(
+        this.config,
+        selectedProviderName,
+        this.db,
+        traceLogger,
+        this.costTracker,
+      );
       selectedProvider = new CircuitBreakerProvider(rawProvider, {
         failureThreshold: 5,
         resetTimeout: 60_000,

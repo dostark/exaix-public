@@ -20,8 +20,10 @@ import { assert, assertEquals, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 
 import { RequestProcessor, type RequestProcessorConfig } from "../src/services/request_processor.ts";
+import type { IModelProvider } from "../src/ai/providers.ts";
 import { MockProviderFactory, ProviderRegistry } from "../src/ai/provider_registry.ts";
 import { MockLLMProvider } from "../src/ai/providers/mock_llm_provider.ts";
+import { CostTracker } from "../src/services/cost_tracker.ts";
 import { DatabaseService } from "../src/services/db.ts";
 import { initTestDbService } from "./helpers/db.ts";
 import type { Config } from "../src/config/schema.ts";
@@ -108,6 +110,8 @@ describe("RequestProcessor", () => {
   let db: DatabaseService;
   let processorConfig: RequestProcessorConfig;
   let cleanup: () => Promise<void>;
+  let costTracker: CostTracker;
+  let createProcessor: (provider?: IModelProvider) => RequestProcessor;
 
   beforeEach(async () => {
     // Initialize database with initTestDbService (creates temp dir with activity table)
@@ -116,6 +120,7 @@ describe("RequestProcessor", () => {
     db = testDbResult.db;
     config = testDbResult.config;
     cleanup = testDbResult.cleanup;
+    costTracker = new CostTracker(db, config);
 
     // Create additional required directories
     await Deno.mkdir(getWorkspaceRequestsDir(testDir), { recursive: true });
@@ -146,11 +151,15 @@ describe("RequestProcessor", () => {
       description: "Mock provider for testing",
       strengths: ["fast", "reliable", "deterministic"],
     });
+
+    createProcessor = (provider?: IModelProvider) =>
+      new RequestProcessor(config, db, processorConfig, provider, costTracker);
   });
 
   afterEach(async () => {
     // Clean up ProviderRegistry
     ProviderRegistry.clear();
+    await costTracker.flush();
 
     // Use the cleanup function from initTestDbService
     await cleanup();
@@ -167,7 +176,7 @@ describe("RequestProcessor", () => {
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
 
@@ -188,7 +197,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, invalidContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
 
@@ -209,7 +218,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, invalidContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
 
@@ -227,7 +236,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const planPath = await processor.process(requestPath);
 
@@ -247,7 +256,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const planPath = await processor.process(requestPath);
 
@@ -265,7 +274,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const planPath = await processor.process(requestPath);
       assert(planPath !== null);
@@ -290,7 +299,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       await processor.process(requestPath);
 
@@ -310,7 +319,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       await processor.process(requestPath);
 
@@ -344,7 +353,7 @@ Do something
         errorMessage: "Simulated LLM failure",
       });
 
-      const processor = new RequestProcessor(config, db, processorConfig, failingProvider);
+      const processor = createProcessor(failingProvider);
 
       const result = await processor.process(requestPath);
 
@@ -366,7 +375,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
 
@@ -375,7 +384,7 @@ Do something
     });
 
     it("should handle file read errors", async () => {
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       // Try to process a non-existent file
       const result = await processor.process("/nonexistent/path/request.md");
@@ -401,7 +410,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
 
@@ -425,7 +434,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
 
@@ -449,7 +458,7 @@ Do something
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
 
@@ -481,7 +490,7 @@ You are an expert code reviewer. Analyze code changes and provide feedback.
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
 
@@ -498,7 +507,7 @@ You are an expert code reviewer. Analyze code changes and provide feedback.
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
 
@@ -526,7 +535,7 @@ Review this pull request for security issues.`;
       // Mock provider that returns flow execution plan
 
       // Create processor with RequestRouter integration
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const planPath = await processor.process(requestPath);
       assert(planPath !== null, "Should process flow requests");
@@ -552,7 +561,7 @@ Test flow processing.`;
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
       assert(result !== null, "Should process flow requests even when validation is disabled");
@@ -575,7 +584,7 @@ Conflicting request.`;
 
       await Deno.writeTextFile(requestPath, requestContent);
 
-      const processor = new RequestProcessor(config, db, processorConfig);
+      const processor = createProcessor();
 
       const result = await processor.process(requestPath);
       assertEquals(result, null, "Should reject conflicting flow/agent fields");

@@ -2,6 +2,7 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 import { basename, join } from "@std/path";
 
 import { RequestProcessor } from "../src/services/request_processor.ts";
+import { CostTracker } from "../src/services/cost_tracker.ts";
 import { initTestDbService } from "./helpers/db.ts";
 import { getWorkspaceRequestsDir } from "./helpers/paths_helper.ts";
 import { PlanStatus } from "../src/plans/plan_status.ts";
@@ -10,6 +11,7 @@ import { RequestStatus } from "../src/requests/request_status.ts";
 Deno.test("RequestProcessor: PlanValidationError saves rejected raw content and marks request failed", async () => {
   const testDbResult = await initTestDbService();
   const { tempDir, db, config, cleanup } = testDbResult;
+  const costTracker = new CostTracker(db, config);
 
   try {
     await Deno.mkdir(getWorkspaceRequestsDir(tempDir), { recursive: true });
@@ -32,12 +34,18 @@ Do flow work.
 
     await Deno.writeTextFile(requestPath, requestContent);
 
-    const processor = new RequestProcessor(config, db, {
-      workspacePath: join(tempDir, config.paths.workspace),
-      requestsDir: getWorkspaceRequestsDir(tempDir),
-      blueprintsPath: join(tempDir, config.paths.blueprints, "Agents"),
-      includeReasoning: false,
-    });
+    const processor = new RequestProcessor(
+      config,
+      db,
+      {
+        workspacePath: join(tempDir, config.paths.workspace),
+        requestsDir: getWorkspaceRequestsDir(tempDir),
+        blueprintsPath: join(tempDir, config.paths.blueprints, "Agents"),
+        includeReasoning: false,
+      },
+      undefined,
+      costTracker,
+    );
 
     const rejectedRaw = "RAW_PLAN_CONTENT";
 
@@ -62,6 +70,7 @@ Do flow work.
     const updatedRequest = await Deno.readTextFile(requestPath);
     assertStringIncludes(updatedRequest, `status: ${RequestStatus.FAILED}`);
   } finally {
+    await costTracker.flush();
     await cleanup();
   }
 });
