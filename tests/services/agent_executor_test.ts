@@ -28,7 +28,7 @@ import { AgentExecutor, Blueprint } from "../../src/services/agent_executor.ts";
 import { SafeError } from "../../src/errors/safe_error.ts";
 import { Config } from "../../src/config/schema.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { PathResolver } from "../../src/services/path_resolver.ts";
@@ -2297,7 +2297,9 @@ Deno.test({
       const executor = new AgentExecutor(testConfig, db, logger, pathResolver, permissions);
 
       // Create blueprint with huge prompt
-      const hugePrompt = `---\nname: test\nmodel: ${PROVIDER_OPENAI}:${TEST_MODEL_OPENAI}\nprovider: ${PROVIDER_OPENAI}\n---\n` + "X".repeat(60000);
+      const hugePrompt =
+        `---\nname: test\nmodel: ${PROVIDER_OPENAI}:${TEST_MODEL_OPENAI}\nprovider: ${PROVIDER_OPENAI}\n---\n` +
+        "X".repeat(60000);
 
       const blueprintPath = join(testConfig.system.root, "Blueprints", "Agents", "huge.md");
       await Deno.mkdir(join(testConfig.system.root, "Blueprints", "Agents"), { recursive: true });

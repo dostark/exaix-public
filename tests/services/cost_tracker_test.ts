@@ -1,7 +1,13 @@
 import { assert, assertAlmostEquals, assertEquals } from "@std/assert";
 import { CostTracker } from "../../src/services/cost_tracker.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import { COST_RATE_ANTHROPIC, COST_RATE_OPENAI, PROVIDER_ANTHROPIC, PROVIDER_OPENAI, TOKENS_PER_COST_UNIT } from "../../src/config/constants.ts";
+import {
+  COST_RATE_ANTHROPIC,
+  COST_RATE_OPENAI,
+  PROVIDER_ANTHROPIC,
+  PROVIDER_OPENAI,
+  TOKENS_PER_COST_UNIT,
+} from "../../src/config/constants.ts";
 
 /**
  * Tests for CostTracker service.

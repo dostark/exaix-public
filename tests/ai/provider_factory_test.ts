@@ -19,7 +19,6 @@
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
 import { getProviderForModel, ProviderFactory } from "../../src/ai/provider_factory.ts";
 import { TEST_MODEL_ANTHROPIC, TEST_MODEL_OPENAI } from "../config/constants.ts";
-import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 import { ProviderFactoryError } from "../../src/ai/errors.ts";
 import { DaemonStatus, ProviderType } from "../../src/enums.ts";
 import { RateLimitError } from "../../src/ai/rate_limited_provider.ts";

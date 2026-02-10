@@ -54,7 +54,7 @@ export function getValidatedEnvOverrides(): EnvLLMOverride {
     const providerResult = ProviderTypeSchema.safeParse(raw.EXO_LLM_PROVIDER);
     if (providerResult.success) {
       // Additional validation: check against known providers
-      const normalized = raw.EXO_LLM_PROVIDER.toLowerCase().trim();
+      const _normalized = raw.EXO_LLM_PROVIDER.toLowerCase().trim();
       if (KNOWN_PROVIDERS.includes(providerResult.data as ProviderType)) {
         result.EXO_LLM_PROVIDER = providerResult.data as ProviderType;
       } else {

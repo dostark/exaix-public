@@ -3,7 +3,7 @@ import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
 import { FlowExecutionError, FlowRunner } from "../../src/flows/flow_runner.ts";
 import { Flow, FlowInput, FlowStepInput } from "../../src/schemas/flow.ts";
 import { AgentExecutionResult } from "../../src/services/agent_runner.ts";
-import { PROVIDER_OPENAI, PROVIDER_ANTHROPIC } from "../../src/config/constants.ts";
+import { PROVIDER_ANTHROPIC, PROVIDER_OPENAI } from "../../src/config/constants.ts";
 
 // Mock AgentRunner for testing
 class MockAgentRunner {

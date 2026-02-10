@@ -12,11 +12,11 @@ import {
 } from "../../src/tui/tui_dashboard_mocks.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import {
+  TEST_MODEL_OPENAI,
   TEST_PROPOSAL_ID,
   TEST_SKILL_ID_LEARNED,
   TEST_SKILL_ID_USER,
   TEST_UNKNOWN_PROPOSAL_ID,
-  TEST_MODEL_OPENAI,
 } from "../config/constants.ts";
 
 Deno.test("MockPortalService: returns portals", async () => {
