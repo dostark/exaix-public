@@ -12,6 +12,7 @@ import { HealthCheckService } from "../../src/services/health_check_service.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { PricingTier, TaskComplexity } from "../../src/enums.ts";
 import { createTestConfig } from "./helpers/test_config.ts";
+import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 
 async function withEnv<T>(vars: Record<string, string | undefined>, fn: () => Promise<T> | T): Promise<T> {
   const previous: Record<string, string | undefined> = {};
@@ -491,8 +492,8 @@ Deno.test("ProviderSelector: blocks paid env provider in test mode", async () =>
   try {
     ProviderRegistry.clear();
 
-    ProviderRegistry.registerWithMetadata("openai", new MockProviderFactory(), {
-      name: "openai",
+    ProviderRegistry.registerWithMetadata(PROVIDER_OPENAI, new MockProviderFactory(), {
+      name: PROVIDER_OPENAI,
       description: "OpenAI provider",
       capabilities: ["chat"],
       costTier: ProviderCostTier.PAID,
@@ -512,7 +513,7 @@ Deno.test("ProviderSelector: blocks paid env provider in test mode", async () =>
     const costTracker = new CostTracker(db);
     const healthService = new HealthCheckService("1.0.0");
     healthService.registerCheck({
-      name: "openai",
+      name: PROVIDER_OPENAI,
       critical: false,
       check: async () => await ({ status: HealthCheckVerdict.PASS }),
     });
@@ -543,12 +544,12 @@ Deno.test("ProviderSelector: enforces budget constraints", async () => {
     const healthService = new HealthCheckService("1.0.0");
 
     // Track enough usage to exceed budget
-    await costTracker.trackRequest("openai", 500000); // $0.50 at $0.001/1K
+    await costTracker.trackRequest(PROVIDER_OPENAI, 500000); // $0.50 at $0.001/1K
     await costTracker.flush(); // Ensure the cost is written immediately for the test
 
     ProviderRegistry.clear();
-    ProviderRegistry.registerWithMetadata("openai", new MockProviderFactory(), {
-      name: "openai",
+    ProviderRegistry.registerWithMetadata(PROVIDER_OPENAI, new MockProviderFactory(), {
+      name: PROVIDER_OPENAI,
       costTier: ProviderCostTier.PAID,
       pricingTier: PricingTier.HIGH,
       capabilities: ["chat"],

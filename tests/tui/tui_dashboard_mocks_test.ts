@@ -16,6 +16,7 @@ import {
   TEST_SKILL_ID_LEARNED,
   TEST_SKILL_ID_USER,
   TEST_UNKNOWN_PROPOSAL_ID,
+  TEST_MODEL_OPENAI,
 } from "../config/constants.ts";
 
 Deno.test("MockPortalService: returns portals", async () => {
@@ -106,7 +107,7 @@ Deno.test("MockRequestService: all methods", async () => {
     priority: "high",
     agent: "test",
     portal: "main",
-    model: "gpt-4",
+    model: TEST_MODEL_OPENAI,
   });
   if (typeof newReq !== "object" || newReq.priority !== "high" || newReq.agent !== "test") {
     throw new Error("createRequest failed");

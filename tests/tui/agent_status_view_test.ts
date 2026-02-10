@@ -19,6 +19,7 @@ import {
   LOG_LEVEL_ICONS,
   MinimalAgentServiceMock,
 } from "../../src/tui/agent_status_view.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { AgentHealth, TuiGroupBy } from "../../src/enums.ts";
 import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
 import { CritiqueSeverity } from "../../src/enums.ts";
@@ -31,7 +32,7 @@ class MockAgentService implements AgentService {
     {
       id: "agent1",
       name: "Agent 1",
-      model: "gpt-4",
+      model: TEST_MODEL_OPENAI,
       status: AgentStatus.ACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: ["code", "chat"],
@@ -49,7 +50,7 @@ class MockAgentService implements AgentService {
     {
       id: "agent3",
       name: "Agent 3",
-      model: "gpt-4",
+      model: TEST_MODEL_OPENAI,
       status: AgentStatus.ERROR,
       lastActivity: new Date().toISOString(),
       capabilities: ["code"],
@@ -470,8 +471,8 @@ Deno.test("AgentStatusTuiSession: search filtering", async () => {
   await session.initialize();
 
   // Apply search
-  session.applySearch("gpt-4");
-  if (session.getSearchQuery() !== "gpt-4") {
+  session.applySearch(TEST_MODEL_OPENAI);
+  if (session.getSearchQuery() !== TEST_MODEL_OPENAI) {
     throw new Error("Search query not set correctly");
   }
 

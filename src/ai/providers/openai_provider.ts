@@ -18,7 +18,7 @@ export type OpenAIProviderOptions = BaseProviderOptions;
 export class OpenAIProvider extends BaseProvider {
   /**
    * @param options.apiKey OpenAI API key
-   * @param options.model Model name (default: gpt-4)
+   * @param options.model Model name (default: gpt-5-mini)
    * @param options.id Optional provider id
    * @param options.logger Optional event logger
    * @param options.retryDelayMs Optional retry delay in ms (reads from config)

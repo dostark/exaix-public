@@ -30,7 +30,7 @@ export class GoogleProvider extends BaseProvider {
       options.config?.ai_timeout?.providers?.google || DEFAULTS.DEFAULT_GOOGLE_TIMEOUT_MS,
       options.config?.ai_retry?.max_attempts || DEFAULTS.DEFAULT_AI_RETRY_BACKOFF_BASE_MS,
       options.config?.ai_retry?.max_attempts || DEFAULTS.DEFAULT_AI_RETRY_MAX_ATTEMPTS,
-      "google",
+      DEFAULTS.PROVIDER_GOOGLE,
     );
   }
 

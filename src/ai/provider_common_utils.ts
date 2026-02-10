@@ -12,6 +12,7 @@ import {
   TOKENS_PER_COST_UNIT,
 } from "../config/constants.ts";
 import { HTTP_FORBIDDEN, HTTP_TOO_MANY_REQUESTS, HTTP_UNAUTHORIZED } from "../constants.ts";
+import { PROVIDER_ANTHROPIC, PROVIDER_GOOGLE, PROVIDER_MOCK, PROVIDER_OLLAMA, PROVIDER_OPENAI } from "../config/constants.ts";
 
 export type TokenMap = {
   prompt_tokens?: number;
@@ -27,15 +28,15 @@ export type TokenMap = {
  */
 function calculateCost(provider: string, totalTokens: number): number {
   const rates: Record<string, number> = {
-    "openai": COST_RATE_OPENAI,
-    "anthropic": COST_RATE_ANTHROPIC,
-    "google": COST_RATE_GOOGLE,
-    "ollama": COST_RATE_OLLAMA,
-    "mock": COST_RATE_MOCK,
+    [PROVIDER_OPENAI]: COST_RATE_OPENAI,
+    [PROVIDER_ANTHROPIC]: COST_RATE_ANTHROPIC,
+    [PROVIDER_GOOGLE]: COST_RATE_GOOGLE,
+    [PROVIDER_OLLAMA]: COST_RATE_OLLAMA,
+    [PROVIDER_MOCK]: COST_RATE_MOCK,
   };
 
   // Extract provider name from id (e.g., "google-gemini-2.0-flash-exp" -> "google")
-  const providerKey = provider.split("-")[0].toLowerCase();
+  const providerKey = provider.split("-")[0].toLowerCase(); // This assumes provider constants are lowercase strings
   const rate = rates[providerKey] ?? 0;
   return rate * (totalTokens / TOKENS_PER_COST_UNIT);
 }

@@ -12,6 +12,7 @@ import { RequestStatus } from "../../src/requests/request_status.ts";
 import { MinimalSkillsServiceMock, SkillsManagerView, type SkillSummary } from "../../src/tui/skills_manager_view.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { sampleTestSkills } from "./helpers.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 
 // ===== Test Data =====
 
@@ -146,7 +147,7 @@ Deno.test("AgentStatusView: displays defaultSkills in detail", async () => {
     {
       id: "agent-1",
       name: "CodeReviewer",
-      model: "gpt-4",
+      model: TEST_MODEL_OPENAI,
       status: AgentStatus.ACTIVE,
       lastActivity: new Date().toISOString(),
       capabilities: ["code-review"],

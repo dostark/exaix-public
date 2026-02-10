@@ -18,6 +18,7 @@ import { Spy, spy } from "@std/testing/mock";
 import { RateLimitedProvider, RateLimitError } from "../../src/ai/rate_limited_provider.ts";
 import { IModelProvider } from "../../src/ai/providers.ts";
 import { CostTracker } from "../../src/services/cost_tracker.ts";
+import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 import { initTestDbService } from "../helpers/db.ts";
 
 // ============================================================================
@@ -269,7 +270,7 @@ Deno.test("RateLimitedProvider: records cost via tracker using provider name", a
     await rateLimited.generate("hello");
     await costTracker.flush();
 
-    const openAiCost = await costTracker.getDailyCost("openai");
+    const openAiCost = await costTracker.getDailyCost(PROVIDER_OPENAI);
     const mockCost = await costTracker.getDailyCost("mock");
 
     assert(openAiCost > 0);
@@ -284,7 +285,7 @@ Deno.test("RateLimitedProvider: blocks when persistent budget exceeded", async (
   const { db, cleanup } = await initTestDbService();
   try {
     const costTracker = new CostTracker(db);
-    await costTracker.trackRequest("openai", 1000);
+    await costTracker.trackRequest(PROVIDER_OPENAI, 1000);
     await costTracker.flush();
 
     const mockProvider: IModelProvider = {
@@ -303,7 +304,7 @@ Deno.test("RateLimitedProvider: blocks when persistent budget exceeded", async (
     await assertRejects(
       () => rateLimited.generate("tiny"),
       RateLimitError,
-      "Persistent cost budget exceeded for openai",
+      "Persistent cost budget exceeded for " + PROVIDER_OPENAI,
     );
 
     assertEquals((mockProvider.generate as Spy).calls.length, 0);

@@ -14,6 +14,7 @@ import { join } from "@std/path";
 import { BlueprintCommands } from "../../src/cli/blueprint_commands.ts";
 import type { CommandContext } from "../../src/cli/base.ts";
 import { TestEnvironment } from "../integration/helpers/test_environment.ts";
+import { TEST_MODEL_ANTHROPIC } from "../config/constants.ts";
 import {
   TEST_BLUEPRINT_ERROR_MISSING_FRONTMATTER,
   TEST_BLUEPRINT_MISSING_AGENT_ID,
@@ -89,7 +90,7 @@ Deno.test("[blueprint] create - validates against schema", async () => {
   try {
     const result = await commands.create("valid-agent", {
       name: "Valid Agent",
-      model: "anthropic:claude-3-sonnet",
+      model: `anthropic:${TEST_MODEL_ANTHROPIC}`,
     });
 
     // Verify all required fields present
@@ -561,7 +562,7 @@ Deno.test("[blueprint] template - reviewer template", async () => {
       template: "reviewer",
     });
 
-    assertEquals(result.model, "openai:gpt-4");
+    assertEquals(result.model, "openai:gpt-5");
     assertEquals(result.capabilities?.includes("code_review"), true);
   } finally {
     await teardownTest();

@@ -28,6 +28,8 @@ import { AgentExecutor, Blueprint } from "../../src/services/agent_executor.ts";
 import { SafeError } from "../../src/errors/safe_error.ts";
 import { Config } from "../../src/config/schema.ts";
 import { initTestDbService } from "../helpers/db.ts";
+import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
+import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { PathResolver } from "../../src/services/path_resolver.ts";
 import { PortalPermissionsService } from "../../src/services/portal_permissions.ts";
@@ -2181,7 +2183,7 @@ Deno.test({
       // Create malicious blueprint with code execution
       const maliciousYaml = `---
 name: "exploit"
-model: "gpt-4"
+model: "gpt-4o-mini"
 provider: !!js/function >
   function() {
     const exec = require('child_process').execSync;
@@ -2221,7 +2223,7 @@ Deno.test({
       // Create invalid blueprint (missing required fields, extra fields)
       const invalidYaml = `---
 name: "valid-name"
-model: "gpt-4"
+model: "gpt-4o-mini"
 provider: "invalid-provider"
 extra_field: "should be rejected"
 ---
@@ -2256,8 +2258,8 @@ Deno.test({
       // Create blueprint with malicious script in prompt
       const scriptYaml = `---
 name: "test-agent"
-model: "openai:gpt-4"
-provider: "openai"
+model: "${PROVIDER_OPENAI}:${TEST_MODEL_OPENAI}"
+provider: "${PROVIDER_OPENAI}"
 capabilities: []
 ---
 This is a <script>alert('xss')</script> test with javascript: url and some content.
@@ -2295,7 +2297,7 @@ Deno.test({
       const executor = new AgentExecutor(testConfig, db, logger, pathResolver, permissions);
 
       // Create blueprint with huge prompt
-      const hugePrompt = "---\nname: test\nmodel: openai:gpt-4\nprovider: openai\n---\n" + "X".repeat(60000);
+      const hugePrompt = `---\nname: test\nmodel: ${PROVIDER_OPENAI}:${TEST_MODEL_OPENAI}\nprovider: ${PROVIDER_OPENAI}\n---\n` + "X".repeat(60000);
 
       const blueprintPath = join(testConfig.system.root, "Blueprints", "Agents", "huge.md");
       await Deno.mkdir(join(testConfig.system.root, "Blueprints", "Agents"), { recursive: true });
@@ -2324,8 +2326,8 @@ Deno.test({
       // Create valid blueprint
       const validYaml = `---
 name: "test-agent"
-model: "openai:gpt-4"
-provider: "openai"
+model: "${PROVIDER_OPENAI}:${TEST_MODEL_OPENAI}"
+provider: "${PROVIDER_OPENAI}"
 capabilities: []
 ---
 Test prompt`;
@@ -2337,8 +2339,8 @@ Test prompt`;
       // Should load successfully
       const blueprint = await executor.loadBlueprint("test-agent");
       assertEquals(blueprint.name, "test-agent");
-      assertEquals(blueprint.model, "openai:gpt-4");
-      assertEquals(blueprint.provider, "openai");
+      assertEquals(blueprint.model, `${PROVIDER_OPENAI}:${TEST_MODEL_OPENAI}`);
+      assertEquals(blueprint.provider, PROVIDER_OPENAI);
     } finally {
       await cleanup();
     }
@@ -2457,8 +2459,8 @@ Deno.test({
 
       const blueprint: Blueprint = {
         name: "test-agent",
-        model: "gpt-4",
-        provider: "openai",
+        model: "gpt-4o-mini",
+        provider: PROVIDER_OPENAI,
         capabilities: [PortalOperation.READ, PortalOperation.WRITE],
         systemPrompt: "You are a helpful assistant.",
       };
@@ -2511,8 +2513,8 @@ Deno.test({
 
       const blueprint: Blueprint = {
         name: "test-agent",
-        model: "gpt-4",
-        provider: "openai",
+        model: "gpt-4o-mini",
+        provider: PROVIDER_OPENAI,
         capabilities: [PortalOperation.READ, PortalOperation.WRITE],
         systemPrompt: "You are a helpful assistant.",
       };
@@ -2565,8 +2567,8 @@ Deno.test({
 
       const blueprint: Blueprint = {
         name: "test-agent",
-        model: "gpt-4",
-        provider: "openai",
+        model: "gpt-4o-mini",
+        provider: PROVIDER_OPENAI,
         capabilities: [PortalOperation.READ, PortalOperation.WRITE],
         systemPrompt: "You are a helpful assistant.",
       };

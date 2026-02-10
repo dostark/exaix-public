@@ -33,7 +33,7 @@ export class AnthropicProvider extends BaseProvider {
       options.config?.ai_timeout?.providers?.anthropic || DEFAULTS.DEFAULT_ANTHROPIC_TIMEOUT_MS,
       options.config?.ai_retry?.providers?.anthropic?.backoff_base_ms || DEFAULTS.DEFAULT_ANTHROPIC_RETRY_BACKOFF_MS,
       options.config?.ai_retry?.providers?.anthropic?.max_attempts || DEFAULTS.DEFAULT_ANTHROPIC_RETRY_MAX_ATTEMPTS,
-      "anthropic",
+      DEFAULTS.PROVIDER_ANTHROPIC,
     );
 
     // Read API version from config or use default

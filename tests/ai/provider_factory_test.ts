@@ -18,6 +18,8 @@
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
 import { getProviderForModel, ProviderFactory } from "../../src/ai/provider_factory.ts";
+import { TEST_MODEL_ANTHROPIC, TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 import { ProviderFactoryError } from "../../src/ai/errors.ts";
 import { DaemonStatus, ProviderType } from "../../src/enums.ts";
 import { RateLimitError } from "../../src/ai/rate_limited_provider.ts";
@@ -397,7 +399,7 @@ Deno.test(
   "ProviderFactory: anthropic with API key returns placeholder MockLLMProvider",
   withEnvVars({
     EXO_LLM_PROVIDER: "anthropic",
-    EXO_LLM_MODEL: "claude-3-sonnet",
+    EXO_LLM_MODEL: TEST_MODEL_ANTHROPIC,
   }, async () => {
     // Initialize secure store with test key
     await SecureCredentialStore.set("ANTHROPIC_API_KEY", "test-key");
@@ -407,7 +409,7 @@ Deno.test(
     const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
-    assertStringIncludes(provider.id, "anthropic-claude-3-sonnet");
+    assertStringIncludes(provider.id, `anthropic-${TEST_MODEL_ANTHROPIC}`);
     // Should be a MockLLMProvider placeholder
     assertEquals(provider.id.startsWith("anthropic"), true);
 
@@ -424,7 +426,7 @@ Deno.test(
   "ProviderFactory: openai with API key returns placeholder MockLLMProvider",
   withEnvVars({
     EXO_LLM_PROVIDER: "openai",
-    EXO_LLM_MODEL: "gpt-4",
+    EXO_LLM_MODEL: TEST_MODEL_OPENAI,
   }, async () => {
     // Initialize secure store with test key
     await SecureCredentialStore.set("OPENAI_API_KEY", "test-key");
@@ -434,7 +436,7 @@ Deno.test(
     const provider = await ProviderFactory.create(config);
 
     assertExists(provider);
-    assertStringIncludes(provider.id, "openai-gpt-4");
+    assertStringIncludes(provider.id, `openai-${TEST_MODEL_OPENAI}`);
     // Should be a MockLLMProvider placeholder
     assertEquals(provider.id.startsWith("openai"), true);
 

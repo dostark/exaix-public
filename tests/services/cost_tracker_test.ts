@@ -1,6 +1,7 @@
 import { assert, assertAlmostEquals, assertEquals } from "@std/assert";
 import { CostTracker } from "../../src/services/cost_tracker.ts";
 import { initTestDbService } from "../helpers/db.ts";
+import { COST_RATE_ANTHROPIC, COST_RATE_OPENAI, PROVIDER_ANTHROPIC, PROVIDER_OPENAI, TOKENS_PER_COST_UNIT } from "../../src/config/constants.ts";
 
 /**
  * Tests for CostTracker service.
@@ -14,8 +15,6 @@ import { initTestDbService } from "../helpers/db.ts";
  * - Uses correct cost rates for different providers
  */
 
-import { COST_RATE_ANTHROPIC, COST_RATE_OPENAI, TOKENS_PER_COST_UNIT } from "../../src/config/constants.ts";
-
 const COST_PER_TOKEN_OPENAI = COST_RATE_OPENAI / TOKENS_PER_COST_UNIT;
 const COST_PER_TOKEN_ANTHROPIC = COST_RATE_ANTHROPIC / TOKENS_PER_COST_UNIT;
 
@@ -24,10 +23,10 @@ Deno.test("CostTracker: tracks single request", async () => {
   try {
     const tracker = new CostTracker(db);
 
-    await tracker.trackRequest("openai", 1000);
+    await tracker.trackRequest(PROVIDER_OPENAI, 1000);
     await tracker.flush(); // Flush batch for immediate write
 
-    const dailyCost = await tracker.getDailyCost("openai");
+    const dailyCost = await tracker.getDailyCost(PROVIDER_OPENAI);
     // 1000 tokens * COST_PER_TOKEN_OPENAI
     const expectedCost = 1000 * COST_PER_TOKEN_OPENAI;
     assertEquals(dailyCost, expectedCost);
@@ -43,11 +42,11 @@ Deno.test("CostTracker: accumulates multiple requests", async () => {
   try {
     const tracker = new CostTracker(db);
 
-    await tracker.trackRequest("openai", 1000);
-    await tracker.trackRequest("openai", 2000);
+    await tracker.trackRequest(PROVIDER_OPENAI, 1000);
+    await tracker.trackRequest(PROVIDER_OPENAI, 2000);
     await tracker.flush(); // Flush batch for immediate write
 
-    const dailyCost = await tracker.getDailyCost("openai");
+    const dailyCost = await tracker.getDailyCost(PROVIDER_OPENAI);
     // (1000 + 2000) tokens * COST_PER_TOKEN_OPENAI
     const expectedCost = 3000 * COST_PER_TOKEN_OPENAI;
     assertEquals(dailyCost, expectedCost);
@@ -63,12 +62,12 @@ Deno.test("CostTracker: handles different providers", async () => {
   try {
     const tracker = new CostTracker(db);
 
-    await tracker.trackRequest("openai", 1000);
-    await tracker.trackRequest("anthropic", 1000);
+    await tracker.trackRequest(PROVIDER_OPENAI, 1000);
+    await tracker.trackRequest(PROVIDER_ANTHROPIC, 1000);
     await tracker.flush(); // Flush batch for immediate write
 
-    const openaiCost = await tracker.getDailyCost("openai");
-    const anthropicCost = await tracker.getDailyCost("anthropic");
+    const openaiCost = await tracker.getDailyCost(PROVIDER_OPENAI);
+    const anthropicCost = await tracker.getDailyCost(PROVIDER_ANTHROPIC);
 
     assertEquals(openaiCost, 1000 * COST_PER_TOKEN_OPENAI);
     assertEquals(anthropicCost, 1000 * COST_PER_TOKEN_ANTHROPIC);
@@ -109,10 +108,10 @@ Deno.test("CostTracker: isWithinBudget returns true when under budget", async ()
   try {
     const tracker = new CostTracker(db);
 
-    await tracker.trackRequest("openai", 500); // $0.0005
+    await tracker.trackRequest(PROVIDER_OPENAI, 500); // $0.0005
     await tracker.flush(); // Flush batch for immediate write
 
-    const withinBudget = await tracker.isWithinBudget("openai", 0.01);
+    const withinBudget = await tracker.isWithinBudget(PROVIDER_OPENAI, 0.01);
     assert(withinBudget);
 
     await db.close();
@@ -126,11 +125,11 @@ Deno.test("CostTracker: isWithinBudget returns false when over budget", async ()
   try {
     const tracker = new CostTracker(db);
 
-    await tracker.trackRequest("openai", 15000); // $0.015
+    await tracker.trackRequest(PROVIDER_OPENAI, 15000); // $0.015
     await tracker.flush(); // Flush batch for immediate write
 
-    const withinBudget = await tracker.isWithinBudget("openai", 0.01);
-    assert(!withinBudget);
+    const exceededBudget = await tracker.isWithinBudget(PROVIDER_OPENAI, 0.01);
+    assert(!exceededBudget);
 
     await db.close();
   } finally {
@@ -143,8 +142,8 @@ Deno.test("CostTracker: getDailyCost without provider sums all", async () => {
   try {
     const tracker = new CostTracker(db);
 
-    await tracker.trackRequest("openai", 1000); // $0.001
-    await tracker.trackRequest("anthropic", 2000); // $0.008
+    await tracker.trackRequest(PROVIDER_OPENAI, 1000); // $0.001
+    await tracker.trackRequest(PROVIDER_ANTHROPIC, 2000); // $0.008
     await tracker.flush(); // Flush batch for immediate write
 
     const totalCost = await tracker.getDailyCost();
@@ -167,17 +166,17 @@ Deno.test("CostTracker: getCostSummary returns records in date range", async () 
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + 1);
 
-    await tracker.trackRequest("openai", 1000);
-    await tracker.trackRequest("anthropic", 2000);
+    await tracker.trackRequest(PROVIDER_OPENAI, 1000);
+    await tracker.trackRequest(PROVIDER_ANTHROPIC, 2000);
     await tracker.flush(); // Flush batch for immediate write
 
     const summary = await tracker.getCostSummary(startDate, endDate);
 
     assertEquals(summary.length, 2);
-    assertEquals(summary[0].provider, "anthropic"); // Most recent first
+    assertEquals(summary[0].provider, PROVIDER_ANTHROPIC); // Most recent first
     assertEquals(summary[0].tokens, 2000);
     assertEquals(summary[0].estimatedCostUsd, 2000 * COST_PER_TOKEN_ANTHROPIC);
-    assertEquals(summary[1].provider, "openai");
+    assertEquals(summary[1].provider, PROVIDER_OPENAI);
     assertEquals(summary[1].tokens, 1000);
     assertEquals(summary[1].estimatedCostUsd, 1000 * COST_PER_TOKEN_OPENAI);
 
@@ -197,14 +196,14 @@ Deno.test("CostTracker: getCostSummary filters by provider", async () => {
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + 1);
 
-    await tracker.trackRequest("openai", 1000);
-    await tracker.trackRequest("anthropic", 2000);
+    await tracker.trackRequest(PROVIDER_OPENAI, 1000);
+    await tracker.trackRequest(PROVIDER_ANTHROPIC, 2000);
     await tracker.flush(); // Flush batch for immediate write
 
-    const openaiSummary = await tracker.getCostSummary(startDate, endDate, "openai");
+    const openaiSummary = await tracker.getCostSummary(startDate, endDate, PROVIDER_OPENAI);
 
     assertEquals(openaiSummary.length, 1);
-    assertEquals(openaiSummary[0].provider, "openai");
+    assertEquals(openaiSummary[0].provider, PROVIDER_OPENAI);
 
     await db.close();
   } finally {

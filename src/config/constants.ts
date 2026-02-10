@@ -204,6 +204,15 @@ export const PROVIDER_ANTHROPIC_STRENGTHS = ["complex", "reasoning", "analysis"]
 export const PROVIDER_OPENAI_STRENGTHS = ["general", "creative", "complex"];
 export const PROVIDER_GOOGLE_STRENGTHS = ["simple", "multimodal", "fast"];
 
+// Known providers for validation
+export const KNOWN_PROVIDERS = [
+  PROVIDER_MOCK,
+  PROVIDER_OLLAMA,
+  PROVIDER_ANTHROPIC,
+  PROVIDER_OPENAI,
+  PROVIDER_GOOGLE,
+];
+
 // Health check constants
 export const PROVIDER_HEALTH_CHECK_TEST_PROMPT = "Hello";
 export const PROVIDER_HEALTH_CHECK_MAX_TOKENS = 1;
@@ -364,9 +373,9 @@ export const DEFAULT_PROVIDER_STRATEGY_MAX_DAILY_COST_USD = 5.0;
 export const DEFAULT_PROVIDER_STRATEGY_HEALTH_CHECK_ENABLED = true;
 export const DEFAULT_PROVIDER_STRATEGY_FALLBACK_ENABLED = true;
 export const DEFAULT_PROVIDER_STRATEGY_FALLBACK_CHAINS = {
-  "balanced": ["openai", "anthropic", "google"],
-  "fast": ["google", "openai"],
-  "local_first": ["ollama", "openai"],
+  "balanced": [PROVIDER_OPENAI, PROVIDER_ANTHROPIC, PROVIDER_GOOGLE],
+  "fast": [PROVIDER_GOOGLE, PROVIDER_OPENAI],
+  "local_first": [PROVIDER_OLLAMA, PROVIDER_OPENAI],
 };
 
 // ============================================================================

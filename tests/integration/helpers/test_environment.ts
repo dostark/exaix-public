@@ -191,7 +191,7 @@ timeout_per_request_ms = 30000
 
 [ai_anthropic]
 api_version = "2023-06-01"
-default_model = "claude-3-5-sonnet-20241022"
+default_model = "claude-3-7-sonnet-20250219"
 max_tokens_default = 4096
 
 [mcp_defaults]

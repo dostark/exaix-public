@@ -11,6 +11,7 @@ import { ProviderFactory } from "../../src/ai/provider_factory.ts";
 import { Config } from "../../src/config/schema.ts";
 import { MockStrategy, PricingTier, ProviderType } from "../../src/enums.ts";
 import { ExoPathDefaults } from "../../src/config/constants.ts";
+import { TEST_MODEL_ANTHROPIC } from "../config/constants.ts";
 
 // ============================================================================
 // Basic Registry Tests
@@ -197,7 +198,7 @@ Deno.test("AnthropicProviderFactory: requires API key", async () => {
   const factory = new AnthropicProviderFactory();
   const options: ResolvedProviderOptions = {
     provider: ProviderType.ANTHROPIC,
-    model: "claude-3-sonnet",
+    model: TEST_MODEL_ANTHROPIC,
     timeoutMs: 30000,
   };
 

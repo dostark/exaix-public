@@ -16,6 +16,7 @@ import { McpToolName } from "../src/enums.ts";
 
 import { IModelProvider } from "../src/ai/providers.ts";
 import { MockStrategy } from "../src/enums.ts";
+import { TEST_MODEL_ANTHROPIC } from "./config/constants.ts";
 
 import {
   MockLLMError,
@@ -116,7 +117,7 @@ Deno.test("Recorded: returns response matching prompt hash", async () => {
       promptHash: "abc123",
       promptPreview: "You are a senior...",
       response: "## Plan\n\n1. First step",
-      model: "claude-3-5-sonnet",
+      model: TEST_MODEL_ANTHROPIC,
       tokens: { input: 100, output: 50 },
       recordedAt: "2025-12-01T10:00:00Z",
     },

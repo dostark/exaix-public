@@ -10,6 +10,7 @@ import { initTestDbService } from "./helpers/db.ts";
 import { AuditLogger } from "../src/services/audit_logger.ts";
 import { SecurityEventResult, SecurityEventType, SecuritySeverity } from "../src/enums.ts";
 import { join } from "@std/path";
+import { TEST_MODEL_ANTHROPIC } from "./config/constants.ts";
 
 /**
  * Clean up audit folder created during tests
@@ -157,7 +158,7 @@ Deno.test("AuditLogger: masks sensitive data in logs (comprehensive)", async () 
         password: "secret_password",
         token: "ghp_sometokenvalue1234567890",
         short_token: "abc",
-        model: "claude-3-sonnet-20240229",
+        model: TEST_MODEL_ANTHROPIC,
         nested: {
           password: "nested_secret",
         },

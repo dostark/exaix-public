@@ -8,8 +8,9 @@
  */
 
 import { z } from "zod";
+import { ProviderType } from "../enums.ts";
 import { ProviderTypeSchema } from "./ai_config.ts";
-import { AI_TIMEOUT_MS_MAX, AI_TIMEOUT_MS_MIN } from "./constants.ts";
+import { AI_TIMEOUT_MS_MAX, AI_TIMEOUT_MS_MIN, KNOWN_PROVIDERS } from "./constants.ts";
 
 /**
  * Schema for EXO_LLM_* environment variable overrides
@@ -54,9 +55,8 @@ export function getValidatedEnvOverrides(): EnvLLMOverride {
     if (providerResult.success) {
       // Additional validation: check against known providers
       const normalized = raw.EXO_LLM_PROVIDER.toLowerCase().trim();
-      const knownProviders = ["mock", "ollama", "anthropic", "openai", "google"];
-      if (knownProviders.includes(normalized)) {
-        result.EXO_LLM_PROVIDER = providerResult.data;
+      if (KNOWN_PROVIDERS.includes(providerResult.data as ProviderType)) {
+        result.EXO_LLM_PROVIDER = providerResult.data as ProviderType;
       } else {
         console.warn(`Invalid EXO_LLM_PROVIDER: "${raw.EXO_LLM_PROVIDER}" is not a known provider`);
       }

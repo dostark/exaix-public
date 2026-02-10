@@ -3,6 +3,7 @@ import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
 import { FlowExecutionError, FlowRunner } from "../../src/flows/flow_runner.ts";
 import { Flow, FlowInput, FlowStepInput } from "../../src/schemas/flow.ts";
 import { AgentExecutionResult } from "../../src/services/agent_runner.ts";
+import { PROVIDER_OPENAI, PROVIDER_ANTHROPIC } from "../../src/config/constants.ts";
 
 // Mock AgentRunner for testing
 class MockAgentRunner {
@@ -1677,7 +1678,7 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
       traceId: "test-trace-123",
       actionType: "llm.usage",
       payload: {
-        provider: "openai",
+        provider: PROVIDER_OPENAI,
         input_tokens: 100,
         output_tokens: 50,
         cost_usd: 0.0025,
@@ -1687,7 +1688,7 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
       traceId: "test-trace-123",
       actionType: "llm.usage",
       payload: {
-        provider: "openai",
+        provider: PROVIDER_OPENAI,
         input_tokens: 200,
         output_tokens: 75,
         cost_usd: 0.0050,
@@ -1697,7 +1698,7 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
       traceId: "test-trace-123",
       actionType: "llm.usage",
       payload: {
-        provider: "anthropic",
+        provider: PROVIDER_ANTHROPIC,
         input_tokens: 150,
         output_tokens: 60,
         cost_usd: 0.0030,
@@ -1746,10 +1747,10 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
   assertEquals(summary.totalOutputTokens, 185);
   assertEquals(summary.totalTokens, 635);
   assertEquals(summary.totalCostUsd, 0.0105);
-  assertEquals(summary.providers.openai.calls, 2);
-  assertEquals(summary.providers.openai.inputTokens, 300);
-  assertEquals(summary.providers.openai.outputTokens, 125);
-  assertEquals(summary.providers.openai.costUsd, 0.0075);
+  assertEquals(summary.providers[PROVIDER_OPENAI].calls, 2);
+  assertEquals(summary.providers[PROVIDER_OPENAI].inputTokens, 300);
+  assertEquals(summary.providers[PROVIDER_OPENAI].outputTokens, 125);
+  assertEquals(summary.providers[PROVIDER_OPENAI].costUsd, 0.0075);
   assertEquals(summary.providers.anthropic.calls, 1);
   assertEquals(summary.providers.anthropic.inputTokens, 150);
   assertEquals(summary.providers.anthropic.outputTokens, 60);

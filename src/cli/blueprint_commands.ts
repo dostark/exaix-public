@@ -113,7 +113,7 @@ The code, tests, or solution
 `,
   },
   reviewer: {
-    model: "openai:gpt-4",
+    model: "openai:gpt-5",
     capabilities: ["code_review", "security_analysis"],
     systemPrompt: `# Code Review Agent
 
@@ -182,7 +182,7 @@ Design proposals and documentation
 `,
   },
   researcher: {
-    model: "openai:gpt-4-turbo",
+    model: "openai:gpt-5",
     capabilities: ["research", "analysis", "summarization"],
     systemPrompt: `# Research and Analysis Agent
 

@@ -18,6 +18,7 @@ import {
   type RequestMetadata,
 } from "../../src/services/plan_writer.ts";
 import { initTestDbService } from "../helpers/db.ts";
+import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
 
 /**
  * Creates a mock PlanWriterConfig for testing
@@ -169,14 +170,14 @@ Deno.test("PlanWriter: writePlan includes token stats in frontmatter", async () 
     db.logActivity(
       "system",
       "llm.usage",
-      "openai-gpt-4",
+      TEST_PROVIDER_ID_OPENAI,
       {
         prompt_tokens: 10,
         completion_tokens: 5,
         total_tokens: 15,
-        model: "gpt-4",
+        model: TEST_MODEL_OPENAI,
         cost_usd: 0.001,
-        provider: "openai-gpt-4",
+        provider: TEST_PROVIDER_ID_OPENAI,
         input_tokens: 10,
         output_tokens: 5,
       },
@@ -210,8 +211,8 @@ Deno.test("PlanWriter: writePlan includes token stats in frontmatter", async () 
     assertStringIncludes(writeResult.content, "input_tokens: 10");
     assertStringIncludes(writeResult.content, "output_tokens: 5");
     assertStringIncludes(writeResult.content, "total_tokens: 15");
-    assertStringIncludes(writeResult.content, 'token_provider: "openai-gpt-4"');
-    assertStringIncludes(writeResult.content, 'token_model: "gpt-4"');
+    assertStringIncludes(writeResult.content, 'token_provider: "' + TEST_PROVIDER_ID_OPENAI + '"');
+    assertStringIncludes(writeResult.content, 'token_model: "' + TEST_MODEL_OPENAI + '"');
     assertStringIncludes(writeResult.content, "token_cost_usd: 0.001");
   } finally {
     await cleanup();

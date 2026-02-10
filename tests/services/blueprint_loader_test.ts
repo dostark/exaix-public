@@ -15,6 +15,8 @@ import {
   createBlueprintLoader,
   loadBlueprint,
 } from "../../src/services/blueprint_loader.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 
 // Test directory setup
 let testDir: string;
@@ -115,12 +117,12 @@ Agent without model specification.
 
     const loader = new BlueprintLoader({
       blueprintsPath,
-      defaultModel: "openai:gpt-4",
+      defaultModel: `${PROVIDER_OPENAI}:${TEST_MODEL_OPENAI}`,
     });
     const blueprint = await loader.load("no-model");
 
     assertExists(blueprint);
-    assertEquals(blueprint.model, "openai:gpt-4");
+    assertEquals(blueprint.model, `${PROVIDER_OPENAI}:${TEST_MODEL_OPENAI}`);
   } finally {
     await teardown(testDir);
   }

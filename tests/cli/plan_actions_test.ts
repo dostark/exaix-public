@@ -1,4 +1,5 @@
 import { assertEquals } from "@std/assert";
+import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
 import {
   handlePlanApprove,
   handlePlanList,
@@ -69,8 +70,8 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
         input_tokens: 120,
         output_tokens: 45,
         total_tokens: 165,
-        token_provider: "openai-gpt-4",
-        token_model: "gpt-4",
+        token_provider: TEST_PROVIDER_ID_OPENAI,
+        token_model: TEST_MODEL_OPENAI,
         token_cost_usd: 0.0025,
       }),
   };
@@ -82,8 +83,8 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
   assertEquals(calls[0].c.input_tokens, 120);
   assertEquals(calls[0].c.output_tokens, 45);
   assertEquals(calls[0].c.total_tokens, 165);
-  assertEquals(calls[0].c.token_provider, "openai-gpt-4");
-  assertEquals(calls[0].c.token_model, "gpt-4");
+  assertEquals(calls[0].c.token_provider, TEST_PROVIDER_ID_OPENAI);
+  assertEquals(calls[0].c.token_model, TEST_MODEL_OPENAI);
   assertEquals(calls[0].c.token_cost_usd, 0.0025);
   assertEquals(calls[1].a, "plan.content");
 });

@@ -102,13 +102,13 @@ Deno.test("EnvLLMOverride: rejects EXO_LLM_TIMEOUT_MS with non-numeric string", 
 Deno.test("EnvLLMOverride: handles multiple valid env vars together", async () => {
   await withEnv({
     EXO_LLM_PROVIDER: "anthropic",
-    EXO_LLM_MODEL: "claude-opus-4.5",
+    EXO_LLM_MODEL: "claude-opus-4-6",
     EXO_LLM_BASE_URL: "https://api.anthropic.com/v1/messages",
     EXO_LLM_TIMEOUT_MS: "60000",
   }, () => {
     const overrides = getValidatedEnvOverrides();
     assertEquals(overrides.EXO_LLM_PROVIDER, "anthropic");
-    assertEquals(overrides.EXO_LLM_MODEL, "claude-opus-4.5");
+    assertEquals(overrides.EXO_LLM_MODEL, "claude-opus-4-6");
     assertEquals(overrides.EXO_LLM_BASE_URL, "https://api.anthropic.com/v1/messages");
     assertEquals(overrides.EXO_LLM_TIMEOUT_MS, 60000);
   });

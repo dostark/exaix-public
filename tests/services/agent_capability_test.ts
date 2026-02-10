@@ -8,6 +8,8 @@ import { EventLogger } from "../../src/services/event_logger.ts";
 import { PathResolver } from "../../src/services/path_resolver.ts";
 import { PortalPermissionsService } from "../../src/services/portal_permissions.ts";
 import type { Config } from "../../src/config/schema.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 
 /**
  * TDD Tests for Agent Capability Differentiation
@@ -49,8 +51,8 @@ describe("AgentExecutor Capability Differentiation", () => {
     it("returns false for read-only agents without write capabilities", () => {
       const blueprint: Blueprint = {
         name: "code-analyst",
-        model: "gpt-4",
-        provider: "openai",
+        model: TEST_MODEL_OPENAI,
+        provider: PROVIDER_OPENAI,
         capabilities: ["read_file", "list_files", "search_code"],
         systemPrompt: "Analyze code",
       };
@@ -62,8 +64,8 @@ describe("AgentExecutor Capability Differentiation", () => {
     it("returns true for agents with write_file capability", () => {
       const blueprint: Blueprint = {
         name: "feature-developer",
-        model: "gpt-4",
-        provider: "openai",
+        model: TEST_MODEL_OPENAI,
+        provider: PROVIDER_OPENAI,
         capabilities: ["read_file", "write_file", "list_files"],
         systemPrompt: "Develop features",
       };
@@ -75,8 +77,8 @@ describe("AgentExecutor Capability Differentiation", () => {
     it("returns true for agents with git_commit capability", () => {
       const blueprint: Blueprint = {
         name: "commit-agent",
-        model: "gpt-4",
-        provider: "openai",
+        model: "gpt-4o-mini",
+        provider: PROVIDER_OPENAI,
         capabilities: ["read_file", "git_commit"],
         systemPrompt: "Commit changes",
       };
@@ -88,8 +90,8 @@ describe("AgentExecutor Capability Differentiation", () => {
     it("returns true for agents with git_create_branch capability", () => {
       const blueprint: Blueprint = {
         name: "branch-agent",
-        model: "gpt-4",
-        provider: "openai",
+        model: TEST_MODEL_OPENAI,
+        provider: PROVIDER_OPENAI,
         capabilities: ["read_file", "git_create_branch"],
         systemPrompt: "Create branches",
       };
@@ -101,8 +103,8 @@ describe("AgentExecutor Capability Differentiation", () => {
     it("returns true for agents with multiple write capabilities", () => {
       const blueprint: Blueprint = {
         name: "full-developer",
-        model: "gpt-4",
-        provider: "openai",
+        model: TEST_MODEL_OPENAI,
+        provider: PROVIDER_OPENAI,
         capabilities: ["read_file", "write_file", "git_commit", "git_create_branch"],
         systemPrompt: "Full development",
       };
@@ -114,8 +116,8 @@ describe("AgentExecutor Capability Differentiation", () => {
     it("returns false for agents with only read capabilities", () => {
       const blueprint: Blueprint = {
         name: "analyzer",
-        model: "gpt-4",
-        provider: "openai",
+        model: TEST_MODEL_OPENAI,
+        provider: PROVIDER_OPENAI,
         capabilities: ["read_file", "search_code", "list_files", "grep_search"],
         systemPrompt: "Analyze and search",
       };
@@ -127,8 +129,8 @@ describe("AgentExecutor Capability Differentiation", () => {
     it("returns false for agents with empty capabilities", () => {
       const blueprint: Blueprint = {
         name: "minimal-agent",
-        model: "gpt-4",
-        provider: "openai",
+        model: TEST_MODEL_OPENAI,
+        provider: PROVIDER_OPENAI,
         capabilities: [],
         systemPrompt: "Minimal agent",
       };
@@ -140,8 +142,8 @@ describe("AgentExecutor Capability Differentiation", () => {
     it("is case-sensitive for capability names", () => {
       const blueprint: Blueprint = {
         name: "case-test",
-        model: "gpt-4",
-        provider: "openai",
+        model: TEST_MODEL_OPENAI,
+        provider: PROVIDER_OPENAI,
         capabilities: ["WRITE_FILE", "Write_File"], // Wrong case
         systemPrompt: "Test case sensitivity",
       };
@@ -155,8 +157,8 @@ describe("AgentExecutor Capability Differentiation", () => {
     it("returns true for agents without write capabilities", () => {
       const blueprint: Blueprint = {
         name: "reader",
-        model: "gpt-4",
-        provider: "openai",
+        model: TEST_MODEL_OPENAI,
+        provider: PROVIDER_OPENAI,
         capabilities: ["read_file", "list_files"],
         systemPrompt: "Read only",
       };
@@ -168,8 +170,8 @@ describe("AgentExecutor Capability Differentiation", () => {
     it("returns false for agents with write capabilities", () => {
       const blueprint: Blueprint = {
         name: "writer",
-        model: "gpt-4",
-        provider: "openai",
+        model: TEST_MODEL_OPENAI,
+        provider: PROVIDER_OPENAI,
         capabilities: ["read_file", "write_file"],
         systemPrompt: "Read and write",
       };

@@ -1,4 +1,5 @@
 import { assertEquals } from "@std/assert";
+import { TEST_MODEL_ANTHROPIC, TEST_PROVIDER_ID_ANTHROPIC } from "../config/constants.ts";
 import { handleRequestShow } from "../../src/cli/command_builders/request_actions.ts";
 
 function createDisplay() {
@@ -25,8 +26,8 @@ Deno.test("handleRequestShow: includes token stats when present", async () => {
           input_tokens: 200,
           output_tokens: 80,
           total_tokens: 280,
-          token_provider: "anthropic-claude-3-5",
-          token_model: "claude-3-5-sonnet",
+          token_provider: TEST_PROVIDER_ID_ANTHROPIC,
+          token_model: TEST_MODEL_ANTHROPIC,
           token_cost_usd: 0.0042,
         },
         content: "Hello world",
@@ -40,8 +41,8 @@ Deno.test("handleRequestShow: includes token stats when present", async () => {
   assertEquals(calls[0].c.input_tokens, 200);
   assertEquals(calls[0].c.output_tokens, 80);
   assertEquals(calls[0].c.total_tokens, 280);
-  assertEquals(calls[0].c.token_provider, "anthropic-claude-3-5");
-  assertEquals(calls[0].c.token_model, "claude-3-5-sonnet");
+  assertEquals(calls[0].c.token_provider, TEST_PROVIDER_ID_ANTHROPIC);
+  assertEquals(calls[0].c.token_model, TEST_MODEL_ANTHROPIC);
   assertEquals(calls[0].c.token_cost_usd, 0.0042);
   assertEquals(calls[1].a, "request.content");
 });

@@ -25,6 +25,7 @@ import { RequestStatus } from "../../src/requests/request_status.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { GitService } from "../../src/services/git_service.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 
 // ===== Plan Command Error Handlers =====
 
@@ -854,7 +855,7 @@ Deno.test("request create with all options", async () => {
       assertEquals(opts.agent, "custom-agent");
       assertEquals(opts.priority, "high");
       assertEquals(opts.portal, "my-portal");
-      assertEquals(opts.model, "gpt-4");
+      assertEquals(opts.model, TEST_MODEL_OPENAI);
       return {
         filename: "/tmp/req.md",
         trace_id: "t-all",
@@ -874,7 +875,7 @@ Deno.test("request create with all options", async () => {
         "--portal",
         "my-portal",
         "-m",
-        "gpt-4",
+        TEST_MODEL_OPENAI,
       ]);
     });
   });

@@ -9,6 +9,8 @@ import { ModelFactory } from "../../src/ai/providers.ts";
 import { RequestProcessor } from "../../src/services/request_processor.ts";
 import { getTestModel } from "../ai/helpers/test_model.ts";
 import { getWorkspaceDir, getWorkspaceRequestsDir } from "../helpers/paths_helper.ts";
+import { DEFAULT_OPENAI_BASE_URL } from "../../src/config/constants.ts";
+import { isCi } from "../helpers/env.ts";
 
 const _enabled = Deno.env.get("EXO_TEST_ENABLE_PAID_LLM");
 Deno.test(
@@ -51,7 +53,7 @@ Always respond with:
 
       // Create a real provider using ModelFactory
       const model = getTestModel();
-      const provider = await ModelFactory.create(model, { apiKey, baseUrl: "https://api.openai.com" });
+      const provider = await ModelFactory.create(model, { apiKey, baseUrl: DEFAULT_OPENAI_BASE_URL });
 
       // Create RequestProcessor using real provider
       const processor = new RequestProcessor(

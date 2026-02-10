@@ -11,6 +11,7 @@ import { createMockConfig } from "../helpers/config.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { Flow, FlowInput } from "../../src/schemas/flow.ts";
 import type { FlowResult, StepResult } from "../../src/flows/flow_runner.ts";
+import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
 
 describe("FlowReporter", () => {
   let tempDir: string;
@@ -145,8 +146,8 @@ describe("FlowReporter", () => {
           input_tokens: 300,
           output_tokens: 120,
           total_tokens: 420,
-          token_provider: "openai-gpt-4",
-          token_model: "gpt-4",
+          token_provider: TEST_PROVIDER_ID_OPENAI,
+          token_model: TEST_MODEL_OPENAI,
           token_cost_usd: 0.01,
         },
       };
@@ -173,8 +174,8 @@ describe("FlowReporter", () => {
       assertStringIncludes(result.content, "input_tokens: 300");
       assertStringIncludes(result.content, "output_tokens: 120");
       assertStringIncludes(result.content, "total_tokens: 420");
-      assertStringIncludes(result.content, 'token_provider: "openai-gpt-4"');
-      assertStringIncludes(result.content, 'token_model: "gpt-4"');
+      assertStringIncludes(result.content, 'token_provider: "' + TEST_PROVIDER_ID_OPENAI + '"');
+      assertStringIncludes(result.content, 'token_model: "' + TEST_MODEL_OPENAI + '"');
       assertStringIncludes(result.content, "token_cost_usd: 0.01");
       assertStringIncludes(result.content, "# Flow Report: Test Flow");
       assertStringIncludes(result.content, "## Execution Summary");

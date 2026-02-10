@@ -1028,7 +1028,7 @@ exoctl blueprint create senior-coder --name "Senior Coder" --model anthropic:cla
 # Create with full options
 exoctl blueprint create security-auditor \
   --name "Security Auditor" \
-  --model openai:gpt-4 \
+  --model openai:gpt-4o-mini \
   --description "Specialized agent for security analysis" \
   --capabilities code_review,vulnerability_scanning \
   --system-prompt-file ~/prompts/security.txt
@@ -1157,9 +1157,9 @@ step:
 | ------------ | ----------------------- | --------------------------------- |
 | `default`    | ollama:codellama:13b    | General-purpose tasks             |
 | `coder`      | anthropic:claude-sonnet | Software development              |
-| `reviewer`   | openai:gpt-4            | Code review and quality           |
+| `reviewer`   | openai:gpt-4o-mini      | Code review and quality           |
 | `architect`  | anthropic:claude-opus   | System design and architecture    |
-| `researcher` | openai:gpt-4-turbo      | Research and analysis             |
+| `researcher` | openai:gpt-5            | Research and analysis             |
 | `gemini`     | google:gemini-3-flash   | Multimodal AI with fast responses |
 | `mock`       | mock:test-model         | Testing and CI/CD                 |
 
@@ -1193,7 +1193,7 @@ $ exoctl blueprint create my-agent \
 # 2. List all agents
 $ exoctl blueprint list
 senior-coder (anthropic:claude-3-sonnet)
-security-auditor (openai:gpt-4)
+security-auditor (openai:gpt-4o-mini)
 my-agent (anthropic:claude-sonnet)
 
 # 3. Use in requests

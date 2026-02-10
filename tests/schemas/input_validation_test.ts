@@ -22,6 +22,8 @@ import {
   TraceIdSchema,
   UserRequestSchema,
 } from "../../src/schemas/input_validation.ts";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
 
 Deno.test("Input Validation - BlueprintNameSchema", async (t) => {
   await t.step("accepts valid blueprint names", () => {
@@ -149,8 +151,8 @@ Deno.test("Input Validation - PlanSchema", async (t) => {
 Deno.test("Input Validation - ModelConfigSchema", async (t) => {
   await t.step("accepts valid model configs", () => {
     const validConfig = {
-      provider: "openai" as const,
-      model: "gpt-4",
+      provider: PROVIDER_OPENAI,
+      model: TEST_MODEL_OPENAI,
       temperature: 0.7,
     };
     assertEquals(ModelConfigSchema.parse(validConfig), validConfig);
@@ -159,15 +161,15 @@ Deno.test("Input Validation - ModelConfigSchema", async (t) => {
   await t.step("rejects invalid providers", () => {
     const invalidConfig = {
       provider: "invalid-provider",
-      model: "gpt-4",
+      model: TEST_MODEL_OPENAI,
     };
     assertThrows(() => ModelConfigSchema.parse(invalidConfig));
   });
 
   await t.step("rejects prototype pollution attempts", () => {
     const maliciousConfig = {
-      provider: "openai",
-      model: "gpt-4",
+      provider: PROVIDER_OPENAI,
+      model: TEST_MODEL_OPENAI,
       __proto__: { polluted: true },
     };
     assertThrows(() => ModelConfigSchema.parse(maliciousConfig));
@@ -175,8 +177,8 @@ Deno.test("Input Validation - ModelConfigSchema", async (t) => {
 
   await t.step("rejects invalid temperature ranges", () => {
     const invalidConfig = {
-      provider: "openai",
-      model: "gpt-4",
+      provider: PROVIDER_OPENAI,
+      model: TEST_MODEL_OPENAI,
       temperature: 3.0,
     };
     assertThrows(() => ModelConfigSchema.parse(invalidConfig));
@@ -289,13 +291,13 @@ Deno.test("Input Validation - InputValidator utility", async (t) => {
 
   await t.step("validates model configs", () => {
     const validConfig = {
-      provider: "openai" as const,
-      model: "gpt-4",
+      provider: PROVIDER_OPENAI,
+      model: TEST_MODEL_OPENAI,
     };
 
     const result = InputValidator.validateModelConfig(validConfig);
-    assertEquals(result.provider, "openai");
-    assertEquals(result.model, "gpt-4");
+    assertEquals(result.provider, PROVIDER_OPENAI);
+    assertEquals(result.model, TEST_MODEL_OPENAI);
   });
 });
 
@@ -346,7 +348,7 @@ Deno.test("Input Validation - Security regression tests", async (t) => {
 
   await t.step("prevents type confusion in model configs", () => {
     const maliciousConfig = {
-      provider: "openai",
+      provider: PROVIDER_OPENAI,
       model: "gpt-4",
       constructor: { prototype: { polluted: true } },
     };

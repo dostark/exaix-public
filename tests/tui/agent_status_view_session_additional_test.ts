@@ -1,4 +1,5 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
+import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 
 import { AgentStatusTuiSession, AgentStatusView, MinimalAgentServiceMock } from "../../src/tui/agent_status_view.ts";
 import { AgentHealth, TuiGroupBy } from "../../src/enums.ts";
@@ -8,7 +9,7 @@ function makeAgent(id: string, overrides: Record<string, unknown> = {}) {
   return {
     id,
     name: `Agent ${id}`,
-    model: "gpt-4",
+    model: TEST_MODEL_OPENAI,
     status: AgentStatus.ACTIVE,
     lastActivity: new Date().toISOString(),
     capabilities: ["code"],

@@ -1,6 +1,7 @@
 import { AbstractKeyBasedProviderFactory } from "./abstract_provider_factory.ts";
 import { IModelProvider, ResolvedProviderOptions } from "../types.ts";
 import { GoogleProvider } from "../providers/google_provider.ts";
+import { PROVIDER_GOOGLE } from "../../config/constants.ts";
 
 export class GoogleProviderFactory extends AbstractKeyBasedProviderFactory {
   constructor() {
@@ -13,7 +14,7 @@ export class GoogleProviderFactory extends AbstractKeyBasedProviderFactory {
     return new GoogleProvider({
       apiKey,
       model: options.model,
-      id: this.generateId("google", options.model, options.id),
+      id: this.generateId(PROVIDER_GOOGLE, options.model, options.id),
       logger: options.logger,
     });
   }

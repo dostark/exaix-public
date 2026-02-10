@@ -12,7 +12,7 @@ Deno.test("[regression] verify default openai model is gpt-5-mini", () => {
   assertEquals(DEFAULTS.DEFAULT_OPENAI_MODEL, DEFAULTS.DEFAULT_OPENAI_MODEL);
 });
 
-Deno.test("[regression] verify default anthropic model is claude-3.5-haiku-latest", () => {
+Deno.test("[regression] verify default anthropic model is claude-haiku-4-5-20251001", () => {
   const provider = new AnthropicProvider({ apiKey: "test-key" });
   const id = provider.id;
   assertEquals(id, `anthropic-${DEFAULTS.DEFAULT_ANTHROPIC_MODEL}`);
