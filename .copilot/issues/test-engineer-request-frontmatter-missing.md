@@ -6,7 +6,6 @@ created: 2026-02-09
 labels: [bug, execution, plan, cli]
 ---
 
-
 ## Problem
 
 The `test-engineer` validation request fails and produces a plan file without frontmatter. This breaks `exoctl plan list` with a "No frontmatter found" error and blocks plan review/execution.

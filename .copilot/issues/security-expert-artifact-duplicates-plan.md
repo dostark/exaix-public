@@ -6,7 +6,6 @@ created: 2026-02-09
 labels: [bug, execution, artifacts, agents]
 ---
 
-
 ## Problem
 
 For read-only agents like `security-expert`, the execution artifact effectively mirrors the approved plan content. The review artifact contains the plan output but no additional analysis report, so execution appears to add no value beyond plan approval.

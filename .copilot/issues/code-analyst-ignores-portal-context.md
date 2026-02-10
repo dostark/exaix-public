@@ -6,7 +6,6 @@ created: 2026-02-09
 labels: [bug, agents, planning, portal]
 ---
 
-
 ## Problem
 
 The `code-analyst` agent generates a plan that ignores the configured portal and hallucinates a Go/Cobra codebase. Even after a revision request instructing it to use the ExoFrame `src/` folder, the plan content remains unrelated to the actual repository.
