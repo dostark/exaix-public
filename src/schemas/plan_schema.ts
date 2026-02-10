@@ -54,7 +54,7 @@ export const PlanStepSchema = z.object({
   successCriteria: z.array(z.string()).optional(),
 
   /** Optional: Dependencies on other steps (by step number) */
-  dependencies: z.array(z.number().int().positive()).optional(),
+  dependencies: z.array(z.union([z.number().int().positive(), z.string().min(1)])).optional(),
 
   /** Optional: Rollback instructions if step fails */
   rollback: z.string().optional(),

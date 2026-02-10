@@ -52,6 +52,22 @@ describe("PlanStepSchema", () => {
       }
     });
 
+    it("should validate step with string dependencies", () => {
+      const stepData = {
+        step: 1,
+        title: "Define Interfaces",
+        description: "Identify public interfaces for the feature",
+        dependencies: ["Step 0", "requirements"],
+      };
+
+      const result = PlanStepSchema.safeParse(stepData);
+      assertEquals(result.success, true);
+      if (result.success) {
+        assertEquals(result.data.dependencies?.length, 2);
+        assertEquals(result.data.dependencies?.[0], "Step 0");
+      }
+    });
+
     it("should validate minimal step (required fields only)", () => {
       const stepData = {
         step: 1,
