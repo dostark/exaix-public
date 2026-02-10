@@ -15,6 +15,7 @@ export class OpenAIProviderFactory extends AbstractKeyBasedProviderFactory {
       model: options.model,
       baseUrl: options.baseUrl,
       id: this.generateId("openai", options.model, options.id),
+      logger: options.logger,
     });
   }
 }

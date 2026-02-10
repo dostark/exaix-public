@@ -1,4 +1,5 @@
 import { MockStrategy, ProviderType } from "../enums.ts";
+import type { EventLogger } from "../services/event_logger.ts";
 
 /**
  * Options for model generation requests.
@@ -49,6 +50,8 @@ export interface ResolvedProviderOptions {
   id?: string;
   /** Responses for scripted mock */
   responses?: string[];
+  /** Optional event logger for usage tracking */
+  logger?: EventLogger;
 }
 
 /**

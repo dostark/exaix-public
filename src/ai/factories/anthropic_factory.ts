@@ -14,6 +14,7 @@ export class AnthropicProviderFactory extends AbstractKeyBasedProviderFactory {
       apiKey,
       model: options.model,
       id: this.generateId("anthropic", options.model, options.id),
+      logger: options.logger,
     });
   }
 }

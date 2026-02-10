@@ -33,6 +33,7 @@ import { PricingTier } from "../enums.ts";
 import { IModelProvider, ProviderInfo, ResolvedProviderOptions } from "./types.ts";
 export type { IModelProvider, ProviderInfo, ResolvedProviderOptions };
 import { ProviderFactoryError } from "./errors.ts";
+import type { EventLogger } from "../services/event_logger.ts";
 import { LazyProvider } from "./providers/lazy_provider.ts";
 
 // ============================================================================
@@ -62,6 +63,8 @@ export class ProviderFactory {
       healthCheck?: boolean;
     },
     db?: DatabaseService,
+    logger?: EventLogger,
+    costTracker?: CostTracker,
   ): Promise<IModelProvider> {
     const chain = [fallback.primary, ...fallback.fallbacks];
     let lastError: unknown = undefined;
@@ -75,7 +78,7 @@ export class ProviderFactory {
 
         // Use retry policy to create the provider
         const retryResult = await retryPolicy.execute(async () => {
-          return await this.createByName(config, providerName, db);
+          return await this.createByName(config, providerName, db, logger, costTracker);
         });
 
         if (!retryResult.success) {
@@ -117,6 +120,8 @@ export class ProviderFactory {
     config: Config,
     chainName: string,
     db?: DatabaseService,
+    logger?: EventLogger,
+    costTracker?: CostTracker,
   ): Promise<IModelProvider> {
     const chain = config.provider_strategy?.fallback_chains?.[chainName];
 
@@ -130,12 +135,18 @@ export class ProviderFactory {
     // AI retry config for fallback attempts
     const maxRetries = config.ai_retry?.max_attempts;
 
-    return await this.createWithFallback(config, {
-      primary,
-      fallbacks,
-      maxRetries,
-      healthCheck: config.provider_strategy?.health_check_enabled,
-    }, db);
+    return await this.createWithFallback(
+      config,
+      {
+        primary,
+        fallbacks,
+        maxRetries,
+        healthCheck: config.provider_strategy?.health_check_enabled,
+      },
+      db,
+      logger,
+      costTracker,
+    );
   }
   /**
    * Create an LLM provider based on environment and configuration.
@@ -149,9 +160,15 @@ export class ProviderFactory {
    * @param db - Optional database service for cost tracking
    * @returns An IModelProvider instance
    */
-  static async create(config: Config, db?: DatabaseService): Promise<IModelProvider> {
+  static async create(
+    config: Config,
+    db?: DatabaseService,
+    logger?: EventLogger,
+    costTracker?: CostTracker,
+  ): Promise<IModelProvider> {
     const options = this.resolveOptions(config);
-    return await this.createAndWrap(config, options, db);
+    options.logger = logger;
+    return await this.createAndWrap(config, options, db, costTracker);
   }
 
   /**
@@ -162,14 +179,21 @@ export class ProviderFactory {
    * @param db - Optional database service for cost tracking
    * @returns An IModelProvider instance
    */
-  static async createByName(config: Config, name: string, db?: DatabaseService): Promise<IModelProvider> {
+  static async createByName(
+    config: Config,
+    name: string,
+    db?: DatabaseService,
+    logger?: EventLogger,
+    costTracker?: CostTracker,
+  ): Promise<IModelProvider> {
     // Check if name refers to a fallback chain
     if (config.provider_strategy?.fallback_enabled && config.provider_strategy?.fallback_chains?.[name]) {
-      return await this.createByChainName(config, name, db);
+      return await this.createByChainName(config, name, db, logger, costTracker);
     }
 
     const options = this.resolveOptionsByName(config, name);
-    return await this.createAndWrap(config, options, db);
+    options.logger = logger;
+    return await this.createAndWrap(config, options, db, costTracker);
   }
 
   /**
@@ -303,18 +327,19 @@ export class ProviderFactory {
     config: Config,
     options: ResolvedProviderOptions,
     db?: DatabaseService,
+    costTracker?: CostTracker,
   ): Promise<IModelProvider> {
     const provider = await this.createProvider(options);
 
     // Apply rate limiting if enabled
     if (config.rate_limiting?.enabled) {
-      const costTracker = db ? new CostTracker(db, config) : undefined;
+      const tracker = costTracker ?? (db ? new CostTracker(db, config) : undefined);
       return new RateLimitedProvider(provider, {
         maxCallsPerMinute: config.rate_limiting.max_calls_per_minute,
         maxTokensPerHour: config.rate_limiting.max_tokens_per_hour,
         maxCostPerDay: config.rate_limiting.max_cost_per_day,
         costPer1kTokens: config.rate_limiting.cost_per_1k_tokens,
-        costTracker,
+        costTracker: tracker,
       });
     }
 
