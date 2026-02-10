@@ -6,7 +6,6 @@ created: 2026-02-09
 labels: [bug, execution, artifacts, agents]
 ---
 
-# Read-only security-expert artifacts duplicate plan content
 
 ## Problem
 

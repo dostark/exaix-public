@@ -1,12 +1,3 @@
-2. **Regenerate plan on revision**
-   - When a plan is revised, trigger re-planning rather than appending comments only.
-   - Ensure revised plan updates content using new instructions.
-
-3. **Regression coverage**
-   - Add a test that ensures code-analyst plans reference actual `src/` files when a portal is provided.
-
-## Related Files
-
 - `src/services/request_processor.ts` - Request handling and prompt construction
 - `src/services/agent_runner.ts` - Prompt assembly
 - `src/cli/plan_commands.ts` - Plan revision handling
@@ -17,3 +8,5 @@
 Manually perform analysis or request a revision and regenerate a new plan via a fresh request with explicit file paths.
 
 ## Priority Justification
+
+High: breaks the core value of portal-aware analysis for code-analyst.

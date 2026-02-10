@@ -6,7 +6,6 @@ created: 2026-02-09
 labels: [bug, agents, planning, portal]
 ---
 
-# Code-analyst ignores portal context and hallucinates stack
 
 ## Problem
 

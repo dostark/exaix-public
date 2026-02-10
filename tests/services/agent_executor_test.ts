@@ -1689,6 +1689,18 @@ Deno.test({
       });
       await gitInit.output();
 
+      const gitConfigName = new Deno.Command(PortalOperation.GIT, {
+        args: ["config", "user.name", "Test User"],
+        cwd: testPortalPath,
+      });
+      await gitConfigName.output();
+
+      const gitConfigEmail = new Deno.Command(PortalOperation.GIT, {
+        args: ["config", "user.email", "test@example.com"],
+        cwd: testPortalPath,
+      });
+      await gitConfigEmail.output();
+
       // Create and commit a test file
       const testFile = join(testPortalPath, "test.txt");
       await Deno.writeTextFile(testFile, "test content");

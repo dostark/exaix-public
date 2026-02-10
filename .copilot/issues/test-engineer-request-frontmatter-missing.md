@@ -6,7 +6,6 @@ created: 2026-02-09
 labels: [bug, execution, plan, cli]
 ---
 
-# Test-engineer request plan missing frontmatter
 
 ## Problem
 

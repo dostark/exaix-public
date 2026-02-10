@@ -126,6 +126,7 @@ async function runCoverageCheck() {
   } catch {
     // Ignore missing directory / permission issues.
   }
+  await Deno.mkdir(COVERAGE_DIR, { recursive: true });
 
   // 1. Run Tests
   const testCmd = new Deno.Command("deno", {

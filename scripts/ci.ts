@@ -215,6 +215,7 @@ async function verifyCoverage(): Promise<boolean> {
     } catch (_error) {
       // Ignore missing directory.
     }
+    await Deno.mkdir(COVERAGE_DIR, { recursive: true });
 
     const testStart = Date.now();
     const testCmd = new Deno.Command("deno", {

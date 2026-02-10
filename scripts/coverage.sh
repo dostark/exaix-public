@@ -25,6 +25,7 @@ EXCLUDE_PATTERN="(^file:///tmp/|test\.(ts|js)$)"
 
 echo "🧪 Running tests with coverage..."
 rm -rf "$COVERAGE_DIR"
+mkdir -p "$COVERAGE_DIR"
 
 if [ "$WITH_LLAMA" = true ]; then
   echo "Including LlamaProvider tests..."
