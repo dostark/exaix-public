@@ -1,0 +1,17 @@
+## Problem
+
+When a request to the `technical-writer` agent produces a plan that fails JSON validation, the following issues occur:
+
+1. **No saved plan candidate**: The invalid plan is not saved anywhere for manual review
+2. **No possibility to review the plan manually**: Users cannot inspect what the agent actually produced
+3. **Missing trace events**: No detailed logs/events in journal showing the plan content or validation failure details
+
+## Reproduction Steps
+
+```bash
+# Submit request to technical-writer agent
+exoctl request --portal portal-exoframe --agent technical-writer "Create comprehensive API documentation for ExoFrame's flow engine..."
+
+# Check request status
+exoctl request show <trace-id>
+# Shows: status: failed

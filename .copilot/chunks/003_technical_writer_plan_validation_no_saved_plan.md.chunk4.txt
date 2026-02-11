@@ -1,0 +1,12 @@
+- `src/services/request_processor.ts` - Plan validation and saving logic
+- `src/schemas/plan_schema.ts` - Plan validation schema
+- `Blueprints/Agents/technical-writer.md` - Agent blueprint
+- `src/services/plan_validator.ts` - Plan validation implementation
+
+## Impact
+
+- **Debugging Difficulty**: Developers cannot inspect failed plans to understand validation issues
+- **Agent Development**: Makes it hard to debug and improve agent output quality
+- **User Experience**: Failed requests provide no actionable information about what went wrong
+
+## Proposed Solution

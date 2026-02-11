@@ -1,0 +1,12 @@
+1. **Save invalid plan for review**: The plan should be saved (perhaps in `Rejected/` or `Workspace/Plans/` with a `failed` status)
+2. **Detailed error logging**: Log the specific validation errors and the raw plan content
+3. **Manual review capability**: Allow users to inspect failed plans via `exoctl plan show <id>` or similar
+
+## Investigation Needed
+
+1. **Check Plan Saving Logic**: Verify where and when plans are saved during the validation process
+2. **Review Validation Error Handling**: Ensure validation failures are logged with details
+3. **Examine Plan Storage**: Confirm if failed plans should be stored for debugging
+4. **Check Technical Writer Output**: Inspect what the agent is actually producing that fails JSON parsing
+
+## Related Files

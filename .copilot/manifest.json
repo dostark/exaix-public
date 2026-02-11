@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-11T08:44:26.861Z",
+  "generated_at": "2026-02-11T09:39:56.813Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1265,6 +1265,19 @@
         ".copilot/chunks/request-processing-failure-test-provider.md.chunk3.txt",
         ".copilot/chunks/request-processing-failure-test-provider.md.chunk4.txt",
         ".copilot/chunks/request-processing-failure-test-provider.md.chunk5.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/003_technical_writer_plan_validation_no_saved_plan.md",
+      "title": "Technical Writer Agent Plan Validation Failure - No Plan Saved for Review",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk0.txt",
+        ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk1.txt",
+        ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk2.txt",
+        ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk3.txt",
+        ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk4.txt",
+        ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk5.txt"
       ]
     },
     {

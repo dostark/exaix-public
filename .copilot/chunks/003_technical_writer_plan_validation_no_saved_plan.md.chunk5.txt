@@ -1,0 +1,5 @@
+1. **Save Failed Plans**: Modify plan validation to save invalid plans with metadata about validation failures
+2. **Enhanced Logging**: Add detailed logging of validation errors and raw plan content
+3. **Review Commands**: Extend `exoctl plan` commands to show failed/invalid plans
+4. **Error Details**: Provide specific validation error messages in request status</content>
+<parameter name="filePath">/home/dkasymov/git/ExoFrame/.agents/issues/003_technical_writer_plan_validation_no_saved_plan.md
