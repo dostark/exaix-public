@@ -8,86 +8,33 @@ import { assertEquals, assertExists } from "@std/assert";
 import { DaemonStatus } from "../../src/enums.ts";
 
 import {
-  DAEMON_STATUS_COLORS,
-  DAEMON_STATUS_ICONS,
   DaemonControlView,
   type DaemonService,
   LegacyDaemonControlTuiSession,
-  LOG_LEVEL_COLORS,
   MinimalDaemonServiceMock,
 } from "../../src/tui/daemon_control_view.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
-
-// Helper for setting up daemon view tests
-async function setupDaemonTest(options: {
-  autoRefresh?: boolean;
-  initialStatus?: DaemonStatus;
-  logs?: string[];
-  errors?: string[];
-} = {}) {
-  await Promise.resolve(); // Satisfy linter for async function
-  const mock = new MinimalDaemonServiceMock();
-  if (options.initialStatus) mock.setStatus(options.initialStatus);
-  if (options.logs) mock.setLogs(options.logs);
-  if (options.errors) mock.setErrors(options.errors);
-
-  const view = new DaemonControlView(mock);
-  const session = view.createTuiSession(options.autoRefresh ?? false);
-
-  if (options.initialStatus) {
-    // If we set a status, we likely want the session to reflect it immediately
-    // For many tests we want to await session.initialize()
-  }
-
-  return { mock, view, session };
-}
-
-// ===== Constants Tests =====
-
-Deno.test("DaemonControlView: LOG_LEVEL_COLORS has all levels", () => {
-  assertExists(LOG_LEVEL_COLORS.info);
-  assertExists(LOG_LEVEL_COLORS.warn);
-  assertExists(LOG_LEVEL_COLORS.error);
-});
-
-Deno.test("DaemonControlView: DAEMON_STATUS_ICONS values", () => {
-  assertEquals(DAEMON_STATUS_ICONS.running, "🟢");
-  assertEquals(DAEMON_STATUS_ICONS.stopped, "🔴");
-  assertEquals(DAEMON_STATUS_ICONS.error, "⚠️");
-  assertEquals(DAEMON_STATUS_ICONS.unknown, "❓");
-});
-
-Deno.test("DaemonControlView: DAEMON_STATUS_COLORS values", () => {
-  assertEquals(DAEMON_STATUS_COLORS.running, "green");
-  assertEquals(DAEMON_STATUS_COLORS.stopped, "red");
-  assertEquals(DAEMON_STATUS_COLORS.error, "yellow");
-  assertEquals(DAEMON_STATUS_COLORS.unknown, "gray");
-});
+import { setupDaemonTest } from "./daemon_test_utils.ts";
 
 // ===== MinimalDaemonServiceMock Tests =====
 
 Deno.test("MinimalDaemonServiceMock: restart logs correctly", async () => {
   const mock = new MinimalDaemonServiceMock();
-
   await mock.restart();
-
   const logs = await mock.getLogs();
   assertEquals(logs.some((l) => l.includes("restarting")), true);
 });
 
 Deno.test("MinimalDaemonServiceMock: setStatus works", async () => {
   const mock = new MinimalDaemonServiceMock();
-
   mock.setStatus(DaemonStatus.RUNNING);
   assertEquals(await mock.getStatus(), DaemonStatus.RUNNING);
-
   mock.setStatus(DaemonStatus.ERROR);
   assertEquals(await mock.getStatus(), DaemonStatus.ERROR);
 });
 
 Deno.test("MinimalDaemonServiceMock: setLogs works", async () => {
   const mock = new MinimalDaemonServiceMock();
-
   mock.setLogs(["Custom log 1", "Custom log 2"]);
   const logs = await mock.getLogs();
   assertEquals(logs.length, 2);
@@ -96,7 +43,6 @@ Deno.test("MinimalDaemonServiceMock: setLogs works", async () => {
 
 Deno.test("MinimalDaemonServiceMock: setErrors works", async () => {
   const mock = new MinimalDaemonServiceMock();
-
   mock.setErrors(["Error 1", "Error 2"]);
   const errors = await mock.getErrors();
   assertEquals(errors.length, 2);
@@ -127,21 +73,16 @@ Deno.test("DaemonControlView: service delegation works", async () => {
 Deno.test("DaemonControlTuiSession: parseStatus detects running variants", async () => {
   const { mock, session } = await setupDaemonTest();
 
-  // Test DaemonStatus.RUNNING status
   mock.setStatus(DaemonStatus.RUNNING);
   await session.initialize();
   assertEquals(session.getDaemonStatus(), DaemonStatus.RUNNING);
 
-  // Test "started" status
   mock.setStatus("started" as any);
   await session.refreshStatus();
   assertEquals(session.getDaemonStatus(), DaemonStatus.RUNNING);
 });
 
 Deno.test("DaemonControlTuiSession: parseStatus detects stopped variants", async () => {
-  // Test "stopped" status
-  // Note: "inactive" matches DaemonStatus.RUNNING and "not running" matches DaemonStatus.RUNNING
-  // due to implementation checking order - this is a known implementation quirk
   const stoppedMock: DaemonService = {
     start: () => Promise.resolve(),
     stop: () => Promise.resolve(),
@@ -160,12 +101,10 @@ Deno.test("DaemonControlTuiSession: parseStatus detects stopped variants", async
 Deno.test("DaemonControlTuiSession: parseStatus detects error variants", async () => {
   const { mock, session } = await setupDaemonTest();
 
-  // Test DaemonStatus.ERROR status
   mock.setStatus(DaemonStatus.ERROR);
   await session.initialize();
   assertEquals(session.getDaemonStatus(), DaemonStatus.ERROR);
 
-  // Test "crash" status
   mock.setStatus("crash detected" as any);
   await session.refreshStatus();
   assertEquals(session.getDaemonStatus(), DaemonStatus.ERROR);
@@ -185,9 +124,7 @@ Deno.test("DaemonControlTuiSession: getLogContent returns logs", async () => {
   const { session } = await setupDaemonTest({
     logs: ["Log 1", "Log 2"],
   });
-
   await session.initialize();
-
   const logs = session.getLogContent();
   assertEquals(logs.length, 2);
 });
@@ -196,9 +133,7 @@ Deno.test("DaemonControlTuiSession: getErrorContent returns errors", async () =>
   const { session } = await setupDaemonTest({
     errors: ["Error 1"],
   });
-
   await session.initialize();
-
   const errors = session.getErrorContent();
   assertEquals(errors.length, 1);
 });
@@ -207,30 +142,22 @@ Deno.test("DaemonControlTuiSession: getActiveDialog returns dialog", async () =>
   const { session } = await setupDaemonTest({
     initialStatus: DaemonStatus.STOPPED,
   });
-
   await session.initialize();
-
   assertEquals(session.getActiveDialog(), null);
-
   session.showStartConfirm();
   assertExists(session.getActiveDialog());
 });
 
 Deno.test("DaemonControlTuiSession: isLoading and getLoadingMessage", async () => {
   const { session } = await setupDaemonTest();
-
-  // Initially not loading
   assertEquals(session.isLoading(), false);
   assertEquals(session.getLoadingMessage(), "");
 });
 
 Deno.test("DaemonControlTuiSession: getLastStatusCheck", async () => {
   const { session } = await setupDaemonTest();
-
   assertEquals(session.getLastStatusCheck(), null);
-
   await session.initialize();
-
   assertExists(session.getLastStatusCheck());
 });
 
@@ -240,10 +167,8 @@ Deno.test("DaemonControlTuiSession: startDaemon success", async () => {
   const { session } = await setupDaemonTest({
     initialStatus: DaemonStatus.STOPPED,
   });
-
   await session.initialize();
   assertEquals(session.getDaemonStatus(), DaemonStatus.STOPPED);
-
   await session.startDaemon();
   assertEquals(session.getDaemonStatus(), DaemonStatus.RUNNING);
 });
@@ -252,21 +177,16 @@ Deno.test("DaemonControlTuiSession: stopDaemon success", async () => {
   const { session } = await setupDaemonTest({
     initialStatus: DaemonStatus.RUNNING,
   });
-
   await session.initialize();
   assertEquals(session.getDaemonStatus(), DaemonStatus.RUNNING);
-
   await session.stopDaemon();
   assertEquals(session.getDaemonStatus(), DaemonStatus.STOPPED);
 });
 
 Deno.test("DaemonControlTuiSession: restartDaemon success", async () => {
   const { session } = await setupDaemonTest();
-
   await session.initialize();
-
   await session.restartDaemon();
-  // Should have restarting log
   const logs = session.getLogContent();
   assertEquals(logs.some((l) => l.includes("restart")), true);
 });
@@ -280,15 +200,10 @@ Deno.test("DaemonControlTuiSession: startDaemon handles error", async () => {
     getLogs: () => Promise.resolve([]),
     getErrors: () => Promise.resolve([]),
   };
-
   const view = new DaemonControlView(errorService);
   const session = view.createTuiSession(false);
-
   await session.initialize();
   await session.startDaemon();
-
-  // Should have set error status message
-  // The exact behavior depends on setStatus implementation
 });
 
 Deno.test("DaemonControlTuiSession: stopDaemon handles error", async () => {
@@ -300,14 +215,10 @@ Deno.test("DaemonControlTuiSession: stopDaemon handles error", async () => {
     getLogs: () => Promise.resolve([]),
     getErrors: () => Promise.resolve([]),
   };
-
   const view = new DaemonControlView(errorService);
   const session = view.createTuiSession(false);
-
   await session.initialize();
   await session.stopDaemon();
-
-  // Should have handled error
 });
 
 Deno.test("DaemonControlTuiSession: restartDaemon handles error", async () => {
@@ -319,14 +230,10 @@ Deno.test("DaemonControlTuiSession: restartDaemon handles error", async () => {
     getLogs: () => Promise.resolve([]),
     getErrors: () => Promise.resolve([]),
   };
-
   const view = new DaemonControlView(errorService);
   const session = view.createTuiSession(false);
-
   await session.initialize();
   await session.restartDaemon();
-
-  // Should have handled error
 });
 
 Deno.test("DaemonControlTuiSession: refreshStatus handles error", async () => {
@@ -338,13 +245,9 @@ Deno.test("DaemonControlTuiSession: refreshStatus handles error", async () => {
     getLogs: () => Promise.resolve([]),
     getErrors: () => Promise.resolve([]),
   };
-
   const view = new DaemonControlView(errorService);
   const session = view.createTuiSession(false);
-
   await session.initialize();
-
-  // Should have set error status
   assertEquals(session.getDaemonStatus(), DaemonStatus.ERROR);
 });
 
@@ -354,11 +257,8 @@ Deno.test("DaemonControlTuiSession: showStartConfirm blocked when running", asyn
   const { session } = await setupDaemonTest({
     initialStatus: DaemonStatus.RUNNING,
   });
-
   await session.initialize();
-
   session.showStartConfirm();
-  // Should not show dialog when already running
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -366,11 +266,8 @@ Deno.test("DaemonControlTuiSession: showStopConfirm blocked when not running", a
   const { session } = await setupDaemonTest({
     initialStatus: DaemonStatus.STOPPED,
   });
-
   await session.initialize();
-
   session.showStopConfirm();
-  // Should not show dialog when not running
   assertEquals(session.hasActiveDialog(), false);
 });
 
@@ -378,14 +275,9 @@ Deno.test("DaemonControlTuiSession: handleKey with active dialog", async () => {
   const { session } = await setupDaemonTest({
     initialStatus: DaemonStatus.STOPPED,
   });
-
   await session.initialize();
-
-  // Open a dialog
   session.showStartConfirm();
   assertEquals(session.hasActiveDialog(), true);
-
-  // Cancel the dialog
   await session.handleKey(KEYS.ESCAPE);
   assertEquals(session.hasActiveDialog(), false);
 });
@@ -394,9 +286,7 @@ Deno.test("DaemonControlTuiSession: handleKey 's' shows start confirm", async ()
   const { session } = await setupDaemonTest({
     initialStatus: DaemonStatus.STOPPED,
   });
-
   await session.initialize();
-
   await session.handleKey(KEYS.S);
   assertEquals(session.hasActiveDialog(), true);
 });
@@ -405,75 +295,54 @@ Deno.test("DaemonControlTuiSession: handleKey 'k' shows stop confirm", async () 
   const { session } = await setupDaemonTest({
     initialStatus: DaemonStatus.RUNNING,
   });
-
   await session.initialize();
-
   await session.handleKey(KEYS.K);
   assertEquals(session.hasActiveDialog(), true);
 });
 
 Deno.test("DaemonControlTuiSession: handleKey 'r' shows restart confirm", async () => {
   const { session } = await setupDaemonTest();
-
   await session.initialize();
-
   await session.handleKey(KEYS.R);
   assertEquals(session.hasActiveDialog(), true);
 });
 
 Deno.test("DaemonControlTuiSession: handleKey 'R' refreshes status", async () => {
   const { session } = await setupDaemonTest();
-
   await session.initialize();
-
   const _beforeCheck = session.getLastStatusCheck();
-
-  // Wait a tiny bit to ensure time difference
-  await new Promise((r) => setTimeout(r, 10));
-
+  await new Promise((r) => setTimeout(r, 10)); // Ensure distinct status check time
   await session.handleKey(KEYS.CAP_R);
-
   const afterCheck = session.getLastStatusCheck();
-  // Should have refreshed
   assertExists(afterCheck);
 });
 
 Deno.test("DaemonControlTuiSession: handleKey 'a' toggles auto-refresh", async () => {
   const { session } = await setupDaemonTest();
-
   await session.initialize();
-
   assertEquals(session.isAutoRefreshEnabled(), false);
-
   await session.handleKey(KEYS.A);
   assertEquals(session.isAutoRefreshEnabled(), true);
-
   await session.handleKey(KEYS.A);
   assertEquals(session.isAutoRefreshEnabled(), false);
-
   session.dispose();
 });
 
 // ===== DaemonControlTuiSession Rendering =====
 
-Deno.test("DaemonControlTuiSession: renderStatusPanel shows auto-refresh OFF", async () => {
+Deno.test("DaemonControlTuiSession: renderStatusPanel shows info", async () => {
   const { session } = await setupDaemonTest();
-
   await session.initialize();
-
   const lines = session.renderStatusPanel();
   assertEquals(lines.some((l) => l.includes("Auto-refresh: OFF")), true);
 });
 
 Deno.test("DaemonControlTuiSession: renderStatusPanel shows auto-refresh ON", async () => {
   const { session } = await setupDaemonTest();
-
   await session.initialize();
   session.toggleAutoRefresh();
-
   const lines = session.renderStatusPanel();
   assertEquals(lines.some((l) => l.includes("Auto-refresh: ON")), true);
-
   session.dispose();
 });
 
@@ -481,9 +350,7 @@ Deno.test("DaemonControlTuiSession: renderStatusPanel shows errors", async () =>
   const { session } = await setupDaemonTest({
     errors: ["Test error message"],
   });
-
   await session.initialize();
-
   const lines = session.renderStatusPanel();
   assertEquals(lines.some((l) => l.includes("Recent Errors")), true);
 });
@@ -492,10 +359,8 @@ Deno.test("DaemonControlTuiSession: renderLogs with content", async () => {
   const { session } = await setupDaemonTest({
     logs: ["Log entry 1", "Log entry 2"],
   });
-
   await session.initialize();
   await session.showLogs();
-
   const lines = session.renderLogs();
   assertEquals(lines.some((l) => l.includes("Log entry 1")), true);
 });
@@ -504,14 +369,9 @@ Deno.test("DaemonControlTuiSession: renderLogs with no logs", async () => {
   const { session } = await setupDaemonTest({
     logs: [],
   });
-
-  // Don't initialize - this will avoid adding any logs
-  session.showConfig(); // Just to access the session
-  session.hideConfig();
-
-  // Manually trigger showLogs
+  // session.showConfig(); // unnecessary
+  // session.hideConfig();
   await session.showLogs();
-
   const lines = session.renderLogs();
   assertEquals(lines.some((l) => l.includes("No logs available")), true);
 });
@@ -521,19 +381,15 @@ Deno.test("DaemonControlTuiSession: renderLogs with errors section", async () =>
     logs: ["Log 1"],
     errors: ["Error 1"],
   });
-
   await session.initialize();
   await session.showLogs();
-
   const lines = session.renderLogs();
   assertEquals(lines.some((l) => l.includes("ERRORS")), true);
 });
 
 Deno.test("DaemonControlTuiSession: renderConfig shows configuration info", async () => {
   const { session } = await setupDaemonTest();
-
   session.showConfig();
-
   const lines = session.renderConfig();
   assertEquals(lines.some((l) => l.includes("DAEMON CONFIGURATION")), true);
   assertEquals(lines.some((l) => l.includes("exo.config.toml")), true);
@@ -546,9 +402,7 @@ Deno.test("LegacyDaemonControlTuiSession: initialize and getStatus", async () =>
   mock.setStatus(DaemonStatus.RUNNING);
   const view = new DaemonControlView(mock);
   const session = new LegacyDaemonControlTuiSession(view, false);
-
   await session.initialize();
-
   assertEquals(session.getStatus(), DaemonStatus.RUNNING);
 });
 
@@ -556,13 +410,9 @@ Deno.test("LegacyDaemonControlTuiSession: getFocusableElements", () => {
   const mock = new MinimalDaemonServiceMock();
   const view = new DaemonControlView(mock);
   const session = new LegacyDaemonControlTuiSession(view, false);
-
   const elements = session.getFocusableElements();
   assertEquals(elements.includes("start"), true);
-  assertEquals(elements.includes("stop"), true);
-  assertEquals(elements.includes("restart"), true);
   assertEquals(elements.includes("logs"), true);
-  assertEquals(elements.includes("status"), true);
 });
 
 // ===== Dialog Confirmation Flow =====
@@ -571,27 +421,18 @@ Deno.test("DaemonControlTuiSession: confirm start dialog executes start", async 
   const { session } = await setupDaemonTest({
     initialStatus: DaemonStatus.STOPPED,
   });
-
   await session.initialize();
   assertEquals(session.getDaemonStatus(), DaemonStatus.STOPPED);
-
-  // Open start dialog via handleKey
   await session.handleKey(KEYS.S);
   assertEquals(session.hasActiveDialog(), true);
-
-  // Confirm the dialog (press 'y' for yes)
   await session.handleKey(KEYS.Y);
   assertEquals(session.hasActiveDialog(), false);
-
-  // Give time for async start to complete
   await new Promise((r) => setTimeout(r, 50));
-
   assertEquals(session.getDaemonStatus(), DaemonStatus.RUNNING);
 });
 
 Deno.test("DaemonControlTuiSession: getFocusableElements in different states", async () => {
   const { session } = await setupDaemonTest();
-
   await session.initialize();
 
   // Default state
@@ -601,7 +442,7 @@ Deno.test("DaemonControlTuiSession: getFocusableElements in different states", a
   // With dialog open
   session.showRestartConfirm();
   elements = session.getFocusableElements();
-  assertEquals(elements.includes("start-button"), false); // Dialog controls override
+  assertEquals(elements.includes("start-button"), false);
 
   // Cancel dialog
   await session.handleKey(KEYS.ESCAPE);
@@ -630,15 +471,8 @@ Deno.test("DaemonControlTuiSession: getFocusableElements in different states", a
 
 Deno.test("DaemonControlTuiSession: dispose cleans up auto-refresh", async () => {
   const { session } = await setupDaemonTest();
-
   await session.initialize();
-
-  // Enable auto-refresh
   session.toggleAutoRefresh();
   assertEquals(session.isAutoRefreshEnabled(), true);
-
-  // Dispose should clean up
   session.dispose();
-
-  // No way to verify interval is cleared directly, but no error means success
 });

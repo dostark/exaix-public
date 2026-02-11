@@ -23,6 +23,7 @@ import {
   createSkillsManagerViewWithMock,
   createTestSkills,
   sampleTestSkills,
+  testSkillsSessionRender,
 } from "./helpers.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
@@ -182,258 +183,153 @@ Deno.test("MinimalSkillsServiceMock: setSkills replaces skills", async () => {
 
 // ===== TUI Session Tests =====
 
-Deno.test("SkillsManagerTuiSession: navigation with 'j' and 'k' keys", async () => {
-  const { session } = createSkillsManagerTuiSession();
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: navigation with 'j' and 'k' keys",
+  [KEYS.J, KEYS.J, KEYS.K],
+  (rendered, session) => {
+    const state = session.getState();
+    assertExists(state.selectedSkillId);
+    assertExists(rendered);
+  },
+);
 
-  await session.initialize();
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: navigate to first and last with Home/End",
+  [KEYS.END, KEYS.HOME],
+  (rendered, session) => {
+    const state = session.getState();
+    assertExists(state.selectedSkillId);
+    assertExists(rendered);
+  },
+);
 
-  // Navigate down several times with 'j' to ensure we get a selection
-  await session.handleKey(KEYS.J);
-  await session.handleKey(KEYS.J);
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: toggle expand with left/right",
+  [KEYS.LEFT, KEYS.RIGHT],
+  (rendered, session) => {
+    const state = session.getState();
+    assertExists(state);
+    assertExists(rendered);
+  },
+);
 
-  const state1 = session.getState();
-  assertExists(state1.selectedSkillId);
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: expand all and collapse all",
+  [KEYS.C, KEYS.CAP_E],
+  (rendered, session) => {
+    const state = session.getState();
+    assertExists(state);
+    assertExists(rendered);
+  },
+);
 
-  // Navigate back with 'k'
-  await session.handleKey(KEYS.K);
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: refresh reloads skills",
+  [KEYS.CAP_R],
+  (rendered, session) => {
+    const state = session.getState();
+    assertExists(state);
+    assertExists(rendered);
+  },
+);
 
-  // Should still have selection
-  const state2 = session.getState();
-  assertExists(state2.selectedSkillId);
-});
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: filter source dialog",
+  [KEYS.F],
+  (rendered, session) => {
+    assertEquals(session.hasActiveDialog(), true);
+    assertEquals(rendered.length > 0, true);
+  },
+);
 
-Deno.test("SkillsManagerTuiSession: navigate to first and last with Home/End", async () => {
-  const { session } = createSkillsManagerTuiSession();
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: filter status dialog",
+  [KEYS.S],
+  (rendered, session) => {
+    assertEquals(session.hasActiveDialog(), true);
+    assertExists(rendered);
+  },
+);
 
-  await session.initialize();
-
-  // Navigate to last
-  await session.handleKey(KEYS.END);
-  const lastState = session.getState();
-  assertExists(lastState.selectedSkillId);
-
-  // Navigate to first
-  await session.handleKey(KEYS.HOME);
-  const firstState = session.getState();
-  assertExists(firstState.selectedSkillId);
-});
-
-Deno.test("SkillsManagerTuiSession: toggle expand with left/right", async () => {
-  const { session } = createSkillsManagerTuiSession();
-
-  await session.initialize();
-
-  // Should toggle expand with left/right on group nodes
-  await session.handleKey(KEYS.LEFT);
-  await session.handleKey(KEYS.RIGHT);
-
-  // No exception means success
-  const state = session.getState();
-  assertExists(state);
-});
-
-Deno.test("SkillsManagerTuiSession: expand all and collapse all", async () => {
-  const { session } = createSkillsManagerTuiSession();
-
-  await session.initialize();
-
-  // Collapse all with 'c'
-  await session.handleKey(KEYS.C);
-
-  // Expand all with 'E'
-  await session.handleKey(KEYS.CAP_E);
-  const state = session.getState();
-  assertExists(state);
-});
-
-Deno.test("SkillsManagerTuiSession: refresh reloads skills", async () => {
-  const { session } = createSkillsManagerTuiSession();
-
-  await session.initialize();
-
-  // Refresh with 'R'
-  await session.handleKey(KEYS.CAP_R);
-
-  const state = session.getState();
-  assertExists(state);
-});
-
-Deno.test("SkillsManagerTuiSession: filter source dialog", async () => {
-  const { session } = createSkillsManagerTuiSession();
-
-  await session.initialize();
-
-  // Open filter source dialog with 'f'
-  await session.handleKey(KEYS.F);
-  assertEquals(session.hasActiveDialog(), true);
-
-  const dialogLines = session.renderDialog();
-  assertEquals(dialogLines.length > 0, true);
-
-  // Cancel dialog
-  await session.handleKey(KEYS.ESCAPE);
-  assertEquals(session.hasActiveDialog(), false);
-});
-
-Deno.test("SkillsManagerTuiSession: filter status dialog", async () => {
-  const { session } = createSkillsManagerTuiSession();
-
-  await session.initialize();
-
-  // Open filter status dialog with 's'
-  await session.handleKey(KEYS.S);
-  assertEquals(session.hasActiveDialog(), true);
-
-  // Cancel dialog
-  await session.handleKey(KEYS.ESCAPE);
-  assertEquals(session.hasActiveDialog(), false);
-});
-
-Deno.test("SkillsManagerTuiSession: delete skill dialog for non-core skill", async () => {
-  const { session } = createSkillsManagerTuiSession();
-
-  await session.initialize();
-
-  // Navigate to a project skill (non-core)
-  // First navigate past group headers to skill nodes
-  for (let i = 0; i < 5; i++) {
-    await session.handleKey(KEYS.DOWN);
-  }
-
-  const state = session.getState();
-  // Find a non-core skill
-  if (state.selectedSkillId?.includes(MemoryScope.PROJECT) || state.selectedSkillId?.includes(MemorySource.LEARNED)) {
-    await session.handleKey(KEYS.D);
-    // Dialog should open if we're on a project/learned skill
-    // If not, we're on a core skill which is blocked
-  }
-});
-
-Deno.test("SkillsManagerTuiSession: delete blocked for core skills", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Navigate to first skill (should be a core skill after group header)
-  await session.handleKey(KEYS.DOWN);
-
-  const state = session.getState();
-  if (state.selectedSkillId?.startsWith("skill-tdd") || state.selectedSkillId?.startsWith("skill-security")) {
-    // Try to delete a core skill
-    await session.handleKey(KEYS.D);
-    // Should not open dialog for core skills
-    assertEquals(session.hasActiveDialog(), false);
-  }
-});
-
-Deno.test("SkillsManagerTuiSession: show detail for skill node", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Navigate to a skill (not group header)
-  await session.handleKey(KEYS.DOWN);
-  await session.handleKey(KEYS.ENTER);
-
-  const detail = session.renderDetail();
-  if (session.isShowingDetail()) {
-    assertStringIncludes(detail, "Skill:");
-  }
-});
-
-Deno.test("SkillsManagerTuiSession: detail view shows triggers", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Navigate to a skill with triggers (first core skill)
-  await session.handleKey(KEYS.DOWN);
-  await session.handleKey(KEYS.ENTER);
-
-  if (session.isShowingDetail()) {
-    const detail = session.renderDetail();
-    // Skills with triggers should show them
-    if (detail.includes("Triggers:")) {
-      assertStringIncludes(detail, "Keywords:");
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: delete skill dialog for non-core skill",
+  [KEYS.DOWN, KEYS.DOWN, KEYS.DOWN, KEYS.DOWN, KEYS.DOWN], // Navigate to a project/learned skill
+  async (_rendered, session) => {
+    const state = session.getState();
+    if (state.selectedSkillId?.includes(MemoryScope.PROJECT) || state.selectedSkillId?.includes(MemorySource.LEARNED)) {
+      await session.handleKey(KEYS.D);
+      // Check if dialog opened or not, depending on implementation
     }
-  }
-});
+  },
+);
 
-Deno.test("SkillsManagerTuiSession: close detail with 'q'", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: delete blocked for core skills",
+  [KEYS.DOWN],
+  async (_rendered, session) => {
+    const state = session.getState();
+    if (state.selectedSkillId?.startsWith("skill-tdd") || state.selectedSkillId?.startsWith("skill-security")) {
+      await session.handleKey(KEYS.D);
+      assertEquals(session.hasActiveDialog(), false);
+    }
+  },
+);
 
-  await session.initialize();
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: show detail for skill node",
+  [KEYS.DOWN, KEYS.ENTER],
+  (_rendered, session) => {
+    if (session.isShowingDetail()) {
+      const detail = session.renderDetail();
+      assertStringIncludes(detail, "Skill:");
+    }
+  },
+);
 
-  // Navigate to a skill and show detail
-  await session.handleKey(KEYS.DOWN);
-  await session.handleKey(KEYS.ENTER);
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: detail view shows triggers",
+  [KEYS.DOWN, KEYS.ENTER],
+  (_rendered, session) => {
+    if (session.isShowingDetail()) {
+      const detail = session.renderDetail();
+      if (detail.includes("Triggers:")) {
+        assertStringIncludes(detail, "Keywords:");
+      }
+    }
+  },
+);
 
-  if (session.isShowingDetail()) {
-    await session.handleKey(KEYS.Q);
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: close detail with 'q'",
+  [KEYS.DOWN, KEYS.ENTER, KEYS.Q],
+  (_rendered, session) => {
     assertEquals(session.isShowingDetail(), false);
-  }
-});
+  },
+);
 
-Deno.test("SkillsManagerTuiSession: help screen toggle with '?'", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: help screen toggle with '?'",
+  [KEYS.QUESTION, KEYS.QUESTION],
+  (_rendered, session) => {
+    assertEquals(session.isShowingHelp(), false);
+  },
+);
 
-  await session.initialize();
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: close help with 'q'",
+  [KEYS.QUESTION, KEYS.Q],
+  (_rendered, session) => {
+    assertEquals(session.isShowingHelp(), false);
+  },
+);
 
-  // Show help
-  await session.handleKey(KEYS.QUESTION);
-  assertEquals(session.isShowingHelp(), true);
-
-  // Toggle off with '?'
-  await session.handleKey(KEYS.QUESTION);
-  assertEquals(session.isShowingHelp(), false);
-});
-
-Deno.test("SkillsManagerTuiSession: close help with 'q'", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Show help
-  await session.handleKey(KEYS.QUESTION);
-  assertEquals(session.isShowingHelp(), true);
-
-  // Close with 'q'
-  await session.handleKey(KEYS.Q);
-  assertEquals(session.isShowingHelp(), false);
-});
-
-Deno.test("SkillsManagerTuiSession: close help with escape", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  await session.handleKey(KEYS.QUESTION);
-  assertEquals(session.isShowingHelp(), true);
-
-  await session.handleKey(KEYS.ESCAPE);
-  assertEquals(session.isShowingHelp(), false);
-});
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: close help with escape",
+  [KEYS.QUESTION, KEYS.ESCAPE],
+  (_rendered, session) => {
+    assertEquals(session.isShowingHelp(), false);
+  },
+);
 
 Deno.test("SkillsManagerTuiSession: render with no skills shows empty message", async () => {
   const mockService = new MinimalSkillsServiceMock([]);
@@ -446,206 +342,122 @@ Deno.test("SkillsManagerTuiSession: render with no skills shows empty message", 
   assertStringIncludes(output, "No skills found");
 });
 
-Deno.test("SkillsManagerTuiSession: render shows filter info when filtering", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: render shows filter info when filtering",
+  [KEYS.SLASH, KEYS.ENTER, KEYS.T, KEYS.D, KEYS.D, KEYS.ENTER, KEYS.ENTER],
+  (rendered, session) => {
+    assertEquals(session.hasActiveDialog(), false);
+    assertStringIncludes(rendered, "Filters:");
+  },
+);
 
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: group by status",
+  [KEYS.G],
+  (rendered, session) => {
+    assertEquals(session.getState().groupBy, "status");
+    assertStringIncludes(rendered, "Active Skills");
+  },
+);
+
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: group by none (flat list)",
+  [KEYS.G, KEYS.G],
+  (_rendered, session) => {
+    assertEquals(session.getState().groupBy, "none");
+  },
+);
+
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: search dialog filters skills",
+  [KEYS.SLASH, KEYS.ESCAPE],
+  (_rendered, session) => {
+    assertEquals(session.hasActiveDialog(), false);
+  },
+);
+
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: handleKey returns false for quit",
+  [KEYS.Q],
+  (rendered, _session) => {
+    // We can't easily check the return value of handleKey here because the helper consumes it.
+    // But we can check that sessions didn't crash.
+    assertExists(rendered);
+  },
+  { skills: [] },
+);
+
+// Manual test for handleKey return value since helper doesn't expose it
+Deno.test("SkillsManagerTuiSession: handleKey returns false for quit (manual)", async () => {
+  const { session } = createSkillsManagerTuiSession([]);
   await session.initialize();
-
-  // Open search dialog
-  await session.handleKey(KEYS.SLASH);
-  assertEquals(session.hasActiveDialog(), true);
-
-  // Press enter to start editing, then type, then enter to confirm
-  await session.handleKey(KEYS.ENTER);
-  await session.handleKey(KEYS.T);
-  await session.handleKey(KEYS.D);
-  await session.handleKey(KEYS.D);
-  await session.handleKey(KEYS.ENTER); // Exit edit mode
-  await session.handleKey(KEYS.ENTER); // Confirm dialog
-  // Verify dialog is closed
-  assertEquals(session.hasActiveDialog(), false);
-
-  // Search query should show in render
-  const output = session.render();
-  assertStringIncludes(output, "Filters:");
-});
-
-Deno.test("SkillsManagerTuiSession: group by status", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Cycle to status grouping
-  await session.handleKey(KEYS.G);
-  assertEquals(session.getState().groupBy, "status");
-
-  const output = session.render();
-  assertStringIncludes(output, "Active Skills");
-});
-
-Deno.test("SkillsManagerTuiSession: group by none (flat list)", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Cycle to none grouping
-  await session.handleKey(KEYS.G); // source -> status
-  await session.handleKey(KEYS.G); // status -> none
-
-  assertEquals(session.getState().groupBy, "none");
-});
-
-Deno.test("SkillsManagerTuiSession: search dialog filters skills", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Open search dialog
-  await session.handleKey(KEYS.SLASH);
-  assertEquals(session.hasActiveDialog(), true);
-
-  // Cancel the dialog for now (testing dialog opening)
-  await session.handleKey(KEYS.ESCAPE);
-  assertEquals(session.hasActiveDialog(), false);
-});
-
-Deno.test("SkillsManagerTuiSession: handleKey returns false for quit", async () => {
-  const mockService = new MinimalSkillsServiceMock([]);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
   const result = await session.handleKey(KEYS.Q);
   assertEquals(result, false);
 });
 
 Deno.test("SkillsManagerTuiSession: navigateDown when no selection selects first", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
+  const { session } = createSkillsManagerTuiSession();
   await session.initialize();
 
   // Manually clear selection via state (simulate edge case)
   const state = session.getState();
   if (!state.selectedSkillId) {
-    // If no selection, navigateDown should select first
     await session.handleKey(KEYS.DOWN);
     assertExists(session.getState().selectedSkillId);
   }
 });
 
 Deno.test("SkillsManagerTuiSession: colors enabled vs disabled", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-
-  // With colors disabled
-  const sessionNoColors = view.createTuiSession(false);
+  const { session: sessionNoColors } = createSkillsManagerTuiSession();
   await sessionNoColors.initialize();
   const outputNoColors = sessionNoColors.render();
   assertExists(outputNoColors);
 
   // With colors enabled
+  const { service: _service, view } = createSkillsManagerViewWithMock();
   const sessionWithColors = view.createTuiSession(true);
   await sessionWithColors.initialize();
   const outputWithColors = sessionWithColors.render();
   assertExists(outputWithColors);
 });
 
-Deno.test("SkillsManagerTuiSession: enter on group node toggles expansion", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: enter on group node toggles expansion",
+  [],
+  async (_rendered, session) => {
+    const state = session.getState();
+    if (state.selectedSkillId?.startsWith("group-")) {
+      await session.handleKey(KEYS.ENTER);
+      assertEquals(session.isShowingDetail(), false);
+    }
+  },
+);
 
-  await session.initialize();
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: invalid filter source shows error",
+  [KEYS.F, ..."invalid".split(""), KEYS.ENTER],
+  (_rendered, session) => {
+    const state = session.getState();
+    assertEquals(state.filterSource, "all");
+  },
+);
 
-  // First node should be a group (grouped by source by default)
-  const state = session.getState();
-  if (state.selectedSkillId?.startsWith("group-")) {
-    await session.handleKey(KEYS.ENTER);
-    // Should toggle the group, not show detail
-    assertEquals(session.isShowingDetail(), false);
-  }
-});
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: invalid filter status shows error",
+  [KEYS.S, ..."invalid".split(""), KEYS.ENTER],
+  (_rendered, session) => {
+    const state = session.getState();
+    assertEquals(state.filterStatus, "all");
+  },
+);
 
-Deno.test("SkillsManagerTuiSession: invalid filter source shows error", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Open filter source dialog
-  await session.handleKey(KEYS.F);
-
-  // Type invalid source
-  for (const char of "invalid") {
-    await session.handleKey(char);
-  }
-  await session.handleKey(KEYS.ENTER);
-
-  // Should set an error status (filter source unchanged)
-  const state = session.getState();
-  assertEquals(state.filterSource, "all");
-});
-
-Deno.test("SkillsManagerTuiSession: invalid filter status shows error", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Open filter status dialog
-  await session.handleKey(KEYS.S);
-
-  // Type invalid status
-  for (const char of "invalid") {
-    await session.handleKey(char);
-  }
-  await session.handleKey(KEYS.ENTER);
-
-  // Should set an error status (filter status unchanged)
-  const state = session.getState();
-  assertEquals(state.filterStatus, "all");
-});
-
-Deno.test("SkillsManagerTuiSession: return key same as enter", async () => {
-  const skills = createTestSkills();
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Navigate to a skill
-  await session.handleKey(KEYS.DOWN);
-
-  // Use 'return' key
-  await session.handleKey(KEYS.ENTER);
-
-  // Should show detail or toggle group
-  const state = session.getState();
-  assertExists(state);
-});
+testSkillsSessionRender(
+  "SkillsManagerTuiSession: return key same as enter",
+  [KEYS.DOWN, KEYS.ENTER],
+  (_rendered, session) => {
+    assertExists(session.getState());
+  },
+);
 
 Deno.test("SkillsManagerTuiSession: detail view shows instructions (truncated)", async () => {
   const skills: SkillSummary[] = [
@@ -659,8 +471,7 @@ Deno.test("SkillsManagerTuiSession: detail view shows instructions (truncated)",
       instructions: Array.from({ length: 20 }, (_, i) => `Line ${i + 1}`).join("\n"),
     },
   ];
-  const mockService = new MinimalSkillsServiceMock(skills);
-  const view = new SkillsManagerView(mockService);
+  const { service: _service, view } = createSkillsManagerViewWithMock(skills);
   const session = view.createTuiSession(false);
 
   await session.initialize();

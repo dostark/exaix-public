@@ -318,6 +318,12 @@ export function createMonitorViewWithLogs(arr: Array<Record<string, any>> = []) 
   return { db, monitorView };
 }
 
+export function createMonitorTuiSession(arr: Array<Record<string, any>> = []) {
+  const { db, monitorView } = createMonitorViewWithLogs(arr);
+  const session = monitorView.createTuiSession(false);
+  return { db, view: monitorView, session };
+}
+
 // -------------------------
 // Plan reviewer helpers
 // -------------------------
@@ -627,6 +633,28 @@ export function createSkillsManagerTuiSession(skills: SkillSummary[] = sampleTes
   const { service, view } = createSkillsManagerViewWithMock(skills);
   const session = view.createTuiSession(false);
   return { service, view, session };
+}
+
+export function testSkillsSessionRender(
+  name: string,
+  keySequence: string[],
+  assertion: (rendered: string, session: any) => void | Promise<void>,
+  options: {
+    skills?: SkillSummary[];
+    useColors?: boolean;
+  } = {},
+) {
+  Deno.test(name, async () => {
+    const { session } = createSkillsManagerTuiSession(options.skills);
+    await session.initialize();
+
+    for (const key of keySequence) {
+      await session.handleKey(key);
+    }
+
+    const rendered = session.render();
+    await assertion(rendered, session);
+  });
 }
 
 // ===== Memory Service Mock =====

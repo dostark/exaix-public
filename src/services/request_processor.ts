@@ -335,72 +335,7 @@ export class RequestProcessor {
     traceId: string,
     traceLogger: any,
   ): Promise<string | null> {
-    const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
-    let loadedBlueprint = await blueprintLoader.load(frontmatter.agent!);
-
-    // If not found in the configured workspace blueprints directory, try to
-    // locate a repository-level Blueprints/Agents directory by walking up the
-    // filesystem from the current working directory. This makes the fallback
-    // robust in CI and test environments where the CWD may vary.
-    if (!loadedBlueprint) {
-      try {
-        let dir = Deno.cwd();
-        let found = false;
-        while (true) {
-          const candidate = join(dir, "Blueprints", "Agents");
-          try {
-            const candidatePath = candidate;
-            // Check if the blueprint file exists in this candidate path
-            const candidateFile = join(candidatePath, `${frontmatter.agent!}.md`);
-            try {
-              const stat = await Deno.stat(candidateFile);
-              if (stat && stat.isFile) {
-                const fallbackLoader = new BlueprintLoader({ blueprintsPath: candidatePath });
-                loadedBlueprint = await fallbackLoader.load(frontmatter.agent!);
-                if (loadedBlueprint) {
-                  traceLogger.info("blueprint.loaded_fallback", frontmatter.agent!, { from: candidatePath });
-                  found = true;
-                  break;
-                }
-              }
-            } catch {
-              // File doesn't exist in this candidate path - continue walking up
-            }
-          } catch {
-            // ignore stat errors
-          }
-
-          const parent = dir.replace(/\/[^\/]*$/, "");
-          if (!parent || parent === dir) break;
-          dir = parent;
-        }
-        if (!found) {
-          // As a last resort, try the repository root (cwd) directly
-          const repoAgentsPath = join(Deno.cwd(), "Blueprints", "Agents");
-          const fallbackLoader = new BlueprintLoader({ blueprintsPath: repoAgentsPath });
-          loadedBlueprint = await fallbackLoader.load(frontmatter.agent!);
-          if (loadedBlueprint) {
-            traceLogger.info("blueprint.loaded_fallback", frontmatter.agent!, { from: repoAgentsPath });
-          }
-          // Also try locating Blueprints relative to this module (repo root),
-          // which is robust even if tests change the process CWD.
-          try {
-            const repoRoot = join(dirname(dirname(dirname(new URL(import.meta.url).pathname))));
-            const repoModuleAgents = join(repoRoot, "Blueprints", "Agents");
-            const moduleLoader = new BlueprintLoader({ blueprintsPath: repoModuleAgents });
-            const moduleLoaded = await moduleLoader.load(frontmatter.agent!);
-            if (moduleLoaded && !loadedBlueprint) {
-              loadedBlueprint = moduleLoaded;
-              traceLogger.info("blueprint.loaded_fallback", frontmatter.agent!, { from: repoModuleAgents });
-            }
-          } catch {
-            // ignore module-based fallback errors
-          }
-        }
-      } catch {
-        // ignore fallback errors
-      }
-    }
+    const loadedBlueprint = await this.loadBlueprintWithFallback(frontmatter.agent!, traceLogger);
 
     if (!loadedBlueprint) {
       traceLogger.error("blueprint.not_found", frontmatter.agent!, {
@@ -417,6 +352,7 @@ export class RequestProcessor {
       return null;
     }
 
+    const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
     const blueprint = blueprintLoader.toLegacyBlueprint(loadedBlueprint);
 
     const request: ParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as ParsedRequest;
@@ -482,6 +418,75 @@ export class RequestProcessor {
     };
 
     return await this.writePlanAndReturnPath(result, metadata, filePath, traceLogger);
+  }
+
+  private async loadBlueprintWithFallback(agentId: string, traceLogger: any): Promise<any | null> {
+    const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
+    let loadedBlueprint = await blueprintLoader.load(agentId);
+
+    if (!loadedBlueprint) {
+      loadedBlueprint = await this.findBlueprintInWorktree(agentId, traceLogger);
+    }
+    if (!loadedBlueprint) {
+      loadedBlueprint = await this.findBlueprintInRepoRoots(agentId, traceLogger);
+    }
+    return loadedBlueprint;
+  }
+
+  private async findBlueprintInWorktree(agentId: string, traceLogger: any): Promise<any | null> {
+    let dir = Deno.cwd();
+    while (true) {
+      const candidatePath = join(dir, "Blueprints", "Agents");
+      try {
+        const candidateFile = join(candidatePath, `${agentId}.md`);
+        try {
+          const stat = await Deno.stat(candidateFile);
+          if (stat && stat.isFile) {
+            const fallbackLoader = new BlueprintLoader({ blueprintsPath: candidatePath });
+            const loadedBlueprint = await fallbackLoader.load(agentId);
+            if (loadedBlueprint) {
+              traceLogger.info("blueprint.loaded_fallback", agentId, { from: candidatePath });
+              return loadedBlueprint;
+            }
+          }
+        } catch {
+          // File doesn't exist
+        }
+      } catch {
+        // ignore
+      }
+
+      const parent = dir.replace(/\/[^\/]*$/, "");
+      if (!parent || parent === dir) break;
+      dir = parent;
+    }
+    return null;
+  }
+
+  private async findBlueprintInRepoRoots(agentId: string, traceLogger: any): Promise<any | null> {
+    // Try the repository root (cwd) directly
+    const repoAgentsPath = join(Deno.cwd(), "Blueprints", "Agents");
+    const fallbackLoader = new BlueprintLoader({ blueprintsPath: repoAgentsPath });
+    const loadedBlueprint = await fallbackLoader.load(agentId);
+    if (loadedBlueprint) {
+      traceLogger.info("blueprint.loaded_fallback", agentId, { from: repoAgentsPath });
+      return loadedBlueprint;
+    }
+
+    // Also try locating Blueprints relative to this module (repo root)
+    try {
+      const repoRoot = join(dirname(dirname(dirname(new URL(import.meta.url).pathname))));
+      const repoModuleAgents = join(repoRoot, "Blueprints", "Agents");
+      const moduleLoader = new BlueprintLoader({ blueprintsPath: repoModuleAgents });
+      const moduleLoaded = await moduleLoader.load(agentId);
+      if (moduleLoaded) {
+        traceLogger.info("blueprint.loaded_fallback", agentId, { from: repoModuleAgents });
+        return moduleLoaded;
+      }
+    } catch {
+      // ignore
+    }
+    return null;
   }
 
   private async handleError(

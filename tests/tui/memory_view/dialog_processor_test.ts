@@ -9,48 +9,12 @@ import {
   TUI_STATUS_MSG_PROPOSAL_REJECTED,
 } from "../../../src/helpers/constants.ts";
 import { DialogProcessor } from "../../../src/tui/memory_view/dialog_processor.ts";
-import type { MemoryServiceInterface } from "../../../src/tui/memory_view/types.ts";
 import { DialogStatus } from "../../../src/enums.ts";
-
-function createContext(overrides?: Partial<{ service: MemoryServiceInterface }>) {
-  const statuses: string[] = [];
-  let treeReloads = 0;
-  let pendingReloads = 0;
-
-  const service: MemoryServiceInterface = overrides?.service ?? ({
-    listPending: () => Promise.resolve([]),
-    approvePending: () => Promise.resolve(),
-    rejectPending: () => Promise.resolve(),
-  } as unknown as MemoryServiceInterface);
-
-  return {
-    statuses,
-    counters: {
-      get treeReloads() {
-        return treeReloads;
-      },
-      get pendingReloads() {
-        return pendingReloads;
-      },
-    },
-    ctx: {
-      service,
-      onStatusUpdate: (m: string) => statuses.push(m),
-      onTreeReload: () => {
-        treeReloads++;
-        return Promise.resolve();
-      },
-      onPendingCountReload: () => {
-        pendingReloads++;
-        return Promise.resolve();
-      },
-    },
-  };
-}
+import { createMockDialog, createMockService, createTestContext } from "./memory_test_helpers.ts";
 
 Deno.test("DialogProcessor.processConfirmApproveDialog: cancelled", async () => {
-  const { ctx, statuses } = createContext();
-  const dialog = { getResult: () => ({ type: DialogStatus.CANCELLED }) } as any;
+  const { ctx, statuses } = createTestContext();
+  const dialog = createMockDialog({ type: DialogStatus.CANCELLED });
 
   await DialogProcessor.processConfirmApproveDialog(dialog, ctx);
 
@@ -59,17 +23,15 @@ Deno.test("DialogProcessor.processConfirmApproveDialog: cancelled", async () => 
 
 Deno.test("DialogProcessor.processConfirmApproveDialog: success", async () => {
   const calls: string[] = [];
-  const service: MemoryServiceInterface = {
+  const service = createMockService({
     approvePending: (id: string) => {
       calls.push(`approve:${id}`);
       return Promise.resolve();
     },
-    listPending: () => Promise.resolve([]),
-    rejectPending: () => Promise.resolve(),
-  } as unknown as MemoryServiceInterface;
+  });
 
-  const { ctx, statuses, counters } = createContext({ service });
-  const dialog = { getResult: () => ({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1" } }) } as any;
+  const { ctx, statuses, counters } = createTestContext({ service });
+  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1" } });
 
   await DialogProcessor.processConfirmApproveDialog(dialog, ctx);
 
@@ -81,19 +43,15 @@ Deno.test("DialogProcessor.processConfirmApproveDialog: success", async () => {
 
 Deno.test("DialogProcessor.processConfirmRejectDialog: success", async () => {
   const calls: string[] = [];
-  const service: MemoryServiceInterface = {
+  const service = createMockService({
     rejectPending: (id: string, reason: string) => {
       calls.push(`reject:${id}:${reason}`);
       return Promise.resolve();
     },
-    listPending: () => Promise.resolve([]),
-    approvePending: () => Promise.resolve(),
-  } as unknown as MemoryServiceInterface;
+  });
 
-  const { ctx, statuses, counters } = createContext({ service });
-  const dialog = {
-    getResult: () => ({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } }),
-  } as any;
+  const { ctx, statuses, counters } = createTestContext({ service });
+  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } });
 
   await DialogProcessor.processConfirmRejectDialog(dialog, ctx);
 
@@ -104,8 +62,8 @@ Deno.test("DialogProcessor.processConfirmRejectDialog: success", async () => {
 });
 
 Deno.test("DialogProcessor.processConfirmRejectDialog: cancelled", async () => {
-  const { ctx, statuses } = createContext();
-  const dialog = { getResult: () => ({ type: DialogStatus.CANCELLED }) } as any;
+  const { ctx, statuses } = createTestContext();
+  const dialog = createMockDialog({ type: DialogStatus.CANCELLED });
 
   await DialogProcessor.processConfirmRejectDialog(dialog, ctx);
 
@@ -113,16 +71,12 @@ Deno.test("DialogProcessor.processConfirmRejectDialog: cancelled", async () => {
 });
 
 Deno.test("DialogProcessor.processConfirmRejectDialog: error surfaces non-Error values", async () => {
-  const service: MemoryServiceInterface = {
+  const service = createMockService({
     rejectPending: () => Promise.reject("boom"),
-    listPending: () => Promise.resolve([]),
-    approvePending: () => Promise.resolve(),
-  } as unknown as MemoryServiceInterface;
+  });
 
-  const { ctx, statuses, counters } = createContext({ service });
-  const dialog = {
-    getResult: () => ({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } }),
-  } as any;
+  const { ctx, statuses, counters } = createTestContext({ service });
+  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } });
 
   await DialogProcessor.processConfirmRejectDialog(dialog, ctx);
 
@@ -133,21 +87,19 @@ Deno.test("DialogProcessor.processConfirmRejectDialog: error surfaces non-Error 
 
 Deno.test("DialogProcessor.processBulkApproveDialog: approves each pending and reports progress", async () => {
   const approved: string[] = [];
-  const service: MemoryServiceInterface = {
+  const service = createMockService({
     listPending: () => Promise.resolve([{ id: "a" }, { id: "b" }] as any),
     approvePending: (id: string) => {
       approved.push(id);
       return Promise.resolve();
     },
-    rejectPending: () => Promise.resolve(),
-  } as unknown as MemoryServiceInterface;
+  });
 
-  const { ctx, statuses, counters } = createContext({ service });
+  const { ctx, statuses, counters } = createTestContext({ service });
   const progress: number[] = [];
-  const dialog = {
-    getResult: () => ({ type: DialogStatus.CONFIRMED, value: {} }),
+  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: {} }, {
     setProgress: (n: number) => progress.push(n),
-  } as any;
+  });
 
   await DialogProcessor.processBulkApproveDialog(dialog, ctx);
 
@@ -159,8 +111,8 @@ Deno.test("DialogProcessor.processBulkApproveDialog: approves each pending and r
 });
 
 Deno.test("DialogProcessor.processBulkApproveDialog: cancelled", async () => {
-  const { ctx, statuses } = createContext();
-  const dialog = { getResult: () => ({ type: DialogStatus.CANCELLED }) } as any;
+  const { ctx, statuses } = createTestContext();
+  const dialog = createMockDialog({ type: DialogStatus.CANCELLED });
 
   await DialogProcessor.processBulkApproveDialog(dialog, ctx);
 
@@ -168,17 +120,14 @@ Deno.test("DialogProcessor.processBulkApproveDialog: cancelled", async () => {
 });
 
 Deno.test("DialogProcessor.processBulkApproveDialog: error surfaces via status", async () => {
-  const service: MemoryServiceInterface = {
+  const service = createMockService({
     listPending: () => Promise.reject(new Error("fail")),
-    approvePending: () => Promise.resolve(),
-    rejectPending: () => Promise.resolve(),
-  } as unknown as MemoryServiceInterface;
+  });
 
-  const { ctx, statuses, counters } = createContext({ service });
-  const dialog = {
-    getResult: () => ({ type: DialogStatus.CONFIRMED, value: {} }),
+  const { ctx, statuses, counters } = createTestContext({ service });
+  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: {} }, {
     setProgress: (_n: number) => {},
-  } as any;
+  });
 
   await DialogProcessor.processBulkApproveDialog(dialog, ctx);
 
@@ -188,8 +137,8 @@ Deno.test("DialogProcessor.processBulkApproveDialog: error surfaces via status",
 });
 
 Deno.test("DialogProcessor.processAddLearningDialog: cancelled", async () => {
-  const { ctx, statuses } = createContext();
-  const dialog = { getResult: () => ({ type: DialogStatus.CANCELLED }) } as any;
+  const { ctx, statuses } = createTestContext();
+  const dialog = createMockDialog({ type: DialogStatus.CANCELLED });
 
   await DialogProcessor.processAddLearningDialog(dialog, ctx);
 
@@ -197,8 +146,8 @@ Deno.test("DialogProcessor.processAddLearningDialog: cancelled", async () => {
 });
 
 Deno.test("DialogProcessor.processAddLearningDialog: confirmed sets status and reloads tree", async () => {
-  const { ctx, statuses, counters } = createContext();
-  const dialog = { getResult: () => ({ type: DialogStatus.CONFIRMED, value: {} }) } as any;
+  const { ctx, statuses, counters } = createTestContext();
+  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: {} });
 
   await DialogProcessor.processAddLearningDialog(dialog, ctx);
 
@@ -207,8 +156,8 @@ Deno.test("DialogProcessor.processAddLearningDialog: confirmed sets status and r
 });
 
 Deno.test("DialogProcessor.processAddLearningDialog: error surfaces via status", async () => {
-  const { statuses, counters, ctx } = createContext();
-  const dialog = { getResult: () => ({ type: DialogStatus.CONFIRMED, value: {} }) } as any;
+  const { statuses, counters, ctx } = createTestContext();
+  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: {} });
   const failingCtx = {
     ...ctx,
     onTreeReload: () => Promise.reject(new Error("reload failed")),
@@ -221,8 +170,8 @@ Deno.test("DialogProcessor.processAddLearningDialog: error surfaces via status",
 });
 
 Deno.test("DialogProcessor.processPromoteDialog: cancelled", async () => {
-  const { ctx, statuses } = createContext();
-  const dialog = { getResult: () => ({ type: DialogStatus.CANCELLED }) } as any;
+  const { ctx, statuses } = createTestContext();
+  const dialog = createMockDialog({ type: DialogStatus.CANCELLED });
 
   await DialogProcessor.processPromoteDialog(dialog, ctx);
 
@@ -230,8 +179,8 @@ Deno.test("DialogProcessor.processPromoteDialog: cancelled", async () => {
 });
 
 Deno.test("DialogProcessor.processPromoteDialog: confirmed sets status and reloads tree", async () => {
-  const { ctx, statuses, counters } = createContext();
-  const dialog = { getResult: () => ({ type: DialogStatus.CONFIRMED, value: {} }) } as any;
+  const { ctx, statuses, counters } = createTestContext();
+  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: {} });
 
   await DialogProcessor.processPromoteDialog(dialog, ctx);
 
@@ -240,14 +189,12 @@ Deno.test("DialogProcessor.processPromoteDialog: confirmed sets status and reloa
 });
 
 Deno.test("DialogProcessor.processConfirmApproveDialog: error surfaces via status", async () => {
-  const service: MemoryServiceInterface = {
+  const service = createMockService({
     approvePending: () => Promise.reject(new Error("fail")),
-    listPending: () => Promise.resolve([]),
-    rejectPending: () => Promise.resolve(),
-  } as unknown as MemoryServiceInterface;
+  });
 
-  const { ctx, statuses, counters } = createContext({ service });
-  const dialog = { getResult: () => ({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1" } }) } as any;
+  const { ctx, statuses, counters } = createTestContext({ service });
+  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1" } });
 
   await DialogProcessor.processConfirmApproveDialog(dialog, ctx);
 

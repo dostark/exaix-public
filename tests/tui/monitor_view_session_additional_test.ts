@@ -1,7 +1,6 @@
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-
-import { MinimalLogServiceMock, MonitorTuiSession, MonitorView } from "../../src/tui/monitor_view.ts";
-import type { LogEntry } from "../../src/tui/monitor_view.ts";
+import { createMonitorTuiSession } from "./helpers.ts";
+import type { LogEntry, MonitorTuiSession } from "../../src/tui/monitor_view.ts";
 
 function makeLog(overrides: Partial<LogEntry> = {}): LogEntry {
   return {
@@ -22,11 +21,8 @@ Deno.test("MonitorTuiSession: grouping cycles none -> agent -> action -> none", 
     makeLog({ id: "2", agent_id: "a2", action_type: "plan_approved" }),
   ];
 
-  const svc = new MinimalLogServiceMock(logs);
-  const view = new MonitorView(svc);
+  const { view, session } = createMonitorTuiSession(logs);
   await view.refreshLogs();
-
-  const session = view.createTuiSession(false);
 
   assertEquals(session.getGroupBy(), "none");
   session.toggleGrouping();
@@ -43,62 +39,57 @@ Deno.test("MonitorTuiSession: grouping cycles none -> agent -> action -> none", 
 
 Deno.test("MonitorTuiSession: toggleBookmark ignores group nodes and toggles log nodes", async () => {
   const logs = [makeLog({ id: "1", agent_id: "a1" })];
-  const svc = new MinimalLogServiceMock(logs);
-  const view = new MonitorView(svc);
+  const { view, session } = createMonitorTuiSession(logs);
   await view.refreshLogs();
-
-  const session = view.createTuiSession(false) as MonitorTuiSession;
+  const monitorSession = session as MonitorTuiSession;
 
   // force a group node selection
-  session.toggleGrouping();
-  session.toggleBookmark();
-  assertEquals(session.getBookmarkedIds().size, 0);
+  monitorSession.toggleGrouping();
+  monitorSession.toggleBookmark();
+  assertEquals(monitorSession.getBookmarkedIds().size, 0);
 
   // select a log node by rebuilding flat tree
-  session.toggleGrouping();
-  session.toggleGrouping();
-  const first = session.getLogTree()[0];
-  (session as any).state.selectedId = first.id;
+  monitorSession.toggleGrouping();
+  monitorSession.toggleGrouping();
+  const first = monitorSession.getLogTree()[0];
+  (monitorSession as any).state.selectedId = first.id;
 
-  session.toggleBookmark();
-  assertEquals(session.isBookmarked(first.id), true);
-  session.toggleBookmark();
-  assertEquals(session.isBookmarked(first.id), false);
+  monitorSession.toggleBookmark();
+  assertEquals(monitorSession.isBookmarked(first.id), true);
+  monitorSession.toggleBookmark();
+  assertEquals(monitorSession.isBookmarked(first.id), false);
 });
 
 Deno.test("MonitorTuiSession: showLogDetail populates detail panel", async () => {
   const logs = [makeLog({ id: "1", payload: { hello: "world" } })];
-  const svc = new MinimalLogServiceMock(logs);
-  const view = new MonitorView(svc);
+  const { view, session } = createMonitorTuiSession(logs);
   await view.refreshLogs();
+  const monitorSession = session as MonitorTuiSession;
 
-  const session = view.createTuiSession(false) as MonitorTuiSession;
-  session.showLogDetail("1");
+  monitorSession.showLogDetail("1");
 
-  assertEquals(session.isDetailVisible(), true);
-  assertStringIncludes(session.getDetailContent(), "Payload:");
-  assertStringIncludes(session.getDetailContent(), "world");
+  assertEquals(monitorSession.isDetailVisible(), true);
+  assertStringIncludes(monitorSession.getDetailContent(), "Payload:");
+  assertStringIncludes(monitorSession.getDetailContent(), "world");
 });
 
 Deno.test("MonitorTuiSession: status line reflects paused, bookmarks, and grouping", async () => {
   const logs = [makeLog({ id: "1" })];
-  const svc = new MinimalLogServiceMock(logs);
-  const view = new MonitorView(svc);
+  const { view, session } = createMonitorTuiSession(logs);
   await view.refreshLogs();
-
-  const session = view.createTuiSession(false) as MonitorTuiSession;
+  const monitorSession = session as MonitorTuiSession;
 
   // bookmark selected log
-  const first = session.getLogTree()[0];
-  (session as any).state.selectedId = first.id;
-  session.toggleBookmark();
+  const first = monitorSession.getLogTree()[0];
+  (monitorSession as any).state.selectedId = first.id;
+  monitorSession.toggleBookmark();
 
-  session.toggleGrouping();
+  monitorSession.toggleGrouping();
 
   // pause
-  session.togglePause();
+  monitorSession.togglePause();
 
-  const status = session.renderStatusLine();
+  const status = monitorSession.renderStatusLine();
   assertStringIncludes(status, "[PAUSED]");
   assertStringIncludes(status, "bookmarked");
   assertStringIncludes(status, "Group:");
@@ -106,11 +97,9 @@ Deno.test("MonitorTuiSession: status line reflects paused, bookmarks, and groupi
 
 Deno.test("MonitorTuiSession: renderHelp includes key hints", async () => {
   const logs = [makeLog({ id: "1" })];
-  const svc = new MinimalLogServiceMock(logs);
-  const view = new MonitorView(svc);
+  const { view, session } = createMonitorTuiSession(logs);
   await view.refreshLogs();
 
-  const session = view.createTuiSession(false);
   const help = session.renderHelp().join("\n");
   assertStringIncludes(help, "Monitor View Help");
   assertStringIncludes(help, "Bookmark");

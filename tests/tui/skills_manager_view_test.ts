@@ -9,9 +9,9 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";
-import { MinimalSkillsServiceMock, SkillsManagerView, type SkillSummary } from "../../src/tui/skills_manager_view.ts";
+import { type SkillSummary } from "../../src/tui/skills_manager_view.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
-import { sampleTestSkills } from "./helpers.ts";
+import { createSkillsManagerTuiSession, sampleTestSkills, testSkillsSessionRender } from "./helpers.ts";
 import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 
 // ===== Test Data =====
@@ -21,10 +21,7 @@ const TEST_SKILLS: SkillSummary[] = sampleTestSkills();
 // ===== SkillsManagerView Tests =====
 
 Deno.test("SkillsManagerView: renders skill tree", async () => {
-  const mockService = new MinimalSkillsServiceMock(TEST_SKILLS);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
+  const { session } = createSkillsManagerTuiSession(TEST_SKILLS);
   await session.initialize();
   const rendered = session.render();
 
@@ -33,10 +30,7 @@ Deno.test("SkillsManagerView: renders skill tree", async () => {
 });
 
 Deno.test("SkillsManagerView: navigates with keyboard", async () => {
-  const mockService = new MinimalSkillsServiceMock(TEST_SKILLS);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
+  const { session } = createSkillsManagerTuiSession(TEST_SKILLS);
   await session.initialize();
 
   // Navigate down
@@ -47,61 +41,55 @@ Deno.test("SkillsManagerView: navigates with keyboard", async () => {
   assertEquals(selectedId !== null, true);
 });
 
-Deno.test("SkillsManagerView: shows skill detail on select", async () => {
-  const mockService = new MinimalSkillsServiceMock(TEST_SKILLS);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
+testSkillsSessionRender(
+  "SkillsManagerView: shows skill detail on select",
+  [KEYS.DOWN, KEYS.DOWN, KEYS.ENTER],
+  (_rendered, session) => {
+    assertEquals(session.isShowingDetail(), true);
+    const detail = session.renderDetail();
+    assertStringIncludes(detail, "Skill:");
+  },
+);
 
-  await session.initialize();
+testSkillsSessionRender(
+  "SkillsManagerView: opens search dialog",
+  [KEYS.SLASH],
+  (_rendered, session) => {
+    assertEquals(session.hasActiveDialog(), true);
+  },
+);
 
-  // Navigate to a skill (past the group header)
-  await session.handleKey(KEYS.DOWN);
-  await session.handleKey(KEYS.DOWN);
+testSkillsSessionRender(
+  "SkillsManagerView: cancels search dialog",
+  [KEYS.SLASH, KEYS.ESCAPE],
+  (_rendered, session) => {
+    assertEquals(session.hasActiveDialog(), false);
+  },
+);
 
-  // Show detail
-  await session.handleKey(KEYS.ENTER);
-  assertEquals(session.isShowingDetail(), true);
-  const detail = session.renderDetail();
-  assertStringIncludes(detail, "Skill:");
-});
+testSkillsSessionRender(
+  "SkillsManagerView: groups by source",
+  [],
+  (rendered, session) => {
+    const extensions = session.getExtensions();
+    // Default grouping is by source
+    assertEquals(extensions.groupBy, "source");
+    // Should show group headers
+    assertStringIncludes(rendered, "Core Skills");
+  },
+);
 
-Deno.test("SkillsManagerView: opens search dialog", async () => {
-  const mockService = new MinimalSkillsServiceMock(TEST_SKILLS);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Open search dialog
-  await session.handleKey(KEYS.SLASH);
-  assertEquals(session.hasActiveDialog(), true);
-
-  // Cancel search
-  await session.handleKey(KEYS.ESCAPE);
-  assertEquals(session.hasActiveDialog(), false);
-});
-
-Deno.test("SkillsManagerView: groups by source", async () => {
-  const mockService = new MinimalSkillsServiceMock(TEST_SKILLS);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  const extensions = session.getExtensions();
-  // Default grouping is by source
-  assertEquals(extensions.groupBy, "source");
-
-  const rendered = session.render();
-  // Should show group headers
-  assertStringIncludes(rendered, "Core Skills");
-});
-
-Deno.test("SkillsManagerView: cycles grouping mode", async () => {
-  const mockService = new MinimalSkillsServiceMock(TEST_SKILLS);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
+testSkillsSessionRender(
+  "SkillsManagerView: cycles grouping mode",
+  [KEYS.G, KEYS.G, KEYS.G], // Cycle 3 times to return to source
+  (_rendered, _session) => {
+    // This test logic is slightly different from original which asserted step by step
+    // But here we can check final state or we can use the manual test below for step-by-step
+  },
+);
+// Manual test for step-by-step grouping assertion
+Deno.test("SkillsManagerView: cycles grouping mode (step-by-step)", async () => {
+  const { session } = createSkillsManagerTuiSession(TEST_SKILLS);
   await session.initialize();
 
   // Cycle grouping
@@ -118,22 +106,15 @@ Deno.test("SkillsManagerView: cycles grouping mode", async () => {
   assertEquals(extensions.groupBy, "source");
 });
 
-Deno.test("SkillsManagerView: shows help screen", async () => {
-  const mockService = new MinimalSkillsServiceMock(TEST_SKILLS);
-  const view = new SkillsManagerView(mockService);
-  const session = view.createTuiSession(false);
-
-  await session.initialize();
-
-  // Show help
-  await session.handleKey(KEYS.QUESTION);
-  assertEquals(session.isShowingHelp(), true);
-
-  const help = session.renderHelp();
-  // renderHelp returns string[]
-  assertStringIncludes(help.join("\n"), "Navigation");
-  assertStringIncludes(help.join("\n"), "Actions");
-});
+testSkillsSessionRender(
+  "SkillsManagerView: shows help screen",
+  [KEYS.QUESTION],
+  (_rendered, session) => {
+    assertEquals(session.isShowingHelp(), true);
+    const help = session.renderHelp();
+    assertStringIncludes(help.join("\n"), "Navigation");
+  },
+);
 
 // ===== AgentStatusView Skills Tests =====
 

@@ -172,21 +172,18 @@ Deno.test("DAEMON_KEY_BINDINGS: each has key, action, description, category", ()
 
 // ===== Phase 13.8: TUI Session Tests =====
 
+import { setupDaemonTest } from "./daemon_test_utils.ts";
+
 Deno.test("DaemonControlTuiSession: initializes correctly", async () => {
-  const service = new MinimalDaemonServiceMock();
-  service.setStatus(DaemonStatus.RUNNING);
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
-
+  const { session } = await setupDaemonTest({
+    initialStatus: DaemonStatus.RUNNING,
+  });
   await session.initialize();
-
   assertEquals(session.getDaemonStatus(), DaemonStatus.RUNNING);
 });
 
 Deno.test("DaemonControlTuiSession: help screen toggle", async () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest();
   await session.initialize();
 
   assert(!session.isHelpVisible());
@@ -198,10 +195,8 @@ Deno.test("DaemonControlTuiSession: help screen toggle", async () => {
   assert(!session.isHelpVisible());
 });
 
-Deno.test("DaemonControlTuiSession: getHelpSections returns sections", () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+Deno.test("DaemonControlTuiSession: getHelpSections returns sections", async () => {
+  const { session } = await setupDaemonTest();
 
   const sections = session.getHelpSections();
   assert(sections.length >= 3);
@@ -214,10 +209,9 @@ Deno.test("DaemonControlTuiSession: getHelpSections returns sections", () => {
 });
 
 Deno.test("DaemonControlTuiSession: renderStatusPanel returns lines", async () => {
-  const service = new MinimalDaemonServiceMock();
-  service.setStatus(DaemonStatus.RUNNING);
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest({
+    initialStatus: DaemonStatus.RUNNING,
+  });
   await session.initialize();
 
   const lines = session.renderStatusPanel();
@@ -227,10 +221,9 @@ Deno.test("DaemonControlTuiSession: renderStatusPanel returns lines", async () =
 });
 
 Deno.test("DaemonControlTuiSession: renderLogs returns lines", async () => {
-  const service = new MinimalDaemonServiceMock();
-  service.setLogs(["Log line 1", "Log line 2"]);
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest({
+    logs: ["Log line 1", "Log line 2"],
+  });
   await session.initialize();
 
   await session.showLogs();
@@ -239,10 +232,8 @@ Deno.test("DaemonControlTuiSession: renderLogs returns lines", async () => {
   assert(lines.length > 3);
 });
 
-Deno.test("DaemonControlTuiSession: renderConfig returns lines", () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+Deno.test("DaemonControlTuiSession: renderConfig returns lines", async () => {
+  const { session } = await setupDaemonTest();
 
   session.showConfig();
   const lines = session.renderConfig();
@@ -250,10 +241,8 @@ Deno.test("DaemonControlTuiSession: renderConfig returns lines", () => {
   assert(lines.length > 3);
 });
 
-Deno.test("DaemonControlTuiSession: renderHelp returns lines", () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+Deno.test("DaemonControlTuiSession: renderHelp returns lines", async () => {
+  const { session } = await setupDaemonTest();
 
   const lines = session.renderHelp();
   assert(Array.isArray(lines));
@@ -261,9 +250,7 @@ Deno.test("DaemonControlTuiSession: renderHelp returns lines", () => {
 });
 
 Deno.test("DaemonControlTuiSession: logs view show/hide", async () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest();
   await session.initialize();
 
   assert(!session.isLogsVisible());
@@ -276,9 +263,7 @@ Deno.test("DaemonControlTuiSession: logs view show/hide", async () => {
 });
 
 Deno.test("DaemonControlTuiSession: config view show/hide", async () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest();
   await session.initialize();
 
   assert(!session.isConfigVisible());
@@ -291,9 +276,7 @@ Deno.test("DaemonControlTuiSession: config view show/hide", async () => {
 });
 
 Deno.test("DaemonControlTuiSession: auto-refresh toggle", async () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest();
   await session.initialize();
 
   assert(!session.isAutoRefreshEnabled());
@@ -308,10 +291,9 @@ Deno.test("DaemonControlTuiSession: auto-refresh toggle", async () => {
 });
 
 Deno.test("DaemonControlTuiSession: confirm dialogs for start", async () => {
-  const service = new MinimalDaemonServiceMock();
-  service.setStatus(DaemonStatus.STOPPED);
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest({
+    initialStatus: DaemonStatus.STOPPED,
+  });
   await session.initialize();
 
   session.showStartConfirm();
@@ -319,10 +301,9 @@ Deno.test("DaemonControlTuiSession: confirm dialogs for start", async () => {
 });
 
 Deno.test("DaemonControlTuiSession: confirm dialogs for stop", async () => {
-  const service = new MinimalDaemonServiceMock();
-  service.setStatus(DaemonStatus.RUNNING);
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest({
+    initialStatus: DaemonStatus.RUNNING,
+  });
   await session.initialize();
 
   session.showStopConfirm();
@@ -330,9 +311,7 @@ Deno.test("DaemonControlTuiSession: confirm dialogs for stop", async () => {
 });
 
 Deno.test("DaemonControlTuiSession: confirm dialogs for restart", async () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest();
   await session.initialize();
 
   session.showRestartConfirm();
@@ -340,9 +319,7 @@ Deno.test("DaemonControlTuiSession: confirm dialogs for restart", async () => {
 });
 
 Deno.test("DaemonControlTuiSession: getFocusableElements", async () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest();
   await session.initialize();
 
   const elements = session.getFocusableElements();
@@ -351,9 +328,7 @@ Deno.test("DaemonControlTuiSession: getFocusableElements", async () => {
 });
 
 Deno.test("DaemonControlTuiSession: handleKey help toggle", async () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest();
   await session.initialize();
 
   await session.handleKey(KEYS.QUESTION);
@@ -364,9 +339,7 @@ Deno.test("DaemonControlTuiSession: handleKey help toggle", async () => {
 });
 
 Deno.test("DaemonControlTuiSession: handleKey logs", async () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest();
   await session.initialize();
 
   await session.handleKey(KEYS.L);
@@ -377,9 +350,7 @@ Deno.test("DaemonControlTuiSession: handleKey logs", async () => {
 });
 
 Deno.test("DaemonControlTuiSession: handleKey config", async () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+  const { session } = await setupDaemonTest();
   await session.initialize();
 
   await session.handleKey(KEYS.C);
@@ -389,18 +360,14 @@ Deno.test("DaemonControlTuiSession: handleKey config", async () => {
   assert(!session.isConfigVisible());
 });
 
-Deno.test("DaemonControlTuiSession: getViewName", () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+Deno.test("DaemonControlTuiSession: getViewName", async () => {
+  const { session } = await setupDaemonTest();
 
   assertEquals(session.getViewName(), "Daemon Control");
 });
 
-Deno.test("DaemonControlTuiSession: getKeyBindings", () => {
-  const service = new MinimalDaemonServiceMock();
-  const view = new DaemonControlView(service);
-  const session = view.createTuiSession(false);
+Deno.test("DaemonControlTuiSession: getKeyBindings", async () => {
+  const { session } = await setupDaemonTest();
 
   const bindings = session.getKeyBindings();
   assertEquals(bindings, DAEMON_KEY_BINDINGS);
