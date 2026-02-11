@@ -8,6 +8,7 @@
 ```
 
 The request fails with "Plan content is not valid JSON" but:
+
 - No plan file is saved in `Workspace/Plans/` or `Rejected/`
 - No detailed validation error information
 - No way to see what the agent actually output

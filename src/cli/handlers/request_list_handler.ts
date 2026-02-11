@@ -50,6 +50,7 @@ export class RequestListHandler extends BaseCommand {
         model: frontmatter.model,
         flow: frontmatter.flow,
         skills: frontmatter.skills ? JSON.parse(frontmatter.skills) : undefined,
+        rejected_path: frontmatter.rejected_path,
         created: frontmatter.created || "",
         created_by: frontmatter.created_by || "unknown",
         source: frontmatter.source || "unknown",

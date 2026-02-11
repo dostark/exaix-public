@@ -46,6 +46,8 @@ export class RequestShowHandler extends BaseCommand {
         created: matchingFrontmatter.created || "",
         created_by: matchingFrontmatter.created_by || "unknown",
         source: matchingFrontmatter.source || "unknown",
+        error: matchingFrontmatter.error,
+        rejected_path: matchingFrontmatter.rejected_path,
       },
       content: body,
     };
@@ -64,7 +66,8 @@ export class RequestShowHandler extends BaseCommand {
       const content = await Deno.readTextFile(filePath);
       const frontmatter = this.extractFrontmatter(content);
 
-      if (entry.name === idOrFilename || frontmatter.trace_id === idOrFilename) {
+      const nameWithoutExt = entry.name.replace(/\.md$/i, "");
+      if (entry.name === idOrFilename || nameWithoutExt === idOrFilename || frontmatter.trace_id === idOrFilename) {
         return { matchingFile: filePath, matchingFrontmatter: frontmatter };
       }
 

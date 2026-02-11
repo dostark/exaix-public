@@ -35,6 +35,11 @@ export class RequestFormatter {
       `║ Agent:    ${request.agent.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
       `║ Created:  ${new Date(request.created).toLocaleString(TUI_DETAIL_DATE_LOCALE).padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
       `║ Creator:  ${request.created_by.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+      ...(request.rejected_path
+        ? [
+          `║ Rejected: ${request.rejected_path.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+        ]
+        : []),
     ];
   }
 

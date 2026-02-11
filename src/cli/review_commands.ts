@@ -4,6 +4,7 @@
  */
 
 import { dirname, isAbsolute, join, resolve } from "@std/path";
+import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "./base.ts";
 import { GitService } from "../services/git_service.ts";
 import { RequestCommands } from "./request_commands.ts";
@@ -34,6 +35,7 @@ export interface ReviewMetadata {
   request_priority?: string;
   request_created_by?: string;
   request_flow?: string;
+  request_rejected_path?: string;
   // Plan context
   plan_id?: string;
   plan_status?: string;
@@ -154,6 +156,47 @@ export class ReviewCommands extends BaseCommand {
     } catch {
       // Older DB schema or missing table/column; fall back to heuristics.
       return null;
+    }
+  }
+
+  private async bestEffortLinkRequestRejection(
+    requestId: string | undefined,
+    rejectedRelative: string,
+    actionLogger: Awaited<ReturnType<BaseCommand["getActionLogger"]>>,
+  ): Promise<void> {
+    if (!requestId) return;
+
+    try {
+      const requestPath = join(
+        this.config.system.root,
+        this.config.paths.workspace,
+        this.config.paths.requests,
+        `${requestId}.md`,
+      );
+      if (!await exists(requestPath)) return;
+
+      const content = await Deno.readTextFile(requestPath);
+      const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+      if (!fmMatch) return;
+      let fm = fmMatch[1];
+
+      if (/^rejected_path:/m.test(fm)) {
+        fm = fm.replace(/^rejected_path:.*$/m, `rejected_path: ${rejectedRelative}`);
+      } else {
+        fm = fm.trimEnd() + `\nrejected_path: ${rejectedRelative}`;
+      }
+
+      const updated = `---\n${fm}\n---\n` + content.slice(fmMatch[0].length);
+      await Deno.writeTextFile(requestPath, updated);
+      actionLogger.info("request.rejected_linked", requestPath, {
+        request_id: requestId,
+        rejected_path: rejectedRelative,
+        via: "cli",
+      });
+    } catch (err) {
+      actionLogger.warn("request.rejection_update_failed", requestId, {
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 
@@ -1035,6 +1078,27 @@ export class ReviewCommands extends BaseCommand {
           },
           branchName,
         );
+
+        // Persist a rejected artifact copy for discoverability, then link to request (best-effort)
+        try {
+          const artifact = await this.artifactRegistry.getArtifact(branchName);
+          const rejectedDir = join(this.config.system.root, this.config.paths.workspace, this.config.paths.rejected);
+          await ensureDir(rejectedDir);
+          const target = join(rejectedDir, `${branchName}_rejected.md`);
+          await Deno.writeTextFile(target, artifact.content);
+
+          const rejectedRelative = join(
+            this.config.paths.workspace,
+            this.config.paths.rejected,
+            `${branchName}_rejected.md`,
+          );
+          await this.bestEffortLinkRequestRejection(artifact.request_id, rejectedRelative, actionLogger);
+        } catch (err) {
+          actionLogger.warn("review.rejected_artifact_persist_failed", branchName, {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+
         return;
       }
 
@@ -1056,6 +1120,27 @@ export class ReviewCommands extends BaseCommand {
           },
           review.trace_id,
         );
+
+        // Persist a rejected artifact copy for discoverability, then link to request (best-effort)
+        try {
+          const artifact = await this.artifactRegistry.getArtifact(review.branch);
+          const rejectedDir = join(this.config.system.root, this.config.paths.workspace, this.config.paths.rejected);
+          await ensureDir(rejectedDir);
+          const target = join(rejectedDir, `${review.branch}_rejected.md`);
+          await Deno.writeTextFile(target, artifact.content);
+
+          const rejectedRelative = join(
+            this.config.paths.workspace,
+            this.config.paths.rejected,
+            `${review.branch}_rejected.md`,
+          );
+          await this.bestEffortLinkRequestRejection(artifact.request_id, rejectedRelative, actionLogger);
+        } catch (err) {
+          actionLogger.warn("review.rejected_artifact_persist_failed", review.branch, {
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+
         return;
       }
       const repoPath = await this.findRepoForBranch(review.branch);

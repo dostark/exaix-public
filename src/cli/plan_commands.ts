@@ -256,6 +256,20 @@ export class PlanCommands extends BaseCommand {
       // Remove original (atomic operation complete)
       await Deno.remove(sourcePath);
 
+      // Try to update the associated request with rejected_path for discoverability
+      try {
+        const rejectedRelative = join(this.config.paths.workspace, this.config.paths.rejected, `${planId}_rejected.md`);
+        const actionLogger = await this.getActionLogger();
+        await this.updateRequestForRejection(
+          frontmatter.request_id as string | undefined,
+          rejectedRelative,
+          actionLogger,
+        );
+      } catch (err) {
+        // Non-fatal: log and continue
+        console.warn("Warning: could not update request with rejected_path:", err);
+      }
+
       // Log activity with user identity
       actionLogger.info("plan.rejected", planId, {
         reason: reason,
@@ -268,6 +282,41 @@ export class PlanCommands extends BaseCommand {
         commandName: "PlanCommands.reject",
         args: { planId, reason },
         error,
+      });
+    }
+  }
+
+  private async updateRequestForRejection(
+    requestId: string | undefined,
+    rejectedPath: string,
+    actionLogger: Awaited<ReturnType<BaseCommand["getActionLogger"]>>,
+  ): Promise<void> {
+    if (!requestId) return;
+
+    try {
+      const requestPath = join(this.workspaceRequestsDir, `${requestId}.md`);
+      if (!await exists(requestPath)) return;
+
+      const requestContent = await Deno.readTextFile(requestPath);
+      const { frontmatter, body } = this.extractFrontmatterWithBody(requestContent);
+
+      const updatedFrontmatter = {
+        ...frontmatter,
+        status: RequestStatus.PENDING,
+        rejected_path: rejectedPath,
+      };
+
+      const updatedContent = this.serializePlan(updatedFrontmatter, body);
+      await Deno.writeTextFile(requestPath, updatedContent);
+
+      actionLogger.info("request.rejected_linked", requestPath, {
+        request_id: requestId,
+        rejected_path: rejectedPath,
+        via: "cli",
+      }, frontmatter.trace_id as string | undefined);
+    } catch (error) {
+      actionLogger.warn("request.rejection_update_failed", requestId, {
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }

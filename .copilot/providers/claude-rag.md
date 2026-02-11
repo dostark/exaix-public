@@ -7,8 +7,6 @@ version: "0.1"
 topics: ["rag", "embeddings", "context-injection", "semantic-search"]
 ---
 
-# Claude RAG Usage Guide
-
 ## Overview
 
 ExoFrame pre-computes embeddings for all .copilot/ documentation, enabling rag embeddings semantic search and automatic context injection for Claude-powered workflows. This guide shows how to leverage the embeddings infrastructure to provide Claude with the most relevant context for any task.
@@ -16,9 +14,9 @@ ExoFrame pre-computes embeddings for all .copilot/ documentation, enabling rag e
 ## RAG Workflow
 
 1. **Generate query embedding** for user's task (or use mock vector based on query text)
-2. **Rank chunks** by cosine similarity against pre-computed embeddings
-3. **Inject top 4-6 chunks** into Claude system prompt (within 200k token budget)
-4. **Execute task** with enriched context
+1. **Rank chunks** by cosine similarity against pre-computed embeddings
+1. **Inject top 4-6 chunks** into Claude system prompt (within 200k token budget)
+1. **Execute task** with enriched context
 
 ## Tools
 
@@ -35,13 +33,13 @@ deno run --allow-read scripts/inspect_embeddings.ts --query "test database setup
 
 **Example output:**
 
-```
+```text
 Top 5 matches for "test database setup":
 1. .copilot/chunks/testing.md.chunk1.txt (similarity: 0.92)
-2. .copilot/chunks/testing.md.chunk2.txt (similarity: 0.87)
-3. .copilot/chunks/exoframe.md.chunk3.txt (similarity: 0.76)
-4. .copilot/chunks/README.md.chunk0.txt (similarity: 0.65)
-5. .copilot/chunks/testing.md.chunk0.txt (similarity: 0.62)
+1. .copilot/chunks/testing.md.chunk2.txt (similarity: 0.87)
+1. .copilot/chunks/exoframe.md.chunk3.txt (similarity: 0.76)
+1. .copilot/chunks/README.md.chunk0.txt (similarity: 0.65)
+1. .copilot/chunks/testing.md.chunk0.txt (similarity: 0.62)
 ```
 
 ### Automatic Context Injection
@@ -106,7 +104,7 @@ deno run --allow-read scripts/inject_agent_context.ts --query "write security te
 
 ✅ **Good:** Include chunk summaries in system prompt, full chunks in user message
 
-```
+```text
 System: You are working on ExoFrame. Relevant docs: [testing.md: TDD patterns, exoframe.md: service patterns]
 User: [Full chunk text]\n\nTask: Implement ConfigLoader error handling
 ```
@@ -158,9 +156,9 @@ Use pre-generated embeddings from external sources:
 }
 ```
 
-2. **Place files** in `.copilot/embeddings/` (format: `<doc-name>.json`)
+1. **Place files** in `.copilot/embeddings/` (format: `<doc-name>.json`)
 
-3. **Validate and import**:
+1. **Validate and import**:
 
 ```bash
 deno run --allow-read --allow-write scripts/build_agents_embeddings.ts \
@@ -173,14 +171,14 @@ deno run --allow-read --allow-write scripts/build_agents_embeddings.ts \
 
 ### Scenario: Add Security Tests for PathResolver
 
-**Step 1: Retrieve relevant context**
+#### Step 1: Retrieve relevant context
 
 ```typescript
 const query = "security tests PathResolver path traversal";
 const context = await inject("claude", query, 6);
 ```
 
-**Step 2: Build enriched system prompt**
+#### Step 2: Build enriched system prompt
 
 ```typescript
 const systemPrompt = `
@@ -201,7 +199,7 @@ Follow TDD workflow: write failing tests first, then implement fixes.
 `;
 ```
 
-**Step 3: Call Claude API**
+#### Step 3: Call Claude API
 
 ```typescript
 const response = await anthropic.messages.create({
@@ -215,7 +213,7 @@ const response = await anthropic.messages.create({
 });
 ```
 
-**Step 4: Validate response includes**
+#### Step 4: Validate response includes
 
 - `initTestDbService()` or `createCliTestContext()` usage
 - Explicit assertions for attack vectors

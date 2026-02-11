@@ -9,6 +9,7 @@ export interface RequestEnrichable {
   request_priority?: string;
   request_created_by?: string;
   request_flow?: string;
+  request_rejected_path?: string;
 }
 
 /**
@@ -55,6 +56,7 @@ export async function enrichWithRequest<T extends RequestEnrichable>(
       request_priority: request.priority,
       request_created_by: request.created_by,
       request_flow: (request as any).flow,
+      request_rejected_path: (request as any).rejected_path,
     };
   } catch (error) {
     // If request can't be loaded, continue without request info

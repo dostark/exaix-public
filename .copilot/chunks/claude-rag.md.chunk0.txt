@@ -1,5 +1,3 @@
-# Claude RAG Usage Guide
-
 ## Overview
 
 ExoFrame pre-computes embeddings for all .copilot/ documentation, enabling rag embeddings semantic search and automatic context injection for Claude-powered workflows. This guide shows how to leverage the embeddings infrastructure to provide Claude with the most relevant context for any task.
@@ -7,9 +5,9 @@ ExoFrame pre-computes embeddings for all .copilot/ documentation, enabling rag e
 ## RAG Workflow
 
 1. **Generate query embedding** for user's task (or use mock vector based on query text)
-2. **Rank chunks** by cosine similarity against pre-computed embeddings
-3. **Inject top 4-6 chunks** into Claude system prompt (within 200k token budget)
-4. **Execute task** with enriched context
+1. **Rank chunks** by cosine similarity against pre-computed embeddings
+1. **Inject top 4-6 chunks** into Claude system prompt (within 200k token budget)
+1. **Execute task** with enriched context
 
 ## Tools
 

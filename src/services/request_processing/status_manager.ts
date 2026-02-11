@@ -11,13 +11,51 @@ export class StatusManager {
     filePath: string,
     originalContent: string,
     newStatus: RequestStatusType,
+    errorMessage?: string,
+    extraFields?: Record<string, string>,
   ): Promise<void> {
     try {
-      // Replace the status field in the YAML frontmatter
-      const updatedContent = originalContent.replace(
+      let updatedContent = originalContent.replace(
         /^(status:\s*).+$/m,
         `$1${newStatus}`,
       );
+
+      // If status is FAILED and we have an error message, add/update error field
+      if (newStatus === "failed" && errorMessage) {
+        // Check if error field already exists
+        if (updatedContent.match(/^error:\s*.+$/m)) {
+          // Update existing error field
+          updatedContent = updatedContent.replace(
+            /^(error:\s*).+$/m,
+            `$1"${errorMessage.replace(/"/g, '\\"')}"`,
+          );
+        } else {
+          // Add error field after status field
+          updatedContent = updatedContent.replace(
+            /^(status:\s*.+)$/m,
+            `$1\nerror: "${errorMessage.replace(/"/g, '\\"')}"`,
+          );
+        }
+      }
+
+      // If there are extra fields to persist (e.g. rejected_path), add/update them
+      if (newStatus === "failed" && extraFields && Object.keys(extraFields).length > 0) {
+        for (const [key, val] of Object.entries(extraFields)) {
+          const safeVal = String(val).replace(/"/g, '\\"');
+          const fieldRegex = new RegExp(`^${key}:\\s*.+$`, "m");
+          if (updatedContent.match(fieldRegex)) {
+            updatedContent = updatedContent.replace(
+              new RegExp(`^(${key}:\\s*).+$`, "m"),
+              `$1"${safeVal}"`,
+            );
+          } else {
+            updatedContent = updatedContent.replace(
+              /^(status:\s*.+)$/m,
+              `$1\n${key}: "${safeVal}"`,
+            );
+          }
+        }
+      }
 
       await Deno.writeTextFile(filePath, updatedContent);
     } catch (error) {

@@ -22,6 +22,7 @@ export interface Request {
   created: string;
   created_by: string;
   source: string;
+  rejected_path?: string;
   // Phase 17: Skills information
   skills?: {
     explicit?: string[]; // User-specified skills
@@ -251,6 +252,7 @@ export class RequestCommandsServiceAdapter implements RequestService {
       created: r.created,
       created_by: r.created_by,
       source: r.source,
+      rejected_path: (r as any).rejected_path,
     }));
   }
 
@@ -273,6 +275,7 @@ export class RequestCommandsServiceAdapter implements RequestService {
       created: metadata.created,
       created_by: metadata.created_by,
       source: metadata.source,
+      rejected_path: (metadata as any).rejected_path,
     };
   }
 

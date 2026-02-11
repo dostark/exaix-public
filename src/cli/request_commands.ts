@@ -54,6 +54,7 @@ export interface RequestMetadata {
   created: string;
   created_by: string;
   source: RequestSource;
+  rejected_path?: string;
 }
 
 /**
@@ -80,6 +81,8 @@ export interface RequestEntry {
   created: string;
   created_by: string;
   source: string;
+  error?: string;
+  rejected_path?: string;
 }
 
 /**

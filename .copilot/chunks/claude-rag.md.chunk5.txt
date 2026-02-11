@@ -1,6 +1,6 @@
 ✅ **Good:** Include chunk summaries in system prompt, full chunks in user message
 
-```
+```text
 System: You are working on ExoFrame. Relevant docs: [testing.md: TDD patterns, exoframe.md: service patterns]
 User: [Full chunk text]\n\nTask: Implement ConfigLoader error handling
 ```

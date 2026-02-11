@@ -535,6 +535,37 @@ describe("ReviewCommands", () => {
       const fileContent = await Deno.readTextFile(join(config.system.root, updated.file_path));
       assertStringIncludes(fileContent, `status: ${ReviewStatus.REJECTED}`);
     });
+
+    it("artifact rejection should persist rejected copy and update request frontmatter", async () => {
+      const requestId = "request-artifact-005";
+      // Create a request file to link against
+      const requestsDir = join(config.system.root, config.paths.workspace, config.paths.requests);
+      await Deno.mkdir(requestsDir, { recursive: true });
+      const requestPath = join(requestsDir, `${requestId}.md`);
+      const requestFront = `---\ntrace_id: ${requestId}\nstatus: pending\ncreated: ${
+        new Date().toISOString()
+      }\ncreated_by: test-user\n---\n\nTest request body\n`;
+      await Deno.writeTextFile(requestPath, requestFront);
+
+      const artifactRegistry = new ArtifactRegistry(db, config.system.root);
+      const artifactId = await artifactRegistry.createArtifact(
+        requestId,
+        "code-analyst",
+        "# Artifact to reject\n\nBody",
+      );
+
+      await reviewCommands.reject(artifactId, "Not useful");
+
+      // Rejected copy should exist in Workspace/Rejected
+      const rejectedRelative = join(config.paths.workspace, config.paths.rejected, `${artifactId}_rejected.md`);
+      const rejectedAbsolute = join(config.system.root, rejectedRelative);
+      const rejectedContent = await Deno.readTextFile(rejectedAbsolute);
+      assertStringIncludes(rejectedContent, "# Artifact to reject");
+
+      // Request frontmatter should include rejected_path
+      const updatedRequest = await Deno.readTextFile(requestPath);
+      assertStringIncludes(updatedRequest, `rejected_path: ${rejectedRelative}`);
+    });
   });
 
   /**

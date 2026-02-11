@@ -146,6 +146,9 @@ export async function handleRequestShow(
     if (metadata.token_cost_usd !== undefined) {
       displayData.token_cost_usd = metadata.token_cost_usd;
     }
+    if (metadata.error !== undefined) {
+      displayData.error = metadata.error;
+    }
 
     display.info("request.show", metadata.trace_id.slice(0, 8), displayData);
     display.info("request.content", id, { content });

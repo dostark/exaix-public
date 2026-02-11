@@ -7,13 +7,13 @@ deno run --allow-read scripts/inspect_embeddings.ts --query "test database setup
 
 **Example output:**
 
-```
+```text
 Top 5 matches for "test database setup":
 1. .copilot/chunks/testing.md.chunk1.txt (similarity: 0.92)
-2. .copilot/chunks/testing.md.chunk2.txt (similarity: 0.87)
-3. .copilot/chunks/exoframe.md.chunk3.txt (similarity: 0.76)
-4. .copilot/chunks/README.md.chunk0.txt (similarity: 0.65)
-5. .copilot/chunks/testing.md.chunk0.txt (similarity: 0.62)
+1. .copilot/chunks/testing.md.chunk2.txt (similarity: 0.87)
+1. .copilot/chunks/exoframe.md.chunk3.txt (similarity: 0.76)
+1. .copilot/chunks/README.md.chunk0.txt (similarity: 0.65)
+1. .copilot/chunks/testing.md.chunk0.txt (similarity: 0.62)
 ```
 
 ### Automatic Context Injection
