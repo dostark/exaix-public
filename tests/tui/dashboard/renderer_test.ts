@@ -1,5 +1,6 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { makePane, testProdRender } from "../renderer_test_utils.ts";
+import { Pane } from "../../../src/tui/tui_dashboard.ts";
 
 Deno.test("prodRender: falls back to 80x24 when consoleSize throws", async () => {
   const originalConsoleSize = (Deno as any).consoleSize;
