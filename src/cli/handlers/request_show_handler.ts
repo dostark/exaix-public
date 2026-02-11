@@ -27,7 +27,7 @@ export class RequestShowHandler extends BaseCommand {
     const fullContent = await Deno.readTextFile(matchingFile);
 
     // Extract body (content after YAML frontmatter)
-    const body = fullContent.replace(/^---\n[\s\S]*?\n---\n?/, "").trim();
+    const body = fullContent.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, "").trim();
 
     return {
       metadata: {

@@ -11,6 +11,7 @@
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { basename, join } from "@std/path";
 import { exists } from "@std/fs";
+import { parse } from "@std/yaml";
 
 import { RequestProcessor } from "../src/services/request_processor.ts";
 import { CostTracker } from "../src/services/cost_tracker.ts";
@@ -22,6 +23,14 @@ import { initTestDbService } from "./helpers/db.ts";
 import { getWorkspaceRejectedDir, getWorkspaceRequestsDir } from "./helpers/paths_helper.ts";
 import { RequestShowHandler } from "../src/cli/handlers/request_show_handler.ts";
 import type { CommandContext } from "../src/cli/base.ts";
+
+function parseFrontmatter(content: string): Record<string, unknown> {
+  const parts = content.split("---");
+  if (parts.length < 3) {
+    throw new Error("Invalid markdown content: missing YAML frontmatter delimiters.");
+  }
+  return parse(parts[1]) as Record<string, unknown>;
+}
 
 // ============================================================================
 // Test 1: PlanValidationError instanceof detection (main fix)
@@ -38,7 +47,7 @@ Deno.test("Regression: PlanValidationError instanceof detection works reliably",
     const traceId = crypto.randomUUID();
     const requestPath = join(getWorkspaceRequestsDir(tempDir), `request-${traceId.slice(0, 8)}.md`);
 
-    const requestContent = `--- 
+    const requestContent = `---
 trace_id: "${traceId}"
 created: "${new Date().toISOString()}"
 status: pending
@@ -83,10 +92,9 @@ Create documentation for the new feature.
 
     // Verify the request was marked as failed
     const updatedRequest = await Deno.readTextFile(requestPath);
-    assertStringIncludes(updatedRequest, `status: ${RequestStatus.FAILED}`);
-
-    // Verify error message was stored in frontmatter
-    assertStringIncludes(updatedRequest, `error: "Invalid JSON structure"`);
+    const updatedRequestFrontmatter = parseFrontmatter(updatedRequest);
+    assertEquals(updatedRequestFrontmatter.status, RequestStatus.FAILED);
+    assertEquals(updatedRequestFrontmatter.error, "Invalid JSON structure");
 
     // Verify rejected plan was saved
     const requestId = basename(requestPath, ".md");
@@ -95,8 +103,9 @@ Create documentation for the new feature.
 
     assertEquals(await exists(rejectedPath), true);
     const rejectedContent = await Deno.readTextFile(rejectedPath);
-    assertStringIncludes(rejectedContent, `status: ${PlanStatus.REJECTED}`);
-    assertStringIncludes(rejectedContent, `request_id: "${requestId}"`);
+    const rejectedFrontmatter = parseFrontmatter(rejectedContent);
+    assertEquals(rejectedFrontmatter.status, PlanStatus.REJECTED);
+    assertEquals(rejectedFrontmatter.request_id, requestId);
     assertStringIncludes(rejectedContent, "INVALID_JSON_CONTENT");
   } finally {
     await costTracker.flush();
@@ -119,7 +128,7 @@ Deno.test("Regression: Rejected plans saved with fallback content when raw conte
     const traceId = crypto.randomUUID();
     const requestPath = join(getWorkspaceRequestsDir(tempDir), `request-${traceId.slice(0, 8)}.md`);
 
-    const requestContent = `--- 
+    const requestContent = `---
 trace_id: "${traceId}"
 created: "${new Date().toISOString()}"
 status: pending
@@ -169,8 +178,9 @@ Create documentation for the new feature.
 
     assertEquals(await exists(rejectedPath), true);
     const rejectedContent = await Deno.readTextFile(rejectedPath);
-    assertStringIncludes(rejectedContent, `status: ${PlanStatus.REJECTED}`);
-    assertStringIncludes(rejectedContent, `request_id: "${requestId}"`);
+    const rejectedFrontmatter = parseFrontmatter(rejectedContent);
+    assertEquals(rejectedFrontmatter.status, PlanStatus.REJECTED);
+    assertEquals(rejectedFrontmatter.request_id, requestId);
     // Should contain fallback content indicating no raw content was available
     assertStringIncludes(rejectedContent, "No raw content available");
   } finally {
@@ -194,7 +204,7 @@ Deno.test("Regression: StatusManager stores error messages in YAML frontmatter",
     } as any);
 
     const requestPath = join(tempDir, "test-request.md");
-    const originalContent = `--- 
+    const originalContent = `---
 trace_id: "test-trace-id"
 created: "2024-01-01T00:00:00.000Z"
 status: pending
@@ -212,36 +222,33 @@ Test request content.
     // Test error message storage
     await statusManager.updateStatus(
       requestPath,
-      originalContent,
       RequestStatus.FAILED,
       "Plan validation failed: Invalid JSON structure",
     );
 
     const updatedContent = await Deno.readTextFile(requestPath);
+    const updatedFrontmatter = parseFrontmatter(updatedContent);
 
     // Verify status was updated
-    assertStringIncludes(updatedContent, `status: ${RequestStatus.FAILED}`);
+    assertEquals(updatedFrontmatter.status, RequestStatus.FAILED);
 
     // Verify error message was added
-    assertStringIncludes(updatedContent, `error: "Plan validation failed: Invalid JSON structure"`);
+    assertEquals(updatedFrontmatter.error, "Plan validation failed: Invalid JSON structure");
 
     // Test error message update (when error field already exists)
-    const contentWithError = updatedContent.replace(
-      'error: "Plan validation failed: Invalid JSON structure"',
-      'error: "Old error message"',
-    );
+    // contentWithError logic removed as it was unused and causing lint errors
 
     await statusManager.updateStatus(
       requestPath,
-      contentWithError,
       RequestStatus.FAILED,
       'New error message with quotes: "test"',
     );
 
     const finalContent = await Deno.readTextFile(requestPath);
+    const finalFrontmatter = parseFrontmatter(finalContent);
 
     // Verify error message was updated and quotes were escaped
-    assertStringIncludes(finalContent, `error: "New error message with quotes: \"test\""`);
+    assertEquals(finalFrontmatter.error, 'New error message with quotes: "test"');
   } finally {
     await cleanup();
   }
@@ -261,7 +268,7 @@ Deno.test("Regression: CLI displays error information for failed requests", asyn
     const traceId = crypto.randomUUID();
     const requestPath = join(getWorkspaceRequestsDir(tempDir), `request-${traceId.slice(0, 8)}.md`);
 
-    const requestContent = `--- 
+    const requestContent = `---
 trace_id: "${traceId}"
 created: "${new Date().toISOString()}"
 status: failed
@@ -312,7 +319,7 @@ Deno.test("Regression: End-to-end error handling workflow from PlanValidationErr
     const traceId = crypto.randomUUID();
     const requestPath = join(getWorkspaceRequestsDir(tempDir), `request-${traceId.slice(0, 8)}.md`);
 
-    const requestContent = `--- 
+    const requestContent = `---
 trace_id: "${traceId}"
 created: "${new Date().toISOString()}"
 status: pending
@@ -367,8 +374,9 @@ Create documentation for the new feature.
 
     // Verify the request was marked as failed with error message
     const updatedRequest = await Deno.readTextFile(requestPath);
-    assertStringIncludes(updatedRequest, `status: ${RequestStatus.FAILED}`);
-    assertStringIncludes(updatedRequest, `error: "Technical writer generated invalid plan JSON"`);
+    const updatedRequestFrontmatter = parseFrontmatter(updatedRequest);
+    assertEquals(updatedRequestFrontmatter.status, RequestStatus.FAILED);
+    assertEquals(updatedRequestFrontmatter.error, "Technical writer generated invalid plan JSON");
 
     // Verify rejected plan was saved with the raw content
     const requestId = basename(requestPath, ".md");
@@ -377,8 +385,9 @@ Create documentation for the new feature.
 
     assertEquals(await exists(rejectedPath), true);
     const rejectedContent = await Deno.readTextFile(rejectedPath);
-    assertStringIncludes(rejectedContent, `status: ${PlanStatus.REJECTED}`);
-    assertStringIncludes(rejectedContent, `request_id: "${requestId}"`);
+    const rejectedFrontmatter = parseFrontmatter(rejectedContent);
+    assertEquals(rejectedFrontmatter.status, PlanStatus.REJECTED);
+    assertEquals(rejectedFrontmatter.request_id, requestId);
     assertStringIncludes(rejectedContent, `{"title": "Invalid Plan", "description": "Missing steps array}`);
 
     // Verify CLI can display the error information

@@ -21,7 +21,7 @@ export class RequestParser {
       const content = await Deno.readTextFile(filePath);
 
       // Extract YAML frontmatter between --- delimiters
-      const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+      const yamlMatch = content.match(/^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/);
       if (!yamlMatch) {
         await this.logger.error("frontmatter.invalid", filePath, {
           error: "Missing or malformed --- delimiters",

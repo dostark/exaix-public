@@ -1,5 +1,6 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { basename, join } from "@std/path";
+import { parse } from "@std/yaml";
 
 import { RequestProcessor } from "../src/services/request_processor.ts";
 import { CostTracker } from "../src/services/cost_tracker.ts";
@@ -9,6 +10,14 @@ import { getWorkspaceRequestsDir } from "./helpers/paths_helper.ts";
 import { PlanStatus } from "../src/plans/plan_status.ts";
 import { RequestStatus } from "../src/requests/request_status.ts";
 import { PlanValidationError } from "../src/services/plan_adapter.ts";
+
+function parseFrontmatter(content: string): Record<string, unknown> {
+  const parts = content.split("---");
+  if (parts.length < 3) {
+    throw new Error("Invalid markdown content: missing YAML frontmatter delimiters.");
+  }
+  return parse(parts[1]) as Record<string, unknown>;
+}
 
 Deno.test("RequestProcessor: PlanValidationError saves rejected raw content and marks request failed", async () => {
   const testDbResult = await initTestDbService();
@@ -71,15 +80,15 @@ Do flow work.
     const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
 
     const rejectedContent = await Deno.readTextFile(rejectedPath);
-    assertStringIncludes(rejectedContent, `status: ${PlanStatus.REJECTED}`);
-    assertStringIncludes(rejectedContent, `request_id: "${requestId}"`);
+    const rejectedFrontmatter = parseFrontmatter(rejectedContent);
+    assertEquals(rejectedFrontmatter.status, PlanStatus.REJECTED);
+    assertEquals(rejectedFrontmatter.request_id, requestId);
     assertStringIncludes(rejectedContent, rejectedRaw);
 
     const updatedRequest = await Deno.readTextFile(requestPath);
-    assertStringIncludes(updatedRequest, `status: ${RequestStatus.FAILED}`);
-
-    // Regression test: verify error message is stored in frontmatter
-    assertStringIncludes(updatedRequest, `error: "Invalid plan structure"`);
+    const updatedRequestFrontmatter = parseFrontmatter(updatedRequest);
+    assertEquals(updatedRequestFrontmatter.status, RequestStatus.FAILED);
+    assertEquals(updatedRequestFrontmatter.error, "Invalid plan structure");
   } finally {
     await costTracker.flush();
     await cleanup();
@@ -146,10 +155,9 @@ Create documentation for the new feature.
 
     // Verify the request was marked as failed
     const updatedRequest = await Deno.readTextFile(requestPath);
-    assertStringIncludes(updatedRequest, `status: ${RequestStatus.FAILED}`);
-
-    // Verify error message was stored in frontmatter
-    assertStringIncludes(updatedRequest, `error: "Invalid JSON structure"`);
+    const updatedRequestFrontmatter = parseFrontmatter(updatedRequest);
+    assertEquals(updatedRequestFrontmatter.status, RequestStatus.FAILED);
+    assertEquals(updatedRequestFrontmatter.error, "Invalid JSON structure");
 
     // Verify rejected plan was saved
     const requestId = basename(requestPath, ".md");
@@ -157,8 +165,9 @@ Create documentation for the new feature.
     const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
 
     const rejectedContent = await Deno.readTextFile(rejectedPath);
-    assertStringIncludes(rejectedContent, `status: ${PlanStatus.REJECTED}`);
-    assertStringIncludes(rejectedContent, `request_id: "${requestId}"`);
+    const rejectedFrontmatter = parseFrontmatter(rejectedContent);
+    assertEquals(rejectedFrontmatter.status, PlanStatus.REJECTED);
+    assertEquals(rejectedFrontmatter.request_id, requestId);
     assertStringIncludes(rejectedContent, "INVALID_JSON_CONTENT");
   } finally {
     await costTracker.flush();
@@ -226,8 +235,9 @@ Create documentation for the new feature.
     const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
 
     const rejectedContent = await Deno.readTextFile(rejectedPath);
-    assertStringIncludes(rejectedContent, `status: ${PlanStatus.REJECTED}`);
-    assertStringIncludes(rejectedContent, `request_id: "${requestId}"`);
+    const rejectedFrontmatter = parseFrontmatter(rejectedContent);
+    assertEquals(rejectedFrontmatter.status, PlanStatus.REJECTED);
+    assertEquals(rejectedFrontmatter.request_id, requestId);
     // Should contain fallback content indicating no raw content was available
     assertStringIncludes(rejectedContent, "No raw content available");
   } finally {
@@ -270,18 +280,18 @@ Test request content.
     // Test error message storage
     await statusManager.updateStatus(
       requestPath,
-      originalContent,
       RequestStatus.FAILED,
       "Plan validation failed: Invalid JSON structure",
     );
 
     const updatedContent = await Deno.readTextFile(requestPath);
+    const updatedFrontmatter = parseFrontmatter(updatedContent);
 
     // Verify status was updated
-    assertStringIncludes(updatedContent, `status: ${RequestStatus.FAILED}`);
+    assertEquals(updatedFrontmatter.status, RequestStatus.FAILED);
 
     // Verify error message was added
-    assertStringIncludes(updatedContent, `error: "Plan validation failed: Invalid JSON structure"`);
+    assertEquals(updatedFrontmatter.error, "Plan validation failed: Invalid JSON structure");
   } finally {
     await cleanup();
   }

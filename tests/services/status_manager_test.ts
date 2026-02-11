@@ -13,6 +13,7 @@ Deno.test("StatusManager.updateStatus: rewrites status in frontmatter", async ()
   } as unknown as EventLogger;
 
   const originalWrite = Deno.writeTextFile;
+  const originalRead = Deno.readTextFile;
   let written: { path: string; content: string } | null = null;
 
   try {
@@ -20,12 +21,18 @@ Deno.test("StatusManager.updateStatus: rewrites status in frontmatter", async ()
       written = { path, content };
       return Promise.resolve();
     };
+    (Deno as any).readTextFile = (path: string) => {
+      if (path === filePath) {
+        return Promise.resolve(original);
+      }
+      return Promise.reject(new Deno.errors.NotFound("file not found"));
+    };
 
     const mgr = new StatusManager(logger);
     const filePath = "/tmp/request.md";
     const original = "---\nstatus: pending\n---\nBody\n";
 
-    await mgr.updateStatus(filePath, original, RequestStatus.FAILED);
+    await mgr.updateStatus(filePath, RequestStatus.FAILED);
 
     assertEquals(written === null, false);
     assertEquals(written!.path, filePath);
@@ -33,6 +40,7 @@ Deno.test("StatusManager.updateStatus: rewrites status in frontmatter", async ()
     assertEquals(calls.length, 0);
   } finally {
     (Deno as any).writeTextFile = originalWrite;
+    (Deno as any).readTextFile = originalRead;
   }
 });
 
@@ -46,17 +54,25 @@ Deno.test("StatusManager.updateStatus: logs on write failure", async () => {
   } as unknown as EventLogger;
 
   const originalWrite = Deno.writeTextFile;
+  const originalRead = Deno.readTextFile;
   try {
     (Deno as any).writeTextFile = () => {
       throw new Error("write failed");
     };
+    (Deno as any).readTextFile = (path: string) => {
+      if (path === "/tmp/request.md") {
+        return Promise.resolve("---\nstatus: pending\n---\n");
+      }
+      return Promise.reject(new Deno.errors.NotFound("file not found"));
+    };
 
     const mgr = new StatusManager(logger);
-    await mgr.updateStatus("/tmp/request.md", "---\nstatus: pending\n---\n", RequestStatus.FAILED);
+    await mgr.updateStatus("/tmp/request.md", RequestStatus.FAILED);
 
     assertEquals(calls.length, 1);
     assertEquals(calls[0][0], "request.status_update_failed");
   } finally {
     (Deno as any).writeTextFile = originalWrite;
+    (Deno as any).readTextFile = originalRead;
   }
 });

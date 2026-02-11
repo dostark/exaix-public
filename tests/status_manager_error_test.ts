@@ -1,8 +1,17 @@
-import { assertStringIncludes } from "@std/assert";
+import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
+import { parse } from "@std/yaml";
 import { StatusManager } from "../src/services/request_processing/status_manager.ts";
 import { RequestStatus } from "../src/requests/request_status.ts";
 import { initTestDbService } from "./helpers/db.ts";
+
+function parseFrontmatter(content: string): Record<string, unknown> {
+  const parts = content.split("---");
+  if (parts.length < 3) {
+    throw new Error("Invalid markdown content: missing YAML frontmatter delimiters.");
+  }
+  return parse(parts[1]) as Record<string, unknown>;
+}
 
 Deno.test("StatusManager error storage regression test", async () => {
   const testDbResult = await initTestDbService();
@@ -34,18 +43,18 @@ Test request content.
     // Test error message storage
     await statusManager.updateStatus(
       requestPath,
-      originalContent,
       RequestStatus.FAILED,
       "Plan validation failed: Invalid JSON structure",
     );
 
     const updatedContent = await Deno.readTextFile(requestPath);
+    const updatedFrontmatter = parseFrontmatter(updatedContent);
 
     // Verify status was updated
-    assertStringIncludes(updatedContent, `status: ${RequestStatus.FAILED}`);
+    assertEquals(updatedFrontmatter.status, RequestStatus.FAILED);
 
     // Verify error message was added
-    assertStringIncludes(updatedContent, `error: "Plan validation failed: Invalid JSON structure"`);
+    assertEquals(updatedFrontmatter.error, "Plan validation failed: Invalid JSON structure");
 
     console.log("✅ StatusManager error storage test passed");
   } finally {

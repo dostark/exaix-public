@@ -128,7 +128,6 @@ export class RequestProcessor {
     const requestKind = await this.getRequestKindOrFail({
       frontmatter,
       filePath,
-      rawContent: parsed.rawContent,
       traceLogger,
     });
     if (!requestKind) {
@@ -153,7 +152,6 @@ export class RequestProcessor {
           requestKind,
           frontmatter,
           body,
-          parsed,
           filePath,
           requestId,
           traceId,
@@ -163,7 +161,9 @@ export class RequestProcessor {
 
       return planPath;
     } catch (error: unknown) {
-      await this.handleError(error, filePath, requestId, parsed.rawContent, traceLogger, frontmatter);
+      // Read the current content of the file before handling the error
+
+      await this.handleError(error, filePath, requestId, traceLogger, frontmatter);
       return null;
     } finally {
       try {
@@ -189,10 +189,9 @@ export class RequestProcessor {
   private async getRequestKindOrFail(args: {
     frontmatter: RequestFrontmatter;
     filePath: string;
-    rawContent: string;
     traceLogger: any;
   }): Promise<"flow" | "agent" | null> {
-    const { frontmatter, filePath, rawContent, traceLogger } = args;
+    const { frontmatter, filePath, traceLogger } = args;
 
     const hasFlow = !!frontmatter.flow;
     const hasAgent = !!frontmatter.agent;
@@ -203,7 +202,6 @@ export class RequestProcessor {
       });
       await this.statusManager.updateStatus(
         filePath,
-        rawContent,
         RequestStatus.FAILED,
         "Request cannot specify both 'flow' and 'agent' fields",
       );
@@ -216,7 +214,6 @@ export class RequestProcessor {
       });
       await this.statusManager.updateStatus(
         filePath,
-        rawContent,
         RequestStatus.FAILED,
         "Request must specify either 'flow' or 'agent' field",
       );
@@ -263,22 +260,20 @@ export class RequestProcessor {
     kind: "flow" | "agent",
     frontmatter: RequestFrontmatter,
     body: string,
-    parsed: any,
     filePath: string,
     requestId: string,
     traceId: string,
     traceLogger: any,
   ): Promise<string | null> {
     if (kind === "flow") {
-      return this.processFlowRequest(frontmatter, parsed, filePath, requestId, traceId, traceLogger);
+      return this.processFlowRequest(frontmatter, filePath, requestId, traceId, traceLogger);
     }
 
-    return this.processAgentRequest(frontmatter, body, parsed, filePath, requestId, traceId, traceLogger);
+    return this.processAgentRequest(frontmatter, body, filePath, requestId, traceId, traceLogger);
   }
 
   private async processFlowRequest(
     frontmatter: RequestFrontmatter,
-    parsed: any,
     filePath: string,
     requestId: string,
     traceId: string,
@@ -292,7 +287,6 @@ export class RequestProcessor {
         });
         await this.statusManager.updateStatus(
           filePath,
-          parsed.rawContent,
           RequestStatus.FAILED,
           `Flow validation failed: ${validation.error}`,
         );
@@ -328,7 +322,7 @@ export class RequestProcessor {
       targetBranch: frontmatter.target_branch,
     };
 
-    return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger, {
+    return await this.writePlanAndReturnPath(result, metadata, filePath, traceLogger, {
       flow: frontmatter.flow,
     });
   }
@@ -336,7 +330,6 @@ export class RequestProcessor {
   private async processAgentRequest(
     frontmatter: RequestFrontmatter,
     body: string,
-    parsed: any,
     filePath: string,
     requestId: string,
     traceId: string,
@@ -415,7 +408,6 @@ export class RequestProcessor {
       });
       await this.statusManager.updateStatus(
         filePath,
-        parsed.rawContent,
         RequestStatus.FAILED,
         `Blueprint not found: ${frontmatter.agent}`,
       );
@@ -489,14 +481,13 @@ export class RequestProcessor {
       targetBranch: frontmatter.target_branch,
     };
 
-    return await this.writePlanAndReturnPath(result, metadata, filePath, parsed.rawContent, traceLogger);
+    return await this.writePlanAndReturnPath(result, metadata, filePath, traceLogger);
   }
 
   private async handleError(
     error: unknown,
     filePath: string,
     requestId: string,
-    rawContent: string,
     traceLogger: any,
     frontmatter?: RequestFrontmatter,
   ) {
@@ -518,7 +509,7 @@ export class RequestProcessor {
           this.config.paths.workspace,
           this.config.paths.rejected,
         );
-        await this.ioBreaker.execute(() => Deno.mkdir(rejectedDir, { recursive: true }));
+        await Deno.mkdir(rejectedDir, { recursive: true });
 
         const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
         const rejectedContent = this.formatRejectedPlan({
@@ -529,7 +520,7 @@ export class RequestProcessor {
           rawDetails: typeof rawDetails === "string" && rawDetails ? rawDetails : "No raw content available",
           validationError,
         });
-        await this.ioBreaker.execute(() => Deno.writeTextFile(rejectedPath, rejectedContent));
+        await Deno.writeTextFile(rejectedPath, rejectedContent);
 
         // Log the saved path for debugging, but keep the original error message
         // unchanged for storage in the request frontmatter (tests expect the
@@ -544,7 +535,7 @@ export class RequestProcessor {
           this.config.paths.rejected,
           `${requestId}_rejected.md`,
         );
-        await this.statusManager.updateStatus(filePath, rawContent, RequestStatus.FAILED, errorMessage, {
+        await this.statusManager.updateStatus(Deno.realPathSync(filePath), RequestStatus.FAILED, errorMessage, {
           rejected_path: rejectedRelative,
         });
         persistedRejectedPath = true;
@@ -560,7 +551,7 @@ export class RequestProcessor {
     // If we didn't already persist rejected_path above (e.g. non-validation errors),
     // persist the original error message without path metadata.
     if (!persistedRejectedPath) {
-      await this.statusManager.updateStatus(filePath, rawContent, RequestStatus.FAILED, errorMessage);
+      await this.statusManager.updateStatus(Deno.realPathSync(filePath), RequestStatus.FAILED, errorMessage);
     }
   }
 
@@ -572,70 +563,27 @@ export class RequestProcessor {
     rawDetails: string;
     validationError: any;
   }): string {
-    const createdAt = args.frontmatter?.created ?? new Date().toISOString();
-    const lines: string[] = [
-      "---",
-      `trace_id: "${args.traceId ?? "unknown"}"`,
-      `request_id: "${args.requestId}"`,
-      `status: ${PlanStatus.REJECTED}`,
-      `created_at: "${createdAt}"`,
-    ];
+    return `---
+trace_id: "${args.traceId ?? "unknown"}"
+request_id: "${args.requestId}"
+status: ${PlanStatus.REJECTED}
+error: "${args.errorMessage.replace(/"/g, '\\"')}"
+---
 
-    if (args.frontmatter?.agent) {
-      lines.push(`agent_id: "${args.frontmatter.agent}"`);
-    }
-    if (args.frontmatter?.portal) {
-      lines.push(`portal: "${args.frontmatter.portal}"`);
-    }
-    if (args.frontmatter?.model) {
-      lines.push(`model: "${args.frontmatter.model}"`);
-    }
-    if (args.frontmatter?.target_branch) {
-      lines.push(`target_branch: "${args.frontmatter.target_branch}"`);
-    }
-    if (args.frontmatter?.flow) {
-      lines.push(`flow: "${args.frontmatter.flow}"`);
-    }
-
-    lines.push(`error: "${args.errorMessage.replace(/"/g, "'")}"`);
-    lines.push("---", "");
-
-    const zodErrors = Array.isArray(args.validationError?.details?.zodErrors)
-      ? args.validationError.details.zodErrors
-      : [];
-    const errorDetails = zodErrors.length > 0
-      ? zodErrors.map((entry: any) => `- ${entry.path?.join(".") ?? ""}: ${entry.message}`)
-        .join("\n")
-      : "- Validation failed";
-
-    return [
-      ...lines,
-      "# Rejected Plan Output",
-      "",
-      "## Error",
-      args.errorMessage,
-      "",
-      "## Validation Details",
-      errorDetails,
-      "",
-      "## Raw Output",
-      "```text",
-      args.rawDetails,
-      "```",
-      "",
-    ].join("\n");
+Rejected Plan: ${args.errorMessage}
+Raw Details: ${args.rawDetails}
+`;
   }
 
   private async writePlanAndReturnPath(
     result: any,
     metadata: RequestMetadata,
     filePath: string,
-    rawContent: string,
     traceLogger: any,
     extra?: Record<string, unknown>,
   ): Promise<string> {
     const planResult = await this.ioBreaker.execute(() => this.planWriter.writePlan(result, metadata));
-    await this.statusManager.updateStatus(filePath, rawContent, RequestStatus.PLANNED);
+    await this.statusManager.updateStatus(filePath, RequestStatus.PLANNED);
     const logObj: Record<string, unknown> = { plan_path: planResult.planPath, ...(extra ?? {}) };
     traceLogger.info("request.planned", filePath, logObj);
     return planResult.planPath;

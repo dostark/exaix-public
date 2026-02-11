@@ -9,12 +9,12 @@ export class StatusManager {
    */
   async updateStatus(
     filePath: string,
-    originalContent: string,
     newStatus: RequestStatusType,
     errorMessage?: string,
     extraFields?: Record<string, string>,
   ): Promise<void> {
     try {
+      const originalContent = await Deno.readTextFile(filePath);
       let updatedContent = originalContent.replace(
         /^(status:\s*).+$/m,
         `$1${newStatus}`,

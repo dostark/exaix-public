@@ -57,7 +57,7 @@ export abstract class BaseCommand {
    * @returns Frontmatter object
    */
   protected extractFrontmatter(content: string): Record<string, string> {
-    const match = content.match(/^---\n([\s\S]*?)\n---/);
+    const match = content.match(/^---\s*\n([\s\S]*?)\n---\s*/);
     if (!match) {
       return {};
     }
@@ -120,7 +120,7 @@ export abstract class BaseCommand {
   ): string {
     const frontmatter = this.extractFrontmatter(content);
     const updated = { ...frontmatter, ...updates };
-    const body = content.replace(/^---\n[\s\S]*?\n---\n?/, "");
+    const body = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, "");
     return this.serializeFrontmatter(updated) + "\n" + body;
   }
 
