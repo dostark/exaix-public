@@ -312,3 +312,22 @@ export function testSessionRender(
     }
   });
 }
+
+export function testDialogInteraction(
+  name: string,
+  setup: () => { dialog: any; keys: string[] },
+  verify: (dialog: any, rendered: string) => void,
+) {
+  Deno.test(name, () => {
+    const { dialog, keys } = setup();
+
+    if (keys.length > 0) {
+      for (const key of keys) {
+        dialog.handleKey(key);
+      }
+    }
+
+    const rendered = renderDialog(dialog);
+    verify(dialog, rendered);
+  });
+}

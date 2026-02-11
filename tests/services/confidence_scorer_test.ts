@@ -5,7 +5,6 @@
  */
 
 import { assert, assertEquals, assertExists, assertGreater, assertLess } from "@std/assert";
-import type { IModelProvider } from "../../src/ai/providers.ts";
 import { ConfidenceAssessmentLevel } from "../../src/enums.ts";
 import {
   ConfidenceSchema,
@@ -13,22 +12,7 @@ import {
   createLenientConfidenceScorer,
   createStrictConfidenceScorer,
 } from "../../src/services/confidence_scorer.ts";
-
-// ============================================================================
-// Mock LLM Provider
-// ============================================================================
-
-function createMockProvider(responses: string[]): IModelProvider {
-  let callCount = 0;
-  return {
-    id: "mock-provider",
-    generate: (_prompt: string): Promise<string> => {
-      const response = responses[Math.min(callCount, responses.length - 1)];
-      callCount++;
-      return Promise.resolve(response);
-    },
-  };
-}
+import { createMockProvider } from "../helpers/mock_provider.ts";
 
 function makeConfidenceJSON(options: {
   score?: number;

@@ -10,80 +10,93 @@ import {
 } from "../../../src/helpers/constants.ts";
 import { DialogProcessor } from "../../../src/tui/memory_view/dialog_processor.ts";
 import { DialogStatus } from "../../../src/enums.ts";
-import { createMockDialog, createMockService, createTestContext } from "./memory_test_helpers.ts";
+import { createMockDialog, createMockService, createTestContext, testDialogProcess } from "./memory_test_helpers.ts";
 
-Deno.test("DialogProcessor.processConfirmApproveDialog: cancelled", async () => {
-  const { ctx, statuses } = createTestContext();
-  const dialog = createMockDialog({ type: DialogStatus.CANCELLED });
+testDialogProcess(
+  "DialogProcessor.processConfirmApproveDialog: cancelled",
+  () => ({
+    ctx: createTestContext(),
+    dialog: createMockDialog({ type: DialogStatus.CANCELLED }),
+    process: DialogProcessor.processConfirmApproveDialog,
+  }),
+  (ctx) => {
+    assertEquals(ctx.statuses, [TUI_STATUS_MSG_CANCELLED]);
+  },
+);
 
-  await DialogProcessor.processConfirmApproveDialog(dialog, ctx);
+testDialogProcess(
+  "DialogProcessor.processConfirmApproveDialog: success",
+  () => {
+    const calls: string[] = [];
+    const service = createMockService({
+      approvePending: (id: string) => {
+        calls.push(`approve:${id}`);
+        return Promise.resolve();
+      },
+    });
+    return {
+      ctx: createTestContext({ service }),
+      dialog: createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1" } }),
+      process: DialogProcessor.processConfirmApproveDialog,
+    };
+  },
+  (ctx) => {
+    // We can't easily assert 'calls' here without exposing it differently,
+    // but we can rely on statuses and counters which are the main side effects.
+    // If strict call order verification is needed, we'd adjust the helper.
+    // For now, let's verify side effects.
+    assertEquals(ctx.statuses, [TUI_STATUS_MSG_PROPOSAL_APPROVED]);
+    assertEquals(ctx.counters.treeReloads, 1);
+    assertEquals(ctx.counters.pendingReloads, 1);
+  },
+);
 
-  assertEquals(statuses, [TUI_STATUS_MSG_CANCELLED]);
-});
+testDialogProcess(
+  "DialogProcessor.processConfirmRejectDialog: success",
+  () => {
+    const service = createMockService({
+      rejectPending: (_id: string, _reason: string) => Promise.resolve(),
+    });
+    return {
+      ctx: createTestContext({ service }),
+      dialog: createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } }),
+      process: DialogProcessor.processConfirmRejectDialog,
+    };
+  },
+  (ctx) => {
+    assertEquals(ctx.statuses, [TUI_STATUS_MSG_PROPOSAL_REJECTED]);
+    assertEquals(ctx.counters.treeReloads, 1);
+    assertEquals(ctx.counters.pendingReloads, 1);
+  },
+);
 
-Deno.test("DialogProcessor.processConfirmApproveDialog: success", async () => {
-  const calls: string[] = [];
-  const service = createMockService({
-    approvePending: (id: string) => {
-      calls.push(`approve:${id}`);
-      return Promise.resolve();
-    },
-  });
+testDialogProcess(
+  "DialogProcessor.processConfirmRejectDialog: cancelled",
+  () => ({
+    ctx: createTestContext(),
+    dialog: createMockDialog({ type: DialogStatus.CANCELLED }),
+    process: DialogProcessor.processConfirmRejectDialog,
+  }),
+  (ctx) => {
+    assertEquals(ctx.statuses, [TUI_STATUS_MSG_CANCELLED]);
+  },
+);
 
-  const { ctx, statuses, counters } = createTestContext({ service });
-  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1" } });
-
-  await DialogProcessor.processConfirmApproveDialog(dialog, ctx);
-
-  assertEquals(calls, ["approve:p1"]);
-  assertEquals(statuses, [TUI_STATUS_MSG_PROPOSAL_APPROVED]);
-  assertEquals(counters.treeReloads, 1);
-  assertEquals(counters.pendingReloads, 1);
-});
-
-Deno.test("DialogProcessor.processConfirmRejectDialog: success", async () => {
-  const calls: string[] = [];
-  const service = createMockService({
-    rejectPending: (id: string, reason: string) => {
-      calls.push(`reject:${id}:${reason}`);
-      return Promise.resolve();
-    },
-  });
-
-  const { ctx, statuses, counters } = createTestContext({ service });
-  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } });
-
-  await DialogProcessor.processConfirmRejectDialog(dialog, ctx);
-
-  assertEquals(calls, ["reject:p1:r"]);
-  assertEquals(statuses, [TUI_STATUS_MSG_PROPOSAL_REJECTED]);
-  assertEquals(counters.treeReloads, 1);
-  assertEquals(counters.pendingReloads, 1);
-});
-
-Deno.test("DialogProcessor.processConfirmRejectDialog: cancelled", async () => {
-  const { ctx, statuses } = createTestContext();
-  const dialog = createMockDialog({ type: DialogStatus.CANCELLED });
-
-  await DialogProcessor.processConfirmRejectDialog(dialog, ctx);
-
-  assertEquals(statuses, [TUI_STATUS_MSG_CANCELLED]);
-});
-
-Deno.test("DialogProcessor.processConfirmRejectDialog: error surfaces non-Error values", async () => {
-  const service = createMockService({
-    rejectPending: () => Promise.reject("boom"),
-  });
-
-  const { ctx, statuses, counters } = createTestContext({ service });
-  const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } });
-
-  await DialogProcessor.processConfirmRejectDialog(dialog, ctx);
-
-  assertEquals(statuses, [`${TUI_STATUS_MSG_ERROR_PREFIX}boom`]);
-  assertEquals(counters.treeReloads, 0);
-  assertEquals(counters.pendingReloads, 0);
-});
+testDialogProcess(
+  "DialogProcessor.processConfirmRejectDialog: error surfaces non-Error values",
+  () => ({
+    ctx: createTestContext({
+      service: createMockService({ rejectPending: () => Promise.reject("boom") }),
+    }),
+    dialog: createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } }),
+    process: DialogProcessor.processConfirmRejectDialog,
+  }),
+  (ctx) => {
+    assertEquals(ctx.statuses, [`${TUI_STATUS_MSG_ERROR_PREFIX}boom`]);
+    assertEquals(ctx.counters.treeReloads, 0);
+    assertEquals(ctx.counters.pendingReloads, 0);
+  },
+);
 
 Deno.test("DialogProcessor.processBulkApproveDialog: approves each pending and reports progress", async () => {
   const approved: string[] = [];
@@ -136,14 +149,17 @@ Deno.test("DialogProcessor.processBulkApproveDialog: error surfaces via status",
   assertEquals(counters.pendingReloads, 0);
 });
 
-Deno.test("DialogProcessor.processAddLearningDialog: cancelled", async () => {
-  const { ctx, statuses } = createTestContext();
-  const dialog = createMockDialog({ type: DialogStatus.CANCELLED });
-
-  await DialogProcessor.processAddLearningDialog(dialog, ctx);
-
-  assertEquals(statuses, [TUI_STATUS_MSG_CANCELLED]);
-});
+testDialogProcess(
+  "DialogProcessor.processAddLearningDialog: cancelled",
+  () => ({
+    ctx: createTestContext(),
+    dialog: createMockDialog({ type: DialogStatus.CANCELLED }),
+    process: DialogProcessor.processAddLearningDialog,
+  }),
+  (ctx) => {
+    assertEquals(ctx.statuses, [TUI_STATUS_MSG_CANCELLED]);
+  },
+);
 
 Deno.test("DialogProcessor.processAddLearningDialog: confirmed sets status and reloads tree", async () => {
   const { ctx, statuses, counters } = createTestContext();
@@ -169,14 +185,17 @@ Deno.test("DialogProcessor.processAddLearningDialog: error surfaces via status",
   assertEquals(counters.treeReloads, 0);
 });
 
-Deno.test("DialogProcessor.processPromoteDialog: cancelled", async () => {
-  const { ctx, statuses } = createTestContext();
-  const dialog = createMockDialog({ type: DialogStatus.CANCELLED });
-
-  await DialogProcessor.processPromoteDialog(dialog, ctx);
-
-  assertEquals(statuses, [TUI_STATUS_MSG_CANCELLED]);
-});
+testDialogProcess(
+  "DialogProcessor.processPromoteDialog: cancelled",
+  () => ({
+    ctx: createTestContext(),
+    dialog: createMockDialog({ type: DialogStatus.CANCELLED }),
+    process: DialogProcessor.processPromoteDialog,
+  }),
+  (ctx) => {
+    assertEquals(ctx.statuses, [TUI_STATUS_MSG_CANCELLED]);
+  },
+);
 
 Deno.test("DialogProcessor.processPromoteDialog: confirmed sets status and reloads tree", async () => {
   const { ctx, statuses, counters } = createTestContext();

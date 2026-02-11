@@ -14,22 +14,7 @@ import {
   createReflexiveAgent,
   CritiqueSchema,
 } from "../../src/services/reflexive_agent.ts";
-
-// ============================================================================
-// Mock LLM Provider
-// ============================================================================
-
-function createMockProvider(responses: string[]): IModelProvider {
-  let callCount = 0;
-  return {
-    id: "mock-provider",
-    generate: (_prompt: string): Promise<string> => {
-      const response = responses[Math.min(callCount, responses.length - 1)];
-      callCount++;
-      return Promise.resolve(response);
-    },
-  };
-}
+import { createMockProvider } from "../helpers/mock_provider.ts";
 
 function makeXMLResponse(thought: string, content: string): string {
   return `<thought>${thought}</thought><content>${content}</content>`;

@@ -9,24 +9,7 @@ import {
 import type { Pane } from "../../src/tui/tui_dashboard.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../src/helpers/constants.ts";
 
-function makePane(id: string, viewName: string, overrides: Partial<Pane> = {}): Pane {
-  return {
-    id,
-    view: { name: viewName } as any,
-    flexX: 0,
-    flexY: 0,
-    flexWidth: 1,
-    flexHeight: 1,
-    x: 0,
-    y: 0,
-    width: TUI_LAYOUT_FULL_WIDTH,
-    height: TUI_LAYOUT_DEFAULT_HEIGHT,
-    focused: false,
-    maximized: false,
-    ...(overrides as any),
-  } as Pane;
-}
-
+import { makePane } from "./layout_test_utils.ts";
 async function withTempHome(fn: (home: string) => Promise<void> | void): Promise<void> {
   const originalHome = Deno.env.get("HOME");
   const tempHome = await Deno.makeTempDir({ prefix: "exoframe-home-" });

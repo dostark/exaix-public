@@ -63,3 +63,19 @@ export function createTestContext(overrides?: Partial<{ service: MemoryServiceIn
     },
   };
 }
+
+export function testDialogProcess(
+  name: string,
+  setup: () => {
+    dialog: any;
+    ctx: MockContext;
+    process: (dialog: any, ctx: any) => Promise<void>;
+  },
+  verify: (ctx: MockContext) => void | Promise<void>,
+) {
+  Deno.test(name, async () => {
+    const { dialog, ctx, process } = setup();
+    await process(dialog, ctx.ctx);
+    await verify(ctx);
+  });
+}

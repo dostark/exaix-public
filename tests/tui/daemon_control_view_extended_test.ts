@@ -70,52 +70,35 @@ Deno.test("DaemonControlView: service delegation works", async () => {
 
 // ===== DaemonControlTuiSession Status Parsing =====
 
-Deno.test("DaemonControlTuiSession: parseStatus detects running variants", async () => {
-  const { mock, session } = await setupDaemonTest();
+[
+  {
+    name: "running variants",
+    status: DaemonStatus.RUNNING,
+    aliases: ["started", "RUNNING"],
+    expected: DaemonStatus.RUNNING,
+  },
+  { name: "stopped variants", status: DaemonStatus.STOPPED, aliases: ["STOPPED"], expected: DaemonStatus.STOPPED },
+  {
+    name: "error variants",
+    status: DaemonStatus.ERROR,
+    aliases: ["crash detected", "ERROR"],
+    expected: DaemonStatus.ERROR,
+  },
+  { name: "unknown variants", status: "something weird" as DaemonStatus, aliases: [], expected: DaemonStatus.UNKNOWN },
+].forEach(({ name, status, aliases, expected }) => {
+  Deno.test(`DaemonControlTuiSession: parseStatus detects ${name}`, async () => {
+    const { mock, session } = await setupDaemonTest();
 
-  mock.setStatus(DaemonStatus.RUNNING);
-  await session.initialize();
-  assertEquals(session.getDaemonStatus(), DaemonStatus.RUNNING);
+    mock.setStatus(status);
+    await session.initialize();
+    assertEquals(session.getDaemonStatus(), expected);
 
-  mock.setStatus("started" as any);
-  await session.refreshStatus();
-  assertEquals(session.getDaemonStatus(), DaemonStatus.RUNNING);
-});
-
-Deno.test("DaemonControlTuiSession: parseStatus detects stopped variants", async () => {
-  const stoppedMock: DaemonService = {
-    start: () => Promise.resolve(),
-    stop: () => Promise.resolve(),
-    restart: () => Promise.resolve(),
-    getStatus: () => Promise.resolve(DaemonStatus.STOPPED),
-    getLogs: () => Promise.resolve([]),
-    getErrors: () => Promise.resolve([]),
-  };
-
-  const view1 = new DaemonControlView(stoppedMock);
-  const session1 = view1.createTuiSession(false);
-  await session1.initialize();
-  assertEquals(session1.getDaemonStatus(), DaemonStatus.STOPPED);
-});
-
-Deno.test("DaemonControlTuiSession: parseStatus detects error variants", async () => {
-  const { mock, session } = await setupDaemonTest();
-
-  mock.setStatus(DaemonStatus.ERROR);
-  await session.initialize();
-  assertEquals(session.getDaemonStatus(), DaemonStatus.ERROR);
-
-  mock.setStatus("crash detected" as any);
-  await session.refreshStatus();
-  assertEquals(session.getDaemonStatus(), DaemonStatus.ERROR);
-});
-
-Deno.test("DaemonControlTuiSession: parseStatus defaults to unknown", async () => {
-  const { mock, session } = await setupDaemonTest();
-
-  mock.setStatus("something weird" as any);
-  await session.initialize();
-  assertEquals(session.getDaemonStatus(), DaemonStatus.UNKNOWN);
+    for (const alias of aliases) {
+      mock.setStatus(alias as any);
+      await session.refreshStatus();
+      assertEquals(session.getDaemonStatus(), expected);
+    }
+  });
 });
 
 // ===== DaemonControlTuiSession State Accessors =====
@@ -191,64 +174,36 @@ Deno.test("DaemonControlTuiSession: restartDaemon success", async () => {
   assertEquals(logs.some((l) => l.includes("restart")), true);
 });
 
-Deno.test("DaemonControlTuiSession: startDaemon handles error", async () => {
-  const errorService: DaemonService = {
-    start: () => Promise.reject(new Error("Start failed")),
-    stop: () => Promise.resolve(),
-    restart: () => Promise.resolve(),
-    getStatus: () => Promise.resolve(DaemonStatus.STOPPED),
-    getLogs: () => Promise.resolve([]),
-    getErrors: () => Promise.resolve([]),
-  };
-  const view = new DaemonControlView(errorService);
-  const session = view.createTuiSession(false);
-  await session.initialize();
-  await session.startDaemon();
-});
+[
+  { method: "startDaemon", error: "Start failed" },
+  { method: "stopDaemon", error: "Stop failed" },
+  { method: "restartDaemon", error: "Restart failed" },
+  {
+    method: "refreshStatus",
+    error: "Status check failed",
+    setupOverride: { getStatus: () => Promise.reject(new Error("Status check failed")) },
+  },
+].forEach(({ method, error: _error, setupOverride }) => {
+  Deno.test(`DaemonControlTuiSession: ${method} handles error`, async () => {
+    const errorService: DaemonService = {
+      start: () => Promise.reject(new Error("Start failed")),
+      stop: () => Promise.reject(new Error("Stop failed")),
+      restart: () => Promise.reject(new Error("Restart failed")),
+      getStatus: () => Promise.resolve(DaemonStatus.STOPPED),
+      getLogs: () => Promise.resolve([]),
+      getErrors: () => Promise.resolve([]),
+      ...setupOverride,
+    };
+    const view = new DaemonControlView(errorService);
+    const session = view.createTuiSession(false);
+    await session.initialize();
 
-Deno.test("DaemonControlTuiSession: stopDaemon handles error", async () => {
-  const errorService: DaemonService = {
-    start: () => Promise.resolve(),
-    stop: () => Promise.reject(new Error("Stop failed")),
-    restart: () => Promise.resolve(),
-    getStatus: () => Promise.resolve(DaemonStatus.RUNNING),
-    getLogs: () => Promise.resolve([]),
-    getErrors: () => Promise.resolve([]),
-  };
-  const view = new DaemonControlView(errorService);
-  const session = view.createTuiSession(false);
-  await session.initialize();
-  await session.stopDaemon();
-});
-
-Deno.test("DaemonControlTuiSession: restartDaemon handles error", async () => {
-  const errorService: DaemonService = {
-    start: () => Promise.resolve(),
-    stop: () => Promise.resolve(),
-    restart: () => Promise.reject(new Error("Restart failed")),
-    getStatus: () => Promise.resolve(DaemonStatus.STOPPED),
-    getLogs: () => Promise.resolve([]),
-    getErrors: () => Promise.resolve([]),
-  };
-  const view = new DaemonControlView(errorService);
-  const session = view.createTuiSession(false);
-  await session.initialize();
-  await session.restartDaemon();
-});
-
-Deno.test("DaemonControlTuiSession: refreshStatus handles error", async () => {
-  const errorService: DaemonService = {
-    start: () => Promise.resolve(),
-    stop: () => Promise.resolve(),
-    restart: () => Promise.resolve(),
-    getStatus: () => Promise.reject(new Error("Status check failed")),
-    getLogs: () => Promise.resolve([]),
-    getErrors: () => Promise.resolve([]),
-  };
-  const view = new DaemonControlView(errorService);
-  const session = view.createTuiSession(false);
-  await session.initialize();
-  assertEquals(session.getDaemonStatus(), DaemonStatus.ERROR);
+    if (method === "refreshStatus") {
+      assertEquals(session.getDaemonStatus(), DaemonStatus.ERROR);
+    } else {
+      await (session as any)[method]();
+    }
+  });
 });
 
 // ===== DaemonControlTuiSession Dialog Behavior =====

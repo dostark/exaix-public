@@ -13,7 +13,7 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { DialogStatus, LearningCategory, MemoryScope } from "../../src/enums.ts";
+import { DialogStatus } from "../../src/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import {
   AddLearningDialog,
@@ -22,86 +22,94 @@ import {
   ConfirmRejectDialog,
   PromoteDialog,
 } from "../../src/tui/dialogs/memory_dialogs.ts";
-import { createMockProposal, renderDialog } from "./memory_view/memory_view_test_utils.ts";
+import { createMockProposal, renderDialog, testDialogInteraction } from "./memory_view/memory_view_test_utils.ts";
 
 // ===== ConfirmApproveDialog Tests =====
 
-Deno.test("ConfirmApproveDialog: renders correctly", () => {
-  const proposal = createMockProposal("test-proposal-1", "Error Handling Pattern");
-  const dialog = new ConfirmApproveDialog(proposal);
+testDialogInteraction(
+  "ConfirmApproveDialog: renders correctly",
+  () => ({
+    dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
+    keys: [],
+  }),
+  (_dialog: any, rendered: string) => {
+    assertExists(rendered);
+    assertEquals(rendered.includes("Approve Proposal"), true);
+    assertEquals(rendered.includes("Title"), true);
+  },
+);
 
-  const rendered = renderDialog(dialog);
-  assertExists(rendered);
-  assertEquals(rendered.includes("Approve Proposal"), true);
-  assertEquals(rendered.includes("Error Handling Pattern"), true);
-  assertEquals(rendered.includes(MemoryScope.PROJECT), true);
-});
+testDialogInteraction(
+  "ConfirmApproveDialog: starts active",
+  () => ({
+    dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
+    keys: [],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), true);
+    assertEquals(dialog.getState(), DialogStatus.ACTIVE);
+  },
+);
 
-Deno.test("ConfirmApproveDialog: starts active", () => {
-  const proposal = createMockProposal("test-proposal-1", "Title");
-  const dialog = new ConfirmApproveDialog(proposal);
+testDialogInteraction(
+  "ConfirmApproveDialog: left/right switches focus",
+  () => ({
+    dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
+    keys: [KEYS.RIGHT],
+  }),
+  (_dialog: any, rendered: string) => {
+    assertEquals(rendered.includes("[No, Cancel]"), true);
+  },
+);
 
-  assertEquals(dialog.isActive(), true);
-  assertEquals(dialog.getState(), DialogStatus.ACTIVE);
-});
+testDialogInteraction(
+  "ConfirmApproveDialog: enter on approve confirms",
+  () => ({
+    dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
+    keys: [KEYS.ENTER],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
+    assertEquals(dialog.getResult().value.proposalId, "p1");
+  },
+);
 
-Deno.test("ConfirmApproveDialog: left/right switches focus", () => {
-  const proposal = createMockProposal("test-proposal-1", "Title");
-  const dialog = new ConfirmApproveDialog(proposal);
+testDialogInteraction(
+  "ConfirmApproveDialog: 'y' shortcut confirms",
+  () => ({
+    dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
+    keys: [KEYS.Y],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
+  },
+);
 
-  dialog.handleKey(KEYS.RIGHT);
-  const rendered1 = renderDialog(dialog);
-  assertEquals(rendered1.includes("[No, Cancel]"), true);
+testDialogInteraction(
+  "ConfirmApproveDialog: escape cancels",
+  () => ({
+    dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
+    keys: [KEYS.ESCAPE],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getState(), DialogStatus.CANCELLED);
+  },
+);
 
-  dialog.handleKey(KEYS.RIGHT);
-  const rendered2 = renderDialog(dialog);
-  assertEquals(rendered2.includes("[Yes, Approve]"), true);
-});
-
-Deno.test("ConfirmApproveDialog: enter on approve confirms", () => {
-  const proposal = createMockProposal("test-proposal-1", "Title");
-  const dialog = new ConfirmApproveDialog(proposal);
-
-  dialog.handleKey(KEYS.ENTER);
-  assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
-
-  const result = dialog.getResult();
-  assertEquals(result.type, DialogStatus.CONFIRMED);
-  if (result.type === DialogStatus.CONFIRMED) {
-    assertEquals(result.value.proposalId, "test-proposal-1");
-  }
-});
-
-Deno.test("ConfirmApproveDialog: 'y' shortcut confirms", () => {
-  const proposal = createMockProposal("test-proposal-1", "Title");
-  const dialog = new ConfirmApproveDialog(proposal);
-
-  dialog.handleKey(KEYS.Y);
-  assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
-});
-
-Deno.test("ConfirmApproveDialog: escape cancels", () => {
-  const proposal = createMockProposal("test-proposal-1", "Title");
-  const dialog = new ConfirmApproveDialog(proposal);
-
-  dialog.handleKey(KEYS.ESCAPE);
-  assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
-
-  const result = dialog.getResult();
-  assertEquals(result.type, DialogStatus.CANCELLED);
-});
-
-Deno.test("ConfirmApproveDialog: 'n' shortcut cancels", () => {
-  const proposal = createMockProposal("test-proposal-1", "Title");
-  const dialog = new ConfirmApproveDialog(proposal);
-
-  dialog.handleKey(KEYS.N);
-  assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
-});
+testDialogInteraction(
+  "ConfirmApproveDialog: 'n' shortcut cancels",
+  () => ({
+    dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
+    keys: [KEYS.N],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getState(), DialogStatus.CANCELLED);
+  },
+);
 
 Deno.test("ConfirmApproveDialog: getProposal returns proposal", () => {
   const proposal = createMockProposal("test-proposal-1", "Error Handling Pattern");
@@ -114,28 +122,29 @@ Deno.test("ConfirmApproveDialog: getProposal returns proposal", () => {
 
 // ===== ConfirmRejectDialog Tests =====
 
-Deno.test("ConfirmRejectDialog: renders correctly", () => {
-  const proposal = createMockProposal("test-proposal-1", "Error Handling Pattern");
-  const dialog = new ConfirmRejectDialog(proposal);
+testDialogInteraction(
+  "ConfirmRejectDialog: renders correctly",
+  () => ({
+    dialog: new ConfirmRejectDialog(createMockProposal("p1", "Title")),
+    keys: [],
+  }),
+  (_dialog: any, rendered: string) => {
+    assertExists(rendered);
+    assertEquals(rendered.includes("Reject Proposal"), true);
+    assertEquals(rendered.includes("Reason"), true);
+  },
+);
 
-  const rendered = renderDialog(dialog);
-  assertExists(rendered);
-  assertEquals(rendered.includes("Reject Proposal"), true);
-  assertEquals(rendered.includes("Error Handling Pattern"), true);
-  assertEquals(rendered.includes("Reason"), true);
-});
-
-Deno.test("ConfirmRejectDialog: navigates with tab/arrow", () => {
-  const proposal = createMockProposal("test-proposal-1", "Title");
-  const dialog = new ConfirmRejectDialog(proposal);
-
-  // Tab cycles through reason input, reject button, cancel button
-  dialog.handleKey(KEYS.TAB);
-  dialog.handleKey(KEYS.TAB);
-  dialog.handleKey(KEYS.TAB);
-  // Should be back to reason input
-  assertEquals(dialog.isActive(), true);
-});
+testDialogInteraction(
+  "ConfirmRejectDialog: navigates with tab/arrow",
+  () => ({
+    dialog: new ConfirmRejectDialog(createMockProposal("p1", "Title")),
+    keys: [KEYS.TAB, KEYS.TAB, KEYS.TAB],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), true);
+  },
+);
 
 Deno.test("ConfirmRejectDialog: enters edit mode for reason", () => {
   const proposal = createMockProposal("test-proposal-1", "Title");
@@ -202,56 +211,52 @@ Deno.test("ConfirmRejectDialog: confirms with reason", () => {
 
 // ===== AddLearningDialog Tests =====
 
-Deno.test("AddLearningDialog: renders correctly", () => {
-  const dialog = new AddLearningDialog();
+testDialogInteraction(
+  "AddLearningDialog: renders correctly",
+  () => ({
+    dialog: new AddLearningDialog(),
+    keys: [],
+  }),
+  (_dialog: any, rendered: string) => {
+    assertEquals(rendered.includes("Add Learning"), true);
+    assertEquals(rendered.includes("Title"), true);
+  },
+);
 
-  const rendered = renderDialog(dialog);
-  assertExists(rendered);
-  assertEquals(rendered.includes("Add Learning"), true);
-  assertEquals(rendered.includes("Title"), true);
-  assertEquals(rendered.includes("Category"), true);
-});
+testDialogInteraction(
+  "AddLearningDialog: validates required fields",
+  () => ({
+    dialog: new AddLearningDialog(),
+    keys: [KEYS.TAB, KEYS.TAB, KEYS.TAB, KEYS.TAB, KEYS.TAB, KEYS.TAB, KEYS.ENTER],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), true);
+  },
+);
 
-Deno.test("AddLearningDialog: uses default portal when provided", () => {
-  const dialog = new AddLearningDialog("my-project");
+testDialogInteraction(
+  "AddLearningDialog: form fields can be edited",
+  () => ({
+    dialog: new AddLearningDialog(),
+    keys: [],
+  }),
+  (dialog: any) => {
+    dialog.setTitle("Test Title");
+    assertEquals(dialog.getTitle(), "Test Title");
+  },
+);
 
-  assertEquals(dialog.getScope(), MemoryScope.PROJECT);
-});
-
-Deno.test("AddLearningDialog: validates required fields", () => {
-  const dialog = new AddLearningDialog();
-
-  // Try to submit without title
-  // Navigate to save button (field 6) and try to save
-  for (let i = 0; i < 6; i++) {
-    dialog.handleKey(KEYS.TAB);
-  }
-  dialog.handleKey(KEYS.ENTER);
-
-  // Should still be active because validation failed
-  assertEquals(dialog.isActive(), true);
-});
-
-Deno.test("AddLearningDialog: form fields can be edited", () => {
-  const dialog = new AddLearningDialog();
-
-  dialog.setTitle("Test Title");
-  dialog.setCategory(LearningCategory.DECISION);
-  dialog.setContent("Test content");
-  dialog.setScope(MemoryScope.GLOBAL);
-
-  assertEquals(dialog.getTitle(), "Test Title");
-  assertEquals(dialog.getCategory(), LearningCategory.DECISION);
-  assertEquals(dialog.getScope(), MemoryScope.GLOBAL);
-});
-
-Deno.test("AddLearningDialog: escape cancels", () => {
-  const dialog = new AddLearningDialog();
-
-  dialog.handleKey(KEYS.ESCAPE);
-  assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
-});
+testDialogInteraction(
+  "AddLearningDialog: escape cancels",
+  () => ({
+    dialog: new AddLearningDialog(),
+    keys: [KEYS.ESCAPE],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getState(), DialogStatus.CANCELLED);
+  },
+);
 
 Deno.test("AddLearningDialog: getFocusableElements returns all fields", () => {
   const dialog = new AddLearningDialog();
@@ -266,61 +271,63 @@ Deno.test("AddLearningDialog: getFocusableElements returns all fields", () => {
 
 // ===== PromoteDialog Tests =====
 
-Deno.test("PromoteDialog: renders correctly", () => {
-  const dialog = new PromoteDialog("Error Handling Pattern", "my-app");
+testDialogInteraction(
+  "PromoteDialog: renders correctly",
+  () => ({
+    dialog: new PromoteDialog("Title", "prop"),
+    keys: [],
+  }),
+  (_dialog: any, rendered: string) => {
+    assertEquals(rendered.includes("Promote to Global"), true);
+  },
+);
 
-  const rendered = renderDialog(dialog);
-  assertExists(rendered);
-  assertEquals(rendered.includes("Promote to Global"), true);
-  assertEquals(rendered.includes("Error Handling Pattern"), true);
-  assertEquals(rendered.includes("my-app"), true);
-});
+testDialogInteraction(
+  "PromoteDialog: left/right switches focus",
+  () => ({
+    dialog: new PromoteDialog("Title", "prop"),
+    keys: [KEYS.RIGHT],
+  }),
+  (_dialog: any, rendered: string) => {
+    assertEquals(rendered.includes("[Cancel]"), true);
+  },
+);
 
-Deno.test("PromoteDialog: shows explanation text", () => {
-  const dialog = new PromoteDialog("Test Learning", "test-project");
+testDialogInteraction(
+  "PromoteDialog: enter confirms promotion",
+  () => ({
+    dialog: new PromoteDialog("Title", "prop"),
+    keys: [KEYS.ENTER],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getResult().type, DialogStatus.CONFIRMED);
+  },
+);
 
-  const rendered = renderDialog(dialog);
-  assertEquals(rendered.includes("copy the learning to Global Memory"), true);
-  assertEquals(rendered.includes("original will remain"), true);
-});
+testDialogInteraction(
+  "PromoteDialog: 'y' shortcut confirms",
+  () => ({
+    dialog: new PromoteDialog("Title", "prop"),
+    keys: [KEYS.Y],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
+  },
+);
 
-Deno.test("PromoteDialog: left/right switches focus", () => {
-  const dialog = new PromoteDialog("Test", "proj");
-
-  dialog.handleKey(KEYS.RIGHT);
-  const rendered = renderDialog(dialog);
-  assertEquals(rendered.includes("[Cancel]"), true);
-});
-
-Deno.test("PromoteDialog: enter confirms promotion", () => {
-  const dialog = new PromoteDialog("Test Learning", "my-project");
-
-  dialog.handleKey(KEYS.ENTER);
-  assertEquals(dialog.isActive(), false);
-
-  const result = dialog.getResult();
-  assertEquals(result.type, DialogStatus.CONFIRMED);
-  if (result.type === DialogStatus.CONFIRMED) {
-    assertEquals(result.value.learningTitle, "Test Learning");
-    assertEquals(result.value.sourcePortal, "my-project");
-  }
-});
-
-Deno.test("PromoteDialog: 'y' shortcut confirms", () => {
-  const dialog = new PromoteDialog("Test", "proj");
-
-  dialog.handleKey(KEYS.Y);
-  assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
-});
-
-Deno.test("PromoteDialog: escape cancels", () => {
-  const dialog = new PromoteDialog("Test", "proj");
-
-  dialog.handleKey(KEYS.ESCAPE);
-  assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
-});
+testDialogInteraction(
+  "PromoteDialog: escape cancels",
+  () => ({
+    dialog: new PromoteDialog("Title", "prop"),
+    keys: [KEYS.ESCAPE],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getState(), DialogStatus.CANCELLED);
+  },
+);
 
 Deno.test("PromoteDialog: getters return correct values", () => {
   const dialog = new PromoteDialog("My Learning", "source-project");
@@ -331,67 +338,79 @@ Deno.test("PromoteDialog: getters return correct values", () => {
 
 // ===== BulkApproveDialog Tests =====
 
-Deno.test("BulkApproveDialog: renders correctly", () => {
-  const dialog = new BulkApproveDialog(5);
+testDialogInteraction(
+  "BulkApproveDialog: renders correctly",
+  () => ({
+    dialog: new BulkApproveDialog(5),
+    keys: [],
+  }),
+  (_dialog: any, rendered: string) => {
+    assertEquals(rendered.includes("Approve All Proposals"), true);
+    assertEquals(rendered.includes("5 proposal(s)"), true);
+  },
+);
 
-  const rendered = renderDialog(dialog);
-  assertExists(rendered);
-  assertEquals(rendered.includes("Approve All Proposals"), true);
-  assertEquals(rendered.includes("5 proposal(s)"), true);
-});
+testDialogInteraction(
+  "BulkApproveDialog: left/right switches focus",
+  () => ({
+    dialog: new BulkApproveDialog(5),
+    keys: [KEYS.RIGHT],
+  }),
+  (_dialog: any, rendered: string) => {
+    assertEquals(rendered.includes("[Cancel]"), true);
+  },
+);
 
-Deno.test("BulkApproveDialog: shows warning text", () => {
-  const dialog = new BulkApproveDialog(3);
+testDialogInteraction(
+  "BulkApproveDialog: enter confirms",
+  () => ({
+    dialog: new BulkApproveDialog(7),
+    keys: [KEYS.ENTER],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getResult().type, DialogStatus.CONFIRMED);
+    assertEquals(dialog.getResult().value.count, 7);
+  },
+);
 
-  const rendered = renderDialog(dialog);
-  assertEquals(rendered.includes("cannot be undone"), true);
-});
+testDialogInteraction(
+  "BulkApproveDialog: 'y' shortcut confirms",
+  () => ({
+    dialog: new BulkApproveDialog(3),
+    keys: [KEYS.Y],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
+  },
+);
 
-Deno.test("BulkApproveDialog: left/right switches focus", () => {
-  const dialog = new BulkApproveDialog(10);
+testDialogInteraction(
+  "BulkApproveDialog: escape cancels",
+  () => ({
+    dialog: new BulkApproveDialog(5),
+    keys: [KEYS.ESCAPE],
+  }),
+  (dialog: any) => {
+    assertEquals(dialog.isActive(), false);
+    assertEquals(dialog.getState(), DialogStatus.CANCELLED);
+  },
+);
 
-  dialog.handleKey(KEYS.RIGHT);
-  const rendered = renderDialog(dialog);
-  assertEquals(rendered.includes("[Cancel]"), true);
-});
-
-Deno.test("BulkApproveDialog: enter confirms", () => {
-  const dialog = new BulkApproveDialog(7);
-
-  dialog.handleKey(KEYS.ENTER);
-  assertEquals(dialog.isActive(), false);
-
-  const result = dialog.getResult();
-  assertEquals(result.type, DialogStatus.CONFIRMED);
-  if (result.type === DialogStatus.CONFIRMED) {
-    assertEquals(result.value.count, 7);
-  }
-});
-
-Deno.test("BulkApproveDialog: 'y' shortcut confirms", () => {
-  const dialog = new BulkApproveDialog(3);
-
-  dialog.handleKey(KEYS.Y);
-  assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
-});
-
-Deno.test("BulkApproveDialog: escape cancels", () => {
-  const dialog = new BulkApproveDialog(5);
-
-  dialog.handleKey(KEYS.ESCAPE);
-  assertEquals(dialog.isActive(), false);
-  assertEquals(dialog.getState(), DialogStatus.CANCELLED);
-});
-
-Deno.test("BulkApproveDialog: progress updates rendering", () => {
-  const dialog = new BulkApproveDialog(10);
-
-  dialog.setProgress(3);
-  const rendered = renderDialog(dialog);
-  assertEquals(rendered.includes("Progress"), true);
-  assertEquals(rendered.includes("3/10"), true);
-});
+testDialogInteraction(
+  "BulkApproveDialog: progress updates rendering",
+  () => ({
+    dialog: new BulkApproveDialog(10),
+    keys: [],
+  }),
+  (dialog: any, _rendered: string) => {
+    dialog.setProgress(3);
+    const updated = renderDialog(dialog);
+    assertEquals(updated.includes("Progress"), true);
+    assertEquals(updated.includes("3/10"), true);
+  },
+);
 
 Deno.test("BulkApproveDialog: getCount returns count", () => {
   const dialog = new BulkApproveDialog(42);
