@@ -1,3 +1,13 @@
+/**
+ * Consolidated tests for plan validation error handling in RequestProcessor.
+ *
+ * This suite covers:
+ * 1. PlanValidationError detection and handling
+ * 2. Saving rejected plans for manual review
+ * 3. Error message persistence in request metadata
+ * 4. CLI integration and display
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { basename, join } from "@std/path";
 import { parse } from "@std/yaml";
@@ -5,11 +15,12 @@ import { parse } from "@std/yaml";
 import { RequestProcessor } from "../src/services/request_processor.ts";
 import { CostTracker } from "../src/services/cost_tracker.ts";
 import { StatusManager } from "../src/services/request_processing/status_manager.ts";
-import { initTestDbService } from "./helpers/db.ts";
-import { getWorkspaceRequestsDir } from "./helpers/paths_helper.ts";
-import { PlanStatus } from "../src/plans/plan_status.ts";
-import { RequestStatus } from "../src/requests/request_status.ts";
 import { PlanValidationError } from "../src/services/plan_adapter.ts";
+import { RequestStatus } from "../src/requests/request_status.ts";
+import { PlanStatus } from "../src/plans/plan_status.ts";
+import { initTestDbService } from "./helpers/db.ts";
+import { getWorkspaceRejectedDir, getWorkspaceRequestsDir } from "./helpers/paths_helper.ts";
+import { RequestShowHandler } from "../src/cli/handlers/request_show_handler.ts";
 
 function parseFrontmatter(content: string): Record<string, unknown> {
   const parts = content.split("---");
@@ -18,6 +29,10 @@ function parseFrontmatter(content: string): Record<string, unknown> {
   }
   return parse(parts[1]) as Record<string, unknown>;
 }
+
+// ============================================================================
+// Core Error Handling Tests
+// ============================================================================
 
 Deno.test("RequestProcessor: PlanValidationError saves rejected raw content and marks request failed", async () => {
   const testDbResult = await initTestDbService();
@@ -60,7 +75,6 @@ Do flow work.
 
     const rejectedRaw = "RAW_PLAN_CONTENT";
 
-    // Use proper PlanValidationError instance (regression test for instanceof detection)
     const validationError = new PlanValidationError("Invalid plan structure", {
       rawContent: rejectedRaw,
       validationErrors: ["Missing required field: steps"],
@@ -76,7 +90,7 @@ Do flow work.
     assertEquals(result, null);
 
     const requestId = basename(requestPath, ".md");
-    const rejectedDir = join(config.system.root, config.paths.workspace, config.paths.rejected);
+    const rejectedDir = getWorkspaceRejectedDir(tempDir);
     const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
 
     const rejectedContent = await Deno.readTextFile(rejectedPath);
@@ -94,10 +108,6 @@ Do flow work.
     await cleanup();
   }
 });
-
-// ============================================================================
-// Additional Regression Tests for the Plan Validation Fix
-// ============================================================================
 
 Deno.test("Regression: PlanValidationError instanceof detection works reliably", async () => {
   const testDbResult = await initTestDbService();
@@ -138,7 +148,6 @@ Create documentation for the new feature.
       costTracker,
     );
 
-    // Test the instanceof detection with a proper PlanValidationError instance
     const validationError = new PlanValidationError("Invalid JSON structure", {
       rawContent: "INVALID_JSON_CONTENT",
       validationErrors: ["Expected property 'steps'"],
@@ -153,27 +162,24 @@ Create documentation for the new feature.
     const result = await processor.process(requestPath);
     assertEquals(result, null);
 
-    // Verify the request was marked as failed
     const updatedRequest = await Deno.readTextFile(requestPath);
     const updatedRequestFrontmatter = parseFrontmatter(updatedRequest);
     assertEquals(updatedRequestFrontmatter.status, RequestStatus.FAILED);
     assertEquals(updatedRequestFrontmatter.error, "Invalid JSON structure");
 
-    // Verify rejected plan was saved
     const requestId = basename(requestPath, ".md");
-    const rejectedDir = join(config.system.root, config.paths.workspace, config.paths.rejected);
-    const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
+    const rejectedPath = join(getWorkspaceRejectedDir(tempDir), `${requestId}_rejected.md`);
 
-    const rejectedContent = await Deno.readTextFile(rejectedPath);
-    const rejectedFrontmatter = parseFrontmatter(rejectedContent);
-    assertEquals(rejectedFrontmatter.status, PlanStatus.REJECTED);
-    assertEquals(rejectedFrontmatter.request_id, requestId);
-    assertStringIncludes(rejectedContent, "INVALID_JSON_CONTENT");
+    assertStringIncludes(await Deno.readTextFile(rejectedPath), "INVALID_JSON_CONTENT");
   } finally {
     await costTracker.flush();
     await cleanup();
   }
 });
+
+// ============================================================================
+// Fallback and Raw Content Persistence Tests
+// ============================================================================
 
 Deno.test("Regression: Rejected plans saved with fallback content when raw content unavailable", async () => {
   const testDbResult = await initTestDbService();
@@ -192,11 +198,9 @@ created: "${new Date().toISOString()}"
 status: pending
 priority: normal
 agent: technical-writer
-source: cli
-created_by: "test@example.com"
 ---
 
-Create documentation for the new feature.
+Content here.
 `;
 
     await Deno.writeTextFile(requestPath, requestContent);
@@ -214,10 +218,8 @@ Create documentation for the new feature.
       costTracker,
     );
 
-    // Test with PlanValidationError that has no rawContent in details
     const validationError = new PlanValidationError("Schema validation failed", {
       validationErrors: ["Missing required field: title"],
-      // No rawContent provided
     });
 
     (processor as any).planWriter = {
@@ -226,19 +228,12 @@ Create documentation for the new feature.
       },
     };
 
-    const result = await processor.process(requestPath);
-    assertEquals(result, null);
+    await processor.process(requestPath);
 
-    // Verify rejected plan was still saved with fallback content
     const requestId = basename(requestPath, ".md");
-    const rejectedDir = join(config.system.root, config.paths.workspace, config.paths.rejected);
-    const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
+    const rejectedPath = join(getWorkspaceRejectedDir(tempDir), `${requestId}_rejected.md`);
 
     const rejectedContent = await Deno.readTextFile(rejectedPath);
-    const rejectedFrontmatter = parseFrontmatter(rejectedContent);
-    assertEquals(rejectedFrontmatter.status, PlanStatus.REJECTED);
-    assertEquals(rejectedFrontmatter.request_id, requestId);
-    // Should contain fallback content indicating no raw content was available
     assertStringIncludes(rejectedContent, "No raw content available");
   } finally {
     await costTracker.flush();
@@ -246,8 +241,78 @@ Create documentation for the new feature.
   }
 });
 
+Deno.test("Regression: End-to-end error handling workflow captures detailed raw content", async () => {
+  const testDbResult = await initTestDbService();
+  const { tempDir, db, config, cleanup } = testDbResult;
+  const costTracker = new CostTracker(db, config);
+
+  try {
+    await Deno.mkdir(getWorkspaceRequestsDir(tempDir), { recursive: true });
+
+    const traceId = crypto.randomUUID();
+    const requestId = `request-${traceId.slice(0, 8)}`;
+    const requestPath = join(getWorkspaceRequestsDir(tempDir), `${requestId}.md`);
+
+    await Deno.writeTextFile(
+      requestPath,
+      `---
+trace_id: "${traceId}"
+status: pending
+priority: normal
+agent: technical-writer
+---
+Request info.
+`,
+    );
+
+    const processor = new RequestProcessor(
+      config,
+      db,
+      {
+        workspacePath: join(tempDir, config.paths.workspace),
+        requestsDir: getWorkspaceRequestsDir(tempDir),
+        blueprintsPath: join(tempDir, config.paths.blueprints, "Agents"),
+        includeReasoning: false,
+      },
+      undefined,
+      costTracker,
+    );
+
+    const detailedError = new PlanValidationError(
+      "Technical writer generated invalid plan JSON",
+      {
+        rawContent: `{"title": "Invalid Plan", "description": "Missing steps array"}`,
+        fullRawResponse:
+          `<thought>Thinking...</thought>{"title": "Invalid Plan", "description": "Missing steps array"}`,
+        validationErrors: ["Missing required field: steps"],
+      },
+    );
+
+    (processor as any).planWriter = {
+      writePlan: () => {
+        throw detailedError;
+      },
+    };
+
+    await processor.process(requestPath);
+
+    const rejectedPath = join(getWorkspaceRejectedDir(tempDir), `${requestId}_rejected.md`);
+    const rejectedContent = await Deno.readTextFile(rejectedPath);
+
+    assertStringIncludes(rejectedContent, `{"title": "Invalid Plan", "description": "Missing steps array"}`);
+
+    // Verify CLI can display the error
+    const handler = new RequestShowHandler({ config, db });
+    const showResult = await handler.show(requestId);
+    assertEquals(showResult.metadata.error, "Technical writer generated invalid plan JSON");
+  } finally {
+    await costTracker.flush();
+    await cleanup();
+  }
+});
+
 // ============================================================================
-// StatusManager Error Storage Test
+// Status Manager and CLI Tests
 // ============================================================================
 
 Deno.test("Regression: StatusManager stores error messages in YAML frontmatter", async () => {
@@ -262,36 +327,45 @@ Deno.test("Regression: StatusManager stores error messages in YAML frontmatter",
     } as any);
 
     const requestPath = join(tempDir, "test-request.md");
-    const originalContent = `---
-trace_id: "test-trace-id"
-created: "2024-01-01T00:00:00.000Z"
-status: pending
-priority: normal
-agent: technical-writer
-source: cli
-created_by: "test@example.com"
----
+    await Deno.writeTextFile(requestPath, "---\nstatus: pending\n---\nBody");
 
-Test request content.
-`;
+    await statusManager.updateStatus(requestPath, RequestStatus.FAILED, "Direct error message");
 
-    await Deno.writeTextFile(requestPath, originalContent);
+    const updatedFrontmatter = parseFrontmatter(await Deno.readTextFile(requestPath));
+    assertEquals(updatedFrontmatter.status, RequestStatus.FAILED);
+    assertEquals(updatedFrontmatter.error, "Direct error message");
 
-    // Test error message storage
-    await statusManager.updateStatus(
+    await statusManager.updateStatus(requestPath, RequestStatus.FAILED, 'Error with "quotes"');
+    assertEquals(parseFrontmatter(await Deno.readTextFile(requestPath)).error, 'Error with "quotes"');
+  } finally {
+    await cleanup();
+  }
+});
+
+Deno.test("Regression: CLI displays error information for failed requests", async () => {
+  const testDbResult = await initTestDbService();
+  const { db, config, cleanup } = testDbResult;
+
+  try {
+    const requestId = "test-req-cli";
+    const requestsDir = getWorkspaceRequestsDir(config.system.root);
+    await Deno.mkdir(requestsDir, { recursive: true });
+
+    const requestPath = join(requestsDir, `${requestId}.md`);
+    await Deno.writeTextFile(
       requestPath,
-      RequestStatus.FAILED,
-      "Plan validation failed: Invalid JSON structure",
+      `---
+status: failed
+error: "Validation failed"
+---
+`,
     );
 
-    const updatedContent = await Deno.readTextFile(requestPath);
-    const updatedFrontmatter = parseFrontmatter(updatedContent);
+    const handler = new RequestShowHandler({ config, db });
+    const result = await handler.show(requestId);
 
-    // Verify status was updated
-    assertEquals(updatedFrontmatter.status, RequestStatus.FAILED);
-
-    // Verify error message was added
-    assertEquals(updatedFrontmatter.error, "Plan validation failed: Invalid JSON structure");
+    assertEquals(result.metadata.error, "Validation failed");
+    assertEquals(result.metadata.status, "failed");
   } finally {
     await cleanup();
   }

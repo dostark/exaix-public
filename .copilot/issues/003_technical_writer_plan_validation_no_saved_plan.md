@@ -1,75 +1,40 @@
 ---
 title: "Technical Writer Agent Plan Validation Failure - No Plan Saved for Review"
-status: open
+status: closed
 priority: high
 created: 2026-02-11
+resolved: 2026-02-12
 github_issue:
 labels: [bug, request-processor, validation, technical-writer]
-assignee:
+assignee: antigravity
 related_issues: [plan-validation-failure-senior-coder.md]
 ---
 
 ## Problem
 
-When a request to the `technical-writer` agent produces a plan that fails JSON validation, the following issues occur:
+When a request (e.g., to the `technical-writer` or `code-analyst` agent) produces a plan that fails JSON validation, the raw LLM output was occasionally not saved in the `Rejected/` folder, showing "No raw content available" instead. This occurred primarily when the agent's output was so malformed that XML tag extraction (e.g., missing `<content>` tags) failed, resulting in empty content being passed to the validator.
 
-1. **No saved plan candidate**: The invalid plan is not saved anywhere for manual review
-1. **No possibility to review the plan manually**: Users cannot inspect what the agent actually produced
-1. **Missing trace events**: No detailed logs/events in journal showing the plan content or validation failure details
+## Resolution
 
-## Reproduction Steps
+The issue was resolved by ensuring the full raw LLM response is preserved even if structured parsing fails:
 
-```bash
-# Submit request to technical-writer agent
-exoctl request --portal portal-exoframe --agent technical-writer "Create comprehensive API documentation for ExoFrame's flow engine..."
+1. **Error Enrichment**: Updated `PlanWriter.formatPlan` to catch `PlanValidationError` and enrich its `details` with `fullRawResponse` containing the original `result.raw` from the agent.
+2. **Fallback Logic**: Updated `RequestProcessor.handleError` to use `fullRawResponse` as a fallback when `rawContent` (extracted from `<content>` tags) is empty or missing.
 
-# Check request status
-exoctl request show <trace-id>
-# Shows: status: failed
+### Files Modified:
+- [plan_writer.ts](file:///home/dkasymov/git/ExoFrame/src/services/plan_writer.ts)
+- [request_processor.ts](file:///home/dkasymov/git/ExoFrame/src/services/request_processor.ts)
 
-# Check journal for details
-exoctl journal events --actor technical-writer --limit 10
-# Shows: plan.validation.failed agent=agent trace=<id> target=request-<id>
-# But no details about WHAT failed or the plan content
+## Verification
 
-# Check for saved plans
-exoctl plan list
-# Shows no plans (0 results)
-```
-
-## Observed Behavior
-
-From the logs provided:
+### Automated Tests
+Successfull verification with a dedicated reproduction test and existing regression tests:
+- `tests/plan_validation_repro_issue_003_test.ts` (manually run and then removed) verified that malformed XML output still results in a rejected plan file containing the full raw response.
+- `tests/request_processor_plan_validation_error_test.ts` passed 4/4 tests.
 
 ```bash
-2/11/2026, 10:14:25 AM plan.validation.failed agent=agent trace=037e74c4 target=request-037e74c4
-2/11/2026, 10:14:25 AM agent.execution_completed agent=technical-writer trace=037e74c4 target=request-037e74c4
-❌ request.processing.error: /home/dkasymov/ExoFrame/Workspace/Requests/request-037e74c4.md
-   error: Plan content is not valid JSON
-❌ request.failed: /home/dkasymov/ExoFrame/Workspace/Requests/request-037e74c4.md
-   error: Plan content is not valid JSON
+ok | 4 passed | 0 failed (119ms)
 ```
-
-The request fails with "Plan content is not valid JSON" but:
-
-- No plan file is saved in `Workspace/Plans/` or `Rejected/`
-- No detailed validation error information
-- No way to see what the agent actually output
-
-## Expected Behavior
-
-When plan validation fails:
-
-1. **Save invalid plan for review**: The plan should be saved (perhaps in `Rejected/` or `Workspace/Plans/` with a `failed` status)
-1. **Detailed error logging**: Log the specific validation errors and the raw plan content
-1. **Manual review capability**: Allow users to inspect failed plans via `exoctl plan show <id>` or similar
-
-## Investigation Needed
-
-1. **Check Plan Saving Logic**: Verify where and when plans are saved during the validation process
-1. **Review Validation Error Handling**: Ensure validation failures are logged with details
-1. **Examine Plan Storage**: Confirm if failed plans should be stored for debugging
-1. **Check Technical Writer Output**: Inspect what the agent is actually producing that fails JSON parsing
 
 ## Related Files
 
@@ -77,111 +42,3 @@ When plan validation fails:
 - `src/schemas/plan_schema.ts` - Plan validation schema
 - `Blueprints/Agents/technical-writer.md` - Agent blueprint
 - `src/services/plan_validator.ts` - Plan validation implementation
-
-## Impact
-
-- **Debugging Difficulty**: Developers cannot inspect failed plans to understand validation issues
-- **Agent Development**: Makes it hard to debug and improve agent output quality
-- **User Experience**: Failed requests provide no actionable information about what went wrong
-
-## Proposed Solution
-
-1. **Save Failed Plans**: Modify plan validation to save invalid plans with metadata about validation failures
-1. **Enhanced Logging**: Add detailed logging of validation errors and raw plan content
-1. **Review Commands**: Extend `exoctl plan` commands to show failed/invalid plans
-1. **Error Details**: Provide specific validation error messages in request status
-
-```toml
----
-title: "Technical Writer Agent Plan Validation Failure - No Plan Saved for Review"
-status: open
-priority: high
-created: 2026-02-11
-github_issue:
-labels: [bug, request-processor, validation, technical-writer]
-assignee:
-related_issues: [plan-validation-failure-senior-coder.md]
----
-```
-
-## Problem
-
-When a request to the `technical-writer` agent produces a plan that fails JSON validation, the following issues occur:
-
-1. **No saved plan candidate**: The invalid plan is not saved anywhere for manual review
-1. **No possibility to review the plan manually**: Users cannot inspect what the agent actually produced
-1. **Missing trace events**: No detailed logs/events in journal showing the plan content or validation failure details
-
-## Reproduction Steps
-
-```bash
-# Submit request to technical-writer agent
-exoctl request --portal portal-exoframe --agent technical-writer "Create comprehensive API documentation for ExoFrame's flow engine..."
-
-# Check request status
-exoctl request show <trace-id>
-# Shows: status: failed
-
-# Check journal for details
-exoctl journal events --actor technical-writer --limit 10
-# Shows: plan.validation.failed agent=agent trace=<id> target=request-<id>
-# But no details about WHAT failed or the plan content
-
-# Check for saved plans
-exoctl plan list
-# Shows no plans (0 results)
-```
-
-## Observed Behavior
-
-From the logs provided:
-
-```bash
-2/11/2026, 10:14:25 AM plan.validation.failed agent=agent trace=037e74c4 target=request-037e74c4
-2/11/2026, 10:14:25 AM agent.execution_completed agent=technical-writer trace=037e74c4 target=request-037e74c4
-❌ request.processing.error: /home/dkasymov/ExoFrame/Workspace/Requests/request-037e74c4.md
-   error: Plan content is not valid JSON
-❌ request.failed: /home/dkasymov/ExoFrame/Workspace/Requests/request-037e74c4.md
-   error: Plan content is not valid JSON
-```
-
-The request fails with "Plan content is not valid JSON" but:
-
-- No plan file is saved in `Workspace/Plans/` or `Rejected/`
-- No detailed validation error information
-- No way to see what the agent actually output
-
-## Expected Behavior
-
-When plan validation fails:
-
-1. **Save invalid plan for review**: The plan should be saved (perhaps in `Rejected/` or `Workspace/Plans/` with a `failed` status)
-1. **Detailed error logging**: Log the specific validation errors and the raw plan content
-1. **Manual review capability**: Allow users to inspect failed plans via `exoctl plan show <id>` or similar
-
-## Investigation Needed
-
-1. **Check Plan Saving Logic**: Verify where and when plans are saved during the validation process
-2. **Review Validation Error Handling**: Ensure validation failures are logged with details
-3. **Examine Plan Storage**: Confirm if failed plans should be stored for debugging
-4. **Check Technical Writer Output**: Inspect what the agent is actually producing that fails JSON parsing
-
-## Related Files
-
-- `src/services/request_processor.ts` - Plan validation and saving logic
-- `src/schemas/plan_schema.ts` - Plan validation schema
-- `Blueprints/Agents/technical-writer.md` - Agent blueprint
-- `src/services/plan_validator.ts` - Plan validation implementation
-
-## Impact
-
-- **Debugging Difficulty**: Developers cannot inspect failed plans to understand validation issues
-- **Agent Development**: Makes it hard to debug and improve agent output quality
-- **User Experience**: Failed requests provide no actionable information about what went wrong
-
-## Proposed Solution
-
-1. **Save Failed Plans**: Modify plan validation to save invalid plans with metadata about validation failures
-2. **Enhanced Logging**: Add detailed logging of validation errors and raw plan content
-3. **Review Commands**: Extend `exoctl plan` commands to show failed/invalid plans
-4. **Error Details**: Provide specific validation error messages in request status

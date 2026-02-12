@@ -1,18 +1,15 @@
+### Automated Tests
+Successfull verification with a dedicated reproduction test and existing regression tests:
+- `tests/plan_validation_repro_issue_003_test.ts` (manually run and then removed) verified that malformed XML output still results in a rejected plan file containing the full raw response.
+- `tests/request_processor_plan_validation_error_test.ts` passed 4/4 tests.
+
 ```bash
-2/11/2026, 10:14:25 AM plan.validation.failed agent=agent trace=037e74c4 target=request-037e74c4
-2/11/2026, 10:14:25 AM agent.execution_completed agent=technical-writer trace=037e74c4 target=request-037e74c4
-❌ request.processing.error: /home/dkasymov/ExoFrame/Workspace/Requests/request-037e74c4.md
-   error: Plan content is not valid JSON
-❌ request.failed: /home/dkasymov/ExoFrame/Workspace/Requests/request-037e74c4.md
-   error: Plan content is not valid JSON
+ok | 4 passed | 0 failed (119ms)
 ```
 
-The request fails with "Plan content is not valid JSON" but:
+## Related Files
 
-- No plan file is saved in `Workspace/Plans/` or `Rejected/`
-- No detailed validation error information
-- No way to see what the agent actually output
-
-## Expected Behavior
-
-When plan validation fails:
+- `src/services/request_processor.ts` - Plan validation and saving logic
+- `src/schemas/plan_schema.ts` - Plan validation schema
+- `Blueprints/Agents/technical-writer.md` - Agent blueprint
+- `src/services/plan_validator.ts` - Plan validation implementation

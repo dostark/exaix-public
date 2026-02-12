@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { PlanAdapter } from "../src/services/plan_adapter.ts";
 
-Deno.test("repro: Plan validation fails for unsupported tool names", () => {
+Deno.test("PlanAdapter: Plan validation fails for unsupported tool names", () => {
   const adapter = new PlanAdapter();
   const invalidPlanJson = `
   {
@@ -26,10 +26,12 @@ Deno.test("repro: Plan validation fails for unsupported tool names", () => {
   const plan = adapter.parse(invalidPlanJson);
   // Should verify the plan has the correct action
   if (!plan.steps?.[0].actions?.[0]) throw new Error("Missing action");
+  // In the current implementation, it seems it doesn't strictly validate tool names against a fixed list yet,
+  // or it accepts 'create_directory'. Let's verify what the test originally asserted.
   if (plan.steps[0].actions[0].tool !== "create_directory") throw new Error("Wrong tool");
 });
 
-Deno.test("repro: Plan validation handles markdown code blocks", () => {
+Deno.test("PlanAdapter: Plan validation handles markdown code blocks", () => {
   const validPlanJson = JSON.stringify({
     title: "Create src/utils.ts with hello world function",
     description: "Creates a src directory and a utils.ts file containing a hello world function.",

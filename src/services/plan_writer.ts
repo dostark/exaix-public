@@ -225,6 +225,8 @@ export class PlanWriter {
             raw_preview: result.content.substring(0, 200),
           },
         );
+        // Enrich error details with full raw response for debugging
+        error.details.fullRawResponse = result.raw;
         throw error;
       }
       throw error;

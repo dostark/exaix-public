@@ -502,9 +502,12 @@ export class RequestProcessor {
     if (error instanceof PlanValidationError) {
       const validationError = error;
       const rawDetails = validationError.details?.rawContent;
+      const fullRawResponse = validationError.details?.fullRawResponse;
+
       traceLogger.info("plan.validation.error.detected", requestId, {
         hasRawDetails: !!rawDetails,
         rawDetailsLength: typeof rawDetails === "string" ? rawDetails.length : "not-string",
+        hasFullRawResponse: !!fullRawResponse,
       });
 
       // Always attempt to save rejected plan for debugging, even if raw content is missing
@@ -517,12 +520,20 @@ export class RequestProcessor {
         await Deno.mkdir(rejectedDir, { recursive: true });
 
         const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
+
+        // Use fullRawResponse as fallback if rawDetails is empty or missing
+        const rawToSave = (typeof rawDetails === "string" && rawDetails)
+          ? rawDetails
+          : (typeof fullRawResponse === "string" && fullRawResponse)
+          ? fullRawResponse
+          : "No raw content available";
+
         const rejectedContent = this.formatRejectedPlan({
           frontmatter,
           requestId,
           traceId: frontmatter?.trace_id,
           errorMessage,
-          rawDetails: typeof rawDetails === "string" && rawDetails ? rawDetails : "No raw content available",
+          rawDetails: rawToSave,
           validationError,
         });
         await Deno.writeTextFile(rejectedPath, rejectedContent);
