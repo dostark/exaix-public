@@ -18,7 +18,7 @@ agent_id: "my-agent"
 name: "My Agent"
 model: "google:gemini-2.0-flash-exp"
 capabilities: ["read_file", "write_file"]
-default_skills: ["code-review", "error-handling"]  # NEW
+default_skills: ["code-review", "error-handling", "portal-grounding"]  # NEW
 ---
 ```
 

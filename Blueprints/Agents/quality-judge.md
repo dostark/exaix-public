@@ -7,7 +7,7 @@ created: "2026-01-04T10:00:00Z"
 created_by: "exoframe-system"
 version: "1.0.0"
 description: "LLM-as-a-Judge agent for evaluating code and content quality"
-default_skills: ["code-review"]
+default_skills: ["code-review", "portal-grounding"]
 ---
 
 # Quality Judge Agent

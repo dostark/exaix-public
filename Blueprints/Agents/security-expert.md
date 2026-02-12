@@ -7,7 +7,7 @@ created: "2026-01-05T00:00:00Z"
 created_by: "phase-18-modernization"
 version: "1.0.0"
 description: "Security specialist for in-depth vulnerability analysis and remediation"
-default_skills: ["security-first", "code-review"]
+default_skills: ["security-first", "code-review", "portal-grounding"]
 ---
 
 # Security Expert Agent

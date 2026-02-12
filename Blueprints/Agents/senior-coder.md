@@ -7,7 +7,7 @@ created: "2025-12-09T13:47:00Z"
 created_by: "exoframe-setup"
 version: "1.0.0"
 description: "Expert-level software engineer for complex implementation tasks"
-default_skills: ["typescript-patterns", "error-handling", "code-review"]
+default_skills: ["typescript-patterns", "error-handling", "code-review", "portal-grounding"]
 ---
 
 # Senior Software Engineer Agent

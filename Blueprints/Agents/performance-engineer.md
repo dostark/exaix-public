@@ -7,7 +7,7 @@ created: "2026-01-05T00:00:00Z"
 created_by: "phase-18-modernization"
 version: "1.0.0"
 description: "Performance optimization specialist for identifying bottlenecks and improvements"
-default_skills: ["code-review"]
+default_skills: ["code-review", "portal-grounding"]
 ---
 
 # Performance Engineer Agent

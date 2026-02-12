@@ -7,7 +7,7 @@ created: "2025-12-09T13:47:00Z"
 created_by: "exoframe-setup"
 version: "1.0.0"
 description: "General-purpose coding assistant for planning and implementation"
-default_skills: ["error-handling"]
+default_skills: ["error-handling", "portal-grounding"]
 ---
 
 # Default Coding Agent

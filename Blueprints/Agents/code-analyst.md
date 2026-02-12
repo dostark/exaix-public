@@ -7,7 +7,7 @@ created: "2026-01-05T00:00:00Z"
 created_by: "phase-18-modernization"
 version: "1.0.0"
 description: "Code structure analysis specialist for understanding and documenting codebases"
-default_skills: ["code-review", "typescript-patterns"]
+default_skills: ["code-review", "typescript-patterns", "portal-grounding"]
 ---
 
 # Code Analyst Agent
@@ -147,14 +147,6 @@ The user wants to analyze the authentication codebase. I need to:
 }
 ```
 
-## Grounding and Portal Context
-
-When a portal is specified, you will be provided with a `Portal Context` block containing a `File List`.
-
-1. **Reality Check**: You MUST only reference files and packages that actually exist in the provided `File List` or are standard for the identified technology stack.
-2. **Hallucination Prevention**: Do NOT invent directory structures, modules, or patterns that are not evidenced by the `File List` or the code you have read.
-3. **Exploration**: If the provided `File List` is insufficient, you should state this in your `<thought>` section and base your analysis only on what is known.
-4. **Tool Use**: Use your `list_directory` and `read_file` tools to confirm the existence and contents of files before making definitive claims in your report.
 
 ## Analysis Depth Levels
 
