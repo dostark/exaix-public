@@ -1,14 +1,21 @@
 ---
 title: "Code-analyst ignores portal context and hallucinates stack"
-status: open
-priority: high
-created: 2026-02-09
-labels: [bug, agents, planning, portal]
+status: closed
+resolution: fixed
 ---
 
-## Problem
+## Issue: Code Analyst Ignores Portal Context Hallucinates Logic
 
-The `code-analyst` agent generates a plan that ignores the configured portal and hallucinates a Go/Cobra codebase. Even after a revision request instructing it to use the ExoFrame `src/` folder, the plan content remains unrelated to the actual repository.
+### Description
+The `code-analyst` agent often generates plans that reference files or logic that do not exist in the specified portal. This is because the agent was not provided with the actual file structure during the planning phase.
+
+### Fix
+1.  **Context Injection**: Updated `RequestProcessor` to fetch a shallow file list of the target portal and inject it into the `Portal Context` block.
+2.  **Prompt Refinement**: Updated `code-analyst.md` system prompt to explicitly instruct the agent to use the provided file list and avoid hallucinations.
+3.  **Prompt System**: Updated `buildPortalContextBlock` to include optional file lists.
+
+### Verification
+- Verified with `tests/portal_context_grounding_test.ts`.
 
 ## Reproduction Steps
 

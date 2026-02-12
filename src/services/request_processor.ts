@@ -356,7 +356,7 @@ export class RequestProcessor {
     const blueprint = blueprintLoader.toLegacyBlueprint(loadedBlueprint);
 
     const request: ParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as ParsedRequest;
-    const portalContext = this.buildPortalContext(frontmatter.portal, traceLogger);
+    const portalContext = await this.buildPortalContext(frontmatter.portal, traceLogger);
     if (portalContext) {
       request.context[PORTAL_CONTEXT_KEY] = portalContext;
     }
@@ -614,7 +614,7 @@ Raw Details: ${args.rawDetails}
     return TaskComplexity.MEDIUM;
   }
 
-  private buildPortalContext(portalAlias?: string, traceLogger?: any): string | null {
+  private async buildPortalContext(portalAlias?: string, traceLogger?: any): Promise<string | null> {
     if (!portalAlias) return null;
 
     const portal = this.config.portals.find((p) => p.alias === portalAlias);
@@ -623,9 +623,42 @@ Raw Details: ${args.rawDetails}
       return null;
     }
 
+    const fileSummary = await this.getPortalFileSummary(portal.target_path);
+
     return buildPortalContextBlock({
       portalAlias,
       portalRoot: portal.target_path,
+      fileList: fileSummary,
     });
+  }
+
+  private async getPortalFileSummary(portalPath: string): Promise<string> {
+    const files: string[] = [];
+    try {
+      // List top-level files
+      for await (const entry of Deno.readDir(portalPath)) {
+        if (entry.name.startsWith(".")) continue;
+        files.push(`${entry.isDirectory ? "[DIR] " : "- "}${entry.name}`);
+
+        if (entry.isDirectory && files.length < 50) {
+          try {
+            const subPath = join(portalPath, entry.name);
+            for await (const subEntry of Deno.readDir(subPath)) {
+              if (subEntry.name.startsWith(".")) continue;
+              files.push(`  ${subEntry.isDirectory ? "[DIR] " : "- "}${subEntry.name}`);
+              if (files.length > 100) break;
+            }
+          } catch {
+            // Ignore sub-directory errors
+          }
+        }
+        if (files.length > 100) break;
+      }
+    } catch {
+      return "Unable to list portal directory.";
+    }
+
+    if (files.length === 0) return "Portal directory is empty.";
+    return files.join("\n");
   }
 }

@@ -14,13 +14,13 @@ import { parse } from "@std/yaml";
 
 import { RequestProcessor } from "../src/services/request_processor.ts";
 import { CostTracker } from "../src/services/cost_tracker.ts";
-import { StatusManager } from "../src/services/request_processing/status_manager.ts";
 import { PlanValidationError } from "../src/services/plan_adapter.ts";
 import { RequestStatus } from "../src/requests/request_status.ts";
 import { PlanStatus } from "../src/plans/plan_status.ts";
 import { initTestDbService } from "./helpers/db.ts";
 import { getWorkspaceRejectedDir, getWorkspaceRequestsDir } from "./helpers/paths_helper.ts";
 import { RequestShowHandler } from "../src/cli/handlers/request_show_handler.ts";
+import { StatusManager } from "../src/services/request_processing/status_manager.ts";
 
 function parseFrontmatter(content: string): Record<string, unknown> {
   const parts = content.split("---");

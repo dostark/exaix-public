@@ -1,12 +1,12 @@
-- `src/services/request_processor.ts` - Request handling and prompt construction
-- `src/services/agent_runner.ts` - Prompt assembly
-- `src/cli/plan_commands.ts` - Plan revision handling
-- `Blueprints/Agents/code-analyst.md` - Agent instructions
+1. **Enforce portal-aware context injection (all agents)**
+   - Include portal root path and required repo hints in the prompt for both read-only and write agents.
+   - Inject explicit instructions to use `list_directory`/`read_file` before analysis.
 
-## Workaround
+1. **Regenerate plan on revision**
+   - When a plan is revised, trigger re-planning rather than appending comments only.
+   - Ensure revised plan updates content using new instructions for any agent.
 
-Manually perform analysis or request a revision and regenerate a new plan via a fresh request with explicit file paths.
+1. **Regression coverage**
+   - Add a test that ensures agent plans reference actual `src/` files when a portal is provided.
 
-## Priority Justification
-
-High: breaks the core value of portal-aware analysis for code-analyst.
+## Related Files

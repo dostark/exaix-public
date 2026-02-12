@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-12T18:28:08.844Z",
+  "generated_at": "2026-02-12T18:53:23.297Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1441,7 +1441,8 @@
         ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk0.txt",
         ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk1.txt",
         ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk2.txt",
-        ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk3.txt"
+        ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk3.txt",
+        ".copilot/chunks/code-analyst-ignores-portal-context.md.chunk4.txt"
       ]
     },
     {

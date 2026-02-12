@@ -11,6 +11,7 @@ export interface PortalContextArgs {
   portalAlias: string;
   portalRoot: string;
   repositoryRoot?: string;
+  fileList?: string;
 }
 
 export function buildPortalContextBlock(args: PortalContextArgs): string {
@@ -19,13 +20,22 @@ export function buildPortalContextBlock(args: PortalContextArgs): string {
     .map((action) => `- ${action}`)
     .join("\n");
 
-  return [
+  const lines = [
     `## ${PORTAL_CONTEXT_SECTION_TITLE}`,
     `${PORTAL_CONTEXT_ALIAS_LABEL}: ${args.portalAlias}`,
     `${PORTAL_CONTEXT_ROOT_LABEL}: ${args.portalRoot}`,
     `${PORTAL_CONTEXT_REPOSITORY_LABEL}: ${repositoryRoot}`,
+  ];
+
+  if (args.fileList) {
+    lines.push("", "### File List:", args.fileList);
+  }
+
+  lines.push(
     "",
     `${PORTAL_CONTEXT_REQUIRED_ACTIONS_TITLE}:`,
     requiredActions,
-  ].join("\n");
+  );
+
+  return lines.join("\n");
 }

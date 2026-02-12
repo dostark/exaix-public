@@ -1,12 +1,11 @@
-1. **Enforce portal-aware context injection (all agents)**
-   - Include portal root path and required repo hints in the prompt for both read-only and write agents.
-   - Inject explicit instructions to use `list_directory`/`read_file` before analysis.
+- Plan should read from the configured portal repository (`portal-exoframe`).
+- Plan should reference actual ExoFrame files in `src/cli/` and related modules.
+- Revision comments should cause the agent to regenerate a plan grounded in the repo.
 
-1. **Regenerate plan on revision**
-   - When a plan is revised, trigger re-planning rather than appending comments only.
-   - Ensure revised plan updates content using new instructions for any agent.
+## Problem Analysis
 
-1. **Regression coverage**
-   - Add a test that ensures agent plans reference actual `src/` files when a portal is provided.
+- The plan output looks like a generic, hallucinated template rather than tool-driven analysis.
+- The read-only agent may not be using `list_directory`/`read_file` tools despite having portal context.
+- Revision comments currently append to the plan body but do not trigger re-planning.
 
-## Related Files
+## Fix Plan
