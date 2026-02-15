@@ -38,7 +38,30 @@ const DEFAULT_GIT_OPERATIONS = {
   branch_suffix_length: DEFAULTS.DEFAULT_GIT_BRANCH_SUFFIX_LENGTH,
 } as const;
 
+export const ToolsConfigSchema = z.object({
+  // Network capability control
+  fetch_url: z.object({
+    enabled: z.boolean().default(false),
+    allowed_domains: z.array(z.string()).default([
+      "deno.land",
+      "docs.deno.com",
+      "npmjs.com",
+      "github.com",
+      "stackoverflow.com",
+    ]),
+    timeout_ms: z.number().default(5000),
+    max_response_size_kb: z.number().default(50), // Prevent context flooding
+  }).default({}),
+
+  // Search limits
+  grep_search: z.object({
+    max_results: z.number().default(50),
+    exclude_dirs: z.array(z.string()).default([".git", "node_modules", "dist", "coverage"]),
+  }).default({}),
+});
+
 export const ConfigSchema = z.object({
+  tools: ToolsConfigSchema.optional().default({}),
   system: z.object({
     root: z.string().default(getCwdSafe()),
     log_level: z.nativeEnum(LogLevel).default(LogLevel.INFO),

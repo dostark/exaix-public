@@ -2,7 +2,7 @@
 agent_id: "performance-engineer"
 name: "Performance Engineer"
 model: "google:gemini-2.0-flash-exp"
-capabilities: ["read_file", "list_directory", "grep_search"]
+capabilities: ["read_file", "list_directory", "grep_search", "deno_task", "fetch_url", "git_info"]
 created: "2026-01-05T00:00:00Z"
 created_by: "phase-18-modernization"
 version: "1.0.0"

@@ -1,0 +1,18 @@
+**Implementation Logic:**
+- **check/lint**: Run `deno lint --json [path]`. Return structured errors.
+- **fmt**: Run `deno fmt --check [path]`. Return unformatted files list.
+- **test**: Run `deno test --reporter=json [path]`. Return structured results (passed/failed tests).
+
+**Security:**
+- 🛡️ **Resource Limits:** Enforce timeouts.
+
+---
+
+### 2.6 Patching Tool: `patch_file`
+
+**Context:** Updating a single line in a large file currently requires rewriting the entire file. `patch_file` enables surgical edits, significantly reducing token usage and the risk of syntax errors in unrelated code blocks.
+
+**Purpose:** Token-efficient partial edits.
+
+**Parameters (Zod):**
+(See `src/services/tool_registry.ts`)

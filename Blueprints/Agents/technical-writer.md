@@ -2,7 +2,7 @@
 agent_id: "technical-writer"
 name: "Technical Writer"
 model: "google:gemini-2.0-flash-exp"
-capabilities: ["read_file", "write_file", "list_directory"]
+capabilities: ["read_file", "write_file", "list_directory", "fetch_url", "grep_search", "git_info"]
 created: "2026-01-05T00:00:00Z"
 created_by: "phase-18-modernization"
 version: "1.0.0"

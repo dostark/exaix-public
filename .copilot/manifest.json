@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-12T19:00:54.078Z",
+  "generated_at": "2026-02-15T15:34:08.134Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -723,6 +723,32 @@
         ".copilot/chunks/phase-30-cli-flow-request.md.chunk5.txt",
         ".copilot/chunks/phase-30-cli-flow-request.md.chunk6.txt",
         ".copilot/chunks/phase-30-cli-flow-request.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/planning/phase-38-tool-expansion.md",
+      "agent": "antigravity",
+      "scope": "dev",
+      "title": "Phase 38: Core Tool Expansion & Grounding",
+      "short_summary": "Technical specification for adding research, discovery, and refactoring tools to the ExoFrame ToolRegistry.",
+      "version": "1.0",
+      "topics": [
+        "tools",
+        "tool-registry",
+        "research",
+        "refactoring",
+        "git",
+        "deno"
+      ],
+      "chunks": [
+        ".copilot/chunks/phase-38-tool-expansion.md.chunk0.txt",
+        ".copilot/chunks/phase-38-tool-expansion.md.chunk1.txt",
+        ".copilot/chunks/phase-38-tool-expansion.md.chunk2.txt",
+        ".copilot/chunks/phase-38-tool-expansion.md.chunk3.txt",
+        ".copilot/chunks/phase-38-tool-expansion.md.chunk4.txt",
+        ".copilot/chunks/phase-38-tool-expansion.md.chunk5.txt",
+        ".copilot/chunks/phase-38-tool-expansion.md.chunk6.txt",
+        ".copilot/chunks/phase-38-tool-expansion.md.chunk7.txt"
       ]
     },
     {

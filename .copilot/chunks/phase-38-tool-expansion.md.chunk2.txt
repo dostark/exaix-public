@@ -1,0 +1,14 @@
+**Implementation Logic:**
+1.  **Validation:** Check if `config.tools.fetch_url.enabled` is true.
+2.  **Whitelist Check:** Parse hostname from `url` and verify it matches `allowed_domains`.
+3.  **Fetch:** Use `fetch(url, { signal: AbortSignal.timeout(timeout_ms) })`.
+4.  **Size Check:** Check `Content-Length` header or stream counting. Abort if > `max_response_size_kb`.
+5.  **Conversion:** If `format="markdown"`, use a basic HTML-to-Markdown converter (or just return `innerText` for MVP).
+
+**Security:**
+- 🛡️ **SSRF Protection:** Agents cannot access local IPs (127.0.0.1, 192.168.x.x) or metadata services (169.254.169.254).
+- 🛡️ **Whitelist:** Strict opt-in domain list.
+
+---
+
+### 2.2 Content Discovery: `grep_search`

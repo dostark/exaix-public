@@ -110,6 +110,27 @@ See `docs/Plan_Format_Reference.md` for the complete schema reference.
 }
 ```
 
+## Available Tools
+
+The following tools are available for agents to use in their plans:
+
+| Tool | Description | Why/When to Use |
+| --- | --- | --- |
+| `read_file` | Read the contents of a file | Use to examine the full content of a specific file. |
+| `write_file` | Create or overwrite a file | Use for creating new files or rewriting small files. **Avoid** for large files (use `patch_file`). |
+| `run_command` | Execute a shell command | Use for system commands not covered by specialized tools (e.g., `npm install`). |
+| `list_directory` | List files and directories | Use to explore file structure and discover file names in a folder. |
+| `search_files` | Search for files by name | Use when you know the filename (or wildcard) but not its location. |
+| `create_directory` | Create a new directory | Use before creating files in non-existent nested paths. |
+| `fetch_url` | Fetch content from an external URL | Use to read external documentation or schemas (if domain is whitelisted). |
+| `grep_search` | Search file contents using regex | Use to find code definitions, references, or text patterns across the codebase. |
+| `git_info` | Get repository status/diffs | Use to see what changed, check current branch, or find untracked files. |
+| `move_file` | Move or rename a file | Use for refactoring to ensure atomic moves and path validation. |
+| `copy_file` | Copy a file | Use to duplicate files, such as creating a backup before editing. |
+| `delete_file` | Delete a file | Use to permanently remove unused or temporary files. |
+| `deno_task` | Run standard Deno tasks | Use `test`, `lint`, or `fmt` to verify code quality and adherence to standards. |
+| `patch_file` | Apply precision text edits | Use for making targeted changes to **large** files to save tokens and reduce risk. |
+
 ## Creating New Blueprints
 
 Use `exoctl blueprint create` or manually create following this template:

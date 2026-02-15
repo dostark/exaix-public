@@ -2,7 +2,7 @@
 agent_id: "software-architect"
 name: "Software Architect"
 model: "google:gemini-2.0-flash-exp"
-capabilities: ["read_file", "list_directory", "grep_search"]
+capabilities: ["read_file", "list_directory", "grep_search", "fetch_url", "git_info", "move_file", "deno_task"]
 created: "2026-01-05T00:00:00Z"
 created_by: "phase-18-modernization"
 version: "1.0.0"

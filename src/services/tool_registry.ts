@@ -23,7 +23,9 @@ export interface ToolParameterSchema {
   type: string;
   description?: string;
   enum?: string[];
-  items?: { type: string };
+  items?: ToolParameterSchema;
+  properties?: Record<string, ToolParameterSchema>;
+  required?: string[];
 }
 
 /**
@@ -443,6 +445,161 @@ export class ToolRegistry {
         required: ["command"],
       },
     });
+
+    this.tools.set("fetch_url", {
+      name: "fetch_url",
+      description: "Fetch content from a URL (whitelisted domains only)",
+      parameters: {
+        type: "object",
+        properties: {
+          url: {
+            type: "string",
+            description: "URL to fetch",
+          },
+          format: {
+            type: "string",
+            enum: ["text", "markdown"],
+            description: "Output format (default: markdown)",
+          },
+        },
+        required: ["url"],
+      },
+    });
+
+    this.tools.set("grep_search", {
+      name: "grep_search",
+      description: "Search for a string pattern in files (returns line numbers)",
+      parameters: {
+        type: "object",
+        properties: {
+          pattern: {
+            type: "string",
+            description: "Regex or literal string to search for",
+          },
+          path: {
+            type: "string",
+            description: "Root directory to search in (relative to workspace or portal)",
+          },
+          case_sensitive: {
+            type: "boolean",
+            description: "Case sensitive search (default: true)",
+          },
+        },
+        required: ["pattern", "path"],
+      },
+    });
+
+    this.tools.set("move_file", {
+      name: "move_file",
+      description: "Move or rename a file",
+      parameters: {
+        type: "object",
+        properties: {
+          source: { type: "string", description: "Source path" },
+          destination: { type: "string", description: "Destination path" },
+          overwrite: { type: "boolean", description: "Overwrite existing file (default: false)" },
+        },
+        required: ["source", "destination"],
+      },
+    });
+
+    this.tools.set("copy_file", {
+      name: "copy_file",
+      description: "Copy a file",
+      parameters: {
+        type: "object",
+        properties: {
+          source: { type: "string", description: "Source path" },
+          destination: { type: "string", description: "Destination path" },
+          overwrite: { type: "boolean", description: "Overwrite existing file (default: false)" },
+        },
+        required: ["source", "destination"],
+      },
+    });
+
+    this.tools.set("delete_file", {
+      name: "delete_file",
+      description: "Delete a file",
+      parameters: {
+        type: "object",
+        properties: {
+          path: { type: "string", description: "Path to file to delete" },
+        },
+        required: ["path"],
+      },
+    });
+
+    this.tools.set("git_info", {
+      name: "git_info",
+      description: "Get git repository information (status, branch, diff)",
+      parameters: {
+        type: "object",
+        properties: {
+          repo_path: {
+            type: "string",
+            description: "Path to git repository root (default: workspace root)",
+          },
+          scope: {
+            type: "string",
+            enum: ["status", "branch", "diff_summary"],
+            description: "Information to retrieve (default: status)",
+          },
+        },
+        required: ["repo_path"],
+      },
+    });
+
+    this.tools.set("deno_task", {
+      name: "deno_task",
+      description: "Run standard Deno tasks (test, lint, fmt, check)",
+      parameters: {
+        type: "object",
+        properties: {
+          task: {
+            type: "string",
+            enum: ["test", "lint", "fmt", "check"],
+            description: "Task to run",
+          },
+          path: {
+            type: "string",
+            description: "Target path (file or directory, default: workspace root)",
+          },
+          args: {
+            type: "array",
+            items: { type: "string" },
+            description: "Additional arguments or flags",
+          },
+        },
+        required: ["task"],
+      },
+    });
+
+    this.tools.set("patch_file", {
+      name: "patch_file",
+      description: "Patch a file by replacing strings (sequential search-and-replace)",
+      parameters: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Path to file to patch",
+          },
+          patches: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                search: { type: "string", description: "String to search for (exact match)" },
+                replace: { type: "string", description: "String to replace with" },
+              },
+              required: ["search", "replace"],
+            },
+            description: "List of patches to apply sequentially",
+          },
+        },
+        required: ["path", "patches"],
+      },
+    });
   }
 
   /**
@@ -484,6 +641,30 @@ export class ToolRegistry {
           break;
         case "create_directory":
           context.result = await this.createDirectory(params.path);
+          break;
+        case "fetch_url":
+          context.result = await this.fetchUrl(params.url, params.format);
+          break;
+        case "grep_search":
+          context.result = await this.grepSearch(params.pattern, params.path, params.case_sensitive);
+          break;
+        case "move_file":
+          context.result = await this.moveFile(params.source, params.destination, params.overwrite);
+          break;
+        case "copy_file":
+          context.result = await this.copyFile(params.source, params.destination, params.overwrite);
+          break;
+        case "delete_file":
+          context.result = await this.deleteFile(params.path);
+          break;
+        case "git_info":
+          context.result = await this.gitInfo(params.repo_path, params.scope);
+          break;
+        case "deno_task":
+          context.result = await this.denoTask(params.task, params.path, params.args);
+          break;
+        case "patch_file":
+          context.result = await this.patchFile(params.path, params.patches);
           break;
         default:
           context.result = {
@@ -796,6 +977,425 @@ export class ToolRegistry {
       return this.formatSuccess({ path: resolvedPath });
     } catch (error) {
       return this.formatError(error, `Directory: ${path}`);
+    }
+  }
+
+  /**
+   * Fetch URL tool implementation
+   */
+  private async fetchUrl(url: string, format: "text" | "markdown" = "markdown"): Promise<ToolResult> {
+    try {
+      // 1. Check if enabled
+      if (!this.config.tools?.fetch_url?.enabled) {
+        return {
+          success: false,
+          error: "Tool 'fetch_url' is disabled in configuration",
+        };
+      }
+
+      // 2. Validate URL and structure
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(url);
+      } catch {
+        return { success: false, error: "Invalid URL format" };
+      }
+
+      // 3. Whitelist check
+      const allowedDomains = this.config.tools.fetch_url.allowed_domains;
+      if (!allowedDomains.includes(parsedUrl.hostname)) {
+        return {
+          success: false,
+          error: `Domain '${parsedUrl.hostname}' is not in the allowed whitelist: ${allowedDomains.join(", ")}`,
+        };
+      }
+
+      // 4. Fetch with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.tools.fetch_url.timeout_ms);
+
+      try {
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          return {
+            success: false,
+            error: `Failed to fetch URL: ${response.status} ${response.statusText}`,
+          };
+        }
+
+        // 5. Size check (rough approximation)
+        const contentLength = response.headers.get("content-length");
+        const maxBytes = this.config.tools.fetch_url.max_response_size_kb * 1024;
+
+        if (contentLength && parseInt(contentLength, 10) > maxBytes) {
+          return {
+            success: false,
+            error: `Content length (${contentLength} bytes) exceeds maximum allowed size (${maxBytes} bytes)`,
+          };
+        }
+
+        const text = await response.text();
+        if (text.length > maxBytes) {
+          return {
+            success: false,
+            error: `Content length (${text.length} bytes) exceeds maximum allowed size (${maxBytes} bytes)`,
+          };
+        }
+
+        // 6. Format output
+        // For now, basic text. If markdown is requested, we could add a converter later,
+        // but for now raw HTML/Text is better than nothing.
+        // Ideally we would use a library like 'turndown' or similar, but let's start simple.
+        return this.formatSuccess({
+          url,
+          content: text,
+          format: format, // Just echoing back what we have for now, effectively treated as text/html source
+        });
+      } catch (error) {
+        clearTimeout(timeoutId);
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return { success: false, error: "Request timed out" };
+        }
+        throw error;
+      }
+    } catch (error) {
+      return this.formatError(error);
+    }
+  }
+
+  /**
+   * Grep search tool implementation
+   */
+  private async grepSearch(pattern: string, searchPath: string, caseSensitive = true): Promise<ToolResult> {
+    try {
+      const resolvedPath = await this.resolvePath(searchPath);
+
+      // Check if path is a directory
+      const stat = await Deno.stat(resolvedPath);
+      if (!stat.isDirectory) {
+        return {
+          success: false,
+          error: `Path '${searchPath}' is not a directory`,
+        };
+      }
+
+      // Construct grep arguments
+      const args = ["-r", "-I", "-n"]; // Recursive, Ignore binary, Line numbers
+
+      if (!caseSensitive) {
+        args.push("-i");
+      }
+
+      // Add exclude dirs from config
+      const excludeDirs = this.config.tools?.grep_search?.exclude_dirs || [".git", "node_modules", "dist", "coverage"];
+      for (const dir of excludeDirs) {
+        args.push(`--exclude-dir=${dir}`);
+      }
+
+      // Max results limit (soft limit via head? or hard limit via grep -m?)
+      // grep -m stops reading FILE after N matches, but we want total matches?
+      // grep doesn't have a global max count. We'll limit output parsing.
+      // But let's check max_results config.
+      const maxResults = this.config.tools?.grep_search?.max_results || 50;
+
+      // Add pattern and path
+      // Pattern must be last argument before path usually, or use -e
+      args.push("-e", pattern);
+      args.push(resolvedPath);
+
+      const cmd = new Deno.Command("grep", {
+        args,
+        stdout: "piped",
+        stderr: "piped",
+      });
+
+      const { code, stdout, stderr } = await cmd.output();
+      const output = new TextDecoder().decode(stdout);
+      const errorOutput = new TextDecoder().decode(stderr);
+
+      if (code !== 0 && code !== 1) { // 1 means no matches found, which is fine
+        return {
+          success: false,
+          error: `Grep failed: ${errorOutput}`,
+        };
+      }
+
+      // Parse output
+      // Format: filename:line:content
+      const lines = output.split("\n").filter(Boolean);
+      const matches: Array<{ file: string; line: number; content: string }> = [];
+
+      for (const line of lines) {
+        if (matches.length >= maxResults) break;
+
+        // Naive split might fail if filename contains colons, but standard grep output uses : separator
+        // We should split by first two colons
+        const parts = line.split(":");
+        if (parts.length < 3) continue;
+
+        const fileAbs = parts[0];
+        const lineNum = parseInt(parts[1], 10);
+        const content = parts.slice(2).join(":");
+
+        // Make file path relative to workspace root or search path for readability?
+        // Agent usually expects relative paths.
+        // Let's try to make it relative to system.root or searchPath.
+        let fileRel = fileAbs;
+        if (fileAbs.startsWith(this.config.system.root)) {
+          fileRel = fileAbs.substring(this.config.system.root.length + 1);
+        }
+
+        matches.push({
+          file: fileRel,
+          line: lineNum,
+          content: content.trim(),
+        });
+      }
+
+      return this.formatSuccess(matches);
+    } catch (error) {
+      return this.formatError(error);
+    }
+  }
+
+  /**
+   * Move file tool implementation
+   */
+  private async moveFile(source: string, destination: string, overwrite = false): Promise<ToolResult> {
+    try {
+      const resolvedSource = await this.resolvePath(source);
+      const resolvedDest = await this.resolvePath(destination);
+
+      if (!overwrite) {
+        try {
+          await Deno.stat(resolvedDest);
+          return {
+            success: false,
+            error: `Destination file '${destination}' already exists (overwrite=false)`,
+          };
+        } catch (error) {
+          if (!(error instanceof Deno.errors.NotFound)) throw error;
+        }
+      }
+
+      // Ensure parent directory exists for destination
+      const parentDir = join(resolvedDest, "..");
+      await Deno.mkdir(parentDir, { recursive: true });
+
+      await Deno.rename(resolvedSource, resolvedDest);
+      return this.formatSuccess({ source, destination });
+    } catch (error) {
+      return this.formatError(error);
+    }
+  }
+
+  /**
+   * Copy file tool implementation
+   */
+  private async copyFile(source: string, destination: string, overwrite = false): Promise<ToolResult> {
+    try {
+      const resolvedSource = await this.resolvePath(source);
+      const resolvedDest = await this.resolvePath(destination);
+
+      if (!overwrite) {
+        try {
+          await Deno.stat(resolvedDest);
+          return {
+            success: false,
+            error: `Destination file '${destination}' already exists (overwrite=false)`,
+          };
+        } catch (error) {
+          if (!(error instanceof Deno.errors.NotFound)) throw error;
+        }
+      }
+
+      // Ensure parent directory exists for destination
+      const parentDir = join(resolvedDest, "..");
+      await Deno.mkdir(parentDir, { recursive: true });
+
+      await Deno.copyFile(resolvedSource, resolvedDest);
+      return this.formatSuccess({ source, destination });
+    } catch (error) {
+      return this.formatError(error);
+    }
+  }
+
+  /**
+   * Delete file tool implementation
+   */
+  private async deleteFile(path: string): Promise<ToolResult> {
+    try {
+      const resolvedPath = await this.resolvePath(path);
+      await Deno.remove(resolvedPath);
+      return this.formatSuccess({ path });
+    } catch (error) {
+      return this.formatError(error);
+    }
+  }
+
+  /**
+   * Git Info tool implementation
+   */
+  private async gitInfo(repoPath: string, scope: "status" | "branch" | "diff_summary" = "status"): Promise<ToolResult> {
+    try {
+      const resolvedPath = await this.resolvePath(repoPath);
+
+      // Verify it's a directory
+      const stat = await Deno.stat(resolvedPath);
+      if (!stat.isDirectory) {
+        return { success: false, error: `Path '${repoPath}' is not a directory` };
+      }
+
+      // Check if it's a git repo
+      const checkCmd = new Deno.Command("git", {
+        args: ["rev-parse", "--is-inside-work-tree"],
+        cwd: resolvedPath,
+        stderr: "piped",
+      });
+      const checkOutput = await checkCmd.output();
+      if (checkOutput.code !== 0) {
+        return { success: false, error: `Not a git repository: ${repoPath}` };
+      }
+
+      let args: string[] = [];
+      let outputParser: (output: string) => any = (o) => o.trim();
+
+      switch (scope) {
+        case "status":
+          args = ["status", "--porcelain"];
+          outputParser = (output) => {
+            const lines = output.split("\n").filter(Boolean);
+            return lines.map((line) => {
+              const status = line.substring(0, 2);
+              const file = line.substring(3);
+              return { status, file };
+            });
+          };
+          break;
+        case "branch":
+          args = ["branch", "--show-current"];
+          break;
+        case "diff_summary":
+          args = ["diff", "--stat"];
+          break;
+        default:
+          return { success: false, error: `Invalid scope: ${scope}` };
+      }
+
+      const cmd = new Deno.Command("git", {
+        args,
+        cwd: resolvedPath,
+        stdout: "piped",
+        stderr: "piped",
+      });
+
+      const { code, stdout, stderr } = await cmd.output();
+      if (code !== 0) {
+        const errorOutput = new TextDecoder().decode(stderr);
+        return { success: false, error: `Git command failed: ${errorOutput}` };
+      }
+
+      const textOutput = new TextDecoder().decode(stdout);
+      return this.formatSuccess(outputParser(textOutput));
+    } catch (error) {
+      return this.formatError(error);
+    }
+  }
+
+  /**
+   * Deno task tool implementation
+   */
+  private async denoTask(task: string, path?: string, args: string[] = []): Promise<ToolResult> {
+    try {
+      const allowedTasks = ["test", "lint", "fmt", "check"];
+      if (!allowedTasks.includes(task)) {
+        return { success: false, error: `Invalid task: ${task}. Allowed tasks: ${allowedTasks.join(", ")}` };
+      }
+
+      const resolvedPath = path ? await this.resolvePath(path) : this.baseDir;
+
+      // Validate extra args for security?
+      // args like "--allow-all" might be dangerous?
+      // Ideally we should adhere to whitelist or safe flags, but for dev tasks it's usually less critical
+      // as long as we don't allow arbitary shell injection (which Deno.Command prevents).
+      // However, we should prevent command chaining or redirection if Deno.Command allows it via args? No, it doesn't.
+
+      const cmdArgs = [task];
+
+      // Some tasks like lint/fmt/test take path as argument, usually at the end
+      // We pass it explicitly.
+
+      // Add user args first (flags)
+      if (args && args.length > 0) {
+        cmdArgs.push(...args);
+      }
+
+      // Add path
+      cmdArgs.push(resolvedPath);
+
+      const cmd = new Deno.Command("deno", {
+        args: cmdArgs,
+        stdout: "piped",
+        stderr: "piped",
+        cwd: this.baseDir, // Run from root, but target resolvedPath
+      });
+
+      const { code, stdout, stderr } = await cmd.output();
+      const output = new TextDecoder().decode(stdout);
+      const errorOutput = new TextDecoder().decode(stderr);
+
+      if (code !== 0) {
+        // for lint/test, non-zero exit code usually means violations/failures, which is "success" in terms of running the tool,
+        // but might be considered error. However, providing the output is useful.
+        // We'll return success: true (or false?) but with data containing the output.
+        // Standard convention: if tool failed to run, error. If tool ran but found issues, success: true + data.
+        // But let's follow return structure. If code!=0, typically `run_command` returns error.
+        // But for test/lint, we want to see the failures.
+        return {
+          success: false, // Mark as false so agent knows something is wrong
+          error: `Task '${task}' failed with exit code ${code}:\n${output}\n${errorOutput}`,
+          data: { output, errorOutput, exitCode: code },
+        };
+      }
+
+      return this.formatSuccess({
+        output,
+        errorOutput,
+        exitCode: code,
+      });
+    } catch (error) {
+      return this.formatError(error);
+    }
+  }
+
+  /**
+   * Patch file tool implementation
+   */
+  private async patchFile(path: string, patches: Array<{ search: string; replace: string }>): Promise<ToolResult> {
+    try {
+      const resolvedPath = await this.resolvePath(path);
+      let content = await Deno.readTextFile(resolvedPath);
+      let appliedCount = 0;
+
+      for (const patch of patches) {
+        if (!content.includes(patch.search)) {
+          return {
+            success: false,
+            error: `Search string not found in file: ${patch.search.substring(0, 50)}...`,
+          };
+        }
+
+        // Replace ONLY the first occurrence to be safe and predictable
+        content = content.replace(patch.search, patch.replace);
+        appliedCount++;
+      }
+
+      await Deno.writeTextFile(resolvedPath, content);
+      return this.formatSuccess({ path, appliedCount });
+    } catch (error) {
+      return this.formatError(error);
     }
   }
 }

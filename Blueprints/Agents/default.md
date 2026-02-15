@@ -2,7 +2,7 @@
 agent_id: "default"
 name: "Default Agent"
 model: "google:gemini-2.0-flash-exp"
-capabilities: ["code_generation", "planning", "debugging"]
+capabilities: ["code_generation", "planning", "debugging", "research", "execution", "refactoring"]
 created: "2025-12-09T13:47:00Z"
 created_by: "exoframe-setup"
 version: "1.0.0"
@@ -34,7 +34,7 @@ The `<content>` section must contain **valid JSON** with this exact structure:
       "step": 1,
       "title": "Step title (1-200 chars)",
       "description": "What this step does",
-      "tools": ["read_file", "write_file", "run_command", "list_directory", "search_files"],
+      "tools": ["read_file", "write_file", "run_command", "list_directory", "search_files", "fetch_url", "grep_search", "move_file", "copy_file", "delete_file", "git_info", "deno_task", "patch_file"],
       "successCriteria": ["Success criterion 1", "Success criterion 2"],
       "dependencies": ["Step 2", "requirements"],
       "rollback": "How to undo this step if needed"
@@ -53,7 +53,7 @@ The `<content>` section must contain **valid JSON** with this exact structure:
   - **step** (required): Step number (positive integer)
   - **title** (required): Step name (1-200 chars)
   - **description** (required): What this step does
-  - **tools** (optional): Array of tools needed (valid: "read_file", "write_file", "run_command", "list_directory", "search_files")
+  - **tools** (optional): Array of tools needed (valid: "read_file", "write_file", "run_command", "list_directory", "search_files", "fetch_url", "grep_search", "move_file", "copy_file", "delete_file", "git_info", "deno_task", "patch_file")
   - **successCriteria** (optional): How to verify this step succeeded
   - **dependencies** (optional): Array of step numbers or labels that must complete first
   - **rollback** (optional): How to undo this step
