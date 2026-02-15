@@ -266,6 +266,7 @@ export class ToolRegistry {
   private tools: Map<string, Tool>;
   private baseDir: string;
   private pipeline: MiddlewarePipeline<ToolContext>;
+  private executors: Map<string, (params: Record<string, any>) => Promise<ToolResult>> = new Map();
 
   constructor(options?: ToolRegistryConfig) {
     // Use ConfigSchema to parse and apply all defaults automatically
@@ -290,6 +291,7 @@ export class ToolRegistry {
     this.pipeline = new MiddlewarePipeline<ToolContext>();
 
     this.registerCoreTools();
+    this.registerCoreExecutors();
     this.setupMiddleware();
   }
 
@@ -603,6 +605,26 @@ export class ToolRegistry {
   }
 
   /**
+   * Register all core executors
+   */
+  private registerCoreExecutors() {
+    this.executors.set("read_file", (p) => this.readFile(p.path));
+    this.executors.set("write_file", (p) => this.writeFile(p.path, p.content));
+    this.executors.set("list_directory", (p) => this.listDirectory(p.path));
+    this.executors.set("search_files", (p) => this.searchFiles(p.pattern, p.path));
+    this.executors.set("run_command", (p) => this.runCommand(p.command, p.args || []));
+    this.executors.set("create_directory", (p) => this.createDirectory(p.path));
+    this.executors.set("fetch_url", (p) => this.fetchUrl(p.url, p.format));
+    this.executors.set("grep_search", (p) => this.grepSearch(p.pattern, p.path, p.case_sensitive));
+    this.executors.set("move_file", (p) => this.moveFile(p.source, p.destination, p.overwrite));
+    this.executors.set("copy_file", (p) => this.copyFile(p.source, p.destination, p.overwrite));
+    this.executors.set("delete_file", (p) => this.deleteFile(p.path));
+    this.executors.set("git_info", (p) => this.gitInfo(p.repo_path, p.scope));
+    this.executors.set("deno_task", (p) => this.denoTask(p.task, p.path, p.args));
+    this.executors.set("patch_file", (p) => this.patchFile(p.path, p.patches));
+  }
+
+  /**
    * Get all registered tools
    */
   getTools(): Tool[] {
@@ -623,54 +645,14 @@ export class ToolRegistry {
 
     await this.pipeline.execute(context, async () => {
       // Core Execution Logic
-      switch (toolName) {
-        case "read_file":
-          context.result = await this.readFile(params.path);
-          break;
-        case "write_file":
-          context.result = await this.writeFile(params.path, params.content);
-          break;
-        case "list_directory":
-          context.result = await this.listDirectory(params.path);
-          break;
-        case "search_files":
-          context.result = await this.searchFiles(params.pattern, params.path);
-          break;
-        case "run_command":
-          context.result = await this.runCommand(params.command, params.args || []);
-          break;
-        case "create_directory":
-          context.result = await this.createDirectory(params.path);
-          break;
-        case "fetch_url":
-          context.result = await this.fetchUrl(params.url, params.format);
-          break;
-        case "grep_search":
-          context.result = await this.grepSearch(params.pattern, params.path, params.case_sensitive);
-          break;
-        case "move_file":
-          context.result = await this.moveFile(params.source, params.destination, params.overwrite);
-          break;
-        case "copy_file":
-          context.result = await this.copyFile(params.source, params.destination, params.overwrite);
-          break;
-        case "delete_file":
-          context.result = await this.deleteFile(params.path);
-          break;
-        case "git_info":
-          context.result = await this.gitInfo(params.repo_path, params.scope);
-          break;
-        case "deno_task":
-          context.result = await this.denoTask(params.task, params.path, params.args);
-          break;
-        case "patch_file":
-          context.result = await this.patchFile(params.path, params.patches);
-          break;
-        default:
-          context.result = {
-            success: false,
-            error: `Tool '${toolName}' not implemented`,
-          };
+      const executor = this.executors.get(toolName);
+      if (executor) {
+        context.result = await executor(params);
+      } else {
+        context.result = {
+          success: false,
+          error: `Tool '${toolName}' not implemented`,
+        };
       }
     });
 

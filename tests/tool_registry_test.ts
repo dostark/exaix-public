@@ -429,7 +429,7 @@ Deno.test("ToolRegistry: getTools - returns all registered tools", () => {
 
   const tools = registry.getTools();
 
-  assertEquals(tools.length, 6);
+  assertEquals(tools.length, 14);
   const toolNames = tools.map((t) => t.name);
   assertEquals(toolNames.includes(McpToolName.READ_FILE), true);
   assertEquals(toolNames.includes(McpToolName.WRITE_FILE), true);
@@ -437,6 +437,14 @@ Deno.test("ToolRegistry: getTools - returns all registered tools", () => {
   assertEquals(toolNames.includes(McpToolName.SEARCH_FILES), true);
   assertEquals(toolNames.includes(McpToolName.RUN_COMMAND), true);
   assertEquals(toolNames.includes(McpToolName.CREATE_DIRECTORY), true);
+  assertEquals(toolNames.includes("fetch_url"), true);
+  assertEquals(toolNames.includes("grep_search"), true);
+  assertEquals(toolNames.includes("move_file"), true);
+  assertEquals(toolNames.includes("copy_file"), true);
+  assertEquals(toolNames.includes("delete_file"), true);
+  assertEquals(toolNames.includes("git_info"), true);
+  assertEquals(toolNames.includes("deno_task"), true);
+  assertEquals(toolNames.includes("patch_file"), true);
 });
 
 Deno.test("ToolRegistry: execute - validates required parameters", async () => {

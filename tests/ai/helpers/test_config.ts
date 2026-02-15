@@ -13,6 +13,18 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
   const parsedAi = aiConfig ? AiConfigSchema.parse(aiConfig) : undefined;
 
   return {
+    tools: {
+      fetch_url: {
+        enabled: false,
+        allowed_domains: ["deno.land", "docs.deno.com", "npmjs.com", "github.com", "stackoverflow.com"],
+        timeout_ms: 5000,
+        max_response_size_kb: 50,
+      },
+      grep_search: {
+        max_results: 50,
+        exclude_dirs: [".git", "node_modules", "dist", "coverage"],
+      },
+    },
     system: {
       version: "1.0.0",
       root: "/tmp/exoframe-test",
