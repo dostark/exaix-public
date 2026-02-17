@@ -72,7 +72,7 @@ Deno.test("Reproduction: Zombie Plan Lifecycle in Manual Execution Mode", async 
     db = new DatabaseService(config);
     // Mock provider that will choke or we just rely on invalid tool in plan
     const provider = await ProviderFactory.createByName(config, "mock:test");
-    const _executor = new PlanExecutor(config, provider, db);
+    const _executor = new PlanExecutor(config, provider, db, testRoot);
 
     // 2. Create a "Fail Plan"
     // This plan tries to use a non-existent tool or invalid arguments to force a failure

@@ -183,6 +183,8 @@ export class ExecutionLoop {
     const { planPath, requireActions, initGitBranch } = options;
     let traceId: string | undefined;
     let requestId: string | undefined;
+    let portalGitService: GitService | undefined;
+    let worktreePath: string | undefined;
 
     try {
       // Parse plan frontmatter first (validates before lease)
@@ -200,7 +202,7 @@ export class ExecutionLoop {
       });
 
       const portalRepoRoot = this.resolvePortalRepoRoot(frontmatter);
-      const portalGitService = this.createGitService(portalRepoRoot, traceId);
+      portalGitService = this.createGitService(portalRepoRoot, traceId);
 
       const planContent = await this.readPlanContent(planPath);
       const prepared = await this.preparePlanExecution(frontmatter, planContent);
@@ -215,6 +217,7 @@ export class ExecutionLoop {
         portalGitService,
         executionStrategy: prepared.executionStrategy,
       });
+      worktreePath = gitSetup.worktreePath;
 
       const workResult = await this.executePlanWork({
         structuredPlan: prepared.structuredPlan,
@@ -265,7 +268,10 @@ export class ExecutionLoop {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (traceId && requestId) {
-        await this.handleFailure(planPath, traceId, requestId, errorMessage);
+        await this.handleFailure(planPath, traceId, requestId, errorMessage, {
+          portalGitService,
+          worktreePath,
+        });
       }
       return { success: false, traceId, error: errorMessage };
     } finally {
@@ -302,8 +308,8 @@ export class ExecutionLoop {
 
   private getExecutionStrategy(frontmatter: PlanFrontmatter): PortalExecutionStrategy {
     if (!frontmatter.portal) return PortalExecutionStrategy.BRANCH;
-    const portalCfg = this.config.portals.find((p) => p.alias === frontmatter.portal);
-    return portalCfg?.execution_strategy ?? PortalExecutionStrategy.BRANCH;
+    // Force WORKTREE for all portal tasks for security and isolation.
+    return PortalExecutionStrategy.WORKTREE;
   }
 
   private async preparePlanExecution(frontmatter: PlanFrontmatter, planContent: string): Promise<{
@@ -348,6 +354,14 @@ export class ExecutionLoop {
     const executionRoot = args.portalRepoRoot;
     const executionGitService = args.portalGitService;
     if (!args.initGitBranch || !args.hasExecutableWork) {
+      return { executionRoot, executionGitService };
+    }
+
+    // Security check: only initialize git if we're not in the system root,
+    // or if we're specifically targeting a portal (which should have its own isolation).
+    if (args.portalRepoRoot === this.config.system.root && !args.frontmatter.portal) {
+      // For tasks in the system root that are not portal-assigned, skip git initialization
+      // to avoid creating a .git folder in ~/ExoFrame.
       return { executionRoot, executionGitService };
     }
 
@@ -691,6 +705,7 @@ export class ExecutionLoop {
       this.config,
       this.llmProvider,
       this.db,
+      executionRoot,
       options,
     );
 
@@ -901,6 +916,10 @@ export class ExecutionLoop {
     traceId: string,
     requestId: string,
     error: string,
+    _cleanup?: {
+      portalGitService?: GitService;
+      worktreePath?: string;
+    },
   ): Promise<void> {
     // Generate failure report
     await this.generateFailureReport(traceId, requestId, error);
@@ -922,29 +941,14 @@ export class ExecutionLoop {
     await Deno.writeTextFile(requestPath, updatedContent);
     await Deno.remove(planPath);
 
-    // Rollback git changes
-    try {
-      const gitCmd = new Deno.Command("git", {
-        args: ["reset", "--hard", "HEAD"],
-        cwd: this.config.system.root,
-        stdout: "piped",
-        stderr: "piped",
-      });
-      await gitCmd.output();
-
-      // Return to a common base branch if present.
-      for (const branch of ["main", "master"]) {
-        const checkoutCmd = new Deno.Command("git", {
-          args: ["checkout", branch],
-          cwd: this.config.system.root,
-          stdout: "piped",
-          stderr: "piped",
-        });
-        const { code } = await checkoutCmd.output();
-        if (code === 0) break;
+    // Rollback git changes are now handled by GitService guards and worktree isolation.
+    // We no longer perform global 'git reset --hard' in the system root.
+    if (_cleanup?.worktreePath && _cleanup?.portalGitService) {
+      try {
+        await _cleanup.portalGitService.removeWorktree(_cleanup.worktreePath, { force: true });
+      } catch (error) {
+        console.warn(`Failed to cleanup worktree at ${_cleanup.worktreePath}:`, error);
       }
-    } catch {
-      // Rollback failure is not critical
     }
 
     // Log failure

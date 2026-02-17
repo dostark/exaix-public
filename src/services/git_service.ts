@@ -112,6 +112,13 @@ export class GitNothingToCommitError extends GitError {
   }
 }
 
+export class GitSecurityError extends GitError {
+  constructor(message: string) {
+    super(message);
+    this.name = "GitSecurityError";
+  }
+}
+
 // ============================================================================
 // GitService Implementation
 // ============================================================================
@@ -388,7 +395,7 @@ export class GitService {
       const statusResult = await this.runGitCommand(["status", "--porcelain"]);
 
       if (!statusResult.output.trim()) {
-        throw new Error("nothing to commit, working tree clean");
+        throw new GitNothingToCommitError("nothing to commit, working tree clean");
       }
 
       // Stage all changes
@@ -434,6 +441,12 @@ export class GitService {
    */
   async checkoutBranch(branchName: string): Promise<void> {
     const startTime = Date.now();
+
+    // Security Guard: Prevent checkouts to protected branches
+    const protectedBranches = ["main", "master", "develop", "prod", "production"];
+    if (protectedBranches.includes(branchName.toLowerCase())) {
+      throw new GitSecurityError(`Switching to protected branch '${branchName}' is prohibited for agents.`);
+    }
 
     try {
       await this.runGitCommand(["checkout", branchName]);
@@ -619,6 +632,28 @@ export class GitService {
     args: string[],
     options: GitCommandOptions = {},
   ): Promise<{ output: string; exitCode: number }> {
+    // 0. Security Guards
+    const fullCommand = args.join(" ").toLowerCase();
+
+    // Prohibit destructive operations
+    const isDestructive = (fullCommand.includes("reset") && fullCommand.includes("--hard")) ||
+      (fullCommand.includes("clean") && (fullCommand.includes("-f") || fullCommand.includes("-d")));
+
+    if (isDestructive) {
+      throw new GitSecurityError(`Destructive git operation prohibited: git ${args.join(" ")}`);
+    }
+
+    // Prohibit non-readonly operations in system root to prevent accidental "taint"
+    if (this.repoPath === this.config.system.root) {
+      const safeCommands = ["status", "rev-parse", "config", "log", "show", "diff", "ls-files"];
+      const command = args[0]?.toLowerCase();
+      if (!safeCommands.includes(command)) {
+        throw new GitSecurityError(
+          `Only read-only git operations are allowed in the system root: git ${args.join(" ")}`,
+        );
+      }
+    }
+
     const {
       throwOnError = true,
       timeoutMs = DEFAULT_GIT_COMMAND_TIMEOUT_MS,

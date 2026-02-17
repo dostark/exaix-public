@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-17T12:23:08.696Z",
+  "generated_at": "2026-02-17T15:42:47.387Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1508,6 +1508,21 @@
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk0.txt",
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk1.txt",
         ".copilot/chunks/changeset-show-diff-option-not-implemented.md.chunk2.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/execution-bug-data-loss-git-root.md",
+      "title": "Critical Data Loss: Git Repository Scope Mismatch in Runtime Root",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk0.txt",
+        ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk1.txt",
+        ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk2.txt",
+        ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk3.txt",
+        ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk4.txt",
+        ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk5.txt",
+        ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk6.txt",
+        ".copilot/chunks/execution-bug-data-loss-git-root.md.chunk7.txt"
       ]
     },
     {

@@ -15,6 +15,7 @@ import type { Config } from "../../src/config/schema.ts";
 
 export interface GitTestContext {
   tempDir: string;
+  repoDir: string;
   db: DatabaseService;
   cleanup: () => Promise<void>;
   config: Config;
@@ -76,17 +77,32 @@ export async function setupGitRepo(path: string, options: { initialCommit?: bool
  * Creates a test environment with initialized git repository
  */
 export async function createGitTestContext(prefix: string = "git-test-"): Promise<GitTestContext> {
-  const tempDir = await Deno.makeTempDir({ prefix });
+  const rawTempDir = await Deno.makeTempDir({ prefix });
+  const tempDir = await Deno.realPath(rawTempDir);
   const { db, cleanup: dbCleanup } = await initTestDbService();
   const config = createMockConfig(tempDir);
-  const git = new GitService({ config, db });
+
+  // Create a separate repo directory so it's not the same as config.system.root
+  const rawRepoDir = join(tempDir, "repo");
+  await Deno.mkdir(rawRepoDir, { recursive: true });
+  const repoDir = await Deno.realPath(rawRepoDir);
+
+  const git = new GitService({
+    config,
+    db,
+    repoPath: repoDir,
+  });
 
   const cleanup = async () => {
     await dbCleanup();
-    await Deno.remove(tempDir, { recursive: true });
+    try {
+      await Deno.remove(tempDir, { recursive: true });
+    } catch {
+      // Ignore if already deleted
+    }
   };
 
-  return { tempDir, db, cleanup, config, git };
+  return { tempDir, repoDir, db, cleanup, config, git };
 }
 
 /**

@@ -188,6 +188,30 @@ function validateGitArguments(args: string[]): { valid: boolean; reason?: string
     "--html-path",
   ];
 
+  const fullCommand = args.join(" ").toLowerCase();
+
+  // Prohibit destructive operations
+  const isDestructive = (fullCommand.includes("reset") && fullCommand.includes("--hard")) ||
+    (fullCommand.includes("clean") && (fullCommand.includes("-f") || fullCommand.includes("-d")));
+
+  if (isDestructive) {
+    return {
+      valid: false,
+      reason: `Destructive git operation prohibited: git ${args.join(" ")}`,
+    };
+  }
+
+  // Protect system branches from direct checkout/modification
+  const protectedBranches = ["main", "master", "develop", "prod", "production"];
+  if (args.includes("checkout") || args.includes("branch")) {
+    if (args.some((arg) => protectedBranches.includes(arg.toLowerCase()))) {
+      return {
+        valid: false,
+        reason: `Operations on protected branches (main, master, etc.) are prohibited for safety.`,
+      };
+    }
+  }
+
   for (const arg of args) {
     if (dangerousGitOptions.some((option) => arg.startsWith(option))) {
       return {
@@ -863,6 +887,7 @@ export class ToolRegistry {
 
       const cmd = new Deno.Command(command, {
         args,
+        cwd: this.baseDir,
         stdout: "piped",
         stderr: "piped",
       });

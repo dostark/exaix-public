@@ -1,15 +1,17 @@
 import { assert, assertEquals, assertExists, assertRejects } from "@std/assert";
-
-import { MemoryOperation } from "../src/enums.ts";
-
+import {
+  FlowStepType as _FlowStepType,
+  MemoryOperation as _MemoryOperation,
+  PortalOperation as _PortalOperation,
+} from "../src/enums.ts";
 import { join } from "@std/path";
 import { type PlanContext, PlanExecutor } from "../src/services/plan_executor.ts";
 import { MockProvider } from "../src/ai/providers.ts";
 import { createGitTestContext, GitTestHelper } from "./helpers/git_test_helper.ts";
 
 Deno.test("PlanExecutor: executes plan steps successfully", async () => {
-  const { tempDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-test-");
-  const helper = new GitTestHelper(tempDir);
+  const { tempDir: _tempDir, repoDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-test-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     // Setup git repo
@@ -32,7 +34,7 @@ content = "Hello World"
     const mockProvider = new MockProvider(mockResponse);
 
     // Initialize executor
-    const executor = new PlanExecutor(config, mockProvider, db);
+    const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
     // Prepare plan context
     const context: PlanContext = {
@@ -53,7 +55,7 @@ content = "Hello World"
     };
 
     // Execute plan
-    const planPath = join(tempDir, "Workspace/Active/plan.md");
+    const planPath = join(_tempDir, "Workspace/Active/plan.md");
     const result = await executor.execute(planPath, context);
     const sha = result.lastCommitSha;
 
@@ -61,7 +63,7 @@ content = "Hello World"
     assertExists(sha, "Should return commit SHA");
 
     // Verify file created
-    const fileContent = await Deno.readTextFile(join(tempDir, "test.txt"));
+    const fileContent = await Deno.readTextFile(join(repoDir, "test.txt"));
     assertEquals(fileContent, "Hello World");
 
     // Verify commit
@@ -88,8 +90,8 @@ content = "Hello World"
 });
 
 Deno.test("PlanExecutor: handles multiple steps", async () => {
-  const { tempDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-multi-");
-  const _helper = new GitTestHelper(tempDir);
+  const { tempDir: _tempDir, repoDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-multi-");
+  const _helper = new GitTestHelper(repoDir);
 
   try {
     await git.ensureRepository();
@@ -131,7 +133,7 @@ content = "Step 2"
     }
 
     const mockProvider = new SmartMockProvider("");
-    const executor = new PlanExecutor(config, mockProvider, db);
+    const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
     const context: PlanContext = {
       trace_id: "trace-456",
@@ -144,14 +146,14 @@ content = "Step 2"
       ],
     };
 
-    const result = await executor.execute("plan.md", context);
+    const result = await executor.execute(join(_tempDir, "plan.md"), context);
     const sha = result.lastCommitSha;
     assertExists(sha);
 
     // Verify both files created
-    const content1 = await Deno.readTextFile(join(tempDir, "step1.txt"));
+    const content1 = await Deno.readTextFile(join(repoDir, "step1.txt"));
     assertEquals(content1, "Step 1");
-    const content2 = await Deno.readTextFile(join(tempDir, "step2.txt"));
+    const content2 = await Deno.readTextFile(join(repoDir, "step2.txt"));
     assertEquals(content2, "Step 2");
   } finally {
     await cleanup();
@@ -159,7 +161,7 @@ content = "Step 2"
 });
 
 Deno.test("PlanExecutor: handles tool execution failure", async () => {
-  const { tempDir: _tempDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-fail-");
+  const { tempDir: _tempDir, repoDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-fail-");
 
   try {
     await git.ensureRepository();
@@ -177,7 +179,7 @@ foo = "bar"
 \`\`\`
 `;
     const mockProvider = new MockProvider(mockResponse);
-    const executor = new PlanExecutor(config, mockProvider, db);
+    const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
     const context: PlanContext = {
       trace_id: "trace-fail",
@@ -189,7 +191,7 @@ foo = "bar"
 
     // Should throw
     await assertRejects(
-      async () => await executor.execute("plan.md", context),
+      async () => await executor.execute(join(_tempDir, "plan.md"), context),
       Error,
       "Tool 'non_existent_tool' not found",
     );
@@ -199,15 +201,15 @@ foo = "bar"
 });
 
 Deno.test("PlanExecutor: handles no actions generated", async () => {
-  const { tempDir: _tempDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-no-act-");
+  const { tempDir: _tempDir, repoDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-no-act-");
 
   try {
     await git.ensureRepository();
     await git.ensureIdentity();
 
     // Mock response with no actions
-    const mockProvider = new MockProvider("I cannot do that.");
-    const executor = new PlanExecutor(config, mockProvider, db);
+    const mockProvider = new MockProvider("No actions here");
+    const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
     const context: PlanContext = {
       trace_id: "trace-no-act",
@@ -218,7 +220,7 @@ Deno.test("PlanExecutor: handles no actions generated", async () => {
     };
 
     // Should return null (no commit)
-    const result = await executor.execute("plan.md", context);
+    const result = await executor.execute(join(_tempDir, "plan.md"), context);
     const sha = result.lastCommitSha;
     assertEquals(sha, null);
   } finally {
@@ -227,7 +229,7 @@ Deno.test("PlanExecutor: handles no actions generated", async () => {
 });
 
 Deno.test("PlanExecutor: handles malformed TOML", async () => {
-  const { tempDir: _tempDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-bad-toml-");
+  const { tempDir: _tempDir, repoDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-bad-toml-");
 
   try {
     await git.ensureRepository();
@@ -243,7 +245,7 @@ path = "bad.txt"
 \`\`\`
 `;
     const mockProvider = new MockProvider(mockResponse);
-    const executor = new PlanExecutor(config, mockProvider, db);
+    const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
     const context: PlanContext = {
       trace_id: "trace-bad",
@@ -254,7 +256,7 @@ path = "bad.txt"
     };
 
     // Should return null because parsing fails -> no actions -> warning -> return null
-    const result = await executor.execute("plan.md", context);
+    const result = await executor.execute(join(_tempDir, "plan.md"), context);
     const sha = result.lastCommitSha;
     assertEquals(sha, null);
   } finally {
@@ -263,13 +265,13 @@ path = "bad.txt"
 });
 
 Deno.test("PlanExecutor: handles tool failure (result.success=false)", async () => {
-  const { tempDir: _tempDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-fail-res-");
+  const { tempDir: _tempDir, repoDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-fail-res-");
 
   try {
     await git.ensureRepository();
     await git.ensureIdentity();
 
-    // Mock response with read_file on non-existent file
+    // Mock response where tool returns success=false
     const mockResponse = `
 \`\`\`toml
 [[actions]]
@@ -279,7 +281,7 @@ path = "non_existent.txt"
 \`\`\`
 `;
     const mockProvider = new MockProvider(mockResponse);
-    const executor = new PlanExecutor(config, mockProvider, db);
+    const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
     const context: PlanContext = {
       trace_id: "trace-fail-res",
@@ -291,7 +293,7 @@ path = "non_existent.txt"
 
     // Should throw because tool returns success: false
     await assertRejects(
-      async () => await executor.execute("plan.md", context),
+      async () => await executor.execute(join(_tempDir, "plan.md"), context),
       Error,
       "File: non_existent.txt not found",
     );
@@ -301,17 +303,18 @@ path = "non_existent.txt"
 });
 
 Deno.test("PlanExecutor: handles step with no changes", async () => {
-  const { tempDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-no-change-");
-  const _helper = new GitTestHelper(tempDir); // Fixed lint: prefixed with underscore
+  const { tempDir: _tempDir, repoDir, db, cleanup, config, git } = await createGitTestContext("plan-exec-no-change-");
+  const _helper = new GitTestHelper(repoDir); // Fixed lint: prefixed with underscore
 
   try {
     await git.ensureRepository();
     await git.ensureIdentity();
 
-    // Create a file to read and commit it so repo is clean
-    await Deno.writeTextFile(join(tempDir, "read.txt"), "content");
-    await _helper.runGit([MemoryOperation.ADD, "."]);
-    await _helper.runGit(["commit", "-m", "Initial commit"]);
+    // Pre-create file
+    // Note: It must be in repoDir for PlanExecutor (with baseDir=repoDir) to find it
+    await Deno.writeTextFile(join(repoDir, "read.txt"), "Original content");
+    await _helper.createFileAndCommit("read.txt", "Original content", "Initial commit");
+    const _initialSha = await _helper.getCommitSha("HEAD");
     const mockResponse = `
 \`\`\`toml
 [[actions]]
@@ -321,7 +324,7 @@ path = "read.txt"
 \`\`\`
 `;
     const mockProvider = new MockProvider(mockResponse);
-    const executor = new PlanExecutor(config, mockProvider, db);
+    const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
     const context: PlanContext = {
       trace_id: "trace-no-change",
@@ -332,7 +335,7 @@ path = "read.txt"
     };
 
     // Should return null (no commit created for step)
-    const result = await executor.execute("plan.md", context);
+    const result = await executor.execute(join(_tempDir, "plan.md"), context);
     const sha = result.lastCommitSha;
     assertEquals(sha, null);
   } finally {

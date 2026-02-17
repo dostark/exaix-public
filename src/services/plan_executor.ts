@@ -13,7 +13,7 @@ import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import type { IModelProvider } from "../ai/providers.ts";
 import { ToolRegistry } from "./tool_registry.ts";
-import { GitService } from "./git_service.ts";
+import { GitNothingToCommitError, GitService } from "./git_service.ts";
 import { EventLogger } from "./event_logger.ts";
 import { ExecutionStatus } from "../enums.ts";
 import {
@@ -72,6 +72,7 @@ export class PlanExecutor {
     private config: Config,
     private llmProvider: IModelProvider,
     private db: DatabaseService,
+    private repoPath: string,
     options: PlanExecutorOptions = {},
   ) {
     this.logger = new EventLogger({
@@ -102,6 +103,7 @@ export class PlanExecutor {
         ? new GitService({
           config: this.config,
           db: this.db,
+          repoPath: this.repoPath,
           traceId,
           agentId,
         })
@@ -119,7 +121,7 @@ export class PlanExecutor {
       }
 
       // Determine baseDir for ToolRegistry
-      let baseDir: string | undefined;
+      let baseDir: string = this.repoPath;
       const portalName = context.frontmatter.portal as string | undefined;
 
       if (portalName) {
@@ -237,10 +239,10 @@ export class PlanExecutor {
     // Execute actions
     for (const action of actions) {
       try {
-        await this.logger.debug("action.executing", action.tool, {
-          params: action.params,
-          trace_id: context.trace_id,
-        });
+        // await this.logger.debug("action.executing", action.tool, {
+        //   params: action.params,
+        //   trace_id: context.trace_id,
+        // });
 
         const result = await toolRegistry.execute(action.tool, action.params);
 
@@ -258,10 +260,10 @@ export class PlanExecutor {
           throw new Error(result.error || "Tool execution failed");
         }
 
-        await this.logger.debug("action.completed", action.tool, {
-          result_preview: JSON.stringify(result).slice(0, 100),
-          trace_id: context.trace_id,
-        });
+        // await this.logger.debug("action.completed", action.tool, {
+        //   result_preview: JSON.stringify(result).slice(0, 100),
+        //   trace_id: context.trace_id,
+        // });
       } catch (error) {
         actionReports.push({
           stepNumber: step.number,
@@ -299,12 +301,16 @@ export class PlanExecutor {
       });
 
       return sha;
-    } catch {
-      // Ignore "nothing to commit" between steps
-      await this.logger.info("step.completed_no_changes", `Step ${step.number}`, {
-        trace_id: context.trace_id,
-      });
-      return null;
+    } catch (error) {
+      if (error instanceof GitNothingToCommitError) {
+        // Ignore "nothing to commit" between steps
+        await this.logger.info("step.completed_no_changes", `Step ${step.number}`, {
+          trace_id: context.trace_id,
+        });
+        return null;
+      }
+      // Rethrow other git errors (e.g. security violations, lock errors)
+      throw error;
     }
   }
 
@@ -414,12 +420,12 @@ Generate the TOML actions now.`;
    */
   private parseActions(response: string): PlanAction[] {
     const actions: PlanAction[] = [];
-    const codeBlockRegex = /```toml\n([\s\S]*?)\n```/g;
+    const codeBlockRegex = /```toml\s*([\s\S]*?)```/g;
     let match;
 
     while ((match = codeBlockRegex.exec(response)) !== null) {
       try {
-        const block = match[1];
+        const block = match[1].trim();
         const parsed = parseToml(block) as any;
 
         if (parsed.actions && Array.isArray(parsed.actions)) {
