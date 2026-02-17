@@ -453,7 +453,7 @@ Deno.test("GitService: checkoutBranch - logs successful checkout", async () => {
   const helper = new GitTestHelper(repoDir);
 
   try {
-    const config = createMockConfig(tempDir);
+    const config = createMockConfig(repoDir);
     const git = new GitService({ config, db, traceId: "checkout-trace" });
 
     await git.ensureRepository();
@@ -556,7 +556,7 @@ Deno.test("GitService: branch operations preserve traceId context", async () => 
   try {
     const traceId = "preserved-trace-id-123";
     const agentId = "test-agent";
-    const config = createMockConfig(tempDir);
+    const config = createMockConfig(repoDir);
     const git = new GitService({ config, db, traceId, agentId });
 
     await git.ensureRepository();
