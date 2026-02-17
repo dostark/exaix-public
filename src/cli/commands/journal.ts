@@ -1,3 +1,12 @@
+/**
+ * @module JournalCommands
+ * @path src/cli/commands/journal.ts
+ * @description Provides CLI access to the Activity Journal, allowing users to query, filter, and display system activities and agent logs.
+ * @architectural-layer CLI
+ * @dependencies [base_command, colors, db_schema, journal_formatter]
+ * @related-files [src/services/db.ts, src/cli/main.ts]
+ */
+
 import { BaseCommand, type CommandContext } from "../base.ts";
 import * as colors from "@std/fmt/colors";
 import type { JournalFilterOptions } from "../../services/db.ts";

@@ -1,3 +1,12 @@
+/**
+ * @module ProdHandleKey
+ * @path src/tui/tui_helpers/prod_handle_key.ts
+ * @description Production-grade key event handler for the TUI dashboard, with support for advanced terminal escape sequences.
+ * @architectural-layer TUI
+ * @dependencies [keyboard, pane_manager, notification_service]
+ * @related-files [src/tui/tui_dashboard.ts, src/tui/tui_helpers/handle_key.ts]
+ */
+
 import type { Pane } from "../tui_dashboard.ts";
 import type { MemoryNotification as TuiNotification, NotificationService } from "../../services/notification.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";

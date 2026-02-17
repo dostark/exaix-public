@@ -1,14 +1,10 @@
 /**
- * Confidence Scoring Service
- *
- * Phase 16.7 implementation: Agents express confidence in their outputs.
- *
- * Features:
- * - Extract confidence score (0-100) from agent responses
- * - Parse confidence reasoning and supporting evidence
- * - Flag low-confidence outputs for human review
- * - Propagate confidence to plan outputs
- * - Aggregation strategies for multi-agent scenarios
+ * @module ConfidenceScorer
+ * @path src/services/confidence_scorer.ts
+ * @description Evaluates agent outputs to extract confidence scores and reasoning, flagging low-confidence results for human review.
+ * @architectural-layer Services
+ * @dependencies [providers, db, agent_runner, output_validator, enums, constants]
+ * @related-files [src/services/agent_runner.ts, src/services/reflexive_agent.ts]
  */
 
 import { z } from "zod";

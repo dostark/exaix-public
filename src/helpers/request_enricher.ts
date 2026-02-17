@@ -1,3 +1,11 @@
+/**
+ * @module RequestEnricher
+ * @path src/helpers/request_enricher.ts
+ * @description Utility to enrich metadata with full request information from the database or workspace.
+ * @architectural-layer Helpers
+ * @dependencies [RequestCommands, EnvConfig]
+ * @related-files [src/cli/request_commands.ts]
+ */
 import { RequestCommands } from "../cli/request_commands.ts";
 import { isTestMode } from "../config/env_schema.ts";
 
@@ -11,10 +19,6 @@ export interface RequestEnrichable {
   request_flow?: string;
   request_rejected_path?: string;
 }
-
-/**
- * Common logic to enrich metadata with request information
- */
 export async function enrichWithRequest<T extends RequestEnrichable>(
   requestCommands: RequestCommands,
   metadata: T,

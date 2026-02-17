@@ -1,10 +1,10 @@
 /**
- * JudgeEvaluator - LLM-as-a-Judge integration for output evaluation
- *
- * Phase 15.3: Implements judge agent invocation and result parsing
- * for quality evaluation of agent outputs.
- *
- * @module flows/judge_evaluator
+ * @module JudgeEvaluator
+ * @path src/flows/judge_evaluator.ts
+ * @description Orchestrates judge agent invocation and result parsing for output quality evaluation, including JSON repair and heuristic recovery.
+ * @architectural-layer Flows
+ * @dependencies [evaluation_criteria, gate_evaluator]
+ * @related-files [src/flows/gate_evaluator.ts, src/flows/evaluation_criteria.ts]
  */
 
 import { buildEvaluationPrompt, EvaluationCriterion, EvaluationResult } from "./evaluation_criteria.ts";

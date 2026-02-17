@@ -1,10 +1,10 @@
 /**
- * StructuredLogService - Service layer for StructuredLogger TUI integration
- *
- * Part of Phase 13.6: StructuredLogger TUI Integration
- *
- * This service provides the interface between the StructuredLogger and TUI components,
- * enabling real-time log streaming, querying, and correlation tracking.
+ * @module StructuredLogServiceModule
+ * @path src/tui/structured_log_service.ts
+ * @description Service layer for StructuredLogger TUI integration, enabling real-time log streaming, querying, and correlation tracking.
+ * @architectural-layer TUI
+ * @dependencies [structured_logger, structured_log_viewer]
+ * @related-files [src/services/structured_logger.ts, src/tui/structured_log_viewer.ts]
  */
 
 import type { LogEntry, StructuredLogger } from "../services/structured_logger.ts";

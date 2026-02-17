@@ -84,7 +84,11 @@ src/
 
 tests/           # Mirror of src/ structure
 .copilot/          # AI assistant guidance (see below)
-docs/            # User & architecture documentation
+tests/           # Mirror of src/ structure
+.copilot/          # AI assistant guidance (see below)
+docs/            # User documentation (Architecture moved to /ARCHITECTURE.md)
+ARCHITECTURE.md  # System Architecture & Knowledge Base
+
 ```
 
 ## .copilot/ Directory — Your Knowledge Base

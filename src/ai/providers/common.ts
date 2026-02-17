@@ -1,4 +1,12 @@
 /**
+ * @module AiCommon
+ * @path src/ai/providers/common.ts
+ * @description Common error classes, retry logic, and result interfaces shared across LLM providers.
+ * @architectural-layer AI
+ * @dependencies []
+ * @related-files [src/ai/providers/base_provider.ts, src/ai/provider_common_utils.ts]
+ */
+/**
  * Base error class for model provider errors.
  */
 export class ModelProviderError extends Error {

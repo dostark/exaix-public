@@ -1,10 +1,10 @@
 /**
- * Log Renderer Utilities - Enhanced log visualization for TUI
- *
- * Part of Phase 13.6: StructuredLogger TUI Integration
- *
- * This module provides utilities for rendering logs with colors, formatting,
- * and rich context display in the terminal.
+ * @module LogRenderer
+ * @path src/tui/log_renderer.ts
+ * @description Enhanced log visualization utilities for the TUI, providing colored output, rich context badges, and performance metrics formatting.
+ * @architectural-layer TUI
+ * @dependencies [constants, colors, structured_logger]
+ * @related-files [src/tui/monitor_view.ts, src/tui/structured_log_viewer.ts]
  */
 
 import {

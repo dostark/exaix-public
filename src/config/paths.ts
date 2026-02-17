@@ -1,3 +1,12 @@
+/**
+ * @module ExoPaths
+ * @path src/config/paths.ts
+ * @description Defines the standard directory structure and path resolution logic for the ExoFrame workspace and memory banks.
+ * @architectural-layer Config
+ * @dependencies [constants]
+ * @related-files [src/config/schema.ts, src/config/constants.ts]
+ */
+
 import * as DEFAULTS from "./constants.ts";
 
 export interface ExoPaths {

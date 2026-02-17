@@ -1,10 +1,10 @@
 /**
- * Log Stream Utilities - Real-time log streaming for TUI
- *
- * Part of Phase 13.6: StructuredLogger TUI Integration
- *
- * This module provides utilities for streaming logs in real-time to the TUI,
- * with buffering, filtering, and connection management.
+ * @module LogStream
+ * @path src/tui/log_stream.ts
+ * @description Manager for real-time log streaming to the TUI, featuring buffering, filtering, and connection management.
+ * @architectural-layer TUI
+ * @dependencies [structured_logger, structured_log_service]
+ * @related-files [src/tui/structured_log_viewer.ts]
  */
 
 import type { LogEntry } from "../services/structured_logger.ts";

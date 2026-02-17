@@ -1,4 +1,12 @@
-import type { LogEntry } from "../../services/structured_logger.ts";
+/**
+ * @module CorrelationAnalyzer
+ * @path src/tui/analytics/correlation_analyzer.ts
+ * @description Analyzes correlation across multiple log entries to identify related operations and system flows.
+ * @architectural-layer TUI
+ * @dependencies [structured_logger, analytics/types]
+ * @related-files [src/tui/structured_log_viewer.ts]
+ */
+
 import type { CorrelationAnalysis } from "./types.ts";
 
 /**

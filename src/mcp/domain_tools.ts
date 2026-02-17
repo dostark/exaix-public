@@ -1,3 +1,11 @@
+/**
+ * @module DomainTools
+ * @path src/mcp/domain_tools.ts
+ * @description Exposes domain-specific ExoFrame operations (requests, plans, journal) as strictly typed MCP tools.
+ * @architectural-layer MCP
+ * @dependencies [mcp, tools, request_commands, plan_commands, plan_status]
+ * @related-files [src/mcp/server.ts, src/cli/request_commands.ts, src/cli/plan_commands.ts]
+ */
 import {
   ApprovePlanToolArgsSchema,
   CreateRequestToolArgsSchema,
@@ -9,12 +17,6 @@ import { ToolHandler } from "./tools.ts";
 import { RequestCommands } from "../cli/request_commands.ts";
 import { PlanCommands } from "../cli/plan_commands.ts";
 import { PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
-
-/**
- * Domain-specific MCP Tools
- *
- * Exposes core ExoFrame functionality (requests, plans, journal) to AI agents.
- */
 
 /**
  * Tool for creating new ExoFrame requests

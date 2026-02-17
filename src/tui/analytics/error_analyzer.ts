@@ -1,4 +1,12 @@
-import type { LogEntry } from "../../services/structured_logger.ts";
+/**
+ * @module ErrorAnalyzer
+ * @path src/tui/analytics/error_analyzer.ts
+ * @description Detects and classifies error patterns in logs to aid in troubleshooting and failure analysis.
+ * @architectural-layer TUI
+ * @dependencies [structured_logger, analytics/types]
+ * @related-files [src/tui/structured_log_viewer.ts]
+ */
+
 import type { ErrorPattern } from "./types.ts";
 
 /**

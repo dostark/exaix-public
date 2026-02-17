@@ -1,6 +1,16 @@
 /**
- * Execution Loop - Step 4.3 of Implementation Plan
- * Resilient task execution with comprehensive error handling and reporting
+ * @module ExecutionLoop
+ * @path src/services/execution_loop.ts
+ * @description Core engine for executing agent plans.
+ *
+ * Responsibilities:
+ * - Manage task leases and Git repository lifecycle
+ * - Orchestrate multi-step plan execution
+ * - Coordinate with PlanWriter and WorkflowManager
+ *
+ * @architectural-layer Services
+ * @dependencies [GitService, PlanExecutor, ToolRegistry, BlueprintLoader, ArchiveService, ArtifactRegistry, CodeParser, AuditLogger]
+ * @related-files [src/main.ts, src/services/plan_executor.ts]
  */
 
 import { join } from "@std/path";

@@ -1,10 +1,10 @@
 /**
- * Evaluation Criteria Library
- *
- * Phase 15.3: LLM-as-a-Judge Integration
- * Provides built-in criteria definitions for evaluating agent outputs.
- *
- * @module flows/evaluation_criteria
+ * @module EvaluationCriteria
+ * @path src/flows/evaluation_criteria.ts
+ * @description defines built-in and custom criteria for LLM-as-a-Judge evaluations, supporting weighted scoring and quality gates.
+ * @architectural-layer Flows
+ * @dependencies [zod, enums]
+ * @related-files [src/flows/gate_evaluator.ts, src/services/confidence_scorer.ts]
  */
 
 import { z } from "zod";

@@ -1,10 +1,10 @@
 /**
- * Log Correlation Utilities - Helper functions for log correlation and tracing
- *
- * Part of Phase 13.6: StructuredLogger TUI Integration
- *
- * This module provides utilities for correlating logs across different operations,
- * tracing requests through the system, and analyzing log patterns.
+ * @module LogCorrelation
+ * @path src/tui/log_correlation.ts
+ * @description Helper functions for log correlation and request tracing across different operations and agents.
+ * @architectural-layer TUI
+ * @dependencies [analytics]
+ * @related-files [src/tui/structured_log_viewer.ts]
  */
 
 export * from "./analytics/types.ts";

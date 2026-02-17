@@ -1,3 +1,12 @@
+/**
+ * @module ConfigReloadHandler
+ * @path src/config/config_reload_handler.ts
+ * @description Provides a factory for creating file watcher events that trigger configuration reloads when exo.config.toml changes.
+ * @architectural-layer Config
+ * @dependencies [config_service]
+ * @related-files [src/config/service.ts, src/services/daemon.ts]
+ */
+
 import type { ConfigService } from "./service.ts";
 
 export type ConfigReloadLogger = {

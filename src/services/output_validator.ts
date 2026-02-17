@@ -1,7 +1,7 @@
 /**
- * Structured Output Validator
- *
- * Phase 16.2 implementation: Reliable structured output with schema validation and repair.
+ * @module OutputValidator
+ * @path src/services/output_validator.ts
+ * @description Ensures structured agent output conforms to specified schemas.
  *
  * Features:
  * - Multiple output schemas (Plan, Evaluation, Analysis, etc.)
@@ -9,6 +9,10 @@
  * - JSON parsing with common error repair
  * - LLM-based repair for complex failures
  * - Validation metrics tracking
+ *
+ * @architectural-layer Services
+ * @dependencies [Zod, PlanSchema, JSONRepair]
+ * @related-files [src/services/agent_runner.ts, src/services/json_repair.ts]
  */
 
 import { z, ZodError, ZodType, ZodTypeDef } from "zod";

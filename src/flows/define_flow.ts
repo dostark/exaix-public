@@ -1,9 +1,13 @@
+/**
+ * @module StepDefinitions
+ * @path src/flows/define_flow.ts
+ * @description Helper utility to construct Flow objects with sensible defaults and schema validation.
+ * @architectural-layer Core
+ * @dependencies [FlowSchema, FlowEnums]
+ * @related-files [src/schemas/flow.ts, src/enums.ts]
+ */
 import { Flow, FlowSchema } from "../schemas/flow.ts";
 import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../enums.ts";
-
-/**
- * Helper to construct a Flow with sensible defaults and schema validation.
- */
 export function defineFlow(config: {
   id: string;
   name: string;

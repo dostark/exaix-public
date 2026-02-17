@@ -1,9 +1,10 @@
 /**
- * AI Configuration Schema
- *
- * Step 5.8: LLM Provider Selection Logic
- *
- * Defines the Zod schema for the [ai] section of exo.config.toml
+ * @module AIConfigSchema
+ * @path src/config/ai_config.ts
+ * @description Defines the Zod schema for AI provider configuration, including model selection, retry strategies, and mock provider settings.
+ * @architectural-layer Config
+ * @dependencies [zod, provider_registry, enums, constants]
+ * @related-files [src/config/schema.ts, src/ai/provider_factory.ts]
  */
 
 import { z } from "zod";

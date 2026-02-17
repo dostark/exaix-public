@@ -1,6 +1,10 @@
 /**
- * Shared Command Utilities
- * Helper functions for CLI commands
+ * @module CommandUtils
+ * @path src/helpers/command_utils.ts
+ * @description Shared helper functions for CLI commands, including validation error formatting and UI prompts.
+ * @architectural-layer Helpers
+ * @dependencies [ValidationResult]
+ * @related-files [src/cli/base/command.ts]
  */
 
 import { ValidationResult } from "../cli/base/command.ts";

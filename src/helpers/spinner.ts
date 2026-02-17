@@ -1,9 +1,10 @@
 /**
- * TUI Spinner and Animation Utilities
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
- *
- * Provides loading spinners and progress indicators for async operations.
+ * @module Spinner
+ * @path src/helpers/spinner.ts
+ * @description TUI spinner and animation utilities for asynchronous operations.
+ * @architectural-layer Helpers
+ * @dependencies [Colors]
+ * @related-files [src/helpers/status_bar.ts]
  */
 
 import { colorize, getTheme } from "./colors.ts";

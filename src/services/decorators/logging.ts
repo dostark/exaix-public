@@ -1,11 +1,12 @@
-import { EventLogger } from "../event_logger.ts";
-
 /**
- * Decorator to log method execution
- * Supports both standard (Stage 3) and experimental decorators
- * @param logger EventLogger instance
- * @param action Action name (optional, defaults to class.method)
+ * @module LoggingDecorator
+ * @path src/services/decorators/logging.ts
+ * @description Method decorator for automated execution logging.
+ * @architectural-layer Services
+ * @dependencies [EventLogger]
+ * @related-files [src/services/event_logger.ts]
  */
+import { EventLogger } from "../event_logger.ts";
 export function LogMethod(logger: EventLogger, action?: string): any {
   return function (target: any, contextOrKey: any, descriptor?: PropertyDescriptor) {
     const createWrapper = (originalMethod: (...args: any[]) => any, methodName: string) => {

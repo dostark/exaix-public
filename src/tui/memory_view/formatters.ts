@@ -1,5 +1,10 @@
 /**
- * Formatters for Memory View
+ * @module MemoryFormatters
+ * @path src/tui/memory_view/formatters.ts
+ * @description Specialized formatters for the TUI Memory View, converting memory models and tree nodes into human-readable markdown and TUI lines.
+ * @architectural-layer TUI
+ * @dependencies [memory_bank_service, memory_scope, constants, markdown_renderer, types]
+ * @related-files [src/tui/memory_view/index.ts]
  */
 
 import type {

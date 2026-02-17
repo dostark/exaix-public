@@ -1,5 +1,10 @@
 /**
- * Base class for all service-related errors
+ * @module CommonErrors
+ * @path src/services/common/errors.ts
+ * @description Shared error classes for service-level operations (Validation, Authorization, NotFound).
+ * @architectural-layer Services
+ * @dependencies []
+ * @related-files [src/services/agent_runner.ts, src/services/request_processor.ts]
  */
 export class ServiceError extends Error {
   constructor(message: string) {

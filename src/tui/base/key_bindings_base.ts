@@ -1,8 +1,10 @@
 /**
- * Base Key Bindings Class
- *
- * Provides a base class for defining KEY_BINDINGS collections with strict typing.
- * All TUI components should inherit from this class to ensure consistent key binding structure.
+ * @module KeyBindingsBase
+ * @path src/tui/base/key_bindings_base.ts
+ * @description Base class for defining typed key binding collections, ensuring consistency across TUI components.
+ * @architectural-layer TUI
+ * @dependencies [keyboard]
+ * @related-files [src/helpers/keyboard.ts]
  */
 
 import type { KeyBinding, KeyHandler } from "../../helpers/keyboard.ts";

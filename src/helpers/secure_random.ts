@@ -1,11 +1,10 @@
 /**
- * Cryptographically secure random number generation utilities
- *
- * Replaces insecure Math.random() usage for security-sensitive operations:
- * - Session IDs and trace IDs
- * - Security tokens and nonces
- * - Random strings for unique identifiers
- * - Cryptographic randomness requirements
+ * @module SecureRandom
+ * @path src/helpers/secure_random.ts
+ * @description Cryptographically secure random number and string generation utilities.
+ * @architectural-layer Helpers
+ * @dependencies []
+ * @related-files [src/services/request_processor.ts]
  */
 
 export class SecureRandom {

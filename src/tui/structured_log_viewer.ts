@@ -1,15 +1,10 @@
 /**
- * StructuredLogViewer - Enhanced TUI component for StructuredLogger visualization
- *
- * Part of Phase 13.6: StructuredLogger TUI Integration
- *
- * This component provides rich visualization of StructuredLogger entries with:
- * - Real-time log streaming from StructuredLogger outputs
- * - Advanced filtering by context fields (trace_id, agent_id, operation, etc.)
- * - Performance metrics visualization (duration, memory usage)
- * - Error stack trace expansion
- * - Correlation ID tracking for request tracing
- * - Log level filtering with visual indicators
+ * @module StructuredLogViewer
+ * @path src/tui/structured_log_viewer.ts
+ * @description Advanced TUI component for visualizing structured logs, with support for correlation-based tracing and performance metrics.
+ * @architectural-layer TUI
+ * @dependencies [BaseTreeView, tree_view, dialog_base, help_renderer, keyboard, constants, tui.config]
+ * @related-files [src/services/structured_logger.ts, src/tui/monitor_view.ts]
  */
 
 import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "../helpers/tree_view.ts";

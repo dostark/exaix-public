@@ -1,5 +1,10 @@
 /**
- * Types for Memory View
+ * @module MemoryTuiTypes
+ * @path src/tui/memory_view/types.ts
+ * @description Core types and interfaces for the Memory View TUI components, including TreeNode and MemoryServiceInterface.
+ * @architectural-layer TUI
+ * @dependencies [MemoryBankService, Enums]
+ * @related-files [src/services/memory_bank.ts, src/enums.ts]
  */
 
 import type {

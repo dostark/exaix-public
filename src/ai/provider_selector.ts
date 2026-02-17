@@ -1,12 +1,10 @@
 /**
- * Provider Selector - Intelligent Provider Selection Strategy
- *
- * Implements intelligent selection of LLM providers based on:
- * - Cost preferences (free vs paid)
- * - Task complexity (simple vs complex)
- * - Budget constraints
- * - Required capabilities
- * - Provider health status
+ * @module ProviderSelector
+ * @path src/ai/provider_selector.ts
+ * @description Intelligent provider selection strategy that chooses the optimal LLM provider based on cost, complexity, budget, and health.
+ * @architectural-layer AI
+ * @dependencies [ProviderRegistry, CostTracker, HealthCheckService, Config]
+ * @related-files [src/ai/provider_registry.ts]
  */
 
 import { ProviderRegistry } from "./provider_registry.ts";

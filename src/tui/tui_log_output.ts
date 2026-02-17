@@ -1,10 +1,10 @@
 /**
- * TuiLogOutput - StructuredLogger output for TUI integration
- *
- * Part of Phase 13.6: StructuredLogger TUI Integration
- *
- * This output feeds log entries to the StructuredLoggerService for real-time
- * display in the TUI StructuredLogViewer component.
+ * @module TuiLogOutput
+ * @path src/tui/tui_log_output.ts
+ * @description Implementation of StructuredLogger output that feeds entries to the TUI service for real-time display.
+ * @architectural-layer TUI
+ * @dependencies [structured_logger, structured_log_service]
+ * @related-files [src/tui/structured_log_viewer.ts]
  */
 
 import type { LogEntry, LogOutput } from "../services/structured_logger.ts";

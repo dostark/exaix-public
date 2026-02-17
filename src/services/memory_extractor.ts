@@ -1,14 +1,10 @@
 /**
- * Memory Extractor Service
- *
- * Extracts learnings from agent executions and creates memory update proposals.
- * Part of Phase 12.9: Agent Memory Updates
- *
- * Key responsibilities:
- * - Analyze execution results for learnable patterns
- * - Create proposals in Memory/Pending/
- * - Manage pending proposal lifecycle (approve/reject)
- * - Activity Journal integration
+ * @module MemoryExtractor
+ * @path src/services/memory_extractor.ts
+ * @description Analyzes execution results to extract learnings and patterns, managing the lifecycle of pending memory update proposals.
+ * @architectural-layer Services
+ * @dependencies [path, fs, schema, db, memory_bank, memory_status, enums]
+ * @related-files [src/services/memory_bank.ts, src/services/db.ts]
  */
 
 import { join } from "@std/path";

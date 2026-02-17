@@ -1,8 +1,10 @@
 /**
- * Shared Dialog Rendering Utilities
- *
- * Reduces code duplication in dialog rendering by providing common rendering patterns
- * and utilities used across different dialog types.
+ * @module DialogRendering
+ * @path src/helpers/dialog_rendering.ts
+ * @description Shared dialog rendering utilities providing common patterns for dialog buttons, titles, and lines.
+ * @architectural-layer Helpers
+ * @dependencies [Colors, DialogBase]
+ * @related-files [src/helpers/dialog_base.ts]
  */
 
 import { colorize, type TuiTheme, visibleLength } from "./colors.ts";

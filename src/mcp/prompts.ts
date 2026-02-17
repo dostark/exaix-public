@@ -1,8 +1,10 @@
 /**
- * MCP Prompts
- *
- * Provides prompt templates for common ExoFrame operations.
- * Prompts guide LLM agents through structured workflows.
+ * @module MCPPrompts
+ * @path src/mcp/prompts.ts
+ * @description Provides prompt templates for common ExoFrame operations, guiding agents through structured workflows.
+ * @architectural-layer MCP
+ * @dependencies [Config, DatabaseService]
+ * @related-files [src/services/db.ts]
  */
 
 import type { Config } from "../config/schema.ts";

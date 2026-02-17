@@ -1,6 +1,10 @@
 /**
- * Action handlers for Plan commands
- * Extracted from exoctl.ts to reduce complexity
+ * @module PlanActionBuilders
+ * @path src/cli/command_builders/plan_actions.ts
+ * @description Provides builders and helper functions for defining plan-related CLI actions and subcommands.
+ * @architectural-layer CLI
+ * @dependencies [plan_commands, base_command]
+ * @related-files [src/cli/exoctl.ts, src/cli/plan_commands.ts]
  */
 
 import type { PlanCommands } from "../plan_commands.ts";

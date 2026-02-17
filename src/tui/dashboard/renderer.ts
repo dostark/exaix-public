@@ -1,6 +1,10 @@
 /**
- * Renderer for TUI Dashboard
- * Extracted from tui_dashboard.ts to reduce complexity
+ * @module DashboardRenderer
+ * @path src/tui/dashboard/renderer.ts
+ * @description Production renderer for the TUI dashboard, managing window sizing, header/footer rendering, and pane layout.
+ * @architectural-layer TUI
+ * @dependencies [colors, constants, tui_dashboard, notification_service, keyboard]
+ * @related-files [src/tui/tui_dashboard.ts, src/tui/dashboard/pane_manager.ts]
  */
 
 import process from "node:process";

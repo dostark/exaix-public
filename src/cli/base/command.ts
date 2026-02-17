@@ -1,6 +1,10 @@
 /**
- * Base Command Interface and Abstract Class
- * Phase 33.3 Pattern: Command
+ * @module CLICommandInterface
+ * @path src/cli/base/command.ts
+ * @description Defines the standard interfaces and abstract classes for CLI commands, following the Command pattern.
+ * @architectural-layer CLI
+ * @dependencies []
+ * @related-files [src/cli/base.ts]
  */
 
 export interface HelperResult {

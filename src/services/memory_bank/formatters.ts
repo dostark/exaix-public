@@ -1,6 +1,10 @@
 /**
- * Formatter utilities for Memory Bank Service
- * Extracted from memory_bank.ts to reduce complexity
+ * @module MemoryFormatters
+ * @path src/services/memory_bank/formatters.ts
+ * @description Formatter utilities for generating markdown summaries of execution memory.
+ * @architectural-layer Services
+ * @dependencies [MemoryBankSchemas]
+ * @related-files [src/services/memory_bank.ts, src/schemas/memory_bank.ts]
  */
 
 import type { ExecutionMemory } from "../../schemas/memory_bank.ts";

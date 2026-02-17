@@ -1,10 +1,10 @@
 /**
- * TUI Dialog Base Framework
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
- *
- * Provides base classes and utilities for creating modal dialogs.
- * All dialogs share consistent keyboard handling and rendering.
+ * @module DialogBase
+ * @path src/helpers/dialog_base.ts
+ * @description TUI Dialog Base Framework providing common classes and utilities for modal dialogs.
+ * @architectural-layer Helpers
+ * @dependencies [Colors, DialogRendering, Constants, Keyboard]
+ * @related-files [src/helpers/dialog_rendering.ts, src/helpers/keyboard.ts]
  */
 
 import { ANSI, colorize, getTheme, padEnd, type TuiTheme, visibleLength } from "./colors.ts";

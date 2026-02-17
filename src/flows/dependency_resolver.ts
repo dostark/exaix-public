@@ -1,3 +1,11 @@
+/**
+ * @module DependencyResolver
+ * @path src/flows/dependency_resolver.ts
+ * @description Resolves dependencies in flow steps, detects cycles, and organizes execution waves for parallel processing.
+ * @architectural-layer Core
+ * @dependencies [FlowStep]
+ * @related-files [src/flows/flow_runner.ts, src/schemas/flow.ts]
+ */
 import { FlowStep } from "../schemas/flow.ts";
 
 /**
@@ -9,10 +17,6 @@ export class FlowValidationError extends Error {
     this.name = "FlowValidationError";
   }
 }
-
-/**
- * Resolves dependencies in flow steps, detects cycles, and organizes execution waves
- */
 export class DependencyResolver {
   private steps: Map<string, FlowStep>;
   private adjacencyList: Map<string, string[]>;

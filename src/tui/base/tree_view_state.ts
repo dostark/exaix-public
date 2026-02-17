@@ -1,8 +1,10 @@
 /**
- * Common state interface for tree-based TUI views
- *
- * Phase 33.1: Extracted from plan_reviewer_view, portal_manager_view, monitor_view, etc.
- * This interface captures the common state fields shared across all tree-based views.
+ * @module TreeViewStateModule
+ * @path src/tui/base/tree_view_state.ts
+ * @description Common state interfaces and factory functions for tree-based TUI views.
+ * @architectural-layer TUI
+ * @dependencies [dialog_base, tree_view, constants]
+ * @related-files [src/tui/base/base_tree_view.ts]
  */
 
 import type { DialogBase } from "../../helpers/dialog_base.ts";

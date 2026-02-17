@@ -1,8 +1,10 @@
 /**
- * Agent Executor Schema
- *
- * Zod schemas for agent execution context, options, and results.
- * Used by AgentExecutor service for type-safe agent orchestration.
+ * @module AgentExecutorSchema
+ * @path src/schemas/agent_executor.ts
+ * @description Defines Zod validation schemas for agent execution context, options, and results, used for type-safe agent orchestration.
+ * @architectural-layer Schemas
+ * @dependencies [zod, enums]
+ * @related-files [src/services/agent_executor.ts]
  */
 
 import { z } from "zod";

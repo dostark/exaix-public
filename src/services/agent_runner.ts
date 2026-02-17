@@ -1,9 +1,17 @@
 /**
- * Agent Runtime - Combines Blueprints and Requests, executes via LLM providers
- * Implements Step 3.2 of the ExoFrame Implementation Plan
- * Enhanced with retry/recovery (Phase 16.3)
- * Enhanced with structured output validation (Phase 16.2)
- * Enhanced with Skills Architecture (Phase 17)
+ * @module AgentRunner
+ * @path src/services/agent_runner.ts
+ * @description Core orchestrator for agent logic.
+ *
+ * Features:
+ * - Load blueprints and system prompts
+ * - Execute LLM calls with retry logic
+ * - Validate and repair structured output
+ * - Handle agent feedback loops
+ *
+ * @architectural-layer Services
+ * @dependencies [DatabaseService, LLMProvider, OutputValidator, SkillsService, AgentExecutor, AgentCapabilities]
+ * @related-files [src/services/request_processor.ts, src/services/blueprint_loader.ts]
  */
 
 import type { IModelProvider } from "../ai/providers.ts";

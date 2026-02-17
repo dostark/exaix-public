@@ -1,6 +1,10 @@
 /**
- * Parser utilities for Memory Bank Service
- * Extracted from memory_bank.ts to reduce complexity
+ * @module MemoryParsers
+ * @path src/services/memory_bank/parsers.ts
+ * @description Parser utilities for extracting patterns and decisions from memory bank markdown content.
+ * @architectural-layer Services
+ * @dependencies [MemoryBankSchemas]
+ * @related-files [src/services/memory_bank.ts, src/schemas/memory_bank.ts]
  */
 
 import type { Decision, Pattern } from "../../schemas/memory_bank.ts";

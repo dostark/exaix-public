@@ -1394,10 +1394,13 @@ graph LR
 | **Request Watcher**      | Detect new requests in Workspace/Requests | `src/services/watcher.ts`           | 🟢 All   |
 | **Plan Watcher**         | Detect approved plans                     | `src/services/watcher.ts`           | 🟢 All   |
 | **Request Processor**    | Parse requests, generate plans            | `src/services/request_processor.ts` | 🟢 All   |
+| **Request Router**       | Route requests to Agent/Flow runners      | `src/services/request_router.ts`    | 🟢 All   |
 | **Plan Executor**        | Execute approved plans                    | `src/services/plan_executor.ts`     | 🟢 All   |
 | **Agent Runner**         | Execute agent logic with LLM              | `src/services/agent_runner.ts`      | 🟢 All   |
+| **Flow Runner**          | Execute multi-agent flows                 | `src/flows/flow_runner.ts`          | 🟢 All   |
 | **Event Logger**         | Write to Activity Journal                 | `src/services/event_logger.ts`      | 🟢 All   |
 | **Config Service**       | Load and validate exo.config.toml         | `src/config/service.ts`             | 🟢 All   |
+| **Workspace Execution**  | Agent environment and path resolution      | `src/services/workspace_execution_context.ts` | 🟢 All   |
 | **Database Service**     | Edition-tiered journal operations         | `src/services/db.ts`                | 🟢 All   |
 | **Git Service**          | Git operations with trace metadata        | `src/services/git_service.ts`       | 🟢 All   |
 | **Provider Factory**     | Create LLM provider instances             | `src/ai/provider_factory.ts`        | 🟢 All   |
@@ -1408,12 +1411,21 @@ graph LR
 | **TUI Dashboard**        | Multi-view terminal UI (7-9 views)        | `src/tui/*.ts`                      | 🟢 All   |
 | **Web UI**               | Browser-based approval interface          | `src/web/*`                         | 🔵 Team+ |
 | **Parsers**              | Parse markdown + frontmatter              | `src/parsers/*.ts`                  | 🟢 All   |
+| **Plan Parser**          | Shared structured plan parsing utility    | `src/services/structured_plan_parser.ts` | 🟢 All   |
 | **Schemas**              | Zod validation layer                      | `src/schemas/*.ts`                  | 🟢 All   |
 | **MCP Client**           | Connect to external MCP servers           | `src/mcp/client.ts`                 | 🟢 All   |
 | **MCP Server**           | JSON-RPC server for tool execution        | `src/mcp/server.ts`                 | 🔵 Team+ |
 | **Blueprint Loader**     | Unified blueprint parsing                 | `src/services/blueprint_loader.ts`  | 🟢 All   |
 | **Output Validator**     | Schema validation with JSON repair        | `src/services/output_validator.ts`  | 🟢 All   |
 | **Retry Policy**         | Exponential backoff with jitter           | `src/services/retry_policy.ts`      | 🟢 All   |
+| **Plan Adapter**         | JSON validation and markdown conversion   | `src/services/plan_adapter.ts`      | 🟢 All   |
+| **Plan Writer**          | Format results into structured plans      | `src/services/plan_writer.ts`       | 🟢 All   |
+| **Request Common**       | Blueprints and request building utilities | `src/services/request_common.ts`    | 🟢 All   |
+| **Review Registry**      | Agent-created review management           | `src/services/review_registry.ts`   | 🟢 All   |
+| **Path Resolver**        | Portal alias and security path resolution  | `src/services/path_resolver.ts`     | 🟢 All   |
+| **Skills Service**       | Procedural memory (skills) management     | `src/services/skills.ts`            | 🟢 All   |
+| **Mission Reporter**     | Execution reports and memory updates      | `src/services/mission_reporter.ts`  | 🟢 All   |
+| **Prompt Context**       | Structured prompt building utilities      | `src/services/prompt_context.ts`    | 🟢 All   |
 | **Reflexive Agent**      | Self-critique improvement loop            | `src/services/reflexive_agent.ts`   | 🟢 All   |
 | **Tool Reflector**       | Tool result evaluation and retry          | `src/services/tool_reflector.ts`    | 🟢 All   |
 | **Session Memory**       | Memory context injection                  | `src/services/session_memory.ts`    | 🟢 All   |
@@ -1423,6 +1435,9 @@ graph LR
 | **Judge Evaluator**      | LLM-as-a-Judge assessment                 | `src/flows/judge_evaluator.ts`      | 🟢 All   |
 | **Feedback Loop**        | Iterative refinement control              | `src/flows/feedback_loop.ts`        | 🟢 All   |
 | **Evaluation Criteria**  | Quality standards validation              | `src/flows/evaluation_criteria.ts`  | 🟢 All   |
+| **Notification Service** | Memory update and system notifications     | `src/services/notification.ts`      | 🟢 All   |
+| **Health Check Service** | System health and resource monitoring     | `src/services/health_check_service.ts` | 🟢 All   |
+| **Graceful Shutdown**    | Process termination and cleanup management | `src/services/graceful_shutdown.ts` | 🟢 All   |
 | **Governance Dashboard** | Compliance monitoring and risk scoring    | `src/web/governance/*`              | 🟣 Ent   |
 | **Compliance Reporter**  | Regulatory compliance exports             | `src/services/compliance.ts`        | 🟣 Ent   |
 
@@ -1690,6 +1705,31 @@ Build/validation scripts:
 - PNG/SVG export via Mermaid Live Editor
 - PDF export via VS Code extensions
 - HTML with mermaid.js for web viewing
+
+---
+
+## Module Grounding Index
+
+This section provides explicit grounding for core infrastructure modules and helpers to ensure they are reachable during architecture validation.
+
+### Core Infrastructure
+- `src/*.ts` (Global enums, constants, and app entry points)
+- `src/helpers/*.ts` (Shared utilities)
+- `src/mcp/*.ts` (MCP Server implementation and prompts)
+- `src/mcp/handlers/*.ts` (MCP Tool implementations)
+- `src/schemas/*.ts` (Data validation schemas)
+- `src/errors/*.ts` (Shared error classes)
+- `src/flows/*.ts` (Flow engine internals)
+- `src/memory/*.ts` (Memory management types)
+- `src/plans/*.ts` (Execution plan types)
+- `src/ai/*.ts` (AI Provider selector and types)
+- `src/ai/providers/*.ts` (Concrete LLM providers)
+- `src/ai/factories/*.ts` (LLM provider factories)
+- `src/config/*.ts` (Configuration schemas and paths)
+- `src/cli/*.ts` (CLI command entry points)
+- `src/services/*.ts` (Core service implementations)
+- `src/services/common/*.ts` (Shared service errors)
+- `src/services/decorators/*.ts` (Log and retry decorators)
 
 ---
 

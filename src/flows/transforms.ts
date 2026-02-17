@@ -1,8 +1,10 @@
 /**
- * Built-in transform functions for flow inter-step communication
- *
- * Transforms allow steps to receive inputs from multiple sources and apply
- * transformations to combine, filter, or restructure data before execution.
+ * @module FlowTransforms
+ * @path src/flows/transforms.ts
+ * @description Built-in transform functions for flow inter-step communication, including markdown extraction and JSON manipulation.
+ * @architectural-layer Core
+ * @dependencies []
+ * @related-files [src/flows/flow_runner.ts]
  */
 
 /**

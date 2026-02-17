@@ -1,18 +1,10 @@
 /**
- * AuditLogger - Security Audit Logging Service
- * Implements comprehensive audit logging for security-critical operations
- *
- * Responsibilities:
- * 1. Log security events to database with structured format
- * 2. Write tamper-evident audit files in JSONL format
- * 3. Send alerts for critical security events
- * 4. Mask sensitive data in audit logs
- * 5. Generate unique session IDs for audit trails
- * 6. Support different security event types (auth, permission, file_access, api_call, config_change)
- *
- * Required Deno permissions:
- * - --allow-write: To write audit files
- * - --allow-read: To read config for audit paths
+ * @module AuditLogger
+ * @path src/services/audit_logger.ts
+ * @description specialized audit logger for security-critical operations, providing tamper-evident logging with alerting.
+ * @architectural-layer Services
+ * @dependencies [DatabaseService, Path, SecurityEnums]
+ * @related-files [src/services/db.ts, src/enums.ts]
  */
 
 import type { DatabaseService } from "./db.ts";

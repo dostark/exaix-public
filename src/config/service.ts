@@ -1,3 +1,12 @@
+/**
+ * @module ConfigService
+ * @path src/config/service.ts
+ * @description Central service for managing system configuration, loading from TOML files,
+ * and providing validated access to settings for all components.
+ * @architectural-layer Core System
+ * @dependencies [TOML, Zod, ConfigSchema]
+ * @related-files [src/config/schema.ts, src/main.ts]
+ */
 import { parse } from "@std/toml";
 import { dirname, isAbsolute, join } from "@std/path";
 import { crypto } from "@std/crypto";

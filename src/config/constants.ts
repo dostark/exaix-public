@@ -1,3 +1,12 @@
+/**
+ * @module ConfigConstants
+ * @path src/config/constants.ts
+ * @description Centralized registry of system-wide constants, including default paths, timeouts, validation limits, and model names.
+ * @architectural-layer Config
+ * @dependencies [enums]
+ * @related-files [src/config/schema.ts, src/config/paths.ts]
+ */
+
 import { LogLevel, MCPTransport, MockStrategy, ProviderCostTier, ProviderType } from "../enums.ts";
 
 // ============================================================================

@@ -1,18 +1,10 @@
 /**
- * Memory Banks Schemas
- *
- * Data structures for ExoFrame's Memory Banks system.
- * Memory Banks provide programmatic storage for:
- * - Project-specific memory (patterns, decisions, references)
- * - Execution history (what was done, when, by whom)
- * - Lessons learned and architectural decisions
- *
- * Directory structure:
- * Memory/
- *   Projects/{portal}/      - Project-specific knowledge
- *   Execution/{trace-id}/   - Execution history
- *   Tasks/                  - Active and completed tasks
- *   Index/                  - Searchable indices
+ * @module MemoryBankSchema
+ * @path src/schemas/memory_bank.ts
+ * @description Defines Zod validation schemas for Memory Bank data structures, including project memory, execution history, learnings, and skills.
+ * @architectural-layer Schemas
+ * @dependencies [zod, enums, constants]
+ * @related-files [src/services/memory_bank.ts, src/services/session_memory.ts]
  */
 
 import { z } from "zod";

@@ -1,3 +1,11 @@
+/**
+ * @module FlowRunner
+ * @path src/flows/flow_runner.ts
+ * @description Core orchestrator for multi-agent flow execution.
+ * @architectural-layer Flows
+ * @dependencies [FlowSchema, DependencyResolver, AgentRunner, ConditionEvaluator, Transforms, DatabaseService, FlowReporter]
+ * @related-files [src/flows/flow_loader.ts, src/services/request_router.ts, src/services/flow_reporter.ts]
+ */
 import { Flow, FlowStep } from "../schemas/flow.ts";
 import { DependencyResolver } from "./dependency_resolver.ts";
 import { AgentExecutionResult } from "../services/agent_runner.ts";

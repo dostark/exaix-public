@@ -1,6 +1,10 @@
 /**
- * Action handlers for Request commands
- * Extracted from exoctl.ts to reduce complexity
+ * @module RequestActionBuilders
+ * @path src/cli/command_builders/request_actions.ts
+ * @description Provides builders and helper functions for defining request-related CLI actions and subcommands.
+ * @architectural-layer CLI
+ * @dependencies [request_commands, base_command]
+ * @related-files [src/cli/exoctl.ts, src/cli/request_commands.ts]
  */
 
 import type { RequestCommands } from "../request_commands.ts";

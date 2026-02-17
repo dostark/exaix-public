@@ -1,3 +1,11 @@
+/**
+ * @module LlamaProvider
+ * @path src/ai/providers/llama_provider.ts
+ * @description IModelProvider implementation for Llama and CodeLlama models, typically served via Ollama.
+ * @architectural-layer AI
+ * @dependencies [providers, schema, constants, provider_common_utils]
+ * @related-files [src/ai/factories/llama_factory.ts, src/ai/factories/ollama_factory.ts]
+ */
 import { IModelProvider, ModelOptions } from "../providers.ts";
 import type { Config } from "../../config/schema.ts";
 import * as DEFAULTS from "../../config/constants.ts";

@@ -1,4 +1,11 @@
-import type { LogEntry } from "../../services/structured_logger.ts";
+/**
+ * @module AnalyticsQueries
+ * @path src/tui/analytics/queries.ts
+ * @description Collection of query functions for filtering and grouping logs by correlation, trace, and agent IDs.
+ * @architectural-layer TUI
+ * @dependencies [structured_logger]
+ * @related-files [src/tui/structured_log_viewer.ts]
+ */
 
 /**
  * Find related logs by correlation ID

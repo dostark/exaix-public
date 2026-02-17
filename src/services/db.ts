@@ -1,3 +1,12 @@
+/**
+ * @module DatabaseService
+ * @path src/services/db.ts
+ * @description Provides persistent storage for the Activity Journal and system state using SQLite.
+ * Implements batched writes, transactions with retries, and circuit breaker protection.
+ * @architectural-layer Services
+ * @dependencies [SQLite, Config, CircuitBreaker, DatabaseConnectionPool]
+ * @related-files [src/services/event_logger.ts, src/services/database_connection_pool.ts]
+ */
 import { Database } from "@db/sqlite";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";

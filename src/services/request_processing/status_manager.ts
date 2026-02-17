@@ -1,3 +1,11 @@
+/**
+ * @module StatusManager
+ * @path src/services/request_processing/status_manager.ts
+ * @description Manages atomic updates to request file status and error tracking.
+ * @architectural-layer Services
+ * @dependencies [EventLogger, RequestStatus]
+ * @related-files [src/services/request_processor.ts, src/requests/request_status.ts]
+ */
 import type { EventLogger } from "../event_logger.ts";
 import type { RequestStatusType } from "../../requests/request_status.ts";
 

@@ -1,8 +1,10 @@
 /**
- * RequestCommands - CLI interface for creating requests to ExoFrame agents
- *
- * This is the PRIMARY interface for human-to-agent communication.
- * It replaces manual file creation with validated, structured request generation.
+ * @module RequestCommands
+ * @path src/cli/request_commands.ts
+ * @description Provides CLI commands for creating and managing agent requests, serving as the primary interface for human-to-agent communication.
+ * @architectural-layer CLI
+ * @dependencies [base_command, enums, request_status, request_create_handler, request_list_handler, request_show_handler]
+ * @related-files [src/schemas/request.ts, src/cli/main.ts]
  */
 
 import { BaseCommand, type CommandContext } from "./base.ts";

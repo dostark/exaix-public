@@ -1,8 +1,10 @@
 /**
- * Safe Error Class
- *
- * Wraps sensitive errors with user-safe messages while logging internal details securely.
- * Prevents information disclosure through error messages.
+ * @module SafeError
+ * @path src/errors/safe_error.ts
+ * @description Safe error wrapper that prevents information leakage by providing user-safe messages while securely logging internal details.
+ * @architectural-layer Core
+ * @dependencies [EventLogger]
+ * @related-files [src/services/event_logger.ts]
  */
 
 import type { EventLogger } from "../services/event_logger.ts";

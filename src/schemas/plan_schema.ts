@@ -1,10 +1,10 @@
 /**
- * Plan Schema - JSON schema validation for LLM plan output
- * Implements Step 6.7 of the ExoFrame Implementation Plan
- *
- * Defines Zod validation schemas for structured plan output from LLMs.
- * LLMs generate JSON within <content> tags that is validated against these schemas
- * before being converted to markdown for storage.
+ * @module PlanSchema
+ * @path src/schemas/plan_schema.ts
+ * @description Defines Zod validation schemas for structured plan output from LLMs, including steps, actions, and specialized analysis reports.
+ * @architectural-layer Schemas
+ * @dependencies [zod, enums, constants]
+ * @related-files [src/services/request_processor.ts, src/schemas/request.ts]
  */
 
 import { z } from "zod";

@@ -1,12 +1,17 @@
 /**
- * RetryPolicy - Configurable retry system with exponential backoff
- * Implements Phase 16.3 of Agent Orchestration improvements
+ * @module RetryPolicy
+ * @path src/services/retry_policy.ts
+ * @description Configurable retry system with exponential backoff and jitter.
  *
  * Features:
  * - Exponential backoff with jitter
  * - Configurable retry conditions (by error type)
  * - Temperature adjustment on retry
  * - Activity logging for retry attempts
+ *
+ * @architectural-layer Services
+ * @dependencies [Config, Zod]
+ * @related-files [src/services/agent_runner.ts, src/services/db.ts]
  */
 
 import { z } from "zod";

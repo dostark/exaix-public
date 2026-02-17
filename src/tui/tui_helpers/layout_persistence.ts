@@ -1,3 +1,12 @@
+/**
+ * @module LayoutPersistence
+ * @path src/tui/tui_helpers/layout_persistence.ts
+ * @description Utilities for saving, restoring, and resetting TUI dashboard layouts to/from local storage.
+ * @architectural-layer TUI
+ * @dependencies [constants]
+ * @related-files [src/tui/tui_dashboard.ts]
+ */
+
 import type { Pane } from "../tui_dashboard.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../helpers/constants.ts";
 

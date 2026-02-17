@@ -1,3 +1,12 @@
+/**
+ * @module PlanCommands
+ * @path src/cli/plan_commands.ts
+ * @description Provides CLI commands for human review of AI-generated plans, including approval, rejection, and revision requests.
+ * @architectural-layer CLI
+ * @dependencies [path, fs, markdown_parser, base_command, plan_status, request_commands, request_status, validation_chain, error_strategy, command_utils, request_enricher, constants]
+ * @related-files [src/schemas/plan_schema.ts, src/cli/main.ts]
+ */
+
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { FrontmatterParser } from "../parsers/markdown.ts";

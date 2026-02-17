@@ -1,6 +1,10 @@
 /**
- * Base class for all CLI command handlers
- * Provides common functionality: config, database, user identity, logging
+ * @module CLIBase
+ * @path src/cli/base.ts
+ * @description Provides the abstract base class for all CLI command handlers, offering shared utilities for configuration, database access, user identity, and YAML frontmatter processing.
+ * @architectural-layer CLI
+ * @dependencies [config_schema, db_schema, event_logger]
+ * @related-files [src/cli/exoctl.ts]
  */
 
 import type { Config } from "../config/schema.ts";

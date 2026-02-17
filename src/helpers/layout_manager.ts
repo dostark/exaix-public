@@ -1,14 +1,10 @@
 /**
- * Layout Manager - Split View Layout Management
- *
- * Part of Phase 13.11: Split View Enhancement
- *
- * Provides:
- * - Layout presets (single, side-by-side, top-bottom, quad, etc.)
- * - Pane resize with constraints
- * - Pane swap functionality
- * - Named layout save/restore
- * - Layout validation and normalization
+ * @module LayoutManager
+ * @path src/helpers/layout_manager.ts
+ * @description Layout Manager for split-view TUI dashboards, providing presets, resizing, and named layout persistence.
+ * @architectural-layer Helpers
+ * @dependencies [Colors, LayoutRendering, Constants]
+ * @related-files [src/helpers/layout_rendering.ts]
  */
 
 import { colorize, type TuiTheme } from "./colors.ts";

@@ -1,7 +1,10 @@
 /**
- * TUI Dashboard - Unified Dashboard Entry Point
- *
- * Part of Phase 13.9: Dashboard Integration
+ * @module TuiDashboard
+ * @path src/tui/tui_dashboard.ts
+ * @description Main entry point and orchestrator for the ExoFrame TUI dashboard, managing layout, view switching, and cross-view state.
+ * @architectural-layer TUI
+ * @dependencies [TuiSessionBase, colors, spinner, help_renderer, keyboard, constants, enums]
+ * @related-files [src/tui/tui_common.ts, src/tui/agent_status_view.ts, src/tui/daemon_control_view.ts]
  *
  * This is the main entry point for the ExoFrame TUI, integrating all
  * enhanced views into a unified dashboard with:

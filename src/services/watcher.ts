@@ -1,3 +1,12 @@
+/**
+ * @module FileWatcher
+ * @path src/services/watcher.ts
+ * @description Monitors the workspace for file system events (new requests, approved plans).
+ * Implements debouncing and stability verification to ensure files are fully written before processing.
+ * @architectural-layer Services
+ * @dependencies [Config, DatabaseService, EventLogger]
+ * @related-files [src/main.ts, src/services/request_processor.ts]
+ */
 import { join } from "@std/path";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
@@ -19,13 +28,6 @@ export interface FileWatcherOptions {
   extensions?: string[];
 }
 
-/**
- * FileWatcher - Monitors a directory for file changes with debouncing and stability verification
- *
- * Implements Step 2.1 of the Implementation Plan:
- * - Stage 1: Debounces file system events (default 200ms)
- * - Stage 2: Verifies file stability using exponential backoff
- */
 export class FileWatcher {
   private watchPath: string;
   private debounceMs: number;

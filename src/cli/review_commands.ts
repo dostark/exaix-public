@@ -1,6 +1,10 @@
 /**
- * Review commands for reviewing agent-generated code changes
- * Handles approval/rejection of git branches created by agents
+ * @module ReviewCommands
+ * @path src/cli/review_commands.ts
+ * @description Provides CLI commands for reviewing agent-generated changes, including approval/rejection of code branches and artifacts.
+ * @architectural-layer CLI
+ * @dependencies [path, fs, base_command, git_service, request_commands, plan_commands, validation_chain, error_strategy, command_utils, request_enricher, artifact_registry, review_status]
+ * @related-files [src/reviews/review_status.ts, src/cli/main.ts]
  */
 
 import { dirname, isAbsolute, join, resolve } from "@std/path";

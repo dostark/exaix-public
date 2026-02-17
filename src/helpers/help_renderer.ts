@@ -1,9 +1,10 @@
 /**
- * TUI Help Screen Renderer
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
- *
- * Provides consistent help screen rendering for all views.
+ * @module HelpRenderer
+ * @path src/helpers/help_renderer.ts
+ * @description TUI help screen renderer providing consistent help displays and key binding summaries.
+ * @architectural-layer Helpers
+ * @dependencies [Keyboard, Colors, DialogBase]
+ * @related-files [src/helpers/keyboard.ts, src/helpers/dialog_base.ts]
  */
 
 import { KEYS } from "./keyboard.ts";

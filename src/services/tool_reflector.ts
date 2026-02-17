@@ -1,13 +1,10 @@
 /**
- * Tool Result Reflection Service
- *
- * Phase 16.5 implementation: Agents evaluate tool results before proceeding.
- *
- * Features:
- * - Reflect on tool call results to verify success
- * - Automatic retry with different parameters on failure
- * - Parallel execution for independent tool calls
- * - Metrics tracking for tool retry frequency
+ * @module ToolReflector
+ * @path src/services/tool_reflector.ts
+ * @description Orchestrates tool execution with automated reflection, evaluation, and retry logic to improve agent reliability.
+ * @architectural-layer Services
+ * @dependencies [providers, agent_runner, db, types, constants]
+ * @related-files [src/services/agent_runner.ts, src/mcp/server.ts]
  */
 
 import { z } from "zod";

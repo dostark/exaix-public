@@ -1,14 +1,16 @@
 /**
- * Notification Service
- *
- * Manages user notifications for memory updates.
- * Part of Phase 12.9: Agent Memory Updates
- * Updated in Phase 19.2b: Migrated from file-based to SQLite storage
+ * @module NotificationService
+ * @path src/services/notification.ts
+ * @description Manages user notifications for memory updates.
  *
  * Key responsibilities:
- * - Store notifications in journal.db notifications table
+ * - Store notifications in journal.db
  * - Activity Journal integration for audit trail
  * - Notification lifecycle management with soft-deletes
+ *
+ * @architectural-layer Services
+ * @dependencies [Config, DatabaseService, MemoryUpdateProposal]
+ * @related-files [src/services/db.ts, src/services/memory_bank/index.builder.ts]
  */
 
 import type { Config } from "../config/schema.ts";

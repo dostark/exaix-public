@@ -1,9 +1,10 @@
 /**
- * TUI Keyboard Utilities
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
- *
- * Provides keyboard handling utilities for consistent key management.
+ * @module KeyboardManager
+ * @path src/helpers/keyboard.ts
+ * @description TUI keyboard handling utilities for consistent key management and binding.
+ * @architectural-layer Helpers
+ * @dependencies []
+ * @related-files [src/helpers/tree_view.ts]
  */
 
 // ===== Key Types =====

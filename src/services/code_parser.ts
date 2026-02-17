@@ -1,10 +1,10 @@
 /**
- * Code Parser Service (Step 5.12.3 - Code Generation)
- *
- * Parses LLM responses to extract file changes for plan execution.
- * Validates file paths are within portal boundaries.
- *
- * @module services/code_parser
+ * @module CodeParser
+ * @path src/services/code_parser.ts
+ * @description Parses LLM responses to extract file changes for plan execution, validating path safety.
+ * @architectural-layer Services
+ * @dependencies [Path]
+ * @related-files [src/services/agent_runner.ts, src/services/execution_loop.ts]
  */
 
 import { join, normalize } from "@std/path";

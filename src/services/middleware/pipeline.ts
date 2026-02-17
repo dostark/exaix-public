@@ -1,3 +1,11 @@
+/**
+ * @module MiddlewarePipeline
+ * @path src/services/middleware/pipeline.ts
+ * @description Generic middleware pipeline for executing a chain of interceptors.
+ * @architectural-layer Services
+ * @dependencies [ServiceContext]
+ * @related-files [src/services/common/types.ts]
+ */
 import { ServiceContext } from "../common/types.ts";
 
 /**

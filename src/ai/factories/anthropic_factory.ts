@@ -1,3 +1,11 @@
+/**
+ * @module AnthropicProviderFactory
+ * @path src/ai/factories/anthropic_factory.ts
+ * @description Factory for creating Anthropic LLM provider instances, handling API key retrieval and configuration.
+ * @architectural-layer AI
+ * @dependencies [abstract_provider_factory, types, anthropic_provider, constants]
+ * @related-files [src/ai/providers/anthropic_provider.ts]
+ */
 import { AbstractKeyBasedProviderFactory } from "./abstract_provider_factory.ts";
 import { IModelProvider, ResolvedProviderOptions } from "../types.ts";
 import { AnthropicProvider } from "../providers/anthropic_provider.ts";

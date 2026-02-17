@@ -1,19 +1,19 @@
 /**
- * StructuredLogger - Comprehensive Structured Logging & Observability Service
- * Implements security audit item 17: Lack of Structured Logging & Observability
+ * @module StructuredLogger
+ * @path src/services/structured_logger.ts
+ * @description Comprehensive observability service. Implements security audit item 17.
  *
  * Responsibilities:
- * 1. Provide structured logging with consistent format across the application
- * 2. Support multiple output destinations (console, file, database)
- * 3. Include comprehensive context (trace_id, request_id, user_id, agent_id, etc.)
- * 4. Enable performance tracking and operation timing
- * 5. Support different log levels with filtering
- * 6. Allow child loggers with inherited context
- * 7. Evaluate each log call for audit vs notification needs
+ * - Structured logging with consistent format and context (trace_id, etc.)
+ * - Multiple output destinations (console, file, DB)
+ * - Performance tracking and audit evaluation
  *
  * Required Deno permissions:
- * - --allow-write: For file output destinations
- * - --allow-read: For reading existing log files (rotation)
+ * - --allow-write, --allow-read (for log rotation)
+ *
+ * @architectural-layer Services
+ * @dependencies [Config, Path, FS]
+ * @related-files [src/services/event_logger.ts, src/main.ts]
  */
 
 import { dirname, join } from "@std/path";

@@ -1,13 +1,14 @@
 /**
- * Skills Service
+ * @module SkillsService
+ * @path src/services/skills.ts
+ * @description Manages procedural memory (skills).
  *
- * Phase 17: Skills Architecture
+ * Skills encode domain expertise, procedures, and best practices as reusable
+ * instruction modules, providing storage, retrieval, and trigger-based matching.
  *
- * Manages skill storage, retrieval, and trigger matching.
- * Skills are procedural memory that encode domain expertise,
- * procedures, and best practices as reusable instruction modules.
- *
- * @module services/skills
+ * @architectural-layer Services
+ * @dependencies [Config, DatabaseService, Zod]
+ * @related-files [src/services/context_loader.ts, src/schemas/memory_bank.ts]
  */
 
 import { join } from "@std/path";

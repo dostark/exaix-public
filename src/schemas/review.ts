@@ -1,8 +1,10 @@
 /**
- * Review Schema
- *
- * Defines the structure for reviews created by agents during plan execution.
- * Reviews represent code changes that are pending review and approval.
+ * @module ReviewSchema
+ * @path src/schemas/review.ts
+ * @description Defines the structure for code reviews created by agents, including branch metadata, commit SHAs, and rejection reasons.
+ * @architectural-layer Schemas
+ * @dependencies [zod, review_status]
+ * @related-files [src/cli/review_commands.ts]
  */
 
 import { z } from "zod";

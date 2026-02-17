@@ -1,3 +1,11 @@
+/**
+ * @module MemorySearch
+ * @path src/services/memory_search.ts
+ * @description Search implementation for memory banks, supporting query, tag, and keyword-based searches.
+ * @architectural-layer Services
+ * @dependencies [MemoryBankSchemas, MemoryEnums, MemoryStatus, Constants]
+ * @related-files [src/services/memory_bank.ts, src/schemas/memory_bank.ts]
+ */
 import type { ExecutionMemory, Learning, MemorySearchResult, ProjectMemory } from "../schemas/memory_bank.ts";
 import { MemoryType } from "../enums.ts";
 import { MemoryStatus } from "../memory/memory_status.ts";

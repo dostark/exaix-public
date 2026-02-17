@@ -1,10 +1,10 @@
 /**
- * TUI Configuration and Constants
- *
- * Contains user-tunable constants for the TUI interface, including:
- * - Icons and colors for log entries
- * - Refresh intervals
- * - Display formatting options
+ * @module TuiConfig
+ * @path src/tui/tui.config.ts
+ * @description TUI configuration and constants, including icons, colors for log entries, and refresh intervals.
+ * @architectural-layer TUI
+ * @dependencies [constants]
+ * @related-files [src/tui/tui_dashboard.ts]
  */
 
 import { TUI_LOG_ICONS } from "../helpers/constants.ts";

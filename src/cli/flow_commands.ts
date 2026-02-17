@@ -1,13 +1,10 @@
 /**
- * Flow CLI Commands for ExoFrame
- *
- * Provides commands for flow management and execution:
- * - list: Show all available flows
- * - show: Display flow details and dependency graph
- * - run: Execute a flow for a request
- * - plan: Show execution plan without running
- * - history: Show past flow executions
- * - validate: Validate flow definitions
+ * @module FlowCommands
+ * @path src/cli/flow_commands.ts
+ * @description Provides CLI commands for flow management and execution, including list, show, run, plan, history, and validation.
+ * @architectural-layer CLI
+ * @dependencies [table, path, flow_loader, flow_validator, event_logger, config, db, providers]
+ * @related-files [src/flows/flow_loader.ts, src/cli/main.ts]
  */
 
 import { Table } from "@cliffy/table";

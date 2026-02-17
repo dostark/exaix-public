@@ -1,17 +1,10 @@
 /**
- * ContextError - Enhanced error class with context preservation
- *
- * This class addresses section 20 of the security audit:
- * "Insufficient Error Context in Stack Traces"
- *
- * Provides structured error context and stack trace preservation
- * for better debugging and error handling throughout the application.
- *
- * Key Features:
- * - Preserves original error context (request_id, user_id, operation, etc.)
- * - Maintains cause chain with proper stack trace preservation
- * - JSON serialization for logging and debugging
- * - Type-safe context properties
+ * @module ContextError
+ * @path src/errors/context_error.ts
+ * @description Enhanced error class with structured context preservation and cause chaining, addressing security audit requirements for traceable errors.
+ * @architectural-layer Errors
+ * @dependencies []
+ * @related-files [src/services/event_logger.ts]
  */
 
 export class ContextError extends Error {

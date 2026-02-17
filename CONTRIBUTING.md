@@ -93,3 +93,7 @@ All available agent documentation is indexed in `.copilot/manifest.json`. Use th
 - [ ] Documentation updated if behavior changes.
 - [ ] All tests pass (`deno task test`).
 - [ ] Code formatted (`deno task fmt`).
+
+## 6. Architecture
+
+For a comprehensive overview of the system architecture, component interactions, and code organization, please refer to [ARCHITECTURE.md](../ARCHITECTURE.md) in the project root. This document is the ground truth for understanding how ExoFrame works.

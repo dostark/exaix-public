@@ -1,3 +1,12 @@
+/**
+ * @module TuiHandleKey
+ * @path src/tui/tui_helpers/handle_key.ts
+ * @description Centralized key handling for the TUI dashboard, managing overlays, state toggles, and pane navigation.
+ * @architectural-layer TUI
+ * @dependencies [keyboard, pane_manager]
+ * @related-files [src/tui/tui_dashboard.ts, src/tui/tui_helpers/prod_handle_key.ts]
+ */
+
 import type { Pane } from "../tui_dashboard.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
 import { KEYS } from "../../helpers/keyboard.ts";

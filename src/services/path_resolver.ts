@@ -1,3 +1,12 @@
+/**
+ * @module PathResolver
+ * @path src/services/path_resolver.ts
+ * @description Resolves portal alias paths (e.g., @Blueprints/) to absolute system paths,
+ * enforcing security boundaries to prevent path traversal.
+ * @architectural-layer Services
+ * @dependencies [Config, DatabaseService, Path]
+ * @related-files [src/services/request_processor.ts, src/config/service.ts]
+ */
 import { join } from "@std/path";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";

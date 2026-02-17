@@ -1,6 +1,17 @@
 /**
- * Git Service - Step 4.2 of Implementation Plan
- * Identity-aware git integration with automatic initialization and tracing
+ * @module GitService
+ * @path src/services/git_service.ts
+ * @description Orchestrates Git operations with trace metadata.
+ *
+ * Features:
+ * - Repository initialization and configuration
+ * - Branch management for agent work
+ * - Commits with automated messages and trace metadata
+ * - Diff generation and status checks
+ *
+ * @architectural-layer Services
+ * @dependencies [Config, DatabaseService, SecureRandom]
+ * @related-files [src/services/plan_executor.ts]
  */
 
 import type { Config } from "../config/schema.ts";

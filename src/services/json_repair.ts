@@ -1,5 +1,16 @@
 /**
- * Common JSON errors and their repair functions
+ * @module JSONRepair
+ * @path src/services/json_repair.ts
+ * @description Provides comprehensive repair patterns for common LLM JSON output errors.
+ *
+ * Features:
+ * - Regex-based extraction of JSON from markdown blocks
+ * - Fixes for common syntax errors (trailing commas, unquoted keys)
+ * - Support for multi-line string normalization
+ *
+ * @architectural-layer Services
+ * @dependencies []
+ * @related-files [src/services/output_validator.ts, src/services/plan_adapter.ts]
  */
 const JSON_REPAIR_PATTERNS: Array<{
   name: string;

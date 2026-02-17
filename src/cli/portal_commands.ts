@@ -1,3 +1,12 @@
+/**
+ * @module PortalCommands
+ * @path src/cli/portal_commands.ts
+ * @description Provides CLI commands for managing portals, including adding, removing, listing, and verifying repository links and context cards.
+ * @architectural-layer CLI
+ * @dependencies [path, config_schema, db_schema, config_service, context_card_generator, event_logger, enums, constants]
+ * @related-files [src/services/context_card_generator.ts, src/cli/main.ts]
+ */
+
 import { join, resolve } from "@std/path";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "../services/db.ts";

@@ -1,8 +1,11 @@
 /**
- * Agent Executor Service
- *
- * Orchestrates LLM agent execution via MCP with security mode enforcement.
+ * @module AgentExecutor
+ * @path src/services/agent_executor.ts
+ * @description Orchestrates LLM agent execution via MCP with security mode enforcement.
  * Handles blueprint loading, subprocess spawning, MCP connection, and git audit.
+ * @architectural-layer Services
+ * @dependencies [Config, DatabaseService, EventLogger, PathResolver, PortalPermissionsService, IModelProvider, WorkspaceExecutionContext, AgentCapabilities, InputValidator]
+ * @related-files [src/services/agent_runner.ts, src/services/execution_loop.ts]
  */
 
 import { join } from "@std/path";

@@ -1,6 +1,10 @@
 /**
- * Constants for ExoFrame.
- * These are internal constants that should not be user-configurable.
+ * @module GlobalConstants
+ * @path src/constants.ts
+ * @description Global internal constants for the ExoFrame system, including HTTP codes and hash parameters.
+ * @architectural-layer Core
+ * @dependencies []
+ * @related-files []
  */
 
 // HTTP Status Codes

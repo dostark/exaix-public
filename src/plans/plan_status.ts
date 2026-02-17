@@ -1,3 +1,11 @@
+/**
+ * @module PlanStatus
+ * @path src/plans/plan_status.ts
+ * @description Type definitions and coercion utilities for execution plan statuses.
+ * @architectural-layer Schemas
+ * @dependencies []
+ * @related-files [src/services/plan_executor.ts, src/services/request_processor.ts]
+ */
 export const PlanStatus = {
   REVIEW: "review",
   APPROVED: "approved",

@@ -30,6 +30,7 @@ Implement two enterprise provider types:
 
 1. **Google Vertex AI (Priority 1)** - Service account authentication for GCP projects
 1. **OpenRouter (Priority 2)** - Unified API gateway to 100+ models
+1. **Secure Execution (Priority 3)** - Enterprise-grade sandboxing and containerization for untrusted code
 
 **Key Decisions:**
 
@@ -45,6 +46,9 @@ Implement two enterprise provider types:
 - [ ] Support Google Vertex AI with service account authentication
 - [ ] Maintain backward compatibility with simple `GOOGLE_API_KEY`
 - [ ] Add OpenRouter unified API gateway support
+- [ ] Implement Secure Execution abstraction (Sandbox/Container drivers)
+- [ ] Add support for Deno Sandbox (MicroVMs) for hypervisor-level isolation
+- [ ] Implement Docker driver for multi-tenant tool execution
 - [ ] Implement Zod validation for enterprise credentials
 - [ ] Zero breaking changes to existing provider abstraction
 - [ ] Complete documentation (Technical Spec, User Guide, `.copilot/`)
@@ -1269,7 +1273,57 @@ Add section on enterprise provider usage patterns.
 
 ---
 
-## Success Criteria
+### Phase 7: Secure Enterprise Execution (Sandboxes & Containers)
+
+**Goal:** Provide hypervisor or container-level isolation for agent tool execution in multi-tenant environments.
+
+**Files to Create:**
+- `src/services/sandbox/driver.ts` (Interface)
+- `src/services/sandbox/deno_sandbox_driver.ts` (Deno Sandbox/MicroVMs)
+- `src/services/sandbox/docker_driver.ts` (Docker/OCI)
+
+**Files to Modify:**
+- `src/services/tool_registry.ts` (Integrate SandboxDriver)
+- `src/config/schema.ts` (Add sandbox selection config)
+
+#### Step 7.1: Sandbox Driver Interface
+Define a standard interface for executing tools in isolated environments.
+
+```typescript
+export interface SandboxDriver {
+  setup(options: SandboxOptions): Promise<void>;
+  execute(command: string, args: string[], env: Record<string, string>): Promise<ExecutionResult>;
+  cleanup(): Promise<void>;
+}
+```
+
+#### Step 7.2: Deno Sandbox Integration
+Leverage Deno Sandbox MicroVMs for ultra-fast, secure execution.
+
+```typescript
+export class DenoSandboxDriver implements SandboxDriver {
+  // Implementation using Deno Sandbox SDK
+}
+```
+
+#### Step 7.3: Docker Driver Integration
+Provide a standard Docker driver for on-premise or legacy container support.
+
+```typescript
+export class DockerDriver implements SandboxDriver {
+  // Implementation using Docker API / CLI
+}
+```
+
+**Success Criteria:**
+- [ ] `SandboxDriver` interface allows transparent switching between drivers
+- [ ] Agents can run tools in Deno Sandbox with < 1s startup
+- [ ] Resource limits (CPU/MEM) enforced at the hypervisor/container level
+- [ ] Network egress restricted via sandbox configuration
+
+---
+
+### Phase 8: Success Criteria (Integrated)
 
 ### Functional Requirements
 
@@ -1373,28 +1427,28 @@ Add section on enterprise provider usage patterns.
 | ----------- | ------------------------------ | ------------ | --------------- |
 | **Phase 1** | Vertex AI auth + provider      | 2-3 days     | None            |
 | **Phase 2** | OpenRouter integration         | 1 day        | None (parallel) |
-| **Phase 3** | Factory + registry integration | 0.5 days     | Phase 1, 2      |
-| **Phase 4** | Testing (unit + manual)        | 1-2 days     | Phase 1, 2, 3   |
-| **Phase 5** | Documentation                  | 1 day        | Phase 4         |
-| **Total**   |                                | **5-7 days** |                 |
+| **Phase 3** | Sandbox & Container Drivers    | 2-3 days     | None (parallel) |
+| **Phase 4** | Factory + registry integration | 0.5 days     | Phases 1, 2, 3  |
+| **Phase 5** | Testing (unit + manual)        | 1-2 days     | Phase 4         |
+| **Phase 6** | Documentation                  | 1 day        | Phase 5         |
+| **Total**   |                                | **7-10 days**|                 |
 
-**Estimated Effort:** 24-32 hours (senior developer)
+**Estimated Effort:** 40-56 hours (senior developer)
 
 ---
 
 ## Document Status
 
 - **Created:** 2026-01-20
-- **Last Updated:** 2026-01-20
-- **Status:** Draft
+- **Last Updated:** 2026-02-17
+- **Status:** Draft (Integrated)
 - **Approved By:** Pending review
-- **Next Steps:** Review with team, prioritize Vertex AI vs OpenRouter
+- **Next Steps:** Review with team, prioritize Vertex AI vs Secure Execution
 
 ---
 
 ## Notes
 
-- **Security First:** Service account JSON handling requires extra care. No file storage, env-only.
-- **User Experience:** Setup complexity is higher for Vertex AI. Excellent docs critical.
-- **Incremental Value:** Vertex AI alone solves the immediate quota problem. OpenRouter can be Phase 29.1.
-- **Edition Strategy:** Both providers in 🟢 Solo Edition. Enterprise providers (Bedrock, Azure) reserved for 🟣 Enterprise.
+- **Security First:** Sandbox execution is critical for multi-tenant and production environments.
+- **Deno Stack:** Deno Sandbox offers the best performance profile for AI agent workflows.
+- **Enterprise Ready:** This integrated plan positions ExoFrame as a secure, enterprise-grade agentic framework.

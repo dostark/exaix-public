@@ -4,7 +4,12 @@ import { withRetry } from "./common.ts";
 import type { Config } from "../../config/schema.ts";
 
 /**
- * Common options for all providers
+ * @module BaseProvider
+ * @path src/ai/providers/base_provider.ts
+ * @description Abstract base class providing common initialization and retry orchestration for LLM providers.
+ * @architectural-layer AI
+ * @dependencies [providers, event_logger, common, schema]
+ * @related-files [src/ai/providers.ts, src/ai/providers/openai_provider.ts]
  */
 export interface BaseProviderOptions {
   apiKey: string;

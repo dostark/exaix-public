@@ -1,6 +1,16 @@
 /**
- * Context Loader - Intelligently loads context files within token budgets
- * Implements Step 3.3 of the ExoFrame Implementation Plan
+ * @module ContextLoader
+ * @path src/services/context_loader.ts
+ * @description Intelligently loads and prioritizes codebase context for LLM execution.
+ *
+ * Responsibilities:
+ * - Assemble LLM context within token budgets
+ * - Prioritize relevant files based on relevance thresholds
+ * - Handle portal and workspace directory boundaries
+ *
+ * @architectural-layer Services
+ * @dependencies [DatabaseService, Config]
+ * @related-files [src/services/agent_runner.ts]
  */
 
 import type { DatabaseService } from "./db.ts";

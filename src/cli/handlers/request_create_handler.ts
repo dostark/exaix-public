@@ -1,3 +1,12 @@
+/**
+ * @module RequestCreateHandler
+ * @path src/cli/handlers/request_create_handler.ts
+ * @description Handles the creation of agent requests, including input validation, unique trace ID generation, and YAML frontmatter serialization.
+ * @architectural-layer CLI
+ * @dependencies [path, fs, base_command, enums, request_status, validation_chain, error_strategy, command_utils, request_commands, request_paths]
+ * @related-files [src/cli/request_commands.ts, src/schemas/request.ts]
+ */
+
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "../base.ts";

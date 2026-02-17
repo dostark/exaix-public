@@ -1,13 +1,10 @@
 /**
- * ConditionEvaluator - Evaluates conditional expressions for flow step execution
- *
- * Phase 15.1: Implements condition evaluation for dynamic flow control.
- * Conditions are JavaScript expressions evaluated against a context containing:
- * - results: Map of previous step results
- * - request: Original flow request
- * - flow: Flow definition
- *
- * @module flows/condition_evaluator
+ * @module ConditionEvaluator
+ * @path src/flows/condition_evaluator.ts
+ * @description Evaluates dynamic step conditions using safe JavaScript execution against a context of previous results and request metadata.
+ * @architectural-layer Flows
+ * @dependencies [flow, flow_runner]
+ * @related-files [src/flows/flow_runner.ts, src/schemas/flow.ts]
  */
 
 import { Flow, FlowStep } from "../schemas/flow.ts";

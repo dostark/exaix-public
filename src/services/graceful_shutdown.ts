@@ -1,4 +1,16 @@
 import { StructuredLogger } from "./structured_logger.ts";
+/**
+ * @module GracefulShutdown
+ * @path src/services/graceful_shutdown.ts
+ * @description Handles SIGTERM/SIGINT signals with proper cleanup of resources.
+ *
+ * This service ensures all registered cleanup tasks are executed in reverse
+ * order (LIFO) before process exit, preventing resource leaks and orphaned processes.
+ *
+ * @architectural-layer Services
+ * @dependencies [StructuredLogger]
+ * @related-files [src/main.ts, src/services/structured_logger.ts]
+ */
 
 /**
  * Cleanup task interface for graceful shutdown
@@ -8,15 +20,6 @@ export interface CleanupTask {
   handler: () => Promise<void>;
   timeout: number;
 }
-
-/**
- * GracefulShutdown - Handles SIGTERM/SIGINT signals with proper cleanup of resources
- *
- * This service ensures that when the application receives termination signals,
- * all registered cleanup tasks are executed in reverse order (LIFO) before
- * the process exits. This prevents resource leaks, incomplete transactions,
- * and orphaned processes.
- */
 export class GracefulShutdown {
   private readonly logger: StructuredLogger;
   private readonly cleanupTasks: CleanupTask[] = [];

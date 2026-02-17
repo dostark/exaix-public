@@ -1,14 +1,10 @@
 /**
- * Reflexive Agent - Self-Critique and Improvement Loop
- *
- * Phase 16.4 implementation: Agents self-critique and improve outputs before finalizing.
- *
- * Features:
- * - Wraps AgentRunner for reflexive execution
- * - Configurable iteration limit
- * - Critique extraction (issues, severity, suggestions)
- * - Early exit when no issues found
- * - Metrics tracking
+ * @module ReflexiveAgent
+ * @path src/services/reflexive_agent.ts
+ * @description Implements the reflexive agent loop, enabling self-critique and iterative output improvement before finalization.
+ * @architectural-layer Services
+ * @dependencies [agent_runner, db, types, constants]
+ * @related-files [src/services/agent_runner.ts, src/services/confidence_scorer.ts]
  */
 
 import { z } from "zod";

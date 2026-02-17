@@ -1,8 +1,10 @@
 /**
- * Flow Reporter - Step 7.8 of Implementation Plan
- *
- * Generates comprehensive reports for flow executions, providing detailed
- * analysis of multi-agent orchestration results.
+ * @module FlowReporter
+ * @path src/services/flow_reporter.ts
+ * @description Generates comprehensive reports for flow executions, analyzing multi-agent orchestration results.
+ * @architectural-layer Services
+ * @dependencies [Path, Config, DatabaseService, FlowRunner, FlowSchema, Constants]
+ * @related-files [src/flows/flow_runner.ts, src/schemas/flow.ts]
  */
 
 import { join } from "@std/path";

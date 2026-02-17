@@ -1,18 +1,11 @@
 /**
- * EventLogger - Unified Event Logging Service
- * Implements Step 5.10 of the ExoFrame Implementation Plan
- *
- * Responsibilities:
- * 1. Write events to both console and Activity Journal
- * 2. Provide consistent log levels (info, warn, error, debug)
- * 3. Format console output with icons and indentation
- * 4. Handle database failures gracefully (fallback to console-only)
- * 5. Support child loggers with inherited defaults
- * 6. Resolve user identity from git config or OS username
- *
- * Required Deno permissions:
- * - --allow-run=git: To resolve user identity from git config
- * - --allow-env=USER: Fallback for OS username
+ * @module EventLogger
+ * @path src/services/event_logger.ts
+ * @description Unified logging service that writes to both console and Activity Journal.
+ * Supports child loggers, structured payloads, and consistent log levels across the system.
+ * @architectural-layer Services
+ * @dependencies [DatabaseService, ActivityRepository, LogLevel, CommonTypes]
+ * @related-files [src/services/db.ts, src/repositories/activity_repository.ts, src/services/common/types.ts]
  */
 
 import type { DatabaseService } from "./db.ts";

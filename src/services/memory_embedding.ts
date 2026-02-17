@@ -1,13 +1,10 @@
 /**
- * Memory Embedding Service
- *
- * Service for generating and searching embeddings for memory learnings.
- * Uses deterministic mock vectors (no external API calls) for semantic search.
- *
- * This follows the pattern established in .copilot/embeddings/ for
- * precomputed embeddings.
- *
- * Phase 12.10: Tag-Based Search & Simple RAG
+ * @module MemoryEmbedding
+ * @path src/services/memory_embedding.ts
+ * @description Generates and searches semantic embeddings for memories using deterministic hash-based mock vectors for lightweight RAG support.
+ * @architectural-layer Services
+ * @dependencies [path, fs, schema]
+ * @related-files [src/services/session_memory.ts, src/services/memory_bank.ts]
  */
 
 import { join } from "@std/path";

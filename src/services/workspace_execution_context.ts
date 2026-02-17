@@ -1,16 +1,17 @@
 /**
- * Workspace Execution Context
- *
- * Defines execution context for agent operations, determining where agents run
- * and where git operations happen. Supports both portal-based execution
- * (agents work in external project repositories) and workspace-based execution
- * (agents work in deployed workspace).
+ * @module WorkspaceExecutionContext
+ * @path src/services/workspace_execution_context.ts
+ * @description Defines the environment for agent operations, including working
+ * directories, repository paths, and security boundaries.
  *
  * Key Concepts:
- * - Portal Execution: Agents execute in portal workspace (e.g., ~/git/ExoFrame)
- * - Workspace Execution: Agents execute in deployed workspace (e.g., ~/ExoFrame)
+ * - Portal Execution vs Workspace Execution boundaries
  * - Git operations always target the configured repository
- * - File access restricted to allowed paths
+ * - File access is restricted to allowed paths to prevent traversal
+ *
+ * @architectural-layer Services
+ * @dependencies [Config, Path]
+ * @related-files [src/services/request_router.ts, src/services/execution_loop.ts]
  */
 
 import { join, normalize } from "@std/path";

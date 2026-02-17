@@ -1,18 +1,10 @@
 /**
- * Session Memory Service
- *
- * Phase 16.6: Session Memory Integration
- *
- * Integrates with Memory Bank service to provide automatic memory lookup
- * and context enhancement for agent execution. Enables agents to:
- * - Automatically retrieve relevant past interactions
- * - Inject memories into agent context
- * - Save new insights to memory post-execution
- *
- * Architecture:
- * Request → Memory Lookup (Semantic) → Enhanced Request
- *                    ↓
- *              Memory Bank
+ * @module SessionMemory
+ * @path src/services/session_memory.ts
+ * @description Integrates with Memory Bank to provide automatic semantic memory lookup and context enhancement for agent execution.
+ * @architectural-layer Services
+ * @dependencies [memory_bank, memory_embedding, enums, memory_status]
+ * @related-files [src/services/memory_bank.ts, src/services/agent_runner.ts]
  */
 
 import { z } from "zod";

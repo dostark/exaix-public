@@ -1,28 +1,15 @@
 /**
- * MockLLMProvider - Deterministic LLM responses for testing
- *
- * Testing Strategy §3.1: Mock LLM Provider
- *
- * Provides multiple strategies for mocking LLM responses without making actual API calls.
- * Each strategy serves a specific testing purpose:
- *
-
-/**
- * MockLLMProvider - Deterministic LLM responses for testing.
- *
- * Provides multiple strategies for mocking LLM responses without making actual API calls.
- *
- * Strategies:
- * - "recorded": Replay real LLM responses captured from previous API calls.
- * - "scripted": Return predefined responses in a fixed sequence.
- * - "pattern": Generate dynamic responses based on prompt content.
- * - "failing": Simulate API failures and network errors.
- * - "slow": Simulate network latency and slow API responses.
- *
- * Helper functions:
- * - createPlanGeneratorMock(): Pattern-based mock with common plan formats.
- * - createFailingMock(message?): Failing mock with custom error message.
- * - createSlowMock(delayMs?): Slow mock with configurable delay.
+ * @module MockLLMProvider
+ * @path src/ai/providers/mock_llm_provider.ts
+ * @description Deterministic LLM provider for testing, supporting multiple strategies:
+ * - "recorded": Replay real LLM responses.
+ * - "scripted": Fixed sequence of responses.
+ * - "pattern": Dynamic responses based on prompt.
+ * - "failing": Simulate API failures.
+ * - "slow": Simulate network latency.
+ * @architectural-layer AI
+ * @dependencies [enums, providers, constants, colors]
+ * @related-files [src/ai/factories/mock_factory.ts, tests/ai/mock_llm_provider_test.ts]
  */
 
 import { MockStrategy } from "../../enums.ts";

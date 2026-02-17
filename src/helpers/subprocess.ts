@@ -1,5 +1,10 @@
 /**
- * Safe subprocess execution utilities with timeout and error handling
+ * @module Subprocess
+ * @path src/helpers/subprocess.ts
+ * @description Safe subprocess execution utilities with timeout protection and error handling.
+ * @architectural-layer Helpers
+ * @dependencies [Constants]
+ * @related-files [src/services/tool_reflector.ts]
  */
 
 import { DEFAULT_SUBPROCESS_TIMEOUT_MS } from "../config/constants.ts";

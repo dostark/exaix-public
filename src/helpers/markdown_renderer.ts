@@ -1,10 +1,10 @@
 /**
- * Simple Markdown Renderer for TUI
- *
- * Part of Phase 12.14: TUI Memory Integration & Polish
- *
- * Renders basic markdown to ANSI-styled terminal output.
- * Supports: headers, bold, italic, code blocks, lists, links.
+ * @module MarkdownRenderer
+ * @path src/helpers/markdown_renderer.ts
+ * @description TUI Markdown renderer for ANSI-styled terminal output with support for headers, code blocks, and badges.
+ * @architectural-layer Helpers
+ * @dependencies [Enums, Constants]
+ * @related-files [src/enums.ts, src/helpers/constants.ts]
  */
 
 import { ConfidenceLevel } from "../enums.ts";

@@ -1,13 +1,10 @@
 /**
- * Agent Status View - TUI for monitoring agent health and status
- *
- * Phase 13.7: Enhanced with modern patterns including:
- * - Tree view for agent hierarchy
- * - Detail panel with health metrics
- * - Live updating (auto-refresh)
- * - Log viewer integration
- * - Health indicators
- * - Help screen
+ * @module AgentStatusView
+ * @path src/tui/agent_status_view.ts
+ * @description TUI view for monitoring agent status, health, and logs, featuring tree-based navigation and real-time updates.
+ * @architectural-layer TUI
+ * @dependencies [BaseTreeView, tree_view, dialog_base, help_renderer, keyboard, enums, constants]
+ * @related-files [src/services/agent_manager.ts, src/tui/tui_dashboard.ts]
  */
 
 import { TuiSessionBase } from "./tui_common.ts";

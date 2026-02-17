@@ -1,20 +1,10 @@
 /**
- * Plan Reviewer TUI View
- *
- * Phase 13.4: Enhanced with modern TUI patterns
- * - Tree view by plan status
- * - Diff viewer with markdown rendering
- * - Confirm dialogs for approve/reject
- * - Search/filter functionality
- * - Help screen
- * - Bulk operations
- * - Color theming
- *
- * Phase 33.1: Refactored to use BaseTreeView
- * - Removed duplicated navigation code (~50 lines)
- * - Removed duplicated key handling patterns (~80 lines)
- * - Removed duplicated state management (~20 lines)
- * - Total reduction: ~150 lines
+ * @module PlanReviewerView
+ * @path src/tui/plan_reviewer_view.ts
+ * @description Interactive TUI view for reviewing and approving/rejecting execution plans, featuring side-by-side diff visualization.
+ * @architectural-layer TUI
+ * @dependencies [BaseTreeView, tree_view, dialog_base, help_renderer, keyboard, enums, constants]
+ * @related-files [src/services/plan_service.ts, src/tui/tui_dashboard.ts]
  */
 
 // --- Adapter: PlanCommands as PlanService ---

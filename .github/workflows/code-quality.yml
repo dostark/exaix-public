@@ -50,3 +50,6 @@ jobs:
 
       - name: Build Verification
         run: deno check src/main.ts
+
+      - name: Architecture Validation
+        run: deno task check:arch

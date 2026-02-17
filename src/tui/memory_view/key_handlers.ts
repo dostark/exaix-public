@@ -1,6 +1,10 @@
 /**
- * Key handler utilities for Memory View
- * Extracted from memory_view.ts to reduce complexity
+ * @module MemoryKeyHandlers
+ * @path src/tui/memory_view/key_handlers.ts
+ * @description Key handler utilities for Memory View, extracting complex keyboard logic for navigation, search, and shortcuts.
+ * @architectural-layer TUI
+ * @dependencies [Keyboard, MemoryTuiScope]
+ * @related-files [src/helpers/keyboard.ts, src/tui/memory_view/memory_scope.ts]
  */
 
 import type { TreeNode } from "./types.ts";

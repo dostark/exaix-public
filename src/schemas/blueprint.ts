@@ -1,8 +1,10 @@
 /**
- * Blueprint Schema
- * Implements Step 5.11 - Blueprint Creation and Management
- *
- * Defines Zod validation schemas for agent blueprint files.
+ * @module BlueprintSchema
+ * @path src/schemas/blueprint.ts
+ * @description Defines Zod validation schemas for agent blueprint files, including frontmatter and creation results.
+ * @architectural-layer Schemas
+ * @dependencies [zod]
+ * @related-files [src/cli/blueprint_commands.ts]
  */
 
 import { z } from "zod";

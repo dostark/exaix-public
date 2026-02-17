@@ -1,6 +1,10 @@
 /**
- * Pane Manager for TUI Dashboard
- * Extracted from tui_dashboard.ts to reduce complexity
+ * @module PaneManager
+ * @path src/tui/dashboard/pane_manager.ts
+ * @description Manager for TUI dashboard panes, handling splitting, closing, resizing, and focus switching logic.
+ * @architectural-layer TUI
+ * @dependencies [constants]
+ * @related-files [src/tui/tui_dashboard.ts, src/tui/dashboard/renderer.ts]
  */
 
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../helpers/constants.ts";

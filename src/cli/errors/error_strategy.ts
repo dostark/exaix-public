@@ -1,6 +1,10 @@
 /**
- * Error Handling Strategies
- * Phase 33.3 Pattern: Strategy
+ * @module CLIErrorStrategy
+ * @path src/cli/errors/error_strategy.ts
+ * @description Defines the default error handling strategy for CLI commands, ensuring consistent error reporting and exit codes.
+ * @architectural-layer CLI
+ * @dependencies [colors]
+ * @related-files [src/cli/exoctl.ts]
  */
 
 export interface ErrorContext {

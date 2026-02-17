@@ -1,3 +1,11 @@
+/**
+ * @module McpServer
+ * @path src/mcp/server.ts
+ * @description core MCP server implementation, handling JSON-RPC transport, tool registration, and security orchestration.
+ * @architectural-layer MCP
+ * @dependencies [schema, mcp, tools, domain_tools, resources, prompts, structured_logger]
+ * @related-files [src/mcp/tools.ts, src/mcp/resources.ts, src/mcp/prompts.ts]
+ */
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "../services/db.ts";
 import { MCPConfigSchema, type MCPTool } from "../schemas/mcp.ts";

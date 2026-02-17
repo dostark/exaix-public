@@ -1,6 +1,10 @@
 /**
- * Enums for ExoFrame constants and types.
- * These replace magic words and provide type safety.
+ * @module GeneralEnums
+ * @path src/enums.ts
+ * @description Centralized enums for the ExoFrame system, including status types, flow control, and display options.
+ * @architectural-layer Core
+ * @dependencies []
+ * @related-files [src/schemas/flow.ts, src/services/db.ts]
  */
 
 /**
@@ -171,10 +175,6 @@ export enum SecurityMode {
   HYBRID = "hybrid",
 }
 
-/**
- * General status codes for entities in the system.
- * This is the single source of truth for all status values.
- */
 export enum GeneralStatus {
   // Basic states
   ACTIVE = "active",

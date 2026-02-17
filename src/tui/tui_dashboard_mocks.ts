@@ -1,7 +1,10 @@
 /**
- * MockPortalService
- * Mock implementation of the PortalService interface for TDD and dashboard wiring tests.
- * All methods return static or empty values and are safe for use in isolated tests.
+ * @module TuiDashboardMocks
+ * @path src/tui/tui_dashboard_mocks.ts
+ * @description Mock implementations of core services (Portal, Plan, Log, Daemon, Request, Agent, Memory, Skills) for TUI dashboard testing and TDD.
+ * @architectural-layer TUI
+ * @dependencies [enums, AgentStatus, MemoryStatus, RequestStatus]
+ * @related-files [src/tui/dashboard_view.ts]
  */
 import { PortalService } from "./portal_manager_view.ts";
 import {

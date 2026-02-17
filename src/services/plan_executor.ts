@@ -1,11 +1,11 @@
 /**
- * Plan Executor Service
- *
- * Orchestrates the execution of high-level plan steps by:
- * 1. Iterating through plan steps
- * 2. Prompting the LLM to generate executable actions (TOML) for each step
- * 3. Executing those actions via ToolRegistry
- * 4. Committing changes to git
+ * @module PlanExecutor
+ * @path src/services/plan_executor.ts
+ * @description Orchestrates the Step-by-Step execution of approved plans.
+ * Managing the ReAct loop: prompting LLM for actions, executing tools, and committing results.
+ * @architectural-layer Services
+ * @dependencies [ToolRegistry, GitService, EventLogger, DatabaseService]
+ * @related-files [src/services/tool_registry.ts, src/services/execution_loop.ts]
  */
 
 import { parse as parseToml } from "@std/toml";

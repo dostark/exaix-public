@@ -1,12 +1,10 @@
 /**
- * Daemon Control View - TUI for managing the ExoFrame daemon
- *
- * Phase 13.8: Enhanced with modern patterns including:
- * - Status visualization with health indicators
- * - Log tail view
- * - Confirm dialogs for stop/restart
- * - Configuration viewer
- * - Help screen
+ * @module DaemonControlView
+ * @path src/tui/daemon_control_view.ts
+ * @description Interactive TUI view for managing the ExoFrame daemon, featuring status visualization, log tailing, and configuration viewing.
+ * @architectural-layer TUI
+ * @dependencies [TuiSessionBase, spinner, help_renderer, dialog_base, keyboard, enums, KeyBindingsBase, constants, tui.config]
+ * @related-files [src/services/daemon_service.ts, src/cli/daemon_commands.ts]
  */
 
 import { TuiSessionBase } from "./tui_common.ts";

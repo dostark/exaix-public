@@ -1,3 +1,12 @@
+/**
+ * @module PromptContext
+ * @path src/services/prompt_context.ts
+ * @description Utility for building structured prompt context blocks,
+ * including portal information and required actions.
+ * @architectural-layer Services
+ * @dependencies [Constants]
+ * @related-files [src/services/request_router.ts, src/services/agent_runner.ts]
+ */
 import {
   PORTAL_CONTEXT_ALIAS_LABEL,
   PORTAL_CONTEXT_REPOSITORY_LABEL,

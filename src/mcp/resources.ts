@@ -1,8 +1,10 @@
 /**
- * MCP Resources
- *
- * Exposes portal files as MCP resources with portal:// URI scheme.
- * Resources are dynamically discovered from configured portals.
+ * @module McpResources
+ * @path src/mcp/resources.ts
+ * @description Implements the MCP resource layer, exposing portal files via the portal:// URI scheme with dynamic discovery.
+ * @architectural-layer MCP
+ * @dependencies [path, fs, schema, db]
+ * @related-files [src/mcp/server.ts, src/services/portal_permissions_service.ts]
  */
 
 import { relative } from "@std/path";

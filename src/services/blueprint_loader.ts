@@ -1,12 +1,11 @@
 /**
- * BlueprintLoader - Unified Blueprint Loading Service
- * Implements Phase 16.1 - Consistent blueprint parsing across all execution paths
- *
- * This service consolidates blueprint loading from:
- * - request_common.ts (minimal parsing)
- * - agent_executor.ts (YAML frontmatter parsing)
- *
- * Into a single, schema-validated loader.
+ * @module BlueprintLoader
+ * @path src/services/blueprint_loader.ts
+ * @description Unified service for loading and validating agent blueprints.
+ * Handles YAML frontmatter parsing, schema validation, and blueprint resolution.
+ * @architectural-layer Services
+ * @dependencies [Zod, YAML, Config]
+ * @related-files [src/services/agent_runner.ts, src/services/request_processor.ts]
  */
 
 import { join } from "@std/path";

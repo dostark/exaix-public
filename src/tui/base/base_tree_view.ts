@@ -1,20 +1,10 @@
 /**
- * Base class for tree-based TUI views
- *
- * Phase 33.1: Extracted common functionality from:
- * - plan_reviewer_view.ts
- * - portal_manager_view.ts
- * - monitor_view.ts
- * - skills_manager_view.ts
- * - structured_log_viewer.ts
- *
- * This base class implements:
- * - Common state management
- * - Navigation (up, down, home, end)
- * - Key handling skeleton
- * - Dialog management
- * - Help screen rendering
- * - Loading state management
+ * @module BaseTreeViewModule
+ * @path src/tui/base/base_tree_view.ts
+ * @description Abstract base class for tree-based TUI views, implementing common state management, navigation, and rendering logic.
+ * @architectural-layer TUI
+ * @dependencies [tree_view, keyboard, spinner, tui_common, dialog_base]
+ * @related-files [src/tui/tui_common.ts, src/tui/base/tree_view_state.ts]
  */
 
 import { KEYS } from "../../helpers/keyboard.ts";

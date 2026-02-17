@@ -1,13 +1,10 @@
 /**
- * Blueprint Commands
- * Implements Step 5.11 - Blueprint Creation and Management
- *
- * Responsibilities:
- * 1. Create agent blueprints with validation
- * 2. List available blueprints
- * 3. Show blueprint details
- * 4. Validate blueprint format
- * 5. Remove blueprints
+ * @module BlueprintCommands
+ * @path src/cli/blueprint_commands.ts
+ * @description Provides CLI commands for agent blueprint management, including creation from templates, listing, showing details, and validation.
+ * @architectural-layer CLI
+ * @dependencies [fs, path, toml, base_command, validation_chain, error_strategy, command_utils, blueprint_schema]
+ * @related-files [src/schemas/blueprint.ts, src/cli/main.ts]
  */
 
 import { ensureDir, exists } from "@std/fs";

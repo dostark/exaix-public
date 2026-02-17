@@ -1,12 +1,10 @@
 /**
- * Shared TUI session utilities to reduce duplication between views.
- *
- * Phase 13.2: Enhanced with modern patterns including:
- * - Loading state management
- * - Color theme support
- * - Refresh mechanism
- * - Dialog support
- * - Status bar integration
+ * @module TuiCommon
+ * @path src/tui/tui_common.ts
+ * @description Shared TUI session utilities, base classes, and state management patterns used across all dashboard views.
+ * @architectural-layer TUI
+ * @dependencies [colors, spinner, status_bar, keyboard]
+ * @related-files [src/tui/base/base_tree_view.ts, src/tui/tui_dashboard.ts]
  */
 
 import { getTheme, type TuiTheme } from "../helpers/colors.ts";

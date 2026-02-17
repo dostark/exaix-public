@@ -1,3 +1,12 @@
+/**
+ * @module FlowSchema
+ * @path src/schemas/flow.ts
+ * @description Defines Zod validation schemas for flow definitions, including steps, gates, feedback loops, and branch logic.
+ * @architectural-layer Schemas
+ * @dependencies [zod, enums]
+ * @related-files [src/flows/flow_loader.ts, src/flows/condition_evaluator.ts]
+ */
+
 import { z } from "zod";
 import { FlowConsensusMethod, FlowGateOnFail, FlowInputSource, FlowOutputFormat, FlowStepType } from "../enums.ts";
 

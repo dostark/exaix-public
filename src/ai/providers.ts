@@ -1,6 +1,10 @@
 /**
- * Model Adapter - Provides a unified interface for interacting with various LLM providers.
- * Implements Step 3.1 of the ExoFrame Implementation Plan.
+ * @module ModelProviders
+ * @path src/ai/providers.ts
+ * @description Unified adapter interface for interacting with various LLM providers, abstracting connection details and authentication.
+ * @architectural-layer AI
+ * @dependencies [provider_registry, types, provider_common_utils, constants]
+ * @related-files [src/ai/provider_registry.ts, src/ai/factories/abstract_provider_factory.ts]
  */
 
 // @ts-ignore: Deno is a global in the Deno runtime

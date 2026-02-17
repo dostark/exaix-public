@@ -1,6 +1,10 @@
 /**
- * Daemon commands for controlling the ExoFrame daemon
- * Manages daemon lifecycle, status, and logging
+ * @module DaemonCommands
+ * @path src/cli/daemon_commands.ts
+ * @description Provides CLI commands for controlling the ExoFrame daemon lifecycle, including start, stop, restart, status, and log tailing.
+ * @architectural-layer CLI
+ * @dependencies [path, fs, base_command, cli_config, config_service, error_strategy, constants, process_utils]
+ * @related-files [src/main.ts, src/cli/main.ts]
  */
 
 import { dirname, fromFileUrl, join } from "@std/path";

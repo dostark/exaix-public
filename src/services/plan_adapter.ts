@@ -1,11 +1,16 @@
 /**
- * Plan Adapter - JSON validation and markdown conversion for LLM plans
- * Implements Step 6.7 of the ExoFrame Implementation Plan
+ * @module PlanAdapter
+ * @path src/services/plan_adapter.ts
+ * @description JSON validation and markdown conversion for LLM plans.
  *
  * Responsibilities:
  * 1. Parse and validate JSON plan output from LLMs
  * 2. Convert validated Plan objects to readable markdown
  * 3. Provide structured error reporting for validation failures
+ *
+ * @architectural-layer Services
+ * @dependencies [Zod, PlanSchema]
+ * @related-files [src/services/plan_writer.ts, src/services/output_validator.ts]
  */
 
 import { ZodError } from "zod";

@@ -1,10 +1,10 @@
 /**
- * TUI Color Theme System
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
- *
- * Provides a consistent color theme for all TUI views.
- * Supports color/no-color modes for accessibility.
+ * @module Colors
+ * @path src/helpers/colors.ts
+ * @description TUI color theme system and ANSI styling utilities.
+ * @architectural-layer Helpers
+ * @dependencies []
+ * @related-files [src/helpers/tree_view.ts, src/helpers/status_bar.ts]
  */
 
 // ===== ANSI Color Codes =====

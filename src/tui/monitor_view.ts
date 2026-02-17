@@ -1,15 +1,10 @@
 /**
- * Monitor View - TUI for real-time log monitoring
- *
- * Phase 13.5: Enhanced with modern patterns including:
- * - Tree view grouping (by agent, by action type)
- * - Detail panel for log expansion
- * - Search with highlighting
- * - Bookmarking (mark important entries)
- * - Export to file
- * - Time range filtering
- * - Help screen
- * - Auto-refresh toggle
+ * @module MonitorView
+ * @path src/tui/monitor_view.ts
+ * @description TUI log monitoring view with advanced filtering, grouping, and bookmarking capabilities for real-time log analysis.
+ * @architectural-layer TUI
+ * @dependencies [BaseTreeView, tree_view, dialog_base, help_renderer, keyboard, enums, constants]
+ * @related-files [src/services/monitor_service.ts, src/tui/tui_dashboard.ts]
  */
 
 import { BaseTreeView } from "./base/base_tree_view.ts";

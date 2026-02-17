@@ -1,10 +1,10 @@
 /**
- * Environment Variable Validation Schema (Phase 28, Phase 1)
- *
- * Provides Zod validation for EXO_LLM_* environment variable overrides.
- * These allow runtime override of AI provider configuration for CLI/TUI flexibility.
- *
- * Related: Phase 28 Environment Variable Cleanup and Validation
+ * @module EnvSchema
+ * @path src/config/env_schema.ts
+ * @description Provides Zod validation for environment variable overrides (EXO_LLM_*), allowing runtime configuration of AI providers and test modes.
+ * @architectural-layer Config
+ * @dependencies [zod, enums, ai_config, constants]
+ * @related-files [src/config/service.ts]
  */
 
 import { z } from "zod";

@@ -1,13 +1,10 @@
 /**
- * Secure credential storage using AES-GCM encryption
- *
- * Protects API keys and other sensitive credentials in memory from:
- * - Process dumps and core dumps
- * - Memory analysis tools
- * - Debugger inspection
- * - Accidental logging
- *
- * Keys are encrypted at rest in memory and zeroed out after use.
+ * @module CredentialSecurity
+ * @path src/helpers/credential_security.ts
+ * @description Secure credential storage using AES-GCM encryption for API keys and sensitive tokens.
+ * @architectural-layer Helpers
+ * @dependencies []
+ * @related-files [src/services/db.ts]
  */
 
 export class SecureCredentialStore {

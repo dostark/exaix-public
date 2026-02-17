@@ -1,8 +1,10 @@
 /**
- * Activity Repository
- *
- * Repository pattern implementation for activity/event data access.
- * Abstracts database operations from business logic.
+ * @module ActivityRepository
+ * @path src/repositories/activity_repository.ts
+ * @description Implements the Repository pattern for Activity Journal data access, abstracting database operations from domain logic.
+ * @architectural-layer Repositories
+ * @dependencies [db_schema, db_service]
+ * @related-files [src/services/db.ts, src/services/event_logger.ts]
  */
 
 import type { ActivityRecord, DatabaseService } from "../services/db.ts";

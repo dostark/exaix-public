@@ -1,11 +1,14 @@
+/**
+ * @module LazyProvider
+ * @path src/ai/providers/lazy_provider.ts
+ * @description Defers provider initialization until first use to optimize startup time and avoid unnecessary early API/auth checks.
+ * @architectural-layer AI
+ * @dependencies [types, abstract_provider_factory]
+ * @related-files [src/ai/provider_registry.ts]
+ */
 import { IModelProvider, ModelOptions, ResolvedProviderOptions } from "../types.ts";
 import { IProviderFactory } from "../factories/abstract_provider_factory.ts";
 
-/**
- * LazyProvider - Defers provider initialization until first use.
- * significantly reduces application startup time by avoiding early
- * connection checks and API key validation.
- */
 export class LazyProvider implements IModelProvider {
   private instance: IModelProvider | null = null;
   public readonly id: string;

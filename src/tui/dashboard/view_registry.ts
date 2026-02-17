@@ -1,6 +1,10 @@
 /**
- * View Registry for TUI Dashboard
- * Extracted from tui_dashboard.ts to reduce complexity
+ * @module ViewRegistry
+ * @path src/tui/dashboard/view_registry.ts
+ * @description Central registry and initialization logic for all TUI views, facilitating service injection and focus management.
+ * @architectural-layer TUI
+ * @dependencies [PortalManagerView, PlanReviewerView, MonitorView, StructuredLogViewer, DaemonControlView, AgentStatusView, RequestManagerView, MemoryView, SkillsManagerView, TuiDashboardMocks]
+ * @related-files [src/tui/dashboard_view.ts]
  */
 
 import { PortalManagerView } from "../portal_manager_view.ts";

@@ -1,3 +1,11 @@
+/**
+ * @module MemoryStatus
+ * @path src/memory/memory_status.ts
+ * @description Type definitions and coercion utilities for memory record statuses (pending, approved, etc.).
+ * @architectural-layer Schemas
+ * @dependencies []
+ * @related-files [src/services/memory_bank.ts]
+ */
 export const MemoryStatus = {
   PENDING: "pending",
   APPROVED: "approved",

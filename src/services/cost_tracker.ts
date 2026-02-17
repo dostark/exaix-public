@@ -1,3 +1,11 @@
+/**
+ * @module CostTracker
+ * @path src/services/cost_tracker.ts
+ * @description Service for tracking and managing LLM provider costs, token usage, and budget enforcement.
+ * @architectural-layer Services
+ * @dependencies [DatabaseService, Config, Constants, ProviderType]
+ * @related-files [src/services/db.ts, src/config/schema.ts]
+ */
 import { DatabaseService } from "./db.ts";
 import type { Config } from "../config/schema.ts";
 import {

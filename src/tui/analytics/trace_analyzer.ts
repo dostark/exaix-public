@@ -1,4 +1,12 @@
-import type { LogEntry } from "../../services/structured_logger.ts";
+/**
+ * @module TraceAnalyzer
+ * @path src/tui/analytics/trace_analyzer.ts
+ * @description Analyzes system traces to visualize the sequence of operations and identify bottlenecks or failures.
+ * @architectural-layer TUI
+ * @dependencies [structured_logger, analytics/types]
+ * @related-files [src/tui/structured_log_viewer.ts]
+ */
+
 import type { TraceAnalysis } from "./types.ts";
 
 /**

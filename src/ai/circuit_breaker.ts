@@ -1,9 +1,10 @@
 /**
- * Circuit Breaker - Cascading Failure Prevention
- *
- * Implements circuit breaker pattern to prevent cascading failures during
- * external service outages. Automatically opens circuit after failure threshold
- * and allows gradual recovery through half-open state.
+ * @module CircuitBreaker
+ * @path src/ai/circuit_breaker.ts
+ * @description Implementation of the circuit breaker pattern for LLM providers, preventing cascading failures during service outages.
+ * @architectural-layer AI
+ * @dependencies [providers]
+ * @related-files [src/ai/providers.ts]
  */
 
 import { IModelProvider, ModelOptions } from "./providers.ts";

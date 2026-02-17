@@ -1,15 +1,10 @@
 /**
- * Memory Bank CLI Commands
- *
- * Provides commands for interacting with Memory Banks:
- * - memory list: List all memory banks (projects, executions)
- * - memory search: Search across all memory
- * - memory project list|show: Project memory operations
- * - memory execution list|show: Execution history operations
- * - memory pending list|show|approve|reject: Pending proposals
- *
- * Part of Phase 12.5: Core CLI Commands for Memory Banks v2
- * Part of Phase 12.9: Agent Memory Updates
+ * @module MemoryCommands
+ * @path src/cli/memory_commands.ts
+ * @description Provides CLI commands for interacting with Memory Banks, including list, search, project, execution, and proposal management.
+ * @architectural-layer CLI
+ * @dependencies [fs, path, memory_bank, memory_extractor, memory_embedding, enums, skills, memory_bank_schema, cli_config, memory_formatter, memory_types]
+ * @related-files [src/services/memory_bank.ts, src/cli/main.ts]
  */
 
 import { exists } from "@std/fs";

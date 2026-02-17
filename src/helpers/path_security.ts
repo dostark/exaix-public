@@ -1,8 +1,12 @@
-import { join } from "@std/path";
-
 /**
- * Secure path resolution and validation utilities
+ * @module PathSecurity
+ * @path src/helpers/path_security.ts
+ * @description Secure path resolution and validation utilities to prevent directory traversal.
+ * @architectural-layer Helpers
+ * @dependencies [Path]
+ * @related-files [src/mcp/tool_handler.ts]
  */
+import { join } from "@std/path";
 export class PathSecurity {
   /**
    * Normalize and validate a path for security

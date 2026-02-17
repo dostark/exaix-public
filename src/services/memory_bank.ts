@@ -1,15 +1,14 @@
 /**
- * Memory Bank Service
- *
- * Core service for managing ExoFrame's Memory Banks:
+ * @module MemoryBankService
+ * @path src/services/memory_bank.ts
+ * @description Core service for managing ExoFrame's Memory Banks:
  * - Project memory (overview, patterns, decisions, references)
  * - Execution memory (trace records, lessons learned)
  * - Search and indexing operations
  * - Activity Journal integration
- *
- * Memory Banks provide structured, programmatically accessible storage
- * for project memory and execution history, replacing the Obsidian-specific
- * storage layout.
+ * @architectural-layer Services
+ * @dependencies [Config, DatabaseService, Path, FS, MemoryEnums, MemoryBankSchemas, MemoryStatus, MemoryParsers, MemoryFormatters, MemoryIndexBuilder, MemorySearch, LearningExtractor]
+ * @related-files [src/services/db.ts, src/schemas/memory_bank.ts]
  */
 
 import { join } from "@std/path";

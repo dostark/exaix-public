@@ -1,12 +1,10 @@
 /**
- * Layout Dialogs - Split View Dialog Components
- *
- * Part of Phase 13.11: Split View Enhancement
- *
- * Provides:
- * - ViewPickerDialog for selecting views when splitting
- * - LayoutPresetDialog for choosing layout presets
- * - NamedLayoutDialog for saving/loading named layouts
+ * @module LayoutDialogs
+ * @path src/tui/dialogs/layout_dialogs.ts
+ * @description Dialog components for management of TUI layouts, including split views, presets, and named layouts.
+ * @architectural-layer TUI
+ * @dependencies [KEYS, colors, constants, layout_rendering]
+ * @related-files [src/helpers/layout_manager.ts, src/tui/dashboard_view.ts]
  */
 
 import { KEYS } from "../../helpers/keyboard.ts";

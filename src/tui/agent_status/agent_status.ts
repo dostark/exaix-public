@@ -1,7 +1,10 @@
 /**
- * Canonical, type-safe agent status values.
- *
- * This replaces the old `AgentStatus` enum and any `AGENT_STATUS_*` constants.
+ * @module AgentStatusModule
+ * @path src/tui/agent_status/agent_status.ts
+ * @description Canonical, type-safe agent status values and utility functions for status coercion and validation.
+ * @architectural-layer TUI
+ * @dependencies []
+ * @related-files [src/tui/agent_status_view.ts]
  */
 
 export const AgentStatus = {

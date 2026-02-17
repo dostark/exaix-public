@@ -1,16 +1,10 @@
 /**
- * Memory Bank TUI View
- *
- * Interactive view for Memory Banks in the TUI dashboard.
- * Part of Phase 12.12-12.13: TUI Memory View
- *
- * Features:
- * - Tree navigation for memory bank hierarchy
- * - Detail panel for selected items
- * - Search with live filtering
- * - Keyboard shortcuts (g/p/e/s/n)
- * - Pending proposal actions (approve/reject)
- * - Dialog confirmations for actions
+ * @module MemoryView
+ * @path src/tui/memory_view.ts
+ * @description TUI view for interacting with memory banks, supporting search, filtering, and review of pending memory proposals.
+ * @architectural-layer TUI
+ * @dependencies [BaseTreeView, tree_view, dialog_base, help_renderer, keyboard, enums, constants]
+ * @related-files [src/services/memory_service.ts, src/tui/tui_dashboard.ts]
  */
 
 import { TuiSessionBase } from "./tui_common.ts";

@@ -1,6 +1,10 @@
 /**
- * Dialog handlers for Request Manager View
- * Extracted from request_manager_view.ts to reduce complexity
+ * @module RequestDialogHandlers
+ * @path src/tui/request_manager/dialog_handlers.ts
+ * @description Logic for processing and routing results from various dialogs within the Request Manager View.
+ * @architectural-layer TUI
+ * @dependencies [dialog_base, enums]
+ * @related-files [src/tui/request_manager_view.ts]
  */
 
 import { ConfirmDialog, InputDialog } from "../../helpers/dialog_base.ts";

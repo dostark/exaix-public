@@ -1,6 +1,11 @@
 /**
- * Tool Registry - Step 4.1 of Implementation Plan
- * Maps LLM function calls to safe Deno operations with security validation
+ * @module ToolRegistry
+ * @path src/services/tool_registry.ts
+ * @description Central registry for available tools. Maps abstract tool names (e.g., 'read_file')
+ * to concrete implementations with security validation and logging.
+ * @architectural-layer Services
+ * @dependencies [ConfigSchema, DatabaseService, PathResolver, MiddlewarePipeline]
+ * @related-files [src/services/plan_executor.ts, src/mcp/tools.ts]
  */
 import { ConfigSchema } from "../config/schema.ts";
 import { join, resolve } from "@std/path";

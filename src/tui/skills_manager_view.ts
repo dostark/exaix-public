@@ -1,14 +1,10 @@
 /**
- * Skills Manager TUI View
- *
- * Interactive view for managing Skills in the TUI dashboard.
- * Part of Phase 17.13: TUI Skills Support
- *
- * Features:
- * - Tree navigation for skills by source (core/project/learned)
- * - Detail panel with skill information
- * - Search and filtering
- * - Keyboard shortcuts
+ * @module SkillsManagerView
+ * @path src/tui/skills_manager_view.ts
+ * @description Interactive TUI view for managing Skills (agent capabilities), supporting discovery, status filtering, and skill deletion.
+ * @architectural-layer TUI
+ * @dependencies [BaseTreeView, tree_view, dialog_base, help_renderer, keyboard, enums, constants]
+ * @related-files [src/services/skill_service.ts, src/tui/tui_dashboard.ts]
  */
 
 import { DialogStatus, MemorySource, SkillStatus } from "../enums.ts";

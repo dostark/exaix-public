@@ -1,10 +1,10 @@
 /**
- * TUI Tree View Rendering Utilities
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
- *
- * Provides tree structure rendering for hierarchical data.
- * Used by Memory View, Portal Manager, and other tree-based views.
+ * @module TreeView
+ * @path src/helpers/tree_view.ts
+ * @description TUI Tree View rendering utilities for hierarchical data.
+ * @architectural-layer Helpers
+ * @dependencies [Colors, Constants]
+ * @related-files [src/helpers/keyboard.ts, src/helpers/colors.ts]
  */
 
 import { colorize, getTheme, padEnd, visibleLength } from "./colors.ts";

@@ -1,9 +1,12 @@
-import { DialogStatus } from "../../enums.ts";
-
 /**
- * Dialog result processor for Memory View
+ * @module MemoryDialogProcessor
+ * @path src/tui/memory_view/dialog_processor.ts
+ * @description Dialog result processor for Memory View, handling approvals, rejections, and learning additions.
+ * @architectural-layer TUI
+ * @dependencies [Enums, MemoryDialogs, Constants]
+ * @related-files [src/tui/dialogs/memory_dialogs.ts]
  */
-
+import { DialogStatus } from "../../enums.ts";
 import {
   AddLearningDialog,
   BulkApproveDialog,

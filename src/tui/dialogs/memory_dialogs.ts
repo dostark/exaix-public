@@ -1,3 +1,11 @@
+/**
+ * @module MemoryDialogs
+ * @path src/tui/dialogs/memory_dialogs.ts
+ * @description Specialized TUI dialogs for memory management (approving/rejecting proposals, adding/promoting learnings).
+ * @architectural-layer TUI
+ * @dependencies [MemoryBankSchema, Constants, Keyboard, DialogBase]
+ * @related-files [src/helpers/dialog_base.ts, src/tui/memory_view/dialog_processor.ts]
+ */
 import type { MemoryUpdateProposal } from "../../schemas/memory_bank.ts";
 import { TUI_DIALOG_INNER_PADDING, TUI_LAYOUT_DIALOG_WIDTH } from "../../helpers/constants.ts";
 import { KEYS } from "../../helpers/keyboard.ts";

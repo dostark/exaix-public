@@ -1,10 +1,10 @@
 /**
- * CLI Configuration and Constants
- *
- * Contains user-tunable constants for the CLI commands, including:
- * - Default limits
- * - Formatting widths
- * - Output formatting options
+ * @module CLIConfig
+ * @path src/cli/cli.config.ts
+ * @description Defines user-tunable constants and default settings for ExoFrame CLI commands, including limits, formatting, and priorities.
+ * @architectural-layer CLI
+ * @dependencies [constants]
+ * @related-files [src/cli/main.ts]
  */
 
 import { TUI_PRIORITY_ICONS } from "../helpers/constants.ts";

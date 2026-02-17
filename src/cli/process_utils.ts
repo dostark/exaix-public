@@ -1,8 +1,10 @@
 /**
- * Small CLI process helpers.
- *
- * Kept in a standalone module so production code and tests can share behavior
- * without duplicating shell command boilerplate.
+ * @module ProcessUtils
+ * @path src/cli/process_utils.ts
+ * @description Provides standalone CLI process helpers for Unix-like environments, such as PID liveness checks using signal sending.
+ * @architectural-layer CLI
+ * @dependencies []
+ * @related-files [src/cli/daemon_commands.ts]
  */
 
 /**

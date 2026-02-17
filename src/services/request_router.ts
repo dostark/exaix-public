@@ -1,3 +1,16 @@
+/**
+ * @module RequestRouter
+ * @path src/services/request_router.ts
+ * @description Determines whether to route a request to FlowRunner or AgentRunner
+ * based on the request schema (flow vs agent fields).
+ *
+ * Provides a unified entry point for request processing, enabling seamless
+ * transition between orchestrated flows and individual agent executions.
+ *
+ * @architectural-layer Services
+ * @dependencies [FlowRunner, AgentRunner, BlueprintLoader, WorkspaceExecutionContext, FlowValidator]
+ * @related-files [src/services/request_processor.ts, src/flows/flow_runner.ts, src/services/flow_validator.ts]
+ */
 import { FlowRunner } from "../flows/flow_runner.ts";
 import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
 import { EventLogger } from "./event_logger.ts";

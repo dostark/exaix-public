@@ -1,3 +1,12 @@
+/**
+ * @module MemoryFormatter
+ * @path src/cli/formatters/memory_formatter.ts
+ * @description Handles formatting of Memory Bank data for CLI output, supporting tables and markdown for projects, executions, learnings, and skills.
+ * @architectural-layer CLI
+ * @dependencies [cli_config, memory_types, memory_bank_schema, constants]
+ * @related-files [src/cli/memory_commands.ts]
+ */
+
 import { MEMORY_COMMAND_DEFAULTS } from "../cli.config.ts";
 import type { MemoryBankSummary } from "../memory_types.ts";
 import type {

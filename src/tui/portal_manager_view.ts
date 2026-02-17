@@ -1,15 +1,10 @@
 /**
- * Portal Manager TUI View
- *
- * Phase 13.3: Enhanced with modern TUI patterns
- * - Tree view by portal status
- * - Detail panel with portal info
- * - Loading spinners for operations
- * - Confirm dialogs for remove
- * - Search/filter functionality
- * - Help screen
- * - Refresh mechanism
- * - Color theming
+ * @module PortalManagerView
+ * @path src/tui/portal_manager_view.ts
+ * @description TUI view for managing portals (environment symlinks), supporting status visualization, opening/closing, and removal.
+ * @architectural-layer TUI
+ * @dependencies [BaseTreeView, tree_view, dialog_base, help_renderer, keyboard, enums, constants]
+ * @related-files [src/services/portal_service.ts, src/tui/tui_dashboard.ts]
  */
 
 import { PortalDetails, PortalInfo } from "../cli/portal_commands.ts";

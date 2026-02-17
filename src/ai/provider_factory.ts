@@ -1,10 +1,11 @@
 /**
- * ProviderFactory - LLM Provider Selection Logic
- *
- * Creates the appropriate LLM provider based on:
- * 1. Environment variables (highest priority)
- * 2. Config file [ai] section (medium priority)
- * 3. Defaults (lowest priority) - MockLLMProvider for safety
+ * @module ProviderFactory
+ * @path src/ai/provider_factory.ts
+ * @description Factory pattern implementation for instantiating LLM providers.
+ * Handles configuration resolution, fallback chains, and provider initialization.
+ * @architectural-layer AI Layer
+ * @dependencies [ProviderRegistry, ConfigService, DatabaseService, CostTracker]
+ * @related-files [src/ai/provider_registry.ts, src/ai/providers.ts]
  */
 // @ts-ignore: Deno is a global in the Deno runtime
 declare const Deno: any;

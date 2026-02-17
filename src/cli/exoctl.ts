@@ -1,15 +1,11 @@
 #!/usr/bin/env -S deno run --allow-all --no-check
 /**
- * ExoFrame CLI (exoctl) - Human Interface for System Management
- *
- * Provides commands for:
- * - Plan review (approve/reject/revise)
- * - Review workflow (approve/reject code changes)
- * - Git operations (branch/status/log with trace_id)
- * - Daemon control (start/stop/status)
- * - Portal management (add/remove/verify external projects)
- *
- * NOTE: Run with --no-check flag for rapid development.
+ * @module ExoCtl
+ * @path src/cli/exoctl.ts
+ * @description Main entry point for the ExoFrame CLI (exoctl). Orchestrates all commands, subcommands, and service initializations.
+ * @architectural-layer CLI
+ * @dependencies [Command, PlanCommands, RequestCommands, ReviewCommands, GitCommands, DaemonCommands, PortalCommands, BlueprintCommands, FlowCommands, DashboardCommands, MemoryCommands, JournalCommands, McpCommands]
+ * @related-files [src/cli/init.ts, src/cli/cli.config.ts]
  */
 
 import { Command } from "@cliffy/command";

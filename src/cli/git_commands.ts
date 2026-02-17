@@ -1,6 +1,10 @@
 /**
- * Git commands for querying repository state and history
- * Provides trace_id-aware git operations
+ * @module GitCommands
+ * @path src/cli/git_commands.ts
+ * @description Provides CLI commands for repository interaction, including trace-id aware branch listing, commit history, and status reporting.
+ * @architectural-layer CLI
+ * @dependencies [base_command]
+ * @related-files [src/services/git_service.ts, src/cli/main.ts]
  */
 
 import { BaseCommand, type CommandContext } from "./base.ts";

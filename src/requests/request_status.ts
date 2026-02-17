@@ -1,3 +1,11 @@
+/**
+ * @module RequestStatus
+ * @path src/requests/request_status.ts
+ * @description Type definitions and utility functions for Request lifecycle states.
+ * @architectural-layer Requests
+ * @dependencies []
+ * @related-files [src/services/request_processor.ts, src/schemas/request.ts]
+ */
 export const RequestStatus = {
   PENDING: "pending",
   PLANNED: "planned",

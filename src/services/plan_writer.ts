@@ -1,11 +1,16 @@
 /**
- * Plan Writer - Formats agent execution results into structured plans
- * Implements Step 3.4 and Step 6.7 of the ExoFrame Implementation Plan
+ * @module PlanWriter
+ * @path src/services/plan_writer.ts
+ * @description Formats agent execution results into structured plans.
  *
- * Step 6.7 Update:
+ * Notes:
  * - LLMs now output JSON plans within <content> tags
  * - PlanAdapter validates JSON against schema
  * - Converts validated plan to markdown for storage
+ *
+ * @architectural-layer Services
+ * @dependencies [DatabaseService, PlanAdapter, MiddlewarePipeline]
+ * @related-files [src/services/plan_adapter.ts, src/services/request_processor.ts]
  */
 
 import type { DatabaseService } from "./db.ts";

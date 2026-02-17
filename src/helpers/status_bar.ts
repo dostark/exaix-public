@@ -1,9 +1,10 @@
 /**
- * TUI Status Bar Utilities
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
- *
- * Provides consistent status bar rendering for all views.
+ * @module StatusBar
+ * @path src/helpers/status_bar.ts
+ * @description TUI status bar rendering utilities with items, messages, and spinner support.
+ * @architectural-layer Helpers
+ * @dependencies [Colors, Spinner, Constants]
+ * @related-files [src/helpers/colors.ts, src/helpers/spinner.ts]
  */
 
 import { colorize, getTheme, padEnd, type TuiTheme, visibleLength } from "./colors.ts";

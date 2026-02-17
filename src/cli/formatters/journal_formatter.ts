@@ -1,3 +1,12 @@
+/**
+ * @module JournalFormatter
+ * @path src/cli/formatters/journal_formatter.ts
+ * @description Provides formatting and rendering logic for Activity Journal records in the CLI, supporting table, text, and JSON outputs.
+ * @architectural-layer CLI
+ * @dependencies [table, colors, db_schema]
+ * @related-files [src/cli/commands/journal.ts]
+ */
+
 import { Table } from "@cliffy/table";
 import * as colors from "@std/fmt/colors";
 import type { ActivityRecord, JournalFilterOptions } from "../../services/db.ts";

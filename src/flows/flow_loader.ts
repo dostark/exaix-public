@@ -1,3 +1,12 @@
+/**
+ * @module FlowLoader
+ * @path src/flows/flow_loader.ts
+ * @description Handles loading and managing flow definitions from the file system, including dynamic import and import rewriting for blueprint execution.
+ * @architectural-layer Flows
+ * @dependencies [path, flow, fs]
+ * @related-files [src/flows/flow_runner.ts, src/schemas/flow.ts]
+ */
+
 import { dirname, join, resolve } from "@std/path";
 import { Flow } from "../schemas/flow.ts";
 

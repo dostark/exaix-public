@@ -1,5 +1,10 @@
 /**
- * Async utilities for non-blocking operations
+ * @module AsyncUtils
+ * @path src/helpers/async_utils.ts
+ * @description Asynchronous utilities for non-blocking operations and delays.
+ * @architectural-layer Helpers
+ * @dependencies []
+ * @related-files []
  */
 
 /**

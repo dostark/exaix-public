@@ -1,3 +1,12 @@
+/**
+ * @module ConfigSchema
+ * @path src/config/schema.ts
+ * @description Defines the master Zod schema for ExoFrame's configuration file (exo.config.toml), orchestrating system, path, AI, and portal settings.
+ * @architectural-layer Config
+ * @dependencies [zod, ai_config, mcp_schema, constants, enums]
+ * @related-files [src/config/service.ts, src/config/constants.ts]
+ */
+
 import { z } from "zod";
 import { AiConfigSchema } from "./ai_config.ts";
 import { MCPConfigSchema } from "../schemas/mcp.ts";

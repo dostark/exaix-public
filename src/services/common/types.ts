@@ -1,3 +1,11 @@
+/**
+ * @module CommonTypes
+ * @path src/services/common/types.ts
+ * @description Shared type definitions for services, including LogEvent and ServiceContext.
+ * @architectural-layer Services
+ * @dependencies [LogLevel]
+ * @related-files [src/services/event_logger.ts, src/services/structured_logger.ts]
+ */
 import { LogLevel } from "../../enums.ts";
 
 /**

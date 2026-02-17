@@ -1,3 +1,11 @@
+/**
+ * @module GitCommitTool
+ * @path src/mcp/handlers/git_commit_tool.ts
+ * @description MCP tool handler for committing changes in a portal git repository.
+ * @architectural-layer MCP
+ * @dependencies [ToolHandler, GitService]
+ * @related-files [src/mcp/tool_handler.ts, src/services/git_service.ts]
+ */
 import { ToolHandler } from "../tool_handler.ts";
 import { type MCPToolResponse } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
