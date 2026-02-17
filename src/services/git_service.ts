@@ -442,9 +442,9 @@ export class GitService {
   async checkoutBranch(branchName: string): Promise<void> {
     const startTime = Date.now();
 
-    // Security Guard: Prevent checkouts to protected branches
+    // Security Guard: Prevent checkouts to protected branches for agents
     const protectedBranches = ["main", "master", "develop", "prod", "production"];
-    if (protectedBranches.includes(branchName.toLowerCase())) {
+    if (protectedBranches.includes(branchName.toLowerCase()) && this.agentId !== "daemon") {
       throw new GitSecurityError(`Switching to protected branch '${branchName}' is prohibited for agents.`);
     }
 
@@ -628,11 +628,11 @@ export class GitService {
     return worktrees;
   }
 
-  public async runGitCommand(
-    args: string[],
-    options: GitCommandOptions = {},
-  ): Promise<{ output: string; exitCode: number }> {
-    // 0. Security Guards
+  /**
+   * Validate git command for security violations
+   * @throws GitSecurityError if command violates security policies
+   */
+  private validateGitCommandSecurity(args: string[]): void {
     const fullCommand = args.join(" ").toLowerCase();
 
     // Prohibit destructive operations
@@ -644,7 +644,8 @@ export class GitService {
     }
 
     // Prohibit non-readonly operations in system root to prevent accidental "taint"
-    if (this.repoPath === this.config.system.root) {
+    const systemRoot = this.config.system.root;
+    if (this.repoPath === systemRoot) {
       const safeCommands = ["status", "rev-parse", "config", "log", "show", "diff", "ls-files"];
       const command = args[0]?.toLowerCase();
       if (!safeCommands.includes(command)) {
@@ -653,6 +654,14 @@ export class GitService {
         );
       }
     }
+  }
+
+  public async runGitCommand(
+    args: string[],
+    options: GitCommandOptions = {},
+  ): Promise<{ output: string; exitCode: number }> {
+    // Security validation
+    this.validateGitCommandSecurity(args);
 
     const {
       throwOnError = true,
