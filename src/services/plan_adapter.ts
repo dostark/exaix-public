@@ -13,8 +13,9 @@
  * @related-files [src/services/plan_writer.ts, src/services/output_validator.ts]
  */
 
-import { ZodError } from "zod";
 import { Plan, PlanSchema } from "../schemas/plan_schema.ts";
+import { createOutputValidator, OutputValidator } from "./output_validator.ts";
+import { describeSchema } from "../schemas/schema_describer.ts";
 
 // ============================================================================
 // Error Classes
@@ -41,6 +42,12 @@ export class PlanValidationError extends Error {
  * PlanAdapter validates JSON plans and converts them to markdown
  */
 export class PlanAdapter {
+  private validator: OutputValidator;
+
+  constructor() {
+    this.validator = createOutputValidator({ autoRepair: true });
+  }
+
   /**
    * Parse and validate LLM plan content as JSON
    * @param content - Raw LLM content from <content> tags
@@ -48,39 +55,39 @@ export class PlanAdapter {
    * @throws PlanValidationError if JSON is invalid or doesn't match schema
    */
   parse(content: string): Plan {
-    let json: unknown;
+    const result = this.validator.validate(content, PlanSchema);
 
-    // Step 1: Parse JSON
-    try {
-      let cleanContent = content.trim();
-      // Remove markdown code blocks if present
-      if (cleanContent.startsWith("```")) {
-        cleanContent = cleanContent.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "");
-      }
-      json = JSON.parse(cleanContent);
-    } catch (error) {
-      throw new PlanValidationError(
-        "Plan content is not valid JSON",
-        { cause: error, rawContent: content },
-      );
+    if (result.success && result.value) {
+      return result.value;
     }
 
-    // Step 2: Validate against schema
-    try {
-      return PlanSchema.parse(json);
-    } catch (error) {
-      if (error instanceof ZodError) {
-        throw new PlanValidationError(
-          "Plan JSON does not match required schema",
-          {
-            zodErrors: error.errors,
-            rawContent: content,
-            parsedJson: json,
-          },
-        );
-      }
-      throw error;
-    }
+    // Map ValidationResult errors to PlanValidationError
+    const message = result.errors?.[0]?.message || "Plan validation failed";
+    throw new PlanValidationError(message, {
+      zodErrors: result.errors,
+      rawContent: content,
+      repairAttempted: result.repairAttempted,
+      repairSucceeded: result.repairSucceeded,
+    });
+  }
+
+  /**
+   * Get machine-readable instructions for the required JSON schema
+   */
+  getSchemaInstructions(): string {
+    const schemaDesc = describeSchema(PlanSchema);
+    return `
+Your response in the <content> section MUST be a valid JSON object matching this schema:
+${schemaDesc}
+
+Common Requirements:
+- "title": string (1-300 chars)
+- "description": string
+- "steps": array of objects (if this is an execution plan)
+- "analysis" | "security" | "qa" | "performance": objects (if this is an analysis report)
+
+Ensure you use valid JSON syntax (no trailing commas, double quotes for keys).
+`.trim();
   }
 
   /**

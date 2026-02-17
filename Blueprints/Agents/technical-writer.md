@@ -168,7 +168,6 @@ The user needs API documentation for the user service. I need to:
   "risks": ["API changes during documentation", "Missing error scenarios", "Outdated examples"]
 }
 </content>
-</content>
 ```
 
 ### Required JSON Schema

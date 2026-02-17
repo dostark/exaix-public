@@ -60,6 +60,13 @@ export function describeSchema<T>(
         }
         return "optional(unknown)";
       }
+      case "ZodEffects": {
+        const schemaProp = (def as unknown as { schema?: ZodType<unknown> }).schema;
+        if (schemaProp) {
+          return describeSchema(schemaProp);
+        }
+        return "refined(unknown)";
+      }
       default:
         return "unknown";
     }

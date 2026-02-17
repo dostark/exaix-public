@@ -407,8 +407,6 @@ export class RequestProcessor {
     }
 
     const agentRunner = new AgentRunner(selectedProvider, { db: this.db });
-    const result = await agentRunner.run(blueprint, request);
-
     const metadata: RequestMetadata = {
       requestId,
       traceId,
@@ -421,7 +419,39 @@ export class RequestProcessor {
       targetBranch: frontmatter.target_branch,
     };
 
-    return await this.writePlanAndReturnPath(result, metadata, filePath, traceLogger);
+    let result = await agentRunner.run(blueprint, request);
+    let attempts = 0;
+    const maxRetries = 2;
+
+    while (attempts <= maxRetries) {
+      try {
+        return await this.writePlanAndReturnPath(result, metadata, filePath, traceLogger);
+      } catch (error) {
+        if (error instanceof PlanValidationError && attempts < maxRetries) {
+          attempts++;
+          traceLogger.info("plan.validation.retry", requestId, {
+            attempt: attempts,
+            error: error.message,
+          });
+
+          // Create a feedback request for self-correction
+          const feedbackRequest: ParsedRequest = {
+            ...request,
+            userPrompt: `Your previous output failed validation with the following error: "${error.message}".
+Please fix the JSON in your <content> section and try again. Ensure it strictly follows the schema provided.
+
+Problematic output for reference:
+${result.content}`,
+          };
+
+          result = await agentRunner.run(blueprint, feedbackRequest);
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    return null; // Should be unreachable
   }
 
   private async loadBlueprintWithFallback(agentId: string, traceLogger: any): Promise<any | null> {
@@ -509,9 +539,13 @@ export class RequestProcessor {
       const fullRawResponse = validationError.details?.fullRawResponse;
 
       traceLogger.info("plan.validation.error.detected", requestId, {
-        hasRawDetails: !!rawDetails,
+        error_message: errorMessage,
+        hasDetails: !!validationError.details,
+        detailsKeys: validationError.details ? Object.keys(validationError.details) : [],
+        hasRawDetails: typeof rawDetails === "string" && rawDetails.length > 0,
         rawDetailsLength: typeof rawDetails === "string" ? rawDetails.length : "not-string",
-        hasFullRawResponse: !!fullRawResponse,
+        hasFullRawResponse: typeof fullRawResponse === "string" && fullRawResponse.length > 0,
+        fullRawResponseLength: typeof fullRawResponse === "string" ? fullRawResponse.length : "not-string",
       });
 
       // Always attempt to save rejected plan for debugging, even if raw content is missing
@@ -526,9 +560,9 @@ export class RequestProcessor {
         const rejectedPath = join(rejectedDir, `${requestId}_rejected.md`);
 
         // Use fullRawResponse as fallback if rawDetails is empty or missing
-        const rawToSave = (typeof rawDetails === "string" && rawDetails)
+        const rawToSave = (typeof rawDetails === "string" && rawDetails.trim())
           ? rawDetails
-          : (typeof fullRawResponse === "string" && fullRawResponse)
+          : (typeof fullRawResponse === "string" && fullRawResponse.trim())
           ? fullRawResponse
           : "No raw content available";
 

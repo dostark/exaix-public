@@ -21,6 +21,7 @@ import { createOutputValidator, OutputValidator, type ValidationMetrics } from "
 import type { SkillsService } from "./skills.ts";
 import { extractKeywords } from "../helpers/text.ts";
 import { PORTAL_CONTEXT_KEY } from "../config/constants.ts";
+import { PlanAdapter } from "./plan_adapter.ts";
 
 // Note: SkillMatchRequest may be used in future for direct skill matching
 // Keeping import for consistency with SkillsService integration
@@ -143,6 +144,7 @@ export class AgentRunner {
   private outputValidator: OutputValidator;
   private skillsService?: SkillsService;
   private disableSkills: boolean;
+  private planAdapter: PlanAdapter;
 
   constructor(
     private readonly modelProvider: IModelProvider,
@@ -154,6 +156,7 @@ export class AgentRunner {
     this.disableSkills = config?.disableSkills ?? false;
     this.retryPolicy = createLLMRetryPolicy();
     this.outputValidator = createOutputValidator({ autoRepair: true });
+    this.planAdapter = new PlanAdapter();
 
     // Set up retry logging
     this.retryPolicy.setOnRetry((ctx) => {
@@ -429,6 +432,9 @@ export class AgentRunner {
     if (skillContext?.trim()) {
       parts.push(skillContext);
     }
+
+    // Inject strict JSON schema instructions for all plans
+    parts.push(this.planAdapter.getSchemaInstructions());
 
     const portalContext = request.context?.[PORTAL_CONTEXT_KEY];
     if (typeof portalContext === "string" && portalContext.trim()) {

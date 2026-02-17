@@ -109,7 +109,6 @@ The user needs to design a user management system. I need to:
   "risks": ["Technology choice may not scale", "Security requirements may change", "Integration complexity with existing systems"]
 }
 </content>
-</content>
 ```
 
 ### Required JSON Schema

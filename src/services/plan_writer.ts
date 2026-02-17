@@ -232,6 +232,12 @@ export class PlanWriter {
         );
         // Enrich error details with full raw response for debugging
         error.details.fullRawResponse = result.raw;
+        await this.logPlanValidation(
+          "plan.validation.enriched",
+          metadata.requestId,
+          metadata.traceId,
+          { raw_length: result.raw.length },
+        );
         throw error;
       }
       throw error;
