@@ -69,6 +69,98 @@ deno task check:docs        # Verify .copilot/manifest.json is fresh
 - Run `deno task fmt` — code must be formatted
 - Pre-commit hooks enforce: `fmt:check`, `lint`, `check:docs`
 
+### CI Verification (MANDATORY)
+
+**Before claiming any task is complete, you MUST verify all CI checks pass locally.**
+
+#### Quick CI Verification
+
+Run the unified CI script to verify all checks:
+
+```bash
+# Full CI pipeline (recommended before PR)
+deno run -A scripts/ci.ts all
+
+# Individual checks
+deno run -A scripts/ci.ts check    # Static analysis
+deno run -A scripts/ci.ts test     # Test suite
+deno run -A scripts/ci.ts coverage # Coverage verification
+```
+
+#### Manual CI Workflow Verification
+
+To replicate exact CI behavior, run the workflows locally:
+
+**1. Code Quality Gates** (`.github/workflows/code-quality.yml`):
+```bash
+# Format check
+deno fmt --check
+
+# Lint check
+deno lint
+
+# Code duplication check
+deno run --allow-run --allow-read --allow-write scripts/measure_duplication.ts --threshold 2.0
+
+# Complexity check
+deno run --allow-read --allow-net scripts/measure_complexity.ts --threshold 15 --json > complexity.json
+deno run --allow-read scripts/check_complexity_breaches.ts
+
+# Test & Coverage
+deno run --allow-run --allow-read --allow-write scripts/measure_coverage.ts
+
+# Build verification
+deno check src/main.ts
+
+# Architecture validation
+deno task check:arch
+```
+
+**2. PR Validation** (`.github/workflows/pr-validation.yml`):
+```bash
+# Configure git identity (if needed)
+git config user.email "dev@example.com"
+git config user.name "Developer"
+
+# Run checks
+deno run -A scripts/ci.ts check
+
+# Run tests
+deno run -A scripts/ci.ts test --quick
+```
+
+#### CI Failure Response Protocol
+
+**If CI fails:**
+
+1. **DO NOT** claim the task is complete
+2. **DO** run the failing check locally to reproduce
+3. **DO** fix the issue and re-verify all checks pass
+4. **DO** commit the fix with a clear message explaining what was fixed
+5. **DO** re-run full CI verification before claiming completion
+
+**Common CI Failures:**
+
+- **Test failures**: Run `deno test --allow-all` and fix failing tests
+- **Complexity breaches**: Refactor complex functions (see complexity check output)
+- **Duplication**: Extract common code into shared utilities
+- **Coverage drops**: Add tests for uncovered code paths
+- **Lint errors**: Fix code style issues
+- **Type errors**: Resolve TypeScript compilation errors
+
+#### CI Success Criteria
+
+A task is only complete when:
+
+- ✅ All tests pass (`deno test --allow-all`)
+- ✅ No complexity breaches (threshold: 15)
+- ✅ Code duplication < 2%
+- ✅ Coverage thresholds met (Line: 60%, Branch: 50%)
+- ✅ No lint errors
+- ✅ No type errors
+- ✅ Architecture validation passes
+- ✅ Pre-commit hooks pass
+
 ## Project Structure
 
 ```
@@ -216,6 +308,7 @@ These are **REQUIRED** for all code tasks:
 - **MUST** use established test helpers (`initTestDbService`, `createCliTestContext`, etc.)
 - **MUST** keep Problems tab clean (fix TS errors before completing)
 - **MUST** run `deno task test` before committing
+- **MUST** verify all CI checks pass locally before claiming task completion (see CI Verification section)
 
 ### 🚫 Violations (Will Result in Rejection)
 
