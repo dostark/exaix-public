@@ -537,7 +537,9 @@ export class GitService {
    * feature branch within the worktree checkout.
    */
   async addWorktree(worktreePath: string, baseBranch: string): Promise<void> {
-    await this.runGitCommand(["worktree", "add", worktreePath, baseBranch]);
+    // Use --force to allow checking out branches that may be in use by other worktrees
+    // This is safe because the execution worktree will create its own feature branch
+    await this.runGitCommand(["worktree", "add", worktreePath, baseBranch, "--force"]);
   }
 
   /**
