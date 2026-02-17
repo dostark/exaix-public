@@ -145,31 +145,9 @@ export class ReviewRegistry {
       throw new Error(`Review not found: ${reviewId}`);
     }
 
-    // Get the default branch (main/master/etc)
-    const branchCmd = new Deno.Command("git", {
-      args: ["branch", "--show-current"],
-      cwd: review.repository,
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    const branchResult = await branchCmd.output();
-    const _currentBranch = new TextDecoder().decode(branchResult.stdout).trim();
-
-    // Try to get first commit (root) as base
-    const rootCmd = new Deno.Command("git", {
-      args: ["rev-list", "--max-parents=0", "HEAD"],
-      cwd: review.repository,
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    const rootResult = await rootCmd.output();
-    const rootCommit = new TextDecoder().decode(rootResult.stdout).trim().split("\n")[0];
-
-    // Run git diff from root commit to HEAD
+    // Get diff between base branch and feature branch
     const cmd = new Deno.Command("git", {
-      args: ["diff", rootCommit, "HEAD"],
+      args: ["diff", `${review.base_branch}..${review.branch}`],
       cwd: review.repository,
       stdout: "piped",
       stderr: "piped",
