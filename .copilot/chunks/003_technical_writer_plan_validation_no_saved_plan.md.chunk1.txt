@@ -1,8 +1,4 @@
-1. **Error Enrichment**: Updated `PlanWriter.formatPlan` to catch `PlanValidationError` and enrich its `details` with `fullRawResponse` containing the original `result.raw` from the agent.
-2. **Fallback Logic**: Updated `RequestProcessor.handleError` to use `fullRawResponse` as a fallback when `rawContent` (extracted from `<content>` tags) is empty or missing.
-
-### Files Modified:
-- [plan_writer.ts](file:///home/dkasymov/git/ExoFrame/src/services/plan_writer.ts)
-- [request_processor.ts](file:///home/dkasymov/git/ExoFrame/src/services/request_processor.ts)
-
-## Verification
+### 1. Robust Error Preservation (Bug Fix)
+Ensured the full raw LLM response is preserved even if structured parsing fails:
+- **Error Enrichment**: Updated `PlanWriter.formatPlan` to catch `PlanValidationError` and enrich its `details` with `fullRawResponse` containing the original `result.raw` from the agent.
+- **Fallback Logic**: Updated `RequestProcessor.handleError` to use `fullRawResponse` as a fallback when `rawContent` (extracted from `<content>` tags) is empty or missing.

@@ -1,12 +1,10 @@
-1. **Save invalid plan for review**: The plan should be saved (perhaps in `Rejected/` or `Workspace/Plans/` with a `failed` status)
-1. **Detailed error logging**: Log the specific validation errors and the raw plan content
-1. **Manual review capability**: Allow users to inspect failed plans via `exoctl plan show <id>` or similar
+### Files Modified:
+- [plan_writer.ts](file:///home/dkasymov/git/ExoFrame/src/services/plan_writer.ts)
+- [request_processor.ts](file:///home/dkasymov/git/ExoFrame/src/services/request_processor.ts)
+- [plan_adapter.ts](file:///home/dkasymov/git/ExoFrame/src/services/plan_adapter.ts)
+- [agent_runner.ts](file:///home/dkasymov/git/ExoFrame/src/services/agent_runner.ts)
+- [schema_describer.ts](file:///home/dkasymov/git/ExoFrame/src/schemas/schema_describer.ts)
+- [technical-writer.md](file:///home/dkasymov/git/ExoFrame/Blueprints/Agents/technical-writer.md)
+- [software-architect.md](file:///home/dkasymov/git/ExoFrame/Blueprints/Agents/software-architect.md)
 
-## Investigation Needed
-
-1. **Check Plan Saving Logic**: Verify where and when plans are saved during the validation process
-1. **Review Validation Error Handling**: Ensure validation failures are logged with details
-1. **Examine Plan Storage**: Confirm if failed plans should be stored for debugging
-1. **Check Technical Writer Output**: Inspect what the agent is actually producing that fails JSON parsing
-
-## Related Files
+## Verification

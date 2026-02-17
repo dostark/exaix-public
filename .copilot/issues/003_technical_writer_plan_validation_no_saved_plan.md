@@ -3,9 +3,9 @@ title: "Technical Writer Agent Plan Validation Failure - No Plan Saved for Revie
 status: closed
 priority: high
 created: 2026-02-11
-resolved: 2026-02-12
+resolved: 2026-02-17
 github_issue:
-labels: [bug, request-processor, validation, technical-writer]
+labels: [bug, request-processor, validation, technical-writer, self-correction]
 assignee: antigravity
 related_issues: [plan-validation-failure-senior-coder.md]
 ---
@@ -16,14 +16,28 @@ When a request (e.g., to the `technical-writer` or `code-analyst` agent) produce
 
 ## Resolution
 
-The issue was resolved by ensuring the full raw LLM response is preserved even if structured parsing fails:
+The issue was resolved through a two-stage approach: a immediate bug fix for log preservation and a long-term fix for universal format enforcement.
 
-1. **Error Enrichment**: Updated `PlanWriter.formatPlan` to catch `PlanValidationError` and enrich its `details` with `fullRawResponse` containing the original `result.raw` from the agent.
-2. **Fallback Logic**: Updated `RequestProcessor.handleError` to use `fullRawResponse` as a fallback when `rawContent` (extracted from `<content>` tags) is empty or missing.
+### 1. Robust Error Preservation (Bug Fix)
+Ensured the full raw LLM response is preserved even if structured parsing fails:
+- **Error Enrichment**: Updated `PlanWriter.formatPlan` to catch `PlanValidationError` and enrich its `details` with `fullRawResponse` containing the original `result.raw` from the agent.
+- **Fallback Logic**: Updated `RequestProcessor.handleError` to use `fullRawResponse` as a fallback when `rawContent` (extracted from `<content>` tags) is empty or missing.
+
+### 2. Universal Format Enforcement (Proactive Fix)
+Implemented more robust enforcement to reduce the occurrence of validation failures:
+- **Self-Correction Loop**: Implemented a 2-retry mechanism in `RequestProcessor` that catches `PlanValidationError` and provides specific feedback to the agent for immediate repair.
+- **Dynamic Schema Injection**: `AgentRunner` now dynamically injects machine-readable JSON schema instructions (generated via `SchemaDescriber`) into all agent prompts.
+- **Automated JSON Repair**: Integrated `json-repair` into `PlanAdapter` to automatically fix common LLM syntax errors (trailing commas, unquoted keys).
+- **Blueprint Standardization**: Fixed malformed XML tags (`</content>`) in `technical-writer.md` and `software-architect.md`.
 
 ### Files Modified:
 - [plan_writer.ts](file:///home/dkasymov/git/ExoFrame/src/services/plan_writer.ts)
 - [request_processor.ts](file:///home/dkasymov/git/ExoFrame/src/services/request_processor.ts)
+- [plan_adapter.ts](file:///home/dkasymov/git/ExoFrame/src/services/plan_adapter.ts)
+- [agent_runner.ts](file:///home/dkasymov/git/ExoFrame/src/services/agent_runner.ts)
+- [schema_describer.ts](file:///home/dkasymov/git/ExoFrame/src/schemas/schema_describer.ts)
+- [technical-writer.md](file:///home/dkasymov/git/ExoFrame/Blueprints/Agents/technical-writer.md)
+- [software-architect.md](file:///home/dkasymov/git/ExoFrame/Blueprints/Agents/software-architect.md)
 
 ## Verification
 

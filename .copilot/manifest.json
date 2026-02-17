@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-17T10:53:35.328Z",
+  "generated_at": "2026-02-17T12:23:08.696Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1300,7 +1300,9 @@
       "chunks": [
         ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk0.txt",
         ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk1.txt",
-        ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk2.txt"
+        ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk2.txt",
+        ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk3.txt",
+        ".copilot/chunks/003_technical_writer_plan_validation_no_saved_plan.md.chunk4.txt"
       ]
     },
     {

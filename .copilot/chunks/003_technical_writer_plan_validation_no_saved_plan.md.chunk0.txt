@@ -4,4 +4,4 @@ When a request (e.g., to the `technical-writer` or `code-analyst` agent) produce
 
 ## Resolution
 
-The issue was resolved by ensuring the full raw LLM response is preserved even if structured parsing fails:
+The issue was resolved through a two-stage approach: a immediate bug fix for log preservation and a long-term fix for universal format enforcement.
