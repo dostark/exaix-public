@@ -359,10 +359,17 @@ export class ExecutionLoop {
 
     // Security check: only initialize git if we're not in the system root,
     // or if we're specifically targeting a portal (which should have its own isolation).
+    // Exception: allow git operations if repository is already initialized (has .git folder).
     if (args.portalRepoRoot === this.config.system.root && !args.frontmatter.portal) {
-      // For tasks in the system root that are not portal-assigned, skip git initialization
-      // to avoid creating a .git folder in ~/ExoFrame.
-      return { executionRoot, executionGitService };
+      // Check if git is already initialized
+      try {
+        await Deno.stat(`${args.portalRepoRoot}/.git`);
+        // Git exists, continue with branch creation
+      } catch {
+        // For tasks in the system root that are not portal-assigned and have no .git,
+        // skip git initialization to avoid creating a .git folder in ~/ExoFrame.
+        return { executionRoot, executionGitService };
+      }
     }
 
     await args.portalGitService.ensureRepository();
@@ -396,7 +403,9 @@ export class ExecutionLoop {
     requestId: string;
     traceId: string;
   }): Promise<string> {
-    await args.portalGitService.checkoutBranch(args.baseBranch);
+    // Checkout base branch to create feature branch from it
+    // allowProtected: true because we're temporarily checking out to create a new branch
+    await args.portalGitService.checkoutBranch(args.baseBranch, { allowProtected: true });
     return await args.portalGitService.createBranch({ requestId: args.requestId, traceId: args.traceId });
   }
 
