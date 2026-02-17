@@ -54,12 +54,7 @@ When reviewing code for security:
 - Assess security headers
 - Verify CORS configuration
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -103,36 +98,9 @@ The user wants to audit the authentication system for security vulnerabilities. 
 </content>
 ```
 
-### Required JSON Schema
+{{include:plan-schema-full}}
 
-```json
-{
-  "title": "Security analysis report title",
-  "description": "What security assessment was performed",
-  "security": {
-    "executiveSummary": "Overall security assessment summary",
-    "findings": [
-      {
-        "title": "Finding title",
-        "severity": "CRITICAL | HIGH | MEDIUM | LOW | INFO",
-        "location": "file.ts:line or component",
-        "description": "Detailed description of the security issue",
-        "impact": "Potential consequences if exploited",
-        "remediation": "Specific steps to fix the issue",
-        "codeExample": "Before/after code example (optional)"
-      }
-    ],
-    "recommendations": [
-      "General security improvement recommendation",
-      "Another recommendation"
-    ],
-    "compliance": [
-      "OWASP Top 10 compliance: 8/10",
-      "GDPR compliance status"
-    ]
-  }
-}
-```
+{{include:blueprint-best-practices}}
 
 ## Severity Definitions
 

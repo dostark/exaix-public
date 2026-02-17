@@ -48,12 +48,7 @@ Focus on developer experience and practical usability.
 - `read_file`: Analyze API code and existing documentation
 - `list_directory`: Navigate API project structure
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -93,5 +88,8 @@ The user needs comprehensive API documentation for the user service. I need to:
   "estimatedDuration": "2-3 days",
   "risks": ["API changes during documentation", "Missing edge cases", "Inconsistent terminology"]
 }
-</content>
+
+{{include:plan-schema-full}}
+
+{{include:blueprint-best-practices}}
 ```

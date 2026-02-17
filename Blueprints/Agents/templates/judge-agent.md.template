@@ -85,6 +85,8 @@ For each improvement:
 
 ## Output Format
 
+{{include:standard-response-format}}
+
 ```xml
 <thought>
 [Your evaluation reasoning process]
@@ -151,8 +153,9 @@ Initial impressions:
         "evaluation_time_ms": 1500
       }
     }
-  }
-}
+{{include:plan-schema-full}}
+
+{{include:blueprint-best-practices}}
 </content>
 ```
 

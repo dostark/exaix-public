@@ -150,14 +150,28 @@ version = "1.0.0"
 
 Agent description and persona...
 
+## Shared fragments (new)
+
+To reduce code duplication in blueprints, use the `{{include:fragment_name}}` syntax. This will inject the contents of `Blueprints/Fragments/fragment_name.md` into the agent's system prompt during loading.
+
+### Example Usage:
+
+```markdown
 ## Response Format
 
-You MUST respond with:
+{{include:standard-response-format}}
 
-1. <thought> - Your analysis
-2. <content> - Valid JSON matching PlanSchema
+### Plan JSON Schema
 
-[Include JSON schema documentation here - see default.md or senior-coder.md]
+{{include:plan-schema-full}}
+```
+
+### Key Fragments:
+- `standard-response-format`: Unified instructions for `<thought>` and `<content>` tags.
+- `plan-schema-full`: The complete, authoritative JSON schema for executable plans.
+- `blueprint-best-practices`: Tips for prompt engineering and plan quality.
+
+Fragments are resolved recursively, allowing fragments to include other fragments.
 ```
 
 ## Validation

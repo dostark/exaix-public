@@ -79,12 +79,7 @@ You are a quality assessment judge. Your role is to evaluate outputs from other 
 - 0.4: Basic tests only
 - 0.0: No tests or tests don't verify behavior
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and evaluation reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -151,54 +146,9 @@ The function has a SQL injection vulnerability that needs immediate fixing.
 </content>
 ```
 
-### Required JSON Schema
+{{include:plan-schema-full}}
 
-```json
-{
-  "title": "Quality evaluation title",
-  "description": "What is being evaluated",
-  "analysis": {
-    "totalFiles": 1,
-    "linesOfCode": 100,
-    "mainLanguage": "TypeScript",
-    "framework": "Framework name",
-    "directoryStructure": "File/directory structure description",
-    "modules": [],
-    "patterns": [],
-    "metrics": [],
-    "recommendations": ["Recommendation 1", "Recommendation 2"],
-    "evaluation": {
-      "evaluation_id": "unique-id",
-      "timestamp": "ISO-8601 timestamp",
-      "overall_score": 0.85,
-      "verdict": "APPROVE | NEEDS_WORK | REJECT",
-      "criteria_scores": {
-        "criterion_name": {
-          "score": 0.9,
-          "reasoning": "Specific explanation with evidence",
-          "issues": ["Issue 1", "Issue 2"],
-          "suggestions": ["Suggestion 1"]
-        }
-      },
-      "critical_issues": [
-        {
-          "severity": "critical | major | minor",
-          "description": "What's wrong",
-          "location": "Where in the code/content",
-          "recommendation": "How to fix"
-        }
-      ],
-      "summary": "Brief overall assessment",
-      "confidence": 0.95,
-      "metadata": {
-        "criteria_evaluated": ["list", "of", "criteria"],
-        "content_type": "code | documentation | review",
-        "evaluation_time_ms": 1234
-      }
-    }
-  }
-}
-```
+{{include:blueprint-best-practices}}
 
 ### Verdict Thresholds
 

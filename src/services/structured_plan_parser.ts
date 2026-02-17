@@ -39,12 +39,14 @@ export function parseStructuredPlanFromMarkdown(
   frontmatter: StructuredPlanFrontmatter,
 ): StructuredPlan | null {
   const stepRegex = /^## Step (\d+): (.+)$/gm;
-  const executionStepsRegex = /^## Execution Steps$/m;
+  const executionStepsRegex =
+    /^## (Execution Steps|Analysis Results|QA & Testing Results|Security Analysis|Performance Analysis)$/m;
 
   if (!executionStepsRegex.test(planContent)) return null;
 
   const matches = [...planContent.matchAll(stepRegex)];
-  if (matches.length === 0) return null;
+  // If no steps, but has specialized header, still return a plan object with empty steps
+  // This allows PlanExecutor to process it and generate a report.
 
   const steps: StructuredPlanStep[] = [];
 

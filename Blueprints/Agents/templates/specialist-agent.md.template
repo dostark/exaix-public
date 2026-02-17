@@ -73,6 +73,8 @@ Provide actionable recommendations:
 
 ## Output Format
 
+{{include:standard-response-format}}
+
 ```xml
 <thought>
 [Your domain-expert reasoning process]
@@ -191,7 +193,10 @@ Provide actionable recommendations:
     }
   }
 }
-</content>
+
+{{include:plan-schema-full}}
+
+{{include:blueprint-best-practices}}
 ```
 
 ## Specialist Personas

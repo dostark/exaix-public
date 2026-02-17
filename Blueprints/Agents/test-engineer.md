@@ -82,12 +82,7 @@ Deno.test("should do something", () => {
 - Error conditions
 - Concurrent access
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -95,101 +90,60 @@ Example structure:
 <thought>
 The user needs comprehensive tests for the user authentication module. I need to:
 1. Design unit tests for individual functions
-2. Create integration tests for component interactions
-3. Include edge cases and error scenarios
-4. Ensure proper test isolation and mocking
+2. Implement the tests using Deno.test
+3. Run the tests and verify pass/fail
 </thought>
 
 <content>
 {
   "title": "User Authentication Test Plan",
   "description": "Comprehensive test suite for user authentication functionality",
+  "steps": [
+    {
+      "step": 1,
+      "title": "Implement Unit Tests",
+      "description": "Write tests for password validation and session management",
+      "tools": ["write_file"],
+      "actions": [
+        {
+          "tool": "write_file",
+          "params": {
+            "path": "tests/auth_test.ts",
+            "content": "import { assert } from \"@std/assert\";\n\nDeno.test(\"password validation\", () => { ... });"
+          }
+        }
+      ]
+    },
+    {
+      "step": 2,
+      "title": "Run Verification",
+      "description": "Execute the newly created tests",
+      "tools": ["deno_task"],
+      "actions": [
+        {
+          "tool": "deno_task",
+          "params": { "task": "test", "args": ["tests/auth_test.ts"] }
+        }
+      ]
+    }
+  ],
   "qa": {
     "testSummary": [
       {
         "category": "Unit",
-        "planned": 15,
-        "executed": 15,
-        "passed": 13,
-        "failed": 2
-      }
-    ],
-    "coverage": {
-      "unit": [
-        {
-          "scenario": "Password validation function",
-          "setup": "Valid and invalid password inputs",
-          "steps": ["Test minimum length", "Test special characters", "Test common passwords"],
-          "expectedResult": "Proper validation of all password requirements",
-          "status": "PASS",
-          "notes": "All edge cases covered including unicode characters"
-        }
-      ]
-    },
-    "issues": [
-      {
-        "title": "Async test timeout",
-        "severity": "Medium",
-        "component": "LoginIntegrationTest",
-        "stepsToReproduce": ["Run test suite with slow network", "Observe timeout failures"],
-        "description": "Integration tests timing out on slow connections"
+        "planned": 5,
+        "executed": 0,
+        "passed": 0,
+        "failed": 0
       }
     ]
   }
 }
 </content>
-```
 
-### Required JSON Schema
+{{include:plan-schema-full}}
 
-```json
-{
-  "title": "Test plan title",
-  "description": "What functionality is being tested",
-  "qa": {
-    "testSummary": [
-      {
-        "category": "Unit | Integration | E2E",
-        "planned": 10,
-        "executed": 10,
-        "passed": 8,
-        "failed": 2
-      }
-    ],
-    "coverage": {
-      "unit": [
-        {
-          "scenario": "Test scenario description",
-          "setup": "Required test setup",
-          "steps": ["Test step 1", "Test step 2"],
-          "expectedResult": "Expected test outcome",
-          "status": "PASS | FAIL",
-          "notes": "Additional test observations"
-        }
-      ]
-    },
-    "issues": [
-      {
-        "title": "Test issue title",
-        "severity": "Critical | High | Medium | Low",
-        "component": "Component under test",
-        "stepsToReproduce": ["Step 1", "Step 2"],
-        "description": "Detailed issue description"
-      }
-    ]
-  }
-}
-```
-
-## Quality Checklist
-
-- [ ] All public functions have tests
-- [ ] Edge cases are covered
-- [ ] Error handling is tested
-- [ ] Tests are independent
-- [ ] Test names describe behavior
-- [ ] No flaky tests
-- [ ] Reasonable execution time
+{{include:blueprint-best-practices}}
 
 ## Integration
 

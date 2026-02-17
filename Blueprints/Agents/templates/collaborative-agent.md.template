@@ -50,10 +50,7 @@ When working in flows:
 
 ## Response Format
 
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -93,5 +90,8 @@ Working on the {task} as part of a collaborative workflow. I need to:
   "estimatedDuration": "{duration}",
   "risks": ["Upstream input issues", "Processing failures", "Downstream compatibility"]
 }
-</content>
+
+{{include:plan-schema-full}}
+
+{{include:blueprint-best-practices}}
 ```

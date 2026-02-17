@@ -273,7 +273,10 @@ export class BlueprintLoader {
     }
 
     const frontmatter = validation.data;
-    const systemPrompt = body.trim();
+    const rawSystemPrompt = body.trim();
+
+    // Resolve inclusions recursively
+    const systemPrompt = this.resolveFragments(rawSystemPrompt, new Set());
 
     return {
       agentId: frontmatter.agent_id || agentId,
@@ -286,6 +289,46 @@ export class BlueprintLoader {
       frontmatter,
       path,
     };
+  }
+
+  /**
+   * Resolve {{include:fragments}} recursively
+   */
+  private resolveFragments(content: string, seen: Set<string>): string {
+    const includeRegex = /{{include:([^}]+)}}/g;
+
+    return content.replace(includeRegex, (match, fragmentName) => {
+      fragmentName = fragmentName.trim();
+
+      if (seen.has(fragmentName)) {
+        console.warn(`Circular inclusion detected for fragment: ${fragmentName}`);
+        return match;
+      }
+
+      // Fragments are stored in Blueprints/Fragments/ relative to blueprintsPath
+      const fragmentsDir = this.options.blueprintsPath.endsWith("Agents")
+        ? join(this.options.blueprintsPath, "..", "Fragments")
+        : join(this.options.blueprintsPath, "Fragments");
+
+      const fragmentPath = join(fragmentsDir, `${fragmentName}.md`);
+
+      try {
+        // We use a sync read here for simplicity within replace,
+        // but since loader is async, we could optimize this later if needed.
+        // For now, these are small files read during startup.
+        const fragmentContent = Deno.readTextFileSync(fragmentPath);
+
+        const nextSeen = new Set(seen);
+        nextSeen.add(fragmentName);
+
+        return this.resolveFragments(fragmentContent, nextSeen);
+      } catch (error) {
+        console.warn(
+          `Failed to include fragment '${fragmentName}': ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return match;
+      }
+    });
   }
 
   /**

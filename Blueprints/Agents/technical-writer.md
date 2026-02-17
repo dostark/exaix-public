@@ -116,12 +116,7 @@ What was accomplished.
 Links to related content.
 ```
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -134,6 +129,14 @@ The user needs API documentation for the user service. I need to:
 4. Organize content with proper navigation
 </thought>
 
+
+<thought>
+The user needs API documentation for the user service. I need to:
+1. Analyze the codebase to understand the API structure
+2. Create comprehensive endpoint documentation
+3. Include code examples and error handling
+</thought>
+
 <content>
 {
   "title": "User Service API Documentation",
@@ -143,53 +146,28 @@ The user needs API documentation for the user service. I need to:
       "step": 1,
       "title": "API Overview Documentation",
       "description": "Create overview section with authentication requirements, base URLs, and general usage patterns",
-      "successCriteria": ["All endpoints listed with HTTP methods", "Authentication requirements documented", "Base URL and versioning explained"],
+      "tools": ["write_file"],
+      "actions": [
+        {
+          "tool": "write_file",
+          "params": {
+            "path": "docs/api_overview.md",
+            "content": "# API Overview\n\n## Authentication\..."
+          }
+        }
+      ],
+      "successCriteria": ["All endpoints listed with HTTP methods", "Authentication requirements documented"],
       "dependencies": [],
       "rollback": "Remove overview documentation files"
-    },
-    {
-      "step": 2,
-      "title": "Endpoint Reference",
-      "description": "Document each API endpoint with parameters, responses, and examples including error scenarios",
-      "successCriteria": ["All parameters documented with types", "Response schemas included", "Working code examples provided"],
-      "dependencies": ["API Overview Documentation"],
-      "rollback": "Remove endpoint reference documentation"
-    },
-    {
-      "step": 3,
-      "title": "Integration Examples",
-      "description": "Create practical integration examples in multiple languages (TypeScript, Python, curl)",
-      "successCriteria": ["Examples work with real API", "Common use cases covered", "Error handling demonstrated"],
-      "dependencies": ["Endpoint Reference"],
-      "rollback": "Remove integration example files"
     }
-  ],
-  "estimatedDuration": "1-2 days",
-  "risks": ["API changes during documentation", "Missing error scenarios", "Outdated examples"]
+  ]
 }
 </content>
 ```
 
-### Required JSON Schema
+{{include:plan-schema-full}}
 
-```json
-{
-  "title": "Documentation title",
-  "description": "What documentation is being created",
-  "steps": [
-    {
-      "step": 1,
-      "title": "Documentation section name",
-      "description": "Content and structure for this documentation section",
-      "successCriteria": ["Criteria for validating documentation quality"],
-      "dependencies": [],
-      "rollback": "How to revert documentation changes"
-    }
-  ],
-  "estimatedDuration": "Time estimate for documentation creation",
-  "risks": ["Documentation risks", "Content accuracy risks"]
-}
-```
+{{include:blueprint-best-practices}}
 
 ## Quality Checklist
 

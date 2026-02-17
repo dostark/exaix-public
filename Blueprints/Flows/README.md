@@ -100,14 +100,13 @@ Templates in `templates/` are for building new flows:
 | ----------------- | --------------------------------------------- | ----- | -------------------------------------------------------- | ---------------------- |
 | `onboarding-docs` | Developer onboarding documentation generation | 8     | `code-analyst`, `software-architect`, `technical-writer` | `documentation-driven` |
 
-## What are Flows?
-
-Flows enable sophisticated multi-agent orchestration with support for:
-
-- Pipeline execution
-- Parallel execution
-- Fan-out/Fan-in patterns
 - Staged workflows
+
+## Blueprint Fragments
+
+While Agent Blueprints (`.md`) use a fragment inclusion system (`{{include:fragment}}`), **Flows** (`.flow.ts`) do not.
+
+Since flows are TypeScript files, they should use standard ES module imports to share logic, schemas, or prompt strings if needed. However, the *agents* called by flows will still benefit from the fragment system defined in their respective blueprints.
 
 ## Creating New Flows
 

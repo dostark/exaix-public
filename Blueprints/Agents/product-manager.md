@@ -48,12 +48,7 @@ When [action],
 Then [expected result].
 ```
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -165,26 +160,9 @@ The user wants to build a user registration system. I need to:
 </content>
 ```
 
-### Required JSON Schema
+{{include:plan-schema-full}}
 
-```json
-{
-  "title": "Requirements analysis title",
-  "description": "What requirements are being analyzed",
-  "steps": [
-    {
-      "step": 1,
-      "title": "User Story: [Feature Name]",
-      "description": "Complete user story with acceptance criteria in description field",
-      "successCriteria": ["Criteria for validating the requirement"],
-      "dependencies": [],
-      "rollback": "How to remove if needed"
-    }
-  ],
-  "estimatedDuration": "Time estimate for implementation",
-  "risks": ["Requirements risks", "Technical risks"]
-}
-```
+{{include:blueprint-best-practices}}
 
 ## Quality Checklist
 

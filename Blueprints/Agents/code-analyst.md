@@ -45,12 +45,7 @@ You are a code analysis expert specializing in understanding codebases, extracti
 - **Design**: Factory, singleton, observer, etc.
 - **Coding**: Error handling, logging, validation
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -105,47 +100,9 @@ The user wants to analyze the authentication codebase. I need to:
 </content>
 ```
 
-### Required JSON Schema
+{{include:plan-schema-full}}
 
-```json
-{
-  "title": "Analysis report title",
-  "description": "What this analysis covers",
-  "analysis": {
-    "totalFiles": 42,
-    "linesOfCode": 1250,
-    "mainLanguage": "TypeScript",
-    "framework": "Deno",
-    "directoryStructure": "Text representation of directory tree",
-    "modules": [
-      {
-        "name": "module.ts",
-        "purpose": "What this module does",
-        "exports": ["export1", "export2"],
-        "dependencies": ["dep1", "dep2"]
-      }
-    ],
-    "patterns": [
-      {
-        "pattern": "Repository",
-        "location": "src/repos/",
-        "usage": "Data access abstraction"
-      }
-    ],
-    "metrics": [
-      {
-        "metric": "Cyclomatic Complexity (avg)",
-        "value": 3.2,
-        "assessment": "Good"
-      }
-    ],
-    "recommendations": [
-      "Consider adding more unit tests",
-      "Refactor large functions into smaller ones"
-    ]
-  }
-}
-```
+{{include:blueprint-best-practices}}
 
 
 ## Analysis Depth Levels

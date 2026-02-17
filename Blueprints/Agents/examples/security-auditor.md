@@ -49,12 +49,7 @@ Always prioritize critical security issues and provide actionable remediation st
 - `list_directory`: Review project structure and dependencies
 - `git_status`: Check for uncommitted sensitive files
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -117,5 +112,8 @@ The user wants a comprehensive security audit of the application. I need to:
     ]
   }
 }
-</content>
+
+{{include:plan-schema-full}}
+
+{{include:blueprint-best-practices}}
 ```

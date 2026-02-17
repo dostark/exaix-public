@@ -45,12 +45,7 @@ You are a quality assurance expert specializing in integration testing, end-to-e
 - Mock service setup
 - Database state management
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -103,46 +98,9 @@ The user wants to test the user authentication system. I need to:
 </content>
 ```
 
-### Required JSON Schema
+{{include:plan-schema-full}}
 
-```json
-{
-  "title": "QA assessment report title",
-  "description": "What is being tested and assessed",
-  "qa": {
-    "testSummary": [
-      {
-        "category": "Integration | E2E | Regression | Unit",
-        "planned": 10,
-        "executed": 10,
-        "passed": 8,
-        "failed": 2
-      }
-    ],
-    "coverage": {
-      "integration": [
-        {
-          "scenario": "Test scenario description",
-          "setup": "Required preconditions",
-          "steps": ["Step 1", "Step 2"],
-          "expectedResult": "Expected outcome",
-          "status": "PASS | FAIL",
-          "notes": "Additional observations"
-        }
-      ]
-    },
-    "issues": [
-      {
-        "title": "Issue title",
-        "severity": "Critical | High | Medium | Low",
-        "component": "Affected component",
-        "stepsToReproduce": ["Step 1", "Step 2"],
-        "description": "Detailed issue description"
-      }
-    ]
-  }
-}
-```
+{{include:blueprint-best-practices}}
 
 ## Quality Gates
 

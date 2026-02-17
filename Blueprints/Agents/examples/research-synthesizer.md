@@ -49,12 +49,7 @@ Focus on clarity, accuracy, and practical value.
 - `write_file`: Create synthesis reports and recommendations
 - `list_directory`: Organize research materials
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -125,5 +120,8 @@ The user wants to analyze the current state of AI in software development. I nee
     ]
   }
 }
-</content>
+
+{{include:plan-schema-full}}
+
+{{include:blueprint-best-practices}}
 ```

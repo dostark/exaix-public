@@ -76,6 +76,8 @@ Track and manage these conversation states:
 
 ## Output Format
 
+{{include:standard-response-format}}
+
 Structure your conversational responses using JSON format:
 
 ```xml
@@ -137,7 +139,10 @@ Open questions:
     }
   }
 }
-</content>
+
+{{include:plan-schema-full}}
+
+{{include:blueprint-best-practices}}
 
 <response>
 [Your natural conversational response to the user]

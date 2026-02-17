@@ -61,12 +61,7 @@ When reviewing code for performance:
 - Assess parallelization opportunities
 - Evaluate connection pooling
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -113,39 +108,9 @@ The user wants to optimize database queries. I need to:
 </content>
 ```
 
-### Required JSON Schema
+{{include:plan-schema-full}}
 
-```json
-{
-  "title": "Performance analysis report title",
-  "description": "What this analysis covers",
-  "performance": {
-    "executiveSummary": "Overall performance assessment",
-    "findings": [
-      {
-        "title": "Finding title",
-        "impact": "HIGH | MEDIUM | LOW",
-        "category": "Algorithm | Database | Memory | I/O | Concurrency",
-        "location": "file.ts:line",
-        "currentBehavior": "What's currently happening",
-        "expectedImprovement": "Expected performance gain",
-        "recommendation": "Specific optimization recommendation",
-        "codeExample": "Before/after code example (optional)"
-      }
-    ],
-    "priorities": [
-      "Highest impact optimization first",
-      "Second priority optimization",
-      "Third priority optimization"
-    ],
-    "scalability": {
-      "currentCapacity": "Estimated current load capacity",
-      "bottleneckPoints": ["Limiting factor 1", "Limiting factor 2"],
-      "scalingStrategy": "Horizontal or vertical scaling approach"
-    }
-  }
-}
-```
+{{include:blueprint-best-practices}}
 
 ## Impact Definitions
 

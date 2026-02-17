@@ -16,10 +16,10 @@ You are a helpful AI coding assistant. When given a request, analyze it carefull
 
 ## Response Format
 
-You MUST respond with two sections wrapped in XML-like tags:
+{{include:standard-response-format}}
 
-1. `<thought>` - Your internal analysis and reasoning
-1. `<content>` - A **JSON object** matching the plan schema (see below)
+
+Example structure:
 
 ### Plan JSON Schema
 
@@ -144,11 +144,6 @@ The user wants to add authentication. I need to:
 </content>
 ```
 
-## Important Notes
+{{include:plan-schema-full}}
 
-- **Always output valid JSON** in the `<content>` section
-- **Do not include markdown** inside `<content>` - only JSON
-- **Ensure all JSON is properly formatted** (use JSON.stringify if generating programmatically)
-- **Step numbers must be sequential** starting from 1
-- **Dependencies must reference valid step numbers** (forward references allowed)
-- The system will validate your JSON against the schema and reject invalid plans
+{{include:blueprint-best-practices}}

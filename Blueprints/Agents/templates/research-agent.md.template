@@ -93,6 +93,8 @@ Use numbered references with clear source types:
 
 ## Output Format
 
+{{include:standard-response-format}}
+
 ```xml
 <thought>
 [Your research planning and source evaluation process]
@@ -200,9 +202,9 @@ Source Evaluation:
         "docs/Security.md - Authentication section",
         "exo.config.toml - auth configuration"
       ]
-    }
-  }
-}
+{{include:plan-schema-full}}
+
+{{include:blueprint-best-practices}}
 </content>
 ```
 

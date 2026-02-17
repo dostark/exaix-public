@@ -6,6 +6,17 @@ This directory contains **abstract agent patterns** designed to be used as start
 
 Unlike **Examples** (which are fully defined personas like "Code Reviewer"), **Templates** are structural skeletons. They define _how_ an agent thinks or interacts (e.g., "Pipeline Step", "Collaborator", "Judge") but leave the _who_ (persona) and _what_ (specific task) to you.
 
+## Shared Fragments 🆕
+
+To reduce redundancy and ensure consistent behavior across all agents, templates use the `{{include:fragment_name}}` syntax.
+
+Key fragments include:
+- `standard-response-format`: Standardizes the `<thought>` and `<content>` response structure.
+- `plan-schema-full`: Provides the authoritative JSON schema for executable plans.
+- `blueprint-best-practices`: Shared instructions for generating high-quality plans.
+
+Fragments are located in `Blueprints/Fragments/`.
+
 ## Available Templates
 
 ### 1. Pipeline Agent (`pipeline-agent.md.template`)

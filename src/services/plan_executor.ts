@@ -185,7 +185,9 @@ export class PlanExecutor {
         }
       }
 
-      const report = this.generateReport ? await this.generateExecutionReport(context, actionReports) : undefined;
+      const report = (this.generateReport || context.steps.length === 0)
+        ? await this.generateExecutionReport(context, actionReports)
+        : undefined;
 
       return { lastCommitSha, report };
     } catch (error) {

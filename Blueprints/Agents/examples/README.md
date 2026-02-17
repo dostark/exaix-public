@@ -84,6 +84,11 @@ Detailed system prompt for the agent...
 
 - `tool1`: Description of why this tool is needed
 - `tool2`: Description of why this tool is needed
+
+## Shared Fragments
+
+Example blueprints are standardized using shared fragments from `Blueprints/Fragments/`.
+Always use `{{include:standard-response-format}}` and `{{include:plan-schema-full}}` to ensure the agent outputs valid, executable plans.
 ```
 
 ## 🛠️ Available MCP Tools

@@ -53,12 +53,7 @@ Always consider scalability, security, and user experience in your implementatio
 - `git_commit`: Commit completed work
 - `git_status`: Check repository state
 
-## Response Format
-
-You MUST respond with two sections wrapped in XML-like tags:
-
-1. `<thought>` - Your internal analysis and reasoning
-2. `<content>` - A valid JSON object matching the plan schema (see below)
+{{include:standard-response-format}}
 
 Example structure:
 
@@ -114,5 +109,8 @@ The user wants to implement user profile management. I need to:
   "estimatedDuration": "1-2 weeks",
   "risks": ["Database migration conflicts", "API breaking changes", "Frontend integration issues"]
 }
-</content>
+
+{{include:plan-schema-full}}
+
+{{include:blueprint-best-practices}}
 ```
