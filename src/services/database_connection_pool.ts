@@ -7,6 +7,9 @@
  * @related-files [src/services/db.ts]
  */
 import { Database } from "@db/sqlite";
+import { join } from "@std/path";
+import type { Config } from "../config/schema.ts";
+import { DEFAULT_DATABASE_BUSY_TIMEOUT_MS } from "../config/constants.ts";
 
 /**
  * Database connection interface for pooling
