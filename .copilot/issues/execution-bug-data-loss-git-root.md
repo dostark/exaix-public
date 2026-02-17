@@ -58,10 +58,10 @@ The system has been hardened with multiple layers of security to prevent reposit
 
 ### 1. Hardened Git Service (`src/services/git_service.ts`)
 - **New Error Types**: Introduced `GitSecurityError` and `GitNothingToCommitError`.
-- **Command Guards**: `runGitCommand` now blocks destructive operations (`reset --hard`, `clean -xfd`).
-- **Path Awareness**: Prohibits all non-read-only Git operations (like `add`, `commit`, `checkout`) if the current repository path matches `config.system.root`.
-- **Branch Protection**: `checkoutBranch` explicitly blocks switching to `main`, `master`, `develop`, etc.
+- **Destructive Command Guards**: `runGitCommand` blocks `git reset --hard` and `git clean -xfd` **everywhere** to prevent data loss.
+- **Branch Protection**: `checkoutBranch` explicitly blocks agents from switching to `main`, `master`, `develop`, etc. (daemon is exempted for legitimate workflows).
 - **Precise Error Reporting**: `commit()` now throws a specific `GitNothingToCommitError` for better lifecycle management.
+- **Simplified Security Model**: Removed overly restrictive system root read-only protection in favor of targeted blocking of truly destructive operations.
 
 ### 2. Explicit Repository Scoping (`src/services/plan_executor.ts`)
 - **Required Pathing**: `PlanExecutor` now requires an explicit `repoPath` in its constructor, eliminating reliance on system-wide defaults.
@@ -69,9 +69,9 @@ The system has been hardened with multiple layers of security to prevent reposit
 - **Safe Step Commits**: `executeStep` specifically catches `GitNothingToCommitError` while allowing `GitSecurityError` and other critical failures to bubble up.
 
 ### 3. Isolated Execution Lifecycle (`src/services/execution_loop.ts`)
-- **Strategy Enforcement**: Forced `PortalExecutionStrategy.WORKTREE` for all portal-assigned tasks to ensure isolation.
+- **Strategy Respect**: Respects portal-configured execution strategies (BRANCH or WORKTREE) while maintaining security through Git command guards.
 - **Removed Dangerous Rollbacks**: Eliminated the global `git reset --hard` and `git checkout main` logic from `handleFailure`.
-- **Targeted Cleanup**: Implemented safe worktree removal using `portalGitService.removeWorktree` for failed tasks.
+- **Targeted Cleanup**: Implemented safe worktree removal using `portalGitService.removeWorktree` for failed tasks when using WORKTREE strategy.
 - **System Root Guard**: Added a guard in `setupGitForExecution` to skip Git initialization in the system root for non-portal tasks.
 
 ### 4. Tool Registry Guards (`src/services/tool_registry.ts`)

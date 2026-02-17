@@ -635,24 +635,13 @@ export class GitService {
   private validateGitCommandSecurity(args: string[]): void {
     const fullCommand = args.join(" ").toLowerCase();
 
-    // Prohibit destructive operations
+    // Prohibit destructive operations everywhere
+    // These are the commands that can cause data loss
     const isDestructive = (fullCommand.includes("reset") && fullCommand.includes("--hard")) ||
       (fullCommand.includes("clean") && (fullCommand.includes("-f") || fullCommand.includes("-d")));
 
     if (isDestructive) {
       throw new GitSecurityError(`Destructive git operation prohibited: git ${args.join(" ")}`);
-    }
-
-    // Prohibit non-readonly operations in system root to prevent accidental "taint"
-    const systemRoot = this.config.system.root;
-    if (this.repoPath === systemRoot) {
-      const safeCommands = ["status", "rev-parse", "config", "log", "show", "diff", "ls-files"];
-      const command = args[0]?.toLowerCase();
-      if (!safeCommands.includes(command)) {
-        throw new GitSecurityError(
-          `Only read-only git operations are allowed in the system root: git ${args.join(" ")}`,
-        );
-      }
     }
   }
 
