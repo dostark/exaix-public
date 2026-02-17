@@ -7,6 +7,7 @@ import { getDefaultPaths } from "../src/config/paths.ts";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import { initTestDbService } from "./helpers/db.ts";
+import { setupGitRepo } from "./helpers/git_test_helper.ts";
 import {
   getMemoryExecutionDir,
   getWorkspaceActiveDir,
@@ -157,21 +158,24 @@ Deno.test("ExecutionLoop: creates git branch and commits with trace_id", async (
     const config = createMockConfig(tempDir);
     const paths = getTestPaths(tempDir);
 
+    // Initialize git repository
+    await setupGitRepo(tempDir, { initialCommit: true });
+
     const planContent = `---
 trace_id: "test-trace-git"
 request_id: git-commit-test
-status: active
+status: approved
 agent_id: test-agent
 ---
 
 # Git Integration Test
 
-\n\`\`\`toml
+\`\`\`toml
 tool = "write_file"
 [params]
 path = "git-test.txt"
 content = "hello from git integration test"
-\`\`\`\n
+\`\`\`
 `;
 
     const planPath = join(paths.activeDir, "git-commit-test.md");
@@ -180,7 +184,7 @@ content = "hello from git integration test"
     const loop = new ExecutionLoop({ config, db, agentId: "test-agent" });
     const result = await loop.processTask(planPath);
 
-    assertEquals(result.success, true);
+    assertEquals(result.success, true, `Execution failed: ${result.error}`);
 
     // Check that git branch was created
     const gitCmd = new Deno.Command(PortalOperation.GIT, {
@@ -798,6 +802,10 @@ Deno.test("ExecutionLoop: parses TOML action blocks from plan", async () => {
     await ensureDir(getWorkspaceActiveDir(tempDir));
     const config = createMockConfig(tempDir);
     const systemActiveDir = getWorkspaceActiveDir(tempDir);
+
+    // Initialize git repository
+    await setupGitRepo(tempDir, { initialCommit: true });
+
     const planContent = `---
 trace_id: "test-trace-toml"
 request_id: toml-actions
@@ -853,6 +861,9 @@ Deno.test("ExecutionLoop: parses multiple TOML action blocks from plan", async (
   const { db, cleanup } = await initTestDbService();
 
   try {
+    // Initialize git repository
+    await setupGitRepo(tempDir, { initialCommit: true });
+
     await ensureDir(getWorkspaceActiveDir(tempDir));
     const config = createMockConfig(tempDir);
     const systemActiveDir = getWorkspaceActiveDir(tempDir);
@@ -938,6 +949,9 @@ Deno.test("ExecutionLoop: ignores malformed code blocks", async () => {
   const { db, cleanup } = await initTestDbService();
 
   try {
+    // Initialize git repository
+    await setupGitRepo(tempDir, { initialCommit: true });
+
     await ensureDir(getWorkspaceActiveDir(tempDir));
     const config = createMockConfig(tempDir);
     const systemActiveDir = getWorkspaceActiveDir(tempDir);
@@ -993,6 +1007,9 @@ Deno.test("ExecutionLoop: ignores code blocks without tool field", async () => {
   const { db, cleanup } = await initTestDbService();
 
   try {
+    // Initialize git repository
+    await setupGitRepo(tempDir, { initialCommit: true });
+
     await ensureDir(getWorkspaceActiveDir(tempDir));
     const config = createMockConfig(tempDir);
     const systemActiveDir = getWorkspaceActiveDir(tempDir);
@@ -1254,6 +1271,9 @@ Deno.test("ExecutionLoop: handles unknown tool gracefully", async () => {
   const { db, cleanup } = await initTestDbService();
 
   try {
+    // Initialize git repository
+    await setupGitRepo(tempDir, { initialCommit: true });
+
     await ensureDir(getWorkspaceActiveDir(tempDir));
     const config = createMockConfig(tempDir);
     const systemActiveDir = getWorkspaceActiveDir(tempDir);
@@ -1306,6 +1326,9 @@ Deno.test("ExecutionLoop: summarizeResult handles various result types", async (
   const { db, cleanup } = await initTestDbService();
 
   try {
+    // Initialize git repository
+    await setupGitRepo(tempDir, { initialCommit: true });
+
     await ensureDir(getWorkspaceActiveDir(tempDir));
     const config = createMockConfig(tempDir);
     const systemActiveDir = getWorkspaceActiveDir(tempDir);
