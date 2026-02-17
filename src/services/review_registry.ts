@@ -145,9 +145,12 @@ export class ReviewRegistry {
       throw new Error(`Review not found: ${reviewId}`);
     }
 
+    // Use base_branch if available, otherwise use parent of feature branch
+    const baseBranch = review.base_branch || `${review.branch}^`;
+
     // Get diff between base branch and feature branch
     const cmd = new Deno.Command("git", {
-      args: ["diff", `${review.base_branch}..${review.branch}`],
+      args: ["diff", `${baseBranch}..${review.branch}`],
       cwd: review.repository,
       stdout: "piped",
       stderr: "piped",
