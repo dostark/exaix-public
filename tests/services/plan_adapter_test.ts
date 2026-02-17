@@ -94,7 +94,7 @@ describe("PlanAdapter", () => {
       assertThrows(
         () => adapter.parse(invalidJson),
         PlanValidationError,
-        "not valid JSON",
+        "Invalid JSON",
       );
     });
 
@@ -131,7 +131,7 @@ describe("PlanAdapter", () => {
       assertThrows(
         () => adapter.parse(jsonContent),
         PlanValidationError,
-        "does not match required schema",
+        "Required",
       );
     });
 
@@ -144,7 +144,7 @@ describe("PlanAdapter", () => {
       assertThrows(
         () => adapter.parse(jsonContent),
         PlanValidationError,
-        "does not match required schema",
+        "Plan must contain",
       );
     });
 
@@ -185,7 +185,7 @@ describe("PlanAdapter", () => {
       assertThrows(
         () => adapter.parse(jsonContent),
         PlanValidationError,
-        "does not match required schema",
+        "Invalid enum value",
       );
     });
 

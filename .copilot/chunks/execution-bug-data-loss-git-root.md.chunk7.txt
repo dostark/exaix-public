@@ -1,0 +1,5 @@
+### 3. Isolated Execution Lifecycle (`src/services/execution_loop.ts`)
+- **Strategy Respect**: Respects portal-configured execution strategies (BRANCH or WORKTREE) while maintaining security through Git command guards.
+- **Removed Dangerous Rollbacks**: Eliminated the global `git reset --hard` and `git checkout main` logic from `handleFailure`.
+- **Targeted Cleanup**: Implemented safe worktree removal using `portalGitService.removeWorktree` for failed tasks when using WORKTREE strategy.
+- **System Root Guard**: Added a guard in `setupGitForExecution` to skip Git initialization in the system root for non-portal tasks.

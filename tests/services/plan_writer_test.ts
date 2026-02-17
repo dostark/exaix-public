@@ -320,7 +320,7 @@ Deno.test("PlanWriter: writePlan handles invalid JSON gracefully", async () => {
       await writer.writePlan(result, metadata);
     } catch (error) {
       threw = true;
-      assertStringIncludes((error as Error).message, "not valid JSON");
+      assertStringIncludes((error as Error).message, "Invalid JSON");
     }
 
     assert(threw, "Expected PlanValidationError to be thrown for invalid JSON");
