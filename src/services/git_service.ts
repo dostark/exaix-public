@@ -210,9 +210,9 @@ export class GitService {
         // .git doesn't exist, need to initialize
       }
 
-      // Initialize repository
+      // Initialize repository with explicit default branch
       const initCmd = new Deno.Command("git", {
-        args: ["init"],
+        args: ["init", "-b", "master"],
         cwd: this.repoPath,
         stdout: "piped",
         stderr: "piped",

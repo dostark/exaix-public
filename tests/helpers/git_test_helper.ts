@@ -139,17 +139,17 @@ export class GitTestHelper {
   }
 
   /**
-   * Get current git user.name config
+   * Get current git user.name config (local)
    */
   async getUserName(): Promise<string> {
-    return await this.runGit(["config", "user.name"]);
+    return await this.runGit(["config", "--local", "user.name"]);
   }
 
   /**
-   * Get current git user.email config
+   * Get current git user.email config (local)
    */
   async getUserEmail(): Promise<string> {
-    return await this.runGit(["config", "user.email"]);
+    return await this.runGit(["config", "--local", "user.email"]);
   }
 
   /**

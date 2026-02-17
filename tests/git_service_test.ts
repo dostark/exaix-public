@@ -28,8 +28,8 @@ import { createGitTestContext, GitTestHelper } from "./helpers/git_test_helper.t
  */
 
 Deno.test("GitService: auto-initializes repository if not present", async () => {
-  const { tempDir, db, cleanup, git } = await createGitTestContext("git-test-init-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, db, cleanup, git } = await createGitTestContext("git-test-init-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     await git.ensureRepository();
@@ -49,8 +49,8 @@ Deno.test("GitService: auto-initializes repository if not present", async () => 
 });
 
 Deno.test("GitService: auto-configures identity if missing", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-identity-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-identity-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     await git.ensureRepository();
@@ -68,8 +68,8 @@ Deno.test("GitService: auto-configures identity if missing", async () => {
 });
 
 Deno.test("GitService: creates branch with naming convention", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-branch-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-branch-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     await git.ensureRepository();
@@ -114,8 +114,8 @@ Deno.test("GitService: handles duplicate branch names", async () => {
 });
 
 Deno.test("GitService: commits with trace_id footer", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-commit-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-commit-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     await git.ensureRepository();
@@ -206,8 +206,8 @@ Deno.test("GitService: handles git command failures", async () => {
 });
 
 Deno.test("GitService: commit message format is correct", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-format-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-format-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     await git.ensureRepository();
@@ -291,8 +291,8 @@ Deno.test("GitService: isLockError identifies lock errors", () => {
 });
 
 Deno.test("GitService: works in already initialized repository", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-existing-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-existing-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     // Initialize git manually
@@ -317,8 +317,8 @@ Deno.test("GitService: works in already initialized repository", async () => {
 });
 
 Deno.test("GitService: createBranch - generates unique branch names on conflict", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-unique-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-unique-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     await git.ensureRepository();
@@ -367,8 +367,8 @@ Deno.test("GitService: commit - validates files exist before committing", async 
 });
 
 Deno.test("GitService: ensureIdentity - uses git config if available", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-identity-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-identity-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     // Initialize with existing identity
@@ -388,8 +388,8 @@ Deno.test("GitService: ensureIdentity - uses git config if available", async () 
 });
 
 Deno.test("GitService: commit - handles git add failures", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-add-fail-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-add-fail-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     await git.ensureRepository();
@@ -399,7 +399,7 @@ Deno.test("GitService: commit - handles git add failures", async () => {
     await helper.createFile("test.txt", "content");
 
     // Remove git directory to cause add to fail
-    await Deno.remove(join(tempDir, ".git"), { recursive: true });
+    await Deno.remove(join(repoDir, ".git"), { recursive: true });
 
     // Should handle git commit failure (no .git dir)
     await assertRejects(
@@ -415,8 +415,8 @@ Deno.test("GitService: commit - handles git add failures", async () => {
 });
 
 Deno.test("GitService: commit - includes description in commit message", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-desc-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-desc-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     await git.ensureRepository();
@@ -449,8 +449,8 @@ Deno.test("GitService: commit - includes description in commit message", async (
 // ============================================================================
 
 Deno.test("GitService: checkoutBranch - logs successful checkout", async () => {
-  const { tempDir, cleanup, db } = await createGitTestContext("git-test-checkout-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, db } = await createGitTestContext("git-test-checkout-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     const config = createMockConfig(tempDir);
@@ -523,8 +523,8 @@ Deno.test("GitService: checkoutBranch - logs checkout failure", async () => {
 });
 
 Deno.test("GitService: runGitCommand via commit - handles various message formats", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-msg-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-msg-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     await git.ensureRepository();
@@ -550,8 +550,8 @@ Deno.test("GitService: runGitCommand via commit - handles various message format
 });
 
 Deno.test("GitService: branch operations preserve traceId context", async () => {
-  const { tempDir, cleanup, db } = await createGitTestContext("git-test-trace-");
-  const helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, db } = await createGitTestContext("git-test-trace-");
+  const helper = new GitTestHelper(repoDir);
 
   try {
     const traceId = "preserved-trace-id-123";
@@ -590,8 +590,8 @@ Deno.test("GitService: branch operations preserve traceId context", async () => 
 // ============================================================================
 
 Deno.test("GitService: handles repository lock conflicts with retry", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-lock-");
-  const _helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-lock-");
+  const _helper = new GitTestHelper(repoDir);
 
   try {
     // Initialize repository
@@ -599,7 +599,7 @@ Deno.test("GitService: handles repository lock conflicts with retry", async () =
     await git.ensureIdentity();
 
     // Create a lock file to simulate repository lock
-    const lockPath = join(tempDir, ".git", "index.lock");
+    const lockPath = join(repoDir, ".git", "index.lock");
     await Deno.writeTextFile(lockPath, "locked");
 
     // This should retry and eventually succeed or timeout gracefully
@@ -616,8 +616,8 @@ Deno.test("GitService: handles repository lock conflicts with retry", async () =
 });
 
 Deno.test("GitService: classifies git errors appropriately", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-errors-");
-  const _helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-errors-");
+  const _helper = new GitTestHelper(repoDir);
 
   try {
     // Initialize repository
@@ -641,14 +641,14 @@ Deno.test("GitService: classifies git errors appropriately", async () => {
 });
 
 Deno.test("GitService: timeout protection is configurable", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-timeout-");
-  const _helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-timeout-");
+  const _helper = new GitTestHelper(repoDir);
 
   try {
     // Initialize repository with some content
     await git.ensureRepository();
     await git.ensureIdentity();
-    await Deno.writeTextFile(join(tempDir, "test.txt"), "content");
+    await Deno.writeTextFile(join(repoDir, "test.txt"), "content");
     await git.commit({ message: "Initial commit", traceId: "test-trace" });
 
     // Test that timeoutMs parameter is accepted and command completes normally with default timeout
@@ -665,8 +665,8 @@ Deno.test("GitService: timeout protection is configurable", async () => {
 });
 
 Deno.test("GitService: handles repository corruption gracefully", async () => {
-  const { tempDir, cleanup, git } = await createGitTestContext("git-test-corruption-");
-  const _helper = new GitTestHelper(tempDir);
+  const { repoDir, cleanup, git } = await createGitTestContext("git-test-corruption-");
+  const _helper = new GitTestHelper(repoDir);
 
   try {
     // Initialize repository
@@ -674,7 +674,7 @@ Deno.test("GitService: handles repository corruption gracefully", async () => {
     await git.ensureIdentity();
 
     // Simulate repository corruption by removing HEAD
-    const headPath = join(tempDir, ".git", "HEAD");
+    const headPath = join(repoDir, ".git", "HEAD");
     await Deno.remove(headPath);
 
     // This should classify as repository error
