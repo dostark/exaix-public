@@ -1,13 +1,19 @@
-### CLI Test Context — Recommended Pattern
+- `tests/cli/` - CLI command tests
+- `tests/services/` - Service unit tests
+- `tests/integration/` - End-to-end workflows
+- `tests/helpers/` - Shared test utilities
 
-Use `createCliTestContext()` to centralize DB + tempdir setup for CLI tests. Always call returned `cleanup()` in `afterEach` to avoid leaking resources.
+Deduplication checklist:
 
-### Integration TestEnvironment — Recommended Pattern
+1. Search for similar test file names
+2. Compare test case names for duplicates
+3. Merge unique cases into canonical location
+4. Delete duplicate files
 
-Use `TestEnvironment.create()` for full integration tests that require workspace layout, DB, and optional git initialization. Prefer small, focused integration tests that exercise end-to-end behavior with deterministic teardown.
+### Security Tests as First-Class Citizens
 
-### Test Environment Variables (Phase 28)
+Every security boundary needs explicit tests. Label security tests with `[security]` and include tests for path traversal, shell injection, network exfiltration, and env leakage.
 
-All test-related environment variables use the `EXO_TEST_*` prefix for clarity and separation from production env vars:
+### Database Initialization
 
-**Standard Test Variables:**
+✅ DO: Use `initTestDbService()` for DatabaseService tests. Prefer `initActivityTableSchema()` for reconnection tests and avoid raw SQL table creation in test files.

@@ -1,9 +1,21 @@
-- Treat `CI` as a truthy flag (`CI=true` on GitHub Actions), not strictly `"1"`.
-  - **Prefer** the shared helpers in `src/config/env_schema.ts` (`isCIMode()`, `isTestMode()`).
-- When CI guard is active, paid LLM providers are intentionally disabled unless explicitly opted in.
-  - Expect mock behavior unless `EXO_TEST_ENABLE_PAID_LLM=1` is set.
-  - Tests that assert provider selection should include a CI-guard branch (e.g., accept `mock-provider` or `CI-protected ...`).
-- Avoid requiring compiled binaries in tests.
-  - If you need to run the CLI from a temp workspace, prefer:
-    - `new Deno.Command(Deno.execPath(), { args: ["run", "--allow-all", "--config", <repo>/deno.json, <repo>/src/cli/exoctl.ts, ...] })`
-  - This keeps behavior consistent between local runs and CI without extra build steps.
+// Check if in test environment
+if (isTestMode()) {
+  // Skip timer-based operations in tests
+  console.log("Running in test mode, skipping delays");
+}
+
+// Check if in CI environment
+if (isCIMode() && !Deno.env.get("EXO_TEST_ENABLE_PAID_LLM")) {
+  // Skip paid API tests in CI
+  test.ignore = true;
+}
+```
+
+**Best Practices:**
+
+- ✅ Always use `isTestMode()` instead of checking `DENO_TEST` or `EXO_TEST_MODE` directly
+- ✅ Always use `isCIMode()` instead of checking `CI` or `EXO_CI_MODE` directly
+- ✅ Use `EXO_TEST_*` prefix for any new test-related env vars
+- ❌ Never use legacy env vars (`DENO_TEST`, `EXOCTL_TEST_MODE`) in new code
+
+### CI (GitHub Actions) — Common Pitfalls

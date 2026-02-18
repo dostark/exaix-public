@@ -389,7 +389,7 @@ export class ReflexiveAgent {
     critique: Critique,
   ): Promise<AgentExecutionResult> {
     const issuesFormatted = critique.issues
-      .map((issue: any) =>
+      .map((issue: Critique["issues"][number]) =>
         `- [${String(issue.severity).toUpperCase()}] ${issue.type}: ${issue.description}${
           issue.suggestion ? ` -> ${issue.suggestion}` : ""
         }`

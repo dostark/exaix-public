@@ -14,6 +14,7 @@ import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
 import { ToolReflectionIssueType, ToolReflectionSeverity } from "../enums.ts";
+import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
 
 // ============================================================================
 // Reflection Schema
@@ -430,7 +431,14 @@ export class ToolReflector {
     traceId?: string,
   ): void {
     if (this.config.db) {
-      this.config.db.logActivity(actor, actionType, target, payload, traceId, "tool-reflector");
+      this.config.db.logActivity(
+        actor,
+        actionType,
+        target,
+        toSafeJson(payload) as Record<string, JsonValue>,
+        traceId,
+        "tool-reflector",
+      );
     }
   }
 

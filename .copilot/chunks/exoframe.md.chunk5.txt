@@ -1,15 +1,9 @@
-**ALL magic numbers MUST be configurable constants** centralized appropriately:
+- **Runtime Persistence**: The .exo/Active, Workspace/Requests, and Workspace/Plans folders are the "Database". Code must respect file-system atomicity (use `writeTextFile` with atomic renaming where possible).
+- **Activity Journal**: All side-effects (file writes, executions, errors) MUST be logged to the Activity Journal (`.exo/journal.db`) via `EventLogger`.
+- **Security Modes**:
+  - **Sandboxed**: No network, no file access (default).
+  - **Hybrid**: Read-only access to specific "Portal" paths.
+  - **Note**: Always use `PathResolver` to validate paths before access.
+- **MCP Enforcement**: In Hybrid mode, agents can read files directly but MUST use MCP tools for writes (to ensure auditability).
 
-- **Production code:** `src/config/constants.ts`
-- **Test code:** `tests/config/constants.ts` for test-specific constants (test prompts, mock data, test environment variables, etc.)
-
-Never use hardcoded numeric literals in business logic or test code.
-
-**Requirements:**
-
-- ✅ Extract ALL numeric literals > 1 into named constants
-- ✅ Group related constants by module/feature in `constants.ts`
-- ✅ Use descriptive names with `DEFAULT_` prefix for production, `TEST_` prefix for test constants
-- ✅ Import and use constants instead of literals
-- ✅ Update constants file when adding new configurable values
-- ✅ Keep test-specific constants (test prompts, mock API keys, test messages) in `tests/config/constants.ts`
+### Configuration Constants & Magic Numbers

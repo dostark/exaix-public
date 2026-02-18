@@ -16,6 +16,7 @@
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import type { MemoryUpdateProposal } from "../schemas/memory_bank.ts";
+import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
 
 /**
  * Notification structure for memory updates
@@ -227,7 +228,7 @@ export class NotificationService {
         "notification-service",
         event.event_type,
         event.target,
-        (event.metadata || {}) as any,
+        toSafeJson(event.metadata) as Record<string, JsonValue>,
         event.trace_id,
       );
     } catch {

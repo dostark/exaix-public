@@ -15,6 +15,19 @@ import { EventLogger } from "../../services/event_logger.ts";
 import type { Config } from "../../config/schema.ts";
 import type { DatabaseService } from "../../services/db.ts";
 import type { IModelProvider } from "../../ai/providers.ts";
+import type { Flow } from "../../schemas/flow.ts";
+
+interface FlowListOptions {
+  json?: boolean;
+}
+
+interface FlowShowOptions {
+  json?: boolean;
+}
+
+interface FlowValidateOptions {
+  json?: boolean;
+}
 
 interface CLIContext {
   config: Config;
@@ -40,7 +53,7 @@ export class FlowCommands {
     });
   }
 
-  async listFlows(options: any = {}) {
+  async listFlows(options: FlowListOptions = {}) {
     try {
       const flows = await this.flowLoader.loadAllFlows();
 
@@ -85,7 +98,7 @@ export class FlowCommands {
     }
   }
 
-  async showFlow(flowId: string, options: any = {}) {
+  async showFlow(flowId: string, options: FlowShowOptions = {}) {
     try {
       const flow = await this.flowLoader.loadFlow(flowId);
 
@@ -137,7 +150,7 @@ export class FlowCommands {
     }
   }
 
-  async validateFlow(flowId: string, options: any = {}) {
+  async validateFlow(flowId: string, options: FlowValidateOptions = {}) {
     try {
       const validation = await this.flowValidator.validateFlow(flowId);
 
@@ -159,7 +172,7 @@ export class FlowCommands {
     }
   }
 
-  private renderDependencyGraph(flow: any): string {
+  private renderDependencyGraph(flow: Flow): string {
     // Simple text-based dependency graph
     const lines: string[] = [];
     for (const step of flow.steps) {

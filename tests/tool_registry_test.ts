@@ -47,7 +47,7 @@ Deno.test("ToolRegistry: read_file - successful read", async () => {
     const result = await helper.execute(McpToolName.READ_FILE, { path: testFile });
 
     assertEquals(result.success, true);
-    assertEquals(result.data?.content, "Hello, World!");
+    assertEquals((result.data as { content: string })?.content, "Hello, World!");
     assertEquals(result.error, undefined);
 
     await helper.waitForLogging();
@@ -172,12 +172,13 @@ Deno.test("ToolRegistry: list_directory - lists files and folders", async () => 
     });
 
     assertEquals(result.success, true);
-    assertExists(result.data?.entries);
-    assertEquals(Array.isArray(result.data.entries), true);
-    assertEquals(result.data.entries.length >= 3, true);
+    const data = result.data as { entries: { name: string; isDirectory: boolean }[] };
+    assertExists(data?.entries);
+    assertEquals(Array.isArray(data.entries), true);
+    assertEquals(data.entries.length >= 3, true);
 
     // Check entries have name and isDirectory
-    const entry = result.data.entries[0];
+    const entry = data.entries[0];
     assertExists(entry.name);
     assertEquals(typeof entry.isDirectory, "boolean");
   } finally {
@@ -218,8 +219,9 @@ Deno.test("ToolRegistry: run_command - executes whitelisted command", async () =
     });
 
     assertEquals(result.success, true);
-    assertExists(result.data?.output);
-    assertEquals(result.data.output.includes("Hello"), true);
+    const data = result.data as { output: string };
+    assertExists(data?.output);
+    assertEquals(data.output.includes("Hello"), true);
   } finally {
     await cleanup();
   }
@@ -263,9 +265,10 @@ Deno.test("ToolRegistry: search_files - finds files by pattern", async () => {
     });
 
     assertEquals(result.success, true);
-    assertExists(result.data?.files);
-    assertEquals(Array.isArray(result.data.files), true);
-    assertEquals(result.data.files.length >= 2, true);
+    const data = result.data as { files: string[] };
+    assertExists(data?.files);
+    assertEquals(Array.isArray(data.files), true);
+    assertEquals(data.files.length >= 2, true);
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });
@@ -560,8 +563,10 @@ Deno.test("[security] ToolRegistry: run_command - blocks shell injection with se
     // Check that rm was not in the output (if it succeeded) or command was blocked
     if (result.success) {
       // If echo succeeded, verify it didn't execute rm
+      const data = result.data as { output: string };
       assertEquals(
-        result.data?.output?.includes("rm") === false || result.data?.output?.includes("hello; rm -rf /"),
+        data?.output?.includes("rm") === false ||
+          data?.output?.includes("hello; rm -rf /"),
         true,
         "Shell injection should be treated as literal string",
       );
@@ -589,7 +594,7 @@ Deno.test("[security] ToolRegistry: run_command - blocks backtick command substi
 
     if (result.success) {
       // If echo succeeded, verify backticks were treated as literal
-      const output = result.data?.output || "";
+      const output = (result.data as { output: string })?.output || "";
       // Should output literal backticks, not the result of whoami
       assertEquals(
         output.includes("`whoami`") || !output.includes(Deno.env.get("USER") || ""),
@@ -617,7 +622,7 @@ Deno.test("[security] ToolRegistry: run_command - blocks $() command substitutio
 
     if (result.success) {
       // If echo succeeded, verify $() was treated as literal
-      const output = result.data?.output || "";
+      const output = (result.data as { output: string })?.output || "";
       assertEquals(
         output.includes("$(cat /etc/passwd)") || !output.includes("root:"),
         true,
@@ -644,7 +649,7 @@ Deno.test("[security] ToolRegistry: run_command - blocks pipe to dangerous comma
 
     if (result.success) {
       // Pipe should be treated as literal, not executed
-      const output = result.data?.output || "";
+      const output = (result.data as { output: string })?.output || "";
       assertEquals(
         output.includes("|") || output.includes("data | rm"),
         true,

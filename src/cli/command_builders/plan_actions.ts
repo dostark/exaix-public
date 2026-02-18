@@ -8,10 +8,22 @@
  */
 
 import type { PlanCommands } from "../commands/plan_commands.ts";
+import { PlanStatus } from "../../plans/plan_status.ts";
+import type { EventLogger } from "../../services/event_logger.ts";
+import { toSafeJson } from "../../flows/transforms.ts";
+import type { JsonValue } from "../../flows/transforms.ts";
 
 export interface PlanActionContext {
   planCommands: PlanCommands;
-  display: any;
+  display: EventLogger;
+}
+
+export interface PlanListOptions {
+  status?: PlanStatus;
+}
+
+export interface PlanApproveOptions {
+  skills?: string;
 }
 
 /**
@@ -19,7 +31,7 @@ export interface PlanActionContext {
  */
 export async function handlePlanList(
   context: PlanActionContext,
-  options: any,
+  options: PlanListOptions,
 ): Promise<void> {
   const { planCommands, display } = context;
 
@@ -53,7 +65,7 @@ export async function handlePlanList(
         displayData.priority = plan.request_priority;
       }
 
-      display.info(`${statusIcon} ${plan.id}`, plan.id, displayData);
+      display.info(`${statusIcon} ${plan.id}`, plan.id, toSafeJson(displayData) as Record<string, JsonValue>);
     }
   } catch (error) {
     display.error("cli.error", "plan list", {
@@ -117,7 +129,7 @@ export async function handlePlanShow(
       displayData.token_cost_usd = plan.token_cost_usd;
     }
 
-    display.info("plan.show", plan.id, displayData);
+    display.info("plan.show", plan.id, toSafeJson(displayData) as Record<string, JsonValue>);
     display.info("plan.content", id, { content: plan.content });
   } catch (error) {
     display.error("cli.error", "plan show", {
@@ -133,7 +145,7 @@ export async function handlePlanShow(
 export async function handlePlanApprove(
   context: PlanActionContext,
   id: string,
-  options: any,
+  options: PlanApproveOptions,
 ): Promise<void> {
   const { planCommands, display } = context;
 

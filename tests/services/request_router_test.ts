@@ -68,12 +68,9 @@ Deno.test("RequestRouter: throws error for invalid flow ID", async () => {
 Deno.test("RequestRouter: throws error for conflicting flow and agent fields", async () => {
   const { router } = createRouterTestContext();
 
-  const request = {
-    traceId: "test-trace-123",
-    requestId: "req-123",
+  const request = sampleRouterRequest({
     frontmatter: { flow: "code-review", agent: "senior-coder" },
-    body: "Test request body",
-  };
+  });
 
   await assertRejects(
     () => router.route(request),

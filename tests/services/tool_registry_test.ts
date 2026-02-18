@@ -207,11 +207,11 @@ Deno.test("ToolRegistry: should write and read files", async () => {
     const writeResult = await registry.execute("write_file", { path: filePath, content });
 
     assert(writeResult.success);
-    assertEquals(writeResult.data.path, join(tempDir, filePath));
+    assertEquals((writeResult.data as { path: string }).path, join(tempDir, filePath));
 
     const readResult = await registry.execute("read_file", { path: filePath });
     assert(readResult.success);
-    assertEquals(readResult.data.content, content);
+    assertEquals((readResult.data as { content: string }).content, content);
   });
 });
 
@@ -223,7 +223,7 @@ Deno.test("ToolRegistry: should list directory contents", async () => {
 
     const listResult = await registry.execute("list_directory", { path: "Workspace" });
     assert(listResult.success);
-    const entries = listResult.data.entries as Array<{ name: string; isDirectory: boolean }>;
+    const entries = (listResult.data as { entries: Array<{ name: string; isDirectory: boolean }> }).entries;
 
     assert(entries.some((e) => e.name === "file1.txt" && !e.isDirectory));
     assert(entries.some((e) => e.name === "subdir" && e.isDirectory));
@@ -240,7 +240,7 @@ Deno.test("ToolRegistry: should search files", async () => {
 
     const searchResult = await registry.execute("search_files", { path: "Workspace", pattern: "**/*.ts" });
     assert(searchResult.success);
-    const files = searchResult.data.files as string[];
+    const files = (searchResult.data as { files: string[] }).files;
 
     assertEquals(files.length, 2);
     assert(files.some((f) => f.endsWith("main.ts")));

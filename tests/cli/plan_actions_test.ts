@@ -6,7 +6,10 @@ import {
   handlePlanReject,
   handlePlanRevise,
   handlePlanShow,
+  type PlanActionContext,
 } from "../../src/cli/command_builders/plan_actions.ts";
+import type { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
+import type { EventLogger } from "../../src/services/event_logger.ts";
 
 function createDisplay() {
   const calls: Array<{ level: "info" | "error"; a: string; b: string; c: any }> = [];
@@ -23,7 +26,11 @@ Deno.test("handlePlanList: displays empty result", async () => {
     list: () => Promise.resolve([]),
   };
 
-  await handlePlanList({ planCommands: planCommands as any, display }, { status: "review" });
+  const context: PlanActionContext = {
+    planCommands: planCommands as unknown as PlanCommands,
+    display: display as unknown as EventLogger,
+  };
+  await handlePlanList(context, { status: "review" });
 
   assertEquals(calls.length, 1);
   assertEquals(calls[0].a, "plan.list");
@@ -48,7 +55,11 @@ Deno.test("handlePlanList: displays plan rows with truncation", async () => {
       ]),
   };
 
-  await handlePlanList({ planCommands: planCommands as any, display }, { status: "review" });
+  const context: PlanActionContext = {
+    planCommands: planCommands as unknown as PlanCommands,
+    display: display as unknown as EventLogger,
+  };
+  await handlePlanList(context, { status: "review" });
 
   assertEquals(calls.length, 2);
   assertEquals(calls[1].a.startsWith("🔍 p1"), true);
@@ -76,7 +87,11 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
       }),
   };
 
-  await handlePlanShow({ planCommands: planCommands as any, display }, "p1");
+  const context: PlanActionContext = {
+    planCommands: planCommands as unknown as PlanCommands,
+    display: display as unknown as EventLogger,
+  };
+  await handlePlanShow(context, "p1");
 
   assertEquals(calls.length, 2);
   assertEquals(calls[0].a, "plan.show");
@@ -99,8 +114,12 @@ Deno.test("handlePlanApprove: splits skills", async () => {
     },
   };
 
-  await handlePlanApprove({ planCommands: planCommands as any, display }, "p1", { skills: "a, b" });
-  assertEquals((calls[0] as any).skills, ["a", "b"]);
+  const context: PlanActionContext = {
+    planCommands: planCommands as unknown as PlanCommands,
+    display: display as unknown as EventLogger,
+  };
+  await handlePlanApprove(context, "p1", { skills: "a, b" });
+  assertEquals((calls[0] as { skills: string[] }).skills, ["a", "b"]);
 });
 
 Deno.test("handlePlanReject/Revise: delegates", async () => {
@@ -117,8 +136,12 @@ Deno.test("handlePlanReject/Revise: delegates", async () => {
     },
   };
 
-  await handlePlanReject({ planCommands: planCommands as any, display }, "p", "r");
-  await handlePlanRevise({ planCommands: planCommands as any, display }, "p", ["c"]);
+  const context: PlanActionContext = {
+    planCommands: planCommands as unknown as PlanCommands,
+    display: display as unknown as EventLogger,
+  };
+  await handlePlanReject(context, "p", "r");
+  await handlePlanRevise(context, "p", ["c"]);
 
   assertEquals(calls, ["reject", "revise"]);
 });

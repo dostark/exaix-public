@@ -1,9 +1,25 @@
-Target: Minimum 70% branch coverage on new features. Request an implementation with a coverage target and add tests to cover uncovered branches using `deno test --coverage`.
+- Prefer `createCliTestContext()` for CLI tests and call returned `cleanup()` in `afterEach`
 
-### Advanced Testing Patterns
+Canonical prompt (short):
+"You are a test-writing assistant for ExoFrame. List failing test names and assertions first, using `initTestDbService()` or `createCliTestContext()` where appropriate."
 
-- **Refactoring & Duplication**: Use `npx jscpd src tests` to find duplicated test setup code. Extract helpers (e.g., `GitTestHelper`, `ToolRegistryTestHelper`) to keep tests DRY.
-- **Paranoid Security Testing**: Ask agents to write "paranoid" tests: path traversal, command injection, symlink escapes. Whitelists beat blacklists.
-- **Performance Testing**: Don't guess—measure. Ask agents to write benchmarks or load tests to verify async behavior (e.g., batched logging).
+Examples
 
-### Test Organization and Deduplication
+- Example prompt: "Write tests that verify PlanWriter handles missing files and empty JSON. Use `initTestDbService()` and ensure cleanup is called."
+
+Example snippet
+
+```typescript
+const { db, tempDir, cleanup } = await initTestDbService();
+try {
+  // test actions
+} finally {
+  await cleanup();
+}
+```
+
+Examples section
+
+- Example prompt: "Provide 3 failing unit tests showing how PlanWriter handles malformed plan.json and missing permissions."
+
+## Full migration: Test guidelines (extended)

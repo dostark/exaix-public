@@ -7,6 +7,7 @@ import { createMockConfig } from "../helpers/config.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import type { Config } from "../../src/config/schema.ts";
 import { setupPortalWorkspaceTestDirs } from "./helpers/portal_workspace_test_helper.ts";
+import { sampleRouterRequest } from "./helpers.ts";
 
 /**
  * TDD Tests for RequestRouter WorkspaceExecutionContext Integration
@@ -82,14 +83,14 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
 
   describe("buildExecutionContext method", () => {
     it("creates portal context when request has portal parameter", () => {
-      const request = {
+      const request = sampleRouterRequest({
         traceId: "trace-1",
         requestId: "req-1",
         frontmatter: {
           portal: "test-portal",
         },
         body: "test request",
-      };
+      });
 
       const context = router.buildExecutionContext(request);
 
@@ -100,12 +101,12 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     });
 
     it("creates workspace context when request has no portal parameter", () => {
-      const request = {
+      const request = sampleRouterRequest({
         traceId: "trace-1",
         requestId: "req-1",
         frontmatter: {},
         body: "test request",
-      };
+      });
 
       const context = router.buildExecutionContext(request);
 
@@ -116,14 +117,14 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     });
 
     it("throws error for invalid portal alias", () => {
-      const request = {
+      const request = sampleRouterRequest({
         traceId: "trace-1",
         requestId: "req-1",
         frontmatter: {
           portal: "non-existent-portal",
         },
         body: "test request",
-      };
+      });
 
       try {
         router.buildExecutionContext(request);
@@ -139,7 +140,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
 
   describe("route method integration", () => {
     it("builds and uses portal context for agent requests", () => {
-      const request = {
+      const request = sampleRouterRequest({
         traceId: "trace-1",
         requestId: "req-1",
         frontmatter: {
@@ -147,7 +148,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
           portal: "test-portal",
         },
         body: "test request",
-      };
+      });
 
       // Verify context is built correctly
       const context = router.buildExecutionContext(request);
@@ -157,14 +158,14 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     });
 
     it("builds and uses workspace context for agent requests without portal", () => {
-      const request = {
+      const request = sampleRouterRequest({
         traceId: "trace-1",
         requestId: "req-1",
         frontmatter: {
           agent: "test-agent",
         },
         body: "test request",
-      };
+      });
 
       // Verify context is built correctly
       const context = router.buildExecutionContext(request);
@@ -174,7 +175,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     });
 
     it("builds and uses portal context for flow requests", () => {
-      const request = {
+      const request = sampleRouterRequest({
         traceId: "trace-1",
         requestId: "req-1",
         frontmatter: {
@@ -182,7 +183,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
           portal: "test-portal",
         },
         body: "test request",
-      };
+      });
 
       // Verify context is built correctly
       const context = router.buildExecutionContext(request);
@@ -194,14 +195,14 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
 
   describe("portal validation", () => {
     it("validates portal exists before creating context", () => {
-      const request = {
+      const request = sampleRouterRequest({
         traceId: "trace-1",
         requestId: "req-1",
         frontmatter: {
           portal: "invalid-portal",
         },
         body: "test request",
-      };
+      });
 
       try {
         router.buildExecutionContext(request);
@@ -215,7 +216,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     });
 
     it("validates portal has required permissions", () => {
-      const request = {
+      const request = sampleRouterRequest({
         traceId: "trace-1",
         requestId: "req-1",
         frontmatter: {
@@ -223,7 +224,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
           agent: "restricted-agent",
         },
         body: "test request",
-      };
+      });
 
       // This test will require portal permission checks
       // For now, just verify context is created
@@ -236,7 +237,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
 
   describe("context lifecycle", () => {
     it("context can be built for portal requests", () => {
-      const request = {
+      const request = sampleRouterRequest({
         traceId: "trace-1",
         requestId: "req-1",
         frontmatter: {
@@ -244,7 +245,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
           portal: "test-portal",
         },
         body: "test request",
-      };
+      });
 
       const context = router.buildExecutionContext(request);
 
@@ -255,14 +256,14 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     });
 
     it("context can be built for workspace requests", () => {
-      const request = {
+      const request = sampleRouterRequest({
         traceId: "trace-1",
         requestId: "req-1",
         frontmatter: {
           agent: "test-agent",
         },
         body: "test request",
-      };
+      });
 
       const context = router.buildExecutionContext(request);
 

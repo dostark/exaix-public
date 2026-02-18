@@ -34,7 +34,7 @@ Deno.test("ToolRegistry: fetch_url", async (t) => {
     try {
       const result = await registry.execute("fetch_url", { url: "https://example.com/docs" });
       assertEquals(result.success, true);
-      assertEquals(result.data?.content, "Hello World");
+      assertEquals((result.data as { content: string })?.content, "Hello World");
     } finally {
       fetchStub.restore();
     }

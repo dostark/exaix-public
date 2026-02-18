@@ -8,7 +8,7 @@
  */
 
 // --- Adapter: PlanCommands as PlanService ---
-import type { PlanCommands } from "../cli/commands/plan_commands.ts";
+import type { PlanCommands, PlanMetadata } from "../cli/commands/plan_commands.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "../helpers/dialog_base.ts";
@@ -165,11 +165,11 @@ export interface PlanService {
  */
 export class PlanCommandsServiceAdapter implements PlanService {
   constructor(private readonly cmd: PlanCommands) {}
-  async listPending() {
-    const rows = await this.cmd.list(PlanStatus.REVIEW);
-    return rows.map((r: any) => ({
+  async listPending(): Promise<Plan[]> {
+    const rows: PlanMetadata[] = await this.cmd.list(PlanStatus.REVIEW);
+    return rows.map((r: PlanMetadata) => ({
       id: r.id,
-      title: (r as any).title ?? r.id,
+      title: r.request_title ?? r.id,
       author: r.agent_id ?? r.reviewed_by,
       status: r.status,
     }));
@@ -189,11 +189,20 @@ export class PlanCommandsServiceAdapter implements PlanService {
   }
 }
 
+// ===== Mock DB Interface =====
+
+export interface DbLike {
+  getPendingPlans(): Promise<Plan[]>;
+  getPlanDiff(planId: string): Promise<string>;
+  updatePlanStatus(planId: string, status: PlanStatusType): Promise<void>;
+  logActivity(activity: Record<string, unknown>): Promise<void>;
+}
+
 /**
  * Adapter: DB-like mock as PlanService
  */
 export class DbLikePlanServiceAdapter implements PlanService {
-  constructor(private readonly dbLike: any) {}
+  constructor(private readonly dbLike: DbLike) {}
   listPending() {
     return this.dbLike.getPendingPlans();
   }

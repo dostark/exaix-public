@@ -4,6 +4,7 @@ import type { DatabaseService } from "../../src/services/db.ts";
 import { createMockConfig } from "./config.ts";
 import { initTestDbService } from "./db.ts";
 import { getMemoryProjectsDir } from "./paths_helper.ts";
+import { type JsonValue, toSafeJson } from "../../src/flows/transforms.ts";
 
 /**
  * Test helper for ToolRegistry tests
@@ -83,7 +84,7 @@ export class ToolRegistryTestHelper {
    * Executes a tool and returns the result
    */
   async execute(toolName: string, params: Record<string, unknown>) {
-    return await this.registry.execute(toolName, params);
+    return await this.registry.execute(toolName, toSafeJson(params) as Record<string, JsonValue>);
   }
 
   /**

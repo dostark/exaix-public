@@ -71,7 +71,7 @@ Deno.test("ToolRegistry: E2E Workflow", async (t) => {
     try {
       const docs = await registry.execute("fetch_url", { url: "https://example.com/spec" });
       assertEquals(docs.success, true);
-      assertEquals(docs.data.content, "Greeting Spec: Use 'Hello World'");
+      assertEquals((docs.data as { content: string }).content, "Greeting Spec: Use 'Hello World'");
     } finally {
       fetchStub.restore();
     }
@@ -87,7 +87,7 @@ Deno.test("ToolRegistry: E2E Workflow", async (t) => {
       ],
     });
     assertEquals(patch.success, true);
-    assertEquals((patch.data as any).appliedCount, 2);
+    assertEquals((patch.data as { appliedCount: number }).appliedCount, 2);
 
     const content = await Deno.readTextFile(join(tempDir, "main.ts"));
     assertEquals(content.includes("Hello World"), true);

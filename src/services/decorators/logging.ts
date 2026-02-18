@@ -7,15 +7,27 @@
  * @related-files [src/services/event_logger.ts]
  */
 import { EventLogger } from "../event_logger.ts";
-export function LogMethod(logger: EventLogger, action?: string): any {
-  return function (target: any, contextOrKey: any, descriptor?: PropertyDescriptor) {
-    const createWrapper = (originalMethod: (...args: any[]) => any, methodName: string) => {
-      return async function (this: any, ...args: any[]) {
-        const actionName = action || `${this.constructor.name}.${methodName}`;
+import { toSafeJson } from "../../flows/transforms.ts";
+export function LogMethod(logger: EventLogger, action?: string) {
+  return function <This, Args extends unknown[], Return>(
+    target: (this: This, ...args: Args) => Return,
+    contextOrKey: ClassMethodDecoratorContext<This, (this: This, ...args: Args) => Return> | string,
+    descriptor?: TypedPropertyDescriptor<(this: This, ...args: Args) => Return>,
+  ): any {
+    const createWrapper = (
+      originalMethod: (this: This, ...args: Args) => Return,
+      methodName: string,
+    ) => {
+      return async function (this: This, ...args: Args): Promise<Awaited<Return>> {
+        const constructor = (this as { constructor?: { name?: string } }).constructor;
+        const className = constructor?.name || "Unknown";
+        const actionName = action || `${className}.${methodName}`;
         const startTime = typeof performance !== "undefined" ? performance.now() : Date.now();
         try {
-          await logger.debug(actionName, "started", { args });
-          const result = await originalMethod.apply(this, args);
+          // Log cached arguments
+          await logger.debug(actionName, "started", { args: toSafeJson(args) });
+          // Note: we must await originalMethod regardless of whether it's sync or async
+          const result = await (originalMethod.apply(this, args) as any);
           const duration = (typeof performance !== "undefined" ? performance.now() : Date.now()) - startTime;
           await logger.info(actionName, "completed", { duration });
           return result;
@@ -28,20 +40,18 @@ export function LogMethod(logger: EventLogger, action?: string): any {
       };
     };
 
-    // Check for Standard Decorator (2 arguments: value, context)
-    // context object has 'kind', 'name', etc.
-    if (descriptor === undefined && contextOrKey && typeof contextOrKey === "object" && "kind" in contextOrKey) {
+    // Standard Decorator
+    if (descriptor === undefined && typeof contextOrKey === "object" && "kind" in contextOrKey) {
       const originalMethod = target;
-      const context = contextOrKey as ClassMethodDecoratorContext;
-      const methodName = String(context.name);
+      const methodName = String(contextOrKey.name);
       return createWrapper(originalMethod, methodName);
     }
 
-    // Fallback to Experimental Decorator (3 arguments: target, propertyKey, descriptor)
-    const originalMethod = descriptor!.value;
+    // Experimental Decorator
+    const originalMethod = descriptor!.value!;
     const propertyKey = contextOrKey as string;
 
-    descriptor!.value = createWrapper(originalMethod, propertyKey);
+    descriptor!.value = createWrapper(originalMethod, propertyKey) as any;
     return descriptor;
   };
 }

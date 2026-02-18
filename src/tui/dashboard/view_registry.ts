@@ -16,6 +16,7 @@ import { AgentStatusView } from "../agent_status_view.ts";
 import { RequestManagerView } from "../request_manager_view.ts";
 import { MemoryView } from "../memory_view.ts";
 import { SkillsManagerView } from "../skills_manager_view.ts";
+import { type TuiView } from "../tui_dashboard.ts";
 import {
   MockAgentService,
   MockDaemonService,
@@ -38,7 +39,7 @@ export interface DashboardViewOptions {
 /**
  * Initialize all views for the TUI dashboard
  */
-export function initDashboardViews(options: DashboardViewOptions = {}): any[] {
+export function initDashboardViews(options: DashboardViewOptions = {}): TuiView[] {
   const portalService = new MockPortalService();
   const planService = new MockPlanService();
   const logService = options.databaseService || new MockLogService();
@@ -66,7 +67,7 @@ export function initDashboardViews(options: DashboardViewOptions = {}): any[] {
     Object.assign(new MemoryView(memoryService), { name: "MemoryView" }),
     Object.assign(new SkillsManagerView(skillsService), { name: "SkillsManagerView" }),
   ].map((view) => {
-    const v: any = view;
+    const v: TuiView = view as unknown as TuiView;
     if (typeof v.getFocusableElements !== "function") {
       if (v.name === "PortalManagerView") {
         v.getFocusableElements = () => ["portal-list", "action-buttons", "status-bar"];

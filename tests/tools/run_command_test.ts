@@ -23,7 +23,7 @@ Deno.test("ToolRegistry: run_command", async (t) => {
       args: ["Hello", "World"],
     });
     assertEquals(result.success, true);
-    assertEquals(result.data?.output.trim(), "Hello World");
+    assertEquals((result.data as { output: string })?.output.trim(), "Hello World");
   });
 
   await t.step("blocks non-whitelisted command (rm)", async () => {

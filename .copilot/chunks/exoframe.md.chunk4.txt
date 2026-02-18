@@ -1,9 +1,9 @@
-- **Runtime Persistence**: The .exo/Active, Workspace/Requests, and Workspace/Plans folders are the "Database". Code must respect file-system atomicity (use `writeTextFile` with atomic renaming where possible).
-- **Activity Journal**: All side-effects (file writes, executions, errors) MUST be logged to the Activity Journal (`.exo/journal.db`) via `EventLogger`.
-- **Security Modes**:
-  - **Sandboxed**: No network, no file access (default).
-  - **Hybrid**: Read-only access to specific "Portal" paths.
-  - **Note**: Always use `PathResolver` to validate paths before access.
-- **MCP Enforcement**: In Hybrid mode, agents can read files directly but MUST use MCP tools for writes (to ensure auditability).
+### Configuration Schema
 
-### Configuration Constants & Magic Numbers
+Use Zod for config validation and keep config options in `exo.config.toml` examples. Provide default values and bounds where possible.
+
+### Service Pattern
+
+Constructor-based DI: pass `config`, `db`, and `provider` into services. Keep side effects out of constructors where feasible.
+
+### System Constraints & Patterns

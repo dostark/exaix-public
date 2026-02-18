@@ -124,11 +124,12 @@ Deno.test("approve moves plan and logs activity via PlanCommands", async () => {
 Deno.test("DB-like path logs reviewer and reason", async () => {
   const logs: any[] = [];
   const dbLike = {
-    getPendingPlans: () => [{ id: "p", title: "T" }],
-    getPlanDiff: () => "diff",
-    updatePlanStatus: (_id: string, _status: string) => {},
+    getPendingPlans: () => Promise.resolve([{ id: "p", title: "T" }]),
+    getPlanDiff: () => Promise.resolve("diff"),
+    updatePlanStatus: (_id: string, _status: string) => Promise.resolve(),
     logActivity: (evt: Record<string, unknown>) => {
       logs.push(evt);
+      return Promise.resolve();
     },
   };
   const view = new PlanReviewerView(new DbLikePlanServiceAdapter(dbLike));
@@ -250,13 +251,15 @@ Deno.test("PlanReviewerTuiSession: edge cases (no plans, invalid selection)", ()
 Deno.test("PlanReviewerView: works with DB-like service", async () => {
   let updated = false, logged = false;
   const dbLike = {
-    getPendingPlans: () => [{ id: "p", title: "T" }],
-    getPlanDiff: (id: string) => `diff-${id}`,
+    getPendingPlans: () => Promise.resolve([{ id: "p", title: "T" }]),
+    getPlanDiff: (id: string) => Promise.resolve(`diff-${id}`),
     updatePlanStatus: () => {
       updated = true;
+      return Promise.resolve();
     },
     logActivity: () => {
       logged = true;
+      return Promise.resolve();
     },
   };
   const view = new PlanReviewerView(new DbLikePlanServiceAdapter(dbLike));

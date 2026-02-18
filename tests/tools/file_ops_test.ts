@@ -28,7 +28,7 @@ Deno.test("ToolRegistry: core file operations", async (t) => {
     // Read
     const readResult = await registry.execute("read_file", { path: filePath });
     assertEquals(readResult.success, true);
-    assertEquals(readResult.data?.content, content);
+    assertEquals((readResult.data as { content: string })?.content, content);
   });
 
   await t.step("create_directory and list_directory", async () => {
@@ -41,7 +41,8 @@ Deno.test("ToolRegistry: core file operations", async (t) => {
     // List
     const listResult = await registry.execute("list_directory", { path: "nested" });
     assertEquals(listResult.success, true);
-    assertEquals(listResult.data?.entries.some((e: any) => e.name === "dir" && e.isDirectory), true);
+    const data = listResult.data as { entries: { name: string; isDirectory: boolean }[] };
+    assertEquals(data?.entries.some((e: any) => e.name === "dir" && e.isDirectory), true);
   });
 
   await t.step("search_files", async () => {
@@ -51,9 +52,10 @@ Deno.test("ToolRegistry: core file operations", async (t) => {
 
     const result = await registry.execute("search_files", { pattern: "*.ts", path: "." });
     assertEquals(result.success, true);
-    assertEquals(result.data?.files.length >= 2, true);
-    assertEquals(result.data?.files.some((f: string) => f.endsWith("search1.ts")), true);
-    assertEquals(result.data?.files.some((f: string) => f.endsWith("search2.ts")), true);
+    const data = result.data as { files: string[] };
+    assertEquals(data?.files.length >= 2, true);
+    assertEquals(data?.files.some((f: string) => f.endsWith("search1.ts")), true);
+    assertEquals(data?.files.some((f: string) => f.endsWith("search2.ts")), true);
   });
 
   await t.step("security restrictions", async () => {

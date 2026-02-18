@@ -9,11 +9,32 @@
 
 import type { RequestCommands } from "../commands/request_commands.ts";
 import { RequestPriority } from "../../enums.ts";
+import { RequestStatus } from "../../requests/request_status.ts";
 import { PRIORITY_ICONS } from "../cli.config.ts";
+import type { EventLogger } from "../../services/event_logger.ts";
+import { JsonValue, toSafeJson } from "../../flows/transforms.ts";
 
 export interface RequestActionContext {
   requestCommands: RequestCommands;
-  display: any;
+  display: EventLogger;
+}
+
+export interface RequestCreateOptions {
+  file?: string;
+  agent?: string;
+  priority?: string | RequestPriority;
+  portal?: string;
+  targetBranch?: string;
+  model?: string;
+  flow?: string;
+  skills?: string;
+  json?: boolean;
+  dryRun?: boolean;
+}
+
+export interface RequestListOptions {
+  status?: RequestStatus;
+  json?: boolean;
 }
 
 /**
@@ -21,7 +42,7 @@ export interface RequestActionContext {
  */
 export async function handleRequestCreate(
   context: RequestActionContext,
-  options: any,
+  options: RequestCreateOptions,
   description?: string,
 ): Promise<void> {
   const { requestCommands, display } = context;
@@ -78,7 +99,7 @@ export async function handleRequestCreate(
  */
 export async function handleRequestList(
   context: RequestActionContext,
-  options: any,
+  options: RequestListOptions,
 ): Promise<void> {
   const { requestCommands, display } = context;
 
@@ -94,13 +115,17 @@ export async function handleRequestList(
       display.info("request.list", "requests", { count: requests.length });
       for (const req of requests) {
         const priorityIcon = PRIORITY_ICONS[req.priority] || PRIORITY_ICONS.default;
-        display.info(`${priorityIcon} ${req.trace_id.slice(0, 8)}`, req.trace_id, {
-          status: req.status,
-          agent: req.flow ? undefined : req.agent,
-          flow: req.flow,
-          target_branch: req.target_branch,
-          created: `${req.created_by} @ ${req.created}`,
-        });
+        display.info(
+          `${priorityIcon} ${req.trace_id.slice(0, 8)}`,
+          req.trace_id,
+          toSafeJson({
+            status: req.status,
+            agent: req.flow ? undefined : req.agent,
+            flow: req.flow,
+            target_branch: req.target_branch,
+            created: `${req.created_by} @ ${req.created}`,
+          }) as Record<string, JsonValue>,
+        );
       }
     }
   } catch (error) {
@@ -154,7 +179,7 @@ export async function handleRequestShow(
       displayData.error = metadata.error;
     }
 
-    display.info("request.show", metadata.trace_id.slice(0, 8), displayData);
+    display.info("request.show", metadata.trace_id.slice(0, 8), toSafeJson(displayData) as Record<string, JsonValue>);
     display.info("request.content", id, { content });
   } catch (error) {
     display.error("cli.error", "request show", {
@@ -169,7 +194,14 @@ export async function handleRequestShow(
  */
 function printRequestResult(
   context: RequestActionContext,
-  result: any,
+  result: {
+    priority: RequestPriority;
+    trace_id: string;
+    filename: string;
+    agent?: string;
+    flow?: string;
+    status: string;
+  },
   json: boolean,
   _dryRun: boolean,
 ): void {
@@ -179,13 +211,17 @@ function printRequestResult(
     console.log(JSON.stringify(result, null, 2));
   } else {
     const priorityIcon = PRIORITY_ICONS[result.priority] || PRIORITY_ICONS.default;
-    display.info("request.created", result.trace_id.slice(0, 8), {
-      trace_id: result.trace_id,
-      filename: result.filename,
-      priority: `${priorityIcon} ${result.priority}`,
-      agent: result.flow ? undefined : result.agent,
-      flow: result.flow,
-      status: result.status,
-    });
+    display.info(
+      "request.created",
+      result.trace_id.slice(0, 8),
+      toSafeJson({
+        trace_id: result.trace_id,
+        filename: result.filename,
+        priority: `${priorityIcon} ${result.priority}`,
+        agent: result.flow ? undefined : result.agent,
+        flow: result.flow,
+        status: result.status,
+      }) as Record<string, JsonValue>,
+    );
   }
 }

@@ -7,7 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts, src/tui/tui_helpers/prod_handle_key.ts]
  */
 
-import type { Pane } from "../tui_dashboard.ts";
+import type { Pane, TuiDashboard, TuiView } from "../tui_dashboard.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 
@@ -17,23 +17,23 @@ import { KEYS } from "../../helpers/keyboard.ts";
  * Handle overlay and picker keys
  */
 async function handleOverlayKeys(
-  dashboard: any,
+  dashboard: TuiDashboard,
   key: string,
   panes: Pane[],
-  views: any[],
+  views: TuiView[],
   viewPickerRef: { index: number },
 ): Promise<number | null> {
   if (dashboard.state.showHelp) {
-    return await (dashboard as any).handleHelpOverlay?.(dashboard, key, panes) ?? 0;
+    return await dashboard.handleHelpOverlay?.(dashboard, key, panes) ?? 0;
   }
 
   if (dashboard.state.showMemoryNotifications) {
-    return await (dashboard as any).handleMemoryNotifications?.(dashboard, key, panes, dashboard.notificationService) ??
+    return await dashboard.handleMemoryNotifications?.(dashboard, key, panes, dashboard.notificationService) ??
       0;
   }
 
   if (dashboard.state.showViewPicker) {
-    const idx = (dashboard as any).handleViewPicker?.(dashboard, key, views, panes, viewPickerRef) ?? -1;
+    const idx = dashboard.handleViewPicker?.(dashboard, key, views, panes, viewPickerRef) ?? -1;
     return idx;
   }
 
@@ -43,7 +43,7 @@ async function handleOverlayKeys(
 /**
  * Handle state toggle keys
  */
-function handleStateToggleKeys(dashboard: any, key: string, viewPickerRef: { index: number }): boolean {
+function handleStateToggleKeys(dashboard: TuiDashboard, key: string, viewPickerRef: { index: number }): boolean {
   const k = key.toLowerCase();
 
   if (k === KEYS.QUESTION || k === KEYS.F1) {
@@ -75,7 +75,7 @@ function handleStateToggleKeys(dashboard: any, key: string, viewPickerRef: { ind
  * Handle pane navigation keys
  */
 function handlePaneNavigationKeys(
-  dashboard: any,
+  dashboard: TuiDashboard,
   key: string,
   panes: Pane[],
 ): boolean {
@@ -85,8 +85,9 @@ function handlePaneNavigationKeys(
     const currentIndex = panes.findIndex((p) => p.id === dashboard.activePaneId);
     // Debug: ensure panes and activePaneId are as expected during tests
     if (
-      (globalThis as any).Deno && (globalThis as any).Deno.env &&
-      (globalThis as any).Deno.env.get("EXO_TEST_LOG_TAB_DEBUG") === "1"
+      (globalThis as unknown as { Deno?: { env: { get(k: string): string | undefined } } }).Deno?.env.get(
+        "EXO_TEST_LOG_TAB_DEBUG",
+      ) === "1"
     ) {
       console.debug(
         "[TUI][DEBUG] TAB pressed: panes=",
@@ -131,10 +132,10 @@ function handlePaneNavigationKeys(
  * Handle pane management keys (split, close, maximize)
  */
 async function handlePaneManagementKeys(
-  dashboard: any,
+  dashboard: TuiDashboard,
   key: string,
   panes: Pane[],
-  views: any[],
+  views: TuiView[],
 ): Promise<boolean> {
   const k = key.toLowerCase();
 
@@ -172,7 +173,7 @@ async function handlePaneManagementKeys(
 /**
  * Handle layout operation keys (resize, save, restore)
  */
-async function handleLayoutOperationKeys(dashboard: any, key: string, panes: Pane[]): Promise<boolean> {
+async function handleLayoutOperationKeys(dashboard: TuiDashboard, key: string, panes: Pane[]): Promise<boolean> {
   const k = key.toLowerCase();
 
   if (k === KEYS.CTRL_LEFT.toLowerCase()) {
@@ -214,10 +215,10 @@ async function handleLayoutOperationKeys(dashboard: any, key: string, panes: Pan
 }
 
 export async function testModeHandleKey(
-  dashboard: any,
+  dashboard: TuiDashboard,
   key: string,
   panes: Pane[],
-  views: any[],
+  views: TuiView[],
   viewPickerRef: { index: number },
 ): Promise<number> {
   // 1. Handle overlays and pickers

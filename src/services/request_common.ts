@@ -32,6 +32,25 @@ export function buildParsedRequest(
   requestId: string,
   traceId: string,
 ): ParsedRequest {
+  let skills: string[] | undefined;
+  if (frontmatter.skills) {
+    const s = frontmatter.skills.trim();
+    if (s.startsWith("[") && s.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) {
+          skills = parsed.map((x) => String(x).trim()).filter((x) => x.length > 0);
+        }
+      } catch {
+        // Fallback to split if parsing fails
+      }
+    }
+
+    if (!skills) {
+      skills = s.split(",").map((x) => x.trim()).filter((x) => x.length > 0);
+    }
+  }
+
   return {
     userPrompt: body.trim(),
     context: {
@@ -42,5 +61,6 @@ export function buildParsedRequest(
     },
     requestId,
     traceId,
+    skills,
   };
 }

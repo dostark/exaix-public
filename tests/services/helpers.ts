@@ -91,7 +91,15 @@ export function sampleRouterRequest(overrides: Record<string, any> = {}) {
   return {
     traceId: overrides.traceId ?? "test-trace-123",
     requestId: overrides.requestId ?? "req-123",
-    frontmatter: overrides.frontmatter ?? {},
+    frontmatter: {
+      trace_id: "test-trace-123",
+      created: new Date().toISOString(),
+      status: "pending",
+      priority: "normal",
+      source: "test",
+      created_by: "tester",
+      ...(overrides.frontmatter ?? {}),
+    },
     body: overrides.body ?? "Test request body",
     ...overrides,
   };

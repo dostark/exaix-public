@@ -70,7 +70,7 @@ Deno.test("TUI dashboard supports theming, accessibility, and keybinding customi
   assertEquals(typeof dashboard.theme, "object");
   assertEquals(typeof dashboard.theme.primary, "string");
   // Accessibility: expose focusable elements
-  const focusables = dashboard.panes[0].view.getFocusableElements();
+  const focusables = dashboard.panes[0].view.getFocusableElements?.() || [];
   if (!focusables.includes("portal-list")) throw new Error("Accessibility elements missing");
   // Keybinding customization: check keybindings
   assertEquals(dashboard.keybindings.splitVertical, "v");

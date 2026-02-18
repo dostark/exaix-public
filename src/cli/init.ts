@@ -52,7 +52,7 @@ export async function initializeServices(
     // Only import and instantiate DatabaseService if explicitly requested by caller.
     // Importing the DB module may load native dynamic libraries during module initialization,
     // which unit tests need to avoid unless they're prepared to close them.
-    let dbLocal: any = {};
+    let dbLocal: DatabaseService;
     if (opts?.instantiateDb) {
       dbLocal = new DatabaseService(cfg);
       // Close DB if it exposes a close method to avoid leaking dynamic libraries during tests
@@ -65,6 +65,14 @@ export async function initializeServices(
       }
     } else if (!isTestMode()) {
       dbLocal = new DatabaseService(cfg);
+    } else {
+      // Stub db with no-op methods to prevent crashes
+      dbLocal = {
+        logActivity: () => {},
+        waitForFlush: async () => {},
+        queryActivity: () => Promise.resolve([]),
+        close: async () => {},
+      } as unknown as DatabaseService;
     }
 
     const gitLocal = new GitService({ config: cfg, db: dbLocal });

@@ -13,26 +13,27 @@ import { TUI_MSG_DASHBOARD_HEADER, TUI_MSG_PRESS_CLOSE_HELP, TUI_STATUS_MSG_READ
 import { type Pane, renderGlobalHelpOverlay, renderPaneTitleBar, renderViewIndicator } from "../tui_dashboard.ts";
 import { renderNotificationPanel } from "../tui_helpers/notifications.ts";
 import type { NotificationService } from "../../services/notification.ts";
-import { type DashboardViewState, type TuiView } from "../tui_dashboard.ts";
+import { type DashboardViewState } from "../tui_dashboard.ts";
 import { Table } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
+import { PortalManagerView } from "../portal_manager_view.ts";
 
 async function renderActivePaneContent(
   panes: Pane[],
   activePaneId: string,
   theme: Theme,
-  portalView: TuiView,
+  portalView: PortalManagerView,
 ): Promise<void> {
   const activePane = panes.find((p) => p.id === activePaneId);
   if (!activePane) return;
 
   if (activePane.view.name === "PortalManagerView") {
-    const portals = await (portalView as any).service.listPortals();
+    const portals = await portalView.service.listPortals();
     if (portals.length > 0) {
       const table = new Table();
-      table.header(["Alias", "Target Path", "Status", "Permissions"]);
+      table.header(["Alias", "Target Path", "Status"]);
       for (const p of portals) {
-        table.push([p.alias, p.targetPath, p.status, p.permissions]);
+        table.push([p.alias, p.targetPath, p.status]);
       }
       table.render();
     } else {
@@ -79,7 +80,7 @@ export async function prodRender(
   state: DashboardViewState,
   theme: Theme,
   notificationService: NotificationService,
-  portalView: TuiView,
+  portalView: PortalManagerView,
 ): Promise<void> {
   let width: number;
   let height: number;

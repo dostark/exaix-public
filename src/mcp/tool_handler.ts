@@ -12,6 +12,7 @@ import type { DatabaseService } from "../services/db.ts";
 import { type MCPToolResponse } from "../schemas/mcp.ts";
 import { PortalPermissionsService } from "../services/portal_permissions.ts";
 import { PortalOperation } from "../enums.ts";
+import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
 
 /**
  * Base class for all MCP tool handlers
@@ -102,7 +103,7 @@ export abstract class ToolHandler {
       "mcp.tool",
       `mcp.tool.${toolName}`,
       portal,
-      metadata as any,
+      toSafeJson(metadata) as Record<string, JsonValue>,
     );
   }
 

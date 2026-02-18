@@ -37,7 +37,7 @@ Deno.test("LogMethod (experimental decorator): wraps method and logs start/compl
   };
 
   const descriptor: PropertyDescriptor = { value: original };
-  const decorated = LogMethod(logger)(null, "doIt", descriptor) as PropertyDescriptor;
+  const decorated = LogMethod(logger)(() => {}, "doIt", descriptor) as PropertyDescriptor;
 
   const out = await (decorated.value as any).call({ constructor: { name: "C" } }, "x");
   assertEquals(out, "ok:x");
@@ -60,7 +60,7 @@ Deno.test("LogMethod (experimental decorator): logs failure and rethrows", async
   };
 
   const descriptor: PropertyDescriptor = { value: original };
-  const decorated = LogMethod(logger)(null, "doIt", descriptor) as PropertyDescriptor;
+  const decorated = LogMethod(logger)(() => {}, "doIt", descriptor) as PropertyDescriptor;
 
   await assertRejects(
     () => (decorated.value as any).call({ constructor: { name: "C" } }),

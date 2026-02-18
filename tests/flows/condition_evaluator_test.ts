@@ -9,9 +9,10 @@ import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { ConditionContext, ConditionEvaluator } from "../../src/flows/condition_evaluator.ts";
 import { Flow, FlowStep } from "../../src/schemas/flow.ts";
 import { StepResult } from "../../src/flows/flow_runner.ts";
+import type { JsonValue } from "../../src/flows/transforms.ts";
 
 const createContext = (
-  results: Record<string, { success: boolean; content?: string; data?: unknown }> = {},
+  results: Record<string, { success: boolean; content?: string; data?: JsonValue }> = {},
 ): ConditionContext => ({
   results: Object.fromEntries(
     Object.entries(results).map(([id, r]) => [

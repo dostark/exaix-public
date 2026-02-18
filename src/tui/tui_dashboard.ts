@@ -41,6 +41,7 @@ import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { DatabaseService } from "../services/db.ts";
 import { initDashboardViews } from "./dashboard/view_registry.ts";
 import { prodRender } from "./dashboard/renderer.ts";
+import { PortalManagerView } from "./portal_manager_view.ts";
 import { type LayoutPresetDisplay, renderLayoutPresetListLines } from "../helpers/layout_rendering.ts";
 import {
   closePane as helperClosePane,
@@ -678,8 +679,8 @@ function createTestDashboard(options: {
       await this.notify("Memory update rejected (test)", "error");
     },
     portalManager: {
-      service: (portalView as any).service,
-      renderPortalList: (portalView as any).renderPortalList.bind(portalView),
+      service: (portalView as unknown as PortalManagerView).service,
+      renderPortalList: (portalView as unknown as PortalManagerView).renderPortalList.bind(portalView),
     },
     async notify(message: string, type = "info") {
       await this.notificationService.notify(message, type);
@@ -855,7 +856,14 @@ async function createProductionDashboard(options: {
   console.log("======================");
 
   async function prodRenderWrapper() {
-    await prodRender(panes, activePaneId, prodState, theme, notificationService, portalView);
+    await prodRender(
+      panes,
+      activePaneId,
+      prodState,
+      theme,
+      notificationService,
+      portalView as unknown as PortalManagerView,
+    );
   }
   const render = prodRenderWrapper;
   await render();

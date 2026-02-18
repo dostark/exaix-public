@@ -1,14 +1,31 @@
 import { assertEquals } from "@std/assert";
 import { TEST_MODEL_ANTHROPIC, TEST_PROVIDER_ID_ANTHROPIC } from "../config/constants.ts";
-import { handleRequestShow } from "../../src/cli/command_builders/request_actions.ts";
+import { handleRequestShow, type RequestActionContext } from "../../src/cli/command_builders/request_actions.ts";
+import type { RequestCommands } from "../../src/cli/commands/request_commands.ts";
+import { EventLogger, type EventLoggerConfig } from "../../src/services/event_logger.ts";
+import { LogLevel } from "../../src/enums.ts";
+
+class MockEventLogger extends EventLogger {
+  public calls: Array<{ level: "info" | "error"; a: string; b: string; c: any }> = [];
+
+  constructor() {
+    super({ minLevel: LogLevel.DEBUG } as EventLoggerConfig);
+  }
+
+  override info(action: string, target: string, payload?: Record<string, unknown>): Promise<void> {
+    this.calls.push({ level: "info", a: action, b: target, c: payload });
+    return Promise.resolve();
+  }
+
+  override error(action: string, target: string, payload?: Record<string, unknown>): Promise<void> {
+    this.calls.push({ level: "error", a: action, b: target, c: payload });
+    return Promise.resolve();
+  }
+}
 
 function createDisplay() {
-  const calls: Array<{ level: "info" | "error"; a: string; b: string; c: any }> = [];
-  const display = {
-    info: (a: string, b: string, c: any) => calls.push({ level: "info", a, b, c }),
-    error: (a: string, b: string, c: any) => calls.push({ level: "error", a, b, c }),
-  };
-  return { display, calls };
+  const display = new MockEventLogger();
+  return { display, calls: display.calls };
 }
 
 Deno.test("handleRequestShow: includes token stats when present", async () => {
@@ -34,7 +51,11 @@ Deno.test("handleRequestShow: includes token stats when present", async () => {
       }),
   };
 
-  await handleRequestShow({ requestCommands: requestCommands as any, display }, "trace-1");
+  const context: RequestActionContext = {
+    requestCommands: requestCommands as unknown as RequestCommands,
+    display,
+  };
+  await handleRequestShow(context, "trace-1");
 
   assertEquals(calls.length, 2);
   assertEquals(calls[0].a, "request.show");
