@@ -6,6 +6,7 @@ import { DatabaseService } from "../src/services/db.ts";
 import { PlanExecutor } from "../src/services/plan_executor.ts";
 import { ProviderFactory } from "../src/ai/provider_factory.ts";
 import { initializeGlobalLogger } from "../src/services/structured_logger.ts";
+import { ExecutionLoop } from "../src/services/execution_loop.ts";
 // import { PlanStatus } from "../src/enums.ts";
 
 /**
@@ -99,7 +100,6 @@ Description: Intentionally fail for test
     // 3. Simulate src/main.ts execution (Now using ExecutionLoop)
     console.log("Simulating ExecutionLoop delegation from main.ts...");
 
-    const { ExecutionLoop } = await import("../src/services/execution_loop.ts");
     const executionLoop = new ExecutionLoop({
       config,
       db,

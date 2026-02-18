@@ -21,6 +21,7 @@ import { EventLogger } from "./event_logger.ts";
 import { LogMethod } from "./decorators/logging.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { DEFAULT_MCP_VERSION } from "../config/constants.ts";
+import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 
 // Local defaults to avoid magic numbers in this module
 const DEFAULT_CHECK_BREAKER_FAILURE_THRESHOLD = 3;
@@ -555,9 +556,6 @@ export async function handleHealthCheck(
   health: HealthCheckService,
 ): Promise<Response> {
   // Build a middleware pipeline to add timing, error handling, and logging
-  const pipelineModule = await import("./middleware/pipeline.ts");
-  const MiddlewarePipeline = pipelineModule
-    .MiddlewarePipeline as typeof import("./middleware/pipeline.ts").MiddlewarePipeline;
   const pipeline = new MiddlewarePipeline<any>();
 
   // Error handling middleware: ensure any thrown errors produce a 503 JSON response

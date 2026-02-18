@@ -8,6 +8,7 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { Spy, spy, Stub, stub } from "https://deno.land/std@0.203.0/testing/mock.ts";
 import { ModelProviderError } from "../../../src/ai/providers.ts";
+import { EventLogger } from "../../../src/services/event_logger.ts";
 
 /** Configuration for provider-specific response formats */
 export interface ProviderResponseConfig {
@@ -269,7 +270,6 @@ export function testProviderTokenUsage<T extends { generate: (prompt: string) =>
   responseConfig: ProviderResponseConfig,
 ): void {
   Deno.test(`${name} - token usage reporting`, async () => {
-    const { EventLogger } = await import("../../../src/services/event_logger.ts");
     const logger = new EventLogger({ prefix: "[Test]" });
     const infoSpy = spy(logger, "info");
 

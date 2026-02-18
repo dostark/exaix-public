@@ -19,6 +19,9 @@ import { MockStrategy } from "../src/enums.ts";
 import { TEST_MODEL_ANTHROPIC } from "./config/constants.ts";
 
 import {
+  createFailingMock,
+  createPlanGeneratorMock,
+  createSlowMock,
   MockLLMError,
   MockLLMProvider,
   type PatternMatcher,
@@ -765,7 +768,6 @@ Deno.test("Mock provider handles multiple sequential plan generations", async ()
 // ============================================================================
 
 Deno.test("createPlanGeneratorMock helper creates working provider", async () => {
-  const { createPlanGeneratorMock } = await import("../src/ai/providers/mock_llm_provider.ts");
   const provider = createPlanGeneratorMock();
 
   const result = await provider.generate("Implement authentication");
@@ -776,7 +778,6 @@ Deno.test("createPlanGeneratorMock helper creates working provider", async () =>
 });
 
 Deno.test("createFailingMock helper creates failing provider", async () => {
-  const { createFailingMock } = await import("../src/ai/providers/mock_llm_provider.ts");
   const provider = createFailingMock("Custom error message");
 
   await assertRejects(
@@ -787,7 +788,6 @@ Deno.test("createFailingMock helper creates failing provider", async () => {
 });
 
 Deno.test("createSlowMock helper creates delayed provider", async () => {
-  const { createSlowMock } = await import("../src/ai/providers/mock_llm_provider.ts");
   const provider = createSlowMock(100);
 
   const start = Date.now();

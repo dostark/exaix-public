@@ -14,6 +14,10 @@ import { assert, assertEquals, assertExists } from "@std/assert";
 import { EventLogger } from "../src/services/event_logger.ts";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
+import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
+import { RequestCommands } from "../src/cli/commands/request_commands.ts";
+import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
+import { __test_initializeServices } from "../src/cli/exoctl.ts";
 
 const TEST_ACTION = "test.action";
 const TEST_WARNING = "test.warning";
@@ -125,7 +129,6 @@ Deno.test({
 
     try {
       // Import the test helper from exoctl to verify fallback behavior
-      const { __test_initializeServices } = await import("../src/cli/exoctl.ts");
 
       // Simulate service initialization failure
       const result = await __test_initializeServices({ simulateFail: true });
@@ -157,7 +160,7 @@ Deno.test("[regression] CLI test mode context has stub db with required methods"
     // Re-import to get test mode context
     // Note: Due to module caching, this may not re-initialize
     // Instead, we verify the test helper directly
-    const { __test_initializeServices } = await import("../src/cli/exoctl.ts");
+
     const result = await __test_initializeServices({ simulateFail: true });
 
     // Verify stub methods exist
@@ -178,9 +181,6 @@ Deno.test("[regression] CLI test mode context has stub db with required methods"
 // ============================================================================
 
 Deno.test("[regression] BlueprintCommands works with stub db", async () => {
-  // Import BlueprintCommands
-  const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
-
   // Create minimal config
   const config = {
     system: { root: Deno.cwd() },
@@ -207,9 +207,6 @@ Deno.test("[regression] BlueprintCommands works with stub db", async () => {
 });
 
 Deno.test("[regression] RequestCommands works with stub db", async () => {
-  // Import RequestCommands
-  const { RequestCommands } = await import("../src/cli/request_commands.ts");
-
   // Create minimal config
   const config = {
     system: { root: Deno.cwd() },
@@ -242,9 +239,6 @@ Deno.test("[regression] RequestCommands works with stub db", async () => {
 });
 
 Deno.test("[regression] PlanCommands works with stub db", async () => {
-  // Import PlanCommands
-  const { PlanCommands } = await import("../src/cli/plan_commands.ts");
-
   // Create minimal config with all required paths
   const config = {
     system: { root: Deno.cwd() },

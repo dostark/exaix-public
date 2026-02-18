@@ -2,6 +2,7 @@ import { assertEquals, assertExists } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { getWorkspaceActiveDir } from "./helpers/paths_helper.ts";
+import { parse } from "@std/yaml";
 
 Deno.test("Plan Executor - Parsing", async (t) => {
   const testDir = await Deno.makeTempDir({ prefix: "plan-parsing-test-" });
@@ -123,7 +124,6 @@ status: approved
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(frontmatterMatch);
 
-      const { parse } = await import("@std/yaml");
       const frontmatter = parse(frontmatterMatch[1]) as Record<string, unknown>;
 
       assertEquals(frontmatter.request_id, "req-789");
@@ -144,7 +144,7 @@ agent: mock-agent
 
       const content = await Deno.readTextFile(planPath);
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-      const { parse } = await import("@std/yaml");
+
       const frontmatter = parse(frontmatterMatch![1]) as Record<string, unknown>;
 
       assertEquals(frontmatter.agent, "mock-agent");
@@ -164,7 +164,7 @@ trace_id: test-trace-123
 
       const content = await Deno.readTextFile(planPath);
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-      const { parse } = await import("@std/yaml");
+
       const frontmatter = parse(frontmatterMatch![1]) as Record<string, unknown>;
 
       assertEquals(frontmatter.request_id, undefined);
@@ -382,7 +382,6 @@ Create authentication middleware.
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(frontmatterMatch);
 
-      const { parse } = await import("@std/yaml");
       const frontmatter = parse(frontmatterMatch[1]) as Record<string, unknown>;
 
       assertEquals(frontmatter.trace_id, "integration-test-123");
@@ -438,7 +437,7 @@ Change timeout value in config file.
       // Parse it
       const content = await Deno.readTextFile(planPath);
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-      const { parse } = await import("@std/yaml");
+
       const frontmatter = parse(frontmatterMatch![1]) as Record<string, unknown>;
 
       assertEquals(frontmatter.trace_id, "fs-test-789");

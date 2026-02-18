@@ -13,6 +13,7 @@
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MemoryStatus } from "../src/memory/memory_status.ts";
+import { parse as parseYaml } from "@std/yaml";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
@@ -159,7 +160,6 @@ created_at: "2025-12-03T10:00:00.000Z"
       const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(yamlMatch, "Should match YAML frontmatter");
 
-      const { parse: parseYaml } = await import("@std/yaml");
       const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
 
       // Assert
@@ -220,7 +220,6 @@ status: broken
       const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(yamlMatch);
 
-      const { parse: parseYaml } = await import("@std/yaml");
       let frontmatter = null;
       try {
         frontmatter = parseYaml(yamlMatch[1]);
@@ -277,7 +276,6 @@ status: approved
       const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(yamlMatch);
 
-      const { parse: parseYaml } = await import("@std/yaml");
       const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
 
       // Assert

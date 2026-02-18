@@ -5,8 +5,11 @@ import { commonTestData } from "../helpers/test_utils.ts";
 
 import {
   MinimalRequestServiceMock,
+  PRIORITY_ICONS,
+  REQUEST_KEY_BINDINGS,
   RequestManagerView,
   RequestService as _RequestService,
+  STATUS_ICONS,
 } from "../../src/tui/request_manager_view.ts";
 import {
   createMockRequestService as _createMockRequestService,
@@ -452,9 +455,7 @@ Deno.test("Phase 13.6: Render methods return strings", () => {
   assert(output.includes("REQUEST MANAGER"));
 });
 
-Deno.test("Phase 13.6: PRIORITY_ICONS and STATUS_ICONS", async () => {
-  const { PRIORITY_ICONS, STATUS_ICONS } = await import("../../src/tui/request_manager_view.ts");
-
+Deno.test("Phase 13.6: PRIORITY_ICONS and STATUS_ICONS", () => {
   assert(PRIORITY_ICONS.critical !== undefined);
   assert(PRIORITY_ICONS.high !== undefined);
   assert(PRIORITY_ICONS.normal !== undefined);
@@ -465,9 +466,7 @@ Deno.test("Phase 13.6: PRIORITY_ICONS and STATUS_ICONS", async () => {
   assert(STATUS_ICONS.cancelled !== undefined);
 });
 
-Deno.test("Phase 13.6: REQUEST_KEY_BINDINGS", async () => {
-  const { REQUEST_KEY_BINDINGS } = await import("../../src/tui/request_manager_view.ts");
-
+Deno.test("Phase 13.6: REQUEST_KEY_BINDINGS", () => {
   assert(Array.isArray(REQUEST_KEY_BINDINGS));
   assert(REQUEST_KEY_BINDINGS.length > 0);
 

@@ -34,6 +34,7 @@ import { LogMethod } from "./decorators/logging.ts";
 import { RequestParser } from "./request_processing/request_parser.ts";
 import { StatusManager } from "./request_processing/status_manager.ts";
 import type { RequestFrontmatter } from "./request_processing/types.ts";
+import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -138,7 +139,7 @@ export class RequestProcessor {
       return null;
     }
 
-    const pipeline = await this.createRequestProcessingPipeline();
+    const pipeline = this.createRequestProcessingPipeline();
 
     const context: any = {
       filePath,
@@ -227,8 +228,7 @@ export class RequestProcessor {
     return hasFlow ? "flow" : "agent";
   }
 
-  private async createRequestProcessingPipeline(): Promise<import("./middleware/pipeline.ts").MiddlewarePipeline<any>> {
-    const { MiddlewarePipeline } = await import("./middleware/pipeline.ts");
+  private createRequestProcessingPipeline(): MiddlewarePipeline<any> {
     const pipeline = new MiddlewarePipeline<any>();
 
     pipeline.use(async (ctx, next) => {

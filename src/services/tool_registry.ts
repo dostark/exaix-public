@@ -16,6 +16,7 @@ import { PathResolver } from "./path_resolver.ts";
 import { ActivityActor, LogLevel } from "../enums.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import { ServiceContext } from "./common/types.ts";
+import { PathAccessError, PathSecurity, PathTraversalError } from "../helpers/path_security.ts";
 
 // ============================================================================
 // Types
@@ -769,8 +770,6 @@ export class ToolRegistry {
    * - Otherwise, validate it's within allowed roots
    */
   private async resolvePath(path: string): Promise<string> {
-    const { PathSecurity, PathTraversalError, PathAccessError } = await import("../helpers/path_security.ts");
-
     // Use PathResolver for alias paths
     if (path.startsWith("@")) {
       return await this.pathResolver.resolve(path);

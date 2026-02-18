@@ -9,6 +9,7 @@
 import { ToolHandler } from "../tool_handler.ts";
 import { type MCPToolResponse } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
+import { GitCommitToolArgsSchema } from "../../schemas/mcp.ts";
 
 /**
  * GitCommitTool - Commits changes in portal git repositories
@@ -22,7 +23,6 @@ import { PortalOperation } from "../../enums.ts";
  */
 export class GitCommitTool extends ToolHandler {
   async execute(args: unknown): Promise<MCPToolResponse> {
-    const { GitCommitToolArgsSchema } = await import("../../schemas/mcp.ts");
     const validatedArgs = GitCommitToolArgsSchema.parse(args) as {
       portal: string;
       message: string;

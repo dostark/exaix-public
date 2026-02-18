@@ -86,9 +86,6 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
     const traceId = crypto.randomUUID();
     await createPlanFile(activeDir, TEST_PLAN_FILE, PlanStatus.APPROVED, traceId);
 
-    // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
-
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
 
@@ -137,10 +134,6 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
     // Create a review plan in Plans directory
     const traceId = crypto.randomUUID();
     await createPlanFile(plansDir, TEST_PLAN_FILE, PlanStatus.REVIEW, traceId);
-
-    // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
-
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
 
@@ -165,9 +158,6 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
     await createPlanFile(activeDir, "approved_plan.md", PlanStatus.APPROVED, crypto.randomUUID());
     await createPlanFile(rejectedDir, "rejected_plan.md", PlanStatus.REJECTED, crypto.randomUUID());
 
-    // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
-
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
 
@@ -190,9 +180,6 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
     await createTestWorkspace(tempDir);
 
     // Don't create any plan files - directories are empty
-
-    // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
 
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
@@ -229,9 +216,6 @@ Deno.test("[regression] Plan reject finds plans in any directory", async () => {
 
     await createPlanFile(activeDir, `${activePlanId}.md`, PlanStatus.APPROVED, crypto.randomUUID());
     await createPlanFile(rejectedDir, `${rejectedPlanId}_rejected.md`, PlanStatus.REJECTED, crypto.randomUUID());
-
-    // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
 
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
@@ -309,10 +293,6 @@ created_at: "2026-01-25T16:28:01.132Z"
 This plan references a request and should show request context.
 `;
     await Deno.writeTextFile(planPath, planContent);
-
-    // Import PlanCommands and RequestCommands
-    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
-    const { RequestCommands: _RequestCommands } = await import("../src/cli/commands/request_commands.ts");
 
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });

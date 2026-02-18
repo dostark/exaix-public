@@ -16,6 +16,7 @@ Key points
 - **Mocking**: Use `MockLLMProvider` for deterministic agent testing (avoid real API calls).
 - **Integration**: Use `TestEnvironment.create()` to scaffold full workspace/DB structures.
 - **Leases**: File locking integration tests live in `tests/execution_loop_test.ts`.
+- **Top-level Imports**: Always place import statements at the top of test files. Do not use dynamic imports inside `Deno.test` unless specifically testing dynamic loading.
 
 - Prefer `createCliTestContext()` for CLI tests and call returned `cleanup()` in `afterEach`
 

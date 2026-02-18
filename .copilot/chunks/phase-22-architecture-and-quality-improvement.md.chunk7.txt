@@ -1,25 +1,19 @@
-if (result.code === 0) {
-      // Tracked file - restore - NO TIMEOUT
-      const checkoutProcess = new Deno.Command("git", {
-        args: ["checkout", "HEAD", "--", file],
-        cwd: portalPath,
-        // ❌ MISSING: timeout, signal
-      });
-      await checkoutProcess.output(); // ❌ CAN BLOCK FOREVER
-    } else {
-      // Untracked file - delete - NO TIMEOUT
-      const cleanProcess = new Deno.Command("git", {
-        args: ["clean", "-f", file],
-        cwd: portalPath,
-        // ❌ MISSING: timeout, signal
-      });
-      await checkoutProcess.output(); // ❌ CAN BLOCK FOREVER
-    }
-  }
-  // ❌ No success/failure reporting or error aggregation
-}
-```
+**Phase 2: AgentExecutor Refactor (4 hours)**
 
-#### Impact Analysis
+- [x] Replace `auditGitChanges()` with timeout-protected version
+- [x] Replace `revertUnauthorizedChanges()` with concurrent batching
+- [x] Add proper error handling and logging
+- [x] Update method signatures if needed
 
-**Quantitative Impact**:
+**Phase 3: Integration Testing (2 hours)**
+
+- [x] Test timeout behavior with slow git commands
+- [x] Test concurrent file processing limits
+- [x] Test error aggregation and reporting
+- [x] Verify logging works correctly
+
+#### Verification Commands
+
+See `tests/git_security_regression_test.ts` for verification details.
+
+#### Success Criteria

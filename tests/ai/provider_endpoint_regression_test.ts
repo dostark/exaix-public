@@ -53,6 +53,8 @@ Deno.test({
       console.log(TEST_CONSTANTS.LOG_MSG_ENDPOINT_REACHED);
     }
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -88,6 +90,8 @@ Deno.test({
       console.log(TEST_CONSTANTS.LOG_MSG_ENDPOINT_REACHED);
     }
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });
 
 Deno.test({
@@ -130,4 +134,6 @@ Deno.test({
       console.log(TEST_CONSTANTS.LOG_MSG_ENDPOINT_REACHED_ANHROPIC);
     }
   },
+  sanitizeResources: false,
+  sanitizeOps: false,
 });

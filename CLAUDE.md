@@ -320,3 +320,4 @@ These actions are **PROHIBITED**:
 - ❌ **Ignoring pre-commit hook failures** — All checks must pass
 - ❌ **Guessing at patterns** — Always check `.copilot/` docs first
 - ❌ **Introducing magic numbers/strings** — See `CONTRIBUTING.md`
+- ❌ **Placing imports anywhere other than the top of the file** — All imports must be at the top level

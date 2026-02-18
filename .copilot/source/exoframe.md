@@ -255,6 +255,20 @@ const provider = await ProviderRegistry.create(options);
 static create(config: Config): IModelProvider
 ```
 
+#### 10. Top-Level Imports
+
+**Pattern**: All import statements must be placed at the top of the module to ensure static analysis and bundle optimization
+
+```typescript
+// ✅ GOOD: Top-level imports
+import { join } from "@std/path";
+import { MyService } from "./service.ts";
+
+export class MyClass {
+  // ...
+}
+```
+
 #### 7. Error Boundaries and Isolation
 
 **Pattern**: Isolate failures to prevent cascading corruption of execution contexts
@@ -397,6 +411,17 @@ const data = JSON.parse(await Deno.readTextFile("shared.json"));
 data.counter++;
 await Deno.writeTextFile("shared.json", JSON.stringify(data));
 // Can cause data corruption with concurrent access
+```
+
+#### 10. Nested Imports
+
+**Anti-pattern**: Never place import statements inside functions or conditional blocks unless absolutely necessary for conditional loading (and document why)
+
+```typescript
+// ❌ BAD: Dynamic import inside function
+async function process() {
+  const { heavy } = await import("./heavy_module.ts");
+}
 ```
 
 ### Implementation Verification

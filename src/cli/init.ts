@@ -13,7 +13,7 @@ import { EventLogger } from "../services/event_logger.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
 import { ExoPathDefaults } from "../config/constants.ts";
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
+import { DatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
 
 export interface ServiceContext {
@@ -54,7 +54,6 @@ export async function initializeServices(
     // which unit tests need to avoid unless they're prepared to close them.
     let dbLocal: any = {};
     if (opts?.instantiateDb) {
-      const { DatabaseService } = await import("../services/db.ts");
       dbLocal = new DatabaseService(cfg);
       // Close DB if it exposes a close method to avoid leaking dynamic libraries during tests
       if (typeof (dbLocal as any).close === "function") {
@@ -65,28 +64,7 @@ export async function initializeServices(
         }
       }
     } else if (!isTestMode()) {
-      // In normal runtime (not generic test helper usage), we often want DB.
-      // But wait, exoctl.ts logic says:
-      /*
-       if (!isTestMode()) {
-         // ...
-         // Dynamically import to avoid loading native libs in tests
-         const { DatabaseService } = await import("../services/db.ts");
-         db = new DatabaseService(config);
-       }
-       */
-      // The original __test_initializeServices handled this via opts.instantiateDb.
-      // But the MAIN execution path (lines 52-85 of exoctl.ts) also did it.
-      // I should make initializeServices handle both cases.
-      // If running in real mode (implicit), we probably want DB unless opts say otherwise?
-      // Actually, the original code used __test_initializeServices ONLY for tests.
-      // The main code had its own block.
-      // I am merging them.
-      // If NOT test mode, we want DB properly initialized.
-      if (!isTestMode()) {
-        const { DatabaseService } = await import("../services/db.ts");
-        dbLocal = new DatabaseService(cfg);
-      }
+      dbLocal = new DatabaseService(cfg);
     }
 
     const gitLocal = new GitService({ config: cfg, db: dbLocal });

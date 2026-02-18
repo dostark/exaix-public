@@ -9,6 +9,7 @@
 import { ToolHandler } from "../tool_handler.ts";
 import { type MCPToolResponse } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
+import { GitCreateBranchToolArgsSchema } from "../../schemas/mcp.ts";
 
 /**
  * GitCreateBranchTool - Creates feature branches in portal git repositories
@@ -21,7 +22,6 @@ import { PortalOperation } from "../../enums.ts";
  */
 export class GitCreateBranchTool extends ToolHandler {
   async execute(args: unknown): Promise<MCPToolResponse> {
-    const { GitCreateBranchToolArgsSchema } = await import("../../schemas/mcp.ts");
     const validatedArgs = GitCreateBranchToolArgsSchema.parse(args) as {
       portal: string;
       branch: string;

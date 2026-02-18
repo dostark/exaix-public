@@ -7,6 +7,7 @@ import {
   assertFilesExist,
   assertFrontmatterSchemaAndShortSummary,
 } from "../helpers/copilot_assertions.ts";
+import { inject } from "../../scripts/inject_agent_context.ts";
 
 Deno.test("OpenAI enhancements: verify required files exist", async () => {
   const files = [
@@ -100,8 +101,6 @@ Deno.test("OpenAI enhancements: verify chunks were generated", async () => {
 });
 
 Deno.test("OpenAI enhancements: verify context injection works", async () => {
-  const { inject } = await import("../../scripts/inject_agent_context.ts");
-
   const ragResult = await inject("openai", "OpenAI RAG context injection", 4);
   assert(ragResult.found, "Should find RAG-related OpenAI doc");
   assert(

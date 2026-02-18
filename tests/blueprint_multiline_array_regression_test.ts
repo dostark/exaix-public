@@ -12,6 +12,7 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
+import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
 
 const AGENT_ID = "multiline-test";
 const CAP_TESTING = "testing";
@@ -49,9 +50,6 @@ default_skills:
 This blueprint uses multi-line YAML array format.
 `;
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID}.md`), multilineBlueprint);
-
-    // Import BlueprintCommands
-    const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
 
     const config = {
       system: { root: tempDir },

@@ -13,6 +13,8 @@ import { type SkillSummary } from "../../src/tui/skills_manager_view.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { createSkillsManagerTuiSession, sampleTestSkills, testSkillsSessionRender } from "./helpers.ts";
 import { TEST_MODEL_OPENAI } from "../config/constants.ts";
+import { AgentStatusView, MinimalAgentServiceMock } from "../../src/tui/agent_status_view.ts";
+import { MinimalRequestServiceMock, RequestManagerView } from "../../src/tui/request_manager_view.ts";
 
 // ===== Test Data =====
 
@@ -119,11 +121,6 @@ testSkillsSessionRender(
 // ===== AgentStatusView Skills Tests =====
 
 Deno.test("AgentStatusView: displays defaultSkills in detail", async () => {
-  // Import dynamically to avoid circular dependency issues
-  const { AgentStatusView, MinimalAgentServiceMock } = await import(
-    "../../src/tui/agent_status_view.ts"
-  );
-
   const mockService = new MinimalAgentServiceMock([
     {
       id: "agent-1",
@@ -155,11 +152,6 @@ Deno.test("AgentStatusView: displays defaultSkills in detail", async () => {
 // ===== RequestManagerView Skills Tests =====
 
 Deno.test("RequestManagerView: shows skills in request detail", async () => {
-  // Import dynamically
-  const { RequestManagerView, MinimalRequestServiceMock } = await import(
-    "../../src/tui/request_manager_view.ts"
-  );
-
   const requests = [
     {
       trace_id: "test-123",

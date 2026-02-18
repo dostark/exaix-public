@@ -8,6 +8,7 @@
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { parse as parseYaml } from "@std/yaml";
 
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
@@ -76,7 +77,6 @@ A working hello world function with tests.
     const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
     assertExists(yamlMatch, "Should have YAML frontmatter");
 
-    const { parse: parseYaml } = await import("@std/yaml");
     const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
 
     assertEquals(frontmatter.trace_id, traceId);

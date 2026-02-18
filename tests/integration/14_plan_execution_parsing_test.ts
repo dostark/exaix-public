@@ -1,5 +1,6 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { parse } from "@std/yaml";
 
 import { join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
@@ -100,7 +101,6 @@ Protect routes with authentication checks.
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(frontmatterMatch, "Should have frontmatter");
 
-      const { parse } = await import("@std/yaml");
       const frontmatter = parse(frontmatterMatch[1]) as Record<string, unknown>;
 
       assertEquals(typeof frontmatter.trace_id, "string");
@@ -167,7 +167,6 @@ Bump version number in package.json
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(frontmatterMatch);
 
-      const { parse } = await import("@std/yaml");
       const frontmatter = parse(frontmatterMatch[1]) as Record<string, unknown>;
 
       assertExists(frontmatter.trace_id, "trace_id is required");
@@ -252,7 +251,6 @@ Initial setup
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(frontmatterMatch);
 
-      const { parse } = await import("@std/yaml");
       const frontmatter = parse(frontmatterMatch[1]) as Record<string, unknown>;
 
       // Validate all context fields

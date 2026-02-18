@@ -3,6 +3,7 @@
 
 import { assert, assertExists } from "https://deno.land/std@0.203.0/assert/mod.ts";
 import { parse } from "https://deno.land/std@0.203.0/yaml/mod.ts";
+import { inject } from "../../scripts/inject_agent_context.ts";
 
 Deno.test("Claude enhancements: verify all required files exist", async () => {
   // Verify all enhanced files were created
@@ -228,8 +229,6 @@ Deno.test("Claude enhancements: verify chunks were generated", async () => {
 Deno.test("Claude enhancements: verify context injection works", async () => {
   // This is a functional test of the inject_agent_context script
   // We'll test that it can find the new docs
-
-  const { inject } = await import("../../scripts/inject_agent_context.ts");
 
   // Test RAG query
   const ragResult = await inject("claude", "RAG embeddings semantic search", 4);

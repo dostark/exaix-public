@@ -9,6 +9,8 @@
 import { ToolHandler } from "../tool_handler.ts";
 import { type MCPToolResponse } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
+import { WriteFileToolArgsSchema } from "../../schemas/mcp.ts";
+import { dirname } from "@std/path";
 
 /**
  * WriteFileTool - Writes file content to a portal
@@ -21,8 +23,6 @@ import { PortalOperation } from "../../enums.ts";
  */
 export class WriteFileTool extends ToolHandler {
   async execute(args: unknown): Promise<MCPToolResponse> {
-    // Import WriteFile schema and types
-    const { WriteFileToolArgsSchema } = await import("../../schemas/mcp.ts");
     const validatedArgs = WriteFileToolArgsSchema.parse(args) as {
       portal: string;
       path: string;
@@ -42,8 +42,7 @@ export class WriteFileTool extends ToolHandler {
       const absolutePath = this.resolvePortalPath(portalPath, path);
 
       // Create parent directories if needed
-      const dirname = await import("@std/path");
-      const parentDir = dirname.dirname(absolutePath);
+      const parentDir = dirname(absolutePath);
       await Deno.mkdir(parentDir, { recursive: true });
 
       // Write file

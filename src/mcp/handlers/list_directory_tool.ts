@@ -9,6 +9,7 @@
 import { ToolHandler } from "../tool_handler.ts";
 import { type MCPToolResponse } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
+import { ListDirectoryToolArgsSchema } from "../../schemas/mcp.ts";
 
 /**
  * ListDirectoryTool - Lists files and directories in a portal path
@@ -21,8 +22,6 @@ import { PortalOperation } from "../../enums.ts";
  */
 export class ListDirectoryTool extends ToolHandler {
   async execute(args: unknown): Promise<MCPToolResponse> {
-    // Import ListDirectory schema and types
-    const { ListDirectoryToolArgsSchema } = await import("../../schemas/mcp.ts");
     const validatedArgs = ListDirectoryToolArgsSchema.parse(args) as {
       portal: string;
       path?: string;

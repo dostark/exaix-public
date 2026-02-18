@@ -1,5 +1,5 @@
 import type { Config } from "../../src/config/schema.ts";
-import { MemoryCommands } from "../../src/cli/memory_commands.ts";
+import { MemoryCommands } from "../../src/cli/commands/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { DatabaseService } from "../../src/services/db.ts";

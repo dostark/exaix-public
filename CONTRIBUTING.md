@@ -31,6 +31,27 @@ Use `src/enums.ts` for all shared enumerations.
 - **Do:** `status === RequestStatus.PENDING`
 - **Don't:** `status === "pending"`
 
+### 1.4 Import Statements
+
+All import statements **MUST** be placed at the top of the module. Dynamic imports using `await import()` are generally discouraged unless absolutely necessary for conditional loading of large modules or circular dependencies, and should be justified.
+
+- **Do:**
+  ```typescript
+  import { join } from "@std/path";
+  import { MyService } from "./service.ts";
+
+  export class MyClass { ... }
+  ```
+- **Don't:**
+  ```typescript
+  export class MyClass {
+    async method() {
+      const { join } = await import("@std/path");
+      ...
+    }
+  }
+  ```
+
 ## 2. Testing
 
 ### 2.1 Configuration Testing

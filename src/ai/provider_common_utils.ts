@@ -11,6 +11,7 @@ import { AuthenticationError, RateLimitError } from "./providers/common.ts";
 import { ConnectionError, ModelProviderError } from "./providers.ts";
 import type { ModelOptions } from "./types.ts";
 import { DEFAULT_AI_RETRY_BACKOFF_BASE_MS, DEFAULT_AI_RETRY_MAX_ATTEMPTS } from "../config/constants.ts";
+import { withRetry } from "./providers/common.ts";
 import {
   COST_RATE_ANTHROPIC,
   COST_RATE_GOOGLE,
@@ -249,8 +250,7 @@ export async function fetchJsonWithRetries(
   };
 
   // Use withRetry defined in providers/common.ts
-  const { withRetry } = await import("./providers/common.ts");
-  return withRetry(attemptFn, { maxRetries: maxAttempts, baseDelayMs: backoffBaseMs });
+  return await withRetry(attemptFn, { maxRetries: maxAttempts, baseDelayMs: backoffBaseMs });
 }
 
 /**

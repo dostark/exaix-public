@@ -13,6 +13,7 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
+import { ReviewCommands } from "../src/cli/commands/review_commands.ts";
 import { PlanStatus } from "../src/plans/plan_status.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";
 
@@ -101,7 +102,6 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
     await createPlanFile(plansDir, `${TEST_REQUEST_ID}_plan`, TEST_TRACE_ID, "review");
 
     // Import ReviewCommands and dependencies
-    const { ReviewCommands } = await import("../src/cli/review_commands.ts");
 
     // Create minimal config pointing to our test workspace
     const config = {

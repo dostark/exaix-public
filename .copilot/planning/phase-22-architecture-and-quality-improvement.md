@@ -98,69 +98,7 @@ Git subprocess operations execute without timeout protection, potentially blocki
 
 **File**: `src/services/agent_executor.ts` (Lines 273-297)
 
-```typescript
-async auditGitChanges(
-  portalPath: string,
-  authorizedFiles: string[],
-): Promise<string[]> {
-  // Get git status - NO TIMEOUT PROTECTION
-  const statusProcess = new Deno.Command("git", {
-    args: ["status", "--porcelain"],
-    cwd: portalPath,
-    stdout: "piped",
-    stderr: "piped",
-    // ❌ MISSING: signal, timeout configuration
-  });
-
-  const output = await statusProcess.output(); // ❌ CAN BLOCK FOREVER
-  const statusText = new TextDecoder().decode(output.stdout);
-
-  // ❌ No exit code validation
-  // ❌ stderr completely ignored
-  // ... rest of parsing logic
-}
-```
-
-**File**: `src/services/agent_executor.ts` (Lines 304-342)
-
-```typescript
-async revertUnauthorizedChanges(
-  portalPath: string,
-  unauthorizedFiles: string[],
-): Promise<void> {
-  if (unauthorizedFiles.length === 0) return;
-
-  // ❌ SEQUENTIAL PROCESSING - O(n) time for n files
-  for (const file of unauthorizedFiles) {
-    // Check if tracked - NO TIMEOUT
-    const statusProcess = new Deno.Command("git", {
-      args: ["ls-files", "--error-unmatch", file],
-      cwd: portalPath,
-      // ❌ MISSING: timeout, signal
-    });
-    const result = await statusProcess.output(); // ❌ CAN BLOCK FOREVER
-
-    if (result.code === 0) {
-      // Tracked file - restore - NO TIMEOUT
-      const checkoutProcess = new Deno.Command("git", {
-        args: ["checkout", "HEAD", "--", file],
-        cwd: portalPath,
-        // ❌ MISSING: timeout, signal
-      });
-      await checkoutProcess.output(); // ❌ CAN BLOCK FOREVER
-    } else {
-      // Untracked file - delete - NO TIMEOUT
-      const cleanProcess = new Deno.Command("git", {
-        args: ["clean", "-f", file],
-        cwd: portalPath,
-        // ❌ MISSING: timeout, signal
-      });
-      await checkoutProcess.output(); // ❌ CAN BLOCK FOREVER
-    }
-  }
-  // ❌ No success/failure reporting or error aggregation
-}
-```
+See `src/services/agent_executor.ts` for implementation details.
 
 #### Impact Analysis
 
@@ -218,20 +156,7 @@ Create a new utility module for safe subprocess execution:
 
 #### Verification Commands
 
-```bash
-# Test timeout behavior
-timeout 5s git status --porcelain &
-# Should be killed after 5 seconds
-
-# Test concurrent processing
-time deno run -A scripts/test_git_concurrency.ts
-# Should complete in O(n/k) time where k=concurrency_limit
-
-# Verify error handling
-echo "corrupted" > .git/config
-deno run -A src/services/agent_executor.ts
-# Should timeout gracefully with proper error message
-```
+See `tests/git_security_regression_test.ts` for verification details.
 
 #### Success Criteria
 
@@ -272,57 +197,7 @@ The `resolvePath()` method contains path traversal vulnerabilities and inconsist
 
 **File**: `src/services/tool_registry.ts` (Lines 360-390)
 
-```typescript
-private async resolvePath(path: string): Promise<string> {
-  // Use PathResolver for alias paths
-  if (path.startsWith("@")) {
-    return await this.pathResolver.resolve(path);
-  }
-
-  // For absolute or relative paths, validate they're within allowed roots
-  const absolutePath = path.startsWith("/") ? path : join(this.config.system.root, path);
-
-  // Check if path is within allowed roots
-  const allowedRoots = [
-    join(this.config.system.root, this.config.paths.workspace),
-    join(this.config.system.root, this.config.paths.memory),
-    join(this.config.system.root, this.config.paths.blueprints),
-    this.config.system.root, // Allow workspace root itself
-  ];
-
-  // Try to get real path, but if file doesn't exist yet (for writes), use absolute path
-  let realPath: string;
-  try {
-    realPath = await Deno.realPath(absolutePath);
-  } catch {
-    // File doesn't exist yet, validate parent directory
-    const parentDir = join(absolutePath, "..");
-    try {
-      realPath = await Deno.realPath(parentDir);
-      realPath = join(realPath, absolutePath.split("/").pop() || "");
-    } catch {
-      // Parent doesn't exist either, just use absolute path for validation
-      realPath = absolutePath;
-    }
-  }
-
-  const isAllowed = allowedRoots.some((root) => {
-    try {
-      const realRoot = Deno.realPathSync(root); // ❌ SYNCHRONOUS CALL IN ASYNC METHOD
-      return realPath.startsWith(realRoot);
-    } catch {
-      // Root doesn't exist yet, compare absolute paths
-      return realPath.startsWith(root); // ❌ INCONSISTENT VALIDATION
-    }
-  });
-
-  if (!isAllowed) {
-    throw new Error(`Path ${path} resolves to ${realPath}, outside allowed roots`);
-  }
-
-  return absolutePath;
-}
-```
+See `src/services/tool_registry.ts` for implementation details.
 
 #### Identified Security Issues
 
@@ -390,21 +265,7 @@ private async resolvePath(path: string): Promise<string> {
 
 #### Verification Commands
 
-```bash
-# Test path traversal prevention
-curl -X POST http://localhost:3000/api/tools/run \
-  -d '{"name": "read_file", "arguments": {"path": "../../../etc/passwd"}}'
-# Should return: Access denied: Path traversal detected
-
-# Test allowed path access
-curl -X POST http://localhost:3000/api/tools/run \
-  -d '{"name": "read_file", "arguments": {"path": "Workspace/test.md"}}'
-# Should succeed if file exists
-
-# Test security logging
-tail -f logs/security.log
-# Should show path traversal attempts
-```
+See `tests/services/tool_registry_test.ts` for verification details.
 
 #### Success Criteria
 
@@ -487,19 +348,7 @@ Database retry logic uses synchronous `setTimeout` delays that block the event l
 
 #### Verification Commands
 
-```bash
-# Test concurrent transactions
-deno run -A scripts/test_db_concurrency.ts
-# Should handle multiple transactions without blocking
-
-# Test retry behavior
-deno run -A scripts/test_db_retry.ts
-# Should show exponential backoff with jitter
-
-# Monitor event loop blocking
-deno run -A --inspect scripts/load_test.ts
-# Event loop should remain responsive during retries
-```
+See `tests/services/db_test.ts` for verification details.
 
 #### Success Criteria
 
@@ -538,62 +387,7 @@ File stability verification uses blocking `setTimeout` calls in a loop, making t
 
 **File**: `src/services/watcher.ts` (Lines 180-230 - REPLACE)
 
-```typescript
-private async readFileWhenStable(path: string): Promise<string> {
-  const maxAttempts = 5;
-  const backoffMs = [50, 100, 200, 500, 1000];
-  const minFileSize = 1; // Require at least 1 byte
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      const stat1 = await Deno.stat(path);
-
-      // Validate initial file state
-      if (stat1.size < minFileSize) {
-        if (attempt === maxAttempts - 1) {
-          throw new Error(`File is empty or too small: ${path}`);
-        }
-        // Non-blocking delay
-        await this.delay(backoffMs[attempt]);
-        continue;
-      }
-
-      // Wait for stability window
-      await this.delay(backoffMs[attempt]);
-
-      const stat2 = await Deno.stat(path);
-
-      // Check if file size stabilized
-      if (stat1.size === stat2.size && stat2.size >= minFileSize) {
-        const content = await Deno.readTextFile(path);
-
-        // Final validation
-        if (content.trim().length > 0) {
-          return content;
-        }
-
-        throw new Error(`File became empty during read: ${path}`);
-      }
-
-    } catch (error) {
-      if (error instanceof Deno.errors.NotFound) {
-        throw new Error(`File disappeared: ${path}`);
-      }
-
-      if (attempt === maxAttempts - 1) {
-        throw new Error(`File never stabilized after ${maxAttempts} attempts: ${path} - ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-  }
-
-  throw new Error(`File never stabilized after ${maxAttempts} attempts: ${path}`);
-}
-
-// Non-blocking delay utility
-private delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-```
+See `src/services/watcher.ts` for implementation details.
 
 #### Success Criteria
 
@@ -645,64 +439,13 @@ Multiple file events can trigger concurrent processing of the same file without 
 
 **File**: `src/services/watcher.ts` (Lines 130-150)
 
-```typescript
-private debounceTimers: Map<string, number> = new Map();
-// ❌ No mutex or queue for processing the same file
-
-private debounceFile(path: string) {
-  const existingTimer = this.debounceTimers.get(path);
-  if (existingTimer) {
-    clearTimeout(existingTimer);
-  }
-
-  const timerId = setTimeout(() => {
-    this.debounceTimers.delete(path);
-    this.processFile(path); // ❌ Can run concurrently for same file
-  }, this.debounceMs);
-
-  this.debounceTimers.set(path, timerId);
-}
-```
+See `src/services/watcher.ts` for implementation details.
 
 #### Proposed Solution
 
 **File**: `src/services/watcher.ts` (ADD)
 
-```typescript
-private processingFiles: Set<string> = new Set();
-
-private debounceFile(path: string) {
-  const existingTimer = this.debounceTimers.get(path);
-  if (existingTimer) {
-    clearTimeout(existingTimer);
-  }
-
-  const timerId = setTimeout(() => {
-    this.debounceTimers.delete(path);
-    this.processFileQueued(path); // Use queued processing
-  }, this.debounceMs);
-
-  this.debounceTimers.set(path, timerId);
-}
-
-private async processFileQueued(path: string) {
-  // Prevent concurrent processing of the same file
-  if (this.processingFiles.has(path)) {
-    this.logger.debug("watcher.file_already_processing", path, {
-      skipped: true,
-    });
-    return;
-  }
-
-  this.processingFiles.add(path);
-
-  try {
-    await this.processFile(path);
-  } finally {
-    this.processingFiles.delete(path);
-  }
-}
-```
+See `src/services/watcher.ts` for implementation details.
 
 #### Success Criteria
 
@@ -753,51 +496,13 @@ Flow execution doesn't isolate step failures properly, allowing one failed step 
 
 **File**: `src/flows/flow_runner.ts` (Lines 200-250)
 
-```typescript
-const wavePromises = wave.map((stepId) => this.executeStep(flowRunId, stepId, flow, request, stepResults));
-const waveResults = await Promise.allSettled(wavePromises);
-
-// ❌ No proper error isolation - failures can corrupt stepResults
-for (let i = 0; i < wave.length; i++) {
-  const stepId = wave[i];
-  const promiseResult = waveResults[i];
-
-  if (promiseResult.status === "fulfilled") {
-    stepResults.set(stepId, promiseResult.value);
-    // ...
-  } else {
-    // ❌ Error handling doesn't prevent corruption
-    const errorStepResult: StepResult = {
-      stepId,
-      success: false,
-      error: promiseResult.reason?.message || "Unknown error",
-      // ...
-    };
-    stepResults.set(stepId, errorStepResult);
-  }
-}
-```
+See `src/flows/flow_runner.ts` for implementation details.
 
 #### Proposed Solution
 
 **File**: `src/flows/flow_runner.ts` (Lines 200-250 - REPLACE)
 
-```
-// Log wave errors if any occurred
-if (waveErrors.length > 0) {
-  this.eventLogger.warn("flow.wave.errors", {
-    flowRunId,
-    waveNumber,
-    errorCount: waveErrors.length,
-    errors: waveErrors.map(({ stepId, error }) => ({
-      stepId,
-      error: error instanceof Error ? error.message : String(error),
-    })),
-    traceId: request.traceId,
-    requestId: request.requestId,
-  });
-}
-```
+See `src/flows/flow_runner.ts` for implementation details.
 
 #### Success Criteria
 
@@ -828,45 +533,7 @@ Tool execution errors are caught generically without proper error classification
 
 **File**: `src/mcp/server.ts` (Lines 300-350)
 
-```typescript
-private async handleToolsCall(
-  request: JSONRPCRequest,
-): Promise<JSONRPCResponse> {
-  // ... validation ...
-
-  try {
-    const result = await tool.execute(params.arguments);
-    return {
-      jsonrpc: "2.0",
-      id: request.id,
-      result,
-    };
-  } catch (error) {
-    // ❌ Generic error handling without proper classification
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    // ❌ Basic error code mapping
-    let errorCode = -32603; // Internal error (default)
-
-    if (
-      errorMessage.includes("validation") || errorMessage.includes("Required") ||
-      errorMessage.includes("expected") ||
-      (error && typeof error === "object" && "constructor" in error && error.constructor?.name === "ZodError")
-    ) {
-      errorCode = -32602; // Invalid params
-    }
-
-    return {
-      jsonrpc: "2.0",
-      id: request.id,
-      error: {
-        code: errorCode,
-        message: errorMessage,
-      },
-    };
-  }
-}
-```
+See `src/mcp/server.ts` for implementation details.
 
 #### Success Criteria
 
@@ -898,36 +565,7 @@ Git operations don't handle repository corruption or locked states gracefully, l
 
 **File**: `src/services/git_service.ts` (Lines 300-365)
 
-```typescript
-private async runGitCommand(
-  args: string[],
-  throwOnError = true,
-): Promise<{ output: string; exitCode: number }> {
-  const cmd = new Deno.Command("git", {
-    args,
-    cwd: this.repoPath,
-    stdout: "piped",
-    stderr: "piped",
-    // ❌ No timeout or signal handling
-  });
-
-  const { code, stdout, stderr } = await cmd.output();
-
-  const output = new TextDecoder().decode(stdout);
-  const errorOutput = new TextDecoder().decode(stderr);
-
-  if (code !== 0 && throwOnError) {
-    throw new Error(
-      `Git command failed: git ${args.join(" ")}\nExit code: ${code}\nError: ${errorOutput}`,
-    );
-  }
-
-  return {
-    output: output || errorOutput,
-    exitCode: code,
-  };
-}
-```
+See `src/services/git_service.ts` for implementation details.
 
 #### Proposed Solution
 
@@ -970,19 +608,7 @@ Memory bank uses synchronous file operations and doesn't handle concurrent acces
 
 **File**: `src/services/memory_bank.ts` (Lines 1220-1240)
 
-```typescript
-private async readMarkdownFile(path: string): Promise<string> {
-  if (!await exists(path)) {
-    return "";
-  }
-  return await Deno.readTextFile(path);
-}
-
-private async writeMarkdownFile(path: string, content: string): Promise<void> {
-  await ensureFile(path);
-  await Deno.writeTextFile(path, content);
-}
-```
+See `src/services/memory_bank.ts` for implementation details.
 
 **Issues Identified**:
 
@@ -1018,56 +644,7 @@ private async writeMarkdownFile(path: string, content: string): Promise<void> {
 
 **File**: `src/services/memory_bank.ts` (ADD)
 
-```typescript
-// File locking mechanism for concurrent access control
-private async withFileLock<T>(
-  filePath: string,
-  operation: () => Promise<T>,
-  options?: { timeoutMs?: number; maxRetries?: number }
-): Promise<T> {
-  const lockFile = `${filePath}.lock`;
-  const timeoutMs = options?.timeoutMs || 5000; // 5 second default timeout
-  const maxRetries = options?.maxRetries || 10;
-  const retryDelayMs = 100;
-
-  let attempts = 0;
-  const startTime = Date.now();
-
-  while (attempts < maxRetries && (Date.now() - startTime) < timeoutMs) {
-    try {
-      // Try to create lock file exclusively
-      await Deno.writeTextFile(lockFile, `${Date.now()}:${crypto.randomUUID()}`, {
-        createNew: true // Fail if file already exists
-      });
-
-      try {
-        // Execute operation with lock held
-        const result = await operation();
-        return result;
-      } finally {
-        // Always cleanup lock file
-        try {
-          await Deno.remove(lockFile);
-        } catch {
-          // Ignore cleanup errors - lock will be cleaned up by timeout
-        }
-      }
-    } catch (error) {
-      if (error instanceof Deno.errors.AlreadyExists) {
-        // Lock file exists, wait and retry
-        attempts++;
-        if (attempts < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, retryDelayMs));
-          continue;
-        }
-      }
-      throw error;
-    }
-  }
-
-  throw new Error(`Could not acquire file lock for ${filePath} after ${attempts} attempts`);
-}
-```
+See `src/services/memory_bank.ts` for implementation details.
 
 **Step 2: Add Concurrent Operation Protection**
 
@@ -1282,27 +859,7 @@ Plan parsing lacks robust validation of YAML frontmatter and step structure.
 
 **File**: `src/main.ts` (Lines 150-200 - REPLACE)
 
-```typescript
-// Add validation schema
-import { z } from "zod";
-
-const PlanFrontmatterSchema = z.object({
-  trace_id: z.string().uuid(),
-  request_id: z.string(),
-  agent: z.string().optional(),
-  model: z.string().optional(),
-});
-
-const PlanStepSchema = z.object({
-  number: z.number().int().positive(),
-  title: z.string().min(1),
-  content: z.string().min(1),
-});
-
-// Validate frontmatter
-const { parse: parseYaml } = await import("@std/yaml");
-const frontmatter = PlanFrontmatterSchema.parse(parseYaml(yamlMatch[1]));
-```
+See `src/main.ts` for implementation details.
 
 ---
 
@@ -1322,36 +879,11 @@ The command whitelisting system is incomplete and lacks proper argument validati
 
 **File**: `src/services/tool_registry.ts` (Lines 68-78)
 
-```typescript
-const ALLOWED_COMMANDS = new Set([
-  "echo",
-  "cat",
-  "ls",
-  "pwd",
-  "git",
-  "deno",
-  "node",
-  "npm",
-  "which",
-  "whoami",
-]);
-```
+See `src/services/tool_registry.ts` for implementation details.
 
 **File**: `src/services/tool_registry.ts` (Lines 447-453)
 
-```typescript
-private async runCommand(command: string, args: string[]): Promise<ToolResult> {
-  try {
-    // Check if command is whitelisted
-    if (!ALLOWED_COMMANDS.has(command)) {
-      return {
-        success: false,
-        error: `Command '${command}' is not allowed. Allowed commands: ${Array.from(ALLOWED_COMMANDS).join(", ")}`,
-      };
-    }
-    // ❌ No argument validation - any arguments allowed
-    // ❌ No command-specific restrictions
-```
+See `src/services/tool_registry.ts` for implementation details.
 
 #### Issues Identified
 
@@ -1391,188 +923,13 @@ Create categorized command whitelist with safety levels:
 
 **File**: `src/services/tool_registry.ts` (REPLACE Lines 68-78)
 
-```typescript
-// ============================================================================
-// Command Whitelist with Safety Classification
-// ============================================================================
-
-// Level 1: Completely Safe - No arguments can cause harm
-const SAFE_COMMANDS = new Set([
-  "echo",
-  "printf",
-  "pwd",
-  "whoami",
-  "id",
-  "date",
-  "uptime",
-  "which",
-  "type",
-  "command",
-  "hash",
-  "alias",
-]);
-
-// Level 2: Safe with Validation - Arguments must be validated
-const VALIDATED_COMMANDS = new Set([
-  // File operations (safe)
-  "ls",
-  "cat",
-  "head",
-  "tail",
-  "wc",
-  "file",
-  "stat",
-  "basename",
-  "dirname",
-  // Text processing (safe)
-  "grep",
-  "cut",
-  "tr",
-  "sort",
-  "uniq",
-  "rev",
-  "fold",
-  "fmt",
-  // Development tools (restricted)
-  "git",
-  "npm",
-  "node",
-  "deno",
-]);
-
-// Combined whitelist for backward compatibility
-const ALLOWED_COMMANDS = new Set([...SAFE_COMMANDS, ...VALIDATED_COMMANDS]);
-```
+See `src/services/tool_registry.ts` for implementation details.
 
 **Step 2: Argument Validation System**
 
 **File**: `src/services/tool_registry.ts` (ADD)
 
-```typescript
-/**
- * Validate command arguments for security and safety
- */
-private validateCommandArguments(command: string, args: string[]): { valid: boolean; reason?: string } {
-  // Reject dangerous argument patterns
-  const dangerousPatterns = [
-    /[\$`]/,  // Shell metacharacters
-    /\|/,     // Pipes
-    /;/,      // Command separators
-    /&&/,     // Logical AND
-    /\|\|/,   // Logical OR
-    />/,      // Output redirection
-    /<</,     // Input redirection
-    /2>/,     // Error redirection
-  ];
-
-  for (const arg of args) {
-    for (const pattern of dangerousPatterns) {
-      if (pattern.test(arg)) {
-        return {
-          valid: false,
-          reason: `Argument contains dangerous pattern: ${pattern.source}`,
-        };
-      }
-    }
-  }
-
-  // Command-specific validations
-  switch (command) {
-    case "git":
-      return this.validateGitArguments(args);
-    case "npm":
-    case "node":
-    case "deno":
-      return this.validateRuntimeArguments(command, args);
-    case "ls":
-      return this.validateLsArguments(args);
-    case "grep":
-      return this.validateGrepArguments(args);
-    default:
-      // For safe commands, basic validation is sufficient
-      return { valid: true };
-  }
-}
-
-/**
- * Validate git command arguments
- */
-private validateGitArguments(args: string[]): { valid: boolean; reason?: string } {
-  const dangerousGitOptions = [
-    "--exec-path", "--git-dir", "--work-tree", "--namespace",
-    "--config", "--config-env", "--exec", "--html-path",
-  ];
-
-  for (const arg of args) {
-    if (dangerousGitOptions.some(option => arg.startsWith(option))) {
-      return {
-        valid: false,
-        reason: `Dangerous git option not allowed: ${arg}`,
-      };
-    }
-  }
-
-  return { valid: true };
-}
-
-/**
- * Validate runtime command arguments (npm, node, deno)
- */
-private validateRuntimeArguments(runtime: string, args: string[]): { valid: boolean; reason?: string } {
-  // Only allow specific safe subcommands
-  const safeSubcommands = ["--version", "--help", "version", "info"];
-
-  if (args.length === 0) return { valid: true }; // Allow bare command
-
-  const firstArg = args[0];
-  if (!safeSubcommands.includes(firstArg)) {
-    return {
-      valid: false,
-      reason: `${runtime} subcommand not allowed: ${firstArg}`,
-    };
-  }
-
-  return { valid: true };
-}
-
-/**
- * Validate ls command arguments
- */
-private validateLsArguments(args: string[]): { valid: boolean; reason?: string } {
-  // Allow safe ls options only
-  const allowedLsOptions = ["-l", "-a", "-h", "-1", "--color=never"];
-
-  for (const arg of args) {
-    if (arg.startsWith("-") && !allowedLsOptions.includes(arg)) {
-      return {
-        valid: false,
-        reason: `Unsafe ls option not allowed: ${arg}`,
-      };
-    }
-  }
-
-  return { valid: true };
-}
-
-/**
- * Validate grep command arguments
- */
-private validateGrepArguments(args: string[]): { valid: boolean; reason?: string } {
-  // Allow safe grep options only
-  const allowedGrepOptions = ["-i", "-v", "-n", "-c", "-l", "-r", "-E", "-F"];
-
-  for (const arg of args) {
-    if (arg.startsWith("-") && !allowedGrepOptions.some(opt => arg.startsWith(opt))) {
-      return {
-        valid: false,
-        reason: `Unsafe grep option not allowed: ${arg}`,
-      };
-    }
-  }
-
-  return { valid: true };
-}
-```
+See `src/services/tool_registry.ts` for implementation details.
 
 #### Implementation Plan
 
@@ -1613,91 +970,7 @@ private validateGrepArguments(args: string[]): { valid: boolean; reason?: string
 
 **File**: `tests/services/tool_registry_test.ts` (ADD)
 
-```typescript
-describe("Command Whitelisting", () => {
-  let registry: ToolRegistry;
-
-  beforeEach(() => {
-    registry = new ToolRegistry(mockConfig, mockDb);
-  });
-
-  describe("ALLOWED_COMMANDS", () => {
-    it("should allow safe commands", async () => {
-      const result = await registry.runCommand("echo", ["hello", "world"]);
-      expect(result.success).toBe(true);
-      expect(result.data?.output).toContain("hello world");
-    });
-
-    it("should allow validated commands with safe arguments", async () => {
-      const result = await registry.runCommand("ls", ["-l"]);
-      expect(result.success).toBe(true);
-    });
-
-    it("should reject unknown commands", async () => {
-      const result = await registry.runCommand("rm", ["-rf", "/"]);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("not allowed");
-    });
-  });
-
-  describe("Argument Validation", () => {
-    it("should block shell metacharacters", async () => {
-      const result = await registry.runCommand("echo", ["hello; rm -rf /"]);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("dangerous pattern");
-    });
-
-    it("should block output redirection", async () => {
-      const result = await registry.runCommand("echo", ["test", ">", "/tmp/file"]);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("dangerous pattern");
-    });
-
-    it("should block dangerous git options", async () => {
-      const result = await registry.runCommand("git", ["--exec-path", "/tmp"]);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("Dangerous git option");
-    });
-
-    it("should allow safe git operations", async () => {
-      const result = await registry.runCommand("git", ["status", "--porcelain"]);
-      // Result depends on actual git repo state, but should not be blocked
-      expect(result.success !== undefined).toBe(true);
-    });
-
-    it("should block unsafe ls options", async () => {
-      const result = await registry.runCommand("ls", ["--color=always", "-R"]);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("Unsafe ls option");
-    });
-
-    it("should allow safe grep options", async () => {
-      const result = await registry.runCommand("grep", ["-i", "pattern", "file.txt"]);
-      // Should not be blocked by validation (actual execution may fail)
-      expect(result.success !== undefined).toBe(true);
-    });
-
-    it("should block unsafe grep options", async () => {
-      const result = await registry.runCommand("grep", ["--include=*.log", "pattern"]);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("Unsafe grep option");
-    });
-  });
-
-  describe("Runtime Commands", () => {
-    it("should allow safe npm subcommands", async () => {
-      const result = await registry.runCommand("npm", ["--version"]);
-      expect(result.success).toBe(true);
-    });
-
-    it("should block dangerous npm subcommands", async () => {
-      const result = await registry.runCommand("npm", ["install", "malicious-package"]);
-      expect(result.success).toBe(false);
-      expect(result.error).toContain("subcommand not allowed");
-    });
-  });
-});
-```
+See `tests/services/tool_registry_test.ts` for verification details.
 
 #### Dependencies
 
@@ -1777,36 +1050,11 @@ The command whitelisting system is incomplete and lacks proper argument validati
 
 **File**: `src/services/tool_registry.ts` (Lines 68-78)
 
-```typescript
-const ALLOWED_COMMANDS = new Set([
-  "echo",
-  "cat",
-  "ls",
-  "pwd",
-  "git",
-  "deno",
-  "node",
-  "npm",
-  "which",
-  "whoami",
-]);
-```
+See `src/services/tool_registry.ts` for implementation details.
 
 **File**: `src/services/tool_registry.ts` (Lines 447-453)
 
-````typescript
-private async runCommand(command: string, args: string[]): Promise<ToolResult> {
-  try {
-    // Check if command is whitelisted
-    if (!ALLOWED_COMMANDS.has(command)) {
-      return {
-        success: false,
-        error: `Command '${command}' is not allowed. Allowed commands: ${Array.from(ALLOWED_COMMANDS).join(", ")}`,
-      };
-    }
-    // ❌ No argument validation - any arguments allowed
-    // ❌ No command-specific restrictions
-
+See `src/services/tool_registry.ts` for implementation details.
 ### Issue #13: Duplicated comment blocks
 
 **Status**: ✅ **COMPLETED** (All duplicate JSDoc blocks removed from ProviderFactory, file reduced by 25%, all tests passing)
@@ -1823,29 +1071,7 @@ Every static method contains TWO identical JSDoc comment blocks, resulting in ~1
 
 #### Current Code Example
 
-```typescript
-// Lines 79-96
-/**
- * Create an LLM provider based on environment and configuration.
- *
- * Priority order:
- * 1. Environment variables (EXO_LLM_PROVIDER, EXO_LLM_MODEL, etc.)
- * 2. Config file [ai] section
- * 3. Defaults (MockLLMProvider)
- *
- * @param config - ExoFrame configuration
- * @returns An IModelProvider instance
- */
-/**
- * Create an LLM provider based on environment and configuration.
- * @param config ExoFrame configuration
- * @returns An IModelProvider instance
- */
-static create(config: Config): IModelProvider {
-  const options = this.resolveOptions(config);
-  return this.createProvider(options);
-}
-````
+See `src/ai/provider_factory.ts` for implementation details.
 
 #### Affected Methods
 
@@ -1897,47 +1123,11 @@ Likely caused by:
 
 Use concise TypeScript-idiomatic style:
 
-````typescript
-/**
- * Create an LLM provider based on environment and configuration.
- *
- * Priority: Environment variables → Config file → Defaults
- * Supported providers: mock, ollama, anthropic, openai, google
- *
- * @param config ExoFrame configuration object
- * @returns Configured IModelProvider instance
- * @throws {ProviderFactoryError} Missing required API key
- *
- * @example
- * ```typescript
- * const provider = ProviderFactory.create(config);
- * const result = await provider.generate("Hello, world!");
- * ```
- */
-static create(config: Config): IModelProvider {
-  const options = this.resolveOptions(config);
-  return this.createProvider(options);
-}
-````
+See `src/ai/provider_factory.ts` for implementation details.
 
 **Step 2: Add Cross-References**
 
-```typescript
-/**
- * Create provider by name from models configuration.
- *
- * @param config ExoFrame configuration object
- * @param name Model name (e.g., "default", "fast", "local")
- * @returns Configured IModelProvider instance
- * @throws {ProviderFactoryError} Model not found or missing API key
- * @see {@link create} for default provider creation
- * @see {@link getProviderInfoByName} for provider info lookup
- */
-static createByName(config: Config, name: string): IModelProvider {
-  const options = this.resolveOptionsByName(config, name);
-  return this.createProvider(options);
-}
-```
+See `src/ai/provider_factory.ts` for implementation details.
 
 #### Implementation Plan
 
@@ -1972,24 +1162,7 @@ static createByName(config: Config, name: string): IModelProvider {
 
 #### Verification Commands
 
-```bash
-# Count total comment lines before fix
-grep -c "^ \*" src/ai/provider_factory.ts
-# Expected: ~212
-
-# Count after fix (should be ~50% less)
-grep -c "^ \*" src/ai/provider_factory.ts
-# Expected: ~106
-
-# Check for duplicate @param patterns
-grep -B5 -A5 "@param config" src/ai/provider_factory.ts | \
-  grep -c "@param config"
-# Expected: 1 per method (not 2)
-
-# Verify no duplicate JSDoc blocks remain
-grep -Pzo '(?s)/\*\*.*?\*/\s*/\*\*.*?\*/' src/ai/provider_factory.ts
-# Expected: No output
-```
+See `tests/ai/provider_factory_test.ts` for verification details.
 
 #### Success Criteria
 

@@ -47,7 +47,7 @@ export class DaemonCommands extends BaseCommand {
 
       // Find daemon script relative to this command file
       const currentFile = fromFileUrl(import.meta.url);
-      const mainScript = Deno.env.get("EXO_DAEMON_SCRIPT") || join(dirname(currentFile), "..", "main.ts");
+      const mainScript = Deno.env.get("EXO_DAEMON_SCRIPT") || join(dirname(currentFile), "..", "..", "main.ts");
 
       const status = await this.status();
       if (status.running) {

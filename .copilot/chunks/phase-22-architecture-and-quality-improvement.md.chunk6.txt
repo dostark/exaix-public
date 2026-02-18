@@ -1,16 +1,21 @@
-```typescript
-async revertUnauthorizedChanges(
-  portalPath: string,
-  unauthorizedFiles: string[],
-): Promise<void> {
-  if (unauthorizedFiles.length === 0) return;
+1. **Missing Timeout Configuration**: No `AbortSignal` or timeout parameters
+2. **No Error Recovery**: Failures cascade without graceful degradation
+3. **Sequential Processing**: Inefficient O(n) operations instead of batching
+4. **Silent Failures**: No stderr handling or exit code validation
+5. **Resource Exhaustion**: No concurrency limits for multiple operations
 
-// ❌ SEQUENTIAL PROCESSING - O(n) time for n files
-  for (const file of unauthorizedFiles) {
-    // Check if tracked - NO TIMEOUT
-    const statusProcess = new Deno.Command("git", {
-      args: ["ls-files", "--error-unmatch", file],
-      cwd: portalPath,
-      // ❌ MISSING: timeout, signal
-    });
-    const result = await statusProcess.output(); // ❌ CAN BLOCK FOREVER
+#### Proposed Solution
+
+**Step 1: Add Timeout and AbortSignal Infrastructure**
+
+Create a new utility module for safe subprocess execution:
+
+**Step 2: Refactor Git Operations with Safe Execution**
+
+#### Implementation Plan
+
+**Phase 1: Infrastructure (2 hours)**
+
+- [x] Create `src/utils/subprocess.ts` with SafeSubprocess class
+- [x] Add comprehensive error types and logging
+- [x] Write unit tests for subprocess utility

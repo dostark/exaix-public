@@ -4,6 +4,7 @@ import { createGitTestContext, GitTestHelper } from "./helpers/git_test_helper.t
 import { PlanContext, PlanExecutor } from "../src/services/plan_executor.ts";
 import { MockProvider } from "../src/ai/providers.ts";
 import { GitService } from "../src/services/git_service.ts";
+import { ExecutionLoop } from "../src/services/execution_loop.ts";
 
 Deno.test("Git Security: blocks destructive git reset --hard in PlanExecutor", async () => {
   const { tempDir, db, cleanup, config } = await createGitTestContext("security-reset-");
@@ -123,7 +124,6 @@ Deno.test("Git Security: prevents system root taint during Portal execution fail
     default_branch: "main",
   }];
 
-  const { ExecutionLoop } = await import("../src/services/execution_loop.ts");
   const loop = new ExecutionLoop({
     config,
     db,

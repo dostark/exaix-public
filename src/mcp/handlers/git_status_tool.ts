@@ -9,6 +9,7 @@
 import { ToolHandler } from "../tool_handler.ts";
 import { type MCPToolResponse } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
+import { GitStatusToolArgsSchema } from "../../schemas/mcp.ts";
 
 /**
  * GitStatusTool - Queries git repository status in portals
@@ -21,7 +22,6 @@ import { PortalOperation } from "../../enums.ts";
  */
 export class GitStatusTool extends ToolHandler {
   async execute(args: unknown): Promise<MCPToolResponse> {
-    const { GitStatusToolArgsSchema } = await import("../../schemas/mcp.ts");
     const validatedArgs = GitStatusToolArgsSchema.parse(args) as {
       portal: string;
       agent_id: string;

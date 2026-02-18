@@ -14,6 +14,7 @@
 
 import { assert, assertEquals, assertExists } from "@std/assert";
 import { McpToolName } from "../../src/enums.ts";
+import { ExecutionLoop } from "../../src/services/execution_loop.ts";
 
 import { join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
@@ -141,7 +142,7 @@ Deno.test("Integration: Context Overflow - Large file references", async (t) => 
         const activePath = await env.approvePlan(planPath);
 
         // Execution should not crash
-        const { ExecutionLoop } = await import("../../src/services/execution_loop.ts");
+
         const loop = new ExecutionLoop({
           config: env.config,
           db: env.db,

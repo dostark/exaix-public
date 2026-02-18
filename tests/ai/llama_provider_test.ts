@@ -1,6 +1,7 @@
 import { assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { PlanSchema } from "../../src/schemas/plan_schema.ts";
 import { LlamaProvider } from "../../src/ai/providers/llama_provider.ts";
+import { getProviderForModel } from "../../src/ai/provider_factory.ts";
 
 // Check if LlamaProvider tests should run
 const shouldRunLlamaTests = Deno.env.get("EXO_TEST_ENABLE_LLAMA") === "true";
@@ -118,9 +119,9 @@ llamaTest("LlamaProvider returns error for invalid JSON output", async () => {
   );
 });
 
-llamaTest("Provider selection logic routes Llama models to LlamaProvider", async () => {
+llamaTest("Provider selection logic routes Llama models to LlamaProvider", () => {
   // This test assumes a provider factory exists
-  const { getProviderForModel } = await import("../../src/ai/provider_factory.ts");
+
   const provider = getProviderForModel("llama3.2:1b");
-  assertEquals(provider instanceof (await import("../../src/ai/providers/llama_provider.ts")).LlamaProvider, true);
+  assertEquals(provider instanceof LlamaProvider, true);
 });

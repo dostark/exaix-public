@@ -14,6 +14,14 @@ import { ProviderRegistry } from "./provider_registry.ts";
 import { IModelProvider, ModelOptions, ResolvedProviderOptions } from "./types.ts";
 export type { IModelProvider, ModelOptions };
 import {
+  createOpenAIChatCompletionsRequestInit,
+  extractOpenAIContent,
+  fetchJsonWithRetries,
+  tokenMapperOpenAI,
+} from "./provider_common_utils.ts";
+
+import { initializeRegistry } from "./provider_factory.ts";
+import {
   DEFAULT_OLLAMA_BASE_URL,
   DEFAULT_OLLAMA_MODEL,
   DEFAULT_OLLAMA_RETRY_BACKOFF_MS,
@@ -86,7 +94,6 @@ export class OllamaProvider implements IModelProvider {
   async generate(prompt: string, options?: ModelOptions): Promise<string> {
     try {
       // Import helper dynamically to avoid module cycles
-      const { fetchJsonWithRetries } = await import("./provider_common_utils.ts");
       const data = await fetchJsonWithRetries(
         `${this.baseUrl}/api/generate`,
         {
@@ -187,12 +194,6 @@ class OpenAIShim implements IModelProvider {
     const backoffBaseMs = DEFAULT_OPENAI_RETRY_BACKOFF_MS;
     const timeoutMs = DEFAULT_OPENAI_TIMEOUT_MS;
 
-    // Import helpers dynamically to avoid module initialization cycles
-    const { createOpenAIChatCompletionsRequestInit, fetchJsonWithRetries, extractOpenAIContent, tokenMapperOpenAI } =
-      await import(
-        "./provider_common_utils.ts"
-      );
-
     const data = await fetchJsonWithRetries(
       url,
       createOpenAIChatCompletionsRequestInit(this.apiKey, this.model, prompt, options),
@@ -231,8 +232,6 @@ export class ModelFactory {
 
     // Initialize registry if needed
     if (ProviderRegistry.getSupportedProviders().length === 0) {
-      // Import here to avoid circular dependency
-      const { initializeRegistry } = await import("./provider_factory.ts");
       initializeRegistry();
     }
 

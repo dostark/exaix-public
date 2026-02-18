@@ -16,6 +16,7 @@ import { ProviderFactory } from "./ai/provider_factory.ts";
 import { RequestProcessor } from "./services/request_processor.ts";
 import { ReviewRegistry } from "./services/review_registry.ts";
 import { EventLogger } from "./services/event_logger.ts";
+import { ExecutionLoop } from "./services/execution_loop.ts";
 import { createConfigReloadHandler } from "./config/config_reload_handler.ts";
 import {
   ConsoleOutput,
@@ -172,8 +173,6 @@ if (import.meta.main) {
     // Initialize Review Registry
     const reviewRegistry = new ReviewRegistry(dbService, logger);
 
-    // Initialize ExecutionLoop for robust plan execution (Step 5.12)
-    const { ExecutionLoop } = await import("./services/execution_loop.ts");
     const executionLoop = new ExecutionLoop({
       config,
       db: dbService,

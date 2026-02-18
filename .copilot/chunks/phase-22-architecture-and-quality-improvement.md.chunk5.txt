@@ -1,24 +1,13 @@
-```typescript
-async auditGitChanges(
-  portalPath: string,
-  authorizedFiles: string[],
-): Promise<string[]> {
-  // Get git status - NO TIMEOUT PROTECTION
-  const statusProcess = new Deno.Command("git", {
-    args: ["status", "--porcelain"],
-    cwd: portalPath,
-    stdout: "piped",
-    stderr: "piped",
-    // ❌ MISSING: signal, timeout configuration
-  });
+- **Availability Risk**: Single corrupted repo can block entire system
+- **Recovery Time**: Requires manual process restart (no auto-recovery)
+- **Performance**: Sequential file processing O(n) instead of batched O(1)
+- **Debugging**: No logging or error context for git failures
 
-const output = await statusProcess.output(); // ❌ CAN BLOCK FOREVER
-  const statusText = new TextDecoder().decode(output.stdout);
+**Qualitative Impact**:
 
-// ❌ No exit code validation
-  // ❌ stderr completely ignored
-  // ... rest of parsing logic
-}
-```
+- **System Reliability**: 🔴 Critical single point of failure
+- **User Experience**: Complete system hangs with no feedback
+- **Operational Burden**: Manual intervention required for recovery
+- **Scalability**: Cannot handle multiple concurrent git operations safely
 
-**File**: `src/services/agent_executor.ts` (Lines 304-342)
+#### Root Cause Analysis
