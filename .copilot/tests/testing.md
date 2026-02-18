@@ -17,7 +17,7 @@ Key points
 - **Integration**: Use `TestEnvironment.create()` to scaffold full workspace/DB structures.
 - **Leases**: File locking integration tests live in `tests/execution_loop_test.ts`.
 - **Top-level Imports**: Always place import statements at the top of test files. Do not use dynamic imports inside `Deno.test`.
-- **Strict Typing**: Do not use `any` even in tests. Do not use `unknown` as a parameter type, return type, or field type — define a named interface or type alias instead. Do not use double casting (`... as unknown as ...`), `as any`, or `as typeof variable` to bypass type checks. The `as typeof var` pattern is effectively equivalent to `any` and defeats type safety. Use `Partial<T>`, specific mock types, or Zod-inferred types to ensure test reliability.
+- **Strict Typing**: Do not use `any` even in tests. Do not use `unknown` as a parameter type, return type, or field type — define a named interface or type alias instead. Do not use double casting (`... as unknown as ...`), `as any`, or `as typeof variable` to bypass type checks. The `as typeof var` pattern is effectively equivalent to `any` and defeats type safety. **Never use `// deno-lint-ignore no-explicit-any`** to suppress type errors in tests - fix the underlying type issue instead. Use `Partial<T>`, specific mock types, or Zod-inferred types to ensure test reliability.
 
 - Prefer `createCliTestContext()` for CLI tests and call returned `cleanup()` in `afterEach`
 

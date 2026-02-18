@@ -11,18 +11,14 @@ import { RequestStatus, type RequestStatusType } from "../../src/requests/reques
 
 // ===== Test Data Factories =====
 
-export interface TestDataOverrides {
-  [key: string]: unknown;
-}
-
 /**
  * Generic test data factory that creates objects with default values and overrides
  */
-export class TestDataFactory<T extends Record<string, unknown>> {
+export class TestDataFactory<T> {
   private readonly defaultsFactory: () => T;
 
   constructor(defaults: T | (() => T)) {
-    this.defaultsFactory = typeof defaults === "function" ? defaults : () => ({ ...defaults });
+    this.defaultsFactory = typeof defaults === "function" ? (defaults as () => T) : () => ({ ...defaults });
   }
 
   create(overrides: Partial<T> = {}): T {
@@ -34,22 +30,34 @@ export class TestDataFactory<T extends Record<string, unknown>> {
   }
 }
 
-export interface TestRequestFixture extends Record<string, unknown> {
+export interface TestRequestFixture {
   trace_id: string;
   filename: string;
   title: string;
   status: RequestStatusType;
   priority: string;
   agent: string;
+  portal?: string;
+  model?: string;
   created: string;
   created_by: string;
   source: string;
 }
 
-export interface TestPlanFixture extends Record<string, unknown> {
+export interface TestPlanFixture {
   id: string;
   title: string;
   status: PlanStatusType;
+  rejectionReason?: string;
+}
+
+export interface TestSkillFixture {
+  id: string;
+  name: string;
+  version: string;
+  status: SkillStatus;
+  source: MemorySource;
+  description: string;
 }
 
 // Request factory
@@ -73,7 +81,7 @@ export const planFactory = new TestDataFactory<TestPlanFixture>(() => ({
 }));
 
 // Skill factory
-export const skillFactory = new TestDataFactory(() => ({
+export const skillFactory = new TestDataFactory<TestSkillFixture>(() => ({
   id: `skill-${Math.floor(Math.random() * 1e6)}`,
   name: "Skill",
   version: "1.0.0",
@@ -87,7 +95,7 @@ export const skillFactory = new TestDataFactory(() => ({
 /**
  * Base class for mock services with common CRUD operations
  */
-export abstract class BaseMockService<T> {
+export abstract class BaseMockService<T extends { id?: string; trace_id?: string }> {
   protected items: T[] = [];
 
   constructor(initialItems: T[] = []) {
@@ -99,7 +107,7 @@ export abstract class BaseMockService<T> {
   }
 
   get(id: string): Promise<T | null> {
-    const item = this.items.find((item: any) => item.id === id || (item as any).trace_id === id);
+    const item = this.items.find((item) => item.id === id || item.trace_id === id);
     return Promise.resolve(item || null);
   }
 
@@ -113,7 +121,7 @@ export abstract class BaseMockService<T> {
   }
 
   update(id: string, updates: Partial<T>): Promise<boolean> {
-    const index = this.items.findIndex((item: any) => item.id === id || (item as any).trace_id === id);
+    const index = this.items.findIndex((item) => item.id === id || item.trace_id === id);
     if (index === -1) return Promise.resolve(false);
 
     this.items[index] = { ...this.items[index], ...updates };
@@ -121,7 +129,7 @@ export abstract class BaseMockService<T> {
   }
 
   delete(id: string): Promise<boolean> {
-    const index = this.items.findIndex((item: any) => item.id === id || (item as any).trace_id === id);
+    const index = this.items.findIndex((item) => item.id === id || item.trace_id === id);
     if (index === -1) return Promise.resolve(false);
 
     this.items.splice(index, 1);
@@ -132,12 +140,12 @@ export abstract class BaseMockService<T> {
 /**
  * Mock service for requests with common operations
  */
-export class MockRequestService extends BaseMockService<any> {
-  constructor(initialRequests: any[] = []) {
+export class MockRequestService extends BaseMockService<TestRequestFixture> {
+  constructor(initialRequests: TestRequestFixture[] = []) {
     super(initialRequests);
   }
 
-  listRequests(status?: RequestStatusType): Promise<any[]> {
+  listRequests(status?: RequestStatusType): Promise<TestRequestFixture[]> {
     if (status) {
       return Promise.resolve(this.items.filter((r) => r.status === status));
     }
@@ -149,7 +157,10 @@ export class MockRequestService extends BaseMockService<any> {
     return Promise.resolve(request ? `Content for ${id}` : "");
   }
 
-  createRequest(description: string, options?: any): Promise<any> {
+  createRequest(
+    description: string,
+    options?: { priority?: string; agent?: string; portal?: string; model?: string },
+  ): Promise<TestRequestFixture> {
     return this.create({
       trace_id: `test-${Date.now()}`,
       filename: `request-test.md`,
@@ -173,8 +184,8 @@ export class MockRequestService extends BaseMockService<any> {
 /**
  * Mock service for plans with common operations
  */
-export class MockPlanService extends BaseMockService<any> {
-  constructor(initialPlans: any[] = []) {
+export class MockPlanService extends BaseMockService<TestPlanFixture> {
+  constructor(initialPlans: TestPlanFixture[] = []) {
     super(initialPlans);
   }
 
@@ -188,7 +199,11 @@ export class MockPlanService extends BaseMockService<any> {
   }
 
   rejectPlan(id: string, reason?: string): Promise<boolean> {
-    return this.update(id, { status: PlanStatus.REJECTED, rejectionReason: reason });
+    const updateData: Partial<TestPlanFixture> = { status: PlanStatus.REJECTED };
+    if (reason !== undefined) {
+      updateData.rejectionReason = reason;
+    }
+    return this.update(id, updateData);
   }
 }
 
@@ -253,16 +268,16 @@ export const commonTestData = {
 
   // Standard mock objects
   mockObjects: {
-    newRequest: () => ({
+    newRequest: (): TestRequestFixture => ({
       trace_id: "new-req",
       filename: "request-new.md",
       title: "New Request",
       status: RequestStatus.PENDING,
-      priority: "normal" as const,
+      priority: "normal",
       agent: "default",
       created: new Date().toISOString(),
       created_by: "test@example.com",
-      source: "tui" as const,
+      source: "tui",
     }),
   },
 };
@@ -272,11 +287,11 @@ export const commonTestData = {
 /**
  * Creates a standard test scenario with service, view, and TUI session
  */
-export function createTestScenario<T>(
-  ServiceClass: new (items: any[]) => T,
-  ViewClass: any,
-  data: any[] = [],
-) {
+export function createTestScenario<T extends { id?: string; trace_id?: string }, V>(
+  ServiceClass: new (items: T[]) => T,
+  ViewClass: new (service: T) => V,
+  data: T[] = [],
+): { service: T; view: V } {
   const service = new ServiceClass(data);
   const view = new ViewClass(service);
   return { service, view };
@@ -285,6 +300,6 @@ export function createTestScenario<T>(
 /**
  * Creates a TUI session for testing
  */
-export function createTuiSession(view: any, data: any[] = []) {
-  return view.createTuiSession ? view.createTuiSession(data) : view.createTuiSession(false);
+export function createTuiSession<T>(view: { createTuiSession: (data?: unknown[]) => T }, data: unknown[] = []): T {
+  return view.createTuiSession(data);
 }
