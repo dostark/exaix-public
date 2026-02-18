@@ -19,7 +19,8 @@ import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { TestEnvironment } from "./helpers/test_environment.ts";
-import { BlueprintCommands } from "../../src/cli/blueprint_commands.ts";
+import { BlueprintCommands } from "../../src/cli/commands/blueprint_commands.ts";
+import type { BlueprintMetadata } from "../../src/schemas/blueprint.ts";
 
 Deno.test("Integration: Blueprint Management - Full Lifecycle", async (t) => {
   const env = await TestEnvironment.create();
@@ -146,7 +147,7 @@ Invalid blueprint without agent_id field
       assertEquals(result.valid, false, "Validation should fail");
       assert(result.errors.length > 0, "Should have validation errors");
       assert(
-        result.errors.some((e) => e.includes("agent_id")),
+        result.errors.some((e: string) => e.includes("agent_id")),
         "Should report missing agent_id",
       );
     });
@@ -240,7 +241,7 @@ Invalid blueprint without agent_id field
 
       assert(blueprints.length >= 3, "Should have at least 3 blueprints");
 
-      const agentIds = blueprints.map((b) => b.agent_id);
+      const agentIds = blueprints.map((b: BlueprintMetadata) => b.agent_id);
       assert(agentIds.includes(testAgentId), "Should include test agent");
       assert(agentIds.includes(coderAgentId), "Should include coder agent");
       assert(agentIds.includes(customAgentId), "Should include custom agent");

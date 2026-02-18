@@ -11,7 +11,7 @@
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
 import { exists } from "@std/fs";
 import { join } from "@std/path";
-import { BlueprintCommands } from "../../src/cli/blueprint_commands.ts";
+import { BlueprintCommands } from "../../src/cli/commands/blueprint_commands.ts";
 import type { CommandContext } from "../../src/cli/base.ts";
 import { TestEnvironment } from "../integration/helpers/test_environment.ts";
 import { TEST_MODEL_ANTHROPIC } from "../config/constants.ts";

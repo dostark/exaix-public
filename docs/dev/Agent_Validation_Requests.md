@@ -67,7 +67,7 @@ Each request follows this structure:
 **exoctl Command**:
 
 ```bash
-exoctl request --portal portal-exoframe --agent code-analyst "Analyze the CLI command structure in ExoFrame. Examine src/cli/ and src/cli/commands/ to understand: - Command hierarchy and organization - Common patterns across command implementations - Error handling consistency - CLI argument validation approaches - Opportunities for command consolidation or refactoring Provide specific recommendations for improving the CLI architecture."
+exoctl request --portal portal-exoframe --agent code-analyst "Analyze the CLI command structure in ExoFrame. Examine src/cli/exoctl.ts and src/cli/commands/ to understand: - Command hierarchy and organization - Common patterns across command implementations - Error handling consistency - CLI argument validation approaches - Opportunities for command consolidation or refactoring Provide specific recommendations for improving the CLI architecture."
 ```
 
 **Request**:

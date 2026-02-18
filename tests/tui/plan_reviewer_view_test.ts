@@ -11,7 +11,7 @@ import {
   PlanReviewerView,
 } from "../../src/tui/plan_reviewer_view.ts";
 import { createPlanReviewerSession, sampleBasicPlans, samplePendingPlans, samplePlansWithStatuses } from "./helpers.ts";
-import { PlanCommands } from "../../src/cli/plan_commands.ts";
+import { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
 
 function yamlFrontmatter(obj: Record<string, string>): string {
   const lines = ["---"];

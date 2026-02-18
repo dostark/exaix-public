@@ -15,7 +15,7 @@ import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { ExecutionStatus, PortalStatus } from "../../src/enums.ts";
 import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import { PortalCommands } from "../../src/cli/portal_commands.ts";
+import { PortalCommands } from "../../src/cli/commands/portal_commands.ts";
 import {
   createTestPortal,
   getPortalCardPath,
@@ -134,7 +134,7 @@ Deno.test("PortalCommands: lists all portals with status", async () => {
 
     assertEquals(portals.length, 2);
 
-    portals.sort((a, b) => a.alias.localeCompare(b.alias));
+    portals.sort((a, b: { alias: string }) => a.alias.localeCompare(b.alias));
 
     assertEquals(portals[0].alias, "Portal1");
     assertEquals(portals[0].status, PortalStatus.ACTIVE);
@@ -239,8 +239,13 @@ Deno.test("PortalCommands: verifies all portals", async () => {
 
     assertEquals(results.length, 2);
 
-    const portal1 = results.find((r) => r.alias === "Portal1");
-    const portal2 = results.find((r) => r.alias === "Portal2");
+    interface TestPortal {
+      alias: string;
+      status: string;
+      issues?: string[];
+    }
+    const portal1 = results.find((r: TestPortal) => r.alias === "Portal1");
+    const portal2 = results.find((r: TestPortal) => r.alias === "Portal2");
 
     assertExists(portal1);
     assertEquals(portal1.status, "ok");
@@ -426,7 +431,7 @@ Deno.test("PortalCommands: verify detects missing symlink", async () => {
     assertEquals(results.length, 1);
     assertEquals(results[0].status, ExecutionStatus.FAILED);
     assertExists(results[0].issues);
-    assertEquals(results[0].issues!.some((i) => i.includes("Symlink")), true);
+    assertEquals(results[0].issues!.some((i: string) => i.includes("Symlink")), true);
   } finally {
     await cleanup();
   }
@@ -445,7 +450,7 @@ Deno.test("PortalCommands: verify detects missing context card", async () => {
     assertEquals(results.length, 1);
     assertEquals(results[0].status, ExecutionStatus.FAILED);
     assertExists(results[0].issues);
-    assertEquals(results[0].issues!.some((i) => i.includes("Context card")), true);
+    assertEquals(results[0].issues!.some((i: string) => i.includes("Context card")), true);
   } finally {
     await cleanup();
   }
@@ -552,7 +557,7 @@ Deno.test("PortalCommands: verify detects config mismatch", async () => {
     assertEquals(results[0].status, ExecutionStatus.FAILED);
     assertExists(results[0].issues);
     assertEquals(
-      results[0].issues!.some((i) => i.includes("Config mismatch")),
+      results[0].issues!.some((i: string) => i.includes("Config mismatch")),
       true,
     );
   } finally {
@@ -578,7 +583,7 @@ Deno.test("PortalCommands: verify detects missing config entry", async () => {
     assertEquals(results[0].status, ExecutionStatus.FAILED);
     assertExists(results[0].issues);
     assertEquals(
-      results[0].issues!.some((i) => i.includes("not found in configuration")),
+      results[0].issues!.some((i: string) => i.includes("not found in configuration")),
       true,
     );
   } finally {

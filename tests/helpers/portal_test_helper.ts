@@ -4,7 +4,7 @@
  */
 
 import { join } from "@std/path";
-import { PortalCommands } from "../../src/cli/portal_commands.ts";
+import { PortalCommands } from "../../src/cli/commands/portal_commands.ts";
 import { initTestDbService } from "./db.ts";
 import { createTestConfigService } from "./config.ts";
 import type { ConfigService } from "../../src/config/service.ts";

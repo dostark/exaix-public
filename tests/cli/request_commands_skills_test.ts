@@ -1,7 +1,7 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { parse as parseYaml } from "@std/yaml";
-import { RequestCommands } from "../../src/cli/request_commands.ts";
+import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 
 Deno.test("RequestCommands - Dynamic Skills Injection", async (t) => {

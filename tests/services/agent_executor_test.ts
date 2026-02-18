@@ -15,14 +15,11 @@ import {
   assertThrows,
 } from "@std/assert";
 import { McpToolName } from "../../src/enums.ts";
-
+import { MockProvider, OllamaProvider } from "../../src/ai/providers.ts";
 import { SecurityMode } from "../../src/enums.ts";
-
 import { PortalOperation } from "../../src/enums.ts";
-
 import { MemoryOperation } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
-
 import { join } from "@std/path";
 import { AgentExecutor, Blueprint } from "../../src/services/agent_executor.ts";
 import { SafeError } from "../../src/errors/safe_error.ts";
@@ -958,9 +955,6 @@ Deno.test({
     try {
       const { db, logger, pathResolver, permissions } = getServices();
 
-      // Import MockProvider
-      const { MockProvider } = await import("../../src/ai/providers.ts");
-
       // Create test blueprint
       const blueprintContent = `---
 model: mock-model
@@ -1053,9 +1047,6 @@ Deno.test({
     try {
       const { db, logger, pathResolver, permissions } = getServices();
 
-      // Import MockProvider
-      const { MockProvider } = await import("../../src/ai/providers.ts");
-
       // Create test blueprint
       const blueprintContent = `---
 model: mock-model
@@ -1126,10 +1117,6 @@ Deno.test({
     await setup();
     try {
       const { db, logger, pathResolver, permissions } = getServices();
-
-      // Import MockProvider
-      const { MockProvider } = await import("../../src/ai/providers.ts");
-
       // Create test blueprint
       const blueprintContent = `---
 model: mock-model
@@ -1219,9 +1206,6 @@ Deno.test({
     await setup();
     try {
       const { db, logger, pathResolver, permissions } = getServices();
-
-      // Import MockProvider
-      const { MockProvider } = await import("../../src/ai/providers.ts");
 
       // Create test blueprint
       const blueprintContent = `---
@@ -1316,10 +1300,6 @@ Deno.test({
     await setup();
     try {
       const { db, logger, pathResolver, permissions } = getServices();
-
-      // Import OllamaProvider
-      const { OllamaProvider } = await import("../../src/ai/providers.ts");
-
       // Create test blueprint
       const blueprintContent = `---
 model: llama3.2
@@ -1438,9 +1418,6 @@ Deno.test({
     await setup();
     try {
       const { db, logger, pathResolver, permissions } = getServices();
-
-      // Import OllamaProvider and ConnectionError
-      const { OllamaProvider } = await import("../../src/ai/providers.ts");
 
       // Create test blueprint
       const blueprintContent = `---

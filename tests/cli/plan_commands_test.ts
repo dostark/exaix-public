@@ -17,7 +17,7 @@ import { RequestStatus } from "../../src/requests/request_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
-import { PlanCommands } from "../../src/cli/plan_commands.ts";
+import { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import {

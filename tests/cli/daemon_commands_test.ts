@@ -18,7 +18,7 @@ import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { ConfigService } from "../../src/config/service.ts";
 import type { Config } from "../../src/config/schema.ts";
-import { DaemonCommands } from "../../src/cli/daemon_commands.ts";
+import { DaemonCommands } from "../../src/cli/commands/daemon_commands.ts";
 import { isProcessAlive } from "../../src/cli/process_utils.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";

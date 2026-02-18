@@ -14,6 +14,7 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
+import type { BlueprintMetadata } from "../src/schemas/blueprint.ts";
 
 const AGENT_ID_YAML = "yaml-agent";
 const AGENT_NAME_YAML = "YAML Format Agent";
@@ -86,7 +87,7 @@ This agent uses YAML frontmatter format.
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_YAML}.md`), yamlBlueprint);
 
     // Import BlueprintCommands
-    const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
+    const { BlueprintCommands } = await import("../src/cli/commands/blueprint_commands.ts");
 
     const config = createTestConfig(tempDir);
     const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
@@ -129,7 +130,7 @@ This agent uses TOML frontmatter format.
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_TOML}.md`), tomlBlueprint);
 
     // Import BlueprintCommands
-    const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
+    const { BlueprintCommands } = await import("../src/cli/commands/blueprint_commands.ts");
 
     const config = createTestConfig(tempDir);
     const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
@@ -170,7 +171,7 @@ System prompt content here.
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_SHOW}.md`), yamlBlueprint);
 
     // Import BlueprintCommands
-    const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
+    const { BlueprintCommands } = await import("../src/cli/commands/blueprint_commands.ts");
 
     const config = createTestConfig(tempDir);
     const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
@@ -215,7 +216,7 @@ You are a test agent. Use <thought> tags for reasoning and <content> tags for re
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_VALIDATE}.md`), yamlBlueprint);
 
     // Import BlueprintCommands
-    const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
+    const { BlueprintCommands } = await import("../src/cli/commands/blueprint_commands.ts");
 
     const config = createTestConfig(tempDir);
     const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
@@ -262,7 +263,7 @@ TOML content.
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_MIXED_TOML}.md`), tomlBlueprint);
 
     // Import BlueprintCommands
-    const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
+    const { BlueprintCommands } = await import("../src/cli/commands/blueprint_commands.ts");
 
     const config = createTestConfig(tempDir);
     const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
@@ -272,7 +273,7 @@ TOML content.
 
     assertEquals(blueprints.length, 2, "Should find both YAML and TOML blueprints");
 
-    const ids = blueprints.map((b) => b.agent_id).sort();
+    const ids = blueprints.map((b: BlueprintMetadata) => b.agent_id).sort();
     assertEquals(ids, [AGENT_ID_MIXED_TOML, AGENT_ID_MIXED_YAML]);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
@@ -300,7 +301,7 @@ Array test.
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_ARRAY}.md`), yamlBlueprint);
 
     // Import BlueprintCommands
-    const { BlueprintCommands } = await import("../src/cli/blueprint_commands.ts");
+    const { BlueprintCommands } = await import("../src/cli/commands/blueprint_commands.ts");
 
     const config = createTestConfig(tempDir);
     const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });

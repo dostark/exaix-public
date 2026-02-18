@@ -22,7 +22,7 @@ import { join } from "@std/path";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
-import { MemoryCommands } from "../../src/cli/memory_commands.ts";
+import { MemoryCommands } from "../../src/cli/commands/memory_commands.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { ExecutionMemory, Learning, ProjectMemory } from "../../src/schemas/memory_bank.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";

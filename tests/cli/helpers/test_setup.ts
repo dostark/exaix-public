@@ -4,7 +4,7 @@
 
 import { join } from "@std/path";
 import { ConfigService } from "../../../src/config/service.ts";
-import { PortalCommands } from "../../../src/cli/portal_commands.ts";
+import { PortalCommands } from "../../../src/cli/commands/portal_commands.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
 import { getMemoryProjectsDir } from "../../helpers/paths_helper.ts";

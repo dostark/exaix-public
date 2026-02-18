@@ -14,6 +14,8 @@ import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
 import { PlanStatus } from "../src/plans/plan_status.ts";
+import type { PlanMetadata } from "../src/cli/commands/plan_commands.ts";
+import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
 
 const TEST_AGENT_ID = "test-agent";
 const TEST_CREATED_AT = "2026-01-17T00:00:00.000Z";
@@ -85,7 +87,7 @@ Deno.test("[regression] Plan list finds approved plans in Active directory", asy
     await createPlanFile(activeDir, TEST_PLAN_FILE, PlanStatus.APPROVED, traceId);
 
     // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/plan_commands.ts");
+    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
 
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
@@ -113,9 +115,6 @@ Deno.test("[regression] Plan list finds rejected plans in Rejected directory", a
     const traceId = crypto.randomUUID();
     await createPlanFile(rejectedDir, TEST_PLAN_REJECTED_FILE, PlanStatus.REJECTED, traceId);
 
-    // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/plan_commands.ts");
-
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
 
@@ -140,7 +139,7 @@ Deno.test("[regression] Plan list finds review plans in Plans directory", async 
     await createPlanFile(plansDir, TEST_PLAN_FILE, PlanStatus.REVIEW, traceId);
 
     // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/plan_commands.ts");
+    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
 
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
@@ -167,7 +166,7 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
     await createPlanFile(rejectedDir, "rejected_plan.md", PlanStatus.REJECTED, crypto.randomUUID());
 
     // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/plan_commands.ts");
+    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
 
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
@@ -177,7 +176,7 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
 
     assertEquals(allPlans.length, 3, "Should find 3 plans across all directories");
 
-    const statuses = allPlans.map((p) => p.status).sort();
+    const statuses = allPlans.map((p: PlanMetadata) => p.status).sort();
     assertEquals(statuses, [PlanStatus.APPROVED, PlanStatus.REJECTED, PlanStatus.REVIEW]);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
@@ -193,7 +192,7 @@ Deno.test("[regression] Plan list handles empty directories gracefully", async (
     // Don't create any plan files - directories are empty
 
     // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/plan_commands.ts");
+    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
 
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
@@ -232,7 +231,7 @@ Deno.test("[regression] Plan reject finds plans in any directory", async () => {
     await createPlanFile(rejectedDir, `${rejectedPlanId}_rejected.md`, PlanStatus.REJECTED, crypto.randomUUID());
 
     // Import PlanCommands
-    const { PlanCommands } = await import("../src/cli/plan_commands.ts");
+    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
 
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });
@@ -312,8 +311,8 @@ This plan references a request and should show request context.
     await Deno.writeTextFile(planPath, planContent);
 
     // Import PlanCommands and RequestCommands
-    const { PlanCommands } = await import("../src/cli/plan_commands.ts");
-    const { RequestCommands: _RequestCommands } = await import("../src/cli/request_commands.ts");
+    const { PlanCommands } = await import("../src/cli/commands/plan_commands.ts");
+    const { RequestCommands: _RequestCommands } = await import("../src/cli/commands/request_commands.ts");
 
     const { config, stubDb } = initPlanTest(tempDir);
     const planCommands = new PlanCommands({ config, db: stubDb });

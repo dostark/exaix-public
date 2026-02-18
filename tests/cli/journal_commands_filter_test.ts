@@ -1,5 +1,5 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { JournalCommands } from "../../src/cli/commands/journal.ts";
+import { JournalCommands } from "../../src/cli/commands/journal_commands.ts";
 import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs } from "./helpers/test_utils.ts";

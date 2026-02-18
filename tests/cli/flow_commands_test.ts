@@ -1,6 +1,6 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 
-import { FlowCommands } from "../../src/cli/flow_commands.ts";
+import { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
 import { FlowLoader } from "../../src/flows/flow_loader.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
 import { join } from "@std/path";

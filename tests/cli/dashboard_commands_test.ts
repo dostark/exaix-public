@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { DashboardCommands } from "../../src/cli/dashboard_commands.ts";
+import { DashboardCommands } from "../../src/cli/commands/dashboard_commands.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 
 Deno.test("DashboardCommands.show delegates to dashboard launcher", async () => {

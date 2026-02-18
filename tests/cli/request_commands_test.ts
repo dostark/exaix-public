@@ -18,7 +18,7 @@ import { RequestStatus } from "../../src/requests/request_status.ts";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
-import { RequestCommands } from "../../src/cli/request_commands.ts";
+import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import { createMockConfig } from "../helpers/config.ts";

@@ -15,7 +15,7 @@ import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes
 import { MemoryOperation } from "../../src/enums.ts";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
-import { GitCommands } from "../../src/cli/git_commands.ts";
+import { GitCommands } from "../../src/cli/commands/git_commands.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext, initGitRepo, runGitCommand } from "./helpers/test_setup.ts";
 

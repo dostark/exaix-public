@@ -18,6 +18,7 @@ import type { PathResolver } from "./path_resolver.ts";
 import type { PortalPermissionsService } from "./portal_permissions.ts";
 import type { IModelProvider } from "../ai/providers.ts";
 import { SafeError } from "../errors/safe_error.ts";
+import { SafeSubprocess, SubprocessTimeoutError } from "../helpers/subprocess.ts";
 import type { WorkspaceExecutionContext } from "./workspace_execution_context.ts";
 import {
   DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
@@ -580,8 +581,6 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
     portalPath: string,
     authorizedFiles: string[],
   ): Promise<string[]> {
-    const { SafeSubprocess, SubprocessTimeoutError } = await import("../helpers/subprocess.ts");
-
     try {
       // Get git status with timeout protection
       const result = await SafeSubprocess.run("git", ["status", "--porcelain"], {
@@ -698,8 +697,6 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
     portalPath: string,
     unauthorizedFiles: string[],
   ): Promise<void> {
-    const { SafeSubprocess } = await import("../helpers/subprocess.ts");
-
     if (unauthorizedFiles.length === 0) return;
 
     // Filter and validate file paths for security
@@ -808,8 +805,6 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
     portalPath: string,
     authorizedFiles: string[],
   ): Promise<{ reverted: string[]; failed: string[] }> {
-    const { SafeSubprocess } = await import("../helpers/subprocess.ts");
-
     // 1. Acquire lock to prevent concurrent access
     const lockFile = join(portalPath, ".exo-git-lock");
     const lock = await this.acquireLock(lockFile);
@@ -954,8 +949,6 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
    * Get latest commit SHA from git log
    */
   async getLatestCommitSha(portalPath: string): Promise<string> {
-    const { SafeSubprocess } = await import("../helpers/subprocess.ts");
-
     const result = await SafeSubprocess.run("git", ["log", "-1", "--format=%H"], {
       cwd: portalPath,
       timeoutMs: DEFAULT_GIT_LOG_TIMEOUT_MS,
@@ -972,8 +965,6 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
    * Get changed files from git diff
    */
   async getChangedFiles(portalPath: string): Promise<string[]> {
-    const { SafeSubprocess } = await import("../helpers/subprocess.ts");
-
     const result = await SafeSubprocess.run("git", ["diff", "--name-only"], {
       cwd: portalPath,
       timeoutMs: DEFAULT_GIT_DIFF_TIMEOUT_MS,
