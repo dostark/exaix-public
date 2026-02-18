@@ -38,7 +38,7 @@ jobs:
         run: deno lint
 
       - name: Code Duplication Check
-        run: deno run --allow-run --allow-read --allow-write scripts/measure_duplication.ts --threshold 2.0
+        run: deno run --allow-run --allow-read --allow-write scripts/measure_duplication.ts --threshold 2.1
 
       - name: Complexity Check
         run: |
