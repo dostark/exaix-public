@@ -15,7 +15,7 @@ import { RequestStatus } from "../../requests/request_status.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { CommandUtils } from "../../helpers/command_utils.ts";
-import { type RequestMetadata, type RequestOptions, type RequestSource } from "../request_commands.ts";
+import { type RequestMetadata, type RequestOptions, type RequestSource } from "../commands/request_commands.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
 
 const VALID_PRIORITIES: RequestPriority[] = [

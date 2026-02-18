@@ -7,7 +7,7 @@
  * @related-files [src/cli/exoctl.ts, src/cli/plan_commands.ts]
  */
 
-import type { PlanCommands } from "../plan_commands.ts";
+import type { PlanCommands } from "../commands/plan_commands.ts";
 
 export interface PlanActionContext {
   planCommands: PlanCommands;

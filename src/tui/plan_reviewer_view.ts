@@ -8,7 +8,7 @@
  */
 
 // --- Adapter: PlanCommands as PlanService ---
-import type { PlanCommands } from "../cli/plan_commands.ts";
+import type { PlanCommands } from "../cli/commands/plan_commands.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "../helpers/dialog_base.ts";

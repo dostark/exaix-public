@@ -1,6 +1,6 @@
 /**
  * @module FlowCommands
- * @path src/cli/flow_commands.ts
+ * @path src/cli/commands/flow_commands.ts
  * @description Provides CLI commands for flow management and execution, including list, show, run, plan, history, and validation.
  * @architectural-layer CLI
  * @dependencies [table, path, flow_loader, flow_validator, event_logger, config, db, providers]
@@ -9,12 +9,12 @@
 
 import { Table } from "@cliffy/table";
 import { join } from "@std/path";
-import { FlowLoader } from "../flows/flow_loader.ts";
-import { FlowValidatorImpl } from "../services/flow_validator.ts";
-import { EventLogger } from "../services/event_logger.ts";
-import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
-import type { IModelProvider } from "../ai/providers.ts";
+import { FlowLoader } from "../../flows/flow_loader.ts";
+import { FlowValidatorImpl } from "../../services/flow_validator.ts";
+import { EventLogger } from "../../services/event_logger.ts";
+import type { Config } from "../../config/schema.ts";
+import type { DatabaseService } from "../../services/db.ts";
+import type { IModelProvider } from "../../ai/providers.ts";
 
 interface CLIContext {
   config: Config;

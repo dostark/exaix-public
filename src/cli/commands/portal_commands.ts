@@ -1,6 +1,6 @@
 /**
  * @module PortalCommands
- * @path src/cli/portal_commands.ts
+ * @path src/cli/commands/portal_commands.ts
  * @description Provides CLI commands for managing portals, including adding, removing, listing, and verifying repository links and context cards.
  * @architectural-layer CLI
  * @dependencies [path, config_schema, db_schema, config_service, context_card_generator, event_logger, enums, constants]
@@ -8,14 +8,14 @@
  */
 
 import { join, resolve } from "@std/path";
-import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
-import { ConfigService } from "../config/service.ts";
-import { ContextCardGenerator } from "../services/context_card_generator.ts";
-import { EventLogger } from "../services/event_logger.ts";
-import { PortalStatus } from "../enums.ts";
-import { PortalExecutionStrategy } from "../enums.ts";
-import { PORTAL_ALIAS_MAX_LENGTH } from "../config/constants.ts";
+import type { Config } from "../../config/schema.ts";
+import type { DatabaseService } from "../../services/db.ts";
+import { ConfigService } from "../../config/service.ts";
+import { ContextCardGenerator } from "../../services/context_card_generator.ts";
+import { EventLogger } from "../../services/event_logger.ts";
+import { PortalStatus } from "../../enums.ts";
+import { PortalExecutionStrategy } from "../../enums.ts";
+import { PORTAL_ALIAS_MAX_LENGTH } from "../../config/constants.ts";
 
 /**
  * Valid status values for portals.

@@ -1,6 +1,6 @@
 /**
  * @module BlueprintCommands
- * @path src/cli/blueprint_commands.ts
+ * @path src/cli/commands/blueprint_commands.ts
  * @description Provides CLI commands for agent blueprint management, including creation from templates, listing, showing details, and validation.
  * @architectural-layer CLI
  * @dependencies [fs, path, toml, base_command, validation_chain, error_strategy, command_utils, blueprint_schema]
@@ -10,10 +10,10 @@
 import { ensureDir, exists } from "@std/fs";
 import { join } from "@std/path";
 import { parse as parseToml, stringify as stringifyToml } from "@std/toml";
-import { BaseCommand } from "./base.ts";
-import { ValidationChain } from "./validation/validation_chain.ts";
-import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
-import { CommandUtils } from "../helpers/command_utils.ts";
+import { BaseCommand } from "../base.ts";
+import { ValidationChain } from "../validation/validation_chain.ts";
+import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
+import { CommandUtils } from "../../helpers/command_utils.ts";
 import {
   type BlueprintCreateResult,
   type BlueprintDetails,
@@ -21,7 +21,7 @@ import {
   type BlueprintMetadata,
   type BlueprintValidationResult,
   isReservedAgentId,
-} from "../schemas/blueprint.ts";
+} from "../../schemas/blueprint.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -304,6 +304,9 @@ exoctl request "Test request" --agent mock
 // ============================================================================
 
 export class BlueprintCommands extends BaseCommand {
+  constructor(context: any) {
+    super(context);
+  }
   /**
    * Get absolute path to Blueprints/Agents directory
    */

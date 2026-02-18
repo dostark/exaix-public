@@ -6,7 +6,7 @@
  * @dependencies [RequestCommands, EnvConfig]
  * @related-files [src/cli/request_commands.ts]
  */
-import { RequestCommands } from "../cli/request_commands.ts";
+import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { isTestMode } from "../config/env_schema.ts";
 
 export interface RequestEnrichable {

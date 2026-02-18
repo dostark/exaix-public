@@ -1,6 +1,6 @@
 /**
  * @module MemoryCommands
- * @path src/cli/memory_commands.ts
+ * @path src/cli/commands/memory_commands.ts
  * @description Provides CLI commands for interacting with Memory Banks, including list, search, project, execution, and proposal management.
  * @architectural-layer CLI
  * @dependencies [fs, path, memory_bank, memory_extractor, memory_embedding, enums, skills, memory_bank_schema, cli_config, memory_formatter, memory_types]
@@ -9,17 +9,17 @@
 
 import { exists } from "@std/fs";
 import { join } from "@std/path";
-import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
-import { MemoryBankService } from "../services/memory_bank.ts";
-import { MemoryExtractorService } from "../services/memory_extractor.ts";
-import { MemoryEmbeddingService } from "../services/memory_embedding.ts";
-import { MemoryScope, MemorySource, MemoryType, SkillStatus } from "../enums.ts";
-import { type SkillMatchRequest, SkillsService } from "../services/skills.ts";
-import type { Learning, MemorySearchResult } from "../schemas/memory_bank.ts";
-import { MEMORY_COMMAND_DEFAULTS } from "./cli.config.ts";
-import { MemoryFormatter } from "./formatters/memory_formatter.ts";
-import { MemoryBankSummary, OutputFormat } from "./memory_types.ts";
+import type { Config } from "../../config/schema.ts";
+import type { DatabaseService } from "../../services/db.ts";
+import { MemoryBankService } from "../../services/memory_bank.ts";
+import { MemoryExtractorService } from "../../services/memory_extractor.ts";
+import { MemoryEmbeddingService } from "../../services/memory_embedding.ts";
+import { MemoryScope, MemorySource, MemoryType, SkillStatus } from "../../enums.ts";
+import { type SkillMatchRequest, SkillsService } from "../../services/skills.ts";
+import type { Learning, MemorySearchResult } from "../../schemas/memory_bank.ts";
+import { MEMORY_COMMAND_DEFAULTS } from "../cli.config.ts";
+import { MemoryFormatter } from "../formatters/memory_formatter.ts";
+import { MemoryBankSummary, OutputFormat } from "../memory_types.ts";
 
 export interface MemoryCommandsContext {
   config: Config;

@@ -7,7 +7,7 @@
  * @related-files [src/cli/exoctl.ts, src/cli/request_commands.ts]
  */
 
-import type { RequestCommands } from "../request_commands.ts";
+import type { RequestCommands } from "../commands/request_commands.ts";
 import { RequestPriority } from "../../enums.ts";
 import { PRIORITY_ICONS } from "../cli.config.ts";
 

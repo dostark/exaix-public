@@ -1,14 +1,14 @@
 /**
  * @module ArchiveCommands
- * @path src/cli/archive_commands.ts
+ * @path src/cli/commands/archive_commands.ts
  * @description Provides CLI commands for interacting with the execution archive, including listing, showing details, and searching by date or agent.
  * @architectural-layer CLI
  * @dependencies [base_command, archive_service]
  * @related-files [src/services/archive_service.ts, src/cli/main.ts]
  */
 
-import { BaseCommand, type CommandContext } from "./base.ts";
-import { ArchiveService } from "../services/archive_service.ts";
+import { BaseCommand, type CommandContext } from "../base.ts";
+import { ArchiveService } from "../../services/archive_service.ts";
 
 export class ArchiveCommands extends BaseCommand {
   private archiveService: ArchiveService;

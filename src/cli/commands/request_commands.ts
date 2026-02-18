@@ -1,18 +1,18 @@
 /**
  * @module RequestCommands
- * @path src/cli/request_commands.ts
+ * @path src/cli/commands/request_commands.ts
  * @description Provides CLI commands for creating and managing agent requests, serving as the primary interface for human-to-agent communication.
  * @architectural-layer CLI
  * @dependencies [base_command, enums, request_status, request_create_handler, request_list_handler, request_show_handler]
  * @related-files [src/schemas/request.ts, src/cli/main.ts]
  */
 
-import { BaseCommand, type CommandContext } from "./base.ts";
-import { RequestPriority } from "../enums.ts";
-import type { RequestStatusType } from "../requests/request_status.ts";
-import { RequestCreateHandler } from "./handlers/request_create_handler.ts";
-import { RequestListHandler } from "./handlers/request_list_handler.ts";
-import { RequestShowHandler } from "./handlers/request_show_handler.ts";
+import { BaseCommand, type CommandContext } from "../base.ts";
+import { RequestPriority } from "../../enums.ts";
+import type { RequestStatusType } from "../../requests/request_status.ts";
+import { RequestCreateHandler } from "../handlers/request_create_handler.ts";
+import { RequestListHandler } from "../handlers/request_list_handler.ts";
+import { RequestShowHandler } from "../handlers/request_show_handler.ts";
 
 /**
  * Options for creating a request

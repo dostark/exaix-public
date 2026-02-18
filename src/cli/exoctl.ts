@@ -9,21 +9,21 @@
  */
 
 import { Command } from "@cliffy/command";
-import { PlanCommands } from "./plan_commands.ts";
-import { RequestCommands } from "./request_commands.ts";
-import { ReviewCommands } from "./review_commands.ts";
-import { GitCommands } from "./git_commands.ts";
-import { DaemonCommands } from "./daemon_commands.ts";
-import { PortalCommands } from "./portal_commands.ts";
-import { BlueprintCommands } from "./blueprint_commands.ts";
-import { FlowCommands } from "./flow_commands.ts";
-import { DashboardCommands } from "./dashboard_commands.ts";
-import { MemoryCommands } from "./memory_commands.ts";
-import { JournalCommands } from "./commands/journal.ts";
+import { PlanCommands } from "./commands/plan_commands.ts";
+import { RequestCommands } from "./commands/request_commands.ts";
+import { ReviewCommands } from "./commands/review_commands.ts";
+import { GitCommands } from "./commands/git_commands.ts";
+import { DaemonCommands } from "./commands/daemon_commands.ts";
+import { PortalCommands } from "./commands/portal_commands.ts";
+import { BlueprintCommands } from "./commands/blueprint_commands.ts";
+import { FlowCommands } from "./commands/flow_commands.ts";
+import { DashboardCommands } from "./commands/dashboard_commands.ts";
+import { MemoryCommands } from "./commands/memory_commands.ts";
+import { JournalCommands } from "./commands/journal_commands.ts";
 import { PortalExecutionStrategy, PortalStatus } from "../enums.ts";
 import { ReviewStatus, type ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
-import { McpCommands } from "./commands/mcp.ts";
+import { McpCommands } from "./commands/mcp_commands.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
 import { GitService } from "../services/git_service.ts";
 

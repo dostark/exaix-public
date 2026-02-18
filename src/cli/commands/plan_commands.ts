@@ -1,6 +1,6 @@
 /**
  * @module PlanCommands
- * @path src/cli/plan_commands.ts
+ * @path src/cli/commands/plan_commands.ts
  * @description Provides CLI commands for human review of AI-generated plans, including approval, rejection, and revision requests.
  * @architectural-layer CLI
  * @dependencies [path, fs, markdown_parser, base_command, plan_status, request_commands, request_status, validation_chain, error_strategy, command_utils, request_enricher, constants]
@@ -9,21 +9,21 @@
 
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
-import { FrontmatterParser } from "../parsers/markdown.ts";
-import { BaseCommand, type CommandContext } from "./base.ts";
-import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
+import { FrontmatterParser } from "../../parsers/markdown.ts";
+import { BaseCommand, type CommandContext } from "../base.ts";
+import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../../plans/plan_status.ts";
 import { RequestCommands } from "./request_commands.ts";
-import { RequestStatus } from "../requests/request_status.ts";
-import { ValidationChain } from "./validation/validation_chain.ts";
-import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
-import { CommandUtils } from "../helpers/command_utils.ts";
-import { enrichWithRequest } from "../helpers/request_enricher.ts";
+import { RequestStatus } from "../../requests/request_status.ts";
+import { ValidationChain } from "../validation/validation_chain.ts";
+import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
+import { CommandUtils } from "../../helpers/command_utils.ts";
+import { enrichWithRequest } from "../../helpers/request_enricher.ts";
 import {
   PLAN_REVIEW_COMMENT_PREFIX,
   PLAN_REVIEW_COMMENTS_HEADER,
   REQUEST_REVISION_COMMENT_PREFIX,
   REQUEST_REVISION_COMMENTS_HEADER,
-} from "../config/constants.ts";
+} from "../../config/constants.ts";
 
 export interface PlanMetadata {
   id: string;

@@ -1,6 +1,6 @@
 /**
  * @module ReviewCommands
- * @path src/cli/review_commands.ts
+ * @path src/cli/commands/review_commands.ts
  * @description Provides CLI commands for reviewing agent-generated changes, including approval/rejection of code branches and artifacts.
  * @architectural-layer CLI
  * @dependencies [path, fs, base_command, git_service, request_commands, plan_commands, validation_chain, error_strategy, command_utils, request_enricher, artifact_registry, review_status]
@@ -9,17 +9,17 @@
 
 import { dirname, isAbsolute, join, resolve } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
-import { BaseCommand, type CommandContext } from "./base.ts";
-import { GitService } from "../services/git_service.ts";
+import { BaseCommand, type CommandContext } from "../base.ts";
+import { GitService } from "../../services/git_service.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
-import { ValidationChain } from "./validation/validation_chain.ts";
-import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
-import { CommandUtils } from "../helpers/command_utils.ts";
-import { enrichWithRequest } from "../helpers/request_enricher.ts";
-import { ArtifactRegistry } from "../services/artifact_registry.ts";
-import { isReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
-import type { ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
+import { ValidationChain } from "../validation/validation_chain.ts";
+import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
+import { CommandUtils } from "../../helpers/command_utils.ts";
+import { enrichWithRequest } from "../../helpers/request_enricher.ts";
+import { ArtifactRegistry } from "../../services/artifact_registry.ts";
+import { isReviewStatus, ReviewStatus } from "../../reviews/review_status.ts";
+import type { ReviewStatus as ReviewStatusType } from "../../reviews/review_status.ts";
 
 export interface ReviewMetadata {
   type?: "code" | "artifact";

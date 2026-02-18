@@ -14,8 +14,8 @@ import {
   QueryJournalToolArgsSchema,
 } from "../schemas/mcp.ts";
 import { ToolHandler } from "./tools.ts";
-import { RequestCommands } from "../cli/request_commands.ts";
-import { PlanCommands } from "../cli/plan_commands.ts";
+import { RequestCommands } from "../cli/commands/request_commands.ts";
+import { PlanCommands } from "../cli/commands/plan_commands.ts";
 import { PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
 
 /**

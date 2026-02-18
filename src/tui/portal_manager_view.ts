@@ -7,7 +7,7 @@
  * @related-files [src/services/portal_service.ts, src/tui/tui_dashboard.ts]
  */
 
-import { PortalDetails, PortalInfo } from "../cli/portal_commands.ts";
+import { PortalDetails, PortalInfo } from "../cli/commands/portal_commands.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { ConfirmDialog, type DialogBase } from "../helpers/dialog_base.ts";
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";

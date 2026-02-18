@@ -1,6 +1,6 @@
 /**
  * @module DaemonCommands
- * @path src/cli/daemon_commands.ts
+ * @path src/cli/commands/daemon_commands.ts
  * @description Provides CLI commands for controlling the ExoFrame daemon lifecycle, including start, stop, restart, status, and log tailing.
  * @architectural-layer CLI
  * @dependencies [path, fs, base_command, cli_config, config_service, error_strategy, constants, process_utils]
@@ -9,12 +9,12 @@
 
 import { dirname, fromFileUrl, join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
-import { BaseCommand, type CommandContext } from "./base.ts";
-import { CLI_DEFAULTS } from "./cli.config.ts";
-import { ConfigService } from "../config/service.ts";
-import { DefaultErrorStrategy } from "./errors/error_strategy.ts";
-import { DAEMON_STOP_TIMEOUT_MS } from "../config/constants.ts";
-import { isProcessAlive } from "./process_utils.ts";
+import { BaseCommand, type CommandContext } from "../base.ts";
+import { CLI_DEFAULTS } from "../cli.config.ts";
+import { ConfigService } from "../../config/service.ts";
+import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
+import { DAEMON_STOP_TIMEOUT_MS } from "../../config/constants.ts";
+import { isProcessAlive } from "../process_utils.ts";
 
 export interface DaemonStatus {
   running: boolean;

@@ -236,7 +236,7 @@ import { RequestDialogType } from "../enums.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
 
 // --- Adapter: RequestCommands as RequestService ---
-import type { RequestCommands } from "../cli/request_commands.ts";
+import type { RequestCommands } from "../cli/commands/request_commands.ts";
 import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "../helpers/constants.ts";
 
 /**

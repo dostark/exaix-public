@@ -10,7 +10,7 @@
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { BaseCommand, type CommandContext } from "../base.ts";
-import { type RequestEntry } from "../request_commands.ts";
+import { type RequestEntry } from "../commands/request_commands.ts";
 import { coerceRequestStatus, type RequestStatusType } from "../../requests/request_status.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
 
