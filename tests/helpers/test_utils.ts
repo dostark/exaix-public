@@ -99,8 +99,11 @@ export abstract class BaseMockService<T> {
   }
 
   get(id: string): Promise<T | null> {
-    const item = this.items.find((item: any) => item.id === id || (item as any).trace_id === id);
-    return Promise.resolve(item || null);
+    const item = this.items.find((item) => {
+      const typedItem = item as Record<string, unknown>;
+      return typedItem.id === id || typedItem.trace_id === id;
+    });
+    return Promise.resolve((item as T) || null);
   }
 
   create(item: Omit<T, "id"> & { id?: string }): Promise<T> {
@@ -113,7 +116,10 @@ export abstract class BaseMockService<T> {
   }
 
   update(id: string, updates: Partial<T>): Promise<boolean> {
-    const index = this.items.findIndex((item: any) => item.id === id || (item as any).trace_id === id);
+    const index = this.items.findIndex((item) => {
+      const typedItem = item as Record<string, unknown>;
+      return typedItem.id === id || typedItem.trace_id === id;
+    });
     if (index === -1) return Promise.resolve(false);
 
     this.items[index] = { ...this.items[index], ...updates };
@@ -121,7 +127,10 @@ export abstract class BaseMockService<T> {
   }
 
   delete(id: string): Promise<boolean> {
-    const index = this.items.findIndex((item: any) => item.id === id || (item as any).trace_id === id);
+    const index = this.items.findIndex((item) => {
+      const typedItem = item as Record<string, unknown>;
+      return typedItem.id === id || typedItem.trace_id === id;
+    });
     if (index === -1) return Promise.resolve(false);
 
     this.items.splice(index, 1);
@@ -132,12 +141,12 @@ export abstract class BaseMockService<T> {
 /**
  * Mock service for requests with common operations
  */
-export class MockRequestService extends BaseMockService<any> {
-  constructor(initialRequests: any[] = []) {
+export class MockRequestService extends BaseMockService<Record<string, unknown>> {
+  constructor(initialRequests: Record<string, unknown>[] = []) {
     super(initialRequests);
   }
 
-  listRequests(status?: RequestStatusType): Promise<any[]> {
+  listRequests(status?: RequestStatusType): Promise<Record<string, unknown>[]> {
     if (status) {
       return Promise.resolve(this.items.filter((r) => r.status === status));
     }
@@ -149,7 +158,10 @@ export class MockRequestService extends BaseMockService<any> {
     return Promise.resolve(request ? `Content for ${id}` : "");
   }
 
-  createRequest(description: string, options?: any): Promise<any> {
+  createRequest(
+    description: string,
+    options?: { priority?: string; agent?: string; portal?: string; model?: string },
+  ): Promise<Record<string, unknown>> {
     return this.create({
       trace_id: `test-${Date.now()}`,
       filename: `request-test.md`,
@@ -173,8 +185,8 @@ export class MockRequestService extends BaseMockService<any> {
 /**
  * Mock service for plans with common operations
  */
-export class MockPlanService extends BaseMockService<any> {
-  constructor(initialPlans: any[] = []) {
+export class MockPlanService extends BaseMockService<Record<string, unknown>> {
+  constructor(initialPlans: Record<string, unknown>[] = []) {
     super(initialPlans);
   }
 

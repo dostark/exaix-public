@@ -36,6 +36,7 @@ Deno.test("OpenAIProvider sends correct payload and returns content for default 
   let capturedBody: unknown = null;
 
   const originalFetch = globalThis.fetch;
+  type FetchMock = typeof fetch;
   globalThis.fetch = ((input: string | URL | Request, init?: RequestInit): Promise<Response> => {
     capturedUrl = input.toString();
     capturedBody = init?.body ? JSON.parse(init.body as string) : null;
@@ -46,7 +47,7 @@ Deno.test("OpenAIProvider sends correct payload and returns content for default 
     });
 
     return Promise.resolve(new Response(body, { status: 200, headers: { "Content-Type": "application/json" } }));
-  }) as typeof fetch;
+  }) as FetchMock;
 
   try {
     const provider = new OpenAIProvider({ apiKey: "test-key", model, baseUrl: "https://api.test" });
