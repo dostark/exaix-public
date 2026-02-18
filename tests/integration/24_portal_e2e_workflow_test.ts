@@ -11,13 +11,13 @@ import { assert, assertEquals, assertExists, assertMatch, assertStringIncludes }
 import { dirname, fromFileUrl, join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { ExecutionLoop } from "../../src/services/execution_loop.ts";
-import { PortalExecutionStrategy, PortalOperation } from "../../src/enums.ts";
+import { PortalExecutionStrategy } from "../../src/enums.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { TestEnvironment } from "./helpers/test_environment.ts";
-import { setupGitRepo } from "../helpers/git_test_helper.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";
-import { assertPointerPointsTo, pathExists } from "./helpers/worktree_portal_test_utils.ts";
+import { assertPointerPointsTo, listBranches, pathExists } from "./helpers/worktree_portal_test_utils.ts";
+import { gitStdout } from "../helpers/portal_test_utils.ts";
 
 async function runExoctl(args: string[], cwd: string) {
   const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
@@ -45,42 +45,6 @@ async function runExoctl(args: string[], cwd: string) {
     stdout: effectiveStdout,
     stderr: stderrStr,
   };
-}
-
-async function listBranches(repoPath: string): Promise<string[]> {
-  const cmd = new Deno.Command(PortalOperation.GIT, {
-    args: ["branch", "--list"],
-    cwd: repoPath,
-    stdout: "piped",
-    stderr: "piped",
-  });
-
-  const { stdout } = await cmd.output();
-  const output = new TextDecoder().decode(stdout);
-
-  return output
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0)
-    // '*' => current branch, '+' => checked out in another worktree
-    .map((line) => line.replace(/^[*+]\s+/, ""));
-}
-
-async function gitStdout(repoPath: string, args: string[]): Promise<string> {
-  const cmd = new Deno.Command(PortalOperation.GIT, {
-    args,
-    cwd: repoPath,
-    stdout: "piped",
-    stderr: "piped",
-  });
-
-  const { success, stdout, stderr } = await cmd.output();
-  if (!success) {
-    const errorText = new TextDecoder().decode(stderr);
-    throw new Error(`Git command failed: ${args.join(" ")}\n${errorText}`);
-  }
-
-  return new TextDecoder().decode(stdout).trim();
 }
 
 Deno.test("[e2e] Portal request → plan → execution → artifact review (read-only)", async () => {
