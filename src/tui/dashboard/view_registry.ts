@@ -17,6 +17,7 @@ import { RequestManagerView } from "../request_manager_view.ts";
 import { MemoryView } from "../memory_view.ts";
 import { SkillsManagerView } from "../skills_manager_view.ts";
 import { type TuiView } from "../tui_dashboard.ts";
+import type { StructuredLogger } from "../../services/structured_logger.ts";
 import {
   MockAgentService,
   MockDaemonService,
@@ -56,7 +57,9 @@ export function initDashboardViews(options: DashboardViewOptions = {}): TuiView[
     Object.assign(new PlanReviewerView(planService), { name: "PlanReviewerView" }),
     Object.assign(new MonitorView(logService), { name: "MonitorView" }),
     Object.assign(
-      new StructuredLogViewer(structuredLoggerService, structuredLogger as any, { testMode: options.testMode }),
+      new StructuredLogViewer(structuredLoggerService, structuredLogger as unknown as StructuredLogger, {
+        testMode: options.testMode,
+      }),
       {
         name: "StructuredLogViewer",
       },
@@ -67,7 +70,7 @@ export function initDashboardViews(options: DashboardViewOptions = {}): TuiView[
     Object.assign(new MemoryView(memoryService), { name: "MemoryView" }),
     Object.assign(new SkillsManagerView(skillsService), { name: "SkillsManagerView" }),
   ].map((view) => {
-    const v: TuiView = view as unknown as TuiView;
+    const v = view as unknown as TuiView;
     if (typeof v.getFocusableElements !== "function") {
       if (v.name === "PortalManagerView") {
         v.getFocusableElements = () => ["portal-list", "action-buttons", "status-bar"];

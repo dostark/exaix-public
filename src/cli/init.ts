@@ -27,6 +27,39 @@ export interface ServiceContext {
   error?: string;
 }
 
+interface DatabaseLike {
+  logActivity: (...args: unknown[]) => void;
+  waitForFlush: () => Promise<void>;
+  queryActivity: () => Promise<unknown[]>;
+  close?: () => Promise<void>;
+}
+
+// Helper to create DatabaseService-compatible stub
+function createDatabaseStub(): DatabaseService {
+  const stub: DatabaseLike = {
+    logActivity: () => {},
+    waitForFlush: async () => {},
+    queryActivity: () => Promise.resolve([]),
+    close: async () => {},
+  };
+  return stub as unknown as DatabaseService;
+}
+
+// Helper to create GitService-compatible stub
+function createGitServiceStub(): GitService {
+  return {
+    getStatus: () => Promise.resolve({ status: "unknown" }),
+  } as unknown as GitService;
+}
+
+// Helper to create IModelProvider-compatible stub
+function createProviderStub(): IModelProvider {
+  return {
+    generate: () => Promise.resolve({ text: "", usage: { total_tokens: 0 } }),
+    countTokens: () => Promise.resolve(0),
+  } as unknown as IModelProvider;
+}
+
 // Allow tests to run the CLI entrypoint without initializing heavy services
 export function isTestMode(): boolean {
   return Deno.env.get("EXO_TEST_MODE") === "1" || Deno.args.includes("--test");
@@ -56,9 +89,12 @@ export async function initializeServices(
     if (opts?.instantiateDb) {
       dbLocal = new DatabaseService(cfg);
       // Close DB if it exposes a close method to avoid leaking dynamic libraries during tests
-      if (typeof (dbLocal as any).close === "function") {
+      // Use intersection type to safely access optional close method
+      type DbWithOptionalClose = DatabaseService & { close?: () => Promise<void> };
+      const dbWithClose = dbLocal as DbWithOptionalClose;
+      if (typeof dbWithClose.close === "function") {
         try {
-          await (dbLocal as any).close();
+          await dbWithClose.close();
         } catch {
           // ignore close errors in test helper
         }
@@ -67,12 +103,7 @@ export async function initializeServices(
       dbLocal = new DatabaseService(cfg);
     } else {
       // Stub db with no-op methods to prevent crashes
-      dbLocal = {
-        logActivity: () => {},
-        waitForFlush: async () => {},
-        queryActivity: () => Promise.resolve([]),
-        close: async () => {},
-      } as unknown as DatabaseService;
+      dbLocal = createDatabaseStub();
     }
 
     const gitLocal = new GitService({ config: cfg, db: dbLocal });
@@ -96,14 +127,15 @@ export async function initializeServices(
       system: { root: Deno.cwd() },
       paths: { ...ExoPathDefaults },
       agents: { default_model: "mock:test" },
-    } as any;
+    } as Config;
 
     // Attempt to create provider even in fallback, or stub
-    let providerLocal;
+    let providerLocal: IModelProvider;
     try {
       providerLocal = await ProviderFactory.createByName(cfg, cfg.agents.default_model);
     } catch {
-      providerLocal = {} as any;
+      // Create minimal provider stub
+      providerLocal = createProviderStub();
     }
 
     const displayLocal = new EventLogger({});
@@ -117,12 +149,8 @@ export async function initializeServices(
       error: String(err),
       config: cfg,
       // Stub db with no-op methods to prevent EventLogger crashes
-      db: {
-        logActivity: () => {},
-        waitForFlush: async () => {},
-        queryActivity: () => Promise.resolve([]),
-      } as any,
-      gitService: {} as any,
+      db: createDatabaseStub(),
+      gitService: createGitServiceStub(),
       provider: providerLocal,
       display: displayLocal,
     };

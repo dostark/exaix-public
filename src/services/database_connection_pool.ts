@@ -94,7 +94,7 @@ export class DatabaseConnectionPool {
           }
           resolve(conn);
         },
-        timeoutId: timeoutId as any,
+        timeoutId,
       });
     });
   }

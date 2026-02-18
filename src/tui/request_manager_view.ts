@@ -259,7 +259,7 @@ export class RequestCommandsServiceAdapter implements RequestService {
       created: r.created,
       created_by: r.created_by,
       source: r.source,
-      rejected_path: (r as any).rejected_path,
+      rejected_path: r.rejected_path,
     }));
   }
 
@@ -269,7 +269,7 @@ export class RequestCommandsServiceAdapter implements RequestService {
   }
 
   async createRequest(description: string, options?: RequestOptions): Promise<Request> {
-    const metadata = await this.cmd.create(description, options as any); // Type compatibility wrapper
+    const metadata = await this.cmd.create(description, options);
     return {
       trace_id: metadata.trace_id,
       filename: metadata.filename,
@@ -282,7 +282,7 @@ export class RequestCommandsServiceAdapter implements RequestService {
       created: metadata.created,
       created_by: metadata.created_by,
       source: metadata.source,
-      rejected_path: (metadata as any).rejected_path,
+      rejected_path: metadata.rejected_path,
     };
   }
 

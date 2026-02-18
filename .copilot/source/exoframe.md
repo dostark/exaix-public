@@ -56,6 +56,7 @@ Export types that consumers need and keep internal types private. Provide thorou
 **Strict Type Safety — No `any`, No implicit types.** Every variable, parameter, return value, and data structure must have an explicit type annotation.
 - **No `any`:** Never use `any`. Use generic types (`<T>`), named interfaces, or Zod-inferred types.
 - **No `as any` casting:** Never use `value as any` to bypass type checking. This defeats TypeScript's type safety and hides real issues. Use proper type guards, narrowing techniques, or define the correct type.
+- **No `as typeof var` casting:** Never use `value as typeof variable` to cast to another variable's type. This is effectively using `any` and bypasses type safety. Define explicit interfaces or use proper type inference instead.
 - **No `unknown` as a stored type:** `unknown` is permitted only inside `catch (e: unknown)` clauses or as a transient value in a narrowing guard. Never use it as a parameter type, return type, or field type — define a named interface or type alias instead.
 - **No double casting:** Never use `... as unknown as ...`. This bypasses type safety and hides real issues. Use proper type guards, structural typing, or narrow the type safely.
 - **Always name it:** If the type does not exist yet, create one. Prefer specific interfaces over `Record<string, ...>` when keys are known.

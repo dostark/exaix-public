@@ -68,6 +68,7 @@ deno task check:docs        # Verify .copilot/manifest.json is fresh
 - **Strict Type Safety:** Every variable, parameter, return value, and data structure **must** have an explicit type annotation. Implicit `any` (from missing annotations) and explicit `any` are both forbidden.
   - **No `any`:** Never use `any` as a type. Use generic types (`<T>`), proper interfaces, or Zod-inferred types.
   - **No `as any` casting:** Never use `value as any` to bypass type checking. This defeats TypeScript's type safety and hides real issues. Use proper type guards, narrowing, or define the correct type.
+  - **No `as typeof var` casting:** Never use `value as typeof variable` to cast to another variable's type. This is effectively using `any` and bypasses type safety. Define explicit interfaces or use proper type inference instead.
   - **No `unknown` as a fallback:** `unknown` is not a substitute for a real type. If the shape is truly dynamic, define a named interface or type alias that describes it. Use `unknown` only as a *transient* type inside a narrowing guard (e.g., `catch (e: unknown)`) — never as a stored type or parameter type.
   - **No double casting:** Never use `... as unknown as ...`. This bypasses type safety. Use proper narrowing or structural typing.
   - **Always name it:** If a type does not exist yet, create one. Prefer specific interfaces over structural `Record<string, ...>` when the keys are known.

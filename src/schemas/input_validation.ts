@@ -116,7 +116,7 @@ export const ModelConfigSchema = z.object({
     (val: string) => {
       // Basic validation: must be a known provider or a GPT-style model
       const normalized = val.toLowerCase().trim();
-      return Object.values(ProviderType).includes(normalized as any) ||
+      return Object.values(ProviderType).includes(normalized as ProviderType) ||
         normalized.startsWith("gpt-") ||
         normalized.startsWith("llama");
     },

@@ -598,7 +598,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
   private handleFilterSourceResult(value: string): void {
     const normalized = value.toLowerCase().trim();
     if (normalized === "all" || normalized === "core" || normalized === "project" || normalized === "learned") {
-      this.skillsViewExtensions.filterSource = normalized as any;
+      this.skillsViewExtensions.filterSource = normalized as SkillsViewExtensions["filterSource"];
       this.loadSkills().then(() => {
         this.buildTree();
         this.setStatus(`Filter: source=${normalized}`, "info");
@@ -614,7 +614,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
       normalized === "all" || normalized === SkillStatus.ACTIVE || normalized === SkillStatus.DRAFT ||
       normalized === SkillStatus.DEPRECATED
     ) {
-      this.skillsViewExtensions.filterStatus = normalized as any;
+      this.skillsViewExtensions.filterStatus = normalized as SkillsViewExtensions["filterStatus"];
       this.loadSkills().then(() => {
         this.buildTree();
         this.setStatus(`Filter: status=${normalized}`, "info");

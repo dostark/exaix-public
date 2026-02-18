@@ -351,10 +351,12 @@ export interface TuiDashboard {
 
 export function tryEnableRawMode(): boolean {
   try {
-    const stdinAny = Deno.stdin as any;
-    if (typeof stdinAny.isTerminal === "function" && stdinAny.isTerminal()) {
-      if (typeof stdinAny.setRaw === "function") {
-        stdinAny.setRaw(true);
+    // Define intersection type for Deno.stdin with optional terminal methods
+    type StdinWithTerminal = typeof Deno.stdin & { isTerminal?: () => boolean; setRaw?: (mode: boolean) => void };
+    const stdin = Deno.stdin as StdinWithTerminal;
+    if (typeof stdin.isTerminal === "function" && stdin.isTerminal()) {
+      if (typeof stdin.setRaw === "function") {
+        stdin.setRaw(true);
         return true;
       }
     }
@@ -366,9 +368,11 @@ export function tryEnableRawMode(): boolean {
 
 export function tryDisableRawMode(): boolean {
   try {
-    const stdinAny = Deno.stdin as any;
-    if (typeof stdinAny.setRaw === "function") {
-      stdinAny.setRaw(false);
+    // Define intersection type for Deno.stdin with optional setRaw method
+    type StdinWithSetRaw = typeof Deno.stdin & { setRaw?: (mode: boolean) => void };
+    const stdin = Deno.stdin as StdinWithSetRaw;
+    if (typeof stdin.setRaw === "function") {
+      stdin.setRaw(false);
       return true;
     }
   } catch (_err) {
@@ -602,13 +606,13 @@ function createTestDashboard(options: {
   // Initialize notification service if not provided
   const localNotifs: MemoryNotification[] = [];
   const notificationService = options.notificationService || {
-    async notify(message: string, type = "info") {
+    async notify(message: string, type: MemoryNotification["type"] = "info") {
       localNotifs.unshift({ // Newest first
         id: crypto.randomUUID(),
         type,
         message,
         created_at: new Date().toISOString(),
-      } as any); // Type assertion for mock
+      });
       await Promise.resolve();
     },
     async getNotifications() {
@@ -645,9 +649,12 @@ function createTestDashboard(options: {
         m.testModeHandleKey(this, key, panes, views, viewPickerRef)
       );
       viewPickerIndex = viewPickerRef.index;
+      // Check for Deno global in test debug mode
+      type TuiGlobalWithDeno = typeof globalThis & { Deno?: { env: { get(k: string): string | undefined } } };
+      const globalWithDenoTui = globalThis as TuiGlobalWithDeno;
       if (
-        (globalThis as any).Deno && (globalThis as any).Deno.env &&
-        (globalThis as any).Deno.env.get("EXO_TEST_LOG_TAB_DEBUG") === "1"
+        typeof globalWithDenoTui.Deno !== "undefined" &&
+        globalWithDenoTui.Deno?.env.get("EXO_TEST_LOG_TAB_DEBUG") === "1"
       ) {
         console.debug("[TUI][DEBUG] launch.handleKey returned active=", this.activePaneId);
       }
@@ -811,7 +818,7 @@ async function createProductionDashboard(options: {
 
   // Production state
   // Initialize services for production
-  const _db = {} as any; // TODO: Initialize real DB service
+  const _db = {} as Record<string, never>; // TODO: Initialize real DB service
   const notificationService = options.notificationService || {
     async getNotifications() {
       return await Promise.resolve([]);
@@ -916,8 +923,9 @@ async function runProductionInteractiveLoop(context: {
   // Interactive mode: attempt to enable raw mode when possible and provide a line-based fallback
   let rawEnabled = false;
   try {
-    const stdinAny = Deno.stdin as any;
-    const isTty = typeof stdinAny.isTerminal === "function" && stdinAny.isTerminal();
+    type StdinWithIsTerminal = typeof Deno.stdin & { isTerminal?: () => boolean };
+    const stdin = Deno.stdin as StdinWithIsTerminal;
+    const isTty = typeof stdin.isTerminal === "function" && stdin.isTerminal();
     if (isTty) {
       rawEnabled = tryEnableRawMode();
       if (!rawEnabled) console.warn("Warning: terminal raw mode not available; keyboard keys will require Enter.");

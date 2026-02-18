@@ -139,11 +139,12 @@ function renderInlineStyles(text: string, s: typeof MarkdownStyles): string {
  */
 function emptyStyles(): typeof MarkdownStyles {
   // Create an object with same keys as MarkdownStyles but empty strings
-  const empty: Partial<typeof MarkdownStyles> = {};
+  type MarkdownStylesType = typeof MarkdownStyles;
+  const empty: Partial<MarkdownStylesType> = {};
   for (const key of Object.keys(MarkdownStyles)) {
-    empty[key as keyof typeof MarkdownStyles] = "";
+    empty[key as keyof MarkdownStylesType] = "";
   }
-  return empty as typeof MarkdownStyles;
+  return empty as MarkdownStylesType;
 }
 
 /**

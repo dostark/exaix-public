@@ -58,6 +58,7 @@ ExoFrame enforces a strict **No `any`, No implicit types** policy to ensure type
 - **Always annotate:** Every variable, parameter, return value, and data structure **must** have an explicit type annotation. Never rely on implicit inference to avoid writing a type.
 - **No `any`:** **NEVER** use the `any` type in variable declarations, function parameters, or return types. This includes both explicit `any` and implicit `any` from missing annotations.
 - **No `as any` casting:** **NEVER** use `value as any` to bypass TypeScript's type checking. This defeats the purpose of using TypeScript and hides real type issues. Use proper type guards, narrowing techniques, or define the correct type.
+- **No `as typeof var` casting:** **NEVER** use `value as typeof variable` to cast to another variable's type. This pattern is effectively equivalent to using `any` and completely bypasses type safety. Instead, define explicit interfaces, use intersection types, or leverage proper type inference.
 - **No `unknown` as a stored type:** `unknown` is not a substitute for a real type. Permitted uses of `unknown` are limited to:
   - The parameter of a `catch` clause: `catch (e: unknown)`
   - A *transient* value inside a type-narrowing guard before it is cast to a concrete type

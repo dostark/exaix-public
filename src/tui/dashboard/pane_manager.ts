@@ -29,9 +29,12 @@ export async function splitPane(
     // Split vertically: left-right
     const halfFlexWidth = activePane.flexWidth / 2;
     const halfWidth = Math.floor(activePane.width / 2);
+    // Check for Deno global in test debug mode
+    type PaneManagerGlobalWithDeno = typeof globalThis & { Deno?: { env: { get(k: string): string | undefined } } };
+    const globalWithDenoPane = globalThis as PaneManagerGlobalWithDeno;
     if (
-      (globalThis as any).Deno && (globalThis as any).Deno.env &&
-      (globalThis as any).Deno.env.get("EXO_TEST_LOG_SPLIT_DEBUG") === "1"
+      typeof globalWithDenoPane.Deno !== "undefined" &&
+      globalWithDenoPane.Deno?.env.get("EXO_TEST_LOG_SPLIT_DEBUG") === "1"
     ) {
       console.debug("[TUI][DEBUG] splitPane vertical BEFORE", activePane.id, "flexWidth=", activePane.flexWidth);
     }
@@ -53,9 +56,11 @@ export async function splitPane(
 
     activePane.flexWidth = halfFlexWidth;
     activePane.width = halfWidth;
+    // Check for Deno global in test debug mode (reuse type from above)
+    const globalWithDenoPane2 = globalThis as PaneManagerGlobalWithDeno;
     if (
-      (globalThis as any).Deno && (globalThis as any).Deno.env &&
-      (globalThis as any).Deno.env.get("EXO_TEST_LOG_SPLIT_DEBUG") === "1"
+      typeof globalWithDenoPane2.Deno !== "undefined" &&
+      globalWithDenoPane2.Deno?.env.get("EXO_TEST_LOG_SPLIT_DEBUG") === "1"
     ) {
       console.debug("[TUI][DEBUG] splitPane vertical AFTER", activePane.id, "flexWidth=", activePane.flexWidth);
     }

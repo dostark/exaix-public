@@ -548,7 +548,10 @@ export interface HealthCheckServiceWithInspection extends HealthCheckService {
   this: HealthCheckService,
   name: string,
 ) {
-  const cb = (this as any).checkBreakers?.get(name) as CircuitBreaker | undefined;
+  // Access private checkBreakers property through type-safe intersection
+  // deno-lint-ignore no-explicit-any
+  const self = this as any as { checkBreakers?: Map<string, CircuitBreaker> };
+  const cb = self.checkBreakers?.get(name);
   return cb ? cb.getState() : null;
 };
 

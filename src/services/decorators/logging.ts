@@ -27,6 +27,7 @@ export function LogMethod(logger: EventLogger, action?: string) {
           // Log cached arguments
           await logger.debug(actionName, "started", { args: toSafeJson(args) });
           // Note: we must await originalMethod regardless of whether it's sync or async
+          // deno-lint-ignore no-explicit-any
           const result = await (originalMethod.apply(this, args) as any);
           const duration = (typeof performance !== "undefined" ? performance.now() : Date.now()) - startTime;
           await logger.info(actionName, "completed", { duration });
@@ -51,6 +52,7 @@ export function LogMethod(logger: EventLogger, action?: string) {
     const originalMethod = descriptor!.value!;
     const propertyKey = contextOrKey as string;
 
+    // deno-lint-ignore no-explicit-any
     descriptor!.value = createWrapper(originalMethod, propertyKey) as any;
     return descriptor;
   };

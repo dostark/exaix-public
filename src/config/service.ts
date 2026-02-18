@@ -48,13 +48,11 @@ export class ConfigService {
       const rawConfig = parse(content);
 
       // Ensure system.root is set and resolved relative to the config file if it's relative
-      if (rawConfig.system && typeof rawConfig.system === "object" && !(rawConfig.system as any).root) {
-        (rawConfig.system as any).root = dirname(this.configPath);
-      } else if (
-        rawConfig.system && typeof rawConfig.system === "object" && (rawConfig.system as any).root &&
-        !isAbsolute((rawConfig.system as any).root)
-      ) {
-        (rawConfig.system as any).root = join(dirname(this.configPath), (rawConfig.system as any).root);
+      const systemConfig = rawConfig.system as { root?: string } | undefined;
+      if (systemConfig && !systemConfig.root) {
+        systemConfig.root = dirname(this.configPath);
+      } else if (systemConfig?.root && !isAbsolute(systemConfig.root)) {
+        systemConfig.root = join(dirname(this.configPath), systemConfig.root);
       }
 
       const result = ConfigSchema.safeParse(rawConfig);

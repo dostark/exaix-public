@@ -626,7 +626,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
 
       await this.logger.error("git.audit.failed", portalPath, {
         error: error instanceof Error ? error.message : String(error),
-        stderr: error instanceof Error && "stderr" in error ? (error as any).stderr : undefined,
+        stderr: error instanceof Error && "stderr" in error ? (error as Error & { stderr?: string }).stderr : undefined,
       });
       throw new AgentExecutionError(`Git audit failed for portal: ${portalPath}`, "git_error", error as Error);
     }
