@@ -25,9 +25,11 @@ import {
 } from "../helpers/constants.ts";
 import { colorize, getTheme, type TuiTheme } from "../helpers/colors.ts";
 import {
+  type DashboardContext,
   handleMemoryNotifications as _handleMemoryNotifications,
   renderNotificationPanel,
 } from "./tui_helpers/notifications.ts";
+import type { MemoryNotification } from "../services/notification.ts";
 import {
   resetToDefault as helperResetToDefault,
   restoreLayout as helperRestoreLayout,
@@ -232,9 +234,21 @@ export function getDashboardHelpSections(): HelpSection[] {
 
 // ===== Pane and Dashboard Interfaces =====
 
+/**
+ * Common interface for all TUI views to ensure consistent orchestration.
+ */
+export interface TuiView {
+  name: string;
+  render?(): string[] | Promise<string[] | string> | string;
+  handleKey?(key: string): Promise<boolean | number>;
+  dispose?(): void;
+  destroy?(): void;
+  getFocusableElements?(): string[];
+}
+
 export interface Pane {
   id: string;
-  view: any;
+  view: TuiView;
   /** Relative flex position and size (0.0 to 1.0) */
   flexX: number;
   flexY: number;
@@ -263,9 +277,25 @@ export interface TuiDashboard {
   // State
   panes: Pane[];
   activePaneId: string;
-  views: any[];
+  views: TuiView[];
   state: DashboardViewState;
   theme: Theme;
+
+  // Test mode handlers (internal routing helpers)
+  handleHelpOverlay?: (self: TuiDashboard, key: string, panes: Pane[]) => number;
+  handleViewPicker?: (
+    self: TuiDashboard,
+    key: string,
+    views: TuiView[],
+    panes: Pane[],
+    viewPickerIndexRef: { index: number },
+  ) => number;
+  handleMemoryNotifications?: (
+    self: TuiDashboard,
+    key: string,
+    panes: Pane[],
+    notificationService: NotificationService,
+  ) => Promise<number>;
 
   // Core methods
   handleKey(key: string): Promise<number>;
@@ -464,7 +494,7 @@ export function renderPaneTitleBar(pane: Pane, theme: Theme): string {
 }
 
 // Helper handlers extracted from the large dashboard key handler to reduce complexity
-function _handleHelpOverlay(self: any, key: string, panes: Pane[]) {
+function _handleHelpOverlay(self: TuiDashboard, key: string, panes: Pane[]) {
   if (key === KEYS.QUESTION || key === KEYS.ESCAPE) {
     self.state.showHelp = false;
   }
@@ -472,7 +502,7 @@ function _handleHelpOverlay(self: any, key: string, panes: Pane[]) {
 }
 
 async function _handleMemoryNotificationsLocal(
-  self: any,
+  self: TuiDashboard & DashboardContext,
   key: string,
   panes: Pane[],
   notificationService: NotificationService,
@@ -480,7 +510,13 @@ async function _handleMemoryNotificationsLocal(
   return await _handleMemoryNotifications(self, key, panes, notificationService);
 }
 
-function _handleViewPicker(self: any, key: string, views: any[], panes: Pane[], viewPickerIndexRef: { index: number }) {
+function _handleViewPicker(
+  self: TuiDashboard,
+  key: string,
+  views: TuiView[],
+  panes: Pane[],
+  viewPickerIndexRef: { index: number },
+) {
   if (key === KEYS.ESCAPE) {
     self.state.showViewPicker = false;
   } else if (key === KEYS.UP || key === KEYS.K) {
@@ -561,7 +597,7 @@ function createTestDashboard(options: {
   let viewPickerIndex = 0;
 
   // Initialize notification service if not provided
-  const localNotifs: any[] = [];
+  const localNotifs: MemoryNotification[] = [];
   const notificationService = options.notificationService || {
     async notify(message: string, type = "info") {
       localNotifs.unshift({ // Newest first
@@ -569,7 +605,7 @@ function createTestDashboard(options: {
         type,
         message,
         created_at: new Date().toISOString(),
-      });
+      } as any); // Type assertion for mock
       await Promise.resolve();
     },
     async getNotifications() {

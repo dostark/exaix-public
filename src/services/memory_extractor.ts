@@ -270,7 +270,7 @@ export class MemoryExtractorService {
         "memory-extractor",
         event.event_type,
         event.target,
-        event.metadata || {},
+        (event.metadata || {}) as any,
         event.trace_id,
       );
     } catch {

@@ -10,7 +10,7 @@
 import { ensureDir, exists } from "@std/fs";
 import { join } from "@std/path";
 import { parse as parseToml, stringify as stringifyToml } from "@std/toml";
-import { BaseCommand } from "../base.ts";
+import { BaseCommand, type CommandContext } from "../base.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { CommandUtils } from "../../helpers/command_utils.ts";
@@ -304,7 +304,7 @@ exoctl request "Test request" --agent mock
 // ============================================================================
 
 export class BlueprintCommands extends BaseCommand {
-  constructor(context: any) {
+  constructor(context: CommandContext) {
     super(context);
   }
   /**

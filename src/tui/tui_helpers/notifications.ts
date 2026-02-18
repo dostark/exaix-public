@@ -8,7 +8,20 @@
  */
 
 import { KEYS } from "../../helpers/keyboard.ts";
-import { colorize } from "../../helpers/colors.ts";
+import { colorize, type TuiTheme } from "../../helpers/colors.ts";
+import type { DashboardViewState, Pane } from "../tui_dashboard.ts";
+import type { MemoryNotification, NotificationService } from "../../services/notification.ts";
+
+interface TuiNotification extends MemoryNotification {
+  icon?: string;
+}
+
+export interface DashboardContext {
+  state: DashboardViewState;
+  activePaneId: string;
+  approveMemoryUpdate: (id: string) => Promise<void>;
+  rejectMemoryUpdate: (id: string) => Promise<void>;
+}
 
 export function formatTimeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -20,13 +33,13 @@ export function formatTimeAgo(date: Date): string {
 }
 
 export async function renderNotificationPanel(
-  notificationService: any,
-  theme: any,
-  state: any,
+  notificationService: NotificationService,
+  theme: TuiTheme,
+  state: DashboardViewState,
   maxHeight = 10,
 ): Promise<string[]> {
   const lines: string[] = [];
-  let activeNotifications = await notificationService.getNotifications();
+  let activeNotifications = await notificationService.getNotifications() as TuiNotification[];
 
   const messageColorByType: Record<string, string> = {
     error: theme.error,
@@ -39,7 +52,7 @@ export async function renderNotificationPanel(
   };
 
   if (state.showMemoryNotifications) {
-    activeNotifications = activeNotifications.filter((n: any) => n.type === "memory_update_pending");
+    activeNotifications = activeNotifications.filter((n) => n.type === "memory_update_pending");
   }
 
   if (activeNotifications.length === 0) {
@@ -86,16 +99,16 @@ export async function renderNotificationPanel(
 }
 
 export async function handleMemoryNotifications(
-  self: any,
+  self: DashboardContext,
   key: string,
-  panes: any[],
-  notificationService: any,
+  panes: Pane[],
+  notificationService: NotificationService,
 ) {
   if (key === KEYS.ESCAPE || key === KEYS.M) {
     self.state.showMemoryNotifications = false;
   } else {
     const allNotifs = await notificationService.getNotifications();
-    const memoryNotifs = allNotifs.filter((n: any) => n.type === "memory_update_pending");
+    const memoryNotifs = allNotifs.filter((n) => n.type === "memory_update_pending");
     const count = memoryNotifs.length;
 
     if (key === "up" || key === "k") {
@@ -107,11 +120,15 @@ export async function handleMemoryNotifications(
         self.state.selectedMemoryNotifIndex = (self.state.selectedMemoryNotifIndex + 1) % count;
       }
     } else if (key === "a" && count > 0) {
-      const selected = memoryNotifs[self.state.selectedMemoryNotifIndex];
-      await self.approveMemoryUpdate((selected.proposal_id || selected.id) as string);
+      if (self.state.selectedMemoryNotifIndex < count) {
+        const selected = memoryNotifs[self.state.selectedMemoryNotifIndex];
+        await self.approveMemoryUpdate((selected.proposal_id || selected.id) as string);
+      }
     } else if (key === "r" && count > 0) {
-      const selected = memoryNotifs[self.state.selectedMemoryNotifIndex];
-      await self.rejectMemoryUpdate((selected.proposal_id || selected.id) as string);
+      if (self.state.selectedMemoryNotifIndex < count) {
+        const selected = memoryNotifs[self.state.selectedMemoryNotifIndex];
+        await self.rejectMemoryUpdate((selected.proposal_id || selected.id) as string);
+      }
     }
   }
 

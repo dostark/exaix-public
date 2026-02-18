@@ -11,7 +11,7 @@
 import { Command } from "@cliffy/command";
 import { PlanCommands } from "./commands/plan_commands.ts";
 import { RequestCommands } from "./commands/request_commands.ts";
-import { ReviewCommands } from "./commands/review_commands.ts";
+import { ReviewCommands, type ReviewDetails, type ReviewMetadata } from "./commands/review_commands.ts";
 import { GitCommands } from "./commands/git_commands.ts";
 import { DaemonCommands } from "./commands/daemon_commands.ts";
 import { PortalCommands } from "./commands/portal_commands.ts";
@@ -19,22 +19,35 @@ import { BlueprintCommands } from "./commands/blueprint_commands.ts";
 import { FlowCommands } from "./commands/flow_commands.ts";
 import { DashboardCommands } from "./commands/dashboard_commands.ts";
 import { MemoryCommands } from "./commands/memory_commands.ts";
-import { JournalCommands } from "./commands/journal_commands.ts";
+import { JournalCommandOptions, JournalCommands } from "./commands/journal_commands.ts";
 import { PortalExecutionStrategy, PortalStatus } from "../enums.ts";
 import { ReviewStatus, type ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { McpCommands } from "./commands/mcp_commands.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
 import { GitService } from "../services/git_service.ts";
+import type { Config } from "../config/schema.ts";
+import type { DatabaseService } from "../services/db.ts";
+import type { IModelProvider } from "../ai/types.ts";
+import type { EventLogger } from "../services/event_logger.ts";
+import type { ConfigService } from "../config/service.ts";
 
 // Extracted action handlers
-import { handleRequestCreate, handleRequestList, handleRequestShow } from "./command_builders/request_actions.ts";
+import {
+  handleRequestCreate,
+  handleRequestList,
+  handleRequestShow,
+  type RequestCreateOptions,
+  type RequestListOptions,
+} from "./command_builders/request_actions.ts";
 import {
   handlePlanApprove,
   handlePlanList,
   handlePlanReject,
   handlePlanRevise,
   handlePlanShow,
+  type PlanApproveOptions,
+  type PlanListOptions,
 } from "./command_builders/plan_actions.ts";
 
 // Allow tests to run the CLI entrypoint without initializing heavy services
@@ -42,13 +55,13 @@ export function isTestMode() {
   return isTestModeImport();
 }
 
-let config: any;
-let db: any;
-let gitService: any;
-let provider: any;
-let display: any;
-let context: any;
-let configService: any;
+let config: Config;
+let db: DatabaseService;
+let gitService: GitService;
+let provider: IModelProvider;
+let display: EventLogger;
+let context: { config: Config; db: DatabaseService; provider: IModelProvider };
+let configService: ConfigService | undefined;
 
 const services = await initializeServices();
 if (services.success) {
@@ -124,7 +137,7 @@ async function handleReviewListAction(options: { status?: string; type?: string 
   }
 }
 
-function logReviewListItem(cs: any) {
+function logReviewListItem(cs: ReviewMetadata) {
   const statusEmoji = getReviewStatusEmoji(cs.status);
   const requestTitle = cs.request_title ? `"${cs.request_title}"` : cs.request_id;
   const planInfo = cs.plan_id ? `plan: ${cs.plan_id} (${cs.plan_status})` : undefined;
@@ -172,14 +185,14 @@ async function handleReviewShowAction(options: { diff?: boolean }, id: string) {
   }
 }
 
-function renderReviewShow(cs: any, id: string) {
+function renderReviewShow(cs: ReviewDetails, id: string) {
   renderReviewShowSummary(cs);
   renderReviewShowDecision(cs);
   renderReviewShowCommits(cs);
   display.info("review.diff", id, { diff: cs.diff });
 }
 
-function renderReviewShowSummary(cs: any) {
+function renderReviewShowSummary(cs: ReviewDetails) {
   const statusEmoji = getReviewStatusEmoji(cs.status);
   const requestTitle = cs.request_title ? `"${cs.request_title}"` : "Untitled Request";
   const planInfo = cs.plan_id ? `${cs.plan_id} (${cs.plan_status})` : "unknown";
@@ -202,7 +215,7 @@ function renderReviewShowSummary(cs: any) {
   });
 }
 
-function renderReviewShowDecision(cs: any) {
+function renderReviewShowDecision(cs: ReviewDetails) {
   if (cs.approved_at) {
     display.info("approved", new Date(cs.approved_at).toLocaleString(), {
       by: cs.approved_by || "unknown",
@@ -218,7 +231,7 @@ function renderReviewShowDecision(cs: any) {
   }
 }
 
-function renderReviewShowCommits(cs: any) {
+function renderReviewShowCommits(cs: ReviewDetails) {
   display.info("commits", "", {});
   for (const commit of cs.commits) {
     display.info("commit", commit.sha.substring(0, 8), {
@@ -251,7 +264,7 @@ export const __test_command = new Command()
       .option("--dry-run", "Show what would be created without writing")
       .option("--json", "Output in JSON format")
       .action(async (options, description?: string) => {
-        await handleRequestCreate({ requestCommands, display }, options, description);
+        await handleRequestCreate({ requestCommands, display }, options as RequestCreateOptions, description);
       })
       .example("Create a request for a specific agent", 'exoctl request "Analyze this code" --agent code-reviewer')
       .example("Create a request for a multi-agent flow", 'exoctl request "Build a web app" --flow web-development')
@@ -266,7 +279,7 @@ export const __test_command = new Command()
           .option("-s, --status <status:string>", "Filter by status")
           .option("--json", "Output in JSON format")
           .action(async (options) => {
-            await handleRequestList({ requestCommands, display }, options);
+            await handleRequestList({ requestCommands, display }, options as RequestListOptions);
           }),
       )
       .command(
@@ -289,7 +302,7 @@ export const __test_command = new Command()
           .description("List all plans awaiting review")
           .option("-s, --status <status:string>", "Filter by status (review, needs_revision)")
           .action(async (options) => {
-            await handlePlanList({ planCommands, display }, options);
+            await handlePlanList({ planCommands, display }, options as PlanListOptions);
           }),
       )
       .command(
@@ -306,7 +319,7 @@ export const __test_command = new Command()
           .description("Approve a plan and move it to Workspace/Active")
           .option("--skills <skills:string>", "Comma-separated list of skills to inject during execution")
           .action(async (options, ...args: string[]) => {
-            await handlePlanApprove({ planCommands, display }, args[0] as string, options);
+            await handlePlanApprove({ planCommands, display }, args[0] as string, options as PlanApproveOptions);
           }),
       )
       .command(
@@ -1388,7 +1401,7 @@ export const __test_command = new Command()
 
 const journalCommand = new Command()
   .description("Query the Activity Journal")
-  .option("-f, --filter <filter:string[]>", "Filter by key=value (trace_id, action_type, agent_id, since)", {
+  .option("-f, --filter <filter:string>", "Filter by key=value (trace_id, action_type, agent_id, since)", {
     collect: true,
   })
   .option("-n, --tail <n:number>", "Show last N entries", { default: 50 })
@@ -1398,9 +1411,9 @@ const journalCommand = new Command()
   .option("--payload <pattern:string>", "Filter by payload LIKE pattern")
   .option("--actor <actor:string>", "Filter by actor")
   .option("--target <target:string>", "Filter by target")
-  .action(async (options: any) => {
+  .action(async (options) => {
     const cmd = new JournalCommands(context);
-    await cmd.show(options);
+    await cmd.show(options as unknown as JournalCommandOptions);
   });
 
 __test_command.command("journal", journalCommand);

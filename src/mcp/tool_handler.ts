@@ -102,7 +102,7 @@ export abstract class ToolHandler {
       "mcp.tool",
       `mcp.tool.${toolName}`,
       portal,
-      metadata,
+      metadata as any,
     );
   }
 

@@ -161,7 +161,7 @@ export class RequestRouter {
       await this.eventLogger.log({
         action: "request.flow.validation.failed",
         target: flowId,
-        payload: { error: validation.error },
+        payload: { error: validation.error ?? null },
         traceId,
       });
       throw new RoutingError(validation.error!, requestId);

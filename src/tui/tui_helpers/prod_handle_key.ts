@@ -7,15 +7,15 @@
  * @related-files [src/tui/tui_dashboard.ts, src/tui/tui_helpers/handle_key.ts]
  */
 
-import type { Pane } from "../tui_dashboard.ts";
+import type { DashboardViewState, Pane, TuiView } from "../tui_dashboard.ts";
 import type { MemoryNotification as TuiNotification, NotificationService } from "../../services/notification.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 
 export interface ProdHandleCtx {
-  prodState: any;
+  prodState: DashboardViewState;
   panes: Pane[];
-  views: any[];
+  views: TuiView[];
   activePaneRef: { id: string };
   notificationService: NotificationService;
   addNotification: (message: string, type?: string) => Promise<void>;

@@ -7,7 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts]
  */
 
-import type { Pane } from "../tui_dashboard.ts";
+import type { Pane, TuiView } from "../tui_dashboard.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../helpers/constants.ts";
 
 export const getLayoutFile = () => `${Deno.env.get("HOME")}/.exoframe/tui_layout.json`;
@@ -46,7 +46,7 @@ export async function saveLayout(
 
 export async function restoreLayout(
   panes: Pane[],
-  views: any[],
+  views: TuiView[],
   addNotification: (m: string, t?: string) => void,
 ): Promise<{ activePaneId?: string } | null> {
   try {
@@ -55,7 +55,7 @@ export async function restoreLayout(
     if ((layout.version === "1.0" || layout.version === "1.1" || layout.version === "1.2") && layout.panes) {
       panes.length = 0;
       for (const p of layout.panes) {
-        const view = views.find((v: any) => v.name === p.viewName) || views[0];
+        const view = views.find((v) => v.name === p.viewName) || views[0];
         // Upgrade from 1.0/1.1 (absolute) to 1.2 (flex)
         const flexX = p.flexX ?? (p.x / TUI_LAYOUT_FULL_WIDTH);
         const flexY = p.flexY ?? (p.y / TUI_LAYOUT_DEFAULT_HEIGHT);
@@ -88,7 +88,11 @@ export async function restoreLayout(
   return null;
 }
 
-export function resetToDefault(panes: Pane[], views: any[], addNotification: (m: string, t?: string) => void): string {
+export function resetToDefault(
+  panes: Pane[],
+  views: TuiView[],
+  addNotification: (m: string, t?: string) => void,
+): string {
   panes.length = 0;
   panes.push({
     id: "main",

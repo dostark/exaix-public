@@ -227,7 +227,7 @@ export class NotificationService {
         "notification-service",
         event.event_type,
         event.target,
-        event.metadata || {},
+        (event.metadata || {}) as any,
         event.trace_id,
       );
     } catch {

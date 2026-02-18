@@ -13,7 +13,7 @@ import { TUI_MSG_DASHBOARD_HEADER, TUI_MSG_PRESS_CLOSE_HELP, TUI_STATUS_MSG_READ
 import { type Pane, renderGlobalHelpOverlay, renderPaneTitleBar, renderViewIndicator } from "../tui_dashboard.ts";
 import { renderNotificationPanel } from "../tui_helpers/notifications.ts";
 import type { NotificationService } from "../../services/notification.ts";
-import type { DashboardViewState } from "../tui_dashboard.ts";
+import { type DashboardViewState, type TuiView } from "../tui_dashboard.ts";
 import { Table } from "https://deno.land/x/cliffy@v0.25.7/mod.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 
@@ -21,13 +21,13 @@ async function renderActivePaneContent(
   panes: Pane[],
   activePaneId: string,
   theme: Theme,
-  portalView: any,
+  portalView: TuiView,
 ): Promise<void> {
   const activePane = panes.find((p) => p.id === activePaneId);
   if (!activePane) return;
 
   if (activePane.view.name === "PortalManagerView") {
-    const portals = await portalView.service.listPortals();
+    const portals = await (portalView as any).service.listPortals();
     if (portals.length > 0) {
       const table = new Table();
       table.header(["Alias", "Target Path", "Status", "Permissions"]);
@@ -58,7 +58,7 @@ async function renderStatusBar(
   console.log(`╠${headerLine}╣`);
 
   const allNotifs = await notificationService.getNotifications();
-  const activeNotifs = allNotifs.filter((n: any) => !n.dismissed_at);
+  const activeNotifs = allNotifs.filter((n) => !n.dismissed_at);
   const notifBadge = activeNotifs.length > 0 ? ` 🔔 ${activeNotifs.length}` : "";
   const statusLine = ` Status: ${TUI_STATUS_MSG_READY}${notifBadge}`;
   console.log(`║${statusLine}${" ".repeat(Math.max(0, width - 2 - statusLine.length))}║`);
@@ -79,7 +79,7 @@ export async function prodRender(
   state: DashboardViewState,
   theme: Theme,
   notificationService: NotificationService,
-  portalView: any,
+  portalView: TuiView,
 ): Promise<void> {
   let width: number;
   let height: number;

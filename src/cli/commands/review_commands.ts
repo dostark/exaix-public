@@ -524,7 +524,7 @@ export class ReviewCommands extends BaseCommand {
 
   private getDbReviewQuery(
     normalizedStatus: ReviewStatusType | undefined,
-  ): { sql: string; args: unknown[] } {
+  ): { sql: string; args: any[] } {
     const base =
       "SELECT trace_id, portal, branch, repository, base_branch, worktree_path, files_changed, created, created_by, status, approved_at, approved_by, rejected_at, rejected_by, rejection_reason FROM reviews";
     if (!normalizedStatus) return { sql: base, args: [] };
