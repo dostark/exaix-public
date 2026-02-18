@@ -8,7 +8,7 @@
  */
 
 // @ts-ignore: Deno is a global in the Deno runtime
-declare const Deno: any;
+declare const Deno: { env: { get(key: string): string | undefined } };
 
 import { ProviderRegistry } from "./provider_registry.ts";
 import { IModelProvider, ModelOptions, ResolvedProviderOptions } from "./types.ts";
@@ -17,6 +17,8 @@ import {
   createOpenAIChatCompletionsRequestInit,
   extractOpenAIContent,
   fetchJsonWithRetries,
+  type OllamaResponse,
+  type OpenAIResponse,
   tokenMapperOpenAI,
 } from "./provider_common_utils.ts";
 
@@ -34,6 +36,8 @@ import {
   DEFAULT_OPENAI_TIMEOUT_MS,
   MOCK_DELAY_MS,
 } from "../config/constants.ts";
+
+import { MockStrategy, ProviderType } from "../enums.ts";
 
 // Import error classes from common
 import { ConnectionError, ModelProviderError, TimeoutError } from "./providers/common.ts";
@@ -94,7 +98,7 @@ export class OllamaProvider implements IModelProvider {
   async generate(prompt: string, options?: ModelOptions): Promise<string> {
     try {
       // Import helper dynamically to avoid module cycles
-      const data = await fetchJsonWithRetries(
+      const data = await fetchJsonWithRetries<OllamaResponse>(
         `${this.baseUrl}/api/generate`,
         {
           method: "POST",
@@ -194,7 +198,7 @@ class OpenAIShim implements IModelProvider {
     const backoffBaseMs = DEFAULT_OPENAI_RETRY_BACKOFF_MS;
     const timeoutMs = DEFAULT_OPENAI_TIMEOUT_MS;
 
-    const data = await fetchJsonWithRetries(
+    const data = await fetchJsonWithRetries<OpenAIResponse>(
       url,
       createOpenAIChatCompletionsRequestInit(this.apiKey, this.model, prompt, options),
       {
@@ -241,18 +245,19 @@ export class ModelFactory {
       const factory = ProviderRegistry.getFactory(normalizedType);
       if (factory) {
         const options: ResolvedProviderOptions = {
-          provider: normalizedType as any,
-          model: (config?.model as string) ?? "default-model",
-          baseUrl: config?.baseUrl as string,
-          timeoutMs: (config?.timeoutMs as number) ?? 30000,
-          apiKey: config?.apiKey as string,
-          id: config?.id as string ?? (normalizedType === "mock" ? "mock-provider" : undefined),
-          mockStrategy:
-            (config?.mockStrategy ?? config?.strategy ?? (config?.response ? "scripted" : undefined)) as any,
-          mockFixturesDir: config?.mockFixturesDir as string,
+          provider: normalizedType as ProviderType,
+          model: (config?.model as string | undefined) ?? "default-model",
+          baseUrl: config?.baseUrl as string | undefined,
+          timeoutMs: (config?.timeoutMs as number | undefined) ?? 30000,
+          apiKey: config?.apiKey as string | undefined,
+          id: (config?.id as string | undefined) ?? (normalizedType === "mock" ? "mock-provider" : undefined),
+          mockStrategy: (config?.mockStrategy ?? config?.strategy ?? (config?.response ? "scripted" : undefined)) as
+            | MockStrategy
+            | undefined,
+          mockFixturesDir: config?.mockFixturesDir as string | undefined,
           // Support 'response' for backward compatibility with tests
           responses: config?.response ? [config.response as string] : undefined,
-        } as any;
+        };
         return await factory.create(options);
       }
     }

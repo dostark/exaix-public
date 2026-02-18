@@ -38,6 +38,64 @@ export type TokenMap = {
   provider?: string;
 };
 
+// Provider Response Interfaces
+export interface OllamaResponse {
+  model: string;
+  response: string;
+  done: boolean;
+  context?: number[];
+  total_duration?: number;
+  load_duration?: number;
+  prompt_eval_count?: number;
+  eval_count?: number;
+  eval_duration?: number;
+}
+
+export interface OpenAIUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens?: number;
+}
+
+export interface OpenAIResponse {
+  usage?: OpenAIUsage;
+  choices?: Array<{
+    message?: {
+      content?: string;
+    };
+    text?: string;
+  }>;
+}
+
+export interface GoogleUsageMetadata {
+  promptTokenCount: number;
+  candidatesTokenCount: number;
+  totalTokenCount?: number;
+}
+
+export interface GoogleResponse {
+  usageMetadata?: GoogleUsageMetadata;
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
+    };
+  }>;
+}
+
+export interface AnthropicUsage {
+  input_tokens?: number;
+  output_tokens?: number;
+}
+
+export interface AnthropicResponse {
+  usage?: AnthropicUsage;
+  content?: Array<{
+    text?: string;
+  }>;
+}
+
 /**
  * Calculate cost for token usage based on provider
  */
@@ -56,12 +114,12 @@ function calculateCost(provider: string, totalTokens: number): number {
   return rate * (totalTokens / TOKENS_PER_COST_UNIT);
 }
 
-export async function handleProviderResponse(
+export async function handleProviderResponse<T>(
   response: Response,
   id: string,
   logger?: EventLogger,
-  tokenMapper?: (data: any, providerId?: string) => TokenMap | undefined,
-): Promise<any> {
+  tokenMapper?: (data: T, providerId?: string) => TokenMap | undefined,
+): Promise<T> {
   if (!response.ok) {
     // Include HTTP status code in messages so tests can assert on it (e.g. "HTTP 503").
     let message = `HTTP ${response.status} ${response.statusText}`;
@@ -87,7 +145,7 @@ export async function handleProviderResponse(
     throw new ModelProviderError(message, id);
   }
 
-  const data = await response.json();
+  const data = await response.json() as T;
 
   if (logger && tokenMapper) {
     try {
@@ -114,7 +172,7 @@ export async function handleProviderResponse(
 
 /** Token mapper for OpenAI response shape */
 export function tokenMapperOpenAI(model: string) {
-  return (d: any, providerId?: string): TokenMap | undefined => {
+  return (d: OpenAIResponse, providerId?: string): TokenMap | undefined => {
     if (!d.usage) return undefined;
 
     const totalTokens = d.usage.total_tokens ?? (d.usage.prompt_tokens + d.usage.completion_tokens);
@@ -131,7 +189,7 @@ export function tokenMapperOpenAI(model: string) {
 }
 
 /** Extract textual content from OpenAI response */
-export function extractOpenAIContent(d: any): string {
+export function extractOpenAIContent(d: OpenAIResponse): string {
   return d.choices?.[0]?.message?.content ?? "";
 }
 
@@ -160,7 +218,7 @@ export function createOpenAIChatCompletionsRequestInit(
 
 /** Token mapper for Google response shape */
 export function tokenMapperGoogle(model: string) {
-  return (d: any, providerId?: string): TokenMap | undefined => {
+  return (d: GoogleResponse, providerId?: string): TokenMap | undefined => {
     if (!d.usageMetadata) return undefined;
 
     const totalTokens = d.usageMetadata.totalTokenCount ??
@@ -178,13 +236,13 @@ export function tokenMapperGoogle(model: string) {
 }
 
 /** Extract textual content from Google response */
-export function extractGoogleContent(d: any): string {
+export function extractGoogleContent(d: GoogleResponse): string {
   return d.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
 /** Token mapper for Anthropic response shape */
 export function tokenMapperAnthropic(model: string) {
-  return (d: any, providerId?: string): TokenMap | undefined => {
+  return (d: AnthropicResponse, providerId?: string): TokenMap | undefined => {
     if (!d.usage) return undefined;
 
     const totalTokens = (d.usage.input_tokens ?? 0) + (d.usage.output_tokens ?? 0);
@@ -201,7 +259,7 @@ export function tokenMapperAnthropic(model: string) {
 }
 
 /** Extract textual content from Anthropic response */
-export function extractAnthropicContent(d: any): string {
+export function extractAnthropicContent(d: AnthropicResponse): string {
   return d.content?.[0]?.text ?? "";
 }
 
@@ -209,7 +267,7 @@ export function extractAnthropicContent(d: any): string {
  * Perform fetch with retries/backoff and timeout, and handle provider responses.
  * Centralizes abort handling, retry/backoff, and ensures bodies are consumed.
  */
-export async function fetchJsonWithRetries(
+export async function fetchJsonWithRetries<T>(
   url: string,
   fetchOptions: RequestInit,
   {
@@ -225,9 +283,9 @@ export async function fetchJsonWithRetries(
     backoffBaseMs?: number;
     timeoutMs?: number;
     logger?: EventLogger;
-    tokenMapper?: (d: any, providerId?: string) => TokenMap | undefined;
+    tokenMapper?: (d: T, providerId?: string) => TokenMap | undefined;
   },
-): Promise<any> {
+): Promise<T> {
   // Use the withRetry helper to centralize retry/backoff semantics
   const attemptFn = async () => {
     const controller = typeof timeoutMs === "number" ? new AbortController() : undefined;
@@ -239,7 +297,7 @@ export async function fetchJsonWithRetries(
     try {
       const response = await fetch(url, { ...fetchOptions, signal });
       // Let handleProviderResponse inspect status, parse JSON and throw typed errors
-      const data = await handleProviderResponse(response, id, logger, tokenMapper);
+      const data = await handleProviderResponse<T>(response, id, logger, tokenMapper);
       if (timeoutId) clearTimeout(timeoutId);
       return data;
     } catch (err) {
@@ -257,7 +315,7 @@ export async function fetchJsonWithRetries(
  * Perform a provider call: fetch JSON with retries, then extract textual content using the provided extractor.
  * This centralizes the common provider pattern: fetch -> handleProviderResponse -> extract content.
  */
-export async function performProviderCall(
+export async function performProviderCall<T>(
   url: string,
   fetchOptions: RequestInit,
   {
@@ -274,11 +332,11 @@ export async function performProviderCall(
     backoffBaseMs?: number;
     timeoutMs?: number;
     logger?: EventLogger;
-    tokenMapper?: (d: any, providerId?: string) => TokenMap | undefined;
-    extractor?: (d: any) => string;
+    tokenMapper?: (d: T, providerId?: string) => TokenMap | undefined;
+    extractor?: (d: T) => string;
   },
 ): Promise<string> {
-  const data = await fetchJsonWithRetries(url, fetchOptions, {
+  const data = await fetchJsonWithRetries<T>(url, fetchOptions, {
     id,
     maxAttempts,
     backoffBaseMs,
@@ -288,6 +346,6 @@ export async function performProviderCall(
   });
   const content = extractor
     ? extractor(data)
-    : (data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text ?? "");
+    : ((data as OpenAIResponse)?.choices?.[0]?.message?.content ?? (data as OpenAIResponse)?.choices?.[0]?.text ?? "");
   return content ?? "";
 }

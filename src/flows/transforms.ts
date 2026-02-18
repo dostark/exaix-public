@@ -1,11 +1,54 @@
+import { z } from "zod";
+
 /**
- * @module FlowTransforms
- * @path src/flows/transforms.ts
- * @description Built-in transform functions for flow inter-step communication, including markdown extraction and JSON manipulation.
- * @architectural-layer Core
- * @dependencies []
- * @related-files [src/flows/flow_runner.ts]
+ * Recursive JSON value type — covers every value that JSON.parse can produce.
  */
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+
+/**
+ * Zod schema for JsonValue to support recursive validation.
+ */
+export const JsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(JsonValueSchema),
+    z.record(JsonValueSchema),
+  ])
+);
+
+/**
+ * Safely converts any value to a JsonValue by stripping undefined properties.
+ * This is useful for passing complex types to the Activity Journal without using 'as unknown as'.
+ */
+export function toSafeJson(value: unknown): JsonValue {
+  if (value === undefined || value === null) return null;
+
+  if (Array.isArray(value)) {
+    return value.map((item) => toSafeJson(item));
+  }
+
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const result: { [key: string]: JsonValue } = {};
+    for (const [key, val] of Object.entries(record)) {
+      if (val !== undefined) {
+        result[key] = toSafeJson(val);
+      }
+    }
+    return result;
+  }
+
+  return value as JsonValue;
+}
 
 /**
  * Passthrough transform - returns input unchanged
@@ -82,16 +125,16 @@ export function appendToRequest(request: string, stepOutput: string): string {
  * Extract field from JSON string using dot notation
  * Supports nested objects and arrays (e.g., "user.profile.age", "items.0.name")
  */
-export function jsonExtract(input: string, fieldPath: string): any {
-  let data: any;
+export function jsonExtract(input: string, fieldPath: string): JsonValue {
+  let data: JsonValue;
   try {
-    data = JSON.parse(input);
+    data = JSON.parse(input) as JsonValue;
   } catch (error) {
     throw new Error(`Invalid JSON input: ${(error as Error).message}`);
   }
 
   const path = fieldPath.split(".");
-  let current = data;
+  let current: JsonValue = data;
 
   for (const segment of path) {
     if (current === null || current === undefined) {
@@ -105,7 +148,7 @@ export function jsonExtract(input: string, fieldPath: string): any {
         throw new Error(`Field '${fieldPath}' not found`);
       }
       current = current[index];
-    } else if (typeof current === "object" && segment in current) {
+    } else if (typeof current === "object" && !Array.isArray(current) && segment in current) {
       current = current[segment];
     } else {
       throw new Error(`Field '${fieldPath}' not found`);
@@ -119,7 +162,7 @@ export function jsonExtract(input: string, fieldPath: string): any {
  * Fill template with context variables
  * Replaces {{variable}} placeholders with values from context object
  */
-export function templateFill(template: string, context: Record<string, any>): string {
+export function templateFill(template: string, context: Record<string, JsonValue>): string {
   let result = template;
 
   // Find all {{variable}} patterns
@@ -140,7 +183,8 @@ export function templateFill(template: string, context: Record<string, any>): st
       throw new Error(`Missing context variable: ${variable}`);
     }
     const placeholder = `{{${variable}}}`;
-    const value = String(context[variable]);
+    const rawValue = context[variable];
+    const value = typeof rawValue === "object" ? JSON.stringify(rawValue) : String(rawValue);
     result = result.replace(new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"), value);
   }
 

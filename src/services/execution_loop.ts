@@ -37,6 +37,7 @@ import {
   EXECUTION_ARTIFACT_SECTION_SEPARATOR,
   EXECUTION_REPORT_FILENAME,
 } from "../config/constants.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 // ============================================================================
 // Types
@@ -71,7 +72,7 @@ interface PlanFrontmatter {
 
 interface PlanAction {
   tool: string;
-  params: Record<string, unknown>;
+  params: Record<string, JsonValue>;
   description?: string;
 }
 
@@ -478,7 +479,7 @@ export class ExecutionLoop {
       if (args.isReadOnly && (!this.llmProvider || !this.db)) {
         this.logActivity("execution.readonly_structured_plan_skipped", args.traceId, {
           request_id: args.requestId,
-          agent_id: args.planAgentId,
+          agent_id: args.planAgentId ?? null,
         });
         return { didExecuteWork: false, didMutateRepo: false };
       }
@@ -493,7 +494,7 @@ export class ExecutionLoop {
       if (args.isReadOnly) {
         this.logActivity("execution.readonly_structured_plan_executed", args.traceId, {
           request_id: args.requestId,
-          agent_id: args.planAgentId,
+          agent_id: args.planAgentId ?? null,
         });
       }
 
@@ -627,7 +628,7 @@ export class ExecutionLoop {
         if (parsed && typeof parsed === "object" && "tool" in parsed) {
           actions.push({
             tool: parsed.tool as string,
-            params: (parsed.params as Record<string, unknown>) || {},
+            params: (parsed.params as Record<string, JsonValue>) ?? {},
             description: parsed.description as string | undefined,
           });
         }
@@ -665,7 +666,7 @@ export class ExecutionLoop {
         request_id: requestId,
         action_index: actionIndex,
         tool: action.tool,
-        description: action.description,
+        description: action.description ?? null,
       });
 
       try {
@@ -675,7 +676,7 @@ export class ExecutionLoop {
           request_id: requestId,
           action_index: actionIndex,
           tool: action.tool,
-          result_summary: this.summarizeResult(result),
+          result_summary: this.summarizeResult(result.data ?? null),
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -738,7 +739,7 @@ export class ExecutionLoop {
   /**
    * Create a safe summary of tool execution result for logging
    */
-  private summarizeResult(result: any): string {
+  private summarizeResult(result: JsonValue | null | undefined): string {
     if (result === null || result === undefined) {
       return "null";
     }
@@ -1146,7 +1147,7 @@ export class ExecutionLoop {
   private logActivity(
     actionType: string,
     traceId: string,
-    payload: Record<string, unknown>,
+    payload: Record<string, JsonValue>,
   ) {
     if (!this.db) return;
 

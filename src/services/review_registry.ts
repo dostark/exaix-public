@@ -8,7 +8,7 @@
  * @related-files [src/services/execution_loop.ts, src/services/db.ts]
  */
 
-import type { DatabaseService } from "./db.ts";
+import type { DatabaseService, SqliteParam } from "./db.ts";
 import type { EventLogger } from "./event_logger.ts";
 import {
   type RegisterReviewInput,
@@ -49,7 +49,7 @@ export class ReviewRegistry {
       await this.db.preparedRun(sql, [
         id,
         validated.trace_id,
-        validated.portal,
+        validated.portal ?? null,
         validated.branch,
         validated.repository,
         validated.base_branch || null,
@@ -77,7 +77,7 @@ export class ReviewRegistry {
       await this.db.preparedRun(legacySql, [
         id,
         validated.trace_id,
-        validated.portal,
+        validated.portal ?? null,
         validated.branch,
         validated.repository,
         status,
@@ -93,11 +93,11 @@ export class ReviewRegistry {
     await this.logger.info("review.created", validated.branch, {
       review_id: id,
       trace_id: validated.trace_id,
-      portal: validated.portal,
+      portal: validated.portal ?? null,
       branch: validated.branch,
       repository: validated.repository,
-      base_branch: validated.base_branch,
-      worktree_path: validated.worktree_path,
+      base_branch: validated.base_branch ?? null,
+      worktree_path: validated.worktree_path ?? null,
       created_by: validated.created_by,
       files_changed: validated.files_changed,
     }, validated.trace_id);
@@ -216,7 +216,7 @@ export class ReviewRegistry {
 
     sql += ` ORDER BY created DESC`;
 
-    const rows = await this.db.preparedAll<any>(sql, params as unknown[]);
+    const rows = await this.db.preparedAll<Record<string, SqliteParam>>(sql, params as SqliteParam[]);
     return rows.map((row) => ReviewSchema.parse(row));
   }
 
@@ -248,9 +248,9 @@ export class ReviewRegistry {
       await this.logger.info("review.approved", review.branch, {
         review_id: id,
         trace_id: review.trace_id,
-        portal: review.portal,
+        portal: review.portal ?? null,
         branch: review.branch,
-        approved_by: user,
+        approved_by: user ?? null,
         approved_at: timestamp,
       }, review.trace_id);
     } else if (status === ReviewStatus.REJECTED) {
@@ -261,18 +261,18 @@ export class ReviewRegistry {
       await this.logger.info("review.rejected", review.branch, {
         review_id: id,
         trace_id: review.trace_id,
-        portal: review.portal,
+        portal: review.portal ?? null,
         branch: review.branch,
-        rejected_by: user,
+        rejected_by: user ?? null,
         rejected_at: timestamp,
-        rejection_reason: reason,
+        rejection_reason: reason ?? null,
       }, review.trace_id);
     } else {
       sql += ` WHERE id = ?`;
       params.push(id);
     }
 
-    await this.db.preparedRun(sql, params as unknown[]);
+    await this.db.preparedRun(sql, params as SqliteParam[]);
   }
 
   /**

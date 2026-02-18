@@ -134,13 +134,13 @@ export interface ValidationResult<T> {
 /**
  * Detailed validation error
  */
-export interface ValidationError {
+export type ValidationError = {
   path: string[];
   message: string;
   code: string;
   expected?: string;
   received?: string;
-}
+};
 
 /**
  * Validation metrics for tracking

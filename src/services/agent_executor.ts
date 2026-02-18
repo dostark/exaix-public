@@ -41,6 +41,7 @@ import {
 import { LogLevel, SecurityMode } from "../enums.ts";
 import { InputValidator } from "../schemas/input_validation.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 /**
  * Agent execution error class
@@ -207,7 +208,7 @@ export class AgentExecutor {
   /**
    * Load agent blueprint from file with security validation
    */
-  async loadBlueprint(rawAgentName: unknown): Promise<Blueprint> {
+  async loadBlueprint(rawAgentName: string): Promise<Blueprint> {
     // ✓ Validate agent name to prevent path traversal
     const agentName = InputValidator.validateBlueprintName(rawAgentName);
 
@@ -234,7 +235,7 @@ export class AgentExecutor {
       // 3. Parse YAML with FAILSAFE_SCHEMA (no code execution)
       const rawFrontmatter = parseYaml(frontmatterMatch[1], {
         schema: "failsafe",
-      }) as Record<string, unknown>;
+      }) as Record<string, JsonValue>;
 
       // 4. Validate with strict schema
       const validatedFrontmatter = BlueprintSchema.parse(rawFrontmatter);
@@ -325,8 +326,8 @@ export class AgentExecutor {
    * Execute a plan step using agent via MCP
    */
   async executeStep(
-    rawContext: unknown,
-    rawOptions: unknown,
+    rawContext: ExecutionContext,
+    rawOptions: AgentExecutionOptions,
   ): Promise<ChangesetResult> {
     // ✓ Validate inputs first to prevent injection attacks
     const context = InputValidator.validateExecutionContext(rawContext);

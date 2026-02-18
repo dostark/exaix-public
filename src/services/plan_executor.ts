@@ -16,6 +16,7 @@ import { ToolRegistry } from "./tool_registry.ts";
 import { GitNothingToCommitError, GitService } from "./git_service.ts";
 import { EventLogger } from "./event_logger.ts";
 import { ExecutionStatus } from "../enums.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 import {
   EXECUTION_REPORT_MAX_TOKENS,
   EXECUTION_REPORT_PROMPT_MAX_CHARS,
@@ -33,7 +34,7 @@ export interface PlanContext {
   trace_id: string;
   request_id: string;
   agent: string;
-  frontmatter: Record<string, unknown>;
+  frontmatter: Record<string, JsonValue>;
   steps: PlanStep[];
 }
 
@@ -51,7 +52,7 @@ interface PlanActionReport {
   stepNumber: number;
   stepTitle: string;
   tool: string;
-  params: Record<string, unknown>;
+  params: Record<string, JsonValue>;
   success: boolean;
   output?: string;
   error?: string;
@@ -59,7 +60,7 @@ interface PlanActionReport {
 
 interface PlanAction {
   tool: string;
-  params: Record<string, unknown>;
+  params: Record<string, JsonValue>;
   description?: string;
 }
 
@@ -426,24 +427,30 @@ Generate the TOML actions now.`;
     while ((match = codeBlockRegex.exec(response)) !== null) {
       try {
         const block = match[1].trim();
-        const parsed = parseToml(block) as any;
+        const parsed = parseToml(block) as Record<string, JsonValue>;
 
         if (parsed.actions && Array.isArray(parsed.actions)) {
           for (const action of parsed.actions) {
-            if (action.tool && action.params) {
+            const act = action as Record<string, JsonValue>;
+            if (
+              typeof act.tool === "string" && act.params && typeof act.params === "object" && !Array.isArray(act.params)
+            ) {
               actions.push({
-                tool: action.tool,
-                params: action.params,
-                description: action.description,
+                tool: act.tool,
+                params: act.params as Record<string, JsonValue>,
+                description: typeof act.description === "string" ? act.description : undefined,
               });
             }
           }
-        } else if (parsed.tool && parsed.params) {
+        } else if (
+          typeof parsed.tool === "string" && parsed.params && typeof parsed.params === "object" &&
+          !Array.isArray(parsed.params)
+        ) {
           // Single action format
           actions.push({
             tool: parsed.tool,
-            params: parsed.params,
-            description: parsed.description,
+            params: parsed.params as Record<string, JsonValue>,
+            description: typeof parsed.description === "string" ? parsed.description : undefined,
           });
         }
       } catch (e) {

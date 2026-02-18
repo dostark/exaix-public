@@ -16,6 +16,29 @@
 import { Plan, PlanSchema } from "../schemas/plan_schema.ts";
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
 import { describeSchema } from "../schemas/schema_describer.ts";
+import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
+
+// ============================================================================
+// Types
+// ============================================================================
+
+interface QACase {
+  scenario: string;
+  setup: string;
+  steps: string[];
+  expectedResult: string;
+  status: string;
+  notes?: string;
+}
+
+interface E2ECase {
+  journey: string;
+  scenario: string;
+  preconditions: string;
+  steps: string[];
+  verificationPoints: string[];
+  status: string;
+}
 
 // ============================================================================
 // Error Classes
@@ -27,7 +50,7 @@ import { describeSchema } from "../schemas/schema_describer.ts";
 export class PlanValidationError extends Error {
   constructor(
     message: string,
-    public details: Record<string, unknown>,
+    public details: Record<string, JsonValue>,
   ) {
     super(message);
     this.name = "PlanValidationError";
@@ -64,7 +87,7 @@ export class PlanAdapter {
     // Map ValidationResult errors to PlanValidationError
     const message = result.errors?.[0]?.message || "Plan validation failed";
     throw new PlanValidationError(message, {
-      zodErrors: result.errors,
+      zodErrors: result.errors ? toSafeJson(result.errors) : null,
       rawContent: content,
       repairAttempted: result.repairAttempted,
       repairSucceeded: result.repairSucceeded,
@@ -361,7 +384,7 @@ Ensure you use valid JSON syntax (no trailing commas, double quotes for keys).
     }
 
     if (plan.qa.coverage) {
-      const renderCoverage = (label: string, items?: any[]) => {
+      const renderCoverage = (label: string, items?: (QACase | E2ECase)[]) => {
         if (!items || items.length === 0) return;
         sections.push(`### ${label} Coverage`, "");
         items.forEach((entry) => {

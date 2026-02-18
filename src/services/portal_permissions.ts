@@ -24,6 +24,7 @@ import {
   SecurityMode,
   SecuritySeverity,
 } from "../enums.ts";
+import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
 
 /**
  * Service for validating portal permissions
@@ -270,9 +271,9 @@ export class PortalPermissionsService {
     if (!this.auditLogger) return;
 
     const severity = result.allowed ? SecuritySeverity.LOW : SecuritySeverity.HIGH;
-    const metadata: Record<string, unknown> = {
-      reason: result.reason,
-      conditions: result.conditions,
+    const metadata: Record<string, JsonValue> = {
+      reason: result.reason ?? null,
+      conditions: result.conditions ? toSafeJson(result.conditions) : null,
     };
 
     if (context?.ip) metadata.ip = context.ip;

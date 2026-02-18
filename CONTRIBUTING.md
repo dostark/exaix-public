@@ -49,8 +49,23 @@ All import statements **MUST** be placed at the top of the module. Dynamic impor
       const { join } = await import("@std/path");
       ...
     }
-  }
   ```
+
+### 1.5 Strict Type Safety
+
+ExoFrame enforces a strict **No `any`, No implicit types** policy to ensure type safety and maintainability.
+
+- **Always annotate:** Every variable, parameter, return value, and data structure **must** have an explicit type annotation. Never rely on implicit inference to avoid writing a type.
+- **No `any`:** **NEVER** use the `any` type in variable declarations, function parameters, or return types. This includes both explicit `any` and implicit `any` from missing annotations.
+- **No `unknown` as a stored type:** `unknown` is not a substitute for a real type. Permitted uses of `unknown` are limited to:
+  - The parameter of a `catch` clause: `catch (e: unknown)`
+  - A *transient* value inside a type-narrowing guard before it is cast to a concrete type
+  - Never use `unknown` as a parameter type, return type, or field type — define a named interface or type alias instead.
+- **Alternatives:**
+  - **Generics:** Use generic types (`<T>`) for flexible functions or classes so callers supply the concrete type.
+  - **Named interfaces / type aliases:** If the shape does not exist yet, create one. Prefer specific interfaces over `Record<string, ...>` when the keys are known.
+  - **Zod schemas:** Use Zod schemas to validate external/dynamic data and infer types with `z.infer<typeof Schema>`.
+- **Exceptions:** Extremely rare cases (e.g., specific library interop) require a `// deno-lint-ignore no-explicit-any` comment with a clear justification comment explaining why no typed alternative exists.
 
 ## 2. Testing
 

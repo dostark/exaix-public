@@ -116,7 +116,7 @@ export interface RetryResult<T> {
 /**
  * Record of a single retry attempt
  */
-export interface RetryAttempt {
+export type RetryAttempt = {
   /** Attempt number (0 = initial, 1+ = retries) */
   attempt: number;
 
@@ -134,7 +134,7 @@ export interface RetryAttempt {
 
   /** Timestamp when attempt was made */
   timestamp: string;
-}
+};
 
 /**
  * Callback for retry events (useful for logging)

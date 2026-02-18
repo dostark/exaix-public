@@ -9,6 +9,7 @@
 
 import { Flow, FlowStep } from "../schemas/flow.ts";
 import { StepResult } from "./flow_runner.ts";
+import type { JsonValue } from "./transforms.ts";
 
 /**
  * Context available during condition evaluation
@@ -41,7 +42,7 @@ export interface StepResultContext {
   /** Step output content */
   content?: string;
   /** Parsed JSON output if applicable */
-  data?: unknown;
+  data?: JsonValue;
   /** Step execution duration in ms */
   duration: number;
   /** Error message if step failed */
@@ -104,7 +105,7 @@ export class ConditionEvaluator {
       const result = this.safeEvaluate(condition, context);
 
       return {
-        shouldExecute: Boolean(result),
+        shouldExecute: result,
         condition,
         evaluationTimeMs: performance.now() - startTime,
       };
@@ -186,7 +187,7 @@ export class ConditionEvaluator {
    * Safely evaluate a condition expression
    * Uses Function constructor with restricted context
    */
-  private safeEvaluate(condition: string, context: ConditionContext): unknown {
+  private safeEvaluate(condition: string, context: ConditionContext): boolean {
     // Create a function that has access to context variables
     // This is safer than eval() as it creates a new scope
     const fn = new Function(
@@ -196,17 +197,17 @@ export class ConditionEvaluator {
       `"use strict"; return (${condition});`,
     );
 
-    return fn(context.results, context.request, context.flow);
+    return Boolean(fn(context.results, context.request, context.flow));
   }
 
   /**
    * Try to parse content as JSON, return undefined if not valid JSON
    */
-  private tryParseJson(content?: string): unknown {
+  private tryParseJson(content?: string): JsonValue | undefined {
     if (!content) return undefined;
 
     try {
-      return JSON.parse(content);
+      return JSON.parse(content) as JsonValue;
     } catch {
       return undefined;
     }

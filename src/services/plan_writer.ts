@@ -18,6 +18,7 @@ import { PlanAdapter, PlanValidationError } from "./plan_adapter.ts";
 import { PlanStatus } from "../plans/plan_status.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import type { ServiceContext } from "./common/types.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -135,7 +136,12 @@ export class PlanWriter {
     metadata: RequestMetadata,
   ): Promise<PlanWriteResult> {
     // Execute writePlan through middleware pipeline to centralize timing/logging
-    const pipeline = new MiddlewarePipeline<ServiceContext>();
+    interface PlanWriterContext extends ServiceContext {
+      requestId?: string;
+      __startTime?: number;
+      __durationMs?: number;
+    }
+    const pipeline = new MiddlewarePipeline<PlanWriterContext>();
 
     // Timing middleware
     pipeline.use(async (_ctx, next) => {
@@ -156,7 +162,7 @@ export class PlanWriter {
       }
     });
 
-    const context: ServiceContext = { traceId: metadata.traceId, requestId: metadata.requestId };
+    const context: PlanWriterContext = { traceId: metadata.traceId, requestId: metadata.requestId };
 
     let writeResult: PlanWriteResult;
 
@@ -340,7 +346,7 @@ export class PlanWriter {
 
     for (const event of events) {
       try {
-        const payload = JSON.parse(event.payload) as Record<string, unknown>;
+        const payload = JSON.parse(event.payload) as Record<string, JsonValue>;
         const input = Number(payload.input_tokens ?? payload.prompt_tokens ?? 0);
         const output = Number(payload.output_tokens ?? payload.completion_tokens ?? 0);
         const total = Number(payload.total_tokens ?? input + output);
@@ -481,7 +487,7 @@ export class PlanWriter {
     actionType: string,
     requestId: string,
     traceId: string,
-    metadata: Record<string, unknown>,
+    metadata: Record<string, JsonValue>,
   ): Promise<void> {
     if (!this.config.db) {
       // If no database provided, skip logging (testing mode)

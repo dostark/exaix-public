@@ -22,6 +22,8 @@ import { LogMethod } from "./decorators/logging.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { DEFAULT_MCP_VERSION } from "../config/constants.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
+import type { ServiceContext } from "./common/types.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 // Local defaults to avoid magic numbers in this module
 const DEFAULT_CHECK_BREAKER_FAILURE_THRESHOLD = 3;
@@ -50,7 +52,7 @@ export interface HealthCheckResult {
   /** Optional human-readable message */
   message?: string;
   /** Optional metadata about the check (response times, metrics, etc.) */
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, JsonValue>;
   /** Duration of the check in milliseconds */
   duration_ms?: number;
 }
@@ -119,12 +121,11 @@ export class HealthCheckService {
   registerCheck(check: HealthCheck): void {
     this.checks.set(check.name, check);
     // Create a per-check circuit breaker with reasonable defaults (can be tuned via config)
-    const healthCfg = (this.config as any)?.health ?? {};
+    // NOTE: These specific breaker settings are not currently in the global config schema
     const opts = {
-      failureThreshold: healthCfg.failure_threshold ?? DEFAULT_CHECK_BREAKER_FAILURE_THRESHOLD,
-      resetTimeout: healthCfg.reset_timeout_ms ?? DEFAULT_CHECK_BREAKER_RESET_TIMEOUT_MS,
-      halfOpenSuccessThreshold: healthCfg.half_open_success_threshold ??
-        DEFAULT_CHECK_BREAKER_HALF_OPEN_SUCCESS_THRESHOLD,
+      failureThreshold: DEFAULT_CHECK_BREAKER_FAILURE_THRESHOLD,
+      resetTimeout: DEFAULT_CHECK_BREAKER_RESET_TIMEOUT_MS,
+      halfOpenSuccessThreshold: DEFAULT_CHECK_BREAKER_HALF_OPEN_SUCCESS_THRESHOLD,
     };
     this.checkBreakers.set(check.name, new CircuitBreaker(opts));
   }
@@ -282,7 +283,7 @@ export class HealthCheckService {
       messagePrefix: string;
       unit: string;
       durationMs: number;
-      metadata: Record<string, unknown>;
+      metadata: Record<string, JsonValue>;
     },
   ): HealthCheckResult {
     let verdict = HealthCheckVerdict.PASS;
@@ -543,10 +544,22 @@ export interface HealthCheckServiceWithInspection extends HealthCheckService {
 }
 
 // Add runtime method on prototype for inspection
-(HealthCheckService.prototype as any).getCheckCircuitState = function (name: string) {
+(HealthCheckService.prototype as HealthCheckServiceWithInspection).getCheckCircuitState = function (
+  this: HealthCheckService,
+  name: string,
+) {
   const cb = (this as any).checkBreakers?.get(name) as CircuitBreaker | undefined;
   return cb ? cb.getState() : null;
 };
+
+/**
+ * Health check middleware context
+ */
+interface HealthContext extends ServiceContext {
+  req: Request;
+  health: HealthCheckService;
+  res?: Response;
+}
 
 /**
  * HTTP endpoint handler for health checks
@@ -556,7 +569,7 @@ export async function handleHealthCheck(
   health: HealthCheckService,
 ): Promise<Response> {
   // Build a middleware pipeline to add timing, error handling, and logging
-  const pipeline = new MiddlewarePipeline<any>();
+  const pipeline = new MiddlewarePipeline<HealthContext>();
 
   // Error handling middleware: ensure any thrown errors produce a 503 JSON response
   pipeline.use(async (ctx, next) => {
@@ -609,7 +622,7 @@ export async function handleHealthCheck(
   });
 
   // Execute pipeline with a handler that performs the actual health check and builds the response
-  const context: any = { req: _req, health, res: undefined };
+  const context: HealthContext = { req: _req, health, res: undefined };
 
   await pipeline.execute(context, async () => {
     const status = await health.checkHealth();

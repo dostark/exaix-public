@@ -9,6 +9,7 @@
 import { ModelOptions } from "../providers.ts";
 import {
   createOpenAIChatCompletionsRequestInit,
+  type OpenAIResponse,
   performProviderCall,
   tokenMapperOpenAI,
 } from "../provider_common_utils.ts";
@@ -50,7 +51,7 @@ export class OpenAIProvider extends BaseProvider {
    * Internal: attempt a single completion call.
    */
   protected override async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
-    const data = await performProviderCall(
+    const data = await performProviderCall<OpenAIResponse>(
       this.baseUrl,
       createOpenAIChatCompletionsRequestInit(
         this.apiKey,
@@ -65,7 +66,7 @@ export class OpenAIProvider extends BaseProvider {
         timeoutMs: this.timeoutMs,
         logger: this.logger,
         tokenMapper: tokenMapperOpenAI(this.model),
-        extractor: (d: any) => d.choices?.[0]?.message?.content ?? "",
+        extractor: (d: OpenAIResponse) => d.choices?.[0]?.message?.content ?? "",
       },
     );
     return data;

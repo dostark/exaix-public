@@ -32,24 +32,29 @@ triggers:
 
 constraints:
   - "Enable strict mode in tsconfig"
-  - "Avoid any type unless absolutely necessary"
+  - "Never use `any` — not even implicitly through missing annotations"
+  - "Never use `unknown` as a parameter type, return type, or field type — define a named interface or type alias instead"
+  - "Every variable, parameter, return value, and data structure must have an explicit type annotation"
+  - "Never use double casting (`... as unknown as ...`) to bypass the compiler"
   - "Prefer interfaces for object shapes"
   - "Use type guards for narrowing"
 
 output_requirements:
   - "No implicit any"
+  - "No explicit any"
+  - "No unknown as a stored/parameter/return type"
   - "Proper null/undefined handling"
   - "Type-safe function signatures"
 
 quality_criteria:
   - name: "Type Safety"
-    description: "Code is properly typed"
+    description: "Code is properly typed — all vars, params, and return values have explicit annotations"
     weight: 40
   - name: "Type Clarity"
-    description: "Types are clear and documented"
+    description: "Types are clear, named, and documented"
     weight: 30
-  - name: "No Any"
-    description: "Avoids any type"
+  - name: "No Any / No Unknown fallback"
+    description: "Avoids any and unknown as lazy fallbacks; uses named types instead"
     weight: 30
 
 compatible_with:
@@ -80,6 +85,35 @@ Always use strict mode:
 ```
 
 ## 2. Type Definitions
+
+### Rule: Always Annotate, Never Use `any`, Never Use `unknown` as a Stored Type
+
+```typescript
+// ❌ Bad: missing annotation (implicit any)
+function process(data) { return data.value; }
+
+// ❌ Bad: explicit any
+function process(data: any) { return data.value; }
+
+// ❌ Bad: unknown as a parameter type (lazy fallback)
+function process(data: unknown) { return (data as MyType).value; }
+
+// ❌ Bad: double casting to bypass checks
+const bad = source as unknown as Target;
+
+// ✅ Good: named interface, fully annotated
+interface ProcessInput { value: string; }
+function process(data: ProcessInput): string { return data.value; }
+
+// ✅ Good: unknown is only permitted in catch clauses and transient narrowing guards
+try {
+  await riskyOperation();
+} catch (e: unknown) {
+  if (e instanceof Error) console.error(e.message); // narrowed to Error
+}
+```
+
+**If the type does not exist yet — create it.** Do not reach for `any` or `unknown` as a shortcut.
 
 ### Prefer Interfaces for Object Shapes
 

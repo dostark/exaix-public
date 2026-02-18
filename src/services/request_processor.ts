@@ -12,9 +12,9 @@ import { basename, dirname, join } from "@std/path";
 import type { IModelProvider } from "../ai/providers.ts";
 import type { DatabaseService } from "./db.ts";
 import type { Config } from "../config/schema.ts";
-import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
+import { type AgentExecutionResult, AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
 import { buildParsedRequest } from "./request_common.ts";
-import { BlueprintLoader } from "./blueprint_loader.ts";
+import { BlueprintLoader, type LoadedBlueprint } from "./blueprint_loader.ts";
 import { PlanWriter, type RequestMetadata } from "./plan_writer.ts";
 import { PlanValidationError } from "./plan_adapter.ts";
 import { TaskComplexity } from "../enums.ts";
@@ -35,6 +35,18 @@ import { RequestParser } from "./request_processing/request_parser.ts";
 import { StatusManager } from "./request_processing/status_manager.ts";
 import type { RequestFrontmatter } from "./request_processing/types.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
+import { ServiceContext } from "./common/types.ts";
+import { ParsedRequestFile } from "./request_processing/types.ts";
+
+export interface RequestProcessingContext extends ServiceContext {
+  filePath: string;
+  parsed: ParsedRequestFile;
+  frontmatter: RequestFrontmatter;
+  body: string;
+  traceLogger: EventLogger;
+  requestId: string;
+  requestKind: "flow" | "agent";
+}
 
 // ============================================================================
 // Types and Interfaces
@@ -55,7 +67,7 @@ export class RequestProcessor {
   private readonly planWriter: PlanWriter;
   private readonly plansDir: string;
   private readonly logger: EventLogger;
-  private readonly flowValidator: FlowValidatorImpl;
+  private readonly flowValidator: FlowValidatorImpl | null;
   private readonly providerSelector: ProviderSelector;
   private readonly costTracker: CostTracker;
   private readonly ioBreaker: CircuitBreaker;
@@ -92,7 +104,7 @@ export class RequestProcessor {
       db,
     });
 
-    this.flowValidator = null as any; // Temporary for testing
+    this.flowValidator = null; // Temporary for testing
 
     this.ioBreaker = new CircuitBreaker({
       failureThreshold: 3,
@@ -141,7 +153,7 @@ export class RequestProcessor {
 
     const pipeline = this.createRequestProcessingPipeline();
 
-    const context: any = {
+    const context: RequestProcessingContext = {
       filePath,
       parsed,
       frontmatter,
@@ -179,7 +191,7 @@ export class RequestProcessor {
     }
   }
 
-  private shouldSkipRequest(frontmatter: RequestFrontmatter, _traceLogger: any, _filePath: string): boolean {
+  private shouldSkipRequest(frontmatter: RequestFrontmatter, _traceLogger: EventLogger, _filePath: string): boolean {
     switch (frontmatter.status) {
       case RequestStatus.PLANNED:
       case RequestStatus.COMPLETED:
@@ -194,7 +206,7 @@ export class RequestProcessor {
   private async getRequestKindOrFail(args: {
     frontmatter: RequestFrontmatter;
     filePath: string;
-    traceLogger: any;
+    traceLogger: EventLogger;
   }): Promise<"flow" | "agent" | null> {
     const { frontmatter, filePath, traceLogger } = args;
 
@@ -228,8 +240,8 @@ export class RequestProcessor {
     return hasFlow ? "flow" : "agent";
   }
 
-  private createRequestProcessingPipeline(): MiddlewarePipeline<any> {
-    const pipeline = new MiddlewarePipeline<any>();
+  private createRequestProcessingPipeline(): MiddlewarePipeline<RequestProcessingContext> {
+    const pipeline = new MiddlewarePipeline<RequestProcessingContext>();
 
     pipeline.use(async (ctx, next) => {
       try {
@@ -267,7 +279,7 @@ export class RequestProcessor {
     filePath: string,
     requestId: string,
     traceId: string,
-    traceLogger: any,
+    traceLogger: EventLogger,
   ): Promise<string | null> {
     if (kind === "flow") {
       return this.processFlowRequest(frontmatter, filePath, requestId, traceId, traceLogger);
@@ -281,7 +293,7 @@ export class RequestProcessor {
     filePath: string,
     requestId: string,
     traceId: string,
-    traceLogger: any,
+    traceLogger: EventLogger,
   ): Promise<string | null> {
     if (this.flowValidator) {
       const validation = await this.flowValidator.validateFlow(frontmatter.flow!);
@@ -337,7 +349,7 @@ export class RequestProcessor {
     filePath: string,
     requestId: string,
     traceId: string,
-    traceLogger: any,
+    traceLogger: EventLogger,
   ): Promise<string | null> {
     const loadedBlueprint = await this.loadBlueprintWithFallback(frontmatter.agent!, traceLogger);
 
@@ -454,7 +466,7 @@ ${result.content}`,
     return null; // Should be unreachable
   }
 
-  private async loadBlueprintWithFallback(agentId: string, traceLogger: any): Promise<any | null> {
+  private async loadBlueprintWithFallback(agentId: string, traceLogger: EventLogger): Promise<LoadedBlueprint | null> {
     const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
     let loadedBlueprint = await blueprintLoader.load(agentId);
 
@@ -467,7 +479,7 @@ ${result.content}`,
     return loadedBlueprint;
   }
 
-  private async findBlueprintInWorktree(agentId: string, traceLogger: any): Promise<any | null> {
+  private async findBlueprintInWorktree(agentId: string, traceLogger: EventLogger): Promise<LoadedBlueprint | null> {
     let dir = Deno.cwd();
     while (true) {
       const candidatePath = join(dir, "Blueprints", "Agents");
@@ -497,7 +509,7 @@ ${result.content}`,
     return null;
   }
 
-  private async findBlueprintInRepoRoots(agentId: string, traceLogger: any): Promise<any | null> {
+  private async findBlueprintInRepoRoots(agentId: string, traceLogger: EventLogger): Promise<LoadedBlueprint | null> {
     // Try the repository root (cwd) directly
     const repoAgentsPath = join(Deno.cwd(), "Blueprints", "Agents");
     const fallbackLoader = new BlueprintLoader({ blueprintsPath: repoAgentsPath });
@@ -527,7 +539,7 @@ ${result.content}`,
     error: unknown,
     filePath: string,
     requestId: string,
-    traceLogger: any,
+    traceLogger: EventLogger,
     frontmatter?: RequestFrontmatter,
   ) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -615,7 +627,7 @@ ${result.content}`,
     traceId?: string;
     errorMessage: string;
     rawDetails: string;
-    validationError: any;
+    validationError: unknown;
   }): string {
     return `---
 trace_id: "${args.traceId ?? "unknown"}"
@@ -630,10 +642,10 @@ Raw Details: ${args.rawDetails}
   }
 
   private async writePlanAndReturnPath(
-    result: any,
+    result: AgentExecutionResult,
     metadata: RequestMetadata,
     filePath: string,
-    traceLogger: any,
+    traceLogger: EventLogger,
     extra?: Record<string, unknown>,
   ): Promise<string> {
     const planResult = await this.ioBreaker.execute(() => this.planWriter.writePlan(result, metadata));
@@ -652,7 +664,7 @@ Raw Details: ${args.rawDetails}
     return TaskComplexity.MEDIUM;
   }
 
-  private async buildPortalContext(portalAlias?: string, traceLogger?: any): Promise<string | null> {
+  private async buildPortalContext(portalAlias?: string, traceLogger?: EventLogger): Promise<string | null> {
     if (!portalAlias) return null;
 
     const portal = this.config.portals.find((p) => p.alias === portalAlias);

@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 import { AgentExecutionErrorType, SecurityMode } from "../enums.ts";
+import { JsonValueSchema } from "../flows/transforms.ts";
 
 /**
  * Security mode for agent execution
@@ -84,7 +85,7 @@ export const AgentExecutionErrorTypeSchema = z.nativeEnum(AgentExecutionErrorTyp
 export const AgentExecutionErrorSchema = z.object({
   type: AgentExecutionErrorTypeSchema,
   message: z.string(),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(JsonValueSchema).optional(),
   trace_id: z.string().uuid().optional(),
 });
 export type AgentExecutionError = z.infer<typeof AgentExecutionErrorSchema>;

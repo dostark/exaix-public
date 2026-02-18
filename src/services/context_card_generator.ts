@@ -10,6 +10,7 @@ import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs/ensure-dir";
 import type { DatabaseService } from "./db.ts";
 import type { Config } from "../config/schema.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 export interface PortalInfo {
   alias: string;
@@ -80,7 +81,7 @@ export class ContextCardGenerator {
     });
   }
 
-  private logActivity(actionType: string, payload: Record<string, unknown>) {
+  private logActivity(actionType: string, payload: Record<string, JsonValue>) {
     if (!this.db) return;
 
     try {

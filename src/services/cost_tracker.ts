@@ -6,7 +6,7 @@
  * @dependencies [DatabaseService, Config, Constants, ProviderType]
  * @related-files [src/services/db.ts, src/config/schema.ts]
  */
-import { DatabaseService } from "./db.ts";
+import { DatabaseService, type SqliteParam } from "./db.ts";
 import type { Config } from "../config/schema.ts";
 import {
   COST_RATE_ANTHROPIC,
@@ -163,7 +163,14 @@ export class CostTracker {
       ? [startDate.toISOString(), endDate.toISOString(), provider]
       : [startDate.toISOString(), endDate.toISOString()];
 
-    const rows = await this.db.preparedAll<any>(query, params);
+    const rows = await this.db.preparedAll<{
+      id: string;
+      provider: string;
+      requests: number;
+      tokens: number;
+      estimatedCostUsd: number;
+      timestamp: string;
+    }>(query, params);
 
     return rows.map((row) => ({
       id: row.id,
@@ -202,7 +209,7 @@ export class CostTracker {
       VALUES ${placeholders}
     `;
 
-    const params: any[] = [];
+    const params: SqliteParam[] = [];
     for (const record of records) {
       params.push(
         crypto.randomUUID(),

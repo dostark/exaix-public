@@ -33,7 +33,7 @@ export class SafeError extends Error {
         errorCode,
         userMessage,
         internalMessage: internalError.message,
-        internalStack: internalError.stack,
+        internalStack: internalError.stack ?? null,
         internalName: internalError.name,
       });
     }

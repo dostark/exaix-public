@@ -9,16 +9,16 @@
  */
 import { SecureCredentialStore } from "../helpers/credential_security.ts";
 
-/**
- * Get API key from environment variable, optionally persist to SecureCredentialStore if opted in.
- * @param envKey The environment variable name (e.g., "OPENAI_API_KEY")
- * @returns The API key string, or null if not found
- */
+/** Extended globalThis shape used when EXO_PERSIST_ENV_CREDENTIALS is set by the host process. */
+interface ExoGlobal {
+  EXO_PERSIST_ENV_CREDENTIALS?: boolean;
+}
+
 export async function getApiKeyWithOptionalPersistence(envKey: string): Promise<string | null> {
   const envValue = Deno.env.get(envKey);
   if (envValue) {
     // Only persist if EXO_PERSIST_ENV_CREDENTIALS is true
-    if ((globalThis as any).EXO_PERSIST_ENV_CREDENTIALS) {
+    if ((globalThis as unknown as ExoGlobal).EXO_PERSIST_ENV_CREDENTIALS) {
       // Only persist if not already present in store
       const stored = await SecureCredentialStore.get(envKey);
       if (!stored) {

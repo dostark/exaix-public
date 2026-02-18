@@ -7,7 +7,12 @@
  * @related-files [src/ai/factories/google_factory.ts]
  */
 import { ModelOptions } from "../providers.ts";
-import { extractGoogleContent, performProviderCall, tokenMapperGoogle } from "../provider_common_utils.ts";
+import {
+  extractGoogleContent,
+  type GoogleResponse,
+  performProviderCall,
+  tokenMapperGoogle,
+} from "../provider_common_utils.ts";
 import * as DEFAULTS from "../../config/constants.ts";
 import { BaseProvider, BaseProviderOptions } from "./base_provider.ts";
 
@@ -48,7 +53,7 @@ export class GoogleProvider extends BaseProvider {
   protected override async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
     const endpoint = `${this.baseUrl}/${this.model}:generateContent?key=${this.apiKey}`;
 
-    const data = await performProviderCall(endpoint, {
+    const data = await performProviderCall<GoogleResponse>(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

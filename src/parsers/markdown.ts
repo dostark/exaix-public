@@ -9,6 +9,7 @@
 import { parse as parseYaml } from "@std/yaml";
 import { type Request, RequestSchema } from "../schemas/request.ts";
 import type { DatabaseService } from "../services/db.ts";
+import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
 
 /**
  * Result of parsing a request markdown file
@@ -50,8 +51,8 @@ export class FrontmatterParser {
 
       // Log validation failure to database
       this.logActivity("request.validation_failed", {
-        file_path: filePath,
-        errors: result.error.issues,
+        file_path: filePath ?? null,
+        errors: toSafeJson(result.error.issues),
       });
 
       throw new Error(`Request validation failed:\n${errors}`);
@@ -59,7 +60,7 @@ export class FrontmatterParser {
 
     // Log successful validation to database
     this.logActivity("request.validated", {
-      file_path: filePath,
+      file_path: filePath ?? null,
       trace_id: result.data.trace_id,
       agent_id: result.data.agent_id,
       status: result.data.status,
@@ -74,7 +75,7 @@ export class FrontmatterParser {
   /**
    * Log activity to the Activity Journal (if database is available)
    */
-  private logActivity(actionType: string, payload: Record<string, unknown>) {
+  private logActivity(actionType: string, payload: Record<string, JsonValue>) {
     if (!this.db) {
       return; // No database, skip logging
     }

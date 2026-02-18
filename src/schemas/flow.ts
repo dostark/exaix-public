@@ -9,6 +9,7 @@
 
 import { z } from "zod";
 import { FlowConsensusMethod, FlowGateOnFail, FlowInputSource, FlowOutputFormat, FlowStepType } from "../enums.ts";
+import { JsonValueSchema } from "../flows/transforms.ts";
 
 // Gate evaluation configuration schema
 export const GateEvaluateSchema = z.object({
@@ -65,8 +66,9 @@ export const FlowStepSchema = z.object({
     source: z.nativeEnum(FlowInputSource).default(FlowInputSource.REQUEST),
     stepId: z.string().optional(),
     from: z.array(z.string()).optional(), // For aggregate source
-    transform: z.union([z.string(), z.function()]).default("passthrough"),
-    transformArgs: z.any().optional(), // Arguments for transform functions
+    transform: z.union([z.string(), z.function().args(z.string()).returns(z.string())]).default("passthrough"),
+    // Arguments for transform functions — flat JSON-compatible values
+    transformArgs: JsonValueSchema.optional(),
     feedbackStepId: z.string().optional(), // For feedback source
   }).default({}),
   /** Condition for step execution (JavaScript expression) */

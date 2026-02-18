@@ -8,6 +8,7 @@
  */
 import { Flow, FlowSchema } from "../schemas/flow.ts";
 import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../enums.ts";
+import type { JsonValue } from "./transforms.ts";
 export function defineFlow(config: {
   id: string;
   name: string;
@@ -23,7 +24,7 @@ export function defineFlow(config: {
       stepId?: string;
       from?: string[];
       transform?: string;
-      transformArgs?: unknown;
+      transformArgs?: JsonValue;
     };
     condition?: string;
     timeout?: number;
@@ -67,7 +68,7 @@ export function defineFlow(config: {
         stepId: step.input?.stepId,
         from: step.input?.from,
         transform: step.input?.transform ?? "passthrough",
-        transformArgs: step.input?.transformArgs,
+        transformArgs: step.input?.transformArgs as JsonValue | undefined,
       },
       condition: step.condition,
       timeout: step.timeout,

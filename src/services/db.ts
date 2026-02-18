@@ -13,6 +13,9 @@ import { ensureDir } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { DB_MAX_RETRY_DELAY_MS, DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
+import type { JsonValue } from "../flows/transforms.ts";
+
+export type SqliteParam = string | number | boolean | null;
 
 interface LogEntry {
   activityId: string;
@@ -36,6 +39,12 @@ export interface ActivityRecord {
   payload: string;
   timestamp: string;
   count?: number; // For aggregation queries
+}
+
+interface DatabaseConfigExtended {
+  failure_threshold?: number;
+  reset_timeout_ms?: number;
+  half_open_success_threshold?: number;
 }
 
 export class DatabaseService {
@@ -64,7 +73,7 @@ export class DatabaseService {
     this.FLUSH_INTERVAL_MS = config.database.batch_flush_ms;
     this.MAX_BATCH_SIZE = config.database.batch_max_size;
 
-    const dbCfg = (config as any).database ?? {};
+    const dbCfg = (config.database ?? {}) as DatabaseConfigExtended;
     const breakerOpts = {
       failureThreshold: dbCfg.failure_threshold ?? 5,
       resetTimeout: dbCfg.reset_timeout_ms ?? 60_000,
@@ -87,7 +96,7 @@ export class DatabaseService {
     actor: string,
     actionType: string,
     target: string | null,
-    payload: Record<string, unknown>,
+    payload: Record<string, JsonValue>,
     traceId?: string,
     agentId?: string | null,
   ) {
@@ -406,7 +415,7 @@ export class DatabaseService {
 
     // Build WHERE clause
     const whereParts: string[] = [];
-    const params: (string | number)[] = [];
+    const params: SqliteParam[] = [];
 
     if (filter.orConditions && filter.orConditions.length > 0) {
       // Handle OR conditions
@@ -448,28 +457,28 @@ export class DatabaseService {
   /**
    * Execute a prepared statement and return a single row (breaker-protected)
    */
-  async preparedGet<T = unknown>(query: string, params: unknown[] = []): Promise<T | null> {
+  async preparedGet<T = unknown>(query: string, params: SqliteParam[] = []): Promise<T | null> {
     const stmt = this.db.prepare(query);
-    return await this.dbBreaker.execute(() => Promise.resolve(stmt.get(...(params as any)) as unknown as T | null));
+    return await this.dbBreaker.execute(() => Promise.resolve(stmt.get(...params) as T | null));
   }
 
   /**
    * Execute a prepared statement and return all rows (breaker-protected)
    */
-  async preparedAll<T = unknown>(query: string, params: unknown[] = []): Promise<T[]> {
+  async preparedAll<T = unknown>(query: string, params: SqliteParam[] = []): Promise<T[]> {
     const stmt = this.db.prepare(query);
-    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(...(params as any)) as unknown as T[]));
+    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(...params) as T[]));
   }
 
   /**
    * Execute a prepared run (INSERT/UPDATE/DELETE) (breaker-protected)
    */
-  async preparedRun(query: string, params: unknown[] = []): Promise<any> {
+  async preparedRun(query: string, params: SqliteParam[] = []): Promise<unknown> {
     const stmt = this.db.prepare(query);
-    return await this.dbBreaker.execute(() => Promise.resolve(stmt.run(...(params as any))));
+    return await this.dbBreaker.execute(() => Promise.resolve(stmt.run(...params)));
   }
 
-  private buildWhereClause(filter: JournalFilterOptions, params: (string | number)[]): string {
+  private buildWhereClause(filter: JournalFilterOptions, params: SqliteParam[]): string {
     const conditions: string[] = [];
 
     if (filter.traceId) {

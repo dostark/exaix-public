@@ -9,7 +9,7 @@
 import { IModelProvider, ModelOptions } from "../providers.ts";
 import type { Config } from "../../config/schema.ts";
 import * as DEFAULTS from "../../config/constants.ts";
-import { fetchJsonWithRetries } from "../provider_common_utils.ts";
+import { fetchJsonWithRetries, type OllamaResponse } from "../provider_common_utils.ts";
 
 /**
  * Options for LlamaProvider.
@@ -79,7 +79,7 @@ export class LlamaProvider implements IModelProvider {
       stream: false,
     };
 
-    const data = await fetchJsonWithRetries(this.endpoint, {
+    const data = await fetchJsonWithRetries<OllamaResponse>(this.endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

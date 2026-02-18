@@ -15,6 +15,7 @@
  */
 
 import type { IModelProvider } from "../ai/providers.ts";
+import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
 import type { DatabaseService } from "./db.ts";
 import { createLLMRetryPolicy, type RetryPolicy, type RetryPolicyConfig, type RetryResult } from "./retry_policy.ts";
 import { createOutputValidator, OutputValidator, type ValidationMetrics } from "./output_validator.ts";
@@ -365,7 +366,7 @@ export class AgentRunner {
         agent_id: agentId,
         duration_ms: duration,
         total_attempts: retryResult.totalAttempts,
-        retry_history: retryResult.retryHistory,
+        retry_history: toSafeJson(retryResult.retryHistory),
         error_type: retryResult.error?.constructor.name || "Unknown",
         error_message: retryResult.error?.message || "Unknown error",
       },
@@ -397,11 +398,11 @@ export class AgentRunner {
         agent_id: agentId,
         duration_ms: duration,
         total_attempts: retryResult.totalAttempts,
-        retry_history: retryResult.retryHistory.length > 0 ? retryResult.retryHistory : undefined,
+        retry_history: retryResult.retryHistory.length > 0 ? toSafeJson(retryResult.retryHistory) : null,
         response_length: rawResponse?.length || 0,
         has_thought: result.thought.length > 0,
         has_content: result.content.length > 0,
-        skills_applied: skillsApplied.length > 0 ? skillsApplied : undefined,
+        skills_applied: skillsApplied.length > 0 ? toSafeJson(skillsApplied) : null,
       },
       traceId,
       agentId,
@@ -497,7 +498,7 @@ export class AgentRunner {
     actor: string,
     actionType: string,
     target: string | null,
-    payload: Record<string, unknown>,
+    payload: Record<string, JsonValue>,
     traceId?: string,
     agentId?: string | null,
   ): void {

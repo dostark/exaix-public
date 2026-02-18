@@ -27,6 +27,7 @@ import {
   SkillSchema,
   type SkillTriggers,
 } from "../schemas/memory_bank.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 /**
  * Skills Service Configuration
@@ -801,7 +802,7 @@ export class SkillsService {
   private logActivity(event: {
     event_type: string;
     target: string;
-    metadata?: Record<string, unknown>;
+    metadata?: Record<string, JsonValue>;
   }): void {
     try {
       this.db.instance.exec(

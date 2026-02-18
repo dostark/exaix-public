@@ -14,6 +14,7 @@ import {
   appendToRequest,
   extractSection,
   jsonExtract,
+  JsonValue,
   mergeAsContext,
   passthrough,
   templateFill,
@@ -106,18 +107,20 @@ export interface FlowStepRequest {
  * Interface for logging flow events
  */
 export interface FlowEventLogger {
-  log(event: string, payload: any): void;
+  log(event: string, payload: Record<string, JsonValue | undefined>): void;
 }
 
 type BuiltInTransformHandler = (ctx: {
   input: string;
-  transformArgs?: unknown;
+  transformArgs?: JsonValue;
   originalRequest?: string;
 }) => string;
 
-function applyMergeAsContextTransform(input: string, transformArgs: unknown): string {
+function applyMergeAsContextTransform(input: string, transformArgs: JsonValue | undefined): string {
   if (Array.isArray(transformArgs)) {
-    return mergeAsContext(transformArgs);
+    // Filter to strings only — mergeAsContext requires string[]
+    const strings = transformArgs.filter((v): v is string => typeof v === "string");
+    return mergeAsContext(strings);
   }
 
   try {
@@ -133,7 +136,7 @@ function applyMergeAsContextTransform(input: string, transformArgs: unknown): st
   throw new Error("mergeAsContext requires an array of strings");
 }
 
-function applyExtractSectionTransform(input: string, transformArgs: unknown): string {
+function applyExtractSectionTransform(input: string, transformArgs: JsonValue | undefined): string {
   if (typeof transformArgs === "string") return extractSection(input, transformArgs);
   throw new Error("extractSection requires a section name as transformArgs");
 }
@@ -143,14 +146,14 @@ function applyAppendToRequestTransform(input: string, originalRequest: string | 
   throw new Error("appendToRequest requires original request to be available");
 }
 
-function applyJsonExtractTransform(input: string, transformArgs: unknown): string {
-  if (typeof transformArgs === "string") return jsonExtract(input, transformArgs);
+function applyJsonExtractTransform(input: string, transformArgs: JsonValue | undefined): string {
+  if (typeof transformArgs === "string") return String(jsonExtract(input, transformArgs));
   throw new Error("jsonExtract requires a field path as transformArgs");
 }
 
-function applyTemplateFillTransform(input: string, transformArgs: unknown): string {
-  if (typeof transformArgs === "object" && transformArgs !== null) {
-    return templateFill(input, transformArgs as Record<string, unknown>);
+function applyTemplateFillTransform(input: string, transformArgs: JsonValue | undefined): string {
+  if (typeof transformArgs === "object" && transformArgs !== null && !Array.isArray(transformArgs)) {
+    return templateFill(input, transformArgs as Record<string, string | number | boolean>);
   }
   throw new Error("templateFill requires a context object as transformArgs");
 }
@@ -183,7 +186,7 @@ export class FlowRunner {
     flow: Flow,
     request: { traceId?: string; requestId?: string },
     options: { includeStepCount?: boolean } = {},
-  ): Record<string, unknown> {
+  ): Record<string, JsonValue | undefined> {
     return {
       flowId: flow.id,
       ...(options.includeStepCount ? { stepCount: flow.steps.length } : {}),
@@ -341,7 +344,9 @@ export class FlowRunner {
       const failedResult = waveResults[failedStepIndex];
       const errorMessage = failedResult.status === "fulfilled"
         ? failedResult.value.error || "Unknown error"
-        : (failedResult as any).reason?.message || String((failedResult as any).reason || "Unknown error");
+        : (failedResult.status === "rejected" && failedResult.reason instanceof Error
+          ? failedResult.reason.message
+          : String((failedResult as PromiseRejectedResult).reason ?? "Unknown error"));
       throw new FlowExecutionError(`Step ${failedStepId} failed: ${errorMessage}`, flowRunId);
     }
   }
@@ -362,7 +367,7 @@ export class FlowRunner {
     let waveFailed = false;
     let waveSuccessCount = 0;
     let waveFailureCount = 0;
-    const waveErrors: Array<{ stepId: string; error: unknown }> = [];
+    const waveErrors: Array<{ stepId: string; error: Error | string }> = [];
 
     for (let i = 0; i < wave.length; i++) {
       const stepId = wave[i];
@@ -383,7 +388,9 @@ export class FlowRunner {
           }
         } else {
           // Execution threw; record safe failure
-          const error = promiseResult.reason;
+          const error: Error | string = promiseResult.reason instanceof Error
+            ? promiseResult.reason
+            : String(promiseResult.reason);
           waveErrors.push({ stepId, error });
 
           const errorStepResult: StepResult = {
@@ -758,8 +765,8 @@ export class FlowRunner {
       const transformStart = Date.now();
       userPrompt = this.applyTransform(
         inputData,
-        step.input.transform,
-        step.input.transformArgs,
+        step.input.transform as string | ((input: string) => string),
+        step.input.transformArgs as JsonValue | undefined,
         originalRequest.userPrompt,
       );
 
@@ -793,14 +800,14 @@ export class FlowRunner {
    */
   private applyTransform(
     input: string,
-    transform: string | ((input: any) => any),
-    transformArgs?: any,
+    transform: string | ((input: string) => string),
+    transformArgs?: JsonValue,
     originalRequest?: string,
   ): string {
     // Handle custom transform functions
     if (typeof transform === "function") {
       try {
-        return transform(input) as string;
+        return (transform as (input: string) => string)(input);
       } catch (error) {
         throw new Error(`Custom transform failed: ${(error as Error).message}`);
       }

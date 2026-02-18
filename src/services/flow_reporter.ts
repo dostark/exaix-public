@@ -13,6 +13,7 @@ import type { DatabaseService } from "./db.ts";
 import type { FlowResult } from "../flows/flow_runner.ts";
 import type { Flow } from "../schemas/flow.ts";
 import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../helpers/constants.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -136,7 +137,7 @@ export class FlowReporter {
     const stepsFailed = Array.from(flowResult.stepResults.values())
       .filter((step) => !step.success).length;
 
-    const frontmatter: Record<string, any> = {
+    const frontmatter: Record<string, JsonValue> = {
       type: "flow_report",
       flow: flow.id,
       flow_run_id: flowResult.flowRunId,

@@ -10,6 +10,7 @@
 import type { DatabaseService } from "./db.ts";
 import { dirname, join } from "@std/path";
 import { SecurityEventResult, SecurityEventType, SecuritySeverity } from "../enums.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -35,7 +36,7 @@ export interface SecurityEvent {
   result: SecurityEventResult;
 
   /** Additional context data */
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, JsonValue>;
 
   /** Severity level for alerting */
   severity: SecuritySeverity;
@@ -85,7 +86,7 @@ export class AuditLogger {
           auditEntry.actor as string,
           `audit.${auditEntry.type}.${auditEntry.action}`,
           auditEntry.resource as string,
-          auditEntry as Record<string, unknown>,
+          auditEntry as Record<string, JsonValue>,
           auditEntry.trace_id as string,
           null, // agentId
         );
@@ -109,7 +110,7 @@ export class AuditLogger {
    * This is a placeholder - in production this would integrate with
    * alerting systems, email, Slack, etc.
    */
-  async sendSecurityAlert(auditEntry: Record<string, unknown>): Promise<void> {
+  async sendSecurityAlert(auditEntry: Record<string, JsonValue>): Promise<void> {
     // Placeholder implementation
     await console.error("[SECURITY ALERT]", JSON.stringify(auditEntry, null, 2));
 
@@ -127,7 +128,7 @@ export class AuditLogger {
   /**
    * Create a complete audit entry with all required fields
    */
-  private createAuditEntry(event: SecurityEvent): Record<string, unknown> {
+  private createAuditEntry(event: SecurityEvent): Record<string, JsonValue> {
     const now = new Date();
     const maskedMetadata = this.maskSensitiveData(event.metadata || {});
 
@@ -149,7 +150,7 @@ export class AuditLogger {
   /**
    * Mask sensitive data in metadata to prevent leakage in logs
    */
-  private maskSensitiveData(metadata: Record<string, unknown>): Record<string, unknown> {
+  private maskSensitiveData(metadata: Record<string, JsonValue>): Record<string, JsonValue> {
     const masked = { ...metadata };
 
     // Mask API keys
@@ -170,7 +171,7 @@ export class AuditLogger {
     // Recursively mask nested objects
     for (const [key, value] of Object.entries(masked)) {
       if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-        masked[key] = this.maskSensitiveData(value as Record<string, unknown>);
+        masked[key] = this.maskSensitiveData(value as Record<string, JsonValue>);
       }
     }
 
@@ -200,7 +201,7 @@ export class AuditLogger {
   /**
    * Append audit entry to tamper-evident JSONL file
    */
-  private async appendToAuditFile(entry: Record<string, unknown>): Promise<void> {
+  private async appendToAuditFile(entry: Record<string, JsonValue>): Promise<void> {
     const runtimeDir = this.config.config?.paths?.runtime || ".";
     const auditDir = join(runtimeDir, "audit");
     const dateString = new Date().toISOString().split("T")[0]; // YYYY-MM-DD

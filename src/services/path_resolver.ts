@@ -10,6 +10,7 @@
 import { join } from "@std/path";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 export interface PathResolverConfig {
   /** Optional: Database service for activity logging */
@@ -142,7 +143,7 @@ export class PathResolver {
     actor: string,
     actionType: string,
     target: string | null,
-    payload: Record<string, unknown>,
+    payload: Record<string, JsonValue>,
   ): void {
     if (!this.db) {
       return;

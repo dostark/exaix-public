@@ -7,12 +7,16 @@
  * @related-files [src/ai/provider_registry.ts]
  */
 
-import { ProviderRegistry } from "./provider_registry.ts";
+import { type ProviderMetadata, ProviderRegistry } from "./provider_registry.ts";
+import type { IProviderFactory } from "./factories/abstract_provider_factory.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
 import { HealthCheckService } from "../services/health_check_service.ts";
 import { Config } from "../config/schema.ts";
 import { getValidatedEnvOverrides, isCIMode, isTestMode } from "../config/env_schema.ts";
 import { PricingTier, ProviderCostTier, TaskComplexity } from "../enums.ts";
+
+/** A registered provider entry with its factory and metadata. */
+type ProviderEntry = { factory: IProviderFactory; metadata: ProviderMetadata };
 
 /**
  * Criteria for selecting a provider
@@ -64,7 +68,7 @@ export class ProviderSelector {
 
       // Filter by cost preference (fast check)
       if (criteria.preferFree) {
-        const freeProviders = candidates.filter((p: any) =>
+        const freeProviders = candidates.filter((p) =>
           p.metadata.costTier === ProviderCostTier.FREE || p.metadata.costTier === ProviderCostTier.FREEMIUM
         );
         if (freeProviders.length > 0) {
@@ -215,9 +219,9 @@ export class ProviderSelector {
    * Filter providers by budget constraints.
    */
   private async filterByBudget(
-    providers: Array<{ factory: any; metadata: any }>,
+    providers: ProviderEntry[],
     maxCost: number,
-  ): Promise<Array<{ factory: any; metadata: any }>> {
+  ): Promise<ProviderEntry[]> {
     const results = [];
     for (const p of providers) {
       const dailyCost = await this.costTracker.getDailyCost(p.metadata.name);
@@ -232,8 +236,8 @@ export class ProviderSelector {
    * Filter providers by health status.
    */
   private async filterByHealth(
-    providers: Array<{ factory: any; metadata: any }>,
-  ): Promise<Array<{ factory: any; metadata: any }>> {
+    providers: ProviderEntry[],
+  ): Promise<ProviderEntry[]> {
     const results = [];
     for (const p of providers) {
       const isHealthy = await this.healthChecker.checkProvider(p.metadata.name);
@@ -248,9 +252,9 @@ export class ProviderSelector {
    * Sort providers by task complexity match.
    */
   private sortByTaskMatch(
-    providers: Array<{ factory: any; metadata: any }>,
+    providers: ProviderEntry[],
     complexity: TaskComplexity,
-  ): Array<{ factory: any; metadata: any }> {
+  ): ProviderEntry[] {
     const tierPreference = {
       [TaskComplexity.SIMPLE]: [PricingTier.LOCAL, PricingTier.FREE, PricingTier.LOW],
       [TaskComplexity.MEDIUM]: [PricingTier.LOW, PricingTier.MEDIUM, PricingTier.FREE],

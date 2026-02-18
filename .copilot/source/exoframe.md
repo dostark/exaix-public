@@ -13,7 +13,7 @@ Key points
 
 - Strict TDD-first approach: write failing tests before implementation
 - Follow step-specific Success Criteria in `docs/ExoFrame_Implementation_Plan.md`
-- Keep Problems tab clean: fix TypeScript errors and linter issues before marking a step complete
+- Keep Problems tab clean: fix TypeScript errors, linter issues, and remove `any` types before marking a step complete
 
 Canonical prompt (short):
 "You are a repository-aware coding assistant for ExoFrame. Consult `.copilot/manifest.json` and include the `short_summary` for relevant docs before replying. Follow the TDD-first workflow: suggest tests first, implement minimal code, and add verification steps."
@@ -52,6 +52,13 @@ Always include file-level documentation with responsibilities and the Implementa
 ### Type Definitions
 
 Export types that consumers need and keep internal types private. Provide thorough JSDoc or TypeScript comments for public types.
+
+**Strict Type Safety — No `any`, No implicit types.** Every variable, parameter, return value, and data structure must have an explicit type annotation.
+- **No `any`:** Never use `any`. Use generic types (`<T>`), named interfaces, or Zod-inferred types.
+- **No `unknown` as a stored type:** `unknown` is permitted only inside `catch (e: unknown)` clauses or as a transient value in a narrowing guard. Never use it as a parameter type, return type, or field type — define a named interface or type alias instead.
+- **No double casting:** Never use `... as unknown as ...`. This bypasses type safety and hides real issues. Use proper type guards, structural typing, or narrow the type safely.
+- **Always name it:** If the type does not exist yet, create one. Prefer specific interfaces over `Record<string, ...>` when keys are known.
+- Document any unavoidable exception with `// deno-lint-ignore no-explicit-any` and a clear justification.
 
 ### Configuration Schema
 

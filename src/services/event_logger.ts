@@ -13,6 +13,7 @@ import type { ActivityRepository } from "../repositories/activity_repository.ts"
 import { LogLevel } from "../enums.ts";
 import { Actor, LogEvent } from "./common/types.ts";
 import { TUI_DEFAULT_ICONS } from "../helpers/constants.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 export type { Actor, LogEvent };
 
@@ -105,13 +106,13 @@ export class EventLogger {
   async log(event: LogEvent): Promise<void>;
   async log(
     action: string,
-    targetOrPayload: string | Record<string, unknown>,
-    payload?: Record<string, unknown>,
+    targetOrPayload: string | Record<string, JsonValue>,
+    payload?: Record<string, JsonValue>,
   ): Promise<void>;
   async log(
     eventOrAction: LogEvent | string,
-    targetOrPayload?: string | Record<string, unknown>,
-    payload?: Record<string, unknown>,
+    targetOrPayload?: string | Record<string, JsonValue>,
+    payload?: Record<string, JsonValue>,
   ): Promise<void> {
     let event: LogEvent;
 
@@ -158,7 +159,7 @@ export class EventLogger {
   async info(
     action: string,
     target: string,
-    payload?: Record<string, unknown>,
+    payload?: Record<string, JsonValue>,
     traceId?: string,
   ): Promise<void> {
     await this.log({ action, target, payload, level: LogLevel.INFO, traceId });
@@ -170,7 +171,7 @@ export class EventLogger {
   async warn(
     action: string,
     target: string,
-    payload?: Record<string, unknown>,
+    payload?: Record<string, JsonValue>,
     traceId?: string,
   ): Promise<void> {
     await this.log({ action, target, payload, level: LogLevel.WARN, traceId });
@@ -182,7 +183,7 @@ export class EventLogger {
   async error(
     action: string,
     target: string,
-    payload?: Record<string, unknown>,
+    payload?: Record<string, JsonValue>,
     traceId?: string,
   ): Promise<void> {
     await this.log({ action, target, payload, level: LogLevel.ERROR, traceId });
@@ -194,7 +195,7 @@ export class EventLogger {
   async debug(
     action: string,
     target: string,
-    payload?: Record<string, unknown>,
+    payload?: Record<string, JsonValue>,
     traceId?: string,
   ): Promise<void> {
     await this.log({ action, target, payload, level: LogLevel.DEBUG, traceId });

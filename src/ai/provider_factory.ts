@@ -7,8 +7,8 @@
  * @dependencies [ProviderRegistry, ConfigService, DatabaseService, CostTracker]
  * @related-files [src/ai/provider_registry.ts, src/ai/providers.ts]
  */
-// @ts-ignore: Deno is a global in the Deno runtime
-declare const Deno: any;
+// Minimal Deno env interface for type-safe env access
+declare const Deno: { env: { get(key: string): string | undefined } };
 
 import * as DEFAULTS from "../config/constants.ts";
 import { Config } from "../config/schema.ts";
@@ -68,7 +68,7 @@ export class ProviderFactory {
     costTracker?: CostTracker,
   ): Promise<IModelProvider> {
     const chain = [fallback.primary, ...fallback.fallbacks];
-    let lastError: unknown = undefined;
+    let lastError: Error | undefined;
 
     for (const providerName of chain) {
       try {
@@ -95,7 +95,7 @@ export class ProviderFactory {
 
         return provider;
       } catch (error) {
-        lastError = error;
+        lastError = error instanceof Error ? error : new Error(String(error));
         // Use repo logging convention if available
         if (typeof console !== "undefined" && typeof console.warn === "function") {
           console.warn(`Provider ${providerName} failed after retries, trying next in chain`, error);
@@ -575,10 +575,10 @@ export async function validateProviderConnection(provider: IModelProvider): Prom
 }
 
 // Helper for tests: get provider by model name
-export async function getProviderForModel(model: string) {
-  // Minimal mock config for test
+export async function getProviderForModel(model: string): Promise<IModelProvider> {
+  // Minimal config for test — only ai section is needed
   const config = {
     ai: { provider: "ollama", model },
-  } as any;
+  } as Partial<Config> as Config;
   return await ProviderFactory.create(config);
 }

@@ -7,6 +7,7 @@
  * @related-files [src/services/event_logger.ts, src/services/structured_logger.ts]
  */
 import { LogLevel } from "../../enums.ts";
+import type { JsonValue } from "../../flows/transforms.ts";
 
 /**
  * Actor types:
@@ -27,7 +28,7 @@ export interface LogEvent {
   target: string;
 
   /** Additional context as key-value pairs */
-  payload?: Record<string, unknown>;
+  payload?: Record<string, JsonValue>;
 
   /** Actor performing the action */
   actor?: Actor;
@@ -46,11 +47,12 @@ export interface LogEvent {
 }
 
 /**
- * Common service context for middleware
+ * Common service context for middleware.
+ * Subinterfaces (ToolContext, RequestProcessingContext, etc.) extend this
+ * with their own typed properties — no index signature needed.
  */
 export interface ServiceContext {
   traceId?: string;
   agentId?: string;
   actor?: Actor;
-  [key: string]: any;
 }

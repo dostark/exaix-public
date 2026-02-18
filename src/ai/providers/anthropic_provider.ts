@@ -7,7 +7,12 @@
  * @related-files [src/ai/factories/anthropic_factory.ts]
  */
 import { ModelOptions } from "../providers.ts";
-import { extractAnthropicContent, performProviderCall, tokenMapperAnthropic } from "../provider_common_utils.ts";
+import {
+  type AnthropicResponse,
+  extractAnthropicContent,
+  performProviderCall,
+  tokenMapperAnthropic,
+} from "../provider_common_utils.ts";
 import * as DEFAULTS from "../../config/constants.ts";
 import { BaseProvider, BaseProviderOptions } from "./base_provider.ts";
 
@@ -54,7 +59,7 @@ export class AnthropicProvider extends BaseProvider {
    * Internal: attempt a single completion call.
    */
   protected override async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
-    const data = await performProviderCall(this.baseUrl, {
+    const data = await performProviderCall<AnthropicResponse>(this.baseUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

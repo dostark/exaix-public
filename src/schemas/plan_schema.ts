@@ -10,6 +10,7 @@
 import { z } from "zod";
 import { McpToolName } from "../enums.ts";
 import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
+import { JsonValueSchema } from "../flows/transforms.ts";
 
 // ============================================================================
 // Plan Step Schema
@@ -23,7 +24,7 @@ export const PlanActionSchema = z.object({
   tool: z.nativeEnum(McpToolName),
 
   /** Parameters for the tool invocation */
-  params: z.record(z.any()),
+  params: z.record(JsonValueSchema),
 
   /** Optional: Description of what this specific action does */
   description: z.string().optional(),

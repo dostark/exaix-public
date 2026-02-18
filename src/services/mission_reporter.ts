@@ -19,6 +19,7 @@ import type { DatabaseService } from "./db.ts";
 import { MemoryBankService } from "./memory_bank.ts";
 import type { ExecutionMemory } from "../schemas/memory_bank.ts";
 import { ExecutionStatus } from "../enums.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -260,7 +261,7 @@ export class MissionReporter {
     event_type: string;
     target: string;
     trace_id: string;
-    metadata: Record<string, unknown>;
+    metadata: Record<string, JsonValue>;
   }): void {
     if (!this.db) return;
 

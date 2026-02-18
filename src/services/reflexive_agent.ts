@@ -10,6 +10,7 @@
 import { z } from "zod";
 import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../enums.ts";
 import type { IModelProvider } from "../ai/providers.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 import type { DatabaseService } from "./db.ts";
 import {
   type AgentExecutionResult,
@@ -234,7 +235,11 @@ export class ReflexiveAgent {
   @LogMethod(new EventLogger({ prefix: "[ReflexiveAgent]" }), "reflexive.run")
   async run(blueprint: Blueprint, request: ParsedRequest): Promise<ReflexiveExecutionResult> {
     // Run reflexive loop through middleware pipeline to centralize timing/error handling
-    const pipeline = new MiddlewarePipeline<ServiceContext>();
+    interface ReflexiveAgentContext extends ServiceContext {
+      __startTime?: number;
+      __durationMs?: number;
+    }
+    const pipeline = new MiddlewarePipeline<ReflexiveAgentContext>();
 
     pipeline.use(async (_ctx, next) => {
       const start = typeof performance !== "undefined" ? performance.now() : Date.now();
@@ -253,7 +258,7 @@ export class ReflexiveAgent {
       }
     });
 
-    const context: ServiceContext = { traceId: request.traceId, agentId: blueprint.agentId };
+    const context: ReflexiveAgentContext = { traceId: request.traceId, agentId: blueprint.agentId };
 
     let finalResult: ReflexiveExecutionResult;
 
@@ -290,7 +295,7 @@ export class ReflexiveAgent {
 
         this.logActivity("reflexive_agent", "reflexion.iteration", null, {
           iteration: i,
-          quality: critique.quality,
+          quality: critique.quality as string,
           confidence: critique.confidence,
           passed: critique.passed,
           issueCount: critique.issues.length,
@@ -317,8 +322,8 @@ export class ReflexiveAgent {
       this.logActivity("reflexive_agent", "reflexion.complete", null, {
         totalIterations: iterations.length,
         earlyExit,
-        finalQuality: finalCritique?.quality,
-        finalConfidence: finalCritique?.confidence,
+        finalQuality: (finalCritique?.quality as string) ?? null,
+        finalConfidence: finalCritique?.confidence ?? null,
         totalDurationMs: totalDuration,
       }, request.traceId);
 
@@ -473,7 +478,7 @@ export class ReflexiveAgent {
     actor: string,
     actionType: string,
     target: string | null,
-    payload: Record<string, unknown>,
+    payload: Record<string, JsonValue>,
     traceId?: string,
   ): void {
     if (this.config.verbose) {

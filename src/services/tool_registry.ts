@@ -17,6 +17,7 @@ import { ActivityActor, LogLevel } from "../enums.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import { ServiceContext } from "./common/types.ts";
 import { PathAccessError, PathSecurity, PathTraversalError } from "../helpers/path_security.ts";
+import type { JsonValue } from "../flows/transforms.ts";
 
 // ============================================================================
 // Types
@@ -57,7 +58,7 @@ export interface Tool {
  */
 export interface ToolResult {
   success: boolean;
-  data?: any;
+  data?: JsonValue;
   error?: string;
 }
 
@@ -77,7 +78,7 @@ export interface ToolRegistryConfig {
  */
 interface ToolContext extends ServiceContext {
   toolName: string;
-  params: Record<string, any>;
+  params: Record<string, JsonValue>;
   result?: ToolResult;
   toolRegistry: ToolRegistry;
 }
@@ -296,7 +297,7 @@ export class ToolRegistry {
   private tools: Map<string, Tool>;
   private baseDir: string;
   private pipeline: MiddlewarePipeline<ToolContext>;
-  private executors: Map<string, (params: Record<string, any>) => Promise<ToolResult>> = new Map();
+  private executors: Map<string, (params: Record<string, JsonValue>) => Promise<ToolResult>> = new Map();
 
   constructor(options?: ToolRegistryConfig) {
     // Use ConfigSchema to parse and apply all defaults automatically
@@ -347,7 +348,7 @@ export class ToolRegistry {
           success: ctx.result?.success ?? false,
           duration_ms: Date.now() - startTime,
           params: ctx.params,
-          error: ctx.result?.error,
+          error: ctx.result?.error ?? null,
         });
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
@@ -638,20 +639,53 @@ export class ToolRegistry {
    * Register all core executors
    */
   private registerCoreExecutors() {
-    this.executors.set("read_file", (p) => this.readFile(p.path));
-    this.executors.set("write_file", (p) => this.writeFile(p.path, p.content));
-    this.executors.set("list_directory", (p) => this.listDirectory(p.path));
-    this.executors.set("search_files", (p) => this.searchFiles(p.pattern, p.path));
-    this.executors.set("run_command", (p) => this.runCommand(p.command, p.args || []));
-    this.executors.set("create_directory", (p) => this.createDirectory(p.path));
-    this.executors.set("fetch_url", (p) => this.fetchUrl(p.url, p.format));
-    this.executors.set("grep_search", (p) => this.grepSearch(p.pattern, p.path, p.case_sensitive));
-    this.executors.set("move_file", (p) => this.moveFile(p.source, p.destination, p.overwrite));
-    this.executors.set("copy_file", (p) => this.copyFile(p.source, p.destination, p.overwrite));
-    this.executors.set("delete_file", (p) => this.deleteFile(p.path));
-    this.executors.set("git_info", (p) => this.gitInfo(p.repo_path, p.scope));
-    this.executors.set("deno_task", (p) => this.denoTask(p.task, p.path, p.args));
-    this.executors.set("patch_file", (p) => this.patchFile(p.path, p.patches));
+    const str = (v: JsonValue): string => (typeof v === "string" ? v : String(v ?? ""));
+    const bool = (v: JsonValue): boolean => Boolean(v);
+    const strArr = (v: JsonValue): string[] =>
+      Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+
+    this.executors.set("read_file", (p) => this.readFile(str(p.path)));
+    this.executors.set("write_file", (p) => this.writeFile(str(p.path), str(p.content)));
+    this.executors.set("list_directory", (p) => this.listDirectory(str(p.path)));
+    this.executors.set("search_files", (p) => this.searchFiles(str(p.pattern), str(p.path)));
+    this.executors.set("run_command", (p) => this.runCommand(str(p.command), p.args ? strArr(p.args) : []));
+    this.executors.set("create_directory", (p) => this.createDirectory(str(p.path)));
+    this.executors.set(
+      "fetch_url",
+      (p) => this.fetchUrl(str(p.url), p.format ? str(p.format) as "text" | "markdown" : undefined),
+    );
+    this.executors.set(
+      "grep_search",
+      (p) =>
+        this.grepSearch(
+          str(p.pattern),
+          str(p.path),
+          p.case_sensitive !== undefined ? bool(p.case_sensitive) : undefined,
+        ),
+    );
+    this.executors.set(
+      "move_file",
+      (p) =>
+        this.moveFile(str(p.source), str(p.destination), p.overwrite !== undefined ? bool(p.overwrite) : undefined),
+    );
+    this.executors.set(
+      "copy_file",
+      (p) =>
+        this.copyFile(str(p.source), str(p.destination), p.overwrite !== undefined ? bool(p.overwrite) : undefined),
+    );
+    this.executors.set("delete_file", (p) => this.deleteFile(str(p.path)));
+    this.executors.set(
+      "git_info",
+      (p) => this.gitInfo(str(p.repo_path), p.scope ? str(p.scope) as "status" | "branch" | "diff_summary" : undefined),
+    );
+    this.executors.set(
+      "deno_task",
+      (p) => this.denoTask(str(p.task), p.path ? str(p.path) : undefined, p.args ? strArr(p.args) : undefined),
+    );
+    this.executors.set(
+      "patch_file",
+      (p) => this.patchFile(str(p.path), p.patches as Array<{ search: string; replace: string }>),
+    );
   }
 
   /**
@@ -664,7 +698,7 @@ export class ToolRegistry {
   /**
    * Execute a tool by name
    */
-  async execute(toolName: string, params: Record<string, any>): Promise<ToolResult> {
+  async execute(toolName: string, params: Record<string, JsonValue>): Promise<ToolResult> {
     const context: ToolContext = {
       toolName,
       params,
@@ -812,8 +846,8 @@ export class ToolRegistry {
           {
             attempted_path: path,
             error: error.message,
-            trace_id: this.traceId,
-            agent_id: this.agentId,
+            trace_id: this.traceId ?? null,
+            agent_id: this.agentId ?? null,
           },
           this.traceId,
           this.agentId,
@@ -830,10 +864,10 @@ export class ToolRegistry {
           path,
           {
             attempted_path: path,
-            resolved_path: error.message.includes("->") ? error.message.split("->")[1]?.trim() : undefined,
+            resolved_path: error.message.includes("->") ? error.message.split("->")[1]?.trim() : null,
             error: error.message,
-            trace_id: this.traceId,
-            agent_id: this.agentId,
+            trace_id: this.traceId ?? null,
+            agent_id: this.agentId ?? null,
           },
           this.traceId,
           this.agentId,
@@ -851,8 +885,8 @@ export class ToolRegistry {
         {
           input_path: path,
           error: error instanceof Error ? error.message : String(error),
-          trace_id: this.traceId,
-          agent_id: this.agentId,
+          trace_id: this.traceId ?? null,
+          agent_id: this.agentId ?? null,
         },
         this.traceId,
         this.agentId,
@@ -921,14 +955,16 @@ export class ToolRegistry {
   /**
    * Log activity to database
    */
-  private logActivity(actionType: string, payload: Record<string, any>) {
+  private logActivity(actionType: string, payload: Record<string, JsonValue>) {
     if (!this.db) return;
 
     try {
       this.db.logActivity(
         ActivityActor.AGENT,
         actionType,
-        payload.params?.path || payload.params?.command || null,
+        (payload.params as Record<string, JsonValue>)?.path as string ||
+          (payload.params as Record<string, JsonValue>)?.command as string ||
+          null,
         payload,
         this.traceId,
         this.agentId,
@@ -942,7 +978,7 @@ export class ToolRegistry {
    * Format tool result for success
    * @private
    */
-  private formatSuccess(data: any): ToolResult {
+  private formatSuccess(data: JsonValue): ToolResult {
     return {
       success: true,
       data,
@@ -1271,7 +1307,7 @@ export class ToolRegistry {
       }
 
       let args: string[] = [];
-      let outputParser: (output: string) => any = (o) => o.trim();
+      let outputParser: (output: string) => JsonValue = (o) => o.trim();
 
       switch (scope) {
         case "status":

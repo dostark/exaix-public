@@ -12,6 +12,7 @@ import type { Config } from "../../config/schema.ts";
 import type { DatabaseService } from "../../services/db.ts";
 import { ConfigService } from "../../config/service.ts";
 import { ContextCardGenerator } from "../../services/context_card_generator.ts";
+import type { JsonValue } from "../../flows/transforms.ts";
 import { EventLogger } from "../../services/event_logger.ts";
 import { PortalStatus } from "../../enums.ts";
 import { PortalExecutionStrategy } from "../../enums.ts";
@@ -502,7 +503,7 @@ export class PortalCommands {
   /**
    * Log activity to database using EventLogger
    */
-  private async logActivity(actionType: string, payload: Record<string, unknown>): Promise<void> {
+  private async logActivity(actionType: string, payload: Record<string, JsonValue>): Promise<void> {
     if (!this.db) return;
 
     try {

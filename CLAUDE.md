@@ -63,6 +63,17 @@ deno task check:docs        # Verify .copilot/manifest.json is fresh
 3. Refactor with tests green
 4. Verify coverage maintained
 
+### Coding Standards
+
+- **Strict Type Safety:** Every variable, parameter, return value, and data structure **must** have an explicit type annotation. Implicit `any` (from missing annotations) and explicit `any` are both forbidden.
+  - **No `any`:** Never use `any` as a type. Use generic types (`<T>`), proper interfaces, or Zod-inferred types.
+  - **No `unknown` as a fallback:** `unknown` is not a substitute for a real type. If the shape is truly dynamic, define a named interface or type alias that describes it. Use `unknown` only as a *transient* type inside a narrowing guard (e.g., `catch (e: unknown)`) — never as a stored type or parameter type.
+  - **No double casting:** Never use `... as unknown as ...`. This bypasses type safety. Use proper narrowing or structural typing.
+  - **Always name it:** If a type does not exist yet, create one. Prefer specific interfaces over structural `Record<string, ...>` when the keys are known.
+- **Top-Level Imports:** All imports must be at the top of the file. Dynamic imports are discouraged.
+- **No Magic Values:** No hardcoded numbers or strings. Use constants/enums.
+
+
 ### Before Committing
 
 - Run `deno task test` — all tests must pass

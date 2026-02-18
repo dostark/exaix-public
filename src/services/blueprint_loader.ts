@@ -12,6 +12,7 @@ import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { parse as parseYaml } from "@std/yaml";
 import { z } from "zod";
+import type { JsonValue } from "../flows/transforms.ts";
 
 // ============================================================================
 // Blueprint Schema (Extended for Runtime)
@@ -242,11 +243,11 @@ export class BlueprintLoader {
     path: string,
     format: "yaml" | "toml",
   ): LoadedBlueprint {
-    let parsed: Record<string, unknown>;
+    let parsed: Record<string, JsonValue>;
 
     try {
       if (format === "yaml") {
-        parsed = parseYaml(frontmatterRaw) as Record<string, unknown>;
+        parsed = parseYaml(frontmatterRaw) as Record<string, JsonValue>;
       } else {
         // TOML parsing - use dynamic import to avoid bundling if not needed
         throw new Error("TOML frontmatter not yet implemented");

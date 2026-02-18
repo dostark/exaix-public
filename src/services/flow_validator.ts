@@ -9,6 +9,7 @@
 import { FlowLoader } from "../flows/flow_loader.ts";
 import { DependencyResolver } from "../flows/dependency_resolver.ts";
 import type { FlowValidator } from "./request_router.ts";
+import type { Flow, FlowStep } from "../schemas/flow.ts";
 
 /**
  * FlowValidatorImpl - Validates flow definitions before execution
@@ -64,21 +65,21 @@ export class FlowValidatorImpl implements FlowValidator {
     } catch (loaderErr) {
       const msg = loaderErr instanceof Error ? loaderErr.message : String(loaderErr);
       if (msg.includes("Agent reference cannot be empty")) {
-        return { flow: undefined as any, error: `Flow '${flowId}' has invalid agent` };
+        return { flow: undefined as unknown as Flow, error: `Flow '${flowId}' has invalid agent` };
       }
-      return { flow: undefined as any, error: `Flow '${flowId}' validation failed: ${msg}` };
+      return { flow: undefined as unknown as Flow, error: `Flow '${flowId}' validation failed: ${msg}` };
     }
   }
 
-  private validateStructure(flowId: string, flow: { steps?: unknown[] }): string | null {
+  private validateStructure(flowId: string, flow: Flow): string | null {
     if (!flow.steps || flow.steps.length === 0) {
       return `Flow '${flowId}' must contain at least one step`;
     }
     return null;
   }
 
-  private validateDependencies(flowId: string, steps: unknown[]): string | null {
-    const resolver = new DependencyResolver(steps as any);
+  private validateDependencies(flowId: string, steps: FlowStep[]): string | null {
+    const resolver = new DependencyResolver(steps);
     try {
       resolver.topologicalSort();
       return null;
@@ -87,7 +88,7 @@ export class FlowValidatorImpl implements FlowValidator {
     }
   }
 
-  private validateStepAgents(flowId: string, steps: Array<{ id: string; agent?: unknown }>): string | null {
+  private validateStepAgents(flowId: string, steps: FlowStep[]): string | null {
     for (const step of steps) {
       if (!step.agent || typeof step.agent !== "string" || step.agent === "") {
         return `Flow '${flowId}' step '${step.id}' has invalid agent: ${step.agent}`;
@@ -96,7 +97,7 @@ export class FlowValidatorImpl implements FlowValidator {
     return null;
   }
 
-  private validateOutput(flowId: string, flow: { output?: any; steps: Array<{ id: string }> }): string | null {
+  private validateOutput(flowId: string, flow: Flow): string | null {
     if (!flow.output) return null;
     if (!flow.output.from || !flow.output.format) {
       return `Flow '${flowId}' has invalid output configuration`;
