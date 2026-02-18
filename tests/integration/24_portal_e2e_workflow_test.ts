@@ -8,44 +8,23 @@
  */
 
 import { assert, assertEquals, assertExists, assertMatch, assertStringIncludes } from "@std/assert";
-import { dirname, fromFileUrl, join } from "@std/path";
+import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import { ExecutionLoop } from "../../src/services/execution_loop.ts";
-import { PortalExecutionStrategy } from "../../src/enums.ts";
+import { PortalExecutionStrategy, PortalOperation } from "../../src/enums.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { TestEnvironment } from "./helpers/test_environment.ts";
-import { EventLogger } from "../../src/services/event_logger.ts";
-import { ReviewRegistry } from "../../src/services/review_registry.ts";
-import { assertPointerPointsTo, listBranches, pathExists } from "./helpers/worktree_portal_test_utils.ts";
-import { gitStdout } from "../helpers/portal_test_utils.ts";
-
-async function runExoctl(args: string[], cwd: string) {
-  const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
-  const exoctlPath = join(repoRoot, "src", "cli", "exoctl.ts");
-
-  const command = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--allow-all", exoctlPath, ...args],
-    cwd,
-    stdout: "piped",
-    stderr: "piped",
-    env: {
-      ...Deno.env.toObject(),
-      EXO_CONFIG_PATH: join(cwd, "exo.config.toml"),
-    },
-  });
-
-  const { code, stdout, stderr } = await command.output();
-  const stdoutStr = new TextDecoder().decode(stdout);
-  const stderrStr = new TextDecoder().decode(stderr);
-
-  const effectiveStdout = stdoutStr.trim() ? stdoutStr : stderrStr;
-
-  return {
-    code,
-    stdout: effectiveStdout,
-    stderr: stderrStr,
-  };
-}
+import {
+  approveReviewStatus,
+  assertPointerPointsTo,
+  createAndRunReviewWorkflow,
+  createReviewRegistry,
+  executePlanForReview,
+  gitStdout,
+  listBranches,
+  pathExists,
+  runExoctl,
+} from "../helpers/portal_test_utils.ts";
+import { setupGitRepo } from "../helpers/git_test_helper.ts";
 
 Deno.test("[e2e] Portal request → plan → execution → artifact review (read-only)", async () => {
   const env = await TestEnvironment.create();
@@ -105,8 +84,7 @@ Return an analysis-only plan.
     const portalBranchesBefore = await listBranches(portalTargetPath);
     const workspaceBranchesBefore = await env.getGitBranches();
 
-    const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon" });
-    const result = await loop.processTask(activePlanPath);
+    const result = await executePlanForReview(env, config, activePlanPath);
 
     assertEquals(result.success, true);
     assertEquals(result.traceId, traceId);
@@ -221,11 +199,9 @@ Deno.test("[e2e] Portal request → execution → git review in portal repo (wri
     const portalBranchesBefore = await listBranches(portalTargetPath);
     const workspaceBranchesBefore = await env.getGitBranches();
 
-    const logger = new EventLogger({ db: env.db });
-    const reviewRegistry = new ReviewRegistry(env.db, logger);
+    const { reviewRegistry } = createReviewRegistry(env);
 
-    const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
-    const result = await loop.processTask(activePlanPath);
+    const result = await executePlanForReview(env, config, activePlanPath, reviewRegistry);
 
     assertEquals(result.success, true);
     assertEquals(result.traceId, traceId);
@@ -233,7 +209,7 @@ Deno.test("[e2e] Portal request → execution → git review in portal repo (wri
     // Branch should be created in portal repo (not in workspace root).
     const portalBranchesAfter = await listBranches(portalTargetPath);
     assert(portalBranchesAfter.length >= portalBranchesBefore.length, "Portal branches should not decrease");
-    const createdPortalBranch = portalBranchesAfter.find((b) => b.startsWith(`feat/${requestId}-`));
+    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
     assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
 
     const workspaceBranchesAfter = await env.getGitBranches();
@@ -258,7 +234,7 @@ Deno.test("[e2e] Portal request → execution → git review in portal repo (wri
     assertEquals(reviewByBranch.branch, createdPortalBranch);
 
     // Approve review using service layer (not CLI)
-    await reviewRegistry.updateStatus(reviews[0].id, ReviewStatus.APPROVED, "test-user");
+    await approveReviewStatus(reviewRegistry, reviews[0].id);
 
     // Verify status was updated
     const updatedReviews = await reviewRegistry.list({ trace_id: traceId });
@@ -316,42 +292,23 @@ Deno.test("[e2e] Portal target_branch review approve merges into that branch", a
       portals: [{ alias: portalAlias, target_path: portalTargetPath }],
     };
 
-    const { traceId } = await env.createRequest(
-      "Add a release-only file in the portal repo",
-      { agentId: "senior-coder", portal: portalAlias, targetBranch: targetBranch },
+    const { traceId, requestId, result, reviewRegistry: _reviewRegistry } = await createAndRunReviewWorkflow(
+      env,
+      config,
+      {
+        portalAlias,
+        targetBranch,
+        description: "Add a release-only file in the portal repo",
+        writePath: "src/release_only.ts",
+        writeContent: `export const releaseOnly = ${JSON.stringify(targetBranch)};\n`,
+      },
     );
-
-    const requestId = `request-${traceId.substring(0, 8)}`;
-
-    const planPath = await env.createPlan(traceId, requestId, {
-      status: "review",
-      agentId: "senior-coder",
-      portal: portalAlias,
-      targetBranch,
-      actions: [
-        {
-          tool: "write_file",
-          params: {
-            path: "src/release_only.ts",
-            content: `export const releaseOnly = ${JSON.stringify(targetBranch)};\n`,
-          },
-        },
-      ],
-    });
-
-    const activePlanPath = await env.approvePlan(planPath);
-
-    const logger = new EventLogger({ db: env.db });
-    const reviewRegistry = new ReviewRegistry(env.db, logger);
-
-    const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
-    const result = await loop.processTask(activePlanPath);
 
     assertEquals(result.success, true);
     assertEquals(result.traceId, traceId);
 
     const portalBranchesAfter = await listBranches(portalTargetPath);
-    const createdPortalBranch = portalBranchesAfter.find((b) => b.startsWith(`feat/${requestId}-`));
+    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
     assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
 
     // Step 37.5 regression: feature branch should be created from targetBranch.
@@ -436,40 +393,22 @@ Deno.test("[e2e][negative] Portal CLI review approve fails if not on review base
       portals: [{ alias: portalAlias, target_path: portalTargetPath }],
     };
 
-    const { traceId } = await env.createRequest(
-      "Add a release-only file in the portal repo",
-      { agentId: "senior-coder", portal: portalAlias, targetBranch: targetBranch },
+    const { traceId: _traceId, requestId, result, reviewRegistry: _reviewRegistry } = await createAndRunReviewWorkflow(
+      env,
+      config,
+      {
+        portalAlias,
+        targetBranch,
+        description: "Add a release-only file in the portal repo",
+        writePath: "src/release_only.ts",
+        writeContent: `export const releaseOnly = ${JSON.stringify(targetBranch)};\n`,
+      },
     );
 
-    const requestId = `request-${traceId.substring(0, 8)}`;
-
-    const planPath = await env.createPlan(traceId, requestId, {
-      status: "review",
-      agentId: "senior-coder",
-      portal: portalAlias,
-      targetBranch,
-      actions: [
-        {
-          tool: "write_file",
-          params: {
-            path: "src/release_only.ts",
-            content: `export const releaseOnly = ${JSON.stringify(targetBranch)};\n`,
-          },
-        },
-      ],
-    });
-
-    const activePlanPath = await env.approvePlan(planPath);
-
-    const logger = new EventLogger({ db: env.db });
-    const reviewRegistry = new ReviewRegistry(env.db, logger);
-
-    const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
-    const result = await loop.processTask(activePlanPath);
     assertEquals(result.success, true);
 
     const portalBranchesAfter = await listBranches(portalTargetPath);
-    const createdPortalBranch = portalBranchesAfter.find((b) => b.startsWith(`feat/${requestId}-`));
+    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
     assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
 
     // Enable CLI portal discovery.
@@ -513,40 +452,22 @@ Deno.test("[e2e][negative] Portal CLI review show fails without portal symlink",
       portals: [{ alias: portalAlias, target_path: portalTargetPath }],
     };
 
-    const { traceId } = await env.createRequest(
-      "Add a hello file in the portal repo",
-      { agentId: "senior-coder", portal: portalAlias },
+    const { traceId, requestId, result, reviewRegistry: _reviewRegistry } = await createAndRunReviewWorkflow(
+      env,
+      config,
+      {
+        portalAlias,
+        description: "Add a hello file in the portal repo",
+        writePath: "src/hello.ts",
+        writeContent: `export function hello(): string {\n  return "Hello from portal";\n}\n`,
+      },
     );
 
-    const requestId = `request-${traceId.substring(0, 8)}`;
-
-    const planPath = await env.createPlan(traceId, requestId, {
-      status: "review",
-      agentId: "senior-coder",
-      portal: portalAlias,
-      actions: [
-        {
-          tool: "write_file",
-          params: {
-            path: "src/hello.ts",
-            content: `export function hello(): string {\n  return "Hello from portal";\n}\n`,
-          },
-        },
-      ],
-    });
-
-    const activePlanPath = await env.approvePlan(planPath);
-
-    const logger = new EventLogger({ db: env.db });
-    const reviewRegistry = new ReviewRegistry(env.db, logger);
-
-    const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
-    const result = await loop.processTask(activePlanPath);
     assertEquals(result.success, true);
     assertEquals(result.traceId, traceId);
 
     const portalBranchesAfter = await listBranches(portalTargetPath);
-    const createdPortalBranch = portalBranchesAfter.find((b) => b.startsWith(`feat/${requestId}-`));
+    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
     assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
 
     // NOTE: no `Portals/<alias>` symlink created on purpose.
@@ -598,34 +519,17 @@ Deno.test(
         ],
       };
 
-      const { traceId } = await env.createRequest(
-        "Add a release-only file in the portal repo",
-        { agentId: "senior-coder", portal: portalAlias, targetBranch },
+      const { traceId, requestId, result, reviewRegistry: _reviewRegistry } = await createAndRunReviewWorkflow(
+        env,
+        config,
+        {
+          portalAlias,
+          targetBranch,
+          description: "Add a release-only file in the portal repo",
+          writePath: "src/release_only.ts",
+          writeContent: `export const releaseOnly = ${JSON.stringify(targetBranch)};\n`,
+        },
       );
-      const requestId = `request-${traceId.substring(0, 8)}`;
-
-      const planPath = await env.createPlan(traceId, requestId, {
-        status: "review",
-        agentId: "senior-coder",
-        portal: portalAlias,
-        targetBranch,
-        actions: [
-          {
-            tool: "write_file",
-            params: {
-              path: "src/release_only.ts",
-              content: `export const releaseOnly = ${JSON.stringify(targetBranch)};\n`,
-            },
-          },
-        ],
-      });
-
-      const activePlanPath = await env.approvePlan(planPath);
-
-      const logger = new EventLogger({ db: env.db });
-      const reviewRegistry = new ReviewRegistry(env.db, logger);
-      const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
-      const result = await loop.processTask(activePlanPath);
 
       assertEquals(result.success, true);
       assertEquals(result.traceId, traceId);
@@ -634,7 +538,7 @@ Deno.test(
       assertEquals(await gitStdout(portalTargetPath, ["branch", "--show-current"]), "main");
 
       const portalBranchesAfter = await listBranches(portalTargetPath);
-      const createdPortalBranch = portalBranchesAfter.find((b) => b.startsWith(`feat/${requestId}-`));
+      const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
       assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
       assertMatch(createdPortalBranch, /^feat\/request-[0-9a-f]{8}-/);
 
@@ -734,15 +638,13 @@ Deno.test("[e2e] Portal review stores base_branch for CLI validation", async () 
 
     const activePlanPath = await env.approvePlan(planPath);
 
-    const logger = new EventLogger({ db: env.db });
-    const reviewRegistry = new ReviewRegistry(env.db, logger);
+    const { reviewRegistry } = createReviewRegistry(env);
 
-    const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
-    const result = await loop.processTask(activePlanPath);
+    const result = await executePlanForReview(env, config, activePlanPath, reviewRegistry);
     assertEquals(result.success, true);
 
     const portalBranchesAfter = await listBranches(portalTargetPath);
-    const createdPortalBranch = portalBranchesAfter.find((b) => b.startsWith(`feat/${requestId}-`));
+    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
     assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
 
     // Verify review was registered with correct base_branch
@@ -792,39 +694,17 @@ Deno.test("[e2e] Portal review detects divergent branches", async () => {
       portals: [{ alias: portalAlias, target_path: portalTargetPath, default_branch: "main" }],
     };
 
-    const { traceId } = await env.createRequest(
-      "Change hello.ts in the portal repo",
-      { agentId: "senior-coder", portal: portalAlias },
-    );
-
-    const requestId = `request-${traceId.substring(0, 8)}`;
-
-    const planPath = await env.createPlan(traceId, requestId, {
-      status: "review",
-      agentId: "senior-coder",
-      portal: portalAlias,
-      actions: [
-        {
-          tool: "write_file",
-          params: {
-            path: "src/hello.ts",
-            content: `export function hello(): string {\n  return "Feature";\n}\n`,
-          },
-        },
-      ],
+    const { traceId, requestId, result, reviewRegistry } = await createAndRunReviewWorkflow(env, config, {
+      portalAlias,
+      description: "Change hello.ts in the portal repo",
+      writePath: "src/hello.ts",
+      writeContent: `export function hello(): string {\n  return "Feature";\n}\n`,
     });
 
-    const activePlanPath = await env.approvePlan(planPath);
-
-    const logger = new EventLogger({ db: env.db });
-    const reviewRegistry = new ReviewRegistry(env.db, logger);
-
-    const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
-    const result = await loop.processTask(activePlanPath);
     assertEquals(result.success, true);
 
     const portalBranchesAfter = await listBranches(portalTargetPath);
-    const createdPortalBranch = portalBranchesAfter.find((b) => b.startsWith(`feat/${requestId}-`));
+    const createdPortalBranch = portalBranchesAfter.find((b: string) => b.startsWith(`feat/${requestId}-`));
     assertExists(createdPortalBranch, "Expected a feat/* branch in the portal repository");
 
     // Diverge main after the feature branch was created

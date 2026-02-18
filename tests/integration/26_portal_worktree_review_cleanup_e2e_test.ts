@@ -8,45 +8,18 @@
 
 import { assertEquals, assertExists } from "@std/assert";
 import { ensureDir } from "@std/fs";
-import { dirname, fromFileUrl, join } from "@std/path";
+import { join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import {
-  createAndRunReviewPlan,
+  createAndRunReviewWorkflow,
   gitOk,
   gitStdout,
   pathExists,
   pathExistsNoFollow,
+  runExoctl,
   setupWorktreePortalRepo,
   withSingleWorktreePortal,
-} from "./helpers/worktree_portal_test_utils.ts";
-
-async function runExoctl(args: string[], cwd: string) {
-  const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
-  const exoctlPath = join(repoRoot, "src", "cli", "exoctl.ts");
-
-  const command = new Deno.Command(Deno.execPath(), {
-    args: ["run", "--allow-all", exoctlPath, ...args],
-    cwd,
-    stdout: "piped",
-    stderr: "piped",
-    env: {
-      ...Deno.env.toObject(),
-      EXO_CONFIG_PATH: join(cwd, "exo.config.toml"),
-    },
-  });
-
-  const { code, stdout, stderr } = await command.output();
-  const stdoutStr = new TextDecoder().decode(stdout);
-  const stderrStr = new TextDecoder().decode(stderr);
-
-  const effectiveStdout = stdoutStr.trim() ? stdoutStr : stderrStr;
-
-  return {
-    code,
-    stdout: effectiveStdout,
-    stderr: stderrStr,
-  };
-}
+} from "../helpers/portal_test_utils.ts";
 
 async function ensurePortalSymlink(portalsDir: string, alias: string, targetPath: string): Promise<void> {
   await ensureDir(portalsDir);
@@ -93,9 +66,10 @@ async function setupReviewWorktreeScenario() {
   const config = withSingleWorktreePortal(env.config, portalAlias, portalTargetPath, "main");
   await ensurePortalSymlink(join(env.tempDir, "Portals"), portalAlias, portalTargetPath);
 
-  const { traceId, requestId: _requestId, result } = await createAndRunReviewPlan(env, config, {
+  const { traceId, result } = await createAndRunReviewWorkflow(env, config, {
     portalAlias,
     targetBranch,
+    description: "Worktree review cleanup check",
     writePath: "src/worktree_hello.ts",
     writeContent: `export const hello = ${JSON.stringify("hello-worktree")};\n`,
   });
@@ -254,9 +228,10 @@ Deno.test(
 
       await ensurePortalSymlink(join(env.tempDir, "Portals"), portalAlias, portalTargetPath);
 
-      const { traceId, requestId: _requestId, result } = await createAndRunReviewPlan(env, config, {
+      const { traceId, result } = await createAndRunReviewWorkflow(env, config, {
         portalAlias,
         targetBranch,
+        description: "Review merge conflict cleanup check",
         writePath: "src/conflict.ts",
         writeContent: `export const conflict = ${JSON.stringify("feature")};\n`,
       });

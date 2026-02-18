@@ -4,7 +4,7 @@
  */
 
 import { assertEquals } from "@std/assert";
-import { join } from "@std/path";
+import { dirname, fromFileUrl, join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { setupGitRepo } from "./git_test_helper.ts";
 import type { Config } from "../../src/config/schema.ts";
@@ -13,6 +13,7 @@ import { ExecutionLoop } from "../../src/services/execution_loop.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";
 import type { TestEnvironment } from "../integration/helpers/test_environment.ts";
+import { ReviewStatus } from "../../src/reviews/review_status.ts";
 
 export interface PortalTestSetup {
   portalAlias: string;
@@ -43,6 +44,37 @@ export async function setupPortalTest(
     portalTargetPath,
     config: {} as Config,
     tempDir,
+  };
+}
+
+/**
+ * Helper to run exoctl CLI command
+ */
+export async function runExoctl(args: string[], cwd: string) {
+  const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
+  const exoctlPath = join(repoRoot, "src", "cli", "exoctl.ts");
+
+  const command = new Deno.Command(Deno.execPath(), {
+    args: ["run", "--allow-all", exoctlPath, ...args],
+    cwd,
+    stdout: "piped",
+    stderr: "piped",
+    env: {
+      ...Deno.env.toObject(),
+      EXO_CONFIG_PATH: join(cwd, "exo.config.toml"),
+    },
+  });
+
+  const { code, stdout, stderr } = await command.output();
+  const stdoutStr = new TextDecoder().decode(stdout);
+  const stderrStr = new TextDecoder().decode(stderr);
+
+  const effectiveStdout = stdoutStr.trim() ? stdoutStr : stderrStr;
+
+  return {
+    code,
+    stdout: effectiveStdout,
+    stderr: stderrStr,
   };
 }
 
@@ -142,6 +174,48 @@ export async function assertPointerPointsTo(
 }
 
 /**
+ * Helper to create a review registry for testing
+ */
+export function createReviewRegistry(env: TestEnvironment): {
+  logger: EventLogger;
+  reviewRegistry: ReviewRegistry;
+} {
+  const logger = new EventLogger({ db: env.db });
+  const reviewRegistry = new ReviewRegistry(env.db, logger);
+  return { logger, reviewRegistry };
+}
+
+/**
+ * Helper to execute an approved plan for review/portal scenarios
+ */
+export async function executePlanForReview<TConfig extends Record<string, unknown>>(
+  env: TestEnvironment,
+  config: TConfig,
+  activePlanPath: string,
+  reviewRegistry?: ReviewRegistry,
+): Promise<{ success: boolean; traceId: string | undefined; error?: string }> {
+  const loop = new ExecutionLoop({
+    config: config as any,
+    db: env.db,
+    agentId: "daemon",
+    reviewRegistry,
+  });
+  const result = await loop.processTask(activePlanPath);
+  return { success: result.success, traceId: result.traceId, error: result.error };
+}
+
+/**
+ * Approve a review via registry
+ */
+export async function approveReviewStatus(
+  reviewRegistry: ReviewRegistry,
+  reviewId: string,
+  user: string = "test-user",
+): Promise<void> {
+  await reviewRegistry.updateStatus(reviewId, ReviewStatus.APPROVED, user);
+}
+
+/**
  * Create and run review plan helper
  */
 export async function createAndRunReviewPlan<TConfig extends Record<string, unknown>>(
@@ -206,4 +280,51 @@ export function withSingleWorktreePortal<TConfig extends Record<string, unknown>
       execution_strategy: PortalExecutionStrategy.WORKTREE,
     }],
   } as TConfig;
+}
+
+/**
+ * Higher-level helper to create request, plan, and execute it.
+ * Reduces the massive boilerplate in e2e tests.
+ */
+export async function createAndRunReviewWorkflow<TConfig extends Record<string, unknown>>(
+  env: TestEnvironment,
+  config: TConfig,
+  params: {
+    portalAlias: string;
+    description: string;
+    writePath: string;
+    writeContent: string;
+    agentId?: string;
+    targetBranch?: string;
+  },
+): Promise<{
+  traceId: string;
+  requestId: string;
+  result: { success: boolean; traceId: string | undefined; error?: string };
+  reviewRegistry: ReviewRegistry;
+}> {
+  const { traceId } = await env.createRequest(params.description, {
+    agentId: params.agentId ?? "senior-coder",
+    portal: params.portalAlias,
+    targetBranch: params.targetBranch,
+  });
+
+  const requestId = `request-${traceId.substring(0, 8)}`;
+
+  const planPath = await env.createPlan(traceId, requestId, {
+    status: "review",
+    agentId: params.agentId ?? "senior-coder",
+    portal: params.portalAlias,
+    targetBranch: params.targetBranch,
+    actions: [{
+      tool: "write_file",
+      params: { path: params.writePath, content: params.writeContent },
+    }],
+  });
+
+  const activePlanPath = await env.approvePlan(planPath);
+  const { reviewRegistry } = createReviewRegistry(env);
+  const result = await executePlanForReview(env, config, activePlanPath, reviewRegistry);
+
+  return { traceId, requestId, result, reviewRegistry };
 }
