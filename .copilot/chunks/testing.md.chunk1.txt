@@ -4,4 +4,4 @@
 - **Integration**: Use `TestEnvironment.create()` to scaffold full workspace/DB structures.
 - **Leases**: File locking integration tests live in `tests/execution_loop_test.ts`.
 - **Top-level Imports**: Always place import statements at the top of test files. Do not use dynamic imports inside `Deno.test`.
-- **Strict Typing**: Do not use `any` even in tests. Do not use `unknown` as a parameter type, return type, or field type — define a named interface or type alias instead. Do not use double casting (`... as unknown as ...`) to bypass type checks. Use `Partial<T>`, specific mock types, or Zod-inferred types to ensure test reliability.
+- **Strict Typing**: Do not use `any` even in tests. Do not use `unknown` as a parameter type, return type, or field type — define a named interface or type alias instead. Do not use double casting (`... as unknown as ...`) or `as any` to bypass type checks. Use `Partial<T>`, specific mock types, or Zod-inferred types to ensure test reliability.

@@ -21,6 +21,7 @@ import {
   TUI_TREE_RECENT_LIMIT,
 } from "../../helpers/constants.ts";
 import type { MemoryServiceInterface, TreeNode } from "./types.ts";
+import type { ExecutionMemory } from "../../schemas/memory_bank.ts";
 
 export class TreeBuilder {
   /**
@@ -63,7 +64,7 @@ export class TreeBuilder {
 
     // 3. Executions Scope
     const executions = await service.getExecutionHistory({ limit: TUI_TREE_RECENT_LIMIT });
-    const executionNodes: TreeNode[] = executions.map((e: any) => ({
+    const executionNodes: TreeNode[] = executions.map((e: ExecutionMemory) => ({
       id: `${TUI_PREFIX_EXECUTION}${e.trace_id}`,
       type: TuiNodeType.EXECUTION,
       label: e.trace_id.slice(0, 8),

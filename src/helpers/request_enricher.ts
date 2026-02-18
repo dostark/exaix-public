@@ -8,6 +8,7 @@
  */
 import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { isTestMode } from "../config/env_schema.ts";
+import type { RequestMetadata } from "../cli/commands/request_commands.ts";
 
 export interface RequestEnrichable {
   request_id?: string;
@@ -59,8 +60,8 @@ export async function enrichWithRequest<T extends RequestEnrichable>(
       request_portal: request.portal,
       request_priority: request.priority,
       request_created_by: request.created_by,
-      request_flow: (request as any).flow,
-      request_rejected_path: (request as any).rejected_path,
+      request_flow: (request as RequestMetadata & { flow?: string }).flow,
+      request_rejected_path: (request as RequestMetadata & { rejected_path?: string }).rejected_path,
     };
   } catch (error) {
     // If request can't be loaded, continue without request info

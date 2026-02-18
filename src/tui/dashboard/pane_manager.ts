@@ -9,7 +9,7 @@
 
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../helpers/constants.ts";
 
-import type { Pane } from "../tui_dashboard.ts";
+import type { Pane, TuiView } from "../tui_dashboard.ts";
 
 /**
  * Split a pane in the specified direction
@@ -17,7 +17,7 @@ import type { Pane } from "../tui_dashboard.ts";
 export async function splitPane(
   panes: Pane[],
   activePaneId: string,
-  views: any[],
+  views: TuiView[],
   direction: "vertical" | "horizontal",
   notify: (message: string, type?: string) => Promise<void>,
 ): Promise<{ panes: Pane[]; activePaneId: string }> {

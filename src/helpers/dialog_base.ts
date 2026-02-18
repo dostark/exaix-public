@@ -15,6 +15,7 @@ import {
   TUI_LAYOUT_DIALOG_WIDTH,
   TUI_LAYOUT_MEDIUM_WIDTH,
 } from "./constants.ts";
+import type { MemoryUpdateProposal } from "../schemas/memory_bank.ts";
 
 // ===== Dialog Types =====
 
@@ -701,7 +702,7 @@ export function renderDialogEnding(
  * Render memory update proposal information
  */
 export function renderProposalInfo(
-  proposal: any, // MemoryUpdateProposal
+  proposal: MemoryUpdateProposal,
   innerWidth: number,
   theme: TuiTheme,
   lines: string[],

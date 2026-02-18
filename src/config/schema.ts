@@ -461,10 +461,13 @@ export const ConfigSchema = z.object({
     memory_warn_percent: DEFAULTS.DEFAULT_MEMORY_WARN_PERCENT,
     memory_critical_percent: DEFAULTS.DEFAULT_MEMORY_CRITICAL_PERCENT,
   }),
-}).superRefine((data: any, ctx: z.RefinementCtx) => {
+}).superRefine((data, ctx: z.RefinementCtx) => {
+  // Type assertion to avoid circular reference
+  const configData = data as z.infer<typeof ConfigSchema>;
+
   // Validate that default_model exists in models keys or is a fallback chain
-  const modelKeys = Object.keys(data.models || {});
-  const fallbackChainKeys = Object.keys(data.provider_strategy?.fallback_chains || {});
+  const modelKeys = Object.keys(configData.models || {});
+  const fallbackChainKeys = Object.keys(configData.provider_strategy?.fallback_chains || {});
   const providerTypes = [
     DEFAULTS.PROVIDER_OLLAMA,
     DEFAULTS.PROVIDER_ANTHROPIC,

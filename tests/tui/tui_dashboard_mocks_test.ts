@@ -11,6 +11,7 @@ import {
   MockStructuredLoggerService,
 } from "../../src/tui/tui_dashboard_mocks.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import { RequestPriority } from "../../src/enums.ts";
 import {
   TEST_MODEL_OPENAI,
   TEST_PROPOSAL_ID,
@@ -104,12 +105,12 @@ Deno.test("MockRequestService: all methods", async () => {
   const content = await service.getRequestContent("test-id");
   if (typeof content !== "string" || !content.includes("test-id")) throw new Error("getRequestContent failed");
   const newReq = await service.createRequest("desc", {
-    priority: "high",
+    priority: RequestPriority.HIGH,
     agent: "test",
     portal: "main",
     model: TEST_MODEL_OPENAI,
   });
-  if (typeof newReq !== "object" || newReq.priority !== "high" || newReq.agent !== "test") {
+  if (typeof newReq !== "object" || newReq.priority !== RequestPriority.HIGH || newReq.agent !== "test") {
     throw new Error("createRequest failed");
   }
   if (await service.updateRequestStatus("id", "planned") !== true) throw new Error("updateRequestStatus failed");

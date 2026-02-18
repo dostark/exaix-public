@@ -400,7 +400,7 @@ export class MCPServer {
         !!value &&
         typeof value === "object" &&
         "constructor" in value &&
-        ((value as any).constructor?.name === "ZodError")
+        (value as Record<string, unknown>).constructor?.name === "ZodError"
       );
     };
 
@@ -412,15 +412,13 @@ export class MCPServer {
 
     // Zod validation errors
     if (isZodError(error)) {
-      const zodError = error as any;
+      const zodError = error as { errors: Array<{ path?: (string | number)[]; message: string }> };
       return {
         type: "validation_error",
         code: -32602, // Invalid params
         message: "Invalid tool arguments",
         data: {
-          validation_errors: Array.isArray(zodError.errors)
-            ? zodError.errors.map((e: any) => ({ path: e.path?.join?.(".") ?? "", message: e.message }))
-            : undefined,
+          validation_errors: zodError.errors.map((e) => ({ path: e.path?.join?.(".") ?? "", message: e.message })),
         },
       };
     }

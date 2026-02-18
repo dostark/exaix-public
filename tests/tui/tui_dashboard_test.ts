@@ -8,7 +8,7 @@ import {
   renderViewPicker,
   type TuiDashboard,
 } from "../../src/tui/tui_dashboard.ts";
-import { SkillStatus } from "../../src/enums.ts";
+import { PortalStatus } from "../../src/enums.ts";
 
 import { assertEquals } from "https://deno.land/std@0.204.0/assert/assert_equals.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
@@ -90,7 +90,7 @@ Deno.test("TUI dashboard supports real-time updates and notifications", async ()
       targetPath: "/a",
       symlinkPath: "/s/a",
       contextCardPath: "/c/a",
-      status: SkillStatus.ACTIVE,
+      status: PortalStatus.ACTIVE,
       permissions: "rw",
     },
   ];
@@ -106,7 +106,7 @@ Deno.test("TUI dashboard supports real-time updates and notifications", async ()
     targetPath: "/b",
     symlinkPath: "/s/b",
     contextCardPath: "/c/b",
-    status: SkillStatus.ACTIVE,
+    status: PortalStatus.ACTIVE,
     permissions: "rw",
   });
   const updated = await dashboard.portalManager.service.listPortals();
@@ -154,7 +154,7 @@ Deno.test("TUI dashboard renders portal list, details, actions, and status bar",
         targetPath: "/a",
         symlinkPath: "/s/a",
         contextCardPath: "/c/a",
-        status: SkillStatus.ACTIVE,
+        status: PortalStatus.ACTIVE,
         permissions: "rw",
       },
       {
@@ -162,7 +162,7 @@ Deno.test("TUI dashboard renders portal list, details, actions, and status bar",
         targetPath: "/b",
         symlinkPath: "/s/b",
         contextCardPath: "/c/b",
-        status: "broken",
+        status: PortalStatus.BROKEN,
         permissions: "r",
       },
     ]);

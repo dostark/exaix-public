@@ -13,7 +13,7 @@ export function LogMethod(logger: EventLogger, action?: string) {
     target: (this: This, ...args: Args) => Return,
     contextOrKey: ClassMethodDecoratorContext<This, (this: This, ...args: Args) => Return> | string,
     descriptor?: TypedPropertyDescriptor<(this: This, ...args: Args) => Return>,
-  ): any {
+  ): TypedPropertyDescriptor<(this: This, ...args: Args) => Return> | ((this: This, ...args: Args) => Return) | void {
     const createWrapper = (
       originalMethod: (this: This, ...args: Args) => Return,
       methodName: string,

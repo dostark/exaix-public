@@ -852,7 +852,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
     return this.state.selectedId;
   }
 
-  getState(): any {
+  getState() {
     return {
       ...this.state,
       ...this.skillsViewExtensions,

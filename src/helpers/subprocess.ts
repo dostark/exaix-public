@@ -44,7 +44,7 @@ export class SafeSubprocess {
       : timeoutController.signal;
 
     try {
-      const cmdOptions: any = {
+      const cmdOptions: Deno.CommandOptions = {
         args,
         cwd,
         stdout: "piped",

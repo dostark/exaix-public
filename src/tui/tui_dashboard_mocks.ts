@@ -24,6 +24,8 @@ import {
 import { AgentStatus } from "./agent_status/agent_status.ts";
 import { MemoryStatus } from "../memory/memory_status.ts";
 import { RequestStatus, type RequestStatusType } from "../requests/request_status.ts";
+import type { LogEntry } from "../services/structured_logger.ts";
+import type { RequestOptions } from "./request_manager_view.ts";
 
 export class MockPortalService implements PortalService {
   /** Returns an empty list of portals. */
@@ -102,7 +104,7 @@ export class MockPlanService {
  */
 export class MockLogService {
   /** Returns an empty list of recent activity logs. */
-  queryActivity(_filter: any) {
+  queryActivity(_filter?: { limit?: number; agentId?: string; traceId?: string }) {
     return Promise.resolve([]);
   }
 
@@ -215,7 +217,7 @@ High priority feature request.`);
   }
 
   /** Simulates creating a new request. */
-  createRequest(_description: string, options?: any) {
+  createRequest(_description: string, options?: RequestOptions) {
     const newRequest = {
       trace_id: crypto.randomUUID(),
       filename: `request-${crypto.randomUUID().slice(0, 8)}.md`,
@@ -664,8 +666,12 @@ export class MockSkillsService {
  * Mock implementation of StructuredLogger for TDD and dashboard wiring tests.
  */
 export class MockStructuredLogger {
-  private context: any = {};
-  private config: any = { minLevel: "debug", outputs: [], enablePerformanceTracking: false };
+  private context: Record<string, unknown> = {};
+  private config: { minLevel: string; outputs: unknown[]; enablePerformanceTracking: boolean } = {
+    minLevel: "debug",
+    outputs: [],
+    enablePerformanceTracking: false,
+  };
 
   setContext() {}
   child() {
@@ -693,7 +699,7 @@ export class MockStructuredLoggerService {
   getStructuredLogs() {
     return Promise.resolve([]);
   }
-  subscribeToLogs(_callback: (entry: any) => void) {
+  subscribeToLogs(_callback: (entry: LogEntry) => void) {
     return () => {}; // Return unsubscribe function
   }
   getLogsByCorrelationId() {
@@ -705,7 +711,7 @@ export class MockStructuredLoggerService {
   getLogsByAgentId() {
     return Promise.resolve([]);
   }
-  exportLogs(_filename: string, _entries: any[]) {
+  exportLogs(_filename: string, _entries: LogEntry[]) {
     return Promise.resolve();
   }
 }

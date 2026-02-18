@@ -29,6 +29,8 @@ import {
   handleMemoryNotifications as _handleMemoryNotifications,
   renderNotificationPanel,
 } from "./tui_helpers/notifications.ts";
+import type { PortalService } from "./portal_manager_view.ts";
+import type { PortalInfo } from "../cli/commands/portal_commands.ts";
 import type { MemoryNotification } from "../services/notification.ts";
 import {
   resetToDefault as helperResetToDefault,
@@ -330,8 +332,8 @@ export interface TuiDashboard {
 
   // Legacy support
   portalManager: {
-    service: any;
-    renderPortalList: (portals: any[]) => string;
+    service: PortalService;
+    renderPortalList: (portals: PortalInfo[]) => string;
   };
   accessibility: {
     highContrast: boolean;
@@ -437,7 +439,7 @@ export function renderGlobalHelpOverlay(_theme: Theme): string[] {
 // ===== View Picker Rendering =====
 
 export function renderViewPicker(
-  views: any[],
+  views: TuiView[],
   currentViewIndex: number,
   theme: Theme,
 ): string[] {
@@ -901,7 +903,7 @@ async function createProductionDashboard(options: {
 async function runProductionInteractiveLoop(context: {
   panes: Pane[];
   activePaneId: { value: string };
-  views: any[];
+  views: TuiView[];
   prodState: DashboardViewState;
   theme: Theme;
   notificationService: NotificationService;
