@@ -13,6 +13,7 @@ import { RequestStatus, type RequestStatusType } from "../../src/requests/reques
 
 /**
  * Generic test data factory that creates objects with default values and overrides
+ * Type parameter T is explicitly specified at usage sites (e.g., TestDataFactory<TestRequestFixture>)
  */
 export class TestDataFactory<T> {
   private readonly defaultsFactory: () => T;

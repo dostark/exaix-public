@@ -17,6 +17,7 @@ import {
   StructuredLogger,
   type StructuredLoggerConfig,
 } from "../../src/services/structured_logger.ts";
+import { LogLevel } from "../../src/enums.ts";
 
 // ============================================================================
 // Test Utilities
@@ -34,7 +35,7 @@ class MockOutput implements LogOutput {
  * Creates a test logger with mock output for testing
  */
 function createTestLogger(
-  minLevel: StructuredLoggerConfig["minLevel"] = "info",
+  minLevel: StructuredLoggerConfig["minLevel"] = LogLevel.INFO,
   enablePerformanceTracking = false,
 ): { logger: StructuredLogger; output: MockOutput } {
   const output = new MockOutput();
@@ -56,7 +57,7 @@ Deno.test("StructuredLogger - Initialization", async (t) => {
   await t.step("should initialize with console output", () => {
     const consoleOutput = new ConsoleOutput();
     const config: StructuredLoggerConfig = {
-      minLevel: "info",
+      minLevel: LogLevel.INFO,
       outputs: [consoleOutput],
       enablePerformanceTracking: false,
     };
@@ -70,7 +71,7 @@ Deno.test("StructuredLogger - Initialization", async (t) => {
     try {
       const fileOutput = new FileOutput(testLog);
       const config: StructuredLoggerConfig = {
-        minLevel: "info",
+        minLevel: LogLevel.INFO,
         outputs: [fileOutput],
         enablePerformanceTracking: false,
       };
@@ -88,7 +89,7 @@ Deno.test("StructuredLogger - Initialization", async (t) => {
       const consoleOutput = new ConsoleOutput();
       const fileOutput = new FileOutput(testLog);
       const config: StructuredLoggerConfig = {
-        minLevel: "info",
+        minLevel: LogLevel.INFO,
         outputs: [consoleOutput, fileOutput],
         enablePerformanceTracking: false,
       };
@@ -102,17 +103,17 @@ Deno.test("StructuredLogger - Initialization", async (t) => {
 });
 
 Deno.test("StructuredLogger - Log Level Filtering", async (t) => {
-  await t.step("should filter debug messages when minLevel is info", () => {
-    const { logger, output } = createTestLogger("info");
+  await t.step("should filter debug messages when minLevel is LogLevel.INFO", () => {
+    const { logger, output } = createTestLogger(LogLevel.INFO);
     logger.debug("Debug message");
     logger.info("Info message");
 
     assertEquals(output.entries.length, 1);
-    assertEquals(output.entries[0].level, "info");
+    assertEquals(output.entries[0].level, LogLevel.INFO);
   });
 
   await t.step("should allow all levels when minLevel is debug", () => {
-    const { logger, output } = createTestLogger("debug");
+    const { logger, output } = createTestLogger(LogLevel.DEBUG);
     logger.debug("Debug message");
     logger.info("Info message");
     logger.warn("Warn message");
@@ -120,11 +121,17 @@ Deno.test("StructuredLogger - Log Level Filtering", async (t) => {
     logger.fatal("Fatal message");
 
     assertEquals(output.entries.length, 5);
-    assertEquals(output.entries.map((e) => e.level), ["debug", "info", "warn", "error", "fatal"]);
+    assertEquals(output.entries.map((e) => e.level), [
+      LogLevel.DEBUG,
+      LogLevel.INFO,
+      LogLevel.WARN,
+      LogLevel.ERROR,
+      LogLevel.FATAL,
+    ]);
   });
 
   await t.step("should only allow error and fatal when minLevel is error", () => {
-    const { logger, output } = createTestLogger("error");
+    const { logger, output } = createTestLogger(LogLevel.ERROR);
     logger.debug("Debug message");
     logger.info("Info message");
     logger.warn("Warn message");
@@ -132,13 +139,13 @@ Deno.test("StructuredLogger - Log Level Filtering", async (t) => {
     logger.fatal("Fatal message");
 
     assertEquals(output.entries.length, 2);
-    assertEquals(output.entries.map((e) => e.level), ["error", "fatal"]);
+    assertEquals(output.entries.map((e) => e.level), [LogLevel.ERROR, LogLevel.FATAL]);
   });
 });
 
 Deno.test("StructuredLogger - Context Management", async (t) => {
   await t.step("should include context in log entries", () => {
-    const { logger, output } = createTestLogger("info");
+    const { logger, output } = createTestLogger(LogLevel.INFO);
     logger.setContext({
       trace_id: "trace-123",
       user_id: "user-456",
@@ -154,7 +161,7 @@ Deno.test("StructuredLogger - Context Management", async (t) => {
   });
 
   await t.step("should merge context with setContext", () => {
-    const { logger, output } = createTestLogger("info");
+    const { logger, output } = createTestLogger(LogLevel.INFO);
     logger.setContext({ trace_id: "trace-123" });
     logger.setContext({ user_id: "user-456" });
 
@@ -165,7 +172,7 @@ Deno.test("StructuredLogger - Context Management", async (t) => {
   });
 
   await t.step("child logger should inherit parent context", () => {
-    const { logger: parentLogger, output } = createTestLogger("info");
+    const { logger: parentLogger, output } = createTestLogger(LogLevel.INFO);
     parentLogger.setContext({
       trace_id: "trace-123",
       user_id: "user-456",
@@ -187,7 +194,7 @@ Deno.test("StructuredLogger - Context Management", async (t) => {
 
 Deno.test("StructuredLogger - Error Handling", async (t) => {
   await t.step("should include error details in log entries", () => {
-    const { logger, output } = createTestLogger("info");
+    const { logger, output } = createTestLogger(LogLevel.INFO);
     const testError = new Error("Test error message");
     testError.name = "TestError";
     (testError as any).code = "TEST_ERROR";
@@ -195,7 +202,7 @@ Deno.test("StructuredLogger - Error Handling", async (t) => {
     logger.error("Something went wrong", testError);
 
     assertEquals(output.entries.length, 1);
-    assertEquals(output.entries[0].level, "error");
+    assertEquals(output.entries[0].level, LogLevel.ERROR);
     assertEquals(output.entries[0].error?.name, "TestError");
     assertEquals(output.entries[0].error?.message, "Test error message");
     assertEquals(output.entries[0].error?.code, "TEST_ERROR");
@@ -203,7 +210,7 @@ Deno.test("StructuredLogger - Error Handling", async (t) => {
   });
 
   await t.step("should handle error logging without error object", () => {
-    const { logger, output } = createTestLogger("info");
+    const { logger, output } = createTestLogger(LogLevel.INFO);
     logger.error("Error without exception");
 
     assertEquals(output.entries[0].error, undefined);
@@ -212,7 +219,7 @@ Deno.test("StructuredLogger - Error Handling", async (t) => {
 
 Deno.test("StructuredLogger - Performance Tracking", async (t) => {
   await t.step("should track operation performance when enabled", async () => {
-    const { logger, output } = createTestLogger("info", true);
+    const { logger, output } = createTestLogger(LogLevel.INFO, true);
 
     const result = await logger.time("test-operation", async () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -229,7 +236,7 @@ Deno.test("StructuredLogger - Performance Tracking", async (t) => {
   });
 
   await t.step("should track failed operations", async () => {
-    const { logger, output } = createTestLogger("info", true);
+    const { logger, output } = createTestLogger(LogLevel.INFO, true);
 
     await assertRejects(async () => {
       await logger.time("failing-operation", () => {
@@ -240,12 +247,12 @@ Deno.test("StructuredLogger - Performance Tracking", async (t) => {
     // Should have logged the operation failure
     const failureLog = output.entries.find((e) => e.message.includes("Operation failed"));
     assert(failureLog);
-    assertEquals(failureLog?.level, "error");
+    assertEquals(failureLog?.level, LogLevel.ERROR);
     assert(failureLog?.error);
   });
 
   await t.step("should skip performance tracking when disabled", async () => {
-    const { logger, output } = createTestLogger("info", false);
+    const { logger, output } = createTestLogger(LogLevel.INFO, false);
 
     const result = await logger.time("test-operation", async () => {
       await Promise.resolve(); // Make it actually async
@@ -266,7 +273,7 @@ Deno.test("StructuredLogger - Console Output", async (t) => {
     try {
       const entry: LogEntry = {
         timestamp: "2023-01-01T12:00:00.000Z",
-        level: "info",
+        level: LogLevel.INFO,
         message: "Test message",
         context: {
           trace_id: "trace-12345678",
@@ -299,21 +306,21 @@ Deno.test("StructuredLogger - Console Output", async (t) => {
     try {
       consoleOutput.write({
         timestamp: "2023-01-01T12:00:00.000Z",
-        level: "info",
+        level: LogLevel.INFO,
         message: "Info message",
         context: {},
       });
 
       consoleOutput.write({
         timestamp: "2023-01-01T12:00:00.000Z",
-        level: "warn",
+        level: LogLevel.WARN,
         message: "Warn message",
         context: {},
       });
 
       consoleOutput.write({
         timestamp: "2023-01-01T12:00:00.000Z",
-        level: "error",
+        level: LogLevel.ERROR,
         message: "Error message",
         context: {},
       });
@@ -343,7 +350,7 @@ Deno.test("StructuredLogger - File Output", async (t) => {
     const fileOutput = new FileOutput(testFile);
     const entry: LogEntry = {
       timestamp: "2023-01-01T12:00:00.000Z",
-      level: "info",
+      level: LogLevel.INFO,
       message: "Test file message",
       context: { trace_id: "trace-123" },
     };
@@ -355,7 +362,7 @@ Deno.test("StructuredLogger - File Output", async (t) => {
     assertEquals(lines.length, 1);
 
     const parsedEntry = JSON.parse(lines[0]);
-    assertEquals(parsedEntry.level, "info");
+    assertEquals(parsedEntry.level, LogLevel.INFO);
     assertEquals(parsedEntry.message, "Test file message");
     assertEquals(parsedEntry.context.trace_id, "trace-123");
   });
@@ -367,7 +374,7 @@ Deno.test("StructuredLogger - File Output", async (t) => {
     try {
       await fileOutput.write({
         timestamp: "2023-01-01T12:00:00.000Z",
-        level: "info",
+        level: LogLevel.INFO,
         message: "Test message",
         context: {},
       });
@@ -391,7 +398,7 @@ Deno.test("StructuredLogger - Global Logger", async (t) => {
   await t.step("should initialize and get global logger", () => {
     const mockOutput = new MockOutput();
     const config: StructuredLoggerConfig = {
-      minLevel: "info",
+      minLevel: LogLevel.INFO,
       outputs: [mockOutput],
       enablePerformanceTracking: false,
     };
@@ -419,7 +426,7 @@ Deno.test("StructuredLogger - Global Logger", async (t) => {
   await t.step("should use convenience functions with global logger", () => {
     const mockOutput = new MockOutput();
     const config: StructuredLoggerConfig = {
-      minLevel: "info",
+      minLevel: LogLevel.INFO,
       outputs: [mockOutput],
       enablePerformanceTracking: false,
     };
@@ -430,15 +437,15 @@ Deno.test("StructuredLogger - Global Logger", async (t) => {
     logError("Test error message", new Error("Test error"));
 
     assertEquals(mockOutput.entries.length, 2);
-    assertEquals(mockOutput.entries[0].level, "info");
-    assertEquals(mockOutput.entries[1].level, "error");
+    assertEquals(mockOutput.entries[0].level, LogLevel.INFO);
+    assertEquals(mockOutput.entries[1].level, LogLevel.ERROR);
     assert(mockOutput.entries[1].error);
   });
 });
 
 Deno.test("StructuredLogger - Audit vs Notification Evaluation", async (t) => {
   await t.step("should identify security-critical audit events", () => {
-    const { logger, output } = createTestLogger("info");
+    const { logger, output } = createTestLogger(LogLevel.INFO);
 
     // Audit events - security critical
     logger.error("Authentication failed", new Error("Invalid credentials"), {
@@ -477,7 +484,7 @@ Deno.test("StructuredLogger - Audit vs Notification Evaluation", async (t) => {
   });
 
   await t.step("should support structured audit context", () => {
-    const { logger, output } = createTestLogger("info");
+    const { logger, output } = createTestLogger(LogLevel.INFO);
     logger.setContext({
       trace_id: "audit-trace-123",
       operation: "user-authentication",

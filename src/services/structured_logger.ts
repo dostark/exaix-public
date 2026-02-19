@@ -24,7 +24,7 @@ import * as DEFAULTS from "../config/constants.ts";
 // Types and Interfaces
 // ============================================================================
 
-export type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";
+import { LogLevel } from "../enums.ts";
 
 export interface LogEntry {
   timestamp: string;
@@ -101,10 +101,10 @@ export class ConsoleOutput implements LogOutput {
 
   private getConsoleMethod(level: LogLevel): (message: string) => void {
     switch (level) {
-      case "error":
-      case "fatal":
+      case LogLevel.ERROR:
+      case LogLevel.FATAL:
         return console.error;
-      case "warn":
+      case LogLevel.WARN:
         return console.warn;
       default:
         return console.log;
@@ -244,23 +244,23 @@ export class StructuredLogger {
   }
 
   debug(message: string, metadata?: Record<string, unknown>): void {
-    this.log("debug", message, metadata);
+    this.log(LogLevel.DEBUG, message, metadata);
   }
 
   info(message: string, metadata?: Record<string, unknown>): void {
-    this.log("info", message, metadata);
+    this.log(LogLevel.INFO, message, metadata);
   }
 
   warn(message: string, metadata?: Record<string, unknown>): void {
-    this.log("warn", message, metadata);
+    this.log(LogLevel.WARN, message, metadata);
   }
 
   error(message: string, error?: Error, metadata?: Record<string, unknown>): void {
-    this.log("error", message, metadata, error);
+    this.log(LogLevel.ERROR, message, metadata, error);
   }
 
   fatal(message: string, error?: Error, metadata?: Record<string, unknown>): void {
-    this.log("fatal", message, metadata, error);
+    this.log(LogLevel.FATAL, message, metadata, error);
   }
 
   async time<T>(
@@ -323,7 +323,7 @@ export class StructuredLogger {
           name: error.name,
           message: error.message,
           stack: error.stack,
-          code: (error as NodeJS.ErrnoException).code,
+          code: "code" in error ? String((error as { code?: unknown }).code) : undefined,
         }
         : undefined,
     };
@@ -342,7 +342,7 @@ export class StructuredLogger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    const levels: LogLevel[] = ["debug", "info", "warn", "error", "fatal"];
+    const levels: LogLevel[] = [LogLevel.DEBUG, LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR, LogLevel.FATAL];
     const minIndex = levels.indexOf(this.config.minLevel);
     const currentIndex = levels.indexOf(level);
     return currentIndex >= minIndex;

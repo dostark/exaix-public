@@ -11,7 +11,7 @@ import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { FrontmatterParser } from "../../parsers/markdown.ts";
 import { BaseCommand, type CommandContext } from "../base.ts";
-import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../../plans/plan_status.ts";
+import { PlanStatus, type PlanStatusType } from "../../plans/plan_status.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { RequestStatus } from "../../requests/request_status.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
@@ -24,6 +24,8 @@ import {
   REQUEST_REVISION_COMMENT_PREFIX,
   REQUEST_REVISION_COMMENTS_HEADER,
 } from "../../config/constants.ts";
+
+import { PlanFrontmatterSchema } from "../../schemas/plan_schema.ts";
 
 export interface PlanMetadata {
   id: string;
@@ -60,26 +62,28 @@ export interface PlanDetails extends PlanMetadata {
  * Extract plan metadata from parsed frontmatter
  */
 function extractPlanMetadata(planId: string, frontmatter: Record<string, unknown>): PlanMetadata {
+  const validated = PlanFrontmatterSchema.parse(frontmatter);
+
   return {
     id: planId,
-    status: coercePlanStatus(frontmatter.status, PlanStatus.REVIEW),
-    trace_id: frontmatter.trace_id as string | undefined,
-    agent_id: frontmatter.agent_id as string | undefined,
-    request_id: frontmatter.request_id as string | undefined,
-    created_at: frontmatter.created_at as string | undefined,
-    input_tokens: frontmatter.input_tokens as string | undefined,
-    output_tokens: frontmatter.output_tokens as string | undefined,
-    total_tokens: frontmatter.total_tokens as string | undefined,
-    token_provider: frontmatter.token_provider as string | undefined,
-    token_model: frontmatter.token_model as string | undefined,
-    token_cost_usd: frontmatter.token_cost_usd as string | undefined,
-    approved_by: frontmatter.approved_by as string | undefined,
-    approved_at: frontmatter.approved_at as string | undefined,
-    rejected_by: frontmatter.rejected_by as string | undefined,
-    rejected_at: frontmatter.rejected_at as string | undefined,
-    rejection_reason: frontmatter.rejection_reason as string | undefined,
-    reviewed_by: frontmatter.reviewed_by as string | undefined,
-    reviewed_at: frontmatter.reviewed_at as string | undefined,
+    status: validated.status || PlanStatus.REVIEW,
+    trace_id: validated.trace_id,
+    agent_id: validated.agent_id,
+    request_id: validated.request_id,
+    created_at: validated.created_at,
+    input_tokens: validated.input_tokens?.toString(),
+    output_tokens: validated.output_tokens?.toString(),
+    total_tokens: validated.total_tokens?.toString(),
+    token_provider: validated.token_provider,
+    token_model: validated.token_model,
+    token_cost_usd: validated.token_cost_usd?.toString(),
+    approved_by: validated.approved_by,
+    approved_at: validated.approved_at,
+    rejected_by: validated.rejected_by,
+    rejected_at: validated.rejected_at,
+    rejection_reason: validated.rejection_reason,
+    reviewed_by: validated.reviewed_by,
+    reviewed_at: validated.reviewed_at,
   };
 }
 

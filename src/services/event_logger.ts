@@ -53,6 +53,7 @@ const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = {
   [LogLevel.INFO]: 1,
   [LogLevel.WARN]: 2,
   [LogLevel.ERROR]: 3,
+  [LogLevel.FATAL]: 4,
 };
 
 /** Default icons for each log level */
@@ -61,6 +62,7 @@ const DEFAULT_ICONS: Record<LogLevel, string> = {
   [LogLevel.WARN]: TUI_DEFAULT_ICONS.warn,
   [LogLevel.ERROR]: TUI_DEFAULT_ICONS.error,
   [LogLevel.DEBUG]: TUI_DEFAULT_ICONS.debug,
+  [LogLevel.FATAL]: TUI_DEFAULT_ICONS.fatal,
 };
 
 /** Cached user identity to avoid repeated git calls */

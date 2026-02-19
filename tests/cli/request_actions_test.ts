@@ -6,19 +6,19 @@ import { EventLogger, type EventLoggerConfig } from "../../src/services/event_lo
 import { LogLevel } from "../../src/enums.ts";
 
 class MockEventLogger extends EventLogger {
-  public calls: Array<{ level: "info" | "error"; a: string; b: string; c: any }> = [];
+  public calls: Array<{ level: LogLevel; a: string; b: string; c: any }> = [];
 
   constructor() {
     super({ minLevel: LogLevel.DEBUG } as EventLoggerConfig);
   }
 
   override info(action: string, target: string, payload?: Record<string, unknown>): Promise<void> {
-    this.calls.push({ level: "info", a: action, b: target, c: payload });
+    this.calls.push({ level: LogLevel.INFO, a: action, b: target, c: payload });
     return Promise.resolve();
   }
 
   override error(action: string, target: string, payload?: Record<string, unknown>): Promise<void> {
-    this.calls.push({ level: "error", a: action, b: target, c: payload });
+    this.calls.push({ level: LogLevel.ERROR, a: action, b: target, c: payload });
     return Promise.resolve();
   }
 }

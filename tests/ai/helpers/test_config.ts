@@ -39,6 +39,9 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
         foreign_keys: true,
         busy_timeout_ms: 5000,
       },
+      failure_threshold: 5,
+      reset_timeout_ms: 30000,
+      half_open_success_threshold: 1,
     },
     watcher: { debounce_ms: 200, stability_check: true },
     agents: {

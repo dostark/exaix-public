@@ -4,6 +4,7 @@ import { ConfigService } from "../src/config/service.ts";
 import { FileWatcher } from "../src/services/watcher.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
 import { createConfigReloadHandler } from "../src/config/config_reload_handler.ts";
+import { LogLevel } from "../src/enums.ts";
 
 /**
  * Test for "Investigate why exoctl portal add not showing in daemon logs"
@@ -56,7 +57,7 @@ stability_check = false
   const logs: any[] = [];
   const logger = {
     info: (action: string, target: string, payload: any) => {
-      logs.push({ level: "info", action, target, payload });
+      logs.push({ level: LogLevel.INFO, action, target, payload });
       return Promise.resolve();
     },
     log: () => Promise.resolve(), // stub

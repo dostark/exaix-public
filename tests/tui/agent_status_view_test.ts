@@ -20,7 +20,7 @@ import {
   MinimalAgentServiceMock,
 } from "../../src/tui/agent_status_view.ts";
 import { TEST_MODEL_OPENAI } from "../config/constants.ts";
-import { AgentHealth, TuiGroupBy } from "../../src/enums.ts";
+import { AgentHealth, LogLevel, TuiGroupBy } from "../../src/enums.ts";
 import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
 import { CritiqueSeverity } from "../../src/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
@@ -74,12 +74,12 @@ class MockAgentService implements AgentService {
     return Promise.resolve([
       {
         timestamp: new Date().toISOString(),
-        level: "info",
+        level: LogLevel.INFO,
         message: "Test log entry",
       },
       {
         timestamp: new Date().toISOString(),
-        level: "warn",
+        level: LogLevel.WARN,
         message: "Test warning",
       },
     ]);
@@ -189,7 +189,7 @@ Deno.test("AGENT_HEALTH_ICONS: has all health types", () => {
 });
 
 Deno.test("LOG_LEVEL_ICONS: has all log levels", () => {
-  const requiredKeys = ["info", "warn", "error"];
+  const requiredKeys = [LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR];
   for (const key of requiredKeys) {
     if (!LOG_LEVEL_ICONS[key]) {
       throw new Error(`Missing log level icon for: ${key}`);

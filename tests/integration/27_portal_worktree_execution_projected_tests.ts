@@ -95,8 +95,8 @@ Deno.test(
 
       // Both feature branches should exist.
       const branches = await listBranches(portalTargetPath);
-      const branchA = branches.find((b) => b.startsWith(`feat/${requestA}-`));
-      const branchB = branches.find((b) => b.startsWith(`feat/${requestB}-`));
+      const branchA = branches.find((b: string) => b.startsWith(`feat/${requestA}-`));
+      const branchB = branches.find((b: string) => b.startsWith(`feat/${requestB}-`));
       assertExists(branchA);
       assertExists(branchB);
       assertMatch(branchA, /^feat\/request-[0-9a-f]{8}-/);

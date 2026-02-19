@@ -1,5 +1,5 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
-import { AgentHealth } from "../../src/enums.ts";
+import { AgentHealth, LogLevel } from "../../src/enums.ts";
 import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
 
 import {
@@ -38,8 +38,8 @@ class DetailedAgentService implements AgentService {
   }
   getAgentLogs(_agentId: string, _limit = 50): Promise<AgentLogEntry[]> {
     return Promise.resolve([
-      { timestamp: new Date().toISOString(), level: "error", message: "Boom", traceId: "t1" },
-      { timestamp: new Date().toISOString(), level: "info", message: "Recovered" },
+      { timestamp: new Date().toISOString(), level: LogLevel.ERROR, message: "Boom", traceId: "t1" },
+      { timestamp: new Date().toISOString(), level: LogLevel.INFO, message: "Recovered" },
     ]);
   }
   getAgentHealth(_agentId: string): Promise<AgentHealthData> {

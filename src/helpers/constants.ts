@@ -83,6 +83,7 @@ export const TUI_ICON_SUCCESS = "✅";
 export const TUI_ICON_FAILURE = "❌";
 export const TUI_ICON_WARNING = "⚠️";
 export const TUI_ICON_DEBUG = "🔍";
+export const TUI_ICON_FATAL = "💀";
 
 // ============================================================================
 // TUI Priority Icons
@@ -195,6 +196,7 @@ export const TUI_DEFAULT_ICONS: Record<string, string> = {
   warn: TUI_ICON_WARNING,
   error: TUI_ICON_FAILURE,
   debug: TUI_ICON_DEBUG,
+  fatal: TUI_ICON_FATAL,
 };
 
 // ============================================================================

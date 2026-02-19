@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import type { LogEntry } from "../../../src/services/structured_logger.ts";
+import { LogLevel } from "../../../src/enums.ts";
 import {
   findAgentLogs,
   findRelatedLogs,
@@ -11,7 +12,7 @@ import {
 function createLogEntry(id: number, context: LogEntry["context"]): LogEntry {
   return {
     timestamp: new Date(1700000000000 + id).toISOString(),
-    level: "info",
+    level: LogLevel.INFO,
     message: `m-${id}`,
     context,
   };

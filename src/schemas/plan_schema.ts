@@ -9,8 +9,43 @@
 
 import { z } from "zod";
 import { McpToolName } from "../enums.ts";
+import { PlanStatus } from "../plans/plan_status.ts";
 import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 import { JsonValueSchema } from "../flows/transforms.ts";
+
+/**
+ * Zod schema for plan frontmatter to ensure type safety during parsing.
+ * Supports both strict execution loop needs and enriched CLI metadata needs.
+ */
+export const PlanFrontmatterSchema = z.object({
+  trace_id: z.string().optional().default(() => crypto.randomUUID()),
+  request_id: z.string().optional().default("unknown"),
+  agent_id: z.string().optional(),
+  status: z.nativeEnum(PlanStatus),
+  created_at: z.string().optional().default(() => new Date().toISOString()),
+  updated_at: z.string().optional(),
+  portal: z.string().optional(),
+  target_branch: z.string().optional(),
+  priority: z.union([z.number(), z.string()]).optional(),
+  timeout: z.string().optional(),
+  // CLI specific / Enrichment fields
+  input_tokens: z.union([z.string(), z.number()]).optional(),
+  output_tokens: z.union([z.string(), z.number()]).optional(),
+  total_tokens: z.union([z.string(), z.number()]).optional(),
+  token_provider: z.string().optional(),
+  token_model: z.string().optional(),
+  token_cost_usd: z.union([z.string(), z.number()]).optional(),
+  approved_by: z.string().optional(),
+  approved_at: z.string().optional(),
+  rejected_by: z.string().optional(),
+  rejected_at: z.string().optional(),
+  rejection_reason: z.string().optional(),
+  reviewed_by: z.string().optional(),
+  reviewed_at: z.string().optional(),
+  skills: z.string().optional(),
+}).passthrough();
+
+export type PlanFrontmatter = z.infer<typeof PlanFrontmatterSchema>;
 
 // ============================================================================
 // Plan Step Schema

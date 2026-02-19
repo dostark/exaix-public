@@ -28,7 +28,6 @@ import { PlanExecutor } from "./plan_executor.ts";
 import { ExecutionStatus, PortalExecutionStrategy } from "../enums.ts";
 import { PlanStatus } from "../plans/plan_status.ts";
 import { parseStructuredPlanFromMarkdown, type StructuredPlan } from "./structured_plan_parser.ts";
-import { BlueprintLoader } from "./blueprint_loader.ts";
 import { isReadOnlyAgentCapabilities } from "./agent_capabilities.ts";
 import { ArtifactRegistry } from "./artifact_registry.ts";
 import {
@@ -57,18 +56,8 @@ export interface ExecutionResult {
   error?: string;
 }
 
-interface PlanFrontmatter {
-  trace_id: string;
-  request_id: string;
-  agent_id?: string;
-  priority?: number;
-  timeout?: string;
-  status: PlanStatus;
-  created_at: string;
-  updated_at?: string;
-  portal?: string;
-  target_branch?: string;
-}
+import { type PlanFrontmatter, PlanFrontmatterSchema } from "../schemas/plan_schema.ts";
+import { BlueprintLoader } from "./blueprint_loader.ts";
 
 interface PlanAction {
   tool: string;
@@ -594,17 +583,14 @@ export class ExecutionLoop {
       throw new Error("Plan file missing frontmatter");
     }
 
-    const frontmatter = parseYaml(match[1]) as unknown as PlanFrontmatter;
+    const parsed = parseYaml(match[1]);
+    const validated = PlanFrontmatterSchema.safeParse(parsed);
 
-    // Validate required fields
-    if (!frontmatter.trace_id) {
-      throw new Error("Plan missing required field: trace_id");
-    }
-    if (!frontmatter.request_id) {
-      throw new Error("Plan missing required field: request_id");
+    if (!validated.success) {
+      throw new Error(`Invalid plan frontmatter in ${planPath}: ${validated.error.message}`);
     }
 
-    return frontmatter;
+    return validated.data;
   }
 
   /**
@@ -617,19 +603,23 @@ export class ExecutionLoop {
     // Match code blocks that contain action definitions
     // Format: ```toml blocks with tool and params fields
     const codeBlockRegex = /```toml\n([\s\S]*?)\n```/g;
-    let match;
+    let match: RegExpExecArray | null;
 
     while ((match = codeBlockRegex.exec(planContent)) !== null) {
       try {
         const block = match[1];
-        const parsed = parseToml(block) as Record<string, unknown>;
+        const parsed = parseToml(block);
 
         // Check if this looks like an action (has tool field)
-        if (parsed && typeof parsed === "object" && "tool" in parsed) {
+        if (
+          parsed && typeof parsed === "object" && "tool" in parsed &&
+          typeof (parsed as { tool: unknown }).tool === "string"
+        ) {
+          const actionData = parsed as { tool: string; params?: Record<string, JsonValue>; description?: string };
           actions.push({
-            tool: parsed.tool as string,
-            params: (parsed.params as Record<string, JsonValue>) ?? {},
-            description: parsed.description as string | undefined,
+            tool: actionData.tool,
+            params: actionData.params ?? {},
+            description: actionData.description,
           });
         }
       } catch {

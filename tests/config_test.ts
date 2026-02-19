@@ -13,7 +13,7 @@
 
 import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "@std/assert";
 import { parse as parseToml } from "@std/toml";
-import { ProviderCostTier } from "../src/enums.ts";
+import { LogLevel, ProviderCostTier } from "../src/enums.ts";
 
 import { ConfigService } from "../src/config/service.ts";
 import { ConfigSchema } from "../src/config/schema.ts";
@@ -79,7 +79,7 @@ Deno.test("ConfigService computes checksum", async () => {
   const tempDir = await Deno.makeTempDir({ prefix: "config-checksum-test-" });
 
   initializeGlobalLogger({
-    minLevel: "info",
+    minLevel: LogLevel.INFO,
     outputs: [],
     enablePerformanceTracking: false,
     serviceName: "test",
@@ -108,7 +108,7 @@ Deno.test("ConfigService loads config successfully", async () => {
   const tempDir = await Deno.makeTempDir({ prefix: "config-load-test-" });
 
   initializeGlobalLogger({
-    minLevel: "info",
+    minLevel: LogLevel.INFO,
     outputs: [],
     enablePerformanceTracking: false,
     serviceName: "test",
@@ -143,7 +143,7 @@ Deno.test("ConfigService handles missing config file", async (t) => {
 
   // Initialize global logger for tests
   initializeGlobalLogger({
-    minLevel: "info",
+    minLevel: LogLevel.INFO,
     outputs: [],
     enablePerformanceTracking: false,
     serviceName: "test",

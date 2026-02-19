@@ -10,12 +10,13 @@ import {
 } from "../../src/cli/command_builders/plan_actions.ts";
 import type { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
 import type { EventLogger } from "../../src/services/event_logger.ts";
+import { LogLevel } from "../../src/enums.ts";
 
 function createDisplay() {
-  const calls: Array<{ level: "info" | "error"; a: string; b: string; c: any }> = [];
+  const calls: Array<{ level: LogLevel; a: string; b: string; c: any }> = [];
   const display = {
-    info: (a: string, b: string, c: any) => calls.push({ level: "info", a, b, c }),
-    error: (a: string, b: string, c: any) => calls.push({ level: "error", a, b, c }),
+    info: (a: string, b: string, c: any) => calls.push({ level: LogLevel.INFO, a, b, c }),
+    error: (a: string, b: string, c: any) => calls.push({ level: LogLevel.ERROR, a, b, c }),
   };
   return { display, calls };
 }

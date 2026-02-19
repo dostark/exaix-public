@@ -385,6 +385,8 @@ export enum LogLevel {
   WARN = "warn",
   /** Error messages about failures */
   ERROR = "error",
+  /** Critical errors requiring immediate attention */
+  FATAL = "fatal",
 }
 
 /**

@@ -22,7 +22,7 @@ import {
   renderTree,
   toggleNode,
 } from "../helpers/tree_view.ts";
-import { AgentHealth, DialogStatus, TuiGroupBy } from "../enums.ts";
+import { AgentHealth, DialogStatus, LogLevel, TuiGroupBy } from "../enums.ts";
 import { AgentStatus, type AgentStatusType } from "./agent_status/agent_status.ts";
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
@@ -70,7 +70,7 @@ export interface AgentHealthData {
 
 export interface AgentLogEntry {
   timestamp: string;
-  level: "info" | "warn" | "error";
+  level: LogLevel;
   message: string;
   traceId?: string;
 }
@@ -124,9 +124,11 @@ export const AGENT_HEALTH_ICONS: Record<string, string> = {
 };
 
 export const LOG_LEVEL_ICONS: Record<string, string> = {
-  info: TUI_LOG_LEVEL_ICONS.info,
-  warn: TUI_LOG_LEVEL_ICONS.warn,
-  error: TUI_LOG_LEVEL_ICONS.error,
+  [LogLevel.INFO]: TUI_LOG_LEVEL_ICONS.info,
+  [LogLevel.WARN]: TUI_LOG_LEVEL_ICONS.warn,
+  [LogLevel.ERROR]: TUI_LOG_LEVEL_ICONS.error,
+  [LogLevel.DEBUG]: TUI_LOG_LEVEL_ICONS.debug,
+  [LogLevel.FATAL]: TUI_LOG_LEVEL_ICONS.fatal,
 };
 
 export const AGENT_STATUS_COLORS: Record<string, string> = {
@@ -384,7 +386,7 @@ export class MinimalAgentServiceMock implements AgentService {
     return Promise.resolve([
       {
         timestamp: new Date().toISOString(),
-        level: "info",
+        level: LogLevel.INFO,
         message: "Test log entry",
       },
     ]);

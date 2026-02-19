@@ -243,16 +243,17 @@ export class MCPServer {
   private handleInitialize(
     request: JSONRPCRequest,
   ): JSONRPCResponse {
-    const params = request.params as unknown as InitializeParams;
+    const params = request.params;
+    const clientInfo = params.clientInfo as { name: string; version: string } | undefined;
 
     // Log initialization
     this.db.logActivity(
       "mcp.server",
       "mcp.initialize",
-      params.clientInfo?.name || null,
+      clientInfo?.name || null,
       {
-        client_version: params.clientInfo?.version,
-        protocol_version: params.protocolVersion,
+        client_version: clientInfo?.version || null,
+        protocol_version: params.protocolVersion as string,
       },
     );
 

@@ -12,6 +12,7 @@ import {
   ConfidenceLevel,
   ExecutionStatus,
   LearningCategory,
+  LogLevel,
   MemoryOperation,
   MemoryReferenceType,
   MemoryScope,
@@ -284,12 +285,12 @@ export class MockAgentService {
     return Promise.resolve([
       {
         timestamp: new Date().toISOString(),
-        level: "info" as const,
+        level: LogLevel.INFO,
         message: `Agent ${agentId} processed request`,
       },
       {
         timestamp: new Date(Date.now() - 60000).toISOString(),
-        level: "warn" as const,
+        level: LogLevel.WARN,
         message: `Agent ${agentId} encountered minor issue`,
       },
     ]);
@@ -667,8 +668,8 @@ export class MockSkillsService {
  */
 export class MockStructuredLogger {
   private context: Record<string, unknown> = {};
-  private config: { minLevel: string; outputs: unknown[]; enablePerformanceTracking: boolean } = {
-    minLevel: "debug",
+  private config: { minLevel: LogLevel; outputs: unknown[]; enablePerformanceTracking: boolean } = {
+    minLevel: LogLevel.DEBUG,
     outputs: [],
     enablePerformanceTracking: false,
   };

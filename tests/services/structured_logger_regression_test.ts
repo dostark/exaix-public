@@ -2,9 +2,10 @@ import { assertEquals, assertExists } from "@std/assert";
 import { exists } from "@std/fs";
 import { join } from "@std/path";
 import { FileOutput, LogEntry } from "../../src/services/structured_logger.ts";
+import { LogLevel } from "../../src/enums.ts";
 
 const TEST_LOG_MESSAGE = "Test log message";
-const TEST_LOG_LEVEL = "info";
+const TEST_LOG_LEVEL = LogLevel.INFO;
 const TEST_DIR_PREFIX = "exoframe_test_logger_";
 
 /**

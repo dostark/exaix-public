@@ -13,4 +13,4 @@ export {
   pathExistsNoFollow,
   setupWorktreePortalRepo,
   withSingleWorktreePortal,
-} from "./portal_test_utils.ts";
+} from "../../helpers/portal_test_utils.ts";

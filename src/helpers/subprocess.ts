@@ -85,7 +85,8 @@ export class SafeSubprocess {
         throw new SubprocessTimeoutError(`Command timed out after ${timeoutMs}ms: ${command} ${args.join(" ")}`);
       }
 
-      throw new SubprocessError(`Subprocess failed: ${command}`, error as Error);
+      const cause = error instanceof Error ? error : new Error(String(error));
+      throw new SubprocessError(`Subprocess failed: ${command}`, cause);
     }
   }
 }

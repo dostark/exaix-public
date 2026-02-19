@@ -7,6 +7,7 @@
  * @dependencies [SQLite, Config, CircuitBreaker, DatabaseConnectionPool]
  * @related-files [src/services/event_logger.ts, src/services/database_connection_pool.ts]
  */
+import { z } from "zod";
 import { Database } from "@db/sqlite";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
@@ -28,18 +29,21 @@ interface LogEntry {
   timestamp: string;
 }
 
+/** Activity record schema for database validation */
+export const ActivityRecordSchema = z.object({
+  id: z.string(),
+  trace_id: z.string(),
+  actor: z.string().nullable(),
+  agent_id: z.string().nullable(),
+  action_type: z.string(),
+  target: z.string().nullable(),
+  payload: z.string(),
+  timestamp: z.string(),
+  count: z.number().optional(),
+});
+
 /** Activity record returned from database queries */
-export interface ActivityRecord {
-  id: string;
-  trace_id: string;
-  actor: string | null;
-  agent_id: string | null;
-  action_type: string;
-  target: string | null;
-  payload: string;
-  timestamp: string;
-  count?: number; // For aggregation queries
-}
+export type ActivityRecord = z.infer<typeof ActivityRecordSchema>;
 
 interface DatabaseConfigExtended {
   failure_threshold?: number;
@@ -73,11 +77,11 @@ export class DatabaseService {
     this.FLUSH_INTERVAL_MS = config.database.batch_flush_ms;
     this.MAX_BATCH_SIZE = config.database.batch_max_size;
 
-    const dbCfg = (config.database ?? {}) as DatabaseConfigExtended;
+    const dbCfg = config.database;
     const breakerOpts = {
-      failureThreshold: dbCfg.failure_threshold ?? 5,
-      resetTimeout: dbCfg.reset_timeout_ms ?? 60_000,
-      halfOpenSuccessThreshold: dbCfg.half_open_success_threshold ?? 2,
+      failureThreshold: dbCfg?.failure_threshold ?? 5,
+      resetTimeout: dbCfg?.reset_timeout_ms ?? 60_000,
+      halfOpenSuccessThreshold: dbCfg?.half_open_success_threshold ?? 2,
     };
     this.dbBreaker = new CircuitBreaker(breakerOpts);
   }
@@ -317,7 +321,8 @@ export class DatabaseService {
        ORDER BY timestamp`,
     );
 
-    return stmt.all(traceId) as unknown as ActivityRecord[];
+    const rows = stmt.all(traceId);
+    return z.array(ActivityRecordSchema).parse(rows);
   }
 
   /**
@@ -331,7 +336,10 @@ export class DatabaseService {
        ORDER BY timestamp`,
     );
 
-    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(traceId) as unknown as ActivityRecord[]));
+    return await this.dbBreaker.execute(() => {
+      const rows = stmt.all(traceId);
+      return Promise.resolve(z.array(ActivityRecordSchema).parse(rows));
+    });
   }
 
   /**
@@ -345,7 +353,8 @@ export class DatabaseService {
        ORDER BY timestamp`,
     );
 
-    return stmt.all(actionType) as unknown as ActivityRecord[];
+    const rows = stmt.all(actionType);
+    return z.array(ActivityRecordSchema).parse(rows);
   }
 
   /**
@@ -359,7 +368,10 @@ export class DatabaseService {
        ORDER BY timestamp`,
     );
 
-    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(actionType) as unknown as ActivityRecord[]));
+    return await this.dbBreaker.execute(() => {
+      const rows = stmt.all(actionType);
+      return Promise.resolve(z.array(ActivityRecordSchema).parse(rows));
+    });
   }
 
   /**
@@ -385,7 +397,10 @@ export class DatabaseService {
     );
 
     // Use breaker to protect this query
-    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(limit) as unknown as ActivityRecord[]));
+    return await this.dbBreaker.execute(() => {
+      const rows = stmt.all(limit);
+      return Promise.resolve(z.array(ActivityRecordSchema).parse(rows));
+    });
   }
 
   /**
@@ -451,13 +466,16 @@ export class DatabaseService {
     params.push(filter.limit || DEFAULT_QUERY_LIMIT);
 
     const stmt = this.db.prepare(query);
-    return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(...params) as unknown as ActivityRecord[]));
+    return await this.dbBreaker.execute(() => {
+      const rows = stmt.all(...params);
+      return Promise.resolve(z.array(ActivityRecordSchema).parse(rows));
+    });
   }
 
   /**
    * Execute a prepared statement and return a single row (breaker-protected)
    */
-  async preparedGet<T = unknown>(query: string, params: SqliteParam[] = []): Promise<T | null> {
+  async preparedGet<T>(query: string, params: SqliteParam[] = []): Promise<T | null> {
     const stmt = this.db.prepare(query);
     return await this.dbBreaker.execute(() => Promise.resolve(stmt.get(...params) as T | null));
   }
@@ -465,7 +483,7 @@ export class DatabaseService {
   /**
    * Execute a prepared statement and return all rows (breaker-protected)
    */
-  async preparedAll<T = unknown>(query: string, params: SqliteParam[] = []): Promise<T[]> {
+  async preparedAll<T>(query: string, params: SqliteParam[] = []): Promise<T[]> {
     const stmt = this.db.prepare(query);
     return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(...params) as T[]));
   }

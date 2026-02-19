@@ -2,6 +2,7 @@ import { assertEquals, assertExists } from "@std/assert";
 
 import { analyzeTrace } from "../../../src/tui/analytics/trace_analyzer.ts";
 import type { LogEntry } from "../../../src/services/structured_logger.ts";
+import { LogLevel } from "../../../src/enums.ts";
 
 function entry(params: {
   timestamp: string;
@@ -30,8 +31,8 @@ Deno.test("analyzeTrace: returns null for empty entries", () => {
 
 Deno.test("analyzeTrace: returns null when trace_id set is not exactly 1", () => {
   const result = analyzeTrace([
-    entry({ timestamp: "2024-01-01T00:00:00Z", level: "info", traceId: "t1" }),
-    entry({ timestamp: "2024-01-01T00:00:01Z", level: "info", traceId: "t2" }),
+    entry({ timestamp: "2024-01-01T00:00:00Z", level: LogLevel.INFO, traceId: "t1" }),
+    entry({ timestamp: "2024-01-01T00:00:01Z", level: LogLevel.INFO, traceId: "t2" }),
   ]);
 
   assertEquals(result, null);
@@ -39,8 +40,8 @@ Deno.test("analyzeTrace: returns null when trace_id set is not exactly 1", () =>
 
 Deno.test("analyzeTrace: correlationId undefined when multiple correlation IDs", () => {
   const result = analyzeTrace([
-    entry({ timestamp: "2024-01-01T00:00:00Z", level: "info", traceId: "t", correlationId: "c1" }),
-    entry({ timestamp: "2024-01-01T00:00:01Z", level: "info", traceId: "t", correlationId: "c2" }),
+    entry({ timestamp: "2024-01-01T00:00:00Z", level: LogLevel.INFO, traceId: "t", correlationId: "c1" }),
+    entry({ timestamp: "2024-01-01T00:00:01Z", level: LogLevel.INFO, traceId: "t", correlationId: "c2" }),
   ]);
 
   assertExists(result);
@@ -49,9 +50,27 @@ Deno.test("analyzeTrace: correlationId undefined when multiple correlation IDs",
 
 Deno.test("analyzeTrace: sorts operations and computes errorCount/success", () => {
   const result = analyzeTrace([
-    entry({ timestamp: "2024-01-01T00:00:02Z", level: "error", traceId: "t", correlationId: "c", operation: "b" }),
-    entry({ timestamp: "2024-01-01T00:00:00Z", level: "info", traceId: "t", correlationId: "c", operation: "a" }),
-    entry({ timestamp: "2024-01-01T00:00:01Z", level: "fatal", traceId: "t", correlationId: "c", operation: "c" }),
+    entry({
+      timestamp: "2024-01-01T00:00:02Z",
+      level: LogLevel.ERROR,
+      traceId: "t",
+      correlationId: "c",
+      operation: "b",
+    }),
+    entry({
+      timestamp: "2024-01-01T00:00:00Z",
+      level: LogLevel.INFO,
+      traceId: "t",
+      correlationId: "c",
+      operation: "a",
+    }),
+    entry({
+      timestamp: "2024-01-01T00:00:01Z",
+      level: LogLevel.FATAL,
+      traceId: "t",
+      correlationId: "c",
+      operation: "c",
+    }),
   ]);
 
   assertExists(result);

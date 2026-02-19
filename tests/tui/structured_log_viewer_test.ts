@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "@std/assert";
 import { type StructuredLogService, StructuredLogViewer } from "../../src/tui/structured_log_viewer.ts";
 import type { LogEntry, StructuredLogger } from "../../src/services/structured_logger.ts";
+import { LogLevel } from "../../src/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // Mock Service
@@ -11,14 +12,14 @@ class MockLogService implements StructuredLogService {
     this.logs = [
       {
         timestamp: new Date().toISOString(),
-        level: "info",
+        level: LogLevel.INFO,
         message: "Test log 1",
         context: { trace_id: "t1", correlation_id: "c1" },
         metadata: {},
       },
       {
         timestamp: new Date(Date.now() - 1000).toISOString(),
-        level: "error",
+        level: LogLevel.ERROR,
         message: "Test error",
         context: { trace_id: "t2" },
         error: { name: "Error", message: "Boom", stack: "stack..." },
@@ -357,7 +358,7 @@ Deno.test("StructuredLogViewer: real-time updates", async () => {
 
   const newLog: LogEntry = {
     timestamp: new Date().toISOString(),
-    level: "warn",
+    level: LogLevel.WARN,
     message: "Real-time log",
     context: {},
     metadata: {},
@@ -458,7 +459,7 @@ Deno.test("StructuredLogViewer: format log entry coverage", () => {
 
   const complexLog: LogEntry = {
     timestamp: new Date().toISOString(),
-    level: "debug",
+    level: LogLevel.DEBUG,
     message: "Complex log",
     context: {
       trace_id: "trace-123",
@@ -492,13 +493,13 @@ Deno.test("StructuredLogViewer: log level filter", async () => {
   assertEquals(logs.length, 2);
 
   // Filter to only error
-  viewer.setLogLevelFilter(["error"]);
+  viewer.setLogLevelFilter([LogLevel.ERROR]);
   let filtered = viewer.getExtensions().filteredEntries;
   assertEquals(filtered.length, 1);
-  assertEquals(filtered[0].level, "error");
+  assertEquals(filtered[0].level, LogLevel.ERROR);
 
   // Filter to debug (none)
-  viewer.setLogLevelFilter(["debug"]);
+  viewer.setLogLevelFilter([LogLevel.DEBUG]);
   filtered = viewer.getExtensions().filteredEntries;
   assertEquals(filtered.length, 0);
 });

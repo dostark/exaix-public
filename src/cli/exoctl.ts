@@ -369,7 +369,7 @@ export const __test_command = new Command()
         new Command()
           .description("Approve review and merge to main (for code changes) or mark as approved (for artifacts)")
           .action(async (_options, ...args: string[]) => {
-            const id = args[0] as unknown as string;
+            const id = args[0];
             try {
               await reviewCommands.approve(id);
             } catch (error) {
@@ -386,7 +386,7 @@ export const __test_command = new Command()
           .description("Reject review and delete branch (for code changes) or mark as rejected (for artifacts)")
           .option("-r, --reason <reason:string>", "Rejection reason (required)", { required: true })
           .action(async (options, ...args: string[]) => {
-            const id = args[0] as unknown as string;
+            const id = args[0];
             try {
               await reviewCommands.reject(id, options.reason);
             } catch (error) {
@@ -696,8 +696,8 @@ export const __test_command = new Command()
             "Execution strategy: branch (default) or worktree",
           )
           .action(async (options, ...args: string[]) => {
-            const targetPath = args[0] as unknown as string;
-            const alias = args[1] as unknown as string;
+            const targetPath = args[0];
+            const alias = args[1];
             try {
               const strategy = options.executionStrategy as string | undefined;
               const parsedStrategy = strategy
@@ -760,7 +760,7 @@ export const __test_command = new Command()
         new Command()
           .description("Show detailed information about a portal")
           .action(async (_options, ...args: string[]) => {
-            const alias = args[0] as unknown as string;
+            const alias = args[0];
             try {
               const portal = await portalCommands.show(alias);
               display.info("portal.show", portal.alias, {
@@ -788,7 +788,7 @@ export const __test_command = new Command()
           .description("Remove a portal (archives context card)")
           .option("--keep-card", "Keep context card instead of archiving")
           .action(async (options, ...args: string[]) => {
-            const alias = args[0] as unknown as string;
+            const alias = args[0];
             try {
               await portalCommands.remove(alias, { keepCard: options.keepCard });
             } catch (error) {
@@ -832,7 +832,7 @@ export const __test_command = new Command()
         new Command()
           .description("Refresh portal context card (re-scan project)")
           .action(async (_options, ...args: string[]) => {
-            const alias = args[0] as unknown as string;
+            const alias = args[0];
             try {
               await portalCommands.refresh(alias);
             } catch (error) {
@@ -864,7 +864,7 @@ export const __test_command = new Command()
             "Template (default, coder, reviewer, architect, researcher, gemini, mock)",
           )
           .action(async (options, ...args: string[]) => {
-            const agentId = args[0] as unknown as string;
+            const agentId = args[0];
             try {
               const result = await blueprintCommands.create(agentId, {
                 name: options.name,
@@ -924,7 +924,7 @@ export const __test_command = new Command()
         new Command()
           .description("Show blueprint details")
           .action(async (_options, ...args: string[]) => {
-            const agentId = args[0] as unknown as string;
+            const agentId = args[0];
             try {
               const blueprint = await blueprintCommands.show(agentId);
               display.info("blueprint.show", blueprint.agent_id, {
@@ -949,7 +949,7 @@ export const __test_command = new Command()
         new Command()
           .description("Validate blueprint format")
           .action(async (_options, ...args: string[]) => {
-            const agentId = args[0] as unknown as string;
+            const agentId = args[0];
             try {
               const result = await blueprintCommands.validate(agentId);
               if (result.valid) {
@@ -977,7 +977,7 @@ export const __test_command = new Command()
         new Command()
           .description("Edit blueprint in $EDITOR")
           .action(async (_options, ...args: string[]) => {
-            const agentId = args[0] as unknown as string;
+            const agentId = args[0];
             try {
               await blueprintCommands.edit(agentId);
             } catch (error) {
@@ -994,7 +994,7 @@ export const __test_command = new Command()
           .description("Remove a blueprint")
           .option("--force", "Skip confirmation")
           .action(async (options, ...args: string[]) => {
-            const agentId = args[0] as unknown as string;
+            const agentId = args[0];
             try {
               await blueprintCommands.remove(agentId, { force: options.force });
               display.info("blueprint.removed", agentId, { status: "Removed ✓" });
@@ -1027,7 +1027,7 @@ export const __test_command = new Command()
         "rm <agent-id>",
         new Command().description("Alias for 'remove'").option("--force", "Skip confirmation").action(
           async (options, ...args: string[]) => {
-            const agentId = args[0] as unknown as string;
+            const agentId = args[0];
             await blueprintCommands.remove(agentId, { force: options.force });
             display.info("blueprint.removed", agentId, { status: "Removed ✓" });
           },
@@ -1054,7 +1054,7 @@ export const __test_command = new Command()
           .description("Show details of a specific flow")
           .option("--json", "Output in JSON format")
           .action(async (options, ...args: string[]) => {
-            const flowId = args[0] as unknown as string;
+            const flowId = args[0];
             await flowCommands.showFlow(flowId, options);
           }),
       )
@@ -1064,7 +1064,7 @@ export const __test_command = new Command()
           .description("Validate a flow definition")
           .option("--json", "Output in JSON format")
           .action(async (options, ...args: string[]) => {
-            const flowId = args[0] as unknown as string;
+            const flowId = args[0];
             await flowCommands.validateFlow(flowId, options);
           }),
       ),
@@ -1100,7 +1100,7 @@ export const __test_command = new Command()
           .option("-e, --use-embeddings", "Use embedding-based semantic search")
           .option("--format <format:string>", "Output format: table, json, md", { default: "table" })
           .action(async (options, ...args: string[]) => {
-            const query = args[0] as unknown as string;
+            const query = args[0];
             const tags = options.tags ? options.tags.split(",").map((t: string) => t.trim()) : undefined;
             const result = await memoryCommands.search(query, {
               portal: options.portal,
@@ -1138,7 +1138,7 @@ export const __test_command = new Command()
               .description("Show details of a specific project memory")
               .option("--format <format:string>", "Output format: table, json, md", { default: "table" })
               .action(async (options, ...args: string[]) => {
-                const portal = args[0] as unknown as string;
+                const portal = args[0];
                 const result = await memoryCommands.projectShow(portal, options.format as "table" | "json" | "md");
                 console.log(result);
               }),
@@ -1182,7 +1182,7 @@ export const __test_command = new Command()
               .description("Show details of a specific execution")
               .option("--format <format:string>", "Output format: table, json, md", { default: "table" })
               .action(async (options, ...args: string[]) => {
-                const traceId = args[0] as unknown as string;
+                const traceId = args[0];
                 const result = await memoryCommands.executionShow(traceId, options.format as "table" | "json" | "md");
                 console.log(result);
               }),
@@ -1226,7 +1226,7 @@ export const __test_command = new Command()
               .description("Show details of a pending proposal")
               .option("--format <format:string>", "Output format: table, json, md", { default: "table" })
               .action(async (options, ...args: string[]) => {
-                const proposalId = args[0] as unknown as string;
+                const proposalId = args[0];
                 const result = await memoryCommands.pendingShow(proposalId, options.format as "table" | "json" | "md");
                 console.log(result);
               }),
@@ -1236,7 +1236,7 @@ export const __test_command = new Command()
             new Command()
               .description("Approve a pending proposal")
               .action(async (_options, ...args: string[]) => {
-                const proposalId = args[0] as unknown as string;
+                const proposalId = args[0];
                 const result = await memoryCommands.pendingApprove(proposalId);
                 console.log(result);
               }),
@@ -1247,7 +1247,7 @@ export const __test_command = new Command()
               .description("Reject a pending proposal")
               .option("-r, --reason <reason:string>", "Rejection reason", { required: true })
               .action(async (options, ...args: string[]) => {
-                const proposalId = args[0] as unknown as string;
+                const proposalId = args[0];
                 const result = await memoryCommands.pendingReject(proposalId, options.reason);
                 console.log(result);
               }),
@@ -1293,7 +1293,7 @@ export const __test_command = new Command()
               .description("Show details of a specific skill")
               .option("--format <format:string>", "Output format: table, json, md", { default: "table" })
               .action(async (options, ...args: string[]) => {
-                const skillId = args[0] as unknown as string;
+                const skillId = args[0];
                 const result = await memoryCommands.skillShow(skillId, options.format as "table" | "json" | "md");
                 console.log(result);
               }),
@@ -1307,7 +1307,7 @@ export const __test_command = new Command()
               .option("-l, --limit <limit:number>", "Maximum results", { default: 10 })
               .option("--format <format:string>", "Output format: table, json, md", { default: "table" })
               .action(async (options, ...args: string[]) => {
-                const request = args[0] as unknown as string;
+                const request = args[0];
                 const tags = options.tags ? options.tags.split(",").map((t: string) => t.trim()) : undefined;
                 const result = await memoryCommands.skillMatch(request, {
                   taskType: options.taskType,
@@ -1354,7 +1354,7 @@ export const __test_command = new Command()
               .option("-t, --task-types <taskTypes:string>", "Comma-separated trigger task types")
               .option("--format <format:string>", "Output format: table, json, md", { default: "table" })
               .action(async (options, ...args: string[]) => {
-                const name = args[0] as unknown as string;
+                const name = args[0];
                 const keywords = options.keywords
                   ? options.keywords.split(",").map((k: string) => k.trim())
                   : undefined;

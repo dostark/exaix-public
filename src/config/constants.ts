@@ -72,6 +72,9 @@ export const DEFAULT_DATABASE_BATCH_MAX_SIZE = 100;
 export const DEFAULT_DATABASE_JOURNAL_MODE = "WAL";
 export const DEFAULT_DATABASE_FOREIGN_KEYS = true;
 export const DEFAULT_DATABASE_BUSY_TIMEOUT_MS = 5000;
+export const DEFAULT_DATABASE_FAILURE_THRESHOLD = 5;
+export const DEFAULT_DATABASE_RESET_TIMEOUT_MS = 60000;
+export const DEFAULT_DATABASE_HALF_OPEN_SUCCESS_THRESHOLD = 2;
 
 // ============================================================================
 // File Watcher Validation Limits

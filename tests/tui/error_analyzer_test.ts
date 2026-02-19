@@ -1,11 +1,12 @@
 import { assertEquals } from "@std/assert";
 import { detectErrorPatterns } from "../../src/tui/analytics/error_analyzer.ts";
 import type { LogEntry } from "../../src/services/structured_logger.ts";
+import { LogLevel } from "../../src/enums.ts";
 
 function entry(overrides: Partial<LogEntry>): LogEntry {
   return {
     timestamp: overrides.timestamp ?? new Date(0).toISOString(),
-    level: overrides.level ?? "error",
+    level: overrides.level ?? LogLevel.ERROR,
     message: overrides.message ?? "m",
     context: overrides.context ?? {},
     error: overrides.error,
@@ -16,21 +17,21 @@ Deno.test("detectErrorPatterns: groups errors by message and sorts by count", ()
   const entries: LogEntry[] = [
     entry({
       timestamp: new Date(1).toISOString(),
-      level: "error",
+      level: LogLevel.ERROR,
       message: "fallback",
       context: { operation: "op1" },
       error: { name: "E", message: "boom" },
     }),
     entry({
       timestamp: new Date(2).toISOString(),
-      level: "fatal",
+      level: LogLevel.FATAL,
       message: "fallback",
       context: { operation: "op2" },
       error: { name: "E", message: "boom" },
     }),
     entry({
       timestamp: new Date(3).toISOString(),
-      level: "error",
+      level: LogLevel.ERROR,
       message: "other",
       context: {},
     }),

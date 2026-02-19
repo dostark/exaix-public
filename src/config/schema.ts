@@ -120,6 +120,9 @@ export const ConfigSchema = z.object({
       foreign_keys: DEFAULTS.DEFAULT_DATABASE_FOREIGN_KEYS,
       busy_timeout_ms: DEFAULTS.DEFAULT_DATABASE_BUSY_TIMEOUT_MS,
     }),
+    failure_threshold: z.number().default(DEFAULTS.DEFAULT_DATABASE_FAILURE_THRESHOLD),
+    reset_timeout_ms: z.number().default(DEFAULTS.DEFAULT_DATABASE_RESET_TIMEOUT_MS),
+    half_open_success_threshold: z.number().default(DEFAULTS.DEFAULT_DATABASE_HALF_OPEN_SUCCESS_THRESHOLD),
   }).default({
     batch_flush_ms: DEFAULTS.DEFAULT_DATABASE_BATCH_FLUSH_MS,
     batch_max_size: DEFAULTS.DEFAULT_DATABASE_BATCH_MAX_SIZE,
@@ -128,6 +131,9 @@ export const ConfigSchema = z.object({
       foreign_keys: DEFAULTS.DEFAULT_DATABASE_FOREIGN_KEYS,
       busy_timeout_ms: DEFAULTS.DEFAULT_DATABASE_BUSY_TIMEOUT_MS,
     },
+    failure_threshold: DEFAULTS.DEFAULT_DATABASE_FAILURE_THRESHOLD,
+    reset_timeout_ms: DEFAULTS.DEFAULT_DATABASE_RESET_TIMEOUT_MS,
+    half_open_success_threshold: DEFAULTS.DEFAULT_DATABASE_HALF_OPEN_SUCCESS_THRESHOLD,
   }),
   watcher: z.object({
     debounce_ms: z.number()

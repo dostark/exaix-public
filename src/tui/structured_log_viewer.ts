@@ -12,11 +12,11 @@ import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts"
 import { DialogBase } from "../helpers/dialog_base.ts";
 import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import type { LogEntry, LogLevel, StructuredLogger } from "../services/structured_logger.ts";
+import type { LogEntry, StructuredLogger } from "../services/structured_logger.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
-import { DialogStatus } from "../enums.ts";
+import { DialogStatus, LogLevel } from "../enums.ts";
 
 // ===== Service Interfaces =====
 
@@ -96,11 +96,11 @@ export const STRUCTURED_LOG_ICONS: Record<string, string> = {
 };
 
 export const STRUCTURED_LOG_LEVEL_COLORS: Record<LogLevel, string> = {
-  "debug": "gray",
-  "info": "blue",
-  "warn": "yellow",
-  "error": "red",
-  "fatal": "magenta",
+  [LogLevel.DEBUG]: "gray",
+  [LogLevel.INFO]: "blue",
+  [LogLevel.WARN]: "yellow",
+  [LogLevel.ERROR]: "red",
+  [LogLevel.FATAL]: "magenta",
 };
 
 // ===== Key Bindings =====
@@ -326,7 +326,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
       bookmarkedIds: new Set(),
       groupBy: "correlation",
       autoRefresh: testMode ? false : true,
-      logLevelFilter: ["debug", "info", "warn", "error", "fatal"],
+      logLevelFilter: [LogLevel.DEBUG, LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR, LogLevel.FATAL],
       showPerformanceMetrics: true,
       correlationMode: false,
       activeCorrelationId: null,
@@ -503,7 +503,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
       case "agent":
         return STRUCTURED_LOG_ICONS.agent;
       case "level":
-        return STRUCTURED_LOG_ICONS[STRUCTURED_LOG_LEVEL_COLORS.debug] || "📊";
+        return STRUCTURED_LOG_ICONS[LogLevel.DEBUG] || "📊";
       case "time":
         return "🕐";
       default:

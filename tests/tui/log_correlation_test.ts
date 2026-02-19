@@ -13,12 +13,13 @@ import {
   groupByCorrelation,
 } from "../../src/tui/log_correlation.ts";
 import type { LogEntry } from "../../src/services/structured_logger.ts";
+import { LogLevel } from "../../src/enums.ts";
 
 // Helper to create mock log entries
 function createLogEntry(
   id: number,
   timestamp: string,
-  level: string,
+  level: LogLevel,
   context: {
     correlation_id?: string;
     trace_id?: string;
@@ -30,7 +31,7 @@ function createLogEntry(
 ): LogEntry {
   return {
     timestamp: new Date(timestamp).toISOString(),
-    level: level as "debug" | "info" | "warn" | "error" | "fatal",
+    level: level,
     message: `Log message ${id}`,
     context: {
       ...context,
@@ -48,13 +49,13 @@ function createLogEntry(
 
 Deno.test("[analyzeCorrelation] analyzes correlation correctly", () => {
   const entries = [
-    createLogEntry(1, "2024-01-01T10:00:00Z", "info", {
+    createLogEntry(1, "2024-01-01T10:00:00Z", LogLevel.INFO, {
       correlation_id: "corr-1",
       trace_id: "trace-1",
       agent_id: "agent-1",
       operation: "op-1",
     }, { duration_ms: 100 }),
-    createLogEntry(2, "2024-01-01T10:00:01Z", "info", {
+    createLogEntry(2, "2024-01-01T10:00:01Z", LogLevel.INFO, {
       correlation_id: "corr-1",
       trace_id: "trace-2",
       agent_id: "agent-1",
@@ -75,8 +76,8 @@ Deno.test("[analyzeCorrelation] analyzes correlation correctly", () => {
 
 Deno.test("[analyzeCorrelation] returns null mixed correlation IDs", () => {
   const entries = [
-    createLogEntry(1, "2024-01-01T10:00:00Z", "info", { correlation_id: "corr-1" }),
-    createLogEntry(2, "2024-01-01T10:00:01Z", "info", { correlation_id: "corr-2" }),
+    createLogEntry(1, "2024-01-01T10:00:00Z", LogLevel.INFO, { correlation_id: "corr-1" }),
+    createLogEntry(2, "2024-01-01T10:00:01Z", LogLevel.INFO, { correlation_id: "corr-2" }),
   ];
 
   const result = analyzeCorrelation(entries);
@@ -85,12 +86,12 @@ Deno.test("[analyzeCorrelation] returns null mixed correlation IDs", () => {
 
 Deno.test("[analyzeTrace] analyzes trace correctly", () => {
   const entries = [
-    createLogEntry(2, "2024-01-01T10:00:01Z", "info", {
+    createLogEntry(2, "2024-01-01T10:00:01Z", LogLevel.INFO, {
       trace_id: "trace-1",
       correlation_id: "corr-1",
       operation: "step-2",
     }),
-    createLogEntry(1, "2024-01-01T10:00:00Z", "info", {
+    createLogEntry(1, "2024-01-01T10:00:00Z", LogLevel.INFO, {
       trace_id: "trace-1",
       correlation_id: "corr-1",
       operation: "step-1",
@@ -111,9 +112,9 @@ Deno.test("[analyzeTrace] analyzes trace correctly", () => {
 
 Deno.test("[findRelatedLogs] filters by correlation ID", () => {
   const entries = [
-    createLogEntry(1, "2024-01-01T10:00:00Z", "info", { correlation_id: "c1" }),
-    createLogEntry(2, "2024-01-01T10:00:01Z", "info", { correlation_id: "c2" }),
-    createLogEntry(3, "2024-01-01T10:00:02Z", "info", { correlation_id: "c1" }),
+    createLogEntry(1, "2024-01-01T10:00:00Z", LogLevel.INFO, { correlation_id: "c1" }),
+    createLogEntry(2, "2024-01-01T10:00:01Z", LogLevel.INFO, { correlation_id: "c2" }),
+    createLogEntry(3, "2024-01-01T10:00:02Z", LogLevel.INFO, { correlation_id: "c1" }),
   ];
 
   const result = findRelatedLogs(entries, "c1");
@@ -124,8 +125,8 @@ Deno.test("[findRelatedLogs] filters by correlation ID", () => {
 
 Deno.test("[findTraceLogs] filters by trace ID", () => {
   const entries = [
-    createLogEntry(1, "2024-01-01T10:00:00Z", "info", { trace_id: "t1" }),
-    createLogEntry(2, "2024-01-01T10:00:01Z", "info", { trace_id: "t2" }),
+    createLogEntry(1, "2024-01-01T10:00:00Z", LogLevel.INFO, { trace_id: "t1" }),
+    createLogEntry(2, "2024-01-01T10:00:01Z", LogLevel.INFO, { trace_id: "t2" }),
   ];
 
   const result = findTraceLogs(entries, "t1");
@@ -135,9 +136,9 @@ Deno.test("[findTraceLogs] filters by trace ID", () => {
 
 Deno.test("[groupByCorrelation] groups correctly", () => {
   const entries = [
-    createLogEntry(1, "2024-01-01T10:00:00Z", "info", { correlation_id: "c1" }),
-    createLogEntry(2, "2024-01-01T10:00:01Z", "info", { correlation_id: "c2" }),
-    createLogEntry(3, "2024-01-01T10:00:02Z", "info", { correlation_id: "c1" }),
+    createLogEntry(1, "2024-01-01T10:00:00Z", LogLevel.INFO, { correlation_id: "c1" }),
+    createLogEntry(2, "2024-01-01T10:00:01Z", LogLevel.INFO, { correlation_id: "c2" }),
+    createLogEntry(3, "2024-01-01T10:00:02Z", LogLevel.INFO, { correlation_id: "c1" }),
   ];
 
   const result = groupByCorrelation(entries);
@@ -148,10 +149,10 @@ Deno.test("[groupByCorrelation] groups correctly", () => {
 
 Deno.test("[calculatePerformanceStats] calculates stats correctly", () => {
   const entries = [
-    createLogEntry(1, "2024-01-01T10:00:00Z", "info", {}, { duration_ms: 100 }),
-    createLogEntry(2, "2024-01-01T10:00:01Z", "info", {}, { duration_ms: 200 }),
-    createLogEntry(3, "2024-01-01T10:00:02Z", "info", {}, { duration_ms: 300 }),
-    createLogEntry(4, "2024-01-01T10:00:03Z", "error", {}, { duration_ms: 400 }),
+    createLogEntry(1, "2024-01-01T10:00:00Z", LogLevel.INFO, {}, { duration_ms: 100 }),
+    createLogEntry(2, "2024-01-01T10:00:01Z", LogLevel.INFO, {}, { duration_ms: 200 }),
+    createLogEntry(3, "2024-01-01T10:00:02Z", LogLevel.INFO, {}, { duration_ms: 300 }),
+    createLogEntry(4, "2024-01-01T10:00:03Z", LogLevel.ERROR, {}, { duration_ms: 400 }),
   ];
 
   const result = calculatePerformanceStats(entries);
@@ -165,9 +166,9 @@ Deno.test("[calculatePerformanceStats] calculates stats correctly", () => {
 
 Deno.test("[detectErrorPatterns] patterns correctly", () => {
   const entries = [
-    createLogEntry(1, "2024-01-01T10:00:00Z", "error", { operation: "op-1" }, undefined, { message: "timeout" }),
-    createLogEntry(2, "2024-01-01T10:00:01Z", "error", { operation: "op-2" }, undefined, { message: "timeout" }),
-    createLogEntry(3, "2024-01-01T10:00:02Z", "error", { operation: "op-3" }, undefined, {
+    createLogEntry(1, "2024-01-01T10:00:00Z", LogLevel.ERROR, { operation: "op-1" }, undefined, { message: "timeout" }),
+    createLogEntry(2, "2024-01-01T10:00:01Z", LogLevel.ERROR, { operation: "op-2" }, undefined, { message: "timeout" }),
+    createLogEntry(3, "2024-01-01T10:00:02Z", LogLevel.ERROR, { operation: "op-3" }, undefined, {
       message: "connection refused",
     }),
   ];

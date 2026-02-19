@@ -304,6 +304,14 @@ export class HealthCheckService {
       duration_ms: Math.round(options.durationMs),
     };
   }
+
+  /**
+   * Get the state of a specific check's circuit breaker
+   */
+  public getCheckCircuitState(name: string): string | null {
+    const cb = this.checkBreakers.get(name);
+    return cb ? cb.getState() : null;
+  }
 }
 
 /**
@@ -538,26 +546,7 @@ export function initializeHealthChecks(
   return health;
 }
 
-// expose circuit state for checks for testing/inspection
-export interface HealthCheckServiceWithInspection extends HealthCheckService {
-  getCheckCircuitState(name: string): string | null;
-}
-
-// Add runtime method on prototype for inspection
-(HealthCheckService.prototype as HealthCheckServiceWithInspection).getCheckCircuitState = function (
-  this: HealthCheckService,
-  name: string,
-) {
-  // Access private checkBreakers property through type-safe intersection
-  // deno-lint-ignore no-explicit-any
-  const self = this as any as { checkBreakers?: Map<string, CircuitBreaker> };
-  const cb = self.checkBreakers?.get(name);
-  return cb ? cb.getState() : null;
-};
-
-/**
- * Health check middleware context
- */
+// Health check middleware context
 interface HealthContext extends ServiceContext {
   req: Request;
   health: HealthCheckService;
@@ -647,5 +636,9 @@ export async function handleHealthCheck(
     });
   });
 
-  return context.res as Response;
+  if (!context.res) {
+    throw new Error("Health check handler failed to produce a response");
+  }
+
+  return context.res;
 }

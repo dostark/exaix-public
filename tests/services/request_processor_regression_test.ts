@@ -4,6 +4,7 @@ import { ConfigService } from "../../src/config/service.ts";
 import { join } from "@std/path";
 import { ConsoleOutput, initializeGlobalLogger, resetGlobalLogger } from "../../src/services/structured_logger.ts";
 import { REPO_ROOT } from "../helpers/repo_root.ts";
+import { LogLevel } from "../../src/enums.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";
 
 /**
@@ -16,7 +17,7 @@ Deno.test("[regression] RequestProcessor uses ProviderSelector when no testProvi
 
   // Initialize global logger for ConfigService
   initializeGlobalLogger({
-    minLevel: "error",
+    minLevel: LogLevel.ERROR,
     outputs: [new ConsoleOutput()],
     enablePerformanceTracking: false,
   });

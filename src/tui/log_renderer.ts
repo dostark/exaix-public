@@ -17,7 +17,8 @@ import {
   TIME_MS_PER_SECOND,
 } from "../config/constants.ts";
 import { colorize, type TuiTheme } from "../helpers/colors.ts";
-import type { LogEntry, LogLevel } from "../services/structured_logger.ts";
+import type { LogEntry } from "../services/structured_logger.ts";
+import { LogLevel } from "../enums.ts";
 
 /**
  * Log rendering options
@@ -319,16 +320,16 @@ export function renderLogSummary(entries: LogEntry[], options: Partial<LogRender
  * Get level-specific display information
  */
 function getLevelInfo(level: LogLevel): { icon: string; color: string } {
-  switch (level) {
-    case "fatal":
+  switch (level as LogLevel) {
+    case LogLevel.FATAL:
       return { icon: "💥", color: "magenta" };
-    case "error":
+    case LogLevel.ERROR:
       return { icon: "❌", color: "red" };
-    case "warn":
+    case LogLevel.WARN:
       return { icon: "⚠️", color: "yellow" };
-    case "info":
+    case LogLevel.INFO:
       return { icon: "ℹ️", color: "blue" };
-    case "debug":
+    case LogLevel.DEBUG:
       return { icon: "🔍", color: "gray" };
     default:
       return { icon: "📋", color: "white" };
