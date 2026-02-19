@@ -9,7 +9,7 @@
  * @related-files [src/services/execution_loop.ts, src/services/watcher.ts, src/cli/daemon_commands.ts]
  */
 import { ConfigService } from "./config/service.ts";
-import { DaemonStatus } from "./enums.ts";
+import { DaemonStatus, LogLevel } from "./enums.ts";
 import { FileWatcher } from "./services/watcher.ts";
 import { DatabaseService } from "./services/db.ts";
 import { ProviderFactory } from "./ai/provider_factory.ts";
@@ -64,7 +64,7 @@ if (import.meta.main) {
     }
 
     initializeGlobalLogger({
-      minLevel: config.system.log_level as "debug" | "info" | "warn" | "error" | "fatal",
+      minLevel: config.system.log_level as LogLevel,
       outputs: structuredOutputs,
       enablePerformanceTracking: true,
       serviceName: "exoframe-daemon",
