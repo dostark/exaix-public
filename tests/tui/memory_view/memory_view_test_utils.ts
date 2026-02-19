@@ -230,7 +230,7 @@ export function createTestSession(): MemoryViewTuiSession {
   return new MemoryViewTuiSession(mockService as unknown as MemoryServiceInterface);
 }
 
-export interface ServiceOptions {
+export interface IMemoryViewServiceOptions {
   projects?: string[];
   executions?: ExecutionMemory[];
   pending?: MemoryUpdateProposal[];
@@ -239,7 +239,7 @@ export interface ServiceOptions {
   searchResults?: MemorySearchResult[];
 }
 
-export function createConfiguredService(options: ServiceOptions = {}): ExtendedMockMemoryService {
+export function createConfiguredService(options: IMemoryViewServiceOptions = {}): ExtendedMockMemoryService {
   const service = new ExtendedMockMemoryService();
   service.setProjects(options.projects || []);
   service.setExecutions(options.executions || []);
@@ -259,7 +259,7 @@ export function createConfiguredService(options: ServiceOptions = {}): ExtendedM
 import { KEYS } from "../../../src/helpers/keyboard.ts";
 
 export async function setupSession(
-  options: ServiceOptions = {},
+  options: IMemoryViewServiceOptions = {},
 ): Promise<{ session: MemoryViewTuiSession; service: ExtendedMockMemoryService }> {
   const service = createConfiguredService(options);
   const session = createSessionWithService(service);
@@ -293,7 +293,7 @@ export function renderDialog(dialog: DialogBase): string {
 
 export function testSessionRender(
   name: string,
-  options: ServiceOptions,
+  options: IMemoryViewServiceOptions,
   keys: string[],
   check?: (session: MemoryViewTuiSession) => void | Promise<void>,
 ) {

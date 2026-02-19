@@ -1,7 +1,7 @@
 import { ConfirmDialog, InputDialog } from "../../src/helpers/dialog_base.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
-export interface MockHandlers {
+export interface IRequestManagerMockHandlers {
   handleSearchResult: (value: string) => void;
   handleFilterStatusResult: (value: string) => void;
   handleFilterAgentResult: (value: string) => void;
@@ -13,8 +13,8 @@ export interface MockHandlers {
 
 export function createMockHandlers(
   calls: string[],
-  overrides: Partial<MockHandlers> = {},
-): MockHandlers {
+  overrides: Partial<IRequestManagerMockHandlers> = {},
+): IRequestManagerMockHandlers {
   return {
     handleSearchResult: (value: string) => {
       calls.push(`search:${value}`);

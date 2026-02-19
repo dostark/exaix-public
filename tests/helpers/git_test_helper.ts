@@ -13,7 +13,7 @@ import type { Config } from "../../src/config/schema.ts";
  * Provides utilities for testing git operations with automatic setup/cleanup.
  */
 
-export interface GitTestContext {
+export interface IGitTestContext {
   tempDir: string;
   repoDir: string;
   db: DatabaseService;
@@ -76,7 +76,7 @@ export async function setupGitRepo(path: string, options: { initialCommit?: bool
 /**
  * Creates a test environment with initialized git repository
  */
-export async function createGitTestContext(prefix: string = "git-test-"): Promise<GitTestContext> {
+export async function createGitTestContext(prefix: string = "git-test-"): Promise<IGitTestContext> {
   const rawTempDir = await Deno.makeTempDir({ prefix });
   const tempDir = await Deno.realPath(rawTempDir);
   const { db, cleanup: dbCleanup } = await initTestDbService();

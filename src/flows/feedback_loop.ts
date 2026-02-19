@@ -8,7 +8,7 @@
  */
 
 import { z } from "zod";
-import { EvaluationCriterion, getCriteriaByNames } from "./evaluation_criteria.ts";
+import { EvaluationCriterion, EvaluationCriterionSchema, getCriteriaByNames } from "./evaluation_criteria.ts";
 import { FlowGateOnFail } from "../enums.ts";
 import { GateEvaluator, GateResult } from "./gate_evaluator.ts";
 import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../helpers/constants.ts";
@@ -24,7 +24,7 @@ export const FeedbackLoopConfigSchema = z.object({
   /** Judge agent ID */
   evaluator: z.string(),
   /** Criteria to evaluate against */
-  criteria: z.array(z.union([z.string(), z.any()])),
+  criteria: z.array(z.union([z.string(), EvaluationCriterionSchema])),
   /** Minimum score improvement to continue looping */
   minImprovement: z.number().min(0).max(1).default(0.05),
   /** Whether to include previous attempts in context */

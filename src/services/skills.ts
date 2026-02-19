@@ -27,7 +27,7 @@ import {
   SkillSchema,
   type SkillTriggers,
 } from "../schemas/memory_bank.ts";
-import { JSONValue, toSafeJson } from "../types.ts";
+import { JSONObject, JSONValue, toSafeJson } from "../types.ts";
 
 /**
  * Skills Service Configuration
@@ -730,24 +730,24 @@ export class SkillsService {
     }
 
     try {
-      const frontmatter = parseYaml(frontmatterMatch[1]) as Record<string, unknown>;
+      const frontmatter = parseYaml(frontmatterMatch[1]) as JSONObject;
       const body = frontmatterMatch[2].trim();
 
       // Map source values (core/project maps to user for schema compatibility)
-      let source = frontmatter.source as string;
+      let source = String(frontmatter.source || MemorySource.USER);
       if (source === "core" || source === "project") {
         source = MemorySource.USER;
       }
 
       // Build skill object
       const skill: Skill = {
-        id: frontmatter.id as string,
-        skill_id: frontmatter.skill_id as string,
-        name: frontmatter.name as string,
-        version: frontmatter.version as string,
-        description: frontmatter.description as string,
-        scope: frontmatter.scope as MemoryScope,
-        project: frontmatter.project as string | undefined,
+        id: String(frontmatter.id || crypto.randomUUID()),
+        skill_id: String(frontmatter.skill_id || "unknown-skill"),
+        name: String(frontmatter.name || "Unnamed Skill"),
+        version: String(frontmatter.version || "1.0.0"),
+        description: String(frontmatter.description || ""),
+        scope: (frontmatter.scope as MemoryScope) || MemoryScope.GLOBAL,
+        project: frontmatter.project ? String(frontmatter.project) : undefined,
         status: frontmatter.status as SkillStatus,
         source: source as MemorySource,
         source_id: frontmatter.source_id as string | undefined,

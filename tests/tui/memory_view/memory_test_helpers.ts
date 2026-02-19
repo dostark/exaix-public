@@ -1,7 +1,7 @@
 import { MemoryServiceInterface } from "../../../src/tui/memory_view/types.ts";
 import { DialogStatus } from "../../../src/enums.ts";
 
-export interface MockContext {
+export interface IMemoryViewTestContext {
   statuses: string[];
   counters: {
     readonly treeReloads: number;
@@ -40,7 +40,7 @@ export function createMockDialog<T>(
   return dialog as { getResult: () => { type: DialogStatus; value?: T } };
 }
 
-export function createTestContext(overrides?: Partial<{ service: MemoryServiceInterface }>): MockContext {
+export function createTestContext(overrides?: Partial<{ service: MemoryServiceInterface }>): IMemoryViewTestContext {
   const statuses: string[] = [];
   let treeReloads = 0;
   let pendingReloads = 0;
@@ -78,10 +78,13 @@ export function testDialogProcess<T>(
   name: string,
   setup: () => {
     dialog: { getResult: () => { type: DialogStatus; value?: T } };
-    ctx: MockContext;
-    process: (dialog: { getResult: () => { type: DialogStatus; value?: T } }, ctx: MockContext["ctx"]) => Promise<void>;
+    ctx: IMemoryViewTestContext;
+    process: (
+      dialog: { getResult: () => { type: DialogStatus; value?: T } },
+      ctx: IMemoryViewTestContext["ctx"],
+    ) => Promise<void>;
   },
-  verify: (ctx: MockContext) => void | Promise<void>,
+  verify: (ctx: IMemoryViewTestContext) => void | Promise<void>,
 ) {
   Deno.test(name, async () => {
     const { dialog, ctx, process } = setup();

@@ -12,6 +12,7 @@ import {
   calculateWeightedScore,
   checkRequiredCriteria,
   EvaluationCriterion,
+  EvaluationCriterionSchema,
   EvaluationResult,
   getCriteriaByNames,
 } from "./evaluation_criteria.ts";
@@ -25,7 +26,7 @@ export const GateConfigSchema = z.object({
   /** Judge agent to use for evaluation */
   agent: z.string(),
   /** Criteria names or objects to evaluate against */
-  criteria: z.array(z.union([z.string(), z.any()])),
+  criteria: z.array(z.union([z.string(), EvaluationCriterionSchema])),
   /** Score threshold for passing (0.0 - 1.0) */
   threshold: z.number().min(0).max(1).default(0.8),
   /** Action to take on gate failure */

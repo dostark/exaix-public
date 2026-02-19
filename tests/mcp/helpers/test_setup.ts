@@ -15,7 +15,15 @@ import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
 import type { JSONValue } from "../../../src/types.ts";
 
-export interface MCPTestContext {
+export interface IToolPermissionOptions {
+  portalAlias?: string;
+  operations?: PortalOperation[];
+  agentId?: string;
+  fileContent?: Record<string, string>;
+  initGit?: boolean;
+}
+
+export interface IMCPTestContext {
   tempDir: string;
   portalPath: string;
   server: MCPServer;
@@ -23,7 +31,7 @@ export interface MCPTestContext {
   cleanup: () => Promise<void>;
 }
 
-export interface PortalTestOptions {
+export interface IPortalTestOptions {
   portalAlias?: string;
   createFiles?: boolean;
   fileContent?: Record<string, string>;
@@ -40,7 +48,7 @@ export { setupGitRepo };
 /**
  * Helper to initialize common test environment (files, git, db, config)
  */
-async function initTestEnv(options: PortalTestOptions & { prefix?: string }) {
+async function initTestEnv(options: IPortalTestOptions & { prefix?: string }) {
   const {
     portalAlias = "TestPortal",
     createFiles = false,
@@ -94,8 +102,8 @@ async function initTestEnv(options: PortalTestOptions & { prefix?: string }) {
  * Initialize MCP server test environment with portal
  */
 export async function initMCPTest(
-  options: PortalTestOptions = {},
-): Promise<MCPTestContext> {
+  options: IPortalTestOptions = {},
+): Promise<IMCPTestContext> {
   const env = await initTestEnv(options);
   const server = new MCPServer({ config: env.config, db: env.db, transport: MCPTransport.STDIO });
   await server.start();
@@ -119,7 +127,7 @@ export async function initMCPTest(
 // ...
 
 export async function initToolPermissionTest(
-  options: ToolPermissionOptions = {},
+  options: IToolPermissionOptions = {},
 ): Promise<ToolPermissionTestContext> {
   const {
     portalAlias = "TestPortal",
@@ -161,7 +169,7 @@ export async function initToolPermissionTest(
  * Initialize MCP server without any portals (for testing portal errors)
  */
 export async function initMCPTestWithoutPortal(): Promise<
-  Omit<MCPTestContext, "portalPath">
+  Omit<IMCPTestContext, "portalPath">
 > {
   const tempDir = await Deno.makeTempDir({ prefix: "mcp-test-" });
   const { db, cleanup: dbCleanup } = await initTestDbService();
@@ -324,12 +332,4 @@ export interface ToolPermissionTestContext {
   db: Awaited<ReturnType<typeof initTestDbService>>["db"];
   permissions: PortalPermissions;
   cleanup: () => Promise<void>;
-}
-
-export interface ToolPermissionOptions {
-  portalAlias?: string;
-  operations?: PortalOperation[];
-  agentId?: string;
-  fileContent?: Record<string, string>;
-  initGit?: boolean;
 }

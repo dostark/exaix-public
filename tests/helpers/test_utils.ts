@@ -31,7 +31,7 @@ export class TestDataFactory<T> {
   }
 }
 
-export interface TestRequestFixture {
+export interface ITestRequestFixture {
   trace_id: string;
   filename: string;
   title: string;
@@ -62,7 +62,7 @@ export interface TestSkillFixture {
 }
 
 // Request factory
-export const requestFactory = new TestDataFactory<TestRequestFixture>(() => ({
+export const requestFactory = new TestDataFactory<ITestRequestFixture>(() => ({
   trace_id: `req-${Math.floor(Math.random() * 1e6)}`,
   filename: "request.md",
   title: "Request",
@@ -141,12 +141,12 @@ export abstract class BaseMockService<T extends { id?: string; trace_id?: string
 /**
  * Mock service for requests with common operations
  */
-export class MockRequestService extends BaseMockService<TestRequestFixture> {
-  constructor(initialRequests: TestRequestFixture[] = []) {
+export class MockRequestService extends BaseMockService<ITestRequestFixture> {
+  constructor(initialRequests: ITestRequestFixture[] = []) {
     super(initialRequests);
   }
 
-  listRequests(status?: RequestStatusType): Promise<TestRequestFixture[]> {
+  listRequests(status?: RequestStatusType): Promise<ITestRequestFixture[]> {
     if (status) {
       return Promise.resolve(this.items.filter((r) => r.status === status));
     }
@@ -161,7 +161,7 @@ export class MockRequestService extends BaseMockService<TestRequestFixture> {
   createRequest(
     description: string,
     options?: { priority?: string; agent?: string; portal?: string; model?: string },
-  ): Promise<TestRequestFixture> {
+  ): Promise<ITestRequestFixture> {
     return this.create({
       trace_id: `test-${Date.now()}`,
       filename: `request-test.md`,
@@ -269,7 +269,7 @@ export const commonTestData = {
 
   // Standard mock objects
   mockObjects: {
-    newRequest: (): TestRequestFixture => ({
+    newRequest: (): ITestRequestFixture => ({
       trace_id: "new-req",
       filename: "request-new.md",
       title: "New Request",

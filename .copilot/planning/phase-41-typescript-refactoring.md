@@ -22,12 +22,13 @@ Implement a comprehensive refactoring strategy based on an "Onion Architecture" 
 ## Goals
 
 - [ ] Enable `strict: true` in `deno.json`.
-- [ ] Eliminate all usage of `any` and improper `unknown` in `src/` (per `CONTRIBUTING.md` §1.5).
+- [x] Eliminate all usage of `any` and improper `unknown` in `src/` (per `CONTRIBUTING.md` §1.5).
+- [ ] Eliminate all usage of `any` and improper `unknown` in `tests/` (per `CONTRIBUTING.md` §1.5).
 - [ ] Define strict return types for all `IDatabaseService` methods.
 - [ ] Refactor `ExecutionLoop` and `PlanExecutor` to use fully typed interfaces.
 - [ ] Ensure all LLM provider responses are validated against Zod schemas.
 - [x] Update all test mocks to implement full interfaces without `as any` casting.
-- [ ] Create `scripts/check_type_safety.ts` CI script that enforces zero `any`/`unknown` usage across `src/`.
+- [ ] Create `scripts/check_type_safety.ts` CI script that enforces zero `any`/`unknown` usage across `src/` and `tests/`.
 - [ ] Integrate the new script as `deno task check:types` in `deno.json` and in `scripts/ci.ts`.
 
 ---
@@ -137,7 +138,8 @@ Refer to `CONTRIBUTING.md` (Section 1.5 Strict Type Safety) and `README.md` for 
 2. **Batch 2 (Core Services)**: Refactor `ExecutionLoop`, `PlanExecutor`, `GitService` signatures.
 3. **Batch 3 (Edges)**: CLI Commands and TUI View Models.
 4. [x] **Batch 4 (Tests)**: Update mocks and test helpers.
-5. **Batch 5 (CI Guard)**: Implement `check_type_safety.ts`, register task, integrate into `ci.ts` and pre-commit hook.
+5. **Batch 5 (Tests Type Safety)**: Eliminate `any` and improper `unknown` in `tests/`.
+6. **Batch 6 (CI Guard)**: Implement `check_type_safety.ts`, register task, integrate into `ci.ts` and pre-commit hook.
 
 ---
 

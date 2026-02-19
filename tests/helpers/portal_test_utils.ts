@@ -15,7 +15,7 @@ import { ReviewRegistry } from "../../src/services/review_registry.ts";
 import type { TestEnvironment } from "../integration/helpers/test_environment.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
 
-export interface PortalTestSetup {
+export interface IPortalTestSetup {
   portalAlias: string;
   portalTargetPath: string;
   config: Config;
@@ -29,7 +29,7 @@ export async function setupPortalTest(
   tempDir: string,
   portalAlias: string = "write-portal",
   options?: { branch?: string; withSrcDir?: boolean },
-): Promise<PortalTestSetup> {
+): Promise<IPortalTestSetup> {
   const { branch = "main", withSrcDir = true } = options || {};
   const portalTargetPath = join(tempDir, "portal-write-target");
 
