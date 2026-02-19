@@ -15,7 +15,7 @@ import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { parse as parseYaml, stringify as stringifyYaml } from "@std/yaml";
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "./db.ts";
+import type { IDatabaseService } from "./db.ts";
 import { MemoryScope, MemorySource, SkillStatus } from "../enums.ts";
 import { extractKeywords } from "../helpers/text.ts";
 import {
@@ -27,7 +27,7 @@ import {
   SkillSchema,
   type SkillTriggers,
 } from "../schemas/memory_bank.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
 
 /**
  * Skills Service Configuration
@@ -85,7 +85,7 @@ export class SkillsService {
 
   constructor(
     private config: Config,
-    private db: DatabaseService,
+    private db: IDatabaseService,
     skillsConfig?: Partial<SkillsConfig>,
   ) {
     this.blueprintsSkillsDir = join(config.system.root, config.paths.memory, "Skills");
@@ -805,18 +805,11 @@ export class SkillsService {
     metadata?: Record<string, JsonValue>;
   }): void {
     try {
-      this.db.instance.exec(
-        `INSERT INTO activity_journal (id, trace_id, event_type, actor, target, metadata, timestamp)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          crypto.randomUUID(),
-          crypto.randomUUID(),
-          event.event_type,
-          "skills_service",
-          event.target,
-          JSON.stringify(event.metadata || {}),
-          new Date().toISOString(),
-        ],
+      this.db.logActivity(
+        "skills_service",
+        event.event_type,
+        event.target,
+        toSafeJson(event.metadata) as Record<string, JsonValue>,
       );
     } catch {
       // Silently ignore logging errors - non-critical

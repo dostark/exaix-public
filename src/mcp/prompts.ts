@@ -8,7 +8,7 @@
  */
 
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
+import type { IDatabaseService } from "../services/db.ts";
 
 // ============================================================================
 // Types
@@ -101,7 +101,7 @@ export function getPrompt(name: string): MCPPrompt | null {
  */
 export function generateExecutePlanPrompt(
   args: { plan_id: string; portal: string },
-  db: DatabaseService,
+  db: IDatabaseService,
 ): MCPPromptResult {
   const { plan_id, portal } = args;
 
@@ -166,7 +166,7 @@ Begin executing the plan.`,
  */
 export function generateCreateReviewPrompt(
   args: { portal: string; description: string; trace_id: string },
-  db: DatabaseService,
+  db: IDatabaseService,
 ): MCPPromptResult {
   const { portal, description, trace_id } = args;
 
@@ -239,7 +239,7 @@ export function generatePrompt(
   name: string,
   args: Record<string, unknown>,
   _config: Config,
-  db: DatabaseService,
+  db: IDatabaseService,
 ): MCPPromptResult | null {
   switch (name) {
     case "execute_plan":

@@ -10,7 +10,7 @@
 import { exists } from "@std/fs";
 import { join } from "@std/path";
 import type { Config } from "../../config/schema.ts";
-import type { DatabaseService } from "../../services/db.ts";
+import type { IDatabaseService } from "../../services/db.ts";
 import { MemoryBankService } from "../../services/memory_bank.ts";
 import { MemoryExtractorService } from "../../services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../../services/memory_embedding.ts";
@@ -23,7 +23,7 @@ import { MemoryBankSummary, OutputFormat } from "../memory_types.ts";
 
 export interface MemoryCommandsContext {
   config: Config;
-  db: DatabaseService;
+  db: IDatabaseService;
 }
 
 /**
@@ -33,7 +33,7 @@ export interface MemoryCommandsContext {
  */
 export class MemoryCommands {
   private config: Config;
-  private db: DatabaseService;
+  private db: IDatabaseService;
   private memoryBank: MemoryBankService;
   private extractor: MemoryExtractorService;
   private embedding: MemoryEmbeddingService;

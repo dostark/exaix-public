@@ -8,7 +8,7 @@
  */
 import { join, normalize, relative } from "@std/path";
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
+import type { IDatabaseService } from "../services/db.ts";
 import { type MCPToolResponse } from "../schemas/mcp.ts";
 import { PortalPermissionsService } from "../services/portal_permissions.ts";
 import { PortalOperation } from "../enums.ts";
@@ -20,10 +20,10 @@ import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
  */
 export abstract class ToolHandler {
   protected config: Config;
-  protected db: DatabaseService;
+  protected db: IDatabaseService;
   protected permissions: PortalPermissionsService | null;
 
-  constructor(config: Config, db: DatabaseService, permissions?: PortalPermissionsService) {
+  constructor(config: Config, db: IDatabaseService, permissions?: PortalPermissionsService) {
     this.config = config;
     this.db = db;
     this.permissions = permissions || null;

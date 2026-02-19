@@ -9,7 +9,7 @@
 
 import { join, resolve } from "@std/path";
 import type { Config } from "../../config/schema.ts";
-import type { DatabaseService, IDatabaseService } from "../../services/db.ts";
+import type { IDatabaseService } from "../../services/db.ts";
 import { ConfigService } from "../../config/service.ts";
 import { ContextCardGenerator } from "../../services/context_card_generator.ts";
 import type { JsonValue } from "../../flows/transforms.ts";

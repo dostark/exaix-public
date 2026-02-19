@@ -13,7 +13,7 @@ import { FlowLoader } from "../../flows/flow_loader.ts";
 import { FlowValidatorImpl } from "../../services/flow_validator.ts";
 import { EventLogger } from "../../services/event_logger.ts";
 import type { Config } from "../../config/schema.ts";
-import type { DatabaseService } from "../../services/db.ts";
+import type { IDatabaseService } from "../../services/db.ts";
 import type { IModelProvider } from "../../ai/providers.ts";
 import type { Flow } from "../../schemas/flow.ts";
 
@@ -31,7 +31,7 @@ interface FlowValidateOptions {
 
 interface CLIContext {
   config: Config;
-  db: DatabaseService;
+  db: IDatabaseService;
   provider: IModelProvider;
 }
 

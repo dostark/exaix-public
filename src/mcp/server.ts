@@ -7,7 +7,7 @@
  * @related-files [src/mcp/tools.ts, src/mcp/resources.ts, src/mcp/prompts.ts]
  */
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
+import type { IDatabaseService } from "../services/db.ts";
 import { MCPConfigSchema, type MCPTool } from "../schemas/mcp.ts";
 import {
   GitCommitTool,
@@ -44,7 +44,7 @@ import { logInfo } from "../services/structured_logger.ts";
 
 interface MCPServerOptions {
   config: Config;
-  db: DatabaseService;
+  db: IDatabaseService;
   transport: "stdio" | "sse";
 }
 
@@ -77,7 +77,7 @@ interface InitializeParams {
 
 export class MCPServer {
   private config: Config;
-  private db: DatabaseService;
+  private db: IDatabaseService;
   private transport: "stdio" | "sse";
   private running = false;
   private serverName: string;

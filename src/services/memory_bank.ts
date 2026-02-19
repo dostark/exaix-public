@@ -14,7 +14,7 @@
 import { join } from "@std/path";
 import { ensureDir, ensureDirSync, exists } from "@std/fs";
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "./db.ts";
+import type { IDatabaseService } from "./db.ts";
 import type { JsonValue } from "../flows/transforms.ts";
 import { ActivityType, MemoryReferenceType, MemoryScope, MemorySource, MemoryType } from "../enums.ts";
 import { MemoryStatus } from "../memory/memory_status.ts";
@@ -65,8 +65,10 @@ import { buildFilesIndex, buildPatternsIndex, buildTagsIndex, writeIndices } fro
  * Memory Bank Service
  *
  * Manages all memory bank operations with Activity Journal integration.
-                const titleFreq = this.calculateFrequency(pattern.name, keywordLower);
-                const descFreq = this.calculateFrequency(pattern.description, keywordLower);
+ * - Project memory (overview, patterns, decisions, references)
+ * - Execution memory (trace records, lessons learned)
+ * - Search and indexing operations
+ * - Activity Journal integration
  */
 export class MemoryBankService {
   private memoryRoot!: string;
@@ -81,10 +83,8 @@ export class MemoryBankService {
    *
    * @param config - ExoFrame configuration
    * @param db - Database service for Activity Journal integration
-                const titleFreq = this.calculateFrequency(decision.decision, keywordLower);
-                const descFreq = this.calculateFrequency(decision.rationale, keywordLower);
-  */
-  constructor(private config: Config, private db: DatabaseService) {
+   */
+  constructor(private config: Config, private db: IDatabaseService) {
     this.memoryRoot = join(config.system.root, config.paths.memory);
     // Use subdirectory names directly, not full paths (which already include Memory/)
     this.projectsDir = join(this.memoryRoot, "Projects");

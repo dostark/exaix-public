@@ -8,7 +8,7 @@
  * @related-files [src/services/db.ts, src/repositories/activity_repository.ts, src/services/common/types.ts]
  */
 
-import type { DatabaseService, IDatabaseService } from "./db.ts";
+import type { IDatabaseService } from "./db.ts";
 import type { ActivityRepository } from "../repositories/activity_repository.ts";
 import { LogLevel } from "../enums.ts";
 import { Actor, LogEvent } from "./common/types.ts";

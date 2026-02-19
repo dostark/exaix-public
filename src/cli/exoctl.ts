@@ -27,7 +27,7 @@ import { McpCommands } from "./commands/mcp_commands.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
 import { GitService, type IGitService } from "../services/git_service.ts";
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService, IDatabaseService } from "../services/db.ts";
+import type { IDatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
 import type { EventLogger } from "../services/event_logger.ts";
 import type { ConfigService } from "../config/service.ts";

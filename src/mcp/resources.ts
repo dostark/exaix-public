@@ -10,7 +10,7 @@
 import { relative } from "@std/path";
 import { walk } from "@std/fs";
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
+import type { IDatabaseService } from "../services/db.ts";
 
 // ============================================================================
 // Types
@@ -164,7 +164,7 @@ export async function discoverPortalResources(
  */
 export async function discoverAllResources(
   config: Config,
-  db: DatabaseService,
+  db: IDatabaseService,
   options: {
     maxDepth?: number;
     includeHidden?: boolean;

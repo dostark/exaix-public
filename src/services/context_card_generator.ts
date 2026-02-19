@@ -8,7 +8,7 @@
  */
 import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs/ensure-dir";
-import type { DatabaseService, IDatabaseService } from "./db.ts";
+import type { IDatabaseService } from "./db.ts";
 import type { Config } from "../config/schema.ts";
 import type { JsonValue } from "../flows/transforms.ts";
 

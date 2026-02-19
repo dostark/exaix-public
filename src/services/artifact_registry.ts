@@ -9,7 +9,7 @@
 
 import { join } from "@std/path";
 import { parse as parseYaml, stringify as stringifyYaml } from "@std/yaml";
-import type { DatabaseService } from "./db.ts";
+import type { IDatabaseService } from "./db.ts";
 import type { Artifact, ArtifactFilters, ArtifactFrontmatter, ArtifactWithContent } from "../schemas/artifact.ts";
 import { coerceReviewStatus, ReviewStatus, type ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
 
@@ -27,7 +27,7 @@ export class ArtifactRegistry {
   private rootDir: string;
 
   constructor(
-    private db: DatabaseService,
+    private db: IDatabaseService,
     rootDir: string = Deno.cwd(),
   ) {
     this.rootDir = rootDir;

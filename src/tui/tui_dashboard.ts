@@ -40,7 +40,7 @@ import {
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { KeyBinding, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import type { DatabaseService, IDatabaseService } from "../services/db.ts";
+import type { IDatabaseService } from "../services/db.ts";
 import { initDashboardViews } from "./dashboard/view_registry.ts";
 import { prodRender } from "./dashboard/renderer.ts";
 import { PortalManagerView } from "./portal_manager_view.ts";
@@ -555,7 +555,7 @@ export async function launchTuiDashboard(
     testMode?: boolean;
     nonInteractive?: boolean;
     notificationService?: NotificationService;
-    databaseService?: DatabaseService;
+    databaseService?: IDatabaseService;
   } = {},
 ): Promise<TuiDashboard | undefined> {
   if (options.testMode) {

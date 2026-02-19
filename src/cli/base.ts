@@ -8,7 +8,7 @@
  */
 
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService, IDatabaseService } from "../services/db.ts";
+import type { IDatabaseService } from "../services/db.ts";
 import { EventLogger } from "../services/event_logger.ts";
 
 export interface CommandContext {
