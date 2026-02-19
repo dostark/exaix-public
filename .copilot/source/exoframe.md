@@ -66,9 +66,28 @@ Export types that consumers need and keep internal types private. Provide thorou
 
 Use Zod for config validation and keep config options in `exo.config.toml` examples. Provide default values and bounds where possible.
 
-### Service Pattern
+### Service Pattern — Dependency Injection & Interfaces
 
-Constructor-based DI: pass `config`, `db`, and `provider` into services. Keep side effects out of constructors where feasible.
+ExoFrame enforces an **Interface-first, Constructor Injection** policy for all services.
+
+- **Every injectable service exposes an interface.** `class Foo` → `export interface IFoo`. Consumers depend on `IFoo`, never on `Foo`.
+- **Constructor injection only.** Pass `config`, `db`, `provider`, and peer services via constructors. Module-level singletons and static accessors are prohibited.
+- **Test mocks implement the full interface.** Never use `as any` or object-literals to fake a service.
+- **Prefer narrow interfaces.** Declare only the methods a consumer actually calls. This reduces coupling and makes mocking lighter.
+
+```typescript
+// ✅ GOOD — interface + constructor injection
+export interface IGitService { commit(msg: string): Promise<void>; }
+export class GitService implements IGitService { ... }
+
+export class PlanExecutor {
+  constructor(private git: IGitService, private db: IDatabaseService) {}
+}
+
+// ❌ BAD — concrete dependency / singleton access
+constructor(private git: GitService) {}
+const git = GitService.getInstance();
+```
 
 ### System Constraints & Patterns
 
@@ -249,7 +268,20 @@ await this.withFileLock(filePath, async () => {
 const provider = await ProviderRegistry.create(options);
 ```
 
-#### 6. Single JSDoc Block Per Method
+#### 6. Interface-first Dependency Injection
+
+**Pattern**: Every injectable service declares an `IFoo` interface; all consumers depend on the interface, not the class. Dependencies injected via constructor only.
+
+```typescript
+// ✅ GOOD
+export interface IEventLogger { info(action: string): Promise<void>; }
+export class EventLogger implements IEventLogger { ... }
+
+export class PlanExecutor {
+  constructor(private logger: IEventLogger, private db: IDatabaseService) {}
+}
+```
+
 
 **Pattern**: Each method should have exactly one JSDoc block with complete documentation
 
@@ -361,7 +393,7 @@ await Deno.writeTextFile(file, updated); // Can conflict with concurrent operati
 
 #### 5. Tight Coupling Between Services
 
-**Anti-pattern**: Never directly instantiate concrete classes in factory methods
+**Anti-pattern**: Never directly instantiate concrete classes where an `IFoo` interface exists, and never use `as any` to pass a mock of a service
 
 ```typescript
 // ❌ BAD: Tight coupling
@@ -370,6 +402,9 @@ export class ProviderFactory {
     return new OpenAIProvider(); // Direct instantiation
   }
 }
+
+// ❌ BAD: as any mock
+const logger = { info: () => {} } as any; // Missing interface compliance
 ```
 
 #### 6. Duplicate JSDoc Blocks
@@ -455,6 +490,7 @@ async function process() {
 - [ ] Error handling provides classified responses
 - [ ] JSDoc is single block per method with complete documentation
 - [ ] Constants used instead of magic numbers
+- [ ] Injectable services implement an `IFoo` interface; constructors accept interfaces, not concrete classes
 - [ ] All tests pass with >90% coverage
 
 ---

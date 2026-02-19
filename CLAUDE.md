@@ -75,6 +75,7 @@ deno task check:docs        # Verify .copilot/manifest.json is fresh
   - **Always name it:** If a type does not exist yet, create one. Prefer specific interfaces over structural `Record<string, ...>` when the keys are known.
 - **Top-Level Imports:** All imports must be at the top of the file. Dynamic imports are discouraged.
 - **No Magic Values:** No hardcoded numbers or strings. Use constants/enums.
+- **Dependency Injection & Interfaces:** Every injectable class `Foo` **MUST** expose an `IFoo` interface. Consumers depend on `IFoo`, never on the concrete class. All dependencies (`db`, `config`, `provider`, peer services) are passed via constructors — no module-level singletons or static accessors. Test mocks **MUST** implement the full interface (never `as any`). See `CONTRIBUTING.md §1.6` for full rules and examples.
 
 
 ### Before Committing

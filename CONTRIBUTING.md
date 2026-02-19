@@ -69,7 +69,33 @@ ExoFrame enforces a strict **No `any`, No implicit types** policy to ensure type
   - **Named interfaces / type aliases:** If the shape does not exist yet, create one. Prefer specific interfaces over `Record<string, ...>` when the keys are known.
   - **Zod schemas:** Use Zod schemas to validate external/dynamic data and infer types with `z.infer<typeof Schema>`.
 
+### 1.6 Dependency Injection & Interfaces
+
+ExoFrame enforces a **Interface-first, Constructor Injection** policy for all services and components.
+
+- **Define an interface for every injectable service.** For every class `Foo` that is consumed by other services, export a companion `IFoo` interface next to it. Consumers **MUST** depend on `IFoo`, never on the concrete `Foo`.
+  ```typescript
+  // ✅ GOOD
+  export interface IGitService { commit(msg: string): Promise<void>; }
+  export class GitService implements IGitService { ... }
+
+  // ❌ BAD — tight coupling to concrete class
+  constructor(private git: GitService) {}
+  ```
+- **Constructor injection only.** All dependencies (`config`, `db`, `provider`, other services) must be passed via constructors. Module-level singletons, static access, or `import`-time side-effects are **prohibited**.
+  ```typescript
+  // ✅ GOOD
+  constructor(private db: IDatabaseService, private git: IGitService) {}
+
+  // ❌ BAD — singleton / static access
+  const git = GitService.getInstance();
+  ```
+- **Test mocks implement the full interface.** Never use `as any` or partial object literals to fake a service. Create a typed `MockFoo` (or use `Partial<IFoo>` only where the test provably does not invoke the missing methods, and document why).
+- **No concrete class in a generic/factory position.** Factory functions and registries must reference `IFoo`, not `Foo`.
+- **Prefer narrow interfaces.** If a consumer only needs two methods, define a narrow interface for those two methods rather than importing the full `IFoo`. This reduces coupling and makes tests lighter.
+
 ## 2. Testing
+
 
 ### 2.1 Configuration Testing
 
@@ -125,6 +151,8 @@ All available agent documentation is indexed in `.copilot/manifest.json`. Use th
 - [ ] No new magic numbers or strings introduced.
 - [ ] New configuration options added to `exo.config.sample.toml`.
 - [ ] Zod schema updated in `src/config/schema.ts`.
+- [ ] **Type Safety:** No `any`, no `unknown` as stored type, no `as any` casting (per §1.5).
+- [ ] **Dependency Injection:** Injectable services expose an `IFoo` interface; constructors accept `IFoo`, not `Foo`; test mocks implement the full interface (per §1.6).
 - [ ] **Environment Variables:** If using `EXO_LLM_*` vars, validated via `getValidatedEnvOverrides()` (no direct `Deno.env.get()`).
 - [ ] **Test Variables:** Test-related env vars use `EXO_TEST_*` prefix and helper functions (`isTestMode()`, `isCIMode()`).
 - [ ] Tests added for new configuration options.
