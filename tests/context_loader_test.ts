@@ -14,6 +14,7 @@ import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { ContextLoader } from "../src/services/context_loader.ts";
 import type { ContextConfig, ContextLoadResult } from "../src/services/context_loader.ts";
+import type { ActivityRecord } from "../src/services/db.ts";
 import { initTestDbService } from "./helpers/db.ts";
 
 // ============================================================================
@@ -997,7 +998,7 @@ describe("Activity Logging with Database", () => {
       await new Promise((resolve) => setTimeout(resolve, 150));
 
       const logs = db.getActivitiesByTrace("test-context-trace");
-      const contextLog = logs.find((l: any) => l.action_type === "context.loaded");
+      const contextLog = logs.find((l: ActivityRecord) => l.action_type === "context.loaded");
       assertExists(contextLog, "context.loaded should be logged");
 
       const payload = JSON.parse(contextLog.payload);
@@ -1032,7 +1033,7 @@ describe("Activity Logging with Database", () => {
       await new Promise((resolve) => setTimeout(resolve, 150));
 
       const logs = db.getActivitiesByTrace("test-error-trace");
-      const errorLog = logs.find((l: any) => l.action_type === "context.file_load_error");
+      const errorLog = logs.find((l: ActivityRecord) => l.action_type === "context.file_load_error");
       assertExists(errorLog, "context.file_load_error should be logged");
 
       const payload = JSON.parse(errorLog.payload);
@@ -1065,7 +1066,7 @@ describe("Activity Logging with Database", () => {
 
       // Should not have logged anything (no traceId)
       const allLogs = await db.getRecentActivity(100);
-      const contextLogs = allLogs.filter((l: any) => l.action_type === "context.loaded");
+      const contextLogs = allLogs.filter((l: ActivityRecord) => l.action_type === "context.loaded");
       assertEquals(contextLogs.length, 0, "Should not log without traceId");
     } finally {
       await cleanup();
@@ -1086,7 +1087,7 @@ describe("Default Strategy Fallback", () => {
     const config: ContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
-      truncationStrategy: "unknown-strategy" as any,
+      truncationStrategy: "unknown-strategy" as ContextConfig["truncationStrategy"],
       isLocalAgent: false,
     };
 

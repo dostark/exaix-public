@@ -112,7 +112,7 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
     // Create mock context with test config
     const context = {
       config,
-      db: createStubDb({ getActivitiesByTrace: () => Promise.resolve([]) }),
+      db: createStubDb({ getActivitiesByTrace: () => [] }),
     } as any;
 
     // Test that ReviewCommands can be instantiated with the enhanced interface

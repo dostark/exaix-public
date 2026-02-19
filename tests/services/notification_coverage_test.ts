@@ -10,6 +10,7 @@
 
 import { assertEquals } from "@std/assert";
 import { createStubDb } from "../test_helpers.ts";
+import { createMockConfig } from "../helpers/config.ts";
 import { NotificationService } from "../../src/services/notification.ts";
 import { MemoryScope } from "../../src/enums.ts";
 
@@ -21,7 +22,18 @@ function initNotificationTest() {
   // loading native SQLite in CI/local environments. The stub implements the
   // prepared* helpers used by NotificationService and keeps a simple in-memory
   // store for `notifications`.
-  const notifications: any[] = [];
+  interface NotificationRow {
+    id: string;
+    type: string;
+    message: string;
+    proposal_id?: string | null;
+    trace_id?: string | null;
+    created_at: string;
+    dismissed_at?: string | null;
+    metadata?: Record<string, unknown>;
+  }
+
+  const notifications: NotificationRow[] = [];
 
   const stub = createStubDb({
     preparedRun: function (query: string, params: any[] = []) {
@@ -29,14 +41,14 @@ function initNotificationTest() {
       if (q.includes("insert into notifications")) {
         const [id, type, message, proposal_id, trace_id, created_at, metadata] = params;
         notifications.push({ id, type, message, proposal_id, trace_id, created_at, metadata, dismissed_at: null });
-        return {};
+        return Promise.resolve({});
       }
       if (q.includes("update notifications") && q.includes("where dismissed_at is null")) {
         const [dismissed_at] = params;
         for (const n of notifications) {
           if (n.dismissed_at == null) n.dismissed_at = dismissed_at;
         }
-        return {};
+        return Promise.resolve({});
       }
       if (q.includes("update notifications") && q.includes("dismissed_at")) {
         const [dismissed_at, proposal_id] = params;
@@ -45,39 +57,39 @@ function initNotificationTest() {
             n.dismissed_at = dismissed_at;
           }
         }
-        return {};
+        return Promise.resolve({});
       }
-      return {};
+      return Promise.resolve({});
     },
-    preparedAll: function (query: string, _params: any[] = []) {
+    preparedAll: function <T>(query: string, _params: (string | number | boolean | null)[] = []): Promise<T[]> {
       const q = (query || "").toLowerCase();
       if (q.includes("from notifications") && q.includes("where dismissed_at is null")) {
-        return notifications.filter((n: any) => n.dismissed_at == null).map((n: any) => ({
-          id: n.id,
-          type: n.type,
-          message: n.message,
-          proposal_id: n.proposal_id,
-          trace_id: n.trace_id,
-          created_at: n.created_at,
-          dismissed_at: n.dismissed_at,
-          metadata: n.metadata,
-        }));
+        return Promise.resolve(
+          notifications.filter((n) => n.dismissed_at == null).map((n) => ({
+            id: n.id,
+            type: n.type,
+            message: n.message,
+            proposal_id: n.proposal_id,
+            trace_id: n.trace_id,
+            created_at: n.created_at,
+            dismissed_at: n.dismissed_at,
+            metadata: n.metadata,
+          })) as unknown as T[],
+        );
       }
-      return [];
+      return Promise.resolve([] as unknown as T[]);
     },
-    preparedGet: function (query: string, _params: any[] = []) {
+    preparedGet: function <T>(query: string, _params: (string | number | boolean | null)[] = []): Promise<T | null> {
       const q = (query || "").toLowerCase();
       if (q.includes("select count(*)") && q.includes("type = 'memory_update_pending'")) {
-        const count = notifications.filter((n: any) =>
-          n.type === "memory_update_pending" && n.dismissed_at == null
-        ).length;
-        return { count };
+        const count = notifications.filter((n) => n.type === "memory_update_pending" && n.dismissed_at == null).length;
+        return Promise.resolve(({ count } as unknown) as T);
       }
-      return null;
+      return Promise.resolve(null);
     },
   });
 
-  const config = {} as any;
+  const config = createMockConfig(Deno.cwd());
   const notification = new NotificationService(config, stub as any);
 
   const cleanup = async () => {

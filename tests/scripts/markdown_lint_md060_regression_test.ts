@@ -25,7 +25,7 @@ Deno.test("[regression] MD060 accepts aligned table with checkmarks", () => {
     "",
   ].join("\n");
 
-  const findings = lintMarkdown(md, "inline.md", defaultOptions as any);
+  const findings = lintMarkdown(md, "inline.md", defaultOptions);
   const md060 = findings.filter((f) => f.rule === "MD060/table-column-style");
   if (md060.length !== 0) {
     throw new Error(`expected 0 MD060 findings, got ${md060.length}`);
@@ -41,7 +41,7 @@ Deno.test("[regression] MD060 reports misaligned aligned-style table", () => {
     "",
   ].join("\n");
 
-  const findings = lintMarkdown(md, "inline.md", defaultOptions as any);
+  const findings = lintMarkdown(md, "inline.md", defaultOptions);
   const md060 = findings.filter((f) => f.rule === "MD060/table-column-style");
   if (md060.length === 0) {
     throw new Error("expected at least one MD060 finding");

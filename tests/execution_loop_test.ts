@@ -16,6 +16,7 @@ import {
 } from "./helpers/paths_helper.ts";
 import { ensureDir } from "@std/fs/ensure-dir";
 import type { IModelProvider } from "../src/ai/providers.ts";
+import type { ActivityRecord } from "../src/services/db.ts";
 import { EXECUTION_REPORT_FILENAME } from "../src/config/constants.ts";
 
 /**
@@ -84,7 +85,7 @@ agent_id: test-agent
     // Activity should be logged
     await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for batched logs
     const activities = db.getActivitiesByTrace(traceId);
-    const startedLog = activities.find((a: any) => a.action_type === "execution.started");
+    const startedLog = activities.find((a: ActivityRecord) => a.action_type === "execution.started");
     assertExists(startedLog, "execution.started should be logged");
   } finally {
     await cleanup();
@@ -458,7 +459,7 @@ content = "activity journal logging test"
     const activities = db.getActivitiesByTrace("test-trace-logging");
 
     // Check for key execution steps
-    const actionTypes = activities.map((a: any) => a.action_type);
+    const actionTypes = activities.map((a: ActivityRecord) => a.action_type);
 
     assert(
       actionTypes.includes("execution.started"),
@@ -474,8 +475,8 @@ content = "activity journal logging test"
     );
 
     // Verify agent_id is set
-    const agentActions = activities.filter((a: any) => a.actor === MemorySource.AGENT);
-    agentActions.forEach((action: any) => {
+    const agentActions = activities.filter((a: ActivityRecord) => a.actor === MemorySource.AGENT);
+    agentActions.forEach((action: ActivityRecord) => {
       assertEquals(action.agent_id, "test-agent", "Agent actions should have agent_id");
     });
   } finally {
@@ -1114,7 +1115,7 @@ This plan has no action blocks.
 
     await new Promise((resolve) => setTimeout(resolve, 150));
     const activities = db.getActivitiesByTrace("test-trace-nochanges");
-    const _noChangesLog = activities.find((a: any) => a.action_type === "execution.no_changes");
+    const _noChangesLog = activities.find((a: ActivityRecord) => a.action_type === "execution.no_changes");
 
     // May or may not log no_changes depending on timing, but should complete
     assertEquals(result.success, true);
@@ -1157,7 +1158,7 @@ agent_id: test-agent
 
     // Verify lease was acquired
     const activities = db.getActivitiesByTrace("test-trace-lease");
-    const leaseAcquired = activities.find((a: any) => a.action_type === "execution.lease_acquired");
+    const leaseAcquired = activities.find((a: ActivityRecord) => a.action_type === "execution.lease_acquired");
     assertExists(leaseAcquired, "Lease should be acquired");
 
     // Parse payload to verify holder
@@ -1278,10 +1279,10 @@ test = "value"
     const activities = db.getActivitiesByTrace("test-trace-unknown");
 
     // Should have started and completed the action (even though tool result was success:false)
-    const actionStarted = activities.find((a: any) => a.action_type === "execution.action_started");
+    const actionStarted = activities.find((a: ActivityRecord) => a.action_type === "execution.action_started");
     assertExists(actionStarted, "Action should be started");
 
-    const actionCompleted = activities.find((a: any) => a.action_type === "execution.action_completed");
+    const actionCompleted = activities.find((a: ActivityRecord) => a.action_type === "execution.action_completed");
     assertExists(actionCompleted, "Action should complete even with unknown tool");
   } finally {
     await cleanup();
@@ -1333,7 +1334,7 @@ path = "test-read.txt"
 
     await db.waitForFlush();
     const activities = db.getActivitiesByActionType("execution.action_completed");
-    const log = activities.find((a: any) => JSON.parse(a.payload).result_summary?.includes("aaaa"));
+    const log = activities.find((a: ActivityRecord) => JSON.parse(a.payload).result_summary?.includes("aaaa"));
     assertExists(log, "Action completion with summary should be logged");
   } finally {
     await cleanup();

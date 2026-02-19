@@ -18,6 +18,7 @@ import {
   ProjectMemory,
 } from "../../../src/schemas/memory_bank.ts";
 import { MemoryServiceInterface, MemoryViewTuiSession } from "../../../src/tui/memory_view.ts";
+import { DialogBase } from "../../../src/helpers/dialog_base.ts";
 
 export class ExtendedMockMemoryService implements MemoryServiceInterface {
   private projects: string[] = ["TestPortal"];
@@ -270,7 +271,7 @@ export function createSessionWithService(service: ExtendedMockMemoryService): Me
   return new MemoryViewTuiSession(service as unknown as MemoryServiceInterface);
 }
 
-export async function testExecutionDetailRendering(exec: any): Promise<string> {
+export async function testExecutionDetailRendering(exec: ExecutionMemory): Promise<string> {
   const { session } = await setupSession({
     executions: [exec],
   });
@@ -286,7 +287,7 @@ export async function testExecutionDetailRendering(exec: any): Promise<string> {
   return detail;
 }
 
-export function renderDialog(dialog: any): string {
+export function renderDialog(dialog: DialogBase): string {
   return dialog.render({ width: 80, height: 20, useColors: true }).join("\n");
 }
 
@@ -313,10 +314,10 @@ export function testSessionRender(
   });
 }
 
-export function testDialogInteraction(
+export function testDialogInteraction<T extends DialogBase>(
   name: string,
-  setup: () => { dialog: any; keys: string[] },
-  verify: (dialog: any, rendered: string) => void,
+  setup: () => { dialog: T; keys: string[] },
+  verify: (dialog: T, rendered: string) => void,
 ) {
   Deno.test(name, () => {
     const { dialog, keys } = setup();

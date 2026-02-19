@@ -13,6 +13,8 @@
 import { assert, assertEquals, assertExists } from "@std/assert";
 import { EventLogger } from "../src/services/event_logger.ts";
 import { createStubDb } from "./test_helpers.ts";
+import { createMockConfig } from "./helpers/config.ts";
+import type { IDatabaseService } from "../src/services/db.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
 import { RequestCommands } from "../src/cli/commands/request_commands.ts";
@@ -44,7 +46,7 @@ Deno.test("[regression] Stub db object has required logActivity method", () => {
   assertEquals(typeof stubDb.waitForFlush, "function");
 
   // Verify they can be called without throwing
-  stubDb.logActivity();
+  stubDb.logActivity(TEST_USER, TEST_ACTION, TEST_TARGET, {});
   stubDb.waitForFlush();
 });
 
@@ -53,7 +55,7 @@ Deno.test("[regression] EventLogger works with stub db that has logActivity", as
   const stubDb = createStubDb();
 
   // Create EventLogger with stub db (same as CLI does in fallback mode)
-  const logger = new EventLogger({ db: stubDb as any });
+  const logger = new EventLogger({ db: stubDb });
 
   // These should NOT throw "this.db.logActivity is not a function"
   await logger.info(TEST_ACTION, TEST_TARGET, { key: "value" });
@@ -69,10 +71,24 @@ Deno.test("[regression] EventLogger works with empty db (no methods) - should no
   // Before the fix, this would throw: "TypeError: this.db.logActivity is not a function"
   // After the fix, EventLogger should handle this gracefully
 
-  // Simulate completely empty db object (worst case)
-  const emptyDb = {} as any;
+  // Simulate a DB object that will throw when logActivity is called (tests EventLogger's internal error handling)
+  const emptyDb: IDatabaseService = {
+    logActivity: () => {
+      throw new Error("logActivity missing");
+    },
+    waitForFlush: () => Promise.resolve(),
+    queryActivity: () => Promise.resolve([]),
+    preparedGet: () => Promise.resolve(null),
+    preparedAll: () => Promise.resolve([]),
+    preparedRun: () => Promise.resolve({}),
+    getActivitiesByTrace: () => [],
+    getActivitiesByTraceSafe: () => Promise.resolve([]),
+    getActivitiesByActionType: () => [],
+    getActivitiesByActionTypeSafe: () => Promise.resolve([]),
+    getRecentActivity: () => Promise.resolve([]),
+  };
 
-  // Create EventLogger with empty db
+  // Create EventLogger with the simulated broken db
   const logger = new EventLogger({ db: emptyDb });
 
   // These should gracefully handle missing logActivity
@@ -105,7 +121,7 @@ Deno.test("[regression] EventLogger works with no db at all (console-only mode)"
 Deno.test("[regression] EventLogger child loggers work with stub db", async () => {
   const stubDb = createStubDb();
 
-  const parentLogger = new EventLogger({ db: stubDb as any });
+  const parentLogger = new EventLogger({ db: stubDb });
   const childLogger = parentLogger.child({ actor: TEST_USER, traceId: TEST_TRACE_ID });
 
   // Child logger should also work without throwing
@@ -182,16 +198,13 @@ Deno.test("[regression] CLI test mode context has stub db with required methods"
 
 Deno.test("[regression] BlueprintCommands works with stub db", async () => {
   // Create minimal config
-  const config = {
-    system: { root: Deno.cwd() },
-    paths: { ...ExoPathDefaults },
-  } as any;
+  const config = createMockConfig(Deno.cwd(), { paths: { ...ExoPathDefaults } });
 
   // Create stub db with required methods
   const stubDb = createStubDb();
 
   // Create command handler
-  const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
+  const blueprintCommands = new BlueprintCommands({ config, db: stubDb });
 
   // list() should work without throwing db errors
   try {
@@ -208,22 +221,15 @@ Deno.test("[regression] BlueprintCommands works with stub db", async () => {
 
 Deno.test("[regression] RequestCommands works with stub db", async () => {
   // Create minimal config
-  const config = {
-    system: { root: Deno.cwd() },
-    paths: {
-      workspace: "Workspace",
-      requests: "Requests",
-    },
-  } as any;
+  const config = createMockConfig(Deno.cwd());
+  config.paths.workspace = "Workspace";
+  config.paths.requests = "Requests";
 
   // Create stub db with required methods
-  const stubDb = {
-    logActivity: () => {},
-    waitForFlush: async () => {},
-  };
+  const stubDb = createStubDb();
 
   // Create command handler
-  const requestCommands = new RequestCommands({ config, db: stubDb as any });
+  const requestCommands = new RequestCommands({ config, db: stubDb });
 
   // list() should work without throwing db errors
   try {
@@ -240,19 +246,13 @@ Deno.test("[regression] RequestCommands works with stub db", async () => {
 
 Deno.test("[regression] PlanCommands works with stub db", async () => {
   // Create minimal config with all required paths
-  const config = {
-    system: { root: Deno.cwd() },
-    paths: { ...ExoPathDefaults },
-  } as any;
+  const config = createMockConfig(Deno.cwd(), { paths: { ...ExoPathDefaults } });
 
   // Create stub db with required methods
-  const stubDb = {
-    logActivity: () => {},
-    waitForFlush: async () => {},
-  };
+  const stubDb = createStubDb();
 
   // Create command handler
-  const planCommands = new PlanCommands({ config, db: stubDb as any });
+  const planCommands = new PlanCommands({ config, db: stubDb });
 
   // list() should work without throwing db errors
   try {

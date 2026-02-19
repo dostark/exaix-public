@@ -10,6 +10,13 @@ import {
 } from "../../../src/helpers/constants.ts";
 import { DialogProcessor } from "../../../src/tui/memory_view/dialog_processor.ts";
 import { DialogStatus } from "../../../src/enums.ts";
+import type {
+  AddLearningDialog,
+  BulkApproveDialog,
+  ConfirmApproveDialog,
+  ConfirmRejectDialog,
+  PromoteDialog,
+} from "../../../src/tui/dialogs/memory_dialogs.ts";
 import { createMockDialog, createMockService, createTestContext, testDialogProcess } from "./memory_test_helpers.ts";
 
 testDialogProcess(
@@ -17,7 +24,7 @@ testDialogProcess(
   () => ({
     ctx: createTestContext(),
     dialog: createMockDialog({ type: DialogStatus.CANCELLED }),
-    process: DialogProcessor.processConfirmApproveDialog,
+    process: (dialog, ctx) => DialogProcessor.processConfirmApproveDialog(dialog as ConfirmApproveDialog, ctx),
   }),
   (ctx) => {
     assertEquals(ctx.statuses, [TUI_STATUS_MSG_CANCELLED]);
@@ -37,7 +44,7 @@ testDialogProcess(
     return {
       ctx: createTestContext({ service }),
       dialog: createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1" } }),
-      process: DialogProcessor.processConfirmApproveDialog,
+      process: (dialog, ctx) => DialogProcessor.processConfirmApproveDialog(dialog as ConfirmApproveDialog, ctx),
     };
   },
   (ctx) => {
@@ -60,7 +67,7 @@ testDialogProcess(
     return {
       ctx: createTestContext({ service }),
       dialog: createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } }),
-      process: DialogProcessor.processConfirmRejectDialog,
+      process: (dialog, ctx) => DialogProcessor.processConfirmRejectDialog(dialog as ConfirmRejectDialog, ctx),
     };
   },
   (ctx) => {
@@ -75,7 +82,7 @@ testDialogProcess(
   () => ({
     ctx: createTestContext(),
     dialog: createMockDialog({ type: DialogStatus.CANCELLED }),
-    process: DialogProcessor.processConfirmRejectDialog,
+    process: (dialog, ctx) => DialogProcessor.processConfirmRejectDialog(dialog as ConfirmRejectDialog, ctx),
   }),
   (ctx) => {
     assertEquals(ctx.statuses, [TUI_STATUS_MSG_CANCELLED]);
@@ -89,7 +96,7 @@ testDialogProcess(
       service: createMockService({ rejectPending: () => Promise.reject("boom") }),
     }),
     dialog: createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1", reason: "r" } }),
-    process: DialogProcessor.processConfirmRejectDialog,
+    process: (dialog, ctx) => DialogProcessor.processConfirmRejectDialog(dialog as ConfirmRejectDialog, ctx),
   }),
   (ctx) => {
     assertEquals(ctx.statuses, [`${TUI_STATUS_MSG_ERROR_PREFIX}boom`]);
@@ -114,7 +121,7 @@ Deno.test("DialogProcessor.processBulkApproveDialog: approves each pending and r
     setProgress: (n: number) => progress.push(n),
   });
 
-  await DialogProcessor.processBulkApproveDialog(dialog, ctx);
+  await DialogProcessor.processBulkApproveDialog(dialog as BulkApproveDialog, ctx);
 
   assertEquals(approved, ["a", "b"]);
   assertEquals(progress, [1, 2]);
@@ -127,7 +134,7 @@ Deno.test("DialogProcessor.processBulkApproveDialog: cancelled", async () => {
   const { ctx, statuses } = createTestContext();
   const dialog = createMockDialog({ type: DialogStatus.CANCELLED });
 
-  await DialogProcessor.processBulkApproveDialog(dialog, ctx);
+  await DialogProcessor.processBulkApproveDialog(dialog as BulkApproveDialog, ctx);
 
   assertEquals(statuses, [TUI_STATUS_MSG_CANCELLED]);
 });
@@ -142,7 +149,7 @@ Deno.test("DialogProcessor.processBulkApproveDialog: error surfaces via status",
     setProgress: (_n: number) => {},
   });
 
-  await DialogProcessor.processBulkApproveDialog(dialog, ctx);
+  await DialogProcessor.processBulkApproveDialog(dialog as BulkApproveDialog, ctx);
 
   assertEquals(statuses, [`${TUI_STATUS_MSG_ERROR_PREFIX}fail`]);
   assertEquals(counters.treeReloads, 0);
@@ -154,7 +161,7 @@ testDialogProcess(
   () => ({
     ctx: createTestContext(),
     dialog: createMockDialog({ type: DialogStatus.CANCELLED }),
-    process: DialogProcessor.processAddLearningDialog,
+    process: (dialog, ctx) => DialogProcessor.processAddLearningDialog(dialog as AddLearningDialog, ctx),
   }),
   (ctx) => {
     assertEquals(ctx.statuses, [TUI_STATUS_MSG_CANCELLED]);
@@ -165,7 +172,7 @@ Deno.test("DialogProcessor.processAddLearningDialog: confirmed sets status and r
   const { ctx, statuses, counters } = createTestContext();
   const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: {} });
 
-  await DialogProcessor.processAddLearningDialog(dialog, ctx);
+  await DialogProcessor.processAddLearningDialog(dialog as AddLearningDialog, ctx);
 
   assertEquals(statuses, [TUI_STATUS_MSG_LEARNING_ADDED]);
   assertEquals(counters.treeReloads, 1);
@@ -179,7 +186,7 @@ Deno.test("DialogProcessor.processAddLearningDialog: error surfaces via status",
     onTreeReload: () => Promise.reject(new Error("reload failed")),
   };
 
-  await DialogProcessor.processAddLearningDialog(dialog, failingCtx);
+  await DialogProcessor.processAddLearningDialog(dialog as AddLearningDialog, failingCtx);
 
   assertEquals(statuses, [TUI_STATUS_MSG_LEARNING_ADDED, `${TUI_STATUS_MSG_ERROR_PREFIX}reload failed`]);
   assertEquals(counters.treeReloads, 0);
@@ -190,7 +197,7 @@ testDialogProcess(
   () => ({
     ctx: createTestContext(),
     dialog: createMockDialog({ type: DialogStatus.CANCELLED }),
-    process: DialogProcessor.processPromoteDialog,
+    process: (dialog, ctx) => DialogProcessor.processPromoteDialog(dialog as PromoteDialog, ctx),
   }),
   (ctx) => {
     assertEquals(ctx.statuses, [TUI_STATUS_MSG_CANCELLED]);
@@ -201,7 +208,7 @@ Deno.test("DialogProcessor.processPromoteDialog: confirmed sets status and reloa
   const { ctx, statuses, counters } = createTestContext();
   const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: {} });
 
-  await DialogProcessor.processPromoteDialog(dialog, ctx);
+  await DialogProcessor.processPromoteDialog(dialog as PromoteDialog, ctx);
 
   assertEquals(statuses, [TUI_STATUS_MSG_PROMOTE_COMPLETED]);
   assertEquals(counters.treeReloads, 1);
@@ -215,7 +222,7 @@ Deno.test("DialogProcessor.processConfirmApproveDialog: error surfaces via statu
   const { ctx, statuses, counters } = createTestContext({ service });
   const dialog = createMockDialog({ type: DialogStatus.CONFIRMED, value: { proposalId: "p1" } });
 
-  await DialogProcessor.processConfirmApproveDialog(dialog, ctx);
+  await DialogProcessor.processConfirmApproveDialog(dialog as ConfirmApproveDialog, ctx);
 
   assertEquals(statuses, [`${TUI_STATUS_MSG_ERROR_PREFIX}fail`]);
   assertEquals(counters.treeReloads, 0);

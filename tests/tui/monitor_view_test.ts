@@ -5,6 +5,7 @@ import { MemorySource } from "../../src/enums.ts";
 
 import { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS, MonitorView } from "../../src/tui/monitor_view.ts";
 import type { LogEntry } from "../../src/tui/monitor_view.ts";
+import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
 import {
   createMockDatabaseService,
   createMonitorViewWithLogs,
@@ -18,7 +19,7 @@ import {
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // Helper for creating a monitor session
-function createMonitorSession(logs: any[] = []) {
+function createMonitorSession(logs: Array<Record<string, unknown>> = []) {
   const { monitorView } = createMonitorViewWithLogs(logs);
   const session = monitorView.createTuiSession();
   return { session, monitorView };
@@ -26,10 +27,10 @@ function createMonitorSession(logs: any[] = []) {
 
 // Helper for verifying filters
 async function verifyFilter(
-  logs: any[],
-  filter: any,
+  logs: Array<Record<string, unknown>>,
+  filter: JournalFilterOptions,
   expectedLength: number,
-  checkFn: (logs: any[]) => void,
+  checkFn: (logs: LogEntry[]) => void,
 ) {
   const { monitorView } = createMonitorViewWithLogs(logs);
   monitorView.setFilter(filter);
@@ -137,22 +138,29 @@ Deno.test("MonitorView - should pause and resume log streaming", () => {
 Deno.test("MonitorView - does not fetch when paused", async () => {
   const calls: string[] = [];
   class CountingDb {
-    // deno-lint-ignore no-explicit-any
-    private inner: any;
-    // deno-lint-ignore no-explicit-any
-    constructor(logs: any[] = []) {
-      this.inner = createMockDatabaseService(logs);
+    private inner: ReturnType<typeof createMockDatabaseService>;
+    constructor(logs: Array<Record<string, unknown>> = []) {
+      const activityRecords: ActivityRecord[] = logs.map((a) => ({
+        id: String(a.id ?? crypto.randomUUID()),
+        trace_id: String(a.trace_id ?? `trace-${a.id ?? Math.floor(Math.random() * 1e6)}`),
+        actor: (a.actor as string | null) ?? null,
+        agent_id: (a.agent_id as string | null) ?? null,
+        action_type: String(a.action_type ?? "unknown"),
+        target: (a.target as string | null) ?? null,
+        payload: typeof a.payload === "string" ? a.payload : JSON.stringify(a.payload ?? {}),
+        timestamp: String(a.timestamp ?? new Date().toISOString()),
+        count: typeof a.count === "number" ? (a.count as number) : undefined,
+      }));
+      this.inner = createMockDatabaseService(activityRecords);
     }
     getRecentActivity(limit?: number) {
       return this.inner.getRecentActivity(limit);
     }
-    // deno-lint-ignore no-explicit-any
-    queryActivity(filter: any) {
+    queryActivity(filter: JournalFilterOptions) {
       calls.push(`query:${JSON.stringify(filter)}`);
       return this.inner.queryActivity(filter);
     }
-    // deno-lint-ignore no-explicit-any
-    addLog(log: any) {
+    addLog(log: ActivityRecord) {
       return this.inner.addLog(log);
     }
   }

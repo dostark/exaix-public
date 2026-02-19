@@ -133,7 +133,7 @@ Deno.test("AuditLogger: sends alerts for critical events", async () => {
     await auditLogger.logSecurityEvent(criticalEvent);
 
     assertSpyCalls(alertSpy, 1);
-    const alertArgs = alertSpy.calls[0].args[0] as any;
+    const alertArgs = alertSpy.calls[0].args[0] as { severity: SecuritySeverity; action: string };
     assertEquals(alertArgs.severity, SecuritySeverity.CRITICAL);
     assertEquals(alertArgs.action, "api_key_exposed");
   } finally {

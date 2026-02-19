@@ -1,15 +1,10 @@
-**ALL magic numbers MUST be configurable constants** centralized appropriately:
+export class PlanExecutor {
+  constructor(private git: IGitService, private db: IDatabaseService) {}
+}
 
-- **Production code:** `src/config/constants.ts`
-- **Test code:** `tests/config/constants.ts` for test-specific constants (test prompts, mock data, test environment variables, etc.)
+// ❌ BAD — concrete dependency / singleton access
+constructor(private git: GitService) {}
+const git = GitService.getInstance();
+```
 
-Never use hardcoded numeric literals in business logic or test code.
-
-**Requirements:**
-
-- ✅ Extract ALL numeric literals > 1 into named constants
-- ✅ Group related constants by module/feature in `constants.ts`
-- ✅ Use descriptive names with `DEFAULT_` prefix for production, `TEST_` prefix for test constants
-- ✅ Import and use constants instead of literals
-- ✅ Update constants file when adding new configurable values
-- ✅ Keep test-specific constants (test prompts, mock API keys, test messages) in `tests/config/constants.ts`
+### System Constraints & Patterns

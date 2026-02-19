@@ -15,6 +15,7 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { DialogStatus } from "../../src/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
+import { DialogBase } from "../../src/helpers/dialog_base.ts";
 import {
   AddLearningDialog,
   BulkApproveDialog,
@@ -32,7 +33,7 @@ testDialogInteraction(
     dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
     keys: [],
   }),
-  (_dialog: any, rendered: string) => {
+  (_dialog: DialogBase, rendered: string) => {
     assertExists(rendered);
     assertEquals(rendered.includes("Approve Proposal"), true);
     assertEquals(rendered.includes("Title"), true);
@@ -45,7 +46,7 @@ testDialogInteraction(
     dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
     keys: [],
   }),
-  (dialog: any) => {
+  (dialog: DialogBase) => {
     assertEquals(dialog.isActive(), true);
     assertEquals(dialog.getState(), DialogStatus.ACTIVE);
   },
@@ -57,7 +58,7 @@ testDialogInteraction(
     dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
     keys: [KEYS.RIGHT],
   }),
-  (_dialog: any, rendered: string) => {
+  (_dialog: ConfirmApproveDialog, rendered: string) => {
     assertEquals(rendered.includes("[No, Cancel]"), true);
   },
 );
@@ -68,10 +69,13 @@ testDialogInteraction(
     dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
     keys: [KEYS.ENTER],
   }),
-  (dialog: any) => {
+  (dialog: ConfirmApproveDialog) => {
     assertEquals(dialog.isActive(), false);
     assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
-    assertEquals(dialog.getResult().value.proposalId, "p1");
+    const res = dialog.getResult();
+    if (res.type === DialogStatus.CONFIRMED) {
+      assertEquals(res.value.proposalId, "p1");
+    }
   },
 );
 
@@ -81,7 +85,7 @@ testDialogInteraction(
     dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
     keys: [KEYS.Y],
   }),
-  (dialog: any) => {
+  (dialog: DialogBase) => {
     assertEquals(dialog.isActive(), false);
     assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
   },
@@ -93,7 +97,7 @@ testDialogInteraction(
     dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
     keys: [KEYS.ESCAPE],
   }),
-  (dialog: any) => {
+  (dialog: ConfirmApproveDialog) => {
     assertEquals(dialog.isActive(), false);
     assertEquals(dialog.getState(), DialogStatus.CANCELLED);
   },
@@ -105,7 +109,7 @@ testDialogInteraction(
     dialog: new ConfirmApproveDialog(createMockProposal("p1", "Title")),
     keys: [KEYS.N],
   }),
-  (dialog: any) => {
+  (dialog: ConfirmApproveDialog) => {
     assertEquals(dialog.isActive(), false);
     assertEquals(dialog.getState(), DialogStatus.CANCELLED);
   },
@@ -128,7 +132,7 @@ testDialogInteraction(
     dialog: new ConfirmRejectDialog(createMockProposal("p1", "Title")),
     keys: [],
   }),
-  (_dialog: any, rendered: string) => {
+  (_dialog: DialogBase, rendered: string) => {
     assertExists(rendered);
     assertEquals(rendered.includes("Reject Proposal"), true);
     assertEquals(rendered.includes("Reason"), true);
@@ -141,7 +145,7 @@ testDialogInteraction(
     dialog: new ConfirmRejectDialog(createMockProposal("p1", "Title")),
     keys: [KEYS.TAB, KEYS.TAB, KEYS.TAB],
   }),
-  (dialog: any) => {
+  (dialog: DialogBase) => {
     assertEquals(dialog.isActive(), true);
   },
 );
@@ -217,7 +221,7 @@ testDialogInteraction(
     dialog: new AddLearningDialog(),
     keys: [],
   }),
-  (_dialog: any, rendered: string) => {
+  (_dialog: DialogBase, rendered: string) => {
     assertEquals(rendered.includes("Add Learning"), true);
     assertEquals(rendered.includes("Title"), true);
   },
@@ -229,7 +233,7 @@ testDialogInteraction(
     dialog: new AddLearningDialog(),
     keys: [KEYS.TAB, KEYS.TAB, KEYS.TAB, KEYS.TAB, KEYS.TAB, KEYS.TAB, KEYS.ENTER],
   }),
-  (dialog: any) => {
+  (dialog: AddLearningDialog) => {
     assertEquals(dialog.isActive(), true);
   },
 );
@@ -240,7 +244,7 @@ testDialogInteraction(
     dialog: new AddLearningDialog(),
     keys: [],
   }),
-  (dialog: any) => {
+  (dialog: AddLearningDialog) => {
     dialog.setTitle("Test Title");
     assertEquals(dialog.getTitle(), "Test Title");
   },
@@ -252,7 +256,7 @@ testDialogInteraction(
     dialog: new AddLearningDialog(),
     keys: [KEYS.ESCAPE],
   }),
-  (dialog: any) => {
+  (dialog: AddLearningDialog) => {
     assertEquals(dialog.isActive(), false);
     assertEquals(dialog.getState(), DialogStatus.CANCELLED);
   },
@@ -277,7 +281,7 @@ testDialogInteraction(
     dialog: new PromoteDialog("Title", "prop"),
     keys: [],
   }),
-  (_dialog: any, rendered: string) => {
+  (_dialog: DialogBase, rendered: string) => {
     assertEquals(rendered.includes("Promote to Global"), true);
   },
 );
@@ -288,7 +292,7 @@ testDialogInteraction(
     dialog: new PromoteDialog("Title", "prop"),
     keys: [KEYS.RIGHT],
   }),
-  (_dialog: any, rendered: string) => {
+  (_dialog: DialogBase, rendered: string) => {
     assertEquals(rendered.includes("[Cancel]"), true);
   },
 );
@@ -299,7 +303,7 @@ testDialogInteraction(
     dialog: new PromoteDialog("Title", "prop"),
     keys: [KEYS.ENTER],
   }),
-  (dialog: any) => {
+  (dialog: PromoteDialog) => {
     assertEquals(dialog.isActive(), false);
     assertEquals(dialog.getResult().type, DialogStatus.CONFIRMED);
   },
@@ -311,7 +315,7 @@ testDialogInteraction(
     dialog: new PromoteDialog("Title", "prop"),
     keys: [KEYS.Y],
   }),
-  (dialog: any) => {
+  (dialog: PromoteDialog) => {
     assertEquals(dialog.isActive(), false);
     assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
   },
@@ -323,7 +327,7 @@ testDialogInteraction(
     dialog: new PromoteDialog("Title", "prop"),
     keys: [KEYS.ESCAPE],
   }),
-  (dialog: any) => {
+  (dialog: PromoteDialog) => {
     assertEquals(dialog.isActive(), false);
     assertEquals(dialog.getState(), DialogStatus.CANCELLED);
   },
@@ -344,7 +348,7 @@ testDialogInteraction(
     dialog: new BulkApproveDialog(5),
     keys: [],
   }),
-  (_dialog: any, rendered: string) => {
+  (_dialog: DialogBase, rendered: string) => {
     assertEquals(rendered.includes("Approve All Proposals"), true);
     assertEquals(rendered.includes("5 proposal(s)"), true);
   },
@@ -356,7 +360,7 @@ testDialogInteraction(
     dialog: new BulkApproveDialog(5),
     keys: [KEYS.RIGHT],
   }),
-  (_dialog: any, rendered: string) => {
+  (_dialog: DialogBase, rendered: string) => {
     assertEquals(rendered.includes("[Cancel]"), true);
   },
 );
@@ -367,10 +371,13 @@ testDialogInteraction(
     dialog: new BulkApproveDialog(7),
     keys: [KEYS.ENTER],
   }),
-  (dialog: any) => {
+  (dialog: DialogBase) => {
     assertEquals(dialog.isActive(), false);
-    assertEquals(dialog.getResult().type, DialogStatus.CONFIRMED);
-    assertEquals(dialog.getResult().value.count, 7);
+    const res = dialog.getResult();
+    if (res.type === DialogStatus.CONFIRMED && res.value) {
+      // value is typed at runtime for BulkApproveResult
+      assertEquals((res.value as { count: number }).count, 7);
+    }
   },
 );
 
@@ -380,7 +387,7 @@ testDialogInteraction(
     dialog: new BulkApproveDialog(3),
     keys: [KEYS.Y],
   }),
-  (dialog: any) => {
+  (dialog: BulkApproveDialog) => {
     assertEquals(dialog.isActive(), false);
     assertEquals(dialog.getState(), DialogStatus.CONFIRMED);
   },
@@ -392,7 +399,7 @@ testDialogInteraction(
     dialog: new BulkApproveDialog(5),
     keys: [KEYS.ESCAPE],
   }),
-  (dialog: any) => {
+  (dialog: BulkApproveDialog) => {
     assertEquals(dialog.isActive(), false);
     assertEquals(dialog.getState(), DialogStatus.CANCELLED);
   },
@@ -404,7 +411,7 @@ testDialogInteraction(
     dialog: new BulkApproveDialog(10),
     keys: [],
   }),
-  (dialog: any, _rendered: string) => {
+  (dialog: BulkApproveDialog, _rendered: string) => {
     dialog.setProgress(3);
     const updated = renderDialog(dialog);
     assertEquals(updated.includes("Progress"), true);

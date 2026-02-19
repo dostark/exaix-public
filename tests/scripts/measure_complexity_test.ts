@@ -29,15 +29,15 @@ Deno.test("complexityForNode counts AST nodes correctly", () => {
         { type: "SwitchCase", test: {} },
       ],
     },
-  } as any;
+  };
 
-  const c = complexityForNode(fnNode as any);
+  const c = complexityForNode(fnNode);
   // base 1 + If + For + LogicalExpression + Conditional + Catch + SwitchCase = 7
   if (c !== 7) throw new Error(`expected 7, got ${c}`);
 });
 
 Deno.test("traverse visits nodes and parent is passed", () => {
-  const root = { type: "Root", child: { type: "Child", sub: { type: "Leaf" } } } as any;
+  const root = { type: "Root", child: { type: "Child", sub: { type: "Leaf" } } };
   const types: string[] = [];
   traverse(root, (n, parent) => {
     if (n && n.type) types.push(n.type);

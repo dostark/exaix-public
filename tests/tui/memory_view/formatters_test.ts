@@ -6,17 +6,26 @@ import type { TreeNode } from "../../../src/tui/memory_view/types.ts";
 import type {
   ExecutionMemory,
   GlobalMemory,
+  Learning,
   MemoryUpdateProposal,
   ProjectMemory,
 } from "../../../src/services/memory_bank.ts";
-import { TuiNodeType } from "../../../src/enums.ts";
+import {
+  ConfidenceLevel,
+  ExecutionStatus,
+  LearningCategory,
+  MemoryOperation,
+  MemoryScope,
+  MemorySource,
+  TuiNodeType,
+} from "../../../src/enums.ts";
+import { createMockService } from "./memory_test_helpers.ts";
 import {
   TUI_DETAIL_MAX_OVERVIEW_CHARS,
   TUI_MSG_PRESS_QUIT,
   TUI_PREFIX_EXECUTION,
   TUI_PREFIX_PROJECT,
 } from "../../../src/helpers/constants.ts";
-import { MemoryScope } from "../../../src/enums.ts";
 import { MemoryStatus } from "../../../src/memory/memory_status.ts";
 
 function node(id: string, label = id, data?: unknown, badge?: number): TreeNode {
@@ -33,10 +42,26 @@ function node(id: string, label = id, data?: unknown, badge?: number): TreeNode 
 
 Deno.test("MemoryFormatter.formatScopeDetail: covers known scopes and fallback", () => {
   const globalMemory: GlobalMemory = {
-    learnings: [{ title: "L1", category: "insight" as any } as any],
+    version: "1.0",
+    updated_at: new Date().toISOString(),
+    learnings: [
+      {
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+        source: MemorySource.USER,
+        scope: "global",
+        title: "L1",
+        description: "desc",
+        category: LearningCategory.INSIGHT,
+        tags: [],
+        confidence: ConfidenceLevel.HIGH,
+        status: "approved",
+      } as Learning,
+    ],
     patterns: [],
     anti_patterns: [],
-  } as any;
+    statistics: { total_learnings: 1, by_category: {}, by_project: {}, last_activity: new Date().toISOString() },
+  };
 
   const global = MemoryFormatter.formatScopeDetail(node(MemoryTuiScope.GLOBAL, "Global", globalMemory));
   assertStringIncludes(global, "# Global Memory");
@@ -58,9 +83,7 @@ Deno.test("MemoryFormatter.formatScopeDetail: covers known scopes and fallback",
 Deno.test("MemoryFormatter.formatProjectDetail: returns message when project memory missing", async () => {
   const n = node(`${TUI_PREFIX_PROJECT}portal1`, "portal1", null);
 
-  const service = {
-    getProjectMemory: () => Promise.resolve(null),
-  } as any;
+  const service = createMockService({ getProjectMemory: () => Promise.resolve(null) });
 
   const result = await MemoryFormatter.formatProjectDetail(n, service);
   assertStringIncludes(result, "has no memory bank");
@@ -69,13 +92,17 @@ Deno.test("MemoryFormatter.formatProjectDetail: returns message when project mem
 Deno.test("MemoryFormatter.formatExecutionDetail: loads fresh execution when data is null", async () => {
   const exec: ExecutionMemory = {
     trace_id: "trace-12345678",
-    status: "completed" as any,
+    request_id: "request-trace-123",
+    status: ExecutionStatus.COMPLETED,
     agent: "a",
     portal: "p",
     started_at: new Date().toISOString(),
     completed_at: new Date().toISOString(),
     summary: "s",
-  } as any;
+    context_files: [],
+    context_portals: [],
+    changes: { files_created: [], files_modified: [], files_deleted: [] },
+  };
 
   const n = node(`${TUI_PREFIX_EXECUTION}${exec.trace_id}`, "exec", null);
   const service = {
@@ -89,19 +116,22 @@ Deno.test("MemoryFormatter.formatExecutionDetail: loads fresh execution when dat
 
 Deno.test("MemoryFormatter.formatLearningDetail: renders proposal learning content", () => {
   const proposal: MemoryUpdateProposal = {
-    id: "p",
+    id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
-    operation: "add" as any,
+    operation: MemoryOperation.ADD,
     target_scope: MemoryScope.GLOBAL,
     target_project: undefined,
     learning: {
+      id: crypto.randomUUID(),
+      created_at: new Date().toISOString(),
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Learn",
       description: "Desc",
-      scope: MemoryScope.GLOBAL,
-      category: "insight" as any,
-      confidence: "high" as any,
+      category: LearningCategory.INSIGHT,
       tags: ["t"],
-    } as any,
+      confidence: ConfidenceLevel.HIGH,
+    },
     reason: "Because",
     agent: "agent",
     execution_id: "trace",
@@ -116,10 +146,16 @@ Deno.test("MemoryFormatter.formatLearningDetail: renders proposal learning conte
 
 Deno.test("MemoryFormatter.formatProjectMemory: truncates long overview and lists patterns", () => {
   const memory: ProjectMemory = {
+    portal: "portal",
     overview: "x".repeat(TUI_DETAIL_MAX_OVERVIEW_CHARS + 5),
-    patterns: [{ name: "P1", tags: ["tag"] } as any],
-    decisions: [{ decision: "D1" } as any],
-  } as any;
+    patterns: [
+      { name: "P1", description: "desc", examples: [], tags: ["tag"] },
+    ],
+    decisions: [
+      { decision: "D1", rationale: "rationale", date: new Date().toISOString().split("T")[0], tags: [] },
+    ],
+    references: [],
+  };
 
   const out = MemoryFormatter.formatProjectMemory("portal", memory);
   assertStringIncludes(out, "# Project: portal");
@@ -133,21 +169,24 @@ Deno.test("MemoryFormatter.formatProjectMemory: truncates long overview and list
 Deno.test("MemoryFormatter.formatExecutionMemory: includes changes only when present", () => {
   const base: ExecutionMemory = {
     trace_id: "trace-12345678",
-    status: "completed" as any,
+    request_id: "request-123",
+    status: ExecutionStatus.COMPLETED,
     agent: "a",
     portal: "p",
     started_at: new Date().toISOString(),
-  } as any;
+    summary: "",
+    context_files: [],
+    context_portals: [],
+    changes: { files_created: [], files_modified: [], files_deleted: [] },
+  };
 
-  const noChanges = MemoryFormatter.formatExecutionMemory(
-    { ...base, changes: { files_created: [], files_modified: [], files_deleted: [] } } as any,
-  );
+  const noChanges = MemoryFormatter.formatExecutionMemory(base);
   assertEquals(noChanges.includes("## Changes"), false);
 
   const withChanges = MemoryFormatter.formatExecutionMemory({
     ...base,
     changes: { files_created: ["a"], files_modified: [], files_deleted: [] },
-  } as any);
+  });
   assertEquals(withChanges.includes("## Changes"), true);
   assertStringIncludes(withChanges, "Created: 1 files");
 });

@@ -1,26 +1,31 @@
 import { Request } from "../../src/tui/request_manager_view.ts";
-import { MemorySource, SkillStatus } from "../../src/enums.ts";
+import { MemorySource, PortalStatus, SkillStatus } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { LegacyRequestManagerTuiSession, RequestManagerView } from "../../src/tui/request_manager_view.ts";
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { MonitorView } from "../../src/tui/monitor_view.ts";
+import type { LogEntry } from "../../src/tui/monitor_view.ts";
 import { MinimalPlanServiceMock, PlanReviewerTuiSession } from "../../src/tui/plan_reviewer_view.ts";
 import { commonTestData, requestFactory } from "../helpers/test_utils.ts";
 import { RequestStatus, type RequestStatusType } from "../../src/requests/request_status.ts";
+import type { PortalDetails, PortalInfo } from "../../src/cli/commands/portal_commands.ts";
+import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
+import type { RequestOptions } from "../../src/tui/request_manager_view.ts";
+import { SkillsManagerTuiSession } from "../../src/tui/skills_manager_view.ts";
 
 // Counter for deterministic IDs in tests
 let requestIdCounter = 1;
 
 // Use shared test data factories with deterministic IDs
-export const sampleRequest = (overrides: Record<string, any> = {}): Request => {
+export const sampleRequest = (overrides: Partial<Request> = {}): Request => {
   const deterministicOverrides = {
     trace_id: `req-${requestIdCounter++}`,
     ...overrides,
-  };
+  } as Partial<Request>;
   return requestFactory.create(deterministicOverrides) as Request;
 };
 
-export const sampleRequests = (arr: Array<Record<string, any>>): Request[] => arr.map((a) => sampleRequest(a));
+export const sampleRequests = (arr: Array<Partial<Request>>): Request[] => arr.map((a) => sampleRequest(a));
 
 export const sampleTestRequests = () => commonTestData.requests.basic();
 
@@ -48,10 +53,10 @@ export const sampleSingleSkill = () => commonTestData.skills.single;
 
 export const sampleSkillsWithStatuses = () => commonTestData.skills.withStatuses;
 
-export function createMockRequestService(initial: Array<Record<string, any>> = []) {
+export function createMockRequestService(initial: Request[] = []) {
   class MockRequestService {
-    requests: any[];
-    constructor(requests: any[] = []) {
+    requests: Request[];
+    constructor(requests: Request[] = []) {
       this.requests = requests;
     }
     listRequests(status?: RequestStatusType): Promise<Request[]> {
@@ -64,7 +69,7 @@ export function createMockRequestService(initial: Array<Record<string, any>> = [
       const request = this.requests.find((r) => r.trace_id === id);
       return Promise.resolve(request ? `Content for ${id}` : "");
     }
-    createRequest(_description: string, options?: any) {
+    createRequest(_description: string, options?: RequestOptions) {
       const newRequest = {
         trace_id: `test-${Date.now()}`,
         filename: `request-test.md`,
@@ -94,13 +99,13 @@ export function createMockRequestService(initial: Array<Record<string, any>> = [
   return new MockRequestService(initial);
 }
 
-export function createViewWithRequests(arr: Array<Record<string, any>> = []) {
+export function createViewWithRequests(arr: Array<Partial<Request>> = []) {
   const service = createMockRequestService(sampleRequests(arr));
   const view = new RequestManagerView(service);
   return { service, view };
 }
 
-export function createTuiWithRequests(arr: Array<Record<string, any>> = []) {
+export function createTuiWithRequests(arr: Array<Partial<Request>> = []) {
   const { service, view } = createViewWithRequests(arr);
   const requests = sampleRequests(arr);
   const tui = view.createTuiSession(requests);
@@ -192,26 +197,26 @@ export function sampleSingleMonitorLog() {
 // -------------------------
 // Portal helpers
 // -------------------------
-export function samplePortal(overrides: Record<string, any> = {}) {
+export function samplePortal(overrides: Record<string, unknown> = {}): PortalInfo {
   return {
-    alias: overrides.alias ?? `Portal-${Math.floor(Math.random() * 1e6)}`,
-    status: overrides.status ?? SkillStatus.ACTIVE,
-    targetPath: overrides.targetPath ?? "/Portals/Main",
-    symlinkPath: overrides.symlinkPath ?? "",
-    contextCardPath: overrides.contextCardPath ?? "",
+    alias: (overrides.alias as string) ?? `Portal-${Math.floor(Math.random() * 1e6)}`,
+    status: (overrides.status as unknown as PortalStatus) ?? SkillStatus.ACTIVE,
+    targetPath: (overrides.targetPath as string) ?? "/Portals/Main",
+    symlinkPath: (overrides.symlinkPath as string) ?? "",
+    contextCardPath: (overrides.contextCardPath as string) ?? "",
     ...overrides,
-  };
+  } as PortalInfo;
 }
 
-export function samplePortals(arr: Array<Record<string, any>>) {
+export function samplePortals(arr: Array<Record<string, unknown>>): PortalInfo[] {
   return arr.map((a) => samplePortal(a));
 }
 
-export function createMockPortalService(initial: Array<Record<string, any>> = []) {
+export function createMockPortalService(initial: PortalInfo[] = []) {
   class MockPortalService {
-    portals: any[];
-    actions: any[];
-    constructor(portals: any[] = []) {
+    portals: PortalInfo[];
+    actions: { type: string; id: string }[];
+    constructor(portals: PortalInfo[] = []) {
       this.portals = portals;
       this.actions = [];
     }
@@ -219,33 +224,44 @@ export function createMockPortalService(initial: Array<Record<string, any>> = []
       return Promise.resolve(this.portals);
     }
     openPortal(id: string) {
-      if (!this.portals.find((p: any) => p.alias === id)) throw new Error("Portal not found");
+      if (!this.portals.find((p) => p.alias === id)) throw new Error("Portal not found");
       this.actions.push({ type: "open", id });
       return Promise.resolve(true);
     }
     closePortal(id: string) {
-      if (!this.portals.find((p: any) => p.alias === id)) throw new Error("Portal not found");
+      if (!this.portals.find((p) => p.alias === id)) throw new Error("Portal not found");
       this.actions.push({ type: "close", id });
       return Promise.resolve(true);
     }
     refreshPortal(id: string) {
-      if (!this.portals.find((p: any) => p.alias === id)) throw new Error("Portal not found");
+      if (!this.portals.find((p) => p.alias === id)) throw new Error("Portal not found");
       this.actions.push({ type: "refresh", id });
       return Promise.resolve(true);
     }
     removePortal(id: string) {
-      if (!this.portals.find((p: any) => p.alias === id)) throw new Error("Portal not found");
+      if (!this.portals.find((p) => p.alias === id)) throw new Error("Portal not found");
       this.actions.push({ type: "remove", id });
       return Promise.resolve(true);
     }
     getPortalDetails(alias: string) {
-      return Promise.resolve(this.portals.find((p: any) => p.alias === alias));
+      const found = this.portals.find((p) => p.alias === alias);
+      if (found) {
+        return Promise.resolve({ ...found, permissions: "Read/Write" } as PortalDetails);
+      }
+      return Promise.resolve({
+        alias,
+        targetPath: "",
+        symlinkPath: "",
+        contextCardPath: "",
+        status: PortalStatus.BROKEN,
+        permissions: "Read Only",
+      } as PortalDetails);
     }
     quickJumpToPortalDir(alias: string) {
-      return Promise.resolve(this.portals.find((p: any) => p.alias === alias)?.targetPath ?? "");
+      return Promise.resolve(this.portals.find((p) => p.alias === alias)?.targetPath ?? "");
     }
     getPortalFilesystemPath(alias: string) {
-      return Promise.resolve(this.portals.find((p: any) => p.alias === alias)?.targetPath ?? "");
+      return Promise.resolve(this.portals.find((p) => p.alias === alias)?.targetPath ?? "");
     }
     getPortalActivityLog(_id: string) {
       return [
@@ -258,13 +274,13 @@ export function createMockPortalService(initial: Array<Record<string, any>> = []
   return new MockPortalService(initial);
 }
 
-export function createPortalViewWithPortals(arr: Array<Record<string, any>> = []) {
+export function createPortalViewWithPortals(arr: Array<Record<string, unknown>> = []) {
   const service = createMockPortalService(samplePortals(arr));
   const view = new PortalManagerView(service);
   return { service, view };
 }
 
-export function createPortalTuiWithPortals(arr: Array<Record<string, any>> = []) {
+export function createPortalTuiWithPortals(arr: Array<Record<string, unknown>> = []) {
   const { service, view } = createPortalViewWithPortals(arr);
   // Pass the service's array reference so tests that mutate the service.portals array are reflected in the TUI session
   const tui = view.createTuiSession(service.portals);
@@ -274,13 +290,13 @@ export function createPortalTuiWithPortals(arr: Array<Record<string, any>> = [])
 // -------------------------
 // Monitor helpers
 // -------------------------
-export function createMockDatabaseService(initialLogs: Array<Record<string, any>> = []) {
+export function createMockDatabaseService(initialLogs: ActivityRecord[] = []) {
   class MockDatabaseService {
-    private logs: Array<any>;
-    constructor(logs: Array<any> = []) {
+    private logs: ActivityRecord[];
+    constructor(logs: ActivityRecord[] = []) {
       this.logs = logs;
     }
-    queryActivity(filter: any) {
+    queryActivity(filter: JournalFilterOptions) {
       let filtered = this.logs;
       if (filter.agentId) {
         filtered = filtered.filter((l) => l.agent_id === filter.agentId);
@@ -291,8 +307,9 @@ export function createMockDatabaseService(initialLogs: Array<Record<string, any>
       if (filter.traceId) {
         filtered = filtered.filter((l) => l.trace_id === filter.traceId);
       }
-      if (filter.since) {
-        filtered = filtered.filter((l) => l.timestamp > filter.since);
+      const since = filter.since;
+      if (since) {
+        filtered = filtered.filter((l) => l.timestamp > since);
       }
       return Promise.resolve(filtered);
     }
@@ -300,26 +317,63 @@ export function createMockDatabaseService(initialLogs: Array<Record<string, any>
     getRecentActivity(limit: number = 100) {
       return Promise.resolve(this.logs.slice(-limit).reverse());
     }
-    addLog(log: any) {
+    addLog(log: ActivityRecord) {
       this.logs.push(log);
     }
   }
   return new MockDatabaseService(initialLogs);
 }
 
-export function createMonitorViewWithLogs(arr: Array<Record<string, any>> = []) {
-  const db = createMockDatabaseService(arr);
+export function createMonitorViewWithLogs(arr: Array<Record<string, unknown>> = []) {
+  const activityRecords: ActivityRecord[] = arr.map((a) => ({
+    id: String(a.id ?? crypto.randomUUID()),
+    trace_id: String(a.trace_id ?? `trace-${a.id ?? Math.floor(Math.random() * 1e6)}`),
+    actor: (a.actor as string | null) ?? null,
+    agent_id: (a.agent_id as string | null) ?? null,
+    action_type: String(a.action_type ?? "unknown"),
+    target: (a.target as string | null) ?? null,
+    payload: typeof a.payload === "string" ? a.payload : JSON.stringify(a.payload ?? {}),
+    timestamp: String(a.timestamp ?? new Date().toISOString()),
+    count: typeof a.count === "number" ? (a.count as number) : undefined,
+  }));
+
+  const db = createMockDatabaseService(activityRecords);
   const monitorView = new MonitorView(db);
-  // For testing, synchronously set the logs since constructor doesn't await
-  monitorView["logs"] = arr.map((log): any => ({
-    ...log,
-    payload: typeof log.payload === "string" ? JSON.parse(log.payload) : log.payload,
+  // For testing, set the monitor view's internal logs as parsed LogEntry[]
+  monitorView["logs"] = activityRecords.map((log) => ({
+    id: log.id,
+    trace_id: log.trace_id,
+    actor: log.actor,
+    agent_id: log.agent_id,
+    action_type: log.action_type,
+    target: log.target,
+    payload: JSON.parse(log.payload) as Record<string, unknown>,
+    timestamp: log.timestamp,
+    count: log.count,
   }));
   return { db, monitorView };
 }
 
-export function createMonitorTuiSession(arr: Array<Record<string, any>> = []) {
-  const { db, monitorView } = createMonitorViewWithLogs(arr);
+export function createMonitorTuiSession(arr: Array<LogEntry | Record<string, unknown>> = []) {
+  const converted: Array<Record<string, unknown>> = arr.map((a) => {
+    // If the caller passed a LogEntry, convert it to a plain record with stringified payload
+    if ((a as LogEntry).action_type !== undefined) {
+      const log = a as LogEntry;
+      return {
+        id: log.id,
+        trace_id: log.trace_id,
+        actor: log.actor,
+        agent_id: log.agent_id,
+        action_type: log.action_type,
+        target: log.target,
+        payload: typeof log.payload === "string" ? log.payload : JSON.stringify(log.payload),
+        timestamp: log.timestamp,
+      } as Record<string, unknown>;
+    }
+    return a as Record<string, unknown>;
+  });
+
+  const { db, monitorView } = createMonitorViewWithLogs(converted);
   const session = monitorView.createTuiSession(false);
   return { db, view: monitorView, session };
 }
@@ -327,9 +381,11 @@ export function createMonitorTuiSession(arr: Array<Record<string, any>> = []) {
 // -------------------------
 // Plan reviewer helpers
 // -------------------------
-export function createPlanReviewerSession(plans: Array<Record<string, any>> = []) {
+import type { Plan } from "../../src/tui/plan_reviewer_view.ts";
+
+export function createPlanReviewerSession(plans: Plan[] = []) {
   const mock = new MinimalPlanServiceMock();
-  const session = new PlanReviewerTuiSession(plans as unknown as any, mock);
+  const session = new PlanReviewerTuiSession(plans, mock);
   return { mock, session };
 }
 
@@ -465,7 +521,7 @@ export function createLegacyMockRequestService() {
   };
 }
 
-export function createLegacyTuiSession(requests: any[] = []) {
+export function createLegacyTuiSession(requests: Request[] = []) {
   const mockService = createLegacyMockRequestService();
   return new LegacyRequestManagerTuiSession(requests, mockService);
 }
@@ -560,7 +616,7 @@ export function sampleSkill(overrides: Record<string, any> = {}) {
   };
 }
 
-export function sampleSkills(arr: Array<Record<string, any>>) {
+export function sampleSkills(arr: Array<Record<string, unknown>>) {
   return arr.map((a) => sampleSkill(a));
 }
 
@@ -619,7 +675,7 @@ export function createTestSkills(): SkillSummary[] {
   return sampleTestSkills();
 }
 
-export function createMockSkillsService(initial: Array<Record<string, any>> = []) {
+export function createMockSkillsService(initial: Array<Record<string, unknown>> = []) {
   return new MinimalSkillsServiceMock(sampleSkills(initial));
 }
 
@@ -638,7 +694,7 @@ export function createSkillsManagerTuiSession(skills: SkillSummary[] = sampleTes
 export function testSkillsSessionRender(
   name: string,
   keySequence: string[],
-  assertion: (rendered: string, session: any) => void | Promise<void>,
+  assertion: (rendered: string, session: SkillsManagerTuiSession) => void | Promise<void>,
   options: {
     skills?: SkillSummary[];
     useColors?: boolean;

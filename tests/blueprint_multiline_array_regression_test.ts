@@ -58,7 +58,7 @@ This blueprint uses multi-line YAML array format.
 
     const stubDb = createStubDb();
 
-    const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
+    const blueprintCommands = new BlueprintCommands({ config, db: stubDb });
 
     // List should find the blueprint and parse arrays correctly
     const blueprints = await blueprintCommands.list();

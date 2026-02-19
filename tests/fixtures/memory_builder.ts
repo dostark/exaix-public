@@ -1,8 +1,10 @@
-import { ExecutionStatus } from "../../src/enums.ts";
+import { ConfidenceLevel, ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
+import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import type {
   Changes,
   Decision,
   ExecutionMemory,
+  Learning,
   Pattern,
   ProjectMemory,
   Reference,
@@ -136,21 +138,21 @@ export class ExecutionMemoryBuilder {
  * Builder for Learning objects to simplify test data creation
  */
 export class LearningBuilder {
-  private learning: any; // Using any temporarily to allow partial build up
+  private learning: Learning;
 
   constructor() {
     this.learning = {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
-      source: "user", // MemorySource.USER
-      scope: "global", // MemoryScope.GLOBAL
+      source: MemorySource.USER,
+      scope: MemoryScope.GLOBAL,
       title: "Test Learning",
       description: "Test description",
-      category: "pattern", // LearningCategory.PATTERN
+      category: LearningCategory.PATTERN,
       tags: [],
-      confidence: "high", // ConfidenceLevel.HIGH
-      status: "approved", // MemoryStatus.APPROVED
-    };
+      confidence: ConfidenceLevel.HIGH,
+      status: MemoryStatus.APPROVED,
+    } as Learning;
   }
 
   public withTitle(title: string): this {
@@ -163,16 +165,16 @@ export class LearningBuilder {
     return this;
   }
 
-  public withScope(scope: string, project?: string): this {
-    this.learning.scope = scope;
+  public withScope(scope: MemoryScope | string, project?: string): this {
+    this.learning.scope = scope as MemoryScope;
     if (project) {
       this.learning.project = project;
     }
     return this;
   }
 
-  public withCategory(category: string): this {
-    this.learning.category = category;
+  public withCategory(category: LearningCategory | string): this {
+    this.learning.category = category as LearningCategory;
     return this;
   }
 
@@ -181,7 +183,7 @@ export class LearningBuilder {
     return this;
   }
 
-  public build(): any {
+  public build(): Learning {
     return JSON.parse(JSON.stringify(this.learning));
   }
 }

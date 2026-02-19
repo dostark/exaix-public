@@ -80,11 +80,14 @@ Do flow work.
       validationErrors: ["Missing required field: steps"],
     });
 
-    (processor as any).planWriter = {
-      writePlan: () => {
-        throw validationError;
+    Object.defineProperty(processor, "planWriter", {
+      value: {
+        writePlan: () => {
+          throw validationError;
+        },
       },
-    };
+      writable: true,
+    });
 
     const result = await processor.process(requestPath);
     assertEquals(result, null);
@@ -153,11 +156,14 @@ Create documentation for the new feature.
       validationErrors: ["Expected property 'steps'"],
     });
 
-    (processor as any).planWriter = {
-      writePlan: () => {
-        throw validationError;
+    Object.defineProperty(processor, "planWriter", {
+      value: {
+        writePlan: () => {
+          throw validationError;
+        },
       },
-    };
+      writable: true,
+    });
 
     const result = await processor.process(requestPath);
     assertEquals(result, null);
@@ -222,11 +228,14 @@ Content here.
       validationErrors: ["Missing required field: title"],
     });
 
-    (processor as any).planWriter = {
-      writePlan: () => {
-        throw validationError;
+    Object.defineProperty(processor, "planWriter", {
+      value: {
+        writePlan: () => {
+          throw validationError;
+        },
       },
-    };
+      writable: true,
+    });
 
     await processor.process(requestPath);
 
@@ -288,11 +297,14 @@ Request info.
       },
     );
 
-    (processor as any).planWriter = {
-      writePlan: () => {
-        throw detailedError;
+    Object.defineProperty(processor, "planWriter", {
+      value: {
+        writePlan: () => {
+          throw detailedError;
+        },
       },
-    };
+      writable: true,
+    });
 
     await processor.process(requestPath);
 

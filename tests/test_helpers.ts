@@ -1,40 +1,70 @@
-export function createStubDb(overrides: Record<string, unknown> = {}): any {
-  const base: Record<string, unknown> = {
-    logActivity: () => {},
-    waitForFlush: async () => {},
-    preparedGet: function (_query: string, _params: unknown[] = []) {
-      return Promise.resolve(null);
+import type { IDatabaseService } from "../src/services/db.ts";
+import type { ActivityRepository } from "../src/repositories/activity_repository.ts";
+
+/**
+ * Create a fully-typed stub implementation of the DatabaseService used in tests.
+ * Returns an object matching `IDatabaseService` with no-op implementations so
+ * tests can pass it without casting to `any`.
+ */
+export function createStubDb(overrides: Partial<IDatabaseService> = {}): IDatabaseService {
+  const base: IDatabaseService = {
+    logActivity: (
+      _actor: string,
+      _actionType: string,
+      _target: string | null,
+      _payload: Record<string, unknown>,
+      _traceId?: string,
+      _agentId?: string | null,
+    ) => {
+      /* noop */
     },
-    preparedAll: function (_query: string, _params: unknown[] = []) {
-      return Promise.resolve([]);
-    },
-    preparedRun: function (_query: string, _params: unknown[] = []) {
-      return Promise.resolve({});
-    },
-    async getActivitiesByTraceSafe(traceId: string) {
-      if (typeof (this as any).getActivitiesByTrace === "function") {
-        const r = (this as any).getActivitiesByTrace(traceId);
-        return r instanceof Promise ? await r : r;
+    waitForFlush: () => Promise.resolve(),
+    queryActivity: () => Promise.resolve([]),
+    preparedGet: <T>(_query: string, _params: (string | number | boolean | null)[] = []) =>
+      Promise.resolve((null as unknown) as T | null),
+    preparedAll: <T>(_query: string, _params: (string | number | boolean | null)[] = []) =>
+      Promise.resolve([] as unknown as T[]),
+    preparedRun: (_query: string, _params: (string | number | boolean | null)[] = []) => Promise.resolve({}),
+    getActivitiesByTrace: (_traceId: string) => [],
+    // The "Safe" variants delegate to the possibly-overridden sync method so tests
+    // that provide a spy for `getActivitiesByTrace` or `getActivitiesByActionType`
+    // still get invoked. This keeps backwards compatibility.
+    getActivitiesByTraceSafe: async function (_traceId: string) {
+      const fn = (this as unknown as Partial<IDatabaseService>).getActivitiesByTrace as
+        | ((traceId: string) => unknown)
+        | undefined;
+      if (typeof fn === "function") {
+        const r = fn(_traceId);
+        return r instanceof Promise ? await r : (r as any[]);
       }
       return [];
     },
-    async getActivitiesByActionTypeSafe(actionType: string) {
-      if (typeof (this as any).getActivitiesByActionType === "function") {
-        const r = (this as any).getActivitiesByActionType(actionType);
-        return r instanceof Promise ? await r : r;
+    getActivitiesByActionType: (_actionType: string) => [],
+    getActivitiesByActionTypeSafe: async function (_actionType: string) {
+      const fn = (this as unknown as Partial<IDatabaseService>).getActivitiesByActionType as
+        | ((actionType: string) => unknown)
+        | undefined;
+      if (typeof fn === "function") {
+        const r = fn(_actionType);
+        return r instanceof Promise ? await r : (r as any[]);
       }
       return [];
     },
+    getRecentActivity: (_limit?: number) => Promise.resolve([]),
   };
 
-  return Object.assign(base, overrides) as any;
+  return Object.assign(base, overrides);
 }
 
-export function createMockRepo(overrides: Record<string, unknown> = {}): any {
-  return Object.assign({
+/**
+ * Create a typed ActivityRepository mock for tests.
+ */
+export function createMockRepo(overrides: Partial<ActivityRepository> = {}): ActivityRepository {
+  const base: ActivityRepository = {
     logActivity: () => Promise.resolve(),
     getActivitiesByTraceId: () => Promise.resolve([]),
     getActivitiesByActionType: () => Promise.resolve([]),
     getRecentActivities: () => Promise.resolve([]),
-  }, overrides) as any;
+  };
+  return Object.assign(base, overrides);
 }

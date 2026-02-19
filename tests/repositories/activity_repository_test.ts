@@ -40,8 +40,9 @@ Deno.test("ActivityRepository: interface defines contract", () => {
 });
 
 Deno.test("DatabaseActivityRepository: logs activities through abstraction", async () => {
-  let capturedArgs: any[] = [];
-  const logActivitySpy = spy((...args: any[]) => {
+  type LogActivityArgs = Parameters<DatabaseService["logActivity"]>;
+  let capturedArgs: LogActivityArgs | null = null;
+  const logActivitySpy = spy((...args: LogActivityArgs) => {
     capturedArgs = args;
   });
   const waitForFlushSpy = spy(() => Promise.resolve());
@@ -65,6 +66,7 @@ Deno.test("DatabaseActivityRepository: logs activities through abstraction", asy
   await repo.logActivity(activity);
 
   assertSpyCalls(logActivitySpy, 1);
+  if (!capturedArgs) throw new Error("logActivitySpy not called");
   assertEquals(capturedArgs[0], "test-actor");
   assertEquals(capturedArgs[1], "test.action");
   assertEquals(capturedArgs[2], "test-target");

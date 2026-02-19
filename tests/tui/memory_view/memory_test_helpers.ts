@@ -1,4 +1,5 @@
 import { MemoryServiceInterface } from "../../../src/tui/memory_view/types.ts";
+import { DialogStatus } from "../../../src/enums.ts";
 
 export interface MockContext {
   statuses: string[];
@@ -15,19 +16,28 @@ export interface MockContext {
 }
 
 export function createMockService(overrides: Partial<MemoryServiceInterface> = {}): MemoryServiceInterface {
-  return {
+  const svc: MemoryServiceInterface = {
+    getProjects: () => Promise.resolve([]),
+    getProjectMemory: () => Promise.resolve(null),
+    getGlobalMemory: () => Promise.resolve(null),
+    getExecutionByTraceId: () => Promise.resolve(null),
+    getExecutionHistory: () => Promise.resolve([]),
+    search: () => Promise.resolve([]),
     listPending: () => Promise.resolve([]),
+    getPending: () => Promise.resolve(null),
     approvePending: () => Promise.resolve(),
     rejectPending: () => Promise.resolve(),
-    ...overrides,
-  } as unknown as MemoryServiceInterface;
+  };
+  return Object.assign(svc, overrides);
 }
 
-export function createMockDialog(result: any, overrides: any = {}) {
-  return {
-    getResult: () => result,
-    ...overrides,
-  } as any;
+export function createMockDialog<T>(
+  result: { type: DialogStatus; value?: T },
+  overrides: Partial<Record<string, unknown>> = {},
+) {
+  const dialog = { getResult: () => result };
+  Object.assign(dialog, overrides);
+  return dialog as { getResult: () => { type: DialogStatus; value?: T } };
 }
 
 export function createTestContext(overrides?: Partial<{ service: MemoryServiceInterface }>): MockContext {
@@ -64,12 +74,12 @@ export function createTestContext(overrides?: Partial<{ service: MemoryServiceIn
   };
 }
 
-export function testDialogProcess(
+export function testDialogProcess<T>(
   name: string,
   setup: () => {
-    dialog: any;
+    dialog: { getResult: () => { type: DialogStatus; value?: T } };
     ctx: MockContext;
-    process: (dialog: any, ctx: any) => Promise<void>;
+    process: (dialog: { getResult: () => { type: DialogStatus; value?: T } }, ctx: MockContext["ctx"]) => Promise<void>;
   },
   verify: (ctx: MockContext) => void | Promise<void>,
 ) {

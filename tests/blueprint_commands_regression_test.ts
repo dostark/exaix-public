@@ -88,7 +88,7 @@ This agent uses YAML frontmatter format.
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_YAML}.md`), yamlBlueprint);
 
     const config = createTestConfig(tempDir);
-    const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
+    const blueprintCommands = new BlueprintCommands({ config, db: stubDb });
 
     // List should find the YAML-format blueprint
     const blueprints = await blueprintCommands.list();
@@ -127,7 +127,7 @@ This agent uses TOML frontmatter format.
 `;
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_TOML}.md`), tomlBlueprint);
     const config = createTestConfig(tempDir);
-    const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
+    const blueprintCommands = new BlueprintCommands({ config, db: stubDb });
 
     // List should find the TOML-format blueprint
     const blueprints = await blueprintCommands.list();
@@ -165,7 +165,7 @@ System prompt content here.
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_SHOW}.md`), yamlBlueprint);
 
     const config = createTestConfig(tempDir);
-    const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
+    const blueprintCommands = new BlueprintCommands({ config, db: stubDb });
 
     // Show should work with YAML format
     // Before the fix, this would throw "Invalid blueprint format"
@@ -207,7 +207,7 @@ You are a test agent. Use <thought> tags for reasoning and <content> tags for re
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_VALIDATE}.md`), yamlBlueprint);
 
     const config = createTestConfig(tempDir);
-    const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
+    const blueprintCommands = new BlueprintCommands({ config, db: stubDb });
 
     // Validate should work with YAML format
     // Before the fix, this would show "Missing or invalid TOML frontmatter"
@@ -251,7 +251,7 @@ TOML content.
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_MIXED_TOML}.md`), tomlBlueprint);
 
     const config = createTestConfig(tempDir);
-    const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
+    const blueprintCommands = new BlueprintCommands({ config, db: stubDb });
 
     // Should find both blueprints
     const blueprints = await blueprintCommands.list();
@@ -286,7 +286,7 @@ Array test.
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID_ARRAY}.md`), yamlBlueprint);
 
     const config = createTestConfig(tempDir);
-    const blueprintCommands = new BlueprintCommands({ config, db: stubDb as any });
+    const blueprintCommands = new BlueprintCommands({ config, db: stubDb });
 
     const details = await blueprintCommands.show(AGENT_ID_ARRAY);
 
