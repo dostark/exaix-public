@@ -14,7 +14,7 @@
  */
 
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "./db.ts";
+import { IDatabaseService } from "./db.ts";
 import type { MemoryUpdateProposal } from "../schemas/memory_bank.ts";
 import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
 
@@ -23,7 +23,14 @@ import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
  */
 export interface MemoryNotification {
   id?: string;
-  type: "memory_update_pending" | "memory_approved" | "memory_rejected" | "info" | "success" | "warning" | "error";
+  type:
+    | "memory_update_pending"
+    | "memory_approved"
+    | "memory_rejected"
+    | "info"
+    | "success"
+    | "warning"
+    | "error";
   message: string;
   proposal_id?: string;
   trace_id?: string;
@@ -33,14 +40,35 @@ export interface MemoryNotification {
 }
 
 /**
+ * Interface for Notification Service to support mocks and strict typing
+ */
+export interface INotificationService {
+  notifyMemoryUpdate(proposal: MemoryUpdateProposal): Promise<void>;
+  notify(
+    message: string,
+    type?: string,
+    proposalId?: string,
+    traceId?: string,
+    metadata?: string,
+  ): Promise<void>;
+  notifyApproval(proposalId: string, learningTitle: string): void;
+  notifyRejection(proposalId: string, reason: string): void;
+  getNotifications(): Promise<MemoryNotification[]>;
+  getPendingCount(): Promise<number>;
+  clearNotification(proposalId: string): Promise<void>;
+  clearAllNotifications(): Promise<void>;
+  readonly database: IDatabaseService;
+}
+
+/**
  * Notification Service
  *
  * Handles user notifications for memory updates using SQLite storage.
  */
-export class NotificationService {
+export class NotificationService implements INotificationService {
   constructor(
     private config: Config,
-    private db: DatabaseService,
+    private db: IDatabaseService,
   ) {
     // No file path needed - using database only!
   }
@@ -107,7 +135,7 @@ export class NotificationService {
   /**
    * Expose database for TUI needs
    */
-  get database(): DatabaseService {
+  get database(): IDatabaseService {
     return this.db;
   }
 

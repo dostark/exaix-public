@@ -5,7 +5,6 @@ import { MemorySource } from "../../src/enums.ts";
 
 import { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS, MonitorView } from "../../src/tui/monitor_view.ts";
 import type { LogEntry } from "../../src/tui/monitor_view.ts";
-import { DatabaseService } from "../../src/services/db.ts";
 import {
   createMockDatabaseService,
   createMonitorViewWithLogs,
@@ -43,7 +42,7 @@ async function verifyFilter(
 // Additional coverage for MonitorView rendering and color helpers
 Deno.test("MonitorView - getLogColor covers all cases", () => {
   const db = createMockDatabaseService();
-  const monitorView = new MonitorView(db as unknown as DatabaseService);
+  const monitorView = new MonitorView(db);
   assertEquals(monitorView.getLogColor("request_created"), "green");
   assertEquals(monitorView.getLogColor("plan_approved"), "blue");
   assertEquals(monitorView.getLogColor("execution_started"), "yellow");
@@ -54,7 +53,7 @@ Deno.test("MonitorView - getLogColor covers all cases", () => {
 
 Deno.test("MonitorView - getAnsiColorCode covers all cases", () => {
   const db = createMockDatabaseService();
-  const monitorView = new MonitorView(db as unknown as DatabaseService);
+  const monitorView = new MonitorView(db);
   assertEquals(monitorView["getAnsiColorCode"]("red"), 31);
   assertEquals(monitorView["getAnsiColorCode"]("green"), 32);
   assertEquals(monitorView["getAnsiColorCode"]("yellow"), 33);
@@ -146,6 +145,9 @@ Deno.test("MonitorView - does not fetch when paused", () => {
       calls.push(`get:${limit}`);
       return this.inner.getRecentActivity(limit);
     }
+    queryActivity(filter: any) {
+      return this.inner.queryActivity(filter);
+    }
     addLog(log: any) {
       return this.inner.addLog(log);
     }
@@ -163,7 +165,7 @@ Deno.test("MonitorView - does not fetch when paused", () => {
         timestamp: "2025-12-21T10:00:00Z",
       },
     ]);
-    const monitorView = new MonitorView(db as unknown as DatabaseService);
+    const monitorView = new MonitorView(db);
     calls.length = 0;
     monitorView.pause();
     await monitorView.getLogs(); // should not trigger fetch while paused
@@ -176,7 +178,7 @@ Deno.test("MonitorView - does not fetch when paused", () => {
 
 Deno.test("MonitorView - maps Activity Journal action names to colors", () => {
   const db = createMockDatabaseService();
-  const monitorView = new MonitorView(db as unknown as DatabaseService);
+  const monitorView = new MonitorView(db);
   assertEquals(monitorView.getLogColor("plan.approved"), "blue");
   assertEquals(monitorView.getLogColor("plan.rejected"), "red");
   assertEquals(monitorView.getLogColor("execution.failed"), "red");

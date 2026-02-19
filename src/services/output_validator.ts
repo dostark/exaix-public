@@ -330,7 +330,7 @@ export class OutputValidator {
     // Use type assertion since we know OutputSchemas[K] matches the expected type
     return this.validate(
       content,
-      schema as unknown as ZodType<z.infer<(typeof OutputSchemas)[K]>, ZodTypeDef, unknown>,
+      schema as ZodType<z.infer<(typeof OutputSchemas)[K]>, ZodTypeDef, unknown>,
     );
   }
 
@@ -363,7 +363,7 @@ export class OutputValidator {
     // Use type assertion since we know OutputSchemas[K] matches the expected type
     return this.parseAndValidate(
       raw,
-      schema as unknown as ZodType<z.infer<(typeof OutputSchemas)[K]>, ZodTypeDef, unknown>,
+      schema as ZodType<z.infer<(typeof OutputSchemas)[K]>, ZodTypeDef, unknown>,
     );
   }
 

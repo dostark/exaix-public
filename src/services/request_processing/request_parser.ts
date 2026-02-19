@@ -41,7 +41,7 @@ export class RequestParser {
       const body = yamlMatch[2] || "";
 
       // Parse YAML
-      const frontmatter = parseYaml(yamlContent) as unknown as RequestFrontmatter;
+      const frontmatter = parseYaml(yamlContent) as RequestFrontmatter;
 
       // Normalize status to canonical set (guards against malformed/unknown values)
       frontmatter.status = coerceRequestStatus(frontmatter.status);

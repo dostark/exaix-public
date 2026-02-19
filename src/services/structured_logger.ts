@@ -66,6 +66,24 @@ export interface StructuredLoggerConfig {
   version?: string;
 }
 
+/**
+ * Interface for StructuredLogger to support mocks and strict typing
+ */
+export interface IStructuredLogger {
+  setContext(context: Partial<LogEntry["context"]>): void;
+  child(additionalContext: Partial<LogEntry["context"]>): IStructuredLogger;
+  debug(message: string, metadata?: Record<string, unknown>): void;
+  info(message: string, metadata?: Record<string, unknown>): void;
+  warn(message: string, metadata?: Record<string, unknown>): void;
+  error(message: string, error?: Error, metadata?: Record<string, unknown>): void;
+  fatal(message: string, error?: Error, metadata?: Record<string, unknown>): void;
+  time<T>(
+    operation: string,
+    fn: () => Promise<T>,
+    metadata?: Record<string, unknown>,
+  ): Promise<T>;
+}
+
 // ============================================================================
 // Output Implementations
 // ============================================================================
@@ -225,7 +243,7 @@ export class FileOutput implements LogOutput {
 // Core Logger Implementation
 // ============================================================================
 
-export class StructuredLogger {
+export class StructuredLogger implements IStructuredLogger {
   private context: Partial<LogEntry["context"]> = {};
   private readonly config: StructuredLoggerConfig;
 

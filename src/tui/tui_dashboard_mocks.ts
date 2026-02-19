@@ -25,7 +25,7 @@ import {
 import { AgentStatus } from "./agent_status/agent_status.ts";
 import { MemoryStatus } from "../memory/memory_status.ts";
 import { RequestStatus, type RequestStatusType } from "../requests/request_status.ts";
-import type { LogEntry } from "../services/structured_logger.ts";
+import type { IStructuredLogger, LogEntry } from "../services/structured_logger.ts";
 import type { RequestOptions } from "./request_manager_view.ts";
 
 export class MockPortalService implements PortalService {
@@ -98,19 +98,50 @@ export class MockPlanService {
   }
 }
 
+import type { IDatabaseService } from "../services/db.ts";
+
 /**
  * MockLogService
- * Mock implementation of the LogService interface for TDD and dashboard wiring tests.
+ * Mock implementation of the IDatabaseService interface for TDD and dashboard wiring tests.
  * Returns an empty activity list.
  */
-export class MockLogService {
+export class MockLogService implements IDatabaseService {
   /** Returns an empty list of recent activity logs. */
-  queryActivity(_filter?: { limit?: number; agentId?: string; traceId?: string }) {
+  queryActivity(_filter?: any) {
     return Promise.resolve([]);
   }
 
   /** Returns an empty list of recent activity logs. */
   getRecentActivity(_limit?: number) {
+    return Promise.resolve([]);
+  }
+
+  logActivity() {}
+  waitForFlush() {
+    return Promise.resolve();
+  }
+  close() {
+    return Promise.resolve();
+  }
+  preparedGet() {
+    return Promise.resolve(null);
+  }
+  preparedAll() {
+    return Promise.resolve([]);
+  }
+  preparedRun() {
+    return Promise.resolve({});
+  }
+  getActivitiesByTrace() {
+    return [];
+  }
+  getActivitiesByTraceSafe() {
+    return Promise.resolve([]);
+  }
+  getActivitiesByActionType() {
+    return [];
+  }
+  getActivitiesByActionTypeSafe() {
     return Promise.resolve([]);
   }
 }
@@ -666,7 +697,7 @@ export class MockSkillsService {
  * MockStructuredLogger
  * Mock implementation of StructuredLogger for TDD and dashboard wiring tests.
  */
-export class MockStructuredLogger {
+export class MockStructuredLogger implements IStructuredLogger {
   private context: Record<string, unknown> = {};
   private config: { minLevel: LogLevel; outputs: unknown[]; enablePerformanceTracking: boolean } = {
     minLevel: LogLevel.DEBUG,
@@ -674,15 +705,15 @@ export class MockStructuredLogger {
     enablePerformanceTracking: false,
   };
 
-  setContext() {}
-  child() {
+  setContext(_context: Partial<LogEntry["context"]>) {}
+  child(_additionalContext: Partial<LogEntry["context"]>): IStructuredLogger {
     return this;
   }
-  debug() {}
-  info() {}
-  warn() {}
-  error() {}
-  fatal() {}
+  debug(_message: string, _metadata?: Record<string, unknown>) {}
+  info(_message: string, _metadata?: Record<string, unknown>) {}
+  warn(_message: string, _metadata?: Record<string, unknown>) {}
+  error(_message: string, _error?: Error, _metadata?: Record<string, unknown>) {}
+  fatal(_message: string, _error?: Error, _metadata?: Record<string, unknown>) {}
   private log() {}
   private shouldLog() {
     return true;

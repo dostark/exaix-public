@@ -8,7 +8,7 @@
  */
 import { dirname, join } from "@std/path";
 import { ensureDir } from "@std/fs/ensure-dir";
-import type { DatabaseService } from "./db.ts";
+import type { DatabaseService, IDatabaseService } from "./db.ts";
 import type { Config } from "../config/schema.ts";
 import type { JsonValue } from "../flows/transforms.ts";
 
@@ -20,9 +20,9 @@ export interface PortalInfo {
 
 export class ContextCardGenerator {
   private config: Config;
-  private db?: DatabaseService;
+  private db?: IDatabaseService;
 
-  constructor(config: Config, db?: DatabaseService) {
+  constructor(config: Config, db?: IDatabaseService) {
     this.config = config;
     this.db = db;
   }

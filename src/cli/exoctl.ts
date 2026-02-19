@@ -25,9 +25,9 @@ import { ReviewStatus, type ReviewStatus as ReviewStatusType } from "../reviews/
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { McpCommands } from "./commands/mcp_commands.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
-import { GitService } from "../services/git_service.ts";
+import { GitService, type IGitService } from "../services/git_service.ts";
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
+import type { DatabaseService, IDatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
 import type { EventLogger } from "../services/event_logger.ts";
 import type { ConfigService } from "../config/service.ts";
@@ -56,11 +56,11 @@ export function isTestMode() {
 }
 
 let config: Config;
-let db: DatabaseService;
-let gitService: GitService;
+let db: IDatabaseService;
+let gitService: IGitService;
 let provider: IModelProvider;
 let display: EventLogger;
-let context: { config: Config; db: DatabaseService; provider: IModelProvider };
+let context: { config: Config; db: IDatabaseService; provider: IModelProvider };
 let configService: ConfigService | undefined;
 
 const services = await initializeServices();

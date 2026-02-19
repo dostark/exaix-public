@@ -309,7 +309,7 @@ export function createMockDatabaseService(initialLogs: Array<Record<string, any>
 
 export function createMonitorViewWithLogs(arr: Array<Record<string, any>> = []) {
   const db = createMockDatabaseService(arr);
-  const monitorView = new MonitorView(db as unknown as any);
+  const monitorView = new MonitorView(db);
   // For testing, synchronously set the logs since constructor doesn't await
   monitorView["logs"] = arr.map((log): any => ({
     ...log,

@@ -8,18 +8,18 @@
  */
 
 import { ConfigService } from "../config/service.ts";
-import { GitService } from "../services/git_service.ts";
+import { GitService, IGitService } from "../services/git_service.ts";
 import { EventLogger } from "../services/event_logger.ts";
 import { ProviderFactory } from "../ai/provider_factory.ts";
 import { ExoPathDefaults } from "../config/constants.ts";
 import type { Config } from "../config/schema.ts";
-import { DatabaseService } from "../services/db.ts";
+import { DatabaseService, IDatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
 
 export interface ServiceContext {
   config: Config;
-  db: DatabaseService;
-  gitService: GitService;
+  db: IDatabaseService;
+  gitService: IGitService;
   provider: IModelProvider;
   display: EventLogger;
   configService?: ConfigService;
@@ -27,37 +27,50 @@ export interface ServiceContext {
   error?: string;
 }
 
-interface DatabaseLike {
-  logActivity: (...args: unknown[]) => void;
-  waitForFlush: () => Promise<void>;
-  queryActivity: () => Promise<unknown[]>;
-  close?: () => Promise<void>;
-}
-
-// Helper to create DatabaseService-compatible stub
-function createDatabaseStub(): DatabaseService {
-  const stub: DatabaseLike = {
+// Helper to create IDatabaseService-compatible stub
+function createDatabaseStub(): IDatabaseService {
+  return {
     logActivity: () => {},
     waitForFlush: async () => {},
     queryActivity: () => Promise.resolve([]),
     close: async () => {},
+    preparedGet: () => Promise.resolve(null),
+    preparedAll: () => Promise.resolve([]),
+    preparedRun: () => Promise.resolve({}),
+    getActivitiesByTrace: () => [],
+    getActivitiesByTraceSafe: () => Promise.resolve([]),
+    getActivitiesByActionType: () => [],
+    getActivitiesByActionTypeSafe: () => Promise.resolve([]),
+    getRecentActivity: () => Promise.resolve([]),
   };
-  return stub as unknown as DatabaseService;
 }
 
-// Helper to create GitService-compatible stub
-function createGitServiceStub(): GitService {
+// Helper to create IGitService-compatible stub
+function createGitServiceStub(): IGitService {
   return {
-    getStatus: () => Promise.resolve({ status: "unknown" }),
-  } as unknown as GitService;
+    setRepository: () => {},
+    getRepository: () => "",
+    ensureRepository: () => Promise.resolve(),
+    ensureIdentity: () => Promise.resolve(),
+    createBranch: () => Promise.resolve(""),
+    commit: () => Promise.resolve(""),
+    checkoutBranch: () => Promise.resolve(),
+    getCurrentBranch: () => Promise.resolve(""),
+    getDefaultBranch: () => Promise.resolve("main"),
+    addWorktree: () => Promise.resolve(),
+    removeWorktree: () => Promise.resolve(),
+    pruneWorktrees: () => Promise.resolve(""),
+    listWorktrees: () => Promise.resolve([]),
+    runGitCommand: () => Promise.resolve({ output: "", exitCode: 0 }),
+  };
 }
 
 // Helper to create IModelProvider-compatible stub
 function createProviderStub(): IModelProvider {
   return {
-    generate: () => Promise.resolve({ text: "", usage: { total_tokens: 0 } }),
-    countTokens: () => Promise.resolve(0),
-  } as unknown as IModelProvider;
+    id: "stub-provider",
+    generate: () => Promise.resolve(""),
+  };
 }
 
 // Allow tests to run the CLI entrypoint without initializing heavy services
@@ -85,16 +98,12 @@ export async function initializeServices(
     // Only import and instantiate DatabaseService if explicitly requested by caller.
     // Importing the DB module may load native dynamic libraries during module initialization,
     // which unit tests need to avoid unless they're prepared to close them.
-    let dbLocal: DatabaseService;
+    let dbLocal: IDatabaseService;
     if (opts?.instantiateDb) {
       dbLocal = new DatabaseService(cfg);
-      // Close DB if it exposes a close method to avoid leaking dynamic libraries during tests
-      // Use intersection type to safely access optional close method
-      type DbWithOptionalClose = DatabaseService & { close?: () => Promise<void> };
-      const dbWithClose = dbLocal as DbWithOptionalClose;
-      if (typeof dbWithClose.close === "function") {
+      if (dbLocal.close) {
         try {
-          await dbWithClose.close();
+          await dbLocal.close();
         } catch {
           // ignore close errors in test helper
         }

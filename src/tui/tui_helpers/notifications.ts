@@ -10,7 +10,7 @@
 import { KEYS } from "../../helpers/keyboard.ts";
 import { colorize, type TuiTheme } from "../../helpers/colors.ts";
 import type { DashboardViewState, Pane } from "../tui_dashboard.ts";
-import type { MemoryNotification, NotificationService } from "../../services/notification.ts";
+import type { INotificationService, MemoryNotification } from "../../services/notification.ts";
 
 interface TuiNotification extends MemoryNotification {
   icon?: string;
@@ -33,7 +33,7 @@ export function formatTimeAgo(date: Date): string {
 }
 
 export async function renderNotificationPanel(
-  notificationService: NotificationService,
+  notificationService: INotificationService,
   theme: TuiTheme,
   state: DashboardViewState,
   maxHeight = 10,
@@ -102,7 +102,7 @@ export async function handleMemoryNotifications(
   self: DashboardContext,
   key: string,
   panes: Pane[],
-  notificationService: NotificationService,
+  notificationService: INotificationService,
 ) {
   if (key === KEYS.ESCAPE || key === KEYS.M) {
     self.state.showMemoryNotifications = false;

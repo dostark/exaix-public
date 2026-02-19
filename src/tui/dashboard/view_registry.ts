@@ -17,7 +17,6 @@ import { RequestManagerView } from "../request_manager_view.ts";
 import { MemoryView } from "../memory_view.ts";
 import { SkillsManagerView } from "../skills_manager_view.ts";
 import { type TuiView } from "../tui_dashboard.ts";
-import type { StructuredLogger } from "../../services/structured_logger.ts";
 import {
   MockAgentService,
   MockDaemonService,
@@ -30,17 +29,39 @@ import {
   MockStructuredLogger,
   MockStructuredLoggerService,
 } from "../tui_dashboard_mocks.ts";
-import type { DatabaseService } from "../../services/db.ts";
+import { IDatabaseService } from "../../services/db.ts";
+import type { PortalService } from "../portal_manager_view.ts";
+import type { IStructuredLogger } from "../../services/structured_logger.ts";
 
 export interface DashboardViewOptions {
   testMode?: boolean;
-  databaseService?: DatabaseService;
+  databaseService?: IDatabaseService;
+}
+
+export interface DashboardServices {
+  portalService: PortalService;
+  planService: MockPlanService;
+  logService: IDatabaseService;
+  structuredLogger: IStructuredLogger;
+  structuredLoggerService: MockStructuredLoggerService;
+  daemonService: MockDaemonService;
+  agentService: MockAgentService;
+  requestService: MockRequestService;
+  memoryService: MockMemoryService;
+  skillsService: MockSkillsService;
+}
+
+export interface DashboardViewsAndServices {
+  views: TuiView[];
+  services: DashboardServices;
 }
 
 /**
  * Initialize all views for the TUI dashboard
  */
-export function initDashboardViews(options: DashboardViewOptions = {}): TuiView[] {
+export function initDashboardViews(
+  options: DashboardViewOptions = {},
+): DashboardViewsAndServices {
   const portalService = new MockPortalService();
   const planService = new MockPlanService();
   const logService = options.databaseService || new MockLogService();
@@ -52,12 +73,25 @@ export function initDashboardViews(options: DashboardViewOptions = {}): TuiView[
   const memoryService = new MockMemoryService();
   const skillsService = new MockSkillsService();
 
+  const services: DashboardServices = {
+    portalService,
+    planService,
+    logService,
+    structuredLogger,
+    structuredLoggerService,
+    daemonService,
+    agentService,
+    requestService,
+    memoryService,
+    skillsService,
+  };
+
   const views = [
     Object.assign(new PortalManagerView(portalService), { name: "PortalManagerView" }),
     Object.assign(new PlanReviewerView(planService), { name: "PlanReviewerView" }),
     Object.assign(new MonitorView(logService), { name: "MonitorView" }),
     Object.assign(
-      new StructuredLogViewer(structuredLoggerService, structuredLogger as unknown as StructuredLogger, {
+      new StructuredLogViewer(structuredLoggerService, structuredLogger, {
         testMode: options.testMode,
       }),
       {
@@ -70,7 +104,7 @@ export function initDashboardViews(options: DashboardViewOptions = {}): TuiView[
     Object.assign(new MemoryView(memoryService), { name: "MemoryView" }),
     Object.assign(new SkillsManagerView(skillsService), { name: "SkillsManagerView" }),
   ].map((view) => {
-    const v = view as unknown as TuiView;
+    const v = view as TuiView;
     if (typeof v.getFocusableElements !== "function") {
       if (v.name === "PortalManagerView") {
         v.getFocusableElements = () => ["portal-list", "action-buttons", "status-bar"];
@@ -81,5 +115,5 @@ export function initDashboardViews(options: DashboardViewOptions = {}): TuiView[
     return v;
   });
 
-  return views;
+  return { views, services };
 }

@@ -15,7 +15,7 @@
  * - Layout persistence
  */
 
-import { NotificationService } from "../services/notification.ts";
+import { type INotificationService, NotificationService } from "../services/notification.ts";
 import {
   TUI_DASHBOARD_ICONS,
   TUI_DASHBOARD_VIEW_PICKER_WIDTH,
@@ -40,7 +40,7 @@ import {
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { KeyBinding, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import type { DatabaseService } from "../services/db.ts";
+import type { DatabaseService, IDatabaseService } from "../services/db.ts";
 import { initDashboardViews } from "./dashboard/view_registry.ts";
 import { prodRender } from "./dashboard/renderer.ts";
 import { PortalManagerView } from "./portal_manager_view.ts";
@@ -297,7 +297,7 @@ export interface TuiDashboard {
     self: TuiDashboard,
     key: string,
     panes: Pane[],
-    notificationService: NotificationService,
+    notificationService: INotificationService,
   ) => Promise<number>;
 
   // Core methods
@@ -323,7 +323,7 @@ export interface TuiDashboard {
   resetToDefault(): Promise<void>;
 
   // Notifications
-  notificationService: NotificationService;
+  notificationService: INotificationService;
   notify(message: string, type?: string): Promise<void>;
   dismissNotification(id: string): Promise<void>;
   clearNotifications(): Promise<void>;
@@ -571,12 +571,13 @@ export async function launchTuiDashboard(
  * all test-specific initialization logic.
  */
 function createTestDashboard(options: {
-  notificationService?: NotificationService;
-  databaseService?: DatabaseService;
+  notificationService?: INotificationService;
+  databaseService?: IDatabaseService;
 }): TuiDashboard {
   // Initialize views using registry
-  const views = initDashboardViews({ testMode: true, databaseService: options.databaseService });
-  const portalView = views[0];
+  const { views, services } = initDashboardViews({ testMode: true, databaseService: options.databaseService });
+  const portalView = views[0] as unknown as PortalManagerView;
+  const portalService = services.portalService;
 
   // Initialize with single pane
   const initialPane: Pane = {
@@ -621,6 +622,9 @@ function createTestDashboard(options: {
     async getPendingCount() {
       return await Promise.resolve(localNotifs.filter((n) => !n.dismissed_at).length);
     },
+    notifyMemoryUpdate: async () => {},
+    notifyApproval: async () => {},
+    notifyRejection: async () => {},
     async clearNotification(id: string) {
       const notif = localNotifs.find((n) => n.id === id);
       if (notif) notif.dismissed_at = new Date().toISOString();
@@ -630,7 +634,8 @@ function createTestDashboard(options: {
       localNotifs.forEach((n) => n.dismissed_at = new Date().toISOString());
       await Promise.resolve();
     },
-  } as unknown as NotificationService;
+    database: {} as IDatabaseService,
+  } as INotificationService;
 
   return {
     panes,
@@ -688,8 +693,8 @@ function createTestDashboard(options: {
       await this.notify("Memory update rejected (test)", "error");
     },
     portalManager: {
-      service: (portalView as unknown as PortalManagerView).service,
-      renderPortalList: (portalView as unknown as PortalManagerView).renderPortalList.bind(portalView),
+      service: portalService,
+      renderPortalList: portalView.renderPortalList.bind(portalView),
     },
     async notify(message: string, type = "info") {
       await this.notificationService.notify(message, type);
@@ -787,12 +792,13 @@ function createTestDashboard(options: {
  */
 async function createProductionDashboard(options: {
   nonInteractive?: boolean;
-  notificationService?: NotificationService;
-  databaseService?: DatabaseService;
+  notificationService?: INotificationService;
+  databaseService?: IDatabaseService;
 }): Promise<TuiDashboard | undefined> {
   // Initialize views using registry
-  const views = initDashboardViews({ testMode: false, databaseService: options.databaseService });
-  const portalView = views[0];
+  const { views, services } = initDashboardViews({ testMode: false, databaseService: options.databaseService });
+  const _portalView = views[0];
+  const portalService = services.portalService;
 
   // Initialize with single pane
   const initialPane: Pane = {
@@ -820,6 +826,9 @@ async function createProductionDashboard(options: {
   // Initialize services for production
   const _db = {} as Record<string, never>; // TODO: Initialize real DB service
   const notificationService = options.notificationService || {
+    async notifyMemoryUpdate() {
+      await Promise.resolve();
+    },
     async getNotifications() {
       return await Promise.resolve([]);
     },
@@ -829,13 +838,16 @@ async function createProductionDashboard(options: {
     async notify() {
       await Promise.resolve();
     },
+    notifyApproval() {},
+    notifyRejection() {},
     async clearNotification() {
       await Promise.resolve();
     },
     async clearAllNotifications() {
       await Promise.resolve();
     },
-  } as unknown as NotificationService;
+    database: {} as IDatabaseService,
+  } as INotificationService;
 
   const prodState: DashboardViewState = createDefaultDashboardState();
 
@@ -871,7 +883,7 @@ async function createProductionDashboard(options: {
       prodState,
       theme,
       notificationService,
-      portalView as unknown as PortalManagerView,
+      portalService,
     );
   }
   const render = prodRenderWrapper;
@@ -913,7 +925,7 @@ async function runProductionInteractiveLoop(context: {
   views: TuiView[];
   prodState: DashboardViewState;
   theme: Theme;
-  notificationService: NotificationService;
+  notificationService: INotificationService;
   addNotification: (message: string, type?: string) => Promise<void>;
   saveLayout: () => Promise<void>;
   restoreLayout: () => Promise<void>;

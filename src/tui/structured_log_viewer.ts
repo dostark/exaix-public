@@ -12,7 +12,7 @@ import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts"
 import { DialogBase } from "../helpers/dialog_base.ts";
 import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import type { LogEntry, StructuredLogger } from "../services/structured_logger.ts";
+import type { IStructuredLogger, LogEntry } from "../services/structured_logger.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
@@ -284,14 +284,14 @@ export const STRUCTURED_LOG_VIEWER_KEY_BINDINGS = new StructuredLogViewerKeyBind
 export class StructuredLogViewer extends BaseTreeView<LogEntry> {
   protected logViewExtensions: LogViewExtensions;
   private logService: StructuredLogService;
-  private structuredLogger: StructuredLogger;
+  private structuredLogger: IStructuredLogger;
   private unsubscribeRealTime?: () => void;
   private refreshInterval?: number;
   private pendingDialogType: "search" | "filter-level" | "export" | null = null;
 
   constructor(
     logService: StructuredLogService,
-    structuredLogger: StructuredLogger,
+    structuredLogger: IStructuredLogger,
     options: { testMode?: boolean } = {},
   ) {
     super(options.testMode ? false : true);

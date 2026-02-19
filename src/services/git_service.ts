@@ -15,7 +15,7 @@
  */
 
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "./db.ts";
+import type { IDatabaseService } from "./db.ts";
 import type { JsonValue } from "../flows/transforms.ts";
 import {
   DEFAULT_GIT_BRANCH_NAME_COLLISION_MAX_RETRIES,
@@ -35,7 +35,7 @@ import { ActivityActor } from "../enums.ts";
 
 export interface GitServiceConfig {
   config: Config;
-  db?: DatabaseService;
+  db?: IDatabaseService;
   traceId?: string;
   agentId?: string;
   repoPath?: string;
@@ -124,9 +124,29 @@ export class GitSecurityError extends GitError {
 // GitService Implementation
 // ============================================================================
 
-export class GitService {
+export interface IGitService {
+  setRepository(repoPath: string): void;
+  getRepository(): string;
+  ensureRepository(): Promise<void>;
+  ensureIdentity(): Promise<void>;
+  createBranch(options: BranchOptions): Promise<string>;
+  commit(options: CommitOptions): Promise<string>;
+  checkoutBranch(branchName: string, options?: { allowProtected?: boolean }): Promise<void>;
+  getCurrentBranch(): Promise<string>;
+  getDefaultBranch(repoPath?: string): Promise<string>;
+  addWorktree(worktreePath: string, baseBranch: string): Promise<void>;
+  removeWorktree(worktreePath: string, options?: { force?: boolean }): Promise<void>;
+  pruneWorktrees(options?: { dryRun?: boolean; verbose?: boolean; expire?: string }): Promise<string>;
+  listWorktrees(): Promise<WorktreeInfo[]>;
+  runGitCommand(
+    args: string[],
+    options?: GitCommandOptions,
+  ): Promise<{ output: string; exitCode: number }>;
+}
+
+export class GitService implements IGitService {
   private config: Config;
-  private db?: DatabaseService;
+  private db?: IDatabaseService;
   private traceId?: string;
   private agentId?: string;
   private repoPath: string;

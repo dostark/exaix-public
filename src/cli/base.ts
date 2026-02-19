@@ -8,12 +8,12 @@
  */
 
 import type { Config } from "../config/schema.ts";
-import type { DatabaseService } from "../services/db.ts";
+import type { DatabaseService, IDatabaseService } from "../services/db.ts";
 import { EventLogger } from "../services/event_logger.ts";
 
 export interface CommandContext {
   config: Config;
-  db: DatabaseService;
+  db: IDatabaseService;
 }
 
 /**
@@ -22,7 +22,7 @@ export interface CommandContext {
  */
 export abstract class BaseCommand {
   protected config: Config;
-  protected db: DatabaseService;
+  protected db: IDatabaseService;
   protected logger: EventLogger;
   private _userIdentity: string | null = null;
 

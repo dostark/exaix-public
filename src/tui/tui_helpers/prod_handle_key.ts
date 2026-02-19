@@ -8,7 +8,7 @@
  */
 
 import type { DashboardViewState, Pane, TuiView } from "../tui_dashboard.ts";
-import type { MemoryNotification as TuiNotification, NotificationService } from "../../services/notification.ts";
+import type { INotificationService, MemoryNotification as TuiNotification } from "../../services/notification.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 
@@ -17,7 +17,7 @@ export interface ProdHandleCtx {
   panes: Pane[];
   views: TuiView[];
   activePaneRef: { id: string };
-  notificationService: NotificationService;
+  notificationService: INotificationService;
   addNotification: (message: string, type?: string) => Promise<void>;
   saveLayout: () => Promise<void> | void;
   restoreLayout: () => Promise<void> | void;

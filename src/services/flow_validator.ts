@@ -32,7 +32,9 @@ export class FlowValidatorImpl implements FlowValidator {
       }
 
       const loadResult = await this.tryLoadFlow(flowId);
-      if (loadResult.error) return { valid: false, error: loadResult.error };
+      if (loadResult.error || !loadResult.flow) {
+        return { valid: false, error: loadResult.error || `Flow '${flowId}' failed to load` };
+      }
       const flow = loadResult.flow;
 
       const structureError = this.validateStructure(flowId, flow);
@@ -58,16 +60,16 @@ export class FlowValidatorImpl implements FlowValidator {
 
   private async tryLoadFlow(
     flowId: string,
-  ): Promise<{ flow: Awaited<ReturnType<FlowLoader["loadFlow"]>>; error?: string }> {
+  ): Promise<{ flow?: Awaited<ReturnType<FlowLoader["loadFlow"]>>; error?: string }> {
     try {
       const flow = await this.flowLoader.loadFlow(flowId);
       return { flow };
     } catch (loaderErr) {
       const msg = loaderErr instanceof Error ? loaderErr.message : String(loaderErr);
       if (msg.includes("Agent reference cannot be empty")) {
-        return { flow: undefined as unknown as Flow, error: `Flow '${flowId}' has invalid agent` };
+        return { error: `Flow '${flowId}' has invalid agent` };
       }
-      return { flow: undefined as unknown as Flow, error: `Flow '${flowId}' validation failed: ${msg}` };
+      return { error: `Flow '${flowId}' validation failed: ${msg}` };
     }
   }
 

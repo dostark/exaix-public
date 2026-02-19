@@ -18,14 +18,14 @@ export function describeSchema<T>(
 ): string {
   // Get schema description from Zod's internal structure
   // Using unknown cast to safely access Zod internal structure
-  const def = schema._def as unknown as Record<string, unknown>;
+  const def = schema._def as Record<string, unknown>;
 
   if ("typeName" in def) {
     switch (def.typeName) {
       case "ZodObject": {
-        const shapeFn = (def as unknown as { shape: () => Record<string, ZodType<unknown>> }).shape;
+        const shapeFn = def.shape;
         if (typeof shapeFn === "function") {
-          const shape = shapeFn();
+          const shape = (shapeFn as () => Record<string, ZodType<unknown>>)();
           const fields = Object.entries(shape)
             .map(([key, val]) => `  "${key}": ${describeSchema(val)}`)
             .join(",\n");
@@ -34,7 +34,7 @@ export function describeSchema<T>(
         return "object";
       }
       case "ZodArray": {
-        const typeProp = (def as unknown as { type?: ZodType<unknown> }).type;
+        const typeProp = def.type as ZodType<unknown> | undefined;
         if (typeProp) {
           return `Array<${describeSchema(typeProp)}>`;
         }
@@ -47,21 +47,21 @@ export function describeSchema<T>(
       case "ZodBoolean":
         return "boolean";
       case "ZodEnum": {
-        const values = (def as unknown as { values?: string[] }).values;
+        const values = def.values as string[] | undefined;
         if (values) {
           return `enum(${values.join(" | ")})`;
         }
         return "enum";
       }
       case "ZodOptional": {
-        const innerType = (def as unknown as { innerType?: ZodType<unknown> }).innerType;
+        const innerType = def.innerType as ZodType<unknown> | undefined;
         if (innerType) {
           return `optional(${describeSchema(innerType)})`;
         }
         return "optional(unknown)";
       }
       case "ZodEffects": {
-        const schemaProp = (def as unknown as { schema?: ZodType<unknown> }).schema;
+        const schemaProp = def.schema as ZodType<unknown> | undefined;
         if (schemaProp) {
           return describeSchema(schemaProp);
         }

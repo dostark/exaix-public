@@ -181,13 +181,13 @@ Deno.test("MockSkillsService: filters and deletes skills", async () => {
 
 Deno.test("MockStructuredLogger: methods are callable", async () => {
   const logger = new MockStructuredLogger();
-  logger.setContext();
-  if (logger.child() !== logger) throw new Error("child should return logger");
-  logger.debug();
-  logger.info();
-  logger.warn();
-  logger.error();
-  logger.fatal();
+  logger.setContext({});
+  if (logger.child({}) !== logger) throw new Error("child should return logger");
+  logger.debug("test");
+  logger.info("test");
+  logger.warn("test");
+  logger.error("test");
+  logger.fatal("test");
   const result = await logger.time("op", () => Promise.resolve("ok"));
   if (result !== "ok") throw new Error("time should return result");
 });

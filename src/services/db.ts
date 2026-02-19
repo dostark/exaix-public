@@ -51,7 +51,29 @@ interface DatabaseConfigExtended {
   half_open_success_threshold?: number;
 }
 
-export class DatabaseService {
+export interface IDatabaseService {
+  logActivity(
+    actor: string,
+    actionType: string,
+    target: string | null,
+    payload: Record<string, JsonValue>,
+    traceId?: string,
+    agentId?: string | null,
+  ): void;
+  waitForFlush(): Promise<void>;
+  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]>;
+  close?(): Promise<void>;
+  preparedGet<T>(query: string, params?: SqliteParam[]): Promise<T | null>;
+  preparedAll<T>(query: string, params?: SqliteParam[]): Promise<T[]>;
+  preparedRun(query: string, params?: SqliteParam[]): Promise<unknown>;
+  getActivitiesByTrace(traceId: string): ActivityRecord[];
+  getActivitiesByTraceSafe(traceId: string): Promise<ActivityRecord[]>;
+  getActivitiesByActionType(actionType: string): ActivityRecord[];
+  getActivitiesByActionTypeSafe(actionType: string): Promise<ActivityRecord[]>;
+  getRecentActivity(limit?: number): Promise<ActivityRecord[]>;
+}
+
+export class DatabaseService implements IDatabaseService {
   private db: Database;
   private logQueue: LogEntry[] = [];
   private flushTimer: number | null = null;
