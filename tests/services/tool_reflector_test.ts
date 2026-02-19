@@ -18,6 +18,7 @@ import {
   ToolReflectionSchema,
   type ToolResult,
 } from "../../src/services/tool_reflector.ts";
+import { JSONValue } from "../../src/types.ts";
 
 // ============================================================================
 // Mock LLM Provider
@@ -60,7 +61,7 @@ function createMockToolResult(success: boolean, output: unknown = "result", erro
   return {
     callId: "call-1",
     success,
-    output,
+    output: output as JSONValue,
     error,
     durationMs: 100,
   };

@@ -7,7 +7,7 @@
  * @related-files [src/services/event_logger.ts, src/services/structured_logger.ts]
  */
 import { LogLevel } from "../../enums.ts";
-import type { JsonValue } from "../../flows/transforms.ts";
+import { JSONValue } from "../../types.ts";
 
 /**
  * Actor types:
@@ -28,7 +28,7 @@ export interface LogEvent {
   target: string;
 
   /** Additional context as key-value pairs */
-  payload?: Record<string, JsonValue>;
+  payload?: Record<string, JSONValue>;
 
   /** Actor performing the action */
   actor?: Actor;

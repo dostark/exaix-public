@@ -17,7 +17,7 @@ import { ActivityActor, LogLevel } from "../enums.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import { ServiceContext } from "./common/types.ts";
 import { PathAccessError, PathSecurity, PathTraversalError } from "../helpers/path_security.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { JSONValue } from "../types.ts";
 
 // ============================================================================
 // Types
@@ -58,7 +58,7 @@ export interface Tool {
  */
 export interface ToolResult {
   success: boolean;
-  data?: JsonValue;
+  data?: JSONValue;
   error?: string;
 }
 
@@ -78,7 +78,7 @@ export interface ToolRegistryConfig {
  */
 interface ToolContext extends ServiceContext {
   toolName: string;
-  params: Record<string, JsonValue>;
+  params: Record<string, JSONValue>;
   result?: ToolResult;
   toolRegistry: ToolRegistry;
 }
@@ -297,7 +297,7 @@ export class ToolRegistry {
   private tools: Map<string, Tool>;
   private baseDir: string;
   private pipeline: MiddlewarePipeline<ToolContext>;
-  private executors: Map<string, (params: Record<string, JsonValue>) => Promise<ToolResult>> = new Map();
+  private executors: Map<string, (params: Record<string, JSONValue>) => Promise<ToolResult>> = new Map();
 
   constructor(options?: ToolRegistryConfig) {
     // Use ConfigSchema to parse and apply all defaults automatically
@@ -639,9 +639,9 @@ export class ToolRegistry {
    * Register all core executors
    */
   private registerCoreExecutors() {
-    const str = (v: JsonValue): string => (typeof v === "string" ? v : String(v ?? ""));
-    const bool = (v: JsonValue): boolean => Boolean(v);
-    const strArr = (v: JsonValue): string[] =>
+    const str = (v: JSONValue): string => (typeof v === "string" ? v : String(v ?? ""));
+    const bool = (v: JSONValue): boolean => Boolean(v);
+    const strArr = (v: JSONValue): string[] =>
       Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
 
     this.executors.set("read_file", (p) => this.readFile(str(p.path)));
@@ -698,7 +698,7 @@ export class ToolRegistry {
   /**
    * Execute a tool by name
    */
-  async execute(toolName: string, params: Record<string, JsonValue>): Promise<ToolResult> {
+  async execute(toolName: string, params: Record<string, JSONValue>): Promise<ToolResult> {
     const context: ToolContext = {
       toolName,
       params,
@@ -955,15 +955,15 @@ export class ToolRegistry {
   /**
    * Log activity to database
    */
-  private logActivity(actionType: string, payload: Record<string, JsonValue>) {
+  private logActivity(actionType: string, payload: Record<string, JSONValue>) {
     if (!this.db) return;
 
     try {
       this.db.logActivity(
         ActivityActor.AGENT,
         actionType,
-        (payload.params as Record<string, JsonValue>)?.path as string ||
-          (payload.params as Record<string, JsonValue>)?.command as string ||
+        (payload.params as Record<string, JSONValue>)?.path as string ||
+          (payload.params as Record<string, JSONValue>)?.command as string ||
           null,
         payload,
         this.traceId,
@@ -978,7 +978,7 @@ export class ToolRegistry {
    * Format tool result for success
    * @private
    */
-  private formatSuccess(data: JsonValue): ToolResult {
+  private formatSuccess(data: JSONValue): ToolResult {
     return {
       success: true,
       data,
@@ -1307,7 +1307,7 @@ export class ToolRegistry {
       }
 
       let args: string[] = [];
-      let outputParser: (output: string) => JsonValue = (o) => o.trim();
+      let outputParser: (output: string) => JSONValue = (o) => o.trim();
 
       switch (scope) {
         case "status":

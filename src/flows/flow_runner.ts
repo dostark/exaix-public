@@ -10,15 +10,8 @@ import { Flow, FlowStep } from "../schemas/flow.ts";
 import { DependencyResolver } from "./dependency_resolver.ts";
 import { AgentExecutionResult } from "../services/agent_runner.ts";
 import { ConditionEvaluator } from "./condition_evaluator.ts";
-import {
-  appendToRequest,
-  extractSection,
-  jsonExtract,
-  JsonValue,
-  mergeAsContext,
-  passthrough,
-  templateFill,
-} from "./transforms.ts";
+import { appendToRequest, extractSection, mergeAsContext, passthrough, templateFill } from "./transforms.ts";
+import { jsonExtract, JSONValue } from "../types.ts";
 import type { DatabaseService } from "../services/db.ts";
 
 /**
@@ -107,16 +100,16 @@ export interface FlowStepRequest {
  * Interface for logging flow events
  */
 export interface FlowEventLogger {
-  log(event: string, payload: Record<string, JsonValue | undefined>): void;
+  log(event: string, payload: Record<string, JSONValue | undefined>): void;
 }
 
 type BuiltInTransformHandler = (ctx: {
   input: string;
-  transformArgs?: JsonValue;
+  transformArgs?: JSONValue;
   originalRequest?: string;
 }) => string;
 
-function applyMergeAsContextTransform(input: string, transformArgs: JsonValue | undefined): string {
+function applyMergeAsContextTransform(input: string, transformArgs: JSONValue | undefined): string {
   if (Array.isArray(transformArgs)) {
     // Filter to strings only — mergeAsContext requires string[]
     const strings = transformArgs.filter((v): v is string => typeof v === "string");
@@ -136,7 +129,7 @@ function applyMergeAsContextTransform(input: string, transformArgs: JsonValue | 
   throw new Error("mergeAsContext requires an array of strings");
 }
 
-function applyExtractSectionTransform(input: string, transformArgs: JsonValue | undefined): string {
+function applyExtractSectionTransform(input: string, transformArgs: JSONValue | undefined): string {
   if (typeof transformArgs === "string") return extractSection(input, transformArgs);
   throw new Error("extractSection requires a section name as transformArgs");
 }
@@ -146,12 +139,12 @@ function applyAppendToRequestTransform(input: string, originalRequest: string | 
   throw new Error("appendToRequest requires original request to be available");
 }
 
-function applyJsonExtractTransform(input: string, transformArgs: JsonValue | undefined): string {
+function applyJsonExtractTransform(input: string, transformArgs: JSONValue | undefined): string {
   if (typeof transformArgs === "string") return String(jsonExtract(input, transformArgs));
   throw new Error("jsonExtract requires a field path as transformArgs");
 }
 
-function applyTemplateFillTransform(input: string, transformArgs: JsonValue | undefined): string {
+function applyTemplateFillTransform(input: string, transformArgs: JSONValue | undefined): string {
   if (typeof transformArgs === "object" && transformArgs !== null && !Array.isArray(transformArgs)) {
     return templateFill(input, transformArgs as Record<string, string | number | boolean>);
   }
@@ -186,7 +179,7 @@ export class FlowRunner {
     flow: Flow,
     request: { traceId?: string; requestId?: string },
     options: { includeStepCount?: boolean } = {},
-  ): Record<string, JsonValue | undefined> {
+  ): Record<string, JSONValue | undefined> {
     return {
       flowId: flow.id,
       ...(options.includeStepCount ? { stepCount: flow.steps.length } : {}),
@@ -766,7 +759,7 @@ export class FlowRunner {
       userPrompt = this.applyTransform(
         inputData,
         step.input.transform as string | ((input: string) => string),
-        step.input.transformArgs as JsonValue | undefined,
+        step.input.transformArgs as JSONValue | undefined,
         originalRequest.userPrompt,
       );
 
@@ -801,7 +794,7 @@ export class FlowRunner {
   private applyTransform(
     input: string,
     transform: string | ((input: string) => string),
-    transformArgs?: JsonValue,
+    transformArgs?: JSONValue,
     originalRequest?: string,
   ): string {
     // Handle custom transform functions

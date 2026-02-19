@@ -14,7 +14,7 @@ import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
 import { ToolReflectionIssueType, ToolReflectionSeverity } from "../enums.ts";
-import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
+import { JSONValue, JSONValueSchema, LogMetadata, toSafeJson } from "../types.ts";
 
 // ============================================================================
 // Reflection Schema
@@ -34,7 +34,7 @@ export const ToolReflectionSchema = z.object({
   })).default([]),
   retry_suggested: z.boolean(),
   retry_reason: z.string().optional(),
-  alternative_parameters: z.record(z.unknown()).optional(),
+  alternative_parameters: z.record(JSONValueSchema).optional(),
   insights: z.array(z.string()).default([]),
 });
 
@@ -47,7 +47,7 @@ export type ToolReflection = z.infer<typeof ToolReflectionSchema>;
 export interface ToolCall {
   id: string;
   name: string;
-  parameters: Record<string, unknown>;
+  parameters: Record<string, JSONValue>;
   purpose: string;
   dependencies?: string[];
 }
@@ -55,7 +55,7 @@ export interface ToolCall {
 export interface ToolResult {
   callId: string;
   success: boolean;
-  output: unknown;
+  output: JSONValue;
   error?: string;
   durationMs: number;
 }
@@ -63,7 +63,7 @@ export interface ToolResult {
 export interface ReflectedToolResult extends ToolResult {
   reflection: ToolReflection;
   retryCount: number;
-  finalOutput: unknown;
+  finalOutput: JSONValue;
 }
 
 export interface ToolReflectorConfig {
@@ -186,7 +186,7 @@ export class ToolReflector {
    */
   async executeWithReflection(
     toolCall: ToolCall,
-    executor: (params: Record<string, unknown>) => Promise<ToolResult>,
+    executor: (params: Record<string, JSONValue>) => Promise<ToolResult>,
     traceId?: string,
   ): Promise<ReflectedToolResult> {
     let currentParams = { ...toolCall.parameters };
@@ -214,8 +214,8 @@ export class ToolReflector {
             retry_suggested: lastReflection.retry_suggested,
             retry_count: retryCount,
             service: "tool-reflector",
-            trace_id: traceId,
-          },
+            trace_id: traceId ?? null,
+          } as LogMetadata,
         );
       }
 
@@ -238,7 +238,7 @@ export class ToolReflector {
 
       this.logActivity("tool_reflector", "tool.retry", toolCall.name, {
         retryCount,
-        reason: lastReflection.retry_reason,
+        reason: lastReflection.retry_reason ?? null,
         newParams: currentParams,
       }, traceId);
     }
@@ -380,7 +380,7 @@ export class ToolReflector {
     return groups;
   }
 
-  private formatOutput(output: unknown): string {
+  private formatOutput(output: JSONValue): string {
     if (output === null || output === undefined) return "null";
     if (typeof output === "string") {
       return output.length > 1000 ? output.substring(0, 1000) + "... (truncated)" : output;
@@ -427,7 +427,7 @@ export class ToolReflector {
     actor: string,
     actionType: string,
     target: string,
-    payload: Record<string, unknown>,
+    payload: Record<string, JSONValue>,
     traceId?: string,
   ): void {
     if (this.config.db) {
@@ -435,7 +435,7 @@ export class ToolReflector {
         actor,
         actionType,
         target,
-        toSafeJson(payload) as Record<string, JsonValue>,
+        toSafeJson(payload) as Record<string, JSONValue>,
         traceId,
         "tool-reflector",
       );

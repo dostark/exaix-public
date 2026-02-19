@@ -41,7 +41,7 @@ import {
 import { LogLevel, SecurityMode } from "../enums.ts";
 import { InputValidator } from "../schemas/input_validation.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { JSONValue } from "../types.ts";
 
 /**
  * Agent execution error class
@@ -235,7 +235,7 @@ export class AgentExecutor {
       // 3. Parse YAML with FAILSAFE_SCHEMA (no code execution)
       const rawFrontmatter = parseYaml(frontmatterMatch[1], {
         schema: "failsafe",
-      }) as Record<string, JsonValue>;
+      }) as Record<string, JSONValue>;
 
       // 4. Validate with strict schema
       const validatedFrontmatter = BlueprintSchema.parse(rawFrontmatter);
@@ -626,7 +626,8 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
 
       await this.logger.error("git.audit.failed", portalPath, {
         error: error instanceof Error ? error.message : String(error),
-        stderr: error instanceof Error && "stderr" in error ? (error as Error & { stderr?: string }).stderr : undefined,
+        stderr: (error instanceof Error && "stderr" in error ? (error as Error & { stderr?: string }).stderr : null) ??
+          null,
       });
       throw new AgentExecutionError(`Git audit failed for portal: ${portalPath}`, "git_error", error as Error);
     }

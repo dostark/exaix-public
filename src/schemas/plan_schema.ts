@@ -11,7 +11,7 @@ import { z } from "zod";
 import { McpToolName } from "../enums.ts";
 import { PlanStatus } from "../plans/plan_status.ts";
 import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
-import { JsonValueSchema } from "../flows/transforms.ts";
+import { JSONValueSchema } from "../types.ts";
 
 /**
  * Zod schema for plan frontmatter to ensure type safety during parsing.
@@ -64,7 +64,7 @@ export const PlanActionSchema = z.object({
   tool: z.nativeEnum(McpToolName),
 
   /** Parameters for the tool invocation */
-  params: z.record(JsonValueSchema),
+  params: z.record(JSONValueSchema),
 
   /** Optional: Description of what this specific action does */
   description: z.string().optional(),

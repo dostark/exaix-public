@@ -15,11 +15,14 @@ async function setupTestDir() {
   // copy enums.ts into the temp dir
   const enumsContent = await Deno.readTextFile("src/enums.ts");
   await Deno.writeTextFile(`${dir}/enums.ts`, enumsContent);
+  // copy types.ts because transforms.ts depends on it
+  await Deno.copyFile("src/types.ts", `${dir}/types.ts`);
   // copy define_flow but patch its import paths to reference the local files
   const original = await Deno.readTextFile("src/flows/define_flow.ts");
   const patched = original
     .replace("../schemas/flow.ts", "./schemas/flow.ts")
-    .replace("../enums.ts", "./enums.ts");
+    .replace("../enums.ts", "./enums.ts")
+    .replace("../types.ts", "./types.ts");
   await Deno.writeTextFile(`${dir}/define_flow.ts`, patched);
   return dir;
 }

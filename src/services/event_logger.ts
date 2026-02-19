@@ -13,7 +13,7 @@ import type { ActivityRepository } from "../repositories/activity_repository.ts"
 import { LogLevel } from "../enums.ts";
 import { Actor, LogEvent } from "./common/types.ts";
 import { TUI_DEFAULT_ICONS } from "../helpers/constants.ts";
-import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
+import { JSONValue, LogMetadata, toSafeJson } from "../types.ts";
 
 export type { Actor, LogEvent };
 
@@ -108,13 +108,13 @@ export class EventLogger {
   async log(event: LogEvent): Promise<void>;
   async log(
     action: string,
-    targetOrPayload: string | Record<string, JsonValue>,
-    payload?: Record<string, JsonValue>,
+    targetOrPayload: string | LogMetadata,
+    payload?: LogMetadata,
   ): Promise<void>;
   async log(
     eventOrAction: LogEvent | string,
-    targetOrPayload?: string | Record<string, JsonValue>,
-    payload?: Record<string, JsonValue>,
+    targetOrPayload?: string | LogMetadata,
+    payload?: LogMetadata,
   ): Promise<void> {
     let event: LogEvent;
 
@@ -161,13 +161,13 @@ export class EventLogger {
   async info(
     action: string,
     target: string,
-    payload?: Record<string, unknown>,
+    payload?: LogMetadata,
     traceId?: string,
   ): Promise<void> {
     await this.log({
       action,
       target,
-      payload: payload ? (toSafeJson(payload) as Record<string, JsonValue>) : undefined,
+      payload: payload ? (toSafeJson(payload) as LogMetadata) : undefined,
       level: LogLevel.INFO,
       traceId,
     });
@@ -179,13 +179,13 @@ export class EventLogger {
   async warn(
     action: string,
     target: string,
-    payload?: Record<string, unknown>,
+    payload?: LogMetadata,
     traceId?: string,
   ): Promise<void> {
     await this.log({
       action,
       target,
-      payload: payload ? (toSafeJson(payload) as Record<string, JsonValue>) : undefined,
+      payload: payload ? (toSafeJson(payload) as LogMetadata) : undefined,
       level: LogLevel.WARN,
       traceId,
     });
@@ -197,13 +197,13 @@ export class EventLogger {
   async error(
     action: string,
     target: string,
-    payload?: Record<string, unknown>,
+    payload?: LogMetadata,
     traceId?: string,
   ): Promise<void> {
     await this.log({
       action,
       target,
-      payload: payload ? (toSafeJson(payload) as Record<string, JsonValue>) : undefined,
+      payload: payload ? (toSafeJson(payload) as Record<string, JSONValue>) : undefined,
       level: LogLevel.ERROR,
       traceId,
     });
@@ -215,13 +215,13 @@ export class EventLogger {
   async debug(
     action: string,
     target: string,
-    payload?: Record<string, unknown>,
+    payload?: LogMetadata,
     traceId?: string,
   ): Promise<void> {
     await this.log({
       action,
       target,
-      payload: payload ? (toSafeJson(payload) as Record<string, JsonValue>) : undefined,
+      payload: payload ? (toSafeJson(payload) as Record<string, JSONValue>) : undefined,
       level: LogLevel.DEBUG,
       traceId,
     });

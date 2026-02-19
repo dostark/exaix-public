@@ -16,7 +16,7 @@ import { ToolRegistry } from "./tool_registry.ts";
 import { GitNothingToCommitError, GitService } from "./git_service.ts";
 import { EventLogger } from "./event_logger.ts";
 import { ExecutionStatus } from "../enums.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { JSONValue } from "../types.ts";
 import {
   EXECUTION_REPORT_MAX_TOKENS,
   EXECUTION_REPORT_PROMPT_MAX_CHARS,
@@ -34,7 +34,7 @@ export interface PlanContext {
   trace_id: string;
   request_id: string;
   agent: string;
-  frontmatter: Record<string, JsonValue>;
+  frontmatter: Record<string, JSONValue>;
   steps: PlanStep[];
 }
 
@@ -52,7 +52,7 @@ interface PlanActionReport {
   stepNumber: number;
   stepTitle: string;
   tool: string;
-  params: Record<string, JsonValue>;
+  params: Record<string, JSONValue>;
   success: boolean;
   output?: string;
   error?: string;
@@ -60,7 +60,7 @@ interface PlanActionReport {
 
 interface PlanAction {
   tool: string;
-  params: Record<string, JsonValue>;
+  params: Record<string, JSONValue>;
   description?: string;
 }
 
@@ -427,17 +427,17 @@ Generate the TOML actions now.`;
     while ((match = codeBlockRegex.exec(response)) !== null) {
       try {
         const block = match[1].trim();
-        const parsed = parseToml(block) as Record<string, JsonValue>;
+        const parsed = parseToml(block) as Record<string, JSONValue>;
 
         if (parsed.actions && Array.isArray(parsed.actions)) {
           for (const action of parsed.actions) {
-            const act = action as Record<string, JsonValue>;
+            const act = action as Record<string, JSONValue>;
             if (
               typeof act.tool === "string" && act.params && typeof act.params === "object" && !Array.isArray(act.params)
             ) {
               actions.push({
                 tool: act.tool,
-                params: act.params as Record<string, JsonValue>,
+                params: act.params as Record<string, JSONValue>,
                 description: typeof act.description === "string" ? act.description : undefined,
               });
             }
@@ -449,7 +449,7 @@ Generate the TOML actions now.`;
           // Single action format
           actions.push({
             tool: parsed.tool,
-            params: parsed.params as Record<string, JsonValue>,
+            params: parsed.params as Record<string, JSONValue>,
             description: typeof parsed.description === "string" ? parsed.description : undefined,
           });
         }

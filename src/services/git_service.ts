@@ -16,7 +16,7 @@
 
 import type { Config } from "../config/schema.ts";
 import type { IDatabaseService } from "./db.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { JSONValue } from "../types.ts";
 import {
   DEFAULT_GIT_BRANCH_NAME_COLLISION_MAX_RETRIES,
   DEFAULT_GIT_BRANCH_SUFFIX_LENGTH,
@@ -811,7 +811,7 @@ export class GitService implements IGitService {
   /**
    * Log activity to database
    */
-  private logActivity(actionType: string, payload: Record<string, JsonValue>) {
+  private logActivity(actionType: string, payload: Record<string, JSONValue>) {
     if (!this.db) return;
 
     try {

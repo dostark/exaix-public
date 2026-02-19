@@ -13,6 +13,7 @@ import {
   type MCPToolResponse,
   QueryJournalToolArgsSchema,
 } from "../schemas/mcp.ts";
+import { JSONValue } from "../types.ts";
 import { ToolHandler } from "./tools.ts";
 import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { PlanCommands } from "../cli/commands/plan_commands.ts";
@@ -22,7 +23,7 @@ import { PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
  * Tool for creating new ExoFrame requests
  */
 export class CreateRequestTool extends ToolHandler {
-  async execute(args: unknown): Promise<MCPToolResponse> {
+  async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = CreateRequestToolArgsSchema.parse(args);
     const { description, agent, agent_id } = validatedArgs; // context is currently not supported in RequestCommands.create options directly in CLI but let's check
 
@@ -58,7 +59,7 @@ export class CreateRequestTool extends ToolHandler {
         ],
       };
     } catch (error) {
-      this.formatError("create_request", "system", error, { description, agent_id });
+      this.formatError("create_request", "system", error, { description, agent_id: agent_id ?? null });
     }
   }
 
@@ -93,7 +94,7 @@ export class CreateRequestTool extends ToolHandler {
  * Tool for listing pending plans
  */
 export class ListPlansTool extends ToolHandler {
-  async execute(args: unknown): Promise<MCPToolResponse> {
+  async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = ListPlansToolArgsSchema.parse(args);
     const { status, agent_id } = validatedArgs;
     const filterStatus: PlanStatusType = status ?? PlanStatus.PENDING;
@@ -119,7 +120,7 @@ export class ListPlansTool extends ToolHandler {
         ],
       };
     } catch (error) {
-      this.formatError("list_plans", "system", error, { status, agent_id });
+      this.formatError("list_plans", "system", error, { status: status ?? null, agent_id: agent_id ?? null });
     }
   }
 
@@ -150,7 +151,7 @@ export class ListPlansTool extends ToolHandler {
  * Tool for approving a plan
  */
 export class ApprovePlanTool extends ToolHandler {
-  async execute(args: unknown): Promise<MCPToolResponse> {
+  async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = ApprovePlanToolArgsSchema.parse(args);
     const { plan_id, agent_id } = validatedArgs;
 
@@ -175,7 +176,7 @@ export class ApprovePlanTool extends ToolHandler {
         ],
       };
     } catch (error) {
-      this.formatError("approve_plan", "system", error, { plan_id, agent_id });
+      this.formatError("approve_plan", "system", error, { plan_id, agent_id: agent_id ?? null });
     }
   }
 
@@ -205,7 +206,7 @@ export class ApprovePlanTool extends ToolHandler {
  * Tool for querying the Activity Journal
  */
 export class QueryJournalTool extends ToolHandler {
-  async execute(args: unknown): Promise<MCPToolResponse> {
+  async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = QueryJournalToolArgsSchema.parse(args);
     const { trace_id, limit, agent_id } = validatedArgs;
 
@@ -218,9 +219,9 @@ export class QueryJournalTool extends ToolHandler {
       }
 
       this.logToolExecution("query_journal", "system", {
-        trace_id,
-        limit,
-        agent_id,
+        trace_id: trace_id ?? null,
+        limit: limit ?? null,
+        agent_id: agent_id ?? null,
         count: activities.length,
         success: true,
       });
@@ -234,7 +235,11 @@ export class QueryJournalTool extends ToolHandler {
         ],
       };
     } catch (error) {
-      this.formatError("query_journal", "system", error, { trace_id, limit, agent_id });
+      this.formatError("query_journal", "system", error, {
+        trace_id: trace_id ?? null,
+        limit: limit ?? null,
+        agent_id: agent_id ?? null,
+      });
     }
   }
 

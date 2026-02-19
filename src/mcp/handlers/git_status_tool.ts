@@ -8,6 +8,7 @@
  */
 import { ToolHandler } from "../tool_handler.ts";
 import { type MCPToolResponse } from "../../schemas/mcp.ts";
+import type { JSONValue } from "../../types.ts";
 import { PortalOperation } from "../../enums.ts";
 import { GitStatusToolArgsSchema } from "../../schemas/mcp.ts";
 
@@ -21,7 +22,7 @@ import { GitStatusToolArgsSchema } from "../../schemas/mcp.ts";
  * - Logs all operations to Activity Journal
  */
 export class GitStatusTool extends ToolHandler {
-  async execute(args: unknown): Promise<MCPToolResponse> {
+  async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = GitStatusToolArgsSchema.parse(args) as {
       portal: string;
       agent_id: string;

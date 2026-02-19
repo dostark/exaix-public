@@ -51,7 +51,7 @@ export class DaemonCommands extends BaseCommand {
 
       const status = await this.status();
       if (status.running) {
-        await this.logger.info("daemon.already_running", "daemon", { pid: status.pid });
+        await this.logger.info("daemon.already_running", "daemon", { pid: status.pid ?? null });
         return;
       }
 
@@ -143,7 +143,7 @@ export class DaemonCommands extends BaseCommand {
         return;
       }
 
-      await this.logger.info("daemon.stopping", "daemon", { pid: status.pid });
+      await this.logger.info("daemon.stopping", "daemon", { pid: status.pid ?? null });
 
       try {
         // Send SIGTERM
@@ -167,7 +167,7 @@ export class DaemonCommands extends BaseCommand {
         }
 
         // Force kill if still running
-        await this.logger.warn("daemon.force_stopping", "daemon", { pid: status.pid });
+        await this.logger.warn("daemon.force_stopping", "daemon", { pid: status.pid ?? null });
         const forceKillCmd = new Deno.Command("kill", {
           args: ["-KILL", status.pid!.toString()],
           stdout: "piped",

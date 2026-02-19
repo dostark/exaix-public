@@ -3,11 +3,11 @@ import { assertEquals, assertThrows } from "https://deno.land/std@0.208.0/assert
 import {
   appendToRequest,
   extractSection,
-  jsonExtract,
   mergeAsContext,
   passthrough,
   templateFill,
 } from "../../src/flows/transforms.ts";
+import { jsonExtract } from "../../src/types.ts";
 
 /**
  * Test suite for built-in transform functions in flow inter-step communication

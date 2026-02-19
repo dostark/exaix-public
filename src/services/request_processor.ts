@@ -33,10 +33,10 @@ import { CircuitBreaker, CircuitBreakerProvider } from "../ai/circuit_breaker.ts
 import { LogMethod } from "./decorators/logging.ts";
 import { RequestParser } from "./request_processing/request_parser.ts";
 import { StatusManager } from "./request_processing/status_manager.ts";
-import type { RequestFrontmatter } from "./request_processing/types.ts";
+import { ParsedRequestFile, RequestFrontmatter } from "./request_processing/types.ts";
+import type { LogMetadata } from "../types.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import { ServiceContext } from "./common/types.ts";
-import { ParsedRequestFile } from "./request_processing/types.ts";
 
 export interface RequestProcessingContext extends ServiceContext {
   filePath: string;
@@ -130,9 +130,9 @@ export class RequestProcessor {
     const traceLogger = this.logger.child({ traceId });
 
     traceLogger.info("request.processing", filePath, {
-      flow: frontmatter.flow,
-      agent: frontmatter.agent,
-      priority: frontmatter.priority,
+      flow: frontmatter.flow ?? null,
+      agent: frontmatter.agent ?? null,
+      priority: frontmatter.priority ?? null,
     });
 
     if (this.shouldSkipRequest(frontmatter, traceLogger, filePath)) {
@@ -177,7 +177,7 @@ export class RequestProcessor {
       });
 
       return planPath;
-    } catch (error: unknown) {
+    } catch (error: Error | unknown) {
       // Read the current content of the file before handling the error
 
       await this.handleError(error, filePath, requestId, traceLogger, frontmatter);
@@ -299,7 +299,7 @@ export class RequestProcessor {
       const validation = await this.flowValidator.validateFlow(frontmatter.flow!);
       if (!validation.valid) {
         traceLogger.error("flow.validation.failed", frontmatter.flow!, {
-          error: validation.error,
+          error: validation.error ?? null,
         });
         await this.statusManager.updateStatus(
           filePath,
@@ -339,7 +339,7 @@ export class RequestProcessor {
     };
 
     return await this.writePlanAndReturnPath(result, metadata, filePath, traceLogger, {
-      flow: frontmatter.flow,
+      flow: frontmatter.flow ?? null,
     });
   }
 
@@ -541,7 +541,7 @@ ${result.content}`,
     requestId: string,
     traceLogger: EventLogger,
     frontmatter?: RequestFrontmatter,
-  ) {
+  ): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     let persistedRejectedPath = false;
@@ -646,11 +646,11 @@ Raw Details: ${args.rawDetails}
     metadata: RequestMetadata,
     filePath: string,
     traceLogger: EventLogger,
-    extra?: Record<string, unknown>,
+    extra?: LogMetadata,
   ): Promise<string> {
     const planResult = await this.ioBreaker.execute(() => this.planWriter.writePlan(result, metadata));
     await this.statusManager.updateStatus(filePath, RequestStatus.PLANNED);
-    const logObj: Record<string, unknown> = { plan_path: planResult.planPath, ...(extra ?? {}) };
+    const logObj: LogMetadata = { plan_path: planResult.planPath, ...(extra ?? {}) };
     traceLogger.info("request.planned", filePath, logObj);
     return planResult.planPath;
   }

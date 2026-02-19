@@ -23,7 +23,7 @@ import { MemoryUpdateProposalSchema } from "../schemas/memory_bank.ts";
 import { MemoryOperation, MemoryReferenceType, MemoryScope } from "../enums.ts";
 import { MemoryStatus } from "../memory/memory_status.ts";
 import { LearningExtractor } from "./memory/learning_extractor.ts";
-import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
+import { JSONValue, toSafeJson } from "../types.ts";
 
 /**
  * Memory Extractor Service
@@ -271,7 +271,7 @@ export class MemoryExtractorService {
         "memory-extractor",
         event.event_type,
         event.target,
-        toSafeJson(event.metadata) as Record<string, JsonValue>,
+        toSafeJson(event.metadata) as Record<string, JSONValue>,
         event.trace_id,
       );
     } catch {

@@ -27,7 +27,7 @@ import {
   SkillSchema,
   type SkillTriggers,
 } from "../schemas/memory_bank.ts";
-import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
+import { JSONValue, toSafeJson } from "../types.ts";
 
 /**
  * Skills Service Configuration
@@ -802,14 +802,14 @@ export class SkillsService {
   private logActivity(event: {
     event_type: string;
     target: string;
-    metadata?: Record<string, JsonValue>;
+    metadata?: Record<string, JSONValue>;
   }): void {
     try {
       this.db.logActivity(
         "skills_service",
         event.event_type,
         event.target,
-        toSafeJson(event.metadata) as Record<string, JsonValue>,
+        toSafeJson(event.metadata) as Record<string, JSONValue>,
       );
     } catch {
       // Silently ignore logging errors - non-critical

@@ -36,7 +36,7 @@ import {
   EXECUTION_ARTIFACT_SECTION_SEPARATOR,
   EXECUTION_REPORT_FILENAME,
 } from "../config/constants.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { JSONValue } from "../types.ts";
 
 // ============================================================================
 // Types
@@ -61,7 +61,7 @@ import { BlueprintLoader } from "./blueprint_loader.ts";
 
 interface PlanAction {
   tool: string;
-  params: Record<string, JsonValue>;
+  params: Record<string, JSONValue>;
   description?: string;
 }
 
@@ -615,7 +615,7 @@ export class ExecutionLoop {
           parsed && typeof parsed === "object" && "tool" in parsed &&
           typeof (parsed as { tool: unknown }).tool === "string"
         ) {
-          const actionData = parsed as { tool: string; params?: Record<string, JsonValue>; description?: string };
+          const actionData = parsed as { tool: string; params?: Record<string, JSONValue>; description?: string };
           actions.push({
             tool: actionData.tool,
             params: actionData.params ?? {},
@@ -729,7 +729,7 @@ export class ExecutionLoop {
   /**
    * Create a safe summary of tool execution result for logging
    */
-  private summarizeResult(result: JsonValue | null | undefined): string {
+  private summarizeResult(result: JSONValue | null | undefined): string {
     if (result === null || result === undefined) {
       return "null";
     }
@@ -1137,7 +1137,7 @@ export class ExecutionLoop {
   private logActivity(
     actionType: string,
     traceId: string,
-    payload: Record<string, JsonValue>,
+    payload: Record<string, JSONValue>,
   ) {
     if (!this.db) return;
 

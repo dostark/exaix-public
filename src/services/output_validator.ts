@@ -20,6 +20,7 @@ import { Plan, PlanSchema, PlanStepSchema } from "../schemas/plan_schema.ts";
 import { AnalysisFindingSeverity, AnalysisFindingType } from "../enums.ts";
 import { repairJSON } from "./json_repair.ts";
 import { describeSchema } from "../schemas/schema_describer.ts";
+import { JSONValue } from "../types.ts";
 
 // ============================================================================
 // Output Type Registry
@@ -85,7 +86,7 @@ export const OutputSchemas = {
    */
   toolCall: z.object({
     tool: z.string().min(1),
-    arguments: z.record(z.unknown()),
+    arguments: z.record(z.any()), // Arguments can be complex JSON
     reasoning: z.string().optional(),
   }),
 
@@ -96,7 +97,7 @@ export const OutputSchemas = {
     actions: z.array(z.object({
       type: z.string(),
       target: z.string().optional(),
-      params: z.record(z.unknown()).optional(),
+      params: z.record(z.any()).optional(),
       condition: z.string().optional(),
     })).min(1),
     fallback: z.string().optional(),
@@ -253,7 +254,7 @@ export class OutputValidator {
     };
 
     // Step 1: Try direct JSON parse
-    let parsed: unknown;
+    let parsed: JSONValue | undefined = undefined;
     let parseError: Error | null = null;
 
     try {

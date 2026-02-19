@@ -12,6 +12,7 @@ import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";
+import { JSONValue } from "../../src/types.ts";
 import { parse as parseYaml } from "@std/yaml";
 import { initTestDbService } from "../helpers/db.ts";
 import { getWorkspaceActiveDir } from "../helpers/paths_helper.ts";
@@ -509,7 +510,7 @@ portal: TestPortal
 
     if (!frontmatter1.trace_id) {
       await eventLogger.error("plan.missing_trace_id", "plan_missing_trace.md", {
-        request_id: frontmatter1.request_id,
+        request_id: frontmatter1.request_id as JSONValue,
       });
     }
 

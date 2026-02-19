@@ -10,7 +10,7 @@
 import { z } from "zod";
 import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../enums.ts";
 import type { IModelProvider } from "../ai/providers.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { JSONValue } from "../types.ts";
 import type { DatabaseService } from "./db.ts";
 import {
   type AgentExecutionResult,
@@ -478,7 +478,7 @@ export class ReflexiveAgent {
     actor: string,
     actionType: string,
     target: string | null,
-    payload: Record<string, JsonValue>,
+    payload: Record<string, JSONValue>,
     traceId?: string,
   ): void {
     if (this.config.verbose) {
@@ -487,7 +487,7 @@ export class ReflexiveAgent {
         action_type: actionType,
         target,
         payload,
-        trace_id: traceId,
+        trace_id: traceId ?? null,
         agent_type: "reflexive-agent",
       });
     }

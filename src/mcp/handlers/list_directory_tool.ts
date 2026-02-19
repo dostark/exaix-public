@@ -7,9 +7,9 @@
  * @related-files [src/mcp/tool_handler.ts]
  */
 import { ToolHandler } from "../tool_handler.ts";
-import { type MCPToolResponse } from "../../schemas/mcp.ts";
+import { ListDirectoryToolArgsSchema, type MCPToolResponse } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
-import { ListDirectoryToolArgsSchema } from "../../schemas/mcp.ts";
+import type { JSONValue } from "../../types.ts";
 
 /**
  * ListDirectoryTool - Lists files and directories in a portal path
@@ -21,7 +21,7 @@ import { ListDirectoryToolArgsSchema } from "../../schemas/mcp.ts";
  * - Logs all operations to Activity Journal
  */
 export class ListDirectoryTool extends ToolHandler {
-  async execute(args: unknown): Promise<MCPToolResponse> {
+  async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = ListDirectoryToolArgsSchema.parse(args) as {
       portal: string;
       path?: string;
@@ -62,7 +62,7 @@ export class ListDirectoryTool extends ToolHandler {
       // Log successful execution
       this.logToolExecution("list_directory", portal, {
         path: listPath || "/",
-        agent_id,
+        agent_id: agent_id ?? null,
         success: true,
         entry_count: entries.length,
       });
@@ -79,7 +79,7 @@ export class ListDirectoryTool extends ToolHandler {
       // Log failed execution
       this.logToolExecution("list_directory", portal, {
         path: path || "/",
-        agent_id,
+        agent_id: agent_id ?? null,
         success: false,
         error: error instanceof Error ? error.message : String(error),
       });

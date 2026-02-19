@@ -16,7 +16,7 @@
 import { Plan, PlanSchema } from "../schemas/plan_schema.ts";
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
 import { describeSchema } from "../schemas/schema_describer.ts";
-import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
+import { JSONValue, toSafeJson } from "../types.ts";
 
 // ============================================================================
 // Types
@@ -50,7 +50,7 @@ interface E2ECase {
 export class PlanValidationError extends Error {
   constructor(
     message: string,
-    public details: Record<string, JsonValue>,
+    public details: Record<string, JSONValue>,
   ) {
     super(message);
     this.name = "PlanValidationError";

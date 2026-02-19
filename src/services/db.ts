@@ -14,7 +14,7 @@ import { ensureDir } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { DB_MAX_RETRY_DELAY_MS, DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { JSONValue } from "../types.ts";
 
 export type SqliteParam = string | number | boolean | null;
 
@@ -56,7 +56,7 @@ export interface IDatabaseService {
     actor: string,
     actionType: string,
     target: string | null,
-    payload: Record<string, JsonValue>,
+    payload: Record<string, JSONValue>,
     traceId?: string,
     agentId?: string | null,
   ): void;
@@ -122,7 +122,7 @@ export class DatabaseService implements IDatabaseService {
     actor: string,
     actionType: string,
     target: string | null,
-    payload: Record<string, JsonValue>,
+    payload: Record<string, JSONValue>,
     traceId?: string,
     agentId?: string | null,
   ) {

@@ -2,11 +2,11 @@ import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   appendToRequest,
   extractSection,
-  jsonExtract,
   mergeAsContext,
   passthrough,
   templateFill,
 } from "../../src/flows/transforms.ts";
+import { jsonExtract } from "../../src/types.ts";
 
 /**
  * Integration tests for inter-step communication transforms

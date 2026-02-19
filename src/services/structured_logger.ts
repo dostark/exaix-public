@@ -25,6 +25,8 @@ import * as DEFAULTS from "../config/constants.ts";
 // ============================================================================
 
 import { LogLevel } from "../enums.ts";
+import { LogMetadata } from "../types.ts";
+export type { LogMetadata };
 
 export interface LogEntry {
   timestamp: string;
@@ -40,7 +42,7 @@ export interface LogEntry {
     operation?: string;
     correlation_id?: string;
   };
-  metadata?: Record<string, unknown>;
+  metadata?: LogMetadata;
   error?: {
     name: string;
     message: string;
@@ -72,15 +74,15 @@ export interface StructuredLoggerConfig {
 export interface IStructuredLogger {
   setContext(context: Partial<LogEntry["context"]>): void;
   child(additionalContext: Partial<LogEntry["context"]>): IStructuredLogger;
-  debug(message: string, metadata?: Record<string, unknown>): void;
-  info(message: string, metadata?: Record<string, unknown>): void;
-  warn(message: string, metadata?: Record<string, unknown>): void;
-  error(message: string, error?: Error, metadata?: Record<string, unknown>): void;
-  fatal(message: string, error?: Error, metadata?: Record<string, unknown>): void;
+  debug(message: string, metadata?: LogMetadata): void;
+  info(message: string, metadata?: LogMetadata): void;
+  warn(message: string, metadata?: LogMetadata): void;
+  error(message: string, error?: Error, metadata?: LogMetadata): void;
+  fatal(message: string, error?: Error, metadata?: LogMetadata): void;
   time<T>(
     operation: string,
     fn: () => Promise<T>,
-    metadata?: Record<string, unknown>,
+    metadata?: LogMetadata,
   ): Promise<T>;
 }
 
@@ -261,30 +263,30 @@ export class StructuredLogger implements IStructuredLogger {
     return child;
   }
 
-  debug(message: string, metadata?: Record<string, unknown>): void {
+  debug(message: string, metadata?: LogMetadata): void {
     this.log(LogLevel.DEBUG, message, metadata);
   }
 
-  info(message: string, metadata?: Record<string, unknown>): void {
+  info(message: string, metadata?: LogMetadata): void {
     this.log(LogLevel.INFO, message, metadata);
   }
 
-  warn(message: string, metadata?: Record<string, unknown>): void {
+  warn(message: string, metadata?: LogMetadata): void {
     this.log(LogLevel.WARN, message, metadata);
   }
 
-  error(message: string, error?: Error, metadata?: Record<string, unknown>): void {
+  error(message: string, error?: Error, metadata?: LogMetadata): void {
     this.log(LogLevel.ERROR, message, metadata, error);
   }
 
-  fatal(message: string, error?: Error, metadata?: Record<string, unknown>): void {
+  fatal(message: string, error?: Error, metadata?: LogMetadata): void {
     this.log(LogLevel.FATAL, message, metadata, error);
   }
 
   async time<T>(
     operation: string,
     fn: () => Promise<T>,
-    metadata?: Record<string, unknown>,
+    metadata?: LogMetadata,
   ): Promise<T> {
     if (!this.config.enablePerformanceTracking) {
       return fn();
@@ -323,7 +325,7 @@ export class StructuredLogger implements IStructuredLogger {
   private log(
     level: LogLevel,
     message: string,
-    metadata?: Record<string, unknown>,
+    metadata?: LogMetadata,
     error?: Error,
   ): void {
     if (!this.shouldLog(level)) {
@@ -391,22 +393,22 @@ export function resetGlobalLogger(): void {
 }
 
 // Convenience functions for global logger
-export function logDebug(message: string, metadata?: Record<string, unknown>): void {
+export function logDebug(message: string, metadata?: LogMetadata): void {
   getGlobalLogger().debug(message, metadata);
 }
 
-export function logInfo(message: string, metadata?: Record<string, unknown>): void {
+export function logInfo(message: string, metadata?: LogMetadata): void {
   getGlobalLogger().info(message, metadata);
 }
 
-export function logWarn(message: string, metadata?: Record<string, unknown>): void {
+export function logWarn(message: string, metadata?: LogMetadata): void {
   getGlobalLogger().warn(message, metadata);
 }
 
-export function logError(message: string, error?: Error, metadata?: Record<string, unknown>): void {
+export function logError(message: string, error?: Error, metadata?: LogMetadata): void {
   getGlobalLogger().error(message, error, metadata);
 }
 
-export function logFatal(message: string, error?: Error, metadata?: Record<string, unknown>): void {
+export function logFatal(message: string, error?: Error, metadata?: LogMetadata): void {
   getGlobalLogger().fatal(message, error, metadata);
 }

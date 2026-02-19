@@ -148,13 +148,13 @@ function logReviewListItem(cs: ReviewMetadata) {
 
   display.info(`${statusEmoji} ${cs.request_id}`, cs.branch, {
     request: requestTitle,
-    plan: planInfo,
-    agent: agentInfo,
-    portal: portalInfo,
+    plan: planInfo ?? null,
+    agent: agentInfo ?? null,
+    portal: portalInfo ?? null,
     type: typeInfo,
     files: cs.files_changed,
     created: new Date(cs.created_at).toLocaleString(),
-    trace,
+    trace: trace || null,
   });
 }
 
@@ -164,8 +164,8 @@ function getReviewStatusEmoji(status: ReviewStatusType | undefined): string {
   return "📌";
 }
 
-function formatTraceShort(traceId: string | undefined): string {
-  if (!traceId) return "";
+function formatTraceShort(traceId: string | undefined): string | null {
+  if (!traceId) return null;
   return `${traceId.substring(0, 8)}...`;
 }
 
@@ -204,14 +204,14 @@ function renderReviewShowSummary(cs: ReviewDetails) {
     status: cs.status || ReviewStatus.PENDING,
     request: requestTitle,
     plan: planInfo,
-    agent: agentInfo,
-    portal: portalInfo,
-    base_branch: cs.base_branch,
+    agent: agentInfo ?? null,
+    portal: portalInfo ?? null,
+    base_branch: cs.base_branch ?? null,
     priority: cs.request_priority || "normal",
     created_by: cs.request_created_by || "unknown",
     files_changed: cs.files_changed,
     commits: cs.commits.length,
-    trace: cs.trace_id,
+    trace: cs.trace_id ?? null,
   });
 }
 
@@ -448,9 +448,9 @@ export const __test_command = new Command()
                       : undefined;
 
                     display.info(wt.path, branch ?? "(unknown)", {
-                      head: wt.head ? `${wt.head.substring(0, 8)}...` : undefined,
-                      locked: wt.locked ? true : undefined,
-                      prunable: wt.prunable ? true : undefined,
+                      head: wt.head ? `${wt.head.substring(0, 8)}...` : null,
+                      locked: wt.locked ? true : null,
+                      prunable: wt.prunable ? true : null,
                     });
                   }
                 } catch (error) {
@@ -501,10 +501,10 @@ export const __test_command = new Command()
                   });
 
                   display.info("git.worktrees.prune", repoPath, {
-                    dry_run: options.dryRun ? true : undefined,
-                    verbose: options.verbose ? true : undefined,
-                    expire: options.expire,
-                    output: output.trim().length > 0 ? output.trim() : undefined,
+                    dry_run: options.dryRun ? true : null,
+                    verbose: options.verbose ? true : null,
+                    expire: options.expire ?? null,
+                    output: output.trim().length > 0 ? output.trim() : null,
                   });
                 } catch (error) {
                   display.error("cli.error", "git worktrees prune", {
@@ -528,7 +528,7 @@ export const __test_command = new Command()
                 const current = branch.is_current ? "* " : "  ";
                 display.info(`${current}${branch.name}`, branch.name, {
                   last_commit: `${branch.last_commit} (${new Date(branch.last_commit_date).toLocaleDateString()})`,
-                  trace: branch.trace_id ? `${branch.trace_id.substring(0, 8)}...` : undefined,
+                  trace: branch.trace_id ? `${branch.trace_id.substring(0, 8)}...` : null,
                 });
               }
             } catch (error) {
@@ -547,14 +547,14 @@ export const __test_command = new Command()
             try {
               const status = await gitCommands.status();
               display.info("git.status", status.branch, {
-                modified: status.modified.length > 0 ? status.modified : undefined,
-                added: status.added.length > 0 ? status.added : undefined,
-                deleted: status.deleted.length > 0 ? status.deleted : undefined,
-                untracked: status.untracked.length > 0 ? status.untracked : undefined,
+                modified: status.modified.length > 0 ? status.modified : null,
+                added: status.added.length > 0 ? status.added : null,
+                deleted: status.deleted.length > 0 ? status.deleted : null,
+                untracked: status.untracked.length > 0 ? status.untracked : null,
                 clean: status.modified.length === 0 && status.added.length === 0 &&
                     status.deleted.length === 0 && status.untracked.length === 0
                   ? true
-                  : undefined,
+                  : null,
               });
             } catch (error) {
               display.error("cli.error", "git status", {
@@ -652,8 +652,8 @@ export const __test_command = new Command()
               display.info("daemon.status", "daemon", {
                 version: status.version,
                 status: status.running ? "Running ✓" : "Stopped ✗",
-                pid: status.pid,
-                uptime: status.uptime,
+                pid: status.pid ?? null,
+                uptime: status.uptime ?? null,
               });
             } catch (error) {
               display.error("cli.error", "daemon status", {
@@ -768,11 +768,11 @@ export const __test_command = new Command()
                 symlink: portal.symlinkPath,
                 status: portal.status === "active" ? "Active ✓" : "Broken ⚠",
                 context_card: portal.contextCardPath,
-                permissions: portal.permissions,
-                created: portal.created,
-                last_verified: portal.lastVerified,
-                default_branch: portal.defaultBranch,
-                execution_strategy: portal.executionStrategy,
+                permissions: portal.permissions ?? null,
+                created: portal.created ?? null,
+                last_verified: portal.lastVerified ?? null,
+                default_branch: portal.defaultBranch ?? null,
+                execution_strategy: portal.executionStrategy ?? null,
               });
             } catch (error) {
               display.error("cli.error", "portal show", {

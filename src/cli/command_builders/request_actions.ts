@@ -12,7 +12,7 @@ import { RequestPriority } from "../../enums.ts";
 import { RequestStatus } from "../../requests/request_status.ts";
 import { PRIORITY_ICONS } from "../cli.config.ts";
 import type { EventLogger } from "../../services/event_logger.ts";
-import { JsonValue, toSafeJson } from "../../flows/transforms.ts";
+import { JSONValue, toSafeJson } from "../../types.ts";
 
 export interface RequestActionContext {
   requestCommands: RequestCommands;
@@ -124,7 +124,7 @@ export async function handleRequestList(
             flow: req.flow,
             target_branch: req.target_branch,
             created: `${req.created_by} @ ${req.created}`,
-          }) as Record<string, JsonValue>,
+          }) as Record<string, JSONValue>,
         );
       }
     }
@@ -179,7 +179,7 @@ export async function handleRequestShow(
       displayData.error = metadata.error;
     }
 
-    display.info("request.show", metadata.trace_id.slice(0, 8), toSafeJson(displayData) as Record<string, JsonValue>);
+    display.info("request.show", metadata.trace_id.slice(0, 8), toSafeJson(displayData) as Record<string, JSONValue>);
     display.info("request.content", id, { content });
   } catch (error) {
     display.error("cli.error", "request show", {
@@ -221,7 +221,7 @@ function printRequestResult(
         agent: result.flow ? undefined : result.agent,
         flow: result.flow,
         status: result.status,
-      }) as Record<string, JsonValue>,
+      }) as Record<string, JSONValue>,
     );
   }
 }

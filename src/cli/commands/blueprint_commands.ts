@@ -662,7 +662,7 @@ ${systemPrompt}
     const logger = await this.getActionLogger();
     await logger.info("blueprint.created", agentId, {
       model,
-      template: options.template,
+      template: options.template ?? null,
       via: "cli",
     });
   }

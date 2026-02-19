@@ -15,7 +15,7 @@
  */
 
 import type { IModelProvider } from "../ai/providers.ts";
-import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
+import { JSONValue, toSafeJson } from "../types.ts";
 import type { DatabaseService } from "./db.ts";
 import { createLLMRetryPolicy, type RetryPolicy, type RetryPolicyConfig, type RetryResult } from "./retry_policy.ts";
 import { createOutputValidator, OutputValidator, type ValidationMetrics } from "./output_validator.ts";
@@ -498,7 +498,7 @@ export class AgentRunner {
     actor: string,
     actionType: string,
     target: string | null,
-    payload: Record<string, JsonValue>,
+    payload: Record<string, JSONValue>,
     traceId?: string,
     agentId?: string | null,
   ): void {

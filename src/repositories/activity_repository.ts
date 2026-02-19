@@ -8,7 +8,7 @@
  */
 
 import type { ActivityRecord, DatabaseService } from "../services/db.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { JSONValue } from "../types.ts";
 
 /**
  * Domain entity representing an activity/event
@@ -20,7 +20,7 @@ export interface Activity {
   agentId: string | null;
   actionType: string;
   target: string | null;
-  payload: Record<string, JsonValue>;
+  payload: Record<string, JSONValue>;
   timestamp: string;
 }
 
@@ -31,7 +31,7 @@ export interface LogActivityRequest {
   actor: string;
   actionType: string;
   target: string | null;
-  payload?: Record<string, JsonValue>;
+  payload?: Record<string, JSONValue>;
   traceId?: string;
   agentId?: string | null;
 }
@@ -101,7 +101,7 @@ export class DatabaseActivityRepository implements ActivityRepository {
    * Map database record to domain entity
    */
   private mapRecordToActivity(record: ActivityRecord): Activity {
-    let payload: Record<string, JsonValue> = {};
+    let payload: Record<string, JSONValue> = {};
     try {
       payload = JSON.parse(record.payload);
     } catch {

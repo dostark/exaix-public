@@ -7,10 +7,10 @@
  * @related-files [src/mcp/tool_handler.ts]
  */
 import { ToolHandler } from "../tool_handler.ts";
-import { type MCPToolResponse } from "../../schemas/mcp.ts";
+import { type MCPToolResponse, WriteFileToolArgsSchema } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
-import { WriteFileToolArgsSchema } from "../../schemas/mcp.ts";
 import { dirname } from "@std/path";
+import type { JSONValue } from "../../types.ts";
 
 /**
  * WriteFileTool - Writes file content to a portal
@@ -22,7 +22,7 @@ import { dirname } from "@std/path";
  * - Logs all writes to Activity Journal
  */
 export class WriteFileTool extends ToolHandler {
-  async execute(args: unknown): Promise<MCPToolResponse> {
+  async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = WriteFileToolArgsSchema.parse(args) as {
       portal: string;
       path: string;
@@ -51,7 +51,7 @@ export class WriteFileTool extends ToolHandler {
       // Log successful execution
       this.logToolExecution("write_file", portal, {
         path,
-        agent_id,
+        agent_id: agent_id ?? null,
         success: true,
         bytes: content.length,
       });
@@ -68,7 +68,7 @@ export class WriteFileTool extends ToolHandler {
       // Log failed execution
       this.logToolExecution("write_file", portal, {
         path,
-        agent_id,
+        agent_id: agent_id ?? null,
         success: false,
         error: error instanceof Error ? error.message : String(error),
       });

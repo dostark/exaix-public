@@ -10,8 +10,7 @@
 import type { PlanCommands } from "../commands/plan_commands.ts";
 import { PlanStatus } from "../../plans/plan_status.ts";
 import type { EventLogger } from "../../services/event_logger.ts";
-import { toSafeJson } from "../../flows/transforms.ts";
-import type { JsonValue } from "../../flows/transforms.ts";
+import { JSONValue, toSafeJson } from "../../types.ts";
 
 export interface PlanActionContext {
   planCommands: PlanCommands;
@@ -65,7 +64,7 @@ export async function handlePlanList(
         displayData.priority = plan.request_priority;
       }
 
-      display.info(`${statusIcon} ${plan.id}`, plan.id, toSafeJson(displayData) as Record<string, JsonValue>);
+      display.info(`${statusIcon} ${plan.id}`, plan.id, toSafeJson(displayData) as Record<string, JSONValue>);
     }
   } catch (error) {
     display.error("cli.error", "plan list", {
@@ -129,7 +128,7 @@ export async function handlePlanShow(
       displayData.token_cost_usd = plan.token_cost_usd;
     }
 
-    display.info("plan.show", plan.id, toSafeJson(displayData) as Record<string, JsonValue>);
+    display.info("plan.show", plan.id, toSafeJson(displayData) as Record<string, JSONValue>);
     display.info("plan.content", id, { content: plan.content });
   } catch (error) {
     display.error("cli.error", "plan show", {

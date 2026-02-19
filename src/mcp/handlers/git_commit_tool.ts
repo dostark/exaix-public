@@ -9,6 +9,7 @@
 import { ToolHandler } from "../tool_handler.ts";
 import { type MCPToolResponse } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
+import type { JSONValue } from "../../types.ts";
 import { GitCommitToolArgsSchema } from "../../schemas/mcp.ts";
 
 /**
@@ -22,7 +23,7 @@ import { GitCommitToolArgsSchema } from "../../schemas/mcp.ts";
  * - Logs all operations to Activity Journal
  */
 export class GitCommitTool extends ToolHandler {
-  async execute(args: unknown): Promise<MCPToolResponse> {
+  async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = GitCommitToolArgsSchema.parse(args) as {
       portal: string;
       message: string;

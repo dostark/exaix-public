@@ -23,7 +23,7 @@ import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { DEFAULT_MCP_VERSION } from "../config/constants.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import type { ServiceContext } from "./common/types.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { JSONValue } from "../types.ts";
 
 // Local defaults to avoid magic numbers in this module
 const DEFAULT_CHECK_BREAKER_FAILURE_THRESHOLD = 3;
@@ -52,7 +52,7 @@ export interface HealthCheckResult {
   /** Optional human-readable message */
   message?: string;
   /** Optional metadata about the check (response times, metrics, etc.) */
-  metadata?: Record<string, JsonValue>;
+  metadata?: Record<string, JSONValue>;
   /** Duration of the check in milliseconds */
   duration_ms?: number;
 }
@@ -283,7 +283,7 @@ export class HealthCheckService {
       messagePrefix: string;
       unit: string;
       durationMs: number;
-      metadata: Record<string, JsonValue>;
+      metadata: Record<string, JSONValue>;
     },
   ): HealthCheckResult {
     let verdict = HealthCheckVerdict.PASS;

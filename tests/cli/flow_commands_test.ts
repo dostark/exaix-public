@@ -37,6 +37,7 @@ function seedFlowModuleSupportFiles(
   const flowsDir = join(ctx.config.system.root, ctx.config.paths.blueprints, "flows");
   ensureDirSync(flowsDir);
   copySync("src/flows/transforms.ts", join(flowsDir, "transforms.ts"));
+  copySync("src/types.ts", join(ctx.config.system.root, ctx.config.paths.blueprints, "types.ts"));
   copySync("src/enums.ts", join(ctx.config.system.root, ctx.config.paths.blueprints, "enums.ts"));
   copySync("src/schemas", join(ctx.config.system.root, ctx.config.paths.blueprints, "schemas"));
 }

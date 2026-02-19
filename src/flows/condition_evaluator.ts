@@ -9,7 +9,7 @@
 
 import { Flow, FlowStep } from "../schemas/flow.ts";
 import { StepResult } from "./flow_runner.ts";
-import type { JsonValue } from "./transforms.ts";
+import { JSONValue } from "../types.ts";
 
 /**
  * Context available during condition evaluation
@@ -42,7 +42,7 @@ export interface StepResultContext {
   /** Step output content */
   content?: string;
   /** Parsed JSON output if applicable */
-  data?: JsonValue;
+  data?: JSONValue;
   /** Step execution duration in ms */
   duration: number;
   /** Error message if step failed */
@@ -203,11 +203,11 @@ export class ConditionEvaluator {
   /**
    * Try to parse content as JSON, return undefined if not valid JSON
    */
-  private tryParseJson(content?: string): JsonValue | undefined {
+  private tryParseJson(content?: string): JSONValue | undefined {
     if (!content) return undefined;
 
     try {
-      return JSON.parse(content) as JsonValue;
+      return JSON.parse(content) as JSONValue;
     } catch {
       return undefined;
     }

@@ -9,6 +9,7 @@
 import { ToolHandler } from "../tool_handler.ts";
 import { type MCPToolResponse } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
+import type { JSONValue } from "../../types.ts";
 import { GitCreateBranchToolArgsSchema } from "../../schemas/mcp.ts";
 
 /**
@@ -21,7 +22,7 @@ import { GitCreateBranchToolArgsSchema } from "../../schemas/mcp.ts";
  * - Logs all operations to Activity Journal
  */
 export class GitCreateBranchTool extends ToolHandler {
-  async execute(args: unknown): Promise<MCPToolResponse> {
+  async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     const validatedArgs = GitCreateBranchToolArgsSchema.parse(args) as {
       portal: string;
       branch: string;

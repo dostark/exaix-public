@@ -13,6 +13,7 @@ import { MCPServer } from "../../../src/mcp/server.ts";
 import type { PortalPermissions } from "../../../src/schemas/portal_permissions.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
+import type { JSONValue } from "../../../src/types.ts";
 
 export interface MCPTestContext {
   tempDir: string;
@@ -194,7 +195,7 @@ export const initSimpleMCPServer = initMCPTestWithoutPortal;
  */
 export function createToolCallRequest(
   toolName: string,
-  args: Record<string, unknown>,
+  args: Record<string, JSONValue>,
   id: number | string = 1,
 ) {
   return {
@@ -219,7 +220,7 @@ export function createToolCallRequest(
  */
 export function createMCPRequest(
   method: string,
-  params?: Record<string, unknown>,
+  params?: Record<string, JSONValue>,
   id: number | string = 1,
 ) {
   return {

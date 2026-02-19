@@ -1,5 +1,6 @@
 import { type MCPToolResponse, ReadFileToolArgsSchema } from "../../schemas/mcp.ts";
 import { PortalOperation } from "../../enums.ts";
+import type { JSONValue } from "../../types.ts";
 /**
  * @module ReadFileTool
  * @path src/mcp/handlers/read_file_tool.ts
@@ -20,7 +21,7 @@ import { ToolHandler } from "../tool_handler.ts";
  * - Logs all reads to Activity Journal
  */
 export class ReadFileTool extends ToolHandler {
-  async execute(args: unknown): Promise<MCPToolResponse> {
+  async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
     // Validate arguments with Zod schema
     const validatedArgs = ReadFileToolArgsSchema.parse(args);
     const { portal, path, agent_id } = validatedArgs;
@@ -49,7 +50,7 @@ export class ReadFileTool extends ToolHandler {
       // Log successful execution
       this.logToolExecution("read_file", portal, {
         path,
-        agent_id,
+        agent_id: agent_id ?? null,
         success: true,
         bytes: content.length,
       });
@@ -66,7 +67,7 @@ export class ReadFileTool extends ToolHandler {
       // Log failed execution
       this.logToolExecution("read_file", portal, {
         path,
-        agent_id,
+        agent_id: agent_id ?? null,
         success: false,
         error: error instanceof Error ? error.message : String(error),
       });

@@ -9,6 +9,7 @@
 import type { Config } from "../config/schema.ts";
 import type { IDatabaseService } from "../services/db.ts";
 import { MCPConfigSchema, type MCPTool } from "../schemas/mcp.ts";
+import { JSONValue } from "../types.ts";
 import {
   GitCommitTool,
   GitCreateBranchTool,
@@ -52,7 +53,7 @@ interface JSONRPCRequest {
   jsonrpc: string;
   id: number | string;
   method: string;
-  params: Record<string, unknown>;
+  params: Record<string, JSONValue>;
 }
 
 interface JSONRPCResponse {
@@ -338,7 +339,7 @@ export class MCPServer {
 
     try {
       // Execute tool
-      const result = await tool.execute(params.arguments);
+      const result = await tool.execute(params.arguments as Record<string, JSONValue>);
 
       // Log successful tool execution (sanitized)
       try {

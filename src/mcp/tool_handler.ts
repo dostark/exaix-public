@@ -12,7 +12,7 @@ import type { IDatabaseService } from "../services/db.ts";
 import { type MCPToolResponse } from "../schemas/mcp.ts";
 import { PortalPermissionsService } from "../services/portal_permissions.ts";
 import { PortalOperation } from "../enums.ts";
-import { type JsonValue, toSafeJson } from "../flows/transforms.ts";
+import { JSONValue, LogMetadata, toSafeJson } from "../types.ts";
 
 /**
  * Base class for all MCP tool handlers
@@ -97,13 +97,13 @@ export abstract class ToolHandler {
   protected logToolExecution(
     toolName: string,
     portal: string,
-    metadata: Record<string, unknown>,
+    metadata: LogMetadata,
   ): void {
     this.db.logActivity(
       "mcp.tool",
       `mcp.tool.${toolName}`,
       portal,
-      toSafeJson(metadata) as Record<string, JsonValue>,
+      toSafeJson(metadata) as Record<string, JSONValue>,
     );
   }
 
@@ -114,7 +114,7 @@ export abstract class ToolHandler {
     toolName: string,
     portal: string,
     message: string,
-    metadata: Record<string, unknown>,
+    metadata: LogMetadata,
   ): MCPToolResponse {
     this.logToolExecution(toolName, portal, { ...metadata, success: true });
     return {
@@ -129,7 +129,7 @@ export abstract class ToolHandler {
     toolName: string,
     portal: string,
     error: unknown,
-    metadata: Record<string, unknown>,
+    metadata: LogMetadata,
   ): never {
     this.logToolExecution(toolName, portal, {
       ...metadata,
@@ -155,7 +155,7 @@ export abstract class ToolHandler {
    * Execute the tool with validated arguments
    * Implemented by subclasses
    */
-  abstract execute(args: unknown): Promise<MCPToolResponse>;
+  abstract execute(args: Record<string, JSONValue>): Promise<MCPToolResponse>;
 
   /**
    * Returns the tool's JSON schema definition
@@ -163,6 +163,6 @@ export abstract class ToolHandler {
   abstract getToolDefinition(): {
     name: string;
     description: string;
-    inputSchema: Record<string, unknown>;
+    inputSchema: Record<string, JSONValue>;
   };
 }

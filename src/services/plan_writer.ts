@@ -18,7 +18,7 @@ import { PlanAdapter, PlanValidationError } from "./plan_adapter.ts";
 import { PlanStatus } from "../plans/plan_status.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
 import type { ServiceContext } from "./common/types.ts";
-import type { JsonValue } from "../flows/transforms.ts";
+import { JSONValue } from "../types.ts";
 
 // ============================================================================
 // Types and Interfaces
@@ -346,7 +346,7 @@ export class PlanWriter {
 
     for (const event of events) {
       try {
-        const payload = JSON.parse(event.payload) as Record<string, JsonValue>;
+        const payload = JSON.parse(event.payload) as Record<string, JSONValue>;
         const input = Number(payload.input_tokens ?? payload.prompt_tokens ?? 0);
         const output = Number(payload.output_tokens ?? payload.completion_tokens ?? 0);
         const total = Number(payload.total_tokens ?? input + output);
@@ -487,7 +487,7 @@ export class PlanWriter {
     actionType: string,
     requestId: string,
     traceId: string,
-    metadata: Record<string, JsonValue>,
+    metadata: Record<string, JSONValue>,
   ): Promise<void> {
     if (!this.config.db) {
       // If no database provided, skip logging (testing mode)
