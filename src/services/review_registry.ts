@@ -216,7 +216,7 @@ export class ReviewRegistry {
 
     sql += ` ORDER BY created DESC`;
 
-    const rows = await this.db.preparedAll<Record<string, SqliteParam>>(sql, params as SqliteParam[]);
+    const rows = await this.db.preparedAll<Review>(sql, params as SqliteParam[]);
     return rows.map((row) => ReviewSchema.parse(row));
   }
 

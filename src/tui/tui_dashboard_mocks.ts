@@ -98,7 +98,7 @@ export class MockPlanService {
   }
 }
 
-import type { IDatabaseService } from "../services/db.ts";
+import type { IDatabaseService, JournalFilterOptions } from "../services/db.ts";
 
 /**
  * MockLogService
@@ -107,7 +107,7 @@ import type { IDatabaseService } from "../services/db.ts";
  */
 export class MockLogService implements IDatabaseService {
   /** Returns an empty list of recent activity logs. */
-  queryActivity(_filter?: any) {
+  queryActivity(_filter?: JournalFilterOptions) {
     return Promise.resolve([]);
   }
 
