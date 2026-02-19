@@ -19,7 +19,7 @@ import { JSONValue, toSafeJson } from "../types.ts";
 import type { DatabaseService } from "./db.ts";
 import { createLLMRetryPolicy, type RetryPolicy, type RetryPolicyConfig, type RetryResult } from "./retry_policy.ts";
 import { createOutputValidator, OutputValidator, type ValidationMetrics } from "./output_validator.ts";
-import type { SkillsService } from "./skills.ts";
+import type { ISkillsService } from "./skills.ts";
 import { extractKeywords } from "../helpers/text.ts";
 import { PORTAL_CONTEXT_KEY } from "../config/constants.ts";
 import { PlanAdapter } from "./plan_adapter.ts";
@@ -109,7 +109,7 @@ export interface AgentRunnerConfig {
   disableRetry?: boolean;
 
   /** Optional: Skills service for procedural memory (Phase 17) */
-  skillsService?: SkillsService;
+  skillsService?: ISkillsService;
 
   /** Optional: Disable automatic skill matching */
   disableSkills?: boolean;
@@ -143,7 +143,7 @@ export class AgentRunner {
   private retryPolicy: RetryPolicy;
   private disableRetry: boolean;
   private outputValidator: OutputValidator;
-  private skillsService?: SkillsService;
+  private skillsService?: ISkillsService;
   private disableSkills: boolean;
   private planAdapter: PlanAdapter;
 

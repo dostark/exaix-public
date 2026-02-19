@@ -7,7 +7,8 @@ import {
   MemoryOperation,
   MemorySource,
   PortalOperation,
-  SkillStatus,
+  PortalStatus,
+  RequestPriority,
 } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
@@ -39,9 +40,10 @@ Deno.test("exoctl exposes test context when EXO_TEST_MODE=1", async () => {
 Deno.test("plan approve calls planCommands.approve", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    (ctx.planCommands as any).approve = (id: string) => {
+    ctx.planCommands.approve = (id: string) => {
       called = true;
       assertEquals(id, "plan-123");
+      return Promise.resolve();
     };
     await (mod.__test_command as any).parse(["plan", "approve", "plan-123"]);
     assert(called);
@@ -51,10 +53,11 @@ Deno.test("plan approve calls planCommands.approve", async () => {
 Deno.test("review reject calls reviewCommands.reject", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    (ctx.reviewCommands as any).reject = (id: string, reason: string) => {
+    ctx.reviewCommands.reject = (id: string, reason: string) => {
       called = true;
       assertEquals(id, "cs-1");
       assertEquals(reason, "not-good");
+      return Promise.resolve();
     };
     await (mod.__test_command as any).parse(["review", "reject", "cs-1", "-r", "not-good"]);
     assert(called);
@@ -64,10 +67,11 @@ Deno.test("review reject calls reviewCommands.reject", async () => {
 Deno.test("portal add invokes portalCommands.add", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    (ctx.portalCommands as any).add = (target: string, alias: string) => {
+    ctx.portalCommands.add = (target: string, alias: string) => {
       called = true;
       assertEquals(alias, "MyAlias");
       assert(target.includes("/tmp"));
+      return Promise.resolve();
     };
     await (mod.__test_command as any).parse(["portal", MemoryOperation.ADD, "/tmp/some/path", "MyAlias"]);
     assert(called);
@@ -76,9 +80,16 @@ Deno.test("portal add invokes portalCommands.add", async () => {
 
 Deno.test("git branches prints list (calls gitCommands.listBranches)", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.gitCommands as any).listBranches = (_pattern?: string) => [
-      { name: "main", is_current: true, last_commit: "abc123", last_commit_date: Date.now(), trace_id: null },
-    ];
+    ctx.gitCommands.listBranches = (_pattern?: string) =>
+      Promise.resolve([
+        {
+          name: "main",
+          is_current: true,
+          last_commit: "abc123",
+          last_commit_date: new Date().toISOString(),
+          trace_id: undefined,
+        },
+      ]);
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([PortalOperation.GIT, "branches"]);
     });
@@ -88,7 +99,7 @@ Deno.test("git branches prints list (calls gitCommands.listBranches)", async () 
 
 Deno.test("daemon status prints info (calls daemonCommands.status)", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.daemonCommands as any).status = () => ({ version: "v1", running: true, pid: 999, uptime: "1m" });
+    ctx.daemonCommands.status = () => Promise.resolve({ version: "v1", running: true, pid: 999, uptime: "1m" });
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["daemon", "status"]);
     });
@@ -99,10 +110,11 @@ Deno.test("daemon status prints info (calls daemonCommands.status)", async () =>
 Deno.test("blueprint remove calls blueprintCommands.remove", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    (ctx.blueprintCommands as any).remove = (id: string, opts?: any) => {
+    ctx.blueprintCommands.remove = (id: string, opts?: any) => {
       called = true;
       assertEquals(id, "agent-x");
       assertEquals(opts?.force, true);
+      return Promise.resolve();
     };
     await (mod.__test_command as any).parse(["blueprint", "remove", "agent-x", "--force"]);
     assert(called);
@@ -111,7 +123,7 @@ Deno.test("blueprint remove calls blueprintCommands.remove", async () => {
 
 Deno.test("request list shows 'No requests found' when empty", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).list = () => [];
+    ctx.requestCommands.list = () => Promise.resolve([]);
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list"]);
     });
@@ -121,16 +133,20 @@ Deno.test("request list shows 'No requests found' when empty", async () => {
 
 Deno.test("request list prints entries when present", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).list = () => [
-      {
-        trace_id: "abcd1234efgh5678",
-        priority: CritiqueSeverity.CRITICAL,
-        agent: "agent-x",
-        created_by: "tester",
-        created: "now",
-        status: MemoryStatus.PENDING,
-      },
-    ];
+    ctx.requestCommands.list = () =>
+      Promise.resolve([
+        {
+          trace_id: "abcd1234efgh5678",
+          priority: CritiqueSeverity.CRITICAL,
+          agent: "agent-x",
+          created_by: "tester",
+          created: "now",
+          status: MemoryStatus.PENDING,
+          filename: "/tmp/req.md",
+          path: "/tmp",
+          source: MemorySource.USER,
+        },
+      ]);
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list"]);
     });
@@ -140,17 +156,21 @@ Deno.test("request list prints entries when present", async () => {
 
 Deno.test("request show prints content when request exists", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).show = (id: string) => ({
-      metadata: {
-        trace_id: id,
-        status: MemoryStatus.PENDING,
-        priority: "normal",
-        agent: MemorySource.AGENT,
-        created_by: "tester",
-        created: "time",
-      },
-      content: "Hello world",
-    });
+    ctx.requestCommands.show = (id: string) =>
+      Promise.resolve({
+        metadata: {
+          trace_id: id,
+          status: MemoryStatus.PENDING,
+          priority: "normal",
+          agent: MemorySource.AGENT,
+          created_by: "tester",
+          created: "time",
+          filename: "/tmp/req.md",
+          path: "/tmp",
+          source: MemorySource.USER,
+        },
+        content: "Hello world",
+      });
 
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "show", "trace-1"]);
@@ -161,7 +181,7 @@ Deno.test("request show prints content when request exists", async () => {
 
 Deno.test("plan list shows entries and status icons", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.planCommands as any).list = () => [{ id: "p1", status: "review", trace_id: "t1" }];
+    ctx.planCommands.list = () => Promise.resolve([{ id: "p1", status: "review", trace_id: "t1" }]);
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["plan", "list"]);
     });
@@ -171,8 +191,10 @@ Deno.test("plan list shows entries and status icons", async () => {
 
 Deno.test("review list prints entries when present", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.reviewCommands as any).list =
-      () => [{ request_id: "req-1", branch: "feat/x", files_changed: 2, created_at: Date.now(), trace_id: "trace-1" }];
+    ctx.reviewCommands.list = () =>
+      Promise.resolve([
+        { request_id: "req-1", branch: "feat/x", files_changed: 2, created_at: Date.now(), trace_id: "trace-1" } as any,
+      ]);
     const out = await captureConsoleOutput(async () => await (mod.__test_command as any).parse(["review", "list"]));
     assert(out.includes("feat/x") || out.includes("req-1"));
   });
@@ -180,9 +202,8 @@ Deno.test("review list prints entries when present", async () => {
 
 Deno.test("git log prints commits when present", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.gitCommands as any).logByTraceId = (
-      _t: string,
-    ) => [{ sha: "deadbeef1234", message: "Fix", author: "me", date: Date.now() }];
+    ctx.gitCommands.logByTraceId = (_t: string) =>
+      Promise.resolve([{ sha: "deadbeef1234", message: "Fix", author: "me", date: new Date().toISOString() }]);
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([PortalOperation.GIT, "log", "-t", "deadbeef"]);
     });
@@ -192,7 +213,8 @@ Deno.test("git log prints commits when present", async () => {
 
 Deno.test("git status prints clean state when empty arrays", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.gitCommands as any).status = () => ({ branch: "main", modified: [], added: [], deleted: [], untracked: [] });
+    ctx.gitCommands.status = () =>
+      Promise.resolve({ branch: "main", modified: [], added: [], deleted: [], untracked: [] });
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([PortalOperation.GIT, "status"]);
     });
@@ -202,7 +224,7 @@ Deno.test("git status prints clean state when empty arrays", async () => {
 
 Deno.test("portal list prints hint when empty", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.portalCommands as any).list = () => [];
+    ctx.portalCommands.list = () => Promise.resolve([]);
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["portal", "list"]);
     });
@@ -212,16 +234,17 @@ Deno.test("portal list prints hint when empty", async () => {
 
 Deno.test("portal show prints details", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.portalCommands as any).show = (_alias: string) => ({
-      alias: "MyPortal",
-      targetPath: "/tmp/portal-target",
-      symlinkPath: join(ExoPathDefaults.portals, "MyPortal"),
-      status: SkillStatus.ACTIVE,
-      contextCardPath: join(ExoPathDefaults.memoryProjects, "MyPortal/portal.md"),
-      permissions: [PortalOperation.READ],
-      created: "now",
-      lastVerified: "never",
-    });
+    ctx.portalCommands.show = (_alias: string) =>
+      Promise.resolve({
+        alias: "MyPortal",
+        targetPath: "/tmp/portal-target",
+        symlinkPath: join(ExoPathDefaults.portals, "MyPortal"),
+        status: PortalStatus.ACTIVE,
+        contextCardPath: join(ExoPathDefaults.memoryProjects, "MyPortal/portal.md"),
+        permissions: "read",
+        created: "now",
+        lastVerified: "never",
+      });
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["portal", "show", "MyPortal"]);
     });
@@ -231,13 +254,21 @@ Deno.test("portal show prints details", async () => {
 
 Deno.test("blueprint list prints hint when empty and list when present", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.blueprintCommands as any).list = () => [];
+    ctx.blueprintCommands.list = () => Promise.resolve([]);
     const emptyOut = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["blueprint", "list"]);
     });
     assert(emptyOut.includes("Create a blueprint"));
-    (ctx.blueprintCommands as any).list =
-      () => [{ agent_id: "a1", name: "A", model: "mock", capabilities: ["c1"], created: "now" }];
+    ctx.blueprintCommands.list = () =>
+      Promise.resolve([{
+        agent_id: "a1",
+        name: "A",
+        model: "mock",
+        capabilities: ["c1"],
+        created: "now",
+        created_by: "tester",
+        version: "1.0.0",
+      }]);
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["blueprint", "list"]);
     });
@@ -247,7 +278,7 @@ Deno.test("blueprint list prints hint when empty and list when present", async (
 
 Deno.test("blueprint validate invalid triggers exit", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.blueprintCommands as any).validate = (_id: string) => ({ valid: false, errors: ["bad"] });
+    ctx.blueprintCommands.validate = (_id: string) => Promise.resolve({ valid: false, errors: ["bad"] });
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["blueprint", "validate", "bad-agent"]);
     });
@@ -257,14 +288,18 @@ Deno.test("blueprint validate invalid triggers exit", async () => {
 
 Deno.test("request --file outputs JSON when --json specified", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).createFromFile = (_file: string, _opts?: any) => ({
-      filename: "/tmp/exo-test/request-1.md",
-      trace_id: "trace-1234",
-      priority: "normal",
-      agent: "default",
-
-      path: "/tmp",
-    });
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: any) =>
+      Promise.resolve({
+        filename: "/tmp/exo-test/request-1.md",
+        trace_id: "trace-1234",
+        priority: RequestPriority.NORMAL,
+        agent: "default",
+        path: "/tmp",
+        source: "file",
+        created_by: "tester",
+        created: "now",
+        status: MemoryStatus.PENDING,
+      });
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md", "--json"]);
     });
@@ -274,13 +309,18 @@ Deno.test("request --file outputs JSON when --json specified", async () => {
 
 Deno.test("request --file prints human output when no --json", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).createFromFile = (_file: string, _opts?: any) => ({
-      filename: "/tmp/exo-test/request-2.md",
-      trace_id: "trace-5678",
-      priority: "high",
-      agent: "tester",
-      path: "/tmp",
-    });
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: any) =>
+      Promise.resolve({
+        filename: "/tmp/exo-test/request-2.md",
+        trace_id: "trace-5678",
+        priority: RequestPriority.HIGH,
+        agent: "tester",
+        path: "/tmp",
+        source: "file",
+        created_by: "tester",
+        created: "now",
+        status: MemoryStatus.PENDING,
+      });
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md"]);
     });
@@ -290,7 +330,7 @@ Deno.test("request --file prints human output when no --json", async () => {
 
 Deno.test("request inline create handles create errors and exits", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).create = (_desc: string, _opts?: any) => {
+    ctx.requestCommands.create = (_desc: string, _opts?: any) => {
       throw new Error("create failed");
     };
 
@@ -303,7 +343,7 @@ Deno.test("request inline create handles create errors and exits", async () => {
 
 Deno.test("request show handles not found and exits", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).show = (_id: string) => {
+    ctx.requestCommands.show = (_id: string) => {
       throw new Error("not found");
     };
     const { errors } = await expectExitWithLogs(async () => {
@@ -315,7 +355,12 @@ Deno.test("request show handles not found and exits", async () => {
 
 Deno.test("portal verify summarizes healthy and broken portals", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.portalCommands as any).verify = () => [{ alias: "A", issues: [] }, { alias: "B", issues: ["missing"] }];
+    ctx.portalCommands.verify = () =>
+      Promise.resolve([{ alias: "A", status: "ok", issues: [] }, {
+        alias: "B",
+        status: "failed",
+        issues: ["missing"],
+      }]);
     const outs = await captureAllOutputs(async () => {
       await (mod.__test_command as any).parse(["portal", "verify"]);
     });
@@ -326,7 +371,8 @@ Deno.test("portal verify summarizes healthy and broken portals", async () => {
 
 Deno.test("plan show prints content", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.planCommands as any).show = (id: string) => ({ id, status: "review", content: "Plan details here" });
+    ctx.planCommands.show = (id: string) =>
+      Promise.resolve({ id, status: "review", content: "Plan details here", trace_id: "t1" });
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["plan", "show", "plan-1"]);
     });
@@ -336,13 +382,18 @@ Deno.test("plan show prints content", async () => {
 
 Deno.test("review show prints commits and diff", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.reviewCommands as any).show = (_id: string) => ({
-      request_id: "req-1",
-      branch: "feat/x",
-      files_changed: 1,
-      commits: [{ sha: "abcdef123456", message: "Initial" }],
-      diff: "---a\n+++b\n",
-    });
+    ctx.reviewCommands.show = (_id: string) =>
+      Promise.resolve({
+        request_id: "req-1",
+        branch: "feat/x",
+        files_changed: 1,
+        commits: [{ sha: "abcdef123456", message: "Initial", timestamp: new Date().toISOString() }],
+        diff: "---a\n+++b\n",
+        trace_id: "t1",
+        created_at: new Date().toISOString(),
+        type: "code",
+        agent_id: "agent-1",
+      });
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["review", "show", "cs-1"]);
     });
@@ -353,13 +404,18 @@ Deno.test("review show prints commits and diff", async () => {
 
 Deno.test("review show --diff outputs only diff", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.reviewCommands as any).show = (_id: string) => ({
-      request_id: "req-1",
-      branch: "feat/x",
-      files_changed: 1,
-      commits: [{ sha: "abcdef123456", message: "Initial" }],
-      diff: "diff --git a/file.txt b/file.txt\n---a\n+++b\n",
-    });
+    ctx.reviewCommands.show = (_id: string) =>
+      Promise.resolve({
+        request_id: "req-1",
+        branch: "feat/x",
+        files_changed: 1,
+        commits: [{ sha: "abcdef123456", message: "Initial", timestamp: new Date().toISOString() }],
+        diff: "diff --git a/file.txt b/file.txt\n---a\n+++b\n",
+        trace_id: "t1",
+        created_at: new Date().toISOString(),
+        type: "code",
+        agent_id: "agent-1",
+      });
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["review", "show", "cs-1", "--diff"]);
     });
@@ -508,7 +564,7 @@ Deno.test("daemon logs supports --follow option", async () => {
 
 Deno.test("blueprint create error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.blueprintCommands as any).create = (_id: string, _opts: any) => {
+    ctx.blueprintCommands.create = (_id: string, _opts: any) => {
       throw new Error("boom");
     };
     const { errors } = await expectExitWithLogs(async () => {
@@ -560,7 +616,7 @@ Deno.test("git branches passes pattern option to listBranches", async () => {
 
 Deno.test("review show error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.reviewCommands as any).show = (_id: string) => {
+    ctx.reviewCommands.show = (_id: string) => {
       throw new Error("not found");
     };
     const { errors } = await expectExitWithLogs(async () => {
@@ -584,12 +640,17 @@ Deno.test("portal verify with alias invokes portalCommands.verify", async () => 
 
 Deno.test("blueprint create successful prints created message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.blueprintCommands as any).create = (id: string, opts: any) => ({
-      agent_id: id,
-      name: opts.name,
-      model: opts.model,
-      path: "/tmp",
-    });
+    ctx.blueprintCommands.create = (id: string, opts: any) =>
+      Promise.resolve({
+        agent_id: id,
+        name: opts.name,
+        model: opts.model,
+        path: "/tmp",
+        capabilities: [],
+        created: "now",
+        created_by: "tester",
+        version: "1.0.0",
+      });
     const outs = await captureAllOutputs(async () => {
       await (mod.__test_command as any).parse(["blueprint", "create", "agent-y", "-n", "N", "-m", "mock:test"]);
     });
@@ -622,13 +683,18 @@ Deno.test("exoctl: --version prints version and exits (in-process)", async () =>
 
 Deno.test("request --file --dry-run prints human output", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).createFromFile = (_file: string, _opts?: any) => ({
-      filename: "/tmp/exo-test/request-file.md",
-      trace_id: "trace-file-1",
-      priority: "normal",
-      agent: "file-agent",
-      path: "/tmp",
-    });
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: any) =>
+      Promise.resolve({
+        filename: "/tmp/exo-test/request-file.md",
+        trace_id: "trace-file-1",
+        priority: RequestPriority.NORMAL,
+        agent: "file-agent",
+        path: "/tmp",
+        source: "file",
+        created_by: "tester",
+        created: "now",
+        status: MemoryStatus.PENDING,
+      });
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md", "--dry-run"]);
     });
@@ -638,13 +704,18 @@ Deno.test("request --file --dry-run prints human output", async () => {
 
 Deno.test("request --file --json --dry-run prints JSON output", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).createFromFile = (_file: string, _opts?: any) => ({
-      filename: "/tmp/exo-test/request-file2.md",
-      trace_id: "trace-file-2",
-      priority: "high",
-      agent: "file-agent",
-      path: "/tmp",
-    });
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: any) =>
+      Promise.resolve({
+        filename: "/tmp/exo-test/request-file2.md",
+        trace_id: "trace-file-2",
+        priority: RequestPriority.HIGH,
+        agent: "file-agent",
+        path: "/tmp",
+        source: "file",
+        created_by: "tester",
+        created: "now",
+        status: MemoryStatus.PENDING,
+      });
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse([
         FlowInputSource.REQUEST,
@@ -660,7 +731,7 @@ Deno.test("request --file --json --dry-run prints JSON output", async () => {
 
 Deno.test("request --file errors exit with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).createFromFile = (_file: string, _opts?: any) => {
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: any) => {
       throw new Error("file missing");
     };
     const { errors } = await expectExitWithLogs(async () => {
@@ -672,13 +743,18 @@ Deno.test("request --file errors exit with message", async () => {
 
 Deno.test("request inline --dry-run with --json prefers dry-run", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).create = (_desc: string, _opts?: any) => ({
-      filename: "/tmp/req.md",
-      trace_id: "t-dry",
-      priority: "normal",
-      agent: "a",
-      path: "/tmp",
-    });
+    ctx.requestCommands.create = (_desc: string, _opts?: any) =>
+      Promise.resolve({
+        filename: "/tmp/req.md",
+        trace_id: "t-dry",
+        priority: RequestPriority.NORMAL,
+        agent: "a",
+        path: "/tmp",
+        source: "cli",
+        created_by: "tester",
+        created: "now",
+        status: MemoryStatus.PENDING,
+      });
     const outs = await captureAllOutputs(async () => {
       await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "Do something", "--dry-run", "--json"]);
     });
@@ -689,9 +765,9 @@ Deno.test("request inline --dry-run with --json prefers dry-run", async () => {
 
 Deno.test("plan list passes status filter to planCommands.list", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.planCommands as any).list = (status?: string) => {
+    ctx.planCommands.list = (status?: string) => {
       assertEquals(status, "review");
-      return [{ id: "p-filter", status: "review", trace_id: "t" }];
+      return Promise.resolve([{ id: "p-filter", status: "review", trace_id: "t" }]);
     };
     const out = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["plan", "list", "--status", "review"]);
@@ -702,7 +778,7 @@ Deno.test("plan list passes status filter to planCommands.list", async () => {
 
 Deno.test("blueprint validate valid prints success", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.blueprintCommands as any).validate = (_id: string) => ({ valid: true, warnings: [] });
+    ctx.blueprintCommands.validate = (_id: string) => Promise.resolve({ valid: true, warnings: [], errors: [] });
     const outs = await captureAllOutputs(async () => {
       await (mod.__test_command as any).parse(["blueprint", "validate", "good-agent"]);
     });

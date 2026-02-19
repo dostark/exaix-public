@@ -8,8 +8,8 @@
  */
 
 import { z } from "zod";
-import type { MemoryBankService } from "./memory_bank.ts";
-import type { MemoryEmbeddingService } from "./memory_embedding.ts";
+import type { IMemoryBankService } from "./memory_bank.ts";
+import type { IMemoryEmbeddingService } from "./memory_embedding.ts";
 import type { Learning, MemorySearchResult } from "../schemas/memory_bank.ts";
 import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../enums.ts";
 import { MemoryStatus } from "../memory/memory_status.ts";
@@ -113,8 +113,8 @@ export class SessionMemoryService {
   private config: SessionMemoryConfig;
 
   constructor(
-    private memoryBank: MemoryBankService,
-    private embeddingService: MemoryEmbeddingService,
+    private memoryBank: IMemoryBankService,
+    private embeddingService: IMemoryEmbeddingService,
     config?: Partial<SessionMemoryConfig>,
   ) {
     this.config = { ...DEFAULT_SESSION_MEMORY_CONFIG, ...config };
@@ -564,8 +564,8 @@ ${memory.content}`;
  * Create a SessionMemoryService with default configuration
  */
 export function createSessionMemoryService(
-  memoryBank: MemoryBankService,
-  embeddingService: MemoryEmbeddingService,
+  memoryBank: IMemoryBankService,
+  embeddingService: IMemoryEmbeddingService,
   config?: Partial<SessionMemoryConfig>,
 ): SessionMemoryService {
   return new SessionMemoryService(memoryBank, embeddingService, config);
@@ -575,8 +575,8 @@ export function createSessionMemoryService(
  * Create a disabled SessionMemoryService (for testing or opt-out)
  */
 export function createDisabledSessionMemoryService(
-  memoryBank: MemoryBankService,
-  embeddingService: MemoryEmbeddingService,
+  memoryBank: IMemoryBankService,
+  embeddingService: IMemoryEmbeddingService,
 ): SessionMemoryService {
   return new SessionMemoryService(memoryBank, embeddingService, { enabled: false });
 }

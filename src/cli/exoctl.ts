@@ -104,8 +104,10 @@ export function __test_getContext() {
     flowCommands,
     dashboardCommands,
     memoryCommands,
-  } as const;
+  };
 }
+
+export type ExoCtlTestContext = ReturnType<typeof __test_getContext>;
 
 // Test helper: initialize the heavy services path (same logic used in non-test runtime)
 // Returns an object describing whether initialization succeeded and the constructed services.

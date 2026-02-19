@@ -60,6 +60,51 @@ export type {
 import { parseDecisions, parsePatterns } from "./memory_bank/parsers.ts";
 import { formatExecutionSummary } from "./memory_bank/formatters.ts";
 import { buildFilesIndex, buildPatternsIndex, buildTagsIndex, writeIndices } from "./memory_bank/index_builder.ts";
+import type { IMemoryEmbeddingService } from "./memory_embedding.ts";
+
+/**
+ * Memory Bank Service Interface
+ */
+export interface IMemoryBankService {
+  getProjectMemory(portal: string): Promise<ProjectMemory | null>;
+  createProjectMemory(projectMem: ProjectMemory): Promise<void>;
+  updateProjectMemory(portal: string, updates: Partial<Omit<ProjectMemory, "portal">>): Promise<void>;
+  addPattern(portal: string, pattern: Pattern): Promise<void>;
+  addDecision(portal: string, decision: Decision): Promise<void>;
+  createExecutionRecord(execution: ExecutionMemory): Promise<void>;
+  getExecutionByTraceId(traceId: string): Promise<ExecutionMemory | null>;
+  getExecutionHistory(portal?: string, limit?: number): Promise<ExecutionMemory[]>;
+  getGlobalMemory(): Promise<GlobalMemory | null>;
+  initGlobalMemory(): Promise<void>;
+  addGlobalLearning(learning: Learning): Promise<void>;
+  promoteLearning(
+    portal: string,
+    promotion: {
+      type: MemoryType.PATTERN | MemoryType.DECISION;
+      name: string;
+      title: string;
+      description: string;
+      category: Learning["category"];
+      tags: string[];
+      confidence: Learning["confidence"];
+    },
+  ): Promise<string>;
+  demoteLearning(learningId: string, targetPortal: string): Promise<void>;
+  searchMemory(query: string, options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]>;
+  searchByTags(tags: string[], options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]>;
+  searchByKeyword(keyword: string, options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]>;
+  searchMemoryAdvanced(
+    options: {
+      tags?: string[];
+      keyword?: string;
+      portal?: string;
+      limit?: number;
+    },
+  ): Promise<MemorySearchResult[]>;
+  getRecentActivity(limit?: number): Promise<ActivitySummary[]>;
+  rebuildIndices(): Promise<void>;
+  rebuildIndicesWithEmbeddings(embeddingService: IMemoryEmbeddingService): Promise<void>;
+}
 
 /**
  * Memory Bank Service
@@ -70,7 +115,7 @@ import { buildFilesIndex, buildPatternsIndex, buildTagsIndex, writeIndices } fro
  * - Search and indexing operations
  * - Activity Journal integration
  */
-export class MemoryBankService {
+export class MemoryBankService implements IMemoryBankService {
   private memoryRoot!: string;
   private projectsDir!: string;
   private executionDir!: string;
@@ -979,10 +1024,7 @@ export class MemoryBankService {
    * @param embeddingService - The embedding service to use for generating vectors
    */
   async rebuildIndicesWithEmbeddings(
-    embeddingService: {
-      embedLearning(learning: Learning): Promise<void>;
-      initializeManifest(): Promise<void>;
-    },
+    embeddingService: IMemoryEmbeddingService,
   ): Promise<void> {
     // First, rebuild standard indices
     await this.rebuildIndices();

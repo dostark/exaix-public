@@ -11,9 +11,18 @@ import {
   type Insight,
   SessionMemoryService,
 } from "../../src/services/session_memory.ts";
-import type { MemoryBankService } from "../../src/services/memory_bank.ts";
-import type { EmbeddingSearchResult, MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
-import type { ExecutionMemory, Learning, MemorySearchResult } from "../../src/schemas/memory_bank.ts";
+import type { IMemoryBankService } from "../../src/services/memory_bank.ts";
+import type { EmbeddingSearchResult, IMemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
+import type {
+  ActivitySummary,
+  Decision,
+  ExecutionMemory,
+  GlobalMemory,
+  Learning,
+  MemorySearchResult,
+  Pattern,
+  ProjectMemory,
+} from "../../src/schemas/memory_bank.ts";
 import {
   ConfidenceLevel,
   ExecutionStatus,
@@ -26,49 +35,129 @@ import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 // ===== Mock Services =====
 
+class MockMemoryBankService implements IMemoryBankService {
+  constructor(
+    private searchResults: MemorySearchResult[] = [],
+    private learnings: Learning[] = [],
+    private executions: ExecutionMemory[] = [],
+  ) {}
+
+  searchMemory(_query: string, _options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]> {
+    return Promise.resolve(this.searchResults);
+  }
+
+  searchByTags(_tags: string[], _options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]> {
+    return Promise.resolve(this.searchResults.filter((r) => r.tags?.some((t) => _tags.includes(t))));
+  }
+
+  getExecutionHistory(_portal?: string, limit?: number): Promise<ExecutionMemory[]> {
+    const filtered = _portal ? this.executions.filter((e) => e.portal === _portal) : this.executions;
+    return Promise.resolve(limit ? filtered.slice(0, limit) : filtered);
+  }
+
+  addGlobalLearning(_learning: Learning): Promise<void> {
+    this.learnings.push(_learning);
+    return Promise.resolve();
+  }
+
+  // Stubbed methods
+  getProjectMemory(_portal: string): Promise<ProjectMemory | null> {
+    return Promise.resolve(null);
+  }
+  createProjectMemory(_projectMem: ProjectMemory): Promise<void> {
+    return Promise.resolve();
+  }
+  updateProjectMemory(_portal: string, _updates: any): Promise<void> {
+    return Promise.resolve();
+  }
+  addPattern(_portal: string, _pattern: Pattern): Promise<void> {
+    return Promise.resolve();
+  }
+  addDecision(_portal: string, _decision: Decision): Promise<void> {
+    return Promise.resolve();
+  }
+  createExecutionRecord(_execution: ExecutionMemory): Promise<void> {
+    return Promise.resolve();
+  }
+  getExecutionByTraceId(_traceId: string): Promise<ExecutionMemory | null> {
+    return Promise.resolve(null);
+  }
+  getGlobalMemory(): Promise<GlobalMemory | null> {
+    return Promise.resolve(null);
+  }
+  initGlobalMemory(): Promise<void> {
+    return Promise.resolve();
+  }
+  promoteLearning(_portal: string, _promotion: any): Promise<string> {
+    return Promise.resolve("");
+  }
+  demoteLearning(_learningId: string, _targetPortal: string): Promise<void> {
+    return Promise.resolve();
+  }
+  searchByKeyword(_keyword: string, _options?: any): Promise<MemorySearchResult[]> {
+    return Promise.resolve([]);
+  }
+  searchMemoryAdvanced(_options: any): Promise<MemorySearchResult[]> {
+    return Promise.resolve([]);
+  }
+  getRecentActivity(_limit?: number): Promise<ActivitySummary[]> {
+    return Promise.resolve([]);
+  }
+  rebuildIndices(): Promise<void> {
+    return Promise.resolve();
+  }
+  rebuildIndicesWithEmbeddings(_embeddingService: IMemoryEmbeddingService): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
 function createMockMemoryBank(
   searchResults: MemorySearchResult[] = [],
   learnings: Learning[] = [],
   executions: ExecutionMemory[] = [],
-): MemoryBankService {
-  return {
-    searchMemory: (_query: string, _options?: { portal?: string; limit?: number }) => {
-      return Promise.resolve(searchResults);
-    },
-    searchByTags: (_tags: string[], _options?: { portal?: string; limit?: number }) => {
-      return Promise.resolve(searchResults.filter((r) => r.tags?.some((t) => _tags.includes(t))));
-    },
-    getExecutionHistory: (_portal?: string, limit?: number) => {
-      const filtered = _portal ? executions.filter((e) => e.portal === _portal) : executions;
-      return Promise.resolve(limit ? filtered.slice(0, limit) : filtered);
-    },
-    addGlobalLearning: (_learning: Learning) => {
-      learnings.push(_learning);
-      return Promise.resolve();
-    },
-    getLearnings: () => Promise.resolve(learnings),
-  } as unknown as MemoryBankService;
+): IMemoryBankService {
+  return new MockMemoryBankService(searchResults, learnings, executions);
+}
+
+class MockEmbeddingService implements IMemoryEmbeddingService {
+  constructor(private searchResults: EmbeddingSearchResult[] = []) {}
+
+  searchByEmbedding(
+    _query: string,
+    options?: { limit?: number; threshold?: number },
+  ): Promise<EmbeddingSearchResult[]> {
+    const threshold = options?.threshold ?? 0;
+    const limit = options?.limit ?? 10;
+    return Promise.resolve(
+      this.searchResults
+        .filter((r) => r.similarity >= threshold)
+        .slice(0, limit),
+    );
+  }
+
+  embedLearning(_learning: Learning): Promise<void> {
+    // Mock embedding - just track that it was called if needed
+    return Promise.resolve();
+  }
+
+  initializeManifest(): Promise<void> {
+    return Promise.resolve();
+  }
+  getEmbedding(_id: string): Promise<number[] | null> {
+    return Promise.resolve(null);
+  }
+  deleteEmbedding(_id: string): Promise<void> {
+    return Promise.resolve();
+  }
+  getStats(): Promise<{ total: number; generated_at: string }> {
+    return Promise.resolve({ total: 0, generated_at: "" });
+  }
 }
 
 function createMockEmbeddingService(
   searchResults: EmbeddingSearchResult[] = [],
-): MemoryEmbeddingService {
-  return {
-    searchByEmbedding: (_query: string, options?: { limit?: number; threshold?: number }) => {
-      const threshold = options?.threshold ?? 0;
-      const limit = options?.limit ?? 10;
-      return Promise.resolve(
-        searchResults
-          .filter((r) => r.similarity >= threshold)
-          .slice(0, limit),
-      );
-    },
-    embedLearning: (_learning: Learning) => {
-      // Mock embedding - just track that it was called
-      return Promise.resolve();
-    },
-    initializeManifest: () => Promise.resolve(),
-  } as unknown as MemoryEmbeddingService;
+): IMemoryEmbeddingService {
+  return new MockEmbeddingService(searchResults);
 }
 
 // ===== Test Data =====
@@ -387,11 +476,10 @@ Deno.test("SessionMemoryService - saveInsight with portal creates project-scoped
 });
 
 Deno.test("SessionMemoryService - saveInsight handles errors gracefully", async () => {
-  const memoryBank = {
-    addGlobalLearning: () => {
-      return Promise.reject(new Error("Database error"));
-    },
-  } as unknown as MemoryBankService;
+  const memoryBank = new MockMemoryBankService(undefined, undefined, undefined);
+  memoryBank.addGlobalLearning = () => {
+    return Promise.reject(new Error("Database error"));
+  };
   const embeddingService = createMockEmbeddingService();
 
   const service = new SessionMemoryService(memoryBank, embeddingService);

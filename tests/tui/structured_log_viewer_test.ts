@@ -1,6 +1,12 @@
 import { assert, assertEquals } from "@std/assert";
-import { type StructuredLogService, StructuredLogViewer } from "../../src/tui/structured_log_viewer.ts";
+import {
+  type LogQueryOptions,
+  type StructuredLogService,
+  StructuredLogViewer,
+} from "../../src/tui/structured_log_viewer.ts";
 import type { LogEntry, StructuredLogger } from "../../src/services/structured_logger.ts";
+import { InputDialog } from "../../src/helpers/dialog_base.ts";
+import type { TreeNode } from "../../src/helpers/tree_view.ts";
 import { LogLevel } from "../../src/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
@@ -28,7 +34,7 @@ class MockLogService implements StructuredLogService {
     ];
   }
 
-  getStructuredLogs(options: any): Promise<LogEntry[]> {
+  getStructuredLogs(options: LogQueryOptions): Promise<LogEntry[]> {
     let result = this.logs;
     if (options.correlationId) {
       result = result.filter((l) => l.context.correlation_id === options.correlationId);
@@ -172,7 +178,7 @@ Deno.test("StructuredLogViewer: handleKey expand/collapse details", async () => 
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
   await viewer.refreshLogs();
 
-  const _state = (viewer as any).state;
+  const _state = viewer.getTreeState();
   // Select first log (index 0 might be group or log?)
   // Depends on state.logTree.
   // MockLogService logs: context.correlation_id="c1".
@@ -196,12 +202,12 @@ Deno.test("StructuredLogViewer: bookmark toggles state", async () => {
 
   // Set grouping to none for easier log selection
   viewer.getExtensions().groupBy = "none";
-  (viewer as any).buildTree();
+  viewer.rebuildTree();
 
   const logs = await viewer.getLogs();
   const logId = logs[0].timestamp;
 
-  (viewer as any).state.selectedId = logId;
+  viewer.setSelectedId(logId);
   await viewer.handleKey(KEYS.B);
 
   assert(viewer.getExtensions().bookmarkedIds.has(logId));
@@ -215,14 +221,14 @@ Deno.test("StructuredLogViewer: help toggle", async () => {
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
 
   await viewer.handleKey(KEYS.QUESTION);
-  assert((viewer as any).state.showHelp);
+  assert(viewer.isHelpVisible());
 
   const output = await viewer.render(100, 40);
   const helpContent = output.join("\n");
   assert(helpContent.includes("Structured Log Viewer Help"));
 
   await viewer.handleKey(KEYS.ESCAPE); // escape also closes help
-  assert(!(viewer as any).state.showHelp);
+  assert(!viewer.isHelpVisible());
 });
 
 Deno.test("StructuredLogViewer: search dialog interaction", async () => {
@@ -230,10 +236,10 @@ Deno.test("StructuredLogViewer: search dialog interaction", async () => {
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
 
   await viewer.handleKey(KEYS.S);
-  const dialog = (viewer as any).state.activeDialog;
+  const dialog = viewer.getActiveDialog();
   assert(dialog, "Dialog should be active");
   // Access private options via cast
-  assert((dialog as any).options.title.includes("Search Logs"));
+  assert((dialog as unknown as { options: { title: string } }).options.title.includes("Search Logs"));
 
   // Cancel dialog
   await viewer.handleKey(KEYS.ESCAPE);
@@ -247,15 +253,15 @@ Deno.test("StructuredLogViewer: collapse/expand all", async () => {
 
   // Test collapse all
   await viewer.handleKey(KEYS.CAP_C);
-  let tree = (viewer as any).state.tree;
+  let tree = viewer.getTree();
   // Deep check: groups should be collapsed
-  const hasCollapsedGroup = tree.some((node: any) => node.type === "group" && node.expanded === false);
+  const hasCollapsedGroup = tree.some((node: TreeNode<LogEntry>) => node.type === "group" && node.expanded === false);
   assert(hasCollapsedGroup, "Should have collapsed groups");
 
   // Test expand all
   await viewer.handleKey(KEYS.CAP_E);
-  tree = (viewer as any).state.tree;
-  const hasExpandedGroup = tree.some((node: any) => node.type === "group" && node.expanded === true);
+  tree = viewer.getTree();
+  const hasExpandedGroup = tree.some((node: TreeNode<LogEntry>) => node.type === "group" && node.expanded === true);
   assert(hasExpandedGroup, "Should have expanded groups");
 });
 
@@ -303,7 +309,7 @@ Deno.test("StructuredLogViewer: rendering header", async () => {
   const service = new MockLogService();
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
 
-  (viewer as any).state.filterText = "test query";
+  viewer.setSearchQuery("test query");
   viewer.getExtensions().groupBy = "level";
 
   const output = await viewer.render(100, 40);
@@ -320,9 +326,9 @@ Deno.test("StructuredLogViewer: correlation and trace mode", async () => {
 
   // Test correlation mode filtering
   const logs = await viewer.getLogs();
-  (viewer as any).state.selectedId = logs[0].timestamp;
+  viewer.setSelectedId(logs[0].timestamp);
 
-  await (viewer as any).setCorrelationMode("c1");
+  await viewer.setCorrelationMode("c1");
   assertEquals(viewer.getExtensions().correlationMode, true, "Correlation mode should be enabled");
   assertEquals(viewer.getExtensions().activeCorrelationId, "c1");
 
@@ -335,7 +341,7 @@ Deno.test("StructuredLogViewer: correlation and trace mode", async () => {
   assertEquals(viewer.getExtensions().correlationMode, false, "Correlation mode should be disabled");
 
   // Test trace mode filtering
-  await (viewer as any).setTraceMode("t1");
+  await viewer.setTraceMode("t1");
   assertEquals(viewer.getExtensions().activeTraceId, "t1");
   filteredLogs = viewer.getExtensions().logEntries;
   assert(filteredLogs.every((l: LogEntry) => l.context.trace_id === "t1"));
@@ -379,23 +385,23 @@ Deno.test("StructuredLogViewer: grouping modes coverage", async () => {
 
   // Test all grouping modes
   viewer.getExtensions().groupBy = "trace";
-  (viewer as any).buildTree();
-  let tree = (viewer as any).state.tree;
-  assert(tree.some((n: any) => n.id === "t1"));
+  viewer.rebuildTree();
+  let tree = viewer.getTree();
+  assert(tree.some((n: TreeNode<LogEntry>) => n.id === "t1"));
 
   viewer.getExtensions().groupBy = "agent";
-  (viewer as any).buildTree();
-  tree = (viewer as any).state.tree;
-  assert(tree.some((n: any) => n.id === "no-agent")); // Mock logs have no agent_id
+  viewer.rebuildTree();
+  tree = viewer.getTree();
+  assert(tree.some((n: TreeNode<LogEntry>) => n.id === "no-agent")); // Mock logs have no agent_id
 
   viewer.getExtensions().groupBy = "level";
-  (viewer as any).buildTree();
-  tree = (viewer as any).state.tree;
-  assert(tree.some((n: any) => n.id === "info"));
+  viewer.rebuildTree();
+  tree = viewer.getTree();
+  assert(tree.some((n: TreeNode<LogEntry>) => n.id === "info"));
 
   viewer.getExtensions().groupBy = "time";
-  (viewer as any).buildTree();
-  tree = (viewer as any).state.tree;
+  viewer.rebuildTree();
+  tree = viewer.getTree();
   // Should have date keys
   assert(tree.length > 0);
   assert(tree[0].id.includes("-")); // YYYY-MM-DD
@@ -439,14 +445,15 @@ Deno.test("StructuredLogViewer: dialog key handling", async () => {
   await viewer.handleKey(KEYS.E); // type 'e'
 
   // Verify value inside dialog
-  const activeDialog = (viewer as any).state.activeDialog;
+  const activeDialog = viewer.getActiveDialog();
+  assert(activeDialog instanceof InputDialog);
   assertEquals(activeDialog.getValue(), "te");
 
   await viewer.handleKey(KEYS.ENTER); // stop editing, moves focus to OK
   await viewer.handleKey(KEYS.ENTER); // confirm
 
   // After confirm, search query should be updated
-  assertEquals((viewer as any).state.filterText, "te");
+  assertEquals(viewer.getTreeState().filterText, "te");
   assert(!(viewer as any).state.activeDialog);
 });
 
@@ -455,7 +462,7 @@ Deno.test("StructuredLogViewer: format log entry coverage", () => {
   const viewer = new StructuredLogViewer(service, mockLogger, { testMode: true });
 
   // Enable perf metrics to test that branch
-  (viewer as any).state.showPerformanceMetrics = true;
+  viewer.getExtensions().showPerformanceMetrics = true;
 
   const complexLog: LogEntry = {
     timestamp: new Date().toISOString(),
@@ -474,7 +481,7 @@ Deno.test("StructuredLogViewer: format log entry coverage", () => {
   };
 
   // call private method via cast
-  const formatted = (viewer as any).formatLogEntry(complexLog);
+  const formatted = viewer.formatLogEntryForTest(complexLog);
 
   assert(formatted.includes("trace=trace-12")); // slice(0,8)
   assert(formatted.includes("agent=agent-456"));
@@ -511,12 +518,12 @@ Deno.test("StructuredLogViewer: auto refresh toggle", () => {
   // Enable
   viewer.toggleAutoRefresh();
   assert(viewer.getExtensions().autoRefresh);
-  assert((viewer as any).refreshInterval !== undefined);
+  assert(viewer.getRefreshInterval() !== undefined);
 
   // Disable
   viewer.toggleAutoRefresh();
   assert(!viewer.getExtensions().autoRefresh);
-  assert((viewer as any).refreshInterval === undefined);
+  assert(viewer.getRefreshInterval() === undefined);
 });
 
 Deno.test("StructuredLogViewer: correlation/trace key shortcuts", async () => {
@@ -530,11 +537,11 @@ Deno.test("StructuredLogViewer: correlation/trace key shortcuts", async () => {
   // Default grouping is 'none' in viewer? No, default is probably 'none' if not specified?
   // Let's force 'none' grouping or ensure we select a log.
   viewer.getExtensions().groupBy = "none";
-  (viewer as any).buildTree();
+  viewer.rebuildTree();
 
   // Select first node
   const firstLogId = viewer.getExtensions().logEntries[0].timestamp;
-  (viewer as any).state.selectedId = firstLogId;
+  viewer.setSelectedId(firstLogId);
 
   // Press 'c' to enable correlation mode for "c1"
   await viewer.handleKey(KEYS.C);

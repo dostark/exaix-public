@@ -69,6 +69,15 @@ export interface SkillMatchRequest {
 }
 
 /**
+ * Skills Service Interface
+ */
+export interface ISkillsService {
+  matchSkills(request: SkillMatchRequest): Promise<SkillMatch[]>;
+  buildSkillContext(skillIds: string[]): Promise<string>;
+  recordSkillUsage(skillId: string): Promise<void>;
+}
+
+/**
  * Skills Service
  *
  * Provides skill management and matching capabilities:
@@ -77,7 +86,7 @@ export interface SkillMatchRequest {
  * - Skill context building for prompt injection
  * - Learning-to-skill derivation
  */
-export class SkillsService {
+export class SkillsService implements ISkillsService {
   private blueprintsSkillsDir: string;
   private indexPath: string;
   private skillsConfig: SkillsConfig;

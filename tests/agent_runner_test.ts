@@ -16,6 +16,8 @@ import { AgentRunner } from "../src/services/agent_runner.ts";
 import type { Blueprint, ParsedRequest } from "../src/services/agent_runner.ts";
 import { PORTAL_CONTEXT_KEY } from "../src/config/constants.ts";
 import { buildPortalContextBlock } from "../src/services/prompt_context.ts";
+import type { ISkillsService, SkillMatchRequest } from "../src/services/skills.ts";
+import type { SkillMatch } from "../src/schemas/memory_bank.ts";
 
 // ============================================================================
 // Test Fixtures
@@ -760,16 +762,14 @@ Deno.test("AgentRunner handles very long user prompt", async () => {
 /**
  * Mock SkillsService for testing
  */
-class MockSkillsService {
-  matchedSkills: { skillId: string; confidence: number; matchedTriggers: object }[] = [];
+class MockSkillsService implements ISkillsService {
+  matchedSkills: SkillMatch[] = [];
   skillContext = "";
   usageRecorded: string[] = [];
   matchCallCount = 0;
   contextBuiltForSkills: string[] = [];
 
-  setMatchedSkills(
-    skills: { skillId: string; confidence: number; matchedTriggers: object }[],
-  ) {
+  setMatchedSkills(skills: SkillMatch[]) {
     this.matchedSkills = skills;
   }
 
@@ -778,26 +778,21 @@ class MockSkillsService {
   }
 
   matchSkills(
-    _request: {
-      requestText?: string;
-      keywords?: string[];
-      taskType?: string;
-      filePaths?: string[];
-      tags?: string[];
-    },
-  ) {
+    _request: SkillMatchRequest,
+  ): Promise<SkillMatch[]> {
     this.matchCallCount++;
-    return this.matchedSkills;
+    return Promise.resolve(this.matchedSkills);
   }
 
-  buildSkillContext(skillIds: string[]) {
+  buildSkillContext(skillIds: string[]): Promise<string> {
     this.contextBuiltForSkills = skillIds;
-    if (skillIds.length === 0) return "";
-    return this.skillContext;
+    if (skillIds.length === 0) return Promise.resolve("");
+    return Promise.resolve(this.skillContext);
   }
 
-  recordSkillUsage(skillId: string) {
+  recordSkillUsage(skillId: string): Promise<void> {
     this.usageRecorded.push(skillId);
+    return Promise.resolve();
   }
 }
 
@@ -810,8 +805,7 @@ Deno.test("AgentRunner: matches skills when skillsService provided", async () =>
   mockSkills.setSkillContext("## Skill: TDD Methodology\n\nAlways write tests first.");
 
   const runner = new AgentRunner(mockProvider, {
-    // deno-lint-ignore no-explicit-any
-    skillsService: mockSkills as any,
+    skillsService: mockSkills,
   });
 
   const result = await runner.run(sampleBlueprint, sampleRequest);
@@ -837,8 +831,7 @@ Deno.test("AgentRunner: injects skill context into prompt", async () => {
   mockSkills.setSkillContext("## Skill: Security First\n\nAlways validate input.");
 
   const runner = new AgentRunner(mockProvider, {
-    // deno-lint-ignore no-explicit-any
-    skillsService: mockSkills as any,
+    skillsService: mockSkills,
   });
 
   await runner.run(sampleBlueprint, sampleRequest);
@@ -857,8 +850,7 @@ Deno.test("AgentRunner: records skill usage after execution", async () => {
   mockSkills.setSkillContext("Skills context");
 
   const runner = new AgentRunner(mockProvider, {
-    // deno-lint-ignore no-explicit-any
-    skillsService: mockSkills as any,
+    skillsService: mockSkills,
   });
 
   await runner.run(sampleBlueprint, sampleRequest);
@@ -876,8 +868,7 @@ Deno.test("AgentRunner: skips skill matching when disableSkills is true", async 
   ]);
 
   const runner = new AgentRunner(mockProvider, {
-    // deno-lint-ignore no-explicit-any
-    skillsService: mockSkills as any,
+    skillsService: mockSkills,
     disableSkills: true,
   });
 
@@ -909,8 +900,7 @@ Deno.test("AgentRunner: handles skill matching error gracefully", async () => {
   };
 
   const runner = new AgentRunner(mockProvider, {
-    // deno-lint-ignore no-explicit-any
-    skillsService: errorSkills as any,
+    skillsService: errorSkills as unknown as ISkillsService,
   });
 
   // Should not throw, should continue without skills
@@ -929,8 +919,7 @@ Deno.test("AgentRunner: uses blueprint defaultSkills when no trigger matches", a
   mockSkills.setSkillContext("## Blueprint Default Skill\nDefault instructions");
 
   const runner = new AgentRunner(mockProvider, {
-    // deno-lint-ignore no-explicit-any
-    skillsService: mockSkills as any,
+    skillsService: mockSkills,
   });
 
   // Blueprint with defaultSkills
@@ -960,8 +949,7 @@ Deno.test("AgentRunner: trigger matches override blueprint defaultSkills", async
   mockSkills.setSkillContext("## Matched Skill\nMatched instructions");
 
   const runner = new AgentRunner(mockProvider, {
-    // deno-lint-ignore no-explicit-any
-    skillsService: mockSkills as any,
+    skillsService: mockSkills,
   });
 
   // Blueprint with defaultSkills
@@ -989,8 +977,7 @@ Deno.test("AgentRunner: request-level skills override trigger matches", async ()
   mockSkills.setSkillContext("## Request Skill\nRequest instructions");
 
   const runner = new AgentRunner(mockProvider, {
-    // deno-lint-ignore no-explicit-any
-    skillsService: mockSkills as any,
+    skillsService: mockSkills,
   });
 
   // Request with explicit skills
@@ -1022,8 +1009,7 @@ Deno.test("AgentRunner: skipSkills filters out matched skills", async () => {
   mockSkills.setSkillContext("## Filtered Skills\nSome instructions");
 
   const runner = new AgentRunner(mockProvider, {
-    // deno-lint-ignore no-explicit-any
-    skillsService: mockSkills as any,
+    skillsService: mockSkills,
   });
 
   // Request that skips some skills
@@ -1046,8 +1032,7 @@ Deno.test("AgentRunner: skipSkills with explicit skills", async () => {
   mockSkills.setSkillContext("## Skills\nInstructions");
 
   const runner = new AgentRunner(mockProvider, {
-    // deno-lint-ignore no-explicit-any
-    skillsService: mockSkills as any,
+    skillsService: mockSkills,
   });
 
   // Request with both explicit skills and skip

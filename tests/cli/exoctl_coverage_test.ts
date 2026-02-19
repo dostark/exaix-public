@@ -31,8 +31,8 @@ import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 
 Deno.test("plan list error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.planCommands as any).list = () => {
-      throw new Error("plan list failed");
+    ctx.planCommands.list = () => {
+      return Promise.reject(new Error("plan list failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["plan", "list"]);
@@ -43,8 +43,8 @@ Deno.test("plan list error exits with message", async () => {
 
 Deno.test("plan show error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.planCommands as any).show = () => {
-      throw new Error("plan not found");
+    ctx.planCommands.show = () => {
+      return Promise.reject(new Error("plan not found"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["plan", "show", "missing"]);
@@ -55,8 +55,8 @@ Deno.test("plan show error exits with message", async () => {
 
 Deno.test("plan approve error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.planCommands as any).approve = () => {
-      throw new Error("approval failed");
+    ctx.planCommands.approve = () => {
+      return Promise.reject(new Error("approval failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["plan", "approve", "p-1"]);
@@ -67,8 +67,8 @@ Deno.test("plan approve error exits with message", async () => {
 
 Deno.test("plan reject error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.planCommands as any).reject = () => {
-      throw new Error("rejection failed");
+    ctx.planCommands.reject = () => {
+      return Promise.reject(new Error("rejection failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["plan", "reject", "p-1", "-r", "bad"]);
@@ -79,8 +79,8 @@ Deno.test("plan reject error exits with message", async () => {
 
 Deno.test("plan revise error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.planCommands as any).revise = () => {
-      throw new Error("revision failed");
+    ctx.planCommands.revise = () => {
+      return Promise.reject(new Error("revision failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["plan", "revise", "p-1", "-c", "comment"]);
@@ -93,8 +93,8 @@ Deno.test("plan revise error exits with message", async () => {
 
 Deno.test("review list error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.reviewCommands as any).list = () => {
-      throw new Error("review list failed");
+    ctx.reviewCommands.list = () => {
+      return Promise.reject(new Error("review list failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["review", "list"]);
@@ -105,8 +105,8 @@ Deno.test("review list error exits with message", async () => {
 
 Deno.test("review approve error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.reviewCommands as any).approve = () => {
-      throw new Error("approval failed");
+    ctx.reviewCommands.approve = () => {
+      return Promise.reject(new Error("approval failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["review", "approve", "cs-1"]);
@@ -117,8 +117,8 @@ Deno.test("review approve error exits with message", async () => {
 
 Deno.test("review reject error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.reviewCommands as any).reject = () => {
-      throw new Error("rejection failed");
+    ctx.reviewCommands.reject = () => {
+      return Promise.reject(new Error("rejection failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["review", "reject", "cs-1", "-r", "bad"]);
@@ -131,8 +131,8 @@ Deno.test("review reject error exits with message", async () => {
 
 Deno.test("git branches error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.gitCommands as any).listBranches = () => {
-      throw new Error("git error");
+    ctx.gitCommands.listBranches = () => {
+      return Promise.reject(new Error("git error"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([PortalOperation.GIT, "branches"]);
@@ -143,8 +143,8 @@ Deno.test("git branches error exits with message", async () => {
 
 Deno.test("git status error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.gitCommands as any).status = () => {
-      throw new Error("status failed");
+    ctx.gitCommands.status = () => {
+      return Promise.reject(new Error("status failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([PortalOperation.GIT, "status"]);
@@ -155,8 +155,8 @@ Deno.test("git status error exits with message", async () => {
 
 Deno.test("git log error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.gitCommands as any).logByTraceId = () => {
-      throw new Error("log failed");
+    ctx.gitCommands.logByTraceId = () => {
+      return Promise.reject(new Error("log failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse([PortalOperation.GIT, "log", "-t", "trace-1"]);
@@ -169,8 +169,8 @@ Deno.test("git log error exits with message", async () => {
 
 Deno.test("daemon start error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.daemonCommands as any).start = () => {
-      throw new Error("start failed");
+    ctx.daemonCommands.start = () => {
+      return Promise.reject(new Error("start failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["daemon", "start"]);
@@ -181,8 +181,8 @@ Deno.test("daemon start error exits with message", async () => {
 
 Deno.test("daemon stop error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.daemonCommands as any).stop = () => {
-      throw new Error("stop failed");
+    ctx.daemonCommands.stop = () => {
+      return Promise.reject(new Error("stop failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["daemon", "stop"]);
@@ -193,8 +193,8 @@ Deno.test("daemon stop error exits with message", async () => {
 
 Deno.test("daemon restart error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.daemonCommands as any).restart = () => {
-      throw new Error("restart failed");
+    ctx.daemonCommands.restart = () => {
+      return Promise.reject(new Error("restart failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["daemon", "restart"]);
@@ -205,8 +205,8 @@ Deno.test("daemon restart error exits with message", async () => {
 
 Deno.test("daemon status error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.daemonCommands as any).status = () => {
-      throw new Error("status failed");
+    ctx.daemonCommands.status = () => {
+      return Promise.reject(new Error("status failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["daemon", "status"]);
@@ -217,8 +217,8 @@ Deno.test("daemon status error exits with message", async () => {
 
 Deno.test("daemon logs error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.daemonCommands as any).logs = () => {
-      throw new Error("logs failed");
+    ctx.daemonCommands.logs = () => {
+      return Promise.reject(new Error("logs failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["daemon", "logs"]);
@@ -231,8 +231,8 @@ Deno.test("daemon logs error exits with message", async () => {
 
 Deno.test("portal add error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.portalCommands as any).add = () => {
-      throw new Error("add failed");
+    ctx.portalCommands.add = () => {
+      return Promise.reject(new Error("add failed"));
     };
     const { errors } = await expectExitWithLogs(async () => {
       await (mod.__test_command as any).parse(["portal", MemoryOperation.ADD, "/tmp/path", "alias"]);
@@ -261,13 +261,13 @@ Deno.test("git worktrees list rejects --portal and --repo together", async () =>
 });
 
 Deno.test("git worktrees list uses repo option and prints entries", async () => {
-  const originalList = (GitService.prototype as any).listWorktrees;
+  const originalList = GitService.prototype.listWorktrees;
   let capturedRepo = "";
   let called = false;
 
-  (GitService.prototype as any).listWorktrees = function () {
+  GitService.prototype.listWorktrees = function () {
     called = true;
-    capturedRepo = (this as any).repoPath;
+    capturedRepo = this["repoPath"];
     return Promise.resolve([
       {
         path: "/tmp/repo/wt1",
@@ -295,15 +295,15 @@ Deno.test("git worktrees list uses repo option and prints entries", async () => 
       assert(output.length > 0);
     });
   } finally {
-    (GitService.prototype as any).listWorktrees = originalList;
+    GitService.prototype.listWorktrees = originalList;
   }
 });
 
 Deno.test("git worktrees prune passes options to GitService", async () => {
-  const originalPrune = (GitService.prototype as any).pruneWorktrees;
+  const originalPrune = GitService.prototype.pruneWorktrees;
   let received: any = null;
 
-  (GitService.prototype as any).pruneWorktrees = function (options: any) {
+  GitService.prototype.pruneWorktrees = function (options: any) {
     received = options;
     return Promise.resolve("pruned worktrees");
   };
@@ -327,7 +327,7 @@ Deno.test("git worktrees prune passes options to GitService", async () => {
       assert(output.length > 0);
     });
   } finally {
-    (GitService.prototype as any).pruneWorktrees = originalPrune;
+    GitService.prototype.pruneWorktrees = originalPrune;
   }
 });
 
@@ -351,10 +351,11 @@ Deno.test("portal add rejects invalid execution strategy", async () => {
 
 Deno.test("portal verify logs warnings and summary", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.portalCommands as any).verify = () => [
-      { alias: "Healthy", issues: [] },
-      { alias: "Broken", issues: ["missing"] },
-    ];
+    ctx.portalCommands.verify = () =>
+      Promise.resolve([
+        { alias: "Healthy", status: "ok", issues: [] },
+        { alias: "Broken", status: "failed", issues: ["missing"] },
+      ]);
 
     const { logs, warns } = await captureAllOutputs(async () => {
       await (mod.__test_command as any).parse(["portal", "verify"]);
@@ -369,7 +370,18 @@ Deno.test("portal verify logs warnings and summary", async () => {
 
 Deno.test("review show --diff prints diff only", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.reviewCommands as any).show = (_id: string) => ({ diff: "DIFF ONLY" });
+    ctx.reviewCommands.show = (_id: string) =>
+      Promise.resolve({
+        diff: "DIFF ONLY",
+        branch: "test-branch",
+        trace_id: "test-trace",
+        request_id: "req-1",
+        files_changed: 1,
+        created_at: new Date().toISOString(),
+        agent_id: "test-agent",
+        commits: [],
+        type: "code",
+      });
 
     const output = await captureConsoleOutput(async () => {
       await (mod.__test_command as any).parse(["review", "show", "cs-1", "--diff"]);

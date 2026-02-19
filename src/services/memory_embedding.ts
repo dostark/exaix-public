@@ -142,11 +142,26 @@ export function generateMockEmbedding(text: string): number[] {
 }
 
 /**
+ * Memory Embedding Service Interface
+ */
+export interface IMemoryEmbeddingService {
+  initializeManifest(): Promise<void>;
+  embedLearning(learning: Learning): Promise<void>;
+  searchByEmbedding(
+    query: string,
+    options?: { limit?: number; threshold?: number },
+  ): Promise<EmbeddingSearchResult[]>;
+  getEmbedding(id: string): Promise<number[] | null>;
+  deleteEmbedding(id: string): Promise<void>;
+  getStats(): Promise<{ total: number; generated_at: string }>;
+}
+
+/**
  * Memory Embedding Service
  *
  * Manages embedding generation and search for memory learnings.
  */
-export class MemoryEmbeddingService {
+export class MemoryEmbeddingService implements IMemoryEmbeddingService {
   private embeddingsDir: string;
   private manifestPath: string;
 

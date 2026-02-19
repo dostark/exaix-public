@@ -12,6 +12,7 @@ import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts"
 import { DialogBase } from "../helpers/dialog_base.ts";
 import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
+import type { TreeViewState } from "./base/tree_view_state.ts";
 import type { IStructuredLogger, LogEntry } from "../services/structured_logger.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "../helpers/constants.ts";
@@ -1034,6 +1035,31 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
   /** Exposed for testing to get selected ID */
   getSelectedId(): string | null {
     return this.state.selectedId;
+  }
+
+  /** Exposed for testing to access tree state */
+  getTreeState(): TreeViewState<LogEntry> {
+    return this.state;
+  }
+
+  /** Exposed for testing to force tree rebuild */
+  rebuildTree(): void {
+    this.buildTree();
+  }
+
+  /** Exposed for testing to set selected ID directly */
+  setSelectedId(id: string | null): void {
+    this.state.selectedId = id;
+  }
+
+  /** Exposed for testing to format log entry */
+  formatLogEntryForTest(entry: LogEntry): string {
+    return this.formatLogEntry(entry);
+  }
+
+  /** Exposed for testing to check refresh interval */
+  getRefreshInterval(): number | undefined {
+    return this.refreshInterval;
   }
 
   private getHelpSections(): HelpSection[] {

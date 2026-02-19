@@ -16,6 +16,8 @@ import { initTestDbService } from "../helpers/db.ts";
 import type { Config } from "../../src/config/schema.ts";
 import type { FlowStepRequest } from "../../src/flows/flow_runner.ts";
 import type { AgentExecutionResult } from "../../src/services/agent_runner.ts";
+import type { DatabaseService } from "../../src/services/db.ts";
+import { JSONValue } from "../../src/types.ts";
 
 describe("Example Flows - Step 7.9", {
   sanitizeResources: false,
@@ -23,7 +25,7 @@ describe("Example Flows - Step 7.9", {
 }, () => {
   let tempDir: string;
   let _config: Config;
-  let _db: any;
+  let _db: DatabaseService;
   let cleanup: () => Promise<void>;
   let _mockProvider: MockLLMProvider;
   let mockAgentExecutor: AgentExecutor;
@@ -60,7 +62,7 @@ describe("Example Flows - Step 7.9", {
 
     // Create mock event logger
     mockEventLogger = {
-      log: (_event: string, _payload: any) => {
+      log: (_event: string, _payload: Record<string, JSONValue | undefined>) => {
         // Mock logging - do nothing
       },
     };

@@ -6,8 +6,10 @@
  * Reusable helper to import exoctl module with test mode enabled.
  * Note: If you need to mock specific commands, you can use the returned ctx.
  */
+import type { ExoCtlTestContext } from "../../../src/cli/exoctl.ts";
+
 const mod = await import("../../../src/cli/exoctl.ts");
-export async function withTestMod<T>(fn: (mod: any, ctx: any) => Promise<T> | T) {
+export async function withTestMod<T>(fn: (mod: any, ctx: ExoCtlTestContext) => Promise<T> | T) {
   const origEnv = Deno.env.get("EXO_TEST_CLI_MODE") ?? Deno.env.get("EXO_TEST_MODE");
   Deno.env.set("EXO_TEST_CLI_MODE", "1");
   Deno.env.set("EXO_TEST_MODE", "1");

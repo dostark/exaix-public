@@ -12,7 +12,7 @@ import { AgentExecutionResult } from "../services/agent_runner.ts";
 import { ConditionEvaluator } from "./condition_evaluator.ts";
 import { appendToRequest, extractSection, mergeAsContext, passthrough, templateFill } from "./transforms.ts";
 import { jsonExtract, JSONValue } from "../types.ts";
-import type { DatabaseService } from "../services/db.ts";
+import type { IDatabaseService } from "../services/db.ts";
 
 /**
  * Error thrown when flow execution fails
@@ -170,7 +170,7 @@ export class FlowRunner {
   constructor(
     private agentExecutor: AgentExecutor,
     private eventLogger: FlowEventLogger,
-    private db?: DatabaseService, // Optional for token aggregation
+    private db?: IDatabaseService, // Optional for token aggregation
   ) {
     this.conditionEvaluator = new ConditionEvaluator();
   }

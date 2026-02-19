@@ -6,7 +6,7 @@ import { FlowStep, FlowStepInput } from "../../src/schemas/flow.ts";
 
 const defaultStepProps = {
   agent: "agent1",
-  input: { source: FlowInputSource.REQUEST, transform: "passthrough" } as any,
+  input: { source: FlowInputSource.REQUEST, transform: "passthrough" },
   retry: { maxAttempts: 1, backoffMs: 1000 },
 };
 
