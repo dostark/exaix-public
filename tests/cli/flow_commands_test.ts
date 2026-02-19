@@ -4,7 +4,7 @@ import { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
 import { FlowLoader } from "../../src/flows/flow_loader.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
 import { join } from "@std/path";
-import { copySync } from "@std/fs";
+import { copySync, ensureDirSync } from "@std/fs";
 
 const defaultContextPaths = {
   memory: "Memory",
@@ -34,6 +34,9 @@ function seedFlowModuleSupportFiles(
   flowDir: string,
 ) {
   copySync("src/flows/define_flow.ts", `${flowDir}/define_flow.ts`);
+  const flowsDir = join(ctx.config.system.root, ctx.config.paths.blueprints, "flows");
+  ensureDirSync(flowsDir);
+  copySync("src/flows/transforms.ts", join(flowsDir, "transforms.ts"));
   copySync("src/enums.ts", join(ctx.config.system.root, ctx.config.paths.blueprints, "enums.ts"));
   copySync("src/schemas", join(ctx.config.system.root, ctx.config.paths.blueprints, "schemas"));
 }

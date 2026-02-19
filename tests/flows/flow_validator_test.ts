@@ -2,13 +2,16 @@ import { assertEquals } from "@std/assert";
 
 import { FlowLoader } from "../../src/flows/flow_loader.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
-import { copySync } from "@std/fs";
+import { copySync, ensureDir } from "@std/fs";
 
 // Utility: create isolated temp dir for each test and helpers
 async function setupTestDir() {
   const dir = await Deno.makeTempDir({ prefix: "exo-flow-" });
   // copy schemas into the temp dir
   copySync("src/schemas", `${dir}/schemas`);
+  // copy flows/transforms.ts because it's imported by schemas/flow.ts
+  await ensureDir(`${dir}/flows`);
+  await Deno.copyFile("src/flows/transforms.ts", `${dir}/flows/transforms.ts`);
   // copy enums.ts into the temp dir
   const enumsContent = await Deno.readTextFile("src/enums.ts");
   await Deno.writeTextFile(`${dir}/enums.ts`, enumsContent);

@@ -77,7 +77,7 @@ export async function testProdRender(
       } as any,
       noColorTheme,
       { getNotifications: () => Promise.resolve(options.notifications ?? []) } as any,
-      { service: { listPortals: () => Promise.resolve(options.portals ?? []) } } as any,
+      { listPortals: () => Promise.resolve(options.portals ?? []) } as any,
     );
     return { captured, writes };
   } finally {

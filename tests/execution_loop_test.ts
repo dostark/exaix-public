@@ -686,10 +686,10 @@ Deno.test("ExecutionLoop: rejects plan with missing required frontmatter", async
     await ensureDir(getWorkspaceActiveDir(tempDir));
     const config = createMockConfig(tempDir);
 
-    // Plan missing trace_id
+    // Plan missing status (required)
     const planContent = `---
 request_id: invalid-test
-status: active
+trace_id: "test-trace-invalid"
 ---
 
 # Invalid Plan
@@ -703,7 +703,7 @@ status: active
     // Should fail with clear error about missing trace_id
     const result = await loop.processTask(planPath);
     assertEquals(result.success, false);
-    assert(result.error?.includes("trace_id"), `Error should mention trace_id, got: ${result.error}`);
+    assert(result.error?.includes("status"), `Error should mention status, got: ${result.error}`);
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });
@@ -1178,10 +1178,11 @@ Deno.test("ExecutionLoop: handles plan without required frontmatter fields", asy
     const config = createMockConfig(tempDir);
     const systemActiveDir = getWorkspaceActiveDir(tempDir);
 
-    // Plan missing trace_id
+    // Plan invalid status
     const planContent = `---
 request_id: bad-plan
-status: active
+trace_id: "test-trace-bad"
+status: invalid-status
 ---
 
 # Bad Plan
@@ -1195,7 +1196,7 @@ status: active
 
     assertEquals(result.success, false);
     assertExists(result.error);
-    assertEquals(result.error?.includes("trace_id"), true);
+    assertEquals(result.error?.includes("status"), true);
   } finally {
     await cleanup();
     await Deno.remove(tempDir, { recursive: true });
@@ -1332,7 +1333,7 @@ path = "test-read.txt"
 
     await db.waitForFlush();
     const activities = db.getActivitiesByActionType("execution.action_completed");
-    const log = activities.find((a: any) => JSON.parse(a.payload).result_summary?.includes("success"));
+    const log = activities.find((a: any) => JSON.parse(a.payload).result_summary?.includes("aaaa"));
     assertExists(log, "Action completion with summary should be logged");
   } finally {
     await cleanup();

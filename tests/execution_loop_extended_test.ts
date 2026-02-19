@@ -294,23 +294,23 @@ status: active
 
 // ===== Error handling edge cases =====
 
-Deno.test("ExecutionLoop: handles missing request_id in frontmatter", async () => {
-  await runExecutionTest("no-request", async ({ activeDir, loop }) => {
+Deno.test("ExecutionLoop: handles missing status in frontmatter", async () => {
+  await runExecutionTest("no-status", async ({ activeDir, loop }) => {
     const planContent = `---
-trace_id: "test-no-request"
-status: active
+trace_id: "test-no-status"
+request_id: "test-request"
 ---
 
-# Plan Missing request_id
+# Plan Missing status
 `;
 
-    const planPath = join(activeDir, "no-request.md");
+    const planPath = join(activeDir, "no-status.md");
     await Deno.writeTextFile(planPath, planContent);
 
     const result = await loop.processTask(planPath);
 
     assertEquals(result.success, false);
-    assert(result.error?.includes("request_id"), "Error should mention missing request_id");
+    assert(result.error?.includes("status"), "Error should mention missing status");
   });
 });
 
