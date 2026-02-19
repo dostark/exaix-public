@@ -17,13 +17,18 @@ import { JsonValueSchema } from "../flows/transforms.ts";
  * Zod schema for plan frontmatter to ensure type safety during parsing.
  * Supports both strict execution loop needs and enriched CLI metadata needs.
  */
+// YAML's parseYaml() converts ISO-formatted date strings to Date objects automatically.
+// We coerce them back to ISO strings so validation doesn't fail with
+// "Expected string, received date".
+const DateOrStringSchema = z.union([z.string(), z.date()]).transform((v) => v instanceof Date ? v.toISOString() : v);
+
 export const PlanFrontmatterSchema = z.object({
   trace_id: z.string().optional().default(() => crypto.randomUUID()),
   request_id: z.string().optional().default("unknown"),
   agent_id: z.string().optional(),
   status: z.nativeEnum(PlanStatus),
-  created_at: z.string().optional().default(() => new Date().toISOString()),
-  updated_at: z.string().optional(),
+  created_at: DateOrStringSchema.optional().default(() => new Date().toISOString()),
+  updated_at: DateOrStringSchema.optional(),
   portal: z.string().optional(),
   target_branch: z.string().optional(),
   priority: z.union([z.number(), z.string()]).optional(),

@@ -134,46 +134,48 @@ Deno.test("MonitorView - should pause and resume log streaming", () => {
   assertEquals(monitorView.isStreaming(), true);
 });
 
-Deno.test("MonitorView - does not fetch when paused", () => {
+Deno.test("MonitorView - does not fetch when paused", async () => {
   const calls: string[] = [];
   class CountingDb {
+    // deno-lint-ignore no-explicit-any
     private inner: any;
+    // deno-lint-ignore no-explicit-any
     constructor(logs: any[] = []) {
       this.inner = createMockDatabaseService(logs);
     }
     getRecentActivity(limit?: number) {
-      calls.push(`get:${limit}`);
       return this.inner.getRecentActivity(limit);
     }
+    // deno-lint-ignore no-explicit-any
     queryActivity(filter: any) {
+      calls.push(`query:${JSON.stringify(filter)}`);
       return this.inner.queryActivity(filter);
     }
+    // deno-lint-ignore no-explicit-any
     addLog(log: any) {
       return this.inner.addLog(log);
     }
   }
-  Deno.test("MonitorView - should pause and resume log streaming", async () => {
-    const db = new CountingDb([
-      {
-        id: "1",
-        trace_id: "trace-1",
-        actor: MemorySource.AGENT,
-        agent_id: "dev",
-        action_type: "plan.approved",
-        target: "Workspace/Plans/test.md",
-        payload: {},
-        timestamp: "2025-12-21T10:00:00Z",
-      },
-    ]);
-    const monitorView = new MonitorView(db);
-    calls.length = 0;
-    monitorView.pause();
-    await monitorView.getLogs(); // should not trigger fetch while paused
-    assertEquals(calls.length, 0);
-    monitorView.resume();
-    await monitorView.getLogs();
-    assertEquals(calls.length, 2);
-  });
+  const db = new CountingDb([
+    {
+      id: "1",
+      trace_id: "trace-1",
+      actor: MemorySource.AGENT,
+      agent_id: "dev",
+      action_type: "plan.approved",
+      target: "Workspace/Plans/test.md",
+      payload: {},
+      timestamp: "2025-12-21T10:00:00Z",
+    },
+  ]);
+  const monitorView = new MonitorView(db);
+  calls.length = 0;
+  monitorView.pause();
+  await monitorView.getLogs(); // should not trigger fetch while paused
+  assertEquals(calls.length, 0);
+  monitorView.resume();
+  await monitorView.getLogs(); // triggers one fetch (getLogs' own refreshLogs); resume() also fires one
+  assertEquals(calls.length, 2);
 });
 
 Deno.test("MonitorView - maps Activity Journal action names to colors", () => {
