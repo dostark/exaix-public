@@ -13,6 +13,7 @@ import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
+import { ConfigSchema } from "../src/config/schema.ts";
 
 const AGENT_ID = "multiline-test";
 const CAP_TESTING = "testing";
@@ -51,10 +52,11 @@ This blueprint uses multi-line YAML array format.
 `;
     await Deno.writeTextFile(join(blueprintsDir, `${AGENT_ID}.md`), multilineBlueprint);
 
-    const config = {
-      system: { root: tempDir },
+    // Use ConfigSchema to create a valid config object with defaults
+    const config = ConfigSchema.parse({
+      system: { root: tempDir, log_level: "info" },
       paths: { ...ExoPathDefaults },
-    } as any;
+    });
 
     const stubDb = createStubDb();
 

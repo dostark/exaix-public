@@ -8,7 +8,8 @@ import type { IDatabaseService } from "../../src/services/db.ts";
 interface TestDashboardProps {
   nonInteractive?: boolean;
   databaseService?: IDatabaseService;
-  [key: string]: unknown; // Allow other properties but stay safe
+  notificationService?: NotificationService;
+  testMode?: boolean;
 }
 
 /**

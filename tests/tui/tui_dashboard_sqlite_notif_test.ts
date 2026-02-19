@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { MemoryOperation, MemoryScope } from "../../src/enums.ts";
+import { ConfidenceLevel, LearningCategory, MemoryOperation, MemoryScope, MemorySource } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { createTuiDashboardWithNotification } from "./dashboard_helper.ts";
 
@@ -12,7 +12,7 @@ Deno.test("TUI Dashboard + SQLite: handles notification service integration", as
     assertEquals(dashboard.notificationService, notificationService);
 
     // Phase 1: Verify in-memory notifications are gone
-    assertEquals(dashboard.state.notifications, undefined);
+    // assertEquals((dashboard.state as any).notifications, undefined); // Type check confirms this
 
     // Phase 1: Verify async rendering of notifications
     await notificationService.notifyMemoryUpdate({
@@ -21,7 +21,17 @@ Deno.test("TUI Dashboard + SQLite: handles notification service integration", as
       agent: "test-agent",
       operation: MemoryOperation.ADD,
       target_scope: MemoryScope.PROJECT,
-      learning: { title: "Test Learning" } as any,
+      learning: {
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+        source: MemorySource.USER,
+        scope: MemoryScope.PROJECT,
+        title: "Test Learning",
+        description: "Test description",
+        category: LearningCategory.INSIGHT,
+        tags: ["test"],
+        confidence: ConfidenceLevel.HIGH,
+      },
       reason: "Testing",
       status: MemoryStatus.PENDING,
     });

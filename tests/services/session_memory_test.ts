@@ -67,7 +67,7 @@ class MockMemoryBankService implements IMemoryBankService {
   createProjectMemory(_projectMem: ProjectMemory): Promise<void> {
     return Promise.resolve();
   }
-  updateProjectMemory(_portal: string, _updates: any): Promise<void> {
+  updateProjectMemory(_portal: string, _updates: Partial<Omit<ProjectMemory, "portal">>): Promise<void> {
     return Promise.resolve();
   }
   addPattern(_portal: string, _pattern: Pattern): Promise<void> {
@@ -88,16 +88,32 @@ class MockMemoryBankService implements IMemoryBankService {
   initGlobalMemory(): Promise<void> {
     return Promise.resolve();
   }
-  promoteLearning(_portal: string, _promotion: any): Promise<string> {
+  promoteLearning(
+    _portal: string,
+    _promotion: {
+      type: MemoryType.PATTERN | MemoryType.DECISION;
+      name: string;
+      title: string;
+      description: string;
+      category: Learning["category"];
+      tags: string[];
+      confidence: Learning["confidence"];
+    },
+  ): Promise<string> {
     return Promise.resolve("");
   }
   demoteLearning(_learningId: string, _targetPortal: string): Promise<void> {
     return Promise.resolve();
   }
-  searchByKeyword(_keyword: string, _options?: any): Promise<MemorySearchResult[]> {
+  searchByKeyword(_keyword: string, _options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]> {
     return Promise.resolve([]);
   }
-  searchMemoryAdvanced(_options: any): Promise<MemorySearchResult[]> {
+  searchMemoryAdvanced(_options: {
+    tags?: string[];
+    keyword?: string;
+    portal?: string;
+    limit?: number;
+  }): Promise<MemorySearchResult[]> {
     return Promise.resolve([]);
   }
   getRecentActivity(_limit?: number): Promise<ActivitySummary[]> {

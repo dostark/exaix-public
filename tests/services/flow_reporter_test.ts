@@ -12,11 +12,12 @@ import { initTestDbService } from "../helpers/db.ts";
 import type { Flow, FlowInput } from "../../src/schemas/flow.ts";
 import type { FlowResult, StepResult } from "../../src/flows/flow_runner.ts";
 import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
+import type { Config } from "../../src/config/schema.ts";
 
 describe("FlowReporter", () => {
   let tempDir: string;
   let cleanup: () => Promise<void>;
-  let config: any;
+  let config: Config;
   let reportConfig: FlowReportConfig;
   let reporter: FlowReporter;
 

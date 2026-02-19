@@ -23,7 +23,7 @@ Implement a comprehensive refactoring strategy based on an "Onion Architecture" 
 
 - [ ] Enable `strict: true` in `deno.json`.
 - [x] Eliminate all usage of `any` and improper `unknown` in `src/` (per `CONTRIBUTING.md` §1.5).
-- [ ] Eliminate all usage of `any` and improper `unknown` in `tests/` (per `CONTRIBUTING.md` §1.5).
+- [x] Eliminate all usage of `any` and improper `unknown` in `tests/` (per `CONTRIBUTING.md` §1.5).
 - [ ] Define strict return types for all `IDatabaseService` methods.
 - [ ] Refactor `ExecutionLoop` and `PlanExecutor` to use fully typed interfaces.
 - [ ] Ensure all LLM provider responses are validated against Zod schemas.
@@ -138,7 +138,7 @@ Refer to `CONTRIBUTING.md` (Section 1.5 Strict Type Safety) and `README.md` for 
 2. **Batch 2 (Core Services)**: Refactor `ExecutionLoop`, `PlanExecutor`, `GitService` signatures.
 3. **Batch 3 (Edges)**: CLI Commands and TUI View Models.
 4. [x] **Batch 4 (Tests)**: Update mocks and test helpers.
-5. **Batch 5 (Tests Type Safety)**: Eliminate `any` and improper `unknown` in `tests/`.
+5. [x] **Batch 5 (Tests Type Safety)**: Eliminate `any` and improper `unknown` in `tests/`.
 6. **Batch 6 (CI Guard)**: Implement `check_type_safety.ts`, register task, integrate into `ci.ts` and pre-commit hook.
 
 ---
