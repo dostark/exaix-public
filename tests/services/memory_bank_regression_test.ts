@@ -1,7 +1,13 @@
 import { assert, assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
-import { searchByKeyword, searchByTags, searchMemoryAdvanced } from "../../src/services/memory_search.ts";
 import { MemoryType } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
+import {
+  searchByKeyword,
+  searchByTags,
+  type SearchDeps,
+  searchMemoryAdvanced,
+} from "../../src/services/memory_search.ts";
+import type { ExecutionMemory, Learning, ProjectMemory } from "../../src/schemas/memory_bank.ts";
 
 Deno.test("[regression] searchByKeyword finds patterns, decisions and overview", async () => {
   const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });
@@ -23,7 +29,7 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
             { date: "2026-01-01", decision: "Choose X", rationale: "Because X is fast", tags: ["alpha"] },
           ],
           references: [],
-        } as any;
+        } as unknown as ProjectMemory;
       }
       if (portal === "projB") {
         return {
@@ -32,23 +38,30 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
           patterns: [],
           decisions: [],
           references: [],
-        } as any;
+        } as unknown as ProjectMemory;
       }
       return null;
     },
     getExecutionHistory: (_portal?: string, _limit?: number) => {
-      return [
+      return Promise.resolve([
         {
           trace_id: "abcd1234",
           portal: "projA",
           summary: "Execution mentioning X in summary",
           started_at: new Date().toISOString(),
-        } as any,
-      ];
+        } as unknown as ExecutionMemory,
+      ]);
     },
-    loadLearningsFromFile: () => [
-      { id: "L1", title: "Learning X", description: "About X", status: MemoryStatus.APPROVED, tags: ["alpha"] } as any,
-    ],
+    loadLearningsFromFile: () =>
+      Promise.resolve([
+        {
+          id: "L1",
+          title: "Learning X",
+          description: "About X",
+          status: MemoryStatus.APPROVED,
+          tags: ["alpha"],
+        } as unknown as Learning,
+      ]),
     calculateFrequency: (text: string | undefined, keywordLower: string) => {
       if (!text) return 0;
       const matches = text.toLowerCase().match(new RegExp(keywordLower, "gi"));
@@ -56,7 +69,7 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
     },
     calculateRelevance: (titleFreq: number, descFreq: number) =>
       Math.min(0.99, 0.5 + (titleFreq * 0.15) + (descFreq * 0.05)),
-  } as any;
+  } as unknown as SearchDeps;
 
   const results = await searchByKeyword("X", { portal: "projA", limit: 10 }, deps);
   // Expect at least pattern, decision, project overview, and learning entries
@@ -84,13 +97,15 @@ Deno.test("[regression] searchByTags returns matching items and learnings", asyn
       patterns: [{ name: "P", description: "D", tags: ["t1"] }],
       decisions: [{ date: "2026-01-01", decision: "D1", rationale: "R1", tags: ["t1"] }],
       references: [],
-    } as any),
-    getExecutionHistory: () => [],
-    loadLearningsFromFile:
-      () => [{ id: "L2", title: "T", description: "D", status: MemoryStatus.APPROVED, tags: ["t1"] } as any],
+    } as unknown as ProjectMemory),
+    getExecutionHistory: () => Promise.resolve([]),
+    loadLearningsFromFile: () =>
+      Promise.resolve([
+        { id: "L2", title: "T", description: "D", status: MemoryStatus.APPROVED, tags: ["t1"] } as unknown as Learning,
+      ]),
     calculateFrequency: () => 0,
     calculateRelevance: () => 0.5,
-  } as any;
+  } as unknown as SearchDeps;
 
   const results = await searchByTags(["t1"], { portal: "projA", limit: 10 }, deps);
   const types = results.map((r) => r.type);
@@ -113,9 +128,9 @@ Deno.test("[regression] searchMemoryAdvanced combines tag and keyword results wi
       patterns: [{ name: "ZedPattern", description: "zed here", tags: ["t1"] }],
       decisions: [],
       references: [],
-    } as any),
-    getExecutionHistory: () => [],
-    loadLearningsFromFile: () => [],
+    } as unknown as ProjectMemory),
+    getExecutionHistory: () => Promise.resolve([]),
+    loadLearningsFromFile: () => Promise.resolve([]),
     calculateFrequency: (text: string | undefined, keywordLower: string) => {
       if (!text) return 0;
       const matches = text.toLowerCase().match(new RegExp(keywordLower, "gi"));
@@ -123,9 +138,9 @@ Deno.test("[regression] searchMemoryAdvanced combines tag and keyword results wi
     },
     calculateRelevance: (titleFreq: number, descFreq: number) =>
       Math.min(0.99, 0.5 + (titleFreq * 0.15) + (descFreq * 0.05)),
-  } as any;
+  } as unknown as SearchDeps;
 
-  const results = await searchMemoryAdvanced({ tags: ["t1"], keyword: "zed", portal: "projA", limit: 10 }, deps as any);
+  const results = await searchMemoryAdvanced({ tags: ["t1"], keyword: "zed", portal: "projA", limit: 10 }, deps);
   // Should return one result for the pattern, not duplicated
   const patternResults = results.filter((r) => r.type === MemoryType.PATTERN && r.portal === "projA");
   assertEquals(patternResults.length, 1);

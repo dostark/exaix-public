@@ -67,7 +67,8 @@ Deno.test("ToolRegistry: grep_search", async (t) => {
     // Wait, implementation says: if (code !== 0 && code !== 1) return error.
     // If no matches (code 1), it returns matches: [].
     // Here we expect NO matches because "hidden" is only in node_modules which is excluded
-    assertEquals((result.data as any[]).length, 0);
+    const matches = result.data as unknown[];
+    assertEquals(matches.length, 0);
   });
 
   await t.step("case insensitive by default (config or tool param?)", async () => {
@@ -76,13 +77,15 @@ Deno.test("ToolRegistry: grep_search", async (t) => {
     // Test with explicit parameter.
     const result = await registry.execute("grep_search", { pattern: "FOO", path: ".", case_sensitive: false });
     assertEquals(result.success, true);
-    assertEquals((result.data as any[]).length > 0, true);
+    const matches = result.data as unknown[];
+    assertEquals(matches.length > 0, true);
   });
 
   await t.step("case sensitive enforcement", async () => {
     const result = await registry.execute("grep_search", { pattern: "FOO", path: ".", case_sensitive: true });
     assertEquals(result.success, true);
-    assertEquals((result.data as any[]).length, 0);
+    const matches = result.data as unknown[];
+    assertEquals(matches.length, 0);
   });
 
   // Cleanup

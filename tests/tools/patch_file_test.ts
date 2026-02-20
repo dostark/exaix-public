@@ -8,7 +8,6 @@ Deno.test("ToolRegistry: patch_file", async (t) => {
   const config = ConfigSchema.parse({
     system: { root: tempDir },
     tools: {},
-    // Minimal required config
     paths: {},
     database: {},
     watcher: {},
@@ -37,7 +36,8 @@ Deno.test("ToolRegistry: patch_file", async (t) => {
     });
 
     assertEquals(result.success, true);
-    assertEquals((result.data as any).appliedCount, 1);
+    const data = result.data as Record<string, unknown>;
+    assertEquals(data.appliedCount, 1);
 
     const content = await Deno.readTextFile(file);
     // First console.log should be changed, second remains
@@ -50,12 +50,13 @@ Deno.test("ToolRegistry: patch_file", async (t) => {
       path: "test.ts",
       patches: [
         { search: "function hello()", replace: "function bye()" },
-        { search: 'console.log("Hello World");', replace: 'console.log("Done");' }, // Replaces the second one now
+        { search: 'console.log("Hello World");', replace: 'console.log("Done");' }, // Replaces the remaining one
       ],
     });
 
     assertEquals(result.success, true);
-    assertEquals((result.data as any).appliedCount, 2);
+    const data = result.data as Record<string, unknown>;
+    assertEquals(data.appliedCount, 2);
 
     const content = await Deno.readTextFile(file);
     assertEquals(content.includes("function bye()"), true);

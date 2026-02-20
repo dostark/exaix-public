@@ -29,7 +29,7 @@ interface FlowValidateOptions {
   json?: boolean;
 }
 
-interface CLIContext {
+export interface CLIContext {
   config: Config;
   db: IDatabaseService;
   provider: IModelProvider;

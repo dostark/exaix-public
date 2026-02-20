@@ -11,7 +11,17 @@ import { Flow, FlowInput, FlowStepInput } from "../../src/schemas/flow.ts";
 import { AgentExecutionResult } from "../../src/services/agent_runner.ts";
 import { PROVIDER_ANTHROPIC, PROVIDER_OPENAI } from "../../src/config/constants.ts";
 import { JSONValue } from "../../src/types.ts";
-import type { ActivityRecord, IDatabaseService, JournalFilterOptions } from "../../src/services/db.ts";
+import type { ActivityRecord, IDatabaseService, JournalFilterOptions, SqliteParam } from "../../src/services/db.ts";
+
+/** Local type matching the shape logged by FlowRunner for flow.token_summary events */
+interface TokenSummary {
+  totalLlmCalls: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  totalTokens: number;
+  totalCostUsd: number;
+  providers: Record<string, { calls: number; inputTokens: number; outputTokens: number; costUsd: number }>;
+}
 
 // Mock AgentRunner for testing
 class MockAgentRunner implements AgentExecutor {
@@ -474,7 +484,7 @@ Deno.test("FlowRunner: handles step with invalid input source", async () => {
       name: "Step 1",
       agent: "agent1",
       dependsOn: [],
-      input: { source: FlowInputSource.STEP as any, transform: "passthrough" }, // Missing stepId
+      input: { source: FlowInputSource.STEP, transform: "passthrough" }, // Missing stepId
       retry: { maxAttempts: 1, backoffMs: 1000 },
     },
   ];
@@ -915,7 +925,7 @@ Deno.test("FlowRunner: applies custom transform function", async () => {
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: FlowInputSource.REQUEST, transform: customTransform as any },
+        input: { source: FlowInputSource.REQUEST, transform: customTransform },
       },
     ],
     output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
@@ -947,7 +957,7 @@ Deno.test("FlowRunner: handles unknown transform", async () => {
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: FlowInputSource.REQUEST, transform: "unknownTransform" as any },
+        input: { source: FlowInputSource.REQUEST, transform: "unknownTransform" },
       },
     ],
     output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
@@ -987,7 +997,7 @@ Deno.test("FlowRunner: handles transform function throwing error", async () => {
         agent: "test-agent",
         dependsOn: [],
         retry: { maxAttempts: 1, backoffMs: 1000 },
-        input: { source: FlowInputSource.REQUEST, transform: failingTransform as any },
+        input: { source: FlowInputSource.REQUEST, transform: failingTransform },
       },
     ],
     output: { from: "step1", format: FlowOutputFormat.MARKDOWN },
@@ -1411,10 +1421,10 @@ Deno.test("FlowRunner: handles condition syntax errors gracefully", async () => 
 // ============================================================================
 
 // Mock AgentRunner that captures requests to verify skills are passed
-class CapturingMockAgentRunner {
-  capturedRequests: Array<{ agentId: string; request: any }> = [];
+class CapturingMockAgentRunner implements AgentExecutor {
+  capturedRequests: Array<{ agentId: string; request: FlowStepRequest }> = [];
 
-  async run(agentId: string, request: any): Promise<AgentExecutionResult> {
+  async run(agentId: string, request: FlowStepRequest): Promise<AgentExecutionResult> {
     this.capturedRequests.push({ agentId, request });
     return await Promise.resolve({
       thought: `Processing ${agentId}`,
@@ -1654,7 +1664,7 @@ Deno.test("FlowRunner: logs hasSkills in input.prepared event", async () => {
 class MockDatabaseService implements IDatabaseService {
   private activities: Array<ActivityRecord> = [];
 
-  constructor(activities: Array<{ traceId: string; actionType: string; payload: any }> = []) {
+  constructor(activities: Array<{ traceId: string; actionType: string; payload: Record<string, JSONValue> }> = []) {
     this.activities = activities.map((a) => ({
       id: crypto.randomUUID(),
       trace_id: a.traceId,
@@ -1690,13 +1700,13 @@ class MockDatabaseService implements IDatabaseService {
   close(): Promise<void> {
     return Promise.resolve();
   }
-  preparedGet<T>(_query: string, _params?: any[]): Promise<T | null> {
+  preparedGet<T>(_query: string, _params?: SqliteParam[]): Promise<T | null> {
     return Promise.resolve(null);
   }
-  preparedAll<T>(_query: string, _params?: any[]): Promise<T[]> {
+  preparedAll<T>(_query: string, _params?: SqliteParam[]): Promise<T[]> {
     return Promise.resolve([]);
   }
-  preparedRun(_query: string, _params?: any[]): Promise<unknown> {
+  preparedRun(_query: string, _params?: SqliteParam[]): Promise<unknown> {
     return Promise.resolve(null);
   }
   getActivitiesByTrace(_traceId: string): ActivityRecord[] {
@@ -1793,7 +1803,7 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
   const tokenSummaryEvent = mockLogger.events.find((e) => e.event === "flow.token_summary");
   assert(tokenSummaryEvent, "Should log flow.token_summary event");
 
-  const summary = tokenSummaryEvent.payload as any;
+  const summary = tokenSummaryEvent.payload as unknown as TokenSummary;
   assertEquals(summary.totalLlmCalls, 3);
   assertEquals(summary.totalInputTokens, 450);
   assertEquals(summary.totalOutputTokens, 185);
@@ -1803,10 +1813,10 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
   assertEquals(summary.providers[PROVIDER_OPENAI].inputTokens, 300);
   assertEquals(summary.providers[PROVIDER_OPENAI].outputTokens, 125);
   assertEquals(summary.providers[PROVIDER_OPENAI].costUsd, 0.0075);
-  assertEquals(summary.providers.anthropic.calls, 1);
-  assertEquals(summary.providers.anthropic.inputTokens, 150);
-  assertEquals(summary.providers.anthropic.outputTokens, 60);
-  assertEquals(summary.providers.anthropic.costUsd, 0.0030);
+  assertEquals(summary.providers[PROVIDER_ANTHROPIC].calls, 1);
+  assertEquals(summary.providers[PROVIDER_ANTHROPIC].inputTokens, 150);
+  assertEquals(summary.providers[PROVIDER_ANTHROPIC].outputTokens, 60);
+  assertEquals(summary.providers[PROVIDER_ANTHROPIC].costUsd, 0.0030);
 });
 
 Deno.test("[regression] FlowRunner: handles zero token usage gracefully", async () => {
@@ -1846,7 +1856,7 @@ Deno.test("[regression] FlowRunner: handles zero token usage gracefully", async 
   const tokenSummaryEvent = mockLogger.events.find((e) => e.event === "flow.token_summary");
   assert(tokenSummaryEvent, "Should log flow.token_summary event");
 
-  const summary = tokenSummaryEvent.payload as any;
+  const summary = tokenSummaryEvent.payload as unknown as TokenSummary;
   assertEquals(summary.totalLlmCalls, 0);
   assertEquals(summary.totalInputTokens, 0);
   assertEquals(summary.totalOutputTokens, 0);

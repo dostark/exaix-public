@@ -8,8 +8,10 @@
  */
 import type { ExoCtlTestContext } from "../../../src/cli/exoctl.ts";
 
+type ExoCtlModule = typeof import("../../../src/cli/exoctl.ts");
+
 const mod = await import("../../../src/cli/exoctl.ts");
-export async function withTestMod<T>(fn: (mod: any, ctx: ExoCtlTestContext) => Promise<T> | T) {
+export async function withTestMod<T>(fn: (mod: ExoCtlModule, ctx: ExoCtlTestContext) => Promise<T> | T) {
   const origEnv = Deno.env.get("EXO_TEST_CLI_MODE") ?? Deno.env.get("EXO_TEST_MODE");
   Deno.env.set("EXO_TEST_CLI_MODE", "1");
   Deno.env.set("EXO_TEST_MODE", "1");
@@ -78,9 +80,9 @@ export async function captureAllOutputs(fn: () => Promise<void> | void, timeoutM
   const origLog = console.log;
   const origWarn = console.warn;
   const origErr = console.error;
-  console.log = (...args: any[]) => logs.push(args.join(" "));
-  console.warn = (...args: any[]) => warns.push(args.join(" "));
-  console.error = (...args: any[]) => errs.push(args.join(" "));
+  console.log = (...args: unknown[]) => logs.push(args.map(String).join(" "));
+  console.warn = (...args: unknown[]) => warns.push(args.map(String).join(" "));
+  console.error = (...args: unknown[]) => errs.push(args.map(String).join(" "));
 
   try {
     await runWithTimeout(fn, timeoutMs);
@@ -103,8 +105,8 @@ export async function expectExitWithLogs(
   const origErr = console.error;
   const errors: string[] = [];
   let exitCalled = false;
-  console.error = (...args: any[]) => errors.push(args.join(" "));
-  (Deno as any).exit = (code?: number) => {
+  console.error = (...args: unknown[]) => errors.push(args.map(String).join(" "));
+  (Deno as unknown as { exit: (code?: number) => never }).exit = (code?: number) => {
     exitCalled = true;
     throw new Error(`DENO_EXIT:${code ?? 0}`);
   };
@@ -114,9 +116,12 @@ export async function expectExitWithLogs(
       await fn();
       throw new Error("Expected Deno.exit to be called");
     }, timeoutMs);
-  } catch (e: any) {
-    if (!e.message.startsWith("DENO_EXIT:") && !e.message.includes("timed out")) throw e;
-    return { err: e, errors, exitCalled };
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      if (!e.message.startsWith("DENO_EXIT:") && !e.message.includes("timed out")) throw e;
+      return { err: e, errors, exitCalled };
+    }
+    throw e;
   } finally {
     console.error = origErr;
     Deno.exit = origExit;

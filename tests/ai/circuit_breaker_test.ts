@@ -8,6 +8,7 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { EvaluationVerdict } from "../../src/enums.ts";
 import { CircuitBreaker, CircuitBreakerProvider } from "../../src/ai/circuit_breaker.ts";
+import type { ModelOptions } from "../../src/ai/types.ts";
 
 // ============================================================================
 // Unit Tests for CircuitBreaker State Management
@@ -21,7 +22,7 @@ Deno.test("CircuitBreaker: starts in closed state", () => {
   });
 
   // Should allow requests initially
-  assertEquals((breaker as any).state, "closed");
+  assertEquals(breaker.getState(), "closed");
 });
 
 Deno.test("CircuitBreaker: opens after failure threshold", async () => {
@@ -59,7 +60,7 @@ Deno.test("CircuitBreaker: transitions to half-open after timeout", async () => 
   // Should now be half-open and allow one request
   const result = await breaker.execute(() => Promise.resolve("success"));
   assertEquals(result, "success");
-  assertEquals((breaker as any).state, "closed"); // Should close after success
+  assertEquals(breaker.getState(), "closed"); // Should close after success
 });
 
 Deno.test("CircuitBreaker: requires multiple successes in half-open state", async () => {
@@ -78,12 +79,12 @@ Deno.test("CircuitBreaker: requires multiple successes in half-open state", asyn
   // First success in half-open state
   const result1 = await breaker.execute(() => Promise.resolve("success1"));
   assertEquals(result1, "success1");
-  assertEquals((breaker as any).state, "half-open"); // Still half-open
+  assertEquals(breaker.getState(), "half-open"); // Still half-open
 
   // Second success should close the circuit
   const result2 = await breaker.execute(() => Promise.resolve("success2"));
   assertEquals(result2, "success2");
-  assertEquals((breaker as any).state, "closed");
+  assertEquals(breaker.getState(), "closed");
 });
 
 Deno.test("CircuitBreaker: failure in half-open state reopens circuit", async () => {
@@ -101,11 +102,11 @@ Deno.test("CircuitBreaker: failure in half-open state reopens circuit", async ()
 
   // Success in half-open state
   await breaker.execute(() => Promise.resolve("success"));
-  assertEquals((breaker as any).state, "half-open");
+  assertEquals(breaker.getState(), "half-open");
 
   // Failure in half-open state should reopen circuit
   await assertRejects(() => breaker.execute(() => Promise.reject(new Error("fail again"))));
-  assertEquals((breaker as any).state, "open");
+  assertEquals(breaker.getState(), "open");
 });
 
 Deno.test("CircuitBreaker: success in closed state resets failure count", async () => {
@@ -117,12 +118,12 @@ Deno.test("CircuitBreaker: success in closed state resets failure count", async 
 
   // One failure
   await assertRejects(() => breaker.execute(() => Promise.reject(new Error(EvaluationVerdict.FAIL))));
-  assertEquals((breaker as any).failureCount, 1);
+  assertEquals(breaker.getFailureCount(), 1);
 
   // Success should reset failure count
   await breaker.execute(() => Promise.resolve("success"));
-  assertEquals((breaker as any).failureCount, 0);
-  assertEquals((breaker as any).state, "closed");
+  assertEquals(breaker.getFailureCount(), 0);
+  assertEquals(breaker.getState(), "closed");
 });
 
 // ============================================================================
@@ -208,10 +209,10 @@ Deno.test("CircuitBr(e)akerProvider: preserves successful responses", async () =
 });
 
 Deno.test("CircuitBreakerProvider: forwards options to inner provider", async () => {
-  let receivedOptions: any = null;
+  let receivedOptions: ModelOptions | undefined = undefined;
   const mockProvider = {
     id: "mock-provider",
-    generate: (_prompt: string, options?: any) => {
+    generate: (_prompt: string, options?: ModelOptions) => {
       receivedOptions = options;
       return Promise.resolve("Response");
     },

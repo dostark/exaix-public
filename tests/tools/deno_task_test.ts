@@ -48,7 +48,8 @@ Deno.test("ToolRegistry: deno_task", async (t) => {
     assertEquals(result.success, false);
     assertEquals(result.error?.includes("exit code"), true);
     // Data contains output
-    assertEquals((result.data as any).exitCode !== 0, true);
+    const data = result.data as Record<string, unknown>;
+    assertEquals(data.exitCode !== 0, true);
   });
 
   await t.step("rejects invalid task", async () => {

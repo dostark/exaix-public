@@ -1,15 +1,16 @@
 import { assert, assertEquals } from "@std/assert";
-import { PortalManagerView, PortalService } from "../../src/tui/portal_manager_view.ts";
+import { PortalManagerView, type PortalService } from "../../src/tui/portal_manager_view.ts";
 import { GeneralStatus, PortalStatus } from "../../src/enums.ts";
 import { createPortalTuiWithPortals } from "./helpers.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
+import type { PortalDetails, PortalInfo } from "../../src/cli/commands/portal_commands.ts";
 
 // Minimal PortalService mock for tests
 class MinimalPortalServiceMock implements PortalService {
-  listPortals = () => {
+  listPortals = (): Promise<PortalInfo[]> => {
     throw new Error("PortalCommands instance not provided");
   };
-  getPortalDetails = (_: string) => Promise.resolve({} as any);
+  getPortalDetails = (_: string) => Promise.resolve({} as unknown as PortalDetails);
   openPortal = (_: string) => {
     throw new Error("openPortal not implemented");
   };
@@ -1006,7 +1007,7 @@ Deno.test("Phase 13.3: Update portals preserves selection when possible", () => 
 Deno.test("Phase 13.3: createTuiSession accepts useColors parameter", () => {
   const service: PortalService = {
     listPortals: () => Promise.resolve([]),
-    getPortalDetails: () => Promise.resolve({} as any),
+    getPortalDetails: () => Promise.resolve({} as unknown as PortalDetails),
     openPortal: () => Promise.resolve(true),
     closePortal: () => Promise.resolve(true),
     refreshPortal: () => Promise.resolve(true),

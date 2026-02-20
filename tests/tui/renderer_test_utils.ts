@@ -1,7 +1,9 @@
 import process from "node:process";
-import { Pane } from "../../src/tui/tui_dashboard.ts";
+import { type Pane } from "../../src/tui/tui_dashboard.ts";
 import { noColorTheme } from "../../src/helpers/colors.ts";
 import { prodRender } from "../../src/tui/dashboard/renderer.ts";
+import { type INotificationService, type MemoryNotification } from "../../src/services/notification.ts";
+import { type PortalInfo } from "../../src/cli/commands/portal_commands.ts";
 
 export type CapturedConsole = {
   logs: string[];
@@ -60,8 +62,8 @@ export async function testProdRender(
     showHelp?: boolean;
     showNotifications?: boolean;
     showMemoryNotifications?: boolean;
-    notifications?: any[];
-    portals?: any[];
+    notifications?: MemoryNotification[];
+    portals?: PortalInfo[];
   } = {},
 ) {
   const { captured, restore } = captureConsole();
@@ -76,7 +78,7 @@ export async function testProdRender(
         showMemoryNotifications: options.showMemoryNotifications ?? false,
       } as any,
       noColorTheme,
-      { getNotifications: () => Promise.resolve(options.notifications ?? []) } as any,
+      { getNotifications: () => Promise.resolve(options.notifications ?? []) } as unknown as INotificationService,
       { listPortals: () => Promise.resolve(options.portals ?? []) } as any,
     );
     return { captured, writes };

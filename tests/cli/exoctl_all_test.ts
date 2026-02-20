@@ -12,6 +12,11 @@ import {
 } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
+import type { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
+import type { RequestOptions, RequestSource } from "../../src/cli/commands/request_commands.ts";
+import type { RequestStatusType } from "../../src/requests/request_status.ts";
+import type { PlanStatusType } from "../../src/plans/plan_status.ts";
+import type { BlueprintCreateOptions, BlueprintRemoveOptions } from "../../src/cli/commands/blueprint_commands.ts";
 
 /*
   Note: This test file exercises the top-level CLI parsing and command
@@ -45,7 +50,7 @@ Deno.test("plan approve calls planCommands.approve", async () => {
       assertEquals(id, "plan-123");
       return Promise.resolve();
     };
-    await (mod.__test_command as any).parse(["plan", "approve", "plan-123"]);
+    await mod.__test_command.parse(["plan", "approve", "plan-123"]);
     assert(called);
   });
 });
@@ -59,7 +64,7 @@ Deno.test("review reject calls reviewCommands.reject", async () => {
       assertEquals(reason, "not-good");
       return Promise.resolve();
     };
-    await (mod.__test_command as any).parse(["review", "reject", "cs-1", "-r", "not-good"]);
+    await mod.__test_command.parse(["review", "reject", "cs-1", "-r", "not-good"]);
     assert(called);
   });
 });
@@ -73,7 +78,7 @@ Deno.test("portal add invokes portalCommands.add", async () => {
       assert(target.includes("/tmp"));
       return Promise.resolve();
     };
-    await (mod.__test_command as any).parse(["portal", MemoryOperation.ADD, "/tmp/some/path", "MyAlias"]);
+    await mod.__test_command.parse(["portal", MemoryOperation.ADD, "/tmp/some/path", "MyAlias"]);
     assert(called);
   });
 });
@@ -91,7 +96,7 @@ Deno.test("git branches prints list (calls gitCommands.listBranches)", async () 
         },
       ]);
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse([PortalOperation.GIT, "branches"]);
+      await mod.__test_command.parse([PortalOperation.GIT, "branches"]);
     });
     assert(out.includes("main"));
   });
@@ -101,7 +106,7 @@ Deno.test("daemon status prints info (calls daemonCommands.status)", async () =>
   await withTestMod(async (mod, ctx) => {
     ctx.daemonCommands.status = () => Promise.resolve({ version: "v1", running: true, pid: 999, uptime: "1m" });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["daemon", "status"]);
+      await mod.__test_command.parse(["daemon", "status"]);
     });
     assert(out.includes("daemon"));
   });
@@ -110,13 +115,13 @@ Deno.test("daemon status prints info (calls daemonCommands.status)", async () =>
 Deno.test("blueprint remove calls blueprintCommands.remove", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    ctx.blueprintCommands.remove = (id: string, opts?: any) => {
+    ctx.blueprintCommands.remove = (id: string, opts?: BlueprintRemoveOptions) => {
       called = true;
       assertEquals(id, "agent-x");
       assertEquals(opts?.force, true);
       return Promise.resolve();
     };
-    await (mod.__test_command as any).parse(["blueprint", "remove", "agent-x", "--force"]);
+    await mod.__test_command.parse(["blueprint", "remove", "agent-x", "--force"]);
     assert(called);
   });
 });
@@ -125,7 +130,7 @@ Deno.test("request list shows 'No requests found' when empty", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.requestCommands.list = () => Promise.resolve([]);
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "list"]);
     });
     assert(out.includes("No requests found") || out.includes("count: 0"));
   });
@@ -148,7 +153,7 @@ Deno.test("request list prints entries when present", async () => {
         },
       ]);
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "list"]);
     });
     assert(out.includes("🔴") || out.includes("abcd1234"));
   });
@@ -173,7 +178,7 @@ Deno.test("request show prints content when request exists", async () => {
       });
 
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "show", "trace-1"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "show", "trace-1"]);
     });
     assert(out.includes("Hello world"));
   });
@@ -183,7 +188,7 @@ Deno.test("plan list shows entries and status icons", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.planCommands.list = () => Promise.resolve([{ id: "p1", status: "review", trace_id: "t1" }]);
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["plan", "list"]);
+      await mod.__test_command.parse(["plan", "list"]);
     });
     assert(out.includes("🔍") || out.includes("p1"));
   });
@@ -193,9 +198,20 @@ Deno.test("review list prints entries when present", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.reviewCommands.list = () =>
       Promise.resolve([
-        { request_id: "req-1", branch: "feat/x", files_changed: 2, created_at: Date.now(), trace_id: "trace-1" } as any,
+        {
+          request_id: "req-1",
+          branch: "feat/x",
+          files_changed: 2,
+          created_at: new Date().toISOString(),
+          trace_id: "trace-1",
+          agent_id: "agent-1",
+          diff: "",
+          commits: [],
+        },
       ]);
-    const out = await captureConsoleOutput(async () => await (mod.__test_command as any).parse(["review", "list"]));
+    const out = await captureConsoleOutput(async () => {
+      await mod.__test_command.parse(["review", "list"]);
+    });
     assert(out.includes("feat/x") || out.includes("req-1"));
   });
 });
@@ -205,7 +221,7 @@ Deno.test("git log prints commits when present", async () => {
     ctx.gitCommands.logByTraceId = (_t: string) =>
       Promise.resolve([{ sha: "deadbeef1234", message: "Fix", author: "me", date: new Date().toISOString() }]);
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse([PortalOperation.GIT, "log", "-t", "deadbeef"]);
+      await mod.__test_command.parse([PortalOperation.GIT, "log", "-t", "deadbeef"]);
     });
     assert(out.includes("deadbeef") || out.includes("Fix"));
   });
@@ -216,7 +232,7 @@ Deno.test("git status prints clean state when empty arrays", async () => {
     ctx.gitCommands.status = () =>
       Promise.resolve({ branch: "main", modified: [], added: [], deleted: [], untracked: [] });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse([PortalOperation.GIT, "status"]);
+      await mod.__test_command.parse([PortalOperation.GIT, "status"]);
     });
     assert(out.includes("main") && out.includes("clean") || out.includes("git.status"));
   });
@@ -226,7 +242,7 @@ Deno.test("portal list prints hint when empty", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.portalCommands.list = () => Promise.resolve([]);
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["portal", "list"]);
+      await mod.__test_command.parse(["portal", "list"]);
     });
     assert(out.includes("Add a portal") || out.includes("count: 0"));
   });
@@ -246,7 +262,7 @@ Deno.test("portal show prints details", async () => {
         lastVerified: "never",
       });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["portal", "show", "MyPortal"]);
+      await mod.__test_command.parse(["portal", "show", "MyPortal"]);
     });
     assert(out.includes("MyPortal") && out.includes("/tmp/portal-target"));
   });
@@ -256,7 +272,7 @@ Deno.test("blueprint list prints hint when empty and list when present", async (
   await withTestMod(async (mod, ctx) => {
     ctx.blueprintCommands.list = () => Promise.resolve([]);
     const emptyOut = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["blueprint", "list"]);
+      await mod.__test_command.parse(["blueprint", "list"]);
     });
     assert(emptyOut.includes("Create a blueprint"));
     ctx.blueprintCommands.list = () =>
@@ -270,7 +286,7 @@ Deno.test("blueprint list prints hint when empty and list when present", async (
         version: "1.0.0",
       }]);
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["blueprint", "list"]);
+      await mod.__test_command.parse(["blueprint", "list"]);
     });
     assert(out.includes("a1") || out.includes("A"));
   });
@@ -280,7 +296,7 @@ Deno.test("blueprint validate invalid triggers exit", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.blueprintCommands.validate = (_id: string) => Promise.resolve({ valid: false, errors: ["bad"] });
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["blueprint", "validate", "bad-agent"]);
+      await mod.__test_command.parse(["blueprint", "validate", "bad-agent"]);
     });
     assert(errors.some((e: string) => e.includes("Invalid")));
   });
@@ -301,7 +317,7 @@ Deno.test("request --file outputs JSON when --json specified", async () => {
         status: MemoryStatus.PENDING,
       });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md", "--json"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md", "--json"]);
     });
     assert(out.includes("{") && out.includes('"trace_id"') && out.includes("trace-1234"));
   });
@@ -322,7 +338,7 @@ Deno.test("request --file prints human output when no --json", async () => {
         status: MemoryStatus.PENDING,
       });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md"]);
     });
     assert(out.includes("request.created") || out.includes("trace-5678"));
   });
@@ -330,12 +346,12 @@ Deno.test("request --file prints human output when no --json", async () => {
 
 Deno.test("request inline create handles create errors and exits", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.create = (_desc: string, _opts?: any) => {
+    ctx.requestCommands.create = (_desc: string, _opts?: RequestOptions, _source?: RequestSource) => {
       throw new Error("create failed");
     };
 
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "Do something"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "Do something"]);
     });
     assert(errors.some((e: string) => e.includes("create failed")));
   });
@@ -347,7 +363,7 @@ Deno.test("request show handles not found and exits", async () => {
       throw new Error("not found");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "show", "missing"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "show", "missing"]);
     });
     assert(errors.some((e: string) => e.includes("not found")));
   });
@@ -362,7 +378,7 @@ Deno.test("portal verify summarizes healthy and broken portals", async () => {
         issues: ["missing"],
       }]);
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse(["portal", "verify"]);
+      await mod.__test_command.parse(["portal", "verify"]);
     });
     const joined = [...outs.logs, ...outs.warns, ...outs.errs].join("\n");
     assert(joined.includes("healthy") || joined.includes("broken"));
@@ -374,7 +390,7 @@ Deno.test("plan show prints content", async () => {
     ctx.planCommands.show = (id: string) =>
       Promise.resolve({ id, status: "review", content: "Plan details here", trace_id: "t1" });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["plan", "show", "plan-1"]);
+      await mod.__test_command.parse(["plan", "show", "plan-1"]);
     });
     assert(out.includes("Plan details here"));
   });
@@ -395,7 +411,7 @@ Deno.test("review show prints commits and diff", async () => {
         agent_id: "agent-1",
       });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["review", "show", "cs-1"]);
+      await mod.__test_command.parse(["review", "show", "cs-1"]);
     });
 
     assert(out.includes("abcdef12") && out.includes("---a"));
@@ -417,7 +433,7 @@ Deno.test("review show --diff outputs only diff", async () => {
         agent_id: "agent-1",
       });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["review", "show", "cs-1", "--diff"]);
+      await mod.__test_command.parse(["review", "show", "cs-1", "--diff"]);
     });
 
     // Should output only the diff, no formatted messages
@@ -430,12 +446,22 @@ Deno.test("review show --diff outputs only diff", async () => {
 Deno.test("request inline --dry-run logs dry_run and creates file", async () => {
   await withTestMod(async (mod, ctx) => {
     let created = false;
-    (ctx.requestCommands as any).create = (_desc: string, _opts?: any) => {
+    ctx.requestCommands.create = (_desc: string, _opts?: RequestOptions, _source?: RequestSource) => {
       created = true;
-      return { filename: "/tmp/req.md", trace_id: "t1", priority: "normal", agent: "a", path: "/tmp" };
+      return Promise.resolve({
+        filename: "/tmp/req.md",
+        trace_id: "t1",
+        priority: RequestPriority.NORMAL,
+        agent: "a",
+        path: "/tmp",
+        source: "cli" as const,
+        created_by: "tester",
+        created: "now",
+        status: MemoryStatus.PENDING,
+      });
     };
     const { logs, warns, errs } = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "Inline-dry", "--dry-run"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "Inline-dry", "--dry-run"]);
     });
     const joined = logs.concat(warns, errs).join("\n");
     assert(created);
@@ -446,11 +472,11 @@ Deno.test("request inline --dry-run logs dry_run and creates file", async () => 
 Deno.test("blueprint ls alias calls blueprintCommands.list", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    (ctx.blueprintCommands as any).list = () => {
+    ctx.blueprintCommands.list = () => {
       called = true;
-      return [];
+      return Promise.resolve([]);
     };
-    await (mod.__test_command as any).parse(["blueprint", "ls"]);
+    await mod.__test_command.parse(["blueprint", "ls"]);
     assert(called);
   });
 });
@@ -458,10 +484,11 @@ Deno.test("blueprint ls alias calls blueprintCommands.list", async () => {
 Deno.test("flow list calls flowCommands.listFlows", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    (ctx.flowCommands as any).listFlows = (_opts?: any) => {
+    ctx.flowCommands.listFlows = (_opts?: Parameters<FlowCommands["listFlows"]>[0]) => {
       called = true;
+      return Promise.resolve();
     };
-    await (mod.__test_command as any).parse(["flow", "list"]);
+    await mod.__test_command.parse(["flow", "list"]);
     assert(called);
   });
 });
@@ -469,10 +496,11 @@ Deno.test("flow list calls flowCommands.listFlows", async () => {
 Deno.test("dashboard show calls dashboardCommands.show", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    (ctx.dashboardCommands as any).show = () => {
+    ctx.dashboardCommands.show = () => {
       called = true;
+      return Promise.resolve();
     };
-    await (mod.__test_command as any).parse(["dashboard"]);
+    await mod.__test_command.parse(["dashboard"]);
     assert(called);
   });
 });
@@ -497,7 +525,7 @@ if (Deno.env.get("RUN_EXOCTL_TEST")) {
 Deno.test("request without description exits with error", async () => {
   await withTestMod(async (mod, _ctx) => {
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST]);
     });
     assert(errors.some((e: string) => e.includes("Description required")));
   });
@@ -505,11 +533,22 @@ Deno.test("request without description exits with error", async () => {
 
 Deno.test("request list --json outputs JSON", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).list = (_s?: string) => [
-      { trace_id: "t1", priority: "normal", agent: "a", created_by: "u", created: "t", status: MemoryStatus.PENDING },
-    ];
+    ctx.requestCommands.list = (_s?: RequestStatusType) =>
+      Promise.resolve([
+        {
+          trace_id: "t1",
+          priority: "normal",
+          agent: "a",
+          created_by: "u",
+          created: "t",
+          status: MemoryStatus.PENDING,
+          filename: "f",
+          path: "p",
+          source: "cli",
+        },
+      ]);
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "list", "--json"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "list", "--json"]);
     });
     assert(outs.logs.some((l) => l.includes('"trace_id"') || l.includes("cli.output")));
   });
@@ -518,21 +557,22 @@ Deno.test("request list --json outputs JSON", async () => {
 Deno.test("plan revise passes comments to planCommands.revise", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    (ctx.planCommands as any).revise = (id: string, comments: string[]) => {
+    ctx.planCommands.revise = (id: string, comments: string[]) => {
       called = true;
       assertEquals(id, "p-1");
       assertEquals(comments, ["c1", "c2"]);
+      return Promise.resolve();
     };
-    await (mod.__test_command as any).parse(["plan", "revise", "p-1", "-c", "c1", "-c", "c2"]);
+    await mod.__test_command.parse(["plan", "revise", "p-1", "-c", "c1", "-c", "c2"]);
     assert(called);
   });
 });
 
 Deno.test("git log prints no commits when none found", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.gitCommands as any).logByTraceId = (_t: string) => [];
+    ctx.gitCommands.logByTraceId = (_t: string) => Promise.resolve([]);
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse([PortalOperation.GIT, "log", "-t", "nope"]);
+      await mod.__test_command.parse([PortalOperation.GIT, "log", "-t", "nope"]);
     });
     assert(outs.logs.some((l) => l.includes("No commits found") || l.includes("git.log")));
   });
@@ -541,12 +581,13 @@ Deno.test("git log prints no commits when none found", async () => {
 Deno.test("portal remove --keep-card preserves context card", async () => {
   await withTestMod(async (mod, ctx) => {
     let called = false;
-    (ctx.portalCommands as any).remove = (alias: string, opts?: any) => {
+    ctx.portalCommands.remove = (alias: string, opts?: { keepCard?: boolean }) => {
       called = true;
       assertEquals(alias, "KeepMe");
       assertEquals(opts?.keepCard, true);
+      return Promise.resolve();
     };
-    await (mod.__test_command as any).parse(["portal", "remove", "KeepMe", "--keep-card"]);
+    await mod.__test_command.parse(["portal", "remove", "KeepMe", "--keep-card"]);
     assert(called);
   });
 });
@@ -554,21 +595,22 @@ Deno.test("portal remove --keep-card preserves context card", async () => {
 Deno.test("daemon logs supports --follow option", async () => {
   await withTestMod(async (mod, ctx) => {
     let calledWithFollow = false;
-    (ctx.daemonCommands as any).logs = (_lines: number, follow: boolean) => {
+    ctx.daemonCommands.logs = (_lines?: number, follow?: boolean) => {
       calledWithFollow = follow === true;
+      return Promise.resolve();
     };
-    await (mod.__test_command as any).parse(["daemon", "logs", "--follow"]);
+    await mod.__test_command.parse(["daemon", "logs", "--follow"]);
     assert(calledWithFollow);
   });
 });
 
 Deno.test("blueprint create error exits with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.blueprintCommands.create = (_id: string, _opts: any) => {
+    ctx.blueprintCommands.create = (_id: string, _opts: BlueprintCreateOptions) => {
       throw new Error("boom");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse([
+      await mod.__test_command.parse([
         "blueprint",
         "create",
         "agent-x",
@@ -584,11 +626,21 @@ Deno.test("blueprint create error exits with message", async () => {
 
 Deno.test("request inline --json prints JSON output", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.requestCommands as any).create = (_desc: string, _opts?: any) => {
-      return { filename: "/tmp/r.md", trace_id: "t-json", priority: "normal", agent: "a", path: "/tmp" };
+    ctx.requestCommands.create = (_desc: string, _opts?: RequestOptions, _source?: RequestSource) => {
+      return Promise.resolve({
+        filename: "/tmp/r.md",
+        trace_id: "t-json",
+        priority: RequestPriority.NORMAL,
+        agent: "a",
+        path: "/tmp",
+        source: "cli" as const,
+        created_by: "tester",
+        created: "now",
+        status: MemoryStatus.PENDING,
+      });
     };
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "make json", "--json"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "make json", "--json"]);
     });
     assert(outs.logs.some((l) => l.includes('"trace_id"') || l.includes("cli.output")));
   });
@@ -596,9 +648,9 @@ Deno.test("request inline --json prints JSON output", async () => {
 
 Deno.test("plan list empty prints hint", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.planCommands as any).list = (_s?: string) => [];
+    ctx.planCommands.list = (_s?: PlanStatusType) => Promise.resolve([]);
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse(["plan", "list"]);
+      await mod.__test_command.parse(["plan", "list"]);
     });
     assert(outs.logs.some((l) => l.includes("No plans found") || l.includes("plan.list")));
   });
@@ -606,11 +658,11 @@ Deno.test("plan list empty prints hint", async () => {
 
 Deno.test("git branches passes pattern option to listBranches", async () => {
   await withTestMod(async (mod, ctx) => {
-    (ctx.gitCommands as any).listBranches = (pattern?: string) => {
+    ctx.gitCommands.listBranches = (pattern?: string) => {
       assertEquals(pattern, "feat/*");
-      return [];
+      return Promise.resolve([]);
     };
-    await (mod.__test_command as any).parse([PortalOperation.GIT, "branches", "--pattern", "feat/*"]);
+    await mod.__test_command.parse([PortalOperation.GIT, "branches", "--pattern", "feat/*"]);
   });
 });
 
@@ -620,7 +672,7 @@ Deno.test("review show error exits with message", async () => {
       throw new Error("not found");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse(["review", "show", "cs-1"]);
+      await mod.__test_command.parse(["review", "show", "cs-1"]);
     });
     assert(errors.some((e: string) => e.includes("not found")));
   });
@@ -629,22 +681,22 @@ Deno.test("review show error exits with message", async () => {
 Deno.test("portal verify with alias invokes portalCommands.verify", async () => {
   await withTestMod(async (mod, ctx) => {
     let calledWithAlias = false;
-    (ctx.portalCommands as any).verify = (alias?: string) => {
+    ctx.portalCommands.verify = (alias?: string) => {
       calledWithAlias = alias === "MyPortal";
-      return [];
+      return Promise.resolve([]);
     };
-    await (mod.__test_command as any).parse(["portal", "verify", "MyPortal"]);
+    await mod.__test_command.parse(["portal", "verify", "MyPortal"]);
     assert(calledWithAlias);
   });
 });
 
 Deno.test("blueprint create successful prints created message", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.blueprintCommands.create = (id: string, opts: any) =>
+    ctx.blueprintCommands.create = (id: string, opts: BlueprintCreateOptions) =>
       Promise.resolve({
         agent_id: id,
-        name: opts.name,
-        model: opts.model,
+        name: opts.name ?? id,
+        model: opts.model ?? "mock:test",
         path: "/tmp",
         capabilities: [],
         created: "now",
@@ -652,7 +704,7 @@ Deno.test("blueprint create successful prints created message", async () => {
         version: "1.0.0",
       });
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse(["blueprint", "create", "agent-y", "-n", "N", "-m", "mock:test"]);
+      await mod.__test_command.parse(["blueprint", "create", "agent-y", "-n", "N", "-m", "mock:test"]);
     });
     assert(outs.logs.some((l) => l.includes("blueprint.created") || l.includes("agent-y")));
   });
@@ -670,9 +722,9 @@ Deno.test("exoctl: --version prints version and exits (in-process)", async () =>
       throw new Error(`DENO_EXIT:${code ?? 0}`);
     };
     try {
-      await (mod.__test_command as any).parse(["--version"]);
-    } catch (e: any) {
-      if (!e.message.startsWith("DENO_EXIT:")) throw e;
+      await mod.__test_command.parse(["--version"]);
+    } catch (e: unknown) {
+      if (!(e instanceof Error) || !e.message.startsWith("DENO_EXIT:")) throw e;
     } finally {
       (Deno as any).exit = origExit;
       console.log = origLog;
@@ -683,7 +735,7 @@ Deno.test("exoctl: --version prints version and exits (in-process)", async () =>
 
 Deno.test("request --file --dry-run prints human output", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.createFromFile = (_file: string, _opts?: any) =>
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: RequestOptions) =>
       Promise.resolve({
         filename: "/tmp/exo-test/request-file.md",
         trace_id: "trace-file-1",
@@ -696,7 +748,7 @@ Deno.test("request --file --dry-run prints human output", async () => {
         status: MemoryStatus.PENDING,
       });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md", "--dry-run"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "--file", "/tmp/some.md", "--dry-run"]);
     });
     assert(out.includes("request.created") || out.includes("trace-file-1"));
   });
@@ -704,7 +756,7 @@ Deno.test("request --file --dry-run prints human output", async () => {
 
 Deno.test("request --file --json --dry-run prints JSON output", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.createFromFile = (_file: string, _opts?: any) =>
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: RequestOptions) =>
       Promise.resolve({
         filename: "/tmp/exo-test/request-file2.md",
         trace_id: "trace-file-2",
@@ -717,7 +769,7 @@ Deno.test("request --file --json --dry-run prints JSON output", async () => {
         status: MemoryStatus.PENDING,
       });
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse([
+      await mod.__test_command.parse([
         FlowInputSource.REQUEST,
         "--file",
         "/tmp/some.md",
@@ -731,11 +783,11 @@ Deno.test("request --file --json --dry-run prints JSON output", async () => {
 
 Deno.test("request --file errors exit with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.createFromFile = (_file: string, _opts?: any) => {
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: RequestOptions) => {
       throw new Error("file missing");
     };
     const { errors } = await expectExitWithLogs(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "--file", "/tmp/missing.md"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "--file", "/tmp/missing.md"]);
     });
     assert(errors.some((e: string) => e.includes("file missing")));
   });
@@ -743,7 +795,7 @@ Deno.test("request --file errors exit with message", async () => {
 
 Deno.test("request inline --dry-run with --json prefers dry-run", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.create = (_desc: string, _opts?: any) =>
+    ctx.requestCommands.create = (_desc: string, _opts?: RequestOptions, _source?: RequestSource) =>
       Promise.resolve({
         filename: "/tmp/req.md",
         trace_id: "t-dry",
@@ -756,7 +808,7 @@ Deno.test("request inline --dry-run with --json prefers dry-run", async () => {
         status: MemoryStatus.PENDING,
       });
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse([FlowInputSource.REQUEST, "Do something", "--dry-run", "--json"]);
+      await mod.__test_command.parse([FlowInputSource.REQUEST, "Do something", "--dry-run", "--json"]);
     });
     const joined = [...outs.logs, ...outs.warns, ...outs.errs].join("\n");
     assert(joined.includes("cli.dry_run") && !joined.includes('"trace_id"'));
@@ -770,7 +822,7 @@ Deno.test("plan list passes status filter to planCommands.list", async () => {
       return Promise.resolve([{ id: "p-filter", status: "review", trace_id: "t" }]);
     };
     const out = await captureConsoleOutput(async () => {
-      await (mod.__test_command as any).parse(["plan", "list", "--status", "review"]);
+      await mod.__test_command.parse(["plan", "list", "--status", "review"]);
     });
     assert(out.includes("p-filter"));
   });
@@ -780,7 +832,7 @@ Deno.test("blueprint validate valid prints success", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.blueprintCommands.validate = (_id: string) => Promise.resolve({ valid: true, warnings: [], errors: [] });
     const outs = await captureAllOutputs(async () => {
-      await (mod.__test_command as any).parse(["blueprint", "validate", "good-agent"]);
+      await mod.__test_command.parse(["blueprint", "validate", "good-agent"]);
     });
     const joined = [...outs.logs, ...outs.warns, ...outs.errs].join("\n");
     assert(joined.includes("valid") || joined.includes("✅") || joined.includes("blueprint.valid"));

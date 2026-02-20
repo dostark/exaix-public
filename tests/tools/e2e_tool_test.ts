@@ -47,14 +47,14 @@ Deno.test("ToolRegistry: E2E Workflow", async (t) => {
     // Check git status
     const status = await registry.execute("git_info", { repo_path: tempDir, scope: "status" });
     assertEquals(status.success, true);
-    const files = status.data as any[];
+    const files = status.data as Array<{ file: string; status: string }>;
     assertEquals(files.length, 1);
     assertEquals(files[0].file, "main.ts");
 
     // Search for TODOs
     const todos = await registry.execute("grep_search", { pattern: "TODO", path: "." });
     assertEquals(todos.success, true);
-    const matches = todos.data as any[];
+    const matches = todos.data as Array<{ file: string; line: number; content: string }>;
     assertEquals(matches.length, 1);
     assertEquals(matches[0].file, "main.ts");
     assertEquals(matches[0].content.includes("Implement greeting"), true);
@@ -113,7 +113,7 @@ Deno.test("ToolRegistry: E2E Workflow", async (t) => {
     // We didn't add "main.ts" to git index, so it was just untracked file moved.
     // So git status should show "src/main.ts" as untracked.
     const status = await registry.execute("git_info", { repo_path: tempDir, scope: "status" });
-    const files = status.data as any[];
+    const files = status.data as Array<{ file: string; status: string }>;
     // Should contain src/main.ts OR src/ (if whole dir is untracked)
     const found = files.some((f) => f.file === "src/main.ts" || f.file === "src/" || f.file === "src");
     assertEquals(found, true);
