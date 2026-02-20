@@ -17,7 +17,7 @@
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import { getProviderForModel, ProviderFactory } from "../../src/ai/provider_factory.ts";
+import { ProviderFactory } from "../../src/ai/provider_factory.ts";
 import { TEST_MODEL_ANTHROPIC, TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { ProviderFactoryError } from "../../src/ai/errors.ts";
 import { DaemonStatus, ProviderType } from "../../src/enums.ts";
@@ -25,21 +25,12 @@ import { RateLimitError } from "../../src/ai/rate_limited_provider.ts";
 import { SecureCredentialStore } from "../../src/helpers/credential_security.ts";
 import { MockStrategy } from "../../src/enums.ts";
 
-import { AiConfig, AiConfigSchema } from "../../src/config/ai_config.ts";
-import { Config } from "../../src/config/schema.ts";
+import { AiConfigSchema } from "../../src/config/ai_config.ts";
+import { createTestConfig, getProviderForModel } from "./helpers/test_config.ts";
 
 // ============================================================================
 // Test Fixtures
 // ============================================================================
-
-import { createTestConfig as _createTestConfig } from "./helpers/test_config.ts";
-
-/**
- * Create a minimal config for testing.
- */
-function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
-  return _createTestConfig(aiConfig);
-}
 
 /**
  * Helper to set env vars and clean up after test
@@ -486,7 +477,8 @@ Deno.test("ProviderFactory: unknown provider generates unknown ID", () => {
   // Mock the resolveOptions to return unknown provider
   const originalResolveOptions = ProviderFactory["resolveOptions"];
   ProviderFactory["resolveOptions"] = () => ({
-    provider: DaemonStatus.UNKNOWN as any,
+    // @ts-expect-error - Testing unknown provider behavior
+    provider: "unknown",
     model: "test-model",
     timeoutMs: 30000,
   });

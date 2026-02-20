@@ -100,7 +100,7 @@ Deno.test("LearningSchema: rejects invalid category", () => {
     scope: MemoryScope.GLOBAL,
     title: "Test",
     description: "Test description",
-    category: "invalid-category" as any, // Invalid
+    category: "invalid-category" as Partial<LearningCategory> as LearningCategory, // Invalid
     tags: [],
     confidence: ConfidenceLevel.HIGH,
     status: MemoryStatus.APPROVED,
@@ -121,7 +121,8 @@ Deno.test("LearningSchema: rejects invalid status", () => {
     category: LearningCategory.PATTERN,
     tags: [],
     confidence: ConfidenceLevel.HIGH,
-    status: DaemonStatus.UNKNOWN as any, // Invalid
+    // @ts-expect-error - Testing invalid status
+    status: DaemonStatus.UNKNOWN as MemoryStatus, // Invalid
   });
 
   const result = LearningSchema.safeParse(learning);

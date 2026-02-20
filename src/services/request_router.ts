@@ -11,8 +11,8 @@
  * @dependencies [FlowRunner, AgentRunner, BlueprintLoader, WorkspaceExecutionContext, FlowValidator]
  * @related-files [src/services/request_processor.ts, src/flows/flow_runner.ts, src/services/flow_validator.ts]
  */
-import { type FlowResult, FlowRunner } from "../flows/flow_runner.ts";
-import { type AgentExecutionResult, AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
+import { type FlowResult, type IFlowRunner } from "../flows/flow_runner.ts";
+import { type AgentExecutionResult, type Blueprint, type IAgentRunner, type ParsedRequest } from "./agent_runner.ts";
 import { EventLogger } from "./event_logger.ts";
 import { BlueprintLoader } from "./blueprint_loader.ts";
 import { WorkspaceExecutionContext, WorkspaceExecutionContextBuilder } from "./workspace_execution_context.ts";
@@ -63,8 +63,8 @@ export interface FlowValidator {
  */
 export class RequestRouter {
   constructor(
-    private flowRunner: FlowRunner,
-    private agentRunner: AgentRunner,
+    private flowRunner: IFlowRunner,
+    private agentRunner: IAgentRunner,
     private flowValidator: FlowValidator,
     private eventLogger: EventLogger,
     private defaultAgentId: string,
@@ -144,7 +144,7 @@ export class RequestRouter {
     return await this.routeToDefaultAgent(request);
   }
 
-  private async routeToFlow(flowId: string, request: RouterRequest): Promise<RoutingDecision> {
+  public async routeToFlow(flowId: string, request: RouterRequest): Promise<RoutingDecision> {
     const { traceId, requestId } = request;
 
     // Log routing decision
@@ -192,7 +192,7 @@ export class RequestRouter {
     };
   }
 
-  private async routeToAgent(agentId: string, request: RouterRequest): Promise<RoutingDecision> {
+  public async routeToAgent(agentId: string, request: RouterRequest): Promise<RoutingDecision> {
     const { traceId, requestId, body } = request;
 
     // Log routing decision
@@ -231,7 +231,7 @@ export class RequestRouter {
     };
   }
 
-  private async routeToDefaultAgent(request: RouterRequest): Promise<RoutingDecision> {
+  public async routeToDefaultAgent(request: RouterRequest): Promise<RoutingDecision> {
     const { traceId, requestId } = request;
 
     // Log routing decision

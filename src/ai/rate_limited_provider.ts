@@ -49,12 +49,12 @@ export interface RateLimitConfig {
 export class RateLimitedProvider implements IModelProvider {
   public readonly id: string;
 
-  private callsThisMinute = 0;
-  private tokensThisHour = 0;
-  private costThisDay = 0;
-  private windowStart = Date.now();
-  private hourStart = Date.now();
-  private dayStart = Date.now();
+  public callsThisMinute = 0;
+  public tokensThisHour = 0;
+  public costThisDay = 0;
+  public windowStart = Date.now();
+  public hourStart = Date.now();
+  public dayStart = Date.now();
 
   constructor(
     private inner: IModelProvider,
@@ -121,7 +121,7 @@ export class RateLimitedProvider implements IModelProvider {
   /**
    * Reset rate limit windows when they expire
    */
-  private resetWindowsIfNeeded(): void {
+  public resetWindowsIfNeeded(): void {
     const now = Date.now();
 
     // Reset per-minute counter

@@ -1,8 +1,7 @@
 import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.201.0/testing/asserts.ts";
 import { join } from "https://deno.land/std@0.201.0/path/mod.ts";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
-import { Config } from "../../src/config/schema.ts";
-import { ExoPathDefaults } from "../../src/config/constants.ts";
+import { createTestConfig } from "../ai/helpers/test_config.ts";
 
 Deno.test("ToolRegistry should include allowed roots in access denied error", async () => {
   const workspaceDir = await Deno.makeTempDir({ prefix: "workspace-" });
@@ -13,16 +12,8 @@ Deno.test("ToolRegistry should include allowed roots in access denied error", as
     await Deno.mkdir(join(workspaceDir, "Memory"));
     await Deno.mkdir(join(workspaceDir, "Blueprints"));
 
-    const config: Config = {
-      system: { root: workspaceDir, log_level: "info" },
-      paths: { ...ExoPathDefaults },
-      portals: [],
-      // Minimal required config
-      agents: { default_model: "mock:test" },
-      models: {},
-      database: {},
-      watcher: {},
-    } as any;
+    const config = createTestConfig();
+    config.system.root = workspaceDir;
 
     const registry = new ToolRegistry({ config });
 

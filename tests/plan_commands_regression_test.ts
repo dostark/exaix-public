@@ -16,6 +16,7 @@ import { ExoPathDefaults } from "../src/config/constants.ts";
 import { PlanStatus } from "../src/plans/plan_status.ts";
 import type { PlanMetadata } from "../src/cli/commands/plan_commands.ts";
 import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
+import type { Config } from "../src/config/schema.ts";
 
 const TEST_AGENT_ID = "test-agent";
 const TEST_CREATED_AT = "2026-01-17T00:00:00.000Z";
@@ -67,7 +68,7 @@ function initPlanTest(tempDir: string) {
   const config = {
     system: { root: tempDir },
     paths: { ...ExoPathDefaults },
-  } as any;
+  } as Partial<Config> as Config;
   const stubDb = createStubDb();
   return { config, stubDb };
 }

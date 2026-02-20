@@ -1,17 +1,10 @@
 import { assertEquals } from "@std/assert";
 import { StatusManager } from "../../src/services/request_processing/status_manager.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";
-import type { EventLogger } from "../../src/services/event_logger.ts";
+import { EventLogger } from "../../src/services/event_logger.ts";
 
 Deno.test("StatusManager.updateStatus: rewrites status in frontmatter", async () => {
   const calls: unknown[] = [];
-  const logger = {
-    error: (...args: unknown[]) => {
-      calls.push(args);
-      return Promise.resolve();
-    },
-  } as unknown as EventLogger;
-
   const originalWrite = Deno.writeTextFile;
   const originalRead = Deno.readTextFile;
   let written: { path: string; content: string } | null = null;
@@ -22,15 +15,21 @@ Deno.test("StatusManager.updateStatus: rewrites status in frontmatter", async ()
       return Promise.resolve();
     };
     (Deno as any).readTextFile = (path: string) => {
+      const filePath = "/tmp/request.md";
+      const original = "---\nstatus: pending\n---\nBody\n";
       if (path === filePath) {
         return Promise.resolve(original);
       }
       return Promise.reject(new Deno.errors.NotFound("file not found"));
     };
 
-    const mgr = new StatusManager(logger);
+    const mgr = new StatusManager(Object.assign(Object.create(EventLogger.prototype), {
+      error: (...args: unknown[]) => {
+        calls.push(args);
+        return Promise.resolve();
+      },
+    }));
     const filePath = "/tmp/request.md";
-    const original = "---\nstatus: pending\n---\nBody\n";
 
     await mgr.updateStatus(filePath, RequestStatus.FAILED);
 
@@ -46,13 +45,6 @@ Deno.test("StatusManager.updateStatus: rewrites status in frontmatter", async ()
 
 Deno.test("StatusManager.updateStatus: logs on write failure", async () => {
   const calls: any[] = [];
-  const logger = {
-    error: (...args: unknown[]) => {
-      calls.push(args);
-      return Promise.resolve();
-    },
-  } as unknown as EventLogger;
-
   const originalWrite = Deno.writeTextFile;
   const originalRead = Deno.readTextFile;
   try {
@@ -65,8 +57,12 @@ Deno.test("StatusManager.updateStatus: logs on write failure", async () => {
       }
       return Promise.reject(new Deno.errors.NotFound("file not found"));
     };
-
-    const mgr = new StatusManager(logger);
+    const mgr = new StatusManager(Object.assign(Object.create(EventLogger.prototype), {
+      error: (...args: unknown[]) => {
+        calls.push(args);
+        return Promise.resolve();
+      },
+    }));
     await mgr.updateStatus("/tmp/request.md", RequestStatus.FAILED);
 
     assertEquals(calls.length, 1);

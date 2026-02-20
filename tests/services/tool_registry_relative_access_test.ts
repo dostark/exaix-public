@@ -1,5 +1,5 @@
-import { assertEquals } from "https://deno.land/std@0.201.0/testing/asserts.ts";
-import { join } from "https://deno.land/std@0.201.0/path/mod.ts";
+import { assertEquals } from "@std/assert";
+import { join } from "@std/path";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { Config } from "../../src/config/schema.ts";
 import { ExoPathDefaults } from "../../src/config/constants.ts";
@@ -19,7 +19,7 @@ Deno.test("ToolRegistry - Relative Path Access in Portal via baseDir", async () 
       models: {},
       database: {},
       watcher: {},
-    } as any;
+    } as Partial<Config> as Config;
 
     // Initialize ToolRegistry WITH baseDir set to portalDir
     const registry = new ToolRegistry({

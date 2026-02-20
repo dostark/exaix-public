@@ -21,7 +21,7 @@ import { initTestDbService } from "../helpers/db.ts";
 
 Deno.test("HealthCheckService: initializes with version", () => {
   const service = new HealthCheckService("1.0.0");
-  assertEquals(service["version"], "1.0.0");
+  assertEquals(service.version, "1.0.0");
 });
 
 Deno.test("HealthCheckService: registers health checks", () => {
@@ -33,9 +33,8 @@ Deno.test("HealthCheckService: registers health checks", () => {
   };
 
   service.registerCheck(mockCheck);
-  // Access private property for testing
-  assertEquals((service as any).checks.size, 1);
-  assertEquals((service as any).checks.get("test"), mockCheck);
+  assertEquals(service.checks.size, 1);
+  assertEquals(service.checks.get("test"), mockCheck);
 });
 
 Deno.test("HealthCheckService: returns healthy status when all checks pass", async () => {

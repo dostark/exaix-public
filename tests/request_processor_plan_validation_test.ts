@@ -21,6 +21,7 @@ import { initTestDbService } from "./helpers/db.ts";
 import { getWorkspaceRejectedDir, getWorkspaceRequestsDir } from "./helpers/paths_helper.ts";
 import { RequestShowHandler } from "../src/cli/handlers/request_show_handler.ts";
 import { StatusManager } from "../src/services/request_processing/status_manager.ts";
+import type { EventLogger } from "../src/services/event_logger.ts";
 
 function parseFrontmatter(content: string): Record<string, unknown> {
   const parts = content.split("---");
@@ -336,7 +337,7 @@ Deno.test("Regression: StatusManager stores error messages in YAML frontmatter",
       error: async () => {},
       info: async () => {},
       debug: async () => {},
-    } as any);
+    } as Partial<EventLogger> as EventLogger);
 
     const requestPath = join(tempDir, "test-request.md");
     await Deno.writeTextFile(requestPath, "---\nstatus: pending\n---\nBody");

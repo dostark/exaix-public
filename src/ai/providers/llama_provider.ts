@@ -33,7 +33,7 @@ export class LlamaProvider implements IModelProvider {
   readonly endpoint: string;
   private readonly maxAttempts: number;
   private readonly backoffBaseMs: number;
-  private readonly timeoutMs: number;
+  public readonly timeoutMs: number;
 
   /**
    * @param options.model Model name (must start with codellama: or llamaX:)

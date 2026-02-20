@@ -18,6 +18,7 @@ import type {
   PromoteDialog,
 } from "../../../src/tui/dialogs/memory_dialogs.ts";
 import { createMockDialog, createMockService, createTestContext, testDialogProcess } from "./memory_test_helpers.ts";
+import type { MemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
 
 testDialogProcess(
   "DialogProcessor.processConfirmApproveDialog: cancelled",
@@ -108,7 +109,8 @@ testDialogProcess(
 Deno.test("DialogProcessor.processBulkApproveDialog: approves each pending and reports progress", async () => {
   const approved: string[] = [];
   const service = createMockService({
-    listPending: () => Promise.resolve([{ id: "a" }, { id: "b" }] as any),
+    listPending: () =>
+      Promise.resolve([{ id: "a" }, { id: "b" }] as Partial<MemoryUpdateProposal[]> as MemoryUpdateProposal[]),
     approvePending: (id: string) => {
       approved.push(id);
       return Promise.resolve();

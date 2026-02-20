@@ -82,7 +82,7 @@ Deno.test("ContextError: toJSON includes all fields", () => {
 });
 
 Deno.test("ContextError: toJSON handles non-Error cause", () => {
-  const error = new ContextError("Main error", { operation: "test" }, "string cause" as any);
+  const error = new ContextError("Main error", { operation: "test" }, "string cause" as Partial<Error> as Error);
 
   const json = error.toJSON();
 

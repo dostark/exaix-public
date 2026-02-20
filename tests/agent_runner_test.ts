@@ -518,7 +518,7 @@ Deno.test("AgentRunner handles JSON parse errors", async () => {
 Deno.test("AgentRunner handles provider returning null", async () => {
   const nullProvider = new MockProvider(wellFormedResponse);
   nullProvider.generate = () => {
-    return Promise.resolve(null as unknown as string);
+    return Promise.resolve(null as never as string);
   };
 
   const runner = new AgentRunner(nullProvider);
@@ -532,7 +532,7 @@ Deno.test("AgentRunner handles provider returning null", async () => {
 Deno.test("AgentRunner handles provider returning undefined", async () => {
   const undefinedProvider = new MockProvider(wellFormedResponse);
   undefinedProvider.generate = () => {
-    return Promise.resolve(undefined as unknown as string);
+    return Promise.resolve(undefined as never as string);
   };
 
   const runner = new AgentRunner(undefinedProvider);
@@ -900,7 +900,7 @@ Deno.test("AgentRunner: handles skill matching error gracefully", async () => {
   };
 
   const runner = new AgentRunner(mockProvider, {
-    skillsService: errorSkills as unknown as ISkillsService,
+    skillsService: errorSkills as Partial<ISkillsService> as ISkillsService,
   });
 
   // Should not throw, should continue without skills

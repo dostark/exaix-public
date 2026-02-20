@@ -34,7 +34,7 @@ export abstract class BaseProvider implements IModelProvider {
   protected readonly logger?: EventLogger;
   protected readonly retryDelayMs: number;
   protected readonly maxRetries: number;
-  protected readonly timeoutMs: number;
+  public readonly timeoutMs: number;
 
   constructor(
     options: BaseProviderOptions,

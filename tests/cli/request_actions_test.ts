@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { TEST_MODEL_ANTHROPIC, TEST_PROVIDER_ID_ANTHROPIC } from "../config/constants.ts";
 import { handleRequestShow, type RequestActionContext } from "../../src/cli/command_builders/request_actions.ts";
-import type { RequestCommands } from "../../src/cli/commands/request_commands.ts";
+import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
 import { EventLogger, type EventLoggerConfig } from "../../src/services/event_logger.ts";
 import { LogLevel } from "../../src/enums.ts";
 
@@ -52,7 +52,7 @@ Deno.test("handleRequestShow: includes token stats when present", async () => {
   };
 
   const context: RequestActionContext = {
-    requestCommands: requestCommands as unknown as RequestCommands,
+    requestCommands: Object.assign(Object.create(RequestCommands.prototype), requestCommands),
     display,
   };
   await handleRequestShow(context, "trace-1");

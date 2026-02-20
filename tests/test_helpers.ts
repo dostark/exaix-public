@@ -21,31 +21,24 @@ export function createStubDb(overrides: Partial<IDatabaseService> = {}): IDataba
     waitForFlush: () => Promise.resolve(),
     queryActivity: () => Promise.resolve([]),
     preparedGet: <T>(_query: string, _params: (string | number | boolean | null)[] = []) =>
-      Promise.resolve((null as unknown) as T | null),
-    preparedAll: <T>(_query: string, _params: (string | number | boolean | null)[] = []) =>
-      Promise.resolve([] as unknown as T[]),
+      Promise.resolve(null as T | null),
+    preparedAll: <T>(_query: string, _params: (string | number | boolean | null)[] = []) => Promise.resolve([] as T[]),
     preparedRun: (_query: string, _params: (string | number | boolean | null)[] = []) => Promise.resolve({}),
     getActivitiesByTrace: (_traceId: string) => [],
     // The "Safe" variants delegate to the possibly-overridden sync method so tests
     // that provide a spy for `getActivitiesByTrace` or `getActivitiesByActionType`
     // still get invoked. This keeps backwards compatibility.
-    getActivitiesByTraceSafe: async function (_traceId: string) {
-      const fn = (this as unknown as Partial<IDatabaseService>).getActivitiesByTrace as
-        | ((traceId: string) => unknown)
-        | undefined;
-      if (typeof fn === "function") {
-        const r = fn(_traceId);
+    getActivitiesByTraceSafe: async function (this: IDatabaseService, _traceId: string) {
+      if (typeof this.getActivitiesByTrace === "function") {
+        const r = this.getActivitiesByTrace(_traceId);
         return r instanceof Promise ? await r : (r as any[]);
       }
       return [];
     },
     getActivitiesByActionType: (_actionType: string) => [],
-    getActivitiesByActionTypeSafe: async function (_actionType: string) {
-      const fn = (this as unknown as Partial<IDatabaseService>).getActivitiesByActionType as
-        | ((actionType: string) => unknown)
-        | undefined;
-      if (typeof fn === "function") {
-        const r = fn(_actionType);
+    getActivitiesByActionTypeSafe: async function (this: IDatabaseService, _actionType: string) {
+      if (typeof this.getActivitiesByActionType === "function") {
+        const r = this.getActivitiesByActionType(_actionType);
         return r instanceof Promise ? await r : (r as any[]);
       }
       return [];

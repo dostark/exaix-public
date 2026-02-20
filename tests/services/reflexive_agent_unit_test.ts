@@ -3,15 +3,15 @@ import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../../src/
 import { createCodeReviewReflexiveAgent, type Critique, ReflexiveAgent } from "../../src/services/reflexive_agent.ts";
 import type { AgentExecutionResult, Blueprint, ParsedRequest } from "../../src/services/agent_runner.ts";
 import type { IModelProvider } from "../../src/ai/providers.ts";
-import type { DatabaseService } from "../../src/services/db.ts";
+import type { DatabaseService as _DatabaseService } from "../../src/services/db.ts";
 import type { AgentRunner } from "../../src/services/agent_runner.ts";
 import type { OutputValidator } from "../../src/services/output_validator.ts";
 import type { CircuitBreaker } from "../../src/ai/circuit_breaker.ts";
 
 const stubProvider: IModelProvider = {
   id: "stub",
-  generate: () => Promise.resolve("ok"),
-} as unknown as IModelProvider;
+  generate: (_prompt: string) => Promise.resolve("ok"),
+};
 
 interface ReflectiveAccessor {
   config: {
@@ -42,7 +42,8 @@ interface ReflectiveAccessor {
 
 Deno.test("ReflexiveAgent.shouldAccept: rejects critical issues regardless", () => {
   const agent = new ReflexiveAgent(stubProvider, { confidenceThreshold: 100, maxIterations: 1 });
-  const accessor = agent as unknown as ReflectiveAccessor;
+  // @ts-expect-error test mock accessing private properties
+  const accessor: ReflectiveAccessor = agent;
 
   const critique: Critique = {
     quality: CritiqueQuality.EXCELLENT,
@@ -58,7 +59,8 @@ Deno.test("ReflexiveAgent.shouldAccept: rejects critical issues regardless", () 
 
 Deno.test("ReflexiveAgent.updateMetrics/resetMetrics track distributions", () => {
   const agent = new ReflexiveAgent(stubProvider, { maxIterations: 1 });
-  const accessor = agent as unknown as ReflectiveAccessor;
+  // @ts-expect-error test mock accessing private properties
+  const accessor: ReflectiveAccessor = agent;
 
   agent.resetMetrics();
   const critique: Critique = {
@@ -78,7 +80,8 @@ Deno.test("ReflexiveAgent.updateMetrics/resetMetrics track distributions", () =>
 
 Deno.test("createCodeReviewReflexiveAgent: applies stricter defaults", () => {
   const agent = createCodeReviewReflexiveAgent(stubProvider);
-  const accessor = agent as unknown as ReflectiveAccessor;
+  // @ts-expect-error test mock accessing private properties
+  const accessor: ReflectiveAccessor = agent;
   const cfg = accessor.config;
 
   assertEquals(cfg.maxIterations, 2);
@@ -93,10 +96,12 @@ Deno.test("ReflexiveAgent.logActivity: writes to db when present", () => {
   };
 
   const agent = new ReflexiveAgent(stubProvider, {
-    db: db as unknown as DatabaseService,
+    // @ts-expect-error test mock
+    db: db,
     maxIterations: 1,
   });
-  const accessor = agent as unknown as ReflectiveAccessor;
+  // @ts-expect-error test mock accessing private properties
+  const accessor: ReflectiveAccessor = agent;
   accessor.logActivity("a", "t", null, { k: 1 }, "trace");
 
   assertEquals(calls.length, 1);
@@ -104,7 +109,8 @@ Deno.test("ReflexiveAgent.logActivity: writes to db when present", () => {
 
 Deno.test("ReflexiveAgent.shouldAccept: accepts when confidence meets threshold", () => {
   const agent = new ReflexiveAgent(stubProvider, { confidenceThreshold: 60, maxIterations: 1 });
-  const accessor = agent as unknown as ReflectiveAccessor;
+  // @ts-expect-error test mock accessing private properties
+  const accessor: ReflectiveAccessor = agent;
 
   const critique: Critique = {
     quality: CritiqueQuality.POOR,
@@ -120,7 +126,8 @@ Deno.test("ReflexiveAgent.shouldAccept: accepts when confidence meets threshold"
 
 Deno.test("ReflexiveAgent.shouldAccept: accepts when quality meets minQuality", () => {
   const agent = new ReflexiveAgent(stubProvider, { minQuality: CritiqueQuality.ACCEPTABLE, maxIterations: 1 });
-  const accessor = agent as unknown as ReflectiveAccessor;
+  // @ts-expect-error test mock accessing private properties
+  const accessor: ReflectiveAccessor = agent;
 
   const critique: Critique = {
     quality: CritiqueQuality.GOOD,
@@ -136,15 +143,17 @@ Deno.test("ReflexiveAgent.shouldAccept: accepts when quality meets minQuality", 
 
 Deno.test("ReflexiveAgent.critique: defaults to acceptable when critique response cannot be parsed", async () => {
   const agent = new ReflexiveAgent(stubProvider, { maxIterations: 1 });
-  const accessor = agent as unknown as ReflectiveAccessor;
+  // @ts-expect-error test mock accessing private properties
+  const accessor: ReflectiveAccessor = agent;
 
+  // @ts-expect-error test mock
   accessor.critiqueRunner = {
-    run: () => Promise.resolve({ content: "not-json" }),
-  } as unknown as AgentRunner;
+    run: () => Promise.resolve({ content: "not-json", thought: "", raw: "" }),
+  };
 
   const critique = await accessor.critique(
     { userPrompt: "u", context: {}, traceId: "t" } satisfies ParsedRequest,
-    { content: "resp" } as any,
+    { content: "resp", thought: "", raw: "" } satisfies AgentExecutionResult,
   );
 
   assertExists(critique);
@@ -155,24 +164,28 @@ Deno.test("ReflexiveAgent.critique: defaults to acceptable when critique respons
 
 Deno.test("ReflexiveAgent.run: early-exits on first passing critique", async () => {
   const agent = new ReflexiveAgent(stubProvider, { maxIterations: 3 });
-  const accessor = agent as unknown as ReflectiveAccessor;
+  // @ts-expect-error test mock accessing private properties
+  const accessor: ReflectiveAccessor = agent;
 
   // Make circuit breakers no-ops for deterministic unit testing.
-  accessor.agentBreaker.execute = ((fn: () => unknown) => fn()) as any;
-  accessor.critiqueBreaker.execute = ((fn: () => unknown) => fn()) as any;
+  accessor.agentBreaker.execute = (fn: () => Promise<any>) => fn();
+  accessor.critiqueBreaker.execute = (fn: () => Promise<any>) => fn();
 
   let agentRuns = 0;
+  // @ts-expect-error test mock
   accessor.agentRunner = {
     run: () => {
       agentRuns++;
-      return Promise.resolve({ content: `resp-${agentRuns}` });
+      return Promise.resolve({ content: `resp-${agentRuns}`, thought: "", raw: "" });
     },
-  } as unknown as AgentRunner;
+  };
 
+  // @ts-expect-error test mock
   accessor.critiqueRunner = {
-    run: () => Promise.resolve({ content: "ignored" }),
-  } as unknown as AgentRunner;
+    run: () => Promise.resolve({ content: "ignored", thought: "", raw: "" }),
+  };
 
+  // @ts-ignore test mock
   accessor.outputValidator = {
     validate: () => ({
       success: true,
@@ -182,9 +195,12 @@ Deno.test("ReflexiveAgent.run: early-exits on first passing critique", async () 
         passed: true,
         issues: [],
         reasoning: "ok",
-      },
+      } as any,
+      repairAttempted: false,
+      repairSucceeded: false,
+      raw: "",
     }),
-  } as unknown as OutputValidator;
+  };
 
   const result = await agent.run(
     { systemPrompt: "", agentId: "agent" } satisfies Blueprint,
@@ -199,24 +215,27 @@ Deno.test("ReflexiveAgent.run: early-exits on first passing critique", async () 
 
 Deno.test("ReflexiveAgent.run: refines when critique fails then accepts", async () => {
   const agent = new ReflexiveAgent(stubProvider, { maxIterations: 2, confidenceThreshold: 70 });
-  const accessor = agent as unknown as ReflectiveAccessor;
+  // @ts-expect-error test mock accessing private properties
+  const accessor: ReflectiveAccessor = agent;
 
-  accessor.agentBreaker.execute = ((fn: () => unknown) => fn()) as any;
-  accessor.critiqueBreaker.execute = ((fn: () => unknown) => fn()) as any;
+  accessor.agentBreaker.execute = (fn: () => Promise<any>) => fn();
+  accessor.critiqueBreaker.execute = (fn: () => Promise<any>) => fn();
 
   const responses = ["v1", "v2"];
   const prompts: string[] = [];
+  // @ts-expect-error test mock
   accessor.agentRunner = {
     run: (_blueprint: unknown, req: { userPrompt: string }) => {
       prompts.push(req.userPrompt);
       const content = responses.shift() ?? "final";
-      return Promise.resolve({ content });
+      return Promise.resolve({ content, thought: "", raw: "" });
     },
-  } as unknown as AgentRunner;
+  };
 
+  // @ts-expect-error test mock
   accessor.critiqueRunner = {
-    run: () => Promise.resolve({ content: "ignored" }),
-  } as unknown as AgentRunner;
+    run: () => Promise.resolve({ content: "ignored", thought: "", raw: "" }),
+  };
 
   const critiques = [
     {
@@ -236,9 +255,16 @@ Deno.test("ReflexiveAgent.run: refines when critique fails then accepts", async 
     },
   ];
 
+  // @ts-ignore test mock
   accessor.outputValidator = {
-    validate: () => ({ success: true, value: critiques.shift() }),
-  } as unknown as OutputValidator;
+    validate: () => ({
+      success: true,
+      value: critiques.shift() as any,
+      repairAttempted: false,
+      repairSucceeded: false,
+      raw: "",
+    }),
+  };
 
   const result = await agent.run(
     { systemPrompt: "", agentId: "agent" } satisfies Blueprint,

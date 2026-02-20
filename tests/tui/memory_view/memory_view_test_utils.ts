@@ -227,7 +227,7 @@ export function createMockGlobalMemory(): GlobalMemory {
 
 export function createTestSession(): MemoryViewTuiSession {
   const mockService = new ExtendedMockMemoryService();
-  return new MemoryViewTuiSession(mockService as unknown as MemoryServiceInterface);
+  return new MemoryViewTuiSession(mockService as Partial<MemoryServiceInterface> as MemoryServiceInterface);
 }
 
 export interface IMemoryViewServiceOptions {
@@ -268,7 +268,7 @@ export async function setupSession(
 }
 
 export function createSessionWithService(service: ExtendedMockMemoryService): MemoryViewTuiSession {
-  return new MemoryViewTuiSession(service as unknown as MemoryServiceInterface);
+  return new MemoryViewTuiSession(service as Partial<MemoryServiceInterface> as MemoryServiceInterface);
 }
 
 export async function testExecutionDetailRendering(exec: ExecutionMemory): Promise<string> {

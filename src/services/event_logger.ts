@@ -68,6 +68,16 @@ const DEFAULT_ICONS: Record<LogLevel, string> = {
 /** Cached user identity to avoid repeated git calls */
 let cachedUserIdentity: string | null = null;
 
+export interface IEventLogger {
+  log(event: LogEvent): Promise<void>;
+  info(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
+  warn(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
+  error(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
+  fatal(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
+  debug(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
+  child(overrides: Partial<LogEvent>): IEventLogger;
+}
+
 /**
  * Unified logging service that writes to both console and Activity Journal.
  *
@@ -83,7 +93,7 @@ let cachedUserIdentity: string | null = null;
  * serviceLogger.warn("context.truncated", "loader", { files_skipped: 3 });
  * ```
  */
-export class EventLogger {
+export class EventLogger implements IEventLogger {
   private readonly activityRepo?: ActivityRepository;
   private readonly db?: IDatabaseService; // DEPRECATED
   private readonly prefix: string;
@@ -223,6 +233,24 @@ export class EventLogger {
       target,
       payload: payload ? (toSafeJson(payload) as Record<string, JSONValue>) : undefined,
       level: LogLevel.DEBUG,
+      traceId,
+    });
+  }
+
+  /**
+   * Log a fatal-level event
+   */
+  async fatal(
+    action: string,
+    target: string,
+    payload?: LogMetadata,
+    traceId?: string,
+  ): Promise<void> {
+    await this.log({
+      action,
+      target,
+      payload: payload ? (toSafeJson(payload) as Record<string, JSONValue>) : undefined,
+      level: LogLevel.FATAL,
       traceId,
     });
   }

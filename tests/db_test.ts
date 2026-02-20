@@ -434,12 +434,17 @@ Deno.test("DatabaseService: handles transaction rollback on error", async () => 
     const originalExec = db.instance.exec.bind(db.instance);
     let callCount = 0;
 
-    (db.instance as any).exec = (sql: string, ...args: any[]) => {
+    (db.instance as Partial<{ exec: (sql: string, ...args: unknown[]) => unknown }> as {
+      exec: (sql: string, ...args: unknown[]) => unknown;
+    }).exec = (
+      sql: string,
+      ...args: unknown[]
+    ) => {
       if (typeof sql === "string" && sql.includes("INSERT INTO activity") && callCount === 0) {
         callCount++;
         throw new Error("Simulated insertion error");
       }
-      return originalExec(sql, ...args);
+      return originalExec(sql, ...(args as never[]));
     };
 
     db.logActivity(MemorySource.USER, "test.fail", "target", {}, traceId);
@@ -459,12 +464,17 @@ Deno.test("DatabaseService: retries on database locked", async () => {
     const originalExec = db.instance.exec.bind(db.instance);
     let attempts = 0;
 
-    (db.instance as any).exec = (sql: string, ...args: any[]) => {
+    (db.instance as Partial<{ exec: (sql: string, ...args: unknown[]) => unknown }> as {
+      exec: (sql: string, ...args: unknown[]) => unknown;
+    }).exec = (
+      sql: string,
+      ...args: unknown[]
+    ) => {
       if (typeof sql === "string" && (sql.includes("COMMIT") || sql.includes("INSERT")) && attempts < 2) {
         attempts++;
         throw new Error("database is locked");
       }
-      return originalExec(sql, ...args);
+      return originalExec(sql, ...(args as Parameters<typeof originalExec>));
     };
 
     db.logActivity(MemorySource.USER, "test.retry", "target", {}, traceId);

@@ -52,7 +52,7 @@ Deno.test("MonitorTuiSession: toggleBookmark ignores group nodes and toggles log
   monitorSession.toggleGrouping();
   monitorSession.toggleGrouping();
   const first = monitorSession.getLogTree()[0];
-  (monitorSession as any).state.selectedId = first.id;
+  monitorSession.state.selectedId = first.id;
 
   monitorSession.toggleBookmark();
   assertEquals(monitorSession.isBookmarked(first.id), true);
@@ -81,7 +81,7 @@ Deno.test("MonitorTuiSession: status line reflects paused, bookmarks, and groupi
 
   // bookmark selected log
   const first = monitorSession.getLogTree()[0];
-  (monitorSession as any).state.selectedId = first.id;
+  monitorSession.state.selectedId = first.id;
   monitorSession.toggleBookmark();
 
   monitorSession.toggleGrouping();

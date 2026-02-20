@@ -2,7 +2,7 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 
 import { MemoryFormatter } from "../../../src/tui/memory_view/formatters.ts";
 import { MemoryTuiScope } from "../../../src/tui/memory_view/memory_scope.ts";
-import type { TreeNode } from "../../../src/tui/memory_view/types.ts";
+import type { MemoryServiceInterface, TreeNode } from "../../../src/tui/memory_view/types.ts";
 import type {
   ExecutionMemory,
   GlobalMemory,
@@ -107,7 +107,7 @@ Deno.test("MemoryFormatter.formatExecutionDetail: loads fresh execution when dat
   const n = node(`${TUI_PREFIX_EXECUTION}${exec.trace_id}`, "exec", null);
   const service = {
     getExecutionByTraceId: () => Promise.resolve(exec),
-  } as any;
+  } as Partial<MemoryServiceInterface> as MemoryServiceInterface;
 
   const result = await MemoryFormatter.formatExecutionDetail(n, service);
   assertStringIncludes(result, "# Execution:");

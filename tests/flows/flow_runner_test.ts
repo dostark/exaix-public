@@ -1803,7 +1803,7 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
   const tokenSummaryEvent = mockLogger.events.find((e) => e.event === "flow.token_summary");
   assert(tokenSummaryEvent, "Should log flow.token_summary event");
 
-  const summary = tokenSummaryEvent.payload as unknown as TokenSummary;
+  const summary = tokenSummaryEvent.payload as Partial<TokenSummary> as TokenSummary;
   assertEquals(summary.totalLlmCalls, 3);
   assertEquals(summary.totalInputTokens, 450);
   assertEquals(summary.totalOutputTokens, 185);
@@ -1856,7 +1856,7 @@ Deno.test("[regression] FlowRunner: handles zero token usage gracefully", async 
   const tokenSummaryEvent = mockLogger.events.find((e) => e.event === "flow.token_summary");
   assert(tokenSummaryEvent, "Should log flow.token_summary event");
 
-  const summary = tokenSummaryEvent.payload as unknown as TokenSummary;
+  const summary = tokenSummaryEvent.payload as Partial<TokenSummary> as TokenSummary;
   assertEquals(summary.totalLlmCalls, 0);
   assertEquals(summary.totalInputTokens, 0);
   assertEquals(summary.totalOutputTokens, 0);

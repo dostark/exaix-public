@@ -25,7 +25,7 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 
 function createTestSession(): MemoryViewTuiSession {
   const mockService = new MockMemoryService();
-  return new MemoryViewTuiSession(mockService as unknown as MemoryServiceInterface);
+  return new MemoryViewTuiSession(mockService as Partial<MemoryServiceInterface> as MemoryServiceInterface);
 }
 
 async function enterSearchAndType(session: MemoryViewTuiSession, text: string): Promise<void> {
@@ -350,7 +350,7 @@ Deno.test("MemoryViewTuiSession: getFocusableElements returns panel list", () =>
 
 Deno.test("MemoryView: creates TUI session", () => {
   const mockService = new MockMemoryService();
-  const view = new MemoryView(mockService as unknown as MemoryServiceInterface);
+  const view = new MemoryView(mockService as Partial<MemoryServiceInterface> as MemoryServiceInterface);
 
   const session = view.createTuiSession();
   assertExists(session);
@@ -358,7 +358,7 @@ Deno.test("MemoryView: creates TUI session", () => {
 
 Deno.test("MemoryView: getService returns service instance", () => {
   const mockService = new MockMemoryService();
-  const view = new MemoryView(mockService as unknown as MemoryServiceInterface);
+  const view = new MemoryView(mockService as Partial<MemoryServiceInterface> as MemoryServiceInterface);
 
   const service = view.getService();
   assertExists(service);

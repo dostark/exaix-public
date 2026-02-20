@@ -116,7 +116,7 @@ Deno.test("restoreLayout: restores v1.2 flex layout and notifies", async () => {
 
     assertEquals(panes.length, 1);
     assertEquals(panes[0].id, "side");
-    assertEquals((panes[0].view as any).name, "OtherView");
+    assertEquals((panes[0].view as Partial<{ name: string }> as { name: string }).name, "OtherView");
     assertEquals(panes[0].maximized, true);
   });
 });

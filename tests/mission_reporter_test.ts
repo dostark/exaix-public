@@ -23,6 +23,7 @@ import { MemoryBankService } from "../src/services/memory_bank.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import { initTestDbService } from "./helpers/db.ts";
 import { getMemoryExecutionDir } from "./helpers/paths_helper.ts";
+import type { IDatabaseService } from "../src/services/db.ts";
 
 // ============================================================================
 // Helper Functions
@@ -252,7 +253,7 @@ Deno.test("MissionReporter: works without database service", async () => {
     // Create memoryBank without db (should fall back to console logging)
     const mockDb = {
       logActivity: () => {},
-    } as any;
+    } as Partial<IDatabaseService> as IDatabaseService;
 
     const memoryBank = new MemoryBankService(config, mockDb);
     const reporter = new MissionReporter(config, reportConfig, memoryBank);

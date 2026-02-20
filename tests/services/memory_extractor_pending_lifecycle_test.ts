@@ -13,6 +13,8 @@ import {
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import type { Learning, MemoryUpdateProposal, ProposalLearning } from "../../src/schemas/memory_bank.ts";
 import { createMockConfig } from "../helpers/config.ts";
+import type { IDatabaseService } from "../../src/services/db.ts";
+import type { IMemoryBankService } from "../../src/services/memory_bank.ts";
 
 function makeProposalLearning(overrides: Partial<ProposalLearning> = {}): ProposalLearning {
   return {
@@ -43,16 +45,16 @@ async function withTempRoot(fn: (root: string) => Promise<void>): Promise<void> 
 }
 
 function makeService(root: string, overrides: {
-  db?: unknown;
-  memoryBank?: unknown;
+  db?: IDatabaseService;
+  memoryBank?: IMemoryBankService;
 } = {}): {
   config: ReturnType<typeof createMockConfig>;
   svc: MemoryExtractorService;
 } {
   const config = createMockConfig(root);
-  const db = overrides.db ?? { logActivity: () => {} };
-  const memoryBank = overrides.memoryBank ?? {};
-  const svc = new MemoryExtractorService(config, db as any, memoryBank as any);
+  const db = overrides.db ?? ({ logActivity: () => {} } as Partial<IDatabaseService> as IDatabaseService);
+  const memoryBank = overrides.memoryBank ?? ({} as Partial<IMemoryBankService> as IMemoryBankService);
+  const svc = new MemoryExtractorService(config, db, memoryBank);
   return { config, svc };
 }
 
@@ -130,13 +132,13 @@ Deno.test("MemoryExtractorService.approvePending: global proposal merges learnin
     const calls: unknown[] = [];
 
     const { config, svc } = makeService(root, {
-      db: { logActivity: (...args: unknown[]) => calls.push(args) },
+      db: { logActivity: (...args: unknown[]) => calls.push(args) } as Partial<IDatabaseService> as IDatabaseService,
       memoryBank: {
         addGlobalLearning: (learning: Learning) => {
           calls.push({ kind: "addGlobalLearning", learning });
           return Promise.resolve();
         },
-      },
+      } as Partial<IMemoryBankService> as IMemoryBankService,
     });
 
     const pendingDir = await ensurePendingDir(config);
@@ -153,7 +155,10 @@ Deno.test("MemoryExtractorService.approvePending: global proposal merges learnin
     // file removed
     await assertRejects(() => Deno.stat(proposalPath));
 
-    const globalCall = calls.find((c) => (c as any)?.kind === "addGlobalLearning") as any;
+    const globalCall = calls.find((c) => (c as { kind?: string })?.kind === "addGlobalLearning") as {
+      kind: string;
+      learning: Learning;
+    };
     assertExists(globalCall);
     assertEquals(globalCall.learning.status, MemoryStatus.APPROVED);
     assertExists(globalCall.learning.approved_at);
@@ -165,13 +170,13 @@ Deno.test("MemoryExtractorService.approvePending: project proposal adds pattern 
     const calls: unknown[] = [];
 
     const { config, svc } = makeService(root, {
-      db: { logActivity: (...args: unknown[]) => calls.push(args) },
+      db: { logActivity: (...args: unknown[]) => calls.push(args) } as Partial<IDatabaseService> as IDatabaseService,
       memoryBank: {
         addPattern: (project: string, pattern: unknown) => {
           calls.push({ kind: "addPattern", project, pattern });
           return Promise.resolve();
         },
-      },
+      } as Partial<IMemoryBankService> as IMemoryBankService,
     });
 
     const pendingDir = await ensurePendingDir(config);
@@ -194,7 +199,11 @@ Deno.test("MemoryExtractorService.approvePending: project proposal adds pattern 
 
     await svc.approvePending(proposal.id);
 
-    const addPatternCall = calls.find((c) => (c as any)?.kind === "addPattern") as any;
+    const addPatternCall = calls.find((c) => (c as { kind?: string })?.kind === "addPattern") as {
+      kind: string;
+      project: string;
+      pattern: { examples: string[] };
+    };
     assertExists(addPatternCall);
     assertEquals(addPatternCall.project, "portalA");
     assertEquals(Array.isArray(addPatternCall.pattern.examples), true);
@@ -219,13 +228,18 @@ Deno.test("MemoryExtractorService.approveAll: counts only successful approvals",
   await withTempRoot(async (root) => {
     const { svc } = makeService(root);
 
-    (svc as any).listPending = () =>
+    interface Accessor {
+      listPending: () => Promise<Partial<MemoryUpdateProposal>[]>;
+      approvePending: (id: string) => Promise<void>;
+    }
+
+    (svc as Partial<Accessor> as Accessor).listPending = () =>
       Promise.resolve([
-        { id: "ok" },
-        { id: "bad" },
+        { id: "ok" } as MemoryUpdateProposal,
+        { id: "bad" } as MemoryUpdateProposal,
       ]);
 
-    (svc as any).approvePending = (id: string) => {
+    (svc as Partial<Accessor> as Accessor).approvePending = (id: string) => {
       if (id === "bad") throw new Error("boom");
       return Promise.resolve();
     };

@@ -20,7 +20,7 @@ Deno.test("ToolRegistry should allow access to portal targets", async () => {
       models: {},
       database: {},
       watcher: {},
-    } as any;
+    } as Partial<Config> as Config;
 
     const registry = new ToolRegistry({ config });
 

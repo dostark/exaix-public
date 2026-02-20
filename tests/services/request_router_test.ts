@@ -84,7 +84,6 @@ Deno.test("RequestRouter: flow takes priority over agent when both present (shou
   // flow takes priority. In practice, this should be prevented by the conflicting fields check.
   const { mockFlowRunner, mockAgentRunner, router } = createRouterTestContext();
 
-  // Temporarily bypass the conflicting fields check for this test
   const _originalRoute = router.route.bind(router);
   router.route = async function (request: any) {
     // Skip the conflicting fields check for this test
@@ -92,12 +91,12 @@ Deno.test("RequestRouter: flow takes priority over agent when both present (shou
     const agentId = request.frontmatter.agent;
 
     if (flowId) {
-      return await (router as any).routeToFlow.call(router, flowId, request);
+      return await router.routeToFlow(flowId, request);
     }
     if (agentId) {
-      return await (router as any).routeToAgent.call(router, agentId, request);
+      return await router.routeToAgent(agentId, request);
     }
-    return await (router as any).routeToDefaultAgent.call(router, request);
+    return await router.routeToDefaultAgent(request);
   };
 
   const request = sampleRouterRequest({ frontmatter: { flow: "code-review", agent: "senior-coder" } });

@@ -27,7 +27,7 @@ const createMockConfig = (rootDir: string): Config => ({
     },
   },
   // Minimal other config as needed
-} as unknown as Config);
+} as Partial<Config> as Config);
 
 Deno.test("MCP Domain Tools", async (t) => {
   const tempDir = await Deno.makeTempDir();

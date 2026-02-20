@@ -200,7 +200,7 @@ export function sampleSingleMonitorLog() {
 export function samplePortal(overrides: Record<string, unknown> = {}): PortalInfo {
   return {
     alias: (overrides.alias as string) ?? `Portal-${Math.floor(Math.random() * 1e6)}`,
-    status: (overrides.status as unknown as PortalStatus) ?? SkillStatus.ACTIVE,
+    status: (overrides.status as Partial<PortalStatus> as PortalStatus) ?? SkillStatus.ACTIVE,
     targetPath: (overrides.targetPath as string) ?? "/Portals/Main",
     symlinkPath: (overrides.symlinkPath as string) ?? "",
     contextCardPath: (overrides.contextCardPath as string) ?? "",
@@ -516,7 +516,7 @@ export function createLegacyMockRequestService() {
   return {
     listRequests: () => Promise.resolve([]),
     getRequestContent: () => Promise.resolve(""),
-    createRequest: () => Promise.resolve({} as any),
+    createRequest: () => Promise.resolve({} as Partial<Request> as Request),
     updateRequestStatus: () => Promise.resolve(true),
   };
 }
@@ -539,7 +539,7 @@ export function createLegacyTuiSessionWithTracking() {
     },
     createRequest: () => {
       createCalled = true;
-      return Promise.resolve(commonTestData.mockObjects.newRequest() as any);
+      return Promise.resolve(commonTestData.mockObjects.newRequest() as Partial<Request> as Request);
     },
     updateRequestStatus: () => {
       deleteCalled = true;
@@ -560,7 +560,7 @@ export function createLegacyTuiSessionWithLongTraceId() {
     createRequest: () =>
       Promise.resolve({
         trace_id: "12345678-abcd-efgh-ijkl-mnopqrstuvwx",
-      } as any),
+      } as Partial<Request> as Request),
     updateRequestStatus: () => Promise.resolve(true),
   };
 

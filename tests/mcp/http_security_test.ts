@@ -8,11 +8,13 @@ import { MCPTransport } from "../../src/enums.ts";
 import { MCPServer } from "../../src/mcp/server.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { join } from "@std/path";
+import type { Config } from "../../src/config/schema.ts";
+import type { IDatabaseService } from "../../src/services/db.ts";
 
 /**
  * Clean up audit folder created during tests
  */
-async function cleanupAuditFolder(config: any): Promise<void> {
+async function cleanupAuditFolder(config: Config): Promise<void> {
   try {
     const runtimeDir = config?.paths?.runtime || ".";
     const auditDir = join(runtimeDir, "audit");
@@ -26,7 +28,9 @@ async function cleanupAuditFolder(config: any): Promise<void> {
 // Helper for MCP Server security tests
 async function withMCPServerSecurity(
   options: { transport?: MCPTransport } = {},
-  fn: (ctx: { server: MCPServer; db: any; config: any; headers: any }) => void | Promise<void>,
+  fn: (
+    ctx: { server: MCPServer; db: IDatabaseService; config: Config; headers: Record<string, string> },
+  ) => void | Promise<void>,
 ) {
   const { db, config, cleanup } = await initTestDbService();
 
@@ -42,7 +46,7 @@ async function withMCPServerSecurity(
     });
 
     // Helper to get headers if available
-    const headers = (server as any).getSecurityHeaders ? (server as any).getSecurityHeaders() : {};
+    const headers = server.getSecurityHeaders();
 
     await fn({ server, db, config, headers });
   } finally {
@@ -86,7 +90,7 @@ Deno.test("MCPServer: applies security headers to HTTP responses", async () => {
     });
 
     // Test that addSecurityHeaders method exists and enhances responses
-    const enhancedResponse = (server as any).addSecurityHeaders(mockResponse);
+    const enhancedResponse = server.addSecurityHeaders(mockResponse);
 
     // Verify all security headers are present
     assert(enhancedResponse.headers.get("Content-Security-Policy") !== null);
@@ -145,7 +149,7 @@ Deno.test("MCPServer: headers prevent common attacks", async () => {
 Deno.test("MCPServer: supports SSE transport configuration", async () => {
   await withMCPServerSecurity({ transport: MCPTransport.SSE }, ({ server }) => {
     // Verify server is configured for SSE
-    assertEquals((server as any).transport, MCPTransport.SSE);
+    assertEquals(server.getTransport(), MCPTransport.SSE);
   });
 });
 
@@ -167,7 +171,7 @@ Deno.test("MCPServer: handles HTTP POST requests", async () => {
       }),
     });
 
-    const response = await (server as any).handleHTTPRequest(initRequest);
+    const response = await server.handleHTTPRequest(initRequest);
 
     // Verify response has security headers
     assert(response.headers.get("Content-Security-Policy") !== null);
@@ -187,7 +191,7 @@ Deno.test("MCPServer: rejects non-POST HTTP requests", async () => {
       method: "GET",
     });
 
-    const response = await (server as any).handleHTTPRequest(getRequest);
+    const response = await server.handleHTTPRequest(getRequest);
 
     // Should return 405 Method Not Allowed with security headers
     assertEquals(response.status, 405);
@@ -204,7 +208,7 @@ Deno.test("MCPServer: handles malformed JSON in HTTP requests", async () => {
       body: "invalid json",
     });
 
-    const response = await (server as any).handleHTTPRequest(badRequest);
+    const response = await server.handleHTTPRequest(badRequest);
 
     // Should return 400 Bad Request with security headers
     assertEquals(response.status, 400);
@@ -220,7 +224,7 @@ Deno.test("MCPServer: HTTP server only starts with SSE transport", async () => {
   await withMCPServerSecurity({ transport: MCPTransport.STDIO }, async ({ server }) => {
     // Should reject HTTP server start with stdio transport
     await assertRejects(
-      () => (server as any).startHTTPServer(3000),
+      () => server.startHTTPServer(3000),
       Error,
       "HTTP server only available for SSE transport",
     );

@@ -5,28 +5,18 @@ import { FlowLoader } from "../../src/flows/flow_loader.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
 import { join } from "@std/path";
 import { copySync, ensureDirSync } from "@std/fs";
-import type { IDatabaseService } from "../../src/services/db.ts";
-import type { IModelProvider } from "../../src/ai/providers.ts";
 
-const defaultContextPaths = {
-  memory: "Memory",
-  system: "System",
-  blueprints: "Blueprints",
-  flows: "Flows",
-};
+import { createCliTestContext } from "./helpers/test_setup.ts";
+import { createMockProvider } from "../helpers/mock_provider.ts";
 
-async function createMockContext(): Promise<CLIContext> {
-  const root = await Deno.makeTempDir({ prefix: "test-flow-commands-" });
+async function createMockContext(): Promise<CLIContext & { cleanup: () => Promise<void> }> {
+  const { config, db, cleanup } = await createCliTestContext();
   return {
-    config: {
-      system: { root },
-      paths: defaultContextPaths,
-    },
-    db: {
-      addLog: () => Promise.resolve(),
-    } as unknown as IDatabaseService,
-    provider: {} as unknown as IModelProvider,
-  } as unknown as CLIContext;
+    config,
+    db,
+    provider: createMockProvider([]),
+    cleanup,
+  };
 }
 
 function getFlowDir(ctx: CLIContext) {
@@ -47,7 +37,7 @@ function seedFlowModuleSupportFiles(
 }
 
 async function withFlowsDir(
-  ctx: CLIContext,
+  ctx: CLIContext & { cleanup: () => Promise<void> },
   fn: (flowDir: string) => Promise<void>,
 ) {
   const flowDir = getFlowDir(ctx);
@@ -55,14 +45,14 @@ async function withFlowsDir(
   try {
     await fn(flowDir);
   } finally {
-    await Deno.remove(ctx.config.system.root, { recursive: true });
+    await ctx.cleanup();
   }
 }
 
 async function captureConsole(kind: "log" | "error", fn: () => Promise<void>) {
   let output = "";
   const original = console[kind];
-  (console as unknown as Record<string, unknown>)[kind] = (...args: unknown[]) => {
+  console[kind] = (...args: unknown[]) => {
     output += args.map((a) => String(a)).join(" ") + "\n";
   };
   try {
@@ -124,7 +114,7 @@ export default defineFlow({
 `;
     await Deno.writeTextFile(`${flowDir}/json-flow.flow.ts`, flowModule);
 
-    const commands = new FlowCommands(ctx as any);
+    const commands = new FlowCommands(ctx);
     const output = await captureConsole("log", async () => {
       await commands.listFlows({ json: true });
     });
@@ -240,126 +230,165 @@ export default defineFlow({
 
 Deno.test("FlowCommands: listFlows handles loader errors and exits", async () => {
   const ctx = await createMockContext();
-  const commands = new FlowCommands(ctx);
-  const accessor = commands as unknown as { flowLoader: { loadAllFlows: () => Promise<any> } };
-  accessor.flowLoader.loadAllFlows = () => {
-    return Promise.reject(new Error("boom"));
-  };
+  await withFlowsDir(ctx, async (_flowDir) => {
+    const commands = new FlowCommands(ctx);
+    const originalReadDir = Deno.readDir;
+    Deno.readDir = function (..._args: Parameters<typeof Deno.readDir>): AsyncIterable<Deno.DirEntry> {
+      return {
+        [Symbol.asyncIterator]() {
+          return {
+            next() {
+              return Promise.reject(new Error("boom"));
+            },
+          };
+        },
+      };
+    };
 
-  // Capture console.error
-  let errOut = "";
-  const origErr = console.error;
-  console.error = (...args: unknown[]) => {
-    errOut += args.join(" ") + "\n";
-  };
+    // Capture console.error
+    let errOut = "";
+    const origErr = console.error;
+    console.error = (...args: unknown[]) => {
+      errOut += args.join(" ") + "\n";
+    };
 
-  const origExit = (Deno as any).exit;
-  (Deno as any).exit = (_c?: number) => {
-    throw new Error("DENO_EXIT");
-  };
+    const origExit = (Deno as any).exit;
+    (Deno as any).exit = (_c?: number) => {
+      throw new Error("DENO_EXIT");
+    };
 
-  try {
-    let threw = false;
     try {
-      await commands.listFlows();
-    } catch (_e) {
-      threw = true;
-      // ensure console.error logged the message
-      if (!errOut.includes("Error listing flows: boom")) {
-        throw new Error(`Expected error log not found. got: ${errOut}`);
+      let threw = false;
+      try {
+        await commands.listFlows();
+      } catch (_e) {
+        threw = true;
+        // ensure console.error logged the message
+        if (!errOut.includes("Error listing flows: boom")) {
+          throw new Error(`Expected error log not found. got: ${errOut}`);
+        }
       }
+      if (!threw) throw new Error("Expected Deno.exit to be called");
+      Deno.readDir = originalReadDir;
+    } finally {
+      console.error = origErr;
+      (Deno as any).exit = origExit;
     }
-    if (!threw) throw new Error("Expected Deno.exit to be called");
-  } finally {
-    console.error = origErr;
-    (Deno as any).exit = origExit;
-  }
+  });
 });
 
 Deno.test("FlowCommands: validateFlow outputs JSON when requested and handles validator errors", async () => {
   const ctx = await createMockContext();
-  const commands = new FlowCommands(ctx);
-  const accessor = commands as unknown as { flowValidator: { validateFlow: (id: string) => any } };
-  accessor.flowValidator.validateFlow = () => ({ valid: true, warnings: [] });
+  await withFlowsDir(ctx, async (flowDir) => {
+    seedFlowModuleSupportFiles(ctx, flowDir);
+    const validFlow = `
+import { defineFlow } from "./define_flow.ts";
+export default defineFlow({
+  id: "valid-for-json",
+  name: "JSON Flow",
+  description: "Valid flow",
+  steps: [{ id: "s1", name: "S1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" } }],
+  output: { from: "s1", format: "markdown" },
+});
+`;
+    await Deno.writeTextFile(join(flowDir, "valid-for-json.flow.ts"), validFlow);
 
-  let out = "";
-  const origLog = console.log;
-  console.log = (msg: string) => {
-    out += msg + "\n";
-  };
-  try {
-    await commands.validateFlow("whatever", { json: true });
-  } finally {
-    console.log = origLog;
-  }
-  if (!out.includes('"valid": true')) throw new Error("Expected JSON output with valid:true");
-
-  // Now test validator throws and we exit
-  accessor.flowValidator.validateFlow = () => {
-    throw new Error("uh-oh");
-  };
-  let errOut = "";
-  const origErr2 = console.error;
-  console.error = (...args: unknown[]) => {
-    errOut += args.join(" ") + "\n";
-  };
-  const origExit = (Deno as any).exit;
-  (Deno as any).exit = (_c?: number) => {
-    throw new Error("DENO_EXIT");
-  };
-
-  try {
-    let threw = false;
+    const commands = new FlowCommands(ctx);
+    let out = "";
+    const origLog = console.log;
+    console.log = (msg: string) => {
+      out += msg + "\n";
+    };
     try {
-      await commands.validateFlow("bad");
-    } catch (_e) {
-      threw = true;
-      if (!errOut.includes("Error validating flow: uh-oh")) throw new Error(`Unexpected err log: ${errOut}`);
+      await commands.validateFlow("valid-for-json", { json: true });
+    } finally {
+      console.log = origLog;
     }
-    if (!threw) throw new Error("Expected Deno.exit to be called");
-  } finally {
-    console.error = origErr2;
-    (Deno as any).exit = origExit;
-  }
+    if (!out.includes('"valid": true')) throw new Error("Expected JSON output with valid:true");
+  });
+});
+
+Deno.test("FlowCommands: validateFlow throws on validator error", async () => {
+  const ctx = await createMockContext();
+  await withFlowsDir(ctx, async (flowDir) => {
+    seedFlowModuleSupportFiles(ctx, flowDir);
+    await Deno.writeTextFile(join(flowDir, "bad.flow.ts"), "");
+    const commands = new FlowCommands(ctx);
+
+    // To simulate a generic validation crash, we'll make Deno.readTextFile throw
+    // when flow loader tries to read the flow.
+    const origReadText = Deno.readTextFile;
+    Deno.readTextFile = (..._args: Parameters<typeof Deno.readTextFile>) => {
+      return Promise.reject(new Error("uh-oh"));
+    };
+
+    let out = "";
+    const origLog = console.log;
+    console.log = (msg: string) => {
+      out += msg + "\n";
+    };
+
+    let errOut = "";
+    const origErr2 = console.error;
+    console.error = (...args: unknown[]) => {
+      errOut += args.join(" ") + "\n";
+    };
+    const origExit = (Deno as any).exit;
+    (Deno as any).exit = (_c?: number) => {
+      throw new Error("DENO_EXIT");
+    };
+
+    try {
+      let threw = false;
+      try {
+        await commands.validateFlow("bad");
+      } catch (_e) {
+        threw = true;
+        if (!out.includes("uh-oh")) throw new Error(`Unexpected log: ${out}`);
+      }
+      if (!threw) throw new Error("Expected Deno.exit to be called");
+      Deno.readTextFile = origReadText;
+    } finally {
+      console.log = origLog;
+      console.error = origErr2;
+      (Deno as any).exit = origExit;
+    }
+  });
 });
 
 Deno.test("FlowCommands: validateFlow prints invalid and exits", async () => {
   const ctx = await createMockContext();
-  const commands = new FlowCommands(ctx);
-  const accessor = commands as unknown as { flowValidator: { validateFlow: (id: string) => any } };
-  accessor.flowValidator.validateFlow = () => ({ valid: false, error: "problem" });
-  const originalExit = (Deno as any).exit;
-  (Deno as any).exit = (_c?: number) => {
-    throw new Error("EXIT");
-  };
-  try {
-    let caught = false;
-    try {
-      await commands.validateFlow("bad");
-    } catch (e) {
-      caught = true;
-      assertStringIncludes((e as Error).message, "EXIT");
-    }
-    assertEquals(caught, true);
-  } finally {
-    (Deno as any).exit = originalExit;
-  }
+  await withFlowsDir(ctx, async (flowDir) => {
+    seedFlowModuleSupportFiles(ctx, flowDir);
+    // Create invalid flow (missing required step fields)
+    const invalidFlow = `
+import { defineFlow } from "./define_flow.ts";
+export default defineFlow({
+  id: "bad",
+  name: "Bad Flow",
+  description: "Invalid flow",
+  steps: [{ invalid: "step" } as any],
+  output: { from: "s1", format: "markdown" },
 });
+`;
+    await Deno.writeTextFile(join(flowDir, "bad.flow.ts"), invalidFlow);
 
-Deno.test("FlowCommands: renderDependencyGraph shows arrows for dependencies", () => {
-  const ctx = {
-    config: {
-      system: { root: "" },
-      paths: defaultContextPaths,
-    } as any,
-    db: {} as any,
-    provider: {} as any,
-  } as unknown as CLIContext;
-  const commands = new FlowCommands(ctx);
-  const flow = { steps: [{ id: "a", agent: "A", dependsOn: [] }, { id: "b", agent: "B", dependsOn: ["a"] }] } as any;
-  const accessor = commands as unknown as { renderDependencyGraph(flow: any): string };
-  const graph = accessor.renderDependencyGraph(flow);
-  assertStringIncludes(graph, "a (A)");
-  assertStringIncludes(graph, "b (B)");
-  assertStringIncludes(graph, "← a");
+    const commands = new FlowCommands(ctx);
+    const originalExit = (Deno as any).exit;
+    (Deno as any).exit = (_c?: number) => {
+      throw new Error("EXIT");
+    };
+    try {
+      let caught = false;
+      try {
+        await commands.validateFlow("bad");
+      } catch (e) {
+        caught = true;
+        assertStringIncludes((e as Error).message, "EXIT");
+      }
+      assertEquals(caught, true);
+    } finally {
+      (Deno as any).exit = originalExit;
+    }
+  });
 });

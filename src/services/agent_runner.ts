@@ -14,6 +14,13 @@
  * @related-files [src/services/request_processor.ts, src/services/blueprint_loader.ts]
  */
 
+export interface IAgentRunner {
+  run(
+    blueprint: Blueprint,
+    request: ParsedRequest,
+  ): Promise<AgentExecutionResult>;
+}
+
 import type { IModelProvider } from "../ai/providers.ts";
 import { JSONValue, toSafeJson } from "../types.ts";
 import type { DatabaseService } from "./db.ts";
@@ -138,7 +145,7 @@ export interface AgentRunnerConfig {
  * - Skill context injection into prompts
  * - Skill usage tracking
  */
-export class AgentRunner {
+export class AgentRunner implements IAgentRunner {
   private db?: DatabaseService;
   private retryPolicy: RetryPolicy;
   private disableRetry: boolean;

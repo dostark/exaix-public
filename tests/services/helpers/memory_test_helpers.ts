@@ -180,10 +180,10 @@ export function createApprovedProposal(overrides: Partial<MemoryUpdateProposal> 
 /**
  * Creates an invalid proposal for testing schema validation failures
  */
-export function createInvalidProposal(overrides: Partial<MemoryUpdateProposal> = {}): any {
+export function createInvalidProposal(overrides: Partial<MemoryUpdateProposal> = {}): Record<string, unknown> {
   return createBaseProposal({
     id: "550e8400-e29b-41d4-a716-446655440006",
-    operation: "invalid-op" as any,
+    operation: "invalid-op" as Partial<MemoryOperation> as MemoryOperation,
     learning: createInvalidLearning(overrides.learning),
     reason: "Test",
     agent: "test",
@@ -195,14 +195,14 @@ export function createInvalidProposal(overrides: Partial<MemoryUpdateProposal> =
 /**
  * Creates an invalid proposal with invalid status for testing
  */
-export function createInvalidStatusProposal(overrides: Partial<MemoryUpdateProposal> = {}): any {
+export function createInvalidStatusProposal(overrides: Partial<MemoryUpdateProposal> = {}): Record<string, unknown> {
   return createBaseProposal({
     id: "550e8400-e29b-41d4-a716-446655440008",
     operation: MemoryOperation.ADD,
     learning: createInvalidLearning(overrides.learning),
     reason: "Test",
     agent: "test",
-    status: "invalid-status" as any, // Invalid status
+    status: "invalid-status" as Partial<MemoryStatus> as MemoryStatus, // Invalid status
     ...overrides,
   });
 }

@@ -13,6 +13,8 @@ import { withEnv } from "../helpers/env.ts";
 import { OllamaProvider } from "../../src/ai/providers.ts";
 import { LlamaProvider } from "../../src/ai/providers/llama_provider.ts";
 
+import { createTestConfig } from "./helpers/test_config.ts";
+
 // Note: We can't easily test OpenAIShim directly as it's not exported,
 // but we test it via the ModelFactory if needed
 
@@ -68,16 +70,18 @@ Deno.test("Phase 2: LlamaProvider ignores EXO_OLLAMA_RETRY_BACKOFF_MS env var", 
 });
 
 Deno.test("Phase 2: LlamaProvider uses config retry settings over defaults", () => {
-  const mockConfig = {
-    ai_retry: {
-      providers: {
-        ollama: {
-          max_attempts: 5,
-          backoff_base_ms: 2000,
-        },
+  const mockConfig = createTestConfig();
+  mockConfig.ai_retry = {
+    max_attempts: 3,
+    backoff_base_ms: 1000,
+    timeout_per_request_ms: 30000,
+    providers: {
+      ollama: {
+        max_attempts: 5,
+        backoff_base_ms: 2000,
       },
     },
-  } as any;
+  };
 
   const provider = new LlamaProvider({
     model: "llama3.2:latest",

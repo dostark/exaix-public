@@ -10,7 +10,7 @@ class MinimalPortalServiceMock implements PortalService {
   listPortals = (): Promise<PortalInfo[]> => {
     throw new Error("PortalCommands instance not provided");
   };
-  getPortalDetails = (_: string) => Promise.resolve({} as unknown as PortalDetails);
+  getPortalDetails = (_: string) => Promise.resolve({} as Partial<PortalDetails> as PortalDetails);
   openPortal = (_: string) => {
     throw new Error("openPortal not implemented");
   };
@@ -1007,7 +1007,7 @@ Deno.test("Phase 13.3: Update portals preserves selection when possible", () => 
 Deno.test("Phase 13.3: createTuiSession accepts useColors parameter", () => {
   const service: PortalService = {
     listPortals: () => Promise.resolve([]),
-    getPortalDetails: () => Promise.resolve({} as unknown as PortalDetails),
+    getPortalDetails: () => Promise.resolve({} as Partial<PortalDetails> as PortalDetails),
     openPortal: () => Promise.resolve(true),
     closePortal: () => Promise.resolve(true),
     refreshPortal: () => Promise.resolve(true),

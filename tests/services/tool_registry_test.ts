@@ -35,7 +35,7 @@ const mockConfig = ConfigSchema.parse({
 
 const mockDb = {
   logActivity: () => Promise.resolve(),
-} as unknown as DatabaseService;
+} as Partial<DatabaseService> as DatabaseService;
 
 function createRegistry(root?: string): ToolRegistry {
   const config = root

@@ -14,7 +14,7 @@ Deno.test("Provider timeout configuration - OpenAI with option", () => {
   });
 
   // Verify timeout is set from option
-  assertEquals((provider as any).timeoutMs, 45000);
+  assertEquals(provider.timeoutMs, 45000);
 });
 
 Deno.test("Provider timeout configuration - Anthropic with option", () => {
@@ -24,7 +24,7 @@ Deno.test("Provider timeout configuration - Anthropic with option", () => {
   });
 
   // Verify timeout is set from option
-  assertEquals((provider as any).timeoutMs, 60000);
+  assertEquals(provider.timeoutMs, 60000);
 });
 
 Deno.test("Provider timeout configuration - Google with option", () => {
@@ -34,7 +34,7 @@ Deno.test("Provider timeout configuration - Google with option", () => {
   });
 
   // Verify timeout is set from option
-  assertEquals((provider as any).timeoutMs, 30000);
+  assertEquals(provider.timeoutMs, 30000);
 });
 
 Deno.test("Provider timeout configuration - Ollama with option", () => {
@@ -44,7 +44,7 @@ Deno.test("Provider timeout configuration - Ollama with option", () => {
   });
 
   // Verify timeout is set from option
-  assertEquals((provider as any).timeoutMs, 120000);
+  assertEquals(provider.timeoutMs, 120000);
 });
 
 Deno.test("Provider timeout configuration - defaults", () => {
@@ -55,8 +55,8 @@ Deno.test("Provider timeout configuration - defaults", () => {
   const llamaProvider = new LlamaProvider({ model: "llama3.2:8b" });
 
   // Verify defaults are used
-  assertEquals((openaiProvider as any).timeoutMs, 30000); // DEFAULT_OPENAI_TIMEOUT_MS
-  assertEquals((anthropicProvider as any).timeoutMs, 60000); // DEFAULT_ANTHROPIC_TIMEOUT_MS
-  assertEquals((googleProvider as any).timeoutMs, 30000); // DEFAULT_GOOGLE_TIMEOUT_MS
-  assertEquals((llamaProvider as any).timeoutMs, 120000); // DEFAULT_OLLAMA_TIMEOUT_MS
+  assertEquals(openaiProvider.timeoutMs, 30000); // DEFAULT_OPENAI_TIMEOUT_MS
+  assertEquals(anthropicProvider.timeoutMs, 60000); // DEFAULT_ANTHROPIC_TIMEOUT_MS
+  assertEquals(googleProvider.timeoutMs, 30000); // DEFAULT_GOOGLE_TIMEOUT_MS
+  assertEquals(llamaProvider.timeoutMs, 120000); // DEFAULT_OLLAMA_TIMEOUT_MS
 });

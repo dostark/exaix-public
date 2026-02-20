@@ -396,7 +396,9 @@ export class MCPServer {
     }
   }
 
-  private classifyError(error: unknown): { type: string; code: number; message: string; data?: unknown } {
+  public classifyError(
+    error: unknown,
+  ): { type: string; code: number; message: string; data?: Record<string, JSONValue> } {
     const isZodError = (value: unknown): value is { errors?: unknown[] } => {
       return (
         !!value &&
@@ -642,7 +644,7 @@ export class MCPServer {
    * Returns comprehensive security headers for HTTP responses
    * Implements Content Security Policy and other security measures
    */
-  private getSecurityHeaders(): Record<string, string> {
+  public getSecurityHeaders(): Record<string, string> {
     return {
       // Prevent XSS attacks with Content Security Policy
       "Content-Security-Policy": "default-src 'none'; " +
@@ -676,7 +678,7 @@ export class MCPServer {
    * Adds security headers to an HTTP Response object
    * Used for HTTP/SSE transport responses
    */
-  private addSecurityHeaders(response: Response): Response {
+  public addSecurityHeaders(response: Response): Response {
     const headers = new Headers(response.headers);
 
     // Add all security headers

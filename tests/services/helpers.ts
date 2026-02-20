@@ -1,27 +1,45 @@
-import { RequestRouter } from "../../src/services/request_router.ts";
+import { type FlowValidator, RequestRouter } from "../../src/services/request_router.ts";
+import type { FlowResult, IFlowRunner } from "../../src/flows/flow_runner.ts";
+import type { AgentExecutionResult, Blueprint, IAgentRunner, ParsedRequest } from "../../src/services/agent_runner.ts";
+import type { Flow } from "../../src/schemas/flow.ts";
+import type { Config } from "../../src/config/schema.ts";
+import type { IEventLogger, LogEvent } from "../../src/services/event_logger.ts";
+import { EventLogger } from "../../src/services/event_logger.ts";
+import type { RequestFrontmatter } from "../../src/services/request_processing/types.ts";
+import type { JSONValue, LogMetadata } from "../../src/types.ts";
+import { LogLevel } from "../../src/enums.ts";
+import { createTestConfig } from "../ai/helpers/test_config.ts";
 
 export function createMockFlowRunner() {
-  class MockFlowRunner {
-    executedFlows: Array<{ flow: any; request: any }> = [];
+  class MockFlowRunner implements IFlowRunner {
+    executedFlows: Array<{ flow: Flow; request: { userPrompt: string; traceId?: string; requestId?: string } }> = [];
 
-    execute(flow: any, request: any): Promise<any> {
+    execute(flow: Flow, request: { userPrompt: string; traceId?: string; requestId?: string }): Promise<FlowResult> {
       this.executedFlows.push({ flow, request });
-      return Promise.resolve({ success: true, flowId: flow.id, output: `Flow ${flow.id} executed` });
+      return Promise.resolve({
+        flowRunId: "test-run",
+        success: true,
+        stepResults: new Map(),
+        output: `Flow ${flow.id} executed`,
+        duration: 0,
+        startedAt: new Date(),
+        completedAt: new Date(),
+      });
     }
   }
   return new MockFlowRunner();
 }
 
 export function createMockAgentRunner() {
-  class MockAgentRunner {
-    executedAgents: Array<{ blueprint: any; request: any }> = [];
+  class MockAgentRunner implements IAgentRunner {
+    executedAgents: Array<{ blueprint: Blueprint; request: ParsedRequest }> = [];
 
-    run(blueprint: any, request: any): Promise<any> {
+    run(blueprint: Blueprint, request: ParsedRequest): Promise<AgentExecutionResult> {
       this.executedAgents.push({ blueprint, request });
       return Promise.resolve({
-        success: true,
-        agentId: blueprint.agentId,
-        output: `Agent ${blueprint.agentId} executed`,
+        thought: "thought",
+        content: `Agent ${blueprint.agentId} executed`,
+        raw: "raw",
       });
     }
   }
@@ -48,11 +66,71 @@ export function createMockFlowValidator() {
 }
 
 export function createMockEventLogger() {
-  class MockEventLogger {
-    events: Array<{ action: string; target: string; payload?: any; traceId?: string }> = [];
+  class MockEventLogger implements IEventLogger {
+    events: Array<{ action: string; target: string; payload?: Record<string, JSONValue>; traceId?: string }> = [];
 
-    log(event: any) {
-      this.events.push(event);
+    log(event: LogEvent): Promise<void> {
+      this.events.push({
+        action: event.action,
+        target: event.target,
+        payload: event.payload,
+        traceId: event.traceId,
+      });
+      return Promise.resolve();
+    }
+
+    info(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void> {
+      return this.log({
+        level: LogLevel.INFO,
+        action,
+        target: target ?? "",
+        payload: payload as Record<string, JSONValue>,
+        traceId,
+      });
+    }
+
+    warn(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void> {
+      return this.log({
+        level: LogLevel.WARN,
+        action,
+        target: target ?? "",
+        payload: payload as Record<string, JSONValue>,
+        traceId,
+      });
+    }
+
+    error(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void> {
+      return this.log({
+        level: LogLevel.ERROR,
+        action,
+        target: target ?? "",
+        payload: payload as Record<string, JSONValue>,
+        traceId,
+      });
+    }
+
+    fatal(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void> {
+      return this.log({
+        level: LogLevel.FATAL,
+        action,
+        target: target ?? "",
+        payload: payload as Record<string, JSONValue>,
+        traceId,
+      });
+    }
+
+    debug(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void> {
+      return this.log({
+        level: LogLevel.DEBUG,
+        action,
+        target: target ?? "",
+        payload: payload as Record<string, JSONValue>,
+        traceId,
+      });
+    }
+
+    child(_overrides: Partial<LogEvent>): IEventLogger {
+      return this;
     }
   }
 
@@ -67,19 +145,35 @@ export function createTestRequestRouter(
     logger,
     defaultAgent = "default-agent",
     blueprintsPath = "/tmp/blueprints",
-    config = {} as any,
-  }: any,
+    config = createTestConfig(),
+  }: {
+    flowRunner: IFlowRunner;
+    agentRunner: IAgentRunner;
+    flowValidator: FlowValidator;
+    logger: IEventLogger;
+    defaultAgent?: string;
+    blueprintsPath?: string;
+    config?: Config;
+  },
 ) {
   class TestRequestRouter extends RequestRouter {
-    private mockBlueprints: Map<string, any> = new Map();
+    private mockBlueprints: Map<string, Blueprint> = new Map();
 
     constructor() {
-      super(flowRunner, agentRunner, flowValidator, logger, defaultAgent, blueprintsPath, config);
-      this.mockBlueprints.set("senior-coder", { agentId: "senior-coder", name: "Senior Coder" });
-      this.mockBlueprints.set("default-agent", { agentId: "default-agent", name: "Default Agent" });
+      super(
+        flowRunner,
+        agentRunner,
+        flowValidator,
+        logger as Partial<EventLogger> as EventLogger,
+        defaultAgent,
+        blueprintsPath,
+        config,
+      );
+      this.mockBlueprints.set("senior-coder", { agentId: "senior-coder", systemPrompt: "Senior Coder" });
+      this.mockBlueprints.set("default-agent", { agentId: "default-agent", systemPrompt: "Default Agent" });
     }
 
-    protected override loadBlueprint(agentId: string): Promise<any> {
+    protected override loadBlueprint(agentId: string): Promise<Blueprint | null> {
       return Promise.resolve(this.mockBlueprints.get(agentId) || null);
     }
   }
@@ -87,7 +181,12 @@ export function createTestRequestRouter(
   return new TestRequestRouter();
 }
 
-export function sampleRouterRequest(overrides: Record<string, any> = {}) {
+export function sampleRouterRequest(overrides: {
+  traceId?: string;
+  requestId?: string;
+  frontmatter?: Partial<RequestFrontmatter>;
+  body?: string;
+} = {}) {
   return {
     traceId: overrides.traceId ?? "test-trace-123",
     requestId: overrides.requestId ?? "req-123",
@@ -99,9 +198,8 @@ export function sampleRouterRequest(overrides: Record<string, any> = {}) {
       source: "test",
       created_by: "tester",
       ...(overrides.frontmatter ?? {}),
-    },
+    } as Partial<Request> as RequestFrontmatter,
     body: overrides.body ?? "Test request body",
-    ...overrides,
   };
 }
 

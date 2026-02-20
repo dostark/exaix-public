@@ -1,6 +1,6 @@
 import { assertEquals, assertExists } from "@std/assert";
 
-import { handleHealthCheck } from "../../src/services/health_check_service.ts";
+import { handleHealthCheck, HealthCheckService } from "../../src/services/health_check_service.ts";
 import { HealthStatus } from "../../src/enums.ts";
 
 Deno.test("handleHealthCheck: returns 200 with JSON body and response time header", async () => {
@@ -13,7 +13,7 @@ Deno.test("handleHealthCheck: returns 200 with JSON body and response time heade
         uptime_seconds: 1,
         checks: {},
       }),
-  } as any;
+  } as Partial<HealthCheckService> as HealthCheckService;
 
   const res = await handleHealthCheck(new Request("http://localhost/health"), health);
 
@@ -36,7 +36,7 @@ Deno.test("handleHealthCheck: returns 503 when health is unhealthy", async () =>
         uptime_seconds: 1,
         checks: {},
       }),
-  } as any;
+  } as Partial<HealthCheckService> as HealthCheckService;
 
   const res = await handleHealthCheck(new Request("http://localhost/health"), health);
 
@@ -48,7 +48,7 @@ Deno.test("handleHealthCheck: returns 503 JSON when checkHealth throws", async (
     checkHealth: () => {
       throw new Error("boom");
     },
-  } as any;
+  } as Partial<HealthCheckService> as HealthCheckService;
 
   const res = await handleHealthCheck(new Request("http://localhost/health"), health);
 

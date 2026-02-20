@@ -6,6 +6,13 @@
  * @dependencies [FlowSchema, DependencyResolver, AgentRunner, ConditionEvaluator, Transforms, DatabaseService, FlowReporter]
  * @related-files [src/flows/flow_loader.ts, src/services/request_router.ts, src/services/flow_reporter.ts]
  */
+
+export interface IFlowRunner {
+  execute(
+    flow: Flow,
+    request: { userPrompt: string; traceId?: string; requestId?: string },
+  ): Promise<FlowResult>;
+}
 import { Flow, FlowStep } from "../schemas/flow.ts";
 import { DependencyResolver } from "./dependency_resolver.ts";
 import { AgentExecutionResult } from "../services/agent_runner.ts";
@@ -164,7 +171,7 @@ const BUILT_IN_TRANSFORM_HANDLERS: Record<string, BuiltInTransformHandler> = {
  * FlowRunner - Orchestrates multi-agent flow execution
  * Implements Step 7.4 of the ExoFrame Implementation Plan
  */
-export class FlowRunner {
+export class FlowRunner implements IFlowRunner {
   private conditionEvaluator: ConditionEvaluator;
 
   constructor(

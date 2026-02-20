@@ -3,6 +3,7 @@ import { MemoryOperation, MemoryScope } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { createTuiDashboardWithNotification } from "./dashboard_helper.ts";
+import { type ProposalLearning } from "../../src/schemas/memory_bank.ts";
 
 Deno.test("TUI Dashboard + Memory: handles memory update notifications", async () => {
   const { dashboard, notificationService, cleanup } = await createTuiDashboardWithNotification();
@@ -16,7 +17,7 @@ Deno.test("TUI Dashboard + Memory: handles memory update notifications", async (
       agent: "test-agent",
       operation: MemoryOperation.ADD,
       target_scope: MemoryScope.PROJECT,
-      learning: { title: "Learning 1" } as any,
+      learning: { title: "Learning 1", id: "l-1" } as Partial<ProposalLearning> as ProposalLearning,
       reason: "Testing 1",
       status: MemoryStatus.PENDING,
     });
@@ -26,7 +27,7 @@ Deno.test("TUI Dashboard + Memory: handles memory update notifications", async (
       agent: "test-agent",
       operation: MemoryOperation.ADD,
       target_scope: MemoryScope.PROJECT,
-      learning: { title: "Learning 2" } as any,
+      learning: { title: "Learning 2", id: "l-2" } as Partial<ProposalLearning> as ProposalLearning,
       reason: "Testing 2",
       status: MemoryStatus.PENDING,
     });

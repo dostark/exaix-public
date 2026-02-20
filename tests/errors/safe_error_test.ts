@@ -6,6 +6,7 @@
 
 import { assertEquals, assertInstanceOf } from "@std/assert";
 import { SafeError } from "../../src/errors/safe_error.ts";
+import type { EventLogger } from "../../src/services/event_logger.ts";
 
 // Mock EventLogger for testing
 class MockEventLogger {
@@ -19,8 +20,9 @@ class MockEventLogger {
     action: string,
     target: string,
     payload?: Record<string, unknown>,
-  ): void {
+  ): Promise<void> {
     this.loggedErrors.push({ action, target, payload: payload || {} });
+    return Promise.resolve();
   }
 }
 
@@ -72,7 +74,7 @@ Deno.test("SafeError: logs internal error details when logger provided", () => {
     "User-friendly message",
     "VALIDATION_ERROR",
     internalError,
-    mockLogger as any,
+    mockLogger as Partial<EventLogger> as EventLogger,
   );
 
   assertEquals(mockLogger.loggedErrors.length, 1);
@@ -98,7 +100,12 @@ Deno.test("SafeError: does not log when no logger provided", () => {
 
 Deno.test("SafeError: does not log when no internal error provided", () => {
   const mockLogger = new MockEventLogger();
-  const _error = new SafeError("User message", "ERROR_CODE", undefined, mockLogger as any);
+  const _error = new SafeError(
+    "User message",
+    "ERROR_CODE",
+    undefined,
+    mockLogger as Partial<EventLogger> as EventLogger,
+  );
 
   assertEquals(mockLogger.loggedErrors.length, 0);
 });

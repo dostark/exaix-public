@@ -419,7 +419,7 @@ export class AgentExecutor {
   /**
    * Build execution prompt for LLM agent
    */
-  private buildExecutionPrompt(
+  public buildExecutionPrompt(
     blueprint: Blueprint,
     context: ExecutionContext,
     options: AgentExecutionOptions,
@@ -486,7 +486,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
   /**
    * Sanitize user input to prevent prompt injection attacks
    */
-  private sanitizeUserInput(input: string): string {
+  public sanitizeUserInput(input: string): string {
     return input
       // Remove potential instruction markers
       .replace(/##\s*(system|instructions|ignore|important)/gi, "[REMOVED]")
@@ -637,7 +637,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
    * Validate file path for security - prevents path traversal and injection attacks
    * Returns the validated path or null if invalid
    */
-  private validateFilePath(filePath: string, portalPath: string): string | null {
+  public validateFilePath(filePath: string, portalPath: string): string | null {
     const normalizedPath = this.normalizeAndPreValidateFilePath(filePath);
     if (!normalizedPath) return null;
 

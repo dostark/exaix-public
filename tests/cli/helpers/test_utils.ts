@@ -106,7 +106,7 @@ export async function expectExitWithLogs(
   const errors: string[] = [];
   let exitCalled = false;
   console.error = (...args: unknown[]) => errors.push(args.map(String).join(" "));
-  (Deno as unknown as { exit: (code?: number) => never }).exit = (code?: number) => {
+  Deno.exit = (code?: number) => {
     exitCalled = true;
     throw new Error(`DENO_EXIT:${code ?? 0}`);
   };

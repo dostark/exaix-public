@@ -17,7 +17,6 @@ import {
   sampleSingleMonitorLog,
 } from "./helpers.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
-import type { TreeViewState } from "../../src/tui/base/tree_view_state.ts";
 import type { DialogBase } from "../../src/helpers/dialog_base.ts";
 
 // Helper for creating a monitor session
@@ -57,12 +56,12 @@ Deno.test("MonitorView - getLogColor covers all cases", () => {
 Deno.test("MonitorView - getAnsiColorCode covers all cases", () => {
   const db = createMockDatabaseService();
   const monitorView = new MonitorView(db);
-  assertEquals(monitorView["getAnsiColorCode"]("red"), 31);
-  assertEquals(monitorView["getAnsiColorCode"]("green"), 32);
-  assertEquals(monitorView["getAnsiColorCode"]("yellow"), 33);
-  assertEquals(monitorView["getAnsiColorCode"]("blue"), 34);
-  assertEquals(monitorView["getAnsiColorCode"]("white"), 37);
-  assertEquals(monitorView["getAnsiColorCode"](DaemonStatus.UNKNOWN), 37);
+  assertEquals(monitorView.getAnsiColorCode("red"), 31);
+  assertEquals(monitorView.getAnsiColorCode("green"), 32);
+  assertEquals(monitorView.getAnsiColorCode("yellow"), 33);
+  assertEquals(monitorView.getAnsiColorCode("blue"), 34);
+  assertEquals(monitorView.getAnsiColorCode("white"), 37);
+  assertEquals(monitorView.getAnsiColorCode(DaemonStatus.UNKNOWN), 37);
 });
 
 Deno.test("MonitorView - renderLogs outputs ANSI and handles empty", () => {
@@ -491,56 +490,45 @@ Deno.test("Phase 13.5: MonitorTuiSession - focusable elements", () => {
 });
 
 // Helper to access protected/private members of MonitorTuiSession for testing
-interface Accessor {
-  state: TreeViewState<LogEntry>;
-  pendingDialogType: "search" | "filter-agent" | "filter-time" | "filter-trace" | "filter-action" | null;
-  onDialogClosed(dialog: DialogBase): void;
-}
 
 Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed cancels cleanly", () => {
   const { session } = createMonitorSession(sampleMonitorLogs());
-  const accessor = session as unknown as Accessor;
+  session.state.filterText = "before";
+  session.pendingDialogType = "search";
 
-  accessor.state.filterText = "before";
-  accessor.pendingDialogType = "search";
-
-  accessor.onDialogClosed({
+  session.onDialogClosed({
     getResult: () => ({ type: DialogStatus.CANCELLED }),
-  } as unknown as DialogBase);
+  } as Partial<DialogBase> as DialogBase);
 
   assertEquals(session.getSearchQuery(), "before");
-  assertEquals(accessor.pendingDialogType, null);
+  assertEquals(session.pendingDialogType, null);
 });
 
 Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed applies search", () => {
   const { session } = createMonitorSession(sampleMonitorLogs());
-  const accessor = session as unknown as Accessor;
-
-  accessor.pendingDialogType = "search";
-  accessor.onDialogClosed({
+  session.pendingDialogType = "search";
+  session.onDialogClosed({
     getResult: () => ({ type: DialogStatus.CONFIRMED, value: "needle" }),
-  } as unknown as DialogBase);
+  } as Partial<DialogBase> as DialogBase);
 
   assertEquals(session.getSearchQuery(), "needle");
 });
 
 Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed filters and clears agent", async () => {
   const { session, monitorView } = createMonitorSession(createTwoAgentLogs());
-  const accessor = session as unknown as Accessor;
-
-  accessor.pendingDialogType = "filter-agent";
-  accessor.onDialogClosed({
+  session.pendingDialogType = "filter-agent";
+  session.onDialogClosed({
     getResult: () => ({ type: DialogStatus.CONFIRMED, value: "researcher" }),
-  } as unknown as DialogBase);
+  } as Partial<DialogBase> as DialogBase);
 
   await new Promise((res) => setTimeout(res, 0));
   assertEquals(monitorView.getFilteredLogs().length, 1);
   assertEquals(monitorView.getFilteredLogs()[0].agent_id, "researcher");
 
-  accessor.pendingDialogType = "filter-agent";
-  accessor.onDialogClosed({
+  session.pendingDialogType = "filter-agent";
+  session.onDialogClosed({
     getResult: () => ({ type: DialogStatus.CONFIRMED, value: "" }),
-  } as unknown as DialogBase);
+  } as Partial<DialogBase> as DialogBase);
 
   await new Promise((res) => setTimeout(res, 0));
   assertEquals(monitorView.getFilteredLogs().length, 2);
@@ -548,14 +536,13 @@ Deno.test("Phase 13.5: MonitorTuiSession - onDialogClosed filters and clears age
 
 Deno.test("Phase 13.5: MonitorTuiSession - group node ignores bookmark and toggles on enter", async () => {
   const { session } = createMonitorSession(createTwoAgentLogs());
-  const accessor = session as unknown as Accessor;
 
   await session.handleKey(KEYS.G);
   const tree = session.getLogTree();
   assertEquals(tree.length > 0, true);
 
   const groupId = tree[0].id;
-  accessor.state.selectedId = groupId;
+  session.state.selectedId = groupId;
 
   await session.handleKey(KEYS.B);
   assertEquals(session.getBookmarkedIds().size, 0);

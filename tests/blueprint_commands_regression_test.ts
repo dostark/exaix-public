@@ -16,6 +16,7 @@ import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
 import type { BlueprintMetadata } from "../src/schemas/blueprint.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
+import type { Config } from "../src/config/schema.ts";
 
 const AGENT_ID_YAML = "yaml-agent";
 const AGENT_NAME_YAML = "YAML Format Agent";
@@ -53,7 +54,7 @@ function createTestConfig(root: string) {
   return {
     system: { root },
     paths: { ...ExoPathDefaults },
-  } as any;
+  } as Partial<Config> as Config;
 }
 
 // Create stub db for testing

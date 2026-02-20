@@ -3,8 +3,12 @@ import { makePane, testProdRender } from "../renderer_test_utils.ts";
 import { Pane } from "../../../src/tui/tui_dashboard.ts";
 
 Deno.test("prodRender: falls back to 80x24 when consoleSize throws", async () => {
-  const originalConsoleSize = (Deno as any).consoleSize;
-  (Deno as any).consoleSize = () => {
+  const originalConsoleSize = (Deno as Partial<{ consoleSize: () => { columns: number; rows: number } }> as {
+    consoleSize: () => { columns: number; rows: number };
+  }).consoleSize;
+  (Deno as Partial<{ consoleSize: () => { columns: number; rows: number } }> as {
+    consoleSize: () => { columns: number; rows: number };
+  }).consoleSize = () => {
     throw new Error("no tty");
   };
 
@@ -22,7 +26,7 @@ Deno.test("prodRender: falls back to 80x24 when consoleSize throws", async () =>
     // Pane coords should be updated based on fallback size
     assertEquals(panes[0].width, Math.floor(0.5 * 80));
   } finally {
-    (Deno as any).consoleSize = originalConsoleSize;
+    (Deno as Partial<{ consoleSize: unknown }> as { consoleSize: unknown }).consoleSize = originalConsoleSize;
   }
 });
 

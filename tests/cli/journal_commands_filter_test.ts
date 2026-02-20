@@ -1,6 +1,6 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { JournalCommands } from "../../src/cli/commands/journal_commands.ts";
-import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
+import type { JournalFilterOptions } from "../../src/services/db.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs } from "./helpers/test_utils.ts";
 import {
@@ -27,13 +27,10 @@ import {
 
 Deno.test("JournalCommands maps explicit options into query filters", async () => {
   const { db, config, cleanup } = await initTestDbService();
-  const dbAny = db as unknown as {
-    queryActivity: (filter: JournalFilterOptions) => Promise<ActivityRecord[]>;
-  };
-  const originalQuery = dbAny.queryActivity;
+  const originalQuery = db.queryActivity.bind(db);
   const captured: JournalFilterOptions[] = [];
 
-  dbAny.queryActivity = (filter) => {
+  db.queryActivity = (filter: JournalFilterOptions) => {
     captured.push(filter);
     return Promise.resolve([]);
   };
@@ -58,20 +55,17 @@ Deno.test("JournalCommands maps explicit options into query filters", async () =
     assertEquals(captured[0].actor, JOURNAL_ACTOR_USER);
     assertEquals(captured[0].target, JOURNAL_TARGET_SHORT);
   } finally {
-    dbAny.queryActivity = originalQuery;
+    db.queryActivity = originalQuery;
     await cleanup();
   }
 });
 
 Deno.test("JournalCommands maps filter strings to query filters", async () => {
   const { db, config, cleanup } = await initTestDbService();
-  const dbAny = db as unknown as {
-    queryActivity: (filter: JournalFilterOptions) => Promise<ActivityRecord[]>;
-  };
-  const originalQuery = dbAny.queryActivity;
+  const originalQuery = db.queryActivity.bind(db);
   const captured: JournalFilterOptions[] = [];
 
-  dbAny.queryActivity = (filter) => {
+  db.queryActivity = (filter: JournalFilterOptions) => {
     captured.push(filter);
     return Promise.resolve([]);
   };
@@ -96,7 +90,7 @@ Deno.test("JournalCommands maps filter strings to query filters", async () => {
     assertEquals(captured[0].agentId, JOURNAL_AGENT_ID);
     assertEquals(captured[0].since, JOURNAL_SINCE_VALUE);
   } finally {
-    dbAny.queryActivity = originalQuery;
+    db.queryActivity = originalQuery;
     await cleanup();
   }
 });

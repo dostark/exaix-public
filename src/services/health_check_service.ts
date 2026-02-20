@@ -85,13 +85,13 @@ interface CachedHealthResult {
  * Main health check service that orchestrates all health checks
  */
 export class HealthCheckService {
-  private checks = new Map<string, HealthCheck>();
+  public checks: Map<string, HealthCheck> = new Map();
   private checkBreakers = new Map<string, CircuitBreaker>();
   private startTime = Date.now();
   private healthCache = new Map<string, CachedHealthResult>();
 
   constructor(
-    private version: string,
+    public version: string,
     private config?: Config,
     private logger?: EventLogger,
   ) {

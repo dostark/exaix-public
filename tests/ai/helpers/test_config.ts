@@ -2,6 +2,8 @@ import { AiConfig, AiConfigSchema } from "../../../src/config/ai_config.ts";
 import { Config } from "../../../src/config/schema.ts";
 import { ExoPathDefaults } from "../../../src/config/constants.ts";
 import { LogLevel, MCPTransport, ProviderType, SqliteJournalMode } from "../../../src/enums.ts";
+import { IModelProvider } from "../../../src/ai/providers.ts";
+import { ProviderFactory } from "../../../src/ai/provider_factory.ts";
 
 /**
  * Create a minimal config for testing.
@@ -144,4 +146,17 @@ export function createTestConfig(aiConfig?: Partial<AiConfig>): Config {
       memory_critical_percent: 95,
     },
   };
+}
+
+/**
+ * Helper for tests: get provider by model name
+ */
+export async function getProviderForModel(model: string): Promise<IModelProvider> {
+  const config = createTestConfig();
+  config.ai = {
+    provider: ProviderType.OLLAMA,
+    model,
+    timeout_ms: 30000,
+  };
+  return await ProviderFactory.create(config);
 }

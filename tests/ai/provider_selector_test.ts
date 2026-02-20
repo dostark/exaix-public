@@ -13,6 +13,7 @@ import { initTestDbService } from "../helpers/db.ts";
 import { PricingTier, TaskComplexity } from "../../src/enums.ts";
 import { createTestConfig } from "./helpers/test_config.ts";
 import { PROVIDER_OPENAI } from "../../src/config/constants.ts";
+import type { Config } from "../../src/config/schema.ts";
 
 async function withEnv<T>(vars: Record<string, string | undefined>, fn: () => Promise<T> | T): Promise<T> {
   const previous: Record<string, string | undefined> = {};
@@ -385,7 +386,7 @@ Deno.test("ProviderSelector: uses configuration for task routing", async () => {
         simple: ["simple-provider"],
         complex: ["complex-provider"],
       },
-    } as any;
+    } as Config["provider_strategy"];
 
     const selector = new ProviderSelector(ProviderRegistry, costTracker, healthService);
 

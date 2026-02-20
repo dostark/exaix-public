@@ -8,9 +8,11 @@ import {
   assertMCPSuccess,
   createMCPRequest,
   createToolCallRequest,
+  type IMCPTestContext,
   initMCPTest,
   initMCPTestWithoutPortal,
 } from "./helpers/test_setup.ts";
+import type { MCPServer } from "../../src/mcp/server.ts";
 
 /**
  * Tests for read_file Tool Implementation
@@ -32,7 +34,7 @@ async function withMCPToolTest(
     fileContent?: Record<string, string>;
     skipPortal?: boolean;
   } = {},
-  fn: (ctx: { server: any; db: any; portalPath: string; tempDir: string }) => Promise<void>,
+  fn: (ctx: { server: MCPServer; db: any; portalPath: string; tempDir: string }) => Promise<void>,
 ) {
   const ctx = options.skipPortal
     ? await initMCPTestWithoutPortal()
@@ -42,8 +44,8 @@ async function withMCPToolTest(
     await fn({
       server: ctx.server,
       db: ctx.db,
-      portalPath: (ctx as any).portalPath,
-      tempDir: (ctx as any).tempDir,
+      portalPath: (ctx as IMCPTestContext).portalPath ?? "",
+      tempDir: ctx.tempDir,
     });
   } finally {
     await ctx.cleanup();

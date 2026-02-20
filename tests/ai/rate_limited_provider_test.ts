@@ -137,8 +137,8 @@ Deno.test("RateLimitedProvider: rolls back on error", async () => {
   await assertRejects(() => rateLimited.generate("test"));
 
   // Verify counters were reset (callsThisMinute should be 0)
-  assertEquals((rateLimited as any).callsThisMinute, 0);
-  assertEquals((rateLimited as any).tokensThisHour, 0);
+  assertEquals(rateLimited.callsThisMinute, 0);
+  assertEquals(rateLimited.tokensThisHour, 0);
 });
 
 Deno.test("RateLimitedProvider: resets windows correctly", async () => {
@@ -154,8 +154,8 @@ Deno.test("RateLimitedProvider: resets windows correctly", async () => {
   await rateLimited.generate("test");
 
   // Simulate time passing (61 seconds)
-  (rateLimited as any).windowStart = Date.now() - 61000;
-  (rateLimited as any).resetWindowsIfNeeded();
+  rateLimited.windowStart = Date.now() - 61000;
+  rateLimited.resetWindowsIfNeeded();
 
   // Should allow another call
   await rateLimited.generate("test");
@@ -239,11 +239,11 @@ Deno.test("RateLimitedProvider: resets daily cost counter", async () => {
   });
 
   // Simulate high cost usage
-  (rateLimited as any).costThisDay = 0.8; // Near limit
+  rateLimited.costThisDay = 0.8; // Near limit
 
   // Simulate day change
-  (rateLimited as any).dayStart = Date.now() - 86_400_000; // 24+ hours ago
-  (rateLimited as any).resetWindowsIfNeeded();
+  rateLimited.dayStart = Date.now() - 86_400_000; // 24+ hours ago
+  rateLimited.resetWindowsIfNeeded();
 
   // Should allow call now
   await rateLimited.generate("test");

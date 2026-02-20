@@ -478,6 +478,10 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     return this.state.selectedAgentId;
   }
 
+  setSelectedAgentId(id: string | null): void {
+    this.state.selectedAgentId = id;
+  }
+
   override isHelpVisible(): boolean {
     return this.state.showHelp;
   }

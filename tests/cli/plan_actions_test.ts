@@ -8,16 +8,22 @@ import {
   handlePlanShow,
   type PlanActionContext,
 } from "../../src/cli/command_builders/plan_actions.ts";
-import type { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
-import type { EventLogger } from "../../src/services/event_logger.ts";
+import { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
+import { EventLogger } from "../../src/services/event_logger.ts";
 import { LogLevel } from "../../src/enums.ts";
 
 function createDisplay() {
   const calls: Array<{ level: LogLevel; a: string; b: string; c: any }> = [];
-  const display = {
-    info: (a: string, b: string, c: any) => calls.push({ level: LogLevel.INFO, a, b, c }),
-    error: (a: string, b: string, c: any) => calls.push({ level: LogLevel.ERROR, a, b, c }),
-  };
+  const display = Object.assign(Object.create(EventLogger.prototype), {
+    info: (a: string, b: string, c: any) => {
+      calls.push({ level: LogLevel.INFO, a, b, c });
+      return Promise.resolve();
+    },
+    error: (a: string, b: string, c: any) => {
+      calls.push({ level: LogLevel.ERROR, a, b, c });
+      return Promise.resolve();
+    },
+  });
   return { display, calls };
 }
 
@@ -28,8 +34,8 @@ Deno.test("handlePlanList: displays empty result", async () => {
   };
 
   const context: PlanActionContext = {
-    planCommands: planCommands as unknown as PlanCommands,
-    display: display as unknown as EventLogger,
+    planCommands: Object.assign(Object.create(PlanCommands.prototype), planCommands),
+    display,
   };
   await handlePlanList(context, { status: "review" });
 
@@ -57,8 +63,8 @@ Deno.test("handlePlanList: displays plan rows with truncation", async () => {
   };
 
   const context: PlanActionContext = {
-    planCommands: planCommands as unknown as PlanCommands,
-    display: display as unknown as EventLogger,
+    planCommands: Object.assign(Object.create(PlanCommands.prototype), planCommands),
+    display,
   };
   await handlePlanList(context, { status: "review" });
 
@@ -89,8 +95,8 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
   };
 
   const context: PlanActionContext = {
-    planCommands: planCommands as unknown as PlanCommands,
-    display: display as unknown as EventLogger,
+    planCommands: Object.assign(Object.create(PlanCommands.prototype), planCommands),
+    display,
   };
   await handlePlanShow(context, "p1");
 
@@ -116,8 +122,8 @@ Deno.test("handlePlanApprove: splits skills", async () => {
   };
 
   const context: PlanActionContext = {
-    planCommands: planCommands as unknown as PlanCommands,
-    display: display as unknown as EventLogger,
+    planCommands: Object.assign(Object.create(PlanCommands.prototype), planCommands),
+    display,
   };
   await handlePlanApprove(context, "p1", { skills: "a, b" });
   assertEquals((calls[0] as { skills: string[] }).skills, ["a", "b"]);
@@ -138,8 +144,8 @@ Deno.test("handlePlanReject/Revise: delegates", async () => {
   };
 
   const context: PlanActionContext = {
-    planCommands: planCommands as unknown as PlanCommands,
-    display: display as unknown as EventLogger,
+    planCommands: Object.assign(Object.create(PlanCommands.prototype), planCommands),
+    display,
   };
   await handlePlanReject(context, "p", "r");
   await handlePlanRevise(context, "p", ["c"]);

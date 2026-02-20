@@ -573,12 +573,3 @@ export async function validateProviderConnection(provider: IModelProvider): Prom
     );
   }
 }
-
-// Helper for tests: get provider by model name
-export async function getProviderForModel(model: string): Promise<IModelProvider> {
-  // Minimal config for test — only ai section is needed
-  const config = {
-    ai: { provider: "ollama", model },
-  } as Partial<Config> as Config;
-  return await ProviderFactory.create(config);
-}

@@ -31,7 +31,7 @@ import { createTreeViewState, type TreeViewState } from "./tree_view_state.ts";
  * @template T The type of data stored in tree nodes
  */
 export abstract class BaseTreeView<T> extends TuiSessionBase {
-  protected state: TreeViewState<T>;
+  public state: TreeViewState<T>;
   protected localSpinnerState: SpinnerState;
 
   constructor(useColors = true) {

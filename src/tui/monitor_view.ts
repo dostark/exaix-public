@@ -306,7 +306,7 @@ export class MonitorView {
   /**
    * Get ANSI color code
    */
-  private getAnsiColorCode(color: string): number {
+  public getAnsiColorCode(color: string): number {
     switch (color) {
       case "red":
         return 31;
@@ -366,17 +366,15 @@ export class MinimalLogServiceMock implements LogService {
   }
 }
 
-// ===== TUI Session Class =====
-
 /**
  * Interactive TUI session for Monitor View
  */
 export class MonitorTuiSession extends BaseTreeView<LogEntry> {
-  private readonly monitorView: MonitorView;
-  private monitorExtensions: MonitorViewExtensions;
-  private autoRefreshTimer: number | null = null;
+  public readonly monitorView: MonitorView;
+  public monitorExtensions: MonitorViewExtensions;
+  public autoRefreshTimer: number | null = null;
   // Track what dialog is pending
-  private pendingDialogType: "search" | "filter-agent" | "filter-time" | "filter-trace" | "filter-action" | null = null;
+  public pendingDialogType: "search" | "filter-agent" | "filter-time" | "filter-trace" | "filter-action" | null = null;
 
   constructor(monitorView: MonitorView, useColors = true) {
     super(useColors);
@@ -849,7 +847,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
 
   // ===== Dialog Management =====
 
-  protected override onDialogClosed(dialog: DialogBase): void {
+  public override onDialogClosed(dialog: DialogBase): void {
     const result = dialog.getResult();
     if (result.type === DialogStatus.CANCELLED) {
       this.pendingDialogType = null;

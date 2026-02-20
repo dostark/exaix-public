@@ -60,7 +60,7 @@ Deno.test("TUI dashboard notification edge cases", async () => {
   await dashboard.notify("");
   if (!notified) throw new Error("Notification with empty message not handled");
   notified = false;
-  await dashboard.notify(null as unknown as string);
+  await dashboard.notify(null as never as string);
   if (!notified) throw new Error("Notification with null not handled");
   dashboard.destroy();
 });

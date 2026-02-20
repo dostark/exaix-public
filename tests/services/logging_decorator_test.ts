@@ -26,7 +26,7 @@ function createStubLogger(calls: LoggedCall[]): EventLogger {
     },
   };
 
-  return logger as unknown as EventLogger;
+  return logger as Partial<EventLogger> as EventLogger;
 }
 
 Deno.test("LogMethod (standard decorator): wraps method via (value, context)", async () => {
@@ -37,7 +37,9 @@ Deno.test("LogMethod (standard decorator): wraps method via (value, context)", a
     return Promise.resolve(`ok:${value}`);
   };
 
-  const context = { kind: "method", name: "doIt" } as any;
+  const context = { kind: "method", name: "doIt" } as Partial<
+    ClassMethodDecoratorContext
+  > as ClassMethodDecoratorContext;
   const wrapped = LogMethod(logger)(original, context) as (...args: unknown[]) => Promise<unknown>;
 
   const out = await wrapped.call({ constructor: { name: "C" } }, "x");

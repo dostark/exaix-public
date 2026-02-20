@@ -3,6 +3,9 @@ import { assertEquals } from "@std/assert";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
+import type { IDatabaseService } from "../../src/services/db.ts";
+import type { IMemoryBankService } from "../../src/services/memory_bank.ts";
+import type { ExecutionMemory, ProposalLearning } from "../../src/schemas/memory_bank.ts";
 
 Deno.test("MemoryExtractorService: logActivity errors do not break createProposal", async () => {
   const root = await Deno.makeTempDir({ prefix: "memory-extractor-" });
@@ -15,7 +18,11 @@ Deno.test("MemoryExtractorService: logActivity errors do not break createProposa
       },
     };
 
-    const extractor = new MemoryExtractorService(config, db as any, {} as any);
+    const extractor = new MemoryExtractorService(
+      config,
+      db as Partial<IDatabaseService> as IDatabaseService,
+      {} as Partial<IMemoryBankService> as IMemoryBankService,
+    );
 
     const proposalId = await extractor.createProposal(
       {
@@ -29,8 +36,8 @@ Deno.test("MemoryExtractorService: logActivity errors do not break createProposa
         tags: ["tag"],
         confidence: ConfidenceLevel.HIGH,
         references: [],
-      } as any,
-      { trace_id: "trace" } as any,
+      } as ProposalLearning,
+      { trace_id: "trace" } as Partial<ExecutionMemory> as ExecutionMemory,
       "agent",
     );
 

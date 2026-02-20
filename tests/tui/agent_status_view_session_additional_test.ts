@@ -4,8 +4,9 @@ import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 import { AgentStatusTuiSession, AgentStatusView, MinimalAgentServiceMock } from "../../src/tui/agent_status_view.ts";
 import { AgentHealth, TuiGroupBy } from "../../src/enums.ts";
 import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
+import { type AgentStatusItem } from "../../src/tui/agent_status_view.ts";
 
-function makeAgent(id: string, overrides: Record<string, unknown> = {}) {
+function makeAgent(id: string, overrides: Partial<AgentStatusItem> = {}): AgentStatusItem {
   return {
     id,
     name: `Agent ${id}`,
@@ -15,7 +16,7 @@ function makeAgent(id: string, overrides: Record<string, unknown> = {}) {
     capabilities: ["code"],
     defaultSkills: [],
     ...overrides,
-  } as any;
+  };
 }
 
 Deno.test("AgentStatusTuiSession.initialize: loads agents and selects first", async () => {
@@ -47,7 +48,7 @@ Deno.test("AgentStatusTuiSession.getGroupByLabel: covers known and unknown", asy
   assertEquals(session.getGroupByLabel(), "Model");
 
   // Force unknown
-  (session as any).state.groupBy = "bogus";
+  session.setGroupBy("bogus" as TuiGroupBy);
   assertEquals(session.getGroupByLabel(), "Unknown");
 });
 
@@ -57,13 +58,13 @@ Deno.test("AgentStatusTuiSession.showAgentDetail: handles missing agent and rend
   ]);
 
   // Make health return issues.
-  (svc as any).getAgentHealth = () => Promise.resolve({ status: AgentHealth.WARNING, issues: ["i1"], uptime: 90 });
+  svc.getAgentHealth = () => Promise.resolve({ status: AgentHealth.WARNING, issues: ["i1"], uptime: 90 });
 
   const view = new AgentStatusView(svc);
   const session = view.createTuiSession(false) as AgentStatusTuiSession;
   await session.initialize();
 
-  (session as any).state.selectedAgentId = "a1";
+  session.setSelectedAgentId("a1");
   await session.showAgentDetail();
 
   assertEquals(session.isDetailVisible(), true);
@@ -72,7 +73,7 @@ Deno.test("AgentStatusTuiSession.showAgentDetail: handles missing agent and rend
   assertStringIncludes(detail, "Default Skills:");
 
   // Missing agent path
-  (session as any).state.selectedAgentId = "missing";
+  session.setSelectedAgentId("missing");
   await session.showAgentDetail();
   assertStringIncludes(session.getDetailContent(), "Agent not found");
 });

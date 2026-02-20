@@ -2,7 +2,9 @@ import { assert, assertEquals } from "@std/assert";
 import { launchTuiDashboard, tryDisableRawMode, tryEnableRawMode } from "../../src/tui/tui_dashboard.ts";
 
 Deno.test("tryEnableRawMode enables raw mode when supported", () => {
-  const stdinAny = Deno.stdin as any;
+  const stdinAny = Deno.stdin as Partial<
+    { isTerminal: () => boolean; setRaw: ((flag: boolean) => void) | undefined }
+  > as { isTerminal: () => boolean; setRaw: ((flag: boolean) => void) | undefined };
   const origIsTerminal = stdinAny.isTerminal;
   const origSetRaw = stdinAny.setRaw;
 
@@ -32,7 +34,9 @@ Deno.test("tryEnableRawMode enables raw mode when supported", () => {
 });
 
 Deno.test("tryEnableRawMode returns false when setRaw missing", () => {
-  const stdinAny = Deno.stdin as any;
+  const stdinAny = Deno.stdin as Partial<
+    { isTerminal: () => boolean; setRaw: ((flag: boolean) => void) | undefined }
+  > as { isTerminal: () => boolean; setRaw: ((flag: boolean) => void) | undefined };
   const origIsTerminal = stdinAny.isTerminal;
   const origSetRaw = stdinAny.setRaw;
 
@@ -54,7 +58,7 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
   fn: async () => {
-    const stdinAny = Deno.stdin as any;
+    const stdinAny = Deno.stdin as Partial<{ setRaw: (flag: boolean) => void }> as { setRaw: (flag: boolean) => void };
     const origSetRaw = stdinAny.setRaw;
 
     try {

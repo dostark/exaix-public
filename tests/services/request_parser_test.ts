@@ -2,6 +2,7 @@ import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { RequestParser } from "../../src/services/request_processing/request_parser.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";
+import type { EventLogger } from "../../src/services/event_logger.ts";
 import {
   TEST_LOG_ACTION_FILE_NOT_FOUND,
   TEST_LOG_ACTION_FRONTMATTER_INVALID,
@@ -32,7 +33,7 @@ function createLogger(errors: LoggedError[]) {
       errors.push({ action, target, payload });
       return Promise.resolve();
     },
-  } as any;
+  } as Partial<EventLogger> as EventLogger;
 }
 
 function buildFrontmatter(traceId?: string, status?: string): string {

@@ -11,7 +11,7 @@ import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import type { IDatabaseService } from "./db.ts";
-import type { MemoryBankService } from "./memory_bank.ts";
+import type { IMemoryBankService } from "./memory_bank.ts";
 import type {
   ExecutionMemory,
   Learning,
@@ -36,7 +36,7 @@ export class MemoryExtractorService {
   constructor(
     private config: Config,
     private db: IDatabaseService,
-    private memoryBank: MemoryBankService,
+    private memoryBank: IMemoryBankService,
   ) {
     this.pendingDir = join(config.system.root, config.paths.memory, "Pending");
   }

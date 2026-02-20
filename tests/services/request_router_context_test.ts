@@ -1,13 +1,16 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
-import { RequestRouter } from "../../src/services/request_router.ts";
+import { FlowValidator, RequestRouter } from "../../src/services/request_router.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import type { Config } from "../../src/config/schema.ts";
 import { setupPortalWorkspaceTestDirs } from "./helpers/portal_workspace_test_helper.ts";
 import { sampleRouterRequest } from "./helpers.ts";
+import type { IFlowRunner } from "../../src/flows/flow_runner.ts";
+import type { IAgentRunner } from "../../src/services/agent_runner.ts";
+import type { PortalConfig } from "../../src/config/schema.ts";
 
 /**
  * TDD Tests for RequestRouter WorkspaceExecutionContext Integration
@@ -39,7 +42,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
 
     // Create mock config
     config = createMockConfig(workspaceDir, {
-      portals: [portalConfig as any],
+      portals: [portalConfig as Partial<PortalConfig> as PortalConfig],
     });
 
     logger = new EventLogger({ db: dbService.db });
@@ -50,7 +53,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     };
 
     const _mockAgentRunner = {
-      execute: () => Promise.resolve({ success: true }),
+      run: () => Promise.resolve({ success: true }),
     };
 
     const mockFlowValidator = {
@@ -59,9 +62,9 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
 
     // Create RequestRouter instance
     router = new RequestRouter(
-      _mockFlowRunner as any,
-      _mockAgentRunner as any,
-      mockFlowValidator,
+      _mockFlowRunner as unknown as IFlowRunner,
+      _mockAgentRunner as unknown as IAgentRunner,
+      mockFlowValidator as unknown as FlowValidator,
       logger,
       "default-agent",
       join(tempDir, "Blueprints"),
