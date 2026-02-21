@@ -1415,7 +1415,7 @@ const journalCommand = new Command()
   .option("--target <target:string>", "Filter by target")
   .action(async (options) => {
     const cmd = new JournalCommands(context);
-    await cmd.show(options as unknown as JournalCommandOptions);
+    await cmd.show(options as JournalCommandOptions);
   });
 
 __test_command.command("journal", journalCommand);

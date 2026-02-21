@@ -1,7 +1,9 @@
-### Configuration Schema
+- **Every injectable service exposes an interface.** `class Foo` → `export interface IFoo`. Consumers depend on `IFoo`, never on `Foo`.
+- **Constructor injection only.** Pass `config`, `db`, `provider`, and peer services via constructors. Module-level singletons and static accessors are prohibited.
+- **Test mocks implement the full interface.** Never use `as any` or object-literals to fake a service.
+- **Prefer narrow interfaces.** Declare only the methods a consumer actually calls. This reduces coupling and makes mocking lighter.
 
-Use Zod for config validation and keep config options in `exo.config.toml` examples. Provide default values and bounds where possible.
-
-### Service Pattern — Dependency Injection & Interfaces
-
-ExoFrame enforces an **Interface-first, Constructor Injection** policy for all services.
+```typescript
+// ✅ GOOD — interface + constructor injection
+export interface IGitService { commit(msg: string): Promise<void>; }
+export class GitService implements IGitService { ... }

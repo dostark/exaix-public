@@ -4,96 +4,13 @@ Thank you for your interest in contributing to ExoFrame! This guide details the 
 
 ## 1. Coding Standards
 
-### 1.1 No Magic Numbers or Strings
+All coding conventions and style rules are now maintained in
+[CODE_STYLE.md](./CODE_STYLE.md).  This document is the single source of truth
+for typing, imports, dependency injection, constants, environment variables,
+and related topics.  Please review it before making any changes to source
+code.
 
-ExoFrame enforces a strict policy against "magic numbers" and "magic strings" in the codebase.
-
-- **Policy:** **NEVER** introduce new hardcoded values (timeouts, limits, model names, providers, pricing, file names, status strings, etc.) directly in service logic or components.
-- **Externalization:**
-  - **User-Confgiurable:** Add to `exo.config.sample.toml`, update `src/config/schema.ts`, and provide defaults in `src/config/constants.ts` (via `ai_config.ts`).
-  - **Internal Constants:** Add to `src/constants.ts` or module-specific `constants.ts` files.
-  - **CLI/TUI Defaults:** Add to `src/cli/cli.config.ts` or `src/tui/tui.config.ts`.
-  - **Enums:** Use TypeScript enums (`src/enums.ts`) for status, types, and fixed sets of strings.
-
-### 1.2 Configuration Workflow
-
-To add a new user-facing configuration option:
-
-1. **Define:** Add the option to `exo.config.sample.toml` with a clear comment and sensible default.
-2. **Schema:** Update `src/config/schema.ts` to include the new field in the Zod schema.
-3. **Defaults:** Ensure `src/config/constants.ts` has the default value if it's a fallback constants.
-4. **Load:** The `ConfigService` (`src/config/ai_config.ts`) automatically loads and validates the config against the schema.
-
-### 1.3 TypeScript Enums
-
-Use `src/enums.ts` for all shared enumerations.
-
-- **Do:** `status === RequestStatus.PENDING`
-- **Don't:** `status === "pending"`
-
-### 1.4 Import Statements
-
-All import statements **MUST** be placed at the top of the module. Dynamic imports using `await import()` are generally discouraged unless absolutely necessary for conditional loading of large modules or circular dependencies, and should be justified.
-
-- **Do:**
-  ```typescript
-  import { join } from "@std/path";
-  import { MyService } from "./service.ts";
-
-  export class MyClass { ... }
-  ```
-- **Don't:**
-  ```typescript
-  export class MyClass {
-    async method() {
-      const { join } = await import("@std/path");
-      ...
-    }
-  ```
-
-### 1.5 Strict Type Safety
-
-ExoFrame enforces a strict **No `any`, No implicit types** policy to ensure type safety and maintainability.
-
-- **Always annotate:** Every variable, parameter, return value, and data structure **must** have an explicit type annotation. Never rely on implicit inference to avoid writing a type.
-- **No `any`:** **NEVER** use the `any` type in variable declarations, function parameters, or return types. This includes both explicit `any` and implicit `any` from missing annotations.
-- **No `as any` casting:** **NEVER** use `value as any` to bypass TypeScript's type checking. This defeats the purpose of using TypeScript and hides real type issues. Use proper type guards, narrowing techniques, or define the correct type.
-- **No `as typeof var` casting:** **NEVER** use `value as typeof variable` to cast to another variable's type. This pattern is effectively equivalent to using `any` and completely bypasses type safety. Instead, define explicit interfaces, use intersection types, or leverage proper type inference.
-- **No `unknown` as a stored type:** `unknown` is not a substitute for a real type. Permitted uses of `unknown` are limited to:
-  - The parameter of a `catch` clause: `catch (e: unknown)`
-  - A *transient* value inside a type-narrowing guard before it is cast to a concrete type
-  - Never use `unknown` as a parameter type, return type, or field type — define a named interface or type alias instead.
-- **No `@ts-expect-error` pragmas:** **NEVER** use `@ts-expect-error` to suppress type errors. This practice is prohibited as it bypasses type safety controls. Always fix the underlying type issue by defining proper types, interfaces, or using generics.
-- **No lint ignore for `any`:** **NEVER** use `// deno-lint-ignore no-explicit-any` to suppress type errors. This practice hides type safety issues and prevents proper typing. Always fix the underlying type issue by defining proper types, interfaces, or using generics.
-- **Alternatives:**
-  - **Generics:** Use generic types (`<T>`) for flexible functions or classes so callers supply the concrete type.
-  - **Named interfaces / type aliases:** If the shape does not exist yet, create one. Prefer specific interfaces over `Record<string, ...>` when the keys are known.
-  - **Zod schemas:** Use Zod schemas to validate external/dynamic data and infer types with `z.infer<typeof Schema>`.
-
-### 1.6 Dependency Injection & Interfaces
-
-ExoFrame enforces a **Interface-first, Constructor Injection** policy for all services and components.
-
-- **Define an interface for every injectable service.** For every class `Foo` that is consumed by other services, export a companion `IFoo` interface next to it. Consumers **MUST** depend on `IFoo`, never on the concrete `Foo`.
-  ```typescript
-  // ✅ GOOD
-  export interface IGitService { commit(msg: string): Promise<void>; }
-  export class GitService implements IGitService { ... }
-
-  // ❌ BAD — tight coupling to concrete class
-  constructor(private git: GitService) {}
-  ```
-- **Constructor injection only.** All dependencies (`config`, `db`, `provider`, other services) must be passed via constructors. Module-level singletons, static access, or `import`-time side-effects are **prohibited**.
-  ```typescript
-  // ✅ GOOD
-  constructor(private db: IDatabaseService, private git: IGitService) {}
-
-  // ❌ BAD — singleton / static access
-  const git = GitService.getInstance();
-  ```
-- **Test mocks implement the full interface.** Never use `as any` or partial object literals to fake a service. Create a typed `MockFoo` (or use `Partial<IFoo>` only where the test provably does not invoke the missing methods, and document why).
-- **No concrete class in a generic/factory position.** Factory functions and registries must reference `IFoo`, not `Foo`.
-- **Prefer narrow interfaces.** If a consumer only needs two methods, define a narrow interface for those two methods rather than importing the full `IFoo`. This reduces coupling and makes tests lighter.
+(Sections 1.1–1.6 have been removed and relocated to the central guide.)
 
 ## 2. Testing
 
