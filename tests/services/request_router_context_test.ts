@@ -7,10 +7,13 @@ import { createMockConfig } from "../helpers/config.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import type { Config } from "../../src/config/schema.ts";
 import { setupPortalWorkspaceTestDirs } from "./helpers/portal_workspace_test_helper.ts";
-import { sampleRouterRequest } from "./helpers.ts";
-import type { IFlowRunner } from "../../src/flows/flow_runner.ts";
-import type { IAgentRunner } from "../../src/services/agent_runner.ts";
 import type { PortalConfig } from "../../src/config/schema.ts";
+import {
+  createMockAgentRunner,
+  createMockFlowRunner,
+  createMockFlowValidator,
+  sampleRouterRequest,
+} from "./helpers.ts";
 
 /**
  * TDD Tests for RequestRouter WorkspaceExecutionContext Integration
@@ -41,29 +44,25 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     const portalConfig = dirs.portalConfig;
 
     // Create mock config
+    const portalConfigRecord: PortalConfig = {
+      alias: portalConfig.alias,
+      target_path: portalConfig.target_path,
+    };
     config = createMockConfig(workspaceDir, {
-      portals: [portalConfig as Partial<PortalConfig> as PortalConfig],
+      portals: [portalConfigRecord],
     });
 
     logger = new EventLogger({ db: dbService.db });
 
     // Create mock dependencies
-    const _mockFlowRunner = {
-      execute: () => Promise.resolve({ success: true }),
-    };
-
-    const _mockAgentRunner = {
-      run: () => Promise.resolve({ success: true }),
-    };
-
-    const mockFlowValidator = {
-      validateFlow: () => Promise.resolve({ valid: true }),
-    };
+    const mockFlowRunner = createMockFlowRunner();
+    const mockAgentRunner = createMockAgentRunner();
+    const mockFlowValidator = createMockFlowValidator();
 
     // Create RequestRouter instance
     router = new RequestRouter(
-      _mockFlowRunner as unknown as IFlowRunner,
-      _mockAgentRunner as unknown as IAgentRunner,
+      mockFlowRunner,
+      mockAgentRunner,
       mockFlowValidator as unknown as FlowValidator,
       logger,
       "default-agent",

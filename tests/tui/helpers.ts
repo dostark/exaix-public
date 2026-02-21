@@ -1,6 +1,5 @@
 import { Request } from "../../src/tui/request_manager_view.ts";
 import { MemorySource, PortalStatus, SkillStatus } from "../../src/enums.ts";
-import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { LegacyRequestManagerTuiSession, RequestManagerView } from "../../src/tui/request_manager_view.ts";
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { MonitorView } from "../../src/tui/monitor_view.ts";
@@ -12,6 +11,15 @@ import type { PortalDetails, PortalInfo } from "../../src/cli/commands/portal_co
 import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
 import type { RequestOptions } from "../../src/tui/request_manager_view.ts";
 import { SkillsManagerTuiSession } from "../../src/tui/skills_manager_view.ts";
+import type {
+  ExecutionMemory,
+  GlobalMemory,
+  MemorySearchResult,
+  MemoryUpdateProposal,
+  ProjectMemory,
+  ProposalLearning,
+  Skill,
+} from "../../src/schemas/memory_bank.ts";
 
 // Counter for deterministic IDs in tests
 let requestIdCounter = 1;
@@ -117,19 +125,19 @@ export function createTuiWithRequests(arr: Array<Partial<Request>> = []) {
 // -------------------------
 let logIdCounter = 1;
 
-export function sampleLogEntry(overrides: Record<string, unknown> = {}) {
+export function sampleLogEntry(overrides: Record<string, unknown> = {}): LogEntry {
   const id = overrides.id ?? String(logIdCounter++);
   return {
     id,
-    trace_id: overrides.trace_id ?? `trace-${id}`,
-    actor: overrides.actor ?? MemorySource.AGENT,
-    agent_id: overrides.agent_id ?? "default",
-    action_type: overrides.action_type ?? "request_created",
-    target: overrides.target ?? "Workspace/Requests/test.md",
-    payload: overrides.payload ?? {},
-    timestamp: overrides.timestamp ?? new Date().toISOString(),
+    trace_id: (overrides.trace_id as string) ?? `trace-${id}`,
+    actor: (overrides.actor as string) ?? MemorySource.AGENT,
+    agent_id: (overrides.agent_id as string) ?? "default",
+    action_type: (overrides.action_type as string) ?? "request_created",
+    target: (overrides.target as string) ?? "Workspace/Requests/test.md",
+    payload: (overrides.payload as Record<string, unknown>) ?? {},
+    timestamp: (overrides.timestamp as string) ?? new Date().toISOString(),
     ...overrides,
-  };
+  } as unknown as LogEntry;
 }
 
 export function sampleLogEntries(arr: Array<Record<string, unknown>>) {
@@ -324,7 +332,7 @@ export function createMockDatabaseService(initialLogs: ActivityRecord[] = []) {
   return new MockDatabaseService(initialLogs);
 }
 
-export function createMonitorViewWithLogs(arr: Array<Record<string, unknown>> = []) {
+export function createMonitorViewWithLogs(arr: Array<LogEntry | Record<string, unknown>> = []) {
   const activityRecords: ActivityRecord[] = arr.map((a) => ({
     id: String(a.id ?? crypto.randomUUID()),
     trace_id: String(a.trace_id ?? `trace-${a.id ?? Math.floor(Math.random() * 1e6)}`),
@@ -334,7 +342,7 @@ export function createMonitorViewWithLogs(arr: Array<Record<string, unknown>> = 
     target: (a.target as string | null) ?? null,
     payload: typeof a.payload === "string" ? a.payload : JSON.stringify(a.payload ?? {}),
     timestamp: String(a.timestamp ?? new Date().toISOString()),
-    count: typeof a.count === "number" ? (a.count as number) : undefined,
+    count: (a && typeof a === "object" && "count" in a && typeof a.count === "number") ? a.count : undefined,
   }));
 
   const db = createMockDatabaseService(activityRecords);
@@ -600,20 +608,24 @@ import { EvaluationCategory, MemoryScope } from "../../src/enums.ts";
 // Re-export enums for use by test files
 export { EvaluationCategory, MemoryScope };
 
-export function sampleSkill(overrides: Record<string, any> = {}) {
+export function sampleSkill(overrides: Partial<Skill> = {}): Skill {
   return {
-    id: overrides.id ?? `skill-${Math.floor(Math.random() * 1e6)}`,
-    name: overrides.name ?? "Test Skill",
-    version: overrides.version ?? "1.0.0",
-    status: overrides.status ?? SkillStatus.ACTIVE,
-    source: overrides.source ?? MemorySource.CORE,
-    description: overrides.description ?? "Test skill description",
-    triggers: overrides.triggers ?? {
+    id: crypto.randomUUID(),
+    created_at: new Date().toISOString(),
+    source: MemorySource.CORE,
+    scope: MemoryScope.GLOBAL,
+    status: SkillStatus.ACTIVE,
+    skill_id: `skill-${Math.floor(Math.random() * 1e6)}`,
+    name: "Test Skill",
+    version: "1.0.0",
+    description: "Test skill description",
+    triggers: {
       keywords: ["test"],
     },
-    instructions: overrides.instructions ?? "Test instructions",
+    instructions: "Test instructions",
+    usage_count: 0,
     ...overrides,
-  };
+  } as Skill;
 }
 
 export function sampleSkills(arr: Array<Record<string, unknown>>) {
@@ -716,7 +728,6 @@ export function testSkillsSessionRender(
 // ===== Memory Service Mock =====
 
 import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
-import type { MemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
 
 export class MinimalMemoryServiceMock implements MemoryServiceInterface {
   proposals: MemoryUpdateProposal[] = [];
@@ -730,23 +741,23 @@ export class MinimalMemoryServiceMock implements MemoryServiceInterface {
     return Promise.resolve(["default"]);
   }
 
-  getProjectMemory(_portal: string): Promise<any> {
+  getProjectMemory(_portal: string): Promise<ProjectMemory | null> {
     return Promise.resolve(null);
   }
 
-  getGlobalMemory(): Promise<any> {
+  getGlobalMemory(): Promise<GlobalMemory | null> {
     return Promise.resolve(null);
   }
 
-  getExecutionByTraceId(_traceId: string): Promise<any> {
+  getExecutionByTraceId(_traceId: string): Promise<ExecutionMemory | null> {
     return Promise.resolve(null);
   }
 
-  getExecutionHistory(_options?: { portal?: string; limit?: number }): Promise<any[]> {
+  getExecutionHistory(_options?: { portal?: string; limit?: number }): Promise<ExecutionMemory[]> {
     return Promise.resolve([]);
   }
 
-  search(_query: string, _options?: { portal?: string; limit?: number }): Promise<any[]> {
+  search(_query: string, _options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]> {
     return Promise.resolve([]);
   }
 
@@ -789,63 +800,61 @@ export function createMockProposals(): MemoryUpdateProposal[] {
       agent: "test-agent",
       operation: MemoryOperation.ADD,
       learning: {
-        id: "learning-1",
-        title: "Error Handling Pattern",
-        category: LearningCategory.PATTERN,
-        description: "Use try-catch for all async functions",
-        confidence: ConfidenceLevel.HIGH,
-        tags: ["error-handling"],
+        id: "729b8001-0000-4000-8000-000000000001",
+        created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
         source: MemorySource.AGENT,
         scope: MemoryScope.PROJECT,
-        created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-      },
+        title: "Error Handling Pattern",
+        description: "Use try-catch for all async functions",
+        category: LearningCategory.PATTERN,
+        tags: ["error-handling"],
+        confidence: ConfidenceLevel.HIGH,
+        references: [{ type: MemoryReferenceType.FILE, path: "src/db.ts" }],
+      } as ProposalLearning,
       target_scope: MemoryScope.PROJECT,
       target_project: "my-app",
       reason: "Extracted from execution",
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-      status: MemoryStatus.PENDING,
-    },
+      status: "pending",
+    } as MemoryUpdateProposal,
     {
       id: "proposal-2",
       agent: "test-agent",
       operation: MemoryOperation.ADD,
       learning: {
-        id: "learning-2",
-        title: "API Rate Limiting",
-        category: LearningCategory.DECISION,
-        description: "Implement rate limiting for all API endpoints",
-        confidence: ConfidenceLevel.MEDIUM,
-        tags: [MemoryReferenceType.API, EvaluationCategory.SECURITY],
+        id: "729b8001-0000-4000-8000-000000000002",
+        created_at: new Date(Date.now() - 18000000).toISOString(), // 5 hours ago
         source: MemorySource.AGENT,
         scope: MemoryScope.GLOBAL,
-        created_at: new Date(Date.now() - 18000000).toISOString(), // 5 hours ago
-      },
+        title: "API Rate Limiting",
+        description: "Implement rate limiting for all API endpoints",
+        category: LearningCategory.DECISION,
+        tags: [MemoryReferenceType.API, EvaluationCategory.SECURITY],
+        confidence: ConfidenceLevel.MEDIUM,
+      } as ProposalLearning,
       target_scope: MemoryScope.GLOBAL,
       reason: "Common pattern across projects",
-      created_at: new Date(Date.now() - 18000000).toISOString(),
-      status: MemoryStatus.PENDING,
-    },
+      status: "pending",
+    } as MemoryUpdateProposal,
     {
       id: "proposal-3",
       agent: "test-agent",
       operation: MemoryOperation.ADD,
       learning: {
-        id: "learning-3",
-        title: "Database Connection Issue",
-        category: LearningCategory.TROUBLESHOOTING,
-        description: "Connection timeout solutions",
-        confidence: ConfidenceLevel.HIGH,
-        tags: ["database"],
+        id: "729b8001-0000-4000-8000-000000000003",
+        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
         source: MemorySource.EXECUTION,
         scope: MemoryScope.PROJECT,
-        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-      },
+        title: "Database Connection Issue",
+        description: "Connection timeout solutions",
+        category: LearningCategory.TROUBLESHOOTING,
+        tags: ["database"],
+        confidence: ConfidenceLevel.HIGH,
+      } as ProposalLearning,
       target_scope: MemoryScope.PROJECT,
       target_project: "api-service",
       reason: "Documented troubleshooting steps",
-      created_at: new Date(Date.now() - 86400000).toISOString(),
-      status: MemoryStatus.PENDING,
-    },
+      status: "pending",
+    } as MemoryUpdateProposal,
   ];
 }
 

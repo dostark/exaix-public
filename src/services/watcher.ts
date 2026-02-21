@@ -232,7 +232,7 @@ export class FileWatcher {
   /**
    * Read file with stability verification (exponential backoff)
    */
-  private async readFileWhenStable(path: string): Promise<string> {
+  public async readFileWhenStable(path: string): Promise<string> {
     const maxAttempts = DEFAULT_WATCHER_STABILITY_MAX_ATTEMPTS;
     const backoffMs = DEFAULT_WATCHER_STABILITY_BACKOFF_MS;
 

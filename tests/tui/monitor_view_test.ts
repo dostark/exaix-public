@@ -20,7 +20,7 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 import type { DialogBase } from "../../src/helpers/dialog_base.ts";
 
 // Helper for creating a monitor session
-function createMonitorSession(logs: Array<Record<string, unknown>> = []) {
+function createMonitorSession(logs: Array<LogEntry | Record<string, unknown>> = []) {
   const { monitorView } = createMonitorViewWithLogs(logs);
   const session = monitorView.createTuiSession();
   return { session, monitorView };
@@ -28,7 +28,7 @@ function createMonitorSession(logs: Array<Record<string, unknown>> = []) {
 
 // Helper for verifying filters
 async function verifyFilter(
-  logs: Array<Record<string, unknown>>,
+  logs: Array<LogEntry | Record<string, unknown>>,
   filter: JournalFilterOptions,
   expectedLength: number,
   checkFn: (logs: LogEntry[]) => void,

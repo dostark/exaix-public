@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "@std/assert";
+import { assert, assertEquals, assertExists, assertRejects } from "@std/assert";
 import { join } from "@std/path";
 import { FileWatcher } from "../src/services/watcher.ts";
 import { createMockConfig } from "./helpers/config.ts";
@@ -763,7 +763,7 @@ Deno.test("File Stability - Watcher uses non-blocking delays", async () => {
     const watcher = new FileWatcher(config, () => {});
 
     // Test that readFileWhenStable works (uses delay utility internally)
-    const content = await (watcher as any).readFileWhenStable(testFile);
+    const content = await watcher.readFileWhenStable(testFile);
     assertEquals(content, "test content");
 
     // Clean up
@@ -826,7 +826,7 @@ Deno.test("File Stability - Exponential backoff timing", async () => {
       try {
         // Try to read it stably - should timeout after ~1.85 seconds (sum of backoff delays)
         const watcher = new FileWatcher(createMockConfig(tempDir), () => {});
-        await (watcher as any).readFileWhenStable(testFile);
+        await watcher.readFileWhenStable(testFile);
       } finally {
         abortController.abort();
         await changePromise.catch(() => {
@@ -850,6 +850,33 @@ Deno.test("File Stability - Exponential backoff timing", async () => {
   } catch (error) {
     await Deno.remove(tempDir, { recursive: true });
     throw error;
+  }
+});
+
+Deno.test("FileWatcher: readFileWhenStable handles errors", async () => {
+  const tempDir = await Deno.makeTempDir();
+  try {
+    const watcher = new FileWatcher(createMockConfig(tempDir), () => {});
+    await assertRejects(
+      async () => await watcher.readFileWhenStable(join(tempDir, "non-existent.md")),
+      Error,
+      "File disappeared",
+    );
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
+  }
+});
+
+Deno.test("FileWatcher: private property accessibility for coverage", async () => {
+  const tempDir = await Deno.makeTempDir();
+  try {
+    const watcher = new FileWatcher(createMockConfig(tempDir), () => {});
+    // @ts-expect-error Accessing private property for test verification
+    const processingFiles = watcher.processingFiles as Set<string>;
+    assertExists(processingFiles);
+    assertEquals(processingFiles.size, 0);
+  } finally {
+    await Deno.remove(tempDir, { recursive: true });
   }
 });
 

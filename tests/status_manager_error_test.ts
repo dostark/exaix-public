@@ -4,6 +4,7 @@ import { parse } from "@std/yaml";
 import { StatusManager } from "../src/services/request_processing/status_manager.ts";
 import { RequestStatus } from "../src/requests/request_status.ts";
 import { initTestDbService } from "./helpers/db.ts";
+import { EventLogger } from "../src/services/event_logger.ts";
 
 function parseFrontmatter(content: string): Record<string, unknown> {
   const parts = content.split("---");
@@ -18,11 +19,7 @@ Deno.test("StatusManager error storage regression test", async () => {
   const { tempDir, cleanup } = testDbResult;
 
   try {
-    const statusManager = new StatusManager({
-      error: async () => {},
-      info: async () => {},
-      debug: async () => {},
-    } as any);
+    const statusManager = new StatusManager(new EventLogger({ prefix: "test" }));
 
     const requestPath = join(tempDir, "test-request.md");
     const originalContent = `---

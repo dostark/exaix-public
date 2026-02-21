@@ -63,5 +63,5 @@ Deno.test("describeSchema: primitives and optional are described", () => {
 });
 
 Deno.test("describeSchema: other Zod types fall back to unknown", () => {
-  assertEquals(describeSchema(z.date() as any), SchemaDescriberType.Unknown);
+  assertEquals(describeSchema(z.date()), SchemaDescriberType.Unknown);
 });

@@ -20,8 +20,7 @@ Deno.test("RequestProcessor: Portal context includes file list for grounding", a
     config.portals = [{
       alias: "test-portal",
       target_path: portalPath,
-      description: "Test portal",
-    } as any];
+    }];
 
     // 2. Setup agent blueprint
     const blueprintsDir = join(tempDir, "Blueprints", "Agents");

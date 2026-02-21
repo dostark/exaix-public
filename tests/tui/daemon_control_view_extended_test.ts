@@ -84,7 +84,12 @@ Deno.test("DaemonControlView: service delegation works", async () => {
     aliases: ["crash detected", "ERROR"],
     expected: DaemonStatus.ERROR,
   },
-  { name: "unknown variants", status: "something weird" as DaemonStatus, aliases: [], expected: DaemonStatus.UNKNOWN },
+  {
+    name: "unknown variants",
+    status: "something weird" as unknown as DaemonStatus,
+    aliases: [],
+    expected: DaemonStatus.UNKNOWN,
+  },
 ].forEach(({ name, status, aliases, expected }) => {
   Deno.test(`DaemonControlTuiSession: parseStatus detects ${name}`, async () => {
     const { mock, session } = await setupDaemonTest();
@@ -94,7 +99,7 @@ Deno.test("DaemonControlView: service delegation works", async () => {
     assertEquals(session.getDaemonStatus(), expected);
 
     for (const alias of aliases) {
-      mock.setStatus(alias as Partial<DaemonStatus> as DaemonStatus);
+      mock.setStatus(alias as unknown as DaemonStatus);
       await session.refreshStatus();
       assertEquals(session.getDaemonStatus(), expected);
     }
@@ -201,7 +206,8 @@ Deno.test("DaemonControlTuiSession: restartDaemon success", async () => {
     if (method === "refreshStatus") {
       assertEquals(session.getDaemonStatus(), DaemonStatus.ERROR);
     } else {
-      await (session as any)[method]();
+      type SessionAction = "startDaemon" | "stopDaemon" | "restartDaemon";
+      await (session as unknown as Record<SessionAction, () => Promise<void>>)[method as SessionAction]();
     }
   });
 });

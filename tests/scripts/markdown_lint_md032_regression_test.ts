@@ -1,4 +1,4 @@
-import { lintMarkdown } from "../../scripts/markdown_lint.ts";
+import { lintMarkdown, type LintOptions } from "../../scripts/markdown_lint.ts";
 
 /**
  * Regression tests for MD032/blanks-around-lists.
@@ -10,9 +10,7 @@ import { lintMarkdown } from "../../scripts/markdown_lint.ts";
  * Fix: Treat list-item continuation lines as part of the list context.
  */
 
-type Options = { fix: boolean; strict: boolean; verbose: boolean };
-
-const defaultOptions: Options = { fix: false, strict: false, verbose: false };
+const defaultOptions: LintOptions = { fix: false, strict: false, verbose: false };
 
 Deno.test("[regression] MD032 does not require blank lines between list items", () => {
   const md = [
@@ -27,7 +25,7 @@ Deno.test("[regression] MD032 does not require blank lines between list items", 
     "",
   ].join("\n");
 
-  const findings = lintMarkdown(md, "inline.md", defaultOptions as any);
+  const findings = lintMarkdown(md, "inline.md", defaultOptions);
   const md032 = findings.filter((f) => f.rule === "MD032/blanks-around-lists");
   if (md032.length !== 0) {
     throw new Error(`expected 0 MD032 findings, got ${md032.length}`);
@@ -42,7 +40,7 @@ Deno.test("[regression] MD032 flags list not preceded by blank line", () => {
     "",
   ].join("\n");
 
-  const findings = lintMarkdown(md, "inline.md", defaultOptions as any);
+  const findings = lintMarkdown(md, "inline.md", defaultOptions);
   const md032 = findings.filter((f) => f.rule === "MD032/blanks-around-lists");
   if (md032.length === 0) {
     throw new Error("expected at least one MD032 finding");

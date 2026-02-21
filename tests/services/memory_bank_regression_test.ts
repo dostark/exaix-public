@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
+import { assert, assertEquals } from "@std/assert";
 import { MemoryType } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import {
@@ -7,7 +7,9 @@ import {
   type SearchDeps,
   searchMemoryAdvanced,
 } from "../../src/services/memory_search.ts";
-import type { ExecutionMemory, Learning, ProjectMemory } from "../../src/schemas/memory_bank.ts";
+import { type ProjectMemory } from "../../src/schemas/memory_bank.ts";
+import { createTestLearning } from "./helpers/memory_test_helpers.ts";
+import { ConfidenceLevel, ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
 
 Deno.test("[regression] searchByKeyword finds patterns, decisions and overview", async () => {
   const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });
@@ -15,7 +17,7 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
   await Deno.mkdir(`${projectsDir}/projA`);
   await Deno.mkdir(`${projectsDir}/projB`);
 
-  const deps = {
+  const deps: SearchDeps = {
     projectsDir,
     getProjectMemory: (portal: string) => {
       if (portal === "projA") {
@@ -29,7 +31,7 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
             { date: "2026-01-01", decision: "Choose X", rationale: "Because X is fast", tags: ["alpha"] },
           ],
           references: [],
-        } as ProjectMemory);
+        });
       }
       if (portal === "projB") {
         return Promise.resolve({
@@ -38,29 +40,39 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
           patterns: [],
           decisions: [],
           references: [],
-        } as ProjectMemory);
+        });
       }
       return Promise.resolve(null);
     },
     getExecutionHistory: (_portal?: string, _limit?: number) => {
       return Promise.resolve([
         {
-          trace_id: "abcd1234",
+          trace_id: "550e8400-e29b-41d4-a716-446655440009",
           portal: "projA",
           summary: "Execution mentioning X in summary",
           started_at: new Date().toISOString(),
-        } as ExecutionMemory,
+          request_id: "req-1",
+          status: ExecutionStatus.COMPLETED,
+          agent: "test",
+          context_files: [],
+          context_portals: [],
+          changes: { files_created: [], files_modified: [], files_deleted: [] },
+        },
       ]);
     },
     loadLearningsFromFile: () =>
       Promise.resolve([
-        {
-          id: "L1",
+        createTestLearning({
+          id: "550e8400-e29b-41d4-a716-446655440001",
           title: "Learning X",
           description: "About X",
           status: MemoryStatus.APPROVED,
           tags: ["alpha"],
-        } as Partial<Learning> as Learning,
+          category: LearningCategory.INSIGHT,
+          confidence: ConfidenceLevel.HIGH,
+          scope: MemoryScope.GLOBAL,
+          source: MemorySource.AGENT,
+        }),
       ]),
     calculateFrequency: (text: string | undefined, keywordLower: string) => {
       if (!text) return 0;
@@ -69,7 +81,7 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
     },
     calculateRelevance: (titleFreq: number, descFreq: number) =>
       Math.min(0.99, 0.5 + (titleFreq * 0.15) + (descFreq * 0.05)),
-  } as Partial<SearchDeps> as SearchDeps;
+  };
 
   const results = await searchByKeyword("X", { portal: "projA", limit: 10 }, deps);
   // Expect at least pattern, decision, project overview, and learning entries
@@ -89,7 +101,7 @@ Deno.test("[regression] searchByTags returns matching items and learnings", asyn
   const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });
   await Deno.mkdir(`${projectsDir}/projA`);
 
-  const deps = {
+  const deps: SearchDeps = {
     projectsDir,
     getProjectMemory: (portal: string) =>
       Promise.resolve({
@@ -102,11 +114,17 @@ Deno.test("[regression] searchByTags returns matching items and learnings", asyn
     getExecutionHistory: () => Promise.resolve([]),
     loadLearningsFromFile: () =>
       Promise.resolve([
-        { id: "L2", title: "T", description: "D", status: MemoryStatus.APPROVED, tags: ["t1"] } as Learning,
+        createTestLearning({
+          id: "550e8400-e29b-41d4-a716-446655440002",
+          title: "T",
+          description: "D",
+          status: MemoryStatus.APPROVED,
+          tags: ["t1"],
+        }),
       ]),
     calculateFrequency: () => 0,
     calculateRelevance: () => 0.5,
-  } as any as SearchDeps;
+  };
 
   const results = await searchByTags(["t1"], { portal: "projA", limit: 10 }, deps);
   const types = results.map((r) => r.type);
@@ -121,7 +139,7 @@ Deno.test("[regression] searchMemoryAdvanced combines tag and keyword results wi
   const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });
   await Deno.mkdir(`${projectsDir}/projA`);
 
-  const deps = {
+  const deps: SearchDeps = {
     projectsDir,
     getProjectMemory: () =>
       Promise.resolve({
@@ -140,7 +158,7 @@ Deno.test("[regression] searchMemoryAdvanced combines tag and keyword results wi
     },
     calculateRelevance: (titleFreq: number, descFreq: number) =>
       Math.min(0.99, 0.5 + (titleFreq * 0.15) + (descFreq * 0.05)),
-  } as any as SearchDeps;
+  };
 
   const results = await searchMemoryAdvanced({ tags: ["t1"], keyword: "zed", portal: "projA", limit: 10 }, deps);
   // Should return one result for the pattern, not duplicated

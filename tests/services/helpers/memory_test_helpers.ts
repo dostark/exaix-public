@@ -8,9 +8,8 @@ import {
   ReviewSource,
 } from "../../../src/enums.ts";
 import { MemoryStatus } from "../../../src/memory/memory_status.ts";
-import type { MemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
+import type { ExecutionMemory, Learning, MemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
 import type { MemoryExtractorService } from "../../../src/services/memory_extractor.ts";
-import type { ExecutionMemory } from "../../../src/schemas/memory_bank.ts";
 
 export function createSuccessfulExecutionMemory(portal: string, traceId: string): ExecutionMemory {
   return {
@@ -87,7 +86,7 @@ export async function createTestProposal(
 /**
  * Base learning object for testing
  */
-function createBaseLearning(
+export function createBaseLearning(
   overrides: Partial<MemoryUpdateProposal["learning"]> = {},
 ): MemoryUpdateProposal["learning"] {
   return {
@@ -104,6 +103,17 @@ function createBaseLearning(
     confidence: overrides.confidence ?? ConfidenceLevel.MEDIUM,
     references: overrides.references ?? [],
   };
+}
+
+/**
+ * Creates a full Learning object for testing
+ */
+export function createTestLearning(overrides: Partial<Learning> = {}): Learning {
+  return {
+    ...createBaseLearning(overrides),
+    status: overrides.status ?? MemoryStatus.APPROVED,
+    ...overrides,
+  } as Learning;
 }
 
 /**
@@ -183,7 +193,8 @@ export function createApprovedProposal(overrides: Partial<MemoryUpdateProposal> 
 export function createInvalidProposal(overrides: Partial<MemoryUpdateProposal> = {}): Record<string, unknown> {
   return createBaseProposal({
     id: "550e8400-e29b-41d4-a716-446655440006",
-    operation: "invalid-op" as Partial<MemoryOperation> as MemoryOperation,
+    // @ts-expect-error testing invalid operation
+    operation: "invalid-op",
     learning: createInvalidLearning(overrides.learning),
     reason: "Test",
     agent: "test",
@@ -202,7 +213,8 @@ export function createInvalidStatusProposal(overrides: Partial<MemoryUpdatePropo
     learning: createInvalidLearning(overrides.learning),
     reason: "Test",
     agent: "test",
-    status: "invalid-status" as Partial<MemoryStatus> as MemoryStatus, // Invalid status
+    // @ts-expect-error testing invalid status
+    status: "invalid-status",
     ...overrides,
   });
 }

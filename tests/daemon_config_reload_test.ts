@@ -3,7 +3,7 @@ import { join } from "@std/path";
 import { ConfigService } from "../src/config/service.ts";
 import { FileWatcher } from "../src/services/watcher.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
-import { createConfigReloadHandler } from "../src/config/config_reload_handler.ts";
+import { type ConfigReloadLogger, createConfigReloadHandler } from "../src/config/config_reload_handler.ts";
 import { LogLevel } from "../src/enums.ts";
 
 /**
@@ -54,19 +54,24 @@ stability_check = false
   const config = configService.get();
 
   // Mock Logger to capture events
-  const logs: any[] = [];
-  const logger = {
-    info: (action: string, target: string, payload: any) => {
+  interface LogEntry {
+    level: LogLevel;
+    action: string;
+    target: string;
+    payload: Record<string, unknown>;
+  }
+  const logs: LogEntry[] = [];
+  const logger: ConfigReloadLogger = {
+    info: (action: string, target: string, payload: Record<string, unknown>) => {
       logs.push({ level: LogLevel.INFO, action, target, payload });
       return Promise.resolve();
     },
-    log: () => Promise.resolve(), // stub
   };
 
   // 3. Setup Config Watcher (shared handler used by main.ts)
   const configWatcher = new FileWatcher(
     config,
-    createConfigReloadHandler(configService, logger as any),
+    createConfigReloadHandler(configService, logger),
     {
       customWatchPath: tempDir, // Watch the temp root
       extensions: [".toml"],

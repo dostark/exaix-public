@@ -160,14 +160,14 @@ Maintain the same format as the original response, but with improved quality.`;
 // ============================================================================
 
 export class ReflexiveAgent {
-  private agentRunner: AgentRunner;
-  private critiqueRunner: AgentRunner;
-  private outputValidator: OutputValidator;
-  private readonly agentBreaker: CircuitBreaker;
-  private readonly critiqueBreaker: CircuitBreaker;
-  private db?: DatabaseService;
+  public agentRunner: AgentRunner;
+  public critiqueRunner: AgentRunner;
+  public outputValidator: OutputValidator;
+  public readonly agentBreaker: CircuitBreaker;
+  public readonly critiqueBreaker: CircuitBreaker;
+  public db?: DatabaseService;
 
-  private config: {
+  public config: {
     maxIterations: number;
     minQuality: Critique["quality"];
     confidenceThreshold: number;
@@ -177,7 +177,7 @@ export class ReflexiveAgent {
     agentRunnerConfig: AgentRunnerConfig;
   };
 
-  private metrics: ReflexionMetrics = {
+  public metrics: ReflexionMetrics = {
     totalExecutions: 0,
     totalIterations: 0,
     averageIterationsPerExecution: 0,
@@ -346,7 +346,7 @@ export class ReflexiveAgent {
     return finalResult!;
   }
 
-  private async critique(request: ParsedRequest, response: AgentExecutionResult): Promise<Critique> {
+  public async critique(request: ParsedRequest, response: AgentExecutionResult): Promise<Critique> {
     const critiquePrompt = this.config.critiquePromptTemplate
       .replace("{request}", request.userPrompt)
       .replace("{response}", response.content);
@@ -415,7 +415,7 @@ export class ReflexiveAgent {
     return await this.agentRunner.run(blueprint, refinementRequest);
   }
 
-  private shouldAccept(critique: Critique): boolean {
+  public shouldAccept(critique: Critique): boolean {
     // Critical issues should always trigger refinement, regardless of confidence/quality
     const hasCriticalIssues = critique.issues.some((issue) => issue.severity === CritiqueSeverity.CRITICAL);
     if (hasCriticalIssues) {
@@ -467,14 +467,14 @@ export class ReflexiveAgent {
     };
   }
 
-  private updateMetrics(critique: Critique): void {
+  public updateMetrics(critique: Critique): void {
     this.metrics.qualityDistribution[critique.quality]++;
     for (const issue of critique.issues) {
       this.metrics.issueTypeDistribution[issue.type] = (this.metrics.issueTypeDistribution[issue.type] || 0) + 1;
     }
   }
 
-  private logActivity(
+  public logActivity(
     actor: string,
     actionType: string,
     target: string | null,

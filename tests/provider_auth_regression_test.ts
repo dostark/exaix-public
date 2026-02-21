@@ -97,7 +97,10 @@ async function testEnvToStoreSync({
   // Persist if opted in
   Deno.env.set(envKey, envValue);
   await SecureCredentialStore.clear(envKey);
-  (globalThis as any)[PERSIST_ENV_VAR] = true;
+  interface ExoGlobal {
+    EXO_PERSIST_ENV_CREDENTIALS?: boolean;
+  }
+  (globalThis as unknown as ExoGlobal)[PERSIST_ENV_VAR] = true;
   try {
     await factory.create(options);
     const stored = await SecureCredentialStore.get(envKey);
@@ -105,13 +108,13 @@ async function testEnvToStoreSync({
   } finally {
     Deno.env.delete(envKey);
     await SecureCredentialStore.clear(envKey);
-    delete (globalThis as any)[PERSIST_ENV_VAR];
+    delete (globalThis as unknown as ExoGlobal)[PERSIST_ENV_VAR];
   }
 
   // Do NOT persist if not opted in
   Deno.env.set(envKey, envValue);
   await SecureCredentialStore.clear(envKey);
-  (globalThis as any)[PERSIST_ENV_VAR] = false;
+  (globalThis as unknown as ExoGlobal)[PERSIST_ENV_VAR] = false;
   try {
     await factory.create(options);
     const stored = await SecureCredentialStore.get(envKey);
@@ -119,7 +122,7 @@ async function testEnvToStoreSync({
   } finally {
     Deno.env.delete(envKey);
     await SecureCredentialStore.clear(envKey);
-    delete (globalThis as any)[PERSIST_ENV_VAR];
+    delete (globalThis as unknown as ExoGlobal)[PERSIST_ENV_VAR];
   }
 }
 
