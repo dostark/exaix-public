@@ -40,7 +40,7 @@ This is a test plan.
     const match = activeContent.match(/^---\n([\s\S]*?)\n---/);
     if (!match) throw new Error("No frontmatter found");
 
-    const frontmatter = parseYaml(match[1]) as any;
+    const frontmatter = parseYaml(match[1]) as Record<string, unknown>;
 
     assertEquals(frontmatter.status, PlanStatus.APPROVED);
     assertEquals(frontmatter.skills, ["documentation-driven", "file-ops"]);
@@ -78,7 +78,7 @@ This is another test plan.
     const match = activeContent.match(/^---\n([\s\S]*?)\n---/);
     if (!match) throw new Error("No frontmatter found");
 
-    const frontmatter = parseYaml(match[1]) as any;
+    const frontmatter = parseYaml(match[1]) as Record<string, unknown>;
 
     assertEquals(frontmatter.status, PlanStatus.APPROVED);
     assertEquals(frontmatter.skills, undefined);

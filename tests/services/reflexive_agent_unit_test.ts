@@ -3,6 +3,43 @@ import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../../src/
 import { createCodeReviewReflexiveAgent, type Critique, ReflexiveAgent } from "../../src/services/reflexive_agent.ts";
 import type { AgentExecutionResult, Blueprint, ParsedRequest } from "../../src/services/agent_runner.ts";
 import type { IModelProvider } from "../../src/ai/providers.ts";
+import type { IAgentRunner } from "../../src/services/agent_runner.ts";
+import {
+  type IOutputValidator,
+  type ValidationMetrics,
+  type ValidationResult,
+} from "../../src/services/output_validator.ts";
+import { createStubDb } from "../test_helpers.ts";
+
+function createMockRunner(
+  runFn: (blueprint: Blueprint, request: ParsedRequest) => Promise<AgentExecutionResult>,
+): IAgentRunner {
+  return { run: runFn };
+}
+
+function createMockValidator(overrides: Partial<IOutputValidator> = {}): IOutputValidator {
+  const defaultResult = { success: false, repairAttempted: false, repairSucceeded: false, raw: "" };
+
+  return {
+    validate: <T>(
+      _content: string,
+      _schema: unknown,
+    ): ValidationResult<T> => (defaultResult as unknown as ValidationResult<T>),
+    parseXMLTags: (raw: string) => ({ thought: "", content: raw, raw }),
+    validateWithSchema: (_content, _schemaName) => (defaultResult as unknown as ValidationResult<any>),
+    parseAndValidate: (_raw, _schema) => (defaultResult as unknown as ValidationResult<any>),
+    parseAndValidateWithSchema: (_raw, _schemaName) => (defaultResult as unknown as ValidationResult<any>),
+    getMetrics: (): ValidationMetrics => ({
+      totalAttempts: 0,
+      successfulValidations: 0,
+      repairAttempts: 0,
+      successfulRepairs: 0,
+      failuresByErrorType: {},
+    }),
+    resetMetrics: () => {},
+    ...overrides,
+  };
+}
 
 const stubProvider: IModelProvider = {
   id: "stub",
@@ -53,13 +90,15 @@ Deno.test("createCodeReviewReflexiveAgent: applies stricter defaults", () => {
 });
 
 Deno.test("ReflexiveAgent.logActivity: writes to db when present", () => {
-  const calls: unknown[] = [];
-  const db = {
-    logActivity: (...args: unknown[]) => calls.push(args),
-  };
+  const calls: unknown[][] = [];
+  const db = createStubDb({
+    logActivity: (...args: any[]) => {
+      calls.push(args);
+    },
+  });
 
   const agent = new ReflexiveAgent(stubProvider, {
-    db: db as any,
+    db,
     maxIterations: 1,
   });
   agent.logActivity("a", "t", null, { k: 1 }, "trace");
@@ -100,9 +139,9 @@ Deno.test("ReflexiveAgent.shouldAccept: accepts when quality meets minQuality", 
 Deno.test("ReflexiveAgent.critique: defaults to acceptable when critique response cannot be parsed", async () => {
   const agent = new ReflexiveAgent(stubProvider, { maxIterations: 1 });
 
-  agent.critiqueRunner = {
-    run: () => Promise.resolve({ content: "not-json", thought: "", raw: "" }),
-  } as any;
+  agent.critiqueRunner = createMockRunner(
+    () => Promise.resolve({ content: "not-json", thought: "", raw: "" }),
+  );
 
   const critique = await agent.critique(
     { userPrompt: "u", context: {}, traceId: "t" } satisfies ParsedRequest,
@@ -123,19 +162,17 @@ Deno.test("ReflexiveAgent.run: early-exits on first passing critique", async () 
   agent.critiqueBreaker.execute = (fn: () => Promise<any>) => fn();
 
   let agentRuns = 0;
-  agent.agentRunner = {
-    run: () => {
-      agentRuns++;
-      return Promise.resolve({ content: `resp-${agentRuns}`, thought: "", raw: "" });
-    },
-  } as any;
+  agent.agentRunner = createMockRunner(() => {
+    agentRuns++;
+    return Promise.resolve({ content: `resp-${agentRuns}`, thought: "", raw: "" });
+  });
 
-  agent.critiqueRunner = {
-    run: () => Promise.resolve({ content: "ignored", thought: "", raw: "" }),
-  } as any;
+  agent.critiqueRunner = createMockRunner(
+    () => Promise.resolve({ content: "ignored", thought: "", raw: "" }),
+  );
 
-  agent.outputValidator = {
-    validate: () => ({
+  agent.outputValidator = createMockValidator({
+    validate: <T>(_content: string, _schema: unknown): ValidationResult<T> => ({
       success: true,
       value: {
         quality: CritiqueQuality.ACCEPTABLE,
@@ -143,12 +180,12 @@ Deno.test("ReflexiveAgent.run: early-exits on first passing critique", async () 
         passed: true,
         issues: [],
         reasoning: "ok",
-      },
+      } as unknown as T,
       repairAttempted: false,
       repairSucceeded: false,
       raw: "",
     }),
-  } as any;
+  });
 
   const result = await agent.run(
     { systemPrompt: "", agentId: "agent" } satisfies Blueprint,
@@ -169,17 +206,17 @@ Deno.test("ReflexiveAgent.run: refines when critique fails then accepts", async 
 
   const responses = ["v1", "v2"];
   const prompts: string[] = [];
-  agent.agentRunner = {
-    run: (_blueprint: unknown, req: { userPrompt: string }) => {
+  agent.agentRunner = createMockRunner(
+    (_blueprint: Blueprint, req: ParsedRequest) => {
       prompts.push(req.userPrompt);
       const content = responses.shift() ?? "final";
       return Promise.resolve({ content, thought: "", raw: "" });
     },
-  } as any;
+  );
 
-  agent.critiqueRunner = {
-    run: () => Promise.resolve({ content: "ignored", thought: "", raw: "" }),
-  } as any;
+  agent.critiqueRunner = createMockRunner(
+    () => Promise.resolve({ content: "ignored", thought: "", raw: "" }),
+  );
 
   const critiques = [
     {
@@ -188,7 +225,6 @@ Deno.test("ReflexiveAgent.run: refines when critique fails then accepts", async 
       passed: false,
       issues: [],
       reasoning: "bad",
-      // no improvements -> refine should use default string
     },
     {
       quality: CritiqueQuality.GOOD,
@@ -199,15 +235,15 @@ Deno.test("ReflexiveAgent.run: refines when critique fails then accepts", async 
     },
   ];
 
-  agent.outputValidator = {
-    validate: () => ({
+  agent.outputValidator = createMockValidator({
+    validate: <T>(_content: string, _schema: unknown): ValidationResult<T> => ({
       success: true,
-      value: critiques.shift(),
+      value: critiques.shift() as unknown as T,
       repairAttempted: false,
       repairSucceeded: false,
       raw: "",
     }),
-  } as any;
+  });
 
   const result = await agent.run(
     { systemPrompt: "", agentId: "agent" } satisfies Blueprint,

@@ -9,6 +9,7 @@ import { FlowGateOnFail } from "../../src/enums.ts";
 import { GateConfig, GateEvaluator, MockJudgeInvoker } from "../../src/flows/gate_evaluator.ts";
 import { EvaluationCategory } from "../../src/enums.ts";
 import { EvaluationCriterion, EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
+import { StepResult } from "../../src/flows/flow_runner.ts";
 
 const DEFAULT_CONFIG: GateConfig = {
   agent: "judge-agent",
@@ -128,14 +129,15 @@ Deno.test("GateEvaluator: tracks evaluation duration", async () => {
 Deno.test("GateEvaluator.evaluateStepResult: evaluates step result content", async () => {
   const { evaluator, config } = setupEvaluator(0.85);
 
-  const stepResult = {
+  const now = new Date();
+  const stepResult: StepResult = {
     stepId: "s1",
     success: true,
-    result: { content: "hello" },
+    result: { content: "hello", thought: "", raw: "" },
     duration: 1,
-    startedAt: new Date(),
-    completedAt: new Date(),
-  } as any;
+    startedAt: now,
+    completedAt: now,
+  };
 
   const result = await evaluator.evaluateStepResult(config, stepResult, "original request");
   assertEquals(result.action, "passed");

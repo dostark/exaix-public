@@ -369,7 +369,7 @@ export default defineFlow({
   id: "bad",
   name: "Bad Flow",
   description: "Invalid flow",
-  steps: [{ invalid: "step" } as any],
+  steps: [{ id: "s1", name: "bad", agent: "", dependsOn: [], input: { source: "request", transform: "passthrough" } }],
   output: { from: "s1", format: "markdown" },
 });
 `;

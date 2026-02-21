@@ -1,4 +1,4 @@
-import { StructuredLogger } from "./structured_logger.ts";
+import { IStructuredLogger } from "./structured_logger.ts";
 /**
  * @module GracefulShutdown
  * @path src/services/graceful_shutdown.ts
@@ -21,11 +21,11 @@ export interface CleanupTask {
   timeout: number;
 }
 export class GracefulShutdown {
-  private readonly logger: StructuredLogger;
+  private readonly logger: IStructuredLogger;
   private readonly cleanupTasks: CleanupTask[] = [];
   private shuttingDown = false;
 
-  constructor(logger: StructuredLogger) {
+  constructor(logger: IStructuredLogger) {
     this.logger = logger;
   }
 

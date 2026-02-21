@@ -7,7 +7,7 @@ import { PlanExecutor } from "../src/services/plan_executor.ts";
 import { ProviderFactory } from "../src/ai/provider_factory.ts";
 import { initializeGlobalLogger } from "../src/services/structured_logger.ts";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";
-import { LogLevel } from "../src/enums.ts";
+import { LogLevel, ProviderType } from "../src/enums.ts";
 
 /**
  * Reproduction Test for Issue 001: Daemon Plan Lifecycle (Zombie Plans)
@@ -64,9 +64,9 @@ Deno.test("Reproduction: Zombie Plan Lifecycle in Manual Execution Mode", async 
 
     // Initialize Services
     // Fix test config to ensure mock:test resolves to mock provider
-    (config as any).models = {
+    config.models = {
       "mock:test": {
-        provider: "mock",
+        provider: "mock" as ProviderType,
         model: "test-model",
       },
     };

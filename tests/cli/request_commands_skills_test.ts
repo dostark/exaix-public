@@ -23,7 +23,7 @@ Deno.test("RequestCommands - Dynamic Skills Injection", async (t) => {
     const match = content.match(/^---\n([\s\S]*?)\n---/);
     if (!match) throw new Error("No frontmatter found");
 
-    const frontmatter = parseYaml(match[1]) as any;
+    const frontmatter = parseYaml(match[1]) as Record<string, unknown>;
 
     // 4. Assert skills are present and correct type (YAML parser deserializes JSON string to array)
     assertEquals(frontmatter.skills, ["documentation-driven", "file-ops"]);
@@ -42,7 +42,7 @@ Deno.test("RequestCommands - Dynamic Skills Injection", async (t) => {
     const content = await Deno.readTextFile(requestPath);
     const match = content.match(/^---\n([\s\S]*?)\n---/);
     if (!match) throw new Error("No frontmatter found");
-    const frontmatter = parseYaml(match[1]) as any;
+    const frontmatter = parseYaml(match[1]) as Record<string, unknown>;
 
     assertEquals(frontmatter.skills, ["code-review"]);
   });
@@ -58,7 +58,7 @@ Deno.test("RequestCommands - Dynamic Skills Injection", async (t) => {
     const content = await Deno.readTextFile(requestPath);
     const match = content.match(/^---\n([\s\S]*?)\n---/);
     if (!match) throw new Error("No frontmatter found");
-    const frontmatter = parseYaml(match[1]) as any;
+    const frontmatter = parseYaml(match[1]) as Record<string, unknown>;
 
     assertEquals(frontmatter.skills, undefined);
   });

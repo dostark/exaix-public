@@ -19,6 +19,11 @@ import { ensureDir } from "@std/fs";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { initTestDbService } from "../helpers/db.ts";
 
+interface ActivityRow {
+  action_type: string;
+  payload: string;
+}
+
 console.log("\n🎯 Integration Test Suite 16: Security Modes - Ready to run\n");
 
 // Test helper to cleanup
@@ -137,17 +142,21 @@ Deno.test("Integration Test 16.1: Sandboxed Mode - File Access Blocked", async (
     assert(securityEvents.length >= 3, "Should have logged all security violations");
 
     // Verify event types
-    const blockedReads = securityEvents.filter((e: any) => {
+    const blockedReads = securityEvents.filter((event) => {
+      const e = event as ActivityRow;
       const payload = JSON.parse(e.payload);
       return e.action_type === "security.file_access_blocked" && payload.operation === PortalOperation.READ;
     });
 
-    const blockedWrites = securityEvents.filter((e: any) => {
+    const blockedWrites = securityEvents.filter((event) => {
+      const e = event as ActivityRow;
       const payload = JSON.parse(e.payload);
       return e.action_type === "security.file_access_blocked" && payload.operation === PortalOperation.WRITE;
     });
 
-    const traversalBlocks = securityEvents.filter((e: any) => e.action_type === "security.path_traversal_blocked");
+    const traversalBlocks = securityEvents.filter((event) =>
+      (event as ActivityRow).action_type === "security.path_traversal_blocked"
+    );
 
     assertEquals(blockedReads.length, 1, "Should have blocked read attempt");
     assertEquals(blockedWrites.length, 1, "Should have blocked write attempt");
@@ -214,14 +223,14 @@ Deno.test("Integration Test 16.2: Hybrid Mode - Audit Detection", async () => {
     await dbService.waitForFlush();
 
     // Verify audit events were logged
-    const auditEvents = dbService.instance
+    const auditEvents = (dbService.instance
       .prepare("SELECT * FROM activity WHERE trace_id = ? AND action_type LIKE 'security.%' ORDER BY timestamp")
-      .all(traceId);
+      .all(traceId) as unknown) as ActivityRow[];
 
     assert(auditEvents.length >= 2, "Should have logged audit detection and revert");
 
-    const detectionEvent = auditEvents.find((e: any) => e.action_type === "security.unauthorized_change_detected");
-    const revertEvent = auditEvents.find((e: any) => e.action_type === "security.unauthorized_change_reverted");
+    const detectionEvent = auditEvents.find((e) => e.action_type === "security.unauthorized_change_detected");
+    const revertEvent = auditEvents.find((e) => e.action_type === "security.unauthorized_change_reverted");
 
     assertExists(detectionEvent, "Should have detection event");
     assertExists(revertEvent, "Should have revert event");
@@ -268,13 +277,13 @@ Deno.test("Integration Test 16.3: Permission Validation - Agent Not Allowed", as
 
     await dbService.waitForFlush();
 
-    const permissionEvents = dbService.instance
+    const permissionEvents = (dbService.instance
       .prepare("SELECT * FROM activity WHERE trace_id = ? AND action_type = 'permission.agent_not_allowed'")
-      .all(traceId);
+      .all(traceId) as unknown) as ActivityRow[];
 
     assertEquals(permissionEvents.length, 1, "Should have logged permission denial");
 
-    const event = permissionEvents[0] as any;
+    const event = permissionEvents[0];
     const payload = JSON.parse(event.payload);
     assertEquals(payload.agent, unauthorizedAgent);
     assertEquals(payload.portal, "RestrictedPortal");
@@ -314,13 +323,13 @@ Deno.test("Integration Test 16.4: Permission Validation - Operation Not Allowed"
 
     await dbService.waitForFlush();
 
-    const permissionEvents = dbService.instance
+    const permissionEvents = (dbService.instance
       .prepare("SELECT * FROM activity WHERE trace_id = ? AND action_type = 'permission.operation_not_allowed'")
-      .all(traceId);
+      .all(traceId) as unknown) as ActivityRow[];
 
     assertEquals(permissionEvents.length, 1, "Should have logged operation denial");
 
-    const event = permissionEvents[0] as any;
+    const event = permissionEvents[0];
     const payload = JSON.parse(event.payload);
     assertEquals(payload.operation, restrictedOperation);
     assertEquals(payload.portal, "ReadOnlyPortal");
@@ -360,13 +369,13 @@ Deno.test("Integration Test 16.5: Permission Validation - Portal Not Found", asy
 
     await dbService.waitForFlush();
 
-    const permissionEvents = dbService.instance
+    const permissionEvents = (dbService.instance
       .prepare("SELECT * FROM activity WHERE trace_id = ? AND action_type = 'permission.portal_not_found'")
-      .all(traceId);
+      .all(traceId) as unknown) as ActivityRow[];
 
     assertEquals(permissionEvents.length, 1, "Should have logged portal not found error");
 
-    const event = permissionEvents[0] as any;
+    const event = permissionEvents[0];
     const payload = JSON.parse(event.payload);
     assertEquals(payload.portal, nonExistentPortal);
 
@@ -412,14 +421,14 @@ Deno.test("Integration Test 16.6: Hybrid Mode - Read Access Allowed", async () =
 
     await dbService.waitForFlush();
 
-    const securityEvents = dbService.instance
+    const securityEvents = (dbService.instance
       .prepare("SELECT * FROM activity WHERE trace_id = ? AND action_type LIKE 'security.%' ORDER BY timestamp")
-      .all(traceId);
+      .all(traceId) as unknown) as ActivityRow[];
 
     assert(securityEvents.length >= 2, "Should have logged read and write operations");
 
-    const readEvent = securityEvents.find((e: any) => e.action_type === "security.read_access_allowed");
-    const writeEvent = securityEvents.find((e: any) => e.action_type === "security.write_via_mcp");
+    const readEvent = securityEvents.find((e) => e.action_type === "security.read_access_allowed");
+    const writeEvent = securityEvents.find((e) => e.action_type === "security.write_via_mcp");
 
     assertExists(readEvent, "Should have logged read access");
     assertExists(writeEvent, "Should have logged write requirement");

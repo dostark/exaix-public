@@ -1,10 +1,10 @@
 import { withEnv } from "./env.ts";
 import { assertEquals } from "https://deno.land/std@0.201.0/testing/asserts.ts";
 
-Deno.test("withEnv sets and restores env vars (sync)", () => {
+Deno.test("withEnv sets and restores env vars (sync)", async () => {
   const key = "EXO_TEST_WITHENV_SYNC";
   Deno.env.delete(key);
-  withEnv({ [key]: "1" }, () => {
+  await withEnv({ [key]: "1" }, () => {
     assertEquals(Deno.env.get(key), "1");
   });
   assertEquals(Deno.env.get(key), undefined);

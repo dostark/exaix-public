@@ -1,8 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { CommandUtils } from "../../src/helpers/command_utils.ts";
+import { type ValidationResult } from "../../src/cli/base/command.ts";
 
 Deno.test("CommandUtils.formatValidationErrors: formats required fields and minimums", () => {
-  const out = CommandUtils.formatValidationErrors({
+  const result: ValidationResult = {
     isValid: false,
     errors: [
       "reason: is required",
@@ -10,7 +11,8 @@ Deno.test("CommandUtils.formatValidationErrors: formats required fields and mini
       "title: cannot be empty",
       "raw message",
     ],
-  } as any);
+  };
+  const out = CommandUtils.formatValidationErrors(result);
 
   assertEquals(
     out,

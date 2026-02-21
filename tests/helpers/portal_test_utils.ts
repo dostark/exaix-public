@@ -14,6 +14,7 @@ import { EventLogger } from "../../src/services/event_logger.ts";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";
 import type { TestEnvironment } from "../integration/helpers/test_environment.ts";
 import { ReviewStatus } from "../../src/reviews/review_status.ts";
+import { createMockConfig } from "./config.ts";
 
 export interface IPortalTestSetup {
   portalAlias: string;
@@ -38,11 +39,12 @@ export async function setupPortalTest(
   }
 
   await setupGitRepo(portalTargetPath, { initialCommit: true, branch });
+  const config = createMockConfig(tempDir);
 
   return {
     portalAlias,
     portalTargetPath,
-    config: {} as Config,
+    config,
     tempDir,
   };
 }
@@ -188,14 +190,14 @@ export function createReviewRegistry(env: TestEnvironment): {
 /**
  * Helper to execute an approved plan for review/portal scenarios
  */
-export async function executePlanForReview<TConfig extends Record<string, unknown>>(
+export async function executePlanForReview<TConfig extends Config>(
   env: TestEnvironment,
   config: TConfig,
   activePlanPath: string,
   reviewRegistry?: ReviewRegistry,
 ): Promise<{ success: boolean; traceId: string | undefined; error?: string }> {
   const loop = new ExecutionLoop({
-    config: config as any,
+    config,
     db: env.db,
     agentId: "daemon",
     reviewRegistry,
@@ -218,7 +220,7 @@ export async function approveReviewStatus(
 /**
  * Create and run review plan helper
  */
-export async function createAndRunReviewPlan<TConfig extends Record<string, unknown>>(
+export async function createAndRunReviewPlan<TConfig extends Config>(
   env: TestEnvironment,
   config: TConfig,
   params: {
@@ -251,7 +253,7 @@ export async function createAndRunReviewPlan<TConfig extends Record<string, unkn
   const activePlanPath = await env.approvePlan(planPath);
   const logger = new EventLogger({ db: env.db });
   const reviewRegistry = new ReviewRegistry(env.db, logger);
-  const loop = new ExecutionLoop({ config: config as any, db: env.db, agentId: "daemon", reviewRegistry });
+  const loop = new ExecutionLoop({ config, db: env.db, agentId: "daemon", reviewRegistry });
   const result = await loop.processTask(activePlanPath);
 
   return {
@@ -265,7 +267,7 @@ export async function createAndRunReviewPlan<TConfig extends Record<string, unkn
 /**
  * Create config with single worktree portal
  */
-export function withSingleWorktreePortal<TConfig extends Record<string, unknown>>(
+export function withSingleWorktreePortal<TConfig extends Config>(
   baseConfig: TConfig,
   portalAlias: string,
   portalTargetPath: string,
@@ -279,14 +281,14 @@ export function withSingleWorktreePortal<TConfig extends Record<string, unknown>
       default_branch: defaultBranch,
       execution_strategy: PortalExecutionStrategy.WORKTREE,
     }],
-  } as TConfig;
+  };
 }
 
 /**
  * Higher-level helper to create request, plan, and execute it.
  * Reduces the massive boilerplate in e2e tests.
  */
-export async function createAndRunReviewWorkflow<TConfig extends Record<string, unknown>>(
+export async function createAndRunReviewWorkflow<TConfig extends Config>(
   env: TestEnvironment,
   config: TConfig,
   params: {

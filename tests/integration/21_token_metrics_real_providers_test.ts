@@ -103,10 +103,25 @@ function handleApiError(
   return false;
 }
 
+interface ActivityRow extends Record<string, unknown> {
+  id: number;
+  payload: string;
+  action_type: string;
+  timestamp: string;
+}
+
+interface LLMUsagePayload {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  cost_usd: number;
+  model: string;
+}
+
 /**
  * Query token events from database
  */
-async function queryTokenEvents(env: TestEnvironment): Promise<any[]> {
+async function queryTokenEvents(env: TestEnvironment): Promise<ActivityRow[]> {
   // Wait for async logging to complete
   await new Promise((resolve) => setTimeout(resolve, TEST_CONST.TOKEN_METRICS_ASYNC_WAIT_MS));
 
@@ -121,13 +136,13 @@ async function queryTokenEvents(env: TestEnvironment): Promise<any[]> {
      ORDER BY timestamp DESC
      LIMIT ${TEST_CONST.TOKEN_METRICS_DB_QUERY_LIMIT}`,
   );
-  return stmt.all() as any[];
+  return stmt.all() as ActivityRow[];
 }
 
 /**
  * Validate token metrics payload
  */
-function validateTokenMetrics(payload: any, providerName: string) {
+function validateTokenMetrics(payload: LLMUsagePayload, providerName: string) {
   // Validate token metrics exist
   assertExists(payload.prompt_tokens, TEST_CONST.ASSERT_MSG_PROMPT_TOKENS_EXISTS);
   assertExists(payload.completion_tokens, TEST_CONST.ASSERT_MSG_COMPLETION_TOKENS_EXISTS);

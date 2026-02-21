@@ -600,7 +600,7 @@ export class GitService implements IGitService {
     return GitService.parseWorktreeListPorcelain(result.output);
   }
 
-  private static parseWorktreeListPorcelain(output: string): WorktreeInfo[] {
+  protected static parseWorktreeListPorcelain(output: string): WorktreeInfo[] {
     const lines = output.split("\n");
     const worktrees: WorktreeInfo[] = [];
     let current: WorktreeInfo | null = null;
@@ -803,7 +803,7 @@ export class GitService implements IGitService {
   /**
    * Check if error is related to repository locking
    */
-  private isLockError(error: unknown): boolean {
+  protected isLockError(error: unknown): boolean {
     if (!(error instanceof Error)) return false;
     return error.message.includes("lock") || error.message.includes("Lock");
   }

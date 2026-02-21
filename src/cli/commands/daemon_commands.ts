@@ -29,12 +29,14 @@ export interface DaemonStatus {
 export class DaemonCommands extends BaseCommand {
   private pidFile: string;
   private configService?: ConfigService;
+  private Command: typeof Deno.Command;
 
-  constructor(context: CommandContext & { configService?: ConfigService }) {
+  constructor(context: CommandContext & { configService?: ConfigService; Command?: typeof Deno.Command }) {
     super(context);
     const workspaceRoot = this.config.system.root;
     this.pidFile = join(workspaceRoot, this.config.paths.runtime, "daemon.pid");
     this.configService = context.configService;
+    this.Command = context.Command ?? Deno.Command;
   }
 
   /**
@@ -82,7 +84,7 @@ export class DaemonCommands extends BaseCommand {
         .map(([k, v]) => `${k}=${v}`)
         .join(" ");
       const envPrefix = exoEnvVars ? `${exoEnvVars} ` : "";
-      const cmd = new Deno.Command("bash", {
+      const cmd = new this.Command("bash", {
         args: [
           "-c",
           `${envPrefix}nohup deno run --allow-all "${mainScript}" > "${logFile}" 2>&1 & echo $!`,
@@ -147,7 +149,7 @@ export class DaemonCommands extends BaseCommand {
 
       try {
         // Send SIGTERM
-        const killCmd = new Deno.Command("kill", {
+        const killCmd = new this.Command("kill", {
           args: ["-TERM", status.pid!.toString()],
           stdout: "piped",
           stderr: "piped",
@@ -168,7 +170,7 @@ export class DaemonCommands extends BaseCommand {
 
         // Force kill if still running
         await this.logger.warn("daemon.force_stopping", "daemon", { pid: status.pid ?? null });
-        const forceKillCmd = new Deno.Command("kill", {
+        const forceKillCmd = new this.Command("kill", {
           args: ["-KILL", status.pid!.toString()],
           stdout: "piped",
           stderr: "piped",
@@ -248,7 +250,7 @@ export class DaemonCommands extends BaseCommand {
       }
 
       // Get process uptime
-      const psCmd = new Deno.Command("ps", {
+      const psCmd = new this.Command("ps", {
         args: ["-p", pid.toString(), "-o", "etime="],
         stdout: "piped",
         stderr: "piped",
@@ -288,7 +290,7 @@ export class DaemonCommands extends BaseCommand {
       }
       args.push(logFile);
 
-      const cmd = new Deno.Command("tail", {
+      const cmd = new this.Command("tail", {
         args,
         stdout: "inherit",
         stderr: "inherit",
@@ -338,7 +340,7 @@ export class DaemonCommands extends BaseCommand {
   /**
    * Log daemon activity to the activity journal using EventLogger
    */
-  private async logDaemonActivity(actionType: string, payload: Record<string, unknown>): Promise<void> {
+  protected async logDaemonActivity(actionType: string, payload: Record<string, unknown>): Promise<void> {
     try {
       const actionLogger = await this.getActionLogger();
       actionLogger.info(actionType, "daemon", {
@@ -356,7 +358,7 @@ export class DaemonCommands extends BaseCommand {
   /**
    * Check if daemon is running
    */
-  private async isRunning(): Promise<boolean> {
+  protected async isRunning(): Promise<boolean> {
     const status = await this.status();
     return status.running;
   }

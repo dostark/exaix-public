@@ -23,7 +23,7 @@ export interface IAgentRunner {
 
 import type { IModelProvider } from "../ai/providers.ts";
 import { JSONValue, toSafeJson } from "../types.ts";
-import type { DatabaseService } from "./db.ts";
+import type { IDatabaseService } from "./db.ts";
 import { createLLMRetryPolicy, type RetryPolicy, type RetryPolicyConfig, type RetryResult } from "./retry_policy.ts";
 import { createOutputValidator, OutputValidator, type ValidationMetrics } from "./output_validator.ts";
 import type { ISkillsService } from "./skills.ts";
@@ -107,7 +107,7 @@ export interface AgentExecutionResult {
  */
 export interface AgentRunnerConfig {
   /** Optional: Database service for activity logging */
-  db?: DatabaseService;
+  db?: IDatabaseService;
 
   /** Optional: Retry policy configuration */
   retryPolicy?: Partial<RetryPolicyConfig>;
@@ -146,7 +146,7 @@ export interface AgentRunnerConfig {
  * - Skill usage tracking
  */
 export class AgentRunner implements IAgentRunner {
-  private db?: DatabaseService;
+  private db?: IDatabaseService;
   private retryPolicy: RetryPolicy;
   private disableRetry: boolean;
   private outputValidator: OutputValidator;

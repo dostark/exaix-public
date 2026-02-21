@@ -159,9 +159,11 @@ Deno.test("GracefulShutdown: handles cleanup timeout", async () => {
 
   // Should have logged an error about timeout
   const errorCalls = mockLogger.error.calls;
-  const timeoutError = errorCalls.find((call: any) => call.args[0].includes("timed out"));
+  const timeoutError = errorCalls.find((call) =>
+    typeof call.args[0] === "string" && call.args[0].includes("timed out")
+  );
 
-  assertEquals(!!timeoutError, true);
+  assert(timeoutError !== undefined, "Expected a timeout error to be logged");
   assertEquals(timeoutError.args[0], "Cleanup timed out: hanging-task");
 
   // Cleanup the hanging task to avoid leaks (if any ops were seemingly pending)

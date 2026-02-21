@@ -11,15 +11,16 @@ import { z } from "zod";
 import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../enums.ts";
 import type { IModelProvider } from "../ai/providers.ts";
 import { JSONValue } from "../types.ts";
-import type { DatabaseService } from "./db.ts";
+import type { IDatabaseService } from "./db.ts";
 import {
   type AgentExecutionResult,
   AgentRunner,
   type AgentRunnerConfig,
   type Blueprint,
+  type IAgentRunner,
   type ParsedRequest,
 } from "./agent_runner.ts";
-import { createOutputValidator, OutputValidator } from "./output_validator.ts";
+import { createOutputValidator, type IOutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { LogMethod } from "./decorators/logging.ts";
@@ -160,12 +161,12 @@ Maintain the same format as the original response, but with improved quality.`;
 // ============================================================================
 
 export class ReflexiveAgent {
-  public agentRunner: AgentRunner;
-  public critiqueRunner: AgentRunner;
-  public outputValidator: OutputValidator;
+  public agentRunner: IAgentRunner;
+  public critiqueRunner: IAgentRunner;
+  public outputValidator: IOutputValidator;
   public readonly agentBreaker: CircuitBreaker;
   public readonly critiqueBreaker: CircuitBreaker;
-  public db?: DatabaseService;
+  public db?: IDatabaseService;
 
   public config: {
     maxIterations: number;

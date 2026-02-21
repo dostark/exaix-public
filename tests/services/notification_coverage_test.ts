@@ -14,39 +14,44 @@ import { createMockConfig } from "../helpers/config.ts";
 import { NotificationService } from "../../src/services/notification.ts";
 import { MemoryScope } from "../../src/enums.ts";
 
+interface NotificationRow {
+  id: string;
+  type: string;
+  message: string;
+  proposal_id?: string | null;
+  trace_id?: string | null;
+  created_at: string;
+  dismissed_at?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
 /**
  * Creates test environment for notification tests
  */
 function initNotificationTest() {
-  // Provide a lightweight in-memory stub DB for notification tests to avoid
-  // loading native SQLite in CI/local environments. The stub implements the
-  // prepared* helpers used by NotificationService and keeps a simple in-memory
-  // store for `notifications`.
-  interface NotificationRow {
-    id: string;
-    type: string;
-    message: string;
-    proposal_id?: string | null;
-    trace_id?: string | null;
-    created_at: string;
-    dismissed_at?: string | null;
-    metadata?: Record<string, unknown>;
-  }
-
   const notifications: NotificationRow[] = [];
 
   const stub = createStubDb({
-    preparedRun: function (query: string, params: any[] = []) {
+    preparedRun: function (query: string, params: (string | number | boolean | null)[] = []) {
       const q = (query || "").toLowerCase();
       if (q.includes("insert into notifications")) {
         const [id, type, message, proposal_id, trace_id, created_at, metadata] = params;
-        notifications.push({ id, type, message, proposal_id, trace_id, created_at, metadata, dismissed_at: null });
+        notifications.push({
+          id: String(id),
+          type: String(type),
+          message: String(message),
+          proposal_id: proposal_id ? String(proposal_id) : null,
+          trace_id: trace_id ? String(trace_id) : null,
+          created_at: String(created_at),
+          metadata: metadata ? (metadata as unknown as Record<string, unknown>) : undefined,
+          dismissed_at: null,
+        });
         return Promise.resolve({});
       }
       if (q.includes("update notifications") && q.includes("where dismissed_at is null")) {
         const [dismissed_at] = params;
         for (const n of notifications) {
-          if (n.dismissed_at == null) n.dismissed_at = dismissed_at;
+          if (n.dismissed_at == null) n.dismissed_at = String(dismissed_at);
         }
         return Promise.resolve({});
       }
@@ -54,7 +59,7 @@ function initNotificationTest() {
         const [dismissed_at, proposal_id] = params;
         for (const n of notifications) {
           if (n.proposal_id === proposal_id && n.dismissed_at == null) {
-            n.dismissed_at = dismissed_at;
+            n.dismissed_at = String(dismissed_at);
           }
         }
         return Promise.resolve({});
@@ -83,14 +88,14 @@ function initNotificationTest() {
       const q = (query || "").toLowerCase();
       if (q.includes("select count(*)") && q.includes("type = 'memory_update_pending'")) {
         const count = notifications.filter((n) => n.type === "memory_update_pending" && n.dismissed_at == null).length;
-        return Promise.resolve(({ count } as unknown) as T);
+        return Promise.resolve({ count } as unknown as T);
       }
       return Promise.resolve(null);
     },
   });
 
   const config = createMockConfig(Deno.cwd());
-  const notification = new NotificationService(config, stub as any);
+  const notification = new NotificationService(config, stub);
 
   const cleanup = async () => {
     // nothing to cleanup for in-memory stub
@@ -98,7 +103,7 @@ function initNotificationTest() {
 
   return {
     config,
-    db: stub as any,
+    db: stub,
     notification,
     cleanup,
   };
@@ -195,14 +200,14 @@ Deno.test("NotificationService: getPendingCount returns 0 on empty database", as
 // ===== logActivity Edge Cases =====
 
 Deno.test("NotificationService: notifyApproval handles db errors gracefully", () => {
-  const config = {} as any;
+  const config = createMockConfig(Deno.cwd());
   // Create a mock DB that throws on logActivity
-  const mockDb = {
+  const mockDb = createStubDb({
     logActivity: () => {
       throw new Error("Database error");
     },
-  };
-  const notification = new NotificationService(config, mockDb as any);
+  });
+  const notification = new NotificationService(config, mockDb);
 
   // Should not throw even when DB fails
   notification.notifyApproval("proposal-123", "Test Learning");
@@ -211,14 +216,14 @@ Deno.test("NotificationService: notifyApproval handles db errors gracefully", ()
 });
 
 Deno.test("NotificationService: notifyRejection handles db errors gracefully", () => {
-  const config = {} as any;
+  const config = createMockConfig(Deno.cwd());
   // Create a mock DB that throws on logActivity
-  const mockDb = {
+  const mockDb = createStubDb({
     logActivity: () => {
       throw new Error("Database connection lost");
     },
-  };
-  const notification = new NotificationService(config, mockDb as any);
+  });
+  const notification = new NotificationService(config, mockDb);
 
   // Should not throw even when DB fails
   notification.notifyRejection("proposal-456", "Not relevant");
@@ -227,16 +232,15 @@ Deno.test("NotificationService: notifyRejection handles db errors gracefully", (
 });
 
 Deno.test("NotificationService: notifyMemoryUpdate handles db errors gracefully", async () => {
-  const config = {} as any;
+  const config = createMockConfig(Deno.cwd());
   // Create a mock DB that throws on preparedRun
-  const mockDb = {
-    logActivity: () => {},
+  const mockDb = createStubDb({
     preparedRun: () => {
       throw new Error("Database timeout");
     },
-  };
+  });
 
-  const notification = new NotificationService(config, mockDb as any);
+  const notification = new NotificationService(config, mockDb);
   const proposal = createTestProposal();
 
   // Should throw or handle error based on implementation.

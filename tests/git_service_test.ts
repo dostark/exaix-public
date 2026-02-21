@@ -229,6 +229,15 @@ Deno.test("GitService: commit message format is correct", async () => {
   }
 });
 
+class TestGitService extends GitService {
+  public static testParseWorktreeListPorcelain(output: string) {
+    return this.parseWorktreeListPorcelain(output);
+  }
+  public testIsLockError(error: unknown) {
+    return this.isLockError(error);
+  }
+}
+
 Deno.test("GitService: parseWorktreeListPorcelain handles flags", () => {
   const output = [
     "worktree /repo",
@@ -244,7 +253,7 @@ Deno.test("GitService: parseWorktreeListPorcelain handles flags", () => {
     "",
   ].join("\n");
 
-  const worktrees = (GitService as any).parseWorktreeListPorcelain(output);
+  const worktrees = TestGitService.testParseWorktreeListPorcelain(output);
 
   assertEquals(worktrees.length, 2);
   assertEquals(worktrees[0].path, "/repo");
@@ -281,10 +290,10 @@ Deno.test("GitService: classifyGitError maps common stderr patterns", () => {
 
 Deno.test("GitService: isLockError identifies lock errors", () => {
   const config = createMockConfig("/tmp/git-lock-error");
-  const git = new GitService({ config, repoPath: "/tmp/git-lock-error" });
+  const git = new TestGitService({ config, repoPath: "/tmp/git-lock-error" });
 
-  const isLock = (git as any).isLockError(new Error("index.lock exists"));
-  const isNotLock = (git as any).isLockError(new Error("something else"));
+  const isLock = git.testIsLockError(new Error("index.lock exists"));
+  const isNotLock = git.testIsLockError(new Error("something else"));
 
   assertEquals(isLock, true);
   assertEquals(isNotLock, false);

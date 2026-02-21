@@ -154,10 +154,6 @@ export interface ValidationMetrics {
   failuresByErrorType: Record<string, number>;
 }
 
-// ============================================================================
-// Output Validator Class
-// ============================================================================
-
 /**
  * Configuration for OutputValidator
  */
@@ -173,9 +169,61 @@ export interface OutputValidatorConfig {
 }
 
 /**
+ * Interface for OutputValidator service
+ */
+export interface IOutputValidator {
+  /**
+   * Parse XML-tagged response (<thought>, <content>)
+   */
+  parseXMLTags(raw: string): ParsedXMLOutput;
+
+  /**
+   * Validate content against a Zod schema
+   */
+  validate<T>(
+    content: string,
+    schema: ZodType<T, ZodTypeDef, unknown>,
+  ): ValidationResult<T>;
+
+  /**
+   * Validate content using a named schema from the registry
+   */
+  validateWithSchema<K extends OutputSchemaName>(
+    content: string,
+    schemaName: K,
+  ): ValidationResult<z.infer<(typeof OutputSchemas)[K]>>;
+
+  /**
+   * Parse XML tags and validate content against a schema
+   */
+  parseAndValidate<T>(
+    raw: string,
+    schema: ZodType<T, ZodTypeDef, unknown>,
+  ): ValidationResult<T>;
+
+  /**
+   * Parse XML tags and validate using a named schema
+   */
+  parseAndValidateWithSchema<K extends OutputSchemaName>(
+    raw: string,
+    schemaName: K,
+  ): ValidationResult<z.infer<(typeof OutputSchemas)[K]>>;
+
+  /**
+   * Get current validation metrics
+   */
+  getMetrics(): ValidationMetrics;
+
+  /**
+   * Reset validation metrics
+   */
+  resetMetrics(): void;
+}
+
+/**
  * OutputValidator provides structured output parsing and validation
  */
-export class OutputValidator {
+export class OutputValidator implements IOutputValidator {
   private config: Required<Omit<OutputValidatorConfig, "llmRepairFn">> & {
     llmRepairFn?: OutputValidatorConfig["llmRepairFn"];
   };

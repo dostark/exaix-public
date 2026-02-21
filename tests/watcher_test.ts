@@ -900,7 +900,7 @@ Deno.test("File Stability - Event loop remains responsive", async () => {
 
     // Start stability check that should take ~1.85 seconds and fail
     const watcher = new FileWatcher(createMockConfig(tempDir), () => {});
-    const stabilityPromise = (watcher as any).readFileWhenStable(testFile).catch(() => {
+    const stabilityPromise = watcher.readFileWhenStable(testFile).catch(() => {
       // Expected to fail - file never stabilizes
     });
 
@@ -929,7 +929,7 @@ Deno.test("File Stability - Backward compatibility maintained", async () => {
     // Test with FileWatcher
     const config = createMockConfig(tempDir);
     const watcher = new FileWatcher(config, () => {});
-    const content = await (watcher as any).readFileWhenStable(testFile);
+    const content = await watcher.readFileWhenStable(testFile);
 
     assertEquals(content, "Hello, World!");
 
@@ -1057,9 +1057,8 @@ Deno.test("File Watcher - Processing Set Cleanup", async () => {
 
     await helper.stopWatcher(watcher);
 
-    // Verify processing set is empty (accessing private field via type assertion)
-    const processingFiles = (watcher as any).processingFiles as Set<string>;
-    assertEquals(processingFiles.size, 0, "Processing set should be empty after stop");
+    // Verify processing set is empty
+    assertEquals(watcher.getProcessingFilesCount(), 0, "Processing set should be empty after stop");
   } finally {
     await cleanup();
   }

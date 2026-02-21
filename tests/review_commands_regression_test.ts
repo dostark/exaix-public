@@ -12,10 +12,12 @@ import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
-import { ExoPathDefaults } from "../src/config/constants.ts";
-import { ReviewCommands } from "../src/cli/commands/review_commands.ts";
+import { ReviewCommands, type ReviewMetadata } from "../src/cli/commands/review_commands.ts";
 import { PlanStatus } from "../src/plans/plan_status.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";
+import type { CommandContext } from "../src/cli/base.ts";
+import { createMockConfig } from "./helpers/config.ts";
+import type { IGitService } from "../src/services/git_service.ts";
 
 const TEST_REQUEST_ID = "request-test123";
 const TEST_TRACE_ID = "test-trace-123";
@@ -103,20 +105,33 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
 
     // Import ReviewCommands and dependencies
 
-    // Create minimal config pointing to our test workspace
-    const config = {
-      system: { root: tempDir },
-      paths: { ...ExoPathDefaults },
-    };
-
-    // Create mock context with test config
-    const context = {
+    // Create mock config
+    const config = createMockConfig(tempDir);
+    const context: CommandContext = {
       config,
       db: createStubDb({ getActivitiesByTrace: () => [] }),
-    } as any;
+    };
+
+    // Create a minimal mock for IGitService
+    const mockGitService: IGitService = {
+      setRepository: () => {},
+      getRepository: () => "",
+      ensureRepository: () => Promise.resolve(),
+      ensureIdentity: () => Promise.resolve(),
+      createBranch: (_opts) => Promise.resolve(""),
+      commit: (_opts) => Promise.resolve(""),
+      checkoutBranch: (_branch, _opts) => Promise.resolve(),
+      getCurrentBranch: () => Promise.resolve(""),
+      getDefaultBranch: (_repoPath) => Promise.resolve(""),
+      addWorktree: (_path, _base) => Promise.resolve(),
+      removeWorktree: (_path, _opts) => Promise.resolve(),
+      pruneWorktrees: (_opts) => Promise.resolve(""),
+      listWorktrees: () => Promise.resolve([]),
+      runGitCommand: (_args, _opts) => Promise.resolve({ output: "", exitCode: 0 }),
+    };
 
     // Test that ReviewCommands can be instantiated with the enhanced interface
-    const reviewCommands = new ReviewCommands(context, {} as any);
+    const reviewCommands = new ReviewCommands(context, mockGitService);
 
     // Verify the instance has the expected methods
     assertEquals(typeof reviewCommands.list, "function");
@@ -124,7 +139,7 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
 
     // Test that the ReviewMetadata interface includes the new fields
     // We can't directly test private methods, but we can verify the interface supports the new fields
-    const testMetadata: any = {
+    const testMetadata: ReviewMetadata = {
       branch: TEST_BRANCH,
       trace_id: TEST_TRACE_ID,
       request_id: TEST_REQUEST_ID,

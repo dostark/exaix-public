@@ -23,6 +23,58 @@ import { isProcessAlive } from "../../src/cli/process_utils.ts";
 import { DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import { getRuntimeDir } from "../helpers/paths_helper.ts";
+import { EventLogger } from "../../src/services/event_logger.ts";
+import { createStubDb } from "../test_helpers.ts";
+
+/**
+ * Helper class to expose and mock protected methods of DaemonCommands
+ */
+class TestDaemonCommands extends DaemonCommands {
+  public mockActionLogger?: EventLogger;
+
+  public override async getActionLogger(): Promise<EventLogger> {
+    if (this.mockActionLogger) return this.mockActionLogger;
+    return await super.getActionLogger();
+  }
+
+  public override async logDaemonActivity(actionType: string, payload: Record<string, unknown>): Promise<void> {
+    return await super.logDaemonActivity(actionType, payload);
+  }
+}
+
+/**
+ * Mock for Deno.Command to use in tests without 'as any'
+ */
+class MockCommand {
+  static nextOutput: Deno.CommandOutput | null = null;
+  static lastArgs: { cmd: string; opts?: Deno.CommandOptions } | null = null;
+
+  constructor(cmd: string, opts?: Deno.CommandOptions) {
+    MockCommand.lastArgs = { cmd, opts };
+  }
+
+  output(): Promise<Deno.CommandOutput> {
+    if (!MockCommand.nextOutput) {
+      return Promise.resolve({
+        code: 0,
+        stdout: new Uint8Array(),
+        stderr: new Uint8Array(),
+        success: true,
+        signal: null,
+      });
+    }
+    return Promise.resolve(MockCommand.nextOutput);
+  }
+
+  spawn(): Deno.ChildProcess {
+    // Return a dummy object that looks like ChildProcess if needed
+    return {
+      status: Promise.resolve({ code: 0, success: true, signal: null }),
+      stdout: { cancel: () => Promise.resolve() },
+      stderr: { cancel: () => Promise.resolve() },
+    } as unknown as Deno.ChildProcess;
+  }
+}
 
 describe("DaemonCommands", {
   sanitizeResources: false, // Disable resource leak detection for daemon processes
@@ -30,7 +82,7 @@ describe("DaemonCommands", {
 }, () => {
   let tempDir: string;
   let db: DatabaseService;
-  let daemonCommands: DaemonCommands;
+  let daemonCommands: TestDaemonCommands;
   let pidFile: string;
   let logFile: string;
   let mainScript: string;
@@ -75,7 +127,7 @@ await new Promise(() => {});
     // Ensure DaemonCommands uses our mock script
     Deno.env.set("EXO_DAEMON_SCRIPT", mainScript);
 
-    daemonCommands = new DaemonCommands({ config, db, configService });
+    daemonCommands = new TestDaemonCommands({ config, db, configService });
   });
 
   afterEach(async () => {
@@ -524,8 +576,10 @@ async function waitForProcessState(
 describe("DaemonCommands - Edge Cases", () => {
   let tempDir: string;
   let db: DatabaseService;
-  let daemonCommands: DaemonCommands;
+  let daemonCommands: TestDaemonCommands;
   let pidFile: string;
+  let config: Config;
+  let configService: ConfigService;
   let cleanup: () => Promise<void>;
 
   beforeEach(async () => {
@@ -533,12 +587,13 @@ describe("DaemonCommands - Edge Cases", () => {
     const result = await createCliTestContext();
     tempDir = result.tempDir;
     db = result.db;
-    const config = result.config;
+    config = result.config;
+    configService = result.configService!;
     cleanup = result.cleanup;
 
     pidFile = join(tempDir, ".exo", "daemon.pid");
 
-    daemonCommands = new DaemonCommands({ config, db });
+    daemonCommands = new TestDaemonCommands({ config, db, configService });
   });
 
   afterEach(async () => {
@@ -608,65 +663,55 @@ describe("DaemonCommands - Edge Cases", () => {
   });
 
   it("start() should throw when daemon command fails", async () => {
-    const originalCommand = Deno.Command;
-    const dummyScript = join(tempDir, "src", "dummy_main.ts");
-    await ensureDir(join(tempDir, "src"));
-    await Deno.writeTextFile(dummyScript, "// dummy");
-    Deno.env.set("EXO_DAEMON_SCRIPT", dummyScript);
+    const failingCommands = new TestDaemonCommands({
+      config: config,
+      db: db,
+      configService: configService,
+      Command: MockCommand as unknown as typeof Deno.Command,
+    });
 
-    class FailingCommand {
-      constructor(_cmd: string, _opts: Deno.CommandOptions) {}
-      output() {
-        return Promise.resolve({
-          code: 1,
-          stdout: new Uint8Array(),
-          stderr: new TextEncoder().encode("boom"),
-          success: false,
-        } as Deno.CommandOutput);
-      }
-    }
+    MockCommand.nextOutput = {
+      code: 1,
+      stdout: new Uint8Array(),
+      stderr: new TextEncoder().encode("boom"),
+      success: false,
+      signal: null,
+    };
 
     try {
-      (Deno as any).Command = FailingCommand;
       await assertRejects(
-        async () => await daemonCommands.start(),
+        async () => await failingCommands.start(),
         Error,
         "Failed to start daemon",
       );
     } finally {
-      (Deno as any).Command = originalCommand;
       Deno.env.delete("EXO_DAEMON_SCRIPT");
     }
   });
 
   it("start() should throw when daemon command returns invalid PID", async () => {
-    const originalCommand = Deno.Command;
-    const dummyScript = join(tempDir, "src", "dummy_main.ts");
-    await ensureDir(join(tempDir, "src"));
-    await Deno.writeTextFile(dummyScript, "// dummy");
-    Deno.env.set("EXO_DAEMON_SCRIPT", dummyScript);
+    const failingCommands = new TestDaemonCommands({
+      config: config,
+      db: db,
+      configService: configService,
+      Command: MockCommand as unknown as typeof Deno.Command,
+    });
 
-    class InvalidPidCommand {
-      constructor(_cmd: string, _opts: Deno.CommandOptions) {}
-      output() {
-        return Promise.resolve({
-          code: 0,
-          stdout: new TextEncoder().encode("not-a-pid"),
-          stderr: new Uint8Array(),
-          success: true,
-        } as Deno.CommandOutput);
-      }
-    }
+    MockCommand.nextOutput = {
+      code: 0,
+      stdout: new TextEncoder().encode("invalid-pid"),
+      stderr: new Uint8Array(),
+      success: true,
+      signal: null,
+    };
 
     try {
-      (Deno as any).Command = InvalidPidCommand;
       await assertRejects(
-        async () => await daemonCommands.start(),
+        async () => await failingCommands.start(),
         Error,
         "Failed to start daemon",
       );
     } finally {
-      (Deno as any).Command = originalCommand;
       Deno.env.delete("EXO_DAEMON_SCRIPT");
     }
   });
@@ -757,19 +802,16 @@ await new Promise(() => {}); // Run forever
   });
 
   it("logDaemonActivity() should handle logging errors gracefully", async () => {
-    // Mock the EventLogger to throw an error
-    const originalGetActionLogger = (daemonCommands as any).getActionLogger;
-    (daemonCommands as any).getActionLogger = () => {
-      throw new Error("Database connection failed");
-    };
+    // Mock getActionLogger to return a logger that fails
+    const failingDb = createStubDb({
+      logActivity: () => {
+        throw new Error("Database connection failed");
+      },
+    });
+    daemonCommands.mockActionLogger = new EventLogger({ db: failingDb });
 
-    try {
-      // This should not throw even though logging fails
-      await (daemonCommands as any).logDaemonActivity("test.action", { test: "data" });
-      assertEquals(true, true); // Should reach here without throwing
-    } finally {
-      // Restore original method
-      (daemonCommands as any).getActionLogger = originalGetActionLogger;
-    }
+    // This should not throw even though logging fails
+    await daemonCommands.logDaemonActivity("test.action", { test: "data" });
+    assertEquals(true, true); // Should reach here without throwing
   });
 });

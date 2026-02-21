@@ -100,7 +100,7 @@ export async function captureAllOutputs(fn: () => Promise<void> | void, timeoutM
 export async function expectExitWithLogs(
   fn: () => Promise<void> | void,
   timeoutMs: number = 10000,
-): Promise<{ err: any; errors: string[]; exitCalled: boolean }> {
+): Promise<{ err: Error; errors: string[]; exitCalled: boolean }> {
   const origExit = Deno.exit;
   const origErr = console.error;
   const errors: string[] = [];

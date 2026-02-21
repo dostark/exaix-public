@@ -19,33 +19,36 @@ Deno.test("loadBlueprint: reads blueprint when present", async () => {
   assertEquals(out?.systemPrompt, "prompt");
 });
 
+import type { RequestFrontmatter } from "../../src/services/request_processing/types.ts";
+
 Deno.test("loadBlueprint: returns null on read error", async () => {
   const dir = await Deno.makeTempDir();
   const agentId = "agent";
   const path = join(dir, `${agentId}.md`);
-  await Deno.writeTextFile(path, "prompt");
+  // Create a directory with the same name as the file to cause a read error
+  await Deno.mkdir(path);
 
-  const original = Deno.readTextFile;
-  try {
-    (Deno as any).readTextFile = (p: string) => {
-      if (p === path) throw new Error("read failed");
-      return original(p);
-    };
-
-    const out = await loadBlueprint(dir, agentId);
-    assertEquals(out, null);
-  } finally {
-    (Deno as any).readTextFile = original;
-  }
+  const out = await loadBlueprint(dir, agentId);
+  assertEquals(out, null);
 });
 
 Deno.test("buildParsedRequest: trims body and parses skills", () => {
+  const frontmatter: RequestFrontmatter = {
+    trace_id: "t1",
+    created: new Date().toISOString(),
+    status: "pending",
+    priority: "p1",
+    source: "src",
+    created_by: "user",
+    skills: '["a","b"]',
+  };
+
   const req = buildParsedRequest(
     "  hello \n",
-    { priority: "p1", source: "src", skills: '["a","b"]' } as any,
+    frontmatter,
     "req",
     "trace",
-  ) as any;
+  );
 
   assertEquals(req.userPrompt, "hello");
   assertEquals(req.context.priority, "p1");

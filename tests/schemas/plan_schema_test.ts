@@ -489,7 +489,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
           findings: [
             {
               title: "Test Finding",
-              severity: "INVALID" as any, // Invalid severity
+              severity: "INVALID", // Invalid severity
               location: "test.ts",
               description: "Test",
               impact: "Test",
@@ -497,7 +497,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
             },
           ],
         },
-      };
+      } as Record<string, unknown>;
 
       const result = PlanSchema.safeParse(planData);
       assertEquals(result.success, false);

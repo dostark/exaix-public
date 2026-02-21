@@ -304,7 +304,7 @@ Deno.test("blueprint validate invalid triggers exit", async () => {
 
 Deno.test("request --file outputs JSON when --json specified", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.createFromFile = (_file: string, _opts?: any) =>
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: Record<string, unknown>) =>
       Promise.resolve({
         filename: "/tmp/exo-test/request-1.md",
         trace_id: "trace-1234",
@@ -325,7 +325,7 @@ Deno.test("request --file outputs JSON when --json specified", async () => {
 
 Deno.test("request --file prints human output when no --json", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.createFromFile = (_file: string, _opts?: any) =>
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: Record<string, unknown>) =>
       Promise.resolve({
         filename: "/tmp/exo-test/request-2.md",
         trace_id: "trace-5678",
@@ -718,15 +718,20 @@ Deno.test("exoctl: --version prints version and exits (in-process)", async () =>
     const origLog = console.log;
     let out = "";
     console.log = (msg: string) => (out += msg + "\n");
-    (Deno as any).exit = (code?: number) => {
+    // Use Object.defineProperty to safely mock Deno.exit since it might be read-only in some environments
+    const exitMock = (code?: number) => {
       throw new Error(`DENO_EXIT:${code ?? 0}`);
     };
+
     try {
+      // @ts-ignore: Mocking Deno.exit for testing
+      Deno.exit = exitMock as (code?: number) => never;
       await mod.__test_command.parse(["--version"]);
     } catch (e: unknown) {
       if (!(e instanceof Error) || !e.message.startsWith("DENO_EXIT:")) throw e;
     } finally {
-      (Deno as any).exit = origExit;
+      // @ts-ignore: Restoring Deno.exit
+      Deno.exit = origExit;
       console.log = origLog;
     }
     assertStringIncludes(out, "1.0.0");

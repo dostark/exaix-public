@@ -195,9 +195,12 @@ Deno.test("StructuredLogger - Context Management", async (t) => {
 Deno.test("StructuredLogger - Error Handling", async (t) => {
   await t.step("should include error details in log entries", () => {
     const { logger, output } = createTestLogger(LogLevel.INFO);
-    const testError = new Error("Test error message");
+    interface TestError extends Error {
+      code?: string;
+    }
+    const testError = new Error("Test error message") as TestError;
     testError.name = "TestError";
-    (testError as any).code = "TEST_ERROR";
+    testError.code = "TEST_ERROR";
 
     logger.error("Something went wrong", testError);
 
@@ -232,7 +235,11 @@ Deno.test("StructuredLogger - Performance Tracking", async (t) => {
     const completionLog = output.entries.find((e) => e.message.includes("Operation completed"));
     assert(completionLog);
     assert(completionLog?.metadata?.performance);
-    assert((completionLog?.metadata?.performance as any).duration_ms >= 10);
+    interface PerformanceMetadata {
+      duration_ms: number;
+    }
+    const performance = completionLog?.metadata?.performance as unknown as PerformanceMetadata;
+    assert(performance.duration_ms >= 10);
   });
 
   await t.step("should track failed operations", async () => {
