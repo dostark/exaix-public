@@ -29,6 +29,7 @@ import {
 import { GracefulShutdown } from "./services/graceful_shutdown.ts";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
+import { LogMetadata, toSafeJson } from "./types.ts";
 
 if (import.meta.main) {
   // Simple argument handling for the compiled binary
@@ -86,15 +87,18 @@ if (import.meta.main) {
     });
 
     // Log daemon startup as audit event
-    logInfo("ExoFrame daemon starting", {
-      audit_event: true,
-      event_type: "daemon_startup",
-      config_checksum: checksum.slice(0, 8),
-      root: config.system.root,
-      log_level: config.system.log_level,
-      service: "exoframe-daemon",
-      version: config.system.version,
-    });
+    logInfo(
+      "ExoFrame daemon starting",
+      toSafeJson({
+        audit_event: true,
+        event_type: "daemon_startup",
+        config_checksum: checksum.slice(0, 8),
+        root: config.system.root,
+        log_level: config.system.log_level,
+        service: "exoframe-daemon",
+        version: config.system.version,
+      }) as LogMetadata,
+    );
 
     await logger.info("config.loaded", "exo.config.toml", {
       checksum: checksum.slice(0, 8),
@@ -200,15 +204,23 @@ if (import.meta.main) {
         const result = await executionLoop.processTask(event.path);
 
         if (result.success) {
-          watcherLogger.info("plan.execution_managed", event.path, {
-            trace_id: result.traceId,
-            status: "completed",
-          });
+          watcherLogger.info(
+            "plan.execution_managed",
+            event.path,
+            toSafeJson({
+              trace_id: result.traceId,
+              status: "completed",
+            }) as LogMetadata,
+          );
         } else {
-          watcherLogger.error("plan.execution_managed_failure", event.path, {
-            trace_id: result.traceId,
-            error: result.error,
-          });
+          watcherLogger.error(
+            "plan.execution_managed_failure",
+            event.path,
+            toSafeJson({
+              trace_id: result.traceId,
+              error: result.error,
+            }) as LogMetadata,
+          );
         }
       },
       { customWatchPath: activePath }, // Custom watch path

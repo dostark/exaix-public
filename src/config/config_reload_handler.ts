@@ -8,12 +8,13 @@
  */
 
 import type { ConfigService } from "./service.ts";
+import { LogMetadata } from "../types.ts";
 
 export type ConfigReloadLogger = {
   info: (
     action: string,
     target: string,
-    payload: Record<string, unknown>,
+    payload: LogMetadata,
   ) => Promise<void> | void;
 };
 
