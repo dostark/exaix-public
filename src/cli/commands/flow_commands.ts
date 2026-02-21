@@ -33,6 +33,7 @@ export interface CLIContext {
   config: Config;
   db: IDatabaseService;
   provider: IModelProvider;
+  exit?: (code?: number) => never;
 }
 
 export class FlowCommands {
@@ -51,6 +52,13 @@ export class FlowCommands {
       db: context.db,
       defaultActor: "cli",
     });
+  }
+
+  private exit(code?: number): never {
+    if (this.context.exit) {
+      return this.context.exit(code);
+    }
+    return Deno.exit(code);
   }
 
   async listFlows(options: FlowListOptions = {}) {
@@ -94,7 +102,7 @@ export class FlowCommands {
       table.render();
     } catch (error) {
       console.error("Error listing flows:", error instanceof Error ? error.message : String(error));
-      Deno.exit(1);
+      this.exit(1);
     }
   }
 
@@ -146,7 +154,7 @@ export class FlowCommands {
       } else {
         console.error("Error showing flow:", error instanceof Error ? error.message : String(error));
       }
-      Deno.exit(1);
+      this.exit(1);
     }
   }
 
@@ -164,11 +172,14 @@ export class FlowCommands {
       } else {
         console.log(`❌ Flow '${flowId}' validation failed:`);
         console.log(validation.error);
-        Deno.exit(1);
+        this.exit(1);
       }
     } catch (error) {
+      if (error instanceof Error && (error.message === "EXIT" || error.message === "DENO_EXIT")) {
+        throw error;
+      }
       console.error("Error validating flow:", error instanceof Error ? error.message : String(error));
-      Deno.exit(1);
+      this.exit(1);
     }
   }
 

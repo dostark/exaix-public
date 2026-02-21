@@ -59,6 +59,14 @@ export class FileWatcher {
   }
 
   /**
+   * Get the number of files currently being processed
+   * @returns Count of processing files
+   */
+  public getProcessingFilesCount(): number {
+    return this.processingFiles.size;
+  }
+
+  /**
    * Start watching the directory
    */
   async start() {

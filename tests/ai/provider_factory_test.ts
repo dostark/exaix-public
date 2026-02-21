@@ -476,12 +476,11 @@ Deno.test("ProviderFactory: unknown provider generates unknown ID", () => {
 
   // Mock the resolveOptions to return unknown provider
   const originalResolveOptions = ProviderFactory["resolveOptions"];
-  ProviderFactory["resolveOptions"] = () => ({
-    // @ts-expect-error - Testing unknown provider behavior
-    provider: "unknown",
+  ProviderFactory["resolveOptions"] = (() => ({
+    provider: "unknown" as ProviderType,
     model: "test-model",
     timeoutMs: 30000,
-  });
+  })) as typeof originalResolveOptions;
 
   try {
     const info = ProviderFactory.getProviderInfo(config);

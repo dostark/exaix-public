@@ -1,4 +1,4 @@
-import { assert, assertEquals, assertExists, assertRejects } from "@std/assert";
+import { assert, assertEquals, assertRejects } from "@std/assert";
 import { join } from "@std/path";
 import { FileWatcher } from "../src/services/watcher.ts";
 import { createMockConfig } from "./helpers/config.ts";
@@ -871,10 +871,7 @@ Deno.test("FileWatcher: private property accessibility for coverage", async () =
   const tempDir = await Deno.makeTempDir();
   try {
     const watcher = new FileWatcher(createMockConfig(tempDir), () => {});
-    // @ts-expect-error Accessing private property for test verification
-    const processingFiles = watcher.processingFiles as Set<string>;
-    assertExists(processingFiles);
-    assertEquals(processingFiles.size, 0);
+    assertEquals(watcher.getProcessingFilesCount(), 0);
   } finally {
     await Deno.remove(tempDir, { recursive: true });
   }

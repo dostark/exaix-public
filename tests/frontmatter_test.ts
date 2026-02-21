@@ -55,12 +55,17 @@ Deno.test("RequestSchema: rejects missing required field (trace_id)", () => {
     status: RequestStatus.PENDING,
   };
 
-  const error = assertThrows(
-    () => RequestSchema.parse(invalidRequest),
-  ) as Error;
-
-  // Should mention the missing field
-  assertEquals(error.message.includes("trace_id"), true);
+  try {
+    RequestSchema.parse(invalidRequest);
+    throw new Error("Should have thrown");
+  } catch (error) {
+    if (error instanceof Error) {
+      // Should mention the missing field
+      assertEquals(error.message.includes("trace_id"), true);
+    } else {
+      throw error;
+    }
+  }
 });
 
 Deno.test("RequestSchema: rejects invalid enum value", () => {
@@ -70,13 +75,18 @@ Deno.test("RequestSchema: rejects invalid enum value", () => {
     status: "banana", // invalid
   };
 
-  const error = assertThrows(
-    () => RequestSchema.parse(invalidRequest),
-  ) as Error;
-
-  // Should list valid options
-  assertEquals(error.message.includes(RequestStatus.PENDING), true);
-  assertEquals(error.message.includes("in_progress"), true);
+  try {
+    RequestSchema.parse(invalidRequest);
+    throw new Error("Should have thrown");
+  } catch (error) {
+    if (error instanceof Error) {
+      // Should list valid options
+      assertEquals(error.message.includes(RequestStatus.PENDING), true);
+      assertEquals(error.message.includes("in_progress"), true);
+    } else {
+      throw error;
+    }
+  }
 });
 
 Deno.test("RequestSchema: strips unknown fields", () => {
@@ -90,10 +100,8 @@ Deno.test("RequestSchema: strips unknown fields", () => {
 
   const result = RequestSchema.parse(requestWithExtra);
 
-  // @ts-expect-error - checking that extra fields are stripped
-  assertEquals(result.unknown_field, undefined);
-  // @ts-expect-error - checking that extra fields are stripped
-  assertEquals(result.another_extra, undefined);
+  assertEquals("unknown_field" in result, false);
+  assertEquals("another_extra" in result, false);
 });
 
 Deno.test("FrontmatterParser: valid markdown with YAML frontmatter", () => {

@@ -63,6 +63,7 @@ ExoFrame enforces a strict **No `any`, No implicit types** policy to ensure type
   - The parameter of a `catch` clause: `catch (e: unknown)`
   - A *transient* value inside a type-narrowing guard before it is cast to a concrete type
   - Never use `unknown` as a parameter type, return type, or field type — define a named interface or type alias instead.
+- **No `@ts-expect-error` pragmas:** **NEVER** use `@ts-expect-error` to suppress type errors. This practice is prohibited as it bypasses type safety controls. Always fix the underlying type issue by defining proper types, interfaces, or using generics.
 - **No lint ignore for `any`:** **NEVER** use `// deno-lint-ignore no-explicit-any` to suppress type errors. This practice hides type safety issues and prevents proper typing. Always fix the underlying type issue by defining proper types, interfaces, or using generics.
 - **Alternatives:**
   - **Generics:** Use generic types (`<T>`) for flexible functions or classes so callers supply the concrete type.

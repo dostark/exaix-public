@@ -9,12 +9,15 @@ import { copySync, ensureDirSync } from "@std/fs";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import { createMockProvider } from "../helpers/mock_provider.ts";
 
-async function createMockContext(): Promise<CLIContext & { cleanup: () => Promise<void> }> {
+async function createMockContext(
+  exit?: (code?: number) => never,
+): Promise<CLIContext & { cleanup: () => Promise<void> }> {
   const { config, db, cleanup } = await createCliTestContext();
   return {
     config,
     db,
     provider: createMockProvider([]),
+    exit,
     cleanup,
   };
 }
@@ -252,8 +255,7 @@ Deno.test("FlowCommands: listFlows handles loader errors and exits", async () =>
       errOut += args.join(" ") + "\n";
     };
 
-    const origExit = (Deno as any).exit;
-    (Deno as any).exit = (_c?: number) => {
+    ctx.exit = (_c?: number) => {
       throw new Error("DENO_EXIT");
     };
 
@@ -272,7 +274,7 @@ Deno.test("FlowCommands: listFlows handles loader errors and exits", async () =>
       Deno.readDir = originalReadDir;
     } finally {
       console.error = origErr;
-      (Deno as any).exit = origExit;
+      ctx.exit = undefined;
     }
   });
 });
@@ -329,12 +331,12 @@ Deno.test("FlowCommands: validateFlow throws on validator error", async () => {
     };
 
     let errOut = "";
-    const origErr2 = console.error;
+    const origErr = console.error;
     console.error = (...args: unknown[]) => {
       errOut += args.join(" ") + "\n";
     };
-    const origExit = (Deno as any).exit;
-    (Deno as any).exit = (_c?: number) => {
+
+    ctx.exit = (_c?: number) => {
       throw new Error("DENO_EXIT");
     };
 
@@ -344,14 +346,14 @@ Deno.test("FlowCommands: validateFlow throws on validator error", async () => {
         await commands.validateFlow("bad");
       } catch (_e) {
         threw = true;
-        if (!out.includes("uh-oh")) throw new Error(`Unexpected log: ${out}`);
       }
-      if (!threw) throw new Error("Expected Deno.exit to be called");
-      Deno.readTextFile = origReadText;
+      assertEquals(threw, true);
+      assertStringIncludes(out, "uh-oh");
     } finally {
       console.log = origLog;
-      console.error = origErr2;
-      (Deno as any).exit = origExit;
+      console.error = origErr;
+      Deno.readTextFile = origReadText;
+      ctx.exit = undefined; // Reset ctx.exit
     }
   });
 });
@@ -374,8 +376,7 @@ export default defineFlow({
     await Deno.writeTextFile(join(flowDir, "bad.flow.ts"), invalidFlow);
 
     const commands = new FlowCommands(ctx);
-    const originalExit = (Deno as any).exit;
-    (Deno as any).exit = (_c?: number) => {
+    ctx.exit = (_c?: number) => {
       throw new Error("EXIT");
     };
     try {
@@ -388,7 +389,7 @@ export default defineFlow({
       }
       assertEquals(caught, true);
     } finally {
-      (Deno as any).exit = originalExit;
+      // No cleanup needed for ctx.exit as it's part of the context
     }
   });
 });

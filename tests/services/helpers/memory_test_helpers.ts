@@ -191,32 +191,40 @@ export function createApprovedProposal(overrides: Partial<MemoryUpdateProposal> 
  * Creates an invalid proposal for testing schema validation failures
  */
 export function createInvalidProposal(overrides: Partial<MemoryUpdateProposal> = {}): Record<string, unknown> {
-  return createBaseProposal({
+  const base = createBaseProposal({
     id: "550e8400-e29b-41d4-a716-446655440006",
-    // @ts-expect-error testing invalid operation
-    operation: "invalid-op",
+    operation: MemoryOperation.ADD, // placeholder
     learning: createInvalidLearning(overrides.learning),
     reason: "Test",
     agent: "test",
     status: MemoryStatus.PENDING,
-    ...overrides,
   });
+
+  return {
+    ...base,
+    operation: "invalid-op",
+    ...overrides,
+  };
 }
 
 /**
  * Creates an invalid proposal with invalid status for testing
  */
 export function createInvalidStatusProposal(overrides: Partial<MemoryUpdateProposal> = {}): Record<string, unknown> {
-  return createBaseProposal({
+  const base = createBaseProposal({
     id: "550e8400-e29b-41d4-a716-446655440008",
     operation: MemoryOperation.ADD,
     learning: createInvalidLearning(overrides.learning),
     reason: "Test",
     agent: "test",
-    // @ts-expect-error testing invalid status
+    status: MemoryStatus.PENDING,
+  });
+
+  return {
+    ...base,
     status: "invalid-status",
     ...overrides,
-  });
+  };
 }
 
 /**

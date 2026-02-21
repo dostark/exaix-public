@@ -12,7 +12,7 @@
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import { DaemonStatus, EvaluationCategory, MemoryReferenceType } from "../../src/enums.ts";
+import { EvaluationCategory, MemoryReferenceType } from "../../src/enums.ts";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
@@ -111,19 +111,18 @@ Deno.test("LearningSchema: rejects invalid category", () => {
 });
 
 Deno.test("LearningSchema: rejects invalid status", () => {
-  const learning = createSampleLearning({
-    id: "550e8400-e29b-41d4-a716-446655440004",
+  const learning: unknown = {
+    id: "550e8400-e29b-41d4-a716-446655440003",
     created_at: "2026-01-04T12:00:00Z",
-    source: MemorySource.USER,
+    source: MemorySource.AGENT,
     scope: MemoryScope.GLOBAL,
-    title: "Test",
+    title: "Test title",
     description: "Test description",
     category: LearningCategory.PATTERN,
     tags: [],
     confidence: ConfidenceLevel.HIGH,
-    // @ts-expect-error - Testing invalid status
-    status: DaemonStatus.UNKNOWN as MemoryStatus, // Invalid
-  });
+    status: "unknown", // Invalid
+  };
 
   const result = LearningSchema.safeParse(learning);
   assertEquals(result.success, false);

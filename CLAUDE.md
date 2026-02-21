@@ -71,7 +71,8 @@ deno task check:docs        # Verify .copilot/manifest.json is fresh
   - **No `as typeof var` casting:** Never use `value as typeof variable` to cast to another variable's type. This is effectively using `any` and bypasses type safety. Define explicit interfaces or use proper type inference instead.
   - **No `unknown` as a fallback:** `unknown` is not a substitute for a real type. If the shape is truly dynamic, define a named interface or type alias that describes it. Use `unknown` only as a *transient* type inside a narrowing guard (e.g., `catch (e: unknown)`) — never as a stored type or parameter type.
   - **No double casting:** Never use `... as unknown as ...`. This bypasses type safety. Use proper narrowing or structural typing.
-  - **No lint ignore for `any`:** Never use `// deno-lint-ignore no-explicit-any` to suppress type errors. Fix the underlying type issue instead by defining proper types, interfaces, or using generics.
+  - **No `@ts-expect-error` pragmas:** **NEVER** use `@ts-expect-error` to suppress type errors. This practice is prohibited as it bypasses type safety controls. Always fix the underlying type issue by defining proper types, interfaces, or using generics.
+  - **No lint ignore for `any`:** **NEVER** use `// deno-lint-ignore no-explicit-any` to suppress type errors. This practice hides type safety issues and prevents proper typing. Always fix the underlying type issue by defining proper types, interfaces, or using generics.
   - **Always name it:** If a type does not exist yet, create one. Prefer specific interfaces over structural `Record<string, ...>` when the keys are known.
 - **Top-Level Imports:** All imports must be at the top of the file. Dynamic imports are discouraged.
 - **No Magic Values:** No hardcoded numbers or strings. Use constants/enums.

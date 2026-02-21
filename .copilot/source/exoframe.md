@@ -59,6 +59,7 @@ Export types that consumers need and keep internal types private. Provide thorou
 - **No `as typeof var` casting:** Never use `value as typeof variable` to cast to another variable's type. This is effectively using `any` and bypasses type safety. Define explicit interfaces or use proper type inference instead.
 - **No `unknown` as a stored type:** `unknown` is permitted only inside `catch (e: unknown)` clauses or as a transient value in a narrowing guard. Never use it as a parameter type, return type, or field type — define a named interface or type alias instead.
 - **No double casting:** Never use `... as unknown as ...`. This bypasses type safety and hides real issues. Use proper type guards, structural typing, or narrow the type safely.
+- **No `@ts-expect-error`:** Never use `@ts-expect-error` to suppress type errors. Fix the underlying type issue instead. This pragma is prohibited as it bypasses type safety controls.
 - **No lint ignore for `any`:** Never use `// deno-lint-ignore no-explicit-any` to suppress type errors. Fix the underlying type issue instead by defining proper types, interfaces, or using generics.
 - **Always name it:** If the type does not exist yet, create one. Prefer specific interfaces over `Record<string, ...>` when keys are known.
 
