@@ -233,11 +233,18 @@ Begin creating the review.`,
 }
 
 /**
+ * Prompt arguments
+ */
+interface PromptArgs {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+/**
  * Generate prompt messages based on prompt name and arguments
  */
 export function generatePrompt(
   name: string,
-  args: Record<string, unknown>,
+  args: PromptArgs,
   _config: Config,
   db: IDatabaseService,
 ): MCPPromptResult | null {

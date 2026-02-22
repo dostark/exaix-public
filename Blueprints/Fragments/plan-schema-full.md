@@ -26,12 +26,12 @@ Your response in the `<content>` section MUST be a valid JSON object matching th
   ],
   "analysis": {
     "totalFiles": 10,
-    "findings": [ { "title": "Issue", "description": "Explanation" } ],
+    "findings": [{ "title": "Issue", "description": "Explanation" }],
     "recommendations": ["Do X"]
   },
   "qa": {
-    "testSummary": [ { "category": "Unit", "planned": 5, "passed": 5 } ],
-    "issues": [ { "title": "Bug", "severity": "High" } ]
+    "testSummary": [{ "category": "Unit", "planned": 5, "passed": 5 }],
+    "issues": [{ "title": "Bug", "severity": "High" }]
   }
 }
 ```

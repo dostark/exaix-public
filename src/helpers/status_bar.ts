@@ -10,6 +10,7 @@
 import { colorize, getTheme, padEnd, type TuiTheme, visibleLength } from "./colors.ts";
 import { renderSpinner, type SpinnerState, type SpinnerStyle } from "./spinner.ts";
 import { TUI_ICON_SUCCESS } from "./constants.ts";
+import { MessageType } from "../enums.ts";
 
 // ===== Status Bar Types =====
 
@@ -31,7 +32,7 @@ export interface StatusBarState {
   leftItems: StatusBarItem[];
   rightItems: StatusBarItem[];
   message?: string;
-  messageType?: "info" | "success" | "warning" | "error";
+  messageType?: MessageType;
   spinner?: SpinnerState;
 }
 
@@ -135,13 +136,13 @@ function formatStatusItem(item: StatusBarItem, theme: TuiTheme): string {
  */
 function getMessageColor(type: StatusBarState["messageType"], theme: TuiTheme): string {
   switch (type) {
-    case "success":
+    case "SUCCESS":
       return theme.success;
-    case "warning":
+    case "WARNING":
       return theme.warning;
-    case "error":
+    case "ERROR":
       return theme.error;
-    case "info":
+    case "INFO":
     default:
       return theme.info;
   }
@@ -253,7 +254,7 @@ export function createTimestampItem(date: Date, theme: TuiTheme): StatusBarItem 
 export function setStatusMessage(
   state: StatusBarState,
   message: string,
-  type: StatusBarState["messageType"] = "info",
+  type: MessageType = MessageType.INFO,
 ): StatusBarState {
   return {
     ...state,

@@ -274,7 +274,7 @@ export function renderLogSummary(entries: LogEntry[], options: Partial<LogRender
 
   lines.push(`Total Entries: ${totalEntries}`);
 
-  for (const level of ["fatal", "error", "warn", "info", "debug"] as LogLevel[]) {
+  for (const level of Object.values(LogLevel)) {
     const count = levelCounts[level] || 0;
     if (count > 0) {
       const levelInfo = getLevelInfo(level);
@@ -398,7 +398,7 @@ export function renderCorrelationVisualization(
     let line = `${time} ${levelIndicator} ${operation}: ${entry.message}`;
 
     // Highlight errors
-    if (entry.level === "error" || entry.level === "fatal") {
+    if (entry.level === LogLevel.ERROR || entry.level === LogLevel.FATAL) {
       line = colorize(line, opts.theme.error, opts.theme.reset);
     }
 

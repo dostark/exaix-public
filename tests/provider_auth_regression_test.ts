@@ -100,7 +100,8 @@ async function testEnvToStoreSync({
   interface ExoGlobal {
     EXO_PERSIST_ENV_CREDENTIALS?: boolean;
   }
-  (globalThis as unknown as ExoGlobal)[PERSIST_ENV_VAR] = true;
+  const globalWithPersistence = globalThis as typeof globalThis & ExoGlobal;
+  globalWithPersistence[PERSIST_ENV_VAR] = true;
   try {
     await factory.create(options);
     const stored = await SecureCredentialStore.get(envKey);
@@ -108,13 +109,13 @@ async function testEnvToStoreSync({
   } finally {
     Deno.env.delete(envKey);
     await SecureCredentialStore.clear(envKey);
-    delete (globalThis as unknown as ExoGlobal)[PERSIST_ENV_VAR];
+    delete globalWithPersistence[PERSIST_ENV_VAR];
   }
 
   // Do NOT persist if not opted in
   Deno.env.set(envKey, envValue);
   await SecureCredentialStore.clear(envKey);
-  (globalThis as unknown as ExoGlobal)[PERSIST_ENV_VAR] = false;
+  globalWithPersistence[PERSIST_ENV_VAR] = false;
   try {
     await factory.create(options);
     const stored = await SecureCredentialStore.get(envKey);
@@ -122,7 +123,7 @@ async function testEnvToStoreSync({
   } finally {
     Deno.env.delete(envKey);
     await SecureCredentialStore.clear(envKey);
-    delete (globalThis as unknown as ExoGlobal)[PERSIST_ENV_VAR];
+    delete globalWithPersistence[PERSIST_ENV_VAR];
   }
 }
 

@@ -9,6 +9,7 @@
 
 import type { LogEntry } from "../../services/structured_logger.ts";
 import type { CorrelationAnalysis } from "./types.ts";
+import { LogLevel } from "../../enums.ts";
 
 /**
  * Analyze correlation across multiple log entries
@@ -34,7 +35,7 @@ export function analyzeCorrelation(entries: LogEntry[]): CorrelationAnalysis | n
   const duration = end.getTime() - start.getTime();
 
   // Error analysis
-  const errorCount = entries.filter((e) => e.level === "error" || e.level === "fatal").length;
+  const errorCount = entries.filter((e) => e.level === LogLevel.ERROR || e.level === LogLevel.FATAL).length;
 
   // Performance analysis
   const performanceEntries = entries.filter((e) => e.performance?.duration_ms);

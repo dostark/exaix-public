@@ -1240,7 +1240,7 @@ This document outlines the changes needed to integrate the new SQLite-based noti
 ```typescript
 export interface Notification {
   id: string;
-  type: "info" | "success" | "warning" | "error";
+  type: MessageType;
   message: string;
   timestamp: Date;
   dismissed: boolean;

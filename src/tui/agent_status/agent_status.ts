@@ -7,10 +7,12 @@
  * @related-files [src/tui/agent_status_view.ts]
  */
 
+import { MessageType } from "../../enums.ts";
+
 export const AgentStatus = {
   ACTIVE: "active",
   INACTIVE: "inactive",
-  ERROR: "error",
+  ERROR: MessageType.ERROR,
 } as const;
 
 export type AgentStatusType = typeof AgentStatus[keyof typeof AgentStatus];

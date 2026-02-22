@@ -7,6 +7,7 @@
  * @related-files [src/tui/dashboard_view.ts]
  */
 import { PortalService } from "./portal_manager_view.ts";
+import type { JSONValue } from "../types.ts";
 import {
   AgentHealth,
   ConfidenceLevel,
@@ -698,22 +699,22 @@ export class MockSkillsService {
  * Mock implementation of StructuredLogger for TDD and dashboard wiring tests.
  */
 export class MockStructuredLogger implements IStructuredLogger {
-  private context: Record<string, unknown> = {};
+  private context: LogEntryContext = {};
   private config: { minLevel: LogLevel; outputs: unknown[]; enablePerformanceTracking: boolean } = {
     minLevel: LogLevel.DEBUG,
     outputs: [],
     enablePerformanceTracking: false,
   };
 
-  setContext(_context: Partial<LogEntry["context"]>) {}
-  child(_additionalContext: Partial<LogEntry["context"]>): IStructuredLogger {
+  setContext(_context: Partial<LogEntryContext>) {}
+  child(_additionalContext: Partial<LogEntryContext>): IStructuredLogger {
     return this;
   }
-  debug(_message: string, _metadata?: Record<string, unknown>) {}
-  info(_message: string, _metadata?: Record<string, unknown>) {}
-  warn(_message: string, _metadata?: Record<string, unknown>) {}
-  error(_message: string, _error?: Error, _metadata?: Record<string, unknown>) {}
-  fatal(_message: string, _error?: Error, _metadata?: Record<string, unknown>) {}
+  debug(_message: string, _metadata?: LogEntryContext) {}
+  info(_message: string, _metadata?: LogEntryContext) {}
+  warn(_message: string, _metadata?: LogEntryContext) {}
+  error(_message: string, _error?: Error, _metadata?: LogEntryContext) {}
+  fatal(_message: string, _error?: Error, _metadata?: LogEntryContext) {}
   private log() {}
   private shouldLog() {
     return true;
@@ -721,6 +722,13 @@ export class MockStructuredLogger implements IStructuredLogger {
   time<T>(_operation: string, fn: () => Promise<T>): Promise<T> {
     return fn();
   }
+}
+
+/**
+ * Context data for log entries
+ */
+interface LogEntryContext {
+  [key: string]: string | number | boolean | JSONValue | null | undefined;
 }
 
 /**

@@ -106,7 +106,7 @@ Templates in `templates/` are for building new flows:
 
 While Agent Blueprints (`.md`) use a fragment inclusion system (`{{include:fragment}}`), **Flows** (`.flow.ts`) do not.
 
-Since flows are TypeScript files, they should use standard ES module imports to share logic, schemas, or prompt strings if needed. However, the *agents* called by flows will still benefit from the fragment system defined in their respective blueprints.
+Since flows are TypeScript files, they should use standard ES module imports to share logic, schemas, or prompt strings if needed. However, the _agents_ called by flows will still benefit from the fragment system defined in their respective blueprints.
 
 ## Creating New Flows
 

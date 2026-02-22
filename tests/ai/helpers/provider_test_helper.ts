@@ -105,7 +105,6 @@ export function spyFetch(responseBody: unknown): { spy: Spy; restore: () => void
   const originalFetch = globalThis.fetch;
   const fetchSpy = spy(() => Promise.resolve(new Response(JSON.stringify(responseBody), { status: 200 })));
 
-  // @ts-ignore: Mocking fetch
   globalThis.fetch = fetchSpy;
 
   return {
@@ -179,7 +178,6 @@ export function testProviderHeaders<T extends { generate: (prompt: string) => Pr
     try {
       await provider.generate("Hi");
       const call = fetchSpy.calls[0];
-      // @ts-ignore: Accessing mock args
       const headers = call.args[1]?.headers as Record<string, string>;
       assertEquals(headers[apiKeyHeader], apiKeyValue);
 
@@ -242,7 +240,6 @@ export function testProviderOptionsMapping<
       });
 
       const call = fetchSpy.calls[0];
-      // @ts-ignore: Accessing mock args
       const body = JSON.parse(call.args[1]?.body as string);
 
       // Handle different provider body structures

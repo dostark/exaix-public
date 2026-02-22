@@ -56,12 +56,27 @@ export interface Blueprint {
 /**
  * ParsedRequest represents the user's intent and any additional context
  */
+/**
+ * Context data for agent requests
+ */
+interface RequestContextContext {
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | RequestContextContext
+    | (string | number | boolean | null | undefined | RequestContextContext)[]
+    | string[];
+}
+
 export interface ParsedRequest {
   /** The user's request/prompt */
   userPrompt: string;
 
   /** Additional context (e.g., file contents, environment info) */
-  context: Record<string, unknown>;
+  context: RequestContextContext;
 
   /** Optional: Request ID for logging */
   requestId?: string;

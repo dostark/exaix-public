@@ -1,3 +1,4 @@
+import { JSONObject } from "../../src/types.ts";
 /**
  * Tests for DaemonCommands
  * Covers start, stop, restart, status, and logs operations
@@ -37,13 +38,13 @@ class TestDaemonCommands extends DaemonCommands {
     return await super.getActionLogger();
   }
 
-  public override async logDaemonActivity(actionType: string, payload: Record<string, unknown>): Promise<void> {
+  public override async logDaemonActivity(actionType: string, payload: JSONObject): Promise<void> {
     return await super.logDaemonActivity(actionType, payload);
   }
 }
 
 /**
- * Mock for Deno.Command to use in tests without 'as any'
+ * Mock for Deno.Command to use in tests
  */
 class MockCommand {
   static nextOutput: Deno.CommandOutput | null = null;
@@ -66,13 +67,26 @@ class MockCommand {
     return Promise.resolve(MockCommand.nextOutput);
   }
 
+  outputSync(): Deno.CommandOutput {
+    if (!MockCommand.nextOutput) {
+      return {
+        code: 0,
+        stdout: new Uint8Array(),
+        stderr: new Uint8Array(),
+        success: true,
+        signal: null,
+      };
+    }
+    return MockCommand.nextOutput;
+  }
+
   spawn(): Deno.ChildProcess {
     // Return a dummy object that looks like ChildProcess if needed
     return {
       status: Promise.resolve({ code: 0, success: true, signal: null }),
       stdout: { cancel: () => Promise.resolve() },
       stderr: { cancel: () => Promise.resolve() },
-    } as unknown as Deno.ChildProcess;
+    } as Deno.ChildProcess;
   }
 }
 
@@ -667,7 +681,7 @@ describe("DaemonCommands - Edge Cases", () => {
       config: config,
       db: db,
       configService: configService,
-      Command: MockCommand as unknown as typeof Deno.Command,
+      Command: MockCommand,
     });
 
     MockCommand.nextOutput = {
@@ -694,7 +708,7 @@ describe("DaemonCommands - Edge Cases", () => {
       config: config,
       db: db,
       configService: configService,
-      Command: MockCommand as unknown as typeof Deno.Command,
+      Command: MockCommand,
     });
 
     MockCommand.nextOutput = {
@@ -811,7 +825,7 @@ await new Promise(() => {}); // Run forever
     daemonCommands.mockActionLogger = new EventLogger({ db: failingDb });
 
     // This should not throw even though logging fails
-    await daemonCommands.logDaemonActivity("test.action", { test: "data" });
+    await daemonCommands.logDaemonActivity("test.action", { test: "data" } as JSONObject);
     assertEquals(true, true); // Should reach here without throwing
   });
 });

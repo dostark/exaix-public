@@ -4,6 +4,7 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 import { RequestDialogType } from "../../src/enums.ts";
 import { processDialogCompletion } from "../../src/tui/request_manager/dialog_handlers.ts";
 import { confirmInputDialog, createMockHandlers } from "./request_manager_test_helpers.ts";
+import { MessageType } from "../../src/enums.ts";
 
 Deno.test("processDialogCompletion: routes confirmed InputDialog results by dialogType", async () => {
   const calls: string[] = [];
@@ -24,7 +25,7 @@ Deno.test("processDialogCompletion: CREATE errors are surfaced via setStatus", a
   const calls: string[] = [];
   const handlers = createMockHandlers(calls, {
     handleCreateResult: (_value: string) => Promise.reject(new Error("create failed")),
-    setStatus: (message: string, type?: "info" | "success" | "warning" | "error") => {
+    setStatus: (message: string, type?: MessageType) => {
       calls.push(`${type ?? "info"}:${message}`);
     },
   });

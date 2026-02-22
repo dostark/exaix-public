@@ -27,6 +27,21 @@ import {
 // Types and Interfaces
 // ============================================================================
 
+/**
+ * Frontmatter data parsed from YAML/TOML
+ */
+export interface BlueprintFrontmatterData {
+  agent_id: string;
+  name?: string;
+  model?: string;
+  capabilities?: string[];
+  created?: string;
+  created_by?: string;
+  version?: string;
+  description?: string;
+  [key: string]: string | string[] | undefined;
+}
+
 export interface BlueprintCreateOptions {
   name?: string;
   model?: string;
@@ -331,12 +346,12 @@ export class BlueprintCommands extends BaseCommand {
   /**
    * Parse TOML frontmatter from content
    */
-  private parseTomlFrontmatter(content: string): { frontmatter: Record<string, unknown> | null; body: string } {
+  private parseTomlFrontmatter(content: string): { frontmatter: BlueprintFrontmatterData | null; body: string } {
     const tomlMatch = content.match(/^\+\+\+\n([\s\S]*?)\n\+\+\+\n?([\s\S]*)$/);
     if (!tomlMatch) return { frontmatter: null, body: content };
 
     try {
-      const frontmatter = parseToml(tomlMatch[1]) as Record<string, unknown>;
+      const frontmatter = parseToml(tomlMatch[1]) as BlueprintFrontmatterData;
       const body = tomlMatch[2] || "";
       return { frontmatter, body };
     } catch {
@@ -347,7 +362,7 @@ export class BlueprintCommands extends BaseCommand {
   /**
    * Parse YAML frontmatter from content
    */
-  private parseYamlFrontmatter(content: string): { frontmatter: Record<string, unknown> | null; body: string } {
+  private parseYamlFrontmatter(content: string): { frontmatter: BlueprintFrontmatterData | null; body: string } {
     const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
     if (!yamlMatch) return { frontmatter: null, body: content };
 
@@ -364,8 +379,8 @@ export class BlueprintCommands extends BaseCommand {
   /**
    * Parse YAML content into frontmatter object
    */
-  private parseYamlContent(yamlContent: string): Record<string, unknown> {
-    const frontmatter: Record<string, unknown> = {};
+  private parseYamlContent(yamlContent: string): BlueprintFrontmatterData {
+    const frontmatter: BlueprintFrontmatterData = { agent_id: "" };
     const lines = yamlContent.split("\n");
 
     const state: { currentKey: string | null; currentArray: string[] } = {
@@ -408,7 +423,7 @@ export class BlueprintCommands extends BaseCommand {
   }
 
   private flushYamlArray(
-    frontmatter: Record<string, unknown>,
+    frontmatter: BlueprintFrontmatterData,
     state: { currentKey: string | null; currentArray: string[] },
   ): void {
     if (state.currentKey && state.currentArray.length > 0) {
@@ -428,7 +443,7 @@ export class BlueprintCommands extends BaseCommand {
   }
 
   private applyYamlKeyValue(
-    frontmatter: Record<string, unknown>,
+    frontmatter: BlueprintFrontmatterData,
     key: string,
     value: string,
     state: { currentKey: string | null; currentArray: string[] },
@@ -465,7 +480,7 @@ export class BlueprintCommands extends BaseCommand {
     return true;
   }
 
-  private parseInlineYamlArray(key: string, value: string): unknown[] {
+  private parseInlineYamlArray(key: string, value: string): string[] {
     try {
       return JSON.parse(value.replace(/'/g, '"'));
     } catch {
@@ -479,7 +494,7 @@ export class BlueprintCommands extends BaseCommand {
    * Supports both TOML (+++) and YAML (---) formats for backwards compatibility.
    */
   private extractTomlFrontmatter(content: string): {
-    frontmatter: Record<string, unknown> | null;
+    frontmatter: BlueprintFrontmatterData | null;
     body: string;
   } {
     // First try TOML format (+++)
@@ -492,7 +507,7 @@ export class BlueprintCommands extends BaseCommand {
     return this.parseYamlFrontmatter(content);
   }
 
-  private blueprintMetadataFromFrontmatter(frontmatter: Record<string, unknown>): BlueprintMetadata | null {
+  private blueprintMetadataFromFrontmatter(frontmatter: BlueprintFrontmatterData): BlueprintMetadata | null {
     const agentId = frontmatter.agent_id;
     if (typeof agentId !== "string" || agentId.trim().length === 0) {
       return null;
@@ -619,8 +634,8 @@ export class BlueprintCommands extends BaseCommand {
     options: BlueprintCreateOptions,
     model: string,
     capabilities: string[],
-  ): Promise<Record<string, unknown>> {
-    const frontmatter = {
+  ): Promise<BlueprintFrontmatterData> {
+    const frontmatter: BlueprintFrontmatterData = {
       agent_id: agentId,
       name: options.name,
       model: model,
@@ -644,7 +659,7 @@ export class BlueprintCommands extends BaseCommand {
    */
   private async writeBlueprintFile(
     blueprintPath: string,
-    frontmatter: Record<string, unknown>,
+    frontmatter: BlueprintFrontmatterData,
     systemPrompt: string,
     agentId: string,
     model: string,

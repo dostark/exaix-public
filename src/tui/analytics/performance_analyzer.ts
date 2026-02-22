@@ -7,6 +7,7 @@
  * @related-files [src/tui/structured_log_viewer.ts]
  */
 
+import { LogLevel } from "../../enums.ts";
 import type { LogEntry } from "../../services/structured_logger.ts";
 import type { PerformanceStats } from "./types.ts";
 
@@ -26,7 +27,7 @@ export function calculatePerformanceStats(entries: LogEntry[]): PerformanceStats
   const minDuration = Math.min(...durations);
   const p95Duration = sortedDurations[Math.floor(sortedDurations.length * 0.95)];
 
-  const errorCount = entries.filter((e) => e.level === "error" || e.level === "fatal").length;
+  const errorCount = entries.filter((e) => e.level === LogLevel.ERROR || e.level === LogLevel.FATAL).length;
   const errorRate = errorCount / totalOperations;
 
   return {

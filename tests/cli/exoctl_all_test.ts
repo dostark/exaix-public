@@ -724,14 +724,12 @@ Deno.test("exoctl: --version prints version and exits (in-process)", async () =>
     };
 
     try {
-      // @ts-ignore: Mocking Deno.exit for testing
-      Deno.exit = exitMock as (code?: number) => never;
+      (Deno as typeof Deno & { exit: (code?: number) => never }).exit = exitMock;
       await mod.__test_command.parse(["--version"]);
     } catch (e: unknown) {
       if (!(e instanceof Error) || !e.message.startsWith("DENO_EXIT:")) throw e;
     } finally {
-      // @ts-ignore: Restoring Deno.exit
-      Deno.exit = origExit;
+      (Deno as typeof Deno & { exit: (code?: number) => never }).exit = origExit;
       console.log = origLog;
     }
     assertStringIncludes(out, "1.0.0");

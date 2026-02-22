@@ -11,6 +11,7 @@ Unlike **Examples** (which are fully defined personas like "Code Reviewer"), **T
 To reduce redundancy and ensure consistent behavior across all agents, templates use the `{{include:fragment_name}}` syntax.
 
 Key fragments include:
+
 - `standard-response-format`: Standardizes the `<thought>` and `<content>` response structure.
 - `plan-schema-full`: Provides the authoritative JSON schema for executable plans.
 - `blueprint-best-practices`: Shared instructions for generating high-quality plans.

@@ -1278,15 +1278,18 @@ Add section on enterprise provider usage patterns.
 **Goal:** Provide hypervisor or container-level isolation for agent tool execution in multi-tenant environments.
 
 **Files to Create:**
+
 - `src/services/sandbox/driver.ts` (Interface)
 - `src/services/sandbox/deno_sandbox_driver.ts` (Deno Sandbox/MicroVMs)
 - `src/services/sandbox/docker_driver.ts` (Docker/OCI)
 
 **Files to Modify:**
+
 - `src/services/tool_registry.ts` (Integrate SandboxDriver)
 - `src/config/schema.ts` (Add sandbox selection config)
 
 #### Step 7.1: Sandbox Driver Interface
+
 Define a standard interface for executing tools in isolated environments.
 
 ```typescript
@@ -1298,6 +1301,7 @@ export interface SandboxDriver {
 ```
 
 #### Step 7.2: Deno Sandbox Integration
+
 Leverage Deno Sandbox MicroVMs for ultra-fast, secure execution.
 
 ```typescript
@@ -1307,6 +1311,7 @@ export class DenoSandboxDriver implements SandboxDriver {
 ```
 
 #### Step 7.3: Docker Driver Integration
+
 Provide a standard Docker driver for on-premise or legacy container support.
 
 ```typescript
@@ -1316,6 +1321,7 @@ export class DockerDriver implements SandboxDriver {
 ```
 
 **Success Criteria:**
+
 - [ ] `SandboxDriver` interface allows transparent switching between drivers
 - [ ] Agents can run tools in Deno Sandbox with < 1s startup
 - [ ] Resource limits (CPU/MEM) enforced at the hypervisor/container level
@@ -1423,15 +1429,15 @@ export class DockerDriver implements SandboxDriver {
 
 ## Implementation Timeline
 
-| Phase       | Tasks                          | Duration     | Dependencies    |
-| ----------- | ------------------------------ | ------------ | --------------- |
-| **Phase 1** | Vertex AI auth + provider      | 2-3 days     | None            |
-| **Phase 2** | OpenRouter integration         | 1 day        | None (parallel) |
-| **Phase 3** | Sandbox & Container Drivers    | 2-3 days     | None (parallel) |
-| **Phase 4** | Factory + registry integration | 0.5 days     | Phases 1, 2, 3  |
-| **Phase 5** | Testing (unit + manual)        | 1-2 days     | Phase 4         |
-| **Phase 6** | Documentation                  | 1 day        | Phase 5         |
-| **Total**   |                                | **7-10 days**|                 |
+| Phase       | Tasks                          | Duration      | Dependencies    |
+| ----------- | ------------------------------ | ------------- | --------------- |
+| **Phase 1** | Vertex AI auth + provider      | 2-3 days      | None            |
+| **Phase 2** | OpenRouter integration         | 1 day         | None (parallel) |
+| **Phase 3** | Sandbox & Container Drivers    | 2-3 days      | None (parallel) |
+| **Phase 4** | Factory + registry integration | 0.5 days      | Phases 1, 2, 3  |
+| **Phase 5** | Testing (unit + manual)        | 1-2 days      | Phase 4         |
+| **Phase 6** | Documentation                  | 1 day         | Phase 5         |
+| **Total**   |                                | **7-10 days** |                 |
 
 **Estimated Effort:** 40-56 hours (senior developer)
 

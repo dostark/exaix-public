@@ -9,6 +9,7 @@
 
 import type { LogEntry } from "../../services/structured_logger.ts";
 import type { TraceAnalysis } from "./types.ts";
+import { LogLevel } from "../../enums.ts";
 
 /**
  * Analyze a trace through the system
@@ -44,7 +45,7 @@ export function analyzeTrace(entries: LogEntry[]): TraceAnalysis | null {
   const duration = end.getTime() - start.getTime();
 
   // Error analysis
-  const errorCount = operations.filter((op) => op.level === "error" || op.level === "fatal").length;
+  const errorCount = operations.filter((op) => op.level === LogLevel.ERROR || op.level === LogLevel.FATAL).length;
   const success = errorCount === 0;
 
   return {

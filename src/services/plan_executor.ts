@@ -16,7 +16,7 @@ import { ToolRegistry } from "./tool_registry.ts";
 import { GitNothingToCommitError, GitService } from "./git_service.ts";
 import { EventLogger } from "./event_logger.ts";
 import { ExecutionStatus } from "../enums.ts";
-import { JSONValue } from "../types.ts";
+import { JSONObject, JSONValue } from "../types.ts";
 import {
   EXECUTION_REPORT_MAX_TOKENS,
   EXECUTION_REPORT_PROMPT_MAX_CHARS,
@@ -356,7 +356,7 @@ export class PlanExecutor {
   /**
    * Build skills context from plan frontmatter
    */
-  private buildSkillsContext(frontmatter: Record<string, unknown>): string {
+  private buildSkillsContext(frontmatter: JSONObject): string {
     const skillsJson = frontmatter.skills as string | undefined;
     if (!skillsJson) return "";
 

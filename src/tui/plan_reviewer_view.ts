@@ -16,6 +16,7 @@ import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts"
 import { DialogStatus } from "../enums.ts";
 import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
+import type { JSONObject } from "../types.ts";
 import {
   createGroupNode,
   createNode,
@@ -195,7 +196,7 @@ export interface DbLike {
   getPendingPlans(): Promise<Plan[]>;
   getPlanDiff(planId: string): Promise<string>;
   updatePlanStatus(planId: string, status: PlanStatusType): Promise<void>;
-  logActivity(activity: Record<string, unknown>): Promise<void>;
+  logActivity(activity: JSONObject): Promise<void>;
 }
 
 /**

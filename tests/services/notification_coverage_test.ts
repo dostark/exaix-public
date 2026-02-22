@@ -13,6 +13,7 @@ import { createStubDb } from "../test_helpers.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { NotificationService } from "../../src/services/notification.ts";
 import { MemoryScope } from "../../src/enums.ts";
+import { type JSONValue, toSafeJson } from "../../src/types.ts";
 
 interface NotificationRow {
   id: string;
@@ -22,7 +23,7 @@ interface NotificationRow {
   trace_id?: string | null;
   created_at: string;
   dismissed_at?: string | null;
-  metadata?: Record<string, unknown>;
+  metadata?: JSONValue;
 }
 
 /**
@@ -43,7 +44,7 @@ function initNotificationTest() {
           proposal_id: proposal_id ? String(proposal_id) : null,
           trace_id: trace_id ? String(trace_id) : null,
           created_at: String(created_at),
-          metadata: metadata ? (metadata as unknown as Record<string, unknown>) : undefined,
+          metadata: metadata ? toSafeJson(metadata) : undefined,
           dismissed_at: null,
         });
         return Promise.resolve({});
@@ -82,13 +83,13 @@ function initNotificationTest() {
           })) as unknown as T[],
         );
       }
-      return Promise.resolve([] as unknown as T[]);
+      return Promise.resolve([]);
     },
     preparedGet: function <T>(query: string, _params: (string | number | boolean | null)[] = []): Promise<T | null> {
       const q = (query || "").toLowerCase();
       if (q.includes("select count(*)") && q.includes("type = 'memory_update_pending'")) {
         const count = notifications.filter((n) => n.type === "memory_update_pending" && n.dismissed_at == null).length;
-        return Promise.resolve({ count } as unknown as T);
+        return Promise.resolve({ count } as T);
       }
       return Promise.resolve(null);
     },

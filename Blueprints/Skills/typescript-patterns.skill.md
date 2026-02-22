@@ -90,20 +90,30 @@ Always use strict mode:
 
 ```typescript
 // ❌ Bad: missing annotation (implicit any)
-function process(data) { return data.value; }
+function process(data) {
+  return data.value;
+}
 
 // ❌ Bad: explicit any
-function process(data: any) { return data.value; }
+function process(data: any) {
+  return data.value;
+}
 
 // ❌ Bad: unknown as a parameter type (lazy fallback)
-function process(data: unknown) { return (data as MyType).value; }
+function process(data: unknown) {
+  return (data as MyType).value;
+}
 
 // ❌ Bad: double casting to bypass checks
 const bad = source as unknown as Target;
 
 // ✅ Good: named interface, fully annotated
-interface ProcessInput { value: string; }
-function process(data: ProcessInput): string { return data.value; }
+interface ProcessInput {
+  value: string;
+}
+function process(data: ProcessInput): string {
+  return data.value;
+}
 
 // ✅ Good: unknown is only permitted in catch clauses and transient narrowing guards
 try {

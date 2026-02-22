@@ -24,7 +24,6 @@ Deno.test("OpenAIProvider - custom baseUrl", async () => {
   try {
     await provider.generate("Hi");
     const call = fetchSpy.calls[0];
-    // @ts-ignore: Accessing mock args
     assertEquals(call.args[0], customUrl);
   } finally {
     restore();

@@ -9,6 +9,7 @@ import { CritiqueSeverity } from "../../src/enums.ts";
 
 import { MemorySource } from "../../src/enums.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";
+import type { RequestCommands } from "../../src/cli/commands/request_commands.ts";
 
 import {
   createLegacyTuiSession,
@@ -768,8 +769,7 @@ Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", asy
       }),
   };
 
-  // @ts-ignore - partial mock
-  const adapter = new RequestCommandsServiceAdapter(mockCmd);
+  const adapter = new RequestCommandsServiceAdapter(mockCmd as unknown as RequestCommands);
 
   // This should log a warning but return true
   const result = await adapter.updateRequestStatus("test-id", RequestStatus.COMPLETED);

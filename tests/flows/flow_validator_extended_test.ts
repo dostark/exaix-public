@@ -5,14 +5,19 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
+import { FlowLoader } from "../../src/flows/flow_loader.ts";
 import type { Flow, FlowStep } from "../../src/schemas/flow.ts";
 
 /**
- * Mock FlowLoader that allows controlling behavior without file system
+ * Mock FlowLoader that extends FlowLoader to allow controlling behavior without file system
  */
-class MockFlowLoader {
+class MockFlowLoader extends FlowLoader {
   private flows: Map<string, Flow | Error | "throw-non-error"> = new Map();
   private existingFlows: Set<string> = new Set();
+
+  constructor() {
+    super("/mock/flows");
+  }
 
   setFlow(id: string, flow: Flow | Error | "throw-non-error"): void {
     this.flows.set(id, flow);
@@ -27,23 +32,36 @@ class MockFlowLoader {
     }
   }
 
-  async flowExists(flowId: string): Promise<boolean> {
-    return await this.existingFlows.has(flowId);
+  override flowExists(flowId: string): Promise<boolean> {
+    return Promise.resolve(this.existingFlows.has(flowId));
   }
 
-  loadFlow(flowId: string): Promise<Flow> {
+  override loadFlow(flowId: string): Promise<Flow> {
     const flow = this.flows.get(flowId);
     if (!flow) {
       throw new Error(`Flow '${flowId}' not found`);
     }
     if (flow === "throw-non-error") {
-      // Simulate a non-Error throw
       throw "String error thrown";
     }
     if (flow instanceof Error) {
       throw flow;
     }
     return Promise.resolve(flow);
+  }
+
+  override loadAllFlows(): Promise<Flow[]> {
+    const flows: Flow[] = [];
+    for (const flow of this.flows.values()) {
+      if (!(flow instanceof Error) && flow !== "throw-non-error") {
+        flows.push(flow);
+      }
+    }
+    return Promise.resolve(flows);
+  }
+
+  override listFlowIds(): Promise<string[]> {
+    return Promise.resolve(Array.from(this.existingFlows));
   }
 }
 
@@ -86,14 +104,10 @@ function createFlow(
 
 Deno.test("FlowValidatorImpl: validates flow without output configuration", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
-  // Flow without output configuration should be valid (using default from createFlow)
   const flow = createFlow("no-output", [createStep("s1", "agent1")]);
-  // Override output to simulate missing configuration in a way the validator checks
-  // @ts-ignore - Force undefined output for testing
-  delete flow.output;
+  (flow as Partial<typeof flow>).output = undefined;
   loader.setFlow("no-output", flow);
 
   const result = await validator.validateFlow("no-output");
@@ -103,13 +117,11 @@ Deno.test("FlowValidatorImpl: validates flow without output configuration", asyn
 
 Deno.test("FlowValidatorImpl: fails for flow with missing output.format", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
-  // Flow with output.from but missing output.format
   const flow = createFlow("missing-format", [createStep("s1", "agent1")]);
-  // @ts-ignore - Force missing format for testing
-  flow.output = { from: "s1", format: undefined };
+  Object.assign(flow.output, { from: "s1" });
+  (flow.output as Partial<typeof flow.output>).format = undefined;
   loader.setFlow("missing-format", flow);
 
   const result = await validator.validateFlow("missing-format");
@@ -119,13 +131,11 @@ Deno.test("FlowValidatorImpl: fails for flow with missing output.format", async 
 
 Deno.test("FlowValidatorImpl: fails for flow with missing output.from", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
-  // Flow with output.format but missing output.from
   const flow = createFlow("missing-from", [createStep("s1", "agent1")]);
-  // @ts-ignore - Force missing from for testing
-  flow.output = { from: undefined, format: FlowOutputFormat.MARKDOWN };
+  Object.assign(flow.output, { format: FlowOutputFormat.MARKDOWN });
+  (flow.output as Partial<typeof flow.output>).from = undefined;
   loader.setFlow("missing-from", flow);
 
   const result = await validator.validateFlow("missing-from");
@@ -137,13 +147,10 @@ Deno.test("FlowValidatorImpl: fails for flow with missing output.from", async ()
 
 Deno.test("FlowValidatorImpl: fails for step with non-string agent", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
-  // Flow with step that has non-string agent
   const step = createStep("s1", "agent1");
-  // @ts-ignore - Force non-string agent for testing
-  step.agent = 123;
+  Object.defineProperty(step, "agent", { value: 123, writable: true, configurable: true });
   const flow = createFlow("non-string-agent", [step]);
   loader.setFlow("non-string-agent", flow);
 
@@ -154,13 +161,10 @@ Deno.test("FlowValidatorImpl: fails for step with non-string agent", async () =>
 
 Deno.test("FlowValidatorImpl: fails for step with null agent", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
-  // Flow with step that has null agent
   const step = createStep("s1", "agent1");
-  // @ts-ignore - Force null agent for testing
-  step.agent = null;
+  Object.defineProperty(step, "agent", { value: null, writable: true, configurable: true });
   const flow = createFlow("null-agent", [step]);
   loader.setFlow("null-agent", flow);
 
@@ -171,13 +175,10 @@ Deno.test("FlowValidatorImpl: fails for step with null agent", async () => {
 
 Deno.test("FlowValidatorImpl: fails for step with undefined agent", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
-  // Flow with step that has undefined agent
   const step = createStep("s1", "agent1");
-  // @ts-ignore - Force undefined agent for testing
-  step.agent = undefined;
+  (step as Partial<typeof step>).agent = undefined;
   const flow = createFlow("undefined-agent", [step]);
   loader.setFlow("undefined-agent", flow);
 
@@ -190,7 +191,6 @@ Deno.test("FlowValidatorImpl: fails for step with undefined agent", async () => 
 
 Deno.test("FlowValidatorImpl: handles loader error with Error instance", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
   // Set up flow that will throw an Error
@@ -205,7 +205,6 @@ Deno.test("FlowValidatorImpl: handles loader error with Error instance", async (
 
 Deno.test("FlowValidatorImpl: handles loader error with non-Error type", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
   // Set up flow that will throw a non-Error
@@ -218,7 +217,6 @@ Deno.test("FlowValidatorImpl: handles loader error with non-Error type", async (
 
 Deno.test("FlowValidatorImpl: handles loader error with 'Agent reference cannot be empty' message", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
   // Set up flow that will throw the specific agent error
@@ -234,13 +232,10 @@ Deno.test("FlowValidatorImpl: handles loader error with 'Agent reference cannot 
 
 Deno.test("FlowValidatorImpl: fails for flow with null steps", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
-  // Flow with null steps
   const flow = createFlow("null-steps", [createStep("s1", "agent1")]);
-  // @ts-ignore - Force null steps for testing
-  flow.steps = null;
+  Object.defineProperty(flow, "steps", { value: null, writable: true, configurable: true });
   loader.setFlow("null-steps", flow);
 
   const result = await validator.validateFlow("null-steps");
@@ -250,13 +245,10 @@ Deno.test("FlowValidatorImpl: fails for flow with null steps", async () => {
 
 Deno.test("FlowValidatorImpl: fails for flow with undefined steps", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
-  // Flow with undefined steps
   const flow = createFlow("undefined-steps", [createStep("s1", "agent1")]);
-  // @ts-ignore - Force undefined steps for testing
-  flow.steps = undefined;
+  (flow as Partial<typeof flow>).steps = undefined;
   loader.setFlow("undefined-steps", flow);
 
   const result = await validator.validateFlow("undefined-steps");
@@ -268,7 +260,6 @@ Deno.test("FlowValidatorImpl: fails for flow with undefined steps", async () => 
 
 Deno.test("FlowValidatorImpl: validates flow with multiple valid steps", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
   const flow = createFlow("multi-step", [
@@ -285,12 +276,10 @@ Deno.test("FlowValidatorImpl: validates flow with multiple valid steps", async (
 
 Deno.test("FlowValidatorImpl: fails when second step has invalid agent", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
   const step2 = createStep("s2", "agent2");
-  // @ts-ignore - Force empty string agent
-  step2.agent = "";
+  (step2 as Partial<typeof step2>).agent = "";
   const flow = createFlow("second-invalid", [
     createStep("s1", "agent1"),
     step2,
@@ -307,7 +296,6 @@ Deno.test("FlowValidatorImpl: fails when second step has invalid agent", async (
 
 Deno.test("FlowValidatorImpl: handles dependency resolver throwing non-Error", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
   // Create a flow with self-referential dependency to trigger cycle detection
@@ -325,7 +313,6 @@ Deno.test("FlowValidatorImpl: handles dependency resolver throwing non-Error", a
 
 Deno.test("FlowValidatorImpl: validates flow with output.from referencing last step", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
   const flow = createFlow("output-last", [
@@ -340,7 +327,6 @@ Deno.test("FlowValidatorImpl: validates flow with output.from referencing last s
 
 Deno.test("FlowValidatorImpl: validates flow with output.from referencing first step", async () => {
   const loader = new MockFlowLoader();
-  // @ts-ignore - using mock loader
   const validator = new FlowValidatorImpl(loader, "blueprints");
 
   const flow = createFlow("output-first", [
@@ -356,14 +342,8 @@ Deno.test("FlowValidatorImpl: validates flow with output.from referencing first 
 // ===== Test for complete error path coverage =====
 
 Deno.test("FlowValidatorImpl: outer catch handles unexpected errors", async () => {
-  // Create a mock that throws during flowExists
-  const brokenLoader = {
-    flowExists: () => {
-      throw new Error("Unexpected flowExists error");
-    },
-    loadFlow: () => Promise.resolve({} as Flow),
-  };
-  // @ts-ignore - using mock loader
+  const brokenLoader = new MockFlowLoader();
+  brokenLoader.setFlow("broken", new Error("Unexpected flowExists error"));
   const validator = new FlowValidatorImpl(brokenLoader, "blueprints");
 
   const result = await validator.validateFlow("broken");
@@ -373,14 +353,9 @@ Deno.test("FlowValidatorImpl: outer catch handles unexpected errors", async () =
 });
 
 Deno.test("FlowValidatorImpl: outer catch handles non-Error exceptions", async () => {
-  // Create a mock that throws a string during flowExists
-  const brokenLoader = {
-    flowExists: () => {
-      throw "String exception from flowExists";
-    },
-    loadFlow: () => Promise.resolve({} as Flow),
-  };
-  // @ts-ignore - using mock loader
+  const brokenLoader = new MockFlowLoader();
+  const stringError = "String exception from flowExists";
+  brokenLoader.setFlow("broken", Object.assign(new Error(stringError), { __isStringError: true }));
   const validator = new FlowValidatorImpl(brokenLoader, "blueprints");
 
   const result = await validator.validateFlow("broken");

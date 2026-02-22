@@ -14,6 +14,21 @@ import { GateEvaluator, GateResult } from "./gate_evaluator.ts";
 import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../helpers/constants.ts";
 
 /**
+ * Context data for agent requests
+ */
+export interface AgentRequestContext {
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | AgentRequestContext
+    | (string | number | boolean | null | undefined | AgentRequestContext)[]
+    | string[];
+}
+
+/**
  * Feedback loop configuration schema
  */
 export const FeedbackLoopConfigSchema = z.object({
@@ -302,7 +317,7 @@ export class SimpleImprovementAgent implements ImprovementAgent {
     private agentRunner: {
       run(
         agentId: string,
-        request: { userPrompt: string; context?: Record<string, unknown> },
+        request: { userPrompt: string; context?: AgentRequestContext },
       ): Promise<{ content: string }>;
     },
     private improvementAgentId: string,
@@ -352,7 +367,7 @@ export function createFeedbackLoop(
   agentRunner: {
     run(
       agentId: string,
-      request: { userPrompt: string; context?: Record<string, unknown> },
+      request: { userPrompt: string; context?: AgentRequestContext },
     ): Promise<{ content: string }>;
   },
   improvementAgentId: string,
@@ -394,7 +409,7 @@ export async function runSelfCorrectingAgent(
   agentRunner: {
     run(
       agentId: string,
-      request: { userPrompt: string; context?: Record<string, unknown> },
+      request: { userPrompt: string; context?: AgentRequestContext },
     ): Promise<{ content: string }>;
   },
   gateEvaluator: GateEvaluator,

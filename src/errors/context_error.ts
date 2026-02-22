@@ -7,13 +7,20 @@
  * @related-files [src/services/event_logger.ts]
  */
 
+/**
+ * Context data attached to errors for debugging
+ */
+export interface ErrorContext {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
 export class ContextError extends Error {
-  public readonly context: Record<string, unknown>;
+  public readonly context: ErrorContext;
   public override readonly cause?: Error;
 
   constructor(
     message: string,
-    context: Record<string, unknown>,
+    context: ErrorContext,
     cause?: Error,
   ) {
     super(message);

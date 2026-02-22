@@ -7,7 +7,7 @@
  * @related-files [src/services/db.ts, src/services/event_logger.ts]
  */
 
-import type { ActivityRecord, DatabaseService } from "../services/db.ts";
+import type { ActivityRecord, IDatabaseService } from "../services/db.ts";
 import { JSONValue } from "../types.ts";
 
 /**
@@ -65,7 +65,7 @@ export interface ActivityRepository {
  * Database implementation of ActivityRepository
  */
 export class DatabaseActivityRepository implements ActivityRepository {
-  constructor(private db: DatabaseService) {}
+  constructor(private db: IDatabaseService) {}
 
   async logActivity(request: LogActivityRequest): Promise<void> {
     this.db.logActivity(

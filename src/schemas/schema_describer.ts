@@ -8,6 +8,7 @@
  */
 
 import { ZodType, ZodTypeDef } from "zod";
+import type { JSONObject } from "../types.ts";
 
 /**
  * Generate a human-readable schema description from a Zod schema
@@ -17,8 +18,7 @@ export function describeSchema<T>(
   schema: ZodType<T, ZodTypeDef, unknown>,
 ): string {
   // Get schema description from Zod's internal structure
-  // Using unknown cast to safely access Zod internal structure
-  const def = schema._def as Record<string, unknown>;
+  const def = schema._def as JSONObject;
 
   if ("typeName" in def) {
     switch (def.typeName) {

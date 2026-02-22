@@ -14,6 +14,7 @@ export type JSONValue =
   | number
   | boolean
   | null
+  | undefined
   | { [key: string]: JSONValue }
   | JSONValue[];
 
@@ -48,7 +49,7 @@ export const JSONValueSchema: z.ZodType<JSONValue> = z.lazy(() =>
 
 /**
  * Safely converts any value to a JSONValue by stripping undefined properties.
- * This is useful for passing complex types to the Activity Journal without using 'as unknown as'.
+ * This is useful for passing complex types to the Activity Journal.
  */
 export function toSafeJson(value: unknown): JSONValue {
   if (value === undefined || value === null) return null;
@@ -58,9 +59,8 @@ export function toSafeJson(value: unknown): JSONValue {
   }
 
   if (typeof value === "object") {
-    const record = value as Record<string, unknown>;
     const result: { [key: string]: JSONValue } = {};
-    for (const [key, val] of Object.entries(record)) {
+    for (const [key, val] of Object.entries(value)) {
       if (val !== undefined) {
         result[key] = toSafeJson(val);
       }

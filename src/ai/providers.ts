@@ -7,7 +7,6 @@
  * @related-files [src/ai/provider_registry.ts, src/ai/factories/abstract_provider_factory.ts]
  */
 
-// @ts-ignore: Deno is a global in the Deno runtime
 declare const Deno: { env: { get(key: string): string | undefined } };
 
 import { ProviderRegistry } from "./provider_registry.ts";
@@ -41,6 +40,13 @@ import { MockStrategy, ProviderType } from "../enums.ts";
 
 // Import error classes from common
 import { ConnectionError, ModelProviderError, TimeoutError } from "./providers/common.ts";
+
+/**
+ * Provider configuration options
+ */
+export interface ProviderConfig {
+  [key: string]: string | number | boolean | string[] | null | undefined;
+}
 
 // ============================================================================
 // Mock Provider (for testing)
@@ -230,7 +236,7 @@ export class ModelFactory {
    */
   static async create(
     providerType: string,
-    config?: Record<string, unknown>,
+    config?: ProviderConfig,
   ): Promise<IModelProvider> {
     const normalizedType = providerType.toLowerCase().trim();
 
@@ -246,15 +252,15 @@ export class ModelFactory {
       if (factory) {
         const options: ResolvedProviderOptions = {
           provider: normalizedType as ProviderType,
-          model: (config?.model as string | undefined) ?? "default-model",
-          baseUrl: config?.baseUrl as string | undefined,
-          timeoutMs: (config?.timeoutMs as number | undefined) ?? 30000,
-          apiKey: config?.apiKey as string | undefined,
-          id: (config?.id as string | undefined) ?? (normalizedType === "mock" ? "mock-provider" : undefined),
+          model: (config?.model as string) ?? "default-model",
+          baseUrl: config?.baseUrl as string,
+          timeoutMs: (config?.timeoutMs as number) ?? 30000,
+          apiKey: config?.apiKey as string,
+          id: (config?.id as string) ?? (normalizedType === "mock" ? "mock-provider" : undefined),
           mockStrategy: (config?.mockStrategy ?? config?.strategy ?? (config?.response ? "scripted" : undefined)) as
             | MockStrategy
             | undefined,
-          mockFixturesDir: config?.mockFixturesDir as string | undefined,
+          mockFixturesDir: config?.mockFixturesDir as string,
           // Support 'response' for backward compatibility with tests
           responses: config?.response ? [config.response as string] : undefined,
         };

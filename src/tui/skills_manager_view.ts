@@ -7,6 +7,7 @@
  * @related-files [src/services/skill_service.ts, src/tui/tui_dashboard.ts]
  */
 
+import { MessageType } from "../enums.ts";
 import { DialogStatus, MemorySource, SkillStatus } from "../enums.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { type DialogBase } from "../helpers/dialog_base.ts";
@@ -545,7 +546,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
 
     // Don't allow deleting core skills
     if (skill.source === "core") {
-      this.setStatus("Cannot delete core skills", "error");
+      this.setStatus("Cannot delete core skills", MessageType.ERROR);
       return;
     }
 
@@ -592,7 +593,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
   private handleSearchResult(value: string): void {
     this.state.filterText = value;
     this.buildTree();
-    this.setStatus(value ? `Search: "${value}"` : "Search cleared", "info");
+    this.setStatus(value ? `Search: "${value}"` : "Search cleared", MessageType.INFO);
   }
 
   private handleFilterSourceResult(value: string): void {
@@ -601,10 +602,10 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
       this.skillsViewExtensions.filterSource = normalized as SkillsViewExtensions["filterSource"];
       this.loadSkills().then(() => {
         this.buildTree();
-        this.setStatus(`Filter: source=${normalized}`, "info");
+        this.setStatus(`Filter: source=${normalized}`, MessageType.INFO);
       });
     } else {
-      this.setStatus("Invalid source. Use: all, core, project, learned", "error");
+      this.setStatus("Invalid source. Use: all, core, project, learned", MessageType.ERROR);
     }
   }
 
@@ -617,10 +618,10 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
       this.skillsViewExtensions.filterStatus = normalized as SkillsViewExtensions["filterStatus"];
       this.loadSkills().then(() => {
         this.buildTree();
-        this.setStatus(`Filter: status=${normalized}`, "info");
+        this.setStatus(`Filter: status=${normalized}`, MessageType.INFO);
       });
     } else {
-      this.setStatus("Invalid status. Use: all, active, draft, deprecated", "error");
+      this.setStatus("Invalid status. Use: all, active, draft, deprecated", MessageType.ERROR);
     }
   }
 
@@ -633,13 +634,13 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
       if (success) {
         await this.loadSkills();
         this.buildTree();
-        this.setStatus(`Deleted skill: ${this.pendingDeleteSkillId}`, "success");
+        this.setStatus(`Deleted skill: ${this.pendingDeleteSkillId}`, MessageType.SUCCESS);
       } else {
-        this.setStatus("Failed to delete skill", "error");
+        this.setStatus("Failed to delete skill", MessageType.ERROR);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      this.setStatus(`Delete failed: ${msg}`, "error");
+      this.setStatus(`Delete failed: ${msg}`, MessageType.ERROR);
     } finally {
       this.setLoading(false);
       this.pendingDeleteSkillId = null;
@@ -653,7 +654,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
     const currentIdx = modes.indexOf(this.skillsViewExtensions.groupBy);
     this.skillsViewExtensions.groupBy = modes[(currentIdx + 1) % modes.length];
     this.buildTree();
-    this.setStatus(`Grouping: ${this.skillsViewExtensions.groupBy}`, "info");
+    this.setStatus(`Grouping: ${this.skillsViewExtensions.groupBy}`, MessageType.INFO);
   }
 
   // ===== Refresh =====
@@ -663,7 +664,7 @@ export class SkillsManagerTuiSession extends BaseTreeView<SkillSummary> {
     try {
       await this.loadSkills();
       this.buildTree();
-      this.setStatus("Refreshed", "success");
+      this.setStatus("Refreshed", MessageType.SUCCESS);
     } finally {
       this.setLoading(false);
     }

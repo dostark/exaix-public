@@ -104,7 +104,6 @@ The user wants to analyze the authentication codebase. I need to:
 
 {{include:blueprint-best-practices}}
 
-
 ## Analysis Depth Levels
 
 | Level    | Scope                        | Time    |

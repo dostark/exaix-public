@@ -21,6 +21,7 @@ topics: ["tools", "tool-registry", "research", "refactoring", "git", "deno"]
 To support secure external access, we must extend `src/config/schema.ts`.
 
 ### New `tools` Section
+
 We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 
 (See `src/config/schema.ts`)
@@ -39,13 +40,15 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 (See `src/services/tool_registry.ts`)
 
 **Implementation Logic:**
-1.  **Validation:** Check if `config.tools.fetch_url.enabled` is true.
-2.  **Whitelist Check:** Parse hostname from `url` and verify it matches `allowed_domains`.
-3.  **Fetch:** Use `fetch(url, { signal: AbortSignal.timeout(timeout_ms) })`.
-4.  **Size Check:** Check `Content-Length` header or stream counting. Abort if > `max_response_size_kb`.
-5.  **Conversion:** If `format="markdown"`, use a basic HTML-to-Markdown converter (or just return `innerText` for MVP).
+
+1. **Validation:** Check if `config.tools.fetch_url.enabled` is true.
+2. **Whitelist Check:** Parse hostname from `url` and verify it matches `allowed_domains`.
+3. **Fetch:** Use `fetch(url, { signal: AbortSignal.timeout(timeout_ms) })`.
+4. **Size Check:** Check `Content-Length` header or stream counting. Abort if > `max_response_size_kb`.
+5. **Conversion:** If `format="markdown"`, use a basic HTML-to-Markdown converter (or just return `innerText` for MVP).
 
 **Security:**
+
 - 🛡️ **SSRF Protection:** Agents cannot access local IPs (127.0.0.1, 192.168.x.x) or metadata services (169.254.169.254).
 - 🛡️ **Whitelist:** Strict opt-in domain list.
 
@@ -61,17 +64,19 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 (See `src/services/tool_registry.ts`)
 
 **Implementation Logic:**
-1.  **Resolve Path:** Use `PathResolver` to ensure `path` is within allowed roots.
-2.  **Command:** Use `git grep -nI` (if in a git repo) or `grep -rI` (fallback).
-    *   Flags: `-n` (line numbers), `-I` (ignore binary), `--max-count=50`.
-3.  **Output:** Parse stdout into structured JSON:
-    ```json
-    [
-      { "file": "src/utils.ts", "line": 45, "content": "export const foo = ..." }
-    ]
-    ```
+
+1. **Resolve Path:** Use `PathResolver` to ensure `path` is within allowed roots.
+2. **Command:** Use `git grep -nI` (if in a git repo) or `grep -rI` (fallback).
+   - Flags: `-n` (line numbers), `-I` (ignore binary), `--max-count=50`.
+3. **Output:** Parse stdout into structured JSON:
+   ```json
+   [
+     { "file": "src/utils.ts", "line": 45, "content": "export const foo = ..." }
+   ]
+   ```
 
 **Security:**
+
 - 🛡️ **Command Injection:** Pattern must be escaped or passed as a distinct argument to `Deno.Command`.
 - 🛡️ **Path Traversal:** Verified via `PathResolver`.
 
@@ -84,15 +89,18 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 **Purpose:** Atomic file operations.
 
 **Parameters (Zod):**
+
 - **move/copy**: `{ source: string, destination: string, overwrite: boolean }`
 - **delete**: `{ path: string }`
 
 **Implementation Logic:**
+
 - **move**: `await Deno.rename(src, dest)`
 - **copy**: `await Deno.copyFile(src, dest)`
 - **delete**: `await Deno.remove(path)`
 
 **Security:**
+
 - 🛡️ **Scope**: Both source and destination (and delete target) MUST resolve to allowed roots via `PathResolver`.
 - 🛡️ **Logging**: All destructive actions (delete, overwrite) must log to Activity Journal.
 
@@ -108,10 +116,11 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 (See `src/services/tool_registry.ts`)
 
 **Implementation Logic:**
+
 - **Status:** Run `git status --porcelain`. Parse into:
-    ```json
-    { "modified": ["src/foo.ts"], "staged": [], "untracked": ["tests/new.ts"] }
-    ```
+  ```json
+  { "modified": ["src/foo.ts"], "staged": [], "untracked": ["tests/new.ts"] }
+  ```
 - **Branch:** `git branch --show-current`.
 - **Diff Summary:** `git diff --stat`.
 
@@ -127,11 +136,13 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 (See `src/services/tool_registry.ts`)
 
 **Implementation Logic:**
+
 - **check/lint**: Run `deno lint --json [path]`. Return structured errors.
 - **fmt**: Run `deno fmt --check [path]`. Return unformatted files list.
 - **test**: Run `deno test --reporter=json [path]`. Return structured results (passed/failed tests).
 
 **Security:**
+
 - 🛡️ **Resource Limits:** Enforce timeouts.
 
 ---
@@ -146,42 +157,49 @@ We will add a dedicated `tools` configuration object to the root `ConfigSchema`.
 (See `src/services/tool_registry.ts`)
 
 **Implementation Logic:**
-1.  Read file content.
-2.  Count occurrences of `search_content`.
-    *   If 0: properties error "Content not found".
-    *   If > 1: properties error "Ambiguous match (found 2 times)".
-3.  Replace and write back.
+
+1. Read file content.
+2. Count occurrences of `search_content`.
+   - If 0: properties error "Content not found".
+   - If > 1: properties error "Ambiguous match (found 2 times)".
+3. Replace and write back.
 
 ---
 
 ## 3. Integration Plan
 
 ### 3.1 `ToolRegistry` Update
+
 - Import new schemas and implementations.
 - Register new tools in `registerCoreTools()`.
 - Inject `ToolsConfig` into `ToolRegistry`.
 
 ### 3.2 Agent Blueprints
+
 - Update `capabilities` array in **all** agent blueprints (`Blueprints/Agents/*.md`) to include relevant tools.
-    *   `code-analyst` -> `grep_search`, `fetch_url`, `git_info`
-    *   `senior-coder` -> All above + `move_file`, `patch_file`, `deno_task`
+  - `code-analyst` -> `grep_search`, `fetch_url`, `git_info`
+  - `senior-coder` -> All above + `move_file`, `patch_file`, `deno_task`
 
 ---
 
 ## 4. Verification & Testing
 
 ### 4.1 Integration Tests (`tests/tools/`)
+
 Create a new test file for each category:
+
 - `tests/tools/network_tool_test.ts`: Mock `fetch` and verify whitelist.
 - `tests/tools/search_tool_test.ts`: Create dummy file structure and grep it.
 - `tests/tools/refactor_tool_test.ts`: Verify file operations and path security.
 
 ### 4.2 End-to-End Scenario
+
 Create `tests/scenarios/refactoring_scenario_test.ts`:
-1.  Agent identifies a "messy" file structure.
-2.  Uses `grep_search` to find imports.
-3.  Uses `move_file` to reorganize.
-4.  Uses `deno_task("test")` to verify nothing broke.
+
+1. Agent identifies a "messy" file structure.
+2. Uses `grep_search` to find imports.
+3. Uses `move_file` to reorganize.
+4. Uses `deno_task("test")` to verify nothing broke.
 
 ---
 

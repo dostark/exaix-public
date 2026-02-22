@@ -15,6 +15,7 @@
  * - Layout persistence
  */
 
+import { MessageType } from "../enums.ts";
 import { type INotificationService, NotificationService } from "../services/notification.ts";
 import {
   TUI_DASHBOARD_ICONS,
@@ -687,16 +688,16 @@ function createTestDashboard(options: {
       return await renderNotificationPanel(this.notificationService, this.theme, this.state);
     },
     async approveMemoryUpdate(_proposalId: string) {
-      await this.notify("Memory update approved (test)", "success");
+      await this.notify("Memory update approved (test)", MessageType.SUCCESS);
     },
     async rejectMemoryUpdate(_proposalId: string) {
-      await this.notify("Memory update rejected (test)", "error");
+      await this.notify("Memory update rejected (test)", MessageType.ERROR);
     },
     portalManager: {
       service: portalService,
-      renderPortalList: portalView.renderPortalList.bind(portalView),
+      renderPortalList: (portals: PortalInfo[]) => portalView.renderPortalList(portals),
     },
-    async notify(message: string, type = "info") {
+    async notify(message: string, type = MessageType.INFO) {
       await this.notificationService.notify(message, type);
     },
     async dismissNotification(id: string) {
@@ -770,7 +771,7 @@ function createTestDashboard(options: {
       });
       this.activePaneId = "main";
       await this.clearNotifications();
-      await this.notify("Layout reset to default", "info");
+      await this.notify("Layout reset to default", MessageType.INFO);
     },
     destroy() {
       // Clean up all views to prevent interval leaks in tests
@@ -853,7 +854,7 @@ async function createProductionDashboard(options: {
 
   // Helper to add notification (accepts generic string to match helper signature)
   const addNotification = async (message: string, type?: string) => {
-    const t = type ?? "info";
+    const t = type ?? MessageType.INFO;
     console.log(`[${t}] ${message}`);
     await Promise.resolve();
   };

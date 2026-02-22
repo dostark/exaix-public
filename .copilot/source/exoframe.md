@@ -7,8 +7,6 @@ version: "0.1"
 topics: ["source", "development", "tdd", "patterns"]
 ---
 
-# ExoFrame Source Development Guidelines
-
 Key points
 
 - Strict TDD-first approach: write failing tests before implementation
@@ -275,7 +273,6 @@ export class PlanExecutor {
 }
 ```
 
-
 **Pattern**: Each method should have exactly one JSDoc block with complete documentation
 
 ```typescript
@@ -487,6 +484,3 @@ async function process() {
 - [ ] All tests pass with >90% coverage
 
 ---
-
-```
-```

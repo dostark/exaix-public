@@ -7,6 +7,7 @@
  * @related-files [src/tui/request_manager_view.ts]
  */
 
+import { MessageType } from "../../enums.ts";
 import { ConfirmDialog, InputDialog } from "../../helpers/dialog_base.ts";
 import { DialogStatus, RequestDialogType } from "../../enums.ts";
 
@@ -25,7 +26,7 @@ export async function processDialogCompletion(
     handleCreateResult: (value: string) => Promise<void>;
     handlePriorityResult: (value: string) => void;
     processConfirmDialog: (dialog: ConfirmDialog) => Promise<void>;
-    setStatus: (message: string, type?: "info" | "success" | "warning" | "error") => void;
+    setStatus: (message: string, type?: MessageType) => void;
   },
 ): Promise<void> {
   if (!dialog) return;
@@ -48,7 +49,7 @@ export async function processDialogCompletion(
           try {
             await handlers.handleCreateResult(result.value);
           } catch (e) {
-            handlers.setStatus(`Error: ${e}`, "error");
+            handlers.setStatus(`Error: ${e}`, MessageType.ERROR);
           }
           break;
         case RequestDialogType.PRIORITY:

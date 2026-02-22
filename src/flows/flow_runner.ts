@@ -96,11 +96,18 @@ export interface AgentExecutor {
  */
 export interface FlowStepRequest {
   userPrompt: string;
-  context?: Record<string, unknown>;
+  context?: FlowStepContext;
   traceId?: string;
   requestId?: string;
   /** Skills to apply for this step execution (Phase 17) */
   skills?: string[];
+}
+
+/**
+ * Context data for flow step requests
+ */
+interface FlowStepContext {
+  [key: string]: string | number | boolean | string[] | null | undefined;
 }
 
 /**

@@ -1319,7 +1319,7 @@ You are a test agent using Ollama provider.`;
 
       // Mock Ollama API response
       const originalFetch = globalThis.fetch;
-      globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
         const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
 
         if (url.includes("/api/generate")) {
@@ -1436,7 +1436,7 @@ Test agent for error handling.`;
 
       // Mock Ollama API to return connection error
       const originalFetch = globalThis.fetch;
-      globalThis.fetch = ((_input: RequestInfo | URL, _init?: RequestInit): Promise<Response> => {
+      globalThis.fetch = ((_input: RequestInfo | URL, _init?: RequestInit) => {
         return Promise.reject(new TypeError("fetch failed"));
       }) as typeof globalThis.fetch;
 

@@ -84,11 +84,8 @@ function handlePaneNavigationKeys(
   if (k === KEYS.TAB) {
     const currentIndex = panes.findIndex((p) => p.id === dashboard.activePaneId);
     // Debug: ensure panes and activePaneId are as expected during tests
-    if (
-      (globalThis as unknown as { Deno?: { env: { get(k: string): string | undefined } } }).Deno?.env.get(
-        "EXO_TEST_LOG_TAB_DEBUG",
-      ) === "1"
-    ) {
+    const denoEnv = (globalThis as { Deno?: { env: { get(k: string): string | undefined } } }).Deno;
+    if (denoEnv?.env.get("EXO_TEST_LOG_TAB_DEBUG") === "1") {
       console.debug(
         "[TUI][DEBUG] TAB pressed: panes=",
         panes.map((p) => p.id),

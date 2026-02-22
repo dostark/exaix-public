@@ -59,7 +59,6 @@ You are a software architecture expert specializing in system design, design pat
 
 {{include:standard-response-format}}
 
-
 <thought>
 The user needs to design a user management system. I need to:
 1. Analyze the requirements for scalability and security

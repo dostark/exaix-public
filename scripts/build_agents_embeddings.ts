@@ -4,6 +4,7 @@
 
 import { parse } from "https://deno.land/std@0.203.0/yaml/mod.ts";
 import { walk } from "https://deno.land/std@0.203.0/fs/mod.ts";
+import type { JSONObject } from "../src/types.ts";
 
 const AGENTS_DIR = ".copilot";
 const OUT_DIR = `${AGENTS_DIR}/embeddings`;
@@ -47,13 +48,13 @@ async function mockVector(text: string, dim = 64): Promise<number[]> {
 
 async function buildMock() {
   await Deno.mkdir(OUT_DIR, { recursive: true });
-  const index: Record<string, unknown>[] = [];
+  const index: JSONObject[] = [];
 
   for await (const entry of walk(AGENTS_DIR, { exts: [".md"], maxDepth: 3 })) {
     if (!entry.isFile) continue;
     const md = await Deno.readTextFile(entry.path);
     const fmRaw = extractFrontmatter(md) || "";
-    const fm = fmRaw ? (parse(fmRaw) as Record<string, unknown>) : {};
+    const fm = fmRaw ? (parse(fmRaw) as JSONObject) : {};
     const body = md.replace(/^---[\s\S]*?---/, "");
     const chunks = chunkText(body, 800).slice(0, 16);
     const vecs: { text: string; vector: number[] }[] = [];
@@ -84,13 +85,13 @@ async function buildOpenAI() {
   }
 
   await Deno.mkdir(OUT_DIR, { recursive: true });
-  const index: Record<string, unknown>[] = [];
+  const index: JSONObject[] = [];
 
   for await (const entry of walk(AGENTS_DIR, { exts: [".md"], maxDepth: 3 })) {
     if (!entry.isFile) continue;
     const md = await Deno.readTextFile(entry.path);
     const fmRaw = extractFrontmatter(md) || "";
-    const fm = fmRaw ? (parse(fmRaw) as Record<string, unknown>) : {};
+    const fm = fmRaw ? (parse(fmRaw) as JSONObject) : {};
     const body = md.replace(/^---[\s\S]*?---/, "");
     const chunks = chunkText(body, 1000).slice(0, 8);
 

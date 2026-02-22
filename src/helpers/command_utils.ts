@@ -8,6 +8,7 @@
  */
 
 import { ValidationResult } from "../cli/base/command.ts";
+import type { JSONObject } from "../types.ts";
 
 export const CommandUtils = {
   /**
@@ -60,7 +61,7 @@ export const CommandUtils = {
   /**
    * Print a table-like structure for metadata
    */
-  printMetadata(title: string, data: Record<string, unknown>): void {
+  printMetadata(title: string, data: JSONObject): void {
     console.log(`\n${title}`);
     console.log("=".repeat(title.length));
     for (const [key, value] of Object.entries(data)) {

@@ -15,6 +15,7 @@ import { ConfigService } from "../../config/service.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { DAEMON_STOP_TIMEOUT_MS } from "../../config/constants.ts";
 import { isProcessAlive } from "../process_utils.ts";
+import type { JSONObject } from "../../types.ts";
 
 export interface DaemonStatus {
   running: boolean;
@@ -340,7 +341,7 @@ export class DaemonCommands extends BaseCommand {
   /**
    * Log daemon activity to the activity journal using EventLogger
    */
-  protected async logDaemonActivity(actionType: string, payload: Record<string, unknown>): Promise<void> {
+  protected async logDaemonActivity(actionType: string, payload: JSONObject): Promise<void> {
     try {
       const actionLogger = await this.getActionLogger();
       actionLogger.info(actionType, "daemon", {

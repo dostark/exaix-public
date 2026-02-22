@@ -366,9 +366,9 @@ Examples
 ## Configuration & Coding Standards
 
 The full set of style and configuration guidelines has been consolidated in
-[CODE_STYLE.md](../../CODE_STYLE.md).  That document covers magic values,
+[CODE_STYLE.md](../../CODE_STYLE.md). That document covers magic values,
 constants, enums, environment variables, strict typing, imports, DI patterns,
-and more.  Refer back to it whenever you need to check or update coding
+and more. Refer back to it whenever you need to check or update coding
 rules.
 
 ## Architectural Awareness

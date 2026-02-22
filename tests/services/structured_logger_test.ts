@@ -235,10 +235,7 @@ Deno.test("StructuredLogger - Performance Tracking", async (t) => {
     const completionLog = output.entries.find((e) => e.message.includes("Operation completed"));
     assert(completionLog);
     assert(completionLog?.metadata?.performance);
-    interface PerformanceMetadata {
-      duration_ms: number;
-    }
-    const performance = completionLog?.metadata?.performance as unknown as PerformanceMetadata;
+    const performance = completionLog.metadata.performance as { duration_ms: number };
     assert(performance.duration_ms >= 10);
   });
 

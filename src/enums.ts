@@ -262,6 +262,7 @@ export enum SkillStatus {
  */
 export enum PortalStatus {
   ACTIVE = GeneralStatus.ACTIVE,
+  INACTIVE = GeneralStatus.INACTIVE,
   BROKEN = GeneralStatus.BROKEN,
 }
 
@@ -387,6 +388,17 @@ export enum LogLevel {
   ERROR = "error",
   /** Critical errors requiring immediate attention */
   FATAL = "fatal",
+}
+
+/**
+ * Types of messages for status updates and notifications.
+ * Used to categorize the nature of messages displayed to users.
+ */
+export enum MessageType {
+  INFO = "INFO",
+  SUCCESS = "SUCCESS",
+  WARNING = "WARNING",
+  ERROR = "ERROR",
 }
 
 /**

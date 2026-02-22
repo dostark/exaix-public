@@ -19,18 +19,23 @@ When a request (e.g., to the `technical-writer` or `code-analyst` agent) produce
 The issue was resolved through a two-stage approach: a immediate bug fix for log preservation and a long-term fix for universal format enforcement.
 
 ### 1. Robust Error Preservation (Bug Fix)
+
 Ensured the full raw LLM response is preserved even if structured parsing fails:
+
 - **Error Enrichment**: Updated `PlanWriter.formatPlan` to catch `PlanValidationError` and enrich its `details` with `fullRawResponse` containing the original `result.raw` from the agent.
 - **Fallback Logic**: Updated `RequestProcessor.handleError` to use `fullRawResponse` as a fallback when `rawContent` (extracted from `<content>` tags) is empty or missing.
 
 ### 2. Universal Format Enforcement (Proactive Fix)
+
 Implemented more robust enforcement to reduce the occurrence of validation failures:
+
 - **Self-Correction Loop**: Implemented a 2-retry mechanism in `RequestProcessor` that catches `PlanValidationError` and provides specific feedback to the agent for immediate repair.
 - **Dynamic Schema Injection**: `AgentRunner` now dynamically injects machine-readable JSON schema instructions (generated via `SchemaDescriber`) into all agent prompts.
 - **Automated JSON Repair**: Integrated `json-repair` into `PlanAdapter` to automatically fix common LLM syntax errors (trailing commas, unquoted keys).
 - **Blueprint Standardization**: Fixed malformed XML tags (`</content>`) in `technical-writer.md` and `software-architect.md`.
 
 ### Files Modified:
+
 - [plan_writer.ts](file:///home/dkasymov/git/ExoFrame/src/services/plan_writer.ts)
 - [request_processor.ts](file:///home/dkasymov/git/ExoFrame/src/services/request_processor.ts)
 - [plan_adapter.ts](file:///home/dkasymov/git/ExoFrame/src/services/plan_adapter.ts)
@@ -42,7 +47,9 @@ Implemented more robust enforcement to reduce the occurrence of validation failu
 ## Verification
 
 ### Automated Tests
+
 Successfull verification with a dedicated reproduction test and existing regression tests:
+
 - `tests/plan_validation_repro_issue_003_test.ts` (manually run and then removed) verified that malformed XML output still results in a rejected plan file containing the full raw response.
 - `tests/request_processor_plan_validation_error_test.ts` passed 4/4 tests.
 

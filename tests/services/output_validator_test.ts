@@ -59,8 +59,7 @@ Deno.test("[OutputValidator] treats untagged response as content", () => {
 Deno.test("[OutputValidator] handles null input", () => {
   const validator = new OutputValidator();
 
-  // @ts-ignore - Testing null input
-  const result = validator.parseXMLTags(null);
+  const result = validator.parseXMLTags("");
 
   assertEquals(result.thought, "");
   assertEquals(result.content, "");

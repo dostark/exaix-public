@@ -12,6 +12,7 @@ import { ensureDir, exists } from "@std/fs";
 import type { Config } from "../config/schema.ts";
 import type { IDatabaseService } from "./db.ts";
 import type { IMemoryBankService } from "./memory_bank.ts";
+import type { JSONObject } from "../types.ts";
 import type {
   ExecutionMemory,
   Learning,
@@ -264,7 +265,7 @@ export class MemoryExtractorService {
     event_type: string;
     target: string;
     trace_id?: string;
-    metadata?: Record<string, unknown>;
+    metadata?: JSONObject;
   }): void {
     try {
       this.db.logActivity(

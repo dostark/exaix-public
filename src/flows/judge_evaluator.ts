@@ -11,12 +11,46 @@ import { buildEvaluationPrompt, EvaluationCriterion, EvaluationResult } from "./
 import { JudgeInvoker } from "./gate_evaluator.ts";
 
 /**
+ * Context object for agent requests
+ */
+export interface AgentContext {
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | null
+    | undefined
+    | AgentContext
+    | (string | number | boolean | null | undefined | AgentContext)[]
+    | string[];
+}
+
+/**
+ * Parsed JSON object from evaluation response
+ */
+interface ParsedEvaluationJson {
+  feedback?: string;
+  summary?: string;
+  suggestions?: string[];
+  criteriaScores?: CriterionScoresMap;
+  scores?: CriterionScoresMap;
+  [key: string]: string | number | boolean | string[] | CriterionScoresMap | null | undefined;
+}
+
+/**
+ * Map of criterion names to their scores
+ */
+interface CriterionScoresMap {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+/**
  * Interface for running agents
  */
 export interface AgentRunner {
   run(
     agentId: string,
-    request: { userPrompt: string; context?: Record<string, unknown> },
+    request: { userPrompt: string; context?: AgentContext },
   ): Promise<{ content: string }>;
 }
 
@@ -100,7 +134,7 @@ export class JudgeEvaluator implements JudgeInvoker {
    * Normalize parsed JSON to EvaluationResult format
    */
   private normalizeEvaluationResult(
-    parsed: Record<string, unknown>,
+    parsed: ParsedEvaluationJson,
     criteria: EvaluationCriterion[],
   ): EvaluationResult {
     const criteriaScores: EvaluationResult["criteriaScores"] = {};
@@ -125,7 +159,7 @@ export class JudgeEvaluator implements JudgeInvoker {
   }
 
   private extractCriterionScore(
-    parsed: Record<string, unknown>,
+    parsed: ParsedEvaluationJson,
     criterion: EvaluationCriterion,
   ): EvaluationResult["criteriaScores"][string] {
     const name = criterion.name;
@@ -149,16 +183,16 @@ export class JudgeEvaluator implements JudgeInvoker {
   }
 
   private extractCriterionFromCriteriaScores(
-    parsed: Record<string, unknown>,
+    parsed: ParsedEvaluationJson,
     name: string,
   ): EvaluationResult["criteriaScores"][string] | null {
     if (!parsed.criteriaScores || typeof parsed.criteriaScores !== "object") return null;
 
-    const scores = parsed.criteriaScores as Record<string, unknown>;
+    const scores = parsed.criteriaScores as CriterionScoresMap;
     const raw = scores[name];
     if (!raw || typeof raw !== "object") return null;
 
-    const scoreObj = raw as Record<string, unknown>;
+    const scoreObj = raw as CriterionScoresMap;
     const score = this.normalizeScore(scoreObj.score);
 
     return {
@@ -171,12 +205,12 @@ export class JudgeEvaluator implements JudgeInvoker {
   }
 
   private extractCriterionFromScoresObject(
-    parsed: Record<string, unknown>,
+    parsed: ParsedEvaluationJson,
     name: string,
   ): EvaluationResult["criteriaScores"][string] | null {
     if (!parsed.scores || typeof parsed.scores !== "object") return null;
 
-    const scores = parsed.scores as Record<string, unknown>;
+    const scores = parsed.scores as CriterionScoresMap;
     if (!(name in scores)) return null;
 
     const score = this.normalizeScore(scores[name]);
@@ -190,14 +224,14 @@ export class JudgeEvaluator implements JudgeInvoker {
   }
 
   private extractCriterionFromTopLevel(
-    parsed: Record<string, unknown>,
+    parsed: ParsedEvaluationJson,
     name: string,
   ): EvaluationResult["criteriaScores"][string] | null {
     if (!(name in parsed)) return null;
 
     const value = parsed[name];
     if (typeof value === "object" && value !== null) {
-      const obj = value as Record<string, unknown>;
+      const obj = value as CriterionScoresMap;
       const score = this.normalizeScore(obj.score ?? obj.value ?? 0);
       return {
         name,
@@ -243,7 +277,7 @@ export class JudgeEvaluator implements JudgeInvoker {
   /**
    * Try to repair malformed JSON
    */
-  private repairJson(jsonStr: string): Record<string, unknown> | null {
+  private repairJson(jsonStr: string): ParsedEvaluationJson | null {
     try {
       // Common fixes
       const repaired = jsonStr
@@ -255,7 +289,7 @@ export class JudgeEvaluator implements JudgeInvoker {
         .replace(/'/g, '"');
 
       // Try parsing repaired JSON
-      return JSON.parse(repaired);
+      return JSON.parse(repaired) as ParsedEvaluationJson;
     } catch {
       return null;
     }

@@ -25,7 +25,7 @@ import {
   REQUEST_REVISION_COMMENTS_HEADER,
 } from "../../config/constants.ts";
 
-import { PlanFrontmatterSchema } from "../../schemas/plan_schema.ts";
+import { type PlanFrontmatter, PlanFrontmatterSchema } from "../../schemas/plan_schema.ts";
 
 export interface PlanMetadata {
   id: string;
@@ -61,7 +61,7 @@ export interface PlanDetails extends PlanMetadata {
 /**
  * Extract plan metadata from parsed frontmatter
  */
-function extractPlanMetadata(planId: string, frontmatter: Record<string, unknown>): PlanMetadata {
+function extractPlanMetadata(planId: string, frontmatter: PlanFrontmatter): PlanMetadata {
   const validated = PlanFrontmatterSchema.parse(frontmatter);
 
   return {
@@ -122,7 +122,7 @@ export class PlanCommands extends BaseCommand {
    */
   private async extractPlanMetadataWithRequest(
     planId: string,
-    frontmatter: Record<string, unknown>,
+    frontmatter: PlanFrontmatter,
   ): Promise<PlanMetadata> {
     const metadata = extractPlanMetadata(planId, frontmatter);
     return await enrichWithRequest(this.requestCommands, metadata, `plan ${planId}`);
@@ -170,7 +170,7 @@ export class PlanCommands extends BaseCommand {
       const { actor, actionLogger, now } = await this.getUserContext();
 
       // Update frontmatter
-      const updatedFrontmatter: Record<string, unknown> = {
+      const updatedFrontmatter: PlanFrontmatter = {
         ...frontmatter,
         status: PlanStatus.APPROVED,
         approved_by: actor,
@@ -230,7 +230,7 @@ export class PlanCommands extends BaseCommand {
       ];
 
       let sourcePath: string | null = null;
-      let frontmatter: Record<string, unknown> | null = null;
+      let frontmatter: PlanFrontmatter | null = null;
       let body: string | null = null;
 
       for (const { path: planPath } of searchPaths) {
@@ -583,7 +583,7 @@ export class PlanCommands extends BaseCommand {
   /**
    * Serialize frontmatter and body back to markdown format (YAML)
    */
-  private serializePlan(frontmatter: Record<string, unknown>, body: string): string {
+  private serializePlan(frontmatter: PlanFrontmatter, body: string): string {
     const lines: string[] = [];
     for (const [key, value] of Object.entries(frontmatter)) {
       if (value === null || value === undefined) {
@@ -607,7 +607,7 @@ export class PlanCommands extends BaseCommand {
    * Extract frontmatter and body from markdown (YAML format)
    * Returns both frontmatter and body, unlike base class version
    */
-  private extractFrontmatterWithBody(markdown: string): { frontmatter: Record<string, unknown>; body: string } {
+  private extractFrontmatterWithBody(markdown: string): { frontmatter: PlanFrontmatter; body: string } {
     const frontmatterRegex = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
     const match = markdown.match(frontmatterRegex);
 
@@ -619,7 +619,7 @@ export class PlanCommands extends BaseCommand {
     const body = match[2] || "";
 
     // Simple YAML parsing for key-value pairs
-    const frontmatter: Record<string, unknown> = {};
+    const frontmatter: PlanFrontmatter = {} as PlanFrontmatter;
     const lines = yamlContent.split("\n");
 
     for (const line of lines) {
@@ -631,7 +631,7 @@ export class PlanCommands extends BaseCommand {
         if (value.startsWith('"') && value.endsWith('"')) {
           value = value.slice(1, -1);
         }
-        frontmatter[key] = value;
+        (frontmatter as Record<string, string>)[key] = value;
       }
     }
 
@@ -644,7 +644,7 @@ export class PlanCommands extends BaseCommand {
    */
   private async loadPlan(planPath: string): Promise<{
     content: string;
-    frontmatter: Record<string, unknown>;
+    frontmatter: PlanFrontmatter;
     body: string;
   }> {
     if (!await exists(planPath)) {

@@ -10,9 +10,10 @@
 AI agents (and new developers) struggle to map abstract architectural concepts (e.g., "Request Processor") to concrete source files. The architecture documentation is buried in `docs/dev/` and lacks direct links to code. When an agent is asked to "modify the request flow", it has to search blindly for relevant files.
 
 **Solution:**
-1.  **Elevate**: Move architecture docs to `/ARCHITECTURE.md` (Root) for immediate discovery.
-2.  **Ground**: Update the document to explicitly list source file paths for every component.
-3.  **Standardize**: Implement a "Module Header" standard that embeds architectural metadata directly into source files, creating a bidirectional link between documentation and code.
+
+1. **Elevate**: Move architecture docs to `/ARCHITECTURE.md` (Root) for immediate discovery.
+2. **Ground**: Update the document to explicitly list source file paths for every component.
+3. **Standardize**: Implement a "Module Header" standard that embeds architectural metadata directly into source files, creating a bidirectional link between documentation and code.
 
 ---
 
@@ -40,24 +41,27 @@ AI agents (and new developers) struggle to map abstract architectural concepts (
 The `ARCHITECTURE.md` will be updated to include source paths.
 
 **Before:**
+
 > The **Request Processor** validates incoming requests...
 
 **After:**
+
 > The **Request Processor** (`src/services/request_processor.ts`) validates incoming requests...
 
 **Diagrams:**
 Mermaid diagrams will be annotated or accompanied by a lookup table:
 
-| Component | Source Path | Description |
-| :--- | :--- | :--- |
+| Component         | Source Path                         | Description                    |
+| :---------------- | :---------------------------------- | :----------------------------- |
 | Request Processor | `src/services/request_processor.ts` | Orchestrates request lifecycle |
-| Plan Executor | `src/services/plan_executor.ts` | Executes steps via MCP |
+| Plan Executor     | `src/services/plan_executor.ts`     | Executes steps via MCP         |
 
 ### 3. Module Header Standard (Additional Idea 2)
 
 We will enforce a standardized JSDoc header for all core modules. This allows agents to understand a file's purpose immediately upon opening it.
 
 **Format:**
+
 ```typescript
 /**
  * @module RequestProcessor
@@ -74,26 +78,30 @@ We will enforce a standardized JSDoc header for all core modules. This allows ag
 ## Implementation Plan
 
 ### Step 1: Move and Rename
+
 - [x] Move `docs/dev/ExoFrame_Architecture.md` to `/ARCHITECTURE.md`.
 - [x] Update `CLAUDE.md` to reference `ARCHITECTURE.md` as primary context.
 - [x] Update `CONTRIBUTING.md` (if exists).
 
 ### Step 2: Content Enrichment (Grounding)
+
 - [x] Review `ARCHITECTURE.md` section by section.
 - [x] For every mentioned component (Services, Core, CLI Commands), identify the source file.
 - [x] Insert the file path (`src/...`) next to the component name.
 - [x] Create a "Component Map" table at the end of the document for quick lookup.
 
 ### Step 3: Module Header Pilot
+
 - [x] Define the header format in `ARCHITECTURE.md`.
 - [x] Apply the header to 5 critical files as a pilot:
-  1.  `src/main.ts`
-  2.  `src/services/request_processor.ts`
-  3.  `src/services/tool_registry.ts`
-  4.  `src/services/plan_executor.ts`
-  5.  `src/ai/provider_factory.ts`
+  1. `src/main.ts`
+  2. `src/services/request_processor.ts`
+  3. `src/services/tool_registry.ts`
+  4. `src/services/plan_executor.ts`
+  5. `src/ai/provider_factory.ts`
 
 ### Step 4: Verification
+
 - [x] Run a script to grep all paths in `ARCHITECTURE.md` and verify they exist on disk.
 - [x] Verify `deno check` passes (headers are just comments, so safe).
 
@@ -108,12 +116,13 @@ We will enforce a standardized JSDoc header for all core modules. This allows ag
 - [x] No broken links in documentation.
 
 ## Risks
+
 - **Drift**: Hardcoded paths in `ARCHITECTURE.md` might rot if files are moved.
-  - *Mitigation*: Depending on Phase 38's `deno_task`, we could add a `docs:check` task that validates these paths.
+  - _Mitigation_: Depending on Phase 38's `deno_task`, we could add a `docs:check` task that validates these paths.
 
 ---
 
 ## Next Steps
+
 1. All Phase 39 objectives completed.
 2. Monitor for drift in documentation links.
-

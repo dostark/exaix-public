@@ -37,7 +37,6 @@ export const LOG_COLORS: Record<string, string> = {
   "execution.completed": "green",
   "execution_failed": "red",
   "execution.failed": "red",
-  "error": "red",
   "default": "white",
 };
 

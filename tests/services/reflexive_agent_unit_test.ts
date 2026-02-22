@@ -6,6 +6,7 @@ import type { IModelProvider } from "../../src/ai/providers.ts";
 import type { IAgentRunner } from "../../src/services/agent_runner.ts";
 import {
   type IOutputValidator,
+  OutputValidator,
   type ValidationMetrics,
   type ValidationResult,
 } from "../../src/services/output_validator.ts";
@@ -24,11 +25,11 @@ function createMockValidator(overrides: Partial<IOutputValidator> = {}): IOutput
     validate: <T>(
       _content: string,
       _schema: unknown,
-    ): ValidationResult<T> => (defaultResult as unknown as ValidationResult<T>),
+    ): ValidationResult<T> => defaultResult as ValidationResult<T>,
     parseXMLTags: (raw: string) => ({ thought: "", content: raw, raw }),
-    validateWithSchema: (_content, _schemaName) => (defaultResult as unknown as ValidationResult<any>),
-    parseAndValidate: (_raw, _schema) => (defaultResult as unknown as ValidationResult<any>),
-    parseAndValidateWithSchema: (_raw, _schemaName) => (defaultResult as unknown as ValidationResult<any>),
+    validateWithSchema: (_content, _schemaName) => defaultResult as ValidationResult<unknown>,
+    parseAndValidate: (_raw, _schema) => defaultResult as ValidationResult<unknown>,
+    parseAndValidateWithSchema: (_raw, _schemaName) => defaultResult as ValidationResult<unknown>,
     getMetrics: (): ValidationMetrics => ({
       totalAttempts: 0,
       successfulValidations: 0,
@@ -38,7 +39,7 @@ function createMockValidator(overrides: Partial<IOutputValidator> = {}): IOutput
     }),
     resetMetrics: () => {},
     ...overrides,
-  };
+  } as OutputValidator;
 }
 
 const stubProvider: IModelProvider = {
@@ -180,7 +181,7 @@ Deno.test("ReflexiveAgent.run: early-exits on first passing critique", async () 
         passed: true,
         issues: [],
         reasoning: "ok",
-      } as unknown as T,
+      } as T,
       repairAttempted: false,
       repairSucceeded: false,
       raw: "",
@@ -238,7 +239,7 @@ Deno.test("ReflexiveAgent.run: refines when critique fails then accepts", async 
   agent.outputValidator = createMockValidator({
     validate: <T>(_content: string, _schema: unknown): ValidationResult<T> => ({
       success: true,
-      value: critiques.shift() as unknown as T,
+      value: critiques.shift() as T,
       repairAttempted: false,
       repairSucceeded: false,
       raw: "",

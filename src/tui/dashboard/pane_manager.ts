@@ -7,6 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts, src/tui/dashboard/renderer.ts]
  */
 
+import { MessageType } from "../../enums.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../helpers/constants.ts";
 
 import type { Pane, TuiView } from "../tui_dashboard.ts";
@@ -91,7 +92,7 @@ export async function splitPane(
     panes.push(newPane);
   }
 
-  await notify(`Pane split ${direction}`, "info");
+  await notify(`Pane split ${direction}`, MessageType.INFO);
   return { panes, activePaneId };
 }
 
@@ -134,7 +135,7 @@ export async function closePane(
     panes[0].focused = true;
   }
 
-  await notify("Pane closed", "info");
+  await notify("Pane closed", MessageType.INFO);
   return { panes, activePaneId: newActivePaneId };
 }
 
@@ -305,7 +306,7 @@ export function maximizePane(
       pane.height = pane.previousBounds.height;
     }
     pane.maximized = false;
-    notify("Pane restored", "info");
+    notify("Pane restored", MessageType.INFO);
   } else {
     // Maximize
     pane.previousBounds = {
@@ -327,6 +328,6 @@ export function maximizePane(
     pane.width = TUI_LAYOUT_FULL_WIDTH;
     pane.height = TUI_LAYOUT_DEFAULT_HEIGHT;
     pane.maximized = true;
-    notify("Pane maximized", "info");
+    notify("Pane maximized", MessageType.INFO);
   }
 }

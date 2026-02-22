@@ -98,7 +98,7 @@ export class FrontmatterParser {
   /**
    * Extract YAML frontmatter and body from markdown
    */
-  private extractFrontmatter(markdown: string): { frontmatter: Record<string, unknown>; body: string } {
+  private extractFrontmatter(markdown: string): { frontmatter: MarkdownFrontmatter; body: string } {
     // Match YAML frontmatter between --- delimiters
     const yamlRegex = /^---\n([\s\S]*?)\n---\n?([\s\S]*)$/;
     const match = markdown.match(yamlRegex);
@@ -111,7 +111,7 @@ export class FrontmatterParser {
     const body = match[2] || "";
 
     try {
-      const frontmatter = parseYaml(yamlContent) as Record<string, unknown>;
+      const frontmatter = parseYaml(yamlContent) as MarkdownFrontmatter;
 
       if (!frontmatter || typeof frontmatter !== "object") {
         throw new Error("Frontmatter must be a YAML object");
@@ -125,4 +125,11 @@ export class FrontmatterParser {
       throw error;
     }
   }
+}
+
+/**
+ * Parsed frontmatter data from markdown
+ */
+interface MarkdownFrontmatter {
+  [key: string]: string | number | boolean | string[] | null | undefined;
 }

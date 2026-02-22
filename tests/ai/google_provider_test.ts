@@ -23,7 +23,6 @@ Deno.test("GoogleProvider - generate URL", async () => {
   try {
     await provider.generate("Hi");
     const call = fetchSpy.calls[0];
-    // @ts-ignore: Accessing mock args
     const url = call.args[0] as string;
     assertStringIncludes(url, "gemini-3-pro:generateContent");
     assertStringIncludes(url, "key=test-key");

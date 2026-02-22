@@ -38,8 +38,9 @@ const rules: Rule[] = [
   },
   {
     name: "typeof-cast",
-    regex: /\bas\s+typeof\s+\w+/,
-    message: "Casting via 'as typeof <var>' is treated as an 'any' escape and is forbidden.",
+    regex: /\bas\s+typeof\s+(?!globalThis\.fetch\b)([a-zA-Z_]\w*)\s+(?!\&)/,
+    message:
+      "Casting via 'as typeof <var>' is treated as an 'any' escape and is forbidden. Exceptions: 'as typeof globalThis.fetch' in tests, and intersection types like 'as typeof Deno & {...}'.",
     severity: "error",
   },
   {
@@ -57,9 +58,15 @@ const rules: Rule[] = [
   {
     name: "record-unknown",
     regex: /Record<\s*string\s*,\s*unknown\s*>/,
+    message: "'Record<string, unknown>' is prohibited; define a specific interface or type alias instead.",
+    severity: "error",
+  },
+  {
+    name: "promise-response-return",
+    regex: /:\s*Promise\s*<\s*Response\s*>\s*=>/,
     message:
-      "'Record<string, unknown>' should only be used in rare, well-justified cases; document the reason and consider a stronger type.",
-    severity: "warn",
+      "'Promise<Response>' as return type in arrow functions is weak typing; define a specific return type interface instead.",
+    severity: "error",
   },
 ];
 
@@ -92,7 +99,7 @@ async function main() {
       includeDirs: false,
       exts: ["ts", "tsx"],
       followSymlinks: false,
-      skip: [/^\.git$/, /^node_modules$/],
+      skip: [/^\.git$/, /^node_modules$/, /check_code_style\.ts$/],
     })
   ) {
     // skip generated code or scripts if necessary

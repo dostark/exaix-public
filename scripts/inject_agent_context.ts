@@ -3,6 +3,7 @@
 
 import { parse } from "https://deno.land/std@0.203.0/yaml/mod.ts";
 import { walk } from "https://deno.land/std@0.203.0/fs/mod.ts";
+import type { JSONObject } from "../src/types.ts";
 
 const AGENTS_DIR = ".copilot";
 
@@ -22,7 +23,7 @@ function scoreDoc(md: string, query: string) {
 }
 
 async function findBest(agent: string, query: string) {
-  let best: { path?: string; fm?: Record<string, unknown>; score: number; md?: string } = { score: 0 };
+  let best: { path?: string; fm?: JSONObject; score: number; md?: string } = { score: 0 };
 
   // Check if .copilot directory exists
   try {
@@ -36,7 +37,7 @@ async function findBest(agent: string, query: string) {
     if (!entry.isFile) continue;
     const md = await Deno.readTextFile(entry.path);
     const fmRaw = extractFrontmatter(md) || "";
-    const fm = fmRaw ? (parse(fmRaw) as Record<string, unknown>) : {};
+    const fm = fmRaw ? (parse(fmRaw) as JSONObject) : {};
     if (String(fm.agent || "") !== agent) continue;
     const s = scoreDoc(md, query);
     if (s > best.score) best = { path: entry.path, fm, score: s, md };

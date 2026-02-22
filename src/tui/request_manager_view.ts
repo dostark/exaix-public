@@ -9,6 +9,34 @@
 
 import { KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingCategory } from "../helpers/keyboard.ts";
+// --- Imports for Phase 13.6 ---
+import { TuiSessionBase } from "./tui_common.ts";
+import { MessageType, RequestPriority } from "../enums.ts";
+import { isRequestStatus, RequestStatus, type RequestStatusType } from "../requests/request_status.ts";
+import { createGroupNode, createNode, findNode, flattenTree, renderTree, type TreeNode } from "../helpers/tree_view.ts";
+import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import type { KeyBinding } from "../helpers/keyboard.ts";
+import { KeyBindingsBase } from "./base/key_bindings_base.ts";
+
+// --- Extracted utilities ---
+import {
+  isGroupNode as helperIsGroupNode,
+  MainKeyHandler,
+  NavigationHandler,
+  TreeManipulationHandler,
+} from "./request_manager/key_handlers.ts";
+import { RequestFormatter } from "./request_manager/formatters.ts";
+import {
+  processDialogCompletion as helperProcessDialogCompletion,
+  type RequestDialogTypeUnion,
+} from "./request_manager/dialog_handlers.ts";
+import { RequestDialogType } from "../enums.ts";
+import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
+
+// --- Adapter: RequestCommands as RequestService ---
+import type { RequestCommands } from "../cli/commands/request_commands.ts";
+import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "../helpers/constants.ts";
+
 export interface RequestService {
   listRequests(status?: RequestStatusType): Promise<Request[]>;
   getRequestContent(requestId: string): Promise<string>;
@@ -210,34 +238,6 @@ export class RequestKeyBindings extends KeyBindingsBase<RequestAction, KeyBindin
 }
 
 export const REQUEST_KEY_BINDINGS = new RequestKeyBindings().KEY_BINDINGS;
-
-// --- Imports for Phase 13.6 ---
-import { TuiSessionBase } from "./tui_common.ts";
-import { RequestPriority } from "../enums.ts";
-import { isRequestStatus, RequestStatus, type RequestStatusType } from "../requests/request_status.ts";
-import { createGroupNode, createNode, findNode, flattenTree, renderTree, type TreeNode } from "../helpers/tree_view.ts";
-import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
-import type { KeyBinding } from "../helpers/keyboard.ts";
-import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-
-// --- Extracted utilities ---
-import {
-  isGroupNode as helperIsGroupNode,
-  MainKeyHandler,
-  NavigationHandler,
-  TreeManipulationHandler,
-} from "./request_manager/key_handlers.ts";
-import { RequestFormatter } from "./request_manager/formatters.ts";
-import {
-  processDialogCompletion as helperProcessDialogCompletion,
-  type RequestDialogTypeUnion,
-} from "./request_manager/dialog_handlers.ts";
-import { RequestDialogType } from "../enums.ts";
-import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
-
-// --- Adapter: RequestCommands as RequestService ---
-import type { RequestCommands } from "../cli/commands/request_commands.ts";
-import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "../helpers/constants.ts";
 
 /**
  * Adapter: RequestCommands as RequestService
@@ -546,7 +546,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     const currentIdx = modes.indexOf(this.state.groupBy);
     this.state.groupBy = modes[(currentIdx + 1) % modes.length];
     this.buildTree();
-    this.setStatus(`Grouping: ${this.state.groupBy}`, "info");
+    this.setStatus(`Grouping: ${this.state.groupBy}`, MessageType.INFO);
   }
 
   // ===== Navigation =====
@@ -592,7 +592,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       this.state.showDetail = true;
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      this.setStatus(`Failed to load details: ${msg}`, "error");
+      this.setStatus(`Failed to load details: ${msg}`, MessageType.ERROR);
     }
   }
 
@@ -671,7 +671,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   private handleSearchResult(value: string): void {
     this.state.searchQuery = value;
     this.buildTree();
-    this.setStatus(value ? `Search: "${value}"` : "Search cleared", "info");
+    this.setStatus(value ? `Search: "${value}"` : "Search cleared", MessageType.INFO);
   }
 
   private handleFilterStatusResult(value: string): void {
@@ -679,27 +679,27 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     if (!trimmed) {
       this.state.filterStatus = null;
       this.buildTree();
-      this.setStatus("Status filter cleared", "info");
+      this.setStatus("Status filter cleared", MessageType.INFO);
       return;
     }
 
     if (!isRequestStatus(trimmed)) {
       this.setStatus(
         `Invalid status: ${trimmed}. Expected one of: ${Object.values(RequestStatus).join(", ")}`,
-        "error",
+        MessageType.ERROR,
       );
       return;
     }
 
     this.state.filterStatus = trimmed;
     this.buildTree();
-    this.setStatus(`Filtering: status=${trimmed}`, "info");
+    this.setStatus(`Filtering: status=${trimmed}`, MessageType.INFO);
   }
 
   private handleFilterAgentResult(value: string): void {
     this.state.filterAgent = value || null;
     this.buildTree();
-    this.setStatus(value ? `Filtering: agent=${value}` : "Agent filter cleared", "info");
+    this.setStatus(value ? `Filtering: agent=${value}` : "Agent filter cleared", MessageType.INFO);
   }
 
   private async handleCreateResult(description: string): Promise<void> {
@@ -710,10 +710,10 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       const newRequest = await this.service.createRequest(description, { priority: RequestPriority.NORMAL });
       this.requests.push(newRequest);
       this.buildTree();
-      this.setStatus(`Created request: ${newRequest.trace_id.slice(0, 8)}`, "success");
+      this.setStatus(`Created request: ${newRequest.trace_id.slice(0, 8)}`, MessageType.SUCCESS);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      this.setStatus(`Failed to create: ${msg}`, "error");
+      this.setStatus(`Failed to create: ${msg}`, MessageType.ERROR);
     } finally {
       this.stopLoading();
     }
@@ -735,10 +735,10 @@ export class RequestManagerTuiSession extends TuiSessionBase {
         request.status = RequestStatus.CANCELLED;
       }
       this.buildTree();
-      this.setStatus(`Cancelled request: ${requestId.slice(0, 8)}`, "success");
+      this.setStatus(`Cancelled request: ${requestId.slice(0, 8)}`, MessageType.SUCCESS);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      this.setStatus(`Failed to cancel: ${msg}`, "error");
+      this.setStatus(`Failed to cancel: ${msg}`, MessageType.ERROR);
     } finally {
       this.stopLoading();
     }
@@ -767,7 +767,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     try {
       await this.handleCancelConfirm();
     } catch (e) {
-      this.setStatus(`Error: ${e}`, "error");
+      this.setStatus(`Error: ${e}`, MessageType.ERROR);
     }
   }
 
@@ -776,7 +776,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
     const validPriorities = ["low", "normal", "high", "critical"];
     if (!validPriorities.includes(value.toLowerCase())) {
-      this.setStatus("Invalid priority. Use: low, normal, high, critical", "error");
+      this.setStatus("Invalid priority. Use: low, normal, high, critical", MessageType.ERROR);
       return;
     }
 
@@ -785,7 +785,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     if (request) {
       request.priority = value.toLowerCase();
       this.buildTree();
-      this.setStatus(`Priority changed to ${value}`, "success");
+      this.setStatus(`Priority changed to ${value}`, MessageType.SUCCESS);
     }
   }
 

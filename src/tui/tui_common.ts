@@ -11,6 +11,7 @@ import { getTheme, type TuiTheme } from "../helpers/colors.ts";
 import { createSpinnerState, nextFrame, type SpinnerState, startSpinner, stopSpinner } from "../helpers/spinner.ts";
 import { createStatusBarState, setStatusMessage, type StatusBarState } from "../helpers/status_bar.ts";
 import type { KeyBinding, KeyHandler } from "../helpers/keyboard.ts";
+import { MessageType } from "../enums.ts";
 
 // ===== View State Types =====
 
@@ -169,7 +170,7 @@ export class TuiSessionBase {
   /**
    * Set a status message that will auto-clear after duration
    */
-  setStatus(message: string, type: "info" | "success" | "warning" | "error" = "info"): void {
+  setStatus(message: string, type: MessageType = MessageType.INFO): void {
     this.statusMessage = message;
     setStatusMessage(this.statusBarState, message, type);
   }
@@ -344,10 +345,10 @@ export class TuiSessionBase {
       try {
         await this.refreshConfig.onRefresh();
         this.viewState.needsRefresh = false;
-        this.setStatus("Refreshed", "success");
+        this.setStatus("Refreshed", MessageType.SUCCESS);
       } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
-        this.setStatus(`Refresh failed: ${msg}`, "error");
+        this.setStatus(`Refresh failed: ${msg}`, MessageType.ERROR);
       } finally {
         this.stopLoading();
       }
@@ -394,7 +395,7 @@ export class TuiSessionBase {
     } catch (error) {
       this.stopLoading();
       const msg = error instanceof Error ? error.message : String(error);
-      this.setStatus(`Error: ${msg}`, "error");
+      this.setStatus(`Error: ${msg}`, MessageType.ERROR);
       return null;
     }
   }

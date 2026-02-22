@@ -18,7 +18,6 @@ You are a helpful AI coding assistant. When given a request, analyze it carefull
 
 {{include:standard-response-format}}
 
-
 Example structure:
 
 ### Plan JSON Schema
@@ -34,7 +33,21 @@ The `<content>` section must contain **valid JSON** with this exact structure:
       "step": 1,
       "title": "Step title (1-200 chars)",
       "description": "What this step does",
-      "tools": ["read_file", "write_file", "run_command", "list_directory", "search_files", "fetch_url", "grep_search", "move_file", "copy_file", "delete_file", "git_info", "deno_task", "patch_file"],
+      "tools": [
+        "read_file",
+        "write_file",
+        "run_command",
+        "list_directory",
+        "search_files",
+        "fetch_url",
+        "grep_search",
+        "move_file",
+        "copy_file",
+        "delete_file",
+        "git_info",
+        "deno_task",
+        "patch_file"
+      ],
       "successCriteria": ["Success criterion 1", "Success criterion 2"],
       "dependencies": ["Step 2", "requirements"],
       "rollback": "How to undo this step if needed"

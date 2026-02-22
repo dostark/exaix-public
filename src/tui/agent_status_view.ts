@@ -41,6 +41,7 @@ import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 // Extracted utilities
 import { MainViewHandler, ViewModeHandler } from "./agent_status/key_handlers.ts";
 import { buildFlatTree, buildTreeByModel, buildTreeByStatus } from "./agent_status/tree_builder.ts";
+import { MessageType } from "../enums.ts";
 
 // ===== Service Interfaces =====
 
@@ -850,10 +851,10 @@ export class AgentStatusTuiSession extends TuiSessionBase {
         }
       }
 
-      this.setStatus("Refreshed", "success");
+      this.setStatus("Refreshed", MessageType.SUCCESS);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      this.setStatus(`Refresh failed: ${msg}`, "error");
+      this.setStatus(`Refresh failed: ${msg}`, MessageType.ERROR);
     } finally {
       this.localSpinnerState = stopSpinner(this.localSpinnerState);
     }

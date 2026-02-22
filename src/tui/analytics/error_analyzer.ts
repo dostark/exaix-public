@@ -7,6 +7,7 @@
  * @related-files [src/tui/structured_log_viewer.ts]
  */
 
+import { LogLevel } from "../../enums.ts";
 import type { LogEntry } from "../../services/structured_logger.ts";
 import type { ErrorPattern } from "./types.ts";
 
@@ -14,7 +15,7 @@ import type { ErrorPattern } from "./types.ts";
  * Detect error patterns in logs
  */
 export function detectErrorPatterns(entries: LogEntry[]): ErrorPattern[] {
-  const errorEntries = entries.filter((e) => e.level === "error" || e.level === "fatal");
+  const errorEntries = entries.filter((e) => e.level === LogLevel.ERROR || e.level === LogLevel.FATAL);
 
   // Group by error message pattern (simplified)
   const patterns: Record<string, {

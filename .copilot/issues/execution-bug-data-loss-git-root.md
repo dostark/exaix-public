@@ -48,6 +48,7 @@ Executing an approved plan for a portal-based request can lead to apparent data 
 **Primary Issue:** `PlanExecutor` instantiates `GitService` without an explicit `repoPath` in some flows, causing it to default to `config.system.root`.
 
 **Technical Details:**
+
 1. **Accidental Git Init**: `GitService.ensureRepository()` is called on this incorrectly-scoped service, running `git init` in `~/ExoFrame`.
 2. **Massive Staging**: After each step, `PlanExecutor` calls `git.commit()`, which runs `git add .` in the runtime root, staging and committing the entire ExoFrame installation into a feature branch.
 3. **Destructive Rollback**: `ExecutionLoop.handleFailure` runs `git reset --hard HEAD` and `git checkout main` in the system root. This removes all files from the working directory because the `main`/`master` branch in this accidental repo defaults to empty or only contains a `.gitignore`.
@@ -57,6 +58,7 @@ Executing an approved plan for a portal-based request can lead to apparent data 
 The system has been hardened with multiple layers of security to prevent repository scope mismatch and destructive operations.
 
 ### 1. Hardened Git Service (`src/services/git_service.ts`)
+
 - **New Error Types**: Introduced `GitSecurityError` and `GitNothingToCommitError`.
 - **Destructive Command Guards**: `runGitCommand` blocks `git reset --hard` and `git clean -xfd` **everywhere** to prevent data loss.
 - **Branch Protection**: `checkoutBranch` explicitly blocks agents from switching to `main`, `master`, `develop`, etc. (daemon is exempted for legitimate workflows).
@@ -64,17 +66,20 @@ The system has been hardened with multiple layers of security to prevent reposit
 - **Simplified Security Model**: Removed overly restrictive system root read-only protection in favor of targeted blocking of truly destructive operations.
 
 ### 2. Explicit Repository Scoping (`src/services/plan_executor.ts`)
+
 - **Required Pathing**: `PlanExecutor` now requires an explicit `repoPath` in its constructor, eliminating reliance on system-wide defaults.
 - **Tool Context Isolation**: The `execute` method now defaults the `baseDir` for `ToolRegistry` to `this.repoPath`. This ensures that all agent file operations (write, read, etc.) are correctly scoped to the repository being worked on.
 - **Safe Step Commits**: `executeStep` specifically catches `GitNothingToCommitError` while allowing `GitSecurityError` and other critical failures to bubble up.
 
 ### 3. Isolated Execution Lifecycle (`src/services/execution_loop.ts`)
+
 - **Strategy Respect**: Respects portal-configured execution strategies (BRANCH or WORKTREE) while maintaining security through Git command guards.
 - **Removed Dangerous Rollbacks**: Eliminated the global `git reset --hard` and `git checkout main` logic from `handleFailure`.
 - **Targeted Cleanup**: Implemented safe worktree removal using `portalGitService.removeWorktree` for failed tasks when using WORKTREE strategy.
 - **System Root Guard**: Added a guard in `setupGitForExecution` to skip Git initialization in the system root for non-portal tasks.
 
 ### 4. Tool Registry Guards (`src/services/tool_registry.ts`)
+
 - **Argument Validation**: Enhanced `validateGitArguments` to block destructive Git options and protected branch operations when triggered via the `run_command` tool.
 
 ## Related Files
@@ -87,6 +92,7 @@ The system has been hardened with multiple layers of security to prevent reposit
 ## Workaround
 
 **Manual Recovery:**
+
 1. Check current branch: `git branch` in `~/ExoFrame`.
 2. Locate the branch containing your files (usually `feat/request-...`).
 3. Checkout the files: `git checkout <branch> -- .`
@@ -94,16 +100,16 @@ The system has been hardened with multiple layers of security to prevent reposit
 
 ## Critical Security Requirements
 
-1.  **Destructive Operations Prohibited**: Any git rollback operations like `git reset --hard` are **strictly prohibited** in any circumstances within a portal or the runtime workspace. Rollbacks must be handled through safe mechanisms (e.g., `git restore` on specific files or deleting the temporary worktree/branch) that do not risk deleting uncommitted or unrelated work.
-2.  **Protected Branches**: All code changes in a portal are allowed **ONLY** on designated feature branches and/or worktrees. Direct modifications or checkouts to the `main`/`master` branch by the agent are **STRICTLY FORBIDDEN**.
-3.  **Isolation**: The system must ensure that the execution environment is completely isolated from the runtime root to prevent accidental "cross-contamination" of Git repositories.
+1. **Destructive Operations Prohibited**: Any git rollback operations like `git reset --hard` are **strictly prohibited** in any circumstances within a portal or the runtime workspace. Rollbacks must be handled through safe mechanisms (e.g., `git restore` on specific files or deleting the temporary worktree/branch) that do not risk deleting uncommitted or unrelated work.
+2. **Protected Branches**: All code changes in a portal are allowed **ONLY** on designated feature branches and/or worktrees. Direct modifications or checkouts to the `main`/`master` branch by the agent are **STRICTLY FORBIDDEN**.
+3. **Isolation**: The system must ensure that the execution environment is completely isolated from the runtime root to prevent accidental "cross-contamination" of Git repositories.
 
 ## Recommended Fix
 
-1.  **Pass Repo Path**: Ensure `PlanExecutor` and `ExecutionLoop` always receive and pass the explicit portal repository path when creating `GitService`.
-2.  **Safety Guard in GitService**: Implement a guard in `GitService.runGitCommand` to block destructive commands (like `reset --hard`) if the target path is detected as the system root or a protected branch.
-3.  **Branch Enforcement**: Modify `GitService.checkoutBranch` to throw an error if an agent attempts to switch to `main`, `master`, or any other protected system branch.
-4.  **Remove Global Rollbacks**: Replace the `git reset --hard` logic in `ExecutionLoop.handleFailure` with targeted cleanup of the specific feature branch or worktree associated with the trace ID.
+1. **Pass Repo Path**: Ensure `PlanExecutor` and `ExecutionLoop` always receive and pass the explicit portal repository path when creating `GitService`.
+2. **Safety Guard in GitService**: Implement a guard in `GitService.runGitCommand` to block destructive commands (like `reset --hard`) if the target path is detected as the system root or a protected branch.
+3. **Branch Enforcement**: Modify `GitService.checkoutBranch` to throw an error if an agent attempts to switch to `main`, `master`, or any other protected system branch.
+4. **Remove Global Rollbacks**: Replace the `git reset --hard` logic in `ExecutionLoop.handleFailure` with targeted cleanup of the specific feature branch or worktree associated with the trace ID.
 
 ## Fix Plan
 
@@ -112,48 +118,52 @@ The primary objective is to enforce strict repository isolation and eliminate de
 ## Implementation Steps
 
 ### Phase 1: Repository Isolation
-1.  [x] **Refactor `PlanExecutor`**: Update `src/services/plan_executor.ts` to make `repoPath` a required constructor argument. Remove any defaults to `config.system.root`.
-2.  [x] **Trace-Scoped Worktrees**: Modify `ExecutionLoop` to always use `PortalExecutionStrategy.WORKTREE` for portal tasks, ensuring work is performed in a temporary directory outside the system root.
+
+1. [x] **Refactor `PlanExecutor`**: Update `src/services/plan_executor.ts` to make `repoPath` a required constructor argument. Remove any defaults to `config.system.root`.
+2. [x] **Trace-Scoped Worktrees**: Modify `ExecutionLoop` to always use `PortalExecutionStrategy.WORKTREE` for portal tasks, ensuring work is performed in a temporary directory outside the system root.
 
 ### Phase 2: Git Service Guards
-1.  [x] **Command Whitelisting/Blacklisting**: Add a validation layer in `GitService.runGitCommand` (`src/services/git_service.ts`):
-    *   Throw `GitSecurityError` if arguments contain `reset`, `--hard`, or `clean -xfd` (global destructive operations).
-    *   Verify that the `cwd` (repoPath) is not equal to `config.system.root`.
-2.  [x] **Branch Protection**: Update `checkoutBranch` to explicitly block checkouts to `main`, `master`, or `develop`.
+
+1. [x] **Command Whitelisting/Blacklisting**: Add a validation layer in `GitService.runGitCommand` (`src/services/git_service.ts`):
+   - Throw `GitSecurityError` if arguments contain `reset`, `--hard`, or `clean -xfd` (global destructive operations).
+   - Verify that the `cwd` (repoPath) is not equal to `config.system.root`.
+2. [x] **Branch Protection**: Update `checkoutBranch` to explicitly block checkouts to `main`, `master`, or `develop`.
 
 ### Phase 3: Lifecycle Refactoring
-1.  [x] **Safe Reversion**: In `ExecutionLoop.handleFailure` (`src/services/execution_loop.ts`), remove the global `git reset --hard` and `git checkout main` calls.
-2.  [x] **Cleanup Logic**: Implement safe cleanup:
-    *   If using worktrees: `git worktree remove --force <path>`.
-    *   If using branches: simply leave the branch in an error state for user inspection, or delete it if it's untracked.
+
+1. [x] **Safe Reversion**: In `ExecutionLoop.handleFailure` (`src/services/execution_loop.ts`), remove the global `git reset --hard` and `git checkout main` calls.
+2. [x] **Cleanup Logic**: Implement safe cleanup:
+   - If using worktrees: `git worktree remove --force <path>`.
+   - If using branches: simply leave the branch in an error state for user inspection, or delete it if it's untracked.
 
 ### Phase 4: Audit & Cleanup
-1.  [x] **Repository Audit**: Search for any other direct calls to `Deno.Command("git", ...)` and replace them with `GitService` calls to ensure guards are applied.
+
+1. [x] **Repository Audit**: Search for any other direct calls to `Deno.Command("git", ...)` and replace them with `GitService` calls to ensure guards are applied.
 
 ## Success Criteria
 
-1.  **Zero System Root Taint**: Running any plan (successful or failing) never creates a `.git` folder or initializes a repository in `~/ExoFrame`.
-2.  **No Destructive Resets**: The `git reset --hard` command is never executed by the daemon during any lifecycle stage.
-3.  **Branch Integrity**: The `main`/`master` branch of any portal repository remains untouched by the agent execution engine.
-4.  **Explicit Errors**: Attempting to perform unauthorized Git operations (e.g., path traversal or destructive commands) results in a logged `GitSecurityError`.
+1. **Zero System Root Taint**: Running any plan (successful or failing) never creates a `.git` folder or initializes a repository in `~/ExoFrame`.
+2. **No Destructive Resets**: The `git reset --hard` command is never executed by the daemon during any lifecycle stage.
+3. **Branch Integrity**: The `main`/`master` branch of any portal repository remains untouched by the agent execution engine.
+4. **Explicit Errors**: Attempting to perform unauthorized Git operations (e.g., path traversal or destructive commands) results in a logged `GitSecurityError`.
 
 ## Success Criteria Verification (2026-02-17)
 
-1.  **Zero System Root Taint**: **PASSED**. Multi-layered guards in `GitService` and `ExecutionLoop` prevent any Git activity in `~/ExoFrame`.
-2.  **No Destructive Resets**: **PASSED**. Security middleware blocks `reset --hard` at the service level, and all such calls have been removed from the lifecycle.
-3.  **Branch Integrity**: **PASSED**. `checkoutBranch` and `validateGitArguments` correctly block operations on protected local and remote branches.
-4.  **Regression Testing**: **PASSED**. New suite `tests/git_security_regression_test.ts` covers all guard scenarios.
+1. **Zero System Root Taint**: **PASSED**. Multi-layered guards in `GitService` and `ExecutionLoop` prevent any Git activity in `~/ExoFrame`.
+2. **No Destructive Resets**: **PASSED**. Security middleware blocks `reset --hard` at the service level, and all such calls have been removed from the lifecycle.
+3. **Branch Integrity**: **PASSED**. `checkoutBranch` and `validateGitArguments` correctly block operations on protected local and remote branches.
+4. **Regression Testing**: **PASSED**. New suite `tests/git_security_regression_test.ts` covers all guard scenarios.
 
 ## Planned Testing
 
-1.  **Security Unit Tests**: **PASSED**
-    *   `tests/unit/git_service_security_test.ts`: Verify that `GitService` throws an error when attempting to run `reset --hard`.
-    *   `tests/unit/git_service_security_test.ts`: Verify that `checkoutBranch("master")` is blocked.
-    *   *Note: These are covered by `tests/git_security_regression_test.ts`.*
-2.  **Lifecycle Integration Test**: **PASSED**
-    *   `tests/integration/portal_data_safety_test.ts`: Trigger a failing plan in a portal and verify that the runtime directory `src/` folder remains intact and `git status` in the root shows "not a git repository".
-3.  **Regression Tests**: **PASSED**
-    *   Verify that successful feature branch deployments through portals still function correctly with the new worktree/branch guards.
+1. **Security Unit Tests**: **PASSED**
+   - `tests/unit/git_service_security_test.ts`: Verify that `GitService` throws an error when attempting to run `reset --hard`.
+   - `tests/unit/git_service_security_test.ts`: Verify that `checkoutBranch("master")` is blocked.
+   - _Note: These are covered by `tests/git_security_regression_test.ts`._
+2. **Lifecycle Integration Test**: **PASSED**
+   - `tests/integration/portal_data_safety_test.ts`: Trigger a failing plan in a portal and verify that the runtime directory `src/` folder remains intact and `git status` in the root shows "not a git repository".
+3. **Regression Tests**: **PASSED**
+   - Verify that successful feature branch deployments through portals still function correctly with the new worktree/branch guards.
 
 ## Priority Justification
 

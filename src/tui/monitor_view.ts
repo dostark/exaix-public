@@ -14,6 +14,7 @@ import { type DialogBase } from "../helpers/dialog_base.ts";
 import { type KeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
 import type { ActivityRecord, JournalFilterOptions } from "../services/db.ts";
 import { DialogStatus } from "../enums.ts";
+import type { JSONObject } from "../types.ts";
 
 // ===== Service Interfaces =====
 
@@ -31,7 +32,7 @@ export interface LogEntry {
   agent_id: string | null;
   action_type: string;
   target: string | null;
-  payload: Record<string, unknown>;
+  payload: JSONObject;
   timestamp: string;
 }
 
@@ -696,11 +697,12 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
 
   override startAutoRefresh(): void {
     if (this.autoRefreshTimer) return;
-    this.autoRefreshTimer = setInterval(() => {
+    const timerId = setInterval(() => {
       if (!this.isPaused()) {
         this.doRefresh();
       }
-    }, MONITOR_AUTO_REFRESH_INTERVAL_MS) as unknown as number;
+    }, MONITOR_AUTO_REFRESH_INTERVAL_MS);
+    this.autoRefreshTimer = Number(timerId);
   }
 
   override stopAutoRefresh(): void {

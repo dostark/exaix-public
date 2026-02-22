@@ -1055,6 +1055,7 @@ See `src/services/tool_registry.ts` for implementation details.
 **File**: `src/services/tool_registry.ts` (Lines 447-453)
 
 See `src/services/tool_registry.ts` for implementation details.
+
 ### Issue #13: Duplicated comment blocks
 
 **Status**: ✅ **COMPLETED** (All duplicate JSDoc blocks removed from ProviderFactory, file reduced by 25%, all tests passing)

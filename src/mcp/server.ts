@@ -69,11 +69,32 @@ interface JSONRPCResponse {
 
 interface InitializeParams {
   protocolVersion: string;
-  capabilities: Record<string, unknown>;
+  capabilities: MCPClientCapabilities;
   clientInfo: {
     name: string;
     version: string;
   };
+}
+
+/**
+ * MCP Client capabilities
+ */
+interface MCPClientCapabilities {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+/**
+ * Prompt arguments key-value map
+ */
+interface PromptArguments {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+/**
+ * Object with constructor property
+ */
+interface HasConstructor {
+  constructor: { name: string };
 }
 
 export class MCPServer {
@@ -404,7 +425,8 @@ export class MCPServer {
         !!value &&
         typeof value === "object" &&
         "constructor" in value &&
-        (value as Record<string, unknown>).constructor?.name === "ZodError"
+        typeof (value as HasConstructor).constructor === "function" &&
+        (value as HasConstructor).constructor.name === "ZodError"
       );
     };
 
@@ -601,7 +623,7 @@ export class MCPServer {
   ): JSONRPCResponse {
     const params = request.params as {
       name: string;
-      arguments: Record<string, unknown>;
+      arguments: PromptArguments;
     };
 
     try {

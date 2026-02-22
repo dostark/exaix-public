@@ -3,6 +3,7 @@
 
 import { parse } from "https://deno.land/std@0.203.0/yaml/mod.ts";
 import { walk } from "https://deno.land/std@0.203.0/fs/mod.ts";
+import type { JSONObject } from "../src/types.ts";
 
 const AGENTS_DIR = ".copilot";
 const REQUIRED_KEYS = ["agent", "scope", "title", "short_summary", "version"];
@@ -22,7 +23,7 @@ async function validateFile(path: string): Promise<string[]> {
   }
   let fm;
   try {
-    fm = parse(fmRaw) as Record<string, unknown>;
+    fm = parse(fmRaw) as JSONObject;
   } catch (e) {
     errors.push(`${path}: frontmatter YAML parse error: ${e}`);
     return errors;

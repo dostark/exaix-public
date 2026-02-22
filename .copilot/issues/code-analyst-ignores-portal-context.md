@@ -7,14 +7,17 @@ resolution: fixed
 ## Issue: Code Analyst Ignores Portal Context Hallucinates Logic
 
 ### Description
+
 The `code-analyst` agent often generates plans that reference files or logic that do not exist in the specified portal. This is because the agent was not provided with the actual file structure during the planning phase.
 
 ### Fix
-1.  **Context Injection**: Updated `RequestProcessor` to fetch a shallow file list of the target portal and inject it into the `Portal Context` block.
-2.  **Prompt Refinement**: Updated `code-analyst.md` system prompt to explicitly instruct the agent to use the provided file list and avoid hallucinations.
-3.  **Prompt System**: Updated `buildPortalContextBlock` to include optional file lists.
+
+1. **Context Injection**: Updated `RequestProcessor` to fetch a shallow file list of the target portal and inject it into the `Portal Context` block.
+2. **Prompt Refinement**: Updated `code-analyst.md` system prompt to explicitly instruct the agent to use the provided file list and avoid hallucinations.
+3. **Prompt System**: Updated `buildPortalContextBlock` to include optional file lists.
 
 ### Verification
+
 - Verified with `tests/portal_context_grounding_test.ts`.
 
 ## Reproduction Steps

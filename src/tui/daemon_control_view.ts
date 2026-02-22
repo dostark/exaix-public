@@ -16,6 +16,7 @@ import { DaemonKeyAction, DaemonStatus, DialogStatus, GeneralStatus } from "../e
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
+import { MessageType } from "../enums.ts";
 
 // ===== Constants =====
 
@@ -31,7 +32,7 @@ const STATUS_STARTED = "started";
 const STATUS_STOPPED = "stopped";
 const STATUS_INACTIVE = "inactive";
 const STATUS_NOT_RUNNING = "not running";
-const STATUS_ERROR = "error";
+const STATUS_ERROR = "ERROR";
 const STATUS_FAILED = "failed";
 const STATUS_CRASH = "crash";
 
@@ -448,10 +449,10 @@ export class DaemonControlTuiSession extends TuiSessionBase {
       this.state.logContent = await this.daemonView.getLogs();
       this.state.errorContent = await this.daemonView.getErrors();
 
-      this.setStatus("Status refreshed", "success");
+      this.setStatus("Status refreshed", MessageType.SUCCESS);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      this.setStatus(`Refresh failed: ${msg}`, "error");
+      this.setStatus(`Refresh failed: ${msg}`, MessageType.ERROR);
       this.state.status = DaemonStatus.ERROR;
     } finally {
       this.localSpinnerState = stopSpinner(this.localSpinnerState);
@@ -476,7 +477,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
   showStartConfirm(): void {
     if (this.state.status === DaemonStatus.RUNNING) {
-      this.setStatus("Daemon is already running", "warning");
+      this.setStatus("Daemon is already running", MessageType.WARNING);
       return;
     }
     this.state.activeDialog = new ConfirmDialog({
@@ -489,7 +490,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
   showStopConfirm(): void {
     if (this.state.status !== DaemonStatus.RUNNING) {
-      this.setStatus("Daemon is not running", "warning");
+      this.setStatus("Daemon is not running", MessageType.WARNING);
       return;
     }
     this.state.activeDialog = new ConfirmDialog({
@@ -522,10 +523,10 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     try {
       await this.daemonView.start();
       await this.refreshStatus();
-      this.setStatus("Daemon started successfully", "success");
+      this.setStatus("Daemon started successfully", MessageType.SUCCESS);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      this.setStatus(`Failed to start daemon: ${msg}`, "error");
+      this.setStatus(`Failed to start daemon: ${msg}`, MessageType.ERROR);
     } finally {
       this.localSpinnerState = stopSpinner(this.localSpinnerState);
     }
@@ -536,10 +537,10 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     try {
       await this.daemonView.stop();
       await this.refreshStatus();
-      this.setStatus("Daemon stopped successfully", "success");
+      this.setStatus("Daemon stopped successfully", MessageType.SUCCESS);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      this.setStatus(`Failed to stop daemon: ${msg}`, "error");
+      this.setStatus(`Failed to stop daemon: ${msg}`, MessageType.ERROR);
     } finally {
       this.localSpinnerState = stopSpinner(this.localSpinnerState);
     }
@@ -550,10 +551,10 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     try {
       await this.daemonView.restart();
       await this.refreshStatus();
-      this.setStatus("Daemon restarted successfully", "success");
+      this.setStatus("Daemon restarted successfully", MessageType.SUCCESS);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      this.setStatus(`Failed to restart daemon: ${msg}`, "error");
+      this.setStatus(`Failed to restart daemon: ${msg}`, MessageType.ERROR);
     } finally {
       this.localSpinnerState = stopSpinner(this.localSpinnerState);
     }

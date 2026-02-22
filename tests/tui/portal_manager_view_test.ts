@@ -1,6 +1,6 @@
 import { assert, assertEquals } from "@std/assert";
 import { PortalManagerView, type PortalService } from "../../src/tui/portal_manager_view.ts";
-import { GeneralStatus, PortalStatus } from "../../src/enums.ts";
+import { PortalStatus } from "../../src/enums.ts";
 import { createPortalTuiWithPortals } from "./helpers.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import type { PortalDetails, PortalInfo } from "../../src/cli/commands/portal_commands.ts";
@@ -111,7 +111,7 @@ Deno.test("lists all active portals", async () => {
       targetPath: "/Portals/Docs",
       symlinkPath: "/symlink/Docs",
       contextCardPath: "/card/Docs.md",
-      status: GeneralStatus.BROKEN as const,
+      status: PortalStatus.BROKEN as const,
     },
   ]);
   const portals = await view.listPortals();
@@ -127,7 +127,7 @@ Deno.test("TUI: keyboard navigation and selection", () => {
   const { service: _service, view: _view, tui } = createPortalTuiWithPortals([
     { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
     { alias: "Docs", status: PortalStatus.ACTIVE, targetPath: "/Portals/Docs" },
-    { alias: "Test", status: GeneralStatus.BROKEN as const, targetPath: "/Portals/Test" },
+    { alias: "Test", status: PortalStatus.BROKEN as const, targetPath: "/Portals/Test" },
   ]);
   assertEquals(tui.getSelectedIndex(), 0, "Initial selection is first portal");
   tui.handleKey(KEYS.DOWN);
@@ -592,8 +592,8 @@ Deno.test("PortalManagerTuiSession keyboard actions - invalid selection", async 
 Deno.test("Phase 13.3: Portal tree is built with status groups", () => {
   const { tui } = createPortalTuiWithPortals([
     { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: GeneralStatus.BROKEN as const, targetPath: "/Portals/Docs" },
-    { alias: "Temp", status: GeneralStatus.INACTIVE, targetPath: "/Portals/Temp" },
+    { alias: "Docs", status: PortalStatus.BROKEN as const, targetPath: "/Portals/Docs" },
+    { alias: "Temp", status: PortalStatus.INACTIVE, targetPath: "/Portals/Temp" },
     { alias: "API", status: PortalStatus.ACTIVE, targetPath: "/Portals/API" },
   ]);
 
@@ -619,7 +619,7 @@ Deno.test("Phase 13.3: Portal tree is built with status groups", () => {
 Deno.test("Phase 13.3: Portal tree rendering", () => {
   const { tui } = createPortalTuiWithPortals([
     { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: GeneralStatus.BROKEN as const, targetPath: "/Portals/Docs" },
+    { alias: "Docs", status: PortalStatus.BROKEN as const, targetPath: "/Portals/Docs" },
   ]);
 
   const lines = tui.renderPortalTree();
@@ -702,8 +702,8 @@ Deno.test("Phase 13.3: Loading state management", async () => {
 Deno.test("Phase 13.3: Expand/Collapse all", async () => {
   const { tui } = createPortalTuiWithPortals([
     { alias: "Main", status: PortalStatus.ACTIVE, targetPath: "/Portals/Main" },
-    { alias: "Docs", status: GeneralStatus.BROKEN as const, targetPath: "/Portals/Docs" },
-    { alias: "API", status: GeneralStatus.INACTIVE, targetPath: "/Portals/API" },
+    { alias: "Docs", status: PortalStatus.BROKEN as const, targetPath: "/Portals/Docs" },
+    { alias: "API", status: PortalStatus.INACTIVE, targetPath: "/Portals/API" },
   ]);
 
   const tree = tui.getPortalTree();

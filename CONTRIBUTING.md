@@ -5,15 +5,14 @@ Thank you for your interest in contributing to ExoFrame! This guide details the 
 ## 1. Coding Standards
 
 All coding conventions and style rules are now maintained in
-[CODE_STYLE.md](./CODE_STYLE.md).  This document is the single source of truth
+[CODE_STYLE.md](./CODE_STYLE.md). This document is the single source of truth
 for typing, imports, dependency injection, constants, environment variables,
-and related topics.  Please review it before making any changes to source
+and related topics. Please review it before making any changes to source
 code.
 
 (Sections 1.1–1.6 have been removed and relocated to the central guide.)
 
 ## 2. Testing
-
 
 ### 2.1 Configuration Testing
 

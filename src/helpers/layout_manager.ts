@@ -10,6 +10,7 @@
 import { colorize, type TuiTheme } from "./colors.ts";
 import { renderLayoutPresetListLines } from "./layout_rendering.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "./constants.ts";
+import type { JSONObject } from "../types.ts";
 
 // ===== Layout Types =====
 
@@ -696,7 +697,7 @@ export class LayoutManager {
 
   validateLayout(layout: unknown): layout is Layout {
     if (typeof layout !== "object" || layout === null) return false;
-    const l = layout as Record<string, unknown>;
+    const l = layout as JSONObject;
 
     const requiredLayoutStrings: Array<keyof Layout> = ["name", "activePaneId", "version"];
     if (requiredLayoutStrings.some((k) => typeof l[k] !== "string")) return false;
@@ -707,7 +708,7 @@ export class LayoutManager {
 
     for (const pane of l.panes) {
       if (typeof pane !== "object" || pane === null) return false;
-      const p = pane as Record<string, unknown>;
+      const p = pane as JSONObject;
 
       if (requiredPaneStrings.some((k) => typeof p[k] !== "string")) return false;
       if (requiredPaneNumbers.some((k) => typeof p[k] !== "number")) return false;

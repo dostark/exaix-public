@@ -7,6 +7,7 @@
  * @related-files [src/services/structured_logger.ts, src/tui/monitor_view.ts]
  */
 
+import { MessageType } from "../enums.ts";
 import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "../helpers/tree_view.ts";
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { DialogBase } from "../helpers/dialog_base.ts";
@@ -388,7 +389,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
       this.applyFilters();
       this.buildTree();
     } catch (error) {
-      this.setStatus(`Refresh failed: ${error instanceof Error ? error.message : String(error)}`, "error");
+      this.setStatus(`Refresh failed: ${error instanceof Error ? error.message : String(error)}`, MessageType.ERROR);
     } finally {
       this.setLoading(false);
     }
@@ -663,9 +664,9 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
       const filename = `structured-logs-${timestamp}.jsonl`;
 
       await this.logService.exportLogs(filename, this.logViewExtensions.filteredEntries);
-      this.setStatus(`Logs exported to ${filename}`, "info");
+      this.setStatus(`Logs exported to ${filename}`, MessageType.INFO);
     } catch (error) {
-      this.setStatus(`Export failed: ${error instanceof Error ? error.message : String(error)}`, "error");
+      this.setStatus(`Export failed: ${error instanceof Error ? error.message : String(error)}`, MessageType.ERROR);
     }
   }
 

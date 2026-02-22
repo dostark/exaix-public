@@ -125,22 +125,51 @@ export function createTuiWithRequests(arr: Array<Partial<Request>> = []) {
 // -------------------------
 let logIdCounter = 1;
 
-export function sampleLogEntry(overrides: Record<string, unknown> = {}): LogEntry {
-  const id = overrides.id ?? String(logIdCounter++);
-  return {
-    id,
-    trace_id: (overrides.trace_id as string) ?? `trace-${id}`,
-    actor: (overrides.actor as string) ?? MemorySource.AGENT,
-    agent_id: (overrides.agent_id as string) ?? "default",
-    action_type: (overrides.action_type as string) ?? "request_created",
-    target: (overrides.target as string) ?? "Workspace/Requests/test.md",
-    payload: (overrides.payload as Record<string, unknown>) ?? {},
-    timestamp: (overrides.timestamp as string) ?? new Date().toISOString(),
-    ...overrides,
-  } as unknown as LogEntry;
+export interface LogEntryPayload {
+  [key: string]: string | number | boolean | null | undefined;
 }
 
-export function sampleLogEntries(arr: Array<Record<string, unknown>>) {
+export interface LogEntryOverrides {
+  id?: string;
+  trace_id?: string;
+  actor?: string;
+  agent_id?: string;
+  action_type?: string;
+  target?: string;
+  payload?: LogEntryPayload | string;
+  timestamp?: string;
+  [key: string]: string | number | boolean | null | undefined | LogEntryPayload | unknown;
+}
+
+export function sampleLogEntry(overrides: LogEntryOverrides = {}): LogEntry {
+  const id = overrides.id ?? String(logIdCounter++);
+  const payloadValue = overrides.payload ?? {};
+  let payloadObj: JSONObject;
+  if (typeof payloadValue === "string") {
+    try {
+      const parsed = JSON.parse(payloadValue);
+      payloadObj = typeof parsed === "object" && parsed !== null ? parsed as JSONObject : {};
+    } catch {
+      payloadObj = {};
+    }
+  } else {
+    payloadObj = payloadValue as JSONObject;
+  }
+  const { payload: _payload, ...rest } = overrides;
+  return {
+    id,
+    trace_id: overrides.trace_id ?? `trace-${id}`,
+    actor: overrides.actor ?? MemorySource.AGENT,
+    agent_id: overrides.agent_id ?? "default",
+    action_type: overrides.action_type ?? "request_created",
+    target: overrides.target ?? "Workspace/Requests/test.md",
+    payload: payloadObj,
+    timestamp: overrides.timestamp ?? new Date().toISOString(),
+    ...rest,
+  };
+}
+
+export function sampleLogEntries(arr: LogEntryOverrides[]) {
   return arr.map((a) => sampleLogEntry(a));
 }
 
@@ -205,18 +234,27 @@ export function sampleSingleMonitorLog() {
 // -------------------------
 // Portal helpers
 // -------------------------
-export function samplePortal(overrides: Record<string, unknown> = {}): PortalInfo {
+export interface PortalInfoOverrides {
+  alias?: string;
+  status?: PortalStatus;
+  targetPath?: string;
+  symlinkPath?: string;
+  contextCardPath?: string;
+  [key: string]: unknown;
+}
+
+export function samplePortal(overrides: PortalInfoOverrides = {}): PortalInfo {
   return {
-    alias: (overrides.alias as string) ?? `Portal-${Math.floor(Math.random() * 1e6)}`,
-    status: (overrides.status as Partial<PortalStatus> as PortalStatus) ?? SkillStatus.ACTIVE,
-    targetPath: (overrides.targetPath as string) ?? "/Portals/Main",
-    symlinkPath: (overrides.symlinkPath as string) ?? "",
-    contextCardPath: (overrides.contextCardPath as string) ?? "",
+    alias: overrides.alias ?? `Portal-${Math.floor(Math.random() * 1e6)}`,
+    status: overrides.status ?? SkillStatus.ACTIVE,
+    targetPath: overrides.targetPath ?? "/Portals/Main",
+    symlinkPath: overrides.symlinkPath ?? "",
+    contextCardPath: overrides.contextCardPath ?? "",
     ...overrides,
   } as PortalInfo;
 }
 
-export function samplePortals(arr: Array<Record<string, unknown>>): PortalInfo[] {
+export function samplePortals(arr: PortalInfoOverrides[]): PortalInfo[] {
   return arr.map((a) => samplePortal(a));
 }
 
@@ -282,13 +320,13 @@ export function createMockPortalService(initial: PortalInfo[] = []) {
   return new MockPortalService(initial);
 }
 
-export function createPortalViewWithPortals(arr: Array<Record<string, unknown>> = []) {
+export function createPortalViewWithPortals(arr: PortalInfoOverrides[] = []) {
   const service = createMockPortalService(samplePortals(arr));
   const view = new PortalManagerView(service);
   return { service, view };
 }
 
-export function createPortalTuiWithPortals(arr: Array<Record<string, unknown>> = []) {
+export function createPortalTuiWithPortals(arr: PortalInfoOverrides[] = []) {
   const { service, view } = createPortalViewWithPortals(arr);
   // Pass the service's array reference so tests that mutate the service.portals array are reflected in the TUI session
   const tui = view.createTuiSession(service.portals);
@@ -332,7 +370,7 @@ export function createMockDatabaseService(initialLogs: ActivityRecord[] = []) {
   return new MockDatabaseService(initialLogs);
 }
 
-export function createMonitorViewWithLogs(arr: Array<LogEntry | Record<string, unknown>> = []) {
+export function createMonitorViewWithLogs(arr: Array<LogEntry | LogEntryOverrides> = []) {
   const activityRecords: ActivityRecord[] = arr.map((a) => ({
     id: String(a.id ?? crypto.randomUUID()),
     trace_id: String(a.trace_id ?? `trace-${a.id ?? Math.floor(Math.random() * 1e6)}`),
@@ -355,30 +393,30 @@ export function createMonitorViewWithLogs(arr: Array<LogEntry | Record<string, u
     agent_id: log.agent_id,
     action_type: log.action_type,
     target: log.target,
-    payload: JSON.parse(log.payload) as Record<string, unknown>,
+    payload: JSON.parse(log.payload) as LogEntryPayload,
     timestamp: log.timestamp,
     count: log.count,
   }));
   return { db, monitorView };
 }
 
-export function createMonitorTuiSession(arr: Array<LogEntry | Record<string, unknown>> = []) {
-  const converted: Array<Record<string, unknown>> = arr.map((a) => {
+export function createMonitorTuiSession(arr: Array<LogEntry | LogEntryOverrides> = []) {
+  const converted: LogEntryOverrides[] = arr.map((a) => {
     // If the caller passed a LogEntry, convert it to a plain record with stringified payload
-    if ((a as LogEntry).action_type !== undefined) {
+    if ("action_type" in a && typeof a.action_type === "string") {
       const log = a as LogEntry;
       return {
         id: log.id,
         trace_id: log.trace_id,
-        actor: log.actor,
-        agent_id: log.agent_id,
+        actor: log.actor ?? undefined,
+        agent_id: log.agent_id ?? undefined,
         action_type: log.action_type,
-        target: log.target,
+        target: log.target ?? undefined,
         payload: typeof log.payload === "string" ? log.payload : JSON.stringify(log.payload),
         timestamp: log.timestamp,
-      } as Record<string, unknown>;
+      };
     }
-    return a as Record<string, unknown>;
+    return a as LogEntryOverrides;
   });
 
   const { db, monitorView } = createMonitorViewWithLogs(converted);
@@ -608,7 +646,23 @@ import { EvaluationCategory, MemoryScope } from "../../src/enums.ts";
 // Re-export enums for use by test files
 export { EvaluationCategory, MemoryScope };
 
-export function sampleSkill(overrides: Partial<Skill> = {}): Skill {
+export interface SkillSummaryOverrides {
+  id?: string;
+  skill_id?: string;
+  name?: string;
+  version?: string;
+  status?: SkillStatus;
+  source?: MemorySource | "core" | "project";
+  description?: string;
+  triggers?: { keywords?: string[]; taskTypes?: string[]; filePatterns?: string[]; [key: string]: unknown };
+  instructions?: string;
+  usage_count?: number;
+  created_at?: string;
+  scope?: MemoryScope;
+  [key: string]: unknown;
+}
+
+export function sampleSkill(overrides: SkillSummaryOverrides = {}): SkillSummary {
   return {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
@@ -628,7 +682,7 @@ export function sampleSkill(overrides: Partial<Skill> = {}): Skill {
   } as Skill;
 }
 
-export function sampleSkills(arr: Array<Record<string, unknown>>) {
+export function sampleSkills(arr: SkillSummaryOverrides[]): SkillSummary[] {
   return arr.map((a) => sampleSkill(a));
 }
 
@@ -664,7 +718,7 @@ export function sampleTestSkills(): SkillSummary[] {
       name: "Project Conventions",
       version: "1.0.0",
       status: SkillStatus.ACTIVE,
-      source: MemoryScope.PROJECT,
+      source: MemorySource.PROJECT,
     },
     {
       id: "learned-pattern",
@@ -678,7 +732,7 @@ export function sampleTestSkills(): SkillSummary[] {
       name: "Deprecated Skill",
       version: "0.5.0",
       status: SkillStatus.DEPRECATED,
-      source: MemoryScope.PROJECT,
+      source: MemorySource.PROJECT,
     },
   ]);
 }
@@ -687,7 +741,7 @@ export function createTestSkills(): SkillSummary[] {
   return sampleTestSkills();
 }
 
-export function createMockSkillsService(initial: Array<Record<string, unknown>> = []) {
+export function createMockSkillsService(initial: SkillSummaryOverrides[] = []) {
   return new MinimalSkillsServiceMock(sampleSkills(initial));
 }
 
@@ -792,6 +846,7 @@ export class MinimalMemoryServiceMock implements MemoryServiceInterface {
 // -------------------------
 import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import { ConfidenceLevel, LearningCategory, MemoryOperation, MemoryReferenceType } from "../../src/enums.ts";
+import { JSONObject } from "../../src/types.ts";
 
 export function createMockProposals(): MemoryUpdateProposal[] {
   return [

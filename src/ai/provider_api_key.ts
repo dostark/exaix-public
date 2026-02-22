@@ -18,7 +18,7 @@ export async function getApiKeyWithOptionalPersistence(envKey: string): Promise<
   const envValue = Deno.env.get(envKey);
   if (envValue) {
     // Only persist if EXO_PERSIST_ENV_CREDENTIALS is true
-    const globalWithPersistence = globalThis as typeof globalThis & { EXO_PERSIST_ENV_CREDENTIALS?: boolean };
+    const globalWithPersistence = globalThis as { EXO_PERSIST_ENV_CREDENTIALS?: boolean };
     if (globalWithPersistence.EXO_PERSIST_ENV_CREDENTIALS) {
       // Only persist if not already present in store
       const stored = await SecureCredentialStore.get(envKey);

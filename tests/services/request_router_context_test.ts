@@ -1,7 +1,7 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
-import { FlowValidator, RequestRouter } from "../../src/services/request_router.ts";
+import { RequestRouter } from "../../src/services/request_router.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
@@ -63,7 +63,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     router = new RequestRouter(
       mockFlowRunner,
       mockAgentRunner,
-      mockFlowValidator as unknown as FlowValidator,
+      mockFlowValidator,
       logger,
       "default-agent",
       join(tempDir, "Blueprints"),

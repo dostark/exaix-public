@@ -7,8 +7,6 @@ version: "0.1"
 topics: ["tests", "tdd", "helpers"]
 ---
 
-# ExoFrame Test Development Guidelines
-
 Key points
 
 - Use `initTestDbService()` and `createCliTestContext()` to centralize db+tempdir setup

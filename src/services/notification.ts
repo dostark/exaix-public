@@ -16,7 +16,7 @@
 import type { Config } from "../config/schema.ts";
 import { IDatabaseService } from "./db.ts";
 import type { MemoryUpdateProposal } from "../schemas/memory_bank.ts";
-import { JSONValue, toSafeJson } from "../types.ts";
+import { JSONObject, JSONValue, toSafeJson } from "../types.ts";
 
 /**
  * Notification structure for memory updates
@@ -249,7 +249,7 @@ export class NotificationService implements INotificationService {
     event_type: string;
     target: string;
     trace_id?: string;
-    metadata?: Record<string, unknown>;
+    metadata?: JSONObject;
   }): void {
     try {
       this.db.logActivity(

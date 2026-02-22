@@ -9,6 +9,7 @@
 
 import type { LogEntry } from "../services/structured_logger.ts";
 import type { StructuredLoggerService } from "./structured_log_service.ts";
+import type { JSONObject } from "../types.ts";
 
 /**
  * Log stream configuration
@@ -220,7 +221,7 @@ export class WebSocketLogStream {
 
   constructor(
     private url: string,
-    private onMessage: (data: Record<string, unknown>) => void,
+    private onMessage: (data: JSONObject) => void,
     private onError: (error: Error) => void,
     private onConnect: () => void,
     private onDisconnect: () => void,

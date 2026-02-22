@@ -10,7 +10,7 @@
 import type { PlanCommands } from "../commands/plan_commands.ts";
 import { PlanStatus } from "../../plans/plan_status.ts";
 import type { EventLogger } from "../../services/event_logger.ts";
-import { JSONValue, toSafeJson } from "../../types.ts";
+import { JSONObject, JSONValue, toSafeJson } from "../../types.ts";
 
 export interface PlanActionContext {
   planCommands: PlanCommands;
@@ -43,7 +43,7 @@ export async function handlePlanList(
     display.info("plan.list", "plans", { count: plans.length });
     for (const plan of plans) {
       const statusIcon = plan.status === "review" ? "🔍" : "⚠️";
-      const displayData: Record<string, unknown> = {
+      const displayData: JSONObject = {
         status: plan.status,
         trace: plan.trace_id ? `${plan.trace_id.substring(0, 8)}...` : undefined,
       };
@@ -85,7 +85,7 @@ export async function handlePlanShow(
 
   try {
     const plan = await planCommands.show(id);
-    const displayData: Record<string, unknown> = {
+    const displayData: JSONObject = {
       status: plan.status,
       trace: plan.trace_id,
     };

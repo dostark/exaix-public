@@ -3,6 +3,7 @@
 
 import { parse } from "https://deno.land/std@0.203.0/yaml/mod.ts";
 import { walk } from "https://deno.land/std@0.203.0/fs/mod.ts";
+import type { JSONObject } from "../src/types.ts";
 
 const AGENTS_DIR = ".copilot";
 const OUT_MANIFEST = `${AGENTS_DIR}/manifest.json`;
@@ -31,14 +32,14 @@ function chunkText(text: string, size = 800): string[] {
 }
 
 export async function generateManifestObject() {
-  const docs = [] as Record<string, unknown>[];
+  const docs = [] as JSONObject[];
   await Deno.mkdir(CHUNKS_DIR, { recursive: true });
   for await (const entry of walk(AGENTS_DIR, { exts: [".md"], maxDepth: 3 })) {
     if (!entry.isFile) continue;
     const md = await Deno.readTextFile(entry.path);
     const fmRaw = extractFrontmatter(md);
     if (!fmRaw) continue;
-    const fm = parse(fmRaw) as Record<string, unknown>;
+    const fm = parse(fmRaw) as JSONObject;
     const short_summary = String(fm["short_summary"] ?? "");
     const chunks = chunkText(md.replace(/^---[\s\S]*?---/, ""));
     const chunkPaths: string[] = [];

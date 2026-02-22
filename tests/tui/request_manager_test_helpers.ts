@@ -1,5 +1,6 @@
 import { ConfirmDialog, InputDialog } from "../../src/helpers/dialog_base.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
+import { MessageType } from "../../src/enums.ts";
 
 export interface IRequestManagerMockHandlers {
   handleSearchResult: (value: string) => void;
@@ -8,7 +9,7 @@ export interface IRequestManagerMockHandlers {
   handleCreateResult: (value: string) => Promise<void>;
   handlePriorityResult: (value: string) => void;
   processConfirmDialog: (dialog: ConfirmDialog) => Promise<void>;
-  setStatus: (message: string, type?: "info" | "success" | "warning" | "error") => void;
+  setStatus: (message: string, type?: MessageType) => void;
 }
 
 export function createMockHandlers(
@@ -36,7 +37,7 @@ export function createMockHandlers(
       calls.push("confirm");
       return Promise.resolve();
     },
-    setStatus: (message: string, type?: "info" | "success" | "warning" | "error") => {
+    setStatus: (message: string, type?: MessageType) => {
       const prefix = type ? `${type}:` : "status:";
       calls.push(`${prefix}${message}`);
     },

@@ -65,10 +65,9 @@ deno task check:docs        # Verify .copilot/manifest.json is fresh
 
 ### Coding Standards
 
-All style rules are consolidated in [CODE_STYLE.md](./CODE_STYLE.md).  Please consult that
+All style rules are consolidated in [CODE_STYLE.md](./CODE_STYLE.md). Please consult that
 file for the authoritative, up-to-date guidelines on typing, imports, constants,
 DI, environment variables, and related topics.
-
 
 ### Before Committing
 
@@ -99,6 +98,7 @@ deno run -A scripts/ci.ts coverage # Coverage verification
 To replicate exact CI behavior, run the workflows locally:
 
 **1. Code Quality Gates** (`.github/workflows/code-quality.yml`):
+
 ```bash
 # Format check
 deno fmt --check
@@ -124,6 +124,7 @@ deno task check:arch
 ```
 
 **2. PR Validation** (`.github/workflows/pr-validation.yml`):
+
 ```bash
 # Configure git identity (if needed)
 git config user.email "dev@example.com"
@@ -170,7 +171,7 @@ A task is only complete when:
 
 ## Project Structure
 
-```
+```text
 src/
 ├── ai/          # LLM provider implementations
 ├── cli/         # CLI commands (exoctl)
@@ -187,7 +188,6 @@ tests/           # Mirror of src/ structure
 .copilot/          # AI assistant guidance (see below)
 docs/            # User documentation (Architecture moved to /ARCHITECTURE.md)
 ARCHITECTURE.md  # System Architecture & Knowledge Base
-
 ```
 
 ## .copilot/ Directory — Your Knowledge Base
@@ -196,7 +196,7 @@ The `.copilot/` folder contains **machine-readable guidance** for AI assistants:
 
 ### Structure
 
-```
+```text
 .copilot/
 ├── manifest.json       # Index of all agent docs (auto-generated)
 ├── cross-reference.md  # Task → Document quick reference

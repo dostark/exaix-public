@@ -5,7 +5,7 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import { ExecutionStatus, SkillStatus } from "../../../src/enums.ts";
+import { ExecutionStatus, MessageType, SkillStatus } from "../../../src/enums.ts";
 import { MemoryStatus } from "../../../src/memory/memory_status.ts";
 import {
   addStatusLine,
@@ -81,7 +81,7 @@ Deno.test("renderStatusBar: renders with message", () => {
     leftItems: [],
     rightItems: [],
     message: "Status message",
-    messageType: "info",
+    messageType: MessageType.INFO,
   };
   const config: StatusBarConfig = {
     width: 60,
@@ -92,12 +92,7 @@ Deno.test("renderStatusBar: renders with message", () => {
 });
 
 Deno.test("renderStatusBar: renders message types", () => {
-  const types: Array<"info" | "success" | "warning" | "error"> = [
-    "info",
-    "success",
-    "warning",
-    "error",
-  ];
+  const types: Array<MessageType> = Object.values(MessageType) as MessageType[];
 
   for (const type of types) {
     const state: StatusBarState = {
@@ -242,21 +237,21 @@ Deno.test("createTimestampItem: creates timestamp item", () => {
 
 Deno.test("setStatusMessage: sets message with type", () => {
   const state = createStatusBarState();
-  const updated = setStatusMessage(state, "Test message", "warning");
+  const updated = setStatusMessage(state, "Test message", MessageType.WARNING);
   assertEquals(updated.message, "Test message");
-  assertEquals(updated.messageType, "warning");
+  assertEquals(updated.messageType, MessageType.WARNING);
 });
 
 Deno.test("setStatusMessage: defaults to info type", () => {
   const state = createStatusBarState();
   const updated = setStatusMessage(state, "Info message");
   assertEquals(updated.message, "Info message");
-  assertEquals(updated.messageType, "info");
+  assertEquals(updated.messageType, MessageType.INFO);
 });
 
 Deno.test("clearStatusMessage: clears message", () => {
   let state = createStatusBarState();
-  state = setStatusMessage(state, "Message", "error");
+  state = setStatusMessage(state, "Message", MessageType.ERROR);
   const cleared = clearStatusMessage(state);
   assertEquals(cleared.message, undefined);
   assertEquals(cleared.messageType, undefined);

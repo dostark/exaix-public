@@ -1,5 +1,6 @@
 // Usage: deno run --allow-read scripts/inspect_embeddings.ts --query "foo" --top 5
 import { parse } from "https://deno.land/std@0.203.0/flags/mod.ts";
+import type { JSONObject } from "../src/types.ts";
 
 function dot(a: number[], b: number[]) {
   let s = 0;
@@ -47,7 +48,7 @@ async function main() {
       const p = String(args["query-file"]);
       const raw = await Deno.readTextFile(p);
       try {
-        const obj = JSON.parse(raw) as Record<string, unknown>;
+        const obj = JSON.parse(raw) as JSONObject;
         if (Array.isArray(obj)) return obj as number[];
         if (obj.vector && Array.isArray(obj.vector)) return obj.vector as number[];
         if (obj.text && typeof obj.text === "string") return await mockVector(obj.text as string);

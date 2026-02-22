@@ -7,6 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts]
  */
 
+import { MessageType } from "../../enums.ts";
 import type { Pane, TuiView } from "../tui_dashboard.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../helpers/constants.ts";
 
@@ -38,9 +39,9 @@ export async function saveLayout(
       version: "1.2",
     };
     await Deno.writeTextFile(getLayoutFile(), JSON.stringify(layout, null, 2));
-    addNotification("Layout saved", "success");
+    addNotification("Layout saved", MessageType.SUCCESS);
   } catch (error) {
-    addNotification(`Failed to save layout: ${error}`, "error");
+    addNotification(`Failed to save layout: ${error}`, MessageType.ERROR);
   }
 }
 
@@ -78,7 +79,7 @@ export async function restoreLayout(
         });
       }
       const activePaneId = layout.activePaneId || panes[0]?.id || "main";
-      addNotification("Layout restored", "success");
+      addNotification("Layout restored", MessageType.SUCCESS);
       return { activePaneId };
     }
   } catch (_error) {
@@ -108,7 +109,7 @@ export function resetToDefault(
     focused: true,
     maximized: false,
   });
-  addNotification("Layout reset to default", "info");
+  addNotification("Layout reset to default", MessageType.INFO);
   return "main";
 }
 

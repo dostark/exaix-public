@@ -12,7 +12,7 @@ import { RequestPriority } from "../../enums.ts";
 import { RequestStatus } from "../../requests/request_status.ts";
 import { PRIORITY_ICONS } from "../cli.config.ts";
 import type { EventLogger } from "../../services/event_logger.ts";
-import { JSONValue, toSafeJson } from "../../types.ts";
+import { JSONObject, JSONValue, toSafeJson } from "../../types.ts";
 
 export interface RequestActionContext {
   requestCommands: RequestCommands;
@@ -147,7 +147,7 @@ export async function handleRequestShow(
 
   try {
     const { metadata, content } = await requestCommands.show(id);
-    const displayData: Record<string, unknown> = {
+    const displayData: JSONObject = {
       trace_id: metadata.trace_id,
       status: metadata.status,
       priority: metadata.priority,

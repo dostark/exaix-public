@@ -8,6 +8,7 @@
  */
 
 import { ValidationResult } from "../base/command.ts";
+import type { JSONObject } from "../../types.ts";
 
 export type ValidationRule = (value: unknown) => string | null;
 
@@ -34,7 +35,7 @@ export class ValidationChain {
    * Validate an object against the configured rules.
    * @param data The object to validate
    */
-  validate(data: Record<string, unknown>): ValidationResult {
+  validate(data: JSONObject): ValidationResult {
     const errors: string[] = [];
 
     for (const [field, rules] of this.rules.entries()) {

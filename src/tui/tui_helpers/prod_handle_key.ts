@@ -7,6 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts, src/tui/tui_helpers/handle_key.ts]
  */
 
+import { MessageType } from "../../enums.ts";
 import type { DashboardViewState, Pane, TuiView } from "../tui_dashboard.ts";
 import type { INotificationService, MemoryNotification as TuiNotification } from "../../services/notification.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
@@ -71,14 +72,14 @@ async function handleMemoryNotificationsKey(
   const action = key.toLowerCase();
   if (action === "a") {
     const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
-    await notificationService.notify(`Approved: ${selected.message}`, "success");
+    await notificationService.notify(`Approved: ${selected.message}`, MessageType.SUCCESS);
     await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
     return { reRender: true };
   }
 
   if (action === "r") {
     const selected = memoryNotifs[prodState.selectedMemoryNotifIndex];
-    await notificationService.notify(`Rejected: ${selected.message}`, "error");
+    await notificationService.notify(`Rejected: ${selected.message}`, MessageType.ERROR);
     await notificationService.clearNotification((selected.proposal_id || selected.id) as string);
     return { reRender: true };
   }

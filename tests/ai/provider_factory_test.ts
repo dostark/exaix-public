@@ -480,7 +480,7 @@ Deno.test("ProviderFactory: unknown provider generates unknown ID", () => {
     provider: "unknown" as ProviderType,
     model: "test-model",
     timeoutMs: 30000,
-  })) as typeof originalResolveOptions;
+  })) as () => { provider: ProviderType; model: string; timeoutMs: number };
 
   try {
     const info = ProviderFactory.getProviderInfo(config);
