@@ -24,7 +24,7 @@ import { AgentHealth, LogLevel, TuiGroupBy } from "../../src/enums.ts";
 import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
 import { CritiqueSeverity } from "../../src/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
-import { assertExists, assertEquals } from "@std/assert";
+import { assertEquals, assertExists } from "@std/assert";
 
 // ===== Mock AgentService for testing =====
 

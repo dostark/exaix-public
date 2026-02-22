@@ -62,7 +62,7 @@ Deno.test("saveLayout: notifies error when ~/.exoframe is a file", async () => {
     const last = notifications.at(-1);
     assertExists(last);
     assertStringIncludes(last.m, "Failed to save layout:");
-      assertEquals(last.t, "ERROR");
+    assertEquals(last.t, "ERROR");
   });
 });
 
@@ -112,7 +112,7 @@ Deno.test("restoreLayout: restores v1.2 flex layout and notifies", async () => {
 
     assertEquals(result?.activePaneId, "side");
     assertEquals(notifications.at(-1)?.m, "Layout restored");
-      assertEquals(notifications.at(-1)?.t, "SUCCESS");
+    assertEquals(notifications.at(-1)?.t, "SUCCESS");
 
     assertEquals(panes.length, 1);
     assertEquals(panes[0].id, "side");

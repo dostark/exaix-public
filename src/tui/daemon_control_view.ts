@@ -450,7 +450,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
   }
 
   private parseStatus(rawStatus: string): DaemonStatus {
-      // ...existing code...
+    // ...existing code...
     // Normalize input for robust comparison
     let normalized = "";
     if (typeof rawStatus === "string") {
