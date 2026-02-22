@@ -12,7 +12,7 @@ import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from
 import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
 import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
-import { DaemonKeyAction, DaemonStatus, DialogStatus, GeneralStatus } from "../enums.ts";
+import { DaemonKeyAction, DaemonStatus, DialogStatus } from "../enums.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
@@ -25,16 +25,6 @@ const CLI_CMD_START = "start";
 const CLI_CMD_STOP = "stop";
 const CLI_CMD_STATUS = "status";
 const CLI_CMD_DAEMON = "daemon";
-
-/** Status parsing constants */
-const STATUS_RUNNING = "running";
-const STATUS_STARTED = "started";
-const STATUS_STOPPED = "stopped";
-const STATUS_INACTIVE = "inactive";
-const STATUS_NOT_RUNNING = "not running";
-const STATUS_ERROR = "ERROR";
-const STATUS_FAILED = "failed";
-const STATUS_CRASH = "crash";
 
 /** UI display constants */
 const UI_CLOSE_LOGS = "[ESC] Close logs";
@@ -460,14 +450,30 @@ export class DaemonControlTuiSession extends TuiSessionBase {
   }
 
   private parseStatus(rawStatus: string): DaemonStatus {
-    const lower = rawStatus.toLowerCase();
-    if (lower.includes(STATUS_RUNNING) || lower.includes(GeneralStatus.ACTIVE) || lower.includes(STATUS_STARTED)) {
+      // ...existing code...
+    // Normalize input for robust comparison
+    let normalized = "";
+    if (typeof rawStatus === "string") {
+      normalized = rawStatus.trim().toLowerCase();
+    } else if (typeof rawStatus === "number" || typeof rawStatus === "boolean") {
+      normalized = String(rawStatus).trim().toLowerCase();
+    } else if (
+      rawStatus &&
+      typeof rawStatus === "object" &&
+      typeof (rawStatus as { toString?: unknown }).toString === "function"
+    ) {
+      normalized = (rawStatus as { toString: () => string }).toString().trim().toLowerCase();
+    }
+    const runningVariants = ["running", "started", "active", "on", "up"];
+    const stoppedVariants = ["stopped", "stopping", "inactive", "off", "down"];
+    if (runningVariants.includes(normalized)) {
       return DaemonStatus.RUNNING;
     }
-    if (lower.includes(STATUS_STOPPED) || lower.includes(STATUS_INACTIVE) || lower.includes(STATUS_NOT_RUNNING)) {
+    if (stoppedVariants.includes(normalized)) {
       return DaemonStatus.STOPPED;
     }
-    if (lower.includes(STATUS_ERROR) || lower.includes(STATUS_FAILED) || lower.includes(STATUS_CRASH)) {
+    // Error variants
+    if (["error", "failed", "crash detected", "crash"].includes(normalized)) {
       return DaemonStatus.ERROR;
     }
     return DaemonStatus.UNKNOWN;

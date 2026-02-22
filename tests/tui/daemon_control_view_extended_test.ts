@@ -101,7 +101,15 @@ Deno.test("DaemonControlView: service delegation works", async () => {
     for (const alias of aliases) {
       mock.setStatus(alias as DaemonStatus);
       await session.refreshStatus();
-      assertEquals(session.getDaemonStatus(), expected);
+      if (expected === DaemonStatus.ERROR) {
+        assertEquals(session.getDaemonStatus(), DaemonStatus.ERROR);
+      } else if (expected === DaemonStatus.RUNNING) {
+        assertEquals(session.getDaemonStatus(), DaemonStatus.RUNNING);
+      } else if (expected === DaemonStatus.STOPPED) {
+        assertEquals(session.getDaemonStatus(), DaemonStatus.STOPPED);
+      } else {
+        assertEquals(session.getDaemonStatus(), DaemonStatus.UNKNOWN);
+      }
     }
   });
 });

@@ -1,8 +1,7 @@
-**Implementation Logic:**
 - **Status:** Run `git status --porcelain`. Parse into:
-    ```json
-    { "modified": ["src/foo.ts"], "staged": [], "untracked": ["tests/new.ts"] }
-    ```
+  ```json
+  { "modified": ["src/foo.ts"], "staged": [], "untracked": ["tests/new.ts"] }
+  ```
 - **Branch:** `git branch --show-current`.
 - **Diff Summary:** `git diff --stat`.
 
@@ -16,3 +15,5 @@
 
 **Parameters (Zod):**
 (See `src/services/tool_registry.ts`)
+
+**Implementation Logic:**

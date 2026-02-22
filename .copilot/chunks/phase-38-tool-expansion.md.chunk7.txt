@@ -1,9 +1,9 @@
-**Implementation Logic:**
 - **check/lint**: Run `deno lint --json [path]`. Return structured errors.
 - **fmt**: Run `deno fmt --check [path]`. Return unformatted files list.
 - **test**: Run `deno test --reporter=json [path]`. Return structured results (passed/failed tests).
 
 **Security:**
+
 - 🛡️ **Resource Limits:** Enforce timeouts.
 
 ---
@@ -16,3 +16,5 @@
 
 **Parameters (Zod):**
 (See `src/services/tool_registry.ts`)
+
+**Implementation Logic:**

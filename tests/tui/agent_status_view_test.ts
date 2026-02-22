@@ -24,6 +24,7 @@ import { AgentHealth, LogLevel, TuiGroupBy } from "../../src/enums.ts";
 import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
 import { CritiqueSeverity } from "../../src/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
+import { assertExists, assertEquals } from "@std/assert";
 
 // ===== Mock AgentService for testing =====
 
@@ -207,8 +208,9 @@ Deno.test("AGENT_STATUS_COLORS: has all status types", () => {
     CritiqueSeverity.CRITICAL,
   ];
   for (const key of requiredKeys) {
-    if (!AGENT_STATUS_COLORS[key]) {
-      throw new Error(`Missing color for: ${key}`);
+    assertExists(AGENT_STATUS_COLORS[key], `Missing color for: ${key}`);
+    if (key === AgentStatus.ERROR) {
+      assertEquals(AGENT_STATUS_COLORS[key], "red");
     }
   }
 });

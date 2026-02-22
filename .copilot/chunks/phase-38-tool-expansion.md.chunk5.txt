@@ -1,4 +1,5 @@
 **Security:**
+
 - 🛡️ **Scope**: Both source and destination (and delete target) MUST resolve to allowed roots via `PathResolver`.
 - 🛡️ **Logging**: All destructive actions (delete, overwrite) must log to Activity Journal.
 
@@ -12,3 +13,5 @@
 
 **Parameters (Zod):**
 (See `src/services/tool_registry.ts`)
+
+**Implementation Logic:**

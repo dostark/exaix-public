@@ -164,13 +164,13 @@ Deno.test("MCP Server: rejects unknown method", async () => {
 Deno.test("MCP Server: classifyError handles Zod validation errors", async () => {
   const ctx = await initMCPTestWithoutPortal();
   try {
-    // Create a mock Zod error
+    // Create a mock Zod error with a constructor function named 'ZodError'
     const zodError = {
-      constructor: { name: "ZodError" },
       errors: [
         { path: ["portal"], message: "Required" },
         { path: ["path"], message: "Invalid format" },
       ],
+      constructor: function ZodError() {},
     };
 
     // Access private method via type assertion

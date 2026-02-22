@@ -6,12 +6,13 @@
 (See `src/services/tool_registry.ts`)
 
 **Implementation Logic:**
-1.  **Resolve Path:** Use `PathResolver` to ensure `path` is within allowed roots.
-2.  **Command:** Use `git grep -nI` (if in a git repo) or `grep -rI` (fallback).
-    *   Flags: `-n` (line numbers), `-I` (ignore binary), `--max-count=50`.
-3.  **Output:** Parse stdout into structured JSON:
-    ```json
-    [
-      { "file": "src/utils.ts", "line": 45, "content": "export const foo = ..." }
-    ]
-    ```
+
+1. **Resolve Path:** Use `PathResolver` to ensure `path` is within allowed roots.
+2. **Command:** Use `git grep -nI` (if in a git repo) or `grep -rI` (fallback).
+   - Flags: `-n` (line numbers), `-I` (ignore binary), `--max-count=50`.
+3. **Output:** Parse stdout into structured JSON:
+   ```json
+   [
+     { "file": "src/utils.ts", "line": 45, "content": "export const foo = ..." }
+   ]
+   ```

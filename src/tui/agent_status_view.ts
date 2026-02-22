@@ -133,9 +133,9 @@ export const LOG_LEVEL_ICONS: Record<string, string> = {
 };
 
 export const AGENT_STATUS_COLORS: Record<string, string> = {
-  active: "green",
-  inactive: "yellow",
-  error: "red",
+  [AgentStatus.ACTIVE]: "green",
+  [AgentStatus.INACTIVE]: "yellow",
+  [AgentStatus.ERROR]: "red",
   healthy: "green",
   warning: "yellow",
   critical: "red",

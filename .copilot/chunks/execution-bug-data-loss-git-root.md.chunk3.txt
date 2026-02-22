@@ -1,4 +1,3 @@
-**Technical Details:**
 1. **Accidental Git Init**: `GitService.ensureRepository()` is called on this incorrectly-scoped service, running `git init` in `~/ExoFrame`.
 2. **Massive Staging**: After each step, `PlanExecutor` calls `git.commit()`, which runs `git add .` in the runtime root, staging and committing the entire ExoFrame installation into a feature branch.
 3. **Destructive Rollback**: `ExecutionLoop.handleFailure` runs `git reset --hard HEAD` and `git checkout main` in the system root. This removes all files from the working directory because the `main`/`master` branch in this accidental repo defaults to empty or only contains a `.gitignore`.

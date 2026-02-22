@@ -1,4 +1,3 @@
-### Files Modified:
 - [plan_writer.ts](file:///home/dkasymov/git/ExoFrame/src/services/plan_writer.ts)
 - [request_processor.ts](file:///home/dkasymov/git/ExoFrame/src/services/request_processor.ts)
 - [plan_adapter.ts](file:///home/dkasymov/git/ExoFrame/src/services/plan_adapter.ts)
@@ -8,3 +7,7 @@
 - [software-architect.md](file:///home/dkasymov/git/ExoFrame/Blueprints/Agents/software-architect.md)
 
 ## Verification
+
+### Automated Tests
+
+Successfull verification with a dedicated reproduction test and existing regression tests:

@@ -7,6 +7,37 @@
  * @related-files [src/schemas/flow.ts, src/services/db.ts]
  */
 
+export enum GeneralStatus {
+  UNKNOWN = "unknown",
+
+  // Basic states
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  BROKEN = "broken",
+  PENDING = "pending",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  CONFIRMED = "confirmed",
+  CANCELLED = "cancelled",
+  DRAFT = "draft",
+  DEPRECATED = "deprecated",
+  RUNNING = "running",
+  STOPPED = "stopped",
+
+  // Plan states
+  REVIEW = "review",
+  APPROVED = "approved",
+  REJECTED = "rejected",
+  NEEDS_REVISION = "needs_revision",
+
+  // Agent/System states
+  ERROR = "error",
+
+  // Request states
+  IN_PROGRESS = "in_progress",
+  PLANNED = "planned",
+}
+
 /**
  * Types of AI providers supported by the system.
  * Each provider represents a different AI service or model backend.
@@ -45,10 +76,10 @@ export enum MockStrategy {
  * Status for the ExoFrame daemon.
  */
 export enum DaemonStatus {
-  RUNNING = "running",
-  STOPPED = "stopped",
-  ERROR = "error",
-  UNKNOWN = "unknown",
+  RUNNING = GeneralStatus.RUNNING,
+  STOPPED = GeneralStatus.STOPPED,
+  ERROR = GeneralStatus.ERROR,
+  UNKNOWN = GeneralStatus.UNKNOWN,
 }
 
 /**
@@ -175,39 +206,7 @@ export enum SecurityMode {
   HYBRID = "hybrid",
 }
 
-export enum GeneralStatus {
-  // Basic states
-  ACTIVE = "active",
-  INACTIVE = "inactive",
-  BROKEN = "broken",
-  PENDING = "pending",
-  COMPLETED = "completed",
-  FAILED = "failed",
-  CONFIRMED = "confirmed",
-  CANCELLED = "cancelled",
-  DRAFT = "draft",
-  DEPRECATED = "deprecated",
 
-  // Execution states
-  RUNNING = "running",
-
-  // Plan states
-  REVIEW = "review",
-  APPROVED = "approved",
-  REJECTED = "rejected",
-  NEEDS_REVISION = "needs_revision",
-
-  // Agent/System states
-  ERROR = "error",
-
-  // Request states
-  IN_PROGRESS = "in_progress",
-  PLANNED = "planned",
-}
-
-/**
- * Status codes specific to agents.
- */
 /**
  * Health status codes for agents.
  */
@@ -360,17 +359,17 @@ export enum AnalysisFindingSeverity {
  */
 export enum SqliteJournalMode {
   /** Delete the journal file after each transaction */
-  DELETE = "DELETE",
+  DELETE = "delete",
   /** Truncate the journal file to zero length after each transaction */
-  TRUNCATE = "TRUNCATE",
+  TRUNCATE = "truncate",
   /** Persist the journal file after each transaction */
-  PERSIST = "PERSIST",
+  PERSIST = "persist",
   /** Store the journal in memory */
-  MEMORY = "MEMORY",
+  MEMORY = "memory",
   /** Use Write-Ahead Logging for better concurrency */
   WAL = "WAL",
   /** Disable the rollback journal entirely */
-  OFF = "OFF",
+  OFF = "off",
 }
 
 /**
@@ -395,10 +394,10 @@ export enum LogLevel {
  * Used to categorize the nature of messages displayed to users.
  */
 export enum MessageType {
-  INFO = "INFO",
-  SUCCESS = "SUCCESS",
-  WARNING = "WARNING",
-  ERROR = "ERROR",
+  INFO = "info",
+  SUCCESS = "success",
+  WARNING = "warning",
+  ERROR = "error",
 }
 
 /**
@@ -788,12 +787,3 @@ export enum DaemonKeyAction {
   QUIT = "quit",
   CANCEL = "cancel",
 }
-
-// /**
-//  * Categories for key bindings.
-//  */
-// export enum KeyBindingCategory {
-//   ACTIONS = "Actions",
-//   VIEW = "View",
-//   HELP = "Help",
-// }

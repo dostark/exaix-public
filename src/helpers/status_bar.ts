@@ -136,13 +136,13 @@ function formatStatusItem(item: StatusBarItem, theme: TuiTheme): string {
  */
 function getMessageColor(type: StatusBarState["messageType"], theme: TuiTheme): string {
   switch (type) {
-    case "SUCCESS":
+    case MessageType.SUCCESS:
       return theme.success;
-    case "WARNING":
+    case MessageType.WARNING:
       return theme.warning;
-    case "ERROR":
+    case MessageType.ERROR:
       return theme.error;
-    case "INFO":
+    case MessageType.INFO:
     default:
       return theme.info;
   }

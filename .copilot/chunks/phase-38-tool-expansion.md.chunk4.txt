@@ -1,4 +1,5 @@
 **Security:**
+
 - 🛡️ **Command Injection:** Pattern must be escaped or passed as a distinct argument to `Deno.Command`.
 - 🛡️ **Path Traversal:** Verified via `PathResolver`.
 
@@ -11,10 +12,12 @@
 **Purpose:** Atomic file operations.
 
 **Parameters (Zod):**
+
 - **move/copy**: `{ source: string, destination: string, overwrite: boolean }`
 - **delete**: `{ path: string }`
 
 **Implementation Logic:**
+
 - **move**: `await Deno.rename(src, dest)`
 - **copy**: `await Deno.copyFile(src, dest)`
 - **delete**: `await Deno.remove(path)`

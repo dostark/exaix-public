@@ -1,1 +1,3 @@
 **Primary Issue:** `PlanExecutor` instantiates `GitService` without an explicit `repoPath` in some flows, causing it to default to `config.system.root`.
+
+**Technical Details:**

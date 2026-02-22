@@ -39,9 +39,9 @@ export async function saveLayout(
       version: "1.2",
     };
     await Deno.writeTextFile(getLayoutFile(), JSON.stringify(layout, null, 2));
-    addNotification("Layout saved", MessageType.SUCCESS);
+    addNotification("Layout saved", "SUCCESS");
   } catch (error) {
-    addNotification(`Failed to save layout: ${error}`, MessageType.ERROR);
+    addNotification(`Failed to save layout: ${error}`, "ERROR");
   }
 }
 
@@ -79,7 +79,7 @@ export async function restoreLayout(
         });
       }
       const activePaneId = layout.activePaneId || panes[0]?.id || "main";
-      addNotification("Layout restored", MessageType.SUCCESS);
+      addNotification("Layout restored", "SUCCESS");
       return { activePaneId };
     }
   } catch (_error) {
