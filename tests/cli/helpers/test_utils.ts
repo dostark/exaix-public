@@ -2,13 +2,10 @@
  * CLI Test Utilities
  */
 
-/**
- * Reusable helper to import exoctl module with test mode enabled.
- * Note: If you need to mock specific commands, you can use the returned ctx.
- */
 import type { ExoCtlTestContext } from "../../../src/cli/exoctl.ts";
-
 import type * as ExoCtlModule from "../../../src/cli/exoctl.ts";
+import { join } from "@std/path";
+import { ensureDir } from "@std/fs";
 
 // Dynamic import required for test module loading (documented in CODE_STYLE.md)
 // This must remain a dynamic import because the module is only needed at runtime in test mode.
@@ -22,17 +19,87 @@ export async function withTestMod<T>(fn: (mod: typeof ExoCtlModule, ctx: ExoCtlT
   const origEnv = Deno.env.get("EXO_TEST_CLI_MODE") ?? Deno.env.get("EXO_TEST_MODE");
   Deno.env.set("EXO_TEST_CLI_MODE", "1");
   Deno.env.set("EXO_TEST_MODE", "1");
+  let ctx: ExoCtlTestContext | undefined;
+  const tempDir: string = await Deno.makeTempDir({ prefix: "exo-test-" });
+  await ensureDir(tempDir);
+  const configPath: string = join(tempDir, "exo.config.toml");
+  const configContent = `
+[system]
+root = "./"
+
+[paths]
+runtime = "./.exo"
+
+[database]
+batch_flush_ms = 10
+batch_max_size = 10
+sqlite.journal_mode = "WAL"
+sqlite.foreign_keys = true
+sqlite.busy_timeout_ms = 5000
+
+[agents]
+default_model = "mock:test"
+`;
+  await Deno.writeTextFile(configPath, configContent);
+  // Set EXO_CONFIG_PATH before any CLI code loads
+  Deno.env.set("EXO_CONFIG_PATH", configPath);
   try {
     const loadedMod = await loadExoCtlModule();
-    const ctx = loadedMod.__test_getContext();
+    // Use real DB in test mode if possible
+    if (loadedMod.__test_initializeServices) {
+      const services = await loadedMod.__test_initializeServices({ instantiateDb: true, configPath });
+      ctx = {
+        ...loadedMod.__test_getContext(),
+        db: services.db,
+      };
+    } else {
+      ctx = loadedMod.__test_getContext();
+    }
     return await fn(loadedMod, ctx);
   } finally {
+    // Attempt to close db and underlying dynamic library if present
+    if (ctx && ctx.db) {
+      // Close the DatabaseService
+      if (typeof ctx.db.close === "function") {
+        try {
+          await ctx.db.close();
+        } catch (err) {
+          console.error("[withTestMod] Error closing db:", err);
+        }
+      }
+      // Close the underlying Database instance if present
+      const dbAny = ctx.db as unknown;
+      if (
+        dbAny &&
+        typeof dbAny === "object" &&
+        "instance" in dbAny &&
+        typeof (dbAny as { instance?: unknown }).instance === "object" &&
+        typeof (dbAny as { instance?: { close?: unknown } }).instance?.close === "function"
+      ) {
+        try {
+          await (dbAny as { instance: { close: () => Promise<void> } }).instance.close();
+        } catch (err) {
+          console.error("[withTestMod] Error closing db.instance:", err);
+        }
+      }
+    }
     if (origEnv === undefined) {
       Deno.env.delete("EXO_TEST_CLI_MODE");
       Deno.env.delete("EXO_TEST_MODE");
     } else {
       Deno.env.set("EXO_TEST_CLI_MODE", origEnv);
       Deno.env.set("EXO_TEST_MODE", origEnv);
+    }
+    if (configPath) {
+      Deno.env.delete("EXO_CONFIG_PATH");
+    }
+    // Clean up ephemeral config and temp dir
+    if (tempDir) {
+      try {
+        await Deno.remove(tempDir, { recursive: true });
+      } catch (_) {
+        // ignore errors during temp dir cleanup
+      }
     }
   }
 }

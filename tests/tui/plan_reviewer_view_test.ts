@@ -23,11 +23,11 @@ function yamlFrontmatter(obj: Record<string, string>): string {
 }
 
 interface ReviewerLog {
-  actor: string;
-  action: string;
-  target: string;
-  payload: ReviewerPayload;
-  traceId?: string;
+  action_type: string;
+  plan_id: string;
+  reviewer?: string;
+  reason?: string | null;
+  timestamp?: string;
 }
 
 interface ReviewerPayload {
@@ -36,8 +36,14 @@ interface ReviewerPayload {
 
 class MockDB {
   logs: ReviewerLog[] = [];
-  logActivity(actor: string, action: string, target: string, payload: ReviewerPayload = {}, traceId?: string) {
-    this.logs.push({ actor, action, target, payload, traceId });
+  logActivity(
+    action_type: string,
+    plan_id: string,
+    reviewer?: string,
+    reason?: string | null,
+    timestamp?: string,
+  ) {
+    this.logs.push({ action_type, plan_id, reviewer, reason, timestamp });
   }
 }
 
@@ -146,29 +152,29 @@ Deno.test("DB-like path logs reviewer and reason", async () => {
     },
   };
   // Adapter must match DbLike interface: logActivity(activity: JSONObject)
-  type ReviewerLogLike = {
-    actor: string;
-    action: string;
-    target: string;
-    payload: ReviewerPayload;
-    traceId?: string;
-  };
   const dbLikeAdapter = {
     ...dbLike,
-    logActivity: (activity: ReviewerLogLike) => {
-      logs.push(activity);
+    logActivity: (activity: any) => {
+      // Map ReviewerLogLike to ReviewerLog
+      logs.push({
+        action_type: activity.action_type ?? activity.action,
+        plan_id: activity.plan_id ?? activity.target,
+        reviewer: activity.reviewer ?? (activity.payload ? activity.payload.reviewer : undefined),
+        reason: activity.reason ?? (activity.payload ? activity.payload.reason : undefined),
+        timestamp: activity.timestamp,
+      });
       return Promise.resolve();
     },
   };
   const view = new PlanReviewerView(new DbLikePlanServiceAdapter(dbLikeAdapter));
   await view.approve("p", "alice@example.com");
   await view.reject("p", "alice@example.com", "too risky");
-  const approveLog = logs.find((l) => (l as ReviewerLog).action === "plan.approve");
-  const rejectLog = logs.find((l) => (l as ReviewerLog).action === "plan.reject");
-  assert(approveLog && (approveLog as ReviewerLog).payload.reviewer === "alice@example.com");
+  const approveLog = logs.find((l) => (l as ReviewerLog).action_type === "plan.approve");
+  const rejectLog = logs.find((l) => (l as ReviewerLog).action_type === "plan.reject");
+  assert(approveLog && (approveLog as ReviewerLog).reviewer === "alice@example.com");
   assert(
-    rejectLog && (rejectLog as ReviewerLog).payload.reviewer === "alice@example.com" &&
-      (rejectLog as ReviewerLog).payload.reason === "too risky",
+    rejectLog && (rejectLog as ReviewerLog).reviewer === "alice@example.com" &&
+      (rejectLog as ReviewerLog).reason === "too risky",
   );
 });
 

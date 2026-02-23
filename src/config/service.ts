@@ -22,21 +22,19 @@ export class ConfigService {
   private checksum: string = "";
 
   constructor(configPath: string = "exo.config.toml") {
-    // Check for explicit config path from environment
-    const envConfigPath = Deno.env.get("EXO_CONFIG_PATH");
-    if (envConfigPath) {
-      this.configPath = envConfigPath;
-    } else {
-      // Use absolute path if provided, otherwise join with cwd
+    // Always use the provided configPath argument if present
+    if (configPath) {
       this.configPath = isAbsolute(configPath) ? configPath : join(Deno.cwd(), configPath);
+    } else {
+      // Fallback to EXO_CONFIG_PATH if no argument provided
+      const envConfigPath = Deno.env.get("EXO_CONFIG_PATH");
+      if (envConfigPath) {
+        this.configPath = envConfigPath;
+      } else {
+        this.configPath = join(Deno.cwd(), "exo.config.toml");
+      }
     }
-
-    // In test mode, if using default path, use temp directory to avoid polluting root
-    if (this.configPath === join(Deno.cwd(), "exo.config.toml") && Deno.env.get("EXO_TEST_CLI_MODE") === "1") {
-      const tempDir = Deno.makeTempDirSync({ prefix: "config-test-" });
-      this.configPath = join(tempDir, "exo.config.toml");
-    }
-
+    // Never mutate configPath in test mode; always use the explicit path
     this.config = this.load();
   }
 
@@ -68,10 +66,13 @@ export class ConfigService {
       return result.data;
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) {
+        // In test mode, fail fast if config is missing
+        if (Deno.env.get("EXO_TEST_CLI_MODE") === "1" || Deno.env.get("EXO_TEST_MODE") === "1") {
+          throw new Error(`❌ Test mode: Configuration file not found at ${this.configPath}. No fallback allowed.`);
+        }
+        // In non-test mode, fallback to default config
         console.warn("⚠️  Configuration file not found. Using defaults.");
-        // Create default config file
         this.createDefaultConfig();
-        // Reload the newly created file
         return this.load();
       }
       throw error;
@@ -89,22 +90,22 @@ log_level = "info"
 memory = "${ExoPathDefaults.memory}"
 blueprints = "${ExoPathDefaults.blueprints}"
 runtime = "${ExoPathDefaults.runtime}"
-    workspace = "${ExoPathDefaults.workspace}"
-    portals = "${ExoPathDefaults.portals}"
-    active = "${ExoPathDefaults.active}"
-    archive = "${ExoPathDefaults.archive}"
-    plans = "${ExoPathDefaults.plans}"
-    requests = "${ExoPathDefaults.requests}"
-    rejected = "${ExoPathDefaults.rejected}"
-    agents = "${ExoPathDefaults.agents}"
-    flows = "${ExoPathDefaults.flows}"
-    memoryProjects = "${ExoPathDefaults.memoryProjects}"
-    memoryExecution = "${ExoPathDefaults.memoryExecution}"
-    memoryIndex = "${ExoPathDefaults.memoryIndex}"
-    memorySkills = "${ExoPathDefaults.memorySkills}"
-    memoryPending = "${ExoPathDefaults.memoryPending}"
-    memoryTasks = "${ExoPathDefaults.memoryTasks}"
-    memoryGlobal = "${ExoPathDefaults.memoryGlobal}"
+workspace = "${ExoPathDefaults.workspace}"
+portals = "${ExoPathDefaults.portals}"
+active = "${ExoPathDefaults.active}"
+archive = "${ExoPathDefaults.archive}"
+plans = "${ExoPathDefaults.plans}"
+requests = "${ExoPathDefaults.requests}"
+rejected = "${ExoPathDefaults.rejected}"
+agents = "${ExoPathDefaults.agents}"
+flows = "${ExoPathDefaults.flows}"
+memoryProjects = "${ExoPathDefaults.memoryProjects}"
+memoryExecution = "${ExoPathDefaults.memoryExecution}"
+memoryIndex = "${ExoPathDefaults.memoryIndex}"
+memorySkills = "${ExoPathDefaults.memorySkills}"
+memoryPending = "${ExoPathDefaults.memoryPending}"
+memoryTasks = "${ExoPathDefaults.memoryTasks}"
+memoryGlobal = "${ExoPathDefaults.memoryGlobal}"
 
 [watcher]
 debounce_ms = 200

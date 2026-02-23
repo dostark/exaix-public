@@ -39,7 +39,12 @@ if (import.meta.main) {
   }
 
   try {
-    const configService = new ConfigService();
+    // Always use EXO_CONFIG_PATH if set, and fail fast in test mode
+    const configPath = Deno.env.get("EXO_CONFIG_PATH");
+    if (!configPath && (Deno.env.get("EXO_TEST_CLI_MODE") === "1" || Deno.env.get("EXO_TEST_MODE") === "1")) {
+      throw new Error("❌ Test mode: Configuration file not found. Set EXO_CONFIG_PATH to the ephemeral config.");
+    }
+    const configService = new ConfigService(configPath);
     const config = configService.get();
     const checksum = configService.getChecksum();
 
