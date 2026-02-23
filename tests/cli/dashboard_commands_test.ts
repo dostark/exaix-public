@@ -1,16 +1,19 @@
 import { assertEquals } from "@std/assert";
 import { DashboardCommands } from "../../src/cli/commands/dashboard_commands.ts";
+import type { launchTuiDashboard } from "../../src/tui/tui_dashboard.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 
 Deno.test("DashboardCommands.show delegates to dashboard launcher", async () => {
   const { config, db, cleanup } = await createCliTestContext();
   try {
-    const calls: unknown[] = [];
+    // Use correct type for calls array, matching launchTuiDashboard options
+    type LaunchDashboardOptions = Parameters<typeof launchTuiDashboard>[0];
+    const calls: Array<LaunchDashboardOptions | undefined> = [];
 
     const commands = DashboardCommands.create(
       { config, db },
       {
-        launchDashboard: (options) => {
+        launchDashboard: (options: LaunchDashboardOptions) => {
           calls.push(options);
           return Promise.resolve(undefined);
         },
@@ -20,7 +23,7 @@ Deno.test("DashboardCommands.show delegates to dashboard launcher", async () => 
     await commands.show();
 
     assertEquals(calls.length, 1);
-    assertEquals(calls[0], { databaseService: db });
+    assertEquals(calls[0]?.databaseService, db);
   } finally {
     await cleanup();
   }

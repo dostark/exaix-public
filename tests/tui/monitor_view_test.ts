@@ -5,6 +5,7 @@ import { MemorySource } from "../../src/enums.ts";
 
 import { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS, MonitorView } from "../../src/tui/monitor_view.ts";
 import type { LogEntry } from "../../src/tui/monitor_view.ts";
+import type { JSONObject } from "../../src/types.ts";
 import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
 import {
   createMockDatabaseService,
@@ -20,7 +21,7 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 import type { DialogBase } from "../../src/helpers/dialog_base.ts";
 
 // Helper for creating a monitor session
-function createMonitorSession(logs: Array<LogEntry | Record<string, unknown>> = []) {
+function createMonitorSession(logs: Array<LogEntry | JSONObject> = []) {
   const { monitorView } = createMonitorViewWithLogs(logs);
   const session = monitorView.createTuiSession();
   return { session, monitorView };
@@ -28,7 +29,7 @@ function createMonitorSession(logs: Array<LogEntry | Record<string, unknown>> = 
 
 // Helper for verifying filters
 async function verifyFilter(
-  logs: Array<LogEntry | Record<string, unknown>>,
+  logs: Array<LogEntry | JSONObject>,
   filter: JournalFilterOptions,
   expectedLength: number,
   checkFn: (logs: LogEntry[]) => void,
@@ -140,7 +141,7 @@ Deno.test("MonitorView - does not fetch when paused", async () => {
   const calls: string[] = [];
   class CountingDb {
     private inner: ReturnType<typeof createMockDatabaseService>;
-    constructor(logs: Array<Record<string, unknown>> = []) {
+    constructor(logs: Array<JSONObject> = []) {
       const activityRecords: ActivityRecord[] = logs.map((a) => ({
         id: String(a.id ?? crypto.randomUUID()),
         trace_id: String(a.trace_id ?? `trace-${a.id ?? Math.floor(Math.random() * 1e6)}`),

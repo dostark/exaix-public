@@ -420,7 +420,7 @@ export class MCPServer {
   public classifyError(
     error: unknown,
   ): { type: string; code: number; message: string; data?: Record<string, JSONValue> } {
-    const isZodError = (value: unknown): value is { errors?: unknown[] } => {
+    const isZodError = (value: unknown): value is { errors?: Array<object> } => {
       return (
         !!value &&
         typeof value === "object" &&

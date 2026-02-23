@@ -4,6 +4,8 @@ import { OpenAIProvider } from "../../src/ai/providers/openai_provider.ts";
 import { getTestModel, getTestModelDisplay } from "./helpers/test_model.ts";
 import { isCi } from "../helpers/env.ts";
 
+import type { JSONObject } from "../../src/types.ts";
+
 function isCiGuardActive(): boolean {
   // In CI, the code intentionally prevents accidental paid calls unless
   // explicitly opted-in.
@@ -57,7 +59,7 @@ Deno.test("OpenAIProvider sends correct payload and returns content for default 
     assertEquals(capturedUrl, "https://api.test");
 
     assertExists(capturedBody);
-    const bodyObj = capturedBody as Record<string, unknown>;
+    const bodyObj = capturedBody as JSONObject;
     assertEquals(bodyObj.model, model);
     assertExists(bodyObj.messages);
   } finally {

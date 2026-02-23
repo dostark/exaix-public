@@ -52,12 +52,14 @@
 - **No `Record<string, any>`.** This type is extremely weak and effectively
   re-introduces `any` for every property. Define a precise interface or type
   alias describing the expected shape.
-- **No `Record<string, unknown>`.** This type is prohibited. Instead:
+
+- **No `Record<string, unknown>` or `{ [key: string]: unknown }`.** Both are prohibited. Instead:
   - Define a specific interface describing the expected shape
-  - Use a type alias for known structures
+  - Use a type alias for known structures (but not as a mask for `Record<string, unknown>` or `{ [key: string]: unknown }`)
   - Use generics with constraints when the structure varies
-  - When the structure is truly dynamic, use a runtime schema validator
-    (e.g., Zod) and narrow from `unknown` at the point of access
+  - When the structure is truly dynamic, use a runtime schema validator (e.g., Zod) and narrow from `unknown` at the point of access
+
+- **No masking type aliases.** Do not create type aliases that simply mask or rename `Record<string, unknown>` or `{ [key: string]: unknown }` (e.g., `type CopilotObject = Record<string, unknown>`). This is strictly prohibited. Always define a specific interface or use runtime validation and proper narrowing.
 
 These rules are enforced by linting and are referenced by multiple existing
 checklists (pre‑commit, CI, etc.).
@@ -88,9 +90,46 @@ Search helpers are provided in the repository to locate inadvertent magic values
 
 ## 3. Import Statements
 
-All import declarations **must** appear at the top of the file. Dynamic imports
-with `await import()` are discouraged; if they are used (for large conditional
-modules or to avoid circularity) the rationale must be documented.
+All import declarations **must** appear at the top of the file and **must not** be nested inside any other statement (such as functions, conditionals, or loops). Imports must be top-level only.
+
+**Prohibited:**
+
+```ts
+if (condition) {
+  await import("./foo.ts"); // ❌ Not allowed
+}
+
+function loadModule() {
+  return import("./bar.ts"); // ❌ Not allowed
+}
+```
+
+**Allowed (with justification comment for dynamic import):**
+
+```ts
+// Dynamic import required to break circular dependency between X and Y.
+const { Y } = await import("./y.ts");
+```
+
+### Dynamic Imports
+
+Dynamic imports with `await import()` are **discouraged**. If you must use a dynamic import (for example, to load a large optional module, for conditional loading, or to break a circular dependency), you **must** document the rationale in a comment immediately above the import statement explaining why a static import is not possible or not desirable.
+
+**Good:**
+
+```ts
+// Dynamic import required to break circular dependency between X and Y.
+const { Y } = await import("./y.ts");
+```
+
+**Bad:**
+
+```ts
+// No explanation for dynamic import
+const { join } = await import("@std/path");
+```
+
+The code style checker will warn on all uses of dynamic import. Only use them when absolutely necessary and always provide a justification comment.
 
 Good:
 

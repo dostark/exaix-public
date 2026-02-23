@@ -700,7 +700,7 @@ export class MockSkillsService {
  */
 export class MockStructuredLogger implements IStructuredLogger {
   private context: LogEntryContext = {};
-  private config: { minLevel: LogLevel; outputs: unknown[]; enablePerformanceTracking: boolean } = {
+  private config: { minLevel: LogLevel; outputs: string[]; enablePerformanceTracking: boolean } = {
     minLevel: LogLevel.DEBUG,
     outputs: [],
     enablePerformanceTracking: false,

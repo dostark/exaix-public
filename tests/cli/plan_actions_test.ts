@@ -113,7 +113,8 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
 
 Deno.test("handlePlanApprove: splits skills", async () => {
   const { display } = createDisplay();
-  const calls: unknown[] = [];
+  // Use explicit type for calls array, per code style
+  const calls: Array<{ id: string; skills?: string[] }> = [];
   const planCommands = {
     approve: (id: string, skills?: string[]) => {
       calls.push({ id, skills });
@@ -126,7 +127,7 @@ Deno.test("handlePlanApprove: splits skills", async () => {
     display,
   };
   await handlePlanApprove(context, "p1", { skills: "a, b" });
-  assertEquals((calls[0] as { skills: string[] }).skills, ["a", "b"]);
+  assertEquals(calls[0].skills, ["a", "b"]);
 });
 
 Deno.test("handlePlanReject/Revise: delegates", async () => {

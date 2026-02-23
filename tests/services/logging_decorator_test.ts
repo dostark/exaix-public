@@ -2,25 +2,26 @@ import { assertEquals } from "@std/assert";
 import { LogMethod } from "../../src/services/decorators/logging.ts";
 import type { EventLogger } from "../../src/services/event_logger.ts";
 import { LogLevel } from "../../src/enums.ts";
+import type { JSONObject } from "../../src/types.ts";
 
 type LoggedCall = {
   level: LogLevel;
   action: string;
   target: string;
-  payload: Record<string, unknown>;
+  payload: JSONObject;
 };
 
 function createStubLogger(calls: LoggedCall[]): EventLogger {
   const logger = {
-    debug: (action: string, target: string, payload: Record<string, unknown>) => {
+    debug: (action: string, target: string, payload: JSONObject) => {
       calls.push({ level: LogLevel.DEBUG, action, target, payload });
       return Promise.resolve();
     },
-    info: (action: string, target: string, payload: Record<string, unknown>) => {
+    info: (action: string, target: string, payload: JSONObject) => {
       calls.push({ level: LogLevel.INFO, action, target, payload });
       return Promise.resolve();
     },
-    error: (action: string, target: string, payload: Record<string, unknown>) => {
+    error: (action: string, target: string, payload: JSONObject) => {
       calls.push({ level: LogLevel.ERROR, action, target, payload });
       return Promise.resolve();
     },
@@ -40,7 +41,7 @@ Deno.test("LogMethod (standard decorator): wraps method via (value, context)", a
   const context = { kind: "method", name: "doIt" } as Partial<
     ClassMethodDecoratorContext
   > as ClassMethodDecoratorContext;
-  const wrapped = LogMethod(logger)(original, context) as (...args: unknown[]) => Promise<unknown>;
+  const wrapped = LogMethod(logger)(original, context) as (...args: string[]) => Promise<unknown>;
 
   const out = await wrapped.call({ constructor: { name: "C" } }, "x");
   assertEquals(out, "ok:x");

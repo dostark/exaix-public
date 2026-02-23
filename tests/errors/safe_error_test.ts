@@ -7,19 +7,20 @@
 import { assertEquals, assertInstanceOf } from "@std/assert";
 import { SafeError } from "../../src/errors/safe_error.ts";
 import type { EventLogger } from "../../src/services/event_logger.ts";
+import type { JSONObject } from "../../src/types.ts";
 
 // Mock EventLogger for testing
 class MockEventLogger {
   public loggedErrors: Array<{
     action: string;
     target: string;
-    payload?: Record<string, unknown>;
+    payload?: JSONObject;
   }> = [];
 
   error(
     action: string,
     target: string,
-    payload?: Record<string, unknown>,
+    payload?: JSONObject,
   ): Promise<void> {
     this.loggedErrors.push({ action, target, payload: payload || {} });
     return Promise.resolve();

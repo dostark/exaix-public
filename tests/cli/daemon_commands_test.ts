@@ -1,4 +1,3 @@
-import { JSONObject } from "../../src/types.ts";
 /**
  * Tests for DaemonCommands
  * Covers start, stop, restart, status, and logs operations
@@ -26,6 +25,7 @@ import { createCliTestContext } from "./helpers/test_setup.ts";
 import { getRuntimeDir } from "../helpers/paths_helper.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { createStubDb } from "../test_helpers.ts";
+import type { JSONObject } from "../../src/types.ts";
 
 /**
  * Helper class to expose and mock protected methods of DaemonCommands
@@ -196,7 +196,7 @@ await new Promise(() => {});
       // Capture console output
       const originalLog = console.log;
       let logOutput = "";
-      console.log = (...args: unknown[]) => {
+      console.log = (...args: string[]) => {
         logOutput += args.join(" ") + "\n";
       };
 
@@ -237,7 +237,7 @@ await new Promise(() => {});
       ).all("daemon.started");
 
       assertEquals(logs.length, 1);
-      const log = logs[0] as Record<string, unknown>;
+      const log = logs[0] as JSONObject;
       assertExists(log.actor);
 
       // Verify payload contains expected fields
@@ -283,7 +283,7 @@ await new Promise(() => {});
       // Capture console output
       const originalLog = console.log;
       let logOutput = "";
-      console.log = (...args: unknown[]) => {
+      console.log = (...args: string[]) => {
         logOutput += args.join(" ") + "\n";
       };
 
@@ -337,7 +337,7 @@ await new Promise(() => {});
       ).all("daemon.stopped");
 
       assertEquals(logs.length, 1);
-      const log = logs[0] as Record<string, unknown>;
+      const log = logs[0] as JSONObject;
       // Actor is now user identity (email or username) instead of "human"
       assertExists(log.actor);
 
@@ -404,7 +404,7 @@ await new Promise(() => {});
       ).all("daemon.restarted");
 
       assertEquals(logs.length, 1);
-      const log = logs[0] as Record<string, unknown>;
+      const log = logs[0] as JSONObject;
       // Actor is now user identity (email or username) instead of "human"
       assertExists(log.actor);
 
@@ -507,7 +507,7 @@ await new Promise(() => {});
       // Capture console output
       const originalLog = console.log;
       let logOutput = "";
-      console.log = (...args: unknown[]) => {
+      console.log = (...args: string[]) => {
         logOutput += args.join(" ") + "\n";
       };
 

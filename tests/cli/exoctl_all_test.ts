@@ -304,7 +304,7 @@ Deno.test("blueprint validate invalid triggers exit", async () => {
 
 Deno.test("request --file outputs JSON when --json specified", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.createFromFile = (_file: string, _opts?: Record<string, unknown>) =>
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: { [key: string]: unknown }) =>
       Promise.resolve({
         filename: "/tmp/exo-test/request-1.md",
         trace_id: "trace-1234",
@@ -325,7 +325,7 @@ Deno.test("request --file outputs JSON when --json specified", async () => {
 
 Deno.test("request --file prints human output when no --json", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.createFromFile = (_file: string, _opts?: Record<string, unknown>) =>
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: { [key: string]: unknown }) =>
       Promise.resolve({
         filename: "/tmp/exo-test/request-2.md",
         trace_id: "trace-5678",

@@ -10,6 +10,7 @@ import { initTestDbService } from "./db.ts";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { JSONValue } from "../../src/types.ts";
+import type { JSONObject } from "../../src/types.ts";
 
 export interface ToolTestContext {
   registry: ToolRegistry;
@@ -54,7 +55,7 @@ export async function setupToolTestContext(): Promise<ToolTestContext> {
 export async function assertToolSuccess(
   registry: ToolRegistry,
   tool: string,
-  params: Record<string, unknown>,
+  params: JSONObject,
   expectedSuccess: boolean = true,
 ): Promise<void> {
   const result = await registry.execute(tool, params as Record<string, JSONValue>);
@@ -67,7 +68,7 @@ export async function assertToolSuccess(
 export async function assertToolRejectsPathTraversal(
   registry: ToolRegistry,
   tool: string,
-  baseParams: Record<string, unknown>,
+  baseParams: JSONObject,
   pathParam: string = "path",
 ): Promise<void> {
   const traversalParams = { ...baseParams, [pathParam]: "../../../etc/passwd" };
@@ -84,7 +85,7 @@ export async function assertToolRejectsPathTraversal(
 export async function assertToolRejectsAbsolutePath(
   registry: ToolRegistry,
   tool: string,
-  baseParams: Record<string, unknown>,
+  baseParams: JSONObject,
   pathParam: string = "path",
 ): Promise<void> {
   const absoluteParams = { ...baseParams, [pathParam]: "/etc/passwd" };
@@ -101,7 +102,7 @@ export async function assertToolRejectsAbsolutePath(
 export async function assertToolRejectsHiddenFile(
   registry: ToolRegistry,
   tool: string,
-  baseParams: Record<string, unknown>,
+  baseParams: JSONObject,
   pathParam: string = "path",
 ): Promise<void> {
   const hiddenParams = { ...baseParams, [pathParam]: ".hidden" };

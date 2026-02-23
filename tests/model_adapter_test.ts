@@ -21,6 +21,7 @@ import {
   OllamaProvider,
   TimeoutError,
 } from "../src/ai/providers.ts";
+import type { JSONObject } from "../src/types.ts";
 
 // ============================================================================
 // Test 1: MockProvider returns configured response
@@ -98,13 +99,14 @@ Deno.test("OllamaProvider sends correct JSON payload to /api/generate", async ()
 
     // Verify request body structure
     assertExists(capturedBody);
-    const body = capturedBody as Record<string, unknown>;
+
+    const body = capturedBody as JSONObject;
     assertEquals(body.model, "llama3.2");
     assertEquals(body.prompt, "Test prompt");
     assertEquals(body.stream, false);
 
     // Verify options are passed correctly
-    const options = body.options as Record<string, unknown>;
+    const options = body.options as JSONObject;
     assertEquals(options.temperature, 0.7);
     assertEquals(options.num_predict, 100);
 
@@ -370,7 +372,7 @@ Deno.test("OllamaProvider handles empty prompt", async () => {
     const provider = new OllamaProvider();
     await provider.generate("");
 
-    const body = capturedBody as Record<string, unknown>;
+    const body = capturedBody as JSONObject;
     assertEquals(body.prompt, "");
   } finally {
     globalThis.fetch = originalFetch;
@@ -391,7 +393,7 @@ Deno.test("OllamaProvider handles very long prompts", async () => {
     const provider = new OllamaProvider();
     await provider.generate(longPrompt);
 
-    const body = capturedBody as Record<string, unknown>;
+    const body = capturedBody as { prompt: string };
     assertEquals(body.prompt, longPrompt);
   } finally {
     globalThis.fetch = originalFetch;

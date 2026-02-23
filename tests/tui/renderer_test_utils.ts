@@ -20,7 +20,7 @@ export function captureConsole(): { captured: CapturedConsole; restore: () => vo
   const originalDebug = console.debug;
   const originalError = console.error;
 
-  console.log = (...args: unknown[]) => captured.logs.push(args.map(String).join(" "));
+  console.log = (...args: string[]) => captured.logs.push(args.map(String).join(" "));
   console.clear = () => {
     captured.clears++;
   };

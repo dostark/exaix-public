@@ -11,6 +11,7 @@ import {
   type ValidationResult,
 } from "../../src/services/output_validator.ts";
 import { createStubDb } from "../test_helpers.ts";
+import type { JSONValue } from "../../src/types.ts";
 
 function createMockRunner(
   runFn: (blueprint: Blueprint, request: ParsedRequest) => Promise<AgentExecutionResult>,
@@ -91,10 +92,17 @@ Deno.test("createCodeReviewReflexiveAgent: applies stricter defaults", () => {
 });
 
 Deno.test("ReflexiveAgent.logActivity: writes to db when present", () => {
-  const calls: unknown[][] = [];
+  const calls: Array<unknown[]> = [];
   const db = createStubDb({
-    logActivity: (...args: any[]) => {
-      calls.push(args);
+    logActivity: (
+      actor: string,
+      actionType: string,
+      target: string | null,
+      payload: Record<string, JSONValue>,
+      traceId?: string,
+      agentId?: string | null,
+    ) => {
+      calls.push([actor, actionType, target, payload, traceId, agentId]);
     },
   });
 

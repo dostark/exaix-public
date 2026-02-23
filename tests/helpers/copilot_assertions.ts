@@ -1,6 +1,15 @@
 import { assert, assertExists } from "@std/assert";
 import { parse } from "@std/yaml";
 
+interface Frontmatter {
+  agent: string;
+  scope: string;
+  title: string;
+  short_summary: string;
+  version: string;
+  [key: string]: unknown;
+}
+
 export async function assertFilesExist(files: string[]): Promise<void> {
   for (const file of files) {
     const stat = await Deno.stat(file);
@@ -17,7 +26,7 @@ export async function assertFrontmatterSchemaAndShortSummary(
     const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
     assertExists(fmMatch, `${filePath} should have YAML frontmatter`);
 
-    const fm = parse(fmMatch[1]) as Record<string, unknown>;
+    const fm = parse(fmMatch[1]) as Frontmatter;
 
     assert(fm.agent, `${filePath} should have agent`);
     assert(fm.scope, `${filePath} should have scope`);

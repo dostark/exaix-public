@@ -3,7 +3,8 @@ import { join } from "@std/path";
 import { ConfigService } from "../src/config/service.ts";
 import { FileWatcher } from "../src/services/watcher.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
-import { type ConfigReloadLogger, createConfigReloadHandler } from "../src/config/config_reload_handler.ts";
+import type { ConfigReloadLogger } from "../src/config/config_reload_handler.ts";
+import { createConfigReloadHandler } from "../src/config/config_reload_handler.ts";
 import { LogLevel } from "../src/enums.ts";
 
 /**
@@ -58,11 +59,11 @@ stability_check = false
     level: LogLevel;
     action: string;
     target: string;
-    payload: Record<string, unknown>;
+    payload: any;
   }
   const logs: LogEntry[] = [];
   const logger: ConfigReloadLogger = {
-    info: (action: string, target: string, payload: Record<string, unknown>) => {
+    info: (action: string, target: string, payload: any) => {
       logs.push({ level: LogLevel.INFO, action, target, payload });
       return Promise.resolve();
     },
@@ -103,7 +104,12 @@ stability_check = false
     const updateLog = logs.find((l) => l.action === "config.updated");
     assert(updateLog, "Should have logged config.updated event");
     assertEquals(updateLog.target, "exo.config.toml");
-    assertEquals(updateLog.payload.portals_count, 1);
+    // Type-safe access for portals_count
+    if (typeof updateLog.payload === "object" && updateLog.payload !== null && "portals_count" in updateLog.payload) {
+      assertEquals((updateLog.payload as { portals_count: number }).portals_count, 1);
+    } else {
+      throw new Error("updateLog.payload missing portals_count");
+    }
 
     console.log("Config reload verification passed!");
   } finally {

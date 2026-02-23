@@ -22,9 +22,21 @@ function yamlFrontmatter(obj: Record<string, string>): string {
   return lines.join("\n");
 }
 
+interface ReviewerLog {
+  actor: string;
+  action: string;
+  target: string;
+  payload: ReviewerPayload;
+  traceId?: string;
+}
+
+interface ReviewerPayload {
+  [field: string]: string | number | boolean | undefined;
+}
+
 class MockDB {
-  logs: Array<any> = [];
-  logActivity(actor: string, action: string, target: string, payload: Record<string, unknown> = {}, traceId?: string) {
+  logs: ReviewerLog[] = [];
+  logActivity(actor: string, action: string, target: string, payload: ReviewerPayload = {}, traceId?: string) {
     this.logs.push({ actor, action, target, payload, traceId });
   }
 }
@@ -65,7 +77,7 @@ async function setupPlanReviewerTest(options: {
 
 // Helper for TUI session tests with service overrides
 function createInteractiveSession(
-  plans: any[] = [{ id: "p1", title: "Plan 1" }],
+  plans: Array<{ id: string; title: string }> = [{ id: "p1", title: "Plan 1" }],
   overrides: Partial<MinimalPlanServiceMock> = {},
 ) {
   const mockService = new MinimalPlanServiceMock();
@@ -121,24 +133,43 @@ Deno.test("approve moves plan and logs activity via PlanCommands", async () => {
   }
 });
 
+// ReviewerLog import removed for test compatibility
 Deno.test("DB-like path logs reviewer and reason", async () => {
-  const logs: any[] = [];
+  const logs: ReviewerLog[] = [];
   const dbLike = {
     getPendingPlans: () => Promise.resolve([{ id: "p", title: "T" }]),
     getPlanDiff: () => Promise.resolve("diff"),
     updatePlanStatus: (_id: string, _status: string) => Promise.resolve(),
-    logActivity: (evt: Record<string, unknown>) => {
+    logActivity: (evt: ReviewerLog) => {
       logs.push(evt);
       return Promise.resolve();
     },
   };
-  const view = new PlanReviewerView(new DbLikePlanServiceAdapter(dbLike));
+  // Adapter must match DbLike interface: logActivity(activity: JSONObject)
+  type ReviewerLogLike = {
+    actor: string;
+    action: string;
+    target: string;
+    payload: ReviewerPayload;
+    traceId?: string;
+  };
+  const dbLikeAdapter = {
+    ...dbLike,
+    logActivity: (activity: ReviewerLogLike) => {
+      logs.push(activity);
+      return Promise.resolve();
+    },
+  };
+  const view = new PlanReviewerView(new DbLikePlanServiceAdapter(dbLikeAdapter));
   await view.approve("p", "alice@example.com");
   await view.reject("p", "alice@example.com", "too risky");
-  const approveLog = logs.find((l) => l.action_type === "plan.approve");
-  const rejectLog = logs.find((l) => l.action_type === "plan.reject");
-  assert(approveLog && approveLog.reviewer === "alice@example.com");
-  assert(rejectLog && rejectLog.reviewer === "alice@example.com" && rejectLog.reason === "too risky");
+  const approveLog = logs.find((l) => (l as ReviewerLog).action === "plan.approve");
+  const rejectLog = logs.find((l) => (l as ReviewerLog).action === "plan.reject");
+  assert(approveLog && (approveLog as ReviewerLog).payload.reviewer === "alice@example.com");
+  assert(
+    rejectLog && (rejectLog as ReviewerLog).payload.reviewer === "alice@example.com" &&
+      (rejectLog as ReviewerLog).payload.reason === "too risky",
+  );
 });
 
 Deno.test("reject moves plan to Workspace/Rejected and logs reason via PlanCommands", async () => {

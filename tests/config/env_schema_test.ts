@@ -132,7 +132,7 @@ Deno.test("EnvLLMOverride: warns on validation failure", async () => {
   // Capture console.warn output
   const warnings: string[] = [];
   const originalWarn = console.warn;
-  console.warn = (...args: any[]) => warnings.push(args.join(" "));
+  console.warn = (...args: string[]) => warnings.push(args.join(" "));
 
   try {
     await withEnv({ EXO_LLM_TIMEOUT_MS: "invalid" }, () => {

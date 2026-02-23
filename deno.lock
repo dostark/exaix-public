@@ -31,7 +31,8 @@
     "jsr:@std/text@~1.0.7": "1.0.16",
     "jsr:@std/toml@0.221": "0.221.0",
     "jsr:@std/yaml@1": "1.0.10",
-    "npm:@babel/parser@*": "7.28.6"
+    "npm:@babel/parser@*": "7.24.4",
+    "npm:@babel/parser@7.24.4": "7.24.4"
   },
   "jsr": {
     "@cliffy/command@1.0.0-rc.8": {
@@ -165,25 +166,9 @@
     }
   },
   "npm": {
-    "@babel/helper-string-parser@7.27.1": {
-      "integrity": "sha512-qMlSxKbpRlAridDExk92nSobyDdpPijUq2DW6oDnUqd0iOGxmQjyqhMIihI9+zv4LPyZdRje2cavWPbCbWm3eA=="
-    },
-    "@babel/helper-validator-identifier@7.28.5": {
-      "integrity": "sha512-qSs4ifwzKJSV39ucNjsvc6WVHs6b7S03sOh2OcHF9UHfVPqWWALUsNUVzhSBiItjRZoLHx7nIarVjqKVusUZ1Q=="
-    },
-    "@babel/parser@7.28.6": {
-      "integrity": "sha512-TeR9zWR18BvbfPmGbLampPMW+uW1NZnJlRuuHso8i87QZNq2JRF9i6RgxRqtEq+wQGsS19NNTWr2duhnE49mfQ==",
-      "dependencies": [
-        "@babel/types"
-      ],
+    "@babel/parser@7.24.4": {
+      "integrity": "sha512-zTvEBcghmeBma9QIGunWevvBAp4/Qu9Bdq+2k0Ot4fVMD6v3dsC9WOcRSKk7tRRyBM/53yKMJko9xOatGQAwSg==",
       "bin": true
-    },
-    "@babel/types@7.28.6": {
-      "integrity": "sha512-0ZrskXVEHSWIqZM/sQZ4EV3jZJXRkio/WCxaqKZP1g//CEWEPSfeZFcms4XeKBCHU0ZKnIkdJeU/kF+eRp5lBg==",
-      "dependencies": [
-        "@babel/helper-string-parser",
-        "@babel/helper-validator-identifier"
-      ]
     }
   },
   "remote": {

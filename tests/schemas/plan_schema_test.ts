@@ -17,9 +17,9 @@ import { McpToolName } from "../../src/enums.ts";
 
 import { assertEquals, assertExists } from "@std/assert";
 import { ZodError } from "zod";
-
 // Import schemas (will create these)
-import { Plan, PlanSchema, PlanStep, PlanStepSchema } from "../../src/schemas/plan_schema.ts";
+import type { Plan, PlanStep } from "../../src/schemas/plan_schema.ts";
+import { PlanSchema, PlanStepSchema } from "../../src/schemas/plan_schema.ts";
 
 describe("PlanStepSchema", () => {
   describe("Valid Steps", () => {
@@ -497,7 +497,23 @@ describe("PlanSchema - Specialized Agent Fields", () => {
             },
           ],
         },
-      } as Record<string, unknown>;
+      } as PlanData;
+
+      interface PlanData {
+        title: string;
+        description: string;
+        security?: {
+          findings?: Array<{
+            title: string;
+            severity: string;
+            location: string;
+            description: string;
+            impact: string;
+            remediation: string;
+          }>;
+          recommendations?: string[];
+        };
+      }
 
       const result = PlanSchema.safeParse(planData);
       assertEquals(result.success, false);

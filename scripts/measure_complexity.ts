@@ -1,47 +1,57 @@
 import { parse } from "https://deno.land/std@0.224.0/flags/mod.ts";
 import { walk } from "https://deno.land/std@0.224.0/fs/walk.ts";
-// Dynamic loader for a JS/TS parser (tries multiple CDNs).
-export async function getBabelParse(): Promise<(code: string, opts?: any) => any> {
-  // Try local/npm first (works with Deno's npm support), then deno.land X modules, then CDNs
-  const localCandidates = [
-    "npm:@babel/parser",
-    "https://deno.land/x/deno_ast@0.5.0/mod.ts",
-    "https://deno.land/x/deno_ast@0.4.0/mod.ts",
-  ];
+// Top-level dynamic imports for parser loading (see CODE_STYLE.md for rationale)
+// Import all parser candidates at the top-level (see CODE_STYLE.md for rationale)
+// Only use local or npm imports that are available and versioned
+import * as BabelParser1 from "npm:@babel/parser@7.24.4";
+// The following remote imports are commented out due to uncached or missing remote URLs
+// import * as DenoAst1 from "https://deno.land/x/deno_ast@0.5.0/mod.ts";
+// import * as DenoAst2 from "https://deno.land/x/deno_ast@0.4.0/mod.ts";
+// import * as BabelParserCDN1 from "https://esm.sh/@babel/parser@7.22.9";
+// import * as BabelParserCDN2 from "https://cdn.skypack.dev/@babel/parser@7.22.9";
+// import * as BabelParserCDN3 from "https://cdn.jsdelivr.net/npm/@babel/parser@7.22.9/lib/index.js";
+// import * as BabelParserCDN4 from "https://unpkg.com/@babel/parser@7.22.9/lib/index.js";
+// import * as BabelParserCDN5 from "https://esm.sh/@babel/parser";
 
-  for (const url of localCandidates) {
-    try {
-      const mod: any = await import(url);
-      if (mod.parse) return mod.parse;
-      if (mod.default && typeof mod.default.parse === "function") return mod.default.parse;
-      if (mod.default && typeof mod.default === "function") return mod.default;
-    } catch (_e) {
-      // try next
+const parserCandidates = [
+  BabelParser1,
+  // DenoAst1,
+  // DenoAst2,
+  // BabelParserCDN1,
+  // BabelParserCDN2,
+  // BabelParserCDN3,
+  // BabelParserCDN4,
+  // BabelParserCDN5,
+];
+
+function extractParse(mod: unknown): ((code: string, opts?: unknown) => unknown) | undefined {
+  if (typeof mod === "object" && mod !== null) {
+    if ("parse" in mod && typeof (mod as { parse?: unknown }).parse === "function") {
+      return (mod as { parse: (code: string, opts?: unknown) => unknown }).parse;
+    }
+    if ("default" in mod && typeof (mod as { default?: unknown }).default === "function") {
+      return (mod as { default: (code: string, opts?: unknown) => unknown }).default;
+    }
+    if (
+      "default" in mod &&
+      typeof (mod as { default?: unknown }).default === "object" &&
+      (mod as { default: { parse?: unknown } }).default &&
+      typeof (mod as { default: { parse?: unknown } }).default.parse === "function"
+    ) {
+      return (mod as { default: { parse: (code: string, opts?: unknown) => unknown } }).default.parse;
     }
   }
+  return undefined;
+}
 
-  const cdnCandidates = [
-    "https://esm.sh/@babel/parser@7.22.9",
-    "https://cdn.skypack.dev/@babel/parser@7.22.9",
-    "https://cdn.jsdelivr.net/npm/@babel/parser@7.22.9/lib/index.js",
-    "https://unpkg.com/@babel/parser@7.22.9/lib/index.js",
-    "https://esm.sh/@babel/parser",
-  ];
+const babelParse = parserCandidates.map(extractParse).find((fn) => typeof fn === "function");
+const babelParseError = babelParse ? undefined : new Error(
+  "Could not load a JS parser from local/npm or CDN; please ensure network access or install a local parser (e.g. npm:@babel/parser).",
+);
 
-  for (const url of cdnCandidates) {
-    try {
-      const mod: any = await import(url);
-      if (mod.parse) return mod.parse;
-      if (mod.default && typeof mod.default.parse === "function") return mod.default.parse;
-      if (mod.default && typeof mod.default === "function") return mod.default;
-    } catch (_e) {
-      // try next
-    }
-  }
-
-  throw new Error(
-    "Could not load a JS parser from local/npm or CDN; please ensure network access or install a local parser (e.g. npm:@babel/parser).",
-  );
+export function getBabelParse(): (code: string, opts?: any) => any {
+  if (babelParse) return babelParse;
+  throw babelParseError ?? new Error("Babel parser not loaded");
 }
 
 /**

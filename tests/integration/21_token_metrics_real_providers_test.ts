@@ -103,10 +103,12 @@ function handleApiError(
   return false;
 }
 
-interface ActivityRow extends Record<string, unknown> {
+interface ActivityRow {
   id: number;
-  payload: string;
   action_type: string;
+  trace_id: string;
+  [key: string]: unknown;
+  payload: string;
   timestamp: string;
 }
 

@@ -80,7 +80,7 @@ function initNotificationTest() {
             created_at: n.created_at,
             dismissed_at: n.dismissed_at,
             metadata: n.metadata,
-          })) as unknown as T[],
+          })) as T[],
         );
       }
       return Promise.resolve([]);

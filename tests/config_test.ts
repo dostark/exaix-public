@@ -769,13 +769,16 @@ Deno.test("ConfigSchema accepts provider_strategy.task_routing", () => {
 Deno.test("[regression] Sample config includes required provider strategy entries", () => {
   const samplePath = "templates/exo.config.sample.toml";
   const sampleContent = Deno.readTextFileSync(samplePath);
-  const parsed = parseToml(sampleContent) as Record<string, unknown>;
+  interface ConfigToml {
+    [section: string]: unknown;
+  }
+  const parsed = parseToml(sampleContent) as ConfigToml;
 
   const getPath = (path: string[]): unknown => {
     let current: unknown = parsed;
     for (const key of path) {
-      if (current && typeof current === "object" && key in (current as Record<string, unknown>)) {
-        current = (current as Record<string, unknown>)[key];
+      if (current && typeof current === "object" && key in (current as ConfigToml)) {
+        current = (current as ConfigToml)[key];
       } else {
         return undefined;
       }

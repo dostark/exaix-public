@@ -2,6 +2,7 @@ import { assert, assertEquals } from "https://deno.land/std@0.221.0/assert/mod.t
 import { parse } from "https://deno.land/std@0.221.0/yaml/mod.ts";
 import { join } from "@std/path";
 import { getDefaultPaths } from "../../src/config/paths.ts";
+import type { JSONObject } from "../../src/types.ts";
 
 const paths = getDefaultPaths(".");
 const providersDir = join(paths.blueprints, "../.copilot/providers");
@@ -29,7 +30,7 @@ Deno.test("Google enhancements: verify frontmatter schema", async () => {
     const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
     assert(fmMatch, `Frontmatter not found in ${relPath}`);
 
-    const fm = parse(fmMatch[1]) as Record<string, unknown>;
+    const fm = parse(fmMatch[1]) as JSONObject;
     assertEquals(fm.agent, "google");
     assertEquals(fm.scope, "dev");
     assert(fm.short_summary);

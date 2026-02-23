@@ -424,34 +424,33 @@ Generate the TOML actions now.`;
     const codeBlockRegex = /```toml\s*([\s\S]*?)```/g;
     let match;
 
+    const parseActionObject = (act: Record<string, JSONValue>): PlanAction | null => {
+      if (
+        typeof act.tool === "string" && act.params && typeof act.params === "object" && !Array.isArray(act.params)
+      ) {
+        return {
+          tool: act.tool,
+          params: act.params as Record<string, JSONValue>,
+          description: typeof act.description === "string" ? act.description : undefined,
+        };
+      }
+      return null;
+    };
+
     while ((match = codeBlockRegex.exec(response)) !== null) {
       try {
         const block = match[1].trim();
         const parsed = parseToml(block) as Record<string, JSONValue>;
 
         if (parsed.actions && Array.isArray(parsed.actions)) {
-          for (const action of parsed.actions) {
+          parsed.actions.forEach((action) => {
             const act = action as Record<string, JSONValue>;
-            if (
-              typeof act.tool === "string" && act.params && typeof act.params === "object" && !Array.isArray(act.params)
-            ) {
-              actions.push({
-                tool: act.tool,
-                params: act.params as Record<string, JSONValue>,
-                description: typeof act.description === "string" ? act.description : undefined,
-              });
-            }
-          }
-        } else if (
-          typeof parsed.tool === "string" && parsed.params && typeof parsed.params === "object" &&
-          !Array.isArray(parsed.params)
-        ) {
-          // Single action format
-          actions.push({
-            tool: parsed.tool,
-            params: parsed.params as Record<string, JSONValue>,
-            description: typeof parsed.description === "string" ? parsed.description : undefined,
+            const parsedAction = parseActionObject(act);
+            if (parsedAction) actions.push(parsedAction);
           });
+        } else {
+          const parsedAction = parseActionObject(parsed);
+          if (parsedAction) actions.push(parsedAction);
         }
       } catch (e) {
         console.error("Failed to parse TOML block:", e);

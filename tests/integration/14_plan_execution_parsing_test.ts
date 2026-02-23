@@ -1,3 +1,11 @@
+interface Frontmatter {
+  trace_id?: string;
+  request_id?: string;
+  agent?: string;
+  status?: string;
+  created_at?: string;
+  [key: string]: unknown;
+}
 import { assertEquals, assertExists } from "@std/assert";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { parse } from "@std/yaml";
@@ -101,7 +109,7 @@ Protect routes with authentication checks.
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(frontmatterMatch, "Should have frontmatter");
 
-      const frontmatter = parse(frontmatterMatch[1]) as Record<string, unknown>;
+      const frontmatter = parse(frontmatterMatch[1]) as Frontmatter;
 
       assertEquals(typeof frontmatter.trace_id, "string");
       assertEquals(typeof frontmatter.request_id, "string");
@@ -167,7 +175,7 @@ Bump version number in package.json
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(frontmatterMatch);
 
-      const frontmatter = parse(frontmatterMatch[1]) as Record<string, unknown>;
+      const frontmatter = parse(frontmatterMatch[1]) as Frontmatter;
 
       assertExists(frontmatter.trace_id, "trace_id is required");
 
@@ -251,7 +259,7 @@ Initial setup
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(frontmatterMatch);
 
-      const frontmatter = parse(frontmatterMatch[1]) as Record<string, unknown>;
+      const frontmatter = parse(frontmatterMatch[1]) as Frontmatter;
 
       // Validate all context fields
       assertEquals(frontmatter.trace_id, traceId);
@@ -260,8 +268,11 @@ Initial setup
       assertEquals(frontmatter.status, MemoryStatus.APPROVED);
       assertEquals(frontmatter.priority, "high");
       // YAML parser converts ISO strings to Date objects
-      assertEquals(frontmatter.created_at instanceof Date, true);
-      assertEquals((frontmatter.created_at as Date).toISOString(), "2024-01-01T10:00:00.000Z");
+      const createdAt = frontmatter.created_at;
+      const createdAtDate = typeof createdAt === "string" ? new Date(createdAt) : createdAt;
+      assertEquals(createdAtDate instanceof Date && !isNaN(createdAtDate.getTime()), true);
+      if (!createdAtDate) throw new Error("createdAtDate is undefined");
+      assertEquals(createdAtDate.toISOString(), "2024-01-01T10:00:00.000Z");
 
       console.log("✅ Integration test passed: Context extracted successfully");
     } finally {

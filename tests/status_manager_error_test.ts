@@ -1,17 +1,19 @@
 import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { parse } from "@std/yaml";
+
 import { StatusManager } from "../src/services/request_processing/status_manager.ts";
 import { RequestStatus } from "../src/requests/request_status.ts";
 import { initTestDbService } from "./helpers/db.ts";
 import { EventLogger } from "../src/services/event_logger.ts";
+import type { JSONObject } from "../src/types.ts";
 
-function parseFrontmatter(content: string): Record<string, unknown> {
+function parseFrontmatter(content: string): JSONObject {
   const parts = content.split("---");
   if (parts.length < 3) {
     throw new Error("Invalid markdown content: missing YAML frontmatter delimiters.");
   }
-  return parse(parts[1]) as Record<string, unknown>;
+  return parse(parts[1]) as JSONObject;
 }
 
 Deno.test("StatusManager error storage regression test", async () => {

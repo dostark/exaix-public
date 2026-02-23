@@ -138,14 +138,14 @@ async function buildPrecomputed(dir: string) {
     }
 
     await Deno.mkdir(OUT_DIR, { recursive: true });
-    const index: Record<string, unknown>[] = [];
+    const index: JSONObject[] = [];
 
     for await (const entry of walk(dir, { exts: [".json"], maxDepth: 1 })) {
       if (!entry.isFile) continue;
       const raw = await Deno.readTextFile(entry.path);
-      let obj;
+      let obj: JSONObject;
       try {
-        obj = JSON.parse(raw) as Record<string, unknown>;
+        obj = JSON.parse(raw) as JSONObject;
       } catch (e) {
         console.error(`Invalid JSON in precomputed file ${entry.path}: ${e}`);
         Deno.exit(2);

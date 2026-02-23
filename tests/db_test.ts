@@ -434,11 +434,11 @@ Deno.test("DatabaseService: handles transaction rollback on error", async () => 
     const originalExec = db.instance.exec.bind(db.instance);
     let callCount = 0;
 
-    (db.instance as Partial<{ exec: (sql: string, ...args: unknown[]) => unknown }> as {
-      exec: (sql: string, ...args: unknown[]) => unknown;
+    (db.instance as Partial<{ exec: (sql: string, ...args: string[]) => unknown }> as {
+      exec: (sql: string, ...args: string[]) => unknown;
     }).exec = (
       sql: string,
-      ...args: unknown[]
+      ...args: string[]
     ) => {
       if (typeof sql === "string" && sql.includes("INSERT INTO activity") && callCount === 0) {
         callCount++;
@@ -464,11 +464,11 @@ Deno.test("DatabaseService: retries on database locked", async () => {
     const originalExec = db.instance.exec.bind(db.instance);
     let attempts = 0;
 
-    (db.instance as Partial<{ exec: (sql: string, ...args: unknown[]) => unknown }> as {
-      exec: (sql: string, ...args: unknown[]) => unknown;
+    (db.instance as Partial<{ exec: (sql: string, ...args: string[]) => unknown }> as {
+      exec: (sql: string, ...args: string[]) => unknown;
     }).exec = (
       sql: string,
-      ...args: unknown[]
+      ...args: string[]
     ) => {
       if (typeof sql === "string" && (sql.includes("COMMIT") || sql.includes("INSERT")) && attempts < 2) {
         attempts++;

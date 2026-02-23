@@ -4,6 +4,7 @@
 import { assert, assertExists } from "https://deno.land/std@0.203.0/assert/mod.ts";
 import { parse } from "https://deno.land/std@0.203.0/yaml/mod.ts";
 import { inject } from "../../scripts/inject_agent_context.ts";
+import type { JSONObject } from "../../src/types.ts";
 
 Deno.test("Claude enhancements: verify all required files exist", async () => {
   // Verify all enhanced files were created
@@ -125,7 +126,7 @@ Deno.test("Claude enhancements: verify frontmatter schema compliance", async () 
     const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
     assertExists(fmMatch, `${filePath} should have YAML frontmatter`);
 
-    const fm = parse(fmMatch[1]) as Record<string, unknown>;
+    const fm = parse(fmMatch[1]) as JSONObject;
 
     // Verify required fields
     assert(fm.agent, `${filePath} should have 'agent' field`);
@@ -145,7 +146,7 @@ Deno.test("Claude enhancements: verify version updates", async () => {
   const fmMatch = claudeMd.match(/^---\n([\s\S]*?)\n---/);
   assertExists(fmMatch);
 
-  const fm = parse(fmMatch[1]) as Record<string, unknown>;
+  const fm = parse(fmMatch[1]) as JSONObject;
 
   // claude.md should be updated to v0.2 or higher (was expanded significantly)
   const version = fm.version as string;

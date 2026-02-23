@@ -55,7 +55,7 @@ async function withFlowsDir(
 async function captureConsole(kind: "log" | "error", fn: () => Promise<void>) {
   let output = "";
   const original = console[kind];
-  console[kind] = (...args: unknown[]) => {
+  console[kind] = (...args: string[]) => {
     output += args.map((a) => String(a)).join(" ") + "\n";
   };
   try {
@@ -251,7 +251,7 @@ Deno.test("FlowCommands: listFlows handles loader errors and exits", async () =>
     // Capture console.error
     let errOut = "";
     const origErr = console.error;
-    console.error = (...args: unknown[]) => {
+    console.error = (...args: string[]) => {
       errOut += args.join(" ") + "\n";
     };
 
@@ -332,7 +332,7 @@ Deno.test("FlowCommands: validateFlow throws on validator error", async () => {
 
     let errOut = "";
     const origErr = console.error;
-    console.error = (...args: unknown[]) => {
+    console.error = (...args: string[]) => {
       errOut += args.join(" ") + "\n";
     };
 

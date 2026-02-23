@@ -10,6 +10,14 @@ import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { parse as parseYaml } from "@std/yaml";
 
+interface Frontmatter {
+  trace_id?: string;
+  request_id?: string;
+  agent_id?: string;
+  status?: string;
+  created_at?: string;
+  [key: string]: unknown;
+}
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { TestEnvironment } from "./helpers/test_environment.ts";
@@ -77,7 +85,7 @@ A working hello world function with tests.
     const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
     assertExists(yamlMatch, "Should have YAML frontmatter");
 
-    const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
+    const frontmatter = parseYaml(yamlMatch[1]) as Frontmatter;
 
     assertEquals(frontmatter.trace_id, traceId);
     assertEquals(frontmatter.request_id, requestId);

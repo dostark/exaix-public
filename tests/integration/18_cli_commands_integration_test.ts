@@ -60,7 +60,9 @@ async function runExoctl(args: string[], cwd: string) {
         cwd,
         code,
         timestamp: new Date().toISOString(),
-      } as Record<string, unknown>;
+        trace_id: "",
+        status: "",
+      } as { trace_id: string; status: string; [key: string]: unknown };
 
       await Deno.writeTextFile(join(artifactsDir, `cli-${id}.stdout.txt`), stdoutStr);
       await Deno.writeTextFile(join(artifactsDir, `cli-${id}.stderr.txt`), stderrStr);

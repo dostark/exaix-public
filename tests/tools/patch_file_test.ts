@@ -2,6 +2,7 @@ import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";
 import { join } from "@std/path";
+import type { JSONObject } from "../../src/types.ts";
 
 Deno.test("ToolRegistry: patch_file", async (t) => {
   const tempDir = await Deno.makeTempDir();
@@ -36,7 +37,7 @@ Deno.test("ToolRegistry: patch_file", async (t) => {
     });
 
     assertEquals(result.success, true);
-    const data = result.data as Record<string, unknown>;
+    const data = result.data as JSONObject;
     assertEquals(data.appliedCount, 1);
 
     const content = await Deno.readTextFile(file);
@@ -55,7 +56,7 @@ Deno.test("ToolRegistry: patch_file", async (t) => {
     });
 
     assertEquals(result.success, true);
-    const data = result.data as Record<string, unknown>;
+    const data = result.data as JSONObject;
     assertEquals(data.appliedCount, 2);
 
     const content = await Deno.readTextFile(file);

@@ -1,3 +1,4 @@
+import type { RecordedResponse } from "../../../src/ai/providers/mock_llm_provider.ts";
 /**
  * Test Environment Helper for Integration Tests
  *
@@ -38,6 +39,11 @@ export interface TestEnvironmentOptions {
   initGit?: boolean;
 }
 
+export interface ActionParams {
+  path?: string;
+  content?: string;
+  [field: string]: string | number | boolean | undefined;
+}
 export class TestEnvironment {
   readonly tempDir: string;
   readonly config: Config;
@@ -336,6 +342,7 @@ retry_backoff_base_ms = 1000
   /**
    * Create a plan file in /Workspace/Plans (simulating plan generation)
    */
+
   async createPlan(
     traceId: string,
     requestId: string,
@@ -344,7 +351,7 @@ retry_backoff_base_ms = 1000
       agentId?: string;
       portal?: string;
       targetBranch?: string;
-      actions?: Array<{ tool: string; params: Record<string, unknown> }>;
+      actions?: Array<{ tool: string; params: ActionParams }>;
     } = {},
   ): Promise<string> {
     const _shortId = traceId.substring(0, 8);
@@ -705,7 +712,7 @@ Always respond with valid JSON containing a plan with actionable steps.`;
    */
   createRequestProcessor(options?: {
     providerMode?: MockStrategy;
-    recordings?: any[];
+    recordings?: RecordedResponse[];
     includeReasoning?: boolean;
     requestsDir?: string;
     blueprintsPath?: string;
@@ -739,7 +746,7 @@ Always respond with valid JSON containing a plan with actionable steps.`;
    */
   createMockProvider(
     mode: MockStrategy = MockStrategy.RECORDED,
-    recordings: any[] = [],
+    recordings: RecordedResponse[] = [],
   ): MockLLMProvider {
     return new MockLLMProvider(mode, { recordings });
   }

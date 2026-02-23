@@ -20,16 +20,17 @@ import {
   TEST_REQUEST_STATUS_VALID,
   TEST_REQUEST_TRACE_ID,
 } from "../config/constants.ts";
+import type { JSONObject } from "../../src/types.ts";
 
 interface LoggedError {
   action: string;
   target: string;
-  payload?: Record<string, unknown>;
+  payload?: JSONObject;
 }
 
 function createLogger(errors: LoggedError[]) {
   return {
-    error: (action: string, target: string, payload?: Record<string, unknown>) => {
+    error: (action: string, target: string, payload?: JSONObject) => {
       errors.push({ action, target, payload });
       return Promise.resolve();
     },

@@ -3,21 +3,32 @@ import { TEST_MODEL_ANTHROPIC, TEST_PROVIDER_ID_ANTHROPIC } from "../config/cons
 import { handleRequestShow, type RequestActionContext } from "../../src/cli/command_builders/request_actions.ts";
 import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
 import { EventLogger, type EventLoggerConfig } from "../../src/services/event_logger.ts";
+
 import { LogLevel } from "../../src/enums.ts";
 
+type TestPayload = {
+  input_tokens?: number;
+  output_tokens?: number;
+  total_tokens?: number;
+  token_provider?: string;
+  token_model?: string;
+  token_cost_usd?: number;
+  [key: string]: unknown;
+};
+
 class MockEventLogger extends EventLogger {
-  public calls: Array<{ level: LogLevel; a: string; b: string; c: any }> = [];
+  public calls: Array<{ level: LogLevel; a: string; b: string; c: TestPayload | undefined }> = [];
 
   constructor() {
     super({ minLevel: LogLevel.DEBUG } as EventLoggerConfig);
   }
 
-  override info(action: string, target: string, payload?: Record<string, unknown>): Promise<void> {
+  override info(action: string, target: string, payload?: TestPayload): Promise<void> {
     this.calls.push({ level: LogLevel.INFO, a: action, b: target, c: payload });
     return Promise.resolve();
   }
 
-  override error(action: string, target: string, payload?: Record<string, unknown>): Promise<void> {
+  override error(action: string, target: string, payload?: TestPayload): Promise<void> {
     this.calls.push({ level: LogLevel.ERROR, a: action, b: target, c: payload });
     return Promise.resolve();
   }
@@ -59,11 +70,15 @@ Deno.test("handleRequestShow: includes token stats when present", async () => {
 
   assertEquals(calls.length, 2);
   assertEquals(calls[0].a, "request.show");
-  assertEquals(calls[0].c.input_tokens, 200);
-  assertEquals(calls[0].c.output_tokens, 80);
-  assertEquals(calls[0].c.total_tokens, 280);
-  assertEquals(calls[0].c.token_provider, TEST_PROVIDER_ID_ANTHROPIC);
-  assertEquals(calls[0].c.token_model, TEST_MODEL_ANTHROPIC);
-  assertEquals(calls[0].c.token_cost_usd, 0.0042);
+  if (calls[0].c) {
+    assertEquals(calls[0].c.input_tokens, 200);
+    assertEquals(calls[0].c.output_tokens, 80);
+    assertEquals(calls[0].c.total_tokens, 280);
+    assertEquals(calls[0].c.token_provider, TEST_PROVIDER_ID_ANTHROPIC);
+    assertEquals(calls[0].c.token_model, TEST_MODEL_ANTHROPIC);
+    assertEquals(calls[0].c.token_cost_usd, 0.0042);
+  } else {
+    throw new Error("calls[0].c is undefined");
+  }
   assertEquals(calls[1].a, "request.content");
 });

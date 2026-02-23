@@ -301,6 +301,6 @@ export function createTestScenario<T extends { id?: string; trace_id?: string },
 /**
  * Creates a TUI session for testing
  */
-export function createTuiSession<T>(view: { createTuiSession: (data?: unknown[]) => T }, data: unknown[] = []): T {
+export function createTuiSession<T>(view: { createTuiSession: (data?: string[]) => T }, data: string[] = []): T {
   return view.createTuiSession(data);
 }

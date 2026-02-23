@@ -33,7 +33,7 @@ export function createMockService(overrides: Partial<MemoryServiceInterface> = {
 
 export function createMockDialog<T>(
   result: { type: DialogStatus; value?: T },
-  overrides: Partial<Record<string, unknown>> = {},
+  overrides: Partial<{ [K in keyof T]?: T[K] }> = {},
 ) {
   const dialog = { getResult: () => result };
   Object.assign(dialog, overrides);

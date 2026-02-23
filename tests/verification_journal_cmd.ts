@@ -5,9 +5,9 @@ import { initTestDbService } from "./helpers/db.ts";
 
 // Mock console.log to capture output
 let output: string[] = [];
-const originalLog = console.log;
-console.log = (...args: any[]) => {
-  output.push(args.map((a) => String(a)).join(" "));
+const originalLog = console.log; // Store original console.log
+console.log = (...args: string[]) => {
+  output.push(args.map((a) => String(a)).join(" ")); // Capture log output
 };
 
 // Skip test - JournalCommands module not found

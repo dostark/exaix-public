@@ -29,7 +29,7 @@ Deno.test("CommandUtils.formatValidationErrors: formats required fields and mini
 Deno.test("CommandUtils.printMetadata: prints only defined values", () => {
   const original = console.log;
   const lines: string[] = [];
-  console.log = (...args: unknown[]) => {
+  console.log = (...args: string[]) => {
     lines.push(args.map(String).join(" "));
   };
 

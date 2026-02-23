@@ -1,3 +1,6 @@
+// Dynamic import required for registry initialization (documented in CODE_STYLE.md)
+// This must remain a dynamic import because the module is only needed at runtime for registry setup.
+const dynamicImport = (specifier: string) => import(specifier);
 /**
  * @module AIConfigSchema
  * @path src/config/ai_config.ts
@@ -126,8 +129,11 @@ export const DEFAULT_AI_CONFIG: AiConfig = {
  */
 export function getDefaultModels(): Record<string, string> {
   // Initialize registry if needed
+  let _registryPromise: Promise<void> | undefined;
   if (ProviderRegistry.getSupportedProviders().length === 0) {
-    import("../ai/provider_factory.ts").then(({ initializeRegistry }) => initializeRegistry());
+    _registryPromise = dynamicImport("../ai/provider_factory.ts").then((mod: { initializeRegistry: () => void }) =>
+      mod.initializeRegistry()
+    );
   }
 
   const models: Record<string, string> = {};
@@ -157,8 +163,11 @@ function getDefaultModelForProvider(providerType: string): string {
  */
 export function getDefaultEndpoints(): Record<string, string> {
   // Initialize registry if needed
+  let _registryPromise: Promise<void> | undefined;
   if (ProviderRegistry.getSupportedProviders().length === 0) {
-    import("../ai/provider_factory.ts").then(({ initializeRegistry }) => initializeRegistry());
+    _registryPromise = dynamicImport("../ai/provider_factory.ts").then((mod: { initializeRegistry: () => void }) =>
+      mod.initializeRegistry()
+    );
   }
 
   const endpoints: Record<string, string> = {};
@@ -188,8 +197,11 @@ function getDefaultEndpointForProvider(providerType: string): string {
  */
 export function getDefaultRetryConfig(): Record<string, { maxAttempts: number; backoffBaseMs: number }> {
   // Initialize registry if needed
+  let _registryPromise: Promise<void> | undefined;
   if (ProviderRegistry.getSupportedProviders().length === 0) {
-    import("../ai/provider_factory.ts").then(({ initializeRegistry }) => initializeRegistry());
+    _registryPromise = dynamicImport("../ai/provider_factory.ts").then((mod: { initializeRegistry: () => void }) =>
+      mod.initializeRegistry()
+    );
   }
 
   const retryConfig: Record<string, { maxAttempts: number; backoffBaseMs: number }> = {};

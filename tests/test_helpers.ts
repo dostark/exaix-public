@@ -1,5 +1,6 @@
 import type { IDatabaseService } from "../src/services/db.ts";
 import type { ActivityRepository } from "../src/repositories/activity_repository.ts";
+import { JSONObject } from "../src/types.ts";
 
 /**
  * Create a fully-typed stub implementation of the DatabaseService used in tests.
@@ -12,7 +13,7 @@ export function createStubDb(overrides: Partial<IDatabaseService> = {}): IDataba
       _actor: string,
       _actionType: string,
       _target: string | null,
-      _payload: Record<string, unknown>,
+      _payload: JSONObject,
       _traceId?: string,
       _agentId?: string | null,
     ) => {

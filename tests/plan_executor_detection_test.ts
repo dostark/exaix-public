@@ -160,7 +160,13 @@ created_at: "2025-12-03T10:00:00.000Z"
       const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(yamlMatch, "Should match YAML frontmatter");
 
-      const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
+      const frontmatter = parseYaml(yamlMatch[1]) as {
+        trace_id?: string;
+        request_id?: string;
+        agent_id?: string;
+        status?: string;
+        [key: string]: unknown;
+      };
 
       // Assert
       assertEquals(frontmatter.trace_id, "550e8400-e29b-41d4-a716-446655440000");
@@ -276,7 +282,13 @@ status: approved
       const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(yamlMatch);
 
-      const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
+      const frontmatter = parseYaml(yamlMatch[1]) as {
+        trace_id?: string;
+        request_id?: string;
+        agent_id?: string;
+        status?: string;
+        [key: string]: unknown;
+      };
 
       // Assert
       assertEquals(frontmatter.trace_id, undefined);

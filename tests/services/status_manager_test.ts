@@ -35,10 +35,27 @@ Deno.test("StatusManager.updateStatus: logs on write failure", async () => {
   const original = "---\nstatus: pending\n---\n";
   await Deno.writeTextFile(filePath, original);
 
-  const calls: unknown[][] = [];
+  type TestPayload = Record<string, string | number | boolean | null | undefined>;
+  const calls: Array<
+    {
+      actor: string;
+      actionType: string;
+      target: string | null;
+      payload: TestPayload;
+      traceId?: string;
+      agentId?: string | null;
+    }
+  > = [];
   const db = createStubDb({
-    logActivity: (...args: any[]) => {
-      calls.push(args);
+    logActivity: (
+      actor: string,
+      actionType: string,
+      target: string | null,
+      payload: TestPayload,
+      traceId?: string,
+      agentId?: string | null,
+    ) => {
+      calls.push({ actor, actionType, target, payload, traceId, agentId });
     },
   });
   const logger = new EventLogger({ db });
@@ -51,7 +68,7 @@ Deno.test("StatusManager.updateStatus: logs on write failure", async () => {
   await mgr.updateStatus(tempDir, RequestStatus.FAILED);
 
   assertEquals(calls.length > 0, true);
-  const errorEvent = calls.find((c) => c[1] === "request.status_update_failed");
+  const errorEvent = calls.find((c) => c.actionType === "request.status_update_failed");
   assertEquals(!!errorEvent, true);
 
   await Deno.remove(tempDir, { recursive: true });

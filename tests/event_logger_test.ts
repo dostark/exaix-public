@@ -54,7 +54,7 @@ Deno.test("EventLogger: should print formatted message to console", async () => 
   const { db, cleanup } = await initTestDbService();
   const logs: string[] = [];
   const originalLog = console.log;
-  console.log = (...args: unknown[]) => logs.push(args.join(" "));
+  console.log = (...args: string[]) => logs.push(args.join(" "));
 
   try {
     const logger = new EventLogger({ db, prefix: "[Test]" });
@@ -77,7 +77,7 @@ Deno.test("EventLogger: should include payload values in console output", async 
   const { db, cleanup } = await initTestDbService();
   const logs: string[] = [];
   const originalLog = console.log;
-  console.log = (...args: unknown[]) => logs.push(args.join(" "));
+  console.log = (...args: string[]) => logs.push(args.join(" "));
 
   try {
     const logger = new EventLogger({ db, prefix: "[Test]" });
@@ -110,9 +110,9 @@ Deno.test("EventLogger: should respect minLevel configuration", async () => {
   const originalWarn = console.warn;
   const originalError = console.error;
 
-  console.log = (...args: unknown[]) => logs.push(`log: ${args.join(" ")}`);
-  console.warn = (...args: unknown[]) => logs.push(`warn: ${args.join(" ")}`);
-  console.error = (...args: unknown[]) => logs.push(`error: ${args.join(" ")}`);
+  console.log = (...args: string[]) => logs.push(`log: ${args.join(" ")}`);
+  console.warn = (...args: string[]) => logs.push(`warn: ${args.join(" ")}`);
+  console.error = (...args: string[]) => logs.push(`error: ${args.join(" ")}`);
 
   try {
     // Set minLevel to warn - should suppress info and debug
@@ -148,9 +148,9 @@ Deno.test("EventLogger: should use appropriate icons for each level", async () =
   const originalWarn = console.warn;
   const originalError = console.error;
 
-  console.log = (...args: unknown[]) => logs.push(args.join(" "));
-  console.warn = (...args: unknown[]) => logs.push(args.join(" "));
-  console.error = (...args: unknown[]) => logs.push(args.join(" "));
+  console.log = (...args: string[]) => logs.push(args.join(" "));
+  console.warn = (...args: string[]) => logs.push(args.join(" "));
+  console.error = (...args: string[]) => logs.push(args.join(" "));
 
   try {
     const logger = new EventLogger({ db, minLevel: LogLevel.DEBUG });
@@ -264,7 +264,7 @@ Deno.test("EventLogger: should cache user identity after first resolution", asyn
 Deno.test("EventLogger: should fallback to console-only when DB unavailable", async () => {
   const logs: string[] = [];
   const originalLog = console.log;
-  console.log = (...args: unknown[]) => logs.push(args.join(" "));
+  console.log = (...args: string[]) => logs.push(args.join(" "));
 
   try {
     // Create logger without DB
@@ -295,8 +295,8 @@ Deno.test("EventLogger: should not throw when DB write fails", async () => {
     const logs: string[] = [];
     const originalLog = console.log;
     const originalWarn = console.warn;
-    console.log = (...args: unknown[]) => logs.push(args.join(" "));
-    console.warn = (...args: unknown[]) => logs.push(args.join(" "));
+    console.log = (...args: string[]) => logs.push(args.join(" "));
+    console.warn = (...args: string[]) => logs.push(args.join(" "));
 
     try {
       await logger.info("test.after_close", "target", {});
@@ -320,7 +320,7 @@ Deno.test("EventLogger: should format timestamps consistently", async () => {
   const { db, cleanup } = await initTestDbService();
   const logs: string[] = [];
   const originalLog = console.log;
-  console.log = (...args: unknown[]) => logs.push(args.join(" "));
+  console.log = (...args: string[]) => logs.push(args.join(" "));
 
   try {
     const logger = new EventLogger({ db, showTimestamp: true });
@@ -343,7 +343,7 @@ Deno.test("EventLogger: should indent multi-line payloads", async () => {
   const { db, cleanup } = await initTestDbService();
   const logs: string[] = [];
   const originalLog = console.log;
-  console.log = (...args: unknown[]) => logs.push(args.join(" "));
+  console.log = (...args: string[]) => logs.push(args.join(" "));
 
   try {
     const logger = new EventLogger({ db });
@@ -374,7 +374,7 @@ Deno.test("EventLogger: should allow custom icons in log events", async () => {
   const { db, cleanup } = await initTestDbService();
   const logs: string[] = [];
   const originalLog = console.log;
-  console.log = (...args: unknown[]) => logs.push(args.join(" "));
+  console.log = (...args: string[]) => logs.push(args.join(" "));
 
   try {
     const logger = new EventLogger({ db });
@@ -407,9 +407,9 @@ Deno.test("EventLogger: full integration with database and console", async () =>
   const originalWarn = console.warn;
   const originalError = console.error;
 
-  console.log = (...args: unknown[]) => logs.push(`log: ${args.join(" ")}`);
-  console.warn = (...args: unknown[]) => logs.push(`warn: ${args.join(" ")}`);
-  console.error = (...args: unknown[]) => logs.push(`error: ${args.join(" ")}`);
+  console.log = (...args: string[]) => logs.push(`log: ${args.join(" ")}`);
+  console.warn = (...args: string[]) => logs.push(`warn: ${args.join(" ")}`);
+  console.error = (...args: string[]) => logs.push(`error: ${args.join(" ")}`);
 
   try {
     const traceId = crypto.randomUUID();

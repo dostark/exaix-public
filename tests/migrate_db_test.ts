@@ -16,6 +16,7 @@ import { dirname, fromFileUrl, join } from "https://deno.land/std@0.201.0/path/m
 import { exists } from "https://deno.land/std@0.201.0/fs/mod.ts";
 import { Database } from "@db/sqlite";
 import { getRuntimeDir } from "./helpers/paths_helper.ts";
+import type { JSONObject } from "../src/types.ts";
 
 const __dirname = dirname(fromFileUrl(import.meta.url));
 const REPO_ROOT = join(__dirname, "..");
@@ -54,7 +55,7 @@ function queryDb(dbPath: string, sql: string): string {
   const db = new Database(dbPath);
   try {
     const stmt = db.prepare(sql);
-    const rows = stmt.all() as Array<Record<string, unknown>>;
+    const rows = stmt.all() as Array<JSONObject>;
     const results: string[] = [];
     for (const row of rows) {
       const values = Object.values(row).map((v) => String(v ?? ""));

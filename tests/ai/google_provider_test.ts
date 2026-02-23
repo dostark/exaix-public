@@ -3,9 +3,9 @@ import { GoogleProvider } from "../../src/ai/providers/google_provider.ts";
 import { googleResponseConfig, registerProviderTests, spyFetch } from "./helpers/provider_test_helper.ts";
 
 // Register all standard provider tests with Google-specific body extractor
-registerProviderTests({
+registerProviderTests<{ id: string; generate: (prompt: string) => Promise<string> }>({
   name: "GoogleProvider",
-  createProvider: (options) => new GoogleProvider({ apiKey: "test-key", ...options }),
+  createProvider: (options, logger) => new GoogleProvider({ apiKey: "test-key", ...options, logger }),
   defaultId: "google-gemini-flash-latest",
   responseConfig: googleResponseConfig,
   apiKeyHeader: "Content-Type",

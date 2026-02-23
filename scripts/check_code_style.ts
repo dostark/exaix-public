@@ -1,4 +1,5 @@
 #!/usr/bin/env -S deno run --allow-read
+// ...existing code...
 // Copyright 2026 ExoFrame authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -12,61 +13,96 @@ interface Rule {
   severity: "error" | "warn";
 }
 
+// Parse CLI options
+const args = new Set(Deno.args);
+const strictImports = args.has("--strict-imports");
+
 // Rules correspond to the code style guidelines in CODE_STYLE.md.  When a
 // violation is found we print a human-friendly explanation; the script exits
 // with a non-zero status if any errors were detected so it can be used in
 // pre-commit hooks or CI.
 const rules: Rule[] = [
+  // Dynamic import checks are only enabled if --strict-imports is passed
+  ...(strictImports
+    ? [
+      {
+        name: "import-inside-statement",
+        regex: /^(?!\s*import\s+).*(import\s*\().*$/,
+        message:
+          "Use of import() inside other statements (e.g., if, function, loop) is prohibited. All imports must be at the top level.",
+        severity: "error" as const,
+      },
+      {
+        name: "dynamic-import",
+        regex: /\bimport\s*\(/,
+        message:
+          "Dynamic import statements (import(...)) are discouraged. If used, document the rationale in a comment above the import.",
+        severity: "warn" as const,
+      },
+    ]
+    : []),
+  {
+    name: "explicit-unknown-array",
+    regex: /:\s*unknown\[\]/,
+    message: "Using 'unknown[]' as a type is forbidden; use a specific type instead.",
+    severity: "error" as const,
+  },
+  {
+    name: "explicit-any-array",
+    regex: /:\s*any\[\]/,
+    message: "Using 'any[]' as a type is forbidden; use a specific type instead.",
+    severity: "error" as const,
+  },
   {
     name: "ts-suppression-pragmas",
     regex: /@ts-(?:ignore|expect-error|nocheck)/,
     message:
       "TypeScript suppression pragmas (e.g. @ts-ignore, @ts-expect-error, @ts-nocheck) are prohibited; fix the underlying type error instead.",
-    severity: "error",
+    severity: "error" as const,
   },
   {
     name: "deno-lint-no-explicit-any",
     regex: /\/\/\s*deno-lint-ignore\s+no-explicit-any/,
     message: "Using '// deno-lint-ignore no-explicit-any' is not allowed; address the typing issue explicitly.",
-    severity: "error",
+    severity: "error" as const,
   },
   {
     name: "explicit-any-cast",
     regex: /\bas\s+any\b/,
     message: "Casting to 'any' (e.g. 'foo as any') is forbidden.",
-    severity: "error",
+    severity: "error" as const,
   },
   {
     name: "typeof-cast",
     regex: /\bas\s+typeof\s+(?!globalThis\.fetch\b)([a-zA-Z_]\w*)\s+(?!\&)/,
     message:
       "Casting via 'as typeof <var>' is treated as an 'any' escape and is forbidden. Exceptions: 'as typeof globalThis.fetch' in tests, and intersection types like 'as typeof Deno & {...}'.",
-    severity: "error",
+    severity: "error" as const,
   },
   {
     name: "double-cast",
     regex: /as\s+unknown\s+as/,
     message: "Do not use double casting '... as unknown as ...'; use proper narrowing instead.",
-    severity: "error",
+    severity: "error" as const,
   },
   {
     name: "record-any",
     regex: /Record<\s*string\s*,\s*any\s*>/,
     message: "'Record<string, any>' is weak and prohibited; define a more specific type.",
-    severity: "error",
+    severity: "error" as const,
   },
   {
     name: "record-unknown",
     regex: /Record<\s*string\s*,\s*unknown\s*>/,
     message: "'Record<string, unknown>' is prohibited; define a specific interface or type alias instead.",
-    severity: "error",
+    severity: "error" as const,
   },
   {
     name: "promise-response-return",
     regex: /:\s*Promise\s*<\s*Response\s*>\s*=>/,
     message:
       "'Promise<Response>' as return type in arrow functions is weak typing; define a specific return type interface instead.",
-    severity: "error",
+    severity: "error" as const,
   },
 ];
 

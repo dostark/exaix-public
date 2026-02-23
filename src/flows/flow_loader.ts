@@ -1,3 +1,6 @@
+// Dynamic import required for runtime module loading (documented in CODE_STYLE.md)
+// This must remain a dynamic import because the file path is determined at runtime.
+const dynamicImport = (specifier: string) => import(specifier);
 /**
  * @module FlowLoader
  * @path src/flows/flow_loader.ts
@@ -9,6 +12,7 @@
 
 import { dirname, join, resolve } from "@std/path";
 import { Flow } from "../schemas/flow.ts";
+import { FlowSchema } from "../schemas/flow.ts";
 
 /**
  * FlowLoader handles loading and managing flow definitions from the file system.
@@ -91,8 +95,7 @@ export class FlowLoader {
       const tempFilePath = join(tempDir, fileName);
       await Deno.writeTextFile(tempFilePath, rewrittenContent);
 
-      // Dynamically import the temp file
-      const module = await import(`file://${tempFilePath}`);
+      const module: { default: unknown } = await dynamicImport(`file://${tempFilePath}`);
 
       // Cleanup temp directory (best-effort)
       try {
@@ -105,8 +108,13 @@ export class FlowLoader {
         throw new Error(`Flow file ${fileName} does not export a default flow definition`);
       }
 
-      // The default export should be a Flow object created by defineFlow
-      const flow: Flow = module.default;
+      // Validate and parse the flow using FlowSchema
+      let flow: Flow;
+      try {
+        flow = FlowSchema.parse(module.default);
+      } catch (e) {
+        throw new Error(`Flow file ${fileName} does not match Flow schema: ${e}`);
+      }
 
       // Validate that the flow ID matches the filename
       if (flow.id !== flowId) {

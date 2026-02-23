@@ -23,12 +23,13 @@ import { RequestShowHandler } from "../src/cli/handlers/request_show_handler.ts"
 import { StatusManager } from "../src/services/request_processing/status_manager.ts";
 import type { EventLogger } from "../src/services/event_logger.ts";
 
-function parseFrontmatter(content: string): Record<string, unknown> {
+import type { JSONObject } from "../src/types.ts";
+function parseFrontmatter(content: string): JSONObject {
   const parts = content.split("---");
   if (parts.length < 3) {
     throw new Error("Invalid markdown content: missing YAML frontmatter delimiters.");
   }
-  return parse(parts[1]) as Record<string, unknown>;
+  return parse(parts[1]) as JSONObject;
 }
 
 // ============================================================================

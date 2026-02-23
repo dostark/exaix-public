@@ -6,7 +6,7 @@
 
 import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";
 import { McpToolName } from "../../src/enums.ts";
-
+import type { JSONObject } from "../../src/types.ts";
 import { CritiqueSeverity } from "../../src/enums.ts";
 
 import type { IModelProvider } from "../../src/ai/providers.ts";
@@ -42,7 +42,7 @@ function makeReflectionJSON(options: {
   achieved_purpose?: boolean;
   retry_suggested?: boolean;
   retry_reason?: string;
-  alternative_parameters?: Record<string, unknown>;
+  alternative_parameters?: JSONObject;
   issues?: Array<{ type: string; description: string; severity: string }>;
 }): string {
   return JSON.stringify({
@@ -93,7 +93,7 @@ function setupReflector(
   const createExecutor = (
     result: Partial<ToolResult> = { success: true, output: "result" },
   ) => {
-    return (_params: Record<string, unknown>) =>
+    return (_params: JSONObject) =>
       Promise.resolve({
         ...createMockToolResult(true),
         ...result,
@@ -181,7 +181,7 @@ Deno.test("[ToolReflector] retries on failed reflection", async () => {
   ]);
 
   let executionCount = 0;
-  const executor = (_params: Record<string, unknown>) => {
+  const executor = (_params: JSONObject) => {
     executionCount++;
     return Promise.resolve(createMockToolResult(executionCount > 1, "result"));
   };
@@ -237,8 +237,8 @@ Deno.test("[ToolReflector] applies alternative parameters on retry", async () =>
     makeReflectionJSON({ success: true, confidence: 90, achieved_purpose: true }),
   ]);
 
-  let lastParams: Record<string, unknown> = {};
-  const executor = (params: Record<string, unknown>) => {
+  let lastParams: JSONObject = {};
+  const executor = (params: JSONObject) => {
     lastParams = params;
     return Promise.resolve(createMockToolResult(true, "result"));
   };
@@ -360,7 +360,7 @@ Deno.test("[ToolReflector] tracks retry metrics", async () => {
   ]);
 
   let callCount = 0;
-  const executor = (_params: Record<string, unknown>) => {
+  const executor = (_params: JSONObject) => {
     callCount++;
     return Promise.resolve(createMockToolResult(callCount > 1, "result"));
   };
@@ -423,7 +423,7 @@ Deno.test("[createStrictToolReflector] creates strict reflector", async () => {
   createStrictToolReflector(createMockProvider(mockResponses));
 
   let callCount = 0;
-  const executor = (_params: Record<string, unknown>) => {
+  const executor = (_params: JSONObject) => {
     callCount++;
     return Promise.resolve(createMockToolResult(true, "result"));
   };
@@ -449,7 +449,7 @@ Deno.test("[createFastToolReflector] creates fast reflector", async () => {
 
   const reflector = createFastToolReflector(createMockProvider(mockResponses));
 
-  const executor = (_params: Record<string, unknown>) => {
+  const executor = (_params: JSONObject) => {
     return Promise.resolve(createMockToolResult(true, "result"));
   };
 

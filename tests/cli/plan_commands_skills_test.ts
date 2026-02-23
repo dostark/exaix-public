@@ -5,6 +5,12 @@ import { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import { PlanStatus } from "../../src/plans/plan_status.ts";
 
+interface Frontmatter {
+  status?: string;
+  skills?: string[];
+  [key: string]: unknown;
+}
+
 Deno.test("PlanCommands - Skills Injection on Approve", async (t) => {
   const { tempDir, config, db, cleanup } = await createCliTestContext();
   const planCommands = new PlanCommands({ config, db });
@@ -40,7 +46,7 @@ This is a test plan.
     const match = activeContent.match(/^---\n([\s\S]*?)\n---/);
     if (!match) throw new Error("No frontmatter found");
 
-    const frontmatter = parseYaml(match[1]) as Record<string, unknown>;
+    const frontmatter = parseYaml(match[1]) as Frontmatter;
 
     assertEquals(frontmatter.status, PlanStatus.APPROVED);
     assertEquals(frontmatter.skills, ["documentation-driven", "file-ops"]);
@@ -78,7 +84,7 @@ This is another test plan.
     const match = activeContent.match(/^---\n([\s\S]*?)\n---/);
     if (!match) throw new Error("No frontmatter found");
 
-    const frontmatter = parseYaml(match[1]) as Record<string, unknown>;
+    const frontmatter = parseYaml(match[1]) as Frontmatter;
 
     assertEquals(frontmatter.status, PlanStatus.APPROVED);
     assertEquals(frontmatter.skills, undefined);

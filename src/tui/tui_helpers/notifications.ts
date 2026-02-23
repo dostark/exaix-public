@@ -106,30 +106,47 @@ export async function handleMemoryNotifications(
 ) {
   if (key === KEYS.ESCAPE || key === KEYS.M) {
     self.state.showMemoryNotifications = false;
-  } else {
-    const allNotifs = await notificationService.getNotifications();
-    const memoryNotifs = allNotifs.filter((n) => n.type === "memory_update_pending");
-    const count = memoryNotifs.length;
+    return panes.findIndex((p) => p.id === self.activePaneId);
+  }
 
-    if (key === "up" || key === "k") {
-      if (count > 0) {
-        self.state.selectedMemoryNotifIndex = (self.state.selectedMemoryNotifIndex - 1 + count) % count;
-      }
-    } else if (key === "down" || key === "j") {
-      if (count > 0) {
-        self.state.selectedMemoryNotifIndex = (self.state.selectedMemoryNotifIndex + 1) % count;
-      }
-    } else if (key === "a" && count > 0) {
-      if (self.state.selectedMemoryNotifIndex < count) {
-        const selected = memoryNotifs[self.state.selectedMemoryNotifIndex];
-        await self.approveMemoryUpdate((selected.proposal_id || selected.id) as string);
-      }
-    } else if (key === "r" && count > 0) {
-      if (self.state.selectedMemoryNotifIndex < count) {
-        const selected = memoryNotifs[self.state.selectedMemoryNotifIndex];
-        await self.rejectMemoryUpdate((selected.proposal_id || selected.id) as string);
+  const allNotifs = await notificationService.getNotifications();
+  const memoryNotifs = allNotifs.filter((n) => n.type === "memory_update_pending");
+  const count = memoryNotifs.length;
+
+  const updateIndex = (delta: number) => {
+    if (count > 0) {
+      self.state.selectedMemoryNotifIndex = (self.state.selectedMemoryNotifIndex + delta + count) % count;
+    }
+  };
+
+  const approveOrReject = async (approve: boolean) => {
+    if (count > 0 && self.state.selectedMemoryNotifIndex < count) {
+      const selected = memoryNotifs[self.state.selectedMemoryNotifIndex];
+      const id = (selected.proposal_id || selected.id) as string;
+      if (approve) {
+        await self.approveMemoryUpdate(id);
+      } else {
+        await self.rejectMemoryUpdate(id);
       }
     }
+  };
+
+  switch (key) {
+    case "up":
+    case "k":
+      updateIndex(-1);
+      break;
+    case "down":
+    case "j":
+      updateIndex(1);
+      break;
+    case "a":
+      await approveOrReject(true);
+      break;
+    case "r":
+      await approveOrReject(false);
+      break;
+      // no default
   }
 
   return panes.findIndex((p) => p.id === self.activePaneId);

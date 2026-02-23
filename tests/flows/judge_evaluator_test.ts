@@ -9,13 +9,14 @@ import { CRITERIA, EvaluationResult as _EvaluationResult } from "../../src/flows
 import { EvaluationCategory } from "../../src/enums.ts";
 import { JudgeInvoker } from "../../src/flows/gate_evaluator.ts";
 import { createJudgeEvaluator, JudgeEvaluator } from "../../src/flows/judge_evaluator.ts";
+import type { JSONObject } from "../../src/types.ts";
 
 /**
  * Mock AgentRunner for testing JudgeEvaluator
  */
 class MockAgentRunner {
   responses: Map<string, string> = new Map();
-  lastRequest: { agentId: string; prompt: string; context?: Record<string, unknown> } | null = null;
+  lastRequest: { agentId: string; prompt: string; context?: JSONObject } | null = null;
 
   setResponse(agentId: string, response: string): void {
     this.responses.set(agentId, response);
@@ -23,7 +24,7 @@ class MockAgentRunner {
 
   async run(
     agentId: string,
-    request: { userPrompt: string; context?: Record<string, unknown> },
+    request: { userPrompt: string; context?: JSONObject },
   ): Promise<{ content: string }> {
     this.lastRequest = {
       agentId,

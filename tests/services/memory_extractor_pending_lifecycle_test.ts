@@ -15,6 +15,7 @@ import type { Learning, MemoryUpdateProposal, ProposalLearning } from "../../src
 import { createMockConfig } from "../helpers/config.ts";
 import type { IDatabaseService } from "../../src/services/db.ts";
 import type { IMemoryBankService } from "../../src/services/memory_bank.ts";
+import type { JSONValue } from "../../src/types.ts";
 
 function makeProposalLearning(overrides: Partial<ProposalLearning> = {}): ProposalLearning {
   return {
@@ -129,10 +130,34 @@ Deno.test("MemoryExtractorService.getPending: returns null for missing or invali
 
 Deno.test("MemoryExtractorService.approvePending: global proposal merges learning and removes file", async () => {
   await withTempRoot(async (root) => {
-    const calls: unknown[] = [];
+    type CallRecord =
+      | { kind: string; learning: Learning }
+      | { kind: string; project: string; pattern: { examples: string[] } }
+      | [string, string, string | null, Record<string, JSONValue>, string?, string?];
+    const calls: CallRecord[] = [];
 
     const { config, svc } = makeService(root, {
-      db: { logActivity: (...args: unknown[]) => calls.push(args) } as Partial<IDatabaseService> as IDatabaseService,
+      db: {
+        logActivity: (
+          actor: string,
+          actionType: string,
+          target: string | null,
+          payload: Record<string, JSONValue>,
+          traceId?: string,
+          agentId?: string | null,
+        ) => {
+          // Log as tuple for test
+          calls.push([
+            actor,
+            actionType,
+            target,
+            payload,
+            traceId,
+            agentId,
+          ] as CallRecord);
+          return Promise.resolve();
+        },
+      } as Partial<IDatabaseService> as IDatabaseService,
       memoryBank: {
         addGlobalLearning: (learning: Learning) => {
           calls.push({ kind: "addGlobalLearning", learning });
@@ -167,12 +192,22 @@ Deno.test("MemoryExtractorService.approvePending: global proposal merges learnin
 
 Deno.test("MemoryExtractorService.approvePending: project proposal adds pattern (file refs only)", async () => {
   await withTempRoot(async (root) => {
-    const calls: unknown[] = [];
+    // Use explicit type for calls array, per code style
+    const calls: Array<{ kind: string; project: string; pattern: { examples: string[] } }> = [];
 
     const { config, svc } = makeService(root, {
-      db: { logActivity: (...args: unknown[]) => calls.push(args) } as Partial<IDatabaseService> as IDatabaseService,
+      db: {
+        logActivity: (
+          _actor: string,
+          _actionType: string,
+          _target: string | null,
+          _payload: Record<string, JSONValue>,
+          _traceId?: string,
+          _agentId?: string | null,
+        ): void => {},
+      } as Partial<IDatabaseService> as IDatabaseService,
       memoryBank: {
-        addPattern: (project: string, pattern: unknown) => {
+        addPattern: (project: string, pattern: { examples: string[] }) => {
           calls.push({ kind: "addPattern", project, pattern });
           return Promise.resolve();
         },
@@ -199,11 +234,7 @@ Deno.test("MemoryExtractorService.approvePending: project proposal adds pattern 
 
     await svc.approvePending(proposal.id);
 
-    const addPatternCall = calls.find((c) => (c as { kind?: string })?.kind === "addPattern") as {
-      kind: string;
-      project: string;
-      pattern: { examples: string[] };
-    };
+    const addPatternCall = calls.find((c) => c.kind === "addPattern");
     assertExists(addPatternCall);
     assertEquals(addPatternCall.project, "portalA");
     assertEquals(Array.isArray(addPatternCall.pattern.examples), true);

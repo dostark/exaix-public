@@ -12,7 +12,7 @@ import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";
-import { JSONValue } from "../../src/types.ts";
+import type { JSONValue } from "../../src/types.ts";
 import { parse as parseYaml } from "@std/yaml";
 import { initTestDbService } from "../helpers/db.ts";
 import { getWorkspaceActiveDir } from "../helpers/paths_helper.ts";
@@ -128,7 +128,14 @@ Create a simple hello world function in src/utils.ts
     const yamlMatch = planFile.match(/^---\n([\s\S]*?)\n---/);
     assertExists(yamlMatch, "Plan should have YAML frontmatter");
 
-    const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
+    const frontmatter = parseYaml(yamlMatch[1]) as {
+      trace_id?: string;
+      request_id?: string;
+      agent?: string;
+      status?: string;
+      created_at?: string;
+      [key: string]: unknown;
+    };
     assertEquals(frontmatter.trace_id, traceId);
     assertEquals(frontmatter.status, ReviewStatus.APPROVED);
     assertEquals(frontmatter.agent, "mock-agent");
@@ -223,7 +230,15 @@ Modify README.md with additional content
     const yamlMatch = planFile.match(/^---\n([\s\S]*?)\n---/);
     assertExists(yamlMatch);
 
-    const frontmatter = parseYaml(yamlMatch[1]) as Record<string, unknown>;
+    const frontmatter = parseYaml(yamlMatch[1]) as {
+      trace_id?: string;
+      request_id?: string;
+      agent?: string;
+      status?: string;
+      created_at?: string;
+      security_mode?: string;
+      [key: string]: unknown;
+    };
     assertEquals(frontmatter.security_mode, SecurityMode.HYBRID);
 
     // In hybrid mode, agent would have read access to portal
@@ -506,7 +521,14 @@ portal: TestPortal
     const planFile1 = await Deno.readTextFile(join(activePath, "plan_missing_trace.md"));
     const yamlMatch1 = planFile1.match(/^---\n([\s\S]*?)\n---/);
     assertExists(yamlMatch1);
-    const frontmatter1 = parseYaml(yamlMatch1[1]) as Record<string, unknown>;
+    const frontmatter1 = parseYaml(yamlMatch1[1]) as {
+      trace_id?: string;
+      request_id?: string;
+      agent?: string;
+      status?: string;
+      created_at?: string;
+      [key: string]: unknown;
+    };
 
     if (!frontmatter1.trace_id) {
       await eventLogger.error("plan.missing_trace_id", "plan_missing_trace.md", {

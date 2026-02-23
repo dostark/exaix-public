@@ -4,6 +4,16 @@ import { ensureDir } from "@std/fs";
 import { getWorkspaceActiveDir } from "./helpers/paths_helper.ts";
 import { parse } from "@std/yaml";
 
+interface Frontmatter {
+  trace_id?: string;
+  request_id?: string;
+  agent?: string;
+  status?: string;
+  created_at?: string;
+  [key: string]: unknown;
+}
+import type { JSONObject } from "../src/types.ts";
+
 Deno.test("Plan Executor - Parsing", async (t) => {
   const testDir = await Deno.makeTempDir({ prefix: "plan-parsing-test-" });
 
@@ -124,7 +134,7 @@ status: approved
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(frontmatterMatch);
 
-      const frontmatter = parse(frontmatterMatch[1]) as Record<string, unknown>;
+      const frontmatter = parse(frontmatterMatch[1]) as JSONObject;
 
       assertEquals(frontmatter.request_id, "req-789");
     });
@@ -145,7 +155,7 @@ agent: mock-agent
       const content = await Deno.readTextFile(planPath);
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
 
-      const frontmatter = parse(frontmatterMatch![1]) as Record<string, unknown>;
+      const frontmatter = parse(frontmatterMatch![1]) as JSONObject;
 
       assertEquals(frontmatter.agent, "mock-agent");
     });
@@ -165,7 +175,7 @@ trace_id: test-trace-123
       const content = await Deno.readTextFile(planPath);
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
 
-      const frontmatter = parse(frontmatterMatch![1]) as Record<string, unknown>;
+      const frontmatter = parse(frontmatterMatch![1]) as JSONObject;
 
       assertEquals(frontmatter.request_id, undefined);
       assertEquals(frontmatter.agent, undefined);
@@ -382,7 +392,7 @@ Create authentication middleware.
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       assertExists(frontmatterMatch);
 
-      const frontmatter = parse(frontmatterMatch[1]) as Record<string, unknown>;
+      const frontmatter = parse(frontmatterMatch[1]) as Frontmatter;
 
       assertEquals(frontmatter.trace_id, "integration-test-123");
       assertEquals(frontmatter.request_id, "integration-req-456");
@@ -438,7 +448,7 @@ Change timeout value in config file.
       const content = await Deno.readTextFile(planPath);
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
 
-      const frontmatter = parse(frontmatterMatch![1]) as Record<string, unknown>;
+      const frontmatter = parse(frontmatterMatch![1]) as Frontmatter;
 
       assertEquals(frontmatter.trace_id, "fs-test-789");
 

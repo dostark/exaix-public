@@ -21,8 +21,14 @@ interface Activity {
   agentId: string | null;
   actionType: string;
   target: string | null;
-  payload: Record<string, unknown>;
+  payload: ActivityPayload;
   timestamp: string;
+}
+
+interface ActivityPayload {
+  action?: string;
+  status?: string;
+  [field: string]: string | number | boolean | undefined;
 }
 
 Deno.test("ActivityRepository: interface defines contract", () => {
@@ -269,13 +275,13 @@ Deno.test("DatabaseActivityRepository: handles malformed JSON payload gracefully
       const r = getActivitiesByTraceSpy(traceId);
       return r instanceof Promise ? await r : r;
     },
-    preparedGet: function (_query: string, _params: unknown[] = []) {
+    preparedGet: function (_query: string, _params: string[] = []) {
       return Promise.resolve(null);
     },
-    preparedAll: function (_query: string, _params: unknown[] = []) {
+    preparedAll: function (_query: string, _params: string[] = []) {
       return Promise.resolve([]);
     },
-    preparedRun: function (_query: string, _params: unknown[] = []) {
+    preparedRun: function (_query: string, _params: string[] = []) {
       return Promise.resolve({});
     },
     queryActivity: () => Promise.resolve([]),

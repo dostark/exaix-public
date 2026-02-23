@@ -1,6 +1,7 @@
 // Usage: deno run --allow-read scripts/inspect_embeddings.ts --query "foo" --top 5
 import { parse } from "https://deno.land/std@0.203.0/flags/mod.ts";
 import type { JSONObject } from "../src/types.ts";
+import * as fsMod from "https://deno.land/std@0.203.0/fs/mod.ts";
 
 function dot(a: number[], b: number[]) {
   let s = 0;
@@ -79,8 +80,8 @@ async function main() {
     try {
       const raw = await Deno.readTextFile(manifestPath).catch(() => "");
       if (raw) {
-        const manifest = JSON.parse(raw) as Record<string, unknown>;
-        const idx = (manifest.index as Array<Record<string, unknown>> | undefined) || [];
+        const manifest = JSON.parse(raw) as JSONObject;
+        const idx = (manifest.index as Array<JSONObject> | undefined) || [];
         for (const e of idx) {
           if (typeof e.embeddingFile === "string") files.push(e.embeddingFile as string);
         }
@@ -89,9 +90,11 @@ async function main() {
       // ignore manifest parse errors and fallback to directory walk
     }
 
+    // Top-level dynamic import for directory walk (see CODE_STYLE.md for rationale)
+    // This import is always loaded, but only used if manifest is missing.
     if (files.length === 0) {
       for await (
-        const entry of (await import("https://deno.land/std@0.203.0/fs/mod.ts")).walk(dir, {
+        const entry of fsMod.walk(dir, {
           exts: [".json"],
           maxDepth: 1,
         })
@@ -110,8 +113,8 @@ async function main() {
   for (const f of files) {
     try {
       const raw = await Deno.readTextFile(f);
-      const obj = JSON.parse(raw) as Record<string, unknown>;
-      const vecs = (obj.vecs as Array<Record<string, unknown>> | undefined) || [];
+      const obj = JSON.parse(raw) as JSONObject;
+      const vecs = (obj.vecs as Array<JSONObject> | undefined) || [];
       for (const v of vecs) {
         const vector = v.vector as number[] | undefined;
         const text = v.text as string | undefined;

@@ -3,9 +3,9 @@ import { OpenAIProvider } from "../../src/ai/providers/openai_provider.ts";
 import { openaiResponseConfig, registerProviderTests, spyFetch } from "./helpers/provider_test_helper.ts";
 
 // Register all standard provider tests
-registerProviderTests({
+registerProviderTests<{ id: string; generate: (prompt: string) => Promise<string> }>({
   name: "OpenAIProvider",
-  createProvider: (options) => new OpenAIProvider({ apiKey: "test-key", ...options }),
+  createProvider: (options, logger) => new OpenAIProvider({ apiKey: "test-key", ...options, logger }),
   defaultId: "openai-gpt-5-mini",
   responseConfig: openaiResponseConfig,
   apiKeyHeader: "Authorization",

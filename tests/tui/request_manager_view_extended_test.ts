@@ -5,19 +5,18 @@
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { CritiqueSeverity } from "../../src/enums.ts";
-
+import { CritiqueSeverity, LogLevel, MCPTransport, SqliteJournalMode } from "../../src/enums.ts";
+import { RequestPriority } from "../../src/enums.ts";
+import type { RequestEntry, RequestMetadata, RequestShowResult } from "../../src/cli/commands/request_commands.ts";
+import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
 import { MemorySource } from "../../src/enums.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";
-import type { RequestCommands } from "../../src/cli/commands/request_commands.ts";
-
 import {
   createLegacyTuiSession,
   createLegacyTuiSessionWithErrors,
   createLegacyTuiSessionWithLongTraceId,
   createLegacyTuiSessionWithTracking,
 } from "./helpers.ts";
-
 import {
   MinimalRequestServiceMock,
   PRIORITY_ICONS,
@@ -46,6 +45,7 @@ function createTestRequests(): Request[] {
       created: "2025-01-01T10:00:00Z",
       created_by: "test@example.com",
       source: "cli",
+      // waitForFlush is only on db mock, not Request
     },
     {
       trace_id: "req-002",
@@ -751,25 +751,200 @@ Deno.test("LegacyRequestManagerTuiSession: error handling in actions", async () 
 // ===== RequestCommandsServiceAdapter Tests =====
 
 Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", async () => {
-  const mockCmd = {
-    list: () => Promise.resolve([]),
-    show: () => Promise.resolve({ content: "test" }),
-    create: () =>
-      Promise.resolve({
-        trace_id: "test-id",
-        filename: "test.md",
-        status: RequestStatus.PENDING,
-        priority: "normal",
-        agent: "default",
-        portal: undefined,
-        model: undefined,
-        created: new Date().toISOString(),
-        created_by: "test",
-        source: "cli",
-      }),
+  // Provide a minimal valid CommandContext
+  const dummyContext = {
+    config: {
+      tools: {
+        fetch_url: {
+          enabled: false,
+          allowed_domains: [],
+          timeout_ms: 1000,
+          max_response_size_kb: 1024,
+        },
+        grep_search: {
+          max_results: 10,
+          exclude_dirs: [],
+        },
+      },
+      system: {
+        root: "/tmp/mock-root",
+        log_level: LogLevel.INFO,
+        version: "test-version",
+      },
+      paths: {
+        workspace: "Workspace",
+        runtime: "Runtime",
+        memory: "Memory",
+        portals: "Portals",
+        blueprints: "Blueprints",
+        active: "Active",
+        archive: "Archive",
+        plans: "Plans",
+        requests: "Requests",
+        rejected: "Rejected",
+        agents: "Agents",
+        flows: "Flows",
+        memoryProjects: "MemoryProjects",
+        memoryExecution: "MemoryExecution",
+        memoryIndex: "MemoryIndex",
+        memorySkills: "MemorySkills",
+        memoryPending: "MemoryPending",
+        memoryTasks: "MemoryTasks",
+        memoryGlobal: "MemoryGlobal",
+      },
+      database: {
+        batch_flush_ms: 100,
+        batch_max_size: 10,
+        sqlite: { journal_mode: SqliteJournalMode.WAL, foreign_keys: true, busy_timeout_ms: 100 },
+        failure_threshold: 1,
+        reset_timeout_ms: 100,
+        half_open_success_threshold: 1,
+      },
+      watcher: {
+        debounce_ms: 100,
+        stability_check: true,
+      },
+      agents: {
+        default_model: "test-model",
+        timeout_sec: 30,
+        max_iterations: 5,
+      },
+      portals: [],
+      models: {},
+      ai_endpoints: {},
+      ai_retry: {
+        max_attempts: 1,
+        backoff_base_ms: 100,
+        timeout_per_request_ms: 100,
+      },
+      ai_timeout: { default_ms: 1000 },
+      ai_anthropic: { api_version: "2023-01-01", default_model: "claude-v1", max_tokens_default: 4096 },
+      mcp: {
+        enabled: true,
+        version: "1.0",
+        transport: MCPTransport.STDIO,
+        server_name: "test-server",
+      },
+      mcp_defaults: { agent_id: "agent-1" },
+      rate_limiting: {
+        enabled: false,
+        max_calls_per_minute: 100,
+        max_tokens_per_hour: 10000,
+        max_cost_per_day: 100,
+        cost_per_1k_tokens: 0.01,
+      },
+      providers: {},
+      ai: {
+        model: "test-model",
+        timeout_ms: 100,
+        provider: "test-provider",
+      },
+      memory: {},
+      plan_defaults: {},
+      review_defaults: {},
+      journal: {},
+      event_log: {},
+      portal_permissions: {},
+      git: {
+        branch_prefix_pattern: "",
+        allowed_prefixes: [],
+        operations: {
+          status_timeout_ms: 100,
+          ls_files_timeout_ms: 100,
+          checkout_timeout_ms: 100,
+          clean_timeout_ms: 100,
+          log_timeout_ms: 100,
+          diff_timeout_ms: 100,
+          command_timeout_ms: 100,
+          max_retries: 1,
+          retry_backoff_base_ms: 100,
+          branch_name_collision_max_retries: 1,
+          trace_id_short_length: 8,
+          branch_suffix_length: 4,
+        },
+      },
+      mock: { delay_ms: 0, input_tokens: 0, output_tokens: 0 },
+      provider_strategy: {
+        prefer_free: false,
+        allow_local: false,
+        max_daily_cost_usd: 0,
+        health_check_enabled: false,
+        fallback_enabled: false,
+        fallback_chains: {},
+      },
+      ui: { prompt_preview_length: 0, prompt_preview_extended: 0 },
+      cost_tracking: { batch_delay_ms: 0, max_batch_size: 0, rates: {} },
+      health: { check_timeout_ms: 0, cache_ttl_ms: 0, memory_warn_percent: 0, memory_critical_percent: 0 },
+    },
+    db: {
+      get: () => undefined,
+      set: () => undefined,
+      delete: () => undefined,
+      logActivity: () => undefined,
+      waitForFlush: () => Promise.resolve(),
+      queryActivity: () => Promise.resolve([]),
+      preparedGet: () => Promise.resolve(null),
+      preparedAll: () => Promise.resolve([]),
+      preparedRun: () => Promise.resolve(),
+      close: () => Promise.resolve(),
+      getActivitiesByTrace: () => [],
+      getActivitiesByActor: () => [],
+      getActivitiesByAction: () => [],
+      getActivitiesByTraceSafe: () => Promise.resolve([]),
+      getActivitiesByActionType: () => [],
+      getActivitiesByActionTypeSafe: () => Promise.resolve([]),
+      getRecentActivity: () => Promise.resolve([]),
+    },
   };
-
-  const adapter = new RequestCommandsServiceAdapter(mockCmd as unknown as RequestCommands);
+  class MockRequestCommands extends RequestCommands {
+    override list(): Promise<RequestEntry[]> {
+      return Promise.resolve([]);
+    }
+    override show(): Promise<RequestShowResult> {
+      return Promise.resolve({
+        metadata: {
+          trace_id: "dummy",
+          filename: "dummy.md",
+          path: "dummy.md",
+          status: RequestStatus.PENDING,
+          priority: RequestPriority.NORMAL,
+          agent: "dummy",
+          created: new Date().toISOString(),
+          created_by: "dummy",
+          source: "cli",
+        },
+        content: "",
+      });
+    }
+    override create(): Promise<RequestMetadata> {
+      return Promise.resolve({
+        trace_id: "dummy",
+        filename: "dummy.md",
+        path: "dummy.md",
+        status: RequestStatus.PENDING,
+        priority: RequestPriority.NORMAL,
+        agent: "dummy",
+        created: new Date().toISOString(),
+        created_by: "dummy",
+        source: "cli",
+      });
+    }
+    override createFromFile(): Promise<RequestMetadata> {
+      return Promise.resolve({
+        trace_id: "dummy",
+        filename: "dummy.md",
+        path: "dummy.md",
+        status: RequestStatus.PENDING,
+        priority: RequestPriority.NORMAL,
+        agent: "dummy",
+        created: new Date().toISOString(),
+        created_by: "dummy",
+        source: "cli",
+      });
+    }
+  }
+  const mockCmd = new MockRequestCommands(dummyContext);
+  const adapter = new RequestCommandsServiceAdapter(mockCmd);
 
   // This should log a warning but return true
   const result = await adapter.updateRequestStatus("test-id", RequestStatus.COMPLETED);

@@ -8,16 +8,24 @@
  */
 import type { ExoCtlTestContext } from "../../../src/cli/exoctl.ts";
 
-type ExoCtlModule = typeof import("../../../src/cli/exoctl.ts");
+import type * as ExoCtlModule from "../../../src/cli/exoctl.ts";
 
-const mod = await import("../../../src/cli/exoctl.ts");
-export async function withTestMod<T>(fn: (mod: ExoCtlModule, ctx: ExoCtlTestContext) => Promise<T> | T) {
+// Dynamic import required for test module loading (documented in CODE_STYLE.md)
+// This must remain a dynamic import because the module is only needed at runtime in test mode.
+const exoctlModulePromise: Promise<typeof import("../../../src/cli/exoctl.ts")> = import("../../../src/cli/exoctl.ts");
+
+function loadExoCtlModule(): Promise<typeof import("../../../src/cli/exoctl.ts")> {
+  return exoctlModulePromise;
+}
+
+export async function withTestMod<T>(fn: (mod: typeof ExoCtlModule, ctx: ExoCtlTestContext) => Promise<T> | T) {
   const origEnv = Deno.env.get("EXO_TEST_CLI_MODE") ?? Deno.env.get("EXO_TEST_MODE");
   Deno.env.set("EXO_TEST_CLI_MODE", "1");
   Deno.env.set("EXO_TEST_MODE", "1");
   try {
-    const ctx = mod.__test_getContext();
-    return await fn(mod, ctx);
+    const loadedMod = await loadExoCtlModule();
+    const ctx = loadedMod.__test_getContext();
+    return await fn(loadedMod, ctx);
   } finally {
     if (origEnv === undefined) {
       Deno.env.delete("EXO_TEST_CLI_MODE");
@@ -80,9 +88,9 @@ export async function captureAllOutputs(fn: () => Promise<void> | void, timeoutM
   const origLog = console.log;
   const origWarn = console.warn;
   const origErr = console.error;
-  console.log = (...args: unknown[]) => logs.push(args.map(String).join(" "));
-  console.warn = (...args: unknown[]) => warns.push(args.map(String).join(" "));
-  console.error = (...args: unknown[]) => errs.push(args.map(String).join(" "));
+  console.log = (...args: string[]) => logs.push(args.map(String).join(" "));
+  console.warn = (...args: string[]) => warns.push(args.map(String).join(" "));
+  console.error = (...args: string[]) => errs.push(args.map(String).join(" "));
 
   try {
     await runWithTimeout(fn, timeoutMs);
@@ -105,7 +113,7 @@ export async function expectExitWithLogs(
   const origErr = console.error;
   const errors: string[] = [];
   let exitCalled = false;
-  console.error = (...args: unknown[]) => errors.push(args.map(String).join(" "));
+  console.error = (...args: string[]) => errors.push(args.map(String).join(" "));
   Deno.exit = (code?: number) => {
     exitCalled = true;
     throw new Error(`DENO_EXIT:${code ?? 0}`);

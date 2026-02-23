@@ -10,6 +10,7 @@ import {
 import { MemoryStatus } from "../../../src/memory/memory_status.ts";
 import type { ExecutionMemory, Learning, MemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
 import type { MemoryExtractorService } from "../../../src/services/memory_extractor.ts";
+import type { JSONObject } from "../../../src/types.ts";
 
 export function createSuccessfulExecutionMemory(portal: string, traceId: string): ExecutionMemory {
   return {
@@ -190,7 +191,7 @@ export function createApprovedProposal(overrides: Partial<MemoryUpdateProposal> 
 /**
  * Creates an invalid proposal for testing schema validation failures
  */
-export function createInvalidProposal(overrides: Partial<MemoryUpdateProposal> = {}): Record<string, unknown> {
+export function createInvalidProposal(overrides: Partial<MemoryUpdateProposal> = {}): JSONObject {
   const base = createBaseProposal({
     id: "550e8400-e29b-41d4-a716-446655440006",
     operation: MemoryOperation.ADD, // placeholder
@@ -210,7 +211,7 @@ export function createInvalidProposal(overrides: Partial<MemoryUpdateProposal> =
 /**
  * Creates an invalid proposal with invalid status for testing
  */
-export function createInvalidStatusProposal(overrides: Partial<MemoryUpdateProposal> = {}): Record<string, unknown> {
+export function createInvalidStatusProposal(overrides: Partial<MemoryUpdateProposal> = {}): JSONObject {
   const base = createBaseProposal({
     id: "550e8400-e29b-41d4-a716-446655440008",
     operation: MemoryOperation.ADD,

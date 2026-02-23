@@ -4,7 +4,7 @@ import { FailFastStrategy, SilentStrategy } from "../../src/cli/errors/error_str
 Deno.test("FailFastStrategy: logs and throws Error", () => {
   const original = console.error;
   const logs: string[] = [];
-  console.error = (...args: unknown[]) => {
+  console.error = (...args: string[]) => {
     logs.push(args.map(String).join(" "));
   };
 
@@ -28,7 +28,7 @@ Deno.test("FailFastStrategy: logs and throws Error", () => {
 Deno.test("FailFastStrategy: logs and throws non-Error", () => {
   const original = console.error;
   const logs: string[] = [];
-  console.error = (...args: unknown[]) => {
+  console.error = (...args: string[]) => {
     logs.push(args.map(String).join(" "));
   };
 

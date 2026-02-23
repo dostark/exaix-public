@@ -21,6 +21,7 @@ import {
   MockJudgeInvoker,
 } from "../../src/flows/gate_evaluator.ts";
 import { CRITERIA, EvaluationResult as _EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
+import type { JSONObject } from "../../src/types.ts";
 
 /**
  * Mock improvement agent for testing
@@ -70,7 +71,7 @@ class MockImprovementAgent implements ImprovementAgent {
  */
 class MockAgentRunner {
   responses: Map<string, string> = new Map();
-  lastRequest: { agentId: string; prompt: string; context?: Record<string, unknown> } | null = null;
+  lastRequest: { agentId: string; prompt: string; context?: JSONObject } | null = null;
 
   setResponse(agentId: string, response: string): void {
     this.responses.set(agentId, response);
@@ -78,7 +79,7 @@ class MockAgentRunner {
 
   run(
     agentId: string,
-    request: { userPrompt: string; context?: Record<string, unknown> },
+    request: { userPrompt: string; context?: JSONObject },
   ): Promise<{ content: string }> {
     this.lastRequest = {
       agentId,
