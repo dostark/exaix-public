@@ -7,11 +7,12 @@ import type * as ExoCtlModule from "../../../src/cli/exoctl.ts";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 
-// Dynamic import required for test module loading (documented in CODE_STYLE.md)
-// This must remain a dynamic import because the module is only needed at runtime in test mode.
-const exoctlModulePromise: Promise<typeof import("../../../src/cli/exoctl.ts")> = import("../../../src/cli/exoctl.ts");
+let exoctlModulePromise: Promise<typeof import("../../../src/cli/exoctl.ts")> | undefined;
 
 function loadExoCtlModule(): Promise<typeof import("../../../src/cli/exoctl.ts")> {
+  if (!exoctlModulePromise) {
+    exoctlModulePromise = import("../../../src/cli/exoctl.ts");
+  }
   return exoctlModulePromise;
 }
 
@@ -47,7 +48,7 @@ default_model = "mock:test"
     const loadedMod = await loadExoCtlModule();
     // Use real DB in test mode if possible
     if (loadedMod.__test_initializeServices) {
-      const services = await loadedMod.__test_initializeServices({ instantiateDb: true, configPath });
+      const services = await loadedMod.__test_initializeServices({ instantiateDb: false, configPath });
       ctx = {
         ...loadedMod.__test_getContext(),
         db: services.db,

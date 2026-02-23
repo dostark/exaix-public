@@ -207,7 +207,6 @@ describe("ReviewCommands", () => {
       await createFeatureBranch(tempDir, "request-mixed002", "mixed-002");
 
       const reviews = await reviewCommands.list();
-      console.log("REVIEWS:", reviews.map((r) => ({ type: r.type, id: r.request_id, created: r.created_at })));
       assertEquals(reviews.length, 2);
 
       // Most recent entry first (the git review created after the delay)

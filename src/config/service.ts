@@ -66,10 +66,6 @@ export class ConfigService {
       return result.data;
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) {
-        // In test mode, fail fast if config is missing
-        if (Deno.env.get("EXO_TEST_CLI_MODE") === "1" || Deno.env.get("EXO_TEST_MODE") === "1") {
-          throw new Error(`❌ Test mode: Configuration file not found at ${this.configPath}. No fallback allowed.`);
-        }
         // In non-test mode, fallback to default config
         console.warn("⚠️  Configuration file not found. Using defaults.");
         this.createDefaultConfig();

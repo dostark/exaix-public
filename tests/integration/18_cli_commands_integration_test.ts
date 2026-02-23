@@ -16,16 +16,18 @@ async function runExoctl(args: string[], cwd: string) {
 
   console.log(`Running CLI command: exoctl ${args.join(" ")} in ${cwd}`);
 
+  const env = Deno.env.toObject();
+  delete env.EXO_TEST_MODE;
+  delete env.EXO_TEST_CLI_MODE;
+  env.EXO_CONFIG_PATH = join(cwd, "exo.config.toml");
+
   // Run deno directly with cwd set
   const command = new Deno.Command(Deno.execPath(), {
     args: ["run", "--allow-all", exoctlPath, ...args],
     cwd: cwd,
     stdout: "piped",
     stderr: "piped",
-    env: {
-      ...Deno.env.toObject(),
-      EXO_CONFIG_PATH: join(cwd, "exo.config.toml"),
-    },
+    env,
   });
   const { code, stdout, stderr } = await command.output();
   const stdoutStr = new TextDecoder().decode(stdout);

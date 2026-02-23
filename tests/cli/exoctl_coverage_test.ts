@@ -7,6 +7,7 @@
  * - Edge cases in command parsing
  */
 
+import "./helpers/set_test_mode.ts";
 import { assert, assertEquals } from "@std/assert";
 import {
   CritiqueSeverity,

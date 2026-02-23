@@ -56,15 +56,17 @@ export async function runExoctl(args: string[], cwd: string) {
   const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
   const exoctlPath = join(repoRoot, "src", "cli", "exoctl.ts");
 
+  const env = Deno.env.toObject();
+  delete env.EXO_TEST_MODE;
+  delete env.EXO_TEST_CLI_MODE;
+  env.EXO_CONFIG_PATH = join(cwd, "exo.config.toml");
+
   const command = new Deno.Command(Deno.execPath(), {
     args: ["run", "--allow-all", exoctlPath, ...args],
     cwd,
     stdout: "piped",
     stderr: "piped",
-    env: {
-      ...Deno.env.toObject(),
-      EXO_CONFIG_PATH: join(cwd, "exo.config.toml"),
-    },
+    env,
   });
 
   const { code, stdout, stderr } = await command.output();

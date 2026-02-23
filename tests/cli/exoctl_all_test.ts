@@ -1,3 +1,4 @@
+import "./helpers/set_test_mode.ts";
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { ExoPathDefaults } from "../../src/config/constants.ts";

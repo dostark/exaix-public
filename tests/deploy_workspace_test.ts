@@ -82,12 +82,16 @@ async function runExoctl(
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..");
   const exoctlPath = join(repoRoot, "src", "cli", "exoctl.ts");
+  const fullEnv = { ...Deno.env.toObject(), ...env };
+  delete fullEnv.EXO_TEST_MODE;
+  delete fullEnv.EXO_TEST_CLI_MODE;
+
   const cmd = new Deno.Command("deno", {
     args: ["run", "--allow-all", exoctlPath, ...args],
     cwd: workspacePath,
     stdout: "piped",
     stderr: "piped",
-    env: { ...Deno.env.toObject(), ...env }, // Merge current env with provided env
+    env: fullEnv,
   });
 
   const res = await cmd.output();
