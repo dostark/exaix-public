@@ -7,12 +7,14 @@ import type * as ExoCtlModule from "../../../src/cli/exoctl.ts";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 
-let exoctlModulePromise: Promise<typeof import("../../../src/cli/exoctl.ts")> | undefined;
+// Dynamic import required to allow setting environment variables (EXO_TEST_CLI_MODE)
+// before the exoctl module is initialized, ensuring test mode is correctly detected.
+const exoctlModulePromise = import("../../../src/cli/exoctl.ts");
 
+/**
+ * Loads the exoctl module for testing.
+ */
 function loadExoCtlModule(): Promise<typeof import("../../../src/cli/exoctl.ts")> {
-  if (!exoctlModulePromise) {
-    exoctlModulePromise = import("../../../src/cli/exoctl.ts");
-  }
   return exoctlModulePromise;
 }
 

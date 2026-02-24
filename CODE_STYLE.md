@@ -155,12 +155,16 @@ export class MyClass {
 
 ## 4. Dependency Injection & Interfaces
 
-- **Interface naming:** All interfaces (injectable or otherwise) **must** use
-  the `IInterfaceName` prefix convention. This makes it obvious at a glance
-  that the symbol is an interface rather than a class or type alias.
-- **Placement:** Interfaces should be declared at the top of the module, above
-  any implementing classes or other logic. Keeping them grouped near the
-  import section improves readability and prevents hoisting surprises.
+- **Interface naming:** **All exported interfaces** (injectable or otherwise)
+  **must** use the `IInterfaceName` prefix convention (starting with a capital `I`).
+  This makes it obvious at a glance that the symbol is an interface rather than
+  a class or type alias.
+- **Placement:** **All exported interfaces must be declared at the very top of
+  the module**, immediately following imports (and any module-level descriptive
+  header comments). They must appear before any functional code such as
+  classes, functions, or variable initializations (e.g., `const`, `let`, `var`).
+  Keeping them grouped at the top ensures that the API surfaces of the module
+  are visible at a glance and prevents hoisting-related confusion.
 - Every injectable class `Foo` **must** export a companion interface `IFoo`.
   Consumers depend on the interface, never on the concrete implementation.
 - Dependencies are supplied via constructors; module‑level singletons or static

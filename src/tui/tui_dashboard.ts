@@ -114,6 +114,10 @@ export const DASHBOARD_ICONS = {
   },
 } as const;
 
+// Dynamic import required for runtime module loading of TUI helpers (documented in CODE_STYLE.md)
+// This must remain a dynamic import to avoid circular dependencies and only load in production or test mode as needed.
+const dynamicImport = (specifier: string) => import(specifier);
+
 // ===== Dashboard Key Bindings =====
 
 type DashboardAction =
@@ -566,9 +570,43 @@ export async function launchTuiDashboard(
 }
 
 /**
+ * Internal helper to create a mock notification service for testing
+ */
+function createMockNotificationService(localNotifs: MemoryNotification[]): INotificationService {
+  return {
+    async notify(message: string, type: MemoryNotification["type"] = "info") {
+      localNotifs.unshift({ // Newest first
+        id: crypto.randomUUID(),
+        type,
+        message,
+        created_at: new Date().toISOString(),
+      });
+      await Promise.resolve();
+    },
+    async getNotifications() {
+      return await Promise.resolve(localNotifs.filter((n) => !n.dismissed_at));
+    },
+    async getPendingCount() {
+      return await Promise.resolve(localNotifs.filter((n) => !n.dismissed_at).length);
+    },
+    notifyMemoryUpdate: async () => {},
+    notifyApproval: async () => {},
+    notifyRejection: async () => {},
+    async clearNotification(id: string) {
+      const notif = localNotifs.find((n) => n.id === id);
+      if (notif) notif.dismissed_at = new Date().toISOString();
+      await Promise.resolve();
+    },
+    async clearAllNotifications() {
+      localNotifs.forEach((n) => n.dismissed_at = new Date().toISOString());
+      await Promise.resolve();
+    },
+    database: {} as IDatabaseService,
+  } as INotificationService;
+}
+
+/**
  * Creates a test-mode dashboard with mocked services and simplified behavior.
- * This reduces the complexity of the main launchTuiDashboard function by extracting
- * all test-specific initialization logic.
  */
 function createTestDashboard(options: {
   notificationService?: INotificationService;
@@ -610,36 +648,7 @@ function createTestDashboard(options: {
 
   // Initialize notification service if not provided
   const localNotifs: MemoryNotification[] = [];
-  const notificationService = options.notificationService || {
-    async notify(message: string, type: MemoryNotification["type"] = "info") {
-      localNotifs.unshift({ // Newest first
-        id: crypto.randomUUID(),
-        type,
-        message,
-        created_at: new Date().toISOString(),
-      });
-      await Promise.resolve();
-    },
-    async getNotifications() {
-      return await Promise.resolve(localNotifs.filter((n) => !n.dismissed_at));
-    },
-    async getPendingCount() {
-      return await Promise.resolve(localNotifs.filter((n) => !n.dismissed_at).length);
-    },
-    notifyMemoryUpdate: async () => {},
-    notifyApproval: async () => {},
-    notifyRejection: async () => {},
-    async clearNotification(id: string) {
-      const notif = localNotifs.find((n) => n.id === id);
-      if (notif) notif.dismissed_at = new Date().toISOString();
-      await Promise.resolve();
-    },
-    async clearAllNotifications() {
-      localNotifs.forEach((n) => n.dismissed_at = new Date().toISOString());
-      await Promise.resolve();
-    },
-    database: {} as IDatabaseService,
-  } as INotificationService;
+  const notificationService = options.notificationService || createMockNotificationService(localNotifs);
 
   return {
     panes,
@@ -654,9 +663,6 @@ function createTestDashboard(options: {
     handleMemoryNotifications: _handleMemoryNotificationsLocal,
     async handleKey(key: string) {
       const viewPickerRef = { index: viewPickerIndex };
-      // Dynamic import required for test-mode key handler (documented in CODE_STYLE.md)
-      // This must remain a dynamic import because the module is only needed in test mode.
-      const dynamicImport = (specifier: string) => import(specifier);
       const handleKeyModule: { testModeHandleKey: typeof import("./tui_helpers/handle_key.ts").testModeHandleKey } =
         await dynamicImport("./tui_helpers/handle_key.ts");
       const idx = handleKeyModule.testModeHandleKey(this, key, panes, views, viewPickerRef);
@@ -969,9 +975,6 @@ async function runProductionInteractiveLoop(context: {
         const input = decoder.decode(chunk);
         const key = input; // preserve escape sequences
 
-        // Dynamic import required for production key handler (documented in CODE_STYLE.md)
-        // This must remain a dynamic import because the module is only needed in production mode.
-        const dynamicImport = (specifier: string) => import(specifier);
         const prodHandleKeyModule: { prodHandleKey: typeof import("./tui_helpers/prod_handle_key.ts").prodHandleKey } =
           await dynamicImport("./tui_helpers/prod_handle_key.ts");
         const res = await prodHandleKeyModule.prodHandleKey(key, {
@@ -993,9 +996,6 @@ async function runProductionInteractiveLoop(context: {
       }
     } else {
       // Non-raw fallback: read lines from stdin (Enter-terminated commands)
-      // Dynamic import required for readLines and production key handler (documented in CODE_STYLE.md)
-      // This must remain a dynamic import because the module is only needed in production mode.
-      const dynamicImport = (specifier: string) => import(specifier);
       const ioMod: { readLines: typeof import("https://deno.land/std@0.203.0/io/mod.ts").readLines } =
         await dynamicImport("https://deno.land/std@0.203.0/io/mod.ts");
       for await (const line of ioMod.readLines(Deno.stdin)) {
