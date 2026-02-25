@@ -7,12 +7,10 @@ import { TestEnvironment } from "../tests/integration/helpers/test_environment.t
 import { ProviderSelector } from "../src/ai/provider_selector.ts";
 import { CostTracker } from "../src/services/cost_tracker.ts";
 import { HealthCheckService } from "../src/services/health_check_service.ts";
-import {
-  MockProviderFactory,
-  OllamaProviderFactory,
-  OpenAIProviderFactory,
-  ProviderRegistry,
-} from "../src/ai/provider_registry.ts";
+import { MockProviderFactory } from "../src/ai/factories/mock_factory.ts";
+import { OllamaProviderFactory } from "../src/ai/factories/ollama_factory.ts";
+import { OpenAIProviderFactory } from "../src/ai/factories/openai_factory.ts";
+import { ProviderRegistry } from "../src/ai/provider_registry.ts";
 import { PricingTier, ProviderCostTier, TaskComplexity } from "../src/enums.ts";
 
 Deno.test("Provider Strategy: Full agent execution with provider switching", async (t) => {
