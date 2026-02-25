@@ -1,7 +1,7 @@
 import { KEYS } from "../src/helpers/keyboard.ts";
 import { createMonitorViewWithLogs } from "../tests/tui/helpers.ts";
 
-const { monitorView } = createMonitorViewWithLogs([
+const { monitorView } = await createMonitorViewWithLogs([
   {
     id: "1",
     trace_id: "t1",

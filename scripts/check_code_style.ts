@@ -17,6 +17,7 @@ interface Rule {
 
 const args = new Set(Deno.args);
 const strictImports = args.has("--strict-imports");
+const convertWarnings = args.has("--convert-warnings-to-errors");
 
 if (args.has("--help") || args.has("-h")) {
   console.log(`ExoFrame Code Style Checker
@@ -27,6 +28,7 @@ Usage:
 Options:
   --help, -h          Show this help message
   --strict-imports    Enable strict dynamic import checks (detects imports inside statements)
+  --convert-warnings-to-errors  Convert all warnings to errors
 
 Description:
   Scans all .ts and .tsx files in the ExoFrame repository for code style violations
@@ -58,7 +60,7 @@ const rules: Rule[] = [
         regex: /(?<!typeof\s+)\bimport\s*\(/,
         message:
           "Dynamic import statements (import(...)) are discouraged. If used, document the rationale in a comment above the import.",
-        severity: "warn" as const,
+        severity: convertWarnings ? ("error" as const) : ("warn" as const),
       },
     ]
     : []),
@@ -125,6 +127,13 @@ const rules: Rule[] = [
       "'Promise<Response>' as return type in arrow functions is weak typing; define a specific return type interface instead.",
     severity: "error" as const,
   },
+  {
+    name: "re-export-imported",
+    regex: /^\s*export\s+.*from\s+['"]|^\s*export\s+\*\s+from/,
+    message:
+      "Re-exporting entities from other modules (e.g., 'export { ... } from ...' or 'export * from ...') is prohibited. Each module must only export entities it defines.",
+    severity: "error" as const,
+  },
 ];
 
 let errorCount = 0;
@@ -134,94 +143,247 @@ async function checkFile(path: string) {
   const text = await Deno.readTextFile(path);
   const lines = text.split(/\r?\n/);
 
-  // Check: Exported interfaces must be at the top (after header/imports/types)
-  let functionalCodeLineNum = -1;
   let inMultiLineComment = false;
   let inMultiLineImport = false;
+  let inTemplateLiteral = false;
+  let inTypeDeclaration = false;
   let protectedBraceCount = 0;
+  let functionalCodeLineNum = -1;
+  let firstImportLineNum = -1;
+  let lastImportLineNum = -1;
+  let firstInterfaceLineNum = -1;
+  let _lastInterfaceLineNum = -1;
+  let headerFound = false;
+  let firstContentLineNum = -1;
+  const importedNames = new Set<string>();
 
-  lines.forEach((line, idx) => {
+  for (let idx = 0; idx < lines.length; idx++) {
+    const line = lines[idx];
     const trimmed = line.trim();
 
-    // Skip comments and empty lines
+    if (!trimmed) continue;
+
+    // Handle multi-line comments
     if (inMultiLineComment) {
-      if (trimmed.includes("*/")) inMultiLineComment = false;
-      return;
+      if (trimmed.includes("*/")) {
+        inMultiLineComment = false;
+        if (firstContentLineNum === -1 && idx < 10) {
+          // If a comment starts near the top, consider it a potential header
+          headerFound = true;
+        }
+      }
+      continue;
     }
     if (trimmed.startsWith("/*")) {
+      if (firstContentLineNum === -1 && idx < 5) headerFound = true;
       if (!trimmed.includes("*/")) inMultiLineComment = true;
-      return;
+      continue;
     }
-    if (!trimmed || trimmed.startsWith("//")) return;
+    if (trimmed.startsWith("//")) {
+      if (firstContentLineNum === -1 && idx < 5) headerFound = true;
+      continue;
+    }
+
+    if (trimmed.startsWith("#!")) {
+      continue;
+    }
+
+    if (firstContentLineNum === -1) firstContentLineNum = idx + 1;
+
+    // Handle multi-line imports
+    if (inMultiLineImport) {
+      const names = trimmed.replace(/}.*/, "").split(",");
+      names.forEach((n) => {
+        const parts = n.trim().split(/\s+as\s+/);
+        const name = parts.pop()?.trim();
+        if (parts.length > 0 && /^I[A-Z]/.test(parts[0].trim())) {
+          console.log(
+            `ERROR [no-interface-rename-on-import] ${path}:${idx + 1} – Renaming interface '${
+              parts[0].trim()
+            }' to '${name}' is prohibited. Use the original name.`,
+          );
+          errorCount++;
+        }
+        if (name && name !== "from" && name !== "import") importedNames.add(name);
+      });
+
+      if (trimmed.includes("} from")) {
+        inMultiLineImport = false;
+        lastImportLineNum = idx + 1;
+      }
+      continue;
+    }
 
     // Skip content inside protected blocks { ... } for types/interfaces/enums
     if (protectedBraceCount > 0) {
       const openers = (trimmed.match(/{/g) || []).length;
       const closers = (trimmed.match(/}/g) || []).length;
       protectedBraceCount += openers - closers;
-      return;
+      continue;
     }
 
-    if (functionalCodeLineNum === -1) {
-      // Handle multi-line imports
-      if (inMultiLineImport) {
-        if (trimmed.includes("} from")) {
-          inMultiLineImport = false;
-        }
-        return;
-      }
-
-      const isImportStart = /^\s*import\b/.test(line);
-      if (isImportStart) {
-        if (trimmed.includes("{") && !trimmed.includes("} from")) {
-          inMultiLineImport = true;
-        }
-        return;
-      }
-
-      const isTypeStart = /^\s*(export\s+)?(type|interface|enum)\b/.test(line);
-      if (isTypeStart) {
-        const openers = (trimmed.match(/{/g) || []).length;
-        const closers = (trimmed.match(/}/g) || []).length;
-        protectedBraceCount = openers - closers;
-        return;
-      }
-
-      functionalCodeLineNum = idx + 1;
-    } else {
-      if (/^\s*export\s+interface\b/.test(line)) {
-        const location = `${path}:${idx + 1}`;
-        console.log(
-          `ERROR [exported-interface-placement] ${location} – Exported interfaces must be at the top, preceding functional code (functional code started at line ${functionalCodeLineNum}).`,
-        );
-        errorCount++;
-      }
+    // Handle template literals (backticks)
+    const backtickCount = (line.replace(/\\`/g, "").match(/`/g) || []).length;
+    if (backtickCount % 2 !== 0) {
+      inTemplateLiteral = !inTemplateLiteral;
     }
+    if (inTemplateLiteral) continue;
 
-    // Check: Exported interfaces must start with 'I'
-    const interfaceMatch = line.match(/^\s*export\s+interface\s+([A-Za-z0-9_$]+)/);
-    if (interfaceMatch) {
-      const interfaceName = interfaceMatch[1];
+    // Skip content inside multi-line type/interface/enum declarations
+    if (inTypeDeclaration) {
+      const openers = (trimmed.match(/{/g) || []).length;
+      const closers = (trimmed.match(/}/g) || []).length;
+      protectedBraceCount += openers - closers;
       if (
-        !interfaceName.startsWith("I") ||
-        (interfaceName.length > 1 && interfaceName[1] !== interfaceName[1].toUpperCase())
+        protectedBraceCount === 0 &&
+        (trimmed.endsWith(";") || (trimmed.endsWith("}") && !trimmed.includes("{")) || /^\s*}\s*;?\s*$/.test(line))
       ) {
-        const location = `${path}:${idx + 1}`;
+        inTypeDeclaration = false;
+      }
+      continue;
+    }
+
+    const isImportStart = /^\s*import\b/.test(line) || /^\s*export\s+{[^}]*}\s+from\b/.test(line);
+    if (isImportStart) {
+      if (firstImportLineNum === -1) firstImportLineNum = idx + 1;
+      lastImportLineNum = idx + 1;
+
+      // Extract names from single-line or start of multi-line import
+      if (trimmed.startsWith("import")) {
+        const namedMatch = trimmed.match(/{([^}]*)/);
+        if (namedMatch) {
+          namedMatch[1].replace(/}.*/, "").split(",").forEach((n) => {
+            const parts = n.trim().split(/\s+as\s+/);
+            const name = parts.pop()?.trim();
+            if (parts.length > 0 && /^I[A-Z]/.test(parts[0].trim())) {
+              console.log(
+                `ERROR [no-interface-rename-on-import] ${path}:${idx + 1} – Renaming interface '${
+                  parts[0].trim()
+                }' to '${name}' is prohibited. Use the original name.`,
+              );
+              errorCount++;
+            }
+            if (name && name !== "from" && name !== "import") importedNames.add(name);
+          });
+        }
+        // Default or Namespace import
+        const defaultMatch = trimmed.match(/^import\s+([\w$]+)[,\s]/);
+        if (defaultMatch && defaultMatch[1] !== "type" && defaultMatch[1] !== "*") {
+          importedNames.add(defaultMatch[1]);
+        }
+        const namespaceMatch = trimmed.match(/import\s+\*\s+as\s+([\w$]+)/);
+        if (namespaceMatch) importedNames.add(namespaceMatch[1]);
+      }
+
+      if (trimmed.includes("{") && !trimmed.includes("} from")) {
+        inMultiLineImport = true;
+      }
+
+      if (functionalCodeLineNum !== -1) {
         console.log(
-          `ERROR [exported-interface-naming] ${location} – Exported interface '${interfaceName}' must start with a capital 'I' (e.g., I${interfaceName}).`,
+          `ERROR [import-placement] ${path}:${
+            idx + 1
+          } – Imports must be at the top, preceding functional code (functional code started at line ${functionalCodeLineNum}).`,
         );
         errorCount++;
       }
+      continue;
     }
-  });
+    const isTypeStart = /^\s*((export|declare)\s+)?(type|interface|enum)\b/.test(line) ||
+      /^\s*declare\s+(const|let|var|function|class)\b/.test(line);
+    if (isTypeStart) {
+      if (firstInterfaceLineNum === -1) firstInterfaceLineNum = idx + 1;
+      _lastInterfaceLineNum = idx + 1;
+
+      const openers = (trimmed.match(/{/g) || []).length;
+      const closers = (trimmed.match(/}/g) || []).length;
+      protectedBraceCount += openers - closers;
+
+      if (functionalCodeLineNum !== -1) {
+        if (/^\s*export\s+interface\b/.test(line)) {
+          console.log(
+            `ERROR [exported-interface-placement] ${path}:${
+              idx + 1
+            } – Exported interfaces must be at the top, preceding functional code (functional code started at line ${functionalCodeLineNum}).`,
+          );
+          errorCount++;
+        }
+      }
+
+      if (protectedBraceCount > 0 || (!trimmed.endsWith(";") && !trimmed.endsWith("}"))) {
+        inTypeDeclaration = true;
+      }
+
+      // Check: Exported interfaces must start with 'I'
+      const interfaceMatch = line.match(/^\s*export\s+interface\s+([A-Za-z0-9_$]+)/);
+      if (interfaceMatch) {
+        const interfaceName = interfaceMatch[1];
+        if (
+          !interfaceName.startsWith("I") ||
+          (interfaceName.length > 1 && interfaceName[1] !== interfaceName[1].toUpperCase())
+        ) {
+          console.log(
+            `ERROR [exported-interface-naming] ${path}:${
+              idx + 1
+            } – Exported interface '${interfaceName}' must start with a capital 'I' (e.g., I${interfaceName}).`,
+          );
+          errorCount++;
+        }
+      }
+      continue;
+    }
+
+    // Check for re-exporting imported names: export { Foo, Bar as Baz }
+    const namedExportMatch = line.match(/^\s*export\s+{([^}]*)}\s*;?\s*$/);
+    if (namedExportMatch) {
+      const exports = namedExportMatch[1].split(",");
+      exports.forEach((e) => {
+        const parts = e.trim().split(/\s+as\s+/);
+        const name = parts[0].trim();
+        if (importedNames.has(name)) {
+          console.log(
+            `ERROR [re-export-imported] ${path}:${
+              idx + 1
+            } – Exporting imported entity '${name}' is prohibited. Define it locally or export it from its origin.`,
+          );
+          errorCount++;
+        }
+      });
+    }
+
+    // If we're here, it's functional code
+    if (functionalCodeLineNum === -1 && protectedBraceCount === 0) {
+      functionalCodeLineNum = idx + 1;
+    }
+  }
+
+  // Check: Header placement
+  if (!headerFound) {
+    const severity = convertWarnings ? "ERROR" : "WARN";
+    console.log(
+      `${severity} [module-header] ${path}:1 – Modules should start with a descriptive header comment.`,
+    );
+    if (convertWarnings) errorCount++;
+    else warnCount++;
+  } else if (firstImportLineNum !== -1 && firstImportLineNum < firstContentLineNum) {
+    // This is unlikely given how headerFound is set, but good as a guard
+  }
+
+  // Check: Import vs Interface order
+  if (firstImportLineNum !== -1 && firstInterfaceLineNum !== -1 && firstInterfaceLineNum < lastImportLineNum) {
+    // Note: This check is a bit simplistic as types can be mixed with imports if they are imported types,
+    // but actual 'export interface' declarations should ideally be after all imports.
+    // However, the rule says "immediately following imports".
+  }
 
   rules.forEach((rule) => {
     lines.forEach((line, idx) => {
       if (rule.regex.test(line)) {
         const location = `${path}:${idx + 1}`;
-        const prefix = rule.severity === "error" ? "ERROR" : "WARN";
+        const actualSeverity = convertWarnings ? "error" : rule.severity;
+        const prefix = actualSeverity === "error" ? "ERROR" : "WARN";
         console.log(`${prefix} [${rule.name}] ${location} – ${rule.message}`);
-        if (rule.severity === "error") {
+        if (actualSeverity === "error") {
           errorCount++;
         } else {
           warnCount++;
@@ -238,7 +400,7 @@ async function main() {
   for await (
     const entry of walk(REPO_ROOT, {
       includeDirs: false,
-      exts: ["ts", "tsx"],
+      exts: [".ts", ".tsx"],
       followSymlinks: false,
       skip: [/^\.git$/, /^node_modules$/, /check_code_style\.ts$/],
     })

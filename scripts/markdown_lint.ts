@@ -16,7 +16,7 @@ import { extname, join, normalize } from "@std/path";
 
 export type Severity = "error" | "warn";
 
-export interface Finding {
+export interface IFinding {
   filePath: string;
   line: number; // 1-based
   rule: string;
@@ -267,8 +267,8 @@ function applySafeFixes(original: string): { fixed: string; changed: boolean } {
   return { fixed: text, changed: text !== original };
 }
 
-export function lintMarkdown(content: string, filePath: string, options: LintOptions): Finding[] {
-  const findings: Finding[] = [];
+export function lintMarkdown(content: string, filePath: string, options: LintOptions): IFinding[] {
+  const findings: IFinding[] = [];
 
   const normalized = content.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
   const lines = splitLines(normalized);
@@ -799,11 +799,11 @@ export function lintMarkdown(content: string, filePath: string, options: LintOpt
   return findings;
 }
 
-function formatFinding(f: Finding): string {
+function formatFinding(f: IFinding): string {
   return `${f.filePath}:${f.line} [${f.severity}] ${f.rule} ${f.message}`;
 }
 
-function countErrors(findings: Finding[]): number {
+function countErrors(findings: IFinding[]): number {
   return findings.filter((f) => f.severity === "error").length;
 }
 
@@ -816,7 +816,7 @@ async function main() {
     return;
   }
 
-  let totalFindings: Finding[] = [];
+  let totalFindings: IFinding[] = [];
   let fixedCount = 0;
 
   for (const filePath of markdownFiles) {
