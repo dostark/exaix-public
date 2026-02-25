@@ -111,6 +111,20 @@ function loadModule() {
 const { Y } = await import("./y.ts");
 ```
 
+### No Re-exporting
+
+Exporting entities imported from other modules is prohibited. Each module must only export the entities it definitionally contains (classes, functions, interfaces, etc., defined within the file). This maintains clear module boundaries and avoids "barrel" files which can obfuscate the origin of symbols and complicate dependency analysis.
+
+**Prohibited:**
+
+```ts
+export { Foo } from "./bar.ts"; // ❌ Inline re-export
+export * from "./bar.ts";       // ❌ Wildcard re-export
+
+import { Baz } from "./qux.ts";
+export { Baz };                 // ❌ Explicit re-export
+```
+
 ### Dynamic Imports
 
 Dynamic imports with `await import()` are **discouraged**. If you must use a dynamic import (for example, to load a large optional module, for conditional loading, or to break a circular dependency), you **must** document the rationale in a comment immediately above the import statement explaining why a static import is not possible or not desirable.
@@ -130,6 +144,26 @@ const { join } = await import("@std/path");
 ```
 
 The code style checker will warn on all uses of dynamic import. Only use them when absolutely necessary and always provide a justification comment.
+
+### No Aliasing Interfaces on Import
+
+Renaming interfaces during import (using the `as` keyword) to remove the `I` prefix or otherwise change their name is prohibited. Exported interfaces must be used with their original defined names to maintain consistency and clarity across the codebase.
+
+**Prohibited:**
+
+```ts
+import { ILogEntry as LogEntry } from "./logger.ts"; // ❌ Removing I prefix
+import { IRequest as UserRequest } from "./request.ts"; // ❌ Renaming interface
+```
+
+**Allowed:**
+
+```ts
+import { ILogEntry } from "./logger.ts";
+import { IRequest } from "./request.ts";
+```
+
+If a naming conflict occurs, it is better to refactor the local names or the conflicting modules than to alias the interfaces.
 
 Good:
 
@@ -210,11 +244,12 @@ runtime bugs.
 
 ## 6. Additional Style Notes
 
-- **No magic values in tests:** the same constant‑externalisation rules apply to
-  test code; keep test constants separate from production ones.
-- **File comments:** modules should start with a brief description and the
-  Implementation Plan step they satisfy. Keep top‑level imports and type
-  definitions near the top of the file.
+- **Module Structure Order:** Every module **must** follow this specific structural order:
+  1. **Header Comment:** A brief description of the module and the Implementation Plan step it satisfies. (Warning if missing).
+  2. **Imports:** All import declarations.
+  3. **Exports:** All exported interfaces, types, and enums.
+  4. **Functional Code:** Classes, functions, and variable initializations.
+- **Top-of-module placement:** Imports and exported interfaces must appear at the top of the file, before any functional code.
 
 ## 7. Related Documents
 
