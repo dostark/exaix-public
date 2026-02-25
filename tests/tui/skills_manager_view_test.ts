@@ -9,7 +9,7 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";
-import { type SkillSummary } from "../../src/tui/skills_manager_view.ts";
+import { type ISkillSummary } from "../../src/tui/skills_manager_view.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { createSkillsManagerTuiSession, sampleTestSkills, testSkillsSessionRender } from "./helpers.ts";
 import { TEST_MODEL_OPENAI } from "../config/constants.ts";
@@ -18,7 +18,7 @@ import { MinimalRequestServiceMock, RequestManagerView } from "../../src/tui/req
 
 // ===== Test Data =====
 
-const TEST_SKILLS: SkillSummary[] = sampleTestSkills();
+const TEST_SKILLS: ISkillSummary[] = sampleTestSkills();
 
 // ===== SkillsManagerView Tests =====
 
@@ -49,7 +49,7 @@ testSkillsSessionRender(
   (_rendered, session) => {
     assertEquals(session.isShowingDetail(), true);
     const detail = session.renderDetail();
-    assertStringIncludes(detail, "Skill:");
+    assertStringIncludes(detail, "ISkill as Skill:");
   },
 );
 

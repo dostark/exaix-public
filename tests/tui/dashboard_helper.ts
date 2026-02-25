@@ -2,7 +2,7 @@ import { launchTuiDashboard } from "../../src/tui/tui_dashboard.ts";
 import { NotificationService } from "../../src/services/notification.ts";
 import { initTestDbService } from "../helpers/db.ts";
 
-import type { TuiDashboard } from "../../src/tui/tui_dashboard.ts";
+import type { ITuiDashboard } from "../../src/tui/tui_dashboard.ts";
 import type { IDatabaseService } from "../../src/services/db.ts";
 
 interface TestDashboardProps {
@@ -23,7 +23,7 @@ export async function createTuiDashboardWithNotification(testProps: TestDashboar
     testMode: true,
     notificationService,
     ...testProps,
-  }) as TuiDashboard;
+  }) as ITuiDashboard;
 
   return { dashboard, notificationService, db, cleanup };
 }

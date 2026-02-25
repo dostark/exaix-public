@@ -2,14 +2,14 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 
 import { MemoryFormatter } from "../../../src/tui/memory_view/formatters.ts";
 import { MemoryTuiScope } from "../../../src/tui/memory_view/memory_scope.ts";
-import type { MemoryServiceInterface, TreeNode } from "../../../src/tui/memory_view/types.ts";
+import type { IMemoryServiceInterface, ITreeNode } from "../../../src/tui/memory_view/types.ts";
 import type {
-  ExecutionMemory,
-  GlobalMemory,
-  Learning,
-  MemoryUpdateProposal,
-  ProjectMemory,
-} from "../../../src/services/memory_bank.ts";
+  IExecutionMemory,
+  IGlobalMemory,
+  ILearning,
+  IMemoryUpdateProposal,
+  IProjectMemory,
+} from "../../../src/schemas/memory_bank.ts";
 import {
   ConfidenceLevel,
   ExecutionStatus,
@@ -28,7 +28,7 @@ import {
 } from "../../../src/helpers/constants.ts";
 import { MemoryStatus } from "../../../src/memory/memory_status.ts";
 
-function node(id: string, label = id, data?: unknown, badge?: number): TreeNode {
+function node(id: string, label = id, data?: unknown, badge?: number): ITreeNode {
   return {
     id,
     type: TuiNodeType.GROUP,
@@ -41,7 +41,7 @@ function node(id: string, label = id, data?: unknown, badge?: number): TreeNode 
 }
 
 Deno.test("MemoryFormatter.formatScopeDetail: covers known scopes and fallback", () => {
-  const globalMemory: GlobalMemory = {
+  const globalMemory: IGlobalMemory = {
     version: "1.0",
     updated_at: new Date().toISOString(),
     learnings: [
@@ -56,7 +56,7 @@ Deno.test("MemoryFormatter.formatScopeDetail: covers known scopes and fallback",
         tags: [],
         confidence: ConfidenceLevel.HIGH,
         status: "approved",
-      } as Learning,
+      } as ILearning,
     ],
     patterns: [],
     anti_patterns: [],
@@ -90,7 +90,7 @@ Deno.test("MemoryFormatter.formatProjectDetail: returns message when project mem
 });
 
 Deno.test("MemoryFormatter.formatExecutionDetail: loads fresh execution when data is null", async () => {
-  const exec: ExecutionMemory = {
+  const exec: IExecutionMemory = {
     trace_id: "trace-12345678",
     request_id: "request-trace-123",
     status: ExecutionStatus.COMPLETED,
@@ -107,7 +107,7 @@ Deno.test("MemoryFormatter.formatExecutionDetail: loads fresh execution when dat
   const n = node(`${TUI_PREFIX_EXECUTION}${exec.trace_id}`, "exec", null);
   const service = {
     getExecutionByTraceId: () => Promise.resolve(exec),
-  } as Partial<MemoryServiceInterface> as MemoryServiceInterface;
+  } as Partial<IMemoryServiceInterface> as IMemoryServiceInterface;
 
   const result = await MemoryFormatter.formatExecutionDetail(n, service);
   assertStringIncludes(result, "# Execution:");
@@ -115,7 +115,7 @@ Deno.test("MemoryFormatter.formatExecutionDetail: loads fresh execution when dat
 });
 
 Deno.test("MemoryFormatter.formatLearningDetail: renders proposal learning content", () => {
-  const proposal: MemoryUpdateProposal = {
+  const proposal: IMemoryUpdateProposal = {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
     operation: MemoryOperation.ADD,
@@ -145,7 +145,7 @@ Deno.test("MemoryFormatter.formatLearningDetail: renders proposal learning conte
 });
 
 Deno.test("MemoryFormatter.formatProjectMemory: truncates long overview and lists patterns", () => {
-  const memory: ProjectMemory = {
+  const memory: IProjectMemory = {
     portal: "portal",
     overview: "x".repeat(TUI_DETAIL_MAX_OVERVIEW_CHARS + 5),
     patterns: [
@@ -167,7 +167,7 @@ Deno.test("MemoryFormatter.formatProjectMemory: truncates long overview and list
 });
 
 Deno.test("MemoryFormatter.formatExecutionMemory: includes changes only when present", () => {
-  const base: ExecutionMemory = {
+  const base: IExecutionMemory = {
     trace_id: "trace-12345678",
     request_id: "request-123",
     status: ExecutionStatus.COMPLETED,

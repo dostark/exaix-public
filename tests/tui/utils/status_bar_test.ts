@@ -17,15 +17,15 @@ import {
   createStatusItem,
   createTimestampItem,
   createViewTitleItem,
+  type IStatusBarConfig,
+  type IStatusBarItem,
+  type IStatusBarState,
   renderMultiLineStatusBar,
   renderStatusBar,
   setLeftItems,
   setRightItems,
   setSpinner,
   setStatusMessage,
-  type StatusBarConfig,
-  type StatusBarItem,
-  type StatusBarState,
 } from "../../../src/helpers/status_bar.ts";
 import { createSpinnerState, startSpinner } from "../../../src/helpers/spinner.ts";
 import { getTheme } from "../../../src/helpers/colors.ts";
@@ -42,7 +42,7 @@ Deno.test("createStatusBarState: creates initial state", () => {
 
 Deno.test("renderStatusBar: renders basic status bar", () => {
   const state = createStatusBarState();
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 40,
     useColors: false,
   };
@@ -51,11 +51,11 @@ Deno.test("renderStatusBar: renders basic status bar", () => {
 });
 
 Deno.test("renderStatusBar: renders with left items", () => {
-  const state: StatusBarState = {
+  const state: IStatusBarState = {
     leftItems: [{ text: "Test", priority: 1 }],
     rightItems: [],
   };
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 40,
     useColors: false,
   };
@@ -64,11 +64,11 @@ Deno.test("renderStatusBar: renders with left items", () => {
 });
 
 Deno.test("renderStatusBar: renders with right items", () => {
-  const state: StatusBarState = {
+  const state: IStatusBarState = {
     leftItems: [],
     rightItems: [{ text: "Right", priority: 1 }],
   };
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 40,
     useColors: false,
   };
@@ -77,13 +77,13 @@ Deno.test("renderStatusBar: renders with right items", () => {
 });
 
 Deno.test("renderStatusBar: renders with message", () => {
-  const state: StatusBarState = {
+  const state: IStatusBarState = {
     leftItems: [],
     rightItems: [],
     message: "Status message",
     messageType: MessageType.INFO,
   };
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 60,
     useColors: false,
   };
@@ -95,13 +95,13 @@ Deno.test("renderStatusBar: renders message types", () => {
   const types: Array<MessageType> = Object.values(MessageType) as MessageType[];
 
   for (const type of types) {
-    const state: StatusBarState = {
+    const state: IStatusBarState = {
       leftItems: [],
       rightItems: [],
       message: `${type} message`,
       messageType: type,
     };
-    const config: StatusBarConfig = {
+    const config: IStatusBarConfig = {
       width: 60,
       useColors: true,
     };
@@ -114,12 +114,12 @@ Deno.test("renderStatusBar: renders with spinner", () => {
   let spinner = createSpinnerState("Loading...");
   spinner = startSpinner(spinner);
 
-  const state: StatusBarState = {
+  const state: IStatusBarState = {
     leftItems: [],
     rightItems: [],
     spinner,
   };
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 60,
     useColors: false,
     showSpinner: true,
@@ -131,11 +131,11 @@ Deno.test("renderStatusBar: renders with spinner", () => {
 });
 
 Deno.test("renderStatusBar: renders with colors", () => {
-  const state: StatusBarState = {
+  const state: IStatusBarState = {
     leftItems: [{ text: "Test", color: "\x1b[32m", priority: 1 }],
     rightItems: [],
   };
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 40,
     useColors: true,
   };
@@ -145,11 +145,11 @@ Deno.test("renderStatusBar: renders with colors", () => {
 });
 
 Deno.test("renderStatusBar: renders with icon in item", () => {
-  const state: StatusBarState = {
+  const state: IStatusBarState = {
     leftItems: [{ text: "Status", icon: "●", priority: 1 }],
     rightItems: [],
   };
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 40,
     useColors: false,
   };
@@ -159,11 +159,11 @@ Deno.test("renderStatusBar: renders with icon in item", () => {
 });
 
 Deno.test("renderStatusBar: truncates long content", () => {
-  const state: StatusBarState = {
+  const state: IStatusBarState = {
     leftItems: [{ text: "A".repeat(100), priority: 1 }],
     rightItems: [{ text: "B".repeat(100), priority: 1 }],
   };
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 40,
     useColors: false,
   };
@@ -259,7 +259,7 @@ Deno.test("clearStatusMessage: clears message", () => {
 
 Deno.test("setLeftItems: sets and sorts by priority", () => {
   const state = createStatusBarState();
-  const items: StatusBarItem[] = [
+  const items: IStatusBarItem[] = [
     { text: "Low", priority: 10 },
     { text: "High", priority: 100 },
     { text: "Medium", priority: 50 },
@@ -272,7 +272,7 @@ Deno.test("setLeftItems: sets and sorts by priority", () => {
 
 Deno.test("setRightItems: sets and sorts by priority", () => {
   const state = createStatusBarState();
-  const items: StatusBarItem[] = [
+  const items: IStatusBarItem[] = [
     { text: "First", priority: 1 },
     { text: "Third", priority: 3 },
     { text: "Second", priority: 2 },
@@ -331,7 +331,7 @@ Deno.test("addStatusLine: respects maxLines limit", () => {
 
 Deno.test("renderMultiLineStatusBar: renders collapsed state", () => {
   const state = createMultiLineStatusBarState();
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 40,
     useColors: false,
   };
@@ -345,7 +345,7 @@ Deno.test("renderMultiLineStatusBar: renders expanded state", () => {
   state = addStatusLine(state, "Extra line 2");
   state = { ...state, expanded: true };
 
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 40,
     useColors: false,
   };
@@ -358,7 +358,7 @@ Deno.test("renderMultiLineStatusBar: renders with colors", () => {
   state = addStatusLine(state, "Colored line");
   state = { ...state, expanded: true };
 
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 40,
     useColors: true,
   };
@@ -373,7 +373,7 @@ Deno.test("renderMultiLineStatusBar: does not render lines when collapsed", () =
   state = addStatusLine(state, "Hidden line");
   state = { ...state, expanded: false };
 
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 40,
     useColors: false,
   };
@@ -384,7 +384,7 @@ Deno.test("renderMultiLineStatusBar: does not render lines when collapsed", () =
 
 Deno.test("setLeftItems: handles items without priority", () => {
   const state = createStatusBarState();
-  const items: StatusBarItem[] = [
+  const items: IStatusBarItem[] = [
     { text: "No priority" },
     { text: "Has priority", priority: 50 },
   ];
@@ -394,11 +394,11 @@ Deno.test("setLeftItems: handles items without priority", () => {
 });
 
 Deno.test("renderStatusBar: handles empty width gracefully", () => {
-  const state: StatusBarState = {
+  const state: IStatusBarState = {
     leftItems: [{ text: "Text", priority: 1 }],
     rightItems: [],
   };
-  const config: StatusBarConfig = {
+  const config: IStatusBarConfig = {
     width: 10, // Very narrow
     useColors: false,
   };

@@ -6,22 +6,22 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
 import { DaemonKeyAction, DaemonStatus } from "../../src/enums.ts";
-
+import { setupDaemonTest } from "./daemon_test_utils.ts";
 import {
   CLIDaemonService,
   DAEMON_KEY_BINDINGS,
   DAEMON_STATUS_COLORS,
   DAEMON_STATUS_ICONS,
   DaemonControlView,
-  DaemonService,
-  DaemonViewState,
+  IDaemonService,
+  IDaemonViewState,
   MinimalDaemonServiceMock,
 } from "../../src/tui/daemon_control_view.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Mock CLI Daemon Service for testing (no real process spawn) =====
 
-class MockCLIDaemonService implements DaemonService {
+class MockCLIDaemonService implements IDaemonService {
   state = DaemonStatus.STOPPED;
   logs: string[] = [];
   errors: string[] = [];
@@ -107,7 +107,7 @@ Deno.test("CLIDaemonService: start, stop, restart, getStatus, getLogs, getErrors
 
 Deno.test("DaemonViewState: interface has all required properties", () => {
   // TypeScript compile-time check via usage
-  const state: DaemonViewState = {
+  const state: IDaemonViewState = {
     status: DaemonStatus.UNKNOWN,
     showHelp: false,
     showLogs: false,
@@ -171,8 +171,6 @@ Deno.test("DAEMON_KEY_BINDINGS: each has key, action, description, category", ()
 });
 
 // ===== Phase 13.8: TUI Session Tests =====
-
-import { setupDaemonTest } from "./daemon_test_utils.ts";
 
 Deno.test("DaemonControlTuiSession: initializes correctly", async () => {
   const { session } = await setupDaemonTest({

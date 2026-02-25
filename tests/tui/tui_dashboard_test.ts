@@ -2,11 +2,11 @@
 import {
   createDefaultDashboardState,
   getDashboardHelpSections,
+  type IPane,
+  type ITuiDashboard,
   launchTuiDashboard,
-  type Pane,
   renderPaneTitleBar,
   renderViewPicker,
-  type TuiDashboard,
 } from "../../src/tui/tui_dashboard.ts";
 import { PortalStatus } from "../../src/enums.ts";
 
@@ -15,7 +15,7 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 import { getTheme } from "../../src/helpers/colors.ts";
 
 Deno.test("TUI dashboard handles empty portal list and error state", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
   // Simulate empty portal list
   dashboard.portalManager.service.listPortals = () => Promise.resolve([]);
   const portals = await dashboard.portalManager.service.listPortals();
@@ -35,7 +35,7 @@ Deno.test("TUI dashboard handles empty portal list and error state", async () =>
 });
 
 Deno.test("TUI dashboard rapid navigation and focus wraparound", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
   dashboard.switchPane("main"); // Start with main pane
   // Simulate rapid tabbing
   for (let i = 0; i < 20; ++i) {
@@ -51,7 +51,7 @@ Deno.test("TUI dashboard rapid navigation and focus wraparound", async () => {
 });
 
 Deno.test("TUI dashboard notification edge cases", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
   let notified = false;
   dashboard.notify = (_msg: string) => {
     notified = true;
@@ -65,7 +65,7 @@ Deno.test("TUI dashboard notification edge cases", async () => {
   dashboard.destroy();
 });
 Deno.test("TUI dashboard supports theming, accessibility, and keybinding customization", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
   // Theming: verify theme object exists
   assertEquals(typeof dashboard.theme, "object");
   assertEquals(typeof dashboard.theme.primary, "string");
@@ -77,7 +77,7 @@ Deno.test("TUI dashboard supports theming, accessibility, and keybinding customi
   dashboard.destroy();
 });
 Deno.test("TUI dashboard supports real-time updates and notifications", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
   let notification = "";
   dashboard.notify = (msg: string) => {
     notification = msg;
@@ -119,13 +119,13 @@ Deno.test("TUI dashboard supports real-time updates and notifications", async ()
 // TDD: End-to-end tests for TUI dashboard integration
 
 Deno.test("TUI dashboard launches and returns dashboard instance", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
   assertEquals(dashboard.panes.length, 1); // Starts with one pane
   assertEquals(dashboard.activePaneId, "main");
 });
 
 Deno.test("TUI dashboard handles keyboard navigation and focus", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
   // Initial focus
   assertEquals(dashboard.activePaneId, "main");
   // Tab cycles focus forward
@@ -145,7 +145,7 @@ Deno.test("TUI dashboard handles keyboard navigation and focus", async () => {
 });
 
 Deno.test("TUI dashboard renders portal list, details, actions, and status bar", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
   // Add mock portals for rendering
   dashboard.portalManager.service.listPortals = () =>
     Promise.resolve([
@@ -182,7 +182,7 @@ Deno.test("TUI dashboard renders portal list, details, actions, and status bar",
 });
 
 Deno.test("TUI dashboard split view functionality", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
   assertEquals(dashboard.panes.length, 1);
   assertEquals(dashboard.activePaneId, "main");
 
@@ -211,7 +211,7 @@ Deno.test("TUI dashboard split view functionality", async () => {
 });
 
 Deno.test("TUI dashboard pane focus and switching", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
   dashboard.splitPane("vertical");
   const secondPaneId = dashboard.panes[1].id;
 
@@ -222,7 +222,7 @@ Deno.test("TUI dashboard pane focus and switching", async () => {
   dashboard.destroy();
 });
 Deno.test("TUI dashboard layout save and restore", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Modify layout
   dashboard.splitPane("vertical");
@@ -288,7 +288,7 @@ Deno.test("TUI dashboard layout save and restore", async () => {
 });
 
 Deno.test("TUI dashboard reset to default", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Modify layout
   await dashboard.splitPane("vertical");
@@ -304,7 +304,7 @@ Deno.test("TUI dashboard reset to default", async () => {
 });
 
 Deno.test("TUI dashboard comprehensive keyboard actions test", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Start with default single pane
   assertEquals(dashboard.panes.length, 1);
@@ -425,7 +425,7 @@ Deno.test({
 // ===== Phase 13.9: Dashboard Integration Tests =====
 
 Deno.test("TUI dashboard state initialization", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Verify state exists
   assertEquals(typeof dashboard.state, "object");
@@ -466,7 +466,7 @@ Deno.test("TUI dashboard help sections include navigation and layout keys", () =
 });
 
 Deno.test("TUI dashboard help overlay toggle", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Initially help is hidden
   assertEquals(dashboard.state.showHelp, false);
@@ -490,7 +490,7 @@ Deno.test("TUI dashboard help overlay toggle", async () => {
 });
 
 Deno.test("TUI dashboard notification toggle", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Initially notifications panel is hidden
   assertEquals(dashboard.state.showNotifications, false);
@@ -506,7 +506,7 @@ Deno.test("TUI dashboard notification toggle", async () => {
 });
 
 Deno.test("TUI dashboard notification system", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Add notifications
   await dashboard.notify("Test info notification", "info");
@@ -527,7 +527,7 @@ Deno.test("TUI dashboard notification system", async () => {
 });
 
 Deno.test("TUI dashboard notification dismissal", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   await dashboard.notify("Notification 1");
   await dashboard.notify("Notification 2");
@@ -550,7 +550,7 @@ Deno.test("TUI dashboard notification dismissal", async () => {
 });
 
 Deno.test("TUI dashboard view indicator rendering", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Render view indicator
   const indicator = dashboard.renderViewIndicator();
@@ -577,7 +577,7 @@ Deno.test("TUI dashboard view picker renders selected view", () => {
 
 Deno.test("TUI dashboard pane title bar reflects focus and max state", () => {
   const theme = getTheme(true);
-  const pane: Pane = {
+  const pane: IPane = {
     id: "main",
     view: { name: "PortalManagerView" },
     flexX: 0,
@@ -599,7 +599,7 @@ Deno.test("TUI dashboard pane title bar reflects focus and max state", () => {
 });
 
 Deno.test("TUI dashboard global help rendering", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   const helpLines = dashboard.renderGlobalHelp();
   assertEquals(Array.isArray(helpLines), true);
@@ -612,7 +612,7 @@ Deno.test("TUI dashboard global help rendering", async () => {
 });
 
 Deno.test("TUI dashboard notification panel rendering", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Empty notifications
   let notifLines = await dashboard.renderNotifications();
@@ -626,7 +626,7 @@ Deno.test("TUI dashboard notification panel rendering", async () => {
 });
 
 Deno.test("TUI dashboard status bar with notifications badge", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Status bar without notifications
   let statusBar = await dashboard.renderStatusBar();
@@ -640,7 +640,7 @@ Deno.test("TUI dashboard status bar with notifications badge", async () => {
 });
 
 Deno.test("TUI dashboard direct pane navigation with number keys", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Create multiple panes
   dashboard.splitPane("vertical");
@@ -664,7 +664,7 @@ Deno.test("TUI dashboard direct pane navigation with number keys", async () => {
 });
 
 Deno.test("TUI dashboard pane maximize/restore", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Get initial bounds
   const originalWidth = dashboard.panes[0].width;
@@ -684,7 +684,7 @@ Deno.test("TUI dashboard pane maximize/restore", async () => {
 });
 
 Deno.test("TUI dashboard maximizePane and restorePane methods", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Maximize
   dashboard.maximizePane("main");
@@ -696,7 +696,7 @@ Deno.test("TUI dashboard maximizePane and restorePane methods", async () => {
 });
 
 Deno.test("TUI dashboard view picker state", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Initially view picker is hidden
   assertEquals(dashboard.state.showViewPicker, false);
@@ -711,7 +711,7 @@ Deno.test("TUI dashboard view picker state", async () => {
 });
 
 Deno.test("TUI dashboard view picker navigation", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Open view picker
   await dashboard.handleKey(KEYS.P);
@@ -727,7 +727,7 @@ Deno.test("TUI dashboard view picker navigation", async () => {
 });
 
 Deno.test("TUI dashboard view picker number selection", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   const originalView = dashboard.panes[0].view.name;
 
@@ -743,7 +743,7 @@ Deno.test("TUI dashboard view picker number selection", async () => {
 });
 
 Deno.test("TUI dashboard notifications with split operations", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Split should add notification
   await dashboard.handleKey(KEYS.V);
@@ -757,7 +757,7 @@ Deno.test("TUI dashboard notifications with split operations", async () => {
 });
 
 Deno.test("TUI dashboard reset clears notifications", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Add some notifications
   await dashboard.notify("Notification 1");
@@ -778,7 +778,7 @@ Deno.test("TUI dashboard reset clears notifications", async () => {
 });
 
 Deno.test("TUI dashboard theme is accessible", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   assertEquals(typeof dashboard.theme, "object");
   assertEquals(typeof dashboard.theme.primary, "string");
@@ -786,7 +786,7 @@ Deno.test("TUI dashboard theme is accessible", async () => {
 });
 
 Deno.test("TUI dashboard key bindings block other keys when help is shown", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
   // Show help
   await dashboard.handleKey(KEYS.QUESTION);
@@ -807,47 +807,47 @@ Deno.test("TUI dashboard key bindings block other keys when help is shown", asyn
 });
 
 Deno.test("TUI dashboard neighbor-aware flex resizing logic", async () => {
-  const dashboard = await launchTuiDashboard({ testMode: true }) as TuiDashboard;
+  const dashboard = await launchTuiDashboard({ testMode: true }) as ITuiDashboard;
 
-  // 1. Vertical split: Pane 0 (Left 0.5) | Pane 1 (Right 0.5)
+  // 1. Vertical split: IPane 0 (Left 0.5) | IPane 1 (Right 0.5)
   await dashboard.splitPane("vertical");
   assertEquals(dashboard.panes[0].flexWidth, 0.5);
   assertEquals(dashboard.panes[1].flexWidth, 0.5);
   assertEquals(dashboard.panes[1].flexX, 0.5);
 
-  // Resize Pane 0 to the right by +0.1
+  // Resize IPane 0 to the right by +0.1
   dashboard.resizePane(dashboard.panes[0].id, 0.1, 0);
   assertEquals(dashboard.panes[0].flexWidth, 0.6);
   assertEquals(dashboard.panes[1].flexX, 0.6); // Neighbor moved
   assertEquals(parseFloat(dashboard.panes[1].flexWidth.toFixed(2)), 0.4); // Neighbor shrunk
 
-  // Resize Pane 1 to the right by +0.1 (should act as left edge move for Pane 1)
+  // Resize IPane 1 to the right by +0.1 (should act as left edge move for IPane 1)
   // Our resizePane logic for "right sibling" handles moving the border between them.
-  // If we select Pane 1 and "resize left" (-0.1), it should grow Pane 0 and shrink Pane 1.
+  // If we select IPane 1 and "resize left" (-0.1), it should grow IPane 0 and shrink IPane 1.
   dashboard.switchPane(dashboard.panes[1].id);
   dashboard.resizePane(dashboard.panes[1].id, -0.1, 0);
-  assertEquals(dashboard.panes[0].flexWidth, 0.7); // Pane 0 grew
+  assertEquals(dashboard.panes[0].flexWidth, 0.7); // IPane 0 grew
   assertEquals(dashboard.panes[1].flexX, 0.7); // Border moved right
   assertEquals(parseFloat(dashboard.panes[1].flexWidth.toFixed(2)), 0.3);
 
-  // 2. Horizontal split on Pane 0: Pane 0 (Top) | Pane 2 (Bottom)
+  // 2. Horizontal split on IPane 0: IPane 0 (Top) | IPane 2 (Bottom)
   dashboard.switchPane(dashboard.panes[0].id);
   await dashboard.splitPane("horizontal");
-  // Pane 0 now has flexHeight 0.5 of its original 1.0 = 0.5
-  // Pane 2 has flexY 0.5 and flexHeight 0.5
+  // IPane 0 now has flexHeight 0.5 of its original 1.0 = 0.5
+  // IPane 2 has flexY 0.5 and flexHeight 0.5
   assertEquals(dashboard.panes[0].flexHeight, 0.5);
   assertEquals(dashboard.panes[2].flexHeight, 0.5);
   assertEquals(dashboard.panes[2].flexY, 0.5);
 
-  // Resize Pane 0 down by +0.1
+  // Resize IPane 0 down by +0.1
   dashboard.resizePane(dashboard.panes[0].id, 0, 0.1);
   assertEquals(dashboard.panes[0].flexHeight, 0.6);
   assertEquals(dashboard.panes[2].flexY, 0.6); // Neighbor moved down
   assertEquals(parseFloat(dashboard.panes[2].flexHeight.toFixed(2)), 0.4);
 
-  // Test boundaries: try to resize Pane 1 too small
+  // Test boundaries: try to resize IPane 1 too small
   dashboard.switchPane(dashboard.panes[1].id);
-  // Pane 1 is 0.3 width. Min flex is 0.1. Resize by -0.3 should stop at 0.1.
+  // IPane 1 is 0.3 width. Min flex is 0.1. Resize by -0.3 should stop at 0.1.
   dashboard.resizePane(dashboard.panes[1].id, -0.3, 0);
   assertEquals(dashboard.panes[1].flexWidth >= 0.1, true);
 

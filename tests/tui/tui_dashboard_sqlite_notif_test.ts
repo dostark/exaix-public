@@ -26,7 +26,7 @@ Deno.test("TUI Dashboard + SQLite: handles notification service integration", as
         created_at: new Date().toISOString(),
         source: MemorySource.USER,
         scope: MemoryScope.PROJECT,
-        title: "Test Learning",
+        title: "Test ILearning",
         description: "Test description",
         category: LearningCategory.INSIGHT,
         tags: ["test"],
@@ -37,7 +37,7 @@ Deno.test("TUI Dashboard + SQLite: handles notification service integration", as
     });
 
     const notifLines = await dashboard.renderNotifications();
-    const hasNotif = notifLines.some((l: string) => l.includes("Test Learning"));
+    const hasNotif = notifLines.some((l: string) => l.includes("Test ILearning"));
     assertEquals(hasNotif, true);
 
     // Phase 1: Verify async status bar with count from DB

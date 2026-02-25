@@ -1,6 +1,6 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { makePane, testProdRender } from "../renderer_test_utils.ts";
-import { Pane } from "../../../src/tui/tui_dashboard.ts";
+import type { IPane } from "../../../src/tui/tui_dashboard.ts";
 
 Deno.test("prodRender: falls back to 80x24 when consoleSize throws", async () => {
   const originalConsoleSize = (Deno as Partial<{ consoleSize: () => { columns: number; rows: number } }> as {
@@ -13,7 +13,7 @@ Deno.test("prodRender: falls back to 80x24 when consoleSize throws", async () =>
   };
 
   try {
-    const panes: Pane[] = [
+    const panes: IPane[] = [
       makePane("main", "AnyView", { flexX: 0.5, flexY: 0.25, flexWidth: 0.5, flexHeight: 0.5 }),
     ];
 
@@ -31,14 +31,14 @@ Deno.test("prodRender: falls back to 80x24 when consoleSize throws", async () =>
 });
 
 Deno.test("prodRender: renders help overlay and returns early", async () => {
-  const panes: Pane[] = [makePane("main", "AnyView")];
+  const panes: IPane[] = [makePane("main", "AnyView")];
   const { captured } = await testProdRender(panes, { showHelp: true });
 
   assertExists(captured.logs.find((l) => l.includes("Press") || l.includes("close")));
 });
 
 Deno.test("prodRender: renders notification panel and writes close hint", async () => {
-  const panes: Pane[] = [makePane("main", "AnyView")];
+  const panes: IPane[] = [makePane("main", "AnyView")];
   const { captured, writes } = await testProdRender(panes, {
     showNotifications: true,
     notifications: [
@@ -60,7 +60,7 @@ Deno.test("prodRender: renders notification panel and writes close hint", async 
 });
 
 Deno.test("prodRender: PortalManagerView prints empty state", async () => {
-  const panes: Pane[] = [makePane("main", "PortalManagerView")];
+  const panes: IPane[] = [makePane("main", "PortalManagerView")];
   const { captured } = await testProdRender(panes);
 
   assertExists(captured.logs.find((l) => l.includes("No portals configured.")));

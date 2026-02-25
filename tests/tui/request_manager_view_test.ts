@@ -8,7 +8,6 @@ import {
   PRIORITY_ICONS,
   REQUEST_KEY_BINDINGS,
   RequestManagerView,
-  RequestService as _RequestService,
   STATUS_ICONS,
 } from "../../src/tui/request_manager_view.ts";
 import {
@@ -29,11 +28,11 @@ Deno.test("RequestManagerView - renders request list correctly", async () => {
   const { service: _service, view } = createViewWithRequests([
     {
       trace_id: "12345678-abcd-1234-5678-123456789abc",
-      title: "Request 12345678",
+      title: "IRequest 12345678",
     },
     {
       trace_id: "87654321-abcd-1234-5678-123456789abc",
-      title: "Request 87654321",
+      title: "IRequest 87654321",
       status: "planned",
       priority: "high",
       agent: "code-reviewer",
@@ -43,8 +42,8 @@ Deno.test("RequestManagerView - renders request list correctly", async () => {
   const output = view.renderRequestList(requests);
 
   assert(output.includes("Requests:"));
-  assert(output.includes("⏳ ⚪ Request 12345678 - default"));
-  assert(output.includes("📋 🟠 Request 87654321 - code-reviewer"));
+  assert(output.includes("⏳ ⚪ IRequest 12345678 - default"));
+  assert(output.includes("📋 🟠 IRequest 87654321 - code-reviewer"));
 });
 
 Deno.test("RequestManagerView - handles empty request list", async () => {
@@ -80,7 +79,7 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
     {
       trace_id: "test-1",
       filename: "request-1.md",
-      title: "Request 1",
+      title: "IRequest 1",
       status: RequestStatus.PENDING,
       priority: "normal",
       agent: "default",
@@ -90,7 +89,7 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
     {
       trace_id: "test-2",
       filename: "request-2.md",
-      title: "Request 2",
+      title: "IRequest 2",
       status: RequestStatus.COMPLETED,
       priority: "normal",
       agent: "default",
@@ -106,12 +105,12 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
 
 Deno.test("RequestManagerView - creates new request", async () => {
   const { service: _service, view } = createViewWithRequests();
-  const newRequest = await view.createRequest("Test request", { priority: RequestPriority.HIGH, agent: "test-agent" });
+  const newIRequest = await view.createRequest("Test request", { priority: RequestPriority.HIGH, agent: "test-agent" });
 
-  assert(newRequest.trace_id);
-  assertEquals(newRequest.status, RequestStatus.PENDING);
-  assertEquals(newRequest.priority, RequestPriority.HIGH);
-  assertEquals(newRequest.agent, "test-agent");
+  assert(newIRequest.trace_id);
+  assertEquals(newIRequest.status, RequestStatus.PENDING);
+  assertEquals(newIRequest.priority, RequestPriority.HIGH);
+  assertEquals(newIRequest.agent, "test-agent");
 });
 
 Deno.test("RequestManagerView - gets request content", async () => {
@@ -392,7 +391,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
     {
       trace_id: "req-1",
       filename: "request-1.md",
-      title: "Request 1",
+      title: "IRequest 1",
       status: RequestStatus.PENDING,
       priority: "normal",
       agent: "developer",
@@ -403,7 +402,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
     {
       trace_id: "req-2",
       filename: "request-2.md",
-      title: "Request 2",
+      title: "IRequest 2",
       status: RequestStatus.COMPLETED,
       priority: "high",
       agent: "designer",
@@ -483,7 +482,7 @@ Deno.test("Phase 13.6: Cancel confirm dialog", async () => {
   const requests = _sampleRequests([
     {
       trace_id: "req-1",
-      title: "Request 1",
+      title: "IRequest 1",
     },
   ]);
   const view = new RequestManagerView(mockService);

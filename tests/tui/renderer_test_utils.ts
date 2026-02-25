@@ -1,16 +1,21 @@
 import process from "node:process";
-import { type Pane } from "../../src/tui/tui_dashboard.ts";
+import { type IPane } from "../../src/tui/tui_dashboard.ts";
 import { noColorTheme } from "../../src/helpers/colors.ts";
 import { prodRender } from "../../src/tui/dashboard/renderer.ts";
-import { type INotificationService, type MemoryNotification } from "../../src/services/notification.ts";
-import { type PortalDetails, type PortalInfo } from "../../src/cli/commands/portal_commands.ts";
-import { type DashboardViewState } from "../../src/tui/tui_dashboard.ts";
-import { type PortalService } from "../../src/tui/portal_manager_view.ts";
+import { type IMemoryNotification, type INotificationService } from "../../src/services/notification.ts";
+import { type IPortalDetails, type IPortalInfo } from "../../src/cli/commands/portal_commands.ts";
+import { type IDashboardViewState } from "../../src/tui/tui_dashboard.ts";
+import { type IPortalService } from "../../src/tui/portal_manager_view.ts";
+import { makePane } from "./layout_test_utils.ts";
+
+// ===== Types =====
 
 export type CapturedConsole = {
   logs: string[];
   clears: number;
 };
+
+export { makePane };
 
 export function captureConsole(): { captured: CapturedConsole; restore: () => void } {
   const captured: CapturedConsole = { logs: [], clears: 0 };
@@ -57,17 +62,14 @@ export function captureStdout(): { writes: string[]; restore: () => void } {
   };
 }
 
-import { makePane } from "./layout_test_utils.ts";
-export { makePane };
-
 export async function testProdRender(
-  panes: Pane[],
+  panes: IPane[],
   options: {
     showHelp?: boolean;
     showNotifications?: boolean;
     showMemoryNotifications?: boolean;
-    notifications?: MemoryNotification[];
-    portals?: PortalInfo[];
+    notifications?: IMemoryNotification[];
+    portals?: IPortalInfo[];
   } = {},
 ) {
   const { captured, restore } = captureConsole();
@@ -88,14 +90,14 @@ export async function testProdRender(
         highContrast: false,
         screenReader: false,
         selectedMemoryNotifIndex: 0,
-      } as DashboardViewState,
+      } as IDashboardViewState,
       noColorTheme,
       {
         getNotifications: () => Promise.resolve(options.notifications ?? []),
       } as Partial<INotificationService> as INotificationService,
       {
         listPortals: () => Promise.resolve(options.portals ?? []),
-        getPortalDetails: () => Promise.resolve({} as Partial<PortalDetails> as PortalDetails),
+        getPortalDetails: () => Promise.resolve({} as Partial<IPortalDetails> as IPortalDetails),
         openPortal: () => Promise.resolve(true),
         closePortal: () => Promise.resolve(true),
         refreshPortal: () => Promise.resolve(true),
@@ -103,7 +105,7 @@ export async function testProdRender(
         quickJumpToPortalDir: () => Promise.resolve(""),
         getPortalFilesystemPath: () => Promise.resolve(""),
         getPortalActivityLog: () => [],
-      } as Partial<PortalService> as PortalService,
+      } as Partial<IPortalService> as IPortalService,
     );
     return { captured, writes };
   } finally {

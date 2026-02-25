@@ -1,8 +1,9 @@
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import { createMonitorTuiSession } from "./helpers.ts";
-import type { LogEntry, MonitorTuiSession } from "../../src/tui/monitor_view.ts";
+import { createMonitorViewSession } from "./helpers.ts";
+import type { ILogEntry, MonitorTuiSession } from "../../src/tui/monitor_view.ts";
+import { ITreeNode } from "../../src/helpers/tree_view.ts";
 
-function makeLog(overrides: Partial<LogEntry> = {}): LogEntry {
+function makeLog(overrides: Partial<ILogEntry> = {}): ILogEntry {
   return {
     id: overrides.id ?? crypto.randomUUID(),
     trace_id: overrides.trace_id ?? "trace",
@@ -21,17 +22,16 @@ Deno.test("MonitorTuiSession: grouping cycles none -> agent -> action -> none", 
     makeLog({ id: "2", agent_id: "a2", action_type: "plan_approved" }),
   ];
 
-  const { view, session } = createMonitorTuiSession(logs);
-  await view.refreshLogs();
+  const { monitorView: _view, session } = await createMonitorViewSession(logs);
 
   assertEquals(session.getGroupBy(), "none");
   session.toggleGrouping();
   assertEquals(session.getGroupBy(), "agent");
-  assertExists(session.getLogTree().find((n) => n.id.startsWith("agent-")));
+  assertExists(session.getLogTree().find((n: ITreeNode) => n.id.startsWith("agent-")));
 
   session.toggleGrouping();
   assertEquals(session.getGroupBy(), "action");
-  assertExists(session.getLogTree().find((n) => n.id.startsWith("action-")));
+  assertExists(session.getLogTree().find((n: ITreeNode) => n.id.startsWith("action-")));
 
   session.toggleGrouping();
   assertEquals(session.getGroupBy(), "none");
@@ -39,8 +39,7 @@ Deno.test("MonitorTuiSession: grouping cycles none -> agent -> action -> none", 
 
 Deno.test("MonitorTuiSession: toggleBookmark ignores group nodes and toggles log nodes", async () => {
   const logs = [makeLog({ id: "1", agent_id: "a1" })];
-  const { view, session } = createMonitorTuiSession(logs);
-  await view.refreshLogs();
+  const { monitorView: _view, session } = await createMonitorViewSession(logs);
   const monitorSession = session as MonitorTuiSession;
 
   // force a group node selection
@@ -62,8 +61,7 @@ Deno.test("MonitorTuiSession: toggleBookmark ignores group nodes and toggles log
 
 Deno.test("MonitorTuiSession: showLogDetail populates detail panel", async () => {
   const logs = [makeLog({ id: "1", payload: { hello: "world" } })];
-  const { view, session } = createMonitorTuiSession(logs);
-  await view.refreshLogs();
+  const { monitorView: _view, session } = await createMonitorViewSession(logs);
   const monitorSession = session as MonitorTuiSession;
 
   monitorSession.showLogDetail("1");
@@ -75,8 +73,7 @@ Deno.test("MonitorTuiSession: showLogDetail populates detail panel", async () =>
 
 Deno.test("MonitorTuiSession: status line reflects paused, bookmarks, and grouping", async () => {
   const logs = [makeLog({ id: "1" })];
-  const { view, session } = createMonitorTuiSession(logs);
-  await view.refreshLogs();
+  const { monitorView: _view, session } = await createMonitorViewSession(logs);
   const monitorSession = session as MonitorTuiSession;
 
   // bookmark selected log
@@ -97,8 +94,7 @@ Deno.test("MonitorTuiSession: status line reflects paused, bookmarks, and groupi
 
 Deno.test("MonitorTuiSession: renderHelp includes key hints", async () => {
   const logs = [makeLog({ id: "1" })];
-  const { view, session } = createMonitorTuiSession(logs);
-  await view.refreshLogs();
+  const { monitorView: _view, session } = await createMonitorViewSession(logs);
 
   const help = session.renderHelp().join("\n");
   assertStringIncludes(help, "Monitor View Help");

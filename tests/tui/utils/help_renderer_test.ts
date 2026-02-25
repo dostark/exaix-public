@@ -13,15 +13,15 @@ import {
   getStandardQuickHelp,
   getTreeHelpSection,
   handleHelpKey,
-  type HelpDialogState,
-  type HelpSection,
+  type IHelpDialogState,
+  type IHelpSection,
   keyBindingsToHelpSections,
   renderHelpScreen,
   renderQuickHelp,
   scrollHelpDialog,
   toggleHelpDialog,
 } from "../../../src/helpers/help_renderer.ts";
-import type { KeyBinding } from "../../../src/helpers/keyboard.ts";
+import type { IKeyBinding } from "../../../src/helpers/keyboard.ts";
 
 // ===== renderHelpScreen tests =====
 
@@ -36,7 +36,7 @@ Deno.test("renderHelpScreen: renders basic help screen", () => {
 });
 
 Deno.test("renderHelpScreen: renders sections", () => {
-  const sections: HelpSection[] = [
+  const sections: IHelpSection[] = [
     {
       title: "Navigation",
       items: [
@@ -54,7 +54,7 @@ Deno.test("renderHelpScreen: renders sections", () => {
 });
 
 Deno.test("renderHelpScreen: renders multiple sections", () => {
-  const sections: HelpSection[] = [
+  const sections: IHelpSection[] = [
     {
       title: "Section 1",
       items: [{ key: "a", description: "Action A" }],
@@ -109,7 +109,7 @@ Deno.test("renderHelpScreen: respects useColors option", () => {
 // ===== keyBindingsToHelpSections tests =====
 
 Deno.test("keyBindingsToHelpSections: converts bindings to sections", () => {
-  const bindings: KeyBinding<"action1" | "action2">[] = [
+  const bindings: IKeyBinding<"action1" | "action2">[] = [
     { key: "a", action: "action1", description: "First action", category: "Actions" },
     { key: "b", action: "action2", description: "Second action", category: "Actions" },
   ];
@@ -120,7 +120,7 @@ Deno.test("keyBindingsToHelpSections: converts bindings to sections", () => {
 });
 
 Deno.test("keyBindingsToHelpSections: groups by category", () => {
-  const bindings: KeyBinding<"nav" | "action">[] = [
+  const bindings: IKeyBinding<"nav" | "action">[] = [
     { key: "up", action: "nav", description: "Up", category: "Navigation" },
     { key: "down", action: "nav", description: "Down", category: "Navigation" },
     { key: "a", action: "action", description: "Act", category: "Actions" },
@@ -130,7 +130,7 @@ Deno.test("keyBindingsToHelpSections: groups by category", () => {
 });
 
 Deno.test("keyBindingsToHelpSections: defaults to General category", () => {
-  const bindings: KeyBinding<"test">[] = [
+  const bindings: IKeyBinding<"test">[] = [
     { key: "t", action: "test", description: "Test" },
   ];
   const sections = keyBindingsToHelpSections(bindings);
@@ -230,7 +230,7 @@ Deno.test("toggleHelpDialog: sets content", () => {
 });
 
 Deno.test("toggleHelpDialog: resets scroll offset", () => {
-  let state: HelpDialogState = {
+  let state: IHelpDialogState = {
     visible: true,
     scrollOffset: 10,
     content: ["Line 1"],
@@ -240,7 +240,7 @@ Deno.test("toggleHelpDialog: resets scroll offset", () => {
 });
 
 Deno.test("scrollHelpDialog: scrolls down", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: true,
     scrollOffset: 0,
     content: Array(20).fill("Line"),
@@ -250,7 +250,7 @@ Deno.test("scrollHelpDialog: scrolls down", () => {
 });
 
 Deno.test("scrollHelpDialog: scrolls up", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: true,
     scrollOffset: 5,
     content: Array(20).fill("Line"),
@@ -260,7 +260,7 @@ Deno.test("scrollHelpDialog: scrolls up", () => {
 });
 
 Deno.test("scrollHelpDialog: clamps at 0", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: true,
     scrollOffset: 0,
     content: Array(20).fill("Line"),
@@ -270,7 +270,7 @@ Deno.test("scrollHelpDialog: clamps at 0", () => {
 });
 
 Deno.test("scrollHelpDialog: clamps at max", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: true,
     scrollOffset: 10,
     content: Array(20).fill("Line"),
@@ -280,7 +280,7 @@ Deno.test("scrollHelpDialog: clamps at max", () => {
 });
 
 Deno.test("scrollHelpDialog: does nothing when not visible", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: false,
     scrollOffset: 0,
     content: Array(20).fill("Line"),
@@ -306,28 +306,28 @@ Deno.test("handleHelpKey: opens help with F1", () => {
 });
 
 Deno.test("handleHelpKey: closes help with escape", () => {
-  const state: HelpDialogState = { visible: true, scrollOffset: 0, content: [] };
+  const state: IHelpDialogState = { visible: true, scrollOffset: 0, content: [] };
   const { state: newState, handled } = handleHelpKey(state, "escape", 10);
   assertEquals(handled, true);
   assertEquals(newState.visible, false);
 });
 
 Deno.test("handleHelpKey: closes help with ?", () => {
-  const state: HelpDialogState = { visible: true, scrollOffset: 0, content: [] };
+  const state: IHelpDialogState = { visible: true, scrollOffset: 0, content: [] };
   const { state: newState, handled } = handleHelpKey(state, "?", 10);
   assertEquals(handled, true);
   assertEquals(newState.visible, false);
 });
 
 Deno.test("handleHelpKey: closes help with q", () => {
-  const state: HelpDialogState = { visible: true, scrollOffset: 0, content: [] };
+  const state: IHelpDialogState = { visible: true, scrollOffset: 0, content: [] };
   const { state: newState, handled } = handleHelpKey(state, "q", 10);
   assertEquals(handled, true);
   assertEquals(newState.visible, false);
 });
 
 Deno.test("handleHelpKey: scrolls up with up key", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: true,
     scrollOffset: 5,
     content: Array(20).fill("Line"),
@@ -338,7 +338,7 @@ Deno.test("handleHelpKey: scrolls up with up key", () => {
 });
 
 Deno.test("handleHelpKey: scrolls up with k key", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: true,
     scrollOffset: 5,
     content: Array(20).fill("Line"),
@@ -349,7 +349,7 @@ Deno.test("handleHelpKey: scrolls up with k key", () => {
 });
 
 Deno.test("handleHelpKey: scrolls down with down key", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: true,
     scrollOffset: 0,
     content: Array(20).fill("Line"),
@@ -360,7 +360,7 @@ Deno.test("handleHelpKey: scrolls down with down key", () => {
 });
 
 Deno.test("handleHelpKey: scrolls down with j key", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: true,
     scrollOffset: 0,
     content: Array(20).fill("Line"),
@@ -371,7 +371,7 @@ Deno.test("handleHelpKey: scrolls down with j key", () => {
 });
 
 Deno.test("handleHelpKey: jumps to start with home", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: true,
     scrollOffset: 10,
     content: Array(20).fill("Line"),
@@ -382,7 +382,7 @@ Deno.test("handleHelpKey: jumps to start with home", () => {
 });
 
 Deno.test("handleHelpKey: jumps to end with end", () => {
-  const state: HelpDialogState = {
+  const state: IHelpDialogState = {
     visible: true,
     scrollOffset: 0,
     content: Array(20).fill("Line"),
@@ -393,7 +393,7 @@ Deno.test("handleHelpKey: jumps to end with end", () => {
 });
 
 Deno.test("handleHelpKey: consumes unknown keys when visible", () => {
-  const state: HelpDialogState = { visible: true, scrollOffset: 0, content: [] };
+  const state: IHelpDialogState = { visible: true, scrollOffset: 0, content: [] };
   const { handled } = handleHelpKey(state, "x", 10);
   assertEquals(handled, true);
 });

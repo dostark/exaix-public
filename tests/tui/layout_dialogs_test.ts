@@ -27,7 +27,7 @@ Deno.test("layout dialogs: render view picker with purpose titles", () => {
 
   const splitState = { ...createViewPickerState(), isOpen: true, purpose: "split" as const };
   const splitLines = renderViewPickerDialog(splitState, theme).join("\n");
-  assert(splitLines.includes("Select View for New Pane"));
+  assert(splitLines.includes("Select View for New IPane"));
 
   const changeState = { ...createViewPickerState(), isOpen: true, purpose: "change" as const };
   const changeLines = renderViewPickerDialog(changeState, theme).join("\n");

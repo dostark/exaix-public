@@ -9,8 +9,8 @@ import {
   createNavigationHandlers,
   formatKey,
   generateHelpScreen,
+  type IKeyBinding,
   isValidKeyValue,
-  type KeyBinding,
   KeyboardManager,
   KEYS,
   type KeyValue,
@@ -320,7 +320,7 @@ Deno.test("createNavigationHandlers: respects bounds", () => {
 // ===== Generate Help Screen Tests =====
 
 Deno.test("generateHelpScreen: generates help with title", () => {
-  const bindings: KeyBinding<string>[] = [
+  const bindings: IKeyBinding<string>[] = [
     { key: "q", action: "quit", description: "Quit application" },
   ];
 
@@ -333,7 +333,7 @@ Deno.test("generateHelpScreen: generates help with title", () => {
 });
 
 Deno.test("generateHelpScreen: groups by category", () => {
-  const bindings: KeyBinding<string>[] = [
+  const bindings: IKeyBinding<string>[] = [
     { key: "a", action: "a", description: "A", category: "Navigation" },
     { key: "b", action: "b", description: "B", category: "Actions" },
   ];
@@ -346,7 +346,7 @@ Deno.test("generateHelpScreen: groups by category", () => {
 });
 
 Deno.test("generateHelpScreen: uses custom title", () => {
-  const bindings: KeyBinding<string>[] = [];
+  const bindings: IKeyBinding<string>[] = [];
   const lines = generateHelpScreen(bindings, {
     title: "Custom Help",
     useColors: false,

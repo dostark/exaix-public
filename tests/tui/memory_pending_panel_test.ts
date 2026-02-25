@@ -18,9 +18,8 @@ import { LearningCategory, MemoryOperation, MemoryScope, MemorySource } from "..
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { assertEquals, assertExists } from "@std/assert";
 import { MemoryViewTuiSession as _MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
-import type { MemoryServiceInterface as _MemoryServiceInterface } from "../../src/tui/memory_view.ts";
 import { renderPendingPanel, renderStatsPanel } from "../../src/tui/memory_panels/index.ts";
-import type { MemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
+import type { IMemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";
 import {
   createInitializedMemoryViewSession,
   createMockProposals,
@@ -49,7 +48,7 @@ Deno.test("renderPendingPanel: shows proposal titles", () => {
 
   const rendered = renderPendingPanel(proposals, 0, options);
 
-  assertEquals(rendered.includes("Error Handling Pattern"), true);
+  assertEquals(rendered.includes("Error Handling IPattern as IPattern"), true);
   assertEquals(rendered.includes("API Rate Limiting"), true);
   assertEquals(rendered.includes("Database Connection Issue"), true);
 });
@@ -108,7 +107,7 @@ Deno.test("renderPendingPanel: formats age correctly", () => {
 });
 
 Deno.test("renderPendingPanel: limits display to 10 items", () => {
-  const proposals: MemoryUpdateProposal[] = [];
+  const proposals: IMemoryUpdateProposal[] = [];
   for (let i = 0; i < 15; i++) {
     proposals.push({
       id: `proposal-${i}`,
@@ -116,7 +115,7 @@ Deno.test("renderPendingPanel: limits display to 10 items", () => {
       operation: MemoryOperation.ADD,
       learning: {
         id: `learning-${i}`,
-        title: `Learning ${i}`,
+        title: `ILearning as ILearning ${i}`,
         category: LearningCategory.PATTERN,
         description: "Test",
         confidence: ConfidenceLevel.HIGH,

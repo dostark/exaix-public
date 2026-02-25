@@ -1,16 +1,16 @@
 import { assert, assertEquals } from "@std/assert";
-import { PortalManagerView, type PortalService } from "../../src/tui/portal_manager_view.ts";
+import { type IPortalService, PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { PortalStatus } from "../../src/enums.ts";
 import { createPortalTuiWithPortals } from "./helpers.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
-import type { PortalDetails, PortalInfo } from "../../src/cli/commands/portal_commands.ts";
+import type { IPortalDetails, IPortalInfo } from "../../src/cli/commands/portal_commands.ts";
 
-// Minimal PortalService mock for tests
-class MinimalPortalServiceMock implements PortalService {
-  listPortals = (): Promise<PortalInfo[]> => {
+// Minimal IPortalService mock for tests
+class MinimalIPortalServiceMock implements IPortalService {
+  listPortals = (): Promise<IPortalInfo[]> => {
     throw new Error("PortalCommands instance not provided");
   };
-  getPortalDetails = (_: string) => Promise.resolve({} as Partial<PortalDetails> as PortalDetails);
+  getPortalDetails = (_: string) => Promise.resolve({} as Partial<IPortalDetails> as IPortalDetails);
   openPortal = (_: string) => {
     throw new Error("openPortal not implemented");
   };
@@ -26,7 +26,7 @@ class MinimalPortalServiceMock implements PortalService {
 
 // Additional coverage for error branches and rendering helpers
 Deno.test("throws if PortalCommands and global context missing", async () => {
-  const view = new PortalManagerView(new MinimalPortalServiceMock());
+  const view = new PortalManagerView(new MinimalIPortalServiceMock());
   let errorCaught = false;
   try {
     await view.listPortals();
@@ -38,7 +38,7 @@ Deno.test("throws if PortalCommands and global context missing", async () => {
 });
 
 Deno.test("throws for openPortal and closePortal in CLI mode", async () => {
-  const view = new PortalManagerView(new MinimalPortalServiceMock());
+  const view = new PortalManagerView(new MinimalIPortalServiceMock());
   let openError = false, closeError = false;
   try {
     await view.openPortal("Main");
@@ -56,7 +56,7 @@ Deno.test("throws for openPortal and closePortal in CLI mode", async () => {
 });
 
 Deno.test("renderPortalList shows error for non-active status", () => {
-  const view = new PortalManagerView(new MinimalPortalServiceMock());
+  const view = new PortalManagerView(new MinimalIPortalServiceMock());
   const portals = [
     {
       alias: "Main",
@@ -80,7 +80,7 @@ Deno.test("renderPortalList shows error for non-active status", () => {
 });
 
 Deno.test("renderPortalList handles empty and malformed portal list", () => {
-  const view = new PortalManagerView(new MinimalPortalServiceMock());
+  const view = new PortalManagerView(new MinimalIPortalServiceMock());
   const output = view.renderPortalList([]);
   assertEquals(output, "");
   // Malformed: missing status/targetPath, fill with empty strings
@@ -95,7 +95,7 @@ Deno.test("renderPortalList handles empty and malformed portal list", () => {
   assert(out2.includes("X"));
 });
 
-// Mock PortalService for TDD - use `createMockPortalService` in `tests/tui/helpers.ts` instead
+// Mock IPortalService for TDD - use `createMockIPortalService` in `tests/tui/helpers.ts` instead
 
 Deno.test("lists all active portals", async () => {
   const { service: _service, view, tui: _tui } = createPortalTuiWithPortals([
@@ -1005,9 +1005,9 @@ Deno.test("Phase 13.3: Update portals preserves selection when possible", () => 
 });
 
 Deno.test("Phase 13.3: createTuiSession accepts useColors parameter", () => {
-  const service: PortalService = {
+  const service: IPortalService = {
     listPortals: () => Promise.resolve([]),
-    getPortalDetails: () => Promise.resolve({} as Partial<PortalDetails> as PortalDetails),
+    getPortalDetails: () => Promise.resolve({} as Partial<IPortalDetails> as IPortalDetails),
     openPortal: () => Promise.resolve(true),
     closePortal: () => Promise.resolve(true),
     refreshPortal: () => Promise.resolve(true),

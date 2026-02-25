@@ -1,17 +1,17 @@
 import { assertEquals, assertExists } from "@std/assert";
 
 import { analyzeTrace } from "../../../src/tui/analytics/trace_analyzer.ts";
-import type { LogEntry } from "../../../src/services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../../../src/services/structured_logger.ts";
 import { LogLevel } from "../../../src/enums.ts";
 
 function entry(params: {
   timestamp: string;
-  level: LogEntry["level"];
+  level: IStructuredLogEntry["level"];
   traceId?: string;
   correlationId?: string;
   operation?: string;
   durationMs?: number;
-}): LogEntry {
+}): IStructuredLogEntry {
   return {
     timestamp: new Date(params.timestamp).toISOString(),
     level: params.level,
@@ -22,7 +22,7 @@ function entry(params: {
       operation: params.operation,
     },
     performance: params.durationMs !== undefined ? { duration_ms: params.durationMs } : undefined,
-  } as LogEntry;
+  } as IStructuredLogEntry;
 }
 
 Deno.test("analyzeTrace: returns null for empty entries", () => {

@@ -12,10 +12,10 @@ import {
   AgentAction,
   AgentHealthData,
   AgentLogEntry,
-  AgentService,
   AgentStatusItem,
   AgentStatusView,
   AgentViewState,
+  IAgentService,
   LOG_LEVEL_ICONS,
   MinimalAgentServiceMock,
 } from "../../src/tui/agent_status_view.ts";
@@ -26,9 +26,9 @@ import { CritiqueSeverity } from "../../src/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { assertEquals, assertExists } from "@std/assert";
 
-// ===== Mock AgentService for testing =====
+// ===== Mock IAgentService for testing =====
 
-class MockAgentService implements AgentService {
+class MockAgentService implements IAgentService {
   private agents: AgentStatusItem[] = [
     {
       id: "agent1",

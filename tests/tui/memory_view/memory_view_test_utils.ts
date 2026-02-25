@@ -9,46 +9,58 @@ import {
   MemoryType as _MemoryType,
 } from "../../../src/enums.ts";
 import { MemoryStatus } from "../../../src/memory/memory_status.ts";
-
+import { KEYS } from "../../../src/helpers/keyboard.ts";
 import {
-  ExecutionMemory,
-  GlobalMemory,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  ProjectMemory,
+  type IExecutionMemory,
+  type IGlobalMemory,
+  type IMemorySearchResult,
+  type IMemoryUpdateProposal,
+  type IProjectMemory,
 } from "../../../src/schemas/memory_bank.ts";
-import { MemoryServiceInterface, MemoryViewTuiSession } from "../../../src/tui/memory_view.ts";
+import { type IMemoryServiceInterface, MemoryViewTuiSession } from "../../../src/tui/memory_view.ts";
 import { DialogBase } from "../../../src/helpers/dialog_base.ts";
+// ===== Interfaces =====
 
-export class ExtendedMockMemoryService implements MemoryServiceInterface {
+export interface IMemoryViewServiceOptions {
+  projects?: string[];
+  executions?: IExecutionMemory[];
+  pending?: IMemoryUpdateProposal[];
+  globalMemory?: IGlobalMemory | null;
+  projectMemories?: Record<string, IProjectMemory | null>;
+  searchResults?: IMemorySearchResult[];
+}
+
+// ===== Mock Service =====
+
+export class ExtendedMockMemoryService implements IMemoryServiceInterface {
   private projects: string[] = ["TestPortal"];
-  private projectMemories: Map<string, ProjectMemory | null> = new Map();
-  private globalMemory: GlobalMemory | null = null;
-  private executions: ExecutionMemory[] = [];
-  private pending: MemoryUpdateProposal[] = [];
-  private searchResults: MemorySearchResult[] = [];
+  private projectMemories: Map<string, IProjectMemory | null> = new Map();
+  private globalMemory: IGlobalMemory | null = null;
+  private executions: IExecutionMemory[] = [];
+  private pending: IMemoryUpdateProposal[] = [];
+  private searchResults: IMemorySearchResult[] = [];
 
   setProjects(projects: string[]): void {
     this.projects = projects;
   }
 
-  setProjectMemory(portal: string, memory: ProjectMemory | null): void {
+  setProjectMemory(portal: string, memory: IProjectMemory | null): void {
     this.projectMemories.set(portal, memory);
   }
 
-  setGlobalMemory(memory: GlobalMemory | null): void {
+  setGlobalMemory(memory: IGlobalMemory | null): void {
     this.globalMemory = memory;
   }
 
-  setExecutions(executions: ExecutionMemory[]): void {
+  setExecutions(executions: IExecutionMemory[]): void {
     this.executions = executions;
   }
 
-  setPending(pending: MemoryUpdateProposal[]): void {
+  setPending(pending: IMemoryUpdateProposal[]): void {
     this.pending = pending;
   }
 
-  setSearchResults(results: MemorySearchResult[]): void {
+  setSearchResults(results: IMemorySearchResult[]): void {
     this.searchResults = results;
   }
 
@@ -56,19 +68,19 @@ export class ExtendedMockMemoryService implements MemoryServiceInterface {
     return await this.projects;
   }
 
-  async getProjectMemory(portal: string): Promise<ProjectMemory | null> {
+  async getProjectMemory(portal: string): Promise<IProjectMemory | null> {
     return await this.projectMemories.get(portal) ?? null;
   }
 
-  async getGlobalMemory(): Promise<GlobalMemory | null> {
+  async getGlobalMemory(): Promise<IGlobalMemory | null> {
     return await this.globalMemory;
   }
 
-  async getExecutionByTraceId(traceId: string): Promise<ExecutionMemory | null> {
+  async getExecutionByTraceId(traceId: string): Promise<IExecutionMemory | null> {
     return await this.executions.find((e) => e.trace_id === traceId) ?? null;
   }
 
-  async getExecutionHistory(options?: { portal?: string; limit?: number }): Promise<ExecutionMemory[]> {
+  async getExecutionHistory(options?: { portal?: string; limit?: number }): Promise<IExecutionMemory[]> {
     let result = this.executions;
     if (options?.portal) {
       result = result.filter((e) => e.portal === options.portal);
@@ -79,16 +91,16 @@ export class ExtendedMockMemoryService implements MemoryServiceInterface {
     return await result;
   }
 
-  async search(query: string, _options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]> {
+  async search(query: string, _options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]> {
     if (query === "") return [];
     return await this.searchResults;
   }
 
-  async listPending(): Promise<MemoryUpdateProposal[]> {
+  async listPending(): Promise<IMemoryUpdateProposal[]> {
     return await this.pending;
   }
 
-  async getPending(proposalId: string): Promise<MemoryUpdateProposal | null> {
+  async getPending(proposalId: string): Promise<IMemoryUpdateProposal | null> {
     return await this.pending.find((p) => p.id === proposalId) ?? null;
   }
 
@@ -101,7 +113,7 @@ export class ExtendedMockMemoryService implements MemoryServiceInterface {
   }
 }
 
-export function createMockProposal(id: string, title: string): MemoryUpdateProposal {
+export function createMockProposal(id: string, title: string): IMemoryUpdateProposal {
   return {
     id,
     operation: MemoryOperation.ADD,
@@ -129,7 +141,7 @@ export function createMockProposal(id: string, title: string): MemoryUpdatePropo
 export function createMockExecution(
   traceId: string,
   status: ExecutionStatus.RUNNING | ExecutionStatus.COMPLETED | ExecutionStatus.FAILED,
-): ExecutionMemory {
+): IExecutionMemory {
   return {
     trace_id: traceId,
     request_id: `request-${traceId}`,
@@ -150,17 +162,17 @@ export function createMockExecution(
   };
 }
 
-export function createMockProjectMemory(portal: string): ProjectMemory {
+export function createMockProjectMemory(portal: string): IProjectMemory {
   return {
     portal,
     overview: "This is a test project overview that is quite long to test truncation behavior in rendering.",
     patterns: [
-      { name: "Pattern 1", description: "Description 1", examples: ["ex1.ts"], tags: ["tag1", "tag2"] },
-      { name: "Pattern 2", description: "Description 2", examples: ["ex2.ts"] },
+      { name: "IPattern 1", description: "Description 1", examples: ["ex1.ts"], tags: ["tag1", "tag2"] },
+      { name: "IPattern 2", description: "Description 2", examples: ["ex2.ts"] },
     ],
     decisions: [
-      { decision: "Decision 1", rationale: "Rationale 1", date: new Date().toISOString().split("T")[0] },
-      { decision: "Decision 2", rationale: "Rationale 2", date: new Date().toISOString().split("T")[0] },
+      { decision: "IDecision 1", rationale: "Rationale 1", date: new Date().toISOString().split("T")[0] },
+      { decision: "IDecision 2", rationale: "Rationale 2", date: new Date().toISOString().split("T")[0] },
     ],
     references: [
       { type: MemoryReferenceType.FILE, path: "src/test.ts", description: "Test file" },
@@ -168,13 +180,13 @@ export function createMockProjectMemory(portal: string): ProjectMemory {
   };
 }
 
-export function createMockGlobalMemory(): GlobalMemory {
+export function createMockGlobalMemory(): IGlobalMemory {
   return {
     version: "1.0.0",
     updated_at: new Date().toISOString(),
     patterns: [
       {
-        name: "Global Pattern 1",
+        name: "Global IPattern 1",
         description: "Description 1",
         applies_to: ["all"],
         examples: ["ex.ts"],
@@ -193,7 +205,7 @@ export function createMockGlobalMemory(): GlobalMemory {
     learnings: [
       {
         id: "global-learning-1",
-        title: "Global Learning 1",
+        title: "Global ILearning 1",
         description: "Description",
         category: LearningCategory.PATTERN,
         confidence: ConfidenceLevel.HIGH,
@@ -205,7 +217,7 @@ export function createMockGlobalMemory(): GlobalMemory {
       },
       {
         id: "global-learning-2",
-        title: "Global Learning 2",
+        title: "Global ILearning 2",
         description: "Description",
         category: LearningCategory.INSIGHT,
         confidence: ConfidenceLevel.MEDIUM,
@@ -227,16 +239,7 @@ export function createMockGlobalMemory(): GlobalMemory {
 
 export function createTestSession(): MemoryViewTuiSession {
   const mockService = new ExtendedMockMemoryService();
-  return new MemoryViewTuiSession(mockService as Partial<MemoryServiceInterface> as MemoryServiceInterface);
-}
-
-export interface IMemoryViewServiceOptions {
-  projects?: string[];
-  executions?: ExecutionMemory[];
-  pending?: MemoryUpdateProposal[];
-  globalMemory?: GlobalMemory | null;
-  projectMemories?: Record<string, ProjectMemory | null>;
-  searchResults?: MemorySearchResult[];
+  return new MemoryViewTuiSession(mockService as Partial<IMemoryServiceInterface> as IMemoryServiceInterface);
 }
 
 export function createConfiguredService(options: IMemoryViewServiceOptions = {}): ExtendedMockMemoryService {
@@ -256,8 +259,6 @@ export function createConfiguredService(options: IMemoryViewServiceOptions = {})
   return service;
 }
 
-import { KEYS } from "../../../src/helpers/keyboard.ts";
-
 export async function setupSession(
   options: IMemoryViewServiceOptions = {},
 ): Promise<{ session: MemoryViewTuiSession; service: ExtendedMockMemoryService }> {
@@ -268,10 +269,10 @@ export async function setupSession(
 }
 
 export function createSessionWithService(service: ExtendedMockMemoryService): MemoryViewTuiSession {
-  return new MemoryViewTuiSession(service as Partial<MemoryServiceInterface> as MemoryServiceInterface);
+  return new MemoryViewTuiSession(service as Partial<IMemoryServiceInterface> as IMemoryServiceInterface);
 }
 
-export async function testExecutionDetailRendering(exec: ExecutionMemory): Promise<string> {
+export async function testExecutionDetailRendering(exec: IExecutionMemory): Promise<string> {
   const { session } = await setupSession({
     executions: [exec],
   });

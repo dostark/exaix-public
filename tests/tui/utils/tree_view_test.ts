@@ -21,11 +21,11 @@ import {
   getNodeAtIndex,
   getNodeIndex,
   getPrevNodeId,
+  type ITreeNode,
   renderTree,
   renderTreeLine,
   toggleNode,
   TREE_ICONS,
-  type TreeNode,
 } from "../../../src/helpers/tree_view.ts";
 import { createTestTree } from "../helpers.ts";
 
@@ -105,7 +105,7 @@ Deno.test("flattenTree: tracks isLast correctly", () => {
 });
 
 Deno.test("flattenTree: respects expanded state", () => {
-  const tree: TreeNode[] = [
+  const tree: ITreeNode[] = [
     createGroupNode("parent", "Parent", "group", [
       createNode("child", "Child", "item"),
     ], { expanded: false }),

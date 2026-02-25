@@ -20,8 +20,8 @@ import {
 
 import { ConfidenceLevel } from "../../src/enums.ts";
 import {
+  type IPanelRenderOptions,
   MemoryColors,
-  type PanelRenderOptions,
   renderExecutionListPanel,
   renderExecutionPanel,
   renderGlobalPanel,
@@ -31,21 +31,21 @@ import {
   renderStatsPanel,
 } from "../../src/tui/memory_panels/index.ts";
 import type {
-  ExecutionMemory,
-  GlobalMemory,
-  Learning,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  ProjectMemory,
+  IExecutionMemory,
+  IGlobalMemory,
+  ILearning,
+  IMemorySearchResult,
+  IMemoryUpdateProposal,
+  IProjectMemory,
 } from "../../src/schemas/memory_bank.ts";
 
-const defaultOptions: PanelRenderOptions = {
+const defaultOptions: IPanelRenderOptions = {
   width: 80,
   height: 24,
   useColors: false,
 };
 
-const colorOptions: PanelRenderOptions = {
+const colorOptions: IPanelRenderOptions = {
   width: 80,
   height: 24,
   useColors: true,
@@ -53,7 +53,7 @@ const colorOptions: PanelRenderOptions = {
 
 // ===== Helper to create valid test data =====
 
-function createProjectMemory(overrides: Partial<ProjectMemory> = {}): ProjectMemory {
+function createProjectMemory(overrides: Partial<IProjectMemory> = {}): IProjectMemory {
   return {
     portal: "test-portal",
     overview: "A test project overview",
@@ -64,7 +64,7 @@ function createProjectMemory(overrides: Partial<ProjectMemory> = {}): ProjectMem
   };
 }
 
-function createExecutionMemory(overrides: Partial<ExecutionMemory> = {}): ExecutionMemory {
+function createExecutionMemory(overrides: Partial<IExecutionMemory> = {}): IExecutionMemory {
   return {
     trace_id: crypto.randomUUID(),
     request_id: "req-123",
@@ -84,13 +84,13 @@ function createExecutionMemory(overrides: Partial<ExecutionMemory> = {}): Execut
   };
 }
 
-function createLearning(overrides: Partial<Learning> = {}): Learning {
+function createLearning(overrides: Partial<ILearning> = {}): ILearning {
   return {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
     source: MemorySource.EXECUTION,
     scope: MemoryScope.PROJECT,
-    title: "Test Learning",
+    title: "Test ILearning",
     description: "A test learning description",
     category: LearningCategory.PATTERN,
     tags: ["test"],
@@ -100,7 +100,7 @@ function createLearning(overrides: Partial<Learning> = {}): Learning {
   };
 }
 
-function createGlobalMemory(overrides: Partial<GlobalMemory> = {}): GlobalMemory {
+function createGlobalMemory(overrides: Partial<IGlobalMemory> = {}): IGlobalMemory {
   return {
     version: "1.0.0",
     updated_at: new Date().toISOString(),
@@ -162,7 +162,7 @@ Deno.test("renderProjectPanel: renders with patterns", () => {
     ],
   });
   const result = renderProjectPanel(memory, "test-portal", defaultOptions);
-  assertEquals(result.includes("Pattern") || result.includes("Singleton"), true);
+  assertEquals(result.includes("IPattern") || result.includes("Singleton"), true);
 });
 
 Deno.test("renderProjectPanel: renders with decisions", () => {
@@ -226,7 +226,7 @@ Deno.test("renderGlobalPanel: renders with patterns", () => {
   const memory = createGlobalMemory({
     patterns: [
       {
-        name: "Global Pattern",
+        name: "Global IPattern",
         description: "Applies everywhere",
         applies_to: ["*"],
         examples: ["example.ts"],
@@ -387,9 +387,9 @@ Deno.test("renderSearchPanel: renders empty results", () => {
 });
 
 Deno.test("renderSearchPanel: renders single result", () => {
-  const results: MemorySearchResult[] = [{
+  const results: IMemorySearchResult[] = [{
     type: MemoryType.PATTERN,
-    title: "Test Pattern",
+    title: "Test IPattern",
     summary: "A test pattern result",
     relevance_score: 0.95,
   }];
@@ -398,11 +398,11 @@ Deno.test("renderSearchPanel: renders single result", () => {
 });
 
 Deno.test("renderSearchPanel: renders multiple result types", () => {
-  const results: MemorySearchResult[] = [
-    { type: MemoryType.PATTERN, title: "Pattern", summary: "Pattern summary" },
-    { type: MemoryType.DECISION, title: "Decision", summary: "Decision summary" },
+  const results: IMemorySearchResult[] = [
+    { type: MemoryType.PATTERN, title: "IPattern", summary: "IPattern summary" },
+    { type: MemoryType.DECISION, title: "IDecision", summary: "IDecision summary" },
     { type: MemoryType.EXECUTION, title: "Execution", summary: "Execution summary", trace_id: "trace-1" },
-    { type: MemoryType.LEARNING, title: "Learning", summary: "Learning summary", id: "learn-1" },
+    { type: MemoryType.LEARNING, title: "ILearning", summary: "ILearning summary", id: "learn-1" },
     { type: MemoryType.PROJECT, title: "Project", summary: "Project summary", portal: "portal1" },
   ];
   const result = renderSearchPanel("query", results, 0, defaultOptions);
@@ -410,7 +410,7 @@ Deno.test("renderSearchPanel: renders multiple result types", () => {
 });
 
 Deno.test("renderSearchPanel: handles selection", () => {
-  const results: MemorySearchResult[] = [
+  const results: IMemorySearchResult[] = [
     { type: MemoryType.PATTERN, title: "Result 1", summary: "Summary 1" },
     { type: MemoryType.PATTERN, title: "Result 2", summary: "Summary 2" },
     { type: MemoryType.PATTERN, title: "Result 3", summary: "Summary 3" },
@@ -422,7 +422,7 @@ Deno.test("renderSearchPanel: handles selection", () => {
 });
 
 Deno.test("renderSearchPanel: handles many results", () => {
-  const results: MemorySearchResult[] = Array(30).fill(0).map((_, i) => ({
+  const results: IMemorySearchResult[] = Array(30).fill(0).map((_, i) => ({
     type: MemoryType.PATTERN,
     title: `Result ${i}`,
     summary: `Summary for result ${i}`,
@@ -433,7 +433,7 @@ Deno.test("renderSearchPanel: handles many results", () => {
 });
 
 Deno.test("renderSearchPanel: displays tags", () => {
-  const results: MemorySearchResult[] = [{
+  const results: IMemorySearchResult[] = [{
     type: MemoryType.LEARNING,
     title: "Tagged Result",
     summary: "Has tags",
@@ -451,7 +451,7 @@ Deno.test("renderPendingPanel: renders empty proposals", () => {
 });
 
 Deno.test("renderPendingPanel: renders single proposal", () => {
-  const proposals: MemoryUpdateProposal[] = [{
+  const proposals: IMemoryUpdateProposal[] = [{
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
     operation: MemoryOperation.ADD,
@@ -463,7 +463,7 @@ Deno.test("renderPendingPanel: renders single proposal", () => {
       source: MemorySource.EXECUTION,
       scope: MemoryScope.PROJECT,
       project: "test-portal",
-      title: "Test Learning",
+      title: "Test ILearning as ILearning",
       description: "A proposed learning",
       category: LearningCategory.PATTERN,
       tags: ["test"],
@@ -478,7 +478,7 @@ Deno.test("renderPendingPanel: renders single proposal", () => {
 });
 
 Deno.test("renderPendingPanel: renders multiple proposals", () => {
-  const createProposal = (i: number): MemoryUpdateProposal => ({
+  const createProposal = (i: number): IMemoryUpdateProposal => ({
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
     operation: [MemoryOperation.ADD, MemoryOperation.UPDATE, MemoryOperation.PROMOTE][i % 3] as
@@ -491,7 +491,7 @@ Deno.test("renderPendingPanel: renders multiple proposals", () => {
       created_at: new Date().toISOString(),
       source: MemorySource.EXECUTION,
       scope: i % 2 === 0 ? MemoryScope.PROJECT : MemoryScope.GLOBAL,
-      title: `Learning ${i}`,
+      title: `ILearning as ILearning ${i}`,
       description: `Description ${i}`,
       category: [LearningCategory.PATTERN, LearningCategory.DECISION, LearningCategory.INSIGHT][i % 3] as
         | LearningCategory.PATTERN
@@ -511,7 +511,7 @@ Deno.test("renderPendingPanel: renders multiple proposals", () => {
 });
 
 Deno.test("renderPendingPanel: handles selection", () => {
-  const proposals: MemoryUpdateProposal[] = Array(3).fill(0).map((_, i) => ({
+  const proposals: IMemoryUpdateProposal[] = Array(3).fill(0).map((_, i) => ({
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
     operation: MemoryOperation.ADD,
@@ -620,7 +620,7 @@ Deno.test("panel renders respect height constraint", () => {
   const memory = createProjectMemory({
     overview: "Overview",
     patterns: Array(20).fill(0).map((_, i) => ({
-      name: `Pattern ${i}`,
+      name: `IPattern as IPattern ${i}`,
       description: `Description ${i}`,
       examples: [`example${i}.ts`],
     })),

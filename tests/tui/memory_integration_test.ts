@@ -19,13 +19,13 @@ import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { ConfidenceLevel } from "../../src/enums.ts";
 import type {
-  ExecutionMemory,
-  GlobalMemory,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  ProjectMemory,
+  IExecutionMemory,
+  IGlobalMemory,
+  IMemorySearchResult,
+  IMemoryUpdateProposal,
+  IProjectMemory,
 } from "../../src/schemas/memory_bank.ts";
-import { type MemoryServiceInterface, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
+import { type IMemoryServiceInterface, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import { MinimalMemoryServiceMock } from "./helpers.ts";
 import {
   renderCategoryBadge,
@@ -40,12 +40,12 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Mock Service with Full Data =====
 
-class MockMemoryServiceFull extends MinimalMemoryServiceMock implements MemoryServiceInterface {
+class MockMemoryServiceFull extends MinimalMemoryServiceMock implements IMemoryServiceInterface {
   private projects = ["my-app", "api-service", "web-client"];
 
   constructor() {
     super([
-      createMockProposal("prop-1", "Error Handling Pattern", LearningCategory.PATTERN),
+      createMockProposal("prop-1", "Error Handling IPattern as IPattern", LearningCategory.PATTERN),
       createMockProposal("prop-2", "API Rate Limiting", LearningCategory.DECISION),
       createMockProposal("prop-3", "Database Troubleshooting", LearningCategory.TROUBLESHOOTING),
     ]);
@@ -55,7 +55,7 @@ class MockMemoryServiceFull extends MinimalMemoryServiceMock implements MemorySe
     return Promise.resolve(this.projects);
   }
 
-  override getProjectMemory(portal: string): Promise<ProjectMemory | null> {
+  override getProjectMemory(portal: string): Promise<IProjectMemory | null> {
     if (!this.projects.includes(portal)) return Promise.resolve(null);
     return Promise.resolve({
       portal,
@@ -85,13 +85,13 @@ class MockMemoryServiceFull extends MinimalMemoryServiceMock implements MemorySe
     });
   }
 
-  override getGlobalMemory(): Promise<GlobalMemory | null> {
+  override getGlobalMemory(): Promise<IGlobalMemory | null> {
     return Promise.resolve({
       version: "1.0.0",
       updated_at: new Date().toISOString(),
       patterns: [
         {
-          name: "Global Pattern 1",
+          name: "Global IPattern as IPattern 1",
           description: "A cross-project pattern",
           examples: ["Example 1"],
           tags: [MemoryScope.GLOBAL],
@@ -100,7 +100,7 @@ class MockMemoryServiceFull extends MinimalMemoryServiceMock implements MemorySe
       ],
       anti_patterns: [
         {
-          name: "Anti-Pattern 1",
+          name: "Anti-IPattern as IPattern 1",
           description: "What to avoid",
           reason: "Causes performance issues",
           alternative: "Use caching instead",
@@ -110,7 +110,7 @@ class MockMemoryServiceFull extends MinimalMemoryServiceMock implements MemorySe
       learnings: [
         {
           id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-          title: "Global Learning 1",
+          title: "Global ILearning as ILearning 1",
           description: "Important global insight",
           category: LearningCategory.INSIGHT,
           confidence: ConfidenceLevel.HIGH,
@@ -130,7 +130,7 @@ class MockMemoryServiceFull extends MinimalMemoryServiceMock implements MemorySe
     });
   }
 
-  override getExecutionByTraceId(traceId: string): Promise<ExecutionMemory | null> {
+  override getExecutionByTraceId(traceId: string): Promise<IExecutionMemory | null> {
     return Promise.resolve({
       portal: "my-app",
       trace_id: traceId,
@@ -151,7 +151,7 @@ class MockMemoryServiceFull extends MinimalMemoryServiceMock implements MemorySe
     });
   }
 
-  override getExecutionHistory(): Promise<ExecutionMemory[]> {
+  override getExecutionHistory(): Promise<IExecutionMemory[]> {
     return Promise.resolve([
       {
         portal: "my-app",
@@ -181,12 +181,12 @@ class MockMemoryServiceFull extends MinimalMemoryServiceMock implements MemorySe
     ]);
   }
 
-  override search(query: string): Promise<MemorySearchResult[]> {
+  override search(query: string): Promise<IMemorySearchResult[]> {
     if (!query.trim()) return Promise.resolve([]);
     return Promise.resolve([
       {
         id: "result-1",
-        title: "Error Handling Pattern",
+        title: "Error Handling IPattern as IPattern",
         type: MemoryType.PATTERN,
         portal: "my-app",
         summary: "Found in my-app patterns",
@@ -210,7 +210,7 @@ function createMockProposal(
   id: string,
   title: string,
   category: LearningCategory.PATTERN | LearningCategory.DECISION | LearningCategory.TROUBLESHOOTING,
-): MemoryUpdateProposal {
+): IMemoryUpdateProposal {
   return {
     id,
     agent: "test-agent",

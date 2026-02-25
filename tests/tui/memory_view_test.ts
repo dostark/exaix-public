@@ -17,7 +17,7 @@ import { MemoryScope } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { MemoryView, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
-import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
+import type { IMemoryServiceInterface } from "../../src/tui/memory_view.ts";
 import { MockMemoryService } from "../../src/tui/tui_dashboard_mocks.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 
@@ -25,7 +25,7 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 
 function createTestSession(): MemoryViewTuiSession {
   const mockService = new MockMemoryService();
-  return new MemoryViewTuiSession(mockService as Partial<MemoryServiceInterface> as MemoryServiceInterface);
+  return new MemoryViewTuiSession(mockService as Partial<IMemoryServiceInterface> as IMemoryServiceInterface);
 }
 
 async function enterSearchAndType(session: MemoryViewTuiSession, text: string): Promise<void> {
@@ -350,7 +350,7 @@ Deno.test("MemoryViewTuiSession: getFocusableElements returns panel list", () =>
 
 Deno.test("MemoryView: creates TUI session", () => {
   const mockService = new MockMemoryService();
-  const view = new MemoryView(mockService as Partial<MemoryServiceInterface> as MemoryServiceInterface);
+  const view = new MemoryView(mockService as Partial<IMemoryServiceInterface> as IMemoryServiceInterface);
 
   const session = view.createTuiSession();
   assertExists(session);
@@ -358,13 +358,13 @@ Deno.test("MemoryView: creates TUI session", () => {
 
 Deno.test("MemoryView: getService returns service instance", () => {
   const mockService = new MockMemoryService();
-  const view = new MemoryView(mockService as Partial<MemoryServiceInterface> as MemoryServiceInterface);
+  const view = new MemoryView(mockService as Partial<IMemoryServiceInterface> as IMemoryServiceInterface);
 
   const service = view.getService();
   assertExists(service);
 });
 
-// ===== Node Finding Tests =====
+// ===== Node IFinding Tests =====
 
 Deno.test("MemoryViewTuiSession: findNodeById returns correct node", async () => {
   const session = createTestSession();

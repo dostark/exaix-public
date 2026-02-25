@@ -6,7 +6,7 @@ import {
   restoreLayout,
   saveLayout,
 } from "../../src/tui/tui_helpers/layout_persistence.ts";
-import type { Pane } from "../../src/tui/tui_dashboard.ts";
+import type { IPane } from "../../src/tui/tui_dashboard.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../src/helpers/constants.ts";
 
 import { makePane } from "./layout_test_utils.ts";
@@ -26,7 +26,7 @@ async function withTempHome(fn: (home: string) => Promise<void> | void): Promise
 
 Deno.test("saveLayout: writes layout JSON and notifies success", async () => {
   await withTempHome(async () => {
-    const panes: Pane[] = [
+    const panes: IPane[] = [
       makePane("main", "MainView", { focused: true, flexX: 0.1, flexY: 0.2, flexWidth: 0.5, flexHeight: 0.6 }),
       makePane("side", "SideView", { flexX: 0.6, flexY: 0.2, flexWidth: 0.4, flexHeight: 0.6 }),
     ];
@@ -54,7 +54,7 @@ Deno.test("saveLayout: notifies error when ~/.exoframe is a file", async () => {
     // Create a file at ~/.exoframe so mkdir fails
     await Deno.writeTextFile(`${home}/.exoframe`, "not a dir");
 
-    const panes: Pane[] = [makePane("main", "MainView")];
+    const panes: IPane[] = [makePane("main", "MainView")];
     const notifications: Array<{ m: string; t?: string }> = [];
 
     await saveLayout(panes, "main", (m, t) => notifications.push({ m, t }));
@@ -68,7 +68,7 @@ Deno.test("saveLayout: notifies error when ~/.exoframe is a file", async () => {
 
 Deno.test("restoreLayout: returns null when file missing", async () => {
   await withTempHome(async () => {
-    const panes: Pane[] = [makePane("main", "MainView")];
+    const panes: IPane[] = [makePane("main", "MainView")];
     const notifications: Array<{ m: string; t?: string }> = [];
 
     const result = await restoreLayout(panes, [{ name: "MainView" }], (m, t) => notifications.push({ m, t }));
@@ -80,7 +80,7 @@ Deno.test("restoreLayout: returns null when file missing", async () => {
 
 Deno.test("restoreLayout: restores v1.2 flex layout and notifies", async () => {
   await withTempHome(async () => {
-    const panes: Pane[] = [makePane("main", "MainView")];
+    const panes: IPane[] = [makePane("main", "MainView")];
     const views = [{ name: "MainView" }, { name: "OtherView" }];
 
     const layout = {
@@ -123,7 +123,7 @@ Deno.test("restoreLayout: restores v1.2 flex layout and notifies", async () => {
 
 Deno.test("restoreLayout: upgrades v1.0 absolute coords to flex", async () => {
   await withTempHome(async () => {
-    const panes: Pane[] = [makePane("main", "MainView")];
+    const panes: IPane[] = [makePane("main", "MainView")];
     const views = [{ name: "MainView" }];
 
     const x = 10;
@@ -160,7 +160,7 @@ Deno.test("restoreLayout: upgrades v1.0 absolute coords to flex", async () => {
 });
 
 Deno.test("resetToDefault: resets panes and returns 'main'", () => {
-  const panes: Pane[] = [makePane("a", "A"), makePane("b", "B")];
+  const panes: IPane[] = [makePane("a", "A"), makePane("b", "B")];
   const views = [{ name: "MainView" }];
   const notifications: string[] = [];
 

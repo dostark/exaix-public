@@ -1,73 +1,112 @@
-import { Request } from "../../src/tui/request_manager_view.ts";
-import { MemorySource, PortalStatus, SkillStatus } from "../../src/enums.ts";
-import { LegacyRequestManagerTuiSession, RequestManagerView } from "../../src/tui/request_manager_view.ts";
+import {
+  type IRequest,
+  type IRequestOptions,
+  type IRequestService,
+  RequestManagerView,
+} from "../../src/tui/request_manager_view.ts";
+import { MemoryScope, MemorySource, PortalStatus, SkillStatus } from "../../src/enums.ts";
+import { LegacyRequestManagerTuiSession as _LegacyRequestManagerTuiSession } from "../../src/tui/request_manager_view.ts";
 import { PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { MonitorView } from "../../src/tui/monitor_view.ts";
-import type { LogEntry } from "../../src/tui/monitor_view.ts";
-import { MinimalPlanServiceMock, PlanReviewerTuiSession } from "../../src/tui/plan_reviewer_view.ts";
+import type { ILogEntry } from "../../src/tui/monitor_view.ts";
+import { type IPlan, MinimalPlanServiceMock, PlanReviewerTuiSession } from "../../src/tui/plan_reviewer_view.ts";
 import { commonTestData, requestFactory } from "../helpers/test_utils.ts";
 import { RequestStatus, type RequestStatusType } from "../../src/requests/request_status.ts";
-import type { PortalDetails, PortalInfo } from "../../src/cli/commands/portal_commands.ts";
-import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
-import type { RequestOptions } from "../../src/tui/request_manager_view.ts";
-import { SkillsManagerTuiSession } from "../../src/tui/skills_manager_view.ts";
+import type { IPortalDetails, IPortalInfo } from "../../src/cli/commands/portal_commands.ts";
+import type { IActivityRecord, IDatabaseService, IJournalFilterOptions, ISqliteParam } from "../../src/services/db.ts";
+import {
+  ISkillSummary,
+  ISkillsViewService,
+  SkillsManagerTuiSession,
+  SkillsManagerView,
+} from "../../src/tui/skills_manager_view.ts";
 import type {
-  ExecutionMemory,
-  GlobalMemory,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  ProjectMemory,
-  ProposalLearning,
-  Skill,
+  IExecutionMemory,
+  IGlobalMemory,
+  IMemorySearchResult,
+  IMemoryUpdateProposal,
+  IProjectMemory,
+  IProposalLearning,
 } from "../../src/schemas/memory_bank.ts";
+import { JSONObject } from "../../src/types.ts";
+import {
+  ConfidenceLevel,
+  EvaluationCategory,
+  LearningCategory,
+  MemoryOperation,
+  MemoryReferenceType,
+} from "../../src/enums.ts";
+import { EvaluationCategory as _EvaluationCategory } from "../../src/enums.ts";
+import { IMemoryServiceInterface, MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
+import { type ITreeNode } from "../../src/helpers/tree_view.ts";
+
+export interface IPortalInfoOverrides {
+  alias?: string;
+  status?: PortalStatus;
+  targetPath?: string;
+  symlinkPath?: string;
+  contextCardPath?: string;
+  [key: string]: unknown;
+}
+
+export interface ILogEntryPayload {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+export interface ILogEntryOverrides {
+  id?: string;
+  trace_id?: string;
+  actor?: string;
+  agent_id?: string;
+  action_type?: string;
+  target?: string;
+  payload?: ILogEntryPayload | string;
+  timestamp?: string;
+  [key: string]: string | number | boolean | null | undefined | ILogEntryPayload | unknown;
+}
 
 // Counter for deterministic IDs in tests
 let requestIdCounter = 1;
 
 // Use shared test data factories with deterministic IDs
-export const sampleRequest = (overrides: Partial<Request> = {}): Request => {
+export const sampleRequest = (overrides: Partial<IRequest> = {}): IRequest => {
   const deterministicOverrides = {
     trace_id: `req-${requestIdCounter++}`,
     ...overrides,
-  } as Partial<Request>;
-  return requestFactory.create(deterministicOverrides) as Request;
+  } as Partial<IRequest>;
+  return requestFactory.create(deterministicOverrides) as IRequest;
 };
 
-export const sampleRequests = (arr: Array<Partial<Request>>): Request[] => arr.map((a) => sampleRequest(a));
-
-export const sampleTestRequests = () => commonTestData.requests.basic();
-
-export const sampleBasicRequest = () => commonTestData.requests.basic();
-
-export const sampleTwoRequests = () => commonTestData.requests.two();
-
-export const sampleGroupedRequests = () => commonTestData.requests.grouped();
-
+export const sampleRequests = (arr: Array<Partial<IRequest>>): IRequest[] => arr.map((a) => sampleRequest(a));
+export const sampleTestRequests = () => commonTestData.requests.basic() as IRequest[];
+export const sampleBasicRequest = () => commonTestData.requests.basic() as IRequest[];
+export const sampleTwoRequests = () => commonTestData.requests.two() as IRequest[];
+export const sampleGroupedRequests = () => commonTestData.requests.grouped() as IRequest[];
 export const sampleNewRequest = () => [sampleRequest({ trace_id: "new-req", title: "New Request" })];
+
+// Legacy aliases for backward compatibility
+export const sampleIRequest = sampleRequest;
+export const sampleBasicIRequest = sampleBasicRequest;
+export const sampleNewIRequest = sampleNewRequest;
 
 // Plan helpers using shared utilities
 export const sampleBasicPlans = () => commonTestData.plans.basic();
-
 export const sampleSinglePlan = () => commonTestData.plans.single();
-
 export const samplePlansWithStatuses = () => commonTestData.plans.withStatuses();
-
 export const samplePendingPlans = () => commonTestData.plans.pending();
 
 // Skill helpers using shared utilities
 export const sampleBasicSkills = () => commonTestData.skills.basic;
-
 export const sampleSingleSkill = () => commonTestData.skills.single;
-
 export const sampleSkillsWithStatuses = () => commonTestData.skills.withStatuses;
 
-export function createMockRequestService(initial: Request[] = []) {
-  class MockRequestService {
-    requests: Request[];
-    constructor(requests: Request[] = []) {
+export function createMockRequestService(initial: IRequest[] = []) {
+  class MockRequestService implements IRequestService {
+    requests: IRequest[];
+    constructor(requests: IRequest[] = []) {
       this.requests = requests;
     }
-    listRequests(status?: RequestStatusType): Promise<Request[]> {
+    listRequests(status?: RequestStatusType): Promise<IRequest[]> {
       if (status) {
         return Promise.resolve(this.requests.filter((r) => r.status === status));
       }
@@ -77,13 +116,13 @@ export function createMockRequestService(initial: Request[] = []) {
       const request = this.requests.find((r) => r.trace_id === id);
       return Promise.resolve(request ? `Content for ${id}` : "");
     }
-    createRequest(_description: string, options?: RequestOptions) {
-      const newRequest = {
+    createRequest(_description: string, options?: IRequestOptions) {
+      const newRequest: IRequest = {
         trace_id: `test-${Date.now()}`,
         filename: `request-test.md`,
-        title: `Request test`,
+        title: _description,
         status: RequestStatus.PENDING,
-        priority: options?.priority || "normal",
+        priority: (options?.priority as string) || "normal",
         agent: options?.agent || "default",
         portal: options?.portal,
         model: options?.model,
@@ -107,13 +146,13 @@ export function createMockRequestService(initial: Request[] = []) {
   return new MockRequestService(initial);
 }
 
-export function createViewWithRequests(arr: Array<Partial<Request>> = []) {
+export function createViewWithRequests(arr: Array<Partial<IRequest>> = []) {
   const service = createMockRequestService(sampleRequests(arr));
   const view = new RequestManagerView(service);
   return { service, view };
 }
 
-export function createTuiWithRequests(arr: Array<Partial<Request>> = []) {
+export function createTuiWithRequests(arr: Array<Partial<IRequest>> = []) {
   const { service, view } = createViewWithRequests(arr);
   const requests = sampleRequests(arr);
   const tui = view.createTuiSession(requests);
@@ -125,23 +164,7 @@ export function createTuiWithRequests(arr: Array<Partial<Request>> = []) {
 // -------------------------
 let logIdCounter = 1;
 
-export interface LogEntryPayload {
-  [key: string]: string | number | boolean | null | undefined;
-}
-
-export interface LogEntryOverrides {
-  id?: string;
-  trace_id?: string;
-  actor?: string;
-  agent_id?: string;
-  action_type?: string;
-  target?: string;
-  payload?: LogEntryPayload | string;
-  timestamp?: string;
-  [key: string]: string | number | boolean | null | undefined | LogEntryPayload | unknown;
-}
-
-export function sampleLogEntry(overrides: LogEntryOverrides = {}): LogEntry {
+export function sampleLogEntry(overrides: ILogEntryOverrides = {}): ILogEntry {
   const id = overrides.id ?? String(logIdCounter++);
   const payloadValue = overrides.payload ?? {};
   let payloadObj: JSONObject;
@@ -166,10 +189,10 @@ export function sampleLogEntry(overrides: LogEntryOverrides = {}): LogEntry {
     payload: payloadObj,
     timestamp: overrides.timestamp ?? new Date().toISOString(),
     ...rest,
-  };
+  } as ILogEntry;
 }
 
-export function sampleLogEntries(arr: LogEntryOverrides[]) {
+export function sampleLogEntries(arr: ILogEntryOverrides[]) {
   return arr.map((a) => sampleLogEntry(a));
 }
 
@@ -234,35 +257,26 @@ export function sampleSingleMonitorLog() {
 // -------------------------
 // Portal helpers
 // -------------------------
-export interface PortalInfoOverrides {
-  alias?: string;
-  status?: PortalStatus;
-  targetPath?: string;
-  symlinkPath?: string;
-  contextCardPath?: string;
-  [key: string]: unknown;
-}
-
-export function samplePortal(overrides: PortalInfoOverrides = {}): PortalInfo {
+export function samplePortal(overrides: IPortalInfoOverrides = {}): IPortalInfo {
   return {
     alias: overrides.alias ?? `Portal-${Math.floor(Math.random() * 1e6)}`,
-    status: overrides.status ?? SkillStatus.ACTIVE,
+    status: overrides.status ?? PortalStatus.ACTIVE,
     targetPath: overrides.targetPath ?? "/Portals/Main",
     symlinkPath: overrides.symlinkPath ?? "",
     contextCardPath: overrides.contextCardPath ?? "",
     ...overrides,
-  } as PortalInfo;
+  } as IPortalInfo;
 }
 
-export function samplePortals(arr: PortalInfoOverrides[]): PortalInfo[] {
+export function samplePortals(arr: IPortalInfoOverrides[]): IPortalInfo[] {
   return arr.map((a) => samplePortal(a));
 }
 
-export function createMockPortalService(initial: PortalInfo[] = []) {
+export function createMockPortalService(initial: IPortalInfo[] = []) {
   class MockPortalService {
-    portals: PortalInfo[];
+    portals: IPortalInfo[];
     actions: { type: string; id: string }[];
-    constructor(portals: PortalInfo[] = []) {
+    constructor(portals: IPortalInfo[] = []) {
       this.portals = portals;
       this.actions = [];
     }
@@ -292,7 +306,7 @@ export function createMockPortalService(initial: PortalInfo[] = []) {
     getPortalDetails(alias: string) {
       const found = this.portals.find((p) => p.alias === alias);
       if (found) {
-        return Promise.resolve({ ...found, permissions: "Read/Write" } as PortalDetails);
+        return Promise.resolve({ ...found, permissions: "Read/Write" } as IPortalDetails);
       }
       return Promise.resolve({
         alias,
@@ -301,7 +315,7 @@ export function createMockPortalService(initial: PortalInfo[] = []) {
         contextCardPath: "",
         status: PortalStatus.BROKEN,
         permissions: "Read Only",
-      } as PortalDetails);
+      } as IPortalDetails);
     }
     quickJumpToPortalDir(alias: string) {
       return Promise.resolve(this.portals.find((p) => p.alias === alias)?.targetPath ?? "");
@@ -320,58 +334,82 @@ export function createMockPortalService(initial: PortalInfo[] = []) {
   return new MockPortalService(initial);
 }
 
-export function createPortalViewWithPortals(arr: PortalInfoOverrides[] = []) {
+export function createPortalViewWithPortals(arr: IPortalInfoOverrides[] = []) {
   const service = createMockPortalService(samplePortals(arr));
   const view = new PortalManagerView(service);
   return { service, view };
 }
 
-export function createPortalTuiWithPortals(arr: PortalInfoOverrides[] = []) {
+export function createPortalTuiWithPortals(arr: IPortalInfoOverrides[] = []) {
   const { service, view } = createPortalViewWithPortals(arr);
   // Pass the service's array reference so tests that mutate the service.portals array are reflected in the TUI session
-  const tui = view.createTuiSession(service.portals);
+  const tui = view.createTuiSession(service.portals as IPortalInfo[]);
   return { service, view, tui };
 }
 
 // -------------------------
 // Monitor helpers
 // -------------------------
-export function createMockDatabaseService(initialLogs: ActivityRecord[] = []) {
-  class MockDatabaseService {
-    private logs: ActivityRecord[];
-    constructor(logs: ActivityRecord[] = []) {
-      this.logs = logs;
-    }
-    queryActivity(filter: JournalFilterOptions) {
-      let filtered = this.logs;
-      if (filter.agentId) {
-        filtered = filtered.filter((l) => l.agent_id === filter.agentId);
-      }
-      if (filter.actionType) {
-        filtered = filtered.filter((l) => l.action_type === filter.actionType);
-      }
-      if (filter.traceId) {
-        filtered = filtered.filter((l) => l.trace_id === filter.traceId);
-      }
-      const since = filter.since;
-      if (since) {
-        filtered = filtered.filter((l) => l.timestamp > since);
-      }
-      return Promise.resolve(filtered);
-    }
-
-    getRecentActivity(limit: number = 100) {
-      return Promise.resolve(this.logs.slice(-limit).reverse());
-    }
-    addLog(log: ActivityRecord) {
-      this.logs.push(log);
-    }
+class MockDatabaseService implements IDatabaseService {
+  constructor(private readonly _activityRecords: IActivityRecord[] = []) {}
+  logActivity() {}
+  waitForFlush() {
+    return Promise.resolve();
   }
-  return new MockDatabaseService(initialLogs);
+  queryActivity(filter: IJournalFilterOptions) {
+    let filtered = this._activityRecords;
+    if (filter.agentId) {
+      filtered = filtered.filter((l) => l.agent_id === filter.agentId);
+    }
+    if (filter.actionType) {
+      filtered = filtered.filter((l) => l.action_type === filter.actionType);
+    }
+    if (filter.traceId) {
+      filtered = filtered.filter((l) => l.trace_id === filter.traceId);
+    }
+    const since = filter.since as string | undefined;
+    if (since) {
+      filtered = filtered.filter((l) => l.timestamp > since);
+    }
+    return Promise.resolve(filtered);
+  }
+  preparedGet<T>(_query: string, _params?: ISqliteParam[]) {
+    return Promise.resolve({} as T);
+  }
+  preparedAll<T>(_query: string, _params?: ISqliteParam[]) {
+    return Promise.resolve([] as T[]);
+  }
+  preparedRun(_query: string, _params?: ISqliteParam[]) {
+    return Promise.resolve({});
+  }
+  getActivitiesByTrace(traceId: string) {
+    return this._activityRecords.filter((r) => r.trace_id === traceId);
+  }
+  getActivitiesByTraceSafe(traceId: string) {
+    return Promise.resolve(this.getActivitiesByTrace(traceId));
+  }
+  getActivitiesByActionType(actionType: string) {
+    return this._activityRecords.filter((r) => r.action_type === actionType);
+  }
+  getActivitiesByActionTypeSafe(actionType: string) {
+    return Promise.resolve(this.getActivitiesByActionType(actionType));
+  }
+  getRecentActivity(limit: number = 100) {
+    return Promise.resolve(this._activityRecords.slice(-limit).reverse());
+  }
+  // Test-only method used in some tests
+  addLog(log: IActivityRecord) {
+    this._activityRecords.push(log);
+    return Promise.resolve();
+  }
 }
 
-export function createMonitorViewWithLogs(arr: Array<LogEntry | LogEntryOverrides> = []) {
-  const activityRecords: ActivityRecord[] = arr.map((a) => ({
+export function createMockDatabaseService(activityRecords: IActivityRecord[] = []) {
+  return new MockDatabaseService(activityRecords);
+}
+
+export function createMonitorViewWithLogs(arr: Array<ILogEntry | ILogEntryOverrides> = []) {
+  const activityRecords: IActivityRecord[] = arr.map((a) => ({
     id: String(a.id ?? crypto.randomUUID()),
     trace_id: String(a.trace_id ?? `trace-${a.id ?? Math.floor(Math.random() * 1e6)}`),
     actor: (a.actor as string | null) ?? null,
@@ -385,7 +423,7 @@ export function createMonitorViewWithLogs(arr: Array<LogEntry | LogEntryOverride
 
   const db = createMockDatabaseService(activityRecords);
   const monitorView = new MonitorView(db);
-  // For testing, set the monitor view's internal logs as parsed LogEntry[]
+  // For testing, set the monitor view's internal logs as parsed ILogEntry[]
   monitorView["logs"] = activityRecords.map((log) => ({
     id: log.id,
     trace_id: log.trace_id,
@@ -393,18 +431,18 @@ export function createMonitorViewWithLogs(arr: Array<LogEntry | LogEntryOverride
     agent_id: log.agent_id,
     action_type: log.action_type,
     target: log.target,
-    payload: JSON.parse(log.payload) as LogEntryPayload,
+    payload: JSON.parse(log.payload) as ILogEntryPayload,
     timestamp: log.timestamp,
     count: log.count,
   }));
   return { db, monitorView };
 }
 
-export function createMonitorTuiSession(arr: Array<LogEntry | LogEntryOverrides> = []) {
-  const converted: LogEntryOverrides[] = arr.map((a) => {
-    // If the caller passed a LogEntry, convert it to a plain record with stringified payload
+export function createMonitorTuiSession(arr: Array<ILogEntry | ILogEntryOverrides> = []) {
+  const converted: ILogEntryOverrides[] = arr.map((a) => {
+    // If the caller passed a ILogEntry, convert it to a plain record with stringified payload
     if ("action_type" in a && typeof a.action_type === "string") {
-      const log = a as LogEntry;
+      const log = a as ILogEntry;
       return {
         id: log.id,
         trace_id: log.trace_id,
@@ -416,20 +454,20 @@ export function createMonitorTuiSession(arr: Array<LogEntry | LogEntryOverrides>
         timestamp: log.timestamp,
       };
     }
-    return a as LogEntryOverrides;
+    return a as ILogEntryOverrides;
   });
 
   const { db, monitorView } = createMonitorViewWithLogs(converted);
   const session = monitorView.createTuiSession(false);
-  return { db, view: monitorView, session };
+  return { db, monitorView, session };
 }
+
+export const createMonitorViewSession = createMonitorTuiSession;
 
 // -------------------------
 // Plan reviewer helpers
 // -------------------------
-import type { Plan } from "../../src/tui/plan_reviewer_view.ts";
-
-export function createPlanReviewerSession(plans: Plan[] = []) {
+export function createPlanReviewerSession(plans: IPlan[] = []) {
   const mock = new MinimalPlanServiceMock();
   const session = new PlanReviewerTuiSession(plans, mock);
   return { mock, session };
@@ -438,9 +476,7 @@ export function createPlanReviewerSession(plans: Plan[] = []) {
 // -------------------------
 // Tree view helpers
 // -------------------------
-import type { TreeNode } from "../../src/helpers/tree_view.ts";
-
-export function createTestTree(): TreeNode[] {
+export function createTestTree(): ITreeNode[] {
   return [
     {
       id: "root1",
@@ -490,11 +526,11 @@ export function createTestTree(): TreeNode[] {
   ];
 }
 
-export function createLargeTestTree(depth: number = 3, breadth: number = 5): TreeNode[] {
-  function createLevel(currentDepth: number, prefix: string): TreeNode[] {
+export function createLargeTestTree(depth: number = 3, breadth: number = 5): ITreeNode[] {
+  function createLevel(currentDepth: number, prefix: string): ITreeNode[] {
     if (currentDepth >= depth) return [];
 
-    const nodes: TreeNode[] = [];
+    const nodes: ITreeNode[] = [];
     for (let i = 0; i < breadth; i++) {
       const id = `${prefix}${i}`;
       nodes.push({
@@ -562,14 +598,14 @@ export function createLegacyMockRequestService() {
   return {
     listRequests: () => Promise.resolve([]),
     getRequestContent: () => Promise.resolve(""),
-    createRequest: () => Promise.resolve({} as Partial<Request> as Request),
+    createRequest: () => Promise.resolve({} as Partial<IRequest> as IRequest),
     updateRequestStatus: () => Promise.resolve(true),
   };
 }
 
-export function createLegacyTuiSession(requests: Request[] = []) {
+export function createLegacyTuiSession(requests: IRequest[] = []) {
   const mockService = createLegacyMockRequestService();
-  return new LegacyRequestManagerTuiSession(requests, mockService);
+  return new _LegacyRequestManagerTuiSession(requests, mockService as IRequestService);
 }
 
 export function createLegacyTuiSessionWithTracking() {
@@ -585,7 +621,7 @@ export function createLegacyTuiSessionWithTracking() {
     },
     createRequest: () => {
       createCalled = true;
-      return Promise.resolve(commonTestData.mockObjects.newRequest() as Partial<Request> as Request);
+      return Promise.resolve(commonTestData.mockObjects.newRequest() as IRequest);
     },
     updateRequestStatus: () => {
       deleteCalled = true;
@@ -594,7 +630,7 @@ export function createLegacyTuiSessionWithTracking() {
   };
 
   const requests = sampleTestRequests();
-  const session = new LegacyRequestManagerTuiSession(requests, mockService);
+  const session = new _LegacyRequestManagerTuiSession(requests, mockService as IRequestService);
 
   return { session, createCalled: () => createCalled, viewCalled: () => viewCalled, deleteCalled: () => deleteCalled };
 }
@@ -606,12 +642,12 @@ export function createLegacyTuiSessionWithLongTraceId() {
     createRequest: () =>
       Promise.resolve({
         trace_id: "12345678-abcd-efgh-ijkl-mnopqrstuvwx",
-      } as Partial<Request> as Request),
+      } as Partial<IRequest> as IRequest),
     updateRequestStatus: () => Promise.resolve(true),
   };
 
   const requests = sampleTestRequests();
-  return new LegacyRequestManagerTuiSession(requests, mockService);
+  return new _LegacyRequestManagerTuiSession(requests, mockService as IRequestService);
 }
 
 export function createLegacyTuiSessionWithErrors() {
@@ -623,7 +659,7 @@ export function createLegacyTuiSessionWithErrors() {
   };
 
   const requests = sampleTestRequests();
-  return new LegacyRequestManagerTuiSession(requests, mockService);
+  return new _LegacyRequestManagerTuiSession(requests, mockService as IRequestService);
 }
 
 // -------------------------
@@ -640,13 +676,8 @@ export function createMockDialogRenderOptions(width: number = 60, height: number
 // -------------------------
 // Skills Manager helpers
 // -------------------------
-import { MinimalSkillsServiceMock, SkillsManagerView, type SkillSummary } from "../../src/tui/skills_manager_view.ts";
-import { EvaluationCategory, MemoryScope } from "../../src/enums.ts";
 
-// Re-export enums for use by test files
-export { EvaluationCategory, MemoryScope };
-
-export interface SkillSummaryOverrides {
+export interface ISkillSummaryOverrides {
   id?: string;
   skill_id?: string;
   name?: string;
@@ -662,7 +693,7 @@ export interface SkillSummaryOverrides {
   [key: string]: unknown;
 }
 
-export function sampleSkill(overrides: SkillSummaryOverrides = {}): SkillSummary {
+export function sampleSkill(overrides: ISkillSummaryOverrides = {}): ISkillSummary {
   return {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
@@ -679,14 +710,14 @@ export function sampleSkill(overrides: SkillSummaryOverrides = {}): SkillSummary
     instructions: "Test instructions",
     usage_count: 0,
     ...overrides,
-  } as Skill;
+  } as ISkillSummary;
 }
 
-export function sampleSkills(arr: SkillSummaryOverrides[]): SkillSummary[] {
+export function sampleSkills(arr: ISkillSummaryOverrides[]): ISkillSummary[] {
   return arr.map((a) => sampleSkill(a));
 }
 
-export function sampleTestSkills(): SkillSummary[] {
+export function sampleTestSkills(): ISkillSummary[] {
   return sampleSkills([
     {
       id: "tdd-methodology",
@@ -737,21 +768,35 @@ export function sampleTestSkills(): SkillSummary[] {
   ]);
 }
 
-export function createTestSkills(): SkillSummary[] {
+export function createTestSkills(): ISkillSummary[] {
   return sampleTestSkills();
 }
 
-export function createMockSkillsService(initial: SkillSummaryOverrides[] = []) {
+export class MinimalSkillsServiceMock implements ISkillsViewService {
+  constructor(public skills: ISkillSummary[] = []) {}
+  listSkills() {
+    return Promise.resolve(this.skills);
+  }
+  getSkill(skillId: string) {
+    return Promise.resolve(this.skills.find((s) => s.id === skillId) || null);
+  }
+  deleteSkill(skillId: string) {
+    this.skills = this.skills.filter((s) => s.id !== skillId);
+    return Promise.resolve(true);
+  }
+}
+
+export function createMockSkillsService(initial: ISkillSummaryOverrides[] = []) {
   return new MinimalSkillsServiceMock(sampleSkills(initial));
 }
 
-export function createSkillsManagerViewWithMock(skills: SkillSummary[] = sampleTestSkills()) {
+export function createSkillsManagerViewWithMock(skills: ISkillSummary[] = sampleTestSkills()) {
   const service = new MinimalSkillsServiceMock(skills);
   const view = new SkillsManagerView(service);
   return { service, view };
 }
 
-export function createSkillsManagerTuiSession(skills: SkillSummary[] = sampleTestSkills()) {
+export function createSkillsManagerTuiSession(skills: ISkillSummary[] = sampleTestSkills()) {
   const { service, view } = createSkillsManagerViewWithMock(skills);
   const session = view.createTuiSession(false);
   return { service, view, session };
@@ -762,7 +807,7 @@ export function testSkillsSessionRender(
   keySequence: string[],
   assertion: (rendered: string, session: SkillsManagerTuiSession) => void | Promise<void>,
   options: {
-    skills?: SkillSummary[];
+    skills?: ISkillSummary[];
     useColors?: boolean;
   } = {},
 ) {
@@ -779,15 +824,89 @@ export function testSkillsSessionRender(
   });
 }
 
-// ===== Memory Service Mock =====
+// Memory View mock data
+export function createMockProposals(): IMemoryUpdateProposal[] {
+  return [
+    {
+      id: "proposal-1",
+      agent: "test-agent",
+      operation: MemoryOperation.ADD,
+      learning: {
+        id: "729b8001-0000-4000-8000-000000000001",
+        created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+        source: MemorySource.AGENT,
+        scope: MemoryScope.PROJECT,
+        title: "Error Handling Pattern",
+        description: "Use try-catch for all async functions",
+        category: LearningCategory.PATTERN,
+        tags: ["error-handling"],
+        confidence: ConfidenceLevel.HIGH,
+        references: [{ type: MemoryReferenceType.FILE, path: "src/db.ts" }],
+      } as IProposalLearning,
+      target_scope: MemoryScope.PROJECT,
+      target_project: "my-app",
+      reason: "Extracted from execution",
+      status: "pending",
+    } as IMemoryUpdateProposal,
+    {
+      id: "proposal-2",
+      agent: "test-agent",
+      operation: MemoryOperation.ADD,
+      learning: {
+        id: "729b8001-0000-4000-8000-000000000002",
+        created_at: new Date(Date.now() - 18000000).toISOString(), // 5 hours ago
+        source: MemorySource.AGENT,
+        scope: MemoryScope.GLOBAL,
+        title: "API Rate Limiting",
+        description: "Implement rate limiting for all API endpoints",
+        category: LearningCategory.DECISION,
+        tags: [MemoryReferenceType.API, EvaluationCategory.SECURITY],
+        confidence: ConfidenceLevel.MEDIUM,
+      } as IProposalLearning,
+      target_scope: MemoryScope.GLOBAL,
+      reason: "Common pattern across projects",
+      status: "pending",
+    } as IMemoryUpdateProposal,
+    {
+      id: "proposal-3",
+      agent: "test-agent",
+      operation: MemoryOperation.ADD,
+      learning: {
+        id: "729b8001-0000-4000-8000-000000000003",
+        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+        source: MemorySource.EXECUTION,
+        scope: MemoryScope.PROJECT,
+        title: "Database Connection Issue",
+        description: "Connection timeout solutions",
+        category: LearningCategory.TROUBLESHOOTING,
+        tags: ["database"],
+        confidence: ConfidenceLevel.HIGH,
+      } as IProposalLearning,
+      target_scope: MemoryScope.PROJECT,
+      target_project: "api-service",
+      reason: "Documented troubleshooting steps",
+      status: "pending",
+    } as IMemoryUpdateProposal,
+  ];
+}
 
-import type { MemoryServiceInterface } from "../../src/tui/memory_view.ts";
+export function createMemoryViewSession(proposals: IMemoryUpdateProposal[] = []) {
+  const service = new MinimalMemoryServiceMock(proposals);
+  const session = new MemoryViewTuiSession(service);
+  return { service, session };
+}
 
-export class MinimalMemoryServiceMock implements MemoryServiceInterface {
-  proposals: MemoryUpdateProposal[] = [];
+export async function createInitializedMemoryViewSession(proposals: IMemoryUpdateProposal[] = []) {
+  const { service, session } = createMemoryViewSession(proposals);
+  await session.initialize();
+  return { service, session };
+}
+
+export class MinimalMemoryServiceMock implements IMemoryServiceInterface {
+  proposals: IMemoryUpdateProposal[] = [];
   approvedCount = 0;
 
-  constructor(proposals: MemoryUpdateProposal[] = []) {
+  constructor(proposals: IMemoryUpdateProposal[] = []) {
     this.proposals = proposals;
   }
 
@@ -795,31 +914,31 @@ export class MinimalMemoryServiceMock implements MemoryServiceInterface {
     return Promise.resolve(["default"]);
   }
 
-  getProjectMemory(_portal: string): Promise<ProjectMemory | null> {
+  getProjectMemory(_portal: string): Promise<IProjectMemory | null> {
     return Promise.resolve(null);
   }
 
-  getGlobalMemory(): Promise<GlobalMemory | null> {
+  getGlobalMemory(): Promise<IGlobalMemory | null> {
     return Promise.resolve(null);
   }
 
-  getExecutionByTraceId(_traceId: string): Promise<ExecutionMemory | null> {
+  getExecutionByTraceId(_traceId: string): Promise<IExecutionMemory | null> {
     return Promise.resolve(null);
   }
 
-  getExecutionHistory(_options?: { portal?: string; limit?: number }): Promise<ExecutionMemory[]> {
+  getExecutionHistory(_options?: { portal?: string; limit?: number }): Promise<IExecutionMemory[]> {
     return Promise.resolve([]);
   }
 
-  search(_query: string, _options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]> {
+  search(_query: string, _options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]> {
     return Promise.resolve([]);
   }
 
-  listPending(): Promise<MemoryUpdateProposal[]> {
+  listPending(): Promise<IMemoryUpdateProposal[]> {
     return Promise.resolve(this.proposals);
   }
 
-  getPending(proposalId: string): Promise<MemoryUpdateProposal | null> {
+  getPending(proposalId: string): Promise<IMemoryUpdateProposal | null> {
     return Promise.resolve(
       this.proposals.find((p) => p.id === proposalId) ?? null,
     );
@@ -839,88 +958,4 @@ export class MinimalMemoryServiceMock implements MemoryServiceInterface {
   getApprovedCount(): number {
     return this.approvedCount;
   }
-}
-
-// -------------------------
-// Memory View helpers
-// -------------------------
-import { MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
-import { ConfidenceLevel, LearningCategory, MemoryOperation, MemoryReferenceType } from "../../src/enums.ts";
-import { JSONObject } from "../../src/types.ts";
-
-export function createMockProposals(): MemoryUpdateProposal[] {
-  return [
-    {
-      id: "proposal-1",
-      agent: "test-agent",
-      operation: MemoryOperation.ADD,
-      learning: {
-        id: "729b8001-0000-4000-8000-000000000001",
-        created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-        source: MemorySource.AGENT,
-        scope: MemoryScope.PROJECT,
-        title: "Error Handling Pattern",
-        description: "Use try-catch for all async functions",
-        category: LearningCategory.PATTERN,
-        tags: ["error-handling"],
-        confidence: ConfidenceLevel.HIGH,
-        references: [{ type: MemoryReferenceType.FILE, path: "src/db.ts" }],
-      } as ProposalLearning,
-      target_scope: MemoryScope.PROJECT,
-      target_project: "my-app",
-      reason: "Extracted from execution",
-      status: "pending",
-    } as MemoryUpdateProposal,
-    {
-      id: "proposal-2",
-      agent: "test-agent",
-      operation: MemoryOperation.ADD,
-      learning: {
-        id: "729b8001-0000-4000-8000-000000000002",
-        created_at: new Date(Date.now() - 18000000).toISOString(), // 5 hours ago
-        source: MemorySource.AGENT,
-        scope: MemoryScope.GLOBAL,
-        title: "API Rate Limiting",
-        description: "Implement rate limiting for all API endpoints",
-        category: LearningCategory.DECISION,
-        tags: [MemoryReferenceType.API, EvaluationCategory.SECURITY],
-        confidence: ConfidenceLevel.MEDIUM,
-      } as ProposalLearning,
-      target_scope: MemoryScope.GLOBAL,
-      reason: "Common pattern across projects",
-      status: "pending",
-    } as MemoryUpdateProposal,
-    {
-      id: "proposal-3",
-      agent: "test-agent",
-      operation: MemoryOperation.ADD,
-      learning: {
-        id: "729b8001-0000-4000-8000-000000000003",
-        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        source: MemorySource.EXECUTION,
-        scope: MemoryScope.PROJECT,
-        title: "Database Connection Issue",
-        description: "Connection timeout solutions",
-        category: LearningCategory.TROUBLESHOOTING,
-        tags: ["database"],
-        confidence: ConfidenceLevel.HIGH,
-      } as ProposalLearning,
-      target_scope: MemoryScope.PROJECT,
-      target_project: "api-service",
-      reason: "Documented troubleshooting steps",
-      status: "pending",
-    } as MemoryUpdateProposal,
-  ];
-}
-
-export function createMemoryViewSession(proposals: MemoryUpdateProposal[] = []) {
-  const service = new MinimalMemoryServiceMock(proposals);
-  const session = new MemoryViewTuiSession(service);
-  return { service, session };
-}
-
-export async function createInitializedMemoryViewSession(proposals: MemoryUpdateProposal[] = []) {
-  const { service, session } = createMemoryViewSession(proposals);
-  await session.initialize();
-  return { service, session };
 }

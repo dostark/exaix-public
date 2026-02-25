@@ -246,7 +246,7 @@ Deno.test("PlanReviewerView: reject throws if reason missing", async () => {
     listPending: () => Promise.resolve([]),
     getDiff: () => Promise.resolve(""),
     approve: () => Promise.resolve(true),
-    reject: (_id, _r, reason?: string) => {
+    reject: (_id: string, _r: string, reason?: string) => {
       if (!reason) return Promise.reject(new Error("Rejection reason is required"));
       return Promise.resolve(true);
     },
@@ -598,7 +598,7 @@ Deno.test("Phase 13.4: Diff rendering", async () => {
 
   const diffLines = session.renderDiff();
   assert(diffLines.length > 0, "Should have diff lines");
-  assert(diffLines.some((l) => l.includes("DIFF VIEWER")), "Should have diff header");
+  assert(diffLines.some((l: string) => l.includes("DIFF VIEWER")), "Should have diff header");
 });
 
 Deno.test("Phase 13.4: Expand/Collapse all", async () => {

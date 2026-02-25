@@ -9,7 +9,7 @@ import { DaemonStatus } from "../../src/enums.ts";
 
 import {
   DaemonControlView,
-  type DaemonService,
+  type IDaemonService,
   LegacyDaemonControlTuiSession,
   MinimalDaemonServiceMock,
 } from "../../src/tui/daemon_control_view.ts";
@@ -198,7 +198,7 @@ Deno.test("DaemonControlTuiSession: restartDaemon success", async () => {
   },
 ].forEach(({ method, error: _error, setupOverride }) => {
   Deno.test(`DaemonControlTuiSession: ${method} handles error`, async () => {
-    const errorService: DaemonService = {
+    const errorService: IDaemonService = {
       start: () => Promise.reject(new Error("Start failed")),
       stop: () => Promise.reject(new Error("Stop failed")),
       restart: () => Promise.reject(new Error("Restart failed")),

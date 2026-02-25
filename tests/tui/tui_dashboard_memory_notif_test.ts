@@ -3,7 +3,7 @@ import { MemoryOperation, MemoryScope } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { createTuiDashboardWithNotification } from "./dashboard_helper.ts";
-import { type ProposalLearning } from "../../src/schemas/memory_bank.ts";
+import { type IProposalLearning } from "../../src/schemas/memory_bank.ts";
 
 Deno.test("TUI Dashboard + Memory: handles memory update notifications", async () => {
   const { dashboard, notificationService, cleanup } = await createTuiDashboardWithNotification();
@@ -17,7 +17,7 @@ Deno.test("TUI Dashboard + Memory: handles memory update notifications", async (
       agent: "test-agent",
       operation: MemoryOperation.ADD,
       target_scope: MemoryScope.PROJECT,
-      learning: { title: "Learning 1", id: "l-1" } as Partial<ProposalLearning> as ProposalLearning,
+      learning: { title: "ILearning 1", id: "l-1" } as Partial<IProposalLearning> as IProposalLearning,
       reason: "Testing 1",
       status: MemoryStatus.PENDING,
     });
@@ -27,7 +27,7 @@ Deno.test("TUI Dashboard + Memory: handles memory update notifications", async (
       agent: "test-agent",
       operation: MemoryOperation.ADD,
       target_scope: MemoryScope.PROJECT,
-      learning: { title: "Learning 2", id: "l-2" } as Partial<ProposalLearning> as ProposalLearning,
+      learning: { title: "ILearning 2", id: "l-2" } as Partial<IProposalLearning> as IProposalLearning,
       reason: "Testing 2",
       status: MemoryStatus.PENDING,
     });
@@ -39,8 +39,8 @@ Deno.test("TUI Dashboard + Memory: handles memory update notifications", async (
 
     // 3. Verify renderNotificationPanel filters for memory notifications
     const memoryLines = await dashboard.renderNotifications();
-    const hasLearning1 = memoryLines.some((l: string) => l.includes("Learning 1"));
-    const hasLearning2 = memoryLines.some((l: string) => l.includes("Learning 2"));
+    const hasLearning1 = memoryLines.some((l: string) => l.includes("ILearning 1"));
+    const hasLearning2 = memoryLines.some((l: string) => l.includes("ILearning 2"));
     const hasNormalInfo = memoryLines.some((l: string) => l.includes("Normal info"));
 
     assertEquals(hasLearning1, true);

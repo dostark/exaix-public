@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import type { LogEntry } from "../../../src/services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../../../src/services/structured_logger.ts";
 import { LogLevel } from "../../../src/enums.ts";
 import {
   findAgentLogs,
@@ -9,7 +9,7 @@ import {
   groupByTrace,
 } from "../../../src/tui/analytics/queries.ts";
 
-function createLogEntry(id: number, context: LogEntry["context"]): LogEntry {
+function createLogEntry(id: number, context: IStructuredLogEntry["context"]): IStructuredLogEntry {
   return {
     timestamp: new Date(1700000000000 + id).toISOString(),
     level: LogLevel.INFO,

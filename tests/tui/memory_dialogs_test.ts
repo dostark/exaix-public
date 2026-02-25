@@ -116,12 +116,12 @@ testDialogInteraction(
 );
 
 Deno.test("ConfirmApproveDialog: getProposal returns proposal", () => {
-  const proposal = createMockProposal("test-proposal-1", "Error Handling Pattern");
+  const proposal = createMockProposal("test-proposal-1", "Error Handling IPattern as IPattern");
   const dialog = new ConfirmApproveDialog(proposal);
 
   const retrieved = dialog.getProposal();
   assertEquals(retrieved.id, "test-proposal-1");
-  assertEquals(retrieved.learning.title, "Error Handling Pattern");
+  assertEquals(retrieved.learning.title, "Error Handling IPattern as IPattern");
 });
 
 // ===== ConfirmRejectDialog Tests =====
@@ -222,7 +222,7 @@ testDialogInteraction(
     keys: [],
   }),
   (_dialog: DialogBase, rendered: string) => {
-    assertEquals(rendered.includes("Add Learning"), true);
+    assertEquals(rendered.includes("Add ILearning as ILearning"), true);
     assertEquals(rendered.includes("Title"), true);
   },
 );
@@ -334,9 +334,9 @@ testDialogInteraction(
 );
 
 Deno.test("PromoteDialog: getters return correct values", () => {
-  const dialog = new PromoteDialog("My Learning", "source-project");
+  const dialog = new PromoteDialog("My ILearning as ILearning", "source-project");
 
-  assertEquals(dialog.getLearningTitle(), "My Learning");
+  assertEquals(dialog.getLearningTitle(), "My ILearning as ILearning");
   assertEquals(dialog.getSourcePortal(), "source-project");
 });
 

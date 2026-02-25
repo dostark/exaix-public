@@ -1,58 +1,62 @@
 import { assert, assertEquals, assertExists } from "@std/assert";
 import {
+  type IStructuredLogService,
   type LogQueryOptions,
-  type StructuredLogService,
   StructuredLogViewer,
 } from "../../src/tui/structured_log_viewer.ts";
-import { type IStructuredLogger, type LogEntry, type LogMetadata } from "../../src/services/structured_logger.ts";
+import {
+  type IStructuredLogEntry,
+  type IStructuredLogger,
+  type LogMetadata,
+} from "../../src/services/structured_logger.ts";
 import { LogLevel } from "../../src/enums.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { InputDialog } from "../../src/helpers/dialog_base.ts";
 
-class MockLogService implements StructuredLogService {
-  logs: LogEntry[] = [];
-  subscribers: ((entry: LogEntry) => void)[] = [];
+class MockLogService implements IStructuredLogService {
+  logs: IStructuredLogEntry[] = [];
+  subscribers: ((entry: IStructuredLogEntry) => void)[] = [];
 
-  constructor(initialLogs: LogEntry[] = []) {
+  constructor(initialLogs: IStructuredLogEntry[] = []) {
     this.logs = initialLogs;
   }
 
-  getStructuredLogs(_options: LogQueryOptions): Promise<LogEntry[]> {
+  getStructuredLogs(_options: LogQueryOptions): Promise<IStructuredLogEntry[]> {
     return Promise.resolve(this.logs);
   }
 
-  subscribeToLogs(callback: (entry: LogEntry) => void): () => void {
+  subscribeToLogs(callback: (entry: IStructuredLogEntry) => void): () => void {
     this.subscribers.push(callback);
     return () => {
       this.subscribers = this.subscribers.filter((s) => s !== callback);
     };
   }
 
-  getLogsByCorrelationId(correlationId: string): Promise<LogEntry[]> {
+  getLogsByCorrelationId(correlationId: string): Promise<IStructuredLogEntry[]> {
     return Promise.resolve(this.logs.filter((l) => l.context.correlation_id === correlationId));
   }
 
-  getLogsByTraceId(traceId: string): Promise<LogEntry[]> {
+  getLogsByTraceId(traceId: string): Promise<IStructuredLogEntry[]> {
     return Promise.resolve(this.logs.filter((l) => l.context.trace_id === traceId));
   }
 
-  getLogsByAgentId(agentId: string): Promise<LogEntry[]> {
+  getLogsByAgentId(agentId: string): Promise<IStructuredLogEntry[]> {
     return Promise.resolve(this.logs.filter((l) => l.context.agent_id === agentId));
   }
 
-  exportLogs(_filename: string, _entries: LogEntry[]): Promise<void> {
+  exportLogs(_filename: string, _entries: IStructuredLogEntry[]): Promise<void> {
     return Promise.resolve();
   }
 
   // Helper for tests
-  emit(entry: LogEntry) {
+  emit(entry: IStructuredLogEntry) {
     this.subscribers.forEach((s) => s(entry));
   }
 }
 
 class MockStructuredLogger implements IStructuredLogger {
-  setContext(_context: Partial<LogEntry["context"]>): void {}
-  child(_additionalContext: Partial<LogEntry["context"]>): IStructuredLogger {
+  setContext(_context: Partial<IStructuredLogEntry["context"]>): void {}
+  child(_additionalContext: Partial<IStructuredLogEntry["context"]>): IStructuredLogger {
     return this;
   }
   debug(_message: string, _metadata?: LogMetadata): void {}
@@ -65,7 +69,7 @@ class MockStructuredLogger implements IStructuredLogger {
   }
 }
 
-const createTestLogs = (count: number): LogEntry[] => {
+const createTestLogs = (count: number): IStructuredLogEntry[] => {
   return Array.from({ length: count }, (_, i) => ({
     timestamp: new Date(Date.now() - i * 60000).toISOString(),
     level: i % 5 === 0 ? LogLevel.ERROR : LogLevel.INFO,
@@ -146,7 +150,7 @@ Deno.test("StructuredLogViewer: Real-time updates", async () => {
   const extensions = viewer.getExtensions();
   assertEquals(extensions.logEntries.length, 0);
 
-  const newLog: LogEntry = {
+  const newLog: IStructuredLogEntry = {
     timestamp: new Date().toISOString(),
     level: LogLevel.INFO,
     message: "New real-time log",
@@ -246,7 +250,7 @@ Deno.test("StructuredLogViewer: Format Entry", () => {
   const logger = new MockStructuredLogger();
   const viewer = new StructuredLogViewer(service, logger, { testMode: true });
 
-  const entry: LogEntry = {
+  const entry: IStructuredLogEntry = {
     timestamp: "2024-01-01T12:00:00Z",
     level: LogLevel.WARN,
     message: "Test message",

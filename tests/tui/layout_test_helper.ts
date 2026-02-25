@@ -1,10 +1,10 @@
-import { createLayoutManager, type LayoutPane } from "../../src/helpers/layout_manager.ts";
+import { createLayoutManager, type ILayoutPane } from "../../src/helpers/layout_manager.ts";
 
 export function setupLayoutManager(width = 80, height = 24) {
   return createLayoutManager(width, height);
 }
 
-export function createTestPane(overrides: Partial<LayoutPane> = {}): LayoutPane {
+export function createTestPane(overrides: Partial<ILayoutPane> = {}): ILayoutPane {
   return {
     id: "main",
     viewName: "PortalManagerView",
@@ -17,8 +17,8 @@ export function createTestPane(overrides: Partial<LayoutPane> = {}): LayoutPane 
   };
 }
 
-export function createPanes(count: number, width = 40, height = 24): LayoutPane[] {
-  const panes: LayoutPane[] = [];
+export function createPanes(count: number, width = 40, height = 24): ILayoutPane[] {
+  const panes: ILayoutPane[] = [];
   const views = ["PortalManagerView", "MonitorView", "PlanReviewerView", "DaemonControlView"];
 
   for (let i = 0; i < count; i++) {

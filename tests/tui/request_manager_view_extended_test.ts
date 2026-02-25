@@ -7,7 +7,7 @@
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { CritiqueSeverity, LogLevel, MCPTransport, SqliteJournalMode } from "../../src/enums.ts";
 import { RequestPriority } from "../../src/enums.ts";
-import type { RequestEntry, RequestMetadata, RequestShowResult } from "../../src/cli/commands/request_commands.ts";
+import type { IRequestEntry, IRequestMetadata, IRequestShowResult } from "../../src/cli/commands/request_commands.ts";
 import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
 import { MemorySource } from "../../src/enums.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";
@@ -18,9 +18,9 @@ import {
   createLegacyTuiSessionWithTracking,
 } from "./helpers.ts";
 import {
+  type IRequest,
   MinimalRequestServiceMock,
   PRIORITY_ICONS,
-  type Request,
   REQUEST_KEY_BINDINGS,
   RequestAction,
   RequestCommandsServiceAdapter,
@@ -33,7 +33,7 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 
 // ===== Test Data =====
 
-function createTestRequests(): Request[] {
+function createTestRequests(): IRequest[] {
   return [
     {
       trace_id: "req-001",
@@ -109,7 +109,7 @@ function createTestSessionWithMockService(
       getRequestContentResult instanceof Error
         ? Promise.reject(getRequestContentResult)
         : Promise.resolve(getRequestContentResult),
-    createRequest: () => Promise.resolve({} as Request),
+    createRequest: () => Promise.resolve({} as IRequest),
     updateRequestStatus: () => Promise.resolve(true),
   };
 
@@ -367,7 +367,7 @@ Deno.test("RequestManagerTuiSession: detail view with skills shows all skill typ
 });
 
 Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", async () => {
-  const requestWithEmptySkills: Request = {
+  const requestWithEmptySkills: IRequest = {
     trace_id: "req-empty",
     filename: "request-empty.md",
     title: "Request with empty skills",
@@ -383,7 +383,7 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
   const mockService = {
     listRequests: () => Promise.resolve([]),
     getRequestContent: (_id: string) => Promise.resolve("Content"),
-    createRequest: () => Promise.resolve({} as Request),
+    createRequest: () => Promise.resolve({} as IRequest),
     updateRequestStatus: () => Promise.resolve(true),
   };
 
@@ -751,7 +751,7 @@ Deno.test("LegacyRequestManagerTuiSession: error handling in actions", async () 
 // ===== RequestCommandsServiceAdapter Tests =====
 
 Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", async () => {
-  // Provide a minimal valid CommandContext
+  // Provide a minimal valid ICommandContext
   const dummyContext = {
     config: {
       tools: {
@@ -897,10 +897,10 @@ Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", asy
     },
   };
   class MockRequestCommands extends RequestCommands {
-    override list(): Promise<RequestEntry[]> {
+    override list(): Promise<IRequestEntry[]> {
       return Promise.resolve([]);
     }
-    override show(): Promise<RequestShowResult> {
+    override show(): Promise<IRequestShowResult> {
       return Promise.resolve({
         metadata: {
           trace_id: "dummy",
@@ -916,7 +916,7 @@ Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", asy
         content: "",
       });
     }
-    override create(): Promise<RequestMetadata> {
+    override create(): Promise<IRequestMetadata> {
       return Promise.resolve({
         trace_id: "dummy",
         filename: "dummy.md",
@@ -929,7 +929,7 @@ Deno.test("RequestCommandsServiceAdapter: updateRequestStatus logs warning", asy
         source: "cli",
       });
     }
-    override createFromFile(): Promise<RequestMetadata> {
+    override createFromFile(): Promise<IRequestMetadata> {
       return Promise.resolve({
         trace_id: "dummy",
         filename: "dummy.md",

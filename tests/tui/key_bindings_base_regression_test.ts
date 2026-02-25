@@ -7,11 +7,11 @@
 
 import { assertEquals } from "@std/assert";
 import { KeyBindingsBase } from "../../src/tui/base/key_bindings_base.ts";
-import { KeyBinding } from "../../src/helpers/keyboard.ts";
+import { IKeyBinding } from "../../src/helpers/keyboard.ts";
 
 // Test implementation of KeyBindingsBase
 class TestKeyBindings extends KeyBindingsBase {
-  readonly KEY_BINDINGS: readonly KeyBinding[] = [
+  readonly KEY_BINDINGS: readonly IKeyBinding[] = [
     { key: "a", action: "test-action-1", description: "Test action 1", category: "General" },
     { key: "b", action: "test-action-2", description: "Test action 2", category: "General" },
   ];

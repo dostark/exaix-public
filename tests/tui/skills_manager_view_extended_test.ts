@@ -8,12 +8,12 @@ import { assertEquals, assertExists, assertNotEquals, assertStringIncludes } fro
 
 import {
   createSkillsManagerView,
+  type ISkillSummary,
   MinimalSkillsServiceMock,
   SKILL_ICON,
   SKILLS_KEY_BINDINGS,
   SkillsAction,
   SkillsManagerView,
-  type SkillSummary,
   SOURCE_ICONS,
   STATUS_ICONS,
 } from "../../src/tui/skills_manager_view.ts";
@@ -460,7 +460,7 @@ testSkillsSessionRender(
 );
 
 Deno.test("SkillsManagerTuiSession: detail view shows instructions (truncated)", async () => {
-  const skills: SkillSummary[] = [
+  const skills: ISkillSummary[] = [
     {
       id: "long-instructions",
       name: "Long Instructions",

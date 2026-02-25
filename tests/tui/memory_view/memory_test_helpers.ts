@@ -1,5 +1,5 @@
-import { MemoryServiceInterface } from "../../../src/tui/memory_view/types.ts";
 import { DialogStatus } from "../../../src/enums.ts";
+import { type IMemoryServiceInterface } from "../../../src/tui/memory_view/types.ts";
 
 export interface IMemoryViewTestContext {
   statuses: string[];
@@ -8,15 +8,15 @@ export interface IMemoryViewTestContext {
     readonly pendingReloads: number;
   };
   ctx: {
-    service: MemoryServiceInterface;
+    service: IMemoryServiceInterface;
     onStatusUpdate: (m: string) => void;
     onTreeReload: () => Promise<void>;
     onPendingCountReload: () => Promise<void>;
   };
 }
 
-export function createMockService(overrides: Partial<MemoryServiceInterface> = {}): MemoryServiceInterface {
-  const svc: MemoryServiceInterface = {
+export function createMockService(overrides: Partial<IMemoryServiceInterface> = {}): IMemoryServiceInterface {
+  const svc: IMemoryServiceInterface = {
     getProjects: () => Promise.resolve([]),
     getProjectMemory: () => Promise.resolve(null),
     getGlobalMemory: () => Promise.resolve(null),
@@ -40,7 +40,7 @@ export function createMockDialog<T>(
   return dialog as { getResult: () => { type: DialogStatus; value?: T } };
 }
 
-export function createTestContext(overrides?: Partial<{ service: MemoryServiceInterface }>): IMemoryViewTestContext {
+export function createTestContext(overrides?: Partial<{ service: IMemoryServiceInterface }>): IMemoryViewTestContext {
   const statuses: string[] = [];
   let treeReloads = 0;
   let pendingReloads = 0;

@@ -1,9 +1,9 @@
-import { type Pane, type TuiView } from "../../src/tui/tui_dashboard.ts";
+import { type IPane, type ITuiView } from "../../src/tui/tui_dashboard.ts";
 
-export function makePane(id: string, viewName: string, overrides: Partial<Pane> = {}): Pane {
+export function makePane(id: string, viewName: string, overrides: Partial<IPane> = {}): IPane {
   return {
     id,
-    view: { name: viewName } as TuiView,
+    view: { name: viewName } as ITuiView,
     flexX: 0,
     flexY: 0,
     flexWidth: 1,

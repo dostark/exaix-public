@@ -5,12 +5,12 @@ import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";
 import {
   AgentHealthData,
   AgentLogEntry,
-  AgentService,
   AgentStatusItem,
   AgentStatusView,
+  IAgentService,
 } from "../../src/tui/agent_status_view.ts";
 
-class EmptyAgentService implements AgentService {
+class EmptyAgentService implements IAgentService {
   listAgents(): Promise<AgentStatusItem[]> {
     return Promise.resolve([]);
   }
@@ -22,7 +22,7 @@ class EmptyAgentService implements AgentService {
   }
 }
 
-class DetailedAgentService implements AgentService {
+class DetailedAgentService implements IAgentService {
   listAgents(): Promise<AgentStatusItem[]> {
     return Promise.resolve([
       {

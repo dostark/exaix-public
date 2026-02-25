@@ -3,16 +3,12 @@
  */
 
 import { assertEquals, assertExists } from "@std/assert";
-import {
-  analyzeCorrelation,
-  analyzeTrace,
-  calculatePerformanceStats,
-  detectErrorPatterns,
-  findRelatedLogs,
-  findTraceLogs,
-  groupByCorrelation,
-} from "../../src/tui/log_correlation.ts";
-import type { LogEntry } from "../../src/services/structured_logger.ts";
+import { analyzeCorrelation } from "../../src/tui/analytics/correlation_analyzer.ts";
+import { analyzeTrace } from "../../src/tui/analytics/trace_analyzer.ts";
+import { calculatePerformanceStats } from "../../src/tui/analytics/performance_analyzer.ts";
+import { detectErrorPatterns } from "../../src/tui/analytics/error_analyzer.ts";
+import { findRelatedLogs, findTraceLogs, groupByCorrelation } from "../../src/tui/analytics/queries.ts";
+import type { IStructuredLogEntry } from "../../src/services/structured_logger.ts";
 import { LogLevel } from "../../src/enums.ts";
 
 // Helper to create mock log entries
@@ -28,14 +24,14 @@ function createLogEntry(
   } = {},
   performance?: { duration_ms: number },
   error?: { message: string },
-): LogEntry {
+): IStructuredLogEntry {
   return {
     timestamp: new Date(timestamp).toISOString(),
     level: level,
     message: `Log message ${id}`,
     context: {
       ...context,
-      // hostname removed as it's not in LogEntry type
+      // hostname removed as it's not in IStructuredLogEntry type
     },
     performance,
     error: error

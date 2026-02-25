@@ -4,9 +4,9 @@ import { DaemonStatus, DialogStatus } from "../../src/enums.ts";
 import { MemorySource } from "../../src/enums.ts";
 
 import { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS, MonitorView } from "../../src/tui/monitor_view.ts";
-import type { LogEntry } from "../../src/tui/monitor_view.ts";
+import type { ILogEntry } from "../../src/tui/monitor_view.ts";
 import type { JSONObject } from "../../src/types.ts";
-import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
+import type { IActivityRecord, IJournalFilterOptions } from "../../src/services/db.ts";
 import {
   createMockDatabaseService,
   createMonitorViewWithLogs,
@@ -21,7 +21,7 @@ import { KEYS } from "../../src/helpers/keyboard.ts";
 import type { DialogBase } from "../../src/helpers/dialog_base.ts";
 
 // Helper for creating a monitor session
-function createMonitorSession(logs: Array<LogEntry | JSONObject> = []) {
+function createMonitorSession(logs: Array<ILogEntry | JSONObject> = []) {
   const { monitorView } = createMonitorViewWithLogs(logs);
   const session = monitorView.createTuiSession();
   return { session, monitorView };
@@ -29,10 +29,10 @@ function createMonitorSession(logs: Array<LogEntry | JSONObject> = []) {
 
 // Helper for verifying filters
 async function verifyFilter(
-  logs: Array<LogEntry | JSONObject>,
-  filter: JournalFilterOptions,
+  logs: Array<ILogEntry | JSONObject>,
+  filter: IJournalFilterOptions,
   expectedLength: number,
-  checkFn: (logs: LogEntry[]) => void,
+  checkFn: (logs: ILogEntry[]) => void,
 ) {
   const { monitorView } = createMonitorViewWithLogs(logs);
   monitorView.setFilter(filter);
@@ -142,7 +142,7 @@ Deno.test("MonitorView - does not fetch when paused", async () => {
   class CountingDb {
     private inner: ReturnType<typeof createMockDatabaseService>;
     constructor(logs: Array<JSONObject> = []) {
-      const activityRecords: ActivityRecord[] = logs.map((a) => ({
+      const activityRecords: IActivityRecord[] = logs.map((a) => ({
         id: String(a.id ?? crypto.randomUUID()),
         trace_id: String(a.trace_id ?? `trace-${a.id ?? Math.floor(Math.random() * 1e6)}`),
         actor: (a.actor as string | null) ?? null,
@@ -158,11 +158,11 @@ Deno.test("MonitorView - does not fetch when paused", async () => {
     getRecentActivity(limit?: number) {
       return this.inner.getRecentActivity(limit);
     }
-    queryActivity(filter: JournalFilterOptions) {
+    queryActivity(filter: IJournalFilterOptions) {
       calls.push(`query:${JSON.stringify(filter)}`);
       return this.inner.queryActivity(filter);
     }
-    addLog(log: ActivityRecord) {
+    addLog(log: IActivityRecord) {
       return this.inner.addLog(log);
     }
   }
@@ -242,7 +242,7 @@ Deno.test("MonitorView - should handle large log volumes without crashing", asyn
   await monitorView.refreshLogs();
   const filteredLogs = monitorView.getFilteredLogs();
   assert(filteredLogs.length > 0);
-  assert(filteredLogs.every((log: LogEntry) => log.agent_id === "researcher"));
+  assert(filteredLogs.every((log: ILogEntry) => log.agent_id === "researcher"));
 });
 
 Deno.test("MonitorView - should handle empty logs gracefully", async () => {

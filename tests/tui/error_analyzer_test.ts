@@ -1,20 +1,20 @@
 import { assertEquals } from "@std/assert";
 import { detectErrorPatterns } from "../../src/tui/analytics/error_analyzer.ts";
-import type { LogEntry } from "../../src/services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../../src/services/structured_logger.ts";
 import { LogLevel } from "../../src/enums.ts";
 
-function entry(overrides: Partial<LogEntry>): LogEntry {
+function entry(overrides: Partial<IStructuredLogEntry>): IStructuredLogEntry {
   return {
     timestamp: overrides.timestamp ?? new Date(0).toISOString(),
     level: overrides.level ?? LogLevel.ERROR,
     message: overrides.message ?? "m",
     context: overrides.context ?? {},
     error: overrides.error,
-  } as LogEntry;
+  } as IStructuredLogEntry;
 }
 
 Deno.test("detectErrorPatterns: groups errors by message and sorts by count", () => {
-  const entries: LogEntry[] = [
+  const entries: IStructuredLogEntry[] = [
     entry({
       timestamp: new Date(1).toISOString(),
       level: LogLevel.ERROR,
