@@ -1,4 +1,4 @@
-import { assertEquals, assertExists } from "@std/assert";
+import { assert, assertEquals, assertExists } from "@std/assert";
 import { MemorySource } from "../src/enums.ts";
 
 import { initActivityTableSchema, initTestDbService } from "./helpers/db.ts";
@@ -424,8 +424,6 @@ Deno.test("DatabaseService: handles rapid concurrent logging", async () => {
     await cleanup();
   }
 });
-
-import { assert } from "@std/assert";
 
 Deno.test("DatabaseService: handles transaction rollback on error", async () => {
   const { db, cleanup } = await initTestDbService();

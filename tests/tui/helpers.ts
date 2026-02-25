@@ -781,8 +781,9 @@ export class MinimalSkillsServiceMock implements ISkillsViewService {
     return Promise.resolve(this.skills.find((s) => s.id === skillId) || null);
   }
   deleteSkill(skillId: string) {
+    const exists = this.skills.some((s) => s.id === skillId);
     this.skills = this.skills.filter((s) => s.id !== skillId);
-    return Promise.resolve(true);
+    return Promise.resolve(exists);
   }
 }
 

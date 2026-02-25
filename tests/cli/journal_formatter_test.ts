@@ -1,7 +1,7 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { JournalFormatter } from "../../src/cli/formatters/journal_formatter.ts";
 import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
-import { captureConsoleOutput } from "./helpers/test_utils.ts";
+import { captureConsoleOutput } from "./helpers/console_utils.ts";
 import {
   JOURNAL_ACTIVITY_COUNT,
   JOURNAL_ACTOR_USER,

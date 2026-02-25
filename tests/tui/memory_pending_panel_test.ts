@@ -16,7 +16,7 @@ import { EvaluationCategory as _EvaluationCategory } from "../../src/enums.ts";
 import { MemoryReferenceType as _MemoryReferenceType } from "../../src/enums.ts";
 import { LearningCategory, MemoryOperation, MemoryScope, MemorySource } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
-import { assertEquals, assertExists } from "@std/assert";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MemoryViewTuiSession as _MemoryViewTuiSession } from "../../src/tui/memory_view.ts";
 import { renderPendingPanel, renderStatsPanel } from "../../src/tui/memory_panels/index.ts";
 import type { IMemoryUpdateProposal } from "../../src/schemas/memory_bank.ts";

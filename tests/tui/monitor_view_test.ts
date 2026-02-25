@@ -440,8 +440,8 @@ Deno.test("Phase 13.5: MonitorTuiSession - render methods", () => {
   assert(helpLines.some((l) => l.includes("Navigation")));
 
   const buttons = session.renderActionButtons();
-  assert(buttons.includes("Pause"));
-  assert(buttons.includes("Help"));
+  assert(buttons.some((b) => b.includes("Pause")));
+  assert(buttons.some((b) => b.includes("Help")));
 
   const status = session.renderStatusLine();
   assert(status.includes("log"));

@@ -3,6 +3,8 @@
  * @path src/types.ts
  * @description Centralized TypeScript types and aliases for the ExoFrame system.
  * @architectural-layer Core
+ * @dependencies [zod]
+ * @related-files [src/config/constants.ts, src/schemas/*.ts]
  */
 import { z } from "zod";
 

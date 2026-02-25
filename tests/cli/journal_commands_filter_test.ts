@@ -2,7 +2,8 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 import { JournalCommands } from "../../src/cli/commands/journal_commands.ts";
 import type { JournalFilterOptions } from "../../src/services/db.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs } from "./helpers/test_utils.ts";
+import { captureAllOutputs, captureConsoleOutput } from "./helpers/console_utils.ts";
+import { expectExitWithLogs } from "./helpers/test_utils.ts";
 import {
   JOURNAL_ACTOR_USER,
   JOURNAL_AGENT_ID,

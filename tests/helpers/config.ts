@@ -23,8 +23,29 @@ export function createMockConfig(root: string, overrides: Partial<Config> = {}):
       root,
       version: overrides.system?.version ?? "1.0.0",
     },
-    // Provide an object so nested defaults apply
-    paths: overrides.paths ?? {},
+    // Provide explicit path defaults - schema defaults may not apply correctly with empty object
+    paths: {
+      workspace: DEFAULTS.DEFAULT_WORKSPACE_PATH,
+      runtime: DEFAULTS.DEFAULT_RUNTIME_PATH,
+      memory: DEFAULTS.DEFAULT_MEMORY_PATH,
+      portals: DEFAULTS.DEFAULT_PORTALS_PATH,
+      blueprints: DEFAULTS.DEFAULT_BLUEPRINTS_PATH,
+      active: DEFAULTS.DEFAULT_ACTIVE_PATH,
+      archive: DEFAULTS.DEFAULT_ARCHIVE_PATH,
+      plans: DEFAULTS.DEFAULT_PLANS_PATH,
+      requests: DEFAULTS.DEFAULT_REQUESTS_PATH,
+      rejected: DEFAULTS.DEFAULT_REJECTED_PATH,
+      agents: DEFAULTS.DEFAULT_AGENTS_PATH,
+      flows: DEFAULTS.DEFAULT_FLOWS_PATH,
+      memoryProjects: DEFAULTS.DEFAULT_PROJECTS_MEMORY_PATH,
+      memoryExecution: DEFAULTS.DEFAULT_EXECUTION_MEMORY_PATH,
+      memoryIndex: DEFAULTS.DEFAULT_INDEX_MEMORY_PATH,
+      memorySkills: DEFAULTS.DEFAULT_SKILLS_MEMORY_PATH,
+      memoryPending: DEFAULTS.DEFAULT_PENDING_MEMORY_PATH,
+      memoryTasks: DEFAULTS.DEFAULT_TASKS_MEMORY_PATH,
+      memoryGlobal: DEFAULTS.DEFAULT_GLOBAL_MEMORY_PATH,
+      ...(overrides.paths ?? {}),
+    },
     // Provide stable defaults used by many tests, while still allowing overrides.
     database: overrides.database ?? {
       batch_flush_ms: 100,

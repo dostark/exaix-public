@@ -11,6 +11,7 @@ import { walk } from "@std/fs";
 
 const ROOT = Deno.cwd();
 const SRC_DIR = join(ROOT, "src");
+const TESTS_DIR = join(ROOT, "tests");
 const ARCH_DOC = join(ROOT, "ARCHITECTURE.md");
 
 interface ModuleInfo {
@@ -28,17 +29,33 @@ interface ModuleInfo {
 async function validate() {
   console.log("🔍 Validating Architecture Grounding & Headers...");
 
-  const allFiles = new Set<string>();
   const moduleMap = new Map<string, ModuleInfo>();
   const groundedFiles = new Set<string>();
 
+  const srcFiles = new Set<string>();
+  const testFiles = new Set<string>();
+
   // 1. Gather all .ts files in src/
   for await (const entry of walk(SRC_DIR, { includeDirs: false })) {
-    if (entry.path.endsWith(".test.ts") || entry.path.endsWith("_test.ts") || !entry.path.endsWith(".ts")) continue;
-
+    if (!entry.path.endsWith(".ts")) continue;
     const relPath = relative(ROOT, entry.path);
-    allFiles.add(relPath);
+    if (relPath.endsWith(".test.ts") || relPath.endsWith("_test.ts")) {
+      testFiles.add(relPath);
+    } else {
+      srcFiles.add(relPath);
+    }
   }
+
+  // 1.1 Gather all .ts files in tests/
+  if (await Deno.stat(TESTS_DIR).then((s) => s.isDirectory).catch(() => false)) {
+    for await (const entry of walk(TESTS_DIR, { includeDirs: false })) {
+      if (!entry.path.endsWith(".ts")) continue;
+      const relPath = relative(ROOT, entry.path);
+      testFiles.add(relPath);
+    }
+  }
+
+  const allModules = new Set([...srcFiles, ...testFiles]);
 
   // 2. Parse ARCHITECTURE.md for explicit grounding
   const archContent = await Deno.readTextFile(ARCH_DOC);
@@ -46,7 +63,7 @@ async function validate() {
   let match;
   while ((match = explicitPathRegex.exec(archContent)) !== null) {
     const foundPath = match[0];
-    if (allFiles.has(foundPath)) {
+    if (srcFiles.has(foundPath)) {
       groundedFiles.add(foundPath);
     }
   }
@@ -55,7 +72,7 @@ async function validate() {
   const explicitDirRegex = /src\/([a-zA-Z0-9_\-\/]+\/)?\*\.ts/g;
   while ((match = explicitDirRegex.exec(archContent)) !== null) {
     const dirPath = match[0].replace("/*.ts", "");
-    for (const file of allFiles) {
+    for (const file of srcFiles) {
       if (file.startsWith(dirPath)) {
         groundedFiles.add(file);
       }
@@ -66,18 +83,23 @@ async function validate() {
 
   // 3. Parse headers and build dependency graph
   let headerFailures = 0;
-  for (const relPath of allFiles) {
+  for (const relPath of allModules) {
     const fullPath = join(ROOT, relPath);
     const content = await Deno.readTextFile(fullPath);
 
     const info = parseHeader(relPath, content);
     const missingFields = [];
+    const isTest = testFiles.has(relPath);
+
     if (!info.moduleName) missingFields.push("@module");
     if (!info.path) missingFields.push("@path");
     if (!info.description) missingFields.push("@description");
-    if (!info.layer) missingFields.push("@architectural-layer");
-    if (!info.dependenciesProvided) missingFields.push("@dependencies");
-    if (!info.relatedFilesProvided) missingFields.push("@related-files");
+
+    if (!isTest) {
+      if (!info.layer) missingFields.push("@architectural-layer");
+      if (!info.dependenciesProvided) missingFields.push("@dependencies");
+      if (!info.relatedFilesProvided) missingFields.push("@related-files");
+    }
 
     if (missingFields.length > 0) {
       console.error(`❌ Invalid header in ${relPath}. Missing fields: ${missingFields.join(", ")}`);
@@ -104,9 +126,9 @@ async function validate() {
 
     const links = [...info.dependencies, ...info.relatedFiles];
     for (const link of links) {
-      const resolvedPath = allFiles.has(link) ? link : moduleNameToPath.get(link);
+      const resolvedPath = srcFiles.has(link) ? link : moduleNameToPath.get(link);
 
-      if (resolvedPath && allFiles.has(resolvedPath) && !fullyGrounded.has(resolvedPath)) {
+      if (resolvedPath && srcFiles.has(resolvedPath) && !fullyGrounded.has(resolvedPath)) {
         fullyGrounded.add(resolvedPath);
         queue.push(resolvedPath);
       }
@@ -114,11 +136,12 @@ async function validate() {
   }
 
   // 5. Report results
-  const ungrounded = Array.from(allFiles).filter((f) => !fullyGrounded.has(f));
+  const ungrounded = Array.from(srcFiles).filter((f) => !fullyGrounded.has(f));
 
   console.log("\n--- Validation Summary ---");
-  console.log(`Total Source Files: ${allFiles.size}`);
-  console.log(`Header Validation:  ${allFiles.size - headerFailures} PASS, ${headerFailures} FAIL`);
+  console.log(`Total Source Files: ${srcFiles.size}`);
+  console.log(`Total Test Files:   ${testFiles.size}`);
+  console.log(`Header Validation:  ${allModules.size - headerFailures} PASS, ${headerFailures} FAIL`);
   console.log(`Grounding Status:   ${fullyGrounded.size} GROUNDED, ${ungrounded.length} UNGROUNDED`);
 
   if (ungrounded.length > 0) {

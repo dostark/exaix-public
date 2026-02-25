@@ -779,6 +779,11 @@ export class MemoryCommands {
     },
     skillId: string,
   ) {
+    // Determine scope based on portal availability.
+    // In CLI context, we check for EXO_PORTAL environment variable.
+    const activePortal = Deno.env.get("EXO_PORTAL");
+    const scope = activePortal ? MemoryScope.PROJECT : MemoryScope.GLOBAL;
+
     return {
       skill_id: skillId,
       name: options.name,
@@ -786,7 +791,7 @@ export class MemoryCommands {
       source: MemorySource.LEARNED,
       status: SkillStatus.DRAFT,
       description: options.description || `Skill derived from ${options.learningIds.length} learnings`,
-      scope: MemoryScope.PROJECT,
+      scope,
       triggers: {
         keywords: [],
         task_types: [],
@@ -852,13 +857,21 @@ export class MemoryCommands {
       triggersTaskTypes?: string[];
     },
   ) {
+    // Determine scope based on category and portal availability.
+    // Core and Learned (Global) always use GLOBAL scope.
+    // User/Project use PROJECT scope if a portal is active, otherwise fall back to GLOBAL.
+    const activePortal = Deno.env.get("EXO_PORTAL");
+    const scope = (location === "core" || location === "learned")
+      ? MemoryScope.GLOBAL
+      : (activePortal ? MemoryScope.PROJECT : MemoryScope.GLOBAL);
+
     return {
       skill_id: skillId,
       name,
       version: "1.0.0",
       description: options.description || `${name} skill`,
       source: location === "learned" ? MemorySource.LEARNED : MemorySource.USER,
-      scope: MemoryScope.PROJECT,
+      scope,
       status: SkillStatus.DRAFT,
       instructions: options.instructions || "No instructions provided.",
       triggers: {

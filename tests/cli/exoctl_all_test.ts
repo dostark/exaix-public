@@ -12,7 +12,8 @@ import {
   RequestPriority,
 } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
-import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
+import { captureAllOutputs, captureConsoleOutput } from "./helpers/console_utils.ts";
+import { expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 import type { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
 import type { IRequestOptions, RequestSource } from "../../src/cli/commands/request_commands.ts";
 import type { RequestStatusType } from "../../src/requests/request_status.ts";

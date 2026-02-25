@@ -1,3 +1,9 @@
+/**
+ * @module FlowCommandsTest
+ * @path tests/cli/flow_commands_test.ts
+ * @description tests for FlowCommands CLI functionality including listing, showing, and validating flows.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 
 import { type CLIContext, FlowCommands } from "../../src/cli/commands/flow_commands.ts";

@@ -9,6 +9,8 @@ import { ensureDir } from "@std/fs";
 
 // Dynamic import required for test module loading (documented in CODE_STYLE.md)
 // This must remain a dynamic import because the module is only needed at runtime in test mode.
+import { runWithTimeout } from "./console_utils.ts";
+
 const exoctlModulePromise: Promise<typeof import("../../../src/cli/exoctl.ts")> = import("../../../src/cli/exoctl.ts");
 
 function loadExoCtlModule(): Promise<typeof import("../../../src/cli/exoctl.ts")> {
@@ -104,70 +106,7 @@ default_model = "mock:test"
   }
 }
 
-/**
- * Helper to run a function with a timeout.
- */
-async function runWithTimeout<T>(
-  fn: () => Promise<T> | T,
-  timeoutMs: number,
-  timeoutMessage: string = `Test operation timed out after ${timeoutMs}ms`,
-): Promise<T> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    return await Promise.race([
-      Promise.resolve(fn()),
-      new Promise<never>((_, reject) => {
-        controller.signal.addEventListener("abort", () => {
-          reject(new Error(timeoutMessage));
-        });
-      }),
-    ]);
-  } finally {
-    clearTimeout(timeoutId);
-  }
-}
-
-/**
- * Captures console.log output during the execution of a function.
- */
-export async function captureConsoleOutput(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
-  let out = "";
-  const origLog = console.log;
-  console.log = (msg: string) => (out += msg + "\n");
-
-  try {
-    await runWithTimeout(fn, timeoutMs);
-  } finally {
-    console.log = origLog;
-  }
-  return out;
-}
-
-/**
- * Captures all console outputs (log, warn, error) during the execution of a function.
- */
-export async function captureAllOutputs(fn: () => Promise<void> | void, timeoutMs: number = 10000) {
-  const logs: string[] = [];
-  const warns: string[] = [];
-  const errs: string[] = [];
-  const origLog = console.log;
-  const origWarn = console.warn;
-  const origErr = console.error;
-  console.log = (...args: string[]) => logs.push(args.map(String).join(" "));
-  console.warn = (...args: string[]) => warns.push(args.map(String).join(" "));
-  console.error = (...args: string[]) => errs.push(args.map(String).join(" "));
-
-  try {
-    await runWithTimeout(fn, timeoutMs);
-  } finally {
-    console.log = origLog;
-    console.warn = origWarn;
-    console.error = origErr;
-  }
-  return { logs, warns, errs };
-}
+// Redundant functions removed; using imports from ./console_utils.ts instead.
 
 /**
  * Expects the function to call Deno.exit and captures the console.error output.

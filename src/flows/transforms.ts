@@ -1,3 +1,12 @@
+/**
+ * @module FlowTransforms
+ * @path src/flows/transforms.ts
+ * @description Transform functions for flow execution pipeline. Provides data transformation,
+ * merging, and extraction utilities for flow step processing.
+ * @architectural-layer Flows
+ * @dependencies [src/types.ts]
+ * @related-files [src/flows/runner.ts, src/flows/condition_evaluator.ts]
+ */
 import { JSONValue } from "../types.ts";
 
 /**

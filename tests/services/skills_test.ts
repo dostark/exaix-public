@@ -4,7 +4,7 @@
  * Phase 17: Skills Architecture
  */
 
-import { assertEquals, assertExists } from "@std/assert";
+import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { EvaluationCategory } from "../../src/enums.ts";
 
 import { MemoryOperation, MemoryScope, MemorySource, SkillStatus } from "../../src/enums.ts";

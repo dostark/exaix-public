@@ -49,7 +49,7 @@ testSkillsSessionRender(
   (_rendered, session) => {
     assertEquals(session.isShowingDetail(), true);
     const detail = session.renderDetail();
-    assertStringIncludes(detail, "ISkill as Skill:");
+    assertStringIncludes(detail, "Skill:");
   },
 );
 

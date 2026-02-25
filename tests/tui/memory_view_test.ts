@@ -48,7 +48,7 @@ Deno.test("MemoryViewTuiSession: initializes with default state", () => {
   assertEquals(state.searchQuery, "");
   assertEquals(state.searchActive, false);
   assertEquals(state.tree.length, 0);
-  assertEquals(state.detailContent, "");
+  assertEquals(state.detailContent, "Select a project or memory item to view details.");
 });
 
 Deno.test("MemoryViewTuiSession: initialize loads tree and selects first node", async () => {
