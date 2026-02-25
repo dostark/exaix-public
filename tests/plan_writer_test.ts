@@ -5,7 +5,7 @@
  * Success Criteria:
  * 1. JSON validation integration works correctly
  * 2. Markdown conversion produces expected output
- * 3. Activity logging for validation events
+ * 3. IActivity logging for validation events
  * 4. Backward compatibility maintained for metadata handling
  */
 
@@ -13,9 +13,9 @@ import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { assert, assertStringIncludes } from "@std/assert";
 
 import { PlanWriter } from "../src/services/plan_writer.ts";
-import type { PlanWriterConfig, RequestMetadata } from "../src/services/plan_writer.ts";
+import type { IPlanWriterConfig, IRequestMetadata } from "../src/services/plan_writer.ts";
 
-interface AgentExecutionResult {
+interface IAgentExecutionResult {
   thought: string;
   content: string;
   raw: string;
@@ -47,7 +47,7 @@ describe("PlanWriter - JSON Integration", () => {
   let testDir: string;
   let plansDir: string;
   let knowledgeDir: string;
-  let config: PlanWriterConfig;
+  let config: IPlanWriterConfig;
   let planWriter: PlanWriter;
 
   beforeEach(async () => {
@@ -74,13 +74,13 @@ describe("PlanWriter - JSON Integration", () => {
 
   describe("JSON Plan Validation", () => {
     it("should accept valid JSON plan", async () => {
-      const agentResult: AgentExecutionResult = {
+      const agentResult: IAgentExecutionResult = {
         thought: "Creating plan...",
         content: createJsonPlan("Implement Auth", "Add authentication system"),
         raw: "",
       };
 
-      const metadata: RequestMetadata = {
+      const metadata: IRequestMetadata = {
         requestId: "implement-auth",
         traceId: "test-trace-id",
         createdAt: new Date(),
@@ -95,7 +95,7 @@ describe("PlanWriter - JSON Integration", () => {
     });
 
     it("should convert JSON to markdown with steps", async () => {
-      const agentResult: AgentExecutionResult = {
+      const agentResult: IAgentExecutionResult = {
         thought: "Planning steps...",
         content: createJsonPlan("My Plan", "Plan description", [
           { title: "Step One", description: "First step" },
@@ -104,7 +104,7 @@ describe("PlanWriter - JSON Integration", () => {
         raw: "",
       };
 
-      const metadata: RequestMetadata = {
+      const metadata: IRequestMetadata = {
         requestId: "test-plan",
         traceId: "test-trace",
         createdAt: new Date(),
@@ -123,13 +123,13 @@ describe("PlanWriter - JSON Integration", () => {
 
   describe("Frontmatter and Metadata", () => {
     it("should include YAML frontmatter", async () => {
-      const agentResult: AgentExecutionResult = {
+      const agentResult: IAgentExecutionResult = {
         thought: "Test",
         content: createJsonPlan("Test Plan", "Test description"),
         raw: "",
       };
 
-      const metadata: RequestMetadata = {
+      const metadata: IRequestMetadata = {
         requestId: "test-id",
         traceId: "trace-123",
         createdAt: new Date("2024-11-25T10:00:00Z"),
@@ -147,13 +147,13 @@ describe("PlanWriter - JSON Integration", () => {
     });
 
     it("should include reasoning section", async () => {
-      const agentResult: AgentExecutionResult = {
+      const agentResult: IAgentExecutionResult = {
         thought: "This is my reasoning about the plan",
         content: createJsonPlan("Plan", "Description"),
         raw: "",
       };
 
-      const metadata: RequestMetadata = {
+      const metadata: IRequestMetadata = {
         requestId: "test",
         traceId: "trace",
         createdAt: new Date(),
@@ -173,13 +173,13 @@ describe("PlanWriter - JSON Integration", () => {
       await Deno.writeTextFile(`${knowledgeDir}/Doc1.md`, "Doc content");
       await Deno.writeTextFile(`${knowledgeDir}/Doc2.md`, "Doc content");
 
-      const agentResult: AgentExecutionResult = {
+      const agentResult: IAgentExecutionResult = {
         thought: "Using docs",
         content: createJsonPlan("Plan", "Description"),
         raw: "",
       };
 
-      const metadata: RequestMetadata = {
+      const metadata: IRequestMetadata = {
         requestId: "test",
         traceId: "trace",
         createdAt: new Date(),
@@ -198,13 +198,13 @@ describe("PlanWriter - JSON Integration", () => {
     });
 
     it("should include context warnings", async () => {
-      const agentResult: AgentExecutionResult = {
+      const agentResult: IAgentExecutionResult = {
         thought: "Test",
         content: createJsonPlan("Plan", "Description"),
         raw: "",
       };
 
-      const metadata: RequestMetadata = {
+      const metadata: IRequestMetadata = {
         requestId: "test",
         traceId: "trace",
         createdAt: new Date(),
@@ -222,13 +222,13 @@ describe("PlanWriter - JSON Integration", () => {
 
   describe("File I/O", () => {
     it("should write plan to correct file path", async () => {
-      const agentResult: AgentExecutionResult = {
+      const agentResult: IAgentExecutionResult = {
         thought: "Test",
         content: createJsonPlan("Plan", "Description"),
         raw: "",
       };
 
-      const metadata: RequestMetadata = {
+      const metadata: IRequestMetadata = {
         requestId: "my-feature",
         traceId: "trace",
         createdAt: new Date(),

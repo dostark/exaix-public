@@ -12,15 +12,8 @@
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
-import {
-  ConnectionError,
-  IModelProvider,
-  MockProvider,
-  ModelFactory,
-  ModelProviderError,
-  OllamaProvider,
-  TimeoutError,
-} from "../src/ai/providers.ts";
+import { IModelProvider, MockProvider, ModelFactory, OllamaProvider } from "../src/ai/providers.ts";
+import { ConnectionError, ModelProviderError, TimeoutError } from "../src/ai/providers/common.ts";
 import type { JSONObject } from "../src/types.ts";
 
 // ============================================================================

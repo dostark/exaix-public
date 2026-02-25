@@ -8,7 +8,7 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { EvaluationVerdict } from "../../src/enums.ts";
 import { CircuitBreaker, CircuitBreakerProvider } from "../../src/ai/circuit_breaker.ts";
-import type { ModelOptions } from "../../src/ai/types.ts";
+import type { IModelOptions } from "../../src/ai/types.ts";
 
 // ============================================================================
 // Unit Tests for CircuitBreaker State Management
@@ -209,10 +209,10 @@ Deno.test("CircuitBr(e)akerProvider: preserves successful responses", async () =
 });
 
 Deno.test("CircuitBreakerProvider: forwards options to inner provider", async () => {
-  let receivedOptions: ModelOptions | undefined = undefined;
+  let receivedOptions: IModelOptions | undefined = undefined;
   const mockProvider = {
     id: "mock-provider",
-    generate: (_prompt: string, options?: ModelOptions) => {
+    generate: (_prompt: string, options?: IModelOptions) => {
       receivedOptions = options;
       return Promise.resolve("Response");
     },

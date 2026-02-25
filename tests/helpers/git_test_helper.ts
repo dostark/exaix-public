@@ -4,7 +4,7 @@ import { join } from "@std/path";
 import { GitService } from "../../src/services/git_service.ts";
 import { createMockConfig } from "./config.ts";
 import { initTestDbService } from "./db.ts";
-import type { DatabaseService } from "../../src/services/db.ts";
+import type { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import type { Config } from "../../src/config/schema.ts";
 
 /**

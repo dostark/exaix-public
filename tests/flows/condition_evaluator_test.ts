@@ -6,14 +6,14 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
-import { ConditionContext, ConditionEvaluator } from "../../src/flows/condition_evaluator.ts";
-import { Flow, FlowStep } from "../../src/schemas/flow.ts";
-import { StepResult } from "../../src/flows/flow_runner.ts";
+import { ConditionEvaluator, IConditionContext } from "../../src/flows/condition_evaluator.ts";
+import { IFlow, IFlowStep } from "../../src/schemas/flow.ts";
+import { IStepResult } from "../../src/flows/flow_runner.ts";
 import { JSONValue } from "../../src/types.ts";
 
 const createContext = (
   results: Record<string, { success: boolean; content?: string; data?: JSONValue }> = {},
-): ConditionContext => ({
+): IConditionContext => ({
   results: Object.fromEntries(
     Object.entries(results).map(([id, r]) => [
       id,
@@ -37,7 +37,7 @@ const createContext = (
   },
 });
 
-const createMockStep = (overrides: Partial<FlowStep> = {}): FlowStep => ({
+const createMockStep = (overrides: Partial<IFlowStep> = {}): IFlowStep => ({
   id: "test-step",
   name: "Test Step",
   type: FlowStepType.AGENT,
@@ -48,7 +48,7 @@ const createMockStep = (overrides: Partial<FlowStep> = {}): FlowStep => ({
   ...overrides,
 });
 
-const createMockStepResult = (overrides: Partial<StepResult> = {}): StepResult => ({
+const createMockStepResult = (overrides: Partial<IStepResult> = {}): IStepResult => ({
   stepId: "test-step",
   success: true,
   duration: 100,
@@ -58,7 +58,7 @@ const createMockStepResult = (overrides: Partial<StepResult> = {}): StepResult =
   ...overrides,
 });
 
-const mockFlow: Flow = {
+const mockFlow: IFlow = {
   id: "test-flow",
   name: "Test Flow",
   description: "Test flow for conditions",
@@ -287,7 +287,7 @@ Deno.test("ConditionEvaluator: catches runtime errors", () => {
 Deno.test("ConditionEvaluator.evaluateStepCondition: returns true when no condition", () => {
   const evaluator = new ConditionEvaluator();
   const step = createMockStep({ condition: undefined });
-  const stepResults = new Map<string, StepResult>();
+  const stepResults = new Map<string, IStepResult>();
 
   const result = evaluator.evaluateStepCondition(
     step,
@@ -308,7 +308,7 @@ Deno.test("ConditionEvaluator.evaluateStepCondition: evaluates condition with st
     input: { source: FlowInputSource.STEP, stepId: "step-1", transform: "passthrough" },
   });
 
-  const stepResults = new Map<string, StepResult>();
+  const stepResults = new Map<string, IStepResult>();
   stepResults.set("step-1", createMockStepResult({ stepId: "step-1" }));
 
   const result = evaluator.evaluateStepCondition(
@@ -329,7 +329,7 @@ Deno.test("ConditionEvaluator.evaluateStepCondition: returns false when conditio
     input: { source: FlowInputSource.STEP, stepId: "check", transform: "passthrough" },
   });
 
-  const stepResults = new Map<string, StepResult>();
+  const stepResults = new Map<string, IStepResult>();
   stepResults.set(
     "check",
     createMockStepResult({
@@ -374,7 +374,7 @@ Deno.test("ConditionEvaluator.validateCondition: validates empty conditions", ()
 // buildContext tests
 Deno.test("ConditionEvaluator.buildContext: converts StepResult map to context", () => {
   const evaluator = new ConditionEvaluator();
-  const stepResults = new Map<string, StepResult>();
+  const stepResults = new Map<string, IStepResult>();
   stepResults.set(
     "step-1",
     createMockStepResult({
@@ -409,7 +409,7 @@ Deno.test("ConditionEvaluator.buildContext: converts StepResult map to context",
 
 Deno.test("ConditionEvaluator.buildContext: handles empty step results", () => {
   const evaluator = new ConditionEvaluator();
-  const stepResults = new Map<string, StepResult>();
+  const stepResults = new Map<string, IStepResult>();
 
   const context = evaluator.buildContext(stepResults, mockRequest, mockFlow);
 

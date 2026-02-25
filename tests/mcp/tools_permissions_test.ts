@@ -7,7 +7,9 @@
 import { assertExists, assertRejects } from "@std/assert";
 import { PortalOperation } from "../../src/enums.ts";
 
-import { GitStatusTool, ReadFileTool, WriteFileTool } from "../../src/mcp/tools.ts";
+import { GitStatusTool } from "../../src/mcp/handlers/git_status_tool.ts";
+import { ReadFileTool } from "../../src/mcp/handlers/read_file_tool.ts";
+import { WriteFileTool } from "../../src/mcp/handlers/write_file_tool.ts";
 import { PortalPermissionsService } from "../../src/services/portal_permissions.ts";
 import { initToolPermissionTest } from "./helpers/test_setup.ts";
 

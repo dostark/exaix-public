@@ -10,13 +10,13 @@
 import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { PortalPermissionsService } from "../../src/services/portal_permissions.ts";
-import type { PortalPermissions } from "../../src/schemas/portal_permissions.ts";
+import type { IPortalPermissions } from "../../src/schemas/portal_permissions.ts";
 import { PortalOperation, SecurityMode } from "../../src/enums.ts";
 
 /**
  * Helper to create test portal configuration
  */
-function createTestPortal(alias: string, targetPath: string): PortalPermissions {
+function createTestPortal(alias: string, targetPath: string): IPortalPermissions {
   return {
     alias,
     target_path: targetPath,
@@ -34,7 +34,7 @@ function createTestPortal(alias: string, targetPath: string): PortalPermissions 
  * Helper to create temporary test directories with git repos
  */
 async function setupTestPortalsWithGit(): Promise<{
-  portals: PortalPermissions[];
+  portals: IPortalPermissions[];
   cleanup: () => Promise<void>;
 }> {
   const tempDir = await Deno.makeTempDir({ prefix: "exoframe_portal_multi_test_" });

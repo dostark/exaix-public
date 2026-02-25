@@ -8,25 +8,26 @@ import {
   ConsoleOutput,
   FileOutput,
   getGlobalLogger,
+  type ILogOutput,
   initializeGlobalLogger,
-  LogEntry,
+  type IStructuredLogEntry,
+  type IStructuredLoggerConfig,
   logError,
   logInfo,
-  type LogOutput,
   resetGlobalLogger,
   StructuredLogger,
-  type StructuredLoggerConfig,
 } from "../../src/services/structured_logger.ts";
 import { LogLevel } from "../../src/enums.ts";
+// Removed db.ts IIStructuredLogEntry import as it conflicts with structured_logger IStructuredLogEntry
 
 // ============================================================================
 // Test Utilities
 // ============================================================================
 
-class MockOutput implements LogOutput {
-  public entries: LogEntry[] = [];
+class MockOutput implements ILogOutput {
+  public entries: IStructuredLogEntry[] = [];
 
-  write(entry: LogEntry): void {
+  write(entry: IStructuredLogEntry): void {
     this.entries.push(entry);
   }
 }
@@ -35,11 +36,11 @@ class MockOutput implements LogOutput {
  * Creates a test logger with mock output for testing
  */
 function createTestLogger(
-  minLevel: StructuredLoggerConfig["minLevel"] = LogLevel.INFO,
+  minLevel: IStructuredLoggerConfig["minLevel"] = LogLevel.INFO,
   enablePerformanceTracking = false,
 ): { logger: StructuredLogger; output: MockOutput } {
   const output = new MockOutput();
-  const config: StructuredLoggerConfig = {
+  const config: IStructuredLoggerConfig = {
     minLevel,
     outputs: [output],
     enablePerformanceTracking,
@@ -56,7 +57,7 @@ function createTestLogger(
 Deno.test("StructuredLogger - Initialization", async (t) => {
   await t.step("should initialize with console output", () => {
     const consoleOutput = new ConsoleOutput();
-    const config: StructuredLoggerConfig = {
+    const config: IStructuredLoggerConfig = {
       minLevel: LogLevel.INFO,
       outputs: [consoleOutput],
       enablePerformanceTracking: false,
@@ -70,7 +71,7 @@ Deno.test("StructuredLogger - Initialization", async (t) => {
     const testLog = "/tmp/test-init.log";
     try {
       const fileOutput = new FileOutput(testLog);
-      const config: StructuredLoggerConfig = {
+      const config: IStructuredLoggerConfig = {
         minLevel: LogLevel.INFO,
         outputs: [fileOutput],
         enablePerformanceTracking: false,
@@ -88,7 +89,7 @@ Deno.test("StructuredLogger - Initialization", async (t) => {
     try {
       const consoleOutput = new ConsoleOutput();
       const fileOutput = new FileOutput(testLog);
-      const config: StructuredLoggerConfig = {
+      const config: IStructuredLoggerConfig = {
         minLevel: LogLevel.INFO,
         outputs: [consoleOutput, fileOutput],
         enablePerformanceTracking: false,
@@ -275,7 +276,7 @@ Deno.test("StructuredLogger - Console Output", async (t) => {
     const mockConsole = spy(console, "log");
 
     try {
-      const entry: LogEntry = {
+      const entry: IStructuredLogEntry = {
         timestamp: "2023-01-01T12:00:00.000Z",
         level: LogLevel.INFO,
         message: "Test message",
@@ -352,7 +353,7 @@ Deno.test("StructuredLogger - File Output", async (t) => {
 
   await t.step("should write log entries to file", async () => {
     const fileOutput = new FileOutput(testFile);
-    const entry: LogEntry = {
+    const entry: IStructuredLogEntry = {
       timestamp: "2023-01-01T12:00:00.000Z",
       level: LogLevel.INFO,
       message: "Test file message",
@@ -401,7 +402,7 @@ Deno.test("StructuredLogger - File Output", async (t) => {
 Deno.test("StructuredLogger - Global Logger", async (t) => {
   await t.step("should initialize and get global logger", () => {
     const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
+    const config: IStructuredLoggerConfig = {
       minLevel: LogLevel.INFO,
       outputs: [mockOutput],
       enablePerformanceTracking: false,
@@ -429,7 +430,7 @@ Deno.test("StructuredLogger - Global Logger", async (t) => {
 
   await t.step("should use convenience functions with global logger", () => {
     const mockOutput = new MockOutput();
-    const config: StructuredLoggerConfig = {
+    const config: IStructuredLoggerConfig = {
       minLevel: LogLevel.INFO,
       outputs: [mockOutput],
       enablePerformanceTracking: false,

@@ -4,7 +4,7 @@ import type { IStructuredLogger } from "../../../src/services/structured_logger.
 /**
  * Interface that combines IStructuredLogger with Spies for testing
  */
-export interface MockStructuredLogger extends IStructuredLogger {
+export interface IMockStructuredLogger extends IStructuredLogger {
   setContext: Spy;
   child: Spy;
   debug: Spy;
@@ -22,7 +22,7 @@ export interface MockStructuredLogger extends IStructuredLogger {
 /**
  * Creates a mock logger with spy methods for testing
  */
-export function createMockLogger(): MockStructuredLogger {
+export function createMockLogger(): IMockStructuredLogger {
   return {
     setContext: spy(() => {}),
     child: spy(() => ({} as IStructuredLogger)),
@@ -32,5 +32,5 @@ export function createMockLogger(): MockStructuredLogger {
     error: spy(() => {}),
     fatal: spy(() => {}),
     time: spy((_op: string, fn: () => Promise<unknown>) => fn()),
-  } as MockStructuredLogger;
+  } as IMockStructuredLogger;
 }

@@ -12,14 +12,14 @@ import {
 } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import type {
-  ExecutionMemory,
-  GlobalMemory,
-  GlobalMemoryStats,
-  Learning,
-  MemoryUpdateProposal,
-  ProjectMemory,
-  Skill,
-  SkillMatch,
+  IExecutionMemory,
+  IGlobalMemory,
+  IGlobalMemoryStats,
+  ILearning,
+  IMemoryUpdateProposal,
+  IProjectMemory,
+  ISkill,
+  ISkillMatch,
 } from "../../src/schemas/memory_bank.ts";
 import {
   TEST_AGENT_NAME,
@@ -61,7 +61,7 @@ import {
 
 const MSG_NO_EXECUTIONS = "No execution history";
 
-function createProjectMemory(): ProjectMemory {
+function createProjectMemory(): IProjectMemory {
   return {
     portal: TEST_PORTAL_NAME,
     overview: TEST_PROJECT_OVERVIEW,
@@ -91,7 +91,7 @@ function createProjectMemory(): ProjectMemory {
   };
 }
 
-function createExecutionMemory(): ExecutionMemory {
+function createExecutionMemory(): IExecutionMemory {
   return {
     trace_id: TEST_TRACE_ID,
     request_id: TEST_REQUEST_ID,
@@ -113,7 +113,7 @@ function createExecutionMemory(): ExecutionMemory {
   };
 }
 
-function createGlobalStats(): GlobalMemoryStats {
+function createGlobalStats(): IGlobalMemoryStats {
   return {
     total_learnings: 1,
     by_category: { [TEST_GLOBAL_CATEGORY]: 1 },
@@ -122,7 +122,7 @@ function createGlobalStats(): GlobalMemoryStats {
   };
 }
 
-function createLearning(): Learning {
+function createLearning(): ILearning {
   return {
     id: TEST_TRACE_ID,
     created_at: TEST_GLOBAL_UPDATED_AT,
@@ -141,7 +141,7 @@ function createLearning(): Learning {
   };
 }
 
-function createGlobalMemory(): GlobalMemory {
+function createGlobalMemory(): IGlobalMemory {
   return {
     version: TEST_GLOBAL_VERSION,
     updated_at: TEST_GLOBAL_UPDATED_AT,
@@ -152,7 +152,7 @@ function createGlobalMemory(): GlobalMemory {
   };
 }
 
-function createPendingProposal(): MemoryUpdateProposal {
+function createPendingProposal(): IMemoryUpdateProposal {
   return {
     id: TEST_TRACE_ID,
     created_at: TEST_STARTED_AT,
@@ -178,7 +178,7 @@ function createPendingProposal(): MemoryUpdateProposal {
   };
 }
 
-function createSkill(): Skill {
+function createSkill(): ISkill {
   return {
     id: TEST_TRACE_ID,
     skill_id: TEST_SKILL_ID,
@@ -200,7 +200,7 @@ function createSkill(): Skill {
   };
 }
 
-function createSkillMatch(): SkillMatch {
+function createSkillMatch(): ISkillMatch {
   return {
     skillId: TEST_SKILL_ID,
     confidence: 0.92,

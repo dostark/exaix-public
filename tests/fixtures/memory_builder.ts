@@ -1,20 +1,20 @@
 import { ConfidenceLevel, ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import type {
-  Changes,
-  Decision,
-  ExecutionMemory,
-  Learning,
-  Pattern,
-  ProjectMemory,
-  Reference,
+  IChanges,
+  IDecision,
+  IExecutionMemory,
+  ILearning,
+  IPattern,
+  IProjectMemory,
+  IReference,
 } from "../../src/schemas/memory_bank.ts";
 
 /**
- * Builder for ProjectMemory objects to simplify test data creation
+ * Builder for IProjectMemory objects to simplify test data creation
  */
 export class ProjectMemoryBuilder {
-  private memory: ProjectMemory;
+  private memory: IProjectMemory;
 
   constructor(portal: string = "test-portal") {
     this.memory = {
@@ -31,7 +31,7 @@ export class ProjectMemoryBuilder {
     return this;
   }
 
-  public addPattern(pattern: Partial<Pattern> & { name: string }): this {
+  public addPattern(pattern: Partial<IPattern> & { name: string }): this {
     this.memory.patterns.push({
       description: "Default description",
       examples: [],
@@ -41,7 +41,7 @@ export class ProjectMemoryBuilder {
     return this;
   }
 
-  public addDecision(decision: Partial<Decision> & { decision: string; date: string }): this {
+  public addDecision(decision: Partial<IDecision> & { decision: string; date: string }): this {
     this.memory.decisions.push({
       rationale: "Default rationale",
       tags: [],
@@ -50,21 +50,21 @@ export class ProjectMemoryBuilder {
     return this;
   }
 
-  public addReference(reference: Reference): this {
+  public addReference(reference: IReference): this {
     this.memory.references.push(reference);
     return this;
   }
 
-  public build(): ProjectMemory {
+  public build(): IProjectMemory {
     return { ...this.memory };
   }
 }
 
 /**
- * Builder for ExecutionMemory objects to simplify test data creation
+ * Builder for IExecutionMemory objects to simplify test data creation
  */
 export class ExecutionMemoryBuilder {
-  private memory: ExecutionMemory;
+  private memory: IExecutionMemory;
 
   constructor(portal: string = "test-portal", traceId: string = crypto.randomUUID()) {
     this.memory = {
@@ -107,7 +107,7 @@ export class ExecutionMemoryBuilder {
     return this;
   }
 
-  public withChanges(changes: Partial<Changes>): this {
+  public withChanges(changes: Partial<IChanges>): this {
     this.memory.changes = {
       ...this.memory.changes,
       ...changes,
@@ -128,17 +128,17 @@ export class ExecutionMemoryBuilder {
     return this;
   }
 
-  public build(): ExecutionMemory {
+  public build(): IExecutionMemory {
     // Return a deep copy to prevent mutation issues in tests
     return JSON.parse(JSON.stringify(this.memory));
   }
 }
 
 /**
- * Builder for Learning objects to simplify test data creation
+ * Builder for ILearning objects to simplify test data creation
  */
 export class LearningBuilder {
-  private learning: Learning;
+  private learning: ILearning;
 
   constructor() {
     this.learning = {
@@ -146,13 +146,13 @@ export class LearningBuilder {
       created_at: new Date().toISOString(),
       source: MemorySource.USER,
       scope: MemoryScope.GLOBAL,
-      title: "Test Learning",
+      title: "Test ILearning",
       description: "Test description",
       category: LearningCategory.PATTERN,
       tags: [],
       confidence: ConfidenceLevel.HIGH,
       status: MemoryStatus.APPROVED,
-    } as Learning;
+    } as ILearning;
   }
 
   public withTitle(title: string): this {
@@ -183,7 +183,7 @@ export class LearningBuilder {
     return this;
   }
 
-  public build(): Learning {
+  public build(): ILearning {
     return JSON.parse(JSON.stringify(this.learning));
   }
 }

@@ -12,7 +12,7 @@ import { assertEquals, assertExists, assertRejects, assertStringIncludes } from 
 import { exists } from "@std/fs";
 import { join } from "@std/path";
 import { BlueprintCommands } from "../../src/cli/commands/blueprint_commands.ts";
-import type { CommandContext } from "../../src/cli/base.ts";
+import type { ICommandContext } from "../../src/cli/base.ts";
 import { TestEnvironment } from "../integration/helpers/test_environment.ts";
 import { TEST_MODEL_ANTHROPIC } from "../config/constants.ts";
 import {
@@ -36,7 +36,7 @@ import {
 
 let testEnv: TestEnvironment;
 let commands: BlueprintCommands;
-let context: CommandContext;
+let context: ICommandContext;
 
 async function setupTest() {
   testEnv = await TestEnvironment.create();
@@ -210,7 +210,7 @@ Deno.test("[blueprint] create - rejects invalid agent_id format", async () => {
   }
 });
 
-Deno.test("[blueprint] create - logs to Activity Journal", async () => {
+Deno.test("[blueprint] create - logs to IActivity Journal", async () => {
   await setupTest();
   try {
     await commands.create("journal-test", {
@@ -451,7 +451,7 @@ System prompt without thought and content tags.
 
     assertEquals(result.valid, false);
     assertEquals(
-      result.errors.some((e) => e.includes("<thought>") || e.includes("<content>")),
+      result.errors.some((e: string) => e.includes("<thought>") || e.includes("<content>")),
       true,
     );
   } finally {
@@ -482,7 +482,7 @@ Deno.test("[blueprint] remove - deletes blueprint file", async () => {
   }
 });
 
-Deno.test("[blueprint] remove - logs to Activity Journal", async () => {
+Deno.test("[blueprint] remove - logs to IActivity Journal", async () => {
   await setupTest();
   try {
     await commands.create("remove-journal", {

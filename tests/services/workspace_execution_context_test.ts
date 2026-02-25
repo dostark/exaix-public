@@ -1,5 +1,5 @@
 /**
- * Unit tests for WorkspaceExecutionContext
+ * Unit tests for IWorkspaceExecutionContext
  *
  * Test Task 1.1: Portal Execution Context
  * Tests the builder pattern for creating portal and workspace execution contexts
@@ -10,7 +10,7 @@ import { assertEquals, assertExists } from "@std/assert";
 import { join } from "@std/path";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { WorkspaceExecutionContextBuilder } from "../../src/services/workspace_execution_context.ts";
-import type { PortalConfig } from "../../src/config/schema.ts";
+import type { IPortalConfig } from "../../src/config/schema.ts";
 import { ensureDir } from "@std/fs";
 
 describe("WorkspaceExecutionContextBuilder", () => {
@@ -38,7 +38,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
 
   describe("forPortal", () => {
     it("creates correct portal context", () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -54,7 +54,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
     });
 
     it("normalizes portal target path", () => {
-      const portalWithTrailingSlash: PortalConfig = {
+      const portalWithTrailingSlash: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir + "/",
       };
@@ -66,7 +66,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
     });
 
     it("validates portal target exists", () => {
-      const nonExistentPortal: PortalConfig = {
+      const nonExistentPortal: IPortalConfig = {
         alias: "missing-portal",
         target_path: join(tempDir, "nonexistent"),
       };
@@ -80,7 +80,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
     });
 
     it("validates git repository exists in portal", () => {
-      const portalWithoutGit: PortalConfig = {
+      const portalWithoutGit: IPortalConfig = {
         alias: "no-git-portal",
         target_path: tempDir, // temp dir exists but has no .git
       };
@@ -97,7 +97,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
       const symlinkPath = join(tempDir, "portal-symlink");
       await Deno.symlink(portalDir, symlinkPath);
 
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "symlink-portal",
         target_path: symlinkPath,
       };
@@ -158,12 +158,12 @@ describe("WorkspaceExecutionContextBuilder", () => {
       const portal1Dir = join(tempDir, "portal1");
       const portal2Dir = join(tempDir, "portal2");
 
-      const portal1: PortalConfig = {
+      const portal1: IPortalConfig = {
         alias: "portal-1",
         target_path: portal1Dir,
       };
 
-      const portal2: PortalConfig = {
+      const portal2: IPortalConfig = {
         alias: "portal-2",
         target_path: portal2Dir,
       };
@@ -179,7 +179,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
     });
 
     it("portal context isolated from workspace context", () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -199,7 +199,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
 
   describe("path validation", () => {
     it("includes only portal directory in allowed paths", () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -220,7 +220,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
 
   describe("git repository configuration", () => {
     it("points to portal git repository", () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -239,7 +239,7 @@ describe("WorkspaceExecutionContextBuilder", () => {
     });
 
     it("git repository and review repo are the same", () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };

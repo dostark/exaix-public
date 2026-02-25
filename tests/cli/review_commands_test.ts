@@ -18,7 +18,7 @@ import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ReviewCommands } from "../../src/cli/commands/review_commands.ts";
-import { DatabaseService } from "../../src/services/db.ts";
+import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { GitService } from "../../src/services/git_service.ts";
 import { ArtifactRegistry } from "../../src/services/artifact_registry.ts";
 import { createCliTestContext, initGitRepo, runGitCommand } from "./helpers/test_setup.ts";

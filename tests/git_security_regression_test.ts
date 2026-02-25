@@ -1,7 +1,7 @@
 import { assert, assertRejects } from "@std/assert";
 import { join } from "@std/path";
 import { createGitTestContext, GitTestHelper } from "./helpers/git_test_helper.ts";
-import { PlanContext, PlanExecutor } from "../src/services/plan_executor.ts";
+import { IPlanContext, PlanExecutor } from "../src/services/plan_executor.ts";
 import { MockProvider } from "../src/ai/providers.ts";
 import { GitService } from "../src/services/git_service.ts";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";
@@ -29,7 +29,7 @@ args = ["reset", "--hard", "HEAD"]
     const mockProvider = new MockProvider(mockResponse);
     const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
-    const context: PlanContext = {
+    const context: IPlanContext = {
       trace_id: "trace-security-1",
       request_id: "req-security-1",
       agent: "test-agent",
@@ -77,7 +77,7 @@ args = ["checkout", "main"]
     const mockProvider = new MockProvider(mockResponse);
     const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
-    const context: PlanContext = {
+    const context: IPlanContext = {
       trace_id: "trace-security-2",
       request_id: "req-security-2",
       agent: "test-agent",

@@ -12,7 +12,7 @@ import { ensureDir } from "@std/fs";
 import { JSONValue } from "../../src/types.ts";
 import type { JSONObject } from "../../src/types.ts";
 
-export interface ToolTestContext {
+export interface IToolTestContext {
   registry: ToolRegistry;
   tempDir: string;
   cleanup: () => Promise<void>;
@@ -23,7 +23,7 @@ export interface ToolTestContext {
 /**
  * Setup tool test context with allowed/forbidden paths
  */
-export async function setupToolTestContext(): Promise<ToolTestContext> {
+export async function setupToolTestContext(): Promise<IToolTestContext> {
   const tempDir = await Deno.makeTempDir({ prefix: "tool-test-" });
   const { db, cleanup } = await initTestDbService();
 

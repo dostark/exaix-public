@@ -1,6 +1,6 @@
 /**
  * Plan Executor - Code Generation Tests (Step 5.12.3)
- * Tests for LLM response parsing and FileChange extraction
+ * Tests for LLM response parsing and IFileChange extraction
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
@@ -135,8 +135,8 @@ The existing implementation already handles this case.
     });
   });
 
-  await t.step("FileChange Object Construction", async (t) => {
-    await t.step("should create FileChange object for create operation", () => {
+  await t.step("IFileChange Object Construction", async (t) => {
+    await t.step("should create IFileChange object for create operation", () => {
       const fileChange = {
         path: "src/auth.ts",
         operation: "create" as const,
@@ -148,7 +148,7 @@ The existing implementation already handles this case.
       assertExists(fileChange.content);
     });
 
-    await t.step("should create FileChange object for modify operation", () => {
+    await t.step("should create IFileChange object for modify operation", () => {
       const fileChange = {
         path: "src/config.ts",
         operation: "modify" as const,
@@ -162,7 +162,7 @@ The existing implementation already handles this case.
       assertExists(fileChange.oldContent);
     });
 
-    await t.step("should create FileChange object for delete operation", () => {
+    await t.step("should create IFileChange object for delete operation", () => {
       const fileChange: { path: string; operation: MemoryOperation.DELETE; content?: string } = {
         path: "src/old_file.ts",
         operation: MemoryOperation.DELETE,

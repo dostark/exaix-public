@@ -17,7 +17,7 @@ import { PortalOperation } from "../src/enums.ts";
 import { MemoryOperation } from "../src/enums.ts";
 
 import { join } from "@std/path";
-import { MissionReporter, type ReportConfig, type TraceData } from "../src/services/mission_reporter.ts";
+import { type ITraceData, MissionReporter, type ReportConfig } from "../src/services/mission_reporter.ts";
 import { ExecutionStatus } from "../src/enums.ts";
 import { MemoryBankService } from "../src/services/memory_bank.ts";
 import { createMockConfig } from "./helpers/config.ts";
@@ -32,7 +32,7 @@ import type { IDatabaseService } from "../src/services/db.ts";
 /**
  * Creates a test trace data with sensible defaults
  */
-function createTestTraceData(overrides: Partial<TraceData> = {}): TraceData {
+function createTestTraceData(overrides: Partial<ITraceData> = {}): ITraceData {
   return {
     traceId: overrides.traceId ?? "550e8400-e29b-41d4-a716-446655440000",
     requestId: overrides.requestId ?? "implement-auth",

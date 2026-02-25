@@ -19,9 +19,10 @@ import { MemoryStatus } from "../src/memory/memory_status.ts";
 import { assert, assertEquals, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 
-import { RequestProcessor, type RequestProcessorConfig } from "../src/services/request_processor.ts";
+import { type IRequestProcessorConfig, RequestProcessor } from "../src/services/request_processor.ts";
 import type { IModelProvider } from "../src/ai/providers.ts";
-import { MockProviderFactory, ProviderRegistry } from "../src/ai/provider_registry.ts";
+import { ProviderRegistry } from "../src/ai/provider_registry.ts";
+import { MockProviderFactory } from "../src/ai/factories/mock_factory.ts";
 import { MockLLMProvider } from "../src/ai/providers/mock_llm_provider.ts";
 import { CostTracker } from "../src/services/cost_tracker.ts";
 import { DatabaseService } from "../src/services/db.ts";
@@ -108,7 +109,7 @@ describe("RequestProcessor", () => {
   let testDir: string;
   let config: Config;
   let db: DatabaseService;
-  let processorConfig: RequestProcessorConfig;
+  let processorConfig: IRequestProcessorConfig;
   let cleanup: () => Promise<void>;
   let costTracker: CostTracker;
   let createProcessor: (provider?: IModelProvider) => RequestProcessor;
@@ -309,7 +310,7 @@ Do something
     });
   });
 
-  describe("Activity Logging", () => {
+  describe("IActivity Logging", () => {
     it("should log processing start and completion", async () => {
       const { traceId, requestPath } = createTestRequestPath(testDir);
       const requestContent = createRequestContent({

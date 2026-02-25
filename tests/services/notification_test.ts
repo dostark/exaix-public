@@ -4,7 +4,7 @@
  * TDD tests for Phase 12.9: User Notification
  *
  * Tests:
- * - notifyMemoryUpdate logs to Activity Journal
+ * - notifyMemoryUpdate logs to IActivity Journal
  * - notifyMemoryUpdate writes notification file
  * - getNotifications returns pending notifications
  * - clearNotification removes notification
@@ -15,7 +15,7 @@ import { createTestProposal, runNotificationTest } from "./helpers/notification_
 
 // ===== NotificationService Tests =====
 
-Deno.test("NotificationService: notifyMemoryUpdate logs to Activity Journal", async () => {
+Deno.test("NotificationService: notifyMemoryUpdate logs to IActivity Journal", async () => {
   await runNotificationTest(async ({ db, notification }) => {
     const proposal = createTestProposal();
     await notification.notifyMemoryUpdate(proposal);
@@ -23,7 +23,7 @@ Deno.test("NotificationService: notifyMemoryUpdate logs to Activity Journal", as
     // Wait for batch flush
     await db.waitForFlush();
 
-    // Check Activity Journal
+    // Check IActivity Journal
     const activities = db.instance.prepare(
       "SELECT action_type, target, payload FROM activity WHERE action_type = 'memory.update.pending'",
     ).all() as Array<{ action_type: string; target: string; payload: string }>;
@@ -128,7 +128,7 @@ Deno.test("NotificationService: clearAllNotifications removes all", async () => 
 
 Deno.test("NotificationService: notifyApproval logs approval event", async () => {
   await runNotificationTest(async ({ db, notification }) => {
-    await notification.notifyApproval("proposal-id-123", "Test Learning");
+    await notification.notifyApproval("proposal-id-123", "Test ILearning");
     await db.waitForFlush();
 
     const activities = db.instance.prepare(

@@ -5,7 +5,7 @@ import {
   PortalOperation as _PortalOperation,
 } from "../src/enums.ts";
 import { join } from "@std/path";
-import { type PlanContext, PlanExecutor } from "../src/services/plan_executor.ts";
+import { type IPlanContext, PlanExecutor } from "../src/services/plan_executor.ts";
 import { MockProvider } from "../src/ai/providers.ts";
 import { createGitTestContext, GitTestHelper } from "./helpers/git_test_helper.ts";
 
@@ -37,7 +37,7 @@ content = "Hello World"
     const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
     // Prepare plan context
-    const context: PlanContext = {
+    const context: IPlanContext = {
       trace_id: "trace-123",
       request_id: "req-123",
       agent: "test-agent",
@@ -135,7 +135,7 @@ content = "Step 2"
     const mockProvider = new SmartMockProvider("");
     const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
-    const context: PlanContext = {
+    const context: IPlanContext = {
       trace_id: "trace-456",
       request_id: "req-456",
       agent: "test-agent",
@@ -181,7 +181,7 @@ foo = "bar"
     const mockProvider = new MockProvider(mockResponse);
     const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
-    const context: PlanContext = {
+    const context: IPlanContext = {
       trace_id: "trace-fail",
       request_id: "req-fail",
       agent: "test-agent",
@@ -211,7 +211,7 @@ Deno.test("PlanExecutor: handles no actions generated", async () => {
     const mockProvider = new MockProvider("No actions here");
     const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
-    const context: PlanContext = {
+    const context: IPlanContext = {
       trace_id: "trace-no-act",
       request_id: "req-no-act",
       agent: "test-agent",
@@ -247,7 +247,7 @@ path = "bad.txt"
     const mockProvider = new MockProvider(mockResponse);
     const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
-    const context: PlanContext = {
+    const context: IPlanContext = {
       trace_id: "trace-bad",
       request_id: "req-bad",
       agent: "test-agent",
@@ -283,7 +283,7 @@ path = "non_existent.txt"
     const mockProvider = new MockProvider(mockResponse);
     const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
-    const context: PlanContext = {
+    const context: IPlanContext = {
       trace_id: "trace-fail-res",
       request_id: "req-fail-res",
       agent: "test-agent",
@@ -326,7 +326,7 @@ path = "read.txt"
     const mockProvider = new MockProvider(mockResponse);
     const executor = new PlanExecutor(config, mockProvider, db, repoDir);
 
-    const context: PlanContext = {
+    const context: IPlanContext = {
       trace_id: "trace-no-change",
       request_id: "req-no-change",
       agent: "test-agent",

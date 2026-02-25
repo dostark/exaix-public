@@ -8,7 +8,7 @@
  * - Test 3: Plan status remains "review" after revision request
  * - Test 4: Multiple revision rounds are supported (comments accumulate)
  * - Test 5: Revised plan maintains original trace_id for correlation
- * - Test 6: Revision requests are logged to Activity Journal
+ * - Test 6: Revision requests are logged to IActivity Journal
  * - Test 7: Plan can be approved after revision (normal flow continues)
  */
 
@@ -163,9 +163,9 @@ Deno.test("Integration: Plan Revision - Request to Revised Plan", async (t) => {
     });
 
     // ========================================================================
-    // Test 6: Revision logged to Activity Journal
+    // Test 6: Revision logged to IActivity Journal
     // ========================================================================
-    await t.step("Test 6: Revision requests logged to Activity Journal", async () => {
+    await t.step("Test 6: Revision requests logged to IActivity Journal", async () => {
       // Log revision activity
       env.db.logActivity(
         MemorySource.USER,

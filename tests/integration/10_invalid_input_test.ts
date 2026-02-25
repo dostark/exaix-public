@@ -5,7 +5,7 @@
  * Success Criteria:
  * - Test 1: Malformed YAML is detected and rejected
  * - Test 2: Clear error message provided to user
- * - Test 3: Invalid input logged to Activity Journal
+ * - Test 3: Invalid input logged to IActivity Journal
  * - Test 4: System remains stable after invalid input
  * - Test 5: Partial valid files are handled gracefully
  * - Test 6: Recovery from corrupt files is possible
@@ -84,7 +84,7 @@ trace_id: !!!invalid yaml here!!!
     // ========================================================================
     // Test 3: Invalid input logged
     // ========================================================================
-    await t.step("Test 3: Invalid input logged to Activity Journal", async () => {
+    await t.step("Test 3: Invalid input logged to IActivity Journal", async () => {
       // Log an invalid input error
       env.db.logActivity(
         "system",

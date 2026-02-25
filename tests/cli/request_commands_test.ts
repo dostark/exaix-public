@@ -7,7 +7,7 @@
  * - Test 3: createFromFile imports content from external file
  * - Test 4: list returns requests sorted by created date
  * - Test 5: show displays full request content by ID or short ID
- * - Test 6: Commands log activity to Activity Journal
+ * - Test 6: Commands log activity to IActivity Journal
  * - Test 7: Validates priority values (low, normal, high, critical)
  * - Test 8: Creates Workspace/Requests directory if missing
  */
@@ -19,7 +19,7 @@ import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
-import { DatabaseService } from "../../src/services/db.ts";
+import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { getWorkspaceRequestsDir } from "../helpers/paths_helper.ts";
@@ -141,7 +141,7 @@ describe("RequestCommands", () => {
         a.trace_id === result.trace_id
       );
 
-      assertExists(createActivity, "Activity should be logged");
+      assertExists(createActivity, "IActivity should be logged");
       // Actor is now user identity (email or username) instead of "human"
       assertExists(createActivity?.actor);
       const createPayload = JSON.parse(createActivity?.payload || "{}");

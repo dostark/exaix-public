@@ -2,20 +2,20 @@ import { assertEquals } from "@std/assert";
 import type { IProviderFactory } from "../../src/ai/factories/abstract_provider_factory.ts";
 import { LazyProvider } from "../../src/ai/providers/lazy_provider.ts";
 import { ProviderType } from "../../src/enums.ts";
-import type { IModelProvider, ModelOptions, ResolvedProviderOptions } from "../../src/ai/types.ts";
+import type { IModelOptions, IModelProvider, IResolvedProviderOptions } from "../../src/ai/types.ts";
 
 Deno.test("LazyProvider: derives id from constructor arg > options.id > provider-model", () => {
   const factory: IProviderFactory = {
-    create: (_options: ResolvedProviderOptions) => Promise.reject(new Error("not used")),
+    create: (_options: IResolvedProviderOptions) => Promise.reject(new Error("not used")),
   };
 
-  const optsWithId: ResolvedProviderOptions = {
+  const optsWithId: IResolvedProviderOptions = {
     provider: ProviderType.MOCK,
     model: "m",
     id: "opt-id",
     timeoutMs: 1000,
   };
-  const optsNoId: ResolvedProviderOptions = {
+  const optsNoId: IResolvedProviderOptions = {
     provider: ProviderType.MOCK,
     model: "m",
     timeoutMs: 1000,
@@ -31,27 +31,27 @@ Deno.test("LazyProvider: derives id from constructor arg > options.id > provider
 });
 
 Deno.test("LazyProvider: initializes underlying provider only once", async () => {
-  const createdWith: ResolvedProviderOptions[] = [];
+  const createdWith: IResolvedProviderOptions[] = [];
   let createCalls = 0;
-  const generateCalls: Array<{ prompt: string; options?: ModelOptions }> = [];
+  const generateCalls: Array<{ prompt: string; options?: IModelOptions }> = [];
 
   const underlying: IModelProvider = {
     id: "underlying",
-    generate: (prompt: string, options?: ModelOptions) => {
+    generate: (prompt: string, options?: IModelOptions) => {
       generateCalls.push({ prompt, options });
       return Promise.resolve(`out:${prompt}`);
     },
   };
 
   const factory: IProviderFactory = {
-    create: (options: ResolvedProviderOptions) => {
+    create: (options: IResolvedProviderOptions) => {
       createCalls++;
       createdWith.push(options);
       return Promise.resolve(underlying);
     },
   };
 
-  const opts: ResolvedProviderOptions = {
+  const opts: IResolvedProviderOptions = {
     provider: ProviderType.MOCK,
     model: "m",
     timeoutMs: 1000,

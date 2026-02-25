@@ -3,7 +3,7 @@
  * Tests Step 5.12.1 Detection - Plan Execution Flow
  *
  * Validates that the daemon detects approved plans in Workspace/Active/
- * and logs detection events to the Activity Journal.
+ * and logs detection events to the IActivity Journal.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

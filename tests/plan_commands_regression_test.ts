@@ -14,7 +14,7 @@ import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
 import { PlanStatus } from "../src/plans/plan_status.ts";
-import type { PlanMetadata } from "../src/cli/commands/plan_commands.ts";
+import type { IPlanMetadata } from "../src/cli/commands/plan_commands.ts";
 import { PlanCommands } from "../src/cli/commands/plan_commands.ts";
 import type { Config } from "../src/config/schema.ts";
 
@@ -167,7 +167,7 @@ Deno.test("[regression] Plan list without filter scans all directories", async (
 
     assertEquals(allPlans.length, 3, "Should find 3 plans across all directories");
 
-    const statuses = allPlans.map((p: PlanMetadata) => p.status).sort();
+    const statuses = allPlans.map((p: IPlanMetadata) => p.status).sort();
     assertEquals(statuses, [PlanStatus.APPROVED, PlanStatus.REJECTED, PlanStatus.REVIEW]);
   } finally {
     await Deno.remove(tempDir, { recursive: true });

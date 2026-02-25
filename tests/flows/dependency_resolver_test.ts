@@ -2,7 +2,7 @@ import { assertEquals, assertThrows } from "@std/assert";
 import { FlowInputSource } from "../../src/enums.ts";
 
 import { DependencyResolver, FlowValidationError } from "../../src/flows/dependency_resolver.ts";
-import { FlowStep, FlowStepInput } from "../../src/schemas/flow.ts";
+import { IFlowStep, IFlowStepInput } from "../../src/schemas/flow.ts";
 
 const defaultStepProps = {
   agent: "agent1",
@@ -10,7 +10,7 @@ const defaultStepProps = {
   retry: { maxAttempts: 1, backoffMs: 1000 },
 };
 
-function createStep(id: string, dependsOn: string[] = [], overrides: Partial<FlowStepInput> = {}): FlowStepInput {
+function createStep(id: string, dependsOn: string[] = [], overrides: Partial<IFlowStepInput> = {}): IFlowStepInput {
   return {
     id,
     name: `Step ${id}`,
@@ -29,7 +29,7 @@ Deno.test("DependencyResolver: handles empty flow", () => {
 
 Deno.test("DependencyResolver: handles single step with no dependencies", () => {
   const steps = [createStep("step1")];
-  const resolver = new DependencyResolver(steps as FlowStep[]);
+  const resolver = new DependencyResolver(steps as IFlowStep[]);
   assertEquals(resolver.topologicalSort(), ["step1"]);
   assertEquals(resolver.groupIntoWaves(), [["step1"]]);
 });
@@ -45,7 +45,7 @@ Deno.test("DependencyResolver: handles linear chain", () => {
     }),
   ];
 
-  const resolver = new DependencyResolver(steps as FlowStep[]);
+  const resolver = new DependencyResolver(steps as IFlowStep[]);
   assertEquals(resolver.topologicalSort(), ["step1", "step2", "step3"]);
   assertEquals(resolver.groupIntoWaves(), [["step1"], ["step2"], ["step3"]]);
 });
@@ -64,7 +64,7 @@ Deno.test("DependencyResolver: handles parallel steps", () => {
     }),
   ];
 
-  const resolver = new DependencyResolver(steps as FlowStep[]);
+  const resolver = new DependencyResolver(steps as IFlowStep[]);
   const topoOrder = resolver.topologicalSort();
 
   assertEquals(topoOrder[0], "start");
@@ -82,7 +82,7 @@ Deno.test("DependencyResolver: handles parallel steps", () => {
 
 Deno.test("DependencyResolver: detects self-referencing cycle", () => {
   const steps = [createStep("step1", ["step1"])];
-  const resolver = new DependencyResolver(steps as FlowStep[]);
+  const resolver = new DependencyResolver(steps as IFlowStep[]);
   assertThrows(
     () => resolver.topologicalSort(),
     FlowValidationError,
@@ -96,7 +96,7 @@ Deno.test("DependencyResolver: detects simple cycle", () => {
     createStep("step2", ["step1"]),
   ];
 
-  const resolver = new DependencyResolver(steps as FlowStep[]);
+  const resolver = new DependencyResolver(steps as IFlowStep[]);
   assertThrows(
     () => resolver.topologicalSort(),
     FlowValidationError,
@@ -111,7 +111,7 @@ Deno.test("DependencyResolver: detects complex cycle", () => {
     createStep("c", ["b"], { input: { source: FlowInputSource.STEP, stepId: "b", transform: "passthrough" } }),
   ];
 
-  const resolver = new DependencyResolver(steps as FlowStep[]);
+  const resolver = new DependencyResolver(steps as IFlowStep[]);
   assertThrows(
     () => resolver.topologicalSort(),
     FlowValidationError,
@@ -131,7 +131,7 @@ Deno.test("DependencyResolver: handles diamond pattern", () => {
     createStep("merge", ["branch1", "branch2"], { input: { source: FlowInputSource.AGGREGATE, transform: "combine" } }),
   ];
 
-  const resolver = new DependencyResolver(steps as FlowStep[]);
+  const resolver = new DependencyResolver(steps as IFlowStep[]);
   const topoOrder = resolver.topologicalSort();
   assertEquals(topoOrder[0], "start");
   assertEquals(topoOrder[topoOrder.length - 1], "merge");
@@ -148,7 +148,7 @@ Deno.test("DependencyResolver: throws error for invalid dependency", () => {
   const steps = [createStep("step1", ["nonexistent"])];
 
   assertThrows(
-    () => new DependencyResolver(steps as FlowStep[]),
+    () => new DependencyResolver(steps as IFlowStep[]),
     FlowValidationError,
     "Dependency 'nonexistent' not found in step definitions",
   );
@@ -161,7 +161,7 @@ Deno.test("DependencyResolver: handles all parallel steps", () => {
     createStep("step3"),
   ];
 
-  const resolver = new DependencyResolver(steps as FlowStep[]);
+  const resolver = new DependencyResolver(steps as IFlowStep[]);
   const waves = resolver.groupIntoWaves();
   assertEquals(waves.length, 1);
   assertEquals(waves[0].includes("step1"), true);

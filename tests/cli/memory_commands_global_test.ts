@@ -94,9 +94,6 @@ Deno.test("MemoryCommands: globalListLearnings displays learnings", async () => 
       .withCategory(LearningCategory.PATTERN)
       .withTags(["test-tag"])
       .build();
-    // Override defaults from Builder with specific values from original test if needed or rely on Builder's sensible defaults.
-    // Original test used fixed ID "550e8400...". The Builder generates random UUID. This is fine unless ID is asserted.
-    // Original asserts on Title and Category.
 
     await memoryBank.addGlobalLearning(learning);
 
@@ -115,7 +112,7 @@ Deno.test("MemoryCommands: globalListLearnings --format json outputs valid JSON"
     await memoryBank.initGlobalMemory();
 
     const learning = new LearningBuilder()
-      .withTitle("JSON Test Learning")
+      .withTitle("JSON Test ILearning")
       .withDescription("Test for JSON output")
       .withCategory(LearningCategory.INSIGHT)
       .build();
@@ -127,7 +124,7 @@ Deno.test("MemoryCommands: globalListLearnings --format json outputs valid JSON"
 
     assertEquals(Array.isArray(parsed), true);
     assertEquals(parsed.length, 1);
-    assertEquals(parsed[0].title, "JSON Test Learning");
+    assertEquals(parsed[0].title, "JSON Test ILearning");
   } finally {
     await cleanup();
   }
@@ -144,7 +141,7 @@ Deno.test("MemoryCommands: globalStats displays statistics", async () => {
     await memoryBank.addGlobalLearning(
       new LearningBuilder()
         .withScope(MemoryScope.GLOBAL, "app-a")
-        .withTitle("Learning 1")
+        .withTitle("ILearning 1")
         .withDescription("First")
         .withCategory(LearningCategory.PATTERN)
         .build(),
@@ -153,7 +150,7 @@ Deno.test("MemoryCommands: globalStats displays statistics", async () => {
     await memoryBank.addGlobalLearning(
       new LearningBuilder()
         .withScope(MemoryScope.GLOBAL, "app-b")
-        .withTitle("Learning 2")
+        .withTitle("ILearning 2")
         .withDescription("Second")
         .withCategory(LearningCategory.INSIGHT)
         .build(),
@@ -193,19 +190,19 @@ Deno.test("MemoryCommands: promote moves learning to global", async () => {
     // Create project with pattern using helper
     await createTestProject(memoryBank, "source-app", {
       overview: "Source project",
-      patternName: "Repository Pattern",
+      patternName: "Repository IPattern",
     });
-    // The helper adds "Repository Pattern" by default if patternName is passed? No, look at implementation.
-    // implementation: patterns: [{ name: opts.patternName || "Test Pattern", ... }]
-    // So "Repository Pattern" will be created.
+    // The helper adds "Repository IPattern" by default if patternName is passed? No, look at implementation.
+    // implementation: patterns: [{ name: opts.patternName || "Test IPattern", ... }]
+    // So "Repository IPattern" will be created.
 
     await memoryBank.initGlobalMemory();
 
     // Promote the pattern
     const result = await commands.promote("source-app", {
       type: MemoryType.PATTERN,
-      name: "Repository Pattern",
-      title: "Repository Pattern (Global)",
+      name: "Repository IPattern",
+      title: "Repository IPattern (Global)",
       description: "Use repositories for all database access",
       category: LearningCategory.PATTERN,
       tags: ["architecture"],
@@ -217,7 +214,7 @@ Deno.test("MemoryCommands: promote moves learning to global", async () => {
     // Verify in global memory
     const globalMem = await memoryBank.getGlobalMemory();
     assertEquals(globalMem?.learnings.length, 1);
-    assertEquals(globalMem?.learnings[0].title, "Repository Pattern (Global)");
+    assertEquals(globalMem?.learnings[0].title, "Repository IPattern (Global)");
   } finally {
     await cleanup();
   }
@@ -256,7 +253,7 @@ Deno.test("MemoryCommands: demote moves learning to project", async () => {
 
     // Add global learning
     const learning = new LearningBuilder()
-      .withTitle("Learning to Demote")
+      .withTitle("ILearning to Demote")
       .withDescription("This will be demoted")
       .withTags(["demote-test"])
       .build();

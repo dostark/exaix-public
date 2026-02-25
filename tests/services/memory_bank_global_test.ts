@@ -2,13 +2,13 @@
  * Memory Bank Global Memory Tests
  *
  * TDD tests for Phase 12.8: Global Memory functionality:
- * - Learning schema validation
+ * - ILearning schema validation
  * - GlobalMemory schema validation
  * - getGlobalMemory() / initGlobalMemory()
  * - addGlobalLearning()
  * - promoteLearning() (project → global)
  * - demoteLearning() (global → project)
- * - Activity Journal integration
+ * - IActivity Journal integration
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
@@ -18,18 +18,18 @@ import { exists } from "@std/fs";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import {
-  type GlobalMemory,
   GlobalMemorySchema,
-  type Learning,
+  type IGlobalMemory,
+  type ILearning,
+  type IProjectMemory,
   LearningSchema,
-  type ProjectMemory,
 } from "../../src/schemas/memory_bank.ts";
 import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource, MemoryType } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 import { createSampleLearning, createTestMemoryBankWithGlobal } from "./helpers/memory_bank_test_helpers.ts";
 
-// ===== Learning Schema Tests =====
+// ===== ILearning Schema Tests =====
 
 Deno.test("LearningSchema: validates minimal learning", () => {
   const learning = createSampleLearning({
@@ -131,7 +131,7 @@ Deno.test("LearningSchema: rejects invalid status", () => {
 // ===== GlobalMemory Schema Tests =====
 
 Deno.test("GlobalMemorySchema: validates empty global memory", () => {
-  const globalMem: GlobalMemory = {
+  const globalMem: IGlobalMemory = {
     version: "1.0.0",
     updated_at: "2026-01-04T12:00:00Z",
     learnings: [],
@@ -169,7 +169,7 @@ Deno.test("GlobalMemorySchema: validates populated global memory", () => {
     ],
     patterns: [
       {
-        name: "Error Boundary Pattern",
+        name: "Error Boundary IPattern",
         description: "Wrap components in error boundaries",
         applies_to: ["all"],
         examples: ["src/components/ErrorBoundary.tsx"],
@@ -287,7 +287,7 @@ Deno.test("MemoryBankService: addGlobalLearning updates markdown file", async ()
       created_at: "2026-01-04T12:00:00Z",
       source: MemorySource.USER,
       scope: MemoryScope.GLOBAL,
-      title: "Input Validation Pattern",
+      title: "Input Validation IPattern",
       description: "Always validate user input at API boundaries",
       category: LearningCategory.PATTERN,
       tags: [EvaluationCategory.SECURITY],
@@ -299,14 +299,14 @@ Deno.test("MemoryBankService: addGlobalLearning updates markdown file", async ()
 
     const mdPath = join(getMemoryGlobalDir(config.system.root), "learnings.md");
     const content = await Deno.readTextFile(mdPath);
-    assertStringIncludes(content, "Input Validation Pattern");
+    assertStringIncludes(content, "Input Validation IPattern");
     assertStringIncludes(content, "Always validate user input");
   } finally {
     await cleanup();
   }
 });
 
-Deno.test("MemoryBankService: addGlobalLearning logs to Activity Journal", async () => {
+Deno.test("MemoryBankService: addGlobalLearning logs to IActivity Journal", async () => {
   const { service, db, cleanup } = await createTestMemoryBankWithGlobal();
 
   try {
@@ -328,7 +328,7 @@ Deno.test("MemoryBankService: addGlobalLearning logs to Activity Journal", async
     // Wait for batch flush
     await db.waitForFlush();
 
-    // Check Activity Journal
+    // Check IActivity Journal
     const activities = db.instance.prepare(
       "SELECT action_type, target FROM activity WHERE action_type = 'memory.global.learning.added'",
     ).all() as Array<{ action_type: string; target: string }>;
@@ -339,7 +339,7 @@ Deno.test("MemoryBankService: addGlobalLearning logs to Activity Journal", async
   }
 });
 
-// ===== Promote Learning Tests =====
+// ===== Promote ILearning Tests =====
 
 Deno.test("MemoryBankService: promoteLearning moves from project to global", async () => {
   const { db, config, cleanup } = await initTestDbService();
@@ -348,12 +348,12 @@ Deno.test("MemoryBankService: promoteLearning moves from project to global", asy
     const service = new MemoryBankService(config, db);
 
     // Create project with a pattern/decision that could be promoted
-    const projectMem: ProjectMemory = {
+    const projectMem: IProjectMemory = {
       portal: "my-app",
       overview: "Test project",
       patterns: [
         {
-          name: "Repository Pattern",
+          name: "Repository IPattern",
           description: "All database access through repositories",
           examples: ["src/repos/user.ts"],
           tags: ["architecture"],
@@ -368,8 +368,8 @@ Deno.test("MemoryBankService: promoteLearning moves from project to global", asy
     // Promote the pattern as a learning
     const learningId = await service.promoteLearning("my-app", {
       type: MemoryType.PATTERN,
-      name: "Repository Pattern",
-      title: "Repository Pattern (Promoted)",
+      name: "Repository IPattern",
+      title: "Repository IPattern (Promoted)",
       description: "All database access through repositories - promoted from my-app",
       category: LearningCategory.PATTERN,
       tags: ["architecture", "database"],
@@ -382,7 +382,7 @@ Deno.test("MemoryBankService: promoteLearning moves from project to global", asy
     const globalMem = await service.getGlobalMemory();
     assertExists(globalMem);
     assertEquals(globalMem.learnings.length, 1);
-    assertEquals(globalMem.learnings[0].title, "Repository Pattern (Promoted)");
+    assertEquals(globalMem.learnings[0].title, "Repository IPattern (Promoted)");
     assertEquals(globalMem.learnings[0].project, "my-app");
     assertEquals(globalMem.statistics.by_project["my-app"], 1);
   } finally {
@@ -390,13 +390,13 @@ Deno.test("MemoryBankService: promoteLearning moves from project to global", asy
   }
 });
 
-Deno.test("MemoryBankService: promoteLearning logs to Activity Journal", async () => {
+Deno.test("MemoryBankService: promoteLearning logs to IActivity Journal", async () => {
   const { db, config, cleanup } = await initTestDbService();
 
   try {
     const service = new MemoryBankService(config, db);
 
-    const projectMem: ProjectMemory = {
+    const projectMem: IProjectMemory = {
       portal: "my-app",
       overview: "Test project",
       patterns: [],
@@ -464,17 +464,17 @@ Deno.test("MemoryBankService: promoteLearning from non-existent project throws",
   }
 });
 
-// ===== Demote Learning Tests =====
+// ===== Demote ILearning Tests =====
 
 Deno.test("MemoryBankService: demoteLearning moves from global to project", async () => {
   const { service, cleanup } = await createTestMemoryBankWithGlobal({
-    title: "Test Pattern",
+    title: "Test IPattern",
     description: "A test pattern for demotion",
   });
 
   try {
     // Create target project for demotion
-    const projectMem: ProjectMemory = {
+    const projectMem: IProjectMemory = {
       portal: "target-app",
       overview: "Target project",
       patterns: [],
@@ -501,7 +501,7 @@ Deno.test("MemoryBankService: demoteLearning moves from global to project", asyn
     const project = await service.getProjectMemory("target-app");
     assertExists(project);
     assertEquals(project.patterns.length, 1);
-    assertEquals(project.patterns[0].name, "Test Pattern");
+    assertEquals(project.patterns[0].name, "Test IPattern");
   } finally {
     await cleanup();
   }
@@ -513,7 +513,7 @@ Deno.test("MemoryBankService: demoteLearning removes from global index", async (
   try {
     const service = new MemoryBankService(config, db);
 
-    const projectMem: ProjectMemory = {
+    const projectMem: IProjectMemory = {
       portal: "target-app",
       overview: "Target",
       patterns: [],
@@ -529,7 +529,7 @@ Deno.test("MemoryBankService: demoteLearning removes from global index", async (
       created_at: "2026-01-04T12:00:00Z",
       source: MemorySource.USER,
       scope: MemoryScope.GLOBAL,
-      title: "Learning 1",
+      title: "ILearning 1",
       description: "First learning",
       category: LearningCategory.PATTERN,
       tags: [],
@@ -541,7 +541,7 @@ Deno.test("MemoryBankService: demoteLearning removes from global index", async (
       created_at: "2026-01-04T12:00:00Z",
       source: MemorySource.USER,
       scope: MemoryScope.GLOBAL,
-      title: "Learning 2",
+      title: "ILearning 2",
       description: "Second learning",
       category: LearningCategory.INSIGHT,
       tags: [],
@@ -571,7 +571,7 @@ Deno.test("MemoryBankService: demoteLearning non-existent learning throws", asyn
   try {
     const service = new MemoryBankService(config, db);
 
-    const projectMem: ProjectMemory = {
+    const projectMem: IProjectMemory = {
       portal: "target-app",
       overview: "Target",
       patterns: [],
@@ -586,7 +586,7 @@ Deno.test("MemoryBankService: demoteLearning non-existent learning throws", asyn
         await service.demoteLearning("non-existent-id", "target-app");
       },
       Error,
-      "Learning not found",
+      "ILearning not found",
     );
   } finally {
     await cleanup();
@@ -633,14 +633,14 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
     await service.initGlobalMemory();
 
     // Add learnings with different categories
-    const learnings: Learning[] = [
+    const learnings: ILearning[] = [
       createSampleLearning({
         id: "550e8400-e29b-41d4-a716-446655440001",
         created_at: "2026-01-04T12:00:00Z",
         source: MemorySource.USER,
         scope: MemoryScope.GLOBAL,
         project: "app-a",
-        title: "Pattern 1",
+        title: "IPattern 1",
         description: "Desc 1",
         category: LearningCategory.PATTERN,
         tags: [],
@@ -653,7 +653,7 @@ Deno.test("MemoryBankService: getGlobalStats returns accurate statistics", async
         source: MemorySource.USER,
         scope: MemoryScope.GLOBAL,
         project: "app-a",
-        title: "Pattern 2",
+        title: "IPattern 2",
         description: "Desc 2",
         category: LearningCategory.PATTERN,
         tags: [],

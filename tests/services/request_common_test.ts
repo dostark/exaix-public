@@ -1,6 +1,7 @@
 import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { buildParsedRequest, loadBlueprint } from "../../src/services/request_common.ts";
+import type { IRequestFrontmatter } from "../../src/services/request_processing/types.ts";
 
 Deno.test("loadBlueprint: returns null when blueprint does not exist", async () => {
   const dir = await Deno.makeTempDir();
@@ -19,8 +20,6 @@ Deno.test("loadBlueprint: reads blueprint when present", async () => {
   assertEquals(out?.systemPrompt, "prompt");
 });
 
-import type { RequestFrontmatter } from "../../src/services/request_processing/types.ts";
-
 Deno.test("loadBlueprint: returns null on read error", async () => {
   const dir = await Deno.makeTempDir();
   const agentId = "agent";
@@ -33,7 +32,7 @@ Deno.test("loadBlueprint: returns null on read error", async () => {
 });
 
 Deno.test("buildParsedRequest: trims body and parses skills", () => {
-  const frontmatter: RequestFrontmatter = {
+  const frontmatter: IRequestFrontmatter = {
     trace_id: "t1",
     created: new Date().toISOString(),
     status: "pending",

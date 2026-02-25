@@ -4,7 +4,7 @@
  * This test validates that token counting works correctly with real API calls
  * to Google, OpenAI, and Anthropic providers. It verifies:
  * - Token extraction from provider responses
- * - Activity Journal logging with action type 'llm.usage'
+ * - IActivity Journal logging with action type 'llm.usage'
  * - Cost calculations
  * - All required token fields are present and accurate
  *

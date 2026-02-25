@@ -14,9 +14,9 @@ import {
   createFastToolReflector,
   createStrictToolReflector,
   createToolReflector,
-  type ToolCall,
+  IToolCall,
+  IToolResult,
   ToolReflectionSchema,
-  type ToolResult,
 } from "../../src/services/tool_reflector.ts";
 import { JSONValue } from "../../src/types.ts";
 
@@ -57,7 +57,7 @@ function makeReflectionJSON(options: {
   });
 }
 
-function createMockToolResult(success: boolean, output: unknown = "result", error?: string): ToolResult {
+function createMockToolResult(success: boolean, output: unknown = "result", error?: string): IToolResult {
   return {
     callId: "call-1",
     success,
@@ -67,7 +67,7 @@ function createMockToolResult(success: boolean, output: unknown = "result", erro
   };
 }
 
-function createMockToolCall(overrides?: Partial<ToolCall>): ToolCall {
+function createMockToolCall(overrides?: Partial<IToolCall>): IToolCall {
   return {
     id: "tool-1",
     name: McpToolName.READ_FILE,
@@ -91,7 +91,7 @@ function setupReflector(
 
   // Default mock executor
   const createExecutor = (
-    result: Partial<ToolResult> = { success: true, output: "result" },
+    result: Partial<IToolResult> = { success: true, output: "result" },
   ) => {
     return (_params: JSONObject) =>
       Promise.resolve({
@@ -261,13 +261,13 @@ Deno.test("[ToolReflector] executes independent calls in parallel", async () => 
 
   const { reflector } = setupReflector(responses, { parallelExecution: true });
 
-  const toolCalls: ToolCall[] = [
+  const toolCalls: IToolCall[] = [
     { id: "1", name: McpToolName.READ_FILE, parameters: { path: "a.txt" }, purpose: "Read A" },
     { id: "2", name: McpToolName.READ_FILE, parameters: { path: "b.txt" }, purpose: "Read B" },
     { id: "3", name: McpToolName.READ_FILE, parameters: { path: "c.txt" }, purpose: "Read C" },
   ];
 
-  const executor = (call: ToolCall) => {
+  const executor = (call: IToolCall) => {
     return Promise.resolve(createMockToolResult(true, `content of ${call.id}`));
   };
 
@@ -288,13 +288,13 @@ Deno.test("[ToolReflector] respects dependencies in parallel execution", async (
 
   const executionOrder: string[] = [];
 
-  const toolCalls: ToolCall[] = [
+  const toolCalls: IToolCall[] = [
     { id: "1", name: McpToolName.READ_FILE, parameters: {}, purpose: "First" },
     { id: "2", name: "process", parameters: {}, purpose: "Second", dependencies: ["1"] },
     { id: "3", name: McpToolName.WRITE_FILE, parameters: {}, purpose: "Third", dependencies: ["2"] },
   ];
 
-  const executor = (call: ToolCall) => {
+  const executor = (call: IToolCall) => {
     executionOrder.push(call.id);
     return Promise.resolve(createMockToolResult(true, call.id));
   };
@@ -317,12 +317,12 @@ Deno.test("[ToolReflector] executes sequentially when parallel disabled", async 
 
   const { reflector } = setupReflector(responses, { parallelExecution: false });
 
-  const toolCalls: ToolCall[] = [
+  const toolCalls: IToolCall[] = [
     { id: "1", name: McpToolName.READ_FILE, parameters: {}, purpose: "First" },
     { id: "2", name: McpToolName.READ_FILE, parameters: {}, purpose: "Second" },
   ];
 
-  const executor = (call: ToolCall) => {
+  const executor = (call: IToolCall) => {
     return Promise.resolve(createMockToolResult(true, call.id));
   };
 

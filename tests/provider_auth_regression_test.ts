@@ -8,8 +8,10 @@
  */
 
 import { assertEquals, assertRejects } from "@std/assert";
-import { AnthropicProviderFactory, GoogleProviderFactory, OpenAIProviderFactory } from "../src/ai/provider_registry.ts";
-import { ResolvedProviderOptions } from "../src/ai/provider_factory.ts";
+import { AnthropicProviderFactory } from "../src/ai/factories/anthropic_factory.ts";
+import { GoogleProviderFactory } from "../src/ai/factories/google_factory.ts";
+import { OpenAIProviderFactory } from "../src/ai/factories/openai_factory.ts";
+import { IResolvedProviderOptions } from "../src/ai/provider_factory.ts";
 import { MockStrategy, ProviderType } from "../src/enums.ts";
 import { SecureCredentialStore } from "../src/helpers/credential_security.ts";
 import * as TEST_CONSTANTS from "./config/constants.ts";
@@ -21,7 +23,7 @@ const PERSIST_ENV_VAR = "EXO_PERSIST_ENV_CREDENTIALS";
 const TEST_MODEL = "test-model";
 
 // Helper to mock resolved options
-const mockOptions: ResolvedProviderOptions = {
+const mockOptions: IResolvedProviderOptions = {
   provider: ProviderType.ANTHROPIC,
   model: TEST_MODEL,
   timeoutMs: 1000,
@@ -92,7 +94,7 @@ async function testEnvToStoreSync({
   factory: AnthropicProviderFactory | OpenAIProviderFactory | GoogleProviderFactory;
   envKey: string;
   envValue: string;
-  options: ResolvedProviderOptions;
+  options: IResolvedProviderOptions;
 }) {
   // Persist if opted in
   Deno.env.set(envKey, envValue);

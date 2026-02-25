@@ -10,7 +10,7 @@
  * - RequestProcessor successfully integrates with MockLLMProvider
  * - End-to-end flow: Request file → Blueprint loading → Plan generation → Status update
  * - Concurrent request processing works correctly with shared provider
- * - Activity logging tracks the full workflow
+ * - IActivity logging tracks the full workflow
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
@@ -28,7 +28,7 @@ Deno.test("Integration: RequestProcessor with MockLLMProvider", async (t) => {
     // Setup: Create blueprint and processor
     await env.createBlueprint(
       "senior-coder",
-      `# Senior Coder Blueprint
+      `# Senior Coder IBlueprint as Blueprint
 
 You are an expert software developer. Analyze requests and create detailed implementation plans.
 
@@ -43,7 +43,7 @@ Always respond with:
     const { processor } = env.createRequestProcessor();
 
     // ========================================================================
-    // Test: Full integration - Request → Blueprint → MockProvider → Plan
+    // Test: Full integration - Request → IBlueprint as Blueprint → MockProvider → Plan
     // ========================================================================
     await t.step("End-to-end: Request file to plan generation", async () => {
       const requestResult = await env.createRequest(
@@ -100,7 +100,7 @@ Deno.test("Integration: Concurrent Requests with Shared MockLLMProvider", async 
     // Setup blueprint and processor (shared provider instance)
     await env.createBlueprint(
       "senior-coder",
-      `# Senior Coder Blueprint\n\nYou are an expert software developer.\n\n## Response Format\n\nAlways respond with:\n- <thought> tags containing your analysis\n- <content> tags containing the implementation plan\n`,
+      `# Senior Coder IBlueprint as Blueprint\n\nYou are an expert software developer.\n\n## Response Format\n\nAlways respond with:\n- <thought> tags containing your analysis\n- <content> tags containing the implementation plan\n`,
     );
 
     const { processor } = env.createRequestProcessor();
@@ -141,17 +141,17 @@ Deno.test("Integration: Concurrent Requests with Shared MockLLMProvider", async 
 });
 
 // ============================================================================
-// Test: Activity Logging Integration
+// Test: IActivity Logging Integration
 // ============================================================================
 
-Deno.test("Integration: Mock Plan Generation - Activity Logging", async () => {
+Deno.test("Integration: Mock Plan Generation - IActivity Logging", async () => {
   const env = await TestEnvironment.create();
 
   try {
     // Setup blueprint and processor
     await env.createBlueprint(
       "senior-coder",
-      `# Senior Coder Blueprint\n\nYou are an expert software developer.\n\n## Response Format\n\nAlways respond with:\n- <thought> tags containing your analysis\n- <content> tags containing the implementation plan\n`,
+      `# Senior Coder IBlueprint as Blueprint\n\nYou are an expert software developer.\n\n## Response Format\n\nAlways respond with:\n- <thought> tags containing your analysis\n- <content> tags containing the implementation plan\n`,
     );
 
     const { processor } = env.createRequestProcessor();
@@ -184,7 +184,7 @@ Deno.test("[regression] RequestProcessor copies target_branch into plan frontmat
   try {
     await env.createBlueprint(
       "senior-coder",
-      `# Senior Coder Blueprint
+      `# Senior Coder IBlueprint as Blueprint
 
 You are an expert software developer.
 

@@ -6,7 +6,7 @@ import {
   handlePlanReject,
   handlePlanRevise,
   handlePlanShow,
-  type PlanActionContext,
+  type IPlanActionContext,
 } from "../../src/cli/command_builders/plan_actions.ts";
 import { PlanCommands } from "../../src/cli/commands/plan_commands.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
@@ -33,7 +33,7 @@ Deno.test("handlePlanList: displays empty result", async () => {
     list: () => Promise.resolve([]),
   };
 
-  const context: PlanActionContext = {
+  const context: IPlanActionContext = {
     planCommands: Object.assign(Object.create(PlanCommands.prototype), planCommands),
     display,
   };
@@ -62,7 +62,7 @@ Deno.test("handlePlanList: displays plan rows with truncation", async () => {
       ]),
   };
 
-  const context: PlanActionContext = {
+  const context: IPlanActionContext = {
     planCommands: Object.assign(Object.create(PlanCommands.prototype), planCommands),
     display,
   };
@@ -94,7 +94,7 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
       }),
   };
 
-  const context: PlanActionContext = {
+  const context: IPlanActionContext = {
     planCommands: Object.assign(Object.create(PlanCommands.prototype), planCommands),
     display,
   };
@@ -122,7 +122,7 @@ Deno.test("handlePlanApprove: splits skills", async () => {
     },
   };
 
-  const context: PlanActionContext = {
+  const context: IPlanActionContext = {
     planCommands: Object.assign(Object.create(PlanCommands.prototype), planCommands),
     display,
   };
@@ -144,7 +144,7 @@ Deno.test("handlePlanReject/Revise: delegates", async () => {
     },
   };
 
-  const context: PlanActionContext = {
+  const context: IPlanActionContext = {
     planCommands: Object.assign(Object.create(PlanCommands.prototype), planCommands),
     display,
   };

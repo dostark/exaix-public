@@ -11,6 +11,36 @@ import { RequestStatus, type RequestStatusType } from "../../src/requests/reques
 
 // ===== Test Data Factories =====
 
+export interface ITestRequestFixture {
+  trace_id: string;
+  filename: string;
+  title: string;
+  status: RequestStatusType;
+  priority: string;
+  agent: string;
+  portal?: string;
+  model?: string;
+  created: string;
+  created_by: string;
+  source: string;
+}
+
+export interface ITestPlanFixture {
+  id: string;
+  title: string;
+  status: PlanStatusType;
+  rejectionReason?: string;
+}
+
+export interface ITestSkillFixture {
+  id: string;
+  name: string;
+  version: string;
+  status: SkillStatus;
+  source: MemorySource;
+  description: string;
+}
+
 /**
  * Generic test data factory that creates objects with default values and overrides
  * Type parameter T is explicitly specified at usage sites (e.g., TestDataFactory<TestRequestFixture>)
@@ -31,36 +61,6 @@ export class TestDataFactory<T> {
   }
 }
 
-export interface ITestRequestFixture {
-  trace_id: string;
-  filename: string;
-  title: string;
-  status: RequestStatusType;
-  priority: string;
-  agent: string;
-  portal?: string;
-  model?: string;
-  created: string;
-  created_by: string;
-  source: string;
-}
-
-export interface TestPlanFixture {
-  id: string;
-  title: string;
-  status: PlanStatusType;
-  rejectionReason?: string;
-}
-
-export interface TestSkillFixture {
-  id: string;
-  name: string;
-  version: string;
-  status: SkillStatus;
-  source: MemorySource;
-  description: string;
-}
-
 // Request factory
 export const requestFactory = new TestDataFactory<ITestRequestFixture>(() => ({
   trace_id: `req-${Math.floor(Math.random() * 1e6)}`,
@@ -75,14 +75,14 @@ export const requestFactory = new TestDataFactory<ITestRequestFixture>(() => ({
 }));
 
 // Plan factory
-export const planFactory = new TestDataFactory<TestPlanFixture>(() => ({
+export const planFactory = new TestDataFactory<ITestPlanFixture>(() => ({
   id: `plan-${Math.floor(Math.random() * 1e6)}`,
   title: "Plan",
   status: PlanStatus.REVIEW,
 }));
 
 // Skill factory
-export const skillFactory = new TestDataFactory<TestSkillFixture>(() => ({
+export const skillFactory = new TestDataFactory<ITestSkillFixture>(() => ({
   id: `skill-${Math.floor(Math.random() * 1e6)}`,
   name: "Skill",
   version: "1.0.0",
@@ -185,8 +185,8 @@ export class MockRequestService extends BaseMockService<ITestRequestFixture> {
 /**
  * Mock service for plans with common operations
  */
-export class MockPlanService extends BaseMockService<TestPlanFixture> {
-  constructor(initialPlans: TestPlanFixture[] = []) {
+export class MockPlanService extends BaseMockService<ITestPlanFixture> {
+  constructor(initialPlans: ITestPlanFixture[] = []) {
     super(initialPlans);
   }
 
@@ -200,7 +200,7 @@ export class MockPlanService extends BaseMockService<TestPlanFixture> {
   }
 
   rejectPlan(id: string, reason?: string): Promise<boolean> {
-    const updateData: Partial<TestPlanFixture> = { status: PlanStatus.REJECTED };
+    const updateData: Partial<ITestPlanFixture> = { status: PlanStatus.REJECTED };
     if (reason !== undefined) {
       updateData.rejectionReason = reason;
     }

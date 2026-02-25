@@ -55,13 +55,13 @@ stability_check = false
   const config = configService.get();
 
   // Mock Logger to capture events
-  interface LogEntry {
+  interface IStructuredLogEntry {
     level: LogLevel;
     action: string;
     target: string;
     payload: any;
   }
-  const logs: LogEntry[] = [];
+  const logs: IStructuredLogEntry[] = [];
   const logger: ConfigReloadLogger = {
     info: (action: string, target: string, payload: any) => {
       logs.push({ level: LogLevel.INFO, action, target, payload });

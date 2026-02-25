@@ -18,7 +18,7 @@ import { McpToolName } from "../../src/enums.ts";
 import { assertEquals, assertExists } from "@std/assert";
 import { ZodError } from "zod";
 // Import schemas (will create these)
-import type { Plan, PlanStep } from "../../src/schemas/plan_schema.ts";
+import type { IPlanStep, Plan } from "../../src/schemas/plan_schema.ts";
 import { PlanSchema, PlanStepSchema } from "../../src/schemas/plan_schema.ts";
 
 describe("PlanStepSchema", () => {
@@ -41,7 +41,7 @@ describe("PlanStepSchema", () => {
       const result = PlanStepSchema.safeParse(stepData);
       assertEquals(result.success, true);
       if (result.success) {
-        const step: PlanStep = result.data;
+        const step: IPlanStep = result.data;
         assertEquals(step.step, 1);
         assertEquals(step.title, "Create User Database Schema");
         assertEquals(step.description.includes("migration file"), true);
@@ -488,7 +488,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
         security: {
           findings: [
             {
-              title: "Test Finding",
+              title: "Test IFinding",
               severity: "INVALID", // Invalid severity
               location: "test.ts",
               description: "Test",

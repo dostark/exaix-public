@@ -379,15 +379,15 @@ Deno.test("FlowSchema: validates settings configuration", () => {
 });
 
 // Integration test for schema importability
-Deno.test("Flow schemas: can be imported and used by other modules", () => {
+Deno.test("IFlow as Flow schemas: can be imported and used by other modules", () => {
   // This test ensures the schemas are properly exported
   // and can be used in type annotations and runtime validation
 
   // Test that we can use the schemas in type definitions
-  type FlowStep = z.infer<typeof FlowStepSchema>;
-  type Flow = z.infer<typeof FlowSchema>;
+  type IFlowStep = z.infer<typeof FlowStepSchema>;
+  type IFlow = z.infer<typeof FlowSchema>;
 
-  const testStep: FlowStep = {
+  const testStep: IFlowStep = {
     id: "test-step",
     name: "Test Step",
     type: FlowStepType.AGENT,
@@ -403,7 +403,7 @@ Deno.test("Flow schemas: can be imported and used by other modules", () => {
     },
   };
 
-  const testFlow: Flow = {
+  const testFlow: IFlow = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow description",

@@ -1,17 +1,17 @@
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
 import {
-  type AgentExecutor,
-  type FlowEventLogger,
   FlowExecutionError,
   FlowRunner,
-  type FlowStepRequest,
+  type IAgentExecutor,
+  type IFlowEventLogger,
+  type IFlowStepRequest,
 } from "../../src/flows/flow_runner.ts";
-import { Flow, FlowInput, FlowStepInput } from "../../src/schemas/flow.ts";
-import { AgentExecutionResult } from "../../src/services/agent_runner.ts";
+import { IFlow, IFlowInput, IFlowStepInput } from "../../src/schemas/flow.ts";
+import { IAgentExecutionResult } from "../../src/services/agent_runner.ts";
 import { PROVIDER_ANTHROPIC, PROVIDER_OPENAI } from "../../src/config/constants.ts";
 import { JSONValue } from "../../src/types.ts";
-import type { ActivityRecord, IDatabaseService, JournalFilterOptions, SqliteParam } from "../../src/services/db.ts";
+import { IActivityRecord, IDatabaseService, IJournalFilterOptions, ISqliteParam } from "../../src/services/db.ts";
 
 /** Local type matching the shape logged by FlowRunner for flow.token_summary events */
 interface TokenSummary {
@@ -24,11 +24,11 @@ interface TokenSummary {
 }
 
 // Mock AgentRunner for testing
-class MockAgentRunner implements AgentExecutor {
-  private results: Map<string, AgentExecutionResult> = new Map();
+class MockAgentRunner implements IAgentExecutor {
+  private results: Map<string, IAgentExecutionResult> = new Map();
   private failures: Set<string> = new Set();
 
-  constructor(results: Record<string, AgentExecutionResult | string> = {}, failures: string[] = []) {
+  constructor(results: Record<string, IAgentExecutionResult | string> = {}, failures: string[] = []) {
     for (const [key, result] of Object.entries(results)) {
       if (typeof result === "string") {
         this.results.set(key, { thought: "Mock thought", content: result, raw: result });
@@ -41,7 +41,7 @@ class MockAgentRunner implements AgentExecutor {
     }
   }
 
-  async run(agentId: string, _request: FlowStepRequest): Promise<AgentExecutionResult> {
+  async run(agentId: string, _request: IFlowStepRequest): Promise<IAgentExecutionResult> {
     if (this.failures.has(agentId)) {
       throw new Error(`Mock failure for agent ${agentId}`);
     }
@@ -53,9 +53,7 @@ class MockAgentRunner implements AgentExecutor {
   }
 }
 
-// Mock EventLogger for testing
-// Mock EventLogger for testing
-class MockEventLogger implements FlowEventLogger {
+class MockEventLogger implements IFlowEventLogger {
   events: Array<{ event: string; payload: Record<string, JSONValue | undefined> }> = [];
 
   log(event: string, payload: Record<string, JSONValue | undefined>) {
@@ -65,7 +63,7 @@ class MockEventLogger implements FlowEventLogger {
 
 // Test FlowRunner class
 Deno.test("FlowRunner: executes simple sequential flow", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -84,9 +82,9 @@ Deno.test("FlowRunner: executes simple sequential flow", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
-    name: "Test Flow",
+    name: "Test IFlow as IFlow",
     description: "A test flow",
     version: "1.0.0",
     steps,
@@ -103,7 +101,7 @@ Deno.test("FlowRunner: executes simple sequential flow", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.flowRunId.length, 36); // UUID length
   assertEquals(result.stepResults.size, 2);
@@ -139,7 +137,7 @@ Deno.test("FlowRunner: executes simple sequential flow", async () => {
 });
 
 Deno.test("FlowRunner: executes parallel steps in same wave", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "start",
       name: "Start",
@@ -166,7 +164,7 @@ Deno.test("FlowRunner: executes parallel steps in same wave", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "parallel-flow",
     name: "Parallel Flow",
     description: "A flow with parallel steps",
@@ -186,7 +184,7 @@ Deno.test("FlowRunner: executes parallel steps in same wave", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.stepResults.size, 3);
   assertEquals(result.success, true);
@@ -194,7 +192,7 @@ Deno.test("FlowRunner: executes parallel steps in same wave", async () => {
 });
 
 Deno.test("FlowRunner: handles failFast behavior", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -221,7 +219,7 @@ Deno.test("FlowRunner: handles failFast behavior", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "failfast-flow",
     name: "FailFast Flow",
     description: "A flow that fails fast",
@@ -242,7 +240,7 @@ Deno.test("FlowRunner: handles failFast behavior", async () => {
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
 
   try {
-    await runner.execute(flow as Flow, { userPrompt: "test request" });
+    await runner.execute(flow as IFlow, { userPrompt: "test request" });
     throw new Error("Expected FlowExecutionError to be thrown");
   } catch (error) {
     assert(error instanceof FlowExecutionError);
@@ -251,7 +249,7 @@ Deno.test("FlowRunner: handles failFast behavior", async () => {
 });
 
 Deno.test("FlowRunner: continues execution when failFast is false", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -270,7 +268,7 @@ Deno.test("FlowRunner: continues execution when failFast is false", async () => 
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "continue-flow",
     name: "Continue Flow",
     description: "A flow that continues on failure",
@@ -288,7 +286,7 @@ Deno.test("FlowRunner: continues execution when failFast is false", async () => 
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.stepResults.size, 2);
   assertEquals(result.stepResults.get("step1")?.success, true);
@@ -298,7 +296,7 @@ Deno.test("FlowRunner: continues execution when failFast is false", async () => 
 });
 
 Deno.test("FlowRunner: respects maxParallelism setting", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "start",
       name: "Start",
@@ -341,7 +339,7 @@ Deno.test("FlowRunner: respects maxParallelism setting", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "parallel-limit-flow",
     name: "Parallel Limit Flow",
     description: "A flow that limits parallelism",
@@ -363,14 +361,14 @@ Deno.test("FlowRunner: respects maxParallelism setting", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.stepResults.size, 5);
   assertEquals(result.success, true);
 });
 
 Deno.test("FlowRunner: generates unique flowRunId", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -381,7 +379,7 @@ Deno.test("FlowRunner: generates unique flowRunId", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "unique-id-flow",
     name: "Unique ID Flow",
     description: "A flow for testing unique IDs",
@@ -400,8 +398,8 @@ Deno.test("FlowRunner: generates unique flowRunId", async () => {
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
 
-  const result1 = await runner.execute(flow as Flow, { userPrompt: "request 1" });
-  const result2 = await runner.execute(flow as Flow, { userPrompt: "request 2" });
+  const result1 = await runner.execute(flow as IFlow, { userPrompt: "request 1" });
+  const result2 = await runner.execute(flow as IFlow, { userPrompt: "request 2" });
 
   assertEquals(result1.flowRunId.length, 36);
   assertEquals(result2.flowRunId.length, 36);
@@ -409,7 +407,7 @@ Deno.test("FlowRunner: generates unique flowRunId", async () => {
 });
 
 Deno.test("FlowRunner: aggregates output from multiple steps", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -428,7 +426,7 @@ Deno.test("FlowRunner: aggregates output from multiple steps", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "aggregate-flow",
     name: "Aggregate Flow",
     description: "A flow that aggregates outputs",
@@ -447,13 +445,13 @@ Deno.test("FlowRunner: aggregates output from multiple steps", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.output, '{"step1":"Result 1","step2":"Result 2"}');
 });
 
 Deno.test("FlowRunner: handles empty flow", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "empty-flow",
     name: "Empty Flow",
     description: "A flow with no steps",
@@ -469,7 +467,7 @@ Deno.test("FlowRunner: handles empty flow", async () => {
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
 
   try {
-    await runner.execute(flow as Flow, { userPrompt: "test request" });
+    await runner.execute(flow as IFlow, { userPrompt: "test request" });
     throw new Error("Expected FlowExecutionError to be thrown");
   } catch (error) {
     assert(error instanceof FlowExecutionError);
@@ -478,7 +476,7 @@ Deno.test("FlowRunner: handles empty flow", async () => {
 });
 
 Deno.test("FlowRunner: handles step with invalid input source", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -489,7 +487,7 @@ Deno.test("FlowRunner: handles step with invalid input source", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "invalid-input-flow",
     name: "Invalid Input Flow",
     description: "A flow with invalid step input",
@@ -507,7 +505,7 @@ Deno.test("FlowRunner: handles step with invalid input source", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.success, false);
   assertEquals(result.stepResults.get("step1")?.success, false);
@@ -515,7 +513,7 @@ Deno.test("FlowRunner: handles step with invalid input source", async () => {
 });
 
 Deno.test("FlowRunner: handles step depending on failed step", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -534,7 +532,7 @@ Deno.test("FlowRunner: handles step depending on failed step", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "failed-dependency-flow",
     name: "Failed Dependency Flow",
     description: "A flow where step depends on failed step",
@@ -552,7 +550,7 @@ Deno.test("FlowRunner: handles step depending on failed step", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.success, false);
   assertEquals(result.stepResults.get("step1")?.success, false);
@@ -561,7 +559,7 @@ Deno.test("FlowRunner: handles step depending on failed step", async () => {
 });
 
 Deno.test("FlowRunner: handles circular dependencies", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -580,7 +578,7 @@ Deno.test("FlowRunner: handles circular dependencies", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "circular-flow",
     name: "Circular Flow",
     description: "A flow with circular dependencies",
@@ -596,7 +594,7 @@ Deno.test("FlowRunner: handles circular dependencies", async () => {
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
 
   try {
-    await runner.execute(flow as Flow, { userPrompt: "test request" });
+    await runner.execute(flow as IFlow, { userPrompt: "test request" });
     console.log("No error thrown - this is unexpected");
     throw new Error("Expected an error to be thrown");
   } catch (error) {
@@ -610,7 +608,7 @@ Deno.test("FlowRunner: handles circular dependencies", async () => {
 });
 
 Deno.test("FlowRunner: handles agent execution throwing non-Error", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -621,7 +619,7 @@ Deno.test("FlowRunner: handles agent execution throwing non-Error", async () => 
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "throwing-flow",
     name: "Throwing Flow",
     description: "A flow with agent that throws non-Error",
@@ -633,7 +631,7 @@ Deno.test("FlowRunner: handles agent execution throwing non-Error", async () => 
 
   // Mock agent runner that throws a string
   class ThrowingAgentRunner extends MockAgentRunner {
-    override async run(agentId: string, request: FlowStepRequest): Promise<AgentExecutionResult> {
+    override async run(agentId: string, request: IFlowStepRequest): Promise<IAgentExecutionResult> {
       if (agentId === "throwing-agent") {
         throw "String error"; // Throw a string, not an Error
       }
@@ -645,7 +643,7 @@ Deno.test("FlowRunner: handles agent execution throwing non-Error", async () => 
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.success, false);
   assertEquals(result.stepResults.get("step1")?.success, false);
@@ -653,7 +651,7 @@ Deno.test("FlowRunner: handles agent execution throwing non-Error", async () => 
 });
 
 Deno.test("FlowRunner: handles output aggregation with failed steps", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -672,7 +670,7 @@ Deno.test("FlowRunner: handles output aggregation with failed steps", async () =
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "mixed-output-flow",
     name: "Mixed Output Flow",
     description: "A flow with mixed success/failure for output aggregation",
@@ -690,14 +688,14 @@ Deno.test("FlowRunner: handles output aggregation with failed steps", async () =
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.success, false); // Overall flow failed
   assertEquals(result.output, "Result 1"); // Only successful step included
 });
 
 Deno.test("FlowRunner: handles output aggregation with all failed steps", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -716,7 +714,7 @@ Deno.test("FlowRunner: handles output aggregation with all failed steps", async 
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "all-failed-flow",
     name: "All Failed Flow",
     description: "A flow where all steps fail",
@@ -730,14 +728,14 @@ Deno.test("FlowRunner: handles output aggregation with all failed steps", async 
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.success, false);
   assertEquals(result.output, "{}"); // Empty JSON object when no successful steps
 });
 
 Deno.test("FlowRunner: applies mergeAsContext transform", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -748,7 +746,7 @@ Deno.test("FlowRunner: applies mergeAsContext transform", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -766,14 +764,14 @@ Deno.test("FlowRunner: applies mergeAsContext transform", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "ignored since transformArgs provided" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "ignored since transformArgs provided" });
 
   assertEquals(result.success, true);
   assertEquals(result.output, "Step output");
 });
 
 Deno.test("FlowRunner: applies extractSection transform", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -798,7 +796,7 @@ Deno.test("FlowRunner: applies extractSection transform", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, {
+  const result = await runner.execute(flow as IFlow, {
     userPrompt: "## Requirements\n\nThis is the requirements section\n\n## Implementation\n\nThis is implementation",
   });
 
@@ -807,7 +805,7 @@ Deno.test("FlowRunner: applies extractSection transform", async () => {
 });
 
 Deno.test("FlowRunner: applies appendToRequest transform", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -832,14 +830,14 @@ Deno.test("FlowRunner: applies appendToRequest transform", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "original request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "original request" });
 
   assertEquals(result.success, true);
   assertEquals(result.output, "Transformed output");
 });
 
 Deno.test("FlowRunner: applies jsonExtract transform", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -864,7 +862,7 @@ Deno.test("FlowRunner: applies jsonExtract transform", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, {
+  const result = await runner.execute(flow as IFlow, {
     userPrompt: JSON.stringify({ user: { name: "John", age: 30 } }),
   });
 
@@ -873,7 +871,7 @@ Deno.test("FlowRunner: applies jsonExtract transform", async () => {
 });
 
 Deno.test("FlowRunner: applies templateFill transform", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -902,7 +900,7 @@ Deno.test("FlowRunner: applies templateFill transform", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, {
+  const result = await runner.execute(flow as IFlow, {
     userPrompt: "Hello {{name}}, your task is {{task}}",
   });
 
@@ -913,7 +911,7 @@ Deno.test("FlowRunner: applies templateFill transform", async () => {
 Deno.test("FlowRunner: applies custom transform function", async () => {
   const customTransform = (input: string) => `CUSTOM: ${input.toUpperCase()}`;
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -938,14 +936,14 @@ Deno.test("FlowRunner: applies custom transform function", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test input" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test input" });
 
   assertEquals(result.success, true);
   assertEquals(result.output, "Custom transformed");
 });
 
 Deno.test("FlowRunner: handles unknown transform", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -972,7 +970,7 @@ Deno.test("FlowRunner: handles unknown transform", async () => {
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
 
   try {
-    await runner.execute(flow as Flow, { userPrompt: "test" });
+    await runner.execute(flow as IFlow, { userPrompt: "test" });
     throw new Error("Expected FlowExecutionError to be thrown");
   } catch (error) {
     assert(error instanceof FlowExecutionError);
@@ -985,7 +983,7 @@ Deno.test("FlowRunner: handles transform function throwing error", async () => {
     throw new Error("Transform failed");
   };
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -1012,7 +1010,7 @@ Deno.test("FlowRunner: handles transform function throwing error", async () => {
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
 
   try {
-    await runner.execute(flow as Flow, { userPrompt: "test" });
+    await runner.execute(flow as IFlow, { userPrompt: "test" });
     throw new Error("Expected FlowExecutionError to be thrown");
   } catch (error) {
     assert(error instanceof FlowExecutionError);
@@ -1021,7 +1019,7 @@ Deno.test("FlowRunner: handles transform function throwing error", async () => {
 });
 
 Deno.test("FlowRunner: handles invalid transform args for extractSection", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -1048,7 +1046,7 @@ Deno.test("FlowRunner: handles invalid transform args for extractSection", async
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
 
   try {
-    await runner.execute(flow as Flow, { userPrompt: "test" });
+    await runner.execute(flow as IFlow, { userPrompt: "test" });
     throw new Error("Expected FlowExecutionError to be thrown");
   } catch (error) {
     assert(error instanceof FlowExecutionError);
@@ -1057,7 +1055,7 @@ Deno.test("FlowRunner: handles invalid transform args for extractSection", async
 });
 
 Deno.test("FlowRunner: handles invalid transform args for jsonExtract", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -1084,7 +1082,7 @@ Deno.test("FlowRunner: handles invalid transform args for jsonExtract", async ()
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
 
   try {
-    await runner.execute(flow as Flow, { userPrompt: "test" });
+    await runner.execute(flow as IFlow, { userPrompt: "test" });
     throw new Error("Expected FlowExecutionError to be thrown");
   } catch (error) {
     assert(error instanceof FlowExecutionError);
@@ -1093,7 +1091,7 @@ Deno.test("FlowRunner: handles invalid transform args for jsonExtract", async ()
 });
 
 Deno.test("FlowRunner: handles invalid transform args for templateFill", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -1120,14 +1118,14 @@ Deno.test("FlowRunner: handles invalid transform args for templateFill", async (
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
 
   await assertRejects(
-    async () => await runner.execute(flow as Flow, { userPrompt: "test" }),
+    async () => await runner.execute(flow as IFlow, { userPrompt: "test" }),
     FlowExecutionError,
     "templateFill requires a context object as transformArgs",
   );
 });
 
 Deno.test("FlowRunner: handles agent execution throwing error in Promise.allSettled", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -1150,14 +1148,14 @@ Deno.test("FlowRunner: handles agent execution throwing error in Promise.allSett
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.success, false);
   assert(result.stepResults.get("step1")?.error?.includes("Mock failure"));
 });
 
 Deno.test("FlowRunner: handles aggregate output with concat format", async () => {
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Test flow",
@@ -1191,7 +1189,7 @@ Deno.test("FlowRunner: handles aggregate output with concat format", async () =>
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.success, true);
   assertEquals(result.output, "Output 1\nOutput 2");
@@ -1199,7 +1197,7 @@ Deno.test("FlowRunner: handles aggregate output with concat format", async () =>
 
 // Condition evaluation tests (Phase 15.1)
 Deno.test("FlowRunner: executes step when condition evaluates to true", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -1219,7 +1217,7 @@ Deno.test("FlowRunner: executes step when condition evaluates to true", async ()
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Flow with conditions",
@@ -1236,7 +1234,7 @@ Deno.test("FlowRunner: executes step when condition evaluates to true", async ()
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.success, true);
   assertEquals(result.stepResults.get("step1")?.success, true);
@@ -1252,7 +1250,7 @@ Deno.test("FlowRunner: executes step when condition evaluates to true", async ()
 });
 
 Deno.test("FlowRunner: skips step when condition evaluates to false", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -1280,7 +1278,7 @@ Deno.test("FlowRunner: skips step when condition evaluates to false", async () =
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Flow with skipped step",
@@ -1298,7 +1296,7 @@ Deno.test("FlowRunner: skips step when condition evaluates to false", async () =
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.success, true);
   assertEquals(result.stepResults.get("step1")?.success, true);
@@ -1315,7 +1313,7 @@ Deno.test("FlowRunner: skips step when condition evaluates to false", async () =
 });
 
 Deno.test("FlowRunner: handles complex conditions with multiple results", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "analyze",
       name: "Analyze",
@@ -1343,7 +1341,7 @@ Deno.test("FlowRunner: handles complex conditions with multiple results", async 
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Flow with complex conditions",
@@ -1361,7 +1359,7 @@ Deno.test("FlowRunner: handles complex conditions with multiple results", async 
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   assertEquals(result.success, true);
   assertEquals(result.stepResults.get("final")?.success, true);
@@ -1370,7 +1368,7 @@ Deno.test("FlowRunner: handles complex conditions with multiple results", async 
 });
 
 Deno.test("FlowRunner: handles condition syntax errors gracefully", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -1390,7 +1388,7 @@ Deno.test("FlowRunner: handles condition syntax errors gracefully", async () => 
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Flow with invalid condition",
@@ -1407,7 +1405,7 @@ Deno.test("FlowRunner: handles condition syntax errors gracefully", async () => 
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  const result = await runner.execute(flow as Flow, { userPrompt: "test request" });
+  const result = await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   // Step with invalid condition should be skipped (error counts as false)
   assertEquals(result.success, true);
@@ -1421,10 +1419,10 @@ Deno.test("FlowRunner: handles condition syntax errors gracefully", async () => 
 // ============================================================================
 
 // Mock AgentRunner that captures requests to verify skills are passed
-class CapturingMockAgentRunner implements AgentExecutor {
-  capturedRequests: Array<{ agentId: string; request: FlowStepRequest }> = [];
+class CapturingMockAgentRunner implements IAgentExecutor {
+  capturedRequests: Array<{ agentId: string; request: IFlowStepRequest }> = [];
 
-  async run(agentId: string, request: FlowStepRequest): Promise<AgentExecutionResult> {
+  async run(agentId: string, request: IFlowStepRequest): Promise<IAgentExecutionResult> {
     this.capturedRequests.push({ agentId, request });
     return await Promise.resolve({
       thought: `Processing ${agentId}`,
@@ -1435,7 +1433,7 @@ class CapturingMockAgentRunner implements AgentExecutor {
 }
 
 Deno.test("FlowRunner: passes step-level skills to agent executor", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -1446,7 +1444,7 @@ Deno.test("FlowRunner: passes step-level skills to agent executor", async () => 
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Flow with step skills",
@@ -1460,7 +1458,7 @@ Deno.test("FlowRunner: passes step-level skills to agent executor", async () => 
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  await runner.execute(flow as Flow, { userPrompt: "test request" });
+  await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   // Verify skills were passed to the agent executor
   assertEquals(mockAgentRunner.capturedRequests.length, 1);
@@ -1468,7 +1466,7 @@ Deno.test("FlowRunner: passes step-level skills to agent executor", async () => 
 });
 
 Deno.test("FlowRunner: passes flow-level defaultSkills when step has no skills", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -1479,7 +1477,7 @@ Deno.test("FlowRunner: passes flow-level defaultSkills when step has no skills",
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Flow with default skills",
@@ -1494,7 +1492,7 @@ Deno.test("FlowRunner: passes flow-level defaultSkills when step has no skills",
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  await runner.execute(flow as Flow, { userPrompt: "test request" });
+  await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   // Verify default skills were passed to the agent executor
   assertEquals(mockAgentRunner.capturedRequests.length, 1);
@@ -1502,7 +1500,7 @@ Deno.test("FlowRunner: passes flow-level defaultSkills when step has no skills",
 });
 
 Deno.test("FlowRunner: step-level skills override flow-level defaults", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -1513,7 +1511,7 @@ Deno.test("FlowRunner: step-level skills override flow-level defaults", async ()
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Flow with both default and step skills",
@@ -1528,7 +1526,7 @@ Deno.test("FlowRunner: step-level skills override flow-level defaults", async ()
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  await runner.execute(flow as Flow, { userPrompt: "test request" });
+  await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   // Step skills should override flow defaults
   assertEquals(mockAgentRunner.capturedRequests.length, 1);
@@ -1536,7 +1534,7 @@ Deno.test("FlowRunner: step-level skills override flow-level defaults", async ()
 });
 
 Deno.test("FlowRunner: multi-step flow with mixed skills", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -1563,7 +1561,7 @@ Deno.test("FlowRunner: multi-step flow with mixed skills", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Multi-step flow with mixed skills",
@@ -1578,7 +1576,7 @@ Deno.test("FlowRunner: multi-step flow with mixed skills", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  await runner.execute(flow as Flow, { userPrompt: "test request" });
+  await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   // Step1: uses flow defaults
   assertEquals(mockAgentRunner.capturedRequests[0].agentId, "agent1");
@@ -1594,7 +1592,7 @@ Deno.test("FlowRunner: multi-step flow with mixed skills", async () => {
 });
 
 Deno.test("FlowRunner: flow without any skills passes undefined", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -1604,7 +1602,7 @@ Deno.test("FlowRunner: flow without any skills passes undefined", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Flow without skills",
@@ -1619,7 +1617,7 @@ Deno.test("FlowRunner: flow without any skills passes undefined", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  await runner.execute(flow as Flow, { userPrompt: "test request" });
+  await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   // Should have undefined skills
   assertEquals(mockAgentRunner.capturedRequests.length, 1);
@@ -1627,7 +1625,7 @@ Deno.test("FlowRunner: flow without any skills passes undefined", async () => {
 });
 
 Deno.test("FlowRunner: logs hasSkills in input.prepared event", async () => {
-  const steps: FlowStepInput[] = [
+  const steps: IFlowStepInput[] = [
     {
       id: "step1",
       name: "Step 1",
@@ -1638,7 +1636,7 @@ Deno.test("FlowRunner: logs hasSkills in input.prepared event", async () => {
     },
   ];
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "Flow for logging test",
@@ -1652,7 +1650,7 @@ Deno.test("FlowRunner: logs hasSkills in input.prepared event", async () => {
   const mockLogger = new MockEventLogger();
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger);
-  await runner.execute(flow as Flow, { userPrompt: "test request" });
+  await runner.execute(flow as IFlow, { userPrompt: "test request" });
 
   // Find the input.prepared event
   const inputPreparedEvent = mockLogger.events.find((e) => e.event === "flow.step.input.prepared");
@@ -1662,7 +1660,7 @@ Deno.test("FlowRunner: logs hasSkills in input.prepared event", async () => {
 
 // Mock DatabaseService for testing token aggregation
 class MockDatabaseService implements IDatabaseService {
-  private activities: Array<ActivityRecord> = [];
+  private activities: Array<IActivityRecord> = [];
 
   constructor(activities: Array<{ traceId: string; actionType: string; payload: Record<string, JSONValue> }> = []) {
     this.activities = activities.map((a) => ({
@@ -1677,7 +1675,7 @@ class MockDatabaseService implements IDatabaseService {
     }));
   }
 
-  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]> {
+  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
     return Promise.resolve(this.activities.filter((a) => {
       if (filter.traceId && a.trace_id !== filter.traceId) return false;
       if (filter.actionType && a.action_type !== filter.actionType) return false;
@@ -1700,28 +1698,28 @@ class MockDatabaseService implements IDatabaseService {
   close(): Promise<void> {
     return Promise.resolve();
   }
-  preparedGet<T>(_query: string, _params?: SqliteParam[]): Promise<T | null> {
+  preparedGet<T>(_query: string, _params?: ISqliteParam[]): Promise<T | null> {
     return Promise.resolve(null);
   }
-  preparedAll<T>(_query: string, _params?: SqliteParam[]): Promise<T[]> {
+  preparedAll<T>(_query: string, _params?: ISqliteParam[]): Promise<T[]> {
     return Promise.resolve([]);
   }
-  preparedRun(_query: string, _params?: SqliteParam[]): Promise<unknown> {
+  preparedRun(_query: string, _params?: ISqliteParam[]): Promise<unknown> {
     return Promise.resolve(null);
   }
-  getActivitiesByTrace(_traceId: string): ActivityRecord[] {
+  getActivitiesByTrace(_traceId: string): IActivityRecord[] {
     return [];
   }
-  getActivitiesByTraceSafe(_traceId: string): Promise<ActivityRecord[]> {
+  getActivitiesByTraceSafe(_traceId: string): Promise<IActivityRecord[]> {
     return Promise.resolve([]);
   }
-  getActivitiesByActionType(_actionType: string): ActivityRecord[] {
+  getActivitiesByActionType(_actionType: string): IActivityRecord[] {
     return [];
   }
-  getActivitiesByActionTypeSafe(_actionType: string): Promise<ActivityRecord[]> {
+  getActivitiesByActionTypeSafe(_actionType: string): Promise<IActivityRecord[]> {
     return Promise.resolve([]);
   }
-  getRecentActivity(_limit?: number): Promise<ActivityRecord[]> {
+  getRecentActivity(_limit?: number): Promise<IActivityRecord[]> {
     return Promise.resolve([]);
   }
 }
@@ -1770,7 +1768,7 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger, mockDb);
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "A test flow for token aggregation",
@@ -1797,7 +1795,7 @@ Deno.test("[regression] FlowRunner: aggregates token usage across flow execution
     settings: { maxParallelism: 3, failFast: true },
   };
 
-  await runner.execute(flow as Flow, { userPrompt: "test request", traceId: "test-trace-123" });
+  await runner.execute(flow as IFlow, { userPrompt: "test request", traceId: "test-trace-123" });
 
   // Find the token summary event
   const tokenSummaryEvent = mockLogger.events.find((e) => e.event === "flow.token_summary");
@@ -1831,7 +1829,7 @@ Deno.test("[regression] FlowRunner: handles zero token usage gracefully", async 
 
   const runner = new FlowRunner(mockAgentRunner, mockLogger, mockDb);
 
-  const flow: FlowInput = {
+  const flow: IFlowInput = {
     id: "test-flow",
     name: "Test Flow",
     description: "A test flow for zero token usage",
@@ -1850,7 +1848,7 @@ Deno.test("[regression] FlowRunner: handles zero token usage gracefully", async 
     settings: { maxParallelism: 3, failFast: true },
   };
 
-  await runner.execute(flow as Flow, { userPrompt: "test request", traceId: "test-trace-456" });
+  await runner.execute(flow as IFlow, { userPrompt: "test request", traceId: "test-trace-456" });
 
   // Find the token summary event
   const tokenSummaryEvent = mockLogger.events.find((e) => e.event === "flow.token_summary");

@@ -13,7 +13,7 @@ import { createMCPRequest, initMCPTestWithoutPortal } from "./helpers/test_setup
  * - Server exposes metadata (name, version)
  * - Server handles initialize handshake
  * - Server gracefully stops
- * - All operations logged to Activity Journal
+ * - All operations logged to IActivity Journal
  */
 
 Deno.test("MCP Server: initializes with stdio transport", async () => {
@@ -89,7 +89,7 @@ Deno.test("MCP Server: handles tools/list request", async () => {
   }
 });
 
-Deno.test("MCP Server: logs startup to Activity Journal", async () => {
+Deno.test("MCP Server: logs startup to IActivity Journal", async () => {
   const ctx = await initMCPTestWithoutPortal();
   try {
     // Allow time for batched logging

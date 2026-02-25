@@ -15,7 +15,7 @@ import {
  * - git_commit commits changes with proper message validation
  * - git_status queries repository status
  * - All tools validate portal and git repository existence
- * - All tools log to Activity Journal
+ * - All tools log to IActivity Journal
  */
 
 // ============================================================================

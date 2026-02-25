@@ -169,14 +169,14 @@ Create a simple hello world function in src/utils.ts
     assertEquals(review!.created_by, "mock-agent");
     assertEquals(review!.files_changed, 1);
 
-    // Step 5: Verify Activity Journal events
+    // Step 5: Verify IActivity Journal events
     await dbService.waitForFlush(); // Flush batched log entries
 
     const events = dbService.instance
       .prepare("SELECT * FROM activity WHERE trace_id = ? ORDER BY timestamp")
       .all(traceId);
 
-    assert(events.length > 0, "Should have Activity Journal events");
+    assert(events.length > 0, "Should have IActivity Journal events");
 
     const reviewCreatedEvent = events.find((e: any) => e.action_type === "review.created");
     assertExists(reviewCreatedEvent, "Should have review.created event");
@@ -372,7 +372,7 @@ Deno.test("Integration Test 15.4: Review Lifecycle - Approval", async () => {
     assertEquals(review?.approved_by, "admin@example.com");
     assertExists(review?.approved_at);
 
-    // Verify Activity Journal logged approval
+    // Verify IActivity Journal logged approval
     await dbService.waitForFlush(); // Flush batched log entries
 
     const events = dbService.instance
@@ -423,7 +423,7 @@ Deno.test("Integration Test 15.5: Review Lifecycle - Rejection", async () => {
     assertEquals(review?.rejection_reason, "Does not meet coding standards");
     assertExists(review?.rejected_at);
 
-    // Verify Activity Journal logged rejection
+    // Verify IActivity Journal logged rejection
     await dbService.waitForFlush(); // Flush batched log entries
 
     const events = dbService.instance

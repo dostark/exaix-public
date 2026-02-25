@@ -11,13 +11,13 @@ import {
   MemorySource,
 } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
-import type { Learning, MemoryUpdateProposal, ProposalLearning } from "../../src/schemas/memory_bank.ts";
+import type { ILearning, IMemoryUpdateProposal, IProposalLearning } from "../../src/schemas/memory_bank.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import type { IDatabaseService } from "../../src/services/db.ts";
 import type { IMemoryBankService } from "../../src/services/memory_bank.ts";
 import type { JSONValue } from "../../src/types.ts";
 
-function makeProposalLearning(overrides: Partial<ProposalLearning> = {}): ProposalLearning {
+function makeProposalLearning(overrides: Partial<IProposalLearning> = {}): IProposalLearning {
   return {
     id: crypto.randomUUID(),
     created_at: new Date().toISOString(),
@@ -65,7 +65,7 @@ async function ensurePendingDir(config: { system: { root: string }; paths: { mem
   return pendingDir;
 }
 
-function makeProposal(overrides: Partial<MemoryUpdateProposal> = {}): MemoryUpdateProposal {
+function makeProposal(overrides: Partial<IMemoryUpdateProposal> = {}): IMemoryUpdateProposal {
   const { id, created_at, learning, ...rest } = overrides;
   return {
     id: id ?? crypto.randomUUID(),
@@ -82,7 +82,7 @@ function makeProposal(overrides: Partial<MemoryUpdateProposal> = {}): MemoryUpda
   };
 }
 
-async function writeProposal(pendingDir: string, proposal: MemoryUpdateProposal): Promise<string> {
+async function writeProposal(pendingDir: string, proposal: IMemoryUpdateProposal): Promise<string> {
   const proposalPath = join(pendingDir, `${proposal.id}.json`);
   await Deno.writeTextFile(proposalPath, JSON.stringify(proposal));
   return proposalPath;
@@ -131,7 +131,7 @@ Deno.test("MemoryExtractorService.getPending: returns null for missing or invali
 Deno.test("MemoryExtractorService.approvePending: global proposal merges learning and removes file", async () => {
   await withTempRoot(async (root) => {
     type CallRecord =
-      | { kind: string; learning: Learning }
+      | { kind: string; learning: ILearning }
       | { kind: string; project: string; pattern: { examples: string[] } }
       | [string, string, string | null, Record<string, JSONValue>, string?, string?];
     const calls: CallRecord[] = [];
@@ -159,7 +159,7 @@ Deno.test("MemoryExtractorService.approvePending: global proposal merges learnin
         },
       } as Partial<IDatabaseService> as IDatabaseService,
       memoryBank: {
-        addGlobalLearning: (learning: Learning) => {
+        addGlobalLearning: (learning: ILearning) => {
           calls.push({ kind: "addGlobalLearning", learning });
           return Promise.resolve();
         },
@@ -182,7 +182,7 @@ Deno.test("MemoryExtractorService.approvePending: global proposal merges learnin
 
     const globalCall = calls.find((c) => (c as { kind?: string })?.kind === "addGlobalLearning") as {
       kind: string;
-      learning: Learning;
+      learning: ILearning;
     };
     assertExists(globalCall);
     assertEquals(globalCall.learning.status, MemoryStatus.APPROVED);
@@ -260,14 +260,14 @@ Deno.test("MemoryExtractorService.approveAll: counts only successful approvals",
     const { svc } = makeService(root);
 
     interface Accessor {
-      listPending: () => Promise<Partial<MemoryUpdateProposal>[]>;
+      listPending: () => Promise<Partial<IMemoryUpdateProposal>[]>;
       approvePending: (id: string) => Promise<void>;
     }
 
     (svc as Partial<Accessor> as Accessor).listPending = () =>
       Promise.resolve([
-        { id: "ok" } as MemoryUpdateProposal,
-        { id: "bad" } as MemoryUpdateProposal,
+        { id: "ok" } as IMemoryUpdateProposal,
+        { id: "bad" } as IMemoryUpdateProposal,
       ]);
 
     (svc as Partial<Accessor> as Accessor).approvePending = (id: string) => {

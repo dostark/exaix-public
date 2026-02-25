@@ -16,7 +16,7 @@ import { createToolRegistryTestContext } from "./helpers/tool_registry_test_help
  * - Tool registration with JSON schemas
  * - Tool execution with security validation
  * - Path traversal attempts rejected
- * - Tool execution logged to Activity Journal
+ * - Tool execution logged to IActivity Journal
  * - Restricted commands blocked
  * - Structured error handling
  */

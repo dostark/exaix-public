@@ -24,7 +24,7 @@ import { createGitTestContext, GitTestHelper } from "./helpers/git_test_helper.t
  * - Commits with trace_id in commit message footer
  * - Handles branch name conflicts (appends timestamp)
  * - Validates changes exist before commit
- * - All git operations logged to Activity Journal
+ * - All git operations logged to IActivity Journal
  */
 
 Deno.test("GitService: auto-initializes repository if not present", async () => {

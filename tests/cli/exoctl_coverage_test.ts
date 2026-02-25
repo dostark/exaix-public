@@ -27,7 +27,7 @@ import { ReviewStatus } from "../../src/reviews/review_status.ts";
 import { GitService } from "../../src/services/git_service.ts";
 import type { OutputFormat } from "../../src/cli/memory_types.ts";
 import type { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
-import type { RequestOptions, RequestSource } from "../../src/cli/commands/request_commands.ts";
+import type { IRequestOptions, RequestSource } from "../../src/cli/commands/request_commands.ts";
 import type { RequestStatusType } from "../../src/requests/request_status.ts";
 import { RequestPriority } from "../../src/enums.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
@@ -877,12 +877,12 @@ Deno.test("request create with all options", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.requestCommands.create = (
       desc: string,
-      opts?: RequestOptions,
+      opts?: IRequestOptions,
       _source?: RequestSource,
     ) => {
       assertEquals(desc, "Do task");
       assertEquals(opts?.agent, "custom-agent");
-      assertEquals(opts?.priority, "high" as RequestOptions["priority"]);
+      assertEquals(opts?.priority, "high" as IRequestOptions["priority"]);
       assertEquals(opts?.portal, "my-portal");
       assertEquals(opts?.model, TEST_MODEL_OPENAI);
       return Promise.resolve({
@@ -918,12 +918,12 @@ Deno.test("request create with flow option", async () => {
   await withTestMod(async (mod, ctx) => {
     ctx.requestCommands.create = (
       desc: string,
-      opts?: RequestOptions,
+      opts?: IRequestOptions,
       _source?: RequestSource,
     ) => {
       assertEquals(desc, "Code review task");
       assertEquals(opts?.flow, "code-review");
-      assertEquals(opts?.priority, "high" as RequestOptions["priority"]);
+      assertEquals(opts?.priority, "high" as IRequestOptions["priority"]);
       return Promise.resolve({
         filename: "/tmp/req.md",
         trace_id: "t-flow",
@@ -1024,7 +1024,7 @@ Deno.test("end-to-end flow request workflow", async () => {
     // Mock the request creation to return a flow request
     ctx.requestCommands.create = (
       desc: string,
-      opts?: RequestOptions,
+      opts?: IRequestOptions,
       _source?: RequestSource,
     ) => {
       assertEquals(desc, "Build a web application");

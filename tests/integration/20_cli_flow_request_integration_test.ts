@@ -5,7 +5,7 @@
  * Success Criteria:
  * - Test 1: CLI request with --flow creates flow request with correct metadata
  * - Test 2: Flow request is routed to FlowRunner (not AgentRunner)
- * - Test 3: Flow execution is logged in Activity Journal
+ * - Test 3: Flow execution is logged in IActivity Journal
  * - Test 4: Invalid flow names are rejected with clear error
  * - Test 5: Flow requests with portals work correctly
  * - Test 6: Flow completion status is tracked properly
@@ -15,7 +15,7 @@ import { assert, assertEquals, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 
-Deno.test("Integration: Flow Request Creation and Metadata", async (t) => {
+Deno.test("Integration: IFlow as Flow Request Creation and Metadata", async (t) => {
   const env = await TestEnvironment.create();
   try {
     let traceId: string;
@@ -36,9 +36,9 @@ Deno.test("Integration: Flow Request Creation and Metadata", async (t) => {
     });
 
     // ========================================================================
-    // Test 2: Flow request file has correct metadata
+    // Test 2: IFlow as Flow request file has correct metadata
     // ========================================================================
-    await t.step("Test 2: Flow request file has correct metadata", async () => {
+    await t.step("Test 2: IFlow as Flow request file has correct metadata", async () => {
       const requestPath = join(env.tempDir, "Workspace", "Requests", `request-${requestId}.md`);
       const content = await Deno.readTextFile(requestPath);
 
@@ -51,9 +51,9 @@ Deno.test("Integration: Flow Request Creation and Metadata", async (t) => {
     });
 
     // ========================================================================
-    // Test 3: Activity Journal logs flow request creation
+    // Test 3: IActivity Journal logs flow request creation
     // ========================================================================
-    await t.step("Test 3: Activity Journal logs flow request creation", async () => {
+    await t.step("Test 3: IActivity Journal logs flow request creation", async () => {
       // Simulate what the request processor would log
       env.db.logActivity(
         "test",
@@ -89,13 +89,13 @@ Deno.test("Integration: Flow Request Creation and Metadata", async (t) => {
   }
 });
 
-Deno.test("Integration: Flow Request Validation", async (t) => {
+Deno.test("Integration: IFlow as Flow Request Validation", async (t) => {
   const env = await TestEnvironment.create();
   try {
     // ========================================================================
-    // Test 4: Flow request validation works
+    // Test 4: IFlow as Flow request validation works
     // ========================================================================
-    await t.step("Test 4: Flow request with invalid flow is rejected", async () => {
+    await t.step("Test 4: IFlow as Flow request with invalid flow is rejected", async () => {
       // This would be tested at the CLI level, but we can test the validation logic
       // For now, just verify that valid flows can be created
       const result = await env.createFlowRequest("Valid flow request", "refactoring");
@@ -107,9 +107,9 @@ Deno.test("Integration: Flow Request Validation", async (t) => {
     });
 
     // ========================================================================
-    // Test 5: Flow request with portal works
+    // Test 5: IFlow as Flow request with portal works
     // ========================================================================
-    await t.step("Test 5: Flow request with portal metadata", async () => {
+    await t.step("Test 5: IFlow as Flow request with portal metadata", async () => {
       const result = await env.createFlowRequest("Portal flow request", "refactoring", {
         portal: "TestPortal",
         agentId: "mock-agent",

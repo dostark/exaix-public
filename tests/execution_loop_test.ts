@@ -16,7 +16,7 @@ import {
 } from "./helpers/paths_helper.ts";
 import { ensureDir } from "@std/fs/ensure-dir";
 import type { IModelProvider } from "../src/ai/providers.ts";
-import type { ActivityRecord } from "../src/services/db.ts";
+import type { IActivityRecord } from "../src/services/db.ts";
 import { EXECUTION_REPORT_FILENAME } from "../src/config/constants.ts";
 
 /**
@@ -29,7 +29,7 @@ import { EXECUTION_REPORT_FILENAME } from "../src/config/constants.ts";
  * - Handle success path = commit changes, generate report, archive plan
  * - Handle failure path = rollback git, generate failure report, move plan back
  * - Release lease even on failure
- * - Log all execution steps to Activity Journal with trace_id and agent_id
+ * - Log all execution steps to IActivity Journal with trace_id and agent_id
  */
 
 function getTestPaths(root: string) {
@@ -82,10 +82,10 @@ agent_id: test-agent
     const archivedExists = await Deno.stat(archivedPlan).then(() => true).catch(() => false);
     assert(archivedExists, "Plan should be archived after successful execution");
 
-    // Activity should be logged
+    // IActivity should be logged
     await new Promise((resolve) => setTimeout(resolve, 150)); // Wait for batched logs
     const activities = db.getActivitiesByTrace(traceId);
-    const startedLog = activities.find((a: ActivityRecord) => a.action_type === "execution.started");
+    const startedLog = activities.find((a: IActivityRecord) => a.action_type === "execution.started");
     assertExists(startedLog, "execution.started should be logged");
   } finally {
     await cleanup();
@@ -231,7 +231,7 @@ agent_id: test-agent
     const failureReportExists = await Deno.stat(failureReportPath).then(() => true).catch(() => false);
     assert(failureReportExists, "Failure report should be generated");
 
-    // Activity should log failure
+    // IActivity should log failure
     await new Promise((resolve) => setTimeout(resolve, 150));
     const activities = db.getActivitiesByTrace("test-trace-fail");
     const failedLog = activities.find((a: any) => a.action_type === "execution.failed");
@@ -423,7 +423,7 @@ agent_id: test-agent
   }
 });
 
-Deno.test("ExecutionLoop: logs all execution steps to Activity Journal", async () => {
+Deno.test("ExecutionLoop: logs all execution steps to IActivity Journal", async () => {
   const tempDir = await Deno.makeTempDir({ prefix: "exec-test-logging-" });
   const { db, cleanup } = await initTestDbService();
 
@@ -459,7 +459,7 @@ content = "activity journal logging test"
     const activities = db.getActivitiesByTrace("test-trace-logging");
 
     // Check for key execution steps
-    const actionTypes = activities.map((a: ActivityRecord) => a.action_type);
+    const actionTypes = activities.map((a: IActivityRecord) => a.action_type);
 
     assert(
       actionTypes.includes("execution.started"),
@@ -475,8 +475,8 @@ content = "activity journal logging test"
     );
 
     // Verify agent_id is set
-    const agentActions = activities.filter((a: ActivityRecord) => a.actor === MemorySource.AGENT);
-    agentActions.forEach((action: ActivityRecord) => {
+    const agentActions = activities.filter((a: IActivityRecord) => a.actor === MemorySource.AGENT);
+    agentActions.forEach((action: IActivityRecord) => {
       assertEquals(action.agent_id, "test-agent", "Agent actions should have agent_id");
     });
   } finally {
@@ -1115,7 +1115,7 @@ This plan has no action blocks.
 
     await new Promise((resolve) => setTimeout(resolve, 150));
     const activities = db.getActivitiesByTrace("test-trace-nochanges");
-    const _noChangesLog = activities.find((a: ActivityRecord) => a.action_type === "execution.no_changes");
+    const _noChangesLog = activities.find((a: IActivityRecord) => a.action_type === "execution.no_changes");
 
     // May or may not log no_changes depending on timing, but should complete
     assertEquals(result.success, true);
@@ -1158,7 +1158,7 @@ agent_id: test-agent
 
     // Verify lease was acquired
     const activities = db.getActivitiesByTrace("test-trace-lease");
-    const leaseAcquired = activities.find((a: ActivityRecord) => a.action_type === "execution.lease_acquired");
+    const leaseAcquired = activities.find((a: IActivityRecord) => a.action_type === "execution.lease_acquired");
     assertExists(leaseAcquired, "Lease should be acquired");
 
     // Parse payload to verify holder
@@ -1279,10 +1279,10 @@ test = "value"
     const activities = db.getActivitiesByTrace("test-trace-unknown");
 
     // Should have started and completed the action (even though tool result was success:false)
-    const actionStarted = activities.find((a: ActivityRecord) => a.action_type === "execution.action_started");
+    const actionStarted = activities.find((a: IActivityRecord) => a.action_type === "execution.action_started");
     assertExists(actionStarted, "Action should be started");
 
-    const actionCompleted = activities.find((a: ActivityRecord) => a.action_type === "execution.action_completed");
+    const actionCompleted = activities.find((a: IActivityRecord) => a.action_type === "execution.action_completed");
     assertExists(actionCompleted, "Action should complete even with unknown tool");
   } finally {
     await cleanup();
@@ -1334,7 +1334,7 @@ path = "test-read.txt"
 
     await db.waitForFlush();
     const activities = db.getActivitiesByActionType("execution.action_completed");
-    const log = activities.find((a: ActivityRecord) => JSON.parse(a.payload).result_summary?.includes("aaaa"));
+    const log = activities.find((a: IActivityRecord) => JSON.parse(a.payload).result_summary?.includes("aaaa"));
     assertExists(log, "Action completion with summary should be logged");
   } finally {
     await cleanup();

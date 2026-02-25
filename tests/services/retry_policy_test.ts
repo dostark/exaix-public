@@ -113,7 +113,7 @@ Deno.test("[RetryPolicy] retries on message pattern match", async () => {
       return Promise.resolve("ok");
     });
 
-    assertEquals(callCount, 2, `Pattern "${pattern}" should trigger retry`);
+    assertEquals(callCount, 2, `IPattern "${pattern}" should trigger retry`);
   }
 });
 

@@ -16,7 +16,7 @@ import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/a
 import { join } from "@std/path";
 import { OllamaProvider } from "../../src/ai/providers.ts";
 import { AgentRunner } from "../../src/services/agent_runner.ts";
-import { PlanWriter, type RequestMetadata } from "../../src/services/plan_writer.ts";
+import { type IRequestMetadata as IRequestMetadata, PlanWriter } from "../../src/services/plan_writer.ts";
 import { PlanAdapter } from "../../src/services/plan_adapter.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { getWorkspacePlansDir } from "../helpers/paths_helper.ts";
@@ -179,7 +179,7 @@ Deno.test({
       db,
     });
 
-    const metadata: RequestMetadata = {
+    const metadata: IRequestMetadata = {
       traceId: request.traceId,
       requestId: request.requestId,
       createdAt: new Date(),

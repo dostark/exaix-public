@@ -87,7 +87,7 @@ Deno.test("generateExecutePlanPrompt: includes tool usage guidance", async () =>
   }
 });
 
-Deno.test("generateExecutePlanPrompt: logs to Activity Journal", async () => {
+Deno.test("generateExecutePlanPrompt: logs to IActivity Journal", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     generateExecutePlanPrompt({ plan_id: "log-test-plan", portal: "TestPortal" }, db);
@@ -153,7 +153,7 @@ Deno.test("generateCreateReviewPrompt: includes git workflow guidance", async ()
   }
 });
 
-Deno.test("generateCreateReviewPrompt: logs to Activity Journal", async () => {
+Deno.test("generateCreateReviewPrompt: logs to IActivity Journal", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     generateCreateReviewPrompt({

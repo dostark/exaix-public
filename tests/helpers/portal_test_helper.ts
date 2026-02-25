@@ -8,7 +8,7 @@ import { PortalCommands } from "../../src/cli/commands/portal_commands.ts";
 import { initTestDbService } from "./db.ts";
 import { createTestConfigService } from "./config.ts";
 import type { ConfigService } from "../../src/config/service.ts";
-import type { DatabaseService } from "../../src/services/db.ts";
+import type { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { getPortalsDir } from "./paths_helper.ts";
 
 /**

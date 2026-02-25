@@ -1,16 +1,14 @@
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
-
 import { MemorySource } from "../../src/enums.ts";
-
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { exists } from "@std/fs";
-import { type FlowReportConfig, FlowReporter } from "../../src/services/flow_reporter.ts";
+import { FlowReporter, type IFlowReportConfig } from "../../src/services/flow_reporter.ts";
 import { createMockConfig } from "../helpers/config.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { Flow, FlowInput } from "../../src/schemas/flow.ts";
-import type { FlowResult, StepResult } from "../../src/flows/flow_runner.ts";
+import type { IFlow, IFlowInput } from "../../src/schemas/flow.ts";
+import type { IFlowResult, IStepResult } from "../../src/flows/flow_runner.ts";
 import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
 import type { Config } from "../../src/config/schema.ts";
 
@@ -18,7 +16,7 @@ describe("FlowReporter", () => {
   let tempDir: string;
   let cleanup: () => Promise<void>;
   let config: Config;
-  let reportConfig: FlowReportConfig;
+  let reportConfig: IFlowReportConfig;
   let reporter: FlowReporter;
 
   beforeEach(async () => {
@@ -57,7 +55,7 @@ describe("FlowReporter", () => {
   describe("generate", () => {
     it("should generate report for successful flow execution", async () => {
       // Create mock flow data
-      const flow: FlowInput = {
+      const flow: IFlowInput = {
         id: "test-flow",
         name: "Test Flow",
         description: "A test flow",
@@ -102,7 +100,7 @@ describe("FlowReporter", () => {
         },
       };
 
-      const stepResults = new Map<string, StepResult>([
+      const stepResults = new Map<string, IStepResult>([
         [
           "step1",
           {
@@ -135,7 +133,7 @@ describe("FlowReporter", () => {
         ],
       ]);
 
-      const flowResult: FlowResult = {
+      const flowResult: IFlowResult = {
         flowRunId: "run-123-456",
         success: true,
         stepResults,
@@ -156,7 +154,7 @@ describe("FlowReporter", () => {
       const requestId = "request-abc123";
 
       // Generate report
-      const result = await reporter.generate(flow as Flow, flowResult, requestId);
+      const result = await reporter.generate(flow as IFlow, flowResult, requestId);
 
       // Verify result structure
       assertExists(result.reportPath);
@@ -186,7 +184,7 @@ describe("FlowReporter", () => {
 
     it("should generate report for failed flow execution", async () => {
       // Create mock flow data with failure
-      const flow: FlowInput = {
+      const flow: IFlowInput = {
         id: "failed-flow",
         name: "Failed Flow",
         description: "A flow that fails",
@@ -217,7 +215,7 @@ describe("FlowReporter", () => {
         },
       };
 
-      const stepResults = new Map<string, StepResult>([
+      const stepResults = new Map<string, IStepResult>([
         [
           "step1",
           {
@@ -231,7 +229,7 @@ describe("FlowReporter", () => {
         ],
       ]);
 
-      const flowResult: FlowResult = {
+      const flowResult: IFlowResult = {
         flowRunId: "run-789-012",
         success: false,
         stepResults,
@@ -242,7 +240,7 @@ describe("FlowReporter", () => {
       };
 
       // Generate report
-      const result = await reporter.generate(flow as Flow, flowResult);
+      const result = await reporter.generate(flow as IFlow, flowResult);
 
       // Verify content indicates failure
       assertStringIncludes(result.content, "success: false");
@@ -254,7 +252,7 @@ describe("FlowReporter", () => {
 
     it("should generate correct filename format", async () => {
       // Create minimal mock data
-      const flow: FlowInput = {
+      const flow: IFlowInput = {
         id: "filename-test",
         name: "Filename Test",
         description: "Test filename generation",
@@ -283,7 +281,7 @@ describe("FlowReporter", () => {
         },
       };
 
-      const stepResults = new Map<string, StepResult>([
+      const stepResults = new Map<string, IStepResult>([
         [
           "step1",
           {
@@ -301,7 +299,7 @@ describe("FlowReporter", () => {
         ],
       ]);
 
-      const flowResult: FlowResult = {
+      const flowResult: IFlowResult = {
         flowRunId: "run-abc-def-ghi",
         success: true,
         stepResults,
@@ -311,7 +309,7 @@ describe("FlowReporter", () => {
         completedAt: new Date(),
       };
 
-      const result = await reporter.generate(flow as Flow, flowResult);
+      const result = await reporter.generate(flow as IFlow, flowResult);
 
       // Filename should match pattern: flow_{flowId}_{shortRunId}_{timestamp}.md
       const filename = result.reportPath.split("/").pop()!;

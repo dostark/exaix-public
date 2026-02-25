@@ -5,7 +5,8 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { EvaluationCategory, ProviderCostTier } from "../../src/enums.ts";
 import { HealthCheckVerdict } from "../../src/enums.ts";
-import { MockProviderFactory, ProviderRegistry } from "../../src/ai/provider_registry.ts";
+import { ProviderRegistry } from "../../src/ai/provider_registry.ts";
+import { MockProviderFactory } from "../../src/ai/factories/mock_factory.ts";
 import { ProviderSelector } from "../../src/ai/provider_selector.ts";
 import { CostTracker } from "../../src/services/cost_tracker.ts";
 import { HealthCheckService } from "../../src/services/health_check_service.ts";

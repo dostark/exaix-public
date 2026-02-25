@@ -6,7 +6,7 @@
  * - Test 1: Agent can read files within assigned portal
  * - Test 2: Agent cannot read files outside portal boundaries
  * - Test 3: Portal symlinks are resolved and validated
- * - Test 4: Portal access is logged to Activity Journal
+ * - Test 4: Portal access is logged to IActivity Journal
  * - Test 5: Portal permissions are enforced during execution
  * - Test 6: Cross-portal access is denied
  * - Test 7: Portal configuration changes are respected
@@ -172,7 +172,7 @@ export function main() {
     // ========================================================================
     // Test 4: Portal access logged
     // ========================================================================
-    await t.step("Test 4: Portal access logged to Activity Journal", async () => {
+    await t.step("Test 4: Portal access logged to IActivity Journal", async () => {
       await new Promise((resolve) => setTimeout(resolve, 200));
       env.db.waitForFlush();
 

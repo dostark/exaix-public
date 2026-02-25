@@ -2,10 +2,10 @@
  * EventLogger Test Suite
  * Implements Step 5.10 of the ExoFrame Implementation Plan (TDD)
  *
- * Tests the unified logging service that writes to both console and Activity Journal.
+ * Tests the unified logging service that writes to both console and IActivity Journal.
  *
  * TDD Test Cases:
- * - Basic Logging: write event to Activity Journal, print formatted message
+ * - Basic Logging: write event to IActivity Journal, print formatted message
  * - Log Levels: respect minLevel, use appropriate icons
  * - Child Loggers: inherit and override parent defaults
  * - Actor Identity: resolve from git config email, fallback to name, then OS username
@@ -22,7 +22,7 @@ import { LogLevel } from "../src/enums.ts";
 // Basic Logging Tests
 // ============================================================================
 
-Deno.test("EventLogger: should write event to Activity Journal", async () => {
+Deno.test("EventLogger: should write event to IActivity Journal", async () => {
   const { db, cleanup } = await initTestDbService();
   try {
     const logger = new EventLogger({ db, prefix: "[Test]" });

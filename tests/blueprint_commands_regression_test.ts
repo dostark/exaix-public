@@ -14,7 +14,7 @@ import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
 import { ExoPathDefaults } from "../src/config/constants.ts";
-import type { BlueprintMetadata } from "../src/schemas/blueprint.ts";
+import type { IBlueprintMetadata } from "../src/schemas/blueprint.ts";
 import { BlueprintCommands } from "../src/cli/commands/blueprint_commands.ts";
 import type { Config } from "../src/config/schema.ts";
 
@@ -259,7 +259,7 @@ TOML content.
 
     assertEquals(blueprints.length, 2, "Should find both YAML and TOML blueprints");
 
-    const ids = blueprints.map((b: BlueprintMetadata) => b.agent_id).sort();
+    const ids = blueprints.map((b: IBlueprintMetadata) => b.agent_id).sort();
     assertEquals(ids, [AGENT_ID_MIXED_TOML, AGENT_ID_MIXED_YAML]);
   } finally {
     await Deno.remove(tempDir, { recursive: true });

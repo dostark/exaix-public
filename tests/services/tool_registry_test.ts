@@ -9,7 +9,7 @@ import { join } from "@std/path";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ExoPathDefaults } from "../../src/config/constants.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";
-import { DatabaseService } from "../../src/services/db.ts";
+import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 
 // Mock dependencies
 const mockConfig = ConfigSchema.parse({

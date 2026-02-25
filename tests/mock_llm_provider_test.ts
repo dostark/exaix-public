@@ -22,10 +22,10 @@ import {
   createFailingMock,
   createPlanGeneratorMock,
   createSlowMock,
+  type IRecordedResponse,
   MockLLMError,
   MockLLMProvider,
   type PatternMatcher,
-  type RecordedResponse,
 } from "../src/ai/providers/mock_llm_provider.ts";
 
 // ============================================================================
@@ -115,7 +115,7 @@ Deno.test("Scripted: stores call history", async () => {
 // ============================================================================
 
 Deno.test("Recorded: returns response matching prompt hash", async () => {
-  const recordings: RecordedResponse[] = [
+  const recordings: IRecordedResponse[] = [
     {
       promptHash: "abc123",
       promptPreview: "You are a senior...",
@@ -170,10 +170,10 @@ Deno.test("Recorded: hash function is deterministic", () => {
 });
 
 // ============================================================================
-// Test 4: Pattern Strategy - Match prompts with regex patterns
+// Test 4: IPattern Strategy - Match prompts with regex patterns
 // ============================================================================
 
-Deno.test("Pattern: matches prompt and returns configured response", async () => {
+Deno.test("IPattern: matches prompt and returns configured response", async () => {
   const patterns: PatternMatcher[] = [
     {
       pattern: /implement.*authentication/i,
@@ -194,7 +194,7 @@ Deno.test("Pattern: matches prompt and returns configured response", async () =>
   assertStringIncludes(result2, "Bug Fix");
 });
 
-Deno.test("Pattern: uses first matching pattern", async () => {
+Deno.test("IPattern: uses first matching pattern", async () => {
   const patterns: PatternMatcher[] = [
     { pattern: /test/, response: "First match" },
     { pattern: /test/, response: "Second match" },
@@ -206,7 +206,7 @@ Deno.test("Pattern: uses first matching pattern", async () => {
   assertEquals(result, "First match");
 });
 
-Deno.test("Pattern: throws error when no pattern matches", async () => {
+Deno.test("IPattern: throws error when no pattern matches", async () => {
   const patterns: PatternMatcher[] = [
     { pattern: /specific/, response: "response" },
   ];
@@ -220,7 +220,7 @@ Deno.test("Pattern: throws error when no pattern matches", async () => {
   );
 });
 
-Deno.test("Pattern: supports dynamic response generation", async () => {
+Deno.test("IPattern: supports dynamic response generation", async () => {
   const patterns: PatternMatcher[] = [
     {
       pattern: /add (\w+) function/i,
@@ -480,7 +480,7 @@ Deno.test("MockLLMProvider supports ModelOptions parameter", async () => {
 });
 
 // ============================================================================
-// Test 11: Recorded Strategy Fallback to Pattern Matching
+// Test 11: Recorded Strategy Fallback to IPattern Matching
 // ============================================================================
 
 Deno.test("Recorded: falls back to patterns when no recording found", async () => {
@@ -502,7 +502,7 @@ Deno.test("Recorded: falls back to patterns when no recording found", async () =
 });
 
 Deno.test("Recorded: prefers exact recording over pattern fallback", async () => {
-  const recordings: RecordedResponse[] = [
+  const recordings: IRecordedResponse[] = [
     {
       promptHash: "test123",
       promptPreview: "specific prompt",
@@ -516,7 +516,7 @@ Deno.test("Recorded: prefers exact recording over pattern fallback", async () =>
   const patterns: PatternMatcher[] = [
     {
       pattern: /.*/,
-      response: "Pattern response",
+      response: "IPattern response",
     },
   ];
 
@@ -546,7 +546,7 @@ Deno.test("Recorded: auto-initializes default patterns when empty", async () => 
 });
 
 // ============================================================================
-// Test 12: Default Pattern Responses for Plan Creation
+// Test 12: Default IPattern Responses for Plan Creation
 // ============================================================================
 
 Deno.test("Default patterns: handles 'implement' requests", async () => {
@@ -876,10 +876,10 @@ Deno.test("Scripted: response with special characters and unicode", async () => 
 });
 
 // ============================================================================
-// Test 17: Additional Pattern Strategy Tests
+// Test 17: Additional IPattern Strategy Tests
 // ============================================================================
 
-Deno.test("Pattern: matches case-insensitive patterns", async () => {
+Deno.test("IPattern: matches case-insensitive patterns", async () => {
   const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       { pattern: /implement/i, response: "Implementation" },
@@ -891,7 +891,7 @@ Deno.test("Pattern: matches case-insensitive patterns", async () => {
   assertEquals(await provider.generate("ImPlEmEnT feature"), "Implementation");
 });
 
-Deno.test("Pattern: dynamic response with multiple capture groups", async () => {
+Deno.test("IPattern: dynamic response with multiple capture groups", async () => {
   const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       {
@@ -911,7 +911,7 @@ Deno.test("Pattern: dynamic response with multiple capture groups", async () => 
   );
 });
 
-Deno.test("Pattern: handles complex regex patterns", async () => {
+Deno.test("IPattern: handles complex regex patterns", async () => {
   const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       { pattern: /^fix\s+bug\s+#(\d+)$/i, response: (m) => `Fixing bug ${m[1]}` },
@@ -924,7 +924,7 @@ Deno.test("Pattern: handles complex regex patterns", async () => {
   assertEquals(await provider.generate("version v2.0.0"), "Version v2.0.0");
 });
 
-Deno.test("Pattern: respects pattern priority order", async () => {
+Deno.test("IPattern: respects pattern priority order", async () => {
   const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       { pattern: /implement/i, response: "First: Implement" },
@@ -940,7 +940,7 @@ Deno.test("Pattern: respects pattern priority order", async () => {
   assertEquals(await provider.generate("something else"), "Catch-all");
 });
 
-Deno.test("Pattern: dynamic response can access provider state", async () => {
+Deno.test("IPattern: dynamic response can access provider state", async () => {
   const provider: MockLLMProvider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       {
@@ -958,7 +958,7 @@ Deno.test("Pattern: dynamic response can access provider state", async () => {
   assertEquals(await provider.generate("test"), "Call number 3");
 });
 
-Deno.test("Pattern: empty patterns array throws error", async () => {
+Deno.test("IPattern: empty patterns array throws error", async () => {
   const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [],
   });
@@ -970,7 +970,7 @@ Deno.test("Pattern: empty patterns array throws error", async () => {
   );
 });
 
-Deno.test("Pattern: multiline prompt matching", async () => {
+Deno.test("IPattern: multiline prompt matching", async () => {
   const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [
       {
@@ -987,7 +987,7 @@ with OAuth2`;
   assertEquals(await provider.generate(multilinePrompt), "Authentication plan");
 });
 
-Deno.test("Pattern: tracks calls even when pattern doesn't match", async () => {
+Deno.test("IPattern: tracks calls even when pattern doesn't match", async () => {
   const provider = new MockLLMProvider(MockStrategy.PATTERN, {
     patterns: [{ pattern: /never-matches/i, response: "Won't happen" }],
   });

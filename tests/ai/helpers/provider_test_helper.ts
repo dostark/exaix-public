@@ -7,12 +7,12 @@
 
 import { assertEquals, assertRejects } from "@std/assert";
 import { Spy, spy, Stub, stub } from "https://deno.land/std@0.203.0/testing/mock.ts"; // No change
-import { ModelProviderError } from "../../../src/ai/providers.ts";
+import { ModelProviderError } from "../../../src/ai/providers/common.ts";
 import { EventLogger } from "../../../src/services/event_logger.ts";
 import type { JSONObject } from "../../../src/types.ts";
 
 /** Configuration for provider-specific response formats */
-export interface ProviderResponseConfig {
+export interface IProviderResponseConfig {
   /** How to wrap the response text in the provider's response format */
   wrapResponse: (text: string) => unknown;
   /** How to create usage metadata in the provider's format */
@@ -30,7 +30,7 @@ export interface ProviderTestSuiteConfig<T> {
   /** Provider's expected default ID */
   defaultId: string;
   /** Response format configuration */
-  responseConfig: ProviderResponseConfig;
+  responseConfig: IProviderResponseConfig;
   /** Expected header key for API key (e.g., "Authorization" or "x-api-key") */
   apiKeyHeader: string;
   /** Expected header value format (e.g., "Bearer test-key" or "test-key") */
@@ -42,7 +42,7 @@ export interface ProviderTestSuiteConfig<T> {
 }
 
 // OpenAI response format
-export const openaiResponseConfig: ProviderResponseConfig = {
+export const openaiResponseConfig: IProviderResponseConfig = {
   wrapResponse: (text: string) => ({ choices: [{ message: { content: text } }] }),
   createUsage: (prompt: number, completion: number) => ({
     usage: { prompt_tokens: prompt, completion_tokens: completion, total_tokens: prompt + completion },
@@ -54,7 +54,7 @@ export const openaiResponseConfig: ProviderResponseConfig = {
 };
 
 // Anthropic response format
-export const anthropicResponseConfig: ProviderResponseConfig = {
+export const anthropicResponseConfig: IProviderResponseConfig = {
   wrapResponse: (text: string) => ({ content: [{ text }] }),
   createUsage: (prompt: number, completion: number) => ({
     usage: { input_tokens: prompt, output_tokens: completion, total_tokens: prompt + completion },
@@ -66,7 +66,7 @@ export const anthropicResponseConfig: ProviderResponseConfig = {
 };
 
 // Google response format
-export const googleResponseConfig: ProviderResponseConfig = {
+export const googleResponseConfig: IProviderResponseConfig = {
   wrapResponse: (text: string) => ({ candidates: [{ content: { parts: [{ text }] } }] }),
   createUsage: (prompt: number, completion: number) => ({
     usageMetadata: { promptTokenCount: prompt, candidatesTokenCount: completion, totalTokens: prompt + completion },
@@ -144,7 +144,7 @@ export function testProviderInitialization<T extends { id: string }>(
 export function testProviderGenerateSuccess<T extends { generate: (prompt: string) => Promise<string> }>(
   name: string,
   createProvider: (options?: JSONObject, logger?: EventLogger) => T,
-  responseConfig: ProviderResponseConfig,
+  responseConfig: IProviderResponseConfig,
   expectedText: string,
 ): void {
   Deno.test(`${name} - generate success`, async () => {
@@ -168,7 +168,7 @@ export function testProviderGenerateSuccess<T extends { generate: (prompt: strin
 export function testProviderHeaders<T extends { generate: (prompt: string) => Promise<string> }>(
   name: string,
   createProvider: (options?: JSONObject, logger?: EventLogger) => T,
-  responseConfig: ProviderResponseConfig,
+  responseConfig: IProviderResponseConfig,
   apiKeyHeader: string,
   apiKeyValue: string,
   additionalHeaders?: Record<string, string>,
@@ -227,7 +227,7 @@ export function testProviderOptionsMapping<
 >(
   name: string,
   createProvider: (options?: JSONObject, logger?: EventLogger) => T,
-  responseConfig: ProviderResponseConfig,
+  responseConfig: IProviderResponseConfig,
   stopSequenceKey: string = "stop",
 ): void {
   Deno.test(`${name} - options mapping`, async () => {
@@ -267,7 +267,7 @@ export function testProviderOptionsMapping<
 export function testProviderTokenUsage<T extends { generate: (prompt: string) => Promise<string>; id: string }>(
   name: string,
   createProvider: (options?: JSONObject, logger?: EventLogger) => T,
-  responseConfig: ProviderResponseConfig,
+  responseConfig: IProviderResponseConfig,
 ): void {
   Deno.test(`${name} - token usage reporting`, async () => {
     const logger = new EventLogger({ prefix: "[Test]" });
@@ -304,7 +304,7 @@ export function testProviderTokenUsage<T extends { generate: (prompt: string) =>
 export function testProviderRetryOn429<T extends { generate: (prompt: string) => Promise<string> }>(
   name: string,
   createProvider: (options?: JSONObject, logger?: EventLogger) => T,
-  responseConfig: ProviderResponseConfig,
+  responseConfig: IProviderResponseConfig,
 ): void {
   Deno.test(`${name} - retry on 429`, async () => {
     const provider = createProvider({ apiKey: "test-key", retryDelayMs: 1 });

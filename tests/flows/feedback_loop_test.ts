@@ -1,6 +1,6 @@
 /**
  * Tests for FeedbackLoop
- * Phase 15.4: Feedback Loop (Reflexion Pattern)
+ * Phase 15.4: Feedback Loop (Reflexion IPattern)
  */
 
 import { assertEquals, assertExists } from "@std/assert";
@@ -14,13 +14,8 @@ import {
   runSelfCorrectingAgent,
   SimpleImprovementAgent,
 } from "../../src/flows/feedback_loop.ts";
-import {
-  GateConfig as _GateConfig,
-  GateEvaluator,
-  GateResult as _GateResult,
-  MockJudgeInvoker,
-} from "../../src/flows/gate_evaluator.ts";
-import { CRITERIA, EvaluationResult as _EvaluationResult } from "../../src/flows/evaluation_criteria.ts";
+import { GateEvaluator, MockJudgeInvoker } from "../../src/flows/gate_evaluator.ts";
+import { CRITERIA } from "../../src/flows/evaluation_criteria.ts";
 import type { JSONObject } from "../../src/types.ts";
 
 /**

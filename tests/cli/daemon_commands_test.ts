@@ -8,7 +8,7 @@
  * - Test 3: restart command stops then starts daemon
  * - Test 4: status command reports running/stopped state correctly
  * - Test 5: logs command supports --lines and --follow options
- * - Test 6: Commands log activity to Activity Journal
+ * - Test 6: Commands log activity to IActivity Journal
  * - Test 7: Handles edge cases (already running, not running, stale PID)
  */
 
@@ -20,7 +20,7 @@ import { ConfigService } from "../../src/config/service.ts";
 import type { Config } from "../../src/config/schema.ts";
 import { DaemonCommands } from "../../src/cli/commands/daemon_commands.ts";
 import { isProcessAlive } from "../../src/cli/process_utils.ts";
-import { DatabaseService } from "../../src/services/db.ts";
+import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 import { getRuntimeDir } from "../helpers/paths_helper.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";

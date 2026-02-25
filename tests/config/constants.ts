@@ -44,8 +44,8 @@ export const TEST_CUSTOM_PROVIDER_MODEL = "custom-provider-model";
 // Memory formatter tests
 export const TEST_PORTAL_NAME = "test-portal";
 export const TEST_PROJECT_OVERVIEW = "Project overview";
-export const TEST_PATTERN_NAME = "Pattern A";
-export const TEST_PATTERN_DESCRIPTION = "Pattern description";
+export const TEST_PATTERN_NAME = "IPattern A";
+export const TEST_PATTERN_DESCRIPTION = "IPattern description";
 export const TEST_PATTERN_EXAMPLE = "src/pattern.ts";
 export const TEST_PATTERN_TAG = "pattern-tag";
 export const TEST_DECISION_DATE = "2026-02-08";
@@ -84,7 +84,7 @@ export const TEST_DERIVED_SKILL_INSTRUCTIONS = "Follow best practices.";
 export const TEST_DERIVED_SKILL_ID = "derived-skill";
 
 // Memory pending proposal tests
-export const TEST_PENDING_LEARNING_TITLE = "Pending Learning";
+export const TEST_PENDING_LEARNING_TITLE = "Pending ILearning";
 export const TEST_PENDING_LEARNING_DESCRIPTION = "Pending learning description";
 export const TEST_PENDING_REASON = "Proposed from execution";
 

@@ -1,20 +1,20 @@
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../../src/enums.ts";
-import { createCodeReviewReflexiveAgent, type Critique, ReflexiveAgent } from "../../src/services/reflexive_agent.ts";
-import type { AgentExecutionResult, Blueprint, ParsedRequest } from "../../src/services/agent_runner.ts";
+import { createCodeReviewReflexiveAgent, type ICritique, ReflexiveAgent } from "../../src/services/reflexive_agent.ts";
+import type { IAgentExecutionResult, IBlueprint, IParsedRequest } from "../../src/services/agent_runner.ts";
 import type { IModelProvider } from "../../src/ai/providers.ts";
 import type { IAgentRunner } from "../../src/services/agent_runner.ts";
 import {
   type IOutputValidator,
+  type IValidationMetrics,
+  type IValidationResult,
   OutputValidator,
-  type ValidationMetrics,
-  type ValidationResult,
 } from "../../src/services/output_validator.ts";
 import { createStubDb } from "../test_helpers.ts";
 import type { JSONValue } from "../../src/types.ts";
 
 function createMockRunner(
-  runFn: (blueprint: Blueprint, request: ParsedRequest) => Promise<AgentExecutionResult>,
+  runFn: (blueprint: IBlueprint, request: IParsedRequest) => Promise<IAgentExecutionResult>,
 ): IAgentRunner {
   return { run: runFn };
 }
@@ -26,12 +26,12 @@ function createMockValidator(overrides: Partial<IOutputValidator> = {}): IOutput
     validate: <T>(
       _content: string,
       _schema: unknown,
-    ): ValidationResult<T> => defaultResult as ValidationResult<T>,
+    ): IValidationResult<T> => defaultResult as IValidationResult<T>,
     parseXMLTags: (raw: string) => ({ thought: "", content: raw, raw }),
-    validateWithSchema: (_content, _schemaName) => defaultResult as ValidationResult<unknown>,
-    parseAndValidate: (_raw, _schema) => defaultResult as ValidationResult<unknown>,
-    parseAndValidateWithSchema: (_raw, _schemaName) => defaultResult as ValidationResult<unknown>,
-    getMetrics: (): ValidationMetrics => ({
+    validateWithSchema: (_content, _schemaName) => defaultResult as IValidationResult<unknown>,
+    parseAndValidate: (_raw, _schema) => defaultResult as IValidationResult<unknown>,
+    parseAndValidateWithSchema: (_raw, _schemaName) => defaultResult as IValidationResult<unknown>,
+    getMetrics: (): IValidationMetrics => ({
       totalAttempts: 0,
       successfulValidations: 0,
       repairAttempts: 0,
@@ -51,7 +51,7 @@ const stubProvider: IModelProvider = {
 Deno.test("ReflexiveAgent.shouldAccept: rejects critical issues regardless", () => {
   const agent = new ReflexiveAgent(stubProvider, { confidenceThreshold: 100, maxIterations: 1 });
 
-  const critique: Critique = {
+  const critique: ICritique = {
     quality: CritiqueQuality.EXCELLENT,
     confidence: 100,
     passed: true,
@@ -67,7 +67,7 @@ Deno.test("ReflexiveAgent.updateMetrics/resetMetrics track distributions", () =>
   const agent = new ReflexiveAgent(stubProvider, { maxIterations: 1 });
 
   agent.resetMetrics();
-  const critique: Critique = {
+  const critique: ICritique = {
     quality: CritiqueQuality.GOOD,
     confidence: 10,
     passed: false,
@@ -118,7 +118,7 @@ Deno.test("ReflexiveAgent.logActivity: writes to db when present", () => {
 Deno.test("ReflexiveAgent.shouldAccept: accepts when confidence meets threshold", () => {
   const agent = new ReflexiveAgent(stubProvider, { confidenceThreshold: 60, maxIterations: 1 });
 
-  const critique: Critique = {
+  const critique: ICritique = {
     quality: CritiqueQuality.POOR,
     confidence: 60,
     passed: false,
@@ -133,7 +133,7 @@ Deno.test("ReflexiveAgent.shouldAccept: accepts when confidence meets threshold"
 Deno.test("ReflexiveAgent.shouldAccept: accepts when quality meets minQuality", () => {
   const agent = new ReflexiveAgent(stubProvider, { minQuality: CritiqueQuality.ACCEPTABLE, maxIterations: 1 });
 
-  const critique: Critique = {
+  const critique: ICritique = {
     quality: CritiqueQuality.GOOD,
     confidence: 0,
     passed: false,
@@ -153,8 +153,8 @@ Deno.test("ReflexiveAgent.critique: defaults to acceptable when critique respons
   );
 
   const critique = await agent.critique(
-    { userPrompt: "u", context: {}, traceId: "t" } satisfies ParsedRequest,
-    { content: "resp", thought: "", raw: "" } satisfies AgentExecutionResult,
+    { userPrompt: "u", context: {}, traceId: "t" } satisfies IParsedRequest,
+    { content: "resp", thought: "", raw: "" } satisfies IAgentExecutionResult,
   );
 
   assertExists(critique);
@@ -181,7 +181,7 @@ Deno.test("ReflexiveAgent.run: early-exits on first passing critique", async () 
   );
 
   agent.outputValidator = createMockValidator({
-    validate: <T>(_content: string, _schema: unknown): ValidationResult<T> => ({
+    validate: <T>(_content: string, _schema: unknown): IValidationResult<T> => ({
       success: true,
       value: {
         quality: CritiqueQuality.ACCEPTABLE,
@@ -197,8 +197,8 @@ Deno.test("ReflexiveAgent.run: early-exits on first passing critique", async () 
   });
 
   const result = await agent.run(
-    { systemPrompt: "", agentId: "agent" } satisfies Blueprint,
-    { userPrompt: "u", context: {}, traceId: "t" } satisfies ParsedRequest,
+    { systemPrompt: "", agentId: "agent" } satisfies IBlueprint,
+    { userPrompt: "u", context: {}, traceId: "t" } satisfies IParsedRequest,
   );
 
   assertEquals(result.totalIterations, 1);
@@ -216,7 +216,7 @@ Deno.test("ReflexiveAgent.run: refines when critique fails then accepts", async 
   const responses = ["v1", "v2"];
   const prompts: string[] = [];
   agent.agentRunner = createMockRunner(
-    (_blueprint: Blueprint, req: ParsedRequest) => {
+    (_blueprint: IBlueprint, req: IParsedRequest) => {
       prompts.push(req.userPrompt);
       const content = responses.shift() ?? "final";
       return Promise.resolve({ content, thought: "", raw: "" });
@@ -245,7 +245,7 @@ Deno.test("ReflexiveAgent.run: refines when critique fails then accepts", async 
   ];
 
   agent.outputValidator = createMockValidator({
-    validate: <T>(_content: string, _schema: unknown): ValidationResult<T> => ({
+    validate: <T>(_content: string, _schema: unknown): IValidationResult<T> => ({
       success: true,
       value: critiques.shift() as T,
       repairAttempted: false,
@@ -255,8 +255,8 @@ Deno.test("ReflexiveAgent.run: refines when critique fails then accepts", async 
   });
 
   const result = await agent.run(
-    { systemPrompt: "", agentId: "agent" } satisfies Blueprint,
-    { userPrompt: "u", context: {}, traceId: "t" } satisfies ParsedRequest,
+    { systemPrompt: "", agentId: "agent" } satisfies IBlueprint,
+    { userPrompt: "u", context: {}, traceId: "t" } satisfies IParsedRequest,
   );
 
   assertEquals(result.totalIterations, 2);

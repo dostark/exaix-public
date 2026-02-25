@@ -5,7 +5,7 @@
  * - Project memory management
  * - Execution memory management
  * - Search and query operations
- * - Activity Journal integration
+ * - IActivity Journal integration
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
@@ -13,7 +13,7 @@ import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { Decision, Learning, Pattern } from "../../src/schemas/memory_bank.ts";
+import type { IDecision, ILearning, IPattern } from "../../src/schemas/memory_bank.ts";
 import {
   ActivityType,
   ConfidenceLevel,
@@ -88,7 +88,7 @@ Deno.test("MemoryBankService: getProjectMemory reads existing project", async ()
       overview: "My application overview",
       patterns: [
         {
-          name: "Repository Pattern",
+          name: "Repository IPattern",
           description: "All database access through repositories",
           examples: ["src/repos/user_repo.ts"],
         },
@@ -103,7 +103,7 @@ Deno.test("MemoryBankService: getProjectMemory reads existing project", async ()
     assertEquals(retrieved.portal, "my-app");
     assertEquals(retrieved.overview, "My application overview");
     assertEquals(retrieved.patterns.length, 1);
-    assertEquals(retrieved.patterns[0].name, "Repository Pattern");
+    assertEquals(retrieved.patterns[0].name, "Repository IPattern");
   } finally {
     await cleanup();
   }
@@ -114,8 +114,8 @@ Deno.test("MemoryBankService: addPattern appends to existing patterns", async ()
 
   try {
     // Add pattern
-    const pattern: Pattern = {
-      name: "Factory Pattern",
+    const pattern: IPattern = {
+      name: "Factory IPattern",
       description: "Creates objects without specifying exact class",
       examples: ["src/factories/user_factory.ts"],
       tags: ["creational", "design-pattern"],
@@ -127,7 +127,7 @@ Deno.test("MemoryBankService: addPattern appends to existing patterns", async ()
     const retrieved = await service.getProjectMemory("my-app");
     assertExists(retrieved);
     assertEquals(retrieved.patterns.length, 1);
-    assertEquals(retrieved.patterns[0].name, "Factory Pattern");
+    assertEquals(retrieved.patterns[0].name, "Factory IPattern");
     assertEquals(retrieved.patterns[0].tags?.length, 2);
   } finally {
     await cleanup();
@@ -139,7 +139,7 @@ Deno.test("MemoryBankService: addDecision appends to existing decisions", async 
 
   try {
     // Add decision
-    const decision: Decision = {
+    const decision: IDecision = {
       date: "2026-01-03",
       decision: "Use PostgreSQL for production database",
       rationale: "Need ACID compliance and better scaling",
@@ -426,9 +426,9 @@ Deno.test("MemoryBankService: searchMemory finds matching content", async () => 
   }
 });
 
-// ===== Activity Journal Integration Tests =====
+// ===== IActivity Journal Integration Tests =====
 
-Deno.test("MemoryBankService: createProjectMemory logs to Activity Journal", async () => {
+Deno.test("MemoryBankService: createProjectMemory logs to IActivity Journal", async () => {
   const { db, config, cleanup } = await initTestDbService();
 
   try {
@@ -454,7 +454,7 @@ Deno.test("MemoryBankService: createProjectMemory logs to Activity Journal", asy
   }
 });
 
-Deno.test("MemoryBankService: addPattern logs to Activity Journal", async () => {
+Deno.test("MemoryBankService: addPattern logs to IActivity Journal", async () => {
   const { db, config, cleanup } = await initTestDbService();
 
   try {
@@ -466,7 +466,7 @@ Deno.test("MemoryBankService: addPattern logs to Activity Journal", async () => 
     }));
 
     await service.addPattern("test-portal", {
-      name: "Test Pattern",
+      name: "Test IPattern",
       description: "A test pattern",
       examples: [],
     });
@@ -480,13 +480,13 @@ Deno.test("MemoryBankService: addPattern logs to Activity Journal", async () => 
     ).all() as Array<{ action_type: string; payload: string }>;
     assertEquals(activities.length, 1);
     const payload = JSON.parse(activities[0].payload);
-    assertEquals(payload.pattern_name, "Test Pattern");
+    assertEquals(payload.pattern_name, "Test IPattern");
   } finally {
     await cleanup();
   }
 });
 
-Deno.test("MemoryBankService: createExecutionRecord logs to Activity Journal", async () => {
+Deno.test("MemoryBankService: createExecutionRecord logs to IActivity Journal", async () => {
   const { db, config, cleanup } = await initTestDbService();
 
   try {
@@ -606,15 +606,15 @@ Deno.test("MemoryBankService: concurrent project memory updates maintain data in
     const initialMem = createMinimalProjectMemory({
       portal,
       overview: "Initial overview",
-      patterns: [{ name: "Initial Pattern", description: "Test pattern", examples: ["src/example.ts"] }],
+      patterns: [{ name: "Initial IPattern", description: "Test pattern", examples: ["src/example.ts"] }],
     });
 
     await service.createProjectMemory(initialMem);
 
     // Launch 3 concurrent operations that modify the same project (reduced from 5 to avoid lock contention)
     const promises = Array.from({ length: 3 }, async (_, i) => {
-      const pattern: Pattern = {
-        name: `Concurrent Pattern ${i}`,
+      const pattern: IPattern = {
+        name: `Concurrent IPattern ${i}`,
         description: `Added by operation ${i}`,
         examples: [`src/concurrent-${i}.ts`],
         tags: [`test-${i}`],
@@ -649,13 +649,13 @@ Deno.test("MemoryBankService: file locking serializes global learning updates", 
 
     // Add learnings sequentially to verify serialization works
     for (let i = 0; i < 5; i++) {
-      const learning: Learning = {
+      const learning: ILearning = {
         id: generateTestUUID(),
         created_at: new Date().toISOString(),
         source: MemorySource.AGENT,
         scope: MemoryScope.GLOBAL,
-        title: `Sequential Learning ${i}`,
-        description: `Learning added sequentially ${i}`,
+        title: `Sequential ILearning ${i}`,
+        description: `ILearning added sequentially ${i}`,
         category: LearningCategory.INSIGHT,
         tags: [`sequential-${i}`],
         confidence: ConfidenceLevel.HIGH,
@@ -690,7 +690,7 @@ Deno.test("MemoryBankService: lock timeout prevents indefinite blocking", async 
       created_at: new Date().toISOString(),
       source: MemorySource.AGENT,
       scope: MemoryScope.GLOBAL,
-      title: "First Learning",
+      title: "First ILearning",
       description: "Testing lock acquisition",
       category: LearningCategory.PATTERN,
       tags: ["test"],
@@ -705,7 +705,7 @@ Deno.test("MemoryBankService: lock timeout prevents indefinite blocking", async 
       created_at: new Date().toISOString(),
       source: MemorySource.AGENT,
       scope: MemoryScope.GLOBAL,
-      title: "Second Learning",
+      title: "Second ILearning",
       description: "Testing lock release",
       category: LearningCategory.PATTERN,
       tags: ["test"],

@@ -16,13 +16,13 @@ import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
-import { BaseCommand, type CommandContext } from "../../src/cli/base.ts";
-import { DatabaseService } from "../../src/services/db.ts";
+import { BaseCommand, type ICommandContext } from "../../src/cli/base.ts";
+import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { createCliTestContext } from "./helpers/test_setup.ts";
 
 // Concrete implementation of BaseCommand for testing
 class TestCommand extends BaseCommand {
-  constructor(context: CommandContext) {
+  constructor(context: ICommandContext) {
     super(context);
   }
 

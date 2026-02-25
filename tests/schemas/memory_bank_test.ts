@@ -4,19 +4,19 @@ import { MemoryReferenceType } from "../../src/enums.ts";
 import { ExecutionStatus } from "../../src/enums.ts";
 
 import {
-  type ExecutionMemory,
   ExecutionMemorySchema,
-  type ProjectMemory,
+  type IExecutionMemory as IExecutionMemory,
+  type IProjectMemory as IProjectMemory,
   ProjectMemorySchema,
 } from "../../src/schemas/memory_bank.ts";
 
 Deno.test("ProjectMemorySchema: validates valid project memory", () => {
-  const validProject: ProjectMemory = {
+  const validProject: IProjectMemory = {
     portal: "my-project",
     overview: "A web application for task management",
     patterns: [
       {
-        name: "Repository Pattern",
+        name: "Repository IPattern",
         description: "All database access goes through repository classes",
         examples: ["src/repositories/task_repository.ts", "src/repositories/user_repository.ts"],
         tags: ["architecture", "database"],
@@ -87,7 +87,7 @@ Deno.test("ProjectMemorySchema: validates pattern structure", () => {
     overview: "Test",
     patterns: [
       {
-        name: "Pattern Name",
+        name: "IPattern Name",
         // Missing description
         examples: [],
       },
@@ -120,7 +120,7 @@ Deno.test("ProjectMemorySchema: validates reference type enum", () => {
 });
 
 Deno.test("ExecutionMemorySchema: validates valid execution memory", () => {
-  const validExecution: ExecutionMemory = {
+  const validExecution: IExecutionMemory = {
     trace_id: "550e8400-e29b-41d4-a716-446655440000",
     request_id: "REQ-123",
     started_at: "2026-01-03T10:00:00Z",
@@ -221,7 +221,7 @@ Deno.test("ExecutionMemorySchema: allows optional fields (completed_at, lessons_
 });
 
 Deno.test("ExecutionMemorySchema: validates failed execution with error message", () => {
-  const failedExecution: ExecutionMemory = {
+  const failedExecution: IExecutionMemory = {
     trace_id: "550e8400-e29b-41d4-a716-446655440000",
     request_id: "REQ-124",
     started_at: "2026-01-03T10:00:00Z",

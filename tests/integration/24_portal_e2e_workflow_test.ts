@@ -35,7 +35,7 @@ Deno.test("[e2e] Portal request → plan → execution → artifact review (read
     await ensureDir(portalTargetPath);
     await setupGitRepo(portalTargetPath, { initialCommit: true, branch: "main" });
 
-    // Blueprint must include capabilities so ExecutionLoop can detect read-only mode.
+    // IBlueprint as Blueprint must include capabilities so ExecutionLoop can detect read-only mode.
     const blueprintsDir = join(env.tempDir, "Blueprints", "Agents");
     await ensureDir(blueprintsDir);
     await Deno.writeTextFile(

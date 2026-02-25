@@ -1,7 +1,7 @@
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { MemoryReferenceType } from "../src/enums.ts";
-import type { ActivityRecord } from "../src/services/db.ts";
-
+import type { IActivityRecord } from "../src/services/db.ts";
+import { initTestDbService } from "./helpers/db.ts";
 import { join } from "@std/path";
 import { PathResolver } from "../src/services/path_resolver.ts";
 import { createMockConfig } from "./helpers/config.ts";
@@ -354,7 +354,7 @@ Deno.test("PathResolver: rejects empty path after alias", async () => {
 });
 
 // ============================================================================
-// Activity Logging Tests
+// IActivity Logging Tests
 // ============================================================================
 
 Deno.test("[security] PathResolver: logs security violations to console when no DB", async () => {
@@ -396,10 +396,8 @@ Deno.test("[security] PathResolver: logs security violations to console when no 
 });
 
 // ============================================================================
-// Activity Logging with Database Tests
+// IActivity Logging with Database Tests
 // ============================================================================
-
-import { initTestDbService } from "./helpers/db.ts";
 
 Deno.test("PathResolver: logs successful resolution to database", async () => {
   const tempDir = await Deno.makeTempDir({ prefix: "resolver-test-db-success-" });
@@ -420,7 +418,7 @@ Deno.test("PathResolver: logs successful resolution to database", async () => {
     await new Promise((resolve) => setTimeout(resolve, 150));
 
     const logs = db.getActivitiesByTrace("path-trace-123");
-    const successLog = logs.find((l: ActivityRecord) => l.action_type === "path.resolved");
+    const successLog = logs.find((l: IActivityRecord) => l.action_type === "path.resolved");
     assertExists(successLog, "path.resolved should be logged");
 
     const payload = JSON.parse(successLog!.payload);
@@ -451,7 +449,7 @@ Deno.test("PathResolver: logs resolution failures to database", async () => {
     await new Promise((resolve) => setTimeout(resolve, 150));
 
     const logs = db.getActivitiesByTrace("path-fail-trace");
-    const failLog = logs.find((l: ActivityRecord) => l.action_type === "path.resolution_failed");
+    const failLog = logs.find((l: IActivityRecord) => l.action_type === "path.resolution_failed");
     assertExists(failLog, "path.resolution_failed should be logged");
 
     const payload = JSON.parse(failLog!.payload);
@@ -487,7 +485,7 @@ Deno.test("[security] PathResolver: logs security violations to database", async
     await new Promise((resolve) => setTimeout(resolve, 150));
 
     const logs = db.getActivitiesByTrace("security-trace");
-    const securityLog = logs.find((l: ActivityRecord) => l.action_type === "path.access_denied");
+    const securityLog = logs.find((l: IActivityRecord) => l.action_type === "path.access_denied");
     assertExists(securityLog, "path.access_denied should be logged");
 
     const payload = JSON.parse(securityLog!.payload);

@@ -10,7 +10,7 @@ import { MCPTransport, PortalOperation } from "../../../src/enums.ts";
 import { ensureDir } from "@std/fs";
 import { assertEquals, assertExists } from "@std/assert";
 import { MCPServer } from "../../../src/mcp/server.ts";
-import type { PortalPermissions } from "../../../src/schemas/portal_permissions.ts";
+import type { IPortalPermissions } from "../../../src/schemas/portal_permissions.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import { createMockConfig } from "../../helpers/config.ts";
 import type { JSONValue } from "../../../src/types.ts";
@@ -40,6 +40,15 @@ export interface IPortalTestOptions {
     operations?: string[];
   };
   initGit?: boolean;
+}
+
+export interface IToolPermissionTestContext {
+  tempDir: string;
+  portalPath: string;
+  config: ReturnType<typeof createMockConfig>;
+  db: Awaited<ReturnType<typeof initTestDbService>>["db"];
+  permissions: IPortalPermissions;
+  cleanup: () => Promise<void>;
 }
 
 import { setupGitRepo } from "../../helpers/git_test_helper.ts";
@@ -128,7 +137,7 @@ export async function initMCPTest(
 
 export async function initToolPermissionTest(
   options: IToolPermissionOptions = {},
-): Promise<ToolPermissionTestContext> {
+): Promise<IToolPermissionTestContext> {
   const {
     portalAlias = "TestPortal",
     operations = [PortalOperation.READ],
@@ -148,7 +157,7 @@ export async function initToolPermissionTest(
     prefix: "mcp-perm-test-",
   });
 
-  const permissions: PortalPermissions = {
+  const permissions: IPortalPermissions = {
     alias: portalAlias,
     target_path: env.portalPath,
     agents_allowed: [agentId],
@@ -312,24 +321,4 @@ export async function createGitPortal(
   await ensureDir(portalPath);
   await setupGitRepo(portalPath);
   return portalPath;
-}
-
-/**
- * Initialize test environment for tool permission tests
- * Creates portal with specific permissions for testing tool authorization
- *
- * @example
- * const ctx = await initToolPermissionTest({
- *   operations: [ PortalOperation.READ],
- *   agentId: "test-agent"
- * });
- * const tool = new ReadFileTool(ctx.config, ctx.db, ctx.permissions);
- */
-export interface ToolPermissionTestContext {
-  tempDir: string;
-  portalPath: string;
-  config: ReturnType<typeof createMockConfig>;
-  db: Awaited<ReturnType<typeof initTestDbService>>["db"];
-  permissions: PortalPermissions;
-  cleanup: () => Promise<void>;
 }

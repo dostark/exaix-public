@@ -8,7 +8,7 @@
  * - Test 3: Failure report is generated with error details
  * - Test 4: Plan is moved back to /Workspace/Plans or marked as failed
  * - Test 5: Lease is released even on failure
- * - Test 6: All failure steps logged to Activity Journal with trace_id
+ * - Test 6: All failure steps logged to IActivity Journal with trace_id
  * - Test 7: Original request is not affected by execution failure
  */
 
@@ -185,7 +185,7 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
     });
 
     // ========================================================================
-    // Test 6: Failure logged to Activity Journal
+    // Test 6: Failure logged to IActivity Journal
     // ========================================================================
     await t.step("Test 6: All failure steps logged with trace_id", () => {
       const activities = env.getActivityLog(traceId);

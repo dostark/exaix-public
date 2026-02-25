@@ -8,7 +8,7 @@
  * - Ignores non-plan files in Active directory
  * - Reads plan file content correctly
  * - Parses YAML frontmatter with trace_id
- * - Logs detection events to Activity Journal
+ * - Logs detection events to IActivity Journal
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

@@ -6,8 +6,8 @@ import { createMockConfig } from "../helpers/config.ts";
 import {
   DatabaseHealthCheck,
   DiskSpaceHealthCheck,
-  HealthCheck,
   HealthCheckService,
+  IHealthCheck,
   initializeHealthChecks,
   LLMProviderHealthCheck,
   MemoryHealthCheck,
@@ -94,7 +94,7 @@ Deno.test("HealthCheckService: handles check timeouts", async () => {
   const service = new HealthCheckService("1.0.0", config);
   let timeoutId: number | undefined;
 
-  const slowCheck: HealthCheck = {
+  const slowCheck: IHealthCheck = {
     name: "slow",
     critical: false,
     check: () =>

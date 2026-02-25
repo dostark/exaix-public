@@ -9,7 +9,7 @@ import { MemoryOperation } from "../src/enums.ts";
 import {
   countOperations,
   extractFilePaths,
-  type FileChange,
+  type IFileChange,
   parseCodeGeneration,
   validateFilePath,
 } from "../src/services/code_parser.ts";
@@ -261,7 +261,7 @@ Deno.test("Code Parser - validateFilePath()", async (t) => {
 
 Deno.test("Code Parser - extractFilePaths()", async (t) => {
   await t.step("should extract file paths from parse result", () => {
-    const changes: FileChange[] = [
+    const changes: IFileChange[] = [
       { path: "src/auth.ts", operation: "create", content: "..." },
       { path: "tests/auth_test.ts", operation: "create", content: "..." },
       { path: "src/old.ts", operation: MemoryOperation.DELETE },
@@ -284,7 +284,7 @@ Deno.test("Code Parser - extractFilePaths()", async (t) => {
 
 Deno.test("Code Parser - countOperations()", async (t) => {
   await t.step("should count file operations", () => {
-    const changes: FileChange[] = [
+    const changes: IFileChange[] = [
       { path: "src/a.ts", operation: "create", content: "..." },
       { path: "src/b.ts", operation: "create", content: "..." },
       { path: "src/c.ts", operation: "modify", content: "..." },

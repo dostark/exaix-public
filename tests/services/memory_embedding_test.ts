@@ -22,14 +22,14 @@ import {
   MemoryEmbeddingService,
 } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { Learning } from "../../src/schemas/memory_bank.ts";
+import type { ILearning } from "../../src/schemas/memory_bank.ts";
 import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Fixtures =====
 
-const testLearning: Learning = {
+const testLearning: ILearning = {
   id: "bbbbbbbb-2222-4000-8000-000000000001",
   created_at: new Date().toISOString(),
   source: MemorySource.AGENT,
@@ -42,7 +42,7 @@ const testLearning: Learning = {
   status: MemoryStatus.APPROVED,
 };
 
-const anotherTestLearning: Learning = {
+const anotherTestLearning: ILearning = {
   id: "bbbbbbbb-2222-4000-8000-000000000002",
   created_at: new Date().toISOString(),
   source: MemorySource.USER,
@@ -55,7 +55,7 @@ const anotherTestLearning: Learning = {
   status: MemoryStatus.APPROVED,
 };
 
-const unrelatedLearning: Learning = {
+const unrelatedLearning: ILearning = {
   id: "bbbbbbbb-2222-4000-8000-000000000003",
   created_at: new Date().toISOString(),
   source: MemorySource.EXECUTION,

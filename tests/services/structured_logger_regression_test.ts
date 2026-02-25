@@ -1,7 +1,7 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { exists } from "@std/fs";
 import { join } from "@std/path";
-import { FileOutput, LogEntry } from "../../src/services/structured_logger.ts";
+import { FileOutput, IStructuredLogEntry } from "../../src/services/structured_logger.ts";
 import { LogLevel } from "../../src/enums.ts";
 
 const TEST_LOG_MESSAGE = "Test log message";
@@ -22,7 +22,7 @@ Deno.test("[regression] FileOutput automatically creates missing parent director
     assertEquals(await exists(join(tmpDir, "level1")), false);
 
     const output = new FileOutput(deepLogPath);
-    const entry: LogEntry = {
+    const entry: IStructuredLogEntry = {
       timestamp: new Date().toISOString(),
       level: TEST_LOG_LEVEL,
       message: TEST_LOG_MESSAGE,

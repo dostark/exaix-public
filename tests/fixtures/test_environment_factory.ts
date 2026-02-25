@@ -2,7 +2,7 @@ import type { Config } from "../../src/config/schema.ts";
 import { MemoryCommands } from "../../src/cli/commands/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
-import { DatabaseService } from "../../src/services/db.ts";
+import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import {
   getMemoryExecutionDir,
@@ -14,7 +14,7 @@ import {
   getMemoryTasksDir,
 } from "../helpers/paths_helper.ts";
 
-export interface MemoryTestEnvironment {
+export interface IMemoryTestEnvironment {
   tempRoot: string;
   config: Config;
   db: DatabaseService;
@@ -36,7 +36,7 @@ export class TestEnvironmentFactory {
   /**
    * Creates a complete memory test environment with all required services and directories
    */
-  public static async createMemoryEnvironment(_options: EnvironmentOptions = {}): Promise<MemoryTestEnvironment> {
+  public static async createMemoryEnvironment(_options: EnvironmentOptions = {}): Promise<IMemoryTestEnvironment> {
     // Initialize DB and base environment
     const { db, cleanup: dbCleanup, tempDir, config: baseConfig } = await initTestDbService();
 

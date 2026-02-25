@@ -1,5 +1,5 @@
 /**
- * Activity Repository Tests
+ * IActivity Repository Tests
  *
  * Tests for the ActivityRepository interface and DatabaseActivityRepository implementation
  * Implements repository pattern to abstract database access for activities/events.
@@ -13,8 +13,8 @@ import type { ActivityRepository } from "../../src/repositories/activity_reposit
 import type { IDatabaseService } from "../../src/services/db.ts";
 import { createStubDb } from "../test_helpers.ts";
 
-// Mock Activity entity for testing
-interface Activity {
+// Mock IActivity entity for testing
+interface IActivity {
   id: string;
   traceId: string;
   actor: string | null;

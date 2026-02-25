@@ -23,7 +23,7 @@ import type { MCPServer } from "../../src/mcp/server.ts";
  * - Validates portal exists
  * - Validates file exists
  * - Prevents path traversal attacks
- * - Logs all invocations to Activity Journal
+ * - Logs all invocations to IActivity Journal
  * - Returns appropriate errors for invalid cases
  */
 
@@ -78,7 +78,7 @@ Deno.test("read_file: successfully reads file from portal", async () => {
   );
 });
 
-Deno.test("read_file: logs invocation to Activity Journal", async () => {
+Deno.test("read_file: logs invocation to IActivity Journal", async () => {
   await withMCPToolTest(
     {
       fileContent: { "log-test.txt": "content" },
@@ -275,7 +275,7 @@ Deno.test("write_file: prevents path traversal", async () => {
   });
 });
 
-Deno.test("write_file: logs invocation to Activity Journal", async () => {
+Deno.test("write_file: logs invocation to IActivity Journal", async () => {
   await withMCPToolTest({}, async ({ server, db }) => {
     const request = createToolCallRequest(McpToolName.WRITE_FILE, {
       portal: "TestPortal",

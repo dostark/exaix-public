@@ -7,7 +7,7 @@ import { createMockConfig } from "../helpers/config.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import type { Config } from "../../src/config/schema.ts";
 import { setupPortalWorkspaceTestDirs } from "./helpers/portal_workspace_test_helper.ts";
-import type { PortalConfig } from "../../src/config/schema.ts";
+import type { IPortalConfig } from "../../src/config/schema.ts";
 import {
   createMockAgentRunner,
   createMockFlowRunner,
@@ -16,11 +16,11 @@ import {
 } from "./helpers.ts";
 
 /**
- * TDD Tests for RequestRouter WorkspaceExecutionContext Integration
+ * TDD Tests for RequestRouter IWorkspaceExecutionContext Integration
  * Task 1.3: Request Router Integration
  */
 
-describe("RequestRouter WorkspaceExecutionContext Integration", () => {
+describe("RequestRouter IWorkspaceExecutionContext Integration", () => {
   let tempDir: string;
   let portalDir: string;
   let workspaceDir: string;
@@ -44,7 +44,7 @@ describe("RequestRouter WorkspaceExecutionContext Integration", () => {
     const portalConfig = dirs.portalConfig;
 
     // Create mock config
-    const portalConfigRecord: PortalConfig = {
+    const portalConfigRecord: IPortalConfig = {
       alias: portalConfig.alias,
       target_path: portalConfig.target_path,
     };

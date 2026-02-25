@@ -1,12 +1,14 @@
 /**
- * Tests for Provider Registry Pattern (Issue #10: Tight Coupling Between Services)
+ * Tests for Provider Registry IPattern (Issue #10: Tight Coupling Between Services)
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { ProviderCostTier } from "../../src/enums.ts";
 
-import { AnthropicProviderFactory, MockProviderFactory, ProviderRegistry } from "../../src/ai/provider_registry.ts";
-import { ResolvedProviderOptions } from "../../src/ai/provider_factory.ts";
+import { ProviderRegistry } from "../../src/ai/provider_registry.ts";
+import { AnthropicProviderFactory } from "../../src/ai/factories/anthropic_factory.ts";
+import { MockProviderFactory } from "../../src/ai/factories/mock_factory.ts";
+import { IResolvedProviderOptions } from "../../src/ai/provider_factory.ts";
 import { ProviderFactory } from "../../src/ai/provider_factory.ts";
 import { Config } from "../../src/config/schema.ts";
 import { MockStrategy, PricingTier, ProviderType } from "../../src/enums.ts";
@@ -179,7 +181,7 @@ Deno.test("ProviderRegistry: returns undefined for unregistered providers", () =
 
 Deno.test("MockProviderFactory: creates providers", async () => {
   const factory = new MockProviderFactory();
-  const options: ResolvedProviderOptions = {
+  const options: IResolvedProviderOptions = {
     provider: ProviderType.MOCK,
     model: "test-model",
     timeoutMs: 30000,
@@ -196,7 +198,7 @@ Deno.test("AnthropicProviderFactory: requires API key", async () => {
   Deno.env.delete("ANTHROPIC_API_KEY");
 
   const factory = new AnthropicProviderFactory();
-  const options: ResolvedProviderOptions = {
+  const options: IResolvedProviderOptions = {
     provider: ProviderType.ANTHROPIC,
     model: TEST_MODEL_ANTHROPIC,
     timeoutMs: 30000,

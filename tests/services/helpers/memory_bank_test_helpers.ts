@@ -1,6 +1,6 @@
-import type { Learning, Pattern } from "../../../src/schemas/memory_bank.ts";
-import { ExecutionMemory, ProjectMemory } from "../../../src/schemas/memory_bank.ts";
-import type { Decision } from "../../../src/schemas/memory_bank.ts";
+import type { ILearning, IPattern } from "../../../src/schemas/memory_bank.ts";
+import { IExecutionMemory, IProjectMemory } from "../../../src/schemas/memory_bank.ts";
+import type { IDecision } from "../../../src/schemas/memory_bank.ts";
 import { MemoryBankService } from "../../../src/services/memory_bank.ts";
 import { initTestDbService } from "../../helpers/db.ts";
 import type { Config } from "../../../src/config/schema.ts";
@@ -18,7 +18,7 @@ import { MemoryStatus } from "../../../src/memory/memory_status.ts";
  * Creates a test setup with MemoryBankService and a pre-created project memory
  */
 export function createTestMemoryBankWithProject(
-  projectOverrides: Partial<ProjectMemory> = {},
+  projectOverrides: Partial<IProjectMemory> = {},
 ): Promise<{
   service: MemoryBankService;
   config: Config;
@@ -39,7 +39,7 @@ export function createTestMemoryBankWithProject(
  * Creates a test setup with MemoryBankService and initialized global memory
  */
 export async function createTestMemoryBankWithGlobal(
-  globalOverrides: Partial<Learning> = {},
+  globalOverrides: Partial<ILearning> = {},
 ): Promise<{
   service: MemoryBankService;
   config: Config;
@@ -56,7 +56,7 @@ export async function createTestMemoryBankWithGlobal(
         created_at: "2026-01-04T12:00:00Z",
         source: MemorySource.USER,
         scope: MemoryScope.GLOBAL,
-        title: "Test Pattern",
+        title: "Test IPattern",
         description: "A test pattern for global memory",
         category: LearningCategory.PATTERN,
         tags: ["test"],
@@ -105,9 +105,9 @@ async function createTestMemoryBankBase(
 }
 
 /**
- * Creates a minimal valid ProjectMemory for testing
+ * Creates a minimal valid IProjectMemory for testing
  */
-export function createMinimalProjectMemory(overrides: Partial<ProjectMemory> = {}): ProjectMemory {
+export function createMinimalProjectMemory(overrides: Partial<IProjectMemory> = {}): IProjectMemory {
   return {
     portal: overrides.portal ?? "test-portal",
     overview: overrides.overview ?? "Test project overview",
@@ -119,9 +119,9 @@ export function createMinimalProjectMemory(overrides: Partial<ProjectMemory> = {
 }
 
 /**
- * Creates a ProjectMemory with sample data for testing
+ * Creates a IProjectMemory with sample data for testing
  */
-export function createSampleProjectMemory(overrides: Partial<ProjectMemory> = {}): ProjectMemory {
+export function createSampleProjectMemory(overrides: Partial<IProjectMemory> = {}): IProjectMemory {
   return {
     portal: overrides.portal ?? "test-portal",
     overview: overrides.overview ?? "A comprehensive test project with various memory components",
@@ -143,9 +143,9 @@ export function createSampleProjectMemory(overrides: Partial<ProjectMemory> = {}
 }
 
 /**
- * Creates a minimal valid ExecutionMemory for testing
+ * Creates a minimal valid IExecutionMemory for testing
  */
-export function createMinimalExecutionMemory(overrides: Partial<ExecutionMemory> = {}): ExecutionMemory {
+export function createMinimalExecutionMemory(overrides: Partial<IExecutionMemory> = {}): IExecutionMemory {
   return {
     trace_id: overrides.trace_id ?? "test-trace-123",
     request_id: overrides.request_id ?? "req-123",
@@ -167,9 +167,9 @@ export function createMinimalExecutionMemory(overrides: Partial<ExecutionMemory>
 }
 
 /**
- * Creates a sample Learning for testing
+ * Creates a sample ILearning for testing
  */
-export function createSampleLearning(overrides: Partial<Learning> = {}): Learning {
+export function createSampleLearning(overrides: Partial<ILearning> = {}): ILearning {
   return {
     id: overrides.id ?? "learning-123",
     created_at: overrides.created_at ?? "2026-01-04T12:00:00Z",
@@ -177,7 +177,7 @@ export function createSampleLearning(overrides: Partial<Learning> = {}): Learnin
     source_id: overrides.source_id ?? "trace-123",
     scope: overrides.scope ?? MemoryScope.PROJECT,
     project: overrides.project ?? "test-portal",
-    title: overrides.title ?? "Sample Learning",
+    title: overrides.title ?? "Sample ILearning",
     description: overrides.description ?? "A sample learning entry",
 
     category: overrides.category ?? LearningCategory.PATTERN,
@@ -190,11 +190,11 @@ export function createSampleLearning(overrides: Partial<Learning> = {}): Learnin
 }
 
 /**
- * Creates a sample Pattern for testing
+ * Creates a sample IPattern for testing
  */
-export function createSamplePattern(overrides: Partial<Pattern> = {}): Pattern {
+export function createSamplePattern(overrides: Partial<IPattern> = {}): IPattern {
   return {
-    name: overrides.name ?? "Sample Pattern",
+    name: overrides.name ?? "Sample IPattern",
     description: overrides.description ?? "A sample pattern",
     examples: overrides.examples ?? [],
     tags: overrides.tags ?? ["sample"],
@@ -203,12 +203,12 @@ export function createSamplePattern(overrides: Partial<Pattern> = {}): Pattern {
 }
 
 /**
- * Creates a sample Decision for testing
+ * Creates a sample IDecision for testing
  */
-export function createSampleDecision(overrides: Partial<Decision> = {}): Decision {
+export function createSampleDecision(overrides: Partial<IDecision> = {}): IDecision {
   return {
     date: overrides.date ?? "2026-01-04",
-    decision: overrides.decision ?? "Sample Decision",
+    decision: overrides.decision ?? "Sample IDecision",
     rationale: overrides.rationale ?? "Sample rationale",
     alternatives: overrides.alternatives ?? ["Option A", "Option B"],
     tags: overrides.tags ?? ["sample"],

@@ -7,7 +7,7 @@
  * - Test 3: list command returns all registered portals with metadata
  * - Test 4: remove command removes symlink and optionally context card
  * - Test 5: show command displays portal details and file structure
- * - Test 6: Commands log activity to Activity Journal
+ * - Test 6: Commands log activity to IActivity Journal
  * - Test 7: Handles special characters in portal names
  */
 

@@ -1,4 +1,4 @@
-import type { RecordedResponse } from "../../../src/ai/providers/mock_llm_provider.ts";
+import type { IRecordedResponse } from "../../../src/ai/providers/mock_llm_provider.ts";
 /**
  * Test Environment Helper for Integration Tests
  *
@@ -32,7 +32,7 @@ import {
 } from "../../helpers/paths_helper.ts";
 import { setupGitRepo } from "../../helpers/git_test_helper.ts";
 
-export interface TestEnvironmentOptions {
+export interface ITestEnvironmentOptions {
   /** Custom config overrides */
   configOverrides?: Partial<Config>;
   /** Whether to initialize git repository */
@@ -65,7 +65,7 @@ export class TestEnvironment {
   /**
    * Create a new isolated test environment
    */
-  static async create(options: TestEnvironmentOptions = {}): Promise<TestEnvironment> {
+  static async create(options: ITestEnvironmentOptions = {}): Promise<TestEnvironment> {
     // Use centralized test DB + tempdir helper for consistency
     const { db, tempDir, config, cleanup } = await initTestDbService();
 
@@ -712,7 +712,7 @@ Always respond with valid JSON containing a plan with actionable steps.`;
    */
   createRequestProcessor(options?: {
     providerMode?: MockStrategy;
-    recordings?: RecordedResponse[];
+    recordings?: IRecordedResponse[];
     includeReasoning?: boolean;
     requestsDir?: string;
     blueprintsPath?: string;
@@ -746,7 +746,7 @@ Always respond with valid JSON containing a plan with actionable steps.`;
    */
   createMockProvider(
     mode: MockStrategy = MockStrategy.RECORDED,
-    recordings: RecordedResponse[] = [],
+    recordings: IRecordedResponse[] = [],
   ): MockLLMProvider {
     return new MockLLMProvider(mode, { recordings });
   }

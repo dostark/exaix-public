@@ -1,6 +1,6 @@
 import { join } from "@std/path";
 import { FileWatcher } from "../../src/services/watcher.ts";
-import type { DatabaseService } from "../../src/services/db.ts";
+import type { DatabaseService as DatabaseService } from "../../src/services/db.ts";
 import { createMockConfig } from "./config.ts";
 import { getWorkspaceRequestsDir } from "./paths_helper.ts";
 

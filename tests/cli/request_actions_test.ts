@@ -1,8 +1,8 @@
 import { assertEquals } from "@std/assert";
 import { TEST_MODEL_ANTHROPIC, TEST_PROVIDER_ID_ANTHROPIC } from "../config/constants.ts";
-import { handleRequestShow, type RequestActionContext } from "../../src/cli/command_builders/request_actions.ts";
+import { handleRequestShow, type IRequestActionContext } from "../../src/cli/command_builders/request_actions.ts";
 import { RequestCommands } from "../../src/cli/commands/request_commands.ts";
-import { EventLogger, type EventLoggerConfig } from "../../src/services/event_logger.ts";
+import { EventLogger, type IEventLoggerConfig } from "../../src/services/event_logger.ts";
 
 import { LogLevel } from "../../src/enums.ts";
 
@@ -20,7 +20,7 @@ class MockEventLogger extends EventLogger {
   public calls: Array<{ level: LogLevel; a: string; b: string; c: TestPayload | undefined }> = [];
 
   constructor() {
-    super({ minLevel: LogLevel.DEBUG } as EventLoggerConfig);
+    super({ minLevel: LogLevel.DEBUG } as IEventLoggerConfig);
   }
 
   override info(action: string, target: string, payload?: TestPayload): Promise<void> {
@@ -62,7 +62,7 @@ Deno.test("handleRequestShow: includes token stats when present", async () => {
       }),
   };
 
-  const context: RequestActionContext = {
+  const context: IRequestActionContext = {
     requestCommands: Object.assign(Object.create(RequestCommands.prototype), requestCommands),
     display,
   };

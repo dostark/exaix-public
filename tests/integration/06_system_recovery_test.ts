@@ -7,7 +7,7 @@
  * - Test 2: Orphaned leases are cleaned up on daemon start
  * - Test 3: Git working directory state is restored
  * - Test 4: Incomplete plans can be resumed or re-queued
- * - Test 5: Activity Journal preserves pre-crash entries
+ * - Test 5: IActivity Journal preserves pre-crash entries
  * - Test 6: No duplicate executions after recovery
  * - Test 7: System returns to healthy state after recovery
  */
@@ -246,9 +246,9 @@ Deno.test("Integration: System Recovery - Recover from crash mid-execution", asy
     });
 
     // ========================================================================
-    // Test 5: Activity Journal preserves pre-crash entries
+    // Test 5: IActivity Journal preserves pre-crash entries
     // ========================================================================
-    await t.step("Test 5: Activity Journal preserves pre-crash entries", async () => {
+    await t.step("Test 5: IActivity Journal preserves pre-crash entries", async () => {
       // Wait for any pending log writes
       await new Promise((resolve) => setTimeout(resolve, 200));
       env.db.waitForFlush();
@@ -257,7 +257,7 @@ Deno.test("Integration: System Recovery - Recover from crash mid-execution", asy
 
       // Should have activities (may include execution.started from setup)
       // The pre-crash activity was logged via logActivity which queues it
-      assert(activities.length >= 0, "Activity log should be accessible after recovery");
+      assert(activities.length >= 0, "IActivity log should be accessible after recovery");
     });
 
     // ========================================================================
@@ -283,7 +283,7 @@ Deno.test("Integration: System Recovery - Recover from crash mid-execution", asy
       // Step1 existed from before crash
       assertEquals(step1Exists, true, "step1 should exist from before crash");
 
-      // Activity log should not have duplicate entries
+      // IActivity log should not have duplicate entries
       const activities = env.getActivityLog(traceId);
       const startEntries = activities.filter(
         (a) => a.action_type === "execution.started",

@@ -211,7 +211,7 @@ Deno.test("NotificationService: notifyApproval handles db errors gracefully", ()
   const notification = new NotificationService(config, mockDb);
 
   // Should not throw even when DB fails
-  notification.notifyApproval("proposal-123", "Test Learning");
+  notification.notifyApproval("proposal-123", "Test ILearning as ILearning");
 
   // Test passes if no exception is thrown
 });

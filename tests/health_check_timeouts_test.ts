@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { type HealthCheck, HealthCheckService } from "../src/services/health_check_service.ts";
+import { HealthCheckService, type IHealthCheck } from "../src/services/health_check_service.ts";
 import { HealthCheckVerdict, HealthStatus } from "../src/enums.ts";
 import { createTestConfig } from "./ai/helpers/test_config.ts";
 
@@ -23,7 +23,7 @@ Deno.test("[health] slow check times out and is reported as FAIL", async () => {
   };
 
   const svc = new HealthCheckService("test", config);
-  svc.registerCheck(new SlowCheck() as Partial<HealthCheck> as HealthCheck);
+  svc.registerCheck(new SlowCheck() as Partial<IHealthCheck> as IHealthCheck);
 
   const report = await svc.checkHealth();
 

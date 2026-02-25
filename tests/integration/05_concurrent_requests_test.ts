@@ -8,7 +8,7 @@
  * - Test 3: Each request maintains its own trace_id chain
  * - Test 4: No interference between concurrent executions
  * - Test 5: All requests complete successfully
- * - Test 6: Activity log correctly attributes actions to trace_ids
+ * - Test 6: IActivity log correctly attributes actions to trace_ids
  * - Test 7: Resource contention handled gracefully (no deadlocks)
  */
 
@@ -183,9 +183,9 @@ Deno.test("Integration: Concurrent Requests - Multiple requests in parallel", as
     });
 
     // ========================================================================
-    // Test 6: Activity log correctly attributes actions
+    // Test 6: IActivity log correctly attributes actions
     // ========================================================================
-    await t.step("Test 6: Activity log correctly attributes to trace_ids", () => {
+    await t.step("Test 6: IActivity log correctly attributes to trace_ids", () => {
       for (const request of requests) {
         const activities = env.getActivityLog(request.traceId);
 

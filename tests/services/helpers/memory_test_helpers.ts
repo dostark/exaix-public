@@ -8,11 +8,11 @@ import {
   ReviewSource,
 } from "../../../src/enums.ts";
 import { MemoryStatus } from "../../../src/memory/memory_status.ts";
-import type { ExecutionMemory, Learning, MemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
+import type { IExecutionMemory, ILearning, IMemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
 import type { MemoryExtractorService } from "../../../src/services/memory_extractor.ts";
 import type { JSONObject } from "../../../src/types.ts";
 
-export function createSuccessfulExecutionMemory(portal: string, traceId: string): ExecutionMemory {
+export function createSuccessfulExecutionMemory(portal: string, traceId: string): IExecutionMemory {
   return {
     trace_id: traceId,
     request_id: `req-${traceId.substring(0, 8)}`,
@@ -37,7 +37,7 @@ export function createSuccessfulExecutionMemory(portal: string, traceId: string)
   };
 }
 
-export function createFailedExecutionMemory(portal: string, traceId: string): ExecutionMemory {
+export function createFailedExecutionMemory(portal: string, traceId: string): IExecutionMemory {
   return {
     trace_id: traceId,
     request_id: `req-${traceId.substring(0, 8)}`,
@@ -88,8 +88,8 @@ export async function createTestProposal(
  * Base learning object for testing
  */
 export function createBaseLearning(
-  overrides: Partial<MemoryUpdateProposal["learning"]> = {},
-): MemoryUpdateProposal["learning"] {
+  overrides: Partial<IMemoryUpdateProposal["learning"]> = {},
+): IMemoryUpdateProposal["learning"] {
   return {
     id: overrides.id ?? "550e8400-e29b-41d4-a716-446655440001",
     created_at: overrides.created_at ?? "2026-01-04T12:00:00Z",
@@ -107,20 +107,20 @@ export function createBaseLearning(
 }
 
 /**
- * Creates a full Learning object for testing
+ * Creates a full ILearning object for testing
  */
-export function createTestLearning(overrides: Partial<Learning> = {}): Learning {
+export function createTestLearning(overrides: Partial<ILearning> = {}): ILearning {
   return {
     ...createBaseLearning(overrides),
     status: overrides.status ?? MemoryStatus.APPROVED,
     ...overrides,
-  } as Learning;
+  } as ILearning;
 }
 
 /**
- * Creates a minimal valid MemoryUpdateProposal for testing
+ * Creates a minimal valid IMemoryUpdateProposal for testing
  */
-export function createMinimalProposal(overrides: Partial<MemoryUpdateProposal> = {}): MemoryUpdateProposal {
+export function createMinimalProposal(overrides: Partial<IMemoryUpdateProposal> = {}): IMemoryUpdateProposal {
   return createBaseProposal({
     learning: createBaseLearning(overrides.learning),
     reason: overrides.reason ?? "Extracted from successful execution",
@@ -132,7 +132,7 @@ export function createMinimalProposal(overrides: Partial<MemoryUpdateProposal> =
 /**
  * Creates a global scope proposal for testing
  */
-export function createGlobalProposal(overrides: Partial<MemoryUpdateProposal> = {}): MemoryUpdateProposal {
+export function createGlobalProposal(overrides: Partial<IMemoryUpdateProposal> = {}): IMemoryUpdateProposal {
   return {
     id: overrides.id ?? "550e8400-e29b-41d4-a716-446655440002",
     created_at: overrides.created_at ?? "2026-01-04T12:00:00Z",
@@ -150,7 +150,7 @@ export function createGlobalProposal(overrides: Partial<MemoryUpdateProposal> = 
 
       ...overrides.learning,
     }),
-    reason: overrides.reason ?? "Pattern observed across multiple projects",
+    reason: overrides.reason ?? "IPattern observed across multiple projects",
 
     agent: overrides.agent ?? "architect",
 
@@ -162,7 +162,7 @@ export function createGlobalProposal(overrides: Partial<MemoryUpdateProposal> = 
 /**
  * Creates an approved proposal for testing
  */
-export function createApprovedProposal(overrides: Partial<MemoryUpdateProposal> = {}): MemoryUpdateProposal {
+export function createApprovedProposal(overrides: Partial<IMemoryUpdateProposal> = {}): IMemoryUpdateProposal {
   return {
     id: overrides.id ?? "550e8400-e29b-41d4-a716-446655440004",
     created_at: overrides.created_at ?? "2026-01-04T12:00:00Z",
@@ -172,7 +172,7 @@ export function createApprovedProposal(overrides: Partial<MemoryUpdateProposal> 
     learning: createBaseLearning({
       id: "550e8400-e29b-41d4-a716-446655440005",
       source: MemorySource.USER,
-      title: "Test Learning",
+      title: "Test ILearning",
       description: "Test description",
       category: LearningCategory.PATTERN,
       tags: [],
@@ -191,7 +191,7 @@ export function createApprovedProposal(overrides: Partial<MemoryUpdateProposal> 
 /**
  * Creates an invalid proposal for testing schema validation failures
  */
-export function createInvalidProposal(overrides: Partial<MemoryUpdateProposal> = {}): JSONObject {
+export function createInvalidProposal(overrides: Partial<IMemoryUpdateProposal> = {}): JSONObject {
   const base = createBaseProposal({
     id: "550e8400-e29b-41d4-a716-446655440006",
     operation: MemoryOperation.ADD, // placeholder
@@ -211,7 +211,7 @@ export function createInvalidProposal(overrides: Partial<MemoryUpdateProposal> =
 /**
  * Creates an invalid proposal with invalid status for testing
  */
-export function createInvalidStatusProposal(overrides: Partial<MemoryUpdateProposal> = {}): JSONObject {
+export function createInvalidStatusProposal(overrides: Partial<IMemoryUpdateProposal> = {}): JSONObject {
   const base = createBaseProposal({
     id: "550e8400-e29b-41d4-a716-446655440008",
     operation: MemoryOperation.ADD,
@@ -232,8 +232,8 @@ export function createInvalidStatusProposal(overrides: Partial<MemoryUpdatePropo
  * Creates a test learning object for invalid proposals
  */
 function createInvalidLearning(
-  overrides: Partial<MemoryUpdateProposal["learning"]> = {},
-): MemoryUpdateProposal["learning"] {
+  overrides: Partial<IMemoryUpdateProposal["learning"]> = {},
+): IMemoryUpdateProposal["learning"] {
   return {
     id: overrides.id ?? "550e8400-e29b-41d4-a716-446655440007",
     created_at: overrides.created_at ?? "2026-01-04T12:00:00Z",
@@ -251,7 +251,7 @@ function createInvalidLearning(
 /**
  * Base proposal creation function to reduce duplication
  */
-function createBaseProposal(overrides: Partial<MemoryUpdateProposal> = {}): MemoryUpdateProposal {
+function createBaseProposal(overrides: Partial<IMemoryUpdateProposal> = {}): IMemoryUpdateProposal {
   return {
     id: overrides.id ?? "550e8400-e29b-41d4-a716-446655440000",
     created_at: overrides.created_at ?? "2026-01-04T12:00:00Z",

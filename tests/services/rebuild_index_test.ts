@@ -17,7 +17,7 @@ import { exists } from "@std/fs";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { Learning, ProjectMemory } from "../../src/schemas/memory_bank.ts";
+import type { ILearning, IProjectMemory } from "../../src/schemas/memory_bank.ts";
 import { ConfidenceLevel } from "../../src/enums.ts";
 import { getMemoryGlobalDir, getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
@@ -31,18 +31,18 @@ async function setupTestData(
   configRoot: string,
 ): Promise<void> {
   // Create project memory with patterns and decisions
-  const projectMem: ProjectMemory = {
+  const projectMem: IProjectMemory = {
     portal: "rebuild-test-project",
     overview: "A project for testing rebuild-index",
     patterns: [
       {
-        name: "Singleton Pattern",
+        name: "Singleton IPattern as IPattern",
         description: "Single instance of a class",
         examples: ["src/services/config.ts"],
         tags: ["creational", "design-pattern"],
       },
       {
-        name: "Adapter Pattern",
+        name: "Adapter IPattern as IPattern",
         description: "Bridge between incompatible interfaces",
         examples: ["src/adapters/api_adapter.ts"],
         tags: ["structural", "design-pattern"],
@@ -62,7 +62,7 @@ async function setupTestData(
   await service.createProjectMemory(projectMem);
 
   // Create global learnings
-  const learnings: Learning[] = [
+  const learnings: ILearning[] = [
     {
       id: "cccccccc-3333-4000-8000-000000000001",
       created_at: new Date().toISOString(),
@@ -118,8 +118,8 @@ Deno.test("MemoryBankService: rebuildIndices regenerates all indices", async () 
     // Verify patterns index content
     const patternsContent = await Deno.readTextFile(join(indexDir, "patterns.json"));
     const patternsIndex = JSON.parse(patternsContent);
-    assertExists(patternsIndex["Singleton Pattern"]);
-    assertExists(patternsIndex["Adapter Pattern"]);
+    assertExists(patternsIndex["Singleton IPattern as IPattern"]);
+    assertExists(patternsIndex["Adapter IPattern as IPattern"]);
 
     // Verify tags index content
     const tagsContent = await Deno.readTextFile(join(indexDir, "tags.json"));
@@ -195,7 +195,7 @@ Deno.test("MemoryBankService: rebuildIndices preserves existing data on rebuild"
 
     // Add another pattern
     await service.addPattern("rebuild-test-project", {
-      name: "Observer Pattern",
+      name: "Observer IPattern as IPattern",
       description: "Event notification system",
       examples: ["src/events/emitter.ts"],
       tags: ["behavioral", "design-pattern"],
@@ -209,9 +209,9 @@ Deno.test("MemoryBankService: rebuildIndices preserves existing data on rebuild"
     const patternsContent = await Deno.readTextFile(join(indexDir, "patterns.json"));
     const patternsIndex = JSON.parse(patternsContent);
 
-    assertExists(patternsIndex["Singleton Pattern"]);
-    assertExists(patternsIndex["Adapter Pattern"]);
-    assertExists(patternsIndex["Observer Pattern"]);
+    assertExists(patternsIndex["Singleton IPattern as IPattern"]);
+    assertExists(patternsIndex["Adapter IPattern as IPattern"]);
+    assertExists(patternsIndex["Observer IPattern as IPattern"]);
   } finally {
     await cleanup();
   }

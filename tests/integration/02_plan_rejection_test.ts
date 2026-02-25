@@ -8,7 +8,7 @@
  * - Test 3: Rejected plan status is updated to MemoryStatus.REJECTED
  * - Test 4: Rejection reason is appended to plan content
  * - Test 5: Original request remains in /Workspace/Requests (not modified)
- * - Test 6: Rejection is logged to Activity Journal with trace_id
+ * - Test 6: Rejection is logged to IActivity Journal with trace_id
  * - Test 7: Rejected plan preserves original trace_id for correlation
  */
 
@@ -140,9 +140,9 @@ Deno.test("Integration: Plan Rejection - Request to Archive", async (t) => {
     });
 
     // ========================================================================
-    // Test 6: Rejection logged to Activity Journal
+    // Test 6: Rejection logged to IActivity Journal
     // ========================================================================
-    await t.step("Test 6: Rejection logged to Activity Journal", async () => {
+    await t.step("Test 6: Rejection logged to IActivity Journal", async () => {
       // Log the rejection activity
       env.db.logActivity(
         MemorySource.USER,

@@ -8,7 +8,7 @@
  * - analyzeExecution() learning extraction
  * - createProposal() to Memory/Pending/
  * - Pending list/show/approve/reject operations
- * - Activity Journal integration
+ * - IActivity Journal integration
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
@@ -18,7 +18,7 @@ import { initTestDbService } from "../helpers/db.ts";
 import { MemoryUpdateProposalSchema } from "../../src/schemas/memory_bank.ts";
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
-import type { ExecutionMemory } from "../../src/schemas/memory_bank.ts";
+import type { IExecutionMemory } from "../../src/schemas/memory_bank.ts";
 import { ExecutionStatus, LearningCategory } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import {
@@ -111,7 +111,7 @@ async function initExtractorTest() {
 /**
  * Creates a trivial execution with no learnable content
  */
-function createTrivialExecution(portal: string, traceId: string): ExecutionMemory {
+function createTrivialExecution(portal: string, traceId: string): IExecutionMemory {
   return {
     trace_id: traceId,
     request_id: `req-${traceId.substring(0, 8)}`,
@@ -270,7 +270,7 @@ Deno.test("MemoryExtractorService: createProposal generates valid proposal file"
   }
 });
 
-Deno.test("MemoryExtractorService: createProposal logs to Activity Journal", async () => {
+Deno.test("MemoryExtractorService: createProposal logs to IActivity Journal", async () => {
   const { db, extractor, cleanup } = await initExtractorTest();
   try {
     const execution = createSuccessfulExecutionMemory("my-app", "550e8400-e29b-41d4-a716-446655440017");
@@ -285,7 +285,7 @@ Deno.test("MemoryExtractorService: createProposal logs to Activity Journal", asy
     // Wait for batch flush
     await db.waitForFlush();
 
-    // Check Activity Journal
+    // Check IActivity Journal
     const activities = db.instance.prepare(
       "SELECT action_type, target FROM activity WHERE action_type = 'memory.proposal.created'",
     ).all() as Array<{ action_type: string; target: string }>;
@@ -392,7 +392,7 @@ Deno.test("MemoryExtractorService: approvePending removes from Pending", async (
   }
 });
 
-Deno.test("MemoryExtractorService: approvePending logs to Activity Journal", async () => {
+Deno.test("MemoryExtractorService: approvePending logs to IActivity Journal", async () => {
   const { db, memoryBank, extractor, cleanup } = await initExtractorTest();
   try {
     const projectMem = createMinimalProjectMemory({

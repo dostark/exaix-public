@@ -84,7 +84,7 @@ export default defineFlow({
 
 export default defineFlow({
   id: "flow2",
-  name: "Flow 2",
+  name: "IFlow as Flow 2",
   description: "Second flow",
   steps: [{ id: "s2", name: "Step 2", agent: "agent2", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
   output: { from: "s2" },
@@ -131,7 +131,7 @@ Deno.test("FlowLoader: ignores non-flow files and invalid files", async () => {
 
 export default defineFlow({
   id: "valid-flow",
-  name: "Valid Flow",
+  name: "Valid IFlow as Flow",
   description: "Valid flow",
   steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
   output: { from: "s1" },
@@ -249,7 +249,7 @@ Deno.test("FlowLoader: checks if flow exists", async () => {
 
     // Create a flow file
     const flowContent = `
-  import { defineFlow } from "../../src/flows/define_flow.ts";
+import { defineFlow } from "../../src/flows/define_flow.ts";
 
 export default defineFlow({
   id: "existing-flow",
@@ -291,7 +291,7 @@ Deno.test("FlowLoader: lists available flow IDs", async () => {
 
 export default defineFlow({
   id: "flow-one",
-  name: "Flow One",
+  name: "IFlow as Flow One",
   description: "First flow",
   steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
   output: { from: "s1" },
@@ -303,7 +303,7 @@ import { defineFlow } from "../../src/flows/define_flow.ts";
 
 export default defineFlow({
   id: "flow-two",
-  name: "Flow Two",
+  name: "IFlow as Flow Two",
   description: "Second flow",
   steps: [{ id: "s2", name: "Step 2", agent: "agent2", dependsOn: [], input: { source: FlowInputSource.REQUEST, transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
   output: { from: "s2" },

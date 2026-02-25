@@ -34,6 +34,7 @@ import {
   TEST_SKILL_REQUEST_TEXT,
   TEST_SKILL_TASK_TYPE,
 } from "../config/constants.ts";
+import { join } from "https://deno.land/std@0.203.0/path/join.ts";
 
 // ===== Search with Embeddings Tests =====
 
@@ -45,7 +46,7 @@ Deno.test("MemoryCommands: search with useEmbeddings option", async () => {
     await memoryBank.createProjectMemory(
       new ProjectMemoryBuilder("EmbedProject")
         .addPattern({
-          name: "Error Handling Pattern",
+          name: "Error Handling IPattern",
           description: "Always use try-catch for async operations",
           examples: ["src/api.ts"],
           tags: ["error-handling", "typescript"],
@@ -82,7 +83,7 @@ Deno.test("MemoryCommands: search with tags option", async () => {
     await memoryBank.createProjectMemory(
       new ProjectMemoryBuilder("TagProject")
         .addPattern({
-          name: "Error Handling Pattern",
+          name: "Error Handling IPattern",
           description: "Use try-catch",
           examples: ["src/api.ts"],
           tags: ["error-handling", "typescript"], // Includes typescript tag
@@ -108,7 +109,7 @@ Deno.test("MemoryCommands: search --format md outputs markdown", async () => {
       new ProjectMemoryBuilder("MdSearchProject").build(),
     );
 
-    const result = await commands.search("Pattern", { format: "md" });
+    const result = await commands.search("IPattern", { format: "md" });
 
     // If results found, should have markdown formatting
     if (!result.includes("No results found")) {
@@ -144,7 +145,7 @@ Deno.test("MemoryCommands: project show --format md outputs markdown", async () 
   try {
     await memoryBank.createProjectMemory(
       new ProjectMemoryBuilder("MdShowProject")
-        .addPattern({ name: "Test Pattern" })
+        .addPattern({ name: "Test IPattern" })
         .build(),
     );
 
@@ -316,7 +317,7 @@ Deno.test("MemoryCommands: promote returns error for non-existent project", asyn
     const result = await commands.promote("NonExistentPortal", {
       type: MemoryType.PATTERN,
       name: "test",
-      title: "Test Pattern",
+      title: "Test IPattern",
       description: "Test description",
       category: LearningCategory.PATTERN,
       tags: ["test"],
@@ -502,7 +503,7 @@ Deno.test("MemoryCommands: execution show --format md with full data", async () 
   }
 });
 
-// ===== Global Learning Table Format =====
+// ===== Global ILearning Table Format =====
 
 Deno.test("MemoryCommands: globalListLearnings table format with learnings", async () => {
   const { commands, memoryBank, cleanup } = await TestEnvironmentFactory.createMemoryEnvironment();
@@ -513,7 +514,7 @@ Deno.test("MemoryCommands: globalListLearnings table format with learnings", asy
     for (let i = 1; i <= 3; i++) {
       await memoryBank.addGlobalLearning(
         new LearningBuilder()
-          .withTitle(`Learning ${i}`)
+          .withTitle(`ILearning ${i}`)
           .withDescription(`Description for learning ${i}`)
           .withCategory(LearningCategory.PATTERN)
           .withTags(["test"])
@@ -542,7 +543,7 @@ Deno.test("MemoryCommands: globalStats with learnings by category and project", 
     await memoryBank.createProjectMemory(
       new ProjectMemoryBuilder("StatsProject")
         .addPattern({
-          name: "Error Handling Pattern",
+          name: "Error Handling IPattern",
           description: "Use try-catch",
           examples: [],
           tags: ["error-handling", "typescript"],
@@ -553,7 +554,7 @@ Deno.test("MemoryCommands: globalStats with learnings by category and project", 
     // Add learnings of different categories
     await memoryBank.addGlobalLearning(
       new LearningBuilder()
-        .withTitle("Pattern Learning")
+        .withTitle("IPattern ILearning")
         .withDescription("A pattern")
         .withCategory(LearningCategory.PATTERN)
         .build(),
@@ -561,7 +562,7 @@ Deno.test("MemoryCommands: globalStats with learnings by category and project", 
 
     await memoryBank.addGlobalLearning(
       new LearningBuilder()
-        .withTitle("Insight Learning")
+        .withTitle("Insight ILearning")
         .withDescription("An insight")
         .withCategory(LearningCategory.INSIGHT)
         .build(),
@@ -772,7 +773,7 @@ Deno.test("MemoryCommands: skillMatch returns matches for active skill", async (
       triggersTaskTypes: [TEST_SKILL_TASK_TYPE],
     });
 
-    const skills = new SkillsService(config, db);
+    const skills = new SkillsService({ memoryDir: join(config.system.root, config.paths.memory) }, db);
     await skills.initialize();
     await skills.activateSkill(TEST_SKILL_ID);
 

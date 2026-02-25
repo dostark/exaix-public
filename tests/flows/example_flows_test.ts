@@ -9,13 +9,13 @@ import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { FlowSchema } from "../../src/schemas/flow.ts";
 import { defineFlow } from "../../src/flows/define_flow.ts";
-import { type AgentExecutor, type FlowEventLogger, FlowRunner } from "../../src/flows/flow_runner.ts";
+import { FlowRunner } from "../../src/flows/flow_runner.ts";
 import { MockLLMProvider } from "../../src/ai/providers/mock_llm_provider.ts";
 import { MockStrategy } from "../../src/enums.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import type { Config } from "../../src/config/schema.ts";
-import type { FlowStepRequest } from "../../src/flows/flow_runner.ts";
-import type { AgentExecutionResult } from "../../src/services/agent_runner.ts";
+import type { IAgentExecutor, IFlowEventLogger, IFlowStepRequest } from "../../src/flows/flow_runner.ts";
+import type { IAgentExecutionResult } from "../../src/services/agent_runner.ts";
 import type { DatabaseService } from "../../src/services/db.ts";
 import { JSONValue } from "../../src/types.ts";
 
@@ -28,8 +28,8 @@ describe("Example Flows - Step 7.9", {
   let _db: DatabaseService;
   let cleanup: () => Promise<void>;
   let _mockProvider: MockLLMProvider;
-  let mockAgentExecutor: AgentExecutor;
-  let mockEventLogger: FlowEventLogger;
+  let mockAgentExecutor: IAgentExecutor;
+  let mockEventLogger: IFlowEventLogger;
   let _flowRunner: FlowRunner;
   beforeEach(async () => {
     const dbResult = await initTestDbService();
@@ -51,7 +51,7 @@ describe("Example Flows - Step 7.9", {
 
     // Create mock agent executor
     mockAgentExecutor = {
-      run: (agentId: string, _request: FlowStepRequest): Promise<AgentExecutionResult> => {
+      run: (agentId: string, _request: IFlowStepRequest): Promise<IAgentExecutionResult> => {
         return Promise.resolve({
           thought: `Mock response for ${agentId}`,
           content: `Processed request for ${agentId}`,
@@ -75,7 +75,7 @@ describe("Example Flows - Step 7.9", {
     await cleanup();
   });
 
-  describe("Flow Examples Directory Structure", () => {
+  describe("IFlow as Flow Examples Directory Structure", () => {
     it("should have examples directory structure", () => {
       const _examplesDir = join(tempDir, "flows", "examples");
       // Note: We'll create this during implementation
@@ -84,7 +84,7 @@ describe("Example Flows - Step 7.9", {
     });
   });
 
-  describe("Code Review Flow", () => {
+  describe("Code Review IFlow as Flow", () => {
     it("should validate against FlowSchema", () => {
       const codeReviewFlow = defineFlow({
         id: "code-review",

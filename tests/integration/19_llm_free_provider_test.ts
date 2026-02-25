@@ -138,7 +138,7 @@ Always respond with:
       const requestContent = await Deno.readTextFile(requestResult.filePath);
       assertStringIncludes(requestContent, "status: planned", "Request status should be updated to 'planned'");
 
-      // Activity log should include request.processing and request.planned events
+      // IActivity log should include request.processing and request.planned events
       // Allow some time for asynchronous writes
       await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -147,7 +147,7 @@ Always respond with:
       const hasProcessing = actionTypes.some((t) => t.includes("request.processing"));
       const hasPlanned = actionTypes.some((t) => t.includes("request.planned"));
 
-      assert(hasProcessing || hasPlanned, "Activity log should contain processing or planned events");
+      assert(hasProcessing || hasPlanned, "IActivity log should contain processing or planned events");
     } finally {
       await env.cleanup();
     }

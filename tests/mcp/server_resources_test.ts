@@ -154,7 +154,7 @@ Deno.test("MCP Server: resources/read rejects invalid URI", async () => {
   }
 });
 
-Deno.test("MCP Server: resources/read logs to Activity Journal", async () => {
+Deno.test("MCP Server: resources/read logs to IActivity Journal", async () => {
   const { server, db, cleanup } = await createTestServer([{
     alias: "TestPortal",
     files: { "test.ts": "export {}" },

@@ -6,20 +6,20 @@ import { assertEquals, assertStringIncludes } from "@std/assert";
 import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";
 import { FlowValidatorImpl } from "../../src/services/flow_validator.ts";
 import { FlowLoader } from "../../src/flows/flow_loader.ts";
-import type { Flow, FlowStep } from "../../src/schemas/flow.ts";
+import type { IFlow, IFlowStep } from "../../src/schemas/flow.ts";
 
 /**
  * Mock FlowLoader that extends FlowLoader to allow controlling behavior without file system
  */
 class MockFlowLoader extends FlowLoader {
-  private flows: Map<string, Flow | Error | "throw-non-error"> = new Map();
+  private flows: Map<string, IFlow | Error | "throw-non-error"> = new Map();
   private existingFlows: Set<string> = new Set();
 
   constructor() {
     super("/mock/flows");
   }
 
-  setFlow(id: string, flow: Flow | Error | "throw-non-error"): void {
+  setFlow(id: string, flow: IFlow | Error | "throw-non-error"): void {
     this.flows.set(id, flow);
     this.existingFlows.add(id);
   }
@@ -36,10 +36,10 @@ class MockFlowLoader extends FlowLoader {
     return Promise.resolve(this.existingFlows.has(flowId));
   }
 
-  override loadFlow(flowId: string): Promise<Flow> {
+  override loadFlow(flowId: string): Promise<IFlow> {
     const flow = this.flows.get(flowId);
     if (!flow) {
-      throw new Error(`Flow '${flowId}' not found`);
+      throw new Error(`IFlow as Flow '${flowId}' not found`);
     }
     if (flow === "throw-non-error") {
       throw "String error thrown";
@@ -50,8 +50,8 @@ class MockFlowLoader extends FlowLoader {
     return Promise.resolve(flow);
   }
 
-  override loadAllFlows(): Promise<Flow[]> {
-    const flows: Flow[] = [];
+  override loadAllFlows(): Promise<IFlow[]> {
+    const flows: IFlow[] = [];
     for (const flow of this.flows.values()) {
       if (!(flow instanceof Error) && flow !== "throw-non-error") {
         flows.push(flow);
@@ -68,7 +68,7 @@ class MockFlowLoader extends FlowLoader {
 /**
  * Helper to create minimal valid step
  */
-function createStep(id: string, agent: string, dependsOn: string[] = []): FlowStep {
+function createStep(id: string, agent: string, dependsOn: string[] = []): IFlowStep {
   return {
     id,
     name: `Step ${id}`,
@@ -85,10 +85,10 @@ function createStep(id: string, agent: string, dependsOn: string[] = []): FlowSt
  */
 function createFlow(
   id: string,
-  steps: FlowStep[],
+  steps: IFlowStep[],
   output?: { from: string; format: FlowOutputFormat },
-): Flow {
-  const flow: Flow = {
+): IFlow {
+  const flow: IFlow = {
     id,
     name: `Flow ${id}`,
     description: `Description for ${id}`,
@@ -225,7 +225,7 @@ Deno.test("FlowValidatorImpl: handles loader error with 'Agent reference cannot 
 
   const result = await validator.validateFlow("empty-agent-error");
   assertEquals(result.valid, false);
-  assertEquals(result.error, "Flow 'empty-agent-error' has invalid agent");
+  assertEquals(result.error, "IFlow 'empty-agent-error' has invalid agent");
 });
 
 // ===== Tests for steps array edge cases =====

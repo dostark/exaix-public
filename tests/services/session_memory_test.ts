@@ -12,16 +12,16 @@ import {
   SessionMemoryService,
 } from "../../src/services/session_memory.ts";
 import type { IMemoryBankService } from "../../src/services/memory_bank.ts";
-import type { EmbeddingSearchResult, IMemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
+import type { IEmbeddingSearchResult, IMemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import type {
-  ActivitySummary,
-  Decision,
-  ExecutionMemory,
-  GlobalMemory,
-  Learning,
-  MemorySearchResult,
-  Pattern,
-  ProjectMemory,
+  IActivitySummary,
+  IDecision,
+  IExecutionMemory,
+  IGlobalMemory,
+  ILearning,
+  IMemorySearchResult,
+  IPattern,
+  IProjectMemory,
 } from "../../src/schemas/memory_bank.ts";
 import {
   ConfidenceLevel,
@@ -37,52 +37,52 @@ import { MemoryStatus } from "../../src/memory/memory_status.ts";
 
 class MockMemoryBankService implements IMemoryBankService {
   constructor(
-    private searchResults: MemorySearchResult[] = [],
-    private learnings: Learning[] = [],
-    private executions: ExecutionMemory[] = [],
+    private searchResults: IMemorySearchResult[] = [],
+    private learnings: ILearning[] = [],
+    private executions: IExecutionMemory[] = [],
   ) {}
 
-  searchMemory(_query: string, _options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]> {
+  searchMemory(_query: string, _options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]> {
     return Promise.resolve(this.searchResults);
   }
 
-  searchByTags(_tags: string[], _options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]> {
+  searchByTags(_tags: string[], _options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]> {
     return Promise.resolve(this.searchResults.filter((r) => r.tags?.some((t) => _tags.includes(t))));
   }
 
-  getExecutionHistory(_portal?: string, limit?: number): Promise<ExecutionMemory[]> {
+  getExecutionHistory(_portal?: string, limit?: number): Promise<IExecutionMemory[]> {
     const filtered = _portal ? this.executions.filter((e) => e.portal === _portal) : this.executions;
     return Promise.resolve(limit ? filtered.slice(0, limit) : filtered);
   }
 
-  addGlobalLearning(_learning: Learning): Promise<void> {
+  addGlobalLearning(_learning: ILearning): Promise<void> {
     this.learnings.push(_learning);
     return Promise.resolve();
   }
 
   // Stubbed methods
-  getProjectMemory(_portal: string): Promise<ProjectMemory | null> {
+  getProjectMemory(_portal: string): Promise<IProjectMemory | null> {
     return Promise.resolve(null);
   }
-  createProjectMemory(_projectMem: ProjectMemory): Promise<void> {
+  createProjectMemory(_projectMem: IProjectMemory): Promise<void> {
     return Promise.resolve();
   }
-  updateProjectMemory(_portal: string, _updates: Partial<Omit<ProjectMemory, "portal">>): Promise<void> {
+  updateProjectMemory(_portal: string, _updates: Partial<Omit<IProjectMemory, "portal">>): Promise<void> {
     return Promise.resolve();
   }
-  addPattern(_portal: string, _pattern: Pattern): Promise<void> {
+  addPattern(_portal: string, _pattern: IPattern): Promise<void> {
     return Promise.resolve();
   }
-  addDecision(_portal: string, _decision: Decision): Promise<void> {
+  addDecision(_portal: string, _decision: IDecision): Promise<void> {
     return Promise.resolve();
   }
-  createExecutionRecord(_execution: ExecutionMemory): Promise<void> {
+  createExecutionRecord(_execution: IExecutionMemory): Promise<void> {
     return Promise.resolve();
   }
-  getExecutionByTraceId(_traceId: string): Promise<ExecutionMemory | null> {
+  getExecutionByTraceId(_traceId: string): Promise<IExecutionMemory | null> {
     return Promise.resolve(null);
   }
-  getGlobalMemory(): Promise<GlobalMemory | null> {
+  getGlobalMemory(): Promise<IGlobalMemory | null> {
     return Promise.resolve(null);
   }
   initGlobalMemory(): Promise<void> {
@@ -95,9 +95,9 @@ class MockMemoryBankService implements IMemoryBankService {
       name: string;
       title: string;
       description: string;
-      category: Learning["category"];
+      category: ILearning["category"];
       tags: string[];
-      confidence: Learning["confidence"];
+      confidence: ILearning["confidence"];
     },
   ): Promise<string> {
     return Promise.resolve("");
@@ -105,7 +105,7 @@ class MockMemoryBankService implements IMemoryBankService {
   demoteLearning(_learningId: string, _targetPortal: string): Promise<void> {
     return Promise.resolve();
   }
-  searchByKeyword(_keyword: string, _options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]> {
+  searchByKeyword(_keyword: string, _options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]> {
     return Promise.resolve([]);
   }
   searchMemoryAdvanced(_options: {
@@ -113,10 +113,10 @@ class MockMemoryBankService implements IMemoryBankService {
     keyword?: string;
     portal?: string;
     limit?: number;
-  }): Promise<MemorySearchResult[]> {
+  }): Promise<IMemorySearchResult[]> {
     return Promise.resolve([]);
   }
-  getRecentActivity(_limit?: number): Promise<ActivitySummary[]> {
+  getRecentActivity(_limit?: number): Promise<IActivitySummary[]> {
     return Promise.resolve([]);
   }
   rebuildIndices(): Promise<void> {
@@ -128,20 +128,20 @@ class MockMemoryBankService implements IMemoryBankService {
 }
 
 function createMockMemoryBank(
-  searchResults: MemorySearchResult[] = [],
-  learnings: Learning[] = [],
-  executions: ExecutionMemory[] = [],
+  searchResults: IMemorySearchResult[] = [],
+  learnings: ILearning[] = [],
+  executions: IExecutionMemory[] = [],
 ): IMemoryBankService {
   return new MockMemoryBankService(searchResults, learnings, executions);
 }
 
 class MockEmbeddingService implements IMemoryEmbeddingService {
-  constructor(private searchResults: EmbeddingSearchResult[] = []) {}
+  constructor(private searchResults: IEmbeddingSearchResult[] = []) {}
 
   searchByEmbedding(
     _query: string,
     options?: { limit?: number; threshold?: number },
-  ): Promise<EmbeddingSearchResult[]> {
+  ): Promise<IEmbeddingSearchResult[]> {
     const threshold = options?.threshold ?? 0;
     const limit = options?.limit ?? 10;
     return Promise.resolve(
@@ -151,7 +151,7 @@ class MockEmbeddingService implements IMemoryEmbeddingService {
     );
   }
 
-  embedLearning(_learning: Learning): Promise<void> {
+  embedLearning(_learning: ILearning): Promise<void> {
     // Mock embedding - just track that it was called if needed
     return Promise.resolve();
   }
@@ -171,14 +171,14 @@ class MockEmbeddingService implements IMemoryEmbeddingService {
 }
 
 function createMockEmbeddingService(
-  searchResults: EmbeddingSearchResult[] = [],
+  searchResults: IEmbeddingSearchResult[] = [],
 ): IMemoryEmbeddingService {
   return new MockEmbeddingService(searchResults);
 }
 
 // ===== Test Data =====
 
-const sampleEmbeddingResults: EmbeddingSearchResult[] = [
+const sampleEmbeddingResults: IEmbeddingSearchResult[] = [
   {
     id: "learning-1",
     title: "Repository Pattern for Data Access",
@@ -199,11 +199,11 @@ const sampleEmbeddingResults: EmbeddingSearchResult[] = [
   },
 ];
 
-const sampleSearchResults: MemorySearchResult[] = [
+const sampleSearchResults: IMemorySearchResult[] = [
   {
     type: MemoryType.PATTERN,
     portal: "test-portal",
-    title: "Dependency Injection Pattern",
+    title: "Dependency Injection IPattern as IPattern",
     summary: "Inject dependencies through constructor for testability",
     relevance_score: 0.9,
     tags: ["architecture", "testing"],
@@ -211,7 +211,7 @@ const sampleSearchResults: MemorySearchResult[] = [
   {
     type: MemoryType.DECISION,
     portal: "test-portal",
-    title: "Decision: Use Deno Runtime",
+    title: "IDecision as IDecision: Use Deno Runtime",
     summary: "Chose Deno for built-in TypeScript support and modern APIs",
     relevance_score: 0.75,
     tags: ["runtime", "typescript"],
@@ -227,7 +227,7 @@ const sampleSearchResults: MemorySearchResult[] = [
   },
 ];
 
-const sampleExecutions: ExecutionMemory[] = [
+const sampleExecutions: IExecutionMemory[] = [
   {
     trace_id: "exec-1111-2222-3333-4444",
     request_id: "req-1",
@@ -441,7 +441,7 @@ Deno.test("SessionMemoryService - enhanceRequest respects maxContextLength", asy
 // ===== Insight Saving Tests =====
 
 Deno.test("SessionMemoryService - saveInsight creates learning entry", async () => {
-  const savedLearnings: Learning[] = [];
+  const savedLearnings: ILearning[] = [];
   const memoryBank = createMockMemoryBank([], savedLearnings);
   const embeddingService = createMockEmbeddingService();
 
@@ -469,14 +469,14 @@ Deno.test("SessionMemoryService - saveInsight creates learning entry", async () 
 });
 
 Deno.test("SessionMemoryService - saveInsight with portal creates project-scoped learning", async () => {
-  const savedLearnings: Learning[] = [];
+  const savedLearnings: ILearning[] = [];
   const memoryBank = createMockMemoryBank([], savedLearnings);
   const embeddingService = createMockEmbeddingService();
 
   const service = new SessionMemoryService(memoryBank, embeddingService);
 
   const insight: Insight = {
-    title: "Project-specific Pattern",
+    title: "Project-specific IPattern",
     description: "This pattern applies only to this project",
     category: LearningCategory.PATTERN,
     tags: ["project-specific"],
@@ -515,7 +515,7 @@ Deno.test("SessionMemoryService - saveInsight handles errors gracefully", async 
 });
 
 Deno.test("SessionMemoryService - saveInsights saves multiple", async () => {
-  const savedLearnings: Learning[] = [];
+  const savedLearnings: ILearning[] = [];
   const memoryBank = createMockMemoryBank([], savedLearnings);
   const embeddingService = createMockEmbeddingService();
 

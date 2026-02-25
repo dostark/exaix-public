@@ -24,7 +24,7 @@ import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../../src/services/memory_embedding.ts";
 import { MemoryCommands } from "../../src/cli/commands/memory_commands.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { ExecutionMemory, Learning, ProjectMemory } from "../../src/schemas/memory_bank.ts";
+import type { IExecutionMemory, ILearning, IProjectMemory } from "../../src/schemas/memory_bank.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 
 // ===== Full Workflow Tests =====
@@ -38,7 +38,7 @@ Deno.test("Integration: full workflow - execution → extract → approve → se
     const _embedding = new MemoryEmbeddingService(config);
 
     // Step 1: Create project memory
-    const projectMem: ProjectMemory = {
+    const projectMem: IProjectMemory = {
       portal: "integration-test-portal",
       overview: "Integration test project",
       patterns: [],
@@ -48,7 +48,7 @@ Deno.test("Integration: full workflow - execution → extract → approve → se
     await memoryBank.createProjectMemory(projectMem);
 
     // Step 2: Simulate execution completion
-    const execution: ExecutionMemory = {
+    const execution: IExecutionMemory = {
       trace_id: "dddddddd-4444-4000-8000-000000000001",
       request_id: "REQ-INT-001",
       started_at: new Date().toISOString(),
@@ -114,7 +114,7 @@ Deno.test("Integration: execution failure extracts troubleshooting learning", as
     });
 
     // Create failed execution
-    const execution: ExecutionMemory = {
+    const execution: IExecutionMemory = {
       trace_id: "eeeeeeee-5555-4000-8000-000000000001",
       request_id: "REQ-FAIL-001",
       started_at: new Date().toISOString(),
@@ -159,7 +159,7 @@ Deno.test("Integration: promote workflow - project → global", async () => {
       overview: "Test portal for promotion",
       patterns: [
         {
-          name: "Singleton Pattern",
+          name: "Singleton IPattern",
           description: "Ensures only one instance of a class exists",
           examples: ["src/config.ts"],
           tags: ["creational", "design-pattern"],
@@ -170,12 +170,12 @@ Deno.test("Integration: promote workflow - project → global", async () => {
     });
 
     // Promote learning to global
-    const learning: Learning = {
+    const learning: ILearning = {
       id: "ffffffff-6666-4000-8000-000000000001",
       created_at: new Date().toISOString(),
       source: MemorySource.USER,
       scope: MemoryScope.GLOBAL,
-      title: "Singleton Pattern Best Practice",
+      title: "Singleton IPattern Best Practice",
       description: "Use lazy initialization for singletons to avoid startup overhead",
       category: LearningCategory.PATTERN,
       tags: ["singleton", "design-pattern", EvaluationCategory.PERFORMANCE],
@@ -188,7 +188,7 @@ Deno.test("Integration: promote workflow - project → global", async () => {
     // Verify global learning exists
     const searchResults = await memoryBank.searchByTags(["singleton"]);
     assertGreaterOrEqual(searchResults.length, 1);
-    assertEquals(searchResults[0].title, "Singleton Pattern Best Practice");
+    assertEquals(searchResults[0].title, "Singleton IPattern Best Practice");
   } finally {
     await cleanup();
   }
@@ -233,7 +233,7 @@ Deno.test("Integration: search workflow - tag + keyword + embedding combined", a
     });
 
     // Add global learnings
-    const learnings: Learning[] = [
+    const learnings: ILearning[] = [
       {
         id: "11111111-aaaa-4000-8000-000000000001",
         created_at: new Date().toISOString(),
@@ -317,7 +317,7 @@ Deno.test("Integration: CLI workflow - complete command sequence", async () => {
       overview: "CLI integration test project",
       patterns: [
         {
-          name: "Factory Pattern",
+          name: "Factory IPattern",
           description: "Object creation through factory methods",
           examples: ["src/factories/user.ts"],
           tags: ["creational", "design-pattern"],
@@ -333,7 +333,7 @@ Deno.test("Integration: CLI workflow - complete command sequence", async () => {
 
     // Step 4: Show project
     const projectShowResult = await commands.projectShow("cli-test-portal", "table");
-    assertStringIncludes(projectShowResult, "Factory Pattern");
+    assertStringIncludes(projectShowResult, "Factory IPattern");
 
     // Step 5: Search
     const searchResult = await commands.search("factory", { format: "table" });
@@ -364,7 +364,7 @@ Deno.test("Integration: CLI pending workflow - list → approve → verify", asy
       references: [],
     });
 
-    const execution: ExecutionMemory = {
+    const execution: IExecutionMemory = {
       trace_id: "22222222-bbbb-4000-8000-000000000001",
       request_id: "REQ-CLI-001",
       started_at: new Date().toISOString(),
@@ -423,14 +423,14 @@ Deno.test("Integration: performance - search completes under 100ms", async () =>
       portal: "perf-test-portal",
       overview: "Performance test project with various patterns",
       patterns: Array.from({ length: 20 }, (_, i) => ({
-        name: `Pattern ${i}`,
+        name: `IPattern ${i}`,
         description: `Description for pattern ${i} with some searchable text`,
         examples: [`src/pattern${i}.ts`],
         tags: ["test", `tag${i % 5}`],
       })),
       decisions: Array.from({ length: 10 }, (_, i) => ({
         date: `2026-01-0${(i % 9) + 1}`,
-        decision: `Decision ${i}`,
+        decision: `IDecision ${i}`,
         rationale: `Rationale for decision ${i}`,
         tags: [LearningCategory.DECISION, `tag${i % 3}`],
       })),
@@ -456,12 +456,12 @@ Deno.test("Integration: performance - embedding search completes under 500ms", a
     const embedding = new MemoryEmbeddingService(config);
 
     // Create and embed some learnings
-    const learnings: Learning[] = Array.from({ length: 20 }, (_, i) => ({
+    const learnings: ILearning[] = Array.from({ length: 20 }, (_, i) => ({
       id: `33333333-cccc-4000-8000-00000000000${i.toString().padStart(2, "0")}`,
       created_at: new Date().toISOString(),
       source: MemorySource.AGENT,
       scope: MemoryScope.GLOBAL,
-      title: `Learning ${i}`,
+      title: `ILearning ${i}`,
       description: `Description for learning ${i} with some searchable content`,
       category: LearningCategory.INSIGHT,
       tags: [`tag${i % 5}`],

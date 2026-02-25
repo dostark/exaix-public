@@ -12,7 +12,7 @@
  * - Test 7: Edit modifies existing blueprint and re-validates
  * - Test 8: Blueprint can be referenced in request creation
  * - Test 9: Removal deletes blueprint file from filesystem
- * - Test 10: All operations logged to Activity Journal with correct action types
+ * - Test 10: All operations logged to IActivity Journal with correct action types
  */
 
 import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";
@@ -20,7 +20,7 @@ import { join } from "@std/path";
 import { exists } from "@std/fs";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 import { BlueprintCommands } from "../../src/cli/commands/blueprint_commands.ts";
-import type { BlueprintMetadata } from "../../src/schemas/blueprint.ts";
+import type { IBlueprintMetadata } from "../../src/schemas/blueprint.ts";
 
 Deno.test("Integration: Blueprint Management - Full Lifecycle", async (t) => {
   const env = await TestEnvironment.create();
@@ -60,7 +60,7 @@ Deno.test("Integration: Blueprint Management - Full Lifecycle", async (t) => {
       assertStringIncludes(content, `model = "ollama:codellama:13b"`);
       assertStringIncludes(content, "capabilities = [");
 
-      // Verify Activity Journal
+      // Verify IActivity Journal
       await env.db.waitForFlush();
       const activities = env.db.instance.prepare(
         "SELECT * FROM activity WHERE action_type = 'blueprint.created' AND target LIKE ?",
@@ -241,7 +241,7 @@ Invalid blueprint without agent_id field
 
       assert(blueprints.length >= 3, "Should have at least 3 blueprints");
 
-      const agentIds = blueprints.map((b: BlueprintMetadata) => b.agent_id);
+      const agentIds = blueprints.map((b: IBlueprintMetadata) => b.agent_id);
       assert(agentIds.includes(testAgentId), "Should include test agent");
       assert(agentIds.includes(coderAgentId), "Should include coder agent");
       assert(agentIds.includes(customAgentId), "Should include custom agent");
@@ -288,9 +288,9 @@ Invalid blueprint without agent_id field
     });
 
     // ========================================================================
-    // Test 12: Activity Journal Completeness
+    // Test 12: IActivity Journal Completeness
     // ========================================================================
-    await t.step("Test 12: All operations logged to Activity Journal", async () => {
+    await t.step("Test 12: All operations logged to IActivity Journal", async () => {
       await env.db.waitForFlush();
 
       const blueprintActivities = env.db.instance.prepare(

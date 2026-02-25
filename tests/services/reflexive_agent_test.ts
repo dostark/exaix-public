@@ -1,7 +1,7 @@
 /**
  * Reflexive Agent Tests
  *
- * Tests for Phase 16.4: Reflexion Pattern Implementation
+ * Tests for Phase 16.4: Reflexion IPattern Implementation
  */
 
 import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";

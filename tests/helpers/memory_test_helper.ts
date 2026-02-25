@@ -17,7 +17,7 @@ export async function createTestProject(memoryBank: MemoryBankService, portal: s
 
   // Add default content similar to original test helper
   builder.addPattern({
-    name: opts.patternName || "Test Pattern",
+    name: opts.patternName || "Test IPattern as IPattern",
     description: "A test pattern for unit testing",
     examples: ["src/test.ts"],
     tags: ["testing", "typescript"],

@@ -13,24 +13,24 @@
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MockProvider } from "../src/ai/providers.ts";
 import { AgentRunner } from "../src/services/agent_runner.ts";
-import type { Blueprint, ParsedRequest } from "../src/services/agent_runner.ts";
+import type { IBlueprint, IParsedRequest } from "../src/services/agent_runner.ts";
 import { PORTAL_CONTEXT_KEY } from "../src/config/constants.ts";
 import { buildPortalContextBlock } from "../src/services/prompt_context.ts";
-import type { ISkillsService, SkillMatchRequest } from "../src/services/skills.ts";
-import type { SkillMatch } from "../src/schemas/memory_bank.ts";
+import type { ISkillMatchRequest, ISkillsService } from "../src/services/skills.ts";
+import type { ISkillMatch } from "../src/schemas/memory_bank.ts";
 
 // ============================================================================
 // Test Fixtures
 // ============================================================================
 
-const sampleBlueprint: Blueprint = {
+const sampleBlueprint: IBlueprint = {
   systemPrompt: `You are a helpful coding assistant.
 Always structure your response using XML tags:
 <thought>Your reasoning process</thought>
 <content>Your user-facing response</content>`,
 };
 
-const sampleRequest: ParsedRequest = {
+const sampleRequest: IParsedRequest = {
   userPrompt: "Create a simple hello world function in TypeScript",
   context: {},
 };
@@ -327,7 +327,7 @@ Deno.test("AgentRunner handles empty response", async () => {
 // ============================================================================
 
 Deno.test("AgentRunner handles empty system prompt", async () => {
-  const emptyBlueprint: Blueprint = {
+  const emptyBlueprint: IBlueprint = {
     systemPrompt: "",
   };
 
@@ -341,7 +341,7 @@ Deno.test("AgentRunner handles empty system prompt", async () => {
 });
 
 Deno.test("AgentRunner handles empty user prompt", async () => {
-  const emptyRequest: ParsedRequest = {
+  const emptyRequest: IParsedRequest = {
     userPrompt: "",
     context: {},
   };
@@ -356,8 +356,8 @@ Deno.test("AgentRunner handles empty user prompt", async () => {
 });
 
 Deno.test("AgentRunner handles both empty prompts", async () => {
-  const emptyBlueprint: Blueprint = { systemPrompt: "" };
-  const emptyRequest: ParsedRequest = { userPrompt: "", context: {} };
+  const emptyBlueprint: IBlueprint = { systemPrompt: "" };
+  const emptyRequest: IParsedRequest = { userPrompt: "", context: {} };
 
   const mockProvider = new MockProvider(wellFormedResponse);
   const runner = new AgentRunner(mockProvider);
@@ -369,8 +369,8 @@ Deno.test("AgentRunner handles both empty prompts", async () => {
 });
 
 Deno.test("AgentRunner handles whitespace-only prompts", async () => {
-  const whitespaceBlueprint: Blueprint = { systemPrompt: "   \n\t  " };
-  const whitespaceRequest: ParsedRequest = { userPrompt: "  \n  ", context: {} };
+  const whitespaceBlueprint: IBlueprint = { systemPrompt: "   \n\t  " };
+  const whitespaceRequest: IParsedRequest = { userPrompt: "  \n  ", context: {} };
 
   const mockProvider = new MockProvider(wellFormedResponse);
   const runner = new AgentRunner(mockProvider);
@@ -419,7 +419,7 @@ More special: <>&"'
   assertStringIncludes(result.content, "More special: <>&\"'");
 });
 
-Deno.test("AgentRunner returns AgentExecutionResult with correct structure", async () => {
+Deno.test("AgentRunner returns IAgentExecutionResult with correct structure", async () => {
   const mockProvider = new MockProvider(wellFormedResponse);
   const runner = new AgentRunner(mockProvider);
 
@@ -548,7 +548,7 @@ Deno.test("AgentRunner handles provider returning undefined", async () => {
 // ============================================================================
 
 Deno.test("AgentRunner handles request with large context", async () => {
-  const largeContext: ParsedRequest = {
+  const largeContext: IParsedRequest = {
     userPrompt: "Analyze these files",
     context: {
       file1: "x".repeat(100000),
@@ -567,7 +567,7 @@ Deno.test("AgentRunner handles request with large context", async () => {
 });
 
 Deno.test("AgentRunner handles request with nested context objects", async () => {
-  const nestedContext: ParsedRequest = {
+  const nestedContext: IParsedRequest = {
     userPrompt: "Process this data",
     context: {
       level1: {
@@ -589,7 +589,7 @@ Deno.test("AgentRunner handles request with nested context objects", async () =>
 });
 
 Deno.test("AgentRunner handles request with empty context", async () => {
-  const emptyContext: ParsedRequest = {
+  const emptyContext: IParsedRequest = {
     userPrompt: "Simple request",
     context: {},
   };
@@ -603,7 +603,7 @@ Deno.test("AgentRunner handles request with empty context", async () => {
 });
 
 Deno.test("AgentRunner handles request with many context keys", async () => {
-  const manyKeysContext: ParsedRequest = {
+  const manyKeysContext: IParsedRequest = {
     userPrompt: "Process all",
     context: Object.fromEntries(
       Array.from({ length: 1000 }, (_, i) => [`key${i}`, `value${i}`]),
@@ -695,11 +695,11 @@ Deno.test("AgentRunner handles self-closing tags", async () => {
 });
 
 // ============================================================================
-// Blueprint and Request Variations
+// IBlueprint and Request Variations
 // ============================================================================
 
 Deno.test("AgentRunner handles blueprint with agentId", async () => {
-  const blueprintWithId: Blueprint = {
+  const blueprintWithId: IBlueprint = {
     systemPrompt: "You are an assistant",
     agentId: "test-agent-001",
   };
@@ -713,7 +713,7 @@ Deno.test("AgentRunner handles blueprint with agentId", async () => {
 });
 
 Deno.test("AgentRunner handles request with traceId and requestId", async () => {
-  const requestWithIds: ParsedRequest = {
+  const requestWithIds: IParsedRequest = {
     userPrompt: "Test prompt",
     context: {},
     traceId: "trace-123",
@@ -729,7 +729,7 @@ Deno.test("AgentRunner handles request with traceId and requestId", async () => 
 });
 
 Deno.test("AgentRunner handles very long system prompt", async () => {
-  const longBlueprint: Blueprint = {
+  const longBlueprint: IBlueprint = {
     systemPrompt: "You are an assistant. " + "Rules: ".repeat(10000),
   };
 
@@ -742,7 +742,7 @@ Deno.test("AgentRunner handles very long system prompt", async () => {
 });
 
 Deno.test("AgentRunner handles very long user prompt", async () => {
-  const longRequest: ParsedRequest = {
+  const longRequest: IParsedRequest = {
     userPrompt: "Please analyze this: " + "data ".repeat(50000),
     context: {},
   };
@@ -763,13 +763,13 @@ Deno.test("AgentRunner handles very long user prompt", async () => {
  * Mock SkillsService for testing
  */
 class MockSkillsService implements ISkillsService {
-  matchedSkills: SkillMatch[] = [];
+  matchedSkills: ISkillMatch[] = [];
   skillContext = "";
   usageRecorded: string[] = [];
   matchCallCount = 0;
   contextBuiltForSkills: string[] = [];
 
-  setMatchedSkills(skills: SkillMatch[]) {
+  setMatchedSkills(skills: ISkillMatch[]) {
     this.matchedSkills = skills;
   }
 
@@ -778,8 +778,8 @@ class MockSkillsService implements ISkillsService {
   }
 
   matchSkills(
-    _request: SkillMatchRequest,
-  ): Promise<SkillMatch[]> {
+    _request: ISkillMatchRequest,
+  ): Promise<ISkillMatch[]> {
     this.matchCallCount++;
     return Promise.resolve(this.matchedSkills);
   }
@@ -792,6 +792,14 @@ class MockSkillsService implements ISkillsService {
 
   recordSkillUsage(skillId: string): Promise<void> {
     this.usageRecorded.push(skillId);
+    return Promise.resolve();
+  }
+
+  deriveSkillFromLearnings(): Promise<any> {
+    return Promise.resolve({ skill_id: "derived" });
+  }
+
+  rebuildIndex(): Promise<void> {
     return Promise.resolve();
   }
 }
@@ -916,14 +924,14 @@ Deno.test("AgentRunner: uses blueprint defaultSkills when no trigger matches", a
 
   // No trigger matches - returns empty
   mockSkills.setMatchedSkills([]);
-  mockSkills.setSkillContext("## Blueprint Default Skill\nDefault instructions");
+  mockSkills.setSkillContext("## IBlueprint Default Skill\nDefault instructions");
 
   const runner = new AgentRunner(mockProvider, {
     skillsService: mockSkills,
   });
 
-  // Blueprint with defaultSkills
-  const blueprintWithDefaults: Blueprint = {
+  // IBlueprint with defaultSkills
+  const blueprintWithDefaults: IBlueprint = {
     systemPrompt: "You are a helpful assistant.",
     agentId: "test-agent",
     defaultSkills: ["default-skill-1", "default-skill-2"],
@@ -952,8 +960,8 @@ Deno.test("AgentRunner: trigger matches override blueprint defaultSkills", async
     skillsService: mockSkills,
   });
 
-  // Blueprint with defaultSkills
-  const blueprintWithDefaults: Blueprint = {
+  // IBlueprint with defaultSkills
+  const blueprintWithDefaults: IBlueprint = {
     systemPrompt: "You are a helpful assistant.",
     agentId: "test-agent",
     defaultSkills: ["default-skill-1"],
@@ -981,7 +989,7 @@ Deno.test("AgentRunner: request-level skills override trigger matches", async ()
   });
 
   // Request with explicit skills
-  const requestWithSkills: ParsedRequest = {
+  const requestWithSkills: IParsedRequest = {
     userPrompt: "Do something",
     context: {},
     skills: ["explicit-skill-1", "explicit-skill-2"],
@@ -1013,7 +1021,7 @@ Deno.test("AgentRunner: skipSkills filters out matched skills", async () => {
   });
 
   // Request that skips some skills
-  const requestWithSkipSkills: ParsedRequest = {
+  const requestWithSkipSkills: IParsedRequest = {
     userPrompt: "Do something",
     context: {},
     skipSkills: ["skill-b"],
@@ -1036,7 +1044,7 @@ Deno.test("AgentRunner: skipSkills with explicit skills", async () => {
   });
 
   // Request with both explicit skills and skip
-  const requestWithBoth: ParsedRequest = {
+  const requestWithBoth: IParsedRequest = {
     userPrompt: "Do something",
     context: {},
     skills: ["skill-x", "skill-y", "skill-z"],

@@ -24,13 +24,13 @@ import {
   MemoryEmbeddingService,
 } from "../../src/services/memory_embedding.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { Learning } from "../../src/schemas/memory_bank.ts";
+import type { ILearning } from "../../src/schemas/memory_bank.ts";
 import { ConfidenceLevel } from "../../src/enums.ts";
 import { getMemoryIndexDir } from "../helpers/paths_helper.ts";
 
 // ===== Test Fixture =====
 
-const testLearning: Learning = {
+const testLearning: ILearning = {
   id: "ffffffff-1111-4000-8000-000000000001",
   created_at: new Date().toISOString(),
   source: MemorySource.AGENT,
@@ -352,11 +352,11 @@ Deno.test(
       const service = new MemoryEmbeddingService(config);
 
       // Embed multiple learnings
-      const learning1: Learning = {
+      const learning1: ILearning = {
         ...testLearning,
         id: "stats-1111-4000-8000-000000000001",
       };
-      const learning2: Learning = {
+      const learning2: ILearning = {
         ...testLearning,
         id: "stats-2222-4000-8000-000000000002",
       };
@@ -484,12 +484,12 @@ Deno.test(
       const service = new MemoryEmbeddingService(config);
 
       // Embed learnings
-      const learnings: Learning[] = [];
+      const learnings: ILearning[] = [];
       for (let i = 1; i <= 15; i++) {
         learnings.push({
           ...testLearning,
           id: `default-${i.toString().padStart(4, "0")}-4000-8000-000000000001`,
-          title: `Learning ${i}`,
+          title: `ILearning ${i}`,
         });
       }
 

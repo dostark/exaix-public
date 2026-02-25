@@ -1,8 +1,8 @@
 /**
- * Integration tests for AgentExecutor with WorkspaceExecutionContext
+ * Integration tests for AgentExecutor with IWorkspaceExecutionContext
  *
  * Test Task 1.2: Update Agent Executor
- * Tests that AgentExecutor accepts WorkspaceExecutionContext and uses it
+ * Tests that AgentExecutor accepts IWorkspaceExecutionContext and uses it
  * for portal/workspace execution with proper directory isolation.
  */
 
@@ -11,9 +11,9 @@ import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { WorkspaceExecutionContextBuilder } from "../../src/services/workspace_execution_context.ts";
-import type { PortalConfig } from "../../src/config/schema.ts";
+import type { IPortalConfig } from "../../src/config/schema.ts";
 
-describe("AgentExecutor with WorkspaceExecutionContext", () => {
+describe("AgentExecutor with IWorkspaceExecutionContext", () => {
   let tempDir: string;
   let portalDir: string;
   let workspaceDir: string;
@@ -48,8 +48,8 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
   });
 
   describe("ExecutionContext acceptance", () => {
-    it("accepts WorkspaceExecutionContext for portal execution", () => {
-      const portal: PortalConfig = {
+    it("accepts IWorkspaceExecutionContext for portal execution", () => {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -64,7 +64,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
       assertEquals(context.portal, "test-portal");
     });
 
-    it("accepts WorkspaceExecutionContext for workspace execution", () => {
+    it("accepts IWorkspaceExecutionContext for workspace execution", () => {
       const context = WorkspaceExecutionContextBuilder.forWorkspace(workspaceDir);
 
       // Verify context has required fields
@@ -78,7 +78,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
 
   describe("Working directory management", () => {
     it("changes to portal working directory", () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -108,12 +108,12 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
       await ensureDir(portal1Dir);
       await ensureDir(portal2Dir);
 
-      const portal1: PortalConfig = {
+      const portal1: IPortalConfig = {
         alias: "portal-1",
         target_path: portal1Dir,
       };
 
-      const portal2: PortalConfig = {
+      const portal2: IPortalConfig = {
         alias: "portal-2",
         target_path: portal2Dir,
       };
@@ -133,7 +133,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
 
   describe("Git repository configuration", () => {
     it("uses portal git repository for portal context", () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -154,7 +154,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
     });
 
     it("git repository paths are independent per context", () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -170,7 +170,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
 
   describe("File access validation", () => {
     it("restricts file access to portal directory", () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -191,7 +191,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
     });
 
     it("portal context does not allow workspace access", () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -212,7 +212,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
 
   describe("Portal execution scenarios", () => {
     it("portal execution creates files in portal directory", async () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -257,7 +257,7 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
 
   describe("Context isolation", () => {
     it("portal and workspace contexts are completely isolated", async () => {
-      const portal: PortalConfig = {
+      const portal: IPortalConfig = {
         alias: "test-portal",
         target_path: portalDir,
       };
@@ -289,12 +289,12 @@ describe("AgentExecutor with WorkspaceExecutionContext", () => {
       await ensureDir(join(portal1Dir, "src"));
       await ensureDir(join(portal2Dir, "src"));
 
-      const portal1: PortalConfig = {
+      const portal1: IPortalConfig = {
         alias: "portal-a",
         target_path: portal1Dir,
       };
 
-      const portal2: PortalConfig = {
+      const portal2: IPortalConfig = {
         alias: "portal-b",
         target_path: portal2Dir,
       };

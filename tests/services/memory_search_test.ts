@@ -17,7 +17,7 @@ import { EvaluationCategory } from "../../src/enums.ts";
 import { join } from "@std/path";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { Learning, ProjectMemory } from "../../src/schemas/memory_bank.ts";
+import type { ILearning, IProjectMemory } from "../../src/schemas/memory_bank.ts";
 import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
@@ -30,24 +30,24 @@ import { getMemoryGlobalDir } from "../helpers/paths_helper.ts";
 async function setupTestProjectWithTags(
   service: MemoryBankService,
 ): Promise<void> {
-  const projectMem: ProjectMemory = {
+  const projectMem: IProjectMemory = {
     portal: "search-test-project",
     overview: "A project for testing search functionality",
     patterns: [
       {
-        name: "Repository Pattern",
+        name: "Repository IPattern as IPattern",
         description: "Database access through repository classes",
         examples: ["src/repos/user_repo.ts"],
         tags: ["database", "architecture", "typescript"],
       },
       {
-        name: "Factory Pattern",
+        name: "Factory IPattern as IPattern",
         description: "Object creation using factory methods",
         examples: ["src/factories/user_factory.ts"],
         tags: ["creational", "design-pattern", "typescript"],
       },
       {
-        name: "Observer Pattern",
+        name: "Observer IPattern as IPattern",
         description: "Event-driven communication between objects",
         examples: ["src/events/event_bus.ts"],
         tags: ["behavioral", "design-pattern", "events"],
@@ -80,7 +80,7 @@ async function setupTestLearnings(
   _service: MemoryBankService,
   configRoot: string,
 ): Promise<void> {
-  const learnings: Learning[] = [
+  const learnings: ILearning[] = [
     {
       id: "aaaaaaaa-1111-4000-8000-000000000001",
       created_at: new Date().toISOString(),
@@ -173,7 +173,7 @@ Deno.test("MemoryBankService: searchByTags returns matching entries (database ta
     // Search by database tag
     const results = await service.searchByTags(["database"]);
 
-    // Should find Repository Pattern, SQLite decision, and connection pooling learning
+    // Should find Repository IPattern as IPattern, SQLite decision, and connection pooling learning
     assertGreaterOrEqual(results.length, 2);
 
     // All results should have the database tag
@@ -207,7 +207,7 @@ Deno.test("MemoryBankService: searchByKeyword finds text matches in titles", asy
     // Search by keyword in title
     const results = await service.searchByKeyword(LearningCategory.PATTERN);
 
-    // Should find patterns with "Pattern" in the name
+    // Should find patterns with "IPattern as IPattern" in the name
     assertGreaterOrEqual(results.length, 3);
 
     // Check that results contain expected items

@@ -1,6 +1,6 @@
 import { initTestDbService } from "../../helpers/db.ts";
 import { NotificationService } from "../../../src/services/notification.ts";
-import type { MemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
+import type { IMemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";
 import { ConfidenceLevel, LearningCategory, MemoryOperation, MemoryScope, MemorySource } from "../../../src/enums.ts";
 import { MemoryStatus } from "../../../src/memory/memory_status.ts";
 
@@ -27,7 +27,7 @@ export async function initNotificationTest() {
  * Creates a test proposal
  */
 // ...
-export function createTestProposal(idOrOverrides?: string | Partial<MemoryUpdateProposal>): MemoryUpdateProposal {
+export function createTestProposal(idOrOverrides?: string | Partial<IMemoryUpdateProposal>): IMemoryUpdateProposal {
   const overrides = typeof idOrOverrides === "string" ? { id: idOrOverrides } : idOrOverrides || {};
 
   return {
@@ -43,7 +43,7 @@ export function createTestProposal(idOrOverrides?: string | Partial<MemoryUpdate
       source: MemorySource.EXECUTION,
       scope: MemoryScope.PROJECT,
       project: "my-app",
-      title: "Test Pattern",
+      title: "Test IPattern",
       description: "A test pattern for notifications",
       category: LearningCategory.PATTERN,
       tags: ["test"],

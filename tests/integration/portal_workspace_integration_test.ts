@@ -12,7 +12,7 @@ import { assertEquals, assertExists } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { WorkspaceExecutionContextBuilder } from "../../src/services/workspace_execution_context.ts";
-import type { PortalPermissions } from "../../src/schemas/portal_permissions.ts";
+import type { IPortalPermissions } from "../../src/schemas/portal_permissions.ts";
 import { PortalOperation } from "../../src/enums.ts";
 import { initTestDbService } from "../helpers/db.ts";
 
@@ -121,7 +121,7 @@ Deno.test("[integration] Portal execution context points to portal workspace", a
     const { db, cleanup: dbCleanup } = await initTestDbService();
 
     // Create portal config
-    const portal: PortalPermissions = {
+    const portal: IPortalPermissions = {
       alias: portalAlias,
       target_path: portalPath,
       agents_allowed: ["*"],
@@ -154,7 +154,7 @@ Deno.test("[integration] Read-only agent capabilities detected correctly", async
     const branchesBefore = await listGitBranches(portalPath);
     assertEquals(branchesBefore.length, 1); // Only main/master branch
 
-    // Note: AgentExecutor.requiresGitTracking() and isReadOnlyAgent()
+    // Note: IAgentExecutor as AgentExecutor.requiresGitTracking() and isReadOnlyAgent()
     // are tested in unit tests (tests/services/agent_capability_test.ts)
     // This integration test verifies the portal git repo state remains clean
   } finally {
@@ -171,7 +171,7 @@ Deno.test("[integration] Write-capable agent git repository structure", async ()
     const stat = await Deno.stat(gitDir);
     assertEquals(stat.isDirectory, true);
 
-    // Note: AgentExecutor.requiresGitTracking() logic for write-capable agents
+    // Note: IAgentExecutor as AgentExecutor.requiresGitTracking() logic for write-capable agents
     // is tested in unit tests (tests/services/agent_capability_test.ts)
     // This integration test verifies the portal git infrastructure exists
   } finally {
@@ -187,14 +187,14 @@ Deno.test("[integration] Multi-portal contexts are isolated", async () => {
     const { db, cleanup: dbCleanup } = await initTestDbService();
 
     // Create portal configs
-    const portalConfig1: PortalPermissions = {
+    const portalConfig1: IPortalPermissions = {
       alias: portal1.portalAlias,
       target_path: portal1.portalPath,
       agents_allowed: ["*"],
       operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
     };
 
-    const portalConfig2: PortalPermissions = {
+    const portalConfig2: IPortalPermissions = {
       alias: portal2.portalAlias,
       target_path: portal2.portalPath,
       agents_allowed: ["*"],
@@ -230,7 +230,7 @@ Deno.test("[integration] Portal context validation fails for missing git repo", 
     await ensureDir(tempDir);
 
     // Create portal config pointing to non-git directory
-    const portal: PortalPermissions = {
+    const portal: IPortalPermissions = {
       alias: "no-git-portal",
       target_path: tempDir,
       agents_allowed: ["*"],

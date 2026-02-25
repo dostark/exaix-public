@@ -2,12 +2,12 @@ import { assert, assertEquals } from "@std/assert";
 import { MemoryType } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import {
+  type ISearchDeps,
   searchByKeyword,
   searchByTags,
-  type SearchDeps,
   searchMemoryAdvanced,
 } from "../../src/services/memory_search.ts";
-import { type ProjectMemory } from "../../src/schemas/memory_bank.ts";
+import { type IProjectMemory } from "../../src/schemas/memory_bank.ts";
 import { createTestLearning } from "./helpers/memory_test_helpers.ts";
 import { ConfidenceLevel, ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
 
@@ -17,7 +17,7 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
   await Deno.mkdir(`${projectsDir}/projA`);
   await Deno.mkdir(`${projectsDir}/projB`);
 
-  const deps: SearchDeps = {
+  const deps: ISearchDeps = {
     projectsDir,
     getProjectMemory: (portal: string) => {
       if (portal === "projA") {
@@ -64,7 +64,7 @@ Deno.test("[regression] searchByKeyword finds patterns, decisions and overview",
       Promise.resolve([
         createTestLearning({
           id: "550e8400-e29b-41d4-a716-446655440001",
-          title: "Learning X",
+          title: "ILearning as ILearning X",
           description: "About X",
           status: MemoryStatus.APPROVED,
           tags: ["alpha"],
@@ -101,7 +101,7 @@ Deno.test("[regression] searchByTags returns matching items and learnings", asyn
   const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });
   await Deno.mkdir(`${projectsDir}/projA`);
 
-  const deps: SearchDeps = {
+  const deps: ISearchDeps = {
     projectsDir,
     getProjectMemory: (portal: string) =>
       Promise.resolve({
@@ -110,7 +110,7 @@ Deno.test("[regression] searchByTags returns matching items and learnings", asyn
         patterns: [{ name: "P", description: "D", examples: [], tags: ["t1"] }],
         decisions: [{ date: "2026-01-01", decision: "D1", rationale: "R1", tags: ["t1"] }],
         references: [],
-      } as ProjectMemory),
+      } as IProjectMemory),
     getExecutionHistory: () => Promise.resolve([]),
     loadLearningsFromFile: () =>
       Promise.resolve([
@@ -139,7 +139,7 @@ Deno.test("[regression] searchMemoryAdvanced combines tag and keyword results wi
   const projectsDir = await Deno.makeTempDir({ prefix: "exotest-" });
   await Deno.mkdir(`${projectsDir}/projA`);
 
-  const deps: SearchDeps = {
+  const deps: ISearchDeps = {
     projectsDir,
     getProjectMemory: () =>
       Promise.resolve({
@@ -148,7 +148,7 @@ Deno.test("[regression] searchMemoryAdvanced combines tag and keyword results wi
         patterns: [{ name: "ZedPattern", description: "zed here", examples: [], tags: ["t1"] }],
         decisions: [],
         references: [],
-      } as ProjectMemory),
+      } as IProjectMemory),
     getExecutionHistory: () => Promise.resolve([]),
     loadLearningsFromFile: () => Promise.resolve([]),
     calculateFrequency: (text: string | undefined, keywordLower: string) => {

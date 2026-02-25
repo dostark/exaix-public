@@ -12,18 +12,18 @@ import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/a
 import { McpToolName } from "../../src/enums.ts";
 
 import {
-  type AgentExecutionResult,
+  type IAgentExecutionResult,
+  type IPlanWriterConfig,
+  IRequestMetadata,
   PlanWriter,
-  type PlanWriterConfig,
-  type RequestMetadata,
 } from "../../src/services/plan_writer.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
 
 /**
- * Creates a mock PlanWriterConfig for testing
+ * Creates a mock IPlanWriterConfig for testing
  */
-function createMockPlanWriterConfig(tempDir: string, db?: any): PlanWriterConfig {
+function createMockPlanWriterConfig(tempDir: string, db?: any): IPlanWriterConfig {
   const plansDir = `${tempDir}/plans`;
   // Ensure plans directory exists
   Deno.mkdirSync(plansDir, { recursive: true });
@@ -38,9 +38,9 @@ function createMockPlanWriterConfig(tempDir: string, db?: any): PlanWriterConfig
 }
 
 /**
- * Creates a mock AgentExecutionResult for testing
+ * Creates a mock IAgentExecutionResult for testing
  */
-function createMockExecutionResult(planJson: string, thought = "Test reasoning"): AgentExecutionResult {
+function createMockExecutionResult(planJson: string, thought = "Test reasoning"): IAgentExecutionResult {
   return {
     thought,
     content: planJson,
@@ -64,7 +64,7 @@ Deno.test("PlanWriter: writePlan creates plan file with correct structure", asyn
   try {
     const writer = new PlanWriter(mockConfig);
 
-    const metadata: RequestMetadata = {
+    const metadata: IRequestMetadata = {
       requestId: "test-request-123",
       traceId: "test-trace-123",
       createdAt: new Date(),
@@ -126,7 +126,7 @@ Deno.test("PlanWriter: writePlan handles minimal plan content", async () => {
   try {
     const writer = new PlanWriter(mockConfig);
 
-    const metadata: RequestMetadata = {
+    const metadata: IRequestMetadata = {
       requestId: "minimal-request",
       traceId: "trace-456",
       createdAt: new Date(),
@@ -185,7 +185,7 @@ Deno.test("PlanWriter: writePlan includes token stats in frontmatter", async () 
     );
     await db.waitForFlush();
 
-    const metadata: RequestMetadata = {
+    const metadata: IRequestMetadata = {
       requestId: "token-request",
       traceId,
       createdAt: new Date(),
@@ -227,7 +227,7 @@ Deno.test("PlanWriter: writePlan logs activity when database available", async (
 
     const writer = new PlanWriter(mockConfig);
 
-    const metadata: RequestMetadata = {
+    const metadata: IRequestMetadata = {
       requestId: "logging-test",
       traceId: "logging-trace-789",
       createdAt: new Date(),
@@ -271,7 +271,7 @@ Deno.test("PlanWriter: writePlan works without database (testing mode)", async (
   try {
     const writer = new PlanWriter(mockConfig);
 
-    const metadata: RequestMetadata = {
+    const metadata: IRequestMetadata = {
       requestId: "no-db-test",
       traceId: "no-db-trace",
       createdAt: new Date(),
@@ -302,7 +302,7 @@ Deno.test("PlanWriter: writePlan handles invalid JSON gracefully", async () => {
   try {
     const writer = new PlanWriter(mockConfig);
 
-    const metadata: RequestMetadata = {
+    const metadata: IRequestMetadata = {
       requestId: "invalid-json-test",
       traceId: "invalid-trace",
       createdAt: new Date(),

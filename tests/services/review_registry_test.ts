@@ -1,7 +1,7 @@
 /**
  * Tests for ReviewRegistry
  *
- * Covers registration, retrieval, listing, status updates, and Activity Journal logging.
+ * Covers registration, retrieval, listing, status updates, and IActivity Journal logging.
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
@@ -12,7 +12,7 @@ import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { ReviewRegistry } from "../../src/services/review_registry.ts";
 import { EventLogger } from "../../src/services/event_logger.ts";
 import { initTestDbService } from "../helpers/db.ts";
-import type { RegisterReviewInput } from "../../src/schemas/review.ts";
+import type { IRegisterReviewInput } from "../../src/schemas/review.ts";
 
 describe("ReviewRegistry", () => {
   let registry: ReviewRegistry;
@@ -38,7 +38,7 @@ describe("ReviewRegistry", () => {
   // ============================================================================
 
   it("should register a new review", async () => {
-    const input: RegisterReviewInput = {
+    const input: IRegisterReviewInput = {
       trace_id: crypto.randomUUID(),
       portal: "TestPortal",
       repository: "/test/repo",
@@ -57,7 +57,7 @@ describe("ReviewRegistry", () => {
   });
 
   it("should set default values for optional fields", async () => {
-    const input: RegisterReviewInput = {
+    const input: IRegisterReviewInput = {
       trace_id: crypto.randomUUID(),
       portal: "TestPortal",
       repository: "/test/repo",
@@ -76,9 +76,9 @@ describe("ReviewRegistry", () => {
     assertEquals(review.commit_sha, null); // SQLite returns null for NULL values
   });
 
-  it("should log review.created to Activity Journal", async () => {
+  it("should log review.created to IActivity Journal", async () => {
     const trace_id = crypto.randomUUID();
-    const input: RegisterReviewInput = {
+    const input: IRegisterReviewInput = {
       trace_id,
       portal: "TestPortal",
       repository: "/test/repo",
@@ -109,7 +109,7 @@ describe("ReviewRegistry", () => {
     };
 
     await assertRejects(
-      async () => await registry.register(input as RegisterReviewInput),
+      async () => await registry.register(input as IRegisterReviewInput),
       Error,
     );
   });
@@ -119,7 +119,7 @@ describe("ReviewRegistry", () => {
   // ============================================================================
 
   it("should get review by ID", async () => {
-    const input: RegisterReviewInput = {
+    const input: IRegisterReviewInput = {
       trace_id: crypto.randomUUID(),
       portal: "TestPortal",
       repository: "/test/repo",
@@ -147,7 +147,7 @@ describe("ReviewRegistry", () => {
   });
 
   it("should get review by branch name", async () => {
-    const input: RegisterReviewInput = {
+    const input: IRegisterReviewInput = {
       trace_id: crypto.randomUUID(),
       portal: "TestPortal",
       repository: "/test/repo",
@@ -323,7 +323,7 @@ describe("ReviewRegistry", () => {
   // ============================================================================
 
   it("should update review to approved status", async () => {
-    const input: RegisterReviewInput = {
+    const input: IRegisterReviewInput = {
       trace_id: crypto.randomUUID(),
       portal: "TestPortal",
       repository: "/test/repo",
@@ -345,7 +345,7 @@ describe("ReviewRegistry", () => {
   });
 
   it("should update review to rejected status", async () => {
-    const input: RegisterReviewInput = {
+    const input: IRegisterReviewInput = {
       trace_id: crypto.randomUUID(),
       portal: "TestPortal",
       repository: "/test/repo",
@@ -367,9 +367,9 @@ describe("ReviewRegistry", () => {
     assertExists(review.rejected_at);
   });
 
-  it("should log review.approved to Activity Journal", async () => {
+  it("should log review.approved to IActivity Journal", async () => {
     const trace_id = crypto.randomUUID();
-    const input: RegisterReviewInput = {
+    const input: IRegisterReviewInput = {
       trace_id,
       portal: "TestPortal",
       repository: "/test/repo",
@@ -390,9 +390,9 @@ describe("ReviewRegistry", () => {
     assertEquals(approved.target, "feat/approve-logging");
   });
 
-  it("should log review.rejected to Activity Journal", async () => {
+  it("should log review.rejected to IActivity Journal", async () => {
     const trace_id = crypto.randomUUID();
-    const input: RegisterReviewInput = {
+    const input: IRegisterReviewInput = {
       trace_id,
       portal: "TestPortal",
       repository: "/test/repo",

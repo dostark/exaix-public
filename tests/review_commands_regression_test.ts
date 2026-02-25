@@ -4,18 +4,18 @@
  * Regression tests for review list/show command enhancements.
  *
  * Regression test for: "Review commands show minimal information without request/plan context"
- * Root cause: ReviewMetadata only included basic git information
- * Fix: Enhanced ReviewMetadata with request and plan context loading
+ * Root cause: IReviewMetadata only included basic git information
+ * Fix: Enhanced IReviewMetadata with request and plan context loading
  */
 
 import { assertEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createStubDb } from "./test_helpers.ts";
-import { ReviewCommands, type ReviewMetadata } from "../src/cli/commands/review_commands.ts";
+import { type IReviewMetadata, ReviewCommands } from "../src/cli/commands/review_commands.ts";
 import { PlanStatus } from "../src/plans/plan_status.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";
-import type { CommandContext } from "../src/cli/base.ts";
+import type { ICommandContext } from "../src/cli/base.ts";
 import { createMockConfig } from "./helpers/config.ts";
 import type { IGitService } from "../src/services/git_service.ts";
 
@@ -107,7 +107,7 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
 
     // Create mock config
     const config = createMockConfig(tempDir);
-    const context: CommandContext = {
+    const context: ICommandContext = {
       config,
       db: createStubDb({ getActivitiesByTrace: () => [] }),
     };
@@ -137,9 +137,9 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
     assertEquals(typeof reviewCommands.list, "function");
     assertEquals(typeof reviewCommands.show, "function");
 
-    // Test that the ReviewMetadata interface includes the new fields
+    // Test that the IReviewMetadata interface includes the new fields
     // We can't directly test private methods, but we can verify the interface supports the new fields
-    const testMetadata: ReviewMetadata = {
+    const testMetadata: IReviewMetadata = {
       branch: TEST_BRANCH,
       trace_id: TEST_TRACE_ID,
       request_id: TEST_REQUEST_ID,

@@ -1,8 +1,8 @@
 /**
- * TDD tests for AgentExecutor modifications to accept WorkspaceExecutionContext
+ * TDD tests for AgentExecutor modifications to accept IWorkspaceExecutionContext
  *
  * These tests demonstrate the new API where AgentExecutor methods accept
- * WorkspaceExecutionContext to determine execution location.
+ * IWorkspaceExecutionContext to determine execution location.
  *
  * Following TDD:
  * 1. Write these tests (they will FAIL initially - RED)
@@ -15,7 +15,7 @@ import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";
 import { AgentExecutor } from "../../src/services/agent_executor.ts";
 import { WorkspaceExecutionContextBuilder } from "../../src/services/workspace_execution_context.ts";
-import type { PortalPermissions } from "../../src/schemas/portal_permissions.ts";
+import type { IPortalPermissions } from "../../src/schemas/portal_permissions.ts";
 import { PortalOperation } from "../../src/enums.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { createMockConfig } from "../helpers/config.ts";
@@ -24,7 +24,7 @@ import { PathResolver } from "../../src/services/path_resolver.ts";
 import { PortalPermissionsService } from "../../src/services/portal_permissions.ts";
 import { setupPortalWorkspaceTestDirs } from "./helpers/portal_workspace_test_helper.ts";
 
-describe("AgentExecutor API with WorkspaceExecutionContext", () => {
+describe("AgentExecutor API with IWorkspaceExecutionContext", () => {
   let tempDir: string;
   let portalDir: string;
   let workspaceDir: string;
@@ -76,8 +76,8 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
   });
 
   describe("setExecutionContext method", () => {
-    it("accepts WorkspaceExecutionContext for portal", () => {
-      const portal: PortalPermissions = {
+    it("accepts IWorkspaceExecutionContext for portal", () => {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
         agents_allowed: ["*"],
@@ -95,7 +95,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
       assertEquals(storedContext?.portal, "test-portal");
     });
 
-    it("accepts WorkspaceExecutionContext for workspace", () => {
+    it("accepts IWorkspaceExecutionContext for workspace", () => {
       const context = WorkspaceExecutionContextBuilder.forWorkspace(workspaceDir);
 
       executor.setExecutionContext(context);
@@ -106,7 +106,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
     });
 
     it("changes working directory to context location", () => {
-      const portal: PortalPermissions = {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
         agents_allowed: ["*"],
@@ -121,7 +121,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
     });
 
     it("restores original working directory when context cleared", () => {
-      const portal: PortalPermissions = {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
         agents_allowed: ["*"],
@@ -147,7 +147,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
     });
 
     it("returns current execution context", () => {
-      const portal: PortalPermissions = {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
         agents_allowed: ["*"],
@@ -167,7 +167,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
 
   describe("clearExecutionContext method", () => {
     it("clears stored context", () => {
-      const portal: PortalPermissions = {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
         agents_allowed: ["*"],
@@ -186,7 +186,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
     it("restores original directory", () => {
       const originalDir = Deno.cwd();
 
-      const portal: PortalPermissions = {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
         agents_allowed: ["*"],
@@ -203,7 +203,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
 
   describe("withExecutionContext helper method", () => {
     it("executes function in portal context", async () => {
-      const portal: PortalPermissions = {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
         agents_allowed: ["*"],
@@ -227,7 +227,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
     });
 
     it("restores directory even if function throws", async () => {
-      const portal: PortalPermissions = {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
         agents_allowed: ["*"],
@@ -249,7 +249,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
     });
 
     it("returns function result", async () => {
-      const portal: PortalPermissions = {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [
           PortalOperation.READ,
@@ -272,7 +272,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
 
   describe("getGitRepository method", () => {
     it("returns portal git repository when portal context set", () => {
-      const portal: PortalPermissions = {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
         agents_allowed: ["*"],
@@ -302,7 +302,7 @@ describe("AgentExecutor API with WorkspaceExecutionContext", () => {
 
   describe("getAllowedPaths method", () => {
     it("returns portal allowed paths when portal context set", () => {
-      const portal: PortalPermissions = {
+      const portal: IPortalPermissions = {
         alias: "test-portal",
         operations: [PortalOperation.READ, PortalOperation.WRITE, PortalOperation.GIT],
         agents_allowed: ["*"],

@@ -1,5 +1,5 @@
 /**
- * MockLLMProvider Execution Pattern Regression Test
+ * MockLLMProvider Execution IPattern Regression Test
  *
  * Regression test for: "step.no_actions - MockLLMProvider returns planning responses for execution prompts"
  * Root cause: getDefaultPatterns() always returned planning responses (plan JSON) regardless of

@@ -14,7 +14,7 @@ import {
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs, withTestMod } from "./helpers/test_utils.ts";
 import type { FlowCommands } from "../../src/cli/commands/flow_commands.ts";
-import type { RequestOptions, RequestSource } from "../../src/cli/commands/request_commands.ts";
+import type { IRequestOptions, RequestSource } from "../../src/cli/commands/request_commands.ts";
 import type { RequestStatusType } from "../../src/requests/request_status.ts";
 import type { PlanStatusType } from "../../src/plans/plan_status.ts";
 import type { BlueprintCreateOptions, BlueprintRemoveOptions } from "../../src/cli/commands/blueprint_commands.ts";
@@ -347,7 +347,7 @@ Deno.test("request --file prints human output when no --json", async () => {
 
 Deno.test("request inline create handles create errors and exits", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.create = (_desc: string, _opts?: RequestOptions, _source?: RequestSource) => {
+    ctx.requestCommands.create = (_desc: string, _opts?: IRequestOptions, _source?: RequestSource) => {
       throw new Error("create failed");
     };
 
@@ -447,7 +447,7 @@ Deno.test("review show --diff outputs only diff", async () => {
 Deno.test("request inline --dry-run logs dry_run and creates file", async () => {
   await withTestMod(async (mod, ctx) => {
     let created = false;
-    ctx.requestCommands.create = (_desc: string, _opts?: RequestOptions, _source?: RequestSource) => {
+    ctx.requestCommands.create = (_desc: string, _opts?: IRequestOptions, _source?: RequestSource) => {
       created = true;
       return Promise.resolve({
         filename: "/tmp/req.md",
@@ -627,7 +627,7 @@ Deno.test("blueprint create error exits with message", async () => {
 
 Deno.test("request inline --json prints JSON output", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.create = (_desc: string, _opts?: RequestOptions, _source?: RequestSource) => {
+    ctx.requestCommands.create = (_desc: string, _opts?: IRequestOptions, _source?: RequestSource) => {
       return Promise.resolve({
         filename: "/tmp/r.md",
         trace_id: "t-json",
@@ -739,7 +739,7 @@ Deno.test("exoctl: --version prints version and exits (in-process)", async () =>
 
 Deno.test("request --file --dry-run prints human output", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.createFromFile = (_file: string, _opts?: RequestOptions) =>
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: IRequestOptions) =>
       Promise.resolve({
         filename: "/tmp/exo-test/request-file.md",
         trace_id: "trace-file-1",
@@ -760,7 +760,7 @@ Deno.test("request --file --dry-run prints human output", async () => {
 
 Deno.test("request --file --json --dry-run prints JSON output", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.createFromFile = (_file: string, _opts?: RequestOptions) =>
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: IRequestOptions) =>
       Promise.resolve({
         filename: "/tmp/exo-test/request-file2.md",
         trace_id: "trace-file-2",
@@ -787,7 +787,7 @@ Deno.test("request --file --json --dry-run prints JSON output", async () => {
 
 Deno.test("request --file errors exit with message", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.createFromFile = (_file: string, _opts?: RequestOptions) => {
+    ctx.requestCommands.createFromFile = (_file: string, _opts?: IRequestOptions) => {
       throw new Error("file missing");
     };
     const { errors } = await expectExitWithLogs(async () => {
@@ -799,7 +799,7 @@ Deno.test("request --file errors exit with message", async () => {
 
 Deno.test("request inline --dry-run with --json prefers dry-run", async () => {
   await withTestMod(async (mod, ctx) => {
-    ctx.requestCommands.create = (_desc: string, _opts?: RequestOptions, _source?: RequestSource) =>
+    ctx.requestCommands.create = (_desc: string, _opts?: IRequestOptions, _source?: RequestSource) =>
       Promise.resolve({
         filename: "/tmp/req.md",
         trace_id: "t-dry",

@@ -145,7 +145,7 @@ Deno.test("MCP Server: prompts/get rejects unknown prompt", async () => {
   });
 });
 
-Deno.test("MCP Server: prompts/get logs to Activity Journal", async () => {
+Deno.test("MCP Server: prompts/get logs to IActivity Journal", async () => {
   await withMCPServer(async ({ server, db }) => {
     await server.handleRequest({
       jsonrpc: "2.0",

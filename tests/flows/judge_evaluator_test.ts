@@ -1,6 +1,6 @@
 /**
  * Tests for JudgeEvaluator
- * Phase 15.3: LLM-as-a-Judge Pattern
+ * Phase 15.3: LLM-as-a-Judge IPattern
  */
 
 import { assertEquals, assertExists } from "@std/assert";

@@ -75,9 +75,9 @@ Deno.test("MemoryCommands: search finds patterns by name", async () => {
   try {
     await createTestProject(memoryBank, "SearchProject");
 
-    const result = await commands.search("Test Pattern");
+    const result = await commands.search("Test IPattern");
 
-    assertStringIncludes(result, "Test Pattern");
+    assertStringIncludes(result, "Test IPattern");
     assertStringIncludes(result, "SearchProject");
   } finally {
     await cleanup();
@@ -102,7 +102,7 @@ Deno.test("MemoryCommands: search --portal filters correctly", async () => {
     await createTestProject(memoryBank, "ProjectB");
 
     // Search with portal filter
-    const result = await commands.search("Pattern", { portal: "ProjectA" });
+    const result = await commands.search("IPattern", { portal: "ProjectA" });
 
     assertStringIncludes(result, "ProjectA");
     // Should not contain ProjectB since we filtered by ProjectA
@@ -116,7 +116,7 @@ Deno.test("MemoryCommands: search --format json outputs valid JSON", async () =>
   try {
     await createTestProject(memoryBank, "JsonSearchProject");
 
-    const result = await commands.search("Pattern", { format: FlowOutputFormat.JSON });
+    const result = await commands.search("IPattern", { format: FlowOutputFormat.JSON });
     const parsed = JSON.parse(result);
 
     assertEquals(Array.isArray(parsed), true);
@@ -164,7 +164,7 @@ Deno.test("MemoryCommands: project show displays details", async () => {
 
     assertStringIncludes(result, "DetailProject");
     assertStringIncludes(result, "Overview");
-    assertStringIncludes(result, "Test Pattern");
+    assertStringIncludes(result, "Test IPattern");
     assertStringIncludes(result, "Use TypeScript");
   } finally {
     await cleanup();

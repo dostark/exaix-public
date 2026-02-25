@@ -13,8 +13,8 @@
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { ContextLoader } from "../src/services/context_loader.ts";
-import type { ContextConfig, ContextLoadResult } from "../src/services/context_loader.ts";
-import type { ActivityRecord } from "../src/services/db.ts";
+import type { ContextLoadResult, IContextConfig } from "../src/services/context_loader.ts";
+import type { IActivityRecord } from "../src/services/db.ts";
 import { initTestDbService } from "./helpers/db.ts";
 
 // ============================================================================
@@ -77,7 +77,7 @@ describe("Token Limit Enforcement", () => {
       files.push(file);
     }
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 100000,
       safetyMargin: 0.8, // Use 80k tokens
       truncationStrategy: "smallest-first",
@@ -108,7 +108,7 @@ describe("Token Limit Enforcement", () => {
     const file4 = await createTestFile("large1.txt", generateContent(40000));
     const file5 = await createTestFile("large2.txt", generateContent(50000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 100000,
       safetyMargin: 0.5, // Use 50k tokens
       truncationStrategy: "smallest-first",
@@ -137,7 +137,7 @@ describe("Token Limit Enforcement", () => {
     const file2 = await createTestFile("file2.txt", generateContent(2000));
     const file3 = await createTestFile("file3.txt", generateContent(3000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -163,7 +163,7 @@ describe("Warning Block Generation", () => {
     const file1 = await createTestFile("file1.txt", generateContent(60000));
     const file2 = await createTestFile("file2.txt", generateContent(60000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 100000,
       safetyMargin: 0.8,
       truncationStrategy: "smallest-first",
@@ -183,7 +183,7 @@ describe("Warning Block Generation", () => {
     const file1 = await createTestFile("small.txt", generateContent(10000));
     const file2 = await createTestFile("huge.txt", generateContent(100000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 50000,
       safetyMargin: 0.8,
       truncationStrategy: "smallest-first",
@@ -204,7 +204,7 @@ describe("Warning Block Generation", () => {
     const file1 = await createTestFile("tiny1.txt", generateContent(100));
     const file2 = await createTestFile("tiny2.txt", generateContent(100));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 100000,
       safetyMargin: 0.8,
       truncationStrategy: "smallest-first",
@@ -231,7 +231,7 @@ describe("Agent Warning Accessibility", () => {
     const file1 = await createTestFile("small.txt", generateContent(10000));
     const file2 = await createTestFile("huge.txt", generateContent(100000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 50000,
       safetyMargin: 0.8,
       truncationStrategy: "smallest-first",
@@ -257,7 +257,7 @@ describe("Agent Warning Accessibility", () => {
     const file1 = await createTestFile("a.txt", generateContent(60000));
     const file2 = await createTestFile("b.txt", generateContent(60000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 100000,
       safetyMargin: 0.8,
       truncationStrategy: "smallest-first",
@@ -283,7 +283,7 @@ describe("Context Content Format", () => {
   it("should format context with file paths as headers", async () => {
     const file1 = await createTestFile("test.txt", "Hello World");
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -302,7 +302,7 @@ describe("Context Content Format", () => {
     const content = "This is test content\nWith multiple lines";
     const file = await createTestFile("multi.txt", content);
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -332,7 +332,7 @@ describe("Local Agent Behavior", () => {
       files.push(file);
     }
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000, // Would normally limit to 10k
       safetyMargin: 0.8,
       truncationStrategy: "smallest-first",
@@ -351,7 +351,7 @@ describe("Local Agent Behavior", () => {
   it("should not generate warnings for local agents", async () => {
     const file = await createTestFile("huge.txt", generateContent(1000000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 1000,
       safetyMargin: 0.8,
       truncationStrategy: "smallest-first",
@@ -376,7 +376,7 @@ describe("Truncation Strategies", () => {
     const medium = await createTestFile("medium.txt", generateContent(5000));
     const large = await createTestFile("large.txt", generateContent(10000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 0.8, // 8000 tokens
       truncationStrategy: "smallest-first",
@@ -396,7 +396,7 @@ describe("Truncation Strategies", () => {
 
     const recent = await createTestFile("recent.txt", generateContent(5000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 0.8, // 8000 tokens
       truncationStrategy: "drop-oldest",
@@ -414,7 +414,7 @@ describe("Truncation Strategies", () => {
     const file1 = await createTestFile("file1.txt", generateContent(10000));
     const file2 = await createTestFile("file2.txt", generateContent(10000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 0.8, // 8000 tokens
       truncationStrategy: "truncate-each",
@@ -451,7 +451,7 @@ describe("Truncation Strategies", () => {
     const results: ContextLoadResult[] = [];
 
     for (const strategy of strategies) {
-      const config: ContextConfig = { ...baseConfig, truncationStrategy: strategy };
+      const config: IContextConfig = { ...baseConfig, truncationStrategy: strategy };
       const loader = new ContextLoader(config);
       const result = await loader.loadWithLimit([file1, file2, file3]);
       results.push(result);
@@ -481,7 +481,7 @@ describe("Per-File Token Caps", () => {
   it("should enforce per-file token caps", async () => {
     const huge = await createTestFile("huge.txt", generateContent(100000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 150000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -501,7 +501,7 @@ describe("Per-File Token Caps", () => {
   it("should not enforce caps when not configured", async () => {
     const large = await createTestFile("large.txt", generateContent(50000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 100000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -527,7 +527,7 @@ describe("Error Handling", () => {
     const existing = await createTestFile("exists.txt", generateContent(1000));
     const missing = `${testDir}/missing.txt`;
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -549,7 +549,7 @@ describe("Error Handling", () => {
     const file2 = await createTestFile("file2.txt", generateContent(1000));
     const missing = `${testDir}/nonexistent.txt`;
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -574,7 +574,7 @@ describe("Result Structure", () => {
   it("should return complete ContextLoadResult structure", async () => {
     const file = await createTestFile("test.txt", generateContent(1000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -611,7 +611,7 @@ describe("Token Budget Boundary Cases", () => {
     // Create a file that exactly matches the budget
     const file = await createTestFile("exact.txt", generateContent(8000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 0.8, // Exactly 8000 tokens
       truncationStrategy: "smallest-first",
@@ -630,7 +630,7 @@ describe("Token Budget Boundary Cases", () => {
     const file1 = await createTestFile("file1.txt", generateContent(7000));
     const file2 = await createTestFile("file2.txt", generateContent(1500)); // Exceeds budget
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 0.8, // 8000 tokens
       truncationStrategy: "smallest-first",
@@ -651,7 +651,7 @@ describe("Token Budget Boundary Cases", () => {
     const file1 = await createTestFile("file1.txt", generateContent(7950));
     const file2 = await createTestFile("file2.txt", generateContent(200));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 0.8, // 8000 tokens
       truncationStrategy: "truncate-each",
@@ -673,7 +673,7 @@ describe("Token Budget Boundary Cases", () => {
   it("should handle zero budget (safety margin = 0)", async () => {
     const file = await createTestFile("file.txt", generateContent(1000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 0, // Zero budget
       truncationStrategy: "smallest-first",
@@ -695,7 +695,7 @@ describe("Token Budget Boundary Cases", () => {
     const medium = await createTestFile("medium.txt", generateContent(3000));
     const large = await createTestFile("large.txt", generateContent(5000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 0.6, // 6000 tokens budget
       truncationStrategy: "smallest-first",
@@ -726,7 +726,7 @@ describe("File System Error Handling", () => {
     // Remove read permissions
     await Deno.chmod(restricted, 0o000);
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -760,7 +760,7 @@ describe("File System Error Handling", () => {
     await Deno.symlink(original, symlinkPath);
     testFiles.push(symlinkPath);
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -785,7 +785,7 @@ describe("File System Error Handling", () => {
 
     const validFile = await createTestFile("valid.txt", generateContent(1000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -804,7 +804,7 @@ describe("File System Error Handling", () => {
     const empty = await createTestFile("empty.txt", "");
     const withContent = await createTestFile("content.txt", generateContent(1000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -824,7 +824,7 @@ describe("File System Error Handling", () => {
   it("should handle files modified during loading", async () => {
     const file = await createTestFile("modified.txt", generateContent(1000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -855,7 +855,7 @@ describe("Edge Cases and Special Content", () => {
     const longName = "a".repeat(200) + ".txt";
     const file = await createTestFile(longName, generateContent(1000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -873,7 +873,7 @@ describe("Edge Cases and Special Content", () => {
     const unicodeContent = "Hello 世界 🌍 مرحبا Здравствуй";
     const file = await createTestFile("unicode.txt", unicodeContent);
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -889,7 +889,7 @@ describe("Edge Cases and Special Content", () => {
   it("should handle special characters in file paths", async () => {
     const specialFile = await createTestFile("file with spaces & special!.txt", generateContent(1000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -906,7 +906,7 @@ describe("Edge Cases and Special Content", () => {
     const mixedContent = "Line 1\nLine 2\r\nLine 3\rLine 4";
     const file = await createTestFile("mixed.txt", mixedContent);
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
       truncationStrategy: "smallest-first",
@@ -930,7 +930,7 @@ describe("Drop-Largest Strategy", () => {
     const medium = await createTestFile("medium.txt", generateContent(3000));
     const large = await createTestFile("large.txt", generateContent(5000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 6000,
       safetyMargin: 1.0,
       truncationStrategy: "drop-largest",
@@ -951,7 +951,7 @@ describe("Drop-Largest Strategy", () => {
     const file2 = await createTestFile("f2.txt", generateContent(4000));
     const file3 = await createTestFile("f3.txt", generateContent(6000));
 
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 8000,
       safetyMargin: 1.0,
       truncationStrategy: "drop-largest",
@@ -970,17 +970,17 @@ describe("Drop-Largest Strategy", () => {
 });
 
 // ============================================================================
-// Test 13: Activity Logging with Database
+// Test 13: IActivity Logging with Database
 // ============================================================================
 
-describe("Activity Logging with Database", () => {
+describe("IActivity Logging with Database", () => {
   it("should log context loading to database when configured", async () => {
     const { db, cleanup } = await initTestDbService();
 
     try {
       const file = await createTestFile("logged.txt", generateContent(1000));
 
-      const config: ContextConfig = {
+      const config: IContextConfig = {
         maxTokens: 10000,
         safetyMargin: 1.0,
         truncationStrategy: "smallest-first",
@@ -998,7 +998,7 @@ describe("Activity Logging with Database", () => {
       await new Promise((resolve) => setTimeout(resolve, 150));
 
       const logs = db.getActivitiesByTrace("test-context-trace");
-      const contextLog = logs.find((l: ActivityRecord) => l.action_type === "context.loaded");
+      const contextLog = logs.find((l: IActivityRecord) => l.action_type === "context.loaded");
       assertExists(contextLog, "context.loaded should be logged");
 
       const payload = JSON.parse(contextLog.payload);
@@ -1015,7 +1015,7 @@ describe("Activity Logging with Database", () => {
     try {
       const missing = `${testDir}/nonexistent-for-logging.txt`;
 
-      const config: ContextConfig = {
+      const config: IContextConfig = {
         maxTokens: 10000,
         safetyMargin: 1.0,
         truncationStrategy: "smallest-first",
@@ -1033,7 +1033,7 @@ describe("Activity Logging with Database", () => {
       await new Promise((resolve) => setTimeout(resolve, 150));
 
       const logs = db.getActivitiesByTrace("test-error-trace");
-      const errorLog = logs.find((l: ActivityRecord) => l.action_type === "context.file_load_error");
+      const errorLog = logs.find((l: IActivityRecord) => l.action_type === "context.file_load_error");
       assertExists(errorLog, "context.file_load_error should be logged");
 
       const payload = JSON.parse(errorLog.payload);
@@ -1049,7 +1049,7 @@ describe("Activity Logging with Database", () => {
     try {
       const file = await createTestFile("nolog.txt", generateContent(100));
 
-      const config: ContextConfig = {
+      const config: IContextConfig = {
         maxTokens: 10000,
         safetyMargin: 1.0,
         truncationStrategy: "smallest-first",
@@ -1066,7 +1066,7 @@ describe("Activity Logging with Database", () => {
 
       // Should not have logged anything (no traceId)
       const allLogs = await db.getRecentActivity(100);
-      const contextLogs = allLogs.filter((l: ActivityRecord) => l.action_type === "context.loaded");
+      const contextLogs = allLogs.filter((l: IActivityRecord) => l.action_type === "context.loaded");
       assertEquals(contextLogs.length, 0, "Should not log without traceId");
     } finally {
       await cleanup();
@@ -1084,10 +1084,10 @@ describe("Default Strategy Fallback", () => {
     const file2 = await createTestFile("second.txt", generateContent(1000));
 
     // Force an unknown strategy by casting
-    const config: ContextConfig = {
+    const config: IContextConfig = {
       maxTokens: 10000,
       safetyMargin: 1.0,
-      truncationStrategy: "unknown-strategy" as ContextConfig["truncationStrategy"],
+      truncationStrategy: "unknown-strategy" as IContextConfig["truncationStrategy"],
       isLocalAgent: false,
     };
 
