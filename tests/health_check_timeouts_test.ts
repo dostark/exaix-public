@@ -1,3 +1,10 @@
+/**
+ * @module HealthCheckTimeoutsTest
+ * @path tests/health_check_timeouts_test.ts
+ * @description Verifies the resilience of the health check system, ensuring that
+ * slow agent responses are correctly timed out without hanging the main service.
+ */
+
 import { assertEquals } from "@std/assert";
 import { HealthCheckService, type IHealthCheck } from "../src/services/health_check_service.ts";
 import { HealthCheckVerdict, HealthStatus } from "../src/enums.ts";

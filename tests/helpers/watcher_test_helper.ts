@@ -1,3 +1,10 @@
+/**
+ * @module FileWatcherTestHelper
+ * @path tests/helpers/watcher_test_helper.ts
+ * @description Provides common utilities for FileWatcher tests, including
+ * debounced event capturing and stable simulation of rapid file modifications.
+ */
+
 import { join } from "@std/path";
 import { FileWatcher } from "../../src/services/watcher.ts";
 import type { DatabaseService as DatabaseService } from "../../src/services/db.ts";

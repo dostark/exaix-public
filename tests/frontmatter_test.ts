@@ -1,3 +1,10 @@
+/**
+ * @module FrontmatterParserTest
+ * @path tests/frontmatter_test.ts
+ * @description Verifies the YAML frontmatter parsing logic, ensuring stable
+ * serialization and validation of metadata across all project file types.
+ */
+
 import { assertEquals, assertThrows } from "@std/assert";
 import { RequestStatus } from "../src/requests/request_status.ts";
 

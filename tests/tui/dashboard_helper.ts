@@ -1,3 +1,10 @@
+/**
+ * @module TUIDashboardHelper
+ * @path tests/tui/dashboard_helper.ts
+ * @description Provides shared setup and assertion logic for the main TUI Dashboard,
+ * coordinating mock services and keyboard event routing.
+ */
+
 import { launchTuiDashboard } from "../../src/tui/tui_dashboard.ts";
 import { NotificationService } from "../../src/services/notification.ts";
 import { initTestDbService } from "../helpers/db.ts";

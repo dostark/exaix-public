@@ -1,3 +1,10 @@
+/**
+ * @module FlowValidatorTest
+ * @path tests/flows/flow_validator_test.ts
+ * @description Comprehensive validation tests for the Flow YAML schema, ensuring structural
+ * integrity, mandatory field presence, and early detection of malformed workflow definitions.
+ */
+
 import { assertEquals } from "@std/assert";
 
 import { FlowLoader } from "../../src/flows/flow_loader.ts";

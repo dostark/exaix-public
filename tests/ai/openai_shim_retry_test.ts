@@ -1,3 +1,10 @@
+/**
+ * @module OpenAIShimRetryTest
+ * @path tests/ai/openai_shim_retry_test.ts
+ * @description Verifies the retry logic for OpenAI-compatible LLM endpoints,
+ * ensuring robust recovery from transient 429 (Rate Limit) errors.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 import { ModelFactory } from "../../src/ai/providers.ts";
 import { getTestModel } from "./helpers/test_model.ts";

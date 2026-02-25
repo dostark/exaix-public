@@ -1,3 +1,10 @@
+/**
+ * @module MemoryExtractorErrorHandlingTest
+ * @path tests/services/memory_extractor_error_handling_test.ts
+ * @description Verifies the resilience of the MemoryExtractorService, ensuring that failures
+ * in peripheral activity logging do not disrupt the core agent execution loop.
+ */
+
 import { assertEquals } from "@std/assert";
 
 import { MemoryExtractorService } from "../../src/services/memory_extractor.ts";

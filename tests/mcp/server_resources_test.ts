@@ -1,5 +1,8 @@
 /**
- * MCP Server Resources Tests
+ * @module MCPServerResourcesTest
+ * @path tests/mcp/server_resources_test.ts
+ * @description Verifies the MCP server's resource discovery logic, ensuring correctly
+ * partitioned access to portal files via the 'exo://' URI scheme.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

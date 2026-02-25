@@ -1,3 +1,10 @@
+/**
+ * @module FlowRunnerTest
+ * @path tests/flows/flow_runner_test.ts
+ * @description Core execution tests for the FlowRunner, verifying wave-based parallel step execution,
+ * state propagation between steps, and fail-fast behavior during workflow interruptions.
+ */
+
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { FlowInputSource, FlowOutputFormat } from "../../src/enums.ts";
 import {

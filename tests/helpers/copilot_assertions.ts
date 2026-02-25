@@ -1,3 +1,10 @@
+/**
+ * @module CopilotAssertions
+ * @path tests/helpers/copilot_assertions.ts
+ * @description Provides specialized assertions for validating Copilot directives
+ * and magic value externalization within the test suite.
+ */
+
 import { assert, assertExists } from "@std/assert";
 import { parse } from "@std/yaml";
 

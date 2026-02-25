@@ -1,8 +1,8 @@
 /**
- * Key Bindings Base Class Regression Tests
- *
- * Tests for the KeyBindingsBase abstract class to ensure strict typing
- * and proper functionality of KEY_BINDINGS collections.
+ * @module KeyBindingsBaseRegressionTest
+ * @path tests/tui/key_bindings_base_regression_test.ts
+ * @description Regression tests for the core TUI key-binding system, ensuring type safety and
+ * consistent behavior for complex keyboard interaction patterns.
  */
 
 import { assertEquals } from "@std/assert";

@@ -1,3 +1,10 @@
+/**
+ * @module PlanApprovalSmokeTest
+ * @path tests/integration/23_plan_approval_smoke_test.ts
+ * @description High-concurrency smoke tests for the plan approval workflow, ensuring
+ * stable state transitions when multiple plans are approved simultaneously.
+ */
+
 import { assert } from "@std/assert";
 import { McpToolName } from "../../src/enums.ts";
 

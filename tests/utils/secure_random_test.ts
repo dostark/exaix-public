@@ -1,5 +1,8 @@
 /**
- * Tests for SecureRandom utility - cryptographically secure random number generation
+ * @module SecureRandomTest
+ * @path tests/utils/secure_random_test.ts
+ * @description Verifies the project's secure random utilities, ensuring
+ * cryptographically strong generation of bytes, strings, and unique identifiers.
  */
 
 import { assert, assertEquals, assertFalse, assertMatch, assertNotEquals } from "@std/assert";

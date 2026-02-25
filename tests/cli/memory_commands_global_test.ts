@@ -1,7 +1,8 @@
 /**
- * Tests for MemoryCommands Global Operations (CLI Memory Banks)
- *
- * Phase 12.8: Global Memory CLI Commands
+ * @module MemoryCommandsGlobalTest
+ * @path tests/cli/memory_commands_global_test.ts
+ * @description Verifies CLI operations for global (context-free) memory banks, ensuring correct
+ * initialization, listing, and cross-project pattern retrieval.
  */
 
 import { ConfidenceLevel, FlowOutputFormat, LearningCategory, MemoryScope, MemoryType } from "../../src/enums.ts";

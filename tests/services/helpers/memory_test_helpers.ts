@@ -1,3 +1,10 @@
+/**
+ * @module MemoryServicesTestHelpers
+ * @path tests/services/helpers/memory_test_helpers.ts
+ * @description Provides helper functions for simulating agent learning records
+ * and verifying memory persistence in the MemoryBankService.
+ */
+
 import {
   ConfidenceLevel,
   ExecutionStatus,

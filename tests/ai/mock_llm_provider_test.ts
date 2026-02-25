@@ -1,14 +1,8 @@
 /**
- * Tests for MockLLMProvider (Testing Strategy §3.1)
- *
- * MockLLMProvider provides deterministic LLM responses for testing without API calls.
- *
- * Mock Strategies:
- * - recorded: Replay real responses based on prompt hash lookup
- * - scripted: Return responses in order (sequence)
- * - pattern: Match prompt patterns and generate responses
- * - failing: Always throw error (for error handling tests)
- * - slow: Add artificial delay (for timeout tests)
+ * @module MockLLMProviderTest
+ * @path tests/ai/mock_llm_provider_test.ts
+ * @description Verifies the Mock LLM provider, ensuring stable simulation of
+ * model responses and state management for automated testing.
  */
 
 // Imports removed to fix linting in empty file

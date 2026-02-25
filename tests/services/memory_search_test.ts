@@ -1,14 +1,8 @@
 /**
- * Memory Search Service Tests
- *
- * Tests for tag-based search and keyword search with ranking:
- * - searchByTags() returns matching entries
- * - searchByTags with multiple tags uses AND logic
- * - searchByKeyword finds text matches
- * - searchByKeyword ranks by frequency
- * - Combined search uses tiered approach
- *
- * Phase 12.10: Tag-Based Search & Simple RAG
+ * @module MemorySearchTest
+ * @path tests/services/memory_search_test.ts
+ * @description Verifies the logic for tag-based memory retrieval, ensuring correctly scoped
+ * access to project-specific and global learned patterns via the MemoryBankService.
  */
 
 import { assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";

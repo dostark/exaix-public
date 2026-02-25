@@ -1,3 +1,10 @@
+/**
+ * @module MemoryTestHelpers
+ * @path tests/tui/memory_view/memory_test_helpers.ts
+ * @description Provides helper functions for simulating memory update proposals and
+ * verifying execution context state within TUI memory tests.
+ */
+
 import { DialogStatus } from "../../../src/enums.ts";
 import { type IMemoryServiceInterface } from "../../../src/tui/memory_view/types.ts";
 

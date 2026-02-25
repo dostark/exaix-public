@@ -1,3 +1,10 @@
+/**
+ * @module GoogleEnhancementsTest
+ * @path tests/agents/google_enhancements_test.ts
+ * @description Verifies specialized documentation for Google Gemini agents,
+ * ensuring correct frontmatter schemas and long-context optimization sections.
+ */
+
 import { assert, assertEquals } from "https://deno.land/std@0.221.0/assert/mod.ts";
 import { parse } from "https://deno.land/std@0.221.0/yaml/mod.ts";
 import { join } from "@std/path";

@@ -1,11 +1,8 @@
 /**
- * Additional Coverage Tests for NotificationService
- *
- * Tests for untested paths to improve coverage:
- * - getNotifications handles corrupted JSON file
- * - logActivity handles database errors gracefully
- * - getPendingCount filters correctly
- * - clearNotification handles non-existent proposal
+ * @module NotificationCoverageTest
+ * @path tests/services/notification_coverage_test.ts
+ * @description Negative testing and state edge-case coverage for the NotificationService,
+ * ensuring graceful handling of uninitialized states and missing database records.
  */
 
 import { assertEquals } from "@std/assert";

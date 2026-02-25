@@ -1,3 +1,10 @@
+/**
+ * @module PlanCommandsSkillsTest
+ * @path tests/cli/plan_commands_skills_test.ts
+ * @description Specialized tests for dynamic skills injection during the plan approval phase,
+ * ensuring additional capabilities can be appended to plans before execution.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { parse as parseYaml } from "@std/yaml";

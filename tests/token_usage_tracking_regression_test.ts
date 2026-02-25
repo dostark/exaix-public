@@ -1,9 +1,8 @@
 /**
- * Token Usage Tracking Regression Test
- *
- * Regression test for: "Event journal missing token usage tracking in payload"
- * Root cause: Token usage was logged at debug level (below info threshold) and lacked cost calculations
- * Fix: Changed logging to info level and added cost calculation to token mappers
+ * @module TokenUsageRegressionTest
+ * @path tests/token_usage_tracking_regression_test.ts
+ * @description Regression tests for the LLM token usage tracking system, ensuring correct
+ * mapping of provider-specific usage metrics and estimated cost calculations.
  */
 
 import { assertEquals } from "@std/assert";

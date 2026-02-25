@@ -1,3 +1,10 @@
+/**
+ * @module TraceAnalyzerTest
+ * @path tests/tui/analytics/trace_analyzer_test.ts
+ * @description Verifies the logic for multi-step trace analysis, ensuring complex agent
+ * execution paths are correctly reconstructed and validated from flat log entries.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 
 import { analyzeTrace } from "../../../src/tui/analytics/trace_analyzer.ts";

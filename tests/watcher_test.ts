@@ -1,3 +1,10 @@
+/**
+ * @module FileWatcherTest
+ * @path tests/watcher_test.ts
+ * @description Specialized tests for the file system watcher, verifying event debouncing,
+ * stability checks for partial writes, and resilient handling of temporary file locks.
+ */
+
 import { assert, assertEquals, assertRejects } from "@std/assert";
 import { join } from "@std/path";
 import { FileWatcher } from "../src/services/watcher.ts";

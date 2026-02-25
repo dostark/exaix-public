@@ -1,3 +1,10 @@
+/**
+ * @module ConfigConstantsTest
+ * @path tests/config/constants.ts
+ * @description Verifies the project's configuration constants, ensuring stable
+ * default values for system paths, timeouts, and resource limits.
+ */
+
 // ============================================================================
 // Testing Constants
 // ============================================================================

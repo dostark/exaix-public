@@ -1,14 +1,8 @@
 /**
- * Integration Test: CLI Flow Request Support
- * Tests end-to-end flow request creation via CLI --flow option
- *
- * Success Criteria:
- * - Test 1: CLI request with --flow creates flow request with correct metadata
- * - Test 2: Flow request is routed to FlowRunner (not AgentRunner)
- * - Test 3: Flow execution is logged in IActivity Journal
- * - Test 4: Invalid flow names are rejected with clear error
- * - Test 5: Flow requests with portals work correctly
- * - Test 6: Flow completion status is tracked properly
+ * @module CLIFlowRequestIntegrationTest
+ * @path tests/integration/20_cli_flow_request_integration_test.ts
+ * @description Verifies the logic for triggering pre-defined Agentic Flows from the CLI,
+ * ensuring correct metadata resolution and strict schema validation for flow requests.
  */
 
 import { assert, assertEquals, assertStringIncludes } from "@std/assert";

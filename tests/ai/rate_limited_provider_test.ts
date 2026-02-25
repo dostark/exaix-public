@@ -1,16 +1,8 @@
 /**
- * Tests for RateLimitedProvider - Cost Exhaustion Attack Prevention
- *
- * TDD Red Phase: Write tests before implementation
- *
- * Success Criteria:
- * - API calls are limited to configured rates (calls/minute, tokens/hour, cost/day)
- * - Rate limit violations throw appropriate errors with rate limit information
- * - Cost estimation prevents budget overruns
- * - Rate limit windows reset correctly (minute/hour/day)
- * - Failed requests don't count against limits (rollback on error)
- * - Rate limits are configurable per deployment
- * - Cost tracking is accurate and prevents financial loss
+ * @module RateLimitedProviderTest
+ * @path tests/ai/rate_limited_provider_test.ts
+ * @description Verifies the RateLimitedProvider wrapper, ensuring strict adherence to API quotas
+ * (RPM/TPM), token usage estimation, and graceful queuing of overrun requests.
  */
 
 import { assert, assertEquals, assertRejects, assertStringIncludes } from "@std/assert";

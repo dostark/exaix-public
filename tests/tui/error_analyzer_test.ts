@@ -1,3 +1,10 @@
+/**
+ * @module ErrorAnalyzerTest
+ * @path tests/tui/error_analyzer_test.ts
+ * @description Verifies the logic for pattern-based error analysis in the TUI, ensuring
+ * frequent failure modes are correctly grouped and surfaced for debugging.
+ */
+
 import { assertEquals } from "@std/assert";
 import { detectErrorPatterns } from "../../src/tui/analytics/error_analyzer.ts";
 import type { IStructuredLogEntry } from "../../src/services/structured_logger.ts";

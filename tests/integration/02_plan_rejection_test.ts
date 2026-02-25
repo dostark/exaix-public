@@ -1,15 +1,8 @@
 /**
- * Integration Test: Scenario 2 - Plan Rejection
- * Request → Plan → Reject → Archive
- *
- * Success Criteria:
- * - Test 1: Plan can be rejected with a reason from /Workspace/Plans
- * - Test 2: Rejected plan is moved to /Workspace/Rejected directory
- * - Test 3: Rejected plan status is updated to MemoryStatus.REJECTED
- * - Test 4: Rejection reason is appended to plan content
- * - Test 5: Original request remains in /Workspace/Requests (not modified)
- * - Test 6: Rejection is logged to IActivity Journal with trace_id
- * - Test 7: Rejected plan preserves original trace_id for correlation
+ * @module PlanRejectionIntegrationTest
+ * @path tests/integration/02_plan_rejection_test.ts
+ * @description Verifies the system's behavior when a plan is rejected by the user, ensuring
+ * proper status updates, archival of the rejected plan, and cleanup of transient state.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";

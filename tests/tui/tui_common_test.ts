@@ -1,7 +1,8 @@
 /**
- * TUI Common (TuiSessionBase) Tests
- *
- * Part of Phase 13.2: Enhanced TuiSessionBase
+ * @module TUICommonTest
+ * @path tests/tui/tui_common_test.ts
+ * @description Verifies shared TUI utilities, ensuring correct initialization of view states,
+ * refresh configurations, and common visual primitives.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

@@ -1,3 +1,10 @@
+/**
+ * @module PortalWorkspaceTestHelper
+ * @path tests/services/helpers/portal_workspace_test_helper.ts
+ * @description Provides a reusable test harness for partitioned portal repositories,
+ * ensuring stable discovery of portal-bound files and metadata.
+ */
+
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { PortalOperation } from "../../../src/enums.ts";

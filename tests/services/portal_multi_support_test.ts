@@ -1,10 +1,8 @@
 /**
- * Tests for Portal Multi-Support (Task 4.2)
- *
- * Tests portal service extensions for:
- * - Git repository validation
- * - Filtering git-enabled portals
- * - Multi-portal support
+ * @module PortalMultiSupportTest
+ * @path tests/services/portal_multi_support_test.ts
+ * @description Verifies multi-portal Git repository validation, ensuring correct detection
+ * of repository roots and resilient handling of malformed portal targets.
  */
 
 import { assertEquals } from "@std/assert";

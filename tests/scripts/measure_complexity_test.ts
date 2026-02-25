@@ -1,3 +1,10 @@
+/**
+ * @module CodeComplexityMetricsTest
+ * @path tests/scripts/measure_complexity_test.ts
+ * @description Verifies code complexity measurement logic, ensuring correct
+ * token counts and AST node analysis for technical debt tracking.
+ */
+
 import {
   calculateComplexityFromText,
   complexityForNode,

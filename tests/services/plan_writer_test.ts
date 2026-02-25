@@ -1,11 +1,8 @@
 /**
- * Tests for PlanWriter Service
- *
- * Success Criteria:
- * - writePlan() creates plan file with correct content structure
- * - writePlan() handles missing database gracefully (testing mode)
- * - writePlan() logs plan creation activity when database available
- * - All private methods generate correct content sections
+ * @module PlanWriterTest
+ * @path tests/services/plan_writer_test.ts
+ * @description Verifies the PlanWriter service, ensuring stable filesystem persistence of agent
+ * plans with correct directory structures and frontmatter integrity.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";

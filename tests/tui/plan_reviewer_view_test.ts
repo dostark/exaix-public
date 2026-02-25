@@ -1,3 +1,10 @@
+/**
+ * @module PlanReviewerViewTest
+ * @path tests/tui/plan_reviewer_view_test.ts
+ * @description Validates the PlanReviewerView's terminal interaction logic, covering diff visualization
+ * for pending plans, keyboard-driven approval/rejection workflows, and real-time status updates.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { PlanStatus } from "../../src/plans/plan_status.ts";
 import { ExoPathDefaults } from "../../src/config/constants.ts";

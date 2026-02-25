@@ -1,3 +1,10 @@
+/**
+ * @module ToolRegistryServiceTest
+ * @path tests/services/tool_registry_test.ts
+ * @description Verifies the ToolRegistry service, ensuring strict validation of
+ * command patterns and argument types while enforcing security boundaries.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { McpToolName } from "../../src/enums.ts";
 

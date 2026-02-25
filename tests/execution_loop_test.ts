@@ -1,3 +1,10 @@
+/**
+ * @module ExecutionLoopTest
+ * @path tests/execution_loop_test.ts
+ * @description Verifies the primary agent execution loop, ensuring robust orchestration
+ * of planning, execution, and confirmation phases for user requests.
+ */
+
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { MemoryOperation, MemorySource, PortalOperation } from "../src/enums.ts";
 import { ReviewStatus } from "../src/reviews/review_status.ts";

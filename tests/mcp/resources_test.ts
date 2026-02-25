@@ -1,5 +1,8 @@
 /**
- * MCP Resources Tests
+ * @module MCPResourcesTest
+ * @path tests/mcp/resources_test.ts
+ * @description Verifies URI-based resource discovery in the MCP server, validating
+ * 'exo://' scheme parsing, nested path resolution, and portal context isolation.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

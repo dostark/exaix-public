@@ -1,8 +1,8 @@
 /**
- * Integration Test 16: Security Modes Enforcement
- *
- * Tests security enforcement for both sandboxed and hybrid execution modes.
- * Validates permission checks, audit detection, and access control.
+ * @module SecurityModesIntegrationTest
+ * @path tests/integration/16_security_modes_test.ts
+ * @description Verifies different system security modes (Sandboxed, Hybrid), ensuring
+ * strict enforcement of file access policies and correct audit detection for sensitive calls.
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";

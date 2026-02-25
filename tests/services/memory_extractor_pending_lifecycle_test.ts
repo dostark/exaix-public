@@ -1,3 +1,10 @@
+/**
+ * @module MemoryExtractorLifecycleTest
+ * @path tests/services/memory_extractor_pending_lifecycle_test.ts
+ * @description Verifies the lifecycle management of pending memory proposals, ensuring secure
+ * discovery, parsing, and retrieval of agent-suggested learnings from the filesystem.
+ */
+
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { join } from "@std/path";
 

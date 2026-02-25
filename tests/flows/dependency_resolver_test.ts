@@ -1,3 +1,10 @@
+/**
+ * @module FlowDependencyResolverTest
+ * @path tests/flows/dependency_resolver_test.ts
+ * @description Validates the DAG-based dependency resolution for complex workflows, ensuring
+ * circular dependency detection and optimal wave-based parallel step grouping.
+ */
+
 import { assertEquals, assertThrows } from "@std/assert";
 import { FlowInputSource } from "../../src/enums.ts";
 

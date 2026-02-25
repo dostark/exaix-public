@@ -1,3 +1,10 @@
+/**
+ * @module GracefulShutdownTestHelpers
+ * @path tests/services/helpers/graceful_shutdown_test_helpers.ts
+ * @description Provides common utilities for verifying process termination logic,
+ * coordinating mock signal emission and LIFO task execution checks.
+ */
+
 import { Spy, spy } from "@std/testing/mock";
 import type { IStructuredLogger } from "../../../src/services/structured_logger.ts";
 

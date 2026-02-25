@@ -1,3 +1,10 @@
+/**
+ * @module MemoryFormatterTest
+ * @path tests/cli/memory_formatter_test.ts
+ * @description Verifies CLI output formatting for complex memory structures, ensuring
+ * tabular views for project patterns, decision logs, and execution summaries remain legible.
+ */
+
 import { assertStringIncludes } from "@std/assert";
 import { MemoryFormatter } from "../../src/cli/formatters/memory_formatter.ts";
 import {

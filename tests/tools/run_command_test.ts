@@ -1,3 +1,10 @@
+/**
+ * @module RunCommandToolTest
+ * @path tests/tools/run_command_test.ts
+ * @description Verifies the 'run_command' tool, ensuring secure shell execution
+ * with strict command and argument whitelisting.
+ */
+
 import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";

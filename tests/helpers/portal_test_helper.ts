@@ -1,6 +1,8 @@
 /**
- * Test Helper for PortalCommands tests
- * Provides utilities for config-based portal tests
+ * @module PortalTestHelper
+ * @path tests/helpers/portal_test_helper.ts
+ * @description Provides high-level utilities for portal-based testing,
+ * coordinating portal registration, alias validation, and lifecycle simulation.
  */
 
 import { join } from "@std/path";

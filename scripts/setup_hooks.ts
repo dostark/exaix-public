@@ -33,6 +33,20 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# 4. Complexity Check
+deno task check:complexity
+if [ $? -ne 0 ]; then
+  echo "❌ Error: Code complexity exceeds threshold. Please refactor complex functions."
+  exit 1
+fi
+
+# 5. Architecture Check
+deno task check:arch
+if [ $? -ne 0 ]; then
+  echo "❌ Error: Architecture validation failed."
+  exit 1
+fi
+
 echo "✅ Pre-commit checks passed!\n"
 `;
 
@@ -84,7 +98,7 @@ async function installHooks() {
   }
 
   console.log("✅ Hooks installed successfully in .git/hooks/");
-  console.log("   - pre-commit: fmt, lint, docs drift");
+  console.log("   - pre-commit: fmt, lint, docs drift, complexity, architecture");
   console.log("   - pre-push: type-check, security tests");
 }
 

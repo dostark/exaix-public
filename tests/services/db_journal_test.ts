@@ -1,7 +1,8 @@
 /**
- * Tests for DatabaseService Journal Querying (Phase 29)
- *
- * Verifies dynamic filtering, limits, and time-based queries.
+ * @module DBJournalTest
+ * @path tests/services/db_journal_test.ts
+ * @description Specialized tests for DatabaseService's activity journaling, verifying complex
+ * query filters (trace_id, agent_id, action_type), sort ordering, and asynchronous flush behavior.
  */
 
 import { assertEquals } from "@std/assert";

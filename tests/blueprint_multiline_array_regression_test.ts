@@ -1,10 +1,8 @@
 /**
- * Additional regression test for multi-line YAML arrays
- *
- * Regression: "blueprint.capabilities?.join is not a function"
- * Root cause: Simple YAML parser only handled inline arrays ["item1", "item2"]
- *             but not multi-line format with dash syntax
- * Fix: Enhanced parser to track state and build arrays from multi-line format
+ * @module BlueprintMultilineArrayTest
+ * @path tests/blueprint_multiline_array_regression_test.ts
+ * @description Regression tests for blueprint parsing, specifically ensuring that
+ * complex multiline arrays in frontmatter are correctly serialized and deserialized.
  */
 
 import { assertEquals } from "@std/assert";

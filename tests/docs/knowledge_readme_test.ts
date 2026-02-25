@@ -1,12 +1,8 @@
 /**
- * Tests for Memory Banks documentation.
- *
- * Success Criteria:
- * - Test 1: Memory Banks documentation exists at docs/Memory_Banks.md
- * - Test 2: Documents Memory structure (Projects, Execution)
- * - Test 3: Documents CLI usage and commands
- * - Test 4: Has descriptive main title
- * - Test 5: Documents directory purposes and usage
+ * @module KnowledgeDocsTest
+ * @path tests/docs/knowledge_readme_test.ts
+ * @description Verifies the project's knowledge documentation, ensuring that
+ * directory structures and RAG-based search usage are correctly described.
  */
 
 import { assert, assertStringIncludes } from "@std/assert";

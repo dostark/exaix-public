@@ -1,3 +1,10 @@
+/**
+ * @module LLMFreeProviderIntegrationTest
+ * @path tests/integration/19_llm_free_provider_test.ts
+ * @description Verifies RequestProcessor behavior with manual/template-based plans,
+ * ensuring stable execution when bypassing external LLM provider calls.
+ */
+
 // Integration test for free LLM providers (manual/ignored)
 // This test is ignored by default to avoid calling external endpoints in CI.
 

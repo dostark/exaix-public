@@ -1,11 +1,8 @@
 /**
- * Integration tests for Portal Workspace Integration (Phase 35)
- *
- * Tests verify:
- * - Agents execute in portal workspace, not deployed workspace
- * - Git branches created in portal repository
- * - Reviews track actual file changes in portal
- * - Multi-portal operations are isolated
+ * @module PortalWorkspaceIntegrationTest
+ * @path tests/integration/portal_workspace_integration_test.ts
+ * @description Verifies the integration of portal workspaces, ensuring correct
+ * detection of agent capabilities (Read-only vs Write-capable) and repository boundaries.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

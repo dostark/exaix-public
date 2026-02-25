@@ -1,3 +1,10 @@
+/**
+ * @module BuildAgentsIndexTest
+ * @path tests/build_agents_index_test.ts
+ * @description Verifies the logic for generating the agent registry index, ensuring
+ * that all discovered agent metadata is correctly aggregated for runtime lookups.
+ */
+
 import { assert, assertEquals, assertExists } from "https://deno.land/std@0.203.0/assert/mod.ts";
 import { PortalOperation } from "../src/enums.ts";
 

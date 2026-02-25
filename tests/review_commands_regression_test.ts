@@ -1,11 +1,8 @@
 /**
- * Review Commands Regression Tests
- *
- * Regression tests for review list/show command enhancements.
- *
- * Regression test for: "Review commands show minimal information without request/plan context"
- * Root cause: IReviewMetadata only included basic git information
- * Fix: Enhanced IReviewMetadata with request and plan context loading
+ * @module ReviewCommandsRegressionTest
+ * @path tests/review_commands_regression_test.ts
+ * @description Regression tests for review CLI commands, ensuring correct visual display
+ * and context aggregation for pending agent plans awaiting review.
  */
 
 import { assertEquals } from "@std/assert";

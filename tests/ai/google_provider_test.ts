@@ -1,3 +1,10 @@
+/**
+ * @module GoogleProviderTest
+ * @path tests/ai/google_provider_test.ts
+ * @description Verifies the Google LLM provider implementation, ensuring correct
+ * API endpoint construction and response parsing for Gemini models.
+ */
+
 import { assertStringIncludes } from "@std/assert";
 import { GoogleProvider } from "../../src/ai/providers/google_provider.ts";
 import { googleResponseConfig, registerProviderTests, spyFetch } from "./helpers/provider_test_helper.ts";

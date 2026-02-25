@@ -1,15 +1,8 @@
 /**
- * Memory Dialogs TUI Tests
- *
- * Part of Phase 12.13: TUI Memory View - Pending & Actions
- *
- * Tests cover:
- * - ConfirmApproveDialog rendering and interaction
- * - ConfirmRejectDialog with reason input
- * - AddLearningDialog form validation
- * - PromoteDialog target options
- * - BulkApproveDialog progress display
- * - Keyboard shortcut handling
+ * @module MemoryDialogsTest
+ * @path tests/tui/memory_dialogs_test.ts
+ * @description Verifies the interactive memory approval and rejection dialogs, ensuring robust
+ * capture of human rationale and dynamic propagation of memory update proposals.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

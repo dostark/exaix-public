@@ -153,7 +153,12 @@ export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
   // ===== Tree Building =====
 
   protected override buildTree(plans: IPlan[]): void {
-    this.state.tree = [];
+    const categories = this.categorizePlans(plans);
+    this.state.tree = this.createGroupNodes(categories);
+    this.setDefaultSelection();
+  }
+
+  private categorizePlans(plans: IPlan[]) {
     const pending: ITreeNode<IPlan>[] = [];
     const approved: ITreeNode<IPlan>[] = [];
     const rejected: ITreeNode<IPlan>[] = [];
@@ -192,8 +197,15 @@ export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
       }
     }
 
+    return { pending, approved, rejected, unknown };
+  }
+
+  private createGroupNodes(categories: ReturnType<typeof this.categorizePlans>): ITreeNode<IPlan>[] {
+    const tree: ITreeNode<IPlan>[] = [];
+    const { pending, approved, rejected, unknown } = categories;
+
     if (pending.length > 0) {
-      this.state.tree.push(
+      tree.push(
         createGroupNode("pending-group", `Pending (${pending.length})`, "group", pending, {
           icon: PLAN_ICONS[PlanStatus.REVIEW],
           badge: pending.length,
@@ -203,7 +215,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
     }
 
     if (approved.length > 0) {
-      this.state.tree.push(
+      tree.push(
         createGroupNode("approved-group", `Approved (${approved.length})`, "group", approved, {
           icon: PLAN_ICONS[PlanStatus.APPROVED],
           badge: approved.length,
@@ -213,7 +225,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
     }
 
     if (rejected.length > 0) {
-      this.state.tree.push(
+      tree.push(
         createGroupNode("rejected-group", `Rejected (${rejected.length})`, "group", rejected, {
           icon: PLAN_ICONS[PlanStatus.REJECTED],
           badge: rejected.length,
@@ -223,7 +235,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
     }
 
     if (unknown.length > 0) {
-      this.state.tree.push(
+      tree.push(
         createGroupNode("other-group", "Other", "group", unknown, {
           icon: PLAN_ICONS.folder,
           badge: unknown.length,
@@ -231,7 +243,10 @@ export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
       );
     }
 
-    // Select first plan if none selected
+    return tree;
+  }
+
+  private setDefaultSelection(): void {
     if (!this.state.selectedId && this.state.tree.length > 0) {
       const flat = flattenTree(this.state.tree);
       const firstPlan = flat.find((f: any) => f.node.type === "plan");

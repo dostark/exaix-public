@@ -1,3 +1,10 @@
+/**
+ * @module StructuredLogViewerTest
+ * @path tests/tui/structured_log_viewer_test.ts
+ * @description Suite for the StructuredLogViewer TUI, verifying tree-based navigation of trace logs,
+ * grouping toggle functionality, and efficient rendering of nested activity hierarchies.
+ */
+
 import { assert, assertEquals, assertExists } from "@std/assert";
 import {
   type IStructuredLogService,

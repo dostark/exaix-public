@@ -1,7 +1,8 @@
 /**
- * MCP Tools Permission Tests
- *
- * Tests that MCP tools respect portal permissions and operation restrictions.
+ * @module MCPToolsPermissionsTest
+ * @path tests/mcp/tools_permissions_test.ts
+ * @description Verifies the capability-based security model for MCP tools, ensuring strict
+ * enforcement of read/write permissions at the tool level before execution.
  */
 
 import { assertExists, assertRejects } from "@std/assert";

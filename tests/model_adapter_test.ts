@@ -1,14 +1,8 @@
 /**
- * Tests for Model Adapter (Step 3.1)
- * Covers all success criteria from the Implementation Plan
- *
- * Success Criteria:
- * - Test 1: MockProvider returns configured response and has unique ID
- * - Test 2: OllamaProvider sends correct JSON payload to API endpoint
- * - Test 3: ModelFactory creates correct provider type (mock, ollama)
- * - Test 4: Connection errors throw ConnectionError with provider name
- * - Test 5: Invalid responses throw ModelProviderError
- * - Test 6: TimeoutError thrown on request timeout
+ * @module ModelAdapterTest
+ * @path tests/model_adapter_test.ts
+ * @description Verifies the ModelAdapter logic, ensuring it correctly wraps various
+ * LLM providers and handles response configuration overrides.
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";

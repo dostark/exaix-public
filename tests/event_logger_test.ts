@@ -1,16 +1,8 @@
 /**
- * EventLogger Test Suite
- * Implements Step 5.10 of the ExoFrame Implementation Plan (TDD)
- *
- * Tests the unified logging service that writes to both console and IActivity Journal.
- *
- * TDD Test Cases:
- * - Basic Logging: write event to IActivity Journal, print formatted message
- * - Log Levels: respect minLevel, use appropriate icons
- * - Child Loggers: inherit and override parent defaults
- * - Actor Identity: resolve from git config email, fallback to name, then OS username
- * - Error Handling: fallback to console-only when DB unavailable
- * - Format: timestamps, indented multi-line payloads
+ * @module EventLoggerTest
+ * @path tests/event_logger_test.ts
+ * @description Verifies the EventLogger service, ensuring that high-level system
+ * lifecycle events are correctly captured and routed to the persistent journal.
  */
 
 import { assertEquals, assertExists, assertMatch, assertStringIncludes } from "@std/assert";

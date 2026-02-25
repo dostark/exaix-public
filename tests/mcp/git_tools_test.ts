@@ -1,3 +1,10 @@
+/**
+ * @module MCPGitToolsTest
+ * @path tests/mcp/git_tools_test.ts
+ * @description Verifies Git-operation tools exposed via MCP, ensuring stable
+ * branch creation and repository state management within portal boundaries.
+ */
+
 import {
   assertMCPContentIncludes,
   assertMCPError,

@@ -1,7 +1,8 @@
 /**
- * TUI Dialog Base Tests
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
+ * @module TUIDialogBaseTest
+ * @path tests/tui/utils/dialog_base_test.ts
+ * @description Verifies the core drawing logic for TUI dialog boxes, ensuring correct
+ * rendering of borders, titles, and dynamic layouts within the terminal grid.
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";

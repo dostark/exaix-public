@@ -1,7 +1,8 @@
 /**
- * Tests for ReviewRegistry
- *
- * Covers registration, retrieval, listing, status updates, and IActivity Journal logging.
+ * @module ReviewRegistryTest
+ * @path tests/services/review_registry_test.ts
+ * @description Verifies the core ReviewRegistry service, ensuring stable registration and lifecycle
+ * tracking for agent execution plans awaiting human or automated review.
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";

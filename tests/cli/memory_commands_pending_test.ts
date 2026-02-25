@@ -1,7 +1,8 @@
 /**
- * Tests for MemoryCommands Pending Operations (CLI Memory Banks)
- *
- * Phase 12.9: Agent Memory Updates - CLI Commands
+ * @module MemoryCommandsPendingTest
+ * @path tests/cli/memory_commands_pending_test.ts
+ * @description Verifies CLI control for pending memory proposals, ensuring users can list,
+ * review, and approve agent-suggested learnings before permanent archival.
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";

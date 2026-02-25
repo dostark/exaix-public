@@ -1,3 +1,10 @@
+/**
+ * @module GitServiceWorktreePruneTest
+ * @path tests/services/git_service_worktree_prune_test.ts
+ * @description Targeted tests for GitService worktree management, verifying correct
+ * identification and cleanup of stale worktrees to prevent storage bloat.
+ */
+
 import { assert, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";

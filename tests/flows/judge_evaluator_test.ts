@@ -1,6 +1,8 @@
 /**
- * Tests for JudgeEvaluator
- * Phase 15.3: LLM-as-a-Judge IPattern
+ * @module FlowJudgeEvaluatorTest
+ * @path tests/flows/judge_evaluator_test.ts
+ * @description Verifies the JudgeEvaluator's ability to autonomuously critique agent output,
+ * parsing structured JSON scores and enforcing subjective quality gates within workflows.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

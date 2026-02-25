@@ -1,15 +1,8 @@
 /**
- * Notification Service SQLite Tests (Step 19.2b)
- *
- * TDD tests for migrating notifications from file-based to SQLite storage
- *
- * Tests:
- * - Migration adds notifications table
- * - NotificationService inserts into database
- * - Queries active notifications (dismissed_at IS NULL)
- * - Soft-deletes with dismissed_at timestamp
- * - Counts pending notifications
- * - Handles concurrent inserts
+ * @module NotificationSQLiteTest
+ * @path tests/services/notification_sqlite_test.ts
+ * @description Verifies the SQLite database schema and migrations for the notification system,
+ * ensuring persistent storage of event alerts within the activity journal.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

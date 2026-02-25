@@ -1,10 +1,8 @@
 /**
- * Tests for setup_db.ts script (Database Initialization)
- *
- * Success Criteria:
- * - Test 1: Initializes journal.db with expected tables (activity, migrations)
- * - Test 2: Creates correct column schema for activity table
- * - Test 3: Creates System directory if not present
+ * @module DatabaseSetupTest
+ * @path tests/setup_db_test.ts
+ * @description Verifies the database initialization logic, ensuring that the primary journal
+ * and activity tables are correctly created during project bootstrap.
  */
 
 import { assert } from "https://deno.land/std@0.201.0/testing/asserts.ts";

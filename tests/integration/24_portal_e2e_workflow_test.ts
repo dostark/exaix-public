@@ -1,10 +1,8 @@
 /**
- * Portal-specific end-to-end workflow tests
- *
- * Covers the true end-to-end path for portal requests:
- * - request → plan generation/approval → execution → review surface
- *   - read-only agents: artifact-backed review (no git branch)
- *   - write-capable agents: git-backed review in the portal repository
+ * @module PortalWorkflowE2ETest
+ * @path tests/integration/24_portal_e2e_workflow_test.ts
+ * @description Comprehensive E2E test for the Portal-driven workflow, covering both read-only
+ * artifact reviews and write-capable Git reviews within external portal repositories.
  */
 
 import { assert, assertEquals, assertExists, assertMatch, assertStringIncludes } from "@std/assert";

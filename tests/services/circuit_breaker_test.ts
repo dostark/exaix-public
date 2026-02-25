@@ -1,3 +1,10 @@
+/**
+ * @module CircuitBreakerTest
+ * @path tests/services/circuit_breaker_test.ts
+ * @description Tests for the CircuitBreaker resilience pattern, verifying state transitions
+ * (Closed -> Open -> Half-Open) based on error thresholds and recovery timeouts.
+ */
+
 import { assertEquals, assertRejects } from "https://deno.land/std@0.200.0/testing/asserts.ts";
 import { CircuitBreaker } from "../../src/ai/circuit_breaker.ts";
 

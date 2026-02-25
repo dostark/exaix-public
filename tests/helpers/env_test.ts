@@ -1,3 +1,10 @@
+/**
+ * @module EnvHelperSelfTest
+ * @path tests/helpers/env_test.ts
+ * @description Verifies the project's environment manipulation helpers, ensuring
+ * stable nesting and restoration across synchronous and asynchronous tests.
+ */
+
 import { withEnv } from "./env.ts";
 import { assertEquals } from "https://deno.land/std@0.201.0/testing/asserts.ts";
 

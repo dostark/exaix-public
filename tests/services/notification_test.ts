@@ -1,13 +1,8 @@
 /**
- * Notification Service Tests
- *
- * TDD tests for Phase 12.9: User Notification
- *
- * Tests:
- * - notifyMemoryUpdate logs to IActivity Journal
- * - notifyMemoryUpdate writes notification file
- * - getNotifications returns pending notifications
- * - clearNotification removes notification
+ * @module NotificationServiceTest
+ * @path tests/services/notification_test.ts
+ * @description Verifies the notification dispatch system, ensuring updates to memory banks
+ * and long-running operations are correctly relayed to users via the DatabaseService.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

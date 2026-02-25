@@ -849,32 +849,10 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
     }
   }
 
-  public override async handleKey(key: string): Promise<boolean> {
-    // 1. Handle dialogs (delegated to base)
-    if (await this.handleDialogKeys(key)) return true;
-
-    // 2. Handle help overlay (delegated to base)
-    if (this.handleHelpKeys(key)) return true;
-
-    // 3. Handle detail view
-    if (this.handleDetailViewKey(key)) return true;
-
-    // 4. Handle navigation (delegated to base)
-    // Avoid keys that we handle specifically in this subclass or asynchronously
-    if (key !== KEYS.C && key !== KEYS.T && key !== KEYS.E && key !== KEYS.CAP_R) {
-      if (this.handleNavigationKeys(key)) return true;
-    }
-
-    // 5. Main actions - try each handler in order
-    const handled = this.handleSelectionKey(key) ||
-      this.handleToggleKey(key) ||
-      this.handleBookmarkKey(key) ||
-      this.handleDialogKey(key) ||
-      this.handleBulkActionKey(key);
-
-    if (handled) return true;
-
-    // 6. Handle async actions
+  /**
+   * Handle asynchronous key actions
+   */
+  private async handleAsyncKey(key: string): Promise<boolean> {
     switch (key) {
       case KEYS.E:
         await this.exportLogs();
@@ -888,8 +866,36 @@ export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
       case KEYS.CAP_R:
         await this.refreshLogs();
         return true;
+      default:
+        return false;
     }
-    return false;
+  }
+
+  public override async handleKey(key: string): Promise<boolean> {
+    // 1. Handle dialogs (delegated to base)
+    if (await this.handleDialogKeys(key)) return true;
+
+    // 2. Handle help overlay (delegated to base)
+    if (this.handleHelpKeys(key)) return true;
+
+    // 3. Handle detail view
+    if (this.handleDetailViewKey(key)) return true;
+
+    // 4. Main actions - try each handler in order
+    const handled = this.handleSelectionKey(key) ||
+      this.handleToggleKey(key) ||
+      this.handleBookmarkKey(key) ||
+      this.handleDialogKey(key) ||
+      this.handleBulkActionKey(key);
+
+    if (handled) return true;
+
+    // 5. Handle async actions
+    if (await this.handleAsyncKey(key)) return true;
+
+    // 6. Handle navigation (delegated to base)
+    // Keys handled by handleAsyncKey are already filtered out
+    return this.handleNavigationKeys(key);
   }
 
   private isGroupNode(id: string): boolean {

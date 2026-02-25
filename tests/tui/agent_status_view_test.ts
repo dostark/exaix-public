@@ -1,7 +1,8 @@
 /**
- * Agent Status View Tests
- *
- * Phase 13.7: Enhanced Agent Status View tests
+ * @module AgentStatusViewTest
+ * @path tests/tui/agent_status_view_test.ts
+ * @description Verifies the AgentStatusView TUI component, ensuring real-time monitoring of
+ * agent readiness, active tasks, and resource utilization metrics.
  */
 
 import {

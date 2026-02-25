@@ -1,3 +1,10 @@
+/**
+ * @module AgentStatusStateTest
+ * @path tests/tui/agent_status/agent_status_test.ts
+ * @description Verifies the logic for handling agent status states (Active, Inactive, Error)
+ * within the TUI, ensuring correct coercion and validation of dynamic status updates.
+ */
+
 import { assertEquals } from "@std/assert";
 import { AgentStatus, coerceAgentStatus, isAgentStatus } from "../../../src/tui/agent_status/agent_status.ts";
 import { TEST_AGENT_STATUS_INVALID } from "../../config/constants.ts";

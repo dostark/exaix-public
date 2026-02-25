@@ -1,3 +1,10 @@
+/**
+ * @module GitInfoToolTest
+ * @path tests/tools/git_info_test.ts
+ * @description Verifies the 'git_info' tool, ensuring that agents can correctly
+ * introspect repository state, status, and history.
+ */
+
 import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";

@@ -1,3 +1,10 @@
+/**
+ * @module GitServicePortalTest
+ * @path tests/services/git_service_portal_test.ts
+ * @description Verifies GitService operations within the context of multiple portals,
+ * ensuring correct isolation and repository discovery for partitioned datasets.
+ */
+
 import { assertEquals } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";

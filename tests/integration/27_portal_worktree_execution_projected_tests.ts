@@ -1,8 +1,8 @@
 /**
- * Projected tests for Phase 37.6 (worktree execution strategy):
- * - Multiple traces can execute against the same portal without disturbing the main checkout.
- * - Each trace gets an isolated canonical worktree + Memory/Execution pointer.
- * - If worktree creation fails (e.g., bad base branch), execution fails with an actionable error.
+ * @module PortalWorktreeExecutionIntegrationTest
+ * @path tests/integration/27_portal_worktree_execution_projected_tests.ts
+ * @description Verifies the logic for concurrent worktree executions, ensuring that
+ * multiple agent journeys in external portals do not conflict or orphan Git resources.
  */
 
 import { assertEquals, assertExists, assertMatch, assertStringIncludes } from "@std/assert";

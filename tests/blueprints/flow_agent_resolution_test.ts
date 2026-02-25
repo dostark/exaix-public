@@ -1,8 +1,8 @@
 /**
- * Flow Agent Resolution Tests
- * Phase 18: Blueprint Modernization
- *
- * Validates all flows reference agents that exist.
+ * @module FlowAgentResolutionTest
+ * @path tests/blueprints/flow_agent_resolution_test.ts
+ * @description Verifies that all agents referenced in flow definitions correctly
+ * resolve to valid system identities or project blueprints.
  */
 
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";

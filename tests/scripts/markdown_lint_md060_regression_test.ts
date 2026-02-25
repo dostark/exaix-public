@@ -1,3 +1,10 @@
+/**
+ * @module MarkdownLintMD060RegressionTest
+ * @path tests/scripts/markdown_lint_md060_regression_test.ts
+ * @description Regression tests for Markdown linting rule MD060, ensuring
+ * stable validation of table alignment and checkmark formatting.
+ */
+
 import { lintMarkdown } from "../../scripts/markdown_lint.ts";
 
 /**

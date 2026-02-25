@@ -1,3 +1,10 @@
+/**
+ * @module RepoRootTestHelper
+ * @path tests/helpers/repo_root.ts
+ * @description Provides utilities for identifying the repository root, ensuring
+ * stable path resolution across varied local and CI test environments.
+ */
+
 import { dirname, fromFileUrl } from "@std/path";
 
 export const REPO_ROOT = dirname(dirname(dirname(fromFileUrl(import.meta.url))));

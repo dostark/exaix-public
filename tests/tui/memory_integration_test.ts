@@ -1,9 +1,8 @@
 /**
- * TUI Memory Integration Tests
- *
- * Part of Phase 12.14: TUI Memory Integration & Polish
- *
- * Tests full TUI workflows and integration between components.
+ * @module MemoryTUIIntegrationTest
+ * @path tests/tui/memory_integration_test.ts
+ * @description End-to-end integration tests for the Memory TUI, verifying multi-step workflows
+ * from knowledge discovery and search to interactive approval of pending proposals.
  */
 
 import { assertEquals, assertExists, assertGreater, assertStringIncludes } from "@std/assert";

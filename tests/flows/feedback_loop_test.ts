@@ -1,6 +1,8 @@
 /**
- * Tests for FeedbackLoop
- * Phase 15.4: Feedback Loop (Reflexion IPattern)
+ * @module FlowFeedbackLoopTest
+ * @path tests/flows/feedback_loop_test.ts
+ * @description Verifies the agentic feedback loop, ensuring stable iteration
+ * control based on quality scores and maximum retry limits.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

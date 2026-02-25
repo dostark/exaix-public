@@ -1,3 +1,10 @@
+/**
+ * @module ToolRegistryTest
+ * @path tests/tool_registry_test.ts
+ * @description Verifies the dynamic registration of tools via JSON schemas,
+ * ensuring execution sandboxing and strict prevention of path traversal attacks.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 import { McpToolName } from "../src/enums.ts";
 

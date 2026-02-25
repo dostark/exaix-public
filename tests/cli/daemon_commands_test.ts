@@ -1,15 +1,8 @@
 /**
- * Tests for DaemonCommands
- * Covers start, stop, restart, status, and logs operations
- *
- * Success Criteria:
- * - Test 1: start command spawns daemon process and creates PID file
- * - Test 2: stop command sends SIGTERM (graceful) and cleans up PID file
- * - Test 3: restart command stops then starts daemon
- * - Test 4: status command reports running/stopped state correctly
- * - Test 5: logs command supports --lines and --follow options
- * - Test 6: Commands log activity to IActivity Journal
- * - Test 7: Handles edge cases (already running, not running, stale PID)
+ * @module DaemonCommandsTest
+ * @path tests/cli/daemon_commands_test.ts
+ * @description Verifies CLI daemon control commands, ensuring correct start/stop/status
+ * logic, PID file management, and background process orchestration.
  */
 
 import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";

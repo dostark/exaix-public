@@ -1,8 +1,8 @@
 /**
- * Integration Test 15: Plan Execution via MCP Server
- *
- * Tests the complete flow: request → plan → MCP execution → review
- * Covers Steps 6.1-6.5 integration with both sandboxed and hybrid security modes.
+ * @module PlanExecutionMCPIntegrationTest
+ * @path tests/integration/15_plan_execution_mcp_test.ts
+ * @description Verifies the end-to-end execution of plans through the MCP transport,
+ * ensuring stable sandboxing and correct propagation of tool results across JSON-RPC.
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";

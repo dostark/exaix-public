@@ -1,3 +1,10 @@
+/**
+ * @module AICommonProviderTest
+ * @path tests/ai/common_provider_test.ts
+ * @description Verifies shared LLM provider utilities, including robust retry logic,
+ * exponential backoff, and identification of transient vs. terminal errors.
+ */
+
 import { assertEquals, assertRejects } from "https://deno.land/std@0.221.0/assert/mod.ts";
 import { AuthenticationError, isRetryable, RateLimitError, withRetry } from "../../src/ai/providers/common.ts";
 

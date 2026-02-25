@@ -1,3 +1,10 @@
+/**
+ * @module CustomAssertions
+ * @path tests/helpers/custom_assertions.ts
+ * @description Provides project-specific assertions for validating agent
+ * logic, terminal visuals, and asynchronous execution states.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import type { MemoryBankService } from "../../src/services/memory_bank.ts";
 import type { MemoryExtractorService } from "../../src/services/memory_extractor.ts";

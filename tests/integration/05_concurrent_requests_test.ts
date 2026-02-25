@@ -1,15 +1,8 @@
 /**
- * Integration Test: Scenario 5 - Concurrent Requests
- * Multiple requests processed simultaneously
- *
- * Success Criteria:
- * - Test 1: Multiple requests can be queued concurrently
- * - Test 2: Lease mechanism prevents duplicate processing
- * - Test 3: Each request maintains its own trace_id chain
- * - Test 4: No interference between concurrent executions
- * - Test 5: All requests complete successfully
- * - Test 6: IActivity log correctly attributes actions to trace_ids
- * - Test 7: Resource contention handled gracefully (no deadlocks)
+ * @module ConcurrentRequestsIntegrationTest
+ * @path tests/integration/05_concurrent_requests_test.ts
+ * @description Verifies the system's ability to handle multiple AI requests in parallel,
+ * ensuring queue integrity, race-condition prevention, and stable shared resource access.
  */
 
 import { assert, assertEquals, assertExists, assertNotEquals as _assertNotEquals } from "@std/assert";

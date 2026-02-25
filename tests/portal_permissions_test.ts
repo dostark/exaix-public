@@ -1,3 +1,10 @@
+/**
+ * @module PortalPermissionsTest
+ * @path tests/portal_permissions_test.ts
+ * @description Verifies the security enforcement for portal access, ensuring that tools
+ * are strictly confined to authorized portal root directories.
+ */
+
 import { assertEquals, assertRejects } from "@std/assert";
 import { join } from "@std/path";
 import { PathResolver } from "../src/services/path_resolver.ts";

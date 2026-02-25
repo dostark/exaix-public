@@ -494,6 +494,8 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
       .replace(/```/g, "~~~")
       // Remove potential prompt injection patterns
       .replace(/ignore (all )?previous instructions/gi, "[REMOVED]")
+      .replace(/ignore (all )?system prompts?/gi, "[REMOVED]")
+      .replace(/<META>[\s\S]*?<\/META>/gi, "[REMOVED]")
       .replace(/you are now/gi, "[REMOVED]")
       .replace(/new instructions?:/gi, "[REMOVED]")
       // Limit length

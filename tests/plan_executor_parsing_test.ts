@@ -1,3 +1,10 @@
+/**
+ * @module PlanExecutorParsingTest
+ * @path tests/plan_executor_parsing_test.ts
+ * @description Verifies the parsing logic for agent execution plans, ensuring correct
+ * extraction of tool sequences and argument structures.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";

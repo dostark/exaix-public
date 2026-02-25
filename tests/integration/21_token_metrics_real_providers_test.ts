@@ -1,17 +1,8 @@
 /**
- * Token Metrics Integration Test - Real Provider Validation
- *
- * This test validates that token counting works correctly with real API calls
- * to Google, OpenAI, and Anthropic providers. It verifies:
- * - Token extraction from provider responses
- * - IActivity Journal logging with action type 'llm.usage'
- * - Cost calculations
- * - All required token fields are present and accurate
- *
- * IMPORTANT: This test is opt-in only to avoid accidental API costs.
- * Set EXO_TEST_ENABLE_PAID_LLM=1 and provide API keys to run.
- *
- * Expected cost per run: ~$0.01-0.05 total (minimal prompts used)
+ * @module TokenMetricsProvidersIntegrationTest
+ * @path tests/integration/21_token_metrics_real_providers_test.ts
+ * @description Verifies token usage tracking across multiple live LLM providers (Gemini,
+ * OpenAI, Anthropic), ensuring correct capture of usage metrics and accurate cost mapping.
  */
 
 import { assert, assertExists } from "@std/assert";

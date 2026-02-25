@@ -1,3 +1,10 @@
+/**
+ * @module CIGuidanceTest
+ * @path tests/agents/ci_guidance_test.ts
+ * @description Verifies the project's CI guidance documentation, ensuring that
+ * common CI pitfalls and best practices are correctly documented for agents.
+ */
+
 import { assert } from "@std/assert";
 
 Deno.test("Agent docs: testing.md documents CI pitfalls", async () => {

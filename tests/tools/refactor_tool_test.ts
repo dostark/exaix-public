@@ -1,3 +1,10 @@
+/**
+ * @module RefactorToolTest
+ * @path tests/tools/refactor_tool_test.ts
+ * @description Verifies specialized refactoring tools, ensuring stable execution
+ * of complex symbol renaming and structural code changes.
+ */
+
 import { assertEquals, assertRejects } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";

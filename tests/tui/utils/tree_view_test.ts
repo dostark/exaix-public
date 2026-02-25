@@ -1,7 +1,8 @@
 /**
- * TUI Tree View Utility Tests
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
+ * @module TUITreeViewTest
+ * @path tests/tui/utils/tree_view_test.ts
+ * @description Verifies the logic for hierarchical data presentation in the TUI,
+ * ensuring correct node nesting, expansion states, and interactive navigation.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

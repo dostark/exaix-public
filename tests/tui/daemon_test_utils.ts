@@ -1,3 +1,10 @@
+/**
+ * @module DaemonTestUtils
+ * @path tests/tui/daemon_test_utils.ts
+ * @description Common utilities for TUI daemon tests, providing mock services for
+ * simulating daemon state, lifecycle operations, and activity logs.
+ */
+
 import { DaemonStatus } from "../../src/enums.ts";
 import { DaemonControlView, MinimalDaemonServiceMock } from "../../src/tui/daemon_control_view.ts";
 

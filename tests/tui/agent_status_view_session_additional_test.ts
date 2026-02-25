@@ -1,3 +1,10 @@
+/**
+ * @module AgentStatusSessionAdditionalTest
+ * @path tests/tui/agent_status_view_session_additional_test.ts
+ * @description Targeted tests for AgentStatusTuiSession, specifically focusing on session
+ * initialization, dynamic grouping labels, and resilient detail rendering.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { TEST_MODEL_OPENAI } from "../config/constants.ts";
 

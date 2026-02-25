@@ -1,14 +1,8 @@
 /**
- * Additional Coverage Tests for MemoryEmbeddingService
- *
- * Tests for untested paths to improve coverage from 72.5% to >85%:
- * - initializeManifest creates directory and manifest
- * - getEmbedding returns vector for existing learning
- * - getEmbedding returns null for missing learning
- * - deleteEmbedding removes embedding and updates manifest
- * - getStats returns statistics
- * - cosineSimilarity handles zero vectors
- * - Vector length mismatch throws error
+ * @module MemoryEmbeddingCoverageTest
+ * @path tests/services/memory_embedding_coverage_test.ts
+ * @description Negative testing and edge-case coverage for vector similarity calculations,
+ * ensuring robust handling of zero vectors and dimension mismatches in RAG operations.
  */
 import { ensureDir } from "@std/fs";
 import { LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";

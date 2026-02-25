@@ -1,9 +1,8 @@
 /**
- * Plan Step Execution Regression Test
- *
- * Regression test for: "Approved plans marked complete without executing steps"
- * Root cause: ExecutionLoop only handled TOML action blocks, not structured plans with steps
- * Fix: Added structured plan detection and PlanExecutor integration in ExecutionLoop
+ * @module PlanStepExecutionRegressionTest
+ * @path tests/plan_step_execution_regression_test.ts
+ * @description Regression tests for the core execution loop, ensuring reliable detection
+ * and processing of structured plan steps while rejecting malformed content.
  */
 
 import { assert, assertEquals } from "@std/assert";

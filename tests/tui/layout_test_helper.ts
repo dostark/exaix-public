@@ -1,3 +1,10 @@
+/**
+ * @module TUILayoutTestHelper
+ * @path tests/tui/layout_test_helper.ts
+ * @description Provides helper functions for simulating terminal layout transitions and
+ * verifying panel coordinates in complex multi-view dashboards.
+ */
+
 import { createLayoutManager, type ILayoutPane } from "../../src/helpers/layout_manager.ts";
 
 export function setupLayoutManager(width = 80, height = 24) {

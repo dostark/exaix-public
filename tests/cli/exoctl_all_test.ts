@@ -1,3 +1,10 @@
+/**
+ * @module ExoCtlAllTest
+ * @path tests/cli/exoctl_all_test.ts
+ * @description Comprehensive orchestration tests for the exoctl CLI, verifying the integration
+ * between global command routing, test-mode context injection, and primary subcommands (plan, review, daemon).
+ */
+
 import "./helpers/set_test_mode.ts";
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";

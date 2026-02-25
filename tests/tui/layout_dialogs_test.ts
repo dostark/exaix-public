@@ -1,3 +1,10 @@
+/**
+ * @module LayoutDialogsTest
+ * @path tests/tui/layout_dialogs_test.ts
+ * @description Verifies the interactive layout management dialogs, ensuring correct
+ * keyboard-driven selection, persistence, and visual feedback for layout primitives.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { getTheme } from "../../src/helpers/colors.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";

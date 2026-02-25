@@ -1,3 +1,10 @@
+/**
+ * @module CommandUtilsTest
+ * @path tests/helpers/command_utils_test.ts
+ * @description Verifies internal CLI utilities, ensuring correct formatting of
+ * validation errors and metadata presentation for system objects.
+ */
+
 import { assertEquals } from "@std/assert";
 import { CommandUtils } from "../../src/helpers/command_utils.ts";
 import { type ValidationResult } from "../../src/cli/base/command.ts";

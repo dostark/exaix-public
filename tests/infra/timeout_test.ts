@@ -1,5 +1,8 @@
 /**
- * Test timeout functionality for LLM providers
+ * @module InfraTimeoutTest
+ * @path tests/infra/timeout_test.ts
+ * @description Verifies LLM provider timeout configurations, ensuring that
+ * network deadlines are correctly propagated to provider-specific SDKs.
  */
 import { assertEquals } from "@std/assert";
 import { OpenAIProvider } from "../../src/ai/providers/openai_provider.ts";

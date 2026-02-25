@@ -1,12 +1,8 @@
 /**
- * Memory Integration Tests
- *
- * End-to-end tests for Memory Banks v2 workflows:
- * - Full workflow: execution → extract → approve → search
- * - Promote workflow: project → global
- * - Search workflow: tag + keyword + embedding
- * - CLI workflow: complete command sequence
- * Phase 12.11: Integration & Documentation
+ * @module MemoryPipelineIntegrationTest
+ * @path tests/integration/22_memory_integration_test.ts
+ * @description Verifies the end-to-end memory pipeline, from learning extraction during
+ * execution to interactive approval and promote/search workflows.
  */
 
 import { ConfidenceLevel } from "../../src/enums.ts";

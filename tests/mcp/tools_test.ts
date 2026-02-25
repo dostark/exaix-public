@@ -1,3 +1,10 @@
+/**
+ * @module MCPToolsTest
+ * @path tests/mcp/tools_test.ts
+ * @description Validates the exposure of internal ExoFrame tools via the MCP protocol, ensuring
+ * correct parameter mapping, IActivity Journal logging, and robust error propagation to clients.
+ */
+
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { McpToolName } from "../../src/enums.ts";
 

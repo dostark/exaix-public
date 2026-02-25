@@ -1,3 +1,10 @@
+/**
+ * @module AIProviderTestConfig
+ * @path tests/ai/helpers/test_config.ts
+ * @description Provides a baseline AI configuration for provider tests, ensuring
+ * consistent model names and base URLs for Mock/Live backend testing.
+ */
+
 import { AiConfig, AiConfigSchema } from "../../../src/config/ai_config.ts";
 import { Config } from "../../../src/config/schema.ts";
 import { ExoPathDefaults } from "../../../src/config/constants.ts";

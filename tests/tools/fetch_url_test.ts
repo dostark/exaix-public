@@ -1,3 +1,10 @@
+/**
+ * @module FetchUrlToolTest
+ * @path tests/tools/fetch_url_test.ts
+ * @description Verifies the 'fetch_url' tool, ensuring secure retrieval of external
+ * content for agent knowledge grounding.
+ */
+
 import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";

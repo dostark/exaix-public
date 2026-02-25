@@ -1,13 +1,8 @@
 /**
- * Tests for ExoFrame User Guide documentation structure and content.
- *
- * Success Criteria:
- * - Test 1: User Guide has numbered main sections (1-4+)
- * - Test 2: Has Introduction section
- * - Test 3: Documents Obsidian plugin installation and configuration
- * - Test 4: Documents exoctl CLI commands and usage
- * - Test 5: Includes installation/deployment instructions
- * - Test 6: Documents file watcher behavior
+ * @module UserGuideVerificationTest
+ * @path tests/docs/user_guide_test.ts
+ * @description Verifies the project's User Guide, ensuring that installation steps,
+ * command help, and core architecture sections stay synchronized with the code.
  */
 
 import { assert, assertStringIncludes } from "@std/assert";

@@ -1,3 +1,10 @@
+/**
+ * @module DashboardCommandsTest
+ * @path tests/cli/dashboard_commands_test.ts
+ * @description Verifies the CLI entry point for the TUI dashboard, ensuring correct
+ * delegation to the dashboard launcher and terminal initialization.
+ */
+
 import { assertEquals } from "@std/assert";
 import { DashboardCommands } from "../../src/cli/commands/dashboard_commands.ts";
 import type { launchTuiDashboard } from "../../src/tui/tui_dashboard.ts";

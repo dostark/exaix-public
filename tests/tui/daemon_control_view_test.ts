@@ -1,7 +1,8 @@
 /**
- * Daemon Control View Tests
- *
- * Phase 13.8: Enhanced Daemon Control View tests
+ * @module DaemonControlViewTest
+ * @path tests/tui/daemon_control_view_test.ts
+ * @description Verifies the DaemonControlView TUI component, ensuring interactive control
+ * over the ExoFrame daemon, including lifecycle actions and real-time log streaming.
  */
 
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";

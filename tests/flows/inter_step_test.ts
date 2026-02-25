@@ -1,3 +1,10 @@
+/**
+ * @module InterStepTransformTest
+ * @path tests/flows/inter_step_test.ts
+ * @description Verifies the logic for data transformation and context passing
+ * between sequential steps in an agentic workflow.
+ */
+
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   appendToRequest,

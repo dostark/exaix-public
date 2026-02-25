@@ -1,3 +1,10 @@
+/**
+ * @module MemoryViewTestUtils
+ * @path tests/tui/memory_view/memory_view_test_utils.ts
+ * @description Provides common utilities for mocking the Memory TUI state and
+ * simulating keyboard-driven navigation in the knowledge tree.
+ */
+
 import {
   ConfidenceLevel,
   ExecutionStatus,

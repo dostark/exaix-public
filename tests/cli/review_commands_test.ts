@@ -1,14 +1,8 @@
 /**
- * Tests for ReviewCommands
- * Covers list, show, approve, and reject operations
- *
- * Success Criteria:
- * - Test 1: list returns reviews sorted by creation date
- * - Test 2: show displays review details (branch, commits, files)
- * - Test 3: approve merges branch to main with --no-ff
- * - Test 4: reject archives branch without merging
- * - Test 5: Commands validate branch exists and is correct type
- * - Test 6: Counts files changed in review listings
+ * @module ReviewCommandsTest
+ * @path tests/cli/review_commands_test.ts
+ * @description Verifies CLI review operations for execution artifacts, including status listing,
+ * detailed review viewing, and approval/rejection of agent-produced changes.
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";

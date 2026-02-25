@@ -1,11 +1,8 @@
 /**
- * Rebuild Index Tests
- *
- * Tests for the rebuild-index command including embeddings:
- * - rebuild-index regenerates all indices
- * - rebuild-index includes embeddings
- *
- * Phase 12.10: Tag-Based Search & Simple RAG
+ * @module MemoryIndexRebuildTest
+ * @path tests/services/rebuild_index_test.ts
+ * @description Verifies the batch re-indexing of memory banks, ensuring correct regeneration of
+ * keyword indices and embedding vectors across project and global scopes.
  */
 
 import { assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";

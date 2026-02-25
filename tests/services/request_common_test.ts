@@ -1,3 +1,10 @@
+/**
+ * @module RequestCommonTest
+ * @path tests/services/request_common_test.ts
+ * @description Verifies shared request processing utilities, ensuring stable blueprint
+ * loading logic, path resolution for agents, and basic state initialization.
+ */
+
 import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { buildParsedRequest, loadBlueprint } from "../../src/services/request_common.ts";

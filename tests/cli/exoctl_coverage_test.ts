@@ -1,10 +1,8 @@
 /**
- * Additional Coverage Tests for exoctl.ts
- *
- * Tests for untested paths to improve coverage:
- * - Error handlers for all command actions
- * - Various option combinations
- * - Edge cases in command parsing
+ * @module ExoCtlCoverageTest
+ * @path tests/cli/exoctl_coverage_test.ts
+ * @description Negative testing and coverage verification for the exoctl CLI, ensuring
+ * graceful failure messages for invalid inputs across all primary subcommands.
  */
 
 import "./helpers/set_test_mode.ts";

@@ -1,3 +1,10 @@
+/**
+ * @module FileOpsToolTest
+ * @path tests/tools/file_ops_test.ts
+ * @description Verifies the core file manipulation tools, including safe reading,
+ * writing, and listing of project assets.
+ */
+
 import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";

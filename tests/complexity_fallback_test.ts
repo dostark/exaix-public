@@ -1,3 +1,10 @@
+/**
+ * @module ComplexityFallbackTest
+ * @path tests/complexity_fallback_test.ts
+ * @description Verifies the model selection logic based on task complexity, ensuring
+ * that the system falls back to more capable models for non-trivial requests.
+ */
+
 import { assertEquals } from "https://deno.land/std@0.224.0/testing/asserts.ts";
 import { calculateComplexityFromText } from "../scripts/measure_complexity.ts";
 

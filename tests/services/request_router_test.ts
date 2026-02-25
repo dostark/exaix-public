@@ -1,3 +1,10 @@
+/**
+ * @module RequestRouterTest
+ * @path tests/services/request_router_test.ts
+ * @description Verifies the RequestRouter's orchestration logic, ensuring requests are correctly
+ * dispatched to FlowRunner, AgentRunner, or default providers based on metadata.
+ */
+
 import { assertEquals, assertRejects } from "@std/assert";
 import { MemorySource } from "../../src/enums.ts";
 

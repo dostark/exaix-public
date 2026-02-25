@@ -1,7 +1,8 @@
 /**
- * Safe Subprocess Tests
- *
- * Tests for subprocess execution utility including timeout and error handling.
+ * @module SubprocessTest
+ * @path tests/utils/subprocess_test.ts
+ * @description Verifies the 'SafeSubprocess' wrapper, ensuring robust command
+ * execution, timeout enforcement, and correct stream capturing.
  */
 
 import { assert, assertEquals, assertRejects } from "@std/assert";

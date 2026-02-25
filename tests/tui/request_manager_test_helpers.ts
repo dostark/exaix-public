@@ -1,3 +1,10 @@
+/**
+ * @module RequestManagerTestHelpers
+ * @path tests/tui/request_manager_test_helpers.ts
+ * @description Common utilities for RequestManager TUI tests, ensuring stable simulation
+ * of request lifecycles and interactive input dialogs.
+ */
+
 import { ConfirmDialog, InputDialog } from "../../src/helpers/dialog_base.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";
 import { MessageType } from "../../src/enums.ts";

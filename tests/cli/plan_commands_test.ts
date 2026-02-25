@@ -1,14 +1,8 @@
 /**
- * Tests for PlanCommands (CLI Plan Management)
- *
- * Success Criteria:
- * - Test 1: approve moves plan to Workspace/Active and updates status
- * - Test 2: reject moves plan to Workspace/Rejected with reason
- * - Test 3: revise appends review comments and keeps plan in review
- * - Test 4: list returns all plans with status indicators
- * - Test 5: show displays plan content and metadata
- * - Test 6: Commands validate plan exists and has correct status
- * - Test 7: Tracks user identity in approval/rejection actions
+ * @module PlanCommandsTest
+ * @path tests/cli/plan_commands_test.ts
+ * @description Unit and integration tests for CLI plan operations, verifying plan listing,
+ * detailed diff visualization, approval workflows, and status synchronization with the Workspace.
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";

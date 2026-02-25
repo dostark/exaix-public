@@ -1,12 +1,8 @@
 /**
- * Tests for PlanWriter Service - Integration with Step 6.7 JSON Format
- * Updates Step 3.4 tests to work with new JSON plan format
- *
- * Success Criteria:
- * 1. JSON validation integration works correctly
- * 2. Markdown conversion produces expected output
- * 3. IActivity logging for validation events
- * 4. Backward compatibility maintained for metadata handling
+ * @module PlanWriterTest
+ * @path tests/plan_writer_test.ts
+ * @description Verifies the PlanWriter service, ensuring that agent-generated task
+ * descriptions are correctly persisted with stable frontmatter and sequential identifiers.
  */
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";

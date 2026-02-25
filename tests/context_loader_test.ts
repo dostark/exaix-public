@@ -1,13 +1,8 @@
 /**
- * Tests for Context Loader (Step 3.3)
- * Covers all success criteria from the Implementation Plan
- *
- * Success Criteria:
- * - Test 1: Token limit enforcement (10 massive files, 500k tokens total, 100k budget)
- * - Test 2: Warning block generation in agent's prompt
- * - Test 3: Agent receives warning and can reference it
- * - Test 4: Local agent behavior (no limits)
- * - Test 5: Truncation strategies produce different results
+ * @module ContextLoaderTest
+ * @path tests/context_loader_test.ts
+ * @description Verifies the core context assembly logic, ensuring that relevant files,
+ * memory, and portal data are correctly injected into the agent prompt.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

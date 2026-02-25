@@ -1,15 +1,8 @@
 /**
- * Tests for PlanAdapter Service
- * Implements Step 6.7 of the ExoFrame Implementation Plan
- *
- * Success Criteria:
- * - parse() accepts valid JSON plan
- * - parse() rejects invalid JSON syntax
- * - parse() rejects JSON missing required fields
- * - parse() rejects invalid field types
- * - toMarkdown() converts plan to readable format
- * - toMarkdown() includes all optional fields
- * - PlanValidationError includes error details
+ * @module PlanAdapterTest
+ * @path tests/services/plan_adapter_test.ts
+ * @description Verifies the PlanAdapter's ability to serialize and deserialize execution plans
+ * across frontmatter, internal objects, and human-readable Markdown representations.
  */
 
 import { describe, it } from "@std/testing/bdd";

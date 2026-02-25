@@ -1,3 +1,10 @@
+/**
+ * @module ToolRegistryRelativeAccessTest
+ * @path tests/services/tool_registry_relative_access_test.ts
+ * @description Verifies the ToolRegistry's ability to resolve and secure relative path
+ * access based on dynamic portal root directories.
+ */
+
 import { assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";

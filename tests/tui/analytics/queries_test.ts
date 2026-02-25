@@ -1,3 +1,10 @@
+/**
+ * @module AnalyticsQueriesTest
+ * @path tests/tui/analytics/queries_test.ts
+ * @description Verifies the logic for trace and log retrieval in the TUI analytics layer,
+ * ensuring correct filtering by correlation identifiers and agent IDs.
+ */
+
 import { assertEquals } from "@std/assert";
 import type { IStructuredLogEntry } from "../../../src/services/structured_logger.ts";
 import { LogLevel } from "../../../src/enums.ts";

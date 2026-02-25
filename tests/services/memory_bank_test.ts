@@ -1,11 +1,8 @@
 /**
- * Memory Bank Service Tests
- *
- * Comprehensive tests for memory bank CRUD operations, covering:
- * - Project memory management
- * - Execution memory management
- * - Search and query operations
- * - IActivity Journal integration
+ * @module MemoryBankTest
+ * @path tests/services/memory_bank_test.ts
+ * @description Comprehensive test suite for the MemoryBank service, validating the full lifecycle of project
+ * and global memories, execution record persistence, and index-based retrieval.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";

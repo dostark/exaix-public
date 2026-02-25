@@ -1,3 +1,10 @@
+/**
+ * @module RequestRouterContextTest
+ * @path tests/services/request_router_context_test.ts
+ * @description Verifies the RequestRouter's ability to maintain and propagate execution context
+ * across routed requests, ensuring consistent trace and security boundaries.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { join } from "@std/path";

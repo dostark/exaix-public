@@ -1,3 +1,10 @@
+/**
+ * @module LlamaFactoryTest
+ * @path tests/ai/llama_factory_test.ts
+ * @description Verifies the Llama (local) provider factory, ensuring correct
+ * wiring of base URLs and model identifiers for local LLM execution.
+ */
+
 import { assertEquals } from "@std/assert";
 import { ProviderType } from "../../src/enums.ts";
 import { DEFAULT_OLLAMA_ENDPOINT } from "../../src/config/constants.ts";

@@ -1,7 +1,8 @@
 /**
- * Confidence Scorer Tests
- *
- * Tests for Phase 16.7: Confidence Scoring Implementation
+ * @module ConfidenceScorerSchemaTest
+ * @path tests/services/confidence_scorer_test.ts
+ * @description Validates the data schema for agent confidence scoring, ensuring structured
+ * reporting of self-assessment levels and numeric certainty scores.
  */
 
 import { assert, assertEquals, assertExists, assertGreater, assertLess } from "@std/assert";

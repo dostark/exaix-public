@@ -1,13 +1,8 @@
 /**
- * CLI Fallback Regression Tests
- *
- * These tests verify that CLI commands don't crash when database services
- * fail to initialize. This was a bug where EventLogger tried to call
- * this.db.logActivity() on an empty fallback object.
- *
- * Regression test for: "TypeError: this.db.logActivity is not a function"
- *
- * @see https://github.com/dostark/exoframe/issues/XXX
+ * @module CLIFallbackRegressionTest
+ * @path tests/cli_fallback_regression_test.ts
+ * @description Regression tests for CLI argument parsing, ensuring that the system
+ * correctly falls back to interactive modes when required parameters are missing.
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";

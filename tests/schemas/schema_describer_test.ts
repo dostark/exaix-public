@@ -1,3 +1,10 @@
+/**
+ * @module SchemaDescriberTest
+ * @path tests/schemas/schema_describer_test.ts
+ * @description Verifies the utility for generating human-readable descriptions of
+ * Zod schemas, ensuring accurate representation of tool parameters for agents.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { z } from "zod";
 import { describeSchema } from "../../src/schemas/schema_describer.ts";

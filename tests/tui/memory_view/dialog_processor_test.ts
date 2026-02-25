@@ -1,3 +1,10 @@
+/**
+ * @module MemoryDialogProcessorTest
+ * @path tests/tui/memory_view/dialog_processor_test.ts
+ * @description Verifies the logic for bulk memory approval and rejection dialogs,
+ * ensuring correct progress reporting and resilient handling of cancel/error states.
+ */
+
 import { assertEquals } from "@std/assert";
 import {
   TUI_STATUS_MSG_BULK_APPROVE_COMPLETED,

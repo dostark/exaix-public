@@ -1,3 +1,10 @@
+/**
+ * @module EnvTestHelpers
+ * @path tests/helpers/env.ts
+ * @description Provides common utilities for manipulating environment variables
+ * during tests, ensuring clean restoration of system state.
+ */
+
 // Helper to temporarily set environment variables for a test and restore them after
 export async function withEnv(env: Record<string, string | null>, fn: () => Promise<void> | void) {
   const old: Record<string, string | undefined> = {};

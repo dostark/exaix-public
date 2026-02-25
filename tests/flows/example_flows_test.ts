@@ -1,6 +1,8 @@
 /**
- * Example Flows Tests - Step 7.9 of Implementation Plan
- * Tests for comprehensive example flows demonstrating FlowRunner capabilities
+ * @module ExampleFlowsVerificationTest
+ * @path tests/flows/example_flows_test.ts
+ * @description Verifies the project's baseline set of agentic flows, ensuring
+ * that all example definitions follow the current schema and execution patterns.
  */
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";

@@ -1,16 +1,8 @@
 /**
- * Integration Test: Scenario 12 - Mock Provider Plan Generation
- * Tests RequestProcessor integration with MockLLMProvider in full system context
- *
- * Focus: System-level integration (RequestProcessor + MockLLMProvider + Blueprint + DB + FileSystem)
- * Note: MockLLMProvider behavior is thoroughly tested in mock_llm_provider_test.ts
- *       This test focuses on the integration of these components in a realistic workflow
- *
- * Success Criteria:
- * - RequestProcessor successfully integrates with MockLLMProvider
- * - End-to-end flow: Request file → Blueprint loading → Plan generation → Status update
- * - Concurrent request processing works correctly with shared provider
- * - IActivity logging tracks the full workflow
+ * @module MockPlanGenerationIntegrationTest
+ * @path tests/integration/12_mock_plan_generation_test.ts
+ * @description Verifies plan generation using the MockLLMProvider, ensuring correct
+ * RequestProcessor integration and accurate IActivity logging for generated plans.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";

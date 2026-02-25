@@ -1,5 +1,8 @@
 /**
- * Tests for Provider Registry IPattern (Issue #10: Tight Coupling Between Services)
+ * @module AIProviderRegistryTest
+ * @path tests/ai/provider_registry_test.ts
+ * @description Verifies the AI ProviderRegistry, ensuring stable registration of LLM
+ * factories, dynamic model selection, and resilient fallback when primary providers are unavailable.
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";

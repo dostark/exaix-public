@@ -1,3 +1,10 @@
+/**
+ * @module JournalCommandsFilterTest
+ * @path tests/cli/journal_commands_filter_test.ts
+ * @description Validates the mapping of CLI filter strings (e.g., trace_id=xyz) into structured
+ * DatabaseService queries for activity journal introspection.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { JournalCommands } from "../../src/cli/commands/journal_commands.ts";
 import type { JournalFilterOptions } from "../../src/services/db.ts";

@@ -1,3 +1,10 @@
+/**
+ * @module DatabaseServiceTest
+ * @path tests/db_test.ts
+ * @description Verifies the DatabaseService, ensuring correct schema initialization,
+ * batched activity logging, transaction safety, and persistent storage of trace-linked data.
+ */
+
 import { assert, assertEquals, assertExists } from "@std/assert";
 import { MemorySource } from "../src/enums.ts";
 

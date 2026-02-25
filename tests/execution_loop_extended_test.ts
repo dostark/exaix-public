@@ -1,6 +1,8 @@
 /**
- * Extended tests for ExecutionLoop to improve code coverage
- * These tests target specific branches and edge cases not covered by main tests
+ * @module ExecutionLoopExtendedTest
+ * @path tests/execution_loop_extended_test.ts
+ * @description Targeted tests for the core execution loop, verifying multi-step
+ * task transitions and state consistency across complex agent workflows.
  */
 import { assert, assertEquals, assertExists } from "@std/assert";
 

@@ -1,14 +1,8 @@
 /**
- * Tests for Configuration System (Step 2.1: The Configuration Service)
- *
- * Success Criteria:
- * - Test 1: ConfigSchema accepts valid minimal configuration
- * - Test 2: ConfigSchema rejects invalid values (log_level, paths, etc.)
- * - Test 3: ConfigSchema provides sensible defaults for optional fields
- * - Test 4: ConfigService loads and validates exo.config.toml
- * - Test 5: ConfigService throws clear error for missing config file
- * - Test 6: ConfigService resolves relative paths correctly
- * - Test 7: ConfigService validates provider configuration
+ * @module ConfigSchemaTest
+ * @path tests/config_test.ts
+ * @description Validates the system's global configuration schema, ensuring robust parsing of
+ * JSON/YAML settings, default value application, and strict validation of sensitive provider keys.
  */
 
 import { assertEquals, assertExists, assertStringIncludes, assertThrows } from "@std/assert";

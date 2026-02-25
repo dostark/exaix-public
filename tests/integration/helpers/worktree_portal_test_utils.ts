@@ -1,6 +1,8 @@
 /**
- * @deprecated Use portal_test_utils.ts instead
- * This file is kept for backward compatibility during refactoring
+ * @module PortalWorktreeTestUtils
+ * @path tests/integration/helpers/worktree_portal_test_utils.ts
+ * @description Provides common utilities for E2E worktree tests, ensuring stable
+ * repository setup, branch creation, and cleanup across external portals.
  */
 
 export {

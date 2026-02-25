@@ -1,3 +1,10 @@
+/**
+ * @module MCPCommandsTest
+ * @path tests/cli/mcp_commands_test.ts
+ * @description Verifies CLI commands for managing the MCP lifecycle, including server startup
+ * via Stdio/SSE and registration of external provider endpoints.
+ */
+
 import { assertEquals } from "@std/assert";
 import { MCPServer } from "../../src/mcp/server.ts";
 import { McpCommands } from "../../src/cli/commands/mcp_commands.ts";

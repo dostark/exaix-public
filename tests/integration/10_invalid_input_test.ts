@@ -1,15 +1,8 @@
 /**
- * Integration Test: Scenario 10 - Invalid Input
- * Malformed YAML frontmatter
- *
- * Success Criteria:
- * - Test 1: Malformed YAML is detected and rejected
- * - Test 2: Clear error message provided to user
- * - Test 3: Invalid input logged to IActivity Journal
- * - Test 4: System remains stable after invalid input
- * - Test 5: Partial valid files are handled gracefully
- * - Test 6: Recovery from corrupt files is possible
- * - Test 7: Invalid input doesn't affect other requests
+ * @module InvalidInputIntegrationTest
+ * @path tests/integration/10_invalid_input_test.ts
+ * @description Verifies system resilience to malformed request data, ensuring
+ * graceful failure and clear diagnostic reporting for invalid YAML or schema breaches.
  */
 
 import {

@@ -1,8 +1,8 @@
 /**
- * Circuit Breaker Tests
- *
- * Tests for circuit breaker implementation to prevent cascading failures
- * during external service outages.
+ * @module AICircuitBreakerTest
+ * @path tests/ai/circuit_breaker_test.ts
+ * @description Verifies the CircuitBreaker resilience pattern for AI providers,
+ * ensuring stable state transitions based on failure thresholds and recovery windows.
  */
 
 import { assertEquals, assertRejects } from "@std/assert";

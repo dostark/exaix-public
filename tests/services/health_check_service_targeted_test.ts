@@ -1,3 +1,10 @@
+/**
+ * @module HealthCheckServiceTest
+ * @path tests/services/health_check_service_targeted_test.ts
+ * @description Targeted tests for HealthCheckService, verifying multi-provider health aggregation,
+ * status caching, and configurable alerting thresholds for degraded services.
+ */
+
 import { assertEquals } from "@std/assert";
 import { HealthCheckService } from "../../src/services/health_check_service.ts";
 import { HealthCheckVerdict, HealthStatus } from "../../src/enums.ts";

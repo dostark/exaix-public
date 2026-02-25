@@ -1,3 +1,10 @@
+/**
+ * @module TUIDashboardMocksTest
+ * @path tests/tui/tui_dashboard_mocks_test.ts
+ * @description Verifies internal mock services used for TUI testing, ensuring stable
+ * simulation of portals, plans, and activity logs.
+ */
+
 import {
   MockAgentService,
   MockDaemonService,

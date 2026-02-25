@@ -1,8 +1,8 @@
 /**
- * IActivity Repository Tests
- *
- * Tests for the ActivityRepository interface and DatabaseActivityRepository implementation
- * Implements repository pattern to abstract database access for activities/events.
+ * @module ActivityRepositoryTest
+ * @path tests/repositories/activity_repository_test.ts
+ * @description Verifies the ActivityRepository implementation, ensuring stable
+ * persistence and retrieval of system events via the database abstraction.
  */
 
 import { assertEquals } from "@std/assert";

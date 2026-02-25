@@ -1,6 +1,8 @@
 /**
- * AuditLogger Test Suite
- * Implements security audit logging for critical operations
+ * @module AuditLoggerTest
+ * @path tests/audit_logger_test.ts
+ * @description Verifies the AuditLogger service, ensuring that internal system
+ * events and security violations are correctly logged for traceability.
  */
 
 import { assertEquals, assertFalse, assertStringIncludes } from "@std/assert";

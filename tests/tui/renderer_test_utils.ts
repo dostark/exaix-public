@@ -1,3 +1,10 @@
+/**
+ * @module TUIRendererTestUtils
+ * @path tests/tui/renderer_test_utils.ts
+ * @description Common utilities for TUI rendering tests, providing shared visual
+ * primitives and ANSI-aware line matching logic.
+ */
+
 import process from "node:process";
 import { type IPane } from "../../src/tui/tui_dashboard.ts";
 import { noColorTheme } from "../../src/helpers/colors.ts";

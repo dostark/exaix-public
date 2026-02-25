@@ -1,10 +1,8 @@
 /**
- * Tests for Phase 28 Phase 3: Testing Environment Variable Standardization
- *
- * Success Criteria:
- * - Test 1: isTestMode() detects EXO_TEST_MODE environment variable
- * - Test 2: isCIMode() detects CI and EXO_CI_MODE environment variables
- * - Test 3: Env var schema validates EXO_TEST_* variables
+ * @module TestModeEnvVarsTest
+ * @path tests/config/phase3_testing_env_vars_test.ts
+ * @description Verifies the logic for 'test mode' detection, ensuring that
+ * 'EXO_TEST_MODE' is correctly parsed across varied boolean string representations.
  */
 
 import { assertEquals } from "@std/assert";

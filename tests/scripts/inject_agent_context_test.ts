@@ -1,3 +1,10 @@
+/**
+ * @module AgentContextScoringTest
+ * @path tests/scripts/inject_agent_context_test.ts
+ * @description Verifies the document scoring logic for agent context injection,
+ * ensuring the most relevant metadata is extracted for prompt grounding.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";

@@ -1,3 +1,10 @@
+/**
+ * @module CIGuardTest
+ * @path tests/ai/ci_guard_test.ts
+ * @description Verifies the logic for protecting live LLM endpoints in CI environments,
+ * ensuring automatic fallback to mock providers unless explicitly overridden.
+ */
+
 import { assertStringIncludes } from "@std/assert";
 import { ModelFactory } from "../../src/ai/providers.ts";
 

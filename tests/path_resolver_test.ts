@@ -1,3 +1,10 @@
+/**
+ * @module PathResolverTest
+ * @path tests/path_resolver_test.ts
+ * @description Verifies the core PathResolver logic, ensuring correct resolution of
+ * portal alias paths and strict prevention of path traversal security attacks.
+ */
+
 import { assertEquals, assertExists, assertRejects } from "@std/assert";
 import { MemoryReferenceType } from "../src/enums.ts";
 import type { ActivityRecord } from "../src/services/db.ts";

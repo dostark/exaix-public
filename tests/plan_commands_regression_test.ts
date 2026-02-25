@@ -1,11 +1,8 @@
 /**
- * Plan Commands Regression Tests
- *
- * Regression tests for plan list command fixes.
- *
- * Regression test for: "Approved plans not shown in plan list --status approved"
- * Root cause: plan list only scanned Workspace/Plans, but approved plans are in Workspace/Active
- * Fix: Updated list() to scan Active directory for approved, Rejected for rejected
+ * @module PlanCommandsRegressionTest
+ * @path tests/plan_commands_regression_test.ts
+ * @description Regression tests for plan command logic, ensuring that plan files are
+ * correctly discovered across Active, Rejected, and Pending directory hierarchies.
  */
 
 import { assertEquals } from "@std/assert";

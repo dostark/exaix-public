@@ -1,3 +1,10 @@
+/**
+ * @module GracefulShutdownTest
+ * @path tests/services/graceful_shutdown_test.ts
+ * @description Verifies the process termination logic, ensuring registered cleanup tasks
+ * are executed in correct LIFO order to prevent resource leaks and database corruption.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { assertSpyCalls, spy, stub } from "@std/testing/mock";
 import { GracefulShutdown } from "../../src/services/graceful_shutdown.ts";

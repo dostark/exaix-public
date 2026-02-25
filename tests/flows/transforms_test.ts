@@ -1,3 +1,10 @@
+/**
+ * @module FlowTransformsTest
+ * @path tests/flows/transforms_test.ts
+ * @description Verifies the core data transformation functions for flows, including
+ * section extraction, context merging, and JSON-to-text mapping.
+ */
+
 import { assertEquals, assertThrows } from "https://deno.land/std@0.208.0/assert/mod.ts";
 
 import {

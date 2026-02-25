@@ -1,3 +1,10 @@
+/**
+ * @module AIConfigSchemaTest
+ * @path tests/config/ai_config_test.ts
+ * @description Verifies the configuration schema for AI providers, ensuring correct
+ * parsing of base URLs, model identifiers, and default model mappings.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import {
   AiConfigSchema,

@@ -1,15 +1,8 @@
 /**
- * Integration Test: Scenario 4 - Execution Failure
- * Approved plan fails during execution
- *
- * Success Criteria:
- * - Test 1: Execution failure is detected and captured
- * - Test 2: Git changes are rolled back on failure (branch may remain but no merge)
- * - Test 3: Failure report is generated with error details
- * - Test 4: Plan is moved back to /Workspace/Plans or marked as failed
- * - Test 5: Lease is released even on failure
- * - Test 6: All failure steps logged to IActivity Journal with trace_id
- * - Test 7: Original request is not affected by execution failure
+ * @module ExecutionFailureIntegrationTest
+ * @path tests/integration/04_execution_failure_test.ts
+ * @description Integration tests for robust failure handling during the execution phase,
+ * verifying automated Git rollbacks, failure report generation, and IActivity Journal logging.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";

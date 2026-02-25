@@ -1,3 +1,10 @@
+/**
+ * @module HealthCheckServiceTest
+ * @path tests/services/health_check_service_test.ts
+ * @description Verifies the core HealthCheckService logic, ensuring correct registration
+ * of subsystem dependency checks and aggregate health computation.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 
 import { ExecutionStatus, HealthCheckVerdict, HealthStatus, MockStrategy } from "../../src/enums.ts";

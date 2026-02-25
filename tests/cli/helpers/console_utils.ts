@@ -1,6 +1,8 @@
 /**
- * Console capture utilities for CLI tests.
- * Separated to avoid importing heavy CLI modules during simple formatting tests.
+ * @module ConsoleUtilsTest
+ * @path tests/cli/helpers/console_utils.ts
+ * @description Verifies CLI console utilities, ensuring correct ANSI color mapping,
+ * progress bar synchronization, and multi-line message wrapping.
  */
 
 /**

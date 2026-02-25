@@ -1,3 +1,10 @@
+/**
+ * @module PlanExecutionParsingIntegrationTest
+ * @path tests/integration/14_plan_execution_parsing_test.ts
+ * @description Verifies the logic for parsing and validating agent task plans, ensuring
+ * correct extraction of tool sequences and step parameters before execution.
+ */
+
 interface Frontmatter {
   trace_id?: string;
   request_id?: string;

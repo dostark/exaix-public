@@ -1,15 +1,8 @@
 /**
- * Integration Test: Ollama Plan Generation with JSON Format
- *
- * Tests real-world plan generation using Ollama's llama3.2 model
- * with the new JSON plan format introduced in Step 6.7.
- *
- * Prerequisites:
- * - Ollama must be running locally (http://localhost:11434)
- * - llama3.2 model must be pulled: `ollama pull llama3.2`
- * - Enable integration test: `EXO_TEST_ENABLE_OLLAMA=1`
- *
- * To run: deno test tests/integration/17_ollama_json_plan_test.ts --allow-all --no-check
+ * @module OllamaJSONPlanIntegrationTest
+ * @path tests/integration/17_ollama_json_plan_test.ts
+ * @description Verifies integration with local Ollama models, ensuring correct
+ * generation of JSON plans and resilient handling of provider-specific formatting.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";

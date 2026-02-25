@@ -1,3 +1,10 @@
+/**
+ * @module AgentStatusViewAdditionalTest
+ * @path tests/tui/agent_status_view_additional_test.ts
+ * @description Targeted tests for AgentStatusView rendering edge cases, ensuring correct handling
+ * of empty states, long log streams, and focus stability in complex layouts.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { AgentHealth, LogLevel } from "../../src/enums.ts";
 import { AgentStatus } from "../../src/tui/agent_status/agent_status.ts";

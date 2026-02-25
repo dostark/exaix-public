@@ -1,12 +1,8 @@
 /**
- * Blueprint Commands Regression Tests
- *
- * Regression tests for blueprint frontmatter parsing fixes.
- *
- * Regression test for: "Blueprint 'senior-coder' not shown in list; 'Invalid blueprint format'"
- * Root cause: extractTomlFrontmatter only accepted TOML format with +++ delimiters,
- *             but existing blueprints use YAML format with --- delimiters
- * Fix: Updated extractTomlFrontmatter to support both TOML (+++) and YAML (---) formats
+ * @module BlueprintCommandsRegressionTest
+ * @path tests/blueprint_commands_regression_test.ts
+ * @description Regression tests for blueprint CLI commands, ensuring correct
+ * application and discovery of project blueprints within the workspace.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

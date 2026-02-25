@@ -1,3 +1,10 @@
+/**
+ * @module LlamaProviderTest
+ * @path tests/ai/llama_provider_test.ts
+ * @description Verifies the Llama (local) LLM provider, ensuring correct integration
+ * with local inference endpoints and stable request/response handling.
+ */
+
 import { assertEquals, assertRejects, assertThrows } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { PlanSchema } from "../../src/schemas/plan_schema.ts";
 import { LlamaProvider } from "../../src/ai/providers/llama_provider.ts";

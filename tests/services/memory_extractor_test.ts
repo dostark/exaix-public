@@ -1,14 +1,8 @@
 /**
- * Memory Extractor Service Tests
- *
- * TDD tests for Phase 12.9: Agent Memory Updates
- *
- * Tests:
- * - MemoryUpdateProposalSchema validation
- * - analyzeExecution() learning extraction
- * - createProposal() to Memory/Pending/
- * - Pending list/show/approve/reject operations
- * - IActivity Journal integration
+ * @module MemoryUpdateProposalSchemaTest
+ * @path tests/services/memory_extractor_test.ts
+ * @description Validates the data schema for agent-suggested memory updates, ensuring strict
+ * enforcement of proposal structure, learning categories, and scope definitions.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

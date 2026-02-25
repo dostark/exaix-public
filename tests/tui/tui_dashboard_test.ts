@@ -1,3 +1,10 @@
+/**
+ * @module TUIDashboardTest
+ * @path tests/tui/tui_dashboard_test.ts
+ * @description Comprehensive tests for the main TUI Dashboard, covering global event routing,
+ * rapid keyboard navigation, notification overlays, and layout responsiveness.
+ */
+
 // Edge-case and end-to-end tests for TUI dashboard
 import {
   createDefaultDashboardState,

@@ -1,7 +1,8 @@
 /**
- * Extended Daemon Control View Tests
- *
- * Additional tests to improve coverage for daemon_control_view.ts
+ * @module DaemonControlViewExtendedTest
+ * @path tests/tui/daemon_control_view_extended_test.ts
+ * @description Verifies internal mock behaviors for daemon state management, ensuring stable
+ * simulation of daemon restarts, heartbeats, and log rotation for TUI tests.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

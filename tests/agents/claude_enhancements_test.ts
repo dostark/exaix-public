@@ -1,3 +1,10 @@
+/**
+ * @module ClaudeEnhancementsTest
+ * @path tests/agents/claude_enhancements_test.ts
+ * @description Verifies specialized documentation for Anthropic Claude agents,
+ * ensuring presence of RAG sections and structural quality.
+ */
+
 // Unit tests to verify Step 10.5 Claude enhancements are properly implemented
 // Usage: deno test --allow-read tests/agents/claude_enhancements_test.ts
 

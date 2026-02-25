@@ -1,14 +1,8 @@
 /**
- * Memory Pending Panel TUI Tests
- *
- * Part of Phase 12.13: TUI Memory View - Pending & Actions
- *
- * Tests cover:
- * - Pending proposals list rendering
- * - Badge with count
- * - Navigation through pending items
- * - Action triggers (approve/reject)
- * - Integration with MemoryViewTuiSession
+ * @module MemoryPendingPanelTest
+ * @path tests/tui/memory_pending_panel_test.ts
+ * @description Verifies the UI presentation of pending memory proposals, ensuring correct
+ * categorization and metadata display in the terminal review interface.
  */
 
 import { ConfidenceLevel } from "../../src/enums.ts";

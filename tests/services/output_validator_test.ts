@@ -1,7 +1,8 @@
 /**
- * Output Validator Tests
- *
- * Tests for Phase 16.2: Structured Output Validation
+ * @module OutputValidatorTest
+ * @path tests/services/output_validator_test.ts
+ * @description Verifies the logic for parsing and validating agent-produced XML/Markdown outputs,
+ * ensuring structural tags like <thought> and <content> are correctly extracted.
  */
 
 import { assert, assertEquals, assertExists, assertFalse } from "@std/assert";

@@ -1,15 +1,8 @@
 /**
- * Integration Test: Scenario 1 - Happy Path
- * Request → Plan → Approve → Execute → Report
- *
- * Success Criteria:
- * - Test 1: Request file is created with valid frontmatter and unique trace_id
- * - Test 2: Plan is generated in /Workspace/Plans referencing the request's trace_id
- * - Test 3: Plan approval moves it to Workspace/Active with status=approved
- * - Test 4: Execution creates a feature branch with naming convention feat/{requestId}-{traceId}
- * - Test 5: Execution commits changes with trace_id in commit message footer
- * - Test 6: Report is generated in /Memory/Reports with execution summary
- * - Test 7: All operations are logged to IActivity Journal with trace_id correlation
+ * @module HappyPathIntegrationTest
+ * @path tests/integration/01_happy_path_test.ts
+ * @description End-to-end integration test for the "Happy Path" workflow: Request -> Plan ->
+ * Approval -> Execution -> Report, ensuring trace correlation across all stages.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";

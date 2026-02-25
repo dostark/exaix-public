@@ -1,3 +1,10 @@
+/**
+ * @module RequestManagerDialogHandlersTest
+ * @path tests/tui/request_manager_dialog_handlers_test.ts
+ * @description Verifies the logic for handling interactive dialog completions in the RequestManager,
+ * ensuring input validation and correct routing of create/approve/reject actions.
+ */
+
 import { assertEquals } from "@std/assert";
 import { ConfirmDialog, InputDialog } from "../../src/helpers/dialog_base.ts";
 import { KEYS } from "../../src/helpers/keyboard.ts";

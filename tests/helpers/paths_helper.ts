@@ -1,3 +1,10 @@
+/**
+ * @module PathsTestHelper
+ * @path tests/helpers/paths_helper.ts
+ * @description Provides common utilities for resolving system paths during tests,
+ * ensuring consistent identification of 'Blueprints', 'Requests', and 'Plans' roots.
+ */
+
 import { join } from "@std/path";
 import { ExoPathDefaults } from "../../src/config/constants.ts";
 

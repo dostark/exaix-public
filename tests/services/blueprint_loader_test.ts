@@ -1,8 +1,8 @@
 /**
- * BlueprintLoader Tests
- *
- * Tests for unified blueprint loading with frontmatter parsing.
- * Phase 16.1 implementation.
+ * @module BlueprintLoaderTest
+ * @path tests/services/blueprint_loader_test.ts
+ * @description Verifies the BlueprintLoader's ability to parse agent definitions from YAML
+ * frontmatter, ensuring correct schema validation and default value application.
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";

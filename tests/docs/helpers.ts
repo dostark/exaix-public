@@ -1,5 +1,8 @@
 /**
- * Shared helper functions for documentation tests.
+ * @module KnowledgeDocsHelpers
+ * @path tests/docs/helpers.ts
+ * @description Provides common utilities for documentation verification,
+ * including Markdown section parsing and link validation.
  */
 
 /**

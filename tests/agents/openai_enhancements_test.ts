@@ -1,3 +1,10 @@
+/**
+ * @module OpenAIEnhancementsTest
+ * @path tests/agents/openai_enhancements_test.ts
+ * @description Verifies specialized documentation for OpenAI GPT agents,
+ * ensuring structural integrity of RAG-based and standard agent definitions.
+ */
+
 // Unit tests to verify Step 10.6 OpenAI enhancements are properly implemented
 
 import { assert, assertExists } from "@std/assert";

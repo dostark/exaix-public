@@ -1,3 +1,10 @@
+/**
+ * @module HealthCheckHTTPHandlerTest
+ * @path tests/services/health_check_http_handler_test.ts
+ * @description Verifies the HTTP delivery layer for system health, ensuring correct status
+ * codes (200/503) and JSON payloads for external monitoring tools.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 
 import { handleHealthCheck, HealthCheckService } from "../../src/services/health_check_service.ts";

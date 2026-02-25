@@ -1,7 +1,8 @@
 /**
- * Status Bar Utilities Tests
- *
- * Coverage tests for src/tui/utils/status_bar.ts
+ * @module TUIStatusBarTest
+ * @path tests/tui/utils/status_bar_test.ts
+ * @description Verifies the core drawing logic for the terminal status bar, ensuring
+ * responsive layout of partitioned items and correct color application.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

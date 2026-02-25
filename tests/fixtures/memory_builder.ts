@@ -1,3 +1,10 @@
+/**
+ * @module MemoryFixtureBuilder
+ * @path tests/fixtures/memory_builder.ts
+ * @description Provides a fluent builder for simulating complex agent memory structures,
+ * including multi-project patterns, decision logs, and execution records.
+ */
+
 import { ConfidenceLevel, ExecutionStatus, LearningCategory, MemoryScope, MemorySource } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";
 import type {

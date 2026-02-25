@@ -1,3 +1,10 @@
+/**
+ * @module TestEnvironmentFactory
+ * @path tests/fixtures/test_environment_factory.ts
+ * @description Provides high-level factories for orchestrating isolated test
+ * workspaces, including mock service injection and temporary portal setup.
+ */
+
 import type { Config } from "../../src/config/schema.ts";
 import { MemoryCommands } from "../../src/cli/commands/memory_commands.ts";
 import { MemoryBankService } from "../../src/services/memory_bank.ts";

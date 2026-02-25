@@ -1,3 +1,10 @@
+/**
+ * @module IntegrationTestEnvironment
+ * @path tests/integration/helpers/test_environment.ts
+ * @description Provides a comprehensive orchestration layer for isolated E2E
+ * integration tests, including workspace setup, Git mock repositories, and DB initialization.
+ */
+
 import type { IRecordedResponse } from "../../../src/ai/providers/mock_llm_provider.ts";
 /**
  * Test Environment Helper for Integration Tests

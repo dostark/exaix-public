@@ -1,3 +1,10 @@
+/**
+ * @module TestHelpersSelfTest
+ * @path tests/test_helpers.ts
+ * @description Self-tests for the primary test helper repository, ensuring stable delivery
+ * of mock files, request factories, and common visual primitives.
+ */
+
 import type { IDatabaseService } from "../src/services/db.ts";
 import type { ActivityRepository } from "../src/repositories/activity_repository.ts";
 import { JSONObject } from "../src/types.ts";

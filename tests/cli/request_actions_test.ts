@@ -1,3 +1,10 @@
+/**
+ * @module RequestActionsTest
+ * @path tests/cli/request_actions_test.ts
+ * @description Verifies CLI presentation logic for agent requests, ensuring detailed views
+ * correctly include trace_id, agent assignments, and token usage statistics.
+ */
+
 import { assertEquals } from "@std/assert";
 import { TEST_MODEL_ANTHROPIC, TEST_PROVIDER_ID_ANTHROPIC } from "../config/constants.ts";
 import { handleRequestShow, type IRequestActionContext } from "../../src/cli/command_builders/request_actions.ts";

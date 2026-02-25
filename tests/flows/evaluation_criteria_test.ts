@@ -1,6 +1,8 @@
 /**
- * Tests for EvaluationCriteria
- * Phase 15.3: Built-in Criteria Library
+ * @module EvaluationCriteriaTest
+ * @path tests/flows/evaluation_criteria_test.ts
+ * @description Verifies the structured evaluation criteria for agent outputs,
+ * ensuring correct mapping to quality metrics like correctness and completeness.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

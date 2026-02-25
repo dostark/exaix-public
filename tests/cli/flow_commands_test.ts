@@ -1,7 +1,8 @@
 /**
  * @module FlowCommandsTest
  * @path tests/cli/flow_commands_test.ts
- * @description tests for FlowCommands CLI functionality including listing, showing, and validating flows.
+ * @description Verifies CLI commands for multi-agent workflow management, ensuring
+ * stable listing and introspection of complex flow definitions.
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";

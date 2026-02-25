@@ -1,3 +1,10 @@
+/**
+ * @module SetTestModeHelper
+ * @path tests/cli/helpers/set_test_mode.ts
+ * @description Provides utilities for injecting 'test mode' state into CLI command
+ * execution, ensuring isolation and predictable behavior for automated tests.
+ */
+
 Deno.env.set("EXO_TEST_MODE", "1");
 Deno.env.set("EXO_TEST_CLI_MODE", "1");
 

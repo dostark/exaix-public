@@ -1,18 +1,8 @@
 /**
- * Integration Test: Scenario 11 - Blueprint Management
- * Create → Validate → Edit → Use in Request → Remove
- *
- * Success Criteria:
- * - Test 1: Blueprint created with all required fields and valid TOML frontmatter
- * - Test 2: Template-based blueprint applies correct defaults (model, capabilities)
- * - Test 3: Custom system prompt from file is loaded correctly
- * - Test 4: Validation detects missing fields and invalid formats
- * - Test 5: Reserved names (system, test) are rejected
- * - Test 6: Duplicate agent_id names are rejected
- * - Test 7: Edit modifies existing blueprint and re-validates
- * - Test 8: Blueprint can be referenced in request creation
- * - Test 9: Removal deletes blueprint file from filesystem
- * - Test 10: All operations logged to IActivity Journal with correct action types
+ * @module BlueprintManagementIntegrationTest
+ * @path tests/integration/11_blueprint_management_test.ts
+ * @description Verifies the full lifecycle of agent blueprints, ensuring correct
+ * command-driven creation, listing, and discovery within project boundaries.
  */
 
 import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";

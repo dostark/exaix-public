@@ -1,19 +1,8 @@
 /**
- * Tests for ProviderFactory (Step 5.8: LLM Provider Selection Logic)
- *
- * TDD Red Phase: Write tests before implementation
- *
- * Success Criteria:
- * 1. ProviderFactory.create() returns correct provider based on environment
- * 2. Environment variables override config file settings
- * 3. Config file [ai] section parsed correctly
- * 4. Default is MockLLMProvider when no config/env specified
- * 5. Missing API key throws clear error for cloud providers
- * 6. Unknown provider falls back to mock with warning
- * 7. Provider ID logged at daemon startup
- * 8. EXO_LLM_MODEL correctly sets model for all providers
- * 9. EXO_LLM_BASE_URL correctly overrides endpoint
- * 10. EXO_LLM_TIMEOUT_MS correctly sets timeout
+ * @module AIProviderFactoryTest
+ * @path tests/ai/provider_factory_test.ts
+ * @description Verifies the AI Provider Factory, ensuring robust parsing of
+ * provider-specific configuration and stable initialization of model instances.
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";

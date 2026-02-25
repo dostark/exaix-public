@@ -1,5 +1,8 @@
 /**
- * CLI Test Utilities
+ * @module CLITestUtils
+ * @path tests/cli/helpers/test_utils.ts
+ * @description Provides low-level utilities for CLI tests, including subcommand
+ * capturing, process exit code assertions, and output buffer management.
  */
 
 import type { ExoCtlTestContext } from "../../../src/cli/exoctl.ts";

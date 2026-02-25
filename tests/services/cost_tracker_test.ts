@@ -1,3 +1,10 @@
+/**
+ * @module CostTrackerTest
+ * @path tests/services/cost_tracker_test.ts
+ * @description Validates the CostTracker's ability to monitor LLM usage, aggregate token metrics
+ * across different pricing tiers, and persist usage statistics for budgetary oversight.
+ */
+
 import { assert, assertAlmostEquals, assertEquals } from "@std/assert";
 import { CostTracker } from "../../src/services/cost_tracker.ts";
 import { initTestDbService } from "../helpers/db.ts";

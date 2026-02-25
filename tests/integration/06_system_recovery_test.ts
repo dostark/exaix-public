@@ -1,15 +1,8 @@
 /**
- * Integration Test: Scenario 6 - System Recovery
- * System crashes and recovers mid-execution
- *
- * Success Criteria:
- * - Test 1: In-progress plans are detected after restart
- * - Test 2: Orphaned leases are cleaned up on daemon start
- * - Test 3: Git working directory state is restored
- * - Test 4: Incomplete plans can be resumed or re-queued
- * - Test 5: IActivity Journal preserves pre-crash entries
- * - Test 6: No duplicate executions after recovery
- * - Test 7: System returns to healthy state after recovery
+ * @module SystemRecoveryIntegrationTest
+ * @path tests/integration/06_system_recovery_test.ts
+ * @description Verifies the system's resilience to crashes, ensuring correct recovery
+ * of mid-execution plans and preservation of database integrity upon restart.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";

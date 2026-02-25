@@ -1,6 +1,8 @@
 /**
- * Code Parser Integration Tests (Step 5.12.3)
- * Tests parseCodeGeneration() with actual LLM response formats
+ * @module CodeParserTest
+ * @path tests/code_parser_test.ts
+ * @description Verifies the specialized code parsing logic, ensuring that source code
+ * symbols and structure are correctly extracted for agent context grounding.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

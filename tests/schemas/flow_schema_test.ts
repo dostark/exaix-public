@@ -1,3 +1,10 @@
+/**
+ * @module FlowSchemaTest
+ * @path tests/schemas/flow_schema_test.ts
+ * @description Verifies the Zod schemas for agentic workflows, ensuring strict
+ * validation of steps, inputs, and output formats.
+ */
+
 import { assertEquals, assertThrows } from "@std/assert";
 import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";
 import { z, ZodError } from "zod";

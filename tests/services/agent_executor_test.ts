@@ -1,8 +1,8 @@
 /**
- * Agent Executor Tests
- *
- * Tests for agent orchestration via MCP with security mode enforcement.
- * Covers blueprint loading, subprocess spawning, MCP connection, and git audit.
+ * @module AgentExecutorTest
+ * @path tests/services/agent_executor_test.ts
+ * @description Verifies the AgentExecutor service, ensuring stable blueprint loading,
+ * security sandboxing, activity logging, and protection against prompt injection.
  */
 
 import {

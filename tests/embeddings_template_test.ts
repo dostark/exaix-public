@@ -1,3 +1,10 @@
+/**
+ * @module EmbeddingsTemplateTest
+ * @path tests/embeddings_template_test.ts
+ * @description Verifies the logic for generating embeddings prompts, ensuring that
+ * content templates are correctly populated for vectorization.
+ */
+
 import { assert, assertEquals, assertExists } from "https://deno.land/std@0.203.0/assert/mod.ts";
 
 Deno.test("example precomputed template is valid JSON and contains required keys", async () => {

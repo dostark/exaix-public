@@ -1,3 +1,10 @@
+/**
+ * @module JournalVerificationTest
+ * @path tests/verification_journal_cmd.ts
+ * @description Verifies the journal verification command, ensuring correct aggregation
+ * and validation of past activities recorded in the persistent journal.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { initTestDbService } from "./helpers/db.ts";
 // JournalCommands module not found - skipping test

@@ -1,15 +1,8 @@
 /**
- * Integration Test: Scenario 9 - Portal Access
- * Request accesses portal files
- *
- * Success Criteria:
- * - Test 1: Agent can read files within assigned portal
- * - Test 2: Agent cannot read files outside portal boundaries
- * - Test 3: Portal symlinks are resolved and validated
- * - Test 4: Portal access is logged to IActivity Journal
- * - Test 5: Portal permissions are enforced during execution
- * - Test 6: Cross-portal access is denied
- * - Test 7: Portal configuration changes are respected
+ * @module PortalAccessIntegrationTest
+ * @path tests/integration/09_portal_access_test.ts
+ * @description Verifies security enforcement across complex portal structures, ensuring
+ * strict confinement of agent operations to authorized portal root boundaries.
  */
 
 import { assert, assertEquals, assertExists, assertRejects as _assertRejects } from "@std/assert";

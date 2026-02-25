@@ -1,15 +1,8 @@
 /**
- * Memory View TUI Tests
- *
- * Part of Phase 12.12: TUI Memory View - Core
- *
- * Tests cover:
- * - Session initialization and state management
- * - Tree navigation (up/down/expand/collapse)
- * - Scope jumping (g/p/e/n)
- * - Search functionality
- * - Detail panel rendering
- * - Pending proposals handling
+ * @module MemoryViewTest
+ * @path tests/tui/memory_view_test.ts
+ * @description Verifies the core MemoryView terminal session, ensuring correct initialization
+ * of the knowledge tree, node selection, and pending proposal counts.
  */
 
 import { assertEquals, assertExists, assertNotEquals } from "@std/assert";

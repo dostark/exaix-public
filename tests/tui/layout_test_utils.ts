@@ -1,3 +1,10 @@
+/**
+ * @module TUILayoutTestUtils
+ * @path tests/tui/layout_test_utils.ts
+ * @description Provides common utilities for verifying TUI layout stability, terminal
+ * partitioning, and responsive view resizing.
+ */
+
 import { type IPane, type ITuiView } from "../../src/tui/tui_dashboard.ts";
 
 export function makePane(id: string, viewName: string, overrides: Partial<IPane> = {}): IPane {

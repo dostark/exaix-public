@@ -1,9 +1,8 @@
 /**
- * E2E regression for Phase 37.7:
- * - Worktree-based code reviews should be cleaned up on approve/reject
- *   - remove canonical worktree checkout
- *   - remove Memory/Execution/<traceId>/worktree pointer
- *   - delete feature branch
+ * @module PortalWorktreeReviewCleanupE2ETest
+ * @path tests/integration/26_portal_worktree_review_cleanup_e2e_test.ts
+ * @description Verifies the E2E cleanup logic for portal worktrees, ensuring that temporary
+ * branches, pointers, and worktree directories are removed after review (approve/reject).
  */
 
 import { assertEquals, assertExists } from "@std/assert";

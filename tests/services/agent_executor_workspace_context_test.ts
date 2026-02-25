@@ -1,9 +1,8 @@
 /**
- * Integration tests for AgentExecutor with IWorkspaceExecutionContext
- *
- * Test Task 1.2: Update Agent Executor
- * Tests that AgentExecutor accepts IWorkspaceExecutionContext and uses it
- * for portal/workspace execution with proper directory isolation.
+ * @module AgentExecutorWorkspaceContextTest
+ * @path tests/services/agent_executor_workspace_context_test.ts
+ * @description Verifies the integration between the AgentExecutor and Workspace-bound
+ * execution contexts, ensuring trace metadata and environment variables are correctly inherited.
  */
 
 import { assertEquals } from "@std/assert";

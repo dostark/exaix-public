@@ -1,3 +1,10 @@
+/**
+ * @module TUIDashboardSQLiteNotifTest
+ * @path tests/tui/tui_dashboard_sqlite_notif_test.ts
+ * @description Verifies the integration between the TUI Dashboard and the SQLite-backed
+ * notification service, ensuring events are correctly polled and displayed.
+ */
+
 import { assertEquals } from "@std/assert";
 import { ConfidenceLevel, LearningCategory, MemoryOperation, MemoryScope, MemorySource } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";

@@ -1,8 +1,8 @@
 /**
- * Shared Test Utilities
- *
- * Reduces code duplication across test files by providing common test data factories,
- * mock service base classes, and utility functions.
+ * @module GlobalTestUtils
+ * @path tests/helpers/test_utils.ts
+ * @description Provides general-purpose utilities for the test suite, including
+ * wait-based synchronization, temporary file cleanup, and process capturing.
  */
 
 import { MemorySource, SkillStatus } from "../../src/enums.ts";

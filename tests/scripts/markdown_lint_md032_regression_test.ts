@@ -1,3 +1,10 @@
+/**
+ * @module MarkdownLintMD032RegressionTest
+ * @path tests/scripts/markdown_lint_md032_regression_test.ts
+ * @description Regression tests for Markdown linting rule MD032, ensuring
+ * correct enforcement of blank lines around list blocks.
+ */
+
 import { lintMarkdown, type LintOptions } from "../../scripts/markdown_lint.ts";
 
 /**

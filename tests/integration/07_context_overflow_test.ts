@@ -1,15 +1,8 @@
 /**
- * Integration Test: Scenario 6 - Context Overflow
- * Request references 50 large files
- *
- * Success Criteria:
- * - Test 1: Request with many file references is accepted
- * - Test 2: Context loader gracefully truncates large content
- * - Test 3: Plan is still generated despite context limits
- * - Test 4: Warning is logged about context truncation
- * - Test 5: Execution proceeds with available context
- * - Test 6: Report indicates context was limited
- * - Test 7: No memory errors or crashes from large input
+ * @module ContextOverflowIntegrationTest
+ * @path tests/integration/07_context_overflow_test.ts
+ * @description Verifies handling of extremely large context payloads, ensuring the
+ * system remains stable when processing massive file references or deep import trees.
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";

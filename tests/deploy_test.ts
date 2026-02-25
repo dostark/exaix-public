@@ -1,3 +1,10 @@
+/**
+ * @module DeployCommandTest
+ * @path tests/deploy_test.ts
+ * @description Verifies the logic for project deployment, ensuring correct staging
+ * of assets and execution of post-deployment verification hooks.
+ */
+
 import { assert, assertFalse } from "https://deno.land/std@0.201.0/testing/asserts.ts";
 import { dirname, fromFileUrl, join } from "https://deno.land/std@0.201.0/path/mod.ts";
 import { exists } from "https://deno.land/std@0.201.0/fs/mod.ts";

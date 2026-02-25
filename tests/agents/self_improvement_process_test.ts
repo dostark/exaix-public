@@ -1,3 +1,10 @@
+/**
+ * @module SelfImprovementProcessTest
+ * @path tests/agents/self_improvement_process_test.ts
+ * @description Verifies the agent's self-improvement lifecycle, ensuring that
+ * process templates and quality metrics follow the declared technical standards.
+ */
+
 // Unit tests to verify Step 10.8 self-improvement loop is properly implemented
 
 import { assert, assertExists } from "@std/assert";

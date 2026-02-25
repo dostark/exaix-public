@@ -1,13 +1,8 @@
 /**
- * TDD tests for AgentExecutor modifications to accept IWorkspaceExecutionContext
- *
- * These tests demonstrate the new API where AgentExecutor methods accept
- * IWorkspaceExecutionContext to determine execution location.
- *
- * Following TDD:
- * 1. Write these tests (they will FAIL initially - RED)
- * 2. Implement the AgentExecutor changes (GREEN)
- * 3. Verify all tests pass
+ * @module AgentExecutorContextAPITest
+ * @path tests/services/agent_executor_context_api_test.ts
+ * @description Verifies the Context API within the AgentExecutor, ensuring sandboxed tools
+ * can securely access and modify approved execution state.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

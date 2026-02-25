@@ -1,3 +1,10 @@
+/**
+ * @module ConfigTestHelpers
+ * @path tests/helpers/config.ts
+ * @description Provides common utilities for mocking system configuration,
+ * ensuring stable behavior across AI, database, and infrastructure tests.
+ */
+
 import { type Config, ConfigSchema } from "../../src/config/schema.ts";
 import { ConfigService } from "../../src/config/service.ts";
 import { join } from "@std/path";

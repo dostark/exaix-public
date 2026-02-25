@@ -1,7 +1,8 @@
 /**
- * Extended Request Manager View Tests
- *
- * Additional tests to improve coverage for request_manager_view.ts
+ * @module RequestManagerViewExtendedTest
+ * @path tests/tui/request_manager_view_extended_test.ts
+ * @description Targeted tests for RequestManagerView metadata, ensuring comprehensive coverage of
+ * status colors, keyboard bindings, and visual icons for request priorities.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";

@@ -1,8 +1,8 @@
 /**
- * MCP Test Helpers
- *
- * Consolidated test utilities to reduce duplication across MCP test files.
- * Provides standardized setup, request creation, and assertion helpers.
+ * @module MCPTestSetup
+ * @path tests/mcp/helpers/test_setup.ts
+ * @description Provides common setup routines for MCP server tests, coordinating
+ * transport layer (SSE/Stdio) initialization and session creation.
  */
 
 import { join } from "@std/path";

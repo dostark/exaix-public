@@ -1,3 +1,10 @@
+/**
+ * @module DatabaseConnectionPoolTest
+ * @path tests/services/database_connection_pool_test.ts
+ * @description Verifies the resource management logic for the SQLite connection pool, ensuring
+ * efficient reuse of handles and strict enforcement of concurrency limits.
+ */
+
 import { assertEquals, assertRejects } from "@std/assert";
 import { DatabaseConnectionPool } from "../../src/services/database_connection_pool.ts";
 import { createMockConfig } from "../helpers/config.ts";

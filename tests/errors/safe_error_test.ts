@@ -1,7 +1,8 @@
 /**
- * SafeError Test Suite
- *
- * Tests for the SafeError class to ensure secure error handling.
+ * @module SafeErrorTest
+ * @path tests/errors/safe_error_test.ts
+ * @description Verifies 'SafeError' logic, ensuring internal error details are
+ * correctly redacted when serialized for external reporting.
  */
 
 import { assertEquals, assertInstanceOf } from "@std/assert";

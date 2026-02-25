@@ -1,3 +1,10 @@
+/**
+ * @module PlanExecutorTest
+ * @path tests/plan_executor_test.ts
+ * @description Verifies the core PlanExecutor service, ensuring sequential tool execution,
+ * robust failure recovery, and correct propagation of step results.
+ */
+
 import { assert, assertEquals, assertExists, assertRejects } from "@std/assert";
 import {
   FlowStepType as _FlowStepType,

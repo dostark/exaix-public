@@ -1,5 +1,8 @@
 /**
- * Tests for ExoFrame Agent Examples (Step 6.10)
+ * @module ExampleAgentsVerificationTest
+ * @path tests/agents/example_agents_test.ts
+ * @description Verifies the baseline set of example agents, ensuring that all
+ * required files and blueprint definitions are structurally valid.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

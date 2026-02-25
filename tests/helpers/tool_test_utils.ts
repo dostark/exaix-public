@@ -1,6 +1,8 @@
 /**
- * Shared utilities for tool tests
- * Reduces code duplication across tool test files
+ * @module ToolExecutionTestUtils
+ * @path tests/helpers/tool_test_utils.ts
+ * @description Provides low-level utilities for verifying tool execution results,
+ * capturing stdout/stderr, and asserting on file system changes.
  */
 
 import { assertEquals, assertRejects } from "@std/assert";

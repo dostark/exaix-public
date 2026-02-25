@@ -1,3 +1,10 @@
+/**
+ * @module TUIDashboardRawModeTest
+ * @path tests/tui/tui_dashboard_rawmode_test.ts
+ * @description Verifies the logic for entering terminal raw mode, ensuring correct behavior
+ * in both interactive and non-interactive environments.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { launchTuiDashboard, tryDisableRawMode, tryEnableRawMode } from "../../src/tui/tui_dashboard.ts";
 

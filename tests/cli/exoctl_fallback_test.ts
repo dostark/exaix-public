@@ -1,3 +1,10 @@
+/**
+ * @module ExoCtlFallbackTest
+ * @path tests/cli/exoctl_fallback_test.ts
+ * @description Verifies the CLI's resilience during initialization failures, ensuring safe
+ * fallbacks for database and configuration modules to prevent terminal crashes.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { __test_initializeServices } from "../../src/cli/exoctl.ts";
 

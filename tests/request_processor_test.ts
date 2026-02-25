@@ -1,16 +1,8 @@
 /**
- * Tests for RequestProcessor Service
- * Implements Step 5.9 of the ExoFrame Implementation Plan
- *
- * TDD Test Cases:
- * 1. Parses valid request file (YAML frontmatter + body)
- * 2. Skips invalid frontmatter (logs error, returns null)
- * 3. Generates plan with MockLLMProvider
- * 4. Writes plan to Workspace/Plans/
- * 5. Plan has correct frontmatter (trace_id, request_id, status)
- * 6. Updates request status to "planned"
- * 7. Logs activity to database
- * 8. Handles LLM errors gracefully
+ * @module RequestProcessorTest
+ * @path tests/request_processor_test.ts
+ * @description Verifies the RequestProcessor, validating request parsing,
+ * plan generation via LLM providers, and robust orchestration of flow-based requests.
  */
 
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";

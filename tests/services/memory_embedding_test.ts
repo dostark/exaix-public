@@ -1,14 +1,8 @@
 /**
- * Memory Embedding Service Tests
- *
- * Tests for embedding generation and embedding-based search:
- * - embedLearning creates embedding file
- * - embedLearning updates manifest
- * - searchByEmbedding returns similar entries
- * - cosineSimilarity calculates correctly
- * - Mock vectors are deterministic
- *
- * Phase 12.10: Tag-Based Search & Simple RAG
+ * @module MemoryEmbeddingTest
+ * @path tests/services/memory_embedding_test.ts
+ * @description Verifies the core cosine similarity algorithm for RAG-based search, validating
+ * correct comparisons for identical, orthogonal, and opposing embedding vectors.
  */
 
 import { assertAlmostEquals, assertEquals, assertExists, assertGreaterOrEqual } from "@std/assert";

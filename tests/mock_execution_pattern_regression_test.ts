@@ -1,11 +1,8 @@
 /**
- * MockLLMProvider Execution IPattern Regression Test
- *
- * Regression test for: "step.no_actions - MockLLMProvider returns planning responses for execution prompts"
- * Root cause: getDefaultPatterns() always returned planning responses (plan JSON) regardless of
- *             whether the prompt was for planning or execution
- * Fix: Enhanced pattern matching to detect execution prompts and generate <actions> with tool calls
- *      instead of <content> with plan JSON
+ * @module MockExecutionPatternRegressionTest
+ * @path tests/mock_execution_pattern_regression_test.ts
+ * @description Regression tests for the MockLLMProvider, ensuring consistent generation
+ * of planning and execution responses based on structured prompt patterns.
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";

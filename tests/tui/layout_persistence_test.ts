@@ -1,3 +1,10 @@
+/**
+ * @module LayoutPersistenceTest
+ * @path tests/tui/layout_persistence_test.ts
+ * @description Verifies the logic for saving and restoring TUI layout configurations,
+ * ensuring stable filesystem persistence and graceful handling of missing or malformed data.
+ */
+
 import { assertAlmostEquals, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 
 import {

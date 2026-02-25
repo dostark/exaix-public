@@ -1,11 +1,8 @@
 /**
- * Tests for Phase 28 Phase 2: Deprecated Environment Variable Removal
- *
- * Success Criteria:
- * - Test 1: OllamaProvider uses config retry settings, not EXO_OLLAMA_RETRY_* env vars
- * - Test 2: OpenAIShim uses config retry settings, not EXO_OPENAI_RETRY_* env vars
- * - Test 3: LlamaProvider uses config retry settings, not EXO_OLLAMA_* env vars
- * - Test 4: Deprecated env vars have no effect on provider behavior
+ * @module DeprecatedEnvVarsTest
+ * @path tests/ai/phase2_deprecated_env_vars_test.ts
+ * @description Verifies that deprecated environment variables (EXO_OLLAMA_RETRY_*)
+ * are correctly ignored in favor of the unified retry policy.
  */
 
 import { assertEquals } from "@std/assert";

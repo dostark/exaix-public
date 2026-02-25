@@ -1,3 +1,10 @@
+/**
+ * @module NotificationTestHelper
+ * @path tests/services/helpers/notification_test_helper.ts
+ * @description Provides common utilities for verifying TUI notification events,
+ * simulating alert emission and history synchronization.
+ */
+
 import { initTestDbService } from "../../helpers/db.ts";
 import { NotificationService } from "../../../src/services/notification.ts";
 import type { IMemoryUpdateProposal } from "../../../src/schemas/memory_bank.ts";

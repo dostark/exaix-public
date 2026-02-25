@@ -1,3 +1,10 @@
+/**
+ * @module PatchFileToolTest
+ * @path tests/tools/patch_file_test.ts
+ * @description Verifies the 'patch_file' tool, ensuring that targeted source code
+ * modifications follow strict contextual matching rules.
+ */
+
 import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";

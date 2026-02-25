@@ -1,13 +1,8 @@
 /**
- * Tests for Agent Runtime (Step 3.2)
- * Covers all success criteria from the Implementation Plan
- *
- * Success Criteria:
- * - Test 1: AgentRunner combines System Prompt and User Request correctly
- * - Test 2: AgentRunner calls modelProvider.generate with the combined prompt
- * - Test 3: AgentRunner parses a structured response into thought and content
- * - Test 4: AgentRunner handles malformed responses (fallback to treating whole string as content)
- * - Test 5: Handles empty blueprints or requests gracefully
+ * @module AgentRunnerTest
+ * @path tests/agent_runner_test.ts
+ * @description Verifies the AgentRunner service, ensuring correct initialization of
+ * agent state, prompt assembly, and graceful handling of model provider errors.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

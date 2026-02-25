@@ -1,3 +1,10 @@
+/**
+ * @module CLICommandsIntegrationTest
+ * @path tests/integration/18_cli_commands_integration_test.ts
+ * @description Verifies the core CLI commands, ensuring correct visual display of
+ * request lists, approval workflows, and status synchronization with the background daemon.
+ */
+
 // Integration tests for exoctl CLI commands not yet covered
 // Covers: request list, request show, plan list, plan show, review list, review show, portal add/remove/refresh, dashboard
 

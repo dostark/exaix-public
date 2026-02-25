@@ -1,6 +1,8 @@
 /**
- * Shared utilities for portal integration tests
- * Reduces code duplication across portal e2e test files
+ * @module PortalExecutionTestUtils
+ * @path tests/helpers/portal_test_utils.ts
+ * @description Provides common utilities for verifying agent execution across
+ * different portals, ensuring correct file access and security boundary enforcement.
  */
 
 import { assertEquals } from "@std/assert";

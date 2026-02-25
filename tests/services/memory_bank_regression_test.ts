@@ -1,3 +1,10 @@
+/**
+ * @module MemoryBankRegressionTest
+ * @path tests/services/memory_bank_regression_test.ts
+ * @description Regression tests for the MemoryBankService, verifying long-term stability
+ * of advanced keyword and tag-based search combinations.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { MemoryType } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";

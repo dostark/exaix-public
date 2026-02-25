@@ -1,3 +1,10 @@
+/**
+ * @module StructuredLoggerRegressionTest
+ * @path tests/services/structured_logger_regression_test.ts
+ * @description Regression tests for the StructuredLogger, verifying automatic creation
+ * of missing log directories and resilient file output management.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 import { exists } from "@std/fs";
 import { join } from "@std/path";

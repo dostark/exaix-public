@@ -1,6 +1,8 @@
 /**
- * Tests for GateEvaluator
- * Phase 15.2: Quality Gate Steps
+ * @module FlowGateEvaluatorTest
+ * @path tests/flows/gate_evaluator_test.ts
+ * @description Verifies workflow gate logic, ensuring correct routing and
+ * retry decisions based on agent performance against defined thresholds.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

@@ -1,5 +1,8 @@
 /**
- * MCP Server Prompts Tests
+ * @module MCPServerPromptsTest
+ * @path tests/mcp/server_prompts_test.ts
+ * @description Verifies the MCP server's prompt handling logic, ensuring correct
+ * listing of available templates and successful fulfillment of 'prompts/get' requests.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

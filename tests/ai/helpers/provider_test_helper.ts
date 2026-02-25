@@ -1,8 +1,8 @@
 /**
- * Shared test utilities for AI provider tests.
- * Eliminates duplication across openai/anthropic/google provider tests.
- *
- * @module
+ * @module AIProviderTestHelper
+ * @path tests/ai/helpers/provider_test_helper.ts
+ * @description Provides a reusable test harness for AI providers, verifying standard
+ * request/response patterns and error handling across varied LLM backends.
  */
 
 import { assertEquals, assertRejects } from "@std/assert";

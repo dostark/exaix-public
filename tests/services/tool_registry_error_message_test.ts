@@ -1,3 +1,10 @@
+/**
+ * @module ToolRegistryErrorMessageTest
+ * @path tests/services/tool_registry_error_message_test.ts
+ * @description Verifies the ToolRegistry's error reporting logic, ensuring that security
+ * denials include helpful context about allowed directory roots and portal boundaries.
+ */
+
 import { assertEquals, assertStringIncludes } from "https://deno.land/std@0.201.0/testing/asserts.ts";
 import { join } from "https://deno.land/std@0.201.0/path/mod.ts";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";

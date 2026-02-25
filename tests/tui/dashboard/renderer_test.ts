@@ -1,3 +1,10 @@
+/**
+ * @module TUIDashboardRendererTest
+ * @path tests/tui/dashboard/renderer_test.ts
+ * @description Verifies the core rendering logic for the TUI Dashboard, ensuring resilient
+ * handling of terminal size variations, help overlays, and notification panels.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 import { makePane, testProdRender } from "../renderer_test_utils.ts";
 import type { IPane } from "../../../src/tui/tui_dashboard.ts";

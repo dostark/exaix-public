@@ -1,3 +1,10 @@
+/**
+ * @module JournalFormatterTest
+ * @path tests/cli/journal_formatter_test.ts
+ * @description Verifies CLI output formatting for the activity journal, covering JSON,
+ * tabulated text, and truncated summaries for high-volume log streams.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { JournalFormatter } from "../../src/cli/formatters/journal_formatter.ts";
 import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";

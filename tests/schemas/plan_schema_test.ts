@@ -1,15 +1,8 @@
 /**
- * Tests for PlanSchema - JSON schema validation for LLM plan output
- * Implements Step 6.7 of the ExoFrame Implementation Plan
- *
- * Success Criteria:
- * - PlanSchema validates plans with all fields
- * - PlanSchema validates minimal plans (required fields only)
- * - PlanSchema rejects missing required fields
- * - PlanStepSchema validates steps with all fields
- * - PlanStepSchema validates minimal steps
- * - PlanStepSchema rejects invalid step numbers
- * - PlanStepSchema validates tools enum
+ * @module PlanSchemaTest
+ * @path tests/schemas/plan_schema_test.ts
+ * @description Verifies the Zod schemas for execution plans, ensuring robust
+ * validation of step definitions, tool arguments, and human-review state.
  */
 
 import { describe, it } from "@std/testing/bdd";

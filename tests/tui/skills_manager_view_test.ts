@@ -1,9 +1,8 @@
 /**
- * Skills Manager View Tests
- *
- * Phase 17.13: TUI Skills Support
- *
- * Tests for the SkillsManagerView TUI component.
+ * @module SkillsManagerViewTest
+ * @path tests/tui/skills_manager_view_test.ts
+ * @description Verifies the SkillsManagerView TUI component, ensuring keyboard-driven
+ * navigation of agent capabilities, dynamic grouping (Source/Status), and detailed skill inspection.
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";

@@ -1,7 +1,8 @@
 /**
- * TUI Keyboard Utility Tests
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
+ * @module TUIKeyboardTest
+ * @path tests/tui/utils/keyboard_test.ts
+ * @description Verifies the logic for keyboard event handling in the TUI, ensuring robust
+ * mapping of escape sequences to internal navigation and action keys.
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";

@@ -1,7 +1,8 @@
 /**
- * Help Renderer Tests
- *
- * Coverage tests for src/tui/utils/help_renderer.ts
+ * @module TUIHelpRendererTest
+ * @path tests/tui/utils/help_renderer_test.ts
+ * @description Verifies the logic for rendering help screens in the terminal, ensuring
+ * that key bindings and action categories are clearly presented.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

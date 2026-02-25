@@ -1,7 +1,8 @@
 /**
- * TUI Colors Utility Tests
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
+ * @module TUIColorsTest
+ * @path tests/tui/utils/colors_test.ts
+ * @description Verifies the logic for ANSI color and style code management in the TUI,
+ * ensuring correct visual feedback across different terminal environments.
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";

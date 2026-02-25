@@ -1,9 +1,8 @@
 /**
- * Input Validation Tests
- *
- * Comprehensive tests for input validation schemas and utilities.
- * Tests cover path traversal prevention, injection attacks, type confusion,
- * and DoS attack mitigation.
+ * @module InputValidationSchemaTest
+ * @path tests/schemas/input_validation_test.ts
+ * @description Verifies core primitive schemas, ensuring robust validation of
+ * blueprint names, portal identifiers, and agent slugs.
  */
 
 import { assertEquals, assertThrows } from "@std/assert";

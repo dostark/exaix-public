@@ -1,14 +1,8 @@
 /**
- * Tests for migrate_db.ts script (Database Migration System)
- *
- * Success Criteria:
- * - Test 1: Shows usage when no command or invalid command provided
- * - Test 2: "up" command creates database and applies all migrations
- * - Test 3: "up" command is idempotent (safe to run multiple times)
- * - Test 4: "down" command reverts last migration
- * - Test 5: Creates System directory if missing
- * - Test 6: Applies migrations in order
- * - Test 7: Handles invalid SQL gracefully with error message
+ * @module DatabaseMigrationTest
+ * @path tests/migrate_db_test.ts
+ * @description Verifies the database migration engine, ensuring correct delivery and
+ * rollback of schema updates for the persistent journal.
  */
 
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.201.0/testing/asserts.ts";

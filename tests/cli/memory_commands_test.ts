@@ -1,7 +1,8 @@
 /**
- * Tests for MemoryCommands (CLI Memory Banks Management)
- *
- * Phase 12.5: Core CLI Commands
+ * @module MemoryCommandsTest
+ * @path tests/cli/memory_commands_test.ts
+ * @description Tests for CLI memory introspection, validating project/global memory listing,
+ * JSON format exports, and pattern/decision retrieval across different memory scopes.
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";

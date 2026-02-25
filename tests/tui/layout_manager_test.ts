@@ -1,14 +1,8 @@
 /**
- * Layout Manager Tests
- *
- * Part of Phase 13.11: Split View Enhancement
- *
- * Tests for:
- * - Layout presets
- * - IPane operations (split, close, resize, swap, maximize)
- * - Named layouts
- * - Layout serialization
- * - Layout dialogs
+ * @module LayoutManagerTest
+ * @path tests/tui/layout_manager_test.ts
+ * @description Verifies the core LayoutManager service, ensuring flexible terminal partitioning,
+ * dynamic resizing, and stable frame coordination for multi-view dashboards.
  */
 
 import { assertEquals, assertThrows } from "https://deno.land/std@0.203.0/assert/mod.ts";

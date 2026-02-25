@@ -1,3 +1,10 @@
+/**
+ * @module DenoTaskToolTest
+ * @path tests/tools/deno_task_test.ts
+ * @description Verifies the 'deno_task' tool implementation, ensuring safe execution
+ * of project tasks defined in deno.json.
+ */
+
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";
 import { join } from "@std/path";

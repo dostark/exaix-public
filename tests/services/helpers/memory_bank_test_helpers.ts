@@ -1,3 +1,10 @@
+/**
+ * @module MemoryBankTestHelpers
+ * @path tests/services/helpers/memory_bank_test_helpers.ts
+ * @description Provides high-level harness for MemoryBankService tests,
+ * coordinating database setup and vector similarity mock data.
+ */
+
 import type { ILearning, IPattern } from "../../../src/schemas/memory_bank.ts";
 import { IExecutionMemory, IProjectMemory } from "../../../src/schemas/memory_bank.ts";
 import type { IDecision } from "../../../src/schemas/memory_bank.ts";

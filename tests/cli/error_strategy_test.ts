@@ -1,3 +1,10 @@
+/**
+ * @module CLIErrorStrategyTest
+ * @path tests/cli/error_strategy_test.ts
+ * @description Verifies CLI error handling strategies, ensuring stable FailFast vs. Silent
+ * behaviors and consistent exit code mapping for terminal users.
+ */
+
 import { assertEquals, assertThrows } from "@std/assert";
 import { FailFastStrategy, SilentStrategy } from "../../src/cli/errors/error_strategy.ts";
 

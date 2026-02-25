@@ -1,3 +1,10 @@
+/**
+ * @module AgentCapabilityTest
+ * @path tests/services/agent_capability_test.ts
+ * @description Verifies the logic for mapping agent blueprints to runtime capabilities,
+ * ensuring tools and context are correctly injected based on agent definitions.
+ */
+
 import { assertEquals } from "@std/assert";
 import { afterEach, beforeEach, describe, it } from "@std/testing/bdd";
 import { AgentExecutor } from "../../src/services/agent_executor.ts";

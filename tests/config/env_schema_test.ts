@@ -1,15 +1,8 @@
 /**
- * Tests for Environment Variable Validation Schema (Phase 28, Phase 1)
- *
- * Success Criteria:
- * - Test 1: getValidatedEnvOverrides() returns empty object when no env vars set
- * - Test 2: Valid EXO_LLM_PROVIDER is accepted and validated
- * - Test 3: Invalid EXO_LLM_PROVIDER is rejected
- * - Test 4: EXO_LLM_MODEL validates non-empty strings
- * - Test 5: EXO_LLM_BASE_URL validates URLs
- * - Test 6: EXO_LLM_TIMEOUT_MS validates numeric range (1000-300000)
- * - Test 7: Multiple valid env vars work together
- * - Test 8: Warnings logged for invalid values
+ * @module EnvSchemaValidationTest
+ * @path tests/config/env_schema_test.ts
+ * @description Verifies the validation logic for environment variables, ensuring
+ * correct override behaviors for AI providers and system configuration.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

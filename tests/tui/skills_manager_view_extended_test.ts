@@ -1,7 +1,8 @@
 /**
- * Extended Skills Manager View Tests
- *
- * Additional tests to improve coverage for skills_manager_view.ts
+ * @module SkillsManagerViewExtendedTest
+ * @path tests/tui/skills_manager_view_extended_test.ts
+ * @description Targeted tests for SkillsManagerView metadata, ensuring robust coverage of
+ * skill source icons, status indicators, and keyboard registration.
  */
 
 import { assertEquals, assertExists, assertNotEquals, assertStringIncludes } from "@std/assert";

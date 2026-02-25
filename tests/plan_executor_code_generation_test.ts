@@ -1,6 +1,8 @@
 /**
- * Plan Executor - Code Generation Tests (Step 5.12.3)
- * Tests for LLM response parsing and IFileChange extraction
+ * @module PlanExecutorCodeGenTest
+ * @path tests/plan_executor_code_generation_test.ts
+ * @description Verifies the code generation specialized logic within the PlanExecutor,
+ * ensuring correct authentication and generation patterns for technical tasks.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

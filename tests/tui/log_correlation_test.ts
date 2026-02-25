@@ -1,5 +1,8 @@
 /**
- * Log Correlation Tests
+ * @module LogCorrelationTest
+ * @path tests/tui/log_correlation_test.ts
+ * @description Verifies the logic for trace and correlation analysis in the TUI, ensuring
+ * related activity logs are correctly grouped across asynchronous agent execution boundaries.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

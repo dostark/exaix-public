@@ -1,3 +1,10 @@
+/**
+ * @module TUIAllHelpers
+ * @path tests/tui/helpers.ts
+ * @description The primary helper repository for TUI tests, providing unified mock data factories,
+ * session simulators, and assertion utilities for all terminal views.
+ */
+
 import {
   type IRequest,
   type IRequestOptions,

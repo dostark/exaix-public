@@ -1,3 +1,10 @@
+/**
+ * @module ManifestVerificationTest
+ * @path tests/scripts_verify_manifest_test.ts
+ * @description Verifies the integrity of the project manifest, ensuring that the
+ * runtime manifest correctly matches the declared state in the repository.
+ */
+
 import { assert } from "https://deno.land/std@0.203.0/assert/mod.ts";
 import { join } from "https://deno.land/std@0.203.0/path/mod.ts";
 import { generateManifestObject } from "../scripts/build_agents_index.ts";

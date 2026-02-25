@@ -1,7 +1,8 @@
 /**
- * Session Memory Service Tests
- *
- * Phase 16.6: Session Memory Integration
+ * @module SessionMemoryTest
+ * @path tests/services/session_memory_test.ts
+ * @description Verifies the SessionMemoryService, ensuring short-term execution state is
+ * correctly isolated, updated, and cleared across different agent sessions.
  */
 
 import { assertEquals, assertExists, assertGreater, assertLess, assertStringIncludes } from "@std/assert";

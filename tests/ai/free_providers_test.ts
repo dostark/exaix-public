@@ -1,3 +1,10 @@
+/**
+ * @module FreeProvidersTest
+ * @path tests/ai/free_providers_test.ts
+ * @description Verifies the integration with free or local LLM providers, ensuring
+ * correct model mapping and payload formatting for budget-conscious execution.
+ */
+
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { ModelFactory } from "../../src/ai/providers.ts";
 import { OpenAIProvider } from "../../src/ai/providers/openai_provider.ts";

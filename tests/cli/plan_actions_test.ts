@@ -1,3 +1,10 @@
+/**
+ * @module PlanActionsTest
+ * @path tests/cli/plan_actions_test.ts
+ * @description Verifies the logic for CLI plan presentation, covering metadata listing,
+ * diff colorization, and status truncation for terminal display.
+ */
+
 import { assertEquals } from "@std/assert";
 import { TEST_MODEL_OPENAI, TEST_PROVIDER_ID_OPENAI } from "../config/constants.ts";
 import {

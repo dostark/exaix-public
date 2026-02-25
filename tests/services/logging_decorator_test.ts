@@ -1,3 +1,10 @@
+/**
+ * @module LoggingDecoratorTest
+ * @path tests/services/logging_decorator_test.ts
+ * @description Verifies the AOP-style logging decorators, ensuring method execution, arguments,
+ * and return values are transparently captured by the StructuredLogger.
+ */
+
 import { assertEquals } from "@std/assert";
 import { LogMethod } from "../../src/services/decorators/logging.ts";
 import type { EventLogger } from "../../src/services/event_logger.ts";

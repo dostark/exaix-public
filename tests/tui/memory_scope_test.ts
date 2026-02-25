@@ -1,3 +1,10 @@
+/**
+ * @module MemoryTUIScopeTest
+ * @path tests/tui/memory_scope_test.ts
+ * @description Verifies the logic for handling memory scopes (Project vs Global) within the TUI,
+ * ensuring correct coercion and validation of user-selected viewing contexts.
+ */
+
 import { assertEquals } from "@std/assert";
 
 import { coerceMemoryTuiScope, isMemoryTuiScope, MemoryTuiScope } from "../../src/tui/memory_view/memory_scope.ts";

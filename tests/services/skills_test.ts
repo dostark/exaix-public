@@ -1,7 +1,8 @@
 /**
- * Skills Service Tests
- *
- * Phase 17: Skills Architecture
+ * @module SkillsServiceTest
+ * @path tests/services/skills_test.ts
+ * @description Verifies the SkillsService, ensuring correct discovery, indexing, and
+ * lifecycle management of dynamic agent capabilities from the Skills directory.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

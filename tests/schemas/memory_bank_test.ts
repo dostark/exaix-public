@@ -1,3 +1,10 @@
+/**
+ * @module MemoryBankSchemaTest
+ * @path tests/schemas/memory_bank_test.ts
+ * @description Verifies the data schemas for project and global memories, ensuring
+ * strict enforcement of metadata structure and keyword collections.
+ */
+
 import { assertEquals } from "@std/assert";
 import { MemoryReferenceType } from "../../src/enums.ts";
 

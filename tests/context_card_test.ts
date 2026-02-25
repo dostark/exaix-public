@@ -1,3 +1,10 @@
+/**
+ * @module ContextCardTest
+ * @path tests/context_card_test.ts
+ * @description Verifies the generation and discovery of portal "Context Cards",
+ * ensuring that core portal identity and mission are correctly summarized.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 import { join } from "@std/path";
 import { ContextCardGenerator } from "../src/services/context_card_generator.ts";

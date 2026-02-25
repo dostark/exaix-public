@@ -1,3 +1,10 @@
+/**
+ * @module StatusManagerTest
+ * @path tests/services/status_manager_test.ts
+ * @description Verifies the logic for atomic status updates in file frontmatter, ensuring
+ * correct state transitions for agents, plans, and requests without corrupting files.
+ */
+
 import { assertEquals } from "@std/assert";
 import { StatusManager } from "../../src/services/request_processing/status_manager.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";

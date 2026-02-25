@@ -1,8 +1,8 @@
 /**
- * RetryPolicy Tests
- *
- * Tests for retry system with exponential backoff.
- * Phase 16.3 implementation.
+ * @module RetryPolicyTest
+ * @path tests/services/retry_policy_test.ts
+ * @description Verifies the resilience logic for AI provider calls, ensuring correct
+ * exponential backoff, retryable error classification, and maximum attempt enforcement.
  */
 
 import { assert, assertEquals, assertExists, assertGreater, assertLess } from "@std/assert";

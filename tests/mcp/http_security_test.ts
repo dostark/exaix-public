@@ -1,5 +1,8 @@
 /**
- * Tests for MCP Server HTTP transport with security headers
+ * @module MCPHTTPSecurityTest
+ * @path tests/mcp/http_security_test.ts
+ * @description Verifies the HTTP security posture of the MCP SSE transport, ensuring
+ * mandatory headers (CSP, HSTS) are applied and prevent cross-site scripting (XSS).
  */
 
 import { assert, assertEquals, assertRejects, assertStringIncludes } from "@std/assert";

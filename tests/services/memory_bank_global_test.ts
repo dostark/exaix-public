@@ -1,14 +1,8 @@
 /**
- * Memory Bank Global Memory Tests
- *
- * TDD tests for Phase 12.8: Global Memory functionality:
- * - ILearning schema validation
- * - GlobalMemory schema validation
- * - getGlobalMemory() / initGlobalMemory()
- * - addGlobalLearning()
- * - promoteLearning() (project → global)
- * - demoteLearning() (global → project)
- * - IActivity Journal integration
+ * @module MemoryBankGlobalTest
+ * @path tests/services/memory_bank_global_test.ts
+ * @description Verifies the LearningSchema and its application in global memory banks,
+ * ensuring context-free knowledge and patterns are correctly validated and persisted.
  */
 
 import { assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";

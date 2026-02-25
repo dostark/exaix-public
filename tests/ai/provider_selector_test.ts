@@ -1,5 +1,8 @@
 /**
- * Tests for Provider Selector - Intelligent Provider Selection Strategy
+ * @module AIProviderSelectorTest
+ * @path tests/ai/provider_selector_test.ts
+ * @description Validates the AI selection logic, ensuring optimal provider choice based on
+ * requested capabilities, cost tier constraints, and fallback availability during degradation.
  */
 
 import { assertEquals, assertRejects } from "@std/assert";

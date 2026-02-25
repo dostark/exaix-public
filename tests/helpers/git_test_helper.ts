@@ -1,3 +1,10 @@
+/**
+ * @module GitTestHelpers
+ * @path tests/helpers/git_test_helper.ts
+ * @description Provides high-level utilities for Git-based integration tests,
+ * including repository creation, commit simulation, and branch management.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { FlowStepType, MemoryOperation, PortalOperation } from "../../src/enums.ts";
 import { join } from "@std/path";

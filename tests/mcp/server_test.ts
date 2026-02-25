@@ -1,3 +1,10 @@
+/**
+ * @module MCPServerTest
+ * @path tests/mcp/server_test.ts
+ * @description Suite for the ExoFrame Model Context Protocol (MCP) server, verifying
+ * initialization routines, transport layer integrity (Stdio/SSE), and core session management.
+ */
+
 import { assert, assertEquals, assertExists } from "@std/assert";
 import { MCPTransport } from "../../src/enums.ts";
 

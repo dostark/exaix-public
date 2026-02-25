@@ -1,14 +1,8 @@
 /**
- * Tests for PortalCommands (CLI Portal Management)
- *
- * Success Criteria:
- * - Test 1: add command creates symlink and context card
- * - Test 2: add command validates target directory exists
- * - Test 3: list command returns all registered portals with metadata
- * - Test 4: remove command removes symlink and optionally context card
- * - Test 5: show command displays portal details and file structure
- * - Test 6: Commands log activity to IActivity Journal
- * - Test 7: Handles special characters in portal names
+ * @module PortalCommandsTest
+ * @path tests/cli/portal_commands_test.ts
+ * @description Verifies CLI commands for portal repository management, including portal
+ * addition/removal, alias validation, and connection testing.
  */
 
 import { assertEquals, assertExists, assertRejects } from "@std/assert";

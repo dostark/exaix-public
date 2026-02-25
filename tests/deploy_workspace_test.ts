@@ -1,12 +1,8 @@
 /**
- * Tests for deploy_workspace.sh script (Workspace Deployment)
- *
- * Success Criteria:
- * - Test 1: --no-run flag creates deploy files without running daemon
- * - Test 2: Creates README.md and copies scripts/setup_db.ts
- * - Test 3: exoctl daemon start/stop lifecycle works correctly
- * - Test 4: exoctl daemon restart stops then starts daemon
- * - Test 5: Idempotent operations (start when running, stop when stopped)
+ * @module WorkspaceDeployTest
+ * @path tests/deploy_workspace_test.ts
+ * @description Verifies workspace-level deployment logic, ensuring that cross-portal
+ * dependencies and global configuration are correctly handled during deployment.
  */
 
 import { assert, assertStringIncludes } from "https://deno.land/std@0.201.0/testing/asserts.ts";

@@ -1,3 +1,10 @@
+/**
+ * @module DaemonConfigReloadTest
+ * @path tests/daemon_config_reload_test.ts
+ * @description Verifies that the background daemon correctly handles configuration
+ * changes without requiring a full service restart.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { join } from "@std/path";
 import { ConfigService } from "../src/config/service.ts";

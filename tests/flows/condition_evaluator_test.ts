@@ -1,6 +1,8 @@
 /**
- * Tests for ConditionEvaluator
- * Phase 15.1: Condition Evaluation
+ * @module FlowConditionEvaluatorTest
+ * @path tests/flows/condition_evaluator_test.ts
+ * @description Verifies the boolean logic engine in Agentic Flows, ensuring accurate
+ * cross-step variable resolution and expression evaluation for conditional branching.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

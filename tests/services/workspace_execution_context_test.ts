@@ -1,9 +1,8 @@
 /**
- * Unit tests for IWorkspaceExecutionContext
- *
- * Test Task 1.1: Portal Execution Context
- * Tests the builder pattern for creating portal and workspace execution contexts
- * with proper path resolution, validation, and isolation.
+ * @module WorkspaceExecutionContextTest
+ * @path tests/services/workspace_execution_context_test.ts
+ * @description Verifies the core logic for the WorkspaceExecutionContext, ensuring that trace
+ * identifiers, portal roots, and security credentials are correctly partitioned for each request.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

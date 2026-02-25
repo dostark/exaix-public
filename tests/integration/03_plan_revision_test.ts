@@ -1,15 +1,8 @@
 /**
- * Integration Test: Scenario 3 - Plan Revision
- * Request → Plan → Revise → New Plan
- *
- * Success Criteria:
- * - Test 1: Plan in review status can receive revision comments
- * - Test 2: Revision comments are appended to plan content
- * - Test 3: Plan status remains "review" after revision request
- * - Test 4: Multiple revision rounds are supported (comments accumulate)
- * - Test 5: Revised plan maintains original trace_id for correlation
- * - Test 6: Revision requests are logged to IActivity Journal
- * - Test 7: Plan can be approved after revision (normal flow continues)
+ * @module PlanRevisionIntegrationTest
+ * @path tests/integration/03_plan_revision_test.ts
+ * @description Tests the iterative plan revision cycle, validating that user feedback correctly
+ * triggers plan regeneration while preserving original context and trace integrity.
  */
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";

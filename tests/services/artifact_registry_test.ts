@@ -1,11 +1,8 @@
 /**
- * Tests for Artifact Registry (Task 4.3)
- *
- * Tests artifact management for read-only agents:
- * - Artifact creation with frontmatter
- * - Status updates (pending → approved/rejected)
- * - Listing with filters
- * - Content retrieval
+ * @module ArtifactRegistryTest
+ * @path tests/services/artifact_registry_test.ts
+ * @description Verifies the ArtifactRegistry service, ensuring agent-produced files are
+ * correctly indexed in the database and persisted within the Memory/Execution directory.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

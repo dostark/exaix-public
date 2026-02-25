@@ -1,9 +1,8 @@
 /**
- * Integration Test: Plan Execution Detection
- * Tests Step 5.12.1 Detection - Plan Execution Flow
- *
- * Validates that the daemon detects approved plans in Workspace/Active/
- * and logs detection events to the IActivity Journal.
+ * @module PlanExecutionDetectionIntegrationTest
+ * @path tests/integration/13_plan_execution_detection_test.ts
+ * @description Verifies the system's ability to detect and queue approved plans for execution,
+ * ensuring it ignores malformed or non-plan files within the tracking directories.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

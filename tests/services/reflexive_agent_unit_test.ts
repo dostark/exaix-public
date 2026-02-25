@@ -1,3 +1,10 @@
+/**
+ * @module ReflexiveAgentUnitTest
+ * @path tests/services/reflexive_agent_unit_test.ts
+ * @description Verifies the logic of the ReflexiveAgent service, specifically its self-critique decision
+ * trees, metric accumulation, and dynamic configuration of specialized review agents.
+ */
+
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { CritiqueIssueType, CritiqueQuality, CritiqueSeverity } from "../../src/enums.ts";
 import { createCodeReviewReflexiveAgent, type ICritique, ReflexiveAgent } from "../../src/services/reflexive_agent.ts";

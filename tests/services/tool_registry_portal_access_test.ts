@@ -1,3 +1,10 @@
+/**
+ * @module ToolRegistryPortalAccessTest
+ * @path tests/services/tool_registry_portal_access_test.ts
+ * @description Verifies the ToolRegistry's security model for portal-bound execution,
+ * ensuring tools can safely access and manipulate files within approved portal targets.
+ */
+
 import { assertEquals } from "https://deno.land/std@0.201.0/testing/asserts.ts";
 import { join } from "https://deno.land/std@0.201.0/path/mod.ts";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";

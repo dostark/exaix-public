@@ -1,6 +1,8 @@
 /**
- * Extended tests for FlowValidatorImpl to improve code coverage
- * These tests cover additional edge cases and branches not covered by the main tests
+ * @module FlowValidatorExtendedTest
+ * @path tests/flows/flow_validator_extended_test.ts
+ * @description Targeted tests for Flow validation, ensuring robust enforcement of
+ * required output configurations and wave-based execution constraints.
  */
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../../src/enums.ts";

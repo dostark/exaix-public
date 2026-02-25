@@ -1,3 +1,10 @@
+/**
+ * @module MCPStdioLoopTest
+ * @path tests/cli/mcp_stdio_loop_test.ts
+ * @description Verifies the MCP Stdio execution loop, ensuring robust low-level
+ * JSON-RPC transport and correct error reporting for malformed messages.
+ */
+
 import { assertEquals } from "@std/assert";
 import { runMcpStdioLoop } from "../../src/cli/commands/mcp_commands.ts";
 

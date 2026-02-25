@@ -1,3 +1,10 @@
+/**
+ * @module LazyProviderTest
+ * @path tests/ai/lazy_provider_test.ts
+ * @description Verifies the LazyProvider wrapper, ensuring that heavy provider backends
+ * are only initialized upon first use to optimize startup performance.
+ */
+
 import { assertEquals } from "@std/assert";
 import type { IProviderFactory } from "../../src/ai/factories/abstract_provider_factory.ts";
 import { LazyProvider } from "../../src/ai/providers/lazy_provider.ts";

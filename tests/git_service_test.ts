@@ -1,3 +1,10 @@
+/**
+ * @module GitServiceTest
+ * @path tests/git_service_test.ts
+ * @description Verifies the Git service wrapper, ensuring stable execution of
+ * version control operations and correct parsing of git status and diff outputs.
+ */
+
 import { assert, assertEquals, assertExists, assertRejects } from "@std/assert";
 import { FlowStepType } from "../src/enums.ts";
 

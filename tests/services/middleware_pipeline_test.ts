@@ -1,3 +1,10 @@
+/**
+ * @module MiddlewarePipelineTest
+ * @path tests/services/middleware_pipeline_test.ts
+ * @description Verifies the logic for the asynchronous middleware execution pipeline, ensuring
+ * correct Onion-model execution order and graceful short-circuiting.
+ */
+
 import { assertEquals } from "https://deno.land/std@0.200.0/testing/asserts.ts";
 import { MiddlewarePipeline } from "../../src/services/middleware/pipeline.ts";
 

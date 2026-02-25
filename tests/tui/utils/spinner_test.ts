@@ -1,7 +1,8 @@
 /**
- * TUI Spinner Utility Tests
- *
- * Part of Phase 13.1: Shared TUI Infrastructure
+ * @module TUISpinnerTest
+ * @path tests/tui/utils/spinner_test.ts
+ * @description Verifies the logic for terminal loading animations, ensuring correct frame sequences
+ * and consistent timing for various spinner styles.
  */
 
 import { assertEquals, assertGreater, assertStringIncludes } from "@std/assert";

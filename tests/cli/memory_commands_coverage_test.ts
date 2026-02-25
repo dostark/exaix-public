@@ -1,7 +1,8 @@
 /**
- * Additional Coverage Tests for MemoryCommands
- *
- * Covers untested paths to improve coverage from 66.1% to >80%
+ * @module MemoryCommandsCoverageTest
+ * @path tests/cli/memory_commands_coverage_test.ts
+ * @description Extended coverage for CLI memory commands, verifying RAG-based search with embeddings,
+ * tag-based filtering, and alternative output formats (Markdown/JSON).
  */
 
 import {

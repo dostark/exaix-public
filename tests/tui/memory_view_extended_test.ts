@@ -1,6 +1,8 @@
 /**
- * Extended tests for MemoryView to improve code coverage
- * These tests cover additional branches not covered by the main tests
+ * @module MemoryViewExtendedTest
+ * @path tests/tui/memory_view_extended_test.ts
+ * @description Targeted tests for MemoryViewTuiSession, verifying internal state management,
+ * color mode toggles, and UI spinner animation logic.
  */
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { ExecutionStatus, MemoryType } from "../../src/enums.ts";

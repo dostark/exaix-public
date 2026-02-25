@@ -1,3 +1,10 @@
+/**
+ * @module FlowLoaderTest
+ * @path tests/flows/flow_loader_test.ts
+ * @description Verifies the FlowLoader's ability to discover, parse, and instantiate agentic models
+ * from the filesystem, ensuring correct path resolution and error reporting for missing files.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 
 import { FlowLoader } from "../../src/flows/flow_loader.ts";

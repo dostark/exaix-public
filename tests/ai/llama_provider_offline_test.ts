@@ -1,3 +1,10 @@
+/**
+ * @module LlamaProviderOfflineTest
+ * @path tests/ai/llama_provider_offline_test.ts
+ * @description Verifies the offline parsing capabilities of the Llama provider,
+ * ensuring robust extraction of structured JSON from LLM markdown responses.
+ */
+
 import { assertEquals, assertRejects, assertStringIncludes, assertThrows } from "@std/assert";
 import {
   TEST_LLAMAPROVIDER_JSON_BODY,

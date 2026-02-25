@@ -1,7 +1,8 @@
 /**
- * Memory Panels Tests
- *
- * Coverage tests for src/tui/memory_panels/index.ts
+ * @module MemoryPanelsTest
+ * @path tests/tui/memory_panels_test.ts
+ * @description Targeted tests for MemoryView rendering components, ensuring correct visual
+ * representation of project-specific and global learned knowledge within the terminal.
  */
 
 import { assertEquals, assertExists } from "@std/assert";

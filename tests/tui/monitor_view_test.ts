@@ -1,3 +1,10 @@
+/**
+ * @module MonitorViewTest
+ * @path tests/tui/monitor_view_test.ts
+ * @description Tests the MonitorView TUI component, ensuring correct ANSI color mapping for logs,
+ * resilient rendering of high-volume activity streams, and status bar interactivity.
+ */
+
 import { assert, assertEquals, assertExists } from "@std/assert";
 import { DaemonStatus, DialogStatus } from "../../src/enums.ts";
 

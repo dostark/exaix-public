@@ -1,16 +1,8 @@
 /**
- * Tests for SecureCredentialStore (P0 Critical: API Key Exposure in Memory & Logs)
- *
- * TDD Red Phase: Write tests before implementation
- *
- * Success Criteria:
- * 1. API keys are encrypted in memory using AES-GCM
- * 2. Keys are zeroed out after encryption
- * 3. Environment variables are cleared after loading
- * 4. Error messages don't reveal provider information
- * 5. Memory dumps don't contain plaintext keys
- * 6. Keys are properly cleared on application shutdown
- * 7. No keys appear in logs or debug output
+ * @module CredentialSecurityTest
+ * @path tests/security/credential_security_test.ts
+ * @description Verifies the 'SecureCredentialStore', ensuring robust encryption
+ * and secure lifecycle management of agent secrets and API keys.
  */
 
 import { assertEquals, assertExists, assertNotEquals } from "@std/assert";

@@ -1,3 +1,10 @@
+/**
+ * @module E2EToolTest
+ * @path tests/tools/e2e_tool_test.ts
+ * @description Verifies the specialized E2E workflow tools, ensuring correct
+ * coordination between agent actions and multi-step verification triggers.
+ */
+
 import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";

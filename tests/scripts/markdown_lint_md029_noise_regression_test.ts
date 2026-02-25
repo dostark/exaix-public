@@ -1,3 +1,10 @@
+/**
+ * @module MarkdownLintMD029RegressionTest
+ * @path tests/scripts/markdown_lint_md029_noise_regression_test.ts
+ * @description Regression tests for Markdown linting rule MD029, ensuring
+ * correct reporting of ordered-list numbering within separate blocks.
+ */
+
 import { lintMarkdown, type LintOptions } from "../../scripts/markdown_lint.ts";
 
 /**

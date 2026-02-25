@@ -1,14 +1,8 @@
 /**
- * Tests for GitCommands
- * Covers listBranches, showBranch, status, logByTraceId, and diff operations
- *
- * Success Criteria:
- * - Test 1: listBranches returns ExoFrame branches sorted by commit date
- * - Test 2: listBranches extracts trace_id from commit messages
- * - Test 3: showBranch returns branch details with commit history
- * - Test 4: status categorizes files (modified, untracked, added, deleted)
- * - Test 5: logByTraceId finds commits with ExoTrace footer
- * - Test 6: diff generates unified diff between refs/commits
+ * @module GitCommandsTest
+ * @path tests/cli/git_commands_test.ts
+ * @description Verifies CLI-exposed Git utility commands, ensuring correct interaction with
+ * local repositories, identity management, and automated branch cleanup via the GitService.
  */
 
 import { assert, assertEquals, assertExists, assertRejects, assertStringIncludes } from "@std/assert";

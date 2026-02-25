@@ -1,7 +1,8 @@
 /**
- * Tool Reflector Tests
- *
- * Tests for Phase 16.5: Tool Result Reflection Implementation
+ * @module ToolReflectorSchemaTest
+ * @path tests/services/tool_reflector_test.ts
+ * @description Validates the data schema for agent-led tool reflection, ensuring structured
+ * capture of technical debt, suggested improvements, and tool execution confidence.
  */
 
 import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";

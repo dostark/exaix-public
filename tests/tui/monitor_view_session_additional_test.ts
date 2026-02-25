@@ -1,3 +1,10 @@
+/**
+ * @module MonitorViewSessionAdditionalTest
+ * @path tests/tui/monitor_view_session_additional_test.ts
+ * @description Targeted tests for the MonitorTuiSession, specifically focusing on log grouping
+ * cycles, bookmarking logic, and dynamic populating of the log detail panel.
+ */
+
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { createMonitorViewSession } from "./helpers.ts";
 import type { ILogEntry, MonitorTuiSession } from "../../src/tui/monitor_view.ts";

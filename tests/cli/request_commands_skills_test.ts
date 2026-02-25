@@ -1,3 +1,10 @@
+/**
+ * @module RequestCommandsSkillsTest
+ * @path tests/cli/request_commands_skills_test.ts
+ * @description Verifies the CLI implementation of dynamic skills injection during request creation,
+ * ensuring additional capabilities are correctly persisted in the request frontmatter.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { join } from "@std/path";
 import { parse as parseYaml } from "@std/yaml";

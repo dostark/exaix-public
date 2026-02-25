@@ -1,3 +1,10 @@
+/**
+ * @module GlobalMemoryTestHelpers
+ * @path tests/helpers/memory_test_helper.ts
+ * @description Provides common utilities for validating global knowledge banks
+ * and shared learned patterns across project boundaries.
+ */
+
 import { ExecutionMemoryBuilder, ProjectMemoryBuilder } from "../fixtures/memory_builder.ts";
 import type { MemoryBankService } from "../../src/services/memory_bank.ts";
 import { MemoryReferenceType } from "../../src/enums.ts";

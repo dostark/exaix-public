@@ -1,5 +1,8 @@
 /**
- * CLI Test Helper Utilities
+ * @module CLITestSetup
+ * @path tests/cli/helpers/test_setup.ts
+ * @description Provides common setup and teardown routines for CLI tests, including
+ * temporary workspace creation and mock Git repository initialization.
  */
 
 import { join } from "@std/path";

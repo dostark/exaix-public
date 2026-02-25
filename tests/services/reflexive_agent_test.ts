@@ -1,7 +1,8 @@
 /**
- * Reflexive Agent Tests
- *
- * Tests for Phase 16.4: Reflexion IPattern Implementation
+ * @module ReflexiveAgentSchemaTest
+ * @path tests/services/reflexive_agent_test.ts
+ * @description Validates the data schema for reflexive agent critiques, ensuring robust enforcement
+ * of quality metrics, confidence levels, and technical debt reporting.
  */
 
 import { assert, assertEquals, assertExists, assertGreater } from "@std/assert";

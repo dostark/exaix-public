@@ -1,14 +1,8 @@
 /**
- * Mission Reporter Tests - Updated for Memory Banks
- *
- * Tests for the updated MissionReporter service that generates execution
- * memory records in the Memory/Execution/ directory structure.
- *
- * Success Criteria:
- * - Test 1: Creates execution memory record with structured files
- * - Test 2: Extracts lessons learned from reasoning text
- * - Test 3: Logs activities correctly
- * - Test 4: Handles errors gracefully
+ * @module MissionReporterTest
+ * @path tests/mission_reporter_test.ts
+ * @description Verifies the MissionReporter service, ensuring that post-execution summaries
+ * and lessons learned are correctly formatted and persisted as execution memory records.
  */
 
 import { assert, assertEquals, assertExists } from "@std/assert";

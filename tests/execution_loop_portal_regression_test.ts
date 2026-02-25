@@ -1,3 +1,10 @@
+/**
+ * @module ExecutionLoopPortalRegressionTest
+ * @path tests/execution_loop_portal_regression_test.ts
+ * @description Regression tests for the execution loop, ensuring correct handling
+ * of portal-specific tool calls and cross-portal file access.
+ */
+
 import { assertEquals, assertExists } from "@std/assert";
 import { join } from "@std/path";
 import { ExecutionLoop } from "../src/services/execution_loop.ts";

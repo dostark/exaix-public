@@ -1,14 +1,8 @@
 /**
- * Plan Executor Detection Tests
- * Tests for Step 5.12 Detection - Plan Execution Flow
- *
- * Success Criteria:
- * - Detects approved plans moved to Workspace/Active/
- * - Identifies plan files by _plan.md suffix
- * - Ignores non-plan files in Active directory
- * - Reads plan file content correctly
- * - Parses YAML frontmatter with trace_id
- * - Logs detection events to IActivity Journal
+ * @module PlanExecutorDetectionTest
+ * @path tests/plan_executor_detection_test.ts
+ * @description Verifies the logic for detecting executable plans, ensuring that the system
+ * correctly identifies structured task blocks within larger agent responses.
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";

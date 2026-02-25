@@ -1,3 +1,10 @@
+/**
+ * @module ServicesTestHelpers
+ * @path tests/services/helpers.ts
+ * @description Provides shared mock factories and context simulators for validating
+ * core service logic in isolation.
+ */
+
 import { type IFlowValidator, RequestRouter } from "../../src/services/request_router.ts";
 import type { IFlowResult, IFlowRunner } from "../../src/flows/flow_runner.ts";
 import type {

@@ -1,3 +1,10 @@
+/**
+ * @module MemoryFormatterTest
+ * @path tests/tui/memory_view/formatters_test.ts
+ * @description Verifies the logic for formatting memory metadata in the TUI, ensuring correct
+ * display of project-specific, global, and execution-linked knowledge details.
+ */
+
 import { assertEquals, assertStringIncludes } from "@std/assert";
 
 import { MemoryFormatter } from "../../../src/tui/memory_view/formatters.ts";

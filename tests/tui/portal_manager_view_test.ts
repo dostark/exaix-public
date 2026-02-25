@@ -1,3 +1,10 @@
+/**
+ * @module PortalManagerViewTest
+ * @path tests/tui/portal_manager_view_test.ts
+ * @description TUI interaction tests for the PortalManagerView, verifying portal lifecycle actions
+ * (open/close), status-based rendering, and cross-portal navigation within the terminal interface.
+ */
+
 import { assert, assertEquals } from "@std/assert";
 import { type IPortalService, PortalManagerView } from "../../src/tui/portal_manager_view.ts";
 import { PortalStatus } from "../../src/enums.ts";

@@ -1,3 +1,10 @@
+/**
+ * @module RequestManagerViewTest
+ * @path tests/tui/request_manager_view_test.ts
+ * @description Verifies the RequestManagerView TUI component, ensuring correct rendering
+ * of the request list, content preview, and interactive status management.
+ */
+
 import { assert, assertEquals } from "https://deno.land/std@0.192.0/testing/asserts.ts";
 import { MemorySource, RequestPriority } from "../../src/enums.ts";
 import { RequestStatus } from "../../src/requests/request_status.ts";

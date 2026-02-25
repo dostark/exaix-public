@@ -1,11 +1,8 @@
 /**
- * Consolidated tests for plan validation error handling in RequestProcessor.
- *
- * This suite covers:
- * 1. PlanValidationError detection and handling
- * 2. Saving rejected plans for manual review
- * 3. Error message persistence in request metadata
- * 4. CLI integration and display
+ * @module PlanValidationRequestTest
+ * @path tests/request_processor_plan_validation_test.ts
+ * @description Verifies the RequestProcessor's resilience when handling invalid plans,
+ * ensuring rejected content is captured for debugging without breaking the execution loop.
  */
 
 import { assertEquals, assertStringIncludes } from "@std/assert";

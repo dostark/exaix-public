@@ -1,3 +1,10 @@
+/**
+ * @module TUIDashboardMemoryNotifTest
+ * @path tests/tui/tui_dashboard_memory_notif_test.ts
+ * @description Verifies the TUI Dashboard's integration with memory update notifications,
+ * ensuring real-time alerts when new agent knowledge is discovered.
+ */
+
 import { assertEquals } from "@std/assert";
 import { MemoryOperation, MemoryScope } from "../../src/enums.ts";
 import { MemoryStatus } from "../../src/memory/memory_status.ts";

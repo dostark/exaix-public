@@ -1,8 +1,8 @@
 /**
- * Blueprint Validation Tests
- * Phase 18: Blueprint Modernization
- *
- * Validates all blueprint files conform to schema and best practices.
+ * @module BlueprintValidationTest
+ * @path tests/blueprints/blueprint_validation_test.ts
+ * @description Verifies the core agent blueprints, ensuring that Senior Coder,
+ * Quality Judge, and default identities pass strict schema validation.
  */
 
 import { assertEquals, assertExists } from "https://deno.land/std@0.224.0/assert/mod.ts";

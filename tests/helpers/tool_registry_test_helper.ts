@@ -1,3 +1,10 @@
+/**
+ * @module ToolRegistryTestHelper
+ * @path tests/helpers/tool_registry_test_helper.ts
+ * @description Provides common utilities for ToolRegistry tests, ensuring stable
+ * registration of mock tools and validation of JSON argument schemas.
+ */
+
 import { join } from "@std/path";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import type { DatabaseService as DatabaseService } from "../../src/services/db.ts";

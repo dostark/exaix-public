@@ -1,3 +1,10 @@
+/**
+ * @module GrepSearchToolTest
+ * @path tests/tools/grep_search_test.ts
+ * @description Verifies the 'grep_search' tool, ensuring efficient and accurate
+ * pattern matching across the project workspace.
+ */
+
 import { assertEquals } from "@std/assert";
 import { ToolRegistry } from "../../src/services/tool_registry.ts";
 import { ConfigSchema } from "../../src/config/schema.ts";
