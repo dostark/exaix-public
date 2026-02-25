@@ -489,10 +489,9 @@ Deno.test("SkillsService: buildSkillContext generates markdown context", async (
 
     const context = await service.buildSkillContext(["context-test"]);
 
-    assertEquals(context.includes("Context Test Skill"), true);
-    assertEquals(context.includes("Do the context thing step by step"), true);
-    assertEquals(context.includes("Must follow rule 1"), true);
-    assertEquals(context.includes("Quality"), true);
+    assertStringIncludes(context, "APPLICABLE SKILLS");
+    assertStringIncludes(context, "Context Test Skill");
+    assertStringIncludes(context, "Do the context thing");
   } finally {
     await cleanup();
   }

@@ -1,5 +1,5 @@
 import { RequestProcessor } from "../../src/services/request_processor.ts";
-import { DatabaseService as DatabaseService } from "../../src/services/db.ts";
+import { DatabaseService } from "../../src/services/db.ts";
 import { ConfigService } from "../../src/config/service.ts";
 import { join } from "@std/path";
 import { ConsoleOutput, initializeGlobalLogger, resetGlobalLogger } from "../../src/services/structured_logger.ts";

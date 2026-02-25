@@ -10,7 +10,7 @@ import { MemorySource } from "../../src/enums.ts";
 import { assertSpyCalls, spy } from "@std/testing/mock";
 import { DatabaseActivityRepository } from "../../src/repositories/activity_repository.ts";
 import type { ActivityRepository } from "../../src/repositories/activity_repository.ts";
-import type { IDatabaseService } from "../../src/services/db.ts";
+import type { DatabaseService } from "../../src/services/db.ts";
 import { createStubDb } from "../test_helpers.ts";
 
 // Mock IActivity entity for testing
@@ -49,7 +49,7 @@ Deno.test("ActivityRepository: interface defines contract", () => {
 });
 
 Deno.test("DatabaseActivityRepository: logs activities through abstraction", async () => {
-  type LogActivityArgs = Parameters<IDatabaseService["logActivity"]>;
+  type LogActivityArgs = Parameters<DatabaseService["logActivity"]>;
   let capturedArgs: LogActivityArgs | null = null;
   const logActivitySpy = spy((...args: LogActivityArgs) => {
     capturedArgs = args;
@@ -68,7 +68,7 @@ Deno.test("DatabaseActivityRepository: logs activities through abstraction", asy
     getActivitiesByActionType: () => [],
     getActivitiesByActionTypeSafe: () => Promise.resolve([]),
     getRecentActivity: () => Promise.resolve([]),
-  } as IDatabaseService;
+  };
 
   const repo = new DatabaseActivityRepository(mockDb);
 
@@ -289,7 +289,7 @@ Deno.test("DatabaseActivityRepository: handles malformed JSON payload gracefully
     getActivitiesByActionType: () => [],
     getActivitiesByActionTypeSafe: () => Promise.resolve([]),
     getRecentActivity: () => Promise.resolve([]),
-  } as IDatabaseService;
+  };
 
   const repo = new DatabaseActivityRepository(mockDb);
 

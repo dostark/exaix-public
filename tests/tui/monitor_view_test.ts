@@ -6,7 +6,7 @@ import { MemorySource } from "../../src/enums.ts";
 import { LOG_COLORS, LOG_ICONS, MONITOR_KEY_BINDINGS, MonitorView } from "../../src/tui/monitor_view.ts";
 import type { ILogEntry } from "../../src/tui/monitor_view.ts";
 import type { JSONObject } from "../../src/types.ts";
-import type { IActivityRecord, IJournalFilterOptions } from "../../src/services/db.ts";
+import type { ActivityRecord, JournalFilterOptions } from "../../src/services/db.ts";
 import {
   createMockDatabaseService,
   createMonitorViewWithLogs,
@@ -30,7 +30,7 @@ function createMonitorSession(logs: Array<ILogEntry | JSONObject> = []) {
 // Helper for verifying filters
 async function verifyFilter(
   logs: Array<ILogEntry | JSONObject>,
-  filter: IJournalFilterOptions,
+  filter: JournalFilterOptions,
   expectedLength: number,
   checkFn: (logs: ILogEntry[]) => void,
 ) {
@@ -142,7 +142,7 @@ Deno.test("MonitorView - does not fetch when paused", async () => {
   class CountingDb {
     private inner: ReturnType<typeof createMockDatabaseService>;
     constructor(logs: Array<JSONObject> = []) {
-      const activityRecords: IActivityRecord[] = logs.map((a) => ({
+      const activityRecords: ActivityRecord[] = logs.map((a) => ({
         id: String(a.id ?? crypto.randomUUID()),
         trace_id: String(a.trace_id ?? `trace-${a.id ?? Math.floor(Math.random() * 1e6)}`),
         actor: (a.actor as string | null) ?? null,
@@ -158,11 +158,11 @@ Deno.test("MonitorView - does not fetch when paused", async () => {
     getRecentActivity(limit?: number) {
       return this.inner.getRecentActivity(limit);
     }
-    queryActivity(filter: IJournalFilterOptions) {
+    queryActivity(filter: JournalFilterOptions) {
       calls.push(`query:${JSON.stringify(filter)}`);
       return this.inner.queryActivity(filter);
     }
-    addLog(log: IActivityRecord) {
+    addLog(log: ActivityRecord) {
       return this.inner.addLog(log);
     }
   }

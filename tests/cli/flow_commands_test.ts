@@ -85,7 +85,7 @@ Deno.test("FlowCommands: listFlows outputs table for valid flows", async () => {
 import { defineFlow } from "./define_flow.ts";
 export default defineFlow({
   id: "cli-flow",
-  name: "CLI IFlow",
+  name: "CLI Flow",
   description: "Flow for CLI test",
   steps: [{ id: "s1", name: "Step 1", agent: "agent1", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
   output: { from: "s1", format: "markdown" },
@@ -181,8 +181,8 @@ Deno.test("FlowCommands: showFlow prints JSON when requested (id & name)", async
 import { defineFlow } from "./define_flow.ts";
 export default defineFlow({
   id: "show-flow-2",
-  name: "Show IFlow as Flow 2",
-  description: "IFlow as Flow for show test",
+  name: "Show Flow 2",
+  description: "Flow for show test",
   steps: [{ id: "s1", name: "Step 1", agent: "agentA", dependsOn: [], input: { source: "request", transform: "passthrough" }, retry: { maxAttempts: 1, backoffMs: 1000 } }],
   output: { from: "s1", format: "markdown" },
 });

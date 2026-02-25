@@ -586,7 +586,7 @@ Deno.test("MemoryBankService: demoteLearning non-existent learning throws", asyn
         await service.demoteLearning("non-existent-id", "target-app");
       },
       Error,
-      "ILearning not found",
+      "Learning not found",
     );
   } finally {
     await cleanup();

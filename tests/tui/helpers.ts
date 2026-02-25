@@ -13,7 +13,7 @@ import { type IPlan, MinimalPlanServiceMock, PlanReviewerTuiSession } from "../.
 import { commonTestData, requestFactory } from "../helpers/test_utils.ts";
 import { RequestStatus, type RequestStatusType } from "../../src/requests/request_status.ts";
 import type { IPortalDetails, IPortalInfo } from "../../src/cli/commands/portal_commands.ts";
-import type { IActivityRecord, IDatabaseService, IJournalFilterOptions, ISqliteParam } from "../../src/services/db.ts";
+import type { ActivityRecord, IDatabaseService, JournalFilterOptions, SqliteParam } from "../../src/services/db.ts";
 import {
   ISkillSummary,
   ISkillsViewService,
@@ -351,12 +351,12 @@ export function createPortalTuiWithPortals(arr: IPortalInfoOverrides[] = []) {
 // Monitor helpers
 // -------------------------
 class MockDatabaseService implements IDatabaseService {
-  constructor(private readonly _activityRecords: IActivityRecord[] = []) {}
+  constructor(private readonly _activityRecords: ActivityRecord[] = []) {}
   logActivity() {}
   waitForFlush() {
     return Promise.resolve();
   }
-  queryActivity(filter: IJournalFilterOptions) {
+  queryActivity(filter: JournalFilterOptions) {
     let filtered = this._activityRecords;
     if (filter.agentId) {
       filtered = filtered.filter((l) => l.agent_id === filter.agentId);
@@ -373,13 +373,13 @@ class MockDatabaseService implements IDatabaseService {
     }
     return Promise.resolve(filtered);
   }
-  preparedGet<T>(_query: string, _params?: ISqliteParam[]) {
+  preparedGet<T>(_query: string, _params?: SqliteParam[]) {
     return Promise.resolve({} as T);
   }
-  preparedAll<T>(_query: string, _params?: ISqliteParam[]) {
+  preparedAll<T>(_query: string, _params?: SqliteParam[]) {
     return Promise.resolve([] as T[]);
   }
-  preparedRun(_query: string, _params?: ISqliteParam[]) {
+  preparedRun(_query: string, _params?: SqliteParam[]) {
     return Promise.resolve({});
   }
   getActivitiesByTrace(traceId: string) {
@@ -398,18 +398,18 @@ class MockDatabaseService implements IDatabaseService {
     return Promise.resolve(this._activityRecords.slice(-limit).reverse());
   }
   // Test-only method used in some tests
-  addLog(log: IActivityRecord) {
+  addLog(log: ActivityRecord) {
     this._activityRecords.push(log);
     return Promise.resolve();
   }
 }
 
-export function createMockDatabaseService(activityRecords: IActivityRecord[] = []) {
+export function createMockDatabaseService(activityRecords: ActivityRecord[] = []) {
   return new MockDatabaseService(activityRecords);
 }
 
 export function createMonitorViewWithLogs(arr: Array<ILogEntry | ILogEntryOverrides> = []) {
-  const activityRecords: IActivityRecord[] = arr.map((a) => ({
+  const activityRecords: ActivityRecord[] = arr.map((a) => ({
     id: String(a.id ?? crypto.randomUUID()),
     trace_id: String(a.trace_id ?? `trace-${a.id ?? Math.floor(Math.random() * 1e6)}`),
     actor: (a.actor as string | null) ?? null,

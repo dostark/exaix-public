@@ -8,7 +8,7 @@
  * @related-files [src/services/execution_loop.ts, src/services/db.ts]
  */
 
-import type { IDatabaseService, ISqliteParam } from "./db.ts";
+import type { DatabaseService, SqliteParam } from "./db.ts";
 import type { EventLogger } from "./event_logger.ts";
 import {
   type IRegisterReviewInput,
@@ -21,7 +21,7 @@ import { type IReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
 
 export class ReviewRegistry {
   constructor(
-    private db: IDatabaseService,
+    private db: DatabaseService,
     private logger: EventLogger,
   ) {}
 
@@ -216,7 +216,7 @@ export class ReviewRegistry {
 
     sql += ` ORDER BY created DESC`;
 
-    const rows = await this.db.preparedAll<IReview>(sql, params as ISqliteParam[]);
+    const rows = await this.db.preparedAll<IReview>(sql, params as SqliteParam[]);
     return rows.map((row) => ReviewSchema.parse(row));
   }
 
@@ -271,7 +271,7 @@ export class ReviewRegistry {
       params.push(id);
     }
 
-    await this.db.preparedRun(sql, params as ISqliteParam[]);
+    await this.db.preparedRun(sql, params as SqliteParam[]);
   }
 
   /**

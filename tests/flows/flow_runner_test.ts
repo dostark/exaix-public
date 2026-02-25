@@ -11,7 +11,7 @@ import { IFlow, IFlowInput, IFlowStepInput } from "../../src/schemas/flow.ts";
 import { IAgentExecutionResult } from "../../src/services/agent_runner.ts";
 import { PROVIDER_ANTHROPIC, PROVIDER_OPENAI } from "../../src/config/constants.ts";
 import { JSONValue } from "../../src/types.ts";
-import { IActivityRecord, IDatabaseService, IJournalFilterOptions, ISqliteParam } from "../../src/services/db.ts";
+import { ActivityRecord, JournalFilterOptions, SqliteParam } from "../../src/services/db.ts";
 
 /** Local type matching the shape logged by FlowRunner for flow.token_summary events */
 interface TokenSummary {
@@ -1659,8 +1659,8 @@ Deno.test("FlowRunner: logs hasSkills in input.prepared event", async () => {
 });
 
 // Mock DatabaseService for testing token aggregation
-class MockDatabaseService implements IDatabaseService {
-  private activities: Array<IActivityRecord> = [];
+class MockDatabaseService {
+  private activities: Array<ActivityRecord> = [];
 
   constructor(activities: Array<{ traceId: string; actionType: string; payload: Record<string, JSONValue> }> = []) {
     this.activities = activities.map((a) => ({
@@ -1675,7 +1675,7 @@ class MockDatabaseService implements IDatabaseService {
     }));
   }
 
-  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
+  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]> {
     return Promise.resolve(this.activities.filter((a) => {
       if (filter.traceId && a.trace_id !== filter.traceId) return false;
       if (filter.actionType && a.action_type !== filter.actionType) return false;
@@ -1698,28 +1698,28 @@ class MockDatabaseService implements IDatabaseService {
   close(): Promise<void> {
     return Promise.resolve();
   }
-  preparedGet<T>(_query: string, _params?: ISqliteParam[]): Promise<T | null> {
+  preparedGet<T>(_query: string, _params?: SqliteParam[]): Promise<T | null> {
     return Promise.resolve(null);
   }
-  preparedAll<T>(_query: string, _params?: ISqliteParam[]): Promise<T[]> {
+  preparedAll<T>(_query: string, _params?: SqliteParam[]): Promise<T[]> {
     return Promise.resolve([]);
   }
-  preparedRun(_query: string, _params?: ISqliteParam[]): Promise<unknown> {
+  preparedRun(_query: string, _params?: SqliteParam[]): Promise<unknown> {
     return Promise.resolve(null);
   }
-  getActivitiesByTrace(_traceId: string): IActivityRecord[] {
+  getActivitiesByTrace(_traceId: string): ActivityRecord[] {
     return [];
   }
-  getActivitiesByTraceSafe(_traceId: string): Promise<IActivityRecord[]> {
+  getActivitiesByTraceSafe(_traceId: string): Promise<ActivityRecord[]> {
     return Promise.resolve([]);
   }
-  getActivitiesByActionType(_actionType: string): IActivityRecord[] {
+  getActivitiesByActionType(_actionType: string): ActivityRecord[] {
     return [];
   }
-  getActivitiesByActionTypeSafe(_actionType: string): Promise<IActivityRecord[]> {
+  getActivitiesByActionTypeSafe(_actionType: string): Promise<ActivityRecord[]> {
     return Promise.resolve([]);
   }
-  getRecentActivity(_limit?: number): Promise<IActivityRecord[]> {
+  getRecentActivity(_limit?: number): Promise<ActivityRecord[]> {
     return Promise.resolve([]);
   }
 }

@@ -222,8 +222,8 @@ testDialogInteraction(
     keys: [],
   }),
   (_dialog: DialogBase, rendered: string) => {
-    assertEquals(rendered.includes("Add ILearning as ILearning"), true);
-    assertEquals(rendered.includes("Title"), true);
+    assertStringIncludes(rendered, "Add Learning");
+    assertStringIncludes(rendered, "Title");
   },
 );
 

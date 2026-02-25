@@ -1,12 +1,12 @@
 import { assertEquals, assertExists } from "@std/assert";
 import { MemorySource } from "../src/enums.ts";
-import { assert } from "@std/assert";
+
 import { initActivityTableSchema, initTestDbService } from "./helpers/db.ts";
 import { DatabaseService } from "../src/services/db.ts";
 import { createMockConfig } from "./helpers/config.ts";
 
 /**
- * Tests for DatabaseService (IActivity Journal Storage)
+ * Tests for DatabaseService (Activity Journal Storage)
  *
  * Success Criteria:
  * - Test 1: Initializes SQLite database with correct schema
@@ -424,6 +424,8 @@ Deno.test("DatabaseService: handles rapid concurrent logging", async () => {
     await cleanup();
   }
 });
+
+import { assert } from "@std/assert";
 
 Deno.test("DatabaseService: handles transaction rollback on error", async () => {
   const { db, cleanup } = await initTestDbService();

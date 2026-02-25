@@ -176,7 +176,7 @@ describe("FlowReporter", () => {
       assertStringIncludes(result.content, 'token_provider: "' + TEST_PROVIDER_ID_OPENAI + '"');
       assertStringIncludes(result.content, 'token_model: "' + TEST_MODEL_OPENAI + '"');
       assertStringIncludes(result.content, "token_cost_usd: 0.01");
-      assertStringIncludes(result.content, "# Flow Report: Test Flow");
+      assertStringIncludes(result.content, "# IFlow Report: Test Flow");
       assertStringIncludes(result.content, "## Execution Summary");
       assertStringIncludes(result.content, "## Step Outputs");
       assertStringIncludes(result.content, "## Dependency Graph");

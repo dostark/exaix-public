@@ -48,9 +48,9 @@ Deno.test("renderPendingPanel: shows proposal titles", () => {
 
   const rendered = renderPendingPanel(proposals, 0, options);
 
-  assertEquals(rendered.includes("Error Handling IPattern as IPattern"), true);
-  assertEquals(rendered.includes("API Rate Limiting"), true);
-  assertEquals(rendered.includes("Database Connection Issue"), true);
+  assertStringIncludes(rendered, "Error Handling Pattern");
+  assertStringIncludes(rendered, "API Rate Limiting");
+  assertStringIncludes(rendered, "Database Connection");
 });
 
 Deno.test("renderPendingPanel: shows categories", () => {

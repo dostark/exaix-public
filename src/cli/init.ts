@@ -16,7 +16,7 @@ import type { Config } from "../config/schema.ts";
 import { DatabaseService, IDatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
 
-export interface IServiceContext {
+export interface ServiceContext {
   config: Config;
   db: IDatabaseService;
   gitService: IGitService;
@@ -82,8 +82,7 @@ export function isTestMode(): boolean {
 // Returns an object describing whether initialization succeeded and the constructed services.
 export async function initializeServices(
   opts?: { simulateFail?: boolean; instantiateDb?: boolean; configPath?: string },
-): Promise<IServiceContext> {
-  let dbLocal: IDatabaseService | undefined;
+): Promise<ServiceContext> {
   try {
     if (opts?.simulateFail) throw new Error("simulate-failure");
     let configPath = opts?.configPath;
@@ -99,7 +98,17 @@ export async function initializeServices(
     // Only import and instantiate DatabaseService if explicitly requested by caller.
     // Importing the DB module may load native dynamic libraries during module initialization,
     // which unit tests need to avoid unless they're prepared to close them.
-    if (opts?.instantiateDb || !isTestMode()) {
+    let dbLocal: IDatabaseService;
+    if (opts?.instantiateDb) {
+      dbLocal = new DatabaseService(cfg);
+      if (dbLocal.close) {
+        try {
+          await dbLocal.close();
+        } catch {
+          // ignore close errors in test helper
+        }
+      }
+    } else if (!isTestMode()) {
       dbLocal = new DatabaseService(cfg);
     } else {
       // Stub db with no-op methods to prevent crashes
@@ -122,13 +131,6 @@ export async function initializeServices(
       configService: cfgService,
     };
   } catch (err) {
-    if (dbLocal && typeof dbLocal.close === "function") {
-      try {
-        await dbLocal.close();
-      } catch {
-        // ignore close errors in failure path
-      }
-    }
     // Fallback minimal stubs (same as runtime fallback)
     const cfg = {
       system: { root: Deno.cwd() },

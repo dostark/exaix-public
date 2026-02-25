@@ -7,7 +7,7 @@
  * @related-files [src/tui/dashboard_view.ts]
  */
 import type { IPortalService } from "./portal_manager_view.ts";
-import type { IDatabaseService, IJournalFilterOptions } from "../services/db.ts";
+import type { JournalFilterOptions } from "../services/db.ts";
 import type { JSONValue } from "../types.ts";
 import {
   AgentHealth,
@@ -102,12 +102,12 @@ export class MockPlanService {
 
 /**
  * MockLogService
- * Mock implementation of the IDatabaseService interface for TDD and dashboard wiring tests.
+ * Mock implementation of the DatabaseService interface for TDD and dashboard wiring tests.
  * Returns an empty activity list.
  */
-export class MockLogService implements IDatabaseService {
+export class MockLogService {
   /** Returns an empty list of recent activity logs. */
-  queryActivity(_filter?: IJournalFilterOptions) {
+  queryActivity(_filter?: JournalFilterOptions) {
     return Promise.resolve([]);
   }
 

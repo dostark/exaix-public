@@ -12,7 +12,7 @@ import { createGroupNode, createNode, getFirstNodeId, type ITreeNode } from "../
 import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { type DialogBase } from "../helpers/dialog_base.ts";
 import { type IKeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
-import type { IActivityRecord, IJournalFilterOptions } from "../services/db.ts";
+import type { ActivityRecord, JournalFilterOptions } from "../services/db.ts";
 import { DialogStatus } from "../enums.ts";
 import type { JSONObject } from "../types.ts";
 
@@ -22,7 +22,7 @@ import type { JSONObject } from "../types.ts";
  * Service interface for log access.
  */
 export interface ILogService {
-  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]>;
+  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]>;
 }
 
 export interface ILogEntry {
@@ -219,7 +219,7 @@ export const MONITOR_KEY_BINDINGS = new MonitorViewBindings().KEY_BINDINGS;
  * View/controller for monitoring logs. Delegates to injected LogService.
  */
 export class MonitorView {
-  private filter: IJournalFilterOptions = {};
+  private filter: JournalFilterOptions = {};
   private isPaused = false;
   private logs: ILogEntry[] = [];
 
@@ -245,7 +245,7 @@ export class MonitorView {
   }
 
   /** Set the filter for logs. */
-  setFilter(filter: IJournalFilterOptions): void {
+  setFilter(filter: JournalFilterOptions): void {
     this.filter = { ...this.filter, ...filter };
   }
 
@@ -343,7 +343,7 @@ export class MinimalLogServiceMock implements ILogService {
     this.logs = logs;
   }
 
-  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
+  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]> {
     let filtered = this.logs;
 
     if (filter.agentId) {

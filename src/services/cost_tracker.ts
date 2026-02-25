@@ -6,7 +6,7 @@
  * @dependencies [DatabaseService, Config, Constants, ProviderType]
  * @related-files [src/services/db.ts, src/config/schema.ts]
  */
-import { DatabaseService, type ISqliteParam } from "./db.ts";
+import { DatabaseService, type SqliteParam } from "./db.ts";
 import type { Config } from "../config/schema.ts";
 import {
   COST_RATE_ANTHROPIC,
@@ -209,7 +209,7 @@ export class CostTracker {
       VALUES ${placeholders}
     `;
 
-    const params: ISqliteParam[] = [];
+    const params: SqliteParam[] = [];
     for (const record of records) {
       params.push(
         crypto.randomUUID(),

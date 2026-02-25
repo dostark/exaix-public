@@ -1,6 +1,6 @@
 import { assertEquals, assertStringIncludes } from "@std/assert";
 import { JournalCommands } from "../../src/cli/commands/journal_commands.ts";
-import type { IJournalFilterOptions } from "../../src/services/db.ts";
+import type { JournalFilterOptions } from "../../src/services/db.ts";
 import { initTestDbService } from "../helpers/db.ts";
 import { captureAllOutputs, captureConsoleOutput, expectExitWithLogs } from "./helpers/test_utils.ts";
 import {
@@ -28,9 +28,9 @@ import {
 Deno.test("JournalCommands maps explicit options into query filters", async () => {
   const { db, config, cleanup } = await initTestDbService();
   const originalQuery = db.queryActivity.bind(db);
-  const captured: IJournalFilterOptions[] = [];
+  const captured: JournalFilterOptions[] = [];
 
-  db.queryActivity = (filter: IJournalFilterOptions) => {
+  db.queryActivity = (filter: JournalFilterOptions) => {
     captured.push(filter);
     return Promise.resolve([]);
   };
@@ -63,9 +63,9 @@ Deno.test("JournalCommands maps explicit options into query filters", async () =
 Deno.test("JournalCommands maps filter strings to query filters", async () => {
   const { db, config, cleanup } = await initTestDbService();
   const originalQuery = db.queryActivity.bind(db);
-  const captured: IJournalFilterOptions[] = [];
+  const captured: JournalFilterOptions[] = [];
 
-  db.queryActivity = (filter: IJournalFilterOptions) => {
+  db.queryActivity = (filter: JournalFilterOptions) => {
     captured.push(filter);
     return Promise.resolve([]);
   };
