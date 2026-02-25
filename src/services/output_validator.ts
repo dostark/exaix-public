@@ -16,25 +16,139 @@
  */
 
 import { z, ZodError, ZodType, ZodTypeDef } from "zod";
-import { Plan, PlanSchema, PlanStepSchema } from "../schemas/plan_schema.ts";
+import { PlanSchema, PlanStepSchema } from "../schemas/plan_schema.ts";
 import { AnalysisFindingSeverity, AnalysisFindingType } from "../enums.ts";
 import { repairJSON } from "./json_repair.ts";
 import { describeSchema } from "../schemas/schema_describer.ts";
 import { JSONValue, JSONValueSchema } from "../types.ts";
 
-// ============================================================================
-// Output Type Registry
-// ============================================================================
-
 /**
  * Supported output format types
  */
-export type OutputFormat =
+export type IOutputFormat =
   | "xml_tagged"
   | "json"
   | "json_in_content"
   | "plain"
   | "markdown";
+
+export type IOutputSchemaName = keyof typeof OutputSchemas;
+
+/**
+ * Detailed validation error
+ */
+export interface IValidationError {
+  path: string[];
+  message: string;
+  code: string;
+  expected?: string;
+  received?: string;
+}
+
+export type IEvaluation = z.infer<typeof OutputSchemas.evaluation>;
+export type IAnalysis = z.infer<typeof OutputSchemas.analysis>;
+export type ISimpleResponse = z.infer<typeof OutputSchemas.simpleResponse>;
+export type IToolCall = z.infer<typeof OutputSchemas.toolCall>;
+export type IActionSequence = z.infer<typeof OutputSchemas.actionSequence>;
+
+/**
+ * Result of parsing XML-tagged output
+ */
+export interface IParsedXMLOutput {
+  thought: string;
+  content: string;
+  raw: string;
+}
+
+/**
+ * Result of structured output validation
+ */
+export interface IValidationResult<T> {
+  success: boolean;
+  value?: T;
+  errors?: IValidationError[];
+  repairAttempted: boolean;
+  repairSucceeded: boolean;
+  raw: string;
+  parsed?: IParsedXMLOutput;
+}
+
+/**
+ * Validation metrics for tracking
+ */
+export interface IValidationMetrics {
+  totalAttempts: number;
+  successfulValidations: number;
+  repairAttempts: number;
+  successfulRepairs: number;
+  failuresByErrorType: Record<string, number>;
+}
+
+/**
+ * Configuration for OutputValidator
+ */
+export interface IOutputValidatorConfig {
+  /** Enable automatic JSON repair attempts */
+  autoRepair?: boolean;
+
+  /** Maximum repair attempts before giving up */
+  maxRepairAttempts?: number;
+
+  /** Function to call LLM for repair (optional) */
+  llmRepairFn?: (content: string, schema: string, error: string) => Promise<string>;
+}
+
+/**
+ * Interface for OutputValidator service
+ */
+export interface IOutputValidator {
+  /**
+   * Parse XML-tagged response (<thought>, <content>)
+   */
+  parseXMLTags(raw: string): IParsedXMLOutput;
+
+  /**
+   * Validate content against a Zod schema
+   */
+  validate<T>(
+    content: string,
+    schema: ZodType<T, ZodTypeDef, unknown>,
+  ): IValidationResult<T>;
+
+  /**
+   * Validate content using a named schema from the registry
+   */
+  validateWithSchema<K extends IOutputSchemaName>(
+    content: string,
+    schemaName: K,
+  ): IValidationResult<z.infer<(typeof OutputSchemas)[K]>>;
+
+  /**
+   * Parse XML tags and validate content against a schema
+   */
+  parseAndValidate<T>(
+    raw: string,
+    schema: ZodType<T, ZodTypeDef, unknown>,
+  ): IValidationResult<T>;
+
+  /**
+   * Parse XML tags and validate using a named schema
+   */
+  parseAndValidateWithSchema<K extends IOutputSchemaName>(
+    raw: string,
+    schemaName: K,
+  ): IValidationResult<z.infer<(typeof OutputSchemas)[K]>>;
+
+  /**
+   * Get current validation metrics
+   */
+  getMetrics(): IValidationMetrics;
+
+  /**
+   * Reset validation metrics
+   */
+  resetMetrics(): void;
+}
 
 /**
  * Registry of output schemas for different agent types
@@ -98,7 +212,7 @@ export const OutputSchemas = {
       type: z.string(),
       target: z.string().optional(),
       params: z.record(JSONValueSchema).optional(),
-      condition: z.string().optional(),
+      fallback: z.string().optional(),
     })).min(1),
     fallback: z.string().optional(),
   }),
@@ -109,28 +223,6 @@ export type OutputSchemaName = keyof typeof OutputSchemas;
 // ============================================================================
 // Parsed Output Types
 // ============================================================================
-
-/**
- * Result of parsing XML-tagged output
- */
-export interface ParsedXMLOutput {
-  thought: string;
-  content: string;
-  raw: string;
-}
-
-/**
- * Result of structured output validation
- */
-export interface ValidationResult<T> {
-  success: boolean;
-  value?: T;
-  errors?: ValidationError[];
-  repairAttempted: boolean;
-  repairSucceeded: boolean;
-  raw: string;
-  parsed?: ParsedXMLOutput;
-}
 
 /**
  * Detailed validation error
@@ -144,91 +236,14 @@ export type ValidationError = {
 };
 
 /**
- * Validation metrics for tracking
- */
-export interface ValidationMetrics {
-  totalAttempts: number;
-  successfulValidations: number;
-  repairAttempts: number;
-  successfulRepairs: number;
-  failuresByErrorType: Record<string, number>;
-}
-
-/**
- * Configuration for OutputValidator
- */
-export interface OutputValidatorConfig {
-  /** Enable automatic JSON repair attempts */
-  autoRepair?: boolean;
-
-  /** Maximum repair attempts before giving up */
-  maxRepairAttempts?: number;
-
-  /** Function to call LLM for repair (optional) */
-  llmRepairFn?: (content: string, schema: string, error: string) => Promise<string>;
-}
-
-/**
- * Interface for OutputValidator service
- */
-export interface IOutputValidator {
-  /**
-   * Parse XML-tagged response (<thought>, <content>)
-   */
-  parseXMLTags(raw: string): ParsedXMLOutput;
-
-  /**
-   * Validate content against a Zod schema
-   */
-  validate<T>(
-    content: string,
-    schema: ZodType<T, ZodTypeDef, unknown>,
-  ): ValidationResult<T>;
-
-  /**
-   * Validate content using a named schema from the registry
-   */
-  validateWithSchema<K extends OutputSchemaName>(
-    content: string,
-    schemaName: K,
-  ): ValidationResult<z.infer<(typeof OutputSchemas)[K]>>;
-
-  /**
-   * Parse XML tags and validate content against a schema
-   */
-  parseAndValidate<T>(
-    raw: string,
-    schema: ZodType<T, ZodTypeDef, unknown>,
-  ): ValidationResult<T>;
-
-  /**
-   * Parse XML tags and validate using a named schema
-   */
-  parseAndValidateWithSchema<K extends OutputSchemaName>(
-    raw: string,
-    schemaName: K,
-  ): ValidationResult<z.infer<(typeof OutputSchemas)[K]>>;
-
-  /**
-   * Get current validation metrics
-   */
-  getMetrics(): ValidationMetrics;
-
-  /**
-   * Reset validation metrics
-   */
-  resetMetrics(): void;
-}
-
-/**
  * OutputValidator provides structured output parsing and validation
  */
 export class OutputValidator implements IOutputValidator {
-  private config: Required<Omit<OutputValidatorConfig, "llmRepairFn">> & {
-    llmRepairFn?: OutputValidatorConfig["llmRepairFn"];
+  private config: Required<Omit<IOutputValidatorConfig, "llmRepairFn">> & {
+    llmRepairFn?: IOutputValidatorConfig["llmRepairFn"];
   };
 
-  private metrics: ValidationMetrics = {
+  private metrics: IValidationMetrics = {
     totalAttempts: 0,
     successfulValidations: 0,
     repairAttempts: 0,
@@ -236,7 +251,7 @@ export class OutputValidator implements IOutputValidator {
     failuresByErrorType: {},
   };
 
-  constructor(config: OutputValidatorConfig = {}) {
+  constructor(config: IOutputValidatorConfig = {}) {
     this.config = {
       autoRepair: config.autoRepair ?? true,
       maxRepairAttempts: config.maxRepairAttempts ?? 3,
@@ -251,7 +266,7 @@ export class OutputValidator implements IOutputValidator {
   /**
    * Parse XML-tagged response (<thought>, <content>)
    */
-  parseXMLTags(raw: string): ParsedXMLOutput {
+  parseXMLTags(raw: string): IParsedXMLOutput {
     if (raw == null) {
       return { thought: "", content: "", raw: "" };
     }
@@ -292,9 +307,9 @@ export class OutputValidator implements IOutputValidator {
   validate<T>(
     content: string,
     schema: ZodType<T, ZodTypeDef, unknown>,
-  ): ValidationResult<T> {
+  ): IValidationResult<T> {
     this.metrics.totalAttempts++;
-    const result: ValidationResult<T> = {
+    const result: IValidationResult<T> = {
       success: false,
       repairAttempted: false,
       repairSucceeded: false,
@@ -371,10 +386,10 @@ export class OutputValidator implements IOutputValidator {
   /**
    * Validate content using a named schema from the registry
    */
-  validateWithSchema<K extends OutputSchemaName>(
+  validateWithSchema<K extends IOutputSchemaName>(
     content: string,
     schemaName: K,
-  ): ValidationResult<z.infer<(typeof OutputSchemas)[K]>> {
+  ): IValidationResult<z.infer<(typeof OutputSchemas)[K]>> {
     const schema = OutputSchemas[schemaName];
     // Use type assertion since we know OutputSchemas[K] matches the expected type
     return this.validate(
@@ -393,7 +408,7 @@ export class OutputValidator implements IOutputValidator {
   parseAndValidate<T>(
     raw: string,
     schema: ZodType<T, ZodTypeDef, unknown>,
-  ): ValidationResult<T> {
+  ): IValidationResult<T> {
     const parsed = this.parseXMLTags(raw);
     const result = this.validate(parsed.content, schema);
     result.parsed = parsed;
@@ -404,10 +419,10 @@ export class OutputValidator implements IOutputValidator {
   /**
    * Parse XML tags and validate using a named schema
    */
-  parseAndValidateWithSchema<K extends OutputSchemaName>(
+  parseAndValidateWithSchema<K extends IOutputSchemaName>(
     raw: string,
     schemaName: K,
-  ): ValidationResult<z.infer<(typeof OutputSchemas)[K]>> {
+  ): IValidationResult<z.infer<(typeof OutputSchemas)[K]>> {
     const schema = OutputSchemas[schemaName];
     // Use type assertion since we know OutputSchemas[K] matches the expected type
     return this.parseAndValidate(
@@ -426,8 +441,8 @@ export class OutputValidator implements IOutputValidator {
   async repairWithLLM<T>(
     content: string,
     schema: ZodType<T, ZodTypeDef, unknown>,
-    errors: ValidationError[],
-  ): Promise<ValidationResult<T>> {
+    errors: IValidationError[],
+  ): Promise<IValidationResult<T>> {
     if (!this.config.llmRepairFn) {
       throw new Error("LLM repair function not configured");
     }
@@ -461,7 +476,7 @@ export class OutputValidator implements IOutputValidator {
   /**
    * Get current validation metrics
    */
-  getMetrics(): ValidationMetrics {
+  getMetrics(): IValidationMetrics {
     return { ...this.metrics };
   }
 
@@ -491,7 +506,7 @@ export class OutputValidator implements IOutputValidator {
  * Create an OutputValidator with default settings
  */
 export function createOutputValidator(
-  config?: OutputValidatorConfig,
+  config?: IOutputValidatorConfig,
 ): OutputValidator {
   return new OutputValidator(config);
 }
@@ -506,16 +521,5 @@ export function createPlanValidator(): OutputValidator {
   });
 }
 
-// ============================================================================
-// Type Exports
-// ============================================================================
-
-export type Evaluation = z.infer<typeof OutputSchemas.evaluation>;
-export type Analysis = z.infer<typeof OutputSchemas.analysis>;
-export type SimpleResponse = z.infer<typeof OutputSchemas.simpleResponse>;
-export type ToolCall = z.infer<typeof OutputSchemas.toolCall>;
-export type ActionSequence = z.infer<typeof OutputSchemas.actionSequence>;
-
-// Re-export plan types
-export type { Plan };
-export { PlanSchema, PlanStepSchema };
+// Note: Plan, PlanSchema, and PlanStepSchema must be imported directly from
+// src/schemas/plan_schema.ts according to CODE_STYLE.md.

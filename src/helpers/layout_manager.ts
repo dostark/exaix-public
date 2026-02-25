@@ -7,14 +7,21 @@
  * @related-files [src/helpers/layout_rendering.ts]
  */
 
-import { colorize, type TuiTheme } from "./colors.ts";
+import { colorize, type ITuiTheme } from "./colors.ts";
 import { renderLayoutPresetListLines } from "./layout_rendering.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "./constants.ts";
 import type { JSONObject } from "../types.ts";
 
-// ===== Layout Types =====
+// ===== Layout Interfaces =====
 
-export interface LayoutPane {
+export interface IPaneBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface ILayoutPane {
   id: string;
   viewName: string;
   x: number;
@@ -23,32 +30,25 @@ export interface LayoutPane {
   height: number;
   focused: boolean;
   maximized?: boolean;
-  previousBounds?: PaneBounds;
+  previousBounds?: IPaneBounds;
 }
 
-export interface PaneBounds {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface Layout {
+export interface ILayout {
   name: string;
-  panes: LayoutPane[];
+  panes: ILayoutPane[];
   activePaneId: string;
   version: string;
   createdAt?: string;
   description?: string;
 }
 
-export interface LayoutPreset {
+export interface ILayoutPreset {
   id: string;
   name: string;
   description: string;
   icon: string;
   shortcut: string;
-  create: (width: number, height: number, views: string[]) => LayoutPane[];
+  create: (width: number, height: number, views: string[]) => ILayoutPane[];
 }
 
 // ===== Layout Constants =====
@@ -61,7 +61,7 @@ export const MAX_PANES = 6;
 
 // ===== Layout Presets =====
 
-export const LAYOUT_PRESETS: LayoutPreset[] = [
+export const LAYOUT_PRESETS: ILayoutPreset[] = [
   {
     id: "single",
     name: "Single",
@@ -263,7 +263,7 @@ export const LAYOUT_PRESETS: LayoutPreset[] = [
 
 type ResizeDirection = "left" | "right" | "up" | "down";
 
-function resizePaneLeft(pane: LayoutPane, affected: LayoutPane | undefined, amount: number) {
+function resizePaneLeft(pane: ILayoutPane, affected: ILayoutPane | undefined, amount: number) {
   if (pane.width - amount < MIN_PANE_WIDTH) return;
   pane.width -= amount;
   if (affected && affected.x > pane.x) {
@@ -273,8 +273,8 @@ function resizePaneLeft(pane: LayoutPane, affected: LayoutPane | undefined, amou
 }
 
 function resizePaneRight(
-  pane: LayoutPane,
-  affected: LayoutPane | undefined,
+  pane: ILayoutPane,
+  affected: ILayoutPane | undefined,
   amount: number,
   terminalWidth: number,
 ) {
@@ -289,7 +289,7 @@ function resizePaneRight(
   }
 }
 
-function resizePaneUp(pane: LayoutPane, affected: LayoutPane | undefined, amount: number) {
+function resizePaneUp(pane: ILayoutPane, affected: ILayoutPane | undefined, amount: number) {
   if (pane.height - amount < MIN_PANE_HEIGHT) return;
   pane.height -= amount;
   if (affected && affected.y > pane.y) {
@@ -299,8 +299,8 @@ function resizePaneUp(pane: LayoutPane, affected: LayoutPane | undefined, amount
 }
 
 function resizePaneDown(
-  pane: LayoutPane,
-  affected: LayoutPane | undefined,
+  pane: ILayoutPane,
+  affected: ILayoutPane | undefined,
   amount: number,
   terminalHeight: number,
 ) {
@@ -318,8 +318,8 @@ function resizePaneDown(
 const RESIZE_PANE_HANDLERS: Record<
   ResizeDirection,
   (args: {
-    pane: LayoutPane;
-    affected?: LayoutPane;
+    pane: ILayoutPane;
+    affected?: ILayoutPane;
     amount: number;
     terminalWidth: number;
     terminalHeight: number;
@@ -334,7 +334,7 @@ const RESIZE_PANE_HANDLERS: Record<
 export class LayoutManager {
   private terminalWidth: number;
   private terminalHeight: number;
-  private namedLayouts: Map<string, Layout> = new Map();
+  private namedLayouts: Map<string, ILayout> = new Map();
 
   constructor(width: number = TUI_LAYOUT_FULL_WIDTH, height: number = TUI_LAYOUT_DEFAULT_HEIGHT) {
     this.terminalWidth = width;
@@ -354,19 +354,19 @@ export class LayoutManager {
 
   // ===== Preset Operations =====
 
-  getPresets(): LayoutPreset[] {
+  getPresets(): ILayoutPreset[] {
     return LAYOUT_PRESETS;
   }
 
-  getPresetById(id: string): LayoutPreset | undefined {
+  getPresetById(id: string): ILayoutPreset | undefined {
     return LAYOUT_PRESETS.find((p) => p.id === id);
   }
 
-  getPresetByShortcut(shortcut: string): LayoutPreset | undefined {
+  getPresetByShortcut(shortcut: string): ILayoutPreset | undefined {
     return LAYOUT_PRESETS.find((p) => p.shortcut === shortcut);
   }
 
-  applyPreset(presetId: string, views: string[]): LayoutPane[] {
+  applyPreset(presetId: string, views: string[]): ILayoutPane[] {
     const preset = this.getPresetById(presetId);
     if (!preset) {
       throw new Error(`Unknown layout preset: ${presetId}`);
@@ -374,21 +374,21 @@ export class LayoutManager {
     return preset.create(this.terminalWidth, this.terminalHeight, views);
   }
 
-  // ===== Pane Operations =====
+  // ===== IPane Operations =====
 
   splitPane(
-    panes: LayoutPane[],
+    panes: ILayoutPane[],
     paneId: string,
     direction: "vertical" | "horizontal",
     newViewName: string,
-  ): LayoutPane[] {
+  ): ILayoutPane[] {
     if (panes.length >= MAX_PANES) {
       throw new Error(`Maximum panes (${MAX_PANES}) reached`);
     }
 
     const pane = panes.find((p) => p.id === paneId);
     if (!pane) {
-      throw new Error(`Pane not found: ${paneId}`);
+      throw new Error(`IPane not found: ${paneId}`);
     }
 
     const newId = `pane-${Date.now()}`;
@@ -396,14 +396,14 @@ export class LayoutManager {
     if (direction === "vertical") {
       const halfWidth = Math.floor(pane.width / 2);
       if (halfWidth < MIN_PANE_WIDTH) {
-        throw new Error(`Pane too narrow to split (min: ${MIN_PANE_WIDTH})`);
+        throw new Error(`IPane too narrow to split (min: ${MIN_PANE_WIDTH})`);
       }
 
       // Resize original pane
       pane.width = halfWidth;
 
       // Create new pane
-      const newPane: LayoutPane = {
+      const newPane: ILayoutPane = {
         id: newId,
         viewName: newViewName,
         x: pane.x + halfWidth,
@@ -417,14 +417,14 @@ export class LayoutManager {
     } else {
       const halfHeight = Math.floor(pane.height / 2);
       if (halfHeight < MIN_PANE_HEIGHT) {
-        throw new Error(`Pane too short to split (min: ${MIN_PANE_HEIGHT})`);
+        throw new Error(`IPane too short to split (min: ${MIN_PANE_HEIGHT})`);
       }
 
       // Resize original pane
       pane.height = halfHeight;
 
       // Create new pane
-      const newPane: LayoutPane = {
+      const newPane: ILayoutPane = {
         id: newId,
         viewName: newViewName,
         x: pane.x,
@@ -438,14 +438,14 @@ export class LayoutManager {
     }
   }
 
-  closePane(panes: LayoutPane[], paneId: string): LayoutPane[] {
+  closePane(panes: ILayoutPane[], paneId: string): ILayoutPane[] {
     if (panes.length <= 1) {
       throw new Error("Cannot close the last pane");
     }
 
     const index = panes.findIndex((p) => p.id === paneId);
     if (index === -1) {
-      throw new Error(`Pane not found: ${paneId}`);
+      throw new Error(`IPane not found: ${paneId}`);
     }
 
     const closedPane = panes[index];
@@ -466,7 +466,7 @@ export class LayoutManager {
     return remaining;
   }
 
-  private findAdjacentPane(panes: LayoutPane[], closed: LayoutPane): LayoutPane | undefined {
+  private findAdjacentPane(panes: ILayoutPane[], closed: ILayoutPane): ILayoutPane | undefined {
     // Prefer horizontal adjacency (same row)
     const horizontal = panes.find(
       (p) =>
@@ -489,7 +489,7 @@ export class LayoutManager {
     return panes[0];
   }
 
-  private expandToFill(pane: LayoutPane, closed: LayoutPane): void {
+  private expandToFill(pane: ILayoutPane, closed: ILayoutPane): void {
     // If same row, expand horizontally
     if (pane.y === closed.y && pane.height === closed.height) {
       if (pane.x + pane.width === closed.x) {
@@ -513,14 +513,14 @@ export class LayoutManager {
   }
 
   resizePane(
-    panes: LayoutPane[],
+    panes: ILayoutPane[],
     paneId: string,
     direction: ResizeDirection,
     amount: number = 5,
-  ): LayoutPane[] {
+  ): ILayoutPane[] {
     const pane = panes.find((p) => p.id === paneId);
     if (!pane) {
-      throw new Error(`Pane not found: ${paneId}`);
+      throw new Error(`IPane not found: ${paneId}`);
     }
 
     // Find adjacent pane that will be affected
@@ -538,10 +538,10 @@ export class LayoutManager {
   }
 
   private findAffectedPane(
-    panes: LayoutPane[],
-    source: LayoutPane,
+    panes: ILayoutPane[],
+    source: ILayoutPane,
     direction: "left" | "right" | "up" | "down",
-  ): LayoutPane | undefined {
+  ): ILayoutPane | undefined {
     switch (direction) {
       case "right":
         return panes.find(
@@ -574,15 +574,15 @@ export class LayoutManager {
     }
   }
 
-  private overlapsVertically(a: LayoutPane, b: LayoutPane): boolean {
+  private overlapsVertically(a: ILayoutPane, b: ILayoutPane): boolean {
     return !(a.y + a.height <= b.y || b.y + b.height <= a.y);
   }
 
-  private overlapsHorizontally(a: LayoutPane, b: LayoutPane): boolean {
+  private overlapsHorizontally(a: ILayoutPane, b: ILayoutPane): boolean {
     return !(a.x + a.width <= b.x || b.x + b.width <= a.x);
   }
 
-  swapPanes(panes: LayoutPane[], paneId1: string, paneId2: string): LayoutPane[] {
+  swapPanes(panes: ILayoutPane[], paneId1: string, paneId2: string): ILayoutPane[] {
     const pane1 = panes.find((p) => p.id === paneId1);
     const pane2 = panes.find((p) => p.id === paneId2);
 
@@ -598,10 +598,10 @@ export class LayoutManager {
     return panes;
   }
 
-  maximizePane(panes: LayoutPane[], paneId: string): LayoutPane[] {
+  maximizePane(panes: ILayoutPane[], paneId: string): ILayoutPane[] {
     const pane = panes.find((p) => p.id === paneId);
     if (!pane) {
-      throw new Error(`Pane not found: ${paneId}`);
+      throw new Error(`IPane not found: ${paneId}`);
     }
 
     if (pane.maximized) {
@@ -634,8 +634,8 @@ export class LayoutManager {
 
   // ===== Named Layouts =====
 
-  saveNamedLayout(name: string, panes: LayoutPane[], activePaneId: string): Layout {
-    const layout: Layout = {
+  saveNamedLayout(name: string, panes: ILayoutPane[], activePaneId: string): ILayout {
+    const layout: ILayout = {
       name,
       panes: panes.map((p) => ({ ...p })),
       activePaneId,
@@ -646,7 +646,7 @@ export class LayoutManager {
     return layout;
   }
 
-  loadNamedLayout(name: string): Layout | undefined {
+  loadNamedLayout(name: string): ILayout | undefined {
     return this.namedLayouts.get(name);
   }
 
@@ -658,14 +658,14 @@ export class LayoutManager {
     return Array.from(this.namedLayouts.keys());
   }
 
-  getNamedLayouts(): Layout[] {
+  getNamedLayouts(): ILayout[] {
     return Array.from(this.namedLayouts.values());
   }
 
   // ===== Layout Serialization =====
 
-  serializeLayout(panes: LayoutPane[], activePaneId: string): string {
-    const layout: Layout = {
+  serializeLayout(panes: ILayoutPane[], activePaneId: string): string {
+    const layout: ILayout = {
       name: "default",
       panes: panes.map((p) => ({
         id: p.id,
@@ -683,7 +683,7 @@ export class LayoutManager {
     return JSON.stringify(layout, null, 2);
   }
 
-  deserializeLayout(json: string): Layout | null {
+  deserializeLayout(json: string): ILayout | null {
     try {
       const layout = JSON.parse(json);
       if (this.validateLayout(layout)) {
@@ -695,11 +695,11 @@ export class LayoutManager {
     }
   }
 
-  validateLayout(layout: unknown): layout is Layout {
+  validateLayout(layout: unknown): layout is ILayout {
     if (typeof layout !== "object" || layout === null) return false;
     const l = layout as JSONObject;
 
-    const requiredLayoutStrings: Array<keyof Layout> = ["name", "activePaneId", "version"];
+    const requiredLayoutStrings: Array<keyof ILayout> = ["name", "activePaneId", "version"];
     if (requiredLayoutStrings.some((k) => typeof l[k] !== "string")) return false;
     if (!Array.isArray(l.panes)) return false;
 
@@ -719,7 +719,7 @@ export class LayoutManager {
 
   // ===== Layout Normalization =====
 
-  normalizeLayout(panes: LayoutPane[]): LayoutPane[] {
+  normalizeLayout(panes: ILayoutPane[]): ILayoutPane[] {
     // Ensure panes fit within terminal bounds
     return panes.map((pane) => {
       // First normalize position
@@ -736,9 +736,9 @@ export class LayoutManager {
 // ===== Rendering Helpers =====
 
 export function renderLayoutPresetPicker(
-  presets: LayoutPreset[],
+  presets: ILayoutPreset[],
   selectedIndex: number,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string[] {
   const lines: string[] = [];
 
@@ -770,7 +770,7 @@ export function renderLayoutPresetPicker(
   return lines;
 }
 
-export function renderPaneBorder(pane: LayoutPane, theme: TuiTheme): string {
+export function renderPaneBorder(pane: ILayoutPane, theme: ITuiTheme): string {
   const icon = pane.focused ? "●" : "○";
   const viewShort = pane.viewName.replace("View", "");
   const maxLabel = pane.maximized ? " [MAX]" : "";
@@ -783,7 +783,7 @@ export function renderPaneBorder(pane: LayoutPane, theme: TuiTheme): string {
 
 export function renderResizeIndicator(
   direction: "left" | "right" | "up" | "down",
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string {
   const arrows: Record<string, string> = {
     left: "◀",

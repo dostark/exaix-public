@@ -7,34 +7,25 @@
  * @related-files [src/flows/flow_loader.ts, src/services/request_router.ts, src/services/flow_reporter.ts]
  */
 
-export interface IFlowRunner {
-  execute(
-    flow: Flow,
-    request: { userPrompt: string; traceId?: string; requestId?: string },
-  ): Promise<FlowResult>;
-}
-import { Flow, FlowStep } from "../schemas/flow.ts";
+import { IFlow, IFlowStep } from "../schemas/flow.ts";
 import { DependencyResolver } from "./dependency_resolver.ts";
-import { AgentExecutionResult } from "../services/agent_runner.ts";
+import { IAgentExecutionResult } from "../services/agent_runner.ts";
 import { ConditionEvaluator } from "./condition_evaluator.ts";
 import { appendToRequest, extractSection, mergeAsContext, passthrough, templateFill } from "./transforms.ts";
 import { jsonExtract, JSONValue } from "../types.ts";
 import type { IDatabaseService } from "../services/db.ts";
 
-/**
- * Error thrown when flow execution fails
- */
-export class FlowExecutionError extends Error {
-  constructor(message: string, public readonly flowRunId?: string) {
-    super(message);
-    this.name = "FlowExecutionError";
-  }
+export interface IFlowRunner {
+  execute(
+    flow: IFlow,
+    request: { userPrompt: string; traceId?: string; requestId?: string },
+  ): Promise<IFlowResult>;
 }
 
 /**
  * Result of executing a single flow step
  */
-export interface StepResult {
+export interface IStepResult {
   /** Step ID */
   stepId: string;
   /** Whether the step succeeded */
@@ -44,7 +35,7 @@ export interface StepResult {
   /** The condition that caused skipping (if skipped) */
   skipReason?: string;
   /** Execution result if successful */
-  result?: AgentExecutionResult;
+  result?: IAgentExecutionResult;
   /** Error message if failed */
   error?: string;
   /** Execution duration in milliseconds */
@@ -58,13 +49,13 @@ export interface StepResult {
 /**
  * Result of executing a complete flow
  */
-export interface FlowResult {
+export interface IFlowResult {
   /** Unique flow run identifier */
   flowRunId: string;
   /** Whether the overall flow succeeded */
   success: boolean;
   /** Results for each step */
-  stepResults: Map<string, StepResult>;
+  stepResults: Map<string, IStepResult>;
   /** Final aggregated output */
   output: string;
   /** Total execution duration */
@@ -87,16 +78,16 @@ export interface FlowResult {
 /**
  * Interface for executing individual agent steps
  */
-export interface AgentExecutor {
-  run(agentId: string, request: FlowStepRequest): Promise<AgentExecutionResult>;
+export interface IAgentExecutor {
+  run(agentId: string, request: IFlowStepRequest): Promise<IAgentExecutionResult>;
 }
 
 /**
  * Request format for flow step execution
  */
-export interface FlowStepRequest {
+export interface IFlowStepRequest {
   userPrompt: string;
-  context?: FlowStepContext;
+  context?: IFlowStepContext;
   traceId?: string;
   requestId?: string;
   /** Skills to apply for this step execution (Phase 17) */
@@ -106,15 +97,25 @@ export interface FlowStepRequest {
 /**
  * Context data for flow step requests
  */
-interface FlowStepContext {
+export interface IFlowStepContext {
   [key: string]: string | number | boolean | string[] | null | undefined;
 }
 
 /**
  * Interface for logging flow events
  */
-export interface FlowEventLogger {
+export interface IFlowEventLogger {
   log(event: string, payload: Record<string, JSONValue | undefined>): void;
+}
+
+/**
+ * Error thrown when flow execution fails
+ */
+export class FlowExecutionError extends Error {
+  constructor(message: string, public readonly flowRunId?: string) {
+    super(message);
+    this.name = "FlowExecutionError";
+  }
 }
 
 type BuiltInTransformHandler = (ctx: {
@@ -182,15 +183,15 @@ export class FlowRunner implements IFlowRunner {
   private conditionEvaluator: ConditionEvaluator;
 
   constructor(
-    private agentExecutor: AgentExecutor,
-    private eventLogger: FlowEventLogger,
+    private agentExecutor: IAgentExecutor,
+    private eventLogger: IFlowEventLogger,
     private db?: IDatabaseService, // Optional for token aggregation
   ) {
     this.conditionEvaluator = new ConditionEvaluator();
   }
 
-  private getFlowLogBase(
-    flow: Flow,
+  private getIFlowLogBase(
+    flow: IFlow,
     request: { traceId?: string; requestId?: string },
     options: { includeStepCount?: boolean } = {},
   ): Record<string, JSONValue | undefined> {
@@ -206,16 +207,16 @@ export class FlowRunner implements IFlowRunner {
    * Execute a flow with the given request
    */
   async execute(
-    flow: Flow,
+    flow: IFlow,
     request: { userPrompt: string; traceId?: string; requestId?: string },
-  ): Promise<FlowResult> {
+  ): Promise<IFlowResult> {
     const flowRunId = crypto.randomUUID();
     const startedAt = new Date();
 
     // Validate flow
-    await this.validateFlow(flow, request, flowRunId);
+    await this.validateIFlow(flow, request, flowRunId);
 
-    const stepResults = new Map<string, StepResult>();
+    const stepResults = new Map<string, IStepResult>();
 
     try {
       // Execute waves and aggregate results
@@ -231,30 +232,30 @@ export class FlowRunner implements IFlowRunner {
   /**
    * Validate the flow before execution
    */
-  private async validateFlow(
-    flow: Flow,
+  private async validateIFlow(
+    flow: IFlow,
     request: { userPrompt: string; traceId?: string; requestId?: string },
     flowRunId: string,
   ): Promise<void> {
     // Log flow validation start
     await this.eventLogger.log("flow.validating", {
-      ...this.getFlowLogBase(flow, request, { includeStepCount: true }),
+      ...this.getIFlowLogBase(flow, request, { includeStepCount: true }),
     });
 
     // Validate flow has steps
     if (flow.steps.length === 0) {
       await this.eventLogger.log("flow.validation.failed", {
-        error: "Flow must have at least one step",
-        ...this.getFlowLogBase(flow, request),
+        error: "IFlow must have at least one step",
+        ...this.getIFlowLogBase(flow, request),
       });
-      throw new FlowExecutionError("Flow must have at least one step", flowRunId);
+      throw new FlowExecutionError("IFlow must have at least one step", flowRunId);
     }
 
     // Log flow validation success
     await this.eventLogger.log("flow.validated", {
       maxParallelism: flow.settings?.maxParallelism ?? 3,
       failFast: flow.settings?.failFast ?? true,
-      ...this.getFlowLogBase(flow, request, { includeStepCount: true }),
+      ...this.getIFlowLogBase(flow, request, { includeStepCount: true }),
     });
   }
 
@@ -262,23 +263,23 @@ export class FlowRunner implements IFlowRunner {
    * Execute waves sequentially with parallel step execution
    */
   private async executeWaves(
-    flow: Flow,
+    flow: IFlow,
     request: { userPrompt: string; traceId?: string; requestId?: string },
     flowRunId: string,
-    stepResults: Map<string, StepResult>,
+    stepResults: Map<string, IStepResult>,
   ): Promise<void> {
     // Log flow start
     await this.eventLogger.log("flow.started", {
       flowRunId,
       maxParallelism: flow.settings?.maxParallelism ?? 3,
       failFast: flow.settings?.failFast ?? true,
-      ...this.getFlowLogBase(flow, request, { includeStepCount: true }),
+      ...this.getIFlowLogBase(flow, request, { includeStepCount: true }),
     });
 
     // Resolve dependency graph
     await this.eventLogger.log("flow.dependencies.resolving", {
       flowRunId,
-      ...this.getFlowLogBase(flow, request),
+      ...this.getIFlowLogBase(flow, request),
     });
 
     const resolver = new DependencyResolver(flow.steps);
@@ -288,7 +289,7 @@ export class FlowRunner implements IFlowRunner {
       flowRunId,
       waveCount: waves.length,
       totalSteps: flow.steps.length,
-      ...this.getFlowLogBase(flow, request),
+      ...this.getIFlowLogBase(flow, request),
     });
 
     const failFast = flow.settings?.failFast ?? true;
@@ -304,12 +305,12 @@ export class FlowRunner implements IFlowRunner {
    * Execute a single wave of steps in parallel
    */
   private async executeWave(
-    flow: Flow,
+    flow: IFlow,
     request: { userPrompt: string; traceId?: string; requestId?: string },
     flowRunId: string,
     wave: string[],
     waveIndex: number,
-    stepResults: Map<string, StepResult>,
+    stepResults: Map<string, IStepResult>,
     failFast: boolean,
   ): Promise<void> {
     const waveNumber = waveIndex + 1;
@@ -362,13 +363,13 @@ export class FlowRunner implements IFlowRunner {
    * Process results from a completed wave
    */
   private async processWaveResults(
-    _flow: Flow,
+    _flow: IFlow,
     request: { userPrompt: string; traceId?: string; requestId?: string },
     flowRunId: string,
     wave: string[],
     waveNumber: number,
-    waveResults: PromiseSettledResult<StepResult>[],
-    stepResults: Map<string, StepResult>,
+    waveResults: PromiseSettledResult<IStepResult>[],
+    stepResults: Map<string, IStepResult>,
     failFast: boolean,
   ): Promise<boolean> {
     let waveFailed = false;
@@ -400,7 +401,7 @@ export class FlowRunner implements IFlowRunner {
             : String(promiseResult.reason);
           waveErrors.push({ stepId, error });
 
-          const errorStepResult: StepResult = {
+          const errorIStepResult: IStepResult = {
             stepId,
             success: false,
             error: error instanceof Error ? error.message : String(error),
@@ -409,7 +410,7 @@ export class FlowRunner implements IFlowRunner {
             completedAt: new Date(),
           };
 
-          stepResults.set(stepId, errorStepResult);
+          stepResults.set(stepId, errorIStepResult);
           waveFailureCount++;
 
           if (failFast) {
@@ -467,12 +468,12 @@ export class FlowRunner implements IFlowRunner {
    * Aggregate output and create final flow result
    */
   private async aggregateAndFinalize(
-    flow: Flow,
+    flow: IFlow,
     request: { userPrompt: string; traceId?: string; requestId?: string },
     flowRunId: string,
-    stepResults: Map<string, StepResult>,
+    stepResults: Map<string, IStepResult>,
     startedAt: Date,
-  ): Promise<FlowResult> {
+  ): Promise<IFlowResult> {
     // Aggregate output
     await this.eventLogger.log("flow.output.aggregating", {
       flowRunId,
@@ -537,10 +538,10 @@ export class FlowRunner implements IFlowRunner {
    * Handle execution errors and create error result
    */
   private async handleExecutionError(
-    flow: Flow,
+    flow: IFlow,
     request: { userPrompt: string; traceId?: string; requestId?: string },
     flowRunId: string,
-    stepResults: Map<string, StepResult>,
+    stepResults: Map<string, IStepResult>,
     startedAt: Date,
     error: unknown,
   ): Promise<never> {
@@ -574,10 +575,10 @@ export class FlowRunner implements IFlowRunner {
   private async executeStep(
     flowRunId: string,
     stepId: string,
-    flow: Flow,
+    flow: IFlow,
     request: { userPrompt: string; traceId?: string; requestId?: string },
-    stepResults: Map<string, StepResult>,
-  ): Promise<StepResult> {
+    stepResults: Map<string, IStepResult>,
+  ): Promise<IStepResult> {
     const step = flow.steps.find((s) => s.id === stepId)!;
     const startedAt = new Date();
 
@@ -720,11 +721,11 @@ export class FlowRunner implements IFlowRunner {
    */
   private async prepareStepRequest(
     flowRunId: string,
-    step: FlowStep,
-    flow: Flow,
+    step: IFlowStep,
+    flow: IFlow,
     originalRequest: { userPrompt: string; traceId?: string; requestId?: string },
-    stepResults: Map<string, StepResult>,
-  ): Promise<FlowStepRequest> {
+    stepResults: Map<string, IStepResult>,
+  ): Promise<IFlowStepRequest> {
     let inputData: string;
 
     // Collect input data based on source
@@ -828,7 +829,7 @@ export class FlowRunner implements IFlowRunner {
   /**
    * Aggregate output from the specified steps
    */
-  private aggregateOutput(flow: Flow, stepResults: Map<string, StepResult>): string {
+  private aggregateOutput(flow: IFlow, stepResults: Map<string, IStepResult>): string {
     const outputFrom = Array.isArray(flow.output.from) ? flow.output.from : [flow.output.from];
     const format = flow.output.format || "markdown";
 
@@ -876,19 +877,19 @@ export class FlowRunner implements IFlowRunner {
 
   /**
    * Safe wrapper around `executeStep` to ensure unexpected throws
-   * are converted into a `StepResult` and do not propagate.
+   * are converted into a `IStepResult` and do not propagate.
    */
   private async executeStepSafe(
     flowRunId: string,
     stepId: string,
-    flow: Flow,
+    flow: IFlow,
     request: { userPrompt: string; traceId?: string; requestId?: string },
-    stepResults: Map<string, StepResult>,
-  ): Promise<StepResult> {
+    stepResults: Map<string, IStepResult>,
+  ): Promise<IStepResult> {
     try {
       return await this.executeStep(flowRunId, stepId, flow, request, stepResults);
     } catch (error) {
-      // Log unexpected error and return a safe failure StepResult
+      // Log unexpected error and return a safe failure IStepResult
       try {
         await this.eventLogger.log("flow.step.unexpected_error", {
           flowRunId,
@@ -921,7 +922,7 @@ export class FlowRunner implements IFlowRunner {
     flowId: string,
     traceId: string,
     requestId?: string,
-  ): Promise<FlowResult["tokenSummary"] | null> {
+  ): Promise<IFlowResult["tokenSummary"] | null> {
     try {
       // Query all LLM usage events for this trace
       const tokenEvents = await this.db!.queryActivity({

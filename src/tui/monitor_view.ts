@@ -8,11 +8,11 @@
  */
 
 import { BaseTreeView } from "./base/base_tree_view.ts";
-import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "../helpers/tree_view.ts";
-import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { createGroupNode, createNode, getFirstNodeId, type ITreeNode } from "../helpers/tree_view.ts";
+import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { type DialogBase } from "../helpers/dialog_base.ts";
-import { type KeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
-import type { ActivityRecord, JournalFilterOptions } from "../services/db.ts";
+import { type IKeyBinding, KeyBindingCategory } from "../helpers/keyboard.ts";
+import type { IActivityRecord, IJournalFilterOptions } from "../services/db.ts";
 import { DialogStatus } from "../enums.ts";
 import type { JSONObject } from "../types.ts";
 
@@ -21,11 +21,11 @@ import type { JSONObject } from "../types.ts";
 /**
  * Service interface for log access.
  */
-export interface LogService {
-  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]>;
+export interface ILogService {
+  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]>;
 }
 
-export interface LogEntry {
+export interface ILogEntry {
   id: string;
   trace_id: string;
   actor: string | null;
@@ -38,7 +38,7 @@ export interface LogEntry {
 
 // ===== View State =====
 
-export interface MonitorViewExtensions {
+export interface IMonitorViewExtensions {
   /** Whether detail view is shown */
   showDetail: boolean;
   /** Detail content for expanded log */
@@ -84,7 +84,7 @@ export enum MonitorViewAction {
 }
 
 export class MonitorViewBindings extends KeyBindingsBase<MonitorViewAction, KeyBindingCategory> {
-  readonly KEY_BINDINGS: readonly KeyBinding<MonitorViewAction, KeyBindingCategory>[] = [
+  readonly KEY_BINDINGS: readonly IKeyBinding<MonitorViewAction, KeyBindingCategory>[] = [
     {
       key: KEYS.UP,
       action: MonitorViewAction.NAVIGATE_UP,
@@ -219,11 +219,11 @@ export const MONITOR_KEY_BINDINGS = new MonitorViewBindings().KEY_BINDINGS;
  * View/controller for monitoring logs. Delegates to injected LogService.
  */
 export class MonitorView {
-  private filter: JournalFilterOptions = {};
+  private filter: IJournalFilterOptions = {};
   private isPaused = false;
-  private logs: LogEntry[] = [];
+  private logs: ILogEntry[] = [];
 
-  constructor(private readonly logService: LogService) {
+  constructor(private readonly logService: ILogService) {
     this.refreshLogs();
   }
 
@@ -231,7 +231,7 @@ export class MonitorView {
   async refreshLogs(): Promise<void> {
     if (!this.isPaused) {
       const activities = await this.logService.queryActivity(this.filter);
-      this.logs = activities.map((log): LogEntry => ({
+      this.logs = activities.map((log): ILogEntry => ({
         ...log,
         payload: typeof log.payload === "string" ? JSON.parse(log.payload) : log.payload,
       }));
@@ -239,18 +239,18 @@ export class MonitorView {
   }
 
   /** Get all current logs. */
-  async getLogs(): Promise<LogEntry[]> {
+  async getLogs(): Promise<ILogEntry[]> {
     await this.refreshLogs();
     return [...this.logs];
   }
 
   /** Set the filter for logs. */
-  setFilter(filter: JournalFilterOptions): void {
+  setFilter(filter: IJournalFilterOptions): void {
     this.filter = { ...this.filter, ...filter };
   }
 
   /** Get filtered logs (DB filtering is applied on refresh). */
-  getFilteredLogs(): LogEntry[] {
+  getFilteredLogs(): ILogEntry[] {
     // DB handles structural filtering (agent, action, trace)
     // Client only needs to handle textual search if applied later in TUI session
     return this.logs;
@@ -336,14 +336,14 @@ export class MonitorView {
 /**
  * Minimal LogService mock for TUI session tests
  */
-export class MinimalLogServiceMock implements LogService {
-  private logs: LogEntry[] = [];
+export class MinimalLogServiceMock implements ILogService {
+  private logs: ILogEntry[] = [];
 
-  constructor(logs: LogEntry[] = []) {
+  constructor(logs: ILogEntry[] = []) {
     this.logs = logs;
   }
 
-  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]> {
+  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
     let filtered = this.logs;
 
     if (filter.agentId) {
@@ -362,7 +362,7 @@ export class MinimalLogServiceMock implements LogService {
     }))]);
   }
 
-  setLogs(logs: LogEntry[]): void {
+  setLogs(logs: ILogEntry[]): void {
     this.logs = logs;
   }
 }
@@ -370,9 +370,9 @@ export class MinimalLogServiceMock implements LogService {
 /**
  * Interactive TUI session for Monitor View
  */
-export class MonitorTuiSession extends BaseTreeView<LogEntry> {
+export class MonitorTuiSession extends BaseTreeView<ILogEntry> {
   public readonly monitorView: MonitorView;
-  public monitorExtensions: MonitorViewExtensions;
+  public monitorExtensions: IMonitorViewExtensions;
   public autoRefreshTimer: number | null = null;
   // Track what dialog is pending
   public pendingDialogType: "search" | "filter-agent" | "filter-time" | "filter-trace" | "filter-action" | null = null;
@@ -397,7 +397,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
     return "Monitor";
   }
 
-  getLogTree(): TreeNode[] {
+  getLogTree(): ITreeNode[] {
     return this.state.tree;
   }
 
@@ -425,7 +425,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
     return this.state.refreshConfig.enabled;
   }
 
-  override getKeyBindings(): KeyBinding[] {
+  override getKeyBindings(): IKeyBinding[] {
     return [...MONITOR_KEY_BINDINGS];
   }
 
@@ -435,7 +435,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
 
   // ===== Tree Building =====
 
-  protected override buildTree(items: LogEntry[] = []): void {
+  protected override buildTree(items: ILogEntry[] = []): void {
     const logs = items.length > 0 ? items : this.monitorView.getFilteredLogs();
 
     if (this.monitorExtensions.groupBy === "none") {
@@ -443,11 +443,11 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
       this.state.tree = logs.map((log) => {
         const icon = LOG_ICONS[log.action_type as keyof typeof LOG_ICONS] || LOG_ICONS["default"];
         const label = `${icon} ${this.formatTimestamp(log.timestamp)} ${log.action_type}`;
-        return createNode<LogEntry>(log.id, label, "log", { expanded: true });
+        return createNode<ILogEntry>(log.id, label, "log", { expanded: true });
       });
     } else if (this.monitorExtensions.groupBy === "agent") {
       // Group by agent
-      const byAgent = new Map<string, LogEntry[]>();
+      const byAgent = new Map<string, ILogEntry[]>();
       for (const log of logs) {
         const agent = log.agent_id || "unknown";
         if (!byAgent.has(agent)) {
@@ -460,9 +460,9 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
         const children = agentLogs.map((log) => {
           const icon = LOG_ICONS[log.action_type as keyof typeof LOG_ICONS] || LOG_ICONS["default"];
           const label = `${icon} ${this.formatTimestamp(log.timestamp)} ${log.action_type}`;
-          return createNode<LogEntry>(log.id, label, "log", { expanded: true });
+          return createNode<ILogEntry>(log.id, label, "log", { expanded: true });
         });
-        return createGroupNode<LogEntry>(
+        return createGroupNode<ILogEntry>(
           `agent-${agent}`,
           `🤖 ${agent} (${agentLogs.length})`,
           "agent-group",
@@ -471,7 +471,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
       });
     } else if (this.monitorExtensions.groupBy === "action") {
       // Group by action type
-      const byAction = new Map<string, LogEntry[]>();
+      const byAction = new Map<string, ILogEntry[]>();
       for (const log of logs) {
         if (!byAction.has(log.action_type)) {
           byAction.set(log.action_type, []);
@@ -483,9 +483,9 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
         const icon = LOG_ICONS[action as keyof typeof LOG_ICONS] || LOG_ICONS["default"];
         const children = actionLogs.map((log) => {
           const label = `${this.formatTimestamp(log.timestamp)} [${log.agent_id || "unknown"}]`;
-          return createNode<LogEntry>(log.id, label, "log", { expanded: true });
+          return createNode<ILogEntry>(log.id, label, "log", { expanded: true });
         });
-        return createGroupNode<LogEntry>(
+        return createGroupNode<ILogEntry>(
           `action-${action}`,
           `${icon} ${action} (${actionLogs.length})`,
           "action-group",
@@ -541,7 +541,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
   }
 
   renderHelp(): string[] {
-    const sections: HelpSection[] = [
+    const sections: IHelpSection[] = [
       {
         title: "Navigation",
         items: [
@@ -585,15 +585,15 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
     });
   }
 
-  renderActionButtons(): string {
+  renderActionButtons(): string[] {
     const parts: string[] = [];
-    parts.push("[Space] Pause");
+    parts.push(`[Space] ${this.isPaused() ? "Resume" : "Pause"}`);
     parts.push("[b] Bookmark");
     parts.push("[s] Search");
     parts.push("[g] Group");
     parts.push("[R] Refresh");
     parts.push("[?] Help");
-    return parts.join(" | ");
+    return parts;
   }
 
   renderStatusLine(): string {
@@ -623,7 +623,7 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
     }
   }
 
-  private formatLogDetail(log: LogEntry): string {
+  private formatLogDetail(log: ILogEntry): string {
     const lines: string[] = [];
     lines.push(`ID: ${log.id}`);
     lines.push(`Trace ID: ${log.trace_id}`);
@@ -971,9 +971,9 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
     }
   }
 
-  public override handleKeySync(key: string): boolean {
+  public override async handleKey(key: string): Promise<boolean> {
     // 1. Handle dialogs (delegated to base)
-    if (this.handleDialogKeys(key)) return true;
+    if (await this.handleDialogKeys(key)) return true;
 
     // 2. Handle detail view
     if (this.monitorExtensions.showDetail) {
@@ -1000,10 +1000,6 @@ export class MonitorTuiSession extends BaseTreeView<LogEntry> {
     if (this.handleBulkActionKey(key)) return true;
 
     return false;
-  }
-
-  override handleKey(key: string): Promise<boolean> {
-    return Promise.resolve(this.handleKeySync(key));
   }
 
   // ===== Lifecycle =====

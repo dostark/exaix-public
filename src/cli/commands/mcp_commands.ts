@@ -7,11 +7,11 @@
  * @related-files [src/mcp/server.ts, src/cli/main.ts]
  */
 
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 import { MCPServer } from "../../mcp/server.ts";
 import { DEFAULT_MCP_HTTP_PORT } from "../../config/constants.ts";
 
-export interface McpStdioServer {
+export interface IMcpStdioServer {
   start(): void;
   handleRequest(request: unknown): Promise<unknown>;
 }
@@ -26,7 +26,7 @@ export interface McpStdioIo {
  * Run the MCP JSON-RPC stdio loop.
  * Extracted for testability; `McpCommands.start()` wires this to Deno stdio.
  */
-export async function runMcpStdioLoop(server: McpStdioServer, io: McpStdioIo): Promise<void> {
+export async function runMcpStdioLoop(server: IMcpStdioServer, io: McpStdioIo): Promise<void> {
   server.start();
 
   const decoder = new TextDecoder();
@@ -56,7 +56,7 @@ export async function runMcpStdioLoop(server: McpStdioServer, io: McpStdioIo): P
 }
 
 export class McpCommands extends BaseCommand {
-  constructor(context: CommandContext) {
+  constructor(context: ICommandContext) {
     super(context);
   }
 

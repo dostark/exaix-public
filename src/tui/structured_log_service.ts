@@ -7,15 +7,15 @@
  * @related-files [src/services/structured_logger.ts, src/tui/structured_log_viewer.ts]
  */
 
-import type { LogEntry, StructuredLogger } from "../services/structured_logger.ts";
-import type { LogQueryOptions, StructuredLogService } from "./structured_log_viewer.ts";
+import type { IStructuredLogEntry, StructuredLogger } from "../services/structured_logger.ts";
+import type { IStructuredLogService, LogQueryOptions } from "./structured_log_viewer.ts";
 
 /**
- * Implementation of StructuredLogService using StructuredLogger
+ * Implementation of IStructuredLogService using StructuredLogger
  */
-export class StructuredLoggerService implements StructuredLogService {
-  private logBuffer: LogEntry[] = [];
-  private subscribers: Array<(entry: LogEntry) => void> = [];
+export class StructuredLoggerService implements IStructuredLogService {
+  private logBuffer: IStructuredLogEntry[] = [];
+  private subscribers: Array<(entry: IStructuredLogEntry) => void> = [];
   private maxBufferSize = 10000;
 
   constructor(private structuredLogger: StructuredLogger) {
@@ -25,7 +25,7 @@ export class StructuredLoggerService implements StructuredLogService {
     });
   }
 
-  getStructuredLogs(options: LogQueryOptions = {}): Promise<LogEntry[]> {
+  getStructuredLogs(options: LogQueryOptions = {}): Promise<IStructuredLogEntry[]> {
     try {
       // For now, return from buffer. In production, this would query a database
       // or read from log files based on the options
@@ -81,7 +81,7 @@ export class StructuredLoggerService implements StructuredLogService {
     }
   }
 
-  subscribeToLogs(callback: (entry: LogEntry) => void): () => void {
+  subscribeToLogs(callback: (entry: IStructuredLogEntry) => void): () => void {
     this.subscribers.push(callback);
     return () => {
       const index = this.subscribers.indexOf(callback);
@@ -91,19 +91,19 @@ export class StructuredLoggerService implements StructuredLogService {
     };
   }
 
-  async getLogsByCorrelationId(correlationId: string): Promise<LogEntry[]> {
+  async getLogsByCorrelationId(correlationId: string): Promise<IStructuredLogEntry[]> {
     return await this.getStructuredLogs({ correlationId });
   }
 
-  async getLogsByTraceId(traceId: string): Promise<LogEntry[]> {
+  async getLogsByTraceId(traceId: string): Promise<IStructuredLogEntry[]> {
     return await this.getStructuredLogs({ traceId });
   }
 
-  async getLogsByAgentId(agentId: string): Promise<LogEntry[]> {
+  async getLogsByAgentId(agentId: string): Promise<IStructuredLogEntry[]> {
     return await this.getStructuredLogs({ agentId });
   }
 
-  async exportLogs(filename: string, entries: LogEntry[]): Promise<void> {
+  async exportLogs(filename: string, entries: IStructuredLogEntry[]): Promise<void> {
     try {
       const jsonContent = JSON.stringify(entries, null, 2);
       await Deno.writeTextFile(filename, jsonContent);
@@ -114,7 +114,7 @@ export class StructuredLoggerService implements StructuredLogService {
     }
   }
 
-  addLogEntry(entry: LogEntry): void {
+  addLogEntry(entry: IStructuredLogEntry): void {
     // Add to buffer
     this.logBuffer.push(entry);
 
@@ -134,7 +134,7 @@ export class StructuredLoggerService implements StructuredLogService {
     }
   }
 
-  getLogBuffer(): LogEntry[] {
+  getLogBuffer(): IStructuredLogEntry[] {
     return [...this.logBuffer];
   }
 

@@ -6,12 +6,12 @@
  * @dependencies [MemoryBankSchema, Constants, Keyboard, DialogBase]
  * @related-files [src/helpers/dialog_base.ts, src/tui/memory_view/dialog_processor.ts]
  */
-import type { MemoryUpdateProposal } from "../../schemas/memory_bank.ts";
+import type { IMemoryUpdateProposal } from "../../schemas/memory_bank.ts";
 import { TUI_DIALOG_INNER_PADDING, TUI_LAYOUT_DIALOG_WIDTH } from "../../helpers/constants.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 import {
   DialogBase,
-  type DialogRenderOptions,
+  type IDialogRenderOptions,
   renderBoxLine,
   renderBoxTop,
   renderButton,
@@ -19,18 +19,120 @@ import {
   renderProposalInfo,
   setupDialogRender,
 } from "../../helpers/dialog_base.ts";
+import { DialogStatus } from "../../enums.ts";
 
 // ===== Dialog Types =====
+
+export interface IPromoteDialogResult {
+  learningTitle: string;
+  sourcePortal: string;
+}
+
+export interface IBulkApproveResult {
+  count: number;
+}
+
+export interface IApproveDialogResult {
+  proposalId: string;
+}
+
+export interface IRejectDialogResult {
+  proposalId: string;
+  reason: string;
+}
+
+export interface IAddLearningResult {
+  title: string;
+  category: string;
+  content: string;
+  tags: string[];
+  scope: "global" | "project";
+  portal?: string;
+}
 
 export type DialogResult<T = unknown> =
   | { type: DialogStatus.CONFIRMED; value: T }
   | { type: DialogStatus.CANCELLED };
 
-import { DialogStatus } from "../../enums.ts";
-
 export type DialogState = DialogStatus;
 
-function initMemoryDialogFrame(options: DialogRenderOptions): {
+export class BulkApproveDialog extends DialogBase<IBulkApproveResult> {
+  private count: number;
+  private progress = 0;
+  private inProgress = false;
+
+  constructor(count: number) {
+    super();
+    this.count = count;
+  }
+
+  getFocusableElements(): string[] {
+    return ["approve-all-btn", "cancel-btn"];
+  }
+
+  handleKey(key: string): void {
+    if (this.inProgress) return; // Ignore keys during progress
+
+    this.focusIndex = handleBinaryDialogKey(
+      key,
+      this.focusIndex,
+      () => this.confirm({ count: this.count }),
+      () => this.cancel(),
+    );
+  }
+
+  setProgress(current: number): void {
+    this.progress = current;
+    this.inProgress = current < this.count;
+  }
+
+  render(options: IDialogRenderOptions): string[] {
+    const { innerWidth, border, lines } = initMemoryDialogFrame(options);
+
+    lines.push(`┌─ Approve All Proposals ${border.slice(22)}┐`);
+    lines.push(`│${" ".repeat(innerWidth)}│`);
+    lines.push(`│  ${this.count} proposal(s) will be approved.${" ".repeat(Math.max(0, innerWidth - 36))}│`);
+    lines.push(`│${" ".repeat(innerWidth)}│`);
+
+    if (this.inProgress) {
+      // Show progress bar
+      const progressPct = Math.floor((this.progress / this.count) * 100);
+      const barWidth = innerWidth - 20;
+      const filled = Math.floor((this.progress / this.count) * barWidth);
+      const bar = "█".repeat(filled) + "░".repeat(barWidth - filled);
+      lines.push(`│  Progress: [${bar}] ${progressPct}%${" ".repeat(Math.max(0, innerWidth - barWidth - 18))}│`);
+      lines.push(`│  ${this.progress}/${this.count} completed${" ".repeat(Math.max(0, innerWidth - 18))}│`);
+    } else {
+      lines.push(`│  This action cannot be undone.${" ".repeat(Math.max(0, innerWidth - 33))}│`);
+    }
+
+    lines.push(`│${" ".repeat(innerWidth)}│`);
+
+    if (!this.inProgress) {
+      // Buttons
+      const approveBtn = this.focusIndex === 0 ? "[Approve All]" : " Approve All ";
+      const cancelBtn = this.focusIndex === 1 ? "[Cancel]" : " Cancel ";
+      appendCenteredButtons(lines, innerWidth, approveBtn, cancelBtn);
+    }
+
+    lines.push(`└${border}┘`);
+
+    return lines;
+  }
+
+  getResult(): DialogResult<IBulkApproveResult> {
+    if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
+      return { type: DialogStatus.CONFIRMED, value: this._resultValue };
+    }
+    return { type: DialogStatus.CANCELLED };
+  }
+
+  getCount(): number {
+    return this.count;
+  }
+}
+
+function initMemoryDialogFrame(options: IDialogRenderOptions): {
   innerWidth: number;
   border: string;
   lines: string[];
@@ -83,16 +185,10 @@ function appendCenteredButtons(
   lines.push(`│${" ".repeat(innerWidth)}│`);
 }
 
-// ===== Confirm Approve Dialog =====
+export class ConfirmApproveDialog extends DialogBase<IApproveDialogResult> {
+  private proposal: IMemoryUpdateProposal;
 
-export interface ApproveDialogResult {
-  proposalId: string;
-}
-
-export class ConfirmApproveDialog extends DialogBase<ApproveDialogResult> {
-  private proposal: MemoryUpdateProposal;
-
-  constructor(proposal: MemoryUpdateProposal) {
+  constructor(proposal: IMemoryUpdateProposal) {
     super();
     this.proposal = proposal;
   }
@@ -110,7 +206,7 @@ export class ConfirmApproveDialog extends DialogBase<ApproveDialogResult> {
     );
   }
 
-  render(options: DialogRenderOptions): string[] {
+  render(options: IDialogRenderOptions): string[] {
     const { theme, lines, innerWidth } = setupDialogRender(options);
 
     lines.push(renderBoxTop(innerWidth, " Approve Proposal ", theme));
@@ -137,31 +233,26 @@ export class ConfirmApproveDialog extends DialogBase<ApproveDialogResult> {
     return lines;
   }
 
-  getResult(): DialogResult<ApproveDialogResult> {
+  getResult(): DialogResult<IApproveDialogResult> {
     if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
       return { type: DialogStatus.CONFIRMED, value: this._resultValue };
     }
     return { type: DialogStatus.CANCELLED };
   }
 
-  getProposal(): MemoryUpdateProposal {
+  getProposal(): IMemoryUpdateProposal {
     return this.proposal;
   }
 }
 
 // ===== Confirm Reject Dialog =====
 
-export interface RejectDialogResult {
-  proposalId: string;
-  reason: string;
-}
-
-export class ConfirmRejectDialog extends DialogBase<RejectDialogResult> {
-  private proposal: MemoryUpdateProposal;
+export class ConfirmRejectDialog extends DialogBase<IRejectDialogResult> {
+  private proposal: IMemoryUpdateProposal;
   private reason = "";
   private inputActive = false;
 
-  constructor(proposal: MemoryUpdateProposal) {
+  constructor(proposal: IMemoryUpdateProposal) {
     super();
     this.proposal = proposal;
   }
@@ -208,7 +299,7 @@ export class ConfirmRejectDialog extends DialogBase<RejectDialogResult> {
     }
   }
 
-  render(options: DialogRenderOptions): string[] {
+  render(options: IDialogRenderOptions): string[] {
     const { theme, lines, innerWidth } = setupDialogRender(options);
 
     lines.push(renderBoxTop(innerWidth, " Reject Proposal ", theme));
@@ -236,7 +327,7 @@ export class ConfirmRejectDialog extends DialogBase<RejectDialogResult> {
     return lines;
   }
 
-  getResult(): DialogResult<RejectDialogResult> {
+  getResult(): DialogResult<IRejectDialogResult> {
     if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
       return { type: DialogStatus.CONFIRMED, value: this._resultValue };
     }
@@ -250,16 +341,7 @@ export class ConfirmRejectDialog extends DialogBase<RejectDialogResult> {
 
 // ===== Add Learning Dialog =====
 
-export interface AddLearningResult {
-  title: string;
-  category: string;
-  content: string;
-  tags: string[];
-  scope: "global" | "project";
-  portal?: string;
-}
-
-export class AddLearningDialog extends DialogBase<AddLearningResult> {
+export class AddLearningDialog extends DialogBase<IAddLearningResult> {
   private title = "";
   private category = "pattern";
   private content = "";
@@ -398,7 +480,7 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
     return true;
   }
 
-  private buildResult(): AddLearningResult {
+  private buildResult(): IAddLearningResult {
     return {
       title: this.title.trim(),
       category: this.category,
@@ -412,7 +494,7 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
     };
   }
 
-  render(options: DialogRenderOptions): string[] {
+  render(options: IDialogRenderOptions): string[] {
     const { innerWidth, border, lines } = initMemoryDialogFrame(options);
 
     lines.push(`┌─ Add Learning ${border.slice(13)}┐`);
@@ -455,7 +537,7 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
     return lines;
   }
 
-  getResult(): DialogResult<AddLearningResult> {
+  getResult(): DialogResult<IAddLearningResult> {
     if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
       return { type: DialogStatus.CONFIRMED, value: this._resultValue };
     }
@@ -491,12 +573,7 @@ export class AddLearningDialog extends DialogBase<AddLearningResult> {
 
 // ===== Promote Dialog =====
 
-export interface PromoteDialogResult {
-  learningTitle: string;
-  sourcePortal: string;
-}
-
-export class PromoteDialog extends DialogBase<PromoteDialogResult> {
+export class PromoteDialog extends DialogBase<IPromoteDialogResult> {
   private learningTitle: string;
   private sourcePortal: string;
 
@@ -523,7 +600,7 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
     );
   }
 
-  render(options: DialogRenderOptions): string[] {
+  render(options: IDialogRenderOptions): string[] {
     const { innerWidth, border, lines } = initMemoryDialogFrame(options);
 
     lines.push(`┌─ Promote to Global ${border.slice(18)}┐`);
@@ -544,7 +621,7 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
     return lines;
   }
 
-  getResult(): DialogResult<PromoteDialogResult> {
+  getResult(): DialogResult<IPromoteDialogResult> {
     if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
       return { type: DialogStatus.CONFIRMED, value: this._resultValue };
     }
@@ -557,87 +634,5 @@ export class PromoteDialog extends DialogBase<PromoteDialogResult> {
 
   getSourcePortal(): string {
     return this.sourcePortal;
-  }
-}
-
-// ===== Bulk Approve Dialog =====
-
-export interface BulkApproveResult {
-  count: number;
-}
-
-export class BulkApproveDialog extends DialogBase<BulkApproveResult> {
-  private count: number;
-  private progress = 0;
-  private inProgress = false;
-
-  constructor(count: number) {
-    super();
-    this.count = count;
-  }
-
-  getFocusableElements(): string[] {
-    return ["approve-all-btn", "cancel-btn"];
-  }
-
-  handleKey(key: string): void {
-    if (this.inProgress) return; // Ignore keys during progress
-
-    this.focusIndex = handleBinaryDialogKey(
-      key,
-      this.focusIndex,
-      () => this.confirm({ count: this.count }),
-      () => this.cancel(),
-    );
-  }
-
-  setProgress(current: number): void {
-    this.progress = current;
-    this.inProgress = current < this.count;
-  }
-
-  render(options: DialogRenderOptions): string[] {
-    const { innerWidth, border, lines } = initMemoryDialogFrame(options);
-
-    lines.push(`┌─ Approve All Proposals ${border.slice(22)}┐`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
-    lines.push(`│  ${this.count} proposal(s) will be approved.${" ".repeat(Math.max(0, innerWidth - 36))}│`);
-    lines.push(`│${" ".repeat(innerWidth)}│`);
-
-    if (this.inProgress) {
-      // Show progress bar
-      const progressPct = Math.floor((this.progress / this.count) * 100);
-      const barWidth = innerWidth - 20;
-      const filled = Math.floor((this.progress / this.count) * barWidth);
-      const bar = "█".repeat(filled) + "░".repeat(barWidth - filled);
-      lines.push(`│  Progress: [${bar}] ${progressPct}%${" ".repeat(Math.max(0, innerWidth - barWidth - 18))}│`);
-      lines.push(`│  ${this.progress}/${this.count} completed${" ".repeat(Math.max(0, innerWidth - 18))}│`);
-    } else {
-      lines.push(`│  This action cannot be undone.${" ".repeat(Math.max(0, innerWidth - 33))}│`);
-    }
-
-    lines.push(`│${" ".repeat(innerWidth)}│`);
-
-    if (!this.inProgress) {
-      // Buttons
-      const approveBtn = this.focusIndex === 0 ? "[Approve All]" : " Approve All ";
-      const cancelBtn = this.focusIndex === 1 ? "[Cancel]" : " Cancel ";
-      appendCenteredButtons(lines, innerWidth, approveBtn, cancelBtn);
-    }
-
-    lines.push(`└${border}┘`);
-
-    return lines;
-  }
-
-  getResult(): DialogResult<BulkApproveResult> {
-    if (this.state === DialogStatus.CONFIRMED && this._resultValue) {
-      return { type: DialogStatus.CONFIRMED, value: this._resultValue };
-    }
-    return { type: DialogStatus.CANCELLED };
-  }
-
-  getCount(): number {
-    return this.count;
   }
 }

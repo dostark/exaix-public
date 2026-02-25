@@ -1,4 +1,4 @@
-import { IModelProvider, ModelOptions } from "../providers.ts";
+import { IModelOptions, IModelProvider } from "../providers.ts";
 import { EventLogger } from "../../services/event_logger.ts";
 import { withRetry } from "./common.ts";
 import type { Config } from "../../config/schema.ts";
@@ -11,7 +11,11 @@ import type { Config } from "../../config/schema.ts";
  * @dependencies [providers, event_logger, common, schema]
  * @related-files [src/ai/providers.ts, src/ai/providers/openai_provider.ts]
  */
-export interface BaseProviderOptions {
+
+/**
+ * Options for base provider.
+ */
+export interface IBaseProviderOptions {
   apiKey: string;
   model?: string;
   id?: string;
@@ -37,7 +41,7 @@ export abstract class BaseProvider implements IModelProvider {
   public readonly timeoutMs: number;
 
   constructor(
-    options: BaseProviderOptions,
+    options: IBaseProviderOptions,
     defaultModel: string,
     defaultEndpoint: string,
     defaultTimeout: number,
@@ -58,7 +62,7 @@ export abstract class BaseProvider implements IModelProvider {
   /**
    * Generate a completion from the model.
    */
-  async generate(prompt: string, options?: ModelOptions): Promise<string> {
+  async generate(prompt: string, options?: IModelOptions): Promise<string> {
     return await withRetry(
       () => this.attemptGenerate(prompt, options),
       { maxRetries: this.maxRetries, baseDelayMs: this.retryDelayMs },
@@ -68,5 +72,5 @@ export abstract class BaseProvider implements IModelProvider {
   /**
    * Internal: attempt a single completion call.
    */
-  protected abstract attemptGenerate(prompt: string, options?: ModelOptions): Promise<string>;
+  protected abstract attemptGenerate(prompt: string, options?: IModelOptions): Promise<string>;
 }

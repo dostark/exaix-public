@@ -17,7 +17,7 @@ export type FileOperation = "create" | "modify" | "delete";
 /**
  * Represents a file change to be applied
  */
-export interface FileChange {
+export interface IFileChange {
   /** Relative path to file within portal */
   path: string;
   /** Operation to perform on file */
@@ -33,7 +33,7 @@ export interface FileChange {
  */
 export interface ParseResult {
   /** Successfully parsed file changes */
-  changes: FileChange[];
+  changes: IFileChange[];
   /** File paths that failed validation */
   invalidPaths: string[];
   /** Parsing errors encountered */
@@ -71,7 +71,7 @@ export function parseCodeGeneration(
   llmResponse: string,
   portalRoot: string,
 ): ParseResult {
-  const changes: FileChange[] = [];
+  const changes: IFileChange[] = [];
   const invalidPaths: string[] = [];
   const errors: string[] = [];
 
@@ -206,7 +206,7 @@ export function extractFilePaths(result: ParseResult): string[] {
  * @param changes - Array of file changes
  * @returns Record of operation counts
  */
-export function countOperations(changes: FileChange[]): Record<FileOperation, number> {
+export function countOperations(changes: IFileChange[]): Record<FileOperation, number> {
   const counts: Record<FileOperation, number> = {
     create: 0,
     modify: 0,

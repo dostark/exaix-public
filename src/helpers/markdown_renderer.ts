@@ -10,6 +10,13 @@
 import { ConfidenceLevel } from "../enums.ts";
 import { TUI_LAYOUT_FULL_WIDTH } from "./constants.ts";
 
+// ===== Interfaces =====
+
+export interface IRenderOptions {
+  useColors: boolean;
+  maxWidth?: number;
+}
+
 // ===== ANSI Styles =====
 
 export const MarkdownStyles = {
@@ -26,15 +33,10 @@ export const MarkdownStyles = {
   reset: "\x1b[0m",
 };
 
-export interface RenderOptions {
-  useColors: boolean;
-  maxWidth?: number;
-}
-
 /**
  * Render markdown text to ANSI-styled output
  */
-export function renderMarkdown(text: string, options: RenderOptions): string {
+export function renderMarkdown(text: string, options: IRenderOptions): string {
   const { useColors, maxWidth = TUI_LAYOUT_FULL_WIDTH } = options;
   const s = useColors ? MarkdownStyles : emptyStyles();
 

@@ -10,10 +10,49 @@
 import { z } from "zod";
 import type { IModelProvider } from "../ai/providers.ts";
 import type { DatabaseService } from "./db.ts";
-import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
+import { AgentRunner, type IBlueprint, type IParsedRequest } from "./agent_runner.ts";
 import { createOutputValidator, OutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
 import { ConfidenceAssessmentLevel, FactorImpact } from "../enums.ts";
+
+export interface IConfidenceScorerConfig {
+  lowConfidenceThreshold?: number;
+  veryLowThreshold?: number;
+  highConfidenceThreshold?: number;
+  autoReview?: boolean;
+  extractionPromptTemplate?: string;
+  verbose?: boolean;
+  db?: DatabaseService;
+}
+
+export interface IConfidenceResult {
+  content: string;
+  confidence: ConfidenceAssessment;
+  flaggedForReview: boolean;
+  extractedAt: Date;
+}
+
+export interface IAggregatedConfidence {
+  average: number;
+  min: number;
+  max: number;
+  weighted: number;
+  level: ConfidenceAssessmentLevel;
+  sources: Array<{
+    agentId: string;
+    score: number;
+    weight: number;
+  }>;
+  anyFlaggedForReview: boolean;
+}
+
+export interface IConfidenceMetrics {
+  totalAssessments: number;
+  averageScore: number;
+  flaggedCount: number;
+  flaggedRate: number;
+  levelDistribution: Record<ConfidenceAssessmentLevel, number>;
+}
 import {
   CONFIDENCE_ADJUSTMENT_CERTAIN,
   CONFIDENCE_ADJUSTMENT_HEDGING,
@@ -60,45 +99,6 @@ export type ConfidenceAssessment = z.infer<typeof ConfidenceSchema>;
 // ============================================================================
 // Configuration Types
 // ============================================================================
-
-export interface ConfidenceScorerConfig {
-  lowConfidenceThreshold?: number;
-  veryLowThreshold?: number;
-  highConfidenceThreshold?: number;
-  autoReview?: boolean;
-  extractionPromptTemplate?: string;
-  verbose?: boolean;
-  db?: DatabaseService;
-}
-
-export interface ConfidenceResult {
-  content: string;
-  confidence: ConfidenceAssessment;
-  flaggedForReview: boolean;
-  extractedAt: Date;
-}
-
-export interface AggregatedConfidence {
-  average: number;
-  min: number;
-  max: number;
-  weighted: number;
-  level: ConfidenceAssessmentLevel;
-  sources: Array<{
-    agentId: string;
-    score: number;
-    weight: number;
-  }>;
-  anyFlaggedForReview: boolean;
-}
-
-export interface ConfidenceMetrics {
-  totalAssessments: number;
-  averageScore: number;
-  flaggedCount: number;
-  flaggedRate: number;
-  levelDistribution: Record<ConfidenceAssessmentLevel, number>;
-}
 
 // ============================================================================
 // Default Prompt Template
@@ -164,7 +164,7 @@ export class ConfidenceScorer {
     db?: DatabaseService;
   };
 
-  private metrics: ConfidenceMetrics = {
+  private metrics: IConfidenceMetrics = {
     totalAssessments: 0,
     averageScore: 0,
     flaggedCount: 0,
@@ -180,7 +180,7 @@ export class ConfidenceScorer {
 
   private scoreSum = 0;
 
-  constructor(modelProvider: IModelProvider, config: ConfidenceScorerConfig = {}) {
+  constructor(modelProvider: IModelProvider, config: IConfidenceScorerConfig = {}) {
     const {
       lowConfidenceThreshold = CONFIDENCE_DEFAULT_LOW_THRESHOLD,
       veryLowThreshold = CONFIDENCE_DEFAULT_VERY_LOW_THRESHOLD,
@@ -205,20 +205,18 @@ export class ConfidenceScorer {
     this.outputValidator = createOutputValidator({ autoRepair: true });
   }
 
-  /**
-   * Extract confidence assessment from a response
-   */
-  async assess(request: string, response: string, traceId?: string): Promise<ConfidenceResult> {
+  /** */
+  async assess(request: string, response: string, traceId?: string): Promise<IConfidenceResult> {
     const assessmentPrompt = this.config.extractionPromptTemplate
       .replace("{request}", request)
       .replace("{response}", response);
 
-    const blueprint: Blueprint = {
+    const blueprint: IBlueprint = {
       systemPrompt: "You are an expert at assessing AI response confidence. Provide structured JSON output.",
       agentId: "confidence-assessor",
     };
 
-    const parsedRequest: ParsedRequest = {
+    const parsedRequest: IParsedRequest = {
       userPrompt: assessmentPrompt,
       context: {},
       traceId,
@@ -327,7 +325,7 @@ export class ConfidenceScorer {
    */
   aggregate(
     confidences: Array<{ agentId: string; confidence: ConfidenceAssessment; weight?: number }>,
-  ): AggregatedConfidence {
+  ): IAggregatedConfidence {
     if (confidences.length === 0) {
       return {
         average: 0,
@@ -373,14 +371,14 @@ export class ConfidenceScorer {
    */
   wrapWithConfidence(
     agentRunner: AgentRunner,
-  ): (blueprint: Blueprint, request: ParsedRequest) => Promise<ConfidenceResult> {
-    return async (blueprint: Blueprint, request: ParsedRequest): Promise<ConfidenceResult> => {
+  ): (blueprint: IBlueprint, request: IParsedRequest) => Promise<IConfidenceResult> {
+    return async (blueprint: IBlueprint, request: IParsedRequest): Promise<IConfidenceResult> => {
       const result = await agentRunner.run(blueprint, request);
       return await this.assess(request.userPrompt, result.content, request.traceId);
     };
   }
 
-  getMetrics(): ConfidenceMetrics {
+  getMetrics(): IConfidenceMetrics {
     return { ...this.metrics };
   }
 
@@ -453,14 +451,14 @@ export class ConfidenceScorer {
 
 export function createConfidenceScorer(
   modelProvider: IModelProvider,
-  config?: ConfidenceScorerConfig,
+  config?: IConfidenceScorerConfig,
 ): ConfidenceScorer {
   return new ConfidenceScorer(modelProvider, config);
 }
 
 export function createStrictConfidenceScorer(
   modelProvider: IModelProvider,
-  config?: ConfidenceScorerConfig,
+  config?: IConfidenceScorerConfig,
 ): ConfidenceScorer {
   return new ConfidenceScorer(modelProvider, {
     lowConfidenceThreshold: CONFIDENCE_THRESHOLD_MEDIUM,
@@ -473,7 +471,7 @@ export function createStrictConfidenceScorer(
 
 export function createLenientConfidenceScorer(
   modelProvider: IModelProvider,
-  config?: ConfidenceScorerConfig,
+  config?: IConfidenceScorerConfig,
 ): ConfidenceScorer {
   return new ConfidenceScorer(modelProvider, {
     lowConfidenceThreshold: CONFIDENCE_THRESHOLD_VERY_LOW,

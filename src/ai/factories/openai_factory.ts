@@ -7,7 +7,7 @@
  * @related-files [src/ai/providers/openai_provider.ts]
  */
 import { AbstractKeyBasedProviderFactory } from "./abstract_provider_factory.ts";
-import { IModelProvider, ResolvedProviderOptions } from "../types.ts";
+import { IModelProvider, IResolvedProviderOptions } from "../types.ts";
 import { OpenAIProvider } from "../providers/openai_provider.ts";
 
 export class OpenAIProviderFactory extends AbstractKeyBasedProviderFactory {
@@ -15,7 +15,7 @@ export class OpenAIProviderFactory extends AbstractKeyBasedProviderFactory {
     super("OPENAI_API_KEY");
   }
 
-  async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
+  async create(options: IResolvedProviderOptions): Promise<IModelProvider> {
     const apiKey = await this.getApiKey(options);
 
     return new OpenAIProvider({

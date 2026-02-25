@@ -8,11 +8,11 @@
  */
 
 import type {
-  ExecutionMemory,
-  GlobalMemory,
-  Learning,
-  MemoryUpdateProposal,
-  ProjectMemory,
+  IExecutionMemory,
+  IGlobalMemory,
+  ILearning,
+  IMemoryUpdateProposal,
+  IProjectMemory,
 } from "../../services/memory_bank.ts";
 import { MemoryTuiScope } from "./memory_scope.ts";
 import {
@@ -22,15 +22,15 @@ import {
   TUI_PREFIX_PROJECT,
 } from "../../helpers/constants.ts";
 import { renderCategoryBadge, renderConfidence, renderMarkdown } from "../../helpers/markdown_renderer.ts";
-import type { MemoryServiceInterface, TreeNode } from "./types.ts";
+import type { IMemoryServiceInterface, ITreeNode } from "./types.ts";
 
 export class MemoryFormatter {
   /**
    * Format scope detail for display
    */
-  static formatScopeDetail(node: TreeNode): string {
+  static formatScopeDetail(node: ITreeNode): string {
     if (node.id === MemoryTuiScope.GLOBAL) {
-      const memory = node.data as GlobalMemory | null;
+      const memory = node.data as IGlobalMemory | null;
       if (!memory) return "Global memory not initialized.\n\nRun: exoctl memory global show";
       return [
         "# Global Memory",
@@ -40,7 +40,7 @@ export class MemoryFormatter {
         `Anti-patterns: ${memory.anti_patterns?.length ?? 0}`,
         "",
         "## Recent Learnings",
-        ...(memory.learnings?.slice(0, 5).map((l: Learning) => `- ${l.title} [${l.category}]`) ?? []),
+        ...(memory.learnings?.slice(0, 5).map((l: ILearning) => `- ${l.title} [${l.category}]`) ?? []),
       ].join("\n");
     }
     if (node.id === MemoryTuiScope.PROJECTS) {
@@ -76,9 +76,9 @@ export class MemoryFormatter {
   /**
    * Format project detail for display
    */
-  static async formatProjectDetail(node: TreeNode, service: MemoryServiceInterface): Promise<string> {
+  static async formatProjectDetail(node: ITreeNode, service: IMemoryServiceInterface): Promise<string> {
     const portal = node.id.replace(TUI_PREFIX_PROJECT, "");
-    const memory = node.data as ProjectMemory | null;
+    const memory = node.data as IProjectMemory | null;
     if (!memory) {
       const fresh = await service.getProjectMemory(portal);
       if (!fresh) return `Project '${portal}' has no memory bank.`;
@@ -90,9 +90,9 @@ export class MemoryFormatter {
   /**
    * Format execution detail for display
    */
-  static async formatExecutionDetail(node: TreeNode, service: MemoryServiceInterface): Promise<string> {
+  static async formatExecutionDetail(node: ITreeNode, service: IMemoryServiceInterface): Promise<string> {
     const traceId = node.id.replace(TUI_PREFIX_EXECUTION, "");
-    const memory = node.data as ExecutionMemory | null;
+    const memory = node.data as IExecutionMemory | null;
     if (!memory) {
       const fresh = await service.getExecutionByTraceId(traceId);
       if (!fresh) return `Execution '${traceId}' not found.`;
@@ -104,8 +104,8 @@ export class MemoryFormatter {
   /**
    * Format learning detail for display
    */
-  static formatLearningDetail(node: TreeNode, useColors: boolean): string {
-    const proposal = node.data as MemoryUpdateProposal | null;
+  static formatLearningDetail(node: ITreeNode, useColors: boolean): string {
+    const proposal = node.data as IMemoryUpdateProposal | null;
     if (!proposal) return `Learning: ${node.label}`;
 
     const learning = proposal.learning;
@@ -138,7 +138,7 @@ export class MemoryFormatter {
   /**
    * Format project memory for display
    */
-  static formatProjectMemory(portal: string, memory: ProjectMemory): string {
+  static formatProjectMemory(portal: string, memory: IProjectMemory): string {
     const lines = [
       `# Project: ${portal}`,
       "",
@@ -175,7 +175,7 @@ export class MemoryFormatter {
   /**
    * Format execution memory for display
    */
-  static formatExecutionMemory(memory: ExecutionMemory): string {
+  static formatExecutionMemory(memory: IExecutionMemory): string {
     const lines = [
       `# Execution: ${memory.trace_id.slice(0, 8)}...`,
       "",

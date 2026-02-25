@@ -7,7 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts, src/cli/main.ts]
  */
 
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 import { launchTuiDashboard } from "../../tui/tui_dashboard.ts";
 
 export type LaunchDashboardFn = typeof launchTuiDashboard;
@@ -15,13 +15,13 @@ export type LaunchDashboardFn = typeof launchTuiDashboard;
 export class DashboardCommands extends BaseCommand {
   private launchDashboard: LaunchDashboardFn;
 
-  constructor(context: CommandContext) {
+  constructor(context: ICommandContext) {
     super(context);
 
     this.launchDashboard = launchTuiDashboard;
   }
 
-  static create(context: CommandContext, deps?: { launchDashboard?: LaunchDashboardFn }): DashboardCommands {
+  static create(context: ICommandContext, deps?: { launchDashboard?: LaunchDashboardFn }): DashboardCommands {
     const commands = new DashboardCommands(context);
     if (deps?.launchDashboard) {
       commands.launchDashboard = deps.launchDashboard;

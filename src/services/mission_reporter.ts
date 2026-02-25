@@ -17,7 +17,7 @@
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import { MemoryBankService } from "./memory_bank.ts";
-import type { ExecutionMemory } from "../schemas/memory_bank.ts";
+import type { IExecutionMemory } from "../schemas/memory_bank.ts";
 import { ExecutionStatus } from "../enums.ts";
 import { JSONValue } from "../types.ts";
 
@@ -28,7 +28,7 @@ import { JSONValue } from "../types.ts";
 /**
  * Trace data containing all information needed to generate a report
  */
-export interface TraceData {
+export interface ITraceData {
   /** UUID linking request → plan → execution → report */
   traceId: string;
 
@@ -129,7 +129,7 @@ export class MissionReporter {
   /**
    * Generate a mission report for a completed trace using Memory Banks
    */
-  async generate(traceData: TraceData): Promise<ReportResult> {
+  async generate(traceData: ITraceData): Promise<ReportResult> {
     const startTime = Date.now();
 
     try {
@@ -140,7 +140,7 @@ export class MissionReporter {
       const lessonsLearned = this.extractLessonsLearned(traceData.reasoning, traceData.summary);
 
       // Create execution memory record
-      const executionMemory: ExecutionMemory = {
+      const executionMemory: IExecutionMemory = {
         trace_id: traceData.traceId,
         request_id: traceData.requestId,
         started_at: new Date(Date.now() - (5 * 60 * 1000)).toISOString(), // Approximate start time

@@ -17,7 +17,7 @@ import { delay } from "../helpers/async_utils.ts";
 /**
  * Event emitted when a stable file is detected
  */
-export interface FileReadyEvent {
+export interface IFileReadyEvent {
   path: string;
   content: string;
 }
@@ -34,7 +34,7 @@ export class FileWatcher {
   private stabilityCheck: boolean;
   private debounceTimers: Map<string, number> = new Map();
   private processingFiles: Set<string> = new Set();
-  private onFileReady: (event: FileReadyEvent) => void | Promise<void>;
+  private onFileReady: (event: IFileReadyEvent) => void | Promise<void>;
   private abortController: AbortController | null = null;
   private fsWatcher: Deno.FsWatcher | null = null;
   private logger: EventLogger;
@@ -42,7 +42,7 @@ export class FileWatcher {
 
   constructor(
     config: Config,
-    onFileReady: (event: FileReadyEvent) => void | Promise<void>,
+    onFileReady: (event: IFileReadyEvent) => void | Promise<void>,
     options: FileWatcherOptions = {},
   ) {
     this.watchPath = options.customWatchPath || join(config.system.root, config.paths.workspace, "Requests");

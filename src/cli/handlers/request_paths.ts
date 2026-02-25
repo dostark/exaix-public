@@ -8,9 +8,9 @@
  */
 
 import { join } from "@std/path";
-import type { CommandContext } from "../base.ts";
+import type { ICommandContext } from "../base.ts";
 
-export function getWorkspaceRequestsDir(context: CommandContext): string {
+export function getWorkspaceRequestsDir(context: ICommandContext): string {
   return join(
     context.config.system.root,
     context.config.paths.workspace,

@@ -11,7 +11,7 @@ import type { Config } from "../config/schema.ts";
 import type { IDatabaseService } from "../services/db.ts";
 import { EventLogger } from "../services/event_logger.ts";
 
-export interface CommandContext {
+export interface ICommandContext {
   config: Config;
   db: IDatabaseService;
 }
@@ -26,7 +26,7 @@ export abstract class BaseCommand {
   protected logger: EventLogger;
   private _userIdentity: string | null = null;
 
-  constructor(context: CommandContext) {
+  constructor(context: ICommandContext) {
     this.config = context.config;
     this.db = context.db;
     // Initialize logger - user identity will be set on first action
@@ -35,7 +35,7 @@ export abstract class BaseCommand {
 
   /**
    * Get a logger with user identity set as actor
-   * Use this for logging user actions to Activity Journal
+   * Use this for logging user actions to IActivity Journal
    */
   protected async getActionLogger(): Promise<EventLogger> {
     const identity = await this.getUserIdentity();

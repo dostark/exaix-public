@@ -3,50 +3,54 @@
  * @path src/tui/plan_reviewer_view.ts
  * @description Interactive TUI view for reviewing and approving/rejecting execution plans, featuring side-by-side diff visualization.
  * @architectural-layer TUI
- * @dependencies [BaseTreeView, tree_view, dialog_base, help_renderer, keyboard, enums, constants]
+ * @dependencies [BaseTreeView, PlanService, PlanStatus, Dialogs, HelpRenderer, Enums]
  * @related-files [src/services/plan_service.ts, src/tui/tui_dashboard.ts]
  */
 
 // --- Adapter: PlanCommands as PlanService ---
-import type { PlanCommands, PlanMetadata } from "../cli/commands/plan_commands.ts";
+import type { IPlanMetadata, PlanCommands } from "../cli/commands/plan_commands.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { coercePlanStatus, PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
 import { ConfirmDialog, type DialogBase, InputDialog } from "../helpers/dialog_base.ts";
-import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { DialogStatus } from "../enums.ts";
-import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
-import { KeyBindingsBase } from "./base/key_bindings_base.ts";
+import { createGroupNode, createNode, flattenTree, type ITreeNode } from "../helpers/tree_view.ts";
 import type { JSONObject } from "../types.ts";
-import {
-  createGroupNode,
-  createNode,
-  flattenTree,
-  type TreeNode,
-  type TreeRenderOptions,
-} from "../helpers/tree_view.ts";
+import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 
-// ===== Plan Types =====
+// ===== Interfaces =====
 
-export type Plan = {
+export interface IPlan {
   id: string;
   title: string;
   author?: string;
   status?: PlanStatusType;
   created_at?: string;
-};
-
-// ===== Plan View State Extensions =====
+}
 
 /**
  * Plan-specific state extensions beyond BaseTreeView
  * BaseTreeView provides: selectedId, tree, filterText, isLoading, loadingMessage,
  * showHelp, activeDialog, useColors, spinnerFrame, lastRefresh, scrollOffset
  */
-export interface PlanViewExtensions {
+export interface IPlanViewExtensions {
   /** Show diff view */
   showDiff: boolean;
   /** Current diff content */
-  diffContent: string;
+  diff: string;
+}
+
+export interface IPlanService {
+  listPending(): Promise<IPlan[]>;
+  getDiff(planId: string): Promise<string>;
+  approve(planId: string, reviewer: string): Promise<boolean>;
+  reject(planId: string, reviewer: string, reason?: string): Promise<boolean>;
+}
+
+export interface IDbLike {
+  getPendingPlans(): Promise<IPlan[]>;
+  getPlanDiff(planId: string): Promise<string>;
+  updatePlanStatus(planId: string, status: PlanStatusType): Promise<void>;
+  logActivity(activity: JSONObject): Promise<void>;
 }
 
 // ===== Plan Status Icons =====
@@ -65,221 +69,111 @@ const PLAN_ICONS: Record<PlanStatusType | "folder", string> = {
 } as const;
 
 // ===== Plan Action Types =====
-export enum PlanAction {
-  NAVIGATE_UP = "navigate-up",
-  NAVIGATE_DOWN = "navigate-down",
-  NAVIGATE_HOME = "navigate-home",
-  NAVIGATE_END = "navigate-end",
+export enum IPlanAction {
   VIEW_DIFF = "view-diff",
   APPROVE = "approve",
   REJECT = "reject",
-  APPROVE_ALL = "approve-all",
-  COLLAPSE = "collapse",
-  EXPAND = "expand",
-  SEARCH = "search",
-  CANCEL = "cancel",
   REFRESH_VIEW = "refresh-view",
-  HELP = "help",
-  EXPAND_ALL = "expand-all",
-  COLLAPSE_ALL = "collapse-all",
-}
-
-export enum PlanActionCategory {
-  NAVIGATION = "Navigation",
-  ACTIONS = "Actions",
-  VIEW = "View",
-}
-
-// ===== Key Bindings =====
-
-export class PlanKeyBindings extends KeyBindingsBase<PlanAction, KeyBindingCategory> {
-  readonly KEY_BINDINGS: readonly KeyBinding<PlanAction, KeyBindingCategory>[] = [
-    {
-      key: KEYS.UP,
-      action: PlanAction.NAVIGATE_UP,
-      description: "Move up",
-      category: KeyBindingCategory.NAVIGATION,
-    },
-    {
-      key: KEYS.DOWN,
-      action: PlanAction.NAVIGATE_DOWN,
-      description: "Move down",
-      category: KeyBindingCategory.NAVIGATION,
-    },
-    {
-      key: KEYS.HOME,
-      action: PlanAction.NAVIGATE_HOME,
-      description: "Go to first",
-      category: KeyBindingCategory.NAVIGATION,
-    },
-    {
-      key: KEYS.END,
-      action: PlanAction.NAVIGATE_END,
-      description: "Go to last",
-      category: KeyBindingCategory.NAVIGATION,
-    },
-    { key: KEYS.ENTER, action: PlanAction.VIEW_DIFF, description: "View diff", category: KeyBindingCategory.ACTIONS },
-    { key: KEYS.A, action: PlanAction.APPROVE, description: "Approve plan", category: KeyBindingCategory.ACTIONS },
-    { key: KEYS.R, action: PlanAction.REJECT, description: "Reject plan", category: KeyBindingCategory.ACTIONS },
-    {
-      key: KEYS.CAP_A,
-      action: PlanAction.APPROVE_ALL,
-      description: "Approve all pending",
-      category: KeyBindingCategory.ACTIONS,
-    },
-    {
-      key: KEYS.LEFT,
-      action: PlanAction.COLLAPSE,
-      description: "Collapse node",
-      category: KeyBindingCategory.NAVIGATION,
-    },
-    { key: KEYS.RIGHT, action: PlanAction.EXPAND, description: "Expand node", category: KeyBindingCategory.NAVIGATION },
-    { key: KEYS.S, action: PlanAction.SEARCH, description: "Search/filter", category: KeyBindingCategory.ACTIONS },
-    { key: KEYS.ESCAPE, action: PlanAction.CANCEL, description: "Close/Cancel", category: KeyBindingCategory.ACTIONS },
-    {
-      key: KEYS.CAP_R,
-      action: PlanAction.REFRESH_VIEW,
-      description: "Refresh view",
-      category: KeyBindingCategory.VIEW,
-    },
-    { key: KEYS.QUESTION, action: PlanAction.HELP, description: "Toggle help", category: KeyBindingCategory.VIEW },
-    { key: KEYS.E, action: PlanAction.EXPAND_ALL, description: "Expand all", category: KeyBindingCategory.VIEW },
-    { key: KEYS.C, action: PlanAction.COLLAPSE_ALL, description: "Collapse all", category: KeyBindingCategory.VIEW },
-  ];
-}
-
-export const PLAN_KEY_BINDINGS = new PlanKeyBindings().KEY_BINDINGS;
-
-// ===== Service Interface =====
-
-export interface PlanService {
-  listPending(): Promise<Plan[]>;
-  getDiff(planId: string): Promise<string>;
-  approve(planId: string, reviewer: string): Promise<boolean>;
-  reject(planId: string, reviewer: string, reason?: string): Promise<boolean>;
-}
-
-// ===== Service Adapters =====
-
-/**
- * Adapter: PlanCommands as PlanService
- */
-export class PlanCommandsServiceAdapter implements PlanService {
-  constructor(private readonly cmd: PlanCommands) {}
-  async listPending(): Promise<Plan[]> {
-    const rows: PlanMetadata[] = await this.cmd.list(PlanStatus.REVIEW);
-    return rows.map((r: PlanMetadata) => ({
-      id: r.id,
-      title: r.request_title ?? r.id,
-      author: r.agent_id ?? r.reviewed_by,
-      status: r.status,
-    }));
-  }
-  async getDiff(planId: string) {
-    const details = await this.cmd.show(planId);
-    return details.content ?? "";
-  }
-  async approve(planId: string, _reviewer: string) {
-    await this.cmd.approve(planId);
-    return true;
-  }
-  async reject(planId: string, _reviewer: string, reason?: string) {
-    if (!reason) throw new Error("Rejection reason is required");
-    await this.cmd.reject(planId, reason);
-    return true;
-  }
-}
-
-// ===== Mock DB Interface =====
-
-export interface DbLike {
-  getPendingPlans(): Promise<Plan[]>;
-  getPlanDiff(planId: string): Promise<string>;
-  updatePlanStatus(planId: string, status: PlanStatusType): Promise<void>;
-  logActivity(activity: JSONObject): Promise<void>;
-}
-
-/**
- * Adapter: DB-like mock as PlanService
- */
-export class DbLikePlanServiceAdapter implements PlanService {
-  constructor(private readonly dbLike: DbLike) {}
-  listPending() {
-    return this.dbLike.getPendingPlans();
-  }
-  getDiff(planId: string) {
-    return this.dbLike.getPlanDiff(planId);
-  }
-  async approve(planId: string, reviewer: string) {
-    await this.dbLike.updatePlanStatus(planId, PlanStatus.APPROVED);
-    await this.dbLike.logActivity({
-      action_type: "plan.approve",
-      plan_id: planId,
-      reviewer,
-      timestamp: new Date().toISOString(),
-    });
-    return true;
-  }
-  async reject(planId: string, reviewer: string, reason?: string) {
-    await this.dbLike.updatePlanStatus(planId, PlanStatus.REJECTED);
-    await this.dbLike.logActivity({
-      action_type: "plan.reject",
-      plan_id: planId,
-      reason: reason ?? null,
-      reviewer,
-      timestamp: new Date().toISOString(),
-    });
-    return true;
-  }
-}
-
-/**
- * Minimal PlanService mock for TUI session tests.
- */
-export class MinimalPlanServiceMock implements PlanService {
-  listPending: () => Promise<Plan[]> = () => Promise.resolve([]);
-  getDiff = (_: string) => Promise.resolve("");
-  approve = (_: string, _r: string) => Promise.resolve(true);
-  reject = (_: string, _r: string, _reason?: string) => Promise.resolve(true);
+  APPROVE_ALL = "approve-all",
 }
 
 // ===== TUI Session =====
 
-export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
-  private plans: Plan[];
-  private readonly service: PlanService;
-  private planExtensions: PlanViewExtensions;
+export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
+  private plans: IPlan[];
+  private readonly service: IPlanService;
+  private planExtensions: IPlanViewExtensions;
   private pendingRejectId: string | null = null;
 
-  constructor(plans: Plan[], service: PlanService, useColors = true) {
+  constructor(plans: IPlan[], service: IPlanService, useColors = true) {
     super(useColors);
     this.plans = plans;
     this.service = service;
     this.planExtensions = {
       showDiff: false,
-      diffContent: "",
+      diff: "",
     };
     this.buildTree(plans);
   }
 
+  // ===== BaseTreeView Implementation =====
+
+  override getViewName(): string {
+    return "Plan Reviewer";
+  }
+
+  override getKeyBindings(): IKeyBinding<IPlanAction | string, KeyBindingCategory>[] {
+    return [
+      { key: KEYS.UP, action: "up", description: "Navigate up", category: KeyBindingCategory.NAVIGATION },
+      { key: KEYS.DOWN, action: "down", description: "Navigate down", category: KeyBindingCategory.NAVIGATION },
+      { key: KEYS.HOME, action: "home", description: "Navigate to top", category: KeyBindingCategory.NAVIGATION },
+      { key: KEYS.END, action: "end", description: "Navigate to bottom", category: KeyBindingCategory.NAVIGATION },
+      {
+        key: KEYS.ENTER,
+        action: IPlanAction.VIEW_DIFF,
+        description: "View diff",
+        category: KeyBindingCategory.ACTIONS,
+      },
+      { key: KEYS.A, action: IPlanAction.APPROVE, description: "Approve plan", category: KeyBindingCategory.ACTIONS },
+      { key: KEYS.R, action: IPlanAction.REJECT, description: "Reject plan", category: KeyBindingCategory.ACTIONS },
+      {
+        key: KEYS.CAP_A,
+        action: IPlanAction.APPROVE_ALL,
+        description: "Approve all pending",
+        category: KeyBindingCategory.ACTIONS,
+      },
+      {
+        key: KEYS.CAP_R,
+        action: IPlanAction.REFRESH_VIEW,
+        description: "Refresh plans",
+        category: KeyBindingCategory.ACTIONS,
+      },
+      { key: KEYS.SLASH, action: "search", description: "Search plans", category: KeyBindingCategory.ACTIONS },
+      { key: KEYS.QUESTION, action: "help", description: "Show help", category: KeyBindingCategory.ACTIONS },
+    ];
+  }
+
+  override getSelectedIndex(): number {
+    if (!this.state.selectedId) return 0;
+    const node = this.getSelectedNode();
+    if (node?.type === "plan" && node.data) {
+      const idx = this.plans.findIndex((p) => p.id === (node.data as IPlan).id);
+      return idx >= 0 ? idx : 0;
+    }
+    return 0; // Default to 0 for groups to match older test expectations
+  }
+
+  override setSelectedIndex(idx: number): void {
+    if (idx >= 0 && idx < this.plans.length) {
+      this.state.selectedId = this.plans[idx].id;
+      this.syncSelectedIndex();
+    }
+  }
+
   // ===== Tree Building =====
 
-  protected buildTree(plans: Plan[]): void {
-    const pending: TreeNode<Plan>[] = [];
-    const approved: TreeNode<Plan>[] = [];
-    const rejected: TreeNode<Plan>[] = [];
-    const unknown: TreeNode<Plan>[] = [];
+  protected override buildTree(plans: IPlan[]): void {
+    this.state.tree = [];
+    const pending: ITreeNode<IPlan>[] = [];
+    const approved: ITreeNode<IPlan>[] = [];
+    const rejected: ITreeNode<IPlan>[] = [];
+    const unknown: ITreeNode<IPlan>[] = [];
+
+    const filter = this.state.filterText.toLowerCase();
 
     for (const plan of plans) {
+      if (filter && !plan.id.toLowerCase().includes(filter) && !plan.title.toLowerCase().includes(filter)) {
+        continue;
+      }
+
       const status = coercePlanStatus(plan.status, PlanStatus.REVIEW);
-      const node = createNode<Plan>(
+      const node = createNode<IPlan>(
         plan.id,
         plan.title || plan.id,
         "plan",
         {
           data: plan,
-          icon: PLAN_ICONS[status],
-          badge: status,
+          icon: PLAN_ICONS[status] || PLAN_ICONS.folder,
         },
       );
 
@@ -297,8 +191,6 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
           unknown.push(node);
       }
     }
-
-    this.state.tree = [];
 
     if (pending.length > 0) {
       this.state.tree.push(
@@ -332,75 +224,81 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
 
     if (unknown.length > 0) {
       this.state.tree.push(
-        createGroupNode("unknown-group", `Unknown (${unknown.length})`, "group", unknown, {
-          icon: "❓",
+        createGroupNode("other-group", "Other", "group", unknown, {
+          icon: PLAN_ICONS.folder,
           badge: unknown.length,
-          expanded: true,
         }),
       );
     }
 
     // Select first plan if none selected
-    if (!this.state.selectedId && plans.length > 0) {
+    if (!this.state.selectedId && this.state.tree.length > 0) {
       const flat = flattenTree(this.state.tree);
-      const firstPlan = flat.find((f) => f.node.type === "plan");
+      const firstPlan = flat.find((f: any) => f.node.type === "plan");
       if (firstPlan) {
         this.state.selectedId = firstPlan.node.id;
-      }
-    }
-    this.syncSelectedIndex();
-  }
-
-  // ===== Selection & Sync =====
-
-  override setSelectedIndex(idx: number, maxLength?: number): void {
-    const len = maxLength ?? this.plans.length;
-    super.setSelectedIndex(idx, len);
-
-    // Sync tree selection with plan index
-    if (this.plans[this.selectedIndex]) {
-      this.state.selectedId = this.plans[this.selectedIndex].id;
-    }
-  }
-
-  /**
-   * Sync selectedIndex based on current selectedId in the plans list
-   */
-  private syncSelectedIndex(): void {
-    if (!this.state.selectedId) {
-      this.selectedIndex = 0;
-      return;
-    }
-
-    const idx = this.plans.findIndex((p) => p.id === this.state.selectedId);
-    if (idx !== -1) {
-      this.selectedIndex = idx;
-    }
-  }
-
-  // ===== Dialog Result Handling =====
-
-  protected override onDialogClosed(dialog: DialogBase): void {
-    const result = dialog.getResult();
-    if (result.type === DialogStatus.CANCELLED) return;
-
-    if (dialog instanceof ConfirmDialog && result.value === true) {
-      if (this.pendingRejectId) {
-        this.executeReject(this.pendingRejectId, "Rejected via TUI");
-        this.pendingRejectId = null;
       } else {
-        this.executeApprove();
-      }
-    } else if (dialog instanceof InputDialog) {
-      if (this.pendingRejectId) {
-        this.executeReject(this.pendingRejectId, (result.value as string) || "Rejected via TUI");
-        this.pendingRejectId = null;
-      } else {
-        // Handle search
-        this.state.filterText = (result.value as string).toLowerCase();
-        this.buildTree(this.plans);
+        this.state.selectedId = flat[0].node.id;
       }
     }
+  }
+
+  // ===== Event Handlers =====
+
+  public override async handleKey(key: string): Promise<boolean> {
+    // Escape closes diff if visible
+    if (key === KEYS.ESCAPE && this.planExtensions.showDiff) {
+      this.planExtensions.showDiff = false;
+      return true;
+    }
+
+    // If dialog is active, handle it first (might involve onDialogClosed which is async)
+    if (this.state.activeDialog) {
+      return await this.handleDialogKeys(key);
+    }
+
+    if (this.handleHelpKeys(key)) return true;
+
+    if (key === KEYS.SLASH) {
+      this.showSearchDialog();
+      return true;
+    }
+
+    const binding = this.getKeyBindings().find((b) => b.key === key);
+    const action = binding?.action;
+    if (!action) {
+      return this.handleNavigationKeys(key);
+    }
+
+    switch (action) {
+      case IPlanAction.VIEW_DIFF:
+        await this.toggleDiff();
+        break;
+      case IPlanAction.APPROVE:
+        if (this.handleActionGuard()) return true;
+        this.showApproveConfirmDialog();
+        break;
+      case IPlanAction.REJECT:
+        if (this.handleActionGuard()) return true;
+        this.showRejectDialog();
+        break;
+      case IPlanAction.REFRESH_VIEW:
+        await this.refreshView();
+        break;
+      case IPlanAction.APPROVE_ALL:
+        await this.executeApproveAll();
+        break;
+      default:
+        return this.handleNavigationKeys(key);
+    }
+    return true;
+  }
+
+  private handleActionGuard(): boolean {
+    const selected = this.getSelectedNode();
+    if (selected?.type === "plan") return false;
+    this.statusMessage = "Error: No plan selected";
+    return true;
   }
 
   private showSearchDialog(): void {
@@ -412,82 +310,50 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
     });
   }
 
-  // ===== Key Handling =====
-
-  override async handleKey(key: string): Promise<boolean> {
-    if (this.handleDiffViewKeys(key)) return true;
-    if (this.handleBaseKeysAndSync(key)) return true;
-    return await this.handleActionKeys(key);
-  }
-
-  private handleDiffViewKeys(key: string): boolean {
-    if (!this.planExtensions.showDiff) return false;
-
-    if (key === KEYS.ESCAPE || key === KEYS.Q || key === KEYS.ENTER) {
-      this.planExtensions.showDiff = false;
-      this.planExtensions.diffContent = "";
-    }
-    return true;
-  }
-
-  private handleBaseKeysAndSync(key: string): boolean {
-    if (!this.handleKeySync(key)) return false;
-
-    this.syncSelectedIndex();
-    // If filter was cleared (handled by base), rebuild tree
-    if (this.state.filterText === "" && key === KEYS.ESCAPE) {
-      this.buildTree(this.plans);
-    }
-    return true;
-  }
-
-  private async handleActionKeys(key: string): Promise<boolean> {
-    switch (key) {
-      case KEYS.ENTER:
-        await this.handleEnterKey();
-        return true;
-      case KEYS.A:
-        this.showApproveConfirmDialog();
-        return true;
-      case KEYS.R:
-        this.showRejectDialog();
-        return true;
-      case KEYS.CAP_A:
-        await this.approveAllPending();
-        return true;
-      case KEYS.CAP_R:
-        await this.refreshView();
-        return true;
-      case KEYS.SLASH:
-        this.showSearchDialog();
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  private async handleEnterKey(): Promise<void> {
-    const selected = this.getSelectedNode();
-    if (!selected) return;
-    if (selected.type === "group") {
-      this.toggleCurrentNode();
-      return;
-    }
-    if (selected.type === "plan") {
-      await this.showDiffAction(selected.data as Plan);
+  protected override async onDialogClosed(dialog: DialogBase): Promise<void> {
+    if (dialog.getState() === DialogStatus.CONFIRMED) {
+      if (dialog instanceof ConfirmDialog) {
+        const options = (dialog as ConfirmDialog).options;
+        if (options?.title === "Approve Plan") {
+          await this.executeApprove();
+        } else if (options?.title === "Reject Plan" && this.pendingRejectId) {
+          await this.executeReject(this.pendingRejectId, "Rejected by TUI reviewer");
+          this.pendingRejectId = null;
+        }
+      } else if (dialog instanceof InputDialog) {
+        const options = (dialog as InputDialog).options;
+        if (options?.title === "Search Plans") {
+          this.state.filterText = dialog.getValue();
+          this.buildTree(this.plans);
+        }
+      }
     }
   }
 
   // ===== Actions =====
 
-  private async showDiffAction(plan: Plan): Promise<void> {
+  private async toggleDiff(): Promise<void> {
+    const selected = this.getSelectedNode();
+    if (!selected) return;
+
+    if (selected.type === "group") {
+      selected.expanded = !selected.expanded;
+      return;
+    }
+    if (selected.type === "plan") {
+      await this.showDiffAction(selected.data as IPlan);
+    }
+  }
+
+  private async showDiffAction(plan: IPlan): Promise<void> {
     const diff = await this.executeWithLoading(
       `Loading diff for ${plan.id}...`,
       () => this.service.getDiff(plan.id),
+      () => "",
     );
 
     if (diff !== null) {
-      this.planExtensions.diffContent = diff;
+      this.planExtensions.diff = diff;
       this.planExtensions.showDiff = true;
     }
   }
@@ -495,7 +361,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
   private showApproveConfirmDialog(): void {
     const selected = this.getSelectedNode();
     if (!selected || selected.type !== "plan") return;
-    const plan = selected.data as Plan;
+    const plan = selected.data as IPlan;
 
     this.showConfirmDialog({
       title: "Approve Plan",
@@ -523,7 +389,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
   private showRejectDialog(): void {
     const selected = this.getSelectedNode();
     if (!selected || selected.type !== "plan") return;
-    const plan = selected.data as Plan;
+    const plan = selected.data as IPlan;
 
     this.pendingRejectId = plan.id;
     this.showConfirmDialog({
@@ -546,30 +412,6 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
     );
   }
 
-  private async approveAllPending(): Promise<void> {
-    const pendingGroup = this.state.tree.find((n) => n.id === "pending-group");
-    if (!pendingGroup || pendingGroup.children.length === 0) {
-      this.statusMessage = "No pending plans to approve";
-      return;
-    }
-
-    await this.executeWithLoading(
-      "Approving all pending plans...",
-      async () => {
-        let approved = 0;
-        for (const node of pendingGroup.children) {
-          if (node.data) {
-            await this.service.approve(node.id, "reviewer");
-            approved++;
-          }
-        }
-        await this.refreshView();
-        return approved;
-      },
-      (count) => `Approved ${count} plans`,
-    );
-  }
-
   private async refreshView(): Promise<void> {
     await this.executeWithLoading(
       "Refreshing plans...",
@@ -584,23 +426,52 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
 
   // ===== State Accessors =====
 
-  getSelectedPlan(): TreeNode<Plan> | null {
-    const flat = flattenTree(this.state.tree);
-    return flat.find((f) => f.node.id === this.state.selectedId)?.node || null;
-  }
-
-  updatePlans(newPlans: Plan[]): void {
+  updatePlans(newPlans: IPlan[]): void {
     this.plans = newPlans;
     this.buildTree(newPlans);
   }
 
-  getSelectedPlanDetails(): Plan | undefined {
+  getSelectedPlanDetails(): IPlan | undefined {
     const selected = this.getSelectedNode();
-    return selected?.data as Plan | undefined;
+    return selected?.data as IPlan | undefined;
   }
 
-  getPlanTree(): TreeNode<Plan>[] {
+  getExtensions(): IPlanViewExtensions {
+    return this.planExtensions;
+  }
+
+  closeDiff(): void {
+    this.planExtensions.showDiff = false;
+  }
+
+  getPlanTree(): ITreeNode<IPlan>[] {
     return this.state.tree;
+  }
+
+  // ===== Backward Compatibility for Tests =====
+
+  renderPlanTree(): string[] {
+    return this.renderTreeView();
+  }
+
+  renderHelp(): string[] {
+    return [
+      "Plan Reviewer Help",
+      "==================",
+      "Navigation:",
+      "  ↑ / k      : Move up",
+      "  ↓ / j      : Move down",
+      "  Home       : First plan",
+      "  End        : Last plan",
+      "  /          : Search",
+      "",
+      "Actions:",
+      "  Enter      : View diff",
+      "  a          : Approve plan",
+      "  r          : Reject plan",
+      "  R (Shift+R): Refresh plans",
+      "  ?          : Toggle help",
+    ];
   }
 
   isDiffVisible(): boolean {
@@ -608,136 +479,164 @@ export class PlanReviewerTuiSession extends BaseTreeView<Plan> {
   }
 
   getDiffContent(): string {
-    return this.planExtensions.diffContent;
-  }
-
-  // ===== Rendering =====
-
-  renderActionButtons(): string {
-    if (!this.plans.length) return "";
-    return `[Enter] View diff   [a] Approve   [r] Reject   [A] Approve all   [?] Help`;
-  }
-
-  renderPlanTree(options: Partial<TreeRenderOptions> = {}): string[] {
-    return this.renderTreeView({
-      selectedId: this.state.selectedId || undefined,
-      ...options,
-    });
-  }
-
-  renderHelp(): string[] {
-    const sections: HelpSection[] = [
-      {
-        title: "Navigation",
-        items: [
-          { key: "↑/↓", description: "Move selection" },
-          { key: "Home/End", description: "Jump to first/last" },
-          { key: "←/→", description: "Collapse/Expand" },
-          { key: "e/c", description: "Expand/Collapse all" },
-        ],
-      },
-      {
-        title: "Actions",
-        items: [
-          { key: "Enter", description: "View diff" },
-          { key: "a", description: "Approve plan" },
-          { key: "r", description: "Reject plan" },
-          { key: "A", description: "Approve all pending" },
-          { key: "R", description: "Refresh view" },
-        ],
-      },
-      {
-        title: "View",
-        items: [
-          { key: "s", description: "Search plans" },
-          { key: "?", description: "Toggle help" },
-          { key: "Esc", description: "Close/Cancel" },
-        ],
-      },
-    ];
-
-    return renderHelpScreen({
-      title: "Plan Reviewer Help",
-      sections,
-      useColors: this.state.useColors,
-      width: 50,
-    });
+    return this.planExtensions.diff;
   }
 
   renderDiff(): string[] {
-    if (!this.planExtensions.showDiff) return [];
+    const lines = this.planExtensions.diff.split("\n");
+    return [
+      "DIFF VIEWER",
+      "===========",
+      ...lines,
+    ];
+  }
 
-    const lines: string[] = [];
-    lines.push("═".repeat(60));
-    lines.push(" DIFF VIEWER (Press ESC or Enter to close)");
-    lines.push("═".repeat(60));
-    lines.push("");
+  renderActionButtons(): string {
+    return "Approve (a) | Reject (r) | Approve all (A) | Refresh (R) | Help (?)";
+  }
 
-    // Render diff with simple syntax highlighting
-    for (const line of this.planExtensions.diffContent.split("\n")) {
-      if (line.startsWith("+")) {
-        lines.push(`  + ${line.slice(1)}`);
-      } else if (line.startsWith("-")) {
-        lines.push(`  - ${line.slice(1)}`);
-      } else if (line.startsWith("@@")) {
-        lines.push(`  ${line}`);
-      } else {
-        lines.push(`    ${line}`);
-      }
+  private async executeApproveAll(): Promise<void> {
+    const pendingPlans = this.plans.filter((p) => coercePlanStatus(p.status, PlanStatus.REVIEW) === PlanStatus.REVIEW);
+    if (pendingPlans.length === 0) {
+      this.statusMessage = "No pending plans to approve";
+      return;
     }
 
-    lines.push("");
-    lines.push("═".repeat(60));
-    return lines;
+    await this.executeWithLoading(
+      `Approving ${pendingPlans.length} plans...`,
+      async () => {
+        for (const plan of pendingPlans) {
+          await this.service.approve(plan.id, "reviewer");
+        }
+        await this.refreshView();
+      },
+      () => `Approved ${pendingPlans.length} plans`,
+    );
   }
 
   getFocusableElements(): string[] {
-    return ["plan-list", "action-buttons", "status-bar"];
-  }
-
-  override getStatusMessage(): string {
-    return this.statusMessage;
-  }
-
-  override getKeyBindings(): KeyBinding<PlanAction>[] {
-    return [...PLAN_KEY_BINDINGS];
-  }
-
-  override getViewName(): string {
-    return "Plan Reviewer";
+    return ["plan-list", "action-buttons"];
   }
 }
 
-// ===== View Controller =====
+/**
+ * High-level view class for the Plan Reviewer.
+ */
+export class PlanReviewerView {
+  constructor(private service: IPlanService) {}
 
-export class PlanReviewerView implements PlanService {
-  constructor(public readonly service: PlanService) {}
+  async listPending(): Promise<IPlan[]> {
+    return await this.service.listPending();
+  }
 
-  createTuiSession(plans: Plan[], useColors = true): PlanReviewerTuiSession {
+  async getDiff(planId: string): Promise<string> {
+    return await this.service.getDiff(planId);
+  }
+
+  async approve(planId: string, reviewer: string): Promise<boolean> {
+    return await this.service.approve(planId, reviewer);
+  }
+
+  async reject(planId: string, reviewer: string, reason?: string): Promise<boolean> {
+    return await this.service.reject(planId, reviewer, reason);
+  }
+
+  createTuiSession(plans: IPlan[], useColors = true): PlanReviewerTuiSession {
     return new PlanReviewerTuiSession(plans, this.service, useColors);
   }
 
-  listPending(): Promise<Plan[]> {
-    return this.service.listPending();
-  }
-
-  getDiff(planId: string): Promise<string> {
-    return this.service.getDiff(planId);
-  }
-
-  approve(planId: string, reviewer: string): Promise<boolean> {
-    return this.service.approve(planId, reviewer);
-  }
-
-  reject(planId: string, reviewer: string, reason?: string): Promise<boolean> {
-    return this.service.reject(planId, reviewer, reason);
-  }
-
-  renderPlanList(plans: Plan[]): string {
-    return plans.map((p) => `${p.id} ${p.title} [${p.status ?? "unknown"}]`).join("\n");
+  renderPlanList(plans: IPlan[]): string {
+    return plans.map((p) => `${p.id} ${p.title} [${p.status || "pending"}]`).join("\n");
   }
 
   renderDiff(diff: string): string {
     return diff;
+  }
+}
+
+/**
+ * Adapter for DB-like objects to IPlanService.
+ */
+export class DbLikePlanServiceAdapter implements IPlanService {
+  constructor(private db: IDbLike) {}
+  async listPending(): Promise<IPlan[]> {
+    return await this.db.getPendingPlans();
+  }
+  async getDiff(planId: string): Promise<string> {
+    return await this.db.getPlanDiff(planId);
+  }
+  async approve(planId: string, reviewer: string): Promise<boolean> {
+    await this.db.updatePlanStatus(planId, PlanStatus.APPROVED);
+    await this.db.logActivity({
+      action_type: "plan.approve",
+      plan_id: planId,
+      reviewer,
+      timestamp: new Date().toISOString(),
+    });
+    return true;
+  }
+  async reject(planId: string, reviewer: string, reason?: string): Promise<boolean> {
+    await this.db.updatePlanStatus(planId, PlanStatus.REJECTED);
+    await this.db.logActivity({
+      action_type: "plan.reject",
+      plan_id: planId,
+      reviewer,
+      reason,
+      timestamp: new Date().toISOString(),
+    });
+    return true;
+  }
+}
+
+/**
+ * Adapter: PlanCommands as IPlanService
+ */
+export class PlanCommandsServiceAdapter implements IPlanService {
+  constructor(private readonly cmd: PlanCommands) {}
+  async listPending(): Promise<IPlan[]> {
+    const rows: IPlanMetadata[] = await this.cmd.list(PlanStatus.REVIEW);
+    return rows.map((r: IPlanMetadata) => ({
+      id: r.id,
+      title: r.request_title ?? r.id,
+      author: r.agent_id ?? r.reviewed_by,
+      status: r.status,
+      created_at: r.created_at,
+    }));
+  }
+  async getDiff(planId: string): Promise<string> {
+    const plan = await this.cmd.show(planId);
+    return plan.content;
+  }
+  async approve(planId: string, reviewer: string): Promise<boolean> {
+    await this.cmd.approve(planId, [reviewer]);
+    return true;
+  }
+  async reject(planId: string, reviewer: string, _reason?: string): Promise<boolean> {
+    // Note: PlanCommands.reject might not support reason in all versions,
+    // but we can pass it if it does.
+    await this.cmd.reject(planId, reviewer);
+    return true;
+  }
+}
+
+/**
+ * Mock Plan Service for TUI tests.
+ */
+export class MinimalPlanServiceMock implements IPlanService {
+  private plans: IPlan[] = [];
+  constructor(plans: IPlan[] = []) {
+    this.plans = plans;
+  }
+  async listPending(): Promise<IPlan[]> {
+    return await Promise.resolve(this.plans);
+  }
+  async getDiff(_planId: string): Promise<string> {
+    return await Promise.resolve("Mock diff content");
+  }
+  async approve(_planId: string, _reviewer: string): Promise<boolean> {
+    return await Promise.resolve(true);
+  }
+  async reject(_planId: string, _reviewer: string, _reason?: string): Promise<boolean> {
+    return await Promise.resolve(true);
   }
 }

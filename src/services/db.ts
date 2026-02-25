@@ -1,7 +1,7 @@
 /**
  * @module DatabaseService
  * @path src/services/db.ts
- * @description Provides persistent storage for the Activity Journal and system state using SQLite.
+ * @description Provides persistent storage for the IActivity Journal and system state using SQLite.
  * Implements batched writes, transactions with retries, and circuit breaker protection.
  * @architectural-layer Services
  * @dependencies [SQLite, Config, CircuitBreaker, DatabaseConnectionPool]
@@ -16,9 +16,9 @@ import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { DB_MAX_RETRY_DELAY_MS, DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 import { JSONValue } from "../types.ts";
 
-export type SqliteParam = string | number | boolean | null;
+export type ISqliteParam = string | number | boolean | null;
 
-interface LogEntry {
+export interface IActivityLogEntry {
   activityId: string;
   traceId: string;
   actor: string;
@@ -29,7 +29,60 @@ interface LogEntry {
   timestamp: string;
 }
 
-/** Activity record schema for database validation */
+export interface IDatabaseConfigExtended {
+  failure_threshold?: number;
+  reset_timeout_ms?: number;
+  half_open_success_threshold?: number;
+}
+
+export interface IRetryOptions {
+  maxRetries?: number;
+  baseDelay?: number;
+  maxDelay?: number;
+  backoffFactor?: number;
+  jitter?: boolean;
+}
+
+export interface IJournalFilterOptions {
+  traceId?: string;
+  actionType?: string;
+  agentId?: string;
+  limit?: number;
+  since?: string; // ISO date string
+  payload?: string; // LIKE pattern
+  actor?: string;
+  target?: string;
+  distinct?: string; // field name for DISTINCT
+  count?: boolean; // if true, return count aggregation
+  orConditions?: IJournalFilterOptions[]; // OR conditions
+}
+
+/** IActivity record returned from database queries */
+export type IActivityRecord = z.infer<typeof ActivityRecordSchema>;
+
+export interface IDatabaseService {
+  logActivity(
+    actor: string,
+    actionType: string,
+    target: string | null,
+    payload: Record<string, JSONValue>,
+    traceId?: string,
+    agentId?: string | null,
+  ): void;
+  waitForFlush(): Promise<void>;
+  queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]>;
+  close?(): Promise<void>;
+  preparedGet<T>(query: string, params?: ISqliteParam[]): Promise<T | null>;
+  preparedAll<T>(query: string, params?: ISqliteParam[]): Promise<T[]>;
+  preparedRun(query: string, params?: ISqliteParam[]): Promise<unknown>;
+  getActivitiesByTrace(traceId: string): IActivityRecord[];
+  getActivitiesByTraceSafe(traceId: string): Promise<IActivityRecord[]>;
+  getActivitiesByActionType(actionType: string): IActivityRecord[];
+  getActivitiesByActionTypeSafe(actionType: string): Promise<IActivityRecord[]>;
+  getRecentActivity(limit?: number): Promise<IActivityRecord[]>;
+}
+
+/** IActivity record schema for database validation */
 export const ActivityRecordSchema = z.object({
   id: z.string(),
   trace_id: z.string(),
@@ -42,40 +95,9 @@ export const ActivityRecordSchema = z.object({
   count: z.number().optional(),
 });
 
-/** Activity record returned from database queries */
-export type ActivityRecord = z.infer<typeof ActivityRecordSchema>;
-
-interface DatabaseConfigExtended {
-  failure_threshold?: number;
-  reset_timeout_ms?: number;
-  half_open_success_threshold?: number;
-}
-
-export interface IDatabaseService {
-  logActivity(
-    actor: string,
-    actionType: string,
-    target: string | null,
-    payload: Record<string, JSONValue>,
-    traceId?: string,
-    agentId?: string | null,
-  ): void;
-  waitForFlush(): Promise<void>;
-  queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]>;
-  close?(): Promise<void>;
-  preparedGet<T>(query: string, params?: SqliteParam[]): Promise<T | null>;
-  preparedAll<T>(query: string, params?: SqliteParam[]): Promise<T[]>;
-  preparedRun(query: string, params?: SqliteParam[]): Promise<unknown>;
-  getActivitiesByTrace(traceId: string): ActivityRecord[];
-  getActivitiesByTraceSafe(traceId: string): Promise<ActivityRecord[]>;
-  getActivitiesByActionType(actionType: string): ActivityRecord[];
-  getActivitiesByActionTypeSafe(actionType: string): Promise<ActivityRecord[]>;
-  getRecentActivity(limit?: number): Promise<ActivityRecord[]>;
-}
-
 export class DatabaseService implements IDatabaseService {
   private db: Database;
-  private logQueue: LogEntry[] = [];
+  private logQueue: IActivityLogEntry[] = [];
   private flushTimer: number | null = null;
   private readonly FLUSH_INTERVAL_MS: number;
   private readonly MAX_BATCH_SIZE: number;
@@ -131,7 +153,7 @@ export class DatabaseService implements IDatabaseService {
       return;
     }
 
-    const entry: LogEntry = {
+    const entry: IActivityLogEntry = {
       activityId: crypto.randomUUID(),
       traceId: traceId || crypto.randomUUID(),
       actor,
@@ -201,7 +223,7 @@ export class DatabaseService implements IDatabaseService {
    */
   private async retryTransaction<T>(
     callback: () => Promise<T>,
-    options: RetryOptions = {},
+    options: IRetryOptions = {},
   ): Promise<T> {
     const {
       maxRetries = 3,
@@ -265,7 +287,7 @@ export class DatabaseService implements IDatabaseService {
    * Execute batch insert with transaction handling
    * @private
    */
-  private async executeBatchInsert(batch: LogEntry[], context: string): Promise<void> {
+  private async executeBatchInsert(batch: IActivityLogEntry[], context: string): Promise<void> {
     try {
       await this.dbBreaker.execute(() =>
         this.retryTransaction(() => {
@@ -335,7 +357,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Query activities by trace_id (for testing/debugging)
    */
-  getActivitiesByTrace(traceId: string): ActivityRecord[] {
+  getActivitiesByTrace(traceId: string): IActivityRecord[] {
     const stmt = this.db.prepare(
       `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
        FROM activity
@@ -350,7 +372,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Async, breaker-safe version of `getActivitiesByTrace`.
    */
-  async getActivitiesByTraceSafe(traceId: string): Promise<ActivityRecord[]> {
+  async getActivitiesByTraceSafe(traceId: string): Promise<IActivityRecord[]> {
     const stmt = this.db.prepare(
       `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
        FROM activity
@@ -367,7 +389,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Query activities by action_type (for testing/debugging)
    */
-  getActivitiesByActionType(actionType: string): ActivityRecord[] {
+  getActivitiesByActionType(actionType: string): IActivityRecord[] {
     const stmt = this.db.prepare(
       `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
        FROM activity
@@ -382,7 +404,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Async, breaker-safe version of `getActivitiesByActionType`.
    */
-  async getActivitiesByActionTypeSafe(actionType: string): Promise<ActivityRecord[]> {
+  async getActivitiesByActionTypeSafe(actionType: string): Promise<IActivityRecord[]> {
     const stmt = this.db.prepare(
       `SELECT id, trace_id, actor, agent_id, action_type, target, payload, timestamp
        FROM activity
@@ -399,7 +421,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Query recent activities (for testing/debugging)
    */
-  async getRecentActivity(limit: number = 100): Promise<ActivityRecord[]> {
+  async getRecentActivity(limit: number = 100): Promise<IActivityRecord[]> {
     // Flush pending logs before querying
     if (this.flushTimer !== null) {
       clearTimeout(this.flushTimer);
@@ -428,7 +450,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Query activity journal with flexible filters
    */
-  async queryActivity(filter: JournalFilterOptions): Promise<ActivityRecord[]> {
+  async queryActivity(filter: IJournalFilterOptions): Promise<IActivityRecord[]> {
     // Flush pending logs before querying
     if (this.flushTimer !== null) {
       clearTimeout(this.flushTimer);
@@ -452,7 +474,7 @@ export class DatabaseService implements IDatabaseService {
 
     // Build WHERE clause
     const whereParts: string[] = [];
-    const params: SqliteParam[] = [];
+    const params: ISqliteParam[] = [];
 
     if (filter.orConditions && filter.orConditions.length > 0) {
       // Handle OR conditions
@@ -497,7 +519,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Execute a prepared statement and return a single row (breaker-protected)
    */
-  async preparedGet<T>(query: string, params: SqliteParam[] = []): Promise<T | null> {
+  async preparedGet<T>(query: string, params: ISqliteParam[] = []): Promise<T | null> {
     const stmt = this.db.prepare(query);
     return await this.dbBreaker.execute(() => Promise.resolve(stmt.get(...params) as T | null));
   }
@@ -505,7 +527,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Execute a prepared statement and return all rows (breaker-protected)
    */
-  async preparedAll<T>(query: string, params: SqliteParam[] = []): Promise<T[]> {
+  async preparedAll<T>(query: string, params: ISqliteParam[] = []): Promise<T[]> {
     const stmt = this.db.prepare(query);
     return await this.dbBreaker.execute(() => Promise.resolve(stmt.all(...params) as T[]));
   }
@@ -513,12 +535,12 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Execute a prepared run (INSERT/UPDATE/DELETE) (breaker-protected)
    */
-  async preparedRun(query: string, params: SqliteParam[] = []): Promise<unknown> {
+  async preparedRun(query: string, params: ISqliteParam[] = []): Promise<unknown> {
     const stmt = this.db.prepare(query);
     return await this.dbBreaker.execute(() => Promise.resolve(stmt.run(...params)));
   }
 
-  private buildWhereClause(filter: JournalFilterOptions, params: SqliteParam[]): string {
+  private buildWhereClause(filter: IJournalFilterOptions, params: ISqliteParam[]): string {
     const conditions: string[] = [];
 
     if (filter.traceId) {
@@ -562,29 +584,4 @@ export class DatabaseService implements IDatabaseService {
 
     return conditions.join(" AND ");
   }
-}
-
-interface RetryOptions {
-  maxRetries?: number;
-  baseDelay?: number;
-  maxDelay?: number;
-  backoffFactor?: number;
-  jitter?: boolean;
-}
-
-/**
- * Filter options for querying activity journal
- */
-export interface JournalFilterOptions {
-  traceId?: string;
-  actionType?: string;
-  agentId?: string;
-  limit?: number;
-  since?: string; // ISO date string
-  payload?: string; // LIKE pattern
-  actor?: string;
-  target?: string;
-  distinct?: string; // field name for DISTINCT
-  count?: boolean; // if true, return count aggregation
-  orConditions?: JournalFilterOptions[]; // OR conditions
 }

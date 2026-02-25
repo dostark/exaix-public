@@ -1,5 +1,5 @@
 /**
- * @module WorkspaceExecutionContext
+ * @module IWorkspaceExecutionContext
  * @path src/services/workspace_execution_context.ts
  * @description Defines the environment for agent operations, including working
  * directories, repository paths, and security boundaries.
@@ -15,14 +15,14 @@
  */
 
 import { join, normalize } from "@std/path";
-import type { PortalConfig } from "../config/schema.ts";
+import type { IPortalConfig } from "../config/schema.ts";
 import { existsSync } from "@std/fs";
 
 /**
  * Execution context for agent operations
  * Determines where agents run and where git operations happen
  */
-export interface WorkspaceExecutionContext {
+export interface IWorkspaceExecutionContext {
   /** Working directory for agent execution */
   workingDirectory: string;
 
@@ -58,7 +58,7 @@ export class WorkspaceExecutionContextBuilder {
    * @param portal Portal configuration
    * @returns Execution context for portal
    */
-  static forPortal(portal: PortalConfig): WorkspaceExecutionContext {
+  static forPortal(portal: IPortalConfig): IWorkspaceExecutionContext {
     const portalTarget = normalize(portal.target_path.replace(/\/$/, ""));
     const gitDir = join(portalTarget, ".git");
 
@@ -84,7 +84,7 @@ export class WorkspaceExecutionContextBuilder {
    * @param workspacePath Path to deployed workspace
    * @returns Execution context for workspace
    */
-  static forWorkspace(workspacePath: string): WorkspaceExecutionContext {
+  static forWorkspace(workspacePath: string): IWorkspaceExecutionContext {
     const normalizedPath = normalize(workspacePath.replace(/\/$/, ""));
     const gitDir = join(normalizedPath, ".git");
 
@@ -102,7 +102,7 @@ export class WorkspaceExecutionContextBuilder {
    * @param portal Portal configuration
    * @throws Error if path doesn't exist
    */
-  static validatePortalExists(portal: PortalConfig): void {
+  static validatePortalExists(portal: IPortalConfig): void {
     const portalTarget = normalize(portal.target_path.replace(/\/$/, ""));
     if (!existsSync(portalTarget)) {
       throw new Error(`Portal target path does not exist: ${portalTarget}`);
@@ -115,7 +115,7 @@ export class WorkspaceExecutionContextBuilder {
    * @param portal Portal configuration
    * @throws Error if .git directory doesn't exist
    */
-  static validatePortalGitRepo(portal: PortalConfig): void {
+  static validatePortalGitRepo(portal: IPortalConfig): void {
     const portalTarget = normalize(portal.target_path.replace(/\/$/, ""));
     const gitDir = join(portalTarget, ".git");
     if (!existsSync(gitDir)) {
@@ -156,7 +156,7 @@ export class WorkspaceExecutionContextBuilder {
    * @param portal Portal configuration
    * @returns Portal config with resolved path
    */
-  static async resolvePortalSymlink(portal: PortalConfig): Promise<PortalConfig> {
+  static async resolvePortalSymlink(portal: IPortalConfig): Promise<IPortalConfig> {
     const realPath = await Deno.realPath(portal.target_path);
     return {
       ...portal,

@@ -8,13 +8,13 @@
  */
 
 import { MessageType } from "../../enums.ts";
-import type { Pane, TuiView } from "../tui_dashboard.ts";
+import type { IPane, ITuiView } from "../tui_dashboard.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../helpers/constants.ts";
 
 export const getLayoutFile = () => `${Deno.env.get("HOME")}/.exoframe/tui_layout.json`;
 
 export async function saveLayout(
-  panes: Pane[],
+  panes: IPane[],
   activePaneId: string,
   addNotification: (m: string, t?: string) => void,
 ) {
@@ -46,8 +46,8 @@ export async function saveLayout(
 }
 
 export async function restoreLayout(
-  panes: Pane[],
-  views: TuiView[],
+  panes: IPane[],
+  views: ITuiView[],
   addNotification: (m: string, t?: string) => void,
 ): Promise<{ activePaneId?: string } | null> {
   try {
@@ -90,8 +90,8 @@ export async function restoreLayout(
 }
 
 export function resetToDefault(
-  panes: Pane[],
-  views: TuiView[],
+  panes: IPane[],
+  views: ITuiView[],
   addNotification: (m: string, t?: string) => void,
 ): string {
   panes.length = 0;

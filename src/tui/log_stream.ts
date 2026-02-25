@@ -7,14 +7,14 @@
  * @related-files [src/tui/structured_log_viewer.ts]
  */
 
-import type { LogEntry } from "../services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../services/structured_logger.ts";
 import type { StructuredLoggerService } from "./structured_log_service.ts";
 import type { JSONObject } from "../types.ts";
 
 /**
  * Log stream configuration
  */
-export interface LogStreamConfig {
+export interface ILogStreamConfig {
   /** Maximum buffer size */
   maxBufferSize: number;
   /** Stream update interval in milliseconds */
@@ -47,15 +47,15 @@ export interface LogStreamState {
  * Real-time log streaming manager
  */
 export class LogStreamManager {
-  private buffer: LogEntry[] = [];
-  private subscribers: Array<(entries: LogEntry[]) => void> = [];
+  private buffer: IStructuredLogEntry[] = [];
+  private subscribers: Array<(entries: IStructuredLogEntry[]) => void> = [];
   private updateTimer?: number;
   private cleanupTimer?: number;
   private state: LogStreamState;
 
   constructor(
     private service: StructuredLoggerService,
-    private config: LogStreamConfig,
+    private config: ILogStreamConfig,
   ) {
     this.state = {
       isActive: false,
@@ -119,7 +119,7 @@ export class LogStreamManager {
   /**
    * Subscribe to log stream updates
    */
-  subscribe(callback: (entries: LogEntry[]) => void): () => void {
+  subscribe(callback: (entries: IStructuredLogEntry[]) => void): () => void {
     this.subscribers.push(callback);
     this.state.subscriberCount = this.subscribers.length;
 
@@ -143,7 +143,7 @@ export class LogStreamManager {
   /**
    * Handle new log entry
    */
-  private handleNewEntry(entry: LogEntry): void {
+  private handleNewEntry(entry: IStructuredLogEntry): void {
     if (!this.state.isActive) return;
 
     this.buffer.push(entry);
@@ -198,7 +198,7 @@ export class LogStreamManager {
  * Create a log stream manager with default configuration
  */
 export function createLogStreamManager(service: StructuredLoggerService): LogStreamManager {
-  const defaultConfig: LogStreamConfig = {
+  const defaultConfig: ILogStreamConfig = {
     maxBufferSize: 1000,
     updateInterval: 1000, // 1 second
     enabled: true,
@@ -296,7 +296,7 @@ export class PollingLogStream {
   constructor(
     private endpoint: string,
     private interval: number,
-    private onEntries: (entries: LogEntry[]) => void,
+    private onEntries: (entries: IStructuredLogEntry[]) => void,
     private onError: (error: Error) => void,
   ) {}
 
@@ -324,7 +324,7 @@ export class PollingLogStream {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const entries: LogEntry[] = await response.json();
+      const entries: IStructuredLogEntry[] = await response.json();
 
       if (entries.length > 0) {
         this.onEntries(entries);

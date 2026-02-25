@@ -22,19 +22,13 @@ import { LogMethod } from "./decorators/logging.ts";
 import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { DEFAULT_MCP_VERSION } from "../config/constants.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
-import type { ServiceContext } from "./common/types.ts";
+import type { IServiceContext } from "./common/types.ts";
 import { JSONValue } from "../types.ts";
-
-// Local defaults to avoid magic numbers in this module
-const DEFAULT_CHECK_BREAKER_FAILURE_THRESHOLD = 3;
-const DEFAULT_CHECK_BREAKER_RESET_TIMEOUT_MS = 60_000; // 1 minute
-const DEFAULT_CHECK_BREAKER_HALF_OPEN_SUCCESS_THRESHOLD = 2;
-const MS_PER_SECOND = 1000;
 
 /**
  * Interface for individual health check implementations
  */
-export interface HealthCheck {
+export interface IHealthCheck {
   /** Unique name for this health check */
   name: string;
   /** Whether failure of this check should mark the overall service as unhealthy */
@@ -73,6 +67,12 @@ export interface HealthReport {
   checks: Record<string, HealthCheckResult>;
 }
 
+// Local defaults to avoid magic numbers in this module
+const DEFAULT_CHECK_BREAKER_FAILURE_THRESHOLD = 3;
+const DEFAULT_CHECK_BREAKER_RESET_TIMEOUT_MS = 60_000; // 1 minute
+const DEFAULT_CHECK_BREAKER_HALF_OPEN_SUCCESS_THRESHOLD = 2;
+const MS_PER_SECOND = 1000;
+
 /**
  * Cached health check result with expiration
  */
@@ -85,7 +85,7 @@ interface CachedHealthResult {
  * Main health check service that orchestrates all health checks
  */
 export class HealthCheckService {
-  public checks: Map<string, HealthCheck> = new Map();
+  public checks: Map<string, IHealthCheck> = new Map();
   private checkBreakers = new Map<string, CircuitBreaker>();
   private startTime = Date.now();
   private healthCache = new Map<string, CachedHealthResult>();
@@ -96,7 +96,7 @@ export class HealthCheckService {
     private logger?: EventLogger,
   ) {
     // Determine logger instance
-    this.logger = logger ?? new EventLogger({ prefix: "[HealthCheck]" });
+    this.logger = logger ?? new EventLogger({ prefix: "[IHealthCheck]" });
   }
 
   public get checkTimeoutMs(): number {
@@ -118,7 +118,7 @@ export class HealthCheckService {
   /**
    * Register a health check
    */
-  registerCheck(check: HealthCheck): void {
+  registerCheck(check: IHealthCheck): void {
     this.checks.set(check.name, check);
     // Create a per-check circuit breaker with reasonable defaults (can be tuned via config)
     // NOTE: These specific breaker settings are not currently in the global config schema
@@ -133,7 +133,7 @@ export class HealthCheckService {
   /**
    * Perform all registered health checks and return overall status
    */
-  @LogMethod(new EventLogger({ prefix: "[HealthCheck]" }), "health.check_all")
+  @LogMethod(new EventLogger({ prefix: "[IHealthCheck]" }), "health.check_all")
   async checkHealth(): Promise<HealthReport> {
     const results: Record<string, HealthCheckResult> = {};
     let hasFailure = false;
@@ -214,7 +214,7 @@ export class HealthCheckService {
    * @param providerName The name of the provider to check
    * @returns True if the provider is healthy, false otherwise
    */
-  @LogMethod(new EventLogger({ prefix: "[HealthCheck]" }), "health.check_provider")
+  @LogMethod(new EventLogger({ prefix: "[IHealthCheck]" }), "health.check_provider")
   async checkProvider(providerName: string): Promise<boolean> {
     // ... existing implementation ...
     const now = Date.now();
@@ -317,7 +317,7 @@ export class HealthCheckService {
 /**
  * Database connectivity health check
  */
-export class DatabaseHealthCheck implements HealthCheck {
+export class DatabaseHealthCheck implements IHealthCheck {
   name = "database";
   critical = true;
 
@@ -361,7 +361,7 @@ export class DatabaseHealthCheck implements HealthCheck {
 /**
  * LLM provider availability health check
  */
-export class LLMProviderHealthCheck implements HealthCheck {
+export class LLMProviderHealthCheck implements IHealthCheck {
   name = "llm_provider";
   critical = false; // Can operate without LLM (mock mode)
 
@@ -399,7 +399,7 @@ export class LLMProviderHealthCheck implements HealthCheck {
 /**
  * Disk space availability health check
  */
-export class DiskSpaceHealthCheck implements HealthCheck {
+export class DiskSpaceHealthCheck implements IHealthCheck {
   name = "disk_space";
   critical = true;
 
@@ -473,7 +473,7 @@ export class DiskSpaceHealthCheck implements HealthCheck {
 /**
  * Memory usage health check
  */
-export class MemoryHealthCheck implements HealthCheck {
+export class MemoryHealthCheck implements IHealthCheck {
   name = "memory";
   critical = true;
 
@@ -547,7 +547,7 @@ export function initializeHealthChecks(
 }
 
 // Health check middleware context
-interface HealthContext extends ServiceContext {
+interface HealthContext extends IServiceContext {
   req: Request;
   health: HealthCheckService;
   res?: Response;

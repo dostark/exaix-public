@@ -7,12 +7,12 @@
  * @related-files [src/services/memory_bank.ts, src/schemas/memory_bank.ts]
  */
 
-import type { ExecutionMemory } from "../../schemas/memory_bank.ts";
+import type { IExecutionMemory } from "../../schemas/memory_bank.ts";
 
 /**
  * Format execution summary to markdown
  */
-export function formatExecutionSummary(exec: ExecutionMemory): string {
+export function formatExecutionSummary(exec: IExecutionMemory): string {
   let md = `# Execution Summary\n\n`;
   md += `**Trace ID:** ${exec.trace_id}\n`;
   md += `**Request ID:** ${exec.request_id}\n`;

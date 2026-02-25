@@ -6,7 +6,7 @@
  * @dependencies [providers, provider_common_utils, constants, base_provider]
  * @related-files [src/ai/factories/anthropic_factory.ts]
  */
-import { ModelOptions } from "../providers.ts";
+import { IModelOptions } from "../types.ts";
 import {
   type AnthropicResponse,
   extractAnthropicContent,
@@ -14,12 +14,12 @@ import {
   tokenMapperAnthropic,
 } from "../provider_common_utils.ts";
 import * as DEFAULTS from "../../config/constants.ts";
-import { BaseProvider, BaseProviderOptions } from "./base_provider.ts";
+import { BaseProvider, IBaseProviderOptions } from "./base_provider.ts";
 
 /**
  * Options for AnthropicProvider
  */
-export type AnthropicProviderOptions = BaseProviderOptions;
+export type AnthropicProviderOptions = IBaseProviderOptions;
 
 /**
  * AnthropicProvider implements IModelProvider for Anthropic's Claude models.
@@ -58,7 +58,7 @@ export class AnthropicProvider extends BaseProvider {
   /**
    * Internal: attempt a single completion call.
    */
-  protected override async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
+  protected override async attemptGenerate(prompt: string, options?: IModelOptions): Promise<string> {
     const data = await performProviderCall<AnthropicResponse>(this.baseUrl, {
       method: "POST",
       headers: {

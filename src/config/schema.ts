@@ -14,6 +14,14 @@ import * as DEFAULTS from "./constants.ts";
 import { ProviderTypeSchema } from "./ai_config.ts";
 import { LogLevel, PortalExecutionStrategy, ProviderCostTier, SqliteJournalMode } from "../enums.ts";
 
+export interface IPortalConfig {
+  alias: string;
+  target_path: string;
+  created?: string;
+}
+
+export type Config = z.infer<typeof ConfigSchema>;
+
 // Helper to get current working directory safely
 function getCwdSafe(): string {
   try {
@@ -510,11 +518,3 @@ export const ConfigSchema = z.object({
     }
   }
 });
-
-export type Config = z.infer<typeof ConfigSchema>;
-
-export interface PortalConfig {
-  alias: string;
-  target_path: string;
-  created?: string;
-}

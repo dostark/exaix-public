@@ -7,7 +7,7 @@
  * @related-files [src/ai/providers/anthropic_provider.ts]
  */
 import { AbstractKeyBasedProviderFactory } from "./abstract_provider_factory.ts";
-import { IModelProvider, ResolvedProviderOptions } from "../types.ts";
+import { IModelProvider, IResolvedProviderOptions } from "../types.ts";
 import { AnthropicProvider } from "../providers/anthropic_provider.ts";
 import { PROVIDER_ANTHROPIC } from "../../config/constants.ts";
 
@@ -16,7 +16,7 @@ export class AnthropicProviderFactory extends AbstractKeyBasedProviderFactory {
     super("ANTHROPIC_API_KEY");
   }
 
-  async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
+  async create(options: IResolvedProviderOptions): Promise<IModelProvider> {
     const apiKey = await this.getApiKey(options);
 
     return new AnthropicProvider({

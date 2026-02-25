@@ -7,34 +7,34 @@
  * @related-files [src/tui/structured_log_viewer.ts]
  */
 
-import type { LogEntry } from "../../services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../../services/structured_logger.ts";
 
 /**
  * Find related logs by correlation ID
  */
-export function findRelatedLogs(entries: LogEntry[], correlationId: string): LogEntry[] {
+export function findRelatedLogs(entries: IStructuredLogEntry[], correlationId: string): IStructuredLogEntry[] {
   return entries.filter((entry) => entry.context.correlation_id === correlationId);
 }
 
 /**
  * Find related logs by trace ID
  */
-export function findTraceLogs(entries: LogEntry[], traceId: string): LogEntry[] {
+export function findTraceLogs(entries: IStructuredLogEntry[], traceId: string): IStructuredLogEntry[] {
   return entries.filter((entry) => entry.context.trace_id === traceId);
 }
 
 /**
  * Find logs by agent ID
  */
-export function findAgentLogs(entries: LogEntry[], agentId: string): LogEntry[] {
+export function findAgentLogs(entries: IStructuredLogEntry[], agentId: string): IStructuredLogEntry[] {
   return entries.filter((entry) => entry.context.agent_id === agentId);
 }
 
 /**
  * Group logs by correlation ID
  */
-export function groupByCorrelation(entries: LogEntry[]): Record<string, LogEntry[]> {
-  const groups: Record<string, LogEntry[]> = {};
+export function groupByCorrelation(entries: IStructuredLogEntry[]): Record<string, IStructuredLogEntry[]> {
+  const groups: Record<string, IStructuredLogEntry[]> = {};
   for (const entry of entries) {
     const correlationId = entry.context.correlation_id || "no-correlation";
     if (!groups[correlationId]) {
@@ -48,8 +48,8 @@ export function groupByCorrelation(entries: LogEntry[]): Record<string, LogEntry
 /**
  * Group logs by trace ID
  */
-export function groupByTrace(entries: LogEntry[]): Record<string, LogEntry[]> {
-  const groups: Record<string, LogEntry[]> = {};
+export function groupByTrace(entries: IStructuredLogEntry[]): Record<string, IStructuredLogEntry[]> {
+  const groups: Record<string, IStructuredLogEntry[]> = {};
   for (const entry of entries) {
     const traceId = entry.context.trace_id || "no-trace";
     if (!groups[traceId]) {

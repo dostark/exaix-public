@@ -11,7 +11,7 @@ import { KEYS } from "../../helpers/keyboard.ts";
 import { TuiSessionBase } from "../tui_common.ts";
 import type { DialogBase } from "../../helpers/dialog_base.ts";
 import { ConfirmDialog, InputDialog } from "../../helpers/dialog_base.ts";
-import type { KeyBinding } from "../../helpers/keyboard.ts";
+import type { IKeyBinding } from "../../helpers/keyboard.ts";
 import { nextFrame, renderSpinner, type SpinnerState, startSpinner, stopSpinner } from "../../helpers/spinner.ts";
 import {
   collapseAll,
@@ -19,19 +19,19 @@ import {
   flattenTree,
   getNextNodeId,
   getPrevNodeId,
+  type ITreeNode,
   renderTree,
   toggleNode,
-  type TreeNode,
   type TreeRenderOptions,
 } from "../../helpers/tree_view.ts";
-import { createTreeViewState, type TreeViewState } from "./tree_view_state.ts";
+import { createTreeViewState, type ITreeViewState } from "./tree_view_state.ts";
 
 /**
  * Abstract base class for tree-based TUI views
  * @template T The type of data stored in tree nodes
  */
 export abstract class BaseTreeView<T> extends TuiSessionBase {
-  public state: TreeViewState<T>;
+  public state: ITreeViewState<T>;
   protected localSpinnerState: SpinnerState;
 
   constructor(useColors = true) {
@@ -56,7 +56,7 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
   /**
    * Get the key bindings for this view
    */
-  abstract override getKeyBindings(): KeyBinding<string>[];
+  abstract override getKeyBindings(): IKeyBinding<string>[];
 
   /**
    * Get the view name
@@ -73,6 +73,7 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
     const prevId = getPrevNodeId(this.state.tree, this.state.selectedId);
     if (prevId) {
       this.state.selectedId = prevId;
+      this.syncSelectedIndex();
     }
   }
 
@@ -87,6 +88,7 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
     const nextId = getNextNodeId(this.state.tree, this.state.selectedId);
     if (nextId) {
       this.state.selectedId = nextId;
+      this.syncSelectedIndex();
     }
   }
 
@@ -97,6 +99,7 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
     const flat = flattenTree(this.state.tree);
     if (flat.length > 0) {
       this.state.selectedId = flat[0].node.id;
+      this.selectedIndex = 0;
     }
   }
 
@@ -107,6 +110,7 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
     const flat = flattenTree(this.state.tree);
     if (flat.length > 0) {
       this.state.selectedId = flat[flat.length - 1].node.id;
+      this.selectedIndex = flat.length - 1;
     }
   }
 
@@ -131,6 +135,27 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
    */
   protected collapseAllNodes(): void {
     this.state.tree = collapseAll(this.state.tree);
+  }
+  protected syncSelectedIndex(): void {
+    if (!this.state.selectedId) {
+      this.selectedIndex = 0;
+      return;
+    }
+    const flat = flattenTree(this.state.tree);
+    const idx = flat.findIndex((f) => f.node.id === this.state.selectedId);
+    if (idx !== -1) {
+      this.selectedIndex = idx;
+    }
+  }
+
+  public override setSelectedIndex(idx: number, length: number): void {
+    super.setSelectedIndex(idx, length);
+    const flat = flattenTree(this.state.tree);
+    if (idx >= 0 && idx < flat.length) {
+      this.state.selectedId = flat[idx].node.id;
+    } else {
+      this.state.selectedId = null;
+    }
   }
 
   // ===== Key Handling =====
@@ -200,38 +225,25 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
     return false;
   }
 
-  /**
-   * Synchronous version of key handler for internal use
-   * to ensure state updates happen in the same tick.
-   */
-  public handleKeySync(key: string): boolean {
-    if (this.handleDialogKeys(key)) return true;
+  public async handleKey(key: string): Promise<boolean> {
+    if (await this.handleDialogKeys(key)) return true;
     if (this.handleHelpKeys(key)) return true;
     if (this.handleNavigationKeys(key)) return true;
     return false;
   }
 
   /**
-   * Main key handler for the view
-   * Delegates to dialogs, help, and navigation handlers
-   * Returns true if key was handled
-   */
-  handleKey(key: string): Promise<boolean> {
-    return Promise.resolve(this.handleKeySync(key));
-  }
-
-  /**
    * Handle dialog keys
    * Returns true if dialog is active and consumed the key
    */
-  protected handleDialogKeys(key: string): boolean {
+  protected async handleDialogKeys(key: string): Promise<boolean> {
     if (this.state.activeDialog) {
       this.state.activeDialog.handleKey(key);
 
       if (!this.state.activeDialog.isActive()) {
         const dialog = this.state.activeDialog;
         this.state.activeDialog = null;
-        this.onDialogClosed(dialog);
+        await this.onDialogClosed(dialog);
       }
 
       return true;
@@ -244,7 +256,11 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
    * Called when a dialog is closed
    * Subclasses can override to handle dialog results
    */
-  protected onDialogClosed(_dialog: DialogBase): void {
+  /**
+   * Called when a dialog is closed
+   * Subclasses can override to handle dialog results
+   */
+  protected onDialogClosed(_dialog: DialogBase): void | Promise<void> {
     // Default: no-op
   }
 
@@ -326,7 +342,7 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
   /**
    * Get currently selected node
    */
-  protected getSelectedNode(): TreeNode<T> | null {
+  protected getSelectedNode(): ITreeNode<T> | null {
     const flat = flattenTree(this.state.tree);
     return flat.find((f) => f.node.id === this.state.selectedId)?.node || null;
   }
@@ -399,7 +415,7 @@ export abstract class BaseTreeView<T> extends TuiSessionBase {
   /**
    * Get tree for rendering
    */
-  getTree(): TreeNode<T>[] {
+  getTree(): ITreeNode<T>[] {
     return this.state.tree;
   }
 }

@@ -8,27 +8,27 @@
  * @related-files [src/services/execution_loop.ts, src/services/db.ts]
  */
 
-import type { DatabaseService, SqliteParam } from "./db.ts";
+import type { IDatabaseService, ISqliteParam } from "./db.ts";
 import type { EventLogger } from "./event_logger.ts";
 import {
-  type RegisterReviewInput,
+  type IRegisterReviewInput,
+  type IReview,
+  type IReviewFilters,
   RegisterReviewSchema,
-  type Review,
-  type ReviewFilters,
   ReviewSchema,
 } from "../schemas/review.ts";
-import { ReviewStatus, type ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
+import { type IReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
 
 export class ReviewRegistry {
   constructor(
-    private db: DatabaseService,
+    private db: IDatabaseService,
     private logger: EventLogger,
   ) {}
 
   /**
    * Register a new review created by an agent
    */
-  async register(input: RegisterReviewInput): Promise<string> {
+  async register(input: IRegisterReviewInput): Promise<string> {
     // Validate input
     const validated = RegisterReviewSchema.parse(input);
 
@@ -89,7 +89,7 @@ export class ReviewRegistry {
       ]);
     }
 
-    // Log to Activity Journal
+    // Log to IActivity Journal
     await this.logger.info("review.created", validated.branch, {
       review_id: id,
       trace_id: validated.trace_id,
@@ -169,7 +169,7 @@ export class ReviewRegistry {
   /**
    * Get review by ID
    */
-  async get(id: string): Promise<Review | null> {
+  async get(id: string): Promise<IReview | null> {
     const sql = `SELECT * FROM reviews WHERE id = ?`;
     const row = await this.db.preparedGet(sql, [id]);
 
@@ -180,7 +180,7 @@ export class ReviewRegistry {
   /**
    * Get review by branch name
    */
-  async getByBranch(branch: string): Promise<Review | null> {
+  async getByBranch(branch: string): Promise<IReview | null> {
     const sql = `SELECT * FROM reviews WHERE branch = ?`;
     const row = await this.db.preparedGet(sql, [branch]);
     if (!row) return null;
@@ -190,7 +190,7 @@ export class ReviewRegistry {
   /**
    * List reviews with optional filters
    */
-  async list(filters?: ReviewFilters): Promise<Review[]> {
+  async list(filters?: IReviewFilters): Promise<IReview[]> {
     let sql = `SELECT * FROM reviews WHERE 1=1`;
     const params: Array<string | number> = [];
 
@@ -216,7 +216,7 @@ export class ReviewRegistry {
 
     sql += ` ORDER BY created DESC`;
 
-    const rows = await this.db.preparedAll<Review>(sql, params as SqliteParam[]);
+    const rows = await this.db.preparedAll<IReview>(sql, params as ISqliteParam[]);
     return rows.map((row) => ReviewSchema.parse(row));
   }
 
@@ -225,7 +225,7 @@ export class ReviewRegistry {
    */
   async updateStatus(
     id: string,
-    status: ReviewStatusType,
+    status: IReviewStatus,
     user?: string,
     reason?: string,
   ): Promise<void> {
@@ -268,31 +268,30 @@ export class ReviewRegistry {
         rejection_reason: reason ?? null,
       }, review.trace_id);
     } else {
-      sql += ` WHERE id = ?`;
       params.push(id);
     }
 
-    await this.db.preparedRun(sql, params as SqliteParam[]);
+    await this.db.preparedRun(sql, params as ISqliteParam[]);
   }
 
   /**
    * Get all reviews for a specific trace
    */
-  async getByTrace(trace_id: string): Promise<Review[]> {
+  async getByTrace(trace_id: string): Promise<IReview[]> {
     return await this.list({ trace_id });
   }
 
   /**
    * Get pending reviews for a portal
    */
-  async getPendingForPortal(portal: string): Promise<Review[]> {
+  async getPendingForPortal(portal: string): Promise<IReview[]> {
     return await this.list({ portal, status: ReviewStatus.PENDING });
   }
 
   /**
    * Count reviews by status
    */
-  async countByStatus(status: ReviewStatusType): Promise<number> {
+  async countByStatus(status: IReviewStatus): Promise<number> {
     const sql = `SELECT COUNT(*) as count FROM reviews WHERE status = ?`;
     const row = await this.db.preparedGet<{ count: number }>(sql, [status]);
     return row?.count || 0;

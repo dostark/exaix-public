@@ -14,11 +14,11 @@ import type { IDatabaseService } from "./db.ts";
 import type { IMemoryBankService } from "./memory_bank.ts";
 import type { JSONObject } from "../types.ts";
 import type {
-  ExecutionMemory,
-  Learning,
-  MemoryUpdateProposal,
-  Pattern,
-  ProposalLearning,
+  IExecutionMemory,
+  ILearning,
+  IMemoryUpdateProposal,
+  IPattern,
+  IProposalLearning,
 } from "../schemas/memory_bank.ts";
 import { MemoryUpdateProposalSchema } from "../schemas/memory_bank.ts";
 import { MemoryOperation, MemoryReferenceType, MemoryScope } from "../enums.ts";
@@ -52,7 +52,7 @@ export class MemoryExtractorService {
    * @param execution - Completed execution memory
    * @returns Array of extracted learnings (without status, ready for proposal)
    */
-  analyzeExecution(execution: ExecutionMemory): ProposalLearning[] {
+  analyzeExecution(execution: IExecutionMemory): IProposalLearning[] {
     return LearningExtractor.extract(execution);
   }
   // ===== Proposal Operations =====
@@ -66,13 +66,13 @@ export class MemoryExtractorService {
    * @returns Proposal ID
    */
   async createProposal(
-    learning: ProposalLearning,
-    execution: ExecutionMemory,
+    learning: IProposalLearning,
+    execution: IExecutionMemory,
     agent: string,
   ): Promise<string> {
     await ensureDir(this.pendingDir);
 
-    const proposal: MemoryUpdateProposal = {
+    const proposal: IMemoryUpdateProposal = {
       id: crypto.randomUUID(),
       created_at: new Date().toISOString(),
       operation: MemoryOperation.ADD,
@@ -92,7 +92,7 @@ export class MemoryExtractorService {
     const proposalPath = join(this.pendingDir, `${proposal.id}.json`);
     await Deno.writeTextFile(proposalPath, JSON.stringify(proposal, null, 2));
 
-    // Log to Activity Journal
+    // Log to IActivity Journal
     this.logActivity({
       event_type: "memory.proposal.created",
       target: learning.project || MemoryScope.GLOBAL,
@@ -112,8 +112,8 @@ export class MemoryExtractorService {
    *
    * @returns Array of pending proposals
    */
-  async listPending(): Promise<MemoryUpdateProposal[]> {
-    const proposals: MemoryUpdateProposal[] = [];
+  async listPending(): Promise<IMemoryUpdateProposal[]> {
+    const proposals: IMemoryUpdateProposal[] = [];
 
     if (!await exists(this.pendingDir)) {
       return proposals;
@@ -145,7 +145,7 @@ export class MemoryExtractorService {
    * @param proposalId - Proposal ID
    * @returns Proposal or null if not found
    */
-  async getPending(proposalId: string): Promise<MemoryUpdateProposal | null> {
+  async getPending(proposalId: string): Promise<IMemoryUpdateProposal | null> {
     const proposalPath = join(this.pendingDir, `${proposalId}.json`);
 
     if (!await exists(proposalPath)) {
@@ -172,7 +172,7 @@ export class MemoryExtractorService {
     }
 
     // Convert proposal learning to full Learning
-    const learning: Learning = {
+    const learning: ILearning = {
       ...proposal.learning,
       status: MemoryStatus.APPROVED,
       approved_at: new Date().toISOString(),
@@ -183,10 +183,14 @@ export class MemoryExtractorService {
       await this.memoryBank.addGlobalLearning(learning);
     } else if (proposal.target_project) {
       // Add as pattern to project
-      const pattern: Pattern = {
+      const pattern: IPattern = {
         name: learning.title,
         description: learning.description,
-        examples: learning.references?.filter((r) => r.type === MemoryReferenceType.FILE).map((r) => r.path) || [],
+        examples: learning.references?.filter((r: { type: MemoryReferenceType; path: string }) =>
+          r.type === MemoryReferenceType.FILE
+        ).map((r: { type: MemoryReferenceType; path: string }) =>
+          r.path
+        ) || [],
         tags: learning.tags,
       };
       await this.memoryBank.addPattern(proposal.target_project, pattern);
@@ -259,7 +263,7 @@ export class MemoryExtractorService {
   // ===== Private Helpers =====
 
   /**
-   * Log activity to Activity Journal
+   * Log activity to IActivity Journal
    */
   private logActivity(event: {
     event_type: string;

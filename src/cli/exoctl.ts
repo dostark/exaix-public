@@ -11,7 +11,7 @@
 import { Command } from "@cliffy/command";
 import { PlanCommands } from "./commands/plan_commands.ts";
 import { RequestCommands } from "./commands/request_commands.ts";
-import { ReviewCommands, type ReviewDetails, type ReviewMetadata } from "./commands/review_commands.ts";
+import { type IReviewMetadata, ReviewCommands, type ReviewDetails } from "./commands/review_commands.ts";
 import { GitCommands } from "./commands/git_commands.ts";
 import { DaemonCommands } from "./commands/daemon_commands.ts";
 import { PortalCommands } from "./commands/portal_commands.ts";
@@ -19,9 +19,9 @@ import { BlueprintCommands } from "./commands/blueprint_commands.ts";
 import { FlowCommands } from "./commands/flow_commands.ts";
 import { DashboardCommands } from "./commands/dashboard_commands.ts";
 import { MemoryCommands } from "./commands/memory_commands.ts";
-import { JournalCommandOptions, JournalCommands } from "./commands/journal_commands.ts";
+import { IJournalCommandOptions, JournalCommands } from "./commands/journal_commands.ts";
 import { PortalExecutionStrategy, PortalStatus } from "../enums.ts";
-import { ReviewStatus, type ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
+import { IReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
 import { CLI_DEFAULTS } from "./cli.config.ts";
 import { McpCommands } from "./commands/mcp_commands.ts";
 import { initializeServices, isTestMode as isTestModeImport } from "./init.ts";
@@ -139,7 +139,7 @@ async function handleReviewListAction(options: { status?: string; type?: string 
   }
 }
 
-function logReviewListItem(cs: ReviewMetadata) {
+function logReviewListItem(cs: IReviewMetadata) {
   const statusEmoji = getReviewStatusEmoji(cs.status);
   const requestTitle = cs.request_title ? `"${cs.request_title}"` : cs.request_id;
   const planInfo = cs.plan_id ? `plan: ${cs.plan_id} (${cs.plan_status})` : undefined;
@@ -160,7 +160,7 @@ function logReviewListItem(cs: ReviewMetadata) {
   });
 }
 
-function getReviewStatusEmoji(status: ReviewStatusType | undefined): string {
+function getReviewStatusEmoji(status: IReviewStatus | undefined): string {
   if (status === ReviewStatus.APPROVED) return "✅";
   if (status === ReviewStatus.REJECTED) return "❌";
   return "📌";
@@ -1402,7 +1402,7 @@ export const __test_command = new Command()
   );
 
 const journalCommand = new Command()
-  .description("Query the Activity Journal")
+  .description("Query the IActivity Journal")
   .option("-f, --filter <filter:string>", "Filter by key=value (trace_id, action_type, agent_id, since)", {
     collect: true,
   })
@@ -1415,7 +1415,7 @@ const journalCommand = new Command()
   .option("--target <target:string>", "Filter by target")
   .action(async (options) => {
     const cmd = new JournalCommands(context);
-    await cmd.show(options as JournalCommandOptions);
+    await cmd.show(options as IJournalCommandOptions);
   });
 
 __test_command.command("journal", journalCommand);

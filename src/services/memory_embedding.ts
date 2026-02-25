@@ -10,7 +10,17 @@
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import type { Config } from "../config/schema.ts";
-import type { Learning } from "../schemas/memory_bank.ts";
+import type { ILearning } from "../schemas/memory_bank.ts";
+
+/**
+ * Embedding search result
+ */
+export interface IEmbeddingSearchResult {
+  id: string;
+  title: string;
+  summary: string;
+  similarity: number;
+}
 
 /**
  * Embedding vector dimension
@@ -18,16 +28,6 @@ import type { Learning } from "../schemas/memory_bank.ts";
  * for demonstrating semantic similarity
  */
 const EMBEDDING_DIM = 64;
-
-/**
- * Embedding search result
- */
-export interface EmbeddingSearchResult {
-  id: string;
-  title: string;
-  summary: string;
-  similarity: number;
-}
 
 /**
  * Embedding file structure (stored as JSON)
@@ -146,11 +146,11 @@ export function generateMockEmbedding(text: string): number[] {
  */
 export interface IMemoryEmbeddingService {
   initializeManifest(): Promise<void>;
-  embedLearning(learning: Learning): Promise<void>;
+  embedLearning(learning: ILearning): Promise<void>;
   searchByEmbedding(
     query: string,
     options?: { limit?: number; threshold?: number },
-  ): Promise<EmbeddingSearchResult[]>;
+  ): Promise<IEmbeddingSearchResult[]>;
   getEmbedding(id: string): Promise<number[] | null>;
   deleteEmbedding(id: string): Promise<void>;
   getStats(): Promise<{ total: number; generated_at: string }>;
@@ -194,9 +194,9 @@ export class MemoryEmbeddingService implements IMemoryEmbeddingService {
   /**
    * Embed a learning and save to file
    *
-   * @param learning - Learning to embed
+   * @param learning - ILearning to embed
    */
-  async embedLearning(learning: Learning): Promise<void> {
+  async embedLearning(learning: ILearning): Promise<void> {
     await this.initializeManifest();
 
     // Generate text for embedding (title + description)
@@ -222,8 +222,8 @@ export class MemoryEmbeddingService implements IMemoryEmbeddingService {
   /**
    * Update the manifest with a new or updated embedding
    *
-   * @param id - Learning ID
-   * @param title - Learning title
+   * @param id - ILearning ID
+   * @param title - ILearning title
    * @param embeddingPath - Path to the embedding file
    */
   private async updateManifest(id: string, title: string, embeddingPath: string): Promise<void> {
@@ -269,7 +269,7 @@ export class MemoryEmbeddingService implements IMemoryEmbeddingService {
   async searchByEmbedding(
     query: string,
     options?: { limit?: number; threshold?: number },
-  ): Promise<EmbeddingSearchResult[]> {
+  ): Promise<IEmbeddingSearchResult[]> {
     await this.initializeManifest();
     const limit = options?.limit || 10;
     const threshold = options?.threshold || 0.0;
@@ -291,7 +291,7 @@ export class MemoryEmbeddingService implements IMemoryEmbeddingService {
     const queryVector = generateMockEmbedding(query);
 
     // Calculate similarity for each embedding
-    const results: EmbeddingSearchResult[] = [];
+    const results: IEmbeddingSearchResult[] = [];
 
     for (const entry of manifest.index) {
       const embeddingPath = join(this.embeddingsDir, `${entry.id}.json`);
@@ -327,7 +327,7 @@ export class MemoryEmbeddingService implements IMemoryEmbeddingService {
   /**
    * Get embedding for a specific learning
    *
-   * @param id - Learning ID
+   * @param id - ILearning ID
    * @returns Embedding vector or null if not found
    */
   async getEmbedding(id: string): Promise<number[] | null> {
@@ -349,7 +349,7 @@ export class MemoryEmbeddingService implements IMemoryEmbeddingService {
   /**
    * Delete embedding for a specific learning
    *
-   * @param id - Learning ID
+   * @param id - ILearning ID
    */
   async deleteEmbedding(id: string): Promise<void> {
     await this.initializeManifest();

@@ -19,7 +19,7 @@ import { GitCreateBranchToolArgsSchema } from "../../schemas/mcp.ts";
  * - Validates portal exists
  * - Validates branch name format (feat/, fix/, docs/, chore/, refactor/, test/)
  * - Checks if git repository exists
- * - Logs all operations to Activity Journal
+ * - Logs all operations to IActivity Journal
  */
 export class GitCreateBranchTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {

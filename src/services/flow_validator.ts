@@ -8,14 +8,14 @@
  */
 import { FlowLoader } from "../flows/flow_loader.ts";
 import { DependencyResolver } from "../flows/dependency_resolver.ts";
-import type { FlowValidator } from "./request_router.ts";
-import type { Flow, FlowStep } from "../schemas/flow.ts";
+import type { IFlowValidator } from "./request_router.ts";
+import type { IFlow, IFlowStep } from "../schemas/flow.ts";
 
 /**
  * FlowValidatorImpl - Validates flow definitions before execution
  * Implements comprehensive validation for flow-aware request routing
  */
-export class FlowValidatorImpl implements FlowValidator {
+export class FlowValidatorImpl implements IFlowValidator {
   constructor(
     private flowLoader: FlowLoader,
     private blueprintsPath: string,
@@ -28,12 +28,12 @@ export class FlowValidatorImpl implements FlowValidator {
     try {
       const exists = await this.flowLoader.flowExists(flowId);
       if (!exists) {
-        return { valid: false, error: `Flow '${flowId}' not found` };
+        return { valid: false, error: `IFlow '${flowId}' not found` };
       }
 
       const loadResult = await this.tryLoadFlow(flowId);
       if (loadResult.error || !loadResult.flow) {
-        return { valid: false, error: loadResult.error || `Flow '${flowId}' failed to load` };
+        return { valid: false, error: loadResult.error || `IFlow '${flowId}' failed to load` };
       }
       const flow = loadResult.flow;
 
@@ -53,7 +53,7 @@ export class FlowValidatorImpl implements FlowValidator {
     } catch (error) {
       return {
         valid: false,
-        error: `Flow '${flowId}' validation failed: ${error instanceof Error ? error.message : String(error)}`,
+        error: `IFlow '${flowId}' validation failed: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   }
@@ -67,42 +67,42 @@ export class FlowValidatorImpl implements FlowValidator {
     } catch (loaderErr) {
       const msg = loaderErr instanceof Error ? loaderErr.message : String(loaderErr);
       if (msg.includes("Agent reference cannot be empty")) {
-        return { error: `Flow '${flowId}' has invalid agent` };
+        return { error: `IFlow '${flowId}' has invalid agent` };
       }
-      return { error: `Flow '${flowId}' validation failed: ${msg}` };
+      return { error: `IFlow '${flowId}' validation failed: ${msg}` };
     }
   }
 
-  private validateStructure(flowId: string, flow: Flow): string | null {
+  private validateStructure(flowId: string, flow: IFlow): string | null {
     if (!flow.steps || flow.steps.length === 0) {
-      return `Flow '${flowId}' must contain at least one step`;
+      return `IFlow '${flowId}' must contain at least one step`;
     }
     return null;
   }
 
-  private validateDependencies(flowId: string, steps: FlowStep[]): string | null {
+  private validateDependencies(flowId: string, steps: IFlowStep[]): string | null {
     const resolver = new DependencyResolver(steps);
     try {
       resolver.topologicalSort();
       return null;
     } catch (error) {
-      return `Flow '${flowId}' has invalid dependencies: ${error instanceof Error ? error.message : String(error)}`;
+      return `IFlow '${flowId}' has invalid dependencies: ${error instanceof Error ? error.message : String(error)}`;
     }
   }
 
-  private validateStepAgents(flowId: string, steps: FlowStep[]): string | null {
+  private validateStepAgents(flowId: string, steps: IFlowStep[]): string | null {
     for (const step of steps) {
       if (!step.agent || typeof step.agent !== "string" || step.agent === "") {
-        return `Flow '${flowId}' step '${step.id}' has invalid agent: ${step.agent}`;
+        return `IFlow '${flowId}' step '${step.id}' has invalid agent: ${step.agent}`;
       }
     }
     return null;
   }
 
-  private validateOutput(flowId: string, flow: Flow): string | null {
+  private validateOutput(flowId: string, flow: IFlow): string | null {
     if (!flow.output) return null;
     if (!flow.output.from || !flow.output.format) {
-      return `Flow '${flowId}' has invalid output configuration`;
+      return `IFlow '${flowId}' has invalid output configuration`;
     }
 
     const outputFrom = flow.output.from;
@@ -110,18 +110,18 @@ export class FlowValidatorImpl implements FlowValidator {
 
     if (typeof outputFrom === "string") {
       if (stepIds.has(outputFrom)) return null;
-      return `Flow '${flowId}' output.from references non-existent step: ${outputFrom}`;
+      return `IFlow '${flowId}' output.from references non-existent step: ${outputFrom}`;
     }
 
     if (Array.isArray(outputFrom)) {
       for (const stepId of outputFrom) {
         if (!stepIds.has(stepId)) {
-          return `Flow '${flowId}' output.from references non-existent step: ${stepId}`;
+          return `IFlow '${flowId}' output.from references non-existent step: ${stepId}`;
         }
       }
       return null;
     }
 
-    return `Flow '${flowId}' has invalid output configuration`;
+    return `IFlow '${flowId}' has invalid output configuration`;
   }
 }

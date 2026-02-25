@@ -9,11 +9,11 @@
  */
 import { join } from "@std/path";
 import { exists } from "@std/fs";
-import type { Blueprint, ParsedRequest } from "./agent_runner.ts";
-import type { RequestFrontmatter } from "./request_processing/types.ts";
+import type { IBlueprint, IParsedRequest } from "./agent_runner.ts";
+import type { IRequestFrontmatter } from "./request_processing/types.ts";
 
 /** Load an agent blueprint file from a blueprints directory. */
-export async function loadBlueprint(blueprintsPath: string, agentId: string): Promise<Blueprint | null> {
+export async function loadBlueprint(blueprintsPath: string, agentId: string): Promise<IBlueprint | null> {
   const blueprintPath = join(blueprintsPath, `${agentId}.md`);
   if (!await exists(blueprintPath)) return null;
   try {
@@ -25,13 +25,13 @@ export async function loadBlueprint(blueprintsPath: string, agentId: string): Pr
   }
 }
 
-/** Build a ParsedRequest used by AgentRunner. */
+/** Build a IParsedRequest used by AgentRunner. */
 export function buildParsedRequest(
   body: string,
-  frontmatter: RequestFrontmatter,
+  frontmatter: IRequestFrontmatter,
   requestId: string,
   traceId: string,
-): ParsedRequest {
+): IParsedRequest {
   let skills: string[] | undefined;
   if (frontmatter.skills) {
     const s = frontmatter.skills.trim();

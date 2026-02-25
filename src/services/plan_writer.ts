@@ -17,94 +17,42 @@ import type { DatabaseService } from "./db.ts";
 import { PlanAdapter, PlanValidationError } from "./plan_adapter.ts";
 import { PlanStatus } from "../plans/plan_status.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
-import type { ServiceContext } from "./common/types.ts";
+import type { IServiceContext } from "./common/types.ts";
 import { JSONValue } from "../types.ts";
 
-// ============================================================================
-// Types and Interfaces
-// ============================================================================
-
-/**
- * Metadata about the request that generated this plan
- */
-export interface RequestMetadata {
-  /** Original request file name (without extension) */
+export interface IRequestMetadata {
   requestId: string;
-
-  /** Agent ID that generated this plan (blueprint name) */
   agentId?: string;
-
-  /** Trace ID linking request → plan → execution */
   traceId: string;
-
-  /** Timestamp when request was created */
   createdAt: Date;
-
-  /** Context files that were loaded for this request */
   contextFiles: string[];
-
-  /** Warnings from context loading (truncation, etc.) */
   contextWarnings: string[];
-
-  /** Optional: Model override for this request */
   model?: string;
-
-  /** Optional: Portal ID for this request */
   portal?: string;
-
-  /** Optional: Target/base branch for this request (portal-aware) */
   targetBranch?: string;
 }
 
-/**
- * Configuration for plan writing
- */
-export interface PlanWriterConfig {
-  /** Directory to write plans to (default: Workspace/Plans) */
+export interface IPlanWriterConfig {
   plansDirectory: string;
-
-  /** Whether to include reasoning section */
   includeReasoning: boolean;
-
-  /** Whether to generate wiki links (deprecated - should be false for Memory Banks) */
   generateWikiLinks: boolean;
-
-  /** System directory root for database access (default: /System) */
   runtimeRoot: string;
-
-  /** Optional: Database service for activity logging */
   db?: DatabaseService;
 }
 
-/**
- * Result of plan writing operation
- */
-export interface PlanWriteResult {
-  /** Absolute path to written plan file */
+export interface IPlanWriteResult {
   planPath: string;
-
-  /** Generated plan content */
   content: string;
-
-  /** Timestamp when plan was written */
   writtenAt: Date;
 }
 
-/**
- * Agent execution result (from Step 3.2: AgentRunner)
- */
-export interface AgentExecutionResult {
-  /** Agent's internal reasoning from <thought> tags */
+export interface IAgentExecutionResult {
   thought: string;
-
-  /** Actual plan content from <content> tags */
   content: string;
-
-  /** Raw response from LLM */
   raw: string;
 }
 
-interface TokenUsageSummary {
+export interface ITokenUsageSummary {
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
@@ -124,7 +72,7 @@ interface TokenUsageSummary {
 export class PlanWriter {
   private adapter: PlanAdapter;
 
-  constructor(private config: PlanWriterConfig) {
+  constructor(private config: IPlanWriterConfig) {
     this.adapter = new PlanAdapter();
   }
 
@@ -132,16 +80,16 @@ export class PlanWriter {
    * Write a plan document based on agent execution result
    */
   async writePlan(
-    result: AgentExecutionResult,
-    metadata: RequestMetadata,
-  ): Promise<PlanWriteResult> {
+    result: IAgentExecutionResult,
+    metadata: IRequestMetadata,
+  ): Promise<IPlanWriteResult> {
     // Execute writePlan through middleware pipeline to centralize timing/logging
-    interface PlanWriterContext extends ServiceContext {
+    interface IPlanWriterContext extends IServiceContext {
       requestId?: string;
       __startTime?: number;
       __durationMs?: number;
     }
-    const pipeline = new MiddlewarePipeline<PlanWriterContext>();
+    const pipeline = new MiddlewarePipeline<IPlanWriterContext>();
 
     // Timing middleware
     pipeline.use(async (_ctx, next) => {
@@ -162,9 +110,9 @@ export class PlanWriter {
       }
     });
 
-    const context: PlanWriterContext = { traceId: metadata.traceId, requestId: metadata.requestId };
+    const context: IPlanWriterContext = { traceId: metadata.traceId, requestId: metadata.requestId };
 
-    let writeResult: PlanWriteResult;
+    let writeResult: IPlanWriteResult;
 
     await pipeline.execute(context, async () => {
       // Generate plan content (with JSON validation)
@@ -179,7 +127,7 @@ export class PlanWriter {
 
       const writtenAt = new Date();
 
-      // Log to Activity Journal
+      // Log to IActivity Journal
       await this.logPlanCreation(planPath, metadata.traceId, metadata);
 
       writeResult = {
@@ -197,8 +145,8 @@ export class PlanWriter {
    * Step 6.7: Validates JSON plan and converts to markdown
    */
   private async formatPlan(
-    result: AgentExecutionResult,
-    metadata: RequestMetadata,
+    result: IAgentExecutionResult,
+    metadata: IRequestMetadata,
   ): Promise<string> {
     const sections: string[] = [];
 
@@ -282,7 +230,7 @@ export class PlanWriter {
   /**
    * Generate YAML frontmatter
    */
-  private generateFrontmatter(metadata: RequestMetadata, tokenSummary?: TokenUsageSummary | null): string {
+  private generateFrontmatter(metadata: IRequestMetadata, tokenSummary?: ITokenUsageSummary | null): string {
     const lines = [
       "---",
       `trace_id: "${metadata.traceId}"`,
@@ -327,7 +275,7 @@ export class PlanWriter {
     return lines.join("\n");
   }
 
-  private async getTokenUsageSummary(traceId: string): Promise<TokenUsageSummary | null> {
+  private async getTokenUsageSummary(traceId: string): Promise<ITokenUsageSummary | null> {
     if (!this.config.db) {
       return null;
     }
@@ -383,7 +331,7 @@ export class PlanWriter {
   /**
    * Generate context references section with wiki links
    */
-  private generateContextReferences(metadata: RequestMetadata): string {
+  private generateContextReferences(metadata: IRequestMetadata): string {
     const lines: string[] = [
       "## Context References\n",
       "This plan was based on the following context:\n",
@@ -481,7 +429,7 @@ export class PlanWriter {
   }
 
   /**
-   * Log plan validation events to Activity Journal
+   * Log plan validation events to IActivity Journal
    */
   private async logPlanValidation(
     actionType: string,
@@ -504,17 +452,17 @@ export class PlanWriter {
       );
     } catch (error) {
       // Log to stderr but don't fail validation
-      console.error(`[Activity] Failed to log ${actionType}:`, error);
+      console.error(`[IActivity] Failed to log ${actionType}:`, error);
     }
   }
 
   /**
-   * Log plan creation to Activity Journal
+   * Log plan creation to IActivity Journal
    */
   private async logPlanCreation(
     planPath: string,
     traceId: string,
-    metadata: RequestMetadata,
+    metadata: IRequestMetadata,
   ): Promise<void> {
     if (!this.config.db) {
       // If no database provided, skip logging (testing mode)
@@ -537,7 +485,7 @@ export class PlanWriter {
       );
     } catch (error) {
       // Log to stderr but don't fail plan creation
-      console.error("[Activity] Failed to log plan.created:", error);
+      console.error("[IActivity] Failed to log plan.created:", error);
     }
   }
 }

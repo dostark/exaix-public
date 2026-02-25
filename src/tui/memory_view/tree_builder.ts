@@ -20,15 +20,15 @@ import {
   TUI_TREE_PAGINATION_LIMIT,
   TUI_TREE_RECENT_LIMIT,
 } from "../../helpers/constants.ts";
-import type { MemoryServiceInterface, TreeNode } from "./types.ts";
-import type { ExecutionMemory } from "../../schemas/memory_bank.ts";
+import type { IMemoryServiceInterface, ITreeNode } from "./types.ts";
+import type { IExecutionMemory } from "../../schemas/memory_bank.ts";
 
 export class TreeBuilder {
   /**
    * Build the memory hierarchy tree
    */
-  static async buildTree(service: MemoryServiceInterface): Promise<TreeNode[]> {
-    const tree: TreeNode[] = [];
+  static async buildTree(service: IMemoryServiceInterface): Promise<ITreeNode[]> {
+    const tree: ITreeNode[] = [];
 
     // 1. Global Scope
     const globalMemory = await service.getGlobalMemory();
@@ -43,7 +43,7 @@ export class TreeBuilder {
 
     // 2. Projects Scope
     const projects = await service.getProjects();
-    const projectNodes: TreeNode[] = [];
+    const projectNodes: ITreeNode[] = [];
     for (const p of projects.slice(0, TUI_TREE_PAGINATION_LIMIT)) {
       projectNodes.push({
         id: `${TUI_PREFIX_PROJECT}${p}`,
@@ -64,7 +64,7 @@ export class TreeBuilder {
 
     // 3. Executions Scope
     const executions = await service.getExecutionHistory({ limit: TUI_TREE_RECENT_LIMIT });
-    const executionNodes: TreeNode[] = executions.map((e: ExecutionMemory) => ({
+    const executionNodes: ITreeNode[] = executions.map((e: IExecutionMemory) => ({
       id: `${TUI_PREFIX_EXECUTION}${e.trace_id}`,
       type: TuiNodeType.EXECUTION,
       label: e.trace_id.slice(0, 8),
@@ -83,7 +83,7 @@ export class TreeBuilder {
 
     // 4. Pending Scope
     const pending = await service.listPending();
-    const pendingNodes: TreeNode[] = pending.map((p) => ({
+    const pendingNodes: ITreeNode[] = pending.map((p) => ({
       id: `${MemoryTuiScope.PENDING}:${p.id}`,
       type: TuiNodeType.LEARNING,
       label: p.learning.title,
@@ -107,7 +107,7 @@ export class TreeBuilder {
    * Render the memory tree panel for TUI
    */
   static renderTree(
-    tree: TreeNode[],
+    tree: ITreeNode[],
     selectedNodeId: string | null,
     isLoading: boolean,
     spinnerFrame: number,
@@ -121,7 +121,7 @@ export class TreeBuilder {
 
     const lines: string[] = [];
 
-    const renderNode = (node: TreeNode, indent: number) => {
+    const renderNode = (node: ITreeNode, indent: number) => {
       const prefix = "  ".repeat(indent);
       const arrow = node.children && node.children.length > 0 ? (node.expanded ? "▾" : "▸") : " ";
       const badge = node.badge !== undefined ? ` (${node.badge})` : "";

@@ -10,18 +10,18 @@
 import { MessageType } from "../../enums.ts";
 import { TUI_LAYOUT_DEFAULT_HEIGHT, TUI_LAYOUT_FULL_WIDTH } from "../../helpers/constants.ts";
 
-import type { Pane, TuiView } from "../tui_dashboard.ts";
+import type { IPane, ITuiView } from "../tui_dashboard.ts";
 
 /**
  * Split a pane in the specified direction
  */
 export async function splitPane(
-  panes: Pane[],
+  panes: IPane[],
   activePaneId: string,
-  views: TuiView[],
+  views: ITuiView[],
   direction: "vertical" | "horizontal",
   notify: (message: string, type?: string) => Promise<void>,
-): Promise<{ panes: Pane[]; activePaneId: string }> {
+): Promise<{ panes: IPane[]; activePaneId: string }> {
   const activePane = panes.find((p) => p.id === activePaneId);
   if (!activePane) return { panes, activePaneId };
 
@@ -40,7 +40,7 @@ export async function splitPane(
       console.debug("[TUI][DEBUG] splitPane vertical BEFORE", activePane.id, "flexWidth=", activePane.flexWidth);
     }
 
-    const newPane: Pane = {
+    const newPane: IPane = {
       id: newId,
       view: views[1] || views[0],
       flexX: activePane.flexX + halfFlexWidth,
@@ -71,7 +71,7 @@ export async function splitPane(
     const halfFlexHeight = activePane.flexHeight / 2;
     const halfHeight = Math.floor(activePane.height / 2);
 
-    const newPane: Pane = {
+    const newPane: IPane = {
       id: newId,
       view: views[1] || views[0],
       flexX: activePane.flexX,
@@ -92,7 +92,7 @@ export async function splitPane(
     panes.push(newPane);
   }
 
-  await notify(`Pane split ${direction}`, MessageType.INFO);
+  await notify(`IPane split ${direction}`, MessageType.INFO);
   return { panes, activePaneId };
 }
 
@@ -100,11 +100,11 @@ export async function splitPane(
  * Close a pane and merge its space back into a neighbor
  */
 export async function closePane(
-  panes: Pane[],
+  panes: IPane[],
   activePaneId: string,
   paneId: string,
   notify: (message: string, type?: string) => Promise<void>,
-): Promise<{ panes: Pane[]; activePaneId: string }> {
+): Promise<{ panes: IPane[]; activePaneId: string }> {
   const index = panes.findIndex((p) => p.id === paneId);
   if (index === -1 || panes.length === 1) return { panes, activePaneId };
 
@@ -135,14 +135,14 @@ export async function closePane(
     panes[0].focused = true;
   }
 
-  await notify("Pane closed", MessageType.INFO);
+  await notify("IPane closed", MessageType.INFO);
   return { panes, activePaneId: newActivePaneId };
 }
 
 /**
  * Find the right sibling pane that shares the left edge with our right edge
  */
-function findRightSibling(panes: Pane[], pane: Pane): Pane | undefined {
+function findRightSibling(panes: IPane[], pane: IPane): IPane | undefined {
   return panes.find((p) =>
     p.id !== pane.id &&
     Math.abs(p.flexX - (pane.flexX + pane.flexWidth)) < 0.01 &&
@@ -154,7 +154,7 @@ function findRightSibling(panes: Pane[], pane: Pane): Pane | undefined {
 /**
  * Find the left sibling pane that shares the right edge with our left edge
  */
-function findLeftSibling(panes: Pane[], pane: Pane): Pane | undefined {
+function findLeftSibling(panes: IPane[], pane: IPane): IPane | undefined {
   return panes.find((p) =>
     p.id !== pane.id &&
     Math.abs((p.flexX + p.flexWidth) - pane.flexX) < 0.01 &&
@@ -166,7 +166,7 @@ function findLeftSibling(panes: Pane[], pane: Pane): Pane | undefined {
 /**
  * Find the bottom sibling pane that shares the top edge with our bottom edge
  */
-function findBottomSibling(panes: Pane[], pane: Pane): Pane | undefined {
+function findBottomSibling(panes: IPane[], pane: IPane): IPane | undefined {
   return panes.find((p) =>
     p.id !== pane.id &&
     Math.abs(p.flexY - (pane.flexY + pane.flexHeight)) < 0.01 &&
@@ -178,7 +178,7 @@ function findBottomSibling(panes: Pane[], pane: Pane): Pane | undefined {
 /**
  * Find the top sibling pane that shares the bottom edge with our top edge
  */
-function findTopSibling(panes: Pane[], pane: Pane): Pane | undefined {
+function findTopSibling(panes: IPane[], pane: IPane): IPane | undefined {
   return panes.find((p) =>
     p.id !== pane.id &&
     Math.abs((p.flexY + p.flexHeight) - pane.flexY) < 0.01 &&
@@ -190,7 +190,7 @@ function findTopSibling(panes: Pane[], pane: Pane): Pane | undefined {
 /**
  * Handle width resizing by adjusting flex values with sibling pane
  */
-function handleWidthResize(panes: Pane[], pane: Pane, deltaFlexWidth: number, MIN_FLEX: number): void {
+function handleWidthResize(panes: IPane[], pane: IPane, deltaFlexWidth: number, MIN_FLEX: number): void {
   const oldFlexWidth = pane.flexWidth;
   const newFlexWidth = Math.max(MIN_FLEX, Math.min(0.9, pane.flexWidth + deltaFlexWidth));
   const actualDelta = newFlexWidth - oldFlexWidth;
@@ -218,7 +218,7 @@ function handleWidthResize(panes: Pane[], pane: Pane, deltaFlexWidth: number, MI
 /**
  * Handle height resizing by adjusting flex values with sibling pane
  */
-function handleHeightResize(panes: Pane[], pane: Pane, deltaFlexHeight: number, MIN_FLEX: number): void {
+function handleHeightResize(panes: IPane[], pane: IPane, deltaFlexHeight: number, MIN_FLEX: number): void {
   const oldFlexHeight = pane.flexHeight;
   const newFlexHeight = Math.max(MIN_FLEX, Math.min(0.9, pane.flexHeight + deltaFlexHeight));
   const actualDelta = newFlexHeight - oldFlexHeight;
@@ -247,7 +247,7 @@ function handleHeightResize(panes: Pane[], pane: Pane, deltaFlexHeight: number, 
  * Resize a pane by adjusting flex values and its neighbors
  */
 export function resizePane(
-  panes: Pane[],
+  panes: IPane[],
   paneId: string,
   deltaFlexWidth: number,
   deltaFlexHeight: number,
@@ -270,7 +270,7 @@ export function resizePane(
  * Switch focus to a pane
  */
 export function switchPane(
-  panes: Pane[],
+  panes: IPane[],
   paneId: string,
 ): string {
   const pane = panes.find((p) => p.id === paneId);
@@ -286,7 +286,7 @@ export function switchPane(
  * Maximize or restore a pane
  */
 export function maximizePane(
-  panes: Pane[],
+  panes: IPane[],
   paneId: string,
   notify: (message: string, type?: string) => Promise<void>,
 ): void {
@@ -306,7 +306,7 @@ export function maximizePane(
       pane.height = pane.previousBounds.height;
     }
     pane.maximized = false;
-    notify("Pane restored", MessageType.INFO);
+    notify("IPane restored", MessageType.INFO);
   } else {
     // Maximize
     pane.previousBounds = {
@@ -328,6 +328,6 @@ export function maximizePane(
     pane.width = TUI_LAYOUT_FULL_WIDTH;
     pane.height = TUI_LAYOUT_DEFAULT_HEIGHT;
     pane.maximized = true;
-    notify("Pane maximized", MessageType.INFO);
+    notify("IPane maximized", MessageType.INFO);
   }
 }

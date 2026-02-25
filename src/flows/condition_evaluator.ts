@@ -7,16 +7,16 @@
  * @related-files [src/flows/flow_runner.ts, src/schemas/flow.ts]
  */
 
-import { Flow, FlowStep } from "../schemas/flow.ts";
-import { StepResult } from "./flow_runner.ts";
+import { IFlow, IFlowStep } from "../schemas/flow.ts";
+import { IStepResult } from "./flow_runner.ts";
 import { JSONValue } from "../types.ts";
 
 /**
  * Context available during condition evaluation
  */
-export interface ConditionContext {
+export interface IConditionContext {
   /** Results from previously executed steps */
-  results: Record<string, StepResultContext>;
+  results: Record<string, IStepResultContext>;
   /** Original flow request */
   request: {
     userPrompt: string;
@@ -34,7 +34,7 @@ export interface ConditionContext {
 /**
  * Step result context for condition evaluation
  */
-export interface StepResultContext {
+export interface IStepResultContext {
   /** Whether the step succeeded */
   success: boolean;
   /** Whether the step was skipped due to condition */
@@ -88,7 +88,7 @@ export class ConditionEvaluator {
    * @param context - Context containing results, request, and flow info
    * @returns ConditionResult with shouldExecute boolean
    */
-  evaluate(condition: string, context: ConditionContext): ConditionResult {
+  evaluate(condition: string, context: IConditionContext): ConditionResult {
     const startTime = performance.now();
 
     // Empty or whitespace-only conditions default to true
@@ -122,17 +122,17 @@ export class ConditionEvaluator {
   /**
    * Evaluate a condition for a specific step
    *
-   * @param step - Flow step with optional condition
+   * @param step - IFlow step with optional condition
    * @param stepResults - Map of completed step results
    * @param request - Original flow request
-   * @param flow - Flow definition
+   * @param flow - IFlow definition
    * @returns ConditionResult
    */
   evaluateStepCondition(
-    step: FlowStep,
-    stepResults: Map<string, StepResult>,
+    step: IFlowStep,
+    stepResults: Map<string, IStepResult>,
     request: { userPrompt: string; traceId?: string; requestId?: string },
-    flow: Flow,
+    flow: IFlow,
   ): ConditionResult {
     // No condition means always execute
     if (!step.condition) {
@@ -151,16 +151,16 @@ export class ConditionEvaluator {
    * Build evaluation context from step results
    */
   buildContext(
-    stepResults: Map<string, StepResult>,
+    stepResults: Map<string, IStepResult>,
     request: { userPrompt: string; traceId?: string; requestId?: string },
-    flow: Flow,
-  ): ConditionContext {
-    const results: Record<string, StepResultContext> = {};
+    flow: IFlow,
+  ): IConditionContext {
+    const results: Record<string, IStepResultContext> = {};
 
     for (const [stepId, result] of stepResults) {
       results[stepId] = {
         success: result.success,
-        skipped: (result as StepResult & { skipped?: boolean }).skipped,
+        skipped: (result as IStepResult & { skipped?: boolean }).skipped,
         content: result.result?.content,
         data: this.tryParseJson(result.result?.content),
         duration: result.duration,
@@ -187,7 +187,7 @@ export class ConditionEvaluator {
    * Safely evaluate a condition expression
    * Uses Function constructor with restricted context
    */
-  private safeEvaluate(condition: string, context: ConditionContext): boolean {
+  private safeEvaluate(condition: string, context: IConditionContext): boolean {
     // Create a function that has access to context variables
     // This is safer than eval() as it creates a new scope
     const fn = new Function(

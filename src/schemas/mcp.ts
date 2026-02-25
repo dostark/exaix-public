@@ -136,7 +136,7 @@ export const MCPResourceSchema = z.object({
   description: z.string().optional(),
 });
 
-export type MCPResource = z.infer<typeof MCPResourceSchema>;
+export type IMCPResource = z.infer<typeof MCPResourceSchema>;
 
 // ============================================================================
 // MCP Prompt Schemas
@@ -154,7 +154,7 @@ export const MCPPromptSchema = z.object({
   arguments: z.array(MCPPromptArgumentSchema).optional(),
 });
 
-export type MCPPrompt = z.infer<typeof MCPPromptSchema>;
+export type IMCPPrompt = z.infer<typeof MCPPromptSchema>;
 
 // ============================================================================
 // MCP Tool Definition Schema

@@ -1,6 +1,3 @@
-// Dynamic import required for runtime module loading (documented in CODE_STYLE.md)
-// This must remain a dynamic import because the file path is determined at runtime.
-const dynamicImport = (specifier: string) => import(specifier);
 /**
  * @module FlowLoader
  * @path src/flows/flow_loader.ts
@@ -11,8 +8,14 @@ const dynamicImport = (specifier: string) => import(specifier);
  */
 
 import { dirname, join, resolve } from "@std/path";
-import { Flow } from "../schemas/flow.ts";
+import { IFlow } from "../schemas/flow.ts";
 import { FlowSchema } from "../schemas/flow.ts";
+
+/**
+ * Dynamic import required for runtime module loading (documented in CODE_STYLE.md)
+ * This must remain a dynamic import because the file path is determined at runtime.
+ */
+const dynamicImport = (specifier: string) => import(specifier);
 
 /**
  * FlowLoader handles loading and managing flow definitions from the file system.
@@ -29,8 +32,8 @@ export class FlowLoader {
    * Load all flow files from the flows directory.
    * Only loads files ending with .flow.ts and ignores invalid files.
    */
-  async loadAllFlows(): Promise<Flow[]> {
-    const flows: Flow[] = [];
+  async loadAllFlows(): Promise<IFlow[]> {
+    const flows: IFlow[] = [];
 
     try {
       // Read all files in the flows directory
@@ -67,7 +70,7 @@ export class FlowLoader {
    * Load a specific flow by its ID.
    * The flow file should be named {flowId}.flow.ts
    */
-  async loadFlow(flowId: string): Promise<Flow> {
+  async loadFlow(flowId: string): Promise<IFlow> {
     const fileName = `${flowId}.flow.ts`;
     const filePath = join(this.flowsDir, fileName);
 
@@ -109,7 +112,7 @@ export class FlowLoader {
       }
 
       // Validate and parse the flow using FlowSchema
-      let flow: Flow;
+      let flow: IFlow;
       try {
         flow = FlowSchema.parse(module.default);
       } catch (e) {

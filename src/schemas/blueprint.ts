@@ -10,6 +10,53 @@
 import { z } from "zod";
 
 // ============================================================================
+// Blueprint Interfaces
+// ============================================================================
+
+/**
+ * Result from blueprint creation
+ */
+export interface IBlueprintCreateResult {
+  agent_id: string;
+  name: string;
+  model: string;
+  capabilities?: string[];
+  created: string;
+  created_by: string;
+  version: string;
+  path: string;
+}
+
+/**
+ * Metadata for blueprint listing
+ */
+export interface IBlueprintMetadata {
+  agent_id: string;
+  name: string;
+  model: string;
+  capabilities?: string[];
+  created: string;
+  created_by: string;
+  version: string;
+}
+
+/**
+ * Full blueprint details for show command
+ */
+export interface IBlueprintDetails extends IBlueprintMetadata {
+  content: string; // Full markdown content including frontmatter
+}
+
+/**
+ * Validation result
+ */
+export interface IBlueprintValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings?: string[];
+}
+
+// ============================================================================
 // Blueprint Frontmatter Schema
 // ============================================================================
 
@@ -49,54 +96,7 @@ export const BlueprintFrontmatterSchema = z.object({
   default_skills: z.array(z.string()).optional(),
 });
 
-export type BlueprintFrontmatter = z.infer<typeof BlueprintFrontmatterSchema>;
-
-// ============================================================================
-// Blueprint Result Types
-// ============================================================================
-
-/**
- * Result from blueprint creation
- */
-export interface BlueprintCreateResult {
-  agent_id: string;
-  name: string;
-  model: string;
-  capabilities?: string[];
-  created: string;
-  created_by: string;
-  version: string;
-  path: string;
-}
-
-/**
- * Metadata for blueprint listing
- */
-export interface BlueprintMetadata {
-  agent_id: string;
-  name: string;
-  model: string;
-  capabilities?: string[];
-  created: string;
-  created_by: string;
-  version: string;
-}
-
-/**
- * Full blueprint details for show command
- */
-export interface BlueprintDetails extends BlueprintMetadata {
-  content: string; // Full markdown content including frontmatter
-}
-
-/**
- * Validation result
- */
-export interface BlueprintValidationResult {
-  valid: boolean;
-  errors: string[];
-  warnings?: string[];
-}
+export type IBlueprintFrontmatter = z.infer<typeof BlueprintFrontmatterSchema>;
 
 // ============================================================================
 // Reserved Agent IDs

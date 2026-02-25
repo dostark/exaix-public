@@ -14,11 +14,16 @@ import { MemoryFormatter } from "./memory_view/formatters.ts";
 import { TreeBuilder } from "./memory_view/tree_builder.ts";
 import { DialogProcessor } from "./memory_view/dialog_processor.ts";
 import { KeyHandler } from "./memory_view/key_handlers.ts";
-import { MemoryServiceInterface, TreeNode } from "./memory_view/types.ts";
-export type { MemoryServiceInterface, TreeNode };
+import { IMemoryServiceInterface, ITreeNode } from "./memory_view/types.ts";
+export type { IMemoryServiceInterface, ITreeNode };
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "../services/db.ts";
-import { MemoryBankService } from "../services/memory_bank.ts";
+import {
+  type IExecutionMemory,
+  type IMemorySearchResult,
+  type IMemoryUpdateProposal,
+  MemoryBankService,
+} from "../services/memory_bank.ts";
 import { MemoryExtractorService } from "../services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../services/memory_embedding.ts";
 import {
@@ -31,17 +36,17 @@ import {
 import { type DialogBase } from "../helpers/dialog_base.ts";
 import { renderSpinner } from "../helpers/markdown_renderer.ts";
 import { KEYS } from "../helpers/keyboard.ts";
-import { coerceMemoryTuiScope, MemoryTuiScope, type MemoryTuiScopeType } from "./memory_view/memory_scope.ts";
+import { coerceMemoryTuiScope, type IMemoryTuiScopeType, MemoryTuiScope } from "./memory_view/memory_scope.ts";
 import { MEMORY_STALE_MS } from "./tui.config.ts";
 
-// ===== Types =====
+// ===== Interfaces =====
 
-export interface MemoryViewState {
-  activeScope: MemoryTuiScopeType;
+export interface IMemoryViewState {
+  activeScope: IMemoryTuiScopeType;
   selectedNodeId: string | null;
   searchQuery: string;
   searchActive: boolean;
-  tree: TreeNode[];
+  tree: ITreeNode[];
   detailContent: string;
   pendingCount: number;
   activeDialog: DialogBase | null;
@@ -52,14 +57,12 @@ export interface MemoryViewState {
   lastRefresh: number;
 }
 
-// Redundant types removed, imported from types.ts
-
 // ===== Service Adapter =====
 
 /**
  * Adapter to wrap MemoryBankService for TUI usage
  */
-export class MemoryServiceAdapter implements MemoryServiceInterface {
+export class MemoryServiceAdapter implements IMemoryServiceInterface {
   private memoryBank: MemoryBankService;
   private extractor: MemoryExtractorService;
   private _embedding: MemoryEmbeddingService;
@@ -98,19 +101,25 @@ export class MemoryServiceAdapter implements MemoryServiceInterface {
     return this.memoryBank.getExecutionByTraceId(traceId);
   }
 
-  getExecutionHistory(options?: { portal?: string; limit?: number }) {
-    return this.memoryBank.getExecutionHistory(options?.portal, options?.limit);
+  getExecutionHistory(options: {
+    portal?: string;
+    limit?: number;
+  } = {}): Promise<IExecutionMemory[]> {
+    return this.memoryBank.getExecutionHistory(options.portal, options.limit);
   }
 
-  search(query: string, options?: { portal?: string; limit?: number }) {
+  search(
+    query: string,
+    options: { portal?: string; limit?: number } = {},
+  ): Promise<IMemorySearchResult[]> {
     return this.memoryBank.searchMemory(query, options);
   }
 
-  listPending() {
+  listPending(): Promise<IMemoryUpdateProposal[]> {
     return this.extractor.listPending();
   }
 
-  getPending(proposalId: string) {
+  getPending(proposalId: string): Promise<IMemoryUpdateProposal | null> {
     return this.extractor.getPending(proposalId);
   }
 
@@ -131,37 +140,39 @@ export class MemoryServiceAdapter implements MemoryServiceInterface {
  * Manages state and user interaction for Memory Bank navigation.
  */
 export class MemoryViewTuiSession extends TuiSessionBase {
-  private state: MemoryViewState;
-  private service: MemoryServiceInterface;
-  private flatNodes: TreeNode[] = [];
+  private state: IMemoryViewState;
+  private service: IMemoryServiceInterface;
+  private flatNodes: ITreeNode[] = [];
+  private keyHandler: KeyHandler;
 
-  constructor(service: MemoryServiceInterface) {
+  constructor(service: IMemoryServiceInterface, useColors = true) {
     super();
     this.service = service;
+    this.keyHandler = new KeyHandler();
     this.state = {
       activeScope: MemoryTuiScope.PROJECTS,
       selectedNodeId: null,
       searchQuery: "",
       searchActive: false,
       tree: [],
-      detailContent: "",
+      detailContent: "Select a project or memory item to view details.",
       pendingCount: 0,
       activeDialog: null,
       isLoading: false,
       loadingMessage: "",
       spinnerFrame: 0,
-      useColors: true,
+      useColors,
       lastRefresh: Date.now(),
     };
   }
 
   // ===== State Accessors =====
 
-  getState(): MemoryViewState {
+  getState(): IMemoryViewState {
     return { ...this.state };
   }
 
-  getActiveScope(): MemoryTuiScopeType {
+  getActiveScope(): IMemoryTuiScopeType {
     return this.state.activeScope;
   }
 
@@ -169,7 +180,11 @@ export class MemoryViewTuiSession extends TuiSessionBase {
     return this.state.selectedNodeId;
   }
 
-  getTree(): TreeNode[] {
+  setTree(tree: ITreeNode[]): void {
+    this.state.tree = tree;
+  }
+
+  getTree(): ITreeNode[] {
     return this.state.tree;
   }
 
@@ -287,7 +302,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
    */
   private flattenTree(): void {
     this.flatNodes = [];
-    const flatten = (nodes: TreeNode[]) => {
+    const flatten = (nodes: ITreeNode[]) => {
       for (const node of nodes) {
         this.flatNodes.push(node);
         if (node.expanded && node.children.length > 0) {
@@ -381,7 +396,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
   /**
    * Jump to a specific scope
    */
-  async jumpToScope(scope: MemoryTuiScopeType): Promise<void> {
+  async jumpToScope(scope: IMemoryTuiScopeType): Promise<void> {
     this.state.activeScope = scope;
     const scopeNode = this.flatNodes.find((n) => n.id === scope);
     if (scopeNode) {
@@ -427,9 +442,9 @@ export class MemoryViewTuiSession extends TuiSessionBase {
   /**
    * Find a node by ID in the tree
    */
-  findNodeById(nodeId: string | null): TreeNode | null {
+  findNodeById(nodeId: string | null): ITreeNode | null {
     if (!nodeId) return null;
-    const find = (nodes: TreeNode[]): TreeNode | null => {
+    const find = (nodes: ITreeNode[]): ITreeNode | null => {
       for (const node of nodes) {
         if (node.id === nodeId) return node;
         const found = find(node.children);
@@ -443,9 +458,9 @@ export class MemoryViewTuiSession extends TuiSessionBase {
   /**
    * Find parent node
    */
-  private findParentNode(nodeId: string | null): TreeNode | null {
+  private findParentNode(nodeId: string | null): ITreeNode | null {
     if (!nodeId) return null;
-    const findParent = (nodes: TreeNode[], parent: TreeNode | null): TreeNode | null => {
+    const findParent = (nodes: ITreeNode[], parent: ITreeNode | null): ITreeNode | null => {
       for (const node of nodes) {
         if (node.id === nodeId) return parent;
         const found = findParent(node.children, node);
@@ -583,7 +598,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
   /**
    * Load detail content for a node
    */
-  async loadDetailForNode(node: TreeNode): Promise<void> {
+  async loadDetailForNode(node: ITreeNode): Promise<void> {
     switch (node.type) {
       case "scope":
         this.state.detailContent = MemoryFormatter.formatScopeDetail(node);
@@ -616,7 +631,7 @@ export class MemoryViewTuiSession extends TuiSessionBase {
     const results = await this.service.search(this.state.searchQuery);
 
     // Build search results tree
-    const searchNode: TreeNode = {
+    const searchNode: ITreeNode = {
       id: "search-results",
       type: TuiNodeType.SCOPE,
       label: `Search: "${this.state.searchQuery}"`,
@@ -769,9 +784,9 @@ export class MemoryViewTuiSession extends TuiSessionBase {
  * Controller for Memory Bank TUI interface.
  */
 export class MemoryView {
-  private service: MemoryServiceInterface;
+  private service: IMemoryServiceInterface;
 
-  constructor(service: MemoryServiceInterface) {
+  constructor(service: IMemoryServiceInterface) {
     this.service = service;
   }
 
@@ -782,10 +797,7 @@ export class MemoryView {
     return new MemoryViewTuiSession(this.service);
   }
 
-  /**
-   * Get the service for direct access
-   */
-  getService(): MemoryServiceInterface {
+  getService(): IMemoryServiceInterface {
     return this.service;
   }
 }

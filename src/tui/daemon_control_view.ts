@@ -9,14 +9,56 @@
 
 import { TuiSessionBase } from "./tui_common.ts";
 import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "../helpers/spinner.ts";
-import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
-import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
+import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { DaemonKeyAction, DaemonStatus, DialogStatus } from "../enums.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import { TUI_DAEMON_STATUS_ICONS, TUI_LAYOUT_MEDIUM_WIDTH } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
 import { MessageType } from "../enums.ts";
+
+// ===== Service Interfaces =====
+
+/**
+ * Service interface for controlling the ExoFrame daemon.
+ */
+export interface IDaemonService {
+  start(): Promise<void>;
+  stop(): Promise<void>;
+  restart(): Promise<void>;
+  getStatus(): Promise<string>;
+  getLogs(): Promise<string[]>;
+  getErrors(): Promise<string[]>;
+}
+
+// ===== View State =====
+
+/**
+ * State interface for Daemon Control View
+ */
+export interface IDaemonViewState {
+  /** Current daemon status */
+  status: DaemonStatus;
+  /** Whether help is visible */
+  showHelp: boolean;
+  /** Whether logs view is shown */
+  showLogs: boolean;
+  /** Whether config view is shown */
+  showConfig: boolean;
+  /** Log content */
+  logContent: string[];
+  /** Error content */
+  errorContent: string[];
+  /** Active dialog */
+  activeDialog: ConfirmDialog | InputDialog | null;
+  /** Last status check time */
+  lastStatusCheck: Date | null;
+  /** Whether auto-refresh is enabled */
+  autoRefresh: boolean;
+  /** Auto-refresh interval in ms */
+  autoRefreshInterval: number;
+}
 
 // ===== Constants =====
 
@@ -43,48 +85,6 @@ const HELP_REFRESH_DESC = "Refresh status";
 const HELP_AUTO_REFRESH_DESC = "Toggle auto-refresh";
 const HELP_HELP_DESC = "Toggle this help";
 const HELP_QUIT_DESC = "Close/Back";
-
-// ===== Service Interfaces =====
-
-/**
- * Service interface for controlling the ExoFrame daemon.
- */
-export interface DaemonService {
-  start(): Promise<void>;
-  stop(): Promise<void>;
-  restart(): Promise<void>;
-  getStatus(): Promise<string>;
-  getLogs(): Promise<string[]>;
-  getErrors(): Promise<string[]>;
-}
-
-// ===== View State =====
-
-/**
- * State interface for Daemon Control View
- */
-export interface DaemonViewState {
-  /** Current daemon status */
-  status: DaemonStatus;
-  /** Whether help is visible */
-  showHelp: boolean;
-  /** Whether logs view is shown */
-  showLogs: boolean;
-  /** Whether config view is shown */
-  showConfig: boolean;
-  /** Log content */
-  logContent: string[];
-  /** Error content */
-  errorContent: string[];
-  /** Active dialog */
-  activeDialog: ConfirmDialog | InputDialog | null;
-  /** Last status check time */
-  lastStatusCheck: Date | null;
-  /** Whether auto-refresh is enabled */
-  autoRefresh: boolean;
-  /** Auto-refresh interval in ms */
-  autoRefreshInterval: number;
-}
 
 // ===== Icons and Visual Constants =====
 
@@ -126,7 +126,7 @@ export enum DaemonAction {
 // ===== Key Binding Categories =====
 
 export class DaemonKeyBindings extends KeyBindingsBase<DaemonKeyAction, KeyBindingCategory> {
-  readonly KEY_BINDINGS: readonly KeyBinding<DaemonKeyAction, KeyBindingCategory>[] = [
+  readonly KEY_BINDINGS: readonly IKeyBinding<DaemonKeyAction, KeyBindingCategory>[] = [
     {
       key: KEYS.S,
       action: DaemonKeyAction.START,
@@ -192,7 +192,7 @@ export const DAEMON_KEY_BINDINGS = new DaemonKeyBindings().KEY_BINDINGS;
 /**
  * CLI-backed implementation of DaemonService.
  */
-export class CLIDaemonService implements DaemonService {
+export class CLIDaemonService implements IDaemonService {
   #cliScript = new URL("../../src/cli/exoctl.ts", import.meta.url).pathname;
 
   async start(): Promise<void> {
@@ -238,7 +238,7 @@ export class CLIDaemonService implements DaemonService {
  * View/controller for daemon control. Delegates to injected DaemonService.
  */
 export class DaemonControlView {
-  constructor(public readonly service: DaemonService) {}
+  constructor(public readonly service: IDaemonService) {}
 
   /** Get daemon status. */
   getStatus(): Promise<string> {
@@ -278,7 +278,7 @@ export class DaemonControlView {
 /**
  * Minimal DaemonService mock for TUI session tests
  */
-export class MinimalDaemonServiceMock implements DaemonService {
+export class MinimalDaemonServiceMock implements IDaemonService {
   private status = DaemonStatus.STOPPED;
   private logs: string[] = [];
   private errors: string[] = [];
@@ -332,7 +332,7 @@ export class MinimalDaemonServiceMock implements DaemonService {
  */
 export class DaemonControlTuiSession extends TuiSessionBase {
   private readonly daemonView: DaemonControlView;
-  private state: DaemonViewState;
+  private state: IDaemonViewState;
   private localSpinnerState: SpinnerState;
   private autoRefreshTimer: number | null = null;
 
@@ -422,7 +422,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     return this.state.lastStatusCheck;
   }
 
-  override getKeyBindings(): KeyBinding<DaemonKeyAction, KeyBindingCategory>[] {
+  override getKeyBindings(): IKeyBinding<DaemonKeyAction, KeyBindingCategory>[] {
     return [...DAEMON_KEY_BINDINGS];
   }
 
@@ -625,7 +625,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
     this.state.showHelp = !this.state.showHelp;
   }
 
-  getHelpSections(): HelpSection[] {
+  getHelpSections(): IHelpSection[] {
     return [
       {
         title: "Daemon Actions",
@@ -658,7 +658,7 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
   private pendingDialogAction: "start" | "stop" | "restart" | null = null;
 
-  closeDialog(): void {
+  async closeDialog(): Promise<void> {
     if (this.state.activeDialog) {
       const result = this.state.activeDialog.getResult();
       if (result.type === DialogStatus.CONFIRMED && this.pendingDialogAction) {
@@ -669,13 +669,13 @@ export class DaemonControlTuiSession extends TuiSessionBase {
 
         switch (action) {
           case "start":
-            this.startDaemon();
+            await this.startDaemon();
             break;
           case "stop":
-            this.stopDaemon();
+            await this.stopDaemon();
             break;
           case "restart":
-            this.restartDaemon();
+            await this.restartDaemon();
             break;
         }
       } else {
@@ -688,16 +688,16 @@ export class DaemonControlTuiSession extends TuiSessionBase {
   // ===== Key Handling =====
 
   async handleKey(key: string): Promise<boolean> {
-    if (this.handleDialogKey(key)) return true;
+    if (await this.handleDialogKey(key)) return true;
     if (this.handleOverlayViewKey(key)) return true;
     return await this.handleMainViewKey(key);
   }
 
-  private handleDialogKey(key: string): boolean {
+  private async handleDialogKey(key: string): Promise<boolean> {
     if (!this.state.activeDialog) return false;
     this.state.activeDialog.handleKey(key);
     if (!this.state.activeDialog.isActive()) {
-      this.closeDialog();
+      await this.closeDialog();
     }
     return true;
   }

@@ -1,48 +1,48 @@
 /**
  * @module MemoryTuiTypes
  * @path src/tui/memory_view/types.ts
- * @description Core types and interfaces for the Memory View TUI components, including TreeNode and MemoryServiceInterface.
+ * @description Core types and interfaces for the Memory View TUI components, including ITreeNode and MemoryServiceInterface.
  * @architectural-layer TUI
  * @dependencies [MemoryBankService, Enums]
  * @related-files [src/services/memory_bank.ts, src/enums.ts]
  */
 
 import type {
-  ExecutionMemory,
-  GlobalMemory,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  ProjectMemory,
+  IExecutionMemory,
+  IGlobalMemory,
+  IMemorySearchResult,
+  IMemoryUpdateProposal,
+  IProjectMemory,
 } from "../../services/memory_bank.ts";
 import { TuiNodeType } from "../../enums.ts";
 
-export type TreeNodeType = TuiNodeType;
+export type ITreeNodeType = TuiNodeType;
 
-export interface TreeNode {
+export interface ITreeNode {
   id: string;
-  type: TreeNodeType;
+  type: ITreeNodeType;
   label: string;
   expanded: boolean;
-  children: TreeNode[];
+  children: ITreeNode[];
   badge?: number;
   data?: unknown;
 }
 
-export interface MemoryServiceInterface {
+export interface IMemoryServiceInterface {
   getProjects(): Promise<string[]>;
-  getProjectMemory(portal: string): Promise<ProjectMemory | null>;
-  getGlobalMemory(): Promise<GlobalMemory | null>;
-  getExecutionByTraceId(traceId: string): Promise<ExecutionMemory | null>;
+  getProjectMemory(portal: string): Promise<IProjectMemory | null>;
+  getGlobalMemory(): Promise<IGlobalMemory | null>;
+  getExecutionByTraceId(traceId: string): Promise<IExecutionMemory | null>;
   getExecutionHistory(options?: {
     portal?: string;
     limit?: number;
-  }): Promise<ExecutionMemory[]>;
+  }): Promise<IExecutionMemory[]>;
   search(
     query: string,
     options?: { portal?: string; limit?: number },
-  ): Promise<MemorySearchResult[]>;
-  listPending(): Promise<MemoryUpdateProposal[]>;
-  getPending(proposalId: string): Promise<MemoryUpdateProposal | null>;
+  ): Promise<IMemorySearchResult[]>;
+  listPending(): Promise<IMemoryUpdateProposal[]>;
+  getPending(proposalId: string): Promise<IMemoryUpdateProposal | null>;
   approvePending(proposalId: string): Promise<void>;
   rejectPending(proposalId: string, reason: string): Promise<void>;
 }

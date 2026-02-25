@@ -6,7 +6,7 @@
  * @dependencies [types, provider_api_key, errors]
  * @related-files [src/ai/provider_registry.ts, src/ai/factories/anthropic_factory.ts]
  */
-import { IModelProvider, ResolvedProviderOptions } from "../types.ts";
+import { IModelProvider, IResolvedProviderOptions } from "../types.ts";
 import { getApiKeyWithOptionalPersistence } from "../provider_api_key.ts";
 import { ProviderFactoryError } from "../errors.ts";
 
@@ -20,14 +20,14 @@ export interface IProviderFactory {
    * @param options Resolved provider configuration options
    * @returns A configured provider instance
    */
-  create(options: ResolvedProviderOptions): Promise<IModelProvider>;
+  create(options: IResolvedProviderOptions): Promise<IModelProvider>;
 }
 
 /**
  * Abstract base class for provider factories.
  */
 export abstract class AbstractProviderFactory implements IProviderFactory {
-  abstract create(options: ResolvedProviderOptions): Promise<IModelProvider>;
+  abstract create(options: IResolvedProviderOptions): Promise<IModelProvider>;
 
   protected generateId(provider: string, model: string, id?: string): string {
     return id ?? `${provider}-${model}`;
@@ -43,7 +43,7 @@ export abstract class AbstractKeyBasedProviderFactory extends AbstractProviderFa
     super();
   }
 
-  protected async getApiKey(options: ResolvedProviderOptions): Promise<string> {
+  protected async getApiKey(options: IResolvedProviderOptions): Promise<string> {
     // If API key provided strictly in options, use it
     if (options.apiKey) {
       return options.apiKey;

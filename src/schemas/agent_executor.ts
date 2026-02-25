@@ -29,7 +29,7 @@ export const ExecutionContextSchema = z.object({
     "Step number if executing multi-step plan",
   ),
 });
-export type ExecutionContext = z.infer<typeof ExecutionContextSchema>;
+export type IExecutionContext = z.infer<typeof ExecutionContextSchema>;
 
 /**
  * Options for agent execution
@@ -48,7 +48,7 @@ export const AgentExecutionOptionsSchema = z.object({
     "Enable post-execution git audit",
   ),
 });
-export type AgentExecutionOptions = z.infer<
+export type IAgentExecutionOptions = z.infer<
   typeof AgentExecutionOptionsSchema
 >;
 
@@ -72,7 +72,7 @@ export const ChangesetResultSchema = z.object({
     "Files modified outside MCP tools (hybrid mode audit)",
   ),
 });
-export type ChangesetResult = z.infer<typeof ChangesetResultSchema>;
+export type IChangesetResult = z.infer<typeof ChangesetResultSchema>;
 
 /**
  * Agent execution error types
@@ -88,4 +88,4 @@ export const AgentExecutionErrorSchema = z.object({
   details: z.record(JSONValueSchema).optional(),
   trace_id: z.string().uuid().optional(),
 });
-export type AgentExecutionError = z.infer<typeof AgentExecutionErrorSchema>;
+export type IAgentExecutionError = z.infer<typeof AgentExecutionErrorSchema>;

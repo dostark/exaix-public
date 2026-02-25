@@ -9,22 +9,11 @@
 import { PricingTier, PriorityLevel, ProviderCostTier } from "../enums.ts";
 import { IProviderFactory } from "./factories/abstract_provider_factory.ts";
 
-export { MockProviderFactory } from "./factories/mock_factory.ts";
-export { OllamaProviderFactory } from "./factories/ollama_factory.ts";
-export { LlamaProviderFactory } from "./factories/llama_factory.ts";
-export { AnthropicProviderFactory } from "./factories/anthropic_factory.ts";
-export { OpenAIProviderFactory } from "./factories/openai_factory.ts";
-export { GoogleProviderFactory } from "./factories/google_factory.ts";
-
-// ============================================================================
-// Interfaces
-// ============================================================================
-
 /**
  * Metadata describing a provider's capabilities and characteristics.
  * Used for intelligent provider selection and cost optimization.
  */
-export interface ProviderMetadata {
+export interface IProviderMetadata {
   /** Unique provider name */
   name: string;
   /** Human-readable description */
@@ -46,6 +35,10 @@ export interface ProviderMetadata {
 }
 
 // ============================================================================
+// Interfaces
+// ============================================================================
+
+// ============================================================================
 // Provider Registry
 // ============================================================================
 
@@ -55,7 +48,7 @@ export interface ProviderMetadata {
  */
 export class ProviderRegistry {
   private static factories = new Map<string, IProviderFactory>();
-  private static metadata = new Map<string, ProviderMetadata>();
+  private static metadata = new Map<string, IProviderMetadata>();
 
   /**
    * Register a factory for a specific provider type.
@@ -75,7 +68,7 @@ export class ProviderRegistry {
   static registerWithMetadata(
     providerType: string,
     factory: IProviderFactory,
-    metadata: ProviderMetadata,
+    metadata: IProviderMetadata,
   ): void {
     this.factories.set(providerType, factory);
     this.metadata.set(providerType, metadata);
@@ -95,7 +88,7 @@ export class ProviderRegistry {
    * @param providerType The provider type to look up
    * @returns Provider metadata, or undefined if not registered
    */
-  static getProviderMetadata(providerType: string): ProviderMetadata | undefined {
+  static getProviderMetadata(providerType: string): IProviderMetadata | undefined {
     return this.metadata.get(providerType);
   }
 
@@ -156,7 +149,7 @@ export class ProviderRegistry {
    * Get all registered providers with their metadata.
    * @returns Array of provider info objects with factory and metadata
    */
-  static getAllProviders(): Array<{ factory: IProviderFactory; metadata: ProviderMetadata }> {
+  static getAllProviders(): Array<{ factory: IProviderFactory; metadata: IProviderMetadata }> {
     return Array.from(this.metadata.entries()).map(([providerType, metadata]) => ({
       factory: this.factories.get(providerType)!,
       metadata,

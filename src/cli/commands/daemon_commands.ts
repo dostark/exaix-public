@@ -9,7 +9,7 @@
 
 import { dirname, fromFileUrl, join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 import { CLI_DEFAULTS } from "../cli.config.ts";
 import { ConfigService } from "../../config/service.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
@@ -17,7 +17,7 @@ import { DAEMON_STOP_TIMEOUT_MS } from "../../config/constants.ts";
 import { isProcessAlive } from "../process_utils.ts";
 import type { JSONObject } from "../../types.ts";
 
-export interface DaemonStatus {
+export interface IDaemonStatus {
   running: boolean;
   pid?: number;
   uptime?: string;
@@ -32,7 +32,7 @@ export class DaemonCommands extends BaseCommand {
   private configService?: ConfigService;
   private Command: typeof Deno.Command;
 
-  constructor(context: CommandContext & { configService?: ConfigService; Command?: typeof Deno.Command }) {
+  constructor(context: ICommandContext & { configService?: ConfigService; Command?: typeof Deno.Command }) {
     super(context);
     const workspaceRoot = this.config.system.root;
     this.pidFile = join(workspaceRoot, this.config.paths.runtime, "daemon.pid");
@@ -120,7 +120,7 @@ export class DaemonCommands extends BaseCommand {
         throw new Error("Daemon failed to start. Check logs for details.");
       }
 
-      // Log successful start (writes to both console and Activity Journal)
+      // Log successful start (writes to both console and IActivity Journal)
       await this.logDaemonActivity("daemon.started", {
         pid: pid,
         log_file: logFile,
@@ -225,7 +225,7 @@ export class DaemonCommands extends BaseCommand {
    * Get daemon status
    * @returns Status information
    */
-  async status(): Promise<DaemonStatus> {
+  async status(): Promise<IDaemonStatus> {
     const version = "1.0.0"; // TODO: Load from package.json or version file
 
     // Check if PID file exists

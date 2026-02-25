@@ -14,7 +14,7 @@ import { JSONValue, toSafeJson } from "../types.ts";
 /**
  * Result of parsing a request markdown file
  */
-export interface ParsedRequest {
+export interface IParsedRequest {
   request: Request;
   body: string;
 }
@@ -26,7 +26,7 @@ export interface ParsedRequest {
  * - Extracts YAML frontmatter between --- delimiters
  * - Parses YAML to JavaScript object
  * - Validates against RequestSchema using Zod
- * - Logs validation events to Activity Journal (if database provided)
+ * - Logs validation events to IActivity Journal (if database provided)
  */
 export class FrontmatterParser {
   private db?: DatabaseService;
@@ -38,7 +38,7 @@ export class FrontmatterParser {
   /**
    * Parse markdown content and extract validated frontmatter
    */
-  parse(markdown: string, filePath?: string): ParsedRequest {
+  parse(markdown: string, filePath?: string): IParsedRequest {
     // Stage 1: Extract YAML frontmatter
     const { frontmatter, body } = this.extractFrontmatter(markdown);
 
@@ -73,7 +73,7 @@ export class FrontmatterParser {
   }
 
   /**
-   * Log activity to the Activity Journal (if database is available)
+   * Log activity to the IActivity Journal (if database is available)
    */
   private logActivity(actionType: string, payload: Record<string, JSONValue>) {
     if (!this.db) {

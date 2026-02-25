@@ -7,7 +7,7 @@
  * - Exponential backoff with jitter
  * - Configurable retry conditions (by error type)
  * - Temperature adjustment on retry
- * - Activity logging for retry attempts
+ * - IActivity logging for retry attempts
  *
  * @architectural-layer Services
  * @dependencies [Config, Zod]
@@ -16,6 +16,67 @@
 
 import { z } from "zod";
 import { RETRYABLE_ERROR_TYPES, RETRYABLE_HTTP_STATUS_CODES, RETRYABLE_MESSAGE_PATTERNS } from "../config/constants.ts";
+
+// ============================================================================
+// Types
+// ============================================================================
+
+/**
+ * Context passed to retry callbacks
+ */
+export interface IRetryContext {
+  /** Current attempt number (1 = first retry, not initial attempt) */
+  attempt: number;
+
+  /** Total elapsed time in milliseconds */
+  elapsedMs: number;
+
+  /** The error that triggered this retry */
+  error: Error;
+
+  /** Calculated delay before this retry */
+  delayMs: number;
+
+  /** Adjusted temperature for this retry */
+  temperature: number;
+}
+
+/**
+ * Options for a single operation execution
+ */
+export interface IRetryableOperationOptions {
+  /** Base temperature (will be adjusted on retries) */
+  baseTemperature?: number;
+
+  /** Optional: Override max retries for this operation */
+  maxRetries?: number;
+
+  /** Optional: Abort signal for cancellation */
+  signal?: AbortSignal;
+}
+
+/**
+ * Result of a retried operation
+ */
+export interface IRetryResult<T> {
+  /** Whether the operation eventually succeeded */
+  success: boolean;
+
+  /** The result (if success) */
+  value?: T;
+
+  /** The final error (if failed after all retries) */
+  error?: Error;
+
+  /** Total attempts made (initial + retries) */
+  totalAttempts: number;
+
+  /** Total time spent in milliseconds */
+  totalTimeMs: number;
+
+  /** Details of each retry attempt */
+  retryHistory: RetryAttempt[];
+}
 
 // ============================================================================
 // Configuration Schema
@@ -50,68 +111,24 @@ export const RetryPolicyConfigSchema = z.object({
   maxTemperature: z.number().min(0).max(2).default(1.0),
 });
 
-export type RetryPolicyConfig = z.infer<typeof RetryPolicyConfigSchema>;
+export type IRetryPolicyConfig = z.infer<typeof RetryPolicyConfigSchema>;
+
+/**
+ * Interface for RetryPolicy service
+ */
+export interface IRetryPolicy {
+  execute<T>(
+    operation: (context: { temperature: number; attempt: number }) => Promise<T>,
+    options?: IRetryableOperationOptions,
+  ): Promise<IRetryResult<T>>;
+  calculateDelay(attempt: number): number;
+  isRetryable(error: Error): boolean;
+  setOnRetry(callback: RetryEventCallback): this;
+}
 
 // ============================================================================
 // Types
 // ============================================================================
-
-/**
- * Context passed to retry callbacks
- */
-export interface RetryContext {
-  /** Current attempt number (1 = first retry, not initial attempt) */
-  attempt: number;
-
-  /** Total elapsed time in milliseconds */
-  elapsedMs: number;
-
-  /** The error that triggered this retry */
-  error: Error;
-
-  /** Calculated delay before this retry */
-  delayMs: number;
-
-  /** Adjusted temperature for this retry */
-  temperature: number;
-}
-
-/**
- * Options for a single operation execution
- */
-export interface RetryableOperationOptions {
-  /** Base temperature (will be adjusted on retries) */
-  baseTemperature?: number;
-
-  /** Optional: Override max retries for this operation */
-  maxRetries?: number;
-
-  /** Optional: Abort signal for cancellation */
-  signal?: AbortSignal;
-}
-
-/**
- * Result of a retried operation
- */
-export interface RetryResult<T> {
-  /** Whether the operation eventually succeeded */
-  success: boolean;
-
-  /** The result (if success) */
-  value?: T;
-
-  /** The final error (if failed after all retries) */
-  error?: Error;
-
-  /** Total attempts made (initial + retries) */
-  totalAttempts: number;
-
-  /** Total time spent in milliseconds */
-  totalTimeMs: number;
-
-  /** Details of each retry attempt */
-  retryHistory: RetryAttempt[];
-}
 
 /**
  * Record of a single retry attempt
@@ -139,7 +156,7 @@ export type RetryAttempt = {
 /**
  * Callback for retry events (useful for logging)
  */
-export type RetryEventCallback = (context: RetryContext) => void;
+export type RetryEventCallback = (context: IRetryContext) => void;
 
 // ============================================================================
 // RetryPolicy Class
@@ -156,11 +173,11 @@ export type RetryEventCallback = (context: RetryContext) => void;
  * });
  * ```
  */
-export class RetryPolicy {
-  private config: RetryPolicyConfig;
+export class RetryPolicy implements IRetryPolicy {
+  private config: IRetryPolicyConfig;
   private onRetry?: RetryEventCallback;
 
-  constructor(config?: Partial<RetryPolicyConfig>) {
+  constructor(config?: Partial<IRetryPolicyConfig>) {
     this.config = RetryPolicyConfigSchema.parse(config || {});
   }
 
@@ -177,12 +194,12 @@ export class RetryPolicy {
    *
    * @param operation - Function to execute, receives retry context
    * @param options - Optional operation-specific settings
-   * @returns RetryResult with success/failure details
+   * @returns IRetryResult with success/failure details
    */
   async execute<T>(
     operation: (context: { temperature: number; attempt: number }) => Promise<T>,
-    options?: RetryableOperationOptions,
-  ): Promise<RetryResult<T>> {
+    options?: IRetryableOperationOptions,
+  ): Promise<IRetryResult<T>> {
     const startTime = Date.now();
     const maxRetries = options?.maxRetries ?? this.config.maxRetries;
     const baseTemperature = options?.baseTemperature ?? 0.7;
@@ -326,7 +343,7 @@ export class RetryPolicy {
   /**
    * Get current configuration
    */
-  getConfig(): RetryPolicyConfig {
+  getConfig(): IRetryPolicyConfig {
     return { ...this.config };
   }
 }
@@ -338,7 +355,7 @@ export class RetryPolicy {
 /**
  * Create a RetryPolicy with default configuration
  */
-export function createRetryPolicy(config?: Partial<RetryPolicyConfig>): RetryPolicy {
+export function createRetryPolicy(config?: Partial<IRetryPolicyConfig>): RetryPolicy {
   return new RetryPolicy(config);
 }
 

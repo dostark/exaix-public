@@ -7,7 +7,7 @@
  * @related-files [src/schemas/request.ts, src/cli/main.ts]
  */
 
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 import { RequestPriority } from "../../enums.ts";
 import type { RequestStatusType } from "../../requests/request_status.ts";
 import { RequestCreateHandler } from "../handlers/request_create_handler.ts";
@@ -17,7 +17,7 @@ import { RequestShowHandler } from "../handlers/request_show_handler.ts";
 /**
  * Options for creating a request
  */
-export interface RequestOptions {
+export interface IRequestOptions {
   agent?: string;
   priority?: RequestPriority;
   portal?: string;
@@ -35,7 +35,7 @@ export type RequestSource = "cli" | "file" | "interactive";
 /**
  * Metadata returned when a request is created
  */
-export interface RequestMetadata {
+export interface IRequestMetadata {
   trace_id: string;
   filename: string;
   path: string;
@@ -62,7 +62,7 @@ export interface RequestMetadata {
 /**
  * Request entry when listing
  */
-export interface RequestEntry {
+export interface IRequestEntry {
   trace_id: string;
   filename: string;
   path: string;
@@ -90,8 +90,8 @@ export interface RequestEntry {
 /**
  * Result of showing a request
  */
-export interface RequestShowResult {
-  metadata: RequestEntry;
+export interface IRequestShowResult {
+  metadata: IRequestEntry;
   content: string;
 }
 
@@ -105,7 +105,7 @@ export class RequestCommands extends BaseCommand {
   private showHandler: RequestShowHandler;
 
   constructor(
-    context: CommandContext,
+    context: ICommandContext,
   ) {
     super(context);
     this.createHandler = new RequestCreateHandler(context);
@@ -122,9 +122,9 @@ export class RequestCommands extends BaseCommand {
    */
   async create(
     description: string,
-    options: RequestOptions = {},
+    options: IRequestOptions = {},
     source: RequestSource = "cli",
-  ): Promise<RequestMetadata> {
+  ): Promise<IRequestMetadata> {
     return await this.createHandler.create(description, options, source);
   }
 
@@ -136,8 +136,8 @@ export class RequestCommands extends BaseCommand {
    */
   async createFromFile(
     filePath: string,
-    options: RequestOptions = {},
-  ): Promise<RequestMetadata> {
+    options: IRequestOptions = {},
+  ): Promise<IRequestMetadata> {
     return await this.createHandler.createFromFile(filePath, options);
   }
 
@@ -146,7 +146,7 @@ export class RequestCommands extends BaseCommand {
    * @param status Optional status filter
    * @returns Array of request entries sorted by created date (newest first)
    */
-  async list(status?: RequestStatusType): Promise<RequestEntry[]> {
+  async list(status?: RequestStatusType): Promise<IRequestEntry[]> {
     return await this.listHandler.list(status);
   }
 
@@ -155,7 +155,7 @@ export class RequestCommands extends BaseCommand {
    * @param idOrFilename Full trace_id, short trace_id (8 chars), or filename
    * @returns Request metadata and content body
    */
-  async show(idOrFilename: string): Promise<RequestShowResult> {
+  async show(idOrFilename: string): Promise<IRequestShowResult> {
     return await this.showHandler.show(idOrFilename);
   }
 }

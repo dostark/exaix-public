@@ -8,9 +8,9 @@
  */
 import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { isTestMode } from "../config/env_schema.ts";
-import type { RequestMetadata } from "../cli/commands/request_commands.ts";
+import type { IRequestMetadata } from "../cli/commands/request_commands.ts";
 
-export interface RequestEnrichable {
+export interface IRequestEnrichable {
   request_id?: string;
   request_title?: string;
   request_agent?: string;
@@ -20,7 +20,7 @@ export interface RequestEnrichable {
   request_flow?: string;
   request_rejected_path?: string;
 }
-export async function enrichWithRequest<T extends RequestEnrichable>(
+export async function enrichWithRequest<T extends IRequestEnrichable>(
   requestCommands: RequestCommands,
   metadata: T,
   idPlaceholder = "unknown",
@@ -60,8 +60,8 @@ export async function enrichWithRequest<T extends RequestEnrichable>(
       request_portal: request.portal,
       request_priority: request.priority,
       request_created_by: request.created_by,
-      request_flow: (request as RequestMetadata & { flow?: string }).flow,
-      request_rejected_path: (request as RequestMetadata & { rejected_path?: string }).rejected_path,
+      request_flow: (request as IRequestMetadata & { flow?: string }).flow,
+      request_rejected_path: (request as IRequestMetadata & { rejected_path?: string }).rejected_path,
     };
   } catch (error) {
     // If request can't be loaded, continue without request info

@@ -6,7 +6,7 @@
  * @dependencies [DatabaseService, Config, Constants, ProviderType]
  * @related-files [src/services/db.ts, src/config/schema.ts]
  */
-import { DatabaseService, type SqliteParam } from "./db.ts";
+import { DatabaseService, type ISqliteParam } from "./db.ts";
 import type { Config } from "../config/schema.ts";
 import {
   COST_RATE_ANTHROPIC,
@@ -24,7 +24,7 @@ import { ProviderType } from "../enums.ts";
  * Cost tracking for LLM provider usage.
  * Tracks requests, tokens, and estimated costs per provider.
  */
-export interface ProviderCostRecord {
+export interface IProviderCostRecord {
   id: string;
   provider: string;
   requests: number;
@@ -54,7 +54,7 @@ export class CostTracker {
     return { ...defaultRates, ...configuredRates };
   }
 
-  private pendingRecords: Omit<ProviderCostRecord, "id">[] = [];
+  private pendingRecords: Omit<IProviderCostRecord, "id">[] = [];
   private batchTimeout: number | null = null;
 
   constructor(private db: DatabaseService, private config?: Config) {}
@@ -75,7 +75,7 @@ export class CostTracker {
    */
   async trackRequest(provider: string, tokens: number): Promise<void> {
     const cost = this.estimateCost(provider, tokens);
-    const record: Omit<ProviderCostRecord, "id"> = {
+    const record: Omit<IProviderCostRecord, "id"> = {
       provider,
       requests: 1,
       tokens,
@@ -151,7 +151,7 @@ export class CostTracker {
     startDate: Date,
     endDate: Date,
     provider?: string,
-  ): Promise<ProviderCostRecord[]> {
+  ): Promise<IProviderCostRecord[]> {
     const query = `
       SELECT id, provider, requests, tokens, estimated_cost_usd as estimatedCostUsd, timestamp
       FROM provider_costs
@@ -197,7 +197,7 @@ export class CostTracker {
   /**
    * Insert multiple cost records into the database in batch.
    */
-  private async insertCostRecordsBatch(records: Omit<ProviderCostRecord, "id">[]): Promise<void> {
+  private async insertCostRecordsBatch(records: Omit<IProviderCostRecord, "id">[]): Promise<void> {
     if (records.length === 0) {
       return;
     }
@@ -209,7 +209,7 @@ export class CostTracker {
       VALUES ${placeholders}
     `;
 
-    const params: SqliteParam[] = [];
+    const params: ISqliteParam[] = [];
     for (const record of records) {
       params.push(
         crypto.randomUUID(),

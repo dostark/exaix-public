@@ -9,12 +9,56 @@
 
 import { z } from "zod";
 import type { IModelProvider } from "../ai/providers.ts";
-import type { DatabaseService } from "./db.ts";
-import { AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
-import { createOutputValidator, OutputValidator } from "./output_validator.ts";
+import type { IDatabaseService } from "./db.ts";
+import { AgentRunner } from "./agent_runner.ts";
+import type { IBlueprint, IParsedRequest } from "./agent_runner.ts";
+import { createOutputValidator } from "./output_validator.ts";
+import type { IOutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
 import { ToolReflectionIssueType, ToolReflectionSeverity } from "../enums.ts";
 import { JSONValue, JSONValueSchema, LogMetadata, toSafeJson } from "../types.ts";
+
+export interface IToolCall {
+  id: string;
+  name: string;
+  parameters: Record<string, JSONValue>;
+  purpose: string;
+  dependencies?: string[];
+}
+
+export interface IToolResult {
+  callId: string;
+  success: boolean;
+  output: JSONValue;
+  error?: string;
+  durationMs: number;
+}
+
+export interface IReflectedToolResult extends IToolResult {
+  reflection: IToolReflection;
+  retryCount: number;
+  finalOutput: JSONValue;
+}
+
+export interface IToolReflectorConfig {
+  maxRetries?: number;
+  reflectionThreshold?: number;
+  parallelExecution?: boolean;
+  reflectionPromptTemplate?: string;
+  verbose?: boolean;
+  db?: IDatabaseService;
+}
+
+export interface IToolReflectorMetrics {
+  totalCalls: number;
+  successfulCalls: number;
+  failedCalls: number;
+  totalRetries: number;
+  retryRate: number;
+  averageRetriesPerCall: number;
+  toolDistribution: Record<string, number>;
+  issueTypeDistribution: Record<string, number>;
+}
 
 // ============================================================================
 // Reflection Schema
@@ -38,53 +82,11 @@ export const ToolReflectionSchema = z.object({
   insights: z.array(z.string()).default([]),
 });
 
-export type ToolReflection = z.infer<typeof ToolReflectionSchema>;
+export type IToolReflection = z.infer<typeof ToolReflectionSchema>;
 
 // ============================================================================
 // Types
 // ============================================================================
-
-export interface ToolCall {
-  id: string;
-  name: string;
-  parameters: Record<string, JSONValue>;
-  purpose: string;
-  dependencies?: string[];
-}
-
-export interface ToolResult {
-  callId: string;
-  success: boolean;
-  output: JSONValue;
-  error?: string;
-  durationMs: number;
-}
-
-export interface ReflectedToolResult extends ToolResult {
-  reflection: ToolReflection;
-  retryCount: number;
-  finalOutput: JSONValue;
-}
-
-export interface ToolReflectorConfig {
-  maxRetries?: number;
-  reflectionThreshold?: number;
-  parallelExecution?: boolean;
-  reflectionPromptTemplate?: string;
-  verbose?: boolean;
-  db?: DatabaseService;
-}
-
-export interface ToolReflectorMetrics {
-  totalCalls: number;
-  successfulCalls: number;
-  failedCalls: number;
-  totalRetries: number;
-  retryRate: number;
-  averageRetriesPerCall: number;
-  toolDistribution: Record<string, number>;
-  issueTypeDistribution: Record<string, number>;
-}
 
 // ============================================================================
 // Default Prompt Template
@@ -136,7 +138,7 @@ Respond with a JSON object:
 
 export class ToolReflector {
   private agentRunner: AgentRunner;
-  private outputValidator: OutputValidator;
+  private outputValidator: IOutputValidator;
 
   private config: {
     maxRetries: number;
@@ -144,10 +146,10 @@ export class ToolReflector {
     parallelExecution: boolean;
     reflectionPromptTemplate: string;
     verbose: boolean;
-    db?: DatabaseService;
+    db?: IDatabaseService;
   };
 
-  private metrics: ToolReflectorMetrics = {
+  private metrics: IToolReflectorMetrics = {
     totalCalls: 0,
     successfulCalls: 0,
     failedCalls: 0,
@@ -158,7 +160,7 @@ export class ToolReflector {
     issueTypeDistribution: {},
   };
 
-  constructor(modelProvider: IModelProvider, config: ToolReflectorConfig = {}) {
+  constructor(modelProvider: IModelProvider, config: IToolReflectorConfig = {}) {
     const {
       maxRetries = 2,
       reflectionThreshold = 70,
@@ -185,14 +187,14 @@ export class ToolReflector {
    * Execute a tool call with reflection
    */
   async executeWithReflection(
-    toolCall: ToolCall,
-    executor: (params: Record<string, JSONValue>) => Promise<ToolResult>,
+    toolCall: IToolCall,
+    executor: (params: Record<string, JSONValue>) => Promise<IToolResult>,
     traceId?: string,
-  ): Promise<ReflectedToolResult> {
+  ): Promise<IReflectedToolResult> {
     let currentParams = { ...toolCall.parameters };
     let retryCount = 0;
-    let lastResult: ToolResult | null = null;
-    let lastReflection: ToolReflection | null = null;
+    let lastResult: IToolResult | null = null;
+    let lastReflection: IToolReflection | null = null;
 
     this.metrics.totalCalls++;
     this.metrics.toolDistribution[toolCall.name] = (this.metrics.toolDistribution[toolCall.name] || 0) + 1;
@@ -257,12 +259,12 @@ export class ToolReflector {
    * Execute multiple tool calls, potentially in parallel
    */
   async executeMultiple(
-    toolCalls: ToolCall[],
-    executor: (call: ToolCall) => Promise<ToolResult>,
+    toolCalls: IToolCall[],
+    executor: (call: IToolCall) => Promise<IToolResult>,
     traceId?: string,
-  ): Promise<ReflectedToolResult[]> {
+  ): Promise<IReflectedToolResult[]> {
     if (!this.config.parallelExecution) {
-      const results: ReflectedToolResult[] = [];
+      const results: IReflectedToolResult[] = [];
       for (const call of toolCalls) {
         const result = await this.executeWithReflection(
           call,
@@ -275,8 +277,8 @@ export class ToolReflector {
     }
 
     const dependencyGroups = this.groupByDependencies(toolCalls);
-    const results: ReflectedToolResult[] = [];
-    const completedCalls = new Map<string, ReflectedToolResult>();
+    const results: IReflectedToolResult[] = [];
+    const completedCalls = new Map<string, IReflectedToolResult>();
 
     for (const group of dependencyGroups) {
       const groupPromises = group.map((call) =>
@@ -300,7 +302,7 @@ export class ToolReflector {
   /**
    * Reflect on a tool result
    */
-  private async reflect(toolCall: ToolCall, result: ToolResult, traceId?: string): Promise<ToolReflection> {
+  private async reflect(toolCall: IToolCall, result: IToolResult, traceId?: string): Promise<IToolReflection> {
     const reflectionPrompt = this.config.reflectionPromptTemplate
       .replace("{tool_name}", toolCall.name)
       .replace("{purpose}", toolCall.purpose)
@@ -309,13 +311,13 @@ export class ToolReflector {
       .replace("{output}", this.formatOutput(result.output))
       .replace("{error}", result.error || "None");
 
-    const blueprint: Blueprint = {
+    const blueprint: IBlueprint = {
       systemPrompt:
         "You are a tool result evaluator. Assess whether tool calls achieved their purpose. Provide structured JSON output.",
       agentId: "tool-reflector",
     };
 
-    const request: ParsedRequest = {
+    const request: IParsedRequest = {
       userPrompt: reflectionPrompt,
       context: {},
       traceId,
@@ -334,7 +336,7 @@ export class ToolReflector {
   /**
    * Determine if reflection result should be accepted
    */
-  private shouldAccept(reflection: ToolReflection): boolean {
+  private shouldAccept(reflection: IToolReflection): boolean {
     if (!reflection.success) return false;
     if (!reflection.achieved_purpose) return false;
     if (reflection.confidence < this.config.reflectionThreshold) return false;
@@ -348,13 +350,13 @@ export class ToolReflector {
   /**
    * Group tool calls by dependencies for parallel execution
    */
-  private groupByDependencies(toolCalls: ToolCall[]): ToolCall[][] {
-    const groups: ToolCall[][] = [];
+  private groupByDependencies(toolCalls: IToolCall[]): IToolCall[][] {
+    const groups: IToolCall[][] = [];
     const completed = new Set<string>();
     const remaining = [...toolCalls];
 
     while (remaining.length > 0) {
-      const currentGroup: ToolCall[] = [];
+      const currentGroup: IToolCall[] = [];
 
       for (let i = remaining.length - 1; i >= 0; i--) {
         const call = remaining[i];
@@ -393,7 +395,7 @@ export class ToolReflector {
     }
   }
 
-  private createDefaultReflection(result: ToolResult): ToolReflection {
+  private createDefaultReflection(result: IToolResult): IToolReflection {
     return {
       success: result.success,
       confidence: result.success ? 60 : 20,
@@ -410,7 +412,7 @@ export class ToolReflector {
     };
   }
 
-  private updateMetrics(reflection: ToolReflection): void {
+  private updateMetrics(reflection: IToolReflection): void {
     for (const issue of reflection.issues) {
       this.metrics.issueTypeDistribution[issue.type] = (this.metrics.issueTypeDistribution[issue.type] || 0) + 1;
     }
@@ -442,7 +444,7 @@ export class ToolReflector {
     }
   }
 
-  getMetrics(): ToolReflectorMetrics {
+  getMetrics(): IToolReflectorMetrics {
     return { ...this.metrics };
   }
 
@@ -466,14 +468,14 @@ export class ToolReflector {
 
 export function createToolReflector(
   modelProvider: IModelProvider,
-  config?: ToolReflectorConfig,
+  config?: IToolReflectorConfig,
 ): ToolReflector {
   return new ToolReflector(modelProvider, config);
 }
 
 export function createStrictToolReflector(
   modelProvider: IModelProvider,
-  config?: ToolReflectorConfig,
+  config?: IToolReflectorConfig,
 ): ToolReflector {
   return new ToolReflector(modelProvider, {
     maxRetries: 3,
@@ -485,7 +487,7 @@ export function createStrictToolReflector(
 
 export function createFastToolReflector(
   modelProvider: IModelProvider,
-  config?: ToolReflectorConfig,
+  config?: IToolReflectorConfig,
 ): ToolReflector {
   return new ToolReflector(modelProvider, {
     maxRetries: 1,

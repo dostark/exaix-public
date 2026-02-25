@@ -16,7 +16,7 @@
  */
 
 import { MessageType } from "../enums.ts";
-import { type INotificationService, NotificationService } from "../services/notification.ts";
+import { type INotificationService } from "../services/notification.ts";
 import {
   TUI_DASHBOARD_ICONS,
   TUI_DASHBOARD_VIEW_PICKER_WIDTH,
@@ -24,27 +24,27 @@ import {
   TUI_LAYOUT_FULL_WIDTH,
   TUI_TREE_ICONS,
 } from "../helpers/constants.ts";
-import { colorize, getTheme, type TuiTheme } from "../helpers/colors.ts";
+import { colorize, getTheme, type ITuiTheme } from "../helpers/colors.ts";
 import {
-  type DashboardContext,
   handleMemoryNotifications as _handleMemoryNotifications,
+  type IDashboardContext,
   renderNotificationPanel,
 } from "./tui_helpers/notifications.ts";
-import type { PortalService } from "./portal_manager_view.ts";
-import type { PortalInfo } from "../cli/commands/portal_commands.ts";
-import type { MemoryNotification } from "../services/notification.ts";
+import type { IPortalService } from "./portal_manager_view.ts";
+import type { IPortalInfo } from "../cli/commands/portal_commands.ts";
+import type { IMemoryNotification } from "../services/notification.ts";
 import {
   resetToDefault as helperResetToDefault,
   restoreLayout as helperRestoreLayout,
   saveLayout as helperSaveLayout,
 } from "./tui_helpers/layout_persistence.ts";
-import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
-import { KeyBinding, KEYS } from "../helpers/keyboard.ts";
+import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { IKeyBinding, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import type { IDatabaseService } from "../services/db.ts";
 import { initDashboardViews } from "./dashboard/view_registry.ts";
 import { prodRender } from "./dashboard/renderer.ts";
-import { type LayoutPresetDisplay, renderLayoutPresetListLines } from "../helpers/layout_rendering.ts";
+import { type ILayoutPresetDisplay, renderLayoutPresetListLines } from "../helpers/layout_rendering.ts";
 import {
   closePane as helperClosePane,
   maximizePane as helperMaximizePane,
@@ -54,11 +54,23 @@ import {
 } from "./dashboard/pane_manager.ts";
 
 // Type alias for convenience
-type Theme = TuiTheme;
+type Theme = ITuiTheme;
 
-// ===== Dashboard View State =====
+// ===== Dashboard Interfaces =====
 
-export interface DashboardViewState {
+/**
+ * Common interface for all TUI views to ensure consistent orchestration.
+ */
+export interface ITuiView {
+  name: string;
+  render?(): string[] | Promise<string[] | string> | string;
+  handleKey?(key: string): Promise<boolean | number>;
+  dispose?(): void;
+  destroy?(): void;
+  getFocusableElements?(): string[];
+}
+
+export interface IDashboardViewState {
   showHelp: boolean;
   showNotifications: boolean;
   showViewPicker: boolean;
@@ -70,6 +82,106 @@ export interface DashboardViewState {
   screenReader: boolean;
   showMemoryNotifications: boolean;
   selectedMemoryNotifIndex: number;
+}
+
+export interface IPane {
+  id: string;
+  view: ITuiView;
+  /** Relative flex position and size (0.0 to 1.0) */
+  flexX: number;
+  flexY: number;
+  flexWidth: number;
+  flexHeight: number;
+  /** Calculated screen coordinates (pixels/chars) */
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  focused: boolean;
+  maximized?: boolean;
+  previousBounds?: {
+    flexX: number;
+    flexY: number;
+    flexWidth: number;
+    flexHeight: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
+export interface ITuiDashboard {
+  // State
+  panes: IPane[];
+  activePaneId: string;
+  views: ITuiView[];
+  state: IDashboardViewState;
+  theme: Theme;
+
+  // Test mode handlers (internal routing helpers)
+  handleHelpOverlay?: (self: ITuiDashboard, key: string, panes: IPane[]) => number;
+  handleViewPicker?: (
+    self: ITuiDashboard,
+    key: string,
+    views: ITuiView[],
+    panes: IPane[],
+    viewPickerIndexRef: { index: number },
+  ) => number;
+  handleMemoryNotifications?: (
+    self: ITuiDashboard,
+    key: string,
+    panes: IPane[],
+    notificationService: INotificationService,
+  ) => Promise<number>;
+
+  // Core methods
+  handleKey(key: string): Promise<number>;
+  render(): Promise<void>;
+  renderStatusBar(): Promise<string>;
+  renderViewIndicator(): string;
+  renderGlobalHelp(): string[];
+  renderNotifications(): Promise<string[]>;
+  destroy(): void;
+
+  // IPane management
+  splitPane(direction: "vertical" | "horizontal"): Promise<void>;
+  closePane(paneId: string): Promise<void>;
+  resizePane(paneId: string, deltaWidth: number, deltaHeight: number): void;
+  switchPane(paneId: string): void;
+  maximizePane(paneId: string): void;
+  restorePane(paneId: string): void;
+
+  // Layout persistence
+  saveLayout(): Promise<void>;
+  restoreLayout(): Promise<void>;
+  resetToDefault(): Promise<void>;
+
+  // Notifications
+  notificationService: INotificationService;
+  notify(message: string, type?: string): Promise<void>;
+  dismissNotification(id: string): Promise<void>;
+  clearNotifications(): Promise<void>;
+  approveMemoryUpdate(proposalId: string): Promise<void>;
+  rejectMemoryUpdate(proposalId: string): Promise<void>;
+
+  // Legacy support
+  portalManager: {
+    service: IPortalService;
+    renderPortalList: (portals: IPortalInfo[]) => string;
+  };
+  accessibility: {
+    highContrast: boolean;
+    screenReader: boolean;
+  };
+  keybindings: {
+    nextView: string;
+    prevView: string;
+    notify: string;
+    splitVertical: string;
+    splitHorizontal: string;
+    closePane: string;
+  };
 }
 
 // ===== Dashboard Icons =====
@@ -148,7 +260,7 @@ type DashboardAction =
   | "resize_down";
 
 export class DashboardKeyBindings extends KeyBindingsBase<DashboardAction> {
-  readonly KEY_BINDINGS: readonly KeyBinding<DashboardAction>[] = [
+  readonly KEY_BINDINGS: readonly IKeyBinding<DashboardAction>[] = [
     // Navigation
     { key: KEYS.TAB, action: "next_pane", description: "Next pane", category: "Navigation" },
     { key: KEYS.SHIFT_TAB, action: "prev_pane", description: "Previous pane", category: "Navigation" },
@@ -182,7 +294,7 @@ export const DASHBOARD_KEY_BINDINGS = new DashboardKeyBindings().KEY_BINDINGS;
 
 // ===== Help Sections =====
 
-export function getDashboardHelpSections(): HelpSection[] {
+export function getDashboardHelpSections(): IHelpSection[] {
   return [
     {
       title: "Navigation",
@@ -239,120 +351,6 @@ export function getDashboardHelpSections(): HelpSection[] {
   ];
 }
 
-// ===== Pane and Dashboard Interfaces =====
-
-/**
- * Common interface for all TUI views to ensure consistent orchestration.
- */
-export interface TuiView {
-  name: string;
-  render?(): string[] | Promise<string[] | string> | string;
-  handleKey?(key: string): Promise<boolean | number>;
-  dispose?(): void;
-  destroy?(): void;
-  getFocusableElements?(): string[];
-}
-
-export interface Pane {
-  id: string;
-  view: TuiView;
-  /** Relative flex position and size (0.0 to 1.0) */
-  flexX: number;
-  flexY: number;
-  flexWidth: number;
-  flexHeight: number;
-  /** Calculated screen coordinates (pixels/chars) */
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  focused: boolean;
-  maximized?: boolean;
-  previousBounds?: {
-    flexX: number;
-    flexY: number;
-    flexWidth: number;
-    flexHeight: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-}
-
-export interface TuiDashboard {
-  // State
-  panes: Pane[];
-  activePaneId: string;
-  views: TuiView[];
-  state: DashboardViewState;
-  theme: Theme;
-
-  // Test mode handlers (internal routing helpers)
-  handleHelpOverlay?: (self: TuiDashboard, key: string, panes: Pane[]) => number;
-  handleViewPicker?: (
-    self: TuiDashboard,
-    key: string,
-    views: TuiView[],
-    panes: Pane[],
-    viewPickerIndexRef: { index: number },
-  ) => number;
-  handleMemoryNotifications?: (
-    self: TuiDashboard,
-    key: string,
-    panes: Pane[],
-    notificationService: INotificationService,
-  ) => Promise<number>;
-
-  // Core methods
-  handleKey(key: string): Promise<number>;
-  render(): Promise<void>;
-  renderStatusBar(): Promise<string>;
-  renderViewIndicator(): string;
-  renderGlobalHelp(): string[];
-  renderNotifications(): Promise<string[]>;
-  destroy(): void;
-
-  // Pane management
-  splitPane(direction: "vertical" | "horizontal"): Promise<void>;
-  closePane(paneId: string): Promise<void>;
-  resizePane(paneId: string, deltaWidth: number, deltaHeight: number): void;
-  switchPane(paneId: string): void;
-  maximizePane(paneId: string): void;
-  restorePane(paneId: string): void;
-
-  // Layout persistence
-  saveLayout(): Promise<void>;
-  restoreLayout(): Promise<void>;
-  resetToDefault(): Promise<void>;
-
-  // Notifications
-  notificationService: INotificationService;
-  notify(message: string, type?: string): Promise<void>;
-  dismissNotification(id: string): Promise<void>;
-  clearNotifications(): Promise<void>;
-  approveMemoryUpdate(proposalId: string): Promise<void>;
-  rejectMemoryUpdate(proposalId: string): Promise<void>;
-
-  // Legacy support
-  portalManager: {
-    service: PortalService;
-    renderPortalList: (portals: PortalInfo[]) => string;
-  };
-  accessibility: {
-    highContrast: boolean;
-    screenReader: boolean;
-  };
-  keybindings: {
-    nextView: string;
-    prevView: string;
-    notify: string;
-    splitVertical: string;
-    splitHorizontal: string;
-    closePane: string;
-  };
-}
-
 export function tryEnableRawMode(): boolean {
   try {
     // Define intersection type for Deno.stdin with optional terminal methods
@@ -385,11 +383,11 @@ export function tryDisableRawMode(): boolean {
   return false;
 }
 
-// Notification helpers are now handled by NotificationService
+// Notification helpers are now handled by INotificationService
 
 // ===== Default Dashboard State =====
 
-export function createDefaultDashboardState(): DashboardViewState {
+export function createDefaultDashboardState(): IDashboardViewState {
   return {
     showHelp: false,
     showNotifications: false,
@@ -407,7 +405,7 @@ export function createDefaultDashboardState(): DashboardViewState {
 
 // ===== View Indicator Rendering =====
 
-export function renderViewIndicator(panes: Pane[], activePaneId: string, theme: Theme): string {
+export function renderViewIndicator(panes: IPane[], activePaneId: string, theme: Theme): string {
   const indicators: string[] = [];
 
   for (let i = 0; i < panes.length; i++) {
@@ -447,7 +445,7 @@ export function renderGlobalHelpOverlay(_theme: Theme): string[] {
 // ===== View Picker Rendering =====
 
 export function renderViewPicker(
-  views: TuiView[],
+  views: ITuiView[],
   currentViewIndex: number,
   theme: Theme,
 ): string[] {
@@ -461,7 +459,7 @@ export function renderViewPicker(
   );
   lines.push(colorize("├────────────────────────────────────┤", theme.border, theme.reset));
 
-  const viewDisplays: LayoutPresetDisplay[] = views.map((view, index) => ({
+  const viewDisplays: ILayoutPresetDisplay[] = views.map((view, index) => ({
     name: view.name.replace("View", ""),
     description: "",
     icon: DASHBOARD_ICONS.views[view.name] || TUI_TREE_ICONS.project,
@@ -488,9 +486,9 @@ export function renderViewPicker(
   return lines;
 }
 
-// ===== Pane Title Bar Rendering =====
+// ===== IPane Title Bar Rendering =====
 
-export function renderPaneTitleBar(pane: Pane, theme: Theme): string {
+export function renderPaneTitleBar(pane: IPane, theme: Theme): string {
   const icon = DASHBOARD_ICONS.views[pane.view.name] || "📦";
   const name = pane.view.name.replace("View", "");
   const focusIndicator = pane.focused ? "●" : "○";
@@ -505,7 +503,7 @@ export function renderPaneTitleBar(pane: Pane, theme: Theme): string {
 }
 
 // Helper handlers extracted from the large dashboard key handler to reduce complexity
-function _handleHelpOverlay(self: TuiDashboard, key: string, panes: Pane[]) {
+function _handleHelpOverlay(self: ITuiDashboard, key: string, panes: IPane[]) {
   if (key === KEYS.QUESTION || key === KEYS.ESCAPE) {
     self.state.showHelp = false;
   }
@@ -513,19 +511,19 @@ function _handleHelpOverlay(self: TuiDashboard, key: string, panes: Pane[]) {
 }
 
 async function _handleMemoryNotificationsLocal(
-  self: TuiDashboard & DashboardContext,
+  self: ITuiDashboard & IDashboardContext,
   key: string,
-  panes: Pane[],
-  notificationService: NotificationService,
+  panes: IPane[],
+  notificationService: INotificationService,
 ) {
   return await _handleMemoryNotifications(self, key, panes, notificationService);
 }
 
 function _handleViewPicker(
-  self: TuiDashboard,
+  self: ITuiDashboard,
   key: string,
-  views: TuiView[],
-  panes: Pane[],
+  views: ITuiView[],
+  panes: IPane[],
   viewPickerIndexRef: { index: number },
 ) {
   if (key === KEYS.ESCAPE) {
@@ -558,10 +556,10 @@ export async function launchTuiDashboard(
   options: {
     testMode?: boolean;
     nonInteractive?: boolean;
-    notificationService?: NotificationService;
+    notificationService?: INotificationService;
     databaseService?: IDatabaseService;
   } = {},
-): Promise<TuiDashboard | undefined> {
+): Promise<ITuiDashboard | undefined> {
   if (options.testMode) {
     return await createTestDashboard(options);
   }
@@ -572,9 +570,9 @@ export async function launchTuiDashboard(
 /**
  * Internal helper to create a mock notification service for testing
  */
-function createMockNotificationService(localNotifs: MemoryNotification[]): INotificationService {
+function createMockNotificationService(localNotifs: IMemoryNotification[]): INotificationService {
   return {
-    async notify(message: string, type: MemoryNotification["type"] = "info") {
+    async notify(message: string, type: IMemoryNotification["type"] = "info") {
       localNotifs.unshift({ // Newest first
         id: crypto.randomUUID(),
         type,
@@ -611,7 +609,7 @@ function createMockNotificationService(localNotifs: MemoryNotification[]): INoti
 function createTestDashboard(options: {
   notificationService?: INotificationService;
   databaseService?: IDatabaseService;
-}): TuiDashboard {
+}): ITuiDashboard {
   // Initialize views using registry
   const { views, services } = initDashboardViews({ testMode: true, databaseService: options.databaseService });
   const portalView = views[0];
@@ -622,7 +620,7 @@ function createTestDashboard(options: {
   const portalService = services.portalService;
 
   // Initialize with single pane
-  const initialPane: Pane = {
+  const initialPane: IPane = {
     id: "main",
     view: views[0],
     flexX: 0,
@@ -636,18 +634,18 @@ function createTestDashboard(options: {
     focused: true,
     maximized: false,
   };
-  const panes: Pane[] = [initialPane];
+  const panes: IPane[] = [initialPane];
   const activePaneId = "main";
 
   // Initialize state
-  const state: DashboardViewState = createDefaultDashboardState();
+  const state: IDashboardViewState = createDefaultDashboardState();
   const theme: Theme = getTheme(true);
 
   // View picker state
   let viewPickerIndex = 0;
 
   // Initialize notification service if not provided
-  const localNotifs: MemoryNotification[] = [];
+  const localNotifs: IMemoryNotification[] = [];
   const notificationService = options.notificationService || createMockNotificationService(localNotifs);
 
   return {
@@ -707,10 +705,10 @@ function createTestDashboard(options: {
     },
     portalManager: {
       service: portalService,
-      renderPortalList: (portals: PortalInfo[]) => {
+      renderPortalList: (portals: IPortalInfo[]) => {
         // Type guard for renderPortalList
         if (typeof portalView === "object" && portalView !== null && "renderPortalList" in portalView) {
-          const fn = (portalView as { renderPortalList?: (portals: PortalInfo[]) => string }).renderPortalList;
+          const fn = (portalView as { renderPortalList?: (portals: IPortalInfo[]) => string }).renderPortalList;
           if (typeof fn === "function") {
             return fn(portals);
           }
@@ -804,7 +802,7 @@ function createTestDashboard(options: {
         }
       }
     },
-  } as TuiDashboard;
+  } as ITuiDashboard;
 }
 
 /**
@@ -816,14 +814,14 @@ async function createProductionDashboard(options: {
   nonInteractive?: boolean;
   notificationService?: INotificationService;
   databaseService?: IDatabaseService;
-}): Promise<TuiDashboard | undefined> {
+}): Promise<ITuiDashboard | undefined> {
   // Initialize views using registry
   const { views, services } = initDashboardViews({ testMode: false, databaseService: options.databaseService });
   const _portalView = views[0];
   const portalService = services.portalService;
 
   // Initialize with single pane
-  const initialPane: Pane = {
+  const initialPane: IPane = {
     id: "main",
     view: views[0],
     flexX: 0,
@@ -837,11 +835,11 @@ async function createProductionDashboard(options: {
     focused: true,
     maximized: false,
   };
-  const panes: Pane[] = [initialPane];
+  const panes: IPane[] = [initialPane];
   let activePaneId = "main";
 
   // Initialize state
-  const _state: DashboardViewState = createDefaultDashboardState();
+  const _state: IDashboardViewState = createDefaultDashboardState();
   const theme: Theme = getTheme(true);
 
   // Production state
@@ -871,7 +869,7 @@ async function createProductionDashboard(options: {
     database: {} as IDatabaseService,
   } as INotificationService;
 
-  const prodState: DashboardViewState = createDefaultDashboardState();
+  const prodState: IDashboardViewState = createDefaultDashboardState();
 
   // Helper to add notification (accepts generic string to match helper signature)
   const addNotification = async (message: string, type?: string) => {
@@ -942,10 +940,10 @@ async function createProductionDashboard(options: {
  * This extracts the complex interactive loop logic from the main function.
  */
 async function runProductionInteractiveLoop(context: {
-  panes: Pane[];
+  panes: IPane[];
   activePaneId: { value: string };
-  views: TuiView[];
-  prodState: DashboardViewState;
+  views: ITuiView[];
+  prodState: IDashboardViewState;
   theme: Theme;
   notificationService: INotificationService;
   addNotification: (message: string, type?: string) => Promise<void>;

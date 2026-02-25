@@ -23,10 +23,10 @@ import {
   TUI_STATUS_MSG_PROPOSAL_APPROVED,
   TUI_STATUS_MSG_PROPOSAL_REJECTED,
 } from "../../helpers/constants.ts";
-import type { MemoryServiceInterface } from "./types.ts";
+import type { IMemoryServiceInterface } from "./types.ts";
 
-export interface DialogProcessorContext {
-  service: MemoryServiceInterface;
+export interface IDialogProcessorContext {
+  service: IMemoryServiceInterface;
   onStatusUpdate: (message: string) => void;
   onTreeReload: () => Promise<void>;
   onPendingCountReload: () => Promise<void>;
@@ -34,7 +34,7 @@ export interface DialogProcessorContext {
 
 type DialogResult<T> = { type: DialogStatus.CONFIRMED; value: T } | { type: DialogStatus.CANCELLED };
 
-function getConfirmedValue<T>(result: DialogResult<T>, context: DialogProcessorContext): T | null {
+function getConfirmedValue<T>(result: DialogResult<T>, context: IDialogProcessorContext): T | null {
   if (result.type === DialogStatus.CANCELLED) {
     context.onStatusUpdate(TUI_STATUS_MSG_CANCELLED);
     return null;
@@ -43,7 +43,7 @@ function getConfirmedValue<T>(result: DialogResult<T>, context: DialogProcessorC
 }
 
 async function withDialogErrorHandling(
-  context: DialogProcessorContext,
+  context: IDialogProcessorContext,
   action: () => Promise<void>,
 ): Promise<void> {
   try {
@@ -59,7 +59,7 @@ export class DialogProcessor {
    */
   static async processConfirmApproveDialog(
     dialog: ConfirmApproveDialog,
-    context: DialogProcessorContext,
+    context: IDialogProcessorContext,
   ): Promise<void> {
     const value = getConfirmedValue(dialog.getResult(), context);
     if (!value) return;
@@ -77,7 +77,7 @@ export class DialogProcessor {
    */
   static async processConfirmRejectDialog(
     dialog: ConfirmRejectDialog,
-    context: DialogProcessorContext,
+    context: IDialogProcessorContext,
   ): Promise<void> {
     const value = getConfirmedValue(dialog.getResult(), context);
     if (!value) return;
@@ -95,7 +95,7 @@ export class DialogProcessor {
    */
   static async processBulkApproveDialog(
     dialog: BulkApproveDialog,
-    context: DialogProcessorContext,
+    context: IDialogProcessorContext,
   ): Promise<void> {
     const confirmed = getConfirmedValue(dialog.getResult(), context);
     if (!confirmed) return;
@@ -117,7 +117,7 @@ export class DialogProcessor {
    */
   static async processAddLearningDialog(
     dialog: AddLearningDialog,
-    context: DialogProcessorContext,
+    context: IDialogProcessorContext,
   ): Promise<void> {
     const confirmed = getConfirmedValue(dialog.getResult(), context);
     if (!confirmed) return;
@@ -137,7 +137,7 @@ export class DialogProcessor {
    */
   static async processPromoteDialog(
     dialog: PromoteDialog,
-    context: DialogProcessorContext,
+    context: IDialogProcessorContext,
   ): Promise<void> {
     const confirmed = getConfirmedValue(dialog.getResult(), context);
     if (!confirmed) return;

@@ -7,7 +7,7 @@
  * @related-files [src/ai/provider_registry.ts]
  */
 
-import { type ProviderMetadata, ProviderRegistry } from "./provider_registry.ts";
+import { IProviderMetadata, ProviderRegistry } from "./provider_registry.ts";
 import type { IProviderFactory } from "./factories/abstract_provider_factory.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
 import { HealthCheckService } from "../services/health_check_service.ts";
@@ -15,13 +15,10 @@ import { Config } from "../config/schema.ts";
 import { getValidatedEnvOverrides, isCIMode, isTestMode } from "../config/env_schema.ts";
 import { PricingTier, ProviderCostTier, TaskComplexity } from "../enums.ts";
 
-/** A registered provider entry with its factory and metadata. */
-type ProviderEntry = { factory: IProviderFactory; metadata: ProviderMetadata };
-
 /**
  * Criteria for selecting a provider
  */
-export interface SelectionCriteria {
+export interface ISelectionCriteria {
   /** Prefer free providers when available */
   preferFree?: boolean;
   /** Maximum daily cost in USD */
@@ -33,6 +30,9 @@ export interface SelectionCriteria {
   /** Allow local providers */
   allowLocal?: boolean;
 }
+
+/** A registered provider entry with its factory and metadata. */
+type ProviderEntry = { factory: IProviderFactory; metadata: IProviderMetadata };
 
 /**
  * Intelligent provider selector that chooses the optimal LLM provider
@@ -53,7 +53,7 @@ export class ProviderSelector {
    * @returns The name of the selected provider
    * @throws Error if no suitable provider is found
    */
-  async selectProvider(criteria: SelectionCriteria): Promise<string> {
+  async selectProvider(criteria: ISelectionCriteria): Promise<string> {
     const startTime = performance.now();
 
     try {
@@ -200,7 +200,7 @@ export class ProviderSelector {
     return null;
   }
 
-  private buildSelectionCriteria(strategy: Config["provider_strategy"]): SelectionCriteria {
+  private buildSelectionCriteria(strategy: Config["provider_strategy"]): ISelectionCriteria {
     return {
       preferFree: strategy.prefer_free,
       maxCostUsd: strategy.max_daily_cost_usd,

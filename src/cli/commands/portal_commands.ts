@@ -23,7 +23,7 @@ import { PORTAL_ALIAS_MAX_LENGTH } from "../../config/constants.ts";
  * Portals can only be ACTIVE (working) or BROKEN (symlink/target issues).
  */
 
-export interface PortalInfo {
+export interface IPortalInfo {
   alias: string;
   targetPath: string;
   symlinkPath: string;
@@ -35,11 +35,11 @@ export interface PortalInfo {
   executionStrategy?: PortalExecutionStrategy;
 }
 
-export interface PortalDetails extends PortalInfo {
+export interface IPortalDetails extends IPortalInfo {
   permissions?: string;
 }
 
-export interface VerificationResult {
+export interface IVerificationResult {
   alias: string;
   status: "ok" | "failed";
   issues?: string[];
@@ -196,8 +196,8 @@ export class PortalCommands {
   /**
    * List all portals with their status
    */
-  async list(): Promise<PortalInfo[]> {
-    const portals: PortalInfo[] = [];
+  async list(): Promise<IPortalInfo[]> {
+    const portals: IPortalInfo[] = [];
 
     try {
       for await (const entry of Deno.readDir(this.portalsDir)) {
@@ -252,7 +252,7 @@ export class PortalCommands {
   /**
    * Show detailed information about a specific portal
    */
-  async show(alias: string): Promise<PortalDetails> {
+  async show(alias: string): Promise<IPortalDetails> {
     const symlinkPath = join(this.portalsDir, alias);
     const contextCardPath = join(
       this.config.system.root,
@@ -369,8 +369,8 @@ export class PortalCommands {
   /**
    * Verify portal integrity
    */
-  async verify(alias?: string): Promise<VerificationResult[]> {
-    const results: VerificationResult[] = [];
+  async verify(alias?: string): Promise<IVerificationResult[]> {
+    const results: IVerificationResult[] = [];
     const portalsToVerify = alias ? [alias] : (await this.list()).map((p) => p.alias);
 
     for (const portalAlias of portalsToVerify) {

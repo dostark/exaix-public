@@ -9,7 +9,7 @@
 
 import { KEYS } from "../../helpers/keyboard.ts";
 import { TuiNodeType } from "../../enums.ts";
-import type { TreeNode } from "../../helpers/tree_view.ts";
+import type { ITreeNode } from "../../helpers/tree_view.ts";
 import { collapseAll, expandAll, findNode, flattenTree, toggleNode } from "../../helpers/tree_view.ts";
 
 /**
@@ -20,7 +20,7 @@ export class NavigationHandler {
    * Navigate tree in specified direction
    */
   static navigate(
-    tree: TreeNode[],
+    tree: ITreeNode[],
     selectedId: string | null,
     direction: "up" | "down" | "first" | "last",
   ): string | null {
@@ -56,7 +56,7 @@ export class TreeManipulationHandler {
   /**
    * Expand selected node if it's a collapsed group
    */
-  static expandNode(tree: TreeNode[], selectedId: string | null): TreeNode[] {
+  static expandNode(tree: ITreeNode[], selectedId: string | null): ITreeNode[] {
     if (!selectedId) return tree;
     const node = findNode(tree, selectedId);
     if (node && node.type === "group" && !node.expanded) {
@@ -68,7 +68,7 @@ export class TreeManipulationHandler {
   /**
    * Collapse selected node if it's an expanded group
    */
-  static collapseNode(tree: TreeNode[], selectedId: string | null): TreeNode[] {
+  static collapseNode(tree: ITreeNode[], selectedId: string | null): ITreeNode[] {
     if (!selectedId) return tree;
     const node = findNode(tree, selectedId);
     if (node && node.type === "group" && node.expanded) {
@@ -80,7 +80,7 @@ export class TreeManipulationHandler {
   /**
    * Toggle selected node expansion state
    */
-  static toggleNode(tree: TreeNode[], selectedId: string | null): TreeNode[] {
+  static toggleNode(tree: ITreeNode[], selectedId: string | null): ITreeNode[] {
     if (!selectedId) return tree;
     return toggleNode(tree, selectedId);
   }
@@ -88,14 +88,14 @@ export class TreeManipulationHandler {
   /**
    * Collapse all nodes in tree
    */
-  static collapseAll(tree: TreeNode[]): TreeNode[] {
+  static collapseAll(tree: ITreeNode[]): ITreeNode[] {
     return collapseAll(tree);
   }
 
   /**
    * Expand all nodes in tree
    */
-  static expandAll(tree: TreeNode[]): TreeNode[] {
+  static expandAll(tree: ITreeNode[]): ITreeNode[] {
     return expandAll(tree);
   }
 }
@@ -103,7 +103,7 @@ export class TreeManipulationHandler {
 /**
  * Check if a node ID represents a group node
  */
-export function isGroupNode(tree: TreeNode[], nodeId: string): boolean {
+export function isGroupNode(tree: ITreeNode[], nodeId: string): boolean {
   const node = findNode(tree, nodeId);
   return node?.type === TuiNodeType.GROUP;
 }
@@ -118,7 +118,7 @@ export class MainKeyHandler {
     key: string,
     state: {
       selectedRequestId: string | null;
-      requestTree: TreeNode[];
+      requestTree: ITreeNode[];
     },
     actions: {
       navigateTree: (dir: "up" | "down" | "first" | "last") => void;
@@ -135,7 +135,7 @@ export class MainKeyHandler {
       showFilterStatusDialog: () => void;
       showFilterAgentDialog: () => void;
       setShowHelp: (show: boolean) => void;
-      updateTree: (tree: TreeNode[]) => void;
+      updateTree: (tree: ITreeNode[]) => void;
     },
   ): Promise<boolean> {
     // Handle navigation keys
@@ -207,7 +207,7 @@ export class MainKeyHandler {
    */
   private static async handleActionKeys(
     key: string,
-    state: { selectedRequestId: string | null; requestTree: TreeNode[] },
+    state: { selectedRequestId: string | null; requestTree: ITreeNode[] },
     actions: {
       toggleSelectedNode: () => void;
       showRequestDetail: (id: string) => Promise<void>;
@@ -273,12 +273,12 @@ export class MainKeyHandler {
    */
   private static handleGlobalKeys(
     key: string,
-    state: { requestTree: TreeNode[] },
+    state: { requestTree: ITreeNode[] },
     actions: {
       toggleGrouping: () => void;
       refresh: () => Promise<void>;
       setShowHelp: (show: boolean) => void;
-      updateTree: (tree: TreeNode[]) => void;
+      updateTree: (tree: ITreeNode[]) => void;
     },
   ): boolean {
     switch (key) {

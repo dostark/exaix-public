@@ -12,7 +12,7 @@ import type { IDatabaseService } from "./db.ts";
 import type { Config } from "../config/schema.ts";
 import { JSONValue } from "../types.ts";
 
-export interface PortalInfo {
+export interface IPortalInfo {
   alias: string;
   path: string;
   techStack: string[];
@@ -27,7 +27,7 @@ export class ContextCardGenerator {
     this.db = db;
   }
 
-  async generate(info: PortalInfo): Promise<void> {
+  async generate(info: IPortalInfo): Promise<void> {
     const portalsDir = join(this.config.system.root, this.config.paths.memory, "Projects");
 
     // Ensure directory exists

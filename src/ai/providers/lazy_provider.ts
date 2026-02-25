@@ -6,7 +6,7 @@
  * @dependencies [types, abstract_provider_factory]
  * @related-files [src/ai/provider_registry.ts]
  */
-import { IModelProvider, ModelOptions, ResolvedProviderOptions } from "../types.ts";
+import { IModelOptions, IModelProvider, IResolvedProviderOptions } from "../types.ts";
 import { IProviderFactory } from "../factories/abstract_provider_factory.ts";
 
 export class LazyProvider implements IModelProvider {
@@ -15,7 +15,7 @@ export class LazyProvider implements IModelProvider {
 
   constructor(
     private factory: IProviderFactory,
-    private options: ResolvedProviderOptions,
+    private options: IResolvedProviderOptions,
     id?: string,
   ) {
     this.id = id ?? options.id ?? `${options.provider}-${options.model}`;
@@ -34,7 +34,7 @@ export class LazyProvider implements IModelProvider {
   /**
    * Delegate generate call to the lazily created instance
    */
-  async generate(prompt: string, options?: ModelOptions): Promise<string> {
+  async generate(prompt: string, options?: IModelOptions): Promise<string> {
     const provider = await this.getInstance();
     return provider.generate(prompt, options);
   }

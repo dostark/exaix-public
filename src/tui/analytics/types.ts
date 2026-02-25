@@ -7,7 +7,7 @@
  * @related-files [src/tui/analytics/correlation_analyzer.ts, src/tui/analytics/trace_analyzer.ts]
  */
 
-export interface TimeRange {
+export interface ITimeRange {
   start: Date;
   end: Date;
   duration: number;
@@ -18,7 +18,7 @@ export interface CorrelationAnalysis {
   traceIds: string[];
   agentIds: string[];
   operations: string[];
-  timeSpan: TimeRange;
+  timeSpan: ITimeRange;
   entryCount: number;
   errorCount: number;
   performanceStats?: {
@@ -42,7 +42,7 @@ export interface TraceAnalysis {
   traceId: string;
   correlationId?: string;
   operations: TraceOperation[];
-  timeSpan: TimeRange;
+  timeSpan: ITimeRange;
   errorCount: number;
   success: boolean;
 }

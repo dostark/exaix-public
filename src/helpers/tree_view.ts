@@ -12,12 +12,12 @@ import { TUI_TREE_ICONS } from "./constants.ts";
 
 // ===== Tree Node Types =====
 
-export interface TreeNode<T = unknown> {
+export interface ITreeNode<T = unknown> {
   id: string;
   label: string;
   type: string;
   expanded: boolean;
-  children: TreeNode<T>[];
+  children: ITreeNode<T>[];
   data?: T;
   badge?: number | string;
   icon?: string;
@@ -72,6 +72,16 @@ export const TREE_ICONS = {
 
 export type TreeIconType = keyof typeof TREE_ICONS;
 
+// ===== Flat Node (for rendering) =====
+
+export interface IFlatTreeNode<T = unknown> {
+  node: ITreeNode<T>;
+  depth: number;
+  isLast: boolean;
+  prefix: string;
+  index: number;
+}
+
 // ===== Tree Line Characters =====
 
 const TREE_CHARS = {
@@ -82,32 +92,22 @@ const TREE_CHARS = {
   space: " ",
 } as const;
 
-// ===== Flat Node (for rendering) =====
-
-export interface FlatTreeNode<T = unknown> {
-  node: TreeNode<T>;
-  depth: number;
-  isLast: boolean;
-  prefix: string;
-  index: number;
-}
-
 // ===== Tree Utilities =====
 
 /**
  * Flatten tree to array for rendering
  */
 export function flattenTree<T>(
-  nodes: TreeNode<T>[],
+  nodes: ITreeNode<T>[],
   depth: number = 0,
   prefix: string = "",
   isParentLast: boolean = true,
-): FlatTreeNode<T>[] {
-  const result: FlatTreeNode<T>[] = [];
+): IFlatTreeNode<T>[] {
+  const result: IFlatTreeNode<T>[] = [];
   let globalIndex = 0;
 
   function flatten(
-    currentNodes: TreeNode<T>[],
+    currentNodes: ITreeNode<T>[],
     currentDepth: number,
     currentPrefix: string,
     _parentIsLast: boolean,
@@ -139,9 +139,9 @@ export function flattenTree<T>(
  * Get a node by ID from tree
  */
 export function findNode<T>(
-  nodes: TreeNode<T>[],
+  nodes: ITreeNode<T>[],
   id: string,
-): TreeNode<T> | null {
+): ITreeNode<T> | null {
   for (const node of nodes) {
     if (node.id === id) return node;
     if (node.children.length > 0) {
@@ -156,10 +156,10 @@ export function findNode<T>(
  * Get parent of a node by ID
  */
 export function findParent<T>(
-  nodes: TreeNode<T>[],
+  nodes: ITreeNode<T>[],
   id: string,
-  parent: TreeNode<T> | null = null,
-): TreeNode<T> | null {
+  parent: ITreeNode<T> | null = null,
+): ITreeNode<T> | null {
   for (const node of nodes) {
     if (node.id === id) return parent;
     if (node.children.length > 0) {
@@ -173,7 +173,7 @@ export function findParent<T>(
 /**
  * Toggle node expanded state (immutable)
  */
-export function toggleNode<T>(nodes: TreeNode<T>[], id: string): TreeNode<T>[] {
+export function toggleNode<T>(nodes: ITreeNode<T>[], id: string): ITreeNode<T>[] {
   return nodes.map((node) => {
     if (node.id === id) {
       return { ...node, expanded: !node.expanded };
@@ -188,7 +188,7 @@ export function toggleNode<T>(nodes: TreeNode<T>[], id: string): TreeNode<T>[] {
 /**
  * Expand all nodes (immutable)
  */
-export function expandAll<T>(nodes: TreeNode<T>[]): TreeNode<T>[] {
+export function expandAll<T>(nodes: ITreeNode<T>[]): ITreeNode<T>[] {
   return nodes.map((node) => ({
     id: node.id,
     label: node.label,
@@ -206,7 +206,7 @@ export function expandAll<T>(nodes: TreeNode<T>[]): TreeNode<T>[] {
 /**
  * Collapse all nodes (immutable)
  */
-export function collapseAll<T>(nodes: TreeNode<T>[]): TreeNode<T>[] {
+export function collapseAll<T>(nodes: ITreeNode<T>[]): ITreeNode<T>[] {
   return nodes.map((node) => ({
     id: node.id,
     label: node.label,
@@ -224,9 +224,9 @@ export function collapseAll<T>(nodes: TreeNode<T>[]): TreeNode<T>[] {
 /**
  * Expand path to node (immutable)
  */
-export function expandTo<T>(nodes: TreeNode<T>[], id: string): TreeNode<T>[] {
+export function expandTo<T>(nodes: ITreeNode<T>[], id: string): ITreeNode<T>[] {
   function findPath(
-    nodes: TreeNode<T>[],
+    nodes: ITreeNode<T>[],
     id: string,
     path: string[] = [],
   ): string[] | null {
@@ -243,7 +243,7 @@ export function expandTo<T>(nodes: TreeNode<T>[], id: string): TreeNode<T>[] {
   const path = findPath(nodes, id);
   if (!path) return nodes;
 
-  function expandPath(nodes: TreeNode<T>[], path: string[]): TreeNode<T>[] {
+  function expandPath(nodes: ITreeNode<T>[], path: string[]): ITreeNode<T>[] {
     return nodes.map((node) => {
       const inPath = path.includes(node.id);
       return {
@@ -260,7 +260,7 @@ export function expandTo<T>(nodes: TreeNode<T>[], id: string): TreeNode<T>[] {
 /**
  * Count visible (expanded) nodes
  */
-export function countVisibleNodes<T>(nodes: TreeNode<T>[]): number {
+export function countVisibleNodes<T>(nodes: ITreeNode<T>[]): number {
   let count = 0;
   for (const node of nodes) {
     count++;
@@ -275,9 +275,9 @@ export function countVisibleNodes<T>(nodes: TreeNode<T>[]): number {
  * Get node at visible index
  */
 export function getNodeAtIndex<T>(
-  nodes: TreeNode<T>[],
+  nodes: ITreeNode<T>[],
   index: number,
-): TreeNode<T> | null {
+): ITreeNode<T> | null {
   const flat = flattenTree(nodes);
   return flat[index]?.node ?? null;
 }
@@ -285,7 +285,7 @@ export function getNodeAtIndex<T>(
 /**
  * Get index of node in flattened tree
  */
-export function getNodeIndex<T>(nodes: TreeNode<T>[], id: string): number {
+export function getNodeIndex<T>(nodes: ITreeNode<T>[], id: string): number {
   const flat = flattenTree(nodes);
   return flat.findIndex((f) => f.node.id === id);
 }
@@ -296,7 +296,7 @@ export function getNodeIndex<T>(nodes: TreeNode<T>[], id: string): number {
  * Render a tree node line
  */
 export function renderTreeLine<T>(
-  flat: FlatTreeNode<T>,
+  flat: IFlatTreeNode<T>,
   options: TreeRenderOptions,
 ): string {
   const theme = getTheme(options.useColors);
@@ -381,7 +381,7 @@ function truncateLine(line: string, maxLength: number): string {
  * Render entire tree to array of lines
  */
 export function renderTree<T>(
-  nodes: TreeNode<T>[],
+  nodes: ITreeNode<T>[],
   options: Partial<TreeRenderOptions> = {},
 ): string[] {
   const opts = { ...defaultTreeOptions, ...options };
@@ -393,7 +393,7 @@ export function renderTree<T>(
  * Render tree panel with border
  */
 export function renderTreePanel<T>(
-  nodes: TreeNode<T>[],
+  nodes: ITreeNode<T>[],
   options: Partial<TreeRenderOptions> & {
     title?: string;
     height?: number;
@@ -447,7 +447,7 @@ export function renderTreePanel<T>(
  * Get next visible node ID
  */
 export function getNextNodeId<T>(
-  nodes: TreeNode<T>[],
+  nodes: ITreeNode<T>[],
   currentId: string,
 ): string | null {
   const flat = flattenTree(nodes);
@@ -460,7 +460,7 @@ export function getNextNodeId<T>(
  * Get previous visible node ID
  */
 export function getPrevNodeId<T>(
-  nodes: TreeNode<T>[],
+  nodes: ITreeNode<T>[],
   currentId: string,
 ): string | null {
   const flat = flattenTree(nodes);
@@ -472,7 +472,7 @@ export function getPrevNodeId<T>(
 /**
  * Get first visible node ID
  */
-export function getFirstNodeId<T>(nodes: TreeNode<T>[]): string | null {
+export function getFirstNodeId<T>(nodes: ITreeNode<T>[]): string | null {
   const flat = flattenTree(nodes);
   return flat.length > 0 ? flat[0].node.id : null;
 }
@@ -480,7 +480,7 @@ export function getFirstNodeId<T>(nodes: TreeNode<T>[]): string | null {
 /**
  * Get last visible node ID
  */
-export function getLastNodeId<T>(nodes: TreeNode<T>[]): string | null {
+export function getLastNodeId<T>(nodes: ITreeNode<T>[]): string | null {
   const flat = flattenTree(nodes);
   return flat.length > 0 ? flat[flat.length - 1].node.id : null;
 }
@@ -494,8 +494,8 @@ export function createNode<T>(
   id: string,
   label: string,
   type: string,
-  options: Partial<TreeNode<T>> = {},
-): TreeNode<T> {
+  options: Partial<ITreeNode<T>> = {},
+): ITreeNode<T> {
   return {
     id,
     label,
@@ -513,9 +513,9 @@ export function createGroupNode<T>(
   id: string,
   label: string,
   type: string,
-  children: TreeNode<T>[],
-  options: Partial<TreeNode<T>> = {},
-): TreeNode<T> {
+  children: ITreeNode<T>[],
+  options: Partial<ITreeNode<T>> = {},
+): ITreeNode<T> {
   return {
     id,
     label,

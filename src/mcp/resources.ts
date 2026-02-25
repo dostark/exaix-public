@@ -16,7 +16,7 @@ import type { IDatabaseService } from "../services/db.ts";
 // Types
 // ============================================================================
 
-export interface MCPResource {
+export interface IMCPResource {
   uri: string;
   name: string;
   mimeType?: string;
@@ -110,8 +110,8 @@ export async function discoverPortalResources(
     includeHidden?: boolean;
     extensions?: string[];
   } = {},
-): Promise<MCPResource[]> {
-  const resources: MCPResource[] = [];
+): Promise<IMCPResource[]> {
+  const resources: IMCPResource[] = [];
   const maxDepth = options.maxDepth ?? 3;
   const includeHidden = options.includeHidden ?? false;
 
@@ -170,8 +170,8 @@ export async function discoverAllResources(
     includeHidden?: boolean;
     extensions?: string[];
   } = {},
-): Promise<MCPResource[]> {
-  const allResources: MCPResource[] = [];
+): Promise<IMCPResource[]> {
+  const allResources: IMCPResource[] = [];
 
   // Discover from each configured portal
   for (const portal of config.portals) {

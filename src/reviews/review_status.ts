@@ -12,7 +12,7 @@ export const ReviewStatus = {
   REJECTED: "rejected",
 } as const;
 
-export type ReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus];
+export type IReviewStatus = (typeof ReviewStatus)[keyof typeof ReviewStatus];
 
 export const REVIEW_STATUS_VALUES = [
   ReviewStatus.PENDING,
@@ -20,10 +20,10 @@ export const REVIEW_STATUS_VALUES = [
   ReviewStatus.REJECTED,
 ] as const;
 
-export function isReviewStatus(value: unknown): value is ReviewStatus {
+export function isReviewStatus(value: unknown): value is IReviewStatus {
   return value === ReviewStatus.PENDING || value === ReviewStatus.APPROVED || value === ReviewStatus.REJECTED;
 }
 
-export function coerceReviewStatus(value: unknown, fallback: ReviewStatus = ReviewStatus.PENDING): ReviewStatus {
+export function coerceReviewStatus(value: unknown, fallback: IReviewStatus = ReviewStatus.PENDING): IReviewStatus {
   return isReviewStatus(value) ? value : fallback;
 }

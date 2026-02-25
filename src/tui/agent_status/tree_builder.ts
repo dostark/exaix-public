@@ -7,7 +7,7 @@
  * @related-files [src/tui/agent_status_view.ts]
  */
 
-import { createGroupNode, createNode, type TreeNode } from "../../helpers/tree_view.ts";
+import { createGroupNode, createNode, type ITreeNode } from "../../helpers/tree_view.ts";
 import type { AgentStatusItem } from "../agent_status_view.ts";
 import { AGENT_STATUS_ORDER, AgentStatus } from "./agent_status.ts";
 import {
@@ -28,7 +28,7 @@ const AGENT_STATUS_ICONS: Record<string, string> = {
 /**
  * Build flat agent tree (no grouping)
  */
-export function buildFlatTree(agents: AgentStatusItem[]): TreeNode[] {
+export function buildFlatTree(agents: AgentStatusItem[]): ITreeNode[] {
   return agents.map((agent) => {
     const icon = AGENT_STATUS_ICONS[agent.status] || "⚪";
     const label = `${icon} ${agent.name} (${agent.model})`;
@@ -39,7 +39,7 @@ export function buildFlatTree(agents: AgentStatusItem[]): TreeNode[] {
 /**
  * Build agent tree grouped by status
  */
-export function buildTreeByStatus(agents: AgentStatusItem[]): TreeNode[] {
+export function buildTreeByStatus(agents: AgentStatusItem[]): ITreeNode[] {
   const byStatus = new Map<string, AgentStatusItem[]>();
   for (const agent of agents) {
     if (!byStatus.has(agent.status)) {
@@ -70,7 +70,7 @@ export function buildTreeByStatus(agents: AgentStatusItem[]): TreeNode[] {
 /**
  * Build agent tree grouped by model
  */
-export function buildTreeByModel(agents: AgentStatusItem[]): TreeNode[] {
+export function buildTreeByModel(agents: AgentStatusItem[]): ITreeNode[] {
   const byModel = new Map<string, AgentStatusItem[]>();
   for (const agent of agents) {
     if (!byModel.has(agent.model)) {

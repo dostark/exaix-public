@@ -6,6 +6,20 @@
  * @dependencies []
  * @related-files [src/ai/providers/base_provider.ts, src/ai/provider_common_utils.ts]
  */
+
+/**
+ * Result of a model provider generate call.
+ */
+export interface IGenerateResult {
+  content: string;
+  usage: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
+  model: string;
+  provider: string;
+}
 /**
  * Base error class for model provider errors.
  */
@@ -130,18 +144,4 @@ export async function withRetry<T>(
     }
   }
   throw lastError ?? new Error("Unknown error in withRetry");
-}
-
-/**
- * Result of a model provider generate call.
- */
-export interface GenerateResult {
-  content: string;
-  usage: {
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-  };
-  model: string;
-  provider: string;
 }

@@ -10,16 +10,16 @@
 import { ensureDir, exists } from "@std/fs";
 import { join } from "@std/path";
 import { parse as parseToml, stringify as stringifyToml } from "@std/toml";
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, ICommandContext } from "../base.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { CommandUtils } from "../../helpers/command_utils.ts";
 import {
-  type BlueprintCreateResult,
-  type BlueprintDetails,
   BlueprintFrontmatterSchema,
-  type BlueprintMetadata,
-  type BlueprintValidationResult,
+  type IBlueprintCreateResult,
+  type IBlueprintDetails,
+  type IBlueprintMetadata,
+  type IBlueprintValidationResult,
   isReservedAgentId,
 } from "../../schemas/blueprint.ts";
 
@@ -30,7 +30,7 @@ import {
 /**
  * Frontmatter data parsed from YAML/TOML
  */
-export interface BlueprintFrontmatterData {
+export interface IBlueprintFrontmatterData {
   agent_id: string;
   name?: string;
   model?: string;
@@ -319,7 +319,7 @@ exoctl request "Test request" --agent mock
 // ============================================================================
 
 export class BlueprintCommands extends BaseCommand {
-  constructor(context: CommandContext) {
+  constructor(context: ICommandContext) {
     super(context);
   }
   /**
@@ -346,12 +346,12 @@ export class BlueprintCommands extends BaseCommand {
   /**
    * Parse TOML frontmatter from content
    */
-  private parseTomlFrontmatter(content: string): { frontmatter: BlueprintFrontmatterData | null; body: string } {
+  private parseTomlFrontmatter(content: string): { frontmatter: IBlueprintFrontmatterData | null; body: string } {
     const tomlMatch = content.match(/^\+\+\+\n([\s\S]*?)\n\+\+\+\n?([\s\S]*)$/);
     if (!tomlMatch) return { frontmatter: null, body: content };
 
     try {
-      const frontmatter = parseToml(tomlMatch[1]) as BlueprintFrontmatterData;
+      const frontmatter = parseToml(tomlMatch[1]) as IBlueprintFrontmatterData;
       const body = tomlMatch[2] || "";
       return { frontmatter, body };
     } catch {
@@ -362,7 +362,7 @@ export class BlueprintCommands extends BaseCommand {
   /**
    * Parse YAML frontmatter from content
    */
-  private parseYamlFrontmatter(content: string): { frontmatter: BlueprintFrontmatterData | null; body: string } {
+  private parseYamlFrontmatter(content: string): { frontmatter: IBlueprintFrontmatterData | null; body: string } {
     const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
     if (!yamlMatch) return { frontmatter: null, body: content };
 
@@ -379,8 +379,8 @@ export class BlueprintCommands extends BaseCommand {
   /**
    * Parse YAML content into frontmatter object
    */
-  private parseYamlContent(yamlContent: string): BlueprintFrontmatterData {
-    const frontmatter: BlueprintFrontmatterData = { agent_id: "" };
+  private parseYamlContent(yamlContent: string): IBlueprintFrontmatterData {
+    const frontmatter: IBlueprintFrontmatterData = { agent_id: "" };
     const lines = yamlContent.split("\n");
 
     const state: { currentKey: string | null; currentArray: string[] } = {
@@ -423,7 +423,7 @@ export class BlueprintCommands extends BaseCommand {
   }
 
   private flushYamlArray(
-    frontmatter: BlueprintFrontmatterData,
+    frontmatter: IBlueprintFrontmatterData,
     state: { currentKey: string | null; currentArray: string[] },
   ): void {
     if (state.currentKey && state.currentArray.length > 0) {
@@ -443,7 +443,7 @@ export class BlueprintCommands extends BaseCommand {
   }
 
   private applyYamlKeyValue(
-    frontmatter: BlueprintFrontmatterData,
+    frontmatter: IBlueprintFrontmatterData,
     key: string,
     value: string,
     state: { currentKey: string | null; currentArray: string[] },
@@ -494,7 +494,7 @@ export class BlueprintCommands extends BaseCommand {
    * Supports both TOML (+++) and YAML (---) formats for backwards compatibility.
    */
   private extractTomlFrontmatter(content: string): {
-    frontmatter: BlueprintFrontmatterData | null;
+    frontmatter: IBlueprintFrontmatterData | null;
     body: string;
   } {
     // First try TOML format (+++)
@@ -507,7 +507,7 @@ export class BlueprintCommands extends BaseCommand {
     return this.parseYamlFrontmatter(content);
   }
 
-  private blueprintMetadataFromFrontmatter(frontmatter: BlueprintFrontmatterData): BlueprintMetadata | null {
+  private blueprintMetadataFromFrontmatter(frontmatter: IBlueprintFrontmatterData): IBlueprintMetadata | null {
     const agentId = frontmatter.agent_id;
     if (typeof agentId !== "string" || agentId.trim().length === 0) {
       return null;
@@ -634,8 +634,8 @@ export class BlueprintCommands extends BaseCommand {
     options: BlueprintCreateOptions,
     model: string,
     capabilities: string[],
-  ): Promise<BlueprintFrontmatterData> {
-    const frontmatter: BlueprintFrontmatterData = {
+  ): Promise<IBlueprintFrontmatterData> {
+    const frontmatter: IBlueprintFrontmatterData = {
       agent_id: agentId,
       name: options.name,
       model: model,
@@ -659,7 +659,7 @@ export class BlueprintCommands extends BaseCommand {
    */
   private async writeBlueprintFile(
     blueprintPath: string,
-    frontmatter: BlueprintFrontmatterData,
+    frontmatter: IBlueprintFrontmatterData,
     systemPrompt: string,
     agentId: string,
     model: string,
@@ -688,7 +688,7 @@ ${systemPrompt}
   async create(
     agentId: string,
     options: BlueprintCreateOptions,
-  ): Promise<BlueprintCreateResult> {
+  ): Promise<IBlueprintCreateResult> {
     try {
       // Validate inputs
       this.validateCreateInputs(agentId, options);
@@ -734,9 +734,9 @@ ${systemPrompt}
   /**
    * List all blueprints
    */
-  async list(): Promise<BlueprintMetadata[]> {
+  async list(): Promise<IBlueprintMetadata[]> {
     const blueprintsDir = this.getBlueprintsDir();
-    const results: BlueprintMetadata[] = [];
+    const results: IBlueprintMetadata[] = [];
 
     try {
       for await (const entry of Deno.readDir(blueprintsDir)) {
@@ -768,7 +768,7 @@ ${systemPrompt}
   /**
    * Show blueprint details
    */
-  async show(agentId: string): Promise<BlueprintDetails> {
+  async show(agentId: string): Promise<IBlueprintDetails> {
     const blueprintPath = await this.getExistingBlueprintPath(agentId);
 
     const content = await Deno.readTextFile(blueprintPath);
@@ -792,7 +792,7 @@ ${systemPrompt}
   /**
    * Validate blueprint format
    */
-  async validate(agentId: string): Promise<BlueprintValidationResult> {
+  async validate(agentId: string): Promise<IBlueprintValidationResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -871,7 +871,7 @@ ${systemPrompt}
       const validation = await this.validate(agentId);
       if (!validation.valid) {
         console.warn(`\n⚠️  Warning: Blueprint has validation errors after editing:`);
-        validation.errors?.forEach((error) => console.warn(`   - ${error}`));
+        validation.errors?.forEach((error: string) => console.warn(`   - ${error}`));
         console.warn(`\nFix these issues or the blueprint may not work correctly.\n`);
       }
 

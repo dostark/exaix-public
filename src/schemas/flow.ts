@@ -114,14 +114,14 @@ export const FlowSchema = z.object({
 
 // Type exports for use in other modules
 /** FlowStep type after schema parsing (with defaults applied) */
-export type FlowStep = z.infer<typeof FlowStepSchema>;
+export type IFlowStep = z.infer<typeof FlowStepSchema>;
 /** FlowStep input type (before defaults are applied, fields with defaults are optional) */
-export type FlowStepInput = z.input<typeof FlowStepSchema>;
+export type IFlowStepInput = z.input<typeof FlowStepSchema>;
 /** Flow type after schema parsing (with defaults applied) */
-export type Flow = z.infer<typeof FlowSchema>;
+export type IFlow = z.infer<typeof FlowSchema>;
 /** Flow input type (before defaults are applied) */
-export type FlowInput = z.input<typeof FlowSchema>;
-export type GateEvaluate = z.infer<typeof GateEvaluateSchema>;
-export type FeedbackLoopConfig = z.infer<typeof FeedbackLoopSchema>;
-export type BranchCondition = z.infer<typeof BranchConditionSchema>;
-export type ConsensusConfig = z.infer<typeof ConsensusConfigSchema>;
+export type IFlowInput = z.input<typeof FlowSchema>;
+export type IGateEvaluate = z.infer<typeof GateEvaluateSchema>;
+export type IFeedbackLoopConfig = z.infer<typeof FeedbackLoopSchema>;
+export type IBranchCondition = z.infer<typeof BranchConditionSchema>;
+export type IConsensusConfig = z.infer<typeof ConsensusConfigSchema>;

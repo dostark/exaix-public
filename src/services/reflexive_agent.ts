@@ -13,12 +13,12 @@ import type { IModelProvider } from "../ai/providers.ts";
 import { JSONValue } from "../types.ts";
 import type { IDatabaseService } from "./db.ts";
 import {
-  type AgentExecutionResult,
   AgentRunner,
-  type AgentRunnerConfig,
-  type Blueprint,
+  type IAgentExecutionResult,
   type IAgentRunner,
-  type ParsedRequest,
+  type IAgentRunnerConfig,
+  type IBlueprint,
+  type IParsedRequest,
 } from "./agent_runner.ts";
 import { createOutputValidator, type IOutputValidator } from "./output_validator.ts";
 import { logDebug } from "./structured_logger.ts";
@@ -26,7 +26,43 @@ import { CircuitBreaker } from "../ai/circuit_breaker.ts";
 import { LogMethod } from "./decorators/logging.ts";
 import { EventLogger } from "./event_logger.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
-import type { ServiceContext } from "./common/types.ts";
+import type { IServiceContext } from "./common/types.ts";
+
+export interface IReflexiveAgentConfig extends IAgentRunnerConfig {
+  maxIterations?: number;
+  minQuality?: ICritique["quality"];
+  confidenceThreshold?: number;
+  critiquePromptTemplate?: string;
+  refinementPromptTemplate?: string;
+  verbose?: boolean;
+}
+
+export interface IReflexionIteration {
+  iteration: number;
+  response: IAgentExecutionResult;
+  critique: ICritique | null;
+  durationMs: number;
+}
+
+export interface IReflexiveExecutionResult {
+  final: IAgentExecutionResult;
+  finalCritique: ICritique | null;
+  iterations: IReflexionIteration[];
+  totalIterations: number;
+  earlyExit: boolean;
+  totalDurationMs: number;
+  averageConfidence: number;
+}
+
+export interface IReflexionMetrics {
+  totalExecutions: number;
+  totalIterations: number;
+  averageIterationsPerExecution: number;
+  earlyExitCount: number;
+  earlyExitRate: number;
+  qualityDistribution: Record<ICritique["quality"], number>;
+  issueTypeDistribution: Record<string, number>;
+}
 
 // ============================================================================
 // Critique Schema
@@ -49,47 +85,11 @@ export const CritiqueSchema = z.object({
   improvements: z.array(z.string()).optional(),
 });
 
-export type Critique = z.infer<typeof CritiqueSchema>;
+export type ICritique = z.infer<typeof CritiqueSchema>;
 
 // ============================================================================
 // Reflexive Execution Types
 // ============================================================================
-
-export interface ReflexiveAgentConfig extends AgentRunnerConfig {
-  maxIterations?: number;
-  minQuality?: Critique["quality"];
-  confidenceThreshold?: number;
-  critiquePromptTemplate?: string;
-  refinementPromptTemplate?: string;
-  verbose?: boolean;
-}
-
-export interface ReflexionIteration {
-  iteration: number;
-  response: AgentExecutionResult;
-  critique: Critique | null;
-  durationMs: number;
-}
-
-export interface ReflexiveExecutionResult {
-  final: AgentExecutionResult;
-  finalCritique: Critique | null;
-  iterations: ReflexionIteration[];
-  totalIterations: number;
-  earlyExit: boolean;
-  totalDurationMs: number;
-  averageConfidence: number;
-}
-
-export interface ReflexionMetrics {
-  totalExecutions: number;
-  totalIterations: number;
-  averageIterationsPerExecution: number;
-  earlyExitCount: number;
-  earlyExitRate: number;
-  qualityDistribution: Record<Critique["quality"], number>;
-  issueTypeDistribution: Record<string, number>;
-}
 
 // ============================================================================
 // Critique Prompt Templates
@@ -170,15 +170,15 @@ export class ReflexiveAgent {
 
   public config: {
     maxIterations: number;
-    minQuality: Critique["quality"];
+    minQuality: ICritique["quality"];
     confidenceThreshold: number;
     critiquePromptTemplate: string;
     refinementPromptTemplate: string;
     verbose: boolean;
-    agentRunnerConfig: AgentRunnerConfig;
+    agentRunnerConfig: IAgentRunnerConfig;
   };
 
-  public metrics: ReflexionMetrics = {
+  public metrics: IReflexionMetrics = {
     totalExecutions: 0,
     totalIterations: 0,
     averageIterationsPerExecution: 0,
@@ -194,7 +194,7 @@ export class ReflexiveAgent {
     issueTypeDistribution: {},
   };
 
-  constructor(modelProvider: IModelProvider, config: ReflexiveAgentConfig = {}) {
+  constructor(modelProvider: IModelProvider, config: IReflexiveAgentConfig = {}) {
     const {
       maxIterations = 3,
       minQuality = CritiqueQuality.ACCEPTABLE,
@@ -234,9 +234,9 @@ export class ReflexiveAgent {
   }
 
   @LogMethod(new EventLogger({ prefix: "[ReflexiveAgent]" }), "reflexive.run")
-  async run(blueprint: Blueprint, request: ParsedRequest): Promise<ReflexiveExecutionResult> {
+  async run(blueprint: IBlueprint, request: IParsedRequest): Promise<IReflexiveExecutionResult> {
     // Run reflexive loop through middleware pipeline to centralize timing/error handling
-    interface ReflexiveAgentContext extends ServiceContext {
+    interface ReflexiveAgentContext extends IServiceContext {
       __startTime?: number;
       __durationMs?: number;
     }
@@ -261,13 +261,13 @@ export class ReflexiveAgent {
 
     const context: ReflexiveAgentContext = { traceId: request.traceId, agentId: blueprint.agentId };
 
-    let finalResult: ReflexiveExecutionResult;
+    let finalResult: IReflexiveExecutionResult;
 
     await pipeline.execute(context, async () => {
       const startTime = performance.now();
-      const iterations: ReflexionIteration[] = [];
-      let currentResponse: AgentExecutionResult | null = null;
-      let finalCritique: Critique | null = null;
+      const iterations: IReflexionIteration[] = [];
+      let currentResponse: IAgentExecutionResult | null = null;
+      let finalCritique: ICritique | null = null;
       let earlyExit = false;
 
       this.metrics.totalExecutions++;
@@ -347,18 +347,18 @@ export class ReflexiveAgent {
     return finalResult!;
   }
 
-  public async critique(request: ParsedRequest, response: AgentExecutionResult): Promise<Critique> {
+  public async critique(request: IParsedRequest, response: IAgentExecutionResult): Promise<ICritique> {
     const critiquePrompt = this.config.critiquePromptTemplate
       .replace("{request}", request.userPrompt)
       .replace("{response}", response.content);
 
-    const critiqueBlueprint: Blueprint = {
+    const critiqueBlueprint: IBlueprint = {
       systemPrompt:
         "You are a quality assurance expert. Evaluate responses critically and provide structured JSON feedback.",
       agentId: "critique-evaluator",
     };
 
-    const critiqueRequest: ParsedRequest = {
+    const critiqueRequest: IParsedRequest = {
       userPrompt: critiquePrompt,
       context: {},
       traceId: request.traceId,
@@ -384,13 +384,13 @@ export class ReflexiveAgent {
   }
 
   private async refine(
-    blueprint: Blueprint,
-    originalRequest: ParsedRequest,
-    previousResponse: AgentExecutionResult,
-    critique: Critique,
-  ): Promise<AgentExecutionResult> {
+    blueprint: IBlueprint,
+    originalRequest: IParsedRequest,
+    previousResponse: IAgentExecutionResult,
+    critique: ICritique,
+  ): Promise<IAgentExecutionResult> {
     const issuesFormatted = critique.issues
-      .map((issue: Critique["issues"][number]) =>
+      .map((issue: ICritique["issues"][number]) =>
         `- [${String(issue.severity).toUpperCase()}] ${issue.type}: ${issue.description}${
           issue.suggestion ? ` -> ${issue.suggestion}` : ""
         }`
@@ -407,7 +407,7 @@ export class ReflexiveAgent {
       .replace("{issues}", issuesFormatted || "No specific issues listed")
       .replace("{improvements}", improvementsFormatted);
 
-    const refinementRequest: ParsedRequest = {
+    const refinementRequest: IParsedRequest = {
       userPrompt: refinementPrompt,
       context: originalRequest.context,
       traceId: originalRequest.traceId,
@@ -416,7 +416,7 @@ export class ReflexiveAgent {
     return await this.agentRunner.run(blueprint, refinementRequest);
   }
 
-  public shouldAccept(critique: Critique): boolean {
+  public shouldAccept(critique: ICritique): boolean {
     // Critical issues should always trigger refinement, regardless of confidence/quality
     const hasCriticalIssues = critique.issues.some((issue) => issue.severity === CritiqueSeverity.CRITICAL);
     if (hasCriticalIssues) {
@@ -446,7 +446,7 @@ export class ReflexiveAgent {
     return critique.passed;
   }
 
-  getMetrics(): ReflexionMetrics {
+  getMetrics(): IReflexionMetrics {
     return { ...this.metrics };
   }
 
@@ -468,7 +468,7 @@ export class ReflexiveAgent {
     };
   }
 
-  public updateMetrics(critique: Critique): void {
+  public updateMetrics(critique: ICritique): void {
     this.metrics.qualityDistribution[critique.quality]++;
     for (const issue of critique.issues) {
       this.metrics.issueTypeDistribution[issue.type] = (this.metrics.issueTypeDistribution[issue.type] || 0) + 1;
@@ -505,14 +505,14 @@ export class ReflexiveAgent {
 
 export function createReflexiveAgent(
   modelProvider: IModelProvider,
-  config?: ReflexiveAgentConfig,
+  config?: IReflexiveAgentConfig,
 ): ReflexiveAgent {
   return new ReflexiveAgent(modelProvider, config);
 }
 
 export function createCodeReviewReflexiveAgent(
   modelProvider: IModelProvider,
-  config?: ReflexiveAgentConfig,
+  config?: IReflexiveAgentConfig,
 ): ReflexiveAgent {
   return new ReflexiveAgent(modelProvider, {
     maxIterations: 2,
@@ -524,7 +524,7 @@ export function createCodeReviewReflexiveAgent(
 
 export function createHighQualityReflexiveAgent(
   modelProvider: IModelProvider,
-  config?: ReflexiveAgentConfig,
+  config?: IReflexiveAgentConfig,
 ): ReflexiveAgent {
   return new ReflexiveAgent(modelProvider, {
     maxIterations: 5,

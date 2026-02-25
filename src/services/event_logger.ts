@@ -1,7 +1,7 @@
 /**
  * @module EventLogger
  * @path src/services/event_logger.ts
- * @description Unified logging service that writes to both console and Activity Journal.
+ * @description Unified logging service that writes to both console and IActivity Journal.
  * Supports child loggers, structured payloads, and consistent log levels across the system.
  * @architectural-layer Services
  * @dependencies [DatabaseService, ActivityRepository, LogLevel, CommonTypes]
@@ -11,16 +11,16 @@
 import type { IDatabaseService } from "./db.ts";
 import type { ActivityRepository } from "../repositories/activity_repository.ts";
 import { LogLevel } from "../enums.ts";
-import { Actor, LogEvent } from "./common/types.ts";
+import { Actor, ILogEvent } from "./common/types.ts";
 import { TUI_DEFAULT_ICONS } from "../helpers/constants.ts";
 import { JSONValue, LogMetadata, toSafeJson } from "../types.ts";
 
-export type { Actor, LogEvent };
+export type { Actor, ILogEvent };
 
 /**
  * Configuration for EventLogger
  */
-export interface EventLoggerConfig {
+export interface IEventLoggerConfig {
   /** ActivityRepository instance (optional - allows console-only mode) */
   activityRepo?: ActivityRepository;
 
@@ -41,6 +41,16 @@ export interface EventLoggerConfig {
    * obtained from git config (user.email) or OS username.
    */
   defaultActor?: Actor;
+}
+
+export interface IEventLogger {
+  log(event: ILogEvent): Promise<void>;
+  info(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
+  warn(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
+  error(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
+  fatal(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
+  debug(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
+  child(overrides: Partial<ILogEvent>): IEventLogger;
 }
 
 // ============================================================================
@@ -68,18 +78,8 @@ const DEFAULT_ICONS: Record<LogLevel, string> = {
 /** Cached user identity to avoid repeated git calls */
 let cachedUserIdentity: string | null = null;
 
-export interface IEventLogger {
-  log(event: LogEvent): Promise<void>;
-  info(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
-  warn(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
-  error(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
-  fatal(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
-  debug(action: string, target: string | null, payload?: LogMetadata, traceId?: string): Promise<void>;
-  child(overrides: Partial<LogEvent>): IEventLogger;
-}
-
 /**
- * Unified logging service that writes to both console and Activity Journal.
+ * Unified logging service that writes to both console and IActivity Journal.
  *
  * @example
  * ```typescript
@@ -100,9 +100,9 @@ export class EventLogger implements IEventLogger {
   private readonly minLevel: LogLevel;
   private readonly showTimestamp: boolean;
   private readonly defaultActor: Actor;
-  private readonly defaults: Partial<LogEvent>;
+  private readonly defaults: Partial<ILogEvent>;
 
-  constructor(config: EventLoggerConfig, defaults: Partial<LogEvent> = {}) {
+  constructor(config: IEventLoggerConfig, defaults: Partial<ILogEvent> = {}) {
     this.activityRepo = config.activityRepo;
     this.db = config.db; // DEPRECATED
     this.prefix = config.prefix ?? "";
@@ -113,20 +113,20 @@ export class EventLogger implements IEventLogger {
   }
 
   /**
-   * Log an event to both console and Activity Journal
+   * Log an event to both console and IActivity Journal
    */
-  async log(event: LogEvent): Promise<void>;
+  async log(event: ILogEvent): Promise<void>;
   async log(
     action: string,
     targetOrPayload: string | LogMetadata,
     payload?: LogMetadata,
   ): Promise<void>;
   async log(
-    eventOrAction: LogEvent | string,
+    eventOrAction: ILogEvent | string,
     targetOrPayload?: string | LogMetadata,
     payload?: LogMetadata,
   ): Promise<void> {
-    let event: LogEvent;
+    let event: ILogEvent;
 
     if (typeof eventOrAction === "string") {
       // Overloaded call: log(action, targetOrPayload, payload?)
@@ -151,7 +151,7 @@ export class EventLogger implements IEventLogger {
     }
 
     // Merge with defaults
-    const mergedEvent: LogEvent = {
+    const mergedEvent: ILogEvent = {
       ...this.defaults,
       ...event,
       actor: event.actor ?? this.defaults.actor ?? this.defaultActor,
@@ -161,7 +161,7 @@ export class EventLogger implements IEventLogger {
     // Log to console
     this.logToConsole(mergedEvent, level);
 
-    // Log to Activity Journal
+    // Log to IActivity Journal
     await this.logToDatabase(mergedEvent);
   }
 
@@ -258,13 +258,13 @@ export class EventLogger implements IEventLogger {
   /**
    * Create a child logger with preset values (e.g., for a specific service)
    */
-  child(defaults: Partial<LogEvent>): EventLogger {
-    const mergedDefaults: Partial<LogEvent> = {
+  child(defaults: Partial<ILogEvent>): EventLogger {
+    const mergedDefaults: Partial<ILogEvent> = {
       ...this.defaults,
       ...defaults,
     };
 
-    const childConfig: EventLoggerConfig = {
+    const childConfig: IEventLoggerConfig = {
       db: this.db,
       prefix: this.prefix,
       minLevel: this.minLevel,
@@ -342,7 +342,7 @@ export class EventLogger implements IEventLogger {
   /**
    * Format and log event to console
    */
-  private logToConsole(event: LogEvent, level: LogLevel): void {
+  private logToConsole(event: ILogEvent, level: LogLevel): void {
     const icon = event.icon ?? DEFAULT_ICONS[level];
     const timestamp = this.showTimestamp ? this.formatTimestamp() + " " : "";
     const prefix = this.prefix ? this.prefix + " " : "";
@@ -365,9 +365,9 @@ export class EventLogger implements IEventLogger {
   }
 
   /**
-   * Log event to Activity Journal database
+   * Log event to IActivity Journal database
    */
-  private async logToDatabase(event: LogEvent): Promise<void> {
+  private async logToDatabase(event: ILogEvent): Promise<void> {
     // Prefer ActivityRepository over direct DatabaseService
     if (this.activityRepo) {
       try {
@@ -381,7 +381,7 @@ export class EventLogger implements IEventLogger {
         });
       } catch (error) {
         // Database write failed - log warning but don't crash
-        console.warn(`[EventLogger] Failed to write to Activity Journal via repository:`, error);
+        console.warn(`[EventLogger] Failed to write to IActivity Journal via repository:`, error);
       }
     } else if (this.db) {
       // Fallback to deprecated direct database access
@@ -396,7 +396,7 @@ export class EventLogger implements IEventLogger {
         );
       } catch (error) {
         // Database write failed - log warning but don't crash
-        console.warn(`[EventLogger] Failed to write to Activity Journal:`, error);
+        console.warn(`[EventLogger] Failed to write to IActivity Journal:`, error);
       }
     }
   }

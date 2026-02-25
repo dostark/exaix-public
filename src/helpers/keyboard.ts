@@ -7,14 +7,40 @@
  * @related-files [src/helpers/tree_view.ts]
  */
 
-// ===== Key Types =====
+// ===== Key Handling Interfaces =====
 
 export type KeyModifier = "ctrl" | "alt" | "shift" | "meta";
 
-export interface KeyEvent {
+export type KeyHandler = (key: string) => boolean | void | Promise<boolean | void>;
+
+export interface IKeyEvent {
   key: string;
   modifiers: Set<KeyModifier>;
   raw?: string;
+}
+
+export interface IKeyBinding<TAction extends string | KeyHandler = string, TCategory extends string = string> {
+  key: KeyValue;
+  modifiers?: KeyModifier[];
+  action: TAction;
+  description: string;
+  category?: TCategory;
+  global?: boolean;
+}
+
+export interface IKeyBindingGroup<TAction extends string | KeyHandler = string> {
+  name: string;
+  bindings: IKeyBinding<TAction>[];
+}
+
+export interface IKeyHandlerMap {
+  [key: string]: KeyHandler;
+}
+
+export interface INavigationState {
+  selectedIndex: number;
+  length: number;
+  pageSize?: number;
 }
 
 // ===== Key Constants =====
@@ -150,17 +176,6 @@ export function isValidKeyValue(key: string): key is KeyValue {
   return VALID_KEY_VALUES.has(key as KeyValue);
 }
 
-// ===== Key Binding =====
-
-export interface KeyBinding<TAction extends string | KeyHandler = string, KeyBindingCategory extends string = string> {
-  key: KeyValue;
-  modifiers?: KeyModifier[];
-  action: TAction;
-  description: string;
-  category?: KeyBindingCategory;
-  global?: boolean;
-}
-
 // ===== Key Binding Categories =====
 
 /**
@@ -175,45 +190,20 @@ export enum KeyBindingCategory {
   GENERAL = "General",
 }
 
-// /**
-//  * Enum for key binding categories - provides reusable constants
-//  */
-// export enum KeyBindingCategoryEnum {
-//   NAVIGATION = "Navigation",
-//   ACTIONS = "Actions",
-//   VIEW = "View",
-//   HELP = "Help",
-//   LAYOUT = "Layout",
-//   GENERAL = "General",
-// }
-
-export interface KeyBindingGroup<TAction extends string | KeyHandler = string> {
-  name: string;
-  bindings: KeyBinding<TAction>[];
-}
-
-// ===== Key Handler Types =====
-
-export type KeyHandler = (key: string) => boolean | void | Promise<boolean | void>;
-
-export interface KeyHandlerMap {
-  [key: string]: KeyHandler;
-}
-
 // ===== Keyboard Manager =====
 
 /**
  * Manages keyboard bindings and handlers
  */
 export class KeyboardManager<TAction extends string | KeyHandler = string> {
-  private bindings: Map<string, KeyBinding<TAction>> = new Map();
+  private bindings: Map<string, IKeyBinding<TAction>> = new Map();
   private handlers: Map<TAction, KeyHandler> = new Map();
   private enabled: boolean = true;
 
   /**
    * Register a key binding
    */
-  bind(binding: KeyBinding<TAction>): this {
+  bind(binding: IKeyBinding<TAction>): this {
     const key = this.normalizeKey(binding.key, binding.modifiers);
     this.bindings.set(key, binding);
     return this;
@@ -222,7 +212,7 @@ export class KeyboardManager<TAction extends string | KeyHandler = string> {
   /**
    * Register multiple bindings
    */
-  bindAll(bindings: KeyBinding<TAction>[]): this {
+  bindAll(bindings: IKeyBinding<TAction>[]): this {
     for (const binding of bindings) {
       this.bind(binding);
     }
@@ -259,15 +249,15 @@ export class KeyboardManager<TAction extends string | KeyHandler = string> {
   /**
    * Get all bindings
    */
-  getBindings(): KeyBinding<TAction>[] {
+  getBindings(): IKeyBinding<TAction>[] {
     return Array.from(this.bindings.values());
   }
 
   /**
    * Get bindings grouped by category
    */
-  getBindingsByCategory(): Map<string, KeyBinding<TAction>[]> {
-    const groups = new Map<string, KeyBinding<TAction>[]>();
+  getBindingsByCategory(): Map<string, IKeyBinding<TAction>[]> {
+    const groups = new Map<string, IKeyBinding<TAction>[]>();
 
     for (const binding of this.bindings.values()) {
       const category = binding.category ?? "General";
@@ -330,19 +320,13 @@ export class KeyboardManager<TAction extends string | KeyHandler = string> {
 
 // ===== Common Navigation Handlers =====
 
-export interface NavigationState {
-  selectedIndex: number;
-  length: number;
-  pageSize?: number;
-}
-
 /**
  * Create navigation key handlers
  */
 export function createNavigationHandlers(
-  getState: () => NavigationState,
+  getState: () => INavigationState,
   setState: (index: number) => void,
-): KeyHandlerMap {
+): IKeyHandlerMap {
   return {
     up: () => {
       const state = getState();
@@ -387,9 +371,9 @@ export function createNavigationHandlers(
 // ===== Key Parsing =====
 
 /**
- * Parse raw key input to KeyEvent
+ * Parse raw key input to IKeyEvent
  */
-export function parseKey(raw: string): KeyEvent {
+export function parseKey(raw: string): IKeyEvent {
   const modifiers = new Set<KeyModifier>();
   let key = raw.toLowerCase();
 
@@ -459,14 +443,14 @@ export function matchesKey(key: string, pattern: string): boolean {
  * Generate help screen content from key bindings
  */
 export function generateHelpScreen<TAction extends string | KeyHandler>(
-  bindings: KeyBinding<TAction>[],
+  bindings: IKeyBinding<TAction>[],
   options: { title?: string; useColors?: boolean } = {},
 ): string[] {
   const { title = "Keyboard Shortcuts", useColors = true } = options;
   const lines: string[] = [];
 
   // Group by category
-  const categories = new Map<string, KeyBinding<TAction>[]>();
+  const categories = new Map<string, IKeyBinding<TAction>[]>();
   for (const binding of bindings) {
     const cat = binding.category ?? "General";
     const list = categories.get(cat) ?? [];

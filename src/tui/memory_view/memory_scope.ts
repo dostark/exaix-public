@@ -15,9 +15,9 @@ export const MemoryTuiScope = {
   SEARCH: "search",
 } as const;
 
-export type MemoryTuiScopeType = typeof MemoryTuiScope[keyof typeof MemoryTuiScope];
+export type IMemoryTuiScopeType = typeof MemoryTuiScope[keyof typeof MemoryTuiScope];
 
-export const MEMORY_TUI_SCOPE_VALUES: readonly MemoryTuiScopeType[] = [
+export const MEMORY_TUI_SCOPE_VALUES: readonly IMemoryTuiScopeType[] = [
   MemoryTuiScope.GLOBAL,
   MemoryTuiScope.PROJECTS,
   MemoryTuiScope.EXECUTIONS,
@@ -25,13 +25,13 @@ export const MEMORY_TUI_SCOPE_VALUES: readonly MemoryTuiScopeType[] = [
   MemoryTuiScope.SEARCH,
 ];
 
-export function isMemoryTuiScope(value: unknown): value is MemoryTuiScopeType {
+export function isMemoryTuiScope(value: unknown): value is IMemoryTuiScopeType {
   return typeof value === "string" && (MEMORY_TUI_SCOPE_VALUES as readonly string[]).includes(value);
 }
 
 export function coerceMemoryTuiScope(
   value: unknown,
-  fallback: MemoryTuiScopeType = MemoryTuiScope.PROJECTS,
-): MemoryTuiScopeType {
+  fallback: IMemoryTuiScopeType = MemoryTuiScope.PROJECTS,
+): IMemoryTuiScopeType {
   return isMemoryTuiScope(value) ? value : fallback;
 }

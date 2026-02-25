@@ -9,7 +9,7 @@
 
 import { dirname, isAbsolute, join, resolve } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 import { GitService, type IGitService } from "../../services/git_service.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { PlanCommands } from "./plan_commands.ts";
@@ -19,9 +19,9 @@ import { CommandUtils } from "../../helpers/command_utils.ts";
 import { enrichWithRequest } from "../../helpers/request_enricher.ts";
 import { ArtifactRegistry } from "../../services/artifact_registry.ts";
 import { isReviewStatus, ReviewStatus } from "../../reviews/review_status.ts";
-import type { ReviewStatus as ReviewStatusType } from "../../reviews/review_status.ts";
+import type { IReviewStatus } from "../../reviews/review_status.ts";
 
-export interface ReviewMetadata {
+export interface IReviewMetadata {
   type?: "code" | "artifact";
   file_path?: string;
   branch: string;
@@ -46,7 +46,7 @@ export interface ReviewMetadata {
   // Portal context
   portal?: string;
   // Status context
-  status?: ReviewStatusType;
+  status?: IReviewStatus;
   approved_at?: string;
   approved_by?: string;
   rejected_at?: string;
@@ -54,7 +54,7 @@ export interface ReviewMetadata {
   rejection_reason?: string;
 }
 
-export interface ReviewDetails extends ReviewMetadata {
+export interface ReviewDetails extends IReviewMetadata {
   diff: string;
   commits: Array<{
     sha: string;
@@ -75,7 +75,7 @@ export class ReviewCommands extends BaseCommand {
   private artifactRegistry: ArtifactRegistry;
 
   constructor(
-    context: CommandContext,
+    context: ICommandContext,
     gitService: IGitService,
   ) {
     super(context);
@@ -98,7 +98,7 @@ export class ReviewCommands extends BaseCommand {
 
   private normalizeStatusFilter(
     statusFilter?: string,
-  ): ReviewStatusType | undefined {
+  ): IReviewStatus | undefined {
     if (!statusFilter) return undefined;
     const normalized = statusFilter.toLowerCase();
     return isReviewStatus(normalized) ? normalized : undefined;
@@ -356,8 +356,8 @@ export class ReviewCommands extends BaseCommand {
   }
 
   private async extractReviewMetadataWithContext(
-    basicMetadata: ReviewMetadata,
-  ): Promise<ReviewMetadata> {
+    basicMetadata: IReviewMetadata,
+  ): Promise<IReviewMetadata> {
     const metadata = await enrichWithRequest(
       this.requestCommands,
       basicMetadata,
@@ -459,10 +459,10 @@ export class ReviewCommands extends BaseCommand {
    * @param statusFilter Optional filter: 'pending', 'approved', 'rejected'
    * @returns List of review metadata
    */
-  async list(statusFilter?: string, typeFilter?: string): Promise<ReviewMetadata[]> {
+  async list(statusFilter?: string, typeFilter?: string): Promise<IReviewMetadata[]> {
     const requestedType = this.normalizeTypeFilter(typeFilter);
     const normalizedStatus = this.normalizeStatusFilter(statusFilter);
-    const reviews: ReviewMetadata[] = [];
+    const reviews: IReviewMetadata[] = [];
 
     if (this.shouldIncludeArtifacts(requestedType)) {
       await this.appendArtifactReviews(reviews, normalizedStatus);
@@ -487,7 +487,7 @@ export class ReviewCommands extends BaseCommand {
     return type === "all" || type === "code";
   }
 
-  private sortReviewsNewestFirst(reviews: ReviewMetadata[]): ReviewMetadata[] {
+  private sortReviewsNewestFirst(reviews: IReviewMetadata[]): IReviewMetadata[] {
     return reviews.sort((a, b) => {
       const ta = Number(new Date(a.created_at));
       const tb = Number(new Date(b.created_at));
@@ -496,8 +496,8 @@ export class ReviewCommands extends BaseCommand {
   }
 
   private async appendArtifactReviews(
-    reviews: ReviewMetadata[],
-    normalizedStatus: ReviewStatusType | undefined,
+    reviews: IReviewMetadata[],
+    normalizedStatus: IReviewStatus | undefined,
   ) {
     const artifacts = await this.artifactRegistry.listArtifacts({
       status: normalizedStatus,
@@ -523,7 +523,7 @@ export class ReviewCommands extends BaseCommand {
   }
 
   private getDbReviewQuery(
-    normalizedStatus: ReviewStatusType | undefined,
+    normalizedStatus: IReviewStatus | undefined,
   ): { sql: string; args: (string | number | boolean | null)[] } {
     const base =
       "SELECT trace_id, portal, branch, repository, base_branch, worktree_path, files_changed, created, created_by, status, approved_at, approved_by, rejected_at, rejected_by, rejection_reason FROM reviews";
@@ -532,9 +532,9 @@ export class ReviewCommands extends BaseCommand {
   }
 
   private async appendDbCodeReviews(
-    reviews: ReviewMetadata[],
+    reviews: IReviewMetadata[],
     dbBranches: Set<string>,
-    normalizedStatus: ReviewStatusType | undefined,
+    normalizedStatus: IReviewStatus | undefined,
   ) {
     try {
       const query = this.getDbReviewQuery(normalizedStatus);
@@ -582,7 +582,7 @@ export class ReviewCommands extends BaseCommand {
     rejected_at: string | null;
     rejected_by: string | null;
     rejection_reason: string | null;
-  }): ReviewMetadata | null {
+  }): IReviewMetadata | null {
     const branch = row.branch?.trim();
     if (!branch) return null;
 
@@ -612,7 +612,7 @@ export class ReviewCommands extends BaseCommand {
     };
   }
 
-  private async pushEnrichedOrBasic(reviews: ReviewMetadata[], basic: ReviewMetadata) {
+  private async pushEnrichedOrBasic(reviews: IReviewMetadata[], basic: IReviewMetadata) {
     try {
       const enrichedMetadata = await this.extractReviewMetadataWithContext(basic);
       reviews.push(enrichedMetadata);
@@ -622,9 +622,9 @@ export class ReviewCommands extends BaseCommand {
   }
 
   private async appendGitScannedCodeReviews(
-    reviews: ReviewMetadata[],
+    reviews: IReviewMetadata[],
     dbBranches: Set<string>,
-    normalizedStatus: ReviewStatusType | undefined,
+    normalizedStatus: IReviewStatus | undefined,
   ) {
     const portalPaths = await this.getPortalRepoPaths();
 
@@ -634,9 +634,9 @@ export class ReviewCommands extends BaseCommand {
   }
 
   private async appendGitScannedCodeReviewsFromRepo(
-    reviews: ReviewMetadata[],
+    reviews: IReviewMetadata[],
     dbBranches: Set<string>,
-    normalizedStatus: ReviewStatusType | undefined,
+    normalizedStatus: IReviewStatus | undefined,
     repoPath: string,
   ) {
     const defaultBranch = await this.getDefaultBranch(repoPath);
@@ -708,7 +708,7 @@ export class ReviewCommands extends BaseCommand {
     return files.length;
   }
 
-  private getStatusFromActivities(activities: Array<{ action_type: string }>): ReviewStatusType {
+  private getStatusFromActivities(activities: Array<{ action_type: string }>): IReviewStatus {
     let hasRejected = false;
     for (const a of activities) {
       if (a.action_type === "review.approved") return ReviewStatus.APPROVED;
@@ -721,8 +721,8 @@ export class ReviewCommands extends BaseCommand {
     repoPath: string,
     defaultBranch: string,
     branch: string,
-    normalizedStatus: ReviewStatusType | undefined,
-  ): Promise<ReviewMetadata | null> {
+    normalizedStatus: IReviewStatus | undefined,
+  ): Promise<IReviewMetadata | null> {
     const parsed = this.parseRequestAndTraceFromBranch(branch);
     if (!parsed) return null;
 
@@ -739,7 +739,7 @@ export class ReviewCommands extends BaseCommand {
 
     const filesChanged = await this.getFilesChangedCount(repoPath, baseBranch, branch);
 
-    const basicMetadata: ReviewMetadata = {
+    const basicMetadata: IReviewMetadata = {
       type: "code",
       branch,
       trace_id: effectiveTraceId,

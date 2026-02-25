@@ -9,13 +9,17 @@
 
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 import { RequestPriority } from "../../enums.ts";
 import { RequestStatus } from "../../requests/request_status.ts";
 import { ValidationChain } from "../validation/validation_chain.ts";
 import { DefaultErrorStrategy } from "../errors/error_strategy.ts";
 import { CommandUtils } from "../../helpers/command_utils.ts";
-import { type RequestMetadata, type RequestOptions, type RequestSource } from "../commands/request_commands.ts";
+import {
+  type IRequestMetadata as RequestMetadata,
+  type IRequestOptions as RequestOptions,
+  type RequestSource,
+} from "../commands/request_commands.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
 
 const VALID_PRIORITIES: RequestPriority[] = [
@@ -28,7 +32,7 @@ const VALID_PRIORITIES: RequestPriority[] = [
 export class RequestCreateHandler extends BaseCommand {
   private workspaceRequestsDir: string;
 
-  constructor(context: CommandContext) {
+  constructor(context: ICommandContext) {
     super(context);
     this.workspaceRequestsDir = getWorkspaceRequestsDir(context);
   }

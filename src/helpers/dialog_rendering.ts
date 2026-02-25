@@ -7,7 +7,7 @@
  * @related-files [src/helpers/dialog_base.ts]
  */
 
-import { colorize, type TuiTheme, visibleLength } from "./colors.ts";
+import { colorize, type ITuiTheme, visibleLength } from "./colors.ts";
 import { renderBoxBottom, renderBoxLine, renderBoxTop, wrapToWidth } from "./dialog_base.ts";
 
 // ===== Common Rendering Functions =====
@@ -18,7 +18,7 @@ import { renderBoxBottom, renderBoxLine, renderBoxTop, wrapToWidth } from "./dia
 export function renderDialogTitle(
   title: string,
   innerWidth: number,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string {
   const titleLine = ` ${title} `;
   return renderBoxTop(innerWidth, titleLine, theme);
@@ -30,7 +30,7 @@ export function renderDialogTitle(
 export function renderDialogLine(
   content: string,
   innerWidth: number,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string {
   return renderBoxLine(content, innerWidth, theme);
 }
@@ -38,7 +38,7 @@ export function renderDialogLine(
 /**
  * Renders an empty dialog line
  */
-export function renderEmptyDialogLine(innerWidth: number, theme: TuiTheme): string {
+export function renderEmptyDialogLine(innerWidth: number, theme: ITuiTheme): string {
   return renderBoxLine("", innerWidth, theme);
 }
 
@@ -48,7 +48,7 @@ export function renderEmptyDialogLine(innerWidth: number, theme: TuiTheme): stri
 export function renderFocusedButton(
   text: string,
   isFocused: boolean,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string {
   if (isFocused) {
     return colorize(`[${text}]`, theme.primary);
@@ -71,7 +71,7 @@ export function renderInputField(
   value: string,
   cursorPos: number,
   maxWidth: number,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string {
   const displayValue = value.length <= maxWidth ? value : `...${value.slice(-maxWidth + 3)}`;
   const beforeCursor = displayValue.slice(0, cursorPos);
@@ -88,7 +88,7 @@ export function renderInputField(
 export function renderWrappedMessage(
   message: string | string[],
   maxWidth: number,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string[] {
   const messages = Array.isArray(message) ? message : wrapToWidth(message, maxWidth);
   return messages.map((msg) => renderDialogLine(`  ${msg}`, maxWidth + 4, theme));
@@ -101,7 +101,7 @@ export function renderOptionList(
   options: string[],
   focusIndex: number,
   maxWidth: number,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string[] {
   return options.map((option, index) => {
     const prefix = index === focusIndex ? colorize("▶ ", theme.primary) : "  ";
@@ -115,7 +115,7 @@ export function renderOptionList(
 export function renderDialogButtons(
   buttons: Array<{ text: string; focused: boolean }>,
   innerWidth: number,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string {
   const buttonTexts = buttons.map((btn) =>
     btn.focused ? renderFocusedButton(btn.text, true, theme) : renderButton(btn.text)
@@ -124,10 +124,6 @@ export function renderDialogButtons(
   const padding = Math.max(0, innerWidth - visibleLength(buttonLine));
   return renderDialogLine(`${" ".repeat(padding)}${buttonLine}`, innerWidth, theme);
 }
-
-// ===== Re-export common functions from dialog_base.ts =====
-
-export { renderBoxBottom, renderBoxLine, renderBoxTop, wrapToWidth } from "./dialog_base.ts";
 
 // ===== Utility Functions =====
 
@@ -145,7 +141,7 @@ export function calculateDialogWidth(content: string[], minWidth = 40, maxWidth 
 export function createDialogBorder(
   lines: string[],
   title: string,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string[] {
   const contentWidth = Math.max(...lines.map((line) => visibleLength(line))) + 4;
   const titleLine = ` ${title} `;

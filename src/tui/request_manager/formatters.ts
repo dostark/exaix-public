@@ -14,7 +14,7 @@ import {
   TUI_LAYOUT_VALUE_WIDTH,
   TUI_MSG_PRESS_QUIT,
 } from "../../helpers/constants.ts";
-import type { Request } from "../request_manager_view.ts";
+import type { IRequest } from "../request_manager_view.ts";
 
 /**
  * Formatter for Request Manager View
@@ -23,7 +23,7 @@ export class RequestFormatter {
   /**
    * Format request metadata section
    */
-  static formatRequestMetadata(request: Request): string[] {
+  static formatRequestMetadata(request: IRequest): string[] {
     return [
       `╔══════════════════════════════════════════════════════════════╗`,
       `║${
@@ -50,7 +50,7 @@ export class RequestFormatter {
   /**
    * Format skills section if present
    */
-  static formatSkillsSection(request: Request): string[] {
+  static formatSkillsSection(request: IRequest): string[] {
     if (!request.skills) return [];
 
     const lines: string[] = [
@@ -109,7 +109,7 @@ export class RequestFormatter {
   /**
    * Format complete request detail content
    */
-  static formatDetailContent(request: Request | undefined, content: string): string {
+  static formatDetailContent(request: IRequest | undefined, content: string): string {
     if (!request) return content;
 
     const lines: string[] = [

@@ -6,7 +6,7 @@
  * @dependencies [providers, provider_common_utils, constants, base_provider]
  * @related-files [src/ai/factories/openai_factory.ts]
  */
-import { ModelOptions } from "../providers.ts";
+import { IModelOptions } from "../types.ts";
 import {
   createOpenAIChatCompletionsRequestInit,
   type OpenAIResponse,
@@ -14,12 +14,12 @@ import {
   tokenMapperOpenAI,
 } from "../provider_common_utils.ts";
 import * as DEFAULTS from "../../config/constants.ts";
-import { BaseProvider, BaseProviderOptions } from "./base_provider.ts";
+import { BaseProvider, IBaseProviderOptions } from "./base_provider.ts";
 
 /**
  * Options for OpenAIProvider
  */
-export type OpenAIProviderOptions = BaseProviderOptions;
+export type OpenAIProviderOptions = IBaseProviderOptions;
 
 /**
  * OpenAIProvider implements IModelProvider for OpenAI's GPT models.
@@ -50,7 +50,7 @@ export class OpenAIProvider extends BaseProvider {
   /**
    * Internal: attempt a single completion call.
    */
-  protected override async attemptGenerate(prompt: string, options?: ModelOptions): Promise<string> {
+  protected override async attemptGenerate(prompt: string, options?: IModelOptions): Promise<string> {
     const data = await performProviderCall<OpenAIResponse>(
       this.baseUrl,
       createOpenAIChatCompletionsRequestInit(

@@ -10,8 +10,8 @@
 import { join } from "@std/path";
 import { parse as parseYaml, stringify as stringifyYaml } from "@std/yaml";
 import type { IDatabaseService } from "./db.ts";
-import type { Artifact, ArtifactFilters, ArtifactFrontmatter, ArtifactWithContent } from "../schemas/artifact.ts";
-import { coerceReviewStatus, ReviewStatus, type ReviewStatus as ReviewStatusType } from "../reviews/review_status.ts";
+import type { IArtifact, IArtifactFilters, IArtifactFrontmatter, IArtifactWithContent } from "../schemas/artifact.ts";
+import { coerceReviewStatus, type IReviewStatus, ReviewStatus } from "../reviews/review_status.ts";
 
 /**
  * Generate short ID for artifacts
@@ -52,7 +52,7 @@ export class ArtifactRegistry {
     await Deno.mkdir(join(this.rootDir, "Memory", "Execution"), { recursive: true });
 
     // Create frontmatter
-    const frontmatter: ArtifactFrontmatter = {
+    const frontmatter: IArtifactFrontmatter = {
       status: ReviewStatus.PENDING,
       type: "analysis",
       agent,
@@ -91,7 +91,7 @@ export class ArtifactRegistry {
    */
   async updateStatus(
     artifactId: string,
-    status: Exclude<ReviewStatusType, typeof ReviewStatus.PENDING>,
+    status: Exclude<IReviewStatus, typeof ReviewStatus.PENDING>,
     reason?: string,
   ): Promise<void> {
     const artifact = await this.getArtifactRecord(artifactId);
@@ -105,7 +105,7 @@ export class ArtifactRegistry {
       throw new Error(`Invalid artifact format: ${artifactId}`);
     }
 
-    const frontmatter = parseYaml(match[1]) as ArtifactFrontmatter;
+    const frontmatter = parseYaml(match[1]) as IArtifactFrontmatter;
     const body = match[2];
 
     // Update frontmatter
@@ -126,7 +126,7 @@ export class ArtifactRegistry {
   /**
    * Get artifact with content
    */
-  async getArtifact(artifactId: string): Promise<ArtifactWithContent> {
+  async getArtifact(artifactId: string): Promise<IArtifactWithContent> {
     const artifact = await this.getArtifactRecord(artifactId);
 
     // Read file content
@@ -146,7 +146,7 @@ export class ArtifactRegistry {
   /**
    * Get artifact database record
    */
-  private async getArtifactRecord(artifactId: string): Promise<Artifact> {
+  private async getArtifactRecord(artifactId: string): Promise<IArtifact> {
     const rows = await this.db.preparedAll<{
       id: string;
       status: string;
@@ -189,7 +189,7 @@ export class ArtifactRegistry {
   /**
    * List artifacts with filters
    */
-  async listArtifacts(filters?: ArtifactFilters): Promise<Artifact[]> {
+  async listArtifacts(filters?: IArtifactFilters): Promise<IArtifact[]> {
     let query =
       `SELECT id, status, type, agent, portal, target_branch, created, updated, request_id, file_path, rejection_reason
                  FROM artifacts WHERE 1=1`;

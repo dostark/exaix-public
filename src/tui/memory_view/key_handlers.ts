@@ -7,9 +7,21 @@
  * @related-files [src/helpers/keyboard.ts, src/tui/memory_view/memory_scope.ts]
  */
 
-import type { TreeNode } from "./types.ts";
+import type { ITreeNode } from "./types.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 import { MemoryTuiScope } from "./memory_scope.ts";
+
+export interface IShortcutHandlers {
+  jumpToScope?: (scope: string) => Promise<void>;
+  startSearch?: () => void;
+  showHelp?: () => void;
+  approveProposal?: () => Promise<void>;
+  rejectProposal?: () => Promise<void>;
+  approveAll?: () => Promise<void>;
+  addLearning?: () => void;
+  promoteLearning?: () => void;
+  refresh?: () => Promise<void>;
+}
 
 /**
  * Consolidates all key handlers for Memory View
@@ -32,9 +44,9 @@ export class KeyHandler {
    */
   static async handleNavigationKey(
     key: string,
-    flatNodes: TreeNode[],
+    flatNodes: ITreeNode[],
     currentNodeId: string | null,
-    onNavigate: (nodeId: string, node: TreeNode) => Promise<void>,
+    onNavigate: (nodeId: string, node: ITreeNode) => Promise<void>,
   ): Promise<boolean> {
     return await NavigationHandler.handleKey(key, flatNodes, currentNodeId, onNavigate);
   }
@@ -44,22 +56,10 @@ export class KeyHandler {
    */
   static async handleShortcutKey(
     key: string,
-    handlers: ShortcutHandlers,
+    handlers: IShortcutHandlers,
   ): Promise<boolean> {
     return await ShortcutHandler.handleKey(key, handlers);
   }
-}
-
-interface ShortcutHandlers {
-  jumpToScope?: (scope: string) => Promise<void>;
-  startSearch?: () => void;
-  showHelp?: () => void;
-  approveProposal?: () => Promise<void>;
-  rejectProposal?: () => Promise<void>;
-  approveAll?: () => Promise<void>;
-  addLearning?: () => void;
-  promoteLearning?: () => void;
-  refresh?: () => Promise<void>;
 }
 
 /**
@@ -96,9 +96,9 @@ class SearchModeHandler {
 class NavigationHandler {
   static async handleKey(
     key: string,
-    flatNodes: TreeNode[],
+    flatNodes: ITreeNode[],
     currentNodeId: string | null,
-    onNavigate: (nodeId: string, node: TreeNode) => Promise<void>,
+    onNavigate: (nodeId: string, node: ITreeNode) => Promise<void>,
   ): Promise<boolean> {
     if (flatNodes.length === 0) return false;
 
@@ -140,7 +140,7 @@ class NavigationHandler {
 class ShortcutHandler {
   static async handleKey(
     key: string,
-    handlers: ShortcutHandlers,
+    handlers: IShortcutHandlers,
   ): Promise<boolean> {
     // Handle scope navigation
     if (await this.handleScopeNavigation(key, handlers)) return true;
@@ -165,7 +165,7 @@ class ShortcutHandler {
    */
   private static async handleScopeNavigation(
     key: string,
-    handlers: ShortcutHandlers,
+    handlers: IShortcutHandlers,
   ): Promise<boolean> {
     if (!handlers.jumpToScope) return false;
 
@@ -191,7 +191,7 @@ class ShortcutHandler {
    */
   private static handleSearchAndHelp(
     key: string,
-    handlers: ShortcutHandlers,
+    handlers: IShortcutHandlers,
   ): boolean {
     switch (key) {
       case KEYS.S:
@@ -210,7 +210,7 @@ class ShortcutHandler {
    */
   private static async handleProposalActions(
     key: string,
-    handlers: ShortcutHandlers,
+    handlers: IShortcutHandlers,
   ): Promise<boolean> {
     switch (key) {
       case KEYS.A:
@@ -231,7 +231,7 @@ class ShortcutHandler {
    */
   private static handleLearningActions(
     key: string,
-    handlers: ShortcutHandlers,
+    handlers: IShortcutHandlers,
   ): boolean {
     switch (key) {
       case KEYS.L:
@@ -249,7 +249,7 @@ class ShortcutHandler {
    */
   private static async handleGlobalActions(
     key: string,
-    handlers: ShortcutHandlers,
+    handlers: IShortcutHandlers,
   ): Promise<boolean> {
     switch (key) {
       case KEYS.CAP_R:

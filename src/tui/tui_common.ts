@@ -7,10 +7,10 @@
  * @related-files [src/tui/base/base_tree_view.ts, src/tui/tui_dashboard.ts]
  */
 
-import { getTheme, type TuiTheme } from "../helpers/colors.ts";
+import { getTheme, type ITuiTheme } from "../helpers/colors.ts";
 import { createSpinnerState, nextFrame, type SpinnerState, startSpinner, stopSpinner } from "../helpers/spinner.ts";
-import { createStatusBarState, setStatusMessage, type StatusBarState } from "../helpers/status_bar.ts";
-import type { KeyBinding, KeyHandler } from "../helpers/keyboard.ts";
+import { createStatusBarState, type IStatusBarState, setStatusMessage } from "../helpers/status_bar.ts";
+import type { IKeyBinding, KeyHandler } from "../helpers/keyboard.ts";
 import { MessageType } from "../enums.ts";
 
 // ===== View State Types =====
@@ -18,7 +18,7 @@ import { MessageType } from "../enums.ts";
 /**
  * Common state for all TUI views
  */
-export interface TuiViewState {
+export interface ITuiViewState {
   /** Currently selected item index */
   selectedIndex: number;
   /** Total number of items */
@@ -40,7 +40,7 @@ export interface TuiViewState {
 /**
  * Create initial view state
  */
-export function createViewState(overrides: Partial<TuiViewState> = {}): TuiViewState {
+export function createViewState(overrides: Partial<ITuiViewState> = {}): ITuiViewState {
   return {
     selectedIndex: 0,
     itemCount: 0,
@@ -56,7 +56,7 @@ export function createViewState(overrides: Partial<TuiViewState> = {}): TuiViewS
 
 // ===== Refresh Configuration =====
 
-export interface RefreshConfig {
+export interface IRefreshConfig {
   /** Auto-refresh interval in milliseconds (0 = disabled) */
   autoRefreshInterval: number;
   /** Callback when refresh is triggered */
@@ -68,7 +68,7 @@ export interface RefreshConfig {
 export function createRefreshConfig(
   onRefresh: () => Promise<void>,
   interval: number = 0,
-): RefreshConfig {
+): IRefreshConfig {
   return {
     autoRefreshInterval: interval,
     onRefresh,
@@ -99,15 +99,15 @@ export class TuiSessionBase {
 
   // Enhanced state
   protected spinnerState: SpinnerState;
-  protected statusBarState: StatusBarState;
-  protected theme: TuiTheme;
+  protected statusBarState: IStatusBarState;
+  protected theme: ITuiTheme;
   protected useColors = true;
 
   // View state
-  protected viewState: TuiViewState;
+  protected viewState: ITuiViewState;
 
   // Refresh configuration
-  protected refreshConfig: RefreshConfig | null = null;
+  protected refreshConfig: IRefreshConfig | null = null;
   protected refreshTimer: number | null = null;
 
   constructor(useColors = true) {
@@ -229,7 +229,7 @@ export class TuiSessionBase {
   /**
    * Get current theme
    */
-  getTheme(): TuiTheme {
+  getTheme(): ITuiTheme {
     return this.theme;
   }
 
@@ -246,7 +246,7 @@ export class TuiSessionBase {
   /**
    * Get current view state
    */
-  getViewState(): TuiViewState {
+  getViewState(): ITuiViewState {
     return this.viewState;
   }
 
@@ -435,7 +435,7 @@ export class TuiSessionBase {
    * Override in subclasses to provide view-specific bindings
    * The type parameter allows subclasses to use string actions or function handlers
    */
-  getKeyBindings(): KeyBinding<KeyHandler | string>[] {
+  getKeyBindings(): IKeyBinding<KeyHandler | string>[] {
     return [];
   }
 
@@ -486,9 +486,3 @@ export function clampScrollOffset(
   const maxOffset = Math.max(0, totalItems - visibleHeight);
   return Math.max(0, Math.min(scrollOffset, maxOffset));
 }
-
-// ===== Re-exports for convenience =====
-
-export { getTheme, type TuiTheme } from "../helpers/colors.ts";
-export { createSpinnerState, renderSpinner, type SpinnerState } from "../helpers/spinner.ts";
-export { createStatusBarState, renderStatusBar, type StatusBarState } from "../helpers/status_bar.ts";

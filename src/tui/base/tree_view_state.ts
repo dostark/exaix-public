@@ -8,19 +8,19 @@
  */
 
 import type { DialogBase } from "../../helpers/dialog_base.ts";
-import type { TreeNode } from "../../helpers/tree_view.ts";
+import type { ITreeNode } from "../../helpers/tree_view.ts";
 import { DEFAULT_REFRESH_INTERVAL_MS } from "../../config/constants.ts";
 
 /**
  * Common state for tree-based views
  * @template T The type of data stored in tree nodes
  */
-export interface TreeViewState<T> {
+export interface ITreeViewState<T> {
   /** Currently selected node ID */
   selectedId: string | null;
 
   /** Tree structure organized by groups */
-  tree: TreeNode<T>[];
+  tree: ITreeNode<T>[];
 
   /** Filter text for searching */
   filterText: string;
@@ -60,7 +60,7 @@ export interface TreeViewState<T> {
 /**
  * Factory function to create initial tree view state
  */
-export function createTreeViewState<T>(): TreeViewState<T> {
+export function createTreeViewState<T>(): ITreeViewState<T> {
   return {
     selectedId: null,
     tree: [],

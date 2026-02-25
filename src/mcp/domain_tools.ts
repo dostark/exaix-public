@@ -14,7 +14,7 @@ import {
   QueryJournalToolArgsSchema,
 } from "../schemas/mcp.ts";
 import { JSONValue } from "../types.ts";
-import { ToolHandler } from "./tools.ts";
+import { ToolHandler } from "./tool_handler.ts";
 import { RequestCommands } from "../cli/commands/request_commands.ts";
 import { PlanCommands } from "../cli/commands/plan_commands.ts";
 import { PlanStatus, type PlanStatusType } from "../plans/plan_status.ts";
@@ -203,7 +203,7 @@ export class ApprovePlanTool extends ToolHandler {
 }
 
 /**
- * Tool for querying the Activity Journal
+ * Tool for querying the IActivity Journal
  */
 export class QueryJournalTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {
@@ -246,7 +246,7 @@ export class QueryJournalTool extends ToolHandler {
   getToolDefinition() {
     return {
       name: "exoframe_query_journal",
-      description: "Query the Activity Journal for events",
+      description: "Query the IActivity Journal for events",
       inputSchema: {
         type: "object",
         properties: {

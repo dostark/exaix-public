@@ -7,7 +7,7 @@
  * @related-files [src/cli/exoctl.ts]
  */
 
-export interface ErrorContext {
+export interface IErrorContext {
   commandName: string;
   args?: unknown;
   error: Error | unknown;
@@ -17,14 +17,14 @@ export interface ErrorContext {
  * Strategy interface for handling command errors
  */
 export interface ErrorStrategy {
-  handle(context: ErrorContext): Promise<void>;
+  handle(context: IErrorContext): Promise<void>;
 }
 
 /**
  * Fail fast strategy: logs and throws immediately
  */
 export class FailFastStrategy implements ErrorStrategy {
-  handle(context: ErrorContext): Promise<void> {
+  handle(context: IErrorContext): Promise<void> {
     console.error(`Error executing ${context.commandName}:`);
     if (context.error instanceof Error) {
       console.error(context.error.message);
@@ -39,7 +39,7 @@ export class FailFastStrategy implements ErrorStrategy {
  * Silent strategy: suppresses errors (useful for optional operations)
  */
 export class SilentStrategy implements ErrorStrategy {
-  async handle(_context: ErrorContext): Promise<void> {
+  async handle(_context: IErrorContext): Promise<void> {
     // Intentionally do nothing
   }
 }

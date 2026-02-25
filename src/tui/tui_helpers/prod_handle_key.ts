@@ -8,15 +8,15 @@
  */
 
 import { MessageType } from "../../enums.ts";
-import type { DashboardViewState, Pane, TuiView } from "../tui_dashboard.ts";
-import type { INotificationService, MemoryNotification as TuiNotification } from "../../services/notification.ts";
+import type { IDashboardViewState, IPane, ITuiView } from "../tui_dashboard.ts";
+import type { IMemoryNotification, INotificationService } from "../../services/notification.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 
-export interface ProdHandleCtx {
-  prodState: DashboardViewState;
-  panes: Pane[];
-  views: TuiView[];
+export interface IProdHandleCtx {
+  prodState: IDashboardViewState;
+  panes: IPane[];
+  views: ITuiView[];
   activePaneRef: { id: string };
   notificationService: INotificationService;
   addNotification: (message: string, type?: string) => Promise<void>;
@@ -31,7 +31,7 @@ export interface ProdHandleCtx {
  */
 async function handleMemoryNotificationsKey(
   key: string,
-  ctx: ProdHandleCtx,
+  ctx: IProdHandleCtx,
 ): Promise<{ exit?: boolean; reRender?: boolean }> {
   const { prodState, notificationService } = ctx;
 
@@ -46,7 +46,7 @@ async function handleMemoryNotificationsKey(
   }
 
   const allNotifs = await notificationService.getNotifications();
-  const memoryNotifs = allNotifs.filter((n: TuiNotification) => n.type === "memory_update_pending");
+  const memoryNotifs = allNotifs.filter((n: IMemoryNotification) => n.type === "memory_update_pending");
   const count = memoryNotifs.length;
 
   // Navigation keys
@@ -91,7 +91,7 @@ async function handleMemoryNotificationsKey(
  * Handles key events for notification panel mode.
  * Processes exit from notification panel.
  */
-function handleNotificationPanelKey(key: string, ctx: ProdHandleCtx): { exit?: boolean; reRender?: boolean } {
+function handleNotificationPanelKey(key: string, ctx: IProdHandleCtx): { exit?: boolean; reRender?: boolean } {
   const { prodState } = ctx;
 
   if (key === KEYS.N || key === "\x1b" || key === KEYS.ESCAPE) {
@@ -107,7 +107,7 @@ function handleNotificationPanelKey(key: string, ctx: ProdHandleCtx): { exit?: b
  */
 function handleGlobalCommands(
   key: string,
-  ctx: ProdHandleCtx,
+  ctx: IProdHandleCtx,
 ): { exit?: boolean; reRender?: boolean } | null {
   const { prodState } = ctx;
 
@@ -133,7 +133,7 @@ function handleGlobalCommands(
  */
 function handlePaneNavigation(
   key: string,
-  ctx: ProdHandleCtx,
+  ctx: IProdHandleCtx,
 ): { reRender: boolean } | null {
   const { panes, activePaneRef } = ctx;
 
@@ -173,7 +173,7 @@ function handlePaneNavigation(
  */
 async function handlePaneManagement(
   key: string,
-  ctx: ProdHandleCtx,
+  ctx: IProdHandleCtx,
 ): Promise<{ reRender: boolean } | null> {
   const { panes, views, activePaneRef, addNotification } = ctx;
 
@@ -200,7 +200,7 @@ async function handlePaneManagement(
  */
 function handlePaneResizing(
   key: string,
-  ctx: ProdHandleCtx,
+  ctx: IProdHandleCtx,
 ): { reRender: boolean } | null {
   const { panes, activePaneRef } = ctx;
 
@@ -226,7 +226,7 @@ function handlePaneResizing(
  */
 async function handleLayoutOperations(
   key: string,
-  ctx: ProdHandleCtx,
+  ctx: IProdHandleCtx,
 ): Promise<{ reRender: boolean } | null> {
   if (key === "\n" || key === KEYS.ENTER) {
     // Enter: show selected pane info (no-op for helper)
@@ -251,21 +251,21 @@ async function handleLayoutOperations(
  */
 async function handleTopLevelNavigationKey(
   key: string,
-  ctx: ProdHandleCtx,
+  ctx: IProdHandleCtx,
 ): Promise<{ exit?: boolean; reRender?: boolean }> {
   // Global commands
   const globalResult = handleGlobalCommands(key, ctx);
   if (globalResult) return globalResult;
 
-  // Pane navigation
+  // IPane navigation
   const navigationResult = handlePaneNavigation(key, ctx);
   if (navigationResult) return navigationResult;
 
-  // Pane management
+  // IPane management
   const managementResult = await handlePaneManagement(key, ctx);
   if (managementResult) return managementResult;
 
-  // Pane resizing
+  // IPane resizing
   const resizeResult = handlePaneResizing(key, ctx);
   if (resizeResult) return resizeResult;
 
@@ -300,7 +300,7 @@ async function handleTopLevelNavigationKey(
  * Other key constants (e.g., KEYS.N, KEYS.M, KEYS.QUESTION) are defined in the KEYS object and represent
  * specific keyboard shortcuts for the TUI.
  */
-export async function prodHandleKey(key: string, ctx: ProdHandleCtx): Promise<{ exit?: boolean; reRender?: boolean }> {
+export async function prodHandleKey(key: string, ctx: IProdHandleCtx): Promise<{ exit?: boolean; reRender?: boolean }> {
   const { prodState } = ctx;
 
   // Memory notifications handling

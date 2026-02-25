@@ -6,7 +6,7 @@
  * @dependencies [providers, schema, constants, provider_common_utils]
  * @related-files [src/ai/factories/llama_factory.ts, src/ai/factories/ollama_factory.ts]
  */
-import { IModelProvider, ModelOptions } from "../providers.ts";
+import { IModelOptions, IModelProvider } from "../providers.ts";
 import type { Config } from "../../config/schema.ts";
 import * as DEFAULTS from "../../config/constants.ts";
 import { fetchJsonWithRetries, type OllamaResponse } from "../provider_common_utils.ts";
@@ -14,7 +14,7 @@ import { fetchJsonWithRetries, type OllamaResponse } from "../provider_common_ut
 /**
  * Options for LlamaProvider.
  */
-export interface LlamaProviderOptions {
+export interface ILlamaProviderOptions {
   model: string;
   endpoint?: string;
   id?: string;
@@ -41,7 +41,7 @@ export class LlamaProvider implements IModelProvider {
    * @param options.id Optional provider id
    * @param options.config Optional config for endpoint and retry settings
    */
-  constructor(options: LlamaProviderOptions) {
+  constructor(options: ILlamaProviderOptions) {
     if (!/^codellama:|^llama[0-9.]*:/.test(options.model)) {
       throw new Error("Unsupported model");
     }
@@ -72,7 +72,7 @@ export class LlamaProvider implements IModelProvider {
   /**
    * Generate a completion from the model.
    */
-  async generate(prompt: string, _options?: ModelOptions): Promise<string> {
+  async generate(prompt: string, _options?: IModelOptions): Promise<string> {
     const body = {
       model: this.model,
       prompt,

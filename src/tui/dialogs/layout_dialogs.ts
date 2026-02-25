@@ -8,23 +8,23 @@
  */
 
 import { KEYS } from "../../helpers/keyboard.ts";
-import { colorize, type TuiTheme } from "../../helpers/colors.ts";
+import { colorize, type ITuiTheme } from "../../helpers/colors.ts";
 import {
   TUI_DASHBOARD_ICONS,
   TUI_LAYOUT_PRESET_LIST_WIDTH,
   TUI_VIEW_PICKER_INNER_WIDTH,
 } from "../../helpers/constants.ts";
-import { type LayoutPresetDisplay, renderLayoutPresetListLines } from "../../helpers/layout_rendering.ts";
+import { type ILayoutPresetDisplay, renderLayoutPresetListLines } from "../../helpers/layout_rendering.ts";
 
 // ===== View Picker Dialog =====
 
-export interface ViewInfo {
+export interface IViewInfo {
   name: string;
   icon: string;
   description: string;
 }
 
-export const AVAILABLE_VIEWS: ViewInfo[] = [
+export const AVAILABLE_VIEWS: IViewInfo[] = [
   {
     name: "PortalManagerView",
     icon: TUI_DASHBOARD_ICONS.views.PortalManagerView,
@@ -38,14 +38,41 @@ export const AVAILABLE_VIEWS: ViewInfo[] = [
   { name: "MemoryView", icon: TUI_DASHBOARD_ICONS.views.MemoryView, description: "Memory banks" },
 ];
 
-export interface ViewPickerDialogState {
+export interface IViewPickerDialogState {
   isOpen: boolean;
   selectedIndex: number;
   purpose: "split" | "change" | "new";
   targetPaneId?: string;
 }
 
-export function createViewPickerState(): ViewPickerDialogState {
+export interface ILayoutPresetDialogState {
+  isOpen: boolean;
+  selectedIndex: number;
+}
+
+export interface ILayoutPresetInfo {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  shortcut: string;
+}
+
+export interface INamedLayoutDialogState {
+  isOpen: boolean;
+  mode: "save" | "load" | "delete";
+  layouts: string[];
+  selectedIndex: number;
+  inputName: string;
+  inputActive: boolean;
+}
+
+export interface IResizeModeState {
+  isActive: boolean;
+  paneId: string | null;
+}
+
+export function createViewPickerState(): IViewPickerDialogState {
   return {
     isOpen: false,
     selectedIndex: 0,
@@ -53,15 +80,22 @@ export function createViewPickerState(): ViewPickerDialogState {
   };
 }
 
+export function createLayoutPresetState(): ILayoutPresetDialogState {
+  return {
+    isOpen: false,
+    selectedIndex: 0,
+  };
+}
+
 export function renderViewPickerDialog(
-  state: ViewPickerDialogState,
-  theme: TuiTheme,
+  state: IViewPickerDialogState,
+  theme: ITuiTheme,
 ): string[] {
   if (!state.isOpen) return [];
 
   const lines: string[] = [];
   const title = state.purpose === "split"
-    ? "Select View for New Pane"
+    ? "Select View for New IPane"
     : state.purpose === "change"
     ? "Change View"
     : "Select View";
@@ -74,7 +108,7 @@ export function renderViewPickerDialog(
   );
   lines.push(colorize("├──────────────────────────────────────┤", theme.border, theme.reset));
 
-  const viewDisplays: LayoutPresetDisplay[] = AVAILABLE_VIEWS.map((view, index) => ({
+  const viewDisplays: ILayoutPresetDisplay[] = AVAILABLE_VIEWS.map((view, index) => ({
     name: view.name.replace("View", ""),
     description: view.description,
     icon: view.icon,
@@ -102,9 +136,9 @@ export function renderViewPickerDialog(
 }
 
 export function handleViewPickerKey(
-  state: ViewPickerDialogState,
+  state: IViewPickerDialogState,
   key: string,
-): { state: ViewPickerDialogState; selectedView?: string; closed: boolean } {
+): { state: IViewPickerDialogState; selectedView?: string; closed: boolean } {
   if (!state.isOpen) {
     return { state, closed: false };
   }
@@ -154,27 +188,7 @@ export function handleViewPickerKey(
 
 // ===== Layout Preset Dialog =====
 
-export interface LayoutPresetDialogState {
-  isOpen: boolean;
-  selectedIndex: number;
-}
-
-export function createLayoutPresetState(): LayoutPresetDialogState {
-  return {
-    isOpen: false,
-    selectedIndex: 0,
-  };
-}
-
-export interface LayoutPresetInfo {
-  id: string;
-  name: string;
-  icon: string;
-  description: string;
-  shortcut: string;
-}
-
-export const LAYOUT_PRESET_INFO: LayoutPresetInfo[] = [
+export const LAYOUT_PRESET_INFO: ILayoutPresetInfo[] = [
   { id: "single", name: "Single", icon: "□", description: "Full-screen single pane", shortcut: "1" },
   { id: "side-by-side", name: "Side by Side", icon: "▯▯", description: "Two panes left/right", shortcut: "2" },
   { id: "stacked", name: "Stacked", icon: "▭▭", description: "Two panes top/bottom", shortcut: "3" },
@@ -184,8 +198,8 @@ export const LAYOUT_PRESET_INFO: LayoutPresetInfo[] = [
 ];
 
 export function renderLayoutPresetDialog(
-  state: LayoutPresetDialogState,
-  theme: TuiTheme,
+  state: ILayoutPresetDialogState,
+  theme: ITuiTheme,
 ): string[] {
   if (!state.isOpen) return [];
 
@@ -220,9 +234,9 @@ export function renderLayoutPresetDialog(
 }
 
 export function handleLayoutPresetKey(
-  state: LayoutPresetDialogState,
+  state: ILayoutPresetDialogState,
   key: string,
-): { state: LayoutPresetDialogState; selectedPreset?: string; closed: boolean } {
+): { state: ILayoutPresetDialogState; selectedPreset?: string; closed: boolean } {
   if (!state.isOpen) {
     return { state, closed: false };
   }
@@ -272,16 +286,7 @@ export function handleLayoutPresetKey(
 
 // ===== Named Layout Dialog =====
 
-export interface NamedLayoutDialogState {
-  isOpen: boolean;
-  mode: "save" | "load" | "delete";
-  layouts: string[];
-  selectedIndex: number;
-  inputName: string;
-  inputActive: boolean;
-}
-
-export function createNamedLayoutState(): NamedLayoutDialogState {
+export function createNamedLayoutState(): INamedLayoutDialogState {
   return {
     isOpen: false,
     mode: "save",
@@ -293,8 +298,8 @@ export function createNamedLayoutState(): NamedLayoutDialogState {
 }
 
 export function renderNamedLayoutDialog(
-  state: NamedLayoutDialogState,
-  theme: TuiTheme,
+  state: INamedLayoutDialogState,
+  theme: ITuiTheme,
 ): string[] {
   if (!state.isOpen) return [];
 
@@ -333,7 +338,7 @@ export function renderNamedLayoutDialog(
         colorize("│", theme.border, theme.reset),
     );
 
-    const savedLayoutDisplays: LayoutPresetDisplay[] = state.layouts.map((layout) => ({
+    const savedLayoutDisplays: ILayoutPresetDisplay[] = state.layouts.map((layout) => ({
       name: layout,
       description: "",
       icon: TUI_DASHBOARD_ICONS.layout.save,
@@ -377,10 +382,10 @@ export function renderNamedLayoutDialog(
 }
 
 export function handleNamedLayoutKey(
-  state: NamedLayoutDialogState,
+  state: INamedLayoutDialogState,
   key: string,
 ): {
-  state: NamedLayoutDialogState;
+  state: INamedLayoutDialogState;
   action?: "save" | "load" | "delete";
   layoutName?: string;
   closed: boolean;
@@ -437,11 +442,11 @@ export function handleNamedLayoutKey(
 }
 
 function handleSaveModeInputKey(
-  state: NamedLayoutDialogState,
-  newState: NamedLayoutDialogState,
+  state: INamedLayoutDialogState,
+  newState: INamedLayoutDialogState,
   key: string,
 ): {
-  state: NamedLayoutDialogState;
+  state: INamedLayoutDialogState;
   action?: "save" | "load" | "delete";
   layoutName?: string;
   closed: boolean;
@@ -479,12 +484,12 @@ function handleSaveModeInputKey(
   return { state: newState, closed: false };
 }
 
-// ===== Pane Swap Indicator =====
+// ===== IPane Swap Indicator =====
 
 export function renderSwapIndicator(
   sourcePaneId: string,
   targetPaneId: string | null,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string {
   if (targetPaneId) {
     return colorize(`Swap: ${sourcePaneId} ⇄ ${targetPaneId}`, theme.warning, theme.reset);
@@ -494,19 +499,14 @@ export function renderSwapIndicator(
 
 // ===== Resize Mode Indicator =====
 
-export interface ResizeModeState {
-  isActive: boolean;
-  paneId: string | null;
-}
-
-export function createResizeModeState(): ResizeModeState {
+export function createResizeModeState(): IResizeModeState {
   return {
     isActive: false,
     paneId: null,
   };
 }
 
-export function renderResizeModeIndicator(state: ResizeModeState, theme: TuiTheme): string {
+export function renderResizeModeIndicator(state: IResizeModeState, theme: ITuiTheme): string {
   if (!state.isActive) return "";
   return colorize(
     `[RESIZE MODE] Use Ctrl+Arrow keys to resize, Esc to exit`,

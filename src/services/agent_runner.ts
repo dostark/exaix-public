@@ -14,35 +14,28 @@
  * @related-files [src/services/request_processor.ts, src/services/blueprint_loader.ts]
  */
 
-export interface IAgentRunner {
-  run(
-    blueprint: Blueprint,
-    request: ParsedRequest,
-  ): Promise<AgentExecutionResult>;
-}
-
 import type { IModelProvider } from "../ai/providers.ts";
 import { JSONValue, toSafeJson } from "../types.ts";
 import type { IDatabaseService } from "./db.ts";
-import { createLLMRetryPolicy, type RetryPolicy, type RetryPolicyConfig, type RetryResult } from "./retry_policy.ts";
-import { createOutputValidator, OutputValidator, type ValidationMetrics } from "./output_validator.ts";
+import {
+  createLLMRetryPolicy,
+  createRetryPolicy,
+  type IRetryContext,
+  type IRetryPolicy,
+  type IRetryPolicyConfig,
+  type IRetryResult,
+} from "./retry_policy.ts";
+import { createOutputValidator, type IOutputValidator, type IValidationMetrics } from "./output_validator.ts";
 import type { ISkillsService } from "./skills.ts";
 import { extractKeywords } from "../helpers/text.ts";
 import { PORTAL_CONTEXT_KEY } from "../config/constants.ts";
 import { PlanAdapter } from "./plan_adapter.ts";
 
-// Note: SkillMatchRequest may be used in future for direct skill matching
-// Keeping import for consistency with SkillsService integration
-
-// ============================================================================
-// Types and Interfaces
-// ============================================================================
-
 /**
  * Blueprint defines the agent's persona and system instructions
  * Initially just a system prompt, can be extended later
  */
-export interface Blueprint {
+export interface IBlueprint {
   /** System prompt that defines the agent's behavior and capabilities */
   systemPrompt: string;
 
@@ -54,29 +47,29 @@ export interface Blueprint {
 }
 
 /**
- * ParsedRequest represents the user's intent and any additional context
- */
-/**
  * Context data for agent requests
  */
-interface RequestContextContext {
+export interface IRequestContextContext {
   [key: string]:
     | string
     | number
     | boolean
     | null
     | undefined
-    | RequestContextContext
-    | (string | number | boolean | null | undefined | RequestContextContext)[]
+    | IRequestContextContext
+    | (string | number | boolean | null | undefined | IRequestContextContext)[]
     | string[];
 }
 
-export interface ParsedRequest {
+/**
+ * IParsedRequest represents the user's intent and any additional context
+ */
+export interface IParsedRequest {
   /** The user's request/prompt */
   userPrompt: string;
 
   /** Additional context (e.g., file contents, environment info) */
-  context: RequestContextContext;
+  context: IRequestContextContext;
 
   /** Optional: Request ID for logging */
   requestId?: string;
@@ -103,7 +96,7 @@ export interface ParsedRequest {
 /**
  * Result of agent execution containing structured response
  */
-export interface AgentExecutionResult {
+export interface IAgentExecutionResult {
   /** The agent's internal reasoning (extracted from <thought> tags) */
   thought: string;
 
@@ -120,15 +113,21 @@ export interface AgentExecutionResult {
 /**
  * Configuration for AgentRunner
  */
-export interface AgentRunnerConfig {
+export interface IAgentRunnerConfig {
   /** Optional: Database service for activity logging */
   db?: IDatabaseService;
 
   /** Optional: Retry policy configuration */
-  retryPolicy?: Partial<RetryPolicyConfig>;
+  retryPolicy?: Partial<IRetryPolicyConfig>;
+
+  /** Optional: Pre-configured retry policy instance */
+  retryPolicyInstance?: IRetryPolicy;
 
   /** Optional: Disable retries entirely */
   disableRetry?: boolean;
+
+  /** Optional: Pre-configured output validator instance */
+  outputValidatorInstance?: IOutputValidator;
 
   /** Optional: Skills service for procedural memory (Phase 17) */
   skillsService?: ISkillsService;
@@ -137,12 +136,22 @@ export interface AgentRunnerConfig {
   disableSkills?: boolean;
 }
 
+/**
+ * Interface for agent runner service
+ */
+export interface IAgentRunner {
+  run(
+    blueprint: IBlueprint,
+    request: IParsedRequest,
+  ): Promise<IAgentExecutionResult>;
+}
+
 // ============================================================================
 // Agent Runner Service
 // ============================================================================
 
 /**
- * AgentRunner combines Blueprint (system prompt) with ParsedRequest (user prompt),
+ * AgentRunner combines Blueprint (system prompt) with IParsedRequest (user prompt),
  * executes via an LLM provider, and parses the structured XML response.
  *
  * Enhanced with retry/recovery (Phase 16.3):
@@ -162,27 +171,28 @@ export interface AgentRunnerConfig {
  */
 export class AgentRunner implements IAgentRunner {
   private db?: IDatabaseService;
-  private retryPolicy: RetryPolicy;
+  private retryPolicy: IRetryPolicy;
   private disableRetry: boolean;
-  private outputValidator: OutputValidator;
+  private outputValidator: IOutputValidator;
   private skillsService?: ISkillsService;
   private disableSkills: boolean;
   private planAdapter: PlanAdapter;
 
   constructor(
     private readonly modelProvider: IModelProvider,
-    config?: AgentRunnerConfig,
+    config?: IAgentRunnerConfig,
   ) {
     this.db = config?.db;
     this.disableRetry = config?.disableRetry ?? false;
     this.skillsService = config?.skillsService;
     this.disableSkills = config?.disableSkills ?? false;
-    this.retryPolicy = createLLMRetryPolicy();
-    this.outputValidator = createOutputValidator({ autoRepair: true });
+    this.retryPolicy = config?.retryPolicyInstance ||
+      (config?.retryPolicy ? createRetryPolicy(config.retryPolicy) : createLLMRetryPolicy());
+    this.outputValidator = config?.outputValidatorInstance || createOutputValidator({ autoRepair: true });
     this.planAdapter = new PlanAdapter();
 
     // Set up retry logging
-    this.retryPolicy.setOnRetry((ctx) => {
+    this.retryPolicy.setOnRetry?.((ctx: IRetryContext) => {
       this.logActivity(
         "agent",
         "agent.retry_attempt",
@@ -206,9 +216,9 @@ export class AgentRunner implements IAgentRunner {
    * @returns Structured execution result with thought and content
    */
   async run(
-    blueprint: Blueprint,
-    request: ParsedRequest,
-  ): Promise<AgentExecutionResult> {
+    blueprint: IBlueprint,
+    request: IParsedRequest,
+  ): Promise<IAgentExecutionResult> {
     const startTime = Date.now();
     const agentId = blueprint.agentId || "unknown";
     const traceId = request.traceId;
@@ -253,8 +263,8 @@ export class AgentRunner implements IAgentRunner {
    * Match and apply skills for the given request
    */
   private async matchAndApplySkills(
-    blueprint: Blueprint,
-    request: ParsedRequest,
+    blueprint: IBlueprint,
+    request: IParsedRequest,
     agentId: string,
   ): Promise<string[]> {
     if (!this.skillsService || this.disableSkills) {
@@ -311,7 +321,7 @@ export class AgentRunner implements IAgentRunner {
    * Log the start of agent execution
    */
   private logExecutionStart(
-    request: ParsedRequest,
+    request: IParsedRequest,
     agentId: string,
     traceId: string | undefined,
     requestId: string | undefined,
@@ -341,7 +351,7 @@ export class AgentRunner implements IAgentRunner {
   private async executeWithRetry(
     combinedPrompt: string,
     startTime: number,
-  ): Promise<RetryResult<string>> {
+  ): Promise<IRetryResult<string>> {
     if (this.disableRetry) {
       // Direct execution without retry
       try {
@@ -374,7 +384,7 @@ export class AgentRunner implements IAgentRunner {
    * Handle execution failure by logging and throwing
    */
   private handleExecutionFailure(
-    retryResult: RetryResult<string>,
+    retryResult: IRetryResult<string>,
     requestId: string | undefined,
     agentId: string,
     traceId: string | undefined,
@@ -405,7 +415,7 @@ export class AgentRunner implements IAgentRunner {
   private logExecutionCompletion(
     result: { thought: string; content: string },
     rawResponse: string,
-    retryResult: RetryResult<string>,
+    retryResult: IRetryResult<string>,
     requestId: string | undefined,
     agentId: string,
     traceId: string | undefined,
@@ -439,8 +449,8 @@ export class AgentRunner implements IAgentRunner {
    * @returns Combined prompt string
    */
   private constructPrompt(
-    blueprint: Blueprint,
-    request: ParsedRequest,
+    blueprint: IBlueprint,
+    request: IParsedRequest,
     skillContext?: string,
   ): string {
     // Combination: system prompt first, then skill context, then user prompt
@@ -487,7 +497,7 @@ export class AgentRunner implements IAgentRunner {
    * @param rawResponse - Raw response from the LLM
    * @returns Parsed result with thought, content, and raw response
    */
-  private parseResponse(rawResponse: string): AgentExecutionResult {
+  private parseResponse(rawResponse: string): IAgentExecutionResult {
     // Use OutputValidator for consistent XML parsing (Phase 16.2)
     const parsed = this.outputValidator.parseXMLTags(rawResponse);
 
@@ -502,7 +512,7 @@ export class AgentRunner implements IAgentRunner {
    * Get validation metrics from the output validator (Phase 16.2)
    * @returns Current validation metrics
    */
-  getValidationMetrics(): ValidationMetrics {
+  getValidationMetrics(): IValidationMetrics {
     return this.outputValidator.getMetrics();
   }
 
@@ -514,7 +524,7 @@ export class AgentRunner implements IAgentRunner {
   }
 
   /**
-   * Log activity to Activity Journal (if database provided)
+   * Log activity to IActivity Journal (if database provided)
    */
   private logActivity(
     actor: string,

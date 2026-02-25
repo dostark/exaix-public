@@ -10,8 +10,8 @@
 import { join } from "@std/path";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
-import type { FlowResult } from "../flows/flow_runner.ts";
-import type { Flow } from "../schemas/flow.ts";
+import type { IFlowResult } from "../flows/flow_runner.ts";
+import type { IFlow } from "../schemas/flow.ts";
 import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../helpers/constants.ts";
 import { JSONValue } from "../types.ts";
 
@@ -22,7 +22,7 @@ import { JSONValue } from "../types.ts";
 /**
  * Configuration for the FlowReporter
  */
-export interface FlowReportConfig {
+export interface IFlowReportConfig {
   /** Directory where reports are written (now Memory/Execution/) */
   reportsDirectory: string;
 
@@ -50,9 +50,9 @@ export interface FlowReportResult {
 
 export class FlowReporter {
   private config: Config;
-  private reportConfig: FlowReportConfig;
+  private reportConfig: IFlowReportConfig;
 
-  constructor(config: Config, reportConfig: FlowReportConfig) {
+  constructor(config: Config, reportConfig: IFlowReportConfig) {
     this.config = config;
     this.reportConfig = reportConfig;
   }
@@ -61,8 +61,8 @@ export class FlowReporter {
    * Generate a flow report for a completed flow execution
    */
   async generate(
-    flow: Flow,
-    flowResult: FlowResult,
+    flow: IFlow,
+    flowResult: IFlowResult,
     requestId?: string,
   ): Promise<FlowReportResult> {
     const startTime = Date.now();
@@ -80,7 +80,7 @@ export class FlowReporter {
 
       const createdAt = new Date();
 
-      // Log success to Activity Journal
+      // Log success to IActivity Journal
       this.logReportGenerated(flow, flowResult, reportPath, Date.now() - startTime);
 
       return {
@@ -89,7 +89,7 @@ export class FlowReporter {
         createdAt,
       };
     } catch (error) {
-      // Log failure to Activity Journal
+      // Log failure to IActivity Journal
       this.logReportFailed(flow, flowResult, error as Error, Date.now() - startTime);
       throw error;
     }
@@ -99,8 +99,8 @@ export class FlowReporter {
    * Build the complete report content
    */
   private async buildReport(
-    flow: Flow,
-    flowResult: FlowResult,
+    flow: IFlow,
+    flowResult: IFlowResult,
     requestId?: string,
   ): Promise<string> {
     const sections: string[] = [];
@@ -127,8 +127,8 @@ export class FlowReporter {
    * Generate YAML frontmatter for the flow report
    */
   private buildFrontmatter(
-    flow: Flow,
-    flowResult: FlowResult,
+    flow: IFlow,
+    flowResult: IFlowResult,
     requestId?: string,
   ): string {
     const completedAt = flowResult.completedAt.toISOString();
@@ -181,15 +181,15 @@ export class FlowReporter {
   /**
    * Generate title for the flow report
    */
-  private buildTitle(flow: Flow, flowResult: FlowResult): string {
+  private buildTitle(flow: IFlow, flowResult: IFlowResult): string {
     const status = flowResult.success ? `${TUI_ICON_SUCCESS} Success` : `${TUI_ICON_FAILURE} Failed`;
-    return `# Flow Report: ${flow.name} (${status})\n\n`;
+    return `# IFlow Report: ${flow.name} (${status})\n\n`;
   }
 
   /**
    * Build execution summary table
    */
-  private buildExecutionSummary(flowResult: FlowResult): string {
+  private buildExecutionSummary(flowResult: IFlowResult): string {
     const steps = Array.from(flowResult.stepResults.values());
 
     let summary = "## Execution Summary\n\n";
@@ -216,7 +216,7 @@ export class FlowReporter {
   /**
    * Build step outputs section
    */
-  private buildStepOutputs(flowResult: FlowResult): string {
+  private buildStepOutputs(flowResult: IFlowResult): string {
     let outputs = "## Step Outputs\n\n";
 
     for (const [stepId, stepResult] of flowResult.stepResults) {
@@ -251,7 +251,7 @@ export class FlowReporter {
   /**
    * Build dependency graph visualization
    */
-  private buildDependencyGraph(flow: Flow): string {
+  private buildDependencyGraph(flow: IFlow): string {
     let graph = "## Dependency Graph\n\n";
     graph += "```mermaid\ngraph TD\n";
 
@@ -274,7 +274,7 @@ export class FlowReporter {
     graph += "```\n\n";
 
     // Add text description
-    graph += "**Flow Structure:**\n\n";
+    graph += "**IFlow Structure:**\n\n";
     for (const step of flow.steps) {
       const deps = step.dependsOn && step.dependsOn.length > 0
         ? ` (depends on: ${step.dependsOn.join(", ")})`
@@ -289,18 +289,18 @@ export class FlowReporter {
   /**
    * Generate filename for the flow report
    */
-  private generateFilename(flow: Flow, flowResult: FlowResult): string {
+  private generateFilename(flow: IFlow, flowResult: IFlowResult): string {
     const timestamp = flowResult.completedAt.toISOString().replace(/[:.]/g, "-");
     const shortRunId = flowResult.flowRunId.slice(0, 8);
     return `flow_${flow.id}_${shortRunId}_${timestamp}.md`;
   }
 
   /**
-   * Log successful report generation to Activity Journal
+   * Log successful report generation to IActivity Journal
    */
   private logReportGenerated(
-    flow: Flow,
-    flowResult: FlowResult,
+    flow: IFlow,
+    flowResult: IFlowResult,
     reportPath: string,
     duration: number,
   ): void {
@@ -324,11 +324,11 @@ export class FlowReporter {
   }
 
   /**
-   * Log failed report generation to Activity Journal
+   * Log failed report generation to IActivity Journal
    */
   private logReportFailed(
-    flow: Flow,
-    flowResult: FlowResult,
+    flow: IFlow,
+    flowResult: IFlowResult,
     error: Error,
     duration: number,
   ): void {

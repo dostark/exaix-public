@@ -7,9 +7,9 @@
  * @related-files [src/services/git_service.ts, src/cli/main.ts]
  */
 
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 
-export interface BranchInfo {
+export interface IBranchInfo {
   name: string;
   is_current: boolean;
   last_commit: string;
@@ -29,7 +29,7 @@ export interface CommitInfo {
  * Commands for git repository operations
  */
 export class GitCommands extends BaseCommand {
-  constructor(context: CommandContext) {
+  constructor(context: ICommandContext) {
     super(context);
   }
 
@@ -38,7 +38,7 @@ export class GitCommands extends BaseCommand {
    * @param pattern Optional glob pattern for branch names
    * @returns List of branches
    */
-  async listBranches(pattern?: string): Promise<BranchInfo[]> {
+  async listBranches(pattern?: string): Promise<IBranchInfo[]> {
     const workspaceRoot = this.config.system.root;
 
     const args = [
@@ -55,7 +55,7 @@ export class GitCommands extends BaseCommand {
 
     const output = await this.runGitCommand(args);
     const lines = output.trim().split("\n").filter((l) => l);
-    const branches: BranchInfo[] = [];
+    const branches: IBranchInfo[] = [];
 
     for (const line of lines) {
       const [head, name, commit, date] = line.split("|");
@@ -88,7 +88,7 @@ export class GitCommands extends BaseCommand {
    * @param branchName Branch name
    * @returns Branch info with commit history
    */
-  async showBranch(branchName: string): Promise<{ branch: BranchInfo; commits: CommitInfo[] }> {
+  async showBranch(branchName: string): Promise<{ branch: IBranchInfo; commits: CommitInfo[] }> {
     const workspaceRoot = this.config.system.root;
 
     // Get branch info

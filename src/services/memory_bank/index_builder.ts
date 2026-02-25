@@ -8,7 +8,7 @@
  */
 
 import { join } from "@std/path";
-import type { ExecutionMemory, Learning } from "../../schemas/memory_bank.ts";
+import type { IExecutionMemory, ILearning } from "../../schemas/memory_bank.ts";
 import { MemoryStatus } from "../../memory/memory_status.ts";
 
 function pushTagRef(tagsIndex: Record<string, string[]>, tag: string, ref: string) {
@@ -18,7 +18,7 @@ function pushTagRef(tagsIndex: Record<string, string[]>, tag: string, ref: strin
 /**
  * Build files index from execution history
  */
-export function buildFilesIndex(executions: ExecutionMemory[]): Record<string, string[]> {
+export function buildFilesIndex(executions: IExecutionMemory[]): Record<string, string[]> {
   const filesIndex: Record<string, string[]> = {};
 
   for (const exec of executions) {
@@ -76,7 +76,7 @@ export async function buildTagsIndex(
       decisions: Array<{ date: string; tags?: string[] }>;
     } | null
   >,
-  learnings: Learning[],
+  learnings: ILearning[],
 ): Promise<Record<string, string[]>> {
   const tagsIndex: Record<string, string[]> = {};
 

@@ -7,11 +7,11 @@
  * @related-files [src/ai/providers/llama_provider.ts]
  */
 import { AbstractProviderFactory } from "./abstract_provider_factory.ts";
-import { IModelProvider, ResolvedProviderOptions } from "../types.ts";
+import { IModelProvider, IResolvedProviderOptions } from "../types.ts";
 import { OllamaProvider } from "../providers.ts";
 
 export class OllamaProviderFactory extends AbstractProviderFactory {
-  async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
+  async create(options: IResolvedProviderOptions): Promise<IModelProvider> {
     return await new OllamaProvider({
       id: options.id ?? `ollama-${options.model}`,
       model: options.model,

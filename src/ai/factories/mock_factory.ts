@@ -7,12 +7,12 @@
  * @related-files [src/ai/providers/mock_llm_provider.ts]
  */
 import { AbstractProviderFactory } from "./abstract_provider_factory.ts";
-import { IModelProvider, ResolvedProviderOptions } from "../types.ts";
+import { IModelProvider, IResolvedProviderOptions } from "../types.ts";
 import { MockLLMProvider } from "../providers/mock_llm_provider.ts";
 import * as DEFAULTS from "../../config/constants.ts";
 
 export class MockProviderFactory extends AbstractProviderFactory {
-  async create(options: ResolvedProviderOptions): Promise<IModelProvider> {
+  async create(options: IResolvedProviderOptions): Promise<IModelProvider> {
     const strategy = options.mockStrategy ?? DEFAULTS.DEFAULT_MOCK_STRATEGY;
 
     return await new MockLLMProvider(strategy, {

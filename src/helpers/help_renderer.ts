@@ -10,27 +10,36 @@
 import { KEYS } from "./keyboard.ts";
 import { colorize, getTheme } from "./colors.ts";
 import { renderBoxBottom, renderBoxLine, renderBoxLineCentered, renderBoxTop } from "./dialog_base.ts";
-import type { KeyBinding } from "./keyboard.ts";
+import type { IKeyBinding } from "./keyboard.ts";
 
-// ===== Help Section Types =====
+// ===== Help Interfaces =====
 
-export interface HelpSection {
-  title: string;
-  items: HelpItem[];
-}
-
-export interface HelpItem {
+export interface IHelpItem {
   key: string;
   description: string;
   category?: string;
 }
 
-export interface HelpScreenOptions {
+export interface IHelpSection {
   title: string;
-  sections: HelpSection[];
+  items: IHelpItem[];
+}
+
+export interface IHelpScreenOptions {
+  title: string;
+  sections: IHelpSection[];
   footer?: string;
   width?: number;
   useColors?: boolean;
+}
+
+/**
+ * Simple help dialog state
+ */
+export interface IHelpDialogState {
+  visible: boolean;
+  scrollOffset: number;
+  content: string[];
 }
 
 // ===== Help Screen Rendering =====
@@ -38,7 +47,7 @@ export interface HelpScreenOptions {
 /**
  * Render a help screen
  */
-export function renderHelpScreen(options: HelpScreenOptions): string[] {
+export function renderHelpScreen(options: IHelpScreenOptions): string[] {
   const { title, sections, footer, width = 60, useColors = true } = options;
   const theme = getTheme(useColors);
   const innerWidth = width - 2;
@@ -92,10 +101,10 @@ export function renderHelpScreen(options: HelpScreenOptions): string[] {
  * Convert KeyBindings to HelpSections
  */
 export function keyBindingsToHelpSections<T extends string>(
-  bindings: KeyBinding<T>[],
-): HelpSection[] {
+  bindings: IKeyBinding<T>[],
+): IHelpSection[] {
   // Group by category
-  const categories = new Map<string, HelpItem[]>();
+  const categories = new Map<string, IHelpItem[]>();
 
   for (const binding of bindings) {
     const category = binding.category ?? "General";
@@ -109,7 +118,7 @@ export function keyBindingsToHelpSections<T extends string>(
   }
 
   // Convert to sections
-  const sections: HelpSection[] = [];
+  const sections: IHelpSection[] = [];
   for (const [title, items] of categories) {
     sections.push({ title, items });
   }
@@ -122,7 +131,7 @@ export function keyBindingsToHelpSections<T extends string>(
 /**
  * Standard navigation help section
  */
-export function getNavigationHelpSection(): HelpSection {
+export function getNavigationHelpSection(): IHelpSection {
   return {
     title: "Navigation",
     items: [
@@ -139,7 +148,7 @@ export function getNavigationHelpSection(): HelpSection {
 /**
  * Standard search help section
  */
-export function getSearchHelpSection(): HelpSection {
+export function getSearchHelpSection(): IHelpSection {
   return {
     title: "Search",
     items: [
@@ -154,7 +163,7 @@ export function getSearchHelpSection(): HelpSection {
 /**
  * Standard tree help section
  */
-export function getTreeHelpSection(): HelpSection {
+export function getTreeHelpSection(): IHelpSection {
   return {
     title: "Tree Navigation",
     items: [
@@ -169,7 +178,7 @@ export function getTreeHelpSection(): HelpSection {
 /**
  * Standard global help section
  */
-export function getGlobalHelpSection(): HelpSection {
+export function getGlobalHelpSection(): IHelpSection {
   return {
     title: "Global",
     items: [
@@ -214,21 +223,12 @@ export function getStandardQuickHelp(): { key: string; action: string }[] {
   ];
 }
 
-// ===== Help Dialog =====
-
-/**
- * Simple help dialog state
- */
-export interface HelpDialogState {
-  visible: boolean;
-  scrollOffset: number;
-  content: string[];
-}
+// ===== Help Dialog Operations =====
 
 /**
  * Create help dialog state
  */
-export function createHelpDialogState(): HelpDialogState {
+export function createHelpDialogState(): IHelpDialogState {
   return {
     visible: false,
     scrollOffset: 0,
@@ -240,9 +240,9 @@ export function createHelpDialogState(): HelpDialogState {
  * Toggle help dialog
  */
 export function toggleHelpDialog(
-  state: HelpDialogState,
+  state: IHelpDialogState,
   content?: string[],
-): HelpDialogState {
+): IHelpDialogState {
   return {
     ...state,
     visible: !state.visible,
@@ -255,10 +255,10 @@ export function toggleHelpDialog(
  * Scroll help dialog
  */
 export function scrollHelpDialog(
-  state: HelpDialogState,
+  state: IHelpDialogState,
   direction: "up" | "down",
   visibleLines: number,
-): HelpDialogState {
+): IHelpDialogState {
   if (!state.visible) return state;
 
   const maxOffset = Math.max(0, state.content.length - visibleLines);
@@ -280,10 +280,10 @@ export function scrollHelpDialog(
  * Handle help dialog key
  */
 export function handleHelpKey(
-  state: HelpDialogState,
+  state: IHelpDialogState,
   key: string,
   visibleLines: number,
-): { state: HelpDialogState; handled: boolean } {
+): { state: IHelpDialogState; handled: boolean } {
   if (!state.visible) {
     if (key === "?" || key === "F1") {
       return {

@@ -19,20 +19,17 @@ import { InputValidator } from "../schemas/input_validation.ts";
 import { CostTracker } from "../services/cost_tracker.ts";
 import { DatabaseService } from "../services/db.ts";
 import { createAPIRetryPolicy, RetryPolicy } from "../services/retry_policy.ts";
-import {
-  AnthropicProviderFactory,
-  GoogleProviderFactory,
-  MockProviderFactory,
-  OllamaProviderFactory,
-  OpenAIProviderFactory,
-  ProviderMetadata,
-  ProviderRegistry,
-} from "./provider_registry.ts";
+import { IProviderMetadata, ProviderRegistry } from "./provider_registry.ts";
+import { AnthropicProviderFactory } from "./factories/anthropic_factory.ts";
+import { GoogleProviderFactory } from "./factories/google_factory.ts";
+import { MockProviderFactory } from "./factories/mock_factory.ts";
+import { OllamaProviderFactory } from "./factories/ollama_factory.ts";
+import { OpenAIProviderFactory } from "./factories/openai_factory.ts";
 import { AbstractKeyBasedProviderFactory } from "./factories/abstract_provider_factory.ts";
 import { RateLimitedProvider } from "./rate_limited_provider.ts";
 import { PricingTier } from "../enums.ts";
-import { IModelProvider, ProviderInfo, ResolvedProviderOptions } from "./types.ts";
-export type { IModelProvider, ProviderInfo, ResolvedProviderOptions };
+import { IModelProvider, IProviderInfo, IResolvedProviderOptions } from "./types.ts";
+export type { IModelProvider, IProviderInfo, IResolvedProviderOptions };
 import { ProviderFactoryError } from "./errors.ts";
 import type { EventLogger } from "../services/event_logger.ts";
 import { LazyProvider } from "./providers/lazy_provider.ts";
@@ -203,7 +200,7 @@ export class ProviderFactory {
    * @param config - ExoFrame configuration
    * @returns Provider information for logging
    */
-  static getProviderInfo(config: Config): ProviderInfo {
+  static getProviderInfo(config: Config): IProviderInfo {
     const options = this.resolveOptions(config);
     return this.buildProviderInfo(options);
   }
@@ -215,7 +212,7 @@ export class ProviderFactory {
    * @param name - Name of the model configuration
    * @returns Provider information for logging
    */
-  static getProviderInfoByName(config: Config, name: string): ProviderInfo {
+  static getProviderInfoByName(config: Config, name: string): IProviderInfo {
     const options = this.resolveOptionsByName(config, name);
     return this.buildProviderInfo(options);
   }
@@ -229,7 +226,7 @@ export class ProviderFactory {
   private static resolveOptions(
     config: Config,
     rawModelConfig?: unknown,
-  ): ResolvedProviderOptions {
+  ): IResolvedProviderOptions {
     // ✓ Validate model config to prevent type confusion attacks
     const modelConfig = rawModelConfig ? InputValidator.validateModelConfig(rawModelConfig) : undefined;
     const envProvider = this.safeEnvGet("EXO_LLM_PROVIDER");
@@ -316,7 +313,7 @@ export class ProviderFactory {
   /**
    * Resolve provider options by name
    */
-  private static resolveOptionsByName(config: Config, name: string): ResolvedProviderOptions {
+  private static resolveOptionsByName(config: Config, name: string): IResolvedProviderOptions {
     const modelConfig = config.models?.[name] ?? config.models?.["default"] ?? config.ai;
     return this.resolveOptions(config, modelConfig);
   }
@@ -326,7 +323,7 @@ export class ProviderFactory {
    */
   private static async createAndWrap(
     config: Config,
-    options: ResolvedProviderOptions,
+    options: IResolvedProviderOptions,
     db?: DatabaseService,
     costTracker?: CostTracker,
   ): Promise<IModelProvider> {
@@ -350,7 +347,7 @@ export class ProviderFactory {
   /**
    * Internal helper to build ProviderInfo from options
    */
-  private static buildProviderInfo(options: ResolvedProviderOptions): ProviderInfo {
+  private static buildProviderInfo(options: IResolvedProviderOptions): IProviderInfo {
     const source = this.determineSource();
     return {
       type: options.provider,
@@ -374,7 +371,7 @@ export class ProviderFactory {
   /**
    * Create the appropriate provider based on resolved options
    */
-  private static async createProvider(options: ResolvedProviderOptions): Promise<IModelProvider> {
+  private static async createProvider(options: IResolvedProviderOptions): Promise<IModelProvider> {
     // Ensure registry is initialized
     initializeRegistry();
 
@@ -404,7 +401,7 @@ export class ProviderFactory {
    * Legacy provider creation for backward compatibility
    * TODO: Deprecate this method once all providers are migrated to registry
    */
-  private static async createProviderLegacy(options: ResolvedProviderOptions): Promise<IModelProvider> {
+  private static async createProviderLegacy(options: IResolvedProviderOptions): Promise<IModelProvider> {
     // Llama/Ollama model routing (special case for llama models)
     if (DEFAULTS.MODEL_ROUTING_LLAMA_PATTERN.test(options.model)) {
       return await new LlamaProvider({ model: options.model, endpoint: options.baseUrl });
@@ -421,7 +418,7 @@ export class ProviderFactory {
   /**
    * Generate a unique provider ID
    */
-  private static generateProviderId(options: ResolvedProviderOptions): string {
+  private static generateProviderId(options: IResolvedProviderOptions): string {
     // Special case for mock provider which includes strategy
     if (options.provider === DEFAULTS.PROVIDER_MOCK) {
       return `${DEFAULTS.PROVIDER_ID_MOCK_PREFIX}${
@@ -458,7 +455,7 @@ export function initializeRegistry(): void {
   // Only initialize if not already done
   if (ProviderRegistry.getSupportedProviders().length === 0) {
     // Mock provider - for testing and development
-    const mockMetadata: ProviderMetadata = {
+    const mockMetadata: IProviderMetadata = {
       name: DEFAULTS.PROVIDER_MOCK,
       description: DEFAULTS.PROVIDER_MOCK_DESCRIPTION,
       capabilities: DEFAULTS.PROVIDER_MOCK_CAPABILITIES,
@@ -469,7 +466,7 @@ export function initializeRegistry(): void {
     ProviderRegistry.registerWithMetadata(DEFAULTS.PROVIDER_MOCK, new MockProviderFactory(), mockMetadata);
 
     // Ollama provider - local open-source models
-    const ollamaMetadata: ProviderMetadata = {
+    const ollamaMetadata: IProviderMetadata = {
       name: DEFAULTS.PROVIDER_OLLAMA,
       description: DEFAULTS.PROVIDER_OLLAMA_DESCRIPTION,
       capabilities: DEFAULTS.PROVIDER_OLLAMA_CAPABILITIES,
@@ -480,7 +477,7 @@ export function initializeRegistry(): void {
     ProviderRegistry.registerWithMetadata(DEFAULTS.PROVIDER_OLLAMA, new OllamaProviderFactory(), ollamaMetadata);
 
     // Anthropic provider - Claude models
-    const anthropicMetadata: ProviderMetadata = {
+    const anthropicMetadata: IProviderMetadata = {
       name: DEFAULTS.PROVIDER_ANTHROPIC,
       description: DEFAULTS.PROVIDER_ANTHROPIC_DESCRIPTION,
       capabilities: DEFAULTS.PROVIDER_ANTHROPIC_CAPABILITIES,
@@ -495,7 +492,7 @@ export function initializeRegistry(): void {
     );
 
     // OpenAI provider - GPT models
-    const openaiMetadata: ProviderMetadata = {
+    const openaiMetadata: IProviderMetadata = {
       name: DEFAULTS.PROVIDER_OPENAI,
       description: DEFAULTS.PROVIDER_OPENAI_DESCRIPTION,
       capabilities: DEFAULTS.PROVIDER_OPENAI_CAPABILITIES,
@@ -510,7 +507,7 @@ export function initializeRegistry(): void {
     );
 
     // Google provider - Gemini models
-    const googleMetadata: ProviderMetadata = {
+    const googleMetadata: IProviderMetadata = {
       name: DEFAULTS.PROVIDER_GOOGLE,
       description: DEFAULTS.PROVIDER_GOOGLE_DESCRIPTION,
       capabilities: DEFAULTS.PROVIDER_GOOGLE_CAPABILITIES,

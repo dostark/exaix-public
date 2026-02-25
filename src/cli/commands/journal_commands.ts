@@ -1,18 +1,18 @@
 /**
  * @module JournalCommands
  * @path src/cli/commands/journal_commands.ts
- * @description Provides CLI access to the Activity Journal, allowing users to query, filter, and display system activities and agent logs.
+ * @description Provides CLI access to the IActivity Journal, allowing users to query, filter, and display system activities and agent logs.
  * @architectural-layer CLI
  * @dependencies [base_command, colors, db_schema, journal_formatter]
  * @related-files [src/services/db.ts, src/cli/main.ts]
  */
 
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 import * as colors from "@std/fmt/colors";
-import type { JournalFilterOptions } from "../../services/db.ts";
+import type { IJournalFilterOptions } from "../../services/db.ts";
 import { JournalFormatter } from "../formatters/journal_formatter.ts";
 
-export interface JournalCommandOptions {
+export interface IJournalCommandOptions {
   filter?: string[];
   tail?: number;
   format?: "json" | "table" | "text";
@@ -24,17 +24,17 @@ export interface JournalCommandOptions {
 }
 
 /**
- * JournalCommands provides CLI access to the Activity Journal.
+ * JournalCommands provides CLI access to the IActivity Journal.
  */
 export class JournalCommands extends BaseCommand {
-  constructor(context: CommandContext) {
+  constructor(context: ICommandContext) {
     super(context);
   }
 
   /**
    * Query and display journal activities
    */
-  async show(options: JournalCommandOptions): Promise<void> {
+  async show(options: IJournalCommandOptions): Promise<void> {
     const { db } = this;
     const filterOptions = this.parseFilterOptions(options);
 
@@ -45,8 +45,8 @@ export class JournalCommands extends BaseCommand {
     JournalFormatter.render(results, filterOptions, options.format);
   }
 
-  private parseFilterOptions(options: JournalCommandOptions): JournalFilterOptions {
-    const filterOptions: JournalFilterOptions = {};
+  private parseFilterOptions(options: IJournalCommandOptions): IJournalFilterOptions {
+    const filterOptions: IJournalFilterOptions = {};
 
     if (options.tail) {
       filterOptions.limit = options.tail;

@@ -22,9 +22,9 @@ import {
   ConsoleOutput,
   FileOutput,
   getGlobalLogger,
+  type ILogOutput,
   initializeGlobalLogger,
   logInfo,
-  type LogOutput,
 } from "./services/structured_logger.ts";
 import { GracefulShutdown } from "./services/graceful_shutdown.ts";
 import { ensureDir } from "@std/fs";
@@ -62,7 +62,7 @@ if (import.meta.main) {
     const logsDir = join(config.system.root, "logs");
     const structuredLogsDir = join(logsDir, "structured");
 
-    const structuredOutputs: LogOutput[] = [new FileOutput(structuredLogsDir)];
+    const structuredOutputs: ILogOutput[] = [new FileOutput(structuredLogsDir)];
 
     // Add console output for debug level to help with development
     if (config.system.log_level === "debug") {

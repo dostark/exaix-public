@@ -18,7 +18,7 @@ import type { JSONValue } from "../../types.ts";
  * - Validates portal exists
  * - Prevents path traversal
  * - Returns structured directory listing
- * - Logs all operations to Activity Journal
+ * - Logs all operations to IActivity Journal
  */
 export class ListDirectoryTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {

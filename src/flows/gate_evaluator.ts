@@ -16,31 +16,13 @@ import {
   EvaluationResult,
   getCriteriaByNames,
 } from "./evaluation_criteria.ts";
-import { StepResult } from "./flow_runner.ts";
+import { IStepResult } from "./flow_runner.ts";
 import { FlowGateOnFail } from "../enums.ts";
-
-/**
- * Gate configuration schema
- */
-export const GateConfigSchema = z.object({
-  /** Judge agent to use for evaluation */
-  agent: z.string(),
-  /** Criteria names or objects to evaluate against */
-  criteria: z.array(z.union([z.string(), EvaluationCriterionSchema])),
-  /** Score threshold for passing (0.0 - 1.0) */
-  threshold: z.number().min(0).max(1).default(0.8),
-  /** Action to take on gate failure */
-  onFail: z.nativeEnum(FlowGateOnFail).default(FlowGateOnFail.HALT),
-  /** Maximum retry attempts if onFail is "retry" */
-  maxRetries: z.number().int().min(1).default(3),
-});
-
-export type GateConfig = z.infer<typeof GateConfigSchema>;
 
 /**
  * Result of gate evaluation
  */
-export interface GateResult {
+export interface IGateResult {
   /** Whether the gate passed */
   passed: boolean;
   /** Overall score from evaluation */
@@ -70,6 +52,24 @@ export interface JudgeInvoker {
 }
 
 /**
+ * Gate configuration schema
+ */
+export const GateConfigSchema = z.object({
+  /** Judge agent to use for evaluation */
+  agent: z.string(),
+  /** Criteria names or objects to evaluate against */
+  criteria: z.array(z.union([z.string(), EvaluationCriterionSchema])),
+  /** Score threshold for passing (0.0 - 1.0) */
+  threshold: z.number().min(0).max(1).default(0.8),
+  /** Action to take on gate failure */
+  onFail: z.nativeEnum(FlowGateOnFail).default(FlowGateOnFail.HALT),
+  /** Maximum retry attempts if onFail is "retry" */
+  maxRetries: z.number().int().min(1).default(3),
+});
+
+export type GateConfig = z.infer<typeof GateConfigSchema>;
+
+/**
  * GateEvaluator class for quality gate evaluation
  */
 export class GateEvaluator {
@@ -88,7 +88,7 @@ export class GateEvaluator {
     contentToEvaluate: string,
     context?: string,
     previousAttempts: number = 0,
-  ): Promise<GateResult> {
+  ): Promise<IGateResult> {
     const startTime = performance.now();
 
     try {
@@ -107,7 +107,7 @@ export class GateEvaluator {
       const passed = this.checkPassed(evaluation, criteria, config.threshold);
 
       // Determine action
-      let action: GateResult["action"];
+      let action: IGateResult["action"];
       if (passed) {
         action = "passed";
       } else if (config.onFail === "retry" && previousAttempts < config.maxRetries - 1) {
@@ -144,10 +144,10 @@ export class GateEvaluator {
    */
   evaluateStepResult(
     config: GateConfig,
-    stepResult: StepResult,
+    stepResult: IStepResult,
     originalRequest?: string,
     previousAttempts: number = 0,
-  ): Promise<GateResult> {
+  ): Promise<IGateResult> {
     const content = stepResult.result?.content ?? "";
     return this.evaluate(config, content, originalRequest, previousAttempts);
   }
@@ -214,7 +214,7 @@ export class GateEvaluator {
   /**
    * Create feedback message for improvement
    */
-  static formatFeedbackForRetry(gateResult: GateResult): string {
+  static formatFeedbackForRetry(gateResult: IGateResult): string {
     const { evaluation } = gateResult;
 
     const failedCriteria = Object.entries(evaluation.criteriaScores)

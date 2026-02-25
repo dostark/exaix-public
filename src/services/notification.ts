@@ -1,27 +1,27 @@
 /**
- * @module NotificationService
+ * @module INotificationService
  * @path src/services/notification.ts
  * @description Manages user notifications for memory updates.
  *
  * Key responsibilities:
  * - Store notifications in journal.db
- * - Activity Journal integration for audit trail
+ * - IActivity Journal integration for audit trail
  * - Notification lifecycle management with soft-deletes
  *
  * @architectural-layer Services
- * @dependencies [Config, DatabaseService, MemoryUpdateProposal]
+ * @dependencies [Config, DatabaseService, IMemoryUpdateProposal]
  * @related-files [src/services/db.ts, src/services/memory_bank/index.builder.ts]
  */
 
 import type { Config } from "../config/schema.ts";
 import { IDatabaseService } from "./db.ts";
-import type { MemoryUpdateProposal } from "../schemas/memory_bank.ts";
+import type { IMemoryUpdateProposal } from "../schemas/memory_bank.ts";
 import { JSONObject, JSONValue, toSafeJson } from "../types.ts";
 
 /**
  * Notification structure for memory updates
  */
-export interface MemoryNotification {
+export interface IMemoryNotification {
   id?: string;
   type:
     | "memory_update_pending"
@@ -43,7 +43,7 @@ export interface MemoryNotification {
  * Interface for Notification Service to support mocks and strict typing
  */
 export interface INotificationService {
-  notifyMemoryUpdate(proposal: MemoryUpdateProposal): Promise<void>;
+  notifyMemoryUpdate(proposal: IMemoryUpdateProposal): Promise<void>;
   notify(
     message: string,
     type?: string,
@@ -53,7 +53,7 @@ export interface INotificationService {
   ): Promise<void>;
   notifyApproval(proposalId: string, learningTitle: string): void;
   notifyRejection(proposalId: string, reason: string): void;
-  getNotifications(): Promise<MemoryNotification[]>;
+  getNotifications(): Promise<IMemoryNotification[]>;
   getPendingCount(): Promise<number>;
   clearNotification(proposalId: string): Promise<void>;
   clearAllNotifications(): Promise<void>;
@@ -78,7 +78,7 @@ export class NotificationService implements INotificationService {
    *
    * @param proposal - The pending proposal
    */
-  async notifyMemoryUpdate(proposal: MemoryUpdateProposal): Promise<void> {
+  async notifyMemoryUpdate(proposal: IMemoryUpdateProposal): Promise<void> {
     const metadata = JSON.stringify({
       learning_title: proposal.learning.title,
       reason: proposal.reason,
@@ -92,7 +92,7 @@ export class NotificationService implements INotificationService {
       metadata,
     );
 
-    // Log to Activity Journal
+    // Log to IActivity Journal
     this.logActivity({
       event_type: "memory.update.pending",
       target: proposal.target_project || "global",
@@ -178,8 +178,8 @@ export class NotificationService implements INotificationService {
    *
    * @returns Array of notifications
    */
-  async getNotifications(): Promise<MemoryNotification[]> {
-    const rows = await this.db.preparedAll<MemoryNotification>(
+  async getNotifications(): Promise<IMemoryNotification[]> {
+    const rows = await this.db.preparedAll<IMemoryNotification>(
       `
       SELECT id, type, message, proposal_id, trace_id, created_at, dismissed_at, metadata
       FROM notifications
@@ -243,7 +243,7 @@ export class NotificationService implements INotificationService {
   // ===== Private Helpers =====
 
   /**
-   * Log activity to Activity Journal
+   * Log activity to IActivity Journal
    */
   private logActivity(event: {
     event_type: string;

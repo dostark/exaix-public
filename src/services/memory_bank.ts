@@ -5,7 +5,7 @@
  * - Project memory (overview, patterns, decisions, references)
  * - Execution memory (trace records, lessons learned)
  * - Search and indexing operations
- * - Activity Journal integration
+ * - IActivity Journal integration
  * @architectural-layer Services
  * @dependencies [Config, DatabaseService, Path, FS, MemoryEnums, MemoryBankSchemas, MemoryStatus, MemoryParsers, MemoryFormatters, MemoryIndexBuilder, MemorySearch, LearningExtractor]
  * @related-files [src/services/db.ts, src/schemas/memory_bank.ts]
@@ -32,29 +32,29 @@ import {
   searchMemoryAdvanced as searchMemoryAdvancedHelper,
 } from "./memory_search.ts";
 import type {
-  ActivitySummary,
-  Decision,
-  ExecutionMemory,
-  GlobalMemory,
-  Learning,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  Pattern,
-  ProjectMemory,
-  Reference,
+  IActivitySummary,
+  IDecision,
+  IExecutionMemory,
+  IGlobalMemory,
+  ILearning,
+  IMemorySearchResult,
+  IMemoryUpdateProposal,
+  IPattern,
+  IProjectMemory,
+  IReference,
 } from "../schemas/memory_bank.ts";
 
 export type {
-  ActivitySummary,
-  Decision,
-  ExecutionMemory,
-  GlobalMemory,
-  Learning,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  Pattern,
-  ProjectMemory,
-  Reference,
+  IActivitySummary,
+  IDecision,
+  IExecutionMemory,
+  IGlobalMemory,
+  ILearning,
+  IMemorySearchResult,
+  IMemoryUpdateProposal,
+  IPattern,
+  IProjectMemory,
+  IReference,
 };
 
 import { parseDecisions, parsePatterns } from "./memory_bank/parsers.ts";
@@ -66,17 +66,17 @@ import type { IMemoryEmbeddingService } from "./memory_embedding.ts";
  * Memory Bank Service Interface
  */
 export interface IMemoryBankService {
-  getProjectMemory(portal: string): Promise<ProjectMemory | null>;
-  createProjectMemory(projectMem: ProjectMemory): Promise<void>;
-  updateProjectMemory(portal: string, updates: Partial<Omit<ProjectMemory, "portal">>): Promise<void>;
-  addPattern(portal: string, pattern: Pattern): Promise<void>;
-  addDecision(portal: string, decision: Decision): Promise<void>;
-  createExecutionRecord(execution: ExecutionMemory): Promise<void>;
-  getExecutionByTraceId(traceId: string): Promise<ExecutionMemory | null>;
-  getExecutionHistory(portal?: string, limit?: number): Promise<ExecutionMemory[]>;
-  getGlobalMemory(): Promise<GlobalMemory | null>;
+  getProjectMemory(portal: string): Promise<IProjectMemory | null>;
+  createProjectMemory(projectMem: IProjectMemory): Promise<void>;
+  updateProjectMemory(portal: string, updates: Partial<Omit<IProjectMemory, "portal">>): Promise<void>;
+  addPattern(portal: string, pattern: IPattern): Promise<void>;
+  addDecision(portal: string, decision: IDecision): Promise<void>;
+  createExecutionRecord(execution: IExecutionMemory): Promise<void>;
+  getExecutionByTraceId(traceId: string): Promise<IExecutionMemory | null>;
+  getExecutionHistory(portal?: string, limit?: number): Promise<IExecutionMemory[]>;
+  getGlobalMemory(): Promise<IGlobalMemory | null>;
   initGlobalMemory(): Promise<void>;
-  addGlobalLearning(learning: Learning): Promise<void>;
+  addGlobalLearning(learning: ILearning): Promise<void>;
   promoteLearning(
     portal: string,
     promotion: {
@@ -84,15 +84,15 @@ export interface IMemoryBankService {
       name: string;
       title: string;
       description: string;
-      category: Learning["category"];
+      category: ILearning["category"];
       tags: string[];
-      confidence: Learning["confidence"];
+      confidence: ILearning["confidence"];
     },
   ): Promise<string>;
   demoteLearning(learningId: string, targetPortal: string): Promise<void>;
-  searchMemory(query: string, options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]>;
-  searchByTags(tags: string[], options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]>;
-  searchByKeyword(keyword: string, options?: { portal?: string; limit?: number }): Promise<MemorySearchResult[]>;
+  searchMemory(query: string, options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]>;
+  searchByTags(tags: string[], options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]>;
+  searchByKeyword(keyword: string, options?: { portal?: string; limit?: number }): Promise<IMemorySearchResult[]>;
   searchMemoryAdvanced(
     options: {
       tags?: string[];
@@ -100,8 +100,8 @@ export interface IMemoryBankService {
       portal?: string;
       limit?: number;
     },
-  ): Promise<MemorySearchResult[]>;
-  getRecentActivity(limit?: number): Promise<ActivitySummary[]>;
+  ): Promise<IMemorySearchResult[]>;
+  getRecentActivity(limit?: number): Promise<IActivitySummary[]>;
   rebuildIndices(): Promise<void>;
   rebuildIndicesWithEmbeddings(embeddingService: IMemoryEmbeddingService): Promise<void>;
 }
@@ -109,11 +109,11 @@ export interface IMemoryBankService {
 /**
  * Memory Bank Service
  *
- * Manages all memory bank operations with Activity Journal integration.
+ * Manages all memory bank operations with IActivity Journal integration.
  * - Project memory (overview, patterns, decisions, references)
  * - Execution memory (trace records, lessons learned)
  * - Search and indexing operations
- * - Activity Journal integration
+ * - IActivity Journal integration
  */
 export class MemoryBankService implements IMemoryBankService {
   private memoryRoot!: string;
@@ -127,7 +127,7 @@ export class MemoryBankService implements IMemoryBankService {
    * Create a new Memory Bank Service instance
    *
    * @param config - ExoFrame configuration
-   * @param db - Database service for Activity Journal integration
+   * @param db - Database service for IActivity Journal integration
    */
   constructor(private config: Config, private db: IDatabaseService) {
     this.memoryRoot = join(config.system.root, config.paths.memory);
@@ -228,7 +228,7 @@ export class MemoryBankService implements IMemoryBankService {
    * @param portal - Portal name
    * @returns Project memory or null if not found
    */
-  async getProjectMemory(portal: string): Promise<ProjectMemory | null> {
+  async getProjectMemory(portal: string): Promise<IProjectMemory | null> {
     const projectDir = join(this.projectsDir, portal);
 
     if (!await exists(projectDir)) {
@@ -263,7 +263,7 @@ export class MemoryBankService implements IMemoryBankService {
    *
    * @param projectMem - Project memory data
    */
-  async createProjectMemory(projectMem: ProjectMemory): Promise<void> {
+  async createProjectMemory(projectMem: IProjectMemory): Promise<void> {
     // Validate schema
     ProjectMemorySchema.parse(projectMem);
 
@@ -294,7 +294,7 @@ export class MemoryBankService implements IMemoryBankService {
       this.formatReferences(projectMem.references),
     );
 
-    // Log to Activity Journal
+    // Log to IActivity Journal
     this.logActivity({
       event_type: "memory.project.created",
       target: projectMem.portal,
@@ -314,7 +314,7 @@ export class MemoryBankService implements IMemoryBankService {
    */
   async updateProjectMemory(
     portal: string,
-    updates: Partial<Omit<ProjectMemory, "portal">>,
+    updates: Partial<Omit<IProjectMemory, "portal">>,
   ): Promise<void> {
     const projectDir = join(this.projectsDir, portal);
     const lockPath = join(projectDir, "update.lock");
@@ -325,7 +325,7 @@ export class MemoryBankService implements IMemoryBankService {
         throw new Error(`Project memory not found for portal: ${portal}`);
       }
 
-      const updated: ProjectMemory = {
+      const updated: IProjectMemory = {
         portal,
         overview: updates.overview ?? existing.overview,
         patterns: updates.patterns ?? existing.patterns,
@@ -351,7 +351,7 @@ export class MemoryBankService implements IMemoryBankService {
    * @param portal - Portal name
    * @param pattern - Pattern to add
    */
-  async addPattern(portal: string, pattern: Pattern): Promise<void> {
+  async addPattern(portal: string, pattern: IPattern): Promise<void> {
     const projectDir = join(this.projectsDir, portal);
     const lockPath = join(projectDir, "patterns.lock");
 
@@ -382,7 +382,7 @@ export class MemoryBankService implements IMemoryBankService {
    * @param portal - Portal name
    * @param decision - Decision to add
    */
-  async addDecision(portal: string, decision: Decision): Promise<void> {
+  async addDecision(portal: string, decision: IDecision): Promise<void> {
     const projectDir = join(this.projectsDir, portal);
     const lockPath = join(projectDir, "decisions.lock");
 
@@ -415,7 +415,7 @@ export class MemoryBankService implements IMemoryBankService {
    *
    * @param execution - Execution memory data
    */
-  async createExecutionRecord(execution: ExecutionMemory): Promise<void> {
+  async createExecutionRecord(execution: IExecutionMemory): Promise<void> {
     // Validate schema - fail fast on invalid data
     ExecutionMemorySchema.parse(execution);
 
@@ -432,7 +432,7 @@ export class MemoryBankService implements IMemoryBankService {
       JSON.stringify(execution, null, 2),
     );
 
-    // Log to Activity Journal
+    // Log to IActivity Journal
     this.logActivity({
       event_type: "memory.execution.recorded",
       target: execution.portal,
@@ -452,7 +452,7 @@ export class MemoryBankService implements IMemoryBankService {
    * @param traceId - Execution trace ID (UUID)
    * @returns Execution memory or null if not found
    */
-  async getExecutionByTraceId(traceId: string): Promise<ExecutionMemory | null> {
+  async getExecutionByTraceId(traceId: string): Promise<IExecutionMemory | null> {
     const execDir = join(this.executionDir, traceId);
     const contextFile = join(execDir, "context.json");
 
@@ -480,8 +480,8 @@ export class MemoryBankService implements IMemoryBankService {
   async getExecutionHistory(
     portal?: string,
     limit: number = 100,
-  ): Promise<ExecutionMemory[]> {
-    const executions: ExecutionMemory[] = [];
+  ): Promise<IExecutionMemory[]> {
+    const executions: IExecutionMemory[] = [];
 
     try {
       // Read all execution directories
@@ -517,7 +517,7 @@ export class MemoryBankService implements IMemoryBankService {
    *
    * @returns Global memory or null if not initialized
    */
-  async getGlobalMemory(): Promise<GlobalMemory | null> {
+  async getGlobalMemory(): Promise<IGlobalMemory | null> {
     const jsonPath = join(this.globalDir, "learnings.json");
 
     if (!await exists(jsonPath)) {
@@ -543,7 +543,7 @@ export class MemoryBankService implements IMemoryBankService {
     await ensureDir(this.globalDir);
 
     const now = new Date().toISOString();
-    const emptyGlobal: GlobalMemory = {
+    const emptyGlobal: IGlobalMemory = {
       version: "1.0.0",
       updated_at: now,
       learnings: [],
@@ -591,7 +591,7 @@ export class MemoryBankService implements IMemoryBankService {
    *
    * @param learning - Learning to add
    */
-  async addGlobalLearning(learning: Learning): Promise<void> {
+  async addGlobalLearning(learning: ILearning): Promise<void> {
     // Validate learning schema
     LearningSchema.parse(learning);
 
@@ -612,7 +612,7 @@ export class MemoryBankService implements IMemoryBankService {
       }
 
       // Check for duplicate ID
-      if (globalMem.learnings.some((l: Learning) => l.id === learning.id)) {
+      if (globalMem.learnings.some((l: ILearning) => l.id === learning.id)) {
         throw new Error(`Learning with ID '${learning.id}' already exists`);
       }
 
@@ -671,9 +671,9 @@ export class MemoryBankService implements IMemoryBankService {
       name: string;
       title: string;
       description: string;
-      category: Learning["category"];
+      category: ILearning["category"];
       tags: string[];
-      confidence: Learning["confidence"];
+      confidence: ILearning["confidence"];
     },
   ): Promise<string> {
     // Verify source project exists
@@ -692,7 +692,7 @@ export class MemoryBankService implements IMemoryBankService {
     const learningId = crypto.randomUUID();
     const now = new Date().toISOString();
 
-    const learning: Learning = {
+    const learning: ILearning = {
       id: learningId,
       created_at: now,
       source: MemorySource.USER,
@@ -737,7 +737,7 @@ export class MemoryBankService implements IMemoryBankService {
     }
 
     // Find the learning
-    const learningIndex = globalMem.learnings.findIndex((l: Learning) => l.id === learningId);
+    const learningIndex = globalMem.learnings.findIndex((l: ILearning) => l.id === learningId);
     if (learningIndex === -1) {
       throw new Error(`Learning not found: ${learningId}`);
     }
@@ -751,7 +751,7 @@ export class MemoryBankService implements IMemoryBankService {
     const learning = globalMem.learnings[learningIndex];
 
     // Add to project as a pattern (most common case)
-    const pattern: Pattern = {
+    const pattern: IPattern = {
       name: learning.title,
       description: learning.description,
       examples: [],
@@ -786,7 +786,7 @@ export class MemoryBankService implements IMemoryBankService {
     );
 
     // Rewrite learnings.md without the demoted learning
-    await this.rewriteLearningsMarkdown(globalMem);
+    await this.rewriteLearningsMarkdown(globalMem as IGlobalMemory);
 
     this.logActivity({
       event_type: "memory.learning.demoted",
@@ -802,7 +802,7 @@ export class MemoryBankService implements IMemoryBankService {
   /**
    * Format a learning as markdown
    */
-  private formatLearningMarkdown(learning: Learning): string {
+  private formatLearningMarkdown(learning: ILearning): string {
     let md = `## ${learning.title}\n\n`;
     md += `**ID:** ${learning.id}\n`;
     md += `**Created:** ${learning.created_at}\n`;
@@ -833,7 +833,7 @@ export class MemoryBankService implements IMemoryBankService {
   /**
    * Rewrite the learnings.md file from global memory state
    */
-  private async rewriteLearningsMarkdown(globalMem: GlobalMemory): Promise<void> {
+  private async rewriteLearningsMarkdown(globalMem: IGlobalMemory): Promise<void> {
     let md = "# Global Learnings\n\nCross-project learnings and insights.\n\n";
 
     for (const learning of globalMem.learnings) {
@@ -855,7 +855,7 @@ export class MemoryBankService implements IMemoryBankService {
   async searchMemory(
     query: string,
     options?: { portal?: string; limit?: number },
-  ): Promise<MemorySearchResult[]> {
+  ): Promise<IMemorySearchResult[]> {
     return await searchMemoryHelper(query, options, {
       projectsDir: this.projectsDir,
       getProjectMemory: this.getProjectMemory.bind(this),
@@ -888,7 +888,7 @@ export class MemoryBankService implements IMemoryBankService {
   async searchByTags(
     tags: string[],
     options?: { portal?: string; limit?: number },
-  ): Promise<MemorySearchResult[]> {
+  ): Promise<IMemorySearchResult[]> {
     return await searchByTagsHelper(tags, options, {
       projectsDir: this.projectsDir,
       getProjectMemory: this.getProjectMemory.bind(this),
@@ -909,7 +909,7 @@ export class MemoryBankService implements IMemoryBankService {
   async searchByKeyword(
     keyword: string,
     options?: { portal?: string; limit?: number },
-  ): Promise<MemorySearchResult[]> {
+  ): Promise<IMemorySearchResult[]> {
     return await searchByKeywordHelper(keyword, options, {
       projectsDir: this.projectsDir,
       getProjectMemory: this.getProjectMemory.bind(this),
@@ -927,7 +927,7 @@ export class MemoryBankService implements IMemoryBankService {
       portal?: string;
       limit?: number;
     },
-  ): Promise<MemorySearchResult[]> {
+  ): Promise<IMemorySearchResult[]> {
     return await searchMemoryAdvancedHelper(options, {
       projectsDir: this.projectsDir,
       getProjectMemory: this.getProjectMemory.bind(this),
@@ -941,7 +941,7 @@ export class MemoryBankService implements IMemoryBankService {
   /**
    * Load learnings from JSON file (helper for search operations)
    */
-  private async loadLearningsFromFile(): Promise<Learning[]> {
+  private async loadLearningsFromFile(): Promise<ILearning[]> {
     const learningsPath = join(this.globalDir, "learnings.json");
     if (!await exists(learningsPath)) {
       return [];
@@ -969,7 +969,7 @@ export class MemoryBankService implements IMemoryBankService {
    * @param limit - Maximum number of activities to return
    * @returns Array of activity summaries
    */
-  async getRecentActivity(limit: number = 20): Promise<ActivitySummary[]> {
+  async getRecentActivity(limit: number = 20): Promise<IActivitySummary[]> {
     const executions = await this.getExecutionHistory(undefined, limit);
 
     return executions.map((exec) => ({
@@ -1078,8 +1078,8 @@ export class MemoryBankService implements IMemoryBankService {
   /**
    * Parse references from markdown content
    */
-  private parseReferences(content: string): Reference[] {
-    const references: Reference[] = [];
+  private parseReferences(content: string): IReference[] {
+    const references: IReference[] = [];
     const lines = content.split("\n");
 
     for (const line of lines) {
@@ -1099,7 +1099,7 @@ export class MemoryBankService implements IMemoryBankService {
   /**
    * Format patterns to markdown
    */
-  private formatPatterns(patterns: Pattern[]): string {
+  private formatPatterns(patterns: IPattern[]): string {
     return patterns.map((p) => {
       let md = `## ${p.name}\n\n${p.description}\n`;
       if (p.examples && p.examples.length > 0) {
@@ -1115,7 +1115,7 @@ export class MemoryBankService implements IMemoryBankService {
   /**
    * Format decisions to markdown
    */
-  private formatDecisions(decisions: Decision[]): string {
+  private formatDecisions(decisions: IDecision[]): string {
     return decisions.map((d) => {
       let md = `## ${d.date}: ${d.decision}\n\n${d.rationale}\n`;
       if (d.alternatives && d.alternatives.length > 0) {
@@ -1131,7 +1131,7 @@ export class MemoryBankService implements IMemoryBankService {
   /**
    * Format references to markdown
    */
-  private formatReferences(references: Reference[]): string {
+  private formatReferences(references: IReference[]): string {
     return references.map((r) => {
       const desc = r.description ? ` - ${r.description}` : "";
       const title = r.description || r.path;
@@ -1140,7 +1140,7 @@ export class MemoryBankService implements IMemoryBankService {
   }
 
   /**
-   * Log activity to Activity Journal
+   * Log activity to IActivity Journal
    */
   private logActivity(event: {
     event_type: string;

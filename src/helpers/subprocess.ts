@@ -9,7 +9,7 @@
 
 import { DEFAULT_SUBPROCESS_TIMEOUT_MS } from "../config/constants.ts";
 
-export interface SubprocessOptions {
+export interface ISubprocessOptions {
   timeoutMs?: number;
   abortSignal?: AbortSignal;
   cwd?: string;
@@ -23,7 +23,7 @@ export class SafeSubprocess {
   static async run(
     command: string,
     args: string[],
-    options: SubprocessOptions = {},
+    options: ISubprocessOptions = {},
   ): Promise<{ code: number; stdout: string; stderr: string }> {
     const {
       timeoutMs = DEFAULT_SUBPROCESS_TIMEOUT_MS, // 30 second default timeout

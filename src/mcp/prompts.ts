@@ -14,7 +14,7 @@ import type { IDatabaseService } from "../services/db.ts";
 // Types
 // ============================================================================
 
-export interface MCPPrompt {
+export interface IMCPPrompt {
   name: string;
   description: string;
   arguments?: MCPPromptArgument[];
@@ -46,7 +46,7 @@ export interface MCPPromptResult {
 /**
  * Get all available prompts
  */
-export function getPrompts(): MCPPrompt[] {
+export function getPrompts(): IMCPPrompt[] {
   return [
     {
       name: "execute_plan",
@@ -91,7 +91,7 @@ export function getPrompts(): MCPPrompt[] {
 /**
  * Get a specific prompt definition
  */
-export function getPrompt(name: string): MCPPrompt | null {
+export function getPrompt(name: string): IMCPPrompt | null {
   const prompts = getPrompts();
   return prompts.find((p) => p.name === name) || null;
 }

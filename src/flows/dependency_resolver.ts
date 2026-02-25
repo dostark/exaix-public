@@ -6,7 +6,7 @@
  * @dependencies [FlowStep]
  * @related-files [src/flows/flow_runner.ts, src/schemas/flow.ts]
  */
-import { FlowStep } from "../schemas/flow.ts";
+import { IFlowStep } from "../schemas/flow.ts";
 
 /**
  * Error thrown when flow validation fails due to dependency issues
@@ -18,11 +18,11 @@ export class FlowValidationError extends Error {
   }
 }
 export class DependencyResolver {
-  private steps: Map<string, FlowStep>;
+  private steps: Map<string, IFlowStep>;
   private adjacencyList: Map<string, string[]>;
   private indegree: Map<string, number>;
 
-  constructor(steps: FlowStep[]) {
+  constructor(steps: IFlowStep[]) {
     this.steps = new Map(steps.map((step) => [step.id, step]));
     this.adjacencyList = new Map();
     this.indegree = new Map();

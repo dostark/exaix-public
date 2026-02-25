@@ -7,13 +7,13 @@
  * @related-files [src/services/memory_bank.ts, src/schemas/memory_bank.ts]
  */
 
-import type { Decision, Pattern } from "../../schemas/memory_bank.ts";
+import type { IDecision, IPattern } from "../../schemas/memory_bank.ts";
 
 /**
  * Parse patterns from markdown content
  */
-export function parsePatterns(content: string): Pattern[] {
-  const patterns: Pattern[] = [];
+export function parsePatterns(content: string): IPattern[] {
+  const patterns: IPattern[] = [];
   const sections = content.split(/^## /m).filter((s) => s.trim());
 
   for (const section of sections) {
@@ -70,8 +70,8 @@ export function parsePatterns(content: string): Pattern[] {
 /**
  * Parse decisions from markdown content
  */
-export function parseDecisions(content: string): Decision[] {
-  const decisions: Decision[] = [];
+export function parseDecisions(content: string): IDecision[] {
+  const decisions: IDecision[] = [];
   const sections = content.split(/^## /m).filter((s) => s.trim());
 
   for (const section of sections) {

@@ -1,15 +1,3 @@
-// Dynamic import required for registry initialization (documented in CODE_STYLE.md)
-// This must remain a dynamic import because the module is only needed at runtime for registry setup.
-const dynamicImport = (specifier: string) => import(specifier);
-/**
- * @module AIConfigSchema
- * @path src/config/ai_config.ts
- * @description Defines the Zod schema for AI provider configuration, including model selection, retry strategies, and mock provider settings.
- * @architectural-layer Config
- * @dependencies [zod, provider_registry, enums, constants]
- * @related-files [src/config/schema.ts, src/ai/provider_factory.ts]
- */
-
 import { z } from "zod";
 import { ProviderRegistry } from "../ai/provider_registry.ts";
 import { MockStrategy, ProviderType } from "../enums.ts";
@@ -123,6 +111,18 @@ export const DEFAULT_AI_CONFIG: AiConfig = {
   model: DEFAULT_AI_MODEL,
   timeout_ms: DEFAULT_AI_TIMEOUT_MS,
 };
+
+// Dynamic import required for registry initialization (documented in CODE_STYLE.md)
+// This must remain a dynamic import because the module is only needed at runtime for registry setup.
+const dynamicImport = (specifier: string) => import(specifier);
+/**
+ * @module AIConfigSchema
+ * @path src/config/ai_config.ts
+ * @description Defines the Zod schema for AI provider configuration, including model selection, retry strategies, and mock provider settings.
+ * @architectural-layer Config
+ * @dependencies [zod, provider_registry, enums, constants]
+ * @related-files [src/config/schema.ts, src/ai/provider_factory.ts]
+ */
 
 /**
  * Default models for each provider - now registry-driven

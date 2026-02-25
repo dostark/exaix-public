@@ -7,9 +7,8 @@
  * @related-files [src/ai/providers.ts]
  */
 import { EventLogger } from "../services/event_logger.ts";
-import { AuthenticationError, RateLimitError } from "./providers/common.ts";
-import { ConnectionError, ModelProviderError } from "./providers.ts";
-import type { ModelOptions } from "./types.ts";
+import { AuthenticationError, ConnectionError, ModelProviderError, RateLimitError } from "./providers/common.ts";
+import type { IModelOptions } from "./types.ts";
 import { DEFAULT_AI_RETRY_BACKOFF_BASE_MS, DEFAULT_AI_RETRY_MAX_ATTEMPTS } from "../config/constants.ts";
 import { withRetry } from "./providers/common.ts";
 import {
@@ -197,7 +196,7 @@ export function createOpenAIChatCompletionsRequestInit(
   apiKey: string,
   model: string,
   prompt: string,
-  options?: ModelOptions,
+  options?: IModelOptions,
 ): RequestInit {
   return {
     method: "POST",

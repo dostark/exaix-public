@@ -6,7 +6,8 @@
  * @dependencies [enums, AgentStatus, MemoryStatus, RequestStatus]
  * @related-files [src/tui/dashboard_view.ts]
  */
-import { PortalService } from "./portal_manager_view.ts";
+import type { IPortalService } from "./portal_manager_view.ts";
+import type { IDatabaseService, IJournalFilterOptions } from "../services/db.ts";
 import type { JSONValue } from "../types.ts";
 import {
   AgentHealth,
@@ -26,10 +27,10 @@ import {
 import { AgentStatus } from "./agent_status/agent_status.ts";
 import { MemoryStatus } from "../memory/memory_status.ts";
 import { RequestStatus, type RequestStatusType } from "../requests/request_status.ts";
-import type { IStructuredLogger, LogEntry } from "../services/structured_logger.ts";
-import type { RequestOptions } from "./request_manager_view.ts";
+import type { IStructuredLogEntry, IStructuredLogger } from "../services/structured_logger.ts";
+import type { IRequestOptions } from "./request_manager_view.ts";
 
-export class MockPortalService implements PortalService {
+export class MockPortalService implements IPortalService {
   /** Returns an empty list of portals. */
   listPortals() {
     return Promise.resolve([]);
@@ -99,8 +100,6 @@ export class MockPlanService {
   }
 }
 
-import type { IDatabaseService, JournalFilterOptions } from "../services/db.ts";
-
 /**
  * MockLogService
  * Mock implementation of the IDatabaseService interface for TDD and dashboard wiring tests.
@@ -108,7 +107,7 @@ import type { IDatabaseService, JournalFilterOptions } from "../services/db.ts";
  */
 export class MockLogService implements IDatabaseService {
   /** Returns an empty list of recent activity logs. */
-  queryActivity(_filter?: JournalFilterOptions) {
+  queryActivity(_filter?: IJournalFilterOptions) {
     return Promise.resolve([]);
   }
 
@@ -250,7 +249,7 @@ High priority feature request.`);
   }
 
   /** Simulates creating a new request. */
-  createRequest(_description: string, options?: RequestOptions) {
+  createRequest(_description: string, options?: IRequestOptions) {
     const newRequest = {
       trace_id: crypto.randomUUID(),
       filename: `request-${crypto.randomUUID().slice(0, 8)}.md`,
@@ -275,7 +274,7 @@ High priority feature request.`);
 
 /**
  * MockAgentService
- * Mock implementation of the AgentService interface for TDD and dashboard wiring tests.
+ * Mock implementation of the IAgentService interface for TDD and dashboard wiring tests.
  * Returns static agent data for testing.
  */
 export class MockAgentService {
@@ -695,7 +694,7 @@ export class MockSkillsService {
 }
 
 /**
- * MockStructuredLogger
+ * IMockStructuredLogger
  * Mock implementation of StructuredLogger for TDD and dashboard wiring tests.
  */
 export class MockStructuredLogger implements IStructuredLogger {
@@ -739,7 +738,7 @@ export class MockStructuredLoggerService {
   getStructuredLogs() {
     return Promise.resolve([]);
   }
-  subscribeToLogs(_callback: (entry: LogEntry) => void) {
+  subscribeToLogs(_callback: (entry: IStructuredLogEntry) => void) {
     return () => {}; // Return unsubscribe function
   }
   getLogsByCorrelationId() {
@@ -751,7 +750,7 @@ export class MockStructuredLoggerService {
   getLogsByAgentId() {
     return Promise.resolve([]);
   }
-  exportLogs(_filename: string, _entries: LogEntry[]) {
+  exportLogs(_filename: string, _entries: IStructuredLogEntry[]) {
     return Promise.resolve();
   }
 }

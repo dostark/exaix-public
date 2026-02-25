@@ -9,7 +9,7 @@
 
 export type OutputFormat = "table" | "json" | "md";
 
-export interface MemoryBankSummary {
+export interface IMemoryBankSummary {
   projects: string[];
   executions: number;
   lastActivity: string | null;

@@ -7,11 +7,18 @@
  * @related-files [src/ai/provider_registry.ts, src/ai/factories/abstract_provider_factory.ts]
  */
 
+/**
+ * Provider configuration options
+ */
+export interface IProviderConfig {
+  [key: string]: string | number | boolean | string[] | null | undefined;
+}
+
 declare const Deno: { env: { get(key: string): string | undefined } };
 
 import { ProviderRegistry } from "./provider_registry.ts";
-import { IModelProvider, ModelOptions, ResolvedProviderOptions } from "./types.ts";
-export type { IModelProvider, ModelOptions };
+import { IModelOptions, IModelProvider, IResolvedProviderOptions } from "./types.ts";
+export type { IModelOptions, IModelProvider };
 import {
   createOpenAIChatCompletionsRequestInit,
   extractOpenAIContent,
@@ -37,16 +44,7 @@ import {
 } from "../config/constants.ts";
 
 import { MockStrategy, ProviderType } from "../enums.ts";
-
-// Import error classes from common
 import { ConnectionError, ModelProviderError, TimeoutError } from "./providers/common.ts";
-
-/**
- * Provider configuration options
- */
-export interface ProviderConfig {
-  [key: string]: string | number | boolean | string[] | null | undefined;
-}
 
 // ============================================================================
 // Mock Provider (for testing)
@@ -66,7 +64,7 @@ export class MockProvider implements IModelProvider {
     this.id = id;
   }
 
-  async generate(_prompt: string, _options?: ModelOptions): Promise<string> {
+  async generate(_prompt: string, _options?: IModelOptions): Promise<string> {
     // Simulate async behavior
     await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
     return this.response;
@@ -101,7 +99,7 @@ export class OllamaProvider implements IModelProvider {
     this.id = options.id ?? `ollama-${this.defaultModel}`;
   }
 
-  async generate(prompt: string, options?: ModelOptions): Promise<string> {
+  async generate(prompt: string, options?: IModelOptions): Promise<string> {
     try {
       // Import helper dynamically to avoid module cycles
       const data = await fetchJsonWithRetries<OllamaResponse>(
@@ -196,7 +194,7 @@ class OpenAIShim implements IModelProvider {
     this.id = options.id ?? `openai-${this.model}`;
   }
 
-  async generate(prompt: string, options?: ModelOptions): Promise<string> {
+  async generate(prompt: string, options?: IModelOptions): Promise<string> {
     const url = `${this.baseUrl}/v1/chat/completions`;
 
     // Use default retry parameters
@@ -236,7 +234,7 @@ export class ModelFactory {
    */
   static async create(
     providerType: string,
-    config?: ProviderConfig,
+    config?: IProviderConfig,
   ): Promise<IModelProvider> {
     const normalizedType = providerType.toLowerCase().trim();
 
@@ -250,7 +248,7 @@ export class ModelFactory {
       // Use registry-based factory creation
       const factory = ProviderRegistry.getFactory(normalizedType);
       if (factory) {
-        const options: ResolvedProviderOptions = {
+        const options: IResolvedProviderOptions = {
           provider: normalizedType as ProviderType,
           model: (config?.model as string) ?? "default-model",
           baseUrl: config?.baseUrl as string,
@@ -292,6 +290,3 @@ export class ModelFactory {
     );
   }
 }
-
-// Re-export error classes from common.ts for backward compatibility
-export { ConnectionError, ModelProviderError, TimeoutError } from "./providers/common.ts";

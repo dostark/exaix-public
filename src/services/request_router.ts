@@ -8,19 +8,19 @@
  * transition between orchestrated flows and individual agent executions.
  *
  * @architectural-layer Services
- * @dependencies [FlowRunner, AgentRunner, BlueprintLoader, WorkspaceExecutionContext, FlowValidator]
+ * @dependencies [FlowRunner, AgentRunner, BlueprintLoader, IWorkspaceExecutionContext, FlowValidator]
  * @related-files [src/services/request_processor.ts, src/flows/flow_runner.ts, src/services/flow_validator.ts]
  */
-import { type FlowResult, type IFlowRunner } from "../flows/flow_runner.ts";
-import { type AgentExecutionResult, type Blueprint, type IAgentRunner, type ParsedRequest } from "./agent_runner.ts";
+import { type IFlowResult, type IFlowRunner } from "../flows/flow_runner.ts";
+import { type IAgentExecutionResult, type IAgentRunner, type IBlueprint, type IParsedRequest } from "./agent_runner.ts";
 import { EventLogger } from "./event_logger.ts";
 import { BlueprintLoader } from "./blueprint_loader.ts";
-import { WorkspaceExecutionContext, WorkspaceExecutionContextBuilder } from "./workspace_execution_context.ts";
-import type { Config, PortalConfig } from "../config/schema.ts";
+import { IWorkspaceExecutionContext, WorkspaceExecutionContextBuilder } from "./workspace_execution_context.ts";
+import type { Config, IPortalConfig } from "../config/schema.ts";
 import { PORTAL_CONTEXT_KEY } from "../config/constants.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
-import type { RequestFrontmatter } from "./request_processing/types.ts";
-import type { Flow } from "../schemas/flow.ts";
+import type { IRequestFrontmatter } from "./request_processing/types.ts";
+import type { IFlow } from "../schemas/flow.ts";
 
 /**
  * RequestRouter - Routes requests to appropriate execution engine
@@ -32,18 +32,18 @@ import type { Flow } from "../schemas/flow.ts";
  * 3. Neither → Default agent
  */
 
-export interface RoutingDecision {
+export interface IRoutingDecision {
   type: "flow" | "agent";
   flowId?: string;
   agentId?: string;
-  result: AgentExecutionResult | FlowResult;
+  result: IAgentExecutionResult | IFlowResult;
 }
 
 /** Typed request shape used by the router's internal methods */
 interface RouterRequest {
   traceId: string;
   requestId: string;
-  frontmatter: RequestFrontmatter;
+  frontmatter: IRequestFrontmatter;
   body: string;
 }
 
@@ -54,7 +54,7 @@ export class RoutingError extends Error {
   }
 }
 
-export interface FlowValidator {
+export interface IFlowValidator {
   validateFlow(flowId: string): Promise<{ valid: boolean; error?: string }>;
 }
 
@@ -65,7 +65,7 @@ export class RequestRouter {
   constructor(
     private flowRunner: IFlowRunner,
     private agentRunner: IAgentRunner,
-    private flowValidator: FlowValidator,
+    private flowValidator: IFlowValidator,
     private eventLogger: EventLogger,
     private defaultAgentId: string,
     private blueprintsPath: string,
@@ -76,8 +76,8 @@ export class RequestRouter {
    * Build execution context based on request portal parameter
    */
   buildExecutionContext(request: {
-    frontmatter: RequestFrontmatter;
-  }): WorkspaceExecutionContext {
+    frontmatter: IRequestFrontmatter;
+  }): IWorkspaceExecutionContext {
     const portalAlias = request.frontmatter.portal;
 
     // If portal specified, create portal context
@@ -89,7 +89,7 @@ export class RequestRouter {
         throw new Error(`Portal '${portalAlias}' not found`);
       }
 
-      const portalPermissions: PortalConfig = {
+      const portalPermissions: IPortalConfig = {
         alias: portal.alias,
         target_path: portal.target_path,
         created: portal.created,
@@ -107,7 +107,7 @@ export class RequestRouter {
   /**
    * Route a request to the appropriate execution engine
    */
-  async route(request: RouterRequest): Promise<RoutingDecision> {
+  async route(request: RouterRequest): Promise<IRoutingDecision> {
     const { traceId, requestId, frontmatter } = request;
     const flowId = frontmatter.flow;
     const agentId = frontmatter.agent;
@@ -144,7 +144,7 @@ export class RequestRouter {
     return await this.routeToDefaultAgent(request);
   }
 
-  public async routeToFlow(flowId: string, request: RouterRequest): Promise<RoutingDecision> {
+  public async routeToFlow(flowId: string, request: RouterRequest): Promise<IRoutingDecision> {
     const { traceId, requestId } = request;
 
     // Log routing decision
@@ -177,7 +177,7 @@ export class RequestRouter {
 
     // Execute flow
     const result = await this.flowRunner.execute(
-      { id: flowId } as Flow, // Flow object will be loaded by FlowRunner
+      { id: flowId } as IFlow, // Flow object will be loaded by FlowRunner
       {
         userPrompt: request.body,
         traceId,
@@ -192,7 +192,7 @@ export class RequestRouter {
     };
   }
 
-  public async routeToAgent(agentId: string, request: RouterRequest): Promise<RoutingDecision> {
+  public async routeToAgent(agentId: string, request: RouterRequest): Promise<IRoutingDecision> {
     const { traceId, requestId, body } = request;
 
     // Log routing decision
@@ -210,7 +210,7 @@ export class RequestRouter {
     }
 
     // Create parsed request
-    const parsedRequest: ParsedRequest = {
+    const parsedRequest: IParsedRequest = {
       userPrompt: body,
       context: {},
       traceId,
@@ -231,7 +231,7 @@ export class RequestRouter {
     };
   }
 
-  public async routeToDefaultAgent(request: RouterRequest): Promise<RoutingDecision> {
+  public async routeToDefaultAgent(request: RouterRequest): Promise<IRoutingDecision> {
     const { traceId, requestId } = request;
 
     // Log routing decision
@@ -249,7 +249,7 @@ export class RequestRouter {
     }
 
     // Create parsed request
-    const parsedRequest: ParsedRequest = {
+    const parsedRequest: IParsedRequest = {
       userPrompt: request.body,
       context: {},
       traceId,
@@ -274,7 +274,7 @@ export class RequestRouter {
    * Load an agent blueprint from the blueprints directory
    * Uses unified BlueprintLoader for consistent parsing
    */
-  protected async loadBlueprint(agentId: string): Promise<Blueprint | null> {
+  protected async loadBlueprint(agentId: string): Promise<IBlueprint | null> {
     const loader = new BlueprintLoader({ blueprintsPath: this.blueprintsPath });
     const loaded = await loader.load(agentId);
     if (!loaded) {

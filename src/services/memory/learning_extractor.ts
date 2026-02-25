@@ -6,7 +6,7 @@
  * @dependencies [MemoryBankSchemas, Enums]
  * @related-files [src/services/memory_bank.ts, src/schemas/memory_bank.ts]
  */
-import type { ExecutionMemory, ProposalLearning } from "../../schemas/memory_bank.ts";
+import type { IExecutionMemory, IProposalLearning } from "../../schemas/memory_bank.ts";
 import {
   ConfidenceLevel,
   ExecutionStatus,
@@ -24,8 +24,8 @@ export class LearningExtractor {
   /**
    * Analyze an execution and extract potential learnings
    */
-  static extract(execution: ExecutionMemory): ProposalLearning[] {
-    const learnings: ProposalLearning[] = [];
+  static extract(execution: IExecutionMemory): IProposalLearning[] {
+    const learnings: IProposalLearning[] = [];
 
     // Skip trivial executions (no changes, no lessons)
     if (this.isTrivialExecution(execution)) {
@@ -69,7 +69,7 @@ export class LearningExtractor {
   /**
    * Check if execution is too trivial to extract learnings from
    */
-  private static isTrivialExecution(execution: ExecutionMemory): boolean {
+  private static isTrivialExecution(execution: IExecutionMemory): boolean {
     // No changes made
     const changes = execution.changes;
     const hasChanges = (changes.files_created?.length || 0) +
@@ -91,7 +91,7 @@ export class LearningExtractor {
   /**
    * Extract a learning from a lessons_learned entry
    */
-  private static extractFromLesson(lesson: string, execution: ExecutionMemory): ProposalLearning | null {
+  private static extractFromLesson(lesson: string, execution: IExecutionMemory): IProposalLearning | null {
     // Skip very short lessons
     if (lesson.length < 10) return null;
 
@@ -119,7 +119,7 @@ export class LearningExtractor {
   /**
    * Categorize a lesson based on its content
    */
-  private static categorizeLesson(lesson: string): ProposalLearning["category"] {
+  private static categorizeLesson(lesson: string): IProposalLearning["category"] {
     const lower = lesson.toLowerCase();
 
     if (lower.includes("avoid") || lower.includes("don't") || lower.includes("never")) {
@@ -152,7 +152,7 @@ export class LearningExtractor {
   /**
    * Extract relevant tags from content and execution context
    */
-  private static extractTags(content: string, execution: ExecutionMemory): string[] {
+  private static extractTags(content: string, execution: IExecutionMemory): string[] {
     const tags: string[] = [];
     const lower = content.toLowerCase();
 
@@ -182,8 +182,8 @@ export class LearningExtractor {
   /**
    * Extract pattern learnings from execution summary
    */
-  private static extractPatternsFromSummary(execution: ExecutionMemory): ProposalLearning[] {
-    const learnings: ProposalLearning[] = [];
+  private static extractPatternsFromSummary(execution: IExecutionMemory): IProposalLearning[] {
+    const learnings: IProposalLearning[] = [];
     const summary = execution.summary.toLowerCase();
 
     // Look for common pattern indicators
@@ -223,7 +223,7 @@ export class LearningExtractor {
   /**
    * Extract troubleshooting learning from failed execution
    */
-  private static extractFromFailure(execution: ExecutionMemory): ProposalLearning | null {
+  private static extractFromFailure(execution: IExecutionMemory): IProposalLearning | null {
     if (!execution.error_message) return null;
 
     // Create troubleshooting entry

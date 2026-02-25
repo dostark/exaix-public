@@ -7,13 +7,13 @@
  * @related-files [src/services/archive_service.ts, src/cli/main.ts]
  */
 
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 import { ArchiveService } from "../../services/archive_service.ts";
 
 export class ArchiveCommands extends BaseCommand {
   private archiveService: ArchiveService;
 
-  constructor(context: CommandContext) {
+  constructor(context: ICommandContext) {
     super(context);
     this.archiveService = new ArchiveService(this.config.paths.archive);
   }

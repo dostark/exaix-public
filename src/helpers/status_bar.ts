@@ -7,33 +7,38 @@
  * @related-files [src/helpers/colors.ts, src/helpers/spinner.ts]
  */
 
-import { colorize, getTheme, padEnd, type TuiTheme, visibleLength } from "./colors.ts";
+import { colorize, getTheme, type ITuiTheme, padEnd, visibleLength } from "./colors.ts";
 import { renderSpinner, type SpinnerState, type SpinnerStyle } from "./spinner.ts";
 import { TUI_ICON_SUCCESS } from "./constants.ts";
 import { MessageType } from "../enums.ts";
 
-// ===== Status Bar Types =====
+// ===== Status Bar Interfaces =====
 
-export interface StatusBarItem {
+export interface IStatusBarItem {
   text: string;
   color?: string;
   icon?: string;
   priority?: number;
 }
 
-export interface StatusBarConfig {
+export interface IStatusBarConfig {
   width: number;
   useColors: boolean;
   showSpinner?: boolean;
   spinnerStyle?: SpinnerStyle;
 }
 
-export interface StatusBarState {
-  leftItems: StatusBarItem[];
-  rightItems: StatusBarItem[];
+export interface IStatusBarState {
+  leftItems: IStatusBarItem[];
+  rightItems: IStatusBarItem[];
   message?: string;
   messageType?: MessageType;
   spinner?: SpinnerState;
+}
+
+export interface IMultiLineStatusBarState extends IStatusBarState {
+  lines: string[];
+  expanded: boolean;
 }
 
 // ===== Status Bar Rendering =====
@@ -41,7 +46,7 @@ export interface StatusBarState {
 /**
  * Create initial status bar state
  */
-export function createStatusBarState(): StatusBarState {
+export function createStatusBarState(): IStatusBarState {
   return {
     leftItems: [],
     rightItems: [],
@@ -55,8 +60,8 @@ export function createStatusBarState(): StatusBarState {
  * Render status bar
  */
 export function renderStatusBar(
-  state: StatusBarState,
-  config: StatusBarConfig,
+  state: IStatusBarState,
+  config: IStatusBarConfig,
 ): string {
   const theme = getTheme(config.useColors);
   const { width } = config;
@@ -117,7 +122,7 @@ export function renderStatusBar(
 /**
  * Format a status item
  */
-function formatStatusItem(item: StatusBarItem, theme: TuiTheme): string {
+function formatStatusItem(item: IStatusBarItem, theme: ITuiTheme): string {
   let text = item.text;
 
   if (item.icon) {
@@ -134,7 +139,7 @@ function formatStatusItem(item: StatusBarItem, theme: TuiTheme): string {
 /**
  * Get color for message type
  */
-function getMessageColor(type: StatusBarState["messageType"], theme: TuiTheme): string {
+function getMessageColor(type: IStatusBarState["messageType"], theme: ITuiTheme): string {
   switch (type) {
     case MessageType.SUCCESS:
       return theme.success;
@@ -151,7 +156,7 @@ function getMessageColor(type: StatusBarState["messageType"], theme: TuiTheme): 
 /**
  * Truncate string with ellipsis, preserving ANSI codes
  */
-function truncateWithEllipsis(text: string, maxLen: number, _theme: TuiTheme): string {
+function truncateWithEllipsis(text: string, maxLen: number, _theme: ITuiTheme): string {
   let visibleLen = 0;
   let i = 0;
 
@@ -174,7 +179,7 @@ function truncateWithEllipsis(text: string, maxLen: number, _theme: TuiTheme): s
 /**
  * Create a view title item
  */
-export function createViewTitleItem(title: string, theme: TuiTheme): StatusBarItem {
+export function createViewTitleItem(title: string, theme: ITuiTheme): IStatusBarItem {
   return {
     text: title,
     color: theme.textBold,
@@ -185,7 +190,7 @@ export function createViewTitleItem(title: string, theme: TuiTheme): StatusBarIt
 /**
  * Create a count badge item
  */
-export function createCountItem(count: number, label: string, theme: TuiTheme): StatusBarItem {
+export function createCountItem(count: number, label: string, theme: ITuiTheme): IStatusBarItem {
   return {
     text: `${count} ${label}`,
     color: theme.textDim,
@@ -199,8 +204,8 @@ export function createCountItem(count: number, label: string, theme: TuiTheme): 
 export function createStatusItem(
   status: "active" | "pending" | "completed" | "failed",
   label?: string,
-  theme?: TuiTheme,
-): StatusBarItem {
+  theme?: ITuiTheme,
+): IStatusBarItem {
   const icons: Record<string, string> = {
     active: "●",
     pending: "◐",
@@ -226,7 +231,7 @@ export function createStatusItem(
 /**
  * Create position indicator (e.g., "5/10")
  */
-export function createPositionItem(current: number, total: number, theme: TuiTheme): StatusBarItem {
+export function createPositionItem(current: number, total: number, theme: ITuiTheme): IStatusBarItem {
   return {
     text: `${current}/${total}`,
     color: theme.textDim,
@@ -237,7 +242,7 @@ export function createPositionItem(current: number, total: number, theme: TuiThe
 /**
  * Create timestamp item
  */
-export function createTimestampItem(date: Date, theme: TuiTheme): StatusBarItem {
+export function createTimestampItem(date: Date, theme: ITuiTheme): IStatusBarItem {
   const time = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   return {
     text: time,
@@ -252,10 +257,10 @@ export function createTimestampItem(date: Date, theme: TuiTheme): StatusBarItem 
  * Set status bar message
  */
 export function setStatusMessage(
-  state: StatusBarState,
+  state: IStatusBarState,
   message: string,
   type: MessageType = MessageType.INFO,
-): StatusBarState {
+): IStatusBarState {
   return {
     ...state,
     message,
@@ -266,7 +271,7 @@ export function setStatusMessage(
 /**
  * Clear status bar message
  */
-export function clearStatusMessage(state: StatusBarState): StatusBarState {
+export function clearStatusMessage(state: IStatusBarState): IStatusBarState {
   return {
     ...state,
     message: undefined,
@@ -277,7 +282,7 @@ export function clearStatusMessage(state: StatusBarState): StatusBarState {
 /**
  * Set left items
  */
-export function setLeftItems(state: StatusBarState, items: StatusBarItem[]): StatusBarState {
+export function setLeftItems(state: IStatusBarState, items: IStatusBarItem[]): IStatusBarState {
   return {
     ...state,
     leftItems: items.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0)),
@@ -287,7 +292,7 @@ export function setLeftItems(state: StatusBarState, items: StatusBarItem[]): Sta
 /**
  * Set right items
  */
-export function setRightItems(state: StatusBarState, items: StatusBarItem[]): StatusBarState {
+export function setRightItems(state: IStatusBarState, items: IStatusBarItem[]): IStatusBarState {
   return {
     ...state,
     rightItems: items.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0)),
@@ -297,7 +302,7 @@ export function setRightItems(state: StatusBarState, items: StatusBarItem[]): St
 /**
  * Set spinner state
  */
-export function setSpinner(state: StatusBarState, spinner: SpinnerState | undefined): StatusBarState {
+export function setSpinner(state: IStatusBarState, spinner: SpinnerState | undefined): IStatusBarState {
   return {
     ...state,
     spinner,
@@ -306,15 +311,10 @@ export function setSpinner(state: StatusBarState, spinner: SpinnerState | undefi
 
 // ===== Multi-Line Status Bar =====
 
-export interface MultiLineStatusBarState extends StatusBarState {
-  lines: string[];
-  expanded: boolean;
-}
-
 /**
  * Create multi-line status bar state
  */
-export function createMultiLineStatusBarState(): MultiLineStatusBarState {
+export function createMultiLineStatusBarState(): IMultiLineStatusBarState {
   return {
     ...createStatusBarState(),
     lines: [],
@@ -326,10 +326,10 @@ export function createMultiLineStatusBarState(): MultiLineStatusBarState {
  * Add status line
  */
 export function addStatusLine(
-  state: MultiLineStatusBarState,
+  state: IMultiLineStatusBarState,
   line: string,
   maxLines: number = 5,
-): MultiLineStatusBarState {
+): IMultiLineStatusBarState {
   const newLines = [...state.lines, line];
   if (newLines.length > maxLines) {
     newLines.shift();
@@ -344,8 +344,8 @@ export function addStatusLine(
  * Render multi-line status bar
  */
 export function renderMultiLineStatusBar(
-  state: MultiLineStatusBarState,
-  config: StatusBarConfig,
+  state: IMultiLineStatusBarState,
+  config: IStatusBarConfig,
 ): string[] {
   const result: string[] = [];
 

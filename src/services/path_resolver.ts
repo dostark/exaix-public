@@ -12,7 +12,7 @@ import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import { JSONValue } from "../types.ts";
 
-export interface PathResolverConfig {
+export interface IPathResolverConfig {
   /** Optional: Database service for activity logging */
   db?: DatabaseService;
 
@@ -25,7 +25,7 @@ export class PathResolver {
   private db?: DatabaseService;
   private traceId?: string;
 
-  constructor(config: Config, options?: PathResolverConfig) {
+  constructor(config: Config, options?: IPathResolverConfig) {
     this.config = config;
     this.db = options?.db;
     this.traceId = options?.traceId;
@@ -137,7 +137,7 @@ export class PathResolver {
   }
 
   /**
-   * Log activity to Activity Journal
+   * Log activity to IActivity Journal
    */
   private logActivity(
     actor: string,

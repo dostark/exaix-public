@@ -10,7 +10,7 @@
 import { z } from "zod";
 import type { IMemoryBankService } from "./memory_bank.ts";
 import type { IMemoryEmbeddingService } from "./memory_embedding.ts";
-import type { Learning, MemorySearchResult } from "../schemas/memory_bank.ts";
+import type { ILearning, IMemorySearchResult } from "../schemas/memory_bank.ts";
 import { ConfidenceLevel, LearningCategory, MemoryScope, MemorySource } from "../enums.ts";
 import { MemoryStatus } from "../memory/memory_status.ts";
 
@@ -257,7 +257,7 @@ export class SessionMemoryService {
       InsightSchema.parse(insight);
 
       // Create learning entry
-      const learning: Learning = {
+      const learning: ILearning = {
         id: crypto.randomUUID(),
         created_at: new Date().toISOString(),
         source: MemorySource.AGENT,
@@ -541,7 +541,7 @@ ${memory.content}`;
    * Map memory search result type to memory item type
    */
   private mapResultType(
-    type: MemorySearchResult["type"],
+    type: IMemorySearchResult["type"],
   ): MemoryItem["type"] {
     switch (type) {
       case "learning":

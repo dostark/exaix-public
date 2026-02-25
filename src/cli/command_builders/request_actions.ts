@@ -14,7 +14,7 @@ import { PRIORITY_ICONS } from "../cli.config.ts";
 import type { EventLogger } from "../../services/event_logger.ts";
 import { JSONObject, JSONValue, toSafeJson } from "../../types.ts";
 
-export interface RequestActionContext {
+export interface IRequestActionContext {
   requestCommands: RequestCommands;
   display: EventLogger;
 }
@@ -41,7 +41,7 @@ export interface RequestListOptions {
  * Handle request create action
  */
 export async function handleRequestCreate(
-  context: RequestActionContext,
+  context: IRequestActionContext,
   options: RequestCreateOptions,
   description?: string,
 ): Promise<void> {
@@ -98,7 +98,7 @@ export async function handleRequestCreate(
  * Handle request list action
  */
 export async function handleRequestList(
-  context: RequestActionContext,
+  context: IRequestActionContext,
   options: RequestListOptions,
 ): Promise<void> {
   const { requestCommands, display } = context;
@@ -140,7 +140,7 @@ export async function handleRequestList(
  * Handle request show action
  */
 export async function handleRequestShow(
-  context: RequestActionContext,
+  context: IRequestActionContext,
   id: string,
 ): Promise<void> {
   const { requestCommands, display } = context;
@@ -193,7 +193,7 @@ export async function handleRequestShow(
  * Print request result (helper function)
  */
 function printRequestResult(
-  context: RequestActionContext,
+  context: IRequestActionContext,
   result: {
     priority: RequestPriority;
     trace_id: string;

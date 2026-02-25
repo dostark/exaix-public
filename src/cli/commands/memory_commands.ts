@@ -15,13 +15,13 @@ import { MemoryBankService } from "../../services/memory_bank.ts";
 import { MemoryExtractorService } from "../../services/memory_extractor.ts";
 import { MemoryEmbeddingService } from "../../services/memory_embedding.ts";
 import { MemoryScope, MemorySource, MemoryType, SkillStatus } from "../../enums.ts";
-import { type SkillMatchRequest, SkillsService } from "../../services/skills.ts";
-import type { Learning, MemorySearchResult } from "../../schemas/memory_bank.ts";
+import { type ISkillMatchRequest as SkillMatchRequest, SkillsService } from "../../services/skills.ts";
+import type { ILearning, IMemorySearchResult } from "../../schemas/memory_bank.ts";
 import { MEMORY_COMMAND_DEFAULTS } from "../cli.config.ts";
 import { MemoryFormatter } from "../formatters/memory_formatter.ts";
-import { MemoryBankSummary, OutputFormat } from "../memory_types.ts";
+import { IMemoryBankSummary, OutputFormat } from "../memory_types.ts";
 
-export interface MemoryCommandsContext {
+export interface IMemoryCommandsContext {
   config: Config;
   db: IDatabaseService;
 }
@@ -41,13 +41,16 @@ export class MemoryCommands {
   private formatter: MemoryFormatter;
   private memoryRoot: string;
 
-  constructor(context: MemoryCommandsContext) {
+  constructor(context: IMemoryCommandsContext) {
     this.config = context.config;
     this.db = context.db;
     this.memoryBank = new MemoryBankService(context.config, context.db);
     this.extractor = new MemoryExtractorService(context.config, context.db, this.memoryBank);
     this.embedding = new MemoryEmbeddingService(context.config);
-    this.skills = new SkillsService(context.config, context.db);
+    this.skills = new SkillsService(
+      { memoryDir: join(context.config.system.root, context.config.paths.memory) },
+      context.db,
+    );
     this.formatter = new MemoryFormatter();
     this.memoryRoot = join(context.config.system.root, context.config.paths.memory);
   }
@@ -77,7 +80,7 @@ export class MemoryCommands {
   /**
    * Get memory banks summary
    */
-  async getSummary(): Promise<MemoryBankSummary> {
+  async getSummary(): Promise<IMemoryBankSummary> {
     const projects: string[] = [];
     let executions = 0;
     let lastActivity: string | null = null;
@@ -147,7 +150,7 @@ export class MemoryCommands {
     const format = options?.format || MEMORY_COMMAND_DEFAULTS.FORMAT;
     const limit = options?.limit || MEMORY_COMMAND_DEFAULTS.LIMIT;
 
-    let results: MemorySearchResult[];
+    let results: IMemorySearchResult[];
 
     // Use advanced search if tags are specified
     if (options?.tags && options.tags.length > 0) {
@@ -406,14 +409,14 @@ export class MemoryCommands {
       name: string;
       title: string;
       description: string;
-      category: Learning["category"];
+      category: ILearning["category"];
       tags: string[];
-      confidence: Learning["confidence"];
+      confidence: ILearning["confidence"];
     },
   ): Promise<string> {
     try {
       const learningId = await this.memoryBank.promoteLearning(portal, promotion);
-      return `Learning promoted successfully.\nID: ${learningId}\nTitle: ${promotion.title}\nFrom: ${portal} → global`;
+      return `ILearning promoted successfully.\nID: ${learningId}\nTitle: ${promotion.title}\nFrom: ${portal} → global`;
     } catch (error) {
       return `Error: ${(error as Error).message}`;
     }
@@ -429,7 +432,7 @@ export class MemoryCommands {
   async demote(learningId: string, targetPortal: string): Promise<string> {
     try {
       await this.memoryBank.demoteLearning(learningId, targetPortal);
-      return `Learning demoted successfully.\nID: ${learningId}\nTo: ${targetPortal}`;
+      return `ILearning demoted successfully.\nID: ${learningId}\nTo: ${targetPortal}`;
     } catch (error) {
       return `Error: ${(error as Error).message}`;
     }
@@ -731,7 +734,7 @@ export class MemoryCommands {
       await this.skills.initialize();
 
       if (!options.learningIds || options.learningIds.length === 0) {
-        return "Error: Learning IDs are required for skill derivation. Use --learning-ids <id1,id2,...>";
+        return "Error: ILearning IDs are required for skill derivation. Use --learning-ids <id1,id2,...>";
       }
 
       if (!options.name) {
@@ -780,6 +783,7 @@ export class MemoryCommands {
       skill_id: skillId,
       name: options.name,
       version: "1.0.0",
+      source: MemorySource.LEARNED,
       status: SkillStatus.DRAFT,
       description: options.description || `Skill derived from ${options.learningIds.length} learnings`,
       scope: MemoryScope.PROJECT,

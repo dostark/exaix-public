@@ -7,7 +7,7 @@
  * @related-files [src/tui/tui_dashboard.ts, src/tui/tui_helpers/prod_handle_key.ts]
  */
 
-import type { Pane, TuiDashboard, TuiView } from "../tui_dashboard.ts";
+import type { IPane, ITuiDashboard, ITuiView } from "../tui_dashboard.ts";
 import { closePane, maximizePane, resizePane, splitPane } from "../dashboard/pane_manager.ts";
 import { KEYS } from "../../helpers/keyboard.ts";
 
@@ -17,10 +17,10 @@ import { KEYS } from "../../helpers/keyboard.ts";
  * Handle overlay and picker keys
  */
 async function handleOverlayKeys(
-  dashboard: TuiDashboard,
+  dashboard: ITuiDashboard,
   key: string,
-  panes: Pane[],
-  views: TuiView[],
+  panes: IPane[],
+  views: ITuiView[],
   viewPickerRef: { index: number },
 ): Promise<number | null> {
   if (dashboard.state.showHelp) {
@@ -43,7 +43,7 @@ async function handleOverlayKeys(
 /**
  * Handle state toggle keys
  */
-function handleStateToggleKeys(dashboard: TuiDashboard, key: string, viewPickerRef: { index: number }): boolean {
+function handleStateToggleKeys(dashboard: ITuiDashboard, key: string, viewPickerRef: { index: number }): boolean {
   const k = key.toLowerCase();
 
   if (k === KEYS.QUESTION || k === KEYS.F1) {
@@ -75,9 +75,9 @@ function handleStateToggleKeys(dashboard: TuiDashboard, key: string, viewPickerR
  * Handle pane navigation keys
  */
 function handlePaneNavigationKeys(
-  dashboard: TuiDashboard,
+  dashboard: ITuiDashboard,
   key: string,
-  panes: Pane[],
+  panes: IPane[],
 ): boolean {
   const k = key.toLowerCase();
 
@@ -129,10 +129,10 @@ function handlePaneNavigationKeys(
  * Handle pane management keys (split, close, maximize)
  */
 async function handlePaneManagementKeys(
-  dashboard: TuiDashboard,
+  dashboard: ITuiDashboard,
   key: string,
-  panes: Pane[],
-  views: TuiView[],
+  panes: IPane[],
+  views: ITuiView[],
 ): Promise<boolean> {
   const k = key.toLowerCase();
 
@@ -170,7 +170,7 @@ async function handlePaneManagementKeys(
 /**
  * Handle layout operation keys (resize, save, restore)
  */
-async function handleLayoutOperationKeys(dashboard: TuiDashboard, key: string, panes: Pane[]): Promise<boolean> {
+async function handleLayoutOperationKeys(dashboard: ITuiDashboard, key: string, panes: IPane[]): Promise<boolean> {
   const k = key.toLowerCase();
 
   if (k === KEYS.CTRL_LEFT.toLowerCase()) {
@@ -212,10 +212,10 @@ async function handleLayoutOperationKeys(dashboard: TuiDashboard, key: string, p
 }
 
 export async function testModeHandleKey(
-  dashboard: TuiDashboard,
+  dashboard: ITuiDashboard,
   key: string,
-  panes: Pane[],
-  views: TuiView[],
+  panes: IPane[],
+  views: ITuiView[],
   viewPickerRef: { index: number },
 ): Promise<number> {
   // 1. Handle overlays and pickers

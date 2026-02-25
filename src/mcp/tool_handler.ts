@@ -92,7 +92,7 @@ export abstract class ToolHandler {
   }
 
   /**
-   * Logs tool execution to Activity Journal
+   * Logs tool execution to IActivity Journal
    */
   protected logToolExecution(
     toolName: string,

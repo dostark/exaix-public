@@ -9,14 +9,14 @@
 
 import { z } from "zod";
 import { REVIEW_STATUS_VALUES, ReviewStatus as ReviewStatusValue } from "../reviews/review_status.ts";
-import type { ReviewStatus } from "../reviews/review_status.ts";
+import type { IReviewStatus } from "../reviews/review_status.ts";
 
 /**
  * Artifact status values
  */
 export const ArtifactStatus = ReviewStatusValue;
 
-export type ArtifactStatusType = ReviewStatus;
+export type IArtifactStatusType = IReviewStatus;
 
 /**
  * Artifact type values
@@ -27,7 +27,7 @@ export const ArtifactType = {
   DIAGRAM: "diagram",
 } as const;
 
-export type ArtifactTypeValue = typeof ArtifactType[keyof typeof ArtifactType];
+export type IArtifactTypeValue = typeof ArtifactType[keyof typeof ArtifactType];
 
 /**
  * Artifact frontmatter schema (YAML)
@@ -42,7 +42,7 @@ export const ArtifactFrontmatterSchema = z.object({
   request_id: z.string(),
 });
 
-export type ArtifactFrontmatter = z.infer<typeof ArtifactFrontmatterSchema>;
+export type IArtifactFrontmatter = z.infer<typeof ArtifactFrontmatterSchema>;
 
 /**
  * Artifact database record schema
@@ -61,12 +61,12 @@ export const ArtifactSchema = z.object({
   rejection_reason: z.string().nullable().optional(),
 });
 
-export type Artifact = z.infer<typeof ArtifactSchema>;
+export type IArtifact = z.infer<typeof ArtifactSchema>;
 
 /**
  * Artifact with content (file content loaded)
  */
-export interface ArtifactWithContent extends Artifact {
+export interface IArtifactWithContent extends IArtifact {
   content: string; // Full markdown content with frontmatter
   body: string; // Markdown content without frontmatter
 }
@@ -83,7 +83,7 @@ export const CreateArtifactInputSchema = z.object({
   type: z.enum(["analysis", "report", "diagram"]).default("analysis"),
 });
 
-export type CreateArtifactInput = z.infer<typeof CreateArtifactInputSchema>;
+export type ICreateArtifactInput = z.infer<typeof CreateArtifactInputSchema>;
 
 /**
  * Artifact list filters
@@ -95,4 +95,4 @@ export const ArtifactFiltersSchema = z.object({
   type: z.enum(["analysis", "report", "diagram"]).optional(),
 }).partial();
 
-export type ArtifactFilters = z.infer<typeof ArtifactFiltersSchema>;
+export type IArtifactFilters = z.infer<typeof ArtifactFiltersSchema>;

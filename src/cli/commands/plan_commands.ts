@@ -10,7 +10,7 @@
 import { join } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { FrontmatterParser } from "../../parsers/markdown.ts";
-import { BaseCommand, type CommandContext } from "../base.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
 import { PlanStatus, type PlanStatusType } from "../../plans/plan_status.ts";
 import { RequestCommands } from "./request_commands.ts";
 import { RequestStatus } from "../../requests/request_status.ts";
@@ -27,7 +27,9 @@ import {
 
 import { type PlanFrontmatter, PlanFrontmatterSchema } from "../../schemas/plan_schema.ts";
 
-export interface PlanMetadata {
+// ===== Interfaces =====
+
+export interface IPlanMetadata {
   id: string;
   status: PlanStatusType;
   trace_id?: string;
@@ -54,14 +56,14 @@ export interface PlanMetadata {
   reviewed_at?: string;
 }
 
-export interface PlanDetails extends PlanMetadata {
+export interface IPlanDetails extends IPlanMetadata {
   content: string;
 }
 
 /**
  * Extract plan metadata from parsed frontmatter
  */
-function extractPlanMetadata(planId: string, frontmatter: PlanFrontmatter): PlanMetadata {
+function extractPlanMetadata(planId: string, frontmatter: PlanFrontmatter): IPlanMetadata {
   const validated = PlanFrontmatterSchema.parse(frontmatter);
 
   return {
@@ -101,7 +103,7 @@ export class PlanCommands extends BaseCommand {
   private requestCommands: RequestCommands;
 
   constructor(
-    context: CommandContext,
+    context: ICommandContext,
   ) {
     super(context);
     const config = context.config;
@@ -123,7 +125,7 @@ export class PlanCommands extends BaseCommand {
   private async extractPlanMetadataWithRequest(
     planId: string,
     frontmatter: PlanFrontmatter,
-  ): Promise<PlanMetadata> {
+  ): Promise<IPlanMetadata> {
     const metadata = extractPlanMetadata(planId, frontmatter);
     return await enrichWithRequest(this.requestCommands, metadata, `plan ${planId}`);
   }
@@ -468,8 +470,8 @@ export class PlanCommands extends BaseCommand {
    * - Workspace/Rejected: rejected
    * - All directories when no filter is specified
    */
-  async list(statusFilter?: PlanStatusType): Promise<PlanMetadata[]> {
-    const plans: PlanMetadata[] = [];
+  async list(statusFilter?: PlanStatusType): Promise<IPlanMetadata[]> {
+    const plans: IPlanMetadata[] = [];
 
     // Determine which directories to scan based on status filter
     const dirsToScan: string[] = [];
@@ -539,7 +541,7 @@ export class PlanCommands extends BaseCommand {
   /**
    * Show details of a specific plan
    */
-  async show(planId: string): Promise<PlanDetails> {
+  async show(planId: string): Promise<IPlanDetails> {
     // Check multiple directories in order of likelihood:
     // 1. Workspace/Plans (review, needs_revision)
     // 2. Workspace/Rejected (rejected plans with _rejected suffix)

@@ -7,14 +7,14 @@
  * @related-files [src/tui/structured_log_viewer.ts]
  */
 
-import type { LogEntry } from "../../services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../../services/structured_logger.ts";
 import type { CorrelationAnalysis } from "./types.ts";
 import { LogLevel } from "../../enums.ts";
 
 /**
  * Analyze correlation across multiple log entries
  */
-export function analyzeCorrelation(entries: LogEntry[]): CorrelationAnalysis | null {
+export function analyzeCorrelation(entries: IStructuredLogEntry[]): CorrelationAnalysis | null {
   if (entries.length === 0) return null;
 
   // Find common correlation ID

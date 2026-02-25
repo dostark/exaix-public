@@ -3,15 +3,15 @@
  * @path src/services/middleware/pipeline.ts
  * @description Generic middleware pipeline for executing a chain of interceptors.
  * @architectural-layer Services
- * @dependencies [ServiceContext]
+ * @dependencies [IServiceContext]
  * @related-files [src/services/common/types.ts]
  */
-import { ServiceContext } from "../common/types.ts";
+import { IServiceContext } from "../common/types.ts";
 
 /**
  * Middleware function type
  */
-export type Middleware<T extends ServiceContext> = (
+export type Middleware<T extends IServiceContext> = (
   context: T,
   next: () => Promise<void>,
 ) => Promise<void>;
@@ -19,7 +19,7 @@ export type Middleware<T extends ServiceContext> = (
 /**
  * Middleware pipeline for executing a chain of middleware functions
  */
-export class MiddlewarePipeline<T extends ServiceContext> {
+export class MiddlewarePipeline<T extends IServiceContext> {
   private middlewares: Middleware<T>[] = [];
 
   /**

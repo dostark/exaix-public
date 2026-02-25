@@ -14,6 +14,55 @@ import { parse as parseYaml } from "@std/yaml";
 import { z } from "zod";
 import { JSONValue } from "../types.ts";
 
+/**
+ * Fully loaded and validated blueprint
+ */
+export interface ILoadedBlueprint {
+  /** Agent identifier (from frontmatter or filename) */
+  agentId: string;
+
+  /** Human-readable name (from frontmatter or derived from agentId) */
+  name: string;
+
+  /** Model specification (provider:model format) */
+  model: string;
+
+  /** Legacy provider field (for backward compatibility) */
+  provider?: string;
+
+  /** Agent capabilities */
+  capabilities: string[];
+
+  /** System prompt (markdown body after frontmatter) */
+  systemPrompt: string;
+
+  /** Version */
+  version: string;
+
+  /** Full raw frontmatter for extensions */
+  frontmatter: RuntimeBlueprintFrontmatter;
+
+  /** Path to blueprint file */
+  path: string;
+}
+
+/**
+ * Legacy Blueprint interface for backward compatibility
+ * Used by agent_runner.ts
+ */
+export interface IBlueprint {
+  systemPrompt: string;
+  agentId?: string;
+}
+
+export interface IBlueprintLoaderOptions {
+  /** Path to blueprints directory */
+  blueprintsPath: string;
+
+  /** Default model if not specified in blueprint */
+  defaultModel?: string;
+}
+
 // ============================================================================
 // Blueprint Schema (Extended for Runtime)
 // ============================================================================
@@ -76,58 +125,9 @@ export type RuntimeBlueprintFrontmatter = z.infer<typeof RuntimeBlueprintFrontma
 // Loaded Blueprint Type
 // ============================================================================
 
-/**
- * Fully loaded and validated blueprint
- */
-export interface LoadedBlueprint {
-  /** Agent identifier (from frontmatter or filename) */
-  agentId: string;
-
-  /** Human-readable name (from frontmatter or derived from agentId) */
-  name: string;
-
-  /** Model specification (provider:model format) */
-  model: string;
-
-  /** Legacy provider field (for backward compatibility) */
-  provider?: string;
-
-  /** Agent capabilities */
-  capabilities: string[];
-
-  /** System prompt (markdown body after frontmatter) */
-  systemPrompt: string;
-
-  /** Version */
-  version: string;
-
-  /** Full raw frontmatter for extensions */
-  frontmatter: RuntimeBlueprintFrontmatter;
-
-  /** Path to blueprint file */
-  path: string;
-}
-
-/**
- * Legacy Blueprint interface for backward compatibility
- * Used by agent_runner.ts
- */
-export interface Blueprint {
-  systemPrompt: string;
-  agentId?: string;
-}
-
 // ============================================================================
 // BlueprintLoader Service
 // ============================================================================
-
-export interface BlueprintLoaderOptions {
-  /** Path to blueprints directory */
-  blueprintsPath: string;
-
-  /** Default model if not specified in blueprint */
-  defaultModel?: string;
-}
 
 /**
  * Unified blueprint loader service
@@ -139,17 +139,17 @@ export interface BlueprintLoaderOptions {
  * - Extension fields for Phase 16.4+ features
  */
 export class BlueprintLoader {
-  private cache = new Map<string, LoadedBlueprint>();
+  private cache = new Map<string, ILoadedBlueprint>();
 
-  constructor(private options: BlueprintLoaderOptions) {}
+  constructor(private options: IBlueprintLoaderOptions) {}
 
   /**
    * Load a blueprint by agent ID
    *
    * @param agentId - The agent identifier (filename without .md)
-   * @returns LoadedBlueprint or null if not found
+   * @returns ILoadedBlueprint or null if not found
    */
-  async load(agentId: string): Promise<LoadedBlueprint | null> {
+  async load(agentId: string): Promise<ILoadedBlueprint | null> {
     // Check cache first
     if (this.cache.has(agentId)) {
       return this.cache.get(agentId)!;
@@ -184,7 +184,7 @@ export class BlueprintLoader {
   /**
    * Load blueprint or throw if not found
    */
-  async loadOrThrow(agentId: string): Promise<LoadedBlueprint> {
+  async loadOrThrow(agentId: string): Promise<ILoadedBlueprint> {
     const blueprint = await this.load(agentId);
     if (!blueprint) {
       throw new BlueprintLoadError(
@@ -204,7 +204,7 @@ export class BlueprintLoader {
    * 2. TOML frontmatter (+++ delimited)
    * 3. Plain markdown (no frontmatter, entire content is system prompt)
    */
-  parse(content: string, agentId: string, path: string): LoadedBlueprint {
+  parse(content: string, agentId: string, path: string): ILoadedBlueprint {
     // Try YAML frontmatter first (most common)
     const yamlMatch = content.match(/^---\n([\s\S]*?)\n---\n?/);
     if (yamlMatch) {
@@ -242,7 +242,7 @@ export class BlueprintLoader {
     agentId: string,
     path: string,
     format: "yaml" | "toml",
-  ): LoadedBlueprint {
+  ): ILoadedBlueprint {
     let parsed: Record<string, JSONValue>;
 
     try {
@@ -340,7 +340,7 @@ export class BlueprintLoader {
     content: string,
     agentId: string,
     path: string,
-  ): LoadedBlueprint {
+  ): ILoadedBlueprint {
     const frontmatter = RuntimeBlueprintFrontmatterSchema.parse({});
 
     return {
@@ -408,7 +408,7 @@ export class BlueprintLoader {
   /**
    * Convert to legacy Blueprint interface for backward compatibility
    */
-  toLegacyBlueprint(loaded: LoadedBlueprint): Blueprint {
+  toLegacyBlueprint(loaded: ILoadedBlueprint): IBlueprint {
     return {
       systemPrompt: loaded.systemPrompt,
       agentId: loaded.agentId,
@@ -452,7 +452,7 @@ export function createBlueprintLoader(blueprintsPath: string): BlueprintLoader {
 export async function loadBlueprint(
   blueprintsPath: string,
   agentId: string,
-): Promise<Blueprint | null> {
+): Promise<IBlueprint | null> {
   const loader = new BlueprintLoader({ blueprintsPath });
   const loaded = await loader.load(agentId);
 

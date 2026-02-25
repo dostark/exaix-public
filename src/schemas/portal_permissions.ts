@@ -11,6 +11,48 @@ import { z } from "zod";
 import { PermissionAction, PortalOperation, SecurityMode } from "../enums.ts";
 
 // ============================================================================
+// Permission Check Interfaces
+// ============================================================================
+
+/**
+ * Result of a permission check
+ */
+export interface IPermissionCheckResult {
+  allowed: boolean;
+  reason?: string;
+  portal: string;
+  agent_id: string;
+  operation: PortalOperation;
+}
+
+/**
+ * Result of enhanced RBAC permission check
+ */
+export interface IRBACPermissionCheckResult {
+  allowed: boolean;
+  reason?: string;
+  portal: string;
+  agent_id: string;
+  action: PermissionAction;
+  resource: string;
+  conditions?: {
+    timeWindow?: { start: string; end: string };
+    ipWhitelist?: string[];
+    maxOperations?: number;
+  };
+}
+
+/**
+ * Result of agent whitelist check
+ */
+export interface IAgentWhitelistResult {
+  allowed: boolean;
+  reason?: string;
+  portal: string;
+  agent_id: string;
+}
+
+// ============================================================================
 // Security Modes
 // ============================================================================
 
@@ -47,7 +89,7 @@ export const PermissionConditionsSchema = z.object({
   maxOperations: z.number().positive().optional(),
 }).optional();
 
-export type PermissionConditions = z.infer<typeof PermissionConditionsSchema>;
+export type IPermissionConditions = z.infer<typeof PermissionConditionsSchema>;
 
 /**
  * Enhanced permission with resource/action/condition model
@@ -61,7 +103,7 @@ export const PermissionSchema = z.object({
   conditions: PermissionConditionsSchema,
 });
 
-export type Permission = z.infer<typeof PermissionSchema>;
+export type IPermission = z.infer<typeof PermissionSchema>;
 
 // ============================================================================
 // Portal Security Configuration
@@ -76,7 +118,7 @@ export const PortalSecurityConfigSchema = z.object({
   log_all_actions: z.boolean().default(true),
 });
 
-export type PortalSecurityConfig = z.infer<typeof PortalSecurityConfigSchema>;
+export type IPortalSecurityConfig = z.infer<typeof PortalSecurityConfigSchema>;
 
 /**
  * Extended portal configuration with permissions
@@ -101,46 +143,4 @@ export const PortalPermissionsSchema = z.object({
   security: PortalSecurityConfigSchema.optional(),
 });
 
-export type PortalPermissions = z.infer<typeof PortalPermissionsSchema>;
-
-// ============================================================================
-// Permission Check Results
-// ============================================================================
-
-/**
- * Result of a permission check
- */
-export interface PermissionCheckResult {
-  allowed: boolean;
-  reason?: string;
-  portal: string;
-  agent_id: string;
-  operation: PortalOperation;
-}
-
-/**
- * Result of enhanced RBAC permission check
- */
-export interface RBACPermissionCheckResult {
-  allowed: boolean;
-  reason?: string;
-  portal: string;
-  agent_id: string;
-  action: PermissionAction;
-  resource: string;
-  conditions?: {
-    timeWindow?: { start: string; end: string };
-    ipWhitelist?: string[];
-    maxOperations?: number;
-  };
-}
-
-/**
- * Result of agent whitelist check
- */
-export interface AgentWhitelistResult {
-  allowed: boolean;
-  reason?: string;
-  portal: string;
-  agent_id: string;
-}
+export type IPortalPermissions = z.infer<typeof PortalPermissionsSchema>;

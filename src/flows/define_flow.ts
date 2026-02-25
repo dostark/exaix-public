@@ -6,7 +6,7 @@
  * @dependencies [FlowSchema, FlowEnums]
  * @related-files [src/schemas/flow.ts, src/enums.ts]
  */
-import { Flow, FlowSchema } from "../schemas/flow.ts";
+import { FlowSchema, type IFlow } from "../schemas/flow.ts";
 import { FlowInputSource, FlowOutputFormat, FlowStepType } from "../enums.ts";
 import { JSONValue } from "../types.ts";
 export function defineFlow(config: {
@@ -39,7 +39,7 @@ export function defineFlow(config: {
   settings?: { maxParallelism?: number; failFast?: boolean; timeout?: number };
   /** Default skills to apply to all steps (Phase 17) */
   defaultSkills?: string[];
-}): Flow {
+}): IFlow {
   // Basic validation for required top-level fields
   if (!config.id || config.id.trim() === "") throw new Error("Flow ID cannot be empty");
   if (!config.name || config.name.trim() === "") throw new Error("Flow name cannot be empty");
@@ -52,7 +52,7 @@ export function defineFlow(config: {
     if (!s.name || s.name.trim() === "") throw new Error("Step name cannot be empty");
   }
 
-  const flow: Flow = {
+  const flow: IFlow = {
     id: config.id,
     name: config.name,
     description: config.description,

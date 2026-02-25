@@ -8,13 +8,13 @@
  */
 
 import { MessageType } from "../enums.ts";
-import { createGroupNode, createNode, getFirstNodeId, type TreeNode } from "../helpers/tree_view.ts";
-import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { createGroupNode, createNode, getFirstNodeId, type ITreeNode } from "../helpers/tree_view.ts";
+import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { DialogBase } from "../helpers/dialog_base.ts";
-import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
+import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
-import type { TreeViewState } from "./base/tree_view_state.ts";
-import type { IStructuredLogger, LogEntry } from "../services/structured_logger.ts";
+import type { ITreeViewState } from "./base/tree_view_state.ts";
+import type { IStructuredLogEntry, IStructuredLogger } from "../services/structured_logger.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { TUI_LAYOUT_FULL_WIDTH, TUI_LIMIT_LOGS_DEFAULT, TUI_LIMIT_LOGS_MAX } from "../helpers/constants.ts";
 import { MONITOR_AUTO_REFRESH_INTERVAL_MS } from "./tui.config.ts";
@@ -25,18 +25,18 @@ import { DialogStatus, LogLevel } from "../enums.ts";
 /**
  * Service interface for structured log access.
  */
-export interface StructuredLogService {
-  getStructuredLogs(options: LogQueryOptions): Promise<LogEntry[]>;
-  subscribeToLogs(callback: (entry: LogEntry) => void): () => void;
-  getLogsByCorrelationId(correlationId: string): Promise<LogEntry[]>;
-  getLogsByTraceId(traceId: string): Promise<LogEntry[]>;
-  getLogsByAgentId(agentId: string): Promise<LogEntry[]>;
-  exportLogs(filename: string, entries: LogEntry[]): Promise<void>;
+export interface IStructuredLogService {
+  getStructuredLogs(options: LogQueryOptions): Promise<IStructuredLogEntry[]>;
+  subscribeToLogs(callback: (entry: IStructuredLogEntry) => void): () => void;
+  getLogsByCorrelationId(correlationId: string): Promise<IStructuredLogEntry[]>;
+  getLogsByTraceId(traceId: string): Promise<IStructuredLogEntry[]>;
+  getLogsByAgentId(agentId: string): Promise<IStructuredLogEntry[]>;
+  exportLogs(filename: string, entries: IStructuredLogEntry[]): Promise<void>;
 }
 
 export interface LogQueryOptions {
   level?: LogLevel[];
-  context?: Partial<LogEntry["context"]>;
+  context?: Partial<IStructuredLogEntry["context"]>;
   timeRange?: { start: Date; end: Date };
   limit?: number;
   includePerformance?: boolean;
@@ -70,9 +70,9 @@ export interface LogViewExtensions {
   /** Real-time streaming enabled */
   realTimeEnabled: boolean;
   /** Current log entries */
-  logEntries: LogEntry[];
+  logEntries: IStructuredLogEntry[];
   /** Filtered log entries */
-  filteredEntries: LogEntry[];
+  filteredEntries: IStructuredLogEntry[];
   /** Whether detail view is shown */
   showDetail: boolean;
   /** Detail content for expanded log */
@@ -134,7 +134,7 @@ export enum StructuredLogViewerAction {
 }
 
 export class StructuredLogViewerKeyBindings extends KeyBindingsBase<StructuredLogViewerAction, KeyBindingCategory> {
-  readonly KEY_BINDINGS: readonly KeyBinding<StructuredLogViewerAction, KeyBindingCategory>[] = [
+  readonly KEY_BINDINGS: readonly IKeyBinding<StructuredLogViewerAction, KeyBindingCategory>[] = [
     {
       key: KEYS.UP,
       action: StructuredLogViewerAction.NAVIGATE_UP,
@@ -283,16 +283,16 @@ export const STRUCTURED_LOG_VIEWER_KEY_BINDINGS = new StructuredLogViewerKeyBind
 /**
  * View/controller for structured log monitoring with real-time streaming.
  */
-export class StructuredLogViewer extends BaseTreeView<LogEntry> {
+export class StructuredLogViewer extends BaseTreeView<IStructuredLogEntry> {
   protected logViewExtensions: LogViewExtensions;
-  private logService: StructuredLogService;
+  private logService: IStructuredLogService;
   private structuredLogger: IStructuredLogger;
   private unsubscribeRealTime?: () => void;
   private refreshInterval?: number;
   private pendingDialogType: "search" | "filter-level" | "export" | null = null;
 
   constructor(
-    logService: StructuredLogService,
+    logService: IStructuredLogService,
     structuredLogger: IStructuredLogger,
     options: { testMode?: boolean } = {},
   ) {
@@ -355,7 +355,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     }, MONITOR_AUTO_REFRESH_INTERVAL_MS); // Use centralized refresh interval
   }
 
-  private handleNewLogEntry(entry: LogEntry): void {
+  private handleNewLogEntry(entry: IStructuredLogEntry): void {
     // Add to entries and update filtered view
     this.logViewExtensions.logEntries.unshift(entry); // Newest first
     this.applyFilters();
@@ -415,12 +415,12 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
   }
 
   protected override buildTree(): void {
-    const nodes: TreeNode<LogEntry>[] = [];
+    const nodes: ITreeNode<IStructuredLogEntry>[] = [];
 
     if (this.logViewExtensions.groupBy === "none") {
       // Flat list
       for (const entry of this.logViewExtensions.filteredEntries) {
-        const node = createNode<LogEntry>(
+        const node = createNode<IStructuredLogEntry>(
           entry.timestamp,
           this.formatLogEntry(entry),
           "log",
@@ -433,9 +433,9 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
       const groups = this.groupEntries(this.logViewExtensions.filteredEntries, this.logViewExtensions.groupBy);
 
       for (const [groupKey, entries] of Object.entries(groups)) {
-        const childNodes: TreeNode<LogEntry>[] = [];
+        const childNodes: ITreeNode<IStructuredLogEntry>[] = [];
         for (const entry of entries) {
-          const node = createNode<LogEntry>(
+          const node = createNode<IStructuredLogEntry>(
             entry.timestamp,
             this.formatLogEntry(entry),
             "log",
@@ -444,7 +444,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
           childNodes.push(node);
         }
 
-        const groupNode = createGroupNode<LogEntry>(
+        const groupNode = createGroupNode<IStructuredLogEntry>(
           groupKey,
           `${this.getGroupIcon(this.logViewExtensions.groupBy)} ${groupKey} (${entries.length})`,
           "group",
@@ -459,8 +459,8 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     this.state.tree = nodes;
   }
 
-  private groupEntries(entries: LogEntry[], groupBy: string): Record<string, LogEntry[]> {
-    const groups: Record<string, LogEntry[]> = {};
+  private groupEntries(entries: IStructuredLogEntry[], groupBy: string): Record<string, IStructuredLogEntry[]> {
+    const groups: Record<string, IStructuredLogEntry[]> = {};
 
     for (const entry of entries) {
       let key: string;
@@ -513,7 +513,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     }
   }
 
-  private formatLogEntry(entry: LogEntry): string {
+  private formatLogEntry(entry: IStructuredLogEntry): string {
     const timestamp = new Date(entry.timestamp).toLocaleTimeString();
     const level = entry.level.toUpperCase().padEnd(5);
     const icon = STRUCTURED_LOG_ICONS[entry.level] || STRUCTURED_LOG_ICONS.default;
@@ -546,12 +546,12 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     return "Structured Log Viewer";
   }
 
-  override getKeyBindings(): KeyBinding<string>[] {
+  override getKeyBindings(): IKeyBinding<string>[] {
     return STRUCTURED_LOG_VIEWER_KEY_BINDINGS.map((b) => ({ ...b, action: b.action as string }));
   }
 
   /** Get all current logs. */
-  async getLogs(): Promise<LogEntry[]> {
+  async getLogs(): Promise<IStructuredLogEntry[]> {
     await this.refreshLogs();
     return [...this.logViewExtensions.logEntries];
   }
@@ -672,7 +672,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
 
   /** Get detailed view content for a log entry. */
   getLogDetail(logId: string): string {
-    const entry = this.logViewExtensions.logEntries.find((e: LogEntry) => e.timestamp === logId);
+    const entry = this.logViewExtensions.logEntries.find((e: IStructuredLogEntry) => e.timestamp === logId);
     if (!entry) return "Log entry not found";
 
     let detail = `Timestamp: ${entry.timestamp}\n`;
@@ -849,9 +849,9 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     }
   }
 
-  public override handleKeySync(key: string): boolean {
+  public override async handleKey(key: string): Promise<boolean> {
     // 1. Handle dialogs (delegated to base)
-    if (this.handleDialogKeys(key)) return true;
+    if (await this.handleDialogKeys(key)) return true;
 
     // 2. Handle help overlay (delegated to base)
     if (this.handleHelpKeys(key)) return true;
@@ -866,18 +866,15 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     }
 
     // 5. Main actions - try each handler in order
-    return this.handleSelectionKey(key) ||
+    const handled = this.handleSelectionKey(key) ||
       this.handleToggleKey(key) ||
       this.handleBookmarkKey(key) ||
       this.handleDialogKey(key) ||
       this.handleBulkActionKey(key);
-  }
 
-  override async handleKey(key: string): Promise<boolean> {
-    // 1. Try sync part first
-    if (this.handleKeySync(key)) return true;
+    if (handled) return true;
 
-    // 2. Handle async actions
+    // 6. Handle async actions
     switch (key) {
       case KEYS.E:
         await this.exportLogs();
@@ -912,7 +909,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     } else {
       const selectedNode = this.getSelectedNode();
       if (selectedNode && selectedNode.data) {
-        const entry = selectedNode.data as LogEntry;
+        const entry = selectedNode.data as IStructuredLogEntry;
         if (entry.context.correlation_id) {
           await this.setCorrelationMode(entry.context.correlation_id);
         }
@@ -926,7 +923,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     } else {
       const selectedNode = this.getSelectedNode();
       if (selectedNode && selectedNode.data) {
-        const entry = selectedNode.data as LogEntry;
+        const entry = selectedNode.data as IStructuredLogEntry;
         if (entry.context.trace_id) {
           await this.setTraceMode(entry.context.trace_id);
         }
@@ -1039,7 +1036,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
   }
 
   /** Exposed for testing to access tree state */
-  getTreeState(): TreeViewState<LogEntry> {
+  getTreeState(): ITreeViewState<IStructuredLogEntry> {
     return this.state;
   }
 
@@ -1054,7 +1051,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
   }
 
   /** Exposed for testing to format log entry */
-  formatLogEntryForTest(entry: LogEntry): string {
+  formatLogEntryForTest(entry: IStructuredLogEntry): string {
     return this.formatLogEntry(entry);
   }
 
@@ -1063,7 +1060,7 @@ export class StructuredLogViewer extends BaseTreeView<LogEntry> {
     return this.refreshInterval;
   }
 
-  private getHelpSections(): HelpSection[] {
+  private getHelpSections(): IHelpSection[] {
     return [
       {
         title: "Navigation",

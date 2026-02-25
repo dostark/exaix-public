@@ -8,13 +8,13 @@
  */
 
 import { LogLevel } from "../../enums.ts";
-import type { LogEntry } from "../../services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../../services/structured_logger.ts";
 import type { PerformanceStats } from "./types.ts";
 
 /**
  * Calculate performance statistics for a set of logs
  */
-export function calculatePerformanceStats(entries: LogEntry[]): PerformanceStats | null {
+export function calculatePerformanceStats(entries: IStructuredLogEntry[]): PerformanceStats | null {
   const performanceEntries = entries.filter((e) => e.performance?.duration_ms);
   if (performanceEntries.length === 0) return null;
 

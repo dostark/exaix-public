@@ -8,11 +8,11 @@
  */
 
 import type {
-  ExecutionMemory,
-  GlobalMemory,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  ProjectMemory,
+  IExecutionMemory,
+  IGlobalMemory,
+  IMemorySearchResult,
+  IMemoryUpdateProposal,
+  IProjectMemory,
 } from "../../schemas/memory_bank.ts";
 import { ANSI } from "../../helpers/colors.ts";
 import {
@@ -24,6 +24,16 @@ import {
   TUI_LIMIT_MEDIUM,
   TUI_LIMIT_SHORT,
 } from "../../helpers/constants.ts";
+
+// ===== Color Constants =====
+
+// ===== Panel Interface =====
+
+export interface IPanelRenderOptions {
+  width: number;
+  height: number;
+  useColors: boolean;
+}
 
 // ===== Color Constants =====
 
@@ -42,14 +52,6 @@ export const MemoryColors = {
   low: ANSI.dim,
   reset: ANSI.reset,
 };
-
-// ===== Panel Interface =====
-
-export interface PanelRenderOptions {
-  width: number;
-  height: number;
-  useColors: boolean;
-}
 
 function truncateText(text: string, limit: number): string {
   if (text.length <= limit) return text;
@@ -78,7 +80,7 @@ function renderProjectOverview(lines: string[], overview: string): void {
 
 function renderProjectPatterns(
   lines: string[],
-  patterns: ProjectMemory["patterns"],
+  patterns: IProjectMemory["patterns"],
   c: { pattern: string; reset: string },
 ): void {
   if (!patterns || patterns.length === 0) return;
@@ -96,7 +98,7 @@ function renderProjectPatterns(
 
 function renderProjectDecisions(
   lines: string[],
-  decisions: ProjectMemory["decisions"],
+  decisions: IProjectMemory["decisions"],
   c: { decision: string; reset: string },
 ): void {
   if (!decisions || decisions.length === 0) return;
@@ -113,7 +115,7 @@ function renderProjectDecisions(
 
 function renderProjectReferences(
   lines: string[],
-  references: ProjectMemory["references"],
+  references: IProjectMemory["references"],
 ): void {
   if (!references || references.length === 0) return;
   lines.push(`## References (${references.length})`);
@@ -129,9 +131,9 @@ function renderProjectReferences(
 // ===== Project Panel =====
 
 export function renderProjectPanel(
-  memory: ProjectMemory | null,
+  memory: IProjectMemory | null,
   portal: string,
-  options: PanelRenderOptions,
+  options: IPanelRenderOptions,
 ): string {
   const lines: string[] = [];
   const { useColors } = options;
@@ -160,8 +162,8 @@ export function renderProjectPanel(
 // ===== Global Panel =====
 
 export function renderGlobalPanel(
-  memory: GlobalMemory | null,
-  options: PanelRenderOptions,
+  memory: IGlobalMemory | null,
+  options: IPanelRenderOptions,
 ): string {
   const lines: string[] = [];
   const { useColors } = options;
@@ -222,8 +224,8 @@ export function renderGlobalPanel(
 // ===== Execution Panel =====
 
 export function renderExecutionPanel(
-  memory: ExecutionMemory | null,
-  options: PanelRenderOptions,
+  memory: IExecutionMemory | null,
+  options: IPanelRenderOptions,
 ): string {
   if (!memory) return "No execution selected.";
 
@@ -242,7 +244,7 @@ export function renderExecutionPanel(
 
 function renderExecutionHeader(
   lines: string[],
-  memory: ExecutionMemory,
+  memory: IExecutionMemory,
   c: { execution: string; reset: string },
 ): void {
   lines.push(`${c.execution}# Execution: ${memory.trace_id.slice(0, 12)}...${c.reset}`);
@@ -250,7 +252,7 @@ function renderExecutionHeader(
 }
 
 function getExecutionStatusPresentation(
-  status: ExecutionMemory["status"],
+  status: IExecutionMemory["status"],
 ): { icon: string; color: string } {
   if (status === "completed") return { icon: TUI_ICON_SUCCESS, color: "\x1b[32m" };
   if (status === "failed") return { icon: TUI_ICON_FAILURE, color: "\x1b[31m" };
@@ -259,7 +261,7 @@ function getExecutionStatusPresentation(
 
 function renderExecutionDetails(
   lines: string[],
-  memory: ExecutionMemory,
+  memory: IExecutionMemory,
   useColors: boolean,
   c: { reset: string },
 ): void {
@@ -275,14 +277,14 @@ function renderExecutionDetails(
   lines.push("");
 }
 
-function renderExecutionSummary(lines: string[], memory: ExecutionMemory): void {
+function renderExecutionSummary(lines: string[], memory: IExecutionMemory): void {
   if (!memory.summary) return;
   lines.push("## Summary");
   lines.push(`  ${truncateText(memory.summary, TUI_DETAIL_MAX_SUMMARY_CHARS)}`);
   lines.push("");
 }
 
-function renderExecutionFilesChanged(lines: string[], memory: ExecutionMemory): void {
+function renderExecutionFilesChanged(lines: string[], memory: IExecutionMemory): void {
   const allChanges = [
     ...memory.changes.files_created,
     ...memory.changes.files_modified,
@@ -293,7 +295,7 @@ function renderExecutionFilesChanged(lines: string[], memory: ExecutionMemory): 
   lines.push("");
 }
 
-function renderExecutionLessons(lines: string[], memory: ExecutionMemory): void {
+function renderExecutionLessons(lines: string[], memory: IExecutionMemory): void {
   if (!memory.lessons_learned || memory.lessons_learned.length === 0) return;
   lines.push("## Lessons Learned");
   for (const lesson of memory.lessons_learned) {
@@ -304,9 +306,9 @@ function renderExecutionLessons(lines: string[], memory: ExecutionMemory): void 
 // ===== Execution List Panel =====
 
 export function renderExecutionListPanel(
-  executions: ExecutionMemory[],
+  executions: IExecutionMemory[],
   selectedIndex: number,
-  options: PanelRenderOptions,
+  options: IPanelRenderOptions,
 ): string {
   const lines: string[] = [];
   const { height } = options;
@@ -347,9 +349,9 @@ export function renderExecutionListPanel(
 
 export function renderSearchPanel(
   query: string,
-  results: MemorySearchResult[],
+  results: IMemorySearchResult[],
   selectedIndex: number,
-  options: PanelRenderOptions,
+  options: IPanelRenderOptions,
 ): string {
   const lines: string[] = [];
   const { useColors } = options;
@@ -395,9 +397,9 @@ export function renderSearchPanel(
 // ===== Pending Panel =====
 
 export function renderPendingPanel(
-  proposals: MemoryUpdateProposal[],
+  proposals: IMemoryUpdateProposal[],
   selectedIndex: number,
-  options: PanelRenderOptions,
+  options: IPanelRenderOptions,
 ): string {
   const lines: string[] = [];
   const { useColors } = options;
@@ -444,7 +446,7 @@ export function renderStatsPanel(
     pendingCount: number;
     globalLearnings: number;
   },
-  options: PanelRenderOptions,
+  options: IPanelRenderOptions,
 ): string {
   const lines: string[] = [];
   const { useColors } = options;

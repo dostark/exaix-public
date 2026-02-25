@@ -12,10 +12,10 @@ import { basename, dirname, join } from "@std/path";
 import type { IModelProvider } from "../ai/providers.ts";
 import type { DatabaseService } from "./db.ts";
 import type { Config } from "../config/schema.ts";
-import { type AgentExecutionResult, AgentRunner, type Blueprint, type ParsedRequest } from "./agent_runner.ts";
+import { AgentRunner, type IAgentExecutionResult, type IBlueprint, type IParsedRequest } from "./agent_runner.ts";
 import { buildParsedRequest } from "./request_common.ts";
-import { BlueprintLoader, type LoadedBlueprint } from "./blueprint_loader.ts";
-import { PlanWriter, type RequestMetadata } from "./plan_writer.ts";
+import { BlueprintLoader, type ILoadedBlueprint } from "./blueprint_loader.ts";
+import { type IRequestMetadata, PlanWriter } from "./plan_writer.ts";
 import { PlanValidationError } from "./plan_adapter.ts";
 import { TaskComplexity } from "../enums.ts";
 import { RequestStatus } from "../requests/request_status.ts";
@@ -33,26 +33,22 @@ import { CircuitBreaker, CircuitBreakerProvider } from "../ai/circuit_breaker.ts
 import { LogMethod } from "./decorators/logging.ts";
 import { RequestParser } from "./request_processing/request_parser.ts";
 import { StatusManager } from "./request_processing/status_manager.ts";
-import { ParsedRequestFile, RequestFrontmatter } from "./request_processing/types.ts";
+import { IRequestFrontmatter, ParsedRequestFile } from "./request_processing/types.ts";
 import type { LogMetadata } from "../types.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
-import { ServiceContext } from "./common/types.ts";
+import { IServiceContext } from "./common/types.ts";
 
-export interface RequestProcessingContext extends ServiceContext {
+export interface IRequestProcessingContext extends IServiceContext {
   filePath: string;
   parsed: ParsedRequestFile;
-  frontmatter: RequestFrontmatter;
+  frontmatter: IRequestFrontmatter;
   body: string;
   traceLogger: EventLogger;
   requestId: string;
   requestKind: "flow" | "agent";
 }
 
-// ============================================================================
-// Types and Interfaces
-// ============================================================================
-
-export interface RequestProcessorConfig {
+export interface IRequestProcessorConfig {
   workspacePath: string;
   requestsDir: string;
   blueprintsPath: string;
@@ -77,7 +73,7 @@ export class RequestProcessor {
   constructor(
     private readonly config: Config,
     private readonly db: DatabaseService,
-    private readonly processorConfig: RequestProcessorConfig,
+    private readonly processorConfig: IRequestProcessorConfig,
     private readonly testProvider?: IModelProvider,
     costTracker?: CostTracker,
   ) {
@@ -153,7 +149,7 @@ export class RequestProcessor {
 
     const pipeline = this.createRequestProcessingPipeline();
 
-    const context: RequestProcessingContext = {
+    const context: IRequestProcessingContext = {
       filePath,
       parsed,
       frontmatter,
@@ -191,7 +187,7 @@ export class RequestProcessor {
     }
   }
 
-  private shouldSkipRequest(frontmatter: RequestFrontmatter, _traceLogger: EventLogger, _filePath: string): boolean {
+  private shouldSkipRequest(frontmatter: IRequestFrontmatter, _traceLogger: EventLogger, _filePath: string): boolean {
     switch (frontmatter.status) {
       case RequestStatus.PLANNED:
       case RequestStatus.COMPLETED:
@@ -204,7 +200,7 @@ export class RequestProcessor {
   }
 
   private async getRequestKindOrFail(args: {
-    frontmatter: RequestFrontmatter;
+    frontmatter: IRequestFrontmatter;
     filePath: string;
     traceLogger: EventLogger;
   }): Promise<"flow" | "agent" | null> {
@@ -240,8 +236,8 @@ export class RequestProcessor {
     return hasFlow ? "flow" : "agent";
   }
 
-  private createRequestProcessingPipeline(): MiddlewarePipeline<RequestProcessingContext> {
-    const pipeline = new MiddlewarePipeline<RequestProcessingContext>();
+  private createRequestProcessingPipeline(): MiddlewarePipeline<IRequestProcessingContext> {
+    const pipeline = new MiddlewarePipeline<IRequestProcessingContext>();
 
     pipeline.use(async (ctx, next) => {
       try {
@@ -274,7 +270,7 @@ export class RequestProcessor {
 
   private processRequestByKind(
     kind: "flow" | "agent",
-    frontmatter: RequestFrontmatter,
+    frontmatter: IRequestFrontmatter,
     body: string,
     filePath: string,
     requestId: string,
@@ -289,7 +285,7 @@ export class RequestProcessor {
   }
 
   private async processFlowRequest(
-    frontmatter: RequestFrontmatter,
+    frontmatter: IRequestFrontmatter,
     filePath: string,
     requestId: string,
     traceId: string,
@@ -327,7 +323,7 @@ export class RequestProcessor {
       raw: planContent,
     };
 
-    const metadata: RequestMetadata = {
+    const metadata: IRequestMetadata = {
       requestId,
       traceId,
       createdAt: new Date(frontmatter.created),
@@ -344,7 +340,7 @@ export class RequestProcessor {
   }
 
   private async processAgentRequest(
-    frontmatter: RequestFrontmatter,
+    frontmatter: IRequestFrontmatter,
     body: string,
     filePath: string,
     requestId: string,
@@ -371,7 +367,7 @@ export class RequestProcessor {
     const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
     const blueprint = blueprintLoader.toLegacyBlueprint(loadedBlueprint);
 
-    const request: ParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as ParsedRequest;
+    const request: IParsedRequest = buildParsedRequest(body, frontmatter, requestId, traceId) as IParsedRequest;
     const portalContext = await this.buildPortalContext(frontmatter.portal, traceLogger);
     if (portalContext) {
       request.context[PORTAL_CONTEXT_KEY] = portalContext;
@@ -419,7 +415,7 @@ export class RequestProcessor {
     }
 
     const agentRunner = new AgentRunner(selectedProvider, { db: this.db });
-    const metadata: RequestMetadata = {
+    const metadata: IRequestMetadata = {
       requestId,
       traceId,
       createdAt: new Date(frontmatter.created),
@@ -447,7 +443,7 @@ export class RequestProcessor {
           });
 
           // Create a feedback request for self-correction
-          const feedbackRequest: ParsedRequest = {
+          const feedbackRequest: IParsedRequest = {
             ...request,
             userPrompt: `Your previous output failed validation with the following error: "${error.message}".
 Please fix the JSON in your <content> section and try again. Ensure it strictly follows the schema provided.
@@ -466,7 +462,7 @@ ${result.content}`,
     return null; // Should be unreachable
   }
 
-  private async loadBlueprintWithFallback(agentId: string, traceLogger: EventLogger): Promise<LoadedBlueprint | null> {
+  private async loadBlueprintWithFallback(agentId: string, traceLogger: EventLogger): Promise<ILoadedBlueprint | null> {
     const blueprintLoader = new BlueprintLoader({ blueprintsPath: this.processorConfig.blueprintsPath });
     let loadedBlueprint = await blueprintLoader.load(agentId);
 
@@ -479,7 +475,7 @@ ${result.content}`,
     return loadedBlueprint;
   }
 
-  private async findBlueprintInWorktree(agentId: string, traceLogger: EventLogger): Promise<LoadedBlueprint | null> {
+  private async findBlueprintInWorktree(agentId: string, traceLogger: EventLogger): Promise<ILoadedBlueprint | null> {
     let dir = Deno.cwd();
     while (true) {
       const candidatePath = join(dir, "Blueprints", "Agents");
@@ -509,7 +505,7 @@ ${result.content}`,
     return null;
   }
 
-  private async findBlueprintInRepoRoots(agentId: string, traceLogger: EventLogger): Promise<LoadedBlueprint | null> {
+  private async findBlueprintInRepoRoots(agentId: string, traceLogger: EventLogger): Promise<ILoadedBlueprint | null> {
     // Try the repository root (cwd) directly
     const repoAgentsPath = join(Deno.cwd(), "Blueprints", "Agents");
     const fallbackLoader = new BlueprintLoader({ blueprintsPath: repoAgentsPath });
@@ -540,7 +536,7 @@ ${result.content}`,
     filePath: string,
     requestId: string,
     traceLogger: EventLogger,
-    frontmatter?: RequestFrontmatter,
+    frontmatter?: IRequestFrontmatter,
   ): Promise<void> {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -622,7 +618,7 @@ ${result.content}`,
   }
 
   private formatRejectedPlan(args: {
-    frontmatter?: RequestFrontmatter;
+    frontmatter?: IRequestFrontmatter;
     requestId: string;
     traceId?: string;
     errorMessage: string;
@@ -642,8 +638,8 @@ Raw Details: ${args.rawDetails}
   }
 
   private async writePlanAndReturnPath(
-    result: AgentExecutionResult,
-    metadata: RequestMetadata,
+    result: IAgentExecutionResult,
+    metadata: IRequestMetadata,
     filePath: string,
     traceLogger: EventLogger,
     extra?: LogMetadata,
@@ -655,7 +651,7 @@ Raw Details: ${args.rawDetails}
     return planResult.planPath;
   }
 
-  private classifyTaskComplexity(blueprint: Blueprint, _request: ParsedRequest): TaskComplexity {
+  private classifyTaskComplexity(blueprint: IBlueprint, _request: IParsedRequest): TaskComplexity {
     const agentId = blueprint.agentId || "";
     if (agentId.includes("analyzer") || agentId.includes("summarizer")) return TaskComplexity.SIMPLE;
     if (agentId.includes("coder") || agentId.includes("planner") || agentId.includes("architect")) {

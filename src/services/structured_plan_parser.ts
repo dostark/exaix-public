@@ -8,23 +8,23 @@
  * @related-files [src/services/execution_loop.ts, src/services/plan_writer.ts]
  */
 
-export interface StructuredPlanFrontmatter {
+export interface IStructuredPlanFrontmatter {
   trace_id: string;
   request_id: string;
   agent_id?: string;
 }
 
-export interface StructuredPlanStep {
+export interface IStructuredPlanStep {
   number: number;
   title: string;
   content: string;
 }
 
-export interface StructuredPlan {
+export interface IStructuredPlan {
   trace_id: string;
   request_id: string;
   agent: string;
-  steps: StructuredPlanStep[];
+  steps: IStructuredPlanStep[];
 }
 
 /**
@@ -36,8 +36,8 @@ export interface StructuredPlan {
  */
 export function parseStructuredPlanFromMarkdown(
   planContent: string,
-  frontmatter: StructuredPlanFrontmatter,
-): StructuredPlan | null {
+  frontmatter: IStructuredPlanFrontmatter,
+): IStructuredPlan | null {
   const stepRegex = /^## Step (\d+): (.+)$/gm;
   const executionStepsRegex =
     /^## (Execution Steps|Analysis Results|QA & Testing Results|Security Analysis|Performance Analysis)$/m;
@@ -48,7 +48,7 @@ export function parseStructuredPlanFromMarkdown(
   // If no steps, but has specialized header, still return a plan object with empty steps
   // This allows PlanExecutor to process it and generate a report.
 
-  const steps: StructuredPlanStep[] = [];
+  const steps: IStructuredPlanStep[] = [];
 
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];

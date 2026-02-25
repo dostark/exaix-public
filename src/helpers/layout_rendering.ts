@@ -6,9 +6,9 @@
  * @dependencies [Colors]
  * @related-files [src/helpers/layout_manager.ts]
  */
-import { colorize, type TuiTheme } from "./colors.ts";
+import { colorize, type ITuiTheme } from "./colors.ts";
 
-export interface LayoutPresetDisplay {
+export interface ILayoutPresetDisplay {
   name: string;
   description: string;
   icon: string;
@@ -16,9 +16,9 @@ export interface LayoutPresetDisplay {
 }
 
 export function renderLayoutPresetListLines(
-  presets: LayoutPresetDisplay[],
+  presets: ILayoutPresetDisplay[],
   selectedIndex: number | null,
-  theme: TuiTheme,
+  theme: ITuiTheme,
   options: { width: number; includeSuffix?: boolean; showDescription?: boolean },
 ): string[] {
   const lines: string[] = [];

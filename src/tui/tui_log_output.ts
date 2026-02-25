@@ -7,16 +7,16 @@
  * @related-files [src/tui/structured_log_viewer.ts]
  */
 
-import type { LogEntry, LogOutput } from "../services/structured_logger.ts";
+import type { ILogOutput, IStructuredLogEntry } from "../services/structured_logger.ts";
 import type { StructuredLoggerService } from "./structured_log_service.ts";
 
 /**
- * LogOutput implementation that feeds entries to StructuredLoggerService
+ * ILogOutput implementation that feeds entries to StructuredLoggerService
  */
-export class TuiLogOutput implements LogOutput {
+export class TuiLogOutput implements ILogOutput {
   constructor(private logService: StructuredLoggerService) {}
 
-  write(entry: LogEntry): void {
+  write(entry: IStructuredLogEntry): void {
     this.logService.addLogEntry(entry);
   }
 }

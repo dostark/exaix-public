@@ -15,57 +15,38 @@ import type { DatabaseService } from "./db.ts";
 import { PathResolver } from "./path_resolver.ts";
 import { ActivityActor, LogLevel } from "../enums.ts";
 import { MiddlewarePipeline } from "./middleware/pipeline.ts";
-import { ServiceContext } from "./common/types.ts";
+import { IServiceContext } from "./common/types.ts";
 import { PathAccessError, PathSecurity, PathTraversalError } from "../helpers/path_security.ts";
 import { JSONValue } from "../types.ts";
 
-// ============================================================================
-// Types
-// ============================================================================
-
-/**
- * JSON Schema for a tool parameter
- */
-export interface ToolParameterSchema {
+export interface IToolParameterSchema {
   type: string;
   description?: string;
   enum?: string[];
-  items?: ToolParameterSchema;
-  properties?: Record<string, ToolParameterSchema>;
+  items?: IToolParameterSchema;
+  properties?: Record<string, IToolParameterSchema>;
   required?: string[];
 }
 
-/**
- * JSON Schema for tool parameters
- */
-export interface ToolSchema {
+export interface IToolSchema {
   type: "object";
-  properties: Record<string, ToolParameterSchema>;
+  properties: Record<string, IToolParameterSchema>;
   required?: string[];
 }
 
-/**
- * Tool definition with JSON schema for LLM function calling
- */
-export interface Tool {
+export interface ITool {
   name: string;
   description: string;
-  parameters: ToolSchema;
+  parameters: IToolSchema;
 }
 
-/**
- * Result of tool execution
- */
-export interface ToolResult {
+export interface IToolResult {
   success: boolean;
   data?: JSONValue;
   error?: string;
 }
 
-/**
- * Configuration for ToolRegistry
- */
-export interface ToolRegistryConfig {
+export interface IToolRegistryConfig {
   config: Config;
   db?: DatabaseService;
   traceId?: string;
@@ -73,13 +54,10 @@ export interface ToolRegistryConfig {
   baseDir?: string;
 }
 
-/**
- * Context for tool execution middleware
- */
-interface ToolContext extends ServiceContext {
+interface IToolContext extends IServiceContext {
   toolName: string;
   params: Record<string, JSONValue>;
-  result?: ToolResult;
+  result?: IToolResult;
   toolRegistry: ToolRegistry;
 }
 
@@ -294,12 +272,12 @@ export class ToolRegistry {
   private traceId?: string;
   private agentId?: string;
   private pathResolver: PathResolver;
-  private tools: Map<string, Tool>;
+  private tools: Map<string, ITool>;
   private baseDir: string;
-  private pipeline: MiddlewarePipeline<ToolContext>;
-  private executors: Map<string, (params: Record<string, JSONValue>) => Promise<ToolResult>> = new Map();
+  private pipeline: MiddlewarePipeline<IToolContext>;
+  private executors: Map<string, (params: Record<string, JSONValue>) => Promise<IToolResult>> = new Map();
 
-  constructor(options?: ToolRegistryConfig) {
+  constructor(options?: IToolRegistryConfig) {
     // Use ConfigSchema to parse and apply all defaults automatically
     this.config = options?.config || ConfigSchema.parse({
       system: { root: Deno.cwd(), log_level: LogLevel.INFO },
@@ -319,7 +297,7 @@ export class ToolRegistry {
 
     this.pathResolver = new PathResolver(this.config);
     this.tools = new Map();
-    this.pipeline = new MiddlewarePipeline<ToolContext>();
+    this.pipeline = new MiddlewarePipeline<IToolContext>();
 
     this.registerCoreTools();
     this.registerCoreExecutors();
@@ -691,15 +669,15 @@ export class ToolRegistry {
   /**
    * Get all registered tools
    */
-  getTools(): Tool[] {
+  getTools(): ITool[] {
     return Array.from(this.tools.values());
   }
 
   /**
    * Execute a tool by name
    */
-  async execute(toolName: string, params: Record<string, JSONValue>): Promise<ToolResult> {
-    const context: ToolContext = {
+  async execute(toolName: string, params: Record<string, JSONValue>): Promise<IToolResult> {
+    const context: IToolContext = {
       toolName,
       params,
       toolRegistry: this,
@@ -726,7 +704,7 @@ export class ToolRegistry {
   /**
    * Read file tool implementation
    */
-  private async readFile(path: string): Promise<ToolResult> {
+  private async readFile(path: string): Promise<IToolResult> {
     try {
       const resolvedPath = await this.resolvePath(path);
       const content = await Deno.readTextFile(resolvedPath);
@@ -739,7 +717,7 @@ export class ToolRegistry {
   /**
    * Write file tool implementation
    */
-  private async writeFile(path: string, content: string): Promise<ToolResult> {
+  private async writeFile(path: string, content: string): Promise<IToolResult> {
     try {
       const resolvedPath = await this.resolvePath(path);
 
@@ -757,7 +735,7 @@ export class ToolRegistry {
   /**
    * List directory tool implementation
    */
-  private async listDirectory(path: string): Promise<ToolResult> {
+  private async listDirectory(path: string): Promise<IToolResult> {
     try {
       const resolvedPath = await this.resolvePath(path);
       const entries: Array<{ name: string; isDirectory: boolean }> = [];
@@ -778,7 +756,7 @@ export class ToolRegistry {
   /**
    * Search files tool implementation
    */
-  private async searchFiles(pattern: string, searchPath: string): Promise<ToolResult> {
+  private async searchFiles(pattern: string, searchPath: string): Promise<IToolResult> {
     try {
       const resolvedPath = await this.resolvePath(searchPath);
       const files: string[] = [];
@@ -899,7 +877,7 @@ export class ToolRegistry {
   /**
    * Run command tool implementation
    */
-  public async runCommand(command: string, args: string[]): Promise<ToolResult> {
+  public async runCommand(command: string, args: string[]): Promise<IToolResult> {
     try {
       // Check if command is whitelisted
       if (!ALLOWED_COMMANDS.has(command)) {
@@ -978,7 +956,7 @@ export class ToolRegistry {
    * Format tool result for success
    * @private
    */
-  private formatSuccess(data: JSONValue): ToolResult {
+  private formatSuccess(data: JSONValue): IToolResult {
     return {
       success: true,
       data,
@@ -989,7 +967,7 @@ export class ToolRegistry {
    * Format tool result for error
    * @private
    */
-  private formatError(error: unknown, context?: string): ToolResult {
+  private formatError(error: unknown, context?: string): IToolResult {
     // Handle path security errors
     if (error instanceof Error && error.message.includes("outside allowed roots")) {
       return {
@@ -1017,7 +995,7 @@ export class ToolRegistry {
   /**
    * Create directory tool implementation
    */
-  private async createDirectory(path: string): Promise<ToolResult> {
+  private async createDirectory(path: string): Promise<IToolResult> {
     try {
       const resolvedPath = await this.resolvePath(path);
       await Deno.mkdir(resolvedPath, { recursive: true });
@@ -1030,7 +1008,7 @@ export class ToolRegistry {
   /**
    * Fetch URL tool implementation
    */
-  private async fetchUrl(url: string, format: "text" | "markdown" = "markdown"): Promise<ToolResult> {
+  private async fetchUrl(url: string, format: "text" | "markdown" = "markdown"): Promise<IToolResult> {
     try {
       // 1. Check if enabled
       if (!this.config.tools?.fetch_url?.enabled) {
@@ -1115,7 +1093,7 @@ export class ToolRegistry {
   /**
    * Grep search tool implementation
    */
-  private async grepSearch(pattern: string, searchPath: string, caseSensitive = true): Promise<ToolResult> {
+  private async grepSearch(pattern: string, searchPath: string, caseSensitive = true): Promise<IToolResult> {
     try {
       const resolvedPath = await this.resolvePath(searchPath);
 
@@ -1210,7 +1188,7 @@ export class ToolRegistry {
   /**
    * Move file tool implementation
    */
-  private async moveFile(source: string, destination: string, overwrite = false): Promise<ToolResult> {
+  private async moveFile(source: string, destination: string, overwrite = false): Promise<IToolResult> {
     try {
       const resolvedSource = await this.resolvePath(source);
       const resolvedDest = await this.resolvePath(destination);
@@ -1241,7 +1219,7 @@ export class ToolRegistry {
   /**
    * Copy file tool implementation
    */
-  private async copyFile(source: string, destination: string, overwrite = false): Promise<ToolResult> {
+  private async copyFile(source: string, destination: string, overwrite = false): Promise<IToolResult> {
     try {
       const resolvedSource = await this.resolvePath(source);
       const resolvedDest = await this.resolvePath(destination);
@@ -1272,7 +1250,7 @@ export class ToolRegistry {
   /**
    * Delete file tool implementation
    */
-  private async deleteFile(path: string): Promise<ToolResult> {
+  private async deleteFile(path: string): Promise<IToolResult> {
     try {
       const resolvedPath = await this.resolvePath(path);
       await Deno.remove(resolvedPath);
@@ -1285,7 +1263,10 @@ export class ToolRegistry {
   /**
    * Git Info tool implementation
    */
-  private async gitInfo(repoPath: string, scope: "status" | "branch" | "diff_summary" = "status"): Promise<ToolResult> {
+  private async gitInfo(
+    repoPath: string,
+    scope: "status" | "branch" | "diff_summary" = "status",
+  ): Promise<IToolResult> {
     try {
       const resolvedPath = await this.resolvePath(repoPath);
 
@@ -1354,7 +1335,7 @@ export class ToolRegistry {
   /**
    * Deno task tool implementation
    */
-  private async denoTask(task: string, path?: string, args: string[] = []): Promise<ToolResult> {
+  private async denoTask(task: string, path?: string, args: string[] = []): Promise<IToolResult> {
     try {
       const allowedTasks = ["test", "lint", "fmt", "check"];
       if (!allowedTasks.includes(task)) {
@@ -1420,7 +1401,7 @@ export class ToolRegistry {
   /**
    * Patch file tool implementation
    */
-  private async patchFile(path: string, patches: Array<{ search: string; replace: string }>): Promise<ToolResult> {
+  private async patchFile(path: string, patches: Array<{ search: string; replace: string }>): Promise<IToolResult> {
     try {
       const resolvedPath = await this.resolvePath(path);
       let content = await Deno.readTextFile(resolvedPath);

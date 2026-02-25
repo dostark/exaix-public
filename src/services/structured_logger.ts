@@ -28,7 +28,7 @@ import { LogLevel } from "../enums.ts";
 import { LogMetadata } from "../types.ts";
 export type { LogMetadata };
 
-export interface LogEntry {
+export interface IStructuredLogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
@@ -56,13 +56,13 @@ export interface LogEntry {
   };
 }
 
-export interface LogOutput {
-  write(entry: LogEntry): void | Promise<void>;
+export interface ILogOutput {
+  write(entry: IStructuredLogEntry): void | Promise<void>;
 }
 
-export interface StructuredLoggerConfig {
+export interface IStructuredLoggerConfig {
   minLevel: LogLevel;
-  outputs: LogOutput[];
+  outputs: ILogOutput[];
   enablePerformanceTracking: boolean;
   serviceName?: string;
   version?: string;
@@ -72,8 +72,8 @@ export interface StructuredLoggerConfig {
  * Interface for StructuredLogger to support mocks and strict typing
  */
 export interface IStructuredLogger {
-  setContext(context: Partial<LogEntry["context"]>): void;
-  child(additionalContext: Partial<LogEntry["context"]>): IStructuredLogger;
+  setContext(context: Partial<IStructuredLogEntry["context"]>): void;
+  child(additionalContext: Partial<IStructuredLogEntry["context"]>): IStructuredLogger;
   debug(message: string, metadata?: LogMetadata): void;
   info(message: string, metadata?: LogMetadata): void;
   warn(message: string, metadata?: LogMetadata): void;
@@ -90,14 +90,14 @@ export interface IStructuredLogger {
 // Output Implementations
 // ============================================================================
 
-export class ConsoleOutput implements LogOutput {
-  write(entry: LogEntry): void {
+export class ConsoleOutput implements ILogOutput {
+  write(entry: IStructuredLogEntry): void {
     const formatted = this.formatEntry(entry);
     const consoleMethod = this.getConsoleMethod(entry.level);
     consoleMethod(formatted);
   }
 
-  private formatEntry(entry: LogEntry): string {
+  private formatEntry(entry: IStructuredLogEntry): string {
     const timestamp = new Date(entry.timestamp).toISOString();
     const level = entry.level.toUpperCase().padEnd(5);
     const context = this.formatContext(entry.context);
@@ -108,7 +108,7 @@ export class ConsoleOutput implements LogOutput {
     return `${timestamp} ${level} ${entry.message}${context}${metadata}${error}${performance}`;
   }
 
-  private formatContext(context: LogEntry["context"]): string {
+  private formatContext(context: IStructuredLogEntry["context"]): string {
     const parts: string[] = [];
     if (context.trace_id) parts.push(`trace=${context.trace_id.slice(0, 8)}`);
     if (context.request_id) parts.push(`req=${context.request_id.slice(0, 8)}`);
@@ -132,7 +132,7 @@ export class ConsoleOutput implements LogOutput {
   }
 }
 
-export class FileOutput implements LogOutput {
+export class FileOutput implements ILogOutput {
   private currentFilePath: string;
   private currentFileSize = 0;
   private dirEnsured = false;
@@ -153,7 +153,7 @@ export class FileOutput implements LogOutput {
     }
   }
 
-  async write(entry: LogEntry): Promise<void> {
+  async write(entry: IStructuredLogEntry): Promise<void> {
     const line = JSON.stringify(entry) + "\n";
     const lineSize = new TextEncoder().encode(line).length;
 
@@ -246,18 +246,18 @@ export class FileOutput implements LogOutput {
 // ============================================================================
 
 export class StructuredLogger implements IStructuredLogger {
-  private context: Partial<LogEntry["context"]> = {};
-  private readonly config: StructuredLoggerConfig;
+  private context: Partial<IStructuredLogEntry["context"]> = {};
+  private readonly config: IStructuredLoggerConfig;
 
-  constructor(config: StructuredLoggerConfig) {
+  constructor(config: IStructuredLoggerConfig) {
     this.config = config;
   }
 
-  setContext(context: Partial<LogEntry["context"]>): void {
+  setContext(context: Partial<IStructuredLogEntry["context"]>): void {
     this.context = { ...this.context, ...context };
   }
 
-  child(additionalContext: Partial<LogEntry["context"]>): StructuredLogger {
+  child(additionalContext: Partial<IStructuredLogEntry["context"]>): StructuredLogger {
     const child = new StructuredLogger(this.config);
     child.context = { ...this.context, ...additionalContext };
     return child;
@@ -332,7 +332,7 @@ export class StructuredLogger implements IStructuredLogger {
       return;
     }
 
-    const entry: LogEntry = {
+    const entry: IStructuredLogEntry = {
       timestamp: new Date().toISOString(),
       level,
       message,
@@ -382,7 +382,7 @@ export function getGlobalLogger(): StructuredLogger {
   return globalLogger;
 }
 
-export function initializeGlobalLogger(config: StructuredLoggerConfig): StructuredLogger {
+export function initializeGlobalLogger(config: IStructuredLoggerConfig): StructuredLogger {
   globalLogger = new StructuredLogger(config);
   return globalLogger;
 }

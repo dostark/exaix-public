@@ -1,19 +1,19 @@
 /**
  * @module ActivityRepository
  * @path src/repositories/activity_repository.ts
- * @description Implements the Repository pattern for Activity Journal data access, abstracting database operations from domain logic.
+ * @description Implements the Repository pattern for IActivity Journal data access, abstracting database operations from domain logic.
  * @architectural-layer Repositories
  * @dependencies [db_schema, db_service]
  * @related-files [src/services/db.ts, src/services/event_logger.ts]
  */
 
-import type { ActivityRecord, IDatabaseService } from "../services/db.ts";
+import type { IActivityRecord, IDatabaseService } from "../services/db.ts";
 import { JSONValue } from "../types.ts";
 
 /**
  * Domain entity representing an activity/event
  */
-export interface Activity {
+export interface IActivity {
   id: string;
   traceId: string;
   actor: string | null;
@@ -25,7 +25,7 @@ export interface Activity {
 }
 
 /**
- * Activity logging request (without generated fields)
+ * IActivity logging request (without generated fields)
  */
 export interface LogActivityRequest {
   actor: string;
@@ -48,17 +48,17 @@ export interface ActivityRepository {
   /**
    * Get activities by trace ID
    */
-  getActivitiesByTraceId(traceId: string): Promise<Activity[]>;
+  getActivitiesByTraceId(traceId: string): Promise<IActivity[]>;
 
   /**
    * Get activities by action type
    */
-  getActivitiesByActionType(actionType: string): Promise<Activity[]>;
+  getActivitiesByActionType(actionType: string): Promise<IActivity[]>;
 
   /**
    * Get recent activities
    */
-  getRecentActivities(limit?: number): Promise<Activity[]>;
+  getRecentActivities(limit?: number): Promise<IActivity[]>;
 }
 
 /**
@@ -82,17 +82,17 @@ export class DatabaseActivityRepository implements ActivityRepository {
     await this.db.waitForFlush();
   }
 
-  async getActivitiesByTraceId(traceId: string): Promise<Activity[]> {
+  async getActivitiesByTraceId(traceId: string): Promise<IActivity[]> {
     const records = await this.db.getActivitiesByTraceSafe(traceId);
     return records.map(this.mapRecordToActivity);
   }
 
-  async getActivitiesByActionType(actionType: string): Promise<Activity[]> {
+  async getActivitiesByActionType(actionType: string): Promise<IActivity[]> {
     const records = await this.db.getActivitiesByActionTypeSafe(actionType);
     return records.map(this.mapRecordToActivity);
   }
 
-  async getRecentActivities(limit: number = 100): Promise<Activity[]> {
+  async getRecentActivities(limit: number = 100): Promise<IActivity[]> {
     const records = await this.db.getRecentActivity(limit);
     return records.map(this.mapRecordToActivity);
   }
@@ -100,7 +100,7 @@ export class DatabaseActivityRepository implements ActivityRepository {
   /**
    * Map database record to domain entity
    */
-  private mapRecordToActivity(record: ActivityRecord): Activity {
+  private mapRecordToActivity(record: IActivityRecord): IActivity {
     let payload: Record<string, JSONValue> = {};
     try {
       payload = JSON.parse(record.payload);

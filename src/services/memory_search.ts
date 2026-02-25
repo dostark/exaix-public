@@ -6,16 +6,16 @@
  * @dependencies [MemoryBankSchemas, MemoryEnums, MemoryStatus, Constants]
  * @related-files [src/services/memory_bank.ts, src/schemas/memory_bank.ts]
  */
-import type { ExecutionMemory, Learning, MemorySearchResult, ProjectMemory } from "../schemas/memory_bank.ts";
+import type { IExecutionMemory, ILearning, IMemorySearchResult, IProjectMemory } from "../schemas/memory_bank.ts";
 import { MemoryType } from "../enums.ts";
 import { MemoryStatus } from "../memory/memory_status.ts";
 import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
-export interface SearchDeps {
+export interface ISearchDeps {
   projectsDir: string;
-  getProjectMemory: (portal: string) => Promise<ProjectMemory | null>;
-  getExecutionHistory: (portal?: string, limit?: number) => Promise<ExecutionMemory[]>;
-  loadLearningsFromFile: () => Promise<Learning[]>;
+  getProjectMemory: (portal: string) => Promise<IProjectMemory | null>;
+  getExecutionHistory: (portal?: string, limit?: number) => Promise<IExecutionMemory[]>;
+  loadLearningsFromFile: () => Promise<ILearning[]>;
   calculateFrequency: (text: string | undefined, keywordLower: string) => number;
   calculateRelevance: (titleFreq: number, descFreq: number) => number;
 }
@@ -34,11 +34,11 @@ function includesAllTags(candidateTags: string[], requiredTags: string[]): boole
 }
 
 async function collectProjectResults(
-  deps: SearchDeps,
+  deps: ISearchDeps,
   portal: string | undefined,
-  collect: (portalName: string, projectMem: ProjectMemory) => MemorySearchResult[],
-): Promise<MemorySearchResult[]> {
-  const results: MemorySearchResult[] = [];
+  collect: (portalName: string, projectMem: IProjectMemory) => IMemorySearchResult[],
+): Promise<IMemorySearchResult[]> {
+  const results: IMemorySearchResult[] = [];
 
   for await (const entry of Deno.readDir(deps.projectsDir)) {
     if (!entry.isDirectory) continue;
@@ -53,8 +53,12 @@ async function collectProjectResults(
   return results;
 }
 
-function buildProjectQueryResults(portal: string, projectMem: ProjectMemory, queryLower: string): MemorySearchResult[] {
-  const results: MemorySearchResult[] = [];
+function buildProjectQueryResults(
+  portal: string,
+  projectMem: IProjectMemory,
+  queryLower: string,
+): IMemorySearchResult[] {
+  const results: IMemorySearchResult[] = [];
 
   if (projectMem.overview.toLowerCase().includes(queryLower)) {
     results.push({
@@ -94,12 +98,12 @@ function buildProjectQueryResults(portal: string, projectMem: ProjectMemory, que
 }
 
 async function collectExecutionQueryResults(
-  deps: SearchDeps,
+  deps: ISearchDeps,
   portal: string | undefined,
   limit: number,
   queryLower: string,
-): Promise<MemorySearchResult[]> {
-  const results: MemorySearchResult[] = [];
+): Promise<IMemorySearchResult[]> {
+  const results: IMemorySearchResult[] = [];
   const executions = await deps.getExecutionHistory(portal, limit);
 
   for (const execution of executions) {
@@ -118,7 +122,7 @@ async function collectExecutionQueryResults(
   return results;
 }
 
-function sortAndLimit(results: MemorySearchResult[], limit: number): MemorySearchResult[] {
+function sortAndLimit(results: IMemorySearchResult[], limit: number): IMemorySearchResult[] {
   results.sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
   return results.slice(0, limit);
 }
@@ -126,12 +130,12 @@ function sortAndLimit(results: MemorySearchResult[], limit: number): MemorySearc
 export async function searchMemory(
   query: string,
   options: { portal?: string; limit?: number } | undefined,
-  deps: SearchDeps,
-): Promise<MemorySearchResult[]> {
+  deps: ISearchDeps,
+): Promise<IMemorySearchResult[]> {
   const queryLower = query.toLowerCase();
   const limit = options?.limit || DEFAULT_QUERY_LIMIT;
 
-  const results: MemorySearchResult[] = [];
+  const results: IMemorySearchResult[] = [];
   results.push(
     ...await collectProjectResults(
       deps,
@@ -146,15 +150,15 @@ export async function searchMemory(
 export async function searchByTags(
   tags: string[],
   options: { portal?: string; limit?: number } | undefined,
-  deps: SearchDeps,
-): Promise<MemorySearchResult[]> {
+  deps: ISearchDeps,
+): Promise<IMemorySearchResult[]> {
   const limit = options?.limit || DEFAULT_QUERY_LIMIT;
 
   const normalizedTags = tags.map((t) => t.toLowerCase());
-  const results: MemorySearchResult[] = [];
+  const results: IMemorySearchResult[] = [];
   results.push(
     ...await collectProjectResults(deps, options?.portal, (portalName, projectMem) => {
-      const projectResults: MemorySearchResult[] = [];
+      const projectResults: IMemorySearchResult[] = [];
       for (const pattern of projectMem.patterns) {
         if (!includesAllTags(pattern.tags ?? [], normalizedTags)) continue;
         projectResults.push({
@@ -203,15 +207,15 @@ export async function searchByTags(
 export async function searchByKeyword(
   keyword: string,
   options: { portal?: string; limit?: number } | undefined,
-  deps: SearchDeps,
-): Promise<MemorySearchResult[]> {
+  deps: ISearchDeps,
+): Promise<IMemorySearchResult[]> {
   const limit = options?.limit || DEFAULT_QUERY_LIMIT;
   const keywordLower = keyword.toLowerCase();
 
-  const results: MemorySearchResult[] = [];
+  const results: IMemorySearchResult[] = [];
   results.push(
     ...await collectProjectResults(deps, options?.portal, (portalName, projectMem) => {
-      const projectResults: MemorySearchResult[] = [];
+      const projectResults: IMemorySearchResult[] = [];
       for (const pattern of projectMem.patterns) {
         const titleFreq = deps.calculateFrequency(pattern.name, keywordLower);
         const descFreq = deps.calculateFrequency(pattern.description, keywordLower);
@@ -283,14 +287,14 @@ export async function searchMemoryAdvanced(
     portal?: string;
     limit?: number;
   },
-  deps: SearchDeps,
-): Promise<MemorySearchResult[]> {
+  deps: ISearchDeps,
+): Promise<IMemorySearchResult[]> {
   const limit = options.limit || DEFAULT_QUERY_LIMIT;
 
-  const getResultKey = (r: MemorySearchResult) => `${r.type}:${r.portal || ""}:${r.title}`;
-  const byKey = new Map<string, MemorySearchResult>();
+  const getResultKey = (r: IMemorySearchResult) => `${r.type}:${r.portal || ""}:${r.title}`;
+  const byKey = new Map<string, IMemorySearchResult>();
 
-  const upsert = (result: MemorySearchResult, onMerge: (existing: MemorySearchResult) => void) => {
+  const upsert = (result: IMemorySearchResult, onMerge: (existing: IMemorySearchResult) => void) => {
     const key = getResultKey(result);
     const existing = byKey.get(key);
     if (!existing) {

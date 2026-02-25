@@ -8,17 +8,17 @@
  */
 
 import { MEMORY_COMMAND_DEFAULTS } from "../cli.config.ts";
-import type { MemoryBankSummary } from "../memory_types.ts";
+import type { IMemoryBankSummary } from "../memory_types.ts";
 import type {
-  ExecutionMemory,
-  GlobalMemory,
-  GlobalMemoryStats,
-  Learning,
-  MemorySearchResult,
-  MemoryUpdateProposal,
-  ProjectMemory,
-  Skill,
-  SkillMatch,
+  IExecutionMemory,
+  IGlobalMemory,
+  IGlobalMemoryStats,
+  ILearning,
+  IMemorySearchResult,
+  IMemoryUpdateProposal,
+  IProjectMemory,
+  ISkill,
+  ISkillMatch,
 } from "../../schemas/memory_bank.ts";
 import {
   CLI_LAYOUT_BOX_INDENT_WIDTH,
@@ -51,7 +51,7 @@ import {
 export class MemoryFormatter {
   // ===== Memory List Formatting =====
 
-  formatListTable(summary: MemoryBankSummary): string {
+  formatListTable(summary: IMemoryBankSummary): string {
     const lines: string[] = [
       "Memory Banks Summary",
       "═".repeat(CLI_SEPARATOR_LENGTH),
@@ -73,7 +73,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatListMarkdown(summary: MemoryBankSummary): string {
+  formatListMarkdown(summary: IMemoryBankSummary): string {
     const lines: string[] = [
       "# Memory Banks Summary",
       "",
@@ -98,7 +98,7 @@ export class MemoryFormatter {
 
   // ===== Memory Search Formatting =====
 
-  formatSearchTable(query: string, results: MemorySearchResult[]): string {
+  formatSearchTable(query: string, results: IMemorySearchResult[]): string {
     if (results.length === 0) {
       return `No results found for "${query}"`;
     }
@@ -125,7 +125,7 @@ export class MemoryFormatter {
 
   formatSearchMarkdown(
     query: string,
-    results: MemorySearchResult[],
+    results: IMemorySearchResult[],
   ): string {
     if (results.length === 0) {
       return `# Search Results\n\nNo results found for "${query}"`;
@@ -206,7 +206,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatProjectShowTable(project: ProjectMemory): string {
+  formatProjectShowTable(project: IProjectMemory): string {
     const lines: string[] = [
       `Project Memory: ${project.portal}`,
       "═".repeat(CLI_SEPARATOR_MEDIUM),
@@ -247,7 +247,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatProjectShowMarkdown(project: ProjectMemory): string {
+  formatProjectShowMarkdown(project: IProjectMemory): string {
     const lines: string[] = [
       `# Project Memory: ${project.portal}`,
       "",
@@ -302,7 +302,7 @@ export class MemoryFormatter {
 
   // ===== Execution Formatting =====
 
-  formatExecutionListTable(executions: ExecutionMemory[]): string {
+  formatExecutionListTable(executions: IExecutionMemory[]): string {
     if (executions.length === 0) {
       return "No execution history found.";
     }
@@ -329,7 +329,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatExecutionListMarkdown(executions: ExecutionMemory[]): string {
+  formatExecutionListMarkdown(executions: IExecutionMemory[]): string {
     if (executions.length === 0) {
       return "# Execution History\n\nNo execution history found.";
     }
@@ -354,7 +354,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatExecutionShowTable(exec: ExecutionMemory): string {
+  formatExecutionShowTable(exec: IExecutionMemory): string {
     const lines: string[] = [
       `Execution Details: ${exec.trace_id}`,
       "═".repeat(CLI_SEPARATOR_LONG),
@@ -388,7 +388,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatExecutionShowMarkdown(exec: ExecutionMemory): string {
+  formatExecutionShowMarkdown(exec: IExecutionMemory): string {
     const lines: string[] = [
       `# Execution: ${exec.trace_id}`,
       "",
@@ -444,7 +444,7 @@ export class MemoryFormatter {
 
   // ===== Global Memory Formatting =====
 
-  formatGlobalShowTable(globalMem: GlobalMemory): string {
+  formatGlobalShowTable(globalMem: IGlobalMemory): string {
     const lines: string[] = [
       "Global Memory",
       "═".repeat(CLI_SEPARATOR_MEDIUM),
@@ -469,7 +469,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatGlobalShowMarkdown(globalMem: GlobalMemory): string {
+  formatGlobalShowMarkdown(globalMem: IGlobalMemory): string {
     const lines: string[] = [
       "# Global Memory",
       "",
@@ -484,7 +484,7 @@ export class MemoryFormatter {
       "## Statistics",
       "",
       `- **Total Learnings:** ${globalMem.statistics.total_learnings}`,
-      `- **Last Activity:** ${globalMem.statistics.last_activity}`,
+      `- **Last IActivity:** ${globalMem.statistics.last_activity}`,
       "",
     ];
 
@@ -500,7 +500,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatGlobalLearningsTable(learnings: Learning[]): string {
+  formatGlobalLearningsTable(learnings: ILearning[]): string {
     const lines: string[] = [
       "Global Learnings",
       "═".repeat(CLI_SEPARATOR_WIDE),
@@ -523,7 +523,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatGlobalLearningsMarkdown(learnings: Learning[]): string {
+  formatGlobalLearningsMarkdown(learnings: ILearning[]): string {
     const lines: string[] = [
       "# Global Learnings",
       "",
@@ -545,13 +545,13 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatGlobalStatsTable(stats: GlobalMemoryStats): string {
+  formatGlobalStatsTable(stats: IGlobalMemoryStats): string {
     const lines: string[] = [
       "Global Memory Statistics",
       "═".repeat(CLI_SEPARATOR_LENGTH),
       "",
       `Total Learnings: ${stats.total_learnings}`,
-      `Last Activity:   ${stats.last_activity}`,
+      `Last IActivity:   ${stats.last_activity}`,
       "",
     ];
 
@@ -575,14 +575,14 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatGlobalStatsMarkdown(stats: GlobalMemoryStats): string {
+  formatGlobalStatsMarkdown(stats: IGlobalMemoryStats): string {
     const lines: string[] = [
       "# Global Memory Statistics",
       "",
       "| Metric | Value |",
       "|--------|-------|",
       `| Total Learnings | ${stats.total_learnings} |`,
-      `| Last Activity | ${stats.last_activity} |`,
+      `| Last IActivity | ${stats.last_activity} |`,
       "",
     ];
 
@@ -608,7 +608,7 @@ export class MemoryFormatter {
 
   // ===== Pending Proposals Formatting =====
 
-  formatPendingListTable(proposals: MemoryUpdateProposal[]): string {
+  formatPendingListTable(proposals: IMemoryUpdateProposal[]): string {
     const lines: string[] = [
       "Pending Memory Update Proposals",
       "═".repeat(CLI_SEPARATOR_WIDE),
@@ -631,7 +631,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatPendingListMarkdown(proposals: MemoryUpdateProposal[]): string {
+  formatPendingListMarkdown(proposals: IMemoryUpdateProposal[]): string {
     const lines: string[] = [
       "# Pending Memory Update Proposals",
       "",
@@ -654,7 +654,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatPendingShowTable(proposal: MemoryUpdateProposal): string {
+  formatPendingShowTable(proposal: IMemoryUpdateProposal): string {
     const lines: string[] = [
       "Pending Proposal Details",
       "═".repeat(CLI_SEPARATOR_MEDIUM),
@@ -666,7 +666,7 @@ export class MemoryFormatter {
       `Execution:   ${proposal.execution_id}`,
       "",
       "─".repeat(60),
-      "Learning:",
+      "ILearning:",
       "",
       `  Title:       ${proposal.learning.title}`,
       `  Category:    ${proposal.learning.category}`,
@@ -686,7 +686,7 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatPendingShowMarkdown(proposal: MemoryUpdateProposal): string {
+  formatPendingShowMarkdown(proposal: IMemoryUpdateProposal): string {
     const lines: string[] = [
       "# Pending Proposal",
       "",
@@ -698,7 +698,7 @@ export class MemoryFormatter {
       `| Agent | ${proposal.agent} |`,
       `| Execution | ${proposal.execution_id} |`,
       "",
-      "## Learning",
+      "## ILearning",
       "",
       `**Title:** ${proposal.learning.title}`,
       "",
@@ -722,12 +722,12 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  // ===== Skills Formatting =====
+  // ===== ISkills Formatting =====
 
-  formatSkillListTable(skills: Skill[]): string {
+  formatSkillListTable(skills: ISkill[]): string {
     const lines: string[] = [];
     lines.push("┌──────────────────────┬─────────────────────────┬──────────┬─────────┬────────────┐");
-    lines.push("│ Skill ID             │ Name                    │ Source   │ Version │ Status     │");
+    lines.push("│ ISkill ID             │ Name                    │ Source   │ Version │ Status     │");
     lines.push("├──────────────────────┼─────────────────────────┼──────────┼─────────┼────────────┤");
 
     for (const skill of skills) {
@@ -744,10 +744,10 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatSkillListMarkdown(skills: Skill[]): string {
+  formatSkillListMarkdown(skills: ISkill[]): string {
     const lines: string[] = [];
-    lines.push("# Skills\n");
-    lines.push("| Skill ID | Name | Source | Version | Status |");
+    lines.push("# ISkills\n");
+    lines.push("| ISkill ID | Name | Source | Version | Status |");
     lines.push("|---|---|---|---|---|");
 
     for (const skill of skills) {
@@ -758,12 +758,12 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatSkillShowTable(skill: Skill): string {
+  formatSkillShowTable(skill: ISkill): string {
     const lines: string[] = [];
     lines.push("┌─────────────────────────────────────────────────────────────┐");
-    lines.push(`│ Skill: ${skill.name.padEnd(CLI_LAYOUT_BOX_LABEL_WIDTH - 4)} │`);
+    lines.push(`│ ISkill: ${skill.name.padEnd(CLI_LAYOUT_BOX_LABEL_WIDTH - 4)} │`);
     lines.push("├─────────────────────────────────────────────────────────────┤");
-    lines.push(`│ Skill ID:   ${skill.skill_id.padEnd(CLI_LAYOUT_BOX_WIDTH_STANDARD)} │`);
+    lines.push(`│ ISkill ID:   ${skill.skill_id.padEnd(CLI_LAYOUT_BOX_WIDTH_STANDARD)} │`);
     lines.push(`│ Source:     ${skill.source.padEnd(CLI_LAYOUT_BOX_WIDTH_STANDARD)} │`);
     lines.push(`│ Scope:      ${skill.scope.padEnd(CLI_LAYOUT_BOX_WIDTH_STANDARD)} │`);
     lines.push(`│ Version:    ${skill.version.padEnd(CLI_LAYOUT_BOX_WIDTH_STANDARD)} │`);
@@ -828,10 +828,10 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatSkillShowMarkdown(skill: Skill): string {
+  formatSkillShowMarkdown(skill: ISkill): string {
     const lines: string[] = [];
     lines.push(`# ${skill.name}\n`);
-    lines.push(`**Skill ID:** ${skill.skill_id}`);
+    lines.push(`**ISkill ID:** ${skill.skill_id}`);
     lines.push(`**Source:** ${skill.source}`);
     lines.push(`**Scope:** ${skill.scope}`);
     lines.push(`**Version:** ${skill.version}`);
@@ -849,10 +849,10 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatSkillMatchTable(matches: SkillMatch[]): string {
+  formatSkillMatchTable(matches: ISkillMatch[]): string {
     const lines: string[] = [];
     lines.push("┌──────────────────────────────────┬────────────┬─────────────────────────────────┐");
-    lines.push("│ Skill ID                         │ Confidence │ Matched Triggers                │");
+    lines.push("│ ISkill ID                         │ Confidence │ Matched Triggers                │");
     lines.push("├──────────────────────────────────┼────────────┼─────────────────────────────────┤");
 
     for (const match of matches) {
@@ -877,10 +877,10 @@ export class MemoryFormatter {
     return lines.join("\n");
   }
 
-  formatSkillMatchMarkdown(matches: SkillMatch[]): string {
+  formatSkillMatchMarkdown(matches: ISkillMatch[]): string {
     const lines: string[] = [];
-    lines.push("# Matched Skills\n");
-    lines.push("| Skill ID | Confidence | Matched Triggers |");
+    lines.push("# Matched ISkills\n");
+    lines.push("| ISkill ID | Confidence | Matched Triggers |");
     lines.push("|---|---|---|");
 
     for (const match of matches) {
@@ -903,7 +903,7 @@ export class MemoryFormatter {
 
   // ===== Helpers =====
 
-  private appendChangesSummary(lines: string[], exec: ExecutionMemory): void {
+  private appendChangesSummary(lines: string[], exec: IExecutionMemory): void {
     if (!exec.changes) return;
     const created = exec.changes.files_created?.length || 0;
     const modified = exec.changes.files_modified?.length || 0;
@@ -934,7 +934,7 @@ export class MemoryFormatter {
     }
   }
 
-  private appendLessonsAndError(lines: string[], exec: ExecutionMemory): void {
+  private appendLessonsAndError(lines: string[], exec: IExecutionMemory): void {
     if (exec.lessons_learned && exec.lessons_learned.length > 0) {
       lines.push("Lessons Learned:");
       lines.push("─".repeat(40));
@@ -951,7 +951,7 @@ export class MemoryFormatter {
     }
   }
 
-  private appendChangesMarkdown(lines: string[], exec: ExecutionMemory): void {
+  private appendChangesMarkdown(lines: string[], exec: IExecutionMemory): void {
     if (!exec.changes) return;
     const created = exec.changes.files_created || [];
     const modified = exec.changes.files_modified || [];

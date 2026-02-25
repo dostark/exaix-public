@@ -16,7 +16,7 @@ import { AgentStatusView } from "../agent_status_view.ts";
 import { RequestManagerView } from "../request_manager_view.ts";
 import { MemoryView } from "../memory_view.ts";
 import { SkillsManagerView } from "../skills_manager_view.ts";
-import { type TuiView } from "../tui_dashboard.ts";
+import { type ITuiView } from "../tui_dashboard.ts";
 import {
   MockAgentService,
   MockDaemonService,
@@ -30,16 +30,16 @@ import {
   MockStructuredLoggerService,
 } from "../tui_dashboard_mocks.ts";
 import { IDatabaseService } from "../../services/db.ts";
-import type { PortalService } from "../portal_manager_view.ts";
+import type { IPortalService } from "../portal_manager_view.ts";
 import type { IStructuredLogger } from "../../services/structured_logger.ts";
 
-export interface DashboardViewOptions {
+export interface IDashboardViewOptions {
   testMode?: boolean;
   databaseService?: IDatabaseService;
 }
 
-export interface DashboardServices {
-  portalService: PortalService;
+export interface IDashboardServices {
+  portalService: IPortalService;
   planService: MockPlanService;
   logService: IDatabaseService;
   structuredLogger: IStructuredLogger;
@@ -51,17 +51,17 @@ export interface DashboardServices {
   skillsService: MockSkillsService;
 }
 
-export interface DashboardViewsAndServices {
-  views: TuiView[];
-  services: DashboardServices;
+export interface IDashboardViewsAndServices {
+  views: ITuiView[];
+  services: IDashboardServices;
 }
 
 /**
  * Initialize all views for the TUI dashboard
  */
 export function initDashboardViews(
-  options: DashboardViewOptions = {},
-): DashboardViewsAndServices {
+  options: IDashboardViewOptions = {},
+): IDashboardViewsAndServices {
   const portalService = new MockPortalService();
   const planService = new MockPlanService();
   const logService = options.databaseService || new MockLogService();
@@ -73,7 +73,7 @@ export function initDashboardViews(
   const memoryService = new MockMemoryService();
   const skillsService = new MockSkillsService();
 
-  const services: DashboardServices = {
+  const services: IDashboardServices = {
     portalService,
     planService,
     logService,
@@ -104,7 +104,7 @@ export function initDashboardViews(
     Object.assign(new MemoryView(memoryService), { name: "MemoryView" }),
     Object.assign(new SkillsManagerView(skillsService), { name: "SkillsManagerView" }),
   ].map((view) => {
-    const v = view as TuiView;
+    const v = view as ITuiView;
     if (typeof v.getFocusableElements !== "function") {
       if (v.name === "PortalManagerView") {
         v.getFocusableElements = () => ["portal-list", "action-buttons", "status-bar"];

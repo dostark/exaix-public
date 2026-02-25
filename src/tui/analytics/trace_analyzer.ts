@@ -7,14 +7,14 @@
  * @related-files [src/tui/structured_log_viewer.ts]
  */
 
-import type { LogEntry } from "../../services/structured_logger.ts";
+import type { IStructuredLogEntry } from "../../services/structured_logger.ts";
 import type { TraceAnalysis } from "./types.ts";
 import { LogLevel } from "../../enums.ts";
 
 /**
  * Analyze a trace through the system
  */
-export function analyzeTrace(entries: LogEntry[]): TraceAnalysis | null {
+export function analyzeTrace(entries: IStructuredLogEntry[]): TraceAnalysis | null {
   if (entries.length === 0) return null;
 
   // Find common trace ID

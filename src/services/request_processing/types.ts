@@ -8,7 +8,7 @@
  */
 import type { RequestStatusType } from "../../requests/request_status.ts";
 
-export interface RequestFrontmatter {
+export interface IRequestFrontmatter {
   trace_id: string;
   created: string;
   status: RequestStatusType;
@@ -24,7 +24,7 @@ export interface RequestFrontmatter {
 }
 
 export interface ParsedRequestFile {
-  frontmatter: RequestFrontmatter;
+  frontmatter: IRequestFrontmatter;
   body: string;
   rawContent: string;
 }

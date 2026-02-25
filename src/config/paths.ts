@@ -1,5 +1,5 @@
 /**
- * @module ExoPaths
+ * @module IExoPaths
  * @path src/config/paths.ts
  * @description Defines the standard directory structure and path resolution logic for the ExoFrame workspace and memory banks.
  * @architectural-layer Config
@@ -9,7 +9,7 @@
 
 import * as DEFAULTS from "./constants.ts";
 
-export interface ExoPaths {
+export interface IExoPaths {
   workspace: string;
   runtime: string;
   memory: string;
@@ -31,7 +31,7 @@ export interface ExoPaths {
   memoryGlobal: string;
 }
 
-export function getDefaultPaths(_root: string): ExoPaths {
+export function getDefaultPaths(_root: string): IExoPaths {
   return {
     workspace: DEFAULTS.DEFAULT_WORKSPACE_PATH,
     runtime: DEFAULTS.DEFAULT_RUNTIME_PATH,

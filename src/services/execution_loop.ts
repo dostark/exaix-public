@@ -19,7 +19,9 @@ import { parse as parseYaml } from "@std/yaml";
 import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import type { IModelProvider } from "../ai/providers.ts";
-import { GitService } from "./git_service.ts";
+import { GitService, type IGitService } from "./git_service.ts";
+import { type PlanFrontmatter, PlanFrontmatterSchema } from "../schemas/plan_schema.ts";
+import { BlueprintLoader } from "./blueprint_loader.ts";
 import { ToolRegistry } from "./tool_registry.ts";
 import { ReviewRegistry } from "./review_registry.ts";
 import { MemoryBankService } from "./memory_bank.ts";
@@ -27,7 +29,7 @@ import { MissionReporter } from "./mission_reporter.ts";
 import { PlanExecutor } from "./plan_executor.ts";
 import { ExecutionStatus, PortalExecutionStrategy } from "../enums.ts";
 import { PlanStatus } from "../plans/plan_status.ts";
-import { parseStructuredPlanFromMarkdown, type StructuredPlan } from "./structured_plan_parser.ts";
+import { type IStructuredPlan, parseStructuredPlanFromMarkdown } from "./structured_plan_parser.ts";
 import { isReadOnlyAgentCapabilities } from "./agent_capabilities.ts";
 import { ArtifactRegistry } from "./artifact_registry.ts";
 import {
@@ -38,11 +40,7 @@ import {
 } from "../config/constants.ts";
 import { JSONValue } from "../types.ts";
 
-// ============================================================================
-// Types
-// ============================================================================
-
-export interface ExecutionLoopConfig {
+export interface IExecutionLoopConfig {
   config: Config;
   db?: DatabaseService;
   agentId: string;
@@ -50,40 +48,33 @@ export interface ExecutionLoopConfig {
   reviewRegistry?: ReviewRegistry;
 }
 
-export interface ExecutionResult {
+export interface IExecutionResult {
   success: boolean;
   traceId?: string;
   error?: string;
 }
 
-import { type PlanFrontmatter, PlanFrontmatterSchema } from "../schemas/plan_schema.ts";
-import { BlueprintLoader } from "./blueprint_loader.ts";
-
-interface PlanAction {
+export interface IPlanAction {
   tool: string;
   params: Record<string, JSONValue>;
   description?: string;
 }
 
-interface TaskLease {
+export interface ITaskLease {
   filePath: string;
   holder: string;
   acquiredAt: Date;
 }
 
-interface SuccessArtifactContext {
+export interface ISuccessArtifactContext {
   isReadOnly: boolean;
   planAgentId?: string;
   portal?: string;
   targetBranch?: string;
 }
 
-// ============================================================================
-// ExecutionLoop Implementation
-// ============================================================================
-
 /** Options for internal execution */
-interface ExecuteOptions {
+export interface IExecuteOptions {
   /** Path to the plan file */
   planPath: string;
   /** Whether to require actions in the plan */
@@ -97,11 +88,11 @@ export class ExecutionLoop {
   private db?: DatabaseService;
   private agentId: string;
   private plansDir: string;
-  private leases = new Map<string, TaskLease>();
+  private leases = new Map<string, ITaskLease>();
   private blueprintLoader: BlueprintLoader;
 
   constructor(
-    { config, db, agentId, llmProvider, reviewRegistry }: ExecutionLoopConfig & {
+    { config, db, agentId, llmProvider, reviewRegistry }: IExecutionLoopConfig & {
       reviewRegistry?: ReviewRegistry;
     },
   ) {
@@ -134,7 +125,7 @@ export class ExecutionLoop {
 
   private async resolveBaseBranch(
     frontmatter: PlanFrontmatter,
-    gitService: GitService,
+    gitService: IGitService,
     executionRoot: string,
   ): Promise<string> {
     const fromPlan = frontmatter.target_branch?.trim();
@@ -169,11 +160,11 @@ export class ExecutionLoop {
   /**
    * Core execution logic shared between processTask and executeNext
    */
-  private async executeCore(options: ExecuteOptions): Promise<ExecutionResult> {
+  private async executeCore(options: IExecuteOptions): Promise<IExecutionResult> {
     const { planPath, requireActions, initGitBranch } = options;
     let traceId: string | undefined;
     let requestId: string | undefined;
-    let portalGitService: GitService | undefined;
+    let portalGitService: IGitService | undefined;
     let worktreePath: string | undefined;
 
     try {
@@ -201,10 +192,10 @@ export class ExecutionLoop {
         initGitBranch,
         hasExecutableWork: prepared.hasExecutableWork && !prepared.isReadOnly,
         frontmatter,
-        requestId,
-        traceId,
+        requestId: requestId!,
+        traceId: traceId!,
         portalRepoRoot,
-        portalGitService,
+        portalGitService: portalGitService!,
         executionStrategy: prepared.executionStrategy,
       });
       worktreePath = gitSetup.worktreePath;
@@ -233,10 +224,10 @@ export class ExecutionLoop {
       // Register review
       if (commitSha) {
         const baseBranch = gitSetup.baseBranch ??
-          await this.resolveBaseBranch(frontmatter, portalGitService, portalRepoRoot);
+          await this.resolveBaseBranch(frontmatter, portalGitService!, portalRepoRoot);
         await this.registerReview(
-          requestId,
-          traceId,
+          requestId!,
+          traceId!,
           frontmatter.portal || "unknown",
           gitSetup.branchName || "unknown",
           commitSha,
@@ -247,7 +238,7 @@ export class ExecutionLoop {
       }
 
       // Handle success
-      await this.handleSuccess(planPath, traceId, requestId, {
+      await this.handleSuccess(planPath, traceId!, requestId!, {
         isReadOnly: prepared.isReadOnly,
         planAgentId: prepared.planAgentId,
         portal: frontmatter.portal,
@@ -275,7 +266,7 @@ export class ExecutionLoop {
     return portal ? portal.target_path : this.config.system.root;
   }
 
-  private createGitService(repoPath: string, traceId: string): GitService {
+  private createGitService(repoPath: string, traceId: string): IGitService {
     return new GitService({
       config: this.config,
       db: this.db,
@@ -303,8 +294,8 @@ export class ExecutionLoop {
   }
 
   private async preparePlanExecution(frontmatter: PlanFrontmatter, planContent: string): Promise<{
-    structuredPlan: ReturnType<typeof parseStructuredPlanFromMarkdown>;
-    actions: ReturnType<ExecutionLoop["parsePlanActions"]>;
+    structuredPlan: IStructuredPlan | null;
+    actions: IPlanAction[];
     planAgentId: string | undefined;
     isReadOnly: boolean;
     hasExecutableWork: boolean;
@@ -332,17 +323,17 @@ export class ExecutionLoop {
     requestId: string;
     traceId: string;
     portalRepoRoot: string;
-    portalGitService: GitService;
+    portalGitService: IGitService;
     executionStrategy: PortalExecutionStrategy;
   }): Promise<{
     executionRoot: string;
-    executionGitService: GitService;
+    executionGitService: IGitService;
     baseBranch?: string;
     branchName?: string;
     worktreePath?: string;
   }> {
     const executionRoot = args.portalRepoRoot;
-    const executionGitService = args.portalGitService;
+    const executionGitService = args.portalGitService as IGitService;
     if (!args.initGitBranch || !args.hasExecutableWork) {
       return { executionRoot, executionGitService };
     }
@@ -388,7 +379,7 @@ export class ExecutionLoop {
   }
 
   private async setupBranchExecution(args: {
-    portalGitService: GitService;
+    portalGitService: IGitService;
     baseBranch: string;
     requestId: string;
     traceId: string;
@@ -404,7 +395,7 @@ export class ExecutionLoop {
   }
 
   private async addWorktreeOrThrow(
-    portalGitService: GitService,
+    portalGitService: IGitService,
     worktreePath: string,
     baseBranch: string,
   ): Promise<void> {
@@ -425,11 +416,11 @@ export class ExecutionLoop {
     portalAlias: string;
     traceId: string;
     requestId: string;
-    portalGitService: GitService;
+    portalGitService: IGitService;
     baseBranch: string;
   }): Promise<{
     executionRoot: string;
-    executionGitService: GitService;
+    executionGitService: IGitService;
     baseBranch: string;
     branchName: string;
     worktreePath: string;
@@ -454,15 +445,15 @@ export class ExecutionLoop {
   }
 
   private async executePlanWork(args: {
-    structuredPlan: ReturnType<typeof parseStructuredPlanFromMarkdown>;
-    actions: ReturnType<ExecutionLoop["parsePlanActions"]>;
+    structuredPlan: IStructuredPlan | null;
+    actions: IPlanAction[];
     isReadOnly: boolean;
     planAgentId: string | undefined;
     requireActions: boolean;
     traceId: string;
     requestId: string;
     executionRoot: string;
-    executionGitService: GitService;
+    executionGitService: IGitService;
   }): Promise<{ didExecuteWork: boolean; didMutateRepo: boolean; report?: string }> {
     if (args.structuredPlan) {
       if (args.isReadOnly && (!this.llmProvider || !this.db)) {
@@ -508,7 +499,7 @@ export class ExecutionLoop {
   /**
    * Process a single task from Workspace/Active
    */
-  async processTask(planPath: string): Promise<ExecutionResult> {
+  async processTask(planPath: string): Promise<IExecutionResult> {
     return await this.executeCore({
       planPath,
       requireActions: false,
@@ -519,7 +510,7 @@ export class ExecutionLoop {
   /**
    * Execute next available plan file
    */
-  async executeNext(): Promise<ExecutionResult> {
+  async executeNext(): Promise<IExecutionResult> {
     const planPath = await this.findNextPlan();
     if (!planPath) {
       return { success: true }; // No work to do
@@ -597,8 +588,8 @@ export class ExecutionLoop {
    * Parse action blocks from plan content
    * Looks for code blocks with tool invocations in TOML format
    */
-  private parsePlanActions(planContent: string): PlanAction[] {
-    const actions: PlanAction[] = [];
+  private parsePlanActions(planContent: string): IPlanAction[] {
+    const actions: IPlanAction[] = [];
 
     // Match code blocks that contain action definitions
     // Format: ```toml blocks with tool and params fields
@@ -635,7 +626,7 @@ export class ExecutionLoop {
    * Execute plan actions using ToolRegistry
    */
   private async executePlanActions(
-    actions: PlanAction[],
+    actions: IPlanAction[],
     traceId: string,
     requestId: string,
     executionRoot: string,
@@ -688,9 +679,9 @@ export class ExecutionLoop {
    * Execute structured plan using PlanExecutor
    */
   private async executeStructuredPlan(
-    plan: StructuredPlan,
+    plan: IStructuredPlan,
     executionRoot: string,
-    _gitService: GitService,
+    _gitService: IGitService,
     options?: { enableGit?: boolean; generateReport?: boolean },
   ): Promise<{ report?: string }> {
     if (!this.llmProvider) {
@@ -805,7 +796,7 @@ export class ExecutionLoop {
     planPath: string,
     traceId: string,
     requestId: string,
-    artifactContext?: SuccessArtifactContext,
+    artifactContext?: ISuccessArtifactContext,
   ): Promise<void> {
     // Generate mission report
     await this.generateMissionReport(traceId, requestId);
@@ -917,7 +908,7 @@ export class ExecutionLoop {
     requestId: string,
     error: string,
     _cleanup?: {
-      portalGitService?: GitService;
+      portalGitService?: IGitService;
       worktreePath?: string;
     },
   ): Promise<void> {
@@ -974,7 +965,7 @@ export class ExecutionLoop {
    * Commit changes to git, handling "nothing to commit" gracefully
    */
   private async commitChanges(
-    gitService: GitService,
+    gitService: IGitService,
     requestId: string,
     traceId: string,
   ): Promise<string | null> {

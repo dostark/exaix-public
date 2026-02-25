@@ -12,7 +12,7 @@ import { PlanStatus } from "../../plans/plan_status.ts";
 import type { EventLogger } from "../../services/event_logger.ts";
 import { JSONObject, JSONValue, toSafeJson } from "../../types.ts";
 
-export interface PlanActionContext {
+export interface IPlanActionContext {
   planCommands: PlanCommands;
   display: EventLogger;
 }
@@ -29,7 +29,7 @@ export interface PlanApproveOptions {
  * Handle plan list action
  */
 export async function handlePlanList(
-  context: PlanActionContext,
+  context: IPlanActionContext,
   options: PlanListOptions,
 ): Promise<void> {
   const { planCommands, display } = context;
@@ -78,7 +78,7 @@ export async function handlePlanList(
  * Handle plan show action
  */
 export async function handlePlanShow(
-  context: PlanActionContext,
+  context: IPlanActionContext,
   id: string,
 ): Promise<void> {
   const { planCommands, display } = context;
@@ -142,7 +142,7 @@ export async function handlePlanShow(
  * Handle plan approve action
  */
 export async function handlePlanApprove(
-  context: PlanActionContext,
+  context: IPlanActionContext,
   id: string,
   options: PlanApproveOptions,
 ): Promise<void> {
@@ -165,7 +165,7 @@ export async function handlePlanApprove(
  * Handle plan reject action
  */
 export async function handlePlanReject(
-  context: PlanActionContext,
+  context: IPlanActionContext,
   id: string,
   reason: string,
 ): Promise<void> {
@@ -185,7 +185,7 @@ export async function handlePlanReject(
  * Handle plan revise action
  */
 export async function handlePlanRevise(
-  context: PlanActionContext,
+  context: IPlanActionContext,
   id: string,
   comments: string[],
 ): Promise<void> {

@@ -9,7 +9,7 @@
 
 import { TuiSessionBase } from "./tui_common.ts";
 import { createSpinnerState, type SpinnerState, startSpinner, stopSpinner } from "../helpers/spinner.ts";
-import type { TreeNode } from "../helpers/tree_view.ts";
+import type { ITreeNode } from "../helpers/tree_view.ts";
 import {
   collapseAll,
   expandAll,
@@ -24,9 +24,9 @@ import {
 } from "../helpers/tree_view.ts";
 import { AgentHealth, DialogStatus, LogLevel, TuiGroupBy } from "../enums.ts";
 import { AgentStatus, type AgentStatusType } from "./agent_status/agent_status.ts";
-import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
 import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
-import { type KeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
+import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import {
   TUI_AGENT_HEALTH_ICONS,
@@ -48,7 +48,7 @@ import { MessageType } from "../enums.ts";
 /**
  * Service interface for agent status access.
  */
-export interface AgentService {
+export interface IAgentService {
   listAgents(): Promise<AgentStatusItem[]>;
   getAgentLogs(agentId: string, limit?: number): Promise<AgentLogEntry[]>;
   getAgentHealth(agentId: string): Promise<AgentHealthData>;
@@ -85,7 +85,7 @@ export interface AgentViewState {
   /** Currently selected agent ID */
   selectedAgentId: string | null;
   /** Agent tree structure */
-  agentTree: TreeNode[];
+  agentTree: ITreeNode[];
   /** Whether help is visible */
   showHelp: boolean;
   /** Whether detail view is shown */
@@ -166,7 +166,7 @@ export enum AgentAction {
 // ===== Key Binding Categories =====
 
 export class AgentKeyBindings extends KeyBindingsBase<AgentAction, KeyBindingCategory> {
-  readonly KEY_BINDINGS: readonly KeyBinding<AgentAction, KeyBindingCategory>[] = [
+  readonly KEY_BINDINGS: readonly IKeyBinding<AgentAction, KeyBindingCategory>[] = [
     {
       key: KEYS.UP,
       action: AgentAction.NAVIGATE_UP,
@@ -262,13 +262,13 @@ export const AGENT_KEY_BINDINGS = new AgentKeyBindings().KEY_BINDINGS;
 // ===== Agent Status View Class =====
 
 /**
- * View/controller for agent status. Delegates to injected AgentService.
+ * View/controller for agent status. Delegates to injected IAgentService.
  */
 export class AgentStatusView {
   private selectedAgentId: string | null = null;
   private agents: AgentStatusItem[] = [];
 
-  constructor(private readonly agentService: AgentService) {}
+  constructor(private readonly agentService: IAgentService) {}
 
   /** Get all agents with their status. */
   async getAgentList(): Promise<AgentStatusItem[]> {
@@ -370,9 +370,9 @@ export class AgentStatusView {
 // ===== Minimal Mock for Tests =====
 
 /**
- * Minimal AgentService mock for TUI session tests
+ * Minimal IAgentService mock for TUI session tests
  */
-export class MinimalAgentServiceMock implements AgentService {
+export class MinimalAgentServiceMock implements IAgentService {
   private agents: AgentStatusItem[] = [];
 
   constructor(agents: AgentStatusItem[] = []) {
@@ -461,7 +461,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     return "Agent Status";
   }
 
-  getAgentTree(): TreeNode[] {
+  getAgentTree(): ITreeNode[] {
     return this.state.agentTree;
   }
 
@@ -544,7 +544,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     return this.localSpinnerState.message;
   }
 
-  override getKeyBindings(): KeyBinding[] {
+  override getKeyBindings(): IKeyBinding[] {
     return [...AGENT_KEY_BINDINGS];
   }
 
@@ -710,7 +710,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     lines.push(`ID: ${agent.id}`);
     lines.push(`Model: ${agent.model}`);
     lines.push(`Status: ${AGENT_STATUS_ICONS[agent.status]} ${agent.status.toUpperCase()}`);
-    lines.push(`Last Activity: ${new Date(agent.lastActivity).toLocaleString()}`);
+    lines.push(`Last IActivity: ${new Date(agent.lastActivity).toLocaleString()}`);
     lines.push("");
     lines.push(`Health: ${AGENT_HEALTH_ICONS[health.status]} ${health.status.toUpperCase()}`);
     lines.push(`Uptime: ${this.agentView.formatUptime(health.uptime)}`);
@@ -866,7 +866,7 @@ export class AgentStatusTuiSession extends TuiSessionBase {
     this.state.showHelp = !this.state.showHelp;
   }
 
-  getHelpSections(): HelpSection[] {
+  getHelpSections(): IHelpSection[] {
     return [
       {
         title: "Navigation",

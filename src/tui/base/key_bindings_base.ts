@@ -7,7 +7,7 @@
  * @related-files [src/helpers/keyboard.ts]
  */
 
-import type { KeyBinding, KeyHandler } from "../../helpers/keyboard.ts";
+import type { IKeyBinding, KeyHandler } from "../../helpers/keyboard.ts";
 
 /**
  * Base class for key binding collections.
@@ -21,26 +21,26 @@ export abstract class KeyBindingsBase<
    * The key bindings collection for this component.
    * Must be implemented by subclasses with specific action types.
    */
-  abstract readonly KEY_BINDINGS: readonly KeyBinding<TAction>[];
+  abstract readonly KEY_BINDINGS: readonly IKeyBinding<TAction>[];
 
   /**
    * Get all key bindings for this component.
    */
-  getKeyBindings(): KeyBinding<string | KeyHandler>[] {
+  getKeyBindings(): IKeyBinding<string | KeyHandler>[] {
     return [...this.KEY_BINDINGS];
   }
 
   /**
    * Find a key binding by action.
    */
-  findBindingByAction(action: TAction): KeyBinding<TAction> | undefined {
+  findBindingByAction(action: TAction): IKeyBinding<TAction> | undefined {
     return this.KEY_BINDINGS.find((binding) => binding.action === action);
   }
 
   /**
    * Find a key binding by key.
    */
-  findBindingByKey(key: string): KeyBinding<TAction> | undefined {
+  findBindingByKey(key: string): IKeyBinding<TAction> | undefined {
     return this.KEY_BINDINGS.find((binding) => binding.key === key);
   }
 

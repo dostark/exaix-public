@@ -8,16 +8,16 @@
  */
 
 import { KEYS } from "../../helpers/keyboard.ts";
-import { colorize, type TuiTheme } from "../../helpers/colors.ts";
-import type { DashboardViewState, Pane } from "../tui_dashboard.ts";
-import type { INotificationService, MemoryNotification } from "../../services/notification.ts";
+import { colorize, type ITuiTheme } from "../../helpers/colors.ts";
+import type { IDashboardViewState, IPane } from "../tui_dashboard.ts";
+import type { IMemoryNotification, INotificationService } from "../../services/notification.ts";
 
-interface TuiNotification extends MemoryNotification {
+interface ITuiNotification extends IMemoryNotification {
   icon?: string;
 }
 
-export interface DashboardContext {
-  state: DashboardViewState;
+export interface IDashboardContext {
+  state: IDashboardViewState;
   activePaneId: string;
   approveMemoryUpdate: (id: string) => Promise<void>;
   rejectMemoryUpdate: (id: string) => Promise<void>;
@@ -34,12 +34,12 @@ export function formatTimeAgo(date: Date): string {
 
 export async function renderNotificationPanel(
   notificationService: INotificationService,
-  theme: TuiTheme,
-  state: DashboardViewState,
+  theme: ITuiTheme,
+  state: IDashboardViewState,
   maxHeight = 10,
 ): Promise<string[]> {
   const lines: string[] = [];
-  let activeNotifications = await notificationService.getNotifications() as TuiNotification[];
+  let activeNotifications = await notificationService.getNotifications() as ITuiNotification[];
 
   const messageColorByType: Record<string, string> = {
     error: theme.error,
@@ -99,9 +99,9 @@ export async function renderNotificationPanel(
 }
 
 export async function handleMemoryNotifications(
-  self: DashboardContext,
+  self: IDashboardContext,
   key: string,
-  panes: Pane[],
+  panes: IPane[],
   notificationService: INotificationService,
 ) {
   if (key === KEYS.ESCAPE || key === KEYS.M) {

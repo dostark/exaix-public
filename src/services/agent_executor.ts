@@ -4,7 +4,7 @@
  * @description Orchestrates LLM agent execution via MCP with security mode enforcement.
  * Handles blueprint loading, subprocess spawning, MCP connection, and git audit.
  * @architectural-layer Services
- * @dependencies [Config, DatabaseService, EventLogger, PathResolver, PortalPermissionsService, IModelProvider, WorkspaceExecutionContext, AgentCapabilities, InputValidator]
+ * @dependencies [Config, DatabaseService, EventLogger, PathResolver, PortalPermissionsService, IModelProvider, IWorkspaceExecutionContext, AgentCapabilities, InputValidator]
  * @related-files [src/services/agent_runner.ts, src/services/execution_loop.ts]
  */
 
@@ -19,7 +19,7 @@ import type { PortalPermissionsService } from "./portal_permissions.ts";
 import type { IModelProvider } from "../ai/providers.ts";
 import { SafeError } from "../errors/safe_error.ts";
 import { SafeSubprocess, SubprocessTimeoutError } from "../helpers/subprocess.ts";
-import type { WorkspaceExecutionContext } from "./workspace_execution_context.ts";
+import type { IWorkspaceExecutionContext } from "./workspace_execution_context.ts";
 import {
   DEFAULT_GIT_CHECKOUT_TIMEOUT_MS,
   DEFAULT_GIT_CLEAN_TIMEOUT_MS,
@@ -33,15 +33,26 @@ import {
 } from "../config/constants.ts";
 import { isReadOnlyAgentCapabilities, requiresGitTracking } from "./agent_capabilities.ts";
 import {
-  type AgentExecutionOptions,
-  type ChangesetResult,
   ChangesetResultSchema,
-  type ExecutionContext,
+  type IAgentExecutionOptions,
+  type IChangesetResult,
+  type IExecutionContext,
 } from "../schemas/agent_executor.ts";
 import { LogLevel, SecurityMode } from "../enums.ts";
 import { InputValidator } from "../schemas/input_validation.ts";
 import { buildPortalContextBlock } from "./prompt_context.ts";
 import { JSONValue } from "../types.ts";
+
+/**
+ * Agent blueprint loaded from file
+ */
+export interface IBlueprint {
+  name: string;
+  model: string;
+  provider: string;
+  capabilities: string[];
+  systemPrompt: string;
+}
 
 /**
  * Agent execution error class
@@ -78,21 +89,10 @@ const BlueprintSchema = z.object({
 }).strict(); // No extra fields allowed
 
 /**
- * Agent blueprint loaded from file
- */
-export interface Blueprint {
-  name: string;
-  model: string;
-  provider: string;
-  capabilities: string[];
-  systemPrompt: string;
-}
-
-/**
  * AgentExecutor orchestrates agent execution with MCP
  */
 export class AgentExecutor {
-  private executionContext?: WorkspaceExecutionContext;
+  private executionContext?: IWorkspaceExecutionContext;
   private originalWorkingDirectory?: string;
 
   constructor(
@@ -108,7 +108,7 @@ export class AgentExecutor {
    * Set execution context for agent operations
    * Changes working directory to context location
    */
-  setExecutionContext(context: WorkspaceExecutionContext): void {
+  setExecutionContext(context: IWorkspaceExecutionContext): void {
     // Store original directory if not already stored
     if (!this.originalWorkingDirectory) {
       this.originalWorkingDirectory = Deno.cwd();
@@ -123,7 +123,7 @@ export class AgentExecutor {
   /**
    * Get current execution context
    */
-  getExecutionContext(): WorkspaceExecutionContext | undefined {
+  getExecutionContext(): IWorkspaceExecutionContext | undefined {
     return this.executionContext;
   }
 
@@ -149,7 +149,7 @@ export class AgentExecutor {
    * Ensures directory is always restored even if function throws
    */
   async withExecutionContext<T>(
-    context: WorkspaceExecutionContext,
+    context: IWorkspaceExecutionContext,
     fn: () => Promise<T> | T,
   ): Promise<T> {
     const originalDir = Deno.cwd();
@@ -190,7 +190,7 @@ export class AgentExecutor {
    * @param blueprint - Agent blueprint with capabilities
    * @returns true if agent has write capabilities requiring git tracking
    */
-  requiresGitTracking(blueprint: Blueprint): boolean {
+  requiresGitTracking(blueprint: IBlueprint): boolean {
     return requiresGitTracking(blueprint.capabilities);
   }
 
@@ -201,14 +201,14 @@ export class AgentExecutor {
    * @param blueprint - Agent blueprint with capabilities
    * @returns true if agent has no write capabilities
    */
-  isReadOnlyAgent(blueprint: Blueprint): boolean {
+  isReadOnlyAgent(blueprint: IBlueprint): boolean {
     return isReadOnlyAgentCapabilities(blueprint.capabilities);
   }
 
   /**
    * Load agent blueprint from file with security validation
    */
-  async loadBlueprint(rawAgentName: string): Promise<Blueprint> {
+  async loadBlueprint(rawAgentName: string): Promise<IBlueprint> {
     // ✓ Validate agent name to prevent path traversal
     const agentName = InputValidator.validateBlueprintName(rawAgentName);
 
@@ -326,9 +326,9 @@ export class AgentExecutor {
    * Execute a plan step using agent via MCP
    */
   async executeStep(
-    rawContext: ExecutionContext,
-    rawOptions: AgentExecutionOptions,
-  ): Promise<ChangesetResult> {
+    rawContext: IExecutionContext,
+    rawOptions: IAgentExecutionOptions,
+  ): Promise<IChangesetResult> {
     // ✓ Validate inputs first to prevent injection attacks
     const context = InputValidator.validateExecutionContext(rawContext);
     const options = InputValidator.validateAgentExecutionOptions(rawOptions);
@@ -384,7 +384,7 @@ export class AgentExecutor {
       }
 
       // Fallback: return mock result for tests without provider
-      const result: ChangesetResult = {
+      const result: IChangesetResult = {
         branch: `feat/${context.request_id}-${context.trace_id.slice(0, 8)}`,
         commit_sha: "abc1234567890abcdef",
         files_changed: [],
@@ -420,9 +420,9 @@ export class AgentExecutor {
    * Build execution prompt for LLM agent
    */
   public buildExecutionPrompt(
-    blueprint: Blueprint,
-    context: ExecutionContext,
-    options: AgentExecutionOptions,
+    blueprint: IBlueprint,
+    context: IExecutionContext,
+    options: IAgentExecutionOptions,
   ): string {
     // Sanitize all user-controlled inputs
     const sanitizedRequest = this.sanitizeUserInput(context.request);
@@ -505,9 +505,9 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
    */
   private parseAgentResponse(
     response: string,
-    context: ExecutionContext,
+    context: IExecutionContext,
     startTime: number,
-  ): ChangesetResult {
+  ): IChangesetResult {
     // Try to extract JSON from response
     const jsonMatch = response.match(/\`\`\`json\s*([\s\S]*?)\s*\`\`\`/) ||
       response.match(/\{[\s\S]*\}/);
@@ -533,7 +533,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
         parsed.execution_time_ms = Date.now() - startTime;
       }
 
-      return parsed as ChangesetResult;
+      return parsed as IChangesetResult;
     } catch {
       // If parsing fails, return default result
       return {
@@ -992,12 +992,12 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
   /**
    * Validate review result structure
    */
-  validateReviewResult(result: unknown): ChangesetResult {
+  validateReviewResult(result: unknown): IChangesetResult {
     return ChangesetResultSchema.parse(result);
   }
 
   /**
-   * Log execution start to Activity Journal
+   * Log execution start to IActivity Journal
    */
   async logExecutionStart(
     traceId: string,
@@ -1018,12 +1018,12 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
   }
 
   /**
-   * Log execution completion to Activity Journal
+   * Log execution completion to IActivity Journal
    */
   async logExecutionComplete(
     traceId: string,
     agentId: string,
-    result: ChangesetResult,
+    result: IChangesetResult,
   ): Promise<void> {
     await this.logger.log({
       action: "agent.execution_completed",
@@ -1043,7 +1043,7 @@ Ensure your response contains ONLY valid JSON, no additional text.`;
   }
 
   /**
-   * Log execution error to Activity Journal
+   * Log execution error to IActivity Journal
    */
   async logExecutionError(
     traceId: string,

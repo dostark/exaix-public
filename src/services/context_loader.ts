@@ -22,7 +22,7 @@ import type { DatabaseService } from "./db.ts";
 /**
  * Configuration for context loading behavior
  */
-export interface ContextConfig {
+export interface IContextConfig {
   /** Maximum tokens allowed (from model config, e.g., 200k for Claude) */
   maxTokens: number;
 
@@ -112,7 +112,7 @@ export interface ContextLoadResult {
 export class ContextLoader {
   private tokenCounter: (text: string) => number;
 
-  constructor(private config: ContextConfig) {
+  constructor(private config: IContextConfig) {
     // Simple approximation: 1 token ≈ 4 characters
     this.tokenCounter = (text) => Math.ceil(text.length / 4);
   }
@@ -189,7 +189,7 @@ export class ContextLoader {
     // Step 5: Format context for injection
     const content = this.formatContext(selectedFiles, warnings, limit);
 
-    // Step 6: Log context loading to Activity Journal
+    // Step 6: Log context loading to IActivity Journal
     this.logContextLoad({
       totalTokens,
       includedCount: includedFiles.length,
@@ -247,7 +247,7 @@ export class ContextLoader {
             priority: 0, // Default priority, can be overridden
           };
         } catch (error) {
-          // Log file load failure to Activity Journal
+          // Log file load failure to IActivity Journal
           this.logFileLoadError(path, error);
           // Return null for failed loads, will be filtered out
           return null;
@@ -356,7 +356,7 @@ export class ContextLoader {
   }
 
   /**
-   * Log context loading operation to Activity Journal
+   * Log context loading operation to IActivity Journal
    */
   private logContextLoad(metadata: {
     totalTokens: number;
@@ -389,12 +389,12 @@ export class ContextLoader {
       );
     } catch (error) {
       // Log to stderr but don't fail context loading
-      console.error("[Activity] Failed to log context.loaded:", error);
+      console.error("[IActivity] Failed to log context.loaded:", error);
     }
   }
 
   /**
-   * Log file load error to Activity Journal
+   * Log file load error to IActivity Journal
    */
   private logFileLoadError(
     filePath: string,
@@ -421,7 +421,7 @@ export class ContextLoader {
     } catch (dbError) {
       // Log both errors to stderr
       console.error(`Failed to load context file ${filePath}:`, error);
-      console.error("[Activity] Failed to log file_load_error:", dbError);
+      console.error("[IActivity] Failed to log file_load_error:", dbError);
     }
   }
 }

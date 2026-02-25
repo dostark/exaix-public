@@ -15,14 +15,14 @@ import { IStructuredLogger } from "./structured_logger.ts";
 /**
  * Cleanup task interface for graceful shutdown
  */
-export interface CleanupTask {
+export interface ICleanupTask {
   name: string;
   handler: () => Promise<void>;
   timeout: number;
 }
 export class GracefulShutdown {
   private readonly logger: IStructuredLogger;
-  private readonly cleanupTasks: CleanupTask[] = [];
+  private readonly cleanupTasks: ICleanupTask[] = [];
   private shuttingDown = false;
 
   constructor(logger: IStructuredLogger) {

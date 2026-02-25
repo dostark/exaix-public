@@ -26,6 +26,53 @@ import { DEFAULT_QUERY_LIMIT } from "../config/constants.ts";
 
 // ===== Project Memory Schemas =====
 
+export interface IMemorySearchResult {
+  type: MemoryType;
+  portal?: string;
+  trace_id?: string;
+  title: string;
+  summary: string;
+  relevance_score?: number;
+  tags?: string[];
+  id?: string;
+}
+
+/**
+ * Skill match result from trigger matching
+ */
+export interface ISkillMatch {
+  skillId: string;
+  confidence: number;
+  matchedTriggers: {
+    keywords?: string[];
+    task_types?: string[];
+    file_patterns?: string[];
+    tags?: string[];
+  };
+}
+
+/**
+ * Advanced search options for searchMemoryAdvanced
+ */
+export interface IAdvancedSearchOptions {
+  tags?: string[];
+  keyword?: string;
+  portal?: string;
+  limit?: number;
+  useEmbeddings?: boolean;
+}
+
+/**
+ * IActivity summary combining execution history and task activity
+ */
+export interface IActivitySummary {
+  timestamp: string;
+  type: ActivityType;
+  portal: string;
+  summary: string;
+  trace_id?: string;
+}
+
 export const PatternSchema = z.object({
   name: z.string().describe("Pattern name (e.g., 'Repository Pattern')"),
   description: z.string().describe("What the pattern does and why it's used"),
@@ -55,10 +102,10 @@ export const ProjectMemorySchema = z.object({
   references: z.array(ReferenceSchema).describe("Key references (files, docs, APIs)"),
 });
 
-export type Pattern = z.infer<typeof PatternSchema>;
-export type Decision = z.infer<typeof DecisionSchema>;
-export type Reference = z.infer<typeof ReferenceSchema>;
-export type ProjectMemory = z.infer<typeof ProjectMemorySchema>;
+export type IPattern = z.infer<typeof PatternSchema>;
+export type IDecision = z.infer<typeof DecisionSchema>;
+export type IReference = z.infer<typeof ReferenceSchema>;
+export type IProjectMemory = z.infer<typeof ProjectMemorySchema>;
 
 // ===== Execution Memory Schemas =====
 
@@ -87,8 +134,8 @@ export const ExecutionMemorySchema = z.object({
   error_message: z.string().optional().describe("Error message if execution failed"),
 });
 
-export type Changes = z.infer<typeof ChangesSchema>;
-export type ExecutionMemory = z.infer<typeof ExecutionMemorySchema>;
+export type IChanges = z.infer<typeof ChangesSchema>;
+export type IExecutionMemory = z.infer<typeof ExecutionMemorySchema>;
 
 // ===== Learning Schemas (Phase 12.8: Global Memory) =====
 
@@ -131,8 +178,8 @@ export const LearningSchema = z.object({
   archived_at: z.string().datetime().optional(),
 });
 
-export type LearningReference = z.infer<typeof LearningReferenceSchema>;
-export type Learning = z.infer<typeof LearningSchema>;
+export type ILearningReference = z.infer<typeof LearningReferenceSchema>;
+export type ILearning = z.infer<typeof LearningSchema>;
 
 /**
  * Global pattern - a code pattern that applies across projects
@@ -185,10 +232,10 @@ export const GlobalMemorySchema = z.object({
   statistics: GlobalMemoryStatsSchema,
 });
 
-export type GlobalPattern = z.infer<typeof GlobalPatternSchema>;
-export type GlobalAntiPattern = z.infer<typeof GlobalAntiPatternSchema>;
-export type GlobalMemoryStats = z.infer<typeof GlobalMemoryStatsSchema>;
-export type GlobalMemory = z.infer<typeof GlobalMemorySchema>;
+export type IGlobalPattern = z.infer<typeof GlobalPatternSchema>;
+export type IGlobalAntiPattern = z.infer<typeof GlobalAntiPatternSchema>;
+export type IGlobalMemoryStats = z.infer<typeof GlobalMemoryStatsSchema>;
+export type IGlobalMemory = z.infer<typeof GlobalMemorySchema>;
 
 // ===== Memory Update Proposal Schema (Phase 12.9: Agent Memory Updates) =====
 
@@ -246,8 +293,8 @@ export const MemoryUpdateProposalSchema = z.object({
   reviewed_by: z.nativeEnum(ReviewSource).optional(),
 });
 
-export type ProposalLearning = z.infer<typeof ProposalLearningSchema>;
-export type MemoryUpdateProposal = z.infer<typeof MemoryUpdateProposalSchema>;
+export type IProposalLearning = z.infer<typeof ProposalLearningSchema>;
+export type IMemoryUpdateProposal = z.infer<typeof MemoryUpdateProposalSchema>;
 
 // ===== Skill Schemas (Phase 17: Skills Architecture) =====
 
@@ -331,24 +378,10 @@ export const SkillSchema = z.object({
   usage_count: z.number().default(0).describe("Number of times skill has been used"),
 });
 
-export type SkillTriggers = z.infer<typeof SkillTriggersSchema>;
-export type SkillQualityCriterion = z.infer<typeof SkillQualityCriterionSchema>;
-export type SkillCompatibility = z.infer<typeof SkillCompatibilitySchema>;
-export type Skill = z.infer<typeof SkillSchema>;
-
-/**
- * Skill match result from trigger matching
- */
-export interface SkillMatch {
-  skillId: string;
-  confidence: number;
-  matchedTriggers: {
-    keywords?: string[];
-    task_types?: string[];
-    file_patterns?: string[];
-    tags?: string[];
-  };
-}
+export type ISkillTriggers = z.infer<typeof SkillTriggersSchema>;
+export type ISkillQualityCriterion = z.infer<typeof SkillQualityCriterionSchema>;
+export type ISkillCompatibility = z.infer<typeof SkillCompatibilitySchema>;
+export type ISkill = z.infer<typeof SkillSchema>;
 
 /**
  * Skill index entry for fast lookup
@@ -373,43 +406,7 @@ export const SkillIndexSchema = z.object({
   skills: z.array(SkillIndexEntrySchema),
 });
 
-export type SkillIndexEntry = z.infer<typeof SkillIndexEntrySchema>;
-export type SkillIndex = z.infer<typeof SkillIndexSchema>;
+export type ISkillIndexEntry = z.infer<typeof SkillIndexEntrySchema>;
+export type ISkillIndex = z.infer<typeof SkillIndexSchema>;
 
 // ===== Helper Types =====
-
-/**
- * Search result from memory bank queries
- */
-export interface MemorySearchResult {
-  type: MemoryType;
-  portal?: string;
-  trace_id?: string;
-  title: string;
-  summary: string;
-  relevance_score?: number;
-  tags?: string[];
-  id?: string;
-}
-
-/**
- * Advanced search options for searchMemoryAdvanced
- */
-export interface AdvancedSearchOptions {
-  tags?: string[];
-  keyword?: string;
-  portal?: string;
-  limit?: number;
-  useEmbeddings?: boolean;
-}
-
-/**
- * Activity summary combining execution history and task activity
- */
-export interface ActivitySummary {
-  timestamp: string;
-  type: ActivityType;
-  portal: string;
-  summary: string;
-  trace_id?: string;
-}

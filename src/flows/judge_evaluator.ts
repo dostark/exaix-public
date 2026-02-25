@@ -13,15 +13,15 @@ import { JudgeInvoker } from "./gate_evaluator.ts";
 /**
  * Context object for agent requests
  */
-export interface AgentContext {
+export interface IAgentContext {
   [key: string]:
     | string
     | number
     | boolean
     | null
     | undefined
-    | AgentContext
-    | (string | number | boolean | null | undefined | AgentContext)[]
+    | IAgentContext
+    | (string | number | boolean | null | undefined | IAgentContext)[]
     | string[];
 }
 
@@ -50,7 +50,7 @@ interface CriterionScoresMap {
 export interface AgentRunner {
   run(
     agentId: string,
-    request: { userPrompt: string; context?: AgentContext },
+    request: { userPrompt: string; context?: IAgentContext },
   ): Promise<{ content: string }>;
 }
 

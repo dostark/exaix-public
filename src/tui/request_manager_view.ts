@@ -13,9 +13,16 @@ import { KeyBindingCategory } from "../helpers/keyboard.ts";
 import { TuiSessionBase } from "./tui_common.ts";
 import { MessageType, RequestPriority } from "../enums.ts";
 import { isRequestStatus, RequestStatus, type RequestStatusType } from "../requests/request_status.ts";
-import { createGroupNode, createNode, findNode, flattenTree, renderTree, type TreeNode } from "../helpers/tree_view.ts";
-import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
-import type { KeyBinding } from "../helpers/keyboard.ts";
+import {
+  createGroupNode,
+  createNode,
+  findNode,
+  flattenTree,
+  type ITreeNode,
+  renderTree,
+} from "../helpers/tree_view.ts";
+import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import type { IKeyBinding } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 
 // --- Extracted utilities ---
@@ -37,15 +44,7 @@ import { ConfirmDialog, InputDialog } from "../helpers/dialog_base.ts";
 import type { RequestCommands } from "../cli/commands/request_commands.ts";
 import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "../helpers/constants.ts";
 
-export interface RequestService {
-  listRequests(status?: RequestStatusType): Promise<Request[]>;
-  getRequestContent(requestId: string): Promise<string>;
-  createRequest(description: string, options?: RequestOptions): Promise<Request>;
-  updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean>;
-}
-
-// --- Request data types ---
-export interface Request {
+export interface IRequest {
   trace_id: string;
   filename: string;
   title: string;
@@ -67,7 +66,7 @@ export interface Request {
   };
 }
 
-export interface RequestOptions {
+export interface IRequestOptions {
   agent?: string;
   priority?: RequestPriority;
   portal?: string;
@@ -76,10 +75,19 @@ export interface RequestOptions {
   skipSkills?: string[]; // Phase 17: Skills to exclude
 }
 
-// --- Phase 13.6: View state interface ---
-export interface RequestViewState {
+export interface IRequestService {
+  listRequests(status?: RequestStatusType): Promise<IRequest[]>;
+  getRequestContent(requestId: string): Promise<string>;
+  createRequest(description: string, options?: IRequestOptions): Promise<IRequest>;
+  updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean>;
+}
+
+/**
+ * View state interface
+ */
+export interface IRequestViewState {
   selectedRequestId: string | null;
-  requestTree: TreeNode[];
+  requestTree: ITreeNode[];
   showHelp: boolean;
   showDetail: boolean;
   detailContent: string;
@@ -143,7 +151,7 @@ export enum RequestAction {
 }
 
 export class RequestKeyBindings extends KeyBindingsBase<RequestAction, KeyBindingCategory> {
-  readonly KEY_BINDINGS: readonly KeyBinding<RequestAction, KeyBindingCategory>[] = [
+  readonly KEY_BINDINGS: readonly IKeyBinding<RequestAction, KeyBindingCategory>[] = [
     {
       key: KEYS.UP,
       description: "Navigate up",
@@ -240,12 +248,12 @@ export class RequestKeyBindings extends KeyBindingsBase<RequestAction, KeyBindin
 export const REQUEST_KEY_BINDINGS = new RequestKeyBindings().KEY_BINDINGS;
 
 /**
- * Adapter: RequestCommands as RequestService
+ * Adapter: RequestCommands as IRequestService
  */
-export class RequestCommandsServiceAdapter implements RequestService {
+export class RequestCommandsServiceAdapter implements IRequestService {
   constructor(private readonly cmd: RequestCommands) {}
 
-  async listRequests(status?: RequestStatusType): Promise<Request[]> {
+  async listRequests(status?: RequestStatusType): Promise<IRequest[]> {
     const requests = await this.cmd.list(status);
     return requests.map((r) => ({
       trace_id: r.trace_id,
@@ -268,7 +276,7 @@ export class RequestCommandsServiceAdapter implements RequestService {
     return result.content;
   }
 
-  async createRequest(description: string, options?: RequestOptions): Promise<Request> {
+  async createRequest(description: string, options?: IRequestOptions): Promise<IRequest> {
     const metadata = await this.cmd.create(description, options);
     return {
       trace_id: metadata.trace_id,
@@ -296,12 +304,12 @@ export class RequestCommandsServiceAdapter implements RequestService {
 
 // --- Minimal RequestService mock for TUI session tests ---
 /**
- * Minimal RequestService mock for TUI session tests.
+ * Minimal IRequestService mock for TUI session tests.
  */
-export class MinimalRequestServiceMock implements RequestService {
+export class MinimalRequestServiceMock implements IRequestService {
   listRequests = (_status?: RequestStatusType) => Promise.resolve([]);
   getRequestContent = (_: string) => Promise.resolve("");
-  createRequest = (_: string, __?: RequestOptions) => Promise.resolve({} as Request);
+  createRequest = (_: string, __?: IRequestOptions) => Promise.resolve({} as IRequest);
   updateRequestStatus = (_: string, __: RequestStatusType) => Promise.resolve(true);
 }
 
@@ -312,10 +320,10 @@ export class MinimalRequestServiceMock implements RequestService {
  */
 export class RequestManagerTuiSession extends TuiSessionBase {
   // Enhanced state
-  protected state: RequestViewState;
+  protected state: IRequestViewState;
 
   // Request list cache
-  protected requests: Request[] = [];
+  protected requests: IRequest[] = [];
 
   // Track pending dialog type for result handling
   private pendingDialogType: RequestDialogTypeUnion = null;
@@ -324,8 +332,8 @@ export class RequestManagerTuiSession extends TuiSessionBase {
   private pendingCancelRequestId: string | null = null;
 
   constructor(
-    requests: Request[],
-    protected readonly service: RequestService,
+    requests: IRequest[],
+    protected readonly service: IRequestService,
     useColors = true,
   ) {
     super(useColors);
@@ -351,15 +359,15 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
   // ===== State Accessors =====
 
-  getState(): RequestViewState {
+  getState(): IRequestViewState {
     return this.state;
   }
 
-  getRequests(): Request[] {
+  getRequests(): IRequest[] {
     return this.requests;
   }
 
-  getSelectedRequest(): Request | null {
+  getSelectedRequest(): IRequest | null {
     if (!this.state.selectedRequestId) return null;
     return this.requests.find((r) => r.trace_id === this.state.selectedRequestId) || null;
   }
@@ -422,12 +430,12 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     }
   }
 
-  private buildFlatTree(requests: Request[]): TreeNode[] {
+  private buildFlatTree(requests: IRequest[]): ITreeNode[] {
     return requests.map((r) => this.createRequestNode(r));
   }
 
-  private buildGroupedByStatus(requests: Request[]): TreeNode[] {
-    const groups = new Map<RequestStatusType, Request[]>();
+  private buildGroupedByStatus(requests: IRequest[]): ITreeNode[] {
+    const groups = new Map<RequestStatusType, IRequest[]>();
     for (const req of requests) {
       const status = req.status;
       if (!groups.has(status)) groups.set(status, []);
@@ -446,9 +454,9 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     });
   }
 
-  private buildGroupedByPriority(requests: Request[]): TreeNode[] {
+  private buildGroupedByPriority(requests: IRequest[]): ITreeNode[] {
     const priorityOrder = ["critical", "high", "normal", "low"];
-    const groups = new Map<string, Request[]>();
+    const groups = new Map<string, IRequest[]>();
 
     for (const req of requests) {
       const priority = req.priority || "normal";
@@ -471,8 +479,8 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       });
   }
 
-  private buildGroupedByAgent(requests: Request[]): TreeNode[] {
-    const groups = new Map<string, Request[]>();
+  private buildGroupedByAgent(requests: IRequest[]): ITreeNode[] {
+    const groups = new Map<string, IRequest[]>();
     for (const req of requests) {
       const agent = req.agent || "unassigned";
       if (!groups.has(agent)) groups.set(agent, []);
@@ -490,7 +498,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     });
   }
 
-  private createRequestNode(request: Request): TreeNode {
+  private createRequestNode(request: IRequest): ITreeNode {
     const statusIcon = STATUS_ICONS[request.status] || "❓";
     const priorityIcon = PRIORITY_ICONS[request.priority] || "⚪";
     const date = new Date(request.created).toLocaleString();
@@ -501,7 +509,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
   // ===== Filtering =====
 
-  getFilteredRequests(): Request[] {
+  getFilteredRequests(): IRequest[] {
     let filtered = this.requests;
 
     // Apply status filter
@@ -596,7 +604,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     }
   }
 
-  private formatDetailContent(request: Request | undefined, content: string): string {
+  private formatDetailContent(request: IRequest | undefined, content: string): string {
     return RequestFormatter.formatDetailContent(request, content);
   }
 
@@ -791,7 +799,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
   // ===== Help =====
 
-  getHelpSections(): HelpSection[] {
+  getHelpSections(): IHelpSection[] {
     return [
       {
         title: "Navigation",
@@ -932,7 +940,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     }
 
     // Main key handling
-    return this.handleMainKey(key);
+    return await this.handleMainKey(key);
   }
 
   private handleDetailKey(key: string): boolean {
@@ -971,7 +979,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
         showFilterStatusDialog: this.showFilterStatusDialog.bind(this),
         showFilterAgentDialog: this.showFilterAgentDialog.bind(this),
         setShowHelp: (show: boolean) => this.state.showHelp = show,
-        updateTree: (tree: TreeNode[]) => this.state.requestTree = tree,
+        updateTree: (tree: ITreeNode[]) => this.state.requestTree = tree,
       },
     );
   }
@@ -987,7 +995,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     return Promise.resolve();
   }
 
-  setRequests(requests: Request[]): void {
+  setRequests(requests: IRequest[]): void {
     this.requests = requests;
     this.buildTree();
   }
@@ -1010,7 +1018,7 @@ export class LegacyRequestManagerTuiSession {
    * @param requests Initial list of requests
    * @param service Service for request operations
    */
-  constructor(private readonly requests: Request[], private readonly service: RequestService) {}
+  constructor(private readonly requests: IRequest[], private readonly service: IRequestService) {}
 
   /** Get the currently selected request index. */
   getSelectedIndex(): number {
@@ -1106,23 +1114,23 @@ export class LegacyRequestManagerTuiSession {
   }
 
   /** Get the currently selected request. */
-  getSelectedRequest(): Request | null {
+  getSelectedRequest(): IRequest | null {
     return this.requests[this.selectedIndex] || null;
   }
 }
 
 /**
- * View/controller for Request Manager. Delegates to injected RequestService.
+ * View/controller for Request Manager. Delegates to injected IRequestService.
  */
-export class RequestManagerView implements RequestService {
-  constructor(public readonly service: RequestService) {}
+export class RequestManagerView implements IRequestService {
+  constructor(public readonly service: IRequestService) {}
 
   /** Create a new TUI session for the given requests. */
-  createTuiSession(requests: Request[]): RequestManagerTuiSession {
+  createTuiSession(requests: IRequest[]): RequestManagerTuiSession {
     return new RequestManagerTuiSession(requests, this.service);
   }
 
-  listRequests(status?: RequestStatusType): Promise<Request[]> {
+  listRequests(status?: RequestStatusType): Promise<IRequest[]> {
     return this.service.listRequests(status);
   }
 
@@ -1130,7 +1138,7 @@ export class RequestManagerView implements RequestService {
     return this.service.getRequestContent(requestId);
   }
 
-  createRequest(description: string, options?: RequestOptions): Promise<Request> {
+  createRequest(description: string, options?: IRequestOptions): Promise<IRequest> {
     return this.service.createRequest(description, options);
   }
 
@@ -1139,7 +1147,7 @@ export class RequestManagerView implements RequestService {
   }
 
   /** Render a list of requests for display. */
-  renderRequestList(requests: Request[]): string {
+  renderRequestList(requests: IRequest[]): string {
     if (requests.length === 0) {
       return "No requests found.";
     }

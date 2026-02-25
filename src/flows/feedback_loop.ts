@@ -10,21 +10,21 @@
 import { z } from "zod";
 import { EvaluationCriterion, EvaluationCriterionSchema, getCriteriaByNames } from "./evaluation_criteria.ts";
 import { FlowGateOnFail } from "../enums.ts";
-import { GateEvaluator, GateResult } from "./gate_evaluator.ts";
+import { GateEvaluator, IGateResult } from "./gate_evaluator.ts";
 import { TUI_ICON_FAILURE, TUI_ICON_SUCCESS } from "../helpers/constants.ts";
 
 /**
  * Context data for agent requests
  */
-export interface AgentRequestContext {
+export interface IAgentRequestContext {
   [key: string]:
     | string
     | number
     | boolean
     | null
     | undefined
-    | AgentRequestContext
-    | (string | number | boolean | null | undefined | AgentRequestContext)[]
+    | IAgentRequestContext
+    | (string | number | boolean | null | undefined | IAgentRequestContext)[]
     | string[];
 }
 
@@ -51,10 +51,10 @@ export type FeedbackLoopConfig = z.infer<typeof FeedbackLoopConfigSchema>;
 /**
  * Result of a single iteration
  */
-export interface IterationResult {
+export interface IIterationResult {
   iteration: number;
   content: string;
-  gateResult: GateResult;
+  gateResult: IGateResult;
   improvement: number;
   durationMs: number;
 }
@@ -72,7 +72,7 @@ export interface FeedbackLoopResult {
   /** Total number of iterations run */
   totalIterations: number;
   /** Results from each iteration */
-  iterations: IterationResult[];
+  iterations: IIterationResult[];
   /** Total duration in milliseconds */
   totalDurationMs: number;
   /** Reason for stopping */
@@ -124,7 +124,7 @@ export class FeedbackLoop {
     originalRequest: string,
   ): Promise<FeedbackLoopResult> {
     const startTime = performance.now();
-    const iterations: IterationResult[] = [];
+    const iterations: IIterationResult[] = [];
 
     let currentContent = initialContent;
     let previousScore = 0;
@@ -238,7 +238,7 @@ export class FeedbackLoop {
   /**
    * Build feedback string from gate result
    */
-  private buildFeedback(gateResult: GateResult, config: FeedbackLoopConfig): string {
+  private buildFeedback(gateResult: IGateResult, config: FeedbackLoopConfig): string {
     const parts: string[] = [];
 
     parts.push(`Current score: ${(gateResult.score * 100).toFixed(1)}%`);
@@ -317,7 +317,7 @@ export class SimpleImprovementAgent implements ImprovementAgent {
     private agentRunner: {
       run(
         agentId: string,
-        request: { userPrompt: string; context?: AgentRequestContext },
+        request: { userPrompt: string; context?: IAgentRequestContext },
       ): Promise<{ content: string }>;
     },
     private improvementAgentId: string,
@@ -367,7 +367,7 @@ export function createFeedbackLoop(
   agentRunner: {
     run(
       agentId: string,
-      request: { userPrompt: string; context?: AgentRequestContext },
+      request: { userPrompt: string; context?: IAgentRequestContext },
     ): Promise<{ content: string }>;
   },
   improvementAgentId: string,
@@ -409,7 +409,7 @@ export async function runSelfCorrectingAgent(
   agentRunner: {
     run(
       agentId: string,
-      request: { userPrompt: string; context?: AgentRequestContext },
+      request: { userPrompt: string; context?: IAgentRequestContext },
     ): Promise<{ content: string }>;
   },
   gateEvaluator: GateEvaluator,

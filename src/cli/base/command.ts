@@ -7,7 +7,7 @@
  * @related-files [src/cli/base.ts]
  */
 
-export interface HelperResult {
+export interface IHelperResult {
   success: boolean;
   message?: string;
   data?: unknown;

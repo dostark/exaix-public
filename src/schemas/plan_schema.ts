@@ -70,7 +70,7 @@ export const PlanActionSchema = z.object({
   description: z.string().optional(),
 });
 
-export type PlanAction = z.infer<typeof PlanActionSchema>;
+export type IPlanAction = z.infer<typeof PlanActionSchema>;
 
 /**
  * Zod schema for individual plan steps
@@ -101,7 +101,7 @@ export const PlanStepSchema = z.object({
   rollback: z.string().optional(),
 });
 
-export type PlanStep = z.infer<typeof PlanStepSchema>;
+export type IPlanStep = z.infer<typeof PlanStepSchema>;
 
 // ============================================================================
 // QA Coverage Schemas (Flexible)

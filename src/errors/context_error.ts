@@ -10,17 +10,17 @@
 /**
  * Context data attached to errors for debugging
  */
-export interface ErrorContext {
+export interface IErrorContext {
   [key: string]: string | number | boolean | null | undefined;
 }
 
 export class ContextError extends Error {
-  public readonly context: ErrorContext;
+  public readonly context: IErrorContext;
   public override readonly cause?: Error;
 
   constructor(
     message: string,
-    context: ErrorContext,
+    context: IErrorContext,
     cause?: Error,
   ) {
     super(message);

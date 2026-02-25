@@ -13,8 +13,7 @@
  */
 
 import { MockStrategy } from "../../enums.ts";
-
-import { IModelProvider, ModelOptions } from "../providers.ts";
+import { IModelOptions, IModelProvider } from "../types.ts";
 import { MOCK_DELAY_MS, MOCK_INPUT_TOKENS, MOCK_OUTPUT_TOKENS } from "../../config/constants.ts";
 
 // ============================================================================
@@ -24,7 +23,7 @@ import { MOCK_DELAY_MS, MOCK_INPUT_TOKENS, MOCK_OUTPUT_TOKENS } from "../../conf
 /**
  * Recorded response from a real LLM call
  */
-export interface RecordedResponse {
+export interface IRecordedResponse {
   /** Hash of the prompt for lookup */
   promptHash: string;
   /** Preview of the prompt for debugging */
@@ -64,7 +63,7 @@ export interface CallRecord {
   /** The prompt that was sent */
   prompt: string;
   /** Options passed with the call */
-  options?: ModelOptions;
+  options?: IModelOptions;
   /** Response returned */
   response: string;
   /** When the call was made */
@@ -80,7 +79,7 @@ export interface MockLLMProviderOptions {
   /** Responses for scripted/slow strategies */
   responses?: string[];
   /** Recorded responses for recorded strategy */
-  recordings?: RecordedResponse[];
+  recordings?: IRecordedResponse[];
   /** Directory to load recordings from */
   fixtureDir?: string;
   /** Pattern matchers for pattern strategy */
@@ -120,7 +119,7 @@ export class MockLLMProvider implements IModelProvider {
 
   private readonly strategy: MockStrategy;
   private readonly responses: string[];
-  private readonly recordings: RecordedResponse[];
+  private readonly recordings: IRecordedResponse[];
   private readonly patterns: PatternMatcher[];
   private readonly errorMessage: string;
   private readonly delayMs: number;
@@ -174,7 +173,7 @@ export class MockLLMProvider implements IModelProvider {
    * @param prompt The prompt to generate a response for
    * @param options Optional model options
    */
-  async generate(prompt: string, options?: ModelOptions): Promise<string> {
+  async generate(prompt: string, options?: IModelOptions): Promise<string> {
     if (this.strategy === "failing") {
       this._callCount++;
       this._callHistory.push({
@@ -382,8 +381,8 @@ export class MockLLMProvider implements IModelProvider {
   /**
    * Record a response for later playback
    */
-  recordResponse(prompt: string, response: string, model: string = "mock"): RecordedResponse {
-    const recording: RecordedResponse = {
+  recordResponse(prompt: string, response: string, model: string = "mock"): IRecordedResponse {
+    const recording: IRecordedResponse = {
       promptHash: this.hashPrompt(prompt),
       promptPreview: prompt.substring(0, 100),
       response,
@@ -409,7 +408,7 @@ export class MockLLMProvider implements IModelProvider {
         if (entry.isFile && entry.name.endsWith(".json")) {
           const path = `${dir}/${entry.name}`;
           const content = Deno.readTextFileSync(path);
-          const recording = JSON.parse(content) as RecordedResponse;
+          const recording = JSON.parse(content) as IRecordedResponse;
           this.recordings.push(recording);
         }
       }

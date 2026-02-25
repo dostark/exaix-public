@@ -15,7 +15,7 @@ import { EventLogger } from "../../services/event_logger.ts";
 import type { Config } from "../../config/schema.ts";
 import type { IDatabaseService } from "../../services/db.ts";
 import type { IModelProvider } from "../../ai/providers.ts";
-import type { Flow } from "../../schemas/flow.ts";
+import type { IFlow } from "../../schemas/flow.ts";
 
 interface FlowListOptions {
   json?: boolean;
@@ -183,7 +183,7 @@ export class FlowCommands {
     }
   }
 
-  private renderDependencyGraph(flow: Flow): string {
+  private renderDependencyGraph(flow: IFlow): string {
     // Simple text-based dependency graph
     const lines: string[] = [];
     for (const step of flow.steps) {

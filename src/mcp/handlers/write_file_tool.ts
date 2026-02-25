@@ -19,7 +19,7 @@ import type { JSONValue } from "../../types.ts";
  * - Validates portal exists
  * - Prevents path traversal
  * - Creates parent directories if needed
- * - Logs all writes to Activity Journal
+ * - Logs all writes to IActivity Journal
  */
 export class WriteFileTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {

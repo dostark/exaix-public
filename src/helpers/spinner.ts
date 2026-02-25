@@ -13,7 +13,7 @@ import { colorize, getTheme } from "./colors.ts";
 
 export type SpinnerStyle = "dots" | "braille" | "line" | "arc" | "bounce" | "pulse";
 
-export interface SpinnerConfig {
+export interface ISpinnerConfig {
   style: SpinnerStyle;
   frames: string[];
   interval: number; // ms
@@ -21,7 +21,7 @@ export interface SpinnerConfig {
 
 // ===== Spinner Definitions =====
 
-export const SPINNERS: Record<SpinnerStyle, SpinnerConfig> = {
+export const SPINNERS: Record<SpinnerStyle, ISpinnerConfig> = {
   dots: {
     style: "dots",
     frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],

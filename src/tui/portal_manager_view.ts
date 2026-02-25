@@ -7,18 +7,18 @@
  * @related-files [src/services/portal_service.ts, src/tui/tui_dashboard.ts]
  */
 
-import { PortalDetails, PortalInfo } from "../cli/commands/portal_commands.ts";
+import { type IPortalDetails, type IPortalInfo } from "../cli/commands/portal_commands.ts";
 import { BaseTreeView } from "./base/base_tree_view.ts";
 import { ConfirmDialog, type DialogBase } from "../helpers/dialog_base.ts";
-import { type HelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
-import type { KeyBinding } from "../helpers/keyboard.ts";
+import { type IHelpSection, renderHelpScreen } from "../helpers/help_renderer.ts";
+import type { IKeyBinding } from "../helpers/keyboard.ts";
 import { KeyBindingCategory, KEYS } from "../helpers/keyboard.ts";
 import { KeyBindingsBase } from "./base/key_bindings_base.ts";
 import {
   createGroupNode,
   createNode,
   flattenTree,
-  type TreeNode,
+  type ITreeNode,
   type TreeRenderOptions,
 } from "../helpers/tree_view.ts";
 import { DialogStatus, PortalStatus, TuiIcon } from "../enums.ts";
@@ -26,7 +26,7 @@ import { TUI_LAYOUT_NARROW_WIDTH, TUI_PORTAL_ICONS } from "../helpers/constants.
 
 // ===== Portal View Extensions =====
 
-export interface PortalViewExtensions {
+export interface IPortalViewExtensions {
   /** Detail panel content */
   detailContent: string[];
   /** Last refresh timestamp */
@@ -35,9 +35,9 @@ export interface PortalViewExtensions {
 
 // ===== Service Interface =====
 
-export interface PortalService {
-  listPortals(): Promise<PortalInfo[]>;
-  getPortalDetails(alias: string): Promise<PortalDetails>;
+export interface IPortalService {
+  listPortals(): Promise<IPortalInfo[]>;
+  getPortalDetails(alias: string): Promise<IPortalDetails>;
   openPortal(alias: string): Promise<boolean>;
   closePortal(alias: string): Promise<boolean>;
   refreshPortal(alias: string): Promise<boolean>;
@@ -79,7 +79,7 @@ const PORTAL_ICONS = {
 // ===== Key Bindings =====
 
 export class PortalKeyBindings extends KeyBindingsBase<PortalAction, KeyBindingCategory> {
-  readonly KEY_BINDINGS: readonly KeyBinding<PortalAction, KeyBindingCategory>[] = [
+  readonly KEY_BINDINGS: readonly IKeyBinding<PortalAction, KeyBindingCategory>[] = [
     {
       key: KEYS.UP,
       action: PortalAction.NAVIGATE_UP,
@@ -147,12 +147,12 @@ export const PORTAL_KEY_BINDINGS = new PortalKeyBindings().KEY_BINDINGS;
 
 // ===== TUI Session =====
 
-export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
-  private portals: PortalInfo[];
-  private readonly service: PortalService;
-  private portalExtensions: PortalViewExtensions;
+export class PortalManagerTuiSession extends BaseTreeView<IPortalInfo> {
+  private portals: IPortalInfo[];
+  private readonly service: IPortalService;
+  private portalExtensions: IPortalViewExtensions;
 
-  constructor(portals: PortalInfo[], service: PortalService, useColors = true) {
+  constructor(portals: IPortalInfo[], service: IPortalService, useColors = true) {
     super(useColors);
     this.portals = portals;
     this.service = service;
@@ -165,13 +165,13 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
 
   // ===== Tree Building =====
 
-  protected buildTree(portals: PortalInfo[]): void {
-    const active: TreeNode<PortalInfo>[] = [];
-    const broken: TreeNode<PortalInfo>[] = [];
-    const inactive: TreeNode<PortalInfo>[] = [];
+  protected buildTree(portals: IPortalInfo[]): void {
+    const active: ITreeNode<IPortalInfo>[] = [];
+    const broken: ITreeNode<IPortalInfo>[] = [];
+    const inactive: ITreeNode<IPortalInfo>[] = [];
 
     for (const portal of portals) {
-      const node = createNode<PortalInfo>(
+      const node = createNode<IPortalInfo>(
         portal.alias,
         portal.alias,
         "portal",
@@ -201,6 +201,7 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
         createGroupNode("active-group", `Active (${active.length})`, "group", active, {
           icon: PORTAL_ICONS.active,
           badge: active.length,
+          expanded: true,
         }),
       );
     }
@@ -210,6 +211,7 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
         createGroupNode("broken-group", `Broken (${broken.length})`, "group", broken, {
           icon: PORTAL_ICONS.broken,
           badge: broken.length,
+          expanded: true,
         }),
       );
     }
@@ -219,6 +221,7 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
         createGroupNode("inactive-group", `Inactive (${inactive.length})`, "group", inactive, {
           icon: PORTAL_ICONS.inactive,
           badge: inactive.length,
+          expanded: true,
         }),
       );
     }
@@ -229,6 +232,8 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
       const firstPortal = flat.find((f) => f.node.type === "portal");
       if (firstPortal) {
         this.state.selectedId = firstPortal.node.id;
+      } else if (flat.length > 0) {
+        this.state.selectedId = flat[0].node.id;
       }
     }
     this.syncSelectedIndex();
@@ -239,30 +244,31 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
   // ===== Selection & Sync =====
 
   override setSelectedIndex(idx: number, _maxLength?: number): void {
-    // Don't use super.setSelectedIndex because it clamps to 0
-    this.selectedIndex = idx;
-
-    // Sync tree selection with index
+    // Sync tree selection with index in portals array
     if (idx >= 0 && idx < this.portals.length) {
       this.state.selectedId = this.portals[idx].alias;
+      this.syncSelectedIndex(); // Sync this.selectedIndex to tree index
     } else {
       this.state.selectedId = ""; // Clear selection for invalid index
+      this.selectedIndex = -1;
     }
   }
 
   /**
-   * Sync selectedIndex based on current selectedId in the portals list
+   * Sync selectedIndex based on current selectedId in the tree
    */
-  private syncSelectedIndex(): void {
-    if (!this.state.selectedId) {
-      this.selectedIndex = 0;
-      return;
-    }
+  protected override syncSelectedIndex(): void {
+    super.syncSelectedIndex();
+  }
 
-    const idx = this.portals.findIndex((p) => p.alias === this.state.selectedId);
-    if (idx >= 0) {
-      this.selectedIndex = idx;
+  override getSelectedIndex(): number {
+    if (!this.state.selectedId) return 0;
+    const node = this.getSelectedNode();
+    if (node?.type === "portal" && node.data) {
+      const idx = this.portals.findIndex((p) => p.alias === (node.data as IPortalInfo).alias);
+      return idx >= 0 ? idx : 0;
     }
+    return 0;
   }
 
   // ===== Dialog Result Handling =====
@@ -279,28 +285,25 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
   // ===== Key Handling =====
 
   override async handleKey(key: string): Promise<boolean> {
-    if (this.handleLegacySelectionGuard()) return true;
-    if (this.handleDialogKeys(key)) return true;
+    // If dialog is active, handle it first (might involve onDialogClosed which is async)
+    if (this.state.activeDialog) {
+      return await this.handleDialogKeys(key);
+    }
+
     if (this.handleHelpKeys(key)) return true;
     if (this.handleBaseKeysAndSync(key)) return true;
     return await this.handleActionKeys(key);
   }
 
-  private handleLegacySelectionGuard(): boolean {
-    if (this.selectedIndex >= 0 && this.selectedIndex < this.portals.length) return false;
-    if (this.portals.length === 0) return false;
-    this.statusMessage = "Error: No portal selected";
-    return true;
-  }
-
   private handleBaseKeysAndSync(key: string): boolean {
-    if (!this.handleKeySync(key)) return false;
-    this.syncSelectedIndex();
+    if (this.handleNavigationKeys(key)) return true;
+
     // If filter was cleared (handled by base), rebuild tree
     if (this.state.filterText === "" && key === "escape") {
-      this.buildTree(this.portals);
+      this.updatePortals(this.portals);
+      return true;
     }
-    return true;
+    return false;
   }
 
   private async handleActionKeys(key: string): Promise<boolean> {
@@ -309,9 +312,11 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
         await this.handleEnterKey();
         return true;
       case KEYS.R:
+        if (this.handleActionGuard()) return true;
         await this.executeRefresh();
         return true;
       case KEYS.D:
+        if (this.handleActionGuard()) return true;
         this.showRemoveConfirmDialog();
         return true;
       case KEYS.CAP_R:
@@ -334,9 +339,19 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
     }
   }
 
+  private handleActionGuard(): boolean {
+    const selected = this.getSelectedNode();
+    if (selected?.type === "portal") return false;
+    this.statusMessage = "Error: No portal selected";
+    return true;
+  }
+
   private async handleEnterKey(): Promise<void> {
     const selected = this.getSelectedNode();
-    if (!selected) return;
+    if (!selected) {
+      this.statusMessage = "Error: No portal selected";
+      return;
+    }
     if (selected.type === "group") {
       this.toggleCurrentNode();
       return;
@@ -347,8 +362,9 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
   // ===== Actions =====
 
   private async executeOpen(): Promise<void> {
-    const portal = this.portals[this.selectedIndex];
-    if (!portal) return;
+    const selected = this.getSelectedNode();
+    if (selected?.type !== "portal" || !selected.data) return;
+    const portal = selected.data;
 
     await this.executeWithLoading(
       `Opening ${portal.alias}...`,
@@ -358,8 +374,9 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
   }
 
   private async executeRefresh(): Promise<void> {
-    const portal = this.portals[this.selectedIndex];
-    if (!portal) return;
+    const selected = this.getSelectedNode();
+    if (selected?.type !== "portal" || !selected.data) return;
+    const portal = selected.data;
 
     await this.executeWithLoading(
       `Refreshing ${portal.alias}...`,
@@ -369,8 +386,9 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
   }
 
   private showRemoveConfirmDialog(): void {
-    const portal = this.portals[this.selectedIndex];
-    if (!portal) return;
+    const selected = this.getSelectedNode();
+    if (selected?.type !== "portal" || !selected.data) return;
+    const portal = selected.data;
 
     this.showConfirmDialog({
       title: "Remove Portal",
@@ -383,8 +401,9 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
   }
 
   private async executeRemove(): Promise<void> {
-    const portal = this.portals[this.selectedIndex];
-    if (!portal) return;
+    const selected = this.getSelectedNode();
+    if (selected?.type !== "portal" || !selected.data) return;
+    const portal = selected.data;
 
     await this.executeWithLoading(
       `Removing ${portal.alias}...`,
@@ -410,11 +429,11 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
 
   // ===== State Accessors =====
 
-  getSelectedPortal(): TreeNode<PortalInfo> | null {
+  getSelectedPortal(): ITreeNode<IPortalInfo> | null {
     return this.getSelectedNode();
   }
 
-  updatePortals(newPortals: PortalInfo[]): void {
+  updatePortals(newPortals: IPortalInfo[]): void {
     this.portals = newPortals;
     this.buildTree(newPortals);
 
@@ -431,12 +450,12 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
     }
   }
 
-  getSelectedPortalDetails(): PortalInfo | undefined {
-    if (this.portals.length === 0) return undefined;
-    return this.portals[this.selectedIndex];
+  getSelectedPortalDetails(): IPortalInfo | undefined {
+    const selected = this.getSelectedNode();
+    return selected?.type === "portal" ? selected.data : undefined;
   }
 
-  getPortalTree(): TreeNode<PortalInfo>[] {
+  getPortalTree(): ITreeNode<IPortalInfo>[] {
     return this.state.tree;
   }
 
@@ -455,7 +474,7 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
   }
 
   renderHelp(): string[] {
-    const sections: HelpSection[] = [
+    const sections: IHelpSection[] = [
       {
         title: "Navigation",
         items: [
@@ -496,8 +515,8 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
     return ["portal-list", "action-buttons", "status-bar"];
   }
 
-  override getKeyBindings(): KeyBinding<PortalAction, KeyBindingCategory>[] {
-    return PORTAL_KEY_BINDINGS as KeyBinding<PortalAction, KeyBindingCategory>[];
+  override getKeyBindings(): IKeyBinding<PortalAction, KeyBindingCategory>[] {
+    return PORTAL_KEY_BINDINGS as IKeyBinding<PortalAction, KeyBindingCategory>[];
   }
 
   override getViewName(): string {
@@ -507,18 +526,18 @@ export class PortalManagerTuiSession extends BaseTreeView<PortalInfo> {
 
 // ===== View Controller =====
 
-export class PortalManagerView implements PortalService {
-  constructor(public readonly service: PortalService) {}
+export class PortalManagerView implements IPortalService {
+  constructor(public readonly service: IPortalService) {}
 
-  createTuiSession(portals: PortalInfo[], useColors = true): PortalManagerTuiSession {
+  createTuiSession(portals: IPortalInfo[], useColors = true): PortalManagerTuiSession {
     return new PortalManagerTuiSession(portals, this.service, useColors);
   }
 
-  listPortals(): Promise<PortalInfo[]> {
+  listPortals(): Promise<IPortalInfo[]> {
     return this.service.listPortals();
   }
 
-  getPortalDetails(alias: string): Promise<PortalDetails> {
+  getPortalDetails(alias: string): Promise<IPortalDetails> {
     return this.service.getPortalDetails(alias);
   }
 
@@ -550,7 +569,7 @@ export class PortalManagerView implements PortalService {
     return this.service.getPortalActivityLog(alias);
   }
 
-  renderPortalList(portals: PortalInfo[]): string {
+  renderPortalList(portals: IPortalInfo[]): string {
     return portals.map((p) => {
       let line = `${p.alias} [${p.status}] (${p.targetPath})`;
       if (p.status && p.status !== PortalStatus.ACTIVE) {

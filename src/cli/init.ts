@@ -16,7 +16,7 @@ import type { Config } from "../config/schema.ts";
 import { DatabaseService, IDatabaseService } from "../services/db.ts";
 import type { IModelProvider } from "../ai/types.ts";
 
-export interface ServiceContext {
+export interface IServiceContext {
   config: Config;
   db: IDatabaseService;
   gitService: IGitService;
@@ -82,7 +82,7 @@ export function isTestMode(): boolean {
 // Returns an object describing whether initialization succeeded and the constructed services.
 export async function initializeServices(
   opts?: { simulateFail?: boolean; instantiateDb?: boolean; configPath?: string },
-): Promise<ServiceContext> {
+): Promise<IServiceContext> {
   let dbLocal: IDatabaseService | undefined;
   try {
     if (opts?.simulateFail) throw new Error("simulate-failure");

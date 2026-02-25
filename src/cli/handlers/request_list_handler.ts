@@ -9,21 +9,21 @@
 
 import { join } from "@std/path";
 import { exists } from "@std/fs";
-import { BaseCommand, type CommandContext } from "../base.ts";
-import { type RequestEntry } from "../commands/request_commands.ts";
+import { BaseCommand, type ICommandContext } from "../base.ts";
+import { type IRequestEntry } from "../commands/request_commands.ts";
 import { coerceRequestStatus, type RequestStatusType } from "../../requests/request_status.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
 
 export class RequestListHandler extends BaseCommand {
   private workspaceRequestsDir: string;
 
-  constructor(context: CommandContext) {
+  constructor(context: ICommandContext) {
     super(context);
     this.workspaceRequestsDir = getWorkspaceRequestsDir(context);
   }
 
-  async list(status?: RequestStatusType): Promise<RequestEntry[]> {
-    const requests: RequestEntry[] = [];
+  async list(status?: RequestStatusType): Promise<IRequestEntry[]> {
+    const requests: IRequestEntry[] = [];
 
     // Check if directory exists
     if (!await exists(this.workspaceRequestsDir)) {

@@ -16,14 +16,14 @@ import {
   PORTAL_CONTEXT_SECTION_TITLE,
 } from "../config/constants.ts";
 
-export interface PortalContextArgs {
+export interface IPortalContextArgs {
   portalAlias: string;
   portalRoot: string;
   repositoryRoot?: string;
   fileList?: string;
 }
 
-export function buildPortalContextBlock(args: PortalContextArgs): string {
+export function buildPortalContextBlock(args: IPortalContextArgs): string {
   const repositoryRoot = args.repositoryRoot ?? args.portalRoot;
   const requiredActions = PORTAL_CONTEXT_REQUIRED_ACTIONS
     .map((action) => `- ${action}`)

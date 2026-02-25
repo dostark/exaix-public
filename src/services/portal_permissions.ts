@@ -8,12 +8,12 @@
  */
 
 import type {
-  AgentWhitelistResult,
-  PermissionCheckResult,
-  PermissionConditions,
-  PortalPermissions,
-  PortalSecurityConfig,
-  RBACPermissionCheckResult,
+  IAgentWhitelistResult,
+  IPermissionCheckResult,
+  IPermissionConditions,
+  IPortalPermissions,
+  IPortalSecurityConfig,
+  IRBACPermissionCheckResult,
 } from "../schemas/portal_permissions.ts";
 import { AuditLogger } from "./audit_logger.ts";
 import {
@@ -30,10 +30,10 @@ import { JSONValue, toSafeJson } from "../types.ts";
  * Service for validating portal permissions
  */
 export class PortalPermissionsService {
-  private portals: Map<string, PortalPermissions>;
+  private portals: Map<string, IPortalPermissions>;
   private auditLogger?: AuditLogger;
 
-  constructor(portals: PortalPermissions[], auditLogger?: AuditLogger) {
+  constructor(portals: IPortalPermissions[], auditLogger?: AuditLogger) {
     this.portals = new Map();
     for (const portal of portals) {
       this.portals.set(portal.alias, portal);
@@ -44,7 +44,7 @@ export class PortalPermissionsService {
   /**
    * Check if an agent is allowed to access a portal
    */
-  checkAgentAllowed(portalAlias: string, agentId: string): AgentWhitelistResult {
+  checkAgentAllowed(portalAlias: string, agentId: string): IAgentWhitelistResult {
     const portal = this.portals.get(portalAlias);
 
     if (!portal) {
@@ -92,7 +92,7 @@ export class PortalPermissionsService {
     portalAlias: string,
     agentId: string,
     operation: PortalOperation,
-  ): PermissionCheckResult {
+  ): IPermissionCheckResult {
     // First check if agent is allowed
     const agentCheck = this.checkAgentAllowed(portalAlias, agentId);
     if (!agentCheck.allowed) {
@@ -142,7 +142,7 @@ export class PortalPermissionsService {
   /**
    * Get security configuration for a portal
    */
-  getSecurityConfig(portalAlias: string): PortalSecurityConfig | null {
+  getSecurityConfig(portalAlias: string): IPortalSecurityConfig | null {
     const portal = this.portals.get(portalAlias);
     if (!portal) {
       return null;
@@ -159,15 +159,15 @@ export class PortalPermissionsService {
   /**
    * Get portal configuration by alias
    */
-  getPortal(portalAlias: string): PortalPermissions | null {
+  getPortal(portalAlias: string): IPortalPermissions | null {
     return this.portals.get(portalAlias) || null;
   }
 
   /**
    * List all portals accessible by an agent
    */
-  listAccessiblePortals(agentId: string): PortalPermissions[] {
-    const accessible: PortalPermissions[] = [];
+  listAccessiblePortals(agentId: string): IPortalPermissions[] {
+    const accessible: IPortalPermissions[] = [];
 
     for (const portal of this.portals.values()) {
       const check = this.checkAgentAllowed(portal.alias, agentId);
@@ -211,7 +211,7 @@ export class PortalPermissionsService {
    * List portals with git support
    * Returns only portals that have a .git directory
    */
-  listGitEnabledPortals(): PortalPermissions[] {
+  listGitEnabledPortals(): IPortalPermissions[] {
     const allPortals = Array.from(this.portals.values());
     return allPortals.filter((portal) => {
       try {
@@ -232,7 +232,7 @@ export class PortalPermissionsService {
     action: PermissionAction,
     resource: string,
     context?: { timestamp?: Date; ip?: string },
-  ): RBACPermissionCheckResult {
+  ): IRBACPermissionCheckResult {
     const portal = this.portals.get(portalAlias);
 
     if (!portal) {
@@ -265,7 +265,7 @@ export class PortalPermissionsService {
    * Log permission check results for audit purposes
    */
   private async logPermissionCheck(
-    result: RBACPermissionCheckResult,
+    result: IRBACPermissionCheckResult,
     context?: { timestamp?: Date; ip?: string },
   ): Promise<void> {
     if (!this.auditLogger) return;
@@ -294,12 +294,12 @@ export class PortalPermissionsService {
    * Check permissions using enhanced RBAC model
    */
   private checkRBACPermissions(
-    portal: PortalPermissions,
+    portal: IPortalPermissions,
     agentId: string,
     action: PermissionAction,
     resource: string,
     context?: { timestamp?: Date; ip?: string },
-  ): RBACPermissionCheckResult {
+  ): IRBACPermissionCheckResult {
     const permissions = portal.permissions!;
 
     for (const perm of permissions) {
@@ -350,11 +350,11 @@ export class PortalPermissionsService {
    * Check permissions using legacy model (for backward compatibility)
    */
   private checkLegacyPermissions(
-    portal: PortalPermissions,
+    portal: IPortalPermissions,
     agentId: string,
     action: PermissionAction,
     resource: string,
-  ): RBACPermissionCheckResult {
+  ): IRBACPermissionCheckResult {
     // Convert legacy model to RBAC for consistent interface
 
     // Check agent whitelist
@@ -469,7 +469,7 @@ export class PortalPermissionsService {
    * Check permission conditions
    */
   private checkConditions(
-    conditions: NonNullable<PermissionConditions>,
+    conditions: NonNullable<IPermissionConditions>,
     context?: { timestamp?: Date; ip?: string },
   ): { allowed: boolean; reason?: string } {
     if (!context) {

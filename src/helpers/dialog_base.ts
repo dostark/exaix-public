@@ -7,7 +7,7 @@
  * @related-files [src/helpers/dialog_rendering.ts, src/helpers/keyboard.ts]
  */
 
-import { ANSI, colorize, getTheme, padEnd, type TuiTheme, visibleLength } from "./colors.ts";
+import { ANSI, colorize, getTheme, type ITuiTheme, padEnd, visibleLength } from "./colors.ts";
 import { renderDialogButtons, renderDialogLine, renderDialogTitle, renderEmptyDialogLine } from "./dialog_rendering.ts";
 import {
   TUI_DIALOG_DEFAULT_HEIGHT,
@@ -15,7 +15,7 @@ import {
   TUI_LAYOUT_DIALOG_WIDTH,
   TUI_LAYOUT_MEDIUM_WIDTH,
 } from "./constants.ts";
-import type { MemoryUpdateProposal } from "../schemas/memory_bank.ts";
+import type { IMemoryUpdateProposal } from "../schemas/memory_bank.ts";
 
 // ===== Dialog Types =====
 
@@ -28,7 +28,7 @@ export type DialogResult<T = unknown> =
   | { type: DialogStatus.CONFIRMED; value: T }
   | { type: DialogStatus.CANCELLED };
 
-export interface DialogRenderOptions {
+export interface IDialogRenderOptions {
   useColors: boolean;
   width: number;
   height: number;
@@ -41,7 +41,7 @@ function createDialogResult<T>(state: DialogState, value: T | undefined): Dialog
   return { type: DialogStatus.CANCELLED };
 }
 
-function appendDialogHeader(lines: string[], title: string, innerWidth: number, theme: TuiTheme): void {
+function appendDialogHeader(lines: string[], title: string, innerWidth: number, theme: ITuiTheme): void {
   lines.push(renderDialogTitle(title, innerWidth, theme));
   lines.push(renderEmptyDialogLine(innerWidth, theme));
 }
@@ -50,7 +50,7 @@ function appendDialogFooter(
   lines: string[],
   buttons: Array<{ text: string; focused: boolean }>,
   innerWidth: number,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): void {
   lines.push(renderEmptyDialogLine(innerWidth, theme));
   lines.push(renderDialogButtons(buttons, innerWidth, theme));
@@ -58,8 +58,8 @@ function appendDialogFooter(
   lines.push(renderBoxBottom(innerWidth, theme));
 }
 
-function initSimpleDialogRender(options: DialogRenderOptions): {
-  theme: TuiTheme;
+function initSimpleDialogRender(options: IDialogRenderOptions): {
+  theme: ITuiTheme;
   innerWidth: number;
   lines: string[];
 } {
@@ -116,7 +116,7 @@ export abstract class DialogBase<T = unknown> {
 
   abstract getFocusableElements(): string[];
   abstract handleKey(key: string): void;
-  abstract render(options: DialogRenderOptions): string[];
+  abstract render(options: IDialogRenderOptions): string[];
   abstract getResult(): DialogResult<T>;
 
   protected cancel(): void {
@@ -153,7 +153,7 @@ export interface ConfirmDialogOptions {
  * Simple confirmation dialog (Yes/No)
  */
 export class ConfirmDialog extends DialogBase<boolean> {
-  private options: Required<ConfirmDialogOptions>;
+  public readonly options: Required<ConfirmDialogOptions>;
 
   constructor(options: ConfirmDialogOptions) {
     super();
@@ -194,7 +194,7 @@ export class ConfirmDialog extends DialogBase<boolean> {
     }
   }
 
-  render(opts: DialogRenderOptions): string[] {
+  render(opts: IDialogRenderOptions): string[] {
     const { theme, innerWidth, lines } = initSimpleDialogRender(opts);
 
     appendDialogHeader(lines, this.options.title, innerWidth, theme);
@@ -239,7 +239,7 @@ export interface InputDialogOptions {
  * Single input field dialog
  */
 export class InputDialog extends DialogBase<string> {
-  private options: Required<InputDialogOptions>;
+  public readonly options: Required<InputDialogOptions>;
   private value: string;
   private editing: boolean = false;
   private cursorPos: number = 0;
@@ -348,7 +348,7 @@ export class InputDialog extends DialogBase<string> {
     }
   }
 
-  render(opts: DialogRenderOptions): string[] {
+  render(opts: IDialogRenderOptions): string[] {
     const { theme, innerWidth, lines } = initSimpleDialogRender(opts);
 
     appendDialogHeader(lines, this.options.title, innerWidth, theme);
@@ -405,7 +405,7 @@ export interface SelectDialogOptions<T = string> {
  * Single-select dialog with list of options
  */
 export class SelectDialog<T = string> extends DialogBase<T> {
-  private options: SelectDialogOptions<T>;
+  public readonly options: SelectDialogOptions<T>;
   private selectedIndex: number;
   private scrollOffset: number = 0;
   private maxVisible: number = 8;
@@ -493,7 +493,7 @@ export class SelectDialog<T = string> extends DialogBase<T> {
     this.cancel();
   }
 
-  render(opts: DialogRenderOptions): string[] {
+  render(opts: IDialogRenderOptions): string[] {
     const { theme, innerWidth, lines } = initSimpleDialogRender(opts);
 
     appendDialogHeader(lines, this.options.title, innerWidth, theme);
@@ -547,7 +547,7 @@ export class SelectDialog<T = string> extends DialogBase<T> {
 /**
  * Render top border with optional title
  */
-export function renderBoxTop(width: number, title: string, theme: TuiTheme): string {
+export function renderBoxTop(width: number, title: string, theme: ITuiTheme): string {
   const titleLen = visibleLength(title);
   const leftLen = 2;
   const rightLen = Math.max(0, width - leftLen - titleLen);
@@ -563,7 +563,7 @@ export function renderBoxTop(width: number, title: string, theme: TuiTheme): str
 /**
  * Render bottom border
  */
-export function renderBoxBottom(width: number, theme: TuiTheme): string {
+export function renderBoxBottom(width: number, theme: ITuiTheme): string {
   return colorize(
     `${BOX.bottomLeft}${BOX.horizontal.repeat(width)}${BOX.bottomRight}`,
     theme.border,
@@ -574,7 +574,7 @@ export function renderBoxBottom(width: number, theme: TuiTheme): string {
 /**
  * Render a box line with content
  */
-export function renderBoxLine(content: string, width: number, theme: TuiTheme): string {
+export function renderBoxLine(content: string, width: number, theme: ITuiTheme): string {
   const paddedContent = padEnd(content, width);
   const border = colorize(BOX.vertical, theme.border, theme.reset);
   return `${border}${paddedContent}${border}`;
@@ -583,7 +583,7 @@ export function renderBoxLine(content: string, width: number, theme: TuiTheme): 
 /**
  * Render a centered box line
  */
-export function renderBoxLineCentered(content: string, width: number, theme: TuiTheme): string {
+export function renderBoxLineCentered(content: string, width: number, theme: ITuiTheme): string {
   const contentLen = visibleLength(content);
   const leftPad = Math.floor((width - contentLen) / 2);
   const rightPad = width - contentLen - leftPad;
@@ -599,7 +599,7 @@ export function renderButton(
   text: string,
   focused: boolean,
   destructive: boolean,
-  theme: TuiTheme,
+  theme: ITuiTheme,
   disabled: boolean = false,
 ): string {
   const wrapper = focused ? ["[", "]"] : [" ", " "];
@@ -626,7 +626,7 @@ export function renderInputField(
   focused: boolean,
   editing: boolean,
   isPlaceholder: boolean,
-  theme: TuiTheme,
+  theme: ITuiTheme,
 ): string {
   const displayValue = value.slice(0, width - 2).padEnd(width - 2);
   const borderColor = focused ? theme.borderActive : theme.border;
@@ -669,10 +669,10 @@ export function wrapToWidth(text: string, width: number): string[] {
 /**
  * Common render setup for dialogs - extracts duplicated initialization code
  */
-export function setupDialogRender(options: DialogRenderOptions): {
+export function setupDialogRender(options: IDialogRenderOptions): {
   width: number;
   height: number;
-  theme: TuiTheme;
+  theme: ITuiTheme;
   lines: string[];
   innerWidth: number;
 } {
@@ -690,7 +690,7 @@ export function setupDialogRender(options: DialogRenderOptions): {
 export function renderDialogEnding(
   buttonsLine: string,
   innerWidth: number,
-  theme: TuiTheme,
+  theme: ITuiTheme,
   lines: string[],
 ): void {
   lines.push(renderBoxLineCentered(buttonsLine, innerWidth, theme));
@@ -702,9 +702,9 @@ export function renderDialogEnding(
  * Render memory update proposal information
  */
 export function renderProposalInfo(
-  proposal: MemoryUpdateProposal,
+  proposal: IMemoryUpdateProposal,
   innerWidth: number,
-  theme: TuiTheme,
+  theme: ITuiTheme,
   lines: string[],
   options: { showScope?: boolean; showCategory?: boolean } = {},
 ): void {

@@ -12,7 +12,7 @@ import type { EventLogger } from "../services/event_logger.ts";
 /**
  * Options for model generation requests.
  */
-export interface ModelOptions {
+export interface IModelOptions {
   temperature?: number;
   max_tokens?: number;
   top_p?: number;
@@ -33,13 +33,13 @@ export interface IModelProvider {
    * @param options Optional generation parameters
    * @returns The generated text response
    */
-  generate(prompt: string, options?: ModelOptions): Promise<string>;
+  generate(prompt: string, options?: IModelOptions): Promise<string>;
 }
 
 /**
  * Resolved provider options after merging env vars and config
  */
-export interface ResolvedProviderOptions {
+export interface IResolvedProviderOptions {
   /** Provider type */
   provider: ProviderType;
   /** Model name */
@@ -65,7 +65,7 @@ export interface ResolvedProviderOptions {
 /**
  * Provider information for logging/debugging
  */
-export interface ProviderInfo {
+export interface IProviderInfo {
   /** Provider type */
   type: ProviderType;
   /** Provider ID */

@@ -10,15 +10,13 @@ import type { Config } from "../config/schema.ts";
 import type { IDatabaseService } from "../services/db.ts";
 import { MCPConfigSchema, type MCPTool } from "../schemas/mcp.ts";
 import { JSONValue } from "../types.ts";
-import {
-  GitCommitTool,
-  GitCreateBranchTool,
-  GitStatusTool,
-  ListDirectoryTool,
-  ReadFileTool,
-  ToolHandler,
-  WriteFileTool,
-} from "./tools.ts";
+import { ToolHandler } from "./tool_handler.ts";
+import { GitCommitTool } from "./handlers/git_commit_tool.ts";
+import { GitCreateBranchTool } from "./handlers/git_create_branch_tool.ts";
+import { GitStatusTool } from "./handlers/git_status_tool.ts";
+import { ListDirectoryTool } from "./handlers/list_directory_tool.ts";
+import { ReadFileTool } from "./handlers/read_file_tool.ts";
+import { WriteFileTool } from "./handlers/write_file_tool.ts";
 import { ApprovePlanTool, CreateRequestTool, ListPlansTool, QueryJournalTool } from "./domain_tools.ts";
 import { discoverAllResources, parsePortalURI } from "./resources.ts";
 import { generatePrompt, getPrompts } from "./prompts.ts";
@@ -35,7 +33,7 @@ import { logInfo } from "../services/structured_logger.ts";
  * - initialize handshake
  * - tools/list with registered tools
  * - tools/call for read_file
- * - Activity Journal logging
+ * - IActivity Journal logging
  *
  * Future phases will add:
  * - Additional tools (write_file, list_directory, git_*)
@@ -138,7 +136,7 @@ export class MCPServer {
   }
 
   /**
-   * Starts the MCP server and logs to Activity Journal
+   * Starts the MCP server and logs to IActivity Journal
    */
   start(): void {
     if (this.running) {
@@ -161,7 +159,7 @@ export class MCPServer {
   }
 
   /**
-   * Stops the MCP server gracefully and logs to Activity Journal
+   * Stops the MCP server gracefully and logs to IActivity Journal
    */
   stop(): void {
     if (!this.running) {

@@ -9,12 +9,12 @@
 
 import { z } from "zod";
 import { REVIEW_STATUS_VALUES } from "../reviews/review_status.ts";
-import type { ReviewStatus } from "../reviews/review_status.ts";
+import type { IReviewStatus } from "../reviews/review_status.ts";
 
 /**
  * Review status values
  */
-export const ReviewStatusSchema: z.ZodType<ReviewStatus> = z.enum(REVIEW_STATUS_VALUES);
+export const ReviewStatusSchema: z.ZodType<IReviewStatus> = z.enum(REVIEW_STATUS_VALUES);
 
 /**
  * Review schema with all fields
@@ -40,7 +40,7 @@ export const ReviewSchema = z.object({
   rejection_reason: z.string().nullish(), // Reason for rejection
 });
 
-export type Review = z.infer<typeof ReviewSchema>;
+export type IReview = z.infer<typeof ReviewSchema>;
 
 /**
  * Input for registering a new review
@@ -58,7 +58,7 @@ export const RegisterReviewSchema = z.object({
   created_by: z.string().min(1), // Agent name
 });
 
-export type RegisterReviewInput = z.infer<typeof RegisterReviewSchema>;
+export type IRegisterReviewInput = z.infer<typeof RegisterReviewSchema>;
 
 /**
  * Filters for listing reviews
@@ -70,4 +70,4 @@ export const ReviewFiltersSchema = z.object({
   created_by: z.string().optional(),
 });
 
-export type ReviewFilters = z.infer<typeof ReviewFiltersSchema>;
+export type IReviewFilters = z.infer<typeof ReviewFiltersSchema>;

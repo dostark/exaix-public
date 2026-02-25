@@ -16,14 +16,14 @@ import {
   TIME_MS_PER_MINUTE,
   TIME_MS_PER_SECOND,
 } from "../config/constants.ts";
-import { colorize, type TuiTheme } from "../helpers/colors.ts";
-import type { LogEntry } from "../services/structured_logger.ts";
+import { colorize, type ITuiTheme } from "../helpers/colors.ts";
+import type { IStructuredLogEntry } from "../services/structured_logger.ts";
 import { LogLevel } from "../enums.ts";
 
 /**
  * Log rendering options
  */
-export interface LogRenderOptions {
+export interface ILogRenderOptions {
   /** Whether to show timestamps */
   showTimestamp: boolean;
   /** Whether to show context badges */
@@ -37,13 +37,13 @@ export interface LogRenderOptions {
   /** Whether to truncate long messages */
   truncateMessages: boolean;
   /** Theme for coloring */
-  theme: TuiTheme;
+  theme: ITuiTheme;
 }
 
 /**
  * Default rendering options
  */
-export const DEFAULT_LOG_RENDER_OPTIONS: LogRenderOptions = {
+export const DEFAULT_LOG_RENDER_OPTIONS: ILogRenderOptions = {
   showTimestamp: true,
   showContext: true,
   showPerformance: true,
@@ -83,6 +83,11 @@ export const DEFAULT_LOG_RENDER_OPTIONS: LogRenderOptions = {
     statusPending: "\x1b[33m", // yellow
     statusCompleted: "\x1b[32m", // green
     statusFailed: "\x1b[31m", // red
+    textInverted: "\x1b[7m",
+    link: "\x1b[4m\x1b[34m",
+    spinner: "\x1b[36m",
+    selection: "\x1b[7m",
+    selectionText: "\x1b[1m",
     reset: "\x1b[0m",
   },
 };
@@ -90,7 +95,7 @@ export const DEFAULT_LOG_RENDER_OPTIONS: LogRenderOptions = {
 /**
  * Render a single log entry as a formatted string
  */
-export function renderLogEntry(entry: LogEntry, options: Partial<LogRenderOptions> = {}): string {
+export function renderLogEntry(entry: IStructuredLogEntry, options: Partial<ILogRenderOptions> = {}): string {
   const opts = { ...DEFAULT_LOG_RENDER_OPTIONS, ...options };
   const parts: string[] = [];
 
@@ -134,7 +139,7 @@ export function renderLogEntry(entry: LogEntry, options: Partial<LogRenderOption
 /**
  * Render context badges for a log entry
  */
-export function renderContextBadges(entry: LogEntry, options: LogRenderOptions): string {
+export function renderContextBadges(entry: IStructuredLogEntry, options: ILogRenderOptions): string {
   const badges: string[] = [];
 
   if (entry.context.trace_id) {
@@ -176,7 +181,10 @@ export function renderContextBadges(entry: LogEntry, options: LogRenderOptions):
 /**
  * Render performance metrics
  */
-export function renderPerformanceMetrics(performance: LogEntry["performance"], _options: LogRenderOptions): string {
+export function renderPerformanceMetrics(
+  performance: IStructuredLogEntry["performance"],
+  _options: ILogRenderOptions,
+): string {
   if (!performance) return "";
 
   const metrics: string[] = [];
@@ -199,7 +207,7 @@ export function renderPerformanceMetrics(performance: LogEntry["performance"], _
 /**
  * Render detailed log entry (multi-line)
  */
-export function renderDetailedLogEntry(entry: LogEntry, options: Partial<LogRenderOptions> = {}): string[] {
+export function renderDetailedLogEntry(entry: IStructuredLogEntry, options: Partial<ILogRenderOptions> = {}): string[] {
   const opts = { ...DEFAULT_LOG_RENDER_OPTIONS, ...options };
   const lines: string[] = [];
 
@@ -258,7 +266,7 @@ export function renderDetailedLogEntry(entry: LogEntry, options: Partial<LogRend
 /**
  * Render log summary statistics
  */
-export function renderLogSummary(entries: LogEntry[], options: Partial<LogRenderOptions> = {}): string[] {
+export function renderLogSummary(entries: IStructuredLogEntry[], options: Partial<ILogRenderOptions> = {}): string[] {
   const opts = { ...DEFAULT_LOG_RENDER_OPTIONS, ...options };
   const lines: string[] = [];
 
@@ -349,7 +357,7 @@ function formatDuration(ms: number): string {
 /**
  * Analyze context statistics
  */
-function analyzeContext(entries: LogEntry[]): {
+function analyzeContext(entries: IStructuredLogEntry[]): {
   correlationIds: number;
   traceIds: number;
   agentIds: number;
@@ -368,7 +376,7 @@ function analyzeContext(entries: LogEntry[]): {
 /**
  * Create a colorized log level indicator
  */
-export function createLogLevelIndicator(level: LogLevel, theme: TuiTheme): string {
+export function createLogLevelIndicator(level: LogLevel, theme: ITuiTheme): string {
   const levelInfo = getLevelInfo(level);
   return colorize(levelInfo.icon, levelInfo.color, theme.reset);
 }
@@ -378,8 +386,8 @@ export function createLogLevelIndicator(level: LogLevel, theme: TuiTheme): strin
  */
 export function renderCorrelationVisualization(
   correlationId: string,
-  entries: LogEntry[],
-  options: Partial<LogRenderOptions> = {},
+  entries: IStructuredLogEntry[],
+  options: Partial<ILogRenderOptions> = {},
 ): string[] {
   const opts = { ...DEFAULT_LOG_RENDER_OPTIONS, ...options };
   const lines: string[] = [];

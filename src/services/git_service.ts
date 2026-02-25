@@ -29,11 +29,7 @@ import {
 import { SecureRandom } from "../helpers/secure_random.ts";
 import { ActivityActor } from "../enums.ts";
 
-// ============================================================================
-// Types
-// ============================================================================
-
-export interface GitServiceConfig {
+export interface IGitServiceConfig {
   config: Config;
   db?: IDatabaseService;
   traceId?: string;
@@ -41,24 +37,24 @@ export interface GitServiceConfig {
   repoPath?: string;
 }
 
-export interface BranchOptions {
+export interface IBranchOptions {
   requestId: string;
   traceId: string;
 }
 
-export interface CommitOptions {
+export interface ICommitOptions {
   message: string;
   description?: string;
   traceId: string;
 }
 
-export interface GitCommandOptions {
+export interface IGitCommandOptions {
   throwOnError?: boolean;
   timeoutMs?: number;
   retryOnLock?: boolean;
 }
 
-export interface WorktreeInfo {
+export interface IWorktreeInfo {
   path: string;
   head?: string;
   branch?: string;
@@ -66,6 +62,30 @@ export interface WorktreeInfo {
   locked?: boolean;
   prunable?: boolean;
 }
+
+export interface IGitService {
+  setRepository(repoPath: string): void;
+  getRepository(): string;
+  ensureRepository(): Promise<void>;
+  ensureIdentity(): Promise<void>;
+  createBranch(options: IBranchOptions): Promise<string>;
+  commit(options: ICommitOptions): Promise<string>;
+  checkoutBranch(branchName: string, options?: { allowProtected?: boolean }): Promise<void>;
+  getCurrentBranch(): Promise<string>;
+  getDefaultBranch(repoPath?: string): Promise<string>;
+  addWorktree(worktreePath: string, baseBranch: string): Promise<void>;
+  removeWorktree(worktreePath: string, options?: { force?: boolean }): Promise<void>;
+  pruneWorktrees(options?: { dryRun?: boolean; verbose?: boolean; expire?: string }): Promise<string>;
+  listWorktrees(): Promise<IWorktreeInfo[]>;
+  runGitCommand(
+    args: string[],
+    options?: IGitCommandOptions,
+  ): Promise<{ output: string; exitCode: number }>;
+}
+
+// ============================================================================
+// Types
+// ============================================================================
 
 // ============================================================================
 // Git Error Classes
@@ -124,26 +144,6 @@ export class GitSecurityError extends GitError {
 // GitService Implementation
 // ============================================================================
 
-export interface IGitService {
-  setRepository(repoPath: string): void;
-  getRepository(): string;
-  ensureRepository(): Promise<void>;
-  ensureIdentity(): Promise<void>;
-  createBranch(options: BranchOptions): Promise<string>;
-  commit(options: CommitOptions): Promise<string>;
-  checkoutBranch(branchName: string, options?: { allowProtected?: boolean }): Promise<void>;
-  getCurrentBranch(): Promise<string>;
-  getDefaultBranch(repoPath?: string): Promise<string>;
-  addWorktree(worktreePath: string, baseBranch: string): Promise<void>;
-  removeWorktree(worktreePath: string, options?: { force?: boolean }): Promise<void>;
-  pruneWorktrees(options?: { dryRun?: boolean; verbose?: boolean; expire?: string }): Promise<string>;
-  listWorktrees(): Promise<WorktreeInfo[]>;
-  runGitCommand(
-    args: string[],
-    options?: GitCommandOptions,
-  ): Promise<{ output: string; exitCode: number }>;
-}
-
 export class GitService implements IGitService {
   private config: Config;
   private db?: IDatabaseService;
@@ -151,7 +151,7 @@ export class GitService implements IGitService {
   private agentId?: string;
   private repoPath: string;
 
-  constructor(options: GitServiceConfig) {
+  constructor(options: IGitServiceConfig) {
     this.config = options.config;
     this.db = options.db;
     this.traceId = options.traceId;
@@ -331,7 +331,7 @@ export class GitService implements IGitService {
   /**
    * Create a feature branch with naming convention
    */
-  async createBranch(options: BranchOptions): Promise<string> {
+  async createBranch(options: IBranchOptions): Promise<string> {
     const startTime = Date.now();
 
     try {
@@ -408,7 +408,7 @@ export class GitService implements IGitService {
   /**
    * Commit changes with trace_id in message footer
    */
-  async commit(options: CommitOptions): Promise<string> {
+  async commit(options: ICommitOptions): Promise<string> {
     const startTime = Date.now();
 
     try {
@@ -595,15 +595,15 @@ export class GitService implements IGitService {
   /**
    * List git worktrees for this repository.
    */
-  async listWorktrees(): Promise<WorktreeInfo[]> {
+  async listWorktrees(): Promise<IWorktreeInfo[]> {
     const result = await this.runGitCommand(["worktree", "list", "--porcelain"]);
     return GitService.parseWorktreeListPorcelain(result.output);
   }
 
-  protected static parseWorktreeListPorcelain(output: string): WorktreeInfo[] {
+  protected static parseWorktreeListPorcelain(output: string): IWorktreeInfo[] {
     const lines = output.split("\n");
-    const worktrees: WorktreeInfo[] = [];
-    let current: WorktreeInfo | null = null;
+    const worktrees: IWorktreeInfo[] = [];
+    let current: IWorktreeInfo | null = null;
 
     const flush = () => {
       if (current?.path) worktrees.push(current);
@@ -671,7 +671,7 @@ export class GitService implements IGitService {
 
   public async runGitCommand(
     args: string[],
-    options: GitCommandOptions = {},
+    options: IGitCommandOptions = {},
   ): Promise<{ output: string; exitCode: number }> {
     // Security validation
     this.validateGitCommandSecurity(args);

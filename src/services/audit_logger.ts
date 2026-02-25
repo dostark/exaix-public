@@ -19,7 +19,7 @@ import { JSONValue } from "../types.ts";
 /**
  * Structured security audit event
  */
-export interface SecurityEvent {
+export interface ISecurityEvent {
   /** Type of security event */
   type: SecurityEventType;
 
@@ -75,7 +75,7 @@ export class AuditLogger {
   /**
    * Log a security event to database and tamper-evident audit file
    */
-  async logSecurityEvent(event: SecurityEvent): Promise<void> {
+  async logSecurityEvent(event: ISecurityEvent): Promise<void> {
     const auditEntry = this.createAuditEntry(event);
 
     // Log to database (if available)
@@ -128,7 +128,7 @@ export class AuditLogger {
   /**
    * Create a complete audit entry with all required fields
    */
-  private createAuditEntry(event: SecurityEvent): Record<string, JSONValue> {
+  private createAuditEntry(event: ISecurityEvent): Record<string, JSONValue> {
     const now = new Date();
     const maskedMetadata = this.maskSensitiveData(event.metadata || {});
 

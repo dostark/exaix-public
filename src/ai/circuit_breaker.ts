@@ -7,9 +7,9 @@
  * @related-files [src/ai/providers.ts]
  */
 
-import { IModelProvider, ModelOptions } from "./providers.ts";
+import { IModelOptions, IModelProvider } from "./types.ts";
 
-export interface CircuitBreakerOptions {
+export interface ICircuitBreakerOptions {
   /** Number of consecutive failures before opening circuit */
   failureThreshold: number;
   /** Time in milliseconds to wait before transitioning to half-open */
@@ -37,7 +37,7 @@ export class CircuitBreaker {
   private lastFailureTime = 0; // stores monotonic timestamp (performance.now()) when available
   private successCount = 0;
 
-  constructor(private options: CircuitBreakerOptions) {}
+  constructor(private options: ICircuitBreakerOptions) {}
 
   /**
    * Execute a function with circuit breaker protection
@@ -116,7 +116,7 @@ export class CircuitBreakerProvider implements IModelProvider {
 
   constructor(
     private inner: IModelProvider,
-    options: CircuitBreakerOptions = {
+    options: ICircuitBreakerOptions = {
       failureThreshold: 5,
       resetTimeout: 60000, // 1 minute
       halfOpenSuccessThreshold: 2,
@@ -126,7 +126,7 @@ export class CircuitBreakerProvider implements IModelProvider {
     this.circuitBreaker = new CircuitBreaker(options);
   }
 
-  async generate(prompt: string, options?: ModelOptions): Promise<string> {
+  async generate(prompt: string, options?: IModelOptions): Promise<string> {
     return await this.circuitBreaker.execute(() => this.inner.generate(prompt, options));
   }
 

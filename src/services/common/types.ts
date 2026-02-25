@@ -1,7 +1,7 @@
 /**
  * @module CommonTypes
  * @path src/services/common/types.ts
- * @description Shared type definitions for services, including LogEvent and ServiceContext.
+ * @description Shared type definitions for services, including ILogEvent and IServiceContext.
  * @architectural-layer Services
  * @dependencies [LogLevel]
  * @related-files [src/services/event_logger.ts, src/services/structured_logger.ts]
@@ -20,7 +20,7 @@ export type Actor = string;
 /**
  * Structured log event
  */
-export interface LogEvent {
+export interface ILogEvent {
   /** Action type in domain.action format (e.g., "daemon.started") */
   action: string;
 
@@ -51,7 +51,7 @@ export interface LogEvent {
  * Subinterfaces (ToolContext, RequestProcessingContext, etc.) extend this
  * with their own typed properties — no index signature needed.
  */
-export interface ServiceContext {
+export interface IServiceContext {
   traceId?: string;
   agentId?: string;
   actor?: Actor;

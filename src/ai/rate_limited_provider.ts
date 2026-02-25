@@ -18,19 +18,9 @@ import {
 } from "../config/constants.ts";
 
 /**
- * Error thrown when rate limits are exceeded
- */
-export class RateLimitError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "RateLimitError";
-  }
-}
-
-/**
  * Configuration for rate limiting
  */
-export interface RateLimitConfig {
+export interface IRateLimitConfig {
   /** Maximum API calls per minute */
   maxCallsPerMinute: number;
   /** Maximum tokens per hour */
@@ -41,6 +31,16 @@ export interface RateLimitConfig {
   costPer1kTokens: number;
   /** Optional cost tracker for persistent cost tracking */
   costTracker?: CostTracker;
+}
+
+/**
+ * Error thrown when rate limits are exceeded
+ */
+export class RateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RateLimitError";
+  }
 }
 
 /**
@@ -58,7 +58,7 @@ export class RateLimitedProvider implements IModelProvider {
 
   constructor(
     private inner: IModelProvider,
-    private limits: RateLimitConfig,
+    private limits: IRateLimitConfig,
   ) {
     this.id = `rate-limited-${inner.id}`;
   }

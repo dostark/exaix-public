@@ -18,7 +18,7 @@ import { ToolHandler } from "../tool_handler.ts";
  * - Validates portal exists
  * - Prevents path traversal
  * - Validates file exists
- * - Logs all reads to Activity Journal
+ * - Logs all reads to IActivity Journal
  */
 export class ReadFileTool extends ToolHandler {
   async execute(args: Record<string, JSONValue>): Promise<MCPToolResponse> {

@@ -7,6 +7,66 @@
  * @related-files [src/helpers/tree_view.ts, src/helpers/status_bar.ts]
  */
 
+// ===== Theme Interface =====
+
+export interface ITuiTheme {
+  // UI Elements
+  primary: string;
+  secondary: string;
+  accent: string;
+  border: string;
+  borderActive: string;
+
+  // Text
+  text: string;
+  textDim: string;
+  textInverted: string;
+  textBold: string;
+
+  // Status/Semantic
+  success: string;
+  warning: string;
+  error: string;
+  info: string;
+
+  // Tree View
+  treeExpanded: string;
+  treeCollapsed: string;
+  treeLeaf: string;
+  treeSelected: string;
+
+  // Components
+  h1: string;
+  h2: string;
+  h3: string;
+  link: string;
+  code: string;
+  codeBlock: string;
+
+  // Categories
+  categoryPattern: string;
+  categoryDecision: string;
+  categoryTroubleshooting: string;
+  categoryInsight: string;
+
+  // Confidence
+  confidenceHigh: string;
+  confidenceMedium: string;
+  confidenceLow: string;
+
+  // Status indicators
+  statusActive: string;
+  statusPending: string;
+  statusCompleted: string;
+  statusFailed: string;
+
+  // TUI Specific
+  spinner: string;
+  selection: string;
+  selectionText: string;
+  reset: string;
+}
+
 // ===== ANSI Color Codes =====
 
 export const ANSI = {
@@ -52,66 +112,9 @@ export const ANSI = {
   bgWhite: "\x1b[47m",
 } as const;
 
-// ===== Theme Interface =====
-
-export interface TuiTheme {
-  // UI Elements
-  primary: string;
-  secondary: string;
-  accent: string;
-  border: string;
-  borderActive: string;
-
-  // Text
-  text: string;
-  textDim: string;
-  textBold: string;
-
-  // Status
-  success: string;
-  warning: string;
-  error: string;
-  info: string;
-
-  // Tree View
-  treeExpanded: string;
-  treeCollapsed: string;
-  treeLeaf: string;
-  treeSelected: string;
-
-  // Headers
-  h1: string;
-  h2: string;
-  h3: string;
-
-  // Code
-  code: string;
-  codeBlock: string;
-
-  // Categories
-  categoryPattern: string;
-  categoryDecision: string;
-  categoryTroubleshooting: string;
-  categoryInsight: string;
-
-  // Confidence
-  confidenceHigh: string;
-  confidenceMedium: string;
-  confidenceLow: string;
-
-  // Status indicators
-  statusActive: string;
-  statusPending: string;
-  statusCompleted: string;
-  statusFailed: string;
-
-  // Reset
-  reset: string;
-}
-
 // ===== Default Theme =====
 
-export const defaultTheme: TuiTheme = {
+export const defaultTheme: ITuiTheme = {
   // UI Elements
   primary: ANSI.cyan,
   secondary: ANSI.blue,
@@ -123,6 +126,7 @@ export const defaultTheme: TuiTheme = {
   text: "",
   textDim: ANSI.dim,
   textBold: ANSI.bold,
+  textInverted: `${ANSI.inverse}${ANSI.white}`,
 
   // Status
   success: ANSI.green,
@@ -140,6 +144,9 @@ export const defaultTheme: TuiTheme = {
   h1: `${ANSI.bold}${ANSI.cyan}`,
   h2: `${ANSI.bold}${ANSI.blue}`,
   h3: `${ANSI.bold}${ANSI.magenta}`,
+
+  // Link
+  link: ANSI.cyan,
 
   // Code
   code: ANSI.yellow,
@@ -162,13 +169,16 @@ export const defaultTheme: TuiTheme = {
   statusCompleted: ANSI.brightBlack,
   statusFailed: ANSI.red,
 
-  // Reset
+  // TUI Specific
+  spinner: ANSI.cyan,
+  selection: ANSI.cyan,
+  selectionText: ANSI.black,
   reset: ANSI.reset,
 };
 
 // ===== No-Color Theme =====
 
-function createEmptyTheme(): TuiTheme {
+function createEmptyTheme(): ITuiTheme {
   const empty = "";
   return {
     primary: empty,
@@ -178,6 +188,7 @@ function createEmptyTheme(): TuiTheme {
     borderActive: empty,
     text: empty,
     textDim: empty,
+    textInverted: empty,
     textBold: empty,
     success: empty,
     warning: empty,
@@ -190,6 +201,7 @@ function createEmptyTheme(): TuiTheme {
     h1: empty,
     h2: empty,
     h3: empty,
+    link: empty,
     code: empty,
     codeBlock: empty,
     categoryPattern: empty,
@@ -203,18 +215,21 @@ function createEmptyTheme(): TuiTheme {
     statusPending: empty,
     statusCompleted: empty,
     statusFailed: empty,
+    spinner: empty,
+    selection: empty,
+    selectionText: empty,
     reset: empty,
   };
 }
 
-export const noColorTheme: TuiTheme = createEmptyTheme();
+export const noColorTheme: ITuiTheme = createEmptyTheme();
 
 // ===== Theme Manager =====
 
 /**
  * Get the active theme based on color preference
  */
-export function getTheme(useColors: boolean): TuiTheme {
+export function getTheme(useColors: boolean): ITuiTheme {
   return useColors ? defaultTheme : noColorTheme;
 }
 

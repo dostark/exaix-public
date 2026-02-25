@@ -13,7 +13,7 @@ import type { Config } from "../config/schema.ts";
 import type { DatabaseService } from "./db.ts";
 import type { IModelProvider } from "../ai/providers.ts";
 import { ToolRegistry } from "./tool_registry.ts";
-import { GitNothingToCommitError, GitService } from "./git_service.ts";
+import { GitNothingToCommitError, GitService, type IGitService } from "./git_service.ts";
 import { EventLogger } from "./event_logger.ts";
 import { ExecutionStatus } from "../enums.ts";
 import { JSONObject, JSONValue } from "../types.ts";
@@ -24,31 +24,31 @@ import {
   EXECUTION_REPORT_TOOL_OUTPUT_MAX_CHARS,
 } from "../config/constants.ts";
 
-export interface PlanStep {
+export interface IPlanStep {
   number: number;
   title: string;
   content: string;
 }
 
-export interface PlanContext {
+export interface IPlanContext {
   trace_id: string;
   request_id: string;
   agent: string;
   frontmatter: Record<string, JSONValue>;
-  steps: PlanStep[];
+  steps: IPlanStep[];
 }
 
-export interface PlanExecutionResult {
+export interface IPlanExecutionResult {
   lastCommitSha: string | null;
   report?: string;
 }
 
-export interface PlanExecutorOptions {
+export interface IPlanExecutorOptions {
   enableGit?: boolean;
   generateReport?: boolean;
 }
 
-interface PlanActionReport {
+export interface IPlanActionReport {
   stepNumber: number;
   stepTitle: string;
   tool: string;
@@ -58,7 +58,7 @@ interface PlanActionReport {
   error?: string;
 }
 
-interface PlanAction {
+export interface IPlanAction {
   tool: string;
   params: Record<string, JSONValue>;
   description?: string;
@@ -74,7 +74,7 @@ export class PlanExecutor {
     private llmProvider: IModelProvider,
     private db: DatabaseService,
     private repoPath: string,
-    options: PlanExecutorOptions = {},
+    options: IPlanExecutorOptions = {},
   ) {
     this.logger = new EventLogger({
       db,
@@ -87,11 +87,11 @@ export class PlanExecutor {
   /**
    * Execute a plan
    */
-  async execute(planPath: string, context: PlanContext): Promise<PlanExecutionResult> {
+  async execute(planPath: string, context: IPlanContext): Promise<IPlanExecutionResult> {
     const traceId = context.trace_id;
     const requestId = context.request_id;
     const agentId = context.agent;
-    const actionReports: PlanActionReport[] = [];
+    const actionReports: IPlanActionReport[] = [];
 
     await this.logger.info("plan.execution_started", planPath, {
       trace_id: traceId,
@@ -206,11 +206,11 @@ export class PlanExecutor {
    * Execute a single step
    */
   private async executeStep(
-    step: PlanStep,
-    context: PlanContext,
+    step: IPlanStep,
+    context: IPlanContext,
     toolRegistry: ToolRegistry,
-    git: GitService | null,
-    actionReports: PlanActionReport[],
+    git: IGitService | null,
+    actionReports: IPlanActionReport[],
   ): Promise<string | null> {
     await this.logger.info("step.started", `Step ${step.number}`, {
       title: step.title,
@@ -323,8 +323,8 @@ export class PlanExecutor {
   }
 
   private async generateExecutionReport(
-    context: PlanContext,
-    actionReports: PlanActionReport[],
+    context: IPlanContext,
+    actionReports: IPlanActionReport[],
   ): Promise<string> {
     const reportInputs = actionReports.map((entry) => {
       const header = `Step ${entry.stepNumber}: ${entry.stepTitle}\nTool: ${entry.tool}`;
@@ -378,7 +378,7 @@ You should apply the principles and constraints from these skills during executi
   /**
    * Construct the prompt used to turn a plan step into tool actions.
    */
-  private constructStepPrompt(step: PlanStep, context: PlanContext): string {
+  private constructStepPrompt(step: IPlanStep, context: IPlanContext): string {
     return `PLAN EXECUTION CONTEXT
 Trace ID: ${context.trace_id}
 Request ID: ${context.request_id}
@@ -419,12 +419,12 @@ Generate the TOML actions now.`;
   /**
    * Parse TOML actions from response
    */
-  private parseActions(response: string): PlanAction[] {
-    const actions: PlanAction[] = [];
+  private parseActions(response: string): IPlanAction[] {
+    const actions: IPlanAction[] = [];
     const codeBlockRegex = /```toml\s*([\s\S]*?)```/g;
     let match;
 
-    const parseActionObject = (act: Record<string, JSONValue>): PlanAction | null => {
+    const parseActionObject = (act: Record<string, JSONValue>): IPlanAction | null => {
       if (
         typeof act.tool === "string" && act.params && typeof act.params === "object" && !Array.isArray(act.params)
       ) {
