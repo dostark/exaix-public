@@ -7,15 +7,10 @@
 
 import { assert, assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import { FlowStepType } from "../../src/enums.ts";
-
 import { McpToolName } from "../../src/enums.ts";
-
 import { PortalOperation } from "../../src/enums.ts";
-
 import { EvaluationVerdict } from "../../src/enums.ts";
-
-import { ExecutionStatus, MemorySource } from "../../src/enums.ts";
-
+import { MemorySource } from "../../src/enums.ts";
 import { join as _join } from "@std/path";
 import { TestEnvironment } from "./helpers/test_environment.ts";
 
@@ -24,7 +19,7 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
 
   try {
     let traceId: string;
-    let requestPath: string;
+    let _requestPath: string;
     let activePlanPath: string;
 
     // Setup: Create request, plan, and approve
@@ -34,10 +29,11 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
         { agentId: "senior-coder" },
       );
       traceId = result.traceId;
-      requestPath = result.filePath;
+      _requestPath = result.filePath;
+      const requestId = `request-${traceId.substring(0, 8)}`;
 
       // Create plan with action that will fail
-      const planPath = await env.createPlan(traceId, "failing-task", {
+      const planPath = await env.createPlan(traceId, requestId, {
         status: "review",
         actions: [
           {
@@ -53,7 +49,7 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
       activePlanPath = await env.approvePlan(planPath);
 
       // Verify setup
-      const activeExists = await env.fileExists("Workspace/Active/failing-task_plan.md");
+      const activeExists = await env.fileExists(`Workspace/Active/${requestId}_plan.md`);
       assertEquals(activeExists, true, "Plan should be in Active");
     });
 
@@ -124,29 +120,14 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
     // ========================================================================
     // Test 4: Plan status updated
     // ========================================================================
-    await t.step("Test 4: Plan moved or marked as failed", async () => {
-      // After failure, plan may be archived or remain in Active
-      // Check all possible locations
-      const inPlans = await env.fileExists("Workspace/Plans/failing-task_plan.md");
-      const inActive = await env.fileExists("Workspace/Active/failing-task_plan.md");
-      const inArchive = await env.fileExists("Workspace/Archive/failing-task_plan.md");
-      const inFailed = await env.fileExists("Workspace/Failed/failing-task_plan.md");
+    await t.step("Test 4: Plan moved to Rejected on failure", async () => {
+      // After failure, plan should be in Rejected with _failed.md suffix
+      const requestId = `request-${traceId.substring(0, 8)}`;
+      const inRejected = await env.fileExists(`Workspace/Rejected/${requestId}_plan_failed.md`);
+      assertEquals(inRejected, true, "Plan should be in Workspace/Rejected");
 
       // Should be in one of these locations
-      const _planExists = inPlans || inActive || inArchive || inFailed;
-      // If not found, the execution might have cleaned it up - that's also valid
-      assert(true, "Plan handling after failure verified");
-
-      // If still in Active, should have failure marker or status
-      if (inActive) {
-        const content = await env.readFile("Workspace/Active/failing-task_plan.md");
-        // May have status: failed or failure section
-        const hasFailureIndicator = content.includes(ExecutionStatus.FAILED) ||
-          content.includes("error") ||
-          content.includes("Execution Failed") ||
-          content.includes("Intentionally fail");
-        assert(hasFailureIndicator, "Plan in Active should indicate failure");
-      }
+      assertEquals(inRejected, true, "Plan should be in Workspace/Rejected");
     });
 
     // ========================================================================
@@ -202,18 +183,23 @@ Deno.test("Integration: Execution Failure - Plan fails during execution", async 
     // ========================================================================
     // Test 7: Original request unaffected
     // ========================================================================
-    await t.step("Test 7: Original request not affected by failure", async () => {
-      // Request should still exist
-      const requestExists = await env.fileExists(
+    await t.step("Test 7: Original request archived to Rejected on failure", async () => {
+      // Request should be moved to Rejected
+      const requestExistsInInbox = await env.fileExists(
         `Workspace/Requests/request-${traceId.substring(0, 8)}.md`,
       );
-      assertEquals(requestExists, true, "Request should still exist");
+      assertEquals(requestExistsInInbox, false, "Request should no longer be in Inbox");
 
-      // Request content unchanged
-      const content = await Deno.readTextFile(requestPath);
+      const requestExistsInRejected = await env.fileExists(
+        `Workspace/Rejected/request-${traceId.substring(0, 8)}.md`,
+      );
+      assertEquals(requestExistsInRejected, true, "Request should be in Rejected");
+
+      // Request content status updated to failed
+      const rejectedPath = _join(env.tempDir, `Workspace/Rejected/request-${traceId.substring(0, 8)}.md`);
+      const content = await Deno.readTextFile(rejectedPath);
       assertStringIncludes(content, `trace_id: "${traceId}"`);
-      assertStringIncludes(content, "status: pending");
-      assertStringIncludes(content, "non-existent file");
+      assertStringIncludes(content, "status: failed");
     });
   } finally {
     await env.cleanup();
@@ -246,7 +232,6 @@ Deno.test("Integration: Execution Failure - Tool throws exception", async () => 
     await env.injectFailureMarker(activePath);
 
     const loop = env.createExecutionLoop("test-agent");
-
     const result = await loop.processTask(activePath);
 
     // Should fail with failure marker
@@ -279,7 +264,6 @@ Deno.test("Integration: Execution Failure - Partial execution rollback", async (
     await env.injectFailureMarker(activePath);
 
     const loop = env.createExecutionLoop("test-agent");
-
     const result = await loop.processTask(activePath);
 
     // Overall should fail

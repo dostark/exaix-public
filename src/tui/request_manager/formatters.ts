@@ -44,6 +44,11 @@ export class RequestFormatter {
           `║ Rejected: ${request.rejected_path.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
         ]
         : []),
+      ...(request.error
+        ? [
+          `║ Error:    ${request.error.slice(0, TUI_LAYOUT_VALUE_WIDTH).padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+        ]
+        : []),
     ];
   }
 

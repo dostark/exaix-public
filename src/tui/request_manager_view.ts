@@ -57,6 +57,7 @@ export interface IRequest {
   created_by: string;
   source: string;
   rejected_path?: string;
+  error?: string;
   // Phase 17: Skills information
   skills?: {
     explicit?: string[]; // User-specified skills
@@ -76,7 +77,7 @@ export interface IRequestOptions {
 }
 
 export interface IRequestService {
-  listRequests(status?: RequestStatusType): Promise<IRequest[]>;
+  listRequests(status?: RequestStatusType, includeArchived?: boolean): Promise<IRequest[]>;
   getRequestContent(requestId: string): Promise<string>;
   createRequest(description: string, options?: IRequestOptions): Promise<IRequest>;
   updateRequestStatus(requestId: string, status: RequestStatusType): Promise<boolean>;
@@ -90,6 +91,7 @@ export interface IRequestViewState {
   requestTree: ITreeNode[];
   showHelp: boolean;
   showDetail: boolean;
+  showArchived: boolean;
   detailContent: string;
   activeDialog: InputDialog | ConfirmDialog | null;
   searchQuery: string;
@@ -142,6 +144,7 @@ export enum RequestAction {
   FILTER_STATUS = "filter-status",
   FILTER_AGENT = "filter-agent",
   TOGGLE_GROUPING = "toggle-grouping",
+  TOGGLE_ARCHIVED = "toggle-archived",
   REFRESH = "refresh",
   COLLAPSE_ALL = "collapse-all",
   EXPAND_ALL = "expand-all",
@@ -226,6 +229,12 @@ export class RequestKeyBindings extends KeyBindingsBase<RequestAction, KeyBindin
       action: RequestAction.TOGGLE_GROUPING,
       category: KeyBindingCategory.VIEW,
     },
+    {
+      key: KEYS.H,
+      description: "Toggle archived/history",
+      action: RequestAction.TOGGLE_ARCHIVED,
+      category: KeyBindingCategory.VIEW,
+    },
     { key: KEYS.R, description: "Force refresh", action: RequestAction.REFRESH, category: KeyBindingCategory.VIEW },
     {
       key: KEYS.CAP_C,
@@ -253,8 +262,8 @@ export const REQUEST_KEY_BINDINGS = new RequestKeyBindings().KEY_BINDINGS;
 export class RequestCommandsServiceAdapter implements IRequestService {
   constructor(private readonly cmd: RequestCommands) {}
 
-  async listRequests(status?: RequestStatusType): Promise<IRequest[]> {
-    const requests = await this.cmd.list(status);
+  async listRequests(status?: RequestStatusType, includeArchived?: boolean): Promise<IRequest[]> {
+    const requests = await this.cmd.list(status, includeArchived);
     return requests.map((r) => ({
       trace_id: r.trace_id,
       filename: r.filename,
@@ -268,6 +277,7 @@ export class RequestCommandsServiceAdapter implements IRequestService {
       created_by: r.created_by,
       source: r.source,
       rejected_path: r.rejected_path,
+      error: r.error,
     }));
   }
 
@@ -291,6 +301,7 @@ export class RequestCommandsServiceAdapter implements IRequestService {
       created_by: metadata.created_by,
       source: metadata.source,
       rejected_path: metadata.rejected_path,
+      error: (metadata as any).error,
     };
   }
 
@@ -307,7 +318,7 @@ export class RequestCommandsServiceAdapter implements IRequestService {
  * Minimal IRequestService mock for TUI session tests.
  */
 export class MinimalRequestServiceMock implements IRequestService {
-  listRequests = (_status?: RequestStatusType) => Promise.resolve([]);
+  listRequests = (_status?: RequestStatusType, _includeArchived?: boolean) => Promise.resolve([]);
   getRequestContent = (_: string) => Promise.resolve("");
   createRequest = (_: string, __?: IRequestOptions) => Promise.resolve({} as IRequest);
   updateRequestStatus = (_: string, __: RequestStatusType) => Promise.resolve(true);
@@ -344,6 +355,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       requestTree: [],
       showHelp: false,
       showDetail: false,
+      showArchived: false,
       detailContent: "",
       activeDialog: null,
       searchQuery: "",
@@ -555,6 +567,12 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     this.state.groupBy = modes[(currentIdx + 1) % modes.length];
     this.buildTree();
     this.setStatus(`Grouping: ${this.state.groupBy}`, MessageType.INFO);
+  }
+
+  toggleShowArchived(): void {
+    this.state.showArchived = !this.state.showArchived;
+    this.refresh();
+    this.setStatus(`Show Archived: ${this.state.showArchived ? "ON" : "OFF"}`, MessageType.INFO);
   }
 
   // ===== Navigation =====
@@ -826,6 +844,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
           { key: "f", description: "Filter by status" },
           { key: "a", description: "Filter by agent" },
           { key: "g", description: "Toggle grouping" },
+          { key: "h", description: "Toggle archived/history" },
         ],
       },
       {
@@ -888,7 +907,9 @@ export class RequestManagerTuiSession extends TuiSessionBase {
       lines.push(`Filters: ${filters.join(", ")}`);
     }
     lines.push(
-      `Grouping: ${this.state.groupBy} | Total: ${this.requests.length} | Shown: ${this.getFilteredRequests().length}`,
+      `Grouping: ${this.state.groupBy} | Archived: ${
+        this.state.showArchived ? "Show" : "Hide"
+      } | Total: ${this.requests.length} | Shown: ${this.getFilteredRequests().length}`,
     );
     lines.push("───────────────────────────────────────────────────────────────");
     lines.push("");
@@ -970,6 +991,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
         expandSelectedNode: this.expandSelectedNode.bind(this),
         toggleSelectedNode: this.toggleSelectedNode.bind(this),
         toggleGrouping: this.toggleGrouping.bind(this),
+        toggleShowArchived: this.toggleShowArchived.bind(this),
         refresh: this.refresh.bind(this),
         showRequestDetail: this.showRequestDetail.bind(this),
         showCreateDialog: this.showCreateDialog.bind(this),
@@ -986,13 +1008,19 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
   // ===== Lifecycle =====
 
-  override refresh(): Promise<void> {
-    if (this.refreshConfig) {
-      return super.refresh();
+  override async refresh(): Promise<void> {
+    try {
+      this.startLoading("Refreshing requests...");
+      const requests = await this.service.listRequests(undefined, this.state.showArchived);
+      this.requests = requests;
+      this.buildTree();
+      this.setStatus("Requests refreshed", MessageType.SUCCESS);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      this.setStatus(`Refresh failed: ${msg}`, MessageType.ERROR);
+    } finally {
+      this.stopLoading();
     }
-    // If no refresh config, rebuild tree from current data
-    this.buildTree();
-    return Promise.resolve();
   }
 
   setRequests(requests: IRequest[]): void {

@@ -134,6 +134,7 @@ export class MainKeyHandler {
       showSearchDialog: () => void;
       showFilterStatusDialog: () => void;
       showFilterAgentDialog: () => void;
+      toggleShowArchived: () => void;
       setShowHelp: (show: boolean) => void;
       updateTree: (tree: ITreeNode[]) => void;
     },
@@ -276,6 +277,7 @@ export class MainKeyHandler {
     state: { requestTree: ITreeNode[] },
     actions: {
       toggleGrouping: () => void;
+      toggleShowArchived: () => void;
       refresh: () => Promise<void>;
       setShowHelp: (show: boolean) => void;
       updateTree: (tree: ITreeNode[]) => void;
@@ -284,6 +286,9 @@ export class MainKeyHandler {
     switch (key) {
       case KEYS.G:
         actions.toggleGrouping();
+        return true;
+      case KEYS.H:
+        actions.toggleShowArchived();
         return true;
       case KEYS.R:
         actions.refresh();

@@ -19,6 +19,7 @@ import {
   getMemoryExecutionDir,
   getWorkspaceActiveDir,
   getWorkspaceArchiveDir,
+  getWorkspaceRejectedDir,
   getWorkspaceRequestsDir,
 } from "./helpers/paths_helper.ts";
 import { ensureDir } from "@std/fs/ensure-dir";
@@ -226,11 +227,11 @@ agent_id: test-agent
     assertEquals(result.success, false);
     assertExists(result.error);
 
-    // Plan should be moved back to Workspace/Requests with error status
-    const requestsDir = getWorkspaceRequestsDir(tempDir);
-    const movedPlan = join(requestsDir, "fail-test.md");
+    // Plan should be moved to Workspace/Rejected with _failed.md suffix and error status
+    const rejectedDir = getWorkspaceRejectedDir(tempDir);
+    const movedPlan = join(rejectedDir, "fail-test_failed.md");
     const movedExists = await Deno.stat(movedPlan).then(() => true).catch(() => false);
-    assert(movedExists, "Plan should be moved back to /Workspace/Requests on failure");
+    assert(movedExists, "Plan should be moved to /Workspace/Rejected on failure");
 
     // Failure report should be generated
     const reportsDir = join(getMemoryExecutionDir(tempDir), "test-trace-fail");
@@ -414,9 +415,9 @@ agent_id: test-agent
     assertEquals(result1.success, false);
 
     // Second execution should be able to acquire lease (first released it)
-    // Note: Plan was moved back to Requests, need to move it back to Active
-    const requestsDir = getWorkspaceRequestsDir(tempDir);
-    const movedPlan = join(requestsDir, "lease-release-test.md");
+    // Note: Plan was moved to Rejected, need to move it back to Active
+    const rejectedDir = getWorkspaceRejectedDir(tempDir);
+    const movedPlan = join(rejectedDir, "lease-release-test_failed.md");
     await Deno.rename(movedPlan, planPath);
 
     // This should succeed in acquiring lease (previous lease was released)
@@ -1384,13 +1385,13 @@ Intentionally fail
     const failureReportExists = await Deno.stat(failureReportPath).then(() => true).catch(() => false);
     assert(failureReportExists, "Failure report should be generated");
 
-    // Verify plan moved back to Requests with error status
-    const requestsDir = getWorkspaceRequestsDir(tempDir);
-    const requestPath = join(requestsDir, "failreport-test.md");
-    const planExists = await Deno.stat(requestPath).then(() => true).catch(() => false);
-    assert(planExists, "Failed plan should be moved back to Requests");
+    // Verify plan moved to Rejected with error status
+    const rejectedDir = getWorkspaceRejectedDir(tempDir);
+    const planPathInRejected = join(rejectedDir, "failreport-test_failed.md");
+    const planExists = await Deno.stat(planPathInRejected).then(() => true).catch(() => false);
+    assert(planExists, "Failed plan should be moved to Rejected");
 
-    const updatedPlan = await Deno.readTextFile(requestPath);
+    const updatedPlan = await Deno.readTextFile(planPathInRejected);
     assertEquals(updatedPlan.includes("status: error"), true, "Plan status should be updated to error");
   } finally {
     await cleanup();
