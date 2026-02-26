@@ -279,6 +279,7 @@ export const __test_command = new Command()
         new Command()
           .description("List pending requests")
           .option("-s, --status <status:string>", "Filter by status")
+          .option("-a, --all", "Include archived and rejected requests")
           .option("--json", "Output in JSON format")
           .action(async (options) => {
             await handleRequestList({ requestCommands, display }, options as RequestListOptions);

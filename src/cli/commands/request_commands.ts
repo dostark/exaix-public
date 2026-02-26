@@ -146,8 +146,8 @@ export class RequestCommands extends BaseCommand {
    * @param status Optional status filter
    * @returns Array of request entries sorted by created date (newest first)
    */
-  async list(status?: RequestStatusType): Promise<IRequestEntry[]> {
-    return await this.listHandler.list(status);
+  async list(status?: RequestStatusType, includeArchived?: boolean): Promise<IRequestEntry[]> {
+    return await this.listHandler.list(status, includeArchived);
   }
 
   /**

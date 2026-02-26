@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-02-25T20:57:15.354Z",
+  "generated_at": "2026-02-26T12:07:55.425Z",
   "docs": [
     {
       "path": ".copilot/docs/documentation.md",
@@ -1265,6 +1265,21 @@
         ".copilot/chunks/jscpd-guide.md.chunk5.txt",
         ".copilot/chunks/jscpd-guide.md.chunk6.txt",
         ".copilot/chunks/jscpd-guide.md.chunk7.txt"
+      ]
+    },
+    {
+      "path": ".copilot/issues/027_plan_failure_request_duplication.md",
+      "title": "Plan failure handling moves file to Requests causing duplication",
+      "short_summary": "",
+      "chunks": [
+        ".copilot/chunks/027_plan_failure_request_duplication.md.chunk0.txt",
+        ".copilot/chunks/027_plan_failure_request_duplication.md.chunk1.txt",
+        ".copilot/chunks/027_plan_failure_request_duplication.md.chunk2.txt",
+        ".copilot/chunks/027_plan_failure_request_duplication.md.chunk3.txt",
+        ".copilot/chunks/027_plan_failure_request_duplication.md.chunk4.txt",
+        ".copilot/chunks/027_plan_failure_request_duplication.md.chunk5.txt",
+        ".copilot/chunks/027_plan_failure_request_duplication.md.chunk6.txt",
+        ".copilot/chunks/027_plan_failure_request_duplication.md.chunk7.txt"
       ]
     },
     {

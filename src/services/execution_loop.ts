@@ -14,6 +14,7 @@
  */
 
 import { join } from "@std/path";
+import { exists } from "@std/fs";
 import { parse as parseToml } from "@std/toml";
 import { parse as parseYaml } from "@std/yaml";
 import type { Config } from "../config/schema.ts";
@@ -883,14 +884,21 @@ export class ExecutionLoop {
       }
     }
 
-    // Archive plan
-    const archiveDir = join(this.config.system.root, this.config.paths.workspace, this.config.paths.archive);
+    // Move plan to Workspace/Archive
+    const archiveDir = join(
+      this.config.system.root,
+      this.config.paths.workspace,
+      this.config.paths.archive,
+    );
     await Deno.mkdir(archiveDir, { recursive: true });
 
     const planFileName = planPath.split("/").pop()!;
     const archivePath = join(archiveDir, planFileName);
 
     await Deno.rename(planPath, archivePath);
+
+    // Also move the original request to Workspace/Archive to keep the inbox clean
+    await this.archiveRequest(requestId, ExecutionStatus.COMPLETED, archiveDir);
 
     // Log completion
     this.logActivity("execution.completed", traceId, {
@@ -915,22 +923,48 @@ export class ExecutionLoop {
     // Generate failure report
     await this.generateFailureReport(traceId, requestId, error);
 
-    // Move plan back to Workspace/Requests
-    const requestsDir = join(this.config.system.root, this.config.paths.workspace, "Requests");
-    await Deno.mkdir(requestsDir, { recursive: true });
+    // Persist the failed plan as an execution artifact for trace inspection.
+    try {
+      const execDir = join(this.config.system.root, this.config.paths.memory, "Execution", traceId);
+      await Deno.mkdir(execDir, { recursive: true });
+      const planContent = await Deno.readTextFile(planPath);
+      await Deno.writeTextFile(join(execDir, "plan.md"), planContent);
+    } catch (e) {
+      console.error("Failed to persist plan artifact on failure:", e);
+    }
+
+    // Move plan to Workspace/Rejected
+    const rejectedDir = join(this.config.system.root, this.config.paths.workspace, "Rejected");
+    await Deno.mkdir(rejectedDir, { recursive: true });
 
     const planFileName = planPath.split("/").pop()!;
-    const requestPath = join(requestsDir, planFileName);
+    const rejectedPlanName = planFileName.replace(".md", "_failed.md");
+    const targetRejectedPath = join(rejectedDir, rejectedPlanName);
 
     // Read plan, update frontmatter status (YAML format)
     const content = await Deno.readTextFile(planPath);
-    const updatedContent = content.replace(
-      /status: "?(active|approved)"?/,
+    let updatedContent = content.replace(
+      /status: "?(active|approved|review)"?/,
       `status: ${PlanStatus.ERROR}`,
     );
 
-    await Deno.writeTextFile(requestPath, updatedContent);
-    await Deno.remove(planPath);
+    // Append error to frontmatter if possible
+    if (!updatedContent.includes("error:")) {
+      updatedContent = updatedContent.replace(/---\n/, `---\nerror: "${error.replace(/"/g, '\\"')}"\n`);
+    }
+
+    await Deno.writeTextFile(targetRejectedPath, updatedContent);
+
+    // Move the original request to Workspace/Rejected along with the plan
+    // This keeps Workspace/Requests as an active 'Inbox' for new/planned work.
+    await this.archiveRequest(requestId, ExecutionStatus.FAILED, rejectedDir);
+
+    // Remove the plan from Active
+    try {
+      await Deno.remove(planPath);
+    } catch (removeError) {
+      console.warn(`Failed to remove failed plan from active: ${planPath}`, removeError);
+    }
 
     // Rollback git changes are now handled by GitService guards and worktree isolation.
     // We no longer perform global 'git reset --hard' in the system root.
@@ -946,7 +980,7 @@ export class ExecutionLoop {
     this.logActivity("execution.failed", traceId, {
       request_id: requestId,
       error,
-      moved_to: requestPath,
+      moved_to: targetRejectedPath,
     });
   }
 
@@ -1143,6 +1177,43 @@ export class ExecutionLoop {
       );
     } catch (error) {
       console.error("Failed to log execution activity:", error);
+    }
+  }
+
+  /**
+   * Update request status and archive the file to keep the Workspace/Requests inbox clean.
+   */
+  private async archiveRequest(
+    requestId: string,
+    status: ExecutionStatus | string,
+    targetDir: string,
+  ): Promise<void> {
+    const requestsDir = join(
+      this.config.system.root,
+      this.config.paths.workspace,
+      this.config.paths.requests,
+    );
+    const requestPath = join(requestsDir, `${requestId}.md`);
+
+    if (!(await exists(requestPath))) return;
+
+    try {
+      // 1. Update status in file
+      const content = await Deno.readTextFile(requestPath);
+      const updatedContent = content.replace(
+        /status: "?\w+"?/,
+        `status: ${status}`,
+      );
+      await Deno.writeTextFile(requestPath, updatedContent);
+
+      // 2. Archive file
+      await Deno.mkdir(targetDir, { recursive: true });
+      const targetPath = join(targetDir, `${requestId}.md`);
+
+      // Use rename to move it
+      await Deno.rename(requestPath, targetPath);
+    } catch (error) {
+      console.warn(`Failed to archive request ${requestId} to ${targetDir}:`, error);
     }
   }
 }

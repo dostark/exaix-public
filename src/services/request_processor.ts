@@ -680,31 +680,51 @@ Raw Details: ${args.rawDetails}
 
   private async getPortalFileSummary(portalPath: string): Promise<string> {
     const files: string[] = [];
-    try {
-      // List top-level files
-      for await (const entry of Deno.readDir(portalPath)) {
-        if (entry.name.startsWith(".")) continue;
-        files.push(`${entry.isDirectory ? "[DIR] " : "- "}${entry.name}`);
+    const context = { files, MAX_FILES: 200, MAX_DEPTH: 3 };
 
-        if (entry.isDirectory && files.length < 50) {
-          try {
-            const subPath = join(portalPath, entry.name);
-            for await (const subEntry of Deno.readDir(subPath)) {
-              if (subEntry.name.startsWith(".")) continue;
-              files.push(`  ${subEntry.isDirectory ? "[DIR] " : "- "}${subEntry.name}`);
-              if (files.length > 100) break;
-            }
-          } catch {
-            // Ignore sub-directory errors
-          }
-        }
-        if (files.length > 100) break;
-      }
+    try {
+      await this.scanPortalDirectory(portalPath, 0, context);
     } catch {
       return "Unable to list portal directory.";
     }
 
     if (files.length === 0) return "Portal directory is empty.";
     return files.join("\n");
+  }
+
+  private async scanPortalDirectory(
+    dir: string,
+    currentDepth: number,
+    context: { files: string[]; MAX_FILES: number; MAX_DEPTH: number },
+  ) {
+    if (currentDepth > context.MAX_DEPTH || context.files.length >= context.MAX_FILES) return;
+
+    try {
+      const entries = [];
+      for await (const entry of Deno.readDir(dir)) {
+        entries.push(entry);
+      }
+
+      // Sort entries: directories first, then files alphabetically
+      entries.sort((a, b) => {
+        if (a.isDirectory && !b.isDirectory) return -1;
+        if (!a.isDirectory && b.isDirectory) return 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      for (const entry of entries) {
+        if (context.files.length >= context.MAX_FILES) break;
+        if (entry.name.startsWith(".")) continue;
+
+        const indent = "  ".repeat(currentDepth);
+        context.files.push(`${indent}${entry.isDirectory ? "[DIR] " : "- "}${entry.name}`);
+
+        if (entry.isDirectory) {
+          await this.scanPortalDirectory(join(dir, entry.name), currentDepth + 1, context);
+        }
+      }
+    } catch {
+      // Ignore read errors for specific directories
+    }
   }
 }

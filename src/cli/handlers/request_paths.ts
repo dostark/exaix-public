@@ -17,3 +17,19 @@ export function getWorkspaceRequestsDir(context: ICommandContext): string {
     context.config.paths.requests,
   );
 }
+
+export function getWorkspaceArchiveDir(context: ICommandContext): string {
+  return join(
+    context.config.system.root,
+    context.config.paths.workspace,
+    context.config.paths.archive,
+  );
+}
+
+export function getWorkspaceRejectedDir(context: ICommandContext): string {
+  return join(
+    context.config.system.root,
+    context.config.paths.workspace,
+    context.config.paths.rejected,
+  );
+}

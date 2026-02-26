@@ -34,6 +34,7 @@ export interface RequestCreateOptions {
 
 export interface RequestListOptions {
   status?: RequestStatus;
+  all?: boolean;
   json?: boolean;
 }
 
@@ -104,7 +105,7 @@ export async function handleRequestList(
   const { requestCommands, display } = context;
 
   try {
-    const requests = await requestCommands.list(options.status);
+    const requests = await requestCommands.list(options.status, options.all);
     if (options.json) {
       display.info("cli.output", "requests", { data: JSON.stringify(requests, null, 2) });
     } else {
