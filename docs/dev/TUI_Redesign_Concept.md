@@ -89,17 +89,20 @@ A functional bar mapped to F-keys and common actions.
   - **Line 2 (Alt-Keys)**: Contextual `Alt+...` shortcuts available in the current mode (e.g., `Alt+S Detail`, `Alt+L Links`, `Alt+G Logs`).
 - **Standard Mapping**:
   - **Global**: `F1 Help`, `F2 Menu`, `F10 Quit`.
-  - **Request Manager**: `F3 View`, `F4 Edit`, `F5 Approve`, `F8 Delete`.
-  - **Plan Reviewer**: `F3 Diff`, `F5 Approve`, `F6 Reject`, `F7 Execute`.
-  - **Review Manager**: `F3 Diff`, `F5 Approve`, `F6 Reject`.
-  - **Portal Tree**: `F3 View`, `F5 Copy`, `F6 Move`, `F7 MkDir`, `F8 Delete`.
+  - **Request Manager**: `F3 View`, `F4 Edit`, `F5 Create`, `F6 Approve`, `F8 Delete`.
+  - **Plan Reviewer**: `F3 Diff`, `F5 Approve`, `F6 Reject`, `F7 Execute`, `F4 Revise`.
+  - **Review Manager**: `F3 Diff`, `F5 Approve`, `F6 Reject`, `F9 Filter Type`.
+  - **Portal Manager**: `F3 View`, `F5 Add`, `F6 Edit`, `F7 Verify`, `F8 Remove`, `F4 Refresh`.
   - **Blueprint Manager**: `F3 View TOML`, `F4 Edit`, `F5 Create`, `F7 Validate`, `F8 Remove`.
   - **Flow Orchestration**: `F3 View Graph`, `F5 Run Flow`, `F7 Validate`, `F9 Filter`.
   - **Agent Status**: `F3 View Details`, `F5 Refresh`, `F9 Filter`.
   - **Monitor View**: `F5 Pause/Resume`, `F7 Filter`, `F9 Log Levels`.
-  - **Memory View**: `F5 Approve`, `F6 Reject`, `F7 Search`.
-  - **Daemon Control**: `F5 Start`, `F6 Stop`, `F7 Restart`.
+  - **Memory View**: `F5 Approve`, `F6 Reject`, `F7 Search`, `F9 Sub-View Tab`.
+  - **Daemon Control**: `F3 View Logs`, `F5 Start`, `F6 Stop`, `F7 Restart`.
   - **Settings**: `F3 View Value`, `F4 Edit`, `F5 Save`, `F7 Validate`, `F8 Reset Default`.
+  - **Archive Explorer**: `F3 View`, `F7 Search`, `F9 Filter`.
+  - **Git Browser**: `F3 View Diff`, `F5 Checkout`, `F7 Log by Trace`, `F9 Filter`.
+  - **Activity Journal**: `F3 View Payload`, `F7 Filter`, `F9 Format Toggle`.
 - **Responsiveness**: Wraps into multiple lines if the terminal window is narrow.
 
 ---
@@ -142,6 +145,49 @@ Each view is shown in its most common layout configuration. Views with Master-De
 ![Blueprint Manager — Master-Detail with TOML Definition](gallery/blueprint_manager_view.png)
 ```
 
+#### Blueprint Entity Browser
+
+The Blueprint Manager includes an integrated **Entity Browser** (`F9`) with three tabs:
+
+| Tab        | Content                              | Columns                             | Detail Pane Shows                                 |
+| ---------- | ------------------------------------ | ----------------------------------- | ------------------------------------------------- |
+| **Agents** | All registered agent blueprints      | Agent ID, Name, Model, Capabilities | Full TOML definition, system prompt preview       |
+| **Skills** | Core, project, and learned skills    | Skill ID, Name, Category, Triggers  | Full description, instructions, matched learnings |
+| **Tools**  | Available tools from MCP + built-ins | Tool Name, Source, Status           | Parameters, description, usage examples           |
+
+**Interaction**:
+
+- **Arrow keys** navigate the list, **`Enter`** or **`F3`** shows details in the Detail pane.
+- **`Space`** toggles selection (multi-select supported). Selected items show a `[✓]` checkmark.
+- **`F6` Use in Request**: Opens the **Create Request** form pre-filled with the selected agent and any selected skills/tools attached. If multiple agents are selected, the first is set as the agent and a flow is suggested.
+- **`Alt+B`** is a global shortcut to open the Entity Browser as a modal overlay from any view, including from within the Request create form.
+
+#### Request Creation Integration
+
+When creating a request via **`F5`** in Request Manager, the create form includes:
+
+```
+┌─────────── Create New Request ───────────┐
+│ Description: [________________________] │
+│ Agent:       [default       ▼ Browse]   │
+│ Priority:    [normal ▼]                 │
+│ Portal:      [— ▼]                      │
+│ Model:       [— ▼]                      │
+│ Flow:        [— ▼]                      │
+│ Skills:      [+ Add from Browser]       │
+│              • error_handling (core)     │
+│              • testing (project)    [×]  │
+│ Tools:       [+ Add from Browser]       │
+│──────────────────────────────────────────│
+│         [F5 Submit]   [ESC Cancel]      │
+└──────────────────────────────────────────┘
+```
+
+- **Agent field**: Type-ahead with `▼` dropdown listing all blueprints. `Browse` button opens the Entity Browser Agents tab.
+- **Skills field**: Accumulated list. `+ Add` opens the Entity Browser Skills tab. `[×]` removes.
+- **Tools field**: Same pattern as Skills. `+ Add` opens Tools tab.
+- **Dropdowns** (Priority, Portal, Model, Flow): Standard single-select menus with all valid choices.
+
 ### Agent Status
 
 ```carousel
@@ -169,6 +215,232 @@ Each view is shown in its most common layout configuration. Views with Master-De
 <!-- slide -->
 ![Correlated Log View — Trace-Filtered Logs](gallery/correlated_logs_view.png)
 ```
+
+---
+
+## Specialized Detail Viewers
+
+When `F3` (View) or `Alt+S` (Detail) is pressed on an entity, the Detail pane renders a **structured viewer** — not raw text. Each viewer uses consistent color-coded sections, collapsible regions, and contextual inline actions.
+
+### Color Coding Convention
+
+| Element           | Color                                     | Usage                               |
+| ----------------- | ----------------------------------------- | ----------------------------------- |
+| Section headers   | **Bright Cyan**                           | `═══ METADATA ═══`, `═══ STEPS ═══` |
+| Labels / keys     | **White (bold)**                          | `Status:`, `Agent:`, `Priority:`    |
+| Values            | **Light Grey**                            | Data values                         |
+| Status badges     | **Green** ✅ / **Yellow** ⚠️ / **Red** ❌ | Entity state                        |
+| Links / trace IDs | **Blue (underlined)**                     | Clickable, `Enter` to navigate      |
+| Timestamps        | **Dim Grey**                              | Dates, durations                    |
+| Code / diffs      | **Syntax highlighted**                    | Green (+), Red (-), Grey (context)  |
+| Warnings / errors | **Yellow / Red background**               | Alert banners                       |
+
+### Request Detail Viewer
+
+![Request Detail Viewer — Structured Sections with Lifecycle Pipeline](gallery/request_detail_viewer.png)
+
+Displayed in the Detail pane when viewing a request from Request Manager.
+
+```
+═══ REQUEST ══════════════════════════════════════
+  Trace ID:   3f8a1c2d-7e4b-...  [click to copy]
+  Status:     ● PENDING           (yellow badge)
+  Priority:   ▮▮▮▮▮▯▯▯▯▯  5/10
+  Created:    2026-02-26 17:30    (2h ago)
+  Created By: human (cli)
+
+═══ ASSIGNMENT ═══════════════════════════════════
+  Agent:      senior-coder        [→ View Agent]
+  Portal:     my-project          [→ View Portal]
+  Model:      anthropic:claude-sonnet
+  Flow:       code-review-flow    [→ View Flow]
+
+═══ SKILLS ═══════════════════════════════════════
+  ✓ error_handling (core)
+  ✓ testing (project)
+  ✗ Skip: legacy_compat
+
+═══ DESCRIPTION ══════════════════════════════════
+  Implement dark mode toggle for the dashboard.
+  Should support system preference detection and
+  manual override with persistent user choice.
+
+═══ COST & TOKENS ════════════════════════════════
+  Provider:   anthropic    Model: claude-sonnet
+  Input:      3,200 tokens
+  Output:     1,450 tokens
+  Total:      4,650 tokens   💰 $0.45
+
+═══ LIFECYCLE ════════════════════════════════════
+  Request → ● Plan (PLAN-042) → ○ Review → ○ Done
+         [→ View Plan]
+```
+
+**Inline actions**: Bracketed `[→ View ...]` links are clickable / navigable with `Enter`. The lifecycle bar shows the request's position in the Request → Plan → Review pipeline.
+
+### Plan Detail Viewer
+
+![Plan Detail Viewer — Collapsible Steps with Actions](gallery/plan_detail_viewer.png)
+
+Displayed when viewing a plan from Plan Reviewer. Supports both execution plans (with steps) and specialized analysis reports.
+
+```
+═══ PLAN ═════════════════════════════════════════
+  Plan ID:    PLAN-042
+  Trace ID:   3f8a1c2d-7e4b-...  [→ View Request]
+  Status:     ● REVIEW            (cyan badge)
+  Agent:      senior-coder
+  Created:    2026-02-26 17:35
+
+═══ TITLE ════════════════════════════════════════
+  Implement dark mode with system preference detection
+
+═══ STEPS (3) ════════════════════════════════════
+  [▼ expanded]
+  ┌─ Step 1: Create theme configuration ─────────
+  │  Dependencies: none
+  │  Actions:
+  │    1. write_file  src/config/theme.ts
+  │    2. write_file  src/config/colors.ts
+  │  Rollback: Delete created files
+  └──────────────────────────────────────────────
+
+  [▶ collapsed] Step 2: Implement toggle component
+  [▶ collapsed] Step 3: Add persistence layer
+
+═══ REVISION HISTORY ═════════════════════════════
+  (none — first submission)
+
+═══ APPROVAL ═════════════════════════════════════
+  ○ Not yet reviewed
+  Actions: [F5 Approve] [F6 Reject] [F4 Revise]
+```
+
+**Specialized Reports** — When the plan contains `analysis`, `security`, `qa`, or `performance` fields, additional sections render:
+
+```
+═══ SECURITY ANALYSIS ════════════════════════════
+  Executive Summary: No critical vulnerabilities found.
+
+  Findings (2):
+  ┌─ HIGH: SQL Injection in user_service.ts ──────
+  │  Location: line 42
+  │  Recommendation: Use parameterized queries
+  └──────────────────────────────────────────────
+  ┌─ LOW: Missing rate limiting ──────────────────
+  │  Location: api/auth.ts
+  │  Recommendation: Add express-rate-limit
+  └──────────────────────────────────────────────
+
+  Compliance: ✓ OWASP Top 10  ✓ Input Validation
+
+═══ QA SUMMARY ═══════════════════════════════════
+  Category     Planned  Executed  Passed  Failed
+  ──────────   ───────  ────────  ──────  ──────
+  Unit             12       12      11       1
+  Integration       4        4       4       0
+  Coverage: ████████░░ 82%
+```
+
+### Review Detail Viewer
+
+![Review Detail Viewer — Changes Summary + Syntax-Highlighted Diff](gallery/review_detail_viewer.png)
+
+Displayed when viewing a review from Review Manager. Shows structured diff with syntax highlighting.
+
+```
+═══ REVIEW ═══════════════════════════════════════
+  Branch:     feat/dark-mode-3f8a1c2d
+  Base:       main
+  Trace ID:   3f8a1c2d-7e4b-...  [→ View Request]
+  Status:     ● PENDING           (yellow badge)
+  Agent:      senior-coder
+  Portal:     my-project
+  Created:    2026-02-26 17:40
+
+═══ CHANGES SUMMARY ══════════════════════════════
+  Files Changed: 4   (+120 / −15)
+  ┌────────────────────────────┬───────┬───────┐
+  │ File                       │  +    │  −    │
+  ├────────────────────────────┼───────┼───────┤
+  │ src/config/theme.ts        │  +45  │   −0  │
+  │ src/components/toggle.tsx  │  +38  │   −2  │
+  │ src/hooks/useTheme.ts      │  +32  │   −0  │
+  │ src/index.css              │   +5  │  −13  │
+  └────────────────────────────┴───────┴───────┘
+
+═══ DIFF (src/config/theme.ts) ═══════════════════
+  [File 1/4]  [← Prev] [Next →]
+
+    1  + import { createContext } from 'react';
+    2  +
+    3  + export const ThemeContext = createContext({
+    4  +   mode: 'system',
+    5  +   toggle: () => {},
+    6  + });
+
+═══ COMMITS (2) ══════════════════════════════════
+  a3b8d1b  Add theme configuration       17:36
+  c5dae3d  Implement toggle component    17:39
+
+═══ ACTIONS ══════════════════════════════════════
+  [F5 Approve (Merge)] [F6 Reject (Delete Branch)]
+```
+
+**Diff navigation**: `[← Prev] [Next →]` buttons (or `Alt+←` / `Alt+→`) cycle through changed files. Syntax highlighting uses language-aware coloring (TypeScript, CSS, etc.).
+
+### Agent Detail Viewer
+
+![Agent Detail Viewer — Configuration, Task, Cost, Activity](gallery/agent_detail_viewer.png)
+
+Displayed when viewing an agent from Agent Status.
+
+```
+═══ AGENT ════════════════════════════════════════
+  Agent ID:   senior-coder
+  Status:     ● ACTIVE            (green badge)
+  Blueprint:  senior-coder.toml   [→ View Blueprint]
+
+═══ CONFIGURATION ════════════════════════════════
+  Model:      anthropic:claude-sonnet
+  Timeout:    120s
+  Max Iter:   10
+  Capabilities:
+    • code_generation
+    • code_review
+    • testing
+
+═══ CURRENT TASK ═════════════════════════════════
+  Request:    REQ-1024             [→ View Request]
+  Trace ID:   3f8a1c2d-7e4b-...
+  Started:    2026-02-26 17:30     (2h 15m elapsed)
+  Progress:   Step 2/3 — Implementing toggle component
+
+═══ COST & TOKENS (Session) ══════════════════════
+  Input:      12,800 tokens
+  Output:      5,200 tokens
+  Total:      18,000 tokens  💰 $2.45
+  Rate:       ~$1.10/hr
+
+═══ LINKED ENTITIES ══════════════════════════════
+  Requests:   3 (2 completed, 1 active)
+  Plans:      3 (2 executed, 1 in review)
+  Reviews:    2 (2 approved)
+  [→ View Activity Journal for senior-coder]
+
+═══ RECENT ACTIVITY ══════════════════════════════
+  17:40  plan.step.completed   Step 1 of PLAN-042
+  17:35  plan.created          PLAN-042
+  17:30  request.assigned      REQ-1024
+```
+
+### Viewer Features (All Types)
+
+- **Collapsible Sections**: Click `[▼]` / `[▶]` or press `Enter` on a section header to expand/collapse. All sections default to expanded except long lists (>5 items).
+- **Clipboard**: `Ctrl+C` copies the focused value (trace ID, branch name, etc.). `[click to copy]` indicators show copyable fields.
+- **Navigation Links**: `[→ View ...]` badges are tab-navigable. `Enter` opens the linked entity in a new Detail pane or tab.
+- **Scroll**: Arrow keys scroll within the viewer. `Home` / `End` jump to top/bottom.
+- **Search**: `Ctrl+F` opens a text search within the viewer content.
 
 ---
 
@@ -219,17 +491,20 @@ The new TUI prioritizes **F-keys** and **Menus** for a streamlined, professional
 
 #### View-Specific Mappings
 
-- **Request Manager**: `F3` (View Details), `F4` (Edit), `F5` (Approve), `F8` (Delete).
-- **Plan Reviewer**: `F3` (Diff View), `F5` (Approve), `F6` (Reject), `F7` (Execute).
-- **Review Manager**: `F3` (View Diff), `F5` (Approve), `F6` (Reject).
-- **Portal Manager**: `F5` (Add Alias), `F6` (Edit), `F8` (Remove).
-- **Blueprint Manager**: `F3` (View TOML), `F4` (Edit in $EDITOR), `F5` (Create New), `F7` (Validate), `F8` (Remove).
+- **Request Manager**: `F3` (View Details), `F4` (Edit), `F5` (Create New — opens form with agent, priority, portal, model, flow, skills fields; `Alt+B` opens Blueprint Browser to pick agent/skills), `F6` (Approve), `F8` (Delete).
+- **Plan Reviewer**: `F3` (Diff View), `F4` (Revise — append review comments, set `needs_revision`), `F5` (Approve), `F6` (Reject), `F7` (Execute).
+- **Review Manager**: `F3` (View Diff), `F5` (Approve — merge branch), `F6` (Reject — delete branch), `F9` (Filter: code / artifact / all).
+- **Portal Manager**: `F3` (View Details), `F4` (Refresh Context Card), `F5` (Add New — with default branch & execution strategy), `F6` (Edit), `F7` (Verify Integrity), `F8` (Remove).
+- **Blueprint Manager**: `F3` (View TOML), `F4` (Edit in $EDITOR), `F5` (Create New — template picker: default/coder/reviewer/researcher/mock), `F6` (Use in Request — pre-fills create request form with selected agent + skills), `F7` (Validate), `F8` (Remove), `F9` (Entity Browser: Agents | Skills | Tools).
 - **Flow Orchestration**: `F3` (View Details / Dependency Graph), `F5` (Run Flow), `F7` (Validate), `F9` (Filter).
 - **Agent Status**: `F3` (View Details), `F5` (Refresh), `F9` (Filter by Agent).
 - **Monitor View**: `F5` (Pause/Resume), `F7` (Filter Logs), `F9` (Log Levels).
-- **Memory View**: `F5` (Approve Learning), `F6` (Reject), `F7` (Search).
-- **Daemon Control**: `F5` (Start), `F6` (Stop), `F7` (Restart), `F3` (View Logs).
+- **Memory View**: `F5` (Approve / Promote), `F6` (Reject / Demote), `F7` (Search — cross-bank with embeddings), `F9` (Switch Sub-View Tab: Pending | Projects | Executions | Global | Skills).
+- **Daemon Control**: `F3` (View Logs — with follow mode), `F5` (Start), `F6` (Stop), `F7` (Restart).
 - **Settings**: `F3` (View Value), `F4` (Edit Inline), `F5` (Save All), `F7` (Validate Config), `F8` (Reset to Default).
+- **Archive Explorer**: `F3` (View Entry), `F7` (Search by agent/date), `F9` (Filter by status).
+- **Git Browser**: `F3` (View Diff), `F5` (Checkout Branch), `F7` (Log by Trace ID), `F9` (Filter branches).
+- **Activity Journal**: `F3` (View Full Payload), `F7` (Multi-Filter — trace_id, action_type, agent_id, actor, since), `F9` (Format: table/json/text).
 
 ### Mouse
 
@@ -301,15 +576,129 @@ The Settings View uses the **Master-Detail** layout:
 
 ---
 
+## Archive Explorer
+
+A view for browsing completed and archived executions. Accessible via `[Views] > Archive`.
+
+### Layout
+
+**Master-Detail** with horizontal split:
+
+- **Master (top)**: Table of archived entries: Trace ID, Agent, Status, Archived At.
+- **Detail (bottom)**: Full archived metadata as formatted JSON with syntax highlighting.
+
+### Operations
+
+- **`F7` Search**: Opens search overlay — enter agent ID, date range, or keyword. Searches via `ArchiveService.searchByAgent()` and `searchByDateRange()`.
+- **`F9` Filter**: Dropdown: All / Completed / Failed / Cancelled.
+- **`F3` View**: Show full entry detail in the Detail pane.
+- **Stats**: A summary line at the bottom of the Master pane: "Total: 42 | Completed: 38 | Failed: 4".
+- **Traceability**: `Alt+L` jumps to the linked Request/Plan/Review for the selected trace_id.
+
+---
+
+## Git Browser
+
+A view for repository-level git operations. Accessible via `[Views] > Git`.
+
+### Layout
+
+**Master-Detail** with vertical split:
+
+- **Master (left)**: Branch list with columns: Name, Current (★), Last Commit, Date, Trace ID. The current branch is highlighted green. Branches with trace_ids show a clickable badge.
+- **Detail (right)**: Commit history for the selected branch (last 10 commits) and/or diff output.
+
+### Operations
+
+- **`F3` View Diff**: Show diff between the selected branch and its base branch.
+- **`F5` Checkout**: Checkout the selected branch (with confirmation dialog).
+- **`F7` Log by Trace**: Enter a trace_id to find all commits referencing it across all branches.
+- **`F9` Filter**: Filter branches by pattern (glob) — e.g., `feat/*`, `exo-*`.
+- **Status Bar**: Shows current branch, modified/added/deleted/untracked file counts (from `git status`).
+- **Traceability**: `Alt+L` jumps to the Request/Plan linked to the branch's trace_id.
+
+---
+
+## Activity Journal
+
+A view for querying and filtering the Activity Journal (SQLite-backed audit log). Accessible via `[Views] > Journal`.
+
+### Layout
+
+**Master-Detail** with horizontal split:
+
+- **Master (top)**: Scrollable event list with columns: Timestamp, Action Type, Actor, Agent, Target, Trace ID.
+- **Detail (bottom)**: Full JSON payload for the selected event.
+
+### Operations
+
+- **`F7` Multi-Filter**: Opens a filter form with fields:
+  - `trace_id`: Filter by trace ID
+  - `action_type`: Filter by action (e.g., `request.created`, `plan.approved`)
+  - `agent_id`: Filter by agent
+  - `actor`: Filter by actor (human/agent/system)
+  - `since`: Filter by time (e.g., `1h`, `24h`, `7d`)
+  - `target`: Filter by target entity
+  - `payload`: Full-text search within payload JSON
+- **`F9` Format Toggle**: Cycle display format: table → JSON → text.
+- **`F3` View Payload**: Expand full event payload in the Detail pane.
+- **`F5` Refresh**: Re-query with current filters.
+- **Tail Mode**: `Ctrl+F` enables live-tail mode (auto-refreshes newest N entries).
+- **Counters**: Optional `--count` / `--distinct` display toggleable via `Alt+C`.
+
+---
+
+## Memory View (Expanded)
+
+The Memory View supports 5 tabbed sub-domains, switchable via **`F9`**. Each tab uses Master-Detail layout within the same pane.
+
+### Tab: Pending (Default)
+
+- **Master**: List of pending proposals (ID, Type, Agent, Created).
+- **Detail**: Proposal content and diff.
+- **Actions**: `F5` Approve, `F6` Reject (with reason), `Ctrl+A` Approve All.
+
+### Tab: Projects
+
+- **Master**: List of portals with project memory (Portal, Learnings Count, Last Updated).
+- **Detail**: Project memory details — decisions, patterns, and context.
+- **Actions**: `F3` View Full, `F5` Promote to Global.
+
+### Tab: Executions
+
+- **Master**: Execution history (Trace ID, Agent, Portal, Status, Date). Filterable by portal.
+- **Detail**: Full execution record.
+- **Actions**: `F3` View, `F7` Search by portal, `F9` Limit results.
+
+### Tab: Global
+
+- **Master**: Global learnings list (ID, Title, Category, Confidence, Tags).
+- **Detail**: Full learning content.
+- **Actions**: `F3` View, `F6` Demote to Project, `Alt+I` Show Stats.
+
+### Tab: Skills
+
+- **Master**: Skills list (ID, Name, Category: core/project/learned, Status).
+- **Detail**: Skill definition — description, instructions, triggers.
+- **Actions**: `F3` View, `F5` Create New, `F7` Match (enter request text → show matched skills with confidence), `F4` Derive from Learnings.
+
+### Cross-Tab Features
+
+- **`F7` Search**: Cross-bank search with optional embeddings (`--use-embeddings`).
+- **`Alt+R` Rebuild Index**: Trigger a full index rebuild.
+
+---
+
 ## Feature Integration
 
 The new TUI modernizes all capabilities detailed in the [ExoFrame User Guide](../ExoFrame_User_Guide.md):
 
 1. **Global View Management**: Replaces the old View Picker (`p`) with a structured `[Views]` top menu and `F12` layout management.
 2. **Audit & Traceability**: Breadcrumbs and pane headers always display the active **Trace ID**, linking Requests, Plans, and Reviews visually.
-3. **Advanced Filtering**: Monitor and Memory views utilize context-aware `F7` and `F9` keys to manage complex search and log level parameters.
+3. **Advanced Filtering**: Monitor, Memory, Journal, and Archive views utilize context-aware `F7` and `F9` keys.
 4. **Accessibility Core**: High Contrast and Screen Reader modes are core settings, managed via the `[Settings]` dropdown menu.
-5. **Cost Visibility**: Token usage and cost tracking are surfaced in the Top Bar summary and within Request/Agent detail views. Accessible via `[Settings] > Cost Dashboard`.
+5. **Cost Visibility**: Token usage and cost tracking are surfaced in the Top Bar summary and within Request/Agent detail views.
+6. **Full CLI Parity**: Every `exoctl` subcommand is accessible from the TUI — request creation, plan revision, portal verification, archive browsing, git browsing, journal querying, and memory management across all 5 sub-domains.
 
 ---
 
@@ -366,10 +755,13 @@ The following components support the Linked Detail Mode (Master top/left, Detail
 - **Portals**: List of aliases and their full configuration + health status.
 - **Blueprints**: List of agent blueprints and their full TOML definition.
 - **Flows**: List of multi-agent flows and their dependency graph + step details.
-- **Memory Pending**: List of proposals and their individual learning content.
+- **Memory** (tabbed): Pending proposals, Project memories, Executions, Global learnings, Skills.
 - **Agent Status**: List of agents and their health, current task, cost, and linked Trace IDs.
-- **Daemon**: Current status and real-time logs (as details).
+- **Daemon**: Current status, MCP server indicator, and real-time logs (as details).
 - **Settings**: Config section tree and selected option metadata + edit controls.
+- **Archive**: Archived execution entries and their full metadata (JSON).
+- **Git Branches**: Branch list (with trace_id) and commit history + diffs.
+- **Activity Journal**: Event list (action_type, actor, target) and full event payload.
 
 ---
 
