@@ -213,20 +213,20 @@ The Blueprint Manager includes an integrated **Entity Browser** (`F9`) with thre
 When creating a request via **`F5`** in Request Manager, a **new tab** opens with the create form:
 
 ```
-┌─────────── Create New Request ───────────┐
-│ Description: [________________________] │
-│ Agent:       [default       ▼ Browse]   │
-│ Priority:    [normal ▼]                 │
-│ Portal:      [— ▼]                      │
-│ Model:       [— ▼]                      │
-│ Flow:        [— ▼]                      │
-│ Skills:      [+ Add from Browser]       │
-│              • error_handling (core)     │
-│              • testing (project)    [×]  │
-│ Tools:       [+ Add from Browser]       │
-│──────────────────────────────────────────│
-│         [F5 Submit]   [ESC Cancel]      │
-└──────────────────────────────────────────┘
+Description: [________________________]
+Agent:       [senior-coder   ▼ Browse]
+Priority:    [normal ▼]
+Portal:      [— ▼]
+Model:       [— ▼]
+Flow:        [— ▼]
+
+Skills:      [+ Add from Browser]
+             • error_handling (core)
+             • testing (project)    [×]
+
+Tools:       [+ Add from Browser]
+
+             [F5 Submit]   [ESC Cancel]
 ```
 
 - **Agent field**: Type-ahead with `▼` dropdown listing all blueprints. `Browse` button opens the Entity Browser Agents tab.
@@ -362,17 +362,16 @@ Created: 2026-02-26 17:35
 Implement dark mode with system preference detection
 
 ═══ STEPS (3) ════════════════════════════════════
-[▼ expanded]
-┌─ Step 1: Create theme configuration ─────────
-│ Dependencies: none
-│ Actions:
-│ 1. write_file src/config/theme.ts
-│ 2. write_file src/config/colors.ts
-│ Rollback: Delete created files
-└──────────────────────────────────────────────
+[▼] Step 1: Create theme configuration
+Dependencies: none
+Actions:
 
-[▶ collapsed] Step 2: Implement toggle component
-[▶ collapsed] Step 3: Add persistence layer
+1. write_file src/config/theme.ts
+2. write_file src/config/colors.ts
+   Rollback: Delete created files
+
+[▶] Step 2: Implement toggle component
+[▶] Step 3: Add persistence layer
 
 ═══ REVISION HISTORY ═════════════════════════════
 (none — first submission)
@@ -389,14 +388,13 @@ Actions: [F5 Approve] [F6 Reject] [F4 Revise]
 Executive Summary: No critical vulnerabilities found.
 
 Findings (2):
-┌─ HIGH: SQL Injection in user_service.ts ──────
-│ Location: line 42
-│ Recommendation: Use parameterized queries
-└──────────────────────────────────────────────
-┌─ LOW: Missing rate limiting ──────────────────
-│ Location: api/auth.ts
-│ Recommendation: Add express-rate-limit
-└──────────────────────────────────────────────
+● HIGH: SQL Injection in user_service.ts
+Location: line 42
+Recommendation: Use parameterized queries
+
+● LOW: Missing rate limiting
+Location: api/auth.ts
+Recommendation: Add express-rate-limit
 
 Compliance: ✓ OWASP Top 10 ✓ Input Validation
 
@@ -426,14 +424,13 @@ Created: 2026-02-26 17:40
 
 ═══ CHANGES SUMMARY ══════════════════════════════
 Files Changed: 4 (+120 / −15)
-┌────────────────────────────┬───────┬───────┐
-│ File │ + │ − │
-├────────────────────────────┼───────┼───────┤
-│ src/config/theme.ts │ +45 │ −0 │
-│ src/components/toggle.tsx │ +38 │ −2 │
-│ src/hooks/useTheme.ts │ +32 │ −0 │
-│ src/index.css │ +5 │ −13 │
-└────────────────────────────┴───────┴───────┘
+
+File + −
+──────────────────────────────────────────
+src/config/theme.ts +45 −0
+src/components/toggle.tsx +38 −2
+src/hooks/useTheme.ts +32 −0
+src/index.css +5 −13
 
 ═══ DIFF (src/config/theme.ts) ═══════════════════
 [File 1/4] [← Prev] [Next →]
@@ -546,6 +543,7 @@ The TUI uses a minimal set of box-drawing characters. **No vertical lines** are 
 >
 > - **No vertical frame borders** around the main content area. Content fills the full terminal width.
 > - **No vertical pipe separators** (`│`) for table columns — use spacing (2+ chars) between columns instead.
+> - **No boxes for content grouping**: Avoid using box-drawing characters (`┌`, `┐`, `└`, `┘`, `│`) to frame steps, findings, or other repeating content blocks. Use headers, 1-level indentation, and horizontal dividers (`─` or `═`) instead.
 > - The **only vertical lines** in content are: thin solid `│` for vertical split-view separators, and dotted `┊` for scroll indicators.
 
 ### Tab & Content Rendering
