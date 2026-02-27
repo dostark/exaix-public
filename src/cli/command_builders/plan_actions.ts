@@ -49,10 +49,10 @@ export async function handlePlanList(
       };
 
       // Add request information if available
-      if (plan.request_title) {
-        displayData.request = plan.request_title.length > 50
-          ? `${plan.request_title.substring(0, 47)}...`
-          : plan.request_title;
+      if (plan.request_subject) {
+        displayData.request = plan.request_subject.length > 50
+          ? `${plan.request_subject.substring(0, 47)}...`
+          : plan.request_subject;
       }
       if (plan.request_agent) {
         displayData.agent = plan.request_agent;
@@ -64,7 +64,12 @@ export async function handlePlanList(
         displayData.priority = plan.request_priority;
       }
 
-      display.info(`${statusIcon} ${plan.id}`, plan.id, toSafeJson(displayData) as Record<string, JSONValue>);
+      const subjectTag = plan.subject ? `[${plan.subject}] ` : "";
+      display.info(
+        `${statusIcon} ${subjectTag}${plan.id}`,
+        plan.id,
+        toSafeJson(displayData) as Record<string, JSONValue>,
+      );
     }
   } catch (error) {
     display.error("cli.error", "plan list", {
@@ -87,6 +92,7 @@ export async function handlePlanShow(
     const plan = await planCommands.show(id);
     const displayData: JSONObject = {
       status: plan.status,
+      subject: plan.subject,
       trace: plan.trace_id,
     };
 
@@ -94,8 +100,8 @@ export async function handlePlanShow(
     if (plan.request_id) {
       displayData.request = plan.request_id;
     }
-    if (plan.request_title) {
-      displayData.title = plan.request_title;
+    if (plan.request_subject) {
+      displayData.request_subject = plan.request_subject;
     }
     if (plan.request_agent) {
       displayData.agent = plan.request_agent;

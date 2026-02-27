@@ -39,7 +39,7 @@ function createTestRequests(): IRequest[] {
     {
       trace_id: "req-001",
       filename: "request-001.md",
-      title: "Test Request 1",
+      subject: "Test Request 1",
       status: RequestStatus.PENDING,
       priority: "normal",
       agent: "default",
@@ -51,7 +51,7 @@ function createTestRequests(): IRequest[] {
     {
       trace_id: "req-002",
       filename: "request-002.md",
-      title: "Test Request 2",
+      subject: "Test Request 2",
       status: RequestStatus.PENDING,
       priority: "high",
       agent: "code-reviewer",
@@ -68,7 +68,7 @@ function createTestRequests(): IRequest[] {
     {
       trace_id: "req-003",
       filename: "request-003.md",
-      title: "Test Request 3",
+      subject: "Test Request 3",
       status: RequestStatus.COMPLETED,
       priority: CritiqueSeverity.CRITICAL,
       agent: "architect",
@@ -79,7 +79,7 @@ function createTestRequests(): IRequest[] {
     {
       trace_id: "req-004",
       filename: "request-004.md",
-      title: "Cancelled Request",
+      subject: "Cancelled Request",
       status: RequestStatus.CANCELLED,
       priority: "low",
       agent: "default",
@@ -90,7 +90,7 @@ function createTestRequests(): IRequest[] {
     {
       trace_id: "req-005",
       filename: "request-005.md",
-      title: "Failed Request",
+      subject: "Failed Request",
       status: RequestStatus.FAILED,
       priority: "high",
       agent: "researcher",
@@ -104,8 +104,9 @@ function createTestRequests(): IRequest[] {
 function createTestSessionWithMockService(
   getRequestContentResult: string | Error = "Test content",
 ): RequestManagerTuiSession {
+  const requests = createTestRequests();
   const mockService = {
-    listRequests: () => Promise.resolve([]),
+    listRequests: () => Promise.resolve(requests),
     getRequestContent: (_id: string) =>
       getRequestContentResult instanceof Error
         ? Promise.reject(getRequestContentResult)
@@ -114,7 +115,6 @@ function createTestSessionWithMockService(
     updateRequestStatus: () => Promise.resolve(true),
   };
 
-  const requests = createTestRequests();
   const view = new RequestManagerView(mockService);
   const session = view.createTuiSession(requests);
   return session;
@@ -371,7 +371,7 @@ Deno.test("RequestManagerTuiSession: detail view without skills shows (none)", a
   const requestWithEmptySkills: IRequest = {
     trace_id: "req-empty",
     filename: "request-empty.md",
-    title: "Request with empty skills",
+    subject: "Request with empty skills",
     status: RequestStatus.PENDING,
     priority: "normal",
     agent: "default",

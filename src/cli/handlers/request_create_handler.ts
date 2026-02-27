@@ -20,6 +20,7 @@ import {
   type IRequestOptions as RequestOptions,
   type RequestSource,
 } from "../commands/request_commands.ts";
+import { resolveSubject } from "../../helpers/subject_generator.ts";
 import { getWorkspaceRequestsDir } from "./request_paths.ts";
 
 const VALID_PRIORITIES: RequestPriority[] = [
@@ -64,7 +65,12 @@ export class RequestCreateHandler extends BaseCommand {
       const created = new Date().toISOString();
 
       // Build frontmatter
-      const frontmatterFields: Record<string, string> = {
+      const subject = resolveSubject({
+        explicit: options.subject,
+        description: trimmedDescription,
+      });
+
+      const frontmatterFields: Record<string, string | boolean> = {
         trace_id,
         created,
         status: RequestStatus.PENDING,
@@ -72,6 +78,8 @@ export class RequestCreateHandler extends BaseCommand {
         agent,
         source,
         created_by,
+        subject,
+        subject_is_fallback: !options.subject?.trim(),
       };
 
       this.addOptionalFrontmatterFields(frontmatterFields, options, portal);
@@ -117,6 +125,7 @@ export class RequestCreateHandler extends BaseCommand {
         created,
         created_by,
         source,
+        subject,
       };
     } catch (error) {
       await DefaultErrorStrategy.handle({
@@ -162,7 +171,7 @@ export class RequestCreateHandler extends BaseCommand {
   }
 
   private addOptionalFrontmatterFields(
-    frontmatterFields: Record<string, string>,
+    frontmatterFields: Record<string, string | boolean | number>,
     options: RequestOptions,
     portal: string | undefined,
   ): void {

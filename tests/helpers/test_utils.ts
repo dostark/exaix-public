@@ -14,7 +14,7 @@ import { RequestStatus, type RequestStatusType } from "../../src/requests/reques
 export interface ITestRequestFixture {
   trace_id: string;
   filename: string;
-  title: string;
+  subject: string;
   status: RequestStatusType;
   priority: string;
   agent: string;
@@ -27,7 +27,7 @@ export interface ITestRequestFixture {
 
 export interface ITestPlanFixture {
   id: string;
-  title: string;
+  subject: string;
   status: PlanStatusType;
   rejectionReason?: string;
 }
@@ -65,7 +65,7 @@ export class TestDataFactory<T> {
 export const requestFactory = new TestDataFactory<ITestRequestFixture>(() => ({
   trace_id: `req-${Math.floor(Math.random() * 1e6)}`,
   filename: "request.md",
-  title: "Request",
+  subject: "Request",
   status: RequestStatus.PENDING,
   priority: "normal",
   agent: "default",
@@ -77,7 +77,7 @@ export const requestFactory = new TestDataFactory<ITestRequestFixture>(() => ({
 // Plan factory
 export const planFactory = new TestDataFactory<ITestPlanFixture>(() => ({
   id: `plan-${Math.floor(Math.random() * 1e6)}`,
-  title: "Plan",
+  subject: "Plan",
   status: PlanStatus.REVIEW,
 }));
 
@@ -165,7 +165,7 @@ export class MockRequestService extends BaseMockService<ITestRequestFixture> {
     return this.create({
       trace_id: `test-${Date.now()}`,
       filename: `request-test.md`,
-      title: description,
+      subject: description,
       status: RequestStatus.PENDING,
       priority: options?.priority || "normal",
       agent: options?.agent || "default",
@@ -215,12 +215,12 @@ export const commonTestData = {
     basic: () =>
       requestFactory.createMany(2, [
         { trace_id: "req-1" },
-        { trace_id: "req-2", title: "Request 2", status: RequestStatus.PLANNED },
+        { trace_id: "req-2", subject: "Request 2", status: RequestStatus.PLANNED },
       ]),
     two: () =>
       requestFactory.createMany(2, [
         { trace_id: "req-1" },
-        { trace_id: "req-2", title: "Request 2" },
+        { trace_id: "req-2", subject: "Request 2" },
       ]),
 
     grouped: () =>
@@ -228,7 +228,7 @@ export const commonTestData = {
         {},
         {
           trace_id: "req-2",
-          title: "Request 2",
+          subject: "Request 2",
           status: RequestStatus.PLANNED,
           agent: "other",
         },
@@ -236,7 +236,7 @@ export const commonTestData = {
     pending: () =>
       requestFactory.createMany(2, [
         { status: RequestStatus.PENDING },
-        { status: RequestStatus.PENDING, trace_id: "req-2", title: "Request 2" },
+        { status: RequestStatus.PENDING, trace_id: "req-2", subject: "Request 2" },
       ]),
   },
 
@@ -245,14 +245,14 @@ export const commonTestData = {
     single: () => planFactory.createMany(1),
     withStatuses: () =>
       planFactory.createMany(3, [
-        { id: "p1", title: "Plan 1", status: PlanStatus.REVIEW },
-        { id: "p2", title: "Plan 2", status: PlanStatus.APPROVED },
-        { id: "p3", title: "Plan 3", status: PlanStatus.REJECTED },
+        { id: "p1", subject: "Plan 1", status: PlanStatus.REVIEW },
+        { id: "p2", subject: "Plan 2", status: PlanStatus.APPROVED },
+        { id: "p3", subject: "Plan 3", status: PlanStatus.REJECTED },
       ]),
     pending: () =>
       planFactory.createMany(2, [
         { status: PlanStatus.REVIEW },
-        { status: PlanStatus.REVIEW, id: "p2", title: "Plan 2" },
+        { status: PlanStatus.REVIEW, id: "p2", subject: "Plan 2" },
       ]),
   },
 
@@ -272,7 +272,7 @@ export const commonTestData = {
     newRequest: (): ITestRequestFixture => ({
       trace_id: "new-req",
       filename: "request-new.md",
-      title: "New Request",
+      subject: "New Request",
       status: RequestStatus.PENDING,
       priority: "normal",
       agent: "default",

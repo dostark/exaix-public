@@ -57,6 +57,7 @@ function createRequestContent(opts: {
     opts.flow ? `flow: ${opts.flow}` : null,
     `source: cli`,
     `created_by: "test@example.com"`,
+    `subject: "Test Request Subject"`,
   ].filter(Boolean);
 
   return `---

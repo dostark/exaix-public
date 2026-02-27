@@ -39,34 +39,51 @@ export class RequestShowHandler extends BaseCommand {
     const body = fullContent.replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, "").trim();
 
     return {
-      metadata: {
-        trace_id: matchingFrontmatter.trace_id || "",
-        filename: matchingFile.split("/").pop() || "",
-        path: matchingFile,
-        status: coerceRequestStatus(matchingFrontmatter.status),
-        priority: matchingFrontmatter.priority || "normal",
-        agent: matchingFrontmatter.agent || "default",
-        portal: matchingFrontmatter.portal,
-        target_branch: matchingFrontmatter.target_branch,
-        model: matchingFrontmatter.model,
-        flow: matchingFrontmatter.flow,
-        skills: matchingFrontmatter.skills ? JSON.parse(matchingFrontmatter.skills) : undefined,
-        ...(planTokens ?? {}),
-        created: matchingFrontmatter.created || "",
-        created_by: matchingFrontmatter.created_by || "unknown",
-        source: matchingFrontmatter.source || "unknown",
-        error: matchingFrontmatter.error,
-        rejected_path: matchingFrontmatter.rejected_path,
-      },
+      metadata: this.mapToMetadata(matchingFile, matchingFrontmatter, planTokens),
       content: body,
     };
   }
 
+  private mapToMetadata(
+    matchingFile: string,
+    matchingFrontmatter: Record<string, string | boolean | number>,
+    planTokens: Record<string, string> | null,
+  ): IRequestShowResult["metadata"] {
+    const metadata: any = {
+      path: matchingFile,
+      filename: matchingFile.split("/").pop() || "",
+      status: coerceRequestStatus(String(matchingFrontmatter.status || "")),
+    };
+
+    const fields = [
+      { key: "trace_id", fallback: "" },
+      { key: "priority", fallback: "normal" },
+      { key: "agent", fallback: "default" },
+      { key: "created", fallback: "" },
+      { key: "created_by", fallback: "unknown" },
+      { key: "source", fallback: "unknown" },
+    ];
+
+    for (const field of fields) {
+      metadata[field.key] = String(matchingFrontmatter[field.key] || field.fallback);
+    }
+
+    const optionalKeys = ["portal", "target_branch", "model", "flow", "error", "rejected_path", "subject"];
+    for (const key of optionalKeys) {
+      if (matchingFrontmatter[key]) metadata[key] = String(matchingFrontmatter[key]);
+    }
+
+    if (matchingFrontmatter.skills) metadata.skills = JSON.parse(String(matchingFrontmatter.skills));
+    if (planTokens) Object.assign(metadata, planTokens);
+
+    return metadata;
+  }
+
   private async findMatchingRequestFile(
     idOrFilename: string,
-  ): Promise<{ matchingFile: string; matchingFrontmatter: Record<string, string> }> {
+  ): Promise<{ matchingFile: string; matchingFrontmatter: Record<string, string | boolean | number> }> {
     let matchingFile: string | null = null;
-    let matchingFrontmatter: Record<string, string> | null = null;
+    let matchingFrontmatter: Record<string, string | boolean | number> | null = null;
 
     for await (const entry of Deno.readDir(this.workspaceRequestsDir)) {
       if (!entry.isFile || !entry.name.endsWith(".md")) continue;
@@ -80,7 +97,7 @@ export class RequestShowHandler extends BaseCommand {
         return { matchingFile: filePath, matchingFrontmatter: frontmatter };
       }
 
-      if (frontmatter.trace_id && frontmatter.trace_id.startsWith(idOrFilename)) {
+      if (frontmatter.trace_id && String(frontmatter.trace_id).startsWith(idOrFilename)) {
         if (matchingFile) {
           throw new Error(`Ambiguous request ID: ${idOrFilename}. Please use a longer ID.`);
         }
@@ -120,12 +137,12 @@ export class RequestShowHandler extends BaseCommand {
         const content = await Deno.readTextFile(planPath);
         const frontmatter = this.extractFrontmatter(content);
         const tokenFields: Record<string, string> = {};
-        if (frontmatter.input_tokens) tokenFields.input_tokens = frontmatter.input_tokens;
-        if (frontmatter.output_tokens) tokenFields.output_tokens = frontmatter.output_tokens;
-        if (frontmatter.total_tokens) tokenFields.total_tokens = frontmatter.total_tokens;
-        if (frontmatter.token_provider) tokenFields.token_provider = frontmatter.token_provider;
-        if (frontmatter.token_model) tokenFields.token_model = frontmatter.token_model;
-        if (frontmatter.token_cost_usd) tokenFields.token_cost_usd = frontmatter.token_cost_usd;
+        if (frontmatter.input_tokens !== undefined) tokenFields.input_tokens = String(frontmatter.input_tokens);
+        if (frontmatter.output_tokens !== undefined) tokenFields.output_tokens = String(frontmatter.output_tokens);
+        if (frontmatter.total_tokens !== undefined) tokenFields.total_tokens = String(frontmatter.total_tokens);
+        if (frontmatter.token_provider !== undefined) tokenFields.token_provider = String(frontmatter.token_provider);
+        if (frontmatter.token_model !== undefined) tokenFields.token_model = String(frontmatter.token_model);
+        if (frontmatter.token_cost_usd !== undefined) tokenFields.token_cost_usd = String(frontmatter.token_cost_usd);
         return Object.keys(tokenFields).length > 0 ? tokenFields : null;
       }
     }

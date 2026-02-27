@@ -46,8 +46,8 @@ export class StatusManager {
         }
       }
 
-      // If there are extra fields to persist (e.g. rejected_path), add/update them
-      if (newStatus === "failed" && extraFields && Object.keys(extraFields).length > 0) {
+      // If there are extra fields to persist (e.g. rejected_path, subject), add/update them
+      if (extraFields && Object.keys(extraFields).length > 0) {
         for (const [key, val] of Object.entries(extraFields)) {
           const safeVal = String(val).replace(/"/g, '\\"');
           const fieldRegex = new RegExp(`^${key}:\\s*.+$`, "m");

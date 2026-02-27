@@ -89,7 +89,7 @@ export const sampleTestRequests = () => commonTestData.requests.basic() as IRequ
 export const sampleBasicRequest = () => commonTestData.requests.basic() as IRequest[];
 export const sampleTwoRequests = () => commonTestData.requests.two() as IRequest[];
 export const sampleGroupedRequests = () => commonTestData.requests.grouped() as IRequest[];
-export const sampleNewRequest = () => [sampleRequest({ trace_id: "new-req", title: "New Request" })];
+export const sampleNewRequest = () => [sampleRequest({ trace_id: "new-req", subject: "New Request" })];
 
 // Legacy aliases for backward compatibility
 export const sampleIRequest = sampleRequest;
@@ -127,7 +127,7 @@ export function createMockRequestService(initial: IRequest[] = []) {
       const newRequest: IRequest = {
         trace_id: `test-${Date.now()}`,
         filename: `request-test.md`,
-        title: _description,
+        subject: _description,
         status: RequestStatus.PENDING,
         priority: (options?.priority as string) || "normal",
         agent: options?.agent || "default",

@@ -141,15 +141,17 @@ async function handleReviewListAction(options: { status?: string; type?: string 
 
 function logReviewListItem(cs: IReviewMetadata) {
   const statusEmoji = getReviewStatusEmoji(cs.status);
-  const requestTitle = cs.request_title ? `"${cs.request_title}"` : cs.request_id;
+  const requestTitle = cs.request_subject ? `"${cs.request_subject}"` : cs.request_id;
   const planInfo = cs.plan_id ? `plan: ${cs.plan_id} (${cs.plan_status})` : undefined;
   const agentInfo = cs.request_agent || cs.agent_id;
   const portalInfo = cs.request_portal || cs.portal || "workspace";
   const typeInfo = cs.type || "code";
   const trace = formatTraceShort(cs.trace_id);
 
-  display.info(`${statusEmoji} ${cs.request_id}`, cs.branch, {
+  const label = cs.subject ? `${statusEmoji} [${cs.subject}] ${cs.request_id}` : `${statusEmoji} ${cs.request_id}`;
+  display.info(label, cs.branch, {
     request: requestTitle,
+    subject: cs.subject,
     plan: planInfo ?? null,
     agent: agentInfo ?? null,
     portal: portalInfo ?? null,
@@ -196,7 +198,7 @@ function renderReviewShow(cs: ReviewDetails, id: string) {
 
 function renderReviewShowSummary(cs: ReviewDetails) {
   const statusEmoji = getReviewStatusEmoji(cs.status);
-  const requestTitle = cs.request_title ? `"${cs.request_title}"` : "Untitled Request";
+  const requestTitle = cs.request_subject ? `"${cs.request_subject}"` : "Untitled Request";
   const planInfo = cs.plan_id ? `${cs.plan_id} (${cs.plan_status})` : "unknown";
   const agentInfo = cs.request_agent || cs.agent_id;
   const portalInfo = cs.request_portal || cs.portal || "workspace";
@@ -204,6 +206,7 @@ function renderReviewShowSummary(cs: ReviewDetails) {
   display.info(`${statusEmoji} review.show`, cs.request_id, {
     branch: cs.branch,
     status: cs.status || ReviewStatus.PENDING,
+    subject: cs.subject ?? undefined,
     request: requestTitle,
     plan: planInfo,
     agent: agentInfo ?? null,
@@ -262,6 +265,7 @@ export const __test_command = new Command()
       .option("-m, --model <model:string>", "Named model configuration")
       .option("--flow <flow:string>", "Target multi-agent flow (mutually exclusive with --agent)")
       .option("--skills <skills:string>", "Comma-separated list of skills to inject")
+      .option("-s, --subject <subject:string>", "Human-readable subject for the request")
       .option("-f, --file <file:string>", "Read description from file")
       .option("--dry-run", "Show what would be created without writing")
       .option("--json", "Output in JSON format")

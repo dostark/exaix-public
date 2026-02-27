@@ -1,6 +1,6 @@
 # Phase 42: Entity Subject Field
 
-## Status: DRAFT
+## Status: COMPLETED
 
 Add a human-readable `subject` (mnemonic name) to Requests, Plans, and Reviews so users can quickly identify what each entity is about in lists, detail views, and cross-references.
 
@@ -22,19 +22,19 @@ The subject is stored in each entity's frontmatter/metadata, displayed in CLI `l
 
 ## Goals
 
-- [ ] Add `subject` optional field to `IRequestFrontmatter`.
-- [ ] Add `subject` optional field to `IRequestOptions`, `IRequestMetadata`, `IRequestEntry`.
-- [ ] Add `--subject` CLI option to `exoctl request create`.
-- [ ] Require `subject` field in agent plan response schema.
-- [ ] Agent-generated subject: validate (non-empty, ≤ 80 chars, single line).
-- [ ] Fallback subject: extract from request body when agent omits or returns invalid subject.
-- [ ] Add `subject` optional field to `PlanFrontmatterSchema` / `PlanFrontmatter`.
-- [ ] Propagate request subject → plan subject in plan creation.
-- [ ] Add `subject` optional field to `IReviewMetadata` / `ReviewDetails`.
-- [ ] Propagate plan subject → review subject in review creation.
-- [ ] Display `subject` in CLI `request list`, `request show`, `plan list`, `review list`.
-- [ ] Write unit tests for subject assignment, propagation, and auto-generation.
-- [ ] Write integration tests verifying end-to-end subject flow.
+- [x] Add `subject` optional field to `IRequestFrontmatter`.
+- [x] Add `subject` optional field to `IRequestOptions`, `IRequestMetadata`, `IRequestEntry`.
+- [x] Add `--subject` CLI option to `exoctl request create`.
+- [x] Require `subject` field in agent plan response schema.
+- [x] Agent-generated subject: validate (non-empty, ≤ 80 chars, single line).
+- [x] Fallback subject: extract from request body when agent omits or returns invalid subject.
+- [x] Add `subject` optional field to `PlanFrontmatterSchema` / `PlanFrontmatter`.
+- [x] Propagate request subject → plan subject in plan creation.
+- [x] Add `subject` optional field to `IReviewMetadata` / `ReviewDetails`.
+- [x] Propagate plan subject → review subject in review creation.
+- [x] Display `subject` in CLI `request list`, `request show`, `plan list`, `review list`.
+- [x] Write unit tests for subject assignment, propagation, and auto-generation.
+- [x] Write integration tests verifying end-to-end subject flow.
 
 ---
 

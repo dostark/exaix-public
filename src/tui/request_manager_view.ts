@@ -47,7 +47,7 @@ import { TUI_PRIORITY_ICONS, TUI_STATUS_ICONS } from "../helpers/constants.ts";
 export interface IRequest {
   trace_id: string;
   filename: string;
-  title: string;
+  subject: string;
   status: RequestStatusType;
   priority: string;
   agent: string;
@@ -267,7 +267,7 @@ export class RequestCommandsServiceAdapter implements IRequestService {
     return requests.map((r) => ({
       trace_id: r.trace_id,
       filename: r.filename,
-      title: `Request ${r.trace_id.slice(0, 8)}`,
+      subject: r.subject ?? `Request ${r.trace_id.slice(0, 8)}`,
       status: r.status,
       priority: r.priority,
       agent: r.agent,
@@ -291,7 +291,7 @@ export class RequestCommandsServiceAdapter implements IRequestService {
     return {
       trace_id: metadata.trace_id,
       filename: metadata.filename,
-      title: `Request ${metadata.trace_id.slice(0, 8)}`,
+      subject: metadata.subject ?? `Request ${metadata.trace_id.slice(0, 8)}`,
       status: metadata.status,
       priority: metadata.priority,
       agent: metadata.agent,
@@ -514,7 +514,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     const statusIcon = STATUS_ICONS[request.status] || "❓";
     const priorityIcon = PRIORITY_ICONS[request.priority] || "⚪";
     const date = new Date(request.created).toLocaleString();
-    const label = `${statusIcon} ${priorityIcon} ${request.title} - ${request.agent} - ${date}`;
+    const label = `${statusIcon} ${priorityIcon} ${request.subject} - ${request.agent} - ${date}`;
 
     return createNode(request.trace_id, label, "item");
   }
@@ -544,7 +544,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
     if (this.state.searchQuery) {
       const query = this.state.searchQuery.toLowerCase();
       filtered = filtered.filter((r) =>
-        r.title.toLowerCase().includes(query) ||
+        r.subject.toLowerCase().includes(query) ||
         r.trace_id.toLowerCase().includes(query) ||
         r.agent.toLowerCase().includes(query) ||
         r.created_by.toLowerCase().includes(query)
@@ -677,7 +677,7 @@ export class RequestManagerTuiSession extends TuiSessionBase {
 
     this.state.activeDialog = new ConfirmDialog({
       title: "Cancel Request",
-      message: `Are you sure you want to cancel request "${request.title}"?`,
+      message: `Are you sure you want to cancel request "${request.subject}"?`,
       confirmText: "Cancel Request",
       cancelText: "Keep",
     });
@@ -1200,7 +1200,7 @@ export class RequestManagerView implements IRequestService {
         : "❓";
 
       lines.push(
-        `${statusIcon} ${priorityIcon} ${request.title} - ${request.agent} - ${
+        `${statusIcon} ${priorityIcon} ${request.subject} - ${request.agent} - ${
           new Date(request.created).toLocaleString()
         }`,
       );

@@ -60,13 +60,13 @@ export abstract class BaseCommand {
    * @param content File content
    * @returns Frontmatter object
    */
-  protected extractFrontmatter(content: string): Record<string, string> {
+  protected extractFrontmatter(content: string): Record<string, string | boolean | number> {
     const match = content.match(/^---\s*\n([\s\S]*?)\n---\s*/);
     if (!match) {
       return {};
     }
 
-    const frontmatter: Record<string, string> = {};
+    const frontmatter: Record<string, string | boolean | number> = {};
     const lines = match[1].split("\n");
 
     for (const line of lines) {
@@ -84,7 +84,15 @@ export abstract class BaseCommand {
         value = value.substring(1, value.length - 1);
       }
 
-      frontmatter[key] = value;
+      if (value.toLowerCase() === "true") {
+        frontmatter[key] = true;
+      } else if (value.toLowerCase() === "false") {
+        frontmatter[key] = false;
+      } else if (!isNaN(Number(value)) && value.trim() !== "") {
+        frontmatter[key] = Number(value);
+      } else {
+        frontmatter[key] = value;
+      }
     }
 
     return frontmatter;
@@ -95,12 +103,13 @@ export abstract class BaseCommand {
    * @param frontmatter Frontmatter object
    * @returns YAML string with --- delimiters
    */
-  protected serializeFrontmatter(frontmatter: Record<string, string>): string {
+  protected serializeFrontmatter(frontmatter: Record<string, string | boolean | number>): string {
     const lines = ["---"];
-    for (const [key, value] of Object.entries(frontmatter)) {
+    for (const [key, rawValue] of Object.entries(frontmatter)) {
+      const value = String(rawValue);
       // Quote values that contain colons, hyphens in UUIDs, or special chars
-      const needsQuotes = value.includes(":") ||
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+      const needsQuotes = typeof rawValue === "string" && (value.includes(":") ||
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value));
 
       if (needsQuotes) {
         lines.push(`${key}: "${value}"`);
@@ -120,7 +129,7 @@ export abstract class BaseCommand {
    */
   protected updateFrontmatter(
     content: string,
-    updates: Record<string, string>,
+    updates: Record<string, string | boolean | number>,
   ): string {
     const frontmatter = this.extractFrontmatter(content);
     const updated = { ...frontmatter, ...updates };
@@ -136,7 +145,7 @@ export abstract class BaseCommand {
    * @throws Error if required fields are missing
    */
   protected validateFrontmatter(
-    frontmatter: Record<string, string>,
+    frontmatter: Record<string, string | boolean | number>,
     required: string[],
     filePath: string,
   ): void {

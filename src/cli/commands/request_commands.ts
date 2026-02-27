@@ -25,6 +25,7 @@ export interface IRequestOptions {
   model?: string;
   flow?: string;
   skills?: string[];
+  subject?: string;
 }
 
 /**
@@ -57,6 +58,7 @@ export interface IRequestMetadata {
   created_by: string;
   source: RequestSource;
   rejected_path?: string;
+  subject?: string;
 }
 
 /**
@@ -85,6 +87,7 @@ export interface IRequestEntry {
   source: string;
   error?: string;
   rejected_path?: string;
+  subject?: string;
 }
 
 /**

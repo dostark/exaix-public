@@ -75,32 +75,51 @@ export class RequestListHandler extends BaseCommand {
     try {
       const content = await Deno.readTextFile(filePath);
       const frontmatter = this.extractFrontmatter(content);
-      const parsedStatus = coerceRequestStatus(frontmatter.status);
+      const parsedStatus = coerceRequestStatus(String(frontmatter.status || ""));
 
       if (statusFilter && parsedStatus !== statusFilter) {
         return null;
       }
 
-      return {
-        trace_id: frontmatter.trace_id || "",
-        filename: filename,
-        path: filePath,
-        status: parsedStatus,
-        priority: frontmatter.priority || "normal",
-        agent: frontmatter.agent || "default",
-        portal: frontmatter.portal,
-        target_branch: frontmatter.target_branch,
-        model: frontmatter.model,
-        flow: frontmatter.flow,
-        skills: frontmatter.skills ? JSON.parse(frontmatter.skills) : undefined,
-        rejected_path: frontmatter.rejected_path,
-        created: frontmatter.created || "",
-        created_by: frontmatter.created_by || "unknown",
-        source: frontmatter.source || "unknown",
-      };
+      return this.mapFrontmatterToRequestEntry(filename, filePath, frontmatter, parsedStatus);
     } catch (error) {
       console.warn(`Failed to read request file ${filePath}:`, error);
       return null;
     }
+  }
+
+  private mapFrontmatterToRequestEntry(
+    filename: string,
+    filePath: string,
+    frontmatter: Record<string, string | boolean | number>,
+    status: RequestStatusType,
+  ): IRequestEntry {
+    const entry: any = {
+      filename: filename,
+      path: filePath,
+      status: status,
+    };
+
+    const fields = [
+      { key: "trace_id", fallback: "" },
+      { key: "priority", fallback: "normal" },
+      { key: "agent", fallback: "default" },
+      { key: "created", fallback: "" },
+      { key: "created_by", fallback: "unknown" },
+      { key: "source", fallback: "unknown" },
+    ];
+
+    for (const field of fields) {
+      entry[field.key] = String(frontmatter[field.key] || field.fallback);
+    }
+
+    const optionalKeys = ["portal", "target_branch", "model", "flow", "rejected_path", "subject"];
+    for (const key of optionalKeys) {
+      if (frontmatter[key]) entry[key] = String(frontmatter[key]);
+    }
+
+    if (frontmatter.skills) entry.skills = JSON.parse(String(frontmatter.skills));
+
+    return entry;
   }
 }

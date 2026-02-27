@@ -204,6 +204,22 @@ describe("RequestCommands", () => {
         "Flow 'non-existent-flow' not found",
       );
     });
+
+    it("should include explicit subject in frontmatter", async () => {
+      const result = await requestCommands.create("Implement dark mode", { subject: "Dark Mode" });
+      assertEquals(result.subject, "Dark Mode");
+
+      const content = await Deno.readTextFile(result.path);
+      assertStringIncludes(content, "subject: Dark Mode");
+    });
+
+    it("should auto-generate fallback subject when missing", async () => {
+      const result = await requestCommands.create("Implement dark mode for all pages");
+      assertEquals(result.subject, "Implement dark mode for all pages");
+
+      const content = await Deno.readTextFile(result.path);
+      assertStringIncludes(content, "subject: Implement dark mode for all pages");
+    });
   });
 
   describe("createFromFile", () => {

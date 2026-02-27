@@ -144,14 +144,14 @@ Deno.test("[regression] Review list shows request and plan context", async () =>
       created_at: TEST_CREATED_AT,
       agent_id: TEST_AGENT_ID,
       // New fields that should be supported
-      request_title: "Test Request",
+      request_subject: "Test Request",
       plan_id: "test_plan",
       portal: "test-portal",
       status: ReviewStatus.PENDING,
     };
 
     // Verify all expected fields are present
-    assertEquals(testMetadata.request_title, "Test Request");
+    assertEquals(testMetadata.request_subject, "Test Request");
     assertEquals(testMetadata.plan_id, "test_plan");
     assertEquals(testMetadata.portal, "test-portal");
     assertEquals(testMetadata.status, ReviewStatus.PENDING);
@@ -172,7 +172,7 @@ Deno.test("[regression] Review show displays complete context information", () =
     created_at: TEST_CREATED_AT,
     agent_id: TEST_AGENT_ID,
     // Request context
-    request_title: "Test Request Title",
+    request_subject: "Test Request Title",
     request_agent: TEST_AGENT_ID,
     request_portal: "test-portal",
     request_priority: "high",
@@ -195,7 +195,7 @@ Deno.test("[regression] Review show displays complete context information", () =
   };
 
   // Verify all expected fields are present
-  assertEquals(mockReviewDetails.request_title, "Test Request Title");
+  assertEquals(mockReviewDetails.request_subject, "Test Request Title");
   assertEquals(mockReviewDetails.plan_id, `${TEST_REQUEST_ID}_plan`);
   assertEquals(mockReviewDetails.plan_status, PlanStatus.APPROVED);
   assertEquals(mockReviewDetails.portal, "test-portal");

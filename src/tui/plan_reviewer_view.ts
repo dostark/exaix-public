@@ -21,7 +21,7 @@ import { type IKeyBinding, KeyBindingCategory, KEYS } from "../helpers/keyboard.
 
 export interface IPlan {
   id: string;
-  title: string;
+  subject: string;
   author?: string;
   status?: PlanStatusType;
   created_at?: string;
@@ -167,14 +167,14 @@ export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
     const filter = this.state.filterText.toLowerCase();
 
     for (const plan of plans) {
-      if (filter && !plan.id.toLowerCase().includes(filter) && !plan.title.toLowerCase().includes(filter)) {
+      if (filter && !plan.id.toLowerCase().includes(filter) && !plan.subject.toLowerCase().includes(filter)) {
         continue;
       }
 
       const status = coercePlanStatus(plan.status, PlanStatus.REVIEW);
       const node = createNode<IPlan>(
         plan.id,
-        plan.title || plan.id,
+        plan.subject || plan.id,
         "plan",
         {
           data: plan,
@@ -380,7 +380,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
 
     this.showConfirmDialog({
       title: "Approve Plan",
-      message: `Approve plan "${plan.title}"?\nThis action will move the plan to active status.`,
+      message: `Approve plan "${plan.subject}"?\nThis action will move the plan to active status.`,
       confirmText: "Approve",
       cancelText: "Cancel",
     });
@@ -409,7 +409,7 @@ export class PlanReviewerTuiSession extends BaseTreeView<IPlan> {
     this.pendingRejectId = plan.id;
     this.showConfirmDialog({
       title: "Reject Plan",
-      message: `Reject plan "${plan.title}"?\nThis action will move the plan to rejected status.`,
+      message: `Reject plan "${plan.subject}"?\nThis action will move the plan to rejected status.`,
       confirmText: "Reject",
       cancelText: "Cancel",
       destructive: true,
@@ -561,7 +561,7 @@ export class PlanReviewerView {
   }
 
   renderPlanList(plans: IPlan[]): string {
-    return plans.map((p) => `${p.id} ${p.title} [${p.status || "pending"}]`).join("\n");
+    return plans.map((p) => `${p.id} ${p.subject} [${p.status || "pending"}]`).join("\n");
   }
 
   renderDiff(diff: string): string {
@@ -612,7 +612,7 @@ export class PlanCommandsServiceAdapter implements IPlanService {
     const rows: IPlanMetadata[] = await this.cmd.list(PlanStatus.REVIEW);
     return rows.map((r: IPlanMetadata) => ({
       id: r.id,
-      title: r.request_title ?? r.id,
+      subject: r.request_subject ?? r.id,
       author: r.agent_id ?? r.reviewed_by,
       status: r.status,
       created_at: r.created_at,

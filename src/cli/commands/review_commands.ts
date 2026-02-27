@@ -33,7 +33,7 @@ export interface IReviewMetadata {
   created_at: string;
   agent_id: string;
   // Request context
-  request_title?: string;
+  request_subject?: string;
   request_agent?: string;
   request_portal?: string;
   request_priority?: string;
@@ -52,6 +52,7 @@ export interface IReviewMetadata {
   rejected_at?: string;
   rejected_by?: string;
   rejection_reason?: string;
+  subject?: string;
 }
 
 export interface ReviewDetails extends IReviewMetadata {
@@ -373,6 +374,10 @@ export class ReviewCommands extends BaseCommand {
         if (associatedPlan) {
           metadata.plan_id = associatedPlan.id;
           metadata.plan_status = associatedPlan.status;
+          // Propagate subject from plan if not already set (e.g. from request)
+          if (!metadata.subject && associatedPlan.subject) {
+            metadata.subject = associatedPlan.subject;
+          }
         }
       } catch (error) {
         // If plan can't be loaded, continue without plan info

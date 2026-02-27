@@ -53,7 +53,7 @@ Deno.test("handlePlanList: displays empty result", async () => {
 
 Deno.test("handlePlanList: displays plan rows with truncation", async () => {
   const { display, calls } = createDisplay();
-  const longTitle = "x".repeat(60);
+  const longSubject = "x".repeat(60);
   const planCommands = {
     list: () =>
       Promise.resolve([
@@ -61,7 +61,7 @@ Deno.test("handlePlanList: displays plan rows with truncation", async () => {
           id: "p1",
           status: "review",
           trace_id: "1234567890abcdef",
-          request_title: longTitle,
+          request_subject: longSubject,
           request_agent: "agent",
           request_portal: "portal",
           request_priority: "p",
@@ -91,7 +91,7 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
         trace_id: "t",
         content: "C",
         request_id: "r",
-        request_title: "title",
+        request_subject: "subject",
         input_tokens: 120,
         output_tokens: 45,
         total_tokens: 165,
@@ -115,6 +115,7 @@ Deno.test("handlePlanShow: prints metadata and content", async () => {
   assertEquals(calls[0].c.token_provider, TEST_PROVIDER_ID_OPENAI);
   assertEquals(calls[0].c.token_model, TEST_MODEL_OPENAI);
   assertEquals(calls[0].c.token_cost_usd, 0.0025);
+  assertEquals(calls[0].c.request_subject, "subject");
   assertEquals(calls[1].a, "plan.content");
 });
 

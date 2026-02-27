@@ -12,7 +12,7 @@ Deno.test("PlanAdapter: Plan validation fails for unsupported tool names", () =>
   const adapter = new PlanAdapter();
   const invalidPlanJson = `
   {
-    "title": "Invalid Plan",
+    "subject": "Invalid Plan",
     "description": "A plan with an invalid tool",
     "steps": [
       {
@@ -40,7 +40,7 @@ Deno.test("PlanAdapter: Plan validation fails for unsupported tool names", () =>
 
 Deno.test("PlanAdapter: Plan validation handles markdown code blocks", () => {
   const validPlanJson = JSON.stringify({
-    title: "Create src/utils.ts with hello world function",
+    subject: "Create src/utils.ts with hello world function",
     description: "Creates a src directory and a utils.ts file containing a hello world function.",
     steps: [
       {
@@ -62,5 +62,5 @@ ${validPlanJson}
 \`\`\``;
   const adapter = new PlanAdapter();
   const plan = adapter.parse(markdownJson);
-  assertEquals(plan.title, "Create src/utils.ts with hello world function");
+  assertEquals(plan.subject, "Create src/utils.ts with hello world function");
 });

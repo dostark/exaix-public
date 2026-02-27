@@ -155,7 +155,7 @@ Deno.test("RequestManagerView: shows skills in request detail", async () => {
     {
       trace_id: "test-123",
       filename: "request-test.md",
-      title: "Test Request",
+      subject: "Test Request",
       status: RequestStatus.COMPLETED,
       priority: "normal",
       agent: "code-reviewer",

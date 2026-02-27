@@ -33,7 +33,7 @@ export class RequestFormatter {
       }║`,
       `╠══════════════════════════════════════════════════════════════╣`,
       `║ ID:       ${request.trace_id.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
-      `║ Title:    ${request.title.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
+      `║ Subject:  ${request.subject.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
       `║ Status:   ${request.status.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
       `║ Priority: ${request.priority.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,
       `║ Agent:    ${request.agent.padEnd(TUI_LAYOUT_VALUE_WIDTH)}║`,

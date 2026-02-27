@@ -28,6 +28,7 @@ export interface RequestCreateOptions {
   model?: string;
   flow?: string;
   skills?: string;
+  subject?: string;
   json?: boolean;
   dryRun?: boolean;
 }
@@ -59,6 +60,7 @@ export async function handleRequestCreate(
         model: options.model,
         flow: options.flow,
         skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
+        subject: options.subject,
       });
       printRequestResult(context, result, !!options.json, !!options.dryRun);
       return;
@@ -81,6 +83,7 @@ export async function handleRequestCreate(
       model: options.model,
       flow: options.flow,
       skills: options.skills ? options.skills.split(",").map((s: string) => s.trim()) : undefined,
+      subject: options.subject,
     });
 
     if (options.dryRun) {
@@ -116,11 +119,13 @@ export async function handleRequestList(
       display.info("request.list", "requests", { count: requests.length });
       for (const req of requests) {
         const priorityIcon = PRIORITY_ICONS[req.priority] || PRIORITY_ICONS.default;
+        const subjectTag = req.subject ? `[${req.subject}] ` : "";
         display.info(
-          `${priorityIcon} ${req.trace_id.slice(0, 8)}`,
+          `${priorityIcon} ${subjectTag}${req.trace_id.slice(0, 8)}`,
           req.trace_id,
           toSafeJson({
             status: req.status,
+            subject: req.subject,
             agent: req.flow ? undefined : req.agent,
             flow: req.flow,
             target_branch: req.target_branch,
@@ -151,6 +156,7 @@ export async function handleRequestShow(
     const displayData: JSONObject = {
       trace_id: metadata.trace_id,
       status: metadata.status,
+      subject: metadata.subject,
       priority: metadata.priority,
       agent: metadata.flow ? undefined : metadata.agent,
       flow: metadata.flow,
@@ -219,6 +225,7 @@ function printRequestResult(
         trace_id: result.trace_id,
         filename: result.filename,
         priority: `${priorityIcon} ${result.priority}`,
+        subject: (result as any).subject,
         agent: result.flow ? undefined : result.agent,
         flow: result.flow,
         status: result.status,

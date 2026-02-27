@@ -35,7 +35,7 @@ export interface IPlanMetadata {
   trace_id?: string;
   agent_id?: string;
   request_id?: string;
-  request_title?: string;
+  request_subject?: string;
   request_agent?: string;
   request_portal?: string;
   request_priority?: string;
@@ -54,6 +54,7 @@ export interface IPlanMetadata {
   rejection_reason?: string;
   reviewed_by?: string;
   reviewed_at?: string;
+  subject?: string;
 }
 
 export interface IPlanDetails extends IPlanMetadata {
@@ -86,6 +87,7 @@ function extractPlanMetadata(planId: string, frontmatter: PlanFrontmatter): IPla
     rejection_reason: validated.rejection_reason,
     reviewed_by: validated.reviewed_by,
     reviewed_at: validated.reviewed_at,
+    subject: validated.subject,
   };
 }
 

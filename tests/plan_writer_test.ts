@@ -21,7 +21,7 @@ interface IAgentExecutionResult {
  * Helper: Create a minimal valid JSON plan
  */
 function createJsonPlan(
-  title: string,
+  subject: string,
   description: string,
   steps: Array<{ title: string; description: string }> = [{
     title: "Default Step",
@@ -29,7 +29,7 @@ function createJsonPlan(
   }],
 ): string {
   return JSON.stringify({
-    title,
+    subject,
     description,
     steps: steps.map((s, i) => ({
       step: i + 1,

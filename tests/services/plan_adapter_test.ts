@@ -20,7 +20,7 @@ describe("PlanAdapter", () => {
   describe("parse() - Valid JSON", () => {
     it("should parse valid JSON plan with all fields", () => {
       const jsonContent = JSON.stringify({
-        title: "Implement Authentication System",
+        subject: "Implement Authentication System",
         description: "Add user authentication with JWT tokens",
         steps: [
           {
@@ -46,7 +46,7 @@ describe("PlanAdapter", () => {
 
       const plan: Plan = adapter.parse(jsonContent);
 
-      assertEquals(plan.title, "Implement Authentication System");
+      assertEquals(plan.subject, "Implement Authentication System");
       assertEquals(plan.description, "Add user authentication with JWT tokens");
       assertEquals(plan.steps?.length, 2);
       assertEquals(plan.steps?.[0].step, 1);
@@ -60,7 +60,7 @@ describe("PlanAdapter", () => {
 
     it("should parse minimal JSON plan (required fields only)", () => {
       const jsonContent = JSON.stringify({
-        title: "Simple Plan",
+        subject: "Simple Plan",
         description: "A simple plan",
         steps: [
           {
@@ -73,7 +73,7 @@ describe("PlanAdapter", () => {
 
       const plan: Plan = adapter.parse(jsonContent);
 
-      assertEquals(plan.title, "Simple Plan");
+      assertEquals(plan.subject, "Simple Plan");
       assertEquals(plan.steps?.length, 1);
       assertEquals(plan.steps?.[0].tools, undefined);
       assertEquals(plan.estimatedDuration, undefined);
@@ -82,7 +82,7 @@ describe("PlanAdapter", () => {
 
   describe("parse() - Invalid JSON Syntax", () => {
     it("should throw PlanValidationError for malformed JSON", () => {
-      const invalidJson = '{ "title": "Broken JSON" invalid }';
+      const invalidJson = '{ "subject": "Broken JSON" invalid }';
 
       assertThrows(
         () => adapter.parse(invalidJson),
@@ -109,9 +109,9 @@ describe("PlanAdapter", () => {
   });
 
   describe("parse() - Schema Validation Errors", () => {
-    it("should throw PlanValidationError when title is missing", () => {
+    it("should throw PlanValidationError when subject is missing", () => {
       const jsonContent = JSON.stringify({
-        description: "Missing title",
+        description: "Missing subject",
         steps: [
           {
             step: 1,
@@ -130,7 +130,7 @@ describe("PlanAdapter", () => {
 
     it("should throw PlanValidationError when steps are missing", () => {
       const jsonContent = JSON.stringify({
-        title: "Has Title",
+        subject: "Has Subject",
         description: "Missing steps",
       });
 
@@ -143,7 +143,7 @@ describe("PlanAdapter", () => {
 
     it("should include Zod errors in error details", () => {
       const jsonContent = JSON.stringify({
-        title: "Plan",
+        subject: "Plan",
         description: "Description",
         steps: [], // Empty array, should fail min(1) validation
       });
@@ -163,7 +163,7 @@ describe("PlanAdapter", () => {
 
     it("should reject invalid tool enum values", () => {
       const jsonContent = JSON.stringify({
-        title: "Plan",
+        subject: "Subject",
         description: "Description",
         steps: [
           {
@@ -184,7 +184,7 @@ describe("PlanAdapter", () => {
 
     it("should reject invalid field types", () => {
       const jsonContent = JSON.stringify({
-        title: "Plan",
+        subject: "Subject",
         description: "Description",
         steps: [
           {
@@ -205,7 +205,7 @@ describe("PlanAdapter", () => {
   describe("toMarkdown() - Conversion", () => {
     it("should convert plan with all fields to markdown", () => {
       const plan: Plan = {
-        title: "Implement Authentication",
+        subject: "Implement Authentication",
         description: "Add authentication to the application",
         steps: [
           {
@@ -232,7 +232,7 @@ describe("PlanAdapter", () => {
 
       const markdown = adapter.toMarkdown(plan);
 
-      // Check title
+      // Check subject (header)
       assertStringIncludes(markdown, "# Implement Authentication");
 
       // Check description
@@ -267,7 +267,7 @@ describe("PlanAdapter", () => {
 
     it("should convert minimal plan to markdown", () => {
       const plan: Plan = {
-        title: "Simple Plan",
+        subject: "Simple Plan",
         description: "A simple plan",
         steps: [
           {
@@ -294,7 +294,7 @@ describe("PlanAdapter", () => {
 
     it("should format steps with dependencies correctly", () => {
       const plan: Plan = {
-        title: "Plan",
+        subject: "Plan",
         description: "Description",
         steps: [
           {
@@ -328,7 +328,7 @@ describe("PlanAdapter", () => {
 
     it("should include all valid tools in markdown", () => {
       const plan: Plan = {
-        title: "Plan",
+        subject: "Plan",
         description: "Description",
         steps: [
           {
@@ -353,7 +353,7 @@ describe("PlanAdapter", () => {
 
     it("should format success criteria as bullet list", () => {
       const plan: Plan = {
-        title: "Plan",
+        subject: "Plan",
         description: "Description",
         steps: [
           {

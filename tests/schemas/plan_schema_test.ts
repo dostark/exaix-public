@@ -192,7 +192,7 @@ describe("PlanSchema", () => {
   describe("Valid Plans", () => {
     it("should validate plan with all optional fields", () => {
       const planData = {
-        title: "Implement Authentication System",
+        subject: "Implement Authentication System",
         description: "Add user authentication with JWT tokens, password hashing, and protected routes",
         steps: [
           {
@@ -221,7 +221,7 @@ describe("PlanSchema", () => {
       assertEquals(result.success, true);
       if (result.success) {
         const plan: Plan = result.data;
-        assertEquals(plan.title, "Implement Authentication System");
+        assertEquals(plan.subject, "Implement Authentication System");
         assertEquals(plan.steps?.length, 2);
         assertEquals(plan.estimatedDuration, "2-3 hours");
         assertEquals(plan.risks?.length, 2);
@@ -230,7 +230,7 @@ describe("PlanSchema", () => {
 
     it("should validate minimal plan (required fields only)", () => {
       const planData = {
-        title: "Simple Plan",
+        subject: "Simple Plan",
         description: "A simple plan with minimal fields",
         steps: [
           {
@@ -244,7 +244,7 @@ describe("PlanSchema", () => {
       const result = PlanSchema.safeParse(planData);
       assertEquals(result.success, true);
       if (result.success) {
-        assertEquals(result.data.title, "Simple Plan");
+        assertEquals(result.data.subject, "Simple Plan");
         assertEquals(result.data.steps?.length, 1);
         assertEquals(result.data.estimatedDuration, undefined);
         assertEquals(result.data.risks, undefined);
@@ -253,9 +253,9 @@ describe("PlanSchema", () => {
   });
 
   describe("Invalid Plans", () => {
-    it("should reject plan with missing title", () => {
+    it("should reject plan with missing subject", () => {
       const planData = {
-        description: "Missing title",
+        description: "Missing subject",
         steps: [
           {
             step: 1,
@@ -269,14 +269,14 @@ describe("PlanSchema", () => {
       assertEquals(result.success, false);
       if (!result.success) {
         const errors = result.error as ZodError;
-        const titleError = errors.errors.find((e) => e.path.includes("title"));
-        assertExists(titleError);
+        const subjectError = errors.errors.find((e) => e.path.includes("subject"));
+        assertExists(subjectError);
       }
     });
 
     it("should reject plan with missing description", () => {
       const planData = {
-        title: "Has Title",
+        subject: "Has Subject",
         steps: [
           {
             step: 1,
@@ -297,7 +297,7 @@ describe("PlanSchema", () => {
 
     it("should reject plan with neither steps nor specialized fields", () => {
       const planData = {
-        title: "Has Title",
+        subject: "Has Subject",
         description: "Has description but no steps or specialized fields",
       };
 
@@ -312,7 +312,7 @@ describe("PlanSchema", () => {
 
     it("should reject plan with empty steps array", () => {
       const planData = {
-        title: "Empty Steps",
+        subject: "Empty Steps",
         description: "Steps array is empty",
         steps: [],
       };
@@ -321,9 +321,9 @@ describe("PlanSchema", () => {
       assertEquals(result.success, false);
     });
 
-    it("should reject plan with empty title", () => {
+    it("should reject plan with empty subject", () => {
       const planData = {
-        title: "",
+        subject: "",
         description: "Valid description",
         steps: [
           {
@@ -338,9 +338,9 @@ describe("PlanSchema", () => {
       assertEquals(result.success, false);
     });
 
-    it("should reject plan with title exceeding 300 characters", () => {
+    it("should reject plan with subject exceeding 80 characters", () => {
       const planData = {
-        title: "A".repeat(301),
+        subject: "A".repeat(81),
         description: "Valid description",
         steps: [
           {
@@ -363,7 +363,7 @@ describe("PlanSchema", () => {
       }));
 
       const planData = {
-        title: "Too Many Steps",
+        subject: "Too Many Steps",
         description: "This plan has too many steps",
         steps,
       };
@@ -378,7 +378,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
   describe("Code Analysis Plans", () => {
     it("should validate plan with analysis field", () => {
       const planData = {
-        title: "Codebase Analysis Report",
+        subject: "Codebase Analysis Report",
         description: "Comprehensive analysis of project structure",
         analysis: {
           totalFiles: 42,
@@ -427,7 +427,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
 
     it("should validate minimal analysis plan", () => {
       const planData = {
-        title: "Basic Analysis",
+        subject: "Basic Analysis",
         description: "Simple code analysis",
         analysis: {},
       };
@@ -440,7 +440,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
   describe("Security Analysis Plans", () => {
     it("should validate plan with security field", () => {
       const planData = {
-        title: "Security Analysis Report",
+        subject: "Security Analysis Report",
         description: "Security assessment and vulnerability analysis",
         security: {
           executiveSummary: "Overall security posture is good",
@@ -476,7 +476,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
 
     it("should reject invalid severity level", () => {
       const planData = {
-        title: "Security Report",
+        subject: "Security Report",
         description: "Invalid security analysis",
         security: {
           findings: [
@@ -493,7 +493,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
       } as PlanData;
 
       interface PlanData {
-        title: string;
+        subject: string;
         description: string;
         security?: {
           findings?: Array<{
@@ -516,7 +516,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
   describe("QA/Testing Plans", () => {
     it("should validate plan with QA field", () => {
       const planData = {
-        title: "QA Assessment Report",
+        subject: "QA Assessment Report",
         description: "Quality assurance and testing analysis",
         qa: {
           testSummary: [
@@ -562,7 +562,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
 
     it("should accept unit coverage and alternative e2e shape", () => {
       const planData = {
-        title: "QA Coverage Report",
+        subject: "QA Coverage Report",
         description: "QA coverage with unit and e2e cases",
         qa: {
           coverage: {
@@ -596,7 +596,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
   describe("Performance Analysis Plans", () => {
     it("should validate plan with performance field", () => {
       const planData = {
-        title: "Performance Analysis Report",
+        subject: "Performance Analysis Report",
         description: "Performance optimization assessment",
         performance: {
           executiveSummary: "Performance adequate with opportunities",
@@ -638,7 +638,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
   describe("Mixed Agent Types", () => {
     it("should validate plan with both steps and analysis", () => {
       const planData = {
-        title: "Implementation with Analysis",
+        subject: "Implementation with Analysis",
         description: "Plan that includes both execution steps and analysis",
         steps: [
           {
@@ -666,7 +666,7 @@ describe("PlanSchema - Specialized Agent Fields", () => {
 
     it("should validate plan with only specialized fields (no steps)", () => {
       const planData = {
-        title: "Analysis Only Report",
+        subject: "Analysis Only Report",
         description: "Report that contains only analysis data",
         security: {
           executiveSummary: "Security assessment complete",

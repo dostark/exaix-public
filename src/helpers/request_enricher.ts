@@ -12,13 +12,14 @@ import type { IRequestMetadata } from "../cli/commands/request_commands.ts";
 
 export interface IRequestEnrichable {
   request_id?: string;
-  request_title?: string;
+  request_subject?: string;
   request_agent?: string;
   request_portal?: string;
   request_priority?: string;
   request_created_by?: string;
   request_flow?: string;
   request_rejected_path?: string;
+  subject?: string;
 }
 export async function enrichWithRequest<T extends IRequestEnrichable>(
   requestCommands: RequestCommands,
@@ -55,13 +56,14 @@ export async function enrichWithRequest<T extends IRequestEnrichable>(
 
     return {
       ...metadata,
-      request_title: title,
+      request_subject: title,
       request_agent: request.agent,
       request_portal: request.portal,
       request_priority: request.priority,
       request_created_by: request.created_by,
       request_flow: (request as IRequestMetadata & { flow?: string }).flow,
       request_rejected_path: (request as IRequestMetadata & { rejected_path?: string }).rejected_path,
+      subject: request.subject || metadata.subject,
     };
   } catch (error) {
     // If request can't be loaded, continue without request info

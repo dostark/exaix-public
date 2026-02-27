@@ -190,7 +190,7 @@ export class MockRequestService {
       {
         trace_id: "12345678-abcd-1234-5678-123456789abc",
         filename: "request-12345678.md",
-        title: "Request 12345678",
+        subject: "Request 12345678",
         status: RequestStatus.PENDING,
         priority: RequestPriority.NORMAL,
         agent: "default",
@@ -209,7 +209,7 @@ export class MockRequestService {
       {
         trace_id: "87654321-abcd-1234-5678-123456789abc",
         filename: "request-87654321.md",
-        title: "Request 87654321",
+        subject: "Request 87654321",
         status: RequestStatus.PLANNED,
         priority: RequestPriority.HIGH,
         agent: "code-reviewer",
@@ -253,7 +253,7 @@ High priority feature request.`);
     const newRequest = {
       trace_id: crypto.randomUUID(),
       filename: `request-${crypto.randomUUID().slice(0, 8)}.md`,
-      title: `Request ${crypto.randomUUID().slice(0, 8)}`,
+      subject: `Request ${crypto.randomUUID().slice(0, 8)}`,
       status: RequestStatus.PENDING,
       priority: options?.priority || RequestPriority.NORMAL,
       agent: options?.agent || "default",

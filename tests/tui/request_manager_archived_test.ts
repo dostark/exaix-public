@@ -22,7 +22,7 @@ class MockRequestService implements IRequestService {
       {
         trace_id: "trace1",
         filename: "req1.md",
-        title: "Request 1",
+        subject: "Request 1",
         status: RequestStatus.PENDING,
         priority: RequestPriority.NORMAL,
         agent: "agent1",
@@ -35,7 +35,7 @@ class MockRequestService implements IRequestService {
       requests.push({
         trace_id: "trace2",
         filename: "req2.md",
-        title: "Archived Request",
+        subject: "Archived Request",
         status: RequestStatus.COMPLETED,
         priority: RequestPriority.LOW,
         agent: "agent1",

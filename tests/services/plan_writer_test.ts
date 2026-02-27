@@ -70,7 +70,7 @@ Deno.test("PlanWriter: writePlan creates plan file with correct structure", asyn
     };
 
     const planJson = JSON.stringify({
-      title: "Test Implementation Plan",
+      subject: "Test Implementation Plan",
       description: "A test plan for validation",
       steps: [
         {
@@ -132,7 +132,7 @@ Deno.test("PlanWriter: writePlan handles minimal plan content", async () => {
     };
 
     const minimalPlanJson = JSON.stringify({
-      title: "Minimal Plan",
+      subject: "Minimal Plan",
       description: "Just the basics",
       steps: [
         {
@@ -191,7 +191,7 @@ Deno.test("PlanWriter: writePlan includes token stats in frontmatter", async () 
     };
 
     const planJson = JSON.stringify({
-      title: "Token Plan",
+      subject: "Token Plan",
       description: "Plan with token stats",
       steps: [
         {
@@ -233,7 +233,7 @@ Deno.test("PlanWriter: writePlan logs activity when database available", async (
     };
 
     const planJson = JSON.stringify({
-      title: "Logging Test Plan",
+      subject: "Logging Test Plan",
       description: "Test logging functionality",
       steps: [{ step: 1, title: "Test", description: "Test step" }],
     });
@@ -277,7 +277,7 @@ Deno.test("PlanWriter: writePlan works without database (testing mode)", async (
     };
 
     const planJson = JSON.stringify({
-      title: "No DB Plan",
+      subject: "No DB Plan",
       description: "Test without database",
       steps: [{ step: 1, title: "Test", description: "Test step" }],
     });
@@ -308,7 +308,7 @@ Deno.test("PlanWriter: writePlan handles invalid JSON gracefully", async () => {
     };
 
     // Invalid JSON that should cause validation error
-    const invalidJson = '{ "title": "Broken JSON", invalid }';
+    const invalidJson = '{ "subject": "Broken JSON", invalid }';
     const result = createMockExecutionResult(invalidJson);
 
     // Should throw an error for invalid JSON

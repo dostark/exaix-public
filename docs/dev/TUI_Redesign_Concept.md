@@ -2,16 +2,16 @@
 
 ## Overview
 
-The new ExoFrame TUI provides a high-efficiency transition from a simple CLI to a powerful command center. Inspired by classic file managers (**Midnight Commander**, **FAR Manager**), it features a tiled multi-pane interface for managing requests, plans, and executing agentic workflows simultaneously.
+The new ExoFrame TUI provides a high-efficiency transition from a simple CLI to a powerful command center. Inspired by classic file managers (**Midnight Commander**, **FAR Manager**), it features a **tab-based** interface where each view occupies the full main area, with optional **split-view** for master-detail exploration of entities.
 
 ## Core Design Principles
 
-1. **Grid-Based Multi-Pane Layout**: Support for 1 to 4 concurrent, non-overlapping views.
+1. **Tab-Based Layout**: Each view opens as a full-screen tab occupying the entire main area. A Tab Switch Bar provides instant access to all open views.
 2. **Fixed Navigation Elements**: Consistent top-level menu and bottom-level control bars.
-3. **Adaptive UI**: Graceful wrapping of menus and control bars for varying terminal widths. Minimum terminal size: **80×24** (single pane), **160×48** (quad pane).
-4. **Modal Flexibility**: Switch between tiled views (Panes) and focused full-size (Tabbed) mode.
-5. **No Overlap**: Panes are tiled, ensuring no information is hidden unless explicitly requested via overlays.
-6. **Deep Traceability**: First-class support for navigating the lifecycle of a request (Request -> Plans -> Reviews).
+3. **Adaptive UI**: Graceful wrapping of menus and control bars for varying terminal widths. Minimum terminal size: **80×24**.
+4. **Split-View Detail**: Entities with detail views can be explored via an inline horizontal or vertical split within the current tab.
+5. **Borderless Content**: No vertical frame borders around the main content area — only a vertical dotted line (`┊`) appears as a scroll indicator when content overflows.
+6. **Deep Traceability**: First-class support for navigating the lifecycle of a request (Request → Plans → Reviews).
 7. **Functional Completeness**: Modernized implementation of all existing features from the legacy TUI, prioritized for efficiency and F-key interaction.
 
 ---
@@ -30,60 +30,96 @@ A horizontal bar at the top of the terminal.
   - **Breadcrumbs**: Shows the logical path within the active view (e.g., `Workspace > Plans > fix-bug-123`).
 - **Responsiveness**: If terminal width is insufficient, categories wrap into mandatory next lines.
 
-### 2. Main Workspace (Panes vs. Tabs)
+### 2. Main Workspace (Tabs)
 
-The central area manages component views.
+The central area displays one view at a time. Each view occupies **100%** of the main area (no vertical frame borders). Multiple views are managed as **tabs**.
 
-#### Tiled Mode (Panes)
+#### Tab Switch Bar
 
-- **Single Pane**: Occupies 100% of the TUI window.
-- **Multi-Pane**: Fixed **50/50 ratio** for vertical/horizontal splits (2 views) or quadrant splits (4 views).
-- **Anchoring**: Panes are tiled and anchored to specific quadrants (Top-Left, Top-Right, etc.).
-- **Focus Highlighting**: The **active view** is visually distinguished by a **colored border** (e.g., Bright Cyan or Yellow) to clearly indicate where keyboard input is directed. Inactive panes use standard grey borders.
+A horizontal bar on **line 3** (below breadcrumbs) showing all open tabs:
 
-#### Tabbed Mode (Tabs)
+```
+[File] [Views] [Commands] [Settings] [Help]  |  Agent: Active  🔔 2  💰 $1.24  |  17:30
+Workspace > Requests > REQ-1024
+[ Requests ][ Plans ][ Reviews ][ Agents ][ + Create Request ]
+──────────────────────────────────────────────────────────────────────────────────
+(main content area — current tab occupies full width, no left/right borders)
+```
 
-- All tiled panes can be converted to **Full-size tabs**.
-- Switching between components is done via hotkeys (e.g., `Alt+1`, `Alt+2`) or a tab bar visible at the top of the workspace.
+- **Tab bar background**: The entire Tab Switch Bar row uses a **distinct background color** — darker than the main content area and different from the top menu bar (e.g., `\e[48;5;235m` on dark theme). This creates a clear three-layer visual hierarchy: top bar → tab bar → content.
+- **Active tab**: **Cyan background** + White Bold text.
+- **Inactive tabs**: Separated by **alternating background shading** (similar to column banding) — odd tabs use the tab bar base color, even tabs use a slightly lighter variant (~5% brightness shift). No vertical separators between tabs.
+- **Closeable tabs**: Tabs opened dynamically (e.g., Create Request, Detail Viewer) show a `[×]` suffix and can be closed with `Ctrl+W`.
+- **Pinned tabs**: Core views (Requests, Plans, Reviews, etc.) opened from `[Views]` menu are pinned and cannot be closed.
+- **Switching**: `Alt+1`..`Alt+9` by position, or `Alt+Left`/`Alt+Right` to cycle adjacent tabs.
+- **New tab**: `Ctrl+T` opens a tab picker listing available views.
+- **Tab overflow**: When tabs exceed terminal width, `◄` and/or `►` angle indicators appear on the left/right edge to show hidden tabs exist in that direction. Scroll with `Alt+Left`/`Alt+Right` or `Alt+1`..`Alt+9` to jump directly.
 
-#### Linked Detail Mode (Master-Detail)
+#### Split-View Detail (Master-Detail)
 
-For entities supporting a `show` command, the TUI provides a linked split-view:
+For entities supporting a `show` command, the current tab can split into two sections:
 
-- **Operation**: The pane is split to show the **Entity List** (Master) in one tile and the **Focused Entity Details** (Detail) in the other.
-- **Directionality**: Users can toggle between **Horizontal split** (Master top, Detail bottom) and **Vertical split** (Master left, Detail right) using **`Alt+V`**.
-- **Update Logic**: Moving the cursor in the Master list automatically refreshes the Detail tile's content.
-- **Focus & Scrolling**:
-  - When in Master-Detail mode, **`Tab`** toggles focus **within the pane** between the Master list and the Detail tile. This takes priority over pane switching.
-  - Use **`Ctrl+Tab`** / **`Ctrl+Shift+Tab`** to switch between **panes** when in Master-Detail mode.
-  - When focus is in the Detail tile, its **border highlights** and standard **Arrow/Page Up/Down** keys scroll the detail content independently.
-- **Toggle Mode**: Use **`Alt+S`** to toggle the entire Master-Detail mode on/off for the active view.
+- **Operation**: Pressing **`F3`** (View) or **`F11`** (Toggle Split) splits the current tab in half to show the **Entity List** (Master) and **Entity Details** (Detail) side by side.
+- **Split Direction**: **`Alt+V`** cycles through: **Horizontal split** (Master top, Detail bottom) → **Vertical split** (Master left, Detail right) → **Off** (close detail, return to full-screen list).
+- **Separator**: A dotted line (`┈` horizontal) or thin solid line (`│` vertical) separates the two sections.
+- **Update Logic**: Moving the cursor in the Master list automatically refreshes the Detail section content.
+- **Focus**:
+  - **`Tab`** toggles focus between the Master and Detail sections.
+  - When the Detail section has focus, **Arrow/Page Up/Down** keys scroll the detail content independently.
+- **Detail in Separate Tab**: Alternatively, pressing **`Ctrl+Enter`** on an entity opens its detail view in a **new tab** instead of splitting the current one.
 
 #### Linked Entity Navigation (Traceability)
 
 The TUI provides a "Lifecycle Explorer" for traversing connected entities:
 
 - **Operation**: Pressing **`Alt+L`** (Links) opens a contextual overlay listing all entities sharing the same **Trace ID**.
-- **Drill-down**: Selecting a linked item (e.g., a Review related to a Plan) and pressing **`Enter`** navigates the current pane/tab to that entity's view.
+- **Drill-down**: Selecting a linked item (e.g., a Review related to a Plan) and pressing **`Enter`** navigates the current tab to that entity's view.
 - **Breadcrumb Navigation**: The top-bar breadcrumbs track this "Jump History" (e.g., `Request > Plan > Review`).
-- **Backwards Navigation**: Pressing **`Backspace`** or **`Alt+Left`** returns to the previous entity in the trace stack.
+- **Backwards Navigation**: Pressing **`Backspace`** returns to the previous entity in the trace stack.
 
 #### Correlated Log Viewing
 
 Jump directly from any business entity to its execution logs:
 
-- **Operation**: Pressing **`Alt+G`** (Go to Logs) while focusing an entity (Request, Plan, or Review) opens a **Correlated Log View**.
+- **Operation**: Pressing **`Alt+G`** (Go to Logs) while focusing an entity opens a **Correlated Log View** in a new tab.
 - **Filtering**: The log view is automatically filtered by the entity's **Trace ID**.
-- **Deep Inspection**: The log view itself utilizes the **Master-Detail split**:
+- **Deep Inspection**: The log view uses the **Split-View Detail**:
   - **Master**: A scrollable list of log events (Timestamp/Level/Message).
   - **Detail**: A full breakdown of **all metadata fields** (structured JSON/Table) for the selected log entry.
-- **Context Return**: Pressing **`ESC`** or **`Backspace`** returns focus to the original entity view.
+- **Context Return**: Pressing **`ESC`** or closing the log tab returns focus to the original entity view.
 
-### 3. Bottom Control Bar (Contextual Actions)
+### 3. Confirmation Bar (Inline Dialogs)
+
+A narrow area (1–2 rows) between the main content area and the Bottom Control Bar. Used for quick confirm/cancel prompts without obscuring the content.
+
+- **Size**: 1 row for simple confirmations, 2 rows when additional context is needed.
+- **Visibility**: Hidden by default — appears only when an action requires confirmation, pushing the content area up by 1–2 rows.
+- **Background**: **Yellow/Amber background** (`\e[43m`) to draw attention — visually distinct from both the content area and the control bar.
+- **Text**: **Black Bold** on the amber background for maximum contrast.
+- **Layout**: Prompt text on the left, action buttons on the right.
+
+```
+Delete REQ-1024 "Implement dark mode"?                          [Y] Yes  [N] No
+```
+
+Two-row example (with context):
+
+```
+Approve plan plan-87a3 for execution? This will start the agent workflow.
+Estimated cost: ~$0.45                                          [Y] Yes  [N] No
+```
+
+- **Keyboard**: `Y` or `Enter` confirms, `N` or `ESC` cancels. No mouse interaction needed.
+- **Auto-dismiss**: The bar disappears immediately after the user responds.
+- **Scope**: Used for destructive actions (`F8 Delete`), state changes (`F6 Approve/Reject`), and execution triggers (`F7 Execute`). Non-destructive actions (view, filter, sort) do not require confirmation.
+
+![Confirmation Bar — Inline Delete Confirmation](gallery/confirmation_bar_view.png)
+
+### 4. Bottom Control Bar (Contextual Actions)
 
 A functional bar mapped to F-keys and common actions.
 
-- **Dynamic Adaptability**: Labels and functions **change dynamically** based on which pane/tab currently has focus.
+- **Dynamic Adaptability**: Labels and functions **change dynamically** based on which tab currently has focus.
 - **Two-Line Layout**:
   - **Line 1 (F-Keys)**: Primary F-key commands for the active view.
   - **Line 2 (Alt-Keys)**: Contextual `Alt+...` shortcuts available in the current mode (e.g., `Alt+S Detail`, `Alt+L Links`, `Alt+G Logs`).
@@ -104,19 +140,29 @@ A functional bar mapped to F-keys and common actions.
   - **Git Browser**: `F3 View Diff`, `F5 Checkout`, `F7 Log by Trace`, `F9 Filter`.
   - **Activity Journal**: `F3 View Payload`, `F7 Filter`, `F9 Format Toggle`.
 - **Responsiveness**: Wraps into multiple lines if the terminal window is narrow.
+- **Rendering**:
+  - **Bar background**: The bottom bar uses a **distinct background color** — matching the Tab Switch Bar tone (e.g., `\e[48;5;235m`), creating a visual "bookend" frame around the main content area: tab bar on top, control bar on bottom.
+  - **F-key buttons**: Each button uses **alternating background shading** (consistent with tab bar and column banding). Odd buttons use the bar base color, even buttons use a slightly lighter variant. The active/pressed button flashes **Cyan background** briefly.
+  - **F-key label format**: Key name in **Bold** + label in Normal, separated by a space: **`F5`** `Create`.
+  - **Disabled actions**: Actions not available in the current context render in **Dark Grey** (`\e[90m`) — visible but not interactive.
+
+```
+F1 Help  F2 Menu  F3 View  F4 Edit  F5 Create  F6 Approve       F8 Delete  F10 Quit
+Alt+V Split  Alt+L Links  Alt+G Logs  Ctrl+T New Tab  Ctrl+P Palette  Ctrl+R Refresh
+```
 
 ---
 
 ## View Examples by Component
 
-Each view is shown in its most common layout configuration. Views with Master-Detail support include both single-pane and detail-mode examples.
+Each view is shown in its most common layout configuration. Views with Master-Detail support include both full-screen and split-view examples.
 
 > **Validity Note**: The mockups below have been regenerated to match the current design spec (correct F-key labels, two-line bottom bar, `[Settings]` menu, notification badge, cost indicator). Earlier mockups from the legacy gallery have been superseded.
 
 ### Request Manager
 
 ```carousel
-![Request Manager — Single Pane](gallery/request_manager_single.png)
+![Request Manager — Full-Screen Tab](gallery/request_manager_single.png)
 <!-- slide -->
 ![Request Manager — Master-Detail (Horizontal)](gallery/request_manager_detail.png)
 ```
@@ -149,7 +195,7 @@ Each view is shown in its most common layout configuration. Views with Master-De
 
 The Blueprint Manager includes an integrated **Entity Browser** (`F9`) with three tabs:
 
-| Tab        | Content                              | Columns                             | Detail Pane Shows                                 |
+| Tab        | Content                              | Columns                             | Detail Section Shows                              |
 | ---------- | ------------------------------------ | ----------------------------------- | ------------------------------------------------- |
 | **Agents** | All registered agent blueprints      | Agent ID, Name, Model, Capabilities | Full TOML definition, system prompt preview       |
 | **Skills** | Core, project, and learned skills    | Skill ID, Name, Category, Triggers  | Full description, instructions, matched learnings |
@@ -157,14 +203,14 @@ The Blueprint Manager includes an integrated **Entity Browser** (`F9`) with thre
 
 **Interaction**:
 
-- **Arrow keys** navigate the list, **`Enter`** or **`F3`** shows details in the Detail pane.
+- **Arrow keys** navigate the list, **`Enter`** or **`F3`** shows details in the Detail section.
 - **`Space`** toggles selection (multi-select supported). Selected items show a `[✓]` checkmark.
-- **`F6` Use in Request**: Opens the **Create Request** form pre-filled with the selected agent and any selected skills/tools attached. If multiple agents are selected, the first is set as the agent and a flow is suggested.
-- **`Alt+B`** is a global shortcut to open the Entity Browser as a modal overlay from any view, including from within the Request create form.
+- **`F6` Use in Request**: Opens the **Create Request** tab pre-filled with the selected agent and any selected skills/tools attached. If multiple agents are selected, the first is set as the agent and a flow is suggested.
+- **`Alt+B`** is a global shortcut to open the Entity Browser as a modal overlay from any view, including from within the Request create tab.
 
 #### Request Creation Integration
 
-When creating a request via **`F5`** in Request Manager, the create form includes:
+When creating a request via **`F5`** in Request Manager, a **new tab** opens with the create form:
 
 ```
 ┌─────────── Create New Request ───────────┐
@@ -191,21 +237,13 @@ When creating a request via **`F5`** in Request Manager, the create form include
 ### Agent Status
 
 ```carousel
-![Agent Status — Single Pane](gallery/agent_status_view.png)
+![Agent Status — Full-Screen Tab](gallery/agent_status_view.png)
 ```
 
 ### Daemon Control
 
 ```carousel
 ![Daemon Control — Status + Real-Time Logs](gallery/daemon_control_view.png)
-```
-
-### Multi-Pane Layouts
-
-```carousel
-![Dual Pane — Request Manager + Monitor View](gallery/dual_pane_example.png)
-<!-- slide -->
-![Quad Pane — Four Concurrent Views](gallery/multi_pane_view.png)
 ```
 
 ### Interaction Features
@@ -220,7 +258,7 @@ When creating a request via **`F5`** in Request Manager, the create form include
 
 ## Specialized Detail Viewers
 
-When `F3` (View) or `Alt+S` (Detail) is pressed on an entity, the Detail pane renders a **structured viewer** — not raw text. Each viewer uses consistent color-coded sections, collapsible regions, and contextual inline actions.
+When `F3` (View) or `F11` (Toggle Split) is pressed on an entity, the Detail section renders a **structured viewer** — not raw text. Each viewer uses consistent color-coded sections, collapsible regions, and contextual inline actions.
 
 ### Color Coding Convention
 
@@ -239,7 +277,7 @@ When `F3` (View) or `Alt+S` (Detail) is pressed on an entity, the Detail pane re
 
 ![Request Detail Viewer — Structured Sections with Lifecycle Pipeline](gallery/request_detail_viewer.png)
 
-Displayed in the Detail pane when viewing a request from Request Manager.
+Displayed in the Detail section when viewing a request from Request Manager.
 
 ```
 ═══ REQUEST ══════════════════════════════════════
@@ -438,7 +476,7 @@ Displayed when viewing an agent from Agent Status.
 
 - **Collapsible Sections**: Click `[▼]` / `[▶]` or press `Enter` on a section header to expand/collapse. All sections default to expanded except long lists (>5 items).
 - **Clipboard**: `Ctrl+C` copies the focused value (trace ID, branch name, etc.). `[click to copy]` indicators show copyable fields.
-- **Navigation Links**: `[→ View ...]` badges are tab-navigable. `Enter` opens the linked entity in a new Detail pane or tab.
+- **Navigation Links**: `[→ View ...]` badges are tab-navigable. `Enter` opens the linked entity in a new Detail section or tab.
 - **Scroll**: Arrow keys scroll within the viewer. `Home` / `End` jump to top/bottom.
 - **Search**: `Ctrl+F` opens a text search within the viewer content.
 
@@ -453,6 +491,310 @@ While Blue/Cyan and Blue/White are available, they are not default. Users can ch
 | **Midnight Classic** | `#000080` (Navy) | `#FFFFFF`    | `#00FFFF` (Cyan)   | Legibility & Nostalgia    |
 | **Monokai Dark**     | `#272822`        | `#F8F8F2`    | `#A6E22E` (Green)  | Modern coding feel        |
 | **Cyber Matrix**     | `#000000`        | `#00FF00`    | `#FFFF00` (Yellow) | Contrast & Retro-Futurism |
+
+---
+
+## Visual Rendering Style Guide
+
+This section defines the consistent rendering rules for all TUI elements. Every view and component **must** follow these conventions to ensure visual coherence.
+
+### Box-Drawing Characters
+
+The TUI uses a minimal set of box-drawing characters. **No vertical lines** are used in the main content area except the dotted scroll indicator.
+
+| Context                               | Characters                        | Example                  |
+| ------------------------------------- | --------------------------------- | ------------------------ |
+| **Tab Switch Bar separator**          | Thin dash: `─`                    | `──────────────────────` |
+| **Split-view separator (horizontal)** | Dotted: `┈`                       | `┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈`     |
+| **Split-view separator (vertical)**   | Thin solid: `│`                   | Vertical solid line      |
+| **Scroll indicator (vertical)**       | Dotted: `┊`                       | Right edge of content    |
+| **Horizontal overflow indicators**    | Angle signs: `◄` `►`              | `◄` left / `►` right     |
+| **Section headers (detail viewer)**   | Double-line fill: `═══ LABEL ═══` | `═══ ASSIGNMENT ═══`     |
+| **Table header underline**            | Thin dash: `─`                    | `──────────────────────` |
+| **Dividers (horizontal rule)**        | Thin dash repeated: `────`        | Section separators       |
+| **Modal borders**                     | Single-line: `┌ ─ ┐ │ └ ┘`        | `┌── Title ──┐`          |
+
+> **Key rules**:
+>
+> - **No vertical frame borders** around the main content area. Content fills the full terminal width.
+> - **No vertical pipe separators** (`│`) for table columns — use spacing (2+ chars) between columns instead.
+> - The **only vertical lines** in content are: thin solid `│` for vertical split-view separators, and dotted `┊` for scroll indicators.
+
+### Tab & Content Rendering
+
+The main content area has **no surrounding frame**. Content spans edge-to-edge.
+
+#### Full-Screen Tab (Default)
+
+```
+[ Requests ][ Plans ][ Reviews ][ Agents ]
+──────────────────────────────────────────
+  ID        Status       Subject
+  ────────────────────────────────────────
+  REQ-1024  ⏳ Pending   Implement dark...
+  REQ-1023  ✅ Approved  Fix login bug
+  REQ-1022  ❌ Rejected  Update docs
+                                     42%  ┊
+```
+
+- **No left/right borders**: Content extends to terminal edges with 1-char padding.
+- **Top separator**: A thin `─` line separates the Tab Switch Bar from content.
+- **Scroll indicator**: Dotted `┊` on the right edge when content overflows vertically, with `NN%` badge in the top-right.
+- **Horizontal overflow**: When content is wider than the visible area, `◄` appears at the left edge and/or `►` at the right edge to indicate hidden content in that direction. Scroll with `Ctrl+Left`/`Ctrl+Right`.
+
+#### Split-View (Horizontal)
+
+When Master-Detail is active with horizontal split:
+
+```
+[ Requests ][ Plans ][ Reviews ]
+──────────────────────────────────────────
+  REQ-1024  ⏳ Pending   Implement dark...
+  REQ-1023  ✅ Approved  Fix login bug
+  REQ-1022  ❌ Rejected  Update docs
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+  ═══ REQUEST ═══
+  Trace ID:  1b253a71d-9a3b...
+  Status:    ● PENDING
+  ═══ ASSIGNMENT ═══
+  Agent:     default [→ View Agent]
+```
+
+- **Separator**: Dotted `┈` line spanning full width.
+- **Active section**: The section with focus shows its header/content at normal brightness.
+- **Inactive section**: Slightly dimmed (~20% less brightness).
+
+#### Split-View (Vertical)
+
+When Master-Detail is active with vertical split:
+
+```
+[ Requests ][ Plans ][ Reviews ]
+──────────────────────────────────────────
+  REQ-1024 ⏳ Pending │ ═══ REQUEST ═══
+  REQ-1023 ✅ Approved│ Trace ID: 1b25..
+  REQ-1022 ❌ Rejected│ Status: ● PEND
+                      │ ═══ ASSIGNMENT
+                      │ Agent: default
+```
+
+- **Separator**: Thin solid `│` vertical line (distinct from dotted `┊` scroll indicator).
+- **Width split**: 50/50 ratio.
+- **Focus indicator**: Same dimming rules as horizontal split.
+
+### Selection & Highlighting
+
+Consistent highlighting rules for all list/table views:
+
+| State                                         | Visual Treatment                                | ANSI Attributes |
+| --------------------------------------------- | ----------------------------------------------- | --------------- |
+| **Cursor row** (keyboard focus)               | Full-width **Cyan background**, White Bold text | `\e[1;37;46m`   |
+| **Selected item** (multi-select with `Space`) | **Checkmark `[✓]`** prefix, **Green** text      | `\e[32m`        |
+| **Cursor + Selected**                         | Cyan background + Green Bold text + `[✓]`       | `\e[1;32;46m`   |
+| **Hover row** (mouse)                         | **Underline**, no background change             | `\e[4m`         |
+| **Disabled/greyed out**                       | **Dark Grey** text, no interactions             | `\e[90m`        |
+| **Error row**                                 | **Red** text, `⚠` prefix                        | `\e[31m`        |
+| **New/unread**                                | **Bold** text + `●` prefix (bright dot)         | `\e[1m`         |
+
+#### Table Header Row
+
+- **Background**: Slightly lighter than content area (e.g., `#001a33` on navy).
+- **Text**: **Bold White**, all-caps optional.
+- **Separator**: Thin `─` underline spanning full width.
+- **Sticky**: Header row does not scroll; it stays pinned at the top of the list.
+
+#### Column Banding
+
+Since no vertical pipe separators (`│`) are used, columns are visually separated by **alternating background shading**:
+
+- **Odd columns** (1st, 3rd, …): Standard content background.
+- **Even columns** (2nd, 4th, …): Slightly lighter background (e.g., `\e[48;5;234m` on dark theme — a subtle 5–8% brightness shift).
+- **Cursor row**: Column banding is suppressed; the entire row uses the Cyan cursor background.
+- **Spacing**: At least 2 characters of padding between columns to reinforce separation.
+
+#### Column Alignment
+
+| Data Type                        | Alignment                       |
+| -------------------------------- | ------------------------------- |
+| ID / Name / Text                 | Left-aligned                    |
+| Status                           | Left-aligned (with icon prefix) |
+| Numbers (tokens, cost, priority) | Right-aligned                   |
+| Dates / Timestamps               | Right-aligned                   |
+| Actions (rightmost column)       | Right-aligned                   |
+
+#### Inline Actions Column
+
+Every entity list table includes a **rightmost Actions column** displaying compact icon buttons for context-sensitive operations. Each icon corresponds to an F-key action. Icons are **colored when valid** and **Dark Grey (`\e[90m`) when not applicable** for the item's current state.
+
+```
+ID        Status         Priority   Subject                      Actions
+────────────────────────────────────────────────────────────────────────
+REQ-1024  ⏳ Pending     High       Implement dark mode           👁 ✏ ✓ ✗ 🗑
+REQ-1023  ✅ Approved    Medium     Fix login bug                 👁 ✏ ✓ ✗ 🗑
+REQ-1022  ❌ Rejected    Low        Update docs                   👁 ✏ ✓ ✗ 🗑
+```
+
+In the example above, for `REQ-1023` (Approved): `✓` (Approve) would be grayed out since already approved, while `👁` (View), `✏` (Edit), `✗` (Reject), and `🗑` (Delete) remain active.
+
+##### Action Icons by View
+
+| View                  | Icons (left to right) | Mapping                                               |
+| --------------------- | --------------------- | ----------------------------------------------------- |
+| **Request Manager**   | `👁 ✏ ✓ ✗ 🗑`           | F3 View, F4 Edit, F6 Approve, F6 Reject, F8 Delete    |
+| **Plan Reviewer**     | `👁 📝 ✓ ✗ ▶`          | F3 Diff, F4 Revise, F5 Approve, F6 Reject, F7 Execute |
+| **Review Manager**    | `👁 ✓ ✗`               | F3 Diff, F5 Approve, F6 Reject                        |
+| **Portal Manager**    | `👁 ✏ ✔ 🗑`             | F3 View, F6 Edit, F7 Verify, F8 Remove                |
+| **Blueprint Manager** | `👁 ✏ ✔ 🗑`             | F3 View TOML, F4 Edit, F7 Validate, F8 Remove         |
+| **Archive Explorer**  | `👁`                   | F3 View                                               |
+
+##### Rendering Rules
+
+- **Available action**: Rendered in its standard color (see Status Badge Palette).
+- **Unavailable action**: Rendered in **Dark Grey** (`\e[90m`) — visible but non-interactive.
+- **Cursor row**: Action icons inherit the Cyan cursor background; available icons become **White Bold**, unavailable remain **Dark Grey**.
+- **Click/Enter**: Clicking an action icon or pressing its F-key triggers the action on the row's entity.
+- **Column width**: Fixed width based on the number of actions for the view (typically 5–10 characters).
+- **Visibility**: The Actions column is shown only in **full-width tab** and **horizontal split** views. In **vertical split** view, the column is **hidden** to conserve horizontal space — users rely on F-keys and the bottom bar instead.
+
+### Status Badge Palette
+
+All status indicators use a consistent color + icon vocabulary:
+
+| Status               | Icon | Color        | ANSI     |
+| -------------------- | ---- | ------------ | -------- |
+| Active / Running     | `●`  | Bright Green | `\e[92m` |
+| Pending / Queued     | `⏳` | Yellow       | `\e[33m` |
+| Approved / Completed | `✅` | Green        | `\e[32m` |
+| Rejected / Failed    | `❌` | Red          | `\e[31m` |
+| In Review            | `●`  | Cyan         | `\e[36m` |
+| Draft                | `○`  | Grey         | `\e[90m` |
+| Blocked / Error      | `⚠`  | Bright Red   | `\e[91m` |
+| Idle                 | `●`  | Dark Grey    | `\e[90m` |
+
+Status text is always rendered **inline** after the icon with a single space: `● Active`, `⏳ Pending`.
+
+### Interactive Element Styling
+
+#### Buttons & Action Labels
+
+Buttons in the bottom bar, detail viewer, and modals follow this format:
+
+| Context                      | Style                             | Example           |
+| ---------------------------- | --------------------------------- | ----------------- |
+| **Bottom bar F-key**         | `F-key` in Bold + Label in Normal | **`F5`** `Create` |
+| **Inline action**            | Bracketed, Blue underlined        | `[→ View Agent]`  |
+| **Modal button (focused)**   | Cyan background, White Bold       | `[ Submit ]`      |
+| **Modal button (unfocused)** | Grey border, Normal text          | `[ Cancel ]`      |
+| **Destructive action**       | Red text                          | `[ Delete ]`      |
+
+#### Text Input Fields
+
+```
+Label:  [value________________]     (unfocused)
+Label:  [value________________]     (focused: cyan border + cursor)
+```
+
+- **Unfocused**: Single-line border, grey.
+- **Focused**: Single-line border, **Bright Cyan** + blinking cursor `▌`.
+- **Invalid/Error**: **Red** border + error text below in Red Italic.
+- **Placeholder**: Dim Grey italic text when empty.
+
+#### Dropdown Menus
+
+```
+Agent:  [senior-coder     ▼]
+        ┌─────────────────┐
+        │ ● senior-coder  │  ← highlighted
+        │   default        │
+        │   reviewer       │
+        │   security-bot   │
+        └─────────────────┘
+```
+
+- **Closed**: Value + `▼` chevron in single-line box.
+- **Open**: Single-line dropdown overlaid below, selected item has **Cyan background**.
+- **Max visible items**: 8 (scrollbar appears if more).
+
+### Modal & Overlay Rendering
+
+Modals and overlays float above the main content.
+
+```
+┌──────────── Title ────────────┐
+│                               │   ← 1-char padding inside
+│   Content                     │
+│                               │
+│   [Action 1]   [Action 2]    │   ← buttons right-aligned
+└───────────────────────────────┘
+```
+
+- **Border**: Single-line box, **White** foreground.
+- **Background**: Solid fill, slightly lighter than main background (e.g., `#001133` on navy).
+- **Dimming**: Content behind the modal is rendered at **50% brightness**.
+- **Z-order**: Modal > Active Tab content.
+- **Close**: `ESC` always closes the topmost modal.
+
+### Scroll Indicators
+
+#### Vertical Scroll — Right-Edge Indicator + Percentage
+
+When a tab or section has vertically overflowing content, a dashed line (`┊`) appears on the right edge to signal scrollability. A percentage badge shows position:
+
+```
+[ Requests ][ Plans ][ Reviews ]                                     42%
+──────────────────────────────────────────────────────────────────────────
+  REQ-1024  ⏳ Pending   High                                           ┊
+  REQ-1023  ✅ Approved  Medium                                         ┊
+  REQ-1022  ❌ Rejected  Low                                            ┊
+  REQ-1021  ⏳ Pending   Critical                                       ┊
+```
+
+- **Right edge indicator**: A dashed `┊` appears on the rightmost column when content overflows vertically. Hidden when all content fits.
+- **Indicator color**: **Cyan** when the section has focus, **Grey** otherwise.
+- **Percentage badge**: `NN%` shown in the top-right corner of the content area (0% = top, 100% = bottom).
+- **Badge color**: **Dim Grey** when unfocused, **Cyan** when focused.
+- **Keyboard**: Arrow keys scroll line-by-line; `PgUp`/`PgDn` scroll page-by-page; `Home`/`End` jump to 0%/100%.
+
+#### Horizontal Overflow — Angle Indicators
+
+When content is wider than the visible area (e.g., wide diffs, long table rows), angle indicators signal hidden content:
+
+```
+◄  REQ-1024  ⏳ Pending   Implement dark mode with full theme support...  ►
+```
+
+- **`◄` (left edge)**: Shown when content extends beyond the left side (user has scrolled right).
+- **`►` (right edge)**: Shown when content extends beyond the right side.
+- **Both**: When content overflows in both directions, both indicators appear.
+- **Neither**: When all content fits, no indicators are shown.
+- **Indicator color**: **Cyan** when focused, **Grey** otherwise.
+- **Keyboard**: `Ctrl+Left`/`Ctrl+Right` scroll horizontally; `Home`/`End` jump to start/end of line.
+
+### Spacing & Padding Rules
+
+| Element                          | Padding                            |
+| -------------------------------- | ---------------------------------- |
+| Content ↔ terminal edge          | 1 character horizontal, 0 vertical |
+| Table cell ↔ column separator    | 1 character each side              |
+| Section header ↔ section content | 1 empty line above header, 0 below |
+| Modal content ↔ modal border     | 1 character all sides              |
+| Bottom bar ↔ content area        | 0 gap (bottom bar is flush)        |
+| Top bar ↔ Tab Switch Bar         | 0 gap (flush)                      |
+| Tab Switch Bar ↔ content         | 1 `─` separator line               |
+| Split-view sections ↔ separator  | 0 gap (content touches `┈`/`┊`)    |
+
+### Typography Hierarchy
+
+| Level                           | ANSI Attribute      | Usage                      |
+| ------------------------------- | ------------------- | -------------------------- |
+| **H1** — View title             | Bold + Underline    | Active tab label           |
+| **H2** — Section header         | Bold Cyan           | `═══ SECTION ═══`          |
+| **H3** — Sub-header / label     | Bold White          | `Status:`, `Agent:`        |
+| **Body** — Values, content      | Normal (Light Grey) | Data values, descriptions  |
+| **Muted** — Timestamps, hints   | Dim Grey            | Dates, help text           |
+| **Emphasis** — Important values | Bold + Color        | Active status, cost totals |
+| **Link** — Navigable reference  | Blue Underline      | `[→ View Agent]`           |
+| **Code** — Inline code / paths  | Green (no bold)     | File paths, branch names   |
 
 ---
 
@@ -474,15 +816,17 @@ The new TUI prioritizes **F-keys** and **Menus** for a streamlined, professional
 | **`F8`**  | Delete / Remove  | Destructive actions (always requires F-key + Confirm).                                                        |
 | **`F9`**  | View Options     | Open local view settings/sort/filter. **Not used for menu activation.**                                       |
 | **`F10`** | Quit             | Exit the TUI immediately.                                                                                     |
-| **`F11`** | Fullscreen Tab   | Toggle active pane between Tiled and Tabbed mode.                                                             |
-| **`F12`** | Layout Picker    | Switch between preset tiled layouts.                                                                          |
+| **`F11`** | Toggle Split     | Open/close the Detail split in the current tab.                                                               |
+| **`F12`** | Split Direction  | Cycle split direction: Horizontal → Vertical → Off.                                                           |
 
 > **Note on F7**: The label in the Bottom Control Bar changes dynamically per view. For example, it reads "Execute" in Plan Reviewer, "MkDir" in Portal Tree, and "Filter" in Monitor View. This is context-sensitive behavior, not a conflict.
 
 #### Navigation & Focus
 
-- **`TAB`** / **`Shift+TAB`**: Switch focus within a pane (e.g., Master↔Detail) or cycle panes when not in Master-Detail mode.
-- **`Ctrl+TAB`** / **`Ctrl+Shift+TAB`**: Always switch between **panes** regardless of mode.
+- **`TAB`** / **`Shift+TAB`**: Switch focus between Master and Detail sections within a split view.
+- **`Alt+1`..`Alt+9`**: Switch to tab by position. **`Alt+Left`** / **`Alt+Right`**: Cycle adjacent tabs.
+- **`Ctrl+T`**: Open tab picker to create a new tab.
+- **`Ctrl+W`**: Close the current closeable tab.
 - **`Ctrl+P`**: Open **Command Palette** for fuzzy search across all entities.
 - **`Ctrl+R`**: Manual refresh of current view data.
 - **`Arrow Keys`**: Navigate lists and tree nodes.
@@ -510,7 +854,7 @@ The new TUI prioritizes **F-keys** and **Menus** for a streamlined, professional
 
 - **Direct Interaction**: All controls, F-key labels at the bottom, and list items are clickable.
 - **Menus**: Clickable headers and dropdown list items.
-- **Selection**: Click to focus a pane instantly.
+- **Selection**: Click to switch tabs or focus a split-view section.
 - **Scrolling**: Mouse wheel support for vertical scrolling.
 - **Back/Forward**: Mouse Side Buttons (if available) map to navigation history.
 
@@ -591,8 +935,8 @@ A view for browsing completed and archived executions. Accessible via `[Views] >
 
 - **`F7` Search**: Opens search overlay — enter agent ID, date range, or keyword. Searches via `ArchiveService.searchByAgent()` and `searchByDateRange()`.
 - **`F9` Filter**: Dropdown: All / Completed / Failed / Cancelled.
-- **`F3` View**: Show full entry detail in the Detail pane.
-- **Stats**: A summary line at the bottom of the Master pane: "Total: 42 | Completed: 38 | Failed: 4".
+- **`F3` View**: Show full entry detail in the Detail section.
+- **Stats**: A summary line at the bottom of the Master section: "Total: 42 | Completed: 38 | Failed: 4".
 - **Traceability**: `Alt+L` jumps to the linked Request/Plan/Review for the selected trace_id.
 
 ---
@@ -641,7 +985,7 @@ A view for querying and filtering the Activity Journal (SQLite-backed audit log)
   - `target`: Filter by target entity
   - `payload`: Full-text search within payload JSON
 - **`F9` Format Toggle**: Cycle display format: table → JSON → text.
-- **`F3` View Payload**: Expand full event payload in the Detail pane.
+- **`F3` View Payload**: Expand full event payload in the Detail section.
 - **`F5` Refresh**: Re-query with current filters.
 - **Tail Mode**: `Ctrl+F` enables live-tail mode (auto-refreshes newest N entries).
 - **Counters**: Optional `--count` / `--distinct` display toggleable via `Alt+C`.
@@ -650,7 +994,7 @@ A view for querying and filtering the Activity Journal (SQLite-backed audit log)
 
 ## Memory View (Expanded)
 
-The Memory View supports 5 tabbed sub-domains, switchable via **`F9`**. Each tab uses Master-Detail layout within the same pane.
+The Memory View supports 5 tabbed sub-domains, switchable via **`F9`**. Each sub-domain uses Master-Detail split within the same tab.
 
 ### Tab: Pending (Default)
 
@@ -693,8 +1037,8 @@ The Memory View supports 5 tabbed sub-domains, switchable via **`F9`**. Each tab
 
 The new TUI modernizes all capabilities detailed in the [ExoFrame User Guide](../ExoFrame_User_Guide.md):
 
-1. **Global View Management**: Replaces the old View Picker (`p`) with a structured `[Views]` top menu and `F12` layout management.
-2. **Audit & Traceability**: Breadcrumbs and pane headers always display the active **Trace ID**, linking Requests, Plans, and Reviews visually.
+1. **Global View Management**: Replaces the old View Picker (`p`) with a structured `[Views]` top menu and Tab Switch Bar.
+2. **Audit & Traceability**: Breadcrumbs and tab headers always display the active **Trace ID**, linking Requests, Plans, and Reviews visually.
 3. **Advanced Filtering**: Monitor, Memory, Journal, and Archive views utilize context-aware `F7` and `F9` keys.
 4. **Accessibility Core**: High Contrast and Screen Reader modes are core settings, managed via the `[Settings]` dropdown menu.
 5. **Cost Visibility**: Token usage and cost tracking are surfaced in the Top Bar summary and within Request/Agent detail views.
@@ -717,11 +1061,11 @@ The TUI provides a multi-tiered notification system:
 
 Every view implements three standard states for consistent UX:
 
-| State       | Visual                                                                | User Action                                               |
-| :---------- | :-------------------------------------------------------------------- | :-------------------------------------------------------- |
-| **Loading** | Spinner/progress bar in the pane's title area + "Loading..." message. | Wait for data. `ESC` to cancel.                           |
-| **Error**   | Red banner at the top of the pane with error description.             | `F5` to retry. `ESC` to dismiss.                          |
-| **Empty**   | Centered grey text with contextual suggestion.                        | e.g., "No pending plans. Press `F5` to create a request." |
+| State       | Visual                                                               | User Action                                               |
+| :---------- | :------------------------------------------------------------------- | :-------------------------------------------------------- |
+| **Loading** | Spinner/progress bar in the tab's title area + "Loading..." message. | Wait for data. `ESC` to cancel.                           |
+| **Error**   | Red banner at the top of the content area with error description.    | `F5` to retry. `ESC` to dismiss.                          |
+| **Empty**   | Centered grey text with contextual suggestion.                       | e.g., "No pending plans. Press `F5` to create a request." |
 
 ---
 
@@ -739,7 +1083,7 @@ Every view implements three standard states for consistent UX:
 
 Specific complex actions (Edit Request, Plan Approval) use centered overlays.
 
-- **Hierarchy**: Overlays visually "float" above the tiled panes with box-shadow styling.
+- **Hierarchy**: Overlays visually "float" above the active tab content with dimmed background.
 - **Control**: Modals capture all input (keyboard/mouse) until dismissed.
 - **Breadcrumbs**: Integrated into the top of modals for context.
 
@@ -838,40 +1182,32 @@ The TUI persists configuration to `~/.exoframe/tui_layout.json`:
 
 ### 2. Scroll Management
 
-- **Vertical Progress**: Indicated by a **percentage label** (e.g., `[75%]`) in the pane's status line or corner.
+- **Vertical Progress**: Indicated by a **percentage label** (e.g., `[75%]`) in the top-right corner of the content area.
 - **Horizontal Progress**: A **visual scrollbar indication** will be shown at the bottom of the content area.
 - **Interaction**: Scrollbars are primarily for visual feedback; navigation is handled via arrow keys and Page Up/Down.
 
 ### 3. Terminal Size & Resize Behavior
 
-#### Minimum Sizes
+#### Minimum Size
 
-| Layout Mode | Min Columns | Min Rows |
-| :---------- | :---------- | :------- |
-| Single Pane | 80          | 24       |
-| Dual Pane   | 120         | 30       |
-| Quad Pane   | 160         | 48       |
+Minimum terminal size: **80 columns × 24 rows**.
 
 #### Live Resize Rules (SIGWINCH)
 
 The TUI listens for terminal resize events and adapts **immediately**:
 
-| Event                                           | Behavior                                                                                                                                                            |
-| :---------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Terminal grows**                              | TUI stretches to fill the new size. All panes scale proportionally.                                                                                                 |
-| **Terminal shrinks but still ≥ layout minimum** | TUI shrinks to fit. Panes scale proportionally.                                                                                                                     |
-| **Terminal shrinks below layout minimum**       | TUI renders **partially** (clipped). The visible portion lets the user see the truncation and understand the window is too small. **No automatic layout collapse.** |
-
-> **Key rule**: The TUI never auto-collapses to fewer panes during a session. The user chose their layout; the TUI respects it even if the terminal is temporarily too small.
+| Event                            | Behavior                                                                            |
+| -------------------------------- | ----------------------------------------------------------------------------------- |
+| **Terminal grows**               | TUI stretches to fill the new size. Content area expands.                           |
+| **Terminal shrinks but ≥ 80×24** | TUI shrinks proportionally. Split-view sections scale.                              |
+| **Terminal shrinks below 80×24** | TUI renders **partially** (clipped). User must resize the terminal window manually. |
 
 #### Startup Rules
 
-| Terminal Size at Launch             | Behavior                                                                                                      |
-| :---------------------------------- | :------------------------------------------------------------------------------------------------------------ |
-| ≥ saved layout minimum              | Restore saved layout normally.                                                                                |
-| < saved layout minimum but ≥ 120×30 | Auto-collapse to **Dual Pane** + status message.                                                              |
-| < 120×30 but ≥ 80×24                | Auto-collapse to **Single Pane** + status message.                                                            |
-| < 80×24 (below absolute minimum)    | Render **partially** without scrolling. No layout adjustments. User must resize the terminal window manually. |
+| Terminal Size at Launch | Behavior                                                                         |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| ≥ 80×24                 | Restore saved tab layout normally.                                               |
+| < 80×24 (below minimum) | Render **partially** without scrolling. No layout adjustments. User must resize. |
 
 ### 4. Help & Shortcut Export
 

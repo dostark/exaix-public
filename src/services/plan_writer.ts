@@ -30,6 +30,8 @@ export interface IRequestMetadata {
   model?: string;
   portal?: string;
   targetBranch?: string;
+  subject?: string;
+  subjectIsFallback?: boolean;
 }
 
 export interface IPlanWriterConfig {
@@ -44,6 +46,7 @@ export interface IPlanWriteResult {
   planPath: string;
   content: string;
   writtenAt: Date;
+  subject?: string;
 }
 
 export interface IAgentExecutionResult {
@@ -116,7 +119,7 @@ export class PlanWriter {
 
     await pipeline.execute(context, async () => {
       // Generate plan content (with JSON validation)
-      const content = await this.formatPlan(result, metadata);
+      const { content, subject } = await this.formatPlan(result, metadata);
 
       // Generate filename: request-id_plan.md
       const filename = this.generateFilename(metadata.requestId);
@@ -134,6 +137,7 @@ export class PlanWriter {
         planPath,
         content,
         writtenAt,
+        subject,
       };
     });
 
@@ -147,18 +151,16 @@ export class PlanWriter {
   private async formatPlan(
     result: IAgentExecutionResult,
     metadata: IRequestMetadata,
-  ): Promise<string> {
+  ): Promise<{ content: string; subject?: string }> {
     const sections: string[] = [];
-
-    // 1. Frontmatter
-    const tokenSummary = await this.getTokenUsageSummary(metadata.traceId);
-    sections.push(this.generateFrontmatter(metadata, tokenSummary));
 
     // 2. Validate and convert JSON plan to markdown
     let planMarkdown: string;
+    let agentSubject: string | undefined;
     try {
       const plan = this.adapter.parse(result.content);
       planMarkdown = this.adapter.toMarkdown(plan);
+      agentSubject = plan.subject;
 
       // Log validation success
       await this.logPlanValidation(
@@ -197,6 +199,16 @@ export class PlanWriter {
       throw error;
     }
 
+    // 1. Frontmatter (now potentially with upgraded subject)
+    const tokenSummary = await this.getTokenUsageSummary(metadata.traceId);
+
+    // Priority: Explicit user subject > Agent subject > Fallback subject
+    // We treat metadata.subject as "explicit" unless subjectIsFallback is true
+    const finalSubject = (metadata.subjectIsFallback && agentSubject)
+      ? agentSubject
+      : (metadata.subject || agentSubject);
+    sections.push(this.generateFrontmatter({ ...metadata, subject: finalSubject }, tokenSummary));
+
     // Log successful parsing
     await this.logPlanValidation(
       "plan.parsed",
@@ -224,7 +236,10 @@ export class PlanWriter {
     // 7. Next Steps
     sections.push(this.generateNextSteps(metadata.requestId));
 
-    return sections.join("\n");
+    return {
+      content: sections.join("\n"),
+      subject: finalSubject,
+    };
   }
 
   /**
@@ -253,6 +268,10 @@ export class PlanWriter {
 
     if (metadata.targetBranch) {
       lines.push(`target_branch: "${metadata.targetBranch}"`);
+    }
+
+    if (metadata.subject) {
+      lines.push(`subject: "${metadata.subject}"`);
     }
 
     if (tokenSummary) {

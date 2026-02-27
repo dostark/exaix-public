@@ -237,7 +237,7 @@ Deno.test("[OutputValidator] validates plan schema", () => {
   const validator = new OutputValidator();
 
   const validPlan = JSON.stringify({
-    title: "Test Plan",
+    subject: "Test Plan",
     description: "A test plan for validation",
     steps: [
       {
@@ -251,7 +251,7 @@ Deno.test("[OutputValidator] validates plan schema", () => {
   const result = validator.validateWithSchema(validPlan, "plan");
 
   assert(result.success);
-  assertEquals(result.value?.title, "Test Plan");
+  assertEquals(result.value?.subject, "Test Plan");
 });
 
 Deno.test("[OutputValidator] validates simpleResponse schema", () => {
@@ -372,7 +372,7 @@ Deno.test("[createPlanValidator] creates plan-specific validator", () => {
   const validator = createPlanValidator();
 
   const plan = JSON.stringify({
-    title: "Test",
+    subject: "Test",
     description: "Test plan",
     steps: [{ step: 1, title: "Step 1", description: "Do stuff" }],
   });

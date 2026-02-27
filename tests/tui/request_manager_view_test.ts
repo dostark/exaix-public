@@ -35,11 +35,11 @@ Deno.test("RequestManagerView - renders request list correctly", async () => {
   const { service: _service, view } = createViewWithRequests([
     {
       trace_id: "12345678-abcd-1234-5678-123456789abc",
-      title: "IRequest 12345678",
+      subject: "IRequest 12345678",
     },
     {
       trace_id: "87654321-abcd-1234-5678-123456789abc",
-      title: "IRequest 87654321",
+      subject: "IRequest 87654321",
       status: "planned",
       priority: "high",
       agent: "code-reviewer",
@@ -73,7 +73,7 @@ Deno.test("RequestManagerView - renders request content", () => {
 Deno.test("RequestManagerView - lists requests via service", async () => {
   const { service: _service } = createViewWithRequests([{
     trace_id: "test-123",
-    title: "Test Request",
+    subject: "Test Request",
   }]);
   const requests = await _service.listRequests();
 
@@ -86,7 +86,7 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
     {
       trace_id: "test-1",
       filename: "request-1.md",
-      title: "IRequest 1",
+      subject: "IRequest 1",
       status: RequestStatus.PENDING,
       priority: "normal",
       agent: "default",
@@ -96,7 +96,7 @@ Deno.test("RequestManagerView - filters requests by status", async () => {
     {
       trace_id: "test-2",
       filename: "request-2.md",
-      title: "IRequest 2",
+      subject: "IRequest 2",
       status: RequestStatus.COMPLETED,
       priority: "normal",
       agent: "default",
@@ -124,7 +124,7 @@ Deno.test("RequestManagerView - gets request content", async () => {
   const { service: _service, view } = createViewWithRequests([
     {
       trace_id: "test-123",
-      title: "Test Request",
+      subject: "Test Request",
     },
   ]);
   const content = await view.getRequestContent("test-123");
@@ -136,7 +136,7 @@ Deno.test("RequestManagerView - updates request status", async () => {
   const { service: _service, view } = createViewWithRequests([
     {
       trace_id: "test-123",
-      title: "Test Request",
+      subject: "Test Request",
     },
   ]);
   const success = await view.updateRequestStatus("test-123", RequestStatus.COMPLETED);
@@ -350,12 +350,12 @@ Deno.test("Phase 13.6: Search functionality", () => {
   const requests = _sampleRequests([
     {
       trace_id: "req-1",
-      title: "Bug fix",
+      subject: "Bug fix",
       agent: "developer",
     },
     {
       trace_id: "req-2",
-      title: "Feature request",
+      subject: "Feature request",
       status: RequestStatus.COMPLETED,
       priority: "high",
       agent: "designer",
@@ -370,7 +370,7 @@ Deno.test("Phase 13.6: Search functionality", () => {
 
   // Should filter to 1 result
   assertEquals(tui.getFilteredRequests().length, 1);
-  assertEquals(tui.getFilteredRequests()[0].title, "Bug fix");
+  assertEquals(tui.getFilteredRequests()[0].subject, "Bug fix");
 
   // Clear search
   tui.getState().searchQuery = "";
@@ -398,7 +398,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
     {
       trace_id: "req-1",
       filename: "request-1.md",
-      title: "IRequest 1",
+      subject: "IRequest 1",
       status: RequestStatus.PENDING,
       priority: "normal",
       agent: "developer",
@@ -409,7 +409,7 @@ Deno.test("Phase 13.6: Filter by agent", () => {
     {
       trace_id: "req-2",
       filename: "request-2.md",
-      title: "IRequest 2",
+      subject: "IRequest 2",
       status: RequestStatus.COMPLETED,
       priority: "high",
       agent: "designer",
@@ -489,7 +489,7 @@ Deno.test("Phase 13.6: Cancel confirm dialog", async () => {
   const requests = _sampleRequests([
     {
       trace_id: "req-1",
-      title: "IRequest 1",
+      subject: "IRequest 1",
     },
   ]);
   const view = new RequestManagerView(mockService);

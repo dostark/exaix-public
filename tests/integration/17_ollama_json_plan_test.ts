@@ -53,7 +53,7 @@ function createJSONPlanBlueprint() {
     systemPrompt: `You are a coding assistant. When I ask for a plan, respond ONLY with valid JSON in this exact format:
 
 {
-  "title": "plan title",
+  "subject": "plan subject",
   "description": "what it does",
   "steps": [
     {"step": 1, "title": "step 1", "description": "what step 1 does"},
@@ -127,7 +127,7 @@ Deno.test({
     try {
       plan = adapter.parse(agentResult.content);
       console.log(`✅ JSON validation passed!`);
-      console.log(`   Title: ${plan.title}`);
+      console.log(`   Subject: ${plan.subject}`);
       console.log(`   Steps: ${plan.steps?.length ?? 0}`);
       console.log(`   Duration: ${plan.estimatedDuration || "not specified"}`);
     } catch (error) {
@@ -138,11 +138,11 @@ Deno.test({
     }
 
     // Verify plan structure
-    assertExists(plan.title, "Plan should have title");
+    assertExists(plan.subject, "Plan should have subject");
     assertExists(plan.description, "Plan should have description");
     assertExists(plan.steps, "Plan should have steps");
     assert(plan.steps.length > 0, "Plan should have at least one step");
-    assert(plan.title.length >= 1 && plan.title.length <= 300, "Title should be 1-300 chars");
+    assert(plan.subject.length >= 1 && plan.subject.length <= 80, "Subject should be 1-80 chars");
 
     // Verify steps
     plan.steps.forEach((step, index) => {
@@ -157,7 +157,7 @@ Deno.test({
     assertExists(markdown, "Should generate markdown");
     assert(markdown.length > 0, "Markdown should not be empty");
     assertStringIncludes(markdown, "##", "Markdown should include headers");
-    assertStringIncludes(markdown, plan.title, "Markdown should include plan title");
+    assertStringIncludes(markdown, plan.subject, "Markdown should include plan subject");
 
     // Step 4: Write plan with PlanWriter
     console.log("\n💾 Writing plan with PlanWriter...");
@@ -196,7 +196,7 @@ Deno.test({
 
     // Check content sections (Reasoning is optional if no thought provided)
     assertStringIncludes(planContent, "## Execution Steps", "Should include Execution Steps section");
-    assertStringIncludes(planContent, plan.title, "Should include plan title");
+    assertStringIncludes(planContent, plan.subject, "Should include plan subject");
 
     // Verify all steps are present
     plan.steps.forEach((step) => {
@@ -207,7 +207,7 @@ Deno.test({
     console.log(`\n📊 Summary:`);
     console.log(`   Model: ${OLLAMA_MODEL}`);
     console.log(`   Generation time: ${duration}ms`);
-    console.log(`   Plan title: "${plan.title}"`);
+    console.log(`   Plan subject: "${plan.subject}"`);
     console.log(`   Steps: ${plan.steps.length}`);
     console.log(`   JSON validation: ✅`);
     console.log(`   Markdown conversion: ✅`);
@@ -235,7 +235,7 @@ Deno.test({
   }
 
   // Test JSON missing required fields
-  const missingFields = JSON.stringify({ title: "Test" });
+  const missingFields = JSON.stringify({ subject: "Test" });
 
   try {
     adapter.parse(missingFields);

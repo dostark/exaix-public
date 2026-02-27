@@ -12,7 +12,7 @@ import { Plan } from "../../src/schemas/plan_schema.ts";
 Deno.test("PlanAdapter.toMarkdown - renders security section", () => {
   const adapter = new PlanAdapter();
   const plan: Plan = {
-    title: "Security Audit",
+    subject: "Security Audit",
     description: "Audit of authentication system",
     steps: [{ step: 1, title: "Initial Scan", description: "Scan all entry points" }],
     security: {
@@ -53,7 +53,7 @@ Deno.test("PlanAdapter.toMarkdown - renders security section", () => {
 Deno.test("PlanAdapter.toMarkdown - renders analysis section", () => {
   const adapter = new PlanAdapter();
   const plan: Plan = {
-    title: "Code Analysis",
+    subject: "Code Analysis",
     description: "Deep dive into project structure",
     steps: [{ step: 1, title: "Analyze Files", description: "Read all source files" }],
     analysis: {
@@ -95,7 +95,7 @@ Deno.test("PlanAdapter.toMarkdown - renders analysis section", () => {
 Deno.test("PlanAdapter.toMarkdown - renders qa section", () => {
   const adapter = new PlanAdapter();
   const plan: Plan = {
-    title: "QA Test Plan",
+    subject: "QA Test Plan",
     description: "Verification of new features",
     steps: [{ step: 1, title: "Execute Tests", description: "Run automated test suite" }],
     qa: {
@@ -140,7 +140,7 @@ Deno.test("PlanAdapter.toMarkdown - renders qa section", () => {
 Deno.test("PlanAdapter.toMarkdown - renders performance section", () => {
   const adapter = new PlanAdapter();
   const plan: Plan = {
-    title: "Performance Review",
+    subject: "Performance Review",
     description: "Optimizing database queries",
     steps: [{ step: 1, title: "Profile Queries", description: "Identify slow queries" }],
     performance: {

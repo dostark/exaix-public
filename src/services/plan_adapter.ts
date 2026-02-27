@@ -104,7 +104,7 @@ Your response in the <content> section MUST be a valid JSON object matching this
 ${schemaDesc}
 
 Common Requirements:
-- "title": string (1-300 chars)
+- "subject": string (1-80 chars, summary describing the goal)
 - "description": string
 - "steps": array of objects (if this is an execution plan)
 - "analysis" | "security" | "qa" | "performance": objects (if this is an analysis report)
@@ -140,7 +140,7 @@ Ensure you use valid JSON syntax (no trailing commas, double quotes for keys).
    */
   private renderPlanHeader(plan: Plan): string[] {
     const sections = [
-      `# ${plan.title}`,
+      `# ${plan.subject}`,
       "",
       plan.description,
       "",

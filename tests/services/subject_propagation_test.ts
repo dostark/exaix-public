@@ -1,0 +1,254 @@
+/**
+ * @module SubjectPropagationTest
+ * @path tests/services/subject_propagation_test.ts
+ * @description Integration tests for subject propagation from Request to Plan.
+ */
+
+import { assertExists } from "@std/assert";
+import { join } from "@std/path";
+import { RequestProcessor } from "../../src/services/request_processor.ts";
+import { DatabaseService } from "../../src/services/db.ts";
+import { IModelProvider } from "../../src/ai/types.ts";
+import { Config } from "../../src/config/schema.ts";
+import { initActivityTableSchema } from "../helpers/db.ts";
+
+Deno.test("RequestProcessor - Subject Propagation - Agent Upgrades Subject", async () => {
+  const tempDir = await Deno.makeTempDir();
+  const workspaceDir = join(tempDir, "workspace");
+  const requestsDir = join(workspaceDir, "Requests");
+  const plansDir = join(workspaceDir, "Plans");
+  const runtimeDir = join(tempDir, "Runtime");
+  const blueprintsDir = join(tempDir, "Blueprints");
+  const agentsDir = join(blueprintsDir, "Agents");
+
+  await Deno.mkdir(requestsDir, { recursive: true });
+  await Deno.mkdir(plansDir, { recursive: true });
+  await Deno.mkdir(runtimeDir, { recursive: true });
+  await Deno.mkdir(agentsDir, { recursive: true });
+
+  await Deno.writeTextFile(
+    join(agentsDir, "test-agent.md"),
+    `---
+name: "Test Agent"
+agent_id: "test-agent"
+description: "Test agent"
+---
+Follow instructions
+`,
+  );
+
+  const config: Config = {
+    system: { root: tempDir },
+    paths: {
+      workspace: "workspace",
+      requests: "Requests",
+      plans: "Plans",
+      active: "Active",
+      rejected: "Rejected",
+      archive: "Archive",
+      blueprints: "Blueprints",
+      portals: "Portals",
+      memory: "Memory",
+      runtime: "Runtime",
+    },
+    database: {
+      batch_flush_ms: 100,
+      batch_max_size: 10,
+      failure_threshold: 5,
+      reset_timeout_ms: 60000,
+      half_open_success_threshold: 2,
+      sqlite: {
+        journal_mode: "WAL",
+        foreign_keys: true,
+        busy_timeout_ms: 5000,
+      },
+    },
+    portals: [],
+    ai: {
+      providers: {
+        mock: { enabled: true, model: "mock-model" },
+      },
+      default_provider: "mock",
+    },
+  } as any;
+
+  const db = new DatabaseService(config);
+  initActivityTableSchema(db);
+
+  // Mock LLM Response with a subject
+  const agentSubject = "Refactor Database Schema";
+  const mockProvider: IModelProvider = {
+    id: "mock",
+    generate: () =>
+      Promise.resolve(`
+<thought>I should suggest a better subject.</thought>
+<content>
+{
+  "subject": "${agentSubject}",
+  "description": "Comprehensive plan to refactor the database.",
+  "steps": [
+    {
+      "step": 1,
+      "title": "Analyze Schema",
+      "description": "Analyze existing schema"
+    }
+  ]
+}
+</content>`),
+  } as any;
+
+  const processor = new RequestProcessor(config, db, {
+    workspacePath: workspaceDir,
+    requestsDir: requestsDir,
+    blueprintsPath: blueprintsDir,
+    includeReasoning: true,
+  }, mockProvider);
+
+  // 1. Create a request with a fallback subject
+  const requestId = "request-123";
+  const requestFilePath = join(requestsDir, `${requestId}.md`);
+  const initialSubject = "Initial Subject";
+  await Deno.writeTextFile(
+    requestFilePath,
+    `---
+trace_id: "trace-123"
+created: "${new Date().toISOString()}"
+status: "pending"
+priority: "normal"
+agent: "test-agent"
+source: "cli"
+created_by: "user"
+subject: "${initialSubject}"
+subject_is_fallback: true
+---
+
+Fix the database please.`,
+  );
+
+  // 2. Process the request
+  const planPath = await processor.process(requestFilePath);
+  assertExists(planPath);
+
+  // 3. Verify the plan has the agent's subject in frontmatter
+  const planContent = await Deno.readTextFile(planPath);
+  assertExists(planContent.match(new RegExp(`subject: "${agentSubject}"`)));
+
+  // 4. Verify the request file was "upgraded" with the agent's subject
+  const updatedRequestContent = await Deno.readTextFile(requestFilePath);
+  assertExists(updatedRequestContent.match(new RegExp(`subject: "${agentSubject}"`)));
+
+  // Clean up
+  await db.close();
+  await Deno.remove(tempDir, { recursive: true });
+});
+
+Deno.test("RequestProcessor - Subject Propagation - Explicit Subject Wins over Agent", async () => {
+  const tempDir = await Deno.makeTempDir();
+  const workspaceDir = join(tempDir, "workspace");
+  const requestsDir = join(workspaceDir, "Requests");
+  const plansDir = join(workspaceDir, "Plans");
+  const runtimeDir = join(tempDir, "Runtime");
+  const blueprintsDir = join(tempDir, "Blueprints");
+  const agentsDir = join(blueprintsDir, "Agents");
+
+  await Deno.mkdir(requestsDir, { recursive: true });
+  await Deno.mkdir(plansDir, { recursive: true });
+  await Deno.mkdir(runtimeDir, { recursive: true });
+  await Deno.mkdir(agentsDir, { recursive: true });
+
+  await Deno.writeTextFile(
+    join(agentsDir, "test-agent.md"),
+    `---
+name: "Test Agent"
+agent_id: "test-agent"
+description: "Test agent"
+---
+Instructions
+`,
+  );
+
+  const config = {
+    system: { root: tempDir },
+    paths: {
+      workspace: "workspace",
+      requests: "Requests",
+      plans: "Plans",
+      active: "Active",
+      rejected: "Rejected",
+      archive: "Archive",
+      blueprints: "Blueprints",
+      portals: "Portals",
+      memory: "Memory",
+      runtime: "Runtime",
+    },
+    database: {
+      batch_flush_ms: 100,
+      batch_max_size: 10,
+      sqlite: { journal_mode: "WAL", foreign_keys: true, busy_timeout_ms: 5000 },
+    },
+    portals: [],
+    ai: {
+      providers: { mock: { enabled: true, model: "mock-model" } },
+      default_provider: "mock",
+    },
+  } as any;
+
+  const db = new DatabaseService(config);
+  initActivityTableSchema(db);
+
+  const explicitSubject = "My Custom Subject";
+  const agentSubject = "Agent Subject";
+
+  const mockProvider: IModelProvider = {
+    id: "mock",
+    generate: () =>
+      Promise.resolve(`
+<content>
+{
+  "subject": "${agentSubject}",
+  "description": "Desc",
+  "steps": [{"step": 1, "title": "S1", "description": "D1"}]
+}
+</content>`),
+  } as any;
+
+  const processor = new RequestProcessor(config, db, {
+    workspacePath: workspaceDir,
+    requestsDir: requestsDir,
+    blueprintsPath: blueprintsDir,
+    includeReasoning: true,
+  }, mockProvider);
+
+  const requestId = "request-456";
+  const requestFilePath = join(requestsDir, `${requestId}.md`);
+  await Deno.writeTextFile(
+    requestFilePath,
+    `---
+trace_id: "trace-456"
+created: "${new Date().toISOString()}"
+status: "pending"
+priority: "normal"
+agent: "test-agent"
+source: "cli"
+created_by: "user"
+subject: "${explicitSubject}"
+subject_is_fallback: false
+---
+
+Request content.`,
+  );
+
+  const planPath = await processor.process(requestFilePath);
+  assertExists(planPath);
+
+  // 1. Verify the plan has the EXPLICIT subject in frontmatter, NOT the agent's
+  const planContent = await Deno.readTextFile(planPath);
+  assertExists(planContent.match(new RegExp(`subject: "${explicitSubject}"`)));
+
+  // 2. Verify the request remains with the explicit subject (no upgrade needed)
+  const updatedRequestContent = await Deno.readTextFile(requestFilePath);
+  assertExists(updatedRequestContent.match(new RegExp(`subject: "${explicitSubject}"`)));
+
+  await db.close();
+  await Deno.remove(tempDir, { recursive: true });
+});

@@ -48,6 +48,7 @@ export const PlanFrontmatterSchema = z.object({
   reviewed_by: z.string().optional(),
   reviewed_at: z.string().optional(),
   skills: z.string().optional(),
+  subject: z.string().optional(),
 }).passthrough();
 
 export type PlanFrontmatter = z.infer<typeof PlanFrontmatterSchema>;
@@ -136,8 +137,8 @@ const QAE2ECaseSchema = z.object({
  * Enhanced to support specialized agent outputs (analysis, security, QA, performance)
  */
 export const PlanSchema = z.object({
-  /** Plan title/goal (max 300 chars) */
-  title: z.string().min(1).max(300),
+  /** Mnemonic name for the plan (max 80 chars) */
+  subject: z.string().min(1).max(80),
 
   /** Overall plan description */
   description: z.string().min(1),

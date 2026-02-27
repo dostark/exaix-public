@@ -303,7 +303,7 @@ This plan references a request and should show request context.
     assertEquals(plan.id, planId);
     assertEquals(plan.status, "review");
     assertEquals(plan.request_id, requestId);
-    assertEquals(plan.request_title, "Test Request Title");
+    assertEquals(plan.request_subject, "Test Request Title");
     assertEquals(plan.request_agent, "test-agent");
     assertEquals(plan.request_portal, "test-portal");
     assertEquals(plan.request_priority, "high");
@@ -314,7 +314,7 @@ This plan references a request and should show request context.
     assertEquals(planDetails.id, planId);
     assertEquals(planDetails.status, "review");
     assertEquals(planDetails.request_id, requestId);
-    assertEquals(planDetails.request_title, "Test Request Title");
+    assertEquals(planDetails.request_subject, "Test Request Title");
     assertEquals(planDetails.request_agent, "test-agent");
     assertEquals(planDetails.request_portal, "test-portal");
     assertEquals(planDetails.request_priority, "high");

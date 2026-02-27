@@ -522,7 +522,7 @@ I need to analyze the request and create a plan for implementation.
 
 <content>
 {
-  "title": "Implementation Plan",
+  "subject": "Implementation Plan",
   "description": "Based on the request, I will implement the required functionality with a structured approach.",
   "steps": [
     {
@@ -566,7 +566,7 @@ I need to investigate and fix the reported issue.
 
 <content>
 {
-  "title": "Bug Fix Plan",
+  "subject": "Bug Fix Plan",
   "description": "I will investigate and fix the reported issue systematically.",
   "steps": [
     {
@@ -614,7 +614,7 @@ I will create a plan to address this request.
 
 <content>
 {
-  "title": "Execution Plan",
+  "subject": "Execution Plan",
   "description": "I will address the user's request with a structured approach.",
   "steps": [
     {
@@ -663,7 +663,7 @@ export function createPlanGeneratorMock(): MockLLMProvider {
         response: `<content>
 ${
           JSON.stringify({
-            title: "Implementation Plan",
+            subject: "Implementation Plan",
             description: "Based on the request, I will implement the required functionality.",
             steps: [
               {
@@ -705,7 +705,7 @@ ${
         response: `<content>
 ${
           JSON.stringify({
-            title: "Bug Fix Plan",
+            subject: "Bug Fix Plan",
             description: "I will investigate and fix the reported issue.",
             steps: [
               {
@@ -749,7 +749,7 @@ ${
         response: `<content>
 ${
           JSON.stringify({
-            title: "Execution Plan",
+            subject: "Execution Plan",
             description: "I will address the user's request with a structured approach.",
             steps: [
               {

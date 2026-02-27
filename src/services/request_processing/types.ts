@@ -21,6 +21,8 @@ export interface IRequestFrontmatter {
   target_branch?: string;
   model?: string;
   skills?: string;
+  subject?: string;
+  subject_is_fallback?: boolean;
 }
 
 export interface ParsedRequestFile {

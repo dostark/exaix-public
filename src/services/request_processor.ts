@@ -307,7 +307,7 @@ export class RequestProcessor {
     }
 
     const planContent = JSON.stringify({
-      title: `Flow Execution: ${frontmatter.flow}`,
+      subject: `Flow Execution: ${frontmatter.flow}`,
       description: `Execute the ${frontmatter.flow} flow`,
       steps: [{
         step: 1,
@@ -425,6 +425,8 @@ export class RequestProcessor {
       model: frontmatter.model,
       portal: frontmatter.portal,
       targetBranch: frontmatter.target_branch,
+      subject: frontmatter.subject,
+      subjectIsFallback: frontmatter.subject_is_fallback,
     };
 
     let result = await agentRunner.run(blueprint, request);
@@ -645,7 +647,15 @@ Raw Details: ${args.rawDetails}
     extra?: LogMetadata,
   ): Promise<string> {
     const planResult = await this.ioBreaker.execute(() => this.planWriter.writePlan(result, metadata));
-    await this.statusManager.updateStatus(filePath, RequestStatus.PLANNED);
+
+    // Update request status and potentially "upgrade" the subject if agent suggested a better one
+    const extraRequestFields: Record<string, string> = {};
+    if (planResult.subject && planResult.subject !== metadata.subject) {
+      extraRequestFields.subject = planResult.subject;
+    }
+
+    await this.statusManager.updateStatus(filePath, RequestStatus.PLANNED, undefined, extraRequestFields);
+
     const logObj: LogMetadata = { plan_path: planResult.planPath, ...(extra ?? {}) };
     traceLogger.info("request.planned", filePath, logObj);
     return planResult.planPath;
