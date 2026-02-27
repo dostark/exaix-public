@@ -248,12 +248,40 @@ When creating a request via **`F5`** in Request Manager, a **new tab** opens wit
 
 ### Interaction Features
 
-```carousel
+````carousel
 ![Traceability Explorer — Linked Entity Navigation](gallery/linked_navigation_view.png)
 <!-- slide -->
 ![Correlated Log View — Trace-Filtered Logs](gallery/correlated_logs_view.png)
+<!-- slide -->
+![Command Palette — Fuzzy Search Across Entities](gallery/command_palette_view.png)
+
+### Management & Configuration
+
+```carousel
+![Settings View — Master-Detail Config Tree](gallery/settings_view.png)
+<!-- slide -->
+![Portal Manager — Health & Integrity Dashboard](gallery/portal_manager_view.png)
+````
+
+### History & Audit
+
+```carousel
+![Archive Explorer — Completed Execution Browser](gallery/archive_explorer_view.png)
+<!-- slide -->
+![Activity Journal — Audit Log & Payload Viewer](gallery/activity_journal_view.png)
+<!-- slide -->
+![Git Browser — Branch Management & History](gallery/git_browser_view.png)
 ```
 
+### Intelligence & Observability
+
+```carousel
+![Memory View — Pending Proposals & Global Patterns](gallery/memory_view.png)
+<!-- slide -->
+![Monitor View — Real-Time Log Streaming](gallery/monitor_view.png)
+```
+
+```
 ---
 
 ## Specialized Detail Viewers
@@ -278,42 +306,42 @@ When `F3` (View) or `F11` (Toggle Split) is pressed on an entity, the Detail sec
 ![Request Detail Viewer — Structured Sections with Lifecycle Pipeline](gallery/request_detail_viewer.png)
 
 Displayed in the Detail section when viewing a request from Request Manager.
-
 ```
+
 ═══ REQUEST ══════════════════════════════════════
-  Trace ID:   3f8a1c2d-7e4b-...  [click to copy]
-  Status:     ● PENDING           (yellow badge)
-  Priority:   ▮▮▮▮▮▯▯▯▯▯  5/10
-  Created:    2026-02-26 17:30    (2h ago)
-  Created By: human (cli)
+Trace ID: 3f8a1c2d-7e4b-... [click to copy]
+Status: ● PENDING (yellow badge)
+Priority: ▮▮▮▮▮▯▯▯▯▯ 5/10
+Created: 2026-02-26 17:30 (2h ago)
+Created By: human (cli)
 
 ═══ ASSIGNMENT ═══════════════════════════════════
-  Agent:      senior-coder        [→ View Agent]
-  Portal:     my-project          [→ View Portal]
-  Model:      anthropic:claude-sonnet
-  Flow:       code-review-flow    [→ View Flow]
+Agent: senior-coder [→ View Agent]
+Portal: my-project [→ View Portal]
+Model: anthropic:claude-sonnet
+Flow: code-review-flow [→ View Flow]
 
 ═══ SKILLS ═══════════════════════════════════════
-  ✓ error_handling (core)
-  ✓ testing (project)
-  ✗ Skip: legacy_compat
+✓ error_handling (core)
+✓ testing (project)
+✗ Skip: legacy_compat
 
 ═══ DESCRIPTION ══════════════════════════════════
-  Implement dark mode toggle for the dashboard.
-  Should support system preference detection and
-  manual override with persistent user choice.
+Implement dark mode toggle for the dashboard.
+Should support system preference detection and
+manual override with persistent user choice.
 
 ═══ COST & TOKENS ════════════════════════════════
-  Provider:   anthropic    Model: claude-sonnet
-  Input:      3,200 tokens
-  Output:     1,450 tokens
-  Total:      4,650 tokens   💰 $0.45
+Provider: anthropic Model: claude-sonnet
+Input: 3,200 tokens
+Output: 1,450 tokens
+Total: 4,650 tokens 💰 $0.45
 
 ═══ LIFECYCLE ════════════════════════════════════
-  Request → ● Plan (PLAN-042) → ○ Review → ○ Done
-         [→ View Plan]
-```
+Request → ● Plan (PLAN-042) → ○ Review → ○ Done
+[→ View Plan]
 
+```
 **Inline actions**: Bracketed `[→ View ...]` links are clickable / navigable with `Enter`. The lifecycle bar shows the request's position in the Request → Plan → Review pipeline.
 
 ### Plan Detail Viewer
@@ -321,94 +349,94 @@ Displayed in the Detail section when viewing a request from Request Manager.
 ![Plan Detail Viewer — Collapsible Steps with Actions](gallery/plan_detail_viewer.png)
 
 Displayed when viewing a plan from Plan Reviewer. Supports both execution plans (with steps) and specialized analysis reports.
-
 ```
-═══ PLAN ═════════════════════════════════════════
-  Plan ID:    PLAN-042
-  Trace ID:   3f8a1c2d-7e4b-...  [→ View Request]
-  Status:     ● REVIEW            (cyan badge)
-  Agent:      senior-coder
-  Created:    2026-02-26 17:35
 
-═══ TITLE ════════════════════════════════════════
-  Implement dark mode with system preference detection
+═══ PLAN ═════════════════════════════════════════
+Plan ID: PLAN-042
+Trace ID: 3f8a1c2d-7e4b-... [→ View Request]
+Status: ● REVIEW (cyan badge)
+Agent: senior-coder
+Created: 2026-02-26 17:35
+
+═══ SUBJECT ══════════════════════════════════════
+Implement dark mode with system preference detection
 
 ═══ STEPS (3) ════════════════════════════════════
-  [▼ expanded]
-  ┌─ Step 1: Create theme configuration ─────────
-  │  Dependencies: none
-  │  Actions:
-  │    1. write_file  src/config/theme.ts
-  │    2. write_file  src/config/colors.ts
-  │  Rollback: Delete created files
-  └──────────────────────────────────────────────
+[▼ expanded]
+┌─ Step 1: Create theme configuration ─────────
+│ Dependencies: none
+│ Actions:
+│ 1. write_file src/config/theme.ts
+│ 2. write_file src/config/colors.ts
+│ Rollback: Delete created files
+└──────────────────────────────────────────────
 
-  [▶ collapsed] Step 2: Implement toggle component
-  [▶ collapsed] Step 3: Add persistence layer
+[▶ collapsed] Step 2: Implement toggle component
+[▶ collapsed] Step 3: Add persistence layer
 
 ═══ REVISION HISTORY ═════════════════════════════
-  (none — first submission)
+(none — first submission)
 
 ═══ APPROVAL ═════════════════════════════════════
-  ○ Not yet reviewed
-  Actions: [F5 Approve] [F6 Reject] [F4 Revise]
-```
+○ Not yet reviewed
+Actions: [F5 Approve] [F6 Reject] [F4 Revise]
 
+```
 **Specialized Reports** — When the plan contains `analysis`, `security`, `qa`, or `performance` fields, additional sections render:
-
 ```
+
 ═══ SECURITY ANALYSIS ════════════════════════════
-  Executive Summary: No critical vulnerabilities found.
+Executive Summary: No critical vulnerabilities found.
 
-  Findings (2):
-  ┌─ HIGH: SQL Injection in user_service.ts ──────
-  │  Location: line 42
-  │  Recommendation: Use parameterized queries
-  └──────────────────────────────────────────────
-  ┌─ LOW: Missing rate limiting ──────────────────
-  │  Location: api/auth.ts
-  │  Recommendation: Add express-rate-limit
-  └──────────────────────────────────────────────
+Findings (2):
+┌─ HIGH: SQL Injection in user_service.ts ──────
+│ Location: line 42
+│ Recommendation: Use parameterized queries
+└──────────────────────────────────────────────
+┌─ LOW: Missing rate limiting ──────────────────
+│ Location: api/auth.ts
+│ Recommendation: Add express-rate-limit
+└──────────────────────────────────────────────
 
-  Compliance: ✓ OWASP Top 10  ✓ Input Validation
+Compliance: ✓ OWASP Top 10 ✓ Input Validation
 
 ═══ QA SUMMARY ═══════════════════════════════════
-  Category     Planned  Executed  Passed  Failed
-  ──────────   ───────  ────────  ──────  ──────
-  Unit             12       12      11       1
-  Integration       4        4       4       0
-  Coverage: ████████░░ 82%
-```
+Category Planned Executed Passed Failed
+────────── ─────── ──────── ────── ──────
+Unit 12 12 11 1
+Integration 4 4 4 0
+Coverage: ████████░░ 82%
 
+```
 ### Review Detail Viewer
 
 ![Review Detail Viewer — Changes Summary + Syntax-Highlighted Diff](gallery/review_detail_viewer.png)
 
 Displayed when viewing a review from Review Manager. Shows structured diff with syntax highlighting.
-
 ```
+
 ═══ REVIEW ═══════════════════════════════════════
-  Branch:     feat/dark-mode-3f8a1c2d
-  Base:       main
-  Trace ID:   3f8a1c2d-7e4b-...  [→ View Request]
-  Status:     ● PENDING           (yellow badge)
-  Agent:      senior-coder
-  Portal:     my-project
-  Created:    2026-02-26 17:40
+Branch: feat/dark-mode-3f8a1c2d
+Base: main
+Trace ID: 3f8a1c2d-7e4b-... [→ View Request]
+Status: ● PENDING (yellow badge)
+Agent: senior-coder
+Portal: my-project
+Created: 2026-02-26 17:40
 
 ═══ CHANGES SUMMARY ══════════════════════════════
-  Files Changed: 4   (+120 / −15)
-  ┌────────────────────────────┬───────┬───────┐
-  │ File                       │  +    │  −    │
-  ├────────────────────────────┼───────┼───────┤
-  │ src/config/theme.ts        │  +45  │   −0  │
-  │ src/components/toggle.tsx  │  +38  │   −2  │
-  │ src/hooks/useTheme.ts      │  +32  │   −0  │
-  │ src/index.css              │   +5  │  −13  │
-  └────────────────────────────┴───────┴───────┘
+Files Changed: 4 (+120 / −15)
+┌────────────────────────────┬───────┬───────┐
+│ File │ + │ − │
+├────────────────────────────┼───────┼───────┤
+│ src/config/theme.ts │ +45 │ −0 │
+│ src/components/toggle.tsx │ +38 │ −2 │
+│ src/hooks/useTheme.ts │ +32 │ −0 │
+│ src/index.css │ +5 │ −13 │
+└────────────────────────────┴───────┴───────┘
 
 ═══ DIFF (src/config/theme.ts) ═══════════════════
-  [File 1/4]  [← Prev] [Next →]
+[File 1/4] [← Prev] [Next →]
 
     1  + import { createContext } from 'react';
     2  +
@@ -418,13 +446,13 @@ Displayed when viewing a review from Review Manager. Shows structured diff with 
     6  + });
 
 ═══ COMMITS (2) ══════════════════════════════════
-  a3b8d1b  Add theme configuration       17:36
-  c5dae3d  Implement toggle component    17:39
+a3b8d1b Add theme configuration 17:36
+c5dae3d Implement toggle component 17:39
 
 ═══ ACTIONS ══════════════════════════════════════
-  [F5 Approve (Merge)] [F6 Reject (Delete Branch)]
-```
+[F5 Approve (Merge)] [F6 Reject (Delete Branch)]
 
+```
 **Diff navigation**: `[← Prev] [Next →]` buttons (or `Alt+←` / `Alt+→`) cycle through changed files. Syntax highlighting uses language-aware coloring (TypeScript, CSS, etc.).
 
 ### Agent Detail Viewer
@@ -432,46 +460,46 @@ Displayed when viewing a review from Review Manager. Shows structured diff with 
 ![Agent Detail Viewer — Configuration, Task, Cost, Activity](gallery/agent_detail_viewer.png)
 
 Displayed when viewing an agent from Agent Status.
-
 ```
+
 ═══ AGENT ════════════════════════════════════════
-  Agent ID:   senior-coder
-  Status:     ● ACTIVE            (green badge)
-  Blueprint:  senior-coder.toml   [→ View Blueprint]
+Agent ID: senior-coder
+Status: ● ACTIVE (green badge)
+Blueprint: senior-coder.toml [→ View Blueprint]
 
 ═══ CONFIGURATION ════════════════════════════════
-  Model:      anthropic:claude-sonnet
-  Timeout:    120s
-  Max Iter:   10
-  Capabilities:
-    • code_generation
-    • code_review
-    • testing
+Model: anthropic:claude-sonnet
+Timeout: 120s
+Max Iter: 10
+Capabilities:
+• code_generation
+• code_review
+• testing
 
 ═══ CURRENT TASK ═════════════════════════════════
-  Request:    REQ-1024             [→ View Request]
-  Trace ID:   3f8a1c2d-7e4b-...
-  Started:    2026-02-26 17:30     (2h 15m elapsed)
-  Progress:   Step 2/3 — Implementing toggle component
+Request: REQ-1024 [→ View Request]
+Trace ID: 3f8a1c2d-7e4b-...
+Started: 2026-02-26 17:30 (2h 15m elapsed)
+Progress: Step 2/3 — Implementing toggle component
 
 ═══ COST & TOKENS (Session) ══════════════════════
-  Input:      12,800 tokens
-  Output:      5,200 tokens
-  Total:      18,000 tokens  💰 $2.45
+Input: 12,800 tokens
+Output: 5,200 tokens
+Total: 18,000 tokens 💰 $2.45
   Rate:       ~$1.10/hr
 
 ═══ LINKED ENTITIES ══════════════════════════════
-  Requests:   3 (2 completed, 1 active)
-  Plans:      3 (2 executed, 1 in review)
-  Reviews:    2 (2 approved)
-  [→ View Activity Journal for senior-coder]
+Requests: 3 (2 completed, 1 active)
+Plans: 3 (2 executed, 1 in review)
+Reviews: 2 (2 approved)
+[→ View Activity Journal for senior-coder]
 
 ═══ RECENT ACTIVITY ══════════════════════════════
-  17:40  plan.step.completed   Step 1 of PLAN-042
-  17:35  plan.created          PLAN-042
-  17:30  request.assigned      REQ-1024
-```
+17:40 plan.step.completed Step 1 of PLAN-042
+17:35 plan.created PLAN-042
+17:30 request.assigned REQ-1024
 
+```
 ### Viewer Features (All Types)
 
 - **Collapsible Sections**: Click `[▼]` / `[▶]` or press `Enter` on a section header to expand/collapse. All sections default to expanded except long lists (>5 items).
@@ -525,18 +553,18 @@ The TUI uses a minimal set of box-drawing characters. **No vertical lines** are 
 The main content area has **no surrounding frame**. Content spans edge-to-edge.
 
 #### Full-Screen Tab (Default)
-
 ```
+
 [ Requests ][ Plans ][ Reviews ][ Agents ]
 ──────────────────────────────────────────
-  ID        Status       Subject
-  ────────────────────────────────────────
-  REQ-1024  ⏳ Pending   Implement dark...
-  REQ-1023  ✅ Approved  Fix login bug
-  REQ-1022  ❌ Rejected  Update docs
-                                     42%  ┊
-```
+ID Status Subject
+────────────────────────────────────────
+REQ-1024 ⏳ Pending Implement dark...
+REQ-1023 ✅ Approved Fix login bug
+REQ-1022 ❌ Rejected Update docs
+42% ┊
 
+```
 - **No left/right borders**: Content extends to terminal edges with 1-char padding.
 - **Top separator**: A thin `─` line separates the Tab Switch Bar from content.
 - **Scroll indicator**: Dotted `┊` on the right edge when content overflows vertically, with `NN%` badge in the top-right.
@@ -545,21 +573,21 @@ The main content area has **no surrounding frame**. Content spans edge-to-edge.
 #### Split-View (Horizontal)
 
 When Master-Detail is active with horizontal split:
-
 ```
+
 [ Requests ][ Plans ][ Reviews ]
 ──────────────────────────────────────────
-  REQ-1024  ⏳ Pending   Implement dark...
-  REQ-1023  ✅ Approved  Fix login bug
-  REQ-1022  ❌ Rejected  Update docs
+REQ-1024 ⏳ Pending Implement dark...
+REQ-1023 ✅ Approved Fix login bug
+REQ-1022 ❌ Rejected Update docs
 ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-  ═══ REQUEST ═══
-  Trace ID:  1b253a71d-9a3b...
-  Status:    ● PENDING
-  ═══ ASSIGNMENT ═══
-  Agent:     default [→ View Agent]
-```
+═══ REQUEST ═══
+Trace ID: 1b253a71d-9a3b...
+Status: ● PENDING
+═══ ASSIGNMENT ═══
+Agent: default [→ View Agent]
 
+```
 - **Separator**: Dotted `┈` line spanning full width.
 - **Active section**: The section with focus shows its header/content at normal brightness.
 - **Inactive section**: Slightly dimmed (~20% less brightness).
@@ -567,17 +595,17 @@ When Master-Detail is active with horizontal split:
 #### Split-View (Vertical)
 
 When Master-Detail is active with vertical split:
-
 ```
+
 [ Requests ][ Plans ][ Reviews ]
 ──────────────────────────────────────────
-  REQ-1024 ⏳ Pending │ ═══ REQUEST ═══
-  REQ-1023 ✅ Approved│ Trace ID: 1b25..
-  REQ-1022 ❌ Rejected│ Status: ● PEND
-                      │ ═══ ASSIGNMENT
-                      │ Agent: default
-```
+REQ-1024 ⏳ Pending │ ═══ REQUEST ═══
+REQ-1023 ✅ Approved│ Trace ID: 1b25..
+REQ-1022 ❌ Rejected│ Status: ● PEND
+│ ═══ ASSIGNMENT
+│ Agent: default
 
+```
 - **Separator**: Thin solid `│` vertical line (distinct from dotted `┊` scroll indicator).
 - **Width split**: 50/50 ratio.
 - **Focus indicator**: Same dimming rules as horizontal split.
@@ -625,15 +653,15 @@ Since no vertical pipe separators (`│`) are used, columns are visually separat
 #### Inline Actions Column
 
 Every entity list table includes a **rightmost Actions column** displaying compact icon buttons for context-sensitive operations. Each icon corresponds to an F-key action. Icons are **colored when valid** and **Dark Grey (`\e[90m`) when not applicable** for the item's current state.
-
 ```
-ID        Status         Priority   Subject                      Actions
+
+ID Status Priority Subject Actions
 ────────────────────────────────────────────────────────────────────────
-REQ-1024  ⏳ Pending     High       Implement dark mode           👁 ✏ ✓ ✗ 🗑
-REQ-1023  ✅ Approved    Medium     Fix login bug                 👁 ✏ ✓ ✗ 🗑
-REQ-1022  ❌ Rejected    Low        Update docs                   👁 ✏ ✓ ✗ 🗑
-```
+REQ-1024 ⏳ Pending High Implement dark mode 👁 ✏ ✓ ✗ 🗑
+REQ-1023 ✅ Approved Medium Fix login bug 👁 ✏ ✓ ✗ 🗑
+REQ-1022 ❌ Rejected Low Update docs 👁 ✏ ✓ ✗ 🗑
 
+```
 In the example above, for `REQ-1023` (Approved): `✓` (Approve) would be grayed out since already approved, while `👁` (View), `✏` (Edit), `✗` (Reject), and `🗑` (Delete) remain active.
 
 ##### Action Icons by View
@@ -688,29 +716,29 @@ Buttons in the bottom bar, detail viewer, and modals follow this format:
 | **Destructive action**       | Red text                          | `[ Delete ]`      |
 
 #### Text Input Fields
-
-```
-Label:  [value________________]     (unfocused)
-Label:  [value________________]     (focused: cyan border + cursor)
 ```
 
+Label: [value________________] (unfocused)
+Label: [value________________] (focused: cyan border + cursor)
+
+```
 - **Unfocused**: Single-line border, grey.
 - **Focused**: Single-line border, **Bright Cyan** + blinking cursor `▌`.
 - **Invalid/Error**: **Red** border + error text below in Red Italic.
 - **Placeholder**: Dim Grey italic text when empty.
 
 #### Dropdown Menus
-
-```
-Agent:  [senior-coder     ▼]
-        ┌─────────────────┐
-        │ ● senior-coder  │  ← highlighted
-        │   default        │
-        │   reviewer       │
-        │   security-bot   │
-        └─────────────────┘
 ```
 
+Agent: [senior-coder ▼]
+┌─────────────────┐
+│ ● senior-coder │ ← highlighted
+│ default │
+│ reviewer │
+│ security-bot │
+└─────────────────┘
+
+```
 - **Closed**: Value + `▼` chevron in single-line box.
 - **Open**: Single-line dropdown overlaid below, selected item has **Cyan background**.
 - **Max visible items**: 8 (scrollbar appears if more).
@@ -718,16 +746,16 @@ Agent:  [senior-coder     ▼]
 ### Modal & Overlay Rendering
 
 Modals and overlays float above the main content.
-
 ```
+
 ┌──────────── Title ────────────┐
-│                               │   ← 1-char padding inside
-│   Content                     │
-│                               │
-│   [Action 1]   [Action 2]    │   ← buttons right-aligned
+│ │ ← 1-char padding inside
+│ Content │
+│ │
+│ [Action 1] [Action 2] │ ← buttons right-aligned
 └───────────────────────────────┘
-```
 
+```
 - **Border**: Single-line box, **White** foreground.
 - **Background**: Solid fill, slightly lighter than main background (e.g., `#001133` on navy).
 - **Dimming**: Content behind the modal is rendered at **50% brightness**.
@@ -739,16 +767,16 @@ Modals and overlays float above the main content.
 #### Vertical Scroll — Right-Edge Indicator + Percentage
 
 When a tab or section has vertically overflowing content, a dashed line (`┊`) appears on the right edge to signal scrollability. A percentage badge shows position:
-
 ```
-[ Requests ][ Plans ][ Reviews ]                                     42%
+
+[ Requests ][ Plans ][ Reviews ] 42%
 ──────────────────────────────────────────────────────────────────────────
-  REQ-1024  ⏳ Pending   High                                           ┊
-  REQ-1023  ✅ Approved  Medium                                         ┊
-  REQ-1022  ❌ Rejected  Low                                            ┊
-  REQ-1021  ⏳ Pending   Critical                                       ┊
-```
+REQ-1024 ⏳ Pending High ┊
+REQ-1023 ✅ Approved Medium ┊
+REQ-1022 ❌ Rejected Low ┊
+REQ-1021 ⏳ Pending Critical ┊
 
+```
 - **Right edge indicator**: A dashed `┊` appears on the rightmost column when content overflows vertically. Hidden when all content fits.
 - **Indicator color**: **Cyan** when the section has focus, **Grey** otherwise.
 - **Percentage badge**: `NN%` shown in the top-right corner of the content area (0% = top, 100% = bottom).
@@ -758,11 +786,11 @@ When a tab or section has vertically overflowing content, a dashed line (`┊`) 
 #### Horizontal Overflow — Angle Indicators
 
 When content is wider than the visible area (e.g., wide diffs, long table rows), angle indicators signal hidden content:
-
-```
-◄  REQ-1024  ⏳ Pending   Implement dark mode with full theme support...  ►
 ```
 
+◄ REQ-1024 ⏳ Pending Implement dark mode with full theme support... ►
+
+```
 - **`◄` (left edge)**: Shown when content extends beyond the left side (user has scrolled right).
 - **`►` (right edge)**: Shown when content extends beyond the right side.
 - **Both**: When content overflows in both directions, both indicators appear.
@@ -882,21 +910,23 @@ A dedicated, full TUI view for browsing and editing the `exo.config.toml` config
 The Settings View uses the **Master-Detail** layout:
 
 - **Master (left/top)**: A **collapsible tree** of config sections and their keys:
-  ```
-  ▼ system
-      log_level: INFO
-      root: /home/user/ExoFrame
-  ▼ ai
-      provider: google
-      model: gemini-2.5-pro
-      timeout_sec: 120
-  ▶ database
-  ▶ paths
-  ▶ agents
-  ▶ rate_limiting
-  ▶ git
-  ▶ tools
-  ```
+```
+
+▼ system
+log_level: INFO
+root: /home/user/ExoFrame
+▼ ai
+provider: google
+model: gemini-2.5-pro
+timeout_sec: 120
+▶ database
+▶ paths
+▶ agents
+▶ rate_limiting
+▶ git
+▶ tools
+
+```
 - **Detail (right/bottom)**: Shows the selected option's full metadata — current value, default value, type, allowed range/choices, and description.
 
 ### Editing Options
@@ -977,13 +1007,13 @@ A view for querying and filtering the Activity Journal (SQLite-backed audit log)
 ### Operations
 
 - **`F7` Multi-Filter**: Opens a filter form with fields:
-  - `trace_id`: Filter by trace ID
-  - `action_type`: Filter by action (e.g., `request.created`, `plan.approved`)
-  - `agent_id`: Filter by agent
-  - `actor`: Filter by actor (human/agent/system)
-  - `since`: Filter by time (e.g., `1h`, `24h`, `7d`)
-  - `target`: Filter by target entity
-  - `payload`: Full-text search within payload JSON
+- `trace_id`: Filter by trace ID
+- `action_type`: Filter by action (e.g., `request.created`, `plan.approved`)
+- `agent_id`: Filter by agent
+- `actor`: Filter by actor (human/agent/system)
+- `since`: Filter by time (e.g., `1h`, `24h`, `7d`)
+- `target`: Filter by target entity
+- `payload`: Full-text search within payload JSON
 - **`F9` Format Toggle**: Cycle display format: table → JSON → text.
 - **`F3` View Payload**: Expand full event payload in the Detail section.
 - **`F5` Refresh**: Re-query with current filters.
@@ -1016,7 +1046,7 @@ The Memory View supports 5 tabbed sub-domains, switchable via **`F9`**. Each sub
 
 ### Tab: Global
 
-- **Master**: Global learnings list (ID, Title, Category, Confidence, Tags).
+- **Master**: Global learnings list (ID, Subject, Category, Confidence, Tags).
 - **Detail**: Full learning content.
 - **Actions**: `F3` View, `F6` Demote to Project, `Alt+I` Show Stats.
 
@@ -1114,15 +1144,15 @@ The following components support the Linked Detail Mode (Master top/left, Detail
 Each view receives data through **injected service interfaces**, maintaining separation between UI and business logic.
 
 ### Service Adapter Pattern
-
-```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  TUI View   │────▶│ Service Interface │────▶│ CLI Commands /  │
-│ (Rendering) │     │ (IRequestService │     │ DatabaseService │
-│             │◀────│  IPlanService)   │◀────│ (SQLite/PG)     │
-└─────────────┘     └──────────────────┘     └─────────────────┘
 ```
 
+┌─────────────┐ ┌──────────────────┐ ┌─────────────────┐
+│ TUI View │────▶│ Service Interface │────▶│ CLI Commands / │
+│ (Rendering) │ │ (IRequestService │ │ DatabaseService │
+│ │◀────│ IPlanService) │◀────│ (SQLite/PG) │
+└─────────────┘ └──────────────────┘ └─────────────────┘
+
+````
 - Views never call CLI commands directly; they use **typed adapters** (e.g., `RequestCommandsServiceAdapter`).
 - Adapters translate between the CLI layer and the view's expected `IRequest`, `IPlan`, `IReview` interfaces.
 
@@ -1175,7 +1205,7 @@ The TUI persists configuration to `~/.exoframe/tui_layout.json`:
     "main": ["trace-id-abc", "trace-id-def"]
   }
 }
-```
+````
 
 - **Migration**: If `version` is missing or `"1.1"`, the loader adds default values for new fields and writes `"2.0"`.
 - State is saved on exit and restored on launch.
